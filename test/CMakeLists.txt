@@ -28,6 +28,10 @@ add_executable (core-tests
     ${CORE_TESTS_SRCS}
 )
 
+if (NOT WIN32)
+    target_link_libraries(core-tests ${Boost_LIBRARIES})
+endif()
+
 set(HTTP_TESTS_SRCS
     main.cpp
     http/basic_headers.cpp
@@ -55,6 +59,10 @@ add_executable (http-tests
     ${HTTP_TESTS_SRCS}
 )
 
+if (NOT WIN32)
+    target_link_libraries(http-tests ${Boost_LIBRARIES})
+endif()
+
 set(WEBSOCKET_TESTS_SRCS
     main.cpp
     websocket/error.cpp
@@ -70,6 +78,10 @@ add_executable (websocket-tests
     ${WEBSOCKET_TESTS_SRCS}
 )
 
+if (NOT WIN32)
+    target_link_libraries(websocket-tests ${Boost_LIBRARIES})
+endif()
+
 set(PARSER_BENCH_SRCS
     main.cpp
     http/nodejs_parser.cpp
@@ -80,3 +92,7 @@ add_executable (parser-bench
     ${BEAST_INCLUDES}
     ${PARSER_BENCH_SRCS}
 )
+
+if (NOT WIN32)
+    target_link_libraries(parser-bench ${Boost_LIBRARIES})
+endif()

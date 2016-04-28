@@ -1,6 +1,6 @@
 # Part of Beast
 
-cmake_minimum_required (VERSION 3.5)
+cmake_minimum_required (VERSION 3.2)
 
 project (Beast)
 
@@ -9,6 +9,17 @@ set_property (GLOBAL PROPERTY USE_FOLDERS ON)
 if (WIN32)
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4 /wd4100 /D_SCL_SECURE_NO_WARNINGS=1 /D_CRT_SECURE_NO_WARNINGS=1")
 else()
+    set(Boost_USE_STATIC_LIBS ON)
+    set(Boost_USE_MULTITHREADED ON)
+    find_package(Boost REQUIRED COMPONENTS filesystem program_options system)
+    include_directories(${Boost_INCLUDE_DIRS})
+    link_directories(${Boost_LIBRARY_DIR})
+
+    set(THREADS_PREFER_PTHREAD_FLAG ON)
+    find_package(Threads)
+
+    set(CMAKE_CXX_FLAGS
+      "${CMAKE_CXX_FLAGS} -g -std=c++11 -Wall -Wno-unused-variable")
 endif()
 
 message ("cxx Flags: " ${CMAKE_CXX_FLAGS})
