@@ -43,6 +43,7 @@ HTTP:
 * More fine grained parser errors
 * HTTP parser size limit with test (configurable?)
 * HTTP parser trailers with test
+* Decode chunk encoding parameters
 * URL parser, strong URL character checking in HTTP parser
 * Update for rfc7230
 * Consider rename to MessageBody concept

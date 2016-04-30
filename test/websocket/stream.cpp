@@ -477,6 +477,67 @@ public:
         }
     }
 
+    struct con
+    {
+        stream<socket_type> ws;
+
+        explicit
+        con(endpoint_type const& ep, boost::asio::io_service& ios)
+            : ws(ios)
+        {
+            ws.next_layer().connect(ep);
+            ws.handshake("localhost", "/");
+        }
+    };
+
+    template<std::size_t N>
+    class cbuf_helper
+        : public boost::asio::const_buffers_1
+    {
+        std::array<std::uint8_t, N> v_;
+    public:
+        template<class... Vn>
+        explicit
+        cbuf_helper(Vn... vn)
+            : boost::asio::const_buffers_1(
+                v_.data(), N)
+            , v_({ static_cast<std::uint8_t>(vn)... })
+        {
+        }
+    };
+
+    template<class... Vn>
+    cbuf_helper<sizeof...(Vn)>
+    cbuf(Vn... vn)
+    {
+        return cbuf_helper<sizeof...(Vn)>(vn...);
+    }
+
+    void testClose(endpoint_type const& ep, yield_context do_yield)
+    {
+        using boost::asio::buffer;
+        using str = std::string;
+        {
+            // payload length 1
+            con c(ep, ios_);
+            boost::asio::write(c.ws.next_layer(),
+                cbuf(0x88, 0x81, 0xff, 0xff, 0xff, 0xff, 0x00));
+        }
+        {
+            // invalid close code 1005
+            con c(ep, ios_);
+            boost::asio::write(c.ws.next_layer(),
+                cbuf(0x88, 0x82, 0xff, 0xff, 0xff, 0xff, 0xfc, 0x12));
+        }
+        {
+            // invalid utf8
+            con c(ep, ios_);
+            boost::asio::write(c.ws.next_layer(),
+                cbuf(0x88, 0x86, 0xff, 0xff, 0xff, 0xff, 0xfc, 0x15,
+                    0x0f, 0xd7, 0x73, 0x43));
+        }
+    }
+
     void testWriteFrame(endpoint_type const& ep)
     {
         for(;;)
@@ -528,6 +589,9 @@ public:
             yield_to(std::bind(&stream_test::testMask,
                 this, ep, std::placeholders::_1));
 
+            yield_to(std::bind(&stream_test::testClose,
+                this, ep, std::placeholders::_1));
+
             testWriteFrame(ep);
         }
         {
@@ -541,6 +605,9 @@ public:
                 this, ep, std::placeholders::_1));
 
             yield_to(std::bind(&stream_test::testMask,
+                this, ep, std::placeholders::_1));
+
+            yield_to(std::bind(&stream_test::testClose,
                 this, ep, std::placeholders::_1));
         }
 
