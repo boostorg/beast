@@ -503,7 +503,7 @@ public:
         template<class... Vn>
         explicit
         cbuf_helper(Vn... vn)
-            : v_({ static_cast<std::uint8_t>(vn)... })
+            : v_({{ static_cast<std::uint8_t>(vn)... }})
             , cb_(v_.data(), v_.size())
         {
         }
@@ -531,7 +531,6 @@ public:
     void testClose(endpoint_type const& ep, yield_context do_yield)
     {
         using boost::asio::buffer;
-        using str = std::string;
         {
             // payload length 1
             con c(ep, ios_);
