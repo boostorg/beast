@@ -492,17 +492,32 @@ public:
 
     template<std::size_t N>
     class cbuf_helper
-        : public boost::asio::const_buffers_1
     {
         std::array<std::uint8_t, N> v_;
+        boost::asio::const_buffer cb_;
+
     public:
+        using value_type = decltype(cb_);
+        using const_iterator = value_type const*;
+
         template<class... Vn>
         explicit
         cbuf_helper(Vn... vn)
-            : boost::asio::const_buffers_1(
-                v_.data(), N)
-            , v_({ static_cast<std::uint8_t>(vn)... })
+            : v_({ static_cast<std::uint8_t>(vn)... })
+            , cb_(v_.data(), v_.size())
         {
+        }
+
+        const_iterator
+        begin() const
+        {
+            return &cb_;
+        }
+
+        const_iterator
+        end() const
+        {
+            return begin()+1;
         }
     };
 
