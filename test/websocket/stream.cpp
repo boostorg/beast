@@ -29,9 +29,76 @@ class stream_test
     , public test::enable_yield_to
 {
 public:
+    using self = stream_test;
     using endpoint_type = boost::asio::ip::tcp::endpoint;
     using address_type = boost::asio::ip::address;
     using socket_type = boost::asio::ip::tcp::socket;
+
+    struct con
+    {
+        stream<socket_type> ws;
+
+        explicit
+        con(endpoint_type const& ep, boost::asio::io_service& ios)
+            : ws(ios)
+        {
+            ws.next_layer().connect(ep);
+            ws.handshake("localhost", "/");
+        }
+    };
+
+    template<std::size_t N>
+    class cbuf_helper
+    {
+        std::array<std::uint8_t, N> v_;
+        boost::asio::const_buffer cb_;
+
+    public:
+        using value_type = decltype(cb_);
+        using const_iterator = value_type const*;
+
+        template<class... Vn>
+        explicit
+        cbuf_helper(Vn... vn)
+            : v_({{ static_cast<std::uint8_t>(vn)... }})
+            , cb_(v_.data(), v_.size())
+        {
+        }
+
+        const_iterator
+        begin() const
+        {
+            return &cb_;
+        }
+
+        const_iterator
+        end() const
+        {
+            return begin()+1;
+        }
+    };
+
+    template<class... Vn>
+    cbuf_helper<sizeof...(Vn)>
+    cbuf(Vn... vn)
+    {
+        return cbuf_helper<sizeof...(Vn)>(vn...);
+    }
+
+    template<std::size_t N>
+    static
+    boost::asio::const_buffers_1
+    sbuf(const char (&s)[N])
+    {
+        return boost::asio::const_buffers_1(&s[0], N-1);
+    }
+
+    typedef void(self::*pmf_t)(endpoint_type const&, yield_context);
+
+    void yield_to_mf(endpoint_type const& ep, pmf_t mf)
+    {
+        yield_to(std::bind(mf, this, ep, std::placeholders::_1));
+    }
 
     void testClamp()
     {
@@ -70,14 +137,6 @@ public:
         {
             pass();
         }
-    }
-
-    template<std::size_t N>
-    static
-    boost::asio::const_buffers_1
-    strbuf(const char (&s)[N])
-    {
-        return boost::asio::const_buffers_1(&s[0], N-1);
     }
 
     void testAccept(yield_context do_yield)
@@ -167,7 +226,7 @@ public:
                 "\r\n");
             try
             {
-                ws.accept(strbuf(
+                ws.accept(sbuf(
                     "GET / HTTP/1.1\r\n"));
                 pass();
             }
@@ -181,7 +240,7 @@ public:
                 "\r\n");
             try
             {
-                ws.accept(strbuf(
+                ws.accept(sbuf(
                     "GET / HTTP/1.1\r\n"));
                 fail();
             }
@@ -199,7 +258,7 @@ public:
                 "Sec-WebSocket-Version: 13\r\n"
                 "\r\n");
             error_code ec;
-            ws.accept(strbuf(
+            ws.accept(sbuf(
                 "GET / HTTP/1.1\r\n"), ec);
             expect(! ec, ec.message());
         }
@@ -220,7 +279,7 @@ public:
                 "Sec-WebSocket-Version: 13\r\n"
                 "\r\n");
             error_code ec;
-            ws.async_accept(strbuf(
+            ws.async_accept(sbuf(
                 "GET / HTTP/1.1\r\n"), do_yield[ec]);
             expect(! ec, ec.message());
         }
@@ -228,7 +287,7 @@ public:
             stream<test::string_stream> ws(ios_,
                 "\r\n");
             error_code ec;
-            ws.async_accept(strbuf(
+            ws.async_accept(sbuf(
                 "GET / HTTP/1.1\r\n"), do_yield[ec]);
             expect(ec);
         }
@@ -304,7 +363,7 @@ public:
         }
     }
 
-    void testErrorHandling(endpoint_type const& ep,
+    void testErrors(endpoint_type const& ep,
         yield_context do_yield)
     {
         static std::size_t constexpr limit = 100;
@@ -477,60 +536,20 @@ public:
         }
     }
 
-    struct con
+    void testPing(endpoint_type const& ep, yield_context do_yield)
     {
-        stream<socket_type> ws;
-
-        explicit
-        con(endpoint_type const& ep, boost::asio::io_service& ios)
-            : ws(ios)
         {
-            ws.next_layer().connect(ep);
-            ws.handshake("localhost", "/");
+            con c(ep, ios_);
+            c.ws.ping("");
         }
-    };
-
-    template<std::size_t N>
-    class cbuf_helper
-    {
-        std::array<std::uint8_t, N> v_;
-        boost::asio::const_buffer cb_;
-
-    public:
-        using value_type = decltype(cb_);
-        using const_iterator = value_type const*;
-
-        template<class... Vn>
-        explicit
-        cbuf_helper(Vn... vn)
-            : v_({{ static_cast<std::uint8_t>(vn)... }})
-            , cb_(v_.data(), v_.size())
         {
+            con c(ep, ios_);
+            c.ws.ping("Hello, World!");
         }
-
-        const_iterator
-        begin() const
-        {
-            return &cb_;
-        }
-
-        const_iterator
-        end() const
-        {
-            return begin()+1;
-        }
-    };
-
-    template<class... Vn>
-    cbuf_helper<sizeof...(Vn)>
-    cbuf(Vn... vn)
-    {
-        return cbuf_helper<sizeof...(Vn)>(vn...);
     }
 
     void testClose(endpoint_type const& ep, yield_context do_yield)
     {
-        using boost::asio::buffer;
         {
             // payload length 1
             con c(ep, ios_);
@@ -601,17 +620,11 @@ public:
             sync_echo_peer server(true, any);
             auto const ep = server.local_endpoint();
 
-            yield_to(std::bind(&stream_test::testHandshake,
-                this, ep, std::placeholders::_1));
-
-            yield_to(std::bind(&stream_test::testErrorHandling,
-                this, ep, std::placeholders::_1));
-
-            yield_to(std::bind(&stream_test::testMask,
-                this, ep, std::placeholders::_1));
-
-            yield_to(std::bind(&stream_test::testClose,
-                this, ep, std::placeholders::_1));
+            yield_to_mf(ep, &stream_test::testHandshake);
+            yield_to_mf(ep, &stream_test::testErrors);
+            yield_to_mf(ep, &stream_test::testMask);
+            yield_to_mf(ep, &stream_test::testPing);
+            yield_to_mf(ep, &stream_test::testClose);
 
             testWriteFrame(ep);
         }
@@ -619,17 +632,11 @@ public:
             async_echo_peer server(true, any, 1);
             auto const ep = server.local_endpoint();
 
-            yield_to(std::bind(&stream_test::testHandshake,
-                this, ep, std::placeholders::_1));
-
-            yield_to(std::bind(&stream_test::testErrorHandling,
-                this, ep, std::placeholders::_1));
-
-            yield_to(std::bind(&stream_test::testMask,
-                this, ep, std::placeholders::_1));
-
-            yield_to(std::bind(&stream_test::testClose,
-                this, ep, std::placeholders::_1));
+            yield_to_mf(ep, &stream_test::testHandshake);
+            yield_to_mf(ep, &stream_test::testErrors);
+            yield_to_mf(ep, &stream_test::testMask);
+            yield_to_mf(ep, &stream_test::testPing);
+            yield_to_mf(ep, &stream_test::testClose);
         }
 
         pass();

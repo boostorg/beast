@@ -184,7 +184,8 @@ accept()
         "SyncStream requirements not met");
     error_code ec;
     accept(boost::asio::null_buffers{}, ec);
-    detail::maybe_throw(ec, "accept");
+    if(ec)
+        throw system_error{ec};
 }
 
 template<class NextLayer>
@@ -223,7 +224,8 @@ accept(ConstBufferSequence const& buffers)
             "ConstBufferSequence requirements not met");
     error_code ec;
     accept(buffers, ec);
-    detail::maybe_throw(ec, "accept");
+    if(ec)
+        throw system_error{ec};
 }
 
 template<class NextLayer>
@@ -279,7 +281,8 @@ accept(http::request_v1<Body, Headers> const& request)
         "SyncStream requirements not met");
     error_code ec;
     accept(request, ec);
-    detail::maybe_throw(ec, "accept");
+    if(ec)
+        throw system_error{ec};
 }
 
 template<class NextLayer>
@@ -333,7 +336,8 @@ handshake(boost::string_ref const& host,
         "SyncStream requirements not met");
     error_code ec;
     handshake(host, resource, ec);
-    detail::maybe_throw(ec, "upgrade");
+    if(ec)
+        throw system_error{ec};
 }
 
 template<class NextLayer>
@@ -383,7 +387,8 @@ close(close_reason const& cr)
         "SyncStream requirements not met");
     error_code ec;
     close(cr, ec);
-    detail::maybe_throw(ec, "close");
+    if(ec)
+        throw system_error{ec};
 }
 
 template<class NextLayer>
@@ -419,6 +424,57 @@ async_close(close_reason const& cr, CloseHandler&& handler)
 }
 
 template<class NextLayer>
+void
+stream<NextLayer>::
+ping(ping_payload_type const& payload)
+{
+    error_code ec;
+    ping(payload, ec);
+    if(ec)
+        throw system_error{ec};
+}
+
+template<class NextLayer>
+void
+stream<NextLayer>::
+ping(ping_payload_type const& payload, error_code& ec)
+{
+    using boost::asio::buffer;
+    using boost::asio::buffer_copy;
+    detail::frame_header fh;
+    fh.op = opcode::ping;
+    fh.fin = true;
+    fh.rsv1 = false;
+    fh.rsv2 = false;
+    fh.rsv3 = false;
+    fh.len = payload.size();
+    fh.mask = role_ == role_type::client;
+    if(fh.mask)
+        fh.key = maskgen_();
+    detail::frame_streambuf sb;
+    detail::write(sb, fh);
+    if(payload.size() > 0)
+    {
+        if(fh.mask)
+        {
+            auto const d = sb.prepare(payload.size());
+            boost::asio::buffer_copy(d,
+                buffer(payload.data(), payload.size()));
+            detail::prepared_key_type key;
+            detail::prepare_key(key, fh.key);
+            detail::mask_inplace(d, key);
+            sb.commit(payload.size());
+        }
+        else
+        {
+            sb.commit(buffer_copy(sb.prepare(payload.size()),
+                buffer(payload.data(), payload.size())));
+        }
+        boost::asio::write(stream_, sb.data(), ec);
+    }
+}
+
+template<class NextLayer>
 template<class Streambuf>
 void
 stream<NextLayer>::
@@ -428,7 +484,8 @@ read(opcode& op, Streambuf& streambuf)
         "SyncStream requirements not met");
     error_code ec;
     read(op, streambuf, ec);
-    detail::maybe_throw(ec, "read");
+    if(ec)
+        throw system_error{ec};
 }
 
 template<class NextLayer>
@@ -481,7 +538,8 @@ read_frame(frame_info& fi, Streambuf& streambuf)
         "SyncStream requirements not met");
     error_code ec;
     read_frame(fi, streambuf, ec);
-    detail::maybe_throw(ec, "read_some");
+    if(ec)
+        throw system_error{ec};
 }
 
 template<class NextLayer>
@@ -658,7 +716,8 @@ write(ConstBufferSequence const& buffers)
         "SyncStream requirements not met");
     error_code ec;
     write(buffers, ec);
-    detail::maybe_throw(ec, "write");
+    if(ec)
+        throw system_error{ec};
 }
 
 template<class NextLayer>
@@ -719,7 +778,8 @@ write_frame(bool fin, ConstBufferSequence const& buffers)
         "SyncStream requirements not met");
     error_code ec;
     write_frame(fin, buffers, ec);
-    detail::maybe_throw(ec, "write");
+    if(ec)
+        throw system_error{ec};
 }
 
 template<class NextLayer>

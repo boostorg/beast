@@ -30,15 +30,6 @@ namespace beast {
 namespace websocket {
 namespace detail {
 
-template<class String>
-inline
-void
-maybe_throw(error_code const& ec, String const&)
-{
-    if(ec)
-        throw system_error{ec};
-}
-
 template<class UInt>
 static
 std::size_t

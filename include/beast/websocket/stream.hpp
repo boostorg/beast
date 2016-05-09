@@ -896,6 +896,44 @@ public:
     #endif
     async_close(close_reason const& cr, CloseHandler&& handler);
 
+    /** Send a WebSocket ping frame.
+
+        This function is used to sycnhronously send a ping frame on
+        the stream. The call blocks until one of the following is true:
+
+        @li The ping frame finishes sending.
+
+        @li An error occurs on the stream.
+
+        This function is implemented in terms of one or more calls to the
+        next layer's `write_some` functions.
+
+        @param payload The payload of the ping message, which may be empty.
+
+        @throws boost::system::system_error Thrown on failure.
+    */
+    void
+    ping(ping_payload_type const& payload);
+
+    /** Send a WebSocket ping frame.
+
+        This function is used to sycnhronously send a ping frame on
+        the stream. The call blocks until one of the following is true:
+
+        @li The ping frame finishes sending.
+
+        @li An error occurs on the stream.
+
+        This function is implemented in terms of one or more calls to the
+        next layer's `write_some` functions.
+
+        @param payload The payload of the ping message, which may be empty.
+
+        @param ec Set to indicate what error occurred, if any.
+    */
+    void
+    ping(ping_payload_type const& payload, error_code& ec);
+
     /** Read a message from the stream.
 
         This function is used to synchronously read a message from
