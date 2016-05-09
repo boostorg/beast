@@ -551,6 +551,13 @@ public:
                 cbuf(0x88, 0x86, 0xff, 0xff, 0xff, 0xff, 0xfc, 0x15,
                     0x0f, 0xd7, 0x73, 0x43));
         }
+        {
+            // good utf8
+            con c(ep, ios_);
+            boost::asio::write(c.ws.next_layer(),
+                cbuf(0x88, 0x86, 0xff, 0xff, 0xff, 0xff, 0xfc, 0x15,
+                    'u', 't', 'f', '8'));
+        }
     }
 
     void testWriteFrame(endpoint_type const& ep)
