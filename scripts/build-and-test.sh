@@ -28,7 +28,7 @@ echo "using MAIN_BRANCH: $MAIN_BRANCH"
 #################################### HELPERS ###################################
 
 function run_tests_with_gdb {
-  for x in bin/**/*-tests; do scripts/run-with-gdb.sh "$x"; done
+  for x in bin/**/$VARIANT/**/*-tests; do scripts/run-with-gdb.sh "$x"; done
 }
 
 function build_beast {
@@ -39,7 +39,7 @@ function build_beast {
 
 function run_autobahn_test_suite {
   # Run autobahn tests
-  wsecho=`find . -name "websocket-echo"`
+  wsecho=`find bin -name "websocket-echo" | grep /$VARIANT/`
   nohup scripts/run-with-gdb.sh $wsecho&
 
   # We need to wait a while so wstest can connect!
@@ -53,8 +53,8 @@ function run_autobahn_test_suite {
   # Kill it gracefully
   kill -INT %1
   # Sometimes it doesn't want to die
-  sleep 1
-  kill -INT %1 || echo "Dead already"
+  sleep 10
+  [[ `jobs` == "" ]] || kill -INT %1
 }
 
 ##################################### BUILD ####################################
@@ -88,15 +88,11 @@ if [[ $VARIANT == "coverage" ]]; then
   ~/.local/bin/codecov -X gcov
   cat lcov.info | node_modules/.bin/coveralls
 else
-  # TODO: make a function
   run_tests_with_gdb
 
   if [[ $MAIN_BRANCH == "1" ]] && [[ $VARIANT == "coverage" ]]; then
-    for x in bin/**/*-tests; do
-      # if [[ $x != "bench-tests" ]]; then
+    for x in bin/**/$VARIANT/**/*-tests; do
       valgrind --error-exitcode=1 "$x"
-        ## declare -i RESULT=$RESULT + $?
-      # fi
     done
     echo
   fi
