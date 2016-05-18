@@ -10,7 +10,16 @@ shopt -s globstar
 
 ################################## ENVIRONMENT #################################
 
-export PATH=$VALGRIND_ROOT/bin:$LCOV_ROOT/usr/bin:$PATH
+# If not CI, then set some defaults
+if [[ "${CI:-}" == "" ]]; then
+  TRAVIS_BRANCH=${TRAVIS_BRANCH:-feature}
+  CC=${CC:-gcc}
+  ADDRESS_MODEL=${ADDRESS_MODEL:-64}
+  VARIANT=${VARIANT:-debug}
+  # If running locally we assume we have lcov/valgrind on PATH
+else
+  export PATH=$VALGRIND_ROOT/bin:$LCOV_ROOT/usr/bin:$PATH
+fi
 
 MAIN_BRANCH="0"
 # For builds not triggered by a pull request TRAVIS_BRANCH is the name of the
