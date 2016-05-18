@@ -63,7 +63,7 @@ matrix:
 
     # Clang/UndefinedBehaviourSanitizer
     - compiler: clang
-      env: GCC_VER=5 VARIANT=usan CLANG_VER=3.8 ADDRESS_MODEL=64
+      env: GCC_VER=5 VARIANT=usan CLANG_VER=3.8 ADDRESS_MODEL=64 UBSAN_OPTIONS='print_stacktrace=1'
       addons: &ao_clang38
         apt:
           sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.8']
