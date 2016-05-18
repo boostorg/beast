@@ -1,6 +1,6 @@
-#!/bin/bash -u
+#!/usr/bin/env bash
 # Exit if anything fails.
-set -ex
+set -eux
 
 HERE=$PWD
 

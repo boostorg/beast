@@ -1,15 +1,17 @@
-#!/bin/bash -u
-# We use set -e and bash with -u to bail on first non zero exit code of any
-# processes launched or upon any unbound variable. -x will output command lines
-# used (with variable expansion)
+#!/usr/bin/env bash
+# We use set -e to bail on first non zero exit code of any processes launched
+# and -x to exit upon any unbound variable. -x will output command lines used
+# (with variable expansion)
+set -eux
+
+# brew install bash (4) to get this working on OSX!
 shopt -s globstar
-set -ex
+# (Then you'd need to sign gdb, or run this script with sudo -E)
 
 ################################## ENVIRONMENT #################################
 
 export PATH=$VALGRIND_ROOT/bin:$LCOV_ROOT/usr/bin:$PATH
 
-# TODO:
 MAIN_BRANCH="0"
 # For builds not triggered by a pull request TRAVIS_BRANCH is the name of the
 # branch currently being built; whereas for builds triggered by a pull request
@@ -28,7 +30,7 @@ echo "using MAIN_BRANCH: $MAIN_BRANCH"
 #################################### HELPERS ###################################
 
 function run_tests_with_gdb {
-  for x in bin/**/$VARIANT/**/*-tests; do scripts/run-with-gdb.sh "$x"; done
+  for x in bin/**/$VARIANT/**/*-tests; do scripts/run-with-debugger.sh "$x"; done
 }
 
 function build_beast {
@@ -40,7 +42,7 @@ function build_beast {
 function run_autobahn_test_suite {
   # Run autobahn tests
   wsecho=`find bin -name "websocket-echo" | grep /$VARIANT/`
-  nohup scripts/run-with-gdb.sh $wsecho&
+  nohup scripts/run-with-debugger.sh $wsecho&
 
   # We need to wait a while so wstest can connect!
   sleep 5
@@ -55,6 +57,7 @@ function run_autobahn_test_suite {
   # Sometimes it doesn't want to die
   sleep 10
   [[ `jobs` == "" ]] || kill -INT %1
+  sleep 1
 }
 
 ##################################### BUILD ####################################
