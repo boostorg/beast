@@ -98,6 +98,7 @@
           <bridgehead renderas="sect3">Constants</bridgehead>
           <simplelist type="vert" columns="1">
             <member><link linkend="beast.ref.websocket__close_code">close_code</link></member>
+            <member><link linkend="beast.ref.websocket__error">error</link></member>
             <member><link linkend="beast.ref.websocket__opcode">opcode</link></member>
           </simplelist>
         </entry>
