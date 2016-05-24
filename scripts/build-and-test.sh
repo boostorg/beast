@@ -1,28 +1,103 @@
-#!/bin/bash -u
-# We use set -e and bash with -u to bail on first non zero exit code of any
-# processes launched or upon any unbound variable
+#!/usr/bin/env bash
+# We use set -e to bail on first non zero exit code of any processes launched
+# and -x to exit upon any unbound variable. -x will output command lines used
+# (with variable expansion)
+set -eux
+
+# brew install bash (4) to get this working on OSX!
 shopt -s globstar
-set -ex
+# (Then you'd need to sign gdb, or run this script with sudo -E)
 
 ################################## ENVIRONMENT #################################
 
-export PATH=$VALGRIND_ROOT/bin:$LCOV_ROOT/usr/bin:$PATH
+# If not CI, then set some defaults
+if [[ "${CI:-}" == "" ]]; then
+  TRAVIS_BRANCH=${TRAVIS_BRANCH:-feature}
+  CC=${CC:-gcc}
+  ADDRESS_MODEL=${ADDRESS_MODEL:-64}
+  VARIANT=${VARIANT:-debug}
+  # If running locally we assume we have lcov/valgrind on PATH
+else
+  export PATH=$VALGRIND_ROOT/bin:$LCOV_ROOT/usr/bin:$PATH
+fi
+
+MAIN_BRANCH="0"
+# For builds not triggered by a pull request TRAVIS_BRANCH is the name of the
+# branch currently being built; whereas for builds triggered by a pull request
+# it is the name of the branch targeted by the pull request (in many cases this
+# will be master).
+if [[ $TRAVIS_BRANCH == "master" || $TRAVIS_BRANCH == "develop" ]]; then
+    MAIN_BRANCH="1"
+fi
+
+if [[ `uname` == "Darwin" ]]; then
+  num_jobs=`sysctl -n hw.ncpu`
+else
+  num_jobs=`nproc`
+fi
 
 echo "using toolset: $CC"
 echo "using variant: $VARIANT"
 echo "using address-model: $ADDRESS_MODEL"
 echo "using PATH: $PATH"
+echo "using MAIN_BRANCH: $MAIN_BRANCH"
+echo "using BOOST_ROOT: $BOOST_ROOT"
 
 #################################### HELPERS ###################################
 
-function run_tests_with_gdb {
-  for x in bin/**/*-tests; do scripts/run-with-gdb.sh "$x"; done
+function run_tests_with_debugger {
+  for x in bin/**/$VARIANT/**/*-tests; do
+    scripts/run-with-debugger.sh "$x"
+  done
+}
+
+function run_tests {
+  for x in bin/**/$VARIANT/**/*-tests; do
+    $x
+  done
+}
+
+function run_tests_with_valgrind {
+  for x in bin/**/$VARIANT/**/*-tests; do
+    if [[ `basename $x` == "bench-tests" ]]; then
+      $x
+    else
+      # TODO --max-stackframe=8388608
+      # see: https://travis-ci.org/vinniefalco/Beast/jobs/132486245
+      valgrind --error-exitcode=1 "$x"
+    fi
+  done
 }
 
 function build_beast {
   $BOOST_ROOT/bjam toolset=$CC \
                variant=$VARIANT \
-               address-model=$ADDRESS_MODEL
+               address-model=$ADDRESS_MODEL \
+               -j${num_jobs}
+}
+
+function run_autobahn_test_suite {
+  # Run autobahn tests
+  wsecho=`find bin -name "websocket-echo" | grep /$VARIANT/`
+  nohup $wsecho&
+
+  # We need to wait a while so wstest can connect!
+  sleep 5
+  cd scripts && wstest -m fuzzingclient
+  cd ..
+  # Show the output
+  cat nohup.out
+  rm nohup.out
+  # Show what jobs are running
+  jobs
+  # Wait a while for things to wind down before issuing a kill
+  sleep 5
+  # Kill it gracefully
+  kill -INT %1
+  # Sometimes it doesn't want to die
+  wait
+  # Parse the test results, with python>=2.5<3 script
+  python scripts/parseautobahn.py scripts/autoresults/index.json
 }
 
 ##################################### BUILD ####################################
@@ -38,24 +113,12 @@ if [[ $VARIANT == "coverage" ]]; then
   lcov --no-external -c -i -d . -o baseline.info > /dev/null
 
   # Perform test
-  run_tests_with_gdb
-
-  # Run autobahn tests
-  export SERVER=`find . -name "websocket-echo"`
-  nohup scripts/run-with-gdb.sh $SERVER&
-
-  # We need to wait a while so wstest can connect!
-  sleep 5
-#  cd scripts && wstest -m fuzzingclient
-#  cd ..
-  # Show the output
-  cat nohup.out
-  rm nohup.out
-  jobs
-  # Kill it gracefully
-  kill -INT %1
-  sleep 1
-  kill -INT %1 || echo "Dead already"
+  if [[ $MAIN_BRANCH == "1" ]]; then
+    run_tests_with_valgrind
+    run_autobahn_test_suite
+  else
+    run_tests
+  fi
 
   # Create test coverage data file
   lcov --no-external -c -d . -o testrun.info > /dev/null
@@ -64,20 +127,13 @@ if [[ $VARIANT == "coverage" ]]; then
   lcov -a baseline.info -a testrun.info -o lcov-all.info > /dev/null
 
   # Extract only include/beast, and don\'t report on examples/test
-  lcov -e "lcov-all.info" "*/include/beast/*" -o lcov.info > /dev/null
+  lcov -e "lcov-all.info" "$PWD/include/beast/*" -o lcov.info > /dev/null
 
   ~/.local/bin/codecov -X gcov
-else
-  # TODO: make a function
-  run_tests_with_gdb
+  cat lcov.info | node_modules/.bin/coveralls
 
-  if [[ $VARIANT == "debug" ]]; then
-    for x in bin/**/*-tests; do
-      # if [[ $x != "bench-tests" ]]; then
-      valgrind --error-exitcode=1 "$x"
-        ## declare -i RESULT=$RESULT + $?
-      # fi
-    done
-    echo
-  fi
+  # Clean up these stragglers so BOOST_ROOT cache is clean
+  find $BOOST_ROOT/bin.v2 -name "*.gcda" | xargs rm -f
+else
+  run_tests_with_debugger
 fi

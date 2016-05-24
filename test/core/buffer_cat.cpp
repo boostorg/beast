@@ -66,6 +66,12 @@ public:
             expect(buffer_size(buffer_cat(
                 sb1.data(), sb2.data())) == 12);
         }
+        for(auto it = bs.begin(); it != bs.end(); ++it)
+        {
+            decltype(bs)::const_iterator copy;
+            copy = it;
+            copy = copy;
+        }
     }
 
     void testIterators()
