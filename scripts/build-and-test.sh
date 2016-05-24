@@ -30,6 +30,13 @@ if [[ $TRAVIS_BRANCH == "master" || $TRAVIS_BRANCH == "develop" ]]; then
     MAIN_BRANCH="1"
 fi
 
+if [[ `uname` == "Darwin" ]]; then
+  num_jobs=`sysctl -n hw.ncpu`
+else
+  num_jobs=`nproc`
+fi
+
+
 echo "using toolset: $CC"
 echo "using variant: $VARIANT"
 echo "using address-model: $ADDRESS_MODEL"
@@ -42,10 +49,15 @@ function run_tests_with_gdb {
   for x in bin/**/$VARIANT/**/*-tests; do scripts/run-with-debugger.sh "$x"; done
 }
 
+function run_tests {
+  for x in bin/**/$VARIANT/**/*-tests; do $x; done
+}
+
 function build_beast {
   $BOOST_ROOT/bjam toolset=$CC \
                variant=$VARIANT \
-               address-model=$ADDRESS_MODEL
+               address-model=$ADDRESS_MODEL \
+               -j${num_jobs}
 }
 
 function run_autobahn_test_suite {
@@ -64,9 +76,7 @@ function run_autobahn_test_suite {
   # Kill it gracefully
   kill -INT %1
   # Sometimes it doesn't want to die
-  sleep 10
-  [[ `jobs` == "" ]] || kill -INT %1
-  sleep 1
+  wait
 }
 
 ##################################### BUILD ####################################
@@ -82,7 +92,7 @@ if [[ $VARIANT == "coverage" ]]; then
   lcov --no-external -c -i -d . -o baseline.info > /dev/null
 
   # Perform test
-  run_tests_with_gdb
+  run_tests
 
   if [[ $MAIN_BRANCH == "1" ]]; then
     run_autobahn_test_suite
