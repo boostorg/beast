@@ -15,15 +15,14 @@ namespace http {
 
 /** A list of parameters in a HTTP extension field value.
 
-    This container allows iteration of the parameter list
-    in a HTTP extension. The parameter list is a series
-    of "name = value" pairs with each pair starting with
-    a semicolon.
+    This container allows iteration of the parameter list in a HTTP
+    extension. The parameter list is a series of name/value pairs
+    with each pair starting with a semicolon. The value is optional.
 
     BNF:
     @code
         param-list  = *( OWS ";" OWS param )
-        param       = token OWS "=" OWS ( token / quoted-string )
+        param       = token OWS [ "=" OWS ( token / quoted-string ) ]
     @endcode
 
     If a parsing error is encountered while iterating the string,
@@ -48,8 +47,9 @@ class param_list
 public:
     /** The type of each element in the list.
 
-        The first string in the pair is the name of the
-        parameter, and the second string in the pair is its value.
+        The first string in the pair is the name of the parameter,
+        and the second string in the pair is its value (which may
+        be empty).
     */
     using value_type =
         std::pair<boost::string_ref, boost::string_ref>;
@@ -101,7 +101,7 @@ public:
         ext-list    = *( "," OWS ) ext *( OWS "," [ OWS ext ] )
         ext         = token param-list
         param-list  = *( OWS ";" OWS param )
-        param       = token OWS "=" OWS ( token / quoted-string )
+        param       = token OWS [ "=" OWS ( token / quoted-string ) ]
     @endcode
 
     If a parsing error is encountered while iterating the string,
@@ -196,13 +196,13 @@ public:
 
 /** A list of tokens in a comma separated HTTP field value.
 
-    This container allows iteration of the extensions in a HTTP
-    field value. The extension list is a comma separated list of
-    token parameter list pairs.
+    This container allows iteration of a list of items in a
+    header field value. The input is a comma separated list of
+    tokens.
 
     BNF:
     @code
-        token-list  = *( "," OWS ) token *( OWS "," [ OWS ext ] )
+        token-list  = *( "," OWS ) token *( OWS "," [ OWS token ] )
     @endcode
 
     If a parsing error is encountered while iterating the string,
@@ -226,12 +226,7 @@ class token_list
     boost::string_ref s_;
 
 public:
-    /** The type of each element in the token list.
-
-        The first element of the pair is the extension token, and the
-        second element of the pair is an iterable container holding the
-        extension's name/value parameters.
-    */
+    /// The type of each element in the token list.
     using value_type = boost::string_ref;
 
     /// A constant iterator to the list
