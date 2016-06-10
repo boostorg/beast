@@ -19,37 +19,37 @@
 namespace beast {
 namespace websocket {
 
-/** Automatic fragmentation size option.
+/** Automatic fragmentation option.
 
-    Sets the maximum size of fragments generated when sending messages
-    on a WebSocket stream.
+    Determines if outgoing message payloads are broken up into
+    multiple pieces.
 
-    When the automatic fragmentation size is non-zero, messages exceeding
-    the size will be split into multiple frames no larger than the size.
-    This setting does not affect frames sent explicitly using
-    @ref stream::write_frame or @ref stream::async_write_frame.
+    When the automatic fragmentation size is turned on, outgoing
+    message payloads are broken up into multiple frames no larger
+    than the write buffer size.
 
-    The default setting is to fragment messages into 16KB frames.
+    The default setting is to fragment messages.
 
     @note Objects of this type are passed to @ref stream::set_option.
 
     @par Example
-    Setting the automatic fragmentation size option:
+    Setting the automatic fragmentation option:
     @code
     ...
     websocket::stream<ip::tcp::socket> stream(ios);
-    stream.set_option(auto_fragment_size{8192});
+    stream.set_option(auto_fragment{true});
     @endcode
 */
 #if GENERATING_DOCS
-using auto_fragment_size = implementation_defined;
+using auto_fragment = implementation_defined;
 #else
-struct auto_fragment_size
+struct auto_fragment
 {
-    std::size_t value;
+    bool value;
 
-    auto_fragment_size(std::size_t n)
-        : value(n)
+    explicit
+    auto_fragment(bool v)
+        : value(v)
     {
     }
 };
@@ -142,6 +142,7 @@ struct keep_alive
 {
     bool value;
 
+    explicit
     keep_alive(bool v)
         : value(v)
     {
@@ -309,7 +310,11 @@ struct read_message_max
     for each connection, while increasing the size of the buffer can reduce
     the number of calls made to the next layer to write data.
 
-    The default setting is 4096. The minimum value is 64.
+    The default setting is 4096. The minimum value is 8.
+
+    The write buffer size can only be changed when the stream is not
+    open. Undefined behavior results if the option is modified after a
+    successful WebSocket handshake.
 
     @note Objects of this type are passed to @ref stream::set_option.
 
@@ -332,7 +337,7 @@ struct write_buffer_size
     write_buffer_size(std::size_t n)
         : value(n)
     {
-        if(n < 64)
+        if(n < 8)
             throw std::domain_error("write buffer size is too small");
     }
 };

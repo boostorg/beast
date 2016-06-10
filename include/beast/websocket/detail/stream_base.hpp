@@ -70,35 +70,58 @@ protected:
 
     struct op {};
 
-    detail::maskgen maskgen_;           // source of mask keys
-    decorator_type d_;                  // adorns http messages
-    bool keep_alive_ = false;           // close on failed upgrade
+    detail::maskgen maskgen_;               // source of mask keys
+    decorator_type d_;                      // adorns http messages
+    bool keep_alive_ = false;               // close on failed upgrade
     std::size_t rd_msg_max_ =
-        16 * 1024 * 1024;               // max message size
-    std::size_t
-        wr_frag_size_ = 16 * 1024;      // size of auto-fragments
-    std::size_t wr_buf_size_ = 4096;    // mask buffer size
-    opcode wr_opcode_ = opcode::text;   // outgoing message type
-    pong_cb pong_cb_;                   // pong callback
-    role_type role_;                    // server or client
-    bool failed_;                       // the connection failed
+        16 * 1024 * 1024;                   // max message size
+    bool wr_autofrag_ = true;               // auto fragment
+    std::size_t wr_buf_size_ = 4096;        // mask buffer size
+    opcode wr_opcode_ = opcode::text;       // outgoing message type
+    pong_cb pong_cb_;                       // pong callback
+    role_type role_;                        // server or client
+    bool failed_;                           // the connection failed
 
-    detail::frame_header rd_fh_;        // current frame header
-    detail::prepared_key_type rd_key_;  // prepared masking key
-    detail::utf8_checker rd_utf8_check_;// for current text msg
-    std::uint64_t rd_size_;             // size of the current message so far
-    std::uint64_t rd_need_ = 0;         // bytes left in msg frame payload
-    opcode rd_opcode_;                  // opcode of current msg
-    bool rd_cont_;                      // expecting a continuation frame
+    detail::frame_header rd_fh_;            // current frame header
+    detail::prepared_key_type rd_key_;      // prepared masking key
+    detail::utf8_checker rd_utf8_check_;    // for current text msg
+    std::uint64_t rd_size_;                 // size of the current message so far
+    std::uint64_t rd_need_ = 0;             // bytes left in msg frame payload
+    opcode rd_opcode_;                      // opcode of current msg
+    bool rd_cont_;                          // expecting a continuation frame
 
-    bool wr_close_;                     // sent close frame
-    bool wr_cont_;                      // next write is continuation frame
-    op* wr_block_;                      // op currenly writing
+    bool wr_close_;                         // sent close frame
+    op* wr_block_;                          // op currenly writing
 
-    ping_data* pong_data_;              // where to put pong payload
-    invokable rd_op_;                   // invoked after write completes
-    invokable wr_op_;                   // invoked after read completes
-    close_reason cr_;                   // set from received close frame
+    ping_data* pong_data_;                  // where to put pong payload
+    invokable rd_op_;                       // invoked after write completes
+    invokable wr_op_;                       // invoked after read completes
+    close_reason cr_;                       // set from received close frame
+
+    struct wr_t
+    {
+        bool cont;                          // next frame is continuation frame
+        bool autofrag;                      // if this message is auto fragmented
+        bool compress;                      // if this message is compressed
+        std::size_t size;                   // amount stored in buffer
+        std::size_t max;                    // size of write buffer
+        std::unique_ptr<std::uint8_t[]> buf;// write buffer storage
+
+        void
+        open()
+        {
+            cont = false;
+            size = 0;
+        }
+
+        void
+        close()
+        {
+            buf.reset();
+        }
+    };
+
+    wr_t wr_;
 
     stream_base(stream_base&&) = default;
     stream_base(stream_base const&) = delete;
@@ -114,6 +137,10 @@ protected:
     void
     open(role_type role);
 
+    template<class = void>
+    void
+    close();
+
     template<class DynamicBuffer>
     std::size_t
     read_fh1(DynamicBuffer& db, close_code::value& code);
@@ -121,6 +148,10 @@ protected:
     template<class DynamicBuffer>
     void
     read_fh2(DynamicBuffer& db, close_code::value& code);
+
+    template<class = void>
+    void
+    wr_prepare(bool compress);
 
     template<class DynamicBuffer>
     void
@@ -133,7 +164,8 @@ protected:
 
 template<class _>
 void
-stream_base::open(role_type role)
+stream_base::
+open(role_type role)
 {
     // VFALCO TODO analyze and remove dupe code in reset()
     role_ = role;
@@ -141,9 +173,18 @@ stream_base::open(role_type role)
     rd_need_ = 0;
     rd_cont_ = false;
     wr_close_ = false;
-    wr_cont_ = false;
     wr_block_ = nullptr;    // should be nullptr on close anyway
     pong_data_ = nullptr;   // should be nullptr on close anyway
+
+    wr_.open();
+}
+
+template<class _>
+void
+stream_base::
+close()
+{
+    wr_.close();
 }
 
 // Read fixed frame header
@@ -335,10 +376,34 @@ read_fh2(DynamicBuffer& db, close_code::value& code)
     code = close_code::none;
 }
 
+template<class _>
+void
+stream_base::
+wr_prepare(bool compress)
+{
+    wr_.autofrag = wr_autofrag_;
+    wr_.compress = compress;
+    wr_.size = 0;
+    if(compress || wr_.autofrag ||
+        role_ == detail::role_type::client)
+    {
+        if(! wr_.buf || wr_.max != wr_buf_size_)
+        {
+            wr_.max = wr_buf_size_;
+            wr_.buf.reset(new std::uint8_t[wr_.max]);
+        }
+    }
+    else
+    {
+        wr_.max = wr_buf_size_;
+        wr_.buf.reset();
+    }
+}
+
 template<class DynamicBuffer>
 void
-stream_base::write_close(
-    DynamicBuffer& db, close_reason const& cr)
+stream_base::
+write_close(DynamicBuffer& db, close_reason const& cr)
 {
     using namespace boost::endian;
     frame_header fh;
@@ -384,8 +449,9 @@ stream_base::write_close(
 
 template<class DynamicBuffer>
 void
-stream_base::write_ping(DynamicBuffer& db,
-    opcode op, ping_data const& data)
+stream_base::
+write_ping(
+    DynamicBuffer& db, opcode op, ping_data const& data)
 {
     frame_header fh;
     fh.op = op;

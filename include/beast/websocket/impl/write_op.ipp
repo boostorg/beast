@@ -115,8 +115,7 @@ operator()(error_code ec, bool again)
         {
         case 0:
         {
-            auto const n = std::min(
-                d.remain, d.ws.wr_frag_size_);
+            auto const n = d.remain;
             d.remain -= n;
             auto const fin = d.remain <= 0;
             if(fin)
