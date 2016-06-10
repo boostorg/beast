@@ -53,9 +53,9 @@ class stream<NextLayer>::write_frame_op
             , cont(boost_asio_handler_cont_helpers::
                 is_continuation(h))
         {
-            fh.op = ws.wr_cont_ ?
+            fh.op = ws.wr_.cont ?
                 opcode::cont : ws.wr_opcode_;
-            ws.wr_cont_ = ! fin;
+            ws.wr_.cont = ! fin;
             fh.fin = fin;
             fh.rsv1 = false;
             fh.rsv2 = false;

@@ -67,7 +67,9 @@ maskgen_t<_>::rekey()
     g_.seed(ss);
 }
 
-using maskgen = maskgen_t<std::mt19937>;
+// VFALCO NOTE This generator has 5KB of state!
+//using maskgen = maskgen_t<std::mt19937>;
+using maskgen = maskgen_t<std::minstd_rand>;
 
 //------------------------------------------------------------------------------
 

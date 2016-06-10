@@ -6,6 +6,7 @@
 API Changes:
 
 * Rename mask_buffer_size to write_buffer_size
+* Make auto_fragment a boolean option
 
 --------------------------------------------------------------------------------
 

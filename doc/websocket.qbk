@@ -302,13 +302,14 @@ in the error code [link beast.ref.websocket__error `error::closed`] being
 delivered to the caller in a subsequent read operation, assuming no other error
 takes place.
 
-To ensure timely delivery of control frames, large messages are broken up
-into smaller sized frames. The implementation chooses the size and number
-of the frames making up the message. The automatic fragment size option
-gives callers control over the size of these frames:
+To ensure timely delivery of control frames, large messages can be broken up
+into smaller sized frames. The automatic fragment option turns on this
+feature, and the write buffer size option determines the maximum size of
+the fragments:
 ```
     ...
-    ws.set_option(beast::websocket::auto_fragment_size{8192});
+    ws.set_option(beast::websocket::auto_fragment{true};
+    ws.set_option(beast::websocket::write_buffer_size{16384};
 ```
 
 The WebSocket protocol defines a procedure and control message for initiating
