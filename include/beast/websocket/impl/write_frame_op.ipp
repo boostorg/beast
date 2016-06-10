@@ -67,7 +67,7 @@ class stream<NextLayer>::write_frame_op
                 fh.key = ws.maskgen_();
                 detail::prepare_key(key, fh.key);
                 tmp_size = detail::clamp(
-                    fh.len, ws.mask_buf_size_);
+                    fh.len, ws.wr_buf_size_);
                 tmp = boost_asio_handler_alloc_helpers::
                     allocate(tmp_size, h);
                 remain = fh.len;

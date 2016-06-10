@@ -149,45 +149,6 @@ struct keep_alive
 };
 #endif
 
-/** Mask buffer size option.
-
-    Sets the size of the buffer allocated when the implementation
-    must allocate memory to apply the mask to a payload. Only affects
-    streams operating in the client role, since only clients send
-    masked frames. Lowering the size of the buffer can decrease the
-    memory requirements for each connection, while increasing the size
-    of the buffer can reduce the number of calls made to the next
-    layer to write masked data.
-
-    The default setting is 4096. The minimum value is 1.
-
-    @note Objects of this type are passed to @ref stream::set_option.
-
-    @par Example
-    Setting the write buffer size.
-    @code
-    ...
-    websocket::stream<ip::tcp::socket> ws(ios);
-    ws.set_option(mask_buffer_size{8192});
-    @endcode
-*/
-#if GENERATING_DOCS
-using mask_buffer_size = implementation_defined;
-#else
-struct mask_buffer_size
-{
-    std::size_t value;
-
-    explicit
-    mask_buffer_size(std::size_t n)
-        : value(n)
-    {
-        if(n == 0)
-            throw std::domain_error("invalid mask buffer size");
-    }
-};
-#endif
-
 /** Message type option.
 
     This controls the opcode set for outgoing messages. Valid
@@ -333,6 +294,46 @@ struct read_message_max
     read_message_max(std::size_t n)
         : value(n)
     {
+    }
+};
+#endif
+
+/** Write buffer size option.
+
+    Sets the size of the write buffer used by the implementation to
+    send frames. The write buffer is needed when masking payload data
+    in the client role, compressing frames, or auto-fragmenting message
+    data.
+
+    Lowering the size of the buffer can decrease the memory requirements
+    for each connection, while increasing the size of the buffer can reduce
+    the number of calls made to the next layer to write data.
+
+    The default setting is 4096. The minimum value is 64.
+
+    @note Objects of this type are passed to @ref stream::set_option.
+
+    @par Example
+    Setting the write buffer size.
+    @code
+    ...
+    websocket::stream<ip::tcp::socket> ws(ios);
+    ws.set_option(write_buffer_size{8192});
+    @endcode
+*/
+#if GENERATING_DOCS
+using write_buffer_size = implementation_defined;
+#else
+struct write_buffer_size
+{
+    std::size_t value;
+
+    explicit
+    write_buffer_size(std::size_t n)
+        : value(n)
+    {
+        if(n < 64)
+            throw std::domain_error("write buffer size is too small");
     }
 };
 #endif

@@ -77,7 +77,7 @@ protected:
         16 * 1024 * 1024;               // max message size
     std::size_t
         wr_frag_size_ = 16 * 1024;      // size of auto-fragments
-    std::size_t mask_buf_size_ = 4096;  // mask buffer size
+    std::size_t wr_buf_size_ = 4096;    // mask buffer size
     opcode wr_opcode_ = opcode::text;   // outgoing message type
     pong_cb pong_cb_;                   // pong callback
     role_type role_;                    // server or client

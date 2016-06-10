@@ -3,6 +3,10 @@
 * Make value optional in param-list
 * Frame processing routines are member functions
 
+API Changes:
+
+* Rename mask_buffer_size to write_buffer_size
+
 --------------------------------------------------------------------------------
 
 1.0.0-b15

@@ -152,13 +152,13 @@ public:
         ws.set_option(auto_fragment_size{2048});
         ws.set_option(decorate(identity{}));
         ws.set_option(keep_alive{false});
-        ws.set_option(mask_buffer_size(2048));
+        ws.set_option(write_buffer_size{2048});
         ws.set_option(message_type{opcode::text});
-        ws.set_option(read_buffer_size(8192));
-        ws.set_option(read_message_max(1 * 1024 * 1024));
+        ws.set_option(read_buffer_size{8192});
+        ws.set_option(read_message_max{1 * 1024 * 1024});
         try
         {
-            ws.set_option(mask_buffer_size(0));
+            ws.set_option(write_buffer_size{0});
             fail();
         }
         catch(std::exception const&)
@@ -925,7 +925,7 @@ public:
                 // send message with write buffer limit
                 {
                     std::string s(2000, '*');
-                    ws.set_option(mask_buffer_size(1200));
+                    ws.set_option(write_buffer_size(1200));
                     ws.write(buffer(s.data(), s.size()));
                     {
                         // receive echoed message
@@ -1187,7 +1187,7 @@ public:
                 // send message with mask buffer limit
                 {
                     std::string s(2000, '*');
-                    ws.set_option(mask_buffer_size(1200));
+                    ws.set_option(write_buffer_size(1200));
                     ws.async_write(buffer(s.data(), s.size()), do_yield[ec]);
                     if(ec)
                         throw system_error{ec};

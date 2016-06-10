@@ -695,7 +695,7 @@ write_frame(bool fin, ConstBufferSequence const& bs, error_code& ec)
     detail::prepared_key_type key;
     detail::prepare_key(key, fh.key);
     auto const tmp_size =
-        detail::clamp(fh.len, mask_buf_size_);
+        detail::clamp(fh.len, wr_buf_size_);
     std::unique_ptr<std::uint8_t[]> up(
         new std::uint8_t[tmp_size]);
     std::uint64_t remain = fh.len;
