@@ -243,8 +243,7 @@ operator()(error_code ec,std::size_t bytes_transferred, bool again)
             {
                 d.fb.commit(bytes_transferred);
                 code = close_code::none;
-                auto const n = detail::read_fh1(
-                    d.ws.rd_fh_, d.fb, d.ws.role_, code);
+                auto const n = d.ws.read_fh1(d.fb, code);
                 if(code != close_code::none)
                 {
                     // protocol error
@@ -266,10 +265,7 @@ operator()(error_code ec,std::size_t bytes_transferred, bool again)
             case do_read_fh + 2:
                 d.fb.commit(bytes_transferred);
                 code = close_code::none;
-                detail::read_fh2(d.ws.rd_fh_,
-                    d.fb, d.ws.role_, code);
-                if(code == close_code::none)
-                    d.ws.prepare_fh(code);
+                d.ws.read_fh2(d.fb, code);
                 if(code != close_code::none)
                 {
                     // protocol error
