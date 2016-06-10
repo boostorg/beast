@@ -241,9 +241,9 @@ public:
 
     /// Set the size of the mask buffer
     void
-    set_option(mask_buffer_size const& o)
+    set_option(write_buffer_size const& o)
     {
-        mask_buf_size_ = o.value;
+        wr_buf_size_ = o.value;
         stream_.capacity(o.value);
     }
 
