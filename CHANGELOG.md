@@ -1,6 +1,7 @@
 1.0.0-b16
 
 * Make value optional in param-list
+* Frame processing routines are member functions
 
 --------------------------------------------------------------------------------
 
