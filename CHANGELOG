@@ -1,3 +1,11 @@
+1.0.0-b7
+
+* Fixes and documentation for teardown and use with SSL:
+* Add example code to rfc7230 javadocs
+* Remove extraneous header file <beast/http/status.hpp>
+
+--------------------------------------------------------------------------------
+
 1.0.0-b6
 
 * Use SFINAE on return values
