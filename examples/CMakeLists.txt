@@ -13,21 +13,20 @@ add_executable (http-crawl
 )
 
 if (NOT WIN32)
-    target_link_libraries(http-crawl ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+    target_link_libraries(http-crawl ${Boost_LIBRARIES} Threads::Threads)
 endif()
 
 add_executable (http-server
     ${BEAST_INCLUDES}
     file_body.hpp
+    mime_type.hpp
     http_async_server.hpp
-    http_stream.hpp
-    http_stream.ipp
     http_sync_server.hpp
     http_server.cpp
 )
 
 if (NOT WIN32)
-    target_link_libraries(http-server ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+    target_link_libraries(http-server ${Boost_LIBRARIES} Threads::Threads)
 endif()
 
 add_executable (http-example
@@ -36,7 +35,7 @@ add_executable (http-example
 )
 
 if (NOT WIN32)
-    target_link_libraries(http-example ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+    target_link_libraries(http-example ${Boost_LIBRARIES} Threads::Threads)
 endif()
 
 add_executable (websocket-example
@@ -45,5 +44,5 @@ add_executable (websocket-example
 )
 
 if (NOT WIN32)
-    target_link_libraries(websocket-example ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+    target_link_libraries(websocket-example ${Boost_LIBRARIES} Threads::Threads)
 endif()
