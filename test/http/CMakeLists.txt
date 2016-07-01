@@ -24,7 +24,6 @@ add_executable (http-tests
     reason.cpp
     resume_context.cpp
     rfc7230.cpp
-    status.cpp
     streambuf_body.cpp
     string_body.cpp
     write.cpp
@@ -32,7 +31,7 @@ add_executable (http-tests
 )
 
 if (NOT WIN32)
-    target_link_libraries(http-tests ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+    target_link_libraries(http-tests ${Boost_LIBRARIES} Threads::Threads)
 endif()
 
 add_executable (bench-tests

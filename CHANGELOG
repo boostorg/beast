@@ -1,3 +1,18 @@
+1.0.0-b7
+
+* Fix prepare by calling init. prepare() can throw depending on the
+  implementation of Writer. Publicly provided beast::http writers never throw.
+* Fixes to example HTTP server
+* Fully qualify ambiguous calls to read and p
+* Remove deprecated http::stream wrapper
+* Example HTTP server now calculates the MIME-type
+* Fixes and documentation for teardown and use with SSL:
+* Add example code to rfc7230 javadocs
+* Remove extraneous header file <beast/http/status.hpp>
+* Add skip_body parser option
+
+--------------------------------------------------------------------------------
+
 1.0.0-b6
 
 * Use SFINAE on return values
