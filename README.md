@@ -82,6 +82,8 @@ Standard project installation example:
 1. Copy the Beast library headers to your project include directory, eg:
 
 
+Example HTTP program:
+```
     / My Project
         / include
             / beast
@@ -92,16 +94,17 @@ Standard project installation example:
         / src
            **program**
         CMakeLists.txt
-
+```
 2. Edit your CMakeLists file to include Beast header files
 
-
+```
     ...
     include_directories(
         ${YOUR_OTHER_INCLUDES}
         include/beast
     )
     ...\
+```
 
 3. That's it! See the usage examples below.
 
