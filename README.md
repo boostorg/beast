@@ -78,6 +78,7 @@ Usage Requirements:
 ## Installation
 
 Standard project installation example:
+
 1. Copy the Beast library headers to your project include directory, eg:
 
 
