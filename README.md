@@ -80,29 +80,29 @@ Usage Requirements:
 Standard project installation example:
 
 1. Copy the Beast library headers to your project include directory, eg:
-
-```
-    / My Project
-        / include
-            / beast
-                / core
-                / http
-                / websocket
-                **.hpp files*
-        / src
-           **program**
-        CMakeLists.txt
-```
+    
+    ```
+        / My Project
+            / include
+                / beast
+                    / core
+                    / http
+                    / websocket
+                    **.hpp files*
+            / src
+               **program**
+            CMakeLists.txt
+    ```
 2. Edit your CMakeLists file to include Beast header files
-
-```
-    ...
-    include_directories(
-        ${YOUR_OTHER_INCLUDES}
-        include/beast
-    )
-    ...\
-```
+    
+    ```
+        ...
+        include_directories(
+            ${YOUR_OTHER_INCLUDES}
+            include/beast
+        )
+        ...\
+    ```
 
 3. That's it! See the usage examples below.
 
