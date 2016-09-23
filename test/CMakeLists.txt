@@ -17,3 +17,7 @@ add_executable (lib-tests
 if (NOT WIN32)
     target_link_libraries(lib-tests ${Boost_LIBRARIES})
 endif()
+
+if (MINGW)
+    set_target_properties(lib-tests PROPERTIES COMPILE_FLAGS "-Wa,-mbig-obj")
+endif()
