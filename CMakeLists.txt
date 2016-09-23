@@ -6,16 +6,17 @@ project (Beast)
 
 set_property (GLOBAL PROPERTY USE_FOLDERS ON)
 
+set(Boost_USE_STATIC_LIBS ON)
+set(Boost_USE_MULTITHREADED ON)
+find_package(Boost REQUIRED COMPONENTS coroutine context thread filesystem program_options system)
+include_directories(${Boost_INCLUDE_DIRS})
+link_directories(${Boost_LIBRARY_DIRS})
+link_libraries(${Boost_LIBRARIES})
+
 if (MSVC)
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP /W4 /wd4100 /bigobj /D _WIN32_WINNT=0x0601 /D_SCL_SECURE_NO_WARNINGS=1 /D_CRT_SECURE_NO_WARNINGS=1")
     set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SAFESEH:NO")
 else()
-    set(Boost_USE_STATIC_LIBS ON)
-    set(Boost_USE_MULTITHREADED ON)
-    find_package(Boost REQUIRED COMPONENTS coroutine context thread filesystem program_options system)
-    include_directories(${Boost_INCLUDE_DIRS})
-    link_directories(${Boost_LIBRARY_DIR})
-
     set(THREADS_PREFER_PTHREAD_FLAG ON)
     find_package(Threads)
 
@@ -24,7 +25,7 @@ else()
 endif()
 
 if (MINGW)
-    link_libraries(ws2_32 mswsock ${Boost_LIBRARIES})
+    link_libraries(ws2_32 mswsock)
 endif()
 
 if ("${VARIANT}" STREQUAL "coverage")
