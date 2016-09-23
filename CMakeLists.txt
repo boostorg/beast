@@ -6,7 +6,7 @@ project (Beast)
 
 set_property (GLOBAL PROPERTY USE_FOLDERS ON)
 
-if (WIN32)
+if (MSVC)
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP /W4 /wd4100 /bigobj /D _WIN32_WINNT=0x0601 /D_SCL_SECURE_NO_WARNINGS=1 /D_CRT_SECURE_NO_WARNINGS=1")
     set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SAFESEH:NO")
 else()
@@ -21,6 +21,10 @@ else()
 
     set(CMAKE_CXX_FLAGS
       "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wpedantic")
+endif()
+
+if (MINGW)
+    link_libraries(ws2_32 mswsock ${Boost_LIBRARIES})
 endif()
 
 if ("${VARIANT}" STREQUAL "coverage")
