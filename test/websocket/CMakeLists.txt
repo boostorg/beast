@@ -25,6 +25,10 @@ if (NOT WIN32)
     target_link_libraries(websocket-tests ${Boost_LIBRARIES} Threads::Threads)
 endif()
 
+if (MINGW)
+    set_target_properties(websocket-tests PROPERTIES COMPILE_FLAGS "-Wa,-mbig-obj -Og")
+endif()
+
 add_executable (websocket-echo
     ${BEAST_INCLUDES}
     ${EXTRAS_INCLUDES}

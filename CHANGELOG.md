@@ -1,6 +1,8 @@
 1.0.0-b14
 
 * Add missing rebind to handler_alloc
+* Fix error handling in http server examples
+* Fix CMake scripts for MinGW
 
 --------------------------------------------------------------------------------
 
