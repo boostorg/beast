@@ -2,6 +2,8 @@
 
 * Buffer sequence containers conform to concepts
 * Add missing rebind to handler_alloc
+* Fix error handling in http server examples
+* Fix CMake scripts for MinGW
 
 --------------------------------------------------------------------------------
 
