@@ -5,7 +5,7 @@
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 ]
 
-[section:Writer Writer]
+[section:Writer Writer requirements]
 
 A `Writer` serializes the message body. The implementation creates an instance
 of this type when serializing a message, and calls into it zero or more times

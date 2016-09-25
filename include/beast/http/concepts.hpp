@@ -71,9 +71,7 @@ template<class T>
 struct is_Body
 {
     using type = std::integral_constant<bool,
-        has_value_type<T>::value &&
-        std::is_default_constructible<
-            typename extract_value_type<T>::type>::value
+        has_value_type<T>::value 
     >;
 };
 
@@ -92,7 +90,7 @@ class is_Parser
     template<class U, class R =
         std::is_convertible<decltype(
             std::declval<U>().write(
-                std::declval<boost::asio::const_buffer const&>(),
+                std::declval<boost::asio::const_buffers_1 const&>(),
                 std::declval<error_code&>())),
             std::size_t>>
     static R check2(int);

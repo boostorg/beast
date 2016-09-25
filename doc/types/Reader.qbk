@@ -5,7 +5,7 @@
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 ]
 
-[section:Reader Reader]
+[section:Reader Reader requirements]
 
 Parser implementations will construct the corresponding `reader` object
 during the parse. This customization point allows the Body to determine

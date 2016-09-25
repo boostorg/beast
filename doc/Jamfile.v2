@@ -15,15 +15,15 @@ using boostbook ;
 using quickbook ;
 using doxygen ;
 
-xml beast_boostbook : master.qbk ;
+import quickbook ;
 
-path-constant out : . ;
+path-constant here : . ;
 
 install stylesheets
     :
         $(broot)/doc/src/boostbook.css
     :
-        <location>$(out)/html
+        <location>$(here)/html
     ;
 
 explicit stylesheets ;
@@ -35,7 +35,7 @@ install images
         images/body.png
         images/message.png
     :
-        <location>$(out)/html/images
+        <location>$(here)/html/images
     ;
 
 explicit images ;
@@ -44,40 +44,49 @@ install callouts
     :
         [ glob $(broot)/doc/src/images/callouts/*.png ]
     :
-        <location>$(out)/html/images/callouts
+        <location>$(here)/html/images/callouts
     ;
 
 explicit callout ;
 
-boostbook doc
+install examples
     :
-        beast_boostbook
+        [ glob ../examples/*.* ]
     :
-        <xsl:param>chapter.autolabel=0
-        <xsl:param>boost.image.src=images/beast.png
-        <xsl:param>boost.image.alt="Beast Logo"
-        <xsl:param>boost.image.w=2400
-        <xsl:param>boost.image.h=80
-        <xsl:param>boost.root=$(broot)
-        <xsl:param>chapter.autolabel=0
-        <xsl:param>chunk.first.sections=1               # Chunk the first top-level section?
-        <xsl:param>chunk.section.depth=8                # Depth to which sections should be chunked
-        <xsl:param>generate.section.toc.level=1         # Control depth of TOC generation in sections
-        <xsl:param>toc.max.depth=2                      # How many levels should be created for each TOC?
-        <xsl:param>toc.section.depth=2                  # How deep should recursive sections appear in the TOC?
-    :
-        <location>temp
-        <dependency>stylesheets
-        <dependency>images
+        <location>$(here)/html/examples
     ;
 
-#explicit doc ;
-#        <xsl:param>nav.layout=none
-#        <format>html:<xsl:param>location=../bin/doc/html
-#        <xsl:param>generate.toc="chapter nop section nop"
-#        <xsl:param>root.filename=index
-#        <xsl:param>output-root="../bin/html"
+explicit examples ;
 
+xml doc
+    :
+        master.qbk
+    :
+        <location>temp
+        <include>$(broot)/tools/boostbook/dtd
+    ;
 
-#[include reference.qbk]
-#[xinclude index.xml]
+boostbook boostdoc
+    :
+        doc
+    :
+        <xsl:param>boost.root=$(broot)
+        <xsl:param>boost.image.src=images/beast.png
+        <xsl:param>boost.image.alt="Beast Logo"
+        <xsl:param>boost.image.w=1330
+        <xsl:param>boost.image.h=80
+        <xsl:param>chapter.autolabel=0
+        <xsl:param>chunk.section.depth=8                # Depth to which sections should be chunked
+        <xsl:param>chunk.first.sections=1               # Chunk the first top-level section?
+        <xsl:param>toc.section.depth=8                  # How deep should recursive sections appear in the TOC?
+        <xsl:param>toc.max.depth=8                      # How many levels should be created for each TOC?
+        <xsl:param>generate.section.toc.level=8         # Control depth of TOC generation in sections
+        <xsl:param>generate.toc="chapter nop section nop"
+        <include>$(broot)/tools/boostbook/dtd
+    :
+        <location>temp
+        <dependency>examples
+        <dependency>images
+        <dependency>stylesheets
+    ;
+
