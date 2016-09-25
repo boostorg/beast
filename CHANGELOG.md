@@ -4,6 +4,7 @@
 * Add missing rebind to handler_alloc
 * Fix error handling in http server examples
 * Fix CMake scripts for MinGW
+* Better WebSocket decorator
 
 --------------------------------------------------------------------------------
 
