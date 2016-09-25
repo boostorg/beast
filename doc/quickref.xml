@@ -71,12 +71,12 @@
           </simplelist>
           <bridgehead renderas="sect3">Concepts</bridgehead>
           <simplelist type="vert" columns="1">
-            <member><link linkend="beast.types.Body">Body</link></member>
-            <member><link linkend="beast.types.Field">Field</link></member>
-            <member><link linkend="beast.types.FieldSequence">FieldSequence</link></member>
-            <member><link linkend="beast.types.Parser">Parser</link></member>
-            <member><link linkend="beast.types.Reader">Reader</link></member>
-            <member><link linkend="beast.types.Writer">Writer</link></member>
+            <member><link linkend="beast.ref.Body">Body</link></member>
+            <member><link linkend="beast.ref.Field">Field</link></member>
+            <member><link linkend="beast.ref.FieldSequence">FieldSequence</link></member>
+            <member><link linkend="beast.ref.Parser">Parser</link></member>
+            <member><link linkend="beast.ref.Reader">Reader</link></member>
+            <member><link linkend="beast.ref.Writer">Writer</link></member>
           </simplelist>
         </entry>
         <entry valign="top">
@@ -181,11 +181,11 @@
         <entry valign="top">
           <bridgehead renderas="sect3">Concepts</bridgehead>
           <simplelist type="vert" columns="1">
-            <member><link linkend="beast.types.streams.AsyncStream">AsyncStream</link></member>
-            <member><link linkend="beast.types.BufferSequence">BufferSequence</link></member>
-            <member><link linkend="beast.types.DynamicBuffer">DynamicBuffer</link></member>
-            <member><link linkend="beast.types.streams.Stream">Stream</link></member>
-            <member><link linkend="beast.types.streams.SyncStream">SyncStream</link></member>
+            <member><link linkend="beast.ref.streams.AsyncStream">AsyncStream</link></member>
+            <member><link linkend="beast.ref.BufferSequence">BufferSequence</link></member>
+            <member><link linkend="beast.ref.DynamicBuffer">DynamicBuffer</link></member>
+            <member><link linkend="beast.ref.streams.Stream">Stream</link></member>
+            <member><link linkend="beast.ref.streams.SyncStream">SyncStream</link></member>
           </simplelist>
         </entry>
       </row>
