@@ -5,9 +5,9 @@
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 ]
 
-[section:Parser Parser]
+[section:Parser Parser requirements]
 
-A [*`Parser`] is used to deserialize HTTP/1 messages from [link beast.types.streams streams].
+A [*`Parser`] is used to deserialize HTTP/1 messages from [link beast.ref.streams streams].
 Objects of this type are used with [link beast.ref.http__parse http::parse] and
 [link beast.ref.http__async_parse http::async_parse].
 
@@ -17,7 +17,7 @@ In this table:
 
 * `a` denotes a value of type `X`.
 
-* `b` is a value meeting the requirements of [@http://www.boost.org/doc/libs/1_61_0/doc/html/boost_asio/reference/ConvertibleToConstBuffer.html [*`ConvertibleToConstBuffer`]].
+* `b` is a value meeting the requirements of [@http://www.boost.org/doc/libs/1_61_0/doc/html/boost_asio/reference/ConstBufferSequence.html [*`ConstBufferSequence`]].
 
 * `ec` is a value of type [link beast.ref.error_code `error_code&`].
 
@@ -34,11 +34,11 @@ In this table:
     [`a.write(b, ec)`]
     [`std::size_t`]
     [
-        Parses the octets in the specified input buffer sequentially until
-        an error occurs, the end of the buffer is reached, or a complete
-        HTTP/1 message has been parsed. If an error occurs, `ec` is set
-        to the error code and parsing stops. This function returns the
-        number of bytes consumed from the input buffer.
+        Sequentially parses the octets in the specified input buffer or input
+        buffer sequence until an error occurs, the end of the buffer is reached,
+        or a complete HTTP/1 message has been parsed. If an error occurs, `ec`
+        is set to the error code and parsing stops. Upon success, this function
+        returns the number of bytes used from the input.
     ]
 ]
 [

@@ -72,8 +72,8 @@ struct frame_info
     For asynchronous operations, the type must support the
     @b `AsyncStream` concept.
 
-    @note A stream object must not be destroyed while there are
-    pending asynchronous operations associated with it.
+    @note A stream object must not be moved or destroyed while there
+    are pending asynchronous operations associated with it.
 
     @par Concepts
         @b `AsyncStream`,
@@ -1018,7 +1018,8 @@ public:
         hold all the message payload bytes (which may be zero in length).
 
         Control frames encountered while reading frame or message data
-        are handled automatically. Pings are replied to, pongs are noted,
+        are handled automatically. Pings are replied to automatically,
+        pongs are routed to the pong callback if the option is set,
         and close frames initiate the WebSocket close procedure. When a
         close frame is received, this call will eventually return
         @ref error::closed. Because of the need to handle control frames,
@@ -1053,7 +1054,8 @@ public:
         hold all the message payload bytes (which may be zero in length).
 
         Control frames encountered while reading frame or message data
-        are handled automatically. Pings are replied to, pongs are noted,
+        are handled automatically. Pings are replied to automatically,
+        pongs are routed to the pong callback if the option is set,
         and close frames initiate the WebSocket close procedure. When a
         close frame is received, this call will eventually return
         @ref error::closed. Because of the need to handle control frames,
@@ -1152,7 +1154,8 @@ public:
         fi.fin == true, and zero bytes placed into the stream buffer.
 
         Control frames encountered while reading frame or message data
-        are handled automatically. Pings are replied to, pongs are noted,
+        are handled automatically. Pings are replied to automatically,
+        pongs are routed to the pong callback if the option is set,
         and close frames initiate the WebSocket close procedure. When a
         close frame is received, this call will eventually return
         @ref error::closed. Because of the need to handle control frames,
@@ -1190,7 +1193,8 @@ public:
         fi.fin == true, and zero bytes placed into the stream buffer.
 
         Control frames encountered while reading frame or message data
-        are handled automatically. Pings are replied to, pongs are noted,
+        are handled automatically. Pings are replied to automatically,
+        pongs are routed to the pong callback if the option is set,
         and close frames initiate the WebSocket close procedure. When a
         close frame is received, this call will eventually return
         @ref error::closed. Because of the need to handle control frames,
@@ -1233,7 +1237,8 @@ public:
         the stream buffer.
 
         Control frames encountered while reading frame or message data
-        are handled automatically. Pings are replied to, pongs are noted,
+        are handled automatically. Pings are replied to automatically,
+        pongs are routed to the pong callback if the option is set,
         and close frames initiate the WebSocket close procedure. When a
         close frame is received, this call will eventually return
         @ref error::closed. Because of the need to handle control frames,

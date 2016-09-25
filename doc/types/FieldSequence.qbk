@@ -5,10 +5,11 @@
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 ]
 
-[section:FieldSequence FieldSequence]
+[section:FieldSequence FieldSequence requirements]
 
 A [*`FieldSequence`] is an iterable container whose value type meets
-the requirements of [link beast.types.Field [*`Field`]].
+the requirements of [link beast.ref.Field [*`Field`]]. Objects meeting
+these requirements are serializable.
 
 In this table:
 

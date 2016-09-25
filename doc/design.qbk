@@ -25,7 +25,7 @@ libraries:
 * Let library users make the important decisions such as how to
   allocate memory or how to leverage flow control.
 
-Beast uses the [link beast.types.DynamicBuffer [*`DynamicBuffer`]] concept
+Beast uses the [link beast.ref.DynamicBuffer [*`DynamicBuffer`]] concept
 presented in the Netwoking TS, and relies heavily on the Boost.Asio
 [*`ConstBufferSequence`] and [*`MutableBufferSequence`] concepts for passing
 buffers to functions. The authors have found the dynamic buffer and buffer

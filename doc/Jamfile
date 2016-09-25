@@ -15,7 +15,7 @@ using boostbook ;
 using quickbook ;
 using doxygen ;
 
-xml beast_boostbook : master.qbk ;
+xml beast_doc : master.qbk ;
 
 path-constant out : . ;
 
@@ -49,26 +49,36 @@ install callouts
 
 explicit callout ;
 
-boostbook doc
+install examples
     :
-        beast_boostbook
+        [ glob ../examples/*.* ]
     :
-        <xsl:param>chapter.autolabel=0
+        <location>$(out)/html/examples
+    ;
+
+explicit examples ;
+
+boostbook beast
+    :
+        beast_doc
+    :
         <xsl:param>boost.image.src=images/beast.png
         <xsl:param>boost.image.alt="Beast Logo"
         <xsl:param>boost.image.w=2400
         <xsl:param>boost.image.h=80
         <xsl:param>boost.root=$(broot)
         <xsl:param>chapter.autolabel=0
-        <xsl:param>chunk.first.sections=1               # Chunk the first top-level section?
         <xsl:param>chunk.section.depth=8                # Depth to which sections should be chunked
-        <xsl:param>generate.section.toc.level=1         # Control depth of TOC generation in sections
-        <xsl:param>toc.max.depth=2                      # How many levels should be created for each TOC?
-        <xsl:param>toc.section.depth=2                  # How deep should recursive sections appear in the TOC?
+        <xsl:param>chunk.first.sections=1               # Chunk the first top-level section?
+        <xsl:param>toc.section.depth=8                  # How deep should recursive sections appear in the TOC?
+        <xsl:param>toc.max.depth=8                      # How many levels should be created for each TOC?
+        <xsl:param>generate.section.toc.level=8         # Control depth of TOC generation in sections
+        <xsl:param>generate.toc="chapter nop section toc"
     :
         <location>temp
-        <dependency>stylesheets
+        <dependency>examples
         <dependency>images
+        <dependency>stylesheets
     ;
 
 #explicit doc ;
@@ -77,7 +87,3 @@ boostbook doc
 #        <xsl:param>generate.toc="chapter nop section nop"
 #        <xsl:param>root.filename=index
 #        <xsl:param>output-root="../bin/html"
-
-
-#[include reference.qbk]
-#[xinclude index.xml]
