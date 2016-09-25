@@ -8,8 +8,8 @@
 #ifndef BEAST_WEBSOCKET_DETAIL_INVOKABLE_HPP
 #define BEAST_WEBSOCKET_DETAIL_INVOKABLE_HPP
 
+#include <boost/assert.hpp>
 #include <array>
-#include <cassert>
 #include <memory>
 #include <new>
 #include <utility>
@@ -80,7 +80,7 @@ public:
         // Engaged invokables must be invoked before
         // destruction otherwise the io_service
         // invariants are broken w.r.t completions.
-        assert(! base_);
+        BOOST_ASSERT(! base_);
     }
 #endif
 
@@ -102,7 +102,7 @@ public:
         // Engaged invokables must be invoked before
         // assignment otherwise the io_service
         // invariants are broken w.r.t completions.
-        assert(! base_);
+        BOOST_ASSERT(! base_);
 
         if(other.base_)
         {
@@ -135,7 +135,7 @@ invokable::emplace(F&& f)
 {
     static_assert(sizeof(buf_type) >= sizeof(holder<F>),
         "buffer too small");
-    assert(! base_);
+    BOOST_ASSERT(! base_);
     ::new(buf_) holder<F>(std::forward<F>(f));
     base_ = reinterpret_cast<base*>(&buf_[0]);
 }

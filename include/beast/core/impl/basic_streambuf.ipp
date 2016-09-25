@@ -9,8 +9,8 @@
 #define BEAST_IMPL_BASIC_STREAMBUF_IPP
 
 #include <beast/core/detail/write_dynabuf.hpp>
+#include <boost/assert.hpp>
 #include <algorithm>
-#include <cassert>
 #include <exception>
 #include <sstream>
 #include <string>
@@ -816,36 +816,36 @@ basic_streambuf<Allocator>::debug_check() const
 {
 #ifndef NDEBUG
     using boost::asio::buffer_size;
-    assert(buffer_size(data()) == in_size_);
+    BOOST_ASSERT(buffer_size(data()) == in_size_);
     if(list_.empty())
     {
-        assert(in_pos_ == 0);
-        assert(in_size_ == 0);
-        assert(out_pos_ == 0);
-        assert(out_end_ == 0);
-        assert(out_ == list_.end());
+        BOOST_ASSERT(in_pos_ == 0);
+        BOOST_ASSERT(in_size_ == 0);
+        BOOST_ASSERT(out_pos_ == 0);
+        BOOST_ASSERT(out_end_ == 0);
+        BOOST_ASSERT(out_ == list_.end());
         return;
     }
 
     auto const& front = list_.front();
 
-    assert(in_pos_ < front.size());
+    BOOST_ASSERT(in_pos_ < front.size());
 
     if(out_ == list_.end())
     {
-        assert(out_pos_ == 0);
-        assert(out_end_ == 0);
+        BOOST_ASSERT(out_pos_ == 0);
+        BOOST_ASSERT(out_end_ == 0);
     }
     else
     {
         auto const& out = *out_;
         auto const& back = list_.back();
 
-        assert(out_end_ <= back.size());
-        assert(out_pos_ <  out.size());
-        assert(&out != &front || out_pos_ >= in_pos_);
-        assert(&out != &front || out_pos_ - in_pos_ == in_size_);
-        assert(&out != &back  || out_pos_ <= out_end_);
+        BOOST_ASSERT(out_end_ <= back.size());
+        BOOST_ASSERT(out_pos_ <  out.size());
+        BOOST_ASSERT(&out != &front || out_pos_ >= in_pos_);
+        BOOST_ASSERT(&out != &front || out_pos_ - in_pos_ == in_size_);
+        BOOST_ASSERT(&out != &back  || out_pos_ <= out_end_);
     }
 #endif
 }

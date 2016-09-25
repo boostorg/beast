@@ -14,8 +14,8 @@
 #include <beast/core/handler_alloc.hpp>
 #include <beast/core/static_streambuf.hpp>
 #include <beast/websocket/detail/frame.hpp>
+#include <boost/assert.hpp>
 #include <algorithm>
-#include <cassert>
 #include <memory>
 
 namespace beast {
@@ -199,7 +199,7 @@ operator()(error_code ec, bool again)
             {
                 // send header and entire payload
                 d.state = 99;
-                assert(! d.ws.wr_block_);
+                BOOST_ASSERT(! d.ws.wr_block_);
                 d.ws.wr_block_ = &d;
                 boost::asio::async_write(d.ws.stream_,
                     buffer_cat(d.fh_buf.data(), d.cb),
@@ -215,7 +215,7 @@ operator()(error_code ec, bool again)
             detail::mask_inplace(mb, d.key);
             // send header and payload
             d.state = d.remain > 0 ? 2 : 99;
-            assert(! d.ws.wr_block_);
+            BOOST_ASSERT(! d.ws.wr_block_);
             d.ws.wr_block_ = &d;
             boost::asio::async_write(d.ws.stream_,
                 buffer_cat(d.fh_buf.data(),
@@ -237,7 +237,7 @@ operator()(error_code ec, bool again)
             // send payload
             if(d.remain == 0)
                 d.state = 99;
-            assert(d.ws.wr_block_ == &d);
+            BOOST_ASSERT(d.ws.wr_block_ == &d);
             boost::asio::async_write(
                 d.ws.stream_, mb, std::move(*this));
             return;

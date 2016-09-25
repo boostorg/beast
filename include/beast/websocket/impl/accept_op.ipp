@@ -14,7 +14,7 @@
 #include <beast/http/read.hpp>
 #include <beast/core/handler_alloc.hpp>
 #include <beast/core/prepare_buffers.hpp>
-#include <cassert>
+#include <boost/assert.hpp>
 #include <memory>
 #include <type_traits>
 
