@@ -10,10 +10,10 @@
 
 #include <beast/core/buffer_cat.hpp>
 #include <boost/asio/buffer.hpp>
+#include <boost/assert.hpp>
 #include <boost/logic/tribool.hpp>
 #include <algorithm>
 #include <array>
-#include <cassert>
 #include <cstddef>
 #include <iterator>
 #include <type_traits>

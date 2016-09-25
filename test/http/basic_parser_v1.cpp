@@ -14,8 +14,8 @@
 #include <beast/core/detail/ci_char_traits.hpp>
 #include <beast/http/rfc7230.hpp>
 #include <beast/unit_test/suite.hpp>
+#include <boost/assert.hpp>
 #include <boost/utility/string_ref.hpp>
-#include <cassert>
 #include <climits>
 #include <map>
 #include <new>

@@ -13,7 +13,7 @@
 #include <beast/http/read.hpp>
 #include <beast/http/write.hpp>
 #include <beast/core/handler_alloc.hpp>
-#include <cassert>
+#include <boost/assert.hpp>
 #include <memory>
 
 namespace beast {

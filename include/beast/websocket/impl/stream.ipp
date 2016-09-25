@@ -29,9 +29,9 @@
 #include <beast/core/prepare_buffers.hpp>
 #include <beast/core/static_streambuf.hpp>
 #include <beast/core/stream_concepts.hpp>
+#include <boost/assert.hpp>
 #include <boost/endian/buffers.hpp>
 #include <algorithm>
-#include <cassert>
 #include <memory>
 #include <utility>
 
@@ -411,7 +411,7 @@ close(close_reason const& cr, error_code& ec)
 {
     static_assert(is_SyncStream<next_layer_type>::value,
         "SyncStream requirements not met");
-    assert(! wr_close_);
+    BOOST_ASSERT(! wr_close_);
     wr_close_ = true;
     detail::frame_streambuf fb;
     write_close<static_streambuf>(fb, cr);
@@ -608,7 +608,7 @@ read_frame(frame_info& fi, DynamicBuffer& dynabuf, error_code& ec)
                         pong_cb_(payload);
                     continue;
                 }
-                assert(rd_fh_.op == opcode::close);
+                BOOST_ASSERT(rd_fh_.op == opcode::close);
                 {
                     detail::read(cr_, fb.data(), code);
                     if(code != close_code::none)

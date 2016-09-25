@@ -13,8 +13,8 @@
 #include <beast/http/rfc7230.hpp>
 #include <beast/http/detail/basic_parser_v1.hpp>
 #include <boost/asio/buffer.hpp>
+#include <boost/assert.hpp>
 #include <array>
-#include <cassert>
 #include <climits>
 #include <cstdint>
 #include <type_traits>

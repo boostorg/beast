@@ -12,8 +12,8 @@
 #include <beast/core/prepare_buffers.hpp>
 #include <beast/core/handler_alloc.hpp>
 #include <beast/websocket/detail/frame.hpp>
+#include <boost/assert.hpp>
 #include <algorithm>
-#include <cassert>
 #include <memory>
 
 namespace beast {
