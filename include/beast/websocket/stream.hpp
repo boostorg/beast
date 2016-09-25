@@ -177,9 +177,29 @@ public:
             wr_frag_size_ = o.value;
     }
 
-    /// Set the decorator used for HTTP messages
+    /** Set the decorator used for HTTP messages.
+
+        The value for this option is a callable type with two
+        optional signatures:
+
+        @code
+            void(request_type&);
+
+            void(response_type&);
+        @endcode
+
+        If a matching signature is provided, the callable type
+        will be invoked with the HTTP request or HTTP response
+        object as appropriate. When a signature is omitted,
+        a default consisting of the string Beast followed by
+        the version number is used.
+    */
     void
+#if GENERATING_DOCS
+    set_option(implementation_defined o)
+#else
     set_option(detail::decorator_type o)
+#endif
     {
         d_ = std::move(o);
     }
