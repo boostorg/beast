@@ -172,33 +172,37 @@ private:
                 write(sock, res, ec);
                 if(ec)
                     break;
+                return;
             }
-            resp_type res;
-            res.status = 200;
-            res.reason = "OK";
-            res.version = req.version;
-            res.headers.insert("Server", "http_sync_server");
-            res.headers.insert("Content-Type", mime_type(path));
-            res.body = path;
             try
             {
+                resp_type res;
+                res.status = 200;
+                res.reason = "OK";
+                res.version = req.version;
+                res.headers.insert("Server", "http_sync_server");
+                res.headers.insert("Content-Type", mime_type(path));
+                res.body = path;
                 prepare(res);
+                write(sock, res, ec);
+                if(ec)
+                    break;
             }
             catch(std::exception const& e)
             {
-                res = {};
+                response_v1<string_body> res;
                 res.status = 500;
                 res.reason = "Internal Error";
                 res.version = req.version;
                 res.headers.insert("Server", "http_sync_server");
                 res.headers.insert("Content-Type", "text/html");
                 res.body =
-                    std::string{"An internal error occurred"} + e.what();
+                    std::string{"An internal error occurred: "} + e.what();
                 prepare(res);
+                write(sock, res, ec);
+                if(ec)
+                    break;
             }
-            write(sock, res, ec);
-            if(ec)
-                break;
         }
         fail(id, ec);
     }

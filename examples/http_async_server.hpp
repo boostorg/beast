@@ -249,20 +249,23 @@ private:
                         asio::placeholders::error));
                 return;
             }
-            resp_type res;
-            res.status = 200;
-            res.reason = "OK";
-            res.version = req_.version;
-            res.headers.insert("Server", "http_async_server");
-            res.headers.insert("Content-Type", mime_type(path));
-            res.body = path;
             try
             {
+                resp_type res;
+                res.status = 200;
+                res.reason = "OK";
+                res.version = req_.version;
+                res.headers.insert("Server", "http_async_server");
+                res.headers.insert("Content-Type", mime_type(path));
+                res.body = path;
                 prepare(res);
+                async_write(sock_, std::move(res),
+                    std::bind(&peer::on_write, shared_from_this(),
+                        asio::placeholders::error));
             }
             catch(std::exception const& e)
             {
-                res = {};
+                response_v1<string_body> res;
                 res.status = 500;
                 res.reason = "Internal Error";
                 res.version = req_.version;
@@ -271,10 +274,10 @@ private:
                 res.body =
                     std::string{"An internal error occurred"} + e.what();
                 prepare(res);
+                async_write(sock_, std::move(res),
+                    std::bind(&peer::on_write, shared_from_this(),
+                        asio::placeholders::error));
             }
-            async_write(sock_, std::move(res),
-                std::bind(&peer::on_write, shared_from_this(),
-                    asio::placeholders::error));
         }
 
         void on_write(error_code ec)
