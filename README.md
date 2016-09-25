@@ -96,7 +96,7 @@ using the `git subtree` or `git submodule` commands). Then, edit your
  build scripts to add the `include/` directory to the list of paths checked
  by the C++ compiler when searching for includes. Beast `#include` lines
  will look like this:
-```
+```C++
 #include <beast/http.hpp>
 #include <beast/websocket.hpp>
 ```
@@ -137,6 +137,7 @@ The files in the repository are laid out thusly:
 ./
     bin/            Holds executables and project files
     bin64/          Holds 64-bit Windows executables and project files
+    doc/            Source code and scripts for the documentation
     include/        Add this to your compiler includes
         beast/
     extras/         Additional APIs, may change
