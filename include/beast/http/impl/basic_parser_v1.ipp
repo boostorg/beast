@@ -38,7 +38,7 @@
 
 #include <beast/http/detail/rfc7230.hpp>
 #include <beast/core/buffer_concepts.hpp>
-#include <cassert>
+#include <boost/assert.hpp>
 
 namespace beast {
 namespace http {
@@ -170,7 +170,7 @@ write(boost::asio::const_buffer const& buffer, error_code& ec)
             call_on_start(ec);
             if(ec)
                 return errc();
-            assert(! cb_);
+            BOOST_ASSERT(! cb_);
             cb(&self::call_on_method);
             s_ = s_req_method;
             break;
@@ -194,7 +194,7 @@ write(boost::asio::const_buffer const& buffer, error_code& ec)
             // VFALCO TODO Better checking for valid URL characters
             if(! is_text(ch))
                 return err(parse_error::bad_uri);
-            assert(! cb_);
+            BOOST_ASSERT(! cb_);
             cb(&self::call_on_uri);
             s_ = s_req_url;
             break;
@@ -377,7 +377,7 @@ write(boost::asio::const_buffer const& buffer, error_code& ec)
             }
             if(! is_text(ch))
                 return err(parse_error::bad_reason);
-            assert(! cb_);
+            BOOST_ASSERT(! cb_);
             cb(&self::call_on_reason);
             s_ = s_res_reason;
             break;
@@ -429,7 +429,7 @@ write(boost::asio::const_buffer const& buffer, error_code& ec)
                 fs_ = h_general;
                 break;
             }
-            assert(! cb_);
+            BOOST_ASSERT(! cb_);
             cb(&self::call_on_field);
             s_ = s_header_name;
             break;
@@ -549,7 +549,7 @@ write(boost::asio::const_buffer const& buffer, error_code& ec)
                 content_length_ = 0;
                 flags_ |= parse_flag::contentlength;
             }
-            assert(! cb_);
+            BOOST_ASSERT(! cb_);
             cb(&self::call_on_value);
             s_ = s_header_value;
             // fall through
@@ -801,7 +801,7 @@ write(boost::asio::const_buffer const& buffer, error_code& ec)
                 return err(parse_error::bad_content_length);
             if(fs_ == h_upgrade)
                 flags_ |= parse_flag::upgrade;
-            assert(! cb_);
+            BOOST_ASSERT(! cb_);
             call_on_value(ec, boost::string_ref{"", 0});
             if(ec)
                 return errc();
@@ -880,7 +880,7 @@ write(boost::asio::const_buffer const& buffer, error_code& ec)
             goto redo;
 
         case s_header_value_unfold:
-            assert(! cb_);
+            BOOST_ASSERT(! cb_);
             cb(&self::call_on_value);
             s_ = s_header_value;
             goto redo;
@@ -921,7 +921,7 @@ write(boost::asio::const_buffer const& buffer, error_code& ec)
 
         case s_headers_done:
         {
-            assert(! cb_);
+            BOOST_ASSERT(! cb_);
             call_on_headers(ec);
             if(ec)
                 return errc();
@@ -959,7 +959,7 @@ write(boost::asio::const_buffer const& buffer, error_code& ec)
         }
 
         case s_body_identity0:
-            assert(! cb_);
+            BOOST_ASSERT(! cb_);
             cb(&self::call_on_body);
             s_ = s_body_identity;
             // fall through
@@ -971,7 +971,7 @@ write(boost::asio::const_buffer const& buffer, error_code& ec)
                 n = end - p;
             else
                 n = static_cast<std::size_t>(content_length_);
-            assert(content_length_ != 0 && content_length_ != no_content_length);
+            BOOST_ASSERT(content_length_ != 0 && content_length_ != no_content_length);
             content_length_ -= n;
             if(content_length_ == 0)
             {
@@ -984,7 +984,7 @@ write(boost::asio::const_buffer const& buffer, error_code& ec)
         }
 
         case s_body_identity_eof0:
-            assert(! cb_);
+            BOOST_ASSERT(! cb_);
             cb(&self::call_on_body);
             s_ = s_body_identity_eof;
             // fall through
@@ -1073,7 +1073,7 @@ write(boost::asio::const_buffer const& buffer, error_code& ec)
             break;
 
         case s_chunk_data0:
-            assert(! cb_);
+            BOOST_ASSERT(! cb_);
             cb(&self::call_on_body);
             s_ = s_chunk_data;
             goto redo; // VFALCO fall through?

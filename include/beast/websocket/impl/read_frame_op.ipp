@@ -12,8 +12,8 @@
 #include <beast/core/handler_alloc.hpp>
 #include <beast/core/prepare_buffers.hpp>
 #include <beast/core/static_streambuf.hpp>
+#include <boost/assert.hpp>
 #include <boost/optional.hpp>
-#include <cassert>
 #include <memory>
 
 namespace beast {
@@ -330,7 +330,7 @@ operator()(error_code ec,std::size_t bytes_transferred, bool again)
                     {
                         // suspend
                         d.state = do_pong_resume;
-                        assert(d.ws.wr_block_ != &d);
+                        BOOST_ASSERT(d.ws.wr_block_ != &d);
                         d.ws.rd_op_.template emplace<
                             read_frame_op>(std::move(*this));
                         return;
@@ -349,7 +349,7 @@ operator()(error_code ec,std::size_t bytes_transferred, bool again)
                     d.state = do_read_fh;
                     break;
                 }
-                assert(d.ws.rd_fh_.op == opcode::close);
+                BOOST_ASSERT(d.ws.rd_fh_.op == opcode::close);
                 {
                     detail::read(d.ws.cr_, d.fb.data(), code);
                     if(code != close_code::none)
@@ -413,7 +413,7 @@ operator()(error_code ec,std::size_t bytes_transferred, bool again)
                 }
                 // send pong
                 d.state = do_pong + 1;
-                assert(! d.ws.wr_block_);
+                BOOST_ASSERT(! d.ws.wr_block_);
                 d.ws.wr_block_ = &d;
                 boost::asio::async_write(d.ws.stream_,
                     d.fb.data(), std::move(*this));
@@ -455,7 +455,7 @@ operator()(error_code ec,std::size_t bytes_transferred, bool again)
             case do_close:
                 d.state = do_close + 1;
                 d.ws.wr_close_ = true;
-                assert(! d.ws.wr_block_);
+                BOOST_ASSERT(! d.ws.wr_block_);
                 d.ws.wr_block_ = &d;
                 boost::asio::async_write(d.ws.stream_,
                     d.fb.data(), std::move(*this));
@@ -498,7 +498,7 @@ operator()(error_code ec,std::size_t bytes_transferred, bool again)
                 // send close frame
                 d.state = do_fail + 4;
                 d.ws.wr_close_ = true;
-                assert(! d.ws.wr_block_);
+                BOOST_ASSERT(! d.ws.wr_block_);
                 d.ws.wr_block_ = &d;
                 boost::asio::async_write(d.ws.stream_,
                     d.fb.data(), std::move(*this));

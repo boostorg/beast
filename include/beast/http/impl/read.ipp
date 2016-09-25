@@ -13,7 +13,7 @@
 #include <beast/core/bind_handler.hpp>
 #include <beast/core/handler_alloc.hpp>
 #include <beast/core/stream_concepts.hpp>
-#include <cassert>
+#include <boost/assert.hpp>
 
 namespace beast {
 namespace http {
@@ -161,7 +161,7 @@ operator()(error_code ec, std::size_t bytes_transferred, bool again)
                 // Caller will see eof on next read.
                 ec = {};
                 d.p.write_eof(ec);
-                assert(ec || d.p.complete());
+                BOOST_ASSERT(ec || d.p.complete());
                 // call handler
                 d.state = 99;
                 break;
@@ -372,7 +372,7 @@ parse(SyncReadStream& stream, DynamicBuffer& dynabuf,
             parser.write_eof(ec);
             if(ec)
                 return;
-            assert(parser.complete());
+            BOOST_ASSERT(parser.complete());
             break;
         }
     }
@@ -434,7 +434,7 @@ read(SyncReadStream& stream, DynamicBuffer& dynabuf,
     beast::http::parse(stream, dynabuf, p, ec);
     if(ec)
         return;
-    assert(p.complete());
+    BOOST_ASSERT(p.complete());
     m = p.release();
 }
 

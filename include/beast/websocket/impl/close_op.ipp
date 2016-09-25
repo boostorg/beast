@@ -155,7 +155,7 @@ operator()(error_code ec, bool again)
             // send close frame
             d.state = 99;
             d.ws.wr_close_ = true;
-            assert(! d.ws.wr_block_);
+            BOOST_ASSERT(! d.ws.wr_block_);
             d.ws.wr_block_ = &d;
             boost::asio::async_write(d.ws.stream_,
                 d.fb.data(), std::move(*this));

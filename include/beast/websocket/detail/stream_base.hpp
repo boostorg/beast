@@ -19,7 +19,7 @@
 #include <beast/http/message.hpp>
 #include <beast/http/string_body.hpp>
 #include <boost/asio/error.hpp>
-#include <cassert>
+#include <boost/assert.hpp>
 #include <cstdint>
 #include <functional>
 #include <limits>
