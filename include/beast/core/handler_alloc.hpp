@@ -55,6 +55,12 @@ public:
     using value_type = T;
     using is_always_equal = std::true_type;
 
+    template<class U>
+    struct rebind
+    {
+        using other = handler_alloc<U, CompletionHandler>;
+    };
+
     handler_alloc() = delete;
     handler_alloc(handler_alloc&&) = default;
     handler_alloc(handler_alloc const&) = default;
