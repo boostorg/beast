@@ -1,3 +1,9 @@
+1.0.0-b14
+
+* Add missing rebind to handler_alloc
+
+--------------------------------------------------------------------------------
+
 1.0.0-b13
 
 * dstream improvements
