@@ -43,18 +43,9 @@ class is_BufferSequence
     using type1 = decltype(check1<T>(0));
 
     template<class U, class R = std::is_base_of<
-    #if 0
-        std::bidirectional_iterator_tag,
-            typename std::iterator_traits<
-                typename U::const_iterator>::iterator_category>>
-    #else
-        // workaround:
-        // boost::asio::detail::consuming_buffers::const_iterator
-        // is not bidirectional
         std::forward_iterator_tag,
             typename std::iterator_traits<
                 typename U::const_iterator>::iterator_category>>
-    #endif
     static R check2(int);
     template<class>
     static std::false_type check2(...);

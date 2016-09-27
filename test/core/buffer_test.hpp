@@ -56,33 +56,6 @@ size_post(ConstBufferSequence const& buffers)
     return n;
 }
 
-template<class ConstBufferSequence>
-typename std::enable_if<
-    is_ConstBufferSequence<ConstBufferSequence>::value,
-        std::size_t>::type
-size_rev_pre(ConstBufferSequence const& buffers)
-{
-    std::size_t n = 0;
-    for(auto it = buffers.end(); it != buffers.begin();)
-        n += boost::asio::buffer_size(*--it);
-    return n;
-}
-
-template<class ConstBufferSequence>
-typename std::enable_if<
-    is_ConstBufferSequence<ConstBufferSequence>::value,
-        std::size_t>::type
-size_rev_post(ConstBufferSequence const& buffers)
-{
-    std::size_t n = 0;
-    for(auto it = buffers.end(); it != buffers.begin();)
-    {
-        it--;
-        n += boost::asio::buffer_size(*it);
-    }
-    return n;
-}
-
 } // test
 } // beast
 

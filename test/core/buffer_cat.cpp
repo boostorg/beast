@@ -48,11 +48,6 @@ public:
         auto bs = buffer_cat(
             b1, b2, b3, b4, b5, b6);
         BEAST_EXPECT(buffer_size(bs) == 10);
-        std::vector<const_buffer> v;
-        for(auto iter = make_reverse_iterator(bs.end());
-                iter != make_reverse_iterator(bs.begin()); ++iter)
-            v.emplace_back(*iter);
-        BEAST_EXPECT(buffer_size(bs) == 10);
         decltype(bs) bs2(bs);
         auto bs3(std::move(bs));
         bs = bs2;
@@ -102,18 +97,6 @@ public:
         {
             std::size_t n = 0;
             for(auto it = bs.begin(); n < 100; ++it)
-                ++n;
-            fail();
-        }
-        catch(std::exception const&)
-        {
-            pass();
-        }
-
-        try
-        {
-            std::size_t n = 0;
-            for(auto it = bs.end(); n < 100; --it)
                 ++n;
             fail();
         }

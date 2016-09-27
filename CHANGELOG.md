@@ -1,3 +1,9 @@
+1.0.0-b14
+
+* Buffer sequence containers conform to concepts
+
+--------------------------------------------------------------------------------
+
 1.0.0-b13
 
 * dstream improvements

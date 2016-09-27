@@ -63,13 +63,13 @@ private:
     using const_buffer = boost::asio::const_buffer;
     using mutable_buffer = boost::asio::mutable_buffer;
 
-    static_assert(std::is_base_of<std::bidirectional_iterator_tag,
+    static_assert(std::is_base_of<std::forward_iterator_tag,
         typename std::iterator_traits<iterator>::iterator_category>::value,
-            "BidirectionalIterator requirements not met");
+            "ForwardIterator requirements not met");
 
-    static_assert(std::is_base_of<std::bidirectional_iterator_tag,
+    static_assert(std::is_base_of<std::forward_iterator_tag,
         typename std::iterator_traits<const_iterator>::iterator_category>::value,
-            "BidirectionalIterator requirements not met");
+            "ForwardIterator requirements not met");
 
     list_type list_;        // list of allocated buffers
     iterator out_;          // element that contains out_pos_
