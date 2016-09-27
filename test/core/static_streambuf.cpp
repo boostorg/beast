@@ -156,18 +156,6 @@ public:
                     it != mb.end(); ++it)
                 ++n;
             BEAST_EXPECT(n == 1);
-            mb = ba.prepare(2);
-            n = 0;
-            for(auto it = mb.end();
-                    it != mb.begin(); it--)
-                ++n;
-            BEAST_EXPECT(n == 1);
-            mb = ba.prepare(2);
-            n = 0;
-            for(auto it = mb.end();
-                    it != mb.begin(); --it)
-                ++n;
-            BEAST_EXPECT(n == 1);
         }
         ba.prepare(2);
         ba.commit(1);
@@ -180,16 +168,6 @@ public:
         n = 0;
         for(auto it = ba.data().begin();
                 it != ba.data().end(); ++it)
-            ++n;
-        BEAST_EXPECT(n == 1);
-        n = 0;
-        for(auto it = ba.data().end();
-                it != ba.data().begin(); it--)
-            ++n;
-        BEAST_EXPECT(n == 1);
-        n = 0;
-        for(auto it = ba.data().end();
-                it != ba.data().begin(); --it)
             ++n;
         BEAST_EXPECT(n == 1);
     }

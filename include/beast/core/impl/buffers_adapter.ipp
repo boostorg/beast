@@ -62,7 +62,7 @@ public:
     using reference = value_type;
     using difference_type = std::ptrdiff_t;
     using iterator_category =
-        std::bidirectional_iterator_tag;
+        std::forward_iterator_tag;
 
     const_iterator() = default;
     const_iterator(const_iterator&& other) = default;
@@ -112,21 +112,6 @@ public:
         return temp;
     }
 
-    const_iterator&
-    operator--()
-    {
-        --it_;
-        return *this;
-    }
-
-    const_iterator
-    operator--(int)
-    {
-        auto temp = *this;
-        --(*this);
-        return temp;
-    }
-
 private:
     friend class const_buffers_type;
 
@@ -141,7 +126,9 @@ private:
 template<class MutableBufferSequence>
 inline
 auto
-buffers_adapter<MutableBufferSequence>::const_buffers_type::begin() const ->
+buffers_adapter<MutableBufferSequence>::
+const_buffers_type::
+begin() const ->
     const_iterator
 {
     return const_iterator{*ba_, ba_->begin_};
@@ -150,7 +137,9 @@ buffers_adapter<MutableBufferSequence>::const_buffers_type::begin() const ->
 template<class MutableBufferSequence>
 inline
 auto
-buffers_adapter<MutableBufferSequence>::const_buffers_type::end() const ->
+buffers_adapter<MutableBufferSequence>::
+const_buffers_type::
+end() const ->
     const_iterator
 {
     return const_iterator{*ba_, ba_->out_ ==
@@ -161,7 +150,7 @@ buffers_adapter<MutableBufferSequence>::const_buffers_type::end() const ->
 
 template<class MutableBufferSequence>
 class buffers_adapter<MutableBufferSequence>::
-mutable_buffers_type
+    mutable_buffers_type
 {
     buffers_adapter const* ba_;
 
@@ -205,7 +194,7 @@ public:
     using reference = value_type;
     using difference_type = std::ptrdiff_t;
     using iterator_category =
-        std::bidirectional_iterator_tag;
+        std::forward_iterator_tag;
 
     const_iterator() = default;
     const_iterator(const_iterator&& other) = default;
@@ -231,10 +220,17 @@ public:
     {
         using boost::asio::buffer_cast;
         using boost::asio::buffer_size;
+        auto last = ba_->begin_;
+        for(;;)
+        {
+            auto next = std::next(last);
+            if(next == ba_->end_)
+                break;
+            last = next;
+        }
         return value_type{buffer_cast<void*>(*it_),
-            it_ == std::prev(ba_->end_) ?
-                ba_->out_end_ : buffer_size(*it_)} +
-                    (it_ == ba_->out_ ? ba_->out_pos_ : 0);
+            it_ == last ? ba_->out_end_ : buffer_size(*it_)} +
+                (it_ == ba_->out_ ? ba_->out_pos_ : 0);
     }
 
     pointer
@@ -255,21 +251,6 @@ public:
         return temp;
     }
 
-    const_iterator&
-    operator--()
-    {
-        --it_;
-        return *this;
-    }
-
-    const_iterator
-    operator--(int)
-    {
-        auto temp = *this;
-        --(*this);
-        return temp;
-    }
-
 private:
     friend class mutable_buffers_type;
 
@@ -284,7 +265,9 @@ private:
 template<class MutableBufferSequence>
 inline
 auto
-buffers_adapter<MutableBufferSequence>::mutable_buffers_type::begin() const ->
+buffers_adapter<MutableBufferSequence>::
+mutable_buffers_type::
+begin() const ->
     const_iterator
 {
     return const_iterator{*ba_, ba_->out_};
@@ -293,7 +276,9 @@ buffers_adapter<MutableBufferSequence>::mutable_buffers_type::begin() const ->
 template<class MutableBufferSequence>
 inline
 auto
-buffers_adapter<MutableBufferSequence>::mutable_buffers_type::end() const ->
+buffers_adapter<MutableBufferSequence>::
+mutable_buffers_type::
+end() const ->
     const_iterator
 {
     return const_iterator{*ba_, ba_->end_};
@@ -302,8 +287,8 @@ buffers_adapter<MutableBufferSequence>::mutable_buffers_type::end() const ->
 //------------------------------------------------------------------------------
 
 template<class MutableBufferSequence>
-buffers_adapter<MutableBufferSequence>::buffers_adapter(
-        buffers_adapter&& other)
+buffers_adapter<MutableBufferSequence>::
+buffers_adapter(buffers_adapter&& other)
     : buffers_adapter(std::move(other),
         std::distance<iter_type>(other.bs_.begin(), other.begin_),
         std::distance<iter_type>(other.bs_.begin(), other.out_),
@@ -312,8 +297,8 @@ buffers_adapter<MutableBufferSequence>::buffers_adapter(
 }
 
 template<class MutableBufferSequence>
-buffers_adapter<MutableBufferSequence>::buffers_adapter(
-        buffers_adapter const& other)
+buffers_adapter<MutableBufferSequence>::
+buffers_adapter(buffers_adapter const& other)
     : buffers_adapter(other,
         std::distance<iter_type>(other.bs_.begin(), other.begin_),
         std::distance<iter_type>(other.bs_.begin(), other.out_),
@@ -323,8 +308,9 @@ buffers_adapter<MutableBufferSequence>::buffers_adapter(
 
 template<class MutableBufferSequence>
 auto
-buffers_adapter<MutableBufferSequence>::operator=(
-    buffers_adapter&& other) -> buffers_adapter&
+buffers_adapter<MutableBufferSequence>::
+operator=(buffers_adapter&& other) ->
+    buffers_adapter&
 {
     auto const nbegin = std::distance<iter_type>(
         other.bs_.begin(), other.begin_);
@@ -332,22 +318,23 @@ buffers_adapter<MutableBufferSequence>::operator=(
         other.bs_.begin(), other.out_);
     auto const nend = std::distance<iter_type>(
         other.bs_.begin(), other.end_);
-    bs_ = std::move(other.bs_);
-    begin_ = std::next(bs_.begin(), nbegin);
-    out_ = std::next(bs_.begin(), nout);
-    end_ = std::next(bs_.begin(), nend);
+    bs_       = std::move(other.bs_);
+    begin_    = std::next(bs_.begin(), nbegin);
+    out_      = std::next(bs_.begin(), nout);
+    end_      = std::next(bs_.begin(), nend);
     max_size_ = other.max_size_;
-    in_pos_ = other.in_pos_;
-    in_size_ = other.in_size_;
-    out_pos_ = other.out_pos_;
-    out_end_ = other.out_end_;
+    in_pos_   = other.in_pos_;
+    in_size_  = other.in_size_;
+    out_pos_  = other.out_pos_;
+    out_end_  = other.out_end_;
     return *this;
 }
 
 template<class MutableBufferSequence>
 auto
-buffers_adapter<MutableBufferSequence>::operator=(
-    buffers_adapter const& other) -> buffers_adapter&
+buffers_adapter<MutableBufferSequence>::
+operator=(buffers_adapter const& other) ->
+    buffers_adapter&
 {
     auto const nbegin = std::distance<iter_type>(
         other.bs_.begin(), other.begin_);
@@ -355,21 +342,21 @@ buffers_adapter<MutableBufferSequence>::operator=(
         other.bs_.begin(), other.out_);
     auto const nend = std::distance<iter_type>(
         other.bs_.begin(), other.end_);
-    bs_ = other.bs_;
-    begin_ = std::next(bs_.begin(), nbegin);
-    out_ = std::next(bs_.begin(), nout);
-    end_ = std::next(bs_.begin(), nend);
+    bs_       = other.bs_;
+    begin_    = std::next(bs_.begin(), nbegin);
+    out_      = std::next(bs_.begin(), nout);
+    end_      = std::next(bs_.begin(), nend);
     max_size_ = other.max_size_;
-    in_pos_ = other.in_pos_;
-    in_size_ = other.in_size_;
-    out_pos_ = other.out_pos_;
-    out_end_ = other.out_end_;
+    in_pos_   = other.in_pos_;
+    in_size_  = other.in_size_;
+    out_pos_  = other.out_pos_;
+    out_end_  = other.out_end_;
     return *this;
 }
 
 template<class MutableBufferSequence>
-buffers_adapter<MutableBufferSequence>::buffers_adapter(
-    MutableBufferSequence const& bs)
+buffers_adapter<MutableBufferSequence>::
+buffers_adapter(MutableBufferSequence const& bs)
     : bs_(bs)
     , begin_(bs_.begin())
     , out_(bs_.begin())
@@ -380,7 +367,8 @@ buffers_adapter<MutableBufferSequence>::buffers_adapter(
 
 template<class MutableBufferSequence>
 auto
-buffers_adapter<MutableBufferSequence>::prepare(std::size_t n) ->
+buffers_adapter<MutableBufferSequence>::
+prepare(std::size_t n) ->
     mutable_buffers_type
 {
     using boost::asio::buffer_size;
@@ -413,19 +401,27 @@ buffers_adapter<MutableBufferSequence>::prepare(std::size_t n) ->
         }
     }
     if(n > 0)
-        throw std::length_error(
-            "no space in buffers_adapter");
+        throw std::length_error{
+            "no space in buffers_adapter"};
     return mutable_buffers_type{*this};
 }
 
 template<class MutableBufferSequence>
 void
-buffers_adapter<MutableBufferSequence>::commit(std::size_t n)
+buffers_adapter<MutableBufferSequence>::
+commit(std::size_t n)
 {
     using boost::asio::buffer_size;
     if(out_ == end_)
         return;
-    auto const last = std::prev(end_);
+    auto last = begin_;
+    for(;;)
+    {
+        auto next = std::next(last);
+        if(next == end_)
+            break;
+        last = next;
+    }
     while(out_ != last)
     {
         auto const avail =
@@ -459,7 +455,8 @@ buffers_adapter<MutableBufferSequence>::commit(std::size_t n)
 template<class MutableBufferSequence>
 inline
 auto
-buffers_adapter<MutableBufferSequence>::data() const ->
+buffers_adapter<MutableBufferSequence>::
+data() const ->
     const_buffers_type
 {
     return const_buffers_type{*this};
@@ -467,7 +464,8 @@ buffers_adapter<MutableBufferSequence>::data() const ->
 
 template<class MutableBufferSequence>
 void
-buffers_adapter<MutableBufferSequence>::consume(std::size_t n)
+buffers_adapter<MutableBufferSequence>::
+consume(std::size_t n)
 {
     using boost::asio::buffer_size;
     while(begin_ != out_)

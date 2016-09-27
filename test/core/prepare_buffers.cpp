@@ -87,33 +87,11 @@ public:
         BEAST_EXPECT(buffer_copy(pbc, cb) == 0);
     }
 
-    void testIterator()
-    {
-        using boost::asio::buffer_size;
-        using boost::asio::const_buffer;
-        char b[3];
-        std::array<const_buffer, 3> bs{{
-            const_buffer{&b[0], 1},
-            const_buffer{&b[1], 1},
-            const_buffer{&b[2], 1}}};
-        auto pb = prepare_buffers(2, bs);
-        std::size_t n = 0;
-        for(auto it = pb.end(); it != pb.begin(); --it)
-        {
-            decltype(pb)::const_iterator it2(std::move(it));
-            BEAST_EXPECT(buffer_size(*it2) == 1);
-            it = std::move(it2);
-            ++n;
-        }
-        BEAST_EXPECT(n == 2);
-    }
-
     void run() override
     {
         testMatrix<boost::asio::const_buffer>();
         testMatrix<boost::asio::mutable_buffer>();
         testNullBuffers();
-        testIterator();
     }
 };
 

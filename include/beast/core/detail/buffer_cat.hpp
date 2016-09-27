@@ -67,6 +67,7 @@ template<class ValueType, class... Bs>
 class buffer_cat_helper<
     ValueType, Bs...>::const_iterator
 {
+    ValueType v_;
     std::size_t n_;
     std::tuple<Bs...> const* bs_;
     std::array<std::uint8_t,
@@ -100,10 +101,10 @@ class buffer_cat_helper<
 public:
     using value_type = ValueType;
     using pointer = value_type const*;
-    using reference = value_type;
+    using reference = value_type const&;
     using difference_type = std::ptrdiff_t;
     using iterator_category =
-        std::bidirectional_iterator_tag;
+        std::forward_iterator_tag;
 
     ~const_iterator();
     const_iterator();
@@ -122,10 +123,18 @@ public:
     }
 
     reference
-    operator*() const;
+    operator*() const
+    {
+        if(n_ == sizeof...(Bs))
+            throw std::logic_error{"invalid iterator"};
+        return v_;
+    }
 
     pointer
-    operator->() const = delete;
+    operator->() const
+    {
+        return &*(*this);
+    }
 
     const_iterator&
     operator++();
@@ -135,17 +144,6 @@ public:
     {
         auto temp = *this;
         ++(*this);
-        return temp;
-    }
-
-    const_iterator&
-    operator--();
-
-    const_iterator
-    operator--(int)
-    {
-        auto temp = *this;
-        --(*this);
         return temp;
     }
 
@@ -170,6 +168,7 @@ private:
             n_ = I;
             new(buf_.data()) iter_t<I>{
                 std::get<I>(*bs_).begin()};
+            v_ = *iter<I>();
             return;
         }
         construct(C<I+1>{});
@@ -207,6 +206,7 @@ private:
         {
             new(buf_.data()) iter_t<I>{
                 std::move(other.iter<I>())};
+            v_ = other.v_;
             return;
         }
         move(C<I+1>{}, std::move(other));
@@ -225,6 +225,7 @@ private:
         {
             new(buf_.data()) iter_t<I>{
                 other.iter<I>()};
+            v_ = other.v_;
             return;
         }
         copy(C<I+1>{}, other);
@@ -250,7 +251,7 @@ private:
     reference
     dereference(C<sizeof...(Bs)>) const
     {
-        throw std::logic_error("invalid iterator");
+        throw std::logic_error{"invalid iterator"};
     }
 
     template<std::size_t I>
@@ -262,13 +263,6 @@ private:
         return dereference(C<I+1>{});
     }
 
-    [[noreturn]]
-    void
-    increment(C<sizeof...(Bs)>)
-    {
-        throw std::logic_error("invalid iterator");
-    }
-
     template<std::size_t I>
     void
     increment(C<I>)
@@ -276,8 +270,11 @@ private:
         if(n_ == I)
         {
             if(++iter<I>() !=
-                    std::get<I>(*bs_).end())
+                std::get<I>(*bs_).end())
+            {
+                v_ = *iter<I>();
                 return;
+            }
             using Iter = iter_t<I>;
             iter<I>().~Iter();
             return construct(C<I+1>{});
@@ -285,49 +282,11 @@ private:
         increment(C<I+1>{});
     }
 
+    [[noreturn]]
     void
-    decrement(C<sizeof...(Bs)>)
+    increment(C<sizeof...(Bs)>)
     {
-        auto constexpr I = sizeof...(Bs);
-        if(n_ == I)
-        {
-            --n_;
-            new(buf_.data()) iter_t<I-1>{
-                std::get<I-1>(*bs_).end()};
-        }
-        decrement(C<I-1>{});
-    }
-
-    void
-    decrement(C<0>)
-    {
-        auto constexpr I = 0;
-        if(iter<I>() != std::get<I>(*bs_).begin())
-        {
-            --iter<I>();
-            return;
-        }
-        throw std::logic_error("invalid iterator");
-    }
-
-    template<std::size_t I>
-    void
-    decrement(C<I>)
-    {
-        if(n_ == I)
-        {
-            if(iter<I>() != std::get<I>(*bs_).begin())
-            {
-                --iter<I>();
-                return;
-            }
-            --n_;
-            using Iter = iter_t<I>;
-            iter<I>().~Iter();
-            new(buf_.data()) iter_t<I-1>{
-                std::get<I-1>(*bs_).end()};
-        }
-        decrement(C<I-1>{});
+        throw std::logic_error{"invalid iterator"};
     }
 };
 
@@ -423,29 +382,10 @@ const_iterator::operator==(const_iterator const& other) const
 template<class ValueType, class... Bs>
 auto
 buffer_cat_helper<ValueType, Bs...>::
-const_iterator::operator*() const ->
-    reference
-{
-    return dereference(C<0>{});
-}
-
-template<class ValueType, class... Bs>
-auto
-buffer_cat_helper<ValueType, Bs...>::
 const_iterator::operator++() ->
     const_iterator&
 {
     increment(C<0>{});
-    return *this;
-}
-
-template<class ValueType, class... Bs>
-auto
-buffer_cat_helper<ValueType, Bs...>::
-const_iterator::operator--() ->
-    const_iterator&
-{
-    decrement(C<sizeof...(Bs)>{});
     return *this;
 }
 

@@ -36,7 +36,7 @@ public:
     using reference = value_type;
     using difference_type = std::ptrdiff_t;
     using iterator_category =
-        std::bidirectional_iterator_tag;
+        std::forward_iterator_tag;
 
     const_iterator() = default;
     const_iterator(const_iterator&& other) = default;
@@ -78,21 +78,6 @@ public:
     {
         auto temp = *this;
         ++(*this);
-        return temp;
-    }
-
-    const_iterator&
-    operator--()
-    {
-        --it_;
-        return *this;
-    }
-
-    const_iterator
-    operator--(int)
-    {
-        auto temp = *this;
-        --(*this);
         return temp;
     }
 

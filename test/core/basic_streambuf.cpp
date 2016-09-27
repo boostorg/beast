@@ -155,8 +155,6 @@ public:
     {
         BEAST_EXPECT(test::size_pre(buffers) == n);
         BEAST_EXPECT(test::size_post(buffers) == n);
-        BEAST_EXPECT(test::size_rev_pre(buffers) == n);
-        BEAST_EXPECT(test::size_rev_post(buffers) == n);
     }
 
     template<class U, class V>
