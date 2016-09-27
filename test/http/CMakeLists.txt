@@ -31,10 +31,6 @@ add_executable (http-tests
     chunk_encode.cpp
 )
 
-if (NOT WIN32)
-    target_link_libraries(http-tests ${Boost_LIBRARIES} Threads::Threads)
-endif()
-
 add_executable (bench-tests
     ${BEAST_INCLUDES}
     ${EXTRAS_INCLUDES}
@@ -44,6 +40,3 @@ add_executable (bench-tests
     parser_bench.cpp
 )
 
-if (NOT WIN32)
-    target_link_libraries(bench-tests ${Boost_LIBRARIES})
-endif()

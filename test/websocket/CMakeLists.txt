@@ -21,10 +21,8 @@ add_executable (websocket-tests
     utf8_checker.cpp
 )
 
-if (NOT WIN32)
-    target_link_libraries(websocket-tests ${Boost_LIBRARIES} Threads::Threads)
-endif()
-
+# Workaround on building Default or Debug mode of websocket-tests on MinGW
+# Recommended building Release mode
 if (MINGW)
     set_target_properties(websocket-tests PROPERTIES COMPILE_FLAGS "-Wa,-mbig-obj -Og")
 endif()
@@ -37,6 +35,3 @@ add_executable (websocket-echo
     websocket_echo.cpp
 )
 
-if (NOT WIN32)
-    target_link_libraries(websocket-echo ${Boost_LIBRARIES} Threads::Threads)
-endif()
