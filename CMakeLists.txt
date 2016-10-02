@@ -23,6 +23,17 @@ else()
       "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wpedantic")
 endif()
 
+if (APPLE AND NOT DEFINED ENV{OPENSSL_ROOT_DIR})
+  find_program(HOMEBREW brew)
+  if (NOT HOMEBREW STREQUAL "HOMEBREW-NOTFOUND")
+    execute_process(COMMAND brew --prefix openssl
+      OUTPUT_VARIABLE OPENSSL_ROOT_DIR
+      OUTPUT_STRIP_TRAILING_WHITESPACE)
+  endif()
+endif()
+
+find_package(OpenSSL)
+
 if (MINGW)
     link_libraries(${Boost_LIBRARIES} ws2_32 mswsock)
 endif()
@@ -82,6 +93,11 @@ file(GLOB_RECURSE EXTRAS_INCLUDES
 )
 
 add_subdirectory (examples)
+if (NOT OPENSSL_FOUND)
+    message("OpenSSL not found. Not building examples/ssl")
+else()
+    add_subdirectory (examples/ssl)
+endif()
 add_subdirectory (test)
 add_subdirectory (test/core)
 add_subdirectory (test/http)

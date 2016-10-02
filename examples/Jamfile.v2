@@ -5,8 +5,6 @@
 # file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 #
 
-import os ;
-
 exe http-crawl :
     http_crawl.cpp
     urls_large_data.cpp
@@ -23,4 +21,3 @@ exe http-example :
 exe websocket-example :
     websocket_example.cpp
     ;
-
