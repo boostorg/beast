@@ -2,6 +2,7 @@
 
 * rfc7230 section 3.3.2 compliance
 * Add HTTPS example
+* Add Secure WebSocket example
 
 --------------------------------------------------------------------------------
 

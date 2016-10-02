@@ -83,6 +83,13 @@ int main()
 }
 ```
 
+[heading Secure WebSocket]
+
+Establish a WebSocket connection over an encrypted TLS connection,
+send a message and receive the reply. Requires OpenSSL to build.
+
+* [@examples/websocket_ssl_example.cpp]
+
 [heading HTTPS GET]
 
 This example demonstrates sending and receiving HTTP messages
