@@ -83,6 +83,13 @@ int main()
 }
 ```
 
+[heading HTTPS GET]
+
+This example demonstrates sending and receiving HTTP messages
+over a TLS connection. Requires OpenSSL to build.
+
+* [@examples/http_ssl_example.cpp]
+
 [heading HTTP Crawl]
 
 This example retrieves the page at each of the most popular domains
