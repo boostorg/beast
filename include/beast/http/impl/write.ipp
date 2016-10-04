@@ -462,7 +462,7 @@ template<class SyncWriteStream,
 void
 write(SyncWriteStream& stream,
     message_v1<isRequest, Body, Headers> const& msg,
-        boost::system::error_code& ec)
+        error_code& ec)
 {
     static_assert(is_SyncWriteStream<SyncWriteStream>::value,
         "SyncWriteStream requirements not met");
@@ -596,8 +596,8 @@ public:
                 buffer_size(buffer));
             if(os_.fail())
             {
-                ec = boost::system::errc::make_error_code(
-                    boost::system::errc::no_stream_resources);
+                ec = errc::make_error_code(
+                    errc::no_stream_resources);
                 break;
             }
             n += buffer_size(buffer);

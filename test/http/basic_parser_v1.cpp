@@ -209,19 +209,19 @@ public:
                     p.on_body_rv(onBodyRv);
                     error_code ec;
                     p.write(buffer(s1.data(), s1.size()), ec);
-                    if(ec == test::fail_error)
+                    if(ec == test::error::fail_error)
                         continue;
                     if(! BEAST_EXPECT(! ec))
                         break;
                     if(! BEAST_EXPECT(s2.empty() || ! p.complete()))
                         break;
                     p.write(buffer(s2.data(), s2.size()), ec);
-                    if(ec == test::fail_error)
+                    if(ec == test::error::fail_error)
                         continue;
                     if(! BEAST_EXPECT(! ec))
                         break;
                     p.write_eof(ec);
-                    if(ec == test::fail_error)
+                    if(ec == test::error::fail_error)
                         continue;
                     if(! BEAST_EXPECT(! ec))
                         break;
@@ -257,7 +257,7 @@ public:
                     p.on_body_rv(onBodyRv);
                     error_code ec;
                     p.write(buffer(s1.data(), s1.size()), ec);
-                    if(ec == test::fail_error)
+                    if(ec == test::error::fail_error)
                         continue;
                     if(ec)
                     {
@@ -269,7 +269,7 @@ public:
                     if(! s2.empty())
                     {
                         p.write(buffer(s2.data(), s2.size()), ec);
-                        if(ec == test::fail_error)
+                        if(ec == test::error::fail_error)
                             continue;
                         if(ec)
                         {
@@ -280,7 +280,7 @@ public:
                             break;
                     }
                     p.write_eof(ec);
-                    if(ec == test::fail_error)
+                    if(ec == test::error::fail_error)
                         continue;
                     BEAST_EXPECT(! p.complete());
                     BEAST_EXPECT((ec && ! ev) || ec == ev);

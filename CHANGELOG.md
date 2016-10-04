@@ -5,6 +5,7 @@
 * Add Secure WebSocket example
 * Fix message_v1 constructor
 * Tidy up DynamicBuffer requirements
+* Tidy up error types and headers
 
 --------------------------------------------------------------------------------
 
