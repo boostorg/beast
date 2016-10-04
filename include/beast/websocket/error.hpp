@@ -16,10 +16,8 @@ namespace websocket {
 /// Error codes returned from @ref stream operations.
 enum class error
 {
-    success = 0,
-
     /// Both sides performed a WebSocket close
-    closed,
+    closed = 1,
 
     /// WebSocket connection failed, protocol violation
     failed,
@@ -51,11 +49,6 @@ enum class error
     /// General WebSocket error
     general
 };
-
-#if ! GENERATING_DOCS
-error_code
-make_error_code(error e);
-#endif
 
 } // websocket
 } // beast

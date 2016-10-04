@@ -174,7 +174,7 @@ public:
         error_code ec;
         auto const used = write(data, size, ec);
         if(ec)
-            throw boost::system::system_error{ec};
+            throw system_error{ec};
         return used;
     }
 
@@ -189,7 +189,7 @@ public:
         error_code ec;
         auto const used = write(buffers, ec);
         if(ec)
-            throw boost::system::system_error{ec};
+            throw system_error{ec};
         return used;
     }
 
@@ -204,7 +204,7 @@ public:
         error_code ec;
         write_eof(ec);
         if(ec)
-            throw boost::system::system_error{ec};
+            throw system_error{ec};
     }
 
     void

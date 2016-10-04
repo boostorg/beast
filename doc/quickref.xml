@@ -139,7 +139,10 @@
             <member><link linkend="beast.ref.buffers_adapter">buffers_adapter</link></member>
             <member><link linkend="beast.ref.consuming_buffers">consuming_buffers</link></member>
             <member><link linkend="beast.ref.dynabuf_readstream">dynabuf_readstream</link></member>
+            <member><link linkend="beast.ref.errc">errc</link></member>
+            <member><link linkend="beast.ref.error_category">error_category</link></member>
             <member><link linkend="beast.ref.error_code">error_code</link></member>
+            <member><link linkend="beast.ref.error_condition">error_condition</link></member>
             <member><link linkend="beast.ref.handler_alloc">handler_alloc</link></member>
             <member><link linkend="beast.ref.prepared_buffers">prepared_buffers</link></member>
             <member><link linkend="beast.ref.static_streambuf">static_streambuf</link></member>

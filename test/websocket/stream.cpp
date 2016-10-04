@@ -816,7 +816,7 @@ public:
                         fail();
                         return false;
                     }
-                    catch(boost::system::system_error const& se)
+                    catch(system_error const& se)
                     {
                         if(se.code() != ev)
                             throw;

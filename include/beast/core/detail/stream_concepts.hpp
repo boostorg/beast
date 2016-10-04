@@ -9,6 +9,7 @@
 #define BEAST_DETAIL_STREAM_CONCEPTS_HPP
 
 #include <beast/core/buffer_concepts.hpp>
+#include <beast/core/error.hpp>
 #include <boost/asio/io_service.hpp>
 #include <boost/system/error_code.hpp>
 #include <type_traits>
@@ -22,7 +23,7 @@ namespace detail {
 struct StreamHandler
 {
     StreamHandler(StreamHandler const&) = default;
-    void operator()(boost::system::error_code ec, std::size_t);
+    void operator()(error_code ec, std::size_t);
 };
 using ReadHandler = StreamHandler;
 using WriteHandler = StreamHandler;
@@ -79,9 +80,6 @@ public:
 template<class T>
 class is_SyncReadStream
 {
-    using error_code =
-        boost::system::error_code;
-
     template<class U, class R = std::is_same<decltype(
         std::declval<U>().read_some(
             std::declval<MutableBufferSequence>())),
@@ -108,9 +106,6 @@ public:
 template<class T>
 class is_SyncWriteStream
 {
-    using error_code =
-        boost::system::error_code;
-
     template<class U, class R = std::is_same<decltype(
         std::declval<U>().write_some(
             std::declval<ConstBufferSequence>())),
