@@ -68,7 +68,7 @@ provides implementations of the HTTP and WebSocket protocols.
     Examples that illustrate the use of Beast in more complex applications.
   ]]
   [[
-    [link beast.quickref Reference]
+    [link beast.ref Reference]
   ][
     Detailed class and function reference.
   ]]
@@ -86,11 +86,8 @@ provides implementations of the HTTP and WebSocket protocols.
 
 [include design.qbk]
 
-[section:quickref Reference]
-[xinclude quickref.xml]
-[endsect]
-
 [section:ref Reference]
+[xinclude quickref.xml]
 [include types/Body.qbk]
 [include types/BufferSequence.qbk]
 [include types/DynamicBuffer.qbk]
