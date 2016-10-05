@@ -6,6 +6,7 @@
 * Fix message_v1 constructor
 * Tidy up DynamicBuffer requirements
 * Tidy up error types and headers
+* Fix handling empty HTTP headers in parser_v1
 
 --------------------------------------------------------------------------------
 

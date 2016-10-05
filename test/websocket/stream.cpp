@@ -263,7 +263,7 @@ public:
                     }
                     catch(system_error const& se)
                     {
-                        BEAST_EXPECT(se.code() == ev);
+                        BEAST_EXPECTS(se.code() == ev, se.what());
                     }
                 }
             };

@@ -12,6 +12,7 @@
 #include <beast/http/concepts.hpp>
 #include <beast/http/message_v1.hpp>
 #include <beast/core/error.hpp>
+#include <boost/assert.hpp>
 #include <functional>
 #include <string>
 #include <type_traits>
@@ -94,6 +95,7 @@ private:
     message_type m_;
     typename message_type::body_type::reader r_;
     std::uint8_t skip_body_ = 0;
+    bool flush_ = false;
 
 public:
     parser_v1(parser_v1&&) = default;
@@ -161,12 +163,13 @@ private:
 
     void flush()
     {
-        if(! value_.empty())
-        {
-            m_.headers.insert(field_, value_);
-            field_.clear();
-            value_.clear();
-        }
+        if(! flush_)
+            return;
+        flush_ = false;
+        BOOST_ASSERT(! field_.empty());
+        m_.headers.insert(field_, value_);
+        field_.clear();
+        value_.clear();
     }
 
     void on_start(error_code&)
@@ -197,6 +200,7 @@ private:
     void on_value(boost::string_ref const& s, error_code&)
     {
         value_.append(s.data(), s.size());
+        flush_ = true;
     }
 
     void set(std::true_type)
