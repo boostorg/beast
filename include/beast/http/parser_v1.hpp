@@ -161,12 +161,12 @@ private:
 
     void flush()
     {
-        if(! value_.empty())
+        if(! field_.empty())
         {
             m_.headers.insert(field_, value_);
             field_.clear();
-            value_.clear();
         }
+        value_.clear();
     }
 
     void on_start(error_code&)
