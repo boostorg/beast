@@ -1,0 +1,31 @@
+# ===================================================================================
+#  The beast CMake configuration file
+#
+#             ** File generated automatically, do not modify **
+#
+#  Usage from an external project:
+#    In your CMakeLists.txt, add these lines:
+#
+#    FIND_PACKAGE(beast REQUIRED)
+#    TARGET_LINK_LIBRARIES(MY_TARGET_NAME ${beast_LIBRARIES})
+#
+#    This file will define the following variables:
+#      - Beast_LIBRARIES               : The list of all imported targets for b modules.
+#      - Beast_INCLUDE_DIRS            : The beast include directories.
+#      - Beast_VERSION                 : The version of this beast build.
+#
+# ===================================================================================
+
+
+# Compute paths
+get_filename_component(Beast_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
+
+if(${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION} VERSION_LESS 2.8)
+    get_filename_component(Beast_INSTALL_PATH "${Beast_CMAKE_DIR}/../../../" ABSOLUTE)
+else()
+    get_filename_component(Beast_INSTALL_PATH "${Beast_CMAKE_DIR}/../../../" REALPATH)
+endif()
+
+set(Beast_INCLUDE_DIRS "${Beast_INSTALL_PATH}/include")
+
+
