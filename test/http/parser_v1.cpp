@@ -18,6 +18,34 @@ namespace http {
 class parser_v1_test : public beast::unit_test::suite
 {
 public:
+    void testRegressions()
+    {
+        using boost::asio::buffer;
+
+        // consecutive empty header values
+        {
+            error_code ec;
+            parser_v1<true, string_body, headers> p;
+            std::string const s =
+                "GET / HTTP/1.1\r\n"
+                "X1:\r\n"
+                "X2:\r\n"
+                "X3:x\r\n"
+                "\r\n";
+            p.write(buffer(s), ec);
+            if(! BEAST_EXPECTS(! ec, ec.message()))
+                return;
+            BEAST_EXPECT(p.complete());
+            auto const msg = p.release();
+            BEAST_EXPECT(msg.headers.exists("X1"));
+            BEAST_EXPECT(msg.headers["X1"] == "");
+            BEAST_EXPECT(msg.headers.exists("X2"));
+            BEAST_EXPECT(msg.headers["X2"] == "");
+            BEAST_EXPECT(msg.headers.exists("X3"));
+            BEAST_EXPECT(msg.headers["X3"] == "x");
+        }
+    }
+
     void run() override
     {
         using boost::asio::buffer;
@@ -74,6 +102,8 @@ public:
             BEAST_EXPECT(! ec);
             BEAST_EXPECT(p.complete());
         }
+
+        testRegressions();
     }
 };
 
