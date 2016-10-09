@@ -116,7 +116,7 @@ accept(ConstBufferSequence const& buffers, error_code& ec)
     stream_.buffer().commit(buffer_copy(
         stream_.buffer().prepare(
             buffer_size(buffers)), buffers));
-    http::request_v1<http::string_body> m;
+    http::request<http::string_body> m;
     http::read(next_layer(), stream_.buffer(), m, ec);
     if(ec)
         return;
@@ -147,7 +147,7 @@ template<class NextLayer>
 template<class Body, class Headers>
 void
 stream<NextLayer>::
-accept(http::request_v1<Body, Headers> const& request)
+accept(http::request<Body, Headers> const& request)
 {
     static_assert(is_SyncStream<next_layer_type>::value,
         "SyncStream requirements not met");
@@ -161,7 +161,7 @@ template<class NextLayer>
 template<class Body, class Headers>
 void
 stream<NextLayer>::
-accept(http::request_v1<Body, Headers> const& req,
+accept(http::request<Body, Headers> const& req,
     error_code& ec)
 {
     static_assert(is_SyncStream<next_layer_type>::value,
@@ -186,7 +186,7 @@ template<class Body, class Headers, class AcceptHandler>
 typename async_completion<
     AcceptHandler, void(error_code)>::result_type
 stream<NextLayer>::
-async_accept(http::request_v1<Body, Headers> const& req,
+async_accept(http::request<Body, Headers> const& req,
     AcceptHandler&& handler)
 {
     static_assert(is_AsyncStream<next_layer_type>::value,
@@ -230,7 +230,7 @@ handshake(boost::string_ref const& host,
         build_request(host, resource, key), ec);
     if(ec)
         return;
-    http::response_v1<http::string_body> res;
+    http::response<http::string_body> res;
     http::read(next_layer(), stream_.buffer(), res, ec);
     if(ec)
         return;
@@ -839,12 +839,12 @@ reset()
 }
 
 template<class NextLayer>
-http::request_v1<http::empty_body>
+http::request<http::empty_body>
 stream<NextLayer>::
 build_request(boost::string_ref const& host,
     boost::string_ref const& resource, std::string& key)
 {
-    http::request_v1<http::empty_body> req;
+    http::request<http::empty_body> req;
     req.url = { resource.data(), resource.size() };
     req.version = 11;
     req.method = "GET";
@@ -860,14 +860,14 @@ build_request(boost::string_ref const& host,
 
 template<class NextLayer>
 template<class Body, class Headers>
-http::response_v1<http::string_body>
+http::response<http::string_body>
 stream<NextLayer>::
-build_response(http::request_v1<Body, Headers> const& req)
+build_response(http::request<Body, Headers> const& req)
 {
     auto err =
         [&](std::string const& text)
         {
-            http::response_v1<http::string_body> res;
+            http::response<http::string_body> res;
             res.status = 400;
             res.reason = http::reason_string(res.status);
             res.version = req.version;
@@ -898,7 +898,7 @@ build_response(http::request_v1<Body, Headers> const& req)
             return err("Missing Sec-WebSocket-Version");
         if(version != "13")
         {
-            http::response_v1<http::string_body> res;
+            http::response<http::string_body> res;
             res.status = 426;
             res.reason = http::reason_string(res.status);
             res.version = req.version;
@@ -910,7 +910,7 @@ build_response(http::request_v1<Body, Headers> const& req)
             return res;
         }
     }
-    http::response_v1<http::string_body> res;
+    http::response<http::string_body> res;
     res.status = 101;
     res.reason = http::reason_string(res.status);
     res.version = req.version;
@@ -931,7 +931,7 @@ template<class NextLayer>
 template<class Body, class Headers>
 void
 stream<NextLayer>::
-do_response(http::response_v1<Body, Headers> const& res,
+do_response(http::response<Body, Headers> const& res,
     boost::string_ref const& key, error_code& ec)
 {
     // VFALCO Review these error codes

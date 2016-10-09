@@ -9,7 +9,7 @@
 #define BEAST_WEBSOCKET_IMPL_HANDSHAKE_OP_HPP
 
 #include <beast/http/empty_body.hpp>
-#include <beast/http/message_v1.hpp>
+#include <beast/http/message.hpp>
 #include <beast/http/read.hpp>
 #include <beast/http/write.hpp>
 #include <beast/core/handler_alloc.hpp>
@@ -33,8 +33,8 @@ class stream<NextLayer>::handshake_op
         stream<NextLayer>& ws;
         Handler h;
         std::string key;
-        http::request_v1<http::empty_body> req;
-        http::response_v1<http::string_body> resp;
+        http::request<http::empty_body> req;
+        http::response<http::string_body> resp;
         bool cont;
         int state = 0;
 

@@ -11,7 +11,7 @@
 
 [block '''
 <informaltable frame="all"><tgroup cols="1"><colspec colname="a"/><tbody><row><entry valign="top"><simplelist>
-  <member><link linkend="beast.http.message">Message</link></member>
+  <member><link linkend="beast.http.message">Messages</link></member>
   <member><link linkend="beast.http.headers">Headers</link></member>
   <member><link linkend="beast.http.body">Body</link></member>
   <member><link linkend="beast.http.algorithms">Algorithms</link></member>
@@ -44,25 +44,25 @@ messages called responses.
 
 
 
-[section:message Message]
+[section:message Messages]
 
-The __message__ class template models HTTP/2 requests and responses, while the
-derived class __message_v1__ models HTTP/1 requests and responses, adding the
-required version field. These objects are complete: they contain
-all the information required to permit the algorithms to operate. These objects
-are first class: They may be returned from functions, moved, copied, passed
-as arguments, and stored in containers. Request and response messages are
-distinct types; functions may be overloaded on just one or the other if
-desired. Because this class template supports HTTP/1 and HTTP/2, it is
-sometimes referred to as the universal message model.
+The __message__ class template models HTTP/1 and HTTP/2 requests and responses.
+These class templates are complete: they contain all the information needed
+by the algorithms. Objects of this type are first class: They may be returned
+from functions, moved, copied, passed as arguments, and stored in containers.
+Request and response messages are distinct types; functions may be overloaded
+on just one or the other if desired. Because this class template supports
+HTTP/1 and HTTP/2, it is sometimes referred to as the universal message model.
 
-These class templates have three template parameters:
+There are three important template parameters in the message class:
 ```
-    template<bool isRequest, class Body, class Headers>
+    template<
+        bool isRequest,
+        class Body,
+        class Headers
+    >
     class message;
 
-    template<bool isRequest, class Body, class Headers>
-    class message_v1;
 ```
 
 * [*`isRequest`]: Controls whether or not the message is a request or response.
@@ -76,28 +76,26 @@ These class templates have three template parameters:
 
 For notational convenience, the following template type aliases are provided:
 ```
-    template<class Body, class Headers = basic_headers<std::allocator<char>>>
+    template<
+        class Body,
+        class Headers = basic_headers<std::allocator<char>>>
     using request = message<true, Body, Headers>;
 
-    template<class Body, class Headers = basic_headers<std::allocator<char>>>
+    template<
+        class Body,
+        class Headers = basic_headers<std::allocator<char>>>
     using response = message<false, Body, Headers>;
-
-    template<class Body, class Headers = basic_headers<std::allocator<char>>>
-    using request_v1 = message_v1<true, Body, Headers>;
-
-    template<class Body, class Headers = basic_headers<std::allocator<char>>>
-    using response_v1 = message_v1<false, Body, Headers>;
 ```
 
-Although these aliases have a common base class, they have different fields
-depending on whether the message is a request or a response. These simplified
-declarations notionally illustrate the members of HTTP/1 messages:
+The message class template has different data members depending on whether
+it represents a request or response. These simplified declarations
+notionally illustrate the members of HTTP/1 messages:
 
 ```
     template<class Body, class Headers>
-    struct request_v1
+    struct request
     {
-        int version;  10 or 11
+        int version;            // 10 for HTTP/1.0, 11 for HTTP/1.1
         std::string method;
         std::string url;
         Headers headers;
@@ -105,9 +103,9 @@ declarations notionally illustrate the members of HTTP/1 messages:
     };
 
     template<class Body, class Headers>
-    struct response_v1
+    struct response
     {
-        int version;  10 or 11
+        int version;            // 10 for HTTP/1.0, 11 for HTTP/1.1
         int status;
         std::string reason;
         Headers headers;
@@ -117,17 +115,17 @@ declarations notionally illustrate the members of HTTP/1 messages:
 
 These statements set fields in request and response message objects:
 ```
-    request_v1<string_body> req;
+    request<string_body> req;
+    req.version = 11;           // HTTP/1.1
     req.method = "GET";
     req.url = "/index.html";
-    req.version = 11;           // HTTP/1.1
     req.headers.insert("User-Agent", "Beast.HTTP");
     req.body = "";
 
-    response_v1<string_body> res;
+    response<string_body> res;
+    res.version = 10;          // HTTP/1.0
     res.status = 404;
     res.reason = "Not Found";
-    res.version = 10;          // HTTP/1.0
     res.headers.insert("Server", "Beast.HTTP");
     res.body = "The requested resource was not found.";
 ```
@@ -147,7 +145,7 @@ The field names are not case-sensitive.
 These statements change the values of the headers in the message passed:
 ```
     template<class Body>
-    void set_fields(request_v1<Body>& req)
+    void set_fields(request<Body>& req)
     {
         if(! req.exists("User-Agent"))
             req.insert("User-Agent", "myWebClient");
@@ -184,7 +182,7 @@ and serialization. Beast provides three very common [*`Body`] types:
 * [link beast.ref.http__empty_body [*`empty_body`:]] An empty message body.
 Used in GET requests where there is no message body. Example:
 ```
-    request_v1<empty_body> req;
+    request<empty_body> req;
     req.version = 11;
     req.method = "GET";
     req.url = "/index.html";
@@ -196,7 +194,7 @@ or response with simple text in the message body (such as an error message).
 Has the same insertion complexity of `std::string`. This is the type of body
 used in the examples:
 ```
-    response_v1<string_body> res;
+    response<string_body> res;
     static_assert(std::is_same<decltype(res.body), std::string>::value);
     res.body = "Here is the data you requested";
 ```
@@ -282,7 +280,7 @@ An asynchronous interface is available:
 ```
     void handle_write(boost::system::error_code);
     ...
-    request_v1<empty_body> req;
+    request<empty_body> req;
     ...
     async_write(sock, req, std::bind(&handle_write, std::placeholders::_1));
 ```
@@ -297,7 +295,7 @@ stored in the streambuf parameter for use in a subsequent call to read:
 ```
     boost::asio::streambuf sb;
     ...
-    response_v1<string_body> res;
+    response<string_body> res;
     read(sock, sb, res); // Throws exception on error
     ...
     // Alternatively
@@ -314,7 +312,7 @@ called:
     void handle_read(boost::system::error_code);
     ...
     boost::asio::streambuf sb;
-    response_v1<string_body> res;
+    response<string_body> res;
     ...
     async_read(sock, res, std::bind(&handle_read, std::placeholders::_1));
 ```
@@ -326,7 +324,7 @@ is optimized for performance:
     void handle_read(boost::system::error_code);
     ...
     beast::streambuf sb;
-    response_v1<string_body> res;
+    response<string_body> res;
     read(sock, sb, res);
 ```
 

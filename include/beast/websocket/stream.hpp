@@ -10,7 +10,7 @@
 
 #include <beast/websocket/option.hpp>
 #include <beast/websocket/detail/stream_base.hpp>
-#include <beast/http/message_v1.hpp>
+#include <beast/http/message.hpp>
 #include <beast/http/string_body.hpp>
 #include <beast/core/dynabuf_readstream.hpp>
 #include <beast/core/async_completion.hpp>
@@ -586,7 +586,7 @@ public:
     // VFALCO TODO This should also take a DynamicBuffer with any leftover bytes.
     template<class Body, class Headers>
     void
-    accept(http::request_v1<Body, Headers> const& request);
+    accept(http::request<Body, Headers> const& request);
 
     /** Respond to a WebSocket HTTP Upgrade request
 
@@ -618,7 +618,7 @@ public:
     */
     template<class Body, class Headers>
     void
-    accept(http::request_v1<Body, Headers> const& request,
+    accept(http::request<Body, Headers> const& request,
         error_code& ec);
 
     /** Start responding to a WebSocket HTTP Upgrade request.
@@ -669,7 +669,7 @@ public:
     typename async_completion<
         AcceptHandler, void(error_code)>::result_type
 #endif
-    async_accept(http::request_v1<Body, Headers> const& request,
+    async_accept(http::request<Body, Headers> const& request,
         AcceptHandler&& handler);
 
     /** Send a HTTP WebSocket Upgrade request and receive the response.
@@ -1530,18 +1530,18 @@ private:
     void
     reset();
 
-    http::request_v1<http::empty_body>
+    http::request<http::empty_body>
     build_request(boost::string_ref const& host,
         boost::string_ref const& resource,
             std::string& key);
 
     template<class Body, class Headers>
-    http::response_v1<http::string_body>
-    build_response(http::request_v1<Body, Headers> const& req);
+    http::response<http::string_body>
+    build_response(http::request<Body, Headers> const& req);
 
     template<class Body, class Headers>
     void
-    do_response(http::response_v1<Body, Headers> const& resp,
+    do_response(http::response<Body, Headers> const& resp,
         boost::string_ref const& key, error_code& ec);
 
     void

@@ -33,7 +33,7 @@ class read_op
         parser_v1<isRequest, Body, Headers>;
 
     using message_type =
-        message_v1<isRequest, Body, Headers>;
+        message<isRequest, Body, Headers>;
 
     struct data
     {
@@ -144,7 +144,7 @@ template<class SyncReadStream, class DynamicBuffer,
     bool isRequest, class Body, class Headers>
 void
 read(SyncReadStream& stream, DynamicBuffer& dynabuf,
-    message_v1<isRequest, Body, Headers>& msg)
+    message<isRequest, Body, Headers>& msg)
 {
     static_assert(is_SyncReadStream<SyncReadStream>::value,
         "SyncReadStream requirements not met");
@@ -155,7 +155,7 @@ read(SyncReadStream& stream, DynamicBuffer& dynabuf,
     static_assert(has_reader<Body>::value,
         "Body has no reader");
     static_assert(is_Reader<typename Body::reader,
-        message_v1<isRequest, Body, Headers>>::value,
+        message<isRequest, Body, Headers>>::value,
             "Reader requirements not met");
     error_code ec;
     beast::http::read(stream, dynabuf, msg, ec);
@@ -167,7 +167,7 @@ template<class SyncReadStream, class DynamicBuffer,
     bool isRequest, class Body, class Headers>
 void
 read(SyncReadStream& stream, DynamicBuffer& dynabuf,
-    message_v1<isRequest, Body, Headers>& m,
+    message<isRequest, Body, Headers>& m,
         error_code& ec)
 {
     static_assert(is_SyncReadStream<SyncReadStream>::value,
@@ -179,7 +179,7 @@ read(SyncReadStream& stream, DynamicBuffer& dynabuf,
     static_assert(has_reader<Body>::value,
         "Body has no reader");
     static_assert(is_Reader<typename Body::reader,
-        message_v1<isRequest, Body, Headers>>::value,
+        message<isRequest, Body, Headers>>::value,
             "Reader requirements not met");
     parser_v1<isRequest, Body, Headers> p;
     beast::http::parse(stream, dynabuf, p, ec);
@@ -195,7 +195,7 @@ template<class AsyncReadStream, class DynamicBuffer,
 typename async_completion<
     ReadHandler, void(error_code)>::result_type
 async_read(AsyncReadStream& stream, DynamicBuffer& dynabuf,
-    message_v1<isRequest, Body, Headers>& m,
+    message<isRequest, Body, Headers>& m,
         ReadHandler&& handler)
 {
     static_assert(is_AsyncReadStream<AsyncReadStream>::value,
@@ -207,7 +207,7 @@ async_read(AsyncReadStream& stream, DynamicBuffer& dynabuf,
     static_assert(has_reader<Body>::value,
         "Body has no reader");
     static_assert(is_Reader<typename Body::reader,
-        message_v1<isRequest, Body, Headers>>::value,
+        message<isRequest, Body, Headers>>::value,
             "Reader requirements not met");
     beast::async_completion<ReadHandler,
         void(error_code)> completion(handler);

@@ -33,7 +33,7 @@ int main()
     stream.handshake(ssl::stream_base::client);
 
     // Send HTTP request over SSL using Beast
-    beast::http::request_v1<beast::http::empty_body> req;
+    beast::http::request<beast::http::empty_body> req;
     req.method = "GET";
     req.url = "/";
     req.version = 11;
@@ -45,7 +45,7 @@ int main()
 
     // Receive and print HTTP response using Beast
     beast::streambuf sb;
-    beast::http::response_v1<beast::http::streambuf_body> resp;
+    beast::http::response<beast::http::streambuf_body> resp;
     beast::http::read(stream, sb, resp);
     std::cout << resp;
 

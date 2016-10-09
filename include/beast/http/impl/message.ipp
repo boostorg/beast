@@ -5,13 +5,14 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#ifndef BEAST_HTTP_IMPL_MESSAGE_V1_IPP
-#define BEAST_HTTP_IMPL_MESSAGE_V1_IPP
+#ifndef BEAST_HTTP_IMPL_MESSAGE_IPP
+#define BEAST_HTTP_IMPL_MESSAGE_IPP
 
 #include <beast/core/error.hpp>
 #include <beast/http/concepts.hpp>
 #include <beast/http/rfc7230.hpp>
 #include <beast/core/detail/ci_char_traits.hpp>
+#include <boost/assert.hpp>
 #include <boost/optional.hpp>
 #include <stdexcept>
 
@@ -20,9 +21,10 @@ namespace http {
 
 template<bool isRequest, class Body, class Headers>
 bool
-is_keep_alive(message_v1<isRequest, Body, Headers> const& msg)
+is_keep_alive(message<isRequest, Body, Headers> const& msg)
 {
-    if(msg.version >= 11)
+    BOOST_ASSERT(msg.version == 10 || msg.version == 11);
+    if(msg.version == 11)
     {
         if(token_list{msg.headers["Connection"]}.exists("close"))
             return false;
@@ -35,9 +37,10 @@ is_keep_alive(message_v1<isRequest, Body, Headers> const& msg)
 
 template<bool isRequest, class Body, class Headers>
 bool
-is_upgrade(message_v1<isRequest, Body, Headers> const& msg)
+is_upgrade(message<isRequest, Body, Headers> const& msg)
 {
-    if(msg.version < 11)
+    BOOST_ASSERT(msg.version == 10 || msg.version == 11);
+    if(msg.version == 10)
         return false;
     if(token_list{msg.headers["Connection"]}.exists("upgrade"))
         return true;
@@ -56,14 +59,14 @@ template<bool isRequest, class Body, class Headers>
 inline
 void
 prepare_options(prepare_info& pi,
-    message_v1<isRequest, Body, Headers>& msg)
+    message<isRequest, Body, Headers>& msg)
 {
 }
 
 template<bool isRequest, class Body, class Headers>
 void
 prepare_option(prepare_info& pi,
-    message_v1<isRequest, Body, Headers>& msg,
+    message<isRequest, Body, Headers>& msg,
         connection value)
 {
     pi.connection_value = value;
@@ -74,7 +77,7 @@ template<
     class Opt, class... Opts>
 void
 prepare_options(prepare_info& pi,
-    message_v1<isRequest, Body, Headers>& msg,
+    message<isRequest, Body, Headers>& msg,
         Opt&& opt, Opts&&... opts)
 {
     prepare_option(pi, msg, opt);
@@ -85,7 +88,7 @@ prepare_options(prepare_info& pi,
 template<bool isRequest, class Body, class Headers>
 void
 prepare_content_length(prepare_info& pi,
-    message_v1<isRequest, Body, Headers> const& msg,
+    message<isRequest, Body, Headers> const& msg,
         std::true_type)
 {
     typename Body::writer w(msg);
@@ -100,7 +103,7 @@ prepare_content_length(prepare_info& pi,
 template<bool isRequest, class Body, class Headers>
 void
 prepare_content_length(prepare_info& pi,
-    message_v1<isRequest, Body, Headers> const& msg,
+    message<isRequest, Body, Headers> const& msg,
         std::false_type)
 {
     pi.content_length = boost::none;
@@ -112,7 +115,7 @@ template<
     bool isRequest, class Body, class Headers,
     class... Options>
 void
-prepare(message_v1<isRequest, Body, Headers>& msg,
+prepare(message<isRequest, Body, Headers>& msg,
     Options&&... options)
 {
     // VFALCO TODO
@@ -121,7 +124,7 @@ prepare(message_v1<isRequest, Body, Headers>& msg,
     static_assert(has_writer<Body>::value,
         "Body has no writer");
     static_assert(is_Writer<typename Body::writer,
-        message_v1<isRequest, Body, Headers>>::value,
+        message<isRequest, Body, Headers>>::value,
             "Writer requirements not met");
     detail::prepare_info pi;
     detail::prepare_content_length(pi, msg,
@@ -148,7 +151,7 @@ prepare(message_v1<isRequest, Body, Headers>& msg,
             struct set_field
             {
                 void
-                operator()(message_v1<true, Body, Headers>& msg,
+                operator()(message<true, Body, Headers>& msg,
                     detail::prepare_info const& pi) const
                 {
                     using beast::detail::ci_equal;
@@ -161,7 +164,7 @@ prepare(message_v1<isRequest, Body, Headers>& msg,
                 }
 
                 void
-                operator()(message_v1<false, Body, Headers>& msg,
+                operator()(message<false, Body, Headers>& msg,
                     detail::prepare_info const& pi) const
                 {
                     if((msg.status / 100 ) != 1 &&

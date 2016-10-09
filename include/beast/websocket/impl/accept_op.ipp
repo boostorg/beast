@@ -9,7 +9,7 @@
 #define BEAST_WEBSOCKET_IMPL_ACCEPT_OP_HPP
 
 #include <beast/websocket/impl/response_op.ipp>
-#include <beast/http/message_v1.hpp>
+#include <beast/http/message.hpp>
 #include <beast/http/parser_v1.hpp>
 #include <beast/http/read.hpp>
 #include <beast/core/handler_alloc.hpp>
@@ -33,7 +33,7 @@ class stream<NextLayer>::accept_op
     struct data
     {
         stream<NextLayer>& ws;
-        http::request_v1<http::string_body> req;
+        http::request<http::string_body> req;
         Handler h;
         bool cont;
         int state = 0;

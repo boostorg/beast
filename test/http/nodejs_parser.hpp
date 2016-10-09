@@ -10,7 +10,7 @@
 
 #include "nodejs-parser/http_parser.h"
 
-#include <beast/http/message_v1.hpp>
+#include <beast/http/message.hpp>
 #include <beast/http/rfc7230.hpp>
 #include <beast/core/buffer_concepts.hpp>
 #include <beast/core/error.hpp>
@@ -741,7 +741,7 @@ class nodejs_parser
     : public nodejs_basic_parser<nodejs_parser<isRequest, Body, Headers>>
 {
     using message_type =
-        message_v1<isRequest, Body, Headers>;
+        message<isRequest, Body, Headers>;
 
     message_type m_;
     typename message_type::body_type::reader r_;

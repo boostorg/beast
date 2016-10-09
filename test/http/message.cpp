@@ -8,6 +8,7 @@
 // Test that header file is self-contained.
 #include <beast/http/message.hpp>
 
+#include <beast/http/empty_body.hpp>
 #include <beast/http/headers.hpp>
 #include <beast/http/string_body.hpp>
 #include <beast/unit_test/suite.hpp>
@@ -69,7 +70,7 @@ public:
         };
     };
 
-    void testConstruction()
+    void testMessage()
     {
         static_assert(std::is_constructible<
             message<true, default_body, headers>>::value, "");
@@ -125,10 +126,8 @@ public:
             BEAST_EXPECT(! h.exists("User-Agent"));
             BEAST_EXPECT(m.headers["User-Agent"] == "test");
         }
-    }
 
-    void testSwap()
-    {
+        // swap
         message<true, string_body, headers> m1;
         message<true, string_body, headers> m2;
         m1.url = "u";
@@ -147,9 +146,144 @@ public:
         BEAST_EXPECT(m2.headers.exists("h"));
     }
 
+    struct MoveHeaders
+    {
+        bool moved_to = false;
+        bool moved_from = false;
+
+        MoveHeaders() = default;
+
+        MoveHeaders(MoveHeaders&& other)
+            : moved_to(true)
+        {
+            other.moved_from = true;
+        }
+
+        MoveHeaders& operator=(MoveHeaders&& other)
+        {
+            return *this;
+        }
+    };
+
+    void testHeaders()
+    {
+        {
+            using req_type = request_headers<headers>;
+            static_assert(std::is_copy_constructible<req_type>::value, "");
+            static_assert(std::is_move_constructible<req_type>::value, "");
+            static_assert(std::is_copy_assignable<req_type>::value, "");
+            static_assert(std::is_move_assignable<req_type>::value, "");
+
+            using res_type = response_headers<headers>;
+            static_assert(std::is_copy_constructible<res_type>::value, "");
+            static_assert(std::is_move_constructible<res_type>::value, "");
+            static_assert(std::is_copy_assignable<res_type>::value, "");
+            static_assert(std::is_move_assignable<res_type>::value, "");
+        }
+
+        {
+            MoveHeaders h;
+            request_headers<MoveHeaders> r{std::move(h)};
+            BEAST_EXPECT(h.moved_from);
+            BEAST_EXPECT(r.headers.moved_to);
+            request<string_body, MoveHeaders> m{std::move(r)};
+            BEAST_EXPECT(r.headers.moved_from);
+            BEAST_EXPECT(m.headers.moved_to);
+        }
+    }
+
+    void testFreeFunctions()
+    {
+        {
+            request<empty_body> m;
+            m.method = "GET";
+            m.url = "/";
+            m.version = 11;
+            m.headers.insert("Upgrade", "test");
+            BEAST_EXPECT(! is_upgrade(m));
+
+            prepare(m, connection::upgrade);
+            BEAST_EXPECT(is_upgrade(m));
+            BEAST_EXPECT(m.headers["Connection"] == "upgrade");
+
+            m.version = 10;
+            BEAST_EXPECT(! is_upgrade(m));
+        }
+    }
+
+    void testPrepare()
+    {
+        request<empty_body> m;
+        m.version = 10;
+        BEAST_EXPECT(! is_upgrade(m));
+        m.headers.insert("Transfer-Encoding", "chunked");
+        try
+        {
+            prepare(m);
+            fail();
+        }
+        catch(std::exception const&)
+        {
+        }
+        m.headers.erase("Transfer-Encoding");
+        m.headers.insert("Content-Length", "0");
+        try
+        {
+            prepare(m);
+            fail();
+        }
+        catch(std::exception const&)
+        {
+            pass();
+        }
+        m.headers.erase("Content-Length");
+        m.headers.insert("Connection", "keep-alive");
+        try
+        {
+            prepare(m);
+            fail();
+        }
+        catch(std::exception const&)
+        {
+            pass();
+        }
+        m.version = 11;
+        m.headers.erase("Connection");
+        m.headers.insert("Connection", "close");
+        BEAST_EXPECT(! is_keep_alive(m));
+    }
+
+    void testSwap()
+    {
+        message<false, string_body, headers> m1;
+        message<false, string_body, headers> m2;
+        m1.status = 200;
+        m1.version = 10;
+        m1.body = "1";
+        m1.headers.insert("h", "v");
+        m2.status = 404;
+        m2.reason = "OK";
+        m2.body = "2";
+        m2.version = 11;
+        swap(m1, m2);
+        BEAST_EXPECT(m1.status == 404);
+        BEAST_EXPECT(m2.status == 200);
+        BEAST_EXPECT(m1.reason == "OK");
+        BEAST_EXPECT(m2.reason.empty());
+        BEAST_EXPECT(m1.version == 11);
+        BEAST_EXPECT(m2.version == 10);
+        BEAST_EXPECT(m1.body == "2");
+        BEAST_EXPECT(m2.body == "1");
+        BEAST_EXPECT(! m1.headers.exists("h"));
+        BEAST_EXPECT(m2.headers.exists("h"));
+    }
+
     void run() override
     {
-        testConstruction();
+        testMessage();
+        testHeaders();
+        testFreeFunctions();
+        testPrepare();
         testSwap();
     }
 };
@@ -158,4 +292,3 @@ BEAST_DEFINE_TESTSUITE(message,http,beast);
 
 } // http
 } // beast
-

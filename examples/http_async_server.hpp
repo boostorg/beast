@@ -32,8 +32,8 @@ class http_async_server
     using address_type = boost::asio::ip::address;
     using socket_type = boost::asio::ip::tcp::socket;
 
-    using req_type = request_v1<string_body>;
-    using resp_type = response_v1<file_body>;
+    using req_type = request<string_body>;
+    using resp_type = response<file_body>;
 
     std::mutex m_;
     bool log_ = true;
@@ -94,13 +94,13 @@ private:
         struct data
         {
             Stream& s;
-            message_v1<isRequest, Body, Headers> m;
+            message<isRequest, Body, Headers> m;
             Handler h;
             bool cont;
 
             template<class DeducedHandler>
             data(DeducedHandler&& h_, Stream& s_,
-                    message_v1<isRequest, Body, Headers>&& m_)
+                    message<isRequest, Body, Headers>&& m_)
                 : s(s_)
                 , m(std::move(m_))
                 , h(std::forward<DeducedHandler>(h_))
@@ -174,7 +174,7 @@ private:
             class DeducedHandler>
     static
     void
-    async_write(Stream& stream, message_v1<
+    async_write(Stream& stream, message<
         isRequest, Body, Headers>&& msg,
             DeducedHandler&& handler)
     {
@@ -236,7 +236,7 @@ private:
             path = server_.root_ + path;
             if(! boost::filesystem::exists(path))
             {
-                response_v1<string_body> res;
+                response<string_body> res;
                 res.status = 404;
                 res.reason = "Not Found";
                 res.version = req_.version;
@@ -265,7 +265,7 @@ private:
             }
             catch(std::exception const& e)
             {
-                response_v1<string_body> res;
+                response<string_body> res;
                 res.status = 500;
                 res.reason = "Internal Error";
                 res.version = req_.version;

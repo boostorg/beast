@@ -251,14 +251,14 @@ public:
     @note Meets the requirements of @b `FieldSequence`.
 */
 template<class Allocator>
-class basic_headers
+class basic_headers :
 #if ! GENERATING_DOCS
-    : private beast::detail::empty_base_optimization<
+    private beast::detail::empty_base_optimization<
         typename std::allocator_traits<Allocator>::
             template rebind_alloc<
-                detail::basic_headers_base::element>>
-    , public detail::basic_headers_base
+                detail::basic_headers_base::element>>,
 #endif
+    public detail::basic_headers_base
 {
     using alloc_type = typename
         std::allocator_traits<Allocator>::

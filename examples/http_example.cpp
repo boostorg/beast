@@ -21,7 +21,7 @@ int main()
         r.resolve(boost::asio::ip::tcp::resolver::query{host, "http"}));
 
     // Send HTTP request using beast
-    beast::http::request_v1<beast::http::empty_body> req;
+    beast::http::request<beast::http::empty_body> req;
     req.method = "GET";
     req.url = "/";
     req.version = 11;
@@ -32,7 +32,7 @@ int main()
 
     // Receive and print HTTP response using beast
     beast::streambuf sb;
-    beast::http::response_v1<beast::http::streambuf_body> resp;
+    beast::http::response<beast::http::streambuf_body> resp;
     beast::http::read(sock, sb, resp);
     std::cout << resp;
 }

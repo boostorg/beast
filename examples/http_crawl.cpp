@@ -35,7 +35,7 @@ int main(int, char const*[])
             ip::tcp::socket sock(ios);
             connect(sock, it);
             auto ep = sock.remote_endpoint();
-            request_v1<empty_body> req;
+            request<empty_body> req;
             req.method = "GET";
             req.url = "/";
             req.version = 11;
@@ -44,7 +44,7 @@ int main(int, char const*[])
             req.headers.insert("User-Agent", "beast/http");
             prepare(req);
             write(sock, req);
-            response_v1<string_body> res;
+            response<string_body> res;
             streambuf sb;
             beast::http::read(sock, sb, res);
             std::cout << res;
