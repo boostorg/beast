@@ -29,12 +29,12 @@
 [def __AsyncWriteStream__ [@http://www.boost.org/doc/libs/1_61_0/doc/html/boost_asio/reference/AsyncWriteStream.html [*AsyncWriteStream]]]
 [def __Body__ [link beast.ref.Body [*`Body`]]]
 [def __CompletionHandler__ [@http://www.boost.org/doc/libs/1_60_0/doc/html/boost_asio/reference/CompletionHandler.html [*CompletionHandler]]]
-[def __ConstBufferSequence__ [@http://www.boost.org/doc/libs/1_61_0/doc/html/boost_asio/reference/ConstBufferSequence.html [*`ConstBufferSequence`]]]
+[def __ConstBufferSequence__ [@http://www.boost.org/doc/libs/1_61_0/doc/html/boost_asio/reference/ConstBufferSequence.html [*ConstBufferSequence]]]
 [def __DynamicBuffer__ [link beast.ref.DynamicBuffer [*`DynamicBuffer`]]]
 [def __FieldSequence__ [link beast.ref.FieldSequence [*`FieldSequence`]]]
 [def __message__ [link beast.ref.http__message `message`]]
 [def __message_v1__ [link beast.ref.http__message_v1 `message_v1`]]
-[def __MutableBufferSequence [@http://www.boost.org/doc/libs/1_61_0/doc/html/boost_asio/reference/MutableBufferSequence.html [*MutableBufferSequence]]]
+[def __MutableBufferSequence__ [@http://www.boost.org/doc/libs/1_61_0/doc/html/boost_asio/reference/MutableBufferSequence.html [*MutableBufferSequence]]]
 [def __rfc6455__ [@https://tools.ietf.org/html/rfc6455 rfc6455]]
 [def __rfc7230__ [@https://tools.ietf.org/html/rfc7230 rfc7230]]
 [def __streambuf__ [link beast.ref.streambuf `streambuf`]]
@@ -49,8 +49,7 @@ provides implementations of the HTTP and WebSocket protocols.
   [[
     [link beast.overview Overview]
   ][
-    An overview of features, requirements, and credits, plus
-    rationale and design information.
+    An introduction wsth features, requirements, and credits.
   ]]
   [[
     [link beast.http Using HTTP]
@@ -68,6 +67,12 @@ provides implementations of the HTTP and WebSocket protocols.
     Examples that illustrate the use of Beast in more complex applications.
   ]]
   [[
+    [link beast.design Design]
+  ][
+    Design rationale, answers to review questions, and
+    other library comparisons.
+  ]]
+  [[
     [link beast.ref Reference]
   ][
     Detailed class and function reference.
@@ -83,7 +88,6 @@ provides implementations of the HTTP and WebSocket protocols.
 [include http.qbk]
 [include websocket.qbk]
 [include examples.qbk]
-
 [include design.qbk]
 
 [section:ref Reference]
