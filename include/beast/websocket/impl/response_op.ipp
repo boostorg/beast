@@ -8,7 +8,7 @@
 #ifndef BEAST_WEBSOCKET_IMPL_RESPONSE_OP_HPP
 #define BEAST_WEBSOCKET_IMPL_RESPONSE_OP_HPP
 
-#include <beast/http/message_v1.hpp>
+#include <beast/http/message.hpp>
 #include <beast/http/string_body.hpp>
 #include <beast/http/write.hpp>
 #include <beast/core/handler_alloc.hpp>
@@ -28,7 +28,7 @@ class stream<NextLayer>::response_op
     struct data
     {
         stream<NextLayer>& ws;
-        http::response_v1<http::string_body> resp;
+        http::response<http::string_body> resp;
         Handler h;
         error_code final_ec;
         bool cont;
@@ -37,7 +37,7 @@ class stream<NextLayer>::response_op
         template<class DeducedHandler,
             class Body, class Headers>
         data(DeducedHandler&& h_, stream<NextLayer>& ws_,
-            http::request_v1<Body, Headers> const& req,
+            http::request<Body, Headers> const& req,
                 bool cont_)
             : ws(ws_)
             , resp(ws_.build_response(req))

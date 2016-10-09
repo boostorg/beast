@@ -10,7 +10,7 @@
 
 #include <beast/core/async_completion.hpp>
 #include <beast/core/error.hpp>
-#include <beast/http/message_v1.hpp>
+#include <beast/http/message.hpp>
 
 namespace beast {
 namespace http {
@@ -49,7 +49,7 @@ template<class SyncReadStream, class DynamicBuffer,
     bool isRequest, class Body, class Headers>
 void
 read(SyncReadStream& stream, DynamicBuffer& dynabuf,
-    message_v1<isRequest, Body, Headers>& msg);
+    message<isRequest, Body, Headers>& msg);
 
 /** Read a HTTP/1 message from a stream.
 
@@ -85,7 +85,7 @@ template<class SyncReadStream, class DynamicBuffer,
     bool isRequest, class Body, class Headers>
 void
 read(SyncReadStream& stream, DynamicBuffer& dynabuf,
-    message_v1<isRequest, Body, Headers>& msg,
+    message<isRequest, Body, Headers>& msg,
         error_code& ec);
 
 /** Start an asynchronous operation to read a HTTP/1 message from a stream.
@@ -136,7 +136,7 @@ typename async_completion<
     ReadHandler, void(error_code)>::result_type
 #endif
 async_read(AsyncReadStream& stream, DynamicBuffer& dynabuf,
-    message_v1<isRequest, Body, Headers>& msg,
+    message<isRequest, Body, Headers>& msg,
         ReadHandler&& handler);
 
 } // http

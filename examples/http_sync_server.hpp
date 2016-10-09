@@ -32,8 +32,8 @@ class http_sync_server
     using address_type = boost::asio::ip::address;
     using socket_type = boost::asio::ip::tcp::socket;
 
-    using req_type = request_v1<string_body>;
-    using resp_type = response_v1<file_body>;
+    using req_type = request<string_body>;
+    using resp_type = response<file_body>;
 
     bool log_ = true;
     std::mutex m_;
@@ -161,7 +161,7 @@ private:
             path = root_ + path;
             if(! boost::filesystem::exists(path))
             {
-                response_v1<string_body> res;
+                response<string_body> res;
                 res.status = 404;
                 res.reason = "Not Found";
                 res.version = req.version;
@@ -190,7 +190,7 @@ private:
             }
             catch(std::exception const& e)
             {
-                response_v1<string_body> res;
+                response<string_body> res;
                 res.status = 500;
                 res.reason = "Internal Error";
                 res.version = req.version;

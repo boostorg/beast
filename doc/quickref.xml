@@ -35,7 +35,11 @@
             <member><link linkend="beast.ref.http__empty_body">empty_body</link></member>
             <member><link linkend="beast.ref.http__headers">headers</link></member>
             <member><link linkend="beast.ref.http__message">message</link></member>
-            <member><link linkend="beast.ref.http__message_v1">message_v1</link></member>
+            <member><link linkend="beast.ref.http__message_headers">message_headers</link></member>
+            <member><link linkend="beast.ref.http__request">request</link></member>
+            <member><link linkend="beast.ref.http__request_headers">request_headers</link></member>
+            <member><link linkend="beast.ref.http__response">response</link></member>
+            <member><link linkend="beast.ref.http__response_headers">response_headers</link></member>
             <member><link linkend="beast.ref.http__resume_context">resume_context</link></member>
             <member><link linkend="beast.ref.http__streambuf_body">streambuf_body</link></member>
             <member><link linkend="beast.ref.http__string_body">string_body</link></member>
@@ -62,6 +66,9 @@
             <member><link linkend="beast.ref.http__async_parse">async_parse</link></member>
             <member><link linkend="beast.ref.http__async_read">async_read</link></member>
             <member><link linkend="beast.ref.http__async_write">async_write</link></member>
+            <member><link linkend="beast.ref.http__async_write">async_write</link></member>
+            <member><link linkend="beast.ref.http__is_keep_alive">is_keep_alive</link></member>
+            <member><link linkend="beast.ref.http__is_upgrade">is_upgrade</link></member>
             <member><link linkend="beast.ref.http__parse">parse</link></member>
             <member><link linkend="beast.ref.http__prepare">prepare</link></member>
             <member><link linkend="beast.ref.http__read">read</link></member>

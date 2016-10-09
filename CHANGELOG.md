@@ -42,6 +42,17 @@ API Changes:
 * Rename mask_buffer_size to write_buffer_size
 * Make auto_fragment a boolean option
 
+The message class hierarchy is refactored (breaking change):
+
+* One message class now models both HTTP/1 and HTTP/2 messages
+* message_v1, request_v1, response_v1 removed
+* New classes basic_request and basic_response model
+  messages without the body.
+
+    Error resolution: Callers should use message, request,
+    and response instead of message_v1, request_v1, and
+    response_v1 respectively.
+
 --------------------------------------------------------------------------------
 
 1.0.0-b15

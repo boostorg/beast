@@ -8,7 +8,7 @@
 #ifndef BEAST_HTTP_WRITE_HPP
 #define BEAST_HTTP_WRITE_HPP
 
-#include <beast/http/message_v1.hpp>
+#include <beast/http/message.hpp>
 #include <beast/core/error.hpp>
 #include <beast/core/async_completion.hpp>
 #include <ostream>
@@ -46,7 +46,7 @@ template<class SyncWriteStream,
     bool isRequest, class Body, class Headers>
 void
 write(SyncWriteStream& stream,
-    message_v1<isRequest, Body, Headers> const& msg);
+    message<isRequest, Body, Headers> const& msg);
 
 /** Write a HTTP/1 message on a stream.
 
@@ -77,7 +77,7 @@ template<class SyncWriteStream,
     bool isRequest, class Body, class Headers>
 void
 write(SyncWriteStream& stream,
-    message_v1<isRequest, Body, Headers> const& msg,
+    message<isRequest, Body, Headers> const& msg,
         error_code& ec);
 
 /** Start an asynchronous operation to write a HTTP/1 message to a stream.
@@ -132,7 +132,7 @@ typename async_completion<
     WriteHandler, void(error_code)>::result_type
 #endif
 async_write(AsyncWriteStream& stream,
-    message_v1<isRequest, Body, Headers> const& msg,
+    message<isRequest, Body, Headers> const& msg,
         WriteHandler&& handler);
 
 /** Serialize a HTTP/1 message to an ostream.
@@ -150,7 +150,7 @@ async_write(AsyncWriteStream& stream,
 template<bool isRequest, class Body, class Headers>
 std::ostream&
 operator<<(std::ostream& os,
-    message_v1<isRequest, Body, Headers> const& msg);
+    message<isRequest, Body, Headers> const& msg);
 
 } // http
 } // beast

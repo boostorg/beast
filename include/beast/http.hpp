@@ -14,7 +14,6 @@
 #include <beast/http/empty_body.hpp>
 #include <beast/http/headers.hpp>
 #include <beast/http/message.hpp>
-#include <beast/http/message_v1.hpp>
 #include <beast/http/parse.hpp>
 #include <beast/http/parse_error.hpp>
 #include <beast/http/parser_v1.hpp>
