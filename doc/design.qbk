@@ -29,8 +29,8 @@ libraries:
 
 * Role-symmetric interfaces; client and server the same (or close to it).
 
-* Leave important decisions to the user, such as
-  allocating memory or managing flow control.
+* Leave important decisions such as allocating memory or
+  managing flow control, to the user.
 
 Beast uses the __DynamicBuffer__ concept presented in the Networking TS
 (__N4588__), and relies heavily on the Boost.Asio __ConstBufferSequence__

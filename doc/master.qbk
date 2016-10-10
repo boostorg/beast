@@ -50,7 +50,7 @@ provides implementations of the HTTP and WebSocket protocols.
   [[
     [link beast.overview Overview]
   ][
-    An introduction wsth features, requirements, and credits.
+    An introduction with features, requirements, and credits.
   ]]
   [[
     [link beast.http Using HTTP]
