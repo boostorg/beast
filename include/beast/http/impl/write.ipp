@@ -40,11 +40,24 @@ write_firstline(DynamicBuffer& dynabuf,
     write(dynabuf, msg.method);
     write(dynabuf, " ");
     write(dynabuf, msg.url);
-    write(dynabuf, " HTTP/");
-    write(dynabuf, msg.version / 10);
-    write(dynabuf, ".");
-    write(dynabuf, msg.version % 10);
-    write(dynabuf, "\r\n");
+    switch(msg.version)
+    {
+    case 10:
+        write(dynabuf, " HTTP/1.0\r\n");
+        break;
+    case 11:
+        write(dynabuf, " HTTP/1.1\r\n");
+        break;
+    default:
+    {
+        std::string s;
+        s = " HTTP/" +
+            std::to_string(msg.version/10) + '.' +
+            std::to_string(msg.version%10) + "\r\n";
+        write(dynabuf, s);
+        break;
+    }
+    }
 }
 
 template<class DynamicBuffer, class Body, class Headers>
@@ -52,11 +65,24 @@ void
 write_firstline(DynamicBuffer& dynabuf,
     message_v1<false, Body, Headers> const& msg)
 {
-    write(dynabuf, "HTTP/");
-    write(dynabuf, msg.version / 10);
-    write(dynabuf, ".");
-    write(dynabuf, msg.version % 10);
-    write(dynabuf, " ");
+    switch(msg.version)
+    {
+    case 10:
+        write(dynabuf, "HTTP/1.0 ");
+        break;
+    case 11:
+        write(dynabuf, "HTTP/1.1 ");
+        break;
+    default:
+    {
+        std::string s;
+        s = " HTTP/" +
+            std::to_string(msg.version/10) + '.' +
+            std::to_string(msg.version%10) + ' ';
+        write(dynabuf, s);
+        break;
+    }
+    }
     write(dynabuf, msg.status);
     write(dynabuf, " ");
     write(dynabuf, msg.reason);
