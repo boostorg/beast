@@ -7,25 +7,24 @@
 
 [section:Reader Reader requirements]
 
-Parser implementations will construct the corresponding `reader` object
-during the parse. This customization point allows the Body to determine
-the strategy for storing incoming message body data.
+Parsers provided by the implementation will construct the corresponding
+`reader` object during the parse. This customization point allows the
+Body to determine the strategy for storing incoming message body data.
 
 In this table:
 
-* `X` denotes a type meeting the requirements of [*`Reader`].
+* `X` denotes a type meeting the requirements of [*`Reader`]
 
-* `a` denotes a value of type `X`.
+* `a` denotes a value of type `X`
 
-* `p` is any pointer.
+* `p` is any pointer
 
-* `n` is a value convertible to `std::size_t`.
+* `n` is a value convertible to `std::size_t`
 
-* `ec` is a value of type `error_code&`.
+* `ec` is a value of type [link beast.ref.error_code `error_code&`]
 
 * `m` denotes a value of type `message const&` where
-    `std::is_same<decltype(m.body), Body::value_type>:value == true`
-
+    `std::is_same<decltype(m.body), Body::value_type>::value == true`
 
 [table Reader requirements
 [[operation] [type] [semantics, pre/post-conditions]]

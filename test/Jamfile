@@ -50,6 +50,7 @@ unit-test http-tests :
     http/headers.cpp
     http/message.cpp
     http/message_v1.cpp
+    http/parse.cpp
     http/parse_error.cpp
     http/parser_v1.cpp
     http/read.cpp
