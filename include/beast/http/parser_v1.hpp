@@ -98,19 +98,35 @@ private:
     bool flush_ = false;
 
 public:
+    /// Move constructor
     parser_v1(parser_v1&&) = default;
+
+    /// Copy constructor (disallowed)
     parser_v1(parser_v1 const&) = delete;
+
+    /// Move assignment (disallowed)
     parser_v1& operator=(parser_v1&&) = delete;
+
+    /// Copy assignment (disallowed)
     parser_v1& operator=(parser_v1 const&) = delete;
+
+    /// Default constructor
+    parser_v1()
+        : r_(m_)
+    {
+    }
 
     /** Construct the parser.
 
         @param args A list of arguments forwarded to the message constructor.
     */
-    template<class... Args>
+    template<class Arg1, class... ArgN,
+        class = typename std::enable_if<! std::is_same<
+            typename std::decay<Arg1>::type, parser_v1>::value>>
     explicit
-    parser_v1(Args&&... args)
-        : m_(std::forward<Args>(args)...)
+    parser_v1(Arg1&& arg1, ArgN&&... argn)
+        : m_(std::forward<Arg1>(arg1),
+            std::forward<ArgN>(argn)...)
         , r_(m_)
     {
     }

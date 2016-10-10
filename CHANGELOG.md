@@ -3,6 +3,7 @@
 * Make value optional in param-list
 * Frame processing routines are member functions
 * Fix on_headers called twice from basic_parser_v1
+* Constrain parser_v1 constructor
 * Refine Parser concept
 
 API Changes:
