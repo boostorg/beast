@@ -231,11 +231,14 @@ private:
         m_.reason = std::move(this->reason_);
     }
 
-    int on_headers(std::uint64_t, error_code&)
+    body_what
+    on_headers(std::uint64_t, error_code&)
     {
         flush();
         m_.version = 10 * this->http_major() + this->http_minor();
-        return skip_body_;
+        if(skip_body_)
+            return body_what::skip;
+        return body_what::normal;
     }
 
     void on_request(error_code& ec)

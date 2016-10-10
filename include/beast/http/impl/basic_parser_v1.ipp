@@ -899,21 +899,22 @@ write(boost::asio::const_buffer const& buffer, error_code& ec)
                 return err(parse_error::illegal_content_length);
             upgrade_ = ((flags_ & (parse_flag::upgrade | parse_flag::connection_upgrade)) ==
                 (parse_flag::upgrade | parse_flag::connection_upgrade)) /*|| method == "connect"*/;
-            auto const maybe_skip = call_on_headers(ec);
+            auto const what = call_on_headers(ec);
             if(ec)
                 return errc();
-            switch(maybe_skip)
+            switch(what)
             {
-            case 0:
+            case body_what::normal:
                 break;
-            case 2:
+            case body_what::upgrade:
                 upgrade_ = true;
                 // fall through
-            case 1:
+            case body_what::skip:
                 flags_ |= parse_flag::skipbody;
                 break;
-            default:
-                return err(parse_error::bad_on_headers_rv);
+            case body_what::pause:
+                s_ = s_headers_done;
+                return used();
             }
             s_ = s_headers_done;
             // fall through

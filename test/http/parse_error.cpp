@@ -45,7 +45,6 @@ public:
         check("http", parse_error::bad_value);
         check("http", parse_error::bad_content_length);
         check("http", parse_error::illegal_content_length);
-        check("http", parse_error::bad_on_headers_rv);
         check("http", parse_error::invalid_chunk_size);
         check("http", parse_error::short_read);
         check("http", parse_error::general);

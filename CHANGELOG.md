@@ -5,6 +5,7 @@
 * Fix on_headers called twice from basic_parser_v1
 * Constrain parser_v1 constructor
 * Improve first line serialization
+* Add pause option to on_headers interface
 * Refine Parser concept
 
 API Changes:
