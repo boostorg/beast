@@ -103,7 +103,7 @@ maximum inlining and optimization.
 Boost.Asio is the inspiration behind which all of the interfaces and
 implementation strategies are built. Some parts of the documentation are
 written to closely resemble the wording and presentation of Boost.Asio
-documentation. Credit goes to Christopher Kohloff for the wonderful
+documentation. Credit goes to Christopher Kohlhoff for the wonderful
 Asio library and the ideas upon which Beast is built.
 
 Beast would not be possible without the considerable time and patience
