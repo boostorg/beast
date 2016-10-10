@@ -6,6 +6,7 @@
 * Constrain parser_v1 constructor
 * Improve first line serialization
 * Add pause option to on_headers interface
+* Refactor base_parser_v1 callback traits:
 * Refine Parser concept
 
 API Changes:
