@@ -128,8 +128,8 @@ public:
         use chunk-encoding or terminate the connection to indicate the end
         of the message.
     */
-    std::size_t
-    content_length() const;
+    std::uint64_t
+    content_length();
 
     /** Write zero or one buffer representing the message body.
 

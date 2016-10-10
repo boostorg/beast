@@ -30,7 +30,7 @@ In this table:
     [`a.complete()`]
     [`bool`]
     [
-        Returns `true` when the parser is complete.
+        Returns `true` when parsing is complete.
     ]
 ]
 [
