@@ -916,13 +916,12 @@ write(boost::asio::const_buffer const& buffer, error_code& ec)
                 return err(parse_error::bad_on_headers_rv);
             }
             s_ = s_headers_done;
-            goto redo;
+            // fall through
         }
 
         case s_headers_done:
         {
             BOOST_ASSERT(! cb_);
-            call_on_headers(ec);
             if(ec)
                 return errc();
             bool const hasBody =
