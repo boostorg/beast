@@ -308,8 +308,8 @@ feature, and the write buffer size option determines the maximum size of
 the fragments:
 ```
     ...
-    ws.set_option(beast::websocket::auto_fragment{true};
-    ws.set_option(beast::websocket::write_buffer_size{16384};
+    ws.set_option(beast::websocket::auto_fragment{true});
+    ws.set_option(beast::websocket::write_buffer_size{16384});
 ```
 
 The WebSocket protocol defines a procedure and control message for initiating

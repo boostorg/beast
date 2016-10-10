@@ -32,11 +32,11 @@ libraries:
 * Leave important decisions to the user, such as
   allocating memory or managing flow control.
 
-Beast uses the __DynamicBuffer__ concept presented in the Netwoking TS,
-and relies heavily on the Boost.Asio __ConstBufferSequence__ and
-__MutableBufferSequence__ concepts for passing buffers to functions. The
-authors have found the dynamic buffer and buffer sequence interfaces to be
-optimal for interacting with Asio, and for other tasks such as incremental
+Beast uses the __DynamicBuffer__ concept presented in the Networking TS
+(__N4588__), and relies heavily on the Boost.Asio __ConstBufferSequence__
+and __MutableBufferSequence__ concepts for passing buffers to functions.
+The authors have found the dynamic buffer and buffer sequence interfaces to
+be optimal for interacting with Asio, and for other tasks such as incremental
 parsing of data in buffers (for example, parsing websocket frames stored
 in a [link beast.ref.static_streambuf `static_streambuf`]).
 
@@ -152,7 +152,7 @@ start. Other design goals:
 ]]
 
 [[
-    "What about HTTP/2?""
+    "What about HTTP/2?"
 ][
     Many reviewers feel that HTTP/2 support is an essential feature of
     a HTTP library. The authors agree that HTTP/2 is important but also
@@ -281,7 +281,7 @@ start. Other design goals:
     (18 functions versus 2). Note that websocketpp connections are passed by
     `shared_ptr`. Beast does not use `shared_ptr` anywhere in its public interface.
     A `beast::websocket::stream` is constructible and movable in a manner identical
-    `to a boost::asio::ip::tcp::socket`. Callers can put such objects in a
+    to a `boost::asio::ip::tcp::socket`. Callers can put such objects in a
     `shared_ptr` if they want to, but there is no requirement to do so.
 
     [table
@@ -372,7 +372,7 @@ start. Other design goals:
 
     websocketpp requires a one-time call to set the handler for each event
     in its interface (for example, upon message receipt). The handler is
-    represented by a `std::function equivalent`. Its important to recognize
+    represented by a `std::function` equivalent. Its important to recognize
     that the websocketpp interface performs type-erasure on this handler.
 
     In comparison, Beast handlers are specified in a manner identical to
