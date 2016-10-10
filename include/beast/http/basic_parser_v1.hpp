@@ -80,6 +80,49 @@ struct body_max_size
     }
 };
 
+/** A value indicating how the parser should treat the body.
+
+    This value is returned from the `on_headers` callback in
+    the derived class. It controls what the parser does next
+    in terms of the message body.
+*/
+enum class body_what
+{
+    /** The parser should expect a body, keep reading.
+    */
+    normal,
+
+    /** Skip parsing of the body.
+
+        When returned by `on_headers` this causes parsing to
+        complete and control to return to the caller. This
+        could be used when sending a response to a HEAD
+        request, for example.
+    */
+    skip,
+
+    /** The message represents an UPGRADE request.
+
+        When returned by `on_headers` this causes parsing
+        to complete and control to return to the caller.
+    */
+    upgrade,
+
+    /** Suspend parsing before reading the body.
+
+        When returned by `on_headers` this causes parsing to
+        pause. Control is returned to the caller, and the parser
+        state is preserved such that a subsequent call to the
+        parser will begin reading the message body.
+
+        This could be used by callers to inspect the HTTP
+        headers before committing to read the body. For example,
+        to choose the body type based on the headers. Or to
+        respond to an Expect: 100-continue request.
+    */
+    pause
+};
+
 /// The value returned when no content length is known or applicable.
 static std::uint64_t constexpr no_content_length =
     std::numeric_limits<std::uint64_t>::max();
@@ -133,7 +176,7 @@ static std::uint64_t constexpr no_content_length =
 
         Called for each piece of the current header value.
 
-    @li `int on_headers(std::uint64_t content_length, error_code&)`
+    @li `body_what on_headers(std::uint64_t content_length, error_code&)`
 
         Called when all the headers have been parsed successfully.
 
@@ -151,18 +194,11 @@ static std::uint64_t constexpr no_content_length =
         would return `true`.
 
     The return value of `on_headers` is special, it controls whether
-    or not the parser should expect a body. These are the return values:
-
-    @li *0* The parser should expect a body
-
-    @li *1* The parser should skip the body. For example, this is
-        used when sending a response to a HEAD request.
-
-    @li *2* The parser should skip ths body, this is an
-        upgrade to a different protocol.
+    or not the parser should expect a body. See @ref body_what for
+    choices of the return value.
 
     The parser uses traits to determine if the callback is possible.
-    If the Derived type omits one or more callbacks, they are simply
+    If the @b Derived type omits one or more callbacks, they are simply
     skipped with no compilation error. The default behavior of `on_body`
     when the derived class does not provide the member, is to specify that
     the body should not be skipped.
@@ -172,6 +208,9 @@ static std::uint64_t constexpr no_content_length =
 
     @tparam isRequest A `bool` indicating whether the parser will be
     presented with request or response message.
+
+    @tparam Derived The derived class type. This is part of the
+    Curiously Recurring Template Pattern interface.
 */
 template<bool isRequest, class Derived>
 class basic_parser_v1 : public detail::parser_base
@@ -626,7 +665,7 @@ private:
     template<class C>
     class has_on_headers_t
     {
-        template<class T, class R = std::is_same<int,
+        template<class T, class R = std::is_convertible<body_what,
             decltype(std::declval<T>().on_headers(
                 std::declval<std::uint64_t>(), std::declval<error_code&>()))>>
         static R check(int);
@@ -845,18 +884,21 @@ private:
         }
     }
 
-    int call_on_headers(error_code& ec,
+    body_what
+    call_on_headers(error_code& ec,
         std::uint64_t content_length, std::true_type)
     {
         return impl().on_headers(content_length, ec);
     }
 
-    int call_on_headers(error_code& ec, std::uint64_t, std::false_type)
+    body_what
+    call_on_headers(error_code& ec, std::uint64_t, std::false_type)
     {
-        return 0;
+        return body_what::normal;
     }
 
-    int call_on_headers(error_code& ec)
+    body_what
+    call_on_headers(error_code& ec)
     {
         return call_on_headers(ec, content_length_,
             has_on_headers<Derived>{});

@@ -47,7 +47,6 @@ public:
         case parse_error::bad_value: return "bad field-value";
         case parse_error::bad_content_length: return "bad Content-Length";
         case parse_error::illegal_content_length: return "illegal Content-Length with chunked Transfer-Encoding";
-        case parse_error::bad_on_headers_rv: return "on_headers returned an unknown value";
         case parse_error::invalid_chunk_size: return "invalid chunk size";
         case parse_error::invalid_ext_name: return "invalid ext name";
         case parse_error::invalid_ext_val: return "invalid ext val";

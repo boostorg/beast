@@ -90,10 +90,11 @@ public:
         {
             value = true;
         }
-        int on_headers(std::uint64_t, error_code&)
+        body_what
+        on_headers(std::uint64_t, error_code&)
         {
             headers = true;
-            return 0;
+            return body_what::normal;
         }
         void on_body(boost::string_ref const&, error_code&)
         {
@@ -194,7 +195,7 @@ public:
 
     template<bool isRequest, class F>
     void
-    good(int onBodyRv, std::string const& s, F const& f)
+    good(body_what onBodyRv, std::string const& s, F const& f)
     {
         using boost::asio::buffer;
         for_split(s,
@@ -237,12 +238,12 @@ public:
     void
     good(std::string const& s, F const& f = {})
     {
-        return good<isRequest>(0, s, f);
+        return good<isRequest>(body_what::normal, s, f);
     }
 
     template<bool isRequest>
     void
-    bad(int onBodyRv, std::string const& s, error_code ev)
+    bad(body_what onBodyRv, std::string const& s, error_code ev)
     {
         using boost::asio::buffer;
         for_split(s,
@@ -294,7 +295,7 @@ public:
     void
     bad(std::string const& s, error_code ev = {})
     {
-        return bad<isRequest>(0, s, ev);
+        return bad<isRequest>(body_what::normal, s, ev);
     }
 
     //--------------------------------------------------------------------------
@@ -658,7 +659,7 @@ public:
         auto const length =
             [&](std::string const& s, std::uint64_t v)
             {
-                good<true>(1, s,
+                good<true>(body_what::skip, s,
                     [&](fail_parser<true> const& p)
                     {
                         BEAST_EXPECT(p.content_length() == v);
@@ -757,7 +758,7 @@ public:
         good<true>(m("Transfer-Encodings: 2\r\n"),          flags{*this, 0});
         good<true>(m("Transfer-Encoded: false\r\n"),        flags{*this, 0});
 
-        bad<false>(1,
+        bad<false>(body_what::skip,
             "HTTP/1.1 200 OK\r\n"
             "Content-Length: 1\r\n"
             "Transfer-Encoding: chunked\r\n"
@@ -848,8 +849,8 @@ public:
         {
             error_code ec;
             test::fail_counter fc(1000);
-            fail_parser<true> p(fc);
-            p.on_body_rv(2);
+            fail_parser<true> p{fc};
+            p.on_body_rv(body_what::upgrade);
             p.write(buf(
                 "GET / HTTP/1.1\r\n"
                 "Content-Length: 1\r\n"
@@ -1007,12 +1008,7 @@ public:
             BEAST_EXPECT(p.complete());
         }
 
-        bad<false>(3,
-            "HTTP/1.1 200 OK\r\n"
-            "Content-Length: 1\r\n"
-            "\r\n*", parse_error::bad_on_headers_rv);
-
-        bad<true>(0,
+        bad<true>(body_what::normal,
             "GET / HTTP/1.1\r\n"
             "Content-Length: 1\r\n"
             "\r\n",

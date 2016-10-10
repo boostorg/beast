@@ -29,7 +29,6 @@ enum class parse_error
     bad_value,
     bad_content_length,
     illegal_content_length,
-    bad_on_headers_rv,
 
     invalid_chunk_size,
     invalid_ext_name,
