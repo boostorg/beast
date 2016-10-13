@@ -14,6 +14,7 @@
 #include <beast/http/read.hpp>
 #include <beast/core/handler_alloc.hpp>
 #include <beast/core/prepare_buffers.hpp>
+#include <beast/core/detail/type_traits.hpp>
 #include <boost/assert.hpp>
 #include <memory>
 #include <type_traits>
@@ -112,11 +113,12 @@ public:
 
 template<class NextLayer>
 template<class Handler>
-void 
+void
 stream<NextLayer>::accept_op<Handler>::
 operator()(error_code const& ec,
     std::size_t bytes_transferred, bool again)
 {
+    beast::detail::ignore_unused(bytes_transferred);
     auto& d = *d_;
     d.cont = d.cont || again;
     while(! ec && d.state != 99)

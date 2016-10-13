@@ -490,7 +490,7 @@ public:
         }
     }
 
-    void testClose(endpoint_type const& ep, yield_context do_yield)
+    void testClose(endpoint_type const& ep, yield_context)
     {
         {
             // payload length 1

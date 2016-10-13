@@ -10,6 +10,7 @@
 
 #include <beast/core/write_dynabuf.hpp>
 #include <beast/http/detail/basic_parser_v1.hpp>
+#include <beast/http/detail/rfc7230.hpp>
 #include <cstdint>
 #include <random>
 #include <string>

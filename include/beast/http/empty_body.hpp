@@ -9,6 +9,7 @@
 #define BEAST_HTTP_EMPTY_BODY_HPP
 
 #include <beast/http/body_type.hpp>
+#include <beast/core/detail/type_traits.hpp>
 #include <boost/asio/buffer.hpp>
 #include <memory>
 #include <string>
@@ -39,11 +40,13 @@ private:
         explicit
         writer(message<isRequest, empty_body, Headers> const& m) noexcept
         {
+            beast::detail::ignore_unused(m);
         }
 
         void
         init(error_code& ec) noexcept
         {
+            beast::detail::ignore_unused(ec);
         }
 
         std::uint64_t

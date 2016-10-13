@@ -795,7 +795,7 @@ private:
 
     bool
     on_request(unsigned method, std::string const& url,
-        int major, int minor, bool keep_alive, bool upgrade,
+        int major, int minor, bool /*keep_alive*/, bool /*upgrade*/,
             std::true_type)
     {
         m_.method = detail::method_to_string(method);
@@ -826,6 +826,7 @@ private:
         int major, int minor, bool keep_alive, bool upgrade,
             std::true_type)
     {
+        beast::detail::ignore_unused(keep_alive, upgrade);
         m_.status = status;
         m_.reason = reason;
         m_.version = major * 10 + minor;
