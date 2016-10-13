@@ -14,6 +14,7 @@
 #include <beast/http/rfc7230.hpp>
 #include <beast/core/buffer_concepts.hpp>
 #include <beast/core/error.hpp>
+#include <beast/core/detail/ignore_unused.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/system/error_code.hpp>
 #include <cstdint>
@@ -798,6 +799,7 @@ private:
         int major, int minor, bool keep_alive, bool upgrade,
             std::true_type)
     {
+        beast::detail::ignore_unused(keep_alive, upgrade);
         m_.method = detail::method_to_string(method);
         m_.url = url;
         m_.version = major * 10 + minor;
@@ -826,6 +828,7 @@ private:
         int major, int minor, bool keep_alive, bool upgrade,
             std::true_type)
     {
+        beast::detail::ignore_unused(keep_alive, upgrade);
         m_.status = status;
         m_.reason = reason;
         m_.version = major * 10 + minor;

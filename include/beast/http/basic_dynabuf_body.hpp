@@ -9,6 +9,7 @@
 #define BEAST_HTTP_BASIC_DYNABUF_BODY_HPP
 
 #include <beast/http/body_type.hpp>
+#include <beast/core/detail/ignore_unused.hpp>
 #include <boost/asio/buffer.hpp>
 
 namespace beast {
@@ -71,6 +72,7 @@ private:
         void
         init(error_code& ec)
         {
+            beast::detail::ignore_unused(ec);
         }
 
         std::uint64_t

@@ -16,6 +16,7 @@
 #include <beast/core/error.hpp>
 #include <beast/core/streambuf.hpp>
 #include <beast/core/to_string.hpp>
+#include <beast/core/detail/ignore_unused.hpp>
 #include <beast/test/fail_stream.hpp>
 #include <beast/test/yield_to.hpp>
 #include <beast/unit_test/suite.hpp>
@@ -66,6 +67,7 @@ public:
         write_some(
             ConstBufferSequence const& buffers, error_code& ec)
         {
+            beast::detail::ignore_unused(ec);
             auto const n = buffer_size(buffers);
             using boost::asio::buffer_size;
             using boost::asio::buffer_cast;
@@ -112,6 +114,7 @@ public:
             void
             init(error_code& ec)
             {
+                beast::detail::ignore_unused(ec);
             }
 
             template<class Write>

@@ -9,6 +9,7 @@
 #define BEAST_IMPL_BASIC_STREAMBUF_IPP
 
 #include <beast/core/detail/write_dynabuf.hpp>
+#include <beast/core/detail/ignore_unused.hpp>
 #include <boost/assert.hpp>
 #include <algorithm>
 #include <exception>
@@ -786,6 +787,7 @@ void
 basic_streambuf<Allocator>::
 copy_assign(basic_streambuf const& other, std::false_type)
 {
+    beast::detail::ignore_unused(other);
 }
 
 template<class Allocator>

@@ -11,6 +11,7 @@
 #include <beast/core/error.hpp>
 #include <beast/http/rfc7230.hpp>
 #include <beast/core/detail/ci_char_traits.hpp>
+#include <beast/core/detail/ignore_unused.hpp>
 #include <beast/http/detail/has_content_length.hpp>
 #include <boost/optional.hpp>
 #include <stdexcept>
@@ -58,6 +59,7 @@ void
 prepare_options(prepare_info& pi,
     message_v1<isRequest, Body, Headers>& msg)
 {
+    beast::detail::ignore_unused(pi, msg);
 }
 
 template<bool isRequest, class Body, class Headers>
@@ -66,6 +68,7 @@ prepare_option(prepare_info& pi,
     message_v1<isRequest, Body, Headers>& msg,
         connection value)
 {
+    beast::detail::ignore_unused(msg);
     pi.connection_value = value;
 }
 
@@ -103,6 +106,7 @@ prepare_content_length(prepare_info& pi,
     message_v1<isRequest, Body, Headers> const& msg,
         std::false_type)
 {
+    beast::detail::ignore_unused(msg);
     pi.content_length = boost::none;
 }
 
