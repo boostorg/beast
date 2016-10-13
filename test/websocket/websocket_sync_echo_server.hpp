@@ -8,6 +8,7 @@
 #ifndef BEAST_WEBSOCKET_SYNC_ECHO_PEER_H_INCLUDED
 #define BEAST_WEBSOCKET_SYNC_ECHO_PEER_H_INCLUDED
 
+#include <beast/core/placeholders.hpp>
 #include <beast/core/streambuf.hpp>
 #include <beast/websocket.hpp>
 #include <boost/optional.hpp>
@@ -36,7 +37,7 @@ private:
     std::thread thread_;
 
 public:
-    sync_echo_server(bool server, endpoint_type ep)
+    sync_echo_server(bool /*server*/, endpoint_type ep)
         : sock_(ios_)
         , acceptor_(ios_)
     {

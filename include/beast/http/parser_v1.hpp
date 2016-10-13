@@ -12,6 +12,7 @@
 #include <beast/http/headers_parser_v1.hpp>
 #include <beast/http/message.hpp>
 #include <beast/core/error.hpp>
+#include <beast/core/detail/type_traits.hpp>
 #include <boost/assert.hpp>
 #include <boost/optional.hpp>
 #include <functional>
@@ -231,13 +232,13 @@ private:
         m_.reason = std::move(this->reason_);
     }
 
-    void on_request(error_code& ec)
+    void on_request(error_code&)
     {
         on_request_or_response(
             std::integral_constant<bool, isRequest>{});
     }
 
-    void on_response(error_code& ec)
+    void on_response(error_code&)
     {
         on_request_or_response(
             std::integral_constant<bool, isRequest>{});
@@ -256,7 +257,7 @@ private:
     }
 
     void
-    on_headers(std::uint64_t, error_code& ec)
+    on_headers(std::uint64_t, error_code&)
     {
         flush();
         m_.version = 10 * this->http_major() + this->http_minor();

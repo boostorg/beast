@@ -20,6 +20,19 @@ struct make_void
 template<class... Ts>
 using void_t = typename make_void<Ts...>::type;
 
+template<class... Ts>
+inline
+void
+ignore_unused(Ts const& ...)
+{
+}
+
+template<class... Ts>
+inline
+void
+ignore_unused()
+{}
+
 } // detail
 } // beast
 

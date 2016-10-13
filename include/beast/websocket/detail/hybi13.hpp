@@ -11,6 +11,7 @@
 #include <beast/core/detail/base64.hpp>
 #include <beast/core/detail/sha1.hpp>
 #include <boost/utility/string_ref.hpp>
+#include <array>
 #include <cstdint>
 #include <string>
 #include <type_traits>
