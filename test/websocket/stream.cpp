@@ -802,7 +802,7 @@ public:
         using boost::asio::buffer;
         static std::size_t constexpr limit = 200;
         std::size_t n;
-        for(n = 199; n < limit; ++n)
+        for(n = 0; n < limit; ++n)
         {
             stream<test::fail_stream<socket_type>> ws(n, ios_);
             auto const restart =
@@ -1035,7 +1035,7 @@ public:
         using boost::asio::buffer;
         static std::size_t constexpr limit = 200;
         std::size_t n;
-        for(n = 190; n < limit; ++n)
+        for(n = 0; n < limit; ++n)
         {
             stream<test::fail_stream<socket_type>> ws(n, ios_);
             auto const restart =
