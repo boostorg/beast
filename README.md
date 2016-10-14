@@ -178,7 +178,7 @@ int main()
     beast::websocket::opcode op;
     ws.read(op, sb);
     ws.close(beast::websocket::close_code::normal);
-    std::cout << to_string(sb.data()) << "\n";
+    std::cout << beast::to_string(sb.data()) << "\n";
 }
 ```
 
