@@ -35,7 +35,7 @@ else()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wpedantic")
 endif()
 
-find_package(Boost REQUIRED COMPONENTS coroutine context thread filesystem program_options regex system)
+find_package(Boost REQUIRED COMPONENTS coroutine context thread filesystem program_options system)
 include_directories(${Boost_INCLUDE_DIRS})
 link_directories(${Boost_LIBRARY_DIRS})
 
