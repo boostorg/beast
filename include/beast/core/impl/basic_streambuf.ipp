@@ -533,7 +533,7 @@ basic_streambuf<Allocator>::capacity() const
 {
     auto pos = out_;
     if(pos == list_.end())
-        return 0;
+        return in_size_;
     auto n = pos->size() - out_pos_;
     while(++pos != list_.end())
         n += pos->size();
