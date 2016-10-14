@@ -9,10 +9,9 @@
 #define BEAST_IMPL_DYNABUF_READSTREAM_HPP
 
 #include <beast/core/bind_handler.hpp>
+#include <beast/core/error.hpp>
 #include <beast/core/handler_concepts.hpp>
 #include <beast/core/handler_alloc.hpp>
-#include <boost/system/error_code.hpp>
-#include <boost/system/system_error.hpp>
 
 namespace beast {
 

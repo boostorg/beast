@@ -23,12 +23,13 @@ namespace beast {
 
     This allocator uses the handler customizations `asio_handler_allocate`
     and `asio_handler_deallocate` to manage memory. It meets the requirements
-    of `Allocator` and can be used anywhere a `std::allocator` is
+    of @b Allocator and can be used anywhere a `std::allocator` is
     accepted.
 
     @tparam T The type of objects allocated by the allocator.
 
-    @tparam CompletionHandler The type of handler.
+    @tparam CompletionHandler The type of handler. Copies will be made
+    of the handler as needed.
 
     @note Allocated memory is only valid until the handler is called. The
     caller is still responsible for freeing memory.

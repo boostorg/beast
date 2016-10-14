@@ -1,6 +1,7 @@
 1.0.0-b17
 
 * Change implicit to default value in example
+* Tidy up some declarations
 
 --------------------------------------------------------------------------------
 

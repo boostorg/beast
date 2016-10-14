@@ -513,9 +513,6 @@ private:
     bool
     needs_eof(std::false_type) const;
 
-    template<class...>
-    using void_t = void;
-
     template<class C>
     class check_on_start_t
     {

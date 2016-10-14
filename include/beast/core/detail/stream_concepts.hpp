@@ -11,7 +11,6 @@
 #include <beast/core/buffer_concepts.hpp>
 #include <beast/core/error.hpp>
 #include <boost/asio/io_service.hpp>
-#include <boost/system/error_code.hpp>
 #include <type_traits>
 #include <utility>
 

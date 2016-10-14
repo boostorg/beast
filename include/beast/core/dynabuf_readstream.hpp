@@ -16,7 +16,6 @@
 #include <beast/core/detail/get_lowest_layer.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/asio/io_service.hpp>
-#include <boost/system/error_code.hpp>
 #include <cstdint>
 #include <utility>
 
