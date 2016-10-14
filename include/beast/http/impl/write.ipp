@@ -109,9 +109,6 @@ write_fields(DynamicBuffer& dynabuf, FieldSequence const& fields)
 template<bool isRequest, class Body, class Headers>
 struct write_preparation
 {
-    using headers_type =
-        basic_headers<std::allocator<char>>;
-
     message_v1<isRequest, Body, Headers> const& msg;
     typename Body::writer w;
     streambuf sb;

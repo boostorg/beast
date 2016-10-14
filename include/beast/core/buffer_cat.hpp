@@ -45,7 +45,7 @@ buffer_cat(B1 const& b1, B2 const& b2, Bn const&... bn)
 {
     return detail::buffer_cat_helper<
         boost::asio::const_buffer,
-            B1, B2, Bn...>(b1, b2, bn...);
+            B1, B2, Bn...>{b1, b2, bn...};
 }
 
 } // beast

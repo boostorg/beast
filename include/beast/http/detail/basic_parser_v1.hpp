@@ -8,9 +8,6 @@
 #ifndef BEAST_HTTP_DETAIL_BASIC_PARSER_V1_HPP
 #define BEAST_HTTP_DETAIL_BASIC_PARSER_V1_HPP
 
-#include <boost/system/error_code.hpp>
-#include <boost/utility/string_ref.hpp>
-#include <array>
 #include <cstdint>
 
 namespace beast {
