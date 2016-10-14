@@ -13,6 +13,7 @@
 * Fix handling of body_what::pause in basic_parser_v1
 * Add headers_parser
 * Engaged invokable is destructible
+* Improve websocket example in README.md
 
 API Changes:
 
@@ -45,6 +46,7 @@ API Changes:
 * Relax ForwardIterator requirements in FieldSequence
 * Fix websocket failure testing
 * Refine Writer concept and fix exemplar in documentation
+* Improve websocket example
 
 API Changes:
 
