@@ -11,6 +11,7 @@
 #include <beast/http/message.hpp>
 #include <memory>
 #include <string>
+#include <type_traits>
 
 namespace beast {
 namespace http {
@@ -40,9 +41,12 @@ struct message_v1 : message<isRequest, Body, Headers>
     message_v1() = default;
 
     /// Constructor
-    template<class Arg1, class... Argn>
+    template<class Arg1, class... Argn,
+        class = typename std::enable_if<
+            ! std::is_convertible<message_v1,
+                typename std::decay<Arg1>::type>::value>::type>
     explicit
-    message_v1(Arg1& arg1, Argn&&... argn)
+    message_v1(Arg1&& arg1, Argn&&... argn)
         : message<isRequest, Body, Headers>(
             std::forward<Arg1>(arg1),
             std::forward<Argn>(argn)...)

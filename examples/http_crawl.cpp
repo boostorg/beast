@@ -49,7 +49,7 @@ int main(int, char const*[])
             beast::http::read(sock, sb, res);
             std::cout << res;
         }
-        catch(boost::system::system_error const& ec)
+        catch(beast::system_error const& ec)
         {
             std::cerr << host << ": " << ec.what();
         }

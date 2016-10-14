@@ -51,7 +51,12 @@ explicit callout ;
 
 install examples
     :
-        [ glob ../examples/*.* ]
+        [ glob
+            ../examples/*.cpp
+            ../examples/*.hpp
+            ../examples/ssl/*.cpp
+            ../examples/ssl/*.hpp
+            ]
     :
         <location>$(here)/html/examples
     ;

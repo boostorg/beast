@@ -40,7 +40,7 @@ namespace http {
 
     @param msg The message to write.
 
-    @throws boost::system::error Thrown on failure.
+    @throws system_error Thrown on failure.
 */
 template<class SyncWriteStream,
     bool isRequest, class Body, class Headers>

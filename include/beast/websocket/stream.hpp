@@ -352,7 +352,7 @@ public:
         HTTP response is sent indicating the reason and status code
         (typically 400, "Bad Request"). This counts as a failure.
 
-        @throws boost::system::system_error Thrown on failure.
+        @throws system_error Thrown on failure.
     */
     void
     accept();
@@ -462,7 +462,7 @@ public:
         then to received WebSocket frames. The implementation will
         copy the caller provided data before the function returns.
 
-        @throws boost::system::system_error Thrown on failure.
+        @throws system_error Thrown on failure.
     */
     template<class ConstBufferSequence>
     void
@@ -585,7 +585,7 @@ public:
         Ownership is not transferred, the implementation will not access
         this object from other threads.
 
-        @throws boost::system::system_error Thrown on failure.
+        @throws system_error Thrown on failure.
     */
     // VFALCO TODO This should also take a DynamicBuffer with any leftover bytes.
     template<class Body, class Headers>
@@ -700,7 +700,7 @@ public:
         @param resource The requesting URI, which may not be empty,
         required by the HTTP protocol.
 
-        @throws boost::system::system_error Thrown on failure.
+        @throws system_error Thrown on failure.
 
         @par Example
         @code
@@ -837,7 +837,7 @@ public:
 
         @param cr The reason for the close.
 
-        @throws boost::system::system_error Thrown on failure.
+        @throws system_error Thrown on failure.
     */
     void
     close(close_reason const& cr);
@@ -937,7 +937,7 @@ public:
 
         @param payload The payload of the ping message, which may be empty.
 
-        @throws boost::system::system_error Thrown on failure.
+        @throws system_error Thrown on failure.
     */
     void
     ping(ping_data const& payload);
@@ -1031,7 +1031,7 @@ public:
         @param dynabuf A dynamic buffer to hold the message data after
         any masking or decompression has been applied.
 
-        @throws boost::system::system_error Thrown on failure.
+        @throws system_error Thrown on failure.
     */
     template<class DynamicBuffer>
     void
@@ -1166,7 +1166,7 @@ public:
         @param dynabuf A dynamic buffer to hold the message data after
         any masking or decompression has been applied.
 
-        @throws boost::system::system_error Thrown on failure.
+        @throws system_error Thrown on failure.
     */
     template<class DynamicBuffer>
     void
@@ -1304,7 +1304,7 @@ public:
         the memory locations pointed to by buffers remains valid
         until the completion handler is called.
 
-        @throws boost::system::system_error Thrown on failure.
+        @throws system_error Thrown on failure.
 
         @note This function always sends an entire message. To
         send a message in fragments, use @ref write_frame.
@@ -1341,7 +1341,7 @@ public:
 
         @param ec Set to indicate what error occurred, if any.
 
-        @throws boost::system::system_error Thrown on failure.
+        @throws system_error Thrown on failure.
 
         @note This function always sends an entire message. To
         send a message in fragments, use @ref write_frame.
@@ -1426,7 +1426,7 @@ public:
         @param buffers One or more buffers containing the frame's
         payload data.
 
-        @throws boost::system::system_error Thrown on failure.
+        @throws system_error Thrown on failure.
     */
     template<class ConstBufferSequence>
     void
@@ -1500,7 +1500,7 @@ public:
         Copies will be made of the handler as required. The equivalent
         function signature of the handler must be:
         @code void handler(
-            boost::system::error_code const& error // result of operation
+            error_code const& error // result of operation
         ); @endcode
     */
     template<class ConstBufferSequence, class WriteHandler>

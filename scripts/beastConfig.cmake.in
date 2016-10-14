@@ -6,8 +6,8 @@
 #  Usage from an external project:
 #    In your CMakeLists.txt, add these lines:
 #
-#    FIND_PACKAGE(beast REQUIRED)
-#    TARGET_LINK_LIBRARIES(MY_TARGET_NAME ${beast_LIBRARIES})
+#    FIND_PACKAGE(Beast REQUIRED)
+#    TARGET_LINK_LIBRARIES(MY_TARGET_NAME ${Beast_LIBRARIES})
 #
 #    This file will define the following variables:
 #      - Beast_LIBRARIES               : The list of all imported targets for b modules.

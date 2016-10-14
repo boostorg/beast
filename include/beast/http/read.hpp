@@ -44,7 +44,7 @@ namespace http {
     @param parser An object meeting the requirements of Parser
     which will receive the data.
 
-    @throws boost::system::system_error on failure.
+    @throws system_error Thrown on failure.
 */
 template<class SyncReadStream, class DynamicBuffer, class Parser>
 void
@@ -165,7 +165,7 @@ async_parse(AsyncReadStream& stream, DynamicBuffer& dynabuf,
     @param msg An object used to store the message. Any
     contents will be overwritten.
 
-    @throws boost::system::system_error Thrown on failure.
+    @throws system_error Thrown on failure.
 */
 template<class SyncReadStream, class DynamicBuffer,
     bool isRequest, class Body, class Headers>

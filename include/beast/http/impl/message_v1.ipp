@@ -10,6 +10,7 @@
 
 #include <beast/core/error.hpp>
 #include <beast/http/rfc7230.hpp>
+#include <beast/core/detail/ci_char_traits.hpp>
 #include <beast/http/detail/has_content_length.hpp>
 #include <boost/optional.hpp>
 #include <stdexcept>
@@ -139,9 +140,35 @@ prepare(message_v1<isRequest, Body, Headers>& msg,
     {
         if(pi.content_length)
         {
-            // VFALCO TODO Use a static string here
-            msg.headers.insert("Content-Length",
-                std::to_string(*pi.content_length));
+            struct set_field
+            {
+                void
+                operator()(message_v1<true, Body, Headers>& msg,
+                    detail::prepare_info const& pi) const
+                {
+                    using beast::detail::ci_equal;
+                    if(*pi.content_length > 0 ||
+                        ci_equal(msg.method, "POST"))
+                    {
+                        msg.headers.insert("Content-Length",
+                            std::to_string(*pi.content_length));
+                    }
+                }
+
+                void
+                operator()(message_v1<false, Body, Headers>& msg,
+                    detail::prepare_info const& pi) const
+                {
+                    if((msg.status / 100 ) != 1 &&
+                        msg.status != 204 &&
+                        msg.status != 304)
+                    {
+                        msg.headers.insert("Content-Length",
+                            std::to_string(*pi.content_length));
+                    }
+                }
+            };
+            set_field{}(msg, pi);
         }
         else if(msg.version >= 11)
         {

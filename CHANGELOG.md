@@ -1,3 +1,15 @@
+1.0.0-b15
+
+* rfc7230 section 3.3.2 compliance
+* Add HTTPS example
+* Add Secure WebSocket example
+* Fix message_v1 constructor
+* Tidy up DynamicBuffer requirements
+* Tidy up error types and headers
+* Fix handling empty HTTP headers in parser_v1
+
+--------------------------------------------------------------------------------
+
 1.0.0-b14
 
 * Add missing rebind to handler_alloc

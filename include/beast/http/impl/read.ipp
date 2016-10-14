@@ -332,7 +332,7 @@ parse(SyncReadStream& stream,
     error_code ec;
     parse(stream, dynabuf, parser, ec);
     if(ec)
-        throw boost::system::system_error{ec};
+        throw system_error{ec};
 }
 
 template<class SyncReadStream, class DynamicBuffer, class Parser>

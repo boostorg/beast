@@ -37,7 +37,7 @@ else if [ os.name ] = HAIKU
 if [ os.name ] = NT
 {
   lib ssl : : <name>ssleay32 ;
-  lib crypto : : <name>libeay32  ;
+  lib crypto : : <name>libeay32 ;
 }
 else
 {
@@ -87,12 +87,9 @@ project beast
     <library>/boost/coroutine//boost_coroutine
     <library>/boost/filesystem//boost_filesystem
     <library>/boost/program_options//boost_program_options
-#     <library>ssl
-#     <library>crypto
     <define>BOOST_ALL_NO_LIB=1
     <define>BOOST_SYSTEM_NO_DEPRECATED=1
     <threading>multi
-    <link>static
     <runtime-link>shared
     <debug-symbols>on
     <toolset>gcc:<cxxflags>-std=c++11

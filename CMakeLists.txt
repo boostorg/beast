@@ -35,9 +35,20 @@ else()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wpedantic")
 endif()
 
-find_package(Boost REQUIRED COMPONENTS coroutine context thread filesystem program_options system)
+find_package(Boost REQUIRED COMPONENTS coroutine context thread filesystem program_options regex system)
 include_directories(${Boost_INCLUDE_DIRS})
 link_directories(${Boost_LIBRARY_DIRS})
+
+if (APPLE AND NOT DEFINED ENV{OPENSSL_ROOT_DIR})
+  find_program(HOMEBREW brew)
+  if (NOT HOMEBREW STREQUAL "HOMEBREW-NOTFOUND")
+    execute_process(COMMAND brew --prefix openssl
+      OUTPUT_VARIABLE OPENSSL_ROOT_DIR
+      OUTPUT_STRIP_TRAILING_WHITESPACE)
+  endif()
+endif()
+
+find_package(OpenSSL)
 
 if (WIN32)
     link_libraries(${Boost_LIBRARIES} ws2_32 mswsock)
@@ -100,6 +111,11 @@ file(GLOB_RECURSE EXTRAS_INCLUDES
 )
 
 add_subdirectory (examples)
+if (NOT OPENSSL_FOUND)
+    message("OpenSSL not found. Not building examples/ssl")
+else()
+    add_subdirectory (examples/ssl)
+endif()
 add_subdirectory (test)
 add_subdirectory (test/core)
 add_subdirectory (test/http)
@@ -114,7 +130,6 @@ file(STRINGS include/beast/version.hpp
              REGEX "#define BEAST_VERSION_STRING \"\.+\"")
 string(REGEX MATCH "\"\.+\"" Beast_VERSION_STRING ${Beast_VERSION_STRING})
 string(REPLACE "\"" "" Beast_VERSION_STRING ${Beast_VERSION_STRING})
-set(VERSION ${Beast_VERSION_STRING})
 
 install(DIRECTORY include/beast DESTINATION include
         PATTERN ".DS_Store" EXCLUDE)
@@ -127,7 +142,7 @@ configure_file(scripts/beastConfig.cmake.in "${CMAKE_CURRENT_BINARY_DIR}/config/
 include(CMakePackageConfigHelpers)
 write_basic_package_version_file(
     "${CMAKE_CURRENT_BINARY_DIR}/config/beastConfigVersion.cmake"
-    VERSION ${VERSION}
+    VERSION ${Beast_VERSION_STRING}
     COMPATIBILITY AnyNewerVersion
     )
 

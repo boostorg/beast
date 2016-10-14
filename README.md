@@ -12,16 +12,15 @@
 
 ---
 
-## CppCon 2016
+## Beast at CppCon 2016
 
-I will be giving a lightning talk on Beast at CppCon 2016 in Bellevue,
-Washington from September 18 to September 22. If you'd like to meet me
-and hear the talk or ask questions about Beast feel free to approach
-me in person or send me an email at vinnie.falco@gmail.com to schedule
-some time.
+Presentation
+(slides: <a href="https://raw.githubusercontent.com/vinniefalco/Beast/master/doc/images/CppCon2016.pdf">CppCon2016.pdf</a>)
 
-About CppCon 2016:
-http://cppcon.org
+<a href="https://www.youtube.com/watch?v=uJZgRcvPFwI">
+<img width="320" height = "180" alt = "Beast"
+    src="https://raw.githubusercontent.com/vinniefalco/Beast/master/doc/images/CppCon2016.png">
+</a>
 
 ---
 
