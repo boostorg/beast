@@ -4,6 +4,7 @@
 * Tidy up some declarations
 * Fix basic_streambuf::capacity
 * Add basic_streambuf::alloc_size
+* Parser callbacks may not throw
 
 --------------------------------------------------------------------------------
 
