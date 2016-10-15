@@ -26,8 +26,63 @@ class read_test
     , public test::enable_yield_to
 {
 public:
+    struct fail_body
+    {
+        class reader;
+
+        class value_type
+        {
+            friend class reader;
+
+            std::string s_;
+            test::fail_counter& fc_;
+
+        public:
+            explicit
+            value_type(test::fail_counter& fc)
+                : fc_(fc)
+            {
+            }
+
+            value_type&
+            operator=(std::string s)
+            {
+                s_ = std::move(s);
+                return *this;
+            }
+        };
+
+        class reader
+        {
+            std::size_t n_ = 0;
+            value_type& body_;
+
+        public:
+            template<bool isRequest, class Allocator>
+            explicit
+            reader(message<isRequest, fail_body, Allocator>& msg) noexcept
+                : body_(msg.body)
+            {
+            }
+
+            void
+            init(error_code& ec) noexcept
+            {
+                body_.fc_.fail(ec);
+            }
+
+            void
+            write(void const* data,
+                std::size_t size, error_code& ec) noexcept
+            {
+                if(body_.fc_.fail(ec))
+                    return;
+            }
+        };
+    };
+
     template<bool isRequest>
-    void failMatrix(const char* s, yield_context do_yield)
+    void failMatrix(char const* s, yield_context do_yield)
     {
         using boost::asio::buffer;
         using boost::asio::buffer_copy;
@@ -92,6 +147,20 @@ public:
             fail_parser<isRequest> p(fc);
             error_code ec;
             async_parse(fs, sb, p, do_yield[ec]);
+            if(! ec)
+                break;
+        }
+        BEAST_EXPECT(n < limit);
+        for(n = 0; n < limit; ++n)
+        {
+            streambuf sb;
+            sb.commit(buffer_copy(
+                sb.prepare(len), buffer(s, len)));
+            test::fail_counter fc{n};
+            test::string_stream ss{ios_, s};
+            parser_v1<isRequest, fail_body, headers> p{fc};
+            error_code ec;
+            parse(ss, sb, p, ec);
             if(! ec)
                 break;
         }

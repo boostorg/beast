@@ -190,9 +190,9 @@ static std::uint64_t constexpr no_content_length =
     @li `void on_complete(error_code&)`
 
         Called when the entire message has been parsed successfully.
-        At this point, @ref basic_parser_v1::complete returns `true`, and
-        the parser is ready to parse another message if keep_alive
-        would return `true`.
+        At this point, @ref complete returns `true`, and the parser
+        is ready to parse another message if @ref keep_alive would
+        return `true`.
 
     The return value of `on_headers` is special, it controls whether
     or not the parser should expect a body. See @ref body_what for

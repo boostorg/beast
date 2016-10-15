@@ -42,6 +42,11 @@ private:
         }
 
         void
+        init(error_code&) noexcept
+        {
+        }
+
+        void
         write(void const* data,
             std::size_t size, error_code&) noexcept
         {
