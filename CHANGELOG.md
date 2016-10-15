@@ -5,6 +5,14 @@
 * Fix basic_streambuf::capacity
 * Add basic_streambuf::alloc_size
 * Parser callbacks may not throw
+* Fix Reader concept doc typo
+
+API Changes:
+
+* Added init() to Reader requirements
+* Reader must be nothrow constructible
+* Reader is now constructed right before reading the body
+   - The message passed on construction is filled in
 
 --------------------------------------------------------------------------------
 

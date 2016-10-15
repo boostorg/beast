@@ -13,6 +13,7 @@
 #include <beast/http/message_v1.hpp>
 #include <beast/core/error.hpp>
 #include <boost/assert.hpp>
+#include <boost/optional.hpp>
 #include <functional>
 #include <string>
 #include <type_traits>
@@ -87,17 +88,28 @@ public:
         message_v1<isRequest, Body, Headers>;
 
 private:
+    using reader =
+        typename message_type::body_type::reader;
+
     static_assert(is_ReadableBody<Body>::value,
         "ReadableBody requirements not met");
+
+    // Reader must be nothrow constructible
+    static_assert(std::is_nothrow_constructible<
+        reader, message_type&>::value,
+            "Reader requirements not met");
 
     std::string field_;
     std::string value_;
     message_type m_;
-    typename message_type::body_type::reader r_;
+    boost::optional<reader> r_;
     std::uint8_t skip_body_ = 0;
     bool flush_ = false;
 
 public:
+    /// Default constructor
+    parser_v1() = default;
+
     /// Move constructor
     parser_v1(parser_v1&&) = default;
 
@@ -110,12 +122,6 @@ public:
     /// Copy assignment (disallowed)
     parser_v1& operator=(parser_v1 const&) = delete;
 
-    /// Default constructor
-    parser_v1()
-        : r_(m_)
-    {
-    }
-
     /** Construct the parser.
 
         @param args A list of arguments forwarded to the message constructor.
@@ -127,7 +133,6 @@ public:
     parser_v1(Arg1&& arg1, ArgN&&... argn)
         : m_(std::forward<Arg1>(arg1),
             std::forward<ArgN>(argn)...)
-        , r_(m_)
     {
     }
 
@@ -232,12 +237,14 @@ private:
     }
 
     body_what
-    on_headers(std::uint64_t, error_code&)
+    on_headers(std::uint64_t, error_code& ec)
     {
         flush();
         m_.version = 10 * this->http_major() + this->http_minor();
         if(skip_body_)
             return body_what::skip;
+        r_.emplace(m_);
+        r_->init(ec);
         return body_what::normal;
     }
 
@@ -255,7 +262,7 @@ private:
 
     void on_body(boost::string_ref const& s, error_code& ec)
     {
-        r_.write(s.data(), s.size(), ec);
+        r_->write(s.data(), s.size(), ec);
     }
 
     void on_complete(error_code&)
