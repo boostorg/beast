@@ -3,6 +3,7 @@
 * Change implicit to default value in example
 * Tidy up some declarations
 * Fix basic_streambuf::capacity
+* Add basic_streambuf::alloc_size
 
 --------------------------------------------------------------------------------
 
