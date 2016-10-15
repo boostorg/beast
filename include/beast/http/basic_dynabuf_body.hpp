@@ -62,33 +62,31 @@ private:
         DynamicBuffer const& body_;
 
     public:
-        writer(writer const&) = delete;
-        writer& operator=(writer const&) = delete;
-
         template<bool isRequest, class Headers>
         explicit
         writer(message<
-                isRequest, basic_dynabuf_body, Headers> const& m)
+                isRequest, basic_dynabuf_body, Headers> const& m) noexcept
             : body_(m.body)
         {
         }
 
         void
-        init(error_code& ec)
+        init(error_code& ec) noexcept
         {
         }
 
         std::uint64_t
-        content_length() const
+        content_length() const noexcept
         {
             return body_.size();
         }
 
-        template<class Write>
+        template<class WriteFunction>
         boost::tribool
-        operator()(resume_context&&, error_code&, Write&& write)
+        write(resume_context&&, error_code&,
+            WriteFunction&& wf) noexcept
         {
-            write(body_.data());
+            wf(body_.data());
             return true;
         }
     };

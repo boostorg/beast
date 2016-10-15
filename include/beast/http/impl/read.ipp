@@ -150,8 +150,13 @@ read(SyncReadStream& stream, DynamicBuffer& dynabuf,
         "SyncReadStream requirements not met");
     static_assert(is_DynamicBuffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
-    static_assert(is_ReadableBody<Body>::value,
-        "ReadableBody requirements not met");
+    static_assert(is_Body<Body>::value,
+        "Body requirements not met");
+    static_assert(has_reader<Body>::value,
+        "Body has no reader");
+    static_assert(is_Reader<typename Body::reader,
+        message_v1<isRequest, Body, Headers>>::value,
+            "Reader requirements not met");
     error_code ec;
     beast::http::read(stream, dynabuf, msg, ec);
     if(ec)
@@ -169,8 +174,13 @@ read(SyncReadStream& stream, DynamicBuffer& dynabuf,
         "SyncReadStream requirements not met");
     static_assert(is_DynamicBuffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
-    static_assert(is_ReadableBody<Body>::value,
-        "ReadableBody requirements not met");
+    static_assert(is_Body<Body>::value,
+        "Body requirements not met");
+    static_assert(has_reader<Body>::value,
+        "Body has no reader");
+    static_assert(is_Reader<typename Body::reader,
+        message_v1<isRequest, Body, Headers>>::value,
+            "Reader requirements not met");
     parser_v1<isRequest, Body, Headers> p;
     beast::http::parse(stream, dynabuf, p, ec);
     if(ec)
@@ -192,8 +202,13 @@ async_read(AsyncReadStream& stream, DynamicBuffer& dynabuf,
         "AsyncReadStream requirements not met");
     static_assert(is_DynamicBuffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
-    static_assert(is_ReadableBody<Body>::value,
-        "ReadableBody requirements not met");
+    static_assert(is_Body<Body>::value,
+        "Body requirements not met");
+    static_assert(has_reader<Body>::value,
+        "Body has no reader");
+    static_assert(is_Reader<typename Body::reader,
+        message_v1<isRequest, Body, Headers>>::value,
+            "Reader requirements not met");
     beast::async_completion<ReadHandler,
         void(error_code)> completion(handler);
     detail::read_op<AsyncReadStream, DynamicBuffer,

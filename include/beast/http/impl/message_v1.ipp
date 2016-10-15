@@ -9,9 +9,9 @@
 #define BEAST_HTTP_IMPL_MESSAGE_V1_IPP
 
 #include <beast/core/error.hpp>
+#include <beast/http/concepts.hpp>
 #include <beast/http/rfc7230.hpp>
 #include <beast/core/detail/ci_char_traits.hpp>
-#include <beast/http/detail/has_content_length.hpp>
 #include <boost/optional.hpp>
 #include <stdexcept>
 
@@ -116,8 +116,13 @@ prepare(message_v1<isRequest, Body, Headers>& msg,
     Options&&... options)
 {
     // VFALCO TODO
-    //static_assert(is_WritableBody<Body>::value,
-    //  "WritableBody requirements not met");
+    static_assert(is_Body<Body>::value,
+        "Body requirements not met");
+    static_assert(has_writer<Body>::value,
+        "Body has no writer");
+    static_assert(is_Writer<typename Body::writer,
+        message_v1<isRequest, Body, Headers>>::value,
+            "Writer requirements not met");
     detail::prepare_info pi;
     detail::prepare_content_length(pi, msg,
         detail::has_content_length<typename Body::writer>{});

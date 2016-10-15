@@ -104,21 +104,22 @@ public:
         public:
             template<bool isRequest, class Allocator>
             explicit
-            writer(message<isRequest, unsized_body, Allocator> const& msg)
+            writer(message<isRequest, unsized_body, Allocator> const& msg) noexcept
                 : body_(msg.body)
             {
             }
 
             void
-            init(error_code& ec)
+            init(error_code& ec) noexcept
             {
             }
 
-            template<class Write>
+            template<class WriteFunction>
             boost::tribool
-            operator()(resume_context&&, error_code&, Write&& write)
+            write(resume_context&&, error_code&,
+                WriteFunction&& wf) noexcept
             {
-                write(boost::asio::buffer(body_));
+                wf(boost::asio::buffer(body_));
                 return true;
             }
         };
@@ -168,13 +169,13 @@ public:
         public:
             template<bool isRequest, class Allocator>
             explicit
-            writer(message<isRequest, fail_body, Allocator> const& msg)
+            writer(message<isRequest, fail_body, Allocator> const& msg) noexcept
                 : body_(msg.body)
             {
             }
 
             void
-            init(error_code& ec)
+            init(error_code& ec) noexcept
             {
                 body_.fc_.fail(ec);
             }
@@ -197,9 +198,10 @@ public:
                 }
             };
 
-            template<class Write>
+            template<class WriteFunction>
             boost::tribool
-            operator()(resume_context&& rc, error_code& ec, Write&& write)
+            write(resume_context&& rc, error_code& ec,
+                WriteFunction&& wf) noexcept
             {
                 if(body_.fc_.fail(ec))
                     return false;
@@ -211,7 +213,7 @@ public:
                 }
                 if(n_ >= body_.s_.size())
                     return true;
-                write(boost::asio::buffer(body_.s_.data() + n_, 1));
+                wf(boost::asio::buffer(body_.s_.data() + n_, 1));
                 ++n_;
                 return n_ == body_.s_.size();
             }

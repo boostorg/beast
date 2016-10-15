@@ -6,13 +6,20 @@
 * Add basic_streambuf::alloc_size
 * Parser callbacks may not throw
 * Fix Reader concept doc typo
+* Add is_Reader trait
 
 API Changes:
 
 * Added init() to Reader requirements
 * Reader must be nothrow constructible
 * Reader is now constructed right before reading the body
-   - The message passed on construction is filled in
+  - The message passed on construction is filled in
+* Rework HTTP concepts:
+  - Writer uses write instead of operator()
+  - Refactor traits to use void_t
+  - Remove is_ReadableBody, is_WritableBody
+  - Add has_reader, has_writer, is_Reader, is_Writer
+  - More friendly compile errors on failed concept checks
 
 --------------------------------------------------------------------------------
 
