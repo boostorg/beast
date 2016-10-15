@@ -141,8 +141,9 @@ static std::uint64_t constexpr no_content_length =
     "callbacks" from here on) matching a specific signature.
 
     Callbacks are detected through SFINAE. The derived class may
-    implement as few or as many of the members as needed.
-    These are the signatures of the callbacks:<br>
+    implement as few or as many of the members as needed. Callbacks
+    may not throw exceptions. These are the signatures of the
+    callbacks:<br>
 
     @li `void on_start(error_code&)`
 
