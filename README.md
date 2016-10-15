@@ -171,7 +171,7 @@ int main()
     // WebSocket connect and send message using beast
     beast::websocket::stream<boost::asio::ip::tcp::socket&> ws{sock};
     ws.handshake(host, "/");
-    ws.write(boost::asio::buffer("Hello, world!"));
+    ws.write(boost::asio::buffer(std::string("Hello, world!")));
 
     // Receive WebSocket message, print and close using beast
     beast::streambuf sb;
