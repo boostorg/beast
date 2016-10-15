@@ -1,3 +1,9 @@
+1.0.0-b17
+
+* Change implicit to default value in example
+
+--------------------------------------------------------------------------------
+
 1.0.0-b16
 
 * Make value optional in param-list
