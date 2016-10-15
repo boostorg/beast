@@ -50,8 +50,10 @@
           <simplelist type="vert" columns="1">
            <member><link linkend="beast.ref.http__is_Body">is_Body</link></member>
            <member><link linkend="beast.ref.http__is_Parser">is_Parser</link></member>
-           <member><link linkend="beast.ref.http__is_ReadableBody">is_ReadableBody</link></member>
-           <member><link linkend="beast.ref.http__is_WritableBody">is_WritableBody</link></member>
+           <member><link linkend="beast.ref.http__is_Reader">is_Reader</link></member>
+           <member><link linkend="beast.ref.http__is_Writer">is_Reader</link></member>
+           <member><link linkend="beast.ref.http__has_reader">has_reader</link></member>
+           <member><link linkend="beast.ref.http__has_writer">has_writer</link></member>
           </simplelist>
         </entry>
         <entry valign="top">

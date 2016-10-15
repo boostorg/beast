@@ -62,33 +62,31 @@ private:
         value_type const& body_;
 
     public:
-        writer(writer const&) = delete;
-        writer& operator=(writer const&) = delete;
-
         template<bool isRequest, class Headers>
         explicit
         writer(message<
-                isRequest, string_body, Headers> const& msg)
+                isRequest, string_body, Headers> const& msg) noexcept
             : body_(msg.body)
         {
         }
 
         void
-        init(error_code& ec)
+        init(error_code& ec) noexcept
         {
         }
 
         std::uint64_t
-        content_length() const
+        content_length() const noexcept
         {
             return body_.size();
         }
 
-        template<class Write>
+        template<class WriteFunction>
         boost::tribool
-        operator()(resume_context&&, error_code&, Write&& write)
+        write(resume_context&&, error_code&,
+            WriteFunction&& wf) noexcept
         {
-            write(boost::asio::buffer(body_));
+            wf(boost::asio::buffer(body_));
             return true;
         }
     };

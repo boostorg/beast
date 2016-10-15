@@ -72,7 +72,7 @@ In this table:
     ]
 ]
 [
-    [`a(rc, ec, wf)`]
+    [`a.write(rc, ec, wf)`]
     [`boost::tribool`]
     [
         Called repeatedly after `init` succeeds. `wf` is a function object
@@ -175,10 +175,10 @@ public:
     */
     template<class WriteFunction>
     boost::tribool
-    operator()(
+    write(
         resume_context&&,
         error_code&,
-        WriteFunction&& write) noexcept;
+        WriteFunction&& wf) noexcept;
 };
 ```
 

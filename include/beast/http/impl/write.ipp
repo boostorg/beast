@@ -11,7 +11,6 @@
 #include <beast/http/concepts.hpp>
 #include <beast/http/resume_context.hpp>
 #include <beast/http/detail/chunk_encode.hpp>
-#include <beast/http/detail/has_content_length.hpp>
 #include <beast/core/buffer_cat.hpp>
 #include <beast/core/bind_handler.hpp>
 #include <beast/core/buffer_concepts.hpp>
@@ -184,7 +183,7 @@ class write_op
         }
 
         template<class ConstBufferSequence>
-        void operator()(ConstBufferSequence const& buffers)
+        void operator()(ConstBufferSequence const& buffers) const
         {
             auto& d = *self_.d_;
             // write headers and body
@@ -212,7 +211,7 @@ class write_op
         }
 
         template<class ConstBufferSequence>
-        void operator()(ConstBufferSequence const& buffers)
+        void operator()(ConstBufferSequence const& buffers) const
         {
             auto& d = *self_.d_;
             // write body
@@ -323,7 +322,7 @@ operator()(error_code ec, std::size_t, bool again)
 
         case 1:
         {
-            auto const result = d.wp.w(
+            boost::tribool const result = d.wp.w.write(
                 std::move(d.copy), ec, writef0_lambda{*this});
             if(ec)
             {
@@ -354,7 +353,7 @@ operator()(error_code ec, std::size_t, bool again)
 
         case 3:
         {
-            auto const result = d.wp.w(
+            boost::tribool result = d.wp.w.write(
                 std::move(d.copy), ec, writef_lambda{*this});
             if(ec)
             {
@@ -420,7 +419,7 @@ public:
     }
 
     template<class ConstBufferSequence>
-    void operator()(ConstBufferSequence const& buffers)
+    void operator()(ConstBufferSequence const& buffers) const
     {
         // write headers and body
         if(chunked_)
@@ -449,7 +448,7 @@ public:
     }
 
     template<class ConstBufferSequence>
-    void operator()(ConstBufferSequence const& buffers)
+    void operator()(ConstBufferSequence const& buffers) const
     {
         // write body
         if(chunked_)
@@ -472,8 +471,13 @@ write(SyncWriteStream& stream,
 {
     static_assert(is_SyncWriteStream<SyncWriteStream>::value,
         "SyncWriteStream requirements not met");
-    static_assert(is_WritableBody<Body>::value,
-        "WritableBody requirements not met");
+    static_assert(is_Body<Body>::value,
+        "Body requirements not met");
+    static_assert(has_writer<Body>::value,
+        "Body has no writer");
+    static_assert(is_Writer<typename Body::writer,
+        message_v1<isRequest, Body, Headers>>::value,
+            "Writer requirements not met");
     error_code ec;
     write(stream, msg, ec);
     if(ec)
@@ -489,8 +493,13 @@ write(SyncWriteStream& stream,
 {
     static_assert(is_SyncWriteStream<SyncWriteStream>::value,
         "SyncWriteStream requirements not met");
-    static_assert(is_WritableBody<Body>::value,
-        "WritableBody requirements not met");
+    static_assert(is_Body<Body>::value,
+        "Body requirements not met");
+    static_assert(has_writer<Body>::value,
+        "Body has no writer");
+    static_assert(is_Writer<typename Body::writer,
+        message_v1<isRequest, Body, Headers>>::value,
+            "Writer requirements not met");
     detail::write_preparation<isRequest, Body, Headers> wp(msg);
     wp.init(ec);
     if(ec)
@@ -506,9 +515,11 @@ write(SyncWriteStream& stream,
             cv.notify_one();
         }};
     auto copy = resume;
-    boost::tribool result = wp.w(std::move(copy),
-        ec, detail::writef0_lambda<SyncWriteStream,
-            decltype(wp.sb)>{stream, wp.sb, wp.chunked, ec});
+    boost::tribool result =
+        wp.w.write(std::move(copy), ec,
+            detail::writef0_lambda<SyncWriteStream,
+                decltype(wp.sb)>{stream,
+                    wp.sb, wp.chunked, ec});
     if(ec)
         return;
     if(boost::indeterminate(result))
@@ -527,11 +538,16 @@ write(SyncWriteStream& stream,
     wp.sb.consume(wp.sb.size());
     if(! result)
     {
+        detail::writef_lambda<SyncWriteStream> wf{
+            stream, wp.chunked, ec};
         for(;;)
         {
-            result = wp.w(std::move(copy), ec,
-                detail::writef_lambda<SyncWriteStream>{
-                    stream, wp.chunked, ec});
+#if 0
+            result = wp.w.write(std::move(copy), ec, wf);
+#else
+            result = wp.w.write(std::move(copy), ec,
+                detail::writef_lambda<SyncWriteStream>{stream, wp.chunked, ec});            
+#endif
             if(ec)
                 return;
             if(result)
@@ -573,8 +589,13 @@ async_write(AsyncWriteStream& stream,
 {
     static_assert(is_AsyncWriteStream<AsyncWriteStream>::value,
         "AsyncWriteStream requirements not met");
-    static_assert(is_WritableBody<Body>::value,
-        "WritableBody requirements not met");
+    static_assert(is_Body<Body>::value,
+        "Body requirements not met");
+    static_assert(has_writer<Body>::value,
+        "Body has no writer");
+    static_assert(is_Writer<typename Body::writer,
+        message_v1<isRequest, Body, Headers>>::value,
+            "Writer requirements not met");
     beast::async_completion<WriteHandler,
         void(error_code)> completion(handler);
     detail::write_op<AsyncWriteStream, decltype(completion.handler),
@@ -636,8 +657,13 @@ std::ostream&
 operator<<(std::ostream& os,
     message_v1<isRequest, Body, Headers> const& msg)
 {
-    static_assert(is_WritableBody<Body>::value,
-        "WritableBody requirements not met");
+    static_assert(is_Body<Body>::value,
+        "Body requirements not met");
+    static_assert(has_writer<Body>::value,
+        "Body has no writer");
+    static_assert(is_Writer<typename Body::writer,
+        message_v1<isRequest, Body, Headers>>::value,
+            "Writer requirements not met");
     detail::ostream_SyncStream oss(os);
     error_code ec;
     write(oss, msg, ec);

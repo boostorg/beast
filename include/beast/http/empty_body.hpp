@@ -35,31 +35,29 @@ private:
 
     struct writer
     {
-        writer(writer const&) = delete;
-        writer& operator=(writer const&) = delete;
-
         template<bool isRequest, class Headers>
         explicit
-        writer(message<isRequest, empty_body, Headers> const& m)
+        writer(message<isRequest, empty_body, Headers> const& m) noexcept
         {
         }
 
         void
-        init(error_code& ec)
+        init(error_code& ec) noexcept
         {
         }
 
         std::uint64_t
-        content_length() const
+        content_length() const noexcept
         {
             return 0;
         }
 
-        template<class Write>
+        template<class WriteFunction>
         boost::tribool
-        operator()(resume_context&&, error_code&, Write&& write)
+        write(resume_context&&, error_code&,
+            WriteFunction&& wf) noexcept
         {
-            write(boost::asio::null_buffers{});
+            wf(boost::asio::null_buffers{});
             return true;
         }
     };

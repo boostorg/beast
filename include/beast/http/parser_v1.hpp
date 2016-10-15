@@ -91,13 +91,12 @@ private:
     using reader =
         typename message_type::body_type::reader;
 
-    static_assert(is_ReadableBody<Body>::value,
-        "ReadableBody requirements not met");
-
-    // Reader must be nothrow constructible
-    static_assert(std::is_nothrow_constructible<
-        reader, message_type&>::value,
-            "Reader requirements not met");
+    static_assert(is_Body<Body>::value,
+        "Body requirements not met");
+    static_assert(has_reader<Body>::value,
+        "Body has no reader");
+    static_assert(is_Reader<reader, message_type>::value,
+        "Reader requirements not met");
 
     std::string field_;
     std::string value_;
