@@ -11,6 +11,7 @@
 * Relax ForwardIterator requirements in FieldSequence
 * Fix websocket failure testing
 * Refine Writer concept and fix exemplar in documentation
+* Improve websocket example
 
 API Changes:
 
