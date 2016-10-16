@@ -55,7 +55,7 @@ struct parser_response
         p.set_option(skip_body{true});
     @endcode
 
-    @note Objects of this type are passed to @ref basic_parser_v1::set_option.
+    @note Objects of this type are passed to @ref parser_v1::set_option.
 */
 struct skip_body
 {
@@ -125,6 +125,11 @@ public:
 
         @param args A list of arguments forwarded to the message constructor.
     */
+#if GENERATING_DOCS
+    template<class... Args>
+    explicit
+    parser_v1(Args&&... args);
+#else
     template<class Arg1, class... ArgN,
         class = typename std::enable_if<! std::is_same<
             typename std::decay<Arg1>::type, parser_v1>::value>>
@@ -134,6 +139,7 @@ public:
             std::forward<ArgN>(argn)...)
     {
     }
+#endif
 
     /// Set the expect body option.
     void

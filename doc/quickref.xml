@@ -16,10 +16,10 @@
     <colspec colname="d"/>
     <thead>
       <row>
-        <entry valign="center" namest="a" nameend="b">
+        <entry valign="center" namest="a" nameend="c">
           <bridgehead renderas="sect2">HTTP</bridgehead>
         </entry>
-        <entry valign="center" namest="c" nameend="d">
+        <entry valign="center" namest="d" nameend="d">
           <bridgehead renderas="sect2">WebSocket</bridgehead>
         </entry>
       </row>
@@ -36,6 +36,7 @@
             <member><link linkend="beast.ref.http__headers">headers</link></member>
             <member><link linkend="beast.ref.http__message">message</link></member>
             <member><link linkend="beast.ref.http__message_headers">message_headers</link></member>
+            <member><link linkend="beast.ref.http__parser_v1">parser_v1</link></member>
             <member><link linkend="beast.ref.http__request">request</link></member>
             <member><link linkend="beast.ref.http__request_headers">request_headers</link></member>
             <member><link linkend="beast.ref.http__response">response</link></member>
@@ -44,20 +45,11 @@
             <member><link linkend="beast.ref.http__streambuf_body">streambuf_body</link></member>
             <member><link linkend="beast.ref.http__string_body">string_body</link></member>
           </simplelist>
-          <bridgehead renderas="sect3">Options</bridgehead>
+          <bridgehead renderas="sect3">rfc7230</bridgehead>
           <simplelist type="vert" columns="1">
-            <member><link linkend="beast.ref.http__body_max_size">body_max_size</link></member>
-            <member><link linkend="beast.ref.http__headers_max_size">headers_max_size</link></member>
-            <member><link linkend="beast.ref.http__skip_body">skip_body</link></member>
-          </simplelist>
-          <bridgehead renderas="sect3">Type Traits</bridgehead>
-          <simplelist type="vert" columns="1">
-           <member><link linkend="beast.ref.http__is_Body">is_Body</link></member>
-           <member><link linkend="beast.ref.http__is_Parser">is_Parser</link></member>
-           <member><link linkend="beast.ref.http__is_Reader">is_Reader</link></member>
-           <member><link linkend="beast.ref.http__is_Writer">is_Reader</link></member>
-           <member><link linkend="beast.ref.http__has_reader">has_reader</link></member>
-           <member><link linkend="beast.ref.http__has_writer">has_writer</link></member>
+           <member><link linkend="beast.ref.http__ext_list">ext_list</link></member>
+           <member><link linkend="beast.ref.http__param_list">param_list</link></member>
+           <member><link linkend="beast.ref.http__token_list">token_list</link></member>
           </simplelist>
         </entry>
         <entry valign="top">
@@ -74,6 +66,23 @@
             <member><link linkend="beast.ref.http__read">read</link></member>
             <member><link linkend="beast.ref.http__swap">swap</link></member>
             <member><link linkend="beast.ref.http__write">write</link></member>
+          </simplelist>
+          <bridgehead renderas="sect3">Type Traits</bridgehead>
+          <simplelist type="vert" columns="1">
+           <member><link linkend="beast.ref.http__is_Body">is_Body</link></member>
+           <member><link linkend="beast.ref.http__is_Parser">is_Parser</link></member>
+           <member><link linkend="beast.ref.http__is_Reader">is_Reader</link></member>
+           <member><link linkend="beast.ref.http__is_Writer">is_Reader</link></member>
+           <member><link linkend="beast.ref.http__has_reader">has_reader</link></member>
+           <member><link linkend="beast.ref.http__has_writer">has_writer</link></member>
+          </simplelist>
+        </entry>
+        <entry valign="top">
+          <bridgehead renderas="sect3">Options</bridgehead>
+          <simplelist type="vert" columns="1">
+            <member><link linkend="beast.ref.http__body_max_size">body_max_size</link></member>
+            <member><link linkend="beast.ref.http__headers_max_size">headers_max_size</link></member>
+            <member><link linkend="beast.ref.http__skip_body">skip_body</link></member>
           </simplelist>
           <bridgehead renderas="sect3">Constants</bridgehead>
           <simplelist type="vert" columns="1">
@@ -99,6 +108,11 @@
             <member><link linkend="beast.ref.websocket__reason_string">reason_string</link></member>
             <member><link linkend="beast.ref.websocket__teardown_tag">teardown_tag</link></member>
           </simplelist>
+          <bridgehead renderas="sect3">Functions</bridgehead>
+          <simplelist type="vert" columns="1">
+            <member><link linkend="beast.ref.websocket__async_teardown">async_teardown</link></member>
+            <member><link linkend="beast.ref.websocket__teardown">teardown</link></member>
+          </simplelist>
           <bridgehead renderas="sect3">Options</bridgehead>
           <simplelist type="vert" columns="1">
             <member><link linkend="beast.ref.websocket__auto_fragment">auto_fragment</link></member>
@@ -109,13 +123,6 @@
             <member><link linkend="beast.ref.websocket__read_buffer_size">read_buffer_size</link></member>
             <member><link linkend="beast.ref.websocket__read_message_max">read_message_max</link></member>
             <member><link linkend="beast.ref.websocket__write_buffer_size">write_buffer_size</link></member>
-          </simplelist>
-        </entry>
-        <entry valign="top">
-          <bridgehead renderas="sect3">Functions</bridgehead>
-          <simplelist type="vert" columns="1">
-            <member><link linkend="beast.ref.websocket__async_teardown">async_teardown</link></member>
-            <member><link linkend="beast.ref.websocket__teardown">teardown</link></member>
           </simplelist>
           <bridgehead renderas="sect3">Constants</bridgehead>
           <simplelist type="vert" columns="1">
@@ -178,7 +185,6 @@
         <entry valign="top">
           <bridgehead renderas="sect3">Type Traits</bridgehead>
           <simplelist type="vert" columns="1">
-
             <member><link linkend="beast.ref.is_AsyncReadStream">is_AsyncReadStream</link></member>
             <member><link linkend="beast.ref.is_AsyncWriteStream">is_AsyncWriteStream</link></member>
             <member><link linkend="beast.ref.is_AsyncStream">is_AsyncStream</link></member>
