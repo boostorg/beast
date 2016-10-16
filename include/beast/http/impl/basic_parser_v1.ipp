@@ -1176,6 +1176,16 @@ write_eof(error_code& ec)
 }
 
 template<bool isRequest, class Derived>
+void
+basic_parser_v1<isRequest, Derived>::
+reset()
+{
+    h_left_ = h_max_;
+    b_left_ = b_max_;
+    reset(std::integral_constant<bool, isRequest>{});
+}
+
+template<bool isRequest, class Derived>
 bool
 basic_parser_v1<isRequest, Derived>::
 needs_eof(std::true_type) const
