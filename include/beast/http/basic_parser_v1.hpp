@@ -44,7 +44,7 @@ enum values
 
     The default headers maximum size is 16KB (16,384 bytes).
 
-    @note Objects of this type are passed to @ref set_option.
+    @note Objects of this type are used with basic_parser_v1::set_option.
 */
 struct headers_max_size
 {
@@ -67,7 +67,7 @@ struct headers_max_size
     The default body maximum size for requests is 4MB (four
     megabytes or 4,194,304 bytes) and unlimited for responses.
 
-    @note Objects of this type are passed to @ref set_option.
+    @note Objects of this type are used with basic_parser_v1::set_option.
 */
 struct body_max_size
 {

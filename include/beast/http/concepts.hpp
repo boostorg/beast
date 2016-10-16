@@ -171,7 +171,7 @@ struct is_Body : std::integral_constant<bool, ...>{};
 using is_Body = detail::has_value_type<T>;
 #endif
 
-/** Determine if a @ref Body has a nested type `reader`.
+/** Determine if a @b Body has a nested type `reader`.
 
     @tparam T The type to check, which must meet the
     requirements of @b Body.
@@ -189,7 +189,7 @@ struct has_reader<T, beast::detail::void_t<
         > > : std::true_type {};
 #endif
 
-/** Determine if a @ref Body has a nested type `writer`.
+/** Determine if a @b Body has a nested type `writer`.
 
     @tparam T The type to check, which must meet the
     requirements of @b Body.

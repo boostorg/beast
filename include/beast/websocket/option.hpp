@@ -30,7 +30,8 @@ namespace websocket {
 
     The default setting is to fragment messages.
 
-    @note Objects of this type are passed to @ref stream::set_option.
+    @note Objects of this type are used with
+          @ref beast::websocket::stream::set_option.
 
     @par Example
     Setting the automatic fragmentation option:
@@ -76,7 +77,8 @@ struct auto_fragment
 
     The default setting is no decorator.
 
-    @note Objects of this type are passed to @ref stream::set_option.
+    @note Objects of this type are used with
+          @ref beast::websocket::stream::set_option.
 
     @par Example
     Setting the decorator.
@@ -125,7 +127,8 @@ decorate(Decorator&& d)
     The default setting is to close connections after a failed
     upgrade request.
 
-    @note Objects of this type are passed to @ref stream::set_option.
+    @note Objects of this type are used with
+          @ref beast::websocket::stream::set_option.
 
     @par Example
     Setting the keep alive option.
@@ -160,7 +163,8 @@ struct keep_alive
 
     The default setting is opcode::text.
 
-    @note Objects of this type are passed to @ref stream::set_option.
+    @note Objects of this type are used with
+          @ref beast::websocket::stream::set_option.
 
     @par Example
     Setting the message type to binary.
@@ -190,8 +194,10 @@ struct message_type
 /** Pong callback option.
 
     Sets the callback to be invoked whenever a pong is received
-    during a call to @ref read, @ref read_frame, @ref async_read,
-    or @ref async_read_frame.
+    during a call to @ref beast::websocket::stream::read,
+    @ref beast::websocket::stream::read_frame,
+    @ref beast::websocket::stream::async_read, or
+    @ref beast::websocket::stream::async_read_frame.
 
     Unlike completion handlers, the callback will be invoked for
     each received pong during a call to any synchronous or
@@ -209,8 +215,10 @@ struct message_type
     operation, the callback will be invoked using the same method as
     that used to invoke the final handler.
 
-    @note To remove the pong callback, construct the option with
-    no parameters: `set_option(pong_callback{})`
+    @note Objects of this type are used with
+          @ref beast::websocket::stream::set_option.
+          To remove the pong callback, construct the option with
+          no parameters: `set_option(pong_callback{})`
 */
 #if GENERATING_DOCS
 using pong_callback = implementation_defined;
@@ -240,7 +248,8 @@ struct pong_callback
 
     The default is no buffering.
 
-    @note Objects of this type are passed to @ref stream::set_option.
+    @note Objects of this type are used with
+          @ref beast::websocket::stream::set_option.
 
     @par Example
     Setting the read buffer size.
@@ -272,9 +281,10 @@ struct read_buffer_size
     message size over this limit will cause a protocol failure.
 
     The default setting is 16 megabytes. A value of zero indicates
-    a limit of `std::numeric_limits<std::uint64_t>::max()`.
+    a limit of the maximum value of a `std::uint64_t`.
 
-    @note Objects of this type are passed to @ref stream::set_option.
+    @note Objects of this type are used with
+          @ref beast::websocket::stream::set_option.
 
     @par Example
     Setting the maximum read message size.
@@ -316,7 +326,8 @@ struct read_message_max
     open. Undefined behavior results if the option is modified after a
     successful WebSocket handshake.
 
-    @note Objects of this type are passed to @ref stream::set_option.
+    @note Objects of this type are used with
+          @ref beast::websocket::stream::set_option.
 
     @par Example
     Setting the write buffer size.

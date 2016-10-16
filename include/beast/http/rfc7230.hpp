@@ -19,17 +19,22 @@ namespace http {
     extension. The parameter list is a series of name/value pairs
     with each pair starting with a semicolon. The value is optional.
 
-    BNF:
-    @code
-        param-list  = *( OWS ";" OWS param )
-        param       = token OWS [ "=" OWS ( token / quoted-string ) ]
-    @endcode
-
     If a parsing error is encountered while iterating the string,
     the behavior of the container will be as if a string containing
     only characters up to but excluding the first invalid character
     was used to construct the list.
 
+    @par BNF
+    @code
+        param-list  = *( OWS ";" OWS param )
+        param       = token OWS [ "=" OWS ( token / quoted-string ) ]
+    @endcode
+
+    To use this class, construct with the string to be parsed and
+    then use @ref begin and @ref end, or range-for to iterate each
+    item:
+
+    @par Example
     @code
     for(auto const& param : param_list{";level=9;no_context_takeover;bits=15"})
     {
@@ -96,7 +101,12 @@ public:
     field value. The extension list is a comma separated list of
     token parameter list pairs.
 
-    BNF:
+    If a parsing error is encountered while iterating the string,
+    the behavior of the container will be as if a string containing
+    only characters up to but excluding the first invalid character
+    was used to construct the list.
+
+    @par BNF
     @code
         ext-list    = *( "," OWS ) ext *( OWS "," [ OWS ext ] )
         ext         = token param-list
@@ -104,15 +114,11 @@ public:
         param       = token OWS [ "=" OWS ( token / quoted-string ) ]
     @endcode
 
-    If a parsing error is encountered while iterating the string,
-    the behavior of the container will be as if a string containing
-    only characters up to but excluding the first invalid character
-    was used to construct the list.
-
     To use this class, construct with the string to be parsed and
-    then use @ref begin and @end, or range-for to iterate each
+    then use @ref begin and @ref end, or range-for to iterate each
     item:
 
+    @par Example
     @code
     for(auto const& ext : ext_list{"none, 7z;level=9, zip;no_context_takeover;bits=15"})
     {
@@ -200,20 +206,21 @@ public:
     header field value. The input is a comma separated list of
     tokens.
 
-    BNF:
-    @code
-        token-list  = *( "," OWS ) token *( OWS "," [ OWS token ] )
-    @endcode
-
     If a parsing error is encountered while iterating the string,
     the behavior of the container will be as if a string containing
     only characters up to but excluding the first invalid character
     was used to construct the list.
 
+    @par BNF
+    @code
+        token-list  = *( "," OWS ) token *( OWS "," [ OWS token ] )
+    @endcode
+
     To use this class, construct with the string to be parsed and
-    then use @ref begin and @end, or range-for to iterate each
+    then use @ref begin and @ref end, or range-for to iterate each
     item:
 
+    @par Example
     @code
     for(auto const& token : token_list{"apple, pear, banana"})
         std::cout << token << "\n";
@@ -274,4 +281,3 @@ public:
 #include <beast/http/impl/rfc7230.ipp>
 
 #endif
-

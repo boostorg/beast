@@ -13,7 +13,7 @@
 namespace beast {
 namespace websocket {
 
-/// Error codes returned from @ref stream operations.
+/// Error codes returned from @ref beast::websocket::stream operations.
 enum class error
 {
     /// Both sides performed a WebSocket close

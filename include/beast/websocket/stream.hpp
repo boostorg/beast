@@ -818,13 +818,13 @@ public:
 
         @li An error occurs on the stream.
 
-        This function is implemented in terms of one or more calls to the
-        next layer's `write_some` functions.
+        This function is implemented in terms of one or more calls
+        to the next layer's `write_some` functions.
 
         If the close reason specifies a close code other than
-        @ref close_code::none, the close frame is sent with the close
-        code and optional reason string. Otherwise, the close frame
-        is sent with no payload.
+        @ref beast::websocket::close_code::none, the close frame is
+        sent with the close code and optional reason string. Otherwise,
+        the close frame is sent with no payload.
 
         Callers should not attempt to write WebSocket data after
         initiating the close. Instead, callers should continue
@@ -847,13 +847,13 @@ public:
 
         @li An error occurs on the stream.
 
-        This function is implemented in terms of one or more calls to the
-        next layer's `write_some` functions.
+        This function is implemented in terms of one or more calls
+        to the next layer's `write_some` functions.
 
         If the close reason specifies a close code other than
-        @ref close_code::none, the close frame is sent with the close
-        code and optional reason string. Otherwise, the close frame
-        is sent with no payload.
+        @ref beast::websocket::close_code::none, the close frame is
+        sent with the close code and optional reason string. Otherwise,
+        the close frame is sent with no payload.
 
         Callers should not attempt to write WebSocket data after
         initiating the close. Instead, callers should continue
@@ -886,9 +886,9 @@ public:
         @ref stream::async_close) until this operation completes.
 
         If the close reason specifies a close code other than
-        @ref close_code::none, the close frame is sent with the close
-        code and optional reason string. Otherwise, the close frame
-        is sent with no payload.
+        @ref beast::websocket::close_code::none, the close frame is
+        sent with the close code and optional reason string. Otherwise,
+        the close frame is sent with no payload.
 
         Callers should not attempt to write WebSocket data after
         initiating the close. Instead, callers should continue
