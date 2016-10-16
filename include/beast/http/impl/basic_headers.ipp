@@ -14,44 +14,6 @@
 namespace beast {
 namespace http {
 
-namespace detail {
-
-inline
-auto
-basic_headers_base::begin() const ->
-    const_iterator
-{
-    return list_.cbegin();
-}
-
-inline
-auto
-basic_headers_base::end() const ->
-    const_iterator
-{
-    return list_.cend();
-}
-
-inline
-auto
-basic_headers_base::cbegin() const ->
-    const_iterator
-{
-    return list_.cbegin();
-}
-
-inline
-auto
-basic_headers_base::cend() const ->
-    const_iterator
-{
-    return list_.cend();
-}
-
-} // detail
-
-//------------------------------------------------------------------------------
-
 template<class Allocator>
 void
 basic_headers<Allocator>::

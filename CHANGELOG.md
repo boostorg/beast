@@ -7,6 +7,7 @@
 * Parser callbacks may not throw
 * Fix Reader concept doc typo
 * Add is_Reader trait
+* Tidy up basic_headers for documentation
 
 API Changes:
 
