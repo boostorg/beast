@@ -902,11 +902,29 @@ write(boost::asio::const_buffer const& buffer, error_code& ec)
             call_on_headers(ec);
             if(ec)
                 return errc();
-            s_ = s_body_what;
-            // fall through
+            auto const what = call_on_body_what(ec);
+            if(ec)
+                return errc();
+            switch(what)
+            {
+            case body_what::normal:
+                break;
+            case body_what::upgrade:
+                upgrade_ = true;
+                // fall through
+            case body_what::skip:
+                flags_ |= parse_flag::skipbody;
+                break;
+            case body_what::pause:
+                ++p;
+                s_ = s_body_pause;
+                return used();
+            }
+            s_ = s_headers_done;
+            goto redo;
         }
 
-        case s_body_what:
+        case s_body_pause:
         {
             auto const what = call_on_body_what(ec);
             if(ec)

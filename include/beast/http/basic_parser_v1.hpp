@@ -422,7 +422,10 @@ public:
     bool
     complete() const
     {
-        return s_ == s_restart || s_ == s_closed_complete;
+        return
+            s_ == s_restart ||
+            s_ == s_closed_complete ||
+            s_ == s_body_pause;
     }
 
     /** Write a sequence of buffers to the parser.
