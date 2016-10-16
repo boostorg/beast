@@ -127,7 +127,7 @@ protected:
         s_chunk_data_cr,
         s_chunk_data_lf,
 
-        s_body_what,
+        s_body_pause,
         s_body_identity0,
         s_body_identity,
         s_body_identity_eof0,
