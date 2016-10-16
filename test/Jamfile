@@ -48,6 +48,7 @@ unit-test http-tests :
     http/concepts.cpp
     http/empty_body.cpp
     http/headers.cpp
+    http/headers_parser_v1.cpp
     http/message.cpp
     http/parse.cpp
     http/parse_error.cpp

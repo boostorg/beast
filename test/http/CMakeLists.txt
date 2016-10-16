@@ -17,6 +17,7 @@ add_executable (http-tests
     concepts.cpp
     empty_body.cpp
     headers.cpp
+    headers_parser_v1.cpp
     message.cpp
     parse.cpp
     parse_error.cpp

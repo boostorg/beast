@@ -51,6 +51,55 @@ basic_parser_v1()
 }
 
 template<bool isRequest, class Derived>
+template<class OtherDerived>
+basic_parser_v1<isRequest, Derived>::
+basic_parser_v1(basic_parser_v1<
+        isRequest, OtherDerived> const& other)
+    : h_max_(other.h_max_)
+    , h_left_(other.h_left_)
+    , b_max_(other.b_max_)
+    , b_left_(other.b_left_)
+    , content_length_(other.content_length_)
+    , cb_(nullptr)
+    , s_(other.s_)
+    , flags_(other.flags_)
+    , fs_(other.fs_)
+    , pos_(other.pos_)
+    , http_major_(other.http_major_)
+    , http_minor_(other.http_minor_)
+    , status_code_(other.status_code_)
+    , upgrade_(other.upgrade_)
+{
+    BOOST_ASSERT(! other.cb_);
+}
+
+template<bool isRequest, class Derived>
+template<class OtherDerived>
+auto
+basic_parser_v1<isRequest, Derived>::
+operator=(basic_parser_v1<
+    isRequest, OtherDerived> const& other) ->
+        basic_parser_v1&
+{
+    BOOST_ASSERT(! other.cb_);
+    h_max_ = other.h_max_;
+    h_left_ = other.h_left_;
+    b_max_ = other.b_max_;
+    b_left_ = other.b_left_;
+    content_length_ = other.content_length_;
+    cb_ = nullptr;
+    s_ = other.s_;
+    flags_ = other.flags_;
+    fs_ = other.fs_;
+    pos_ = other.pos_;
+    http_major_ = other.http_major_;
+    http_minor_ = other.http_minor_;
+    status_code_ = other.status_code_;
+    upgrade_ = other.upgrade_;
+    return *this;
+}
+
+template<bool isRequest, class Derived>
 bool
 basic_parser_v1<isRequest, Derived>::
 keep_alive() const
@@ -942,6 +991,7 @@ write(boost::asio::const_buffer const& buffer, error_code& ec)
             case body_what::pause:
                 return used();
             }
+            --p;
             s_ = s_headers_done;
             // fall through
         }
@@ -1198,6 +1248,7 @@ void
 basic_parser_v1<isRequest, Derived>::
 reset()
 {
+    cb_ = nullptr;
     h_left_ = h_max_;
     b_left_ = b_max_;
     reset(std::integral_constant<bool, isRequest>{});
