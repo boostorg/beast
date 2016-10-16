@@ -1,0 +1,5 @@
+Name: Beast
+Description: HTTP and WebSocket library
+URL: https://github.com/vinniefalco/Beast
+Version: @Beast_VERSION_STRING@
+Cflags: -I@CMAKE_INSTALL_PREFIX@/include

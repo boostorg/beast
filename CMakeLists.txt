@@ -6,22 +6,38 @@ project (Beast)
 
 set_property (GLOBAL PROPERTY USE_FOLDERS ON)
 
+set(Boost_USE_STATIC_LIBS ON)
+set(Boost_USE_MULTITHREADED ON)
+
+
 if (MSVC)
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP /W4 /wd4100 /bigobj /D _WIN32_WINNT=0x0601 /D_SCL_SECURE_NO_WARNINGS=1 /D_CRT_SECURE_NO_WARNINGS=1")
     set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SAFESEH:NO")
-else()
-    set(Boost_USE_STATIC_LIBS ON)
-    set(Boost_USE_MULTITHREADED ON)
-    find_package(Boost REQUIRED COMPONENTS coroutine context thread filesystem program_options system)
-    include_directories(${Boost_INCLUDE_DIRS})
-    link_directories(${Boost_LIBRARY_DIR})
 
+    # Workaround for MSVC having two boost versions - x86 and x64 on same PC in stage folders
+    if ((NOT DEFINED BOOST_ROOT) AND (DEFINED ENV{BOOST_ROOT}))
+        if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+            set(Boost_LIBRARY_DIR $ENV{BOOST_ROOT}/stage64/lib)
+        elseif(CMAKE_SIZEOF_VOID_P EQUAL 4)
+            set(Boost_LIBRARY_DIR $ENV{BOOST_ROOT}/stage/lib)
+        endif()
+    elseif(DEFINED BOOST_ROOT)
+        if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+            set(Boost_LIBRARY_DIR ${BOOST_ROOT}/stage64/lib)
+        elseif(CMAKE_SIZEOF_VOID_P EQUAL 4)
+            set(Boost_LIBRARY_DIR ${BOOST_ROOT}/stage/lib)
+        endif()
+    endif()
+else()
     set(THREADS_PREFER_PTHREAD_FLAG ON)
     find_package(Threads)
 
-    set(CMAKE_CXX_FLAGS
-      "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wpedantic")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wpedantic")
 endif()
+
+find_package(Boost REQUIRED COMPONENTS coroutine context thread filesystem program_options system)
+include_directories(${Boost_INCLUDE_DIRS})
+link_directories(${Boost_LIBRARY_DIRS})
 
 if (APPLE AND NOT DEFINED ENV{OPENSSL_ROOT_DIR})
   find_program(HOMEBREW brew)
@@ -34,8 +50,10 @@ endif()
 
 find_package(OpenSSL)
 
-if (MINGW)
+if (WIN32)
     link_libraries(${Boost_LIBRARIES} ws2_32 mswsock)
+else()
+    link_libraries(${Boost_LIBRARIES} Threads::Threads)
 endif()
 
 if ("${VARIANT}" STREQUAL "coverage")
@@ -102,3 +120,33 @@ add_subdirectory (test)
 add_subdirectory (test/core)
 add_subdirectory (test/http)
 add_subdirectory (test/websocket)
+
+################################################################################
+# INSTALLATION                                                                 #
+################################################################################
+
+file(STRINGS include/beast/version.hpp
+             Beast_VERSION_STRING
+             REGEX "#define BEAST_VERSION_STRING \"\.+\"")
+string(REGEX MATCH "\"\.+\"" Beast_VERSION_STRING ${Beast_VERSION_STRING})
+string(REPLACE "\"" "" Beast_VERSION_STRING ${Beast_VERSION_STRING})
+
+install(DIRECTORY include/beast DESTINATION include
+        PATTERN ".DS_Store" EXCLUDE)
+
+configure_file(scripts/beast.pc.in beast.pc @ONLY)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/beast.pc DESTINATION lib/pkgconfig)
+
+configure_file(scripts/beastConfig.cmake.in "${CMAKE_CURRENT_BINARY_DIR}/config/beastConfig.cmake" @ONLY)
+
+include(CMakePackageConfigHelpers)
+write_basic_package_version_file(
+    "${CMAKE_CURRENT_BINARY_DIR}/config/beastConfigVersion.cmake"
+    VERSION ${Beast_VERSION_STRING}
+    COMPATIBILITY AnyNewerVersion
+    )
+
+install(FILES
+             "${CMAKE_CURRENT_BINARY_DIR}/config/beastConfig.cmake"
+             "${CMAKE_CURRENT_BINARY_DIR}/config/beastConfigVersion.cmake"
+        DESTINATION lib/cmake/beast)
