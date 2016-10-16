@@ -9,6 +9,7 @@
 * Add is_Reader trait
 * Tidy up basic_headers for documentation
 * Tidy up documentation
+* Add basic_parser_v1::reset
 
 API Changes:
 

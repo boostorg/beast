@@ -467,6 +467,15 @@ public:
     void
     write_eof(error_code& ec);
 
+protected:
+    /** Reset the parsing state.
+
+        The state of the parser is reset to expect the beginning of
+        a new request or response. The old state is discarded.
+    */
+    void
+    reset();
+
 private:
     Derived&
     impl()
@@ -484,14 +493,6 @@ private:
     reset(std::false_type)
     {
         s_ = s_res_start;
-    }
-
-    void
-    reset()
-    {
-        h_left_ = h_max_;
-        b_left_ = b_max_;
-        reset(std::integral_constant<bool, isRequest>{});
     }
 
     void
