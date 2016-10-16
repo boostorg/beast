@@ -22,6 +22,7 @@ API Changes:
   - Remove is_ReadableBody, is_WritableBody
   - Add has_reader, has_writer, is_Reader, is_Writer
   - More friendly compile errors on failed concept checks
+* basic_parser_v1 requires all callbacks present
 
 --------------------------------------------------------------------------------
 
