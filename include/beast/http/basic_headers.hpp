@@ -8,12 +8,9 @@
 #ifndef BEAST_HTTP_BASIC_HEADERS_HPP
 #define BEAST_HTTP_BASIC_HEADERS_HPP
 
-#include <beast/core/detail/ci_char_traits.hpp>
 #include <beast/core/detail/empty_base_optimization.hpp>
-#include <boost/intrusive/list.hpp>
-#include <boost/intrusive/set.hpp>
+#include <beast/http/detail/basic_headers.hpp>
 #include <boost/lexical_cast.hpp>
-#include <boost/utility/string_ref.hpp>
 #include <algorithm>
 #include <cctype>
 #include <memory>
@@ -23,217 +20,6 @@
 
 namespace beast {
 namespace http {
-
-template<class Allocator>
-class basic_headers;
-
-namespace detail {
-
-class basic_headers_base
-{
-public:
-    struct value_type
-    {
-        std::string first;
-        std::string second;
-
-        value_type(boost::string_ref const& name_,
-                boost::string_ref const& value_)
-            : first(name_)
-            , second(value_)
-        {
-        }
-
-        boost::string_ref
-        name() const
-        {
-            return first;
-        }
-
-        boost::string_ref
-        value() const
-        {
-            return second;
-        }
-    };
-
-protected:
-    template<class Allocator>
-    friend class beast::http::basic_headers;
-
-    struct element
-        : boost::intrusive::set_base_hook <
-            boost::intrusive::link_mode <
-                boost::intrusive::normal_link>>
-        , boost::intrusive::list_base_hook <
-            boost::intrusive::link_mode <
-                boost::intrusive::normal_link>>
-    {
-        value_type data;
-
-        element(boost::string_ref const& name,
-                boost::string_ref const& value)
-            : data(name, value)
-        {
-        }
-    };
-
-    struct less : private beast::detail::ci_less
-    {
-        template<class String>
-        bool
-        operator()(String const& lhs, element const& rhs) const
-        {
-            return ci_less::operator()(lhs, rhs.data.first);
-        }
-
-        template<class String>
-        bool
-        operator()(element const& lhs, String const& rhs) const
-        {
-            return ci_less::operator()(lhs.data.first, rhs);
-        }
-
-        bool
-        operator()(element const& lhs, element const& rhs) const
-        {
-            return ci_less::operator()(
-                lhs.data.first, rhs.data.first);
-        }
-    };
-
-    using list_t = typename boost::intrusive::make_list<
-        element, boost::intrusive::constant_time_size<false>>::type;
-
-    using set_t = typename boost::intrusive::make_multiset<
-        element, boost::intrusive::constant_time_size<true>,
-            boost::intrusive::compare<less>>::type;
-
-    // data
-    set_t set_;
-    list_t list_;
-
-    basic_headers_base(set_t&& set, list_t&& list)
-        : set_(std::move(set))
-        , list_(std::move(list))
-    {
-    }
-
-public:
-    class const_iterator;
-
-    using iterator = const_iterator;
-
-    basic_headers_base() = default;
-
-    /// Returns an iterator to the beginning of the field sequence.
-    iterator
-    begin() const;
-
-    /// Returns an iterator to the end of the field sequence.
-    iterator
-    end() const;
-
-    /// Returns an iterator to the beginning of the field sequence.
-    iterator
-    cbegin() const;
-
-    /// Returns an iterator to the end of the field sequence.
-    iterator
-    cend() const;
-};
-
-//------------------------------------------------------------------------------
-
-class basic_headers_base::const_iterator
-{
-    using iter_type = list_t::const_iterator;
-
-    iter_type it_;
-
-    template<class Allocator>
-    friend class beast::http::basic_headers;
-
-    friend class basic_headers_base;
-
-    const_iterator(iter_type it)
-        : it_(it)
-    {
-    }
-
-public:
-    using value_type =
-        typename basic_headers_base::value_type;
-    using pointer = value_type const*;
-    using reference = value_type const&;
-    using difference_type = std::ptrdiff_t;
-    using iterator_category =
-        std::bidirectional_iterator_tag;
-
-    const_iterator() = default;
-    const_iterator(const_iterator&& other) = default;
-    const_iterator(const_iterator const& other) = default;
-    const_iterator& operator=(const_iterator&& other) = default;
-    const_iterator& operator=(const_iterator const& other) = default;
-
-    bool
-    operator==(const_iterator const& other) const
-    {
-        return it_ == other.it_;
-    }
-
-    bool
-    operator!=(const_iterator const& other) const
-    {
-        return !(*this == other);
-    }
-
-    reference
-    operator*() const
-    {
-        return it_->data;
-    }
-
-    pointer
-    operator->() const
-    {
-        return &**this;
-    }
-
-    const_iterator&
-    operator++()
-    {
-        ++it_;
-        return *this;
-    }
-
-    const_iterator
-    operator++(int)
-    {
-        auto temp = *this;
-        ++(*this);
-        return temp;
-    }
-
-    const_iterator&
-    operator--()
-    {
-        --it_;
-        return *this;
-    }
-
-    const_iterator
-    operator--(int)
-    {
-        auto temp = *this;
-        --(*this);
-        return temp;
-    }
-};
-
-} // detail
-
-//------------------------------------------------------------------------------
 
 /** A container for storing HTTP headers.
 
@@ -298,6 +84,24 @@ public:
     /// The type of allocator used.
     using allocator_type = Allocator;
 
+    /** The value type of the field sequence.
+
+        Meets the requirements of @b Field.
+    */
+#if GENERATING_DOCS
+    using value_type = implementation_defined;
+#endif
+
+    /// A const iterator to the field sequence
+#if GENERATING_DOCS
+    using iterator = implementation_defined;
+#endif
+
+    /// A const iterator to the field sequence
+#if GENERATING_DOCS
+    using const_iterator = implementation_defined;
+#endif
+
     /// Default constructor.
     basic_headers() = default;
 
@@ -357,6 +161,34 @@ public:
     size() const
     {
         return set_.size();
+    }
+
+    /// Returns a const iterator to the beginning of the field sequence.
+    const_iterator
+    begin() const
+    {
+        return list_.cbegin();
+    }
+
+    /// Returns a const iterator to the end of the field sequence.
+    const_iterator
+    end() const
+    {
+        return list_.cend();
+    }
+
+    /// Returns a const iterator to the beginning of the field sequence.
+    const_iterator
+    cbegin() const
+    {
+        return list_.cbegin();
+    }
+
+    /// Returns a const iterator to the end of the field sequence.
+    const_iterator
+    cend() const
+    {
+        return list_.cend();
     }
 
     /// Returns `true` if the specified field exists.
