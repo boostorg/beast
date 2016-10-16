@@ -103,17 +103,17 @@ enum class body_what
 
     /** The message represents an UPGRADE request.
 
-        When returned by `on_headers` this causes parsing
+        When returned by `on_body_prepare` this causes parsing
         to complete and control to return to the caller.
     */
     upgrade,
 
     /** Suspend parsing before reading the body.
 
-        When returned by `on_headers` this causes parsing to
-        pause. Control is returned to the caller, and the parser
-        state is preserved such that a subsequent call to the
-        parser will begin reading the message body.
+        When returned by `on_body_prepare` this causes parsing
+        to pause. Control is returned to the caller, and the
+        parser state is preserved such that a subsequent call
+        to the parser will begin reading the message body.
 
         This could be used by callers to inspect the HTTP
         headers before committing to read the body. For example,
@@ -183,8 +183,13 @@ static std::uint64_t constexpr no_content_length =
 
         // Called when all the headers have been parsed successfully.
         //
-        body_what
+        void
         on_headers(std::uint64_t content_length, error_code&);
+
+        // Called after on_headers, before the body is parsed
+        //
+        body_what
+        on_body_what(std::uint64_t content_length, error_code&);
 
         // Called for each piece of the body.
         //
@@ -203,9 +208,9 @@ static std::uint64_t constexpr no_content_length =
     };
     @endcode
 
-    The return value of `on_headers` is special, it controls whether
-    or not the parser should expect a body. See @ref body_what for
-    choices of the return value.
+    The return value of `on_body_what` is special, it controls
+    whether or not the parser should expect a body. See @ref body_what
+    for choices of the return value.
 
     If a callback sets an error, parsing stops at the current octet
     and the error is returned to the caller. Callbacks must not throw
@@ -595,12 +600,22 @@ private:
             std::declval<error_code&>())
                 )>> : std::true_type {};
 
+    template<class T, class = beast::detail::void_t<>>
+    struct check_on_headers : std::false_type {};
+
+    template<class T>
+    struct check_on_headers<T, beast::detail::void_t<decltype(
+        std::declval<T>().on_headers(
+            std::declval<std::uint64_t>(),
+            std::declval<error_code&>())
+                )>> : std::true_type {};
+
     // VFALCO Can we use std::is_detected? Is C++11 capable?
     template<class C>
-    class check_on_headers_t
+    class check_on_body_what_t
     {
         template<class T, class R = std::is_convertible<decltype(
-            std::declval<T>().on_headers(
+            std::declval<T>().on_body_what(
                 std::declval<std::uint64_t>(),
                 std::declval<error_code&>())),
                     body_what>>
@@ -612,8 +627,8 @@ private:
         static bool const value = type::value;
     };
     template<class C>
-    using check_on_headers =
-        std::integral_constant<bool, check_on_headers_t<C>::value>;
+    using check_on_body_what =
+        std::integral_constant<bool, check_on_body_what_t<C>::value>;
 
     template<class T, class = beast::detail::void_t<>>
     struct check_on_body : std::false_type {};
@@ -780,12 +795,20 @@ private:
         impl().on_value(s, ec);
     }
 
-    body_what
+    void
     call_on_headers(error_code& ec)
     {
         static_assert(check_on_headers<Derived>::value,
             "on_headers requirements not met");
-        return impl().on_headers(content_length_, ec);
+        impl().on_headers(content_length_, ec);
+    }
+
+    body_what
+    call_on_body_what(error_code& ec)
+    {
+        static_assert(check_on_body_what<Derived>::value,
+            "on_body_what requirements not met");
+        return impl().on_body_what(content_length_, ec);
     }
 
     void call_on_body(error_code& ec,

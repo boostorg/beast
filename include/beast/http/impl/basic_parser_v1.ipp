@@ -899,7 +899,16 @@ write(boost::asio::const_buffer const& buffer, error_code& ec)
                 return err(parse_error::illegal_content_length);
             upgrade_ = ((flags_ & (parse_flag::upgrade | parse_flag::connection_upgrade)) ==
                 (parse_flag::upgrade | parse_flag::connection_upgrade)) /*|| method == "connect"*/;
-            auto const what = call_on_headers(ec);
+            call_on_headers(ec);
+            if(ec)
+                return errc();
+            s_ = s_body_what;
+            // fall through
+        }
+
+        case s_body_what:
+        {
+            auto const what = call_on_body_what(ec);
             if(ec)
                 return errc();
             switch(what)
@@ -913,7 +922,6 @@ write(boost::asio::const_buffer const& buffer, error_code& ec)
                 flags_ |= parse_flag::skipbody;
                 break;
             case body_what::pause:
-                s_ = s_headers_done;
                 return used();
             }
             s_ = s_headers_done;
