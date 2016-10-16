@@ -11,6 +11,7 @@
 * Tidy up documentation
 * Add basic_parser_v1::reset
 * Fix handling of body_what::pause in basic_parser_v1
+* Add headers_parser
 
 API Changes:
 

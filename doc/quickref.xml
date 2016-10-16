@@ -34,6 +34,7 @@
             <member><link linkend="beast.ref.http__basic_parser_v1">basic_parser_v1</link></member>
             <member><link linkend="beast.ref.http__empty_body">empty_body</link></member>
             <member><link linkend="beast.ref.http__headers">headers</link></member>
+            <member><link linkend="beast.ref.http__headers_parser">headers_parser</link></member>
             <member><link linkend="beast.ref.http__message">message</link></member>
             <member><link linkend="beast.ref.http__message_headers">message_headers</link></member>
             <member><link linkend="beast.ref.http__parser_v1">parser_v1</link></member>
@@ -65,6 +66,7 @@
             <member><link linkend="beast.ref.http__prepare">prepare</link></member>
             <member><link linkend="beast.ref.http__read">read</link></member>
             <member><link linkend="beast.ref.http__swap">swap</link></member>
+            <member><link linkend="beast.ref.http__with_body">with_body</link></member>
             <member><link linkend="beast.ref.http__write">write</link></member>
           </simplelist>
           <bridgehead renderas="sect3">Type Traits</bridgehead>

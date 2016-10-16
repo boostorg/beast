@@ -8,14 +8,21 @@
 // Test that header file is self-contained.
 #include <beast/http/parser_v1.hpp>
 
+#include <beast/core/streambuf.hpp>
 #include <beast/http/headers.hpp>
+#include <beast/http/headers_parser_v1.hpp>
+#include <beast/http/parse.hpp>
 #include <beast/http/string_body.hpp>
+#include <beast/test/string_stream.hpp>
+#include <beast/test/yield_to.hpp>
 #include <beast/unit_test/suite.hpp>
 
 namespace beast {
 namespace http {
 
-class parser_v1_test : public beast::unit_test::suite
+class parser_v1_test
+    : public beast::unit_test::suite
+    , public test::enable_yield_to
 {
 public:
     void testRegressions()
@@ -44,6 +51,35 @@ public:
             BEAST_EXPECT(msg.headers.exists("X3"));
             BEAST_EXPECT(msg.headers["X3"] == "x");
         }
+    }
+
+    void testWithBody()
+    {
+        test::string_stream ss{ios_,
+            "GET / HTTP/1.1\r\n"
+            "User-Agent: test\r\n"
+            "Content-Length: 1\r\n"
+            "\r\n"
+            "*"};
+        streambuf rb;
+        headers_parser_v1<true, headers> p0;
+        parse(ss, rb, p0);
+        request_headers<headers> const& reqh = p0.get();
+        BEAST_EXPECT(reqh.method == "GET");
+        BEAST_EXPECT(reqh.url == "/");
+        BEAST_EXPECT(reqh.version == 11);
+        BEAST_EXPECT(reqh.headers["User-Agent"] == "test");
+        BEAST_EXPECT(reqh.headers["Content-Length"] == "1");
+        parser_v1<true, string_body, headers> p =
+            with_body<string_body>(p0);
+        BEAST_EXPECT(p.get().method == "GET");
+        BEAST_EXPECT(p.get().url == "/");
+        BEAST_EXPECT(p.get().version == 11);
+        BEAST_EXPECT(p.get().headers["User-Agent"] == "test");
+        BEAST_EXPECT(p.get().headers["Content-Length"] == "1");
+        parse(ss, rb, p);
+        request<string_body, headers> req = p.release();
+        BEAST_EXPECT(req.body == "*");
     }
 
     void run() override
@@ -104,6 +140,7 @@ public:
         }
 
         testRegressions();
+        testWithBody();
     }
 };
 

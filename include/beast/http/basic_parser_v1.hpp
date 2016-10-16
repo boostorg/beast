@@ -226,6 +226,9 @@ template<bool isRequest, class Derived>
 class basic_parser_v1 : public detail::parser_base
 {
 private:
+    template<bool, class>
+    friend class basic_parser_v1;
+
     using self = basic_parser_v1;
     typedef void(self::*pmf_t)(error_code&, boost::string_ref const&);
 
@@ -284,14 +287,18 @@ private:
     bool upgrade_         : 1; // true if parser exited for upgrade
 
 public:
-    /// Copy constructor.
-    basic_parser_v1(basic_parser_v1 const&) = default;
-
-    /// Copy assignment.
-    basic_parser_v1& operator=(basic_parser_v1 const&) = default;
-
     /// Default constructor
     basic_parser_v1();
+
+    /// Copy constructor.
+    template<class OtherDerived>
+    basic_parser_v1(basic_parser_v1<
+        isRequest, OtherDerived> const& other);
+
+    /// Copy assignment.
+    template<class OtherDerived>
+    basic_parser_v1& operator=(basic_parser_v1<
+        isRequest, OtherDerived> const& other);
 
     /** Set options on the parser.
 
