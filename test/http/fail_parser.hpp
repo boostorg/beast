@@ -85,8 +85,15 @@ public:
         fc_.fail(ec);
     }
 
-    body_what
+    void
     on_headers(std::uint64_t content_length, error_code& ec)
+    {
+        if(fc_.fail(ec))
+            return;
+    }
+
+    body_what
+    on_body_what(std::uint64_t content_length, error_code& ec)
     {
         if(fc_.fail(ec))
             return body_what::normal;

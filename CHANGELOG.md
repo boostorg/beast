@@ -23,6 +23,8 @@ API Changes:
   - Add has_reader, has_writer, is_Reader, is_Writer
   - More friendly compile errors on failed concept checks
 * basic_parser_v1 requires all callbacks present
+* on_headers parser callback now returns void
+* on_body_what is a new required parser callback returning body_what
 
 --------------------------------------------------------------------------------
 

@@ -52,6 +52,7 @@ public:
         bool field = false;
         bool value = false;
         bool headers = false;
+        bool _body_what = false;
         bool body = false;
         bool complete = false;
 
@@ -90,10 +91,15 @@ public:
         {
             value = true;
         }
-        body_what
+        void
         on_headers(std::uint64_t, error_code&)
         {
             headers = true;
+        }
+        body_what
+        on_body_what(std::uint64_t, error_code&)
+        {
+            _body_what = true;
             return body_what::normal;
         }
         void on_body(boost::string_ref const&, error_code&)
@@ -130,6 +136,7 @@ public:
                 BEAST_EXPECT(p.field);
                 BEAST_EXPECT(p.value);
                 BEAST_EXPECT(p.headers);
+                BEAST_EXPECT(p._body_what);
                 BEAST_EXPECT(p.body);
                 BEAST_EXPECT(p.complete);
             }
