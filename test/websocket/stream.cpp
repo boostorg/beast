@@ -13,6 +13,7 @@
 
 #include <beast/core/streambuf.hpp>
 #include <beast/core/to_string.hpp>
+#include <beast/core/detail/ignore_unused.hpp>
 #include <beast/test/fail_stream.hpp>
 #include <beast/test/string_stream.hpp>
 #include <beast/test/yield_to.hpp>
@@ -492,6 +493,7 @@ public:
 
     void testClose(endpoint_type const& ep, yield_context do_yield)
     {
+        beast::detail::ignore_unused(do_yield);
         {
             // payload length 1
             con c(ep, ios_);

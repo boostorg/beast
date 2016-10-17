@@ -11,6 +11,8 @@
 #include "file_body.hpp"
 #include "mime_type.hpp"
 
+#include <beast/http.hpp>
+#include <beast/core/placeholders.hpp>
 #include <beast/core/streambuf.hpp>
 #include <boost/asio.hpp>
 #include <cstdint>
@@ -19,6 +21,7 @@
 #include <iostream>
 #include <memory>
 #include <mutex>
+#include <thread>
 #include <utility>
 
 #include <iostream>

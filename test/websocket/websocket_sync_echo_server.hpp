@@ -8,7 +8,9 @@
 #ifndef BEAST_WEBSOCKET_SYNC_ECHO_PEER_H_INCLUDED
 #define BEAST_WEBSOCKET_SYNC_ECHO_PEER_H_INCLUDED
 
+#include <beast/core/placeholders.hpp>
 #include <beast/core/streambuf.hpp>
+#include <beast/core/detail/ignore_unused.hpp>
 #include <beast/websocket.hpp>
 #include <boost/optional.hpp>
 #include <functional>
@@ -40,6 +42,7 @@ public:
         : sock_(ios_)
         , acceptor_(ios_)
     {
+        beast::detail::ignore_unused(server);
         error_code ec;
         acceptor_.open(ep.protocol(), ec);
         maybe_throw(ec, "open");

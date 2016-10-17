@@ -12,6 +12,7 @@
 #include <beast/http/concepts.hpp>
 #include <beast/http/message_v1.hpp>
 #include <beast/core/error.hpp>
+#include <beast/core/detail/ignore_unused.hpp>
 #include <boost/assert.hpp>
 #include <functional>
 #include <string>
@@ -243,12 +244,14 @@ private:
 
     void on_request(error_code& ec)
     {
+        beast::detail::ignore_unused(ec);
         set(std::integral_constant<
             bool, isRequest>{});
     }
 
     void on_response(error_code& ec)
     {
+        beast::detail::ignore_unused(ec);
         set(std::integral_constant<
             bool, isRequest>{});
     }
