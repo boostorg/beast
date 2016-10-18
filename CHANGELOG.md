@@ -5,6 +5,10 @@ WebSocket
 * Optimize utf8 validation
 * Optimize mask operations
 
+ZLib
+
+* Add ZLib module
+
 --------------------------------------------------------------------------------
 
 1.0.0-b18
@@ -32,6 +36,7 @@ Extras
 * unit_test::suite fixes:
   - New overload of fail() specifies file and line
   - BEAST_EXPECTS only evaluates the reason string on a failure
+* Add zlib module
 
 --------------------------------------------------------------------------------
 
