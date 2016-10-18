@@ -14,6 +14,7 @@
 * Add headers_parser
 * Engaged invokable is destructible
 * Improve websocket example in README.md
+* Refactor read_size_helper
 
 API Changes:
 
