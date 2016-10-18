@@ -74,15 +74,11 @@ class invokable
     alignas(holder<exemplar>) buf_type buf_;
 
 public:
-#ifndef NDEBUG
     ~invokable()
     {
-        // Engaged invokables must be invoked before
-        // destruction otherwise the io_service
-        // invariants are broken w.r.t completions.
-        BOOST_ASSERT(! base_);
+        if(base_)
+            base_->~base();
     }
-#endif
 
     invokable() = default;
 

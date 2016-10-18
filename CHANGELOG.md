@@ -12,6 +12,7 @@
 * Add basic_parser_v1::reset
 * Fix handling of body_what::pause in basic_parser_v1
 * Add headers_parser
+* Engaged invokable is destructible
 
 API Changes:
 
