@@ -1,12 +1,16 @@
 1.0.0-b20
 
+ZLib
+
+* Add ZLib module
+
 API Changes:
 
 * Rename HTTP identifiers
 
 --------------------------------------------------------------------------------
 
->>>>>>> b152207... .
+>>>>>>> b89fede... Add zlib module:
 1.0.0-b19
 
 * Boost library min/max guidance
@@ -61,6 +65,7 @@ Extras
 * unit_test::suite fixes:
   - New overload of fail() specifies file and line
   - BEAST_EXPECTS only evaluates the reason string on a failure
+* Add zlib module
 
 --------------------------------------------------------------------------------
 

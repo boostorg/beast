@@ -50,5 +50,5 @@ public:
 
 BEAST_DEFINE_TESTSUITE(error,websocket,beast);
 
-} // http
+} // websocket
 } // beast
