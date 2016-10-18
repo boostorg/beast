@@ -856,10 +856,12 @@ read_size_helper(basic_streambuf<
     Allocator> const& streambuf, std::size_t max_size)
 {
     auto const avail = streambuf.capacity() - streambuf.size();
-    if(avail == 0)
-        return std::min(max_size,
-            std::max<std::size_t>(512, streambuf.alloc_size_));
-    return std::min(max_size, avail);
+    if (avail > 0)
+        return std::min(avail, max_size);
+    constexpr std::size_t low = 512;
+    if (streambuf.alloc_size_ > low)
+        return std::min(max_size, streambuf.alloc_size_);
+    return std::min(max_size, low);
 }
 
 template<class Alloc, class T>
