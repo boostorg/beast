@@ -48,10 +48,10 @@ struct request_headers
     */
     int version;
 
-    /// The HTTP method.
+    /// The Request Method.
     std::string method;
 
-    /// The request URI.
+    /// The Request URI.
     std::string url;
 
     /// The HTTP headers.
@@ -127,10 +127,13 @@ struct response_headers
     */
     int version;
 
-    /// The HTTP response Status-Code.
+    /// The Response Status-Code.
     int status;
 
-    /// The HTTP Reason-Phrase (obsolete).
+    /** The Response Reason-Phrase.
+
+        The Reason-Phrase is obsolete as of rfc7230.
+    */
     std::string reason;
 
     /// The HTTP headers.
@@ -179,11 +182,74 @@ swap(
 
 /** A container for HTTP request or response headers.
 */
+#if GENERATING_DOCS
+template<bool isRequest, class Headers>
+struct message_headers
+{
+    /// Indicates if the message is a request.
+    using is_request =
+        std::integral_constant<bool, isRequest>;
+
+    /// The type representing the headers.
+    using headers_type = Headers;
+
+    /** The HTTP version.
+
+        This holds both the major and minor version numbers,
+        using these formulas:
+        @code
+            major = version / 10;
+            minor = version % 10;
+        @endcode
+    */
+    int version;
+
+    /** The Request Method.
+
+        @note This field is present only if `isRequest == true`.
+    */
+    std::string method;
+
+    /** The Request-URI.
+
+        @note This field is present only if `isRequest == true`.
+    */
+    std::string url;
+
+    /** The Response Status-Code.
+
+        @note This field is present only if `isRequest == false`.
+    */
+    int status;
+
+    /** The Response Reason-Phrase.
+
+        The Reason-Phrase is obsolete as of rfc7230.
+
+         @note This field is present only if `isRequest == false`.
+    */
+    std::string reason;
+
+    /// The HTTP headers.
+    Headers headers;
+
+    /** Construct message headers.
+
+        Any provided arguments are forwarded to the
+        constructor of the headers member.
+    */
+    template<class... Args>
+    message_headers(Args&&... args);
+};
+
+#else
 template<bool isRequest, class Headers>
 using message_headers =
     typename std::conditional<isRequest,
         request_headers<Headers>,
         response_headers<Headers>>::type;
+
+#endif
 
 /** A complete HTTP message.
 
@@ -201,8 +267,68 @@ using message_headers =
     @tparam Headers A type meeting the requirements of Headers.
 */
 template<bool isRequest, class Body, class Headers>
-struct message : message_headers<isRequest, Headers>
+struct message :
+#if GENERATING_DOCS
+    implementation_defined
+#else
+    message_headers<isRequest, Headers>
+#endif
 {
+#if GENERATING_DOCS
+    /// Indicates if the message is a request.
+    using is_request =
+        std::integral_constant<bool, isRequest>;
+
+    /// The type representing the headers.
+    using headers_type = Headers;
+
+    /** The type controlling the body traits.
+
+        The body member will be of type `body_type::value_type`.
+    */
+    using body_type = Body;
+
+    /** The HTTP version.
+
+        This holds both the major and minor version numbers,
+        using these formulas:
+        @code
+            major = version / 10;
+            minor = version % 10;
+        @endcode
+    */
+    int version;
+
+    /** The Request Method.
+
+        @note This field is present only if `isRequest == true`.
+    */
+    std::string method;
+
+    /** The Request-URI.
+
+        @note This field is present only if `isRequest == true`.
+    */
+    std::string url;
+
+    /** The Response Status-Code.
+
+        @note This field is present only if `isRequest == false`.
+    */
+    int status;
+
+    /** The Response Reason-Phrase.
+
+        The Reason-Phrase is obsolete as of rfc7230.
+
+         @note This field is present only if `isRequest == false`.
+    */
+    std::string reason;
+
+    /// The HTTP headers.
+    Headers headers;
+
+#else
     /// The container used to hold the request or response headers
     using base_type = message_headers<isRequest, Headers>;
 
@@ -211,6 +337,8 @@ struct message : message_headers<isRequest, Headers>
         The body member will be of type `body_type::value_type`.
     */
     using body_type = Body;
+
+#endif
 
     /// A container representing the body.
     typename Body::value_type body;
@@ -247,10 +375,16 @@ struct message : message_headers<isRequest, Headers>
     /** Construct a message.
 
         @param u An argument forwarded to the body constructor.
+
+        @note This constructor participates in overload resolution
+        only if `u` is not convertible to `base_type`.
     */
-    template<class U,
-        class = typename std::enable_if<! std::is_same<
-            typename std::decay<U>::type, base_type>::value>>
+    template<class U
+#if ! GENERATING_DOCS
+        , class = typename std::enable_if<! std::is_convertible<
+            typename std::decay<U>::type, base_type>::value>
+#endif
+    >
     explicit
     message(U&& u)
         : body(std::forward<U>(u))
@@ -261,10 +395,16 @@ struct message : message_headers<isRequest, Headers>
 
         @param u An argument forwarded to the body constructor.
         @param v An argument forwarded to the headers constructor.
+
+        @note This constructor participates in overload resolution
+        only if `u` is not convertible to `base_type`.
     */
-    template<class U, class V,
-        class = typename std::enable_if<! std::is_same<
-            typename std::decay<U>::type, base_type>::value>>
+    template<class U, class V
+#if ! GENERATING_DOCS
+        ,class = typename std::enable_if<! std::is_convertible<
+            typename std::decay<U>::type, base_type>::value>
+#endif
+    >
     message(U&& u, V&& v)
         : base_type(std::forward<V>(v))
         , body(std::forward<U>(u))
