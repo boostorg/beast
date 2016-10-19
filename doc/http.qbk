@@ -123,7 +123,7 @@ These statements set fields in request and response message objects:
     req.body = "";
 
     response<string_body> res;
-    res.version = 10;          // HTTP/1.0
+    res.version = 10;           // HTTP/1.0
     res.status = 404;
     res.reason = "Not Found";
     res.headers.insert("Server", "Beast.HTTP");
