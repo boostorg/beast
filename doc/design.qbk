@@ -18,7 +18,7 @@
 The implementations are driven by business needs of cryptocurrency server
 applications (e.g. [@https://ripple.com Ripple]) written in C++. These
 needs were not met by existing solutions so Beast was written from scratch
-as a solution. Beast's design philosophy avoid flaws exhibited by other
+as a solution. Beast's design philosophy avoids flaws exhibited by other
 libraries:
 
 * Don't try to do too much.
@@ -29,8 +29,8 @@ libraries:
 
 * Role-symmetric interfaces; client and server the same (or close to it).
 
-* Leave important decisions such as allocating memory or
-  managing flow control, to the user.
+* Leave important decisions to the user, such as allocating memory or
+  managing flow control.
 
 Beast uses the __DynamicBuffer__ concept presented in the Networking TS
 (__N4588__), and relies heavily on the Boost.Asio __ConstBufferSequence__
@@ -50,7 +50,7 @@ to Beast.
 [[
     "I would also like to see instances of this library being used
     in production. That would give some evidence that the design
-    works in practice.""
+    works in practice."
 ][
     Beast.HTTP and Beast.WebSocket are production ready and currently
     running on public servers receiving traffic and handling millions of
@@ -67,7 +67,7 @@ to Beast.
 
 [section:http HTTP FAQ]
 
-For HTTP we to model the message to maximize flexibility of implementation
+For HTTP we model the message to maximize flexibility of implementation
 strategies while allowing familiar verbs such as [*`read`] and [*`write`].
 The HTTP interface is further driven by the needs of the WebSocket module,
 as a WebSocket session requires a HTTP Upgrade handshake exchange at the
@@ -75,7 +75,7 @@ start. Other design goals:
 
 * Keep it simple.
 
-* Stay low level; Don't invent a whole web server or client.
+* Stay low level; don't invent a whole web server or client.
 
 * Allow for customizations, if the user needs it.
 
@@ -83,7 +83,7 @@ start. Other design goals:
 
 [[
     "Some more advanced examples, e.g. including TLS with client/server
-    certificates would help.""
+    certificates would help."
 ][
     The HTTP interface doesn't try to reinvent the wheel, it just uses
     the `boost::asio::ip::tcp::socket` or `boost::asio::ssl::stream` that
@@ -116,7 +116,7 @@ start. Other design goals:
 
 [[
     "...supporting TLS (is this a feature? If not this would be a show-stopper),
-    etc.""
+    etc."
 ][
     Beast.HTTP does not provide direct facilities for implementing TLS
     connections; however, the interfaces already existing on the
@@ -161,13 +161,13 @@ start. Other design goals:
     and 1.1.
 
     The Beast.HTTP message model is suitable for HTTP/2 and can be re-used.
-    The IEFT HTTP Working Group adopted message compatiblity with HTTP/1.x
+    The IETF HTTP Working Group adopted message compatiblity with HTTP/1.x
     as an explicit goal. A parser can simply emit full headers after
     decoding the compressed HTTP/2 headers. The stream ID is not logically
     part of the message but rather message metadata and should be
     communicated out-of-band (see below). HTTP/2 sessions begin with a
     traditional HTTP/1.1 Upgrade similar in fashion to the WebSocket
-    upgrade. A HTTP/2 implementation can use existing Beast.HTTP primitives
+    upgrade. An HTTP/2 implementation can use existing Beast.HTTP primitives
     to perform this handshake.
 
     Free functions for HTTP/2 sessions are not possible because of the
@@ -211,12 +211,12 @@ start. Other design goals:
     The `websocket::stream` wraps the socket or stream that you provide
     (for example, a `boost::asio::ip::tcp::socket` or a
     `boost::asio::ssl::stream`). You establish your TLS connection using the
-    interface on `ssl::stream` like shown in all of the Asio examples, they
+    interface on `ssl::stream` like shown in all of the Asio examples, then
     construct your `websocket::stream` around it. It works perfectly fine;
     Beast.WebSocket doesn't try to reinvent the wheel or put a fresh coat of
     interface paint on the `ssl::stream`.
 
-    The WebSocket implementation [*does] provides support for shutting down
+    The WebSocket implementation [*does] provide support for shutting down
     the TLS connection through the use of the ADL compile-time virtual functions
     [link beast.ref.websocket__teardown `teardown`] and
     [link beast.ref.websocket__async_teardown `async_teardown`]. These will
@@ -436,7 +436,7 @@ start. Other design goals:
 
     websocketpp defines a message buffer, passed in arguments by
     `shared_ptr`, and an associated message manager which permits
-    aggregation and memory reuse of memory. The implementation of
+    aggregation and reuse of memory. The implementation of
     `websocketpp::message` uses a `std::string` to hold the payload. If an
     incoming message is broken up into multiple frames, the string may be
     reallocated for each continuation frame. The `std::string` always uses
