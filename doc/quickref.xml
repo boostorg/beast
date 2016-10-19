@@ -34,7 +34,7 @@
             <member><link linkend="beast.ref.http__basic_parser_v1">basic_parser_v1</link></member>
             <member><link linkend="beast.ref.http__empty_body">empty_body</link></member>
             <member><link linkend="beast.ref.http__headers">headers</link></member>
-            <member><link linkend="beast.ref.http__headers_parser">headers_parser</link></member>
+            <member><link linkend="beast.ref.http__headers_parser_v1">headers_parser_v1</link></member>
             <member><link linkend="beast.ref.http__message">message</link></member>
             <member><link linkend="beast.ref.http__message_headers">message_headers</link></member>
             <member><link linkend="beast.ref.http__parser_v1">parser_v1</link></member>
@@ -59,7 +59,6 @@
             <member><link linkend="beast.ref.http__async_parse">async_parse</link></member>
             <member><link linkend="beast.ref.http__async_read">async_read</link></member>
             <member><link linkend="beast.ref.http__async_write">async_write</link></member>
-            <member><link linkend="beast.ref.http__async_write">async_write</link></member>
             <member><link linkend="beast.ref.http__is_keep_alive">is_keep_alive</link></member>
             <member><link linkend="beast.ref.http__is_upgrade">is_upgrade</link></member>
             <member><link linkend="beast.ref.http__parse">parse</link></member>
@@ -74,7 +73,7 @@
            <member><link linkend="beast.ref.http__is_Body">is_Body</link></member>
            <member><link linkend="beast.ref.http__is_Parser">is_Parser</link></member>
            <member><link linkend="beast.ref.http__is_Reader">is_Reader</link></member>
-           <member><link linkend="beast.ref.http__is_Writer">is_Reader</link></member>
+           <member><link linkend="beast.ref.http__is_Writer">is_Writer</link></member>
            <member><link linkend="beast.ref.http__has_reader">has_reader</link></member>
            <member><link linkend="beast.ref.http__has_writer">has_writer</link></member>
           </simplelist>

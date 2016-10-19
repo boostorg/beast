@@ -40,7 +40,7 @@ struct response_parser_base
 
     This class uses the HTTP/1 wire format parser to
     convert a series of octets into a @ref request_headers
-    or @ref @response_headers.
+    or @ref response_headers.
 
     @note A new instance of the parser is required for each message.
 */

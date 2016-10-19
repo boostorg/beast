@@ -174,7 +174,7 @@ public:
     /** Returns ownership of the parsed message.
 
         Ownership is transferred to the caller. Only
-        valid if @ref complete` would return `true`.
+        valid if @ref complete would return `true`.
 
         Requires:
             `message<isRequest, Body, Headers>` is @b MoveConstructible
@@ -303,7 +303,7 @@ private:
     @param args Forwarded to the body constructor of the message
     in the new parser.
 
-    @return A parser for a message with the specified @ref Body type.
+    @return A parser for a message with the specified @b Body type.
 
     @par Example
     @code
