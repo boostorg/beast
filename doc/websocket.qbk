@@ -227,7 +227,7 @@ void echo(beast::websocket::stream<boost::asio::ip::tcp::socket>& ws)
 {
     beast::streambuf sb;
     beast::websocket::opcode::value op;
-    ws.read(sb);
+    ws.read(op, sb);
 
     ws.set_option(beast::websocket::message_type{op});
     ws.write(sb.data());
