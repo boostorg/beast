@@ -1,6 +1,9 @@
 1.0.0-b18
 
 * Clean up message docs
+* unit_test::suite fixes:
+  - New overload of fail() specifies file and line
+  - BEAST_EXPECTS only evaluates the reason string on a failure
 
 --------------------------------------------------------------------------------
 
