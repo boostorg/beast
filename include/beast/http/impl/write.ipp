@@ -542,12 +542,7 @@ write(SyncWriteStream& stream,
             stream, wp.chunked, ec};
         for(;;)
         {
-#if 0
             result = wp.w.write(std::move(copy), ec, wf);
-#else
-            result = wp.w.write(std::move(copy), ec,
-                detail::writef_lambda<SyncWriteStream>{stream, wp.chunked, ec});            
-#endif
             if(ec)
                 return;
             if(result)
