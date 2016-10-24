@@ -1552,6 +1552,12 @@ private:
 } // websocket
 } // beast
 
+#include <beast/websocket/impl/accept.ipp>
+#include <beast/websocket/impl/close.ipp>
+#include <beast/websocket/impl/handshake.ipp>
+#include <beast/websocket/impl/ping.ipp>
+#include <beast/websocket/impl/read.ipp>
 #include <beast/websocket/impl/stream.ipp>
+#include <beast/websocket/impl/write.ipp>
 
 #endif

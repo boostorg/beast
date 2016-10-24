@@ -5,19 +5,22 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#ifndef BEAST_WEBSOCKET_IMPL_HANDSHAKE_OP_HPP
-#define BEAST_WEBSOCKET_IMPL_HANDSHAKE_OP_HPP
+#ifndef BEAST_WEBSOCKET_IMPL_HANDSHAKE_IPP
+#define BEAST_WEBSOCKET_IMPL_HANDSHAKE_IPP
 
 #include <beast/http/empty_body.hpp>
 #include <beast/http/message.hpp>
 #include <beast/http/read.hpp>
 #include <beast/http/write.hpp>
 #include <beast/core/handler_alloc.hpp>
+#include <beast/core/stream_concepts.hpp>
 #include <boost/assert.hpp>
 #include <memory>
 
 namespace beast {
 namespace websocket {
+
+//------------------------------------------------------------------------------
 
 // send the upgrade request and process the response
 //
@@ -146,6 +149,61 @@ operator()(error_code ec, bool again)
     }
     d.h(ec);
 }
+
+template<class NextLayer>
+template<class HandshakeHandler>
+typename async_completion<
+    HandshakeHandler, void(error_code)>::result_type
+stream<NextLayer>::
+async_handshake(boost::string_ref const& host,
+    boost::string_ref const& resource, HandshakeHandler&& handler)
+{
+    static_assert(is_AsyncStream<next_layer_type>::value,
+        "AsyncStream requirements not met");
+    beast::async_completion<
+        HandshakeHandler, void(error_code)
+            > completion(handler);
+    handshake_op<decltype(completion.handler)>{
+        completion.handler, *this, host, resource};
+    return completion.result.get();
+}
+
+template<class NextLayer>
+void
+stream<NextLayer>::
+handshake(boost::string_ref const& host,
+    boost::string_ref const& resource)
+{
+    static_assert(is_SyncStream<next_layer_type>::value,
+        "SyncStream requirements not met");
+    error_code ec;
+    handshake(host, resource, ec);
+    if(ec)
+        throw system_error{ec};
+}
+
+template<class NextLayer>
+void
+stream<NextLayer>::
+handshake(boost::string_ref const& host,
+    boost::string_ref const& resource, error_code& ec)
+{
+    static_assert(is_SyncStream<next_layer_type>::value,
+        "SyncStream requirements not met");
+    reset();
+    std::string key;
+    http::write(stream_,
+        build_request(host, resource, key), ec);
+    if(ec)
+        return;
+    http::response<http::string_body> res;
+    http::read(next_layer(), stream_.buffer(), res, ec);
+    if(ec)
+        return;
+    do_response(res, key, ec);
+}
+
+//------------------------------------------------------------------------------
 
 } // websocket
 } // beast
