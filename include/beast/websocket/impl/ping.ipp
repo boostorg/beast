@@ -5,16 +5,19 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#ifndef BEAST_WEBSOCKET_IMPL_PING_OP_HPP
-#define BEAST_WEBSOCKET_IMPL_PING_OP_HPP
+#ifndef BEAST_WEBSOCKET_IMPL_PING_IPP
+#define BEAST_WEBSOCKET_IMPL_PING_IPP
 
 #include <beast/core/bind_handler.hpp>
 #include <beast/core/handler_alloc.hpp>
+#include <beast/core/stream_concepts.hpp>
 #include <beast/websocket/detail/frame.hpp>
 #include <memory>
 
 namespace beast {
 namespace websocket {
+
+//------------------------------------------------------------------------------
 
 // write a ping frame
 //
@@ -186,6 +189,47 @@ upcall:
     d.ws.rd_op_.maybe_invoke();
     d.h(ec);
 }
+
+template<class NextLayer>
+template<class PingHandler>
+typename async_completion<
+    PingHandler, void(error_code)>::result_type
+stream<NextLayer>::
+async_ping(ping_data const& payload, PingHandler&& handler)
+{
+    static_assert(is_AsyncStream<next_layer_type>::value,
+        "AsyncStream requirements requirements not met");
+    beast::async_completion<
+        PingHandler, void(error_code)
+            > completion(handler);
+    ping_op<decltype(completion.handler)>{
+        completion.handler, *this, payload};
+    return completion.result.get();
+}
+
+template<class NextLayer>
+void
+stream<NextLayer>::
+ping(ping_data const& payload)
+{
+    error_code ec;
+    ping(payload, ec);
+    if(ec)
+        throw system_error{ec};
+}
+
+template<class NextLayer>
+void
+stream<NextLayer>::
+ping(ping_data const& payload, error_code& ec)
+{
+    detail::frame_streambuf db;
+    write_ping<static_streambuf>(
+        db, opcode::ping, payload);
+    boost::asio::write(stream_, db.data(), ec);
+}
+
+//------------------------------------------------------------------------------
 
 } // websocket
 } // beast

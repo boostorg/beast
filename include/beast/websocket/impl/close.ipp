@@ -5,15 +5,18 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#ifndef BEAST_WEBSOCKET_IMPL_CLOSE_OP_HPP
-#define BEAST_WEBSOCKET_IMPL_CLOSE_OP_HPP
+#ifndef BEAST_WEBSOCKET_IMPL_CLOSE_IPP
+#define BEAST_WEBSOCKET_IMPL_CLOSE_IPP
 
 #include <beast/core/handler_alloc.hpp>
 #include <beast/core/static_streambuf.hpp>
+#include <beast/core/stream_concepts.hpp>
 #include <memory>
 
 namespace beast {
 namespace websocket {
+
+//------------------------------------------------------------------------------
 
 // send the close message and wait for the response
 //
@@ -187,6 +190,53 @@ upcall:
     d.ws.rd_op_.maybe_invoke();
     d.h(ec);
 }
+
+template<class NextLayer>
+template<class CloseHandler>
+typename async_completion<
+    CloseHandler, void(error_code)>::result_type
+stream<NextLayer>::
+async_close(close_reason const& cr, CloseHandler&& handler)
+{
+    static_assert(is_AsyncStream<next_layer_type>::value,
+        "AsyncStream requirements not met");
+    beast::async_completion<
+        CloseHandler, void(error_code)
+            > completion(handler);
+    close_op<decltype(completion.handler)>{
+        completion.handler, *this, cr};
+    return completion.result.get();
+}
+
+template<class NextLayer>
+void
+stream<NextLayer>::
+close(close_reason const& cr)
+{
+    static_assert(is_SyncStream<next_layer_type>::value,
+        "SyncStream requirements not met");
+    error_code ec;
+    close(cr, ec);
+    if(ec)
+        throw system_error{ec};
+}
+
+template<class NextLayer>
+void
+stream<NextLayer>::
+close(close_reason const& cr, error_code& ec)
+{
+    static_assert(is_SyncStream<next_layer_type>::value,
+        "SyncStream requirements not met");
+    BOOST_ASSERT(! wr_close_);
+    wr_close_ = true;
+    detail::frame_streambuf fb;
+    write_close<static_streambuf>(fb, cr);
+    boost::asio::write(stream_, fb.data(), ec);
+    failed_ = ec != 0;
+}
+
+//------------------------------------------------------------------------------
 
 } // websocket
 } // beast
