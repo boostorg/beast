@@ -408,73 +408,70 @@ write_frame(bool fin,
     fh.rsv2 = false;
     fh.rsv3 = false;
     fh.mask = role_ == detail::role_type::client;
+    wr_.cont = ! fin;
     auto remain = buffer_size(buffers);
     if(compress)
     {
         // TODO
     }
-    else if(wr_.autofrag)
+    else if(! fh.mask && ! wr_.autofrag)
     {
-        consuming_buffers<ConstBufferSequence> cb(buffers);
-        do
+        fh.fin = fin;
+        fh.len = remain;
+        detail::fh_streambuf fh_buf;
+        detail::write<static_streambuf>(fh_buf, fh);
+        boost::asio::write(stream_,
+            buffer_cat(fh_buf.data(), buffers), ec);
+        failed_ = ec != 0;
+        if(failed_)
+            return;
+        return;
+    }
+    else if(! fh.mask && wr_.autofrag)
+    {
+        BOOST_ASSERT(wr_.size != 0);
+        consuming_buffers<
+            ConstBufferSequence> cb(buffers);
+        for(;;)
         {
-            auto const room = wr_.max - wr_.size;
-            if(! fin && remain < room)
-            {
-                buffer_copy(
-                    buffer(wr_.buf.get() + wr_.size, remain), cb);
-                wr_.size += remain;
-                return;
-            }
-            auto const n = detail::clamp(remain, room);
-            buffer_copy(
-                buffer(wr_.buf.get() + wr_.size, n), cb);
-            auto const mb = buffer(wr_.buf.get(), wr_.size + n);
-            if(fh.mask)
-            {
-                fh.key = maskgen_();
-                detail::prepared_key_type key;
-                detail::prepare_key(key, fh.key);
-                detail::mask_inplace(mb, key);
-            }
-            fh.fin = fin && n == remain;
-            fh.len = buffer_size(mb);
+            auto const n =
+                detail::clamp(remain, wr_.size);
+            fh.len = n;
+            remain -= n;
+            fh.fin = fin ? remain == 0 : false;
             detail::fh_streambuf fh_buf;
             detail::write<static_streambuf>(fh_buf, fh);
-            // send header and payload
             boost::asio::write(stream_,
-                buffer_cat(fh_buf.data(), mb), ec);
+                buffer_cat(fh_buf.data(),
+                    prepare_buffers(n, cb)), ec);
             failed_ = ec != 0;
             if(failed_)
                 return;
-            remain -= n;
-            cb.consume(n);
-            wr_.size = 0;
+            if(remain == 0)
+                break;
             fh.op = opcode::cont;
+            cb.consume(n);
         }
-        while(remain > 0);
-        wr_.cont = ! fh.fin;
         return;
     }
-    else if(fh.mask)
+    else if(fh.mask && ! wr_.autofrag)
     {
-        consuming_buffers<ConstBufferSequence> cb(buffers);
-        fh.fin = fin;
-        fh.len = remain;
         fh.key = maskgen_();
-        wr_.cont = ! fh.fin;
-        detail::fh_streambuf fh_buf;
-        detail::write<static_streambuf>(fh_buf, fh);
         detail::prepared_key_type key;
         detail::prepare_key(key, fh.key);
+        fh.fin = fin;
+        fh.len = remain;
+        detail::fh_streambuf fh_buf;
+        detail::write<static_streambuf>(fh_buf, fh);
+        consuming_buffers<
+            ConstBufferSequence> cb(buffers);
         {
-            auto const n = detail::clamp(remain, wr_.max);
+            auto const n = detail::clamp(remain, wr_.size);
             auto const mb = buffer(wr_.buf.get(), n);
             buffer_copy(mb, cb);
             cb.consume(n);
             remain -= n;
             detail::mask_inplace(mb, key);
-            // send header and payload
             boost::asio::write(stream_,
                 buffer_cat(fh_buf.data(), mb), ec);
             failed_ = ec != 0;
@@ -483,13 +480,12 @@ write_frame(bool fin,
         }
         while(remain > 0)
         {
-            auto const n = detail::clamp(remain, wr_.max);
+            auto const n = detail::clamp(remain, wr_.size);
             auto const mb = buffer(wr_.buf.get(), n);
             buffer_copy(mb, cb);
             cb.consume(n);
             remain -= n;
             detail::mask_inplace(mb, key);
-            // send payload
             boost::asio::write(stream_, mb, ec);
             failed_ = ec != 0;
             if(failed_)
@@ -497,16 +493,37 @@ write_frame(bool fin,
         }
         return;
     }
+    else if(fh.mask && wr_.autofrag)
     {
-        // send header and payload
-        fh.fin = fin;
-        fh.len = remain;
-        wr_.cont = ! fh.fin;
-        detail::fh_streambuf fh_buf;
-        detail::write<static_streambuf>(fh_buf, fh);
-        boost::asio::write(stream_,
-            buffer_cat(fh_buf.data(), buffers), ec);
-        failed_ = ec != 0;
+        BOOST_ASSERT(wr_.size != 0);
+        consuming_buffers<
+            ConstBufferSequence> cb(buffers);
+        for(;;)
+        {
+            fh.key = maskgen_();
+            detail::prepared_key_type key;
+            detail::prepare_key(key, fh.key);
+            auto const n =
+                detail::clamp(remain, wr_.size);
+            auto const mb = buffer(wr_.buf.get(), n);
+            buffer_copy(mb, cb);
+            detail::mask_inplace(mb, key);
+            fh.len = n;
+            remain -= n;
+            fh.fin = fin ? remain == 0 : false;
+            detail::fh_streambuf fh_buf;
+            detail::write<static_streambuf>(fh_buf, fh);
+            boost::asio::write(stream_,
+                buffer_cat(fh_buf.data(), mb), ec);
+            failed_ = ec != 0;
+            if(failed_)
+                return;
+            if(remain == 0)
+                break;
+            fh.op = opcode::cont;
+            cb.consume(n);
+        }
+        return;
     }
 }
 

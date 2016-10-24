@@ -14,6 +14,7 @@ WebSocket
 Core
 
 * Meet DynamicBuffer requirements for static_streambuf
+* Fix write_frame masking and auto-fragment handling
 
 Extras
 
