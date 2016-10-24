@@ -98,14 +98,37 @@ protected:
     invokable wr_op_;                       // invoked after read completes
     close_reason cr_;                       // set from received close frame
 
+    // State information for the message being sent
+    //
     struct wr_t
     {
-        bool cont;                          // next frame is continuation frame
-        bool autofrag;                      // if this message is auto fragmented
-        bool compress;                      // if this message is compressed
-        std::size_t size;                   // amount stored in buffer
-        std::size_t max;                    // size of write buffer
-        std::unique_ptr<std::uint8_t[]> buf;// write buffer storage
+        // `true` if next frame is a continuation,
+        // `false` if next frame starts a new message
+        bool cont;
+
+        // `true` if this message should be auto-fragmented
+        // This gets set to the auto-fragment option at the beginning
+        // of sending a message, so that the option can be changed
+        // mid-send without affecting the current message.
+        bool autofrag;
+
+        // `true` if this message should be compressed.
+        // This gets set to the compress option at the beginning of
+        // of sending a message, so that the option can be changed
+        // mid-send without affecting the current message.
+        bool compress;
+
+        // Size of the write buffer.
+        // This gets set to the write buffer size option at the
+        // beginning of sending a message, so that the option can be
+        // changed mid-send without affecting the current message.
+        std::size_t size;
+
+        // The write buffer.
+        // The buffer is allocated or reallocated at the beginning of
+        // sending a message.
+        //
+        std::unique_ptr<std::uint8_t[]> buf;
 
         void
         open()
@@ -383,19 +406,18 @@ wr_prepare(bool compress)
 {
     wr_.autofrag = wr_autofrag_;
     wr_.compress = compress;
-    wr_.size = 0;
     if(compress || wr_.autofrag ||
         role_ == detail::role_type::client)
     {
-        if(! wr_.buf || wr_.max != wr_buf_size_)
+        if(! wr_.buf || wr_.size != wr_buf_size_)
         {
-            wr_.max = wr_buf_size_;
-            wr_.buf.reset(new std::uint8_t[wr_.max]);
+            wr_.size = wr_buf_size_;
+            wr_.buf.reset(new std::uint8_t[wr_.size]);
         }
     }
     else
     {
-        wr_.max = wr_buf_size_;
+        wr_.size = wr_buf_size_;
         wr_.buf.reset();
     }
 }
