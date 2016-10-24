@@ -15,7 +15,7 @@ int main()
     using address_type = boost::asio::ip::address;
 
     beast::websocket::async_echo_server s1(true, endpoint_type{
-        address_type::from_string("127.0.0.1"), 6000 }, 4);
+        address_type::from_string("127.0.0.1"), 6000 }, 1);
 
     beast::websocket::sync_echo_server s2(true, endpoint_type{
         address_type::from_string("127.0.0.1"), 6001 });
