@@ -4,6 +4,7 @@
 * Simplify Travis package install specification
 * Add optional yield_to arguments
 * Make decorator copyable
+* Add WebSocket permessage-deflate extension support
 
 --------------------------------------------------------------------------------
 
