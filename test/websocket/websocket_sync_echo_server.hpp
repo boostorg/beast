@@ -8,6 +8,7 @@
 #ifndef BEAST_WEBSOCKET_SYNC_ECHO_PEER_H_INCLUDED
 #define BEAST_WEBSOCKET_SYNC_ECHO_PEER_H_INCLUDED
 
+#include "options_set.hpp"
 #include <beast/core/placeholders.hpp>
 #include <beast/core/streambuf.hpp>
 #include <beast/websocket.hpp>
@@ -31,17 +32,38 @@ public:
     using socket_type = boost::asio::ip::tcp::socket;
 
 private:
-    bool log_ = false;
+    struct identity
+    {
+        template<class Body, class Fields>
+        void
+        operator()(http::message<true, Body, Fields>& req)
+        {
+            req.fields.replace("User-Agent", "sync_echo_client");
+        }
+
+        template<class Body, class Fields>
+        void
+        operator()(http::message<false, Body, Fields>& resp)
+        {
+            resp.fields.replace("Server", "sync_echo_server");
+        }
+    };
+
+    std::ostream* log_;
     boost::asio::io_service ios_;
     socket_type sock_;
     boost::asio::ip::tcp::acceptor acceptor_;
     std::thread thread_;
+    options_set<socket_type> opts_;
 
 public:
-    sync_echo_server(bool /*server*/, endpoint_type ep)
-        : sock_(ios_)
+    sync_echo_server(std::ostream* log, endpoint_type ep)
+        : log_(log)
+        , sock_(ios_)
         , acceptor_(ios_)
     {
+        opts_.set_option(
+            beast::websocket::decorate(identity{}));
         error_code ec;
         acceptor_.open(ep.protocol(), ec);
         maybe_throw(ec, "open");
@@ -72,12 +94,19 @@ public:
         return acceptor_.local_endpoint();
     }
 
+    template<class Opt>
+    void
+    set_option(Opt const& opt)
+    {
+        opts_.set_option(opt);
+    }
+
 private:
     void
     fail(error_code ec, std::string what)
     {
         if(log_)
-            std::cerr <<
+            *log_ <<
                 what << ": " << ec.message() << std::endl;
     }
 
@@ -85,7 +114,7 @@ private:
     fail(int id, error_code ec, std::string what)
     {
         if(log_)
-            std::cerr << "#" << boost::lexical_cast<std::string>(id) << " " <<
+            *log_ << "#" << boost::lexical_cast<std::string>(id) << " " <<
                 what << ": " << ec.message() << std::endl;
     }
 
@@ -136,23 +165,6 @@ private:
                 beast::asio::placeholders::error));
     }
 
-    struct identity
-    {
-        template<class Body, class Fields>
-        void
-        operator()(http::message<true, Body, Fields>& req)
-        {
-            req.fields.replace("User-Agent", "sync_echo_client");
-        }
-
-        template<class Body, class Fields>
-        void
-        operator()(http::message<false, Body, Fields>& resp)
-        {
-            resp.fields.replace("Server", "sync_echo_server");
-        }
-    };
-
     template<class DynamicBuffer, std::size_t N>
     static
     bool
@@ -178,8 +190,7 @@ private:
         using boost::asio::buffer;
         using boost::asio::buffer_copy;
         stream<socket_type> ws(std::move(sock));
-        ws.set_option(decorate(identity{}));
-        ws.set_option(read_message_max(64 * 1024 * 1024));
+        opts_.set_options(ws);
         error_code ec;
         ws.accept(ec);
         if(ec)
