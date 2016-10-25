@@ -2103,7 +2103,10 @@ tr_flush_block(
     }
     else
     {
+        // VFALCO This assertion fails even in the original ZLib
+    #if 0
         BOOST_ASSERT(buf);
+    #endif
         opt_lenb = static_lenb = stored_len + 5; // force a stored block
     }
 
