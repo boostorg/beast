@@ -9,6 +9,7 @@
 #define BEAST_WEBSOCKET_DETAIL_STREAM_BASE_HPP
 
 #include <beast/websocket/error.hpp>
+#include <beast/websocket/option.hpp>
 #include <beast/websocket/rfc6455.hpp>
 #include <beast/websocket/detail/decorator.hpp>
 #include <beast/websocket/detail/frame.hpp>
@@ -21,35 +22,11 @@
 #include <boost/asio/error.hpp>
 #include <boost/assert.hpp>
 #include <cstdint>
-#include <functional>
-#include <limits>
 #include <memory>
 
 namespace beast {
 namespace websocket {
 namespace detail {
-
-template<class UInt>
-static
-std::size_t
-clamp(UInt x)
-{
-    if(x >= std::numeric_limits<std::size_t>::max())
-        return std::numeric_limits<std::size_t>::max();
-    return static_cast<std::size_t>(x);
-}
-
-template<class UInt>
-static
-std::size_t
-clamp(UInt x, std::size_t limit)
-{
-    if(x >= limit)
-        return limit;
-    return static_cast<std::size_t>(x);
-}
-
-using pong_cb = std::function<void(ping_data const&)>;
 
 /// Identifies the role of a WebSockets stream.
 enum class role_type

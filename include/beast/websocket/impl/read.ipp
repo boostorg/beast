@@ -14,6 +14,7 @@
 #include <beast/core/prepare_buffers.hpp>
 #include <beast/core/static_streambuf.hpp>
 #include <beast/core/stream_concepts.hpp>
+#include <beast/core/detail/clamp.hpp>
 #include <boost/assert.hpp>
 #include <boost/optional.hpp>
 #include <memory>
@@ -148,6 +149,7 @@ void
 stream<NextLayer>::read_frame_op<DynamicBuffer, Handler>::
 operator()(error_code ec,std::size_t bytes_transferred, bool again)
 {
+    using beast::detail::clamp;
     enum
     {
         do_start = 0,
@@ -191,8 +193,7 @@ operator()(error_code ec,std::size_t bytes_transferred, bool again)
 
             case do_read_payload:
                 d.state = do_read_payload + 1;
-                d.dmb = d.db.prepare(
-                    detail::clamp(d.ws.rd_need_));
+                d.dmb = d.db.prepare(clamp(d.ws.rd_need_));
                 // receive payload data
                 d.ws.stream_.async_read_some(
                     *d.dmb, std::move(*this));
@@ -590,6 +591,7 @@ read_frame(frame_info& fi, DynamicBuffer& dynabuf, error_code& ec)
         "SyncStream requirements not met");
     static_assert(beast::is_DynamicBuffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
+    using beast::detail::clamp;
     close_code::value code{};
     for(;;)
     {
@@ -668,8 +670,7 @@ read_frame(frame_info& fi, DynamicBuffer& dynabuf, error_code& ec)
             }
         }
         // read payload
-        auto smb = dynabuf.prepare(
-            detail::clamp(rd_need_));
+        auto smb = dynabuf.prepare(clamp(rd_need_));
         auto const bytes_transferred =
             stream_.read_some(smb, ec);
         failed_ = ec != 0;

@@ -9,9 +9,10 @@
 #define BEAST_WEBSOCKET_OPTION_HPP
 
 #include <beast/websocket/rfc6455.hpp>
-#include <beast/websocket/detail/stream_base.hpp>
+#include <beast/websocket/detail/decorator.hpp>
 #include <algorithm>
 #include <cstdint>
+#include <functional>
 #include <stdexcept>
 #include <type_traits>
 #include <utility>
@@ -190,6 +191,12 @@ struct message_type
     }
 };
 #endif
+
+namespace detail {
+
+using pong_cb = std::function<void(ping_data const&)>;
+
+} // detail
 
 /** Pong callback option.
 

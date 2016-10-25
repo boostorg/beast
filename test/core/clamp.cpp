@@ -6,22 +6,20 @@
 //
 
 // Test that header file is self-contained.
-#include <beast/websocket/detail/stream_base.hpp>
+#include <beast/core/detail/clamp.hpp>
 
 #include <beast/unit_test/suite.hpp>
-#include <initializer_list>
 #include <climits>
 
 namespace beast {
-namespace websocket {
 namespace detail {
 
-class stream_base_test : public beast::unit_test::suite
+class clamp_test : public beast::unit_test::suite
 {
 public:
     void testClamp()
     {
-        BEAST_EXPECT(detail::clamp(
+        BEAST_EXPECT(clamp(
             std::numeric_limits<std::uint64_t>::max()) ==
                 std::numeric_limits<std::size_t>::max());
     }
@@ -32,9 +30,8 @@ public:
     }
 };
 
-BEAST_DEFINE_TESTSUITE(stream_base,websocket,beast);
+BEAST_DEFINE_TESTSUITE(clamp,core,beast);
 
 } // detail
-} // websocket
 } // beast
 
