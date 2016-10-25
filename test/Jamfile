@@ -20,6 +20,7 @@ unit-test core-tests :
     core/buffer_cat.cpp
     core/buffer_concepts.cpp
     core/buffers_adapter.cpp
+    core/clamp.cpp
     core/consuming_buffers.cpp
     core/dynabuf_readstream.cpp
     core/error.cpp
@@ -78,7 +79,6 @@ unit-test websocket-tests :
     websocket/teardown.cpp
     websocket/frame.cpp
     websocket/mask.cpp
-    websocket/stream_base.cpp
     websocket/utf8_checker.cpp
     ;
 

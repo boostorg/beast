@@ -17,7 +17,6 @@ add_executable (websocket-tests
     teardown.cpp
     frame.cpp
     mask.cpp
-    stream_base.cpp
     utf8_checker.cpp
 )
 

@@ -16,6 +16,7 @@
 #include <beast/core/prepare_buffers.hpp>
 #include <beast/core/static_streambuf.hpp>
 #include <beast/core/stream_concepts.hpp>
+#include <beast/core/detail/clamp.hpp>
 #include <beast/websocket/detail/frame.hpp>
 #include <boost/assert.hpp>
 #include <algorithm>
@@ -122,6 +123,7 @@ class stream<NextLayer>::write_frame_op
             , cont(boost_asio_handler_cont_helpers::
                 is_continuation(h))
         {
+            using beast::detail::clamp;
             fh.op = ws.wr_.cont ?
                 opcode::cont : ws.wr_opcode_;
             ws.wr_.cont = ! fin;
@@ -135,8 +137,7 @@ class stream<NextLayer>::write_frame_op
             {
                 fh.key = ws.maskgen_();
                 detail::prepare_key(key, fh.key);
-                tmp_size = detail::clamp(
-                    fh.len, ws.wr_buf_size_);
+                tmp_size = clamp(fh.len, ws.wr_buf_size_);
                 tmp = boost_asio_handler_alloc_helpers::
                     allocate(tmp_size, h);
                 remain = fh.len;
@@ -232,6 +233,7 @@ stream<NextLayer>::
 write_frame_op<Buffers, Handler>::
 operator()(error_code ec, bool again)
 {
+    using beast::detail::clamp;
     using boost::asio::buffer_copy;
     using boost::asio::mutable_buffers_1;
     auto& d = *d_;
@@ -275,8 +277,7 @@ operator()(error_code ec, bool again)
                         std::move(*this));
                 return;
             }
-            auto const n =
-                detail::clamp(d.remain, d.tmp_size);
+            auto const n = clamp(d.remain, d.tmp_size);
             mutable_buffers_1 mb{d.tmp, n};
             buffer_copy(mb, d.cb);
             d.cb.consume(n);
@@ -295,8 +296,7 @@ operator()(error_code ec, bool again)
         // sent masked payload
         case 2:
         {
-            auto const n =
-                detail::clamp(d.remain, d.tmp_size);
+            auto const n = clamp(d.remain, d.tmp_size);
             mutable_buffers_1 mb{d.tmp,
                 static_cast<std::size_t>(n)};
             buffer_copy(mb, d.cb);
@@ -396,6 +396,7 @@ write_frame(bool fin,
     static_assert(beast::is_ConstBufferSequence<
         ConstBufferSequence>::value,
             "ConstBufferSequence requirements not met");
+    using beast::detail::clamp;
     using boost::asio::buffer;
     using boost::asio::buffer_copy;
     using boost::asio::buffer_size;
@@ -434,8 +435,7 @@ write_frame(bool fin,
             ConstBufferSequence> cb(buffers);
         for(;;)
         {
-            auto const n =
-                detail::clamp(remain, wr_.size);
+            auto const n = clamp(remain, wr_.size);
             fh.len = n;
             remain -= n;
             fh.fin = fin ? remain == 0 : false;
@@ -466,7 +466,7 @@ write_frame(bool fin,
         consuming_buffers<
             ConstBufferSequence> cb(buffers);
         {
-            auto const n = detail::clamp(remain, wr_.size);
+            auto const n = clamp(remain, wr_.size);
             auto const mb = buffer(wr_.buf.get(), n);
             buffer_copy(mb, cb);
             cb.consume(n);
@@ -480,7 +480,7 @@ write_frame(bool fin,
         }
         while(remain > 0)
         {
-            auto const n = detail::clamp(remain, wr_.size);
+            auto const n = clamp(remain, wr_.size);
             auto const mb = buffer(wr_.buf.get(), n);
             buffer_copy(mb, cb);
             cb.consume(n);
@@ -503,8 +503,7 @@ write_frame(bool fin,
             fh.key = maskgen_();
             detail::prepared_key_type key;
             detail::prepare_key(key, fh.key);
-            auto const n =
-                detail::clamp(remain, wr_.size);
+            auto const n = clamp(remain, wr_.size);
             auto const mb = buffer(wr_.buf.get(), n);
             buffer_copy(mb, cb);
             detail::mask_inplace(mb, key);
