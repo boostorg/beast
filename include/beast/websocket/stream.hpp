@@ -235,12 +235,11 @@ public:
         rd_msg_max_ = o.value;
     }
 
-    /// Set the size of the mask buffer
+    /// Set the size of the write buffer
     void
     set_option(write_buffer_size const& o)
     {
         wr_buf_size_ = o.value;
-        stream_.capacity(o.value);
     }
 
     /** Get the io_service associated with the stream.

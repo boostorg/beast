@@ -7,6 +7,10 @@ HTTP
 * Check invariants in parse_op:
 * Clean up message docs
 
+WebSocket
+
+* Write buffer option does not change capacity
+
 Core
 
 * Meet DynamicBuffer requirements for static_streambuf
@@ -16,7 +20,6 @@ Extras
 * unit_test::suite fixes:
   - New overload of fail() specifies file and line
   - BEAST_EXPECTS only evaluates the reason string on a failure
-
 
 --------------------------------------------------------------------------------
 
