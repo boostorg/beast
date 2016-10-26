@@ -660,23 +660,12 @@ doWrite(z_params& zs, Flush flush, error_code& ec)
             }
             else
             {
-                if(offset_ > 1)
-                {
-                    // copy from output
-                    auto n = clamp(length_, offset_);
-                    std::memcpy(
-                        r.out.next, r.out.next - offset_, n);
-                    r.out.next += n;
-                    length_ -= n;
-                }
-                if(length_ > 0)
-                {
-                    // fill from output
-                    auto n = clamp(length_, r.out.avail());
-                    std::memset(r.out.next, r.out.next[-1], n);
-                    r.out.next += n;
-                    length_ -= n;
-                }
+                // copy from output
+                auto in = r.out.next - offset_;
+                auto n = clamp(length_, r.out.avail());
+                length_ -= n;
+                while(n--)
+                    *r.out.next++ = *in++;
             }
             if(length_ == 0)
                 mode_ = LEN;
@@ -1249,6 +1238,7 @@ inflate_fast(ranges& r, error_code& ec)
                 }
                 if(len > 0)
                 {
+#if 0
                     if(dist > 1)
                     {
                         // copy from output
@@ -1263,6 +1253,14 @@ inflate_fast(ranges& r, error_code& ec)
                         std::memset(r.out.next, r.out.next[-1], len);
                         r.out.next += len;
                     }
+#else
+                    // copy from output
+                    auto in = r.out.next - dist;
+                    auto n = clamp(len, r.out.avail());
+                    len -= n;
+                    while(n--)
+                        *r.out.next++ = *in++;
+#endif
                 }
             }
             else if((op & 64) == 0)

@@ -313,6 +313,20 @@ public:
     {
         {
             Matrix m{*this};
+            std::string check =
+                "{\n   \"AutobahnPython/0.6.0\": {\n"
+                "      \"1.1.1\": {\n"
+                "         \"behavior\": \"OK\",\n"
+                "         \"behaviorClose\": \"OK\",\n"
+                "         \"duration\": 2,\n"
+                "         \"remoteCloseCode\": 1000,\n"
+                "         \"reportfile\": \"autobahnpython_0_6_0_case_1_1_1.json\"\n"
+                ;
+            m("0. beast", Beast{half, half}, check);
+            m("0. zlib ", ZLib {half, half}, check);
+        }
+        {
+            Matrix m{*this};
             auto const check = corpus1(50000);
             m("1. beast", Beast{half, half}, check);
             m("1. zlib ", ZLib {half, half}, check);
