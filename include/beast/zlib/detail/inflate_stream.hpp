@@ -653,7 +653,8 @@ doWrite(z_params& zs, Flush flush, error_code& ec)
                     offset_ - r.out.used());
                 if(offset > w_.size())
                     return err(error::invalid_distance);
-                auto const n = clamp(length_, offset);
+                auto const n = clamp(clamp(
+                    length_, offset), r.out.avail());
                 w_.read(r.out.next, offset, n);
                 r.out.next += n;
                 length_ -= n;
@@ -1232,35 +1233,20 @@ inflate_fast(ranges& r, error_code& ec)
                         break;
                     }
                     auto const n = clamp(len, op);
+BOOST_ASSERT(n <= r.out.avail());
                     w_.read(r.out.next, op, n);
                     r.out.next += n;
                     len -= n;
                 }
                 if(len > 0)
                 {
-#if 0
-                    if(dist > 1)
-                    {
-                        // copy from output
-                        auto n = clamp(len, dist);
-                        std::memcpy(r.out.next, r.out.next - dist, n);
-                        r.out.next += n;
-                        len -= n;
-                    }
-                    if(len > 0)
-                    {
-                        // fill from output
-                        std::memset(r.out.next, r.out.next[-1], len);
-                        r.out.next += len;
-                    }
-#else
                     // copy from output
                     auto in = r.out.next - dist;
                     auto n = clamp(len, r.out.avail());
+BOOST_ASSERT(n <= r.out.avail());
                     len -= n;
                     while(n--)
                         *r.out.next++ = *in++;
-#endif
                 }
             }
             else if((op & 64) == 0)
