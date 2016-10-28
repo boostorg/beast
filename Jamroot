@@ -97,7 +97,8 @@ project beast
     <toolset>clang:<cxxflags>-std=c++11
     <toolset>msvc:<define>_SCL_SECURE_NO_WARNINGS=1
     <toolset>msvc:<define>_CRT_SECURE_NO_WARNINGS=1
-    <toolset>msvc:<cxxflags>-bigobj
+    <toolset>msvc:<cxxflags>"/wd4100 /bigobj"
+    <toolset>msvc,<variant>release:<cxxflags>"/Ob2 /Oi /Ot"
     <os>LINUX:<define>_XOPEN_SOURCE=600
     <os>LINUX:<define>_GNU_SOURCE=1
     <os>SOLARIS:<define>_XOPEN_SOURCE=500
