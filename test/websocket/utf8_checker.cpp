@@ -24,7 +24,7 @@ public:
     testOneByteSequence()
     {
         utf8_checker utf8;
-        std::array<std::uint8_t, 256> const buf =
+        std::array<std::uint8_t, 256> buf =
             ([]()
             {
                 std::array<std::uint8_t, 256> values;
@@ -47,6 +47,10 @@ public:
         for(auto it = std::next(buf.begin(), 245);
             it != buf.end(); ++it)
                 BEAST_EXPECT(! utf8.write(&(*it), 1));
+
+        // Invalid sequence
+        std::fill(buf.begin(), buf.end(), 0xFF);
+        BEAST_EXPECT(! utf8.write(&buf.front(), buf.size()));
     }
 
     void
@@ -80,6 +84,11 @@ public:
                 buf[1] = static_cast<std::uint8_t>(j);
                 BEAST_EXPECT(! utf8.write(buf, 2));
             }
+
+            // Segmented sequence second byte invalid
+            BEAST_EXPECT(utf8.write(buf, 1));
+            BEAST_EXPECT(! utf8.write(&buf[1], 1));
+            utf8.reset();
         }
     }
 
@@ -121,6 +130,11 @@ public:
                     buf[2] = static_cast<std::uint8_t>(k);
                     BEAST_EXPECT(! utf8.write(buf, 3));
                 }
+
+                // Segmented sequence third byte invalid
+                BEAST_EXPECT(utf8.write(buf, 2));
+                BEAST_EXPECT(! utf8.write(&buf[2], 1));
+                utf8.reset();
             }
 
             for(auto j = 0; j < b; ++j)
@@ -136,6 +150,11 @@ public:
                 buf[1] = static_cast<std::uint8_t>(j);
                 BEAST_EXPECT(! utf8.write(buf, 3));
             }
+
+            // Segmented sequence second byte invalid
+            BEAST_EXPECT(utf8.write(buf, 1));
+            BEAST_EXPECT(! utf8.write(&buf[1], 1));
+            utf8.reset();
         }
     }
 
@@ -154,7 +173,7 @@ public:
             std::int32_t const e = (i == 244 ? 143 : 191);
             for(auto j = b; j <= e; ++j)
             {
-                // Second byte valid range 128-191 or 144-191 or 128-143
+                // Second byte valid range 144-191 or 128-191 or 128-143
                 buf[1] = static_cast<std::uint8_t>(j);
 
                 for(auto k = 128; k <= 191; ++k)
@@ -183,6 +202,11 @@ public:
                         buf[3] = static_cast<std::uint8_t>(n);
                         BEAST_EXPECT(! utf8.write(buf, 4));
                     }
+
+                    // Segmented sequence fourth byte invalid
+                    BEAST_EXPECT(utf8.write(buf, 3));
+                    BEAST_EXPECT(! utf8.write(&buf[3], 1));
+                    utf8.reset();
                 }
 
                 for(auto k = 0; k <= 127; ++k)
@@ -198,21 +222,31 @@ public:
                     buf[2] = static_cast<std::uint8_t>(k);
                     BEAST_EXPECT(! utf8.write(buf, 4));
                 }
+
+                // Segmented sequence third byte invalid
+                BEAST_EXPECT(utf8.write(buf, 2));
+                BEAST_EXPECT(! utf8.write(&buf[2], 1));
+                utf8.reset();
             }
 
             for(auto j = 0; j < b; ++j)
             {
                 // Second byte invalid range 0-127 or 0-143
                 buf[1] = static_cast<std::uint8_t>(j);
-                BEAST_EXPECT(! utf8.write(buf, 3));
+                BEAST_EXPECT(! utf8.write(buf, 4));
             }
 
             for(auto j = e + 1; j <= 255; ++j)
             {
                 // Second byte invalid range 144-255 or 192-255
                 buf[1] = static_cast<std::uint8_t>(j);
-                BEAST_EXPECT(! utf8.write(buf, 3));
+                BEAST_EXPECT(! utf8.write(buf, 4));
             }
+
+            // Segmented sequence second byte invalid
+            BEAST_EXPECT(utf8.write(buf, 1));
+            BEAST_EXPECT(!  utf8.write(&buf[1], 1));
+            utf8.reset();
         }
     }
 
@@ -240,12 +274,14 @@ public:
                     0xC3,0x81,0x72,0x76,0xC3,0xAD,0x7A,0x74,0xC5,0xB1,0x72,0xC5,
                     0x91,0x20,0x74,0xC3,0xBC,0x6B,0xC3,0xB6,0x72,0x66,0xC3,0xBA,
                     0x72,0xC3,0xB3,0x67,0xC3,0xA9,0x70
+                }, {
+                    240, 144, 128, 128
                 }
             };
             utf8_checker utf8;
             for(auto const& s : data)
             {
-                static std::size_t constexpr size = 8;
+                static std::size_t constexpr size = 3;
                 std::size_t n = s.size();
                 auto cb = consumed_buffers(
                     boost::asio::const_buffers_1(
