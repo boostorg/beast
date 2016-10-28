@@ -32,7 +32,7 @@ class parse_op
         DynamicBuffer& db;
         Parser& p;
         Handler h;
-        bool started = false;
+        bool got_some = false;
         bool cont;
         int state = 0;
 
@@ -46,6 +46,7 @@ class parse_op
             , cont(boost_asio_handler_cont_helpers::
                 is_continuation(h))
         {
+            BOOST_ASSERT(! p.complete());
         }
     };
 
@@ -113,6 +114,7 @@ operator()(error_code ec, std::size_t bytes_transferred, bool again)
         {
         case 0:
         {
+            // Parse any bytes left over in the buffer
             auto const used =
                 d.p.write(d.db.data(), ec);
             if(ec)
@@ -124,8 +126,10 @@ operator()(error_code ec, std::size_t bytes_transferred, bool again)
                 return;
             }
             if(used > 0)
-                d.started = true;
-            d.db.consume(used);
+            {
+                d.got_some = true;
+                d.db.consume(used);
+            }
             if(d.p.complete())
             {
                 // call handler
@@ -134,30 +138,41 @@ operator()(error_code ec, std::size_t bytes_transferred, bool again)
                     bind_handler(std::move(*this), ec, 0));
                 return;
             }
+            // Buffer must be empty,
+            // otherwise parse should be complete
+            BOOST_ASSERT(d.db.size() == 0);
             d.state = 1;
             break;
         }
 
         case 1:
+        {
             // read
             d.state = 2;
-            d.s.async_read_some(d.db.prepare(
-                read_size_helper(d.db, 65536)),
-                    std::move(*this));
+            auto const size = 
+                read_size_helper(d.db, 65536);
+            BOOST_ASSERT(size > 0);
+            d.s.async_read_some(
+                d.db.prepare(size), std::move(*this));
             return;
+        }
 
         // got data
         case 2:
         {
             if(ec == boost::asio::error::eof)
             {
-                if(! d.started)
+                // If we haven't processed any bytes,
+                // give the eof to the handler immediately.
+                if(! d.got_some)
                 {
                     // call handler
                     d.state = 99;
                     break;
                 }
-                // Caller will see eof on next read.
+                // Feed the eof to the parser to complete
+                // the parse, and call the handler. The
+                // next call to parse will deliver the eof.
                 ec = {};
                 d.p.write_eof(ec);
                 BOOST_ASSERT(ec || d.p.complete());
@@ -171,6 +186,7 @@ operator()(error_code ec, std::size_t bytes_transferred, bool again)
                 d.state = 99;
                 break;
             }
+            BOOST_ASSERT(bytes_transferred > 0);
             d.db.commit(bytes_transferred);
             auto const used = d.p.write(d.db.data(), ec);
             if(ec)
@@ -179,8 +195,10 @@ operator()(error_code ec, std::size_t bytes_transferred, bool again)
                 d.state = 99;
                 break;
             }
-            if(used > 0)
-                d.started = true;
+            // The parser must either consume
+            // bytes or generate an error.
+            BOOST_ASSERT(used > 0);
+            d.got_some = true;
             d.db.consume(used);
             if(d.p.complete())
             {
@@ -188,6 +206,9 @@ operator()(error_code ec, std::size_t bytes_transferred, bool again)
                 d.state = 99;
                 break;
             }
+            // If the parse is not complete,
+            // all input must be consumed.
+            BOOST_ASSERT(used == bytes_transferred);
             d.state = 1;
             break;
         }
@@ -228,7 +249,7 @@ parse(SyncReadStream& stream, DynamicBuffer& dynabuf,
         "DynamicBuffer requirements not met");
     static_assert(is_Parser<Parser>::value,
         "Parser requirements not met");
-    bool started = false;
+    bool got_some = false;
     for(;;)
     {
         auto used =
@@ -237,7 +258,7 @@ parse(SyncReadStream& stream, DynamicBuffer& dynabuf,
             return;
         dynabuf.consume(used);
         if(used > 0)
-            started = true;
+            got_some = true;
         if(parser.complete())
             break;
         dynabuf.commit(stream.read_some(
@@ -247,7 +268,7 @@ parse(SyncReadStream& stream, DynamicBuffer& dynabuf,
             return;
         if(ec == boost::asio::error::eof)
         {
-            if(! started)
+            if(! got_some)
                 return;
             // Caller will see eof on next read.
             ec = {};

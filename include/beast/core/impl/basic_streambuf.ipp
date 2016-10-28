@@ -857,12 +857,17 @@ std::size_t
 read_size_helper(basic_streambuf<
     Allocator> const& streambuf, std::size_t max_size)
 {
+    BOOST_ASSERT(max_size >= 1);
+    // If we already have an allocated
+    // buffer, try to fill that up first
     auto const avail = streambuf.capacity() - streambuf.size();
     if (avail > 0)
         return std::min(avail, max_size);
+    // Try to have just one new block allocated
     constexpr std::size_t low = 512;
     if (streambuf.alloc_size_ > low)
         return std::min(max_size, streambuf.alloc_size_);
+    // ...but enforce a 512 byte minimum.
     return std::min(max_size, low);
 }
 
