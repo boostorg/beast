@@ -1,5 +1,7 @@
 1.0.0-b18
 
+* Increase optimization settings for MSVC builds
+
 HTTP
 
 * Check invariants in parse_op:
@@ -10,6 +12,7 @@ Extras
 * unit_test::suite fixes:
   - New overload of fail() specifies file and line
   - BEAST_EXPECTS only evaluates the reason string on a failure
+
 
 --------------------------------------------------------------------------------
 
