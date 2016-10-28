@@ -403,7 +403,6 @@ public:
         {
             streambuf sb{10};
             BEAST_EXPECT(sb.alloc_size() == 10);
-            BEAST_EXPECT(read_size_helper(sb, 0) == 0);
             BEAST_EXPECT(read_size_helper(sb, 1) == 1);
             BEAST_EXPECT(read_size_helper(sb, 10) == 10);
             BEAST_EXPECT(read_size_helper(sb, 20) == 20);
@@ -416,22 +415,18 @@ public:
         {
             streambuf sb(1000);
             BEAST_EXPECT(sb.alloc_size() == 1000);
-            BEAST_EXPECT(read_size_helper(sb, 0) == 0);
             BEAST_EXPECT(read_size_helper(sb, 1) == 1);
             BEAST_EXPECT(read_size_helper(sb, 1000) == 1000);
             BEAST_EXPECT(read_size_helper(sb, 2000) == 1000);
             sb.prepare(3);
-            BEAST_EXPECT(read_size_helper(sb, 0) == 0);
             BEAST_EXPECT(read_size_helper(sb, 1) == 1);
             BEAST_EXPECT(read_size_helper(sb, 1000) == 1000);
             BEAST_EXPECT(read_size_helper(sb, 2000) == 1000);
             sb.commit(3);
-            BEAST_EXPECT(read_size_helper(sb, 0) == 0);
             BEAST_EXPECT(read_size_helper(sb, 1) == 1);
             BEAST_EXPECT(read_size_helper(sb, 1000) == 997);
             BEAST_EXPECT(read_size_helper(sb, 2000) == 997);
             sb.consume(2);
-            BEAST_EXPECT(read_size_helper(sb, 0) == 0);
             BEAST_EXPECT(read_size_helper(sb, 1) == 1);
             BEAST_EXPECT(read_size_helper(sb, 1000) == 997);
             BEAST_EXPECT(read_size_helper(sb, 2000) == 997);

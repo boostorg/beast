@@ -1,6 +1,12 @@
 1.0.0-b18
 
+HTTP
+
+* Check invariants in parse_op:
 * Clean up message docs
+
+Extras
+
 * unit_test::suite fixes:
   - New overload of fail() specifies file and line
   - BEAST_EXPECTS only evaluates the reason string on a failure
