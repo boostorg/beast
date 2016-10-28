@@ -1,3 +1,9 @@
+1.0.0-b19
+
+* Optimize utf8 validation
+
+--------------------------------------------------------------------------------
+
 1.0.0-b18
 
 * Increase optimization settings for MSVC builds

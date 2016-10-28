@@ -154,7 +154,7 @@ public:
             std::int32_t const e = (i == 244 ? 143 : 191);
             for(auto j = b; j <= e; ++j)
             {
-                // Second byte valid range 128-191 or 144-191 or 128-143
+                // Second byte valid range 144-191 or 128-191 or 128-143
                 buf[1] = static_cast<std::uint8_t>(j);
 
                 for(auto k = 128; k <= 191; ++k)
@@ -204,14 +204,14 @@ public:
             {
                 // Second byte invalid range 0-127 or 0-143
                 buf[1] = static_cast<std::uint8_t>(j);
-                BEAST_EXPECT(! utf8.write(buf, 3));
+                BEAST_EXPECT(! utf8.write(buf, 4));
             }
 
             for(auto j = e + 1; j <= 255; ++j)
             {
                 // Second byte invalid range 144-255 or 192-255
                 buf[1] = static_cast<std::uint8_t>(j);
-                BEAST_EXPECT(! utf8.write(buf, 3));
+                BEAST_EXPECT(! utf8.write(buf, 4));
             }
         }
     }
