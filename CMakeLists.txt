@@ -7,27 +7,33 @@ project (Beast)
 set_property (GLOBAL PROPERTY USE_FOLDERS ON)
 
 if (MSVC)
-    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP /W4 /wd4100 /bigobj /D _WIN32_WINNT=0x0601 /D_SCL_SECURE_NO_WARNINGS=1 /D_CRT_SECURE_NO_WARNINGS=1")
-    set (CMAKE_CXX_FLAGS_DEBUG                 "${CMAKE_CXX_FLAGS_DEBUG} /MTd")
-    set (CMAKE_CXX_FLAGS_RELEASE               "${CMAKE_CXX_FLAGS_RELEASE} /Ob2 /Oi /Ot /GL /MT")
-    set (CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} /Ob2 /Oi /Ot /GL /MT")
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP /W4 /wd4100 /bigobj /D _WIN32_WINNT=0x0601 /D _SCL_SECURE_NO_WARNINGS=1 /D _CRT_SECURE_NO_WARNINGS=1")
+    set (CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd")
+    set (CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /Ob2 /Oi /Ot /GL /MT")
+    set (CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} /Oi /Ot /MT")
 
     set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SAFESEH:NO")
-    set (CMAKE_EXE_LINKER_FLAGS_RELEASE               "${CMAKE_EXE_LINKER_FLAGS_RELEASE} /LTCG")
-    set (CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO "${CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO} /LTCG")
+    set (CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} /LTCG")
+
+    # for RelWithDebInfo builds, disable incremental linking
+    # since CMake sets it ON by default for that build type and it
+    # causes warnings
+    string (REPLACE "/INCREMENTAL" "/INCREMENTAL:NO" replacement_flags
+        ${CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO})
+    set (CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO ${replacement_flags})
 
 else()
     set(Boost_USE_STATIC_LIBS ON)
     set(Boost_USE_MULTITHREADED ON)
     find_package(Boost REQUIRED COMPONENTS coroutine context thread filesystem program_options system)
-    include_directories(${Boost_INCLUDE_DIRS})
+    include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
     link_directories(${Boost_LIBRARY_DIR})
 
     set(THREADS_PREFER_PTHREAD_FLAG ON)
     find_package(Threads)
 
     set(CMAKE_CXX_FLAGS
-      "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wextra -Wpedantic")
+      "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wextra -Wpedantic -Wno-unused-parameter")
 endif()
 
 if (APPLE AND NOT DEFINED ENV{OPENSSL_ROOT_DIR})
@@ -75,7 +81,6 @@ function(DoGroupSources curdir rootdir folder)
             source_group("" FILES ${PROJECT_SOURCE_DIR}/${curdir}/${child})
         else()
             string(REGEX REPLACE ^${rootdir} ${folder} groupname ${curdir})
-            #set(groupname ${curdir})
             string(REPLACE "/" "\\" groupname ${groupname})
             source_group(${groupname} FILES ${PROJECT_SOURCE_DIR}/${curdir}/${child})
         endif()
