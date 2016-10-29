@@ -9,6 +9,13 @@ set_property (GLOBAL PROPERTY USE_FOLDERS ON)
 if (MSVC)
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP /W4 /wd4100 /bigobj /D _WIN32_WINNT=0x0601 /D_SCL_SECURE_NO_WARNINGS=1 /D_CRT_SECURE_NO_WARNINGS=1")
     set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SAFESEH:NO")
+
+    # for RelWithDebInfo builds, disable incremental linking
+    # since CMake sets it ON by default for that build type and it
+    # causes warnings
+    string (REPLACE "/INCREMENTAL" "/INCREMENTAL:NO" replacement_flags
+        ${CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO})
+    set (CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO ${replacement_flags})
 else()
     set(Boost_USE_STATIC_LIBS ON)
     set(Boost_USE_MULTITHREADED ON)
