@@ -62,6 +62,12 @@ protected:
     template<class = void> void doReset(int windowBits);
     template<class = void> void doWrite(z_params& zs, Flush flush, error_code& ec);
 
+    void
+    doReset()
+    {
+        doReset(w_.bits());
+    }
+
 private:
     enum Mode
     {

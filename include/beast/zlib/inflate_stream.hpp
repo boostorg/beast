@@ -56,6 +56,18 @@ public:
 
     /** Reset the stream.
 
+        This puts the stream in a newly constructed state with
+        the previously specified window size, but without de-allocating
+        any dynamically created structures.
+    */
+    void
+    reset()
+    {
+        doReset();
+    }
+
+    /** Reset the stream.
+
         This puts the stream in a newly constructed state with the
         specified window size, but without de-allocating any dynamically
         created structures.
