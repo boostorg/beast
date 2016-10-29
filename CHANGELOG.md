@@ -7,6 +7,10 @@ HTTP
 * Check invariants in parse_op:
 * Clean up message docs
 
+Core
+
+* Meet DynamicBuffer requirements for static_streambuf
+
 Extras
 
 * unit_test::suite fixes:
