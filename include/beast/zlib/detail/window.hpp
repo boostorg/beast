@@ -137,7 +137,11 @@ write(std::uint8_t const* in, std::size_t n)
     if(i_ + n <= capacity_)
     {
         std::memcpy(&p_[i_], in, n);
-        size_ = static_cast<std::uint16_t>(size_ + n);
+        if(size_ >= capacity_ - n)
+            size_ = capacity_;
+        else
+            size_ = static_cast<std::uint16_t>(size_ + n);
+
         i_ = static_cast<std::uint16_t>(
             (i_ + n) % capacity_);
         return;
