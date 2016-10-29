@@ -95,6 +95,7 @@ project beast
     <toolset>gcc:<cxxflags>-std=c++11
     <toolset>gcc:<cxxflags>-Wno-unused-variable
     <toolset>clang:<cxxflags>-std=c++11
+    <toolset>clang:<cxxflags>-Wno-unused-variable
     <toolset>msvc:<define>_SCL_SECURE_NO_WARNINGS=1
     <toolset>msvc:<define>_CRT_SECURE_NO_WARNINGS=1
     <toolset>msvc:<cxxflags>"/wd4100 /bigobj"
