@@ -1011,9 +1011,6 @@ void
 deflate_stream::
 doWrite(z_params& zs, Flush flush, error_code& ec)
 {
-    // value of flush param for previous deflate call
-    boost::optional<Flush> old_flush;
-
     if(zs.next_out == 0 || (zs.next_in == 0 && zs.avail_in != 0) ||
         (status_ == FINISH_STATE && flush != Flush::finish))
     {
@@ -1028,7 +1025,8 @@ doWrite(z_params& zs, Flush flush, error_code& ec)
 
     maybe_init();
 
-    old_flush = last_flush_;
+    // value of flush param for previous deflate call
+    boost::optional<Flush> old_flush = last_flush_;
     last_flush_ = flush;
 
     // Flush as much pending output as possible

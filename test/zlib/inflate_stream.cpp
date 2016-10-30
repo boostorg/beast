@@ -322,33 +322,24 @@ public:
                 "         \"remoteCloseCode\": 1000,\n"
                 "         \"reportfile\": \"autobahnpython_0_6_0_case_1_1_1.json\"\n"
                 ;
-            m("0. beast", Beast{half, half}, check);
-            m("0. zlib ", ZLib {half, half}, check);
-        }
-        {
-            Matrix m{*this};
-            auto const check = corpus1(50000);
             m("1. beast", Beast{half, half}, check);
             m("1. zlib ", ZLib {half, half}, check);
         }
         {
             Matrix m{*this};
-            auto const check = corpus2(50000);
+            auto const check = corpus1(50000);
             m("2. beast", Beast{half, half}, check);
             m("2. zlib ", ZLib {half, half}, check);
         }
         {
             Matrix m{*this};
-            auto const check = corpus1(10000);
-            m.level(6);
-            m.window(9);
-            m.strategy(Z_DEFAULT_STRATEGY);
-            m("3. beast", Beast{once, full}, check);
-            m("3. zlib ", ZLib {once, full}, check);
+            auto const check = corpus2(50000);
+            m("3. beast", Beast{half, half}, check);
+            m("3. zlib ", ZLib {half, half}, check);
         }
         {
             Matrix m{*this};
-            auto const check = corpus2(10000);
+            auto const check = corpus1(10000);
             m.level(6);
             m.window(9);
             m.strategy(Z_DEFAULT_STRATEGY);
@@ -357,19 +348,28 @@ public:
         }
         {
             Matrix m{*this};
+            auto const check = corpus2(10000);
+            m.level(6);
+            m.window(9);
+            m.strategy(Z_DEFAULT_STRATEGY);
+            m("5. beast", Beast{once, full}, check);
+            m("5. zlib ", ZLib {once, full}, check);
+        }
+        {
+            Matrix m{*this};
             m.level(6);
             m.window(9);
             auto const check = corpus1(200);
-            m("5. beast", Beast{full, full}, check);
-            m("5. zlib ", ZLib {full, full}, check);
+            m("6. beast", Beast{full, full}, check);
+            m("6. zlib ", ZLib {full, full}, check);
         }
         {
             Matrix m{*this};
             m.level(6);
             m.window(9);
             auto const check = corpus2(500);
-            m("6. beast", Beast{full, full}, check);
-            m("6. zlib ", ZLib {full, full}, check);
+            m("7. beast", Beast{full, full}, check);
+            m("7. zlib ", ZLib {full, full}, check);
         }
         {
             Matrix m{*this};
@@ -377,11 +377,12 @@ public:
             m.level(6);
             m.window(9);
             m.strategy(Z_DEFAULT_STRATEGY);
-            m("7. beast", Beast{full, once, Flush::block}, check);
-            m("7. zlib ", ZLib {full, once, Z_BLOCK}, check);
+            m("8. beast", Beast{full, once, Flush::block}, check);
+            m("8. zlib ", ZLib {full, once, Z_BLOCK}, check);
         }
 
-        // VFALCO This fails?
+        // VFALCO Fails, but I'm unsure of what the correct
+        //        behavior of Z_TREES/Flush::trees is.
 #if 0
         {
             Matrix m{*this};
@@ -389,8 +390,8 @@ public:
             m.level(6);
             m.window(9);
             m.strategy(Z_DEFAULT_STRATEGY);
-            m("8. beast", Beast{full, once, Flush::trees}, check);
-            m("8. zlib ", ZLib {full, once, Z_TREES}, check);
+            m("9. beast", Beast{full, once, Flush::trees}, check);
+            m("9. zlib ", ZLib {full, once, Z_TREES}, check);
         }
 #endif
     }
