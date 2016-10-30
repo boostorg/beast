@@ -54,7 +54,6 @@ public:
 
         class reader
         {
-            std::size_t n_ = 0;
             value_type& body_;
 
         public:
