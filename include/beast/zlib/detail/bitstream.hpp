@@ -98,9 +98,9 @@ public:
     fill_16(FwdIt& it);
 
     // return n bits
-    template<class Unsigned, class FwdIt>
-    bool
-    peek(Unsigned& value, std::size_t n, FwdIt& first, FwdIt const& last);
+    template<class Unsigned>
+    void
+    peek(Unsigned& value, std::size_t n);
 
     // return everything in the reservoir
     value_type
@@ -110,9 +110,9 @@ public:
     }
 
     // return n bits, and consume
-    template<class Unsigned, class FwdIt>
-    bool
-    read(Unsigned& value, std::size_t n, FwdIt& first, FwdIt const& last);
+    template<class Unsigned>
+    void
+    read(Unsigned& value, std::size_t n);
 
     // rewind by the number of whole bytes stored (unchecked)
     template<class BidirIt>
@@ -158,32 +158,30 @@ fill_16(FwdIt& it)
     n_ += 8;
 }    
 
-template<class Unsigned, class FwdIt>
+template<class Unsigned>
 inline
-bool
+void
 bitstream::
-peek(Unsigned& value, std::size_t n, FwdIt& first, FwdIt const& last)
+peek(Unsigned& value, std::size_t n)
 {
     BOOST_ASSERT(n <= sizeof(value)*8);
-    if(! fill(n, first, last))
-        return false;
+    BOOST_ASSERT(n <= n_);
     value = static_cast<Unsigned>(
         v_ & ((1ULL << n) - 1));
-    return true;
 }
 
-template<class Unsigned, class FwdIt>
+template<class Unsigned>
 inline
-bool
+void
 bitstream::
-read(Unsigned& value, std::size_t n, FwdIt& first, FwdIt const& last)
+read(Unsigned& value, std::size_t n)
 {
     BOOST_ASSERT(n < sizeof(v_)*8);
-    if(! peek(value, n, first, last))
-        return false;
+    BOOST_ASSERT(n <= n_);
+    value = static_cast<Unsigned>(
+        v_ & ((1ULL << n) - 1));
     v_ >>= n;
     n_ -= static_cast<unsigned>(n);
-    return true;
 }
 
 template<class BidirIt>

@@ -331,9 +331,9 @@ doWrite(z_params& zs, Flush flush, error_code& ec)
             if(! bi_.fill(3, r.in.next, r.in.last))
                 return done();
             std::uint8_t v;
-            bi_.read(v, 1, r.in.next, r.in.last);
+            bi_.read(v, 1);
             last_ = v != 0;
-            bi_.read(v, 2, r.in.next, r.in.last);
+            bi_.read(v, 2);
             switch(v)
             {
             case 0:
@@ -362,8 +362,9 @@ doWrite(z_params& zs, Flush flush, error_code& ec)
         {
             bi_.flush_byte();
             std::uint32_t v;
-            if(! bi_.peek(v, 32, r.in.next, r.in.last))
+            if(! bi_.fill(32, r.in.next, r.in.last))
                 return done();
+            bi_.peek(v, 32);
             length_ = v & 0xffff;
             if(length_ != ((v >> 16) ^ 0xffff))
                 return err(error::invalid_stored_length);
@@ -402,11 +403,11 @@ doWrite(z_params& zs, Flush flush, error_code& ec)
         case TABLE:
             if(! bi_.fill(5 + 5 + 4, r.in.next, r.in.last))
                 return done();
-            bi_.read(nlen_, 5, r.in.next, r.in.last);
+            bi_.read(nlen_, 5);
             nlen_ += 257;
-            bi_.read(ndist_, 5, r.in.next, r.in.last);
+            bi_.read(ndist_, 5);
             ndist_ += 1;
-            bi_.read(ncode_, 4, r.in.next, r.in.last);
+            bi_.read(ncode_, 4);
             ncode_ += 4;
             if(nlen_ > 286 || ndist_ > 30)
                 return err(error::too_many_symbols);
@@ -420,8 +421,9 @@ doWrite(z_params& zs, Flush flush, error_code& ec)
                 16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15}};
             while(have_ < ncode_)
             {
-                if(! bi_.read(lens_[order[have_]], 3, r.in.next, r.in.last))
+                if(! bi_.fill(3, r.in.next, r.in.last))
                     return done();
+                bi_.read(lens_[order[have_]], 3);
                 ++have_;
             }
             while(have_ < order.size())
@@ -447,8 +449,9 @@ doWrite(z_params& zs, Flush flush, error_code& ec)
             while(have_ < nlen_ + ndist_)
             {
                 std::uint16_t v;
-                if(! bi_.peek(v, lenbits_, r.in.next, r.in.last))
+                if(! bi_.fill(lenbits_, r.in.next, r.in.last))
                     return done();
+                bi_.peek(v, lenbits_);
                 auto cp = &lencode_[v];
                 if(cp->val < 16)
                 {
@@ -466,7 +469,7 @@ doWrite(z_params& zs, Flush flush, error_code& ec)
                         bi_.drop(cp->bits);
                         if(have_ == 0)
                             return err(error::invalid_bit_length_repeat);
-                        bi_.read(copy, 2, r.in.next, r.in.last);
+                        bi_.read(copy, 2);
                         len = lens_[have_ - 1];
                         copy += 3;
 
@@ -476,7 +479,7 @@ doWrite(z_params& zs, Flush flush, error_code& ec)
                         if(! bi_.fill(cp->bits + 3, r.in.next, r.in.last))
                             return done();
                         bi_.drop(cp->bits);
-                        bi_.read(copy, 3, r.in.next, r.in.last);
+                        bi_.read(copy, 3);
                         len = 0;
                         copy += 3;
                     }
@@ -485,7 +488,7 @@ doWrite(z_params& zs, Flush flush, error_code& ec)
                         if(! bi_.fill(cp->bits + 7, r.in.next, r.in.last))
                             return done();
                         bi_.drop(cp->bits);
-                        bi_.read(copy, 7, r.in.next, r.in.last);
+                        bi_.read(copy, 7);
                         len = 0;
                         copy += 11;
                     }
@@ -553,16 +556,18 @@ doWrite(z_params& zs, Flush flush, error_code& ec)
                     back_ = -1;
                 break;
             }
+            if(! bi_.fill(lenbits_, r.in.next, r.in.last))
+                return done();
             std::uint16_t v;
             back_ = 0;
-            if(! bi_.peek(v, lenbits_, r.in.next, r.in.last))
-                return done();
+            bi_.peek(v, lenbits_);
             auto cp = &lencode_[v];
             if(cp->op && (cp->op & 0xf0) == 0)
             {
                 auto prev = cp;
-                if(! bi_.peek(v, prev->bits + prev->op, r.in.next, r.in.last))
+                if(! bi_.fill(prev->bits + prev->op, r.in.next, r.in.last))
                     return done();
+                bi_.peek(v, prev->bits + prev->op);
                 cp = &lencode_[prev->val + (v >> prev->bits)];
                 bi_.drop(prev->bits + cp->bits);
                 back_ += prev->bits + cp->bits;
@@ -594,9 +599,10 @@ doWrite(z_params& zs, Flush flush, error_code& ec)
         case LENEXT:
             if(extra_)
             {
-                std::uint16_t v;
-                if(! bi_.read(v, extra_, r.in.next, r.in.last))
+                if(! bi_.fill(extra_, r.in.next, r.in.last))
                     return done();
+                std::uint16_t v;
+                bi_.read(v, extra_);
                 length_ += v;
                 back_ += extra_;
             }
@@ -606,15 +612,17 @@ doWrite(z_params& zs, Flush flush, error_code& ec)
 
         case DIST:
         {
-            std::uint16_t v;
-            if(! bi_.peek(v, distbits_, r.in.next, r.in.last))
+            if(! bi_.fill(distbits_, r.in.next, r.in.last))
                 return done();
+            std::uint16_t v;
+            bi_.peek(v, distbits_);
             auto cp = &distcode_[v];
             if((cp->op & 0xf0) == 0)
             {
                 auto prev = cp;
-                if(! bi_.peek(v, prev->bits + prev->op, r.in.next, r.in.last))
+                if(! bi_.fill(prev->bits + prev->op, r.in.next, r.in.last))
                     return done();
+                bi_.peek(v, prev->bits + prev->op);
                 cp = &distcode_[prev->val + (v >> prev->bits)];
                 bi_.drop(prev->bits + cp->bits);
                 back_ += prev->bits + cp->bits;
@@ -636,8 +644,9 @@ doWrite(z_params& zs, Flush flush, error_code& ec)
             if(extra_)
             {
                 std::uint16_t v;
-                if(! bi_.read(v, extra_, r.in.next, r.in.last))
+                if(! bi_.fill(extra_, r.in.next, r.in.last))
                     return done();
+                bi_.read(v, extra_);
                 offset_ += v;
                 back_ += extra_;
             }
