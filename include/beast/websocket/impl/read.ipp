@@ -162,6 +162,7 @@ operator()(error_code ec,std::size_t bytes_transferred, bool again)
         do_pong = 11,
         do_close_resume = 13,
         do_close = 15,
+        do_teardown = 16,
         do_fail = 18,
 
         do_call_handler = 99
@@ -379,9 +380,8 @@ operator()(error_code ec,std::size_t bytes_transferred, bool again)
                         d.state = do_close;
                         break;
                     }
-                    // call handler;
-                    ec = error::closed;
-                    goto upcall;
+                    d.state = do_teardown;
+                    break;
                 }
 
             //------------------------------------------------------------------
@@ -454,7 +454,7 @@ operator()(error_code ec,std::size_t bytes_transferred, bool again)
             //------------------------------------------------------------------
 
             case do_close:
-                d.state = do_close + 1;
+                d.state = do_teardown;
                 d.ws.wr_close_ = true;
                 BOOST_ASSERT(! d.ws.wr_block_);
                 d.ws.wr_block_ = &d;
@@ -462,13 +462,15 @@ operator()(error_code ec,std::size_t bytes_transferred, bool again)
                     d.fb.data(), std::move(*this));
                 return;
 
-            case do_close + 1:
-                d.state = do_close + 2;
+            //------------------------------------------------------------------
+
+            case do_teardown:
+                d.state = do_teardown + 1;
                 websocket_helpers::call_async_teardown(
                     d.ws.next_layer(), std::move(*this));
                 return;
 
-            case do_close + 2:
+            case do_teardown + 1:
                 // call handler
                 ec = error::closed;
                 goto upcall;

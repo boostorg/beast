@@ -10,6 +10,7 @@ HTTP
 WebSocket
 
 * Write buffer option does not change capacity
+* Close connection during async_read on close frame
 
 Core
 
