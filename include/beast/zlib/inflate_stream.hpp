@@ -127,11 +127,11 @@ public:
         error and with zero `zs.avail_out`, it must be called again after making
         room in the output buffer because there might be more output pending.
 
-        The flush parameter be `Flush::none`, `Flush::sync`, `Flush::finish`,
+        The flush parameter may be `Flush::none`, `Flush::sync`, `Flush::finish`,
         `Flush::block`, or `Flush::trees`. `Flush::sync` requests to flush as much
-        output as possible to the output buffer. `Flush::block` requests that
-        to stop if and when it gets to the next deflate block boundary. When decoding
-        the zlib or gzip format, this will cause `write` to return immediately after
+        output as possible to the output buffer. `Flush::block` requests to stop if
+        and when it gets to the next deflate block boundary. When decoding the
+        zlib or gzip format, this will cause `write` to return immediately after
         the header and before the first block. When doing a raw inflate, `write` will
         go ahead and process the first block, and will return when it gets to the
         end of that block, or when it runs out of data.

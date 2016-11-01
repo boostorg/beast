@@ -389,9 +389,9 @@ protected:
     ct_data dyn_ltree_[
         HEAP_SIZE];                 // literal and length tree
     ct_data dyn_dtree_[
-        2*dCodes+1];        // distance tree */
+        2*dCodes+1];                // distance tree
     ct_data bl_tree_[
-        2*blCodes+1];       // Huffman tree for bit lengths
+        2*blCodes+1];               // Huffman tree for bit lengths
 
     tree_desc l_desc_;              // desc. for literal tree
     tree_desc d_desc_;              // desc. for distance tree
@@ -407,7 +407,7 @@ protected:
         heap[0] is not used. The same heap array is used to build all trees.
     */
 
-    int heap_[2*lCodes+1];  // heap used to build the Huffman trees
+    int heap_[2*lCodes+1];          // heap used to build the Huffman trees
     int heap_len_;                  // number of elements in the heap
     int heap_max_;                  // element of largest frequency
 
@@ -2101,7 +2101,10 @@ tr_flush_block(
     }
     else
     {
-        // VFALCO This assertion fails even in the original ZLib
+        // VFALCO This assertion fails even in the original ZLib,
+        //        happens with strategy == Z_HUFFMAN_ONLY, see:
+        //        https://github.com/madler/zlib/issues/172
+
     #if 0
         BOOST_ASSERT(buf);
     #endif

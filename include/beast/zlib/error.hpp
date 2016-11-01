@@ -40,18 +40,6 @@
 namespace beast {
 namespace zlib {
 
-#if 0
-    Z_OK            =  0,
-    Z_STREAM_END    =  1,
-    Z_NEED_DICT     =  2,
-    Z_ERRNO         = -1,
-    Z_STREAM_ERROR  = -2,
-    Z_DATA_ERROR    = -3,
-    Z_MEM_ERROR     = -4,
-    Z_BUF_ERROR     = -5,
-    Z_VERSION_ERROR = -6
-#endif
-
 /** Error codes returned by the codec.
 */
 enum class error
