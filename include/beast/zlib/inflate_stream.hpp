@@ -40,9 +40,21 @@
 namespace beast {
 namespace zlib {
 
-/** Raw deflate decompressor.
+/** Raw deflate stream decompressor.
 
-    This is a port of ZLib's "inflate" functionality to C++.
+    This implements a raw deflate stream decompressor. The deflate
+    protocol is a compression protocol described in
+    "DEFLATE Compressed Data Format Specification version 1.3"
+    located here: https://tools.ietf.org/html/rfc1951
+
+    The implementation is a refactored port to C++ of ZLib's "inflate".
+    A more detailed description of ZLib is at http://zlib.net/.
+
+    Compression can be done in a single step if the buffers are large
+    enough (for example if an input file is memory mapped), or can be done
+    by repeated calls of the compression function. In the latter case, the
+    application must provide more input and/or consume the output (providing
+    more output space) before each call.
 */
 class inflate_stream
     : private detail::inflate_stream
@@ -115,7 +127,7 @@ public:
         error and with zero `zs.avail_out`, it must be called again after making
         room in the output buffer because there might be more output pending.
 
-        The flush parameter be `Flush::none`, `Flush::sync`, `Flush::finish`, 
+        The flush parameter be `Flush::none`, `Flush::sync`, `Flush::finish`,
         `Flush::block`, or `Flush::trees`. `Flush::sync` requests to flush as much
         output as possible to the output buffer. `Flush::block` requests that
         to stop if and when it gets to the next deflate block boundary. When decoding
