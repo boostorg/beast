@@ -1,6 +1,9 @@
 1.0.0-b19
 
+WebSocket
+
 * Optimize utf8 validation
+* Optimize mask operations
 
 --------------------------------------------------------------------------------
 
