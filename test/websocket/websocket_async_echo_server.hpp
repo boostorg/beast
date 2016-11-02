@@ -160,6 +160,8 @@ private:
             auto& d = *d_;
             d.ws.set_option(decorate(identity{}));
             d.ws.set_option(read_message_max(64 * 1024 * 1024));
+            d.ws.set_option(auto_fragment{false});
+            d.ws.set_option(write_buffer_size{64 * 1024});
             run();
         }
 
