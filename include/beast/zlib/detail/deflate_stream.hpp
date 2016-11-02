@@ -2170,6 +2170,8 @@ fill_window(z_params& zs)
         more = (unsigned)(window_size_ -
             (std::uint32_t)lookahead_ -(std::uint32_t)strstart_);
 
+        // VFALCO We don't support systems below 32-bit
+    #if 0
         // Deal with !@#$% 64K limit:
         if(sizeof(int) <= 2)
         {
@@ -2185,6 +2187,7 @@ fill_window(z_params& zs)
                 more--;
             }
         }
+    #endif
 
         /*  If the window is almost full and there is insufficient lookahead,
             move the upper half to the lower one to make room in the upper half.
