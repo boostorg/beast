@@ -38,7 +38,7 @@ class stream<NextLayer>::ping_op
 
         template<class DeducedHandler>
         data(DeducedHandler&& h_, stream<NextLayer>& ws_,
-                ping_data const& payload)
+                opcode op_, ping_data const& payload)
             : ws(ws_)
             , h(std::forward<DeducedHandler>(h_))
             , cont(boost_asio_handler_cont_helpers::
@@ -46,8 +46,8 @@ class stream<NextLayer>::ping_op
         {
             using boost::asio::buffer;
             using boost::asio::buffer_copy;
-            ws.template write_ping<static_streambuf>(
-                fb, opcode::ping, payload);
+            ws.template write_ping<
+                static_streambuf>(fb, op_, payload);
         }
     };
 
@@ -191,19 +191,38 @@ upcall:
 }
 
 template<class NextLayer>
-template<class PingHandler>
+template<class WriteHandler>
 typename async_completion<
-    PingHandler, void(error_code)>::result_type
+    WriteHandler, void(error_code)>::result_type
 stream<NextLayer>::
-async_ping(ping_data const& payload, PingHandler&& handler)
+async_ping(ping_data const& payload, WriteHandler&& handler)
 {
     static_assert(is_AsyncStream<next_layer_type>::value,
         "AsyncStream requirements requirements not met");
     beast::async_completion<
-        PingHandler, void(error_code)
+        WriteHandler, void(error_code)
             > completion(handler);
     ping_op<decltype(completion.handler)>{
-        completion.handler, *this, payload};
+        completion.handler, *this,
+            opcode::ping, payload};
+    return completion.result.get();
+}
+
+template<class NextLayer>
+template<class WriteHandler>
+typename async_completion<
+    WriteHandler, void(error_code)>::result_type
+stream<NextLayer>::
+async_pong(ping_data const& payload, WriteHandler&& handler)
+{
+    static_assert(is_AsyncStream<next_layer_type>::value,
+        "AsyncStream requirements requirements not met");
+    beast::async_completion<
+        WriteHandler, void(error_code)
+            > completion(handler);
+    ping_op<decltype(completion.handler)>{
+        completion.handler, *this,
+            opcode::pong, payload};
     return completion.result.get();
 }
 
@@ -226,6 +245,28 @@ ping(ping_data const& payload, error_code& ec)
     detail::frame_streambuf db;
     write_ping<static_streambuf>(
         db, opcode::ping, payload);
+    boost::asio::write(stream_, db.data(), ec);
+}
+
+template<class NextLayer>
+void
+stream<NextLayer>::
+pong(ping_data const& payload)
+{
+    error_code ec;
+    pong(payload, ec);
+    if(ec)
+        throw system_error{ec};
+}
+
+template<class NextLayer>
+void
+stream<NextLayer>::
+pong(ping_data const& payload, error_code& ec)
+{
+    detail::frame_streambuf db;
+    write_ping<static_streambuf>(
+        db, opcode::pong, payload);
     boost::asio::write(stream_, db.data(), ec);
 }
 

@@ -40,7 +40,7 @@ namespace websocket {
         system call, by concatenating the frame header and the payload.
 
         In the client role, this will send a single frame in one system
-        calls, using the write buffer to calculate masked data.
+        call, using the write buffer to calculate masked data.
 
     2.  autofragment: true
         compression:  false
@@ -215,7 +215,7 @@ public:
 
 template<class NextLayer>
 template<class Buffers, class Handler>
-void 
+void
 stream<NextLayer>::
 write_frame_op<Buffers, Handler>::
 operator()(error_code ec, std::size_t)

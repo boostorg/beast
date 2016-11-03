@@ -987,14 +987,107 @@ public:
         this function. Invocation of the handler will be performed in a
         manner equivalent to using `boost::asio::io_service::post`.
     */
-    template<class PingHandler>
+    template<class WriteHandler>
 #if GENERATING_DOCS
     void_or_deduced
 #else
     typename async_completion<
-        PingHandler, void(error_code)>::result_type
+        WriteHandler, void(error_code)>::result_type
 #endif
-    async_ping(ping_data const& payload, PingHandler&& handler);
+    async_ping(ping_data const& payload, WriteHandler&& handler);
+
+    /** Send a WebSocket pong frame.
+
+        This function is used to synchronously send a pong frame on
+        the stream. The call blocks until one of the following is true:
+
+        @li The pong frame finishes sending.
+
+        @li An error occurs on the stream.
+
+        This function is implemented in terms of one or more calls to the
+        next layer's `write_some` functions.
+
+        The WebSocket protocol allows pong frames to be sent from either
+        end at any time. It is not necessary to first receive a ping in
+        order to send a pong. The remote peer may use the receipt of a
+        pong frame as an indication that the connection is not dead.
+
+        @param payload The payload of the pong message, which may be empty.
+
+        @throws system_error Thrown on failure.
+    */
+    void
+    pong(ping_data const& payload);
+
+    /** Send a WebSocket pong frame.
+
+        This function is used to synchronously send a pong frame on
+        the stream. The call blocks until one of the following is true:
+
+        @li The pong frame finishes sending.
+
+        @li An error occurs on the stream.
+
+        This function is implemented in terms of one or more calls to the
+        next layer's `write_some` functions.
+
+        The WebSocket protocol allows pong frames to be sent from either
+        end at any time. It is not necessary to first receive a ping in
+        order to send a pong. The remote peer may use the receipt of a
+        pong frame as an indication that the connection is not dead.
+
+        @param payload The payload of the pong message, which may be empty.
+
+        @param ec Set to indicate what error occurred, if any.
+    */
+    void
+    pong(ping_data const& payload, error_code& ec);
+
+    /** Start an asynchronous operation to send a WebSocket pong frame.
+
+        This function is used to asynchronously send a pong frame to
+        the stream. The function call always returns immediately. The
+        asynchronous operation will continue until one of the following
+        is true:
+
+        @li The entire pong frame is sent.
+
+        @li An error occurs on the stream.
+
+        This operation is implemented in terms of one or more calls to the
+        next layer's `async_write_some` functions, and is known as a
+        <em>composed operation</em>. The program must ensure that the
+        stream performs no other writes until this operation completes.
+
+        The WebSocket protocol allows pong frames to be sent from either
+        end at any time. It is not necessary to first receive a ping in
+        order to send a pong. The remote peer may use the receipt of a
+        pong frame as an indication that the connection is not dead.
+
+        @param payload The payload of the pong message, which may be empty.
+
+        @param handler The handler to be called when the read operation
+        completes. Copies will be made of the handler as required. The
+        function signature of the handler must be:
+        @code
+        void handler(
+            error_code const& error     // Result of operation
+        );
+        @endcode
+        Regardless of whether the asynchronous operation completes
+        immediately or not, the handler will not be invoked from within
+        this function. Invocation of the handler will be performed in a
+        manner equivalent to using `boost::asio::io_service::post`.
+    */
+    template<class WriteHandler>
+#if GENERATING_DOCS
+    void_or_deduced
+#else
+    typename async_completion<
+        WriteHandler, void(error_code)>::result_type
+#endif
+    async_pong(ping_data const& payload, WriteHandler&& handler);
 
     /** Read a message from the stream.
 

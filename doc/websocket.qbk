@@ -329,7 +329,7 @@ Ping and pong messages are control frames which may be sent at any time
 by either peer on an established WebSocket connection. They are sent
 using the functions
     [link beast.ref.websocket__stream.ping `ping`] and
-    [link beast.ref.websocket__stream.ping `pong`].
+    [link beast.ref.websocket__stream.pong `pong`].
 
 To receive pong control frames, callers may register a "pong callback" using
 [link beast.ref.websocket__stream.set_option `set_option`]. The object provided
