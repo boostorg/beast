@@ -910,6 +910,9 @@ public:
                 }
                 ws.set_option(pong_callback{});
 
+                // send pong
+                ws.pong("");
+
                 // send auto fragmented message
                 ws.set_option(auto_fragment{true});
                 ws.set_option(write_buffer_size{8});
@@ -1171,6 +1174,9 @@ public:
                     }
                     ws.set_option(pong_callback{});
                 }
+
+                // send pong
+                ws.async_pong("", do_yield[ec]);
 
                 // send auto fragmented message
                 ws.set_option(auto_fragment{true});

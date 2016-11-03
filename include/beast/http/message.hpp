@@ -226,7 +226,7 @@ struct message_headers
 
         The Reason-Phrase is obsolete as of rfc7230.
 
-         @note This field is present only if `isRequest == false`.
+        @note This field is present only if `isRequest == false`.
     */
     std::string reason;
 

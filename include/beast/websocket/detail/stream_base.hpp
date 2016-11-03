@@ -104,7 +104,6 @@ protected:
         // The write buffer.
         // The buffer is allocated or reallocated at the beginning of
         // sending a message.
-        //
         std::unique_ptr<std::uint8_t[]> buf;
 
         void

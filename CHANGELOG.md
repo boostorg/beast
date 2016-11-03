@@ -11,6 +11,7 @@ WebSocket
 
 * Write buffer option does not change capacity
 * Close connection during async_read on close frame
+* Add pong, async pong to stream
 
 Core
 
