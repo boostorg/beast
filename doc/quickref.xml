@@ -140,10 +140,14 @@
     <colspec colname="b"/>
     <colspec colname="c"/>
     <colspec colname="d"/>
+    <colspec colname="e"/>
     <thead>
       <row>
         <entry valign="center" namest="a" nameend="d">
           <bridgehead renderas="sect2">Core</bridgehead>
+        </entry>
+        <entry valign="center" namest="e" nameend="e">
+          <bridgehead renderas="sect2">ZLib</bridgehead>
         </entry>
       </row>
     </thead>
@@ -179,7 +183,6 @@
             <member><link linkend="beast.ref.prepare_buffer">prepare_buffer</link></member>
             <member><link linkend="beast.ref.prepare_buffers">prepare_buffers</link></member>
             <member><link linkend="beast.ref.to_string">to_string</link></member>
-
             <member><link linkend="beast.ref.write">write</link></member>
           </simplelist>
         </entry>
@@ -207,6 +210,24 @@
             <member><link linkend="beast.ref.DynamicBuffer">DynamicBuffer</link></member>
             <member><link linkend="beast.ref.streams.Stream">Stream</link></member>
             <member><link linkend="beast.ref.streams.SyncStream">SyncStream</link></member>
+          </simplelist>
+        </entry>
+        <entry valign="top">
+          <bridgehead renderas="sect3">Classes</bridgehead>
+          <simplelist type="vert" columns="1">
+            <member><link linkend="beast.ref.zlib__deflate_stream">deflate_stream</link></member>
+            <member><link linkend="beast.ref.zlib__inflate_stream">inflate_stream</link></member>
+            <member><link linkend="beast.ref.zlib__z_params">z_params</link></member>
+          </simplelist>
+          <bridgehead renderas="sect3">Functions</bridgehead>
+          <simplelist type="vert" columns="1">
+            <member><link linkend="beast.ref.zlib__deflate_upper_bound">deflate_upper_bound</link></member>
+          </simplelist>
+          <bridgehead renderas="sect3">Constants</bridgehead>
+          <simplelist type="vert" columns="1">
+            <member><link linkend="beast.ref.zlib__error">error</link></member>
+            <member><link linkend="beast.ref.zlib__Flush">Flush</link></member>
+            <member><link linkend="beast.ref.zlib__Strategy">Strategy</link></member>
           </simplelist>
         </entry>
       </row>
