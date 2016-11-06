@@ -1,3 +1,12 @@
+1.0.0-b19
+
+WebSocket
+
+* Optimize utf8 validation
+* Optimize mask operations
+
+--------------------------------------------------------------------------------
+
 1.0.0-b18
 
 * Increase optimization settings for MSVC builds
