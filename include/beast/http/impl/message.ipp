@@ -20,6 +20,43 @@
 namespace beast {
 namespace http {
 
+template<class Headers>
+void
+swap(
+    message_headers<true, Headers>& m1,
+    message_headers<true, Headers>& m2)
+{
+    using std::swap;
+    swap(m1.version, m2.version);
+    swap(m1.method, m2.method);
+    swap(m1.url, m2.url);
+    swap(m1.headers, m2.headers);
+}
+
+template<class Headers>
+void
+swap(
+    message_headers<false, Headers>& a,
+    message_headers<false, Headers>& b)
+{
+    using std::swap;
+    swap(a.version, b.version);
+    swap(a.status, b.status);
+    swap(a.reason, b.reason);
+    swap(a.headers, b.headers);
+}
+
+template<bool isRequest, class Body, class Headers>
+void
+swap(
+    message<isRequest, Body, Headers>& m1,
+    message<isRequest, Body, Headers>& m2)
+{
+    using std::swap;
+    swap(m1.base(), m2.base());
+    swap(m1.body, m2.body);
+}
+
 template<bool isRequest, class Body, class Headers>
 bool
 is_keep_alive(message<isRequest, Body, Headers> const& msg)

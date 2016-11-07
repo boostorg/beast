@@ -18,7 +18,8 @@
 namespace beast {
 namespace http {
 
-/** A container for HTTP request headers.
+#if GENERATING_DOCS
+/** A container for HTTP request or response headers.
 
     The container includes the headers, as well as the
     request method and URL. Objects of this type may be
@@ -27,12 +28,24 @@ namespace http {
     example, when receiving a request with the header value
     "Expect: 100-continue".
 */
+template<bool isRequest, class Headers>
+struct message_headers
+
+#else
+template<bool isRequest, class Headers>
+struct message_headers;
+
 template<class Headers>
-struct request_headers
+struct message_headers<true, Headers>
+#endif
 {
-    /// Indicates if the message is a request.
-    using is_request =
-        std::integral_constant<bool, true>;
+    /// Indicates if the message headers are a request or response.
+#if GENERATING_DOCS
+    static bool constexpr is_request = isRequest;
+
+#else
+    static bool constexpr is_request = true;
+#endif
 
     /// The type representing the headers.
     using headers_type = Headers;
@@ -48,57 +61,65 @@ struct request_headers
     */
     int version;
 
-    /// The Request Method.
+    /** The Request Method
+
+        @note This field is present only if `isRequest == true`.
+    */
     std::string method;
 
-    /// The Request URI.
+    /** The Request URI
+
+        @note This field is present only if `isRequest == true`.
+    */
     std::string url;
 
-    /// The HTTP headers.
+    /// The HTTP field values.
     Headers headers;
 
-    /** Construct HTTP request headers.
+    /// Default constructor
+    message_headers() = default;
 
-        Arguments, if any, are forwarded to the constructor
-        of the headers member.
+    /// Move constructor
+    message_headers(message_headers&&) = default;
+
+    /// Copy constructor
+    message_headers(message_headers const&) = default;
+
+    /// Move assignment
+    message_headers& operator=(message_headers&&) = default;
+
+    /// Copy assignment
+    message_headers& operator=(message_headers const&) = default;
+
+    /** Construct message headers.
+
+        All arguments are forwarded to the constructor
+        of the `headers` member.
+
+        @note This constructor participates in overload resolution
+        if and only if the first parameter is not convertible to
+        `message_headers`.
     */
-    /** @{ */
-    request_headers() = default;
+#if GENERATING_DOCS
+    template<class... Args>
+    explicit
+    message_headers(Args&&... args);
 
+#else
     template<class Arg1, class... ArgN,
         class = typename std::enable_if<
             (sizeof...(ArgN) > 0) || ! std::is_convertible<
                 typename std::decay<Arg1>::type,
-                    request_headers>::value>::type>
+                    message_headers>::value>::type>
     explicit
-    request_headers(Arg1&& arg1, ArgN&&... argn)
+    message_headers(Arg1&& arg1, ArgN&&... argn)
         : headers(std::forward<Arg1>(arg1),
             std::forward<ArgN>(argn)...)
     {
     }
-    /** @} */
 };
 
-/** Swap two HTTP request headers.
-
-    Requirements:
-
-        Headers is Swappable.
-*/
-template<class Headers>
-void
-swap(
-    request_headers<Headers>& a,
-    request_headers<Headers>& b)
-{
-    using std::swap;
-    swap(a.version, b.version);
-    swap(a.method, b.method);
-    swap(a.url, b.url);
-    swap(a.headers, b.headers);
-}
-
-/** A container for HTTP response headers.
+/** A container for HTTP request or response headers.
 
     The container includes the headers, as well as the
     response status and reasons. Objects of this type may
@@ -107,11 +128,10 @@ swap(
     example, when responding to a HEAD request.
 */
 template<class Headers>
-struct response_headers
+struct message_headers<false, Headers>
 {
-    /// Indicates if the message is a response.
-    using is_request =
-        std::integral_constant<bool, false>;
+    /// Indicates if the message headers are a request or response.
+    static bool constexpr is_request = false;
 
     /// The type representing the headers.
     using headers_type = Headers;
@@ -127,94 +147,45 @@ struct response_headers
     */
     int version;
 
-    /// The Response Status-Code.
-    int status;
-
-    /** The Response Reason-Phrase.
-
-        The Reason-Phrase is obsolete as of rfc7230.
-    */
-    std::string reason;
-
-    /// The HTTP headers.
+    /// The HTTP field values.
     Headers headers;
 
-    /** Construct HTTP request headers.
+    /// Default constructor
+    message_headers() = default;
 
-        Arguments, if any, are forwarded to the constructor
-        of the headers member.
+    /// Move constructor
+    message_headers(message_headers&&) = default;
+
+    /// Copy constructor
+    message_headers(message_headers const&) = default;
+
+    /// Move assignment
+    message_headers& operator=(message_headers&&) = default;
+
+    /// Copy assignment
+    message_headers& operator=(message_headers const&) = default;
+
+    /** Construct message headers.
+
+        All arguments are forwarded to the constructor
+        of the `headers` member.
+
+        @note This constructor participates in overload resolution
+        if and only if the first parameter is not convertible to
+        `message_headers`.
     */
-    /** @{ */
-    response_headers() = default;
-
     template<class Arg1, class... ArgN,
         class = typename std::enable_if<
             (sizeof...(ArgN) > 0) || ! std::is_convertible<
                 typename std::decay<Arg1>::type,
-                    response_headers>::value>::type>
+                    message_headers>::value>::type>
     explicit
-    response_headers(Arg1&& arg1, ArgN&&... argn)
+    message_headers(Arg1&& arg1, ArgN&&... argn)
         : headers(std::forward<Arg1>(arg1),
             std::forward<ArgN>(argn)...)
     {
     }
-    /** @} */
-};
-
-/** Swap two HTTP response headers.
-
-    Requirements:
-
-        Headers is Swappable.
-*/
-template<class Headers>
-void
-swap(
-    response_headers<Headers>& a,
-    response_headers<Headers>& b)
-{
-    using std::swap;
-    swap(a.version, b.version);
-    swap(a.status, b.status);
-    swap(a.reason, b.reason);
-    swap(a.headers, b.headers);
-}
-
-/** A container for HTTP request or response headers.
-*/
-#if GENERATING_DOCS
-template<bool isRequest, class Headers>
-struct message_headers
-{
-    /// Indicates if the message is a request.
-    using is_request =
-        std::integral_constant<bool, isRequest>;
-
-    /// The type representing the headers.
-    using headers_type = Headers;
-
-    /** The HTTP version.
-
-        This holds both the major and minor version numbers,
-        using these formulas:
-        @code
-            major = version / 10;
-            minor = version % 10;
-        @endcode
-    */
-    int version;
-
-    /** The Request Method.
-
-        @note This field is present only if `isRequest == true`.
-    */
-    std::string method;
-
-    /** The Request-URI.
-
-        @note This field is present only if `isRequest == true`.
-    */
-    std::string url;
+#endif
 
     /** The Response Status-Code.
 
@@ -229,29 +200,9 @@ struct message_headers
         @note This field is present only if `isRequest == false`.
     */
     std::string reason;
-
-    /// The HTTP headers.
-    Headers headers;
-
-    /** Construct message headers.
-
-        Any provided arguments are forwarded to the
-        constructor of the headers member.
-    */
-    template<class... Args>
-    message_headers(Args&&... args);
 };
 
-#else
-template<bool isRequest, class Headers>
-using message_headers =
-    typename std::conditional<isRequest,
-        request_headers<Headers>,
-        response_headers<Headers>>::type;
-
-#endif
-
-/** A complete HTTP message.
+/** A container for a complete HTTP message.
 
     A message can be a request or response, depending on the `isRequest`
     template argument value. Requests and responses have different types,
@@ -260,93 +211,35 @@ using message_headers =
     The `Body` template argument type determines the model used
     to read or write the content body of the message.
 
-    @tparam isRequest `true` if this is a request.
+    @tparam isRequest `true` if this represents a request,
+    or `false` if this represents a response. Some class data
+    members are conditionally present depending on this value.
 
     @tparam Body A type meeting the requirements of Body.
 
-    @tparam Headers A type meeting the requirements of Headers.
+    @tparam Headers The type of container used to hold the
+    field value pairs.
 */
 template<bool isRequest, class Body, class Headers>
 struct message :
-#if GENERATING_DOCS
-    implementation_defined
-#else
     message_headers<isRequest, Headers>
-#endif
 {
-#if GENERATING_DOCS
-    /// Indicates if the message is a request.
-    using is_request =
-        std::integral_constant<bool, isRequest>;
-
-    /// The type representing the headers.
-    using headers_type = Headers;
-
-    /** The type controlling the body traits.
-
-        The body member will be of type `body_type::value_type`.
-    */
-    using body_type = Body;
-
-    /** The HTTP version.
-
-        This holds both the major and minor version numbers,
-        using these formulas:
-        @code
-            major = version / 10;
-            minor = version % 10;
-        @endcode
-    */
-    int version;
-
-    /** The Request Method.
-
-        @note This field is present only if `isRequest == true`.
-    */
-    std::string method;
-
-    /** The Request-URI.
-
-        @note This field is present only if `isRequest == true`.
-    */
-    std::string url;
-
-    /** The Response Status-Code.
-
-        @note This field is present only if `isRequest == false`.
-    */
-    int status;
-
-    /** The Response Reason-Phrase.
-
-        The Reason-Phrase is obsolete as of rfc7230.
-
-         @note This field is present only if `isRequest == false`.
-    */
-    std::string reason;
-
-    /// The HTTP headers.
-    Headers headers;
-
-#else
-    /// The container used to hold the request or response headers
+    /// The base class used to hold the request or response headers
     using base_type = message_headers<isRequest, Headers>;
 
-    /** The type controlling the body traits.
+    /** The type providing the body traits.
 
-        The body member will be of type `body_type::value_type`.
+        The `body` member will be of type `body_type::value_type`.
     */
     using body_type = Body;
 
-#endif
-
-    /// A container representing the body.
+    /// A value representing the body.
     typename Body::value_type body;
 
     /// Default constructor
     message() = default;
 
-    /** Construct a message from headers.
+    /** Construct a message from message headers.
 
         Additional arguments, if any, are forwarded to
         the constructor of the body member.
@@ -359,7 +252,7 @@ struct message :
     {
     }
 
-    /** Construct a message from headers.
+    /** Construct a message from message headers.
 
         Additional arguments, if any, are forwarded to
         the constructor of the body member.
@@ -394,6 +287,7 @@ struct message :
     /** Construct a message.
 
         @param u An argument forwarded to the body constructor.
+
         @param v An argument forwarded to the headers constructor.
 
         @note This constructor participates in overload resolution
@@ -425,6 +319,7 @@ struct message :
     /** Construct a message.
 
         @param un A tuple forwarded as a parameter pack to the body constructor.
+
         @param vn A tuple forwarded as a parameter pack to the headers constructor.
     */
     template<class... Un, class... Vn>
@@ -434,6 +329,20 @@ struct message :
             beast::detail::make_index_sequence<sizeof...(Un)>{},
             beast::detail::make_index_sequence<sizeof...(Vn)>{})
     {
+    }
+
+    /// Returns the message headers portion of the message
+    base_type&
+    base()
+    {
+        return *this;
+    }
+
+    /// Returns the message headers portion of the message
+    base_type const&
+    base() const
+    {
+        return *this;
     }
 
 private:
@@ -456,30 +365,51 @@ private:
     }
 };
 
-/// Swap one message for another message.
+//------------------------------------------------------------------------------
+
+#if GENERATING_DOCS
+/** Swap two HTTP message headers.
+
+    @par Requirements
+    `Headers` is @b Swappable.
+*/
+template<bool isRequest, class Headers>
+void
+swap(
+    message_headers<isRequest, Headers>& m1,
+    message_headers<isRequest, Headers>& m2);
+#endif
+
+/** Swap two HTTP messages.
+
+    @par Requirements:
+    `Body` and `Headers` are @b Swappable.
+*/
 template<bool isRequest, class Body, class Headers>
 void
 swap(
-    message<isRequest, Body, Headers>& a,
-    message<isRequest, Body, Headers>& b)
-{
-    using std::swap;
-    using base_type = typename message<
-        isRequest, Body, Headers>::base_type;
-    swap(static_cast<base_type&>(a),
-        static_cast<base_type&>(b));
-    swap(a.body, b.body);
-}
+    message<isRequest, Body, Headers>& m1,
+    message<isRequest, Body, Headers>& m2);
 
-/// A typical HTTP request
+/// Message headers for a typical HTTP request
+using request_headers = message_headers<true,
+    basic_headers<std::allocator<char>>>;
+
+/// Message headers for a typical HTTP response
+using response_headers = message_headers<false,
+    basic_headers<std::allocator<char>>>;
+
+/// A typical HTTP request message
 template<class Body,
     class Headers = basic_headers<std::allocator<char>>>
 using request = message<true, Body, Headers>;
 
-/// A typical HTTP response
+/// A typical HTTP response message
 template<class Body,
     class Headers = basic_headers<std::allocator<char>>>
 using response = message<false, Body, Headers>;
+
+//------------------------------------------------------------------------------
 
 /** Returns `true` if a HTTP/1 message indicates a keep alive.
 

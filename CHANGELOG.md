@@ -1,9 +1,15 @@
 1.0.0-b19
 
+HTTP
+
 WebSocket
 
 * Optimize utf8 validation
 * Optimize mask operations
+
+API Changes:
+
+* Refactor message and message_headers declarations
 
 --------------------------------------------------------------------------------
 

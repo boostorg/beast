@@ -1052,10 +1052,26 @@
     </xsl:for-each>
     <xsl:text>]&#xd;</xsl:text>
   </xsl:if>
-  <xsl:if test="count(sectiondef[@kind='public-attrib' or @kind='public-static-attrib']) > 0">
+  <xsl:if test="count(sectiondef[@kind='public-static-attrib']) &gt; 0">
+    <xsl:text>[heading Static Data Members]&#xd;</xsl:text>
+    <xsl:text>[table&#xd;  [[Name][Description]]&#xd;</xsl:text>
+    <xsl:for-each select="sectiondef[@kind='public-static-attrib']/memberdef" mode="class-table">
+      <xsl:sort select="name"/>
+      <xsl:text>  [&#xd;</xsl:text>
+      <xsl:text>    [[link beast.ref.</xsl:text>
+      <xsl:value-of select="$class-id"/>.<xsl:value-of select="name"/>
+      <xsl:text> [*</xsl:text>
+      <xsl:value-of select="name"/>
+      <xsl:text>]]]&#xd;    [&#xd;      </xsl:text>
+      <xsl:value-of select="briefdescription"/>
+      <xsl:text>&#xd;    ]&#xd;  ]&#xd;</xsl:text>
+    </xsl:for-each>
+    <xsl:text>]&#xd;</xsl:text>
+  </xsl:if>
+  <xsl:if test="count(sectiondef[@kind='public-attrib']) &gt; 0">
     <xsl:text>[heading Data Members]&#xd;</xsl:text>
     <xsl:text>[table&#xd;  [[Name][Description]]&#xd;</xsl:text>
-    <xsl:for-each select="sectiondef[@kind='public-attrib' or @kind='public-static-attrib']/memberdef" mode="class-table">
+    <xsl:for-each select="sectiondef[@kind='public-attrib']/memberdef" mode="class-table">
       <xsl:sort select="name"/>
       <xsl:text>  [&#xd;</xsl:text>
       <xsl:text>    [[link beast.ref.</xsl:text>
