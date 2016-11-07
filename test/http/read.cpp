@@ -244,6 +244,52 @@ public:
             failMatrix<false>(res[i], do_yield);
     }
 
+    void testReadHeaders(yield_context do_yield)
+    {
+        static std::size_t constexpr limit = 100;
+        std::size_t n;
+
+        for(n = 0; n < limit; ++n)
+        {
+            test::fail_stream<test::string_stream> fs{n, ios_,
+                "GET / HTTP/1.1\r\n"
+                "Host: localhost\r\n"
+                "User-Agent: test\r\n"
+                "Content-Length: 5\r\n"
+                "\r\n"
+            };
+            request_headers m;
+            try
+            {
+                streambuf sb;
+                read(fs, sb, m);
+                break;
+            }
+            catch(std::exception const&)
+            {
+            }
+        }
+        BEAST_EXPECT(n < limit);
+
+        for(n = 0; n < limit; ++n)
+        {
+            test::fail_stream<test::string_stream> fs(n, ios_,
+                "GET / HTTP/1.1\r\n"
+                "Host: localhost\r\n"
+                "User-Agent: test\r\n"
+                "Content-Length: 0\r\n"
+                "\r\n"
+            );
+            request_headers m;
+            error_code ec;
+            streambuf sb;
+            async_read(fs, sb, m, do_yield[ec]);
+            if(! ec)
+                break;
+        }
+        BEAST_EXPECT(n < limit);
+    }
+
     void testRead(yield_context do_yield)
     {
         static std::size_t constexpr limit = 100;
@@ -333,6 +379,9 @@ public:
         testThrow();
 
         yield_to(std::bind(&read_test::testFailures,
+            this, std::placeholders::_1));
+
+        yield_to(std::bind(&read_test::testReadHeaders,
             this, std::placeholders::_1));
 
         yield_to(std::bind(&read_test::testRead,
