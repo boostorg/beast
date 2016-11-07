@@ -18,6 +18,7 @@
 #include <beast/core/stream_concepts.hpp>
 #include <beast/core/streambuf.hpp>
 #include <beast/core/write_dynabuf.hpp>
+#include <beast/core/detail/sync_ostream.hpp>
 #include <boost/asio/write.hpp>
 #include <boost/logic/tribool.hpp>
 #include <condition_variable>
@@ -598,55 +599,6 @@ async_write(AsyncWriteStream& stream,
     return completion.result.get();
 }
 
-namespace detail {
-
-class ostream_SyncStream
-{
-    std::ostream& os_;
-
-public:
-    ostream_SyncStream(std::ostream& os)
-        : os_(os)
-    {
-    }
-
-    template<class ConstBufferSequence>
-    std::size_t
-    write_some(ConstBufferSequence const& buffers)
-    {
-        error_code ec;
-        auto const n = write_some(buffers, ec);
-        if(ec)
-            throw system_error{ec};
-        return n;
-    }
-
-    template<class ConstBufferSequence>
-    std::size_t
-    write_some(ConstBufferSequence const& buffers,
-        error_code& ec)
-    {
-        std::size_t n = 0;
-        using boost::asio::buffer_cast;
-        using boost::asio::buffer_size;
-        for(auto const& buffer : buffers)
-        {
-            os_.write(buffer_cast<char const*>(buffer),
-                buffer_size(buffer));
-            if(os_.fail())
-            {
-                ec = errc::make_error_code(
-                    errc::no_stream_resources);
-                break;
-            }
-            n += buffer_size(buffer);
-        }
-        return n;
-    }
-};
-
-} // detail
-
 template<bool isRequest, class Body, class Headers>
 std::ostream&
 operator<<(std::ostream& os,
@@ -659,7 +611,7 @@ operator<<(std::ostream& os,
     static_assert(is_Writer<typename Body::writer,
         message<isRequest, Body, Headers>>::value,
             "Writer requirements not met");
-    detail::ostream_SyncStream oss(os);
+    beast::detail::sync_ostream oss{os};
     error_code ec;
     write(oss, msg, ec);
     if(ec && ec != boost::asio::error::eof)
