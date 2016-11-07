@@ -32,11 +32,12 @@ namespace http {
 
 namespace detail {
 
-template<class DynamicBuffer, class Body, class Headers>
+template<class DynamicBuffer, class Headers>
 void
 write_firstline(DynamicBuffer& dynabuf,
-    message<true, Body, Headers> const& msg)
+    message_headers<true, Headers> const& msg)
 {
+    BOOST_ASSERT(msg.version == 10 || msg.version == 11);
     write(dynabuf, msg.method);
     write(dynabuf, " ");
     write(dynabuf, msg.url);
@@ -48,23 +49,15 @@ write_firstline(DynamicBuffer& dynabuf,
     case 11:
         write(dynabuf, " HTTP/1.1\r\n");
         break;
-    default:
-    {
-        std::string s;
-        s = " HTTP/" +
-            std::to_string(msg.version/10) + '.' +
-            std::to_string(msg.version%10) + "\r\n";
-        write(dynabuf, s);
-        break;
-    }
     }
 }
 
-template<class DynamicBuffer, class Body, class Headers>
+template<class DynamicBuffer, class Headers>
 void
 write_firstline(DynamicBuffer& dynabuf,
-    message<false, Body, Headers> const& msg)
+    message_headers<false, Headers> const& msg)
 {
+    BOOST_ASSERT(msg.version == 10 || msg.version == 11);
     switch(msg.version)
     {
     case 10:
@@ -73,15 +66,6 @@ write_firstline(DynamicBuffer& dynabuf,
     case 11:
         write(dynabuf, "HTTP/1.1 ");
         break;
-    default:
-    {
-        std::string s;
-        s = " HTTP/" +
-            std::to_string(msg.version/10) + '.' +
-            std::to_string(msg.version%10) + ' ';
-        write(dynabuf, s);
-        break;
-    }
     }
     write(dynabuf, msg.status);
     write(dynabuf, " ");
@@ -105,6 +89,177 @@ write_fields(DynamicBuffer& dynabuf, FieldSequence const& fields)
         write(dynabuf, "\r\n");
     }
 }
+
+} // detail
+
+//------------------------------------------------------------------------------
+
+namespace detail {
+
+template<class Stream, class Handler>
+class write_streambuf_op
+{
+    using alloc_type =
+        handler_alloc<char, Handler>;
+
+    struct data
+    {
+        Stream& s;
+        streambuf sb;
+        Handler h;
+        bool cont;
+        int state = 0;
+
+        template<class DeducedHandler>
+        data(DeducedHandler&& h_, Stream& s_,
+                streambuf&& sb_)
+            : s(s_)
+            , sb(std::move(sb_))
+            , h(std::forward<DeducedHandler>(h_))
+            , cont(boost_asio_handler_cont_helpers::
+                is_continuation(h))
+        {
+        }
+    };
+
+    std::shared_ptr<data> d_;
+
+public:
+    write_streambuf_op(write_streambuf_op&&) = default;
+    write_streambuf_op(write_streambuf_op const&) = default;
+
+    template<class DeducedHandler, class... Args>
+    write_streambuf_op(DeducedHandler&& h, Stream& s,
+            Args&&... args)
+        : d_(std::allocate_shared<data>(alloc_type{h},
+            std::forward<DeducedHandler>(h), s,
+                std::forward<Args>(args)...))
+    {
+        (*this)(error_code{}, 0, false);
+    }
+
+    explicit
+    write_streambuf_op(std::shared_ptr<data> d)
+        : d_(std::move(d))
+    {
+    }
+
+    void
+    operator()(error_code ec,
+        std::size_t bytes_transferred, bool again = true);
+
+    friend
+    void* asio_handler_allocate(
+        std::size_t size, write_streambuf_op* op)
+    {
+        return boost_asio_handler_alloc_helpers::
+            allocate(size, op->d_->h);
+    }
+
+    friend
+    void asio_handler_deallocate(
+        void* p, std::size_t size, write_streambuf_op* op)
+    {
+        return boost_asio_handler_alloc_helpers::
+            deallocate(p, size, op->d_->h);
+    }
+
+    friend
+    bool asio_handler_is_continuation(write_streambuf_op* op)
+    {
+        return op->d_->cont;
+    }
+
+    template<class Function>
+    friend
+    void asio_handler_invoke(Function&& f, write_streambuf_op* op)
+    {
+        return boost_asio_handler_invoke_helpers::
+            invoke(f, op->d_->h);
+    }
+};
+
+template<class Stream, class Handler>
+void
+write_streambuf_op<Stream, Handler>::
+operator()(error_code ec, std::size_t, bool again)
+{
+    auto& d = *d_;
+    d.cont = d.cont || again;
+    while(! ec && d.state != 99)
+    {
+        switch(d.state)
+        {
+        case 0:
+        {
+            d.state = 99;
+            boost::asio::async_write(d.s,
+                d.sb.data(), std::move(*this));
+            return;
+        }
+        }
+    }
+    d.h(ec);
+}
+
+} // detail
+
+template<class SyncWriteStream,
+    bool isRequest, class Headers>
+void
+write(SyncWriteStream& stream,
+    message_headers<isRequest, Headers> const& msg)
+{
+    static_assert(is_SyncWriteStream<SyncWriteStream>::value,
+        "SyncWriteStream requirements not met");
+    error_code ec;
+    write(stream, msg, ec);
+    if(ec)
+        throw system_error{ec};
+}
+
+template<class SyncWriteStream,
+    bool isRequest, class Headers>
+void
+write(SyncWriteStream& stream,
+    message_headers<isRequest, Headers> const& msg,
+        error_code& ec)
+{
+    static_assert(is_SyncWriteStream<SyncWriteStream>::value,
+        "SyncWriteStream requirements not met");
+    streambuf sb;
+    detail::write_firstline(sb, msg);
+    detail::write_fields(sb, msg.headers);
+    beast::write(sb, "\r\n");
+    boost::asio::write(stream, sb.data(), ec);
+}
+
+template<class AsyncWriteStream,
+    bool isRequest, class Headers,
+        class WriteHandler>
+typename async_completion<
+    WriteHandler, void(error_code)>::result_type
+async_write(AsyncWriteStream& stream,
+    message_headers<isRequest, Headers> const& msg,
+        WriteHandler&& handler)
+{
+    static_assert(is_AsyncWriteStream<AsyncWriteStream>::value,
+        "AsyncWriteStream requirements not met");
+    beast::async_completion<WriteHandler,
+        void(error_code)> completion(handler);
+    streambuf sb;
+    detail::write_firstline(sb, msg);
+    detail::write_fields(sb, msg.headers);
+    beast::write(sb, "\r\n");
+    detail::write_streambuf_op<AsyncWriteStream,
+        decltype(completion.handler)>{
+            completion.handler, stream, std::move(sb)};
+    return completion.result.get();
+}
+
+//------------------------------------------------------------------------------
+
+namespace detail {
 
 template<bool isRequest, class Body, class Headers>
 struct write_preparation
@@ -135,6 +290,7 @@ struct write_preparation
         w.init(ec);
         if(ec)
             return;
+  
         write_firstline(sb, msg);
         write_fields(sb, msg.headers);
         beast::write(sb, "\r\n");
@@ -462,8 +618,6 @@ public:
 
 } // detail
 
-//------------------------------------------------------------------------------
-
 template<class SyncWriteStream,
     bool isRequest, class Body, class Headers>
 void
@@ -597,6 +751,21 @@ async_write(AsyncWriteStream& stream,
     detail::write_op<AsyncWriteStream, decltype(completion.handler),
         isRequest, Body, Headers>{completion.handler, stream, msg};
     return completion.result.get();
+}
+
+//------------------------------------------------------------------------------
+
+template<bool isRequest, class Headers>
+std::ostream&
+operator<<(std::ostream& os,
+    message_headers<isRequest, Headers> const& msg)
+{
+    beast::detail::sync_ostream oss{os};
+    error_code ec;
+    write(oss, msg, ec);
+    if(ec)
+        throw system_error{ec};
+    return os;
 }
 
 template<bool isRequest, class Body, class Headers>
