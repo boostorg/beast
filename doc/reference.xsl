@@ -195,6 +195,18 @@
          select="concat(substring-before($name, '::'), '__', substring-after($name, '::'))"/>
       </xsl:call-template>
     </xsl:when>
+    <xsl:when test="substring($name, string-length($name) - 1) = '&lt;&lt;'">
+      <xsl:call-template name="make-id">
+        <xsl:with-param name="name"
+         select="concat(substring-before($name, '&lt;&lt;'), '_ls_')"/>
+      </xsl:call-template>
+    </xsl:when>
+    <xsl:when test="substring($name, string-length($name) - 1) = '&gt;&gt;'">
+      <xsl:call-template name="make-id">
+        <xsl:with-param name="name"
+         select="concat(substring-before($name, '&gt;&gt;'), '_rs_')"/>
+      </xsl:call-template>
+    </xsl:when>
     <xsl:when test="contains($name, '=')">
       <xsl:call-template name="make-id">
         <xsl:with-param name="name"
@@ -1698,6 +1710,14 @@
     </xsl:choose>
     <xsl:text>```&#xd;</xsl:text>
     <xsl:for-each select="../memberdef[name = $unqualified-name]">
+      <xsl:if test="position() &gt; 1">
+        <xsl:text>&#xd;</xsl:text>
+        <xsl:if test=" not(briefdescription = preceding-sibling::*/briefdescription)">
+          <xsl:text>```&#xd;</xsl:text>
+          <xsl:apply-templates select="briefdescription" mode="markup"/>
+          <xsl:text>```&#xd;</xsl:text>
+        </xsl:if>
+      </xsl:if>
       <xsl:variable name="stripped-type">
         <xsl:call-template name="cleanup-type">
           <xsl:with-param name="name" select="type"/>

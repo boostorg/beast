@@ -231,6 +231,43 @@ public:
     }
 
     void
+    testAsyncWriteHeaders(yield_context do_yield)
+    {
+        {
+            message_headers<true, headers> m;
+            m.version = 11;
+            m.method = "GET";
+            m.url = "/";
+            m.headers.insert("User-Agent", "test");
+            error_code ec;
+            string_write_stream ss{ios_};
+            async_write(ss, m, do_yield[ec]);
+            if(BEAST_EXPECTS(! ec, ec.message()))
+                BEAST_EXPECT(ss.str ==
+                    "GET / HTTP/1.1\r\n"
+                    "User-Agent: test\r\n"
+                    "\r\n");
+        }
+        {
+            message_headers<false, headers> m;
+            m.version = 10;
+            m.status = 200;
+            m.reason = "OK";
+            m.headers.insert("Server", "test");
+            m.headers.insert("Content-Length", "5");
+            error_code ec;
+            string_write_stream ss{ios_};
+            async_write(ss, m, do_yield[ec]);
+            if(BEAST_EXPECTS(! ec, ec.message()))
+                BEAST_EXPECT(ss.str ==
+                    "HTTP/1.0 200 OK\r\n"
+                    "Server: test\r\n"
+                    "Content-Length: 5\r\n"
+                    "\r\n");
+        }
+    }
+
+    void
     testAsyncWrite(yield_context do_yield)
     {
         {
@@ -242,7 +279,7 @@ public:
             m.headers.insert("Content-Length", "5");
             m.body = "*****";
             error_code ec;
-            string_write_stream ss(ios_);
+            string_write_stream ss{ios_};
             async_write(ss, m, do_yield[ec]);
             if(BEAST_EXPECTS(! ec, ec.message()))
                 BEAST_EXPECT(ss.str ==
@@ -599,17 +636,45 @@ public:
         }
     }
 
-    void testConvert()
+    void test_std_ostream()
     {
+        // Conversion to std::string via operator<<
         message<true, string_body, headers> m;
         m.method = "GET";
         m.url = "/";
         m.version = 11;
         m.headers.insert("User-Agent", "test");
         m.body = "*";
-        prepare(m);
         BEAST_EXPECT(boost::lexical_cast<std::string>(m) ==
-            "GET / HTTP/1.1\r\nUser-Agent: test\r\nContent-Length: 1\r\n\r\n*");
+            "GET / HTTP/1.1\r\nUser-Agent: test\r\n\r\n*");
+        BEAST_EXPECT(boost::lexical_cast<std::string>(m.base()) ==
+            "GET / HTTP/1.1\r\nUser-Agent: test\r\n\r\n");
+        // Cause exceptions in operator<<
+        {
+            std::stringstream ss;
+            ss.setstate(ss.rdstate() |
+                std::stringstream::failbit);
+            try
+            {
+                // message_headers
+                ss << m.base();
+                fail("", __FILE__, __LINE__);
+            }
+            catch(std::exception const&)
+            {
+                pass();
+            }
+            try
+            {
+                // message
+                ss << m;
+                fail("", __FILE__, __LINE__);
+            }
+            catch(std::exception const&)
+            {
+                pass();
+            }
+        }
     }
 
     void testOstream()
@@ -637,12 +702,14 @@ public:
 
     void run() override
     {
+        yield_to(std::bind(&write_test::testAsyncWriteHeaders,
+            this, std::placeholders::_1));
         yield_to(std::bind(&write_test::testAsyncWrite,
             this, std::placeholders::_1));
         yield_to(std::bind(&write_test::testFailures,
             this, std::placeholders::_1));
         testOutput();
-        testConvert();
+        test_std_ostream();
         testOstream();
     }
 };
