@@ -10,7 +10,7 @@
 
 #include <beast/http/concepts.hpp>
 #include <beast/http/resume_context.hpp>
-#include <beast/http/detail/chunk_encode.hpp>
+#include <beast/http/chunk_encode.hpp>
 #include <beast/core/buffer_cat.hpp>
 #include <beast/core/bind_handler.hpp>
 #include <beast/core/buffer_concepts.hpp>
@@ -191,7 +191,7 @@ class write_op
             if(d.wp.chunked)
                 boost::asio::async_write(d.s,
                     buffer_cat(d.wp.sb.data(),
-                        detail::chunk_encode(buffers)),
+                        chunk_encode(false, buffers)),
                             std::move(self_));
             else
                 boost::asio::async_write(d.s,
@@ -218,7 +218,7 @@ class write_op
             // write body
             if(d.wp.chunked)
                 boost::asio::async_write(d.s,
-                    detail::chunk_encode(buffers),
+                    chunk_encode(false, buffers),
                         std::move(self_));
             else
                 boost::asio::async_write(d.s,
@@ -243,7 +243,7 @@ public:
         d.resume = {
             [sp]() mutable
             {
-                write_op self(std::move(sp));
+                write_op self{std::move(sp)};
                 self.d_->cont = false;
                 auto& ios = self.d_->s.get_io_service();
                 ios.dispatch(bind_handler(std::move(self),
@@ -383,7 +383,7 @@ operator()(error_code ec, std::size_t, bool again)
             // write final chunk
             d.state = 5;
             boost::asio::async_write(d.s,
-                detail::chunk_encode_final(), std::move(*this));
+                chunk_encode_final(), std::move(*this));
             return;
 
         case 5:
@@ -425,7 +425,7 @@ public:
         // write headers and body
         if(chunked_)
             boost::asio::write(stream_, buffer_cat(
-                sb_.data(), detail::chunk_encode(buffers)), ec_);
+                sb_.data(), chunk_encode(false, buffers)), ec_);
         else
             boost::asio::write(stream_, buffer_cat(
                 sb_.data(), buffers), ec_);
@@ -454,7 +454,7 @@ public:
         // write body
         if(chunked_)
             boost::asio::write(stream_,
-                detail::chunk_encode(buffers), ec_);
+                chunk_encode(false, buffers), ec_);
         else
             boost::asio::write(stream_, buffers, ec_);
     }
@@ -563,7 +563,7 @@ write(SyncWriteStream& stream,
         //        final body chunk with the final chunk delimiter.
         //
         // write final chunk
-        boost::asio::write(stream, detail::chunk_encode_final(), ec);
+        boost::asio::write(stream, chunk_encode_final(), ec);
         if(ec)
             return;
     }

@@ -2,6 +2,8 @@
 
 HTTP
 
+* Make chunk_encode public
+
 WebSocket
 
 * Optimize utf8 validation

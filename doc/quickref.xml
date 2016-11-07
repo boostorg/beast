@@ -59,6 +59,8 @@
             <member><link linkend="beast.ref.http__async_parse">async_parse</link></member>
             <member><link linkend="beast.ref.http__async_read">async_read</link></member>
             <member><link linkend="beast.ref.http__async_write">async_write</link></member>
+            <member><link linkend="beast.ref.http__chunk_encode">chunk_encode</link></member>
+            <member><link linkend="beast.ref.http__chunk_encode_final">chunk_encode_final</link></member>
             <member><link linkend="beast.ref.http__is_keep_alive">is_keep_alive</link></member>
             <member><link linkend="beast.ref.http__is_upgrade">is_upgrade</link></member>
             <member><link linkend="beast.ref.http__parse">parse</link></member>
