@@ -818,7 +818,8 @@ private:
     {
         return on_request(method, url,
             major, minor, keep_alive, upgrade,
-                typename message_type::is_request{});
+                std::integral_constant<
+                    bool,  message_type::is_request>{});
     }
 
     bool
@@ -847,7 +848,7 @@ private:
     {
         return on_response(
             status, reason, major, minor, keep_alive, upgrade,
-                std::integral_constant<bool, ! message_type::is_request::value>{});
+                std::integral_constant<bool, ! message_type::is_request>{});
     }
 
     void

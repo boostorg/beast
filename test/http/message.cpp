@@ -168,13 +168,13 @@ public:
     void testHeaders()
     {
         {
-            using req_type = request_headers<headers>;
+            using req_type = request_headers;
             static_assert(std::is_copy_constructible<req_type>::value, "");
             static_assert(std::is_move_constructible<req_type>::value, "");
             static_assert(std::is_copy_assignable<req_type>::value, "");
             static_assert(std::is_move_assignable<req_type>::value, "");
 
-            using res_type = response_headers<headers>;
+            using res_type = response_headers;
             static_assert(std::is_copy_constructible<res_type>::value, "");
             static_assert(std::is_move_constructible<res_type>::value, "");
             static_assert(std::is_copy_assignable<res_type>::value, "");
@@ -183,7 +183,7 @@ public:
 
         {
             MoveHeaders h;
-            request_headers<MoveHeaders> r{std::move(h)};
+            message_headers<true, MoveHeaders> r{std::move(h)};
             BEAST_EXPECT(h.moved_from);
             BEAST_EXPECT(r.headers.moved_to);
             request<string_body, MoveHeaders> m{std::move(r)};
