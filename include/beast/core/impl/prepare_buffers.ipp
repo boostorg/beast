@@ -50,8 +50,12 @@ class prepared_buffers<BufferSequence>::const_iterator
     typename BufferSequence::const_iterator it_;
 
 public:
-    using value_type =
-        typename std::iterator_traits<iter_type>::value_type;
+    using value_type = typename std::conditional<
+        std::is_convertible<typename
+            std::iterator_traits<iter_type>::value_type,
+                boost::asio::mutable_buffer>::value,
+                    boost::asio::mutable_buffer,
+                        boost::asio::const_buffer>::type;
     using pointer = value_type const*;
     using reference = value_type;
     using difference_type = std::ptrdiff_t;

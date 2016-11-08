@@ -13,15 +13,24 @@
 #include <cstdint>
 #include <iterator>
 #include <stdexcept>
+#include <type_traits>
 #include <utility>
 
 namespace beast {
 
-/** Get a trimmed const buffer.
+/** Return a shortened buffer.
 
-    The new buffer starts at the beginning of the passed
-    buffer. Ownership of the underlying memory is not
-    transferred.
+    The returned buffer points to the same memory as the
+    passed buffer, but with a size that is equal to or less
+    than the size of the original buffer.
+    
+    @param n The size of the returned buffer.
+
+    @param buffer The buffer to shorten. Ownership of the
+    underlying memory is not transferred.
+
+    @return A new buffer that points to the first `n` bytes
+    of the original buffer.
 */
 inline
 boost::asio::const_buffer
@@ -34,11 +43,19 @@ prepare_buffer(std::size_t n,
         (std::min)(n, buffer_size(buffer)) };
 }
 
-/** Get a trimmed mutable buffer.
+/** Return a shortened buffer.
 
-    The new buffer starts at the beginning of the passed
-    buffer. Ownership of the underlying memory is not
-    transferred.
+    The returned buffer points to the same memory as the
+    passed buffer, but with a size that is equal to or less
+    than the size of the original buffer.
+    
+    @param n The size of the returned buffer.
+
+    @param buffer The buffer to shorten. Ownership of the
+    underlying memory is not transferred.
+
+    @return A new buffer that points to the first `n` bytes
+    of the original buffer.
 */
 inline
 boost::asio::mutable_buffer
@@ -51,13 +68,13 @@ prepare_buffer(std::size_t n,
         (std::min)(n, buffer_size(buffer)) };
 }
 
-/** Wrapper to produce a trimmed buffer sequence.
+/** A buffer sequence adapter that shortens the sequence size.
 
-    This wraps a buffer sequence to efficiently present a shorter
-    subset of the original list of buffers starting with the first
-    byte of the original sequence.
+    The class adapts a buffer sequence to efficiently represent
+    a shorter subset of the original list of buffers starting
+    with the first byte of the original sequence.
 
-    @tparam BufferSequence The buffer sequence to wrap.
+    @tparam BufferSequence The buffer sequence to adapt.
 */
 template<class BufferSequence>
 class prepared_buffers
@@ -80,10 +97,17 @@ class prepared_buffers
     {
     }
 
+    void
+    setup(std::size_t n);
+
 public:
     /// The type for each element in the list of buffers.
-    using value_type =
-        typename std::iterator_traits<iter_type>::value_type;
+    using value_type = typename std::conditional<
+        std::is_convertible<typename
+            std::iterator_traits<iter_type>::value_type,
+                boost::asio::mutable_buffer>::value,
+                    boost::asio::mutable_buffer,
+                        boost::asio::const_buffer>::type;
 
 #if GENERATING_DOCS
     /// A bidirectional iterator type that may be used to read elements.
@@ -106,14 +130,16 @@ public:
     /// Copy assignment.
     prepared_buffers& operator=(prepared_buffers const&);
 
-    /** Construct a wrapped buffer sequence.
+    /** Construct a shortened buffer sequence.
 
-        @param n The maximum number of bytes in the wrapped sequence.
-        If this is larger than the size of buffers, the wrapped
-        sequence will represent the entire input sequence.
+        @param n The maximum number of bytes in the wrapped
+        sequence. If this is larger than the size of passed,
+        buffers, the resulting sequence will represent the
+        entire input sequence.
 
-        @param buffers The buffer sequence to wrap. A copy of the sequence
-        will be made, but ownership of the underlying memory is not transferred.
+        @param buffers The buffer sequence to adapt. A copy of
+        the sequence will be made, but ownership of the underlying
+        memory is not transferred.
     */
     prepared_buffers(std::size_t n, BufferSequence const& buffers);
 
@@ -121,30 +147,28 @@ public:
     const_iterator
     begin() const;
 
-    /// Get a bidirectional iterator for one past the last element.
+    /// Get a bidirectional iterator to one past the last element.
     const_iterator
     end() const;
-
-private:
-    void
-    setup(std::size_t n);
 };
 
 //------------------------------------------------------------------------------
 
-/** Return a trimmed, wrapped buffer sequence.
+/** Return a shortened buffer sequence.
 
-    This function returns a new buffer sequence which wraps the provided
-    buffer sequence and efficiently presents a shorter subset of the
-    original list of buffers starting with the first byte of the original
-    sequence.
+    This function returns a new buffer sequence which adapts the
+    passed buffer sequence and efficiently presents a shorter subset
+    of the original list of buffers starting with the first byte of
+    the original sequence.
 
-    @param n The maximum number of bytes in the wrapped sequence. If this
-    is larger than the size of buffers, the wrapped sequence will represent
-    the entire input sequence.
+    @param n The maximum number of bytes in the wrapped
+    sequence. If this is larger than the size of passed,
+    buffers, the resulting sequence will represent the
+    entire input sequence.
 
-    @param buffers The buffer sequence to wrap. A copy of the sequence
-    will be made, but ownership of the underlying memory is not transferred.
+    @param buffers The buffer sequence to adapt. A copy of
+    the sequence will be made, but ownership of the underlying
+    memory is not transferred.
 */
 template<class BufferSequence>
 prepared_buffers<BufferSequence>
