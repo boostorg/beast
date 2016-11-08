@@ -3,6 +3,7 @@
 * Boost library min/max guidance
 * Improvements to code coverage
 * Use boost::lexical_cast instead of std::to_string
+* Fix prepare_buffers value_type
 
 HTTP
 
