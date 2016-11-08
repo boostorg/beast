@@ -4,6 +4,7 @@
 * Improvements to code coverage
 * Use boost::lexical_cast instead of std::to_string
 * Fix prepare_buffers value_type
+* Fix consuming_buffers value_type
 
 HTTP
 
@@ -21,6 +22,7 @@ API Changes:
 
 * Refactor message and message_headers declarations
 * prepared_buffers is private
+* consume_buffers is removed
 
 --------------------------------------------------------------------------------
 

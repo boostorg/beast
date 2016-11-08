@@ -283,10 +283,10 @@ public:
             {
                 static std::size_t constexpr size = 3;
                 std::size_t n = s.size();
-                auto cb = consumed_buffers(
-                    boost::asio::const_buffers_1(
-                        s.data(), n), 0);
-                streambuf sb(size);
+                consuming_buffers<
+                    boost::asio::const_buffers_1> cb{
+                        boost::asio::const_buffers_1(s.data(), n)};
+                streambuf sb{size};
                 while(n)
                 {
                     auto const amount = (std::min)(n, size);
