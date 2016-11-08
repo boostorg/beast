@@ -110,6 +110,18 @@ public:
             pass();
         }
 
+        // decrement iterator
+        {
+            auto const rbegin =
+                make_reverse_iterator(bs.end());
+            auto const rend =
+                make_reverse_iterator(bs.begin());
+            std::size_t n = 0;
+            for(auto it = rbegin; it != rend; ++it)
+                n += buffer_size(*it);
+            BEAST_EXPECT(n == 9);
+        }
+
         try
         {
             std::size_t n = 0;
