@@ -59,10 +59,10 @@ public:
         std::bidirectional_iterator_tag;
 
     const_iterator() = default;
-    const_iterator(const_iterator&& other) = default;
-    const_iterator(const_iterator const& other) = default;
-    const_iterator& operator=(const_iterator&& other) = default;
-    const_iterator& operator=(const_iterator const& other) = default;
+    const_iterator(const_iterator&& other);
+    const_iterator(const_iterator const& other);
+    const_iterator& operator=(const_iterator&& other);
+    const_iterator& operator=(const_iterator const& other);
 
     bool
     operator==(const_iterator const& other) const
@@ -127,6 +127,44 @@ private:
 };
 
 template<class BufferSequence>
+prepared_buffers<BufferSequence>::const_iterator::
+const_iterator(const_iterator&& other)
+    : b_(other.b_)
+    , it_(std::move(other.it_))
+{
+}
+
+template<class BufferSequence>
+prepared_buffers<BufferSequence>::const_iterator::
+const_iterator(const_iterator const& other)
+    : b_(other.b_)
+    , it_(other.it_)
+{
+}
+
+template<class BufferSequence>
+auto
+prepared_buffers<BufferSequence>::const_iterator::
+operator=(const_iterator&& other) ->
+    const_iterator&
+{
+    b_ = other.b_;
+    it_ = std::move(other.it_);
+    return *this;
+}
+
+template<class BufferSequence>
+auto
+prepared_buffers<BufferSequence>::const_iterator::
+operator=(const_iterator const& other) ->
+    const_iterator&
+{
+    b_ = other.b_;
+    it_ = other.it_;
+    return *this;
+}
+
+template<class BufferSequence>
 prepared_buffers<BufferSequence>::
 prepared_buffers(prepared_buffers&& other)
     : prepared_buffers(std::move(other),
@@ -187,6 +225,7 @@ prepared_buffers(std::size_t n, BufferSequence const& bs)
 }
 
 template<class BufferSequence>
+inline
 auto
 prepared_buffers<BufferSequence>::begin() const ->
     const_iterator
@@ -195,6 +234,7 @@ prepared_buffers<BufferSequence>::begin() const ->
 }
 
 template<class BufferSequence>
+inline
 auto
 prepared_buffers<BufferSequence>::end() const ->
     const_iterator
@@ -207,7 +247,7 @@ inline
 prepared_buffers<BufferSequence>
 prepare_buffers(std::size_t n, BufferSequence const& buffers)
 {
-    return prepared_buffers<BufferSequence>(n, buffers);
+    return prepared_buffers<BufferSequence>{n, buffers};
 }
 
 } // beast

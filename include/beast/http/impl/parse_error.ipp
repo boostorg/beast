@@ -52,9 +52,8 @@ public:
         case parse_error::invalid_ext_val: return "invalid ext val";
         case parse_error::headers_too_big: return "headers size limit exceeded";
         case parse_error::body_too_big: return "body size limit exceeded";
-        case parse_error::short_read: return "unexpected end of data";
         default:
-            return "parse error";
+        case parse_error::short_read: return "unexpected end of data";
         }
     }
 

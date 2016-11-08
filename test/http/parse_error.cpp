@@ -46,8 +46,11 @@ public:
         check("http", parse_error::bad_content_length);
         check("http", parse_error::illegal_content_length);
         check("http", parse_error::invalid_chunk_size);
+        check("http", parse_error::invalid_ext_name);
+        check("http", parse_error::invalid_ext_val);
+        check("http", parse_error::headers_too_big);
+        check("http", parse_error::body_too_big);
         check("http", parse_error::short_read);
-        check("http", parse_error::general);
     }
 };
 

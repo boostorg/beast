@@ -1,6 +1,7 @@
 1.0.0-b19
 
 * Boost library min/max guidance
+* Improvements to code coverage
 
 HTTP
 

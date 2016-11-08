@@ -36,9 +36,7 @@ enum class parse_error
 
     headers_too_big,
     body_too_big,
-    short_read,
-
-    general
+    short_read
 };
 
 } // http
