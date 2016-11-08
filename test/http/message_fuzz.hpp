@@ -514,7 +514,7 @@ public:
             write(db, "Transfer-Encoding: chunked\r\n\r\n");
             while(len > 0)
             {
-                auto n = std::min(1 + rand(300), len);
+                auto n = (std::min)(1 + rand(300), len);
                 len -= n;
                 write(db, to_hex(n), "\r\n");
                 for(auto const& b : db.prepare(n))

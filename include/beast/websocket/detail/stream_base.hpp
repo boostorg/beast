@@ -356,8 +356,8 @@ read_fh2(DynamicBuffer& db, close_code::value& code)
         }
         else
         {
-            if(rd_size_ > std::numeric_limits<
-                std::uint64_t>::max() - rd_fh_.len)
+            if(rd_size_ > (std::numeric_limits<
+                std::uint64_t>::max)() - rd_fh_.len)
             {
                 code = close_code::too_big;
                 return;

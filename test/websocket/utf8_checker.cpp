@@ -289,7 +289,7 @@ public:
                 streambuf sb(size);
                 while(n)
                 {
-                    auto const amount = std::min(n, size);
+                    auto const amount = (std::min)(n, size);
                     sb.commit(buffer_copy(sb.prepare(amount), cb));
                     cb.consume(amount);
                     n -= amount;

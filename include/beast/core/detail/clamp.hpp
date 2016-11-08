@@ -19,8 +19,8 @@ static
 std::size_t
 clamp(UInt x)
 {
-    if(x >= std::numeric_limits<std::size_t>::max())
-        return std::numeric_limits<std::size_t>::max();
+    if(x >= (std::numeric_limits<std::size_t>::max)())
+        return (std::numeric_limits<std::size_t>::max)();
     return static_cast<std::size_t>(x);
 }
 

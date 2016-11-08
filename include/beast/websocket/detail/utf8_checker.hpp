@@ -230,7 +230,7 @@ utf8_checker_t<_>::write(std::uint8_t const* in, std::size_t size)
     auto const end = in + size;
     if (need_ > 0)
     {
-        auto n = std::min(size, need_);
+        auto n = (std::min)(size, need_);
         size -= n;
         need_ -= n;
         while(n--)

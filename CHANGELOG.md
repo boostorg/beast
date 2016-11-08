@@ -1,5 +1,7 @@
 1.0.0-b19
 
+* Boost library min/max guidance
+
 HTTP
 
 * Make chunk_encode public

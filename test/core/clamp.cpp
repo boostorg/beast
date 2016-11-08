@@ -20,8 +20,8 @@ public:
     void testClamp()
     {
         BEAST_EXPECT(clamp(
-            std::numeric_limits<std::uint64_t>::max()) ==
-                std::numeric_limits<std::size_t>::max());
+            (std::numeric_limits<std::uint64_t>::max)()) ==
+                (std::numeric_limits<std::size_t>::max)());
     }
 
     void run() override

@@ -250,7 +250,7 @@ public:
     size_type
     max_size() const
     {
-        return std::numeric_limits<std::size_t>::max();
+        return (std::numeric_limits<std::size_t>::max)();
     }
 
     /// Returns the maximum sum of the sizes of the input sequence and output sequence the buffer can hold without requiring reallocation.
