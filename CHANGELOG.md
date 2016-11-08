@@ -20,6 +20,7 @@ WebSocket
 API Changes:
 
 * Refactor message and message_headers declarations
+* prepared_buffers is private
 
 --------------------------------------------------------------------------------
 

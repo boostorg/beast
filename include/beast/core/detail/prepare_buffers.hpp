@@ -5,38 +5,104 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#ifndef BEAST_IMPL_PREPARE_BUFFERS_IPP
-#define BEAST_IMPL_PREPARE_BUFFERS_IPP
+#ifndef BEAST_DETAIL_PREPARED_BUFFERS_HPP
+#define BEAST_DETAIL_PREPARED_BUFFERS_HPP
 
+#include <beast/core/prepare_buffer.hpp>
 #include <boost/asio/buffer.hpp>
 #include <algorithm>
 #include <cstdint>
 #include <iterator>
 #include <stdexcept>
+#include <type_traits>
 #include <utility>
 
 namespace beast {
+namespace detail {
 
+/** A buffer sequence adapter that shortens the sequence size.
+
+    The class adapts a buffer sequence to efficiently represent
+    a shorter subset of the original list of buffers starting
+    with the first byte of the original sequence.
+
+    @tparam BufferSequence The buffer sequence to adapt.
+*/
 template<class BufferSequence>
-void
-prepared_buffers<BufferSequence>::
-setup(std::size_t n)
+class prepared_buffers
 {
-    for(end_ = bs_.begin(); end_ != bs_.end(); ++end_)
+    using iter_type =
+        typename BufferSequence::const_iterator;
+
+    BufferSequence bs_;
+    iter_type back_;
+    iter_type end_;
+    std::size_t size_;
+
+    template<class Deduced>
+    prepared_buffers(Deduced&& other,
+            std::size_t nback, std::size_t nend)
+        : bs_(std::forward<Deduced>(other).bs_)
+        , back_(std::next(bs_.begin(), nback))
+        , end_(std::next(bs_.begin(), nend))
+        , size_(other.size_)
     {
-        auto const len =
-            boost::asio::buffer_size(*end_);
-        if(n <= len)
-        {
-            size_ = n;
-            back_ = end_++;
-            return;
-        }
-        n -= len;
     }
-    size_ = 0;
-    back_ = end_;
-}
+
+    void
+    setup(std::size_t n);
+
+public:
+    /// The type for each element in the list of buffers.
+    using value_type = typename std::conditional<
+        std::is_convertible<typename
+            std::iterator_traits<iter_type>::value_type,
+                boost::asio::mutable_buffer>::value,
+                    boost::asio::mutable_buffer,
+                        boost::asio::const_buffer>::type;
+
+#if GENERATING_DOCS
+    /// A bidirectional iterator type that may be used to read elements.
+    using const_iterator = implementation_defined;
+
+#else
+    class const_iterator;
+
+#endif
+
+    /// Move constructor.
+    prepared_buffers(prepared_buffers&&);
+
+    /// Copy constructor.
+    prepared_buffers(prepared_buffers const&);
+
+    /// Move assignment.
+    prepared_buffers& operator=(prepared_buffers&&);
+
+    /// Copy assignment.
+    prepared_buffers& operator=(prepared_buffers const&);
+
+    /** Construct a shortened buffer sequence.
+
+        @param n The maximum number of bytes in the wrapped
+        sequence. If this is larger than the size of passed,
+        buffers, the resulting sequence will represent the
+        entire input sequence.
+
+        @param buffers The buffer sequence to adapt. A copy of
+        the sequence will be made, but ownership of the underlying
+        memory is not transferred.
+    */
+    prepared_buffers(std::size_t n, BufferSequence const& buffers);
+
+    /// Get a bidirectional iterator to the first element.
+    const_iterator
+    begin() const;
+
+    /// Get a bidirectional iterator to one past the last element.
+    const_iterator
+    end() const;
+};
 
 template<class BufferSequence>
 class prepared_buffers<BufferSequence>::const_iterator
@@ -131,6 +197,27 @@ private:
 };
 
 template<class BufferSequence>
+void
+prepared_buffers<BufferSequence>::
+setup(std::size_t n)
+{
+    for(end_ = bs_.begin(); end_ != bs_.end(); ++end_)
+    {
+        auto const len =
+            boost::asio::buffer_size(*end_);
+        if(n <= len)
+        {
+            size_ = n;
+            back_ = end_++;
+            return;
+        }
+        n -= len;
+    }
+    size_ = 0;
+    back_ = end_;
+}
+
+template<class BufferSequence>
 prepared_buffers<BufferSequence>::const_iterator::
 const_iterator(const_iterator&& other)
     : b_(other.b_)
@@ -163,6 +250,8 @@ prepared_buffers<BufferSequence>::const_iterator::
 operator=(const_iterator const& other) ->
     const_iterator&
 {
+    if(&other == this)
+        return *this;
     b_ = other.b_;
     it_ = other.it_;
     return *this;
@@ -246,14 +335,7 @@ prepared_buffers<BufferSequence>::end() const ->
     return const_iterator{*this, true};
 }
 
-template<class BufferSequence>
-inline
-prepared_buffers<BufferSequence>
-prepare_buffers(std::size_t n, BufferSequence const& buffers)
-{
-    return prepared_buffers<BufferSequence>{n, buffers};
-}
-
+} // detail
 } // beast
 
 #endif
