@@ -657,7 +657,7 @@ basic_streambuf<Allocator>::commit(size_type n)
         debug_check();
     }
 
-    n = std::min(n, out_end_ - out_pos_);
+    n = (std::min)(n, out_end_ - out_pos_);
     out_pos_ += n;
     in_size_ += n;
     if(out_pos_ == out_->size())
@@ -862,13 +862,13 @@ read_size_helper(basic_streambuf<
     // buffer, try to fill that up first
     auto const avail = streambuf.capacity() - streambuf.size();
     if (avail > 0)
-        return std::min(avail, max_size);
+        return (std::min)(avail, max_size);
     // Try to have just one new block allocated
     constexpr std::size_t low = 512;
     if (streambuf.alloc_size_ > low)
-        return std::min(max_size, streambuf.alloc_size_);
+        return (std::min)(max_size, streambuf.alloc_size_);
     // ...but enforce a 512 byte minimum.
-    return std::min(max_size, low);
+    return (std::min)(max_size, low);
 }
 
 template<class Alloc, class T>

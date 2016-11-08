@@ -125,7 +125,7 @@ enum class body_what
 
 /// The value returned when no content length is known or applicable.
 static std::uint64_t constexpr no_content_length =
-    std::numeric_limits<std::uint64_t>::max();
+    (std::numeric_limits<std::uint64_t>::max)();
 
 /** A parser for decoding HTTP/1 wire format messages.
 

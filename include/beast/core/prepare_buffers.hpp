@@ -31,7 +31,7 @@ prepare_buffer(std::size_t n,
     using boost::asio::buffer_cast;
     using boost::asio::buffer_size;
     return { buffer_cast<void const*>(buffer),
-        std::min(n, buffer_size(buffer)) };
+        (std::min)(n, buffer_size(buffer)) };
 }
 
 /** Get a trimmed mutable buffer.
@@ -48,7 +48,7 @@ prepare_buffer(std::size_t n,
     using boost::asio::buffer_cast;
     using boost::asio::buffer_size;
     return { buffer_cast<void*>(buffer),
-        std::min(n, buffer_size(buffer)) };
+        (std::min)(n, buffer_size(buffer)) };
 }
 
 /** Wrapper to produce a trimmed buffer sequence.
