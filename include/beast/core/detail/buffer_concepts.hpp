@@ -85,6 +85,20 @@ public:
         type3::value && type4::value>;
 };
 
+template<class B1, class... Bn>
+struct is_all_ConstBufferSequence
+    : std::integral_constant<bool,
+        is_BufferSequence<B1, boost::asio::const_buffer>::type::value &&
+        is_all_ConstBufferSequence<Bn...>::value>
+{
+};
+
+template<class B1>
+struct is_all_ConstBufferSequence<B1>
+    : is_BufferSequence<B1, boost::asio::const_buffer>::type
+{
+};
+
 template<class T>
 class is_DynamicBuffer
 {

@@ -5,6 +5,7 @@
 * Use boost::lexical_cast instead of std::to_string
 * Fix prepare_buffers value_type
 * Fix consuming_buffers value_type
+* Better buffer_cat
 
 HTTP
 
