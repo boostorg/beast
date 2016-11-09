@@ -11,6 +11,7 @@
 #include <beast/core/placeholders.hpp>
 #include <beast/core/streambuf.hpp>
 #include <beast/websocket.hpp>
+#include <boost/lexical_cast.hpp>
 #include <boost/optional.hpp>
 #include <functional>
 #include <iostream>
@@ -277,7 +278,7 @@ private:
                 d.state = 1;
                 d.ws.async_handshake(
                     d.ep->address().to_string() + ":" +
-                        std::to_string(d.ep->port()),
+                        boost::lexical_cast<std::string>(d.ep->port()),
                             "/", d.strand.wrap(std::move(*this)));
                 return;
             }
