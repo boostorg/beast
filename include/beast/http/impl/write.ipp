@@ -34,7 +34,7 @@ namespace detail {
 
 template<class DynamicBuffer, class Headers>
 void
-write_firstline(DynamicBuffer& dynabuf,
+write_start_line(DynamicBuffer& dynabuf,
     message_headers<true, Headers> const& msg)
 {
     BOOST_ASSERT(msg.version == 10 || msg.version == 11);
@@ -54,7 +54,7 @@ write_firstline(DynamicBuffer& dynabuf,
 
 template<class DynamicBuffer, class Headers>
 void
-write_firstline(DynamicBuffer& dynabuf,
+write_start_line(DynamicBuffer& dynabuf,
     message_headers<false, Headers> const& msg)
 {
     BOOST_ASSERT(msg.version == 10 || msg.version == 11);
@@ -228,7 +228,7 @@ write(SyncWriteStream& stream,
     static_assert(is_SyncWriteStream<SyncWriteStream>::value,
         "SyncWriteStream requirements not met");
     streambuf sb;
-    detail::write_firstline(sb, msg);
+    detail::write_start_line(sb, msg);
     detail::write_fields(sb, msg.headers);
     beast::write(sb, "\r\n");
     boost::asio::write(stream, sb.data(), ec);
@@ -248,7 +248,7 @@ async_write(AsyncWriteStream& stream,
     beast::async_completion<WriteHandler,
         void(error_code)> completion(handler);
     streambuf sb;
-    detail::write_firstline(sb, msg);
+    detail::write_start_line(sb, msg);
     detail::write_fields(sb, msg.headers);
     beast::write(sb, "\r\n");
     detail::write_streambuf_op<AsyncWriteStream,
@@ -291,7 +291,7 @@ struct write_preparation
         if(ec)
             return;
   
-        write_firstline(sb, msg);
+        write_start_line(sb, msg);
         write_fields(sb, msg.headers);
         beast::write(sb, "\r\n");
     }
