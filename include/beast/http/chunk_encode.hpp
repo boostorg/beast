@@ -123,8 +123,10 @@ template<class ConstBufferSequence>
 #if GENERATING_DOCS
 implementation_defined
 #else
-beast::detail::buffer_cat_helper<boost::asio::const_buffer,
-    chunk_encode_text, ConstBufferSequence, boost::asio::const_buffers_1>
+beast::detail::buffer_cat_helper<
+    chunk_encode_text,
+    ConstBufferSequence,
+    boost::asio::const_buffers_1>
 #endif
 chunk_encode(bool fin, ConstBufferSequence const& buffers)
 {
