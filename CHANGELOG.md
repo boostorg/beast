@@ -8,6 +8,7 @@ HTTP
 * Make chunk_encode public
 * Add write, async_write, operator<< for message_headers
 * Add read, async_read for message_headers
+* Fix with_body example
 
 WebSocket
 

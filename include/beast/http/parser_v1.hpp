@@ -111,6 +111,9 @@ public:
     /** Construct the parser.
 
         @param args Forwarded to the message constructor.
+
+        @note This function participates in overload resolution only
+        if the first argument is not a parser or headers parser.
     */
 #if GENERATING_DOCS
     template<class... Args>
@@ -118,8 +121,13 @@ public:
     parser_v1(Args&&... args);
 #else
     template<class Arg1, class... ArgN,
-        class = typename std::enable_if<! std::is_same<
-            typename std::decay<Arg1>::type, parser_v1>::value>>
+        class = typename std::enable_if<
+            ! std::is_same<typename
+                std::decay<Arg1>::type,
+                    headers_parser_v1<isRequest, Headers>>::value &&
+            ! std::is_same<typename
+                std::decay<Arg1>::type, parser_v1>::value
+                    >::type>
     explicit
     parser_v1(Arg1&& arg1, ArgN&&... argn)
         : m_(std::forward<Arg1>(arg1),
@@ -135,7 +143,7 @@ public:
     */
     template<class... Args>
     explicit
-    parser_v1(headers_parser_v1<isRequest, Headers>&& parser,
+    parser_v1(headers_parser_v1<isRequest, Headers>& parser,
             Args&&... args)
         : m_(parser.release(), std::forward<Args>(args)...)
     {
@@ -309,7 +317,7 @@ private:
     @code
         headers_parser<true, headers> ph;
         ...
-        auto p = with_body<string_body>(std::move(ph));
+        auto p = with_body<string_body>(ph);
         ...
         message<true, string_body, headers> m = p.release();
     @endcode
@@ -320,7 +328,7 @@ with_body(headers_parser_v1<isRequest, Headers>& parser,
     Args&&... args)
 {
     return parser_v1<isRequest, Body, Headers>(
-        std::move(parser), std::forward<Args>(args)...);
+        parser, std::forward<Args>(args)...);
 }
 
 } // http
