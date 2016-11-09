@@ -9,6 +9,7 @@
 #include <beast/http/basic_headers.hpp>
 
 #include <beast/unit_test/suite.hpp>
+#include <boost/lexical_cast.hpp>
 
 namespace beast {
 namespace http {
@@ -27,7 +28,7 @@ public:
     fill(std::size_t n, basic_headers<Allocator>& h)
     {
         for(std::size_t i = 1; i<= n; ++i)
-            h.insert(std::to_string(i), i);
+            h.insert(boost::lexical_cast<std::string>(i), i);
     }
 
     template<class U, class V>

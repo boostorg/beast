@@ -10,6 +10,7 @@
 
 #include <beast/unit_test/runner.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/lexical_cast.hpp>
 #include <ostream>
 #include <sstream>
 #include <string>
@@ -31,7 +32,7 @@ make_reason(String const& reason,
     namespace fs = boost::filesystem;
     s.append(fs::path{file}.filename().string());
     s.append("(");
-    s.append(std::to_string(line));
+    s.append(boost::lexical_cast<std::string>(line));
     s.append(")");
     return s;
 }

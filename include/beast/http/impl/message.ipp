@@ -199,8 +199,8 @@ prepare(message<isRequest, Body, Headers>& msg,
                     if(*pi.content_length > 0 ||
                         ci_equal(msg.method, "POST"))
                     {
-                        msg.headers.insert("Content-Length",
-                            std::to_string(*pi.content_length));
+                        msg.headers.insert(
+                            "Content-Length", *pi.content_length);
                     }
                 }
 
@@ -212,8 +212,8 @@ prepare(message<isRequest, Body, Headers>& msg,
                         msg.status != 204 &&
                         msg.status != 304)
                     {
-                        msg.headers.insert("Content-Length",
-                            std::to_string(*pi.content_length));
+                        msg.headers.insert(
+                            "Content-Length", *pi.content_length);
                     }
                 }
             };

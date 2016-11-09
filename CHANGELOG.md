@@ -2,6 +2,7 @@
 
 * Boost library min/max guidance
 * Improvements to code coverage
+* Use boost::lexical_cast instead of std::to_string
 
 HTTP
 

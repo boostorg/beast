@@ -11,6 +11,7 @@
 #include <beast/core/placeholders.hpp>
 #include <beast/core/streambuf.hpp>
 #include <beast/websocket.hpp>
+#include <boost/lexical_cast.hpp>
 #include <boost/optional.hpp>
 #include <functional>
 #include <iostream>
@@ -84,7 +85,7 @@ private:
     fail(int id, error_code ec, std::string what)
     {
         if(log_)
-            std::cerr << "#" << std::to_string(id) << " " <<
+            std::cerr << "#" << boost::lexical_cast<std::string>(id) << " " <<
                 what << ": " << ec.message() << std::endl;
     }
 
