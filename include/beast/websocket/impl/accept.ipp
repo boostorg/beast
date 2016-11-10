@@ -43,9 +43,9 @@ class stream<NextLayer>::response_op
         int state = 0;
 
         template<class DeducedHandler,
-            class Body, class Headers>
+            class Body, class Fields>
         data(DeducedHandler&& h_, stream<NextLayer>& ws_,
-            http::request<Body, Headers> const& req,
+            http::request<Body, Fields> const& req,
                 bool cont_)
             : ws(ws_)
             , resp(ws_.build_response(req))
@@ -305,11 +305,11 @@ async_accept(ConstBufferSequence const& bs, AcceptHandler&& handler)
 }
 
 template<class NextLayer>
-template<class Body, class Headers, class AcceptHandler>
+template<class Body, class Fields, class AcceptHandler>
 typename async_completion<
     AcceptHandler, void(error_code)>::result_type
 stream<NextLayer>::
-async_accept(http::request<Body, Headers> const& req,
+async_accept(http::request<Body, Fields> const& req,
     AcceptHandler&& handler)
 {
     static_assert(is_AsyncStream<next_layer_type>::value,
@@ -390,10 +390,10 @@ accept(ConstBufferSequence const& buffers, error_code& ec)
 }
 
 template<class NextLayer>
-template<class Body, class Headers>
+template<class Body, class Fields>
 void
 stream<NextLayer>::
-accept(http::request<Body, Headers> const& request)
+accept(http::request<Body, Fields> const& request)
 {
     static_assert(is_SyncStream<next_layer_type>::value,
         "SyncStream requirements not met");
@@ -404,10 +404,10 @@ accept(http::request<Body, Headers> const& request)
 }
 
 template<class NextLayer>
-template<class Body, class Headers>
+template<class Body, class Fields>
 void
 stream<NextLayer>::
-accept(http::request<Body, Headers> const& req,
+accept(http::request<Body, Fields> const& req,
     error_code& ec)
 {
     static_assert(is_SyncStream<next_layer_type>::value,

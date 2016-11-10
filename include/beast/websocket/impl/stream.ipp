@@ -66,21 +66,21 @@ build_request(boost::string_ref const& host,
     req.url = { resource.data(), resource.size() };
     req.version = 11;
     req.method = "GET";
-    req.headers.insert("Host", host);
-    req.headers.insert("Upgrade", "websocket");
+    req.fields.insert("Host", host);
+    req.fields.insert("Upgrade", "websocket");
     key = detail::make_sec_ws_key(maskgen_);
-    req.headers.insert("Sec-WebSocket-Key", key);
-    req.headers.insert("Sec-WebSocket-Version", "13");
+    req.fields.insert("Sec-WebSocket-Key", key);
+    req.fields.insert("Sec-WebSocket-Version", "13");
     (*d_)(req);
     http::prepare(req, http::connection::upgrade);
     return req;
 }
 
 template<class NextLayer>
-template<class Body, class Headers>
+template<class Body, class Fields>
 http::response<http::string_body>
 stream<NextLayer>::
-build_response(http::request<Body, Headers> const& req)
+build_response(http::request<Body, Fields> const& req)
 {
     auto err =
         [&](std::string const& text)
@@ -103,15 +103,15 @@ build_response(http::request<Body, Headers> const& req)
         return err("Wrong method");
     if(! is_upgrade(req))
         return err("Expected Upgrade request");
-    if(! req.headers.exists("Host"))
+    if(! req.fields.exists("Host"))
         return err("Missing Host");
-    if(! req.headers.exists("Sec-WebSocket-Key"))
+    if(! req.fields.exists("Sec-WebSocket-Key"))
         return err("Missing Sec-WebSocket-Key");
-    if(! http::token_list{req.headers["Upgrade"]}.exists("websocket"))
+    if(! http::token_list{req.fields["Upgrade"]}.exists("websocket"))
         return err("Missing websocket Upgrade token");
     {
         auto const version =
-            req.headers["Sec-WebSocket-Version"];
+            req.fields["Sec-WebSocket-Version"];
         if(version.empty())
             return err("Missing Sec-WebSocket-Version");
         if(version != "13")
@@ -120,7 +120,7 @@ build_response(http::request<Body, Headers> const& req)
             res.status = 426;
             res.reason = http::reason_string(res.status);
             res.version = req.version;
-            res.headers.insert("Sec-WebSocket-Version", "13");
+            res.fields.insert("Sec-WebSocket-Version", "13");
             prepare(res,
                 (is_keep_alive(req) && keep_alive_) ?
                     http::connection::keep_alive :
@@ -132,24 +132,24 @@ build_response(http::request<Body, Headers> const& req)
     res.status = 101;
     res.reason = http::reason_string(res.status);
     res.version = req.version;
-    res.headers.insert("Upgrade", "websocket");
+    res.fields.insert("Upgrade", "websocket");
     {
         auto const key =
-            req.headers["Sec-WebSocket-Key"];
-        res.headers.insert("Sec-WebSocket-Accept",
+            req.fields["Sec-WebSocket-Key"];
+        res.fields.insert("Sec-WebSocket-Accept",
             detail::make_sec_ws_accept(key));
     }
-    res.headers.replace("Server", "Beast.WSProto");
+    res.fields.replace("Server", "Beast.WSProto");
     (*d_)(res);
     http::prepare(res, http::connection::upgrade);
     return res;
 }
 
 template<class NextLayer>
-template<class Body, class Headers>
+template<class Body, class Fields>
 void
 stream<NextLayer>::
-do_response(http::response<Body, Headers> const& res,
+do_response(http::response<Body, Fields> const& res,
     boost::string_ref const& key, error_code& ec)
 {
     // VFALCO Review these error codes
@@ -160,11 +160,11 @@ do_response(http::response<Body, Headers> const& res,
         return fail();
     if(! is_upgrade(res))
         return fail();
-    if(! http::token_list{res.headers["Upgrade"]}.exists("websocket"))
+    if(! http::token_list{res.fields["Upgrade"]}.exists("websocket"))
         return fail();
-    if(! res.headers.exists("Sec-WebSocket-Accept"))
+    if(! res.fields.exists("Sec-WebSocket-Accept"))
         return fail();
-    if(res.headers["Sec-WebSocket-Accept"] !=
+    if(res.fields["Sec-WebSocket-Accept"] !=
         detail::make_sec_ws_accept(key))
         return fail();
     open(detail::role_type::client);

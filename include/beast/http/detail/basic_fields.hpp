@@ -5,8 +5,8 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#ifndef BEAST_HTTP_DETAIL_BASIC_HEADERS_HPP
-#define BEAST_HTTP_DETAIL_BASIC_HEADERS_HPP
+#ifndef BEAST_HTTP_DETAIL_BASIC_FIELDS_HPP
+#define BEAST_HTTP_DETAIL_BASIC_FIELDS_HPP
 
 #include <beast/core/detail/ci_char_traits.hpp>
 #include <boost/intrusive/list.hpp>
@@ -17,11 +17,11 @@ namespace beast {
 namespace http {
 
 template<class Allocator>
-class basic_headers;
+class basic_fields;
 
 namespace detail {
 
-class basic_headers_base
+class basic_fields_base
 {
 public:
     struct value_type
@@ -51,7 +51,7 @@ public:
 
 protected:
     template<class Allocator>
-    friend class beast::http::basic_headers;
+    friend class beast::http::basic_fields;
 
     struct element
         : boost::intrusive::set_base_hook <
@@ -105,7 +105,7 @@ protected:
     set_t set_;
     list_t list_;
 
-    basic_headers_base(set_t&& set, list_t&& list)
+    basic_fields_base(set_t&& set, list_t&& list)
         : set_(std::move(set))
         , list_(std::move(list))
     {
@@ -116,21 +116,21 @@ public:
 
     using iterator = const_iterator;
 
-    basic_headers_base() = default;
+    basic_fields_base() = default;
 };
 
 //------------------------------------------------------------------------------
 
-class basic_headers_base::const_iterator
+class basic_fields_base::const_iterator
 {
     using iter_type = list_t::const_iterator;
 
     iter_type it_;
 
     template<class Allocator>
-    friend class beast::http::basic_headers;
+    friend class beast::http::basic_fields;
 
-    friend class basic_headers_base;
+    friend class basic_fields_base;
 
     const_iterator(iter_type it)
         : it_(it)
@@ -139,7 +139,7 @@ class basic_headers_base::const_iterator
 
 public:
     using value_type =
-        typename basic_headers_base::value_type;
+        typename basic_fields_base::value_type;
     using pointer = value_type const*;
     using reference = value_type const&;
     using difference_type = std::ptrdiff_t;

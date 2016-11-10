@@ -8,9 +8,12 @@
 #ifndef BEAST_HTTP_EMPTY_BODY_HPP
 #define BEAST_HTTP_EMPTY_BODY_HPP
 
-#include <beast/http/body_type.hpp>
+#include <beast/core/error.hpp>
+#include <beast/http/message.hpp>
+#include <beast/http/resume_context.hpp>
 #include <beast/core/detail/type_traits.hpp>
 #include <boost/asio/buffer.hpp>
+#include <boost/logic/tribool.hpp>
 #include <memory>
 #include <string>
 
@@ -36,9 +39,9 @@ private:
 
     struct writer
     {
-        template<bool isRequest, class Headers>
+        template<bool isRequest, class Fields>
         explicit
-        writer(message<isRequest, empty_body, Headers> const& m) noexcept
+        writer(message<isRequest, empty_body, Fields> const& m) noexcept
         {
             beast::detail::ignore_unused(m);
         }

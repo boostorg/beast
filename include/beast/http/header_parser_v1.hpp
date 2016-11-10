@@ -13,7 +13,6 @@
 #include <beast/http/message.hpp>
 #include <beast/core/error.hpp>
 #include <boost/assert.hpp>
-#include <boost/optional.hpp>
 #include <string>
 #include <type_traits>
 #include <utility>
@@ -36,100 +35,99 @@ struct response_parser_base
 
 } // detail
 
-/** A parser for HTTP/1 request and response headers.
+/** A parser for a HTTP/1 request or response header.
 
     This class uses the HTTP/1 wire format parser to
-    convert a series of octets into a @ref request_headers
-    or @ref response_headers.
+    convert a series of octets into a request or
+    response @ref header.
 
     @note A new instance of the parser is required for each message.
 */
-template<bool isRequest, class Headers>
-class headers_parser_v1
+template<bool isRequest, class Fields>
+class header_parser_v1
     : public basic_parser_v1<isRequest,
-        headers_parser_v1<isRequest, Headers>>
+        header_parser_v1<isRequest, Fields>>
     , private std::conditional<isRequest,
         detail::request_parser_base,
             detail::response_parser_base>::type
 {
 public:
-    /// The type of message this parser produces.
-    using headers_type =
-        message_headers<isRequest, Headers>;
+    /// The type of the header this parser produces.
+    using header_type = header<isRequest, Fields>;
 
 private:
-    // VFALCO Check Headers requirements?
+    // VFALCO Check Fields requirements?
 
     std::string field_;
     std::string value_;
-    headers_type h_;
+    header_type h_;
     bool flush_ = false;
 
 public:
     /// Default constructor
-    headers_parser_v1() = default;
+    header_parser_v1() = default;
 
     /// Move constructor
-    headers_parser_v1(headers_parser_v1&&) = default;
+    header_parser_v1(header_parser_v1&&) = default;
 
     /// Copy constructor (disallowed)
-    headers_parser_v1(headers_parser_v1 const&) = delete;
+    header_parser_v1(header_parser_v1 const&) = delete;
 
     /// Move assignment (disallowed)
-    headers_parser_v1& operator=(headers_parser_v1&&) = delete;
+    header_parser_v1& operator=(header_parser_v1&&) = delete;
 
     /// Copy assignment (disallowed)
-    headers_parser_v1& operator=(headers_parser_v1 const&) = delete;
+    header_parser_v1& operator=(header_parser_v1 const&) = delete;
 
     /** Construct the parser.
 
-        @param args Forwarded to the message headers constructor.
+        @param args Forwarded to the header constructor.
     */
 #if GENERATING_DOCS
     template<class... Args>
     explicit
-    headers_parser_v1(Args&&... args);
+    header_parser_v1(Args&&... args);
 #else
     template<class Arg1, class... ArgN,
         class = typename std::enable_if<! std::is_same<
-            typename std::decay<Arg1>::type, headers_parser_v1>::value>>
+            typename std::decay<Arg1>::type, header_parser_v1>::value>>
     explicit
-    headers_parser_v1(Arg1&& arg1, ArgN&&... argn)
+    header_parser_v1(Arg1&& arg1, ArgN&&... argn)
         : h_(std::forward<Arg1>(arg1),
             std::forward<ArgN>(argn)...)
     {
     }
 #endif
 
-    /** Returns the parsed headers.
+    /** Returns the parsed header
 
         Only valid if @ref complete would return `true`.
     */
-    headers_type const&
+    header_type const&
     get() const
     {
         return h_;
     }
 
-    /** Returns the parsed headers.
+    /** Returns the parsed header.
 
         Only valid if @ref complete would return `true`.
     */
-    headers_type&
+    header_type&
     get()
     {
         return h_;
     }
 
-    /** Returns ownership of the parsed headers.
+    /** Returns ownership of the parsed header.
 
         Ownership is transferred to the caller. Only
         valid if @ref complete would return `true`.
 
         Requires:
-            `message_headers<isRequest, Headers>` is @b MoveConstructible
+            @ref header_type is @b MoveConstructible
     */
-    headers_type
+    header_type
     release()
     {
         static_assert(std::is_move_constructible<decltype(h_)>::value,
@@ -138,7 +136,7 @@ public:
     }
 
 private:
-    friend class basic_parser_v1<isRequest, headers_parser_v1>;
+    friend class basic_parser_v1<isRequest, header_parser_v1>;
 
     void flush()
     {
@@ -146,7 +144,7 @@ private:
             return;
         flush_ = false;
         BOOST_ASSERT(! field_.empty());
-        h_.headers.insert(field_, value_);
+        h_.fields.insert(field_, value_);
         field_.clear();
         value_.clear();
     }
@@ -207,7 +205,7 @@ private:
     }
 
     void
-    on_headers(std::uint64_t, error_code&)
+    on_header(std::uint64_t, error_code&)
     {
         flush();
         h_.version = 10 * this->http_major() + this->http_minor();

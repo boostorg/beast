@@ -26,9 +26,9 @@ int main()
     req.method = "GET";
     req.url = "/";
     req.version = 11;
-    req.headers.replace("Host", host + ":" +
+    req.fields.replace("Host", host + ":" +
         boost::lexical_cast<std::string>(sock.remote_endpoint().port()));
-    req.headers.replace("User-Agent", "Beast");
+    req.fields.replace("User-Agent", "Beast");
     beast::http::prepare(req);
     beast::http::write(sock, req);
 

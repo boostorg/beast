@@ -9,7 +9,7 @@
 #define BEAST_HTTP_PARSER_V1_HPP
 
 #include <beast/http/concepts.hpp>
-#include <beast/http/headers_parser_v1.hpp>
+#include <beast/http/header_parser_v1.hpp>
 #include <beast/http/message.hpp>
 #include <beast/core/error.hpp>
 #include <beast/core/detail/type_traits.hpp>
@@ -33,11 +33,11 @@ namespace http {
     For example, a 200 response to a CONNECT request from a tunneling
     proxy. In these cases, callers use the @ref skip_body option to
     inform the parser that no body is expected. The parser will consider
-    the message complete after the all headers have been received.
+    the message complete after the header has been received.
 
     Example:
     @code
-        parser_v1<true, empty_body, headers> p;
+        parser_v1<true, empty_body, fields> p;
         p.set_option(skip_body{true});
     @endcode
 
@@ -61,10 +61,10 @@ struct skip_body
 
     @note A new instance of the parser is required for each message.
 */
-template<bool isRequest, class Body, class Headers>
+template<bool isRequest, class Body, class Fields>
 class parser_v1
     : public basic_parser_v1<isRequest,
-        parser_v1<isRequest, Body, Headers>>
+        parser_v1<isRequest, Body, Fields>>
     , private std::conditional<isRequest,
         detail::request_parser_base,
             detail::response_parser_base>::type
@@ -72,7 +72,7 @@ class parser_v1
 public:
     /// The type of message this parser produces.
     using message_type =
-        message<isRequest, Body, Headers>;
+        message<isRequest, Body, Fields>;
 
 private:
     using reader =
@@ -113,7 +113,7 @@ public:
         @param args Forwarded to the message constructor.
 
         @note This function participates in overload resolution only
-        if the first argument is not a parser or headers parser.
+        if the first argument is not a parser or fields parser.
     */
 #if GENERATING_DOCS
     template<class... Args>
@@ -124,7 +124,7 @@ public:
         class = typename std::enable_if<
             ! std::is_same<typename
                 std::decay<Arg1>::type,
-                    headers_parser_v1<isRequest, Headers>>::value &&
+                    header_parser_v1<isRequest, Fields>>::value &&
             ! std::is_same<typename
                 std::decay<Arg1>::type, parser_v1>::value
                     >::type>
@@ -136,20 +136,20 @@ public:
     }
 #endif
 
-    /** Construct the parser from a headers parser.
+    /** Construct the parser from a fields parser.
 
-        @param parser The headers parser to construct from.
+        @param parser The fields parser to construct from.
         @param args Forwarded to the message body constructor.
     */
     template<class... Args>
     explicit
-    parser_v1(headers_parser_v1<isRequest, Headers>& parser,
+    parser_v1(header_parser_v1<isRequest, Fields>& parser,
             Args&&... args)
         : m_(parser.release(), std::forward<Args>(args)...)
     {
         static_cast<basic_parser_v1<
             isRequest, parser_v1<
-                isRequest, Body, Headers>>&>(*this) = parser;
+                isRequest, Body, Fields>>&>(*this) = parser;
     }
 
     /// Set the skip body option.
@@ -185,7 +185,7 @@ public:
         valid if @ref complete would return `true`.
 
         Requires:
-            `message<isRequest, Body, Headers>` is @b MoveConstructible
+            `message<isRequest, Body, Fields>` is @b MoveConstructible
     */
     message_type
     release()
@@ -204,7 +204,7 @@ private:
             return;
         flush_ = false;
         BOOST_ASSERT(! field_.empty());
-        m_.headers.insert(field_, value_);
+        m_.fields.insert(field_, value_);
         field_.clear();
         value_.clear();
     }
@@ -265,7 +265,7 @@ private:
     }
 
     void
-    on_headers(std::uint64_t, error_code&)
+    on_header(std::uint64_t, error_code&)
     {
         flush();
         m_.version = 10 * this->http_major() + this->http_minor();
@@ -291,22 +291,22 @@ private:
     }
 };
 
-/** Create a new parser from a headers parser.
+/** Create a new parser from a fields parser.
 
-    Associates a Body type with a headers parser, and returns
+    Associates a Body type with a fields parser, and returns
     a new parser which parses a complete message object
-    containing the original message headers and a new body
+    containing the original message fields and a new body
     of the specified body type.
 
     This function allows HTTP messages to be parsed in two stages.
-    First, the headers are parsed and control is returned. Then,
+    First, the fields are parsed and control is returned. Then,
     the caller can choose at run-time, the type of Body to
     associate with the message. And finally, complete the parse
     in a second call.
 
-    @param parser The headers parser to construct from. Ownership
-    of the message headers in the headers parser is transferred
-    as if by call to @ref headers_parser_v1::release.
+    @param parser The fields parser to construct from. Ownership
+    of the message fields in the fields parser is transferred
+    as if by call to @ref header_parser_v1::release.
 
     @param args Forwarded to the body constructor of the message
     in the new parser.
@@ -315,19 +315,20 @@ private:
 
     @par Example
     @code
-        headers_parser<true, headers> ph;
+        headers_parser<true, fields> ph;
         ...
         auto p = with_body<string_body>(ph);
         ...
-        message<true, string_body, headers> m = p.release();
+        message<true, string_body, fields> m = p.release();
     @endcode
 */
-template<class Body, bool isRequest, class Headers, class... Args>
-parser_v1<isRequest, Body, Headers>
-with_body(headers_parser_v1<isRequest, Headers>& parser,
+template<class Body,
+    bool isRequest, class Fields, class... Args>
+parser_v1<isRequest, Body, Fields>
+with_body(header_parser_v1<isRequest, Fields>& parser,
     Args&&... args)
 {
-    return parser_v1<isRequest, Body, Headers>(
+    return parser_v1<isRequest, Body, Fields>(
         parser, std::forward<Args>(args)...);
 }
 
