@@ -30,24 +30,26 @@
           <bridgehead renderas="sect3">Classes</bridgehead>
           <simplelist type="vert" columns="1">
             <member><link linkend="beast.ref.http__basic_dynabuf_body">basic_dynabuf_body</link></member>
-            <member><link linkend="beast.ref.http__basic_headers">basic_headers</link></member>
+            <member><link linkend="beast.ref.http__basic_fields">basic_fields</link></member>
             <member><link linkend="beast.ref.http__basic_parser_v1">basic_parser_v1</link></member>
+
             <member><link linkend="beast.ref.http__empty_body">empty_body</link></member>
-            <member><link linkend="beast.ref.http__headers">headers</link></member>
-            <member><link linkend="beast.ref.http__headers_parser_v1">headers_parser_v1</link></member>
+            <member><link linkend="beast.ref.http__fields">fields</link></member>
+            <member><link linkend="beast.ref.http__header_parser_v1">header_parser_v1</link></member>
             <member><link linkend="beast.ref.http__message">message</link></member>
-            <member><link linkend="beast.ref.http__message_headers">message_headers</link></member>
+            <member><link linkend="beast.ref.http__header">header</link></member>
             <member><link linkend="beast.ref.http__parser_v1">parser_v1</link></member>
             <member><link linkend="beast.ref.http__request">request</link></member>
-            <member><link linkend="beast.ref.http__request_headers">request_headers</link></member>
+            <member><link linkend="beast.ref.http__request_header">request_header</link></member>
             <member><link linkend="beast.ref.http__response">response</link></member>
-            <member><link linkend="beast.ref.http__response_headers">response_headers</link></member>
+            <member><link linkend="beast.ref.http__response_header">response_header</link></member>
             <member><link linkend="beast.ref.http__resume_context">resume_context</link></member>
             <member><link linkend="beast.ref.http__streambuf_body">streambuf_body</link></member>
             <member><link linkend="beast.ref.http__string_body">string_body</link></member>
           </simplelist>
           <bridgehead renderas="sect3">rfc7230</bridgehead>
           <simplelist type="vert" columns="1">
+
            <member><link linkend="beast.ref.http__ext_list">ext_list</link></member>
            <member><link linkend="beast.ref.http__param_list">param_list</link></member>
            <member><link linkend="beast.ref.http__token_list">token_list</link></member>
@@ -56,11 +58,12 @@
         <entry valign="top">
           <bridgehead renderas="sect3">Functions</bridgehead>
           <simplelist type="vert" columns="1">
+            <member><link linkend="beast.ref.http__chunk_encode">chunk_encode</link></member>
+            <member><link linkend="beast.ref.http__chunk_encode_final">chunk_encode_final</link></member>
+
             <member><link linkend="beast.ref.http__async_parse">async_parse</link></member>
             <member><link linkend="beast.ref.http__async_read">async_read</link></member>
             <member><link linkend="beast.ref.http__async_write">async_write</link></member>
-            <member><link linkend="beast.ref.http__chunk_encode">chunk_encode</link></member>
-            <member><link linkend="beast.ref.http__chunk_encode_final">chunk_encode_final</link></member>
             <member><link linkend="beast.ref.http__is_keep_alive">is_keep_alive</link></member>
             <member><link linkend="beast.ref.http__is_upgrade">is_upgrade</link></member>
             <member><link linkend="beast.ref.http__parse">parse</link></member>
@@ -73,6 +76,7 @@
           </simplelist>
           <bridgehead renderas="sect3">Type Traits</bridgehead>
           <simplelist type="vert" columns="1">
+
            <member><link linkend="beast.ref.http__is_Body">is_Body</link></member>
            <member><link linkend="beast.ref.http__is_Parser">is_Parser</link></member>
            <member><link linkend="beast.ref.http__is_Reader">is_Reader</link></member>
@@ -84,15 +88,18 @@
         <entry valign="top">
           <bridgehead renderas="sect3">Options</bridgehead>
           <simplelist type="vert" columns="1">
+            <member><link linkend="beast.ref.http__header_max_size">header_max_size</link></member>
             <member><link linkend="beast.ref.http__body_max_size">body_max_size</link></member>
-            <member><link linkend="beast.ref.http__headers_max_size">headers_max_size</link></member>
+
             <member><link linkend="beast.ref.http__skip_body">skip_body</link></member>
           </simplelist>
           <bridgehead renderas="sect3">Constants</bridgehead>
           <simplelist type="vert" columns="1">
-            <member><link linkend="beast.ref.http__body_what">body_what</link></member>
-            <member><link linkend="beast.ref.http__connection">connection</link></member>
             <member><link linkend="beast.ref.http__parse_flag">parse_flag</link></member>
+            <member><link linkend="beast.ref.http__body_what">body_what</link></member>
+            <member><link linkend="beast.ref.http__no_content_length">no_content_length</link></member>
+
+            <member><link linkend="beast.ref.http__connection">connection</link></member>
           </simplelist>
           <bridgehead renderas="sect3">Concepts</bridgehead>
           <simplelist type="vert" columns="1">

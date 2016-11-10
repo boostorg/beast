@@ -38,27 +38,6 @@ enum parse_flag
     contentlength         = 128
 };
 
-/** Header maximum size option.
-
-    Sets the maximum number of cumulative bytes allowed
-    including all header octets. A value of zero indicates
-    no limit on the number of header octets.
-
-    The default header maximum size is 16KB (16,384 bytes).
-
-    @note Objects of this type are used with @ref basic_parser_v1::set_option.
-*/
-struct header_max_size
-{
-    std::size_t value;
-
-    explicit
-    header_max_size(std::size_t v)
-        : value(v)
-    {
-    }
-};
-
 /** Body maximum size option.
 
     Sets the maximum number of cumulative bytes allowed including
@@ -77,6 +56,27 @@ struct body_max_size
 
     explicit
     body_max_size(std::size_t v)
+        : value(v)
+    {
+    }
+};
+
+/** Header maximum size option.
+
+    Sets the maximum number of cumulative bytes allowed
+    including all header octets. A value of zero indicates
+    no limit on the number of header octets.
+
+    The default header maximum size is 16KB (16,384 bytes).
+
+    @note Objects of this type are used with @ref basic_parser_v1::set_option.
+*/
+struct header_max_size
+{
+    std::size_t value;
+
+    explicit
+    header_max_size(std::size_t v)
         : value(v)
     {
     }
