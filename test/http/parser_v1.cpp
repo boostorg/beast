@@ -64,7 +64,7 @@ public:
         streambuf rb;
         headers_parser_v1<true, fields> p0;
         parse(ss, rb, p0);
-        request_headers const& reqh = p0.get();
+        request_header const& reqh = p0.get();
         BEAST_EXPECT(reqh.method == "GET");
         BEAST_EXPECT(reqh.url == "/");
         BEAST_EXPECT(reqh.version == 11);

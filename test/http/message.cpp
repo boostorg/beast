@@ -168,13 +168,13 @@ public:
     void testHeaders()
     {
         {
-            using req_type = request_headers;
+            using req_type = request_header;
             static_assert(std::is_copy_constructible<req_type>::value, "");
             static_assert(std::is_move_constructible<req_type>::value, "");
             static_assert(std::is_copy_assignable<req_type>::value, "");
             static_assert(std::is_move_assignable<req_type>::value, "");
 
-            using res_type = response_headers;
+            using res_type = response_header;
             static_assert(std::is_copy_constructible<res_type>::value, "");
             static_assert(std::is_move_constructible<res_type>::value, "");
             static_assert(std::is_copy_assignable<res_type>::value, "");

@@ -258,7 +258,7 @@ public:
                 "Content-Length: 5\r\n"
                 "\r\n"
             };
-            request_headers m;
+            request_header m;
             try
             {
                 streambuf sb;
@@ -280,7 +280,7 @@ public:
                 "Content-Length: 0\r\n"
                 "\r\n"
             );
-            request_headers m;
+            request_header m;
             error_code ec;
             streambuf sb;
             async_read(fs, sb, m, do_yield[ec]);
