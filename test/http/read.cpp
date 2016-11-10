@@ -10,7 +10,7 @@
 
 #include "fail_parser.hpp"
 
-#include <beast/http/headers.hpp>
+#include <beast/http/fields.hpp>
 #include <beast/http/streambuf_body.hpp>
 #include <beast/test/fail_stream.hpp>
 #include <beast/test/string_stream.hpp>
@@ -157,7 +157,7 @@ public:
                 sb.prepare(len), buffer(s, len)));
             test::fail_counter fc{n};
             test::string_stream ss{ios_, s};
-            parser_v1<isRequest, fail_body, headers> p{fc};
+            parser_v1<isRequest, fail_body, fields> p{fc};
             error_code ec;
             parse(ss, sb, p, ec);
             if(! ec)
@@ -172,7 +172,7 @@ public:
         {
             streambuf sb;
             test::string_stream ss(ios_, "GET / X");
-            parser_v1<true, streambuf_body, headers> p;
+            parser_v1<true, streambuf_body, fields> p;
             parse(ss, sb, p);
             fail();
         }
@@ -359,7 +359,7 @@ public:
         {
             streambuf sb;
             test::string_stream ss(ios_, "");
-            parser_v1<true, streambuf_body, headers> p;
+            parser_v1<true, streambuf_body, fields> p;
             error_code ec;
             parse(ss, sb, p, ec);
             BEAST_EXPECT(ec == boost::asio::error::eof);
@@ -367,7 +367,7 @@ public:
         {
             streambuf sb;
             test::string_stream ss(ios_, "");
-            parser_v1<true, streambuf_body, headers> p;
+            parser_v1<true, streambuf_body, fields> p;
             error_code ec;
             async_parse(ss, sb, p, do_yield[ec]);
             BEAST_EXPECT(ec == boost::asio::error::eof);

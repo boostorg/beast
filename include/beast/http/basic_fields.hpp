@@ -21,10 +21,10 @@
 namespace beast {
 namespace http {
 
-/** A container for storing HTTP headers.
+/** A container for storing HTTP header fields.
 
     This container is designed to store the field value pairs that make
-    up the headers and trailers in a HTTP message. Objects of this type
+    up the fields and trailers in a HTTP message. Objects of this type
     are iterable, which each element holding the field name and field
     value.
 
@@ -108,7 +108,7 @@ public:
     /// Destructor
     ~basic_fields();
 
-    /** Construct the headers.
+    /** Construct the fields.
 
         @param alloc The allocator to use.
     */

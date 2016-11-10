@@ -8,7 +8,7 @@
 // Test that header file is self-contained.
 #include <beast/http/headers_parser_v1.hpp>
 
-#include <beast/http/headers.hpp>
+#include <beast/http/fields.hpp>
 #include <beast/unit_test/suite.hpp>
 #include <boost/asio/buffer.hpp>
 
@@ -22,7 +22,7 @@ public:
     {
         {
             error_code ec;
-            headers_parser_v1<true, headers> p;
+            headers_parser_v1<true, fields> p;
             BEAST_EXPECT(! p.complete());
             auto const n = p.write(boost::asio::buffer(
                 "GET / HTTP/1.1\r\n"
@@ -35,7 +35,7 @@ public:
         }
         {
             error_code ec;
-            headers_parser_v1<true, headers> p;
+            headers_parser_v1<true, fields> p;
             BEAST_EXPECT(! p.complete());
             auto const n = p.write(boost::asio::buffer(
                 "GET / HTTP/1.1\r\n"
@@ -50,7 +50,7 @@ public:
         }
         {
             error_code ec;
-            headers_parser_v1<false, headers> p;
+            headers_parser_v1<false, fields> p;
             BEAST_EXPECT(! p.complete());
             auto const n = p.write(boost::asio::buffer(
                 "HTTP/1.1 200 OK\r\n"
@@ -63,7 +63,7 @@ public:
         }
         {
             error_code ec;
-            headers_parser_v1<false, headers> p;
+            headers_parser_v1<false, fields> p;
             BEAST_EXPECT(! p.complete());
             auto const n = p.write(boost::asio::buffer(
                 "HTTP/1.1 200 OK\r\n"

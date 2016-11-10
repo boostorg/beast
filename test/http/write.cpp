@@ -8,7 +8,7 @@
 // Test that header file is self-contained.
 #include <beast/http/write.hpp>
 
-#include <beast/http/headers.hpp>
+#include <beast/http/fields.hpp>
 #include <beast/http/message.hpp>
 #include <beast/http/empty_body.hpp>
 #include <beast/http/string_body.hpp>
@@ -234,11 +234,11 @@ public:
     testAsyncWriteHeaders(yield_context do_yield)
     {
         {
-            message_headers<true, headers> m;
+            message_headers<true, fields> m;
             m.version = 11;
             m.method = "GET";
             m.url = "/";
-            m.headers.insert("User-Agent", "test");
+            m.fields.insert("User-Agent", "test");
             error_code ec;
             string_write_stream ss{ios_};
             async_write(ss, m, do_yield[ec]);
@@ -249,12 +249,12 @@ public:
                     "\r\n");
         }
         {
-            message_headers<false, headers> m;
+            message_headers<false, fields> m;
             m.version = 10;
             m.status = 200;
             m.reason = "OK";
-            m.headers.insert("Server", "test");
-            m.headers.insert("Content-Length", "5");
+            m.fields.insert("Server", "test");
+            m.fields.insert("Content-Length", "5");
             error_code ec;
             string_write_stream ss{ios_};
             async_write(ss, m, do_yield[ec]);
@@ -271,12 +271,12 @@ public:
     testAsyncWrite(yield_context do_yield)
     {
         {
-            message<false, string_body, headers> m;
+            message<false, string_body, fields> m;
             m.version = 10;
             m.status = 200;
             m.reason = "OK";
-            m.headers.insert("Server", "test");
-            m.headers.insert("Content-Length", "5");
+            m.fields.insert("Server", "test");
+            m.fields.insert("Content-Length", "5");
             m.body = "*****";
             error_code ec;
             string_write_stream ss{ios_};
@@ -290,12 +290,12 @@ public:
                     "*****");
         }
         {
-            message<false, string_body, headers> m;
+            message<false, string_body, fields> m;
             m.version = 11;
             m.status = 200;
             m.reason = "OK";
-            m.headers.insert("Server", "test");
-            m.headers.insert("Transfer-Encoding", "chunked");
+            m.fields.insert("Server", "test");
+            m.fields.insert("Transfer-Encoding", "chunked");
             m.body = "*****";
             error_code ec;
             string_write_stream ss(ios_);
@@ -323,14 +323,14 @@ public:
             test::fail_counter fc(n);
             test::fail_stream<
                 string_write_stream> fs(fc, ios_);
-            message<true, fail_body, headers> m(
+            message<true, fail_body, fields> m(
                 std::piecewise_construct,
                     std::forward_as_tuple(fc, ios_));
             m.method = "GET";
             m.url = "/";
             m.version = 10;
-            m.headers.insert("User-Agent", "test");
-            m.headers.insert("Content-Length", "5");
+            m.fields.insert("User-Agent", "test");
+            m.fields.insert("Content-Length", "5");
             m.body = "*****";
             try
             {
@@ -356,14 +356,14 @@ public:
             test::fail_counter fc(n);
             test::fail_stream<
                 string_write_stream> fs(fc, ios_);
-            message<true, fail_body, headers> m(
+            message<true, fail_body, fields> m(
                 std::piecewise_construct,
                     std::forward_as_tuple(fc, ios_));
             m.method = "GET";
             m.url = "/";
             m.version = 10;
-            m.headers.insert("User-Agent", "test");
-            m.headers.insert("Transfer-Encoding", "chunked");
+            m.fields.insert("User-Agent", "test");
+            m.fields.insert("Transfer-Encoding", "chunked");
             m.body = "*****";
             error_code ec;
             write(fs, m, ec);
@@ -391,14 +391,14 @@ public:
             test::fail_counter fc(n);
             test::fail_stream<
                 string_write_stream> fs(fc, ios_);
-            message<true, fail_body, headers> m(
+            message<true, fail_body, fields> m(
                 std::piecewise_construct,
                     std::forward_as_tuple(fc, ios_));
             m.method = "GET";
             m.url = "/";
             m.version = 10;
-            m.headers.insert("User-Agent", "test");
-            m.headers.insert("Transfer-Encoding", "chunked");
+            m.fields.insert("User-Agent", "test");
+            m.fields.insert("Transfer-Encoding", "chunked");
             m.body = "*****";
             error_code ec;
             async_write(fs, m, do_yield[ec]);
@@ -426,14 +426,14 @@ public:
             test::fail_counter fc(n);
             test::fail_stream<
                 string_write_stream> fs(fc, ios_);
-            message<true, fail_body, headers> m(
+            message<true, fail_body, fields> m(
                 std::piecewise_construct,
                     std::forward_as_tuple(fc, ios_));
             m.method = "GET";
             m.url = "/";
             m.version = 10;
-            m.headers.insert("User-Agent", "test");
-            m.headers.insert("Content-Length", "5");
+            m.fields.insert("User-Agent", "test");
+            m.fields.insert("Content-Length", "5");
             m.body = "*****";
             error_code ec;
             write(fs, m, ec);
@@ -456,14 +456,14 @@ public:
             test::fail_counter fc(n);
             test::fail_stream<
                 string_write_stream> fs(fc, ios_);
-            message<true, fail_body, headers> m(
+            message<true, fail_body, fields> m(
                 std::piecewise_construct,
                     std::forward_as_tuple(fc, ios_));
             m.method = "GET";
             m.url = "/";
             m.version = 10;
-            m.headers.insert("User-Agent", "test");
-            m.headers.insert("Content-Length", "5");
+            m.fields.insert("User-Agent", "test");
+            m.fields.insert("Content-Length", "5");
             m.body = "*****";
             error_code ec;
             async_write(fs, m, do_yield[ec]);
@@ -487,11 +487,11 @@ public:
     {
         // auto content-length HTTP/1.0
         {
-            message<true, string_body, headers> m;
+            message<true, string_body, fields> m;
             m.method = "GET";
             m.url = "/";
             m.version = 10;
-            m.headers.insert("User-Agent", "test");
+            m.fields.insert("User-Agent", "test");
             m.body = "*";
             prepare(m);
             BEAST_EXPECT(str(m) ==
@@ -504,11 +504,11 @@ public:
         }
         // keep-alive HTTP/1.0
         {
-            message<true, string_body, headers> m;
+            message<true, string_body, fields> m;
             m.method = "GET";
             m.url = "/";
             m.version = 10;
-            m.headers.insert("User-Agent", "test");
+            m.fields.insert("User-Agent", "test");
             m.body = "*";
             prepare(m, connection::keep_alive);
             BEAST_EXPECT(str(m) ==
@@ -522,11 +522,11 @@ public:
         }
         // upgrade HTTP/1.0
         {
-            message<true, string_body, headers> m;
+            message<true, string_body, fields> m;
             m.method = "GET";
             m.url = "/";
             m.version = 10;
-            m.headers.insert("User-Agent", "test");
+            m.fields.insert("User-Agent", "test");
             m.body = "*";
             try
             {
@@ -540,11 +540,11 @@ public:
         }
         // no content-length HTTP/1.0
         {
-            message<true, unsized_body, headers> m;
+            message<true, unsized_body, fields> m;
             m.method = "GET";
             m.url = "/";
             m.version = 10;
-            m.headers.insert("User-Agent", "test");
+            m.fields.insert("User-Agent", "test");
             m.body = "*";
             prepare(m);
             string_write_stream ss(ios_);
@@ -560,11 +560,11 @@ public:
         }
         // auto content-length HTTP/1.1
         {
-            message<true, string_body, headers> m;
+            message<true, string_body, fields> m;
             m.method = "GET";
             m.url = "/";
             m.version = 11;
-            m.headers.insert("User-Agent", "test");
+            m.fields.insert("User-Agent", "test");
             m.body = "*";
             prepare(m);
             BEAST_EXPECT(str(m) ==
@@ -577,11 +577,11 @@ public:
         }
         // close HTTP/1.1
         {
-            message<true, string_body, headers> m;
+            message<true, string_body, fields> m;
             m.method = "GET";
             m.url = "/";
             m.version = 11;
-            m.headers.insert("User-Agent", "test");
+            m.fields.insert("User-Agent", "test");
             m.body = "*";
             prepare(m, connection::close);
             string_write_stream ss(ios_);
@@ -599,11 +599,11 @@ public:
         }
         // upgrade HTTP/1.1
         {
-            message<true, empty_body, headers> m;
+            message<true, empty_body, fields> m;
             m.method = "GET";
             m.url = "/";
             m.version = 11;
-            m.headers.insert("User-Agent", "test");
+            m.fields.insert("User-Agent", "test");
             prepare(m, connection::upgrade);
             BEAST_EXPECT(str(m) ==
                 "GET / HTTP/1.1\r\n"
@@ -614,11 +614,11 @@ public:
         }
         // no content-length HTTP/1.1
         {
-            message<true, unsized_body, headers> m;
+            message<true, unsized_body, fields> m;
             m.method = "GET";
             m.url = "/";
             m.version = 11;
-            m.headers.insert("User-Agent", "test");
+            m.fields.insert("User-Agent", "test");
             m.body = "*";
             prepare(m);
             string_write_stream ss(ios_);
@@ -639,11 +639,11 @@ public:
     void test_std_ostream()
     {
         // Conversion to std::string via operator<<
-        message<true, string_body, headers> m;
+        message<true, string_body, fields> m;
         m.method = "GET";
         m.url = "/";
         m.version = 11;
-        m.headers.insert("User-Agent", "test");
+        m.fields.insert("User-Agent", "test");
         m.body = "*";
         BEAST_EXPECT(boost::lexical_cast<std::string>(m) ==
             "GET / HTTP/1.1\r\nUser-Agent: test\r\n\r\n*");
@@ -679,11 +679,11 @@ public:
 
     void testOstream()
     {
-        message<true, string_body, headers> m;
+        message<true, string_body, fields> m;
         m.method = "GET";
         m.url = "/";
         m.version = 11;
-        m.headers.insert("User-Agent", "test");
+        m.fields.insert("User-Agent", "test");
         m.body = "*";
         prepare(m);
         std::stringstream ss;

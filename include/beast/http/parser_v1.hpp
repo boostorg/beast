@@ -33,11 +33,11 @@ namespace http {
     For example, a 200 response to a CONNECT request from a tunneling
     proxy. In these cases, callers use the @ref skip_body option to
     inform the parser that no body is expected. The parser will consider
-    the message complete after the all headers have been received.
+    the message complete after the header has been received.
 
     Example:
     @code
-        parser_v1<true, empty_body, headers> p;
+        parser_v1<true, empty_body, fields> p;
         p.set_option(skip_body{true});
     @endcode
 
@@ -113,7 +113,7 @@ public:
         @param args Forwarded to the message constructor.
 
         @note This function participates in overload resolution only
-        if the first argument is not a parser or headers parser.
+        if the first argument is not a parser or fields parser.
     */
 #if GENERATING_DOCS
     template<class... Args>
@@ -136,9 +136,9 @@ public:
     }
 #endif
 
-    /** Construct the parser from a headers parser.
+    /** Construct the parser from a fields parser.
 
-        @param parser The headers parser to construct from.
+        @param parser The fields parser to construct from.
         @param args Forwarded to the message body constructor.
     */
     template<class... Args>
@@ -204,7 +204,7 @@ private:
             return;
         flush_ = false;
         BOOST_ASSERT(! field_.empty());
-        m_.headers.insert(field_, value_);
+        m_.fields.insert(field_, value_);
         field_.clear();
         value_.clear();
     }
@@ -291,21 +291,21 @@ private:
     }
 };
 
-/** Create a new parser from a headers parser.
+/** Create a new parser from a fields parser.
 
-    Associates a Body type with a headers parser, and returns
+    Associates a Body type with a fields parser, and returns
     a new parser which parses a complete message object
-    containing the original message headers and a new body
+    containing the original message fields and a new body
     of the specified body type.
 
     This function allows HTTP messages to be parsed in two stages.
-    First, the headers are parsed and control is returned. Then,
+    First, the fields are parsed and control is returned. Then,
     the caller can choose at run-time, the type of Body to
     associate with the message. And finally, complete the parse
     in a second call.
 
-    @param parser The headers parser to construct from. Ownership
-    of the message headers in the headers parser is transferred
+    @param parser The fields parser to construct from. Ownership
+    of the message fields in the fields parser is transferred
     as if by call to @ref headers_parser_v1::release.
 
     @param args Forwarded to the body constructor of the message
@@ -315,11 +315,11 @@ private:
 
     @par Example
     @code
-        headers_parser<true, headers> ph;
+        headers_parser<true, fields> ph;
         ...
         auto p = with_body<string_body>(ph);
         ...
-        message<true, string_body, headers> m = p.release();
+        message<true, string_body, fields> m = p.release();
     @endcode
 */
 template<class Body, bool isRequest, class Headers, class... Args>

@@ -36,7 +36,7 @@ struct response_parser_base
 
 } // detail
 
-/** A parser for HTTP/1 request and response headers.
+/** A parser for a HTTP/1 request or response header.
 
     This class uses the HTTP/1 wire format parser to
     convert a series of octets into a @ref request_headers
@@ -53,8 +53,8 @@ class headers_parser_v1
             detail::response_parser_base>::type
 {
 public:
-    /// The type of message this parser produces.
-    using headers_type =
+    /// The type of the header this parser produces.
+    using header_type =
         message_headers<isRequest, Headers>;
 
 private:
@@ -62,7 +62,7 @@ private:
 
     std::string field_;
     std::string value_;
-    headers_type h_;
+    header_type h_;
     bool flush_ = false;
 
 public:
@@ -83,7 +83,7 @@ public:
 
     /** Construct the parser.
 
-        @param args Forwarded to the message headers constructor.
+        @param args Forwarded to the header constructor.
     */
 #if GENERATING_DOCS
     template<class... Args>
@@ -101,35 +101,35 @@ public:
     }
 #endif
 
-    /** Returns the parsed headers.
+    /** Returns the parsed header
 
         Only valid if @ref complete would return `true`.
     */
-    headers_type const&
+    header_type const&
     get() const
     {
         return h_;
     }
 
-    /** Returns the parsed headers.
+    /** Returns the parsed header.
 
         Only valid if @ref complete would return `true`.
     */
-    headers_type&
+    header_type&
     get()
     {
         return h_;
     }
 
-    /** Returns ownership of the parsed headers.
+    /** Returns ownership of the parsed header.
 
         Ownership is transferred to the caller. Only
         valid if @ref complete would return `true`.
 
         Requires:
-            `message_headers<isRequest, Headers>` is @b MoveConstructible
+            @ref header_type is @b MoveConstructible
     */
-    headers_type
+    header_type
     release()
     {
         static_assert(std::is_move_constructible<decltype(h_)>::value,
@@ -146,7 +146,7 @@ private:
             return;
         flush_ = false;
         BOOST_ASSERT(! field_.empty());
-        h_.headers.insert(field_, value_);
+        h_.fields.insert(field_, value_);
         field_.clear();
         value_.clear();
     }

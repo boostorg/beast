@@ -229,7 +229,7 @@ write(SyncWriteStream& stream,
         "SyncWriteStream requirements not met");
     streambuf sb;
     detail::write_start_line(sb, msg);
-    detail::write_fields(sb, msg.headers);
+    detail::write_fields(sb, msg.fields);
     beast::write(sb, "\r\n");
     boost::asio::write(stream, sb.data(), ec);
 }
@@ -249,7 +249,7 @@ async_write(AsyncWriteStream& stream,
         void(error_code)> completion(handler);
     streambuf sb;
     detail::write_start_line(sb, msg);
-    detail::write_fields(sb, msg.headers);
+    detail::write_fields(sb, msg.fields);
     beast::write(sb, "\r\n");
     detail::write_streambuf_op<AsyncWriteStream,
         decltype(completion.handler)>{
@@ -276,10 +276,10 @@ struct write_preparation
         : msg(msg_)
         , w(msg)
         , chunked(token_list{
-            msg.headers["Transfer-Encoding"]}.exists("chunked"))
+            msg.fields["Transfer-Encoding"]}.exists("chunked"))
         , close(token_list{
-            msg.headers["Connection"]}.exists("close") ||
-                (msg.version < 11 && ! msg.headers.exists(
+            msg.fields["Connection"]}.exists("close") ||
+                (msg.version < 11 && ! msg.fields.exists(
                     "Content-Length")))
     {
     }
@@ -292,7 +292,7 @@ struct write_preparation
             return;
   
         write_start_line(sb, msg);
-        write_fields(sb, msg.headers);
+        write_fields(sb, msg.fields);
         beast::write(sb, "\r\n");
     }
 };
@@ -343,7 +343,7 @@ class write_op
         void operator()(ConstBufferSequence const& buffers) const
         {
             auto& d = *self_.d_;
-            // write headers and body
+            // write header and body
             if(d.wp.chunked)
                 boost::asio::async_write(d.s,
                     buffer_cat(d.wp.sb.data(),
@@ -502,7 +502,7 @@ operator()(error_code ec, std::size_t, bool again)
             return;
         }
 
-        // sent headers and body
+        // sent header and body
         case 2:
             d.wp.sb.consume(d.wp.sb.size());
             d.state = 3;
@@ -578,7 +578,7 @@ public:
     template<class ConstBufferSequence>
     void operator()(ConstBufferSequence const& buffers) const
     {
-        // write headers and body
+        // write header and body
         if(chunked_)
             boost::asio::write(stream_, buffer_cat(
                 sb_.data(), chunk_encode(false, buffers)), ec_);

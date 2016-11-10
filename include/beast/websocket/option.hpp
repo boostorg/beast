@@ -91,9 +91,9 @@ struct auto_fragment
         operator()(http::message<isRequest, Body, Headers>& m)
         {
             if(isRequest)
-                m.headers.replace("User-Agent", "MyClient");
+                m.fields.replace("User-Agent", "MyClient");
             else
-                m.headers.replace("Server", "MyServer");
+                m.fields.replace("Server", "MyServer");
         }
     };
     ...
@@ -284,7 +284,7 @@ struct read_buffer_size
 /** Maximum incoming message size option.
 
     Sets the largest permissible incoming message size. Message
-    frame headers indicating a size that would bring the total
+    frame fields indicating a size that would bring the total
     message size over this limit will cause a protocol failure.
 
     The default setting is 16 megabytes. A value of zero indicates

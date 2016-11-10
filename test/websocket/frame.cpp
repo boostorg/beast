@@ -68,7 +68,7 @@ public:
 
     void testFrameHeader()
     {
-        // good frame headers
+        // good frame fields
         {
             role_type role = role_type::client;
 
@@ -118,7 +118,7 @@ public:
             check(fh);
         }
 
-        // bad frame headers
+        // bad frame fields
         {
             role_type role = role_type::client;
 
@@ -211,7 +211,7 @@ public:
 
     void testBadFrameHeaders()
     {
-        // bad frame headers
+        // bad frame fields
         //
         // can't be created by the library
         // so we produce them manually.

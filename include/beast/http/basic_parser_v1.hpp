@@ -36,22 +36,22 @@ enum values
 };
 } // parse_flag
 
-/** Headers maximum size option.
+/** Header maximum size option.
 
     Sets the maximum number of cumulative bytes allowed
     including all header octets. A value of zero indicates
     no limit on the number of header octets
 
-    The default headers maximum size is 16KB (16,384 bytes).
+    The default header maximum size is 16KB (16,384 bytes).
 
     @note Objects of this type are used with basic_parser_v1::set_option.
 */
-struct headers_max_size
+struct header_max_size
 {
     std::size_t value;
 
     explicit
-    headers_max_size(std::size_t v)
+    header_max_size(std::size_t v)
         : value(v)
     {
     }
@@ -116,8 +116,8 @@ enum class body_what
         to the parser will begin reading the message body.
 
         This could be used by callers to inspect the HTTP
-        headers before committing to read the body. For example,
-        to choose the body type based on the headers. Or to
+        header before committing to read the body. For example,
+        to choose the body type based on the fields. Or to
         respond to an Expect: 100-continue request.
     */
     pause
@@ -181,7 +181,7 @@ static std::uint64_t constexpr no_content_length =
         //
         void on_value(boost::string_ref const&, error_code&)
 
-        // Called when all the headers have been parsed successfully.
+        // Called when the entire header has been parsed successfully.
         //
         void
         on_headers(std::uint64_t content_length, error_code&);
@@ -193,7 +193,7 @@ static std::uint64_t constexpr no_content_length =
 
         // Called for each piece of the body.
         //
-        // If the headers indicate chunk encoding, the chunk
+        // If the header indicates chunk encoding, the chunk
         // encoding is removed from the buffer before being
         // passed to the callback.
         //
@@ -319,9 +319,9 @@ public:
             std::forward<An>(an)...);
     }
 
-    /// Set the headers maximum size option
+    /// Set the header maximum size option
     void
-    set_option(headers_max_size const& o)
+    set_option(header_max_size const& o)
     {
         h_max_ = o.value;
         h_left_ = h_max_;
@@ -508,7 +508,7 @@ private:
     void
     init(std::true_type)
     {
-        // 16KB max headers, 4MB max body
+        // Request: 16KB max header, 4MB max body
         h_max_ = 16 * 1024;
         b_max_ = 4 * 1024 * 1024;
     }
@@ -516,7 +516,7 @@ private:
     void
     init(std::false_type)
     {
-        // 16KB max headers, unlimited body
+        // Response: 16KB max header, unlimited body
         h_max_ = 16 * 1024;
         b_max_ = 0;
     }
@@ -674,7 +674,7 @@ private:
             "on_method requirements not met");
         if(h_max_ && s.size() > h_left_)
         {
-            ec = parse_error::headers_too_big;
+            ec = parse_error::header_too_big;
             return;
         }
         h_left_ -= s.size();
@@ -700,7 +700,7 @@ private:
             "on_uri requirements not met");
         if(h_max_ && s.size() > h_left_)
         {
-            ec = parse_error::headers_too_big;
+            ec = parse_error::header_too_big;
             return;
         }
         h_left_ -= s.size();
@@ -726,7 +726,7 @@ private:
             "on_reason requirements not met");
         if(h_max_ && s.size() > h_left_)
         {
-            ec = parse_error::headers_too_big;
+            ec = parse_error::header_too_big;
             return;
         }
         h_left_ -= s.size();
@@ -785,7 +785,7 @@ private:
             "on_field requirements not met");
         if(h_max_ && s.size() > h_left_)
         {
-            ec = parse_error::headers_too_big;
+            ec = parse_error::header_too_big;
             return;
         }
         h_left_ -= s.size();
@@ -799,7 +799,7 @@ private:
             "on_value requirements not met");
         if(h_max_ && s.size() > h_left_)
         {
-            ec = parse_error::headers_too_big;
+            ec = parse_error::header_too_big;
             return;
         }
         h_left_ -= s.size();

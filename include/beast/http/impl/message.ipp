@@ -30,7 +30,7 @@ swap(
     swap(m1.version, m2.version);
     swap(m1.method, m2.method);
     swap(m1.url, m2.url);
-    swap(m1.headers, m2.headers);
+    swap(m1.fields, m2.fields);
 }
 
 template<class Headers>
@@ -43,7 +43,7 @@ swap(
     swap(a.version, b.version);
     swap(a.status, b.status);
     swap(a.reason, b.reason);
-    swap(a.headers, b.headers);
+    swap(a.fields, b.fields);
 }
 
 template<bool isRequest, class Body, class Headers>
@@ -64,11 +64,11 @@ is_keep_alive(message<isRequest, Body, Headers> const& msg)
     BOOST_ASSERT(msg.version == 10 || msg.version == 11);
     if(msg.version == 11)
     {
-        if(token_list{msg.headers["Connection"]}.exists("close"))
+        if(token_list{msg.fields["Connection"]}.exists("close"))
             return false;
         return true;
     }
-    if(token_list{msg.headers["Connection"]}.exists("keep-alive"))
+    if(token_list{msg.fields["Connection"]}.exists("keep-alive"))
         return true;
     return false;
 }
@@ -80,7 +80,7 @@ is_upgrade(message<isRequest, Body, Headers> const& msg)
     BOOST_ASSERT(msg.version == 10 || msg.version == 11);
     if(msg.version == 10)
         return false;
-    if(token_list{msg.headers["Connection"]}.exists("upgrade"))
+    if(token_list{msg.fields["Connection"]}.exists("upgrade"))
         return true;
     return false;
 }
@@ -173,15 +173,15 @@ prepare(message<isRequest, Body, Headers>& msg,
     detail::prepare_options(pi, msg,
         std::forward<Options>(options)...);
 
-    if(msg.headers.exists("Connection"))
+    if(msg.fields.exists("Connection"))
         throw std::invalid_argument(
             "prepare called with Connection field set");
 
-    if(msg.headers.exists("Content-Length"))
+    if(msg.fields.exists("Content-Length"))
         throw std::invalid_argument(
             "prepare called with Content-Length field set");
 
-    if(token_list{msg.headers["Transfer-Encoding"]}.exists("chunked"))
+    if(token_list{msg.fields["Transfer-Encoding"]}.exists("chunked"))
         throw std::invalid_argument(
             "prepare called with Transfer-Encoding: chunked set");
 
@@ -199,7 +199,7 @@ prepare(message<isRequest, Body, Headers>& msg,
                     if(*pi.content_length > 0 ||
                         ci_equal(msg.method, "POST"))
                     {
-                        msg.headers.insert(
+                        msg.fields.insert(
                             "Content-Length", *pi.content_length);
                     }
                 }
@@ -212,7 +212,7 @@ prepare(message<isRequest, Body, Headers>& msg,
                         msg.status != 204 &&
                         msg.status != 304)
                     {
-                        msg.headers.insert(
+                        msg.fields.insert(
                             "Content-Length", *pi.content_length);
                     }
                 }
@@ -221,39 +221,39 @@ prepare(message<isRequest, Body, Headers>& msg,
         }
         else if(msg.version >= 11)
         {
-            msg.headers.insert("Transfer-Encoding", "chunked");
+            msg.fields.insert("Transfer-Encoding", "chunked");
         }
     }
 
     auto const content_length =
-        msg.headers.exists("Content-Length");
+        msg.fields.exists("Content-Length");
 
     if(pi.connection_value)
     {
         switch(*pi.connection_value)
         {
         case connection::upgrade:
-            msg.headers.insert("Connection", "upgrade");
+            msg.fields.insert("Connection", "upgrade");
             break;
 
         case connection::keep_alive:
             if(msg.version < 11)
             {
                 if(content_length)
-                    msg.headers.insert("Connection", "keep-alive");
+                    msg.fields.insert("Connection", "keep-alive");
             }
             break;
 
         case connection::close:
             if(msg.version >= 11)
-                msg.headers.insert("Connection", "close");
+                msg.fields.insert("Connection", "close");
             break;
         }
     }
 
     // rfc7230 6.7.
     if(msg.version < 11 && token_list{
-            msg.headers["Connection"]}.exists("upgrade"))
+            msg.fields["Connection"]}.exists("upgrade"))
         throw std::invalid_argument(
             "invalid version for Connection: upgrade");
 }

@@ -15,20 +15,20 @@
 namespace beast {
 namespace http {
 
-/** Read HTTP/1 message headers from a stream.
+/** Read HTTP/1 message fields from a stream.
 
-    This function is used to synchronously read message headers from
+    This function is used to synchronously read message fields from
     the stream. The call blocks until one of the following conditions
     is true:
 
-    @li The complete message headers are read in.
+    @li The complete message fields are read in.
 
     @li An error occurs in the stream or parser.
 
     This function is implemented in terms of one or more calls
     to the stream's `read_some` function. The implementation may
     read additional octets that lie past the end of the message
-    headers being parsed. This additional data is stored in the
+    fields being parsed. This additional data is stored in the
     stream buffer, which may be used in subsequent calls.
 
     @param stream The stream from which the data is to be read.
@@ -40,7 +40,7 @@ namespace http {
     stream buffer's input sequence will be given to the parser
     first.
 
-    @param msg An object used to store the message headers.
+    @param msg An object used to store the message fields.
     Any contents will be overwritten. The type must support
     copy assignment or move assignment.
 
@@ -52,20 +52,20 @@ void
 read(SyncReadStream& stream, DynamicBuffer& dynabuf,
     message_headers<isRequest, Headers>& msg);
 
-/** Read HTTP/1 message headers from a stream.
+/** Read HTTP/1 message fields from a stream.
 
-    This function is used to synchronously read message headers from
+    This function is used to synchronously read message fields from
     the stream. The call blocks until one of the following conditions
     is true:
 
-    @li The complete message headers are read in.
+    @li The complete message fields are read in.
 
     @li An error occurs in the stream or parser.
 
     This function is implemented in terms of one or more calls
     to the stream's `read_some` function. The implementation may
     read additional octets that lie past the end of the message
-    headers being parsed. This additional data is stored in the
+    fields being parsed. This additional data is stored in the
     stream buffer, which may be used in subsequent calls.
 
     If the message being received contains a message body, it
@@ -81,7 +81,7 @@ read(SyncReadStream& stream, DynamicBuffer& dynabuf,
     stream buffer's input sequence will be given to the parser
     first.
 
-    @param msg An object used to store the message headers.
+    @param msg An object used to store the message fields.
     Any contents will be overwritten. The type must support
     copy assignment or move assignment.
 
@@ -94,7 +94,7 @@ read(SyncReadStream& stream, DynamicBuffer& dynabuf,
     message_headers<isRequest, Headers>& msg,
         error_code& ec);
 
-/** Start an asynchronous operation to read HTTP/1 message headers from a stream.
+/** Start an asynchronous operation to read HTTP/1 message fields from a stream.
 
     This function is used to asynchronously read a message from the
     stream. The function call always returns immediately. The asynchronous
@@ -109,7 +109,7 @@ read(SyncReadStream& stream, DynamicBuffer& dynabuf,
     <em>composed operation</em>. The program must ensure that the
     stream performs no other operations until this operation completes.
     The implementation may read additional octets that lie past the
-    end of the message headers being parsed. This additional data is
+    end of the message fields being parsed. This additional data is
     stored in the stream buffer, which may be used in subsequent calls.
 
     If the message being received contains a message body, it

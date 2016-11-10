@@ -139,14 +139,14 @@ private:
             void
             operator()(http::message<true, Body, Headers>& req)
             {
-                req.headers.replace("User-Agent", "async_echo_client");
+                req.fields.replace("User-Agent", "async_echo_client");
             }
 
             template<class Body, class Headers>
             void
             operator()(http::message<false, Body, Headers>& resp)
             {
-                resp.headers.replace("Server", "async_echo_server");
+                resp.fields.replace("Server", "async_echo_server");
             }
         };
 

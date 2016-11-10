@@ -19,14 +19,15 @@ namespace beast {
 namespace http {
 
 #if GENERATING_DOCS
-/** A container for HTTP request or response headers.
+/** A container for a HTTP request or response header.
 
-    The container includes the headers, as well as the
-    request method and URL. Objects of this type may be
-    used to represent incoming or outgoing requests for
-    which the body is not yet known or generated. For
-    example, when receiving a request with the header value
-    "Expect: 100-continue".
+    A header includes the Start Line and Fields.
+    
+    Objects of this type may be used to represent incoming or
+    outgoing requests for which the body is not yet known or
+    generated. For example, when receiving a request with the
+    header value "Expect: 100-continue", or when responding to
+    a HEAD request.
 */
 template<bool isRequest, class Headers>
 struct message_headers
@@ -39,7 +40,7 @@ template<class Headers>
 struct message_headers<true, Headers>
 #endif
 {
-    /// Indicates if the message headers are a request or response.
+    /// Indicates if the header is a request or response.
 #if GENERATING_DOCS
     static bool constexpr is_request = isRequest;
 
@@ -47,8 +48,8 @@ struct message_headers<true, Headers>
     static bool constexpr is_request = true;
 #endif
 
-    /// The type representing the headers.
-    using headers_type = Headers;
+    /// The type representing the fields.
+    using fields_type = Headers;
 
     /** The HTTP version.
 
@@ -74,7 +75,7 @@ struct message_headers<true, Headers>
     std::string url;
 
     /// The HTTP field values.
-    Headers headers;
+    Headers fields;
 
     /// Default constructor
     message_headers() = default;
@@ -91,10 +92,10 @@ struct message_headers<true, Headers>
     /// Copy assignment
     message_headers& operator=(message_headers const&) = default;
 
-    /** Construct message headers.
+    /** Construct the header.
 
         All arguments are forwarded to the constructor
-        of the `headers` member.
+        of the `fields` member.
 
         @note This constructor participates in overload resolution
         if and only if the first parameter is not convertible to
@@ -113,15 +114,15 @@ struct message_headers<true, Headers>
                     message_headers>::value>::type>
     explicit
     message_headers(Arg1&& arg1, ArgN&&... argn)
-        : headers(std::forward<Arg1>(arg1),
+        : fields(std::forward<Arg1>(arg1),
             std::forward<ArgN>(argn)...)
     {
     }
 };
 
-/** A container for HTTP request or response headers.
+/** A container for a HTTP request or response header.
 
-    The container includes the headers, as well as the
+    The container includes the fields, as well as the
     response status and reasons. Objects of this type may
     be used to represent incoming or outgoing responses for
     which the body is not yet known or generated. For
@@ -130,10 +131,10 @@ struct message_headers<true, Headers>
 template<class Headers>
 struct message_headers<false, Headers>
 {
-    /// Indicates if the message headers are a request or response.
+    /// Indicates if the message fields are a request or response.
     static bool constexpr is_request = false;
 
-    /// The type representing the headers.
+    /// The type representing the fields.
     using headers_type = Headers;
 
     /** The HTTP version.
@@ -148,7 +149,7 @@ struct message_headers<false, Headers>
     int version;
 
     /// The HTTP field values.
-    Headers headers;
+    Headers fields;
 
     /// Default constructor
     message_headers() = default;
@@ -165,10 +166,10 @@ struct message_headers<false, Headers>
     /// Copy assignment
     message_headers& operator=(message_headers const&) = default;
 
-    /** Construct message headers.
+    /** Construct message fields.
 
         All arguments are forwarded to the constructor
-        of the `headers` member.
+        of the `fields` member.
 
         @note This constructor participates in overload resolution
         if and only if the first parameter is not convertible to
@@ -181,7 +182,7 @@ struct message_headers<false, Headers>
                     message_headers>::value>::type>
     explicit
     message_headers(Arg1&& arg1, ArgN&&... argn)
-        : headers(std::forward<Arg1>(arg1),
+        : fields(std::forward<Arg1>(arg1),
             std::forward<ArgN>(argn)...)
     {
     }
@@ -224,7 +225,7 @@ template<bool isRequest, class Body, class Headers>
 struct message :
     message_headers<isRequest, Headers>
 {
-    /// The base class used to hold the request or response headers
+    /// The base class used to hold the request or response fields
     using base_type = message_headers<isRequest, Headers>;
 
     /** The type providing the body traits.
@@ -239,7 +240,7 @@ struct message :
     /// Default constructor
     message() = default;
 
-    /** Construct a message from message headers.
+    /** Construct a message from message fields.
 
         Additional arguments, if any, are forwarded to
         the constructor of the body member.
@@ -252,7 +253,7 @@ struct message :
     {
     }
 
-    /** Construct a message from message headers.
+    /** Construct a message from message fields.
 
         Additional arguments, if any, are forwarded to
         the constructor of the body member.
@@ -288,7 +289,7 @@ struct message :
 
         @param u An argument forwarded to the body constructor.
 
-        @param v An argument forwarded to the headers constructor.
+        @param v An argument forwarded to the fields constructor.
 
         @note This constructor participates in overload resolution
         only if `u` is not convertible to `base_type`.
@@ -320,7 +321,7 @@ struct message :
 
         @param un A tuple forwarded as a parameter pack to the body constructor.
 
-        @param vn A tuple forwarded as a parameter pack to the headers constructor.
+        @param vn A tuple forwarded as a parameter pack to the fields constructor.
     */
     template<class... Un, class... Vn>
     message(std::piecewise_construct_t,
@@ -331,14 +332,14 @@ struct message :
     {
     }
 
-    /// Returns the message headers portion of the message
+    /// Returns the message fields portion of the message
     base_type&
     base()
     {
         return *this;
     }
 
-    /// Returns the message headers portion of the message
+    /// Returns the message fields portion of the message
     base_type const&
     base() const
     {
@@ -368,7 +369,7 @@ private:
 //------------------------------------------------------------------------------
 
 #if GENERATING_DOCS
-/** Swap two HTTP message headers.
+/** Swap two HTTP message fields.
 
     @par Requirements
     `Headers` is @b Swappable.
@@ -391,11 +392,11 @@ swap(
     message<isRequest, Body, Headers>& m1,
     message<isRequest, Body, Headers>& m2);
 
-/// Message headers for a typical HTTP request
+/// Message fields for a typical HTTP request
 using request_headers = message_headers<true,
     basic_fields<std::allocator<char>>>;
 
-/// Message headers for a typical HTTP response
+/// Message fields for a typical HTTP response
 using response_headers = message_headers<false,
     basic_fields<std::allocator<char>>>;
 
@@ -446,10 +447,10 @@ enum class connection
 /** Prepare a HTTP message.
 
     This function will adjust the Content-Length, Transfer-Encoding,
-    and Connection headers of the message based on the properties of
+    and Connection fields of the message based on the properties of
     the body and the options passed in.
 
-    @param msg The message to prepare. The headers may be modified.
+    @param msg The message to prepare. The fields may be modified.
 
     @param options A list of prepare options.
 */

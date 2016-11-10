@@ -17,26 +17,26 @@
 namespace beast {
 namespace http {
 
-/** Write HTTP/1 message headers on a stream.
+/** Write HTTP/1 message fields on a stream.
 
-    This function is used to write message headers to a stream. The
+    This function is used to write message fields to a stream. The
     call will block until one of the following conditions is true:
 
-    @li All the message headers are sent.
+    @li All the message fields are sent.
 
     @li An error occurs.
 
     This operation is implemented in terms of one or more calls
     to the stream's `write_some` function.
 
-    Regardless of the semantic meaning of the headers (for example,
+    Regardless of the semantic meaning of the fields (for example,
     specifying a zero-length message body and Connection: Close),
     this function will not return `boost::asio::error::eof`.
 
     @param stream The stream to which the data is to be written.
     The type must support the @b `SyncWriteStream` concept.
 
-    @param msg The message headers to write.
+    @param msg The message fields to write.
 
     @throws system_error Thrown on failure.
 */
@@ -46,26 +46,26 @@ void
 write(SyncWriteStream& stream,
     message_headers<isRequest, Headers> const& msg);
 
-/** Write HTTP/1 message headers on a stream.
+/** Write HTTP/1 message fields on a stream.
 
-    This function is used to write message headers to a stream. The
+    This function is used to write message fields to a stream. The
     call will block until one of the following conditions is true:
 
-    @li All the message headers are sent.
+    @li All the message fields are sent.
 
     @li An error occurs.
 
     This operation is implemented in terms of one or more calls
     to the stream's `write_some` function.
 
-    Regardless of the semantic meaning of the headers (for example,
+    Regardless of the semantic meaning of the fields (for example,
     specifying a zero-length message body and Connection: Close),
     this function will not return `boost::asio::error::eof`.
 
     @param stream The stream to which the data is to be written.
     The type must support the @b `SyncWriteStream` concept.
 
-    @param msg The message headers to write.
+    @param msg The message fields to write.
 
     @param ec Set to the error, if any occurred.
 */
@@ -76,13 +76,13 @@ write(SyncWriteStream& stream,
     message_headers<isRequest, Headers> const& msg,
         error_code& ec);
 
-/** Start an asynchronous operation to write HTTP/1 message headers to a stream.
+/** Start an asynchronous operation to write HTTP/1 message fields to a stream.
 
-    This function is used to asynchronously write message headers to a stream.
+    This function is used to asynchronously write message fields to a stream.
     The function call always returns immediately. The asynchronous
     operation will continue until one of the following conditions is true:
 
-    @li The entire message headers are sent.
+    @li The entire message fields are sent.
 
     @li An error occurs.
 
@@ -93,14 +93,14 @@ write(SyncWriteStream& stream,
     `async_write_some` function, or any other composed operations that
     perform writes) until this operation completes.
 
-    Regardless of the semantic meaning of the headers (for example,
+    Regardless of the semantic meaning of the fields (for example,
     specifying a zero-length message body and Connection: Close),
     the handler will not be called with `boost::asio::error::eof`.
 
     @param stream The stream to which the data is to be written.
     The type must support the @b `AsyncWriteStream` concept.
 
-    @param msg The message headers to send.
+    @param msg The message fields to send.
 
     @param handler The handler to be called when the request completes.
     Copies will be made of the handler as required. The equivalent
@@ -251,15 +251,15 @@ async_write(AsyncWriteStream& stream,
 
 //------------------------------------------------------------------------------
 
-/** Serialize HTTP/1 message headers to a `std::ostream`.
+/** Serialize HTTP/1 message fields to a `std::ostream`.
 
-    The function converts the message headers to its HTTP/1
+    The function converts the message fields to its HTTP/1
     serialized representation and stores the result in the output
     stream.
 
     @param os The output stream to write to.
 
-    @param msg The message headers to write.
+    @param msg The message fields to write.
 */
 template<bool isRequest, class Headers>
 std::ostream&
