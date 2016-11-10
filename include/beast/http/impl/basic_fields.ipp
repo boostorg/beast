@@ -5,8 +5,8 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#ifndef BEAST_HTTP_IMPL_BASIC_HEADERS_IPP
-#define BEAST_HTTP_IMPL_BASIC_HEADERS_IPP
+#ifndef BEAST_HTTP_IMPL_BASIC_FIELDS_IPP
+#define BEAST_HTTP_IMPL_BASIC_FIELDS_IPP
 
 #include <beast/http/detail/rfc7230.hpp>
 #include <algorithm>
@@ -16,7 +16,7 @@ namespace http {
 
 template<class Allocator>
 void
-basic_headers<Allocator>::
+basic_fields<Allocator>::
 delete_all()
 {
     for(auto it = list_.begin(); it != list_.end();)
@@ -31,8 +31,8 @@ delete_all()
 template<class Allocator>
 inline
 void
-basic_headers<Allocator>::
-move_assign(basic_headers& other, std::false_type)
+basic_fields<Allocator>::
+move_assign(basic_fields& other, std::false_type)
 {
     if(this->member() != other.member())
     {
@@ -49,8 +49,8 @@ move_assign(basic_headers& other, std::false_type)
 template<class Allocator>
 inline
 void
-basic_headers<Allocator>::
-move_assign(basic_headers& other, std::true_type)
+basic_fields<Allocator>::
+move_assign(basic_fields& other, std::true_type)
 {
     this->member() = std::move(other.member());
     set_ = std::move(other.set_);
@@ -60,8 +60,8 @@ move_assign(basic_headers& other, std::true_type)
 template<class Allocator>
 inline
 void
-basic_headers<Allocator>::
-copy_assign(basic_headers const& other, std::false_type)
+basic_fields<Allocator>::
+copy_assign(basic_fields const& other, std::false_type)
 {
     copy_from(other);
 }
@@ -69,8 +69,8 @@ copy_assign(basic_headers const& other, std::false_type)
 template<class Allocator>
 inline
 void
-basic_headers<Allocator>::
-copy_assign(basic_headers const& other, std::true_type)
+basic_fields<Allocator>::
+copy_assign(basic_fields const& other, std::true_type)
 {
     this->member() = other.member();
     copy_from(other);
@@ -79,35 +79,35 @@ copy_assign(basic_headers const& other, std::true_type)
 //------------------------------------------------------------------------------
 
 template<class Allocator>
-basic_headers<Allocator>::
-~basic_headers()
+basic_fields<Allocator>::
+~basic_fields()
 {
     delete_all();
 }
 
 template<class Allocator>
-basic_headers<Allocator>::
-basic_headers(Allocator const& alloc)
+basic_fields<Allocator>::
+basic_fields(Allocator const& alloc)
     : beast::detail::empty_base_optimization<
         alloc_type>(alloc)
 {
 }
 
 template<class Allocator>
-basic_headers<Allocator>::
-basic_headers(basic_headers&& other)
+basic_fields<Allocator>::
+basic_fields(basic_fields&& other)
     : beast::detail::empty_base_optimization<alloc_type>(
         std::move(other.member()))
-    , detail::basic_headers_base(
+    , detail::basic_fields_base(
         std::move(other.set_), std::move(other.list_))
 {
 }
 
 template<class Allocator>
 auto
-basic_headers<Allocator>::
-operator=(basic_headers&& other) ->
-    basic_headers&
+basic_fields<Allocator>::
+operator=(basic_fields&& other) ->
+    basic_fields&
 {
     if(this == &other)
         return *this;
@@ -118,9 +118,9 @@ operator=(basic_headers&& other) ->
 }
 
 template<class Allocator>
-basic_headers<Allocator>::
-basic_headers(basic_headers const& other)
-    : basic_headers(alloc_traits::
+basic_fields<Allocator>::
+basic_fields(basic_fields const& other)
+    : basic_fields(alloc_traits::
         select_on_container_copy_construction(other.member()))
 {
     copy_from(other);
@@ -128,9 +128,9 @@ basic_headers(basic_headers const& other)
 
 template<class Allocator>
 auto
-basic_headers<Allocator>::
-operator=(basic_headers const& other) ->
-    basic_headers&
+basic_fields<Allocator>::
+operator=(basic_fields const& other) ->
+    basic_fields&
 {
     clear();
     copy_assign(other, std::integral_constant<bool,
@@ -140,8 +140,8 @@ operator=(basic_headers const& other) ->
 
 template<class Allocator>
 template<class OtherAlloc>
-basic_headers<Allocator>::
-basic_headers(basic_headers<OtherAlloc> const& other)
+basic_fields<Allocator>::
+basic_fields(basic_fields<OtherAlloc> const& other)
 {
     copy_from(other);
 }
@@ -149,9 +149,9 @@ basic_headers(basic_headers<OtherAlloc> const& other)
 template<class Allocator>
 template<class OtherAlloc>
 auto
-basic_headers<Allocator>::
-operator=(basic_headers<OtherAlloc> const& other) ->
-    basic_headers&
+basic_fields<Allocator>::
+operator=(basic_fields<OtherAlloc> const& other) ->
+    basic_fields&
 {
     clear();
     copy_from(other);
@@ -160,8 +160,8 @@ operator=(basic_headers<OtherAlloc> const& other) ->
 
 template<class Allocator>
 template<class FwdIt>
-basic_headers<Allocator>::
-basic_headers(FwdIt first, FwdIt last)
+basic_fields<Allocator>::
+basic_fields(FwdIt first, FwdIt last)
 {
     for(;first != last; ++first)
         insert(first->name(), first->value());
@@ -169,7 +169,7 @@ basic_headers(FwdIt first, FwdIt last)
 
 template<class Allocator>
 std::size_t
-basic_headers<Allocator>::
+basic_fields<Allocator>::
 count(boost::string_ref const& name) const
 {
     auto const it = set_.find(name, less{});
@@ -181,7 +181,7 @@ count(boost::string_ref const& name) const
 
 template<class Allocator>
 auto
-basic_headers<Allocator>::
+basic_fields<Allocator>::
 find(boost::string_ref const& name) const ->
     iterator
 {
@@ -193,7 +193,7 @@ find(boost::string_ref const& name) const ->
 
 template<class Allocator>
 boost::string_ref
-basic_headers<Allocator>::
+basic_fields<Allocator>::
 operator[](boost::string_ref const& name) const
 {
     auto const it = find(name);
@@ -204,7 +204,7 @@ operator[](boost::string_ref const& name) const
 
 template<class Allocator>
 void
-basic_headers<Allocator>::
+basic_fields<Allocator>::
 clear() noexcept
 {
     delete_all();
@@ -214,7 +214,7 @@ clear() noexcept
 
 template<class Allocator>
 std::size_t
-basic_headers<Allocator>::
+basic_fields<Allocator>::
 erase(boost::string_ref const& name)
 {
     auto it = set_.find(name, less{});
@@ -238,7 +238,7 @@ erase(boost::string_ref const& name)
 
 template<class Allocator>
 void
-basic_headers<Allocator>::
+basic_fields<Allocator>::
 insert(boost::string_ref const& name,
     boost::string_ref value)
 {
@@ -251,7 +251,7 @@ insert(boost::string_ref const& name,
 
 template<class Allocator>
 void
-basic_headers<Allocator>::
+basic_fields<Allocator>::
 replace(boost::string_ref const& name,
     boost::string_ref value)
 {

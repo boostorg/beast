@@ -5,11 +5,11 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#ifndef BEAST_HTTP_BASIC_HEADERS_HPP
-#define BEAST_HTTP_BASIC_HEADERS_HPP
+#ifndef BEAST_HTTP_BASIC_FIELDS_HPP
+#define BEAST_HTTP_BASIC_FIELDS_HPP
 
 #include <beast/core/detail/empty_base_optimization.hpp>
-#include <beast/http/detail/basic_headers.hpp>
+#include <beast/http/detail/basic_fields.hpp>
 #include <boost/lexical_cast.hpp>
 #include <algorithm>
 #include <cctype>
@@ -37,19 +37,19 @@ namespace http {
     @note Meets the requirements of @b `FieldSequence`.
 */
 template<class Allocator>
-class basic_headers :
+class basic_fields :
 #if ! GENERATING_DOCS
     private beast::detail::empty_base_optimization<
         typename std::allocator_traits<Allocator>::
             template rebind_alloc<
-                detail::basic_headers_base::element>>,
+                detail::basic_fields_base::element>>,
 #endif
-    public detail::basic_headers_base
+    public detail::basic_fields_base
 {
     using alloc_type = typename
         std::allocator_traits<Allocator>::
             template rebind_alloc<
-                detail::basic_headers_base::element>;
+                detail::basic_fields_base::element>;
 
     using alloc_traits =
         std::allocator_traits<alloc_type>;
@@ -61,16 +61,16 @@ class basic_headers :
     delete_all();
 
     void
-    move_assign(basic_headers&, std::false_type);
+    move_assign(basic_fields&, std::false_type);
 
     void
-    move_assign(basic_headers&, std::true_type);
+    move_assign(basic_fields&, std::true_type);
 
     void
-    copy_assign(basic_headers const&, std::false_type);
+    copy_assign(basic_fields const&, std::false_type);
 
     void
-    copy_assign(basic_headers const&, std::true_type);
+    copy_assign(basic_fields const&, std::true_type);
 
     template<class FieldSequence>
     void
@@ -103,17 +103,17 @@ public:
 #endif
 
     /// Default constructor.
-    basic_headers() = default;
+    basic_fields() = default;
 
     /// Destructor
-    ~basic_headers();
+    ~basic_fields();
 
     /** Construct the headers.
 
         @param alloc The allocator to use.
     */
     explicit
-    basic_headers(Allocator const& alloc);
+    basic_fields(Allocator const& alloc);
 
     /** Move constructor.
 
@@ -121,7 +121,7 @@ public:
 
         @param other The object to move from.
     */
-    basic_headers(basic_headers&& other);
+    basic_fields(basic_fields&& other);
 
     /** Move assignment.
 
@@ -129,25 +129,25 @@ public:
 
         @param other The object to move from.
     */
-    basic_headers& operator=(basic_headers&& other);
+    basic_fields& operator=(basic_fields&& other);
 
     /// Copy constructor.
-    basic_headers(basic_headers const&);
+    basic_fields(basic_fields const&);
 
     /// Copy assignment.
-    basic_headers& operator=(basic_headers const&);
+    basic_fields& operator=(basic_fields const&);
 
     /// Copy constructor.
     template<class OtherAlloc>
-    basic_headers(basic_headers<OtherAlloc> const&);
+    basic_fields(basic_fields<OtherAlloc> const&);
 
     /// Copy assignment.
     template<class OtherAlloc>
-    basic_headers& operator=(basic_headers<OtherAlloc> const&);
+    basic_fields& operator=(basic_fields<OtherAlloc> const&);
 
     /// Construct from a field sequence.
     template<class FwdIt>
-    basic_headers(FwdIt first, FwdIt last);
+    basic_fields(FwdIt first, FwdIt last);
 
     /// Returns `true` if the field sequence contains no elements.
     bool
@@ -218,7 +218,7 @@ public:
     boost::string_ref
     operator[](boost::string_ref const& name) const;
 
-    /// Clear the contents of the basic_headers.
+    /// Clear the contents of the basic_fields.
     void
     clear() noexcept;
 
@@ -301,6 +301,6 @@ public:
 } // http
 } // beast
 
-#include <beast/http/impl/basic_headers.ipp>
+#include <beast/http/impl/basic_fields.ipp>
 
 #endif

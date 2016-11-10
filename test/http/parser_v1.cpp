@@ -88,7 +88,7 @@ public:
         {
             error_code ec;
             parser_v1<true, string_body,
-                basic_headers<std::allocator<char>>> p;
+                basic_fields<std::allocator<char>>> p;
             std::string const s =
                 "GET / HTTP/1.1\r\n"
                 "User-Agent: test\r\n"
@@ -108,7 +108,7 @@ public:
         {
             error_code ec;
             parser_v1<false, string_body,
-                basic_headers<std::allocator<char>>> p;
+                basic_fields<std::allocator<char>>> p;
             std::string const s =
                 "HTTP/1.1 200 OK\r\n"
                 "Server: test\r\n"

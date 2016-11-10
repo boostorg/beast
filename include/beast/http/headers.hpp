@@ -8,14 +8,14 @@
 #ifndef BEAST_HTTP_HEADERS_HPP
 #define BEAST_HTTP_HEADERS_HPP
 
-#include <beast/http/basic_headers.hpp>
+#include <beast/http/basic_fields.hpp>
 #include <memory>
 
 namespace beast {
 namespace http {
 
 using headers =
-    basic_headers<std::allocator<char>>;
+    basic_fields<std::allocator<char>>;
 
 } // http
 } // beast

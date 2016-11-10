@@ -8,7 +8,7 @@
 #ifndef BEAST_HTTP_MESSAGE_HPP
 #define BEAST_HTTP_MESSAGE_HPP
 
-#include <beast/http/basic_headers.hpp>
+#include <beast/http/basic_fields.hpp>
 #include <beast/core/detail/integer_sequence.hpp>
 #include <memory>
 #include <string>
@@ -393,20 +393,20 @@ swap(
 
 /// Message headers for a typical HTTP request
 using request_headers = message_headers<true,
-    basic_headers<std::allocator<char>>>;
+    basic_fields<std::allocator<char>>>;
 
 /// Message headers for a typical HTTP response
 using response_headers = message_headers<false,
-    basic_headers<std::allocator<char>>>;
+    basic_fields<std::allocator<char>>>;
 
 /// A typical HTTP request message
 template<class Body,
-    class Headers = basic_headers<std::allocator<char>>>
+    class Headers = basic_fields<std::allocator<char>>>
 using request = message<true, Body, Headers>;
 
 /// A typical HTTP response message
 template<class Body,
-    class Headers = basic_headers<std::allocator<char>>>
+    class Headers = basic_fields<std::allocator<char>>>
 using response = message<false, Body, Headers>;
 
 //------------------------------------------------------------------------------
