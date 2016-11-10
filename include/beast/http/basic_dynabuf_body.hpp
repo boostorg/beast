@@ -34,10 +34,10 @@ private:
         value_type& sb_;
 
     public:
-        template<bool isRequest, class Headers>
+        template<bool isRequest, class Fields>
         explicit
         reader(message<isRequest,
-                basic_dynabuf_body, Headers>& m) noexcept
+                basic_dynabuf_body, Fields>& m) noexcept
             : sb_(m.body)
         {
         }
@@ -63,10 +63,10 @@ private:
         DynamicBuffer const& body_;
 
     public:
-        template<bool isRequest, class Headers>
+        template<bool isRequest, class Fields>
         explicit
         writer(message<
-                isRequest, basic_dynabuf_body, Headers> const& m) noexcept
+                isRequest, basic_dynabuf_body, Fields> const& m) noexcept
             : body_(m.body)
         {
         }

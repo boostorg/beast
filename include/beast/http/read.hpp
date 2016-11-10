@@ -47,10 +47,10 @@ namespace http {
     @throws system_error Thrown on failure.
 */
 template<class SyncReadStream, class DynamicBuffer,
-    bool isRequest, class Headers>
+    bool isRequest, class Fields>
 void
 read(SyncReadStream& stream, DynamicBuffer& dynabuf,
-    header<isRequest, Headers>& msg);
+    header<isRequest, Fields>& msg);
 
 /** Read HTTP/1 message fields from a stream.
 
@@ -88,10 +88,10 @@ read(SyncReadStream& stream, DynamicBuffer& dynabuf,
     @param ec Set to the error, if any occurred.
 */
 template<class SyncReadStream, class DynamicBuffer,
-    bool isRequest, class Headers>
+    bool isRequest, class Fields>
 void
 read(SyncReadStream& stream, DynamicBuffer& dynabuf,
-    header<isRequest, Headers>& msg,
+    header<isRequest, Fields>& msg,
         error_code& ec);
 
 /** Start an asynchronous operation to read HTTP/1 message fields from a stream.
@@ -141,7 +141,7 @@ read(SyncReadStream& stream, DynamicBuffer& dynabuf,
     manner equivalent to using `boost::asio::io_service::post`.
 */
 template<class AsyncReadStream, class DynamicBuffer,
-    bool isRequest, class Body, class Headers,
+    bool isRequest, class Body, class Fields,
         class ReadHandler>
 #if GENERATING_DOCS
 void_or_deduced
@@ -150,7 +150,7 @@ typename async_completion<
     ReadHandler, void(error_code)>::result_type
 #endif
 async_read(AsyncReadStream& stream, DynamicBuffer& dynabuf,
-    header<isRequest, Headers>& msg,
+    header<isRequest, Fields>& msg,
         ReadHandler&& handler);
 
 /** Read a HTTP/1 message from a stream.
@@ -185,10 +185,10 @@ async_read(AsyncReadStream& stream, DynamicBuffer& dynabuf,
     @throws system_error Thrown on failure.
 */
 template<class SyncReadStream, class DynamicBuffer,
-    bool isRequest, class Body, class Headers>
+    bool isRequest, class Body, class Fields>
 void
 read(SyncReadStream& stream, DynamicBuffer& dynabuf,
-    message<isRequest, Body, Headers>& msg);
+    message<isRequest, Body, Fields>& msg);
 
 /** Read a HTTP/1 message from a stream.
 
@@ -222,10 +222,10 @@ read(SyncReadStream& stream, DynamicBuffer& dynabuf,
     @param ec Set to the error, if any occurred.
 */
 template<class SyncReadStream, class DynamicBuffer,
-    bool isRequest, class Body, class Headers>
+    bool isRequest, class Body, class Fields>
 void
 read(SyncReadStream& stream, DynamicBuffer& dynabuf,
-    message<isRequest, Body, Headers>& msg,
+    message<isRequest, Body, Fields>& msg,
         error_code& ec);
 
 /** Start an asynchronous operation to read a HTTP/1 message from a stream.
@@ -271,7 +271,7 @@ read(SyncReadStream& stream, DynamicBuffer& dynabuf,
     manner equivalent to using `boost::asio::io_service::post`.
 */
 template<class AsyncReadStream, class DynamicBuffer,
-    bool isRequest, class Body, class Headers,
+    bool isRequest, class Body, class Fields,
         class ReadHandler>
 #if GENERATING_DOCS
 void_or_deduced
@@ -280,7 +280,7 @@ typename async_completion<
     ReadHandler, void(error_code)>::result_type
 #endif
 async_read(AsyncReadStream& stream, DynamicBuffer& dynabuf,
-    message<isRequest, Body, Headers>& msg,
+    message<isRequest, Body, Fields>& msg,
         ReadHandler&& handler);
 
 } // http

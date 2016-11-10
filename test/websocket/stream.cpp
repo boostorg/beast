@@ -133,15 +133,15 @@ public:
 
     struct identity
     {
-        template<class Body, class Headers>
+        template<class Body, class Fields>
         void
-        operator()(http::message<true, Body, Headers>&)
+        operator()(http::message<true, Body, Fields>&)
         {
         }
 
-        template<class Body, class Headers>
+        template<class Body, class Fields>
         void
-        operator()(http::message<false, Body, Headers>&)
+        operator()(http::message<false, Body, Fields>&)
         {
         }
     };

@@ -10,7 +10,7 @@
 
 #include <beast/core/streambuf.hpp>
 #include <beast/http/fields.hpp>
-#include <beast/http/headers_parser_v1.hpp>
+#include <beast/http/header_parser_v1.hpp>
 #include <beast/http/parse.hpp>
 #include <beast/http/string_body.hpp>
 #include <beast/test/string_stream.hpp>
@@ -62,7 +62,7 @@ public:
             "\r\n"
             "*"};
         streambuf rb;
-        headers_parser_v1<true, fields> p0;
+        header_parser_v1<true, fields> p0;
         parse(ss, rb, p0);
         request_header const& reqh = p0.get();
         BEAST_EXPECT(reqh.method == "GET");

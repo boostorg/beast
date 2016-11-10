@@ -41,10 +41,10 @@ namespace http {
     @throws system_error Thrown on failure.
 */
 template<class SyncWriteStream,
-    bool isRequest, class Headers>
+    bool isRequest, class Fields>
 void
 write(SyncWriteStream& stream,
-    header<isRequest, Headers> const& msg);
+    header<isRequest, Fields> const& msg);
 
 /** Write HTTP/1 message fields on a stream.
 
@@ -70,10 +70,10 @@ write(SyncWriteStream& stream,
     @param ec Set to the error, if any occurred.
 */
 template<class SyncWriteStream,
-    bool isRequest, class Headers>
+    bool isRequest, class Fields>
 void
 write(SyncWriteStream& stream,
-    header<isRequest, Headers> const& msg,
+    header<isRequest, Fields> const& msg,
         error_code& ec);
 
 /** Start an asynchronous operation to write HTTP/1 message fields to a stream.
@@ -117,7 +117,7 @@ write(SyncWriteStream& stream,
           completion handler is called, no copies are made.
 */
 template<class AsyncWriteStream,
-    bool isRequest, class Headers,
+    bool isRequest, class Fields,
         class WriteHandler>
 #if GENERATING_DOCS
 void_or_deduced
@@ -126,7 +126,7 @@ typename async_completion<
     WriteHandler, void(error_code)>::result_type
 #endif
 async_write(AsyncWriteStream& stream,
-    header<isRequest, Headers> const& msg,
+    header<isRequest, Fields> const& msg,
         WriteHandler&& handler);
 
 //------------------------------------------------------------------------------
@@ -157,10 +157,10 @@ async_write(AsyncWriteStream& stream,
     @throws system_error Thrown on failure.
 */
 template<class SyncWriteStream,
-    bool isRequest, class Body, class Headers>
+    bool isRequest, class Body, class Fields>
 void
 write(SyncWriteStream& stream,
-    message<isRequest, Body, Headers> const& msg);
+    message<isRequest, Body, Fields> const& msg);
 
 /** Write a HTTP/1 message on a stream.
 
@@ -188,10 +188,10 @@ write(SyncWriteStream& stream,
     @param ec Set to the error, if any occurred.
 */
 template<class SyncWriteStream,
-    bool isRequest, class Body, class Headers>
+    bool isRequest, class Body, class Fields>
 void
 write(SyncWriteStream& stream,
-    message<isRequest, Body, Headers> const& msg,
+    message<isRequest, Body, Fields> const& msg,
         error_code& ec);
 
 /** Start an asynchronous operation to write a HTTP/1 message to a stream.
@@ -237,7 +237,7 @@ write(SyncWriteStream& stream,
           completion handler is called, no copies are made.
 */
 template<class AsyncWriteStream,
-    bool isRequest, class Body, class Headers,
+    bool isRequest, class Body, class Fields,
         class WriteHandler>
 #if GENERATING_DOCS
 void_or_deduced
@@ -246,7 +246,7 @@ typename async_completion<
     WriteHandler, void(error_code)>::result_type
 #endif
 async_write(AsyncWriteStream& stream,
-    message<isRequest, Body, Headers> const& msg,
+    message<isRequest, Body, Fields> const& msg,
         WriteHandler&& handler);
 
 //------------------------------------------------------------------------------
@@ -261,10 +261,10 @@ async_write(AsyncWriteStream& stream,
 
     @param msg The message fields to write.
 */
-template<bool isRequest, class Headers>
+template<bool isRequest, class Fields>
 std::ostream&
 operator<<(std::ostream& os,
-    header<isRequest, Headers> const& msg);
+    header<isRequest, Fields> const& msg);
 
 /** Serialize a HTTP/1 message to a `std::ostream`.
 
@@ -278,10 +278,10 @@ operator<<(std::ostream& os,
 
     @param msg The message to write.
 */
-template<bool isRequest, class Body, class Headers>
+template<bool isRequest, class Body, class Fields>
 std::ostream&
 operator<<(std::ostream& os,
-    message<isRequest, Body, Headers> const& msg);
+    message<isRequest, Body, Fields> const& msg);
 
 } // http
 } // beast

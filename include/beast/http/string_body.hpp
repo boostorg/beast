@@ -35,10 +35,10 @@ private:
         value_type& s_;
 
     public:
-        template<bool isRequest, class Headers>
+        template<bool isRequest, class Fields>
         explicit
         reader(message<isRequest,
-                string_body, Headers>& m) noexcept
+                string_body, Fields>& m) noexcept
             : s_(m.body)
         {
         }
@@ -63,10 +63,10 @@ private:
         value_type const& body_;
 
     public:
-        template<bool isRequest, class Headers>
+        template<bool isRequest, class Fields>
         explicit
         writer(message<
-                isRequest, string_body, Headers> const& msg) noexcept
+                isRequest, string_body, Fields> const& msg) noexcept
             : body_(msg.body)
         {
         }

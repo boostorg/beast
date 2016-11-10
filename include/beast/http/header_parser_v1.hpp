@@ -44,10 +44,10 @@ struct response_parser_base
 
     @note A new instance of the parser is required for each message.
 */
-template<bool isRequest, class Headers>
-class headers_parser_v1
+template<bool isRequest, class Fields>
+class header_parser_v1
     : public basic_parser_v1<isRequest,
-        headers_parser_v1<isRequest, Headers>>
+        header_parser_v1<isRequest, Fields>>
     , private std::conditional<isRequest,
         detail::request_parser_base,
             detail::response_parser_base>::type
@@ -55,10 +55,10 @@ class headers_parser_v1
 public:
     /// The type of the header this parser produces.
     using header_type =
-        header<isRequest, Headers>;
+        header<isRequest, Fields>;
 
 private:
-    // VFALCO Check Headers requirements?
+    // VFALCO Check Fields requirements?
 
     std::string field_;
     std::string value_;
@@ -67,19 +67,19 @@ private:
 
 public:
     /// Default constructor
-    headers_parser_v1() = default;
+    header_parser_v1() = default;
 
     /// Move constructor
-    headers_parser_v1(headers_parser_v1&&) = default;
+    header_parser_v1(header_parser_v1&&) = default;
 
     /// Copy constructor (disallowed)
-    headers_parser_v1(headers_parser_v1 const&) = delete;
+    header_parser_v1(header_parser_v1 const&) = delete;
 
     /// Move assignment (disallowed)
-    headers_parser_v1& operator=(headers_parser_v1&&) = delete;
+    header_parser_v1& operator=(header_parser_v1&&) = delete;
 
     /// Copy assignment (disallowed)
-    headers_parser_v1& operator=(headers_parser_v1 const&) = delete;
+    header_parser_v1& operator=(header_parser_v1 const&) = delete;
 
     /** Construct the parser.
 
@@ -88,13 +88,13 @@ public:
 #if GENERATING_DOCS
     template<class... Args>
     explicit
-    headers_parser_v1(Args&&... args);
+    header_parser_v1(Args&&... args);
 #else
     template<class Arg1, class... ArgN,
         class = typename std::enable_if<! std::is_same<
-            typename std::decay<Arg1>::type, headers_parser_v1>::value>>
+            typename std::decay<Arg1>::type, header_parser_v1>::value>>
     explicit
-    headers_parser_v1(Arg1&& arg1, ArgN&&... argn)
+    header_parser_v1(Arg1&& arg1, ArgN&&... argn)
         : h_(std::forward<Arg1>(arg1),
             std::forward<ArgN>(argn)...)
     {
@@ -138,7 +138,7 @@ public:
     }
 
 private:
-    friend class basic_parser_v1<isRequest, headers_parser_v1>;
+    friend class basic_parser_v1<isRequest, header_parser_v1>;
 
     void flush()
     {

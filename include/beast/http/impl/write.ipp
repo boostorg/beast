@@ -32,10 +32,10 @@ namespace http {
 
 namespace detail {
 
-template<class DynamicBuffer, class Headers>
+template<class DynamicBuffer, class Fields>
 void
 write_start_line(DynamicBuffer& dynabuf,
-    header<true, Headers> const& msg)
+    header<true, Fields> const& msg)
 {
     BOOST_ASSERT(msg.version == 10 || msg.version == 11);
     write(dynabuf, msg.method);
@@ -52,10 +52,10 @@ write_start_line(DynamicBuffer& dynabuf,
     }
 }
 
-template<class DynamicBuffer, class Headers>
+template<class DynamicBuffer, class Fields>
 void
 write_start_line(DynamicBuffer& dynabuf,
-    header<false, Headers> const& msg)
+    header<false, Fields> const& msg)
 {
     BOOST_ASSERT(msg.version == 10 || msg.version == 11);
     switch(msg.version)
@@ -205,10 +205,10 @@ operator()(error_code ec, std::size_t, bool again)
 } // detail
 
 template<class SyncWriteStream,
-    bool isRequest, class Headers>
+    bool isRequest, class Fields>
 void
 write(SyncWriteStream& stream,
-    header<isRequest, Headers> const& msg)
+    header<isRequest, Fields> const& msg)
 {
     static_assert(is_SyncWriteStream<SyncWriteStream>::value,
         "SyncWriteStream requirements not met");
@@ -219,10 +219,10 @@ write(SyncWriteStream& stream,
 }
 
 template<class SyncWriteStream,
-    bool isRequest, class Headers>
+    bool isRequest, class Fields>
 void
 write(SyncWriteStream& stream,
-    header<isRequest, Headers> const& msg,
+    header<isRequest, Fields> const& msg,
         error_code& ec)
 {
     static_assert(is_SyncWriteStream<SyncWriteStream>::value,
@@ -235,12 +235,12 @@ write(SyncWriteStream& stream,
 }
 
 template<class AsyncWriteStream,
-    bool isRequest, class Headers,
+    bool isRequest, class Fields,
         class WriteHandler>
 typename async_completion<
     WriteHandler, void(error_code)>::result_type
 async_write(AsyncWriteStream& stream,
-    header<isRequest, Headers> const& msg,
+    header<isRequest, Fields> const& msg,
         WriteHandler&& handler)
 {
     static_assert(is_AsyncWriteStream<AsyncWriteStream>::value,
@@ -261,10 +261,10 @@ async_write(AsyncWriteStream& stream,
 
 namespace detail {
 
-template<bool isRequest, class Body, class Headers>
+template<bool isRequest, class Body, class Fields>
 struct write_preparation
 {
-    message<isRequest, Body, Headers> const& msg;
+    message<isRequest, Body, Fields> const& msg;
     typename Body::writer w;
     streambuf sb;
     bool chunked;
@@ -272,7 +272,7 @@ struct write_preparation
 
     explicit
     write_preparation(
-            message<isRequest, Body, Headers> const& msg_)
+            message<isRequest, Body, Fields> const& msg_)
         : msg(msg_)
         , w(msg)
         , chunked(token_list{
@@ -298,7 +298,7 @@ struct write_preparation
 };
 
 template<class Stream, class Handler,
-    bool isRequest, class Body, class Headers>
+    bool isRequest, class Body, class Fields>
 class write_op
 {
     using alloc_type =
@@ -309,7 +309,7 @@ class write_op
         Stream& s;
         // VFALCO How do we use handler_alloc in write_preparation?
         write_preparation<
-            isRequest, Body, Headers> wp;
+            isRequest, Body, Fields> wp;
         Handler h;
         resume_context resume;
         resume_context copy;
@@ -318,7 +318,7 @@ class write_op
 
         template<class DeducedHandler>
         data(DeducedHandler&& h_, Stream& s_,
-                message<isRequest, Body, Headers> const& m_)
+                message<isRequest, Body, Fields> const& m_)
             : s(s_)
             , wp(m_)
             , h(std::forward<DeducedHandler>(h_))
@@ -451,9 +451,9 @@ public:
 };
 
 template<class Stream, class Handler,
-    bool isRequest, class Body, class Headers>
+    bool isRequest, class Body, class Fields>
 void
-write_op<Stream, Handler, isRequest, Body, Headers>::
+write_op<Stream, Handler, isRequest, Body, Fields>::
 operator()(error_code ec, std::size_t, bool again)
 {
     auto& d = *d_;
@@ -619,10 +619,10 @@ public:
 } // detail
 
 template<class SyncWriteStream,
-    bool isRequest, class Body, class Headers>
+    bool isRequest, class Body, class Fields>
 void
 write(SyncWriteStream& stream,
-    message<isRequest, Body, Headers> const& msg)
+    message<isRequest, Body, Fields> const& msg)
 {
     static_assert(is_SyncWriteStream<SyncWriteStream>::value,
         "SyncWriteStream requirements not met");
@@ -631,7 +631,7 @@ write(SyncWriteStream& stream,
     static_assert(has_writer<Body>::value,
         "Body has no writer");
     static_assert(is_Writer<typename Body::writer,
-        message<isRequest, Body, Headers>>::value,
+        message<isRequest, Body, Fields>>::value,
             "Writer requirements not met");
     error_code ec;
     write(stream, msg, ec);
@@ -640,10 +640,10 @@ write(SyncWriteStream& stream,
 }
 
 template<class SyncWriteStream,
-    bool isRequest, class Body, class Headers>
+    bool isRequest, class Body, class Fields>
 void
 write(SyncWriteStream& stream,
-    message<isRequest, Body, Headers> const& msg,
+    message<isRequest, Body, Fields> const& msg,
         error_code& ec)
 {
     static_assert(is_SyncWriteStream<SyncWriteStream>::value,
@@ -653,9 +653,9 @@ write(SyncWriteStream& stream,
     static_assert(has_writer<Body>::value,
         "Body has no writer");
     static_assert(is_Writer<typename Body::writer,
-        message<isRequest, Body, Headers>>::value,
+        message<isRequest, Body, Fields>>::value,
             "Writer requirements not met");
-    detail::write_preparation<isRequest, Body, Headers> wp(msg);
+    detail::write_preparation<isRequest, Body, Fields> wp(msg);
     wp.init(ec);
     if(ec)
         return;
@@ -729,12 +729,12 @@ write(SyncWriteStream& stream,
 }
 
 template<class AsyncWriteStream,
-    bool isRequest, class Body, class Headers,
+    bool isRequest, class Body, class Fields,
         class WriteHandler>
 typename async_completion<
     WriteHandler, void(error_code)>::result_type
 async_write(AsyncWriteStream& stream,
-    message<isRequest, Body, Headers> const& msg,
+    message<isRequest, Body, Fields> const& msg,
         WriteHandler&& handler)
 {
     static_assert(is_AsyncWriteStream<AsyncWriteStream>::value,
@@ -744,21 +744,21 @@ async_write(AsyncWriteStream& stream,
     static_assert(has_writer<Body>::value,
         "Body has no writer");
     static_assert(is_Writer<typename Body::writer,
-        message<isRequest, Body, Headers>>::value,
+        message<isRequest, Body, Fields>>::value,
             "Writer requirements not met");
     beast::async_completion<WriteHandler,
         void(error_code)> completion(handler);
     detail::write_op<AsyncWriteStream, decltype(completion.handler),
-        isRequest, Body, Headers>{completion.handler, stream, msg};
+        isRequest, Body, Fields>{completion.handler, stream, msg};
     return completion.result.get();
 }
 
 //------------------------------------------------------------------------------
 
-template<bool isRequest, class Headers>
+template<bool isRequest, class Fields>
 std::ostream&
 operator<<(std::ostream& os,
-    header<isRequest, Headers> const& msg)
+    header<isRequest, Fields> const& msg)
 {
     beast::detail::sync_ostream oss{os};
     error_code ec;
@@ -768,17 +768,17 @@ operator<<(std::ostream& os,
     return os;
 }
 
-template<bool isRequest, class Body, class Headers>
+template<bool isRequest, class Body, class Fields>
 std::ostream&
 operator<<(std::ostream& os,
-    message<isRequest, Body, Headers> const& msg)
+    message<isRequest, Body, Fields> const& msg)
 {
     static_assert(is_Body<Body>::value,
         "Body requirements not met");
     static_assert(has_writer<Body>::value,
         "Body has no writer");
     static_assert(is_Writer<typename Body::writer,
-        message<isRequest, Body, Headers>>::value,
+        message<isRequest, Body, Fields>>::value,
             "Writer requirements not met");
     beast::detail::sync_ostream oss{os};
     error_code ec;

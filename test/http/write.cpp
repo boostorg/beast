@@ -221,9 +221,9 @@ public:
         };
     };
 
-    template<bool isRequest, class Body, class Headers>
+    template<bool isRequest, class Body, class Fields>
     std::string
-    str(message<isRequest, Body, Headers> const& m)
+    str(message<isRequest, Body, Fields> const& m)
     {
         string_write_stream ss(ios_);
         write(ss, m);

@@ -29,15 +29,15 @@ namespace http {
     header value "Expect: 100-continue", or when responding to
     a HEAD request.
 */
-template<bool isRequest, class Headers>
+template<bool isRequest, class Fields>
 struct header
 
 #else
-template<bool isRequest, class Headers>
+template<bool isRequest, class Fields>
 struct header;
 
-template<class Headers>
-struct header<true, Headers>
+template<class Fields>
+struct header<true, Fields>
 #endif
 {
     /// Indicates if the header is a request or response.
@@ -49,7 +49,7 @@ struct header<true, Headers>
 #endif
 
     /// The type representing the fields.
-    using fields_type = Headers;
+    using fields_type = Fields;
 
     /** The HTTP version.
 
@@ -75,7 +75,7 @@ struct header<true, Headers>
     std::string url;
 
     /// The HTTP field values.
-    Headers fields;
+    Fields fields;
 
     /// Default constructor
     header() = default;
@@ -128,14 +128,14 @@ struct header<true, Headers>
     which the body is not yet known or generated. For
     example, when responding to a HEAD request.
 */
-template<class Headers>
-struct header<false, Headers>
+template<class Fields>
+struct header<false, Fields>
 {
     /// Indicates if the message fields are a request or response.
     static bool constexpr is_request = false;
 
     /// The type representing the fields.
-    using headers_type = Headers;
+    using headers_type = Fields;
 
     /** The HTTP version.
 
@@ -149,7 +149,7 @@ struct header<false, Headers>
     int version;
 
     /// The HTTP field values.
-    Headers fields;
+    Fields fields;
 
     /// Default constructor
     header() = default;
@@ -218,14 +218,14 @@ struct header<false, Headers>
 
     @tparam Body A type meeting the requirements of Body.
 
-    @tparam Headers The type of container used to hold the
+    @tparam Fields The type of container used to hold the
     field value pairs.
 */
-template<bool isRequest, class Body, class Headers>
-struct message : header<isRequest, Headers>
+template<bool isRequest, class Body, class Fields>
+struct message : header<isRequest, Fields>
 {
     /// The base class used to hold the request or response fields
-    using base_type = header<isRequest, Headers>;
+    using base_type = header<isRequest, Fields>;
 
     /** The type providing the body traits.
 
@@ -371,25 +371,25 @@ private:
 /** Swap two HTTP message fields.
 
     @par Requirements
-    `Headers` is @b Swappable.
+    `Fields` is @b Swappable.
 */
-template<bool isRequest, class Headers>
+template<bool isRequest, class Fields>
 void
 swap(
-    header<isRequest, Headers>& m1,
-    header<isRequest, Headers>& m2);
+    header<isRequest, Fields>& m1,
+    header<isRequest, Fields>& m2);
 #endif
 
 /** Swap two HTTP messages.
 
     @par Requirements:
-    `Body` and `Headers` are @b Swappable.
+    `Body` and `Fields` are @b Swappable.
 */
-template<bool isRequest, class Body, class Headers>
+template<bool isRequest, class Body, class Fields>
 void
 swap(
-    message<isRequest, Body, Headers>& m1,
-    message<isRequest, Body, Headers>& m2);
+    message<isRequest, Body, Fields>& m1,
+    message<isRequest, Body, Fields>& m2);
 
 /// A typical HTTP request header
 using request_header = header<true, fields>;
@@ -398,12 +398,12 @@ using request_header = header<true, fields>;
 using response_header = header<false, fields>;
 
 /// A typical HTTP request message
-template<class Body, class Headers = fields>
-using request = message<true, Body, Headers>;
+template<class Body, class Fields = fields>
+using request = message<true, Body, Fields>;
 
 /// A typical HTTP response message
-template<class Body, class Headers = fields>
-using response = message<false, Body, Headers>;
+template<class Body, class Fields = fields>
+using response = message<false, Body, Fields>;
 
 //------------------------------------------------------------------------------
 
@@ -411,17 +411,17 @@ using response = message<false, Body, Headers>;
 
     Undefined behavior if version is greater than 11.
 */
-template<bool isRequest, class Body, class Headers>
+template<bool isRequest, class Body, class Fields>
 bool
-is_keep_alive(message<isRequest, Body, Headers> const& msg);
+is_keep_alive(message<isRequest, Body, Fields> const& msg);
 
 /** Returns `true` if a HTTP/1 message indicates an Upgrade request or response.
 
     Undefined behavior if version is greater than 11.
 */
-template<bool isRequest, class Body, class Headers>
+template<bool isRequest, class Body, class Fields>
 bool
-is_upgrade(message<isRequest, Body, Headers> const& msg);
+is_upgrade(message<isRequest, Body, Fields> const& msg);
 
 /** HTTP/1 connection prepare options.
 
@@ -450,10 +450,10 @@ enum class connection
     @param options A list of prepare options.
 */
 template<
-    bool isRequest, class Body, class Headers,
+    bool isRequest, class Body, class Fields,
     class... Options>
 void
-prepare(message<isRequest, Body, Headers>& msg,
+prepare(message<isRequest, Body, Fields>& msg,
     Options&&... options);
 
 } // http

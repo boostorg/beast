@@ -85,7 +85,7 @@ public:
 
 private:
     template<class Stream, class Handler,
-        bool isRequest, class Body, class Headers>
+        bool isRequest, class Body, class Fields>
     class write_op
     {
         using alloc_type =
@@ -94,13 +94,13 @@ private:
         struct data
         {
             Stream& s;
-            message<isRequest, Body, Headers> m;
+            message<isRequest, Body, Fields> m;
             Handler h;
             bool cont;
 
             template<class DeducedHandler>
             data(DeducedHandler&& h_, Stream& s_,
-                    message<isRequest, Body, Headers>&& m_)
+                    message<isRequest, Body, Fields>&& m_)
                 : s(s_)
                 , m(std::move(m_))
                 , h(std::forward<DeducedHandler>(h_))
@@ -170,16 +170,16 @@ private:
     };
 
     template<class Stream,
-        bool isRequest, class Body, class Headers,
+        bool isRequest, class Body, class Fields,
             class DeducedHandler>
     static
     void
     async_write(Stream& stream, message<
-        isRequest, Body, Headers>&& msg,
+        isRequest, Body, Fields>&& msg,
             DeducedHandler&& handler)
     {
         write_op<Stream, typename std::decay<DeducedHandler>::type,
-            isRequest, Body, Headers>{std::forward<DeducedHandler>(
+            isRequest, Body, Fields>{std::forward<DeducedHandler>(
                 handler), stream, std::move(msg)};
     }
 

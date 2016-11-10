@@ -77,10 +77,10 @@ build_request(boost::string_ref const& host,
 }
 
 template<class NextLayer>
-template<class Body, class Headers>
+template<class Body, class Fields>
 http::response<http::string_body>
 stream<NextLayer>::
-build_response(http::request<Body, Headers> const& req)
+build_response(http::request<Body, Fields> const& req)
 {
     auto err =
         [&](std::string const& text)
@@ -146,10 +146,10 @@ build_response(http::request<Body, Headers> const& req)
 }
 
 template<class NextLayer>
-template<class Body, class Headers>
+template<class Body, class Fields>
 void
 stream<NextLayer>::
-do_response(http::response<Body, Headers> const& res,
+do_response(http::response<Body, Fields> const& res,
     boost::string_ref const& key, error_code& ec)
 {
     // VFALCO Review these error codes

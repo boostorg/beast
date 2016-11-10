@@ -20,11 +20,11 @@
 namespace beast {
 namespace http {
 
-template<class Headers>
+template<class Fields>
 void
 swap(
-    header<true, Headers>& m1,
-    header<true, Headers>& m2)
+    header<true, Fields>& m1,
+    header<true, Fields>& m2)
 {
     using std::swap;
     swap(m1.version, m2.version);
@@ -33,11 +33,11 @@ swap(
     swap(m1.fields, m2.fields);
 }
 
-template<class Headers>
+template<class Fields>
 void
 swap(
-    header<false, Headers>& a,
-    header<false, Headers>& b)
+    header<false, Fields>& a,
+    header<false, Fields>& b)
 {
     using std::swap;
     swap(a.version, b.version);
@@ -46,20 +46,20 @@ swap(
     swap(a.fields, b.fields);
 }
 
-template<bool isRequest, class Body, class Headers>
+template<bool isRequest, class Body, class Fields>
 void
 swap(
-    message<isRequest, Body, Headers>& m1,
-    message<isRequest, Body, Headers>& m2)
+    message<isRequest, Body, Fields>& m1,
+    message<isRequest, Body, Fields>& m2)
 {
     using std::swap;
     swap(m1.base(), m2.base());
     swap(m1.body, m2.body);
 }
 
-template<bool isRequest, class Body, class Headers>
+template<bool isRequest, class Body, class Fields>
 bool
-is_keep_alive(message<isRequest, Body, Headers> const& msg)
+is_keep_alive(message<isRequest, Body, Fields> const& msg)
 {
     BOOST_ASSERT(msg.version == 10 || msg.version == 11);
     if(msg.version == 11)
@@ -73,9 +73,9 @@ is_keep_alive(message<isRequest, Body, Headers> const& msg)
     return false;
 }
 
-template<bool isRequest, class Body, class Headers>
+template<bool isRequest, class Body, class Fields>
 bool
-is_upgrade(message<isRequest, Body, Headers> const& msg)
+is_upgrade(message<isRequest, Body, Fields> const& msg)
 {
     BOOST_ASSERT(msg.version == 10 || msg.version == 11);
     if(msg.version == 10)
@@ -93,19 +93,19 @@ struct prepare_info
     boost::optional<std::uint64_t> content_length;
 };
 
-template<bool isRequest, class Body, class Headers>
+template<bool isRequest, class Body, class Fields>
 inline
 void
 prepare_options(prepare_info& pi,
-    message<isRequest, Body, Headers>& msg)
+    message<isRequest, Body, Fields>& msg)
 {
     beast::detail::ignore_unused(pi, msg);
 }
 
-template<bool isRequest, class Body, class Headers>
+template<bool isRequest, class Body, class Fields>
 void
 prepare_option(prepare_info& pi,
-    message<isRequest, Body, Headers>& msg,
+    message<isRequest, Body, Fields>& msg,
         connection value)
 {
     beast::detail::ignore_unused(msg);
@@ -113,11 +113,11 @@ prepare_option(prepare_info& pi,
 }
 
 template<
-    bool isRequest, class Body, class Headers,
+    bool isRequest, class Body, class Fields,
     class Opt, class... Opts>
 void
 prepare_options(prepare_info& pi,
-    message<isRequest, Body, Headers>& msg,
+    message<isRequest, Body, Fields>& msg,
         Opt&& opt, Opts&&... opts)
 {
     prepare_option(pi, msg, opt);
@@ -125,10 +125,10 @@ prepare_options(prepare_info& pi,
         std::forward<Opts>(opts)...);
 }
 
-template<bool isRequest, class Body, class Headers>
+template<bool isRequest, class Body, class Fields>
 void
 prepare_content_length(prepare_info& pi,
-    message<isRequest, Body, Headers> const& msg,
+    message<isRequest, Body, Fields> const& msg,
         std::true_type)
 {
     typename Body::writer w(msg);
@@ -140,10 +140,10 @@ prepare_content_length(prepare_info& pi,
     pi.content_length = w.content_length();
 }
 
-template<bool isRequest, class Body, class Headers>
+template<bool isRequest, class Body, class Fields>
 void
 prepare_content_length(prepare_info& pi,
-    message<isRequest, Body, Headers> const& msg,
+    message<isRequest, Body, Fields> const& msg,
         std::false_type)
 {
     beast::detail::ignore_unused(msg);
@@ -153,10 +153,10 @@ prepare_content_length(prepare_info& pi,
 } // detail
 
 template<
-    bool isRequest, class Body, class Headers,
+    bool isRequest, class Body, class Fields,
     class... Options>
 void
-prepare(message<isRequest, Body, Headers>& msg,
+prepare(message<isRequest, Body, Fields>& msg,
     Options&&... options)
 {
     // VFALCO TODO
@@ -165,7 +165,7 @@ prepare(message<isRequest, Body, Headers>& msg,
     static_assert(has_writer<Body>::value,
         "Body has no writer");
     static_assert(is_Writer<typename Body::writer,
-        message<isRequest, Body, Headers>>::value,
+        message<isRequest, Body, Fields>>::value,
             "Writer requirements not met");
     detail::prepare_info pi;
     detail::prepare_content_length(pi, msg,
@@ -192,7 +192,7 @@ prepare(message<isRequest, Body, Headers>& msg,
             struct set_field
             {
                 void
-                operator()(message<true, Body, Headers>& msg,
+                operator()(message<true, Body, Fields>& msg,
                     detail::prepare_info const& pi) const
                 {
                     using beast::detail::ci_equal;
@@ -205,7 +205,7 @@ prepare(message<isRequest, Body, Headers>& msg,
                 }
 
                 void
-                operator()(message<false, Body, Headers>& msg,
+                operator()(message<false, Body, Fields>& msg,
                     detail::prepare_info const& pi) const
                 {
                     if((msg.status / 100 ) != 1 &&

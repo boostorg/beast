@@ -86,9 +86,9 @@ struct auto_fragment
     @code
     struct identity
     {
-        template<bool isRequest, class Body, class Headers>
+        template<bool isRequest, class Body, class Fields>
         void
-        operator()(http::message<isRequest, Body, Headers>& m)
+        operator()(http::message<isRequest, Body, Fields>& m)
         {
             if(isRequest)
                 m.fields.replace("User-Agent", "MyClient");

@@ -9,7 +9,7 @@
 #define BEAST_HTTP_PARSER_V1_HPP
 
 #include <beast/http/concepts.hpp>
-#include <beast/http/headers_parser_v1.hpp>
+#include <beast/http/header_parser_v1.hpp>
 #include <beast/http/message.hpp>
 #include <beast/core/error.hpp>
 #include <beast/core/detail/type_traits.hpp>
@@ -61,10 +61,10 @@ struct skip_body
 
     @note A new instance of the parser is required for each message.
 */
-template<bool isRequest, class Body, class Headers>
+template<bool isRequest, class Body, class Fields>
 class parser_v1
     : public basic_parser_v1<isRequest,
-        parser_v1<isRequest, Body, Headers>>
+        parser_v1<isRequest, Body, Fields>>
     , private std::conditional<isRequest,
         detail::request_parser_base,
             detail::response_parser_base>::type
@@ -72,7 +72,7 @@ class parser_v1
 public:
     /// The type of message this parser produces.
     using message_type =
-        message<isRequest, Body, Headers>;
+        message<isRequest, Body, Fields>;
 
 private:
     using reader =
@@ -124,7 +124,7 @@ public:
         class = typename std::enable_if<
             ! std::is_same<typename
                 std::decay<Arg1>::type,
-                    headers_parser_v1<isRequest, Headers>>::value &&
+                    header_parser_v1<isRequest, Fields>>::value &&
             ! std::is_same<typename
                 std::decay<Arg1>::type, parser_v1>::value
                     >::type>
@@ -143,13 +143,13 @@ public:
     */
     template<class... Args>
     explicit
-    parser_v1(headers_parser_v1<isRequest, Headers>& parser,
+    parser_v1(header_parser_v1<isRequest, Fields>& parser,
             Args&&... args)
         : m_(parser.release(), std::forward<Args>(args)...)
     {
         static_cast<basic_parser_v1<
             isRequest, parser_v1<
-                isRequest, Body, Headers>>&>(*this) = parser;
+                isRequest, Body, Fields>>&>(*this) = parser;
     }
 
     /// Set the skip body option.
@@ -185,7 +185,7 @@ public:
         valid if @ref complete would return `true`.
 
         Requires:
-            `message<isRequest, Body, Headers>` is @b MoveConstructible
+            `message<isRequest, Body, Fields>` is @b MoveConstructible
     */
     message_type
     release()
@@ -306,7 +306,7 @@ private:
 
     @param parser The fields parser to construct from. Ownership
     of the message fields in the fields parser is transferred
-    as if by call to @ref headers_parser_v1::release.
+    as if by call to @ref header_parser_v1::release.
 
     @param args Forwarded to the body constructor of the message
     in the new parser.
@@ -322,12 +322,12 @@ private:
         message<true, string_body, fields> m = p.release();
     @endcode
 */
-template<class Body, bool isRequest, class Headers, class... Args>
-parser_v1<isRequest, Body, Headers>
-with_body(headers_parser_v1<isRequest, Headers>& parser,
+template<class Body, bool isRequest, class Fields, class... Args>
+parser_v1<isRequest, Body, Fields>
+with_body(header_parser_v1<isRequest, Fields>& parser,
     Args&&... args)
 {
-    return parser_v1<isRequest, Body, Headers>(
+    return parser_v1<isRequest, Body, Fields>(
         parser, std::forward<Args>(args)...);
 }
 

@@ -34,8 +34,8 @@ struct file_body
         writer(writer const&) = delete;
         writer& operator=(writer const&) = delete;
 
-        template<bool isRequest, class Headers>
-        writer(message<isRequest, file_body, Headers> const& m) noexcept
+        template<bool isRequest, class Fields>
+        writer(message<isRequest, file_body, Fields> const& m) noexcept
             : path_(m.body)
         {
         }

@@ -36,9 +36,9 @@ private:
 
     struct writer
     {
-        template<bool isRequest, class Headers>
+        template<bool isRequest, class Fields>
         explicit
-        writer(message<isRequest, empty_body, Headers> const& m) noexcept
+        writer(message<isRequest, empty_body, Fields> const& m) noexcept
         {
             beast::detail::ignore_unused(m);
         }

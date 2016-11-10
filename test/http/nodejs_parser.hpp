@@ -736,12 +736,12 @@ nodejs_basic_parser<Derived>::cb_chunk_complete(http_parser*)
 
     The parser may only be used once.
 */
-template<bool isRequest, class Body, class Headers>
+template<bool isRequest, class Body, class Fields>
 class nodejs_parser
-    : public nodejs_basic_parser<nodejs_parser<isRequest, Body, Headers>>
+    : public nodejs_basic_parser<nodejs_parser<isRequest, Body, Fields>>
 {
     using message_type =
-        message<isRequest, Body, Headers>;
+        message<isRequest, Body, Fields>;
 
     message_type m_;
     typename message_type::body_type::reader r_;
