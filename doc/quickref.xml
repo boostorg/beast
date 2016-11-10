@@ -92,6 +92,7 @@
           <simplelist type="vert" columns="1">
             <member><link linkend="beast.ref.http__body_what">body_what</link></member>
             <member><link linkend="beast.ref.http__connection">connection</link></member>
+            <member><link linkend="beast.ref.http__parse_flag">parse_flag</link></member>
           </simplelist>
           <bridgehead renderas="sect3">Concepts</bridgehead>
           <simplelist type="vert" columns="1">

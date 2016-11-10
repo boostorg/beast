@@ -265,7 +265,7 @@ private:
     }
 
     void
-    on_headers(std::uint64_t, error_code&)
+    on_header(std::uint64_t, error_code&)
     {
         flush();
         m_.version = 10 * this->http_major() + this->http_minor();

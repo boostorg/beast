@@ -25,7 +25,7 @@ namespace detail {
 template<class Stream, class DynamicBuffer,
     bool isRequest, class Fields,
         class Handler>
-class read_headers_op
+class read_header_op
 {
     using alloc_type =
         handler_alloc<char, Handler>;
@@ -63,11 +63,11 @@ class read_headers_op
     std::shared_ptr<data> d_;
 
 public:
-    read_headers_op(read_headers_op&&) = default;
-    read_headers_op(read_headers_op const&) = default;
+    read_header_op(read_header_op&&) = default;
+    read_header_op(read_header_op const&) = default;
 
     template<class DeducedHandler, class... Args>
-    read_headers_op(
+    read_header_op(
             DeducedHandler&& h, Stream& s, Args&&... args)
         : d_(std::allocate_shared<data>(alloc_type{h},
             std::forward<DeducedHandler>(h), s,
@@ -81,7 +81,7 @@ public:
 
     friend
     void* asio_handler_allocate(
-        std::size_t size, read_headers_op* op)
+        std::size_t size, read_header_op* op)
     {
         return boost_asio_handler_alloc_helpers::
             allocate(size, op->d_->h);
@@ -89,21 +89,21 @@ public:
 
     friend
     void asio_handler_deallocate(
-        void* p, std::size_t size, read_headers_op* op)
+        void* p, std::size_t size, read_header_op* op)
     {
         return boost_asio_handler_alloc_helpers::
             deallocate(p, size, op->d_->h);
     }
 
     friend
-    bool asio_handler_is_continuation(read_headers_op* op)
+    bool asio_handler_is_continuation(read_header_op* op)
     {
         return op->d_->cont;
     }
 
     template<class Function>
     friend
-    void asio_handler_invoke(Function&& f, read_headers_op* op)
+    void asio_handler_invoke(Function&& f, read_header_op* op)
     {
         return boost_asio_handler_invoke_helpers::
             invoke(f, op->d_->h);
@@ -114,7 +114,7 @@ template<class Stream, class DynamicBuffer,
     bool isRequest, class Fields,
         class Handler>
 void
-read_headers_op<Stream, DynamicBuffer, isRequest, Fields, Handler>::
+read_header_op<Stream, DynamicBuffer, isRequest, Fields, Handler>::
 operator()(error_code ec, bool again)
 {
     auto& d = *d_;
@@ -190,7 +190,7 @@ async_read(AsyncReadStream& stream, DynamicBuffer& dynabuf,
         "DynamicBuffer requirements not met");
     beast::async_completion<ReadHandler,
         void(error_code)> completion(handler);
-    detail::read_headers_op<AsyncReadStream, DynamicBuffer,
+    detail::read_header_op<AsyncReadStream, DynamicBuffer,
         isRequest, Fields, decltype(
             completion.handler)>{completion.handler,
                 stream, dynabuf, m};

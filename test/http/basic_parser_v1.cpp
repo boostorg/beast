@@ -92,7 +92,7 @@ public:
             value = true;
         }
         void
-        on_headers(std::uint64_t, error_code&)
+        on_header(std::uint64_t, error_code&)
         {
             fields = true;
         }

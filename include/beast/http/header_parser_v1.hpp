@@ -13,7 +13,6 @@
 #include <beast/http/message.hpp>
 #include <beast/core/error.hpp>
 #include <boost/assert.hpp>
-#include <boost/optional.hpp>
 #include <string>
 #include <type_traits>
 #include <utility>
@@ -39,8 +38,8 @@ struct response_parser_base
 /** A parser for a HTTP/1 request or response header.
 
     This class uses the HTTP/1 wire format parser to
-    convert a series of octets into a @ref request_header
-    or @ref response_header.
+    convert a series of octets into a request or
+    response @ref header.
 
     @note A new instance of the parser is required for each message.
 */
@@ -54,8 +53,7 @@ class header_parser_v1
 {
 public:
     /// The type of the header this parser produces.
-    using header_type =
-        header<isRequest, Fields>;
+    using header_type = header<isRequest, Fields>;
 
 private:
     // VFALCO Check Fields requirements?
@@ -207,7 +205,7 @@ private:
     }
 
     void
-    on_headers(std::uint64_t, error_code&)
+    on_header(std::uint64_t, error_code&)
     {
         flush();
         h_.version = 10 * this->http_major() + this->http_minor();

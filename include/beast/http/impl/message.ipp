@@ -57,9 +57,9 @@ swap(
     swap(m1.body, m2.body);
 }
 
-template<bool isRequest, class Body, class Fields>
+template<bool isRequest, class Fields>
 bool
-is_keep_alive(message<isRequest, Body, Fields> const& msg)
+is_keep_alive(header<isRequest, Fields> const& msg)
 {
     BOOST_ASSERT(msg.version == 10 || msg.version == 11);
     if(msg.version == 11)
@@ -73,9 +73,9 @@ is_keep_alive(message<isRequest, Body, Fields> const& msg)
     return false;
 }
 
-template<bool isRequest, class Body, class Fields>
+template<bool isRequest, class Fields>
 bool
-is_upgrade(message<isRequest, Body, Fields> const& msg)
+is_upgrade(header<isRequest, Fields> const& msg)
 {
     BOOST_ASSERT(msg.version == 10 || msg.version == 11);
     if(msg.version == 10)

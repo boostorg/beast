@@ -22,12 +22,14 @@ namespace http {
 /** A container for a HTTP request or response header.
 
     A header includes the Start Line and Fields.
-    
-    Objects of this type may be used to represent incoming or
-    outgoing requests for which the body is not yet known or
-    generated. For example, when receiving a request with the
-    header value "Expect: 100-continue", or when responding to
-    a HEAD request.
+
+    Some use-cases:
+
+    @li When the message has no body, such as a response to a HEAD request.
+
+    @li When the caller wishes to defer instantiation of the body.
+
+    @li Invoke algorithms which operate on the header only.
 */
 template<bool isRequest, class Fields>
 struct header
@@ -75,7 +77,7 @@ struct header<true, Fields>
     std::string url;
 
     /// The HTTP field values.
-    Fields fields;
+    fields_type fields;
 
     /// Default constructor
     header() = default;
@@ -122,20 +124,24 @@ struct header<true, Fields>
 
 /** A container for a HTTP request or response header.
 
-    The container includes the fields, as well as the
-    response status and reasons. Objects of this type may
-    be used to represent incoming or outgoing responses for
-    which the body is not yet known or generated. For
-    example, when responding to a HEAD request.
+    A header includes the Start Line and Fields.
+
+    Some use-cases:
+
+    @li When the message has no body, such as a response to a HEAD request.
+
+    @li When the caller wishes to defer instantiation of the body.
+
+    @li Invoke algorithms which operate on the header only.
 */
 template<class Fields>
 struct header<false, Fields>
 {
-    /// Indicates if the message fields are a request or response.
+    /// Indicates if the header is a request or response.
     static bool constexpr is_request = false;
 
     /// The type representing the fields.
-    using headers_type = Fields;
+    using fields_type = Fields;
 
     /** The HTTP version.
 
@@ -149,7 +155,7 @@ struct header<false, Fields>
     int version;
 
     /// The HTTP field values.
-    Fields fields;
+    fields_type fields;
 
     /// Default constructor
     header() = default;
@@ -166,7 +172,7 @@ struct header<false, Fields>
     /// Copy assignment
     header& operator=(header const&) = default;
 
-    /** Construct message fields.
+    /** Construct the header.
 
         All arguments are forwarded to the constructor
         of the `fields` member.
@@ -205,9 +211,10 @@ struct header<false, Fields>
 
 /** A container for a complete HTTP message.
 
-    A message can be a request or response, depending on the `isRequest`
-    template argument value. Requests and responses have different types,
-    so functions may be overloaded on them if desired.
+    A message can be a request or response, depending on the
+    `isRequest` template argument value. Requests and responses
+    have different types; functions may be overloaded based on
+    the type if desired.
 
     The `Body` template argument type determines the model used
     to read or write the content body of the message.
@@ -224,12 +231,12 @@ struct header<false, Fields>
 template<bool isRequest, class Body, class Fields>
 struct message : header<isRequest, Fields>
 {
-    /// The base class used to hold the request or response fields
+    /// The base class used to hold the header portion of the message.
     using base_type = header<isRequest, Fields>;
 
     /** The type providing the body traits.
 
-        The `body` member will be of type `body_type::value_type`.
+        The @ref message::body member will be of type `body_type::value_type`.
     */
     using body_type = Body;
 
@@ -239,7 +246,7 @@ struct message : header<isRequest, Fields>
     /// Default constructor
     message() = default;
 
-    /** Construct a message from message fields.
+    /** Construct a message from a header.
 
         Additional arguments, if any, are forwarded to
         the constructor of the body member.
@@ -252,7 +259,7 @@ struct message : header<isRequest, Fields>
     {
     }
 
-    /** Construct a message from message fields.
+    /** Construct a message from a header.
 
         Additional arguments, if any, are forwarded to
         the constructor of the body member.
@@ -331,14 +338,14 @@ struct message : header<isRequest, Fields>
     {
     }
 
-    /// Returns the message fields portion of the message
+    /// Returns the header portion of the message
     base_type&
     base()
     {
         return *this;
     }
 
-    /// Returns the message fields portion of the message
+    /// Returns the header portion of the message
     base_type const&
     base() const
     {
@@ -368,7 +375,7 @@ private:
 //------------------------------------------------------------------------------
 
 #if GENERATING_DOCS
-/** Swap two HTTP message fields.
+/** Swap two header objectsd.
 
     @par Requirements
     `Fields` is @b Swappable.
@@ -380,10 +387,10 @@ swap(
     header<isRequest, Fields>& m2);
 #endif
 
-/** Swap two HTTP messages.
+/** Swap two message objects.
 
     @par Requirements:
-    `Body` and `Fields` are @b Swappable.
+    `Body::value_type` and `Fields` are @b Swappable.
 */
 template<bool isRequest, class Body, class Fields>
 void
@@ -397,31 +404,31 @@ using request_header = header<true, fields>;
 /// Typical HTTP response header
 using response_header = header<false, fields>;
 
-/// A typical HTTP request message
+/// A typical HTTP request
 template<class Body, class Fields = fields>
 using request = message<true, Body, Fields>;
 
-/// A typical HTTP response message
+/// A typical HTTP response
 template<class Body, class Fields = fields>
 using response = message<false, Body, Fields>;
 
 //------------------------------------------------------------------------------
 
-/** Returns `true` if a HTTP/1 message indicates a keep alive.
+/** Returns `true` if the HTTP/1 message indicates a keep alive.
 
     Undefined behavior if version is greater than 11.
 */
-template<bool isRequest, class Body, class Fields>
+template<bool isRequest, class Fields>
 bool
-is_keep_alive(message<isRequest, Body, Fields> const& msg);
+is_keep_alive(header<isRequest, Fields> const& msg);
 
-/** Returns `true` if a HTTP/1 message indicates an Upgrade request or response.
+/** Returns `true` if the HTTP/1 message indicates an Upgrade request or response.
 
     Undefined behavior if version is greater than 11.
 */
-template<bool isRequest, class Body, class Fields>
+template<bool isRequest, class Fields>
 bool
-is_upgrade(message<isRequest, Body, Fields> const& msg);
+is_upgrade(header<isRequest, Fields> const& msg);
 
 /** HTTP/1 connection prepare options.
 

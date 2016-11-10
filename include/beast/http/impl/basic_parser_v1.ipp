@@ -5,6 +5,16 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
+#ifndef BEAST_HTTP_IMPL_BASIC_PARSER_V1_IPP
+#define BEAST_HTTP_IMPL_BASIC_PARSER_V1_IPP
+
+#include <beast/http/detail/rfc7230.hpp>
+#include <beast/core/buffer_concepts.hpp>
+#include <boost/assert.hpp>
+
+namespace beast {
+namespace http {
+
 /* Based on src/http/ngx_http_parse.c from NGINX copyright Igor Sysoev
  *
  * Additional changes are licensed under the same terms as NGINX and
@@ -28,20 +38,9 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
  * IN THE SOFTWARE.
  */
-/*
-   This code is a modified version of nodejs/http-parser, copyright above:
-    https://github.com/nodejs/http-parser
+/* This code is a modified version of nodejs/http-parser, copyright above:
+   https://github.com/nodejs/http-parser
 */
-
-#ifndef BEAST_HTTP_IMPL_BASIC_PARSER_V1_IPP
-#define BEAST_HTTP_IMPL_BASIC_PARSER_V1_IPP
-
-#include <beast/http/detail/rfc7230.hpp>
-#include <beast/core/buffer_concepts.hpp>
-#include <boost/assert.hpp>
-
-namespace beast {
-namespace http {
 
 template<bool isRequest, class Derived>
 basic_parser_v1<isRequest, Derived>::

@@ -28,13 +28,13 @@ namespace http {
     are iterable, which each element holding the field name and field
     value.
 
-    Field names are stored as-is, but comparison are case-insensitive.
+    Field names are stored as-is, but comparisons are case-insensitive.
     When the container is iterated, the fields are presented in the order
     of insertion. For fields with the same name, the container behaves
-    as a std::multiset; there will be a separate value for each occurrence
+    as a `std::multiset`; there will be a separate value for each occurrence
     of the field name.
 
-    @note Meets the requirements of @b `FieldSequence`.
+    @note Meets the requirements of @b FieldSequence.
 */
 template<class Allocator>
 class basic_fields :

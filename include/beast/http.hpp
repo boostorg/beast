@@ -10,7 +10,6 @@
 
 #include <beast/http/basic_fields.hpp>
 #include <beast/http/basic_parser_v1.hpp>
-#include <beast/http/body_type.hpp>
 #include <beast/http/chunk_encode.hpp>
 #include <beast/http/empty_body.hpp>
 #include <beast/http/fields.hpp>

@@ -22,8 +22,11 @@
 namespace beast {
 namespace http {
 
-namespace parse_flag {
-enum values
+/** Parse flags
+
+    The set of parser bit flags are returned by @ref basic_parser_v1::flags.
+*/
+enum parse_flag
 {
     chunked               =   1,
     connection_keep_alive =   2,
@@ -34,17 +37,16 @@ enum values
     skipbody              =  64,
     contentlength         = 128
 };
-} // parse_flag
 
 /** Header maximum size option.
 
     Sets the maximum number of cumulative bytes allowed
     including all header octets. A value of zero indicates
-    no limit on the number of header octets
+    no limit on the number of header octets.
 
     The default header maximum size is 16KB (16,384 bytes).
 
-    @note Objects of this type are used with basic_parser_v1::set_option.
+    @note Objects of this type are used with @ref basic_parser_v1::set_option.
 */
 struct header_max_size
 {
@@ -67,7 +69,7 @@ struct header_max_size
     The default body maximum size for requests is 4MB (four
     megabytes or 4,194,304 bytes) and unlimited for responses.
 
-    @note Objects of this type are used with basic_parser_v1::set_option.
+    @note Objects of this type are used with @ref basic_parser_v1::set_option.
 */
 struct body_max_size
 {
@@ -82,7 +84,7 @@ struct body_max_size
 
 /** A value indicating how the parser should treat the body.
 
-    This value is returned from the `on_headers` callback in
+    This value is returned from the `on_header` callback in
     the derived class. It controls what the parser does next
     in terms of the message body.
 */
@@ -94,7 +96,7 @@ enum class body_what
 
     /** Skip parsing of the body.
 
-        When returned by `on_headers` this causes parsing to
+        When returned by `on_header` this causes parsing to
         complete and control to return to the caller. This
         could be used when sending a response to a HEAD
         request, for example.
@@ -184,9 +186,9 @@ static std::uint64_t constexpr no_content_length =
         // Called when the entire header has been parsed successfully.
         //
         void
-        on_headers(std::uint64_t content_length, error_code&);
+        on_header(std::uint64_t content_length, error_code&);
 
-        // Called after on_headers, before the body is parsed
+        // Called after on_header, before the body is parsed
         //
         body_what
         on_body_what(std::uint64_t content_length, error_code&);
@@ -616,7 +618,7 @@ private:
 
     template<class T>
     struct check_on_headers<T, beast::detail::void_t<decltype(
-        std::declval<T>().on_headers(
+        std::declval<T>().on_header(
             std::declval<std::uint64_t>(),
             std::declval<error_code&>())
                 )>> : std::true_type {};
@@ -810,8 +812,8 @@ private:
     call_on_headers(error_code& ec)
     {
         static_assert(check_on_headers<Derived>::value,
-            "on_headers requirements not met");
-        impl().on_headers(content_length_, ec);
+            "on_header requirements not met");
+        impl().on_header(content_length_, ec);
     }
 
     body_what
