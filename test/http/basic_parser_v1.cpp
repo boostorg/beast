@@ -51,7 +51,7 @@ public:
         bool start = false;
         bool field = false;
         bool value = false;
-        bool headers = false;
+        bool fields = false;
         bool _body_what = false;
         bool body = false;
         bool complete = false;
@@ -92,9 +92,9 @@ public:
             value = true;
         }
         void
-        on_headers(std::uint64_t, error_code&)
+        on_header(std::uint64_t, error_code&)
         {
-            headers = true;
+            fields = true;
         }
         body_what
         on_body_what(std::uint64_t, error_code&)
@@ -135,7 +135,7 @@ public:
                 BEAST_EXPECT(p.request);
                 BEAST_EXPECT(p.field);
                 BEAST_EXPECT(p.value);
-                BEAST_EXPECT(p.headers);
+                BEAST_EXPECT(p.fields);
                 BEAST_EXPECT(p._body_what);
                 BEAST_EXPECT(p.body);
                 BEAST_EXPECT(p.complete);
@@ -158,7 +158,7 @@ public:
                 BEAST_EXPECT(p.response);
                 BEAST_EXPECT(p.field);
                 BEAST_EXPECT(p.value);
-                BEAST_EXPECT(p.headers);
+                BEAST_EXPECT(p.fields);
                 BEAST_EXPECT(p.body);
                 BEAST_EXPECT(p.complete);
             }
@@ -1104,7 +1104,7 @@ public:
             {
                 test::fail_counter fc(1000);
                 fail_parser<true> p(fc);
-                p.set_option(headers_max_size{n});
+                p.set_option(header_max_size{n});
                 error_code ec;
                 p.write(buf(
                     "GET / HTTP/1.1\r\n"
@@ -1113,7 +1113,7 @@ public:
                     ), ec);
                 if(! ec)
                     break;
-                BEAST_EXPECT(ec == parse_error::headers_too_big);
+                BEAST_EXPECT(ec == parse_error::header_too_big);
             }
             BEAST_EXPECT(n < Limit);
         }
@@ -1122,7 +1122,7 @@ public:
             {
                 test::fail_counter fc(1000);
                 fail_parser<false> p(fc);
-                p.set_option(headers_max_size{n});
+                p.set_option(header_max_size{n});
                 error_code ec;
                 p.write(buf(
                     "HTTP/1.1 200 OK\r\n"
@@ -1133,7 +1133,7 @@ public:
                     ), ec);
                 if(! ec)
                     break;
-                BEAST_EXPECT(ec == parse_error::headers_too_big);
+                BEAST_EXPECT(ec == parse_error::header_too_big);
             }
             BEAST_EXPECT(n < Limit);
         }

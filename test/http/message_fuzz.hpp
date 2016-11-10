@@ -475,7 +475,7 @@ public:
 
     template<class DynamicBuffer>
     void
-    headers(DynamicBuffer& db)
+    fields(DynamicBuffer& db)
     {
         while(rand(6))
         {
@@ -536,7 +536,7 @@ public:
     request(DynamicBuffer& db)
     {
         write(db, method(), " ", uri(), " HTTP/1.1\r\n");
-        headers(db);
+        fields(db);
         body(db);
     }
 
@@ -549,7 +549,7 @@ public:
         write(db, " ", 100 + rand(401), " ");
         write(db, token());
         write(db, "\r\n");
-        headers(db);
+        fields(db);
         body(db);
         write(db, "\r\n");
     }

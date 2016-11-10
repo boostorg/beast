@@ -8,9 +8,12 @@
 #ifndef BEAST_HTTP_STRING_BODY_HPP
 #define BEAST_HTTP_STRING_BODY_HPP
 
-#include <beast/http/body_type.hpp>
+#include <beast/core/error.hpp>
+#include <beast/http/message.hpp>
+#include <beast/http/resume_context.hpp>
 #include <beast/core/detail/type_traits.hpp>
 #include <boost/asio/buffer.hpp>
+#include <boost/logic/tribool.hpp>
 #include <memory>
 #include <string>
 
@@ -35,10 +38,10 @@ private:
         value_type& s_;
 
     public:
-        template<bool isRequest, class Headers>
+        template<bool isRequest, class Fields>
         explicit
         reader(message<isRequest,
-                string_body, Headers>& m) noexcept
+                string_body, Fields>& m) noexcept
             : s_(m.body)
         {
         }
@@ -63,10 +66,10 @@ private:
         value_type const& body_;
 
     public:
-        template<bool isRequest, class Headers>
+        template<bool isRequest, class Fields>
         explicit
         writer(message<
-                isRequest, string_body, Headers> const& msg) noexcept
+                isRequest, string_body, Fields> const& msg) noexcept
             : body_(msg.body)
         {
         }

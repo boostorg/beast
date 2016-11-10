@@ -43,13 +43,12 @@ unit-test core-tests :
 unit-test http-tests :
     ../extras/beast/unit_test/main.cpp
     http/basic_dynabuf_body.cpp
-    http/basic_headers.cpp
+    http/basic_fields.cpp
     http/basic_parser_v1.cpp
-    http/body_type.cpp
     http/concepts.cpp
     http/empty_body.cpp
-    http/headers.cpp
-    http/headers_parser_v1.cpp
+    http/fields.cpp
+    http/header_parser_v1.cpp
     http/message.cpp
     http/parse.cpp
     http/parse_error.cpp

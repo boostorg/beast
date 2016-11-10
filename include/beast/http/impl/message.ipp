@@ -20,67 +20,67 @@
 namespace beast {
 namespace http {
 
-template<class Headers>
+template<class Fields>
 void
 swap(
-    message_headers<true, Headers>& m1,
-    message_headers<true, Headers>& m2)
+    header<true, Fields>& m1,
+    header<true, Fields>& m2)
 {
     using std::swap;
     swap(m1.version, m2.version);
     swap(m1.method, m2.method);
     swap(m1.url, m2.url);
-    swap(m1.headers, m2.headers);
+    swap(m1.fields, m2.fields);
 }
 
-template<class Headers>
+template<class Fields>
 void
 swap(
-    message_headers<false, Headers>& a,
-    message_headers<false, Headers>& b)
+    header<false, Fields>& a,
+    header<false, Fields>& b)
 {
     using std::swap;
     swap(a.version, b.version);
     swap(a.status, b.status);
     swap(a.reason, b.reason);
-    swap(a.headers, b.headers);
+    swap(a.fields, b.fields);
 }
 
-template<bool isRequest, class Body, class Headers>
+template<bool isRequest, class Body, class Fields>
 void
 swap(
-    message<isRequest, Body, Headers>& m1,
-    message<isRequest, Body, Headers>& m2)
+    message<isRequest, Body, Fields>& m1,
+    message<isRequest, Body, Fields>& m2)
 {
     using std::swap;
     swap(m1.base(), m2.base());
     swap(m1.body, m2.body);
 }
 
-template<bool isRequest, class Body, class Headers>
+template<bool isRequest, class Fields>
 bool
-is_keep_alive(message<isRequest, Body, Headers> const& msg)
+is_keep_alive(header<isRequest, Fields> const& msg)
 {
     BOOST_ASSERT(msg.version == 10 || msg.version == 11);
     if(msg.version == 11)
     {
-        if(token_list{msg.headers["Connection"]}.exists("close"))
+        if(token_list{msg.fields["Connection"]}.exists("close"))
             return false;
         return true;
     }
-    if(token_list{msg.headers["Connection"]}.exists("keep-alive"))
+    if(token_list{msg.fields["Connection"]}.exists("keep-alive"))
         return true;
     return false;
 }
 
-template<bool isRequest, class Body, class Headers>
+template<bool isRequest, class Fields>
 bool
-is_upgrade(message<isRequest, Body, Headers> const& msg)
+is_upgrade(header<isRequest, Fields> const& msg)
 {
     BOOST_ASSERT(msg.version == 10 || msg.version == 11);
     if(msg.version == 10)
         return false;
-    if(token_list{msg.headers["Connection"]}.exists("upgrade"))
+    if(token_list{msg.fields["Connection"]}.exists("upgrade"))
         return true;
     return false;
 }
@@ -93,19 +93,19 @@ struct prepare_info
     boost::optional<std::uint64_t> content_length;
 };
 
-template<bool isRequest, class Body, class Headers>
+template<bool isRequest, class Body, class Fields>
 inline
 void
 prepare_options(prepare_info& pi,
-    message<isRequest, Body, Headers>& msg)
+    message<isRequest, Body, Fields>& msg)
 {
     beast::detail::ignore_unused(pi, msg);
 }
 
-template<bool isRequest, class Body, class Headers>
+template<bool isRequest, class Body, class Fields>
 void
 prepare_option(prepare_info& pi,
-    message<isRequest, Body, Headers>& msg,
+    message<isRequest, Body, Fields>& msg,
         connection value)
 {
     beast::detail::ignore_unused(msg);
@@ -113,11 +113,11 @@ prepare_option(prepare_info& pi,
 }
 
 template<
-    bool isRequest, class Body, class Headers,
+    bool isRequest, class Body, class Fields,
     class Opt, class... Opts>
 void
 prepare_options(prepare_info& pi,
-    message<isRequest, Body, Headers>& msg,
+    message<isRequest, Body, Fields>& msg,
         Opt&& opt, Opts&&... opts)
 {
     prepare_option(pi, msg, opt);
@@ -125,10 +125,10 @@ prepare_options(prepare_info& pi,
         std::forward<Opts>(opts)...);
 }
 
-template<bool isRequest, class Body, class Headers>
+template<bool isRequest, class Body, class Fields>
 void
 prepare_content_length(prepare_info& pi,
-    message<isRequest, Body, Headers> const& msg,
+    message<isRequest, Body, Fields> const& msg,
         std::true_type)
 {
     typename Body::writer w(msg);
@@ -140,10 +140,10 @@ prepare_content_length(prepare_info& pi,
     pi.content_length = w.content_length();
 }
 
-template<bool isRequest, class Body, class Headers>
+template<bool isRequest, class Body, class Fields>
 void
 prepare_content_length(prepare_info& pi,
-    message<isRequest, Body, Headers> const& msg,
+    message<isRequest, Body, Fields> const& msg,
         std::false_type)
 {
     beast::detail::ignore_unused(msg);
@@ -153,10 +153,10 @@ prepare_content_length(prepare_info& pi,
 } // detail
 
 template<
-    bool isRequest, class Body, class Headers,
+    bool isRequest, class Body, class Fields,
     class... Options>
 void
-prepare(message<isRequest, Body, Headers>& msg,
+prepare(message<isRequest, Body, Fields>& msg,
     Options&&... options)
 {
     // VFALCO TODO
@@ -165,7 +165,7 @@ prepare(message<isRequest, Body, Headers>& msg,
     static_assert(has_writer<Body>::value,
         "Body has no writer");
     static_assert(is_Writer<typename Body::writer,
-        message<isRequest, Body, Headers>>::value,
+        message<isRequest, Body, Fields>>::value,
             "Writer requirements not met");
     detail::prepare_info pi;
     detail::prepare_content_length(pi, msg,
@@ -173,15 +173,15 @@ prepare(message<isRequest, Body, Headers>& msg,
     detail::prepare_options(pi, msg,
         std::forward<Options>(options)...);
 
-    if(msg.headers.exists("Connection"))
+    if(msg.fields.exists("Connection"))
         throw std::invalid_argument(
             "prepare called with Connection field set");
 
-    if(msg.headers.exists("Content-Length"))
+    if(msg.fields.exists("Content-Length"))
         throw std::invalid_argument(
             "prepare called with Content-Length field set");
 
-    if(token_list{msg.headers["Transfer-Encoding"]}.exists("chunked"))
+    if(token_list{msg.fields["Transfer-Encoding"]}.exists("chunked"))
         throw std::invalid_argument(
             "prepare called with Transfer-Encoding: chunked set");
 
@@ -192,27 +192,27 @@ prepare(message<isRequest, Body, Headers>& msg,
             struct set_field
             {
                 void
-                operator()(message<true, Body, Headers>& msg,
+                operator()(message<true, Body, Fields>& msg,
                     detail::prepare_info const& pi) const
                 {
                     using beast::detail::ci_equal;
                     if(*pi.content_length > 0 ||
                         ci_equal(msg.method, "POST"))
                     {
-                        msg.headers.insert(
+                        msg.fields.insert(
                             "Content-Length", *pi.content_length);
                     }
                 }
 
                 void
-                operator()(message<false, Body, Headers>& msg,
+                operator()(message<false, Body, Fields>& msg,
                     detail::prepare_info const& pi) const
                 {
                     if((msg.status / 100 ) != 1 &&
                         msg.status != 204 &&
                         msg.status != 304)
                     {
-                        msg.headers.insert(
+                        msg.fields.insert(
                             "Content-Length", *pi.content_length);
                     }
                 }
@@ -221,39 +221,39 @@ prepare(message<isRequest, Body, Headers>& msg,
         }
         else if(msg.version >= 11)
         {
-            msg.headers.insert("Transfer-Encoding", "chunked");
+            msg.fields.insert("Transfer-Encoding", "chunked");
         }
     }
 
     auto const content_length =
-        msg.headers.exists("Content-Length");
+        msg.fields.exists("Content-Length");
 
     if(pi.connection_value)
     {
         switch(*pi.connection_value)
         {
         case connection::upgrade:
-            msg.headers.insert("Connection", "upgrade");
+            msg.fields.insert("Connection", "upgrade");
             break;
 
         case connection::keep_alive:
             if(msg.version < 11)
             {
                 if(content_length)
-                    msg.headers.insert("Connection", "keep-alive");
+                    msg.fields.insert("Connection", "keep-alive");
             }
             break;
 
         case connection::close:
             if(msg.version >= 11)
-                msg.headers.insert("Connection", "close");
+                msg.fields.insert("Connection", "close");
             break;
         }
     }
 
     // rfc7230 6.7.
     if(msg.version < 11 && token_list{
-            msg.headers["Connection"]}.exists("upgrade"))
+            msg.fields["Connection"]}.exists("upgrade"))
         throw std::invalid_argument(
             "invalid version for Connection: upgrade");
 }

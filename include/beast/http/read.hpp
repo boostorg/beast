@@ -15,21 +15,26 @@
 namespace beast {
 namespace http {
 
-/** Read HTTP/1 message headers from a stream.
+/** Read a HTTP/1 header from a stream.
 
-    This function is used to synchronously read message headers from
-    the stream. The call blocks until one of the following conditions
-    is true:
+    This function is used to synchronously read a header
+    from a stream. The call blocks until one of the following
+    conditions is true:
 
-    @li The complete message headers are read in.
+    @li An entire header is read in.
 
     @li An error occurs in the stream or parser.
 
     This function is implemented in terms of one or more calls
     to the stream's `read_some` function. The implementation may
     read additional octets that lie past the end of the message
-    headers being parsed. This additional data is stored in the
+    fields being parsed. This additional data is stored in the
     stream buffer, which may be used in subsequent calls.
+
+    If the message corresponding to the header being received
+    contains a message body, it is the callers responsibility
+    to cause the body to be read in before attempting to read
+    the next message.
 
     @param stream The stream from which the data is to be read.
     The type must support the @b `SyncReadStream` concept.
@@ -40,37 +45,38 @@ namespace http {
     stream buffer's input sequence will be given to the parser
     first.
 
-    @param msg An object used to store the message headers.
-    Any contents will be overwritten. The type must support
-    copy assignment or move assignment.
+    @param msg An object used to store the header. Any contents
+    will be overwritten. The type must support copy assignment
+    or move assignment.
 
     @throws system_error Thrown on failure.
 */
 template<class SyncReadStream, class DynamicBuffer,
-    bool isRequest, class Headers>
+    bool isRequest, class Fields>
 void
 read(SyncReadStream& stream, DynamicBuffer& dynabuf,
-    message_headers<isRequest, Headers>& msg);
+    header<isRequest, Fields>& msg);
 
-/** Read HTTP/1 message headers from a stream.
+/** Read a HTTP/1 header from a stream.
 
-    This function is used to synchronously read message headers from
-    the stream. The call blocks until one of the following conditions
-    is true:
+    This function is used to synchronously read a header
+    from a stream. The call blocks until one of the following
+    conditions is true:
 
-    @li The complete message headers are read in.
+    @li An entire header is read in.
 
     @li An error occurs in the stream or parser.
 
     This function is implemented in terms of one or more calls
     to the stream's `read_some` function. The implementation may
     read additional octets that lie past the end of the message
-    headers being parsed. This additional data is stored in the
+    fields being parsed. This additional data is stored in the
     stream buffer, which may be used in subsequent calls.
 
-    If the message being received contains a message body, it
-    is the callers responsibility to cause the body to be read
-    in before attempting to read the next message.
+    If the message corresponding to the header being received
+    contains a message body, it is the callers responsibility
+    to cause the body to be read in before attempting to read
+    the next message.
 
     @param stream The stream from which the data is to be read.
     The type must support the @b `SyncReadStream` concept.
@@ -81,40 +87,42 @@ read(SyncReadStream& stream, DynamicBuffer& dynabuf,
     stream buffer's input sequence will be given to the parser
     first.
 
-    @param msg An object used to store the message headers.
-    Any contents will be overwritten. The type must support
-    copy assignment or move assignment.
+    @param msg An object used to store the header. Any contents
+    will be overwritten. The type must support copy assignment
+    or move assignment.
 
     @param ec Set to the error, if any occurred.
 */
 template<class SyncReadStream, class DynamicBuffer,
-    bool isRequest, class Headers>
+    bool isRequest, class Fields>
 void
 read(SyncReadStream& stream, DynamicBuffer& dynabuf,
-    message_headers<isRequest, Headers>& msg,
+    header<isRequest, Fields>& msg,
         error_code& ec);
 
-/** Start an asynchronous operation to read HTTP/1 message headers from a stream.
+/** Read a HTTP/1 header asynchronously from a stream.
 
-    This function is used to asynchronously read a message from the
-    stream. The function call always returns immediately. The asynchronous
-    operation will continue until one of the following conditions is true:
+    This function is used to asynchronously read a header from
+    a stream. The function call always returns immediately. The
+    asynchronous operation will continue until one of the following
+    conditions is true:
 
-    @li A complete message is read in.
+    @li An entire header is read in.
 
     @li An error occurs in the stream or parser.
 
     This operation is implemented in terms of one or more calls to
-    the next layer's `async_read_some` function, and is known as a
+    the stream's `async_read_some` function, and is known as a
     <em>composed operation</em>. The program must ensure that the
     stream performs no other operations until this operation completes.
     The implementation may read additional octets that lie past the
-    end of the message headers being parsed. This additional data is
+    end of the message fields being parsed. This additional data is
     stored in the stream buffer, which may be used in subsequent calls.
 
-    If the message being received contains a message body, it
-    is the callers responsibility to cause the body to be read
-    in before attempting to read the next message.
+    If the message corresponding to the header being received
+    contains a message body, it is the callers responsibility
+    to cause the body to be read in before attempting to read
+    the next message.
 
     @param stream The stream to read the message from.
     The type must support the @b `AsyncReadStream` concept.
@@ -125,13 +133,14 @@ read(SyncReadStream& stream, DynamicBuffer& dynabuf,
     stream buffer's input sequence will be given to the parser
     first.
 
-    @param msg An object used to store the message. Any contents
+    @param msg An object used to store the header. Any contents
     will be overwritten. The type must support copy assignment or
-    move assignment.
+    move assignment. The object must remain valid at least until
+    the completion handler is called; ownership is not transferred.
 
-    @param handler The handler to be called when the request completes.
-    Copies will be made of the handler as required. The equivalent
-    function signature of the handler must be:
+    @param handler The handler to be called when the operation
+    completes. Copies will be made of the handler as required.
+    The equivalent function signature of the handler must be:
     @code void handler(
         error_code const& error // result of operation
     ); @endcode
@@ -141,7 +150,7 @@ read(SyncReadStream& stream, DynamicBuffer& dynabuf,
     manner equivalent to using `boost::asio::io_service::post`.
 */
 template<class AsyncReadStream, class DynamicBuffer,
-    bool isRequest, class Body, class Headers,
+    bool isRequest, class Body, class Fields,
         class ReadHandler>
 #if GENERATING_DOCS
 void_or_deduced
@@ -150,13 +159,13 @@ typename async_completion<
     ReadHandler, void(error_code)>::result_type
 #endif
 async_read(AsyncReadStream& stream, DynamicBuffer& dynabuf,
-    message_headers<isRequest, Headers>& msg,
+    header<isRequest, Fields>& msg,
         ReadHandler&& handler);
 
 /** Read a HTTP/1 message from a stream.
 
     This function is used to synchronously read a message from
-    the stream. The call blocks until one of the following conditions
+    a stream. The call blocks until one of the following conditions
     is true:
 
     @li A complete message is read in.
@@ -185,15 +194,15 @@ async_read(AsyncReadStream& stream, DynamicBuffer& dynabuf,
     @throws system_error Thrown on failure.
 */
 template<class SyncReadStream, class DynamicBuffer,
-    bool isRequest, class Body, class Headers>
+    bool isRequest, class Body, class Fields>
 void
 read(SyncReadStream& stream, DynamicBuffer& dynabuf,
-    message<isRequest, Body, Headers>& msg);
+    message<isRequest, Body, Fields>& msg);
 
 /** Read a HTTP/1 message from a stream.
 
     This function is used to synchronously read a message from
-    the stream. The call blocks until one of the following conditions
+    a stream. The call blocks until one of the following conditions
     is true:
 
     @li A complete message is read in.
@@ -222,24 +231,25 @@ read(SyncReadStream& stream, DynamicBuffer& dynabuf,
     @param ec Set to the error, if any occurred.
 */
 template<class SyncReadStream, class DynamicBuffer,
-    bool isRequest, class Body, class Headers>
+    bool isRequest, class Body, class Fields>
 void
 read(SyncReadStream& stream, DynamicBuffer& dynabuf,
-    message<isRequest, Body, Headers>& msg,
+    message<isRequest, Body, Fields>& msg,
         error_code& ec);
 
-/** Start an asynchronous operation to read a HTTP/1 message from a stream.
+/** Read a HTTP/1 message asynchronously from a stream.
 
-    This function is used to asynchronously read a message from the
-    stream. The function call always returns immediately. The asynchronous
-    operation will continue until one of the following conditions is true:
+    This function is used to asynchronously read a message from
+    a stream. The function call always returns immediately. The
+    asynchronous operation will continue until one of the following
+    conditions is true:
 
     @li A complete message is read in.
 
     @li An error occurs in the stream or parser.
 
     This operation is implemented in terms of one or more calls to
-    the next layer's `async_read_some` function, and is known as a
+    the stream's `async_read_some` function, and is known as a
     <em>composed operation</em>. The program must ensure that the
     stream performs no other operations until this operation completes.
     The implementation may read additional octets that lie past the
@@ -255,13 +265,14 @@ read(SyncReadStream& stream, DynamicBuffer& dynabuf,
     stream buffer's input sequence will be given to the parser
     first.
 
-    @param msg An object used to store the message. Any contents
+    @param msg An object used to store the header. Any contents
     will be overwritten. The type must support copy assignment or
-    move assignment.
+    move assignment. The object must remain valid at least until
+    the completion handler is called; ownership is not transferred.
 
-    @param handler The handler to be called when the request completes.
-    Copies will be made of the handler as required. The equivalent
-    function signature of the handler must be:
+    @param handler The handler to be called when the operation
+    completes. Copies will be made of the handler as required.
+    The equivalent function signature of the handler must be:
     @code void handler(
         error_code const& error // result of operation
     ); @endcode
@@ -271,7 +282,7 @@ read(SyncReadStream& stream, DynamicBuffer& dynabuf,
     manner equivalent to using `boost::asio::io_service::post`.
 */
 template<class AsyncReadStream, class DynamicBuffer,
-    bool isRequest, class Body, class Headers,
+    bool isRequest, class Body, class Fields,
         class ReadHandler>
 #if GENERATING_DOCS
 void_or_deduced
@@ -280,7 +291,7 @@ typename async_completion<
     ReadHandler, void(error_code)>::result_type
 #endif
 async_read(AsyncReadStream& stream, DynamicBuffer& dynabuf,
-    message<isRequest, Body, Headers>& msg,
+    message<isRequest, Body, Fields>& msg,
         ReadHandler&& handler);
 
 } // http

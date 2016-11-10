@@ -133,15 +133,15 @@ public:
 
     struct identity
     {
-        template<class Body, class Headers>
+        template<class Body, class Fields>
         void
-        operator()(http::message<true, Body, Headers>&)
+        operator()(http::message<true, Body, Fields>&)
         {
         }
 
-        template<class Body, class Headers>
+        template<class Body, class Fields>
         void
-        operator()(http::message<false, Body, Headers>&)
+        operator()(http::message<false, Body, Fields>&)
         {
         }
     };
@@ -188,11 +188,11 @@ public:
                 req.method = "GET";
                 req.url = "/";
                 req.version = 11;
-                req.headers.insert("Host", "localhost");
-                req.headers.insert("Upgrade", "websocket");
-                req.headers.insert("Connection", "upgrade");
-                req.headers.insert("Sec-WebSocket-Key", "dGhlIHNhbXBsZSBub25jZQ==");
-                req.headers.insert("Sec-WebSocket-Version", "13");
+                req.fields.insert("Host", "localhost");
+                req.fields.insert("Upgrade", "websocket");
+                req.fields.insert("Connection", "upgrade");
+                req.fields.insert("Sec-WebSocket-Key", "dGhlIHNhbXBsZSBub25jZQ==");
+                req.fields.insert("Sec-WebSocket-Version", "13");
                 stream<test::fail_stream<
                     test::string_stream>> ws(n, ios_, "");
                 try

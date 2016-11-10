@@ -6,4 +6,4 @@
 //
 
 // Test that header file is self-contained.
-#include <beast/http/headers.hpp>
+#include <beast/http/fields.hpp>

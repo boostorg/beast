@@ -102,7 +102,7 @@ private:
     void
     operator()(request_type& req, std::false_type)
     {
-        req.headers.replace("User-Agent",
+        req.fields.replace("User-Agent",
             std::string{"Beast/"} + BEAST_VERSION_STRING);
     }
 
@@ -115,7 +115,7 @@ private:
     void
     operator()(response_type& res, std::false_type)
     {
-        res.headers.replace("Server",
+        res.fields.replace("Server",
             std::string{"Beast/"} + BEAST_VERSION_STRING);
     }
 };

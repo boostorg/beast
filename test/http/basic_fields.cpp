@@ -6,7 +6,7 @@
 //
 
 // Test that header file is self-contained.
-#include <beast/http/basic_headers.hpp>
+#include <beast/http/basic_fields.hpp>
 
 #include <beast/unit_test/suite.hpp>
 #include <boost/lexical_cast.hpp>
@@ -14,18 +14,18 @@
 namespace beast {
 namespace http {
 
-class basic_headers_test : public beast::unit_test::suite
+class basic_fields_test : public beast::unit_test::suite
 {
 public:
     template<class Allocator>
-    using bha = basic_headers<Allocator>;
+    using bha = basic_fields<Allocator>;
 
-    using bh = basic_headers<std::allocator<char>>;
+    using bh = basic_fields<std::allocator<char>>;
 
     template<class Allocator>
     static
     void
-    fill(std::size_t n, basic_headers<Allocator>& h)
+    fill(std::size_t n, basic_fields<Allocator>& h)
     {
         for(std::size_t i = 1; i<= n; ++i)
             h.insert(boost::lexical_cast<std::string>(i), i);
@@ -90,7 +90,7 @@ public:
     }
 };
 
-BEAST_DEFINE_TESTSUITE(basic_headers,http,beast);
+BEAST_DEFINE_TESTSUITE(basic_fields,http,beast);
 
 } // http
 } // beast

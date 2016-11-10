@@ -22,8 +22,11 @@
 namespace beast {
 namespace http {
 
-namespace parse_flag {
-enum values
+/** Parse flags
+
+    The set of parser bit flags are returned by @ref basic_parser_v1::flags.
+*/
+enum parse_flag
 {
     chunked               =   1,
     connection_keep_alive =   2,
@@ -33,28 +36,6 @@ enum values
     upgrade               =  32,
     skipbody              =  64,
     contentlength         = 128
-};
-} // parse_flag
-
-/** Headers maximum size option.
-
-    Sets the maximum number of cumulative bytes allowed
-    including all header octets. A value of zero indicates
-    no limit on the number of header octets
-
-    The default headers maximum size is 16KB (16,384 bytes).
-
-    @note Objects of this type are used with basic_parser_v1::set_option.
-*/
-struct headers_max_size
-{
-    std::size_t value;
-
-    explicit
-    headers_max_size(std::size_t v)
-        : value(v)
-    {
-    }
 };
 
 /** Body maximum size option.
@@ -67,7 +48,7 @@ struct headers_max_size
     The default body maximum size for requests is 4MB (four
     megabytes or 4,194,304 bytes) and unlimited for responses.
 
-    @note Objects of this type are used with basic_parser_v1::set_option.
+    @note Objects of this type are used with @ref basic_parser_v1::set_option.
 */
 struct body_max_size
 {
@@ -80,9 +61,30 @@ struct body_max_size
     }
 };
 
+/** Header maximum size option.
+
+    Sets the maximum number of cumulative bytes allowed
+    including all header octets. A value of zero indicates
+    no limit on the number of header octets.
+
+    The default header maximum size is 16KB (16,384 bytes).
+
+    @note Objects of this type are used with @ref basic_parser_v1::set_option.
+*/
+struct header_max_size
+{
+    std::size_t value;
+
+    explicit
+    header_max_size(std::size_t v)
+        : value(v)
+    {
+    }
+};
+
 /** A value indicating how the parser should treat the body.
 
-    This value is returned from the `on_headers` callback in
+    This value is returned from the `on_header` callback in
     the derived class. It controls what the parser does next
     in terms of the message body.
 */
@@ -94,7 +96,7 @@ enum class body_what
 
     /** Skip parsing of the body.
 
-        When returned by `on_headers` this causes parsing to
+        When returned by `on_header` this causes parsing to
         complete and control to return to the caller. This
         could be used when sending a response to a HEAD
         request, for example.
@@ -116,8 +118,8 @@ enum class body_what
         to the parser will begin reading the message body.
 
         This could be used by callers to inspect the HTTP
-        headers before committing to read the body. For example,
-        to choose the body type based on the headers. Or to
+        header before committing to read the body. For example,
+        to choose the body type based on the fields. Or to
         respond to an Expect: 100-continue request.
     */
     pause
@@ -181,19 +183,19 @@ static std::uint64_t constexpr no_content_length =
         //
         void on_value(boost::string_ref const&, error_code&)
 
-        // Called when all the headers have been parsed successfully.
+        // Called when the entire header has been parsed successfully.
         //
         void
-        on_headers(std::uint64_t content_length, error_code&);
+        on_header(std::uint64_t content_length, error_code&);
 
-        // Called after on_headers, before the body is parsed
+        // Called after on_header, before the body is parsed
         //
         body_what
         on_body_what(std::uint64_t content_length, error_code&);
 
         // Called for each piece of the body.
         //
-        // If the headers indicate chunk encoding, the chunk
+        // If the header indicates chunk encoding, the chunk
         // encoding is removed from the buffer before being
         // passed to the callback.
         //
@@ -319,9 +321,9 @@ public:
             std::forward<An>(an)...);
     }
 
-    /// Set the headers maximum size option
+    /// Set the header maximum size option
     void
-    set_option(headers_max_size const& o)
+    set_option(header_max_size const& o)
     {
         h_max_ = o.value;
         h_left_ = h_max_;
@@ -508,7 +510,7 @@ private:
     void
     init(std::true_type)
     {
-        // 16KB max headers, 4MB max body
+        // Request: 16KB max header, 4MB max body
         h_max_ = 16 * 1024;
         b_max_ = 4 * 1024 * 1024;
     }
@@ -516,7 +518,7 @@ private:
     void
     init(std::false_type)
     {
-        // 16KB max headers, unlimited body
+        // Response: 16KB max header, unlimited body
         h_max_ = 16 * 1024;
         b_max_ = 0;
     }
@@ -616,7 +618,7 @@ private:
 
     template<class T>
     struct check_on_headers<T, beast::detail::void_t<decltype(
-        std::declval<T>().on_headers(
+        std::declval<T>().on_header(
             std::declval<std::uint64_t>(),
             std::declval<error_code&>())
                 )>> : std::true_type {};
@@ -674,7 +676,7 @@ private:
             "on_method requirements not met");
         if(h_max_ && s.size() > h_left_)
         {
-            ec = parse_error::headers_too_big;
+            ec = parse_error::header_too_big;
             return;
         }
         h_left_ -= s.size();
@@ -700,7 +702,7 @@ private:
             "on_uri requirements not met");
         if(h_max_ && s.size() > h_left_)
         {
-            ec = parse_error::headers_too_big;
+            ec = parse_error::header_too_big;
             return;
         }
         h_left_ -= s.size();
@@ -726,7 +728,7 @@ private:
             "on_reason requirements not met");
         if(h_max_ && s.size() > h_left_)
         {
-            ec = parse_error::headers_too_big;
+            ec = parse_error::header_too_big;
             return;
         }
         h_left_ -= s.size();
@@ -785,7 +787,7 @@ private:
             "on_field requirements not met");
         if(h_max_ && s.size() > h_left_)
         {
-            ec = parse_error::headers_too_big;
+            ec = parse_error::header_too_big;
             return;
         }
         h_left_ -= s.size();
@@ -799,7 +801,7 @@ private:
             "on_value requirements not met");
         if(h_max_ && s.size() > h_left_)
         {
-            ec = parse_error::headers_too_big;
+            ec = parse_error::header_too_big;
             return;
         }
         h_left_ -= s.size();
@@ -810,8 +812,8 @@ private:
     call_on_headers(error_code& ec)
     {
         static_assert(check_on_headers<Derived>::value,
-            "on_headers requirements not met");
-        impl().on_headers(content_length_, ec);
+            "on_header requirements not met");
+        impl().on_header(content_length_, ec);
     }
 
     body_what
