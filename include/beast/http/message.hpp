@@ -30,14 +30,14 @@ namespace http {
     a HEAD request.
 */
 template<bool isRequest, class Headers>
-struct message_headers
+struct header
 
 #else
 template<bool isRequest, class Headers>
-struct message_headers;
+struct header;
 
 template<class Headers>
-struct message_headers<true, Headers>
+struct header<true, Headers>
 #endif
 {
     /// Indicates if the header is a request or response.
@@ -78,19 +78,19 @@ struct message_headers<true, Headers>
     Headers fields;
 
     /// Default constructor
-    message_headers() = default;
+    header() = default;
 
     /// Move constructor
-    message_headers(message_headers&&) = default;
+    header(header&&) = default;
 
     /// Copy constructor
-    message_headers(message_headers const&) = default;
+    header(header const&) = default;
 
     /// Move assignment
-    message_headers& operator=(message_headers&&) = default;
+    header& operator=(header&&) = default;
 
     /// Copy assignment
-    message_headers& operator=(message_headers const&) = default;
+    header& operator=(header const&) = default;
 
     /** Construct the header.
 
@@ -99,21 +99,21 @@ struct message_headers<true, Headers>
 
         @note This constructor participates in overload resolution
         if and only if the first parameter is not convertible to
-        `message_headers`.
+        `header`.
     */
 #if GENERATING_DOCS
     template<class... Args>
     explicit
-    message_headers(Args&&... args);
+    header(Args&&... args);
 
 #else
     template<class Arg1, class... ArgN,
         class = typename std::enable_if<
             (sizeof...(ArgN) > 0) || ! std::is_convertible<
                 typename std::decay<Arg1>::type,
-                    message_headers>::value>::type>
+                    header>::value>::type>
     explicit
-    message_headers(Arg1&& arg1, ArgN&&... argn)
+    header(Arg1&& arg1, ArgN&&... argn)
         : fields(std::forward<Arg1>(arg1),
             std::forward<ArgN>(argn)...)
     {
@@ -129,7 +129,7 @@ struct message_headers<true, Headers>
     example, when responding to a HEAD request.
 */
 template<class Headers>
-struct message_headers<false, Headers>
+struct header<false, Headers>
 {
     /// Indicates if the message fields are a request or response.
     static bool constexpr is_request = false;
@@ -152,19 +152,19 @@ struct message_headers<false, Headers>
     Headers fields;
 
     /// Default constructor
-    message_headers() = default;
+    header() = default;
 
     /// Move constructor
-    message_headers(message_headers&&) = default;
+    header(header&&) = default;
 
     /// Copy constructor
-    message_headers(message_headers const&) = default;
+    header(header const&) = default;
 
     /// Move assignment
-    message_headers& operator=(message_headers&&) = default;
+    header& operator=(header&&) = default;
 
     /// Copy assignment
-    message_headers& operator=(message_headers const&) = default;
+    header& operator=(header const&) = default;
 
     /** Construct message fields.
 
@@ -173,15 +173,15 @@ struct message_headers<false, Headers>
 
         @note This constructor participates in overload resolution
         if and only if the first parameter is not convertible to
-        `message_headers`.
+        `header`.
     */
     template<class Arg1, class... ArgN,
         class = typename std::enable_if<
             (sizeof...(ArgN) > 0) || ! std::is_convertible<
                 typename std::decay<Arg1>::type,
-                    message_headers>::value>::type>
+                    header>::value>::type>
     explicit
-    message_headers(Arg1&& arg1, ArgN&&... argn)
+    header(Arg1&& arg1, ArgN&&... argn)
         : fields(std::forward<Arg1>(arg1),
             std::forward<ArgN>(argn)...)
     {
@@ -222,11 +222,10 @@ struct message_headers<false, Headers>
     field value pairs.
 */
 template<bool isRequest, class Body, class Headers>
-struct message :
-    message_headers<isRequest, Headers>
+struct message : header<isRequest, Headers>
 {
     /// The base class used to hold the request or response fields
-    using base_type = message_headers<isRequest, Headers>;
+    using base_type = header<isRequest, Headers>;
 
     /** The type providing the body traits.
 
@@ -377,8 +376,8 @@ private:
 template<bool isRequest, class Headers>
 void
 swap(
-    message_headers<isRequest, Headers>& m1,
-    message_headers<isRequest, Headers>& m2);
+    header<isRequest, Headers>& m1,
+    header<isRequest, Headers>& m2);
 #endif
 
 /** Swap two HTTP messages.
@@ -393,11 +392,11 @@ swap(
     message<isRequest, Body, Headers>& m2);
 
 /// Message fields for a typical HTTP request
-using request_headers = message_headers<true,
+using request_headers = header<true,
     basic_fields<std::allocator<char>>>;
 
 /// Message fields for a typical HTTP response
-using response_headers = message_headers<false,
+using response_headers = header<false,
     basic_fields<std::allocator<char>>>;
 
 /// A typical HTTP request message

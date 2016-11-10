@@ -234,7 +234,7 @@ public:
     testAsyncWriteHeaders(yield_context do_yield)
     {
         {
-            message_headers<true, fields> m;
+            header<true, fields> m;
             m.version = 11;
             m.method = "GET";
             m.url = "/";
@@ -249,7 +249,7 @@ public:
                     "\r\n");
         }
         {
-            message_headers<false, fields> m;
+            header<false, fields> m;
             m.version = 10;
             m.status = 200;
             m.reason = "OK";
@@ -656,7 +656,7 @@ public:
                 std::stringstream::failbit);
             try
             {
-                // message_headers
+                // header
                 ss << m.base();
                 fail("", __FILE__, __LINE__);
             }

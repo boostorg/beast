@@ -50,7 +50,7 @@ template<class SyncReadStream, class DynamicBuffer,
     bool isRequest, class Headers>
 void
 read(SyncReadStream& stream, DynamicBuffer& dynabuf,
-    message_headers<isRequest, Headers>& msg);
+    header<isRequest, Headers>& msg);
 
 /** Read HTTP/1 message fields from a stream.
 
@@ -91,7 +91,7 @@ template<class SyncReadStream, class DynamicBuffer,
     bool isRequest, class Headers>
 void
 read(SyncReadStream& stream, DynamicBuffer& dynabuf,
-    message_headers<isRequest, Headers>& msg,
+    header<isRequest, Headers>& msg,
         error_code& ec);
 
 /** Start an asynchronous operation to read HTTP/1 message fields from a stream.
@@ -150,7 +150,7 @@ typename async_completion<
     ReadHandler, void(error_code)>::result_type
 #endif
 async_read(AsyncReadStream& stream, DynamicBuffer& dynabuf,
-    message_headers<isRequest, Headers>& msg,
+    header<isRequest, Headers>& msg,
         ReadHandler&& handler);
 
 /** Read a HTTP/1 message from a stream.

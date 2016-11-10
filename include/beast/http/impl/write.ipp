@@ -35,7 +35,7 @@ namespace detail {
 template<class DynamicBuffer, class Headers>
 void
 write_start_line(DynamicBuffer& dynabuf,
-    message_headers<true, Headers> const& msg)
+    header<true, Headers> const& msg)
 {
     BOOST_ASSERT(msg.version == 10 || msg.version == 11);
     write(dynabuf, msg.method);
@@ -55,7 +55,7 @@ write_start_line(DynamicBuffer& dynabuf,
 template<class DynamicBuffer, class Headers>
 void
 write_start_line(DynamicBuffer& dynabuf,
-    message_headers<false, Headers> const& msg)
+    header<false, Headers> const& msg)
 {
     BOOST_ASSERT(msg.version == 10 || msg.version == 11);
     switch(msg.version)
@@ -208,7 +208,7 @@ template<class SyncWriteStream,
     bool isRequest, class Headers>
 void
 write(SyncWriteStream& stream,
-    message_headers<isRequest, Headers> const& msg)
+    header<isRequest, Headers> const& msg)
 {
     static_assert(is_SyncWriteStream<SyncWriteStream>::value,
         "SyncWriteStream requirements not met");
@@ -222,7 +222,7 @@ template<class SyncWriteStream,
     bool isRequest, class Headers>
 void
 write(SyncWriteStream& stream,
-    message_headers<isRequest, Headers> const& msg,
+    header<isRequest, Headers> const& msg,
         error_code& ec)
 {
     static_assert(is_SyncWriteStream<SyncWriteStream>::value,
@@ -240,7 +240,7 @@ template<class AsyncWriteStream,
 typename async_completion<
     WriteHandler, void(error_code)>::result_type
 async_write(AsyncWriteStream& stream,
-    message_headers<isRequest, Headers> const& msg,
+    header<isRequest, Headers> const& msg,
         WriteHandler&& handler)
 {
     static_assert(is_AsyncWriteStream<AsyncWriteStream>::value,
@@ -758,7 +758,7 @@ async_write(AsyncWriteStream& stream,
 template<bool isRequest, class Headers>
 std::ostream&
 operator<<(std::ostream& os,
-    message_headers<isRequest, Headers> const& msg)
+    header<isRequest, Headers> const& msg)
 {
     beast::detail::sync_ostream oss{os};
     error_code ec;

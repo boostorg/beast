@@ -55,7 +55,7 @@ class headers_parser_v1
 public:
     /// The type of the header this parser produces.
     using header_type =
-        message_headers<isRequest, Headers>;
+        header<isRequest, Headers>;
 
 private:
     // VFALCO Check Headers requirements?

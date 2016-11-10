@@ -183,7 +183,7 @@ public:
 
         {
             MoveHeaders h;
-            message_headers<true, MoveHeaders> r{std::move(h)};
+            header<true, MoveHeaders> r{std::move(h)};
             BEAST_EXPECT(h.moved_from);
             BEAST_EXPECT(r.fields.moved_to);
             request<string_body, MoveHeaders> m{std::move(r)};

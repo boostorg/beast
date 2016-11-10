@@ -44,7 +44,7 @@ template<class SyncWriteStream,
     bool isRequest, class Headers>
 void
 write(SyncWriteStream& stream,
-    message_headers<isRequest, Headers> const& msg);
+    header<isRequest, Headers> const& msg);
 
 /** Write HTTP/1 message fields on a stream.
 
@@ -73,7 +73,7 @@ template<class SyncWriteStream,
     bool isRequest, class Headers>
 void
 write(SyncWriteStream& stream,
-    message_headers<isRequest, Headers> const& msg,
+    header<isRequest, Headers> const& msg,
         error_code& ec);
 
 /** Start an asynchronous operation to write HTTP/1 message fields to a stream.
@@ -126,7 +126,7 @@ typename async_completion<
     WriteHandler, void(error_code)>::result_type
 #endif
 async_write(AsyncWriteStream& stream,
-    message_headers<isRequest, Headers> const& msg,
+    header<isRequest, Headers> const& msg,
         WriteHandler&& handler);
 
 //------------------------------------------------------------------------------
@@ -264,7 +264,7 @@ async_write(AsyncWriteStream& stream,
 template<bool isRequest, class Headers>
 std::ostream&
 operator<<(std::ostream& os,
-    message_headers<isRequest, Headers> const& msg);
+    header<isRequest, Headers> const& msg);
 
 /** Serialize a HTTP/1 message to a `std::ostream`.
 

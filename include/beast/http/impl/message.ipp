@@ -23,8 +23,8 @@ namespace http {
 template<class Headers>
 void
 swap(
-    message_headers<true, Headers>& m1,
-    message_headers<true, Headers>& m2)
+    header<true, Headers>& m1,
+    header<true, Headers>& m2)
 {
     using std::swap;
     swap(m1.version, m2.version);
@@ -36,8 +36,8 @@ swap(
 template<class Headers>
 void
 swap(
-    message_headers<false, Headers>& a,
-    message_headers<false, Headers>& b)
+    header<false, Headers>& a,
+    header<false, Headers>& b)
 {
     using std::swap;
     swap(a.version, b.version);
