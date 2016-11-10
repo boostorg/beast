@@ -322,7 +322,8 @@ private:
         message<true, string_body, fields> m = p.release();
     @endcode
 */
-template<class Body, bool isRequest, class Fields, class... Args>
+template<class Body,
+    bool isRequest, class Fields, class... Args>
 parser_v1<isRequest, Body, Fields>
 with_body(header_parser_v1<isRequest, Fields>& parser,
     Args&&... args)

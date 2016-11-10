@@ -17,8 +17,8 @@ namespace http {
 
 /** Read a HTTP/1 header from a stream.
 
-    This function is used to synchronously read a header from
-    the stream. The call blocks until one of the following
+    This function is used to synchronously read a header
+    from a stream. The call blocks until one of the following
     conditions is true:
 
     @li An entire header is read in.
@@ -59,8 +59,8 @@ read(SyncReadStream& stream, DynamicBuffer& dynabuf,
 
 /** Read a HTTP/1 header from a stream.
 
-    This function is used to synchronously read a header from
-    the stream. The call blocks until one of the following
+    This function is used to synchronously read a header
+    from a stream. The call blocks until one of the following
     conditions is true:
 
     @li An entire header is read in.
@@ -100,10 +100,10 @@ read(SyncReadStream& stream, DynamicBuffer& dynabuf,
     header<isRequest, Fields>& msg,
         error_code& ec);
 
-/** Start an asynchronous operation to read a HTTP/1 header from a stream.
+/** Read a HTTP/1 header asynchronously from a stream.
 
-    This function is used to asynchronously read a header from the
-    stream. The function call always returns immediately. The
+    This function is used to asynchronously read a header from
+    a stream. The function call always returns immediately. The
     asynchronous operation will continue until one of the following
     conditions is true:
 
@@ -112,7 +112,7 @@ read(SyncReadStream& stream, DynamicBuffer& dynabuf,
     @li An error occurs in the stream or parser.
 
     This operation is implemented in terms of one or more calls to
-    the next layer's `async_read_some` function, and is known as a
+    the stream's `async_read_some` function, and is known as a
     <em>composed operation</em>. The program must ensure that the
     stream performs no other operations until this operation completes.
     The implementation may read additional octets that lie past the
@@ -138,9 +138,9 @@ read(SyncReadStream& stream, DynamicBuffer& dynabuf,
     move assignment. The object must remain valid at least until
     the completion handler is called; ownership is not transferred.
 
-    @param handler The handler to be called when the request completes.
-    Copies will be made of the handler as required. The equivalent
-    function signature of the handler must be:
+    @param handler The handler to be called when the operation
+    completes. Copies will be made of the handler as required.
+    The equivalent function signature of the handler must be:
     @code void handler(
         error_code const& error // result of operation
     ); @endcode
@@ -165,7 +165,7 @@ async_read(AsyncReadStream& stream, DynamicBuffer& dynabuf,
 /** Read a HTTP/1 message from a stream.
 
     This function is used to synchronously read a message from
-    the stream. The call blocks until one of the following conditions
+    a stream. The call blocks until one of the following conditions
     is true:
 
     @li A complete message is read in.
@@ -202,7 +202,7 @@ read(SyncReadStream& stream, DynamicBuffer& dynabuf,
 /** Read a HTTP/1 message from a stream.
 
     This function is used to synchronously read a message from
-    the stream. The call blocks until one of the following conditions
+    a stream. The call blocks until one of the following conditions
     is true:
 
     @li A complete message is read in.
@@ -237,18 +237,19 @@ read(SyncReadStream& stream, DynamicBuffer& dynabuf,
     message<isRequest, Body, Fields>& msg,
         error_code& ec);
 
-/** Start an asynchronous operation to read a HTTP/1 message from a stream.
+/** Read a HTTP/1 message asynchronously from a stream.
 
-    This function is used to asynchronously read a message from the
-    stream. The function call always returns immediately. The asynchronous
-    operation will continue until one of the following conditions is true:
+    This function is used to asynchronously read a message from
+    a stream. The function call always returns immediately. The
+    asynchronous operation will continue until one of the following
+    conditions is true:
 
     @li A complete message is read in.
 
     @li An error occurs in the stream or parser.
 
     This operation is implemented in terms of one or more calls to
-    the next layer's `async_read_some` function, and is known as a
+    the stream's `async_read_some` function, and is known as a
     <em>composed operation</em>. The program must ensure that the
     stream performs no other operations until this operation completes.
     The implementation may read additional octets that lie past the
@@ -269,9 +270,9 @@ read(SyncReadStream& stream, DynamicBuffer& dynabuf,
     move assignment. The object must remain valid at least until
     the completion handler is called; ownership is not transferred.
 
-    @param handler The handler to be called when the request completes.
-    Copies will be made of the handler as required. The equivalent
-    function signature of the handler must be:
+    @param handler The handler to be called when the operation
+    completes. Copies will be made of the handler as required.
+    The equivalent function signature of the handler must be:
     @code void handler(
         error_code const& error // result of operation
     ); @endcode

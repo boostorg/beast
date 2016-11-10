@@ -17,26 +17,27 @@
 namespace beast {
 namespace http {
 
-/** Write HTTP/1 message fields on a stream.
+/** Write a HTTP/1 header to a stream.
 
-    This function is used to write message fields to a stream. The
-    call will block until one of the following conditions is true:
+    This function is used to synchronously write a header to
+    a stream. The call will block until one of the following
+    conditions is true:
 
-    @li All the message fields are sent.
+    @li The entire header is written.
 
     @li An error occurs.
 
     This operation is implemented in terms of one or more calls
     to the stream's `write_some` function.
 
-    Regardless of the semantic meaning of the fields (for example,
-    specifying a zero-length message body and Connection: Close),
+    Regardless of the semantic meaning of the header (for example,
+    specifying "Content-Length: 0" and "Connection: close"),
     this function will not return `boost::asio::error::eof`.
 
     @param stream The stream to which the data is to be written.
     The type must support the @b `SyncWriteStream` concept.
 
-    @param msg The message fields to write.
+    @param msg The header to write.
 
     @throws system_error Thrown on failure.
 */
@@ -46,26 +47,27 @@ void
 write(SyncWriteStream& stream,
     header<isRequest, Fields> const& msg);
 
-/** Write HTTP/1 message fields on a stream.
+/** Write a HTTP/1 header to a stream.
 
-    This function is used to write message fields to a stream. The
-    call will block until one of the following conditions is true:
+    This function is used to synchronously write a header to
+    a stream. The call will block until one of the following
+    conditions is true:
 
-    @li All the message fields are sent.
+    @li The entire header is written.
 
     @li An error occurs.
 
     This operation is implemented in terms of one or more calls
     to the stream's `write_some` function.
 
-    Regardless of the semantic meaning of the fields (for example,
-    specifying a zero-length message body and Connection: Close),
+    Regardless of the semantic meaning of the header (for example,
+    specifying "Content-Length: 0" and "Connection: close"),
     this function will not return `boost::asio::error::eof`.
 
     @param stream The stream to which the data is to be written.
     The type must support the @b `SyncWriteStream` concept.
 
-    @param msg The message fields to write.
+    @param msg The header to write.
 
     @param ec Set to the error, if any occurred.
 */
@@ -76,35 +78,37 @@ write(SyncWriteStream& stream,
     header<isRequest, Fields> const& msg,
         error_code& ec);
 
-/** Start an asynchronous operation to write HTTP/1 message fields to a stream.
+/** Write a HTTP/1 header asynchronously to a stream.
 
-    This function is used to asynchronously write message fields to a stream.
-    The function call always returns immediately. The asynchronous
-    operation will continue until one of the following conditions is true:
+    This function is used to asynchronously write a header to
+    a stream. The function call always returns immediately. The
+    asynchronous operation will continue until one of the following
+    conditions is true:
 
-    @li The entire message fields are sent.
+    @li The entire header is written.
 
     @li An error occurs.
 
-    This operation is implemented in terms of one or more calls to the
-    stream's `async_write_some` functions, and is known as a <em>composed
-    operation</em>. The program must ensure that the stream performs no
-    other write operations (such as @ref async_write, the stream's
-    `async_write_some` function, or any other composed operations that
-    perform writes) until this operation completes.
+    This operation is implemented in terms of one or more calls to
+    the stream's `async_write_some` functions, and is known as a
+    <em>composed operation</em>. The program must ensure that the
+    stream performs no other write operations until this operation
+    completes.
 
-    Regardless of the semantic meaning of the fields (for example,
-    specifying a zero-length message body and Connection: Close),
-    the handler will not be called with `boost::asio::error::eof`.
+    Regardless of the semantic meaning of the header (for example,
+    specifying "Content-Length: 0" and "Connection: close"),
+    this function will not return `boost::asio::error::eof`.
 
     @param stream The stream to which the data is to be written.
     The type must support the @b `AsyncWriteStream` concept.
 
-    @param msg The message fields to send.
+    @param msg The header to write. The object must remain valid
+    at least until the completion handler is called; ownership is
+    not transferred.
 
-    @param handler The handler to be called when the request completes.
-    Copies will be made of the handler as required. The equivalent
-    function signature of the handler must be:
+    @param handler The handler to be called when the operation
+    completes. Copies will be made of the handler as required.
+    The equivalent function signature of the handler must be:
     @code void handler(
         error_code const& error // result of operation
     ); @endcode
@@ -112,9 +116,6 @@ write(SyncWriteStream& stream,
     immediately or not, the handler will not be invoked from within
     this function. Invocation of the handler will be performed in a
     manner equivalent to using `boost::asio::io_service::post`.
-
-    @note The message object must remain valid at least until the
-          completion handler is called, no copies are made.
 */
 template<class AsyncWriteStream,
     bool isRequest, class Fields,
@@ -131,12 +132,12 @@ async_write(AsyncWriteStream& stream,
 
 //------------------------------------------------------------------------------
 
-/** Write a HTTP/1 message on a stream.
+/** Write a HTTP/1 message to a stream.
 
     This function is used to write a message to a stream. The call
     will block until one of the following conditions is true:
 
-    @li The entire message is sent.
+    @li The entire message is written.
 
     @li An error occurs.
 
@@ -167,7 +168,7 @@ write(SyncWriteStream& stream,
     This function is used to write a message to a stream. The call
     will block until one of the following conditions is true:
 
-    @li The entire message is sent.
+    @li The entire message is written.
 
     @li An error occurs.
 
@@ -194,22 +195,22 @@ write(SyncWriteStream& stream,
     message<isRequest, Body, Fields> const& msg,
         error_code& ec);
 
-/** Start an asynchronous operation to write a HTTP/1 message to a stream.
+/** Write a HTTP/1 message asynchronously to a stream.
 
-    This function is used to asynchronously write a message to a stream.
-    The function call always returns immediately. The asynchronous
-    operation will continue until one of the following conditions is true:
+    This function is used to asynchronously write a message to
+    a stream. The function call always returns immediately. The
+    asynchronous operation will continue until one of the following
+    conditions is true:
 
-    @li The entire message is sent.
+    @li The entire message is written.
 
     @li An error occurs.
 
-    This operation is implemented in terms of one or more calls to the
-    stream's `async_write_some` functions, and is known as a <em>composed
-    operation</em>. The program must ensure that the stream performs no
-    other write operations (such as @ref async_write, the stream's
-    `async_write_some` function, or any other composed operations that
-    perform writes) until this operation completes.
+    This operation is implemented in terms of one or more calls to
+    the stream's `async_write_some` functions, and is known as a
+    <em>composed operation</em>. The program must ensure that the
+    stream performs no other write operations until this operation
+    completes.
 
     The implementation will automatically perform chunk encoding if
     the contents of the message indicate that chunk encoding is required.
@@ -220,11 +221,13 @@ write(SyncWriteStream& stream,
     @param stream The stream to which the data is to be written.
     The type must support the @b `AsyncWriteStream` concept.
 
-    @param msg The message to send.
+    @param msg The message to write. The object must remain valid
+    at least until the completion handler is called; ownership is
+    not transferred.
 
-    @param handler The handler to be called when the request completes.
-    Copies will be made of the handler as required. The equivalent
-    function signature of the handler must be:
+    @param handler The handler to be called when the operation
+    completes. Copies will be made of the handler as required.
+    The equivalent function signature of the handler must be:
     @code void handler(
         error_code const& error // result of operation
     ); @endcode
@@ -232,9 +235,6 @@ write(SyncWriteStream& stream,
     immediately or not, the handler will not be invoked from within
     this function. Invocation of the handler will be performed in a
     manner equivalent to using `boost::asio::io_service::post`.
-
-    @note The message object must remain valid at least until the
-          completion handler is called, no copies are made.
 */
 template<class AsyncWriteStream,
     bool isRequest, class Body, class Fields,
@@ -251,11 +251,10 @@ async_write(AsyncWriteStream& stream,
 
 //------------------------------------------------------------------------------
 
-/** Serialize HTTP/1 message fields to a `std::ostream`.
+/** Serialize a HTTP/1 header to a `std::ostream`.
 
-    The function converts the message fields to its HTTP/1
-    serialized representation and stores the result in the output
-    stream.
+    The function converts the header to its HTTP/1 serialized
+    representation and stores the result in the output stream.
 
     @param os The output stream to write to.
 
