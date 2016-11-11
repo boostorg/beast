@@ -447,17 +447,16 @@ start. Other design goals:
     or frame data, which is of any type meeting the requirements of
     __DynamicBuffer__ (modeled after `boost::asio::streambuf`).
 
-    Beast comes with the class `beast::basic_streambuf`, an efficient
-    implementation of the [*DynamicBuffer] concept which makes use of multiple
+    Beast comes with the class __basic_streambuf__, an efficient
+    implementation of the __DynamicBuffer__ concept which makes use of multiple
     allocated octet arrays. If an incoming message is broken up into
     multiple pieces, no reallocation occurs. Instead, new allocations are
     appended to the sequence when existing allocations are filled. Beast
     does not impose any particular memory management model on callers. The
-    `basic_streambuf` provided by beast supports standard allocators through
-    a template argument. Use the [*DynamicBuffer] that comes with beast,
+    __basic_streambuf__ provided by beast supports standard allocators through
+    a template argument. Use the __streambuf__ that comes with beast,
     customize the allocator if you desire, or provide your own type that
-    meets the
-    [@https://github.com/vinniefalco/Beast/blob/6c8b4b2f8dde72b01507e4ac7fde4ffea57ebc99/include/beast/basic_streambuf.hpp#L21 concept requirements].
+    meets the requirements of __DynamicBuffer__.
 
     [table
         [
