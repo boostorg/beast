@@ -153,9 +153,8 @@ utf8_checker_t<_>::write(std::uint8_t const* in, std::size_t size)
             }
             if ((in[0] & 0x60) == 0x40)
             {
-                if ((in[0] & 0xfe) == 0xc0 ||
-                    (in[1] & 0xc0) != 0x80)
-                        return false;
+                if ((in[1] & 0xc0) != 0x80)
+                    return false;
                 in += 2;
                 return true;
             }
@@ -200,9 +199,8 @@ utf8_checker_t<_>::write(std::uint8_t const* in, std::size_t size)
             if ((have_[0] & 0xf8) == 0xf0)
             {
                 auto const size = p_ - have_;
-                if (have_[0] > 244 ||
-                    (size > 2 && (have_[2] & 0xc0) != 0x80))
-                        return false;
+                if (size > 2 && (have_[2] & 0xc0) != 0x80)
+                    return false;
                 if (size > 1 &&
                     ((have_[1] & 0xc0) != 0x80 ||
                     (have_[0] == 240 && have_[1] < 144) ||
