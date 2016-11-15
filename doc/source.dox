@@ -103,10 +103,12 @@ WARN_LOGFILE           =
 # Configuration options related to the input files
 #---------------------------------------------------------------------------
 INPUT = \
+        ../include/beast/ \
         ../include/beast/core \
         ../include/beast/http \
         ../include/beast/websocket \
-        ../extras/beast/doc_debug.hpp \
+        ../include/beast/zlib \
+        ../extras/beast/doc_debug.hpp
 
 INPUT_ENCODING         = UTF-8
 FILE_PATTERNS          =

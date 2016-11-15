@@ -34,7 +34,7 @@ enum class parse_error
     invalid_ext_name,
     invalid_ext_val,
 
-    headers_too_big,
+    header_too_big,
     body_too_big,
     short_read
 };

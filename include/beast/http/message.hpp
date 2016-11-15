@@ -8,7 +8,7 @@
 #ifndef BEAST_HTTP_MESSAGE_HPP
 #define BEAST_HTTP_MESSAGE_HPP
 
-#include <beast/http/basic_headers.hpp>
+#include <beast/http/fields.hpp>
 #include <beast/core/detail/integer_sequence.hpp>
 #include <memory>
 #include <string>
@@ -19,27 +19,30 @@ namespace beast {
 namespace http {
 
 #if GENERATING_DOCS
-/** A container for HTTP request or response headers.
+/** A container for a HTTP request or response header.
 
-    The container includes the headers, as well as the
-    request method and URL. Objects of this type may be
-    used to represent incoming or outgoing requests for
-    which the body is not yet known or generated. For
-    example, when receiving a request with the header value
-    "Expect: 100-continue".
+    A header includes the Start Line and Fields.
+
+    Some use-cases:
+
+    @li When the message has no body, such as a response to a HEAD request.
+
+    @li When the caller wishes to defer instantiation of the body.
+
+    @li Invoke algorithms which operate on the header only.
 */
-template<bool isRequest, class Headers>
-struct message_headers
+template<bool isRequest, class Fields>
+struct header
 
 #else
-template<bool isRequest, class Headers>
-struct message_headers;
+template<bool isRequest, class Fields>
+struct header;
 
-template<class Headers>
-struct message_headers<true, Headers>
+template<class Fields>
+struct header<true, Fields>
 #endif
 {
-    /// Indicates if the message headers are a request or response.
+    /// Indicates if the header is a request or response.
 #if GENERATING_DOCS
     static bool constexpr is_request = isRequest;
 
@@ -47,8 +50,8 @@ struct message_headers<true, Headers>
     static bool constexpr is_request = true;
 #endif
 
-    /// The type representing the headers.
-    using headers_type = Headers;
+    /// The type representing the fields.
+    using fields_type = Fields;
 
     /** The HTTP version.
 
@@ -74,67 +77,71 @@ struct message_headers<true, Headers>
     std::string url;
 
     /// The HTTP field values.
-    Headers headers;
+    fields_type fields;
 
     /// Default constructor
-    message_headers() = default;
+    header() = default;
 
     /// Move constructor
-    message_headers(message_headers&&) = default;
+    header(header&&) = default;
 
     /// Copy constructor
-    message_headers(message_headers const&) = default;
+    header(header const&) = default;
 
     /// Move assignment
-    message_headers& operator=(message_headers&&) = default;
+    header& operator=(header&&) = default;
 
     /// Copy assignment
-    message_headers& operator=(message_headers const&) = default;
+    header& operator=(header const&) = default;
 
-    /** Construct message headers.
+    /** Construct the header.
 
         All arguments are forwarded to the constructor
-        of the `headers` member.
+        of the `fields` member.
 
         @note This constructor participates in overload resolution
         if and only if the first parameter is not convertible to
-        `message_headers`.
+        `header`.
     */
 #if GENERATING_DOCS
     template<class... Args>
     explicit
-    message_headers(Args&&... args);
+    header(Args&&... args);
 
 #else
     template<class Arg1, class... ArgN,
         class = typename std::enable_if<
             (sizeof...(ArgN) > 0) || ! std::is_convertible<
                 typename std::decay<Arg1>::type,
-                    message_headers>::value>::type>
+                    header>::value>::type>
     explicit
-    message_headers(Arg1&& arg1, ArgN&&... argn)
-        : headers(std::forward<Arg1>(arg1),
+    header(Arg1&& arg1, ArgN&&... argn)
+        : fields(std::forward<Arg1>(arg1),
             std::forward<ArgN>(argn)...)
     {
     }
 };
 
-/** A container for HTTP request or response headers.
+/** A container for a HTTP request or response header.
 
-    The container includes the headers, as well as the
-    response status and reasons. Objects of this type may
-    be used to represent incoming or outgoing responses for
-    which the body is not yet known or generated. For
-    example, when responding to a HEAD request.
+    A header includes the Start Line and Fields.
+
+    Some use-cases:
+
+    @li When the message has no body, such as a response to a HEAD request.
+
+    @li When the caller wishes to defer instantiation of the body.
+
+    @li Invoke algorithms which operate on the header only.
 */
-template<class Headers>
-struct message_headers<false, Headers>
+template<class Fields>
+struct header<false, Fields>
 {
-    /// Indicates if the message headers are a request or response.
+    /// Indicates if the header is a request or response.
     static bool constexpr is_request = false;
 
-    /// The type representing the headers.
-    using headers_type = Headers;
+    /// The type representing the fields.
+    using fields_type = Fields;
 
     /** The HTTP version.
 
@@ -148,40 +155,40 @@ struct message_headers<false, Headers>
     int version;
 
     /// The HTTP field values.
-    Headers headers;
+    fields_type fields;
 
     /// Default constructor
-    message_headers() = default;
+    header() = default;
 
     /// Move constructor
-    message_headers(message_headers&&) = default;
+    header(header&&) = default;
 
     /// Copy constructor
-    message_headers(message_headers const&) = default;
+    header(header const&) = default;
 
     /// Move assignment
-    message_headers& operator=(message_headers&&) = default;
+    header& operator=(header&&) = default;
 
     /// Copy assignment
-    message_headers& operator=(message_headers const&) = default;
+    header& operator=(header const&) = default;
 
-    /** Construct message headers.
+    /** Construct the header.
 
         All arguments are forwarded to the constructor
-        of the `headers` member.
+        of the `fields` member.
 
         @note This constructor participates in overload resolution
         if and only if the first parameter is not convertible to
-        `message_headers`.
+        `header`.
     */
     template<class Arg1, class... ArgN,
         class = typename std::enable_if<
             (sizeof...(ArgN) > 0) || ! std::is_convertible<
                 typename std::decay<Arg1>::type,
-                    message_headers>::value>::type>
+                    header>::value>::type>
     explicit
-    message_headers(Arg1&& arg1, ArgN&&... argn)
-        : headers(std::forward<Arg1>(arg1),
+    header(Arg1&& arg1, ArgN&&... argn)
+        : fields(std::forward<Arg1>(arg1),
             std::forward<ArgN>(argn)...)
     {
     }
@@ -204,9 +211,10 @@ struct message_headers<false, Headers>
 
 /** A container for a complete HTTP message.
 
-    A message can be a request or response, depending on the `isRequest`
-    template argument value. Requests and responses have different types,
-    so functions may be overloaded on them if desired.
+    A message can be a request or response, depending on the
+    `isRequest` template argument value. Requests and responses
+    have different types; functions may be overloaded based on
+    the type if desired.
 
     The `Body` template argument type determines the model used
     to read or write the content body of the message.
@@ -217,19 +225,18 @@ struct message_headers<false, Headers>
 
     @tparam Body A type meeting the requirements of Body.
 
-    @tparam Headers The type of container used to hold the
+    @tparam Fields The type of container used to hold the
     field value pairs.
 */
-template<bool isRequest, class Body, class Headers>
-struct message :
-    message_headers<isRequest, Headers>
+template<bool isRequest, class Body, class Fields>
+struct message : header<isRequest, Fields>
 {
-    /// The base class used to hold the request or response headers
-    using base_type = message_headers<isRequest, Headers>;
+    /// The base class used to hold the header portion of the message.
+    using base_type = header<isRequest, Fields>;
 
     /** The type providing the body traits.
 
-        The `body` member will be of type `body_type::value_type`.
+        The @ref message::body member will be of type `body_type::value_type`.
     */
     using body_type = Body;
 
@@ -239,7 +246,7 @@ struct message :
     /// Default constructor
     message() = default;
 
-    /** Construct a message from message headers.
+    /** Construct a message from a header.
 
         Additional arguments, if any, are forwarded to
         the constructor of the body member.
@@ -252,7 +259,7 @@ struct message :
     {
     }
 
-    /** Construct a message from message headers.
+    /** Construct a message from a header.
 
         Additional arguments, if any, are forwarded to
         the constructor of the body member.
@@ -288,7 +295,7 @@ struct message :
 
         @param u An argument forwarded to the body constructor.
 
-        @param v An argument forwarded to the headers constructor.
+        @param v An argument forwarded to the fields constructor.
 
         @note This constructor participates in overload resolution
         only if `u` is not convertible to `base_type`.
@@ -320,7 +327,7 @@ struct message :
 
         @param un A tuple forwarded as a parameter pack to the body constructor.
 
-        @param vn A tuple forwarded as a parameter pack to the headers constructor.
+        @param vn A tuple forwarded as a parameter pack to the fields constructor.
     */
     template<class... Un, class... Vn>
     message(std::piecewise_construct_t,
@@ -331,14 +338,14 @@ struct message :
     {
     }
 
-    /// Returns the message headers portion of the message
+    /// Returns the header portion of the message
     base_type&
     base()
     {
         return *this;
     }
 
-    /// Returns the message headers portion of the message
+    /// Returns the header portion of the message
     base_type const&
     base() const
     {
@@ -368,64 +375,60 @@ private:
 //------------------------------------------------------------------------------
 
 #if GENERATING_DOCS
-/** Swap two HTTP message headers.
+/** Swap two header objects.
 
     @par Requirements
-    `Headers` is @b Swappable.
+    `Fields` is @b Swappable.
 */
-template<bool isRequest, class Headers>
+template<bool isRequest, class Fields>
 void
 swap(
-    message_headers<isRequest, Headers>& m1,
-    message_headers<isRequest, Headers>& m2);
+    header<isRequest, Fields>& m1,
+    header<isRequest, Fields>& m2);
 #endif
 
-/** Swap two HTTP messages.
+/** Swap two message objects.
 
     @par Requirements:
-    `Body` and `Headers` are @b Swappable.
+    `Body::value_type` and `Fields` are @b Swappable.
 */
-template<bool isRequest, class Body, class Headers>
+template<bool isRequest, class Body, class Fields>
 void
 swap(
-    message<isRequest, Body, Headers>& m1,
-    message<isRequest, Body, Headers>& m2);
+    message<isRequest, Body, Fields>& m1,
+    message<isRequest, Body, Fields>& m2);
 
-/// Message headers for a typical HTTP request
-using request_headers = message_headers<true,
-    basic_headers<std::allocator<char>>>;
+/// A typical HTTP request header
+using request_header = header<true, fields>;
 
-/// Message headers for a typical HTTP response
-using response_headers = message_headers<false,
-    basic_headers<std::allocator<char>>>;
+/// Typical HTTP response header
+using response_header = header<false, fields>;
 
-/// A typical HTTP request message
-template<class Body,
-    class Headers = basic_headers<std::allocator<char>>>
-using request = message<true, Body, Headers>;
+/// A typical HTTP request
+template<class Body, class Fields = fields>
+using request = message<true, Body, Fields>;
 
-/// A typical HTTP response message
-template<class Body,
-    class Headers = basic_headers<std::allocator<char>>>
-using response = message<false, Body, Headers>;
+/// A typical HTTP response
+template<class Body, class Fields = fields>
+using response = message<false, Body, Fields>;
 
 //------------------------------------------------------------------------------
 
-/** Returns `true` if a HTTP/1 message indicates a keep alive.
+/** Returns `true` if the HTTP/1 message indicates a keep alive.
 
     Undefined behavior if version is greater than 11.
 */
-template<bool isRequest, class Body, class Headers>
+template<bool isRequest, class Fields>
 bool
-is_keep_alive(message<isRequest, Body, Headers> const& msg);
+is_keep_alive(header<isRequest, Fields> const& msg);
 
-/** Returns `true` if a HTTP/1 message indicates an Upgrade request or response.
+/** Returns `true` if the HTTP/1 message indicates an Upgrade request or response.
 
     Undefined behavior if version is greater than 11.
 */
-template<bool isRequest, class Body, class Headers>
+template<bool isRequest, class Fields>
 bool
-is_upgrade(message<isRequest, Body, Headers> const& msg);
+is_upgrade(header<isRequest, Fields> const& msg);
 
 /** HTTP/1 connection prepare options.
 
@@ -446,18 +449,18 @@ enum class connection
 /** Prepare a HTTP message.
 
     This function will adjust the Content-Length, Transfer-Encoding,
-    and Connection headers of the message based on the properties of
+    and Connection fields of the message based on the properties of
     the body and the options passed in.
 
-    @param msg The message to prepare. The headers may be modified.
+    @param msg The message to prepare. The fields may be modified.
 
     @param options A list of prepare options.
 */
 template<
-    bool isRequest, class Body, class Headers,
+    bool isRequest, class Body, class Fields,
     class... Options>
 void
-prepare(message<isRequest, Body, Headers>& msg,
+prepare(message<isRequest, Body, Fields>& msg,
     Options&&... options);
 
 } // http

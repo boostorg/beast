@@ -8,9 +8,12 @@
 #ifndef BEAST_EXAMPLE_FILE_BODY_H_INCLUDED
 #define BEAST_EXAMPLE_FILE_BODY_H_INCLUDED
 
-#include <beast/http/body_type.hpp>
+#include <beast/core/error.hpp>
+#include <beast/http/message.hpp>
+#include <beast/http/resume_context.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/logic/tribool.hpp>
 #include <cstdio>
 #include <cstdint>
 
@@ -34,8 +37,8 @@ struct file_body
         writer(writer const&) = delete;
         writer& operator=(writer const&) = delete;
 
-        template<bool isRequest, class Headers>
-        writer(message<isRequest, file_body, Headers> const& m) noexcept
+        template<bool isRequest, class Fields>
+        writer(message<isRequest, file_body, Fields> const& m) noexcept
             : path_(m.body)
         {
         }

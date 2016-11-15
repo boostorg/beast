@@ -9,7 +9,7 @@
 #define BEAST_HTTP_IMPL_READ_IPP_HPP
 
 #include <beast/http/concepts.hpp>
-#include <beast/http/headers_parser_v1.hpp>
+#include <beast/http/header_parser_v1.hpp>
 #include <beast/http/parse.hpp>
 #include <beast/http/parser_v1.hpp>
 #include <beast/core/bind_handler.hpp>
@@ -23,18 +23,18 @@ namespace http {
 namespace detail {
 
 template<class Stream, class DynamicBuffer,
-    bool isRequest, class Headers,
+    bool isRequest, class Fields,
         class Handler>
-class read_headers_op
+class read_header_op
 {
     using alloc_type =
         handler_alloc<char, Handler>;
 
     using parser_type =
-        headers_parser_v1<isRequest, Headers>;
+        header_parser_v1<isRequest, Fields>;
 
     using message_type =
-        message_headers<isRequest, Headers>;
+        header<isRequest, Fields>;
 
     struct data
     {
@@ -63,11 +63,11 @@ class read_headers_op
     std::shared_ptr<data> d_;
 
 public:
-    read_headers_op(read_headers_op&&) = default;
-    read_headers_op(read_headers_op const&) = default;
+    read_header_op(read_header_op&&) = default;
+    read_header_op(read_header_op const&) = default;
 
     template<class DeducedHandler, class... Args>
-    read_headers_op(
+    read_header_op(
             DeducedHandler&& h, Stream& s, Args&&... args)
         : d_(std::allocate_shared<data>(alloc_type{h},
             std::forward<DeducedHandler>(h), s,
@@ -81,7 +81,7 @@ public:
 
     friend
     void* asio_handler_allocate(
-        std::size_t size, read_headers_op* op)
+        std::size_t size, read_header_op* op)
     {
         return boost_asio_handler_alloc_helpers::
             allocate(size, op->d_->h);
@@ -89,21 +89,21 @@ public:
 
     friend
     void asio_handler_deallocate(
-        void* p, std::size_t size, read_headers_op* op)
+        void* p, std::size_t size, read_header_op* op)
     {
         return boost_asio_handler_alloc_helpers::
             deallocate(p, size, op->d_->h);
     }
 
     friend
-    bool asio_handler_is_continuation(read_headers_op* op)
+    bool asio_handler_is_continuation(read_header_op* op)
     {
         return op->d_->cont;
     }
 
     template<class Function>
     friend
-    void asio_handler_invoke(Function&& f, read_headers_op* op)
+    void asio_handler_invoke(Function&& f, read_header_op* op)
     {
         return boost_asio_handler_invoke_helpers::
             invoke(f, op->d_->h);
@@ -111,10 +111,10 @@ public:
 };
 
 template<class Stream, class DynamicBuffer,
-    bool isRequest, class Headers,
+    bool isRequest, class Fields,
         class Handler>
 void
-read_headers_op<Stream, DynamicBuffer, isRequest, Headers, Handler>::
+read_header_op<Stream, DynamicBuffer, isRequest, Fields, Handler>::
 operator()(error_code ec, bool again)
 {
     auto& d = *d_;
@@ -141,10 +141,10 @@ operator()(error_code ec, bool again)
 } // detail
 
 template<class SyncReadStream, class DynamicBuffer,
-    bool isRequest, class Headers>
+    bool isRequest, class Fields>
 void
 read(SyncReadStream& stream, DynamicBuffer& dynabuf,
-    message_headers<isRequest, Headers>& msg)
+    header<isRequest, Fields>& msg)
 {
     static_assert(is_SyncReadStream<SyncReadStream>::value,
         "SyncReadStream requirements not met");
@@ -157,17 +157,17 @@ read(SyncReadStream& stream, DynamicBuffer& dynabuf,
 }
 
 template<class SyncReadStream, class DynamicBuffer,
-    bool isRequest, class Headers>
+    bool isRequest, class Fields>
 void
 read(SyncReadStream& stream, DynamicBuffer& dynabuf,
-    message_headers<isRequest, Headers>& m,
+    header<isRequest, Fields>& m,
         error_code& ec)
 {
     static_assert(is_SyncReadStream<SyncReadStream>::value,
         "SyncReadStream requirements not met");
     static_assert(is_DynamicBuffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
-    headers_parser_v1<isRequest, Headers> p;
+    header_parser_v1<isRequest, Fields> p;
     beast::http::parse(stream, dynabuf, p, ec);
     if(ec)
         return;
@@ -176,12 +176,12 @@ read(SyncReadStream& stream, DynamicBuffer& dynabuf,
 }
 
 template<class AsyncReadStream, class DynamicBuffer,
-    bool isRequest, class Headers,
+    bool isRequest, class Fields,
         class ReadHandler>
 typename async_completion<
     ReadHandler, void(error_code)>::result_type
 async_read(AsyncReadStream& stream, DynamicBuffer& dynabuf,
-    message_headers<isRequest, Headers>& m,
+    header<isRequest, Fields>& m,
         ReadHandler&& handler)
 {
     static_assert(is_AsyncReadStream<AsyncReadStream>::value,
@@ -190,8 +190,8 @@ async_read(AsyncReadStream& stream, DynamicBuffer& dynabuf,
         "DynamicBuffer requirements not met");
     beast::async_completion<ReadHandler,
         void(error_code)> completion(handler);
-    detail::read_headers_op<AsyncReadStream, DynamicBuffer,
-        isRequest, Headers, decltype(
+    detail::read_header_op<AsyncReadStream, DynamicBuffer,
+        isRequest, Fields, decltype(
             completion.handler)>{completion.handler,
                 stream, dynabuf, m};
     return completion.result.get();
@@ -202,7 +202,7 @@ async_read(AsyncReadStream& stream, DynamicBuffer& dynabuf,
 namespace detail {
 
 template<class Stream, class DynamicBuffer,
-    bool isRequest, class Body, class Headers,
+    bool isRequest, class Body, class Fields,
         class Handler>
 class read_op
 {
@@ -210,10 +210,10 @@ class read_op
         handler_alloc<char, Handler>;
 
     using parser_type =
-        parser_v1<isRequest, Body, Headers>;
+        parser_v1<isRequest, Body, Fields>;
 
     using message_type =
-        message<isRequest, Body, Headers>;
+        message<isRequest, Body, Fields>;
 
     struct data
     {
@@ -289,10 +289,10 @@ public:
 };
 
 template<class Stream, class DynamicBuffer,
-    bool isRequest, class Body, class Headers,
+    bool isRequest, class Body, class Fields,
         class Handler>
 void
-read_op<Stream, DynamicBuffer, isRequest, Body, Headers, Handler>::
+read_op<Stream, DynamicBuffer, isRequest, Body, Fields, Handler>::
 operator()(error_code ec, bool again)
 {
     auto& d = *d_;
@@ -319,10 +319,10 @@ operator()(error_code ec, bool again)
 } // detail
 
 template<class SyncReadStream, class DynamicBuffer,
-    bool isRequest, class Body, class Headers>
+    bool isRequest, class Body, class Fields>
 void
 read(SyncReadStream& stream, DynamicBuffer& dynabuf,
-    message<isRequest, Body, Headers>& msg)
+    message<isRequest, Body, Fields>& msg)
 {
     static_assert(is_SyncReadStream<SyncReadStream>::value,
         "SyncReadStream requirements not met");
@@ -333,7 +333,7 @@ read(SyncReadStream& stream, DynamicBuffer& dynabuf,
     static_assert(has_reader<Body>::value,
         "Body has no reader");
     static_assert(is_Reader<typename Body::reader,
-        message<isRequest, Body, Headers>>::value,
+        message<isRequest, Body, Fields>>::value,
             "Reader requirements not met");
     error_code ec;
     beast::http::read(stream, dynabuf, msg, ec);
@@ -342,10 +342,10 @@ read(SyncReadStream& stream, DynamicBuffer& dynabuf,
 }
 
 template<class SyncReadStream, class DynamicBuffer,
-    bool isRequest, class Body, class Headers>
+    bool isRequest, class Body, class Fields>
 void
 read(SyncReadStream& stream, DynamicBuffer& dynabuf,
-    message<isRequest, Body, Headers>& m,
+    message<isRequest, Body, Fields>& m,
         error_code& ec)
 {
     static_assert(is_SyncReadStream<SyncReadStream>::value,
@@ -357,9 +357,9 @@ read(SyncReadStream& stream, DynamicBuffer& dynabuf,
     static_assert(has_reader<Body>::value,
         "Body has no reader");
     static_assert(is_Reader<typename Body::reader,
-        message<isRequest, Body, Headers>>::value,
+        message<isRequest, Body, Fields>>::value,
             "Reader requirements not met");
-    parser_v1<isRequest, Body, Headers> p;
+    parser_v1<isRequest, Body, Fields> p;
     beast::http::parse(stream, dynabuf, p, ec);
     if(ec)
         return;
@@ -368,12 +368,12 @@ read(SyncReadStream& stream, DynamicBuffer& dynabuf,
 }
 
 template<class AsyncReadStream, class DynamicBuffer,
-    bool isRequest, class Body, class Headers,
+    bool isRequest, class Body, class Fields,
         class ReadHandler>
 typename async_completion<
     ReadHandler, void(error_code)>::result_type
 async_read(AsyncReadStream& stream, DynamicBuffer& dynabuf,
-    message<isRequest, Body, Headers>& m,
+    message<isRequest, Body, Fields>& m,
         ReadHandler&& handler)
 {
     static_assert(is_AsyncReadStream<AsyncReadStream>::value,
@@ -385,12 +385,12 @@ async_read(AsyncReadStream& stream, DynamicBuffer& dynabuf,
     static_assert(has_reader<Body>::value,
         "Body has no reader");
     static_assert(is_Reader<typename Body::reader,
-        message<isRequest, Body, Headers>>::value,
+        message<isRequest, Body, Fields>>::value,
             "Reader requirements not met");
     beast::async_completion<ReadHandler,
         void(error_code)> completion(handler);
     detail::read_op<AsyncReadStream, DynamicBuffer,
-        isRequest, Body, Headers, decltype(
+        isRequest, Body, Fields, decltype(
             completion.handler)>{completion.handler,
                 stream, dynabuf, m};
     return completion.result.get();

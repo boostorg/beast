@@ -50,7 +50,7 @@ public:
         case parse_error::invalid_chunk_size: return "invalid chunk size";
         case parse_error::invalid_ext_name: return "invalid ext name";
         case parse_error::invalid_ext_val: return "invalid ext val";
-        case parse_error::headers_too_big: return "headers size limit exceeded";
+        case parse_error::header_too_big: return "header size limit exceeded";
         case parse_error::body_too_big: return "body size limit exceeded";
         default:
         case parse_error::short_read: return "unexpected end of data";

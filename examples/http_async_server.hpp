@@ -85,7 +85,7 @@ public:
 
 private:
     template<class Stream, class Handler,
-        bool isRequest, class Body, class Headers>
+        bool isRequest, class Body, class Fields>
     class write_op
     {
         using alloc_type =
@@ -94,13 +94,13 @@ private:
         struct data
         {
             Stream& s;
-            message<isRequest, Body, Headers> m;
+            message<isRequest, Body, Fields> m;
             Handler h;
             bool cont;
 
             template<class DeducedHandler>
             data(DeducedHandler&& h_, Stream& s_,
-                    message<isRequest, Body, Headers>&& m_)
+                    message<isRequest, Body, Fields>&& m_)
                 : s(s_)
                 , m(std::move(m_))
                 , h(std::forward<DeducedHandler>(h_))
@@ -170,16 +170,16 @@ private:
     };
 
     template<class Stream,
-        bool isRequest, class Body, class Headers,
+        bool isRequest, class Body, class Fields,
             class DeducedHandler>
     static
     void
     async_write(Stream& stream, message<
-        isRequest, Body, Headers>&& msg,
+        isRequest, Body, Fields>&& msg,
             DeducedHandler&& handler)
     {
         write_op<Stream, typename std::decay<DeducedHandler>::type,
-            isRequest, Body, Headers>{std::forward<DeducedHandler>(
+            isRequest, Body, Fields>{std::forward<DeducedHandler>(
                 handler), stream, std::move(msg)};
     }
 
@@ -240,8 +240,8 @@ private:
                 res.status = 404;
                 res.reason = "Not Found";
                 res.version = req_.version;
-                res.headers.insert("Server", "http_async_server");
-                res.headers.insert("Content-Type", "text/html");
+                res.fields.insert("Server", "http_async_server");
+                res.fields.insert("Content-Type", "text/html");
                 res.body = "The file '" + path + "' was not found";
                 prepare(res);
                 async_write(sock_, std::move(res),
@@ -255,8 +255,8 @@ private:
                 res.status = 200;
                 res.reason = "OK";
                 res.version = req_.version;
-                res.headers.insert("Server", "http_async_server");
-                res.headers.insert("Content-Type", mime_type(path));
+                res.fields.insert("Server", "http_async_server");
+                res.fields.insert("Content-Type", mime_type(path));
                 res.body = path;
                 prepare(res);
                 async_write(sock_, std::move(res),
@@ -269,8 +269,8 @@ private:
                 res.status = 500;
                 res.reason = "Internal Error";
                 res.version = req_.version;
-                res.headers.insert("Server", "http_async_server");
-                res.headers.insert("Content-Type", "text/html");
+                res.fields.insert("Server", "http_async_server");
+                res.fields.insert("Content-Type", "text/html");
                 res.body =
                     std::string{"An internal error occurred"} + e.what();
                 prepare(res);

@@ -23,25 +23,33 @@
 [template indexterm1[term1] '''<indexterm><primary>'''[term1]'''</primary></indexterm>''']
 [template indexterm2[term1 term2] '''<indexterm><primary>'''[term1]'''</primary><secondary>'''[term2]'''</secondary></indexterm>''']
 
-[def __asio_handler_invoke__ [@http://www.boost.org/doc/libs/1_61_0/doc/html/boost_asio/reference/asio_handler_invoke.html `asio_handler_invoke`]]
-[def __asio_handler_allocate__ [@http://www.boost.org/doc/libs/1_61_0/doc/html/boost_asio/reference/asio_handler_allocate.html `asio_handler_allocate`]]
-[def __AsyncReadStream__ [@http://www.boost.org/doc/libs/1_61_0/doc/html/boost_asio/reference/AsyncReadStream.html [*AsyncReadStream]]]
-[def __AsyncWriteStream__ [@http://www.boost.org/doc/libs/1_61_0/doc/html/boost_asio/reference/AsyncWriteStream.html [*AsyncWriteStream]]]
-[def __Body__ [link beast.ref.Body [*`Body`]]]
-[def __CompletionHandler__ [@http://www.boost.org/doc/libs/1_60_0/doc/html/boost_asio/reference/CompletionHandler.html [*CompletionHandler]]]
-[def __ConstBufferSequence__ [@http://www.boost.org/doc/libs/1_61_0/doc/html/boost_asio/reference/ConstBufferSequence.html [*ConstBufferSequence]]]
-[def __DynamicBuffer__ [link beast.ref.DynamicBuffer [*DynamicBuffer]]]
-[def __FieldSequence__ [link beast.ref.FieldSequence [*FieldSequence]]]
-[def __message__ [link beast.ref.http__message `message`]]
-[def __message_v1__ [link beast.ref.http__message_v1 `message_v1`]]
-[def __MutableBufferSequence__ [@http://www.boost.org/doc/libs/1_61_0/doc/html/boost_asio/reference/MutableBufferSequence.html [*MutableBufferSequence]]]
 [def __N4588__ [@http://cplusplus.github.io/networking-ts/draft.pdf [*N4588]]]
 [def __rfc6455__ [@https://tools.ietf.org/html/rfc6455 rfc6455]]
 [def __rfc7230__ [@https://tools.ietf.org/html/rfc7230 rfc7230]]
-[def __streambuf__ [link beast.ref.streambuf `streambuf`]]
+
+[def __asio_handler_invoke__ [@http://www.boost.org/doc/libs/1_61_0/doc/html/boost_asio/reference/asio_handler_invoke.html `asio_handler_invoke`]]
+[def __asio_handler_allocate__ [@http://www.boost.org/doc/libs/1_61_0/doc/html/boost_asio/reference/asio_handler_allocate.html `asio_handler_allocate`]]
+[def __void_or_deduced__ [@http://www.boost.org/doc/libs/1_60_0/doc/html/boost_asio/reference/asynchronous_operations.html#boost_asio.reference.asynchronous_operations.return_type_of_an_initiating_function ['void-or-deduced]]]
+
+[def __AsyncReadStream__ [@http://www.boost.org/doc/libs/1_61_0/doc/html/boost_asio/reference/AsyncReadStream.html [*AsyncReadStream]]]
+[def __AsyncWriteStream__ [@http://www.boost.org/doc/libs/1_61_0/doc/html/boost_asio/reference/AsyncWriteStream.html [*AsyncWriteStream]]]
+[def __CompletionHandler__ [@http://www.boost.org/doc/libs/1_60_0/doc/html/boost_asio/reference/CompletionHandler.html [*CompletionHandler]]]
+[def __ConstBufferSequence__ [@http://www.boost.org/doc/libs/1_61_0/doc/html/boost_asio/reference/ConstBufferSequence.html [*ConstBufferSequence]]]
+[def __MutableBufferSequence__ [@http://www.boost.org/doc/libs/1_61_0/doc/html/boost_asio/reference/MutableBufferSequence.html [*MutableBufferSequence]]]
 [def __SyncReadStream__ [@http://www.boost.org/doc/libs/1_61_0/doc/html/boost_asio/reference/SyncReadStream.html [*SyncReadStream]]]
 [def __SyncWriteStream__ [@http://www.boost.org/doc/libs/1_60_0/doc/html/boost_asio/reference/SyncWriteStream.html [*SyncWriteStream]]]
-[def __void_or_deduced__ [@http://www.boost.org/doc/libs/1_60_0/doc/html/boost_asio/reference/asynchronous_operations.html#boost_asio.reference.asynchronous_operations.return_type_of_an_initiating_function ['void-or-deduced]]]
+
+[def __Body__             [link beast.ref.Body [*`Body`]]]
+[def __DynamicBuffer__    [link beast.ref.DynamicBuffer [*DynamicBuffer]]]
+[def __FieldSequence__    [link beast.ref.FieldSequence [*FieldSequence]]]
+[def __Parser__           [link beast.ref.Parser [*`Parser`]]]
+
+[def __basic_fields__     [link beast.ref.http__basic_fields `basic_fields`]]
+[def __fields__           [link beast.ref.http__fields `fields`]]
+[def __header__           [link beast.ref.http__header `header`]]
+[def __message__          [link beast.ref.http__message `message`]]
+[def __streambuf__        [link beast.ref.streambuf `streambuf`]]
+[def __basic_streambuf__  [link beast.ref.basic_streambuf `basic_streambuf`]]
 
 Beast is a cross-platform, header-only C++ library built on Boost.Asio that
 provides implementations of the HTTP and WebSocket protocols.
