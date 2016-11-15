@@ -375,7 +375,7 @@ private:
 //------------------------------------------------------------------------------
 
 #if GENERATING_DOCS
-/** Swap two header objectsd.
+/** Swap two header objects.
 
     @par Requirements
     `Fields` is @b Swappable.

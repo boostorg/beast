@@ -454,9 +454,9 @@ start. Other design goals:
     appended to the sequence when existing allocations are filled. Beast
     does not impose any particular memory management model on callers. The
     __basic_streambuf__ provided by beast supports standard allocators through
-    a template argument. Use the __streambuf__ that comes with beast,
+    a template argument. Use the __DynamicBuffer__ that comes with beast,
     customize the allocator if you desire, or provide your own type that
-    meets the requirements of __DynamicBuffer__.
+    meets the requirements.
 
     [table
         [

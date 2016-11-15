@@ -25,7 +25,7 @@ namespace http {
 
     This container is designed to store the field value pairs that make
     up the fields and trailers in a HTTP message. Objects of this type
-    are iterable, which each element holding the field name and field
+    are iterable, with each element holding the field name and field
     value.
 
     Field names are stored as-is, but comparisons are case-insensitive.
