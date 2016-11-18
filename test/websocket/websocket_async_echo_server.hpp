@@ -41,6 +41,9 @@ private:
     boost::optional<boost::asio::io_service::work> work_;
 
 public:
+    async_echo_server(async_echo_server const&) = delete;
+    async_echo_server& operator=(async_echo_server const&) = delete;
+
     async_echo_server(std::ostream* log,
             std::size_t threads)
         : log_(log)
