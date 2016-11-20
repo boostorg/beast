@@ -8,7 +8,6 @@
 #ifndef BEAST_WEBSOCKET_DETAIL_DECORATOR_HPP
 #define BEAST_WEBSOCKET_DETAIL_DECORATOR_HPP
 
-#include <beast/http/empty_body.hpp>
 #include <beast/http/message.hpp>
 #include <beast/http/string_body.hpp>
 #include <beast/version.hpp>
@@ -19,9 +18,9 @@ namespace beast {
 namespace websocket {
 namespace detail {
 
-using request_type = http::request<http::empty_body>;
+using request_type = http::request_header;
 
-using response_type = http::response<http::string_body>;
+using response_type = http::response_header;
 
 struct abstract_decorator
 {

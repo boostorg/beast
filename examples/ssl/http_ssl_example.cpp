@@ -34,7 +34,7 @@ int main()
     stream.handshake(ssl::stream_base::client);
 
     // Send HTTP request over SSL using Beast
-    beast::http::request<beast::http::empty_body> req;
+    beast::http::request<beast::http::string_body> req;
     req.method = "GET";
     req.url = "/";
     req.version = 11;
