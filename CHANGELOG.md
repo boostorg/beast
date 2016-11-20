@@ -1,6 +1,7 @@
 1.0.0-bNN
 
 * Add WebSocket permessage-deflate extension support
+* Fix message constructor and special members
 
 --------------------------------------------------------------------------------
 
