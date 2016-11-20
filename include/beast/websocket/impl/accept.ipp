@@ -9,7 +9,7 @@
 #define BEAST_WEBSOCKET_IMPL_ACCEPT_IPP
 
 #include <beast/http/message.hpp>
-#include <beast/http/parser_v1.hpp>
+#include <beast/http/header_parser.hpp>
 #include <beast/http/read.hpp>
 #include <beast/http/string_body.hpp>
 #include <beast/http/write.hpp>
@@ -35,13 +35,13 @@ class stream<NextLayer>::response_op
     {
         bool cont;
         stream<NextLayer>& ws;
-        http::response<http::string_body> res;
+        http::response_header res;
         error_code final_ec;
         int state = 0;
 
-        template<class Body, class Fields>
+        template<class Fields>
         data(Handler&, stream<NextLayer>& ws_,
-            http::request<Body, Fields> const& req,
+            http::header<true, Fields> const& req,
                 bool cont_)
             : cont(cont_)
             , ws(ws_)
@@ -151,7 +151,7 @@ class stream<NextLayer>::accept_op
     {
         bool cont;
         stream<NextLayer>& ws;
-        http::request<http::string_body> req;
+        http::header_parser<true, http::fields> p;
         int state = 0;
 
         template<class Buffers>
@@ -190,8 +190,8 @@ public:
         (*this)(ec, 0);
     }
 
-    void operator()(error_code const& ec,
-        std::size_t bytes_transferred, bool again = true);
+    void operator()(error_code ec,
+        std::size_t bytes_used, bool again = true);
 
     friend
     void* asio_handler_allocate(
@@ -228,36 +228,39 @@ template<class NextLayer>
 template<class Handler>
 void
 stream<NextLayer>::accept_op<Handler>::
-operator()(error_code const& ec,
-    std::size_t bytes_transferred, bool again)
+operator()(error_code ec,
+    std::size_t bytes_used, bool again)
 {
-    beast::detail::ignore_unused(bytes_transferred);
     auto& d = *d_;
     d.cont = d.cont || again;
-    while(! ec && d.state != 99)
+    if(ec)
+        goto upcall;
+    switch(d.state)
     {
-        switch(d.state)
-        {
-        case 0:
-            // read message
-            d.state = 1;
-            http::async_read(d.ws.next_layer(),
-                d.ws.stream_.buffer(), d.req,
-                    std::move(*this));
-            return;
+    case 0:
+        // read message
+        d.state = 1;
+        http::async_read_some(d.ws.next_layer(),
+            d.ws.stream_.buffer(), d.p,
+                std::move(*this));
+        return;
 
-        // got message
-        case 1:
-        {
-            // respond to request
-            auto& ws = d.ws;
-            auto req = std::move(d.req);
-            response_op<Handler>{
-                d_.release_handler(), ws, req, true};
-            return;
-        }
-        }
+    case 1:
+    {
+        BOOST_ASSERT(d.p.got_header());
+        d.ws.stream_.buffer().consume(bytes_used);
+        // Arguments from our state must be
+        // moved to the stack before releasing
+        // the handler.
+        auto& ws = d.ws;
+        auto m = d.p.release();
+        response_op<Handler>{
+            d_.release_handler(),
+                ws, std::move(m), true};
+        return;
     }
+    }
+upcall:
     d_.invoke(ec);
 }
 
@@ -295,11 +298,11 @@ async_accept(ConstBufferSequence const& bs, AcceptHandler&& handler)
 }
 
 template<class NextLayer>
-template<class Body, class Fields, class AcceptHandler>
+template<class Fields, class AcceptHandler>
 typename async_completion<
     AcceptHandler, void(error_code)>::result_type
 stream<NextLayer>::
-async_accept(http::request<Body, Fields> const& req,
+async_accept(http::header<true, Fields> const& req,
     AcceptHandler&& handler)
 {
     static_assert(is_AsyncStream<next_layer_type>::value,
@@ -372,18 +375,21 @@ accept(ConstBufferSequence const& buffers, error_code& ec)
     stream_.buffer().commit(buffer_copy(
         stream_.buffer().prepare(
             buffer_size(buffers)), buffers));
-    http::request<http::string_body> m;
-    http::read(next_layer(), stream_.buffer(), m, ec);
+    http::header_parser<true, http::fields> p;
+    auto const bytes_used = http::read_some(
+        next_layer(), stream_.buffer(), p, ec);
     if(ec)
         return;
-    accept(m, ec);
+    BOOST_ASSERT(p.got_header());
+    stream_.buffer().consume(bytes_used);
+    accept(p.get(), ec);
 }
 
 template<class NextLayer>
-template<class Body, class Fields>
+template<class Fields>
 void
 stream<NextLayer>::
-accept(http::request<Body, Fields> const& request)
+accept(http::header<true, Fields> const& request)
 {
     static_assert(is_SyncStream<next_layer_type>::value,
         "SyncStream requirements not met");
@@ -394,10 +400,10 @@ accept(http::request<Body, Fields> const& request)
 }
 
 template<class NextLayer>
-template<class Body, class Fields>
+template<class Fields>
 void
 stream<NextLayer>::
-accept(http::request<Body, Fields> const& req,
+accept(http::header<true, Fields> const& req,
     error_code& ec)
 {
     static_assert(is_SyncStream<next_layer_type>::value,
@@ -417,8 +423,6 @@ accept(http::request<Body, Fields> const& req,
     pmd_read(pmd_config_, req.fields);
     open(detail::role_type::server);
 }
-
-//------------------------------------------------------------------------------
 
 } // websocket
 } // beast

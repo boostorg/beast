@@ -174,7 +174,7 @@ public:
             for(n = 0; n < limit; ++n)
             {
                 // valid
-                http::request<http::empty_body> req;
+                http::request_header req;
                 req.method = "GET";
                 req.url = "/";
                 req.version = 11;

@@ -6,6 +6,10 @@
 * Add flat_streambuf
 * Rename to BEAST_DOXYGEN
 
+API Changes:
+
+* New HTTP interfaces
+
 --------------------------------------------------------------------------------
 
 1.0.0-b34

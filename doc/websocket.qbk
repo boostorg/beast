@@ -50,7 +50,7 @@ The WebSocket protocol is described fully in
 The interface to Beast's WebSocket implementation is a single template
 class [link beast.ref.websocket__stream `beast::websocket::stream`] which
 wraps a "next layer" object. The next layer object must meet the requirements
-of [link beast.ref.streams.SyncStream [*`SyncReadStream`]] if synchronous
+of [link beast.ref.streams.SyncStream [*`SyncStream`]] if synchronous
 operations are performed, or
 [link beast.ref.streams.AsyncStream [*`AsyncStream`]] if asynchronous
 operations are performed, or both. Arguments supplied during construction are
