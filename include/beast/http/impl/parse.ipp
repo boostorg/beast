@@ -9,11 +9,13 @@
 #define BEAST_HTTP_IMPL_PARSE_IPP_HPP
 
 #include <beast/http/concepts.hpp>
+#include <beast/http/error.hpp>
 #include <beast/core/bind_handler.hpp>
 #include <beast/core/handler_helpers.hpp>
 #include <beast/core/handler_ptr.hpp>
 #include <beast/core/stream_concepts.hpp>
 #include <boost/assert.hpp>
+#include <boost/optional.hpp>
 
 namespace beast {
 namespace http {
@@ -30,7 +32,8 @@ class parse_op
         Stream& s;
         DynamicBuffer& db;
         Parser& p;
-        bool got_some = false;
+        boost::optional<typename
+            DynamicBuffer::mutable_buffers_type> mb;
         int state = 0;
 
         data(Handler& handler, Stream& s_,
@@ -41,7 +44,7 @@ class parse_op
             , db(sb_)
             , p(p_)
         {
-            BOOST_ASSERT(! p.complete());
+            BOOST_ASSERT(p.need_more());
         }
     };
 
@@ -119,12 +122,8 @@ operator()(error_code ec, std::size_t bytes_transferred, bool again)
                     bind_handler(std::move(*this), ec, 0));
                 return;
             }
-            if(used > 0)
-            {
-                d.got_some = true;
-                d.db.consume(used);
-            }
-            if(d.p.complete())
+            d.db.consume(used);
+            if(! d.p.need_more())
             {
                 // call handler
                 d.state = 99;
@@ -132,11 +131,26 @@ operator()(error_code ec, std::size_t bytes_transferred, bool again)
                     bind_handler(std::move(*this), ec, 0));
                 return;
             }
-            // Buffer must be empty,
-            // otherwise parse should be complete
-            BOOST_ASSERT(d.db.size() == 0);
-            d.state = 1;
-            break;
+            auto const size =
+                read_size_helper(d.db, 65536);
+            BOOST_ASSERT(size > 0);
+            try
+            {
+                d.mb.emplace(d.db.prepare(size));
+            }
+            catch(std::length_error const&)
+            {
+                // call handler
+                d.state = 99;
+                d.s.get_io_service().post(
+                    bind_handler(std::move(*this),
+                        error::buffer_overflow, 0));
+                return;
+            }
+            // read
+            d.state = 2;
+            d.s.async_read_some(*d.mb, std::move(*this));
+            return;
         }
 
         case 1:
@@ -146,8 +160,15 @@ operator()(error_code ec, std::size_t bytes_transferred, bool again)
             auto const size =
                 read_size_helper(d.db, 65536);
             BOOST_ASSERT(size > 0);
-            d.s.async_read_some(
-                d.db.prepare(size), std::move(*this));
+            try
+            {
+                d.mb.emplace(d.db.prepare(size));
+            }
+            catch(std::length_error const&)
+            {
+                ec = error::buffer_overflow;
+            }
+            d.s.async_read_some(*d.mb, std::move(*this));
             return;
         }
 
@@ -156,58 +177,29 @@ operator()(error_code ec, std::size_t bytes_transferred, bool again)
         {
             if(ec == boost::asio::error::eof)
             {
-                // If we haven't processed any bytes,
-                // give the eof to the handler immediately.
-                if(! d.got_some)
-                {
-                    // call handler
-                    d.state = 99;
-                    break;
-                }
-                // Feed the eof to the parser to complete
-                // the parse, and call the handler. The
-                // next call to parse will deliver the eof.
                 ec = {};
                 d.p.write_eof(ec);
-                BOOST_ASSERT(ec || d.p.complete());
-                // call handler
-                d.state = 99;
-                break;
+                if(ec)
+                    goto upcall;
+                BOOST_ASSERT(! d.p.need_more());
+                goto upcall;
             }
             if(ec)
-            {
-                // call handler
-                d.state = 99;
-                break;
-            }
+                goto upcall;
             BOOST_ASSERT(bytes_transferred > 0);
             d.db.commit(bytes_transferred);
             auto const used = d.p.write(d.db.data(), ec);
             if(ec)
-            {
-                // call handler
-                d.state = 99;
-                break;
-            }
-            // The parser must either consume
-            // bytes or generate an error.
-            BOOST_ASSERT(used > 0);
-            d.got_some = true;
+                goto upcall;
             d.db.consume(used);
-            if(d.p.complete())
-            {
-                // call handler
-                d.state = 99;
-                break;
-            }
-            // If the parse is not complete,
-            // all input must be consumed.
-            BOOST_ASSERT(used == bytes_transferred);
+            if(! d.p.need_more())
+                goto upcall;
             d.state = 1;
             break;
         }
         }
     }
+upcall:
     d_.invoke(ec);
 }
 
@@ -217,8 +209,7 @@ operator()(error_code ec, std::size_t bytes_transferred, bool again)
 
 template<class SyncReadStream, class DynamicBuffer, class Parser>
 void
-parse(SyncReadStream& stream,
-    DynamicBuffer& dynabuf, Parser& parser)
+parse(SyncReadStream& stream, DynamicBuffer& dynabuf, Parser& parser)
 {
     static_assert(is_SyncReadStream<SyncReadStream>::value,
         "SyncReadStream requirements not met");
@@ -234,8 +225,8 @@ parse(SyncReadStream& stream,
 
 template<class SyncReadStream, class DynamicBuffer, class Parser>
 void
-parse(SyncReadStream& stream, DynamicBuffer& dynabuf,
-    Parser& parser, error_code& ec)
+parse(SyncReadStream& stream,
+    DynamicBuffer& dynabuf, Parser& parser, error_code& ec)
 {
     static_assert(is_SyncReadStream<SyncReadStream>::value,
         "SyncReadStream requirements not met");
@@ -243,7 +234,6 @@ parse(SyncReadStream& stream, DynamicBuffer& dynabuf,
         "DynamicBuffer requirements not met");
     static_assert(is_Parser<Parser>::value,
         "Parser requirements not met");
-    bool got_some = false;
     for(;;)
     {
         auto used =
@@ -251,27 +241,35 @@ parse(SyncReadStream& stream, DynamicBuffer& dynabuf,
         if(ec)
             return;
         dynabuf.consume(used);
-        if(used > 0)
-            got_some = true;
-        if(parser.complete())
+        if(! parser.need_more())
             break;
-        dynabuf.commit(stream.read_some(
-            dynabuf.prepare(read_size_helper(
-                dynabuf, 65536)), ec));
-        if(ec && ec != boost::asio::error::eof)
+        boost::optional<typename
+            DynamicBuffer::mutable_buffers_type> mb;
+        auto const size =
+            read_size_helper(dynabuf, 65536);
+        BOOST_ASSERT(size > 0);
+        try
+        {
+            mb.emplace(dynabuf.prepare(size));
+        }
+        catch(std::length_error const&)
+        {
+            ec = error::buffer_overflow;
             return;
+        }
+        dynabuf.commit(stream.read_some(*mb, ec));
         if(ec == boost::asio::error::eof)
         {
-            if(! got_some)
-                return;
             // Caller will see eof on next read.
             ec = {};
             parser.write_eof(ec);
             if(ec)
                 return;
-            BOOST_ASSERT(parser.complete());
+            BOOST_ASSERT(! parser.need_more());
             break;
         }
+        if(ec)
+            return;
     }
 }
 

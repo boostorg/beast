@@ -8,9 +8,9 @@
 #ifndef BEAST_WEBSOCKET_IMPL_HANDSHAKE_IPP
 #define BEAST_WEBSOCKET_IMPL_HANDSHAKE_IPP
 
-#include <beast/http/empty_body.hpp>
 #include <beast/http/message.hpp>
 #include <beast/http/read.hpp>
+#include <beast/http/streambuf_body.hpp>
 #include <beast/http/write.hpp>
 #include <beast/core/handler_helpers.hpp>
 #include <beast/core/handler_ptr.hpp>
@@ -34,8 +34,8 @@ class stream<NextLayer>::handshake_op
         bool cont;
         stream<NextLayer>& ws;
         std::string key;
-        http::request<http::empty_body> req;
-        http::response<http::string_body> resp;
+        http::request_header req;
+        http::response<http::streambuf_body> res;
         int state = 0;
 
         data(Handler& handler, stream<NextLayer>& ws_,
@@ -129,14 +129,14 @@ operator()(error_code ec, bool again)
             // read http response
             d.state = 2;
             http::async_read(d.ws.next_layer(),
-                d.ws.stream_.buffer(), d.resp,
+                d.ws.stream_.buffer(), d.res,
                     std::move(*this));
             return;
 
         // got response
         case 2:
         {
-            d.ws.do_response(d.resp, d.key, ec);
+            d.ws.do_response(d.res, d.key, ec);
             // call handler
             d.state = 99;
             break;
@@ -196,7 +196,7 @@ handshake(boost::string_ref const& host,
     }
     if(ec)
         return;
-    http::response<http::string_body> res;
+    http::response<http::streambuf_body> res;
     http::read(next_layer(), stream_.buffer(), res, ec);
     if(ec)
         return;

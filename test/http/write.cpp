@@ -10,7 +10,6 @@
 
 #include <beast/http/fields.hpp>
 #include <beast/http/message.hpp>
-#include <beast/http/empty_body.hpp>
 #include <beast/http/string_body.hpp>
 #include <beast/http/write.hpp>
 #include <beast/core/error.hpp>
@@ -538,7 +537,7 @@ public:
         }
         // upgrade HTTP/1.1
         {
-            message<true, empty_body, fields> m;
+            message<true, string_body, fields> m;
             m.method = "GET";
             m.url = "/";
             m.version = 11;

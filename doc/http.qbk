@@ -136,7 +136,7 @@ object:
 [[HTTP Request] [HTTP Response]]
 [[
     ```
-    request<empty_body> req;
+    request<string_body> req;
     req.version = 11;   // HTTP/1.1
     req.method = "GET";
     req.url = "/index.htm"
@@ -227,15 +227,6 @@ The message [*`Body`] template parameter controls both the type of the data
 member of the resulting message object, and the algorithms used during parsing
 and serialization. Beast provides three very common [*`Body`] types:
 
-* [link beast.ref.http__empty_body [*`empty_body`:]] An empty message body.
-Used in GET requests where there is no message body. Example:
-```
-    request<empty_body> req;
-    req.version = 11;
-    req.method = "GET";
-    req.url = "/index.html";
-```
-
 * [link beast.ref.http__string_body [*`string_body`:]] A body with a
 `value_type` as `std::string`. Useful for quickly putting together a request
 or response with simple text in the message body (such as an error message).
@@ -303,7 +294,7 @@ operations performed). To send messages synchronously, use one of the
 ```
     void send_request(boost::asio::ip::tcp::socket& sock)
     {
-        request<empty_body> req;
+        request<string_body> req;
         req.version = 11;
         req.method = "GET";
         req.url = "/index.html";
@@ -322,7 +313,7 @@ An asynchronous interface is available:
 ```
     void handle_write(boost::system::error_code);
     ...
-    request<empty_body> req;
+    request<string_body> req;
     ...
     async_write(sock, req, std::bind(&handle_write, std::placeholders::_1));
 ```

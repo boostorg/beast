@@ -10,6 +10,10 @@ WebSocket
 
 * Move the handler don't copy it
 
+API Changes
+
+* Refactor HTTP read, parse, and parser interfaces
+
 --------------------------------------------------------------------------------
 
 1.0.0-b30

@@ -48,15 +48,14 @@ unit-test http-tests :
     ../extras/beast/unit_test/main.cpp
     http/basic_dynabuf_body.cpp
     http/basic_fields.cpp
-    http/basic_parser_v1.cpp
+    http/basic_parser.cpp
     http/concepts.cpp
-    http/empty_body.cpp
+    http/error.cpp
     http/fields.cpp
-    http/header_parser_v1.cpp
+    http/header_parser.cpp
     http/message.cpp
+    http/message_parser.cpp
     http/parse.cpp
-    http/parse_error.cpp
-    http/parser_v1.cpp
     http/read.cpp
     http/reason.cpp
     http/resume_context.cpp

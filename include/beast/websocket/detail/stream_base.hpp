@@ -17,7 +17,6 @@
 #include <beast/websocket/detail/mask.hpp>
 #include <beast/websocket/detail/pmd_extension.hpp>
 #include <beast/websocket/detail/utf8_checker.hpp>
-#include <beast/http/empty_body.hpp>
 #include <beast/http/message.hpp>
 #include <beast/http/string_body.hpp>
 #include <beast/zlib/deflate_stream.hpp>

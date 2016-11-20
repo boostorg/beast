@@ -596,9 +596,9 @@ public:
         @throws system_error Thrown on failure.
     */
     // VFALCO TODO This should also take a DynamicBuffer with any leftover bytes.
-    template<class Body, class Fields>
+    template<class Fields>
     void
-    accept(http::request<Body, Fields> const& request);
+    accept(http::header<true, Fields> const& request);
 
     /** Respond to a WebSocket HTTP Upgrade request
 
@@ -628,10 +628,9 @@ public:
 
         @param ec Set to indicate what error occurred, if any.
     */
-    template<class Body, class Fields>
+    template<class Fields>
     void
-    accept(http::request<Body, Fields> const& request,
-        error_code& ec);
+    accept(http::header<true, Fields> const& request, error_code& ec);
 
     /** Start responding to a WebSocket HTTP Upgrade request.
 
@@ -674,15 +673,15 @@ public:
         this function. Invocation of the handler will be performed in a
         manner equivalent to using `boost::asio::io_service::post`.
     */
-    template<class Body, class Fields, class AcceptHandler>
+    template<class Fields, class AcceptHandler>
 #if GENERATING_DOCS
     void_or_deduced
 #else
     typename async_completion<
         AcceptHandler, void(error_code)>::result_type
 #endif
-    async_accept(http::request<Body, Fields> const& request,
-        AcceptHandler&& handler);
+    async_accept(http::header<true,
+        Fields> const& request, AcceptHandler&& handler);
 
     /** Send a HTTP WebSocket Upgrade request and receive the response.
 
@@ -1673,18 +1672,16 @@ private:
     void
     reset();
 
-    http::request<http::empty_body>
+    http::request_header
     build_request(boost::string_ref const& host,
         boost::string_ref const& resource,
             std::string& key);
 
-    template<class Body, class Fields>
-    http::response<http::string_body>
-    build_response(http::request<Body, Fields> const& req);
+    http::response_header
+    build_response(http::request_header const& req);
 
-    template<class Body, class Fields>
     void
-    do_response(http::response<Body, Fields> const& resp,
+    do_response(http::response_header const& resp,
         boost::string_ref const& key, error_code& ec);
 };
 

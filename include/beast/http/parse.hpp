@@ -50,8 +50,7 @@ namespace http {
 */
 template<class SyncReadStream, class DynamicBuffer, class Parser>
 void
-parse(SyncReadStream& stream,
-    DynamicBuffer& dynabuf, Parser& parser);
+parse(SyncReadStream& stream, DynamicBuffer& dynabuf, Parser& parser);
 
 /** Parse an object from a stream.
 
@@ -89,8 +88,8 @@ parse(SyncReadStream& stream,
 */
 template<class SyncReadStream, class DynamicBuffer, class Parser>
 void
-parse(SyncReadStream& stream,
-    DynamicBuffer& dynabuf, Parser& parser, error_code& ec);
+parse(SyncReadStream& stream, DynamicBuffer& dynabuf,
+    Parser& parser, error_code& ec);
 
 /** Start an asynchronous operation to parse an object from a stream.
 

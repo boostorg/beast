@@ -98,21 +98,84 @@ public:
     }
 
     template<bool isRequest>
-    struct null_parser : basic_parser_v1<isRequest, null_parser<isRequest>>
+    struct null_parser :
+        basic_parser<
+            isRequest, null_parser<isRequest>>
     {
+    };
+
+    template<bool isRequest, class Body, class Fields>
+    struct test_parser : basic_parser<
+        isRequest, test_parser<isRequest, Body, Fields>>
+    {
+        void
+        on_begin_request(boost::string_ref const&,
+            boost::string_ref const&,
+                int, error_code&)
+        {
+        }
+
+        void
+        on_begin_response(int,
+            boost::string_ref const&,
+                int, error_code&)
+        {
+        }
+
+        void
+        on_field(boost::string_ref const&,
+            boost::string_ref const&,
+                error_code&)
+        {
+        }
+
+        void
+        on_end_header(error_code& ec)
+        {
+        }
+
+        void
+        on_begin_body(error_code& ec)
+        {
+        }
+
+        void
+        on_chunk(std::uint64_t,
+            boost::string_ref const&,
+                error_code&)
+        {
+        }
+
+        void
+        on_body(boost::string_ref const&,
+            error_code&)
+        {
+        }
+
+        void
+        on_end_body(error_code&)
+        {
+        }
+
+        void
+        on_end_message(error_code&)
+        {
+        }
     };
 
     void
     testSpeed()
     {
         static std::size_t constexpr Trials = 3;
-        static std::size_t constexpr Repeat = 50;
+        static std::size_t constexpr Repeat = 500;
 
         log << "sizeof(request parser)  == " <<
-            sizeof(basic_parser_v1<true, null_parser<true>>) << '\n';
+            sizeof(basic_parser<
+                true, null_parser<true>>) << '\n';
 
         log << "sizeof(response parser) == " <<
-            sizeof(basic_parser_v1<false, null_parser<true>>)<< '\n';
+            sizeof(basic_parser<
+                false, null_parser<false>>)<< '\n';
 
         testcase << "Parser speed test, " <<
             ((Repeat * size_ + 512) / 1024) << "KB in " <<
@@ -128,13 +191,13 @@ public:
                     false, streambuf_body, fields>>(
                         Repeat, cres_);
             });
-        timedTest(Trials, "http::basic_parser_v1",
+        timedTest(Trials, "http::basic_parser",
             [&]
             {
-                testParser<parser_v1<
-                    true, streambuf_body, fields>>(
+                testParser<test_parser<
+                    true, streambuf_body, fields> >(
                         Repeat, creq_);
-                testParser<parser_v1<
+                testParser<test_parser<
                     false, streambuf_body, fields>>(
                         Repeat, cres_);
             });
