@@ -83,17 +83,18 @@ reset()
 }
 
 template<class NextLayer>
-http::request<http::empty_body>
+http::request_header
 stream<NextLayer>::
 build_request(boost::string_ref const& host,
     boost::string_ref const& resource, std::string& key)
 {
-    http::request<http::empty_body> req;
+    http::request_header req;
     req.url = { resource.data(), resource.size() };
     req.version = 11;
     req.method = "GET";
     req.fields.insert("Host", host);
     req.fields.insert("Upgrade", "websocket");
+    req.fields.insert("Connection", "upgrade");
     key = detail::make_sec_ws_key(maskgen_);
     req.fields.insert("Sec-WebSocket-Key", key);
     req.fields.insert("Sec-WebSocket-Version", "13");
@@ -113,15 +114,13 @@ build_request(boost::string_ref const& host,
             req.fields, config);
     }
     d_(req);
-    http::prepare(req, http::connection::upgrade);
     return req;
 }
 
 template<class NextLayer>
-template<class Body, class Fields>
-http::response<http::string_body>
+http::response_header
 stream<NextLayer>::
-build_response(http::request<Body, Fields> const& req)
+build_response(http::request_header const& req)
 {
     auto err =
         [&](std::string const& text)
@@ -170,7 +169,7 @@ build_response(http::request<Body, Fields> const& req)
             return res;
         }
     }
-    http::response<http::string_body> res;
+    http::response_header res;
     {
         detail::pmd_offer offer;
         detail::pmd_offer unused;
@@ -182,23 +181,22 @@ build_response(http::request<Body, Fields> const& req)
     res.reason = http::reason_string(res.status);
     res.version = req.version;
     res.fields.insert("Upgrade", "websocket");
+    res.fields.insert("Connection", "upgrade");
     {
         auto const key =
             req.fields["Sec-WebSocket-Key"];
         res.fields.insert("Sec-WebSocket-Accept",
             detail::make_sec_ws_accept(key));
     }
-    res.fields.replace("Server", "Beast.WSProto");
+    res.fields.replace("Server", "Beast.WebSocket");
     d_(res);
-    http::prepare(res, http::connection::upgrade);
     return res;
 }
 
 template<class NextLayer>
-template<class Body, class Fields>
 void
 stream<NextLayer>::
-do_response(http::response<Body, Fields> const& res,
+do_response(http::response_header const& res,
     boost::string_ref const& key, error_code& ec)
 {
     // VFALCO Review these error codes

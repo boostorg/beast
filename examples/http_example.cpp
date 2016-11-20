@@ -22,7 +22,7 @@ int main()
         r.resolve(boost::asio::ip::tcp::resolver::query{host, "http"}));
 
     // Send HTTP request using beast
-    beast::http::request<beast::http::empty_body> req;
+    beast::http::request<beast::http::string_body> req;
     req.method = "GET";
     req.url = "/";
     req.version = 11;

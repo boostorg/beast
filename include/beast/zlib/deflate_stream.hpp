@@ -136,7 +136,7 @@ public:
         of bytes needed to store the result of compressing a block of
         data based on the current compression level and strategy.
 
-        @param bytes The size of the uncompressed data.
+        @param sourceLen The size of the uncompressed data.
 
         @return The maximum number of resulting compressed bytes.
     */

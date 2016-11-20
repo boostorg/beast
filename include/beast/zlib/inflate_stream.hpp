@@ -181,7 +181,7 @@ public:
         `Flush::trees` is used, and when `write` avoids the allocation of memory for a
         sliding window when `Flush::finsih` is used.
 
-        If a preset dictionary is needed after this call (see @ref dictionary below),
+        If a preset dictionary is needed after this call,
         `write` sets `zs.adler` to the Adler-32 checksum of the dictionary chosen by
         the compressor and returns `error::need_dictionary`; otherwise it sets
         `zs.adler` to the Adler-32 checksum of all output produced so far (that is,
