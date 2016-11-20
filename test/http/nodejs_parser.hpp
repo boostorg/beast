@@ -740,11 +740,6 @@ template<bool isRequest, class Body, class Fields>
 class nodejs_parser
     : public nodejs_basic_parser<nodejs_parser<isRequest, Body, Fields>>
 {
-    using message_type =
-        message<isRequest, Body, Fields>;
-
-    message_type m_;
-    typename message_type::body_type::reader r_;
     bool started_ = false;
 
 public:
@@ -752,7 +747,6 @@ public:
 
     nodejs_parser()
         : http::nodejs_basic_parser<nodejs_parser>(isRequest)
-        , r_(m_)
     {
     }
 
@@ -761,12 +755,6 @@ public:
     started()
     {
         return started_;
-    }
-
-    message_type
-    release()
-    {
-        return std::move(m_);
     }
 
 private:
@@ -781,7 +769,6 @@ private:
     void
     on_field(std::string const& field, std::string const& value)
     {
-        m_.fields.insert(field, value);
     }
 
     void
@@ -798,9 +785,6 @@ private:
         int major, int minor, bool /*keep_alive*/, bool /*upgrade*/,
             std::true_type)
     {
-        m_.method = detail::method_to_string(method);
-        m_.url = url;
-        m_.version = major * 10 + minor;
         return true;
     }
 
@@ -819,7 +803,7 @@ private:
         return on_request(method, url,
             major, minor, keep_alive, upgrade,
                 std::integral_constant<
-                    bool,  message_type::is_request>{});
+                    bool, isRequest>{});
     }
 
     bool
@@ -828,10 +812,6 @@ private:
             std::true_type)
     {
         beast::detail::ignore_unused(keep_alive, upgrade);
-        m_.status = status;
-        m_.reason = reason;
-        m_.version = major * 10 + minor;
-        // VFALCO TODO return expect_body_
         return true;
     }
 
@@ -848,14 +828,13 @@ private:
     {
         return on_response(
             status, reason, major, minor, keep_alive, upgrade,
-                std::integral_constant<bool, ! message_type::is_request>{});
+                std::integral_constant<bool, ! isRequest>{});
     }
 
     void
     on_body(void const* data,
         std::size_t size, error_code& ec)
     {
-        r_.write(data, size, ec);
     }
 
     void

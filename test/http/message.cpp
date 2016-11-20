@@ -8,7 +8,7 @@
 // Test that header file is self-contained.
 #include <beast/http/message.hpp>
 
-#include <beast/http/empty_body.hpp>
+#include <beast/http/string_body.hpp>
 #include <beast/http/fields.hpp>
 #include <beast/http/string_body.hpp>
 #include <beast/unit_test/suite.hpp>
@@ -195,7 +195,7 @@ public:
     void testFreeFunctions()
     {
         {
-            request<empty_body> m;
+            request<string_body> m;
             m.method = "GET";
             m.url = "/";
             m.version = 11;
@@ -213,7 +213,7 @@ public:
 
     void testPrepare()
     {
-        request<empty_body> m;
+        request<string_body> m;
         m.version = 10;
         BEAST_EXPECT(! is_upgrade(m));
         m.fields.insert("Transfer-Encoding", "chunked");

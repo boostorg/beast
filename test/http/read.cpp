@@ -8,10 +8,12 @@
 // Test that header file is self-contained.
 #include <beast/http/read.hpp>
 
-#include "fail_parser.hpp"
+#include "test_parser.hpp"
 
 #include <beast/http/fields.hpp>
+#include <beast/http/header_parser.hpp>
 #include <beast/http/streambuf_body.hpp>
+#include <beast/http/string_body.hpp>
 #include <beast/test/fail_stream.hpp>
 #include <beast/test/string_istream.hpp>
 #include <beast/test/yield_to.hpp>
@@ -27,62 +29,9 @@ class read_test
     , public test::enable_yield_to
 {
 public:
-    struct fail_body
-    {
-        class reader;
-
-        class value_type
-        {
-            friend class reader;
-
-            std::string s_;
-            test::fail_counter& fc_;
-
-        public:
-            explicit
-            value_type(test::fail_counter& fc)
-                : fc_(fc)
-            {
-            }
-
-            value_type&
-            operator=(std::string s)
-            {
-                s_ = std::move(s);
-                return *this;
-            }
-        };
-
-        class reader
-        {
-            value_type& body_;
-
-        public:
-            template<bool isRequest, class Allocator>
-            explicit
-            reader(message<isRequest, fail_body, Allocator>& msg) noexcept
-                : body_(msg.body)
-            {
-            }
-
-            void
-            init(error_code& ec) noexcept
-            {
-                body_.fc_.fail(ec);
-            }
-
-            void
-            write(void const* data,
-                std::size_t size, error_code& ec) noexcept
-            {
-                if(body_.fc_.fail(ec))
-                    return;
-            }
-        };
-    };
-
     template<bool isRequest>
-    void failMatrix(char const* s, yield_context do_yield)
+    void
+    failMatrix(char const* s, yield_context do_yield)
     {
         using boost::asio::buffer;
         using boost::asio::buffer_copy;
@@ -97,9 +46,9 @@ public:
             test::fail_counter fc(n);
             test::fail_stream<
                 test::string_istream> fs{fc, ios_, ""};
-            fail_parser<isRequest> p(fc);
+            test_parser<isRequest> p(fc);
             error_code ec;
-            parse(fs, sb, p, ec);
+            read(fs, sb, p, ec);
             if(! ec)
                 break;
         }
@@ -113,9 +62,9 @@ public:
             test::fail_counter fc(n);
             test::fail_stream<test::string_istream> fs{
                 fc, ios_, std::string{s + pre, len - pre}};
-            fail_parser<isRequest> p(fc);
+            test_parser<isRequest> p(fc);
             error_code ec;
-            parse(fs, sb, p, ec);
+            read(fs, sb, p, ec);
             if(! ec)
                 break;
         }
@@ -128,9 +77,9 @@ public:
             test::fail_counter fc(n);
             test::fail_stream<
                 test::string_istream> fs{fc, ios_, ""};
-            fail_parser<isRequest> p(fc);
+            test_parser<isRequest> p(fc);
             error_code ec;
-            async_parse(fs, sb, p, do_yield[ec]);
+            async_read(fs, sb, p, do_yield[ec]);
             if(! ec)
                 break;
         }
@@ -144,23 +93,9 @@ public:
             test::fail_counter fc(n);
             test::fail_stream<test::string_istream> fs{
                 fc, ios_, std::string{s + pre, len - pre}};
-            fail_parser<isRequest> p(fc);
+            test_parser<isRequest> p(fc);
             error_code ec;
-            async_parse(fs, sb, p, do_yield[ec]);
-            if(! ec)
-                break;
-        }
-        BEAST_EXPECT(n < limit);
-        for(n = 0; n < limit; ++n)
-        {
-            streambuf sb;
-            sb.commit(buffer_copy(
-                sb.prepare(len), buffer(s, len)));
-            test::fail_counter fc{n};
-            test::string_istream ss{ios_, s};
-            parser_v1<isRequest, fail_body, fields> p{fc};
-            error_code ec;
-            parse(ss, sb, p, ec);
+            async_read(fs, sb, p, do_yield[ec]);
             if(! ec)
                 break;
         }
@@ -173,8 +108,8 @@ public:
         {
             streambuf sb;
             test::string_istream ss(ios_, "GET / X");
-            parser_v1<true, streambuf_body, fields> p;
-            parse(ss, sb, p);
+            message_parser<true, streambuf_body, fields> p;
+            read(ss, sb, p);
             fail();
         }
         catch(std::exception const&)
@@ -245,52 +180,6 @@ public:
             failMatrix<false>(res[i], do_yield);
     }
 
-    void testReadHeaders(yield_context do_yield)
-    {
-        static std::size_t constexpr limit = 100;
-        std::size_t n;
-
-        for(n = 0; n < limit; ++n)
-        {
-            test::fail_stream<test::string_istream> fs{n, ios_,
-                "GET / HTTP/1.1\r\n"
-                "Host: localhost\r\n"
-                "User-Agent: test\r\n"
-                "Content-Length: 5\r\n"
-                "\r\n"
-            };
-            request_header m;
-            try
-            {
-                streambuf sb;
-                read(fs, sb, m);
-                break;
-            }
-            catch(std::exception const&)
-            {
-            }
-        }
-        BEAST_EXPECT(n < limit);
-
-        for(n = 0; n < limit; ++n)
-        {
-            test::fail_stream<test::string_istream> fs(n, ios_,
-                "GET / HTTP/1.1\r\n"
-                "Host: localhost\r\n"
-                "User-Agent: test\r\n"
-                "Content-Length: 0\r\n"
-                "\r\n"
-            );
-            request_header m;
-            error_code ec;
-            streambuf sb;
-            async_read(fs, sb, m, do_yield[ec]);
-            if(! ec)
-                break;
-        }
-        BEAST_EXPECT(n < limit);
-    }
-
     void testRead(yield_context do_yield)
     {
         static std::size_t constexpr limit = 100;
@@ -355,22 +244,23 @@ public:
         BEAST_EXPECT(n < limit);
     }
 
-    void testEof(yield_context do_yield)
+    void
+    testEof(yield_context do_yield)
     {
         {
             streambuf sb;
             test::string_istream ss(ios_, "");
-            parser_v1<true, streambuf_body, fields> p;
+            message_parser<true, streambuf_body, fields> p;
             error_code ec;
-            parse(ss, sb, p, ec);
+            read(ss, sb, p, ec);
             BEAST_EXPECT(ec == boost::asio::error::eof);
         }
         {
             streambuf sb;
             test::string_istream ss(ios_, "");
-            parser_v1<true, streambuf_body, fields> p;
+            message_parser<true, streambuf_body, fields> p;
             error_code ec;
-            async_parse(ss, sb, p, do_yield[ec]);
+            async_read(ss, sb, p, do_yield[ec]);
             BEAST_EXPECT(ec == boost::asio::error::eof);
         }
     }
@@ -424,12 +314,12 @@ public:
         }
     }
 
-    void run() override
+    void
+    run() override
     {
         testThrow();
 
         yield_to(&read_test::testFailures, this);
-        yield_to(&read_test::testReadHeaders, this);
         yield_to(&read_test::testRead, this);
         yield_to(&read_test::testEof, this);
 

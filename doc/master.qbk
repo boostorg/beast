@@ -107,7 +107,6 @@ provides implementations of the HTTP and WebSocket protocols.
 [include types/DynamicBuffer.qbk]
 [include types/Field.qbk]
 [include types/FieldSequence.qbk]
-[include types/Parser.qbk]
 [include types/Reader.qbk]
 [include types/Streams.qbk]
 [include types/Writer.qbk]
