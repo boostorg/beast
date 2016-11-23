@@ -1,0 +1,7 @@
+includedir=@CMAKE_INSTALL_PREFIX@/@INCLUDE_INSTALL_DIR@
+
+Name: @PROJECT_NAME@
+Description: HTTP and WebSocket implementations built on Boost.Asio in C++11.
+Version: @BEAST_VERSION@
+URL: https://github.com/vinniefalco/Beast
+Cflags: -I${includedir}

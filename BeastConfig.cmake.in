@@ -1,0 +1,4 @@
+get_filename_component(Beast_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
+set(Beast_INCLUDE_DIR "/usr/include")
+set(Beast_INCLUDE_DIRS "/usr/include")
+message(STATUS "Beast found. Headers: ${BEAST_INCLUDE_DIRS}")
