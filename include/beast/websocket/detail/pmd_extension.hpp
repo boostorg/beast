@@ -260,7 +260,6 @@ pmd_negotiate(
     config.server_no_context_takeover =
         offer.server_no_context_takeover ||
             o.server_no_context_takeover;
-//config.server_no_context_takeover = true;
     if(config.server_no_context_takeover)
         s += "; server_no_context_takeover";
 
