@@ -725,16 +725,18 @@ read_frame(frame_info& fi, DynamicBuffer& dynabuf, error_code& ec)
             failed_ = ec != 0;
             if(failed_)
                 return;
-            auto const n = read_fh1(fh, fb, code);
-            if(code != close_code::none)
-                goto do_close;
-            if(n > 0)
             {
-                fb.commit(boost::asio::read(
-                    stream_, fb.prepare(n), ec));
-                failed_ = ec != 0;
-                if(failed_)
-                    return;
+                auto const n = read_fh1(fh, fb, code);
+                if(code != close_code::none)
+                    goto do_close;
+                if(n > 0)
+                {
+                    fb.commit(boost::asio::read(
+                        stream_, fb.prepare(n), ec));
+                    failed_ = ec != 0;
+                    if(failed_)
+                        return;
+                }
             }
             read_fh2(fh, fb, code);
 
