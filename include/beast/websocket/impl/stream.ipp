@@ -173,13 +173,10 @@ build_response(http::request<Body, Fields> const& req)
     http::response<http::string_body> res;
     {
         detail::pmd_offer offer;
+        detail::pmd_offer unused;
         pmd_read(offer, req.fields);
-        if(offer.accept && pmd_opts_.server_enable)
-        {
-            detail::pmd_offer unused;
-            pmd_negotiate(
-                res.fields, unused, offer, pmd_opts_);
-        }
+        pmd_negotiate(
+            res.fields, unused, offer, pmd_opts_);
     }
     res.status = 101;
     res.reason = http::reason_string(res.status);
