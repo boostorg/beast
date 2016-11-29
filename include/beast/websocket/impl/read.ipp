@@ -806,7 +806,7 @@ read_frame(frame_info& fi, DynamicBuffer& dynabuf, error_code& ec)
                     if(failed_)
                         return;
                 }
-                break;
+                goto do_close;
             }
         }
         if(fh.op == opcode::text ||
