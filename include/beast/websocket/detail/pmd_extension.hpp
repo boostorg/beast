@@ -64,11 +64,11 @@ parse_bits(boost::string_ref const& s)
     return i;
 }
 
-// Parse permessage-deflate request headers
+// Parse permessage-deflate request fields
 //
-template<class Headers>
+template<class Fields>
 void
-pmd_read(pmd_offer& offer, Headers const& headers)
+pmd_read(pmd_offer& offer, Fields const& fields)
 {
     offer.accept = false;
     offer.server_max_window_bits= 0;
@@ -78,7 +78,7 @@ pmd_read(pmd_offer& offer, Headers const& headers)
 
     using beast::detail::ci_equal;
     http::ext_list list{
-        headers["Sec-WebSocket-Extensions"]};
+        fields["Sec-WebSocket-Extensions"]};
     for(auto const& ext : list)
     {
         if(ci_equal(ext.first, "permessage-deflate"))
@@ -193,11 +193,11 @@ pmd_read(pmd_offer& offer, Headers const& headers)
     }
 }
 
-// Set permessage-deflate headers for a client offer
+// Set permessage-deflate fields for a client offer
 //
-template<class Headers>
+template<class Fields>
 void
-pmd_write(Headers& headers, pmd_offer const& offer)
+pmd_write(Fields& fields, pmd_offer const& offer)
 {
     std::string s;
     s = "permessage-deflate";
@@ -235,15 +235,15 @@ pmd_write(Headers& headers, pmd_offer const& offer)
     {
         s += "; client_no_context_takeover";
     }
-    headers.replace("Sec-WebSocket-Extensions", s);
+    fields.replace("Sec-WebSocket-Extensions", s);
 }
 
 // Negotiate a permessage-deflate client offer
 //
-template<class Headers>
+template<class Fields>
 void
 pmd_negotiate(
-    Headers& headers,
+    Fields& fields,
     pmd_offer& config,
     pmd_offer const& offer,
     permessage_deflate const& o)
@@ -338,7 +338,7 @@ pmd_negotiate(
         break;
     }
     if(config.accept)
-        headers.replace("Sec-WebSocket-Extensions", s);
+        fields.replace("Sec-WebSocket-Extensions", s);
 }
 
 // Normalize the server's response
