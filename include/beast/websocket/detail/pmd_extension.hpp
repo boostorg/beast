@@ -248,7 +248,7 @@ pmd_negotiate(
     pmd_offer const& offer,
     permessage_deflate const& o)
 {
-    if(! offer.accept)
+    if(! offer.accept || ! o.server_enable)
     {
         config.accept = false;
         return;
