@@ -391,6 +391,7 @@ operator()(error_code ec,
                 // latency.
                 BOOST_ASSERT(! d.fin);
                 BOOST_ASSERT(buffer_size(d.cb) == 0);
+                BOOST_ASSERT(!d.fh.fin);
 
                 // We can skip the dispatch if the
                 // asynchronous initiation function is
