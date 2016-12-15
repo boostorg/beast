@@ -14,9 +14,6 @@
 #include <algorithm>
 #include <cstdint>
 
-#include <beast/unit_test/dstream.hpp>
-#include <iostream>
-
 namespace beast {
 namespace websocket {
 namespace detail {
