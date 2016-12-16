@@ -802,7 +802,7 @@ public:
         using boost::asio::buffer;
         static std::size_t constexpr limit = 200;
         std::size_t n;
-        for(n = 0; n < limit; ++n)
+        for(n = 0; n <= limit; ++n)
         {
             stream<test::fail_stream<socket_type>> ws(n, ios_);
             auto const restart =
@@ -1416,7 +1416,10 @@ public:
                 yield_to_mf(ep, &stream_test::testAsyncClient);
             }
             {
-                async_echo_server server(true, any, 4);
+                error_code ec;
+                async_echo_server server{nullptr, 4};
+                server.open(true, any, ec);
+                BEAST_EXPECTS(! ec, ec.message());
                 auto const ep = server.local_endpoint();
                 testSyncClient(ep);
                 testAsyncWriteFrame(ep);

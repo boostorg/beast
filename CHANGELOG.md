@@ -1,3 +1,10 @@
+1.0.0-b21
+
+* Add WebSocket permessage-deflate extension support
+* Fix message constructor and special members
+
+--------------------------------------------------------------------------------
+
 1.0.0-b20
 
 ZLib
@@ -10,7 +17,6 @@ API Changes:
 
 --------------------------------------------------------------------------------
 
->>>>>>> b89fede... Add zlib module:
 1.0.0-b19
 
 * Boost library min/max guidance
