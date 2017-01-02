@@ -15,6 +15,7 @@
 #include <beast/core/bind_handler.hpp>
 #include <beast/core/buffer_concepts.hpp>
 #include <beast/core/handler_alloc.hpp>
+#include <beast/core/mutual_ptr.hpp>
 #include <beast/core/stream_concepts.hpp>
 #include <beast/core/streambuf.hpp>
 #include <beast/core/write_dynabuf.hpp>
@@ -122,7 +123,7 @@ class write_streambuf_op
         }
     };
 
-    std::shared_ptr<data> d_;
+    mutual_ptr<data> d_;
 
 public:
     write_streambuf_op(write_streambuf_op&&) = default;
@@ -131,17 +132,11 @@ public:
     template<class DeducedHandler, class... Args>
     write_streambuf_op(DeducedHandler&& h, Stream& s,
             Args&&... args)
-        : d_(std::allocate_shared<data>(alloc_type{h},
-            std::forward<DeducedHandler>(h), s,
-                std::forward<Args>(args)...))
+        : d_(allocate_mutual<data>(
+            alloc_type{h}, std::forward<DeducedHandler>(h),
+                s, std::forward<Args>(args)...))
     {
         (*this)(error_code{}, 0, false);
-    }
-
-    explicit
-    write_streambuf_op(std::shared_ptr<data> d)
-        : d_(std::move(d))
-    {
     }
 
     void
@@ -199,7 +194,9 @@ operator()(error_code ec, std::size_t, bool again)
         }
         }
     }
-    d.h(ec);
+    auto h = std::move(d.h);
+    d_.reset_all();
+    h(ec);
 }
 
 } // detail
@@ -382,7 +379,7 @@ class write_op
         }
     };
 
-    std::shared_ptr<data> d_;
+    mutual_ptr<data> d_;
 
 public:
     write_op(write_op&&) = default;
@@ -390,7 +387,7 @@ public:
 
     template<class DeducedHandler, class... Args>
     write_op(DeducedHandler&& h, Stream& s, Args&&... args)
-        : d_(std::allocate_shared<data>(alloc_type{h},
+        : d_(allocate_mutual<data>(alloc_type{h},
             std::forward<DeducedHandler>(h), s,
                 std::forward<Args>(args)...))
     {
@@ -410,7 +407,7 @@ public:
     }
 
     explicit
-    write_op(std::shared_ptr<data> d)
+    write_op(mutual_ptr<data> d)
         : d_(std::move(d))
     {
     }
@@ -552,9 +549,9 @@ operator()(error_code ec, std::size_t, bool again)
             break;
         }
     }
-    d.h(ec);
-    d.resume = {};
-    d.copy = {};
+    auto h = std::move(d.h);
+    d_.reset_all();
+    h(ec);
 }
 
 template<class SyncWriteStream, class DynamicBuffer>

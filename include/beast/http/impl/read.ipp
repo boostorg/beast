@@ -14,6 +14,7 @@
 #include <beast/http/parser_v1.hpp>
 #include <beast/core/bind_handler.hpp>
 #include <beast/core/handler_alloc.hpp>
+#include <beast/core/mutual_ptr.hpp>
 #include <beast/core/stream_concepts.hpp>
 #include <boost/assert.hpp>
 
@@ -60,7 +61,7 @@ class read_header_op
         }
     };
 
-    std::shared_ptr<data> d_;
+    mutual_ptr<data> d_;
 
 public:
     read_header_op(read_header_op&&) = default;
@@ -69,7 +70,7 @@ public:
     template<class DeducedHandler, class... Args>
     read_header_op(
             DeducedHandler&& h, Stream& s, Args&&... args)
-        : d_(std::allocate_shared<data>(alloc_type{h},
+        : d_(allocate_mutual<data>(alloc_type{h},
             std::forward<DeducedHandler>(h), s,
                 std::forward<Args>(args)...))
     {
@@ -135,7 +136,9 @@ operator()(error_code ec, bool again)
             break;
         }
     }
-    d.h(ec);
+    auto h = std::move(d.h);
+    d_.reset_all();
+    h(ec);
 }
 
 } // detail
@@ -239,7 +242,7 @@ class read_op
         }
     };
 
-    std::shared_ptr<data> d_;
+    mutual_ptr<data> d_;
 
 public:
     read_op(read_op&&) = default;
@@ -247,7 +250,7 @@ public:
 
     template<class DeducedHandler, class... Args>
     read_op(DeducedHandler&& h, Stream& s, Args&&... args)
-        : d_(std::allocate_shared<data>(alloc_type{h},
+        : d_(allocate_mutual<data>(alloc_type{h},
             std::forward<DeducedHandler>(h), s,
                 std::forward<Args>(args)...))
     {
@@ -313,7 +316,9 @@ operator()(error_code ec, bool again)
             break;
         }
     }
-    d.h(ec);
+    auto h = std::move(d.h);
+    d_.reset_all();
+    h(ec);
 }
 
 } // detail

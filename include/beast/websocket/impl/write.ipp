@@ -13,6 +13,7 @@
 #include <beast/core/buffer_concepts.hpp>
 #include <beast/core/consuming_buffers.hpp>
 #include <beast/core/handler_alloc.hpp>
+#include <beast/core/mutual_ptr.hpp>
 #include <beast/core/prepare_buffers.hpp>
 #include <beast/core/static_streambuf.hpp>
 #include <beast/core/stream_concepts.hpp>
@@ -157,7 +158,7 @@ class stream<NextLayer>::write_frame_op
         }
     };
 
-    std::shared_ptr<data> d_;
+    mutual_ptr<data> d_;
 
 public:
     write_frame_op(write_frame_op&&) = default;
@@ -166,9 +167,9 @@ public:
     template<class DeducedHandler, class... Args>
     write_frame_op(DeducedHandler&& h,
             stream<NextLayer>& ws, Args&&... args)
-        : d_(std::make_shared<data>(
-            std::forward<DeducedHandler>(h), ws,
-                std::forward<Args>(args)...))
+        : d_(allocate_mutual<data>(
+            alloc_type{h}, std::forward<DeducedHandler>(h),
+                ws, std::forward<Args>(args)...))
     {
         (*this)(error_code{}, false);
     }
@@ -342,7 +343,9 @@ upcall:
     if(d.ws.wr_block_ == &d)
         d.ws.wr_block_ = nullptr;
     d.ws.rd_op_.maybe_invoke();
-    d.h(ec);
+    auto h = std::move(d.h);
+    d_.reset_all();
+    h(ec);
 }
 
 template<class NextLayer>
@@ -557,7 +560,7 @@ class stream<NextLayer>::write_op
         }
     };
 
-    std::shared_ptr<data> d_;
+    mutual_ptr<data> d_;
 
 public:
     write_op(write_op&&) = default;
@@ -567,7 +570,7 @@ public:
     explicit
     write_op(DeducedHandler&& h,
             stream<NextLayer>& ws, Args&&... args)
-        : d_(std::allocate_shared<data>(alloc_type{h},
+        : d_(allocate_mutual<data>(alloc_type{h},
             std::forward<DeducedHandler>(h), ws,
                 std::forward<Args>(args)...))
     {
@@ -637,7 +640,9 @@ operator()(error_code ec, bool again)
             break;
         }
     }
-    d.h(ec);
+    auto h = std::move(d.h);
+    d_.reset_all();
+    h(ec);
 }
 
 template<class NextLayer>

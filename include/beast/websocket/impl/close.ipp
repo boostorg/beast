@@ -9,6 +9,7 @@
 #define BEAST_WEBSOCKET_IMPL_CLOSE_IPP
 
 #include <beast/core/handler_alloc.hpp>
+#include <beast/core/mutual_ptr.hpp>
 #include <beast/core/static_streambuf.hpp>
 #include <beast/core/stream_concepts.hpp>
 #include <memory>
@@ -51,7 +52,7 @@ class stream<NextLayer>::close_op
         }
     };
 
-    std::shared_ptr<data> d_;
+    mutual_ptr<data> d_;
 
 public:
     close_op(close_op&&) = default;
@@ -60,7 +61,7 @@ public:
     template<class DeducedHandler, class... Args>
     close_op(DeducedHandler&& h,
             stream<NextLayer>& ws, Args&&... args)
-        : d_(std::allocate_shared<data>(alloc_type{h},
+        : d_(allocate_mutual<data>(alloc_type{h},
             std::forward<DeducedHandler>(h), ws,
                 std::forward<Args>(args)...))
     {
@@ -188,7 +189,9 @@ upcall:
     if(d.ws.wr_block_ == &d)
         d.ws.wr_block_ = nullptr;
     d.ws.rd_op_.maybe_invoke();
-    d.h(ec);
+    auto h = std::move(d.h);
+    d_.reset_all();
+    h(ec);
 }
 
 template<class NextLayer>
