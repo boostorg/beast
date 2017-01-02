@@ -8,6 +8,7 @@
 #ifndef BEAST_WEBSOCKET_DETAIL_INVOKABLE_HPP
 #define BEAST_WEBSOCKET_DETAIL_INVOKABLE_HPP
 
+#include <beast/core/mutual_ptr.hpp>
 #include <boost/assert.hpp>
 #include <array>
 #include <memory>
@@ -64,7 +65,7 @@ class invokable
 
     struct exemplar
     {
-        std::shared_ptr<int> _;
+        mutual_ptr<int> _;
         void operator()(){}
     };
 

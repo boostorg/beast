@@ -13,6 +13,7 @@
 #include <beast/http/read.hpp>
 #include <beast/http/write.hpp>
 #include <beast/core/handler_alloc.hpp>
+#include <beast/core/mutual_ptr.hpp>
 #include <beast/core/stream_concepts.hpp>
 #include <boost/assert.hpp>
 #include <memory>
@@ -55,7 +56,7 @@ class stream<NextLayer>::handshake_op
         }
     };
 
-    std::shared_ptr<data> d_;
+    mutual_ptr<data> d_;
 
 public:
     handshake_op(handshake_op&&) = default;
@@ -64,7 +65,7 @@ public:
     template<class DeducedHandler, class... Args>
     handshake_op(DeducedHandler&& h,
             stream<NextLayer>& ws, Args&&... args)
-        : d_(std::allocate_shared<data>(alloc_type{h},
+        : d_(allocate_mutual<data>(alloc_type{h},
             std::forward<DeducedHandler>(h), ws,
                 std::forward<Args>(args)...))
     {
@@ -147,7 +148,9 @@ operator()(error_code ec, bool again)
         }
         }
     }
-    d.h(ec);
+    auto h = std::move(d.h);
+    d_.reset_all();
+    h(ec);
 }
 
 template<class NextLayer>

@@ -14,6 +14,7 @@
 #include <beast/http/string_body.hpp>
 #include <beast/http/write.hpp>
 #include <beast/core/handler_alloc.hpp>
+#include <beast/core/mutual_ptr.hpp>
 #include <beast/core/prepare_buffers.hpp>
 #include <beast/core/detail/type_traits.hpp>
 #include <boost/assert.hpp>
@@ -60,7 +61,7 @@ class stream<NextLayer>::response_op
         }
     };
 
-    std::shared_ptr<data> d_;
+    mutual_ptr<data> d_;
 
 public:
     response_op(response_op&&) = default;
@@ -69,7 +70,7 @@ public:
     template<class DeducedHandler, class... Args>
     response_op(DeducedHandler&& h,
             stream<NextLayer>& ws, Args&&... args)
-        : d_(std::allocate_shared<data>(alloc_type{h},
+        : d_(allocate_mutual<data>(alloc_type{h},
             std::forward<DeducedHandler>(h), ws,
                 std::forward<Args>(args)...))
     {
@@ -138,7 +139,9 @@ operator()(error_code ec, bool again)
             break;
         }
     }
-    d.h(ec);
+    auto h = std::move(d.h);
+    d_.reset_all();
+    h(ec);
 }
 
 //------------------------------------------------------------------------------
@@ -177,7 +180,7 @@ class stream<NextLayer>::accept_op
         }
     };
 
-    std::shared_ptr<data> d_;
+    mutual_ptr<data> d_;
 
 public:
     accept_op(accept_op&&) = default;
@@ -186,7 +189,7 @@ public:
     template<class DeducedHandler, class... Args>
     accept_op(DeducedHandler&& h,
             stream<NextLayer>& ws, Args&&... args)
-        : d_(std::allocate_shared<data>(alloc_type{h},
+        : d_(allocate_mutual<data>(alloc_type{h},
             std::forward<DeducedHandler>(h), ws,
                 std::forward<Args>(args)...))
     {
@@ -268,7 +271,9 @@ operator()(error_code const& ec,
             return;
         }
     }
-    d.h(ec);
+    auto h = std::move(d.h);
+    d_.reset_all();
+    h(ec);
 }
 
 template<class NextLayer>

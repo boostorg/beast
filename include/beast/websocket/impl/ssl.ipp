@@ -9,7 +9,9 @@
 #define BEAST_WEBSOCKET_IMPL_SSL_IPP_INCLUDED
 
 #include <beast/core/async_completion.hpp>
+#include <beast/core/handler_alloc.hpp>
 #include <beast/core/handler_concepts.hpp>
+#include <beast/core/mutual_ptr.hpp>
 
 namespace beast {
 namespace websocket {
@@ -33,6 +35,9 @@ Behavior of ssl::stream regarding close_
 template<class AsyncStream, class Handler>
 class teardown_ssl_op
 {
+    using alloc_type =
+        handler_alloc<char, Handler>;
+
     using stream_type =
         boost::asio::ssl::stream<AsyncStream>;
 
@@ -54,15 +59,16 @@ class teardown_ssl_op
         }
     };
 
-    std::shared_ptr<data> d_;
+    mutual_ptr<data> d_;
 
 public:
     template<class DeducedHandler>
     explicit
     teardown_ssl_op(
             DeducedHandler&& h, stream_type& stream)
-        : d_(std::make_shared<data>(
-            std::forward<DeducedHandler>(h), stream))
+        : d_(allocate_mutual<data>(
+            alloc_type{h}, std::forward<DeducedHandler>(
+                h), stream))
     {
         (*this)(error_code{}, false);
     }
@@ -120,7 +126,9 @@ operator()(error_code ec, bool again)
             return;
         }
     }
-    d.h(ec);
+    auto h = std::move(d.h);
+    d_.reset_all();
+    h(ec);
 }
 
 } // detail

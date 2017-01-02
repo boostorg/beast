@@ -12,6 +12,7 @@
 #include "mime_type.hpp"
 
 #include <beast/http.hpp>
+#include <beast/core/mutual_ptr.hpp>
 #include <beast/core/placeholders.hpp>
 #include <beast/core/streambuf.hpp>
 #include <boost/asio.hpp>
@@ -110,7 +111,7 @@ private:
             }
         };
 
-        std::shared_ptr<data> d_;
+        mutual_ptr<data> d_;
 
     public:
         write_op(write_op&&) = default;
@@ -118,7 +119,7 @@ private:
 
         template<class DeducedHandler, class... Args>
         write_op(DeducedHandler&& h, Stream& s, Args&&... args)
-            : d_(std::allocate_shared<data>(alloc_type{h},
+            : d_(allocate_mutual<data>(alloc_type{h},
                 std::forward<DeducedHandler>(h), s,
                     std::forward<Args>(args)...))
         {
@@ -135,7 +136,9 @@ private:
                 beast::http::async_write(d.s, d.m, std::move(*this));
                 return;
             }
-            d.h(ec);
+            auto h = std::move(d.h);
+            d_.reset_all();
+            h(ec);
         }
 
         friend

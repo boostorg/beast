@@ -1,3 +1,16 @@
+1.0.0-b22
+
+* Fix broken Intellisense
+* Implement the Asio deallocation-before-invocation guarantee
+
+--------------------------------------------------------------------------------
+
+1.0.0-b21
+
+* Remove extraneous includes
+
+--------------------------------------------------------------------------------
+
 1.0.0-b20
 
 ZLib
@@ -10,7 +23,6 @@ API Changes:
 
 --------------------------------------------------------------------------------
 
->>>>>>> b89fede... Add zlib module:
 1.0.0-b19
 
 * Boost library min/max guidance

@@ -12,6 +12,7 @@
 #include <beast/core/error.hpp>
 #include <beast/core/handler_concepts.hpp>
 #include <beast/core/handler_alloc.hpp>
+#include <beast/core/mutual_ptr.hpp>
 
 namespace beast {
 
@@ -41,7 +42,7 @@ class dynabuf_readstream<
         }
     };
 
-    std::shared_ptr<data> d_;
+    mutual_ptr<data> d_;
 
 public:
     read_some_op(read_some_op&&) = default;
@@ -50,7 +51,7 @@ public:
     template<class DeducedHandler, class... Args>
     read_some_op(DeducedHandler&& h,
             dynabuf_readstream& srs, Args&&... args)
-        : d_(std::allocate_shared<data>(alloc_type{h},
+        : d_(allocate_mutual<data>(alloc_type{h},
             std::forward<DeducedHandler>(h), srs,
                 std::forward<Args>(args)...))
     {
@@ -149,7 +150,9 @@ read_some_op<MutableBufferSequence, Handler>::operator()(
             break;
         }
     }
-    d.h(ec, bytes_transferred);
+    auto h = std::move(d.h);
+    d_.reset_all();
+    h(ec, bytes_transferred);
 }
 
 //------------------------------------------------------------------------------

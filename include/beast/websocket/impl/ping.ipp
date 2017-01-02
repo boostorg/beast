@@ -10,6 +10,7 @@
 
 #include <beast/core/bind_handler.hpp>
 #include <beast/core/handler_alloc.hpp>
+#include <beast/core/mutual_ptr.hpp>
 #include <beast/core/stream_concepts.hpp>
 #include <beast/websocket/detail/frame.hpp>
 #include <memory>
@@ -51,7 +52,7 @@ class stream<NextLayer>::ping_op
         }
     };
 
-    std::shared_ptr<data> d_;
+    mutual_ptr<data> d_;
 
 public:
     ping_op(ping_op&&) = default;
@@ -60,7 +61,7 @@ public:
     template<class DeducedHandler, class... Args>
     ping_op(DeducedHandler&& h,
             stream<NextLayer>& ws, Args&&... args)
-        : d_(std::make_shared<data>(
+        : d_(allocate_mutual<data>(alloc_type{h},
             std::forward<DeducedHandler>(h), ws,
                 std::forward<Args>(args)...))
     {
@@ -187,7 +188,9 @@ upcall:
     if(d.ws.wr_block_ == &d)
         d.ws.wr_block_ = nullptr;
     d.ws.rd_op_.maybe_invoke();
-    d.h(ec);
+    auto h = std::move(d.h);
+    d_.reset_all();
+    h(ec);
 }
 
 template<class NextLayer>

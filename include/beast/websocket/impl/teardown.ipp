@@ -9,7 +9,9 @@
 #define BEAST_WEBSOCKET_IMPL_TEARDOWN_IPP
 
 #include <beast/core/async_completion.hpp>
+#include <beast/core/handler_alloc.hpp>
 #include <beast/core/handler_concepts.hpp>
+#include <beast/core/mutual_ptr.hpp>
 #include <memory>
 
 namespace beast {
@@ -20,6 +22,9 @@ namespace detail {
 template<class Handler>
 class teardown_tcp_op
 {
+    using alloc_type =
+        handler_alloc<char, Handler>;
+
     using socket_type =
         boost::asio::ip::tcp::socket;
 
@@ -41,16 +46,16 @@ class teardown_tcp_op
         }
     };
 
-    std::shared_ptr<data> d_;
+    mutual_ptr<data> d_;
 
 public:
     template<class DeducedHandler>
     teardown_tcp_op(
         DeducedHandler&& h,
             socket_type& socket)
-        : d_(std::make_shared<data>(
-            std::forward<DeducedHandler>(h),
-                socket))
+        : d_(allocate_mutual<data>(
+            alloc_type{h}, std::forward<DeducedHandler>(
+                h), socket))
     {
         (*this)(error_code{}, 0, false);
     }
@@ -119,7 +124,9 @@ operator()(error_code ec, std::size_t, bool again)
         d.socket.close(ec);
         ec = error_code{};
     }
-    d.h(ec);
+    auto h = std::move(d.h);
+    d_.reset_all();
+    h(ec);
 }
 
 } // detail
