@@ -12,6 +12,7 @@
 #include "mime_type.hpp"
 
 #include <beast/http.hpp>
+#include <beast/core/handler_ptr.hpp>
 #include <beast/core/placeholders.hpp>
 #include <beast/core/streambuf.hpp>
 #include <boost/asio.hpp>
@@ -93,24 +94,21 @@ private:
 
         struct data
         {
+            bool cont;
             Stream& s;
             message<isRequest, Body, Fields> m;
-            Handler h;
-            bool cont;
 
-            template<class DeducedHandler>
-            data(DeducedHandler&& h_, Stream& s_,
+            data(Handler& handler, Stream& s_,
                     message<isRequest, Body, Fields>&& m_)
-                : s(s_)
+                : cont(boost_asio_handler_cont_helpers::
+                    is_continuation(handler))
+                , s(s_)
                 , m(std::move(m_))
-                , h(std::forward<DeducedHandler>(h_))
-                , cont(boost_asio_handler_cont_helpers::
-                    is_continuation(h))
             {
             }
         };
 
-        std::shared_ptr<data> d_;
+        handler_ptr<data, Handler> d_;
 
     public:
         write_op(write_op&&) = default;
@@ -118,7 +116,7 @@ private:
 
         template<class DeducedHandler, class... Args>
         write_op(DeducedHandler&& h, Stream& s, Args&&... args)
-            : d_(std::allocate_shared<data>(alloc_type{h},
+            : d_(make_handler_ptr<data, Handler>(
                 std::forward<DeducedHandler>(h), s,
                     std::forward<Args>(args)...))
         {
@@ -135,7 +133,7 @@ private:
                 beast::http::async_write(d.s, d.m, std::move(*this));
                 return;
             }
-            d.h(ec);
+            d_.invoke(ec);
         }
 
         friend
@@ -143,7 +141,7 @@ private:
             std::size_t size, write_op* op)
         {
             return boost_asio_handler_alloc_helpers::
-                allocate(size, op->d_->h);
+                allocate(size, op->d_.handler());
         }
 
         friend
@@ -151,7 +149,7 @@ private:
             void* p, std::size_t size, write_op* op)
         {
             return boost_asio_handler_alloc_helpers::
-                deallocate(p, size, op->d_->h);
+                deallocate(p, size, op->d_.handler());
         }
 
         friend
@@ -165,7 +163,7 @@ private:
         void asio_handler_invoke(Function&& f, write_op* op)
         {
             return boost_asio_handler_invoke_helpers::
-                invoke(f, op->d_->h);
+                invoke(f, op->d_.handler());
         }
     };
 

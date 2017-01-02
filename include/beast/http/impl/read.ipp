@@ -14,6 +14,7 @@
 #include <beast/http/parser_v1.hpp>
 #include <beast/core/bind_handler.hpp>
 #include <beast/core/handler_alloc.hpp>
+#include <beast/core/handler_ptr.hpp>
 #include <beast/core/stream_concepts.hpp>
 #include <boost/assert.hpp>
 
@@ -27,9 +28,6 @@ template<class Stream, class DynamicBuffer,
         class Handler>
 class read_header_op
 {
-    using alloc_type =
-        handler_alloc<char, Handler>;
-
     using parser_type =
         header_parser_v1<isRequest, Fields>;
 
@@ -38,29 +36,26 @@ class read_header_op
 
     struct data
     {
+        bool cont;
         Stream& s;
         DynamicBuffer& db;
         message_type& m;
         parser_type p;
-        Handler h;
         bool started = false;
-        bool cont;
         int state = 0;
 
-        template<class DeducedHandler>
-        data(DeducedHandler&& h_, Stream& s_,
+        data(Handler& handler, Stream& s_,
                 DynamicBuffer& sb_, message_type& m_)
-            : s(s_)
+            : cont(boost_asio_handler_cont_helpers::
+                is_continuation(handler))
+            , s(s_)
             , db(sb_)
             , m(m_)
-            , h(std::forward<DeducedHandler>(h_))
-            , cont(boost_asio_handler_cont_helpers::
-                is_continuation(h))
         {
         }
     };
 
-    std::shared_ptr<data> d_;
+    handler_ptr<data, Handler> d_;
 
 public:
     read_header_op(read_header_op&&) = default;
@@ -69,7 +64,7 @@ public:
     template<class DeducedHandler, class... Args>
     read_header_op(
             DeducedHandler&& h, Stream& s, Args&&... args)
-        : d_(std::allocate_shared<data>(alloc_type{h},
+        : d_(make_handler_ptr<data, Handler>(
             std::forward<DeducedHandler>(h), s,
                 std::forward<Args>(args)...))
     {
@@ -84,7 +79,7 @@ public:
         std::size_t size, read_header_op* op)
     {
         return boost_asio_handler_alloc_helpers::
-            allocate(size, op->d_->h);
+            allocate(size, op->d_.handler());
     }
 
     friend
@@ -92,7 +87,7 @@ public:
         void* p, std::size_t size, read_header_op* op)
     {
         return boost_asio_handler_alloc_helpers::
-            deallocate(p, size, op->d_->h);
+            deallocate(p, size, op->d_.handler());
     }
 
     friend
@@ -106,7 +101,7 @@ public:
     void asio_handler_invoke(Function&& f, read_header_op* op)
     {
         return boost_asio_handler_invoke_helpers::
-            invoke(f, op->d_->h);
+            invoke(f, op->d_.handler());
     }
 };
 
@@ -135,7 +130,7 @@ operator()(error_code ec, bool again)
             break;
         }
     }
-    d.h(ec);
+    d_.invoke(ec);
 }
 
 } // detail
@@ -206,9 +201,6 @@ template<class Stream, class DynamicBuffer,
         class Handler>
 class read_op
 {
-    using alloc_type =
-        handler_alloc<char, Handler>;
-
     using parser_type =
         parser_v1<isRequest, Body, Fields>;
 
@@ -217,29 +209,26 @@ class read_op
 
     struct data
     {
+        bool cont;
         Stream& s;
         DynamicBuffer& db;
         message_type& m;
         parser_type p;
-        Handler h;
         bool started = false;
-        bool cont;
         int state = 0;
 
-        template<class DeducedHandler>
-        data(DeducedHandler&& h_, Stream& s_,
+        data(Handler& handler, Stream& s_,
                 DynamicBuffer& sb_, message_type& m_)
-            : s(s_)
+            : cont(boost_asio_handler_cont_helpers::
+                is_continuation(handler))
+            , s(s_)
             , db(sb_)
             , m(m_)
-            , h(std::forward<DeducedHandler>(h_))
-            , cont(boost_asio_handler_cont_helpers::
-                is_continuation(h))
         {
         }
     };
 
-    std::shared_ptr<data> d_;
+    handler_ptr<data, Handler> d_;
 
 public:
     read_op(read_op&&) = default;
@@ -247,7 +236,7 @@ public:
 
     template<class DeducedHandler, class... Args>
     read_op(DeducedHandler&& h, Stream& s, Args&&... args)
-        : d_(std::allocate_shared<data>(alloc_type{h},
+        : d_(make_handler_ptr<data, Handler>(
             std::forward<DeducedHandler>(h), s,
                 std::forward<Args>(args)...))
     {
@@ -262,7 +251,7 @@ public:
         std::size_t size, read_op* op)
     {
         return boost_asio_handler_alloc_helpers::
-            allocate(size, op->d_->h);
+            allocate(size, op->d_.handler());
     }
 
     friend
@@ -270,7 +259,7 @@ public:
         void* p, std::size_t size, read_op* op)
     {
         return boost_asio_handler_alloc_helpers::
-            deallocate(p, size, op->d_->h);
+            deallocate(p, size, op->d_.handler());
     }
 
     friend
@@ -284,7 +273,7 @@ public:
     void asio_handler_invoke(Function&& f, read_op* op)
     {
         return boost_asio_handler_invoke_helpers::
-            invoke(f, op->d_->h);
+            invoke(f, op->d_.handler());
     }
 };
 
@@ -313,7 +302,7 @@ operator()(error_code ec, bool again)
             break;
         }
     }
-    d.h(ec);
+    d_.invoke(ec);
 }
 
 } // detail

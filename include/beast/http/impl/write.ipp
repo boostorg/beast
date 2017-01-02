@@ -15,6 +15,7 @@
 #include <beast/core/bind_handler.hpp>
 #include <beast/core/buffer_concepts.hpp>
 #include <beast/core/handler_alloc.hpp>
+#include <beast/core/handler_ptr.hpp>
 #include <beast/core/stream_concepts.hpp>
 #include <beast/core/streambuf.hpp>
 #include <beast/core/write_dynabuf.hpp>
@@ -99,30 +100,24 @@ namespace detail {
 template<class Stream, class Handler>
 class write_streambuf_op
 {
-    using alloc_type =
-        handler_alloc<char, Handler>;
-
     struct data
     {
+        bool cont;
         Stream& s;
         streambuf sb;
-        Handler h;
-        bool cont;
         int state = 0;
 
-        template<class DeducedHandler>
-        data(DeducedHandler&& h_, Stream& s_,
+        data(Handler& handler, Stream& s_,
                 streambuf&& sb_)
-            : s(s_)
+            : cont(boost_asio_handler_cont_helpers::
+                is_continuation(handler))
+            , s(s_)
             , sb(std::move(sb_))
-            , h(std::forward<DeducedHandler>(h_))
-            , cont(boost_asio_handler_cont_helpers::
-                is_continuation(h))
         {
         }
     };
 
-    std::shared_ptr<data> d_;
+    handler_ptr<data, Handler> d_;
 
 public:
     write_streambuf_op(write_streambuf_op&&) = default;
@@ -131,17 +126,11 @@ public:
     template<class DeducedHandler, class... Args>
     write_streambuf_op(DeducedHandler&& h, Stream& s,
             Args&&... args)
-        : d_(std::allocate_shared<data>(alloc_type{h},
-            std::forward<DeducedHandler>(h), s,
-                std::forward<Args>(args)...))
+        : d_(make_handler_ptr<data, Handler>(
+            std::forward<DeducedHandler>(h),
+                s, std::forward<Args>(args)...))
     {
         (*this)(error_code{}, 0, false);
-    }
-
-    explicit
-    write_streambuf_op(std::shared_ptr<data> d)
-        : d_(std::move(d))
-    {
     }
 
     void
@@ -153,7 +142,7 @@ public:
         std::size_t size, write_streambuf_op* op)
     {
         return boost_asio_handler_alloc_helpers::
-            allocate(size, op->d_->h);
+            allocate(size, op->d_.handler());
     }
 
     friend
@@ -161,7 +150,7 @@ public:
         void* p, std::size_t size, write_streambuf_op* op)
     {
         return boost_asio_handler_alloc_helpers::
-            deallocate(p, size, op->d_->h);
+            deallocate(p, size, op->d_.handler());
     }
 
     friend
@@ -175,7 +164,7 @@ public:
     void asio_handler_invoke(Function&& f, write_streambuf_op* op)
     {
         return boost_asio_handler_invoke_helpers::
-            invoke(f, op->d_->h);
+            invoke(f, op->d_.handler());
     }
 };
 
@@ -199,7 +188,7 @@ operator()(error_code ec, std::size_t, bool again)
         }
         }
     }
-    d.h(ec);
+    d_.invoke(ec);
 }
 
 } // detail
@@ -301,29 +290,23 @@ template<class Stream, class Handler,
     bool isRequest, class Body, class Fields>
 class write_op
 {
-    using alloc_type =
-        handler_alloc<char, Handler>;
-
     struct data
     {
+        bool cont;
         Stream& s;
         // VFALCO How do we use handler_alloc in write_preparation?
         write_preparation<
             isRequest, Body, Fields> wp;
-        Handler h;
         resume_context resume;
         resume_context copy;
-        bool cont;
         int state = 0;
 
-        template<class DeducedHandler>
-        data(DeducedHandler&& h_, Stream& s_,
+        data(Handler& handler, Stream& s_,
                 message<isRequest, Body, Fields> const& m_)
-            : s(s_)
+            : cont(boost_asio_handler_cont_helpers::
+                is_continuation(handler))
+            , s(s_)
             , wp(m_)
-            , h(std::forward<DeducedHandler>(h_))
-            , cont(boost_asio_handler_cont_helpers::
-                is_continuation(h))
         {
         }
     };
@@ -382,7 +365,7 @@ class write_op
         }
     };
 
-    std::shared_ptr<data> d_;
+    handler_ptr<data, Handler> d_;
 
 public:
     write_op(write_op&&) = default;
@@ -390,7 +373,7 @@ public:
 
     template<class DeducedHandler, class... Args>
     write_op(DeducedHandler&& h, Stream& s, Args&&... args)
-        : d_(std::allocate_shared<data>(alloc_type{h},
+        : d_(make_handler_ptr<data, Handler>(
             std::forward<DeducedHandler>(h), s,
                 std::forward<Args>(args)...))
     {
@@ -410,7 +393,7 @@ public:
     }
 
     explicit
-    write_op(std::shared_ptr<data> d)
+    write_op(handler_ptr<data, Handler> d)
         : d_(std::move(d))
     {
     }
@@ -424,7 +407,7 @@ public:
         std::size_t size, write_op* op)
     {
         return boost_asio_handler_alloc_helpers::
-            allocate(size, op->d_->h);
+            allocate(size, op->d_.handler());
     }
 
     friend
@@ -432,7 +415,7 @@ public:
         void* p, std::size_t size, write_op* op)
     {
         return boost_asio_handler_alloc_helpers::
-            deallocate(p, size, op->d_->h);
+            deallocate(p, size, op->d_.handler());
     }
 
     friend
@@ -446,7 +429,7 @@ public:
     void asio_handler_invoke(Function&& f, write_op* op)
     {
         return boost_asio_handler_invoke_helpers::
-            invoke(f, op->d_->h);
+            invoke(f, op->d_.handler());
     }
 };
 
@@ -552,9 +535,9 @@ operator()(error_code ec, std::size_t, bool again)
             break;
         }
     }
-    d.h(ec);
-    d.resume = {};
     d.copy = {};
+    d.resume = {};
+    d_.invoke(ec);
 }
 
 template<class SyncWriteStream, class DynamicBuffer>

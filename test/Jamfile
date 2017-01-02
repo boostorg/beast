@@ -27,6 +27,7 @@ unit-test core-tests :
     core/error.cpp
     core/handler_alloc.cpp
     core/handler_concepts.cpp
+    core/handler_ptr.cpp
     core/placeholders.cpp
     core/prepare_buffers.cpp
     core/static_streambuf.cpp

@@ -1,6 +1,7 @@
 1.0.0-b22
 
 * Fix broken Intellisense
+* Implement the Asio deallocation-before-invocation guarantee
 
 --------------------------------------------------------------------------------
 

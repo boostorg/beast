@@ -13,6 +13,7 @@
 #include <beast/http/read.hpp>
 #include <beast/http/write.hpp>
 #include <beast/core/handler_alloc.hpp>
+#include <beast/core/handler_ptr.hpp>
 #include <beast/core/stream_concepts.hpp>
 #include <boost/assert.hpp>
 #include <memory>
@@ -33,29 +34,26 @@ class stream<NextLayer>::handshake_op
 
     struct data
     {
+        bool cont;
         stream<NextLayer>& ws;
-        Handler h;
         std::string key;
         http::request<http::empty_body> req;
         http::response<http::string_body> resp;
-        bool cont;
         int state = 0;
 
-        template<class DeducedHandler>
-        data(DeducedHandler&& h_, stream<NextLayer>& ws_,
+        data(Handler& handler, stream<NextLayer>& ws_,
             boost::string_ref const& host,
                 boost::string_ref const& resource)
-            : ws(ws_)
-            , h(std::forward<DeducedHandler>(h_))
+            : cont(boost_asio_handler_cont_helpers::
+                is_continuation(handler))
+            , ws(ws_)
             , req(ws.build_request(host, resource, key))
-            , cont(boost_asio_handler_cont_helpers::
-                is_continuation(h))
         {
             ws.reset();
         }
     };
 
-    std::shared_ptr<data> d_;
+    handler_ptr<data, Handler> d_;
 
 public:
     handshake_op(handshake_op&&) = default;
@@ -64,7 +62,7 @@ public:
     template<class DeducedHandler, class... Args>
     handshake_op(DeducedHandler&& h,
             stream<NextLayer>& ws, Args&&... args)
-        : d_(std::allocate_shared<data>(alloc_type{h},
+        : d_(make_handler_ptr<data, Handler>(
             std::forward<DeducedHandler>(h), ws,
                 std::forward<Args>(args)...))
     {
@@ -79,7 +77,7 @@ public:
         std::size_t size, handshake_op* op)
     {
         return boost_asio_handler_alloc_helpers::
-            allocate(size, op->d_->h);
+            allocate(size, op->d_.handler());
     }
 
     friend
@@ -87,7 +85,7 @@ public:
         void* p, std::size_t size, handshake_op* op)
     {
         return boost_asio_handler_alloc_helpers::
-            deallocate(p, size, op->d_->h);
+            deallocate(p, size, op->d_.handler());
     }
 
     friend
@@ -101,7 +99,7 @@ public:
     void asio_handler_invoke(Function&& f, handshake_op* op)
     {
         return boost_asio_handler_invoke_helpers::
-            invoke(f, op->d_->h);
+            invoke(f, op->d_.handler());
     }
 };
 
@@ -147,7 +145,7 @@ operator()(error_code ec, bool again)
         }
         }
     }
-    d.h(ec);
+    d_.invoke(ec);
 }
 
 template<class NextLayer>

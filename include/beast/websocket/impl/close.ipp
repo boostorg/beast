@@ -9,6 +9,7 @@
 #define BEAST_WEBSOCKET_IMPL_CLOSE_IPP
 
 #include <beast/core/handler_alloc.hpp>
+#include <beast/core/handler_ptr.hpp>
 #include <beast/core/static_streambuf.hpp>
 #include <beast/core/stream_concepts.hpp>
 #include <memory>
@@ -30,28 +31,25 @@ class stream<NextLayer>::close_op
 
     struct data : op
     {
+        bool cont;
         stream<NextLayer>& ws;
         close_reason cr;
-        Handler h;
         fb_type fb;
-        bool cont;
         int state = 0;
 
-        template<class DeducedHandler>
-        data(DeducedHandler&& h_, stream<NextLayer>& ws_,
+        data(Handler& handler, stream<NextLayer>& ws_,
                 close_reason const& cr_)
-            : ws(ws_)
+            : cont(boost_asio_handler_cont_helpers::
+                is_continuation(handler))
+            , ws(ws_)
             , cr(cr_)
-            , h(std::forward<DeducedHandler>(h_))
-            , cont(boost_asio_handler_cont_helpers::
-                is_continuation(h))
         {
             ws.template write_close<
                 static_streambuf>(fb, cr);
         }
     };
 
-    std::shared_ptr<data> d_;
+    handler_ptr<data, Handler> d_;
 
 public:
     close_op(close_op&&) = default;
@@ -60,7 +58,7 @@ public:
     template<class DeducedHandler, class... Args>
     close_op(DeducedHandler&& h,
             stream<NextLayer>& ws, Args&&... args)
-        : d_(std::allocate_shared<data>(alloc_type{h},
+        : d_(make_handler_ptr<data, Handler>(
             std::forward<DeducedHandler>(h), ws,
                 std::forward<Args>(args)...))
     {
@@ -83,7 +81,7 @@ public:
         std::size_t size, close_op* op)
     {
         return boost_asio_handler_alloc_helpers::
-            allocate(size, op->d_->h);
+            allocate(size, op->d_.handler());
     }
 
     friend
@@ -91,7 +89,7 @@ public:
         void* p, std::size_t size, close_op* op)
     {
         return boost_asio_handler_alloc_helpers::
-            deallocate(p, size, op->d_->h);
+            deallocate(p, size, op->d_.handler());
     }
 
     friend
@@ -105,7 +103,7 @@ public:
     void asio_handler_invoke(Function&& f, close_op* op)
     {
         return boost_asio_handler_invoke_helpers::
-            invoke(f, op->d_->h);
+            invoke(f, op->d_.handler());
     }
 };
 
@@ -188,7 +186,7 @@ upcall:
     if(d.ws.wr_block_ == &d)
         d.ws.wr_block_ = nullptr;
     d.ws.rd_op_.maybe_invoke();
-    d.h(ec);
+    d_.invoke(ec);
 }
 
 template<class NextLayer>
