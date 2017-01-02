@@ -14,6 +14,7 @@
 #include <beast/http/string_body.hpp>
 #include <beast/http/write.hpp>
 #include <beast/core/handler_alloc.hpp>
+#include <beast/core/handler_ptr.hpp>
 #include <beast/core/prepare_buffers.hpp>
 #include <beast/core/detail/type_traits.hpp>
 #include <boost/assert.hpp>
@@ -30,27 +31,21 @@ template<class NextLayer>
 template<class Handler>
 class stream<NextLayer>::response_op
 {
-    using alloc_type =
-        handler_alloc<char, Handler>;
-
     struct data
     {
+        bool cont;
         stream<NextLayer>& ws;
         http::response<http::string_body> resp;
-        Handler h;
         error_code final_ec;
-        bool cont;
         int state = 0;
 
-        template<class DeducedHandler,
-            class Body, class Fields>
-        data(DeducedHandler&& h_, stream<NextLayer>& ws_,
+        template<class Body, class Fields>
+        data(Handler&, stream<NextLayer>& ws_,
             http::request<Body, Fields> const& req,
                 bool cont_)
-            : ws(ws_)
+            : cont(cont_)
+            , ws(ws_)
             , resp(ws_.build_response(req))
-            , h(std::forward<DeducedHandler>(h_))
-            , cont(cont_)
         {
             // can't call stream::reset() here
             // otherwise accept_op will malfunction
@@ -60,7 +55,7 @@ class stream<NextLayer>::response_op
         }
     };
 
-    std::shared_ptr<data> d_;
+    handler_ptr<data, Handler> d_;
 
 public:
     response_op(response_op&&) = default;
@@ -69,7 +64,7 @@ public:
     template<class DeducedHandler, class... Args>
     response_op(DeducedHandler&& h,
             stream<NextLayer>& ws, Args&&... args)
-        : d_(std::allocate_shared<data>(alloc_type{h},
+        : d_(make_handler_ptr<data, Handler>(
             std::forward<DeducedHandler>(h), ws,
                 std::forward<Args>(args)...))
     {
@@ -84,7 +79,7 @@ public:
         std::size_t size, response_op* op)
     {
         return boost_asio_handler_alloc_helpers::
-            allocate(size, op->d_->h);
+            allocate(size, op->d_.handler());
     }
 
     friend
@@ -92,7 +87,7 @@ public:
         void* p, std::size_t size, response_op* op)
     {
         return boost_asio_handler_alloc_helpers::
-            deallocate(p, size, op->d_->h);
+            deallocate(p, size, op->d_.handler());
     }
 
     friend
@@ -106,7 +101,7 @@ public:
     void asio_handler_invoke(Function&& f, response_op* op)
     {
         return boost_asio_handler_invoke_helpers::
-            invoke(f, op->d_->h);
+            invoke(f, op->d_.handler());
     }
 };
 
@@ -138,7 +133,7 @@ operator()(error_code ec, bool again)
             break;
         }
     }
-    d.h(ec);
+    d_.invoke(ec);
 }
 
 //------------------------------------------------------------------------------
@@ -149,24 +144,19 @@ template<class NextLayer>
 template<class Handler>
 class stream<NextLayer>::accept_op
 {
-    using alloc_type =
-        handler_alloc<char, Handler>;
-
     struct data
     {
+        bool cont;
         stream<NextLayer>& ws;
         http::request<http::string_body> req;
-        Handler h;
-        bool cont;
         int state = 0;
 
-        template<class DeducedHandler, class Buffers>
-        data(DeducedHandler&& h_, stream<NextLayer>& ws_,
+        template<class Buffers>
+        data(Handler& handler, stream<NextLayer>& ws_,
                 Buffers const& buffers)
-            : ws(ws_)
-            , h(std::forward<DeducedHandler>(h_))
-            , cont(boost_asio_handler_cont_helpers::
-                is_continuation(h))
+            : cont(boost_asio_handler_cont_helpers::
+                is_continuation(handler))
+            , ws(ws_)
         {
             using boost::asio::buffer_copy;
             using boost::asio::buffer_size;
@@ -177,7 +167,7 @@ class stream<NextLayer>::accept_op
         }
     };
 
-    std::shared_ptr<data> d_;
+    handler_ptr<data, Handler> d_;
 
 public:
     accept_op(accept_op&&) = default;
@@ -186,7 +176,7 @@ public:
     template<class DeducedHandler, class... Args>
     accept_op(DeducedHandler&& h,
             stream<NextLayer>& ws, Args&&... args)
-        : d_(std::allocate_shared<data>(alloc_type{h},
+        : d_(make_handler_ptr<data, Handler>(
             std::forward<DeducedHandler>(h), ws,
                 std::forward<Args>(args)...))
     {
@@ -206,7 +196,7 @@ public:
         std::size_t size, accept_op* op)
     {
         return boost_asio_handler_alloc_helpers::
-            allocate(size, op->d_->h);
+            allocate(size, op->d_.handler());
     }
 
     friend
@@ -214,7 +204,7 @@ public:
         void* p, std::size_t size, accept_op* op)
     {
         return boost_asio_handler_alloc_helpers::
-            deallocate(p, size, op->d_->h);
+            deallocate(p, size, op->d_.handler());
     }
 
     friend
@@ -228,7 +218,7 @@ public:
     void asio_handler_invoke(Function&& f, accept_op* op)
     {
         return boost_asio_handler_invoke_helpers::
-            invoke(f, op->d_->h);
+            invoke(f, op->d_.handler());
     }
 };
 
@@ -256,19 +246,17 @@ operator()(error_code const& ec,
 
         // got message
         case 1:
+        {
             // respond to request
-#if 1
-            // VFALCO I have no idea why passing std::move(*this) crashes
-            d.state = 99;
-            d.ws.async_accept(d.req, *this);
-#else
+            auto& ws = d.ws;
+            auto req = std::move(d.req);
             response_op<Handler>{
-                std::move(d.h), d.ws, d.req, true};
-#endif
+                d_.release_handler(), ws, req, true};
             return;
         }
+        }
     }
-    d.h(ec);
+    d_.invoke(ec);
 }
 
 template<class NextLayer>

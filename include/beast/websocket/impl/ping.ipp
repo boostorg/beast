@@ -10,6 +10,7 @@
 
 #include <beast/core/bind_handler.hpp>
 #include <beast/core/handler_alloc.hpp>
+#include <beast/core/handler_ptr.hpp>
 #include <beast/core/stream_concepts.hpp>
 #include <beast/websocket/detail/frame.hpp>
 #include <memory>
@@ -25,24 +26,18 @@ template<class NextLayer>
 template<class Handler>
 class stream<NextLayer>::ping_op
 {
-    using alloc_type =
-        handler_alloc<char, Handler>;
-
     struct data : op
     {
-        stream<NextLayer>& ws;
-        Handler h;
-        detail::frame_streambuf fb;
         bool cont;
+        stream<NextLayer>& ws;
+        detail::frame_streambuf fb;
         int state = 0;
 
-        template<class DeducedHandler>
-        data(DeducedHandler&& h_, stream<NextLayer>& ws_,
+        data(Handler& handler, stream<NextLayer>& ws_,
                 opcode op_, ping_data const& payload)
-            : ws(ws_)
-            , h(std::forward<DeducedHandler>(h_))
-            , cont(boost_asio_handler_cont_helpers::
-                is_continuation(h))
+            : cont(boost_asio_handler_cont_helpers::
+                is_continuation(handler))
+            , ws(ws_)
         {
             using boost::asio::buffer;
             using boost::asio::buffer_copy;
@@ -51,7 +46,7 @@ class stream<NextLayer>::ping_op
         }
     };
 
-    std::shared_ptr<data> d_;
+    handler_ptr<data, Handler> d_;
 
 public:
     ping_op(ping_op&&) = default;
@@ -60,7 +55,7 @@ public:
     template<class DeducedHandler, class... Args>
     ping_op(DeducedHandler&& h,
             stream<NextLayer>& ws, Args&&... args)
-        : d_(std::make_shared<data>(
+        : d_(make_handler_ptr<data, Handler>(
             std::forward<DeducedHandler>(h), ws,
                 std::forward<Args>(args)...))
     {
@@ -81,7 +76,7 @@ public:
         std::size_t size, ping_op* op)
     {
         return boost_asio_handler_alloc_helpers::
-            allocate(size, op->d_->h);
+            allocate(size, op->d_.handler());
     }
 
     friend
@@ -89,7 +84,7 @@ public:
         void* p, std::size_t size, ping_op* op)
     {
         return boost_asio_handler_alloc_helpers::
-            deallocate(p, size, op->d_->h);
+            deallocate(p, size, op->d_.handler());
     }
 
     friend
@@ -103,7 +98,7 @@ public:
     void asio_handler_invoke(Function&& f, ping_op* op)
     {
         return boost_asio_handler_invoke_helpers::
-            invoke(f, op->d_->h);
+            invoke(f, op->d_.handler());
     }
 };
 
@@ -187,7 +182,7 @@ upcall:
     if(d.ws.wr_block_ == &d)
         d.ws.wr_block_ = nullptr;
     d.ws.rd_op_.maybe_invoke();
-    d.h(ec);
+    d_.invoke(ec);
 }
 
 template<class NextLayer>

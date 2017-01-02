@@ -8,6 +8,7 @@
 #ifndef BEAST_WEBSOCKET_DETAIL_INVOKABLE_HPP
 #define BEAST_WEBSOCKET_DETAIL_INVOKABLE_HPP
 
+#include <beast/core/handler_ptr.hpp>
 #include <boost/assert.hpp>
 #include <array>
 #include <memory>
@@ -64,8 +65,19 @@ class invokable
 
     struct exemplar
     {
-        std::shared_ptr<int> _;
-        void operator()(){}
+        struct H
+        {
+            void operator()();
+        };
+
+        struct T
+        {
+            using handler_type = H;
+        };
+
+        handler_ptr<T, H> hp;
+
+        void operator()();
     };
 
     using buf_type = char[sizeof(holder<exemplar>)];

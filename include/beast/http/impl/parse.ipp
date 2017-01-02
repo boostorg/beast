@@ -11,6 +11,7 @@
 #include <beast/http/concepts.hpp>
 #include <beast/core/bind_handler.hpp>
 #include <beast/core/handler_alloc.hpp>
+#include <beast/core/handler_ptr.hpp>
 #include <beast/core/stream_concepts.hpp>
 #include <boost/assert.hpp>
 
@@ -23,34 +24,28 @@ template<class Stream,
     class DynamicBuffer, class Parser, class Handler>
 class parse_op
 {
-    using alloc_type =
-        handler_alloc<char, Handler>;
-
     struct data
     {
+        bool cont;
         Stream& s;
         DynamicBuffer& db;
         Parser& p;
-        Handler h;
         bool got_some = false;
-        bool cont;
         int state = 0;
 
-        template<class DeducedHandler>
-        data(DeducedHandler&& h_, Stream& s_,
+        data(Handler& handler, Stream& s_,
                 DynamicBuffer& sb_, Parser& p_)
-            : s(s_)
+            : cont(boost_asio_handler_cont_helpers::
+                is_continuation(handler))
+            , s(s_)
             , db(sb_)
             , p(p_)
-            , h(std::forward<DeducedHandler>(h_))
-            , cont(boost_asio_handler_cont_helpers::
-                is_continuation(h))
         {
             BOOST_ASSERT(! p.complete());
         }
     };
 
-    std::shared_ptr<data> d_;
+    handler_ptr<data, Handler> d_;
 
 public:
     parse_op(parse_op&&) = default;
@@ -58,7 +53,7 @@ public:
 
     template<class DeducedHandler, class... Args>
     parse_op(DeducedHandler&& h, Stream& s, Args&&... args)
-        : d_(std::allocate_shared<data>(alloc_type{h},
+        : d_(make_handler_ptr<data, Handler>(
             std::forward<DeducedHandler>(h), s,
                 std::forward<Args>(args)...))
     {
@@ -74,7 +69,7 @@ public:
         std::size_t size, parse_op* op)
     {
         return boost_asio_handler_alloc_helpers::
-            allocate(size, op->d_->h);
+            allocate(size, op->d_.handler());
     }
 
     friend
@@ -82,7 +77,7 @@ public:
         void* p, std::size_t size, parse_op* op)
     {
         return boost_asio_handler_alloc_helpers::
-            deallocate(p, size, op->d_->h);
+            deallocate(p, size, op->d_.handler());
     }
 
     friend
@@ -96,7 +91,7 @@ public:
     void asio_handler_invoke(Function&& f, parse_op* op)
     {
         return boost_asio_handler_invoke_helpers::
-            invoke(f, op->d_->h);
+            invoke(f, op->d_.handler());
     }
 };
 
@@ -214,7 +209,7 @@ operator()(error_code ec, std::size_t bytes_transferred, bool again)
         }
         }
     }
-    d.h(ec);
+    d_.invoke(ec);
 }
 
 } // detail

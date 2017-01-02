@@ -22,6 +22,7 @@ add_executable (core-tests
     error.cpp
     handler_alloc.cpp
     handler_concepts.cpp
+    handler_ptr.cpp
     placeholders.cpp
     prepare_buffers.cpp
     static_streambuf.cpp

@@ -13,6 +13,7 @@
 #include <beast/core/buffer_concepts.hpp>
 #include <beast/core/consuming_buffers.hpp>
 #include <beast/core/handler_alloc.hpp>
+#include <beast/core/handler_ptr.hpp>
 #include <beast/core/prepare_buffers.hpp>
 #include <beast/core/static_streambuf.hpp>
 #include <beast/core/stream_concepts.hpp>
@@ -97,31 +98,27 @@ template<class NextLayer>
 template<class Buffers, class Handler>
 class stream<NextLayer>::write_frame_op
 {
-    using alloc_type =
-        handler_alloc<char, Handler>;
-
     struct data : op
     {
+        Handler& handler;
+        bool cont;
         stream<NextLayer>& ws;
         consuming_buffers<Buffers> cb;
-        Handler h;
         detail::frame_header fh;
         detail::fh_streambuf fh_buf;
         detail::prepared_key_type key;
         void* tmp;
         std::size_t tmp_size;
         std::uint64_t remain;
-        bool cont;
         int state = 0;
 
-        template<class DeducedHandler>
-        data(DeducedHandler&& h_, stream<NextLayer>& ws_,
+        data(Handler& handler_, stream<NextLayer>& ws_,
                 bool fin, Buffers const& bs)
-            : ws(ws_)
-            , cb(bs)
-            , h(std::forward<DeducedHandler>(h_))
+            : handler(handler_)
             , cont(boost_asio_handler_cont_helpers::
-                is_continuation(h))
+                is_continuation(handler))
+            , ws(ws_)
+            , cb(bs)
         {
             using beast::detail::clamp;
             fh.op = ws.wr_.cont ?
@@ -139,7 +136,7 @@ class stream<NextLayer>::write_frame_op
                 detail::prepare_key(key, fh.key);
                 tmp_size = clamp(fh.len, ws.wr_buf_size_);
                 tmp = boost_asio_handler_alloc_helpers::
-                    allocate(tmp_size, h);
+                    allocate(tmp_size, handler);
                 remain = fh.len;
             }
             else
@@ -153,11 +150,11 @@ class stream<NextLayer>::write_frame_op
         {
             if(tmp)
                 boost_asio_handler_alloc_helpers::
-                    deallocate(tmp, tmp_size, h);
+                    deallocate(tmp, tmp_size, handler);
         }
     };
 
-    std::shared_ptr<data> d_;
+    handler_ptr<data, Handler> d_;
 
 public:
     write_frame_op(write_frame_op&&) = default;
@@ -166,9 +163,9 @@ public:
     template<class DeducedHandler, class... Args>
     write_frame_op(DeducedHandler&& h,
             stream<NextLayer>& ws, Args&&... args)
-        : d_(std::make_shared<data>(
-            std::forward<DeducedHandler>(h), ws,
-                std::forward<Args>(args)...))
+        : d_(make_handler_ptr<data, Handler>(
+            std::forward<DeducedHandler>(h),
+                ws, std::forward<Args>(args)...))
     {
         (*this)(error_code{}, false);
     }
@@ -187,7 +184,7 @@ public:
         std::size_t size, write_frame_op* op)
     {
         return boost_asio_handler_alloc_helpers::
-            allocate(size, op->d_->h);
+            allocate(size, op->d_.handler());
     }
 
     friend
@@ -195,7 +192,7 @@ public:
         void* p, std::size_t size, write_frame_op* op)
     {
         return boost_asio_handler_alloc_helpers::
-            deallocate(p, size, op->d_->h);
+            deallocate(p, size, op->d_.handler());
     }
 
     friend
@@ -209,7 +206,7 @@ public:
     void asio_handler_invoke(Function&& f, write_frame_op* op)
     {
         return boost_asio_handler_invoke_helpers::
-            invoke(f, op->d_->h);
+            invoke(f, op->d_.handler());
     }
 };
 
@@ -333,16 +330,10 @@ operator()(error_code ec, bool again)
         }
     }
 upcall:
-    if(d.tmp)
-    {
-        boost_asio_handler_alloc_helpers::
-            deallocate(d.tmp, d.tmp_size, d.h);
-        d.tmp = nullptr;
-    }
     if(d.ws.wr_block_ == &d)
         d.ws.wr_block_ = nullptr;
     d.ws.rd_op_.maybe_invoke();
-    d.h(ec);
+    d_.invoke(ec);
 }
 
 template<class NextLayer>
@@ -532,32 +523,26 @@ template<class NextLayer>
 template<class Buffers, class Handler>
 class stream<NextLayer>::write_op
 {
-    using alloc_type =
-        handler_alloc<char, Handler>;
-
     struct data : op
     {
+        bool cont;
         stream<NextLayer>& ws;
         consuming_buffers<Buffers> cb;
-        Handler h;
         std::size_t remain;
-        bool cont;
         int state = 0;
 
-        template<class DeducedHandler>
-        data(DeducedHandler&& h_,
-            stream<NextLayer>& ws_, Buffers const& bs)
-            : ws(ws_)
+        data(Handler& handler, stream<NextLayer>& ws_,
+                Buffers const& bs)
+            : cont(boost_asio_handler_cont_helpers::
+                is_continuation(handler))
+            , ws(ws_)
             , cb(bs)
-            , h(std::forward<DeducedHandler>(h_))
             , remain(boost::asio::buffer_size(cb))
-            , cont(boost_asio_handler_cont_helpers::
-                is_continuation(h))
         {
         }
     };
 
-    std::shared_ptr<data> d_;
+    handler_ptr<data, Handler> d_;
 
 public:
     write_op(write_op&&) = default;
@@ -567,7 +552,7 @@ public:
     explicit
     write_op(DeducedHandler&& h,
             stream<NextLayer>& ws, Args&&... args)
-        : d_(std::allocate_shared<data>(alloc_type{h},
+        : d_(make_handler_ptr<data, Handler>(
             std::forward<DeducedHandler>(h), ws,
                 std::forward<Args>(args)...))
     {
@@ -581,7 +566,7 @@ public:
         std::size_t size, write_op* op)
     {
         return boost_asio_handler_alloc_helpers::
-            allocate(size, op->d_->h);
+            allocate(size, op->d_.handler());
     }
 
     friend
@@ -589,7 +574,7 @@ public:
         void* p, std::size_t size, write_op* op)
     {
         return boost_asio_handler_alloc_helpers::
-            deallocate(p, size, op->d_->h);
+            deallocate(p, size, op->d_.handler());
     }
 
     friend
@@ -603,7 +588,7 @@ public:
     void asio_handler_invoke(Function&& f, write_op* op)
     {
         return boost_asio_handler_invoke_helpers::
-            invoke(f, op->d_->h);
+            invoke(f, op->d_.handler());
     }
 };
 
@@ -637,7 +622,7 @@ operator()(error_code ec, bool again)
             break;
         }
     }
-    d.h(ec);
+    d_.invoke(ec);
 }
 
 template<class NextLayer>

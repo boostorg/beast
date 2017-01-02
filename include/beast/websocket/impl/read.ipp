@@ -11,6 +11,7 @@
 #include <beast/websocket/teardown.hpp>
 #include <beast/core/buffer_concepts.hpp>
 #include <beast/core/handler_alloc.hpp>
+#include <beast/core/handler_ptr.hpp>
 #include <beast/core/prepare_buffers.hpp>
 #include <beast/core/static_streambuf.hpp>
 #include <beast/core/stream_concepts.hpp>
@@ -31,9 +32,6 @@ template<class NextLayer>
 template<class DynamicBuffer, class Handler>
 class stream<NextLayer>::read_frame_op
 {
-    using alloc_type =
-        handler_alloc<char, Handler>;
-
     using fb_type =
         detail::frame_streambuf;
 
@@ -45,30 +43,27 @@ class stream<NextLayer>::read_frame_op
 
     struct data : op
     {
+        bool cont;
         stream<NextLayer>& ws;
         frame_info& fi;
         DynamicBuffer& db;
-        Handler h;
         fb_type fb;
         boost::optional<dmb_type> dmb;
         boost::optional<fmb_type> fmb;
-        bool cont;
         int state = 0;
 
-        template<class DeducedHandler>
-        data(DeducedHandler&& h_, stream<NextLayer>& ws_,
+        data(Handler& handler, stream<NextLayer>& ws_,
                 frame_info& fi_, DynamicBuffer& sb_)
-            : ws(ws_)
+            : cont(boost_asio_handler_cont_helpers::
+                is_continuation(handler))
+            , ws(ws_)
             , fi(fi_)
             , db(sb_)
-            , h(std::forward<DeducedHandler>(h_))
-            , cont(boost_asio_handler_cont_helpers::
-                is_continuation(h))
         {
         }
     };
 
-    std::shared_ptr<data> d_;
+    handler_ptr<data, Handler> d_;
 
 public:
     read_frame_op(read_frame_op&&) = default;
@@ -77,7 +72,7 @@ public:
     template<class DeducedHandler, class... Args>
     read_frame_op(DeducedHandler&& h,
             stream<NextLayer>& ws, Args&&... args)
-        : d_(std::allocate_shared<data>(alloc_type{h},
+        : d_(make_handler_ptr<data, Handler>(
             std::forward<DeducedHandler>(h), ws,
                 std::forward<Args>(args)...))
     {
@@ -105,7 +100,7 @@ public:
         std::size_t size, read_frame_op* op)
     {
         return boost_asio_handler_alloc_helpers::
-            allocate(size, op->d_->h);
+            allocate(size, op->d_.handler());
     }
 
     friend
@@ -113,7 +108,7 @@ public:
         void* p, std::size_t size, read_frame_op* op)
     {
         return boost_asio_handler_alloc_helpers::
-            deallocate(p, size, op->d_->h);
+            deallocate(p, size, op->d_.handler());
     }
 
     friend
@@ -127,7 +122,7 @@ public:
     void asio_handler_invoke(Function&& f, read_frame_op* op)
     {
         return boost_asio_handler_invoke_helpers::
-            invoke(f, op->d_->h);
+            invoke(f, op->d_.handler());
     }
 };
 
@@ -545,7 +540,7 @@ upcall:
     if(d.ws.wr_block_ == &d)
         d.ws.wr_block_ = nullptr;
     d.ws.wr_op_.maybe_invoke();
-    d.h(ec);
+    d_.invoke(ec);
 }
 
 template<class NextLayer>
@@ -734,34 +729,28 @@ template<class NextLayer>
 template<class DynamicBuffer, class Handler>
 class stream<NextLayer>::read_op
 {
-    using alloc_type =
-        handler_alloc<char, Handler>;
-
     struct data
     {
+        bool cont;
         stream<NextLayer>& ws;
         opcode& op;
         DynamicBuffer& db;
-        Handler h;
         frame_info fi;
-        bool cont;
         int state = 0;
 
-        template<class DeducedHandler>
-        data(DeducedHandler&& h_,
+        data(Handler& handler,
             stream<NextLayer>& ws_, opcode& op_,
                 DynamicBuffer& sb_)
-            : ws(ws_)
+            : cont(boost_asio_handler_cont_helpers::
+                is_continuation(handler))
+            , ws(ws_)
             , op(op_)
             , db(sb_)
-            , h(std::forward<DeducedHandler>(h_))
-            , cont(boost_asio_handler_cont_helpers::
-                is_continuation(h))
         {
         }
     };
 
-    std::shared_ptr<data> d_;
+    handler_ptr<data, Handler> d_;
 
 public:
     read_op(read_op&&) = default;
@@ -770,7 +759,7 @@ public:
     template<class DeducedHandler, class... Args>
     read_op(DeducedHandler&& h,
             stream<NextLayer>& ws, Args&&... args)
-        : d_(std::allocate_shared<data>(alloc_type{h},
+        : d_(make_handler_ptr<data, Handler>(
             std::forward<DeducedHandler>(h), ws,
                 std::forward<Args>(args)...))
     {
@@ -785,7 +774,7 @@ public:
         std::size_t size, read_op* op)
     {
         return boost_asio_handler_alloc_helpers::
-            allocate(size, op->d_->h);
+            allocate(size, op->d_.handler());
     }
 
     friend
@@ -793,7 +782,7 @@ public:
         void* p, std::size_t size, read_op* op)
     {
         return boost_asio_handler_alloc_helpers::
-            deallocate(p, size, op->d_->h);
+            deallocate(p, size, op->d_.handler());
     }
 
     friend
@@ -807,7 +796,7 @@ public:
     void asio_handler_invoke(Function&& f, read_op* op)
     {
         return boost_asio_handler_invoke_helpers::
-            invoke(f, op->d_->h);
+            invoke(f, op->d_.handler());
     }
 };
 
@@ -847,7 +836,7 @@ operator()(error_code const& ec, bool again)
         }
     }
 upcall:
-    d.h(ec);
+    d_.invoke(ec);
 }
 
 template<class NextLayer>
