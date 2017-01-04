@@ -8,6 +8,7 @@
 #ifndef BEAST_DETAIL_TYPE_TRAITS_HPP
 #define BEAST_DETAIL_TYPE_TRAITS_HPP
 
+#include <tuple>
 #include <type_traits>
 
 namespace beast {
