@@ -8,6 +8,7 @@
 #ifndef BEAST_IMPL_HANDLER_PTR_HPP
 #define BEAST_IMPL_HANDLER_PTR_HPP
 
+#include <beast/core/handler_helpers.hpp>
 #include <boost/asio/detail/handler_alloc_helpers.hpp>
 #include <boost/assert.hpp>
 #include <memory>
@@ -23,7 +24,7 @@ P(DeducedHandler&& h, Args&&... args)
     , handler(std::forward<DeducedHandler>(h))
 {
     t = reinterpret_cast<T*>(
-        boost_asio_handler_alloc_helpers::
+        beast_asio_helpers::
             allocate(sizeof(T), handler));
     try
     {
@@ -32,7 +33,7 @@ P(DeducedHandler&& h, Args&&... args)
     }
     catch(...)
     {
-        boost_asio_handler_alloc_helpers::
+        beast_asio_helpers::
             deallocate(t, sizeof(T), handler);
         throw;
     }
@@ -58,7 +59,7 @@ handler_ptr<T, Handler>::
     if(p_->t)
     {
         p_->t->~T();
-        boost_asio_handler_alloc_helpers::
+        beast_asio_helpers::
             deallocate(p_->t, sizeof(T), p_->handler);
     }
     delete p_;
@@ -90,7 +91,7 @@ release_handler() ->
     BOOST_ASSERT(p_);
     BOOST_ASSERT(p_->t);
     p_->t->~T();
-    boost_asio_handler_alloc_helpers::
+    beast_asio_helpers::
         deallocate(p_->t, sizeof(T), p_->handler);
     p_->t = nullptr;
     return std::move(p_->handler);
@@ -105,7 +106,7 @@ invoke(Args&&... args)
     BOOST_ASSERT(p_);
     BOOST_ASSERT(p_->t);
     p_->t->~T();
-    boost_asio_handler_alloc_helpers::
+    beast_asio_helpers::
         deallocate(p_->t, sizeof(T), p_->handler);
     p_->t = nullptr;
     p_->handler(std::forward<Args>(args)...);

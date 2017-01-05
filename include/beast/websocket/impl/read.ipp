@@ -10,7 +10,7 @@
 
 #include <beast/websocket/teardown.hpp>
 #include <beast/core/buffer_concepts.hpp>
-#include <beast/core/handler_alloc.hpp>
+#include <beast/core/handler_helpers.hpp>
 #include <beast/core/handler_ptr.hpp>
 #include <beast/core/prepare_buffers.hpp>
 #include <beast/core/static_streambuf.hpp>
@@ -54,7 +54,7 @@ class stream<NextLayer>::read_frame_op
 
         data(Handler& handler, stream<NextLayer>& ws_,
                 frame_info& fi_, DynamicBuffer& sb_)
-            : cont(boost_asio_handler_cont_helpers::
+            : cont(beast_asio_helpers::
                 is_continuation(handler))
             , ws(ws_)
             , fi(fi_)
@@ -99,7 +99,7 @@ public:
     void* asio_handler_allocate(
         std::size_t size, read_frame_op* op)
     {
-        return boost_asio_handler_alloc_helpers::
+        return beast_asio_helpers::
             allocate(size, op->d_.handler());
     }
 
@@ -107,7 +107,7 @@ public:
     void asio_handler_deallocate(
         void* p, std::size_t size, read_frame_op* op)
     {
-        return boost_asio_handler_alloc_helpers::
+        return beast_asio_helpers::
             deallocate(p, size, op->d_.handler());
     }
 
@@ -121,7 +121,7 @@ public:
     friend
     void asio_handler_invoke(Function&& f, read_frame_op* op)
     {
-        return boost_asio_handler_invoke_helpers::
+        return beast_asio_helpers::
             invoke(f, op->d_.handler());
     }
 };
@@ -741,7 +741,7 @@ class stream<NextLayer>::read_op
         data(Handler& handler,
             stream<NextLayer>& ws_, opcode& op_,
                 DynamicBuffer& sb_)
-            : cont(boost_asio_handler_cont_helpers::
+            : cont(beast_asio_helpers::
                 is_continuation(handler))
             , ws(ws_)
             , op(op_)
@@ -773,7 +773,7 @@ public:
     void* asio_handler_allocate(
         std::size_t size, read_op* op)
     {
-        return boost_asio_handler_alloc_helpers::
+        return beast_asio_helpers::
             allocate(size, op->d_.handler());
     }
 
@@ -781,7 +781,7 @@ public:
     void asio_handler_deallocate(
         void* p, std::size_t size, read_op* op)
     {
-        return boost_asio_handler_alloc_helpers::
+        return beast_asio_helpers::
             deallocate(p, size, op->d_.handler());
     }
 
@@ -795,7 +795,7 @@ public:
     friend
     void asio_handler_invoke(Function&& f, read_op* op)
     {
-        return boost_asio_handler_invoke_helpers::
+        return beast_asio_helpers::
             invoke(f, op->d_.handler());
     }
 };

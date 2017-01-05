@@ -9,7 +9,7 @@
 #define BEAST_WEBSOCKET_IMPL_SSL_IPP_INCLUDED
 
 #include <beast/core/async_completion.hpp>
-#include <beast/core/handler_alloc.hpp>
+#include <beast/core/handler_helpers.hpp>
 #include <beast/core/handler_concepts.hpp>
 #include <beast/core/handler_ptr.hpp>
 
@@ -45,7 +45,7 @@ class teardown_ssl_op
         int state = 0;
 
         data(Handler& handler, stream_type& stream_)
-            : cont(boost_asio_handler_cont_helpers::
+            : cont(beast_asio_helpers::
                 is_continuation(handler))
             , stream(stream_)
         {
@@ -73,7 +73,7 @@ public:
     void* asio_handler_allocate(std::size_t size,
         teardown_ssl_op* op)
     {
-        return boost_asio_handler_alloc_helpers::
+        return beast_asio_helpers::
             allocate(size, op->d_.handler());
     }
 
@@ -81,7 +81,7 @@ public:
     void asio_handler_deallocate(void* p,
         std::size_t size, teardown_ssl_op* op)
     {
-        return boost_asio_handler_alloc_helpers::
+        return beast_asio_helpers::
             deallocate(p, size, op->d_.handler());
     }
 
@@ -97,7 +97,7 @@ public:
     void asio_handler_invoke(Function&& f,
         teardown_ssl_op* op)
     {
-        return boost_asio_handler_invoke_helpers::
+        return beast_asio_helpers::
             invoke(f, op->d_.handler());
     }
 };

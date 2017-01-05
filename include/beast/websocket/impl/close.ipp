@@ -8,7 +8,7 @@
 #ifndef BEAST_WEBSOCKET_IMPL_CLOSE_IPP
 #define BEAST_WEBSOCKET_IMPL_CLOSE_IPP
 
-#include <beast/core/handler_alloc.hpp>
+#include <beast/core/handler_helpers.hpp>
 #include <beast/core/handler_ptr.hpp>
 #include <beast/core/static_streambuf.hpp>
 #include <beast/core/stream_concepts.hpp>
@@ -25,8 +25,6 @@ template<class NextLayer>
 template<class Handler>
 class stream<NextLayer>::close_op
 {
-    using alloc_type = handler_alloc<char, Handler>;
-
     using fb_type = detail::frame_streambuf;
 
     struct data : op
@@ -39,7 +37,7 @@ class stream<NextLayer>::close_op
 
         data(Handler& handler, stream<NextLayer>& ws_,
                 close_reason const& cr_)
-            : cont(boost_asio_handler_cont_helpers::
+            : cont(beast_asio_helpers::
                 is_continuation(handler))
             , ws(ws_)
             , cr(cr_)
@@ -80,7 +78,7 @@ public:
     void* asio_handler_allocate(
         std::size_t size, close_op* op)
     {
-        return boost_asio_handler_alloc_helpers::
+        return beast_asio_helpers::
             allocate(size, op->d_.handler());
     }
 
@@ -88,7 +86,7 @@ public:
     void asio_handler_deallocate(
         void* p, std::size_t size, close_op* op)
     {
-        return boost_asio_handler_alloc_helpers::
+        return beast_asio_helpers::
             deallocate(p, size, op->d_.handler());
     }
 
@@ -102,7 +100,7 @@ public:
     friend
     void asio_handler_invoke(Function&& f, close_op* op)
     {
-        return boost_asio_handler_invoke_helpers::
+        return beast_asio_helpers::
             invoke(f, op->d_.handler());
     }
 };

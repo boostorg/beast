@@ -12,7 +12,7 @@
 #include <beast/http/message.hpp>
 #include <beast/http/read.hpp>
 #include <beast/http/write.hpp>
-#include <beast/core/handler_alloc.hpp>
+#include <beast/core/handler_helpers.hpp>
 #include <beast/core/handler_ptr.hpp>
 #include <beast/core/stream_concepts.hpp>
 #include <boost/assert.hpp>
@@ -29,9 +29,6 @@ template<class NextLayer>
 template<class Handler>
 class stream<NextLayer>::handshake_op
 {
-    using alloc_type =
-        handler_alloc<char, Handler>;
-
     struct data
     {
         bool cont;
@@ -44,7 +41,7 @@ class stream<NextLayer>::handshake_op
         data(Handler& handler, stream<NextLayer>& ws_,
             boost::string_ref const& host,
                 boost::string_ref const& resource)
-            : cont(boost_asio_handler_cont_helpers::
+            : cont(beast_asio_helpers::
                 is_continuation(handler))
             , ws(ws_)
             , req(ws.build_request(host, resource, key))
@@ -76,7 +73,7 @@ public:
     void* asio_handler_allocate(
         std::size_t size, handshake_op* op)
     {
-        return boost_asio_handler_alloc_helpers::
+        return beast_asio_helpers::
             allocate(size, op->d_.handler());
     }
 
@@ -84,7 +81,7 @@ public:
     void asio_handler_deallocate(
         void* p, std::size_t size, handshake_op* op)
     {
-        return boost_asio_handler_alloc_helpers::
+        return beast_asio_helpers::
             deallocate(p, size, op->d_.handler());
     }
 
@@ -98,7 +95,7 @@ public:
     friend
     void asio_handler_invoke(Function&& f, handshake_op* op)
     {
-        return boost_asio_handler_invoke_helpers::
+        return beast_asio_helpers::
             invoke(f, op->d_.handler());
     }
 };
