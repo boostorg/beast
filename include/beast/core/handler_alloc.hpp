@@ -28,11 +28,10 @@ namespace beast {
 
     @tparam T The type of objects allocated by the allocator.
 
-    @tparam CompletionHandler The type of handler. Copies will be made
-    of the handler as needed.
+    @tparam CompletionHandler The type of handler.
 
-    @note Allocated memory is only valid until the handler is called. The
-    caller is still responsible for freeing memory.
+    @note Memory allocated by this allocator must be freed before
+          the handler is invoked or undefined behavior results.
 */
 #if GENERATING_DOCS
 template<class T, class CompletionHandler>
@@ -50,7 +49,7 @@ private:
     template<class U, class H>
     friend class handler_alloc;
 
-    CompletionHandler h_;
+    CompletionHandler& h_;
 
 public:
     using value_type = T;
@@ -70,31 +69,16 @@ public:
 
     /** Construct the allocator.
 
-        The handler is moved or copied into the allocator.
+        A reference of the handler is stored. The handler must
+        remain valid for at least the lifetime of the allocator.
     */
     explicit
-    handler_alloc(CompletionHandler&& h)
-        : h_(std::move(h))
-    {
-    }
-
-    /** Construct the allocator.
-
-        A copy of the handler is made.
-    */
-    explicit
-    handler_alloc(CompletionHandler const& h)
+    handler_alloc(CompletionHandler& h)
         : h_(h)
     {
     }
 
-    template<class U>
-    handler_alloc(
-            handler_alloc<U, CompletionHandler>&& other)
-        : h_(std::move(other.h_))
-    {
-    }
-
+    /// Copy constructor
     template<class U>
     handler_alloc(
             handler_alloc<U, CompletionHandler> const& other)
