@@ -12,7 +12,7 @@
 #include <beast/core/buffer_cat.hpp>
 #include <beast/core/buffer_concepts.hpp>
 #include <beast/core/consuming_buffers.hpp>
-#include <beast/core/handler_alloc.hpp>
+#include <beast/core/handler_helpers.hpp>
 #include <beast/core/handler_ptr.hpp>
 #include <beast/core/prepare_buffers.hpp>
 #include <beast/core/static_streambuf.hpp>
@@ -115,7 +115,7 @@ class stream<NextLayer>::write_frame_op
         data(Handler& handler_, stream<NextLayer>& ws_,
                 bool fin, Buffers const& bs)
             : handler(handler_)
-            , cont(boost_asio_handler_cont_helpers::
+            , cont(beast_asio_helpers::
                 is_continuation(handler))
             , ws(ws_)
             , cb(bs)
@@ -135,7 +135,7 @@ class stream<NextLayer>::write_frame_op
                 fh.key = ws.maskgen_();
                 detail::prepare_key(key, fh.key);
                 tmp_size = clamp(fh.len, ws.wr_buf_size_);
-                tmp = boost_asio_handler_alloc_helpers::
+                tmp = beast_asio_helpers::
                     allocate(tmp_size, handler);
                 remain = fh.len;
             }
@@ -149,7 +149,7 @@ class stream<NextLayer>::write_frame_op
         ~data()
         {
             if(tmp)
-                boost_asio_handler_alloc_helpers::
+                beast_asio_helpers::
                     deallocate(tmp, tmp_size, handler);
         }
     };
@@ -183,7 +183,7 @@ public:
     void* asio_handler_allocate(
         std::size_t size, write_frame_op* op)
     {
-        return boost_asio_handler_alloc_helpers::
+        return beast_asio_helpers::
             allocate(size, op->d_.handler());
     }
 
@@ -191,7 +191,7 @@ public:
     void asio_handler_deallocate(
         void* p, std::size_t size, write_frame_op* op)
     {
-        return boost_asio_handler_alloc_helpers::
+        return beast_asio_helpers::
             deallocate(p, size, op->d_.handler());
     }
 
@@ -205,7 +205,7 @@ public:
     friend
     void asio_handler_invoke(Function&& f, write_frame_op* op)
     {
-        return boost_asio_handler_invoke_helpers::
+        return beast_asio_helpers::
             invoke(f, op->d_.handler());
     }
 };
@@ -533,7 +533,7 @@ class stream<NextLayer>::write_op
 
         data(Handler& handler, stream<NextLayer>& ws_,
                 Buffers const& bs)
-            : cont(boost_asio_handler_cont_helpers::
+            : cont(beast_asio_helpers::
                 is_continuation(handler))
             , ws(ws_)
             , cb(bs)
@@ -565,7 +565,7 @@ public:
     void* asio_handler_allocate(
         std::size_t size, write_op* op)
     {
-        return boost_asio_handler_alloc_helpers::
+        return beast_asio_helpers::
             allocate(size, op->d_.handler());
     }
 
@@ -573,7 +573,7 @@ public:
     void asio_handler_deallocate(
         void* p, std::size_t size, write_op* op)
     {
-        return boost_asio_handler_alloc_helpers::
+        return beast_asio_helpers::
             deallocate(p, size, op->d_.handler());
     }
 
@@ -587,7 +587,7 @@ public:
     friend
     void asio_handler_invoke(Function&& f, write_op* op)
     {
-        return boost_asio_handler_invoke_helpers::
+        return beast_asio_helpers::
             invoke(f, op->d_.handler());
     }
 };

@@ -12,6 +12,7 @@
 #include "mime_type.hpp"
 
 #include <beast/http.hpp>
+#include <beast/core/handler_helpers.hpp>
 #include <beast/core/handler_ptr.hpp>
 #include <beast/core/placeholders.hpp>
 #include <beast/core/streambuf.hpp>
@@ -89,9 +90,6 @@ private:
         bool isRequest, class Body, class Fields>
     class write_op
     {
-        using alloc_type =
-            handler_alloc<char, Handler>;
-
         struct data
         {
             bool cont;
@@ -100,7 +98,7 @@ private:
 
             data(Handler& handler, Stream& s_,
                     message<isRequest, Body, Fields>&& m_)
-                : cont(boost_asio_handler_cont_helpers::
+                : cont(beast_asio_helpers::
                     is_continuation(handler))
                 , s(s_)
                 , m(std::move(m_))
@@ -140,7 +138,7 @@ private:
         void* asio_handler_allocate(
             std::size_t size, write_op* op)
         {
-            return boost_asio_handler_alloc_helpers::
+            return beast_asio_helpers::
                 allocate(size, op->d_.handler());
         }
 
@@ -148,7 +146,7 @@ private:
         void asio_handler_deallocate(
             void* p, std::size_t size, write_op* op)
         {
-            return boost_asio_handler_alloc_helpers::
+            return beast_asio_helpers::
                 deallocate(p, size, op->d_.handler());
         }
 
@@ -162,7 +160,7 @@ private:
         friend
         void asio_handler_invoke(Function&& f, write_op* op)
         {
-            return boost_asio_handler_invoke_helpers::
+            return beast_asio_helpers::
                 invoke(f, op->d_.handler());
         }
     };

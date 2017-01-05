@@ -14,7 +14,7 @@
 #include <beast/core/buffer_cat.hpp>
 #include <beast/core/bind_handler.hpp>
 #include <beast/core/buffer_concepts.hpp>
-#include <beast/core/handler_alloc.hpp>
+#include <beast/core/handler_helpers.hpp>
 #include <beast/core/handler_ptr.hpp>
 #include <beast/core/stream_concepts.hpp>
 #include <beast/core/streambuf.hpp>
@@ -109,7 +109,7 @@ class write_streambuf_op
 
         data(Handler& handler, Stream& s_,
                 streambuf&& sb_)
-            : cont(boost_asio_handler_cont_helpers::
+            : cont(beast_asio_helpers::
                 is_continuation(handler))
             , s(s_)
             , sb(std::move(sb_))
@@ -141,7 +141,7 @@ public:
     void* asio_handler_allocate(
         std::size_t size, write_streambuf_op* op)
     {
-        return boost_asio_handler_alloc_helpers::
+        return beast_asio_helpers::
             allocate(size, op->d_.handler());
     }
 
@@ -149,7 +149,7 @@ public:
     void asio_handler_deallocate(
         void* p, std::size_t size, write_streambuf_op* op)
     {
-        return boost_asio_handler_alloc_helpers::
+        return beast_asio_helpers::
             deallocate(p, size, op->d_.handler());
     }
 
@@ -163,7 +163,7 @@ public:
     friend
     void asio_handler_invoke(Function&& f, write_streambuf_op* op)
     {
-        return boost_asio_handler_invoke_helpers::
+        return beast_asio_helpers::
             invoke(f, op->d_.handler());
     }
 };
@@ -303,7 +303,7 @@ class write_op
 
         data(Handler& handler, Stream& s_,
                 message<isRequest, Body, Fields> const& m_)
-            : cont(boost_asio_handler_cont_helpers::
+            : cont(beast_asio_helpers::
                 is_continuation(handler))
             , s(s_)
             , wp(m_)
@@ -406,7 +406,7 @@ public:
     void* asio_handler_allocate(
         std::size_t size, write_op* op)
     {
-        return boost_asio_handler_alloc_helpers::
+        return beast_asio_helpers::
             allocate(size, op->d_.handler());
     }
 
@@ -414,7 +414,7 @@ public:
     void asio_handler_deallocate(
         void* p, std::size_t size, write_op* op)
     {
-        return boost_asio_handler_alloc_helpers::
+        return beast_asio_helpers::
             deallocate(p, size, op->d_.handler());
     }
 
@@ -428,7 +428,7 @@ public:
     friend
     void asio_handler_invoke(Function&& f, write_op* op)
     {
-        return boost_asio_handler_invoke_helpers::
+        return beast_asio_helpers::
             invoke(f, op->d_.handler());
     }
 };

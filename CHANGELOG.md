@@ -2,6 +2,7 @@
 
 * Fix broken Intellisense
 * Implement the Asio deallocation-before-invocation guarantee
+* Add handler helpers
 
 --------------------------------------------------------------------------------
 
