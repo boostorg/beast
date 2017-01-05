@@ -3,6 +3,7 @@
 * Fix broken Intellisense
 * Implement the Asio deallocation-before-invocation guarantee
 * Add handler helpers
+* Avoid copies in handler_alloc
 
 --------------------------------------------------------------------------------
 
