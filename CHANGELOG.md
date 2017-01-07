@@ -4,6 +4,9 @@
 * Implement the Asio deallocation-before-invocation guarantee
 * Add handler helpers
 * Avoid copies in handler_alloc
+* Update README.md example programs
+* Fix websocket stream read documentation
+* Disable Boost.Coroutine deprecation warning
 
 --------------------------------------------------------------------------------
 
