@@ -1183,10 +1183,10 @@ public:
         hold all the message payload bytes (which may be zero in length).
 
         Control frames encountered while reading frame or message data
-        are handled automatically. Pings are replied to, pongs cause
-        an outstanding call to `async_ping` to complete, and close
-        frames initiate the WebSocket close procedure. When a close
-        frame is received, this call will eventually return
+        are handled automatically. Pings are replied to automatically,
+        pongs are routed to the pong callback if the option is set,
+        and close frames initiate the WebSocket close procedure. When a
+        close frame is received, this call will eventually return
         @ref error::closed. Because of the need to handle control
         frames, these read operations can cause writes to take place.
         Despite this, calls to `async_read` and `async_read_frame`
