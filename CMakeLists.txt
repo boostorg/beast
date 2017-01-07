@@ -36,6 +36,8 @@ else()
       "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wextra -Wpedantic -Wno-unused-parameter")
 endif()
 
+add_definitions ("-DBOOST_COROUTINES_NO_DEPRECATION_WARNING")
+
 if (APPLE AND NOT DEFINED ENV{OPENSSL_ROOT_DIR})
   find_program(HOMEBREW brew)
   if (NOT HOMEBREW STREQUAL "HOMEBREW-NOTFOUND")
