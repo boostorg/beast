@@ -7,6 +7,7 @@
 * Update README.md example programs
 * Fix websocket stream read documentation
 * Disable Boost.Coroutine deprecation warning
+* Update documentation examples
 
 --------------------------------------------------------------------------------
 
