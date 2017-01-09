@@ -5,12 +5,13 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#ifndef BEAST_TEST_STRING_STREAM_HPP
-#define BEAST_TEST_STRING_STREAM_HPP
+#ifndef BEAST_TEST_STRING_ISTREAM_HPP
+#define BEAST_TEST_STRING_ISTREAM_HPP
 
 #include <beast/core/async_completion.hpp>
 #include <beast/core/bind_handler.hpp>
 #include <beast/core/error.hpp>
+#include <beast/core/prepare_buffer.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/asio/io_service.hpp>
 #include <string>
@@ -24,16 +25,21 @@ namespace test {
     discarded, and when data is read it comes from a string provided
     at construction.
 */
-class string_stream
+class string_istream
 {
     std::string s_;
+    boost::asio::const_buffer cb_;
     boost::asio::io_service& ios_;
+    std::size_t read_max_;
 
 public:
-    string_stream(boost::asio::io_service& ios,
-            std::string s)
+    string_istream(boost::asio::io_service& ios,
+            std::string s, std::size_t read_max =
+                (std::numeric_limits<std::size_t>::max)())
         : s_(std::move(s))
+        , cb_(boost::asio::buffer(s_))
         , ios_(ios)
+        , read_max_(read_max)
     {
     }
 
@@ -60,9 +66,9 @@ public:
         error_code& ec)
     {
         auto const n = boost::asio::buffer_copy(
-            buffers, boost::asio::buffer(s_));
+            buffers, prepare_buffer(read_max_, cb_));
         if(n > 0)
-            s_.erase(0, n);
+            cb_ = cb_ + n;
         else
             ec = boost::asio::error::eof;
         return n;

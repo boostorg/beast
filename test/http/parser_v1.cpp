@@ -13,7 +13,7 @@
 #include <beast/http/header_parser_v1.hpp>
 #include <beast/http/parse.hpp>
 #include <beast/http/string_body.hpp>
-#include <beast/test/string_stream.hpp>
+#include <beast/test/string_istream.hpp>
 #include <beast/test/yield_to.hpp>
 #include <beast/unit_test/suite.hpp>
 
@@ -55,7 +55,7 @@ public:
 
     void testWithBody()
     {
-        test::string_stream ss{ios_,
+        test::string_istream ss{ios_,
             "GET / HTTP/1.1\r\n"
             "User-Agent: test\r\n"
             "Content-Length: 1\r\n"

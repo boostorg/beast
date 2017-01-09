@@ -14,7 +14,7 @@
 #include <beast/core/streambuf.hpp>
 #include <beast/core/to_string.hpp>
 #include <beast/test/fail_stream.hpp>
-#include <beast/test/string_stream.hpp>
+#include <beast/test/string_istream.hpp>
 #include <beast/test/yield_to.hpp>
 #include <beast/unit_test/suite.hpp>
 #include <boost/asio.hpp>
@@ -172,7 +172,7 @@ public:
                 req.fields.insert("Sec-WebSocket-Key", "dGhlIHNhbXBsZSBub25jZQ==");
                 req.fields.insert("Sec-WebSocket-Version", "13");
                 stream<test::fail_stream<
-                    test::string_stream>> ws(n, ios_, "");
+                    test::string_istream>> ws(n, ios_, "");
                 try
                 {
                     ws.accept(req);
@@ -186,7 +186,7 @@ public:
         }
         {
             // valid
-            stream<test::string_stream> ws(ios_,
+            stream<test::string_istream> ws(ios_,
                 "GET / HTTP/1.1\r\n"
                 "Host: localhost:80\r\n"
                 "Upgrade: WebSocket\r\n"
@@ -207,7 +207,7 @@ public:
         }
         {
             // invalid
-            stream<test::string_stream> ws(ios_,
+            stream<test::string_istream> ws(ios_,
                 "GET / HTTP/1.0\r\n"
                 "\r\n"
             );
@@ -230,7 +230,7 @@ public:
             {
                 for(std::size_t i = 0; i < s.size(); ++i)
                 {
-                    stream<test::string_stream> ws(ios_,
+                    stream<test::string_istream> ws(ios_,
                         s.substr(i, s.size() - i));
                     ws.set_option(keep_alive{true});
                     try
@@ -339,7 +339,7 @@ public:
         auto const check =
             [&](std::string const& s)
             {
-                stream<test::string_stream> ws(ios_, s);
+                stream<test::string_istream> ws(ios_, s);
                 try
                 {
                     ws.handshake("localhost:80", "/");
