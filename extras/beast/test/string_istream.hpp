@@ -88,7 +88,7 @@ public:
         else
             ec = boost::asio::error::eof;
         async_completion<ReadHandler,
-            void(error_code, std::size_t)> completion(handler);
+            void(error_code, std::size_t)> completion{handler};
         ios_.post(bind_handler(
             completion.handler, ec, n));
         return completion.result.get();
@@ -120,7 +120,7 @@ public:
         WriteHandler&& handler)
     {
         async_completion<WriteHandler,
-            void(error_code, std::size_t)> completion(handler);
+            void(error_code, std::size_t)> completion{handler};
         ios_.post(bind_handler(completion.handler,
             error_code{}, boost::asio::buffer_size(buffers)));
         return completion.result.get();

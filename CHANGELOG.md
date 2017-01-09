@@ -1,6 +1,7 @@
 1.0.0-b28
 
 * Split out and rename test stream classes
+* Restyle async result constructions
 
 --------------------------------------------------------------------------------
 

@@ -289,7 +289,7 @@ async_parse(AsyncReadStream& stream,
     static_assert(is_Parser<Parser>::value,
         "Parser requirements not met");
     beast::async_completion<ReadHandler,
-        void(error_code)> completion(handler);
+        void(error_code)> completion{handler};
     detail::parse_op<AsyncReadStream, DynamicBuffer,
         Parser, decltype(completion.handler)>{
             completion.handler, stream, dynabuf, parser};

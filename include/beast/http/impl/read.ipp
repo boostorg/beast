@@ -183,7 +183,7 @@ async_read(AsyncReadStream& stream, DynamicBuffer& dynabuf,
     static_assert(is_DynamicBuffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
     beast::async_completion<ReadHandler,
-        void(error_code)> completion(handler);
+        void(error_code)> completion{handler};
     detail::read_header_op<AsyncReadStream, DynamicBuffer,
         isRequest, Fields, decltype(
             completion.handler)>{completion.handler,
@@ -375,7 +375,7 @@ async_read(AsyncReadStream& stream, DynamicBuffer& dynabuf,
         message<isRequest, Body, Fields>>::value,
             "Reader requirements not met");
     beast::async_completion<ReadHandler,
-        void(error_code)> completion(handler);
+        void(error_code)> completion{handler};
     detail::read_op<AsyncReadStream, DynamicBuffer,
         isRequest, Body, Fields, decltype(
             completion.handler)>{completion.handler,
