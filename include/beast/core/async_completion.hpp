@@ -38,7 +38,7 @@ namespace beast {
     async_initfn(..., CompletionHandler&& handler)
     {
         async_completion<CompletionHandler,
-            void(error_code)> completion(handler);
+            void(error_code)> completion{handler};
         ...
         return completion.result.get();
     }

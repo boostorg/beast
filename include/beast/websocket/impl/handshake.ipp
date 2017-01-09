@@ -158,7 +158,7 @@ async_handshake(boost::string_ref const& host,
         "AsyncStream requirements not met");
     beast::async_completion<
         HandshakeHandler, void(error_code)
-            > completion(handler);
+            > completion{handler};
     handshake_op<decltype(completion.handler)>{
         completion.handler, *this, host, resource};
     return completion.result.get();

@@ -105,7 +105,7 @@ public:
         auto const bytes_transferred = write_some(buffers, ec);
         async_completion<
             WriteHandler, void(error_code, std::size_t)
-                > completion(handler);
+                > completion{handler};
         get_io_service().post(
             bind_handler(completion.handler, ec, bytes_transferred));
         return completion.result.get();

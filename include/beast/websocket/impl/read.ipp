@@ -673,7 +673,7 @@ async_read_frame(frame_info& fi,
     static_assert(beast::is_DynamicBuffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
     beast::async_completion<
-        ReadHandler, void(error_code)> completion(handler);
+        ReadHandler, void(error_code)> completion{handler};
     read_frame_op<DynamicBuffer, decltype(completion.handler)>{
         completion.handler, *this, fi, dynabuf};
     return completion.result.get();
@@ -1079,7 +1079,7 @@ async_read(opcode& op,
         "DynamicBuffer requirements not met");
     beast::async_completion<
         ReadHandler, void(error_code)
-            > completion(handler);
+            > completion{handler};
     read_op<DynamicBuffer, decltype(completion.handler)>{
         completion.handler, *this, op, dynabuf};
     return completion.result.get();

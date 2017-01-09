@@ -288,7 +288,7 @@ async_accept(ConstBufferSequence const& bs, AcceptHandler&& handler)
             "ConstBufferSequence requirements not met");
     beast::async_completion<
         AcceptHandler, void(error_code)
-            > completion(handler);
+            > completion{handler};
     accept_op<decltype(completion.handler)>{
         completion.handler, *this, bs};
     return completion.result.get();
@@ -306,7 +306,7 @@ async_accept(http::request<Body, Fields> const& req,
         "AsyncStream requirements requirements not met");
     beast::async_completion<
         AcceptHandler, void(error_code)
-            > completion(handler);
+            > completion{handler};
     reset();
     response_op<decltype(completion.handler)>{
         completion.handler, *this, req,
