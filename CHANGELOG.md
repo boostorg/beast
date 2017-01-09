@@ -1,3 +1,9 @@
+1.0.0-b28
+
+* Split out and rename test stream classes
+
+--------------------------------------------------------------------------------
+
 1.0.0-b27
 
 * Tidy up tests and docs
