@@ -443,6 +443,12 @@ read_fh2(detail::frame_header& fh,
             code = close_code::too_big;
             return;
         }
+#else
+    #ifdef _MSC_VER
+        #pragma message("Disabled close_code::too_big for permessage-deflate!")
+    #else
+        #warning "Disabled close_code::too_big for permessage-deflate!"
+    #endif
 #endif
         rd_.cont = ! fh.fin;
     }
