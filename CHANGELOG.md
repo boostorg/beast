@@ -2,6 +2,7 @@
 
 * bjam use clang on MACOSX
 * Simplify Travis package install specification
+* Add optional yield_to arguments
 
 --------------------------------------------------------------------------------
 
