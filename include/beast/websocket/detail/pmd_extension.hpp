@@ -376,6 +376,7 @@ inflate(
     zs.next_in = buffer_cast<void const*>(in);
     for(;;)
     {
+        // VFALCO we could be smarter about the size
         auto const bs = dynabuf.prepare(
             read_size_helper(dynabuf, 65536));
         auto const out = *bs.begin();
@@ -410,51 +411,64 @@ deflate(
     using boost::asio::buffer;
     using boost::asio::buffer_cast;
     using boost::asio::buffer_size;
+    BOOST_ASSERT(buffer_size(out) >= 6);
     zlib::z_params zs;
+    zs.avail_in = 0;
+    zs.next_in = nullptr;
     zs.avail_out = buffer_size(out);
     zs.next_out = buffer_cast<void*>(out);
-    if(cb.begin() != cb.end())
+    for(auto const& in : cb)
     {
-        for(auto const& in : cb)
+        zs.avail_in = buffer_size(in);
+        if(zs.avail_in == 0)
+            continue;
+        zs.next_in = buffer_cast<void const*>(in);
+        zo.write(zs, zlib::Flush::none, ec);
+        if(ec)
         {
-            zs.avail_in = buffer_size(in);
-            zs.next_in = buffer_cast<void const*>(in);
+            if(ec != zlib::error::need_buffers)
+                return false;
+            BOOST_ASSERT(zs.avail_out == 0);
+            BOOST_ASSERT(zs.total_out == buffer_size(out));
+            ec = {};
+            break;
+        }
+        if(zs.avail_out == 0)
+        {
+            BOOST_ASSERT(zs.total_out == buffer_size(out));
+            break;
+        }
+        BOOST_ASSERT(zs.avail_in == 0);
+    }
+    cb.consume(zs.total_in);
+    if(zs.avail_out > 0 && fin)
+    {
+        auto const remain = buffer_size(cb);
+        if(remain == 0)
+        {
+            // Inspired by Mark Adler
+            // https://github.com/madler/zlib/issues/149
+            //
+            // VFALCO We could do this flush twice depending
+            //        on how much space is in the output.
             zo.write(zs, zlib::Flush::block, ec);
+            BOOST_ASSERT(! ec || ec == zlib::error::need_buffers);
             if(ec == zlib::error::need_buffers)
-            {
                 ec = {};
-                break;
-            }
             if(ec)
                 return false;
-            BOOST_ASSERT(zs.avail_in == 0);
+            if(zs.avail_out >= 6)
+            {
+                zo.write(zs, zlib::Flush::full, ec);
+                BOOST_ASSERT(! ec);
+                // remove flush marker
+                zs.total_out -= 4;
+                out = buffer(
+                    buffer_cast<void*>(out), zs.total_out);
+                return false;
+            }
         }
-        cb.consume(zs.total_in);
     }
-    else
-    {
-        zs.avail_in = 0;
-        zs.next_in = nullptr;
-        zo.write(zs, zlib::Flush::block, ec);
-        if(ec == zlib::error::need_buffers)
-            ec = {};
-        if(ec)
-            return false;
-    }
-
-    if(fin &&
-       buffer_size(cb) == 0 &&
-       zs.avail_out >= 6)
-    {
-        zo.write(zs, zlib::Flush::full, ec);
-        BOOST_ASSERT(! ec);
-        // remove flush marker
-        zs.total_out -= 4;
-        out = buffer(
-            buffer_cast<void*>(out), zs.total_out);
-        return false;
-    }
-
     out = buffer(
         buffer_cast<void*>(out), zs.total_out);
     return true;

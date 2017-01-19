@@ -211,7 +211,7 @@ using pong_cb = std::function<void(ping_data const&)>;
 struct permessage_deflate
 {
     /// `true` to offer the extension in the server role
-    bool server_enable = true;
+    bool server_enable = false;
 
     /// `true` to offer the extension in the client role
     bool client_enable = false;

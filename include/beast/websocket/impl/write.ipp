@@ -181,7 +181,6 @@ operator()(error_code ec,
                 opcode::cont : d.ws.wr_opcode_;
             d.fh.mask =
                 d.ws.role_ == detail::role_type::client;
-            d.ws.wr_.cont = ! d.fin;
 
             if(d.ws.wr_.compress)
             {
@@ -230,6 +229,7 @@ operator()(error_code ec,
             d.fh.len = buffer_size(d.cb);
             detail::write<static_streambuf>(
                 d.fh_buf, d.fh);
+            d.ws.wr_.cont = ! d.fin;
             // Send frame
             d.state = do_upcall;
             BOOST_ASSERT(! d.ws.wr_block_);
@@ -251,6 +251,7 @@ operator()(error_code ec,
             d.fh.fin = d.fin ? d.remain == 0 : false;
             detail::write<static_streambuf>(
                 d.fh_buf, d.fh);
+            d.ws.wr_.cont = ! d.fin;
             // Send frame
             d.state = d.remain == 0 ?
                 do_upcall : do_nomask_frag + 1;
@@ -298,6 +299,7 @@ operator()(error_code ec,
             buffer_copy(b, d.cb);
             detail::mask_inplace(b, d.key);
             d.remain -= n;
+            d.ws.wr_.cont = ! d.fin;
             // Send frame header and partial payload
             d.state = d.remain == 0 ?
                 do_upcall : do_mask_nofrag + 1;
@@ -344,6 +346,7 @@ operator()(error_code ec,
             detail::mask_inplace(b, d.key);
             detail::write<static_streambuf>(
                 d.fh_buf, d.fh);
+            d.ws.wr_.cont = ! d.fin;
             // Send frame
             d.state = d.remain == 0 ?
                 do_upcall : do_mask_frag + 1;
@@ -411,6 +414,7 @@ operator()(error_code ec,
             d.fh.len = n;
             detail::fh_streambuf fh_buf;
             detail::write<static_streambuf>(fh_buf, d.fh);
+            d.ws.wr_.cont = ! d.fin;
             // Send frame
             d.state = more ?
                 do_deflate + 1 : do_deflate + 2;
@@ -569,7 +573,6 @@ write_frame(bool fin,
     fh.rsv3 = false;
     fh.op = wr_.cont ? opcode::cont : wr_opcode_;
     fh.mask = role_ == detail::role_type::client;
-    wr_.cont = ! fin;
     auto remain = buffer_size(buffers);
     if(wr_.compress)
     {
@@ -606,6 +609,7 @@ write_frame(bool fin,
             fh.len = n;
             detail::fh_streambuf fh_buf;
             detail::write<static_streambuf>(fh_buf, fh);
+            wr_.cont = ! fin;
             boost::asio::write(stream_,
                 buffer_cat(fh_buf.data(), b), ec);
             failed_ = ec != 0;
@@ -633,6 +637,7 @@ write_frame(bool fin,
             fh.len = remain;
             detail::fh_streambuf fh_buf;
             detail::write<static_streambuf>(fh_buf, fh);
+            wr_.cont = ! fin;
             boost::asio::write(stream_,
                 buffer_cat(fh_buf.data(), buffers), ec);
             failed_ = ec != 0;
@@ -653,6 +658,7 @@ write_frame(bool fin,
                 fh.fin = fin ? remain == 0 : false;
                 detail::fh_streambuf fh_buf;
                 detail::write<static_streambuf>(fh_buf, fh);
+                wr_.cont = ! fin;
                 boost::asio::write(stream_,
                     buffer_cat(fh_buf.data(),
                         prepare_buffers(n, cb)), ec);
@@ -686,6 +692,7 @@ write_frame(bool fin,
             cb.consume(n);
             remain -= n;
             detail::mask_inplace(b, key);
+            wr_.cont = ! fin;
             boost::asio::write(stream_,
                 buffer_cat(fh_buf.data(), b), ec);
             failed_ = ec != 0;

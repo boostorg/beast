@@ -804,8 +804,7 @@ read_frame(frame_info& fi, DynamicBuffer& dynabuf, error_code& ec)
                 goto do_close;
             }
         }
-        if(fh.op == opcode::text ||
-                fh.op == opcode::binary)
+        if(fh.op != opcode::cont)
             rd_begin();
         if(fh.len == 0 && ! fh.fin)
         {

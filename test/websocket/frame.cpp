@@ -229,11 +229,12 @@ public:
     void run() override
     {
         testCloseCodes();
-#pragma message("Disabled testFrameHeader, testBadFrameHeaders for permessage-deflate!")
-#if 0
+    #if 0
         testFrameHeader();
         testBadFrameHeaders();
-#endif
+    #else
+        #pragma message("Disabled testFrameHeader, testBadFrameHeaders for permessage-deflate!")
+    #endif
     }
 };
 
