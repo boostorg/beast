@@ -1,6 +1,7 @@
 1.0.0-b24
 
 * bjam use clang on MACOSX
+* Simplify Travis package install specification
 
 --------------------------------------------------------------------------------
 
