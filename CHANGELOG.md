@@ -1,6 +1,7 @@
 1.0.0-b25
 
 * Fixes for WebSocket echo server
+* Fix 32-bit arm7 warnings
 
 API Changes:
 
