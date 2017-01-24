@@ -1,3 +1,9 @@
+1.0.0-b24
+
+* bjam use clang on MACOSX
+
+--------------------------------------------------------------------------------
+
 1.0.0-b23
 
 * Tune websocket echo server for performance
@@ -5,7 +11,7 @@
 * Better logging in async echo server
 * Add copy special members
 * Fix message constructor and special members
-* Travis CI improvements 
+* Travis CI improvements
 
 --------------------------------------------------------------------------------
 
