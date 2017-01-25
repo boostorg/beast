@@ -72,7 +72,7 @@ build_request(boost::string_ref const& host,
     key = detail::make_sec_ws_key(maskgen_);
     req.fields.insert("Sec-WebSocket-Key", key);
     req.fields.insert("Sec-WebSocket-Version", "13");
-    (*d_)(req);
+    d_(req);
     http::prepare(req, http::connection::upgrade);
     return req;
 }
@@ -91,7 +91,7 @@ build_response(http::request<Body, Fields> const& req)
             res.reason = http::reason_string(res.status);
             res.version = req.version;
             res.body = text;
-            (*d_)(res);
+            d_(res);
             prepare(res,
                 (is_keep_alive(req) && keep_alive_) ?
                     http::connection::keep_alive :
@@ -141,7 +141,7 @@ build_response(http::request<Body, Fields> const& req)
             detail::make_sec_ws_accept(key));
     }
     res.fields.replace("Server", "Beast.WSProto");
-    (*d_)(res);
+    d_(res);
     http::prepare(res, http::connection::upgrade);
     return res;
 }
