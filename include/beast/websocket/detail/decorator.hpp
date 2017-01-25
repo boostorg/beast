@@ -12,6 +12,7 @@
 #include <beast/http/message.hpp>
 #include <beast/http/string_body.hpp>
 #include <beast/version.hpp>
+#include <type_traits>
 #include <utility>
 
 namespace beast {
@@ -28,12 +29,16 @@ struct abstract_decorator
     ~abstract_decorator() = default;
 
     virtual
+    abstract_decorator*
+    copy() = 0;
+
+    virtual
     void
     operator()(request_type& req) = 0;
 
     virtual
     void
-    operator()(response_type& resp) = 0;
+    operator()(response_type& res) = 0;
 };
 
 template<class T>
@@ -69,6 +74,7 @@ class decorator : public abstract_decorator
 
 public:
     decorator() = default;
+    decorator(decorator const&) = default;
 
     decorator(T&& t)
         : t_(std::move(t))
@@ -80,6 +86,12 @@ public:
     {
     }
 
+    abstract_decorator*
+    copy() override
+    {
+        return new decorator(*this);
+    }
+
     void
     operator()(request_type& req) override
     {
@@ -87,9 +99,9 @@ public:
     }
 
     void
-    operator()(response_type& resp) override
+    operator()(response_type& res) override
     {
-        (*this)(resp, typename call_res_possible::type{});
+        (*this)(res, typename call_res_possible::type{});
     }
 
 private:
@@ -124,8 +136,48 @@ struct default_decorator
 {
 };
 
-using decorator_type =
-    std::unique_ptr<abstract_decorator>;
+class decorator_type
+{
+    std::unique_ptr<abstract_decorator> p_;
+
+public:
+    decorator_type(decorator_type&&) = default;
+    decorator_type& operator=(decorator_type&&) = default;
+
+    decorator_type(decorator_type const& other)
+        : p_(other.p_->copy())
+    {
+    }
+
+    decorator_type&
+    operator=(decorator_type const& other)
+    {
+        p_ = std::unique_ptr<
+            abstract_decorator>{other.p_->copy()};
+        return *this;
+    }
+
+    template<class T, class =
+        typename std::enable_if<! std::is_same<
+            typename std::decay<T>::type,
+                decorator_type>::value>>
+    decorator_type(T&& t)
+        : p_(new decorator<T>{std::forward<T>(t)})
+    {
+    }
+
+    void
+    operator()(request_type& req)
+    {
+        (*p_)(req);
+    }
+
+    void
+    operator()(response_type& res)
+    {
+        (*p_)(res);
+    }
+};
 
 } // detail
 } // websocket

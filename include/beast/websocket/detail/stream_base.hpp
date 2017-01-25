@@ -128,7 +128,7 @@ protected:
     stream_base& operator=(stream_base const&) = delete;
 
     stream_base()
-        : d_(new decorator<default_decorator>{})
+        : d_(detail::default_decorator{})
     {
     }
 
