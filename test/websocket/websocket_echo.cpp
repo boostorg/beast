@@ -18,17 +18,22 @@ int main()
 
     try
     {
+        permessage_deflate pmd;
+        pmd.client_enable = true;
+        pmd.server_enable = true;
+
         beast::error_code ec;
     	async_echo_server s1{nullptr, 1};
         s1.open(endpoint_type{
             address_type::from_string("127.0.0.1"), 6000 }, ec);
         s1.set_option(read_message_max{64 * 1024 * 1024});
         s1.set_option(auto_fragment{false});
-        //s1.set_option(write_buffer_size{64 * 1024});
+        s1.set_option(pmd);
 
     	beast::websocket::sync_echo_server s2(&std::cout, endpoint_type{
 	        address_type::from_string("127.0.0.1"), 6001 });
         s2.set_option(read_message_max{64 * 1024 * 1024});
+        s2.set_option(pmd);
 
     	beast::test::sig_wait();
     }

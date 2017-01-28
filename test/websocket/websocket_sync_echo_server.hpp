@@ -36,14 +36,14 @@ private:
     {
         template<class Body, class Fields>
         void
-        operator()(http::message<true, Body, Fields>& req)
+        operator()(http::message<true, Body, Fields>& req) const
         {
             req.fields.replace("User-Agent", "sync_echo_client");
         }
 
         template<class Body, class Fields>
         void
-        operator()(http::message<false, Body, Fields>& resp)
+        operator()(http::message<false, Body, Fields>& resp) const
         {
             resp.fields.replace("Server", "sync_echo_server");
         }
