@@ -2,6 +2,7 @@
 
 * Fixes for WebSocket echo server
 * Fix 32-bit arm7 warnings
+* Remove unnecessary include
 
 API Changes:
 
