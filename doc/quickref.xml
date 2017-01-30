@@ -188,6 +188,7 @@
           <simplelist type="vert" columns="1">
             <member><link linkend="beast.ref.bind_handler">bind_handler</link></member>
             <member><link linkend="beast.ref.buffer_cat">buffer_cat</link></member>
+            <member><link linkend="beast.ref.make_handler_ptr">make_handler_ptr</link></member>
             <member><link linkend="beast.ref.prepare_buffer">prepare_buffer</link></member>
             <member><link linkend="beast.ref.prepare_buffers">prepare_buffers</link></member>
             <member><link linkend="beast.ref.to_string">to_string</link></member>
