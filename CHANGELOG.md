@@ -2,6 +2,10 @@
 
 * Fixes for WebSocket echo server
 
+API Changes:
+
+* Better handler_ptr
+
 --------------------------------------------------------------------------------
 
 1.0.0-b24
