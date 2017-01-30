@@ -23,8 +23,6 @@
 #include <algorithm>
 #include <memory>
 
-#include <beast/unit_test/dstream.hpp>
-
 namespace beast {
 namespace websocket {
 
