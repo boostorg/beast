@@ -1250,7 +1250,10 @@ public:
         testBadResponses();
 
         {
-            sync_echo_server server{nullptr, any};
+            error_code ec;
+            ::websocket::sync_echo_server server{nullptr};
+            server.open(any, ec);
+            BEAST_EXPECTS(! ec, ec.message());
             auto const ep = server.local_endpoint();
             //testInvokable1(ep);
             testInvokable2(ep);
@@ -1262,7 +1265,7 @@ public:
 
         {
             error_code ec;
-            async_echo_server server{nullptr, 4};
+            ::websocket::async_echo_server server{nullptr, 4};
             server.open(any, ec);
             BEAST_EXPECTS(! ec, ec.message());
             auto const ep = server.local_endpoint();
@@ -1273,8 +1276,11 @@ public:
             [this, any](permessage_deflate const& pmd)
             {
                 {
-                    sync_echo_server server{nullptr, any};
+                    error_code ec;
+                    ::websocket::sync_echo_server server{nullptr};
                     server.set_option(pmd);
+                    server.open(any, ec);
+                    BEAST_EXPECTS(! ec, ec.message());
                     auto const ep = server.local_endpoint();
                     testEndpoint(SyncClient{}, ep, pmd);
                     yield_to(
@@ -1286,7 +1292,7 @@ public:
                 }
                 {
                     error_code ec;
-                    async_echo_server server{nullptr, 4};
+                    ::websocket::async_echo_server server{nullptr, 4};
                     server.set_option(pmd);
                     server.open(any, ec);
                     BEAST_EXPECTS(! ec, ec.message());
