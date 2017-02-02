@@ -220,7 +220,6 @@ do_response(http::response<Body, Fields> const& res,
     pmd_read(offer, res.fields);
     // VFALCO see if offer satisfies pmd_config_,
     //        return an error if not.
-    #pragma message("Check offer in do_response")
     pmd_config_ = offer; // overwrite for now
     open(detail::role_type::client);
 }
