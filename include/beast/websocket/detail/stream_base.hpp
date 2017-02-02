@@ -435,17 +435,7 @@ read_fh2(detail::frame_header& fh,
                 code = close_code::too_big;
                 return;
             }
-            //rd_.size += fh.len;
         }
-    #if 0
-        if(rd_msg_max_ && rd_.size > rd_msg_max_)
-        {
-            code = close_code::too_big;
-            return;
-        }
-    #else
-        #pragma message("Disabled close_code::too_big for permessage-deflate!")
-    #endif
         rd_.cont = ! fh.fin;
     }
     code = close_code::none;

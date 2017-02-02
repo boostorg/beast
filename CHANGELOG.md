@@ -1,3 +1,9 @@
+1.0.0-b26
+
+* Tidy up warnings and tests
+
+--------------------------------------------------------------------------------
+
 1.0.0-b25
 
 * Fixes for WebSocket echo server
