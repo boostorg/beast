@@ -427,9 +427,11 @@ operator()(error_code ec,
             case do_control:
                 if(d.fh.op == opcode::ping)
                 {
-                    ping_data data;
-                    detail::read(data, d.fb.data());
+                    ping_data payload;
+                    detail::read(payload, d.fb.data());
                     d.fb.reset();
+                    if(d.ws.ping_cb_)
+                        d.ws.ping_cb_(false, payload);
                     if(d.ws.wr_close_)
                     {
                         // ignore ping when closing
@@ -437,7 +439,7 @@ operator()(error_code ec,
                         break;
                     }
                     d.ws.template write_ping<static_streambuf>(
-                        d.fb, opcode::pong, data);
+                        d.fb, opcode::pong, payload);
                     if(d.ws.wr_block_)
                     {
                         // suspend
@@ -455,8 +457,8 @@ operator()(error_code ec,
                     code = close_code::none;
                     ping_data payload;
                     detail::read(payload, d.fb.data());
-                    if(d.ws.pong_cb_)
-                        d.ws.pong_cb_(payload);
+                    if(d.ws.ping_cb_)
+                        d.ws.ping_cb_(true, payload);
                     d.fb.reset();
                     d.state = do_read_fh;
                     break;
@@ -762,11 +764,13 @@ read_frame(frame_info& fi, DynamicBuffer& dynabuf, error_code& ec)
             // Process control frame
             if(fh.op == opcode::ping)
             {
-                ping_data data;
-                detail::read(data, fb.data());
+                ping_data payload;
+                detail::read(payload, fb.data());
                 fb.reset();
+                if(ping_cb_)
+                    ping_cb_(false, payload);
                 write_ping<static_streambuf>(
-                    fb, opcode::pong, data);
+                    fb, opcode::pong, payload);
                 boost::asio::write(stream_, fb.data(), ec);
                 failed_ = ec != 0;
                 if(failed_)
@@ -777,8 +781,8 @@ read_frame(frame_info& fi, DynamicBuffer& dynabuf, error_code& ec)
             {
                 ping_data payload;
                 detail::read(payload, fb.data());
-                if(pong_cb_)
-                    pong_cb_(payload);
+                if(ping_cb_)
+                    ping_cb_(true, payload);
                 continue;
             }
             BOOST_ASSERT(fh.op == opcode::close);
