@@ -76,7 +76,7 @@ reset()
     wr_close_ = false;
     wr_.cont = false;
     wr_block_ = nullptr;    // should be nullptr on close anyway
-    pong_data_ = nullptr;   // should be nullptr on close anyway
+    ping_data_ = nullptr;   // should be nullptr on close anyway
 
     stream_.buffer().consume(
         stream_.buffer().size());
