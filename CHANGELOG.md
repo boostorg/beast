@@ -2,6 +2,7 @@
 
 * Fix compilation error in non-template class
 * Document type-pun in buffer_cat
+* Correctly check ostream modifier (/extras)
 
 HTTP
 
