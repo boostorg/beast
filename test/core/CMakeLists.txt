@@ -10,7 +10,6 @@ add_executable (core-tests
     ../../extras/beast/unit_test/main.cpp
     buffer_test.hpp
     async_completion.cpp
-    basic_streambuf.cpp
     bind_handler.cpp
     buffer_cat.cpp
     buffer_concepts.cpp
