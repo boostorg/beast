@@ -24,6 +24,7 @@ unit-test core-tests :
     core/consuming_buffers.cpp
     core/dynabuf_readstream.cpp
     core/error.cpp
+    core/flat_streambuf.cpp
     core/handler_alloc.cpp
     core/handler_concepts.cpp
     core/handler_ptr.cpp

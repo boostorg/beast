@@ -174,6 +174,7 @@
             <member><link linkend="beast.ref.error_category">error_category</link></member>
             <member><link linkend="beast.ref.error_code">error_code</link></member>
             <member><link linkend="beast.ref.error_condition">error_condition</link></member>
+            <member><link linkend="beast.ref.flat_streambuf">flat_streambuf</link></member>
             <member><link linkend="beast.ref.handler_alloc">handler_alloc</link></member>
             <member><link linkend="beast.ref.handler_ptr">handler_ptr</link></member>
             <member><link linkend="beast.ref.static_streambuf">static_streambuf</link></member>
