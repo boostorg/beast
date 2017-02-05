@@ -3,6 +3,7 @@
 * Add Appveyor build scripts and badge
 * Tidy up MSVC CMake configuration
 * Make close_code a proper enum
+* Add flat_streambuf
 
 --------------------------------------------------------------------------------
 

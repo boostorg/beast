@@ -19,7 +19,9 @@ The interface to this concept is intended to permit the following
 implementation strategies:
 
 * A single contiguous octet array, which is reallocated as necessary to
-  accommodate changes in the size of the octet sequence.
+  accommodate changes in the size of the octet sequence. This is the
+  implementation approach currently offered by
+  [link beast.ref.basic_flat_streambuf `basic_flat_streambuf`].
 
 * A sequence of one or more octet arrays, where each array is of the same
   size. Additional octet array objects are appended to the sequence to
