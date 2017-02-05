@@ -1,3 +1,7 @@
+* Correctly check ostream modifier
+
+--------------------------------------------------------------------------------
+
 1.0.0-b26
 
 * Tidy up warnings and tests
