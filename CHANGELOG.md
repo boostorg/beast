@@ -3,6 +3,7 @@
 API Changes:
 
 * Invoke callback on pings and pongs
+* Move basic_streambuf to streambuf.hpp
 
 --------------------------------------------------------------------------------
 

@@ -9,7 +9,6 @@
 #define BEAST_CORE_HPP
 
 #include <beast/core/async_completion.hpp>
-#include <beast/core/basic_streambuf.hpp>
 #include <beast/core/bind_handler.hpp>
 #include <beast/core/buffer_cat.hpp>
 #include <beast/core/buffer_concepts.hpp>
