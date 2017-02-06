@@ -28,6 +28,7 @@ unit-test core-tests :
     core/handler_concepts.cpp
     core/handler_ptr.cpp
     core/placeholders.cpp
+    core/prepare_buffer.cpp
     core/prepare_buffers.cpp
     core/static_streambuf.cpp
     core/static_string.cpp
@@ -38,6 +39,7 @@ unit-test core-tests :
     core/base64.cpp
     core/empty_base_optimization.cpp
     core/get_lowest_layer.cpp
+    core/is_call_possible.cpp
     core/sha1.cpp
     ;
 

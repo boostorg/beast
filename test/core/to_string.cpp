@@ -8,3 +8,21 @@
 // Test that header file is self-contained.
 #include <beast/core/to_string.hpp>
 
+#include <beast/unit_test/suite.hpp>
+#include <boost/asio/buffer.hpp>
+
+namespace beast {
+
+class to_string_test : public beast::unit_test::suite
+{
+public:
+    void run()
+    {
+        BEAST_EXPECT(to_string(boost::asio::const_buffers_1("x", 1)) == "x");
+    }
+};
+
+BEAST_DEFINE_TESTSUITE(to_string,core,beast);
+
+} // beast
+

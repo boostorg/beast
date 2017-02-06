@@ -1580,6 +1580,9 @@
     <xsl:when test="declname = 'DynamicBuffer' or type = 'class DynamicBuffer'">
       <xsl:text>class ``[link beast.ref.DynamicBuffer [*DynamicBuffer]]``</xsl:text>
     </xsl:when>
+    <xsl:when test="declname = 'Handler' or type = 'class Handler'">
+      <xsl:text>class __Handler__</xsl:text>
+    </xsl:when>
     <xsl:when test="declname = 'MutableBufferSequence' or type = 'class MutableBufferSequence'">
       <xsl:text>class __MutableBufferSequence__</xsl:text>
     </xsl:when>

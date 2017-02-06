@@ -16,15 +16,17 @@ namespace beast {
 class bind_handler_test : public unit_test::suite
 {
 public:
-    static void foo (int)
+    void
+    callback(int v)
     {
+        BEAST_EXPECT(v == 42);
     }
 
     void run()
     {
-        auto f (bind_handler (
-            std::bind (&foo, std::placeholders::_1),
-            42));
+        auto f = bind_handler(std::bind(
+            &bind_handler_test::callback, this,
+                std::placeholders::_1), 42);
         f();
         pass();
     }
