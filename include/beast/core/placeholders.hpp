@@ -21,9 +21,9 @@ static auto const bytes_transferred (std::placeholders::_2);
 static auto const iterator (std::placeholders::_2);
 static auto const signal_number (std::placeholders::_2);
 }
-}
+} // placeholders
 
-}
-}
+} // asio
+} // beast
 
 #endif

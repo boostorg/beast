@@ -42,7 +42,8 @@ public:
 
     template<class DeducedHandler>
     explicit
-    bound_handler(DeducedHandler&& handler, Args&&... args)
+    bound_handler(
+            DeducedHandler&& handler, Args&&... args)
         : h_(std::forward<DeducedHandler>(handler))
         , args_(std::forward<Args>(args)...)
     {
@@ -102,9 +103,11 @@ public:
 } // beast
 
 #include <functional>
+
 namespace std {
 template<class Handler, class... Args>
-void bind(beast::detail::bound_handler<
+void
+bind(beast::detail::bound_handler<
     Handler, Args...>, ...) = delete;
 } // std
 

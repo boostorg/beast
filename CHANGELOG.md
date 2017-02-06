@@ -1,5 +1,7 @@
 1.0.0-b27
 
+* Tidy up tests and docs
+
 API Changes:
 
 * Invoke callback on pings and pongs

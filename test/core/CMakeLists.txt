@@ -22,6 +22,7 @@ add_executable (core-tests
     handler_concepts.cpp
     handler_ptr.cpp
     placeholders.cpp
+    prepare_buffer.cpp
     prepare_buffers.cpp
     static_streambuf.cpp
     static_string.cpp
@@ -32,6 +33,7 @@ add_executable (core-tests
     base64.cpp
     empty_base_optimization.cpp
     get_lowest_layer.cpp
+    is_call_possible.cpp
     sha1.cpp
 )
 
