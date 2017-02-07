@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2013-2016 Vinnie Falco (vinnie dot falco at gmail dot com)
+// Copyright (c) 2013-2017 Vinnie Falco (vinnie dot falco at gmail dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -581,7 +581,7 @@ write(boost::asio::const_buffer const& buffer, error_code& ec)
         field-value    = *( field-content / obs-fold )
         field-content  = field-vchar [ 1*( SP / HTAB ) field-vchar ]
         field-vchar    = VCHAR / obs-text
-        obs-fold       = CRLF 1*( SP / HTAB ) 
+        obs-fold       = CRLF 1*( SP / HTAB )
                        ; obsolete line folding
     */
         case s_header_value0:
@@ -880,7 +880,7 @@ write(boost::asio::const_buffer const& buffer, error_code& ec)
                 case h_connection_keep_alive:
                     fs_ = h_connection_keep_alive_ows;
                     break;
-                
+
                 case h_connection_upgrade:
                     fs_ = h_connection_upgrade_ows;
                     break;

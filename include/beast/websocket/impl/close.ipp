@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2013-2016 Vinnie Falco (vinnie dot falco at gmail dot com)
+// Copyright (c) 2013-2017 Vinnie Falco (vinnie dot falco at gmail dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -106,7 +106,7 @@ public:
 
 template<class NextLayer>
 template<class Handler>
-void 
+void
 stream<NextLayer>::close_op<Handler>::
 operator()(error_code ec, std::size_t)
 {
@@ -118,7 +118,7 @@ operator()(error_code ec, std::size_t)
 
 template<class NextLayer>
 template<class Handler>
-void 
+void
 stream<NextLayer>::close_op<Handler>::
 operator()(error_code ec, bool again)
 {

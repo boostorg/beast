@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2013-2016 Vinnie Falco (vinnie dot falco at gmail dot com)
+// Copyright (c) 2013-2017 Vinnie Falco (vinnie dot falco at gmail dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -26,9 +26,9 @@ std::false_type
 is_call_possible_test(C&& c, long, A&& ...a);
 
 /** Metafunction returns `true` if F callable as R(A...)
-    
+
     Example:
-    
+
     @code
         is_call_possible<T, void(std::string)>
     @endcode

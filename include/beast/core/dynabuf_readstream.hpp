@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2013-2016 Vinnie Falco (vinnie dot falco at gmail dot com)
+// Copyright (c) 2013-2017 Vinnie Falco (vinnie dot falco at gmail dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -208,7 +208,7 @@ public:
     }
 
     /** Read some data from the stream.
-        
+
         This function is used to read data from the stream.
         The function call will block until one or more bytes of
         data has been read successfully, or until an error occurs.
@@ -224,7 +224,7 @@ public:
     read_some(MutableBufferSequence const& buffers);
 
     /** Read some data from the stream.
-        
+
         This function is used to read data from the stream.
         The function call will block until one or more bytes of
         data has been read successfully, or until an error occurs.
@@ -273,7 +273,7 @@ public:
         ReadHandler&& handler);
 
     /** Write some data to the stream.
-    
+
         This function is used to write data to the stream.
         The function call will block until one or more bytes of the
         data has been written successfully, or until an error occurs.
@@ -294,7 +294,7 @@ public:
     }
 
     /** Write some data to the stream.
-    
+
         This function is used to write data to the stream.
         The function call will block until one or more bytes of the
         data has been written successfully, or until an error occurs.
@@ -316,7 +316,7 @@ public:
     }
 
     /** Start an asynchronous write.
-    
+
         This function is used to asynchronously write data from
         the stream. The function call always returns immediately.
 

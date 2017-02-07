@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2013-2016 Vinnie Falco (vinnie dot falco at gmail dot com)
+// Copyright (c) 2013-2017 Vinnie Falco (vinnie dot falco at gmail dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -209,13 +209,13 @@ struct permessage_deflate
     bool client_enable = false;
 
     /** Maximum server window bits to offer
-        
+
         @note Due to a bug in ZLib, this value must be greater than 8.
     */
     int server_max_window_bits = 15;
 
     /** Maximum client window bits to offer
-        
+
         @note Due to a bug in ZLib, this value must be greater than 8.
     */
     int client_max_window_bits = 15;
