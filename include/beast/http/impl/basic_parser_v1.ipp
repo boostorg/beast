@@ -45,6 +45,7 @@ namespace http {
 template<bool isRequest, class Derived>
 basic_parser_v1<isRequest, Derived>::
 basic_parser_v1()
+    : flags_(0)
 {
     init();
 }
@@ -61,12 +62,12 @@ basic_parser_v1(basic_parser_v1<
     , content_length_(other.content_length_)
     , cb_(nullptr)
     , s_(other.s_)
-    , flags_(other.flags_)
     , fs_(other.fs_)
     , pos_(other.pos_)
     , http_major_(other.http_major_)
     , http_minor_(other.http_minor_)
     , status_code_(other.status_code_)
+    , flags_(other.flags_)
     , upgrade_(other.upgrade_)
 {
     BOOST_ASSERT(! other.cb_);
@@ -88,13 +89,14 @@ operator=(basic_parser_v1<
     content_length_ = other.content_length_;
     cb_ = nullptr;
     s_ = other.s_;
-    flags_ = other.flags_;
     fs_ = other.fs_;
     pos_ = other.pos_;
     http_major_ = other.http_major_;
     http_minor_ = other.http_minor_;
     status_code_ = other.status_code_;
+    flags_ = other.flags_;
     upgrade_ = other.upgrade_;
+    flags_ &= ~parse_flag::paused;
     return *this;
 }
 
@@ -966,6 +968,7 @@ write(boost::asio::const_buffer const& buffer, error_code& ec)
             case body_what::pause:
                 ++p;
                 s_ = s_body_pause;
+                flags_ |= parse_flag::paused;
                 return used();
             }
             s_ = s_headers_done;
