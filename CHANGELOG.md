@@ -2,6 +2,7 @@
 
 * Split out and rename test stream classes
 * Restyle async result constructions
+* Fix HTTP split parse edge case
 
 --------------------------------------------------------------------------------
 
