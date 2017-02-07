@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2013-2016 Vinnie Falco (vinnie dot falco at gmail dot com)
+// Copyright (c) 2013-2017 Vinnie Falco (vinnie dot falco at gmail dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -1159,7 +1159,7 @@ public:
         option is set, and close frames initiate the WebSocket close
         procedure. When a close frame is received, this call will
         eventually return @ref error::closed.
-        
+
         @param op A value to receive the message type.
         This object must remain valid until the handler is called.
 
@@ -1199,7 +1199,7 @@ public:
         option is set, and close frames initiate the WebSocket close
         procedure. When a close frame is received, this call will
         eventually return @ref error::closed.
-        
+
         Because of the need to handle control frames, read operations
         can cause writes to take place. These writes are managed
         transparently; callers can still have one active asynchronous
@@ -1261,7 +1261,7 @@ public:
         option is set, and close frames initiate the WebSocket close
         procedure. When a close frame is received, this call will
         eventually return @ref error::closed.
-        
+
         @param fi An object to store metadata about the message.
 
         @param dynabuf A dynamic buffer to hold the message data after
@@ -1299,7 +1299,7 @@ public:
         option is set, and close frames initiate the WebSocket close
         procedure. When a close frame is received, this call will
         eventually return @ref error::closed.
-        
+
         @param fi An object to store metadata about the message.
 
         @param dynabuf A dynamic buffer to hold the message data after
@@ -1342,7 +1342,7 @@ public:
         option is set, and close frames initiate the WebSocket close
         procedure. When a close frame is received, this call will
         eventually return @ref error::closed.
-        
+
         Because of the need to handle control frames, read operations
         can cause writes to take place. These writes are managed
         transparently; callers can still have one active asynchronous
