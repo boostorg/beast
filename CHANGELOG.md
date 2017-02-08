@@ -3,6 +3,10 @@
 * Fix race in writes during WebSocket reads
 * Fix compilation error in non-template class
 
+HTTP
+
+* Fix Body requirements doc
+
 --------------------------------------------------------------------------------
 
 1.0.0-b28
