@@ -1118,12 +1118,17 @@ public:
         the message type, and the input area of the stream buffer will
         hold all the message payload bytes (which may be zero in length).
 
-        Control frames encountered while reading frame or message data
-        are handled automatically. Pings are replied to with a pong,
-        received pings and pongs invoke the @ref ping_callback if the
-        option is set, and close frames initiate the WebSocket close
-        procedure. When a close frame is received, this call will
-        eventually return @ref error::closed.
+        During reads, the implementation handles control frames as
+        follows:
+
+        @li A pong frame is sent when a ping frame is received.
+
+        @li The @ref ping_callback is invoked when a ping frame
+            or pong frame is received.
+
+        @li The WebSocket close procedure is started if a close frame
+            is received. In this case, the operation will eventually
+            complete with the error set to @ref error::closed.
 
         @param op A value to receive the message type.
         This object must remain valid until the handler is called.
@@ -1153,12 +1158,17 @@ public:
         the message type, and the input area of the stream buffer will
         hold all the message payload bytes (which may be zero in length).
 
-        Control frames encountered while reading frame or message data
-        are handled automatically. Pings are replied to with a pong,
-        received pings and pongs invoke the @ref ping_callback if the
-        option is set, and close frames initiate the WebSocket close
-        procedure. When a close frame is received, this call will
-        eventually return @ref error::closed.
+        During reads, the implementation handles control frames as
+        follows:
+
+        @li The @ref ping_callback is invoked when a ping frame
+            or pong frame is received.
+
+        @li A pong frame is sent when a ping frame is received.
+
+        @li The WebSocket close procedure is started if a close frame
+            is received. In this case, the operation will eventually
+            complete with the error set to @ref error::closed.
 
         @param op A value to receive the message type.
         This object must remain valid until the handler is called.
@@ -1193,12 +1203,17 @@ public:
         the message type, and the input area of the stream buffer will
         hold all the message payload bytes (which may be zero in length).
 
-        Control frames encountered while reading frame or message data
-        are handled automatically. Pings are replied to with a pong,
-        received pings and pongs invoke the @ref ping_callback if the
-        option is set, and close frames initiate the WebSocket close
-        procedure. When a close frame is received, this call will
-        eventually return @ref error::closed.
+        During reads, the implementation handles control frames as
+        follows:
+
+        @li The @ref ping_callback is invoked when a ping frame
+            or pong frame is received.
+
+        @li A pong frame is sent when a ping frame is received.
+
+        @li The WebSocket close procedure is started if a close frame
+            is received. In this case, the operation will eventually
+            complete with the error set to @ref error::closed.
 
         Because of the need to handle control frames, read operations
         can cause writes to take place. These writes are managed
@@ -1248,19 +1263,24 @@ public:
         This call is implemented in terms of one or more calls to the
         stream's `read_some` and `write_some` operations.
 
-        Upon success, fi is filled out to reflect the message payload
-        contents. op is set to binary or text, and the fin flag
+        Upon success, `fi` is filled out to reflect the message payload
+        contents. `op` is set to binary or text, and the `fin` flag
         indicates if all the message data has been read in. To read the
-        entire message, callers should repeat the read_frame operation
-        until fi.fin is true. A message with no payload will have
-        fi.fin == true, and zero bytes placed into the stream buffer.
+        entire message, callers should keep calling @ref read_frame
+        until `fi.fin == true`. A message with no payload will have
+        `fi.fin == true`, and zero bytes placed into the stream buffer.
 
-        Control frames encountered while reading frame or message data
-        are handled automatically. Pings are replied to with a pong,
-        received pings and pongs invoke the @ref ping_callback if the
-        option is set, and close frames initiate the WebSocket close
-        procedure. When a close frame is received, this call will
-        eventually return @ref error::closed.
+        During reads, the implementation handles control frames as
+        follows:
+
+        @li The @ref ping_callback is invoked when a ping frame
+            or pong frame is received.
+
+        @li A pong frame is sent when a ping frame is received.
+
+        @li The WebSocket close procedure is started if a close frame
+            is received. In this case, the operation will eventually
+            complete with the error set to @ref error::closed.
 
         @param fi An object to store metadata about the message.
 
@@ -1286,19 +1306,24 @@ public:
         This call is implemented in terms of one or more calls to the
         stream's `read_some` and `write_some` operations.
 
-        Upon success, fi is filled out to reflect the message payload
-        contents. op is set to binary or text, and the fin flag
+        Upon success, `fi` is filled out to reflect the message payload
+        contents. `op` is set to binary or text, and the `fin` flag
         indicates if all the message data has been read in. To read the
-        entire message, callers should repeat the read_frame operation
-        until fi.fin is true. A message with no payload will have
-        fi.fin == true, and zero bytes placed into the stream buffer.
+        entire message, callers should keep calling @ref read_frame
+        until `fi.fin == true`. A message with no payload will have
+        `fi.fin == true`, and zero bytes placed into the stream buffer.
 
-        Control frames encountered while reading frame or message data
-        are handled automatically. Pings are replied to with a pong,
-        received pings and pongs invoke the @ref ping_callback if the
-        option is set, and close frames initiate the WebSocket close
-        procedure. When a close frame is received, this call will
-        eventually return @ref error::closed.
+        During reads, the implementation handles control frames as
+        follows:
+
+        @li The @ref ping_callback is invoked when a ping frame
+            or pong frame is received.
+
+        @li A pong frame is sent when a ping frame is received.
+
+        @li The WebSocket close procedure is started if a close frame
+            is received. In this case, the operation will eventually
+            complete with the error set to @ref error::closed.
 
         @param fi An object to store metadata about the message.
 
@@ -1328,20 +1353,25 @@ public:
         ensure that the stream performs no other reads until this operation
         completes.
 
-        Upon a successful completion, fi is filled out to reflect the
-        message payload contents. op is set to binary or text, and the
-        fin flag indicates if all the message data has been read in.
-        To read the entire message, callers should repeat the
-        read_frame operation until fi.fin is true. A message with no
-        payload will have fi.fin == true, and zero bytes placed into
-        the stream buffer.
+        Upon a successful completion, `fi` is filled out to reflect the
+        message payload contents. `op` is set to binary or text, and the
+        `fin` flag indicates if all the message data has been read in.
+        To read the entire message, callers should keep calling
+        @ref read_frame until `fi.fin == true`. A message with no payload
+        will have `fi.fin == true`, and zero bytes placed into the stream
+        buffer.
 
-        Control frames encountered while reading frame or message data
-        are handled automatically. Pings are replied to with a pong,
-        received pings and pongs invoke the @ref ping_callback if the
-        option is set, and close frames initiate the WebSocket close
-        procedure. When a close frame is received, this call will
-        eventually return @ref error::closed.
+        During reads, the implementation handles control frames as
+        follows:
+
+        @li The @ref ping_callback is invoked when a ping frame
+            or pong frame is received.
+
+        @li A pong frame is sent when a ping frame is received.
+
+        @li The WebSocket close procedure is started if a close frame
+            is received. In this case, the operation will eventually
+            complete with the error set to @ref error::closed.
 
         Because of the need to handle control frames, read operations
         can cause writes to take place. These writes are managed
