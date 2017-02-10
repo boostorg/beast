@@ -1,12 +1,16 @@
 1.0.0-b29
 
-* Fix race in writes during WebSocket reads
 * Fix compilation error in non-template class
+* Document type-pun in buffer_cat
 
 HTTP
 
 * Fix Body requirements doc
 * Fix illegal HTTP characters accepted as hex zero
+
+WebSocket
+
+* Fix race in writes during reads
 
 --------------------------------------------------------------------------------
 
