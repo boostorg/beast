@@ -1,3 +1,9 @@
+1.0.0-b29
+
+* Fix race in writes during WebSocket reads
+
+--------------------------------------------------------------------------------
+
 1.0.0-b28
 
 * Split out and rename test stream classes
