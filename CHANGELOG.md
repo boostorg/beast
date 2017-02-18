@@ -1,6 +1,7 @@
 1.0.0-b29
 
 * Fix race in writes during WebSocket reads
+* Fix compilation error in non-template class
 
 --------------------------------------------------------------------------------
 
