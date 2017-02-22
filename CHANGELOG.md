@@ -13,6 +13,7 @@ HTTP
 WebSocket
 
 * Fix race in writes during reads
+* Fix doc link typo
 
 --------------------------------------------------------------------------------
 
