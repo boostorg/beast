@@ -863,6 +863,8 @@ public:
         BEAST_EXPECT(! p.got_on_end_body);
         BEAST_EXPECT(! p.got_on_end_message);
         BEAST_EXPECT(p.got_header());
+        BEAST_EXPECT(! p.is_done());
+        BEAST_EXPECT(p.body.empty());
         sb.consume(n);
         p.split(false);
         n = p.write(sb.data(), ec);
@@ -876,6 +878,7 @@ public:
         BEAST_EXPECT(p.got_on_end_body);
         BEAST_EXPECT(p.got_on_end_message);
         BEAST_EXPECT(p.is_done());
+        BEAST_EXPECT(p.body == "*****");
     }
 
     void
