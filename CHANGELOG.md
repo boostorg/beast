@@ -1,3 +1,11 @@
+1.0.0-b30
+
+WebSocket
+
+* Fix race in pings during reads
+
+--------------------------------------------------------------------------------
+
 1.0.0-b29
 
 * Fix compilation error in non-template class
