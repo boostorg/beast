@@ -5,6 +5,7 @@ WebSocket
 * Fix race in pings during reads
 * Fix race in close frames during reads
 * Fix race when write suspends
+* Allow concurrent websocket async ping and writes
 
 --------------------------------------------------------------------------------
 

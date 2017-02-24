@@ -673,7 +673,8 @@ operator()(error_code ec,
 upcall:
     if(d.ws.wr_block_ == &d)
         d.ws.wr_block_ = nullptr;
-    d.ws.wr_op_.maybe_invoke();
+    d.ws.ping_op_.maybe_invoke() ||
+        d.ws.wr_op_.maybe_invoke();
     d_.invoke(ec);
 }
 
