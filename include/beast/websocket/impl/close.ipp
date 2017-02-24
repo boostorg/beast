@@ -190,7 +190,8 @@ operator()(error_code ec, bool again)
 upcall:
     if(d.ws.wr_block_ == &d)
         d.ws.wr_block_ = nullptr;
-    d.ws.rd_op_.maybe_invoke();
+    d.ws.rd_op_.maybe_invoke() ||
+        d.ws.ping_op_.maybe_invoke();
     d_.invoke(ec);
 }
 

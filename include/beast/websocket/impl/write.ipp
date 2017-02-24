@@ -280,7 +280,10 @@ operator()(error_code ec,
             d.fh.op = opcode::cont;
             if(d.ws.wr_block_ == &d)
                 d.ws.wr_block_ = nullptr;
-            if(d.ws.rd_op_.maybe_invoke())
+            // Allow outgoing control frames to
+            // be sent in between message frames:
+            if(d.ws.rd_op_.maybe_invoke() ||
+                d.ws.ping_op_.maybe_invoke())
             {
                 d.state = do_maybe_suspend;
                 d.ws.get_io_service().post(
@@ -382,7 +385,10 @@ operator()(error_code ec,
             d.fh.op = opcode::cont;
             BOOST_ASSERT(d.ws.wr_block_ == &d);
             d.ws.wr_block_ = nullptr;
-            if(d.ws.rd_op_.maybe_invoke())
+            // Allow outgoing control frames to
+            // be sent in between message frames:
+            if(d.ws.rd_op_.maybe_invoke() ||
+                d.ws.ping_op_.maybe_invoke())
             {
                 d.state = do_maybe_suspend;
                 d.ws.get_io_service().post(
@@ -452,7 +458,10 @@ operator()(error_code ec,
             d.fh.rsv1 = false;
             BOOST_ASSERT(d.ws.wr_block_ == &d);
             d.ws.wr_block_ = nullptr;
-            if(d.ws.rd_op_.maybe_invoke())
+            // Allow outgoing control frames to
+            // be sent in between message frames:
+            if(d.ws.rd_op_.maybe_invoke() ||
+                d.ws.ping_op_.maybe_invoke())
             {
                 d.state = do_maybe_suspend;
                 d.ws.get_io_service().post(
@@ -529,7 +538,8 @@ operator()(error_code ec,
 upcall:
     if(d.ws.wr_block_ == &d)
         d.ws.wr_block_ = nullptr;
-    d.ws.rd_op_.maybe_invoke();
+    d.ws.rd_op_.maybe_invoke() ||
+        d.ws.ping_op_.maybe_invoke();
     d_.invoke(ec);
 }
 
