@@ -50,6 +50,7 @@ unit-test http-tests :
     http/basic_fields.cpp
     http/basic_parser.cpp
     http/concepts.cpp
+    http/design.cpp
     http/error.cpp
     http/fields.cpp
     http/header_parser.cpp

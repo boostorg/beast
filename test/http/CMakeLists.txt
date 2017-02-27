@@ -14,6 +14,7 @@ add_executable (http-tests
     basic_fields.cpp
     basic_parser.cpp
     concepts.cpp
+    design.cpp
     error.cpp
     fields.cpp
     header_parser.cpp
