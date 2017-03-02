@@ -34,9 +34,9 @@ template<class OtherDerived>
 basic_parser<isRequest, Derived>::
 basic_parser(basic_parser<
         isRequest, OtherDerived>&& other)
-    : buf_(other.buf_)
+    : len_(other.len_)
+    , buf_(other.buf_)
     , buf_len_(other.buf_len_)
-    , len_(other.len_)
     , skip_(other.skip_)
     , x_(other.x_)
     , f_(other.f_)
