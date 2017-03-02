@@ -245,7 +245,8 @@ reserve(std::size_t n)
     auto const p = alloc_traits::allocate(
         this->member(), n);
     auto const len = size();
-    std::memcpy(p, in_, len);
+    if(len > 0)
+        std::memcpy(p, in_, len);
     alloc_traits::deallocate(
         this->member(), p_, dist(p_, end_));
     p_ = p;
@@ -263,9 +264,17 @@ shrink_to_fit()
     auto const len = size();
     if(len == dist(p_, end_))
         return;
-    auto const p = alloc_traits::allocate(
-        this->member(), len);
-    std::memcpy(p, in_, len);
+    char* p;
+    if(len > 0)
+    {
+        p = alloc_traits::allocate(
+            this->member(), len);
+        std::memcpy(p, in_, len);
+    }
+    else
+    {
+        p = nullptr;
+    }
     alloc_traits::deallocate(
         this->member(), p_, dist(p_, end_));
     p_ = p;
