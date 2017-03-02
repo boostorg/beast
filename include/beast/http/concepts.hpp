@@ -225,7 +225,7 @@ struct is_Reader : std::false_type {};
 
 template<class T, class M>
 struct is_Reader<T, M, beast::detail::void_t<decltype(
-    std::declval<typename T::mutable_buffers_type>,
+    std::declval<typename T::mutable_buffers_type>(),
     std::declval<T>().init(
         std::declval<boost::optional<std::uint64_t>>(),
         std::declval<error_code&>()),
