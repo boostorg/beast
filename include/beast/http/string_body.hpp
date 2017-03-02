@@ -93,7 +93,8 @@ private:
                 tryf(ec,
                     [&]()
                     {
-                        body_.reserve(*content_length);
+                        body_.reserve(static_cast<
+                            std::size_t>(*content_length));
                     });
             }
         }

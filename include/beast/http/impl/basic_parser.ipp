@@ -764,7 +764,7 @@ parse_body(char const* p,
         return n;
     }
 
-    n = beast::detail::clamp(n, len_);
+    n = beast::detail::clamp(len_, n);
     impl().on_body(
         boost::string_ref{p, n}, ec);
     if(ec)
