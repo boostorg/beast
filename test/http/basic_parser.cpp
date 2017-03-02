@@ -428,12 +428,14 @@ public:
             {
                 return "GET / HTTP/1.1\r\nConnection: " + s + "\r\n";
             };
+    #if 0
         auto const keepalive =
             [&](bool v)
             {
                 //return keepalive_f{*this, v};
                 return true;
             };
+    #endif
 
         good<true>(cn("close\r\n"),                         expect_flags{*this, parse_flag::connection_close});
         good<true>(cn(",close\r\n"),                        expect_flags{*this, parse_flag::connection_close});
