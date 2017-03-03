@@ -1,5 +1,7 @@
 1.0.0-b31
 
+* Tidy up build settings
+
 WebSocket
 
 * Move the handler don't copy it
