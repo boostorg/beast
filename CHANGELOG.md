@@ -1,6 +1,7 @@
 1.0.0-b31
 
 * Tidy up build settings
+* Add missing dynabuf_readstream member
 
 WebSocket
 
