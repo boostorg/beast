@@ -145,6 +145,13 @@ public:
         return next_layer_;
     }
 
+    /// Get a const reference to the next layer.
+    next_layer_type const&
+    next_layer() const
+    {
+        return next_layer_;
+    }
+    
     /// Get a reference to the lowest layer.
     lowest_layer_type&
     lowest_layer()
