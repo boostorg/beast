@@ -4,6 +4,14 @@ cmake_minimum_required (VERSION 3.2)
 
 project (Beast)
 
+set(BEAST_VERSION_MAJOR "1")
+set(BEAST_VERSION_MINOR "0")
+set(BEAST_VERSION_PATCH "0")
+set(BEAST_VERSION_BUILD "b20")
+set(BEAST_VERSION "${BEAST_VERSION_MAJOR}.${BEAST_VERSION_MINOR}.${BEAST_VERSION_PATCH}-${BEAST_VERSION_BUILD}")
+
+option(BEAST_INSTALL "Installation targets."  ON)
+
 set_property (GLOBAL PROPERTY USE_FOLDERS ON)
 
 if (MSVC)
@@ -142,3 +150,78 @@ add_subdirectory (test/core)
 add_subdirectory (test/http)
 add_subdirectory (test/websocket)
 add_subdirectory (test/zlib)
+
+
+if (BEAST_INSTALL AND (UNIX OR CYGWIN))
+
+  add_library(BeastLibrary INTERFACE)
+  target_include_directories(BeastLibrary INTERFACE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include> $<INSTALL_INTERFACE:include>)
+
+  include(CMakePackageConfigHelpers)
+
+  set(INCLUDE_INSTALL_DIR include CACHE STRING "Installation directory for headers, relative to ${CMAKE_INSTALL_PREFIX}.")
+  set(LIB_INSTALL_DIR lib CACHE STRING "Installation directory for libraries, relative to ${CMAKE_INSTALL_PREFIX}.")
+  set(CMAKE_INSTALL_DIR lib/cmake/Beast CACHE STRING "Installation directory for cmake files, relative to ${CMAKE_INSTALL_PREFIX}.")
+  set(DOC_INSTALL_DIR share/doc/Beast CACHE PATH "Installation directory for documentation, relative to ${CMAKE_INSTALL_PREFIX}.")
+
+  set(VERSION_CONFIG ${PROJECT_BINARY_DIR}/BeastConfigVersion.cmake)
+  set(PROJECT_CONFIG ${PROJECT_BINARY_DIR}/BeastConfig.cmake)
+  set(TARGETS_EXPORT BeastTargets)
+  set(INSTALL_TARGETS BeastLibrary)
+
+  write_basic_package_version_file(${VERSION_CONFIG} VERSION ${BEAST_VERSION} COMPATIBILITY AnyNewerVersion)
+
+  configure_package_config_file(
+    ${PROJECT_SOURCE_DIR}/BeastConfig.cmake.in
+    ${PROJECT_CONFIG}
+    INSTALL_DESTINATION ${CMAKE_INSTALL_DIR})
+
+  # pkg-config
+  if (UNIX OR CYGWIN)
+    configure_file(${PROJECT_SOURCE_DIR}/Beast.pc.in ${CMAKE_CURRENT_BINARY_DIR}/Beast.pc @ONLY)
+  endif()
+
+  export(TARGETS ${INSTALL_TARGETS} FILE ${PROJECT_BINARY_DIR}/${TARGETS_EXPORT}.cmake)
+
+  install(FILES ${PROJECT_CONFIG} ${VERSION_CONFIG} DESTINATION ${CMAKE_INSTALL_DIR})
+  install(EXPORT ${TARGETS_EXPORT} DESTINATION ${CMAKE_INSTALL_DIR})
+  install(TARGETS ${INSTALL_TARGETS} EXPORT ${TARGETS_EXPORT} DESTINATION ${LIB_INSTALL_DIR})
+  install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/ DESTINATION ${INCLUDE_INSTALL_DIR})
+  install(FILES ${PROJECT_SOURCE_DIR}/LICENSE_1_0.txt ${PROJECT_SOURCE_DIR}/README.md DESTINATION ${DOC_INSTALL_DIR})
+
+  # pkg-config
+  if (UNIX OR CYGWIN)
+    install(FILES ${PROJECT_BINARY_DIR}/Beast.pc DESTINATION "${LIB_INSTALL_DIR}/pkgconfig")
+  endif()
+
+  include(InstallRequiredSystemLibraries)
+  set(CPACK_PACKAGE_NAME "libbeast-dev")
+  set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "HTTP and WebSocket implementations built on Boost.Asio in C++11.")
+  set(CPACK_PACKAGE_VERSION "${BEAST_VERSION}")
+  set(CPACK_PACKAGE_VERSION_MAJOR "${BEAST_VERSION_MAJOR}")
+  set(CPACK_PACKAGE_VERSION_MINOR "${BEAST_VERSION_MINOR}")
+  set(CPACK_PACKAGE_VERSION_PATCH "${BEAST_VERSION_PATCH}")
+  set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE_1_0.txt")
+  set(CPACK_RESOURCE_FILE_README "${CMAKE_CURRENT_SOURCE_DIR}/README.md")
+  set(CPACK_SOURCE_IGNORE_FILES "/\\\\.git/;/\\\\.gitignore;/CMakeCache.txt")
+  set(CPACK_SYSTEM_NAME "all")
+  set(CPACK_PACKAGING_INSTALL_PREFIX "/usr")
+  set(CPACK_PACKAGE_FILE_NAME "libbeast-dev-${BEAST_VERSION}-${CPACK_SYSTEM_NAME}")
+  set(CPACK_GENERATOR "DEB")
+  set(CPACK_SOURCE_GENERATOR "DEB")
+  set(CPACK_DEBIAN_PACKAGE_HOMEPAGE "https://github.com/vinniefalco/Beast")
+  set(CPACK_PACKAGE_VENDOR "Beast")
+  set(CPACK_PACKAGE_CONTACT "aleksandar.valchev@gmail.com")
+
+  set(CPACK_DEBIAN_ARCHITECTURE all)
+  set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Aleksandar Valchev")
+  set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
+  set(CPACK_DEBIAN_PACKAGE_DEPENDS
+    "libc6 (>= 2.3) , libssl-dev (>=1.0.2) , libboost-coroutine-dev , libboost-context-dev , libboost-thread-dev , libboost-filesystem-dev , libboost-program-options-dev "
+    )
+  set(CPACK_DEBIAN_PACKAGE_SECTION "devel")
+  set(CPACK_DEBIAN_PACKAGE_PRIORITY "optional")
+  set(CPACK_DEBIAN_PACKAGE_HOMEPAGE "https://github.com/vinniefalco/Beast")
+  include(CPack)
+
+endif()
