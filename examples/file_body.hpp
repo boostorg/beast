@@ -10,10 +10,8 @@
 
 #include <beast/core/error.hpp>
 #include <beast/http/message.hpp>
-#include <beast/http/resume_context.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/filesystem.hpp>
-#include <boost/logic/tribool.hpp>
 #include <cstdio>
 #include <cstdint>
 
@@ -38,7 +36,8 @@ struct file_body
         writer& operator=(writer const&) = delete;
 
         template<bool isRequest, class Fields>
-        writer(message<isRequest, file_body, Fields> const& m) noexcept
+        writer(message<isRequest,
+                file_body, Fields> const& m) noexcept
             : path_(m.body)
         {
         }
@@ -54,8 +53,8 @@ struct file_body
         {
             file_ = fopen(path_.c_str(), "rb");
             if(! file_)
-                ec = boost::system::errc::make_error_code(
-                    static_cast<boost::system::errc::errc_t>(errno));
+                ec = error_code{errno,
+                    system_category()};
             else
                 size_ = boost::filesystem::file_size(path_);
         }
@@ -67,9 +66,8 @@ struct file_body
         }
 
         template<class WriteFunction>
-        boost::tribool
-        write(resume_context&&, error_code&,
-            WriteFunction&& wf) noexcept
+        bool
+        write(error_code& ec, WriteFunction&& wf) noexcept
         {
             if(size_ - offset_ < sizeof(buf_))
                 buf_len_ = static_cast<std::size_t>(
@@ -77,7 +75,12 @@ struct file_body
             else
                 buf_len_ = sizeof(buf_);
             auto const nread = fread(buf_, 1, sizeof(buf_), file_);
-            (void)nread;
+            if(ferror(file_))
+            {
+                ec = error_code(errno,
+                    system_category());
+                return true;
+            }
             offset_ += buf_len_;
             wf(boost::asio::buffer(buf_, buf_len_));
             return offset_ >= size_;
