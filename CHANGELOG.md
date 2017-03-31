@@ -2,6 +2,10 @@
 
 * Add io_service completion invariants test
 
+API Changes:
+
+* Remove http Writer suspend and resume feature
+
 --------------------------------------------------------------------------------
 
 1.0.0-b31

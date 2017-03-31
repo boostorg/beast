@@ -55,9 +55,8 @@ public:
             }
 
             template<class WriteFunction>
-            boost::tribool
-            write(resume_context&&, error_code&,
-                WriteFunction&& wf) noexcept
+            bool
+            write(error_code&, WriteFunction&& wf) noexcept
             {
                 wf(boost::asio::buffer(body_));
                 return true;
@@ -103,8 +102,6 @@ public:
         {
             std::size_t n_ = 0;
             value_type const& body_;
-            bool suspend_ = false;
-            enable_yield_to yt_;
 
         public:
             template<bool isRequest, class Allocator>
@@ -120,37 +117,12 @@ public:
                 body_.fc_.fail(ec);
             }
 
-            class do_resume
-            {
-                resume_context rc_;
-
-            public:
-                explicit
-                do_resume(resume_context&& rc)
-                    : rc_(std::move(rc))
-                {
-                }
-
-                void
-                operator()()
-                {
-                    rc_();
-                }
-            };
-
             template<class WriteFunction>
-            boost::tribool
-            write(resume_context&& rc, error_code& ec,
-                WriteFunction&& wf) noexcept
+            bool
+            write(error_code& ec, WriteFunction&& wf) noexcept
             {
                 if(body_.fc_.fail(ec))
                     return false;
-                suspend_ = ! suspend_;
-                if(suspend_)
-                {
-                    yt_.get_io_service().post(do_resume{std::move(rc)});
-                    return boost::indeterminate;
-                }
                 if(n_ >= body_.s_.size())
                     return true;
                 wf(boost::asio::buffer(body_.s_.data() + n_, 1));

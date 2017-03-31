@@ -23,7 +23,6 @@ add_executable (http-tests
     parser_v1.cpp
     read.cpp
     reason.cpp
-    resume_context.cpp
     rfc7230.cpp
     streambuf_body.cpp
     string_body.cpp

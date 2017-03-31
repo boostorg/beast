@@ -22,6 +22,14 @@ using system_error = boost::system::system_error;
 /// The type of error category used by the library
 using error_category = boost::system::error_category;
 
+/// A function to return the system error category used by the library
+#if GENERATING_DOCS
+error_category const&
+system_category();
+#else
+using boost::system::system_category;
+#endif
+
 /// The type of error condition used by the library
 using error_condition = boost::system::error_condition;
 
