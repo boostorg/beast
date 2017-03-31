@@ -9,7 +9,7 @@ set_property (GLOBAL PROPERTY USE_FOLDERS ON)
 if (MSVC)
     # /wd4244 /wd4127
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4100 /wd4244 /wd4251 /MP /W4 /bigobj /D BOOST_COROUTINES_NO_DEPRECATION_WARNING=1 /D _WIN32_WINNT=0x0601 /D _SCL_SECURE_NO_WARNINGS=1 /D _CRT_SECURE_NO_WARNINGS=1")
-    set (CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd")
+    #set (CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd")
     set (CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /Ob2 /Oi /Ot /GL /MT")
     set (CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} /Oi /Ot /MT")
 
@@ -24,18 +24,20 @@ if (MSVC)
     set (CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO ${replacement_flags})
 
 else()
-    set(Boost_USE_STATIC_LIBS ON)
-    set(Boost_USE_MULTITHREADED ON)
-    find_package(Boost REQUIRED COMPONENTS coroutine context thread filesystem program_options system)
-    include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
-    link_directories(${Boost_LIBRARY_DIR})
-
     set(THREADS_PREFER_PTHREAD_FLAG ON)
     find_package(Threads)
 
     set(CMAKE_CXX_FLAGS
       "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wextra -Wpedantic -Wno-unused-parameter -DBOOST_COROUTINES_NO_DEPRECATION_WARNING=1")
 endif()
+
+set(Boost_USE_STATIC_LIBS ON)
+set(Boost_USE_MULTITHREADED ON)
+
+find_package(Boost REQUIRED COMPONENTS regex coroutine context thread filesystem program_options system)
+include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
+link_directories(${Boost_LIBRARY_DIR})
+
 
 add_definitions ("-DBOOST_COROUTINES_NO_DEPRECATION_WARNING")
 

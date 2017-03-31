@@ -33,6 +33,8 @@ add_executable (http-tests
 
 if (NOT WIN32)
     target_link_libraries(http-tests ${Boost_LIBRARIES} Threads::Threads)
+else()
+    target_link_libraries(http-tests ${Boost_LIBRARIES})
 endif()
 
 add_executable (bench-tests
@@ -45,5 +47,7 @@ add_executable (bench-tests
 )
 
 if (NOT WIN32)
+    target_link_libraries(bench-tests ${Boost_LIBRARIES} Threads::Threads)
+else()
     target_link_libraries(bench-tests ${Boost_LIBRARIES})
 endif()
