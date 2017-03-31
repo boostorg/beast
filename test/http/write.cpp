@@ -639,6 +639,61 @@ public:
         }
     }
 
+    // Ensure completion handlers are not leaked
+    struct handler
+    {
+        static std::atomic<std::size_t>&
+        count() { static std::atomic<std::size_t> n; return n; }
+        handler() { ++count(); }
+        ~handler() { --count(); }
+        handler(handler const&) { ++count(); }
+        void operator()(error_code const&) const {}
+    };
+
+    void
+    testIoService()
+    {
+        {
+            // Make sure handlers are not destroyed
+            // after calling io_service::stop
+            boost::asio::io_service ios;
+            test::string_ostream os{ios};
+            BEAST_EXPECT(handler::count() == 0);
+            message<true, string_body, fields> m;
+            m.method = "GET";
+            m.version = 11;
+            m.url = "/";
+            m.fields["Content-Length"] = "5";
+            m.body = "*****";
+            async_write(os, m, handler{});
+            BEAST_EXPECT(handler::count() > 0);
+            ios.stop();
+            BEAST_EXPECT(handler::count() > 0);
+            ios.reset();
+            BEAST_EXPECT(handler::count() > 0);
+            ios.run_one();
+            BEAST_EXPECT(handler::count() == 0);
+        }
+        {
+            // Make sure uninvoked handlers are
+            // destroyed when calling ~io_service
+            {
+                boost::asio::io_service ios;
+                test::string_ostream is{ios};
+                BEAST_EXPECT(handler::count() == 0);
+                message<true, string_body, fields> m;
+                m.method = "GET";
+                m.version = 11;
+                m.url = "/";
+                m.fields["Content-Length"] = "5";
+                m.body = "*****";
+                async_write(is, m, handler{});
+                BEAST_EXPECT(handler::count() > 0);
+            }
+            BEAST_EXPECT(handler::count() == 0);
+        }
+    }
+
     void run() override
     {
         yield_to(&write_test::testAsyncWriteHeaders, this);
@@ -647,6 +702,7 @@ public:
         testOutput();
         test_std_ostream();
         testOstream();
+        testIoService();
     }
 };
 
