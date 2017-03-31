@@ -1,3 +1,9 @@
+1.0.0-b32
+
+* Add io_service completion invariants test
+
+--------------------------------------------------------------------------------
+
 1.0.0-b31
 
 * Tidy up build settings
