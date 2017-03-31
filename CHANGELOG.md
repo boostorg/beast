@@ -1,6 +1,7 @@
 1.0.0-b32
 
 * Add io_service completion invariants test
+* Update CMake scripts for finding packages
 
 API Changes:
 

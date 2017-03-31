@@ -73,9 +73,15 @@ The library has been submitted to the
 
 ## Requirements
 
-* Boost 1.58 or higher
-* C++11 or greater
+* Boost 1.58 or later
+* C++11 or later
+
+These components are optionally required in order to build the
+tests and examples:
+
 * OpenSSL (optional)
+* CMake 3.7.2 or later (optional)
+* Properly configured bjam/b2 (optional)
 
 ## Building
 
