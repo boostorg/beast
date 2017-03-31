@@ -16,6 +16,8 @@ add_executable (lib-tests
 )
 
 if (NOT WIN32)
+    target_link_libraries(lib-tests ${Boost_LIBRARIES} Threads::Threads)
+else()
     target_link_libraries(lib-tests ${Boost_LIBRARIES})
 endif()
 
