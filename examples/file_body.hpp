@@ -11,6 +11,7 @@
 #include <beast/core/error.hpp>
 #include <beast/http/message.hpp>
 #include <boost/asio/buffer.hpp>
+#include <boost/assert.hpp>
 #include <boost/filesystem.hpp>
 #include <cstdio>
 #include <cstdint>
@@ -74,15 +75,17 @@ struct file_body
                     size_ - offset_);
             else
                 buf_len_ = sizeof(buf_);
-            auto const nread = fread(buf_, 1, sizeof(buf_), file_);
+            auto const nread = fread(
+                buf_, 1, sizeof(buf_), file_);
             if(ferror(file_))
             {
                 ec = error_code(errno,
                     system_category());
                 return true;
             }
-            offset_ += buf_len_;
-            wf(boost::asio::buffer(buf_, buf_len_));
+            BOOST_ASSERT(nread != 0);
+            offset_ += nread;
+            wf(boost::asio::buffer(buf_, nread));
             return offset_ >= size_;
         }
     };
