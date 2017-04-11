@@ -8,6 +8,7 @@
 #ifndef BEAST_ERROR_HPP
 #define BEAST_ERROR_HPP
 
+#include <beast/config.hpp>
 #include <boost/system/error_code.hpp>
 #include <boost/system/system_error.hpp>
 

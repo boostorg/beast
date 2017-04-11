@@ -76,6 +76,8 @@ The library has been submitted to the
 * Boost 1.58 or later
 * C++11 or later
 
+When using Microsoft Visual C++, Visual Studio 2015 Update 3 or later is required.
+
 These components are optionally required in order to build the
 tests and examples:
 
@@ -103,17 +105,25 @@ Boost.Coroutine library. Please visit the Boost documentation for
 instructions on how to do this for your particular build system.
 
 For the examples and tests, Beast provides build scripts for Boost.Build (bjam)
-and CMake. Developers using Microsoft Visual Studio can generate Visual Studio
+and CMake. It is possible to generate Microsoft Visual Studio or Apple
+Developers using Microsoft Visual Studio can generate Visual Studio
 project files by executing these commands from the root of the repository:
-
 
 ```
 cd bin
-cmake ..                                    # for 32-bit Windows build
+cmake ..                                    # for 32-bit Windows builds
 
 cd ../bin64
 cmake ..                                    # for Linux/Mac builds, OR
 cmake -G"Visual Studio 14 2015 Win64" ..    # for 64-bit Windows builds
+```
+
+When using Apple Xcode it is possible to generate Xcode project files
+using these commands:
+
+```
+cd bin
+cmake -G Xcode ..                           # for Apple Xcode builds
 ```
 
 To build with Boost.Build, it is necessary to have the bjam executable

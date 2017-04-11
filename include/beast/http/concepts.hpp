@@ -8,6 +8,7 @@
 #ifndef BEAST_HTTP_TYPE_CHECK_HPP
 #define BEAST_HTTP_TYPE_CHECK_HPP
 
+#include <beast/config.hpp>
 #include <beast/core/error.hpp>
 #include <beast/core/detail/type_traits.hpp>
 #include <boost/asio/buffer.hpp>
