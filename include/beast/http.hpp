@@ -8,6 +8,8 @@
 #ifndef BEAST_HTTP_HPP
 #define BEAST_HTTP_HPP
 
+#include <beast/config.hpp>
+
 #include <beast/http/basic_fields.hpp>
 #include <beast/http/basic_parser_v1.hpp>
 #include <beast/http/chunk_encode.hpp>

@@ -8,6 +8,7 @@
 #ifndef BEAST_DYNABUF_READSTREAM_HPP
 #define BEAST_DYNABUF_READSTREAM_HPP
 
+#include <beast/config.hpp>
 #include <beast/core/async_completion.hpp>
 #include <beast/core/buffer_concepts.hpp>
 #include <beast/core/error.hpp>

@@ -1,3 +1,9 @@
+1.0.0-b33
+
+* Require Visual Studio 2015 Update 3 or later
+
+--------------------------------------------------------------------------------
+
 1.0.0-b32
 
 * Add io_service completion invariants test

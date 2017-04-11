@@ -5,12 +5,5 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#ifndef BEAST_ZLIB_HPP
-#define BEAST_ZLIB_HPP
-
+// Test that header file is self-contained.
 #include <beast/config.hpp>
-
-#include <beast/zlib/deflate_stream.hpp>
-#include <beast/zlib/inflate_stream.hpp>
-
-#endif

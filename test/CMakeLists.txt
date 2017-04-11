@@ -8,6 +8,7 @@ add_executable (lib-tests
     ${BEAST_INCLUDES}
     ${EXTRAS_INCLUDES}
     ../extras/beast/unit_test/main.cpp
+    config.cpp
     core.cpp
     http.cpp
     version.cpp
