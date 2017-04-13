@@ -2,6 +2,7 @@
 
 * Require Visual Studio 2015 Update 3 or later
 * Use fwrite return value in file_body
+* Add decorator unit test
 
 --------------------------------------------------------------------------------
 
