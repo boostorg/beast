@@ -1,0 +1,50 @@
+# Set environment variables.
+environment:
+  PYTHON: C:/Python27-x64
+
+  # We bundle up protoc.exe and only the parts of boost and openssl we need so
+  # that it's a small download. We also use appveyor's free cache, avoiding fees
+  # downloading from S3 each time. 
+  # TODO: script to create this package.
+  BOOST_URL: https://www.dropbox.com/s/721s9dietmuyoo5/boost_1_60_0.7z?dl=1
+
+  # Scons honours these environment variables, setting the include/lib paths.
+  BOOST_ROOT: C:/boost_1_60_0
+
+os: Visual Studio 2015
+
+# # At the end of each successful build we cache this directory. It must be less
+# # than 100MB total compressed.
+# cache:
+#   - "C:\\boost_1_60_0"
+
+# This means we'll download a zip of the branch we want, rather than the full
+# history.
+shallow_clone: true
+
+install:
+  # We want easy_install, python and protoc.exe on PATH.
+  - SET PATH=%PYTHON%;%PYTHON%/Scripts;C:/boost_1_60_0;%PATH%
+
+  # Download dependencies if appveyor didn't restore them from the cache.
+  # Use 7zip to unzip.
+  - ps: |
+        if (-not(Test-Path 'C:/boost_1_60_0')) {
+            echo "Download from $env:BOOST_URL"
+            Start-FileDownload "$env:BOOST_URL"
+            ls
+            7z x boost_1_60_0.7z -oC:\ -y > $null
+        }
+
+  # Newer DEPS include a versions file.
+  # Dump it so we can verify correct behavior.
+  - ps: |
+        if (Test-Path 'C:/boost_1_60_0/versions.txt') {
+          cat 'C:/boost_1_60_0/versions.txt'
+        }
+build_script:
+  # We set the environment variables needed to put compilers on the PATH.
+  - '"%VS140COMNTOOLS%../../VC/vcvarsall.bat" x86_amd64'
+  # Show which version of the compiler we are using.
+  - cl
+  - b2
