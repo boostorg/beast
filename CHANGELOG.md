@@ -1,7 +1,14 @@
 1.0.0-b33
 
 * Require Visual Studio 2015 Update 3 or later
+
+HTTP
+
 * Use fwrite return value in file_body
+
+WebSocket
+
+* Set internal state correctly when writing frames
 * Add decorator unit test
 * Add write_frames unit test
 
