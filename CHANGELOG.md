@@ -1,3 +1,9 @@
+1.0.0-b34
+
+* Fix and tidy up CMake build scripts
+
+--------------------------------------------------------------------------------
+
 1.0.0-b33
 
 * Require Visual Studio 2015 Update 3 or later
