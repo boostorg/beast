@@ -7,12 +7,11 @@ project (Beast)
 set_property (GLOBAL PROPERTY USE_FOLDERS ON)
 
 if (MSVC)
-    # /wd4244 /wd4127
     add_definitions (-D_WIN32_WINNT=0x0601)
     add_definitions (-D_SCL_SECURE_NO_WARNINGS=1)
     add_definitions (-D_CRT_SECURE_NO_WARNINGS=1)
 
-    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4100 /wd4244 /wd4251 /MP /W4 /bigobj")
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4100 /wd4244 /MP /W4 /bigobj")
     set (CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /Ob2 /Oi /Ot /GL")
     set (CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} /Oi /Ot")
 
@@ -44,28 +43,29 @@ option (Boost_USE_STATIC_LIBS "Use static libraries for boost" ON)
 
 set (Boost_NO_SYSTEM_PATHS ON)
 set (Boost_USE_MULTITHREADED ON)
+add_definitions (-DBOOST_COROUTINES_NO_DEPRECATION_WARNING=1) # for asio
 
 unset (Boost_INCLUDE_DIR CACHE)
 unset (Boost_LIBRARY_DIRS CACHE)
-find_package (Boost REQUIRED COMPONENTS
-    coroutine
-    context
-    filesystem
-    program_options
-    system
-    thread
-    )
-
-include_directories (SYSTEM ${Boost_INCLUDE_DIRS})
-link_libraries (${Boost_LIBRARIES})
-
 if (MSVC)
-    add_definitions (-DBOOST_ALL_NO_LIB) # disable autolinking
-elseif (MINGW)
-    link_libraries(ws2_32 mswsock)
+    find_package (Boost REQUIRED)
+else()
+    find_package (Boost REQUIRED COMPONENTS
+        coroutine
+        context
+        filesystem
+        program_options
+        system
+        thread
+        )
+    link_libraries (${Boost_LIBRARIES})
 endif()
 
-add_definitions (-DBOOST_COROUTINES_NO_DEPRECATION_WARNING=1) # for asio
+include_directories (SYSTEM ${Boost_INCLUDE_DIRS})
+
+if (MINGW)
+    link_libraries(ws2_32 mswsock)
+endif()
 
 #-------------------------------------------------------------------------------
 #

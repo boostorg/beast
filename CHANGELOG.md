@@ -1,6 +1,7 @@
 1.0.0-b35
 
 * Add Appveyor build scripts and badge
+* Tidy up MSVC CMake configuration
 
 --------------------------------------------------------------------------------
 
