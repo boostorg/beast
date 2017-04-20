@@ -1,3 +1,9 @@
+1.0.0-b35
+
+* Add Appveyor build scripts and badge
+
+--------------------------------------------------------------------------------
+
 1.0.0-b34
 
 * Fix and tidy up CMake build scripts
