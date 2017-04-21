@@ -175,12 +175,12 @@ protected:
     template<class DynamicBuffer>
     std::size_t
     read_fh1(detail::frame_header& fh,
-        DynamicBuffer& db, close_code::value& code);
+        DynamicBuffer& db, close_code& code);
 
     template<class DynamicBuffer>
     void
     read_fh2(detail::frame_header& fh,
-        DynamicBuffer& db, close_code::value& code);
+        DynamicBuffer& db, close_code& code);
 
     // Called before receiving the first frame of each message
     template<class = void>
@@ -264,13 +264,13 @@ template<class DynamicBuffer>
 std::size_t
 stream_base::
 read_fh1(detail::frame_header& fh,
-    DynamicBuffer& db, close_code::value& code)
+    DynamicBuffer& db, close_code& code)
 {
     using boost::asio::buffer;
     using boost::asio::buffer_copy;
     using boost::asio::buffer_size;
     auto const err =
-        [&](close_code::value cv)
+        [&](close_code cv)
         {
             code = cv;
             return 0;
@@ -372,7 +372,7 @@ template<class DynamicBuffer>
 void
 stream_base::
 read_fh2(detail::frame_header& fh,
-    DynamicBuffer& db, close_code::value& code)
+    DynamicBuffer& db, close_code& code)
 {
     using boost::asio::buffer;
     using boost::asio::buffer_copy;
