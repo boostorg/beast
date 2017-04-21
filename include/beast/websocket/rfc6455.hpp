@@ -45,48 +45,87 @@ enum class opcode : std::uint8_t
     @see <a href="https://tools.ietf.org/html/rfc6455#section-7.4.1">RFC 6455 7.4.1 Defined Status Codes</a>
 
 */
-#if GENERATING_DOCS
 enum close_code
-#else
-namespace close_code {
-using value = std::uint16_t;
-enum
-#endif
 {
-    /// used internally to mean "no error"
-    none            = 0,
-
+    /// Normal closure; the connection successfully completed whatever purpose for which it was created.
     normal          = 1000,
+
+    /// The endpoint is going away, either because of a server failure or because the browser is navigating away from the page that opened the connection.
     going_away      = 1001,
+
+    /// The endpoint is terminating the connection due to a protocol error.
     protocol_error  = 1002,
 
+    /// The connection is being terminated because the endpoint received data of a type it cannot accept (for example, a text-only endpoint received binary data).
     unknown_data    = 1003,
 
-    /// Indicates a received close frame has no close code
-    //no_code         = 1005, // TODO
-
-    /// Indicates the connection was closed without receiving a close frame
-    no_close        = 1006,
-
+    /// The endpoint is terminating the connection because a message was received that contained inconsistent data (e.g., non-UTF-8 data within a text message).
     bad_payload     = 1007,
+
+    /// The endpoint is terminating the connection because it received a message that violates its policy. This is a generic status code, used when codes 1003 and 1009 are not suitable.
     policy_error    = 1008,
+
+    /// The endpoint is terminating the connection because a data frame was received that is too large.
     too_big         = 1009,
+
+    /// The client is terminating the connection because it expected the server to negotiate one or more extension, but the server didn't.
     needs_extension = 1010,
+
+    /// The server is terminating the connection because it encountered an unexpected condition that prevented it from fulfilling the request.
     internal_error  = 1011,
 
+    /// The server is terminating the connection because it is restarting.
     service_restart = 1012,
+
+    /// The server is terminating the connection due to a temporary condition, e.g. it is overloaded and is casting off some of its clients.
     try_again_later = 1013,
 
-    reserved1       = 1004,
-    no_status       = 1005, // illegal on wire
-    abnormal        = 1006, // illegal on wire
-    reserved2       = 1015,
+    //----
+    //
+    // The following are illegal on the wire
+    //
 
-    last = 5000 // satisfy warnings
+    /** Used internally to mean "no error"
+
+        This code is reserved and may not be sent.
+    */
+    none            = 0,
+
+    /** Reserved for future use by the WebSocket standard.
+
+        This code is reserved and may not be sent.
+    */
+    reserved1       = 1004,
+
+    /** No status code was provided even though one was expected.
+
+        This code is reserved and may not be sent.
+    */
+    no_status       = 1005,
+
+    /** Connection was closed without receiving a close frame
+        
+        This code is reserved and may not be sent.
+    */
+    abnormal        = 1006,
+
+    /** Reserved for future use by the WebSocket standard.
+        
+        This code is reserved and may not be sent.
+    */
+    reserved2       = 1014,
+
+    /** Reserved for future use by the WebSocket standard.
+       
+        This code is reserved and may not be sent.
+    */
+    reserved3       = 1015
+
+    //
+    //----
+
+    //last = 5000 // satisfy warnings
 };
-#if ! GENERATING_DOCS
-} // close_code
-#endif
 
 /// The type representing the reason string in a close frame.
 using reason_string = static_string<123, char>;
@@ -102,7 +141,7 @@ using ping_data = static_string<125, char>;
 struct close_reason
 {
     /// The close code.
-    close_code::value code = close_code::none;
+    std::uint16_t code = close_code::none;
 
     /// The optional utf8-encoded reason string.
     reason_string reason;
@@ -115,7 +154,7 @@ struct close_reason
     close_reason() = default;
 
     /// Construct from a code.
-    close_reason(close_code::value code_)
+    close_reason(std::uint16_t code_)
         : code(code_)
     {
     }
@@ -130,7 +169,7 @@ struct close_reason
 
     /// Construct from a code and reason.
     template<std::size_t N>
-    close_reason(close_code::value code_,
+    close_reason(close_code code_,
             char const (&reason_)[N])
         : code(code_)
         , reason(reason_)
