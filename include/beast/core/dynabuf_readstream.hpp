@@ -110,7 +110,7 @@ public:
 
     /// The type of the lowest layer.
     using lowest_layer_type =
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
         implementation_defined;
 #else
         typename detail::get_lowest_layer<
@@ -272,7 +272,7 @@ public:
         manner equivalent to using `boost::asio::io_service::post`.
     */
     template<class MutableBufferSequence, class ReadHandler>
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
     void_or_deduced
 #else
     typename async_completion<ReadHandler, void(error_code)>::result_type
@@ -347,7 +347,7 @@ public:
         manner equivalent to using `boost::asio::io_service::post`.
     */
     template<class ConstBufferSequence, class WriteHandler>
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
     void_or_deduced
 #else
     typename async_completion<WriteHandler, void(error_code)>::result_type

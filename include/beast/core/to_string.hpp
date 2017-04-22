@@ -29,7 +29,7 @@ namespace beast {
     the buffers parameter meets the requirements of @b `ConstBufferSequence`.
 */
 template<class ConstBufferSequence>
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
 std::string
 #else
 typename std::enable_if<

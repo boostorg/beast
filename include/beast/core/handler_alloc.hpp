@@ -35,7 +35,7 @@ namespace beast {
     the handler is invoked or undefined behavior results. This behavior
     is described as the "deallocate before invocation" Asio guarantee.
 */
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
 template<class T, class Handler>
 class handler_alloc;
 #else

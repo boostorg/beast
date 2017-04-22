@@ -35,14 +35,14 @@ namespace beast {
 */
 template<class Allocator>
 class basic_flat_streambuf
-#if ! GENERATING_DOCS
+#if ! BEAST_DOXYGEN
     : private detail::empty_base_optimization<
         typename std::allocator_traits<Allocator>::
             template rebind_alloc<char>>
 #endif
 {
 public:
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
     /// The type of allocator used.
     using allocator_type = Allocator;
 #else

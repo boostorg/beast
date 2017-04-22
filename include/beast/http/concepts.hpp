@@ -129,7 +129,7 @@ public:
 
 /// Determine if `T` meets the requirements of @b Body.
 template<class T>
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
 struct is_Body : std::integral_constant<bool, ...>{};
 #else
 using is_Body = detail::has_value_type<T>;
@@ -140,7 +140,7 @@ using is_Body = detail::has_value_type<T>;
     @tparam T The type to check, which must meet the
     requirements of @b Body.
 */
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
 template<class T>
 struct has_reader : std::integral_constant<bool, ...>{};
 #else
@@ -158,7 +158,7 @@ struct has_reader<T, beast::detail::void_t<
     @tparam T The type to check, which must meet the
     requirements of @b Body.
 */
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
 template<class T>
 struct has_writer : std::integral_constant<bool, ...>{};
 #else
@@ -178,7 +178,7 @@ struct has_writer<T, beast::detail::void_t<
     @tparam M The message type to test with, which must be of
     type `message`.
 */
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
 template<class T, class M>
 struct is_Reader : std::integral_constant<bool, ...> {};
 #else
@@ -211,7 +211,7 @@ struct is_Reader<T, M, beast::detail::void_t<decltype(
     type `message`.
 */
 template<class T, class M>
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
 struct is_Writer : std::integral_constant<bool, ...> {};
 #else
 using is_Writer = typename detail::is_Writer<T, M>::type;
@@ -219,7 +219,7 @@ using is_Writer = typename detail::is_Writer<T, M>::type;
 
 /// Determine if `T` meets the requirements of @b Parser.
 template<class T>
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
 struct is_Parser : std::integral_constant<bool, ...>{};
 #else
 using is_Parser = typename detail::is_Parser<T>::type;

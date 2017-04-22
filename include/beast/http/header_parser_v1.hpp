@@ -84,7 +84,7 @@ public:
 
         @param args Forwarded to the header constructor.
     */
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
     template<class... Args>
     explicit
     header_parser_v1(Args&&... args);
