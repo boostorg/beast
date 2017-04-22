@@ -44,7 +44,7 @@ namespace websocket {
     stream.set_option(auto_fragment{true});
     @endcode
 */
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
 using auto_fragment = implementation_defined;
 #else
 struct auto_fragment
@@ -103,7 +103,7 @@ struct auto_fragment
     ws.set_option(decorate(identity{}));
     @endcode
 */
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
 using decorate = implementation_defined;
 #else
 using decorate = detail::decorator_type;
@@ -133,7 +133,7 @@ using decorate = detail::decorator_type;
     ws.set_option(keep_alive{8192});
     @endcode
 */
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
 using keep_alive = implementation_defined;
 #else
 struct keep_alive
@@ -169,7 +169,7 @@ struct keep_alive
     ws.set_option(message_type{opcode::binary});
     @endcode
 */
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
 using message_type = implementation_defined;
 #else
 struct message_type
@@ -270,7 +270,7 @@ struct permessage_deflate
           To remove the ping callback, construct the option with
           no parameters: `set_option(ping_callback{})`
 */
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
 using ping_callback = implementation_defined;
 #else
 struct ping_callback
@@ -312,7 +312,7 @@ struct ping_callback
     ws.set_option(read_buffer_size{16 * 1024});
     @endcode
 */
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
 using read_buffer_size = implementation_defined;
 #else
 struct read_buffer_size
@@ -350,7 +350,7 @@ struct read_buffer_size
     ws.set_option(read_message_max{65536});
     @endcode
 */
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
 using read_message_max = implementation_defined;
 #else
 struct read_message_max
@@ -393,7 +393,7 @@ struct read_message_max
     ws.set_option(write_buffer_size{8192});
     @endcode
 */
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
 using write_buffer_size = implementation_defined;
 #else
 struct write_buffer_size

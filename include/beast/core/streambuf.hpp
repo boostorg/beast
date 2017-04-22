@@ -32,14 +32,14 @@ namespace beast {
 */
 template<class Allocator>
 class basic_streambuf
-#if ! GENERATING_DOCS
+#if ! BEAST_DOXYGEN
     : private detail::empty_base_optimization<
         typename std::allocator_traits<Allocator>::
             template rebind_alloc<char>>
 #endif
 {
 public:
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
     /// The type of allocator used.
     using allocator_type = Allocator;
 #else
@@ -81,7 +81,7 @@ private:
     size_type out_end_ = 0; // output end offset in list_.back()
 
 public:
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
     /// The type used to represent the input sequence as a list of buffers.
     using const_buffers_type = implementation_defined;
 

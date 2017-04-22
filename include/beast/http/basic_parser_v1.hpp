@@ -308,7 +308,7 @@ public:
 
         @param args One or more parser options to set.
     */
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
     template<class... Args>
     void
     set_option(Args&&... args)
@@ -449,7 +449,7 @@ public:
         @return The number of bytes consumed in the input sequence.
     */
     template<class ConstBufferSequence>
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
     std::size_t
 #else
     typename std::enable_if<

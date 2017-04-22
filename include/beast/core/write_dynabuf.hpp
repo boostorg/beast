@@ -49,7 +49,7 @@ namespace beast {
     the `dynabuf` parameter meets the requirements of @b `DynamicBuffer`.
 */
 template<class DynamicBuffer, class... Args>
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
 void
 #else
 typename std::enable_if<is_DynamicBuffer<DynamicBuffer>::value>::type

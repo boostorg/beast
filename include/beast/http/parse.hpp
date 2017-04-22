@@ -138,7 +138,7 @@ parse(SyncReadStream& stream,
 */
 template<class AsyncReadStream,
     class DynamicBuffer, class Parser, class ReadHandler>
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
 void_or_deduced
 #else
 typename async_completion<

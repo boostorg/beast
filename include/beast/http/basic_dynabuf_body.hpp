@@ -27,7 +27,7 @@ struct basic_dynabuf_body
     /// The type of the `message::body` member
     using value_type = DynamicBuffer;
 
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
 private:
 #endif
 

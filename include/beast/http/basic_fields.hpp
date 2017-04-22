@@ -39,7 +39,7 @@ namespace http {
 */
 template<class Allocator>
 class basic_fields :
-#if ! GENERATING_DOCS
+#if ! BEAST_DOXYGEN
     private beast::detail::empty_base_optimization<
         typename std::allocator_traits<Allocator>::
             template rebind_alloc<
@@ -89,17 +89,17 @@ public:
 
         Meets the requirements of @b Field.
     */
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
     using value_type = implementation_defined;
 #endif
 
     /// A const iterator to the field sequence
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
     using iterator = implementation_defined;
 #endif
 
     /// A const iterator to the field sequence
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
     using const_iterator = implementation_defined;
 #endif
 
