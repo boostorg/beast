@@ -116,7 +116,7 @@ public:
         @note This function participates in overload resolution only
         if the first argument is not a parser or fields parser.
     */
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
     template<class... Args>
     explicit
     parser_v1(Args&&... args);

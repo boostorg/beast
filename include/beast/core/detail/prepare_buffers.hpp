@@ -61,7 +61,7 @@ public:
                     boost::asio::mutable_buffer,
                         boost::asio::const_buffer>::type;
 
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
     /// A bidirectional iterator type that may be used to read elements.
     using const_iterator = implementation_defined;
 

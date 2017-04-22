@@ -25,14 +25,14 @@ namespace http {
 */
 struct empty_body
 {
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
     /// The type of the `message::body` member
     using value_type = void;
 #else
     struct value_type {};
 #endif
 
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
 private:
 #endif
 

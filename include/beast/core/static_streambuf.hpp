@@ -28,7 +28,7 @@ namespace beast {
 */
 class static_streambuf
 {
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
 private:
 #else
 protected:
@@ -40,7 +40,7 @@ protected:
     std::uint8_t* end_;
 
 public:
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
     /// The type used to represent the input sequence as a list of buffers.
     using const_buffers_type = implementation_defined;
 
@@ -116,7 +116,7 @@ public:
         in_ += std::min<std::size_t>(n, out_ - in_);
     }
 
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
 private:
 #else
 protected:
@@ -150,7 +150,7 @@ protected:
 template<std::size_t N>
 class static_streambuf_n
     : public static_streambuf
-#if ! GENERATING_DOCS
+#if ! BEAST_DOXYGEN
     , private boost::base_from_member<
         std::array<std::uint8_t, N>>
 #endif
@@ -158,14 +158,14 @@ class static_streambuf_n
     using member_type = boost::base_from_member<
         std::array<std::uint8_t, N>>;
 public:
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
 private:
 #endif
     static_streambuf_n(
         static_streambuf_n const&) = delete;
     static_streambuf_n& operator=(
         static_streambuf_n const&) = delete;
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
 public:
 #endif
 

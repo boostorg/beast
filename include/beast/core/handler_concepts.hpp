@@ -16,7 +16,7 @@ namespace beast {
 
 /// Determine if `T` meets the requirements of @b `CompletionHandler`.
 template<class T, class Signature>
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
 using is_CompletionHandler = std::integral_constant<bool, ...>;
 #else
 using is_CompletionHandler = std::integral_constant<bool,

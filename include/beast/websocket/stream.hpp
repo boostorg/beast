@@ -96,7 +96,7 @@ public:
 
     /// The type of the lowest layer.
     using lowest_layer_type =
-    #if GENERATING_DOCS
+    #if BEAST_DOXYGEN
         implementation_defined;
     #else
         typename beast::detail::get_lowest_layer<
@@ -152,7 +152,7 @@ public:
 
         @param args One or more stream options to set.
     */
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
     template<class... Args>
     void
     set_option(Args&&... args)
@@ -192,7 +192,7 @@ public:
         the version number is used.
     */
     void
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
     set_option(implementation_defined o)
 #else
     set_option(detail::decorator_type const& o)
@@ -433,7 +433,7 @@ public:
         manner equivalent to using `boost::asio::io_service::post`.
     */
     template<class AcceptHandler>
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
     void_or_deduced
 #else
     typename async_completion<
@@ -559,7 +559,7 @@ public:
         manner equivalent to using `boost::asio::io_service::post`.
     */
     template<class ConstBufferSequence, class AcceptHandler>
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
     void_or_deduced
 #else
     typename async_completion<
@@ -676,7 +676,7 @@ public:
         manner equivalent to using `boost::asio::io_service::post`.
     */
     template<class Body, class Fields, class AcceptHandler>
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
     void_or_deduced
 #else
     typename async_completion<
@@ -813,7 +813,7 @@ public:
         manner equivalent to using `boost::asio::io_service::post`.
     */
     template<class HandshakeHandler>
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
     void_or_deduced
 #else
     typename async_completion<
@@ -924,7 +924,7 @@ public:
         manner equivalent to using `boost::asio::io_service::post`.
     */
     template<class CloseHandler>
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
     void_or_deduced
 #else
     typename async_completion<
@@ -1006,7 +1006,7 @@ public:
         manner equivalent to using `boost::asio::io_service::post`.
     */
     template<class WriteHandler>
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
     void_or_deduced
 #else
     typename async_completion<
@@ -1103,7 +1103,7 @@ public:
         manner equivalent to using `boost::asio::io_service::post`.
     */
     template<class WriteHandler>
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
     void_or_deduced
 #else
     typename async_completion<
@@ -1251,7 +1251,7 @@ public:
         manner equivalent to using `boost::asio::io_service::post`.
     */
     template<class DynamicBuffer, class ReadHandler>
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
     void_or_deduced
 #else
     typename async_completion<
@@ -1409,7 +1409,7 @@ public:
         manner equivalent to using boost::asio::io_service::post().
     */
     template<class DynamicBuffer, class ReadHandler>
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
     void_or_deduced
 #else
     typename async_completion<
@@ -1535,7 +1535,7 @@ public:
         manner equivalent to using `boost::asio::io_service::post`.
     */
     template<class ConstBufferSequence, class WriteHandler>
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
     void_or_deduced
 #else
     typename async_completion<
@@ -1651,7 +1651,7 @@ public:
         ); @endcode
     */
     template<class ConstBufferSequence, class WriteHandler>
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
     void_or_deduced
 #else
     typename async_completion<

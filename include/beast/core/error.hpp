@@ -24,7 +24,7 @@ using system_error = boost::system::system_error;
 using error_category = boost::system::error_category;
 
 /// A function to return the system error category used by the library
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
 error_category const&
 system_category();
 #else
@@ -35,7 +35,7 @@ using boost::system::system_category;
 using error_condition = boost::system::error_condition;
 
 /// The set of constants used for cross-platform error codes
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
 enum errc{};
 #else
 namespace errc = boost::system::errc;

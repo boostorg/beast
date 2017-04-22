@@ -16,7 +16,7 @@ namespace beast {
 
 /// Determine if `T` has the `get_io_service` member.
 template<class T>
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
 struct has_get_io_service : std::integral_constant<bool, ...>{};
 #else
 using has_get_io_service = typename detail::has_get_io_service<T>::type;
@@ -24,7 +24,7 @@ using has_get_io_service = typename detail::has_get_io_service<T>::type;
 
 /// Determine if `T` meets the requirements of @b `AsyncReadStream`.
 template<class T>
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
 struct is_AsyncReadStream : std::integral_constant<bool, ...>{};
 #else
 using is_AsyncReadStream = typename detail::is_AsyncReadStream<T>::type;
@@ -32,7 +32,7 @@ using is_AsyncReadStream = typename detail::is_AsyncReadStream<T>::type;
 
 /// Determine if `T` meets the requirements of @b `AsyncWriteStream`.
 template<class T>
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
 struct is_AsyncWriteStream : std::integral_constant<bool, ...>{};
 #else
 using is_AsyncWriteStream = typename detail::is_AsyncWriteStream<T>::type;
@@ -40,7 +40,7 @@ using is_AsyncWriteStream = typename detail::is_AsyncWriteStream<T>::type;
 
 /// Determine if `T` meets the requirements of @b `SyncReadStream`.
 template<class T>
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
 struct is_SyncReadStream : std::integral_constant<bool, ...>{};
 #else
 using is_SyncReadStream = typename detail::is_SyncReadStream<T>::type;
@@ -48,7 +48,7 @@ using is_SyncReadStream = typename detail::is_SyncReadStream<T>::type;
 
 /// Determine if `T` meets the requirements of @b `SyncWriterStream`.
 template<class T>
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
 struct is_SyncWriteStream : std::integral_constant<bool, ...>{};
 #else
 using is_SyncWriteStream = typename detail::is_SyncWriteStream<T>::type;
@@ -56,7 +56,7 @@ using is_SyncWriteStream = typename detail::is_SyncWriteStream<T>::type;
 
 /// Determine if `T` meets the requirements of @b `AsyncStream`.
 template<class T>
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
 struct is_AsyncStream : std::integral_constant<bool, ...>{};
 #else
 using is_AsyncStream = std::integral_constant<bool,
@@ -65,7 +65,7 @@ using is_AsyncStream = std::integral_constant<bool,
 
 /// Determine if `T` meets the requirements of @b `SyncStream`.
 template<class T>
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
 struct is_SyncStream : std::integral_constant<bool, ...>{};
 #else
 using is_SyncStream = std::integral_constant<bool,
