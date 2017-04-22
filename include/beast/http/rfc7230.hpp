@@ -61,7 +61,7 @@ public:
         std::pair<boost::string_ref, boost::string_ref>;
 
     /// A constant iterator to the list
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
     using const_iterator = implementation_defined;
 #else
     class const_iterator;
@@ -150,7 +150,7 @@ public:
     using value_type = std::pair<boost::string_ref, param_list>;
 
     /// A constant iterator to the list
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
     using const_iterator = implementation_defined;
 #else
     class const_iterator;
@@ -238,7 +238,7 @@ public:
     using value_type = boost::string_ref;
 
     /// A constant iterator to the list
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
     using const_iterator = implementation_defined;
 #else
     class const_iterator;

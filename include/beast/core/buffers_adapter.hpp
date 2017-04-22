@@ -64,7 +64,7 @@ class buffers_adapter
     }
 
 public:
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
     /// The type used to represent the input sequence as a list of buffers.
     using const_buffers_type = implementation_defined;
 

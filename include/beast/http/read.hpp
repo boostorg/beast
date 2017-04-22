@@ -153,7 +153,7 @@ read(SyncReadStream& stream, DynamicBuffer& dynabuf,
 template<class AsyncReadStream, class DynamicBuffer,
     bool isRequest, class Body, class Fields,
         class ReadHandler>
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
 void_or_deduced
 #else
 typename async_completion<
@@ -285,7 +285,7 @@ read(SyncReadStream& stream, DynamicBuffer& dynabuf,
 template<class AsyncReadStream, class DynamicBuffer,
     bool isRequest, class Body, class Fields,
         class ReadHandler>
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
 void_or_deduced
 #else
 typename async_completion<

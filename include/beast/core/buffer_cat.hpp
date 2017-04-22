@@ -37,7 +37,7 @@ namespace beast {
     also a @b MutableBufferSequence, else the returned buffer sequence
     will be a @b ConstBufferSequence.
 */
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
 template<class... BufferSequence>
 implementation_defined
 buffer_cat(BufferSequence const&... buffers)

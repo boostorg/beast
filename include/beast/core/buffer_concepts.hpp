@@ -17,7 +17,7 @@ namespace beast {
 
 /// Determine if `T` meets the requirements of @b `BufferSequence`.
 template<class T, class BufferType>
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
 struct is_BufferSequence : std::integral_constant<bool, ...>
 #else
 struct is_BufferSequence : detail::is_BufferSequence<T, BufferType>::type
@@ -27,7 +27,7 @@ struct is_BufferSequence : detail::is_BufferSequence<T, BufferType>::type
 
 /// Determine if `T` meets the requirements of @b `ConstBufferSequence`.
 template<class T>
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
 struct is_ConstBufferSequence : std::integral_constant<bool, ...>
 #else
 struct is_ConstBufferSequence :
@@ -38,7 +38,7 @@ struct is_ConstBufferSequence :
 
 /// Determine if `T` meets the requirements of @b `DynamicBuffer`.
 template<class T>
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
 struct is_DynamicBuffer : std::integral_constant<bool, ...>
 #else
 struct is_DynamicBuffer : detail::is_DynamicBuffer<T>::type
@@ -48,7 +48,7 @@ struct is_DynamicBuffer : detail::is_DynamicBuffer<T>::type
 
 /// Determine if `T` meets the requirements of @b `MutableBufferSequence`.
 template<class T>
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
 struct is_MutableBufferSequence : std::integral_constant<bool, ...>
 #else
 struct is_MutableBufferSequence :
