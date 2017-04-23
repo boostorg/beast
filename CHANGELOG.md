@@ -5,6 +5,7 @@
 * Make close_code a proper enum
 * Add flat_streambuf
 * Rename to BEAST_DOXYGEN
+* Update .gitignore for VS2017
 
 API Changes:
 
