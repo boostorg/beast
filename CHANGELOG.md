@@ -6,6 +6,7 @@
 * Add flat_streambuf
 * Rename to BEAST_DOXYGEN
 * Update .gitignore for VS2017
+* Fix README.md CMake instructions
 
 API Changes:
 
