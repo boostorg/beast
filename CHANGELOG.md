@@ -1,3 +1,9 @@
+1.0.0-b37
+
+* CMake hide command lines in .vcxproj Output windows"
+
+--------------------------------------------------------------------------------
+
 1.0.0-b36
 
 * Update README.md
