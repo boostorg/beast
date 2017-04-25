@@ -36,7 +36,6 @@ class stream<NextLayer>::response_op
         bool cont;
         stream<NextLayer>& ws;
         http::response_header res;
-        error_code final_ec;
         int state = 0;
 
         template<class Fields>
@@ -47,11 +46,22 @@ class stream<NextLayer>::response_op
             , ws(ws_)
             , res(ws_.build_response(req))
         {
-            // can't call stream::reset() here
-            // otherwise accept_op will malfunction
-            //
-            if(res.status != 101)
-                final_ec = error::handshake_failed;
+        }
+
+        template<class Fields, class Buffers>
+        data(Handler&, stream<NextLayer>& ws_,
+            http::header<true, Fields> const& req,
+                Buffers const& buffers, bool cont_)
+            : cont(cont_)
+            , ws(ws_)
+            , res(ws_.build_response(req))
+        {
+            using boost::asio::buffer_copy;
+            using boost::asio::buffer_size;
+            // VFALCO What about catch(std::length_error const&)?
+            ws.stream_.buffer().commit(buffer_copy(
+                ws.stream_.buffer().prepare(
+                    buffer_size(buffers)), buffers));
         }
     };
 
@@ -126,7 +136,8 @@ operator()(error_code ec, bool again)
         // sent response
         case 1:
             d.state = 99;
-            ec = d.final_ec;
+            if(d.res.status != 101)
+                ec = error::handshake_failed;
             if(! ec)
             {
                 pmd_read(
@@ -154,6 +165,10 @@ class stream<NextLayer>::accept_op
         http::header_parser<true, http::fields> p;
         int state = 0;
 
+        // VFALCO These lines are formatted to work around a codecov defect
+        data(Handler& handler, stream<NextLayer>& ws_) : cont(beast_asio_helpers::is_continuation(handler))
+            , ws(ws_) {}
+
         template<class Buffers>
         data(Handler& handler, stream<NextLayer>& ws_,
                 Buffers const& buffers)
@@ -163,7 +178,7 @@ class stream<NextLayer>::accept_op
         {
             using boost::asio::buffer_copy;
             using boost::asio::buffer_size;
-            ws.reset();
+            // VFALCO What about catch(std::length_error const&)?
             ws.stream_.buffer().commit(buffer_copy(
                 ws.stream_.buffer().prepare(
                     buffer_size(buffers)), buffers));
@@ -183,11 +198,6 @@ public:
             ws, std::forward<Args>(args)...)
     {
         (*this)(error_code{}, 0, false);
-    }
-
-    void operator()(error_code const& ec)
-    {
-        (*this)(ec, 0);
     }
 
     void operator()(error_code ec,
@@ -264,59 +274,7 @@ upcall:
     d_.invoke(ec);
 }
 
-template<class NextLayer>
-template<class AcceptHandler>
-typename async_completion<
-    AcceptHandler, void(error_code)>::result_type
-stream<NextLayer>::
-async_accept(AcceptHandler&& handler)
-{
-    static_assert(is_AsyncStream<next_layer_type>::value,
-        "AsyncStream requirements requirements not met");
-    return async_accept(boost::asio::null_buffers{},
-        std::forward<AcceptHandler>(handler));
-}
-
-template<class NextLayer>
-template<class ConstBufferSequence, class AcceptHandler>
-typename async_completion<
-    AcceptHandler, void(error_code)>::result_type
-stream<NextLayer>::
-async_accept(ConstBufferSequence const& bs, AcceptHandler&& handler)
-{
-    static_assert(is_AsyncStream<next_layer_type>::value,
-        "AsyncStream requirements requirements not met");
-    static_assert(beast::is_ConstBufferSequence<
-        ConstBufferSequence>::value,
-            "ConstBufferSequence requirements not met");
-    beast::async_completion<
-        AcceptHandler, void(error_code)
-            > completion{handler};
-    accept_op<decltype(completion.handler)>{
-        completion.handler, *this, bs};
-    return completion.result.get();
-}
-
-template<class NextLayer>
-template<class Fields, class AcceptHandler>
-typename async_completion<
-    AcceptHandler, void(error_code)>::result_type
-stream<NextLayer>::
-async_accept(http::header<true, Fields> const& req,
-    AcceptHandler&& handler)
-{
-    static_assert(is_AsyncStream<next_layer_type>::value,
-        "AsyncStream requirements requirements not met");
-    beast::async_completion<
-        AcceptHandler, void(error_code)
-            > completion{handler};
-    reset();
-    response_op<decltype(completion.handler)>{
-        completion.handler, *this, req,
-            beast_asio_helpers::
-                is_continuation(completion.handler)};
-    return completion.result.get();
-}
+//------------------------------------------------------------------------------
 
 template<class NextLayer>
 void
@@ -326,7 +284,7 @@ accept()
     static_assert(is_SyncStream<next_layer_type>::value,
         "SyncStream requirements not met");
     error_code ec;
-    accept(boost::asio::null_buffers{}, ec);
+    accept(ec);
     if(ec)
         throw system_error{ec};
 }
@@ -338,7 +296,8 @@ accept(error_code& ec)
 {
     static_assert(is_SyncStream<next_layer_type>::value,
         "SyncStream requirements not met");
-    accept(boost::asio::null_buffers{}, ec);
+    reset();
+    do_accept(ec);
 }
 
 template<class NextLayer>
@@ -366,35 +325,28 @@ accept(ConstBufferSequence const& buffers, error_code& ec)
 {
     static_assert(is_SyncStream<next_layer_type>::value,
         "SyncStream requirements not met");
-    static_assert(beast::is_ConstBufferSequence<
+    static_assert(is_ConstBufferSequence<
         ConstBufferSequence>::value,
             "ConstBufferSequence requirements not met");
+    reset();
     using boost::asio::buffer_copy;
     using boost::asio::buffer_size;
-    reset();
     stream_.buffer().commit(buffer_copy(
         stream_.buffer().prepare(
             buffer_size(buffers)), buffers));
-    http::header_parser<true, http::fields> p;
-    auto const bytes_used = http::read_some(
-        next_layer(), stream_.buffer(), p, ec);
-    if(ec)
-        return;
-    BOOST_ASSERT(p.got_header());
-    stream_.buffer().consume(bytes_used);
-    accept(p.get(), ec);
+    do_accept(ec);
 }
 
 template<class NextLayer>
 template<class Fields>
 void
 stream<NextLayer>::
-accept(http::header<true, Fields> const& request)
+accept(http::header<true, Fields> const& req)
 {
     static_assert(is_SyncStream<next_layer_type>::value,
         "SyncStream requirements not met");
     error_code ec;
-    accept(request, ec);
+    accept(req, ec);
     if(ec)
         throw system_error{ec};
 }
@@ -409,19 +361,134 @@ accept(http::header<true, Fields> const& req,
     static_assert(is_SyncStream<next_layer_type>::value,
         "SyncStream requirements not met");
     reset();
-    auto const res = build_response(req);
-    http::write(stream_, res, ec);
+    do_accept(req, ec);
+}
+
+template<class NextLayer>
+template<class Fields, class ConstBufferSequence>
+void
+stream<NextLayer>::
+accept(
+    http::header<true, Fields> const& req,
+    ConstBufferSequence const& buffers)
+{
+    static_assert(is_SyncStream<next_layer_type>::value,
+        "SyncStream requirements not met");
+    static_assert(is_ConstBufferSequence<
+        ConstBufferSequence>::value,
+            "ConstBufferSequence requirements not met");
+    error_code ec;
+    accept(req, buffers, ec);
     if(ec)
-        return;
-    if(res.status != 101)
-    {
-        ec = error::handshake_failed;
-        // VFALCO TODO Respect keep alive setting, perform
-        //             teardown if Connection: close.
-        return;
-    }
-    pmd_read(pmd_config_, req.fields);
-    open(detail::role_type::server);
+        throw system_error{ec};
+}
+
+template<class NextLayer>
+template<class Fields, class ConstBufferSequence>
+void
+stream<NextLayer>::
+accept(
+    http::header<true, Fields> const& req,
+    ConstBufferSequence const& buffers,
+    error_code& ec)
+{
+    static_assert(is_SyncStream<next_layer_type>::value,
+        "SyncStream requirements not met");
+    static_assert(is_ConstBufferSequence<
+        ConstBufferSequence>::value,
+            "ConstBufferSequence requirements not met");
+    reset();
+    using boost::asio::buffer_copy;
+    using boost::asio::buffer_size;
+    stream_.buffer().commit(buffer_copy(
+        stream_.buffer().prepare(
+            buffer_size(buffers)), buffers));
+    do_accept(req, ec);
+}
+
+//------------------------------------------------------------------------------
+
+template<class NextLayer>
+template<class AcceptHandler>
+typename async_completion<AcceptHandler,
+    void(error_code)>::result_type
+stream<NextLayer>::
+async_accept(AcceptHandler&& handler)
+{
+    static_assert(is_AsyncStream<next_layer_type>::value,
+        "AsyncStream requirements requirements not met");
+    beast::async_completion<AcceptHandler,
+        void(error_code)> completion{handler};
+    reset();
+    accept_op<decltype(completion.handler)>{
+        completion.handler, *this};
+    return completion.result.get();
+}
+
+template<class NextLayer>
+template<class ConstBufferSequence, class AcceptHandler>
+typename async_completion<AcceptHandler,
+    void(error_code)>::result_type
+stream<NextLayer>::
+async_accept(ConstBufferSequence const& buffers,
+    AcceptHandler&& handler)
+{
+    static_assert(is_AsyncStream<next_layer_type>::value,
+        "AsyncStream requirements requirements not met");
+    static_assert(is_ConstBufferSequence<
+        ConstBufferSequence>::value,
+            "ConstBufferSequence requirements not met");
+    beast::async_completion<AcceptHandler,
+        void(error_code)> completion{handler};
+    reset();
+    accept_op<decltype(completion.handler)>{
+        completion.handler, *this, buffers};
+    return completion.result.get();
+}
+
+template<class NextLayer>
+template<class Fields, class AcceptHandler>
+typename async_completion<AcceptHandler,
+    void(error_code)>::result_type
+stream<NextLayer>::
+async_accept(http::header<true, Fields> const& req,
+    AcceptHandler&& handler)
+{
+    static_assert(is_AsyncStream<next_layer_type>::value,
+        "AsyncStream requirements requirements not met");
+    beast::async_completion<AcceptHandler,
+        void(error_code)> completion{handler};
+    reset();
+    response_op<decltype(completion.handler)>{
+        completion.handler, *this, req,
+            beast_asio_helpers::
+                is_continuation(completion.handler)};
+    return completion.result.get();
+}
+
+template<class NextLayer>
+template<class Fields,
+    class ConstBufferSequence, class AcceptHandler>
+typename async_completion<AcceptHandler,
+    void(error_code)>::result_type
+stream<NextLayer>::
+async_accept(http::header<true, Fields> const& req,
+    ConstBufferSequence const& buffers,
+        AcceptHandler&& handler)
+{
+    static_assert(is_AsyncStream<next_layer_type>::value,
+        "AsyncStream requirements requirements not met");
+    static_assert(is_ConstBufferSequence<
+        ConstBufferSequence>::value,
+            "ConstBufferSequence requirements not met");
+    beast::async_completion<AcceptHandler,
+        void(error_code)> completion{handler};
+    reset();
+    response_op<decltype(completion.handler)>{
+        completion.handler, *this, req, buffers,
+            beast_asio_helpers::
+                is_continuation(completion.handler)};
+    return completion.result.get();
 }
 
 } // websocket

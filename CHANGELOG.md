@@ -1,5 +1,9 @@
 * CMake hide command lines in .vcxproj Output windows"
 
+API Changes:
+
+* Provide websocket::stream accept() overloads
+
 --------------------------------------------------------------------------------
 
 1.0.0-b35
