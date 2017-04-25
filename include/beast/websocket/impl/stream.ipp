@@ -83,6 +83,43 @@ reset()
 }
 
 template<class NextLayer>
+void
+stream<NextLayer>::
+do_accept(error_code& ec)
+{
+    http::header_parser<true, http::fields> p;
+    auto const bytes_used = http::read_some(
+        next_layer(), stream_.buffer(), p, ec);
+    if(ec)
+        return;
+    BOOST_ASSERT(p.got_header());
+    stream_.buffer().consume(bytes_used);
+    do_accept(p.get(), ec);
+}
+
+template<class NextLayer>
+template<class Fields>
+void
+stream<NextLayer>::
+do_accept(http::header<true, Fields> const& req,
+    error_code& ec)
+{
+    auto const res = build_response(req);
+    http::write(stream_, res, ec);
+    if(ec)
+        return;
+    if(res.status != 101)
+    {
+        ec = error::handshake_failed;
+        // VFALCO TODO Respect keep alive setting, perform
+        //             teardown if Connection: close.
+        return;
+    }
+    pmd_read(pmd_config_, req.fields);
+    open(detail::role_type::server);
+}
+
+template<class NextLayer>
 http::request_header
 stream<NextLayer>::
 build_request(boost::string_ref const& host,
