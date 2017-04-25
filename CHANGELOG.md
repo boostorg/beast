@@ -1,3 +1,7 @@
+* CMake hide command lines in .vcxproj Output windows"
+
+--------------------------------------------------------------------------------
+
 1.0.0-b35
 
 * Add Appveyor build scripts and badge

@@ -7,6 +7,8 @@ project (Beast)
 set_property (GLOBAL PROPERTY USE_FOLDERS ON)
 
 if (MSVC)
+    set (CMAKE_VERBOSE_MAKEFILE FALSE)
+
     add_definitions (-D_WIN32_WINNT=0x0601)
     add_definitions (-D_SCL_SECURE_NO_WARNINGS=1)
     add_definitions (-D_CRT_SECURE_NO_WARNINGS=1)
