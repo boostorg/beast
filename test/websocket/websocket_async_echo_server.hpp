@@ -38,25 +38,6 @@ public:
     using endpoint_type = boost::asio::ip::tcp::endpoint;
 
 private:
-    struct identity
-    {
-        template<class Body, class Fields>
-        void
-        operator()(beast::http::message<
-            true, Body, Fields>& req) const
-        {
-            req.fields.replace("User-Agent", "async_echo_client");
-        }
-
-        template<class Body, class Fields>
-        void
-        operator()(beast::http::message<
-            false, Body, Fields>& resp) const
-        {
-            resp.fields.replace("Server", "async_echo_server");
-        }
-    };
-
     /** A container of type-erased option setters.
     */
     template<class NextLayer>
@@ -159,8 +140,6 @@ public:
         , acceptor_(ios_)
         , work_(ios_)
     {
-        opts_.set_option(
-            beast::websocket::decorate(identity{}));
         thread_.reserve(threads);
         for(std::size_t i = 0; i < threads; ++i)
             thread_.emplace_back(
@@ -282,7 +261,13 @@ private:
         void run()
         {
             auto& d = *d_;
-            d.ws.async_accept(std::move(*this));
+            d.ws.async_accept_ex(
+                [](beast::websocket::response_type& res)
+                {
+                    res.fields.insert(
+                        "Server", "async_echo_server");
+                },
+                std::move(*this));
         }
 
         template<class DynamicBuffer, std::size_t N>

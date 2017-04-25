@@ -11,7 +11,6 @@
 #include <beast/websocket/error.hpp>
 #include <beast/websocket/option.hpp>
 #include <beast/websocket/rfc6455.hpp>
-#include <beast/websocket/detail/decorator.hpp>
 #include <beast/websocket/detail/frame.hpp>
 #include <beast/websocket/detail/invokable.hpp>
 #include <beast/websocket/detail/mask.hpp>
@@ -50,7 +49,6 @@ protected:
     struct op {};
 
     detail::maskgen maskgen_;               // source of mask keys
-    decorator_type d_;                      // adorns http messages
     bool keep_alive_ = false;               // close on failed upgrade
     std::size_t rd_msg_max_ =
         16 * 1024 * 1024;                   // max message size
@@ -153,15 +151,11 @@ protected:
     // Offer for clients, negotiated result for servers
     pmd_offer pmd_config_;
 
+    stream_base() = default;
     stream_base(stream_base&&) = default;
     stream_base(stream_base const&) = delete;
     stream_base& operator=(stream_base&&) = default;
     stream_base& operator=(stream_base const&) = delete;
-
-    stream_base()
-        : d_(detail::default_decorator{})
-    {
-    }
 
     template<class = void>
     void

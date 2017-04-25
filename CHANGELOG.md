@@ -3,6 +3,7 @@
 API Changes:
 
 * Provide websocket::stream accept() overloads
+* Refactor websocket decorators
 
 --------------------------------------------------------------------------------
 

@@ -54,6 +54,7 @@ public:
     read_some(MutableBufferSequence const& buffers,
         error_code& ec)
     {
+        ec = boost::asio::error::eof;
         return 0;
     }
 
@@ -66,7 +67,7 @@ public:
         async_completion<ReadHandler,
             void(error_code, std::size_t)> completion{handler};
         ios_.post(bind_handler(completion.handler,
-            error_code{}, 0));
+            boost::asio::error::eof, 0));
         return completion.result.get();
     }
 
