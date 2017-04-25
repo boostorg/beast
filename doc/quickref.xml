@@ -112,7 +112,6 @@
           <bridgehead renderas="sect3">Options</bridgehead>
           <simplelist type="vert" columns="1">
             <member><link linkend="beast.ref.websocket__auto_fragment">auto_fragment</link></member>
-            <member><link linkend="beast.ref.websocket__decorate">decorate</link></member>
             <member><link linkend="beast.ref.websocket__keep_alive">keep_alive</link></member>
             <member><link linkend="beast.ref.websocket__message_type">message_type</link></member>
             <member><link linkend="beast.ref.websocket__permessage_deflate">permessage_deflate</link></member>
