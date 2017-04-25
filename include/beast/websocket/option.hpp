@@ -10,7 +10,6 @@
 
 #include <beast/config.hpp>
 #include <beast/websocket/rfc6455.hpp>
-#include <beast/websocket/detail/decorator.hpp>
 #include <beast/core/detail/type_traits.hpp>
 #include <algorithm>
 #include <cstdint>
@@ -57,56 +56,6 @@ struct auto_fragment
     {
     }
 };
-#endif
-
-/** HTTP decorator option.
-
-    The decorator transforms the HTTP requests and responses used
-    when requesting or responding to the WebSocket Upgrade. This may
-    be used to set or change header fields. For example to set the
-    Server or User-Agent fields. The default setting applies no
-    transformation to the HTTP message.
-
-    The context in which the decorator is called depends on the
-    type of operation performed:
-
-    @li For synchronous operations, the implementation will call the
-    decorator before the operation unblocks.
-
-    @li For asynchronous operations, the implementation guarantees
-    that calls to the decorator will be made from the same implicit
-    or explicit strand used to call the asynchronous initiation
-    function.
-
-    The default setting is no decorator.
-
-    @note Objects of this type are used with
-          @ref beast::websocket::stream::set_option.
-
-    @par Example
-    Setting the decorator.
-    @code
-    struct identity
-    {
-        template<bool isRequest, class Body, class Fields>
-        void
-        operator()(http::message<isRequest, Body, Fields>& m)
-        {
-            if(isRequest)
-                m.fields.replace("User-Agent", "MyClient");
-            else
-                m.fields.replace("Server", "MyServer");
-        }
-    };
-    ...
-    websocket::stream<ip::tcp::socket> ws(ios);
-    ws.set_option(decorate(identity{}));
-    @endcode
-*/
-#if BEAST_DOXYGEN
-using decorate = implementation_defined;
-#else
-using decorate = detail::decorator_type;
 #endif
 
 /** Keep-alive option.
