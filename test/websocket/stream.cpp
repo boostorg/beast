@@ -111,33 +111,6 @@ public:
         return false;
     }
 
-    struct test_decorator
-    {
-        int& what;
-
-        test_decorator(test_decorator const&) = default;
-
-        test_decorator(int& what_)
-            : what(what_)
-        {
-            what = 0;
-        }
-
-        template<class Fields>
-        void
-        operator()(http::header<true, Fields>&) const
-        {
-            what |= 1;
-        }
-
-        template<class Fields>
-        void
-        operator()(http::header<false, Fields>&) const
-        {
-            what |= 2;
-        }
-    };
-
     struct SyncClient
     {
         template<class NextLayer>
@@ -173,13 +146,63 @@ public:
             ws.accept(req, buffers);
         }
 
-        template<class NextLayer>
+        template<class NextLayer, class Decorator>
         void
+        accept_ex(stream<NextLayer>& ws,
+            Decorator const& d) const
+        {
+            ws.accept_ex(d);
+        }
+
+        template<class NextLayer,
+            class Buffers, class Decorator>
+        void
+        accept_ex(stream<NextLayer>& ws,
+            Buffers const& buffers,
+                Decorator const& d) const
+        {
+            ws.accept_ex(buffers, d);
+        }
+
+        template<class NextLayer,
+            class Fields, class Decorator>
+        void
+        accept_ex(stream<NextLayer>& ws,
+            http::header<true, Fields> const& req,
+                Decorator const& d) const
+        {
+            ws.accept_ex(req, d);
+        }
+
+        template<class NextLayer,
+            class Fields, class Buffers,
+                class Decorator>
+        void
+        accept_ex(stream<NextLayer>& ws,
+            http::header<true, Fields> const& req,
+                Buffers const& buffers,
+                    Decorator const& d) const
+        {
+            ws.accept_ex(req, buffers, d);
+        }
+
+        template<class NextLayer>
+        response_type
         handshake(stream<NextLayer>& ws,
             boost::string_ref const& uri,
                 boost::string_ref const& path) const
         {
-            ws.handshake(uri, path);
+            return ws.handshake(uri, path);
+        }
+
+        template<class NextLayer, class Decorator>
+        response_type
+        handshake_ex(stream<NextLayer>& ws,
+            boost::string_ref const& uri,
+                boost::string_ref const& path,
+                    Decorator const& d) const
+        {
+            return ws.handshake_ex(uri, path, d);
         }
 
         template<class NextLayer>
@@ -301,26 +324,85 @@ public:
         }
 
         template<class NextLayer,
-            class Fields, class Buffers>
+            class Decorator>
         void
-        accept(stream<NextLayer>& ws,
+        accept_ex(stream<NextLayer>& ws,
+            Decorator const& d) const
+        {
+            error_code ec;
+            ws.async_accept_ex(d, yield_[ec]);
+            if(ec)
+                throw system_error{ec};
+        }
+
+        template<class NextLayer,
+            class Buffers, class Decorator>
+        void
+        accept_ex(stream<NextLayer>& ws,
+            Buffers const& buffers,
+                Decorator const& d) const
+        {
+            error_code ec;
+            ws.async_accept_ex(buffers, d, yield_[ec]);
+            if(ec)
+                throw system_error{ec};
+        }
+
+        template<class NextLayer,
+            class Fields, class Decorator>
+        void
+        accept_ex(stream<NextLayer>& ws,
+            http::header<true, Fields> const& req,
+                Decorator const& d) const
+        {
+            error_code ec;
+            ws.async_accept_ex(req, d, yield_[ec]);
+            if(ec)
+                throw system_error{ec};
+        }
+
+        template<class NextLayer, class Fields,
+            class Buffers, class Decorator>
+        void
+        accept_ex(stream<NextLayer>& ws,
             http::header<true, Fields> const& req,
                 Buffers const& buffers,
-                    error_code& ec) const
+                    Decorator const& d) const
         {
-            ws.async_accept(req, buffers, yield_[ec]);
+            error_code ec;
+            ws.async_accept_ex(
+                req, buffers, d, yield_[ec]);
+            if(ec)
+                throw system_error{ec};
         }
 
         template<class NextLayer>
-        void
+        response_type
         handshake(stream<NextLayer>& ws,
             boost::string_ref const& uri,
                 boost::string_ref const& path) const
         {
             error_code ec;
-            ws.async_handshake(uri, path, yield_[ec]);
+            auto res = ws.async_handshake(
+                uri, path, yield_[ec]);
             if(ec)
                 throw system_error{ec};
+            return res;
+        }
+
+        template<class NextLayer, class Decorator>
+        response_type
+        handshake_ex(stream<NextLayer>& ws,
+            boost::string_ref const& uri,
+                boost::string_ref const& path,
+                    Decorator const &d) const
+        {
+            error_code ec;
+            auto res = ws.async_handshake_ex(
+                uri, path, d, yield_[ec]);
+            if(ec)
+                throw system_error{ec};
+            return res;
         }
 
         template<class NextLayer>
@@ -436,6 +518,28 @@ public:
         }
     }
 
+    //--------------------------------------------------------------------------
+
+    class res_decorator
+    {
+        bool& b_;
+
+    public:
+        res_decorator(res_decorator const&) = default;
+
+        explicit
+        res_decorator(bool& b)
+            : b_(b)
+        {
+        }
+
+        void
+        operator()(response_type&) const
+        {
+            b_ = true;
+        }
+    };
+
     template<class Client>
     void
     testAccept(Client const& c)
@@ -460,7 +564,22 @@ public:
                         "\r\n"
                         , 20};
                     c.accept(ws);
-                    //log << ws.next_layer().str << std::endl;
+                    // VFALCO validate contents of ws.next_layer().str?
+                }
+                {
+                    stream<test::fail_stream<
+                        test::string_iostream>> ws{fc, ios_,
+                        "GET / HTTP/1.1\r\n"
+                        "Host: localhost\r\n"
+                        "Upgrade: websocket\r\n"
+                        "Connection: upgrade\r\n"
+                        "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n"
+                        "Sec-WebSocket-Version: 13\r\n"
+                        "\r\n"
+                        , 20};
+                    bool called = false;
+                    c.accept_ex(ws, res_decorator{called});
+                    BEAST_EXPECT(called);
                 }
                 // request in buffers
                 {
@@ -475,6 +594,21 @@ public:
                         "Sec-WebSocket-Version: 13\r\n"
                         "\r\n"
                     ));
+                }
+                {
+                    stream<test::fail_stream<
+                        test::string_ostream>> ws{fc, ios_};
+                    bool called = false;
+                    c.accept_ex(ws, sbuf(
+                        "GET / HTTP/1.1\r\n"
+                        "Host: localhost\r\n"
+                        "Upgrade: websocket\r\n"
+                        "Connection: upgrade\r\n"
+                        "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n"
+                        "Sec-WebSocket-Version: 13\r\n"
+                        "\r\n"),
+                        res_decorator{called});
+                    BEAST_EXPECT(called);
                 }
                 // request in buffers and stream
                 {
@@ -491,9 +625,25 @@ public:
                         "Upgrade: websocket\r\n"
                     ));
                 }
+                {
+                    stream<test::fail_stream<
+                        test::string_iostream>> ws{fc, ios_,
+                        "Connection: upgrade\r\n"
+                        "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n"
+                        "Sec-WebSocket-Version: 13\r\n"
+                        "\r\n"
+                        , 16};
+                    bool called = false;
+                    c.accept_ex(ws, sbuf(
+                        "GET / HTTP/1.1\r\n"
+                        "Host: localhost\r\n"
+                        "Upgrade: websocket\r\n"),
+                        res_decorator{called});
+                    BEAST_EXPECT(called);
+                }
                 // request in message
                 {
-                    http::request_header req;
+                    request_type req;
                     req.method = "GET";
                     req.url = "/";
                     req.version = 11;
@@ -506,9 +656,26 @@ public:
                         test::string_ostream>> ws{fc, ios_};
                     c.accept(ws, req);
                 }
+                {
+                    request_type req;
+                    req.method = "GET";
+                    req.url = "/";
+                    req.version = 11;
+                    req.fields.insert("Host", "localhost");
+                    req.fields.insert("Upgrade", "websocket");
+                    req.fields.insert("Connection", "upgrade");
+                    req.fields.insert("Sec-WebSocket-Key", "dGhlIHNhbXBsZSBub25jZQ==");
+                    req.fields.insert("Sec-WebSocket-Version", "13");
+                    stream<test::fail_stream<
+                        test::string_ostream>> ws{fc, ios_};
+                    bool called = false;
+                    c.accept_ex(ws, req,
+                        res_decorator{called});
+                    BEAST_EXPECT(called);
+                }
                 // request in message, close frame in buffers
                 {
-                    http::request_header req;
+                    request_type req;
                     req.method = "GET";
                     req.url = "/";
                     req.version = 11;
@@ -534,9 +701,39 @@ public:
                             throw;
                     }
                 }
+                {
+                    request_type req;
+                    req.method = "GET";
+                    req.url = "/";
+                    req.version = 11;
+                    req.fields.insert("Host", "localhost");
+                    req.fields.insert("Upgrade", "websocket");
+                    req.fields.insert("Connection", "upgrade");
+                    req.fields.insert("Sec-WebSocket-Key", "dGhlIHNhbXBsZSBub25jZQ==");
+                    req.fields.insert("Sec-WebSocket-Version", "13");
+                    stream<test::fail_stream<
+                        test::string_ostream>> ws{fc, ios_};
+                    bool called = false;
+                    c.accept_ex(ws, req,
+                        cbuf(0x88, 0x82, 0xff, 0xff, 0xff, 0xff, 0xfc, 0x17),
+                        res_decorator{called});
+                    BEAST_EXPECT(called);
+                    try
+                    {
+                        opcode op;
+                        streambuf sb;
+                        c.read(ws, op, sb);
+                        fail("success", __FILE__, __LINE__);
+                    }
+                    catch(system_error const& e)
+                    {
+                        if(e.code() != websocket::error::closed)
+                            throw;
+                    }
+                }
                 // request in message, close frame in stream
                 {
-                    http::request_header req;
+                    request_type req;
                     req.method = "GET";
                     req.url = "/";
                     req.version = 11;
@@ -564,7 +761,7 @@ public:
                 }
                 // request in message, close frame in stream and buffers
                 {
-                    http::request_header req;
+                    request_type req;
                     req.method = "GET";
                     req.url = "/";
                     req.version = 11;
@@ -609,8 +806,10 @@ public:
                     }
                     catch(system_error const& e)
                     {
-                        if(e.code() !=
-                                websocket::error::handshake_failed)
+                        if( e.code() !=
+                                websocket::error::handshake_failed &&
+                            e.code() !=
+                                boost::asio::error::eof)
                             throw;
                     }
                 }
@@ -634,6 +833,88 @@ public:
                 testAccept(AsyncClient{yield});
             });
     }
+
+    //--------------------------------------------------------------------------
+
+    class req_decorator
+    {
+        bool& b_;
+
+    public:
+        req_decorator(req_decorator const&) = default;
+
+        explicit
+        req_decorator(bool& b)
+            : b_(b)
+        {
+        }
+
+        void
+        operator()(request_type&) const
+        {
+            b_ = true;
+        }
+    };
+
+    template<class Client>
+    void
+    testHandshake(endpoint_type const& ep, Client const& c)
+    {
+        static std::size_t constexpr limit = 200;
+        std::size_t n;
+        for(n = 0; n < limit; ++n)
+        {
+            test::fail_counter fc{n};
+            try
+            {
+                // handshake
+                {
+                    stream<test::fail_stream<
+                        boost::asio::ip::tcp::socket>> ws{fc, ios_};
+                    ws.next_layer().next_layer().connect(ep);
+                    c.handshake(ws, "localhost", "/");
+                    // VFALCO validate return value?
+                }
+                // handshake_ex
+                {
+                    stream<test::fail_stream<
+                        boost::asio::ip::tcp::socket>> ws{fc, ios_};
+                    ws.next_layer().next_layer().connect(ep);
+                    bool called = false;
+                    c.handshake_ex(ws, "localhost", "/",
+                        req_decorator{called});
+                    // VFALCO validate return value?
+                    BEAST_EXPECT(called);
+                }
+            }
+            catch(system_error const&)
+            {
+                continue;
+            }
+            break;
+        }
+        BEAST_EXPECT(n < limit);
+    }
+
+    void
+    testHandshake()
+    {
+        error_code ec;
+        ::websocket::async_echo_server server{nullptr, 1};
+        auto const any = endpoint_type{
+            address_type::from_string("127.0.0.1"), 0};
+        server.open(any, ec);
+        BEAST_EXPECTS(! ec, ec.message());
+        auto const ep = server.local_endpoint();
+        testHandshake(ep, SyncClient{});
+        yield_to(
+            [&](yield_context yield)
+            {
+                testHandshake(ep, AsyncClient{yield});
+            });
+    }
+
+    //--------------------------------------------------------------------------
 
     void testBadHandshakes()
     {
@@ -821,24 +1102,6 @@ public:
             "Sec-WebSocket-Version: 13\r\n"
             "\r\n"
         );
-    }
-
-    void
-    testDecorator(endpoint_type const& ep)
-    {
-        error_code ec;
-        socket_type sock{ios_};
-        sock.connect(ep, ec);
-        if(! BEAST_EXPECTS(! ec, ec.message()))
-            return;
-        stream<socket_type&> ws{sock};
-        int what;
-        ws.set_option(decorate(test_decorator{what}));
-        BEAST_EXPECT(what == 0);
-        ws.handshake("localhost", "/", ec);
-        if(! BEAST_EXPECTS(! ec, ec.message()))
-            return;
-        BEAST_EXPECT(what == 1);
     }
 
     void testMask(endpoint_type const& ep,
@@ -1525,6 +1788,7 @@ public:
 
         testOptions();
         testAccept();
+        testHandshake();
         testBadHandshakes();
         testBadResponses();
 
@@ -1539,7 +1803,6 @@ public:
             server.open(any, ec);
             BEAST_EXPECTS(! ec, ec.message());
             auto const ep = server.local_endpoint();
-            testDecorator(ep);
             //testInvokable1(ep);
             testInvokable2(ep);
             testInvokable3(ep);

@@ -11,6 +11,7 @@
 #include <beast/websocket/teardown.hpp>
 #include <beast/websocket/detail/hybi13.hpp>
 #include <beast/websocket/detail/pmd_extension.hpp>
+#include <beast/version.hpp>
 #include <beast/http/read.hpp>
 #include <beast/http/write.hpp>
 #include <beast/http/reason.hpp>
@@ -83,9 +84,11 @@ reset()
 }
 
 template<class NextLayer>
+template<class Decorator>
 void
 stream<NextLayer>::
-do_accept(error_code& ec)
+do_accept(
+    Decorator const& decorator, error_code& ec)
 {
     http::header_parser<true, http::fields> p;
     auto const bytes_used = http::read_some(
@@ -94,17 +97,17 @@ do_accept(error_code& ec)
         return;
     BOOST_ASSERT(p.got_header());
     stream_.buffer().consume(bytes_used);
-    do_accept(p.get(), ec);
+    do_accept(p.get(), decorator, ec);
 }
 
 template<class NextLayer>
-template<class Fields>
+template<class Fields, class Decorator>
 void
 stream<NextLayer>::
 do_accept(http::header<true, Fields> const& req,
-    error_code& ec)
+    Decorator const& decorator, error_code& ec)
 {
-    auto const res = build_response(req);
+    auto const res = build_response(req, decorator);
     http::write(stream_, res, ec);
     if(ec)
         return;
@@ -120,12 +123,15 @@ do_accept(http::header<true, Fields> const& req,
 }
 
 template<class NextLayer>
-http::request_header
+template<class Decorator>
+request_type
 stream<NextLayer>::
-build_request(boost::string_ref const& host,
-    boost::string_ref const& resource, std::string& key)
+build_request(std::string& key,
+    boost::string_ref const& host,
+        boost::string_ref const& resource,
+            Decorator const& decorator)
 {
-    http::request_header req;
+    request_type req;
     req.url = { resource.data(), resource.size() };
     req.version = 11;
     req.method = "GET";
@@ -150,28 +156,42 @@ build_request(boost::string_ref const& host,
         detail::pmd_write(
             req.fields, config);
     }
-    d_(req);
+    decorator(req);
+    if(! req.fields.exists("User-Agent"))
+        req.fields.insert("User-Agent",
+            std::string("Beast/") + BEAST_VERSION_STRING);
     return req;
 }
 
 template<class NextLayer>
-http::response_header
+template<class Decorator>
+response_type
 stream<NextLayer>::
-build_response(http::request_header const& req)
+build_response(request_type const& req,
+    Decorator const& decorator)
 {
+    auto const decorate =
+        [&decorator](response_type& res)
+        {
+            decorator(res);
+            if(! res.fields.exists("Server"))
+                res.fields.insert("Server",
+                    std::string("Beast/") +
+                        BEAST_VERSION_STRING);
+        };
     auto err =
         [&](std::string const& text)
         {
-            http::response<http::string_body> res;
+            response_type res;
             res.status = 400;
             res.reason = http::reason_string(res.status);
             res.version = req.version;
             res.body = text;
-            d_(res);
             prepare(res,
                 (is_keep_alive(req) && keep_alive_) ?
                     http::connection::keep_alive :
                     http::connection::close);
+            decorate(res);
             return res;
         };
     if(req.version < 11)
@@ -193,20 +213,20 @@ build_response(http::request_header const& req)
             return err("Missing Sec-WebSocket-Version");
         if(version != "13")
         {
-            http::response<http::string_body> res;
+            response_type res;
             res.status = 426;
             res.reason = http::reason_string(res.status);
             res.version = req.version;
             res.fields.insert("Sec-WebSocket-Version", "13");
-            d_(res);
             prepare(res,
                 (is_keep_alive(req) && keep_alive_) ?
                     http::connection::keep_alive :
                     http::connection::close);
+            decorate(res);
             return res;
         }
     }
-    http::response_header res;
+    response_type res;
     {
         detail::pmd_offer offer;
         detail::pmd_offer unused;
@@ -225,8 +245,7 @@ build_response(http::request_header const& req)
         res.fields.insert("Sec-WebSocket-Accept",
             detail::make_sec_ws_accept(key));
     }
-    res.fields.replace("Server", "Beast.WebSocket");
-    d_(res);
+    decorate(res);
     return res;
 }
 
