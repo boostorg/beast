@@ -1,5 +1,9 @@
 * CMake hide command lines in .vcxproj Output windows"
 
+WebSocket:
+
+* Add is_upgrade() free function
+
 API Changes:
 
 * Provide websocket::stream accept() overloads

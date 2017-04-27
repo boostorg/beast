@@ -10,12 +10,33 @@
 
 #include <beast/config.hpp>
 #include <beast/core/static_string.hpp>
-#include <boost/optional.hpp>
+#include <beast/http/message.hpp>
 #include <array>
 #include <cstdint>
 
 namespace beast {
 namespace websocket {
+
+/** Returns `true` if the specified HTTP request is a WebSocket Upgrade.
+
+    This function returns `true` when the passed HTTP Request
+    indicates a WebSocket Upgrade. It does not validate the
+    contents of the fields: it just trivially accepts requests
+    which could only possibly be a valid or invalid WebSocket
+    Upgrade message.
+
+    Callers who wish to manually read HTTP requests in their
+    server implementation can use this function to determine if
+    the request should be routed to an instance of
+    @ref websocket::stream.
+
+    @param req The HTTP Request object to check.
+
+    @return `true` if the request is a WebSocket Upgrade.
+*/
+template<class Fields>
+bool
+is_upgrade(beast::http::header<true, Fields> const& req);
 
 /** WebSocket frame header opcodes. */
 enum class opcode : std::uint8_t
@@ -185,5 +206,7 @@ struct close_reason
 
 } // websocket
 } // beast
+
+#include <beast/websocket/impl/rfc6455.ipp>
 
 #endif
