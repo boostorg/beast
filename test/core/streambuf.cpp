@@ -172,8 +172,6 @@ public:
     void testSpecialMembers()
     {
         using boost::asio::buffer;
-        using boost::asio::buffer_cast;
-        using boost::asio::buffer_size;
         std::string const s = "Hello, world";
         BEAST_EXPECT(s.size() == 12);
         for(std::size_t i = 1; i < 12; ++i) {
@@ -263,7 +261,6 @@ public:
 
     void testCommit()
     {
-        using boost::asio::buffer_size;
         streambuf sb(2);
         sb.prepare(2);
         sb.prepare(5);
@@ -273,7 +270,6 @@ public:
 
     void testConsume()
     {
-        using boost::asio::buffer_size;
         streambuf sb(1);
         expect_size(5, sb.prepare(5));
         sb.commit(3);
@@ -285,7 +281,6 @@ public:
     void testMatrix()
     {
         using boost::asio::buffer;
-        using boost::asio::buffer_cast;
         using boost::asio::buffer_size;
         std::string const s = "Hello, world";
         BEAST_EXPECT(s.size() == 12);

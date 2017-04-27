@@ -36,7 +36,7 @@ int main(int, char const*[])
             ip::tcp::socket sock(ios);
             connect(sock, it);
             auto ep = sock.remote_endpoint();
-            request<empty_body> req;
+            request<string_body> req;
             req.method = "GET";
             req.url = "/";
             req.version = 11;

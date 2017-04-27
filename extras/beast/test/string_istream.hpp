@@ -12,6 +12,7 @@
 #include <beast/core/bind_handler.hpp>
 #include <beast/core/error.hpp>
 #include <beast/core/prepare_buffer.hpp>
+#include <beast/websocket/teardown.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/asio/io_service.hpp>
 #include <string>
@@ -124,6 +125,26 @@ public:
         ios_.post(bind_handler(completion.handler,
             error_code{}, boost::asio::buffer_size(buffers)));
         return completion.result.get();
+    }
+
+    friend
+    void
+    teardown(websocket::teardown_tag,
+        string_istream& stream,
+            boost::system::error_code& ec)
+    {
+    }
+
+    template<class TeardownHandler>
+    friend
+    void
+    async_teardown(websocket::teardown_tag,
+        string_istream& stream,
+            TeardownHandler&& handler)
+    {
+        stream.get_io_service().post(
+            bind_handler(std::move(handler),
+                error_code{}));
     }
 };
 

@@ -8,19 +8,18 @@ add_executable (http-tests
     ${BEAST_INCLUDES}
     ${EXTRAS_INCLUDES}
     message_fuzz.hpp
-    fail_parser.hpp
+    test_parser.hpp
     ../../extras/beast/unit_test/main.cpp
     basic_dynabuf_body.cpp
     basic_fields.cpp
-    basic_parser_v1.cpp
+    basic_parser.cpp
     concepts.cpp
-    empty_body.cpp
+    design.cpp
+    error.cpp
     fields.cpp
-    header_parser_v1.cpp
+    header_parser.cpp
     message.cpp
-    parse.cpp
-    parse_error.cpp
-    parser_v1.cpp
+    message_parser.cpp
     read.cpp
     reason.cpp
     rfc7230.cpp

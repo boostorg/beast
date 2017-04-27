@@ -19,7 +19,7 @@
 namespace beast {
 namespace http {
 
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
 /** A container for a HTTP request or response header.
 
     A header includes the Start Line and Fields.
@@ -44,7 +44,7 @@ struct header<true, Fields>
 #endif
 {
     /// Indicates if the header is a request or response.
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
     static bool constexpr is_request = isRequest;
 
 #else
@@ -104,7 +104,7 @@ struct header<true, Fields>
         if and only if the first parameter is not convertible to
         `header`.
     */
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
     template<class... Args>
     explicit
     header(Args&&... args);
@@ -293,7 +293,7 @@ struct message : header<isRequest, Fields>
         only if `u` is not convertible to `base_type`.
     */
     template<class U
-#if ! GENERATING_DOCS
+#if ! BEAST_DOXYGEN
         , class = typename std::enable_if<
             ! std::is_convertible<typename
                 std::decay<U>::type, base_type>::value>::type
@@ -315,7 +315,7 @@ struct message : header<isRequest, Fields>
         only if `u` is not convertible to `base_type`.
     */
     template<class U, class V
-#if ! GENERATING_DOCS
+#if ! BEAST_DOXYGEN
         ,class = typename std::enable_if<! std::is_convertible<
             typename std::decay<U>::type, base_type>::value>::type
 #endif
@@ -388,7 +388,7 @@ private:
 
 //------------------------------------------------------------------------------
 
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
 /** Swap two header objects.
 
     @par Requirements

@@ -10,7 +10,6 @@
 
 #include <beast/config.hpp>
 #include <beast/websocket/rfc6455.hpp>
-#include <beast/websocket/detail/decorator.hpp>
 #include <beast/core/detail/type_traits.hpp>
 #include <algorithm>
 #include <cstdint>
@@ -44,7 +43,7 @@ namespace websocket {
     stream.set_option(auto_fragment{true});
     @endcode
 */
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
 using auto_fragment = implementation_defined;
 #else
 struct auto_fragment
@@ -57,56 +56,6 @@ struct auto_fragment
     {
     }
 };
-#endif
-
-/** HTTP decorator option.
-
-    The decorator transforms the HTTP requests and responses used
-    when requesting or responding to the WebSocket Upgrade. This may
-    be used to set or change header fields. For example to set the
-    Server or User-Agent fields. The default setting applies no
-    transformation to the HTTP message.
-
-    The context in which the decorator is called depends on the
-    type of operation performed:
-
-    @li For synchronous operations, the implementation will call the
-    decorator before the operation unblocks.
-
-    @li For asynchronous operations, the implementation guarantees
-    that calls to the decorator will be made from the same implicit
-    or explicit strand used to call the asynchronous initiation
-    function.
-
-    The default setting is no decorator.
-
-    @note Objects of this type are used with
-          @ref beast::websocket::stream::set_option.
-
-    @par Example
-    Setting the decorator.
-    @code
-    struct identity
-    {
-        template<bool isRequest, class Body, class Fields>
-        void
-        operator()(http::message<isRequest, Body, Fields>& m)
-        {
-            if(isRequest)
-                m.fields.replace("User-Agent", "MyClient");
-            else
-                m.fields.replace("Server", "MyServer");
-        }
-    };
-    ...
-    websocket::stream<ip::tcp::socket> ws(ios);
-    ws.set_option(decorate(identity{}));
-    @endcode
-*/
-#if GENERATING_DOCS
-using decorate = implementation_defined;
-#else
-using decorate = detail::decorator_type;
 #endif
 
 /** Keep-alive option.
@@ -133,7 +82,7 @@ using decorate = detail::decorator_type;
     ws.set_option(keep_alive{8192});
     @endcode
 */
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
 using keep_alive = implementation_defined;
 #else
 struct keep_alive
@@ -169,7 +118,7 @@ struct keep_alive
     ws.set_option(message_type{opcode::binary});
     @endcode
 */
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
 using message_type = implementation_defined;
 #else
 struct message_type
@@ -270,7 +219,7 @@ struct permessage_deflate
           To remove the ping callback, construct the option with
           no parameters: `set_option(ping_callback{})`
 */
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
 using ping_callback = implementation_defined;
 #else
 struct ping_callback
@@ -312,7 +261,7 @@ struct ping_callback
     ws.set_option(read_buffer_size{16 * 1024});
     @endcode
 */
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
 using read_buffer_size = implementation_defined;
 #else
 struct read_buffer_size
@@ -350,7 +299,7 @@ struct read_buffer_size
     ws.set_option(read_message_max{65536});
     @endcode
 */
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
 using read_message_max = implementation_defined;
 #else
 struct read_message_max
@@ -393,7 +342,7 @@ struct read_message_max
     ws.set_option(write_buffer_size{8192});
     @endcode
 */
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
 using write_buffer_size = implementation_defined;
 #else
 struct write_buffer_size

@@ -25,6 +25,7 @@ unit-test core-tests :
     core/consuming_buffers.cpp
     core/dynabuf_readstream.cpp
     core/error.cpp
+    core/flat_streambuf.cpp
     core/handler_alloc.cpp
     core/handler_concepts.cpp
     core/handler_ptr.cpp
@@ -48,15 +49,14 @@ unit-test http-tests :
     ../extras/beast/unit_test/main.cpp
     http/basic_dynabuf_body.cpp
     http/basic_fields.cpp
-    http/basic_parser_v1.cpp
+    http/basic_parser.cpp
     http/concepts.cpp
-    http/empty_body.cpp
+    http/design.cpp
+    http/error.cpp
     http/fields.cpp
-    http/header_parser_v1.cpp
+    http/header_parser.cpp
     http/message.cpp
-    http/parse.cpp
-    http/parse_error.cpp
-    http/parser_v1.cpp
+    http/message_parser.cpp
     http/read.cpp
     http/reason.cpp
     http/rfc7230.cpp

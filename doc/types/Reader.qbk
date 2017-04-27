@@ -10,57 +10,198 @@
 Parsers provided by the implementation will construct the corresponding
 `reader` object during parsing. This customization point allows the
 Body to determine the strategy for storing incoming message body data.
+Readers come in two flavors, direct and indirect:
 
-In this table:
+Direct readers provide a buffer to callers, in which body data is placed.
+This type of reader is used when the bytes corresponding to the body data
+are stored without transformation. The parse algorithm performs stream or
+socket reads directly into the reader provided buffer, hence the name
+"direct." This model avoids an unnecessary buffer copy. An example of
+a [*Body] type with a direct reader is
+[link beast.ref.http__string_body `string_body`].
+
+Indirect readers are passed body data in a buffer managed by the parser
+algorithm. This reader is appropriate when the body data is transformed
+or not otherwised stored verbatim. Some examples of when an indirect
+reader is appropriate:
+
+* When bytes corresponding to the body are written to a file
+  as they are parsed.
+
+* The content of the message is JSON, which is parsed as it is
+  being read in, and stored in a structured, hierarchical format.
+
+In the tables below:
 
 * `X` denotes a type meeting the requirements of [*`Reader`].
 
 * `a` denotes a value of type `X`.
 
-* `n` is a value convertible to `std::size_t`.
+* `n` is a value convertible to `std::size_t` without loss of precision.
 
-* `p` is a `void const*` to valid memory of at least `n` bytes.
+* `v` is a value convertible to `std::uint64_t` without loss of precision.
+
+* `s` is a value of type `boost::string_ref`.
 
 * `ec` is a value of type [link beast.ref.error_code `error_code&`].
 
 * `m` denotes a value of type `message&` where
     `std::is_same<decltype(m.body), Body::value_type>::value == true`.
 
-[table Reader requirements
+[table Direct Reader requirements
 [[operation] [type] [semantics, pre/post-conditions]]
 [
-    [`X a(m);`]
+    [`X::is_direct`]
+    [`bool`]
+    [
+        This static constant must be set to `true` to indicate that
+        the reader is a direct reader.
+    ]
+]
+[
+    [`X::mutable_buffers_type`]
+    []
+    [
+        This member type must be present, and meet the requirements
+        of [*MutableBufferSequence]. It represents the type of
+        the writable buffers returned by the reader, in which
+        bytes representing the body are stored by the implementation.
+    ]
+]
+[
+    [`X a{m};`]
     []
     [
         `a` is constructible from `m`. The lifetime of `m` is guaranteed
         to end no earlier than after `a` is destroyed. The constructor
         will be called after all headers have been stored in `m`, and
-        before any body data is deserialized. This function must be
-        `noexcept`.
+        just before parsing bytes corresponding to the body for messages
+        whose semantics indicate that a body is present with non-zero
+        length.
     ]
 ]
 [
-    [`a.init(ec)`]
-    [`void`]
+    [`a.init()`]
+    []
     [
-        Called immediately after construction. If the function sets
-        an error code in `ec`, the parse is aborted and the error is
-        propagated to the caller. This function must be `noexcept`.
+        This function is called once before any bytes corresponding
+        to the body are presented to the reader, for messages whose
+        body is determined by the end-of-file marker on a stream,
+        or for messages where the chunked Transfer-Encoding is
+        specified.
     ]
 ]
 [
-    [`a.write(p, n, ec)`]
-    [`void`]
+    [`a.init(v)`]
+    []
     [
-        Deserializes the input sequence into the body. If `ec` is set,
-        the deserialization is aborted and the error is propagated to
-        the caller. If the message headers specify a chunked transfer
-        encoding, the reader will receive the decoded version of the
-        body. This function must be `noexcept`.
+        This function is called once before any bytes corresponding
+        to the body are presented to the reader, for messages where
+        the Content-Length is specified. The value of `v` will be
+        set to the number of bytes indicated by the content length.
+    ]
+]
+[
+    [`a.prepare(n)`]
+    [`mutable_buffers_type`]
+    [
+        The implementation calls this function to obtain a mutable
+        buffer sequence of up to `n` bytes in size in which to place
+        data corresponding to the body. The buffer returned must
+        be at least one byte in size, and may be smaller than `n`.
+    ]
+]
+[
+    [`a.commit(n)`]
+    []
+    [
+        The implementation calls this function to indicate to the
+        reader that `n` bytes of data have been successfully placed
+        into the buffer obtained through a prior call to `prepare`.
+        The value of `n` will be less than or equal to the size of
+        the buffer returned  in the previous call to `prepare`.
+    ]
+]
+[
+    [`a.finish()`]
+    []
+    [
+        This function is called after all the bytes corresponding
+        to the body have been written to the buffers and committed.
     ]
 ]
 ]
 
+[table Indirect Reader requirements
+[[operation] [type] [semantics, pre/post-conditions]]
+[
+    [`X::is_direct`]
+    [`bool`]
+    [
+        This static constant must be set to `false` to indicate that
+        the reader is an indirect reader.
+    ]
+]
+[
+    [`X a{m};`]
+    []
+    [
+        `a` is constructible from `m`. The lifetime of `m` is guaranteed
+        to end no earlier than after `a` is destroyed. The constructor
+        will be called after all headers have been stored in `m`, and
+        just before parsing bytes corresponding to the body for messages
+        whose semantics indicate that a body is present with non-zero
+        length.
+    ]
+]
+[
+    [`a.init(ec)`]
+    []
+    [
+        This function is called once before any bytes corresponding
+        to the body are presented to the reader, for messages whose
+        body is determined by the end-of-file market on a stream,
+        or for messages where the chunked Transfer-Encoding is
+        specified.
+        If `ec` is set before returning, parsing will stop
+        and the error will be returned to the caller.
+
+    ]
+]
+[
+    [`a.init(v,ec)`]
+    []
+    [
+        This function is called once before any bytes corresponding
+        to the body are presented to the reader, for messages where
+        the Content-Length is specified. The value of `v` will be
+        set to the number of bytes indicated by the content length.
+        If `ec` is set before returning, parsing will stop
+        and the error will be returned to the caller.
+    ]
+]
+[
+    [`a.write(s,ec)`]
+    []
+    [
+        The implementation calls this function with `s` containing
+        bytes corresponding to the body, after removing any present
+        chunked encoding transformation.
+        If `ec` is set before returning, parsing will stop
+        and the error will be returned to the caller.
+    ]
+]
+[
+    [`a.finish(ec)`]
+    []
+    [
+        This function is called after all the bytes corresponding
+        to the body have been written to the buffers and committed.
+        If `ec` is set before returning, parsing will stop
+        and the error will be returned to the caller.
+    ]
+]
+]
 [note
     Definitions for required `Reader` member functions should be declared
     inline so the generated code can become part of the implementation.

@@ -13,17 +13,26 @@
 #include <beast/websocket/detail/stream_base.hpp>
 #include <beast/http/message.hpp>
 #include <beast/http/string_body.hpp>
-#include <beast/core/dynabuf_readstream.hpp>
 #include <beast/core/async_completion.hpp>
+#include <beast/core/dynabuf_readstream.hpp>
 #include <beast/core/detail/get_lowest_layer.hpp>
 #include <boost/asio.hpp>
 #include <boost/utility/string_ref.hpp>
 #include <algorithm>
 #include <cstdint>
 #include <limits>
+#include <type_traits>
 
 namespace beast {
 namespace websocket {
+
+/// The type of object holding HTTP Upgrade requests
+using request_type = http::request_header;
+
+/// The type of object holding HTTP Upgrade responses
+using response_type =
+    //http::response_header;
+    http::response<http::string_body, http::fields>;
 
 /** Information about a WebSocket frame.
 
@@ -59,7 +68,7 @@ struct frame_info
     you would write:
 
     @code
-    websocket::stream<ip::tcp::socket> ws(io_service);
+    websocket::stream<ip::tcp::socket> ws{io_service};
     @endcode
     Alternatively, you can write:
     @code
@@ -78,7 +87,6 @@ struct frame_info
 
     @par Concepts
         @b `AsyncStream`,
-        @b `Decorator`,
         @b `DynamicBuffer`,
         @b `SyncStream`
 */
@@ -96,7 +104,7 @@ public:
 
     /// The type of the lowest layer.
     using lowest_layer_type =
-    #if GENERATING_DOCS
+    #if BEAST_DOXYGEN
         implementation_defined;
     #else
         typename beast::detail::get_lowest_layer<
@@ -152,7 +160,7 @@ public:
 
         @param args One or more stream options to set.
     */
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
     template<class... Args>
     void
     set_option(Args&&... args)
@@ -172,33 +180,6 @@ public:
     set_option(auto_fragment const& o)
     {
         wr_autofrag_ = o.value;
-    }
-
-    /** Set the decorator used for HTTP messages.
-
-        The value for this option is a callable type with two
-        optional signatures:
-
-        @code
-            void(request_type&);
-
-            void(response_type&);
-        @endcode
-
-        If a matching signature is provided, the callable type
-        will be invoked with the HTTP request or HTTP response
-        object as appropriate. When a signature is omitted,
-        a default consisting of the string Beast followed by
-        the version number is used.
-    */
-    void
-#if GENERATING_DOCS
-    set_option(implementation_defined o)
-#else
-    set_option(detail::decorator_type const& o)
-#endif
-    {
-        d_ = o;
     }
 
     /// Set the keep-alive option
@@ -340,25 +321,25 @@ public:
 
     /** Read and respond to a WebSocket HTTP Upgrade request.
 
-        This function is used to synchronously read a HTTP WebSocket
-        Upgrade request and send the HTTP response. The call blocks until
-        one of the following conditions is true:
+        This function is used to synchronously read an HTTP WebSocket
+        Upgrade request and send the HTTP response. The call blocks
+        until one of the following conditions is true:
 
-        @li A HTTP request finishes receiving, and a HTTP response finishes
-        sending.
+        @li The HTTP request finishes receiving, and the HTTP response
+        finishes sending.
 
         @li An error occurs on the stream.
 
-        This function is implemented in terms of one or more calls to the
-        next layer's `read_some` and `write_some` functions.
+        This function is implemented in terms of one or more calls to
+        the next layer's `read_some` and `write_some` functions.
 
-        If the stream receives a valid HTTP WebSocket Upgrade request, a
-        HTTP response is sent back indicating a successful upgrade. When this
-        call returns, the stream is then ready to send and receive WebSocket
-        protocol frames and messages.
+        If the stream receives a valid HTTP WebSocket Upgrade request,
+        an HTTP response is sent back indicating a successful upgrade.
+        When this call returns, the stream is then ready to send and
+        receive WebSocket protocol frames and messages.
 
-        If the HTTP Upgrade request is invalid or cannot be satisfied, a
-        HTTP response is sent indicating the reason and status code
+        If the HTTP Upgrade request is invalid or cannot be satisfied,
+        an HTTP response is sent indicating the reason and status code
         (typically 400, "Bad Request"). This counts as a failure.
 
         @throws system_error Thrown on failure.
@@ -368,25 +349,63 @@ public:
 
     /** Read and respond to a WebSocket HTTP Upgrade request.
 
-        This function is used to synchronously read a HTTP WebSocket
-        Upgrade request and send the HTTP response. The call blocks until
-        one of the following conditions is true:
+        This function is used to synchronously read an HTTP WebSocket
+        Upgrade request and send the HTTP response. The call blocks
+        until one of the following conditions is true:
 
-        @li A HTTP request finishes receiving, and a HTTP response finishes
-        sending.
+        @li The HTTP request finishes receiving, and the HTTP response
+        finishes sending.
 
         @li An error occurs on the stream.
 
-        This function is implemented in terms of one or more calls to the
-        next layer's `read_some` and `write_some` functions.
+        This function is implemented in terms of one or more calls to
+        the next layer's `read_some` and `write_some` functions.
 
-        If the stream receives a valid HTTP WebSocket Upgrade request, a
-        HTTP response is sent back indicating a successful upgrade. When this
-        call returns, the stream is then ready to send and receive WebSocket
-        protocol frames and messages.
+        If the stream receives a valid HTTP WebSocket Upgrade request,
+        an HTTP response is sent back indicating a successful upgrade.
+        When this call returns, the stream is then ready to send and
+        receive WebSocket protocol frames and messages.
 
-        If the HTTP Upgrade request is invalid or cannot be satisfied, a
-        HTTP response is sent indicating the reason and status code
+        If the HTTP Upgrade request is invalid or cannot be satisfied,
+        an HTTP response is sent indicating the reason and status code
+        (typically 400, "Bad Request"). This counts as a failure.
+
+        @param decorator A function object which will be called to modify
+        the HTTP response object delivered by the implementation. This
+        could be used to set the Server field, subprotocols, or other
+        application or HTTP specific fields. The object will be called
+        with this equivalent signature:
+        @code void decorator(
+            response_type& res
+        ); @endcode
+
+        @throws system_error Thrown on failure.
+    */
+    template<class ResponseDecorator>
+    void
+    accept_ex(ResponseDecorator const& decorator);
+
+    /** Read and respond to a WebSocket HTTP Upgrade request.
+
+        This function is used to synchronously read an HTTP WebSocket
+        Upgrade request and send the HTTP response. The call blocks
+        until one of the following conditions is true:
+
+        @li The HTTP request finishes receiving, and the HTTP response
+        finishes sending.
+
+        @li An error occurs on the stream.
+
+        This function is implemented in terms of one or more calls to
+        the next layer's `read_some` and `write_some` functions.
+
+        If the stream receives a valid HTTP WebSocket Upgrade request,
+        an HTTP response is sent back indicating a successful upgrade.
+        When this call returns, the stream is then ready to send and
+        receive WebSocket protocol frames and messages.
+
+        If the HTTP Upgrade request is invalid or cannot be satisfied,
+        an HTTP response is sent indicating the reason and status code
         (typically 400, "Bad Request"). This counts as a failure.
 
         @param ec Set to indicate what error occurred, if any.
@@ -394,82 +413,71 @@ public:
     void
     accept(error_code& ec);
 
-    /** Start reading and responding to a WebSocket HTTP Upgrade request.
+    /** Read and respond to a WebSocket HTTP Upgrade request.
 
-        This function is used to asynchronously read a HTTP WebSocket
-        Upgrade request and send the HTTP response. The function call
-        always returns immediately. The asynchronous operation will
-        continue until one of the following conditions is true:
+        This function is used to synchronously read an HTTP WebSocket
+        Upgrade request and send the HTTP response. The call blocks
+        until one of the following conditions is true:
 
-        @li A HTTP request finishes receiving, and a HTTP response finishes
-        sending.
+        @li The HTTP request finishes receiving, and the HTTP response
+        finishes sending.
 
         @li An error occurs on the stream.
 
-        This operation is implemented in terms of one or more calls to the
-        next layer's `async_read_some` and `async_write_some` functions, and
-        is known as a <em>composed operation</em>. The program must ensure
-        that the stream performs no other operations until this operation
-        completes.
+        This function is implemented in terms of one or more calls to
+        the next layer's `read_some` and `write_some` functions.
 
-        If the stream receives a valid HTTP WebSocket Upgrade request, a
-        HTTP response is sent back indicating a successful upgrade. When
-        this call returns, the stream is then ready to send and receive
-        WebSocket protocol frames and messages.
+        If the stream receives a valid HTTP WebSocket Upgrade request,
+        an HTTP response is sent back indicating a successful upgrade.
+        When this call returns, the stream is then ready to send and
+        receive WebSocket protocol frames and messages.
 
-        If the HTTP Upgrade request is invalid or cannot be satisfied, a
-        HTTP response is sent indicating the reason and status code
+        If the HTTP Upgrade request is invalid or cannot be satisfied,
+        an HTTP response is sent indicating the reason and status code
         (typically 400, "Bad Request"). This counts as a failure.
 
-        @param handler The handler to be called when the request completes.
-        Copies will be made of the handler as required. The equivalent
-        function signature of the handler must be:
-        @code void handler(
-            error_code const& error // result of operation
+        @param decorator A function object which will be called to modify
+        the HTTP response object delivered by the implementation. This
+        could be used to set the Server field, subprotocols, or other
+        application or HTTP specific fields. The object will be called
+        with this equivalent signature:
+        @code void decorator(
+            response_type& res
         ); @endcode
-        Regardless of whether the asynchronous operation completes
-        immediately or not, the handler will not be invoked from within
-        this function. Invocation of the handler will be performed in a
-        manner equivalent to using `boost::asio::io_service::post`.
+
+        @param ec Set to indicate what error occurred, if any.
     */
-    template<class AcceptHandler>
-#if GENERATING_DOCS
-    void_or_deduced
-#else
-    typename async_completion<
-        AcceptHandler, void(error_code)>::result_type
-#endif
-    async_accept(AcceptHandler&& handler);
+    template<class ResponseDecorator>
+    void
+    accept_ex(ResponseDecorator const& decorator,
+        error_code& ec);
 
     /** Read and respond to a WebSocket HTTP Upgrade request.
 
-        This function is used to synchronously read a HTTP WebSocket
-        Upgrade request and send the HTTP response. The call blocks until
-        one of the following conditions is true:
+        This function is used to synchronously read an HTTP WebSocket
+        Upgrade request and send the HTTP response. The call blocks
+        until one of the following conditions is true:
 
-        @li A HTTP request finishes receiving, and a HTTP response finishes
-        sending.
+        @li The HTTP request finishes receiving, and the HTTP response
+        finishes sending.
 
         @li An error occurs on the stream.
 
-        This function is implemented in terms of one or more calls to the
-        next layer's `read_some` and `write_some` functions.
+        This function is implemented in terms of one or more calls to
+        the next layer's `read_some` and `write_some` functions.
 
-        If the stream receives a valid HTTP WebSocket Upgrade request, a
-        HTTP response is sent back indicating a successful upgrade. When
-        this call returns, the stream is then ready to send and receive
-        WebSocket protocol frames and messages.
+        If the stream receives a valid HTTP WebSocket Upgrade request,
+        an HTTP response is sent back indicating a successful upgrade.
+        When this call returns, the stream is then ready to send and
+        receive WebSocket protocol frames and messages.
 
-        If the HTTP Upgrade request is invalid or cannot be satisfied, a
-        HTTP response is sent indicating the reason and status code
+        If the HTTP Upgrade request is invalid or cannot be satisfied,
+        an HTTP response is sent indicating the reason and status code
         (typically 400, "Bad Request"). This counts as a failure.
 
         @param buffers Caller provided data that has already been
-        received on the stream. This may be used for implementations
-        allowing multiple protocols on the same stream. The
-        buffered data will first be applied to the handshake, and
-        then to received WebSocket frames. The implementation will
-        copy the caller provided data before the function returns.
+        received on the stream. The implementation will copy the
+        caller provided data before the function returns.
 
         @throws system_error Thrown on failure.
     */
@@ -479,33 +487,74 @@ public:
 
     /** Read and respond to a WebSocket HTTP Upgrade request.
 
-        This function is used to synchronously read a HTTP WebSocket
-        Upgrade request and send the HTTP response. The call blocks until
-        one of the following conditions is true:
+        This function is used to synchronously read an HTTP WebSocket
+        Upgrade request and send the HTTP response. The call blocks
+        until one of the following conditions is true:
 
-        @li A HTTP request finishes receiving, and a HTTP response finishes
-        sending.
+        @li The HTTP request finishes receiving, and the HTTP response
+        finishes sending.
 
         @li An error occurs on the stream.
 
-        This function is implemented in terms of one or more calls to the
-        next layer's `read_some` and `write_some` functions.
+        This function is implemented in terms of one or more calls to
+        the next layer's `read_some` and `write_some` functions.
 
-        If the stream receives a valid HTTP WebSocket Upgrade request, a
-        HTTP response is sent back indicating a successful upgrade. When
-        this call returns, the stream is then ready to send and receive
-        WebSocket protocol frames and messages.
+        If the stream receives a valid HTTP WebSocket Upgrade request,
+        an HTTP response is sent back indicating a successful upgrade.
+        When this call returns, the stream is then ready to send and
+        receive WebSocket protocol frames and messages.
 
-        If the HTTP Upgrade request is invalid or cannot be satisfied, a
-        HTTP response is sent indicating the reason and status code
+        If the HTTP Upgrade request is invalid or cannot be satisfied,
+        an HTTP response is sent indicating the reason and status code
         (typically 400, "Bad Request"). This counts as a failure.
 
         @param buffers Caller provided data that has already been
-        received on the stream. This may be used for implementations
-        allowing multiple protocols on the same stream. The
-        buffered data will first be applied to the handshake, and
-        then to received WebSocket frames. The implementation will
-        copy the caller provided data before the function returns.
+        received on the stream. The implementation will copy the
+        caller provided data before the function returns.
+
+        @param decorator A function object which will be called to modify
+        the HTTP response object delivered by the implementation. This
+        could be used to set the Server field, subprotocols, or other
+        application or HTTP specific fields. The object will be called
+        with this equivalent signature:
+        @code void decorator(
+            response_type& res
+        ); @endcode
+
+        @throws system_error Thrown on failure.
+    */
+    template<class ConstBufferSequence,
+        class ResponseDecorator>
+    void
+    accept_ex(ConstBufferSequence const& buffers,
+        ResponseDecorator const& decorator);
+
+    /** Read and respond to a WebSocket HTTP Upgrade request.
+
+        This function is used to synchronously read an HTTP WebSocket
+        Upgrade request and send the HTTP response. The call blocks
+        until one of the following conditions is true:
+
+        @li The HTTP request finishes receiving, and the HTTP response
+        finishes sending.
+
+        @li An error occurs on the stream.
+
+        This function is implemented in terms of one or more calls to
+        the next layer's `read_some` and `write_some` functions.
+
+        If the stream receives a valid HTTP WebSocket Upgrade request,
+        an HTTP response is sent back indicating a successful upgrade.
+        When this call returns, the stream is then ready to send and
+        receive WebSocket protocol frames and messages.
+
+        If the HTTP Upgrade request is invalid or cannot be satisfied,
+        an HTTP response is sent indicating the reason and status code
+        (typically 400, "Bad Request"). This counts as a failure.
+
+        @param buffers Caller provided data that has already been
+        received on the stream. The implementation will copy the
+        caller provided data before the function returns.
 
         @param ec Set to indicate what error occurred, if any.
     */
@@ -513,32 +562,515 @@ public:
     void
     accept(ConstBufferSequence const& buffers, error_code& ec);
 
+    /** Read and respond to a WebSocket HTTP Upgrade request.
+
+        This function is used to synchronously read an HTTP WebSocket
+        Upgrade request and send the HTTP response. The call blocks
+        until one of the following conditions is true:
+
+        @li The HTTP request finishes receiving, and the HTTP response
+        finishes sending.
+
+        @li An error occurs on the stream.
+
+        This function is implemented in terms of one or more calls to
+        the next layer's `read_some` and `write_some` functions.
+
+        If the stream receives a valid HTTP WebSocket Upgrade request,
+        an HTTP response is sent back indicating a successful upgrade.
+        When this call returns, the stream is then ready to send and
+        receive WebSocket protocol frames and messages.
+
+        If the HTTP Upgrade request is invalid or cannot be satisfied,
+        an HTTP response is sent indicating the reason and status code
+        (typically 400, "Bad Request"). This counts as a failure.
+
+        @param buffers Caller provided data that has already been
+        received on the stream. The implementation will copy the
+        caller provided data before the function returns.
+
+        @param decorator A function object which will be called to modify
+        the HTTP response object delivered by the implementation. This
+        could be used to set the Server field, subprotocols, or other
+        application or HTTP specific fields. The object will be called
+        with this equivalent signature:
+        @code void decorator(
+            response_type& res
+        ); @endcode
+
+        @param ec Set to indicate what error occurred, if any.
+    */
+    template<class ConstBufferSequence,
+        class ResponseDecorator>
+    void
+    accept_ex(ConstBufferSequence const& buffers,
+        ResponseDecorator const& decorator,
+            error_code& ec);
+
+    /** Respond to a WebSocket HTTP Upgrade request
+
+        This function is used to synchronously send the HTTP response
+        to an HTTP request possibly containing a WebSocket Upgrade.
+        The call blocks until one of the following conditions is true:
+
+        @li The HTTP response finishes sending.
+
+        @li An error occurs on the stream.
+
+        This function is implemented in terms of one or more calls to
+        the next layer's `read_some` and `write_some` functions.
+
+        If the stream receives a valid HTTP WebSocket Upgrade request,
+        an HTTP response is sent back indicating a successful upgrade.
+        When this call returns, the stream is then ready to send and
+        receive WebSocket protocol frames and messages.
+
+        If the HTTP Upgrade request is invalid or cannot be satisfied,
+        an HTTP response is sent indicating the reason and status code
+        (typically 400, "Bad Request"). This counts as a failure.
+
+        @param req An object containing the HTTP Upgrade request.
+        Ownership is not transferred, the implementation will not
+        access this object from other threads.
+
+        @throws system_error Thrown on failure.
+    */
+    template<class Fields>
+    void
+    accept(http::header<true, Fields> const& req);
+
+    /** Respond to a WebSocket HTTP Upgrade request
+
+        This function is used to synchronously send the HTTP response
+        to an HTTP request possibly containing a WebSocket Upgrade.
+        The call blocks until one of the following conditions is true:
+
+        @li The HTTP response finishes sending.
+
+        @li An error occurs on the stream.
+
+        This function is implemented in terms of one or more calls to
+        the next layer's `read_some` and `write_some` functions.
+
+        If the stream receives a valid HTTP WebSocket Upgrade request,
+        an HTTP response is sent back indicating a successful upgrade.
+        When this call returns, the stream is then ready to send and
+        receive WebSocket protocol frames and messages.
+
+        If the HTTP Upgrade request is invalid or cannot be satisfied,
+        an HTTP response is sent indicating the reason and status code
+        (typically 400, "Bad Request"). This counts as a failure.
+
+        @param req An object containing the HTTP Upgrade request.
+        Ownership is not transferred, the implementation will not
+        access this object from other threads.
+
+        @param decorator A function object which will be called to modify
+        the HTTP response object delivered by the implementation. This
+        could be used to set the Server field, subprotocols, or other
+        application or HTTP specific fields. The object will be called
+        with this equivalent signature:
+        @code void decorator(
+            response_type& res
+        ); @endcode
+
+        @throws system_error Thrown on failure.
+    */
+    template<class Fields, class ResponseDecorator>
+    void
+    accept_ex(http::header<true, Fields> const& req,
+        ResponseDecorator const& decorator);
+
+    /** Respond to a WebSocket HTTP Upgrade request
+
+        This function is used to synchronously send the HTTP response
+        to an HTTP request possibly containing a WebSocket Upgrade.
+        The call blocks until one of the following conditions is true:
+
+        @li The HTTP response finishes sending.
+
+        @li An error occurs on the stream.
+
+        This function is implemented in terms of one or more calls to
+        the next layer's `read_some` and `write_some` functions.
+
+        If the stream receives a valid HTTP WebSocket Upgrade request,
+        an HTTP response is sent back indicating a successful upgrade.
+        When this call returns, the stream is then ready to send and
+        receive WebSocket protocol frames and messages.
+
+        If the HTTP Upgrade request is invalid or cannot be satisfied,
+        an HTTP response is sent indicating the reason and status code
+        (typically 400, "Bad Request"). This counts as a failure.
+
+        @param req An object containing the HTTP Upgrade request.
+        Ownership is not transferred, the implementation will not
+        access this object from other threads.
+
+        @param ec Set to indicate what error occurred, if any.
+    */
+    template<class Fields>
+    void
+    accept(http::header<true, Fields> const& req,
+        error_code& ec);
+
+    /** Respond to a WebSocket HTTP Upgrade request
+
+        This function is used to synchronously send the HTTP response
+        to an HTTP request possibly containing a WebSocket Upgrade.
+        The call blocks until one of the following conditions is true:
+
+        @li The HTTP response finishes sending.
+
+        @li An error occurs on the stream.
+
+        This function is implemented in terms of one or more calls to
+        the next layer's `read_some` and `write_some` functions.
+
+        If the stream receives a valid HTTP WebSocket Upgrade request,
+        an HTTP response is sent back indicating a successful upgrade.
+        When this call returns, the stream is then ready to send and
+        receive WebSocket protocol frames and messages.
+
+        If the HTTP Upgrade request is invalid or cannot be satisfied,
+        an HTTP response is sent indicating the reason and status code
+        (typically 400, "Bad Request"). This counts as a failure.
+
+        @param req An object containing the HTTP Upgrade request.
+        Ownership is not transferred, the implementation will not
+        access this object from other threads.
+
+        @param decorator A function object which will be called to modify
+        the HTTP response object delivered by the implementation. This
+        could be used to set the Server field, subprotocols, or other
+        application or HTTP specific fields. The object will be called
+        with this equivalent signature:
+        @code void decorator(
+            response_type& res
+        ); @endcode
+
+        @param ec Set to indicate what error occurred, if any.
+    */
+    template<class Fields, class ResponseDecorator>
+    void
+    accept_ex(http::header<true, Fields> const& req,
+        ResponseDecorator const& decorator,
+            error_code& ec);
+
+    /** Respond to a WebSocket HTTP Upgrade request
+
+        This function is used to synchronously send the HTTP response
+        to an HTTP request possibly containing a WebSocket Upgrade.
+        The call blocks until one of the following conditions is true:
+
+        @li The HTTP response finishes sending.
+
+        @li An error occurs on the stream.
+
+        This function is implemented in terms of one or more calls to
+        the next layer's `read_some` and `write_some` functions.
+
+        If the stream receives a valid HTTP WebSocket Upgrade request,
+        an HTTP response is sent back indicating a successful upgrade.
+        When this call returns, the stream is then ready to send and
+        receive WebSocket protocol frames and messages.
+
+        If the HTTP Upgrade request is invalid or cannot be satisfied,
+        an HTTP response is sent indicating the reason and status code
+        (typically 400, "Bad Request"). This counts as a failure.
+
+        @param req An object containing the HTTP Upgrade request.
+        Ownership is not transferred, the implementation will not
+        access this object from other threads.
+
+        @param buffers Caller provided data that has already been
+        received on the stream. This must not include the octets
+        corresponding to the HTTP Upgrade request. The implementation
+        will copy the caller provided data before the function returns.
+
+        @throws system_error Thrown on failure.
+    */
+    template<class Fields, class ConstBufferSequence>
+    void
+    accept(http::header<true, Fields> const& req,
+        ConstBufferSequence const& buffers);
+
+    /** Respond to a WebSocket HTTP Upgrade request
+
+        This function is used to synchronously send the HTTP response
+        to an HTTP request possibly containing a WebSocket Upgrade.
+        The call blocks until one of the following conditions is true:
+
+        @li The HTTP response finishes sending.
+
+        @li An error occurs on the stream.
+
+        This function is implemented in terms of one or more calls to
+        the next layer's `read_some` and `write_some` functions.
+
+        If the stream receives a valid HTTP WebSocket Upgrade request,
+        an HTTP response is sent back indicating a successful upgrade.
+        When this call returns, the stream is then ready to send and
+        receive WebSocket protocol frames and messages.
+
+        If the HTTP Upgrade request is invalid or cannot be satisfied,
+        an HTTP response is sent indicating the reason and status code
+        (typically 400, "Bad Request"). This counts as a failure.
+
+        @param req An object containing the HTTP Upgrade request.
+        Ownership is not transferred, the implementation will not
+        access this object from other threads.
+
+        @param buffers Caller provided data that has already been
+        received on the stream. This must not include the octets
+        corresponding to the HTTP Upgrade request. The implementation
+        will copy the caller provided data before the function returns.
+
+        @param decorator A function object which will be called to modify
+        the HTTP response object delivered by the implementation. This
+        could be used to set the Server field, subprotocols, or other
+        application or HTTP specific fields. The object will be called
+        with this equivalent signature:
+        @code void decorator(
+            response_type& res
+        ); @endcode
+
+        @throws system_error Thrown on failure.
+    */
+    template<class Fields, class ConstBufferSequence,
+        class ResponseDecorator>
+    void
+    accept_ex(http::header<true, Fields> const& req,
+        ConstBufferSequence const& buffers,
+            ResponseDecorator const& decorator);
+
+    /** Respond to a WebSocket HTTP Upgrade request
+
+        This function is used to synchronously send the HTTP response
+        to an HTTP request possibly containing a WebSocket Upgrade.
+        The call blocks until one of the following conditions is true:
+
+        @li The HTTP response finishes sending.
+
+        @li An error occurs on the stream.
+
+        This function is implemented in terms of one or more calls to
+        the next layer's `read_some` and `write_some` functions.
+
+        If the stream receives a valid HTTP WebSocket Upgrade request,
+        an HTTP response is sent back indicating a successful upgrade.
+        When this call returns, the stream is then ready to send and
+        receive WebSocket protocol frames and messages.
+
+        If the HTTP Upgrade request is invalid or cannot be satisfied,
+        an HTTP response is sent indicating the reason and status code
+        (typically 400, "Bad Request"). This counts as a failure.
+
+        @param req An object containing the HTTP Upgrade request.
+        Ownership is not transferred, the implementation will not
+        access this object from other threads.
+
+        @param buffers Caller provided data that has already been
+        received on the stream. This must not include the octets
+        corresponding to the HTTP Upgrade request. The implementation
+        will copy the caller provided data before the function returns.
+
+        @param ec Set to indicate what error occurred, if any.
+    */
+    template<class Fields, class ConstBufferSequence>
+    void
+    accept(http::header<true, Fields> const& req,
+        ConstBufferSequence const& buffers, error_code& ec);
+
+    /** Respond to a WebSocket HTTP Upgrade request
+
+        This function is used to synchronously send the HTTP response
+        to an HTTP request possibly containing a WebSocket Upgrade.
+        The call blocks until one of the following conditions is true:
+
+        @li The HTTP response finishes sending.
+
+        @li An error occurs on the stream.
+
+        This function is implemented in terms of one or more calls to
+        the next layer's `read_some` and `write_some` functions.
+
+        If the stream receives a valid HTTP WebSocket Upgrade request,
+        an HTTP response is sent back indicating a successful upgrade.
+        When this call returns, the stream is then ready to send and
+        receive WebSocket protocol frames and messages.
+
+        If the HTTP Upgrade request is invalid or cannot be satisfied,
+        an HTTP response is sent indicating the reason and status code
+        (typically 400, "Bad Request"). This counts as a failure.
+
+        @param req An object containing the HTTP Upgrade request.
+        Ownership is not transferred, the implementation will not
+        access this object from other threads.
+
+        @param buffers Caller provided data that has already been
+        received on the stream. This must not include the octets
+        corresponding to the HTTP Upgrade request. The implementation
+        will copy the caller provided data before the function returns.
+
+        @param decorator A function object which will be called to modify
+        the HTTP response object delivered by the implementation. This
+        could be used to set the Server field, subprotocols, or other
+        application or HTTP specific fields. The object will be called
+        with this equivalent signature:
+        @code void decorator(
+            response_type& res
+        ); @endcode
+
+        @param ec Set to indicate what error occurred, if any.
+    */
+    template<class Fields, class ConstBufferSequence,
+        class ResponseDecorator>
+    void
+    accept_ex(http::header<true, Fields> const& req,
+        ConstBufferSequence const& buffers,
+            ResponseDecorator const& decorator,
+                error_code& ec);
+
     /** Start reading and responding to a WebSocket HTTP Upgrade request.
 
-        This function is used to asynchronously read a HTTP WebSocket
+        This function is used to asynchronously read an HTTP WebSocket
         Upgrade request and send the HTTP response. The function call
         always returns immediately. The asynchronous operation will
         continue until one of the following conditions is true:
 
-        @li A HTTP request finishes receiving, and a HTTP response finishes
-        sending.
+        @li The HTTP request finishes receiving, and the HTTP response
+        finishes sending.
 
         @li An error occurs on the stream.
 
-        This operation is implemented in terms of one or more calls to the
-        next layer's `async_read_some` and `async_write_some` functions, and
-        is known as a <em>composed operation</em>. The program must ensure
-        that the stream performs no other operations until this operation
-        completes.
+        This operation is implemented in terms of one or more calls to
+        the next layer's `async_read_some` and `async_write_some`
+        functions, and is known as a <em>composed operation</em>. The
+        program must ensure that the stream performs no other
+        asynchronous operations until this operation completes.
 
-        If the stream receives a valid HTTP WebSocket Upgrade request, a
-        HTTP response is sent back indicating a successful upgrade. When
-        this call returns, the stream is then ready to send and receive
-        WebSocket protocol frames and messages.
+        If the stream receives a valid HTTP WebSocket Upgrade request,
+        an HTTP response is sent back indicating a successful upgrade.
+        When the completion handler is invoked, the stream is then
+        ready to send and receive WebSocket protocol frames and
+        messages.
 
-        If the HTTP Upgrade request is invalid or cannot be satisfied, a
-        HTTP response is sent indicating the reason and status code
-        (typically 400, "Bad Request"). This counts as a failure.
+        If the HTTP Upgrade request is invalid or cannot be satisfied,
+        an HTTP response is sent indicating the reason and status code
+        (typically 400, "Bad Request"). This counts as a failure, and
+        the completion handler will be invoked with a suitable error
+        code set.
+
+        @param handler The handler to be called when the request
+        completes. Copies will be made of the handler as required. The
+        equivalent function signature of the handler must be:
+        @code void handler(
+            error_code const& ec    // Result of operation
+        ); @endcode
+        Regardless of whether the asynchronous operation completes
+        immediately or not, the handler will not be invoked from within
+        this function. Invocation of the handler will be performed in a
+        manner equivalent to using `boost::asio::io_service::post`.
+    */
+    template<class AcceptHandler>
+#if BEAST_DOXYGEN
+    void_or_deduced
+#else
+    typename async_completion<
+        AcceptHandler, void(error_code)>::result_type
+#endif
+    async_accept(AcceptHandler&& handler);
+
+    /** Start reading and responding to a WebSocket HTTP Upgrade request.
+
+        This function is used to asynchronously read an HTTP WebSocket
+        Upgrade request and send the HTTP response. The function call
+        always returns immediately. The asynchronous operation will
+        continue until one of the following conditions is true:
+
+        @li The HTTP request finishes receiving, and the HTTP response
+        finishes sending.
+
+        @li An error occurs on the stream.
+
+        This operation is implemented in terms of one or more calls to
+        the next layer's `async_read_some` and `async_write_some`
+        functions, and is known as a <em>composed operation</em>. The
+        program must ensure that the stream performs no other
+        asynchronous operations until this operation completes.
+
+        If the stream receives a valid HTTP WebSocket Upgrade request,
+        an HTTP response is sent back indicating a successful upgrade.
+        When the completion handler is invoked, the stream is then
+        ready to send and receive WebSocket protocol frames and
+        messages.
+
+        If the HTTP Upgrade request is invalid or cannot be satisfied,
+        an HTTP response is sent indicating the reason and status code
+        (typically 400, "Bad Request"). This counts as a failure, and
+        the completion handler will be invoked with a suitable error
+        code set.
+
+        @param decorator A function object which will be called to modify
+        the HTTP response object delivered by the implementation. This
+        could be used to set the Server field, subprotocols, or other
+        application or HTTP specific fields. The object will be called
+        with this equivalent signature:
+        @code void decorator(
+            response_type& res
+        ); @endcode
+
+        @param handler The handler to be called when the request
+        completes. Copies will be made of the handler as required. The
+        equivalent function signature of the handler must be:
+        @code void handler(
+            error_code const& ec    // Result of operation
+        ); @endcode
+        Regardless of whether the asynchronous operation completes
+        immediately or not, the handler will not be invoked from within
+        this function. Invocation of the handler will be performed in a
+        manner equivalent to using `boost::asio::io_service::post`.
+    */
+    template<class ResponseDecorator, class AcceptHandler>
+#if BEAST_DOXYGEN
+    void_or_deduced
+#else
+    typename async_completion<
+        AcceptHandler, void(error_code)>::result_type
+#endif
+    async_accept_ex(ResponseDecorator const& decorator,
+        AcceptHandler&& handler);
+
+    /** Start reading and responding to a WebSocket HTTP Upgrade request.
+
+        This function is used to asynchronously read an HTTP WebSocket
+        Upgrade request and send the HTTP response. The function call
+        always returns immediately. The asynchronous operation will
+        continue until one of the following conditions is true:
+
+        @li The HTTP request finishes receiving, and the HTTP response
+        finishes sending.
+
+        @li An error occurs on the stream.
+
+        This operation is implemented in terms of one or more calls to
+        the next layer's `async_read_some` and `async_write_some`
+        functions, and is known as a <em>composed operation</em>. The
+        program must ensure that the stream performs no other
+        asynchronous operations until this operation completes.
+
+        If the stream receives a valid HTTP WebSocket Upgrade request,
+        an HTTP response is sent back indicating a successful upgrade.
+        When the completion handler is invoked, the stream is then
+        ready to send and receive WebSocket protocol frames and
+        messages.
+
+        If the HTTP Upgrade request is invalid or cannot be satisfied,
+        an HTTP response is sent indicating the reason and status code
+        (typically 400, "Bad Request"). This counts as a failure, and
+        the completion handler will be invoked with a suitable error
+        code set.
 
         @param buffers Caller provided data that has already been
         received on the stream. This may be used for implementations
@@ -547,11 +1079,11 @@ public:
         then to received WebSocket frames. The implementation will
         copy the caller provided data before the function returns.
 
-        @param handler The handler to be called when the request completes.
-        Copies will be made of the handler as required. The equivalent
-        function signature of the handler must be:
+        @param handler The handler to be called when the request
+        completes. Copies will be made of the handler as required. The
+        equivalent function signature of the handler must be:
         @code void handler(
-            error_code const& error // result of operation
+            error_code const& ec    // Result of operation
         ); @endcode
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
@@ -559,139 +1091,350 @@ public:
         manner equivalent to using `boost::asio::io_service::post`.
     */
     template<class ConstBufferSequence, class AcceptHandler>
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
     void_or_deduced
 #else
-    typename async_completion<
-        AcceptHandler, void(error_code)>::result_type
+    typename async_completion<AcceptHandler,
+        void(error_code)>::result_type
 #endif
     async_accept(ConstBufferSequence const& buffers,
         AcceptHandler&& handler);
 
-    /** Respond to a WebSocket HTTP Upgrade request
+    /** Start reading and responding to a WebSocket HTTP Upgrade request.
 
-        This function is used to synchronously send the HTTP response to
-        a HTTP request possibly containing a WebSocket Upgrade request.
-        The call blocks until one of the following conditions is true:
+        This function is used to asynchronously read an HTTP WebSocket
+        Upgrade request and send the HTTP response. The function call
+        always returns immediately. The asynchronous operation will
+        continue until one of the following conditions is true:
 
-        @li A HTTP response finishes sending.
-
-        @li An error occurs on the stream.
-
-        This function is implemented in terms of one or more calls to the
-        next layer's `write_some` functions.
-
-        If the passed HTTP request is a valid HTTP WebSocket Upgrade
-        request, a HTTP response is sent back indicating a successful
-        upgrade. When this call returns, the stream is then ready to send
-        and receive WebSocket protocol frames and messages.
-
-        If the HTTP request is invalid or cannot be satisfied, a HTTP
-        response is sent indicating the reason and status code (typically
-        400, "Bad Request"). This counts as a failure.
-
-        @param request An object containing the HTTP Upgrade request.
-        Ownership is not transferred, the implementation will not access
-        this object from other threads.
-
-        @throws system_error Thrown on failure.
-    */
-    // VFALCO TODO This should also take a DynamicBuffer with any leftover bytes.
-    template<class Body, class Fields>
-    void
-    accept(http::request<Body, Fields> const& request);
-
-    /** Respond to a WebSocket HTTP Upgrade request
-
-        This function is used to synchronously send the HTTP response to
-        a HTTP request possibly containing a WebSocket Upgrade request.
-        The call blocks until one of the following conditions is true:
-
-        @li A HTTP response finishes sending.
+        @li The HTTP request finishes receiving, and the HTTP response
+        finishes sending.
 
         @li An error occurs on the stream.
 
-        This function is implemented in terms of one or more calls to the
-        next layer's `write_some` functions.
+        This operation is implemented in terms of one or more calls to
+        the next layer's `async_read_some` and `async_write_some`
+        functions, and is known as a <em>composed operation</em>. The
+        program must ensure that the stream performs no other
+        asynchronous operations until this operation completes.
 
-        If the passed HTTP request is a valid HTTP WebSocket Upgrade
-        request, a HTTP response is sent back indicating a successful
-        upgrade. When this call returns, the stream is then ready to send
-        and receive WebSocket protocol frames and messages.
+        If the stream receives a valid HTTP WebSocket Upgrade request,
+        an HTTP response is sent back indicating a successful upgrade.
+        When the completion handler is invoked, the stream is then
+        ready to send and receive WebSocket protocol frames and
+        messages.
 
-        If the HTTP request is invalid or cannot be satisfied, a HTTP
-        response is sent indicating the reason and status code (typically
-        400, "Bad Request"). This counts as a failure.
+        If the HTTP Upgrade request is invalid or cannot be satisfied,
+        an HTTP response is sent indicating the reason and status code
+        (typically 400, "Bad Request"). This counts as a failure, and
+        the completion handler will be invoked with a suitable error
+        code set.
 
-        @param request An object containing the HTTP Upgrade request.
-        Ownership is not transferred, the implementation will not access
-        this object from other threads.
+        @param buffers Caller provided data that has already been
+        received on the stream. This may be used for implementations
+        allowing multiple protocols on the same stream. The
+        buffered data will first be applied to the handshake, and
+        then to received WebSocket frames. The implementation will
+        copy the caller provided data before the function returns.
 
-        @param ec Set to indicate what error occurred, if any.
-    */
-    template<class Body, class Fields>
-    void
-    accept(http::request<Body, Fields> const& request,
-        error_code& ec);
+        @param decorator A function object which will be called to modify
+        the HTTP response object delivered by the implementation. This
+        could be used to set the Server field, subprotocols, or other
+        application or HTTP specific fields. The object will be called
+        with this equivalent signature:
+        @code void decorator(
+            response_type& res
+        ); @endcode
 
-    /** Start responding to a WebSocket HTTP Upgrade request.
-
-        This function is used to asynchronously send the HTTP response
-        to a HTTP request possibly containing a WebSocket Upgrade request.
-        The function call always returns immediately. The asynchronous
-        operation will continue until one of the following conditions is
-        true:
-
-        @li A HTTP response finishes sending.
-
-        @li An error occurs on the stream.
-
-        This operation is implemented in terms of one or more calls to the
-        next layer's `async_write_some` functions, and is known as a
-        <em>composed operation</em>. The program must ensure that the
-        stream performs no other operations until this operation completes.
-
-        If the passed HTTP request is a valid HTTP WebSocket Upgrade
-        request, a HTTP response is sent back indicating a successful
-        upgrade. When this asynchronous operation completes, the stream is
-        then ready to send and receive WebSocket protocol frames and messages.
-
-        If the HTTP request is invalid or cannot be satisfied, a HTTP
-        response is sent indicating the reason and status code (typically
-        400, "Bad Request"). This counts as a failure.
-
-        @param request An object containing the HTTP Upgrade request.
-        Ownership is not transferred, the implementation will not access
-        this object from other threads.
-
-        @param handler The handler to be called when the request completes.
-        Copies will be made of the handler as required. The equivalent
-        function signature of the handler must be:
+        @param handler The handler to be called when the request
+        completes. Copies will be made of the handler as required. The
+        equivalent function signature of the handler must be:
         @code void handler(
-            error_code const& error // result of operation
+            error_code const& ec    // Result of operation
         ); @endcode
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
         manner equivalent to using `boost::asio::io_service::post`.
     */
-    template<class Body, class Fields, class AcceptHandler>
-#if GENERATING_DOCS
+    template<class ConstBufferSequence,
+        class ResponseDecorator, class AcceptHandler>
+#if BEAST_DOXYGEN
     void_or_deduced
 #else
-    typename async_completion<
-        AcceptHandler, void(error_code)>::result_type
+    typename async_completion<AcceptHandler,
+        void(error_code)>::result_type
 #endif
-    async_accept(http::request<Body, Fields> const& request,
+    async_accept_ex(ConstBufferSequence const& buffers,
+        ResponseDecorator const& decorator,
+            AcceptHandler&& handler);
+
+    /** Start responding to a WebSocket HTTP Upgrade request.
+
+        This function is used to asynchronously send the HTTP response
+        to an HTTP request possibly containing a WebSocket Upgrade
+        request. The function call always returns immediately. The
+        asynchronous operation will continue until one of the following
+        conditions is true:
+
+        @li The HTTP response finishes sending.
+
+        @li An error occurs on the stream.
+
+        This operation is implemented in terms of one or more calls to
+        the next layer's `async_write_some` functions, and is known as
+        a <em>composed operation</em>. The program must ensure that the
+        stream performs no other operations until this operation
+        completes.
+
+        If the stream receives a valid HTTP WebSocket Upgrade request,
+        an HTTP response is sent back indicating a successful upgrade.
+        When the completion handler is invoked, the stream is then
+        ready to send and receive WebSocket protocol frames and
+        messages.
+
+        If the HTTP Upgrade request is invalid or cannot be satisfied,
+        an HTTP response is sent indicating the reason and status code
+        (typically 400, "Bad Request"). This counts as a failure, and
+        the completion handler will be invoked with a suitable error
+        code set.
+
+        @param req An object containing the HTTP Upgrade request.
+        Ownership is not transferred, the implementation will not access
+        this object from other threads.
+
+        @param handler The handler to be called when the request
+        completes. Copies will be made of the handler as required. The
+        equivalent function signature of the handler must be:
+        @code void handler(
+            error_code const& ec    // Result of operation
+        ); @endcode
+        Regardless of whether the asynchronous operation completes
+        immediately or not, the handler will not be invoked from within
+        this function. Invocation of the handler will be performed in a
+        manner equivalent to using `boost::asio::io_service::post`.
+    */
+    template<class Fields, class AcceptHandler>
+#if BEAST_DOXYGEN
+    void_or_deduced
+#else
+    typename async_completion<AcceptHandler,
+        void(error_code)>::result_type
+#endif
+    async_accept(http::header<true, Fields> const& req,
         AcceptHandler&& handler);
 
-    /** Send a HTTP WebSocket Upgrade request and receive the response.
+    /** Start responding to a WebSocket HTTP Upgrade request.
+
+        This function is used to asynchronously send the HTTP response
+        to an HTTP request possibly containing a WebSocket Upgrade
+        request. The function call always returns immediately. The
+        asynchronous operation will continue until one of the following
+        conditions is true:
+
+        @li The HTTP response finishes sending.
+
+        @li An error occurs on the stream.
+
+        This operation is implemented in terms of one or more calls to
+        the next layer's `async_write_some` functions, and is known as
+        a <em>composed operation</em>. The program must ensure that the
+        stream performs no other operations until this operation
+        completes.
+
+        If the stream receives a valid HTTP WebSocket Upgrade request,
+        an HTTP response is sent back indicating a successful upgrade.
+        When the completion handler is invoked, the stream is then
+        ready to send and receive WebSocket protocol frames and
+        messages.
+
+        If the HTTP Upgrade request is invalid or cannot be satisfied,
+        an HTTP response is sent indicating the reason and status code
+        (typically 400, "Bad Request"). This counts as a failure, and
+        the completion handler will be invoked with a suitable error
+        code set.
+
+        @param req An object containing the HTTP Upgrade request.
+        Ownership is not transferred, the implementation will not access
+        this object from other threads.
+
+        @param decorator A function object which will be called to modify
+        the HTTP response object delivered by the implementation. This
+        could be used to set the Server field, subprotocols, or other
+        application or HTTP specific fields. The object will be called
+        with this equivalent signature:
+        @code void decorator(
+            response_type& res
+        ); @endcode
+
+        @param handler The handler to be called when the request
+        completes. Copies will be made of the handler as required. The
+        equivalent function signature of the handler must be:
+        @code void handler(
+            error_code const& ec    // Result of operation
+        ); @endcode
+        Regardless of whether the asynchronous operation completes
+        immediately or not, the handler will not be invoked from within
+        this function. Invocation of the handler will be performed in a
+        manner equivalent to using `boost::asio::io_service::post`.
+    */
+    template<class Fields,
+        class ResponseDecorator, class AcceptHandler>
+#if BEAST_DOXYGEN
+    void_or_deduced
+#else
+    typename async_completion<AcceptHandler,
+        void(error_code)>::result_type
+#endif
+    async_accept_ex(http::header<true, Fields> const& req,
+        ResponseDecorator const& decorator,
+            AcceptHandler&& handler);
+
+    /** Start responding to a WebSocket HTTP Upgrade request.
+
+        This function is used to asynchronously send the HTTP response
+        to an HTTP request possibly containing a WebSocket Upgrade
+        request. The function call always returns immediately. The
+        asynchronous operation will continue until one of the following
+        conditions is true:
+
+        @li The HTTP response finishes sending.
+
+        @li An error occurs on the stream.
+
+        This operation is implemented in terms of one or more calls to
+        the next layer's `async_write_some` functions, and is known as
+        a <em>composed operation</em>. The program must ensure that the
+        stream performs no other operations until this operation
+        completes.
+
+        If the stream receives a valid HTTP WebSocket Upgrade request,
+        an HTTP response is sent back indicating a successful upgrade.
+        When the completion handler is invoked, the stream is then
+        ready to send and receive WebSocket protocol frames and
+        messages.
+
+        If the HTTP Upgrade request is invalid or cannot be satisfied,
+        an HTTP response is sent indicating the reason and status code
+        (typically 400, "Bad Request"). This counts as a failure, and
+        the completion handler will be invoked with a suitable error
+        code set.
+
+        @param req An object containing the HTTP Upgrade request.
+        Ownership is not transferred, the implementation will not access
+        this object from other threads.
+
+        @param buffers Caller provided data that has already been
+        received on the stream. This may be used for implementations
+        allowing multiple protocols on the same stream. The
+        buffered data will first be applied to the handshake, and
+        then to received WebSocket frames. The implementation will
+        copy the caller provided data before the function returns.
+
+        @param handler The handler to be called when the request
+        completes. Copies will be made of the handler as required. The
+        equivalent function signature of the handler must be:
+        @code void handler(
+            error_code const& ec    // Result of operation
+        ); @endcode
+        Regardless of whether the asynchronous operation completes
+        immediately or not, the handler will not be invoked from within
+        this function. Invocation of the handler will be performed in a
+        manner equivalent to using `boost::asio::io_service::post`.
+    */
+    template<class Fields,
+        class ConstBufferSequence, class AcceptHandler>
+#if BEAST_DOXYGEN
+    void_or_deduced
+#else
+    typename async_completion<AcceptHandler,
+        void(error_code)>::result_type
+#endif
+    async_accept(http::header<true, Fields> const& req,
+        ConstBufferSequence const& buffers,
+            AcceptHandler&& handler);
+
+    /** Start responding to a WebSocket HTTP Upgrade request.
+
+        This function is used to asynchronously send the HTTP response
+        to an HTTP request possibly containing a WebSocket Upgrade
+        request. The function call always returns immediately. The
+        asynchronous operation will continue until one of the following
+        conditions is true:
+
+        @li The HTTP response finishes sending.
+
+        @li An error occurs on the stream.
+
+        This operation is implemented in terms of one or more calls to
+        the next layer's `async_write_some` functions, and is known as
+        a <em>composed operation</em>. The program must ensure that the
+        stream performs no other operations until this operation
+        completes.
+
+        If the stream receives a valid HTTP WebSocket Upgrade request,
+        an HTTP response is sent back indicating a successful upgrade.
+        When the completion handler is invoked, the stream is then
+        ready to send and receive WebSocket protocol frames and
+        messages.
+
+        If the HTTP Upgrade request is invalid or cannot be satisfied,
+        an HTTP response is sent indicating the reason and status code
+        (typically 400, "Bad Request"). This counts as a failure, and
+        the completion handler will be invoked with a suitable error
+        code set.
+
+        @param req An object containing the HTTP Upgrade request.
+        Ownership is not transferred, the implementation will not access
+        this object from other threads.
+
+        @param buffers Caller provided data that has already been
+        received on the stream. This may be used for implementations
+        allowing multiple protocols on the same stream. The
+        buffered data will first be applied to the handshake, and
+        then to received WebSocket frames. The implementation will
+        copy the caller provided data before the function returns.
+
+        @param decorator A function object which will be called to modify
+        the HTTP response object delivered by the implementation. This
+        could be used to set the Server field, subprotocols, or other
+        application or HTTP specific fields. The object will be called
+        with this equivalent signature:
+        @code void decorator(
+            response_type& res
+        ); @endcode
+
+        @param handler The handler to be called when the request
+        completes. Copies will be made of the handler as required. The
+        equivalent function signature of the handler must be:
+        @code void handler(
+            error_code const& ec    // Result of operation
+        ); @endcode
+        Regardless of whether the asynchronous operation completes
+        immediately or not, the handler will not be invoked from within
+        this function. Invocation of the handler will be performed in a
+        manner equivalent to using `boost::asio::io_service::post`.
+    */
+    template<class Fields, class ConstBufferSequence,
+        class ResponseDecorator, class AcceptHandler>
+#if BEAST_DOXYGEN
+    void_or_deduced
+#else
+    typename async_completion<AcceptHandler,
+        void(error_code)>::result_type
+#endif
+    async_accept_ex(http::header<true, Fields> const& req,
+        ConstBufferSequence const& buffers,
+            ResponseDecorator const& decorator,
+                AcceptHandler&& handler);
+
+    /** Send an HTTP WebSocket Upgrade request and receive the response.
 
         This function is used to synchronously send the WebSocket
         upgrade HTTP request. The call blocks until one of the
         following conditions is true:
 
-        @li A HTTP request finishes sending and a HTTP response finishes
+        @li A HTTP request finishes sending and an HTTP response finishes
         receiving.
 
         @li An error occurs on the stream
@@ -713,11 +1456,11 @@ public:
 
         @par Example
         @code
-        websocket::stream<ip::tcp::socket> ws(io_service);
+        websocket::stream<ip::tcp::socket> ws{io_service};
         ...
         try
         {
-            ws.upgrade("localhost", "/");
+            ws.handshake("localhost", "/");
         }
         catch(...)
         {
@@ -729,13 +1472,185 @@ public:
     handshake(boost::string_ref const& host,
         boost::string_ref const& resource);
 
-    /** Send a HTTP WebSocket Upgrade request and receive the response.
+    /** Send an HTTP WebSocket Upgrade request and receive the response.
 
         This function is used to synchronously send the WebSocket
         upgrade HTTP request. The call blocks until one of the
         following conditions is true:
 
-        @li A HTTP request finishes sending and a HTTP response finishes
+        @li A HTTP request finishes sending and an HTTP response finishes
+        receiving.
+
+        @li An error occurs on the stream
+
+        This function is implemented in terms of one or more calls to the
+        next layer's `read_some` and `write_some` functions.
+
+        The operation is successful if the received HTTP response indicates
+        a successful HTTP Upgrade (represented by a Status-Code of 101,
+        "switching protocols").
+
+        @param res The HTTP Upgrade response returned by the remote
+        endpoint.
+
+        @param host The name of the remote host,
+        required by the HTTP protocol.
+
+        @param resource The requesting URI, which may not be empty,
+        required by the HTTP protocol.
+
+        @throws system_error Thrown on failure.
+
+        @par Example
+        @code
+        websocket::stream<ip::tcp::socket> ws{io_service};
+        ...
+        try
+        {
+            response_type res;
+            ws.handshake(res, "localhost", "/");
+        }
+        catch(...)
+        {
+            // An error occurred.
+        }
+        @endcode
+    */
+    void
+    handshake(response_type& res,
+        boost::string_ref const& host,
+            boost::string_ref const& resource);
+
+    /** Send an HTTP WebSocket Upgrade request and receive the response.
+
+        This function is used to synchronously send the WebSocket
+        upgrade HTTP request. The call blocks until one of the
+        following conditions is true:
+
+        @li A HTTP request finishes sending and an HTTP response finishes
+        receiving.
+
+        @li An error occurs on the stream
+
+        This function is implemented in terms of one or more calls to the
+        next layer's `read_some` and `write_some` functions.
+
+        The operation is successful if the received HTTP response indicates
+        a successful HTTP Upgrade (represented by a Status-Code of 101,
+        "switching protocols").
+
+        @param host The name of the remote host,
+        required by the HTTP protocol.
+
+        @param resource The requesting URI, which may not be empty,
+        required by the HTTP protocol.
+
+        @param decorator A function object which will be called to modify
+        the HTTP request object generated by the implementation. This
+        could be used to set the User-Agent field, subprotocols, or other
+        application or HTTP specific fields. The object will be called
+        with this equivalent signature:
+        @code void decorator(
+            request_type& req
+        ); @endcode
+
+        @throws system_error Thrown on failure.
+
+        @par Example
+        @code
+        websocket::stream<ip::tcp::socket> ws{io_service};
+        ...
+        try
+        {
+            ws.handshake("localhost", "/",
+                [](request_type& req)
+                {
+                    req.fields.insert("User-Agent", "Beast");
+                });
+        }
+        catch(...)
+        {
+            // An error occurred.
+        }
+        @endcode
+    */
+    template<class RequestDecorator>
+    void
+    handshake_ex(boost::string_ref const& host,
+        boost::string_ref const& resource,
+            RequestDecorator const& decorator);
+
+    /** Send an HTTP WebSocket Upgrade request and receive the response.
+
+        This function is used to synchronously send the WebSocket
+        upgrade HTTP request. The call blocks until one of the
+        following conditions is true:
+
+        @li A HTTP request finishes sending and an HTTP response finishes
+        receiving.
+
+        @li An error occurs on the stream
+
+        This function is implemented in terms of one or more calls to the
+        next layer's `read_some` and `write_some` functions.
+
+        The operation is successful if the received HTTP response indicates
+        a successful HTTP Upgrade (represented by a Status-Code of 101,
+        "switching protocols").
+
+        @param res The HTTP Upgrade response returned by the remote
+        endpoint.
+
+        @param host The name of the remote host,
+        required by the HTTP protocol.
+
+        @param resource The requesting URI, which may not be empty,
+        required by the HTTP protocol.
+
+        @param decorator A function object which will be called to modify
+        the HTTP request object generated by the implementation. This
+        could be used to set the User-Agent field, subprotocols, or other
+        application or HTTP specific fields. The object will be called
+        with this equivalent signature:
+        @code void decorator(
+            request_type& req
+        ); @endcode
+
+        @throws system_error Thrown on failure.
+
+        @par Example
+        @code
+        websocket::stream<ip::tcp::socket> ws{io_service};
+        ...
+        try
+        {
+            response_type res;
+            ws.handshake(res, "localhost", "/",
+                [](request_type& req)
+                {
+                    req.fields.insert("User-Agent", "Beast");
+                });
+        }
+        catch(...)
+        {
+            // An error occurred.
+        }
+        @endcode
+    */
+    template<class RequestDecorator>
+    void
+    handshake_ex(response_type& res,
+        boost::string_ref const& host,
+            boost::string_ref const& resource,
+                RequestDecorator const& decorator);
+
+    /** Send an HTTP WebSocket Upgrade request and receive the response.
+
+        This function is used to synchronously send the WebSocket
+        upgrade HTTP request. The call blocks until one of the
+        following conditions is true:
+
+        @li A HTTP request finishes sending and an HTTP response finishes
         receiving.
 
         @li An error occurs on the stream
@@ -757,10 +1672,10 @@ public:
 
         @par Example
         @code
-        websocket::stream<ip::tcp::socket> ws(io_service);
+        websocket::stream<ip::tcp::socket> ws{io_service};
         ...
         error_code ec;
-        ws.upgrade(host, resource, ec);
+        ws.handshake(host, resource, ec);
         if(ec)
         {
             // An error occurred.
@@ -771,6 +1686,177 @@ public:
     handshake(boost::string_ref const& host,
         boost::string_ref const& resource, error_code& ec);
 
+    /** Send an HTTP WebSocket Upgrade request and receive the response.
+
+        This function is used to synchronously send the WebSocket
+        upgrade HTTP request. The call blocks until one of the
+        following conditions is true:
+
+        @li A HTTP request finishes sending and an HTTP response finishes
+        receiving.
+
+        @li An error occurs on the stream
+
+        This function is implemented in terms of one or more calls to the
+        next layer's `read_some` and `write_some` functions.
+
+        The operation is successful if the received HTTP response indicates
+        a successful HTTP Upgrade (represented by a Status-Code of 101,
+        "switching protocols").
+
+        @param host The name of the remote host,
+        required by the HTTP protocol.
+
+        @param resource The requesting URI, which may not be empty,
+        required by the HTTP protocol.
+
+        @param ec Set to indicate what error occurred, if any.
+
+        @param res The HTTP Upgrade response returned by the remote
+        endpoint. If `ec is set, the return value is undefined.
+
+        @par Example
+        @code
+        websocket::stream<ip::tcp::socket> ws{io_service};
+        ...
+        error_code ec;
+        response_type res;
+        ws.handshake(res, host, resource, ec);
+        if(ec)
+        {
+            // An error occurred.
+        }
+        @endcode
+    */
+    void
+    handshake(response_type& res,
+        boost::string_ref const& host,
+            boost::string_ref const& resource,
+                error_code& ec);
+
+    /** Send an HTTP WebSocket Upgrade request and receive the response.
+
+        This function is used to synchronously send the WebSocket
+        upgrade HTTP request. The call blocks until one of the
+        following conditions is true:
+
+        @li A HTTP request finishes sending and an HTTP response finishes
+        receiving.
+
+        @li An error occurs on the stream
+
+        This function is implemented in terms of one or more calls to the
+        next layer's `read_some` and `write_some` functions.
+
+        The operation is successful if the received HTTP response indicates
+        a successful HTTP Upgrade (represented by a Status-Code of 101,
+        "switching protocols").
+
+        @param host The name of the remote host,
+        required by the HTTP protocol.
+
+        @param resource The requesting URI, which may not be empty,
+        required by the HTTP protocol.
+
+        @param decorator A function object which will be called to modify
+        the HTTP request object generated by the implementation. This
+        could be used to set the User-Agent field, subprotocols, or other
+        application or HTTP specific fields. The object will be called
+        with this equivalent signature:
+        @code void decorator(
+            request_type& req
+        ); @endcode
+
+        @param ec Set to indicate what error occurred, if any.
+
+        @par Example
+        @code
+        websocket::stream<ip::tcp::socket> ws{io_service};
+        ...
+        error_code ec;
+        ws.handshake("localhost", "/",
+            [](request_type& req)
+            {
+                req.fields.insert("User-Agent", "Beast");
+            },
+            ec);
+        if(ec)
+        {
+            // An error occurred.
+        }
+        @endcode
+    */
+    template<class RequestDecorator>
+    void
+    handshake_ex(boost::string_ref const& host,
+        boost::string_ref const& resource,
+            RequestDecorator const& decorator,
+                error_code& ec);
+
+    /** Send an HTTP WebSocket Upgrade request and receive the response.
+
+        This function is used to synchronously send the WebSocket
+        upgrade HTTP request. The call blocks until one of the
+        following conditions is true:
+
+        @li A HTTP request finishes sending and an HTTP response finishes
+        receiving.
+
+        @li An error occurs on the stream
+
+        This function is implemented in terms of one or more calls to the
+        next layer's `read_some` and `write_some` functions.
+
+        The operation is successful if the received HTTP response indicates
+        a successful HTTP Upgrade (represented by a Status-Code of 101,
+        "switching protocols").
+
+        @param res The HTTP Upgrade response returned by the remote
+        endpoint.
+
+        @param host The name of the remote host,
+        required by the HTTP protocol.
+
+        @param resource The requesting URI, which may not be empty,
+        required by the HTTP protocol.
+
+        @param decorator A function object which will be called to modify
+        the HTTP request object generated by the implementation. This
+        could be used to set the User-Agent field, subprotocols, or other
+        application or HTTP specific fields. The object will be called
+        with this equivalent signature:
+        @code void decorator(
+            request_type& req
+        ); @endcode
+
+        @param ec Set to indicate what error occurred, if any.
+
+        @par Example
+        @code
+        websocket::stream<ip::tcp::socket> ws{io_service};
+        ...
+        error_code ec;
+        response_type res;
+        ws.handshake(res, "localhost", "/",
+            [](request_type& req)
+            {
+                req.fields.insert("User-Agent", "Beast");
+            },
+            ec);
+        if(ec)
+        {
+            // An error occurred.
+        }
+        @endcode
+    */
+    template<class RequestDecorator>
+    void
+    handshake_ex(response_type& res,
+        boost::string_ref const& host,
+            boost::string_ref const& resource,
+                RequestDecorator const& decorator,
+                    error_code& ec);
+
     /** Start an asynchronous operation to send an upgrade request and receive the response.
 
         This function is used to asynchronously send the HTTP WebSocket
@@ -779,7 +1865,7 @@ public:
         operation will continue until one of the following conditions is
         true:
 
-        @li A HTTP request finishes sending and a HTTP response finishes
+        @li A HTTP request finishes sending and an HTTP response finishes
         receiving.
 
         @li An error occurs on the stream.
@@ -801,11 +1887,11 @@ public:
         required by the HTTP protocol. Copies may be made as
         needed.
 
-        @param h The handler to be called when the request completes.
+        @param handler The handler to be called when the request completes.
         Copies will be made of the handler as required. The equivalent
         function signature of the handler must be:
         @code void handler(
-            error_code const& error // result of operation
+            error_code const& ec    // Result of operation
         ); @endcode
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
@@ -813,14 +1899,201 @@ public:
         manner equivalent to using `boost::asio::io_service::post`.
     */
     template<class HandshakeHandler>
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
     void_or_deduced
 #else
-    typename async_completion<
-        HandshakeHandler, void(error_code)>::result_type
+    typename async_completion<HandshakeHandler,
+        void(error_code)>::result_type
 #endif
     async_handshake(boost::string_ref const& host,
-        boost::string_ref const& resource, HandshakeHandler&& h);
+        boost::string_ref const& resource,
+            HandshakeHandler&& handler);
+
+    /** Start an asynchronous operation to send an upgrade request and receive the response.
+
+        This function is used to asynchronously send the HTTP WebSocket
+        upgrade request and receive the HTTP WebSocket Upgrade response.
+        This function call always returns immediately. The asynchronous
+        operation will continue until one of the following conditions is
+        true:
+
+        @li A HTTP request finishes sending and an HTTP response finishes
+        receiving.
+
+        @li An error occurs on the stream.
+
+        This operation is implemented in terms of one or more calls to the
+        next layer's `async_read_some` and `async_write_some` functions, and
+        is known as a <em>composed operation</em>. The program must ensure
+        that the stream performs no other operations until this operation
+        completes.
+
+        The operation is successful if the received HTTP response indicates
+        a successful HTTP Upgrade (represented by a Status-Code of 101,
+        "switching protocols").
+
+        @param res The HTTP Upgrade response returned by the remote
+        endpoint. The caller must ensure this object is valid for at
+        least until the completion handler is invoked.
+
+        @param host The name of the remote host, required by
+        the HTTP protocol. Copies may be made as needed.
+
+        @param resource The requesting URI, which may not be empty,
+        required by the HTTP protocol. Copies may be made as
+        needed.
+
+        @param handler The handler to be called when the request completes.
+        Copies will be made of the handler as required. The equivalent
+        function signature of the handler must be:
+        @code void handler(
+            error_code const& ec     // Result of operation
+        ); @endcode
+        Regardless of whether the asynchronous operation completes
+        immediately or not, the handler will not be invoked from within
+        this function. Invocation of the handler will be performed in a
+        manner equivalent to using `boost::asio::io_service::post`.
+    */
+    template<class HandshakeHandler>
+#if BEAST_DOXYGEN
+    void_or_deduced
+#else
+    typename async_completion<HandshakeHandler,
+        void(error_code)>::result_type
+#endif
+    async_handshake(response_type& res,
+        boost::string_ref const& host,
+            boost::string_ref const& resource,
+                HandshakeHandler&& handler);
+
+    /** Start an asynchronous operation to send an upgrade request and receive the response.
+
+        This function is used to asynchronously send the HTTP WebSocket
+        upgrade request and receive the HTTP WebSocket Upgrade response.
+        This function call always returns immediately. The asynchronous
+        operation will continue until one of the following conditions is
+        true:
+
+        @li A HTTP request finishes sending and an HTTP response finishes
+        receiving.
+
+        @li An error occurs on the stream.
+
+        This operation is implemented in terms of one or more calls to the
+        next layer's `async_read_some` and `async_write_some` functions, and
+        is known as a <em>composed operation</em>. The program must ensure
+        that the stream performs no other operations until this operation
+        completes.
+
+        The operation is successful if the received HTTP response indicates
+        a successful HTTP Upgrade (represented by a Status-Code of 101,
+        "switching protocols").
+
+        @param host The name of the remote host, required by
+        the HTTP protocol. Copies may be made as needed.
+
+        @param resource The requesting URI, which may not be empty,
+        required by the HTTP protocol. Copies may be made as
+        needed.
+
+        @param decorator A function object which will be called to modify
+        the HTTP request object generated by the implementation. This
+        could be used to set the User-Agent field, subprotocols, or other
+        application or HTTP specific fields. The object will be called
+        with this equivalent signature:
+        @code void decorator(
+            request_type& req
+        ); @endcode
+
+        @param handler The handler to be called when the request completes.
+        Copies will be made of the handler as required. The equivalent
+        function signature of the handler must be:
+        @code void handler(
+            error_code const& ec     // Result of operation
+        ); @endcode
+        Regardless of whether the asynchronous operation completes
+        immediately or not, the handler will not be invoked from within
+        this function. Invocation of the handler will be performed in a
+        manner equivalent to using `boost::asio::io_service::post`.
+    */
+    template<class RequestDecorator, class HandshakeHandler>
+#if BEAST_DOXYGEN
+    void_or_deduced
+#else
+    typename async_completion<HandshakeHandler,
+        void(error_code)>::result_type
+#endif
+    async_handshake_ex(boost::string_ref const& host,
+        boost::string_ref const& resource,
+            RequestDecorator const& decorator,
+                HandshakeHandler&& handler);
+
+    /** Start an asynchronous operation to send an upgrade request and receive the response.
+
+        This function is used to asynchronously send the HTTP WebSocket
+        upgrade request and receive the HTTP WebSocket Upgrade response.
+        This function call always returns immediately. The asynchronous
+        operation will continue until one of the following conditions is
+        true:
+
+        @li A HTTP request finishes sending and an HTTP response finishes
+        receiving.
+
+        @li An error occurs on the stream.
+
+        This operation is implemented in terms of one or more calls to the
+        next layer's `async_read_some` and `async_write_some` functions, and
+        is known as a <em>composed operation</em>. The program must ensure
+        that the stream performs no other operations until this operation
+        completes.
+
+        The operation is successful if the received HTTP response indicates
+        a successful HTTP Upgrade (represented by a Status-Code of 101,
+        "switching protocols").
+
+        @param res The HTTP Upgrade response returned by the remote
+        endpoint. The caller must ensure this object is valid for at
+        least until the completion handler is invoked.
+
+        @param host The name of the remote host, required by
+        the HTTP protocol. Copies may be made as needed.
+
+        @param resource The requesting URI, which may not be empty,
+        required by the HTTP protocol. Copies may be made as
+        needed.
+
+        @param decorator A function object which will be called to modify
+        the HTTP request object generated by the implementation. This
+        could be used to set the User-Agent field, subprotocols, or other
+        application or HTTP specific fields. The object will be called
+        with this equivalent signature:
+        @code void decorator(
+            request_type& req
+        ); @endcode
+
+        @param handler The handler to be called when the request completes.
+        Copies will be made of the handler as required. The equivalent
+        function signature of the handler must be:
+        @code void handler(
+            error_code const& ec     // Result of operation
+        ); @endcode
+        Regardless of whether the asynchronous operation completes
+        immediately or not, the handler will not be invoked from within
+        this function. Invocation of the handler will be performed in a
+        manner equivalent to using `boost::asio::io_service::post`.
+    */
+    template<class RequestDecorator, class HandshakeHandler>
+#if BEAST_DOXYGEN
+    void_or_deduced
+#else
+    typename async_completion<HandshakeHandler,
+        void(error_code)>::result_type
+#endif
+    async_handshake_ex(response_type& res,
+        boost::string_ref const& host,
+            boost::string_ref const& resource,
+                RequestDecorator const& decorator,
+                    HandshakeHandler&& handler);
 
     /** Send a WebSocket close frame.
 
@@ -915,7 +2188,7 @@ public:
         function signature of the handler must be:
         @code
         void handler(
-            error_code const& error     // Result of operation
+            error_code const& ec     // Result of operation
         );
         @endcode
         Regardless of whether the asynchronous operation completes
@@ -924,7 +2197,7 @@ public:
         manner equivalent to using `boost::asio::io_service::post`.
     */
     template<class CloseHandler>
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
     void_or_deduced
 #else
     typename async_completion<
@@ -997,7 +2270,7 @@ public:
         function signature of the handler must be:
         @code
         void handler(
-            error_code const& error     // Result of operation
+            error_code const& ec     // Result of operation
         );
         @endcode
         Regardless of whether the asynchronous operation completes
@@ -1006,7 +2279,7 @@ public:
         manner equivalent to using `boost::asio::io_service::post`.
     */
     template<class WriteHandler>
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
     void_or_deduced
 #else
     typename async_completion<
@@ -1094,7 +2367,7 @@ public:
         function signature of the handler must be:
         @code
         void handler(
-            error_code const& error     // Result of operation
+            error_code const& ec     // Result of operation
         );
         @endcode
         Regardless of whether the asynchronous operation completes
@@ -1103,7 +2376,7 @@ public:
         manner equivalent to using `boost::asio::io_service::post`.
     */
     template<class WriteHandler>
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
     void_or_deduced
 #else
     typename async_completion<
@@ -1242,7 +2515,7 @@ public:
         function signature of the handler must be:
         @code
         void handler(
-            error_code const& error     // Result of operation
+            error_code const& ec     // Result of operation
         );
         @endcode
         Regardless of whether the asynchronous operation completes
@@ -1251,7 +2524,7 @@ public:
         manner equivalent to using `boost::asio::io_service::post`.
     */
     template<class DynamicBuffer, class ReadHandler>
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
     void_or_deduced
 #else
     typename async_completion<
@@ -1400,7 +2673,7 @@ public:
         function signature of the handler must be:
         @code
         void handler(
-            error_code const& error     // Result of operation
+            error_code const& ec     // Result of operation
         );
         @endcode
         Regardless of whether the asynchronous operation completes
@@ -1409,7 +2682,7 @@ public:
         manner equivalent to using boost::asio::io_service::post().
     */
     template<class DynamicBuffer, class ReadHandler>
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
     void_or_deduced
 #else
     typename async_completion<
@@ -1526,7 +2799,7 @@ public:
         function signature of the handler must be:
         @code
         void handler(
-            error_code const& error     // Result of operation
+            error_code const& ec     // Result of operation
         );
         @endcode
         Regardless of whether the asynchronous operation completes
@@ -1535,7 +2808,7 @@ public:
         manner equivalent to using `boost::asio::io_service::post`.
     */
     template<class ConstBufferSequence, class WriteHandler>
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
     void_or_deduced
 #else
     typename async_completion<
@@ -1647,11 +2920,11 @@ public:
         Copies will be made of the handler as required. The equivalent
         function signature of the handler must be:
         @code void handler(
-            error_code const& error // result of operation
+            error_code const& ec    // Result of operation
         ); @endcode
     */
     template<class ConstBufferSequence, class WriteHandler>
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
     void_or_deduced
 #else
     typename async_completion<
@@ -1661,7 +2934,7 @@ public:
         ConstBufferSequence const& buffers, WriteHandler&& handler);
 
 private:
-    template<class Handler> class accept_op;
+    template<class Decorator, class Handler> class accept_op;
     template<class Handler> class close_op;
     template<class Handler> class handshake_op;
     template<class Handler> class ping_op;
@@ -1671,21 +2944,53 @@ private:
     template<class DynamicBuffer, class Handler> class read_op;
     template<class DynamicBuffer, class Handler> class read_frame_op;
 
+    static
+    void
+    default_decorate_req(request_type& res)
+    {
+    }
+
+    static
+    void
+    default_decorate_res(response_type& res)
+    {
+    }
+
     void
     reset();
 
-    http::request<http::empty_body>
-    build_request(boost::string_ref const& host,
-        boost::string_ref const& resource,
-            std::string& key);
-
-    template<class Body, class Fields>
-    http::response<http::string_body>
-    build_response(http::request<Body, Fields> const& req);
-
-    template<class Body, class Fields>
+    template<class Decorator>
     void
-    do_response(http::response<Body, Fields> const& resp,
+    do_accept(Decorator const& decorator,
+        error_code& ec);
+
+    template<class Fields, class Decorator>
+    void
+    do_accept(http::header<true, Fields> const& req,
+        Decorator const& decorator, error_code& ec);
+
+    template<class RequestDecorator>
+    void
+    do_handshake(response_type* res_p,
+        boost::string_ref const& host,
+            boost::string_ref const& resource,
+                RequestDecorator const& decorator,
+                    error_code& ec);
+
+    template<class Decorator>
+    request_type
+    build_request(std::string& key,
+        boost::string_ref const& host,
+            boost::string_ref const& resource,
+                Decorator const& decorator);
+
+    template<class Decorator>
+    response_type
+    build_response(request_type const& req,
+        Decorator const& decorator);
+
+    void
+    do_response(http::response_header const& resp,
         boost::string_ref const& key, error_code& ec);
 };
 

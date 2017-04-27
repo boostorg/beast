@@ -11,6 +11,7 @@
 #include <beast/core/async_completion.hpp>
 #include <beast/core/bind_handler.hpp>
 #include <beast/core/error.hpp>
+#include <beast/websocket/teardown.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/asio/io_service.hpp>
 #include <string>
@@ -53,6 +54,7 @@ public:
     read_some(MutableBufferSequence const& buffers,
         error_code& ec)
     {
+        ec = boost::asio::error::eof;
         return 0;
     }
 
@@ -65,7 +67,7 @@ public:
         async_completion<ReadHandler,
             void(error_code, std::size_t)> completion{handler};
         ios_.post(bind_handler(completion.handler,
-            error_code{}, 0));
+            boost::asio::error::eof, 0));
         return completion.result.get();
     }
 
@@ -109,6 +111,26 @@ public:
         get_io_service().post(
             bind_handler(completion.handler, ec, bytes_transferred));
         return completion.result.get();
+    }
+
+    friend
+    void
+    teardown(websocket::teardown_tag,
+        string_ostream& stream,
+            boost::system::error_code& ec)
+    {
+    }
+
+    template<class TeardownHandler>
+    friend
+    void
+    async_teardown(websocket::teardown_tag,
+        string_ostream& stream,
+            TeardownHandler&& handler)
+    {
+        stream.get_io_service().post(
+            bind_handler(std::move(handler),
+                error_code{}));
     }
 };
 

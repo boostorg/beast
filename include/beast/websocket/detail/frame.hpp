@@ -67,33 +67,31 @@ is_control(opcode op)
     return op >= opcode::close;
 }
 
-// Returns `true` if a close code is valid
 inline
 bool
-is_valid(close_code::value code)
+is_valid_close_code(std::uint16_t v)
 {
-    auto const v = code;
     switch(v)
     {
-    case 1000:
-    case 1001:
-    case 1002:
-    case 1003:
-    case 1007:
-    case 1008:
-    case 1009:
-    case 1010:
-    case 1011:
-    case 1012:
-    case 1013:
+    case close_code::normal:            // 1000
+    case close_code::going_away:        // 1001
+    case close_code::protocol_error:    // 1002
+    case close_code::unknown_data:      // 1003
+    case close_code::bad_payload:       // 1007
+    case close_code::policy_error:      // 1008
+    case close_code::too_big:           // 1009
+    case close_code::needs_extension:   // 1010
+    case close_code::internal_error:    // 1011
+    case close_code::service_restart:   // 1012
+    case close_code::try_again_later:   // 1013
         return true;
 
     // explicitly reserved
-    case 1004:
-    case 1005:
-    case 1006:
-    case 1014:
-    case 1015:
+    case close_code::reserved1:         // 1004
+    case close_code::no_status:         // 1005
+    case close_code::abnormal:          // 1006
+    case close_code::reserved2:         // 1014
+    case close_code::reserved3:         // 1015
         return false;
     }
     // reserved
@@ -175,7 +173,7 @@ read(ping_data& data, Buffers const& bs)
 template<class Buffers>
 void
 read(close_reason& cr,
-    Buffers const& bs, close_code::value& code)
+    Buffers const& bs, close_code& code)
 {
     using boost::asio::buffer;
     using boost::asio::buffer_copy;
@@ -201,7 +199,7 @@ read(close_reason& cr,
         cr.code = big_uint16_to_native(&b[0]);
         cb.consume(2);
         n -= 2;
-        if(! is_valid(cr.code))
+        if(! is_valid_close_code(cr.code))
         {
             code = close_code::protocol_error;
             return;

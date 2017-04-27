@@ -37,7 +37,7 @@ namespace beast {
     memory is not transferred.
 */
 template<class BufferSequence>
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
 implementation_defined
 #else
 inline

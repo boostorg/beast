@@ -79,7 +79,7 @@ public:
 
         @param args Optional arguments forwarded to the callable object.
     */
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
     template<class F, class... Args>
     void
     yield_to(F&& f, Args&&... args);

@@ -1,3 +1,32 @@
+* CMake hide command lines in .vcxproj Output windows"
+
+WebSocket:
+
+* Add is_upgrade() free function
+
+API Changes:
+
+* Provide websocket::stream accept() overloads
+* Refactor websocket decorators
+
+--------------------------------------------------------------------------------
+
+1.0.0-b35
+
+* Add Appveyor build scripts and badge
+* Tidy up MSVC CMake configuration
+* Make close_code a proper enum
+* Add flat_streambuf
+* Rename to BEAST_DOXYGEN
+* Update .gitignore for VS2017
+* Fix README.md CMake instructions
+
+API Changes:
+
+* New HTTP interfaces
+
+--------------------------------------------------------------------------------
+
 1.0.0-b34
 
 * Fix and tidy up CMake build scripts
