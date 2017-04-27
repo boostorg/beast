@@ -187,22 +187,43 @@ public:
         }
 
         template<class NextLayer>
-        response_type
+        void
         handshake(stream<NextLayer>& ws,
             boost::string_ref const& uri,
                 boost::string_ref const& path) const
         {
-            return ws.handshake(uri, path);
+            ws.handshake(uri, path);
+        }
+
+        template<class NextLayer>
+        void
+        handshake(stream<NextLayer>& ws,
+            response_type& res,
+                boost::string_ref const& uri,
+                    boost::string_ref const& path) const
+        {
+            ws.handshake(res, uri, path);
         }
 
         template<class NextLayer, class Decorator>
-        response_type
+        void
         handshake_ex(stream<NextLayer>& ws,
             boost::string_ref const& uri,
                 boost::string_ref const& path,
                     Decorator const& d) const
         {
-            return ws.handshake_ex(uri, path, d);
+            ws.handshake_ex(uri, path, d);
+        }
+
+        template<class NextLayer, class Decorator>
+        void
+        handshake_ex(stream<NextLayer>& ws,
+            response_type& res,
+                boost::string_ref const& uri,
+                    boost::string_ref const& path,
+                        Decorator const& d) const
+        {
+            ws.handshake_ex(res, uri, path, d);
         }
 
         template<class NextLayer>
@@ -377,32 +398,59 @@ public:
         }
 
         template<class NextLayer>
-        response_type
+        void
         handshake(stream<NextLayer>& ws,
             boost::string_ref const& uri,
                 boost::string_ref const& path) const
         {
             error_code ec;
-            auto res = ws.async_handshake(
+            ws.async_handshake(
                 uri, path, yield_[ec]);
             if(ec)
                 throw system_error{ec};
-            return res;
+        }
+
+        template<class NextLayer>
+        void
+        handshake(stream<NextLayer>& ws,
+            response_type& res,
+                boost::string_ref const& uri,
+                    boost::string_ref const& path) const
+        {
+            error_code ec;
+            ws.async_handshake(
+                res, uri, path, yield_[ec]);
+            if(ec)
+                throw system_error{ec};
         }
 
         template<class NextLayer, class Decorator>
-        response_type
+        void
         handshake_ex(stream<NextLayer>& ws,
             boost::string_ref const& uri,
                 boost::string_ref const& path,
                     Decorator const &d) const
         {
             error_code ec;
-            auto res = ws.async_handshake_ex(
+            ws.async_handshake_ex(
                 uri, path, d, yield_[ec]);
             if(ec)
                 throw system_error{ec};
-            return res;
+        }
+
+        template<class NextLayer, class Decorator>
+        void
+        handshake_ex(stream<NextLayer>& ws,
+            response_type& res,
+                boost::string_ref const& uri,
+                    boost::string_ref const& path,
+                        Decorator const &d) const
+        {
+            error_code ec;
+            ws.async_handshake_ex(
+                res, uri, path, d, yield_[ec]);
+            if(ec)
+                throw system_error{ec};
         }
 
         template<class NextLayer>
@@ -873,7 +921,15 @@ public:
                         boost::asio::ip::tcp::socket>> ws{fc, ios_};
                     ws.next_layer().next_layer().connect(ep);
                     c.handshake(ws, "localhost", "/");
-                    // VFALCO validate return value?
+                }
+                // handshake, response
+                {
+                    stream<test::fail_stream<
+                        boost::asio::ip::tcp::socket>> ws{fc, ios_};
+                    ws.next_layer().next_layer().connect(ep);
+                    response_type res;
+                    c.handshake(ws, res, "localhost", "/");
+                    // VFALCO validate res?
                 }
                 // handshake_ex
                 {
@@ -883,7 +939,18 @@ public:
                     bool called = false;
                     c.handshake_ex(ws, "localhost", "/",
                         req_decorator{called});
-                    // VFALCO validate return value?
+                    BEAST_EXPECT(called);
+                }
+                // handshake_ex, response
+                {
+                    stream<test::fail_stream<
+                        boost::asio::ip::tcp::socket>> ws{fc, ios_};
+                    ws.next_layer().next_layer().connect(ep);
+                    bool called = false;
+                    response_type res;
+                    c.handshake_ex(ws, res, "localhost", "/",
+                        req_decorator{called});
+                    // VFALCO validate res?
                     BEAST_EXPECT(called);
                 }
             }
