@@ -1,3 +1,9 @@
+1.0.0-b37
+
+* Refactor static_string
+
+--------------------------------------------------------------------------------
+
 1.0.0-b36
 
 * CMake hide command lines in .vcxproj Output windows"
