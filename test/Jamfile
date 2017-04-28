@@ -48,7 +48,6 @@ unit-test core-tests :
 unit-test http-tests :
     ../extras/beast/unit_test/main.cpp
     http/basic_dynabuf_body.cpp
-    http/basic_fields.cpp
     http/basic_parser.cpp
     http/concepts.cpp
     http/design.cpp
