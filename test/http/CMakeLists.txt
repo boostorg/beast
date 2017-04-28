@@ -11,7 +11,6 @@ add_executable (http-tests
     test_parser.hpp
     ../../extras/beast/unit_test/main.cpp
     basic_dynabuf_body.cpp
-    basic_fields.cpp
     basic_parser.cpp
     concepts.cpp
     design.cpp

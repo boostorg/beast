@@ -10,7 +10,6 @@
 
 #include <beast/config.hpp>
 
-#include <beast/http/basic_fields.hpp>
 #include <beast/http/basic_parser.hpp>
 #include <beast/http/chunk_encode.hpp>
 #include <beast/http/error.hpp>
