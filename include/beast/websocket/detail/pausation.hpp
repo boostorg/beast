@@ -5,8 +5,8 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#ifndef BEAST_WEBSOCKET_DETAIL_INVOKABLE_HPP
-#define BEAST_WEBSOCKET_DETAIL_INVOKABLE_HPP
+#ifndef BEAST_WEBSOCKET_DETAIL_PAUSATION_HPP
+#define BEAST_WEBSOCKET_DETAIL_PAUSATION_HPP
 
 #include <beast/core/handler_ptr.hpp>
 #include <boost/assert.hpp>
@@ -19,9 +19,12 @@ namespace beast {
 namespace websocket {
 namespace detail {
 
-// "Parks" a composed operation, to invoke later
+// A container to hold a suspended, asynchronous composed
+// operation that has been suspended. The contained object
+// may be invoked later to resume the composed operation,
+// or the container may be destroyed.
 //
-class invokable
+class pausation
 {
     struct base
     {
@@ -58,7 +61,7 @@ class invokable
             F f_(std::move(f));
             this->~holder();
             // invocation of f_() can
-            // assign a new invokable.
+            // assign a new object to *this.
             f_();
         }
     };
@@ -86,15 +89,15 @@ class invokable
     alignas(holder<exemplar>) buf_type buf_;
 
 public:
-    ~invokable()
+    ~pausation()
     {
         if(base_)
             base_->~base();
     }
 
-    invokable() = default;
+    pausation() = default;
 
-    invokable(invokable&& other)
+    pausation(pausation&& other)
     {
         if(other.base_)
         {
@@ -105,10 +108,10 @@ public:
         }
     }
 
-    invokable&
-    operator=(invokable&& other)
+    pausation&
+    operator=(pausation&& other)
     {
-        // Engaged invokables must be invoked before
+        // Engaged pausations must be invoked before
         // assignment otherwise the io_service
         // completion invariants are broken.
         BOOST_ASSERT(! base_);
@@ -143,7 +146,7 @@ public:
 
 template<class F>
 void
-invokable::emplace(F&& f)
+pausation::emplace(F&& f)
 {
     static_assert(sizeof(buf_type) >= sizeof(holder<F>),
         "buffer too small");

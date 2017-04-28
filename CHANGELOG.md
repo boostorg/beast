@@ -4,6 +4,7 @@ WebSocket:
 
 * Add is_upgrade() free function
 * Document websocket::stream thread safety
+* Rename to websocket::detail::pausation
 
 API Changes:
 
