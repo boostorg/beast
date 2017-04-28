@@ -239,20 +239,20 @@ public:
             [&]
             {
                 testParser1<nodejs_parser<
-                    true, streambuf_body, fields>>(
+                    true, dynamic_body, fields>>(
                         Repeat, creq_);
                 testParser1<nodejs_parser<
-                    false, streambuf_body, fields>>(
+                    false, dynamic_body, fields>>(
                         Repeat, cres_);
             });
         timedTest(Trials, "http::basic_parser",
             [&]
             {
                 testParser2<bench_parser<
-                    true, streambuf_body, fields> >(
+                    true, dynamic_body, fields> >(
                         Repeat, creq_);
                 testParser2<bench_parser<
-                    false, streambuf_body, fields>>(
+                    false, dynamic_body, fields>>(
                         Repeat, cres_);
             });
         pass();

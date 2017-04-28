@@ -11,8 +11,8 @@
 #include "test_parser.hpp"
 
 #include <beast/http/fields.hpp>
+#include <beast/http/dynamic_body.hpp>
 #include <beast/http/header_parser.hpp>
-#include <beast/http/streambuf_body.hpp>
 #include <beast/http/string_body.hpp>
 #include <beast/test/fail_stream.hpp>
 #include <beast/test/string_istream.hpp>
@@ -108,7 +108,7 @@ public:
         {
             streambuf sb;
             test::string_istream ss(ios_, "GET / X");
-            message_parser<true, streambuf_body, fields> p;
+            message_parser<true, dynamic_body, fields> p;
             read(ss, sb, p);
             fail();
         }
@@ -194,7 +194,7 @@ public:
                 "Content-Length: 0\r\n"
                 "\r\n"
             );
-            request<streambuf_body> m;
+            request<dynamic_body> m;
             try
             {
                 streambuf sb;
@@ -216,7 +216,7 @@ public:
                 "Content-Length: 0\r\n"
                 "\r\n"
             );
-            request<streambuf_body> m;
+            request<dynamic_body> m;
             error_code ec;
             streambuf sb;
             read(fs, sb, m, ec);
@@ -234,7 +234,7 @@ public:
                 "Content-Length: 0\r\n"
                 "\r\n"
             );
-            request<streambuf_body> m;
+            request<dynamic_body> m;
             error_code ec;
             streambuf sb;
             async_read(fs, sb, m, do_yield[ec]);
@@ -250,7 +250,7 @@ public:
         {
             streambuf sb;
             test::string_istream ss(ios_, "");
-            message_parser<true, streambuf_body, fields> p;
+            message_parser<true, dynamic_body, fields> p;
             error_code ec;
             read(ss, sb, p, ec);
             BEAST_EXPECT(ec == boost::asio::error::eof);
@@ -258,7 +258,7 @@ public:
         {
             streambuf sb;
             test::string_istream ss(ios_, "");
-            message_parser<true, streambuf_body, fields> p;
+            message_parser<true, dynamic_body, fields> p;
             error_code ec;
             async_read(ss, sb, p, do_yield[ec]);
             BEAST_EXPECT(ec == boost::asio::error::eof);
@@ -287,7 +287,7 @@ public:
                 "GET / HTTP/1.1\r\n\r\n"};
             BEAST_EXPECT(handler::count() == 0);
             streambuf sb;
-            message<true, streambuf_body, fields> m;
+            message<true, dynamic_body, fields> m;
             async_read(is, sb, m, handler{});
             BEAST_EXPECT(handler::count() > 0);
             ios.stop();
@@ -306,7 +306,7 @@ public:
                     "GET / HTTP/1.1\r\n\r\n"};
                 BEAST_EXPECT(handler::count() == 0);
                 streambuf sb;
-                message<true, streambuf_body, fields> m;
+                message<true, dynamic_body, fields> m;
                 async_read(is, sb, m, handler{});
                 BEAST_EXPECT(handler::count() > 0);
             }

@@ -11,7 +11,6 @@
 #include <beast/websocket/detail/type_traits.hpp>
 #include <beast/http/message.hpp>
 #include <beast/http/read.hpp>
-#include <beast/http/streambuf_body.hpp>
 #include <beast/http/write.hpp>
 #include <beast/core/handler_helpers.hpp>
 #include <beast/core/handler_ptr.hpp>
