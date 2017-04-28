@@ -1259,7 +1259,7 @@ public:
     }
 
 #if 0
-    void testInvokable1(endpoint_type const& ep)
+    void testPausation1(endpoint_type const& ep)
     {
         boost::asio::io_service ios;
         stream<socket_type> ws(ios);
@@ -1293,7 +1293,7 @@ public:
         while(! ws.wr_block_)
             ios.run_one();
         // Write a text message, leaving
-        // the write_op suspended as invokable.
+        // the write_op suspended as pausation.
         ws.async_write(sbuf("Hello"),
             [&](error_code ec)
             {
@@ -1326,7 +1326,7 @@ public:
     }
 #endif
 
-    void testInvokable2(endpoint_type const& ep)
+    void testPausation2(endpoint_type const& ep)
     {
         boost::asio::io_service ios;
         stream<socket_type> ws(ios);
@@ -1363,7 +1363,7 @@ public:
         while(! ws.wr_block_)
             ios.run_one();
         // Write a text message, leaving
-        // the write_op suspended as invokable.
+        // the write_op suspended as a pausation.
         ws.async_write(sbuf("Hello"),
             [&](error_code ec)
             {
@@ -1395,7 +1395,7 @@ public:
         ios.run();
     }
 
-    void testInvokable3(endpoint_type const& ep)
+    void testPausation3(endpoint_type const& ep)
     {
         boost::asio::io_service ios;
         stream<socket_type> ws(ios);
@@ -1461,7 +1461,7 @@ public:
         ios.run();
     }
 
-    void testInvokable4(endpoint_type const& ep)
+    void testPausation4(endpoint_type const& ep)
     {
         boost::asio::io_service ios;
         stream<socket_type> ws(ios);
@@ -1505,7 +1505,7 @@ public:
     }
 
 #if 0
-    void testInvokable5(endpoint_type const& ep)
+    void testPausation5(endpoint_type const& ep)
     {
         boost::asio::io_service ios;
         stream<socket_type> ws(ios);
@@ -1870,11 +1870,11 @@ public:
             server.open(any, ec);
             BEAST_EXPECTS(! ec, ec.message());
             auto const ep = server.local_endpoint();
-            //testInvokable1(ep);
-            testInvokable2(ep);
-            testInvokable3(ep);
-            testInvokable4(ep);
-            //testInvokable5(ep);
+            //testPausation1(ep);
+            testPausation2(ep);
+            testPausation3(ep);
+            testPausation4(ep);
+            //testPausation5(ep);
             testWriteFrames(ep);
             testAsyncWriteFrame(ep);
         }

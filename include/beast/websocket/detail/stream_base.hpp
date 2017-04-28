@@ -12,8 +12,8 @@
 #include <beast/websocket/option.hpp>
 #include <beast/websocket/rfc6455.hpp>
 #include <beast/websocket/detail/frame.hpp>
-#include <beast/websocket/detail/invokable.hpp>
 #include <beast/websocket/detail/mask.hpp>
+#include <beast/websocket/detail/pausation.hpp>
 #include <beast/websocket/detail/pmd_extension.hpp>
 #include <beast/websocket/detail/utf8_checker.hpp>
 #include <beast/http/message.hpp>
@@ -64,9 +64,9 @@ protected:
     op* wr_block_;                          // op currenly writing
 
     ping_data* ping_data_;                  // where to put the payload
-    invokable rd_op_;                       // read parking
-    invokable wr_op_;                       // write parking
-    invokable ping_op_;                     // ping parking
+    pausation rd_op_;                       // parked read op
+    pausation wr_op_;                       // parked write op
+    pausation ping_op_;                     // parked ping op
     close_reason cr_;                       // set from received close frame
 
     // State information for the message being received
