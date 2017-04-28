@@ -2,6 +2,7 @@
 
 * CMake hide command lines in .vcxproj Output windows"
 * Rename to detail::is_invocable
+* Rename project to http-bench
 
 WebSocket:
 
