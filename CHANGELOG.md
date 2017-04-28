@@ -11,6 +11,7 @@ API Changes:
 
 * Provide websocket::stream accept() overloads
 * Refactor websocket decorators
+* Move everything in basic_fields.hpp to fields.hpp
 
 --------------------------------------------------------------------------------
 
