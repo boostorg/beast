@@ -5,6 +5,7 @@
 WebSocket:
 
 * Add is_upgrade() free function
+* Document websocket::stream thread safety
 
 API Changes:
 
