@@ -6,7 +6,7 @@
 //
 
 // Test that header file is self-contained.
-#include <beast/http/streambuf_body.hpp>
+#include <beast/http/dynamic_body.hpp>
 
 #include <beast/core/to_string.hpp>
 #include <beast/http/fields.hpp>
@@ -20,7 +20,7 @@
 namespace beast {
 namespace http {
 
-class streambuf_body_test : public beast::unit_test::suite
+class dynamic_body_test : public beast::unit_test::suite
 {
     boost::asio::io_service ios_;
 
@@ -34,7 +34,7 @@ public:
             "\r\n"
             "xyz";
         test::string_istream ss(ios_, s);
-        message_parser<false, streambuf_body, fields> p;
+        message_parser<false, dynamic_body, fields> p;
         streambuf sb;
         read(ss, sb, p);
         auto const& m = p.get();
@@ -43,7 +43,7 @@ public:
     }
 };
 
-BEAST_DEFINE_TESTSUITE(streambuf_body,http,beast);
+BEAST_DEFINE_TESTSUITE(dynamic_body,http,beast);
 
 } // http
 } // beast
