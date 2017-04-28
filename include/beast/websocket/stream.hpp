@@ -58,9 +58,11 @@ struct frame_info
 
     @par Thread Safety
     @e Distinct @e objects: Safe.@n
-    @e Shared @e objects: Unsafe. The application must ensure that
-    all asynchronous operations are performed within the same
-    implicit or explicit strand.
+    @e Shared @e objects: Unsafe.
+    
+    For asynchronous operations, the application must ensure
+    that they are are all performed within the same implicit
+    or explicit strand.
 
     @par Example
 
