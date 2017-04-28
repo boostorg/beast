@@ -9,6 +9,7 @@
 API Changes:
 
 * New HTTP interfaces
+* Remove http::empty_body
 
 --------------------------------------------------------------------------------
 
