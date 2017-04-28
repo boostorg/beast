@@ -237,7 +237,7 @@ used in the examples:
     res.body = "Here is the data you requested";
 ```
 
-* [link beast.ref.http__streambuf_body [*`streambuf_body`:]] A body with a
+* [link beast.ref.http__dynamic_body [*`dynamic_body`:]] A body with a
 `value_type` of [link beast.ref.streambuf `streambuf`]: an efficient storage
 object which uses multiple octet arrays of varying lengths to represent data.
 

@@ -12,6 +12,7 @@
 
 #include <beast/http/basic_parser.hpp>
 #include <beast/http/chunk_encode.hpp>
+#include <beast/http/dynamic_body.hpp>
 #include <beast/http/error.hpp>
 #include <beast/http/fields.hpp>
 #include <beast/http/header_parser.hpp>
@@ -21,7 +22,6 @@
 #include <beast/http/read.hpp>
 #include <beast/http/reason.hpp>
 #include <beast/http/rfc7230.hpp>
-#include <beast/http/streambuf_body.hpp>
 #include <beast/http/string_body.hpp>
 #include <beast/http/write.hpp>
 

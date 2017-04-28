@@ -29,9 +29,10 @@
         <entry valign="top">
           <bridgehead renderas="sect3">Classes</bridgehead>
           <simplelist type="vert" columns="1">
-            <member><link linkend="beast.ref.http__basic_dynabuf_body">basic_dynabuf_body</link></member>
+            <member><link linkend="beast.ref.http__basic_dynamic_body">http__basic_dynamic_body</link></member>
             <member><link linkend="beast.ref.http__basic_fields">basic_fields</link></member>
             <member><link linkend="beast.ref.http__basic_parser">basic_parser</link></member>
+            <member><link linkend="beast.ref.http__dynamic_body">dynamic_body</link></member>
             <member><link linkend="beast.ref.http__fields">fields</link></member>
             <member><link linkend="beast.ref.http__header">header</link></member>
             <member><link linkend="beast.ref.http__header_parser">header_parser</link></member>
@@ -41,7 +42,6 @@
             <member><link linkend="beast.ref.http__request_header">request_header</link></member>
             <member><link linkend="beast.ref.http__response">response</link></member>
             <member><link linkend="beast.ref.http__response_header">response_header</link></member>
-            <member><link linkend="beast.ref.http__streambuf_body">streambuf_body</link></member>
             <member><link linkend="beast.ref.http__string_body">string_body</link></member>
           </simplelist>
           <bridgehead renderas="sect3">rfc7230</bridgehead>

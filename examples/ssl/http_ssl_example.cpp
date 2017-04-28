@@ -46,7 +46,7 @@ int main()
 
     // Receive and print HTTP response using Beast
     beast::streambuf sb;
-    beast::http::response<beast::http::streambuf_body> resp;
+    beast::http::response<beast::http::dynamic_body> resp;
     beast::http::read(stream, sb, resp);
     std::cout << resp;
 
