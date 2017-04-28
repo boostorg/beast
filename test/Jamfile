@@ -65,7 +65,7 @@ unit-test http-tests :
     http/chunk_encode.cpp
     ;
 
-unit-test bench-tests :
+unit-test http-bench :
     ../extras/beast/unit_test/main.cpp
     http/nodejs_parser.cpp
     http/parser_bench.cpp
