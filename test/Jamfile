@@ -47,10 +47,10 @@ unit-test core-tests :
 
 unit-test http-tests :
     ../extras/beast/unit_test/main.cpp
-    http/basic_dynabuf_body.cpp
     http/basic_parser.cpp
     http/concepts.cpp
     http/design.cpp
+    http/dynamic_body.cpp
     http/error.cpp
     http/fields.cpp
     http/header_parser.cpp
@@ -59,7 +59,6 @@ unit-test http-tests :
     http/read.cpp
     http/reason.cpp
     http/rfc7230.cpp
-    http/streambuf_body.cpp
     http/string_body.cpp
     http/write.cpp
     http/chunk_encode.cpp

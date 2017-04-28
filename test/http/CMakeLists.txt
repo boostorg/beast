@@ -10,10 +10,10 @@ add_executable (http-tests
     message_fuzz.hpp
     test_parser.hpp
     ../../extras/beast/unit_test/main.cpp
-    basic_dynabuf_body.cpp
     basic_parser.cpp
     concepts.cpp
     design.cpp
+    dynamic_body.cpp
     error.cpp
     fields.cpp
     header_parser.cpp
@@ -22,7 +22,6 @@ add_executable (http-tests
     read.cpp
     reason.cpp
     rfc7230.cpp
-    streambuf_body.cpp
     string_body.cpp
     write.cpp
     chunk_encode.cpp
