@@ -1,6 +1,7 @@
 1.0.0-b37
 
 * CMake hide command lines in .vcxproj Output windows"
+* Rename to detail::is_invocable
 
 WebSocket:
 

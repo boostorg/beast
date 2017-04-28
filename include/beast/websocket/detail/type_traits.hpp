@@ -9,7 +9,7 @@
 #define BEAST_WEBSOCKET_DETAIL_TYPE_TRAITS_HPP
 
 #include <beast/websocket/rfc6455.hpp>
-#include <beast/core/detail/is_call_possible.hpp>
+#include <beast/core/detail/type_traits.hpp>
 
 namespace beast {
 namespace websocket {
@@ -17,12 +17,12 @@ namespace detail {
 
 template<class F>
 using is_RequestDecorator =
-    typename beast::detail::is_call_possible<F,
+    typename beast::detail::is_invocable<F,
         void(request_type&)>::type;
 
 template<class F>
 using is_ResponseDecorator =
-    typename beast::detail::is_call_possible<F,
+    typename beast::detail::is_invocable<F,
         void(response_type&)>::type;
 
 } // detail
