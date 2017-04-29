@@ -10,6 +10,7 @@
 
 #include <beast/config.hpp>
 #include <beast/websocket/option.hpp>
+#include <beast/websocket/detail/hybi13.hpp>
 #include <beast/websocket/detail/stream_base.hpp>
 #include <beast/http/message.hpp>
 #include <beast/http/string_body.hpp>
@@ -2981,7 +2982,7 @@ private:
 
     template<class Decorator>
     request_type
-    build_request(std::string& key,
+    build_request(detail::sec_ws_key_type& key,
         boost::string_ref const& host,
             boost::string_ref const& resource,
                 Decorator const& decorator);
@@ -2993,7 +2994,7 @@ private:
 
     void
     do_response(http::response_header const& resp,
-        boost::string_ref const& key, error_code& ec);
+        detail::sec_ws_key_type const& key, error_code& ec);
 };
 
 } // websocket

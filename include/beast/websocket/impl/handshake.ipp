@@ -34,7 +34,7 @@ class stream<NextLayer>::handshake_op
         bool cont;
         stream<NextLayer>& ws;
         response_type* res_p;
-        std::string key;
+        detail::sec_ws_key_type key;
         request_type req;
         response_type res;
         int state = 0;
