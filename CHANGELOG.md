@@ -4,6 +4,7 @@
 * Refactor base64
 * Use static_string for WebSocket handshakes
 * Simplify get_lowest_layer test
+* Add test_allocator to extras/test
 
 --------------------------------------------------------------------------------
 
