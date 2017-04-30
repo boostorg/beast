@@ -3,6 +3,7 @@
 * Refactor static_string
 * Refactor base64
 * Use static_string for WebSocket handshakes
+* Simplify get_lowest_layer test
 
 --------------------------------------------------------------------------------
 
