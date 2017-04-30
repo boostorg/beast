@@ -109,14 +109,14 @@ public:
         // VFALCO This needs work
         {
             using alloc_type =
-                test_allocator<char, false, false, false, false>;
+                test_allocator<char, false, false, false, false, false>;
             using sb_type = basic_streambuf<alloc_type>;
             sb_type sb;
             BEAST_EXPECT(sb.get_allocator().id() == 1);
         }
         {
             using alloc_type =
-                test_allocator<char, false, false, false, false>;
+                test_allocator<char, false, false, false, false, false>;
             using sb_type = basic_streambuf<alloc_type>;
             sb_type sb;
             BEAST_EXPECT(sb.get_allocator().id() == 2);
