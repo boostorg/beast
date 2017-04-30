@@ -23,45 +23,50 @@ struct test_allocator_info
 };
 
 template<class T,
-    bool Assign, bool Move, bool Swap, bool Select>
+    bool Equal, bool Assign, bool Move, bool Swap, bool Select>
 class test_allocator;
 
 template<class T,
-    bool Assign, bool Move, bool Swap, bool Select>
+    bool Equal, bool Assign, bool Move, bool Swap, bool Select>
 struct test_allocator_base
 {
 };
 
 template<class T,
-    bool Assign, bool Move, bool Swap>
-struct test_allocator_base<T, Assign, Move, Swap, true>
+    bool Equal, bool Assign, bool Move, bool Swap>
+struct test_allocator_base<
+    T, Equal, Assign, Move, Swap, true>
 {
     static
-    test_allocator<T, Assign, Move, Swap, true>
-    select_on_container_copy_construction(
-        test_allocator<T, Assign, Move, Swap, true> const& a)
+    test_allocator<T, Equal, Assign, Move, Swap, true>
+    select_on_container_copy_construction(test_allocator<
+        T, Equal, Assign, Move, Swap, true> const& a)
     {
-        return test_allocator<T, Assign, Move, Swap, true>{};
+        return test_allocator<T,
+            Equal, Assign, Move, Swap, true>{};
     }
 };
 
 template<class T,
-    bool Assign, bool Move, bool Swap, bool Select>
+    bool Equal, bool Assign, bool Move, bool Swap, bool Select>
 class test_allocator : public test_allocator_base<
-        T, Assign, Move, Swap, Select>
+        T, Equal, Assign, Move, Swap, Select>
 {
     std::size_t id_;
     std::shared_ptr<test_allocator_info> info_;
 
-    template<class, bool, bool, bool, bool>
+    template<class, bool, bool, bool, bool, bool>
     friend class test_allocator;
 
 public:
     using value_type = T;
+
     using propagate_on_container_copy_assignment =
         std::integral_constant<bool, Assign>;
+
     using propagate_on_container_move_assignment =
         std::integral_constant<bool, Move>;
+
     using propagate_on_container_swap =
         std::integral_constant<bool, Swap>;
 
@@ -69,7 +74,7 @@ public:
     struct rebind
     {
         using other = test_allocator<
-            U, Assign, Move, Swap, Select>;
+            U, Equal, Assign, Move, Swap, Select>;
     };
 
     test_allocator()
@@ -91,8 +96,8 @@ public:
     }
 
     template<class U>
-    test_allocator(test_allocator<
-            U, Assign, Move, Swap, Select> const& u) noexcept
+    test_allocator(test_allocator<U,
+            Equal, Assign, Move, Swap, Select> const& u) noexcept
         : id_(u.id_)
         , info_(u.info_)
     {
@@ -117,6 +122,18 @@ public:
     deallocate(value_type* p, std::size_t) noexcept
     {
         ::operator delete(p);
+    }
+
+    bool
+    operator==(test_allocator const& other) const
+    {
+        return id_ == other.id_ || Equal;
+    }
+
+    bool
+    operator!=(test_allocator const& other) const
+    {
+        return ! this->operator==(other);
     }
 
     std::size_t

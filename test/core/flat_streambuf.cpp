@@ -10,7 +10,9 @@
 
 #include "buffer_test.hpp"
 #include <beast/core/to_string.hpp>
+#include <beast/test/test_allocator.hpp>
 #include <beast/unit_test/suite.hpp>
+#include <algorithm>
 
 namespace beast {
 
@@ -27,6 +29,121 @@ public:
         basic_flat_streambuf<Alloc2> const& sb2)
     {
         return to_string(sb1.data()) == to_string(sb2.data());
+    }
+
+    template<
+        bool Equal, bool Assign, bool Move, bool Swap, bool Select>
+    void
+    testCtor()
+    {
+        using allocator = test::test_allocator<char,
+            Equal, Assign, Move, Swap, Select>;
+        {
+            using boost::asio::buffer_size;
+            basic_flat_streambuf<allocator> b1{10};
+            BEAST_EXPECT(b1.size() == 0);
+            BEAST_EXPECT(b1.capacity() == 0);
+            BEAST_EXPECT(b1.max_size() == 10);
+            b1.prepare(1);
+            b1.commit(1);
+            basic_flat_streambuf<allocator> b2{std::move(b1)};
+            BEAST_EXPECT(b1.capacity() == 0);
+            BEAST_EXPECT(b1.max_size() == 10);
+            BEAST_EXPECT(b2.size() == 1);
+            BEAST_EXPECT(b2.max_size() == 10);
+            BEAST_EXPECT(buffer_size(b1.data()) == 0);
+            BEAST_EXPECT(buffer_size(b1.prepare(1)) == 1);
+        }
+        {
+            basic_flat_streambuf<allocator> b1{10};
+            basic_flat_streambuf<allocator> b2{std::move(b1), allocator{}};
+        }
+        {
+            basic_flat_streambuf<allocator> b1{10};
+            basic_flat_streambuf<allocator> b2{b1};
+        }
+        {
+            basic_flat_streambuf<allocator> b1{10};
+            basic_flat_streambuf<allocator> b2{b1, allocator{}};
+        }
+        {
+            flat_streambuf b1{10};
+            b1.prepare(1);
+            b1.commit(1);
+            basic_flat_streambuf<allocator> b2{b1};
+            BEAST_EXPECT(b2.size() == 1);
+        }
+        {
+            basic_flat_streambuf<allocator> b1{10};
+        }
+        {
+            basic_flat_streambuf<allocator> b1{allocator{}, 10};
+        }
+    }
+
+    void
+    testCtors()
+    {
+        testCtor<false, false, false, false, false>();
+        testCtor<false, false, false, false,  true>();
+        testCtor<false, false, false,  true, false>();
+        testCtor<false, false, false,  true,  true>();
+        testCtor<false, false,  true, false, false>();
+        testCtor<false, false,  true, false,  true>();
+        testCtor<false, false,  true,  true, false>();
+        testCtor<false, false,  true,  true,  true>();
+        testCtor<false,  true, false, false, false>();
+        testCtor<false,  true, false, false,  true>();
+        testCtor<false,  true, false,  true, false>();
+        testCtor<false,  true, false,  true,  true>();
+        testCtor<false,  true,  true, false, false>();
+        testCtor<false,  true,  true, false,  true>();
+        testCtor<false,  true,  true,  true, false>();
+        testCtor<false,  true,  true,  true,  true>();
+        testCtor< true, false, false, false, false>();
+        testCtor< true, false, false, false,  true>();
+        testCtor< true, false, false,  true, false>();
+        testCtor< true, false, false,  true,  true>();
+        testCtor< true, false,  true, false, false>();
+        testCtor< true, false,  true, false,  true>();
+        testCtor< true, false,  true,  true, false>();
+        testCtor< true, false,  true,  true,  true>();
+        testCtor< true,  true, false, false, false>();
+        testCtor< true,  true, false, false,  true>();
+        testCtor< true,  true, false,  true, false>();
+        testCtor< true,  true, false,  true,  true>();
+        testCtor< true,  true,  true, false, false>();
+        testCtor< true,  true,  true, false,  true>();
+        testCtor< true,  true,  true,  true, false>();
+        testCtor< true,  true,  true,  true,  true>();
+    }
+
+    void
+    testOperations()
+    {
+        //
+        // reserve
+        //
+
+        {
+            flat_streambuf b{10};
+            b.prepare(1);
+            b.commit(1);
+            b.reserve(2);
+            BEAST_EXPECT(b.size() == 1);
+        }
+        {
+            flat_streambuf b{10};
+            try
+            {
+                b.reserve(11);
+                fail("", __FILE__, __LINE__);
+            }
+            catch(std::length_error const&)
+            {
+                pass();
+            }
+        }
     }
 
     void
@@ -159,6 +276,9 @@ public:
     void
     run() override
     {
+        testCtors();
+        testOperations();
+
         testSpecialMembers();
         testStream();
         testPrepare();
