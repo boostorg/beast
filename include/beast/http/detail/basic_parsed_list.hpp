@@ -32,7 +32,7 @@ public:
     using value_type = typename Policy::value_type;
 
     /// A constant iterator to a list element.
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
     using const_iterator = implementation_defined;
 #else
     class const_iterator;
