@@ -400,7 +400,7 @@ public:
     std::size_t
     write(ConstBufferSequence const& buffers, error_code& ec);
 
-#if ! GENERATING_DOCS
+#if ! BEAST_DOXYGEN
     std::size_t
     write(boost::asio::const_buffers_1 const& buffer,
         error_code& ec);
