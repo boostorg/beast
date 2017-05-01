@@ -81,7 +81,7 @@ public:
         resolution only if the first argument is not a
         @ref http::header_parser or @ref message_parser.
     */
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
     template<class... Args>
     explicit
     msesage_parser(Args&&... args);
