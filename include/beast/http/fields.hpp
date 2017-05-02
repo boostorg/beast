@@ -216,7 +216,7 @@ public:
         If more than one field with the specified name exists, the
         first field defined by insertion order is returned.
     */
-    boost::string_ref
+    boost::string_ref const
     operator[](boost::string_ref const& name) const;
 
     /// Clear the contents of the basic_fields.

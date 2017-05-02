@@ -634,7 +634,7 @@ public:
             m.method = "GET";
             m.version = 11;
             m.url = "/";
-            m.fields["Content-Length"] = "5";
+            m.fields.insert("Content-Length", 5);
             m.body = "*****";
             async_write(os, m, handler{});
             BEAST_EXPECT(handler::count() > 0);
@@ -656,7 +656,7 @@ public:
                 m.method = "GET";
                 m.version = 11;
                 m.url = "/";
-                m.fields["Content-Length"] = "5";
+                m.fields.insert("Content-Length", 5);
                 m.body = "*****";
                 async_write(is, m, handler{});
                 BEAST_EXPECT(handler::count() > 0);

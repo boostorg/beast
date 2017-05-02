@@ -7,6 +7,7 @@
 * Add test_allocator to extras/test
 * More flat_streambuf tests
 * WebSocket doc work
+* Prevent basic_fields operator[] assignment
 
 API Changes:
 
