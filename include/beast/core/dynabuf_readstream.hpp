@@ -98,7 +98,7 @@ class dynabuf_readstream
 
     DynamicBuffer sb_;
     std::size_t capacity_ = 0;
-    Stream next_layer_;
+    Stream & next_layer_;
 
 public:
     /// The type of the internal buffer
