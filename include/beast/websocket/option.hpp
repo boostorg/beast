@@ -58,45 +58,6 @@ struct auto_fragment
 };
 #endif
 
-/** Keep-alive option.
-
-    Determines if the connection is closed after a failed upgrade
-    request.
-
-    This setting only affects the behavior of HTTP requests that
-    implicitly or explicitly ask for a keepalive. For HTTP requests
-    that indicate the connection should be closed, the connection is
-    closed as per rfc7230.
-
-    The default setting is to close connections after a failed
-    upgrade request.
-
-    @note Objects of this type are used with
-          @ref beast::websocket::stream::set_option.
-
-    @par Example
-    Setting the keep alive option.
-    @code
-    ...
-    websocket::stream<ip::tcp::socket> ws(ios);
-    ws.set_option(keep_alive{8192});
-    @endcode
-*/
-#if BEAST_DOXYGEN
-using keep_alive = implementation_defined;
-#else
-struct keep_alive
-{
-    bool value;
-
-    explicit
-    keep_alive(bool v)
-        : value(v)
-    {
-    }
-};
-#endif
-
 /** Message type option.
 
     This controls the opcode set for outgoing messages. Valid

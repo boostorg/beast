@@ -10,7 +10,8 @@
 
 API Changes:
 
-* Refactor WebSocket error codes (API Change)
+* Refactor WebSocket error codes
+* Remove websocket::keep_alive option
 
 --------------------------------------------------------------------------------
 

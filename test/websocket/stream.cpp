@@ -541,7 +541,6 @@ public:
     {
         stream<socket_type> ws(ios_);
         ws.set_option(auto_fragment{true});
-        ws.set_option(keep_alive{false});
         ws.set_option(write_buffer_size{2048});
         ws.set_option(message_type{opcode::text});
         ws.set_option(read_buffer_size{8192});
@@ -992,7 +991,6 @@ public:
                 {
                     stream<test::string_istream> ws(ios_,
                         s.substr(i, s.size() - i));
-                    ws.set_option(keep_alive{true});
                     try
                     {
                         ws.accept(boost::asio::buffer(

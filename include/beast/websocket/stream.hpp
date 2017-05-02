@@ -185,13 +185,6 @@ public:
         wr_autofrag_ = o.value;
     }
 
-    /// Set the keep-alive option
-    void
-    set_option(keep_alive const& o)
-    {
-        keep_alive_ = o.value;
-    }
-
     /// Set the outgoing message type
     void
     set_option(message_type const& o)

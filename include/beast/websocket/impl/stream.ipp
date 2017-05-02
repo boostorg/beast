@@ -218,10 +218,7 @@ build_response(request_type const& req,
             res.reason = http::reason_string(res.status);
             res.version = req.version;
             res.body = text;
-            prepare(res,
-                (is_keep_alive(req) && keep_alive_) ?
-                    http::connection::keep_alive :
-                    http::connection::close);
+            prepare(res);
             decorate(res);
             return res;
         };
@@ -252,10 +249,7 @@ build_response(request_type const& req,
             res.reason = http::reason_string(res.status);
             res.version = req.version;
             res.fields.insert("Sec-WebSocket-Version", "13");
-            prepare(res,
-                (is_keep_alive(req) && keep_alive_) ?
-                    http::connection::keep_alive :
-                    http::connection::close);
+            prepare(res);
             decorate(res);
             return res;
         }
