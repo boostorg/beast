@@ -192,7 +192,7 @@ find(boost::string_ref const& name) const ->
 }
 
 template<class Allocator>
-boost::string_ref
+boost::string_ref const
 basic_fields<Allocator>::
 operator[](boost::string_ref const& name) const
 {
