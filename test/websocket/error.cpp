@@ -37,14 +37,6 @@ public:
         check("websocket", error::closed);
         check("websocket", error::failed);
         check("websocket", error::handshake_failed);
-        check("websocket", error::keep_alive);
-        check("websocket", error::response_malformed);
-        check("websocket", error::response_failed);
-        check("websocket", error::response_denied);
-        check("websocket", error::request_malformed);
-        check("websocket", error::request_invalid);
-        check("websocket", error::request_denied);
-        check("websocket", error::general);
     }
 };
 

@@ -289,23 +289,30 @@ stream<NextLayer>::
 do_response(http::response_header const& res,
     detail::sec_ws_key_type const& key, error_code& ec)
 {
-    // VFALCO Review these error codes
-    auto fail = [&]{ ec = error::response_failed; };
-    if(res.version < 11)
-        return fail();
-    if(res.status != 101)
-        return fail();
-    if(! is_upgrade(res))
-        return fail();
-    if(! http::token_list{res.fields["Upgrade"]}.exists("websocket"))
-        return fail();
-    if(! res.fields.exists("Sec-WebSocket-Accept"))
-        return fail();
-    detail::sec_ws_accept_type accept;
-    detail::make_sec_ws_accept(accept, key);
-    if(accept.compare(
-            res.fields["Sec-WebSocket-Accept"]) != 0)
-        return fail();
+    bool const success = [&]()
+    {
+        if(res.version < 11)
+            return false;
+        if(res.status != 101)
+            return false;
+        if(! is_upgrade(res))
+            return false;
+        if(! http::token_list{res.fields["Upgrade"]}.exists("websocket"))
+            return false;
+        if(! res.fields.exists("Sec-WebSocket-Accept"))
+            return false;
+        detail::sec_ws_accept_type accept;
+        detail::make_sec_ws_accept(accept, key);
+        if(accept.compare(
+                res.fields["Sec-WebSocket-Accept"]) != 0)
+            return false;
+        return true;
+    }();
+    if(! success)
+    {
+        ec = error::handshake_failed;
+        return;
+    }
     detail::pmd_offer offer;
     pmd_read(offer, res.fields);
     // VFALCO see if offer satisfies pmd_config_,
