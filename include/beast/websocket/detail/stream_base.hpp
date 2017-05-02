@@ -49,7 +49,6 @@ protected:
     struct op {};
 
     detail::maskgen maskgen_;               // source of mask keys
-    bool keep_alive_ = false;               // close on failed upgrade
     std::size_t rd_msg_max_ =
         16 * 1024 * 1024;                   // max message size
     bool wr_autofrag_ = true;               // auto fragment
