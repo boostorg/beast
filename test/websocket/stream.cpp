@@ -1107,7 +1107,7 @@ public:
                 }
                 catch(system_error const& se)
                 {
-                    BEAST_EXPECT(se.code() == error::response_failed);
+                    BEAST_EXPECT(se.code() == error::handshake_failed);
                 }
             };
         // wrong HTTP version

@@ -8,6 +8,10 @@
 * More flat_streambuf tests
 * WebSocket doc work
 
+API Changes:
+
+* Refactor WebSocket error codes (API Change)
+
 --------------------------------------------------------------------------------
 
 1.0.0-b36
