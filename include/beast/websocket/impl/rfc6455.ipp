@@ -19,7 +19,7 @@ is_upgrade(http::header<true, Fields> const& req)
 {
     if(req.version < 11)
         return false;
-    if(req.method != "GET")
+    if(req.method() != "GET")
         return false;
     if(! http::is_upgrade(req))
         return false;

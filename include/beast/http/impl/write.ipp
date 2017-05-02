@@ -37,9 +37,9 @@ write_start_line(DynamicBuffer& dynabuf,
     header<true, Fields> const& msg)
 {
     BOOST_ASSERT(msg.version == 10 || msg.version == 11);
-    write(dynabuf, msg.method);
+    write(dynabuf, msg.method());
     write(dynabuf, " ");
-    write(dynabuf, msg.url);
+    write(dynabuf, msg.target());
     switch(msg.version)
     {
     case 10:
@@ -68,7 +68,7 @@ write_start_line(DynamicBuffer& dynabuf,
     }
     write(dynabuf, msg.status);
     write(dynabuf, " ");
-    write(dynabuf, msg.reason);
+    write(dynabuf, msg.reason());
     write(dynabuf, "\r\n");
 }
 
@@ -82,6 +82,10 @@ write_fields(DynamicBuffer& dynabuf, FieldSequence const& fields)
     //    "FieldSequence requirements not met");
     for(auto const& field : fields)
     {
+        auto const name = field.name();
+        BOOST_ASSERT(! name.empty());
+        if(name[0] == ':')
+            continue;
         write(dynabuf, field.name());
         write(dynabuf, ": ");
         write(dynabuf, field.value());

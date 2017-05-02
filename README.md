@@ -240,8 +240,8 @@ int main()
 
     // Send HTTP request using beast
     beast::http::request<beast::http::string_body> req;
-    req.method = "GET";
-    req.url = "/";
+    req.method("GET");
+    req.target("/");
     req.version = 11;
     req.fields.replace("Host", host + ":" +
         boost::lexical_cast<std::string>(sock.remote_endpoint().port()));

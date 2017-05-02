@@ -28,8 +28,6 @@ swap(
 {
     using std::swap;
     swap(m1.version, m2.version);
-    swap(m1.method, m2.method);
-    swap(m1.url, m2.url);
     swap(m1.fields, m2.fields);
 }
 
@@ -42,7 +40,6 @@ swap(
     using std::swap;
     swap(a.version, b.version);
     swap(a.status, b.status);
-    swap(a.reason, b.reason);
     swap(a.fields, b.fields);
 }
 
@@ -199,7 +196,7 @@ prepare(message<isRequest, Body, Fields>& msg,
                 {
                     using beast::detail::ci_equal;
                     if(*pi.content_length > 0 ||
-                        ci_equal(msg.method, "POST"))
+                        ci_equal(msg.method(), "POST"))
                     {
                         msg.fields.insert(
                             "Content-Length", *pi.content_length);

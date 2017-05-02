@@ -225,7 +225,7 @@ private:
         {
             if(ec)
                 return fail(ec, "read");
-            auto path = req_.url;
+            auto path = req_.target().to_string();
             if(path == "/")
                 path = "/index.html";
             path = server_.root_ + path;
@@ -233,7 +233,7 @@ private:
             {
                 response<string_body> res;
                 res.status = 404;
-                res.reason = "Not Found";
+                res.reason("Not Found");
                 res.version = req_.version;
                 res.fields.insert("Server", "http_async_server");
                 res.fields.insert("Content-Type", "text/html");
@@ -248,7 +248,7 @@ private:
             {
                 resp_type res;
                 res.status = 200;
-                res.reason = "OK";
+                res.reason("OK");
                 res.version = req_.version;
                 res.fields.insert("Server", "http_async_server");
                 res.fields.insert("Content-Type", mime_type(path));
@@ -262,7 +262,7 @@ private:
             {
                 response<string_body> res;
                 res.status = 500;
-                res.reason = "Internal Error";
+                res.reason("Internal Error");
                 res.version = req_.version;
                 res.fields.insert("Server", "http_async_server");
                 res.fields.insert("Content-Type", "text/html");

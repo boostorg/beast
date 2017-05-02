@@ -158,13 +158,11 @@ private:
     void
     on_request(
         boost::string_ref const& method,
-            boost::string_ref const& path,
+            boost::string_ref const& target,
                 int version, error_code&)
     {
-        m_.url = std::string{
-            path.data(), path.size()};
-        m_.method = std::string{
-            method.data(), method.size()};
+        m_.target(target);
+        m_.method(method);
         m_.version = version;
     }
 
@@ -174,9 +172,8 @@ private:
             int version, error_code&)
     {
         m_.status = status;
-        m_.reason = std::string{
-            reason.data(), reason.size()};
         m_.version = version;
+        m_.reason(reason);
     }
 
     void

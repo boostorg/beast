@@ -1,3 +1,11 @@
+1.0.0-b39
+
+API Changes:
+
+* Refactor http::header contents
+
+--------------------------------------------------------------------------------
+
 1.0.0-b38
 
 * Refactor static_string

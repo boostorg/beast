@@ -691,8 +691,8 @@ public:
                 // request in message
                 {
                     request_type req;
-                    req.method = "GET";
-                    req.url = "/";
+                    req.method("GET");
+                    req.target("/");
                     req.version = 11;
                     req.fields.insert("Host", "localhost");
                     req.fields.insert("Upgrade", "websocket");
@@ -705,8 +705,8 @@ public:
                 }
                 {
                     request_type req;
-                    req.method = "GET";
-                    req.url = "/";
+                    req.method("GET");
+                    req.target("/");
                     req.version = 11;
                     req.fields.insert("Host", "localhost");
                     req.fields.insert("Upgrade", "websocket");
@@ -723,8 +723,8 @@ public:
                 // request in message, close frame in buffers
                 {
                     request_type req;
-                    req.method = "GET";
-                    req.url = "/";
+                    req.method("GET");
+                    req.target("/");
                     req.version = 11;
                     req.fields.insert("Host", "localhost");
                     req.fields.insert("Upgrade", "websocket");
@@ -750,8 +750,8 @@ public:
                 }
                 {
                     request_type req;
-                    req.method = "GET";
-                    req.url = "/";
+                    req.method("GET");
+                    req.target("/");
                     req.version = 11;
                     req.fields.insert("Host", "localhost");
                     req.fields.insert("Upgrade", "websocket");
@@ -781,8 +781,8 @@ public:
                 // request in message, close frame in stream
                 {
                     request_type req;
-                    req.method = "GET";
-                    req.url = "/";
+                    req.method("GET");
+                    req.target("/");
                     req.version = 11;
                     req.fields.insert("Host", "localhost");
                     req.fields.insert("Upgrade", "websocket");
@@ -809,8 +809,8 @@ public:
                 // request in message, close frame in stream and buffers
                 {
                     request_type req;
-                    req.method = "GET";
-                    req.url = "/";
+                    req.method("GET");
+                    req.target("/");
                     req.version = 11;
                     req.fields.insert("Host", "localhost");
                     req.fields.insert("Upgrade", "websocket");

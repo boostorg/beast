@@ -35,8 +35,8 @@ int main()
 
     // Send HTTP request over SSL using Beast
     beast::http::request<beast::http::string_body> req;
-    req.method = "GET";
-    req.url = "/";
+    req.method("GET");
+    req.target("/");
     req.version = 11;
     req.fields.insert("Host", host + ":" +
         boost::lexical_cast<std::string>(sock.remote_endpoint().port()));

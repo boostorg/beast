@@ -112,10 +112,8 @@ private:
             boost::string_ref const& path,
                 int version, error_code&)
     {
-        h_.url = std::string{
-            path.data(), path.size()};
-        h_.method = std::string{
-            method.data(), method.size()};
+        h_.target(path);
+        h_.method(method);
         h_.version = version;
     }
 
@@ -125,9 +123,8 @@ private:
             int version, error_code&)
     {
         h_.status = status;
-        h_.reason = std::string{
-            reason.data(), reason.size()};
         h_.version = version;
+        h_.reason(reason);
     }
 
     void

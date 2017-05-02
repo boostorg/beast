@@ -43,14 +43,14 @@ class stream<NextLayer>::handshake_op
         data(Handler& handler, stream<NextLayer>& ws_,
             response_type* res_p_,
                 boost::string_ref const& host,
-                    boost::string_ref const& resource,
+                    boost::string_ref const& target,
                         Decorator const& decorator)
             : cont(beast_asio_helpers::
                 is_continuation(handler))
             , ws(ws_)
             , res_p(res_p_)
             , req(ws.build_request(key,
-                host, resource, decorator))
+                host, target, decorator))
         {
             ws.reset();
         }
@@ -164,7 +164,7 @@ typename async_completion<HandshakeHandler,
     void(error_code)>::result_type
 stream<NextLayer>::
 async_handshake(boost::string_ref const& host,
-    boost::string_ref const& resource,
+    boost::string_ref const& target,
         HandshakeHandler&& handler)
 {
     static_assert(is_AsyncStream<next_layer_type>::value,
@@ -173,7 +173,7 @@ async_handshake(boost::string_ref const& host,
         void(error_code)> completion{handler};
     handshake_op<decltype(completion.handler)>{
         completion.handler, *this, nullptr,
-            host, resource, &default_decorate_req};
+            host, target, &default_decorate_req};
     return completion.result.get();
 }
 
@@ -184,7 +184,7 @@ typename async_completion<HandshakeHandler,
 stream<NextLayer>::
 async_handshake(response_type& res,
     boost::string_ref const& host,
-        boost::string_ref const& resource,
+        boost::string_ref const& target,
             HandshakeHandler&& handler)
 {
     static_assert(is_AsyncStream<next_layer_type>::value,
@@ -193,7 +193,7 @@ async_handshake(response_type& res,
         void(error_code)> completion{handler};
     handshake_op<decltype(completion.handler)>{
         completion.handler, *this, &res,
-            host, resource, &default_decorate_req};
+            host, target, &default_decorate_req};
     return completion.result.get();
 }
 
@@ -203,7 +203,7 @@ typename async_completion<HandshakeHandler,
     void(error_code)>::result_type
 stream<NextLayer>::
 async_handshake_ex(boost::string_ref const& host,
-    boost::string_ref const& resource,
+    boost::string_ref const& target,
         RequestDecorator const& decorator,
             HandshakeHandler&& handler)
 {
@@ -216,7 +216,7 @@ async_handshake_ex(boost::string_ref const& host,
         void(error_code)> completion{handler};
     handshake_op<decltype(completion.handler)>{
         completion.handler, *this, nullptr,
-            host, resource, decorator};
+            host, target, decorator};
     return completion.result.get();
 }
 
@@ -227,7 +227,7 @@ typename async_completion<HandshakeHandler,
 stream<NextLayer>::
 async_handshake_ex(response_type& res,
     boost::string_ref const& host,
-        boost::string_ref const& resource,
+        boost::string_ref const& target,
             RequestDecorator const& decorator,
                 HandshakeHandler&& handler)
 {
@@ -240,7 +240,7 @@ async_handshake_ex(response_type& res,
         void(error_code)> completion{handler};
     handshake_op<decltype(completion.handler)>{
         completion.handler, *this, &res,
-            host, resource, decorator};
+            host, target, decorator};
     return completion.result.get();
 }
 
@@ -248,13 +248,13 @@ template<class NextLayer>
 void
 stream<NextLayer>::
 handshake(boost::string_ref const& host,
-    boost::string_ref const& resource)
+    boost::string_ref const& target)
 {
     static_assert(is_SyncStream<next_layer_type>::value,
         "SyncStream requirements not met");
     error_code ec;
     handshake(
-        host, resource, ec);
+        host, target, ec);
     if(ec)
         throw system_error{ec};
 }
@@ -264,12 +264,12 @@ void
 stream<NextLayer>::
 handshake(response_type& res,
     boost::string_ref const& host,
-        boost::string_ref const& resource)
+        boost::string_ref const& target)
 {
     static_assert(is_SyncStream<next_layer_type>::value,
         "SyncStream requirements not met");
     error_code ec;
-    handshake(res, host, resource, ec);
+    handshake(res, host, target, ec);
     if(ec)
         throw system_error{ec};
 }
@@ -279,7 +279,7 @@ template<class RequestDecorator>
 void
 stream<NextLayer>::
 handshake_ex(boost::string_ref const& host,
-    boost::string_ref const& resource,
+    boost::string_ref const& target,
         RequestDecorator const& decorator)
 {
     static_assert(is_SyncStream<next_layer_type>::value,
@@ -288,7 +288,7 @@ handshake_ex(boost::string_ref const& host,
             RequestDecorator>::value,
         "RequestDecorator requirements not met");
     error_code ec;
-    handshake_ex(host, resource, decorator, ec);
+    handshake_ex(host, target, decorator, ec);
     if(ec)
         throw system_error{ec};
 }
@@ -299,7 +299,7 @@ void
 stream<NextLayer>::
 handshake_ex(response_type& res,
     boost::string_ref const& host,
-        boost::string_ref const& resource,
+        boost::string_ref const& target,
             RequestDecorator const& decorator)
 {
     static_assert(is_SyncStream<next_layer_type>::value,
@@ -308,7 +308,7 @@ handshake_ex(response_type& res,
             RequestDecorator>::value,
         "RequestDecorator requirements not met");
     error_code ec;
-    handshake_ex(res, host, resource, decorator, ec);
+    handshake_ex(res, host, target, decorator, ec);
     if(ec)
         throw system_error{ec};
 }
@@ -317,12 +317,12 @@ template<class NextLayer>
 void
 stream<NextLayer>::
 handshake(boost::string_ref const& host,
-    boost::string_ref const& resource, error_code& ec)
+    boost::string_ref const& target, error_code& ec)
 {
     static_assert(is_SyncStream<next_layer_type>::value,
         "SyncStream requirements not met");
     do_handshake(nullptr,
-        host, resource, &default_decorate_req, ec);
+        host, target, &default_decorate_req, ec);
 }
 
 template<class NextLayer>
@@ -330,13 +330,13 @@ void
 stream<NextLayer>::
 handshake(response_type& res,
     boost::string_ref const& host,
-        boost::string_ref const& resource,
+        boost::string_ref const& target,
             error_code& ec)
 {
     static_assert(is_SyncStream<next_layer_type>::value,
         "SyncStream requirements not met");
     do_handshake(&res,
-        host, resource, &default_decorate_req, ec);
+        host, target, &default_decorate_req, ec);
 }
 
 template<class NextLayer>
@@ -344,7 +344,7 @@ template<class RequestDecorator>
 void
 stream<NextLayer>::
 handshake_ex(boost::string_ref const& host,
-    boost::string_ref const& resource,
+    boost::string_ref const& target,
         RequestDecorator const& decorator,
             error_code& ec)
 {
@@ -354,7 +354,7 @@ handshake_ex(boost::string_ref const& host,
             RequestDecorator>::value,
         "RequestDecorator requirements not met");
     do_handshake(nullptr,
-        host, resource, decorator, ec);
+        host, target, decorator, ec);
 }
 
 template<class NextLayer>
@@ -363,7 +363,7 @@ void
 stream<NextLayer>::
 handshake_ex(response_type& res,
     boost::string_ref const& host,
-        boost::string_ref const& resource,
+        boost::string_ref const& target,
             RequestDecorator const& decorator,
                 error_code& ec)
 {
@@ -373,7 +373,7 @@ handshake_ex(response_type& res,
             RequestDecorator>::value,
         "RequestDecorator requirements not met");
     do_handshake(&res,
-        host, resource, decorator, ec);
+        host, target, decorator, ec);
 }
 
 //------------------------------------------------------------------------------

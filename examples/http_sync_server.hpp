@@ -158,7 +158,7 @@ private:
             http::read(sock, sb, req, ec);
             if(ec)
                 break;
-            auto path = req.url;
+            auto path = req.target().to_string();
             if(path == "/")
                 path = "/index.html";
             path = root_ + path;
@@ -166,7 +166,7 @@ private:
             {
                 response<string_body> res;
                 res.status = 404;
-                res.reason = "Not Found";
+                res.reason("Not Found");
                 res.version = req.version;
                 res.fields.insert("Server", "http_sync_server");
                 res.fields.insert("Content-Type", "text/html");
@@ -181,7 +181,7 @@ private:
             {
                 resp_type res;
                 res.status = 200;
-                res.reason = "OK";
+                res.reason("OK");
                 res.version = req.version;
                 res.fields.insert("Server", "http_sync_server");
                 res.fields.insert("Content-Type", mime_type(path));
@@ -195,7 +195,7 @@ private:
             {
                 response<string_body> res;
                 res.status = 500;
-                res.reason = "Internal Error";
+                res.reason("Internal Error");
                 res.version = req.version;
                 res.fields.insert("Server", "http_sync_server");
                 res.fields.insert("Content-Type", "text/html");

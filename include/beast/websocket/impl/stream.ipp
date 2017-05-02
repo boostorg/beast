@@ -128,7 +128,7 @@ void
 stream<NextLayer>::
 do_handshake(response_type* res_p,
     boost::string_ref const& host,
-        boost::string_ref const& resource,
+        boost::string_ref const& target,
             RequestDecorator const& decorator,
                 error_code& ec)
 {
@@ -137,7 +137,7 @@ do_handshake(response_type* res_p,
     detail::sec_ws_key_type key;
     {
         auto const req = build_request(
-            key, host, resource, decorator);
+            key, host, target, decorator);
         pmd_read(pmd_config_, req.fields);
         http::write(stream_, req, ec);
     }
@@ -157,13 +157,13 @@ request_type
 stream<NextLayer>::
 build_request(detail::sec_ws_key_type& key,
     boost::string_ref const& host,
-        boost::string_ref const& resource,
+        boost::string_ref const& target,
             Decorator const& decorator)
 {
     request_type req;
-    req.url = { resource.data(), resource.size() };
+    req.target(target);
     req.version = 11;
-    req.method = "GET";
+    req.method("GET");
     req.fields.insert("Host", host);
     req.fields.insert("Upgrade", "websocket");
     req.fields.insert("Connection", "upgrade");
@@ -215,7 +215,7 @@ build_response(request_type const& req,
         {
             response_type res;
             res.status = 400;
-            res.reason = http::reason_string(res.status);
+            res.reason(http::reason_string(res.status));
             res.version = req.version;
             res.body = text;
             prepare(res);
@@ -224,7 +224,7 @@ build_response(request_type const& req,
         };
     if(req.version < 11)
         return err("HTTP version 1.1 required");
-    if(req.method != "GET")
+    if(req.method() != "GET")
         return err("Wrong method");
     if(! is_upgrade(req))
         return err("Expected Upgrade request");
@@ -246,7 +246,7 @@ build_response(request_type const& req,
         {
             response_type res;
             res.status = 426;
-            res.reason = http::reason_string(res.status);
+            res.reason(http::reason_string(res.status));
             res.version = req.version;
             res.fields.insert("Sec-WebSocket-Version", "13");
             prepare(res);
@@ -264,7 +264,7 @@ build_response(request_type const& req,
             res.fields, unused, offer, pmd_opts_);
     }
     res.status = 101;
-    res.reason = http::reason_string(res.status);
+    res.reason(http::reason_string(res.status));
     res.version = req.version;
     res.fields.insert("Upgrade", "websocket");
     res.fields.insert("Connection", "upgrade");

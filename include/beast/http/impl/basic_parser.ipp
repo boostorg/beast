@@ -396,8 +396,8 @@ parse_startline(char const*& it,
         return;
     }
 
-    auto const path = parse_path(it);
-    if(path.empty())
+    auto const target = parse_target(it);
+    if(target.empty())
     {
         ec = error::bad_path;
         return;
@@ -416,7 +416,7 @@ parse_startline(char const*& it,
     }
 
     impl().on_request(
-        method, path, version, ec);
+        method, target, version, ec);
     if(ec)
         return;
 }
