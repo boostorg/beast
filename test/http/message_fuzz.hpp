@@ -131,7 +131,7 @@ public:
             "msrp", "msrps", "mtqp", "mumble", "mupdate", "mvn", "news", "nfs", "ni",
             "nih", "nntp", "notes", "oid", "opaquelocktoken", "pack", "palm", "paparazzi",
             "pkcs11", "platform", "pop", "pres", "prospero", "proxy", "psyc", "query",
-            "redis", "rediss", "reload", "res", "resource", "rmi", "rsync", "rtmfp",
+            "redis", "rediss", "reload", "res", "target", "rmi", "rsync", "rtmfp",
             "rtmp", "rtsp", "rtsps", "rtspu", "secondlife", "service", "session", "sftp",
             "sgn", "shttp", "sieve", "sip", "sips", "skype", "smb", "sms", "smtp",
             "snews", "snmp", "soap.beep", "soap.beeps", "soldat", "spotify", "ssh",

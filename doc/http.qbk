@@ -113,7 +113,7 @@ that type.
 This illustration shows the declarations and members of the __header__ and
 __message__ class templates, as well as the inheritance relationship:
 
-[$images/message.png [width 650px] [height 390px]]
+[$images/message.png [width 711px] [height 424px]]
 
 For notational convenience, these template type aliases are provided which
 supply typical choices for the [*`Fields`] type:
@@ -137,8 +137,8 @@ object:
     ```
     request<string_body> req;
     req.version = 11;   // HTTP/1.1
-    req.method = "GET";
-    req.url = "/index.htm"
+    req.method("GET");
+    req.target("/index.htm");
     req.fields.insert("Accept", "text/html");
     req.fields.insert("Connection", "keep-alive");
     req.fields.insert("User-Agent", "Beast");
@@ -148,7 +148,7 @@ object:
     response<string_body> res;
     res.version = 11;   // HTTP/1.1
     res.status = 200;
-    res.reason = "OK";
+    res.reason("OK");
     res.fields.insert("Server", "Beast");
     res.fields.insert("Content-Length", 4);
     res.body = "****";
@@ -295,8 +295,8 @@ operations performed). To send messages synchronously, use one of the
     {
         request<string_body> req;
         req.version = 11;
-        req.method = "GET";
-        req.url = "/index.html";
+        req.method("GET");
+        req.target("/index.html");
         ...
         write(sock, req); // Throws exception on error
         ...

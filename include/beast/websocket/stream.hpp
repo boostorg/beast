@@ -1445,7 +1445,7 @@ public:
         @param host The name of the remote host,
         required by the HTTP protocol.
 
-        @param resource The requesting URI, which may not be empty,
+        @param target The Request Target, which may not be empty,
         required by the HTTP protocol.
 
         @throws system_error Thrown on failure.
@@ -1466,7 +1466,7 @@ public:
     */
     void
     handshake(boost::string_ref const& host,
-        boost::string_ref const& resource);
+        boost::string_ref const& target);
 
     /** Send an HTTP WebSocket Upgrade request and receive the response.
 
@@ -1492,7 +1492,7 @@ public:
         @param host The name of the remote host,
         required by the HTTP protocol.
 
-        @param resource The requesting URI, which may not be empty,
+        @param target The Request Target, which may not be empty,
         required by the HTTP protocol.
 
         @throws system_error Thrown on failure.
@@ -1515,7 +1515,7 @@ public:
     void
     handshake(response_type& res,
         boost::string_ref const& host,
-            boost::string_ref const& resource);
+            boost::string_ref const& target);
 
     /** Send an HTTP WebSocket Upgrade request and receive the response.
 
@@ -1538,7 +1538,7 @@ public:
         @param host The name of the remote host,
         required by the HTTP protocol.
 
-        @param resource The requesting URI, which may not be empty,
+        @param target The Request Target, which may not be empty,
         required by the HTTP protocol.
 
         @param decorator A function object which will be called to modify
@@ -1573,7 +1573,7 @@ public:
     template<class RequestDecorator>
     void
     handshake_ex(boost::string_ref const& host,
-        boost::string_ref const& resource,
+        boost::string_ref const& target,
             RequestDecorator const& decorator);
 
     /** Send an HTTP WebSocket Upgrade request and receive the response.
@@ -1600,7 +1600,7 @@ public:
         @param host The name of the remote host,
         required by the HTTP protocol.
 
-        @param resource The requesting URI, which may not be empty,
+        @param target The Request Target, which may not be empty,
         required by the HTTP protocol.
 
         @param decorator A function object which will be called to modify
@@ -1637,7 +1637,7 @@ public:
     void
     handshake_ex(response_type& res,
         boost::string_ref const& host,
-            boost::string_ref const& resource,
+            boost::string_ref const& target,
                 RequestDecorator const& decorator);
 
     /** Send an HTTP WebSocket Upgrade request and receive the response.
@@ -1661,7 +1661,7 @@ public:
         @param host The name of the remote host,
         required by the HTTP protocol.
 
-        @param resource The requesting URI, which may not be empty,
+        @param target The Request Target, which may not be empty,
         required by the HTTP protocol.
 
         @param ec Set to indicate what error occurred, if any.
@@ -1671,7 +1671,7 @@ public:
         websocket::stream<ip::tcp::socket> ws{io_service};
         ...
         error_code ec;
-        ws.handshake(host, resource, ec);
+        ws.handshake(host, target, ec);
         if(ec)
         {
             // An error occurred.
@@ -1680,7 +1680,7 @@ public:
     */
     void
     handshake(boost::string_ref const& host,
-        boost::string_ref const& resource, error_code& ec);
+        boost::string_ref const& target, error_code& ec);
 
     /** Send an HTTP WebSocket Upgrade request and receive the response.
 
@@ -1703,7 +1703,7 @@ public:
         @param host The name of the remote host,
         required by the HTTP protocol.
 
-        @param resource The requesting URI, which may not be empty,
+        @param target The Request Target, which may not be empty,
         required by the HTTP protocol.
 
         @param ec Set to indicate what error occurred, if any.
@@ -1717,7 +1717,7 @@ public:
         ...
         error_code ec;
         response_type res;
-        ws.handshake(res, host, resource, ec);
+        ws.handshake(res, host, target, ec);
         if(ec)
         {
             // An error occurred.
@@ -1727,7 +1727,7 @@ public:
     void
     handshake(response_type& res,
         boost::string_ref const& host,
-            boost::string_ref const& resource,
+            boost::string_ref const& target,
                 error_code& ec);
 
     /** Send an HTTP WebSocket Upgrade request and receive the response.
@@ -1751,7 +1751,7 @@ public:
         @param host The name of the remote host,
         required by the HTTP protocol.
 
-        @param resource The requesting URI, which may not be empty,
+        @param target The Request Target, which may not be empty,
         required by the HTTP protocol.
 
         @param decorator A function object which will be called to modify
@@ -1785,7 +1785,7 @@ public:
     template<class RequestDecorator>
     void
     handshake_ex(boost::string_ref const& host,
-        boost::string_ref const& resource,
+        boost::string_ref const& target,
             RequestDecorator const& decorator,
                 error_code& ec);
 
@@ -1813,7 +1813,7 @@ public:
         @param host The name of the remote host,
         required by the HTTP protocol.
 
-        @param resource The requesting URI, which may not be empty,
+        @param target The Request Target, which may not be empty,
         required by the HTTP protocol.
 
         @param decorator A function object which will be called to modify
@@ -1849,7 +1849,7 @@ public:
     void
     handshake_ex(response_type& res,
         boost::string_ref const& host,
-            boost::string_ref const& resource,
+            boost::string_ref const& target,
                 RequestDecorator const& decorator,
                     error_code& ec);
 
@@ -1879,9 +1879,9 @@ public:
         @param host The name of the remote host, required by
         the HTTP protocol. Copies may be made as needed.
 
-        @param resource The requesting URI, which may not be empty,
-        required by the HTTP protocol. Copies may be made as
-        needed.
+        @param target The Request Target, which may not be empty,
+        required by the HTTP protocol. Copies of this parameter may
+        be made as needed.
 
         @param handler The handler to be called when the request completes.
         Copies will be made of the handler as required. The equivalent
@@ -1902,7 +1902,7 @@ public:
         void(error_code)>::result_type
 #endif
     async_handshake(boost::string_ref const& host,
-        boost::string_ref const& resource,
+        boost::string_ref const& target,
             HandshakeHandler&& handler);
 
     /** Start an asynchronous operation to send an upgrade request and receive the response.
@@ -1935,9 +1935,9 @@ public:
         @param host The name of the remote host, required by
         the HTTP protocol. Copies may be made as needed.
 
-        @param resource The requesting URI, which may not be empty,
-        required by the HTTP protocol. Copies may be made as
-        needed.
+        @param target The Request Target, which may not be empty,
+        required by the HTTP protocol. Copies of this parameter may
+        be made as needed.
 
         @param handler The handler to be called when the request completes.
         Copies will be made of the handler as required. The equivalent
@@ -1959,7 +1959,7 @@ public:
 #endif
     async_handshake(response_type& res,
         boost::string_ref const& host,
-            boost::string_ref const& resource,
+            boost::string_ref const& target,
                 HandshakeHandler&& handler);
 
     /** Start an asynchronous operation to send an upgrade request and receive the response.
@@ -1988,9 +1988,9 @@ public:
         @param host The name of the remote host, required by
         the HTTP protocol. Copies may be made as needed.
 
-        @param resource The requesting URI, which may not be empty,
-        required by the HTTP protocol. Copies may be made as
-        needed.
+        @param target The Request Target, which may not be empty,
+        required by the HTTP protocol. Copies of this parameter may
+        be made as needed.
 
         @param decorator A function object which will be called to modify
         the HTTP request object generated by the implementation. This
@@ -2020,7 +2020,7 @@ public:
         void(error_code)>::result_type
 #endif
     async_handshake_ex(boost::string_ref const& host,
-        boost::string_ref const& resource,
+        boost::string_ref const& target,
             RequestDecorator const& decorator,
                 HandshakeHandler&& handler);
 
@@ -2054,9 +2054,9 @@ public:
         @param host The name of the remote host, required by
         the HTTP protocol. Copies may be made as needed.
 
-        @param resource The requesting URI, which may not be empty,
-        required by the HTTP protocol. Copies may be made as
-        needed.
+        @param target The Request Target, which may not be empty,
+        required by the HTTP protocol. Copies of this parameter may
+        be made as needed.
 
         @param decorator A function object which will be called to modify
         the HTTP request object generated by the implementation. This
@@ -2087,7 +2087,7 @@ public:
 #endif
     async_handshake_ex(response_type& res,
         boost::string_ref const& host,
-            boost::string_ref const& resource,
+            boost::string_ref const& target,
                 RequestDecorator const& decorator,
                     HandshakeHandler&& handler);
 
@@ -2969,7 +2969,7 @@ private:
     void
     do_handshake(response_type* res_p,
         boost::string_ref const& host,
-            boost::string_ref const& resource,
+            boost::string_ref const& target,
                 RequestDecorator const& decorator,
                     error_code& ec);
 
@@ -2977,7 +2977,7 @@ private:
     request_type
     build_request(detail::sec_ws_key_type& key,
         boost::string_ref const& host,
-            boost::string_ref const& resource,
+            boost::string_ref const& target,
                 Decorator const& decorator);
 
     template<class Decorator>

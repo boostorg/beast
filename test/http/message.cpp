@@ -70,7 +70,8 @@ public:
         };
     };
 
-    void testMessage()
+    void
+    testMessage()
     {
         static_assert(std::is_constructible<
             message<true, default_body, fields>>::value, "");
@@ -130,42 +131,43 @@ public:
         // swap
         message<true, string_body, fields> m1;
         message<true, string_body, fields> m2;
-        m1.url = "u";
+        m1.target("u");
         m1.body = "1";
         m1.fields.insert("h", "v");
-        m2.method = "G";
+        m2.method("G");
         m2.body = "2";
         swap(m1, m2);
-        BEAST_EXPECT(m1.method == "G");
-        BEAST_EXPECT(m2.method.empty());
-        BEAST_EXPECT(m1.url.empty());
-        BEAST_EXPECT(m2.url == "u");
+        BEAST_EXPECT(m1.method() == "G");
+        BEAST_EXPECT(m2.method().empty());
+        BEAST_EXPECT(m1.target().empty());
+        BEAST_EXPECT(m2.target() == "u");
         BEAST_EXPECT(m1.body == "2");
         BEAST_EXPECT(m2.body == "1");
         BEAST_EXPECT(! m1.fields.exists("h"));
         BEAST_EXPECT(m2.fields.exists("h"));
     }
 
-    struct MoveHeaders
+    struct MoveFields : fields
     {
         bool moved_to = false;
         bool moved_from = false;
 
-        MoveHeaders() = default;
+        MoveFields() = default;
 
-        MoveHeaders(MoveHeaders&& other)
+        MoveFields(MoveFields&& other)
             : moved_to(true)
         {
             other.moved_from = true;
         }
 
-        MoveHeaders& operator=(MoveHeaders&& other)
+        MoveFields& operator=(MoveFields&& other)
         {
             return *this;
         }
     };
 
-    void testHeaders()
+    void
+    testHeaders()
     {
         {
             using req_type = request_header;
@@ -182,22 +184,23 @@ public:
         }
 
         {
-            MoveHeaders h;
-            header<true, MoveHeaders> r{std::move(h)};
+            MoveFields h;
+            header<true, MoveFields> r{std::move(h)};
             BEAST_EXPECT(h.moved_from);
             BEAST_EXPECT(r.fields.moved_to);
-            request<string_body, MoveHeaders> m{std::move(r)};
+            request<string_body, MoveFields> m{std::move(r)};
             BEAST_EXPECT(r.fields.moved_from);
             BEAST_EXPECT(m.fields.moved_to);
         }
     }
 
-    void testFreeFunctions()
+    void
+    testFreeFunctions()
     {
         {
             request<string_body> m;
-            m.method = "GET";
-            m.url = "/";
+            m.method("GET");
+            m.target("/");
             m.version = 11;
             m.fields.insert("Upgrade", "test");
             BEAST_EXPECT(! is_upgrade(m));
@@ -211,7 +214,8 @@ public:
         }
     }
 
-    void testPrepare()
+    void
+    testPrepare()
     {
         request<string_body> m;
         m.version = 10;
@@ -253,7 +257,8 @@ public:
         BEAST_EXPECT(! is_keep_alive(m));
     }
 
-    void testSwap()
+    void
+    testSwap()
     {
         message<false, string_body, fields> m1;
         message<false, string_body, fields> m2;
@@ -262,14 +267,14 @@ public:
         m1.body = "1";
         m1.fields.insert("h", "v");
         m2.status = 404;
-        m2.reason = "OK";
+        m2.reason("OK");
         m2.body = "2";
         m2.version = 11;
         swap(m1, m2);
         BEAST_EXPECT(m1.status == 404);
         BEAST_EXPECT(m2.status == 200);
-        BEAST_EXPECT(m1.reason == "OK");
-        BEAST_EXPECT(m2.reason.empty());
+        BEAST_EXPECT(m1.reason() == "OK");
+        BEAST_EXPECT(m2.reason().empty());
         BEAST_EXPECT(m1.version == 11);
         BEAST_EXPECT(m2.version == 10);
         BEAST_EXPECT(m1.body == "2");
@@ -291,7 +296,8 @@ public:
         }();
     }
 
-    void run() override
+    void
+    run() override
     {
         testMessage();
         testHeaders();

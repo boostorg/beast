@@ -11,6 +11,7 @@
 #include <beast/config.hpp>
 #include <beast/http/fields.hpp>
 #include <beast/core/detail/integer_sequence.hpp>
+#include <boost/utility/string_ref.hpp>
 #include <memory>
 #include <string>
 #include <tuple>
@@ -65,17 +66,53 @@ struct header<true, Fields>
     */
     int version;
 
-    /** The Request Method
+    /** Return the Request Method
 
-        @note This field is present only if `isRequest == true`.
+        @note This function is only available if `isRequest == true`.
     */
-    std::string method;
+    auto
+    method() const ->
+        decltype(std::declval<Fields>().method()) const
+    {
+        return fields.method();
+    }
 
-    /** The Request URI
+    /** Set the Request Method
 
-        @note This field is present only if `isRequest == true`.
+        @param value A value that represents the request method.
+
+        @note This function is only available if `isRequest == true`.
     */
-    std::string url;
+    template<class Value>
+    void
+    method(Value&& value)
+    {
+        fields.method(std::forward<Value>(value));
+    }
+
+    /** Return the Request Target
+
+        @note This function is only available if `isRequest == true`.
+    */
+    auto
+    target() const ->
+        decltype(std::declval<Fields>().target()) const
+    {
+        return fields.target();
+    }
+
+    /** Set the Request Target
+
+        @param value A value that represents the request method.
+
+        @note This function is only available if `isRequest == true`.
+    */
+    template<class Value>
+    void
+    target(Value&& value)
+    {
+        fields.target(std::forward<Value>(value));
+    }
 
     /// The HTTP field values.
     fields_type fields;
@@ -197,17 +234,36 @@ struct header<false, Fields>
 
     /** The Response Status-Code.
 
-        @note This field is present only if `isRequest == false`.
+        @note This member is only available if `isRequest == false`.
     */
     int status;
 
-    /** The Response Reason-Phrase.
+    /** Return the Reason-Phrase.
 
         The Reason-Phrase is obsolete as of rfc7230.
 
-        @note This field is present only if `isRequest == false`.
+        @note This function is only available if `isRequest == false`.
     */
-    std::string reason;
+    auto
+    reason() const ->
+        decltype(std::declval<Fields>().method()) const
+    {
+        return fields.reason();
+    }
+
+    /** Set the Reason-Phrase
+
+        @param value A value that represents the reason phrase.
+
+        @note This function is only available if `isRequest == false`.
+    */
+    template<class Value>
+    void
+    reason(Value&& value)
+    {
+        fields.reason(std::forward<Value>(value));
+    }
+    
 };
 
 /** A container for a complete HTTP message.

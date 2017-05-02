@@ -285,7 +285,7 @@ protected:
 
     static
     boost::string_ref
-    parse_path(char const*& it)
+    parse_target(char const*& it)
     {
         auto const first = it;
         while(is_pathchar(*it))

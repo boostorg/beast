@@ -146,8 +146,8 @@ public:
         {
             header<true, fields> m;
             m.version = 11;
-            m.method = "GET";
-            m.url = "/";
+            m.method("GET");
+            m.target("/");
             m.fields.insert("User-Agent", "test");
             error_code ec;
             test::string_ostream ss{ios_};
@@ -162,7 +162,7 @@ public:
             header<false, fields> m;
             m.version = 10;
             m.status = 200;
-            m.reason = "OK";
+            m.reason("OK");
             m.fields.insert("Server", "test");
             m.fields.insert("Content-Length", "5");
             error_code ec;
@@ -184,7 +184,7 @@ public:
             message<false, string_body, fields> m;
             m.version = 10;
             m.status = 200;
-            m.reason = "OK";
+            m.reason("OK");
             m.fields.insert("Server", "test");
             m.fields.insert("Content-Length", "5");
             m.body = "*****";
@@ -203,7 +203,7 @@ public:
             message<false, string_body, fields> m;
             m.version = 11;
             m.status = 200;
-            m.reason = "OK";
+            m.reason("OK");
             m.fields.insert("Server", "test");
             m.fields.insert("Transfer-Encoding", "chunked");
             m.body = "*****";
@@ -236,8 +236,8 @@ public:
             message<true, fail_body, fields> m(
                 std::piecewise_construct,
                     std::forward_as_tuple(fc, ios_));
-            m.method = "GET";
-            m.url = "/";
+            m.method("GET");
+            m.target("/");
             m.version = 10;
             m.fields.insert("User-Agent", "test");
             m.fields.insert("Content-Length", "5");
@@ -269,8 +269,8 @@ public:
             message<true, fail_body, fields> m(
                 std::piecewise_construct,
                     std::forward_as_tuple(fc, ios_));
-            m.method = "GET";
-            m.url = "/";
+            m.method("GET");
+            m.target("/");
             m.version = 10;
             m.fields.insert("User-Agent", "test");
             m.fields.insert("Transfer-Encoding", "chunked");
@@ -304,8 +304,8 @@ public:
             message<true, fail_body, fields> m(
                 std::piecewise_construct,
                     std::forward_as_tuple(fc, ios_));
-            m.method = "GET";
-            m.url = "/";
+            m.method("GET");
+            m.target("/");
             m.version = 10;
             m.fields.insert("User-Agent", "test");
             m.fields.insert("Transfer-Encoding", "chunked");
@@ -339,8 +339,8 @@ public:
             message<true, fail_body, fields> m(
                 std::piecewise_construct,
                     std::forward_as_tuple(fc, ios_));
-            m.method = "GET";
-            m.url = "/";
+            m.method("GET");
+            m.target("/");
             m.version = 10;
             m.fields.insert("User-Agent", "test");
             m.fields.insert("Content-Length", "5");
@@ -369,8 +369,8 @@ public:
             message<true, fail_body, fields> m(
                 std::piecewise_construct,
                     std::forward_as_tuple(fc, ios_));
-            m.method = "GET";
-            m.url = "/";
+            m.method("GET");
+            m.target("/");
             m.version = 10;
             m.fields.insert("User-Agent", "test");
             m.fields.insert("Content-Length", "5");
@@ -398,8 +398,8 @@ public:
         // auto content-length HTTP/1.0
         {
             message<true, string_body, fields> m;
-            m.method = "GET";
-            m.url = "/";
+            m.method("GET");
+            m.target("/");
             m.version = 10;
             m.fields.insert("User-Agent", "test");
             m.body = "*";
@@ -415,8 +415,8 @@ public:
         // keep-alive HTTP/1.0
         {
             message<true, string_body, fields> m;
-            m.method = "GET";
-            m.url = "/";
+            m.method("GET");
+            m.target("/");
             m.version = 10;
             m.fields.insert("User-Agent", "test");
             m.body = "*";
@@ -433,8 +433,8 @@ public:
         // upgrade HTTP/1.0
         {
             message<true, string_body, fields> m;
-            m.method = "GET";
-            m.url = "/";
+            m.method("GET");
+            m.target("/");
             m.version = 10;
             m.fields.insert("User-Agent", "test");
             m.body = "*";
@@ -451,8 +451,8 @@ public:
         // no content-length HTTP/1.0
         {
             message<true, unsized_body, fields> m;
-            m.method = "GET";
-            m.url = "/";
+            m.method("GET");
+            m.target("/");
             m.version = 10;
             m.fields.insert("User-Agent", "test");
             m.body = "*";
@@ -471,8 +471,8 @@ public:
         // auto content-length HTTP/1.1
         {
             message<true, string_body, fields> m;
-            m.method = "GET";
-            m.url = "/";
+            m.method("GET");
+            m.target("/");
             m.version = 11;
             m.fields.insert("User-Agent", "test");
             m.body = "*";
@@ -488,8 +488,8 @@ public:
         // close HTTP/1.1
         {
             message<true, string_body, fields> m;
-            m.method = "GET";
-            m.url = "/";
+            m.method("GET");
+            m.target("/");
             m.version = 11;
             m.fields.insert("User-Agent", "test");
             m.body = "*";
@@ -510,8 +510,8 @@ public:
         // upgrade HTTP/1.1
         {
             message<true, string_body, fields> m;
-            m.method = "GET";
-            m.url = "/";
+            m.method("GET");
+            m.target("/");
             m.version = 11;
             m.fields.insert("User-Agent", "test");
             prepare(m, connection::upgrade);
@@ -525,8 +525,8 @@ public:
         // no content-length HTTP/1.1
         {
             message<true, unsized_body, fields> m;
-            m.method = "GET";
-            m.url = "/";
+            m.method("GET");
+            m.target("/");
             m.version = 11;
             m.fields.insert("User-Agent", "test");
             m.body = "*";
@@ -550,8 +550,8 @@ public:
     {
         // Conversion to std::string via operator<<
         message<true, string_body, fields> m;
-        m.method = "GET";
-        m.url = "/";
+        m.method("GET");
+        m.target("/");
         m.version = 11;
         m.fields.insert("User-Agent", "test");
         m.body = "*";
@@ -590,8 +590,8 @@ public:
     void testOstream()
     {
         message<true, string_body, fields> m;
-        m.method = "GET";
-        m.url = "/";
+        m.method("GET");
+        m.target("/");
         m.version = 11;
         m.fields.insert("User-Agent", "test");
         m.body = "*";
@@ -631,9 +631,9 @@ public:
             test::string_ostream os{ios};
             BEAST_EXPECT(handler::count() == 0);
             message<true, string_body, fields> m;
-            m.method = "GET";
+            m.method("GET");
             m.version = 11;
-            m.url = "/";
+            m.target("/");
             m.fields.insert("Content-Length", 5);
             m.body = "*****";
             async_write(os, m, handler{});
@@ -653,9 +653,9 @@ public:
                 test::string_ostream is{ios};
                 BEAST_EXPECT(handler::count() == 0);
                 message<true, string_body, fields> m;
-                m.method = "GET";
+                m.method("GET");
                 m.version = 11;
-                m.url = "/";
+                m.target("/");
                 m.fields.insert("Content-Length", 5);
                 m.body = "*****";
                 async_write(is, m, handler{});

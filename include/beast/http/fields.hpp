@@ -12,6 +12,7 @@
 #include <beast/core/detail/empty_base_optimization.hpp>
 #include <beast/http/detail/fields.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/utility/string_ref.hpp>
 #include <algorithm>
 #include <cctype>
 #include <memory>
@@ -296,6 +297,46 @@ public:
     {
         replace(name,
             boost::lexical_cast<std::string>(value));
+    }
+
+#if BEAST_DOXYGEN
+private:
+#endif
+
+    boost::string_ref
+    method() const
+    {
+        return (*this)[":method"];
+    }
+
+    void
+    method(boost::string_ref const& s)
+    {
+        return this->replace(":method", s);
+    }
+
+    boost::string_ref
+    target() const
+    {
+        return (*this)[":target"];
+    }
+
+    void
+    target(boost::string_ref const& s)
+    {
+        return this->replace(":target", s);
+    }
+
+    boost::string_ref
+    reason() const
+    {
+        return (*this)[":reason"];
+    }
+
+    void
+    reason(boost::string_ref const& s)
+    {
+        return this->replace(":reason", s);
     }
 };
 

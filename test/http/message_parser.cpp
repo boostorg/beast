@@ -130,8 +130,8 @@ public:
             auto const& m = p.get();
             BEAST_EXPECTS(! ec, ec.message());
             BEAST_EXPECT(p.is_complete());
-            BEAST_EXPECT(m.method == "GET");
-            BEAST_EXPECT(m.url == "/");
+            BEAST_EXPECT(m.method() == "GET");
+            BEAST_EXPECT(m.target() == "/");
             BEAST_EXPECT(m.version == 11);
             BEAST_EXPECT(m.fields["User-Agent"] == "test");
             BEAST_EXPECT(m.body == "*");
@@ -182,7 +182,7 @@ public:
             BEAST_EXPECTS(! ec, ec.message());
             BEAST_EXPECT(p.is_complete());
             BEAST_EXPECT(m.status == 200);
-            BEAST_EXPECT(m.reason == "OK");
+            BEAST_EXPECT(m.reason() == "OK");
             BEAST_EXPECT(m.version == 11);
             BEAST_EXPECT(m.fields["Server"] == "test");
             BEAST_EXPECT(m.body == "*");
