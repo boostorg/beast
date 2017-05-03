@@ -3,6 +3,7 @@
 WebSocket:
 
 * Add websocket async echo ssl server test:
+* Fix eof error on ssl::stream shutdown
 
 API Changes:
 
