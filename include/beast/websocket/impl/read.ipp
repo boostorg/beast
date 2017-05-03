@@ -170,6 +170,12 @@ operator()(error_code ec,
     };
 
     auto& d = *d_;
+    if(d.state == do_teardown + 1 && ec == boost::asio::error::eof)
+    {
+        // Rationale:
+        // http://stackoverflow.com/questions/25587403/boost-asio-ssl-async-shutdown-always-finishes-with-an-error
+        ec = {};
+    }
     if(! ec)
     {
         d.cont = d.cont || again;
@@ -952,6 +958,12 @@ do_close:
                 return;
         }
         websocket_helpers::call_teardown(next_layer(), ec);
+        if(ec == boost::asio::error::eof)
+        {
+            // Rationale:
+            // http://stackoverflow.com/questions/25587403/boost-asio-ssl-async-shutdown-always-finishes-with-an-error
+            ec = {};
+        }
         failed_ = ec != 0;
         if(failed_)
             return;
@@ -960,7 +972,14 @@ do_close:
         return;
     }
     if(! ec)
+    {
         websocket_helpers::call_teardown(next_layer(), ec);
+        if(ec == boost::asio::error::eof)
+        {
+            // (See above)
+            ec = {};
+        }
+    }
     if(! ec)
         ec = error::closed;
     failed_ = ec != 0;
