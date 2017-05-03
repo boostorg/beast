@@ -273,13 +273,6 @@ public:
         BEAST_EXPECT(test::buffer_count(sb.data()) == 4);
     }
 
-    void testOutputStream()
-    {
-        streambuf sb;
-        sb << "x";
-        BEAST_EXPECT(to_string(sb.data()) == "x");
-    }
-
     void testCapacity()
     {
         using boost::asio::buffer_size;
@@ -353,7 +346,6 @@ public:
         testConsume();
         testMatrix();
         testIterators();
-        testOutputStream();
         testCapacity();
     }
 };

@@ -8,6 +8,7 @@ WebSocket:
 API Changes:
 
 * Refactor http::header contents
+* New ostream() returns dynamic buffer output stream
 
 --------------------------------------------------------------------------------
 

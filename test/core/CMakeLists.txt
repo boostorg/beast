@@ -22,6 +22,7 @@ add_executable (core-tests
     handler_alloc.cpp
     handler_concepts.cpp
     handler_ptr.cpp
+    ostream.cpp
     placeholders.cpp
     prepare_buffer.cpp
     prepare_buffers.cpp
@@ -30,7 +31,6 @@ add_executable (core-tests
     stream_concepts.cpp
     streambuf.cpp
     to_string.cpp
-    write_dynabuf.cpp
     base64.cpp
     empty_base_optimization.cpp
     get_lowest_layer.cpp

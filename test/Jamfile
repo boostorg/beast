@@ -29,6 +29,7 @@ unit-test core-tests :
     core/handler_alloc.cpp
     core/handler_concepts.cpp
     core/handler_ptr.cpp
+    core/ostream.cpp
     core/placeholders.cpp
     core/prepare_buffer.cpp
     core/prepare_buffers.cpp
@@ -37,7 +38,6 @@ unit-test core-tests :
     core/stream_concepts.cpp
     core/streambuf.cpp
     core/to_string.cpp
-    core/write_dynabuf.cpp
     core/base64.cpp
     core/empty_base_optimization.cpp
     core/get_lowest_layer.cpp

@@ -326,18 +326,6 @@ private:
 */
 using streambuf = basic_streambuf<std::allocator<char>>;
 
-/** Format output to a @ref basic_streambuf.
-
-    @param streambuf The @ref basic_streambuf to write to.
-
-    @param t The object to write.
-
-    @return A reference to the @ref basic_streambuf.
-*/
-template<class Allocator, class T>
-basic_streambuf<Allocator>&
-operator<<(basic_streambuf<Allocator>& streambuf, T const& t);
-
 } // beast
 
 #include <beast/core/impl/streambuf.ipp>
