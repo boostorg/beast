@@ -9,7 +9,6 @@
 #define BEAST_IMPL_STREAMBUF_IPP
 
 #include <beast/core/detail/type_traits.hpp>
-#include <beast/core/detail/write_dynabuf.hpp>
 #include <boost/assert.hpp>
 #include <algorithm>
 #include <exception>
@@ -869,14 +868,6 @@ read_size_helper(basic_streambuf<
         return (std::min)(max_size, streambuf.alloc_size_);
     // ...but enforce a 512 byte minimum.
     return (std::min)(max_size, low);
-}
-
-template<class Alloc, class T>
-basic_streambuf<Alloc>&
-operator<<(basic_streambuf<Alloc>& streambuf, T const& t)
-{
-    detail::write_dynabuf(streambuf, t);
-    return streambuf;
 }
 
 } // beast

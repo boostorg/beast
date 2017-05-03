@@ -13,11 +13,11 @@
 #include <beast/core/buffer_cat.hpp>
 #include <beast/core/bind_handler.hpp>
 #include <beast/core/buffer_concepts.hpp>
+#include <beast/core/ostream.hpp>
 #include <beast/core/handler_helpers.hpp>
 #include <beast/core/handler_ptr.hpp>
 #include <beast/core/stream_concepts.hpp>
 #include <beast/core/streambuf.hpp>
-#include <beast/core/write_dynabuf.hpp>
 #include <beast/core/detail/sync_ostream.hpp>
 #include <boost/asio/write.hpp>
 #include <condition_variable>
@@ -31,53 +31,39 @@ namespace http {
 
 namespace detail {
 
-template<class DynamicBuffer, class Fields>
+template<class Fields>
 void
-write_start_line(DynamicBuffer& dynabuf,
+write_start_line(std::ostream& os,
     header<true, Fields> const& msg)
 {
     BOOST_ASSERT(msg.version == 10 || msg.version == 11);
-    write(dynabuf, msg.method());
-    write(dynabuf, " ");
-    write(dynabuf, msg.target());
+    os << msg.method() << " " << msg.target();
     switch(msg.version)
     {
-    case 10:
-        write(dynabuf, " HTTP/1.0\r\n");
-        break;
-    case 11:
-        write(dynabuf, " HTTP/1.1\r\n");
-        break;
+    case 10: os << " HTTP/1.0\r\n"; break;
+    case 11: os << " HTTP/1.1\r\n"; break;
     }
 }
 
-template<class DynamicBuffer, class Fields>
+template<class Fields>
 void
-write_start_line(DynamicBuffer& dynabuf,
+write_start_line(std::ostream& os,
     header<false, Fields> const& msg)
 {
     BOOST_ASSERT(msg.version == 10 || msg.version == 11);
     switch(msg.version)
     {
-    case 10:
-        write(dynabuf, "HTTP/1.0 ");
-        break;
-    case 11:
-        write(dynabuf, "HTTP/1.1 ");
-        break;
+    case 10: os << "HTTP/1.0 "; break;
+    case 11: os << "HTTP/1.1 "; break;
     }
-    write(dynabuf, msg.status);
-    write(dynabuf, " ");
-    write(dynabuf, msg.reason());
-    write(dynabuf, "\r\n");
+    os << msg.status << " " << msg.reason() << "\r\n";
 }
 
-template<class DynamicBuffer, class FieldSequence>
+template<class FieldSequence>
 void
-write_fields(DynamicBuffer& dynabuf, FieldSequence const& fields)
+write_fields(std::ostream& os,
+    FieldSequence const& fields)
 {
-    static_assert(is_DynamicBuffer<DynamicBuffer>::value,
-        "DynamicBuffer requirements not met");
     //static_assert(is_FieldSequence<FieldSequence>::value,
     //    "FieldSequence requirements not met");
     for(auto const& field : fields)
@@ -86,10 +72,7 @@ write_fields(DynamicBuffer& dynabuf, FieldSequence const& fields)
         BOOST_ASSERT(! name.empty());
         if(name[0] == ':')
             continue;
-        write(dynabuf, field.name());
-        write(dynabuf, ": ");
-        write(dynabuf, field.value());
-        write(dynabuf, "\r\n");
+        os << field.name() << ": " << field.value() << "\r\n";
     }
 }
 
@@ -218,9 +201,12 @@ write(SyncWriteStream& stream,
     static_assert(is_SyncWriteStream<SyncWriteStream>::value,
         "SyncWriteStream requirements not met");
     streambuf sb;
-    detail::write_start_line(sb, msg);
-    detail::write_fields(sb, msg.fields);
-    beast::write(sb, "\r\n");
+    {
+        auto os = ostream(sb);
+        detail::write_start_line(os, msg);
+        detail::write_fields(os, msg.fields);
+        os << "\r\n";
+    }
     boost::asio::write(stream, sb.data(), ec);
 }
 
@@ -238,9 +224,12 @@ async_write(AsyncWriteStream& stream,
     beast::async_completion<WriteHandler,
         void(error_code)> completion{handler};
     streambuf sb;
-    detail::write_start_line(sb, msg);
-    detail::write_fields(sb, msg.fields);
-    beast::write(sb, "\r\n");
+    {
+        auto os = ostream(sb);
+        detail::write_start_line(os, msg);
+        detail::write_fields(os, msg.fields);
+        os << "\r\n";
+    }
     detail::write_streambuf_op<AsyncWriteStream,
         decltype(completion.handler)>{
             completion.handler, stream, std::move(sb)};
@@ -281,9 +270,10 @@ struct write_preparation
         if(ec)
             return;
 
-        write_start_line(sb, msg);
-        write_fields(sb, msg.fields);
-        beast::write(sb, "\r\n");
+        auto os = ostream(sb);
+        write_start_line(os, msg);
+        write_fields(os, msg.fields);
+        os << "\r\n";
     }
 };
 
