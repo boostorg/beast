@@ -1,0 +1,308 @@
+//
+// Copyright (c) 2013-2017 Vinnie Falco (vinnie dot falco at gmail dot com)
+//
+// Distributed under the Boost Software License, Version 1.0. (See accompanying
+// file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+//
+
+#ifndef WEBSOCKET_ASYNC_SSL_ECHO_SERVER_HPP
+#define WEBSOCKET_ASYNC_SSL_ECHO_SERVER_HPP
+
+#include <beast/core/placeholders.hpp>
+#include <beast/core/streambuf.hpp>
+#include <beast/websocket/ssl.hpp>
+#include <beast/websocket/stream.hpp>
+#include <boost/asio/ssl.hpp>
+#include <boost/lexical_cast.hpp>
+#include <boost/optional.hpp>
+#include <atomic>
+#include <functional>
+#include <memory>
+#include <mutex>
+#include <ostream>
+#include <string>
+#include <thread>
+#include <type_traits>
+#include <typeindex>
+#include <unordered_map>
+#include <utility>
+
+namespace websocket {
+
+/** Asynchronous WebSocket echo client/server
+*/
+class async_ssl_echo_server
+{
+public:
+    using error_code = beast::error_code;
+    using address_type = boost::asio::ip::address;
+    using socket_type = boost::asio::ip::tcp::socket;
+    using endpoint_type = boost::asio::ip::tcp::endpoint;
+
+private:
+    std::ostream* log_;
+    boost::asio::io_service ios_;
+    socket_type sock_;
+    endpoint_type ep_;
+    boost::asio::ip::tcp::acceptor acceptor_;
+    std::vector<std::thread> thread_;
+    boost::optional<boost::asio::io_service::work> work_;
+    boost::asio::ssl::context ctx_;
+
+public:
+    async_ssl_echo_server(async_ssl_echo_server const&) = delete;
+    async_ssl_echo_server& operator=(async_ssl_echo_server const&) = delete;
+
+    /** Constructor.
+
+        @param log A pointer to a stream to log to, or `nullptr`
+        to disable logging.
+
+        @param threads The number of threads in the io_service.
+    */
+    async_ssl_echo_server(std::ostream* log,
+            std::size_t threads, std::string const& cert,
+                std::string const& key, std::string const& tmp_dh)
+        : log_(log)
+        , sock_(ios_)
+        , acceptor_(ios_)
+        , work_(ios_)
+        , ctx_(boost::asio::ssl::context::sslv23)
+
+    {
+        ctx_.set_password_callback(
+            [](std::size_t size,
+                boost::asio::ssl::context_base::password_purpose)
+            {
+                return "test";
+            });
+
+        ctx_.set_options(
+            boost::asio::ssl::context::default_workarounds |
+            boost::asio::ssl::context::no_sslv2 |
+            boost::asio::ssl::context::single_dh_use);
+
+        ctx_.use_certificate_chain(
+            boost::asio::buffer(cert.data(), cert.size()));
+
+        ctx_.use_private_key(
+            boost::asio::buffer(key.data(), key.size()),
+            boost::asio::ssl::context::file_format::pem);
+
+        ctx_.use_tmp_dh(
+            boost::asio::buffer(tmp_dh.data(), tmp_dh.size()));
+
+        thread_.reserve(threads);
+        for(std::size_t i = 0; i < threads; ++i)
+            thread_.emplace_back(
+                [&]{ ios_.run(); });
+    }
+
+    /** Destructor.
+    */
+    ~async_ssl_echo_server()
+    {
+        work_ = boost::none;
+        error_code ec;
+        ios_.dispatch(
+            [&]{ acceptor_.close(ec); });
+        for(auto& t : thread_)
+            t.join();
+    }
+
+    /** Return the listening endpoint.
+    */
+    endpoint_type
+    local_endpoint() const
+    {
+        return acceptor_.local_endpoint();
+    }
+
+    /** Open a listening port.
+
+        @param ep The address and port to bind to.
+
+        @param ec Set to the error, if any occurred.
+    */
+    void
+    open(endpoint_type const& ep, error_code& ec)
+    {
+        acceptor_.open(ep.protocol(), ec);
+        if(ec)
+            return fail("open", ec);
+        acceptor_.set_option(
+            boost::asio::socket_base::reuse_address{true});
+        acceptor_.bind(ep, ec);
+        if(ec)
+            return fail("bind", ec);
+        acceptor_.listen(
+            boost::asio::socket_base::max_connections, ec);
+        if(ec)
+            return fail("listen", ec);
+        acceptor_.async_accept(sock_, ep_,
+            std::bind(&async_ssl_echo_server::on_accept, this,
+                beast::asio::placeholders::error));
+    }
+
+private:
+    class connection
+    {
+        struct data
+        {
+            async_ssl_echo_server& server;
+            endpoint_type ep;
+            int state = 0;
+            beast::websocket::stream<
+                boost::asio::ssl::stream<socket_type>> ws;
+            boost::asio::io_service::strand strand;
+            beast::websocket::opcode op;
+            beast::streambuf db;
+            std::size_t id;
+
+            data(async_ssl_echo_server& server_,
+                endpoint_type const& ep_,
+                    socket_type&& sock_)
+                : server(server_)
+                , ep(ep_)
+                , ws(sock_.get_io_service(), server_.ctx_)
+                , strand(ws.get_io_service())
+                , id([]
+                    {
+                        static std::atomic<std::size_t> n{0};
+                        return ++n;
+                    }())
+            {
+                // VFALCO This hack works around
+                //        ssl::stream broken ctors
+                ws.next_layer().next_layer() = std::move(sock_);
+            }
+        };
+
+        // VFALCO This could be unique_ptr in [Net.TS]
+        std::shared_ptr<data> d_;
+
+    public:
+        connection(connection&&) = default;
+        connection(connection const&) = default;
+        connection& operator=(connection&&) = delete;
+        connection& operator=(connection const&) = delete;
+
+        template<class... Args>
+        explicit
+        connection(async_ssl_echo_server& server,
+            endpoint_type const& ep, socket_type&& sock,
+                Args&&... args)
+            : d_(std::make_shared<data>(server, ep,
+                std::forward<socket_type>(sock),
+                    std::forward<Args>(args)...))
+        {
+        }
+
+        void
+        run()
+        {
+            (*this)(error_code{});
+        }
+
+        void
+        operator()(error_code ec)
+        {
+            auto& d = *d_;
+            switch(d.state)
+            {
+            // SSL handshake
+            case 0:
+                d.state = 1;
+                d.ws.next_layer().async_handshake(
+                    boost::asio::ssl::stream_base::server,
+                        d.strand.wrap(std::move(*this)));
+                return;
+
+            // WebSocket handshake
+            case 1:
+                if(ec)
+                    return fail("async_handshake", ec);
+                d.state = 2;
+                d.ws.async_accept_ex(
+                    [](beast::websocket::response_type& res)
+                    {
+                        res.fields.insert(
+                            "Server", "async_ssl_echo_server");
+                    },
+                    d.strand.wrap(std::move(*this)));
+                return;
+
+            case 2:
+                if(ec)
+                    return fail("async_handshake", ec);
+                // [[fallthrough]]
+
+            // WebSocket read
+            case 3:
+                if(ec)
+                    return fail("async_write", ec);
+                d.db.consume(d.db.size());
+                d.state = 4;
+                d.ws.async_read(d.op, d.db,
+                    d.strand.wrap(std::move(*this)));
+                return;
+
+            // WebSocket write
+            case 4:
+                if(ec == beast::websocket::error::closed)
+                    return;
+                if(ec)
+                    return fail("async_read", ec);
+                d.state = 3;
+                d.ws.set_option(
+                    beast::websocket::message_type(d.op));
+                d.ws.async_write(d.db.data(),
+                    d.strand.wrap(std::move(*this)));
+                return;
+            }
+        }
+
+    private:
+        void
+        fail(std::string what, error_code ec)
+        {
+            auto& d = *d_;
+            if(d.server.log_)
+                if(ec != beast::websocket::error::closed)
+                    d.server.fail("[#" + std::to_string(d.id) +
+                        " " + boost::lexical_cast<std::string>(d.ep) +
+                            "] " + what, ec);
+        }
+    };
+
+    void
+    fail(std::string what, error_code ec)
+    {
+        if(log_)
+        {
+            static std::mutex m;
+            std::lock_guard<std::mutex> lock{m};
+            (*log_) << what << ": " <<
+                ec.message() << std::endl;
+        }
+    }
+
+    void
+    on_accept(error_code ec)
+    {
+        if(! acceptor_.is_open())
+            return;
+        if(ec == boost::asio::error::operation_aborted)
+            return;
+        if(ec)
+            fail("accept", ec);
+        connection{*this, ep_, std::move(sock_)}.run();
+        acceptor_.async_accept(sock_, ep_,
+            std::bind(&async_ssl_echo_server::on_accept, this,
+                beast::asio::placeholders::error));
+    }
+};
+
+} // websocket
+
+#endif

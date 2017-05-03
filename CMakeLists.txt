@@ -176,6 +176,7 @@ if (NOT OPENSSL_FOUND)
     message("OpenSSL not found. Not building SSL tests and examples")
 else()
     add_subdirectory (examples/ssl)
+    add_subdirectory (test/websocket/ssl)
 endif()
 
 add_subdirectory (test)

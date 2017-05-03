@@ -1,5 +1,9 @@
 1.0.0-b39
 
+WebSocket:
+
+* Add websocket async echo ssl server test:
+
 API Changes:
 
 * Refactor http::header contents
