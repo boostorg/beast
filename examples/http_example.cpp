@@ -34,7 +34,7 @@ int main()
     beast::http::write(sock, req);
 
     // Receive and print HTTP response using beast
-    beast::multi_buffer b;
+    beast::flat_buffer b;
     beast::http::response<beast::http::dynamic_body> res;
     beast::http::read(sock, b, res);
     std::cout << res;

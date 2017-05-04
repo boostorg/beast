@@ -5,8 +5,8 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#ifndef BEAST_FLAT_STREAMBUF_HPP
-#define BEAST_FLAT_STREAMBUF_HPP
+#ifndef BEAST_FLAT_BUFFER_HPP
+#define BEAST_FLAT_BUFFER_HPP
 
 #include <beast/config.hpp>
 #include <beast/core/detail/empty_base_optimization.hpp>
@@ -34,7 +34,7 @@ namespace beast {
     is stored in a single contiguous buffer.
 */
 template<class Allocator>
-class basic_flat_streambuf
+class basic_flat_buffer
 #if ! BEAST_DOXYGEN
     : private detail::empty_base_optimization<
         typename std::allocator_traits<Allocator>::
@@ -58,7 +58,7 @@ private:
     };
 
     template<class OtherAlloc>
-    friend class basic_flat_streambuf;
+    friend class basic_flat_buffer;
 
     using alloc_traits =
         std::allocator_traits<allocator_type>;
@@ -86,11 +86,11 @@ public:
     using mutable_buffers_type = boost::asio::mutable_buffers_1;
 
     /// Copy assignment (disallowed).
-    basic_flat_streambuf&
-    operator=(basic_flat_streambuf const&) = delete;
+    basic_flat_buffer&
+    operator=(basic_flat_buffer const&) = delete;
 
     /// Destructor.
-    ~basic_flat_streambuf();
+    ~basic_flat_buffer();
 
     /** Move constructor.
 
@@ -101,7 +101,7 @@ public:
         have a capacity of zero, an empty input sequence,
         and an empty output sequence.
     */
-    basic_flat_streambuf(basic_flat_streambuf&&);
+    basic_flat_buffer(basic_flat_buffer&&);
 
     /** Move constructor.
 
@@ -115,7 +115,7 @@ public:
         @param alloc The allocator to associate with the
         stream buffer.
     */
-    basic_flat_streambuf(basic_flat_streambuf&&,
+    basic_flat_buffer(basic_flat_buffer&&,
         Allocator const& alloc);
     
     /** Copy constructor.
@@ -123,7 +123,7 @@ public:
         The new object will have a copy of the input sequence
         and an empty output sequence.
     */
-    basic_flat_streambuf(basic_flat_streambuf const&);
+    basic_flat_buffer(basic_flat_buffer const&);
 
     /** Copy constructor.
 
@@ -133,7 +133,7 @@ public:
         @param alloc The allocator to associate with the
         stream buffer.
     */
-    basic_flat_streambuf(basic_flat_streambuf const&,
+    basic_flat_buffer(basic_flat_buffer const&,
         Allocator const& alloc);
     
     /** Copy constructor.
@@ -142,8 +142,8 @@ public:
         and an empty output sequence.
     */
     template<class OtherAlloc>
-    basic_flat_streambuf(
-        basic_flat_streambuf<OtherAlloc> const&);
+    basic_flat_buffer(
+        basic_flat_buffer<OtherAlloc> const&);
 
     /** Copy constructor.
 
@@ -154,8 +154,8 @@ public:
         stream buffer.
     */
     template<class OtherAlloc>
-    basic_flat_streambuf(
-        basic_flat_streambuf<OtherAlloc> const&,
+    basic_flat_buffer(
+        basic_flat_buffer<OtherAlloc> const&,
             Allocator const& alloc);
 
     /** Construct a flat stream buffer.
@@ -169,7 +169,7 @@ public:
         possible value of `std::size_t` is used.
     */
     explicit
-    basic_flat_streambuf(std::size_t limit = (
+    basic_flat_buffer(std::size_t limit = (
         std::numeric_limits<std::size_t>::max)());
 
     /** Construct a flat stream buffer.
@@ -185,7 +185,7 @@ public:
         that can be allocated. If unspecified, the largest
         possible value of `std::size_t` is used.
     */
-    basic_flat_streambuf(Allocator const& alloc,
+    basic_flat_buffer(Allocator const& alloc,
         std::size_t limit = (
             std::numeric_limits<std::size_t>::max)());
 
@@ -287,24 +287,24 @@ public:
     template<class OtherAlloc>
     friend
     std::size_t
-    read_size_helper(basic_flat_streambuf<
+    read_size_helper(basic_flat_buffer<
         OtherAlloc> const&, std::size_t);
 
 private:
     void
-    move_from(basic_flat_streambuf& other);
+    move_from(basic_flat_buffer& other);
 
     template<class OtherAlloc>
     void
-    copy_from(basic_flat_streambuf<
+    copy_from(basic_flat_buffer<
         OtherAlloc> const& other);
 };
 
-using flat_streambuf =
-    basic_flat_streambuf<std::allocator<char>>;
+using flat_buffer =
+    basic_flat_buffer<std::allocator<char>>;
 
 } // beast
 
-#include <beast/core/impl/flat_streambuf.ipp>
+#include <beast/core/impl/flat_buffer.ipp>
 
 #endif

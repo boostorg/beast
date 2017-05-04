@@ -8,7 +8,7 @@
 // Test that header file is self-contained.
 #include <beast/http/header_parser.hpp>
 
-#include <beast/core/flat_streambuf.hpp>
+#include <beast/core/flat_buffer.hpp>
 #include <beast/http/read.hpp>
 #include <beast/unit_test/suite.hpp>
 #include <beast/test/string_istream.hpp>
@@ -31,7 +31,7 @@ public:
                 "User-Agent: test\r\n"
                 "\r\n"
             };
-            flat_streambuf db{1024};
+            flat_buffer db{1024};
             header_parser<true, fields> p;
             read_some(is, db, p);
             BEAST_EXPECT(p.is_complete());
@@ -44,7 +44,7 @@ public:
                 "\r\n"
                 "*"
             };
-            flat_streambuf db{1024};
+            flat_buffer db{1024};
             header_parser<true, fields> p;
             read_some(is, db, p);
             BEAST_EXPECT(! p.is_complete());
