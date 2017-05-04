@@ -11,7 +11,7 @@
 #include <beast/http.hpp>
 #include <beast/core/consuming_buffers.hpp>
 #include <beast/core/ostream.hpp>
-#include <beast/core/streambuf.hpp>
+#include <beast/core/multi_buffer.hpp>
 #include <beast/unit_test/suite.hpp>
 #include <boost/lexical_cast.hpp>
 #include <chrono>
@@ -26,7 +26,7 @@ class parser_bench_test : public beast::unit_test::suite
 public:
     static std::size_t constexpr N = 2000;
 
-    using corpus = std::vector<streambuf>;
+    using corpus = std::vector<multi_buffer>;
 
     corpus creq_;
     corpus cres_;
@@ -110,13 +110,13 @@ public:
     testParser1(std::size_t repeat, corpus const& v)
     {
         while(repeat--)
-            for(auto const& sb : v)
+            for(auto const& b : v)
             {
                 Parser p;
                 error_code ec;
-                p.write(sb.data(), ec);
+                p.write(b.data(), ec);
                 if(! BEAST_EXPECTS(! ec, ec.message()))
-                    log << to_string(sb.data()) << std::endl;
+                    log << to_string(b.data()) << std::endl;
             }
     }
 
@@ -125,13 +125,13 @@ public:
     testParser2(std::size_t repeat, corpus const& v)
     {
         while(repeat--)
-            for(auto const& sb : v)
+            for(auto const& b : v)
             {
                 Parser p;
                 error_code ec;
-                feed(sb.data(), p, ec);
+                feed(b.data(), p, ec);
                 if(! BEAST_EXPECTS(! ec, ec.message()))
-                    log << to_string(sb.data()) << std::endl;
+                    log << to_string(b.data()) << std::endl;
             }
     }
 

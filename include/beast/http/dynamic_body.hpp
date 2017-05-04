@@ -10,7 +10,7 @@
 
 #include <beast/config.hpp>
 #include <beast/core/error.hpp>
-#include <beast/core/streambuf.hpp>
+#include <beast/core/multi_buffer.hpp>
 #include <beast/http/message.hpp>
 
 namespace beast {
@@ -111,11 +111,11 @@ private:
     };
 };
 
-/** A dynamic message body represented by a @ref streambuf
+/** A dynamic message body represented by a @ref multi_buffer
 
     Meets the requirements of @b `Body`.
 */
-using dynamic_body = basic_dynamic_body<streambuf>;
+using dynamic_body = basic_dynamic_body<multi_buffer>;
 
 } // http
 } // beast

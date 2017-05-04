@@ -36,8 +36,8 @@ public:
             "xyz";
         test::string_istream ss(ios_, s);
         message_parser<false, dynamic_body, fields> p;
-        streambuf sb;
-        read(ss, sb, p);
+        multi_buffer b;
+        read(ss, b, p);
         auto const& m = p.get();
         BEAST_EXPECT(boost::lexical_cast<std::string>(
             buffers(m.body.data())) == "xyz");

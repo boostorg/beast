@@ -13,7 +13,7 @@
 
 #include <beast/http.hpp>
 #include <beast/core/placeholders.hpp>
-#include <beast/core/streambuf.hpp>
+#include <beast/core/multi_buffer.hpp>
 #include <boost/asio.hpp>
 #include <cstdint>
 #include <cstdio>
@@ -150,12 +150,12 @@ private:
     do_peer(int id, socket_type&& sock0)
     {
         socket_type sock(std::move(sock0));
-        streambuf sb;
+        multi_buffer b;
         error_code ec;
         for(;;)
         {
             req_type req;
-            http::read(sock, sb, req, ec);
+            http::read(sock, b, req, ec);
             if(ec)
                 break;
             auto path = req.target().to_string();

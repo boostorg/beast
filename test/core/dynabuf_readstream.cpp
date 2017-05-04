@@ -8,7 +8,7 @@
 // Test that header file is self-contained.
 #include <beast/core/dynabuf_readstream.hpp>
 
-#include <beast/core/streambuf.hpp>
+#include <beast/core/multi_buffer.hpp>
 #include <beast/test/fail_stream.hpp>
 #include <beast/test/string_istream.hpp>
 #include <beast/test/yield_to.hpp>
@@ -29,16 +29,16 @@ public:
         using socket_type = boost::asio::ip::tcp::socket;
         boost::asio::io_service ios;
         {
-            dynabuf_readstream<socket_type, streambuf> srs(ios);
-            dynabuf_readstream<socket_type, streambuf> srs2(std::move(srs));
+            dynabuf_readstream<socket_type, multi_buffer> srs(ios);
+            dynabuf_readstream<socket_type, multi_buffer> srs2(std::move(srs));
             srs = std::move(srs2);
             BEAST_EXPECT(&srs.get_io_service() == &ios);
             BEAST_EXPECT(&srs.get_io_service() == &srs2.get_io_service());
         }
         {
             socket_type sock(ios);
-            dynabuf_readstream<socket_type&, streambuf> srs(sock);
-            dynabuf_readstream<socket_type&, streambuf> srs2(std::move(srs));
+            dynabuf_readstream<socket_type&, multi_buffer> srs(sock);
+            dynabuf_readstream<socket_type&, multi_buffer> srs2(std::move(srs));
         }
     }
 
@@ -56,7 +56,7 @@ public:
             test::fail_stream<
                 test::string_istream> fs(n, ios_, ", world!");
             dynabuf_readstream<
-                decltype(fs)&, streambuf> srs(fs);
+                decltype(fs)&, multi_buffer> srs(fs);
             srs.buffer().commit(buffer_copy(
                 srs.buffer().prepare(5), buffer("Hello", 5)));
             error_code ec;
@@ -74,7 +74,7 @@ public:
             test::fail_stream<
                 test::string_istream> fs(n, ios_, ", world!");
             dynabuf_readstream<
-                decltype(fs)&, streambuf> srs(fs);
+                decltype(fs)&, multi_buffer> srs(fs);
             srs.capacity(3);
             srs.buffer().commit(buffer_copy(
                 srs.buffer().prepare(5), buffer("Hello", 5)));
@@ -93,7 +93,7 @@ public:
             test::fail_stream<
                 test::string_istream> fs(n, ios_, ", world!");
             dynabuf_readstream<
-                decltype(fs)&, streambuf> srs(fs);
+                decltype(fs)&, multi_buffer> srs(fs);
             srs.buffer().commit(buffer_copy(
                 srs.buffer().prepare(5), buffer("Hello", 5)));
             error_code ec;
@@ -112,7 +112,7 @@ public:
             test::fail_stream<
                 test::string_istream> fs(n, ios_, ", world!");
             dynabuf_readstream<
-                decltype(fs)&, streambuf> srs(fs);
+                decltype(fs)&, multi_buffer> srs(fs);
             srs.capacity(3);
             srs.buffer().commit(buffer_copy(
                 srs.buffer().prepare(5), buffer("Hello", 5)));

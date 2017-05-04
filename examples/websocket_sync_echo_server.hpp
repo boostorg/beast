@@ -9,7 +9,7 @@
 #define WEBSOCKET_SYNC_ECHO_SERVER_HPP
 
 #include <beast/core/placeholders.hpp>
-#include <beast/core/streambuf.hpp>
+#include <beast/core/multi_buffer.hpp>
 #include <beast/websocket.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/optional.hpp>
@@ -287,15 +287,15 @@ private:
         for(;;)
         {
             beast::websocket::opcode op;
-            beast::streambuf sb;
-            ws.read(op, sb, ec);
+            beast::multi_buffer b;
+            ws.read(op, b, ec);
             if(ec)
             {
                 auto const s = ec.message();
                 break;
             }
             ws.set_option(beast::websocket::message_type{op});
-            ws.write(sb.data(), ec);
+            ws.write(b.data(), ec);
             if(ec)
                 break;
         }

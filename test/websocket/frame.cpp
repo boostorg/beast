@@ -75,22 +75,22 @@ public:
             auto check =
                 [&](frame_header const& fh)
                 {
-                    fh_streambuf sb;
-                    write(sb, fh);
+                    fh_streambuf b;
+                    write(b, fh);
                     close_code code;
                     stream_base stream;
                     stream.open(role);
                     detail::frame_header fh1;
                     auto const n =
-                        stream.read_fh1(fh1, sb, code);
+                        stream.read_fh1(fh1, b, code);
                     if(! BEAST_EXPECT(! code))
                         return;
-                    if(! BEAST_EXPECT(sb.size() == n))
+                    if(! BEAST_EXPECT(b.size() == n))
                         return;
-                    stream.read_fh2(fh1, sb, code);
+                    stream.read_fh2(fh1, b, code);
                     if(! BEAST_EXPECT(! code))
                         return;
-                    if(! BEAST_EXPECT(sb.size() == 0))
+                    if(! BEAST_EXPECT(b.size() == 0))
                         return;
                     BEAST_EXPECT(fh1 == fh);
                 };
@@ -127,25 +127,25 @@ public:
             auto check =
                 [&](frame_header const& fh)
                 {
-                    fh_streambuf sb;
-                    write(sb, fh);
+                    fh_streambuf b;
+                    write(b, fh);
                     close_code code;
                     stream_base stream;
                     stream.open(role);
                     detail::frame_header fh1;
                     auto const n =
-                        stream.read_fh1(fh1, sb, code);
+                        stream.read_fh1(fh1, b, code);
                     if(code)
                     {
                         pass();
                         return;
                     }
-                    if(! BEAST_EXPECT(sb.size() == n))
+                    if(! BEAST_EXPECT(b.size() == n))
                         return;
-                    stream.read_fh2(fh1, sb, code);
+                    stream.read_fh2(fh1, b, code);
                     if(! BEAST_EXPECT(code))
                         return;
-                    if(! BEAST_EXPECT(sb.size() == 0))
+                    if(! BEAST_EXPECT(b.size() == 0))
                         return;
                 };
 
@@ -193,25 +193,25 @@ public:
         using boost::asio::buffer_copy;
         static role_type constexpr role = role_type::client;
         std::vector<std::uint8_t> v{bs};
-        fh_streambuf sb;
-        sb.commit(buffer_copy(sb.prepare(v.size()), buffer(v)));
+        fh_streambuf b;
+        b.commit(buffer_copy(b.prepare(v.size()), buffer(v)));
         stream_base stream;
         stream.open(role);
         close_code code;
         detail::frame_header fh;
         auto const n =
-            stream.read_fh1(fh, sb, code);
+            stream.read_fh1(fh, b, code);
         if(code)
         {
             pass();
             return;
         }
-        if(! BEAST_EXPECT(sb.size() == n))
+        if(! BEAST_EXPECT(b.size() == n))
             return;
-        stream.read_fh2(fh, sb, code);
+        stream.read_fh2(fh, b, code);
         if(! BEAST_EXPECT(code))
             return;
-        if(! BEAST_EXPECT(sb.size() == 0))
+        if(! BEAST_EXPECT(b.size() == 0))
             return;
     }
 

@@ -40,17 +40,17 @@
 [def __SyncReadStream__ [@http://www.boost.org/doc/libs/1_61_0/doc/html/boost_asio/reference/SyncReadStream.html [*SyncReadStream]]]
 [def __SyncWriteStream__ [@http://www.boost.org/doc/libs/1_61_0/doc/html/boost_asio/reference/SyncWriteStream.html [*SyncWriteStream]]]
 
-[def __Body__             [link beast.ref.Body [*`Body`]]]
-[def __DynamicBuffer__    [link beast.ref.DynamicBuffer [*DynamicBuffer]]]
-[def __FieldSequence__    [link beast.ref.FieldSequence [*FieldSequence]]]
-[def __Parser__           [link beast.ref.Parser [*`Parser`]]]
+[def __Body__               [link beast.ref.Body [*`Body`]]]
+[def __DynamicBuffer__      [link beast.ref.DynamicBuffer [*DynamicBuffer]]]
+[def __FieldSequence__      [link beast.ref.FieldSequence [*FieldSequence]]]
+[def __Parser__             [link beast.ref.Parser [*`Parser`]]]
 
-[def __basic_fields__     [link beast.ref.http__basic_fields `basic_fields`]]
-[def __fields__           [link beast.ref.http__fields `fields`]]
-[def __header__           [link beast.ref.http__header `header`]]
-[def __message__          [link beast.ref.http__message `message`]]
-[def __streambuf__        [link beast.ref.streambuf `streambuf`]]
-[def __basic_streambuf__  [link beast.ref.basic_streambuf `basic_streambuf`]]
+[def __basic_fields__       [link beast.ref.http__basic_fields `basic_fields`]]
+[def __fields__             [link beast.ref.http__fields `fields`]]
+[def __header__             [link beast.ref.http__header `header`]]
+[def __message__            [link beast.ref.http__message `message`]]
+[def __streambuf__          [link beast.ref.streambuf `streambuf`]]
+[def __basic_multi_buffer__ [link beast.ref.basic_multi_buffer `basic_multi_buffer`]]
 
 Beast is a cross-platform, header-only C++ library built on Boost.Asio that
 provides implementations of the HTTP and WebSocket protocols.

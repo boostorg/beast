@@ -10,6 +10,7 @@ API Changes:
 * Refactor http::header contents
 * New ostream() returns dynamic buffer output stream
 * New buffers() replaces to_string()
+* Rename to multi_buffer, basic_multi_buffer
 
 --------------------------------------------------------------------------------
 

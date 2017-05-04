@@ -12,7 +12,7 @@
 #include "websocket_sync_echo_server.hpp"
 
 #include <beast/core/ostream.hpp>
-#include <beast/core/streambuf.hpp>
+#include <beast/core/multi_buffer.hpp>
 #include <beast/test/fail_stream.hpp>
 #include <beast/test/string_istream.hpp>
 #include <beast/test/string_iostream.hpp>
@@ -747,8 +747,8 @@ public:
                     try
                     {
                         opcode op;
-                        streambuf sb;
-                        c.read(ws, op, sb);
+                        multi_buffer b;
+                        c.read(ws, op, b);
                         fail("success", __FILE__, __LINE__);
                     }
                     catch(system_error const& e)
@@ -777,8 +777,8 @@ public:
                     try
                     {
                         opcode op;
-                        streambuf sb;
-                        c.read(ws, op, sb);
+                        multi_buffer b;
+                        c.read(ws, op, b);
                         fail("success", __FILE__, __LINE__);
                     }
                     catch(system_error const& e)
@@ -805,8 +805,8 @@ public:
                     try
                     {
                         opcode op;
-                        streambuf sb;
-                        c.read(ws, op, sb);
+                        multi_buffer b;
+                        c.read(ws, op, b);
                         fail("success", __FILE__, __LINE__);
                     }
                     catch(system_error const& e)
@@ -834,8 +834,8 @@ public:
                     try
                     {
                         opcode op;
-                        streambuf sb;
-                        c.read(ws, op, sb);
+                        multi_buffer b;
+                        c.read(ws, op, b);
                         fail("success", __FILE__, __LINE__);
                     }
                     catch(system_error const& e)
@@ -1199,7 +1199,7 @@ public:
                 if(! BEAST_EXPECTS(! ec, ec.message()))
                     break;
                 opcode op;
-                streambuf db;
+                multi_buffer db;
                 ws.read(op, db, ec);
                 if(! BEAST_EXPECTS(! ec, ec.message()))
                     break;
@@ -1225,7 +1225,7 @@ public:
                 if(! BEAST_EXPECTS(! ec, ec.message()))
                     break;
                 opcode op;
-                streambuf db;
+                multi_buffer db;
                 ws.async_read(op, db, do_yield[ec]);
                 if(! BEAST_EXPECTS(! ec, ec.message()))
                     break;
@@ -1290,7 +1290,7 @@ public:
 
         // Read
         opcode op;
-        streambuf db;
+        multi_buffer db;
         ++count;
         ws.async_read(op, db,
             [&](error_code ec)
@@ -1346,7 +1346,7 @@ public:
         ws.write(buffer_cat(sbuf("TEXT"),
             cbuf(0x03, 0xea, 0xf0, 0x28, 0x8c, 0xbc)));
         opcode op;
-        streambuf db;
+        multi_buffer db;
         std::size_t count = 0;
         // Read text message with bad utf8.
         // Causes a close to be sent, blocking writes.
@@ -1414,7 +1414,7 @@ public:
         ws.set_option(message_type(opcode::binary));
         ws.write(sbuf("CLOSE"));
         opcode op;
-        streambuf db;
+        multi_buffer db;
         std::size_t count = 0;
         // Read a close frame.
         // Sends a close frame, blocking writes.
@@ -1480,7 +1480,7 @@ public:
         ws.set_option(message_type(opcode::binary));
         ws.write(sbuf("CLOSE"));
         opcode op;
-        streambuf db;
+        multi_buffer db;
         std::size_t count = 0;
         ws.async_read(op, db,
             [&](error_code ec)
@@ -1531,7 +1531,7 @@ public:
                     });
             });
         opcode op;
-        streambuf db;
+        multi_buffer db;
         ws.async_read(op, db,
             [&](error_code ec)
             {
@@ -1562,9 +1562,9 @@ public:
             return;
         ws.write_frame(false, sbuf("u"));
         ws.write_frame(true, sbuf("v"));
-        streambuf sb;
+        multi_buffer b;
         opcode op;
-        ws.read(op, sb, ec);
+        ws.read(op, b, ec);
         if(! BEAST_EXPECTS(! ec, ec.message()))
             return;
     }
@@ -1623,7 +1623,7 @@ public:
                     try
                     {
                         opcode op;
-                        streambuf db;
+                        multi_buffer db;
                         c.read(ws, op, db);
                         fail();
                         throw abort_test{};
@@ -1657,7 +1657,7 @@ public:
                 {
                     // receive echoed message
                     opcode op;
-                    streambuf db;
+                    multi_buffer db;
                     c.read(ws, op, db);
                     BEAST_EXPECT(op == opcode::text);
                     BEAST_EXPECT(to_string(db.data()) == "Hello");
@@ -1691,7 +1691,7 @@ public:
                 {
                     // receive echoed message
                     opcode op;
-                    streambuf db;
+                    multi_buffer db;
                     c.read(ws, op, db);
                     BEAST_EXPECT(pong == 1);
                     BEAST_EXPECT(op == opcode::binary);
@@ -1713,7 +1713,7 @@ public:
                 {
                     // receive echoed message
                     opcode op;
-                    streambuf db;
+                    multi_buffer db;
                     c.read(ws, op, db);
                     BEAST_EXPECT(pong == 1);
                     BEAST_EXPECT(to_string(db.data()) == "Hello, World!");
@@ -1730,9 +1730,9 @@ public:
                 {
                     // receive echoed message
                     opcode op;
-                    streambuf sb;
-                    c.read(ws, op, sb);
-                    BEAST_EXPECT(to_string(sb.data()) == "Now is the time for all good men");
+                    multi_buffer b;
+                    c.read(ws, op, b);
+                    BEAST_EXPECT(to_string(b.data()) == "Now is the time for all good men");
                 }
                 ws.set_option(auto_fragment{false});
                 ws.set_option(write_buffer_size{4096});
@@ -1745,7 +1745,7 @@ public:
                     {
                         // receive echoed message
                         opcode op;
-                        streambuf db;
+                        multi_buffer db;
                         c.read(ws, op, db);
                         BEAST_EXPECT(to_string(db.data()) == s);
                     }
@@ -1759,7 +1759,7 @@ public:
                 {
                     // receive echoed message
                     opcode op;
-                    streambuf db;
+                    multi_buffer db;
                     c.read(ws, op, db);
                     BEAST_EXPECT(op == opcode::text);
                     BEAST_EXPECT(to_string(db.data()) == "Hello");

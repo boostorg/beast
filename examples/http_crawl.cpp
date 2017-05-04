@@ -7,7 +7,7 @@
 
 #include "urls_large_data.hpp"
 
-#include <beast/core/streambuf.hpp>
+#include <beast/core/multi_buffer.hpp>
 #include <beast/http.hpp>
 #include <boost/asio.hpp>
 #include <boost/lexical_cast.hpp>
@@ -46,8 +46,8 @@ int main(int, char const*[])
             prepare(req);
             write(sock, req);
             response<string_body> res;
-            streambuf sb;
-            beast::http::read(sock, sb, res);
+            beast::multi_buffer b;
+            beast::http::read(sock, b, res);
             std::cout << res;
         }
         catch(beast::system_error const& ec)

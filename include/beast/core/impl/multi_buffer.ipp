@@ -5,8 +5,8 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#ifndef BEAST_IMPL_STREAMBUF_IPP
-#define BEAST_IMPL_STREAMBUF_IPP
+#ifndef BEAST_IMPL_MULTI_BUFFER_IPP
+#define BEAST_IMPL_MULTI_BUFFER_IPP
 
 #include <beast/core/detail/type_traits.hpp>
 #include <boost/assert.hpp>
@@ -83,7 +83,7 @@ namespace beast {
 */
 
 template<class Allocator>
-class basic_streambuf<Allocator>::element
+class basic_multi_buffer<Allocator>::element
     : public boost::intrusive::list_base_hook<
         boost::intrusive::link_mode<
             boost::intrusive::normal_link>>
@@ -117,14 +117,14 @@ public:
 };
 
 template<class Allocator>
-class basic_streambuf<Allocator>::const_buffers_type
+class basic_multi_buffer<Allocator>::const_buffers_type
 {
-    basic_streambuf const* sb_;
+    basic_multi_buffer const* sb_;
 
-    friend class basic_streambuf;
+    friend class basic_multi_buffer;
 
     explicit
-    const_buffers_type(basic_streambuf const& sb);
+    const_buffers_type(basic_multi_buffer const& b);
 
 public:
     // Why?
@@ -144,14 +144,14 @@ public:
 };
 
 template<class Allocator>
-class basic_streambuf<Allocator>::mutable_buffers_type
+class basic_multi_buffer<Allocator>::mutable_buffers_type
 {
-    basic_streambuf const* sb_;
+    basic_multi_buffer const* sb_;
 
-    friend class basic_streambuf;
+    friend class basic_multi_buffer;
 
     explicit
-    mutable_buffers_type(basic_streambuf const& sb);
+    mutable_buffers_type(basic_multi_buffer const& b);
 
 public:
     using value_type = mutable_buffer;
@@ -172,9 +172,9 @@ public:
 //------------------------------------------------------------------------------
 
 template<class Allocator>
-class basic_streambuf<Allocator>::const_buffers_type::const_iterator
+class basic_multi_buffer<Allocator>::const_buffers_type::const_iterator
 {
-    basic_streambuf const* sb_ = nullptr;
+    basic_multi_buffer const* sb_ = nullptr;
     typename list_type::const_iterator it_;
 
 public:
@@ -192,9 +192,9 @@ public:
     const_iterator& operator=(const_iterator&& other) = default;
     const_iterator& operator=(const_iterator const& other) = default;
 
-    const_iterator(basic_streambuf const& sb,
+    const_iterator(basic_multi_buffer const& b,
             typename list_type::const_iterator const& it)
-        : sb_(&sb)
+        : sb_(&b)
         , it_(it)
     {
     }
@@ -256,15 +256,15 @@ public:
 };
 
 template<class Allocator>
-basic_streambuf<Allocator>::const_buffers_type::const_buffers_type(
-    basic_streambuf const& sb)
-    : sb_(&sb)
+basic_multi_buffer<Allocator>::const_buffers_type::const_buffers_type(
+    basic_multi_buffer const& b)
+    : sb_(&b)
 {
 }
 
 template<class Allocator>
 auto
-basic_streambuf<Allocator>::const_buffers_type::begin() const ->
+basic_multi_buffer<Allocator>::const_buffers_type::begin() const ->
     const_iterator
 {
     return const_iterator{*sb_, sb_->list_.begin()};
@@ -272,7 +272,7 @@ basic_streambuf<Allocator>::const_buffers_type::begin() const ->
 
 template<class Allocator>
 auto
-basic_streambuf<Allocator>::const_buffers_type::end() const ->
+basic_multi_buffer<Allocator>::const_buffers_type::end() const ->
     const_iterator
 {
     return const_iterator{*sb_, sb_->out_ ==
@@ -283,9 +283,9 @@ basic_streambuf<Allocator>::const_buffers_type::end() const ->
 //------------------------------------------------------------------------------
 
 template<class Allocator>
-class basic_streambuf<Allocator>::mutable_buffers_type::const_iterator
+class basic_multi_buffer<Allocator>::mutable_buffers_type::const_iterator
 {
-    basic_streambuf const* sb_ = nullptr;
+    basic_multi_buffer const* sb_ = nullptr;
     typename list_type::const_iterator it_;
 
 public:
@@ -303,9 +303,9 @@ public:
     const_iterator& operator=(const_iterator&& other) = default;
     const_iterator& operator=(const_iterator const& other) = default;
 
-    const_iterator(basic_streambuf const& sb,
+    const_iterator(basic_multi_buffer const& b,
             typename list_type::const_iterator const& it)
-        : sb_(&sb)
+        : sb_(&b)
         , it_(it)
     {
     }
@@ -367,15 +367,15 @@ public:
 };
 
 template<class Allocator>
-basic_streambuf<Allocator>::mutable_buffers_type::mutable_buffers_type(
-    basic_streambuf const& sb)
-    : sb_(&sb)
+basic_multi_buffer<Allocator>::mutable_buffers_type::mutable_buffers_type(
+    basic_multi_buffer const& b)
+    : sb_(&b)
 {
 }
 
 template<class Allocator>
 auto
-basic_streambuf<Allocator>::mutable_buffers_type::begin() const ->
+basic_multi_buffer<Allocator>::mutable_buffers_type::begin() const ->
     const_iterator
 {
     return const_iterator{*sb_, sb_->out_};
@@ -383,7 +383,7 @@ basic_streambuf<Allocator>::mutable_buffers_type::begin() const ->
 
 template<class Allocator>
 auto
-basic_streambuf<Allocator>::mutable_buffers_type::end() const ->
+basic_multi_buffer<Allocator>::mutable_buffers_type::end() const ->
     const_iterator
 {
     return const_iterator{*sb_, sb_->list_.end()};
@@ -392,14 +392,14 @@ basic_streambuf<Allocator>::mutable_buffers_type::end() const ->
 //------------------------------------------------------------------------------
 
 template<class Allocator>
-basic_streambuf<Allocator>::~basic_streambuf()
+basic_multi_buffer<Allocator>::~basic_multi_buffer()
 {
     delete_list();
 }
 
 template<class Allocator>
-basic_streambuf<Allocator>::
-basic_streambuf(basic_streambuf&& other)
+basic_multi_buffer<Allocator>::
+basic_multi_buffer(basic_multi_buffer&& other)
     : detail::empty_base_optimization<allocator_type>(
         std::move(other.member()))
     , alloc_size_(other.alloc_size_)
@@ -420,10 +420,10 @@ basic_streambuf(basic_streambuf&& other)
 }
 
 template<class Allocator>
-basic_streambuf<Allocator>::
-basic_streambuf(basic_streambuf&& other,
+basic_multi_buffer<Allocator>::
+basic_multi_buffer(basic_multi_buffer&& other,
         allocator_type const& alloc)
-    : basic_streambuf(other.alloc_size_, alloc)
+    : basic_multi_buffer(other.alloc_size_, alloc)
 {
     using boost::asio::buffer_copy;
     if(this->member() != other.member())
@@ -434,8 +434,8 @@ basic_streambuf(basic_streambuf&& other,
 
 template<class Allocator>
 auto
-basic_streambuf<Allocator>::operator=(
-    basic_streambuf&& other) -> basic_streambuf&
+basic_multi_buffer<Allocator>::operator=(
+    basic_multi_buffer&& other) -> basic_multi_buffer&
 {
     if(this == &other)
         return *this;
@@ -448,28 +448,28 @@ basic_streambuf<Allocator>::operator=(
 }
 
 template<class Allocator>
-basic_streambuf<Allocator>::
-basic_streambuf(basic_streambuf const& other)
-    : basic_streambuf(other.alloc_size_,
+basic_multi_buffer<Allocator>::
+basic_multi_buffer(basic_multi_buffer const& other)
+    : basic_multi_buffer(other.alloc_size_,
         alloc_traits::select_on_container_copy_construction(other.member()))
 {
     commit(boost::asio::buffer_copy(prepare(other.size()), other.data()));
 }
 
 template<class Allocator>
-basic_streambuf<Allocator>::
-basic_streambuf(basic_streambuf const& other,
+basic_multi_buffer<Allocator>::
+basic_multi_buffer(basic_multi_buffer const& other,
         allocator_type const& alloc)
-    : basic_streambuf(other.alloc_size_, alloc)
+    : basic_multi_buffer(other.alloc_size_, alloc)
 {
     commit(boost::asio::buffer_copy(prepare(other.size()), other.data()));
 }
 
 template<class Allocator>
 auto
-basic_streambuf<Allocator>::operator=(
-    basic_streambuf const& other) ->
-        basic_streambuf&
+basic_multi_buffer<Allocator>::operator=(
+    basic_multi_buffer const& other) ->
+        basic_multi_buffer&
 {
     if(this == &other)
         return *this;
@@ -483,9 +483,9 @@ basic_streambuf<Allocator>::operator=(
 
 template<class Allocator>
 template<class OtherAlloc>
-basic_streambuf<Allocator>::basic_streambuf(
-    basic_streambuf<OtherAlloc> const& other)
-    : basic_streambuf(other.alloc_size_)
+basic_multi_buffer<Allocator>::basic_multi_buffer(
+    basic_multi_buffer<OtherAlloc> const& other)
+    : basic_multi_buffer(other.alloc_size_)
 {
     using boost::asio::buffer_copy;
     commit(buffer_copy(prepare(other.size()), other.data()));
@@ -493,10 +493,10 @@ basic_streambuf<Allocator>::basic_streambuf(
 
 template<class Allocator>
 template<class OtherAlloc>
-basic_streambuf<Allocator>::basic_streambuf(
-    basic_streambuf<OtherAlloc> const& other,
+basic_multi_buffer<Allocator>::basic_multi_buffer(
+    basic_multi_buffer<OtherAlloc> const& other,
         allocator_type const& alloc)
-    : basic_streambuf(other.alloc_size_, alloc)
+    : basic_multi_buffer(other.alloc_size_, alloc)
 {
     using boost::asio::buffer_copy;
     commit(buffer_copy(prepare(other.size()), other.data()));
@@ -505,9 +505,9 @@ basic_streambuf<Allocator>::basic_streambuf(
 template<class Allocator>
 template<class OtherAlloc>
 auto
-basic_streambuf<Allocator>::operator=(
-    basic_streambuf<OtherAlloc> const& other) ->
-        basic_streambuf&
+basic_multi_buffer<Allocator>::operator=(
+    basic_multi_buffer<OtherAlloc> const& other) ->
+        basic_multi_buffer&
 {
     using boost::asio::buffer_copy;
     clear();
@@ -516,7 +516,7 @@ basic_streambuf<Allocator>::operator=(
 }
 
 template<class Allocator>
-basic_streambuf<Allocator>::basic_streambuf(
+basic_multi_buffer<Allocator>::basic_multi_buffer(
         std::size_t alloc_size, Allocator const& alloc)
     : detail::empty_base_optimization<allocator_type>(alloc)
     , out_(list_.end())
@@ -529,7 +529,7 @@ basic_streambuf<Allocator>::basic_streambuf(
 
 template<class Allocator>
 std::size_t
-basic_streambuf<Allocator>::capacity() const
+basic_multi_buffer<Allocator>::capacity() const
 {
     auto pos = out_;
     if(pos == list_.end())
@@ -542,7 +542,7 @@ basic_streambuf<Allocator>::capacity() const
 
 template<class Allocator>
 auto
-basic_streambuf<Allocator>::
+basic_multi_buffer<Allocator>::
 data() const ->
     const_buffers_type
 {
@@ -551,7 +551,7 @@ data() const ->
 
 template<class Allocator>
 auto
-basic_streambuf<Allocator>::prepare(size_type n) ->
+basic_multi_buffer<Allocator>::prepare(size_type n) ->
     mutable_buffers_type
 {
     list_type reuse;
@@ -630,7 +630,7 @@ basic_streambuf<Allocator>::prepare(size_type n) ->
 
 template<class Allocator>
 void
-basic_streambuf<Allocator>::commit(size_type n)
+basic_multi_buffer<Allocator>::commit(size_type n)
 {
     if(list_.empty())
         return;
@@ -670,7 +670,7 @@ basic_streambuf<Allocator>::commit(size_type n)
 
 template<class Allocator>
 void
-basic_streambuf<Allocator>::consume(size_type n)
+basic_multi_buffer<Allocator>::consume(size_type n)
 {
     if(list_.empty())
         return;
@@ -731,7 +731,7 @@ basic_streambuf<Allocator>::consume(size_type n)
 
 template<class Allocator>
 void
-basic_streambuf<Allocator>::
+basic_multi_buffer<Allocator>::
 clear()
 {
     delete_list();
@@ -745,8 +745,8 @@ clear()
 
 template<class Allocator>
 void
-basic_streambuf<Allocator>::
-move_assign(basic_streambuf& other, std::false_type)
+basic_multi_buffer<Allocator>::
+move_assign(basic_multi_buffer& other, std::false_type)
 {
     using boost::asio::buffer_copy;
     if(this->member() != other.member())
@@ -760,8 +760,8 @@ move_assign(basic_streambuf& other, std::false_type)
 
 template<class Allocator>
 void
-basic_streambuf<Allocator>::
-move_assign(basic_streambuf& other, std::true_type)
+basic_multi_buffer<Allocator>::
+move_assign(basic_multi_buffer& other, std::true_type)
 {
     this->member() = std::move(other.member());
     auto const at_end =
@@ -783,23 +783,23 @@ move_assign(basic_streambuf& other, std::true_type)
 
 template<class Allocator>
 void
-basic_streambuf<Allocator>::
-copy_assign(basic_streambuf const& other, std::false_type)
+basic_multi_buffer<Allocator>::
+copy_assign(basic_multi_buffer const& other, std::false_type)
 {
     beast::detail::ignore_unused(other);
 }
 
 template<class Allocator>
 void
-basic_streambuf<Allocator>::
-copy_assign(basic_streambuf const& other, std::true_type)
+basic_multi_buffer<Allocator>::
+copy_assign(basic_multi_buffer const& other, std::true_type)
 {
     this->member() = other.member();
 }
 
 template<class Allocator>
 void
-basic_streambuf<Allocator>::delete_list()
+basic_multi_buffer<Allocator>::delete_list()
 {
     for(auto iter = list_.begin(); iter != list_.end();)
     {
@@ -813,7 +813,7 @@ basic_streambuf<Allocator>::delete_list()
 
 template<class Allocator>
 void
-basic_streambuf<Allocator>::debug_check() const
+basic_multi_buffer<Allocator>::debug_check() const
 {
 #ifndef NDEBUG
     using boost::asio::buffer_size;
@@ -853,19 +853,19 @@ basic_streambuf<Allocator>::debug_check() const
 
 template<class Allocator>
 std::size_t
-read_size_helper(basic_streambuf<
-    Allocator> const& streambuf, std::size_t max_size)
+read_size_helper(basic_multi_buffer<
+    Allocator> const& multi_buffer, std::size_t max_size)
 {
     BOOST_ASSERT(max_size >= 1);
     // If we already have an allocated
     // buffer, try to fill that up first
-    auto const avail = streambuf.capacity() - streambuf.size();
+    auto const avail = multi_buffer.capacity() - multi_buffer.size();
     if (avail > 0)
         return (std::min)(avail, max_size);
     // Try to have just one new block allocated
     constexpr std::size_t low = 512;
-    if (streambuf.alloc_size_ > low)
-        return (std::min)(max_size, streambuf.alloc_size_);
+    if (multi_buffer.alloc_size_ > low)
+        return (std::min)(max_size, multi_buffer.alloc_size_);
     // ...but enforce a 512 byte minimum.
     return (std::min)(max_size, low);
 }

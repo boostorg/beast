@@ -297,7 +297,7 @@ static_streambuf::prepare(std::size_t n) ->
 {
     if(n > static_cast<std::size_t>(end_ - out_))
         throw detail::make_exception<std::length_error>(
-            "no space in streambuf", __FILE__, __LINE__);
+            "no space in static_buffer", __FILE__, __LINE__);
     last_ = out_ + n;
     return mutable_buffers_type{out_, n};
 }

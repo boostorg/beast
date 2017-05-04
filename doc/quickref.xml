@@ -153,7 +153,7 @@
           <simplelist type="vert" columns="1">
             <member><link linkend="beast.ref.async_completion">async_completion</link></member>
             <member><link linkend="beast.ref.basic_flat_streambuf">basic_flat_streambuf</link></member>
-            <member><link linkend="beast.ref.basic_streambuf">basic_streambuf</link></member>
+            <member><link linkend="beast.ref.basic_multi_buffer">basic_multi_buffer</link></member>
             <member><link linkend="beast.ref.buffers_adapter">buffers_adapter</link></member>
             <member><link linkend="beast.ref.consuming_buffers">consuming_buffers</link></member>
             <member><link linkend="beast.ref.dynabuf_readstream">dynabuf_readstream</link></member>
@@ -164,10 +164,10 @@
             <member><link linkend="beast.ref.flat_streambuf">flat_streambuf</link></member>
             <member><link linkend="beast.ref.handler_alloc">handler_alloc</link></member>
             <member><link linkend="beast.ref.handler_ptr">handler_ptr</link></member>
+            <member><link linkend="beast.ref.multi_buffer">multi_buffer</link></member>
             <member><link linkend="beast.ref.static_streambuf">static_streambuf</link></member>
             <member><link linkend="beast.ref.static_streambuf_n">static_streambuf_n</link></member>
             <member><link linkend="beast.ref.static_string">static_string</link></member>
-            <member><link linkend="beast.ref.streambuf">streambuf</link></member>
             <member><link linkend="beast.ref.system_error">system_error</link></member>
           </simplelist>
         </entry>
