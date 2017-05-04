@@ -14,7 +14,7 @@
 #include <beast/test/string_istream.hpp>
 #include <beast/test/string_ostream.hpp>
 #include <beast/test/yield_to.hpp>
-#include <beast/core/flat_streambuf.hpp>
+#include <beast/core/flat_buffer.hpp>
 #include <beast/core/multi_buffer.hpp>
 #include <beast/http/header_parser.hpp>
 #include <beast/http/read.hpp>
@@ -39,7 +39,7 @@ public:
     #if 0
         multi_buffer dynabuf;
     #else
-        flat_streambuf dynabuf{1024};
+        flat_buffer dynabuf{1024};
     #endif
         message<isRequest, string_body, fields> m;
         read(ss, dynabuf, m, ec);
@@ -124,7 +124,7 @@ public:
                 "Content-Length: 1\r\n"
                 "\r\n"
                 "*"};
-            flat_streambuf b{1024};
+            flat_buffer b{1024};
             message_parser<true, string_body, fields> p;
             read(is, b, p, ec);
             auto const& m = p.get();

@@ -152,7 +152,7 @@
           <bridgehead renderas="sect3">Classes</bridgehead>
           <simplelist type="vert" columns="1">
             <member><link linkend="beast.ref.async_completion">async_completion</link></member>
-            <member><link linkend="beast.ref.basic_flat_streambuf">basic_flat_streambuf</link></member>
+            <member><link linkend="beast.ref.basic_flat_buffer">basic_flat_buffer</link></member>
             <member><link linkend="beast.ref.basic_multi_buffer">basic_multi_buffer</link></member>
             <member><link linkend="beast.ref.buffers_adapter">buffers_adapter</link></member>
             <member><link linkend="beast.ref.consuming_buffers">consuming_buffers</link></member>
@@ -161,7 +161,7 @@
             <member><link linkend="beast.ref.error_category">error_category</link></member>
             <member><link linkend="beast.ref.error_code">error_code</link></member>
             <member><link linkend="beast.ref.error_condition">error_condition</link></member>
-            <member><link linkend="beast.ref.flat_streambuf">flat_streambuf</link></member>
+            <member><link linkend="beast.ref.flat_buffer">flat_buffer</link></member>
             <member><link linkend="beast.ref.handler_alloc">handler_alloc</link></member>
             <member><link linkend="beast.ref.handler_ptr">handler_ptr</link></member>
             <member><link linkend="beast.ref.multi_buffer">multi_buffer</link></member>

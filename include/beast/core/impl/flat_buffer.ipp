@@ -5,8 +5,8 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#ifndef BEAST_IMPL_FLAT_STREAMBUF_HPP
-#define BEAST_IMPL_FLAT_STREAMBUF_HPP
+#ifndef BEAST_IMPL_FLAT_BUFFER_HPP
+#define BEAST_IMPL_FLAT_BUFFER_HPP
 
 #include <boost/assert.hpp>
 #include <stdexcept>
@@ -37,8 +37,8 @@ next_pow2(std::size_t x)
 
 template<class Allocator>
 void
-basic_flat_streambuf<Allocator>::
-move_from(basic_flat_streambuf& other)
+basic_flat_buffer<Allocator>::
+move_from(basic_flat_buffer& other)
 {
     p_ = other.p_;
     in_ = other.in_;
@@ -56,8 +56,8 @@ move_from(basic_flat_streambuf& other)
 template<class Allocator>
 template<class OtherAlloc>
 void
-basic_flat_streambuf<Allocator>::
-copy_from(basic_flat_streambuf<
+basic_flat_buffer<Allocator>::
+copy_from(basic_flat_buffer<
     OtherAlloc> const& other)
 {
     max_ = other.max_;
@@ -81,8 +81,8 @@ copy_from(basic_flat_streambuf<
 }
 
 template<class Allocator>
-basic_flat_streambuf<Allocator>::
-~basic_flat_streambuf()
+basic_flat_buffer<Allocator>::
+~basic_flat_buffer()
 {
     if(p_)
         alloc_traits::deallocate(
@@ -90,8 +90,8 @@ basic_flat_streambuf<Allocator>::
 }
 
 template<class Allocator>
-basic_flat_streambuf<Allocator>::
-basic_flat_streambuf(basic_flat_streambuf&& other)
+basic_flat_buffer<Allocator>::
+basic_flat_buffer(basic_flat_buffer&& other)
     : detail::empty_base_optimization<
         allocator_type>(std::move(other.member()))
 {
@@ -99,8 +99,8 @@ basic_flat_streambuf(basic_flat_streambuf&& other)
 }
 
 template<class Allocator>
-basic_flat_streambuf<Allocator>::
-basic_flat_streambuf(basic_flat_streambuf&& other,
+basic_flat_buffer<Allocator>::
+basic_flat_buffer(basic_flat_buffer&& other,
         Allocator const& alloc)
     : detail::empty_base_optimization<
         allocator_type>(alloc)
@@ -114,9 +114,9 @@ basic_flat_streambuf(basic_flat_streambuf&& other,
 }
 
 template<class Allocator>
-basic_flat_streambuf<Allocator>::
-basic_flat_streambuf(
-        basic_flat_streambuf const& other)
+basic_flat_buffer<Allocator>::
+basic_flat_buffer(
+        basic_flat_buffer const& other)
     : detail::empty_base_optimization<allocator_type>(
         alloc_traits::select_on_container_copy_construction(
             other.member()))
@@ -125,9 +125,9 @@ basic_flat_streambuf(
 }
 
 template<class Allocator>
-basic_flat_streambuf<Allocator>::
-basic_flat_streambuf(
-    basic_flat_streambuf const& other,
+basic_flat_buffer<Allocator>::
+basic_flat_buffer(
+    basic_flat_buffer const& other,
         Allocator const& alloc)
     : detail::empty_base_optimization<
         allocator_type>(alloc)
@@ -137,18 +137,18 @@ basic_flat_streambuf(
     
 template<class Allocator>
 template<class OtherAlloc>
-basic_flat_streambuf<Allocator>::
-basic_flat_streambuf(
-    basic_flat_streambuf<OtherAlloc> const& other)
+basic_flat_buffer<Allocator>::
+basic_flat_buffer(
+    basic_flat_buffer<OtherAlloc> const& other)
 {
     copy_from(other);
 }
 
 template<class Allocator>
 template<class OtherAlloc>
-basic_flat_streambuf<Allocator>::
-basic_flat_streambuf(
-    basic_flat_streambuf<OtherAlloc> const& other,
+basic_flat_buffer<Allocator>::
+basic_flat_buffer(
+    basic_flat_buffer<OtherAlloc> const& other,
         Allocator const& alloc)
     : detail::empty_base_optimization<
         allocator_type>(alloc)
@@ -157,8 +157,8 @@ basic_flat_streambuf(
 }
 
 template<class Allocator>
-basic_flat_streambuf<Allocator>::
-basic_flat_streambuf(std::size_t limit)
+basic_flat_buffer<Allocator>::
+basic_flat_buffer(std::size_t limit)
     : p_(nullptr)
     , in_(nullptr)
     , out_(nullptr)
@@ -170,8 +170,8 @@ basic_flat_streambuf(std::size_t limit)
 }
 
 template<class Allocator>
-basic_flat_streambuf<Allocator>::
-basic_flat_streambuf(Allocator const& alloc,
+basic_flat_buffer<Allocator>::
+basic_flat_buffer(Allocator const& alloc,
         std::size_t limit)
     : detail::empty_base_optimization<
         allocator_type>(alloc)
@@ -187,7 +187,7 @@ basic_flat_streambuf(Allocator const& alloc,
 
 template<class Allocator>
 auto
-basic_flat_streambuf<Allocator>::
+basic_flat_buffer<Allocator>::
 prepare(std::size_t n) ->
     mutable_buffers_type
 {
@@ -212,7 +212,7 @@ prepare(std::size_t n) ->
     // enforce maximum capacity
     if(n > max_ - len)
         throw std::length_error{
-            "flat_streambuf overflow"};
+            "basic_flat_buffer overflow"};
     // allocate a new buffer
     auto const new_size = (std::min)(max_,
         std::max<std::size_t>(
@@ -237,7 +237,7 @@ prepare(std::size_t n) ->
 
 template<class Allocator>
 void
-basic_flat_streambuf<Allocator>::
+basic_flat_buffer<Allocator>::
 consume(std::size_t n)
 {
     if(n >= dist(in_, out_))
@@ -251,14 +251,14 @@ consume(std::size_t n)
 
 template<class Allocator>
 void
-basic_flat_streambuf<Allocator>::
+basic_flat_buffer<Allocator>::
 reserve(std::size_t n)
 {
     if(n <= capacity())
         return;
     if(n > max_)
         throw std::length_error{
-            "flat_streambuf overflow"};
+            "basic_flat_buffer overflow"};
     auto const new_size = (std::min)(max_,
         std::max<std::size_t>(
             detail::next_pow2(n), min_size));
@@ -282,7 +282,7 @@ reserve(std::size_t n)
 
 template<class Allocator>
 void
-basic_flat_streambuf<Allocator>::
+basic_flat_buffer<Allocator>::
 shrink_to_fit()
 {
     auto const len = size();
@@ -312,7 +312,7 @@ shrink_to_fit()
 
 template<class Allocator>
 std::size_t
-read_size_helper(basic_flat_streambuf<
+read_size_helper(basic_flat_buffer<
     Allocator> const& fb, std::size_t max_size)
 {
     BOOST_ASSERT(max_size >= 1);

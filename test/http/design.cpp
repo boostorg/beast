@@ -5,7 +5,7 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#include <beast/core/flat_streambuf.hpp>
+#include <beast/core/flat_buffer.hpp>
 #include <beast/core/prepare_buffers.hpp>
 #include <beast/http/chunk_encode.hpp>
 #include <beast/http/read.hpp>
@@ -104,7 +104,7 @@ public:
                 "*"
             };
             message<true, direct_body, fields> m;
-            flat_streambuf b{1024};
+            flat_buffer b{1024};
             read(is, b, m);
             BEAST_EXPECT(m.body == "*");
         }
@@ -117,7 +117,7 @@ public:
                 "*"
             };
             message<false, direct_body, fields> m;
-            flat_streambuf b{20};
+            flat_buffer b{20};
             read(is, b, m);
             BEAST_EXPECT(m.body == "*");
         }
@@ -133,7 +133,7 @@ public:
                 "0\r\n\r\n"
             };
             message<true, direct_body, fields> m;
-            flat_streambuf b{100};
+            flat_buffer b{100};
             read(is, b, m);
             BEAST_EXPECT(m.body == "*");
         }
@@ -201,7 +201,7 @@ public:
                 "*"
             };
             message<true, indirect_body, fields> m;
-            flat_streambuf b{1024};
+            flat_buffer b{1024};
             read(is, b, m);
             BEAST_EXPECT(m.body == "*");
         }
@@ -214,7 +214,7 @@ public:
                 "*"
             };
             message<false, indirect_body, fields> m;
-            flat_streambuf b{20};
+            flat_buffer b{20};
             read(is, b, m);
             BEAST_EXPECT(m.body == "*");
         }
@@ -231,7 +231,7 @@ public:
                 "0\r\n\r\n"
             };
             message<true, indirect_body, fields> m;
-            flat_streambuf b{1024};
+            flat_buffer b{1024};
             read(is, b, m);
             BEAST_EXPECT(m.body == "*");
         }
@@ -253,7 +253,7 @@ public:
                 "*****"
             };
             header_parser<true, fields> p;
-            flat_streambuf b{38};
+            flat_buffer b{38};
             auto const bytes_used =
                 read_some(is, b, p);
             b.consume(bytes_used);
@@ -272,7 +272,7 @@ public:
                 "*****"
             };
             header_parser<false, fields> p;
-            flat_streambuf b{20};
+            flat_buffer b{20};
             auto const bytes_used =
                 read_some(is, b, p);
             b.consume(bytes_used);
@@ -303,7 +303,7 @@ public:
             };
 
             header_parser<true, fields> p;
-            flat_streambuf b{128};
+            flat_buffer b{128};
             auto const bytes_used =
                 read_some(is, b, p);
             b.consume(bytes_used);
@@ -335,7 +335,7 @@ public:
         DynamicBuffer& b,
         SyncReadStream& in)
     {
-        flat_streambuf buffer{4096}; // 4K limit
+        flat_buffer buffer{4096}; // 4K limit
         header_parser<isRequest, fields> parser;
         error_code ec;
         do
@@ -397,7 +397,7 @@ public:
                 3 // max_read
             };
             test::string_ostream os{ios_};
-            flat_streambuf b{16};
+            flat_buffer b{16};
             relay<true>(os, b, is);
         }
 
@@ -410,7 +410,7 @@ public:
                 3 // max_read
             };
             test::string_ostream os{ios_};
-            flat_streambuf b{16};
+            flat_buffer b{16};
             relay<false>(os, b, is);
         }
 
@@ -427,7 +427,7 @@ public:
                 2 // max_read
             };
             test::string_ostream os{ios_};
-            flat_streambuf b{16};
+            flat_buffer b{16};
             relay<true>(os, b, is);
         }
     }
@@ -444,7 +444,7 @@ public:
     void
     doFixedRead(SyncReadStream& stream, BodyCallback const& cb)
     {
-        flat_streambuf buffer{4096}; // 4K limit
+        flat_buffer buffer{4096}; // 4K limit
         header_parser<isRequest, fields> parser;
         std::size_t bytes_used;
         bytes_used = read_some(stream, buffer, parser);

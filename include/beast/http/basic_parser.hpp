@@ -190,10 +190,10 @@ enum class parse_state
 
     The parser is optimized for the case where the input buffer
     sequence consists of a single contiguous buffer. The
-    @ref beast::flat_streambuf class is provided, which guarantees
+    @ref beast::flat_buffer class is provided, which guarantees
     that the input sequence of the stream buffer will be represented
     by exactly one contiguous buffer. To ensure the optimum performance
-    of the parser, use @ref beast::flat_streambuf with HTTP algorithms
+    of the parser, use @ref beast::flat_buffer with HTTP algorithms
     such as @ref beast::http::read, @ref beast::http::read_some,
     @ref beast::http::async_read, and @ref beast::http::async_read_some.
     Alternatively, the caller may use custom techniques to ensure that
