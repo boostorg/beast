@@ -15,7 +15,7 @@
 #include <beast/test/string_ostream.hpp>
 #include <beast/test/yield_to.hpp>
 #include <beast/core/flat_streambuf.hpp>
-#include <beast/core/streambuf.hpp>
+#include <beast/core/multi_buffer.hpp>
 #include <beast/http/header_parser.hpp>
 #include <beast/http/read.hpp>
 #include <beast/http/read.hpp>
@@ -37,7 +37,7 @@ public:
         beast::test::string_istream ss{get_io_service(), s};
         error_code ec;
     #if 0
-        streambuf dynabuf;
+        multi_buffer dynabuf;
     #else
         flat_streambuf dynabuf{1024};
     #endif
@@ -124,9 +124,9 @@ public:
                 "Content-Length: 1\r\n"
                 "\r\n"
                 "*"};
-            flat_streambuf sb{1024};
+            flat_streambuf b{1024};
             message_parser<true, string_body, fields> p;
-            read(is, sb, p, ec);
+            read(is, b, p, ec);
             auto const& m = p.get();
             BEAST_EXPECTS(! ec, ec.message());
             BEAST_EXPECT(p.is_complete());
@@ -142,8 +142,8 @@ public:
             // parse through the chunk body
             beast::test::string_istream is{
                 get_io_service(), ""};
-            streambuf sb;
-            sb <<
+            multi_buffer b;
+            b <<
                 "PUT / HTTP/1.1\r\n"
                 "Transfer-Encoding: chunked\r\n"
                 "\r\n"
@@ -151,20 +151,20 @@ public:
                 "*";
             error_code ec;
             message_parser<true, string_body, fields> p;
-            read(is, sb, p, ec);
-            BEAST_EXPECT(sb.size() == 0);
+            read(is, b, p, ec);
+            BEAST_EXPECT(b.size() == 0);
             BEAST_EXPECTS(! ec, ec.message());
             BEAST_EXPECT(!p.is_complete());
             BEAST_EXPECT(p.get().body == "*");
-            sb << "\r\n0;d;e=3;f=\"4\"\r\n"
+            b << "\r\n0;d;e=3;f=\"4\"\r\n"
                 "Expires: never\r\n"
                 "MD5-Fingerprint: -\r\n";
             // incomplete parse, missing the final crlf
-            BEAST_EXPECT(p.write(sb.data(), ec) == 0);
+            BEAST_EXPECT(p.write(b.data(), ec) == 0);
             BEAST_EXPECTS(! ec, ec.message());
             BEAST_EXPECT(!p.is_complete());
-            sb << "\r\n"; // final crlf to end message
-            BEAST_EXPECT(p.write(sb.data(), ec) == sb.size());
+            b << "\r\n"; // final crlf to end message
+            BEAST_EXPECT(p.write(b.data(), ec) == b.size());
             BEAST_EXPECTS(! ec, ec.message());
             BEAST_EXPECT(p.is_complete());
         }
@@ -212,18 +212,18 @@ public:
             "Content-Length: 5\r\n"
             "\r\n"
             "*****"};
-        streambuf sb;
+        multi_buffer b;
         error_code ec;
         header_parser<true, fields> p0;
         auto const bytes_used =
-            read_some(ss, sb, p0, ec);
-        sb.consume(bytes_used);
+            read_some(ss, b, p0, ec);
+        b.consume(bytes_used);
         BEAST_EXPECTS(! ec, ec.message());
         BEAST_EXPECT(p0.state() != parse_state::header);
         BEAST_EXPECT(! p0.is_complete());
         message_parser<true,
             string_body, fields> p1{std::move(p0)};
-        read(ss, sb, p1, ec);
+        read(ss, b, p1, ec);
         BEAST_EXPECTS(! ec, ec.message());
         BEAST_EXPECT(p1.get().body == "*****");
     }

@@ -5,6 +5,7 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
+#include <beast/core.hpp>
 #include <beast/http.hpp>
 #include <boost/asio.hpp>
 #include <boost/lexical_cast.hpp>
@@ -33,8 +34,8 @@ int main()
     beast::http::write(sock, req);
 
     // Receive and print HTTP response using beast
-    beast::streambuf sb;
-    beast::http::response<beast::http::dynamic_body> resp;
-    beast::http::read(sock, sb, resp);
-    std::cout << resp;
+    beast::multi_buffer b;
+    beast::http::response<beast::http::dynamic_body> res;
+    beast::http::read(sock, b, res);
+    std::cout << res;
 }

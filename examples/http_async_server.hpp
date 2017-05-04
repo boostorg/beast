@@ -15,7 +15,7 @@
 #include <beast/core/handler_helpers.hpp>
 #include <beast/core/handler_ptr.hpp>
 #include <beast/core/placeholders.hpp>
-#include <beast/core/streambuf.hpp>
+#include <beast/core/multi_buffer.hpp>
 #include <boost/asio.hpp>
 #include <cstddef>
 #include <cstdio>
@@ -181,7 +181,7 @@ private:
     class peer : public std::enable_shared_from_this<peer>
     {
         int id_;
-        streambuf sb_;
+        multi_buffer sb_;
         socket_type sock_;
         http_async_server& server_;
         boost::asio::io_service::strand strand_;

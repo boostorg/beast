@@ -419,7 +419,7 @@ start. Other design goals:
             [```
                 beast::async_completion<ReadHandler, void(error_code)> completion(handler);
                 read_op<DynamicBuffer, decltype(completion.handler)>{
-                    completion.handler, *this, op, streambuf};
+                    completion.handler, *this, op, buffer};
                 return completion.result.get();
             ```]
             [
@@ -442,13 +442,13 @@ start. Other design goals:
     or frame data, which is of any type meeting the requirements of
     __DynamicBuffer__ (modeled after `boost::asio::streambuf`).
 
-    Beast comes with the class __basic_streambuf__, an efficient
+    Beast comes with the class __basic_multi_buffer__, an efficient
     implementation of the __DynamicBuffer__ concept which makes use of multiple
     allocated octet arrays. If an incoming message is broken up into
     multiple pieces, no reallocation occurs. Instead, new allocations are
     appended to the sequence when existing allocations are filled. Beast
     does not impose any particular memory management model on callers. The
-    __basic_streambuf__ provided by beast supports standard allocators through
+    __basic_multi_buffer__ provided by beast supports standard allocators through
     a template argument. Use the __DynamicBuffer__ that comes with beast,
     customize the allocator if you desire, or provide your own type that
     meets the requirements.

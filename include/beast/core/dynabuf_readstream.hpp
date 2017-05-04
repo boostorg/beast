@@ -13,7 +13,7 @@
 #include <beast/core/buffer_concepts.hpp>
 #include <beast/core/error.hpp>
 #include <beast/core/stream_concepts.hpp>
-#include <beast/core/streambuf.hpp>
+#include <beast/core/multi_buffer.hpp>
 #include <beast/core/detail/get_lowest_layer.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/asio/io_service.hpp>

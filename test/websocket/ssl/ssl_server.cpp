@@ -129,16 +129,16 @@ public:
         ws.write(boost::asio::buffer("Hello, world!", 13));
 
         // Receive Secure WebSocket message, print and close using Beast
-        beast::streambuf sb;
+        beast::multi_buffer b;
         beast::websocket::opcode op;
-        ws.read(op, sb);
+        ws.read(op, b);
         ws.close(beast::websocket::close_code::normal);
         try
         {
             for(;;)
             {
-                ws.read(op, sb);
-                sb.consume(sb.size());
+                ws.read(op, b);
+                b.consume(b.size());
             }
         }
         catch(system_error const& se)
@@ -147,7 +147,7 @@ public:
                 throw;
         }
         BEAST_EXPECT(boost::lexical_cast<std::string>(
-            buffers(sb.data())) == "Hello, world!");
+            buffers(b.data())) == "Hello, world!");
     }
 };
 

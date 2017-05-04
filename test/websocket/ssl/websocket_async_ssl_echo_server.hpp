@@ -9,7 +9,7 @@
 #define WEBSOCKET_ASYNC_SSL_ECHO_SERVER_HPP
 
 #include <beast/core/placeholders.hpp>
-#include <beast/core/streambuf.hpp>
+#include <beast/core/multi_buffer.hpp>
 #include <beast/websocket/ssl.hpp>
 #include <beast/websocket/stream.hpp>
 #include <boost/asio/ssl.hpp>
@@ -156,7 +156,7 @@ private:
                 boost::asio::ssl::stream<socket_type>> ws;
             boost::asio::io_service::strand strand;
             beast::websocket::opcode op;
-            beast::streambuf db;
+            beast::multi_buffer db;
             std::size_t id;
 
             data(async_ssl_echo_server& server_,

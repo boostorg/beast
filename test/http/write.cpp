@@ -13,7 +13,7 @@
 #include <beast/http/string_body.hpp>
 #include <beast/http/write.hpp>
 #include <beast/core/error.hpp>
-#include <beast/core/streambuf.hpp>
+#include <beast/core/multi_buffer.hpp>
 #include <beast/test/fail_stream.hpp>
 #include <beast/test/string_ostream.hpp>
 #include <beast/test/yield_to.hpp>

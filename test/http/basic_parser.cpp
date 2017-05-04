@@ -12,7 +12,7 @@
 
 #include <beast/core/buffer_cat.hpp>
 #include <beast/core/consuming_buffers.hpp>
-#include <beast/core/streambuf.hpp>
+#include <beast/core/multi_buffer.hpp>
 #include <beast/unit_test/suite.hpp>
 
 namespace beast {
@@ -902,8 +902,8 @@ public:
     testSplit()
     {
 #if 0
-        streambuf sb;
-        sb << 
+        multi_buffer b;
+        b << 
             "POST / HTTP/1.1\r\n"
             "Content-Length: 5\r\n"
             "\r\n"
@@ -911,7 +911,7 @@ public:
         error_code ec;
         test_parser<true> p;
         p.pause();
-        auto n = feed(sb.data(), p, ec);
+        auto n = feed(b.data(), p, ec);
         BEAST_EXPECTS(! ec, ec.message());
         BEAST_EXPECT(p.got_on_begin);
         BEAST_EXPECT(p.got_on_field);
@@ -922,9 +922,9 @@ public:
         BEAST_EXPECT(p.state() != parse_state::header);
         BEAST_EXPECT(! p.is_complete());
         BEAST_EXPECT(p.body.empty());
-        sb.consume(n);
+        b.consume(n);
         p.resume();
-        n = feed(sb.data(), p, ec);
+        n = feed(b.data(), p, ec);
         BEAST_EXPECTS(! ec, ec.message());
         BEAST_EXPECT(p.got_on_begin);
         BEAST_EXPECT(p.got_on_field);

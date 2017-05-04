@@ -41,9 +41,9 @@ int main()
     ws.write(boost::asio::buffer("Hello, world!"));
 
     // Receive Secure WebSocket message, print and close using Beast
-    beast::streambuf sb;
+    beast::multi_buffer b;
     beast::websocket::opcode op;
-    ws.read(op, sb);
+    ws.read(op, b);
     ws.close(beast::websocket::close_code::normal);
-    std::cout << beast::buffers(sb.data()) << "\n";
+    std::cout << beast::buffers(b.data()) << "\n";
 }

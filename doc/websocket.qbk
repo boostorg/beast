@@ -294,13 +294,13 @@ all of the buffers representing the message are known ahead of time:
 ```
 void echo(beast::websocket::stream<boost::asio::ip::tcp::socket>& ws)
 {
-    beast::streambuf sb;
+    beast::multi_buffer b;
     beast::websocket::opcode::value op;
-    ws.read(op, sb);
+    ws.read(op, b);
 
     ws.set_option(beast::websocket::message_type{op});
-    ws.write(sb.data());
-    sb.consume(sb.size());
+    ws.write(b.data());
+    sb.consume(b.size());
 }
 ```
 
@@ -328,17 +328,17 @@ example reads and echoes a complete message using this interface:
 ```
 void echo(beast::websocket::stream<boost::asio::ip::tcp::socket>& ws)
 {
-    beast::streambuf sb;
+    beast::multi_buffer b;
     beast::websocket::frame_info fi;
     for(;;)
     {
-        ws.read_frame(fi, sb);
+        ws.read_frame(fi, b);
         if(fi.fin)
             break;
     }
     ws.set_option(beast::websocket::message_type{fi.op});
     beast::consuming_buffers<
-        beast::streambuf::const_buffers_type> cb{sb.data()};
+        beast::streambuf::const_buffers_type> cb{b.data()};
     for(;;)
     {
         using boost::asio::buffer_size;

@@ -9,7 +9,7 @@
 #include <beast/core/buffers_adapter.hpp>
 
 #include <beast/core/ostream.hpp>
-#include <beast/core/streambuf.hpp>
+#include <beast/core/multi_buffer.hpp>
 #include <beast/unit_test/suite.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/asio/streambuf.hpp>
@@ -151,19 +151,19 @@ public:
         using boost::asio::buffer_size;
         {
             using sb_type = boost::asio::streambuf;
-            sb_type sb;
+            sb_type b;
             buffers_adapter<
-                sb_type::mutable_buffers_type> ba(sb.prepare(3));
+                sb_type::mutable_buffers_type> ba(b.prepare(3));
             BEAST_EXPECT(buffer_size(ba.prepare(3)) == 3);
             ba.commit(2);
             BEAST_EXPECT(buffer_size(ba.data()) == 2);
         }
         {
-            using sb_type = beast::streambuf;
-            sb_type sb(2);
-            sb.prepare(3);
+            using sb_type = beast::multi_buffer;
+            sb_type b(2);
+            b.prepare(3);
             buffers_adapter<
-                sb_type::mutable_buffers_type> ba(sb.prepare(8));
+                sb_type::mutable_buffers_type> ba(b.prepare(8));
             BEAST_EXPECT(buffer_size(ba.prepare(8)) == 8);
             ba.commit(2);
             BEAST_EXPECT(buffer_size(ba.data()) == 2);

@@ -98,7 +98,7 @@ class stream : public detail::stream_base
 {
     friend class stream_test;
 
-    dynabuf_readstream<NextLayer, streambuf> stream_;
+    dynabuf_readstream<NextLayer, multi_buffer> stream_;
 
 public:
     /// The type of the next layer.

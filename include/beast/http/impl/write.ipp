@@ -17,7 +17,7 @@
 #include <beast/core/handler_helpers.hpp>
 #include <beast/core/handler_ptr.hpp>
 #include <beast/core/stream_concepts.hpp>
-#include <beast/core/streambuf.hpp>
+#include <beast/core/multi_buffer.hpp>
 #include <beast/core/detail/sync_ostream.hpp>
 #include <boost/asio/write.hpp>
 #include <condition_variable>
@@ -89,15 +89,15 @@ class write_streambuf_op
     {
         bool cont;
         Stream& s;
-        streambuf sb;
+        multi_buffer b;
         int state = 0;
 
         data(Handler& handler, Stream& s_,
-                streambuf&& sb_)
+                multi_buffer&& sb_)
             : cont(beast_asio_helpers::
                 is_continuation(handler))
             , s(s_)
-            , sb(std::move(sb_))
+            , b(std::move(sb_))
         {
         }
     };
@@ -167,7 +167,7 @@ operator()(error_code ec, std::size_t, bool again)
         {
             d.state = 99;
             boost::asio::async_write(d.s,
-                d.sb.data(), std::move(*this));
+                d.b.data(), std::move(*this));
             return;
         }
         }
@@ -200,14 +200,14 @@ write(SyncWriteStream& stream,
 {
     static_assert(is_SyncWriteStream<SyncWriteStream>::value,
         "SyncWriteStream requirements not met");
-    streambuf sb;
+    multi_buffer b;
     {
-        auto os = ostream(sb);
+        auto os = ostream(b);
         detail::write_start_line(os, msg);
         detail::write_fields(os, msg.fields);
         os << "\r\n";
     }
-    boost::asio::write(stream, sb.data(), ec);
+    boost::asio::write(stream, b.data(), ec);
 }
 
 template<class AsyncWriteStream,
@@ -223,16 +223,16 @@ async_write(AsyncWriteStream& stream,
         "AsyncWriteStream requirements not met");
     beast::async_completion<WriteHandler,
         void(error_code)> completion{handler};
-    streambuf sb;
+    multi_buffer b;
     {
-        auto os = ostream(sb);
+        auto os = ostream(b);
         detail::write_start_line(os, msg);
         detail::write_fields(os, msg.fields);
         os << "\r\n";
     }
     detail::write_streambuf_op<AsyncWriteStream,
         decltype(completion.handler)>{
-            completion.handler, stream, std::move(sb)};
+            completion.handler, stream, std::move(b)};
     return completion.result.get();
 }
 
@@ -245,7 +245,7 @@ struct write_preparation
 {
     message<isRequest, Body, Fields> const& msg;
     typename Body::writer w;
-    streambuf sb;
+    multi_buffer b;
     bool chunked;
     bool close;
 
@@ -270,7 +270,7 @@ struct write_preparation
         if(ec)
             return;
 
-        auto os = ostream(sb);
+        auto os = ostream(b);
         write_start_line(os, msg);
         write_fields(os, msg.fields);
         os << "\r\n";
@@ -318,12 +318,12 @@ class write_op
             // write header and body
             if(d.wp.chunked)
                 boost::asio::async_write(d.s,
-                    buffer_cat(d.wp.sb.data(),
+                    buffer_cat(d.wp.b.data(),
                         chunk_encode(false, buffers)),
                             std::move(self_));
             else
                 boost::asio::async_write(d.s,
-                    buffer_cat(d.wp.sb.data(),
+                    buffer_cat(d.wp.b.data(),
                         buffers), std::move(self_));
         }
     };
@@ -452,7 +452,7 @@ operator()(error_code ec, std::size_t, bool again)
 
         // sent header and body
         case 2:
-            d.wp.sb.consume(d.wp.sb.size());
+            d.wp.b.consume(d.wp.b.size());
             d.state = 3;
             break;
 
@@ -508,8 +508,8 @@ class writef0_lambda
 
 public:
     writef0_lambda(SyncWriteStream& stream,
-            DynamicBuffer const& sb, bool chunked, error_code& ec)
-        : sb_(sb)
+            DynamicBuffer const& b, bool chunked, error_code& ec)
+        : sb_(b)
         , stream_(stream)
         , chunked_(chunked)
         , ec_(ec)
@@ -602,11 +602,11 @@ write(SyncWriteStream& stream,
         return;
     auto result = wp.w.write(
         ec, detail::writef0_lambda<
-            SyncWriteStream, decltype(wp.sb)>{
-                stream, wp.sb, wp.chunked, ec});
+            SyncWriteStream, decltype(wp.b)>{
+                stream, wp.b, wp.chunked, ec});
     if(ec)
         return;
-    wp.sb.consume(wp.sb.size());
+    wp.b.consume(wp.b.size());
     if(! result)
     {
         detail::writef_lambda<SyncWriteStream> wf{

@@ -40,15 +40,15 @@ public:
         auto const len = strlen(s);
         for(n = 0; n < limit; ++n)
         {
-            streambuf sb;
-            sb.commit(buffer_copy(
-                sb.prepare(len), buffer(s, len)));
+            multi_buffer b;
+            b.commit(buffer_copy(
+                b.prepare(len), buffer(s, len)));
             test::fail_counter fc(n);
             test::fail_stream<
                 test::string_istream> fs{fc, ios_, ""};
             test_parser<isRequest> p(fc);
             error_code ec;
-            read(fs, sb, p, ec);
+            read(fs, b, p, ec);
             if(! ec)
                 break;
         }
@@ -56,30 +56,30 @@ public:
         for(n = 0; n < limit; ++n)
         {
             static std::size_t constexpr pre = 10;
-            streambuf sb;
-            sb.commit(buffer_copy(
-                sb.prepare(pre), buffer(s, pre)));
+            multi_buffer b;
+            b.commit(buffer_copy(
+                b.prepare(pre), buffer(s, pre)));
             test::fail_counter fc(n);
             test::fail_stream<test::string_istream> fs{
                 fc, ios_, std::string{s + pre, len - pre}};
             test_parser<isRequest> p(fc);
             error_code ec;
-            read(fs, sb, p, ec);
+            read(fs, b, p, ec);
             if(! ec)
                 break;
         }
         BEAST_EXPECT(n < limit);
         for(n = 0; n < limit; ++n)
         {
-            streambuf sb;
-            sb.commit(buffer_copy(
-                sb.prepare(len), buffer(s, len)));
+            multi_buffer b;
+            b.commit(buffer_copy(
+                b.prepare(len), buffer(s, len)));
             test::fail_counter fc(n);
             test::fail_stream<
                 test::string_istream> fs{fc, ios_, ""};
             test_parser<isRequest> p(fc);
             error_code ec;
-            async_read(fs, sb, p, do_yield[ec]);
+            async_read(fs, b, p, do_yield[ec]);
             if(! ec)
                 break;
         }
@@ -87,15 +87,15 @@ public:
         for(n = 0; n < limit; ++n)
         {
             static std::size_t constexpr pre = 10;
-            streambuf sb;
-            sb.commit(buffer_copy(
-                sb.prepare(pre), buffer(s, pre)));
+            multi_buffer b;
+            b.commit(buffer_copy(
+                b.prepare(pre), buffer(s, pre)));
             test::fail_counter fc(n);
             test::fail_stream<test::string_istream> fs{
                 fc, ios_, std::string{s + pre, len - pre}};
             test_parser<isRequest> p(fc);
             error_code ec;
-            async_read(fs, sb, p, do_yield[ec]);
+            async_read(fs, b, p, do_yield[ec]);
             if(! ec)
                 break;
         }
@@ -106,10 +106,10 @@ public:
     {
         try
         {
-            streambuf sb;
+            multi_buffer b;
             test::string_istream ss(ios_, "GET / X");
             message_parser<true, dynamic_body, fields> p;
-            read(ss, sb, p);
+            read(ss, b, p);
             fail();
         }
         catch(std::exception const&)
@@ -197,8 +197,8 @@ public:
             request<dynamic_body> m;
             try
             {
-                streambuf sb;
-                read(fs, sb, m);
+                multi_buffer b;
+                read(fs, b, m);
                 break;
             }
             catch(std::exception const&)
@@ -218,8 +218,8 @@ public:
             );
             request<dynamic_body> m;
             error_code ec;
-            streambuf sb;
-            read(fs, sb, m, ec);
+            multi_buffer b;
+            read(fs, b, m, ec);
             if(! ec)
                 break;
         }
@@ -236,8 +236,8 @@ public:
             );
             request<dynamic_body> m;
             error_code ec;
-            streambuf sb;
-            async_read(fs, sb, m, do_yield[ec]);
+            multi_buffer b;
+            async_read(fs, b, m, do_yield[ec]);
             if(! ec)
                 break;
         }
@@ -248,19 +248,19 @@ public:
     testEof(yield_context do_yield)
     {
         {
-            streambuf sb;
+            multi_buffer b;
             test::string_istream ss(ios_, "");
             message_parser<true, dynamic_body, fields> p;
             error_code ec;
-            read(ss, sb, p, ec);
+            read(ss, b, p, ec);
             BEAST_EXPECT(ec == boost::asio::error::eof);
         }
         {
-            streambuf sb;
+            multi_buffer b;
             test::string_istream ss(ios_, "");
             message_parser<true, dynamic_body, fields> p;
             error_code ec;
-            async_read(ss, sb, p, do_yield[ec]);
+            async_read(ss, b, p, do_yield[ec]);
             BEAST_EXPECT(ec == boost::asio::error::eof);
         }
     }
@@ -286,9 +286,9 @@ public:
             test::string_istream is{ios,
                 "GET / HTTP/1.1\r\n\r\n"};
             BEAST_EXPECT(handler::count() == 0);
-            streambuf sb;
+            multi_buffer b;
             message<true, dynamic_body, fields> m;
-            async_read(is, sb, m, handler{});
+            async_read(is, b, m, handler{});
             BEAST_EXPECT(handler::count() > 0);
             ios.stop();
             BEAST_EXPECT(handler::count() > 0);
@@ -305,9 +305,9 @@ public:
                 test::string_istream is{ios,
                     "GET / HTTP/1.1\r\n\r\n"};
                 BEAST_EXPECT(handler::count() == 0);
-                streambuf sb;
+                multi_buffer b;
                 message<true, dynamic_body, fields> m;
-                async_read(is, sb, m, handler{});
+                async_read(is, b, m, handler{});
                 BEAST_EXPECT(handler::count() > 0);
             }
             BEAST_EXPECT(handler::count() == 0);

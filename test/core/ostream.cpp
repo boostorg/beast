@@ -8,7 +8,7 @@
 // Test that header file is self-contained.
 #include <beast/core/ostream.hpp>
 
-#include <beast/core/streambuf.hpp>
+#include <beast/core/multi_buffer.hpp>
 #include <beast/unit_test/suite.hpp>
 #include <boost/lexical_cast.hpp>
 #include <ostream>
@@ -20,10 +20,10 @@ class ostream_test : public beast::unit_test::suite
 public:
     void run() override
     {
-        streambuf sb;
-        ostream(sb) << "Hello, world!\n";
+        multi_buffer b;
+        ostream(b) << "Hello, world!\n";
         BEAST_EXPECT(boost::lexical_cast<std::string>(
-            buffers(sb.data())) == "Hello, world!\n");
+            buffers(b.data())) == "Hello, world!\n");
     }
 };
 

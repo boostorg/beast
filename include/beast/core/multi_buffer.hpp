@@ -5,8 +5,8 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#ifndef BEAST_STREAMBUF_HPP
-#define BEAST_STREAMBUF_HPP
+#ifndef BEAST_MULTI_BUFFER_HPP
+#define BEAST_MULTI_BUFFER_HPP
 
 #include <beast/config.hpp>
 #include <beast/core/detail/empty_base_optimization.hpp>
@@ -31,7 +31,7 @@ namespace beast {
     @tparam Allocator The allocator to use for managing memory.
 */
 template<class Allocator>
-class basic_streambuf
+class basic_multi_buffer
 #if ! BEAST_DOXYGEN
     : private detail::empty_base_optimization<
         typename std::allocator_traits<Allocator>::
@@ -96,7 +96,7 @@ public:
 #endif
 
     /// Destructor.
-    ~basic_streambuf();
+    ~basic_multi_buffer();
 
     /** Move constructor.
 
@@ -107,7 +107,7 @@ public:
         an empty input and output sequence, with no internal
         buffers allocated.
     */
-    basic_streambuf(basic_streambuf&&);
+    basic_multi_buffer(basic_multi_buffer&&);
 
     /** Move constructor.
 
@@ -121,7 +121,7 @@ public:
         @param alloc The allocator to associate with the
         stream buffer.
     */
-    basic_streambuf(basic_streambuf&&,
+    basic_multi_buffer(basic_multi_buffer&&,
         allocator_type const& alloc);
 
     /** Move assignment.
@@ -133,41 +133,15 @@ public:
         an empty input and output sequence, with no internal
         buffers allocated.
     */
-    basic_streambuf&
-    operator=(basic_streambuf&&);
+    basic_multi_buffer&
+    operator=(basic_multi_buffer&&);
 
     /** Copy constructor.
 
         This object will have a copy of the other stream
         buffer's input sequence, and an empty output sequence.
     */
-    basic_streambuf(basic_streambuf const&);
-
-    /** Copy constructor.
-
-        This object will have a copy of the other stream
-        buffer's input sequence, and an empty output sequence.
-
-        @param alloc The allocator to associate with the
-        stream buffer.
-    */
-    basic_streambuf(basic_streambuf const&,
-        allocator_type const& alloc);
-
-    /** Copy assignment.
-
-        This object will have a copy of the other stream
-        buffer's input sequence, and an empty output sequence.
-    */
-    basic_streambuf& operator=(basic_streambuf const&);
-
-    /** Copy constructor.
-
-        This object will have a copy of the other stream
-        buffer's input sequence, and an empty output sequence.
-    */
-    template<class OtherAlloc>
-    basic_streambuf(basic_streambuf<OtherAlloc> const&);
+    basic_multi_buffer(basic_multi_buffer const&);
 
     /** Copy constructor.
 
@@ -177,8 +151,34 @@ public:
         @param alloc The allocator to associate with the
         stream buffer.
     */
+    basic_multi_buffer(basic_multi_buffer const&,
+        allocator_type const& alloc);
+
+    /** Copy assignment.
+
+        This object will have a copy of the other stream
+        buffer's input sequence, and an empty output sequence.
+    */
+    basic_multi_buffer& operator=(basic_multi_buffer const&);
+
+    /** Copy constructor.
+
+        This object will have a copy of the other stream
+        buffer's input sequence, and an empty output sequence.
+    */
     template<class OtherAlloc>
-    basic_streambuf(basic_streambuf<OtherAlloc> const&,
+    basic_multi_buffer(basic_multi_buffer<OtherAlloc> const&);
+
+    /** Copy constructor.
+
+        This object will have a copy of the other stream
+        buffer's input sequence, and an empty output sequence.
+
+        @param alloc The allocator to associate with the
+        stream buffer.
+    */
+    template<class OtherAlloc>
+    basic_multi_buffer(basic_multi_buffer<OtherAlloc> const&,
         allocator_type const& alloc);
 
     /** Copy assignment.
@@ -187,7 +187,7 @@ public:
         buffer's input sequence, and an empty output sequence.
     */
     template<class OtherAlloc>
-    basic_streambuf& operator=(basic_streambuf<OtherAlloc> const&);
+    basic_multi_buffer& operator=(basic_multi_buffer<OtherAlloc> const&);
 
     /** Construct a stream buffer.
 
@@ -200,7 +200,7 @@ public:
         unspecified, a default constructed allocator will be used.
     */
     explicit
-    basic_streambuf(std::size_t alloc_size = 1024,
+    basic_multi_buffer(std::size_t alloc_size = 1024,
         Allocator const& alloc = allocator_type{});
 
     /// Returns a copy of the associated allocator.
@@ -289,24 +289,24 @@ public:
     template<class OtherAllocator>
     friend
     std::size_t
-    read_size_helper(basic_streambuf<
-        OtherAllocator> const& streambuf, std::size_t max_size);
+    read_size_helper(basic_multi_buffer<
+        OtherAllocator> const& multi_buffer, std::size_t max_size);
 
 private:
     void
     clear();
 
     void
-    move_assign(basic_streambuf& other, std::false_type);
+    move_assign(basic_multi_buffer& other, std::false_type);
 
     void
-    move_assign(basic_streambuf& other, std::true_type);
+    move_assign(basic_multi_buffer& other, std::true_type);
 
     void
-    copy_assign(basic_streambuf const& other, std::false_type);
+    copy_assign(basic_multi_buffer const& other, std::false_type);
 
     void
-    copy_assign(basic_streambuf const& other, std::true_type);
+    copy_assign(basic_multi_buffer const& other, std::true_type);
 
     void
     delete_list();
@@ -324,10 +324,10 @@ private:
 
     @note Meets the requirements of @b `DynamicBuffer`.
 */
-using streambuf = basic_streambuf<std::allocator<char>>;
+using multi_buffer = basic_multi_buffer<std::allocator<char>>;
 
 } // beast
 
-#include <beast/core/impl/streambuf.ipp>
+#include <beast/core/impl/multi_buffer.ipp>
 
 #endif

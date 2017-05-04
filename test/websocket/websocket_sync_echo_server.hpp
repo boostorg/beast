@@ -9,7 +9,7 @@
 #define BEAST_WEBSOCKET_SYNC_ECHO_SERVER_HPP
 
 #include <beast/core/placeholders.hpp>
-#include <beast/core/streambuf.hpp>
+#include <beast/core/multi_buffer.hpp>
 #include <beast/websocket.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/optional.hpp>
@@ -306,41 +306,41 @@ private:
         for(;;)
         {
             beast::websocket::opcode op;
-            beast::streambuf sb;
-            ws.read(op, sb, ec);
+            beast::multi_buffer b;
+            ws.read(op, b, ec);
             if(ec)
             {
                 auto const s = ec.message();
                 break;
             }
             ws.set_option(beast::websocket::message_type{op});
-            if(match(sb, "RAW"))
+            if(match(b, "RAW"))
             {
                 boost::asio::write(
-                    ws.next_layer(), sb.data(), ec);
+                    ws.next_layer(), b.data(), ec);
             }
-            else if(match(sb, "TEXT"))
+            else if(match(b, "TEXT"))
             {
                 ws.set_option(
                     beast::websocket::message_type{
                         beast::websocket::opcode::text});
-                ws.write(sb.data(), ec);
+                ws.write(b.data(), ec);
             }
-            else if(match(sb, "PING"))
+            else if(match(b, "PING"))
             {
                 beast::websocket::ping_data payload;
-                sb.consume(buffer_copy(
+                b.consume(buffer_copy(
                     buffer(payload.data(), payload.size()),
-                        sb.data()));
+                        b.data()));
                 ws.ping(payload, ec);
             }
-            else if(match(sb, "CLOSE"))
+            else if(match(b, "CLOSE"))
             {
                 ws.close({}, ec);
             }
             else
             {
-                ws.write(sb.data(), ec);
+                ws.write(b.data(), ec);
             }
             if(ec)
                 break;

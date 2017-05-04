@@ -104,8 +104,8 @@ public:
                 "*"
             };
             message<true, direct_body, fields> m;
-            flat_streambuf sb{1024};
-            read(is, sb, m);
+            flat_streambuf b{1024};
+            read(is, b, m);
             BEAST_EXPECT(m.body == "*");
         }
 
@@ -117,8 +117,8 @@ public:
                 "*"
             };
             message<false, direct_body, fields> m;
-            flat_streambuf sb{20};
-            read(is, sb, m);
+            flat_streambuf b{20};
+            read(is, b, m);
             BEAST_EXPECT(m.body == "*");
         }
 
@@ -133,8 +133,8 @@ public:
                 "0\r\n\r\n"
             };
             message<true, direct_body, fields> m;
-            flat_streambuf sb{100};
-            read(is, sb, m);
+            flat_streambuf b{100};
+            read(is, b, m);
             BEAST_EXPECT(m.body == "*");
         }
     }
@@ -201,8 +201,8 @@ public:
                 "*"
             };
             message<true, indirect_body, fields> m;
-            flat_streambuf sb{1024};
-            read(is, sb, m);
+            flat_streambuf b{1024};
+            read(is, b, m);
             BEAST_EXPECT(m.body == "*");
         }
 
@@ -214,8 +214,8 @@ public:
                 "*"
             };
             message<false, indirect_body, fields> m;
-            flat_streambuf sb{20};
-            read(is, sb, m);
+            flat_streambuf b{20};
+            read(is, b, m);
             BEAST_EXPECT(m.body == "*");
         }
 
@@ -231,8 +231,8 @@ public:
                 "0\r\n\r\n"
             };
             message<true, indirect_body, fields> m;
-            flat_streambuf sb{1024};
-            read(is, sb, m);
+            flat_streambuf b{1024};
+            read(is, b, m);
             BEAST_EXPECT(m.body == "*");
         }
     }
@@ -253,15 +253,15 @@ public:
                 "*****"
             };
             header_parser<true, fields> p;
-            flat_streambuf sb{38};
+            flat_streambuf b{38};
             auto const bytes_used =
-                read_some(is, sb, p);
-            sb.consume(bytes_used);
+                read_some(is, b, p);
+            b.consume(bytes_used);
             BEAST_EXPECT(p.size() == 5);
-            BEAST_EXPECT(sb.size() < 5);
-            sb.commit(boost::asio::read(
-                is, sb.prepare(5 - sb.size())));
-            BEAST_EXPECT(sb.size() == 5);
+            BEAST_EXPECT(b.size() < 5);
+            b.commit(boost::asio::read(
+                is, b.prepare(5 - b.size())));
+            BEAST_EXPECT(b.size() == 5);
         }
 
         // end of file
@@ -272,16 +272,16 @@ public:
                 "*****"
             };
             header_parser<false, fields> p;
-            flat_streambuf sb{20};
+            flat_streambuf b{20};
             auto const bytes_used =
-                read_some(is, sb, p);
-            sb.consume(bytes_used);
+                read_some(is, b, p);
+            b.consume(bytes_used);
             BEAST_EXPECT(p.state() ==
                 parse_state::body_to_eof);
-            BEAST_EXPECT(sb.size() < 5);
-            sb.commit(boost::asio::read(
-                is, sb.prepare(5 - sb.size())));
-            BEAST_EXPECT(sb.size() == 5);
+            BEAST_EXPECT(b.size() < 5);
+            b.commit(boost::asio::read(
+                is, b.prepare(5 - b.size())));
+            BEAST_EXPECT(b.size() == 5);
         }
     }
 
@@ -303,10 +303,10 @@ public:
             };
 
             header_parser<true, fields> p;
-            flat_streambuf sb{128};
+            flat_streambuf b{128};
             auto const bytes_used =
-                read_some(is, sb, p);
-            sb.consume(bytes_used);
+                read_some(is, b, p);
+            b.consume(bytes_used);
             BEAST_EXPECT(p.got_header());
             BEAST_EXPECT(
                 p.get().fields["Expect"] ==
@@ -314,7 +314,7 @@ public:
             message_parser<
                 true, string_body, fields> p1{
                     std::move(p)};
-            read(is, sb, p1);
+            read(is, b, p1);
             BEAST_EXPECT(
                 p1.get().body == "*****");
         }
@@ -332,7 +332,7 @@ public:
     void
     relay(
         SyncWriteStream& out,
-        DynamicBuffer& sb,
+        DynamicBuffer& b,
         SyncReadStream& in)
     {
         flat_streambuf buffer{4096}; // 4K limit
@@ -397,8 +397,8 @@ public:
                 3 // max_read
             };
             test::string_ostream os{ios_};
-            flat_streambuf sb{16};
-            relay<true>(os, sb, is);
+            flat_streambuf b{16};
+            relay<true>(os, b, is);
         }
 
         // end of file
@@ -410,8 +410,8 @@ public:
                 3 // max_read
             };
             test::string_ostream os{ios_};
-            flat_streambuf sb{16};
-            relay<false>(os, sb, is);
+            flat_streambuf b{16};
+            relay<false>(os, b, is);
         }
 
         // chunked
@@ -427,8 +427,8 @@ public:
                 2 // max_read
             };
             test::string_ostream os{ios_};
-            flat_streambuf sb{16};
-            relay<true>(os, sb, is);
+            flat_streambuf b{16};
+            relay<true>(os, b, is);
         }
     }
 

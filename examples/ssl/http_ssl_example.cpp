@@ -45,9 +45,9 @@ int main()
     beast::http::write(stream, req);
 
     // Receive and print HTTP response using Beast
-    beast::streambuf sb;
+    beast::multi_buffer b;
     beast::http::response<beast::http::dynamic_body> resp;
-    beast::http::read(stream, sb, resp);
+    beast::http::read(stream, b, resp);
     std::cout << resp;
 
     // Shut down SSL on the stream
