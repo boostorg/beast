@@ -10,9 +10,10 @@
 
 #include <beast/http.hpp>
 #include <beast/core/consuming_buffers.hpp>
+#include <beast/core/ostream.hpp>
 #include <beast/core/streambuf.hpp>
-#include <beast/core/to_string.hpp>
 #include <beast/unit_test/suite.hpp>
+#include <boost/lexical_cast.hpp>
 #include <chrono>
 #include <iostream>
 #include <vector>
@@ -30,6 +31,15 @@ public:
     corpus creq_;
     corpus cres_;
     std::size_t size_ = 0;
+
+    template<class ConstBufferSequence>
+    static
+    std::string
+    to_string(ConstBufferSequence const& bs)
+    {
+        return boost::lexical_cast<
+            std::string>(buffers(bs));
+    }
 
     parser_bench_test()
     {
