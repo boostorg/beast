@@ -9,7 +9,7 @@
 #include <beast/core/consuming_buffers.hpp>
 
 #include "buffer_test.hpp"
-#include <beast/core/to_string.hpp>
+#include <beast/core/ostream.hpp>
 #include <beast/unit_test/suite.hpp>
 #include <boost/asio/buffer.hpp>
 #include <string>
@@ -19,6 +19,15 @@ namespace beast {
 class consuming_buffers_test : public beast::unit_test::suite
 {
 public:
+    template<class ConstBufferSequence>
+    static
+    std::string
+    to_string(ConstBufferSequence const& bs)
+    {
+        return boost::lexical_cast<
+            std::string>(buffers(bs));
+    }
+
     template<class BufferSequence>
     static
     consuming_buffers<BufferSequence>

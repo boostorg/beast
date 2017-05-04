@@ -8,7 +8,7 @@
 #include "websocket_async_ssl_echo_server.hpp"
 
 #include <beast/websocket/stream.hpp>
-#include <beast/core/to_string.hpp>
+#include <beast/core/ostream.hpp>
 #include <beast/unit_test/suite.hpp>
 #include <beast/test/yield_to.hpp>
 #include <boost/asio.hpp>
@@ -126,7 +126,7 @@ public:
         // Secure WebSocket connect and send message using Beast
         beast::websocket::stream<stream_type&> ws{stream};
         ws.handshake("localhost", "/");
-        ws.write(boost::asio::buffer("Hello, world!"));
+        ws.write(boost::asio::buffer("Hello, world!", 13));
 
         // Receive Secure WebSocket message, print and close using Beast
         beast::streambuf sb;
@@ -146,9 +146,8 @@ public:
             if(se.code() != beast::websocket::error::closed)
                 throw;
         }
-        log << to_string(sb.data()) << std::endl;
-
-        pass();
+        BEAST_EXPECT(boost::lexical_cast<std::string>(
+            buffers(sb.data())) == "Hello, world!");
     }
 };
 

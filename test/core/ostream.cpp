@@ -10,9 +10,8 @@
 
 #include <beast/core/streambuf.hpp>
 #include <beast/unit_test/suite.hpp>
+#include <boost/lexical_cast.hpp>
 #include <ostream>
-
-#include <beast/core/to_string.hpp>
 
 namespace beast {
 
@@ -23,7 +22,8 @@ public:
     {
         streambuf sb;
         ostream(sb) << "Hello, world!\n";
-        BEAST_EXPECT(to_string(sb.data()) == "Hello, world!\n");
+        BEAST_EXPECT(boost::lexical_cast<std::string>(
+            buffers(sb.data())) == "Hello, world!\n");
     }
 };
 

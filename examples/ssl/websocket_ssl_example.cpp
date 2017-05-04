@@ -5,7 +5,7 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#include <beast/core/to_string.hpp>
+#include <beast/core/ostream.hpp>
 #include <beast/websocket.hpp>
 #include <beast/websocket/ssl.hpp>
 #include <boost/asio.hpp>
@@ -45,5 +45,5 @@ int main()
     beast::websocket::opcode op;
     ws.read(op, sb);
     ws.close(beast::websocket::close_code::normal);
-    std::cout << to_string(sb.data()) << "\n";
+    std::cout << beast::buffers(sb.data()) << "\n";
 }

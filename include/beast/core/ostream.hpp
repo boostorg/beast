@@ -17,6 +17,40 @@
 
 namespace beast {
 
+/** Return an object representing a @b ConstBufferSequence.
+
+    This function wraps a reference to a buffer sequence and permits
+    the following operation:
+
+    @li `operator<<` to `std::ostream`. No character translation is
+        performed; unprintable and null characters will be transferred
+        as-is to the output stream.
+
+    @par Example
+    @code
+        streambuf sb;
+        ...
+        std::cout << buffers(sb.data()) << std::endl;
+    @endcode
+
+    @param b An object meeting the requirements of @b ConstBufferSequence
+    to be streamed. The implementation will make a copy of this object.
+*/
+template<class ConstBufferSequence>
+#if BEAST_DOXYGEN
+implementation_defined
+#else
+detail::buffers_helper<ConstBufferSequence>
+#endif
+buffers(ConstBufferSequence const& b)
+{
+    static_assert(is_ConstBufferSequence<
+        ConstBufferSequence>::value,
+            "ConstBufferSequence not met");
+    return detail::buffers_helper<
+        ConstBufferSequence>{b};
+}
+
 /** Return an output stream that formats values into a @b DynamicBuffer.
 
     This function wraps the caller provided @b DynamicBuffer into

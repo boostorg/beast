@@ -19,6 +19,40 @@
 namespace beast {
 namespace detail {
 
+template<class Buffers>
+class buffers_helper
+{
+    Buffers b_;
+
+public:
+    explicit
+    buffers_helper(Buffers const& b)
+        : b_(b)
+    {
+    }
+
+    template<class B>
+    friend
+    std::ostream&
+    operator<<(std::ostream& os,
+        buffers_helper<B> const& v);
+};
+
+template<class Buffers>
+std::ostream&
+operator<<(std::ostream& os,
+    buffers_helper<Buffers> const& v)
+{
+    using boost::asio::buffer_cast;
+    using boost::asio::buffer_size;
+    for(auto const& b : v.b_)
+        os.write(buffer_cast<char const*>(b),
+            buffer_size(b));
+    return os;
+}
+
+//------------------------------------------------------------------------------
+
 template<
     class DynamicBuffer,
     class CharT,

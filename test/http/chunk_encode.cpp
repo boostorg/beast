@@ -8,8 +8,9 @@
 // Test that header file is self-contained.
 #include <beast/http/chunk_encode.hpp>
 
-#include <beast/core/to_string.hpp>
+#include <beast/core/ostream.hpp>
 #include <beast/unit_test/suite.hpp>
+#include <boost/lexical_cast.hpp>
 
 namespace beast {
 namespace http {
@@ -29,6 +30,15 @@ public:
         {
         }
     };
+
+    template<class ConstBufferSequence>
+    static
+    std::string
+    to_string(ConstBufferSequence const& bs)
+    {
+        return boost::lexical_cast<
+            std::string>(buffers(bs));
+    }
 
     static
     void

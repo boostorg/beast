@@ -10,7 +10,7 @@
 
 #include "buffer_test.hpp"
 #include <beast/core/buffer_concepts.hpp>
-#include <beast/core/to_string.hpp>
+#include <beast/core/ostream.hpp>
 #include <beast/test/test_allocator.hpp>
 #include <beast/unit_test/suite.hpp>
 #include <boost/asio/buffer.hpp>
@@ -26,6 +26,15 @@ static_assert(is_DynamicBuffer<streambuf>::value, "");
 class basic_streambuf_test : public beast::unit_test::suite
 {
 public:
+    template<class ConstBufferSequence>
+    static
+    std::string
+    to_string(ConstBufferSequence const& bs)
+    {
+        return boost::lexical_cast<
+            std::string>(buffers(bs));
+    }
+
     template<class Alloc1, class Alloc2>
     static
     bool

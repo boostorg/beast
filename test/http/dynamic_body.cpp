@@ -8,7 +8,7 @@
 // Test that header file is self-contained.
 #include <beast/http/dynamic_body.hpp>
 
-#include <beast/core/to_string.hpp>
+#include <beast/core/ostream.hpp>
 #include <beast/http/fields.hpp>
 #include <beast/http/message_parser.hpp>
 #include <beast/http/read.hpp>
@@ -25,7 +25,8 @@ class dynamic_body_test : public beast::unit_test::suite
     boost::asio::io_service ios_;
 
 public:
-    void run() override
+    void
+    run() override
     {
         std::string const s =
             "HTTP/1.1 200 OK\r\n"
@@ -38,7 +39,8 @@ public:
         streambuf sb;
         read(ss, sb, p);
         auto const& m = p.get();
-        BEAST_EXPECT(to_string(m.body.data()) == "xyz");
+        BEAST_EXPECT(boost::lexical_cast<std::string>(
+            buffers(m.body.data())) == "xyz");
         BEAST_EXPECT(boost::lexical_cast<std::string>(m) == s);
     }
 };

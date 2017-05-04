@@ -11,8 +11,8 @@
 #include "websocket_async_echo_server.hpp"
 #include "websocket_sync_echo_server.hpp"
 
+#include <beast/core/ostream.hpp>
 #include <beast/core/streambuf.hpp>
-#include <beast/core/to_string.hpp>
 #include <beast/test/fail_stream.hpp>
 #include <beast/test/string_istream.hpp>
 #include <beast/test/string_iostream.hpp>
@@ -37,6 +37,15 @@ public:
     using endpoint_type = boost::asio::ip::tcp::endpoint;
     using address_type = boost::asio::ip::address;
     using socket_type = boost::asio::ip::tcp::socket;
+
+    template<class ConstBufferSequence>
+    static
+    std::string
+    to_string(ConstBufferSequence const& bs)
+    {
+        return boost::lexical_cast<
+            std::string>(buffers(bs));
+    }
 
     struct con
     {
@@ -1169,7 +1178,8 @@ public:
         );
     }
 
-    void testMask(endpoint_type const& ep,
+    void
+    testMask(endpoint_type const& ep,
         yield_context do_yield)
     {
         {
