@@ -16,7 +16,7 @@
 #include <beast/core/buffer_concepts.hpp>
 #include <beast/core/buffers_adapter.hpp>
 #include <beast/core/consuming_buffers.hpp>
-#include <beast/core/dynabuf_readstream.hpp>
+#include <beast/core/buffered_read_stream.hpp>
 #include <beast/core/error.hpp>
 #include <beast/core/flat_buffer.hpp>
 #include <beast/core/handler_alloc.hpp>

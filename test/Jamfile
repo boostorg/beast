@@ -20,10 +20,10 @@ unit-test core-tests :
     core/bind_handler.cpp
     core/buffer_cat.cpp
     core/buffer_concepts.cpp
+    core/buffered_read_stream.cpp
     core/buffers_adapter.cpp
     core/clamp.cpp
     core/consuming_buffers.cpp
-    core/dynabuf_readstream.cpp
     core/error.cpp
     core/flat_buffer.cpp
     core/handler_alloc.cpp
