@@ -15,7 +15,7 @@
 #include <beast/core/handler_helpers.hpp>
 #include <beast/core/handler_ptr.hpp>
 #include <beast/core/prepare_buffers.hpp>
-#include <beast/core/static_streambuf.hpp>
+#include <beast/core/static_buffer.hpp>
 #include <beast/core/stream_concepts.hpp>
 #include <beast/core/detail/clamp.hpp>
 #include <beast/websocket/detail/frame.hpp>
@@ -234,7 +234,7 @@ operator()(error_code ec,
             BOOST_ASSERT(d.ws.wr_block_ == &d);
             d.fh.fin = d.fin;
             d.fh.len = buffer_size(d.cb);
-            detail::write<static_streambuf>(
+            detail::write<static_buffer>(
                 d.fh_buf, d.fh);
             d.ws.wr_.cont = ! d.fin;
             // Send frame
@@ -260,7 +260,7 @@ operator()(error_code ec,
             d.remain -= n;
             d.fh.len = n;
             d.fh.fin = d.fin ? d.remain == 0 : false;
-            detail::write<static_streambuf>(
+            detail::write<static_buffer>(
                 d.fh_buf, d.fh);
             d.ws.wr_.cont = ! d.fin;
             // Send frame
@@ -308,7 +308,7 @@ operator()(error_code ec,
             d.fh.len = d.remain;
             d.fh.key = d.ws.maskgen_();
             detail::prepare_key(d.key, d.fh.key);
-            detail::write<static_streambuf>(
+            detail::write<static_buffer>(
                 d.fh_buf, d.fh);
             auto const n =
                 clamp(d.remain, d.ws.wr_.buf_size);
@@ -366,7 +366,7 @@ operator()(error_code ec,
                 d.ws.wr_.buf.get(), n);
             buffer_copy(b, d.cb);
             detail::mask_inplace(b, d.key);
-            detail::write<static_streambuf>(
+            detail::write<static_buffer>(
                 d.fh_buf, d.fh);
             d.ws.wr_.cont = ! d.fin;
             // Send frame
@@ -442,7 +442,7 @@ operator()(error_code ec,
             d.fh.fin = ! more;
             d.fh.len = n;
             detail::fh_streambuf fh_buf;
-            detail::write<static_streambuf>(fh_buf, d.fh);
+            detail::write<static_buffer>(fh_buf, d.fh);
             d.ws.wr_.cont = ! d.fin;
             // Send frame
             d.state = more ?
@@ -647,7 +647,7 @@ write_frame(bool fin,
             fh.fin = ! more;
             fh.len = n;
             detail::fh_streambuf fh_buf;
-            detail::write<static_streambuf>(fh_buf, fh);
+            detail::write<static_buffer>(fh_buf, fh);
             wr_.cont = ! fin;
             boost::asio::write(stream_,
                 buffer_cat(fh_buf.data(), b), ec);
@@ -675,7 +675,7 @@ write_frame(bool fin,
             fh.fin = fin;
             fh.len = remain;
             detail::fh_streambuf fh_buf;
-            detail::write<static_streambuf>(fh_buf, fh);
+            detail::write<static_buffer>(fh_buf, fh);
             wr_.cont = ! fin;
             boost::asio::write(stream_,
                 buffer_cat(fh_buf.data(), buffers), ec);
@@ -696,7 +696,7 @@ write_frame(bool fin,
                 fh.len = n;
                 fh.fin = fin ? remain == 0 : false;
                 detail::fh_streambuf fh_buf;
-                detail::write<static_streambuf>(fh_buf, fh);
+                detail::write<static_buffer>(fh_buf, fh);
                 wr_.cont = ! fin;
                 boost::asio::write(stream_,
                     buffer_cat(fh_buf.data(),
@@ -721,7 +721,7 @@ write_frame(bool fin,
         detail::prepared_key key;
         detail::prepare_key(key, fh.key);
         detail::fh_streambuf fh_buf;
-        detail::write<static_streambuf>(fh_buf, fh);
+        detail::write<static_buffer>(fh_buf, fh);
         consuming_buffers<
             ConstBufferSequence> cb{buffers};
         {
@@ -772,7 +772,7 @@ write_frame(bool fin,
             fh.fin = fin ? remain == 0 : false;
             wr_.cont = ! fh.fin;
             detail::fh_streambuf fh_buf;
-            detail::write<static_streambuf>(fh_buf, fh);
+            detail::write<static_buffer>(fh_buf, fh);
             boost::asio::write(stream_,
                 buffer_cat(fh_buf.data(), b), ec);
             failed_ = ec != 0;

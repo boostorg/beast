@@ -27,7 +27,7 @@
 #include <beast/core/ostream.hpp>
 #include <beast/core/placeholders.hpp>
 #include <beast/core/prepare_buffers.hpp>
-#include <beast/core/static_streambuf.hpp>
+#include <beast/core/static_buffer.hpp>
 #include <beast/core/static_string.hpp>
 #include <beast/core/stream_concepts.hpp>
 

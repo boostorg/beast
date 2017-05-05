@@ -12,6 +12,7 @@ API Changes:
 * New buffers() replaces to_string()
 * Rename to multi_buffer, basic_multi_buffer
 * Rename to flat_buffer, basic_flat_buffer
+* Rename to static_buffer, static_buffer_n
 
 --------------------------------------------------------------------------------
 

@@ -5,8 +5,8 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#ifndef BEAST_IMPL_STATIC_STREAMBUF_IPP
-#define BEAST_IMPL_STATIC_STREAMBUF_IPP
+#ifndef BEAST_IMPL_STATIC_BUFFER_IPP
+#define BEAST_IMPL_STATIC_BUFFER_IPP
 
 #include <beast/core/detail/type_traits.hpp>
 #include <boost/asio/buffer.hpp>
@@ -17,7 +17,7 @@
 
 namespace beast {
 
-class static_streambuf::const_buffers_type
+class static_buffer::const_buffers_type
 {
     std::size_t n_;
     std::uint8_t const* p_;
@@ -40,7 +40,7 @@ public:
     end() const;
 
 private:
-    friend class static_streambuf;
+    friend class static_buffer;
 
     const_buffers_type(
             std::uint8_t const* p, std::size_t n)
@@ -50,7 +50,7 @@ private:
     }
 };
 
-class static_streambuf::const_buffers_type::const_iterator
+class static_buffer::const_buffers_type::const_iterator
 {
     std::size_t n_ = 0;
     std::uint8_t const* p_ = nullptr;
@@ -133,7 +133,7 @@ private:
 
 inline
 auto
-static_streambuf::const_buffers_type::begin() const ->
+static_buffer::const_buffers_type::begin() const ->
     const_iterator
 {
     return const_iterator{p_, n_};
@@ -141,7 +141,7 @@ static_streambuf::const_buffers_type::begin() const ->
 
 inline
 auto
-static_streambuf::const_buffers_type::end() const ->
+static_buffer::const_buffers_type::end() const ->
     const_iterator
 {
     return const_iterator{p_ + n_, n_};
@@ -149,7 +149,7 @@ static_streambuf::const_buffers_type::end() const ->
 
 //------------------------------------------------------------------------------
 
-class static_streambuf::mutable_buffers_type
+class static_buffer::mutable_buffers_type
 {
     std::size_t n_;
     std::uint8_t* p_;
@@ -172,7 +172,7 @@ public:
     end() const;
 
 private:
-    friend class static_streambuf;
+    friend class static_buffer;
 
     mutable_buffers_type(
             std::uint8_t* p, std::size_t n)
@@ -182,7 +182,7 @@ private:
     }
 };
 
-class static_streambuf::mutable_buffers_type::const_iterator
+class static_buffer::mutable_buffers_type::const_iterator
 {
     std::size_t n_ = 0;
     std::uint8_t* p_ = nullptr;
@@ -264,7 +264,7 @@ private:
 
 inline
 auto
-static_streambuf::mutable_buffers_type::begin() const ->
+static_buffer::mutable_buffers_type::begin() const ->
     const_iterator
 {
     return const_iterator{p_, n_};
@@ -272,7 +272,7 @@ static_streambuf::mutable_buffers_type::begin() const ->
 
 inline
 auto
-static_streambuf::mutable_buffers_type::end() const ->
+static_buffer::mutable_buffers_type::end() const ->
     const_iterator
 {
     return const_iterator{p_ + n_, n_};
@@ -280,10 +280,9 @@ static_streambuf::mutable_buffers_type::end() const ->
 
 //------------------------------------------------------------------------------
 
-
 inline
 auto
-static_streambuf::data() const ->
+static_buffer::data() const ->
     const_buffers_type
 {
     return const_buffers_type{in_,
@@ -292,12 +291,12 @@ static_streambuf::data() const ->
 
 inline
 auto
-static_streambuf::prepare(std::size_t n) ->
+static_buffer::prepare(std::size_t n) ->
     mutable_buffers_type
 {
     if(n > static_cast<std::size_t>(end_ - out_))
         throw detail::make_exception<std::length_error>(
-            "no space in static_buffer", __FILE__, __LINE__);
+            "static_buffer overflow", __FILE__, __LINE__);
     last_ = out_ + n;
     return mutable_buffers_type{out_, n};
 }

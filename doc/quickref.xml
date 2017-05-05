@@ -165,8 +165,8 @@
             <member><link linkend="beast.ref.handler_alloc">handler_alloc</link></member>
             <member><link linkend="beast.ref.handler_ptr">handler_ptr</link></member>
             <member><link linkend="beast.ref.multi_buffer">multi_buffer</link></member>
-            <member><link linkend="beast.ref.static_streambuf">static_streambuf</link></member>
-            <member><link linkend="beast.ref.static_streambuf_n">static_streambuf_n</link></member>
+            <member><link linkend="beast.ref.static_buffer">static_buffer</link></member>
+            <member><link linkend="beast.ref.static_buffer_n">static_buffer_n</link></member>
             <member><link linkend="beast.ref.static_string">static_string</link></member>
             <member><link linkend="beast.ref.system_error">system_error</link></member>
           </simplelist>
