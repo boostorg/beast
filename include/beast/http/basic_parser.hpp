@@ -509,12 +509,15 @@ public:
 
     /** Returns a set of buffers for storing body data.
 
-        @note This member function is only available when
-        `isDirect==true`.
+        @param buffers A writable output parameter into which
+        the function will place the buffers upon success.
 
         @param limit The maximum number of bytes in the
         size of the returned buffer sequence. The actual size
         of the buffer sequence may be lower than this number.
+
+        @note This member function is only available when
+        `isDirect==true`.
     */
     template<class MutableBufferSequence>
     void
@@ -523,6 +526,10 @@ public:
 
     /** Commit body data.
 
+        @param n The number of bytes to commit. This must
+        be less than or equal to the size of the buffer
+        sequence returned by @ref prepare_body.
+
         @note This member function is only available when
         `isDirect==true`.
     */
@@ -530,6 +537,8 @@ public:
     commit_body(std::size_t n);
 
     /** Indicate that body octets have been consumed.
+
+        @param n The number of bytes to consume.
     */
     void
     consume(std::size_t n)
@@ -547,16 +556,6 @@ public:
                 state_ = parse_state::chunk_header;
         }
     }
-
-    /** Consume all remaining body data.
-
-        This function instructs the parser to advance the
-        state past any expected body octets. Callers who
-        wish to read and process the body themselves will
-        call this function.
-    */
-    void
-    consume_body(error_code& ec);
 
 private:
     inline

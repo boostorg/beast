@@ -2,6 +2,10 @@
 
 * Use beast::string_view alias
 
+HTTP
+
+* Tidy up basic_parser javadocs
+
 WebSocket:
 
 * Add websocket async echo ssl server test:
