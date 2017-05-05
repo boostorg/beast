@@ -6,7 +6,7 @@
 //
 
 // Test that header file is self-contained.
-#include <beast/core/static_streambuf.hpp>
+#include <beast/core/static_buffer.hpp>
 
 #include <beast/unit_test/suite.hpp>
 #include <boost/asio/buffer.hpp>
@@ -14,7 +14,7 @@
 
 namespace beast {
 
-class static_streambuf_test : public beast::unit_test::suite
+class static_buffer_test : public beast::unit_test::suite
 {
 public:
     template<class ConstBufferSequence>
@@ -32,7 +32,8 @@ public:
         return s;
     }
 
-    void testStaticStreambuf()
+    void
+    testStaticBuffer()
     {
         using boost::asio::buffer;
         using boost::asio::buffer_cast;
@@ -50,7 +51,7 @@ public:
         std::size_t v = sizeof(buf) - (t + u);
         {
             std::memset(buf, 0, sizeof(buf));
-            static_streambuf_n<sizeof(buf)> ba;
+            static_buffer_n<sizeof(buf)> ba;
             {
                 auto d = ba.prepare(z);
                 BEAST_EXPECT(buffer_size(d) == z);
@@ -141,7 +142,7 @@ public:
 
     void testIterators()
     {
-        static_streambuf_n<2> ba;
+        static_buffer_n<2> ba;
         {
             auto mb = ba.prepare(2);
             std::size_t n;
@@ -196,11 +197,11 @@ public:
 
     void run() override
     {
-        testStaticStreambuf();
+        testStaticBuffer();
         testIterators();
     }
 };
 
-BEAST_DEFINE_TESTSUITE(static_streambuf,core,beast);
+BEAST_DEFINE_TESTSUITE(static_buffer,core,beast);
 
 } // beastp

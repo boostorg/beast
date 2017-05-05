@@ -34,7 +34,7 @@ unit-test core-tests :
     core/placeholders.cpp
     core/prepare_buffer.cpp
     core/prepare_buffers.cpp
-    core/static_streambuf.cpp
+    core/static_buffer.cpp
     core/static_string.cpp
     core/stream_concepts.cpp
     core/base64.cpp

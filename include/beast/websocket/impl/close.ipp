@@ -10,7 +10,7 @@
 
 #include <beast/core/handler_helpers.hpp>
 #include <beast/core/handler_ptr.hpp>
-#include <beast/core/static_streambuf.hpp>
+#include <beast/core/static_buffer.hpp>
 #include <beast/core/stream_concepts.hpp>
 #include <memory>
 
@@ -43,7 +43,7 @@ class stream<NextLayer>::close_op
             , cr(cr_)
         {
             ws.template write_close<
-                static_streambuf>(fb, cr);
+                static_buffer>(fb, cr);
         }
     };
 
@@ -235,7 +235,7 @@ close(close_reason const& cr, error_code& ec)
     BOOST_ASSERT(! wr_close_);
     wr_close_ = true;
     detail::frame_streambuf fb;
-    write_close<static_streambuf>(fb, cr);
+    write_close<static_buffer>(fb, cr);
     boost::asio::write(stream_, fb.data(), ec);
     failed_ = ec != 0;
 }

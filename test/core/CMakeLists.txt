@@ -27,7 +27,7 @@ add_executable (core-tests
     placeholders.cpp
     prepare_buffer.cpp
     prepare_buffers.cpp
-    static_streambuf.cpp
+    static_buffer.cpp
     static_string.cpp
     stream_concepts.cpp
     base64.cpp

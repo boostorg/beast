@@ -5,8 +5,8 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#ifndef BEAST_STATIC_STREAMBUF_HPP
-#define BEAST_STATIC_STREAMBUF_HPP
+#ifndef BEAST_STATIC_BUFFER_HPP
+#define BEAST_STATIC_BUFFER_HPP
 
 #include <beast/config.hpp>
 #include <boost/utility/base_from_member.hpp>
@@ -16,17 +16,17 @@
 
 namespace beast {
 
-/** A @b `DynamicBuffer` with a fixed size internal buffer.
+/** A @b DynamicBuffer with a fixed size internal buffer.
 
     Ownership of the underlying storage belongs to the derived class.
 
     @note Variables are usually declared using the template class
-    @ref static_streambuf_n; however, to reduce the number of instantiations
+    @ref static_buffer_n; however, to reduce the number of instantiations
     of template functions receiving static stream buffer arguments in a
     deduced context, the signature of the receiving function should use
-    @ref static_streambuf.
+    @ref static_buffer.
 */
-class static_streambuf
+class static_buffer
 {
 #if BEAST_DOXYGEN
 private:
@@ -51,11 +51,11 @@ public:
     class const_buffers_type;
     class mutable_buffers_type;
 
-    static_streambuf(
-        static_streambuf const& other) noexcept = delete;
+    static_buffer(
+        static_buffer const& other) noexcept = delete;
 
-    static_streambuf& operator=(
-        static_streambuf const&) noexcept = delete;
+    static_buffer& operator=(
+        static_buffer const&) noexcept = delete;
 
 #endif
 
@@ -121,7 +121,7 @@ private:
 #else
 protected:
 #endif
-    static_streambuf(std::uint8_t* p, std::size_t n)
+    static_buffer(std::uint8_t* p, std::size_t n)
     {
         reset(p, n);
     }
@@ -139,17 +139,17 @@ protected:
 
 //------------------------------------------------------------------------------
 
-/** A `DynamicBuffer` with a fixed size internal buffer.
+/** A @b DynamicBuffer with a fixed size internal buffer.
 
     @tparam N The number of bytes in the internal buffer.
 
     @note To reduce the number of template instantiations when passing
     objects of this type in a deduced context, the signature of the
-    receiving function should use `static_streambuf` instead.
+    receiving function should use `static_buffer` instead.
 */
 template<std::size_t N>
-class static_streambuf_n
-    : public static_streambuf
+class static_buffer_n
+    : public static_buffer
 #if ! BEAST_DOXYGEN
     , private boost::base_from_member<
         std::array<std::uint8_t, N>>
@@ -161,23 +161,23 @@ public:
 #if BEAST_DOXYGEN
 private:
 #endif
-    static_streambuf_n(
-        static_streambuf_n const&) = delete;
-    static_streambuf_n& operator=(
-        static_streambuf_n const&) = delete;
+    static_buffer_n(
+        static_buffer_n const&) = delete;
+    static_buffer_n& operator=(
+        static_buffer_n const&) = delete;
 #if BEAST_DOXYGEN
 public:
 #endif
 
-    /// Construct a static stream buffer.
-    static_streambuf_n()
-        : static_streambuf(
+    /// Construct a static buffer.
+    static_buffer_n()
+        : static_buffer(
             member_type::member.data(),
                 member_type::member.size())
     {
     }
 
-    /** Reset the stream buffer.
+    /** Reset the static buffer.
 
         Postconditions:
             The input sequence and output sequence are empty,
@@ -186,7 +186,7 @@ public:
     void
     reset()
     {
-        static_streambuf::reset(
+        static_buffer::reset(
             member_type::member.data(),
                 member_type::member.size());
     }
@@ -194,6 +194,6 @@ public:
 
 } // beast
 
-#include <beast/core/impl/static_streambuf.ipp>
+#include <beast/core/impl/static_buffer.ipp>
 
 #endif
