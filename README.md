@@ -13,6 +13,37 @@
 
 ---
 
+## We need your help!
+
+If you would like to contribute to Beast and help us maintain high
+quality, consider performing code reviews on active pull requests.
+Any feedback from users and stakeholders, even simple questions about
+how things work or why they were done a certain way, carries value
+and can be used to improve the library. Code review provides these
+benefits:
+
+* Identify bugs
+* Documentation proof-reading
+* Adjust interfaces to suit use-cases
+* Simplify code
+
+You can look through the Closed pull requests to get an idea of how
+reviews are performed. To give a code review just sign in with your
+GitHub account and then add comments to any open pull requests below,
+don't be shy!
+<p>https://github.com/vinniefalco/Beast/pulls</p>
+
+Here are some resources to learn more about
+code reviews:
+
+* <a href="https://blog.scottnonnenberg.com/top-ten-pull-request-review-mistakes/">Top 10 Pull Request Review Mistakes</a>
+* <a href="https://smartbear.com/SmartBear/media/pdfs/best-kept-secrets-of-peer-code-review.pdf">Best Kept Secrets of Peer Code Review (pdf)</a>
+* <a href="http://support.smartbear.com/support/media/resources/cc/11_Best_Practices_for_Peer_Code_Review.pdf">11 Best Practices for Peer Code Review (pdf)</a>
+* <a href="http://www.evoketechnologies.com/blog/code-review-checklist-perform-effective-code-reviews/">Code Review Checklist – To Perform Effective Code Reviews</a>
+* <a href="https://www.codeproject.com/Articles/524235/Codeplusreviewplusguidelines">Code review guidelines</a>
+* <a href="https://github.com/isocpp/CppCoreGuidelines/blob/master/CppCoreGuidelines.md">C++ Core Guidelines</a>
+* <a href="https://doc.lagout.org/programmation/C/CPP101.pdf">C++ Coding Standards (Sutter & Andrescu)</a>
+
 ## Appearances
 
 | <a href="http://cppcast.com/2017/01/vinnie-falco/">CppCast 2017</a> | <a href="https://raw.githubusercontent.com/vinniefalco/Beast/master/doc/images/CppCon2016.pdf">CppCon 2016</a> |
@@ -236,3 +267,19 @@ http://www.boost.org/LICENSE_1_0.txt)
 
 Please report issues or questions here:
 https://github.com/vinniefalco/Beast/issues
+
+## Donations
+
+Beast thrives on code reviews and any sort of feedback from users and
+stakeholders about its interfaces. Even if you just have questions,
+asking them in the code review or in issues provides valuable information
+that can be used to improve the library - do not hesitate, no question
+is insignificant or unimportant!
+
+While code reviews are the preferred form of donation, if you simply
+must donate money to support the library, please do so
+using <a href="https://bitcoin.org">Bitcoin</a> sent to this address:
+<a href="bitcoin:1DaPsDvv6MjFUSnsxXSHzeYKSjzrWrQY7T?amount=0.03&label=Beast%20Library"><b>1DaPsDvv6MjFUSnsxXSHzeYKSjzrWrQY7T</b></a>
+
+<a href="bitcoin:1DaPsDvv6MjFUSnsxXSHzeYKSjzrWrQY7T?amount=0.03&label=Beast%20Library">
+    <img src="https://raw.githubusercontent.com/vinniefalco/Beast/master/doc/images/btc_qr.png" width="100" height="100"></a>
