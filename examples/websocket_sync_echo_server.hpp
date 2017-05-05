@@ -38,25 +38,6 @@ public:
     using socket_type = boost::asio::ip::tcp::socket;
 
 private:
-    struct identity
-    {
-        template<class Body, class Fields>
-        void
-        operator()(beast::http::message<
-            true, Body, Fields>& req) const
-        {
-            req.fields.replace("User-Agent", "sync_echo_client");
-        }
-
-        template<class Body, class Fields>
-        void
-        operator()(beast::http::message<
-            false, Body, Fields>& resp) const
-        {
-            resp.fields.replace("Server", "sync_echo_server");
-        }
-    };
-
     /** A container of type-erased option setters.
     */
     template<class NextLayer>
@@ -151,8 +132,6 @@ public:
         , sock_(ios_)
         , acceptor_(ios_)
     {
-        opts_.set_option(
-            beast::websocket::decorate(identity{}));
     }
 
     /** Destructor.
@@ -293,7 +272,13 @@ private:
             socket_type> ws{std::move(sock)};
         opts_.set_options(ws);
         error_code ec;
-        ws.accept(ec);
+        ws.accept_ex(
+            [](beast::websocket::response_type& res)
+            {
+                res.fields.insert(
+                    "Server", "sync_echo_server");
+            },
+            ec);
         if(ec)
         {
             fail("accept", ec, id, ep);

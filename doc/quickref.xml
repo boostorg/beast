@@ -29,9 +29,10 @@
         <entry valign="top">
           <bridgehead renderas="sect3">Classes</bridgehead>
           <simplelist type="vert" columns="1">
-            <member><link linkend="beast.ref.http__basic_dynabuf_body">basic_dynabuf_body</link></member>
+            <member><link linkend="beast.ref.http__basic_dynamic_body">http__basic_dynamic_body</link></member>
             <member><link linkend="beast.ref.http__basic_fields">basic_fields</link></member>
             <member><link linkend="beast.ref.http__basic_parser">basic_parser</link></member>
+            <member><link linkend="beast.ref.http__dynamic_body">dynamic_body</link></member>
             <member><link linkend="beast.ref.http__fields">fields</link></member>
             <member><link linkend="beast.ref.http__header">header</link></member>
             <member><link linkend="beast.ref.http__header_parser">header_parser</link></member>
@@ -41,7 +42,6 @@
             <member><link linkend="beast.ref.http__request_header">request_header</link></member>
             <member><link linkend="beast.ref.http__response">response</link></member>
             <member><link linkend="beast.ref.http__response_header">response_header</link></member>
-            <member><link linkend="beast.ref.http__streambuf_body">streambuf_body</link></member>
             <member><link linkend="beast.ref.http__string_body">string_body</link></member>
           </simplelist>
           <bridgehead renderas="sect3">rfc7230</bridgehead>
@@ -107,12 +107,12 @@
           <bridgehead renderas="sect3">Functions</bridgehead>
           <simplelist type="vert" columns="1">
             <member><link linkend="beast.ref.websocket__async_teardown">async_teardown</link></member>
+            <member><link linkend="beast.ref.websocket__is_upgrade">is_upgrade</link></member>
             <member><link linkend="beast.ref.websocket__teardown">teardown</link></member>
           </simplelist>
           <bridgehead renderas="sect3">Options</bridgehead>
           <simplelist type="vert" columns="1">
             <member><link linkend="beast.ref.websocket__auto_fragment">auto_fragment</link></member>
-            <member><link linkend="beast.ref.websocket__decorate">decorate</link></member>
             <member><link linkend="beast.ref.websocket__keep_alive">keep_alive</link></member>
             <member><link linkend="beast.ref.websocket__message_type">message_type</link></member>
             <member><link linkend="beast.ref.websocket__permessage_deflate">permessage_deflate</link></member>

@@ -5,8 +5,8 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#ifndef BEAST_HTTP_DETAIL_BASIC_FIELDS_HPP
-#define BEAST_HTTP_DETAIL_BASIC_FIELDS_HPP
+#ifndef BEAST_HTTP_DETAIL_FIELDS_HPP
+#define BEAST_HTTP_DETAIL_FIELDS_HPP
 
 #include <beast/core/detail/ci_char_traits.hpp>
 #include <boost/intrusive/list.hpp>

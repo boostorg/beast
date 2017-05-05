@@ -1,3 +1,24 @@
+1.0.0-b37
+
+* CMake hide command lines in .vcxproj Output windows"
+* Rename to detail::is_invocable
+* Rename project to http-bench
+
+WebSocket:
+
+* Add is_upgrade() free function
+* Document websocket::stream thread safety
+* Rename to websocket::detail::pausation
+
+API Changes:
+
+* Provide websocket::stream accept() overloads
+* Refactor websocket decorators
+* Move everything in basic_fields.hpp to fields.hpp
+* Rename to http::dynamic_body, consolidate header
+
+--------------------------------------------------------------------------------
+
 1.0.0-b36
 
 * Update README.md

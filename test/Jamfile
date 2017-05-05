@@ -41,17 +41,16 @@ unit-test core-tests :
     core/base64.cpp
     core/empty_base_optimization.cpp
     core/get_lowest_layer.cpp
-    core/is_call_possible.cpp
     core/sha1.cpp
+    core/type_traits.cpp
     ;
 
 unit-test http-tests :
     ../extras/beast/unit_test/main.cpp
-    http/basic_dynabuf_body.cpp
-    http/basic_fields.cpp
     http/basic_parser.cpp
     http/concepts.cpp
     http/design.cpp
+    http/dynamic_body.cpp
     http/error.cpp
     http/fields.cpp
     http/header_parser.cpp
@@ -60,13 +59,12 @@ unit-test http-tests :
     http/read.cpp
     http/reason.cpp
     http/rfc7230.cpp
-    http/streambuf_body.cpp
     http/string_body.cpp
     http/write.cpp
     http/chunk_encode.cpp
     ;
 
-unit-test bench-tests :
+unit-test http-bench :
     ../extras/beast/unit_test/main.cpp
     http/nodejs_parser.cpp
     http/parser_bench.cpp

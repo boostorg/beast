@@ -5,12 +5,13 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#ifndef BEAST_TEST_STRING_OSTREAM_HPP
-#define BEAST_TEST_STRING_OSTREAM_HPP
+#ifndef BEAST_TEST_STRING_IOSTREAM_HPP
+#define BEAST_TEST_STRING_IOSTREAM_HPP
 
 #include <beast/core/async_completion.hpp>
 #include <beast/core/bind_handler.hpp>
 #include <beast/core/error.hpp>
+#include <beast/core/prepare_buffer.hpp>
 #include <beast/websocket/teardown.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/asio/io_service.hpp>
@@ -19,16 +20,29 @@
 namespace beast {
 namespace test {
 
-class string_ostream
+/** A SyncStream and AsyncStream that reads from a string and writes to another string.
+
+    This class behaves like a socket, except that written data is
+    appended to a string exposed as a public data member, and when
+    data is read it comes from a string provided at construction.
+*/
+class string_iostream
 {
+    std::string s_;
+    boost::asio::const_buffer cb_;
     boost::asio::io_service& ios_;
+    std::size_t read_max_;
 
 public:
     std::string str;
 
-    explicit
-    string_ostream(boost::asio::io_service& ios)
-        : ios_(ios)
+    string_iostream(boost::asio::io_service& ios,
+            std::string s, std::size_t read_max =
+                (std::numeric_limits<std::size_t>::max)())
+        : s_(std::move(s))
+        , cb_(boost::asio::buffer(s_))
+        , ios_(ios)
+        , read_max_(read_max)
     {
     }
 
@@ -54,8 +68,13 @@ public:
     read_some(MutableBufferSequence const& buffers,
         error_code& ec)
     {
-        ec = boost::asio::error::eof;
-        return 0;
+        auto const n = boost::asio::buffer_copy(
+            buffers, prepare_buffer(read_max_, cb_));
+        if(n > 0)
+            cb_ = cb_ + n;
+        else
+            ec = boost::asio::error::eof;
+        return n;
     }
 
     template<class MutableBufferSequence, class ReadHandler>
@@ -64,10 +83,17 @@ public:
     async_read_some(MutableBufferSequence const& buffers,
         ReadHandler&& handler)
     {
+        auto const n = boost::asio::buffer_copy(
+            buffers, boost::asio::buffer(s_));
+        error_code ec;
+        if(n > 0)
+            s_.erase(0, n);
+        else
+            ec = boost::asio::error::eof;
         async_completion<ReadHandler,
             void(error_code, std::size_t)> completion{handler};
-        ios_.post(bind_handler(completion.handler,
-            boost::asio::error::eof, 0));
+        ios_.post(bind_handler(
+            completion.handler, ec, n));
         return completion.result.get();
     }
 
@@ -116,7 +142,7 @@ public:
     friend
     void
     teardown(websocket::teardown_tag,
-        string_ostream& stream,
+        string_iostream& stream,
             boost::system::error_code& ec)
     {
     }
@@ -125,7 +151,7 @@ public:
     friend
     void
     async_teardown(websocket::teardown_tag,
-        string_ostream& stream,
+        string_iostream& stream,
             TeardownHandler&& handler)
     {
         stream.get_io_service().post(
