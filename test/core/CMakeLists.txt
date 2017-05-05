@@ -16,7 +16,7 @@ add_executable (core-tests
     buffers_adapter.cpp
     clamp.cpp
     consuming_buffers.cpp
-    dynabuf_readstream.cpp
+    buffered_read_stream.cpp
     error.cpp
     flat_buffer.cpp
     handler_alloc.cpp

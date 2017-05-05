@@ -5,8 +5,8 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#ifndef BEAST_IMPL_DYNABUF_READSTREAM_HPP
-#define BEAST_IMPL_DYNABUF_READSTREAM_HPP
+#ifndef BEAST_IMPL_BUFFERED_READ_STREAM_IPP
+#define BEAST_IMPL_BUFFERED_READ_STREAM_IPP
 
 #include <beast/core/bind_handler.hpp>
 #include <beast/core/error.hpp>
@@ -18,17 +18,17 @@ namespace beast {
 
 template<class Stream, class DynamicBuffer>
 template<class MutableBufferSequence, class Handler>
-class dynabuf_readstream<
+class buffered_read_stream<
     Stream, DynamicBuffer>::read_some_op
 {
     // VFALCO What about bool cont for is_continuation?
     struct data
     {
-        dynabuf_readstream& srs;
+        buffered_read_stream& srs;
         MutableBufferSequence bs;
         int state = 0;
 
-        data(Handler&, dynabuf_readstream& srs_,
+        data(Handler&, buffered_read_stream& srs_,
                 MutableBufferSequence const& bs_)
             : srs(srs_)
             , bs(bs_)
@@ -44,7 +44,7 @@ public:
 
     template<class DeducedHandler, class... Args>
     read_some_op(DeducedHandler&& h,
-            dynabuf_readstream& srs, Args&&... args)
+            buffered_read_stream& srs, Args&&... args)
         : d_(std::forward<DeducedHandler>(h),
             srs, std::forward<Args>(args)...)
     {
@@ -90,7 +90,7 @@ public:
 template<class Stream, class DynamicBuffer>
 template<class MutableBufferSequence, class Handler>
 void
-dynabuf_readstream<Stream, DynamicBuffer>::
+buffered_read_stream<Stream, DynamicBuffer>::
 read_some_op<MutableBufferSequence, Handler>::operator()(
     error_code const& ec, std::size_t bytes_transferred)
 {
@@ -150,8 +150,8 @@ read_some_op<MutableBufferSequence, Handler>::operator()(
 
 template<class Stream, class DynamicBuffer>
 template<class... Args>
-dynabuf_readstream<Stream, DynamicBuffer>::
-dynabuf_readstream(Args&&... args)
+buffered_read_stream<Stream, DynamicBuffer>::
+buffered_read_stream(Args&&... args)
     : next_layer_(std::forward<Args>(args)...)
 {
 }
@@ -159,7 +159,7 @@ dynabuf_readstream(Args&&... args)
 template<class Stream, class DynamicBuffer>
 template<class ConstBufferSequence, class WriteHandler>
 auto
-dynabuf_readstream<Stream, DynamicBuffer>::
+buffered_read_stream<Stream, DynamicBuffer>::
 async_write_some(ConstBufferSequence const& buffers,
     WriteHandler&& handler) ->
         typename async_completion<
@@ -180,7 +180,7 @@ async_write_some(ConstBufferSequence const& buffers,
 template<class Stream, class DynamicBuffer>
 template<class MutableBufferSequence>
 std::size_t
-dynabuf_readstream<Stream, DynamicBuffer>::
+buffered_read_stream<Stream, DynamicBuffer>::
 read_some(
     MutableBufferSequence const& buffers)
 {
@@ -199,7 +199,7 @@ read_some(
 template<class Stream, class DynamicBuffer>
 template<class MutableBufferSequence>
 std::size_t
-dynabuf_readstream<Stream, DynamicBuffer>::
+buffered_read_stream<Stream, DynamicBuffer>::
 read_some(MutableBufferSequence const& buffers,
     error_code& ec)
 {
@@ -228,7 +228,7 @@ read_some(MutableBufferSequence const& buffers,
 template<class Stream, class DynamicBuffer>
 template<class MutableBufferSequence, class ReadHandler>
 auto
-dynabuf_readstream<Stream, DynamicBuffer>::
+buffered_read_stream<Stream, DynamicBuffer>::
 async_read_some(
     MutableBufferSequence const& buffers,
         ReadHandler&& handler) ->

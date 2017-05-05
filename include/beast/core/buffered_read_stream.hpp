@@ -5,8 +5,8 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#ifndef BEAST_DYNABUF_READSTREAM_HPP
-#define BEAST_DYNABUF_READSTREAM_HPP
+#ifndef BEAST_BUFFERED_READ_STREAM_HPP
+#define BEAST_BUFFERED_READ_STREAM_HPP
 
 #include <beast/config.hpp>
 #include <beast/core/async_completion.hpp>
@@ -22,9 +22,9 @@
 
 namespace beast {
 
-/** A @b `Stream` with attached @b `DynamicBuffer` to buffer reads.
+/** A @b Stream with attached @b DynamicBuffer to buffer reads.
 
-    This wraps a @b `Stream` implementation so that calls to write are
+    This wraps a @b Stream implementation so that calls to write are
     passed through to the underlying stream, while calls to read will
     first consume the input sequence stored in a @b `DynamicBuffer` which
     is part of the object.
@@ -52,7 +52,7 @@ namespace beast {
     //
     template<class DynamicBuffer>
     void process_http_message(
-        dynabuf_readstream<DynamicBuffer>& stream)
+        buffered_read_stream<DynamicBuffer>& stream)
     {
         // Read up to and including the end of the HTTP
         // header, leaving the sequence in the stream's
@@ -88,7 +88,7 @@ namespace beast {
     @tparam DynamicBuffer The type of stream buffer to use.
 */
 template<class Stream, class DynamicBuffer>
-class dynabuf_readstream
+class buffered_read_stream
 {
     static_assert(is_DynamicBuffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
@@ -102,7 +102,7 @@ class dynabuf_readstream
 
 public:
     /// The type of the internal buffer
-    using dynabuf_type = DynamicBuffer;
+    using buffer_type = DynamicBuffer;
 
     /// The type of the next layer.
     using next_layer_type =
@@ -122,14 +122,14 @@ public:
         @note The behavior of move assignment on or from streams
         with active or pending operations is undefined.
     */
-    dynabuf_readstream(dynabuf_readstream&&) = default;
+    buffered_read_stream(buffered_read_stream&&) = default;
 
     /** Move assignment.
 
         @note The behavior of move assignment on or from streams
         with active or pending operations is undefined.
     */
-    dynabuf_readstream& operator=(dynabuf_readstream&&) = default;
+    buffered_read_stream& operator=(buffered_read_stream&&) = default;
 
     /** Construct the wrapping stream.
 
@@ -137,7 +137,7 @@ public:
     */
     template<class... Args>
     explicit
-    dynabuf_readstream(Args&&... args);
+    buffered_read_stream(Args&&... args);
 
     /// Get a reference to the next layer.
     next_layer_type&
@@ -358,6 +358,6 @@ public:
 
 } // beast
 
-#include <beast/core/impl/dynabuf_readstream.ipp>
+#include <beast/core/impl/buffered_read_stream.ipp>
 
 #endif

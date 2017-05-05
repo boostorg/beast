@@ -15,7 +15,7 @@
 #include <beast/http/message.hpp>
 #include <beast/http/string_body.hpp>
 #include <beast/core/async_completion.hpp>
-#include <beast/core/dynabuf_readstream.hpp>
+#include <beast/core/buffered_read_stream.hpp>
 #include <beast/core/detail/get_lowest_layer.hpp>
 #include <boost/asio.hpp>
 #include <boost/utility/string_ref.hpp>
@@ -98,7 +98,7 @@ class stream : public detail::stream_base
 {
     friend class stream_test;
 
-    dynabuf_readstream<NextLayer, multi_buffer> stream_;
+    buffered_read_stream<NextLayer, multi_buffer> stream_;
 
 public:
     /// The type of the next layer.
