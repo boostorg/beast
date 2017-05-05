@@ -8,7 +8,7 @@
 #ifndef BEAST_HTTP_DETAIL_RFC7230_HPP
 #define BEAST_HTTP_DETAIL_RFC7230_HPP
 
-#include <boost/utility/string_ref.hpp>
+#include <beast/core/string_view.hpp>
 #include <iterator>
 #include <utility>
 
@@ -328,8 +328,8 @@ skip_token(FwdIt& it, FwdIt const& last)
 }
 
 inline
-boost::string_ref
-trim(boost::string_ref const& s)
+string_view
+trim(string_view const& s)
 {
     auto first = s.begin();
     auto last = s.end();
@@ -349,12 +349,12 @@ trim(boost::string_ref const& s)
 
 struct param_iter
 {
-    using iter_type = boost::string_ref::const_iterator;
+    using iter_type = string_view::const_iterator;
 
     iter_type it;
     iter_type first;
     iter_type last;
-    std::pair<boost::string_ref, boost::string_ref> v;
+    std::pair<string_view, string_view> v;
 
     bool
     empty() const
@@ -455,11 +455,11 @@ increment()
 */
 struct opt_token_list_policy
 {
-    using value_type = boost::string_ref;
+    using value_type = string_view;
 
     bool
     operator()(value_type& v,
-        char const*& it, boost::string_ref const& s) const
+        char const*& it, string_view const& s) const
     {
         v = {};
         auto need_comma = it != s.begin();
@@ -485,7 +485,7 @@ struct opt_token_list_policy
                     if(! detail::is_tchar(*it))
                         break;
                 }
-                v = boost::string_ref{&*p0,
+                v = string_view{&*p0,
                     static_cast<std::size_t>(it - p0)};
                 return true;
             }

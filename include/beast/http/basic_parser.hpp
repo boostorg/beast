@@ -10,11 +10,11 @@
 
 #include <beast/config.hpp>
 #include <beast/core/error.hpp>
+#include <beast/core/string_view.hpp>
 #include <beast/http/detail/basic_parser.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/optional.hpp>
 #include <boost/assert.hpp>
-#include <boost/utility/string_ref.hpp>
 #include <memory>
 #include <utility>
 
@@ -93,8 +93,8 @@ enum class parse_state
         //
         void
         on_request(
-            boost::string_ref const& method,
-            boost::string_ref const& target,
+            string_view const& method,
+            string_view const& target,
             int version,
             error_code& ec);
 
@@ -104,7 +104,7 @@ enum class parse_state
         void
         on_response(
             int status,
-            boost::string_ref const& reason,
+            string_view const& reason,
             int version,
             error_code& ec);
 
@@ -112,8 +112,8 @@ enum class parse_state
         //
         void
         on_field(
-            boost::string_ref const& name,
-            boost::string_ref const& value,
+            string_view const& name,
+            string_view const& value,
             error_code& ec);
 
         // Called after the header is complete.
@@ -136,7 +136,7 @@ enum class parse_state
         //
         void
         on_data(
-            boost::string_ref const& s,
+            string_view const& s,
             error_code& ec);
 
         // Called zero or more times to retrieve a mutable
@@ -165,7 +165,7 @@ enum class parse_state
         void
         on_chunk(
             std::uint64_t length,           // Length of this chunk
-            boost::string_ref const& ext,   // The chunk extensions, if any
+            string_view const& ext,   // The chunk extensions, if any
             error_code& ec);
 
         // Called once when the message is complete.
@@ -250,8 +250,8 @@ class basic_parser
     std::size_t x_;         // scratch variable
     unsigned f_ = 0;        // flags
     parse_state state_ = parse_state::header;
-    boost::string_ref ext_;
-    boost::string_ref body_;
+    string_view ext_;
+    string_view body_;
 
 public:
     /// Copy constructor (disallowed)
@@ -454,7 +454,7 @@ public:
         buffer's `consume` function may invalidate this return
         value.
     */
-    boost::string_ref const&
+    string_view const&
     body() const
     {
         // This function not available when isDirect==true
@@ -472,7 +472,7 @@ public:
         buffer's `consume` function may invalidate this return
         value.
     */
-    boost::string_ref const&
+    string_view const&
     chunk_extension() const
     {
         // This function not available when isDirect==true
@@ -567,7 +567,7 @@ private:
     }
 
     template<class ConstBufferSequence>
-    boost::string_ref
+    string_view
     maybe_flatten(
         ConstBufferSequence const& buffers);
 
@@ -595,8 +595,8 @@ private:
 
     void
     do_field(
-        boost::string_ref const& name,
-            boost::string_ref const& value,
+        string_view const& name,
+            string_view const& value,
                 error_code& ec);
 
     std::size_t

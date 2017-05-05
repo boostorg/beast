@@ -157,8 +157,8 @@ private:
 
     void
     on_request(
-        boost::string_ref const& method,
-            boost::string_ref const& target,
+        string_view const& method,
+            string_view const& target,
                 int version, error_code&)
     {
         m_.target(target);
@@ -168,7 +168,7 @@ private:
 
     void
     on_response(int status,
-        boost::string_ref const& reason,
+        string_view const& reason,
             int version, error_code&)
     {
         m_.status = status;
@@ -177,8 +177,8 @@ private:
     }
 
     void
-    on_field(boost::string_ref const& name,
-        boost::string_ref const& value,
+    on_field(string_view const& name,
+        string_view const& value,
             error_code&)
     {
         m_.fields.insert(name, value);
@@ -223,7 +223,7 @@ private:
     }
 
     void
-    on_data(boost::string_ref const& s,
+    on_data(string_view const& s,
         error_code& ec)
     {
         static_assert(! Body::reader::is_direct, "");
@@ -244,7 +244,7 @@ private:
 
     void
     on_chunk(std::uint64_t,
-        boost::string_ref const&,
+        string_view const&,
             error_code&)
     {
     }

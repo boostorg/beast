@@ -8,10 +8,10 @@
 #ifndef BEAST_HTTP_DETAIL_BASIC_PARSER_HPP
 #define BEAST_HTTP_DETAIL_BASIC_PARSER_HPP
 
+#include <beast/core/string_view.hpp>
 #include <beast/core/detail/ci_char_traits.hpp>
 #include <beast/http/error.hpp>
 #include <beast/http/detail/rfc7230.hpp>
-#include <boost/utility/string_ref.hpp>
 #include <boost/version.hpp>
 #include <cstddef>
 #include <utility>
@@ -187,7 +187,7 @@ protected:
     }
 
     static
-    boost::string_ref
+    string_view
     make_string(char const* first, char const* last)
     {
         return {first, static_cast<
@@ -197,8 +197,8 @@ protected:
     template<class = void>
     static
     bool
-    strieq(boost::string_ref const& s1,
-        boost::string_ref const& s2)
+    strieq(string_view const& s1,
+        string_view const& s2)
     {
         if(s1.size() != s2.size())
             return false;
@@ -213,7 +213,7 @@ protected:
     template<std::size_t N>
     bool
     strieq(const char (&s1)[N],
-        boost::string_ref const& s2)
+        string_view const& s2)
     {
         return strieq({s1, N-1}, s2);
     }
@@ -272,19 +272,19 @@ protected:
     }
 
     static
-    boost::string_ref
+    string_view
     parse_method(char const*& it)
     {
         auto const first = it;
         while(detail::is_tchar(*it))
             ++it;
         return {first, static_cast<
-            boost::string_ref::size_type>(
+            string_view::size_type>(
                 it - first)};
     }
 
     static
-    boost::string_ref
+    string_view
     parse_target(char const*& it)
     {
         auto const first = it;
@@ -293,19 +293,19 @@ protected:
         if(*it != ' ')
             return {};
         return {first, static_cast<
-            boost::string_ref::size_type>(
+            string_view::size_type>(
                 it - first)};
     }
 
     static
-    boost::string_ref
+    string_view
     parse_name(char const*& it)
     {
         auto const first = it;
         while(to_field_char(*it))
             ++it;
         return {first, static_cast<
-            boost::string_ref::size_type>(
+            string_view::size_type>(
                 it - first)};
     }
 
@@ -352,7 +352,7 @@ protected:
     }
     
     static
-    boost::string_ref
+    string_view
     parse_reason(char const*& it)
     {
         auto const first = it;

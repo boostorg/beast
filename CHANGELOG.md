@@ -1,5 +1,7 @@
 1.0.0-b39
 
+* Use beast::string_view alias
+
 WebSocket:
 
 * Add websocket async echo ssl server test:

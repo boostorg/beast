@@ -30,6 +30,7 @@ add_executable (core-tests
     static_buffer.cpp
     static_string.cpp
     stream_concepts.cpp
+    string_view.cpp
     base64.cpp
     empty_base_optimization.cpp
     get_lowest_layer.cpp

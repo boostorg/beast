@@ -198,8 +198,8 @@ public:
         template<class NextLayer>
         void
         handshake(stream<NextLayer>& ws,
-            boost::string_ref const& uri,
-                boost::string_ref const& path) const
+            string_view const& uri,
+                string_view const& path) const
         {
             ws.handshake(uri, path);
         }
@@ -208,8 +208,8 @@ public:
         void
         handshake(stream<NextLayer>& ws,
             response_type& res,
-                boost::string_ref const& uri,
-                    boost::string_ref const& path) const
+                string_view const& uri,
+                    string_view const& path) const
         {
             ws.handshake(res, uri, path);
         }
@@ -217,8 +217,8 @@ public:
         template<class NextLayer, class Decorator>
         void
         handshake_ex(stream<NextLayer>& ws,
-            boost::string_ref const& uri,
-                boost::string_ref const& path,
+            string_view const& uri,
+                string_view const& path,
                     Decorator const& d) const
         {
             ws.handshake_ex(uri, path, d);
@@ -228,8 +228,8 @@ public:
         void
         handshake_ex(stream<NextLayer>& ws,
             response_type& res,
-                boost::string_ref const& uri,
-                    boost::string_ref const& path,
+                string_view const& uri,
+                    string_view const& path,
                         Decorator const& d) const
         {
             ws.handshake_ex(res, uri, path, d);
@@ -409,8 +409,8 @@ public:
         template<class NextLayer>
         void
         handshake(stream<NextLayer>& ws,
-            boost::string_ref const& uri,
-                boost::string_ref const& path) const
+            string_view const& uri,
+                string_view const& path) const
         {
             error_code ec;
             ws.async_handshake(
@@ -423,8 +423,8 @@ public:
         void
         handshake(stream<NextLayer>& ws,
             response_type& res,
-                boost::string_ref const& uri,
-                    boost::string_ref const& path) const
+                string_view const& uri,
+                    string_view const& path) const
         {
             error_code ec;
             ws.async_handshake(
@@ -436,8 +436,8 @@ public:
         template<class NextLayer, class Decorator>
         void
         handshake_ex(stream<NextLayer>& ws,
-            boost::string_ref const& uri,
-                boost::string_ref const& path,
+            string_view const& uri,
+                string_view const& path,
                     Decorator const &d) const
         {
             error_code ec;
@@ -451,8 +451,8 @@ public:
         void
         handshake_ex(stream<NextLayer>& ws,
             response_type& res,
-                boost::string_ref const& uri,
-                    boost::string_ref const& path,
+                string_view const& uri,
+                    string_view const& path,
                         Decorator const &d) const
         {
             error_code ec;

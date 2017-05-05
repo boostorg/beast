@@ -9,8 +9,8 @@
 #define BEAST_STATIC_STRING_HPP
 
 #include <beast/config.hpp>
+#include <beast/core/string_view.hpp>
 #include <beast/core/detail/static_string.hpp>
-#include <boost/utility/string_ref.hpp>
 #include <algorithm>
 #include <cstdint>
 #include <initializer_list>
@@ -70,6 +70,10 @@ public:
     using const_reverse_iterator =
         std::reverse_iterator<const_iterator>;
 
+    /// The type of `string_view` returned by the interface
+    using string_view_type =
+        beast::basic_string_view<CharT, Traits>;
+
     //
     // Constants
     //
@@ -123,23 +127,21 @@ public:
     /// Construct from an initializer list
     static_string(std::initializer_list<CharT> init);
 
-    /// Construct from a `basic_string_ref`
+    /// Construct from a `string_view`
     explicit
-    static_string(boost::basic_string_ref<CharT, Traits> sv);
+    static_string(string_view_type sv);
 
-    /** Construct from any object convertible to `basic_string_ref`.
+    /** Construct from any object convertible to `string_view_type`.
 
         The range (pos, n) is extracted from the value
-        obtained by converting `t` to `basic_string_ref`,
+        obtained by converting `t` to `string_view_type`,
         and used to construct the string.
     */
 #if BEAST_DOXYGEN
     template<class T>
 #else
-    template<class T,
-        class = typename std::enable_if<
-        std::is_convertible<T, boost::basic_string_ref<
-            CharT, Traits>> ::value>::type>
+    template<class T, class = typename std::enable_if<
+        std::is_convertible<T, string_view_type>::value>::type>
 #endif
     static_string(T const& t, size_type pos, size_type n);
 
@@ -184,9 +186,9 @@ public:
         return assign(init);
     }
 
-    /// Assign from `basic_string_ref`.
+    /// Assign from `string_view_type`.
     static_string&
-    operator=(boost::basic_string_ref<CharT, Traits> sv)
+    operator=(string_view_type sv)
     {
         return assign(sv);
     }
@@ -240,26 +242,25 @@ public:
         return assign(init.begin(), init.end());
     }
 
-    /// Assign from `basic_string_ref`.
+    /// Assign from `string_view_type`.
     static_string&
-    assign(boost::basic_string_ref<CharT, Traits> str)
+    assign(string_view_type str)
     {
         return assign(str.data(), str.size());
     }
 
-    /** Assign from any object convertible to `basic_string_ref`.
+    /** Assign from any object convertible to `string_view_type`.
 
         The range (pos, n) is extracted from the value
-        obtained by converting `t` to `basic_string_ref`,
+        obtained by converting `t` to `string_view_type`,
         and used to assign the string.
     */
     template<class T>
 #if BEAST_DOXYGEN
     static_string&
 #else
-    typename std::enable_if<
-        std::is_convertible<T, boost::basic_string_ref<
-            CharT, Traits>>::value, static_string&>::type
+    typename std::enable_if<std::is_convertible<T,
+        string_view_type>::value, static_string&>::type
 #endif
     assign(T const& t,
         size_type pos, size_type count = npos);
@@ -339,10 +340,8 @@ public:
         return data();
     }
 
-    // VFALCO What about boost::string_view?
-    //
-    /// Convert a static string to a `static_string_ref`
-    operator boost::basic_string_ref<CharT, Traits>() const
+    /// Convert a static string to a `string_view_type`
+    operator string_view_type() const
     {
         return boost::basic_string_ref<
             CharT, Traits>{data(), size()};
@@ -552,8 +551,7 @@ public:
     }
 
     static_string&
-    insert(size_type index,
-        boost::basic_string_ref<CharT, Traits> str)
+    insert(size_type index, string_view_type str)
     {
         return insert(index, str.data(), str.size());
     }
@@ -563,8 +561,7 @@ public:
     static_string&
 #else
     typename std::enable_if<
-        std::is_convertible<T const&,
-            boost::basic_string_ref<CharT, Traits>>::value &&
+        std::is_convertible<T const&, string_view_type>::value &&
         ! std::is_convertible<T const&, CharT const*>::value,
             static_string&>::type
 #endif
@@ -645,7 +642,7 @@ public:
     }
 
     static_string&
-    append(boost::basic_string_ref<CharT, Traits> sv)
+    append(string_view_type sv)
     {
         insert(size(), sv);
         return *this;
@@ -653,8 +650,7 @@ public:
 
     template<class T>
     typename std::enable_if<
-        std::is_convertible<T const&,
-            boost::basic_string_ref<CharT, Traits>>::value &&
+        std::is_convertible<T const&, string_view_type>::value &&
         ! std::is_convertible<T const&, CharT const*>::value,
             static_string&>::type
     append(T const& t, size_type pos, size_type count = npos)
@@ -690,7 +686,7 @@ public:
     }
 
     static_string&
-    operator+=(boost::basic_string_ref<CharT, Traits> const& str)
+    operator+=(string_view_type const& str)
     {
         return append(str);
     }
@@ -746,7 +742,7 @@ public:
     }
 
     int
-    compare(boost::basic_string_ref<CharT, Traits> str) const
+    compare(string_view_type str) const
     {
         return detail::lexicographical_compare<CharT, Traits>(
             &s_[0], n_, str.data(), str.size());
@@ -754,7 +750,7 @@ public:
 
     int
     compare(size_type pos1, size_type count1,
-        boost::basic_string_ref<CharT, Traits> str) const
+        string_view_type str) const
     {
         return detail::lexicographical_compare<CharT, Traits>(
             substr(pos1, count1), str);
@@ -765,8 +761,7 @@ public:
     int
 #else
     typename std::enable_if<
-        std::is_convertible<T const&,
-            boost::basic_string_ref<CharT, Traits>>::value &&
+        std::is_convertible<T const&, string_view_type>::value &&
         ! std::is_convertible<T const&, CharT const*>::value,
             int>::type
 #endif
@@ -775,11 +770,10 @@ public:
             size_type count2 = npos) const
     {
         return compare(pos1, count1,
-            boost::basic_string_ref<
-                CharT, Traits>(t).substr(pos2, count2));
+            string_view_type(t).substr(pos2, count2));
     }
 
-    boost::basic_string_ref<CharT, Traits>
+    string_view_type
     substr(size_type pos = 0, size_type count = npos) const;
 
     /// Copy a substring (pos, pos+count) to character string pointed to by `dest`.
@@ -1101,7 +1095,7 @@ operator<<(std::basic_ostream<CharT, Traits>& os,
     static_string<N, CharT, Traits> const& str)
 {
     return os << static_cast<
-        boost::basic_string_ref<CharT, Traits>>(str);
+        beast::basic_string_view<CharT, Traits>>(str);
 }
 
 } // beast

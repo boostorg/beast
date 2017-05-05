@@ -16,9 +16,9 @@
 #include <beast/http/string_body.hpp>
 #include <beast/core/async_completion.hpp>
 #include <beast/core/buffered_read_stream.hpp>
+#include <beast/core/string_view.hpp>
 #include <beast/core/detail/get_lowest_layer.hpp>
 #include <boost/asio.hpp>
-#include <boost/utility/string_ref.hpp>
 #include <algorithm>
 #include <cstdint>
 #include <limits>
@@ -1465,8 +1465,8 @@ public:
         @endcode
     */
     void
-    handshake(boost::string_ref const& host,
-        boost::string_ref const& target);
+    handshake(string_view const& host,
+        string_view const& target);
 
     /** Send an HTTP WebSocket Upgrade request and receive the response.
 
@@ -1514,8 +1514,8 @@ public:
     */
     void
     handshake(response_type& res,
-        boost::string_ref const& host,
-            boost::string_ref const& target);
+        string_view const& host,
+            string_view const& target);
 
     /** Send an HTTP WebSocket Upgrade request and receive the response.
 
@@ -1572,8 +1572,8 @@ public:
     */
     template<class RequestDecorator>
     void
-    handshake_ex(boost::string_ref const& host,
-        boost::string_ref const& target,
+    handshake_ex(string_view const& host,
+        string_view const& target,
             RequestDecorator const& decorator);
 
     /** Send an HTTP WebSocket Upgrade request and receive the response.
@@ -1636,8 +1636,8 @@ public:
     template<class RequestDecorator>
     void
     handshake_ex(response_type& res,
-        boost::string_ref const& host,
-            boost::string_ref const& target,
+        string_view const& host,
+            string_view const& target,
                 RequestDecorator const& decorator);
 
     /** Send an HTTP WebSocket Upgrade request and receive the response.
@@ -1679,8 +1679,8 @@ public:
         @endcode
     */
     void
-    handshake(boost::string_ref const& host,
-        boost::string_ref const& target, error_code& ec);
+    handshake(string_view const& host,
+        string_view const& target, error_code& ec);
 
     /** Send an HTTP WebSocket Upgrade request and receive the response.
 
@@ -1726,8 +1726,8 @@ public:
     */
     void
     handshake(response_type& res,
-        boost::string_ref const& host,
-            boost::string_ref const& target,
+        string_view const& host,
+            string_view const& target,
                 error_code& ec);
 
     /** Send an HTTP WebSocket Upgrade request and receive the response.
@@ -1784,8 +1784,8 @@ public:
     */
     template<class RequestDecorator>
     void
-    handshake_ex(boost::string_ref const& host,
-        boost::string_ref const& target,
+    handshake_ex(string_view const& host,
+        string_view const& target,
             RequestDecorator const& decorator,
                 error_code& ec);
 
@@ -1848,8 +1848,8 @@ public:
     template<class RequestDecorator>
     void
     handshake_ex(response_type& res,
-        boost::string_ref const& host,
-            boost::string_ref const& target,
+        string_view const& host,
+            string_view const& target,
                 RequestDecorator const& decorator,
                     error_code& ec);
 
@@ -1901,8 +1901,8 @@ public:
     typename async_completion<HandshakeHandler,
         void(error_code)>::result_type
 #endif
-    async_handshake(boost::string_ref const& host,
-        boost::string_ref const& target,
+    async_handshake(string_view const& host,
+        string_view const& target,
             HandshakeHandler&& handler);
 
     /** Start an asynchronous operation to send an upgrade request and receive the response.
@@ -1958,8 +1958,8 @@ public:
         void(error_code)>::result_type
 #endif
     async_handshake(response_type& res,
-        boost::string_ref const& host,
-            boost::string_ref const& target,
+        string_view const& host,
+            string_view const& target,
                 HandshakeHandler&& handler);
 
     /** Start an asynchronous operation to send an upgrade request and receive the response.
@@ -2019,8 +2019,8 @@ public:
     typename async_completion<HandshakeHandler,
         void(error_code)>::result_type
 #endif
-    async_handshake_ex(boost::string_ref const& host,
-        boost::string_ref const& target,
+    async_handshake_ex(string_view const& host,
+        string_view const& target,
             RequestDecorator const& decorator,
                 HandshakeHandler&& handler);
 
@@ -2086,8 +2086,8 @@ public:
         void(error_code)>::result_type
 #endif
     async_handshake_ex(response_type& res,
-        boost::string_ref const& host,
-            boost::string_ref const& target,
+        string_view const& host,
+            string_view const& target,
                 RequestDecorator const& decorator,
                     HandshakeHandler&& handler);
 
@@ -2968,16 +2968,16 @@ private:
     template<class RequestDecorator>
     void
     do_handshake(response_type* res_p,
-        boost::string_ref const& host,
-            boost::string_ref const& target,
+        string_view const& host,
+            string_view const& target,
                 RequestDecorator const& decorator,
                     error_code& ec);
 
     template<class Decorator>
     request_type
     build_request(detail::sec_ws_key_type& key,
-        boost::string_ref const& host,
-            boost::string_ref const& target,
+        string_view const& host,
+            string_view const& target,
                 Decorator const& decorator);
 
     template<class Decorator>

@@ -9,10 +9,10 @@
 #define BEAST_WEBSOCKET_DETAIL_HYBI13_HPP
 
 #include <beast/core/static_string.hpp>
+#include <beast/core/string_view.hpp>
 #include <beast/core/detail/base64.hpp>
 #include <beast/core/detail/sha1.hpp>
 #include <boost/assert.hpp>
-#include <boost/utility/string_ref.hpp>
 #include <array>
 #include <cstdint>
 #include <string>
@@ -49,7 +49,7 @@ make_sec_ws_key(sec_ws_key_type& key, Gen& g)
 template<class = void>
 void
 make_sec_ws_accept(sec_ws_accept_type& accept,
-    boost::string_ref key)
+    string_view key)
 {
     BOOST_ASSERT(key.size() <= sec_ws_key_type::max_size_n);
     static_string<sec_ws_key_type::max_size_n + 36> m(key);

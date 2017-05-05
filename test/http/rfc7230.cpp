@@ -30,7 +30,7 @@ public:
 
     static
     std::string
-    str(boost::string_ref const& s)
+    str(string_view const& s)
     {
         return std::string(s.data(), s.size());
     }
@@ -241,7 +241,7 @@ public:
     template<class Policy>
     static
     std::vector<std::string>
-    to_vector(boost::string_ref const& in)
+    to_vector(string_view const& in)
     {
         std::vector<std::string> v;
         detail::basic_parsed_list<Policy> list{in};
@@ -253,7 +253,7 @@ public:
 
     template<class Policy>
     void
-    validate(boost::string_ref const& in,
+    validate(string_view const& in,
         std::vector<std::string> const& v)
     {
         BEAST_EXPECT(to_vector<Policy>(in) == v);
@@ -261,7 +261,7 @@ public:
 
     template<class Policy>
     void
-    good(boost::string_ref const& in)
+    good(string_view const& in)
     {
         BEAST_EXPECT(validate_list(
             detail::basic_parsed_list<Policy>{in}));
@@ -269,7 +269,7 @@ public:
 
     template<class Policy>
     void
-    good(boost::string_ref const& in,
+    good(string_view const& in,
         std::vector<std::string> const& v)
     {
         BEAST_EXPECT(validate_list(
@@ -279,7 +279,7 @@ public:
 
     template<class Policy>
     void
-    bad(boost::string_ref const& in)
+    bad(string_view const& in)
     {
         BEAST_EXPECT(! validate_list(
             detail::basic_parsed_list<Policy>{in}));

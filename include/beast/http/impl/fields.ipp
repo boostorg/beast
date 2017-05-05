@@ -170,7 +170,7 @@ basic_fields(FwdIt first, FwdIt last)
 template<class Allocator>
 std::size_t
 basic_fields<Allocator>::
-count(boost::string_ref const& name) const
+count(string_view const& name) const
 {
     auto const it = set_.find(name, less{});
     if(it == set_.end())
@@ -182,7 +182,7 @@ count(boost::string_ref const& name) const
 template<class Allocator>
 auto
 basic_fields<Allocator>::
-find(boost::string_ref const& name) const ->
+find(string_view const& name) const ->
     iterator
 {
     auto const it = set_.find(name, less{});
@@ -192,9 +192,9 @@ find(boost::string_ref const& name) const ->
 }
 
 template<class Allocator>
-boost::string_ref const
+string_view const
 basic_fields<Allocator>::
-operator[](boost::string_ref const& name) const
+operator[](string_view const& name) const
 {
     auto const it = find(name);
     if(it == end())
@@ -215,7 +215,7 @@ clear() noexcept
 template<class Allocator>
 std::size_t
 basic_fields<Allocator>::
-erase(boost::string_ref const& name)
+erase(string_view const& name)
 {
     auto it = set_.find(name, less{});
     if(it == set_.end())
@@ -239,8 +239,8 @@ erase(boost::string_ref const& name)
 template<class Allocator>
 void
 basic_fields<Allocator>::
-insert(boost::string_ref const& name,
-    boost::string_ref value)
+insert(string_view const& name,
+    string_view value)
 {
     value = detail::trim(value);
     auto const p = alloc_traits::allocate(this->member(), 1);
@@ -252,8 +252,8 @@ insert(boost::string_ref const& name,
 template<class Allocator>
 void
 basic_fields<Allocator>::
-replace(boost::string_ref const& name,
-    boost::string_ref value)
+replace(string_view const& name,
+    string_view value)
 {
     value = detail::trim(value);
     erase(name);

@@ -8,8 +8,8 @@
 #ifndef BEAST_HTTP_DETAIL_BASIC_PARSED_LIST_HPP
 #define BEAST_HTTP_DETAIL_BASIC_PARSED_LIST_HPP
 
+#include <beast/core/string_view.hpp>
 #include <beast/core/detail/empty_base_optimization.hpp>
-#include <boost/utility/string_ref.hpp>
 #include <cstddef>
 #include <iterator>
 
@@ -22,7 +22,7 @@ namespace detail {
 template<class Policy>
 class basic_parsed_list
 {
-    boost::string_ref s_;
+    string_view s_;
 
 public:
     /// The type of policy this list uses for parsing.
@@ -128,7 +128,7 @@ public:
 
     /// Construct a list from a string
     explicit
-    basic_parsed_list(boost::string_ref const& s)
+    basic_parsed_list(string_view const& s)
         : s_(s)
     {
     }

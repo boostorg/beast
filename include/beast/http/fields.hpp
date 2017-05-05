@@ -9,10 +9,10 @@
 #define BEAST_HTTP_FIELDS_HPP
 
 #include <beast/config.hpp>
+#include <beast/core/string_view.hpp>
 #include <beast/core/detail/empty_base_optimization.hpp>
 #include <beast/http/detail/fields.hpp>
 #include <boost/lexical_cast.hpp>
-#include <boost/utility/string_ref.hpp>
 #include <algorithm>
 #include <cctype>
 #include <memory>
@@ -195,14 +195,14 @@ public:
 
     /// Returns `true` if the specified field exists.
     bool
-    exists(boost::string_ref const& name) const
+    exists(string_view const& name) const
     {
         return set_.find(name, less{}) != set_.end();
     }
 
     /// Returns the number of values for the specified field.
     std::size_t
-    count(boost::string_ref const& name) const;
+    count(string_view const& name) const;
 
     /** Returns an iterator to the case-insensitive matching field name.
 
@@ -210,15 +210,15 @@ public:
         first field defined by insertion order is returned.
     */
     iterator
-    find(boost::string_ref const& name) const;
+    find(string_view const& name) const;
 
     /** Returns the value for a case-insensitive matching header, or `""`.
 
         If more than one field with the specified name exists, the
         first field defined by insertion order is returned.
     */
-    boost::string_ref const
-    operator[](boost::string_ref const& name) const;
+    string_view const
+    operator[](string_view const& name) const;
 
     /// Clear the contents of the basic_fields.
     void
@@ -234,7 +234,7 @@ public:
         @return The number of fields removed.
     */
     std::size_t
-    erase(boost::string_ref const& name);
+    erase(string_view const& name);
 
     /** Insert a field value.
 
@@ -247,7 +247,7 @@ public:
         @param value A string holding the value of the field.
     */
     void
-    insert(boost::string_ref const& name, boost::string_ref value);
+    insert(string_view const& name, string_view value);
 
     /** Insert a field value.
 
@@ -262,8 +262,8 @@ public:
     */
     template<class T>
     typename std::enable_if<
-        ! std::is_constructible<boost::string_ref, T>::value>::type
-    insert(boost::string_ref name, T const& value)
+        ! std::is_constructible<string_view, T>::value>::type
+    insert(string_view name, T const& value)
     {
         insert(name, boost::lexical_cast<std::string>(value));
     }
@@ -278,7 +278,7 @@ public:
         @param value A string holding the value of the field.
     */
     void
-    replace(boost::string_ref const& name, boost::string_ref value);
+    replace(string_view const& name, string_view value);
 
     /** Replace a field value.
 
@@ -292,8 +292,8 @@ public:
     */
     template<class T>
     typename std::enable_if<
-        ! std::is_constructible<boost::string_ref, T>::value>::type
-    replace(boost::string_ref const& name, T const& value)
+        ! std::is_constructible<string_view, T>::value>::type
+    replace(string_view const& name, T const& value)
     {
         replace(name,
             boost::lexical_cast<std::string>(value));
@@ -303,38 +303,38 @@ public:
 private:
 #endif
 
-    boost::string_ref
+    string_view
     method() const
     {
         return (*this)[":method"];
     }
 
     void
-    method(boost::string_ref const& s)
+    method(string_view const& s)
     {
         return this->replace(":method", s);
     }
 
-    boost::string_ref
+    string_view
     target() const
     {
         return (*this)[":target"];
     }
 
     void
-    target(boost::string_ref const& s)
+    target(string_view const& s)
     {
         return this->replace(":target", s);
     }
 
-    boost::string_ref
+    string_view
     reason() const
     {
         return (*this)[":reason"];
     }
 
     void
-    reason(boost::string_ref const& s)
+    reason(string_view const& s)
     {
         return this->replace(":reason", s);
     }

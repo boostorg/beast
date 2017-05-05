@@ -37,6 +37,7 @@ unit-test core-tests :
     core/static_buffer.cpp
     core/static_string.cpp
     core/stream_concepts.cpp
+    core/string_view.cpp
     core/base64.cpp
     core/empty_base_optimization.cpp
     core/get_lowest_layer.cpp

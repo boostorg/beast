@@ -108,8 +108,8 @@ private:
 
     void
     on_request(
-        boost::string_ref const& method,
-            boost::string_ref const& path,
+        string_view const& method,
+            string_view const& path,
                 int version, error_code&)
     {
         h_.target(path);
@@ -119,7 +119,7 @@ private:
 
     void
     on_response(int status,
-        boost::string_ref const& reason,
+        string_view const& reason,
             int version, error_code&)
     {
         h_.status = status;
@@ -128,8 +128,8 @@ private:
     }
 
     void
-    on_field(boost::string_ref const& name,
-        boost::string_ref const& value,
+    on_field(string_view const& name,
+        string_view const& value,
             error_code&)
     {
         h_.fields.insert(name, value);
@@ -152,7 +152,7 @@ private:
     }
 
     void
-    on_data(boost::string_ref const& s,
+    on_data(string_view const& s,
         error_code& ec)
     {
     }
@@ -168,7 +168,7 @@ private:
 
     void
     on_chunk(std::uint64_t n,
-        boost::string_ref const& ext,
+        string_view const& ext,
             error_code& ec)
     {
     }

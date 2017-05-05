@@ -10,8 +10,8 @@
 
 #include <beast/config.hpp>
 #include <beast/http/fields.hpp>
+#include <beast/core/string_view.hpp>
 #include <beast/core/detail/integer_sequence.hpp>
-#include <boost/utility/string_ref.hpp>
 #include <memory>
 #include <string>
 #include <tuple>

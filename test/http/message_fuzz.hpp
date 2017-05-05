@@ -19,7 +19,7 @@ namespace http {
 
 template<class = void>
 std::string
-escaped_string(boost::string_ref const& s)
+escaped_string(string_view const& s)
 {
     std::string out;
     out.reserve(s.size());
