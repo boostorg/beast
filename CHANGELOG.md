@@ -1,3 +1,59 @@
+1.0.0-b37
+
+* Refactor static_string
+* Refactor base64
+* Use static_string for WebSocket handshakes
+* Simplify get_lowest_layer test
+* Add test_allocator to extras/test
+* More flat_streambuf tests
+* WebSocket doc work
+* Prevent basic_fields operator[] assignment
+
+API Changes:
+
+* Refactor WebSocket error codes
+* Remove websocket::keep_alive option
+
+--------------------------------------------------------------------------------
+
+1.0.0-b36
+
+* CMake hide command lines in .vcxproj Output windows"
+* Rename to detail::is_invocable
+* Rename project to http-bench
+
+WebSocket:
+
+* Add is_upgrade() free function
+* Document websocket::stream thread safety
+* Rename to websocket::detail::pausation
+
+API Changes:
+
+* Provide websocket::stream accept() overloads
+* Refactor websocket decorators
+* Move everything in basic_fields.hpp to fields.hpp
+* Rename to http::dynamic_body, consolidate header
+
+--------------------------------------------------------------------------------
+
+1.0.0-b35
+
+* Add Appveyor build scripts and badge
+* Tidy up MSVC CMake configuration
+* Make close_code a proper enum
+* Add flat_streambuf
+* Rename to BEAST_DOXYGEN
+* Update .gitignore for VS2017
+* Fix README.md CMake instructions
+
+API Changes:
+
+* New HTTP interfaces
+* Remove http::empty_body
+
+--------------------------------------------------------------------------------
+
 1.0.0-b34
 
 * Fix and tidy up CMake build scripts

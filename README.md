@@ -1,7 +1,13 @@
 <img width="880" height = "80" alt = "Beast"
     src="https://raw.githubusercontent.com/vinniefalco/Beast/master/doc/images/readme.png">
 
-[![Join the chat at https://gitter.im/vinniefalco/Beast](https://badges.gitter.im/vinniefalco/Beast.svg)](https://gitter.im/vinniefalco/Beast?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [![Build Status](https://travis-ci.org/vinniefalco/Beast.svg?branch=master)](https://travis-ci.org/vinniefalco/Beast) [![codecov](https://codecov.io/gh/vinniefalco/Beast/branch/master/graph/badge.svg)](https://codecov.io/gh/vinniefalco/Beast) [![coveralls](https://coveralls.io/repos/github/vinniefalco/Beast/badge.svg?branch=master)](https://coveralls.io/github/vinniefalco/Beast?branch=master) [![Documentation](https://img.shields.io/badge/documentation-master-brightgreen.svg)](http://vinniefalco.github.io/beast/) [![License](https://img.shields.io/badge/license-boost-brightgreen.svg)](LICENSE_1_0.txt)
+[![Join the chat at https://gitter.im/vinniefalco/Beast](https://badges.gitter.im/vinniefalco/Beast.svg)](https://gitter.im/vinniefalco/Beast?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Build Status](https://travis-ci.org/vinniefalco/Beast.svg?branch=master)](https://travis-ci.org/vinniefalco/Beast)
+[![Build status](https://ci.appveyor.com/api/projects/status/g0llpbvhpjuxjnlw?svg=true)](https://ci.appveyor.com/project/vinniefalco/beast)
+[![codecov](https://codecov.io/gh/vinniefalco/Beast/branch/master/graph/badge.svg)](https://codecov.io/gh/vinniefalco/Beast)
+[![coveralls](https://coveralls.io/repos/github/vinniefalco/Beast/badge.svg?branch=master)](https://coveralls.io/github/vinniefalco/Beast?branch=master)
+[![Documentation](https://img.shields.io/badge/documentation-master-brightgreen.svg)](http://vinniefalco.github.io/beast/)
+[![License](https://img.shields.io/badge/license-boost-brightgreen.svg)](LICENSE_1_0.txt)
 
 # HTTP and WebSocket built on Boost.Asio in C++11
 
@@ -106,24 +112,18 @@ instructions on how to do this for your particular build system.
 
 For the examples and tests, Beast provides build scripts for Boost.Build (bjam)
 and CMake. It is possible to generate Microsoft Visual Studio or Apple
-Developers using Microsoft Visual Studio can generate Visual Studio
-project files by executing these commands from the root of the repository:
+Xcode project files using CMake by executing these commands from
+the root of the repository:
 
 ```
 cd bin
 cmake ..                                    # for 32-bit Windows builds
+cmake -G Xcode ..                           # for Apple Xcode builds
 
 cd ../bin64
-cmake ..                                    # for Linux/Mac builds, OR
-cmake -G"Visual Studio 14 2015 Win64" ..    # for 64-bit Windows builds
-```
+cmake -G"Visual Studio 14 2015 Win64" ..    # for 64-bit Windows builds (VS2015)
+cmake -G"Visual Studio 15 2017 Win64" ..    # for 64-bit Windows builds (VS2017)
 
-When using Apple Xcode it is possible to generate Xcode project files
-using these commands:
-
-```
-cd bin
-cmake -G Xcode ..                           # for Apple Xcode builds
 ```
 
 To build with Boost.Build, it is necessary to have the bjam executable
@@ -208,7 +208,7 @@ int main()
         r.resolve(boost::asio::ip::tcp::resolver::query{host, "http"}));
 
     // Send HTTP request using beast
-    beast::http::request<beast::http::empty_body> req;
+    beast::http::request<beast::http::string_body> req;
     req.method = "GET";
     req.url = "/";
     req.version = 11;
@@ -220,7 +220,7 @@ int main()
 
     // Receive and print HTTP response using beast
     beast::streambuf sb;
-    beast::http::response<beast::http::streambuf_body> resp;
+    beast::http::response<beast::http::dynamic_body> resp;
     beast::http::read(sock, sb, resp);
     std::cout << resp;
 }

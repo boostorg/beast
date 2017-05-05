@@ -8,6 +8,8 @@
 import os ;
 import feature ;
 import boost ;
+import modules ;
+import testing ;
 
 boost.use-project ;
 

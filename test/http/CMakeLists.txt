@@ -8,23 +8,20 @@ add_executable (http-tests
     ${BEAST_INCLUDES}
     ${EXTRAS_INCLUDES}
     message_fuzz.hpp
-    fail_parser.hpp
+    test_parser.hpp
     ../../extras/beast/unit_test/main.cpp
-    basic_dynabuf_body.cpp
-    basic_fields.cpp
-    basic_parser_v1.cpp
+    basic_parser.cpp
     concepts.cpp
-    empty_body.cpp
+    design.cpp
+    dynamic_body.cpp
+    error.cpp
     fields.cpp
-    header_parser_v1.cpp
+    header_parser.cpp
     message.cpp
-    parse.cpp
-    parse_error.cpp
-    parser_v1.cpp
+    message_parser.cpp
     read.cpp
     reason.cpp
     rfc7230.cpp
-    streambuf_body.cpp
     string_body.cpp
     write.cpp
     chunk_encode.cpp
@@ -36,7 +33,7 @@ else()
     target_link_libraries(http-tests ${Boost_LIBRARIES})
 endif()
 
-add_executable (bench-tests
+add_executable (http-bench
     ${BEAST_INCLUDES}
     ${EXTRAS_INCLUDES}
     nodejs_parser.hpp
@@ -46,7 +43,7 @@ add_executable (bench-tests
 )
 
 if (NOT WIN32)
-    target_link_libraries(bench-tests ${Boost_LIBRARIES} Threads::Threads)
+    target_link_libraries(http-bench ${Boost_LIBRARIES} Threads::Threads)
 else()
-    target_link_libraries(bench-tests ${Boost_LIBRARIES})
+    target_link_libraries(http-bench ${Boost_LIBRARIES})
 endif()

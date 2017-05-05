@@ -59,7 +59,7 @@ public:
         `boost::asio::mutable_buffer`, else this type will be
         `boost::asio::const_buffer`.
     */
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
     using value_type = ...;
 #else
     using value_type = typename std::conditional<
@@ -70,7 +70,7 @@ public:
                         boost::asio::const_buffer>::type;
 #endif
 
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
     /// A bidirectional iterator type that may be used to read elements.
     using const_iterator = implementation_defined;
 

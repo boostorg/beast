@@ -28,35 +28,64 @@ struct string_body
     /// The type of the `message::body` member
     using value_type = std::string;
 
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
 private:
 #endif
 
     class reader
     {
-        value_type& s_;
+        value_type& body_;
+        std::size_t len_ = 0;
 
     public:
+        static bool constexpr is_direct = true;
+
+        using mutable_buffers_type =
+            boost::asio::mutable_buffers_1;
+
         template<bool isRequest, class Fields>
         explicit
         reader(message<isRequest,
-                string_body, Fields>& m) noexcept
-            : s_(m.body)
+                string_body, Fields>& m)
+            : body_(m.body)
         {
         }
 
         void
-        init(error_code&) noexcept
+        init()
         {
         }
 
         void
-        write(void const* data,
-            std::size_t size, error_code&) noexcept
+        init(std::uint64_t content_length)
         {
-            auto const n = s_.size();
-            s_.resize(n + size);
-            std::memcpy(&s_[n], data, size);
+            if(content_length >
+                    (std::numeric_limits<std::size_t>::max)())
+                throw std::length_error{
+                    "Content-Length overflow"};
+            body_.reserve(static_cast<
+                std::size_t>(content_length));
+        }
+
+        mutable_buffers_type
+        prepare(std::size_t n)
+        {
+            body_.resize(len_ + n);
+            return {&body_[len_], n};
+        }
+
+        void
+        commit(std::size_t n)
+        {
+            if(body_.size() > len_ + n)
+                body_.resize(len_ + n);
+            len_ = body_.size();
+        }
+
+        void
+        finish()
+        {
+            body_.resize(len_);
         }
     };
 

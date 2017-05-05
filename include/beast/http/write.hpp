@@ -121,7 +121,7 @@ write(SyncWriteStream& stream,
 template<class AsyncWriteStream,
     bool isRequest, class Fields,
         class WriteHandler>
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
 void_or_deduced
 #else
 typename async_completion<
@@ -240,7 +240,7 @@ write(SyncWriteStream& stream,
 template<class AsyncWriteStream,
     bool isRequest, class Body, class Fields,
         class WriteHandler>
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
 void_or_deduced
 #else
 typename async_completion<

@@ -50,7 +50,7 @@ namespace beast {
     arguments are forwarded into the returned object.
 */
 template<class Handler, class... Args>
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
 implementation_defined
 #else
 detail::bound_handler<

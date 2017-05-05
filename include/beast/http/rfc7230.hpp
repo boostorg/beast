@@ -10,6 +10,7 @@
 
 #include <beast/config.hpp>
 #include <beast/http/detail/rfc7230.hpp>
+#include <beast/http/detail/basic_parsed_list.hpp>
 
 namespace beast {
 namespace http {
@@ -61,7 +62,7 @@ public:
         std::pair<boost::string_ref, boost::string_ref>;
 
     /// A constant iterator to the list
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
     using const_iterator = implementation_defined;
 #else
     class const_iterator;
@@ -150,7 +151,7 @@ public:
     using value_type = std::pair<boost::string_ref, param_list>;
 
     /// A constant iterator to the list
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
     using const_iterator = implementation_defined;
 #else
     class const_iterator;
@@ -238,7 +239,7 @@ public:
     using value_type = boost::string_ref;
 
     /// A constant iterator to the list
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
     using const_iterator = implementation_defined;
 #else
     class const_iterator;
@@ -275,6 +276,46 @@ public:
     bool
     exists(T const& s);
 };
+
+/** A list of tokens in a comma separated HTTP field value.
+
+    This container allows iteration of a list of items in a
+    header field value. The input is a comma separated list of
+    tokens.
+
+    If a parsing error is encountered while iterating the string,
+    the behavior of the container will be as if a string containing
+    only characters up to but excluding the first invalid character
+    was used to construct the list.
+
+    @par BNF
+    @code
+        token-list  = *( "," OWS ) token *( OWS "," [ OWS token ] )
+    @endcode
+
+    To use this class, construct with the string to be parsed and
+    then use `begin` and `end`, or range-for to iterate each item:
+
+    @par Example
+    @code
+    for(auto const& token : token_list{"apple, pear, banana"})
+        std::cout << token << "\n";
+    @endcode
+*/
+using opt_token_list =
+    detail::basic_parsed_list<
+        detail::opt_token_list_policy>;
+
+/** Returns `true` if a parsed list is parsed without errors.
+
+    This function iterates a single pass through a parsed list
+    and returns `true` if there were no parsing errors, else
+    returns `false`.
+*/
+template<class Policy>
+bool
+validate_list(detail::basic_parsed_list<
+    Policy> const& list);
 
 } // http
 } // beast

@@ -35,20 +35,20 @@ class frame_test : public beast::unit_test::suite
 public:
     void testCloseCodes()
     {
-        BEAST_EXPECT(! is_valid(0));
-        BEAST_EXPECT(! is_valid(1));
-        BEAST_EXPECT(! is_valid(999));
-        BEAST_EXPECT(! is_valid(1004));
-        BEAST_EXPECT(! is_valid(1005));
-        BEAST_EXPECT(! is_valid(1006));
-        BEAST_EXPECT(! is_valid(1016));
-        BEAST_EXPECT(! is_valid(2000));
-        BEAST_EXPECT(! is_valid(2999));
-        BEAST_EXPECT(is_valid(1000));
-        BEAST_EXPECT(is_valid(1002));
-        BEAST_EXPECT(is_valid(3000));
-        BEAST_EXPECT(is_valid(4000));
-        BEAST_EXPECT(is_valid(5000));
+        BEAST_EXPECT(! is_valid_close_code(0));
+        BEAST_EXPECT(! is_valid_close_code(1));
+        BEAST_EXPECT(! is_valid_close_code(999));
+        BEAST_EXPECT(! is_valid_close_code(1004));
+        BEAST_EXPECT(! is_valid_close_code(1005));
+        BEAST_EXPECT(! is_valid_close_code(1006));
+        BEAST_EXPECT(! is_valid_close_code(1016));
+        BEAST_EXPECT(! is_valid_close_code(2000));
+        BEAST_EXPECT(! is_valid_close_code(2999));
+        BEAST_EXPECT(is_valid_close_code(1000));
+        BEAST_EXPECT(is_valid_close_code(1002));
+        BEAST_EXPECT(is_valid_close_code(3000));
+        BEAST_EXPECT(is_valid_close_code(4000));
+        BEAST_EXPECT(is_valid_close_code(5000));
     }
 
     struct test_fh : frame_header
@@ -77,7 +77,7 @@ public:
                 {
                     fh_streambuf sb;
                     write(sb, fh);
-                    close_code::value code;
+                    close_code code;
                     stream_base stream;
                     stream.open(role);
                     detail::frame_header fh1;
@@ -129,7 +129,7 @@ public:
                 {
                     fh_streambuf sb;
                     write(sb, fh);
-                    close_code::value code;
+                    close_code code;
                     stream_base stream;
                     stream.open(role);
                     detail::frame_header fh1;
@@ -197,7 +197,7 @@ public:
         sb.commit(buffer_copy(sb.prepare(v.size()), buffer(v)));
         stream_base stream;
         stream.open(role);
-        close_code::value code;
+        close_code code;
         detail::frame_header fh;
         auto const n =
             stream.read_fh1(fh, sb, code);

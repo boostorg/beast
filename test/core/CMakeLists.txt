@@ -18,6 +18,7 @@ add_executable (core-tests
     consuming_buffers.cpp
     dynabuf_readstream.cpp
     error.cpp
+    flat_streambuf.cpp
     handler_alloc.cpp
     handler_concepts.cpp
     handler_ptr.cpp
@@ -33,8 +34,8 @@ add_executable (core-tests
     base64.cpp
     empty_base_optimization.cpp
     get_lowest_layer.cpp
-    is_call_possible.cpp
     sha1.cpp
+    type_traits.cpp
 )
 
 if (NOT WIN32)

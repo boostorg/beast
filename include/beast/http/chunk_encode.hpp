@@ -36,7 +36,7 @@ namespace http {
     @see <a href=https://tools.ietf.org/html/rfc7230#section-4.1.3>rfc7230 section 4.1.3</a>
 */
 template<class ConstBufferSequence>
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
 implementation_defined
 #else
 beast::detail::buffer_cat_helper<
@@ -59,7 +59,7 @@ chunk_encode(bool fin, ConstBufferSequence const& buffers)
     @see <a href=https://tools.ietf.org/html/rfc7230#section-4.1.3>rfc7230 section 4.1.3</a>
 */
 inline
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
 implementation_defined
 #else
 boost::asio::const_buffers_1

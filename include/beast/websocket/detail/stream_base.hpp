@@ -11,13 +11,11 @@
 #include <beast/websocket/error.hpp>
 #include <beast/websocket/option.hpp>
 #include <beast/websocket/rfc6455.hpp>
-#include <beast/websocket/detail/decorator.hpp>
 #include <beast/websocket/detail/frame.hpp>
-#include <beast/websocket/detail/invokable.hpp>
 #include <beast/websocket/detail/mask.hpp>
+#include <beast/websocket/detail/pausation.hpp>
 #include <beast/websocket/detail/pmd_extension.hpp>
 #include <beast/websocket/detail/utf8_checker.hpp>
-#include <beast/http/empty_body.hpp>
 #include <beast/http/message.hpp>
 #include <beast/http/string_body.hpp>
 #include <beast/zlib/deflate_stream.hpp>
@@ -51,8 +49,6 @@ protected:
     struct op {};
 
     detail::maskgen maskgen_;               // source of mask keys
-    decorator_type d_;                      // adorns http messages
-    bool keep_alive_ = false;               // close on failed upgrade
     std::size_t rd_msg_max_ =
         16 * 1024 * 1024;                   // max message size
     bool wr_autofrag_ = true;               // auto fragment
@@ -67,9 +63,9 @@ protected:
     op* wr_block_;                          // op currenly writing
 
     ping_data* ping_data_;                  // where to put the payload
-    invokable rd_op_;                       // read parking
-    invokable wr_op_;                       // write parking
-    invokable ping_op_;                     // ping parking
+    pausation rd_op_;                       // parked read op
+    pausation wr_op_;                       // parked write op
+    pausation ping_op_;                     // parked ping op
     close_reason cr_;                       // set from received close frame
 
     // State information for the message being received
@@ -154,15 +150,11 @@ protected:
     // Offer for clients, negotiated result for servers
     pmd_offer pmd_config_;
 
+    stream_base() = default;
     stream_base(stream_base&&) = default;
     stream_base(stream_base const&) = delete;
     stream_base& operator=(stream_base&&) = default;
     stream_base& operator=(stream_base const&) = delete;
-
-    stream_base()
-        : d_(detail::default_decorator{})
-    {
-    }
 
     template<class = void>
     void
@@ -175,12 +167,12 @@ protected:
     template<class DynamicBuffer>
     std::size_t
     read_fh1(detail::frame_header& fh,
-        DynamicBuffer& db, close_code::value& code);
+        DynamicBuffer& db, close_code& code);
 
     template<class DynamicBuffer>
     void
     read_fh2(detail::frame_header& fh,
-        DynamicBuffer& db, close_code::value& code);
+        DynamicBuffer& db, close_code& code);
 
     // Called before receiving the first frame of each message
     template<class = void>
@@ -264,13 +256,13 @@ template<class DynamicBuffer>
 std::size_t
 stream_base::
 read_fh1(detail::frame_header& fh,
-    DynamicBuffer& db, close_code::value& code)
+    DynamicBuffer& db, close_code& code)
 {
     using boost::asio::buffer;
     using boost::asio::buffer_copy;
     using boost::asio::buffer_size;
     auto const err =
-        [&](close_code::value cv)
+        [&](close_code cv)
         {
             code = cv;
             return 0;
@@ -372,7 +364,7 @@ template<class DynamicBuffer>
 void
 stream_base::
 read_fh2(detail::frame_header& fh,
-    DynamicBuffer& db, close_code::value& code)
+    DynamicBuffer& db, close_code& code)
 {
     using boost::asio::buffer;
     using boost::asio::buffer_copy;

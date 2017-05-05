@@ -173,7 +173,7 @@ operator()(error_code ec,
     if(! ec)
     {
         d.cont = d.cont || again;
-        close_code::value code = close_code::none;
+        close_code code = close_code::none;
         do
         {
             switch(d.state)
@@ -727,7 +727,7 @@ read_frame(frame_info& fi, DynamicBuffer& dynabuf, error_code& ec)
     using boost::asio::buffer;
     using boost::asio::buffer_cast;
     using boost::asio::buffer_size;
-    close_code::value code{};
+    close_code code{};
     for(;;)
     {
         // Read frame header

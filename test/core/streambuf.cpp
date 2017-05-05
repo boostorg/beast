@@ -11,6 +11,7 @@
 #include "buffer_test.hpp"
 #include <beast/core/buffer_concepts.hpp>
 #include <beast/core/to_string.hpp>
+#include <beast/test/test_allocator.hpp>
 #include <beast/unit_test/suite.hpp>
 #include <boost/asio/buffer.hpp>
 #include <algorithm>
@@ -21,123 +22,6 @@
 namespace beast {
 
 static_assert(is_DynamicBuffer<streambuf>::value, "");
-
-struct test_allocator_info
-{
-    std::size_t ncopy = 0;
-    std::size_t nmove = 0;
-    std::size_t nselect = 0;
-};
-
-template<class T,
-    bool Assign, bool Move, bool Swap, bool Select>
-class test_allocator;
-
-template<class T,
-    bool Assign, bool Move, bool Swap, bool Select>
-struct test_allocator_base
-{
-};
-
-template<class T,
-    bool Assign, bool Move, bool Swap>
-struct test_allocator_base<T, Assign, Move, Swap, true>
-{
-    static
-    test_allocator<T, Assign, Move, Swap, true>
-    select_on_container_copy_construction(
-        test_allocator<T, Assign, Move, Swap, true> const& a)
-    {
-        return test_allocator<T, Assign, Move, Swap, true>{};
-    }
-};
-
-template<class T,
-    bool Assign, bool Move, bool Swap, bool Select>
-class test_allocator : public test_allocator_base<
-        T, Assign, Move, Swap, Select>
-{
-    std::size_t id_;
-    std::shared_ptr<test_allocator_info> info_;
-
-    template<class, bool, bool, bool, bool>
-    friend class test_allocator;
-
-public:
-    using value_type = T;
-    using propagate_on_container_copy_assignment =
-        std::integral_constant<bool, Assign>;
-    using propagate_on_container_move_assignment =
-        std::integral_constant<bool, Move>;
-    using propagate_on_container_swap =
-        std::integral_constant<bool, Swap>;
-
-    template<class U>
-    struct rebind
-    {
-        using other = test_allocator<
-            U, Assign, Move, Swap, Select>;
-    };
-
-    test_allocator()
-        : id_([]
-            {
-                static std::atomic<
-                    std::size_t> sid(0);
-                return ++sid;
-            }())
-        , info_(std::make_shared<test_allocator_info>())
-    {
-    }
-
-    test_allocator(test_allocator const& u) noexcept
-        : id_(u.id_)
-        , info_(u.info_)
-    {
-        ++info_->ncopy;
-    }
-
-    template<class U>
-    test_allocator(test_allocator<
-            U, Assign, Move, Swap, Select> const& u) noexcept
-        : id_(u.id_)
-        , info_(u.info_)
-    {
-        ++info_->ncopy;
-    }
-
-    test_allocator(test_allocator&& t)
-        : id_(t.id_)
-        , info_(t.info_)
-    {
-        ++info_->nmove;
-    }
-
-    value_type*
-    allocate(std::size_t n)
-    {
-        return static_cast<value_type*>(
-            ::operator new (n*sizeof(value_type)));
-    }
-
-    void
-    deallocate(value_type* p, std::size_t) noexcept
-    {
-        ::operator delete(p);
-    }
-
-    std::size_t
-    id() const
-    {
-        return id_;
-    }
-
-    test_allocator_info const*
-    operator->() const
-    {
-        return info_.get();
-    }
-};
 
 class basic_streambuf_test : public beast::unit_test::suite
 {
@@ -172,8 +56,6 @@ public:
     void testSpecialMembers()
     {
         using boost::asio::buffer;
-        using boost::asio::buffer_cast;
-        using boost::asio::buffer_size;
         std::string const s = "Hello, world";
         BEAST_EXPECT(s.size() == 12);
         for(std::size_t i = 1; i < 12; ++i) {
@@ -220,19 +102,21 @@ public:
         }
     }
 
-    void testAllocator()
+    void
+    testAllocator()
     {
+        using test::test_allocator;
         // VFALCO This needs work
         {
             using alloc_type =
-                test_allocator<char, false, false, false, false>;
+                test_allocator<char, false, false, false, false, false>;
             using sb_type = basic_streambuf<alloc_type>;
             sb_type sb;
             BEAST_EXPECT(sb.get_allocator().id() == 1);
         }
         {
             using alloc_type =
-                test_allocator<char, false, false, false, false>;
+                test_allocator<char, false, false, false, false, false>;
             using sb_type = basic_streambuf<alloc_type>;
             sb_type sb;
             BEAST_EXPECT(sb.get_allocator().id() == 2);
@@ -263,7 +147,6 @@ public:
 
     void testCommit()
     {
-        using boost::asio::buffer_size;
         streambuf sb(2);
         sb.prepare(2);
         sb.prepare(5);
@@ -273,7 +156,6 @@ public:
 
     void testConsume()
     {
-        using boost::asio::buffer_size;
         streambuf sb(1);
         expect_size(5, sb.prepare(5));
         sb.commit(3);
@@ -285,7 +167,6 @@ public:
     void testMatrix()
     {
         using boost::asio::buffer;
-        using boost::asio::buffer_cast;
         using boost::asio::buffer_size;
         std::string const s = "Hello, world";
         BEAST_EXPECT(s.size() == 12);

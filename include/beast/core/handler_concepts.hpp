@@ -9,19 +9,19 @@
 #define BEAST_HANDLER_CONCEPTS_HPP
 
 #include <beast/config.hpp>
-#include <beast/core/detail/is_call_possible.hpp>
+#include <beast/core/detail/type_traits.hpp>
 #include <type_traits>
 
 namespace beast {
 
 /// Determine if `T` meets the requirements of @b `CompletionHandler`.
 template<class T, class Signature>
-#if GENERATING_DOCS
+#if BEAST_DOXYGEN
 using is_CompletionHandler = std::integral_constant<bool, ...>;
 #else
 using is_CompletionHandler = std::integral_constant<bool,
     std::is_copy_constructible<typename std::decay<T>::type>::value &&
-        detail::is_call_possible<T, Signature>::value>;
+        detail::is_invocable<T, Signature>::value>;
 #endif
 } // beast
 

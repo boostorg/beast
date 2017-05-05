@@ -5,8 +5,8 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#ifndef BEAST_HTTP_IMPL_BASIC_FIELDS_IPP
-#define BEAST_HTTP_IMPL_BASIC_FIELDS_IPP
+#ifndef BEAST_HTTP_IMPL_FIELDS_IPP
+#define BEAST_HTTP_IMPL_FIELDS_IPP
 
 #include <beast/http/detail/rfc7230.hpp>
 #include <algorithm>
@@ -192,7 +192,7 @@ find(boost::string_ref const& name) const ->
 }
 
 template<class Allocator>
-boost::string_ref
+boost::string_ref const
 basic_fields<Allocator>::
 operator[](boost::string_ref const& name) const
 {

@@ -46,7 +46,7 @@ is_alpha(char c)
         0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0  // 240
     };
     static_assert(sizeof(tab) == 256, "");
-    return tab[static_cast<std::uint8_t>(c)];
+    return tab[static_cast<unsigned char>(c)];
 }
 
 inline
@@ -73,7 +73,7 @@ is_text(char c)
         1, 1, 1, 1,  1, 1, 1, 1,  1, 1, 1, 1,  1, 1, 1, 1  // 240
     };
     static_assert(sizeof(tab) == 256, "");
-    return tab[static_cast<std::uint8_t>(c)];
+    return tab[static_cast<unsigned char>(c)];
 }
 
 inline
@@ -105,7 +105,7 @@ is_tchar(char c)
         0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0  // 240
     };
     static_assert(sizeof(tab) == 256, "");
-    return tab[static_cast<std::uint8_t>(c)];
+    return tab[static_cast<unsigned char>(c)];
 }
 
 inline
@@ -134,7 +134,7 @@ is_qdchar(char c)
         1, 1, 1, 1,  1, 1, 1, 1,  1, 1, 1, 1,  1, 1, 1, 1  // 240
     };
     static_assert(sizeof(tab) == 256, "");
-    return tab[static_cast<std::uint8_t>(c)];
+    return tab[static_cast<unsigned char>(c)];
 }
 
 inline
@@ -164,7 +164,7 @@ is_qpchar(char c)
         1, 1, 1, 1,  1, 1, 1, 1,  1, 1, 1, 1,  1, 1, 1, 1  // 240
     };
     static_assert(sizeof(tab) == 256, "");
-    return tab[static_cast<std::uint8_t>(c)];
+    return tab[static_cast<unsigned char>(c)];
 }
 
 // converts to lower case,
@@ -200,7 +200,7 @@ to_field_char(char c)
         0,   0,   0,   0,   0,   0,   0,    0,   0,   0,   0,   0,   0,   0,   0,    0
     };
     static_assert(sizeof(tab) == 256, "");
-    return tab[static_cast<std::uint8_t>(c)];
+    return tab[static_cast<unsigned char>(c)];
 }
 
 // converts to lower case,
@@ -230,9 +230,10 @@ to_value_char(char c)
         240, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250, 251, 252, 253, 254, 255  // 240
     };
     static_assert(sizeof(tab) == 256, "");
-    return static_cast<char>(tab[static_cast<std::uint8_t>(c)]);
+    return static_cast<char>(tab[static_cast<unsigned char>(c)]);
 }
 
+// VFALCO TODO Make this return unsigned?
 inline
 std::int8_t
 unhex(char c)
@@ -256,19 +257,65 @@ unhex(char c)
         -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1  // 240
     };
     static_assert(sizeof(tab) == 256, "");
-    return tab[static_cast<std::uint8_t>(c)];
+    return tab[static_cast<unsigned char>(c)];
 }
 
 template<class FwdIt>
+inline
 void
 skip_ows(FwdIt& it, FwdIt const& end)
 {
     while(it != end)
     {
-        auto const c = *it;
-        if(c != ' ' && c != '\t')
+        if(*it != ' ' && *it != '\t')
             break;
         ++it;
+    }
+}
+
+template<class RanIt>
+inline
+void
+skip_ows_rev(
+    RanIt& it, RanIt const& first)
+{
+    while(it != first)
+    {
+        auto const c = it[-1];
+        if(c != ' ' && c != '\t')
+            break;
+        --it;
+    }
+}
+
+// obs-fold = CRLF 1*( SP / HTAB )
+// return `false` on parse error
+//
+template<class FwdIt>
+inline
+bool
+skip_obs_fold(
+    FwdIt& it, FwdIt const& last)
+{
+    for(;;)
+    {
+        if(*it != '\r')
+            return true;
+        if(++it == last)
+            return false;
+        if(*it != '\n')
+            return false;
+        if(++it == last)
+            return false;
+        if(*it != ' ' && *it != '\t')
+            return false;
+        for(;;)
+        {
+            if(++it == last)
+                return true;
+            if(*it != ' ' && *it != '\t')
+                return true;
+        }
     }
 }
 
@@ -402,6 +449,53 @@ increment()
         v.second = { &*p2, static_cast<std::size_t>(it - p2) };
     }
 }
+
+/*
+    #token = [ ( "," / token )   *( OWS "," [ OWS token ] ) ]
+*/
+struct opt_token_list_policy
+{
+    using value_type = boost::string_ref;
+
+    bool
+    operator()(value_type& v,
+        char const*& it, boost::string_ref const& s) const
+    {
+        v = {};
+        auto need_comma = it != s.begin();
+        for(;;)
+        {
+            detail::skip_ows(it, s.end());
+            if(it == s.end())
+            {
+                it = nullptr;
+                return true;
+            }
+            auto const c = *it;
+            if(detail::is_tchar(c))
+            {
+                if(need_comma)
+                    return false;
+                auto const p0 = it;
+                for(;;)
+                {
+                    ++it;
+                    if(it == s.end())
+                        break;
+                    if(! detail::is_tchar(*it))
+                        break;
+                }
+                v = boost::string_ref{&*p0,
+                    static_cast<std::size_t>(it - p0)};
+                return true;
+            }
+            if(c != ',')
+                return false;
+            need_comma = false;
+            ++it;
+        }
+    }
+};
 
 } // detail
 } // http

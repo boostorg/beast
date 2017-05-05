@@ -11,6 +11,7 @@
 #include <beast/websocket/teardown.hpp>
 #include <beast/websocket/detail/hybi13.hpp>
 #include <beast/websocket/detail/pmd_extension.hpp>
+#include <beast/version.hpp>
 #include <beast/http/read.hpp>
 #include <beast/http/write.hpp>
 #include <beast/http/reason.hpp>
@@ -83,18 +84,90 @@ reset()
 }
 
 template<class NextLayer>
-http::request<http::empty_body>
+template<class Decorator>
+void
 stream<NextLayer>::
-build_request(boost::string_ref const& host,
-    boost::string_ref const& resource, std::string& key)
+do_accept(
+    Decorator const& decorator, error_code& ec)
 {
-    http::request<http::empty_body> req;
+    http::header_parser<true, http::fields> p;
+    auto const bytes_used = http::read_some(
+        next_layer(), stream_.buffer(), p, ec);
+    if(ec)
+        return;
+    BOOST_ASSERT(p.got_header());
+    stream_.buffer().consume(bytes_used);
+    do_accept(p.get(), decorator, ec);
+}
+
+template<class NextLayer>
+template<class Fields, class Decorator>
+void
+stream<NextLayer>::
+do_accept(http::header<true, Fields> const& req,
+    Decorator const& decorator, error_code& ec)
+{
+    auto const res = build_response(req, decorator);
+    http::write(stream_, res, ec);
+    if(ec)
+        return;
+    if(res.status != 101)
+    {
+        ec = error::handshake_failed;
+        // VFALCO TODO Respect keep alive setting, perform
+        //             teardown if Connection: close.
+        return;
+    }
+    pmd_read(pmd_config_, req.fields);
+    open(detail::role_type::server);
+}
+
+template<class NextLayer>
+template<class RequestDecorator>
+void
+stream<NextLayer>::
+do_handshake(response_type* res_p,
+    boost::string_ref const& host,
+        boost::string_ref const& resource,
+            RequestDecorator const& decorator,
+                error_code& ec)
+{
+    response_type res;
+    reset();
+    detail::sec_ws_key_type key;
+    {
+        auto const req = build_request(
+            key, host, resource, decorator);
+        pmd_read(pmd_config_, req.fields);
+        http::write(stream_, req, ec);
+    }
+    if(ec)
+        return;
+    http::read(next_layer(), stream_.buffer(), res, ec);
+    if(ec)
+        return;
+    do_response(res, key, ec);
+    if(res_p)
+        swap(res, *res_p);
+}
+
+template<class NextLayer>
+template<class Decorator>
+request_type
+stream<NextLayer>::
+build_request(detail::sec_ws_key_type& key,
+    boost::string_ref const& host,
+        boost::string_ref const& resource,
+            Decorator const& decorator)
+{
+    request_type req;
     req.url = { resource.data(), resource.size() };
     req.version = 11;
     req.method = "GET";
     req.fields.insert("Host", host);
     req.fields.insert("Upgrade", "websocket");
-    key = detail::make_sec_ws_key(maskgen_);
+    req.fields.insert("Connection", "upgrade");
+    detail::make_sec_ws_key(key, maskgen_);
     req.fields.insert("Sec-WebSocket-Key", key);
     req.fields.insert("Sec-WebSocket-Version", "13");
     if(pmd_opts_.client_enable)
@@ -112,30 +185,41 @@ build_request(boost::string_ref const& host,
         detail::pmd_write(
             req.fields, config);
     }
-    d_(req);
-    http::prepare(req, http::connection::upgrade);
+    decorator(req);
+    // VFALCO Use static_string here
+    if(! req.fields.exists("User-Agent"))
+        req.fields.insert("User-Agent",
+            std::string("Beast/") + BEAST_VERSION_STRING);
     return req;
 }
 
 template<class NextLayer>
-template<class Body, class Fields>
-http::response<http::string_body>
+template<class Decorator>
+response_type
 stream<NextLayer>::
-build_response(http::request<Body, Fields> const& req)
+build_response(request_type const& req,
+    Decorator const& decorator)
 {
+    auto const decorate =
+        [&decorator](response_type& res)
+        {
+            decorator(res);
+            // VFALCO Use static_string here
+            if(! res.fields.exists("Server"))
+                res.fields.insert("Server",
+                    std::string("Beast/") +
+                        BEAST_VERSION_STRING);
+        };
     auto err =
         [&](std::string const& text)
         {
-            http::response<http::string_body> res;
+            response_type res;
             res.status = 400;
             res.reason = http::reason_string(res.status);
             res.version = req.version;
             res.body = text;
-            d_(res);
-            prepare(res,
-                (is_keep_alive(req) && keep_alive_) ?
-                    http::connection::keep_alive :
-                    http::connection::close);
+            prepare(res);
+            decorate(res);
             return res;
         };
     if(req.version < 11)
@@ -150,6 +234,9 @@ build_response(http::request<Body, Fields> const& req)
         return err("Missing Sec-WebSocket-Key");
     if(! http::token_list{req.fields["Upgrade"]}.exists("websocket"))
         return err("Missing websocket Upgrade token");
+    auto const key = req.fields["Sec-WebSocket-Key"];
+    if(key.size() > detail::sec_ws_key_type::max_size_n)
+        return err("Invalid Sec-WebSocket-Key");
     {
         auto const version =
             req.fields["Sec-WebSocket-Version"];
@@ -157,20 +244,18 @@ build_response(http::request<Body, Fields> const& req)
             return err("Missing Sec-WebSocket-Version");
         if(version != "13")
         {
-            http::response<http::string_body> res;
+            response_type res;
             res.status = 426;
             res.reason = http::reason_string(res.status);
             res.version = req.version;
             res.fields.insert("Sec-WebSocket-Version", "13");
-            d_(res);
-            prepare(res,
-                (is_keep_alive(req) && keep_alive_) ?
-                    http::connection::keep_alive :
-                    http::connection::close);
+            prepare(res);
+            decorate(res);
             return res;
         }
     }
-    http::response<http::string_body> res;
+
+    response_type res;
     {
         detail::pmd_offer offer;
         detail::pmd_offer unused;
@@ -182,40 +267,46 @@ build_response(http::request<Body, Fields> const& req)
     res.reason = http::reason_string(res.status);
     res.version = req.version;
     res.fields.insert("Upgrade", "websocket");
+    res.fields.insert("Connection", "upgrade");
     {
-        auto const key =
-            req.fields["Sec-WebSocket-Key"];
-        res.fields.insert("Sec-WebSocket-Accept",
-            detail::make_sec_ws_accept(key));
+        detail::sec_ws_accept_type accept;
+        detail::make_sec_ws_accept(accept, key);
+        res.fields.insert("Sec-WebSocket-Accept", accept);
     }
-    res.fields.replace("Server", "Beast.WSProto");
-    d_(res);
-    http::prepare(res, http::connection::upgrade);
+    decorate(res);
     return res;
 }
 
 template<class NextLayer>
-template<class Body, class Fields>
 void
 stream<NextLayer>::
-do_response(http::response<Body, Fields> const& res,
-    boost::string_ref const& key, error_code& ec)
+do_response(http::response_header const& res,
+    detail::sec_ws_key_type const& key, error_code& ec)
 {
-    // VFALCO Review these error codes
-    auto fail = [&]{ ec = error::response_failed; };
-    if(res.version < 11)
-        return fail();
-    if(res.status != 101)
-        return fail();
-    if(! is_upgrade(res))
-        return fail();
-    if(! http::token_list{res.fields["Upgrade"]}.exists("websocket"))
-        return fail();
-    if(! res.fields.exists("Sec-WebSocket-Accept"))
-        return fail();
-    if(res.fields["Sec-WebSocket-Accept"] !=
-        detail::make_sec_ws_accept(key))
-        return fail();
+    bool const success = [&]()
+    {
+        if(res.version < 11)
+            return false;
+        if(res.status != 101)
+            return false;
+        if(! is_upgrade(res))
+            return false;
+        if(! http::token_list{res.fields["Upgrade"]}.exists("websocket"))
+            return false;
+        if(! res.fields.exists("Sec-WebSocket-Accept"))
+            return false;
+        detail::sec_ws_accept_type accept;
+        detail::make_sec_ws_accept(accept, key);
+        if(accept.compare(
+                res.fields["Sec-WebSocket-Accept"]) != 0)
+            return false;
+        return true;
+    }();
+    if(! success)
+    {
+        ec = error::handshake_failed;
+        return;
+    }
     detail::pmd_offer offer;
     pmd_read(offer, res.fields);
     // VFALCO see if offer satisfies pmd_config_,

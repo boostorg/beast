@@ -542,6 +542,26 @@ exists(T const& s)
     ) != end();
 }
 
+template<class Policy>
+bool
+validate_list(detail::basic_parsed_list<
+    Policy> const& list)
+{
+    auto const last = list.end();
+    auto it = list.begin();
+    if(it.error())
+        return false;
+    while(it != last)
+    {
+        ++it;
+        if(it.error())
+            return false;
+        if(it == last)
+            break;
+    }
+    return true;
+}
+
 } // http
 } // beast
 

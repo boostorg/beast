@@ -35,11 +35,6 @@ of concurrent connections is possible with the implementation.
 * [*Basis for further abstraction.] The interfaces facilitate the
 development of other libraries that provide higher levels of abstraction.
 
-The HTTP portion of Beast is designed to be a low-level building block for
-creating higher level libraries. It implements only the HTTP protocol, and
-does not handle domain specific features (for example: cookies, redirects, or
-deflate content encodings).
-
 [heading Requirements]
 
 Beast requires:
@@ -56,6 +51,41 @@ program successfully, you'll need to add the Boost.System library to link
 with. If you use coroutines you'll also need the Boost.Coroutine library.
 Please visit the Boost documentation for instructions on how to do this for
 your particular build system.
+
+There are no provisions for enabling Beast to compile using the stand-alone
+version of Asio. Beast relies on other parts of Boost in addition to Asio.
+There are no immediate plans to offer a version of Beast that works with
+the stand-alone Asio.
+
+[heading Audience]
+
+Beast is aimed at network programmers who have know some  Boost.Asio. While
+experience is not strictly necessary, the documentation and interfaces assume
+a reasonable grasp of how Asio works. In particular, users who wish to write
+asynchronous programs with Beast should already have knowledge and experience
+of Asio's asynchronous interfaces and general style of asynchronous programming
+using callbacks or coroutines.
+
+The supplied WebSocket and HTTP interfaces are low-level. The library does not
+provide out of the box solutions for implementing clients or servers. For
+example, users must provide their own code to make connections, handle
+timeouts, reconnect a dropped connection, accept incoming connections, or
+manage connection resources on a server.
+
+Beast's HTTP interfaces are similarly low level, providing functionality
+only for modelling HTTP messages and reading and writing them to sockets or
+streams. Higher level functions such as HTTP Basic Authentication, 
+mime/multipart encoding, cookies, automatic handling of redirects, gzipped
+transfer encodings, caching, or proxying (to name a few) are not directly
+provided, but nothing stops users from creating these features using
+Beast's HTTP message types.
+
+Instead, the library is intended to be a building block for creating higher
+level libraries. It implements just enough of the HTTP and WebSocket protocol
+to allow users to create useful objects and algorithms which may then be
+composed to produce useful applications. It is the desire of the author that
+this library will become the foundation for a new generation of network
+libraries.
 
 [heading Motivation]
 
@@ -109,6 +139,6 @@ Asio library and the ideas upon which Beast is built.
 Beast would not be possible without the considerable time and patience
 contributed by David Schwartz, Edward Hennis, Howard Hinnant, Miguel Portilla,
 Nikolaos Bougalis, Scott Determan, Scott Schurr, and Ripple Labs for
-supporting its development.
+supporting its early development.
 
 [endsect]
