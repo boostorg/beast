@@ -38,7 +38,7 @@ and __MutableBufferSequence__ concepts for passing buffers to functions.
 The authors have found the dynamic buffer and buffer sequence interfaces to
 be optimal for interacting with Asio, and for other tasks such as incremental
 parsing of data in buffers (for example, parsing websocket frames stored
-in a [link beast.ref.static_streambuf `static_streambuf`]).
+in a [link beast.ref.static_buffer `static_buffer`]).
 
 During the development of Beast the authors have studied other software
 packages and in particular the comments left during the Boost Review process
@@ -98,7 +98,7 @@ start. Other design goals:
 ][
     We presume this means a facility to match expressions against the URI
     in HTTP requests, and dispatch them to calling code. The authors feel
-    that this is a responsibility of higher level code. Beast.HTTP does
+    that this is a responsibility of higher level code. Beast does
     not try to offer a web server.
 ]]
 
@@ -118,11 +118,11 @@ start. Other design goals:
     "...supporting TLS (is this a feature? If not this would be a show-stopper),
     etc."
 ][
-    Beast.HTTP does not provide direct facilities for implementing TLS
-    connections; however, the interfaces already existing on the
-    `boost::asio::ssl::stream` are available and can be used to establish
-    secure connections. Then, functions like `http::read` or `http::async_write`
-    can work with those encrypted connections with no problem.
+    Beast does not provide direct facilities for implementing TLS connections;
+    however, the interfaces already existing on the `boost::asio::ssl::stream`
+    are available and can be used to establish secure connections. Then,
+    functions like `http::read` or `http::async_write` can work with those
+    encrypted connections with no problem.
 ]]
 
 [[
@@ -143,12 +143,11 @@ start. Other design goals:
 [[
     "You should send a 100-continue to ask for the rest of the body if required."
 ][
-    The Beast interface needs to support this functionality (by allowing this
+    The Beast interface supporst this functionality (by allowing this
     special case of partial message parsing and serialization). Specifically,
-    it should let callers read the request up to just before the body,
+    it lets callers read the request up to just before the body,
     and let callers write the request up to just before the body. However,
-    making use of this behavior should be up to callers (since Beast is low
-    level).
+    making use of this behavior is up to callers (since Beast is low level).
 ]]
 
 [[
@@ -160,7 +159,7 @@ start. Other design goals:
     the same network reading and writing interface for 2 as that for 1.0
     and 1.1.
 
-    The Beast.HTTP message model is suitable for HTTP/2 and can be re-used.
+    The Beast HTTP message model is suitable for HTTP/2 and can be re-used.
     The IETF HTTP Working Group adopted message compatiblity with HTTP/1.x
     as an explicit goal. A parser can simply emit full headers after
     decoding the compressed HTTP/2 headers. The stream ID is not logically

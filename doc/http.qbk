@@ -238,7 +238,7 @@ used in the examples:
 ```
 
 * [link beast.ref.http__dynamic_body [*`dynamic_body`:]] A body with a
-`value_type` of [link beast.ref.streambuf `streambuf`]: an efficient storage
+`value_type` of [link beast.ref.multi_buffer `multi_buffer`]: an efficient storage
 object which uses multiple octet arrays of varying lengths to represent data.
 
 [heading Advanced]
@@ -323,7 +323,7 @@ a single byte at a time which is unsuitable for performance reasons). To
 store and re-use these extra bytes on subsequent messages, the read interface
 requires an additional parameter: a [link beast.ref.DynamicBuffer [*`DynamicBuffer`]]
 object. This example reads a message from the socket, with the extra bytes
-stored in the streambuf parameter for use in a subsequent call to read:
+stored in the `streambuf` parameter for use in a subsequent call to read:
 ```
     boost::asio::streambuf sb;
     ...
@@ -350,12 +350,12 @@ called:
 ```
 
 An alternative to using a `boost::asio::streambuf` is to use a
-__streambuf__, which meets the requirements of __DynamicBuffer__ and
+__multi_buffer__, which meets the requirements of __DynamicBuffer__ and
 is optimized for performance:
 ```
     void handle_read(boost::system::error_code);
     ...
-    beast::streambuf sb;
+    beast::multi_buffer sb;
     response<string_body> res;
     read(sock, sb, res);
 ```
