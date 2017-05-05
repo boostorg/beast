@@ -149,7 +149,7 @@ object:
     res.version = 11;   // HTTP/1.1
     res.status = 200;
     res.reason = "OK";
-    res.fields.insert("Sever", "Beast");
+    res.fields.insert("Server", "Beast");
     res.fields.insert("Content-Length", 4);
     res.body = "****";
     ```
