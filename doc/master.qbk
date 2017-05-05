@@ -47,9 +47,10 @@
 
 [def __basic_fields__       [link beast.ref.http__basic_fields `basic_fields`]]
 [def __fields__             [link beast.ref.http__fields `fields`]]
+[def __flat_buffer__        [link beast.ref.flat_buffer `flat_buffer`]]
 [def __header__             [link beast.ref.http__header `header`]]
 [def __message__            [link beast.ref.http__message `message`]]
-[def __streambuf__          [link beast.ref.streambuf `streambuf`]]
+[def __multi_buffer__       [link beast.ref.multi_buffer `multi_buffer`]]
 [def __basic_multi_buffer__ [link beast.ref.basic_multi_buffer `basic_multi_buffer`]]
 
 Beast is a cross-platform, header-only C++ library built on Boost.Asio that

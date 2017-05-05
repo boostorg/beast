@@ -20,8 +20,7 @@ implementation strategies:
 
 * A single contiguous octet array, which is reallocated as necessary to
   accommodate changes in the size of the octet sequence. This is the
-  implementation approach currently offered by
-  [link beast.ref.basic_flat_streambuf `basic_flat_streambuf`].
+  implementation approach currently offered by __flat_buffer__.
 
 * A sequence of one or more octet arrays, where each array is of the same
   size. Additional octet array objects are appended to the sequence to
@@ -30,7 +29,7 @@ implementation strategies:
 * A sequence of one or more octet arrays of varying sizes. Additional octet
   array objects are appended to the sequence to accommodate changes in the
   size of the character sequence. This is the implementation approach
-  currently offered by [link beast.ref.basic_streambuf `basic_streambuf`].
+  currently offered by __multi_buffer__.
 
 In the table below:
 
