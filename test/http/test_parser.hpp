@@ -51,8 +51,8 @@ public:
 
     void
     on_request(
-        boost::string_ref const& method_,
-            boost::string_ref const& path_,
+        string_view const& method_,
+            string_view const& path_,
                 int version_, error_code& ec)
     {
         method = std::string(
@@ -67,7 +67,7 @@ public:
 
     void
     on_response(int status_,
-        boost::string_ref const& reason_,
+        string_view const& reason_,
             int version_, error_code& ec)
     {
         status = status_;
@@ -80,8 +80,8 @@ public:
     }
 
     void
-    on_field(boost::string_ref const&,
-        boost::string_ref const&,
+    on_field(string_view const&,
+        string_view const&,
             error_code& ec)
     {
         got_on_field = true;
@@ -116,7 +116,7 @@ public:
     }
 
     void
-    on_data(boost::string_ref const& s,
+    on_data(string_view const& s,
         error_code& ec)
     {
         body.append(s.data(), s.size());
@@ -124,7 +124,7 @@ public:
 
     void
     on_chunk(std::uint64_t,
-        boost::string_ref const&,
+        string_view const&,
             error_code& ec)
     {
         got_on_chunk = true;

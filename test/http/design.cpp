@@ -176,7 +176,7 @@ public:
             }
             
             void
-            write(boost::string_ref const& s,
+            write(string_view const& s,
                 error_code& ec)
             {
                 body_.append(s.data(), s.size());
@@ -464,7 +464,7 @@ public:
     struct bodyHandler
     {
         void
-        operator()(boost::string_ref const& body) const
+        operator()(string_view const& body) const
         {
             // called for each piece of the body,
         }

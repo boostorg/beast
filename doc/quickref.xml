@@ -168,6 +168,7 @@
             <member><link linkend="beast.ref.static_buffer">static_buffer</link></member>
             <member><link linkend="beast.ref.static_buffer_n">static_buffer_n</link></member>
             <member><link linkend="beast.ref.static_string">static_string</link></member>
+            <member><link linkend="beast.ref.string_view">string_view</link></member>
             <member><link linkend="beast.ref.system_error">system_error</link></member>
           </simplelist>
         </entry>

@@ -95,7 +95,7 @@ static_string(std::initializer_list<CharT> init)
 
 template<std::size_t N, class CharT, class Traits>
 static_string<N, CharT, Traits>::
-static_string(boost::basic_string_ref<CharT, Traits> sv)
+static_string(string_view_type sv)
 {
     assign(sv);
 }
@@ -188,12 +188,10 @@ template<class T>
 auto
 static_string<N, CharT, Traits>::
 assign(T const& t, size_type pos, size_type count) ->
-    typename std::enable_if<
-        std::is_convertible<T, boost::basic_string_ref<
-            CharT, Traits>>::value, static_string&>::type
+    typename std::enable_if<std::is_convertible<T,
+        string_view_type>::value, static_string&>::type
 {
-    auto const sv = boost::basic_string_ref<
-        CharT, Traits>(t).substr(pos, count);
+    auto const sv = string_view_type(t).substr(pos, count);
     if(sv.size() > max_size())
         throw detail::make_exception<std::length_error>(
             "sv.size() > max_size()", __FILE__, __LINE__);
@@ -352,14 +350,13 @@ auto
 static_string<N, CharT, Traits>::
 insert(size_type index, const T& t,
         size_type index_str, size_type count) ->
-    typename std::enable_if<
-        std::is_convertible<T const&,
-            boost::basic_string_ref<CharT, Traits>>::value &&
+    typename std::enable_if<std::is_convertible<
+        T const&, string_view_type>::value &&
         ! std::is_convertible<T const&, CharT const*>::value,
             static_string&>::type
 {
-    auto const str = boost::basic_string_ref<
-        CharT, Traits>(t).substr(index_str, count);
+    auto const str =
+        string_view_type(t).substr(index_str, count);
     return insert(index, str.data(), str.size());
 }
 
@@ -424,16 +421,17 @@ append(static_string<M, CharT, Traits> const& str,
     if(pos >= str.size())
         throw detail::make_exception<std::out_of_range>(
             "pos > str.size()", __FILE__, __LINE__);
-    boost::basic_string_ref<CharT, Traits> const ss{
-        &str.s_[pos], (std::min)(count, str.size() - pos)};
+    string_view_type const ss{&str.s_[pos],
+        (std::min)(count, str.size() - pos)};
     insert(size(), ss.data(), ss.size());
     return *this;
 }
 
 template<std::size_t N, class CharT, class Traits>
-boost::basic_string_ref<CharT, Traits>
+auto
 static_string<N, CharT, Traits>::
-substr(size_type pos, size_type count) const
+substr(size_type pos, size_type count) const ->
+    string_view_type
 {
     if(pos > size())
         throw detail::make_exception<std::out_of_range>(

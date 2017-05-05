@@ -8,10 +8,10 @@
 #ifndef BEAST_HTTP_DETAIL_FIELDS_HPP
 #define BEAST_HTTP_DETAIL_FIELDS_HPP
 
+#include <beast/core/string_view.hpp>
 #include <beast/core/detail/ci_char_traits.hpp>
 #include <boost/intrusive/list.hpp>
 #include <boost/intrusive/set.hpp>
-#include <boost/utility/string_ref.hpp>
 
 namespace beast {
 namespace http {
@@ -29,20 +29,20 @@ public:
         std::string first;
         std::string second;
 
-        value_type(boost::string_ref const& name_,
-                boost::string_ref const& value_)
+        value_type(string_view const& name_,
+                string_view const& value_)
             : first(name_)
             , second(value_)
         {
         }
 
-        boost::string_ref
+        string_view
         name() const
         {
             return first;
         }
 
-        boost::string_ref
+        string_view
         value() const
         {
             return second;
@@ -63,8 +63,8 @@ protected:
     {
         value_type data;
 
-        element(boost::string_ref const& name,
-                boost::string_ref const& value)
+        element(string_view const& name,
+                string_view const& value)
             : data(name, value)
         {
         }

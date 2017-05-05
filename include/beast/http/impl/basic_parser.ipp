@@ -261,7 +261,7 @@ consume_body(error_code& ec)
 template<bool isRequest, bool isDirect, class Derived>
 template<class ConstBufferSequence>
 inline
-boost::string_ref
+string_view
 basic_parser<isRequest, isDirect, Derived>::
 maybe_flatten(
     ConstBufferSequence const& buffers)
@@ -552,7 +552,7 @@ parse_fields(char const*& it,
                     it = term;
                 }
             }
-            boost::string_ref value{
+            string_view value{
                 s.data(), s.size()};
             do_field(name, value, ec);
             if(ec)
@@ -568,8 +568,8 @@ template<bool isRequest, bool isDirect, class Derived>
 void
 basic_parser<isRequest, isDirect, Derived>::
 do_field(
-    boost::string_ref const& name,
-        boost::string_ref const& value,
+    string_view const& name,
+        string_view const& value,
             error_code& ec)
 {
     // Connection
@@ -996,7 +996,7 @@ parse_body(char const* p,
     std::size_t n, error_code& ec)
 {
     n = beast::detail::clamp(len_, n);
-    body_ = boost::string_ref{p, n};
+    body_ = string_view{p, n};
     impl().on_data(body_, ec);
     if(ec)
         return 0;
@@ -1017,7 +1017,7 @@ basic_parser<isRequest, isDirect, Derived>::
 parse_body_to_eof(char const* p,
     std::size_t n, error_code& ec)
 {
-    body_ = boost::string_ref{p, n};
+    body_ = string_view{p, n};
     impl().on_data(body_, ec);
     if(ec)
         return 0;
@@ -1032,7 +1032,7 @@ parse_chunk_body(char const* p,
     std::size_t n, error_code& ec)
 {
     n = beast::detail::clamp(len_, n);
-    body_ = boost::string_ref{p, n};
+    body_ = string_view{p, n};
     impl().on_data(body_, ec);
     if(ec)
         return 0;

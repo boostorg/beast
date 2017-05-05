@@ -49,7 +49,7 @@ namespace http {
 */
 class param_list
 {
-    boost::string_ref s_;
+    string_view s_;
 
 public:
     /** The type of each element in the list.
@@ -59,7 +59,7 @@ public:
         be empty).
     */
     using value_type =
-        std::pair<boost::string_ref, boost::string_ref>;
+        std::pair<string_view, string_view>;
 
     /// A constant iterator to the list
 #if BEAST_DOXYGEN
@@ -77,7 +77,7 @@ public:
         must remain valid for the lifetime of the container.
     */
     explicit
-    param_list(boost::string_ref const& s)
+    param_list(string_view const& s)
         : s_(s)
     {
     }
@@ -137,9 +137,9 @@ public:
 */
 class ext_list
 {
-    using iter_type = boost::string_ref::const_iterator;
+    using iter_type = string_view::const_iterator;
 
-    boost::string_ref s_;
+    string_view s_;
 
 public:
     /** The type of each element in the list.
@@ -148,7 +148,7 @@ public:
         second element of the pair is an iterable container holding the
         extension's name/value parameters.
     */
-    using value_type = std::pair<boost::string_ref, param_list>;
+    using value_type = std::pair<string_view, param_list>;
 
     /// A constant iterator to the list
 #if BEAST_DOXYGEN
@@ -163,7 +163,7 @@ public:
         must remain valid for the lifetime of the container.
     */
     explicit
-    ext_list(boost::string_ref const& s)
+    ext_list(string_view const& s)
         : s_(s)
     {
     }
@@ -230,13 +230,13 @@ public:
 */
 class token_list
 {
-    using iter_type = boost::string_ref::const_iterator;
+    using iter_type = string_view::const_iterator;
 
-    boost::string_ref s_;
+    string_view s_;
 
 public:
     /// The type of each element in the token list.
-    using value_type = boost::string_ref;
+    using value_type = string_view;
 
     /// A constant iterator to the list
 #if BEAST_DOXYGEN
@@ -251,7 +251,7 @@ public:
         must remain valid for the lifetime of the container.
     */
     explicit
-    token_list(boost::string_ref const& s)
+    token_list(string_view const& s)
         : s_(s)
     {
     }

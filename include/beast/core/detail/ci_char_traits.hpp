@@ -8,8 +8,8 @@
 #ifndef BEAST_DETAIL_CI_CHAR_TRAITS_HPP
 #define BEAST_DETAIL_CI_CHAR_TRAITS_HPP
 
+#include <beast/core/string_view.hpp>
 #include <boost/range/algorithm/equal.hpp>
-#include <boost/utility/string_ref.hpp>
 
 namespace beast {
 namespace detail {
@@ -42,10 +42,10 @@ tolower(signed char c)
 
 template<std::size_t N>
 inline
-boost::string_ref
+string_view
 string_helper(const char (&s)[N])
 {
-    return boost::string_ref{s, N-1};
+    return string_view{s, N-1};
 }
 
 template<class T>
