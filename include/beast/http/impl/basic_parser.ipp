@@ -231,34 +231,6 @@ commit_body(std::size_t n)
 }
 
 template<bool isRequest, bool isDirect, class Derived>
-void
-basic_parser<isRequest, isDirect, Derived>::
-consume_body(error_code& ec)
-{
-    BOOST_ASSERT(
-        state_ == parse_state::body ||
-        state_ == parse_state::body_to_eof ||
-        state_ == parse_state::chunk_body);
-    switch(state_)
-    {
-    case parse_state::body:
-    case parse_state::body_to_eof:
-        do_complete(ec);
-        if(ec)
-            return;
-        break;
-
-    case parse_state::chunk_body:
-        len_ = 0;
-        state_ = parse_state::chunk_header;
-        break;
-
-    default:
-        break;
-    }
-}
-
-template<bool isRequest, bool isDirect, class Derived>
 template<class ConstBufferSequence>
 inline
 string_view
