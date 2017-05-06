@@ -17,7 +17,7 @@
 
 namespace beast {
 
-static_assert(is_DynamicBuffer<flat_buffer>::value,
+static_assert(is_dynamic_buffer<flat_buffer>::value,
     "DynamicBuffer requirements not met");
 
 class flat_buffer_test : public beast::unit_test::suite

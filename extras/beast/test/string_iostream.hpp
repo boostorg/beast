@@ -8,7 +8,7 @@
 #ifndef BEAST_TEST_STRING_IOSTREAM_HPP
 #define BEAST_TEST_STRING_IOSTREAM_HPP
 
-#include <beast/core/async_completion.hpp>
+#include <beast/core/async_result.hpp>
 #include <beast/core/bind_handler.hpp>
 #include <beast/core/error.hpp>
 #include <beast/core/prepare_buffer.hpp>
@@ -78,8 +78,8 @@ public:
     }
 
     template<class MutableBufferSequence, class ReadHandler>
-    typename async_completion<ReadHandler,
-        void(error_code, std::size_t)>::result_type
+    BEAST_INITFN_RESULT_TYPE(
+        ReadHandler, void(error_code, std::size_t))
     async_read_some(MutableBufferSequence const& buffers,
         ReadHandler&& handler)
     {
@@ -91,10 +91,10 @@ public:
         else
             ec = boost::asio::error::eof;
         async_completion<ReadHandler,
-            void(error_code, std::size_t)> completion{handler};
+            void(error_code, std::size_t)> init{handler};
         ios_.post(bind_handler(
-            completion.handler, ec, n));
-        return completion.result.get();
+            init.completion_handler, ec, n));
+        return init.result.get();
     }
 
     template<class ConstBufferSequence>
@@ -124,19 +124,18 @@ public:
     }
 
     template<class ConstBufferSequence, class WriteHandler>
-    typename async_completion<
-        WriteHandler, void(error_code)>::result_type
+    BEAST_INITFN_RESULT_TYPE(
+        WriteHandler, void(error_code, std::size_t))
     async_write_some(ConstBufferSequence const& buffers,
         WriteHandler&& handler)
     {
         error_code ec;
         auto const bytes_transferred = write_some(buffers, ec);
-        async_completion<
-            WriteHandler, void(error_code, std::size_t)
-                > completion{handler};
+        async_completion<WriteHandler,
+            void(error_code, std::size_t)> init{handler};
         get_io_service().post(
-            bind_handler(completion.handler, ec, bytes_transferred));
-        return completion.result.get();
+            bind_handler(init.completion_handler, ec, bytes_transferred));
+        return init.result.get();
     }
 
     friend

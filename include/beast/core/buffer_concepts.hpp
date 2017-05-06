@@ -15,44 +15,37 @@
 
 namespace beast {
 
-/// Determine if `T` meets the requirements of @b `BufferSequence`.
-template<class T, class BufferType>
+/// Determine if `T` meets the requirements of @b ConstBufferSequence.
+template<class T>
 #if BEAST_DOXYGEN
-struct is_BufferSequence : std::integral_constant<bool, ...>
+struct is_const_buffer_sequence : std::integral_constant<bool, ...>
 #else
-struct is_BufferSequence : detail::is_BufferSequence<T, BufferType>::type
+struct is_const_buffer_sequence :
+    detail::is_buffer_sequence<T,
+        boost::asio::const_buffer>::type
 #endif
 {
 };
 
-/// Determine if `T` meets the requirements of @b `ConstBufferSequence`.
+/// Determine if `T` meets the requirements of @b DynamicBuffer.
 template<class T>
 #if BEAST_DOXYGEN
-struct is_ConstBufferSequence : std::integral_constant<bool, ...>
+struct is_dynamic_buffer : std::integral_constant<bool, ...>
 #else
-struct is_ConstBufferSequence :
-    is_BufferSequence<T, boost::asio::const_buffer>
+struct is_dynamic_buffer :
+    detail::is_dynamic_buffer<T>::type
 #endif
 {
 };
 
-/// Determine if `T` meets the requirements of @b `DynamicBuffer`.
+/// Determine if `T` meets the requirements of @b MutableBufferSequence.
 template<class T>
 #if BEAST_DOXYGEN
-struct is_DynamicBuffer : std::integral_constant<bool, ...>
+struct is_mutable_buffer_sequence : std::integral_constant<bool, ...>
 #else
-struct is_DynamicBuffer : detail::is_DynamicBuffer<T>::type
-#endif
-{
-};
-
-/// Determine if `T` meets the requirements of @b `MutableBufferSequence`.
-template<class T>
-#if BEAST_DOXYGEN
-struct is_MutableBufferSequence : std::integral_constant<bool, ...>
-#else
-struct is_MutableBufferSequence :
-    is_BufferSequence<T, boost::asio::mutable_buffer>
+struct is_mutable_buffer_sequence :
+    detail::is_buffer_sequence<T,
+        boost::asio::mutable_buffer>::type
 #endif
 {
 };

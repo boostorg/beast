@@ -8,7 +8,7 @@
 #ifndef BEAST_TEST_FAIL_STREAM_HPP
 #define BEAST_TEST_FAIL_STREAM_HPP
 
-#include <beast/core/async_completion.hpp>
+#include <beast/core/async_result.hpp>
 #include <beast/core/bind_handler.hpp>
 #include <beast/core/error.hpp>
 #include <beast/core/detail/get_lowest_layer.hpp>
@@ -103,20 +103,19 @@ public:
     }
 
     template<class MutableBufferSequence, class ReadHandler>
-    typename async_completion<
-        ReadHandler, void(error_code)>::result_type
+    BEAST_INITFN_RESULT_TYPE(
+        ReadHandler, void(error_code, std::size_t))
     async_read_some(MutableBufferSequence const& buffers,
         ReadHandler&& handler)
     {
         error_code ec;
         if(pfc_->fail(ec))
         {
-            async_completion<
-                ReadHandler, void(error_code, std::size_t)
-                    > completion{handler};
+            async_completion<ReadHandler,
+                void(error_code, std::size_t)> init{handler};
             next_layer_.get_io_service().post(
-                bind_handler(completion.handler, ec, 0));
-            return completion.result.get();
+                bind_handler(init.completion_handler, ec, 0));
+            return init.result.get();
         }
         return next_layer_.async_read_some(buffers,
             std::forward<ReadHandler>(handler));
@@ -140,20 +139,19 @@ public:
     }
 
     template<class ConstBufferSequence, class WriteHandler>
-    typename async_completion<
-        WriteHandler, void(error_code)>::result_type
+    BEAST_INITFN_RESULT_TYPE(
+        WriteHandler, void(error_code, std::size_t))
     async_write_some(ConstBufferSequence const& buffers,
         WriteHandler&& handler)
     {
         error_code ec;
         if(pfc_->fail(ec))
         {
-            async_completion<
-                WriteHandler, void(error_code, std::size_t)
-                    > completion{handler};
+            async_completion<WriteHandler,
+                void(error_code, std::size_t)> init{handler};
             next_layer_.get_io_service().post(
-                bind_handler(completion.handler, ec, 0));
-            return completion.result.get();
+                bind_handler(init.completion_handler, ec, 0));
+            return init.result.get();
         }
         return next_layer_.async_write_some(buffers,
             std::forward<WriteHandler>(handler));

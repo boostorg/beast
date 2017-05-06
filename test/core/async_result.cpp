@@ -6,4 +6,4 @@
 //
 
 // Test that header file is self-contained.
-#include <beast/core/async_completion.hpp>
+#include <beast/core/async_result.hpp>

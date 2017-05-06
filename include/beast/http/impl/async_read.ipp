@@ -572,34 +572,34 @@ template<
     class DynamicBuffer,
     bool isRequest, class Derived,
     class ReadHandler>
-typename async_completion<
-    ReadHandler, void(error_code, std::size_t)>::result_type
+BEAST_INITFN_RESULT_TYPE(
+    ReadHandler, void(error_code, std::size_t))
 async_read_some(
     AsyncReadStream& stream,
     DynamicBuffer& dynabuf,
     basic_parser<isRequest, true, Derived>& parser,
     ReadHandler&& handler)
 {
-    beast::async_completion<ReadHandler,
-        void(error_code, std::size_t)> completion{handler};
+    async_completion<ReadHandler,
+        void(error_code, std::size_t)> init{handler};
     switch(parser.state())
     {
     case parse_state::header:
     case parse_state::chunk_header:
         detail::read_some_buffer_op<AsyncReadStream,
-            DynamicBuffer, isRequest, true, Derived,
-                decltype(completion.handler)>{
-                    completion.handler, stream, dynabuf, parser};
+            DynamicBuffer, isRequest, true, Derived, BEAST_HANDLER_TYPE(
+                ReadHandler, void(error_code, std::size_t))>{
+                    init.completion_handler, stream, dynabuf, parser};
         break;
 
     default:
         detail::read_some_body_op<AsyncReadStream,
-            DynamicBuffer, isRequest, Derived,
-                decltype(completion.handler)>{
-                    completion.handler, stream, dynabuf, parser};
+            DynamicBuffer, isRequest, Derived, BEAST_HANDLER_TYPE(
+                ReadHandler, void(error_code, std::size_t))>{
+                    init.completion_handler, stream, dynabuf, parser};
         break;
     }
-    return completion.result.get();
+    return init.result.get();
 }
 
 template<
@@ -608,21 +608,21 @@ template<
     bool isRequest, class Derived,
     class ReadHandler>
 inline
-typename async_completion<
-    ReadHandler, void(error_code, std::size_t)>::result_type
+BEAST_INITFN_RESULT_TYPE(
+    ReadHandler, void(error_code, std::size_t))
 async_read_some(
     AsyncReadStream& stream,
     DynamicBuffer& dynabuf,
     basic_parser<isRequest, false, Derived>& parser,
     ReadHandler&& handler)
 {
-    beast::async_completion<ReadHandler,
-        void(error_code, std::size_t)> completion{handler};
+    async_completion<ReadHandler,
+        void(error_code, std::size_t)> init{handler};
     detail::read_some_buffer_op<AsyncReadStream,
-        DynamicBuffer, isRequest, false, Derived,
-            decltype(completion.handler)>{
-                completion.handler, stream, dynabuf, parser};
-    return completion.result.get();
+        DynamicBuffer, isRequest, false, Derived, BEAST_HANDLER_TYPE(
+            ReadHandler, void(error_code, std::size_t))>{
+                init.completion_handler, stream, dynabuf, parser};
+    return init.result.get();
 }
 
 } // detail
@@ -634,8 +634,8 @@ template<
     class DynamicBuffer,
     bool isRequest, bool isDirect, class Derived,
     class ReadHandler>
-typename async_completion<
-    ReadHandler, void(error_code, std::size_t)>::result_type
+BEAST_INITFN_RESULT_TYPE(
+    ReadHandler, void(error_code, std::size_t))
 async_read_some(
     AsyncReadStream& stream,
     DynamicBuffer& dynabuf,
@@ -644,7 +644,7 @@ async_read_some(
 {
     static_assert(is_AsyncReadStream<AsyncReadStream>::value,
         "AsyncReadStream requirements not met");
-    static_assert(is_DynamicBuffer<DynamicBuffer>::value,
+    static_assert(is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
     BOOST_ASSERT(! parser.is_complete());
     return detail::async_read_some(stream, dynabuf, parser,
@@ -656,8 +656,8 @@ template<
     class DynamicBuffer,
     bool isRequest, bool isDirect, class Derived,
     class ReadHandler>
-typename async_completion<
-    ReadHandler, void(error_code)>::result_type
+BEAST_INITFN_RESULT_TYPE(
+    ReadHandler, void(error_code))
 async_read(
     AsyncReadStream& stream,
     DynamicBuffer& dynabuf,
@@ -666,15 +666,16 @@ async_read(
 {
     static_assert(is_AsyncReadStream<AsyncReadStream>::value,
         "AsyncReadStream requirements not met");
-    static_assert(is_DynamicBuffer<DynamicBuffer>::value,
+    static_assert(is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
     BOOST_ASSERT(! parser.is_complete());
-    beast::async_completion<ReadHandler,
-        void(error_code)> completion{handler};
+    async_completion<ReadHandler,
+        void(error_code)> init{handler};
     detail::parse_op<AsyncReadStream, DynamicBuffer,
-        isRequest, isDirect, Derived, decltype(completion.handler)>{
-            completion.handler, stream, dynabuf, parser};
-    return completion.result.get();
+        isRequest, isDirect, Derived, BEAST_HANDLER_TYPE(
+            ReadHandler, void(error_code))>{
+                init.completion_handler, stream, dynabuf, parser};
+    return init.result.get();
 }
 
 template<
@@ -682,8 +683,8 @@ template<
     class DynamicBuffer,
     bool isRequest, class Body, class Fields,
     class ReadHandler>
-typename async_completion<
-    ReadHandler, void(error_code)>::result_type
+BEAST_INITFN_RESULT_TYPE(
+    ReadHandler, void(error_code))
 async_read(
     AsyncReadStream& stream,
     DynamicBuffer& dynabuf,
@@ -692,7 +693,7 @@ async_read(
 {
     static_assert(is_AsyncReadStream<AsyncReadStream>::value,
         "AsyncReadStream requirements not met");
-    static_assert(is_DynamicBuffer<DynamicBuffer>::value,
+    static_assert(is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
     static_assert(is_Body<Body>::value,
         "Body requirements not met");
@@ -701,13 +702,13 @@ async_read(
     static_assert(is_Reader<typename Body::reader,
         message<isRequest, Body, Fields>>::value,
             "Reader requirements not met");
-    beast::async_completion<ReadHandler,
-        void(error_code)> completion{handler};
+    async_completion<ReadHandler,
+        void(error_code)> init{handler};
     detail::read_message_op<AsyncReadStream, DynamicBuffer,
-        isRequest, Body, Fields, decltype(
-            completion.handler)>{completion.handler,
-                stream, dynabuf, msg};
-    return completion.result.get();
+        isRequest, Body, Fields, BEAST_HANDLER_TYPE(
+            ReadHandler, void(error_code))>{
+                init.completion_handler, stream, dynabuf, msg};
+    return init.result.get();
 }
 
 } // http

@@ -9,7 +9,7 @@ add_executable (core-tests
     ${EXTRAS_INCLUDES}
     ../../extras/beast/unit_test/main.cpp
     buffer_test.hpp
-    async_completion.cpp
+    async_result.cpp
     bind_handler.cpp
     buffer_cat.cpp
     buffer_concepts.cpp

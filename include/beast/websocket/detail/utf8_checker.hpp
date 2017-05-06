@@ -125,7 +125,7 @@ template<class ConstBufferSequence>
 bool
 utf8_checker_t<_>::write(ConstBufferSequence const& bs)
 {
-    static_assert(is_ConstBufferSequence<ConstBufferSequence>::value,
+    static_assert(is_const_buffer_sequence<ConstBufferSequence>::value,
         "ConstBufferSequence requirements not met");
     using boost::asio::buffer_cast;
     using boost::asio::buffer_size;

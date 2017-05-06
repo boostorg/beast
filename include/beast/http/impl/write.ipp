@@ -213,16 +213,16 @@ write(SyncWriteStream& stream,
 template<class AsyncWriteStream,
     bool isRequest, class Fields,
         class WriteHandler>
-typename async_completion<
-    WriteHandler, void(error_code)>::result_type
+BEAST_INITFN_RESULT_TYPE(
+    WriteHandler, void(error_code))
 async_write(AsyncWriteStream& stream,
     header<isRequest, Fields> const& msg,
         WriteHandler&& handler)
 {
     static_assert(is_AsyncWriteStream<AsyncWriteStream>::value,
         "AsyncWriteStream requirements not met");
-    beast::async_completion<WriteHandler,
-        void(error_code)> completion{handler};
+    async_completion<WriteHandler,
+        void(error_code)> init{handler};
     multi_buffer b;
     {
         auto os = ostream(b);
@@ -231,9 +231,9 @@ async_write(AsyncWriteStream& stream,
         os << "\r\n";
     }
     detail::write_streambuf_op<AsyncWriteStream,
-        decltype(completion.handler)>{
-            completion.handler, stream, std::move(b)};
-    return completion.result.get();
+        BEAST_HANDLER_TYPE(WriteHandler, void(error_code))>{
+            init.completion_handler, stream, std::move(b)};
+    return init.result.get();
 }
 
 //------------------------------------------------------------------------------
@@ -641,8 +641,8 @@ write(SyncWriteStream& stream,
 template<class AsyncWriteStream,
     bool isRequest, class Body, class Fields,
         class WriteHandler>
-typename async_completion<
-    WriteHandler, void(error_code)>::result_type
+BEAST_INITFN_RESULT_TYPE(
+    WriteHandler, void(error_code))
 async_write(AsyncWriteStream& stream,
     message<isRequest, Body, Fields> const& msg,
         WriteHandler&& handler)
@@ -656,11 +656,12 @@ async_write(AsyncWriteStream& stream,
     static_assert(is_Writer<typename Body::writer,
         message<isRequest, Body, Fields>>::value,
             "Writer requirements not met");
-    beast::async_completion<WriteHandler,
-        void(error_code)> completion{handler};
-    detail::write_op<AsyncWriteStream, decltype(completion.handler),
-        isRequest, Body, Fields>{completion.handler, stream, msg};
-    return completion.result.get();
+    async_completion<WriteHandler,
+        void(error_code)> init{handler};
+    detail::write_op<AsyncWriteStream, BEAST_HANDLER_TYPE(
+        WriteHandler, void(error_code)), isRequest,
+            Body, Fields>{init.completion_handler, stream, msg};
+    return init.result.get();
 }
 
 //------------------------------------------------------------------------------

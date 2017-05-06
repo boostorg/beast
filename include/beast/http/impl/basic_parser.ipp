@@ -71,7 +71,7 @@ basic_parser<isRequest, isDirect, Derived>::
 write(ConstBufferSequence const& buffers,
     error_code& ec)
 {
-    static_assert(is_ConstBufferSequence<
+    static_assert(is_const_buffer_sequence<
         ConstBufferSequence>::value,
             "ConstBufferSequence requirements not met");
     auto const buffer = maybe_flatten(buffers);

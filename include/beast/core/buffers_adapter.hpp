@@ -32,7 +32,7 @@ namespace beast {
 template<class MutableBufferSequence>
 class buffers_adapter
 {
-    static_assert(is_MutableBufferSequence<MutableBufferSequence>::value,
+    static_assert(is_mutable_buffer_sequence<MutableBufferSequence>::value,
         "MutableBufferSequence requirements not met");
 
     using iter_type = typename MutableBufferSequence::const_iterator;

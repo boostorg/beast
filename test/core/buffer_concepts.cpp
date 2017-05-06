@@ -16,10 +16,10 @@ struct T
 };
 }
 
-static_assert(is_ConstBufferSequence<detail::ConstBufferSequence>::value, "");
-static_assert(! is_ConstBufferSequence<T>::value, "");
+static_assert(is_const_buffer_sequence<detail::ConstBufferSequence>::value, "");
+static_assert(! is_const_buffer_sequence<T>::value, "");
 
-static_assert(is_MutableBufferSequence<detail::MutableBufferSequence>::value, "");
-static_assert(! is_MutableBufferSequence<T>::value, "");
+static_assert(is_mutable_buffer_sequence<detail::MutableBufferSequence>::value, "");
+static_assert(! is_mutable_buffer_sequence<T>::value, "");
 
 } // beast

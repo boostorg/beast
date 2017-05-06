@@ -18,7 +18,7 @@ namespace test {
 
 template<class ConstBufferSequence>
 typename std::enable_if<
-    is_ConstBufferSequence<ConstBufferSequence>::value,
+    is_const_buffer_sequence<ConstBufferSequence>::value,
         std::size_t>::type
 buffer_count(ConstBufferSequence const& buffers)
 {
@@ -27,7 +27,7 @@ buffer_count(ConstBufferSequence const& buffers)
 
 template<class ConstBufferSequence>
 typename std::enable_if<
-    is_ConstBufferSequence<ConstBufferSequence>::value,
+    is_const_buffer_sequence<ConstBufferSequence>::value,
         std::size_t>::type
 size_pre(ConstBufferSequence const& buffers)
 {
@@ -46,7 +46,7 @@ size_pre(ConstBufferSequence const& buffers)
 
 template<class ConstBufferSequence>
 typename std::enable_if<
-    is_ConstBufferSequence<ConstBufferSequence>::value,
+    is_const_buffer_sequence<ConstBufferSequence>::value,
         std::size_t>::type
 size_post(ConstBufferSequence const& buffers)
 {
@@ -58,7 +58,7 @@ size_post(ConstBufferSequence const& buffers)
 
 template<class ConstBufferSequence>
 typename std::enable_if<
-    is_ConstBufferSequence<ConstBufferSequence>::value,
+    is_const_buffer_sequence<ConstBufferSequence>::value,
         std::size_t>::type
 size_rev_pre(ConstBufferSequence const& buffers)
 {
@@ -70,7 +70,7 @@ size_rev_pre(ConstBufferSequence const& buffers)
 
 template<class ConstBufferSequence>
 typename std::enable_if<
-    is_ConstBufferSequence<ConstBufferSequence>::value,
+    is_const_buffer_sequence<ConstBufferSequence>::value,
         std::size_t>::type
 size_rev_post(ConstBufferSequence const& buffers)
 {

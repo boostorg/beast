@@ -197,19 +197,19 @@ upcall:
 
 template<class NextLayer>
 template<class CloseHandler>
-typename async_completion<
-    CloseHandler, void(error_code)>::result_type
+BEAST_INITFN_RESULT_TYPE(
+    CloseHandler, void(error_code))
 stream<NextLayer>::
 async_close(close_reason const& cr, CloseHandler&& handler)
 {
     static_assert(is_AsyncStream<next_layer_type>::value,
         "AsyncStream requirements not met");
-    beast::async_completion<
-        CloseHandler, void(error_code)
-            > completion{handler};
-    close_op<decltype(completion.handler)>{
-        completion.handler, *this, cr};
-    return completion.result.get();
+    async_completion<CloseHandler,
+        void(error_code)> init{handler};
+    close_op<BEAST_HANDLER_TYPE(
+        CloseHandler, void(error_code))>{
+            init.completion_handler, *this, cr};
+    return init.result.get();
 }
 
 template<class NextLayer>
