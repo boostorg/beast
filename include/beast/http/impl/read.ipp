@@ -192,7 +192,7 @@ read_some(
 {
     static_assert(is_SyncReadStream<SyncReadStream>::value,
         "SyncReadStream requirements not met");
-    static_assert(is_DynamicBuffer<DynamicBuffer>::value,
+    static_assert(is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
     BOOST_ASSERT(! parser.is_complete());
     error_code ec;
@@ -216,7 +216,7 @@ read_some(
 {
     static_assert(is_SyncReadStream<SyncReadStream>::value,
         "SyncReadStream requirements not met");
-    static_assert(is_DynamicBuffer<DynamicBuffer>::value,
+    static_assert(is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
     BOOST_ASSERT(! parser.is_complete());
     return detail::read_some(stream, dynabuf, parser, ec);
@@ -234,7 +234,7 @@ read(
 {
     static_assert(is_SyncReadStream<SyncReadStream>::value,
         "SyncReadStream requirements not met");
-    static_assert(is_DynamicBuffer<DynamicBuffer>::value,
+    static_assert(is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
     BOOST_ASSERT(! parser.is_complete());
     error_code ec;
@@ -256,7 +256,7 @@ read(
 {
     static_assert(is_SyncReadStream<SyncReadStream>::value,
         "SyncReadStream requirements not met");
-    static_assert(is_DynamicBuffer<DynamicBuffer>::value,
+    static_assert(is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
     BOOST_ASSERT(! parser.is_complete());
     do
@@ -282,7 +282,7 @@ read(
 {
     static_assert(is_SyncReadStream<SyncReadStream>::value,
         "SyncReadStream requirements not met");
-    static_assert(is_DynamicBuffer<DynamicBuffer>::value,
+    static_assert(is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
     static_assert(is_Body<Body>::value,
         "Body requirements not met");
@@ -310,7 +310,7 @@ read(
 {
     static_assert(is_SyncReadStream<SyncReadStream>::value,
         "SyncReadStream requirements not met");
-    static_assert(is_DynamicBuffer<DynamicBuffer>::value,
+    static_assert(is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
     static_assert(is_Body<Body>::value,
         "Body requirements not met");

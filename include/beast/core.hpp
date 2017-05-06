@@ -10,7 +10,7 @@
 
 #include <beast/config.hpp>
 
-#include <beast/core/async_completion.hpp>
+#include <beast/core/async_result.hpp>
 #include <beast/core/bind_handler.hpp>
 #include <beast/core/buffer_cat.hpp>
 #include <beast/core/buffer_concepts.hpp>

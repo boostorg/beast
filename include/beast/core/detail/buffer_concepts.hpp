@@ -33,7 +33,7 @@ using MutableBufferSequence =
     BufferSequence<boost::asio::mutable_buffer>;
 
 template<class T, class BufferType>
-class is_BufferSequence
+class is_buffer_sequence
 {
     template<class U, class R = std::is_convertible<
         typename U::value_type, BufferType> >
@@ -88,19 +88,19 @@ public:
 template<class B1, class... Bn>
 struct is_all_ConstBufferSequence
     : std::integral_constant<bool,
-        is_BufferSequence<B1, boost::asio::const_buffer>::type::value &&
+        is_buffer_sequence<B1, boost::asio::const_buffer>::type::value &&
         is_all_ConstBufferSequence<Bn...>::value>
 {
 };
 
 template<class B1>
 struct is_all_ConstBufferSequence<B1>
-    : is_BufferSequence<B1, boost::asio::const_buffer>::type
+    : is_buffer_sequence<B1, boost::asio::const_buffer>::type
 {
 };
 
 template<class T>
-class is_DynamicBuffer
+class is_dynamic_buffer
 {
     // size()
     template<class U, class R = std::is_convertible<decltype(
@@ -128,7 +128,7 @@ class is_DynamicBuffer
 
     // data()
     template<class U, class R = std::integral_constant<
-        bool, is_BufferSequence<decltype(
+        bool, is_buffer_sequence<decltype(
             std::declval<U const>().data()),
                 boost::asio::const_buffer>::type::value>>
     static R check4(int);
@@ -138,7 +138,7 @@ class is_DynamicBuffer
 
     // prepare()
     template<class U, class R = std::integral_constant<
-        bool, is_BufferSequence<decltype(
+        bool, is_buffer_sequence<decltype(
             std::declval<U>().prepare(1)),
                 boost::asio::mutable_buffer>::type::value>>
     static R check5(int);

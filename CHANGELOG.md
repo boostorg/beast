@@ -20,6 +20,7 @@ API Changes:
 * Rename to flat_buffer, basic_flat_buffer
 * Rename to static_buffer, static_buffer_n
 * Rename to buffered_read_stream
+* Harmonize concepts and identifiers with net-ts
 
 --------------------------------------------------------------------------------
 

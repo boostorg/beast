@@ -545,24 +545,23 @@ upcall:
 
 template<class NextLayer>
 template<class ConstBufferSequence, class WriteHandler>
-typename async_completion<
-    WriteHandler, void(error_code)>::result_type
+BEAST_INITFN_RESULT_TYPE(
+    WriteHandler, void(error_code))
 stream<NextLayer>::
 async_write_frame(bool fin,
     ConstBufferSequence const& bs, WriteHandler&& handler)
 {
     static_assert(is_AsyncStream<next_layer_type>::value,
         "AsyncStream requirements not met");
-    static_assert(beast::is_ConstBufferSequence<
+    static_assert(beast::is_const_buffer_sequence<
         ConstBufferSequence>::value,
             "ConstBufferSequence requirements not met");
-    beast::async_completion<
-        WriteHandler, void(error_code)
-            > completion{handler};
-    write_frame_op<ConstBufferSequence, decltype(
-        completion.handler)>{completion.handler,
+    async_completion<WriteHandler,
+        void(error_code)> init{handler};
+    write_frame_op<ConstBufferSequence, BEAST_HANDLER_TYPE(
+        WriteHandler, void(error_code))>{init.completion_handler,
             *this, fin, bs};
-    return completion.result.get();
+    return init.result.get();
 }
 
 template<class NextLayer>
@@ -573,7 +572,7 @@ write_frame(bool fin, ConstBufferSequence const& buffers)
 {
     static_assert(is_SyncStream<next_layer_type>::value,
         "SyncStream requirements not met");
-    static_assert(beast::is_ConstBufferSequence<
+    static_assert(beast::is_const_buffer_sequence<
         ConstBufferSequence>::value,
             "ConstBufferSequence requirements not met");
     error_code ec;
@@ -591,7 +590,7 @@ write_frame(bool fin,
 {
     static_assert(is_SyncStream<next_layer_type>::value,
         "SyncStream requirements not met");
-    static_assert(beast::is_ConstBufferSequence<
+    static_assert(beast::is_const_buffer_sequence<
         ConstBufferSequence>::value,
             "ConstBufferSequence requirements not met");
     using beast::detail::clamp;
@@ -896,21 +895,22 @@ operator()(error_code ec, bool again)
 
 template<class NextLayer>
 template<class ConstBufferSequence, class WriteHandler>
-typename async_completion<
-    WriteHandler, void(error_code)>::result_type
+BEAST_INITFN_RESULT_TYPE(
+    WriteHandler, void(error_code))
 stream<NextLayer>::
 async_write(ConstBufferSequence const& bs, WriteHandler&& handler)
 {
     static_assert(is_AsyncStream<next_layer_type>::value,
         "AsyncStream requirements not met");
-    static_assert(beast::is_ConstBufferSequence<
+    static_assert(beast::is_const_buffer_sequence<
         ConstBufferSequence>::value,
             "ConstBufferSequence requirements not met");
-    beast::async_completion<
-        WriteHandler, void(error_code)> completion{handler};
-    write_op<ConstBufferSequence, decltype(completion.handler)>{
-        completion.handler, *this, bs};
-    return completion.result.get();
+    async_completion<WriteHandler,
+        void(error_code)> init{handler};
+    write_op<ConstBufferSequence, BEAST_HANDLER_TYPE(
+        WriteHandler, void(error_code))>{
+            init.completion_handler, *this, bs};
+    return init.result.get();
 }
 
 template<class NextLayer>
@@ -921,7 +921,7 @@ write(ConstBufferSequence const& buffers)
 {
     static_assert(is_SyncStream<next_layer_type>::value,
         "SyncStream requirements not met");
-    static_assert(beast::is_ConstBufferSequence<
+    static_assert(beast::is_const_buffer_sequence<
         ConstBufferSequence>::value,
             "ConstBufferSequence requirements not met");
     error_code ec;
@@ -938,7 +938,7 @@ write(ConstBufferSequence const& buffers, error_code& ec)
 {
     static_assert(is_SyncStream<next_layer_type>::value,
         "SyncStream requirements not met");
-    static_assert(beast::is_ConstBufferSequence<
+    static_assert(beast::is_const_buffer_sequence<
         ConstBufferSequence>::value,
             "ConstBufferSequence requirements not met");
     write_frame(true, buffers, ec);

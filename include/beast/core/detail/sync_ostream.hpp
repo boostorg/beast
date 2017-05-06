@@ -51,7 +51,7 @@ sync_ostream::
 write_some(ConstBufferSequence const& buffers)
 {
     static_assert(
-        is_ConstBufferSequence<ConstBufferSequence>::value,
+        is_const_buffer_sequence<ConstBufferSequence>::value,
             "ConstBufferSequence requirements not met");
     error_code ec;
     auto const n = write_some(buffers, ec);
@@ -67,7 +67,7 @@ write_some(ConstBufferSequence const& buffers,
     error_code& ec)
 {
     static_assert(
-        is_ConstBufferSequence<ConstBufferSequence>::value,
+        is_const_buffer_sequence<ConstBufferSequence>::value,
             "ConstBufferSequence requirements not met");
     std::size_t n = 0;
     using boost::asio::buffer_cast;

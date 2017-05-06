@@ -9,7 +9,7 @@
 #define BEAST_BUFFERED_READ_STREAM_HPP
 
 #include <beast/config.hpp>
-#include <beast/core/async_completion.hpp>
+#include <beast/core/async_result.hpp>
 #include <beast/core/buffer_concepts.hpp>
 #include <beast/core/error.hpp>
 #include <beast/core/stream_concepts.hpp>
@@ -90,7 +90,7 @@ namespace beast {
 template<class Stream, class DynamicBuffer>
 class buffered_read_stream
 {
-    static_assert(is_DynamicBuffer<DynamicBuffer>::value,
+    static_assert(is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
 
     template<class Buffers, class Handler>
@@ -272,11 +272,7 @@ public:
         manner equivalent to using `boost::asio::io_service::post`.
     */
     template<class MutableBufferSequence, class ReadHandler>
-#if BEAST_DOXYGEN
-    void_or_deduced
-#else
-    typename async_completion<ReadHandler, void(error_code)>::result_type
-#endif
+    BEAST_INITFN_RESULT_TYPE(ReadHandler, void(error_code))
     async_read_some(MutableBufferSequence const& buffers,
         ReadHandler&& handler);
 
@@ -347,11 +343,7 @@ public:
         manner equivalent to using `boost::asio::io_service::post`.
     */
     template<class ConstBufferSequence, class WriteHandler>
-#if BEAST_DOXYGEN
-    void_or_deduced
-#else
-    typename async_completion<WriteHandler, void(error_code)>::result_type
-#endif
+    BEAST_INITFN_RESULT_TYPE(WriteHandler, void(error_code))
     async_write_some(ConstBufferSequence const& buffers,
         WriteHandler&& handler);
 };

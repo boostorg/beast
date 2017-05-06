@@ -21,7 +21,7 @@
 
 namespace beast {
 
-static_assert(is_DynamicBuffer<multi_buffer>::value, "");
+static_assert(is_dynamic_buffer<multi_buffer>::value, "");
 
 class multi_buffer_test : public beast::unit_test::suite
 {

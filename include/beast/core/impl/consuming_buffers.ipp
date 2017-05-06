@@ -9,7 +9,6 @@
 #define BEAST_IMPL_CONSUMING_BUFFERS_IPP
 
 #include <beast/core/buffer_concepts.hpp>
-#include <boost/asio/buffer.hpp>
 #include <algorithm>
 #include <cstdint>
 #include <iterator>
@@ -163,7 +162,8 @@ consuming_buffers(BufferSequence const& bs)
     , begin_(bs_.begin())
 {
     static_assert(
-        is_BufferSequence<BufferSequence, value_type>::value,
+        is_const_buffer_sequence<BufferSequence>::value||
+        is_mutable_buffer_sequence<BufferSequence>::value,
             "BufferSequence requirements not met");
 }
 

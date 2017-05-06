@@ -14,7 +14,7 @@
 #include <beast/websocket/detail/stream_base.hpp>
 #include <beast/http/message.hpp>
 #include <beast/http/string_body.hpp>
-#include <beast/core/async_completion.hpp>
+#include <beast/core/async_result.hpp>
 #include <beast/core/buffered_read_stream.hpp>
 #include <beast/core/string_view.hpp>
 #include <beast/core/detail/get_lowest_layer.hpp>
@@ -970,12 +970,8 @@ public:
         manner equivalent to using `boost::asio::io_service::post`.
     */
     template<class AcceptHandler>
-#if BEAST_DOXYGEN
-    void_or_deduced
-#else
-    typename async_completion<
-        AcceptHandler, void(error_code)>::result_type
-#endif
+    BEAST_INITFN_RESULT_TYPE(
+        AcceptHandler, void(error_code))
     async_accept(AcceptHandler&& handler);
 
     /** Start reading and responding to a WebSocket HTTP Upgrade request.
@@ -1029,12 +1025,8 @@ public:
         manner equivalent to using `boost::asio::io_service::post`.
     */
     template<class ResponseDecorator, class AcceptHandler>
-#if BEAST_DOXYGEN
-    void_or_deduced
-#else
-    typename async_completion<
-        AcceptHandler, void(error_code)>::result_type
-#endif
+    BEAST_INITFN_RESULT_TYPE(
+        AcceptHandler, void(error_code))
     async_accept_ex(ResponseDecorator const& decorator,
         AcceptHandler&& handler);
 
@@ -1087,12 +1079,8 @@ public:
         manner equivalent to using `boost::asio::io_service::post`.
     */
     template<class ConstBufferSequence, class AcceptHandler>
-#if BEAST_DOXYGEN
-    void_or_deduced
-#else
-    typename async_completion<AcceptHandler,
-        void(error_code)>::result_type
-#endif
+    BEAST_INITFN_RESULT_TYPE(
+        AcceptHandler, void(error_code))
     async_accept(ConstBufferSequence const& buffers,
         AcceptHandler&& handler);
 
@@ -1155,12 +1143,8 @@ public:
     */
     template<class ConstBufferSequence,
         class ResponseDecorator, class AcceptHandler>
-#if BEAST_DOXYGEN
-    void_or_deduced
-#else
-    typename async_completion<AcceptHandler,
-        void(error_code)>::result_type
-#endif
+    BEAST_INITFN_RESULT_TYPE(
+        AcceptHandler, void(error_code))
     async_accept_ex(ConstBufferSequence const& buffers,
         ResponseDecorator const& decorator,
             AcceptHandler&& handler);
@@ -1211,12 +1195,8 @@ public:
         manner equivalent to using `boost::asio::io_service::post`.
     */
     template<class Fields, class AcceptHandler>
-#if BEAST_DOXYGEN
-    void_or_deduced
-#else
-    typename async_completion<AcceptHandler,
-        void(error_code)>::result_type
-#endif
+    BEAST_INITFN_RESULT_TYPE(
+        AcceptHandler, void(error_code))
     async_accept(http::header<true, Fields> const& req,
         AcceptHandler&& handler);
 
@@ -1276,12 +1256,8 @@ public:
     */
     template<class Fields,
         class ResponseDecorator, class AcceptHandler>
-#if BEAST_DOXYGEN
-    void_or_deduced
-#else
-    typename async_completion<AcceptHandler,
-        void(error_code)>::result_type
-#endif
+    BEAST_INITFN_RESULT_TYPE(
+        AcceptHandler, void(error_code))
     async_accept_ex(http::header<true, Fields> const& req,
         ResponseDecorator const& decorator,
             AcceptHandler&& handler);
@@ -1340,12 +1316,8 @@ public:
     */
     template<class Fields,
         class ConstBufferSequence, class AcceptHandler>
-#if BEAST_DOXYGEN
-    void_or_deduced
-#else
-    typename async_completion<AcceptHandler,
-        void(error_code)>::result_type
-#endif
+    BEAST_INITFN_RESULT_TYPE(
+        AcceptHandler, void(error_code))
     async_accept(http::header<true, Fields> const& req,
         ConstBufferSequence const& buffers,
             AcceptHandler&& handler);
@@ -1413,12 +1385,8 @@ public:
     */
     template<class Fields, class ConstBufferSequence,
         class ResponseDecorator, class AcceptHandler>
-#if BEAST_DOXYGEN
-    void_or_deduced
-#else
-    typename async_completion<AcceptHandler,
-        void(error_code)>::result_type
-#endif
+    BEAST_INITFN_RESULT_TYPE(
+        AcceptHandler, void(error_code))
     async_accept_ex(http::header<true, Fields> const& req,
         ConstBufferSequence const& buffers,
             ResponseDecorator const& decorator,
@@ -1895,12 +1863,8 @@ public:
         manner equivalent to using `boost::asio::io_service::post`.
     */
     template<class HandshakeHandler>
-#if BEAST_DOXYGEN
-    void_or_deduced
-#else
-    typename async_completion<HandshakeHandler,
-        void(error_code)>::result_type
-#endif
+    BEAST_INITFN_RESULT_TYPE(
+        HandshakeHandler, void(error_code))
     async_handshake(string_view const& host,
         string_view const& target,
             HandshakeHandler&& handler);
@@ -1951,12 +1915,8 @@ public:
         manner equivalent to using `boost::asio::io_service::post`.
     */
     template<class HandshakeHandler>
-#if BEAST_DOXYGEN
-    void_or_deduced
-#else
-    typename async_completion<HandshakeHandler,
-        void(error_code)>::result_type
-#endif
+    BEAST_INITFN_RESULT_TYPE(
+        HandshakeHandler, void(error_code))
     async_handshake(response_type& res,
         string_view const& host,
             string_view const& target,
@@ -2013,12 +1973,8 @@ public:
         manner equivalent to using `boost::asio::io_service::post`.
     */
     template<class RequestDecorator, class HandshakeHandler>
-#if BEAST_DOXYGEN
-    void_or_deduced
-#else
-    typename async_completion<HandshakeHandler,
-        void(error_code)>::result_type
-#endif
+    BEAST_INITFN_RESULT_TYPE(
+        HandshakeHandler, void(error_code))
     async_handshake_ex(string_view const& host,
         string_view const& target,
             RequestDecorator const& decorator,
@@ -2079,12 +2035,8 @@ public:
         manner equivalent to using `boost::asio::io_service::post`.
     */
     template<class RequestDecorator, class HandshakeHandler>
-#if BEAST_DOXYGEN
-    void_or_deduced
-#else
-    typename async_completion<HandshakeHandler,
-        void(error_code)>::result_type
-#endif
+    BEAST_INITFN_RESULT_TYPE(
+        HandshakeHandler, void(error_code))
     async_handshake_ex(response_type& res,
         string_view const& host,
             string_view const& target,
@@ -2193,12 +2145,8 @@ public:
         manner equivalent to using `boost::asio::io_service::post`.
     */
     template<class CloseHandler>
-#if BEAST_DOXYGEN
-    void_or_deduced
-#else
-    typename async_completion<
-        CloseHandler, void(error_code)>::result_type
-#endif
+    BEAST_INITFN_RESULT_TYPE(
+        CloseHandler, void(error_code))
     async_close(close_reason const& cr, CloseHandler&& handler);
 
     /** Send a WebSocket ping frame.
@@ -2275,12 +2223,8 @@ public:
         manner equivalent to using `boost::asio::io_service::post`.
     */
     template<class WriteHandler>
-#if BEAST_DOXYGEN
-    void_or_deduced
-#else
-    typename async_completion<
-        WriteHandler, void(error_code)>::result_type
-#endif
+    BEAST_INITFN_RESULT_TYPE(
+        WriteHandler, void(error_code))
     async_ping(ping_data const& payload, WriteHandler&& handler);
 
     /** Send a WebSocket pong frame.
@@ -2372,12 +2316,8 @@ public:
         manner equivalent to using `boost::asio::io_service::post`.
     */
     template<class WriteHandler>
-#if BEAST_DOXYGEN
-    void_or_deduced
-#else
-    typename async_completion<
-        WriteHandler, void(error_code)>::result_type
-#endif
+    BEAST_INITFN_RESULT_TYPE(
+        WriteHandler, void(error_code))
     async_pong(ping_data const& payload, WriteHandler&& handler);
 
     /** Read a message from the stream.
@@ -2520,12 +2460,8 @@ public:
         manner equivalent to using `boost::asio::io_service::post`.
     */
     template<class DynamicBuffer, class ReadHandler>
-#if BEAST_DOXYGEN
-    void_or_deduced
-#else
-    typename async_completion<
-        ReadHandler, void(error_code)>::result_type
-#endif
+    BEAST_INITFN_RESULT_TYPE(
+        ReadHandler, void(error_code))
     async_read(opcode& op, DynamicBuffer& dynabuf, ReadHandler&& handler);
 
     /** Read a message frame from the stream.
@@ -2678,12 +2614,8 @@ public:
         manner equivalent to using boost::asio::io_service::post().
     */
     template<class DynamicBuffer, class ReadHandler>
-#if BEAST_DOXYGEN
-    void_or_deduced
-#else
-    typename async_completion<
-        ReadHandler, void(error_code)>::result_type
-#endif
+    BEAST_INITFN_RESULT_TYPE(
+        ReadHandler, void(error_code))
     async_read_frame(frame_info& fi,
         DynamicBuffer& dynabuf, ReadHandler&& handler);
 
@@ -2804,12 +2736,8 @@ public:
         manner equivalent to using `boost::asio::io_service::post`.
     */
     template<class ConstBufferSequence, class WriteHandler>
-#if BEAST_DOXYGEN
-    void_or_deduced
-#else
-    typename async_completion<
-        WriteHandler, void(error_code)>::result_type
-#endif
+    BEAST_INITFN_RESULT_TYPE(
+        WriteHandler, void(error_code))
     async_write(ConstBufferSequence const& buffers,
         WriteHandler&& handler);
 
@@ -2920,12 +2848,8 @@ public:
         ); @endcode
     */
     template<class ConstBufferSequence, class WriteHandler>
-#if BEAST_DOXYGEN
-    void_or_deduced
-#else
-    typename async_completion<
-        WriteHandler, void(error_code)>::result_type
-#endif
+    BEAST_INITFN_RESULT_TYPE(
+        WriteHandler, void(error_code))
     async_write_frame(bool fin,
         ConstBufferSequence const& buffers, WriteHandler&& handler);
 

@@ -195,38 +195,36 @@ upcall:
 
 template<class NextLayer>
 template<class WriteHandler>
-typename async_completion<
-    WriteHandler, void(error_code)>::result_type
+BEAST_INITFN_RESULT_TYPE(
+    WriteHandler, void(error_code))
 stream<NextLayer>::
 async_ping(ping_data const& payload, WriteHandler&& handler)
 {
     static_assert(is_AsyncStream<next_layer_type>::value,
         "AsyncStream requirements requirements not met");
-    beast::async_completion<
-        WriteHandler, void(error_code)
-            > completion{handler};
-    ping_op<decltype(completion.handler)>{
-        completion.handler, *this,
-            opcode::ping, payload};
-    return completion.result.get();
+    async_completion<WriteHandler,
+        void(error_code)> init{handler};
+    ping_op<BEAST_HANDLER_TYPE(
+        WriteHandler, void(error_code))>{
+            init.completion_handler, *this, opcode::ping, payload};
+    return init.result.get();
 }
 
 template<class NextLayer>
 template<class WriteHandler>
-typename async_completion<
-    WriteHandler, void(error_code)>::result_type
+BEAST_INITFN_RESULT_TYPE(
+    WriteHandler, void(error_code))
 stream<NextLayer>::
 async_pong(ping_data const& payload, WriteHandler&& handler)
 {
     static_assert(is_AsyncStream<next_layer_type>::value,
         "AsyncStream requirements requirements not met");
-    beast::async_completion<
-        WriteHandler, void(error_code)
-            > completion{handler};
-    ping_op<decltype(completion.handler)>{
-        completion.handler, *this,
-            opcode::pong, payload};
-    return completion.result.get();
+    async_completion<WriteHandler,
+        void(error_code)> init{handler};
+    ping_op<BEAST_HANDLER_TYPE(
+        WriteHandler, void(error_code))>{
+            init.completion_handler, *this, opcode::pong, payload};
+    return init.result.get();
 }
 
 template<class NextLayer>

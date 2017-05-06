@@ -159,7 +159,7 @@ struct is_Reader<T, M, beast::detail::void_t<decltype(
         std::declval<std::size_t>()),
     std::declval<T>().finish()
             )> > : std::integral_constant<bool,
-    is_MutableBufferSequence<
+    is_mutable_buffer_sequence<
         typename T::mutable_buffers_type>::value &&
     std::is_convertible<decltype(
         std::declval<T>().prepare(
