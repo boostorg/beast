@@ -193,12 +193,15 @@ prepare(std::size_t n) ->
 {
     if(n <= dist(out_, end_))
     {
+        // existing capacity is sufficient
         last_ = out_ + n;
         return{out_, n};
     }
     auto const len = size();
-    if(n <= dist(p_, end_) - len)
+    if(n <= capacity() - len)
     {
+        // after a memmove,
+        // existing capacity is sufficient
         if(len > 0)
             std::memmove(p_, in_, len);
         in_ = p_;
@@ -206,17 +209,24 @@ prepare(std::size_t n) ->
         last_ = out_ + n;
         return {out_, n};
     }
+    // enforce maximum capacity
     if(n > max_ - len)
         throw std::length_error{
             "flat_streambuf overflow"};
+    // allocate a new buffer
     auto const new_size = (std::min)(max_,
         std::max<std::size_t>(
             detail::next_pow2(len + n), min_size));
     auto const p = alloc_traits::allocate(
         this->member(), new_size);
-    std::memcpy(p, in_, len);
-    alloc_traits::deallocate(
-        this->member(), p_, dist(p_, end_));
+    if(len > 0)
+    {
+        BOOST_ASSERT(p);
+        BOOST_ASSERT(in_);
+        std::memcpy(p, in_, len);
+        alloc_traits::deallocate(
+            this->member(), p_, capacity());
+    }
     p_ = p;
     in_ = p_;
     out_ = in_ + len;
@@ -244,7 +254,7 @@ void
 basic_flat_streambuf<Allocator>::
 reserve(std::size_t n)
 {
-    if(n <= dist(p_, end_))
+    if(n <= capacity())
         return;
     if(n > max_)
         throw std::length_error{
@@ -256,9 +266,13 @@ reserve(std::size_t n)
         this->member(), new_size);
     auto const len = size();
     if(len > 0)
+    {
+        BOOST_ASSERT(p_);
+        BOOST_ASSERT(in_);
         std::memcpy(p, in_, len);
-    alloc_traits::deallocate(
-        this->member(), p_, dist(p_, end_));
+        alloc_traits::deallocate(
+            this->member(), p_, capacity());
+    }
     p_ = p;
     in_ = p_;
     out_ = p_ + len;
@@ -272,11 +286,13 @@ basic_flat_streambuf<Allocator>::
 shrink_to_fit()
 {
     auto const len = size();
-    if(len == dist(p_, end_))
+    if(len == capacity())
         return;
     char* p;
     if(len > 0)
     {
+        BOOST_ASSERT(p_);
+        BOOST_ASSERT(in_);
         p = alloc_traits::allocate(
             this->member(), len);
         std::memcpy(p, in_, len);
