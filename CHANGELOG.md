@@ -6,6 +6,7 @@
 * Fix flat_streambuf
 * Add ub sanitizer blacklist
 * Add -funsigned-char to asan build target
+* Fix narrowing warning in table constants
 
 WebSocket:
 
