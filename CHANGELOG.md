@@ -21,6 +21,7 @@ API Changes:
 * Rename to static_buffer, static_buffer_n
 * Rename to buffered_read_stream
 * Harmonize concepts and identifiers with net-ts
+* Tidy up HTTP reason_string
 
 --------------------------------------------------------------------------------
 
