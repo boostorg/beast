@@ -5,6 +5,7 @@
 * Rename project to http-bench
 * Fix flat_streambuf
 * Add ub sanitizer blacklist
+* Add -funsigned-char to asan build target
 
 WebSocket:
 
