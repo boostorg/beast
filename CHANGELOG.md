@@ -4,6 +4,7 @@
 * Rename to detail::is_invocable
 * Rename project to http-bench
 * Fix flat_streambuf
+* Add ub sanitizer blacklist
 
 WebSocket:
 

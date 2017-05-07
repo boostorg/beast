@@ -72,7 +72,7 @@ variant msan
   :
     debug
   :
-    <cxxflags>"-fsanitize=memory -fno-omit-frame-pointer -fsanitize-memory-track-origins=2 -fsanitize-memory-use-after-dtor"
+    <cxxflags>"-fsanitize=memory -fsanitize-memory-track-origins=2 -fsanitize-memory-use-after-dtor -fno-omit-frame-pointer"
     <linkflags>"-fsanitize=memory"
   ;
 
@@ -80,7 +80,7 @@ variant usan
   :
     debug
   :
-    <cxxflags>"-fsanitize=undefined -fno-omit-frame-pointer"
+    <cxxflags>"-fsanitize=undefined -fsanitize-blacklist=scripts/usan.supp -fno-omit-frame-pointer"
     <linkflags>"-fsanitize=undefined"
   ;
 
