@@ -64,7 +64,7 @@ variant asan
   :
     release
   :
-    <cxxflags>"-fsanitize=address -fno-omit-frame-pointer"
+    <cxxflags>"-funsigned-char -fsanitize=address -fno-omit-frame-pointer"
     <linkflags>"-fsanitize=address"
   ;
 
