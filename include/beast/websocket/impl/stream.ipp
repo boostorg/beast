@@ -14,7 +14,6 @@
 #include <beast/version.hpp>
 #include <beast/http/read.hpp>
 #include <beast/http/write.hpp>
-#include <beast/http/reason.hpp>
 #include <beast/http/rfc7230.hpp>
 #include <beast/core/buffer_cat.hpp>
 #include <beast/core/buffer_concepts.hpp>

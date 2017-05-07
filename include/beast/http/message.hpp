@@ -533,6 +533,10 @@ void
 prepare(message<isRequest, Body, Fields>& msg,
     Options&&... options);
 
+/** Returns the text for a known HTTP status code. */
+string_view const
+reason_string(int status);
+
 } // http
 } // beast
 

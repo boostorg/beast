@@ -20,7 +20,6 @@ add_executable (http-tests
     message.cpp
     message_parser.cpp
     read.cpp
-    reason.cpp
     rfc7230.cpp
     string_body.cpp
     write.cpp
