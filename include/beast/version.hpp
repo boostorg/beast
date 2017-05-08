@@ -10,14 +10,19 @@
 
 #include <beast/config.hpp>
 
-// follows http://semver.org
+#define BEAST_QUOTE(arg) #arg
+#define BEAST_STR(arg) BEAST_QUOTE(arg)
 
-//  BEAST_VERSION % 100 is the patch level
-//  BEAST_VERSION / 100 % 1000 is the minor version
-//  BEAST_VERSION / 100000 is the major version
-//
-#define BEAST_VERSION 100000
+/** @def BEAST_API_VERSION 
 
-#define BEAST_VERSION_STRING "1.0.0-b38"
+    Identifies the API version of Beast.
+
+    This is a simple integer that is incremented by one every time
+    a set of code changes is merged to the master or develop branch.
+*/
+#define BEAST_VERSION 39
+
+#define BEAST_VERSION_STRING "Beast/" BEAST_STR(BEAST_VERSION)
 
 #endif
+
