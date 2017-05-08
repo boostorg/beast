@@ -114,9 +114,9 @@ public:
     write_some(
         ConstBufferSequence const& buffers, error_code&)
     {
-        auto const n = buffer_size(buffers);
         using boost::asio::buffer_size;
         using boost::asio::buffer_cast;
+        auto const n = buffer_size(buffers);
         str.reserve(str.size() + n);
         for(auto const& buffer : buffers)
             str.append(buffer_cast<char const*>(buffer),

@@ -12,24 +12,26 @@
 #include <beast/core/error.hpp>
 #include <beast/core/multi_buffer.hpp>
 #include <beast/http/message.hpp>
+#include <boost/optional.hpp>
+#include <utility>
 
 namespace beast {
 namespace http {
 
-/** A message body represented by a @b DynamicBuffer
+/** An HTTP message body represented by a @b DynamicBuffer.
 
     Meets the requirements of @b Body.
 */
 template<class DynamicBuffer>
 struct basic_dynamic_body
 {
-    /// The type of the `message::body` member
+    /// The type of the body member when used in a message.
     using value_type = DynamicBuffer;
 
 #if BEAST_DOXYGEN
-private:
-#endif
-
+    /// The algorithm used when parsing this body.
+    using reader = implementation_defined;
+#else
     class reader
     {
         value_type& body_;
@@ -75,40 +77,48 @@ private:
         {
         }
     };
+#endif
 
+#if BEAST_DOXYGEN
+    /// The algorithm used when serializing this body.
+    using writer = implementation_defined;
+#else
     class writer
     {
         DynamicBuffer const& body_;
 
     public:
+        using is_deferred = std::false_type;
+
+        using const_buffers_type =
+            typename DynamicBuffer::const_buffers_type;
+
         template<bool isRequest, class Fields>
         explicit
         writer(message<
-                isRequest, basic_dynamic_body, Fields> const& m) noexcept
+                isRequest, basic_dynamic_body, Fields> const& m)
             : body_(m.body)
         {
         }
 
         void
-        init(error_code& ec) noexcept
+        init(error_code&)
         {
-            beast::detail::ignore_unused(ec);
         }
 
         std::uint64_t
-        content_length() const noexcept
+        content_length() const
         {
             return body_.size();
         }
 
-        template<class WriteFunction>
-        bool
-        write(error_code&, WriteFunction&& wf) noexcept
+        boost::optional<std::pair<const_buffers_type, bool>>
+        get(error_code& ec)
         {
-            wf(body_.data());
-            return true;
+            return {{body_.data(), false}};
         }
     };
+#endif
 };
 
 /** A dynamic message body represented by a @ref multi_buffer

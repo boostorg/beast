@@ -33,6 +33,17 @@ enum class error
     */
     partial_message,
 
+    /** Additional buffers are required.
+
+        This error is generated during serialization of HTTP
+        messages using the @ref buffer_body representation.
+        It indicates to the caller that an additional buffer
+        sequence should be placed into the body, or that the
+        caller should indicate that there are no more bytes
+        remaining in the body to serialize.
+    */
+    need_more,
+
     /** Buffer maximum exceeded.
 
         This error is returned when reading HTTP content

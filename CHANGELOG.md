@@ -5,6 +5,7 @@ Version 46
 API Changes:
 
 * Remove HTTP header aliases
+* Refactor HTTP serialization
 
 --------------------------------------------------------------------------------
 
