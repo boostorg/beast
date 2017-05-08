@@ -14,7 +14,7 @@
 #include <beast/core/error.hpp>
 #include <beast/core/stream_concepts.hpp>
 #include <beast/core/multi_buffer.hpp>
-#include <beast/core/detail/get_lowest_layer.hpp>
+#include <beast/core/detail/type_traits.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/asio/io_service.hpp>
 #include <cstdint>
