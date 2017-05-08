@@ -1,4 +1,10 @@
-1.0.0-b39
+Version 39
+
+Beast versions are now identified by a single integer which
+is incremented on each merge. The macro BEAST_VERSION
+identifies the version number, currently at 39. A version
+setting commit will always be at the tip of the master
+and develop branches.
 
 * Use beast::string_view alias
 * Fixed braced-init error with older gcc
