@@ -185,10 +185,11 @@ build_request(detail::sec_ws_key_type& key,
             req.fields, config);
     }
     decorator(req);
-    // VFALCO Use static_string here
     if(! req.fields.exists("User-Agent"))
-        req.fields.insert("User-Agent",
-            std::string("Beast/") + BEAST_VERSION_STRING);
+    {
+        static_string<20> s(BEAST_VERSION_STRING);
+        req.fields.insert("User-Agent", s);
+    }
     return req;
 }
 
@@ -203,11 +204,11 @@ build_response(request_type const& req,
         [&decorator](response_type& res)
         {
             decorator(res);
-            // VFALCO Use static_string here
             if(! res.fields.exists("Server"))
-                res.fields.insert("Server",
-                    std::string("Beast/") +
-                        BEAST_VERSION_STRING);
+            {
+                static_string<20> s(BEAST_VERSION_STRING);
+                res.fields.insert("Server", s);
+            }
         };
     auto err =
         [&](std::string const& text)
