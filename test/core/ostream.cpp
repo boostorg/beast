@@ -18,12 +18,33 @@ namespace beast {
 class ostream_test : public beast::unit_test::suite
 {
 public:
-    void run() override
+    void
+    run() override
     {
-        multi_buffer b;
-        ostream(b) << "Hello, world!\n";
-        BEAST_EXPECT(boost::lexical_cast<std::string>(
-            buffers(b.data())) == "Hello, world!\n");
+        {
+            multi_buffer b;
+            auto os = ostream(b);
+            os << "Hello, world!\n";
+            os.flush();
+            BEAST_EXPECT(boost::lexical_cast<std::string>(
+                buffers(b.data())) == "Hello, world!\n");
+            auto os2 = std::move(os);
+        }
+        {
+            auto const s =
+                "0123456789abcdef" "0123456789abcdef" "0123456789abcdef" "0123456789abcdef" 
+                "0123456789abcdef" "0123456789abcdef" "0123456789abcdef" "0123456789abcdef" 
+                "0123456789abcdef" "0123456789abcdef" "0123456789abcdef" "0123456789abcdef" 
+                "0123456789abcdef" "0123456789abcdef" "0123456789abcdef" "0123456789abcdef" 
+                "0123456789abcdef" "0123456789abcdef" "0123456789abcdef" "0123456789abcdef" 
+                "0123456789abcdef" "0123456789abcdef" "0123456789abcdef" "0123456789abcdef" 
+                "0123456789abcdef" "0123456789abcdef" "0123456789abcdef" "0123456789abcdef" 
+                "0123456789abcdef" "0123456789abcdef" "0123456789abcdef" "0123456789abcdef";
+            multi_buffer b(512);
+            ostream(b) << s;
+            BEAST_EXPECT(boost::lexical_cast<std::string>(
+                buffers(b.data())) == s);
+        }
     }
 };
 

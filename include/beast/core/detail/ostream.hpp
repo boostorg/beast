@@ -54,10 +54,7 @@ operator<<(std::ostream& os,
 //------------------------------------------------------------------------------
 
 template<
-    class DynamicBuffer,
-    class CharT,
-    class Traits
->
+    class DynamicBuffer, class CharT, class Traits>
 class ostream_buffer
     : public std::basic_streambuf<CharT, Traits>
 {
@@ -115,7 +112,7 @@ ostream_buffer<DynamicBuffer, CharT, Traits>::
 overflow(int_type ch) ->
     int_type
 {
-    if(ch != traits_type::eof())
+    if(! Traits::eq_int_type(ch, Traits::eof()))
     {
         Traits::assign(*this->pptr(), ch);
         flush(1);
