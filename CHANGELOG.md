@@ -1,3 +1,9 @@
+Version 40
+
+* Add to_static_string
+
+--------------------------------------------------------------------------------
+
 Version 39
 
 Beast versions are now identified by a single integer which

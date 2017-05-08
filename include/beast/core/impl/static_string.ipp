@@ -453,6 +453,18 @@ copy(CharT* dest, size_type count, size_type pos) const ->
 template<std::size_t N, class CharT, class Traits>
 void
 static_string<N, CharT, Traits>::
+resize(std::size_t n)
+{
+    if(n > max_size())
+        throw detail::make_exception<std::length_error>(
+            "n > max_size()", __FILE__, __LINE__);
+    n_ = n;
+    term();
+}
+
+template<std::size_t N, class CharT, class Traits>
+void
+static_string<N, CharT, Traits>::
 resize(std::size_t n, CharT c)
 {
     if(n > max_size())
@@ -516,6 +528,76 @@ assign_char(CharT ch, std::false_type) ->
 {
     throw detail::make_exception<std::length_error>(
         "max_size() == 0", __FILE__, __LINE__);
+}
+
+namespace detail {
+
+template<class Integer>
+static_string<1+max_digits(sizeof(Integer))>
+to_static_string(Integer x, std::true_type)
+{
+    if(x == 0)
+        return {'0'};
+    static_string<1 + detail::max_digits(
+        sizeof(Integer))> s;
+    if(x < 0)
+    {
+        x = -x;
+        char buf[max_digits(sizeof(x))];
+        char* p = buf;
+        for(;x > 0; x /= 10)
+            *p++ = "0123456789"[x % 10];
+        s.resize(1 + p - buf);
+        s[0] = '-';
+        auto d = &s[1];
+        while(p > buf)
+            *d++ = *--p;
+    }
+    else
+    {
+        char buf[max_digits(sizeof(x))];
+        char* p = buf;
+        for(;x > 0; x /= 10)
+            *p++ = "0123456789"[x % 10];
+        s.resize(p - buf);
+        auto d = &s[0];
+        while(p > buf)
+            *d++ = *--p;
+    }
+    return s;
+}
+
+template<class Integer>
+static_string<max_digits(sizeof(Integer))>
+to_static_string(Integer x, std::false_type)
+{
+    if(x == 0)
+        return {'0'};
+    char buf[max_digits(sizeof(x))];
+    char* p = buf;
+    for(;x > 0; x /= 10)
+        *p++ = "0123456789"[x % 10];
+    static_string<detail::max_digits(
+        sizeof(Integer))> s;
+    s.resize(p - buf);
+    auto d = &s[0];
+    while(p > buf)
+        *d++ = *--p;
+    return s;
+}
+
+} // detail
+
+template<class Integer>
+static_string<detail::max_digits(sizeof(Integer))>
+to_static_string(Integer x)
+{
+    static_assert(
+        std::is_integral<Integer>::value,
+        "Integral requirements not met");
+    return detail::to_static_string(
+        x, std::integral_constant<bool,
+            std::is_signed<Integer>::value>{});
 }
 
 } // beast
