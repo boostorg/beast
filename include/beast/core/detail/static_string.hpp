@@ -58,6 +58,16 @@ lexicographical_compare(
         s1.data(), s1.size(), s2.data(), s2.size());
 }
 
+// Maximum number of characters in the decimal
+// representation of a binary number
+inline
+std::size_t constexpr
+max_digits(std::size_t bytes)
+{
+    return static_cast<std::size_t>(
+        bytes * 2.41) + 1;
+}
+
 } // detail
 } // beast
 

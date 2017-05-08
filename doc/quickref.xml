@@ -183,6 +183,7 @@
             <member><link linkend="beast.ref.prepare_buffer">prepare_buffer</link></member>
             <member><link linkend="beast.ref.prepare_buffers">prepare_buffers</link></member>
             <member><link linkend="beast.ref.system_category">system_category</link></member>
+            <member><link linkend="beast.ref.to_static_string">to_static_string</link></member>
           </simplelist>
           <bridgehead renderas="sect3">Macros</bridgehead>
           <simplelist type="vert" columns="1">

@@ -1433,7 +1433,29 @@ public:
         pass();
     }
 
-    void run() override
+    void
+    testToStaticString()
+    {
+        BEAST_EXPECT(to_static_string<long>(0) == "0");
+        BEAST_EXPECT(to_static_string<long>(1) == "1");
+        BEAST_EXPECT(to_static_string<long>(0xffff) == "65535");
+        BEAST_EXPECT(to_static_string<long>(0x10000) == "65536");
+        BEAST_EXPECT(to_static_string<long long>(0xffffffff) == "4294967295");
+
+        BEAST_EXPECT(to_static_string<long>(-1) == "-1");
+        BEAST_EXPECT(to_static_string<long>(-65535) == "-65535");
+        BEAST_EXPECT(to_static_string<long>(-65536) == "-65536");
+        BEAST_EXPECT(to_static_string<long long>(-4294967295ll) == "-4294967295");
+
+        BEAST_EXPECT(to_static_string<unsigned long>(0) == "0");
+        BEAST_EXPECT(to_static_string<unsigned long>(1) == "1");
+        BEAST_EXPECT(to_static_string<unsigned long>(0xffff) == "65535");
+        BEAST_EXPECT(to_static_string<unsigned long>(0x10000) == "65536");
+        BEAST_EXPECT(to_static_string<unsigned long>(0xffffffff) == "4294967295");
+    }
+
+    void
+    run() override
     {
         testConstruct();
         testAssign();
@@ -1445,6 +1467,7 @@ public:
         testSwap();
 
         testGeneral();
+        testToStaticString();
     }
 };
 

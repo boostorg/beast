@@ -31,6 +31,8 @@ namespace beast {
     imposes a natural small upper limit on the size of a value.
 
     @note The stored string is always null-terminated.
+
+    @see @ref to_static_string 
 */
 template<
     std::size_t N,
@@ -783,13 +785,10 @@ public:
     /** Changes the number of characters stored.
 
         If the resulting string is larger, the new
-        characters are initialized to zero.
+        characters are uninitialized.
     */
     void
-    resize(std::size_t n)
-    {
-        resize(n, 0);
-    }
+    resize(std::size_t n);
 
     /** Changes the number of characters stored.
 
@@ -1097,6 +1096,23 @@ operator<<(std::basic_ostream<CharT, Traits>& os,
     return os << static_cast<
         beast::basic_string_view<CharT, Traits>>(str);
 }
+
+//
+// Numeric conversions
+//
+
+/** Returns a static string representing an integer as a decimal.
+
+    @param x The signed or unsigned integer to convert.
+    This must be an integral type.
+
+    @return A @ref static_string with an implementation defined
+    maximum size large enough to hold the longest possible decimal
+    representation of any integer of the given type.
+*/
+template<class Integer>
+static_string<detail::max_digits(sizeof(Integer))>
+to_static_string(Integer x);
 
 } // beast
 
