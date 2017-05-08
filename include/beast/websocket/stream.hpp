@@ -12,8 +12,10 @@
 #include <beast/websocket/option.hpp>
 #include <beast/websocket/detail/hybi13.hpp>
 #include <beast/websocket/detail/stream_base.hpp>
+#include <beast/http/empty_body.hpp>
 #include <beast/http/message.hpp>
 #include <beast/http/string_body.hpp>
+#include <beast/http/detail/type_traits.hpp>
 #include <beast/core/async_result.hpp>
 #include <beast/core/buffered_read_stream.hpp>
 #include <beast/core/string_view.hpp>
@@ -28,12 +30,12 @@ namespace beast {
 namespace websocket {
 
 /// The type of object holding HTTP Upgrade requests
-using request_type = http::header<true, http::fields>;
+using request_type =
+    http::message<true, http::empty_body, http::fields>;
 
 /// The type of object holding HTTP Upgrade responses
 using response_type =
-    //http::response_header;
-    http::response<http::string_body, http::fields>;
+    http::message<false, http::string_body, http::fields>;
 
 /** Information about a WebSocket frame.
 
@@ -473,7 +475,12 @@ public:
         @throws system_error Thrown on failure.
     */
     template<class ConstBufferSequence>
+#if BEAST_DOXYGEN
     void
+#else
+    typename std::enable_if<! http::detail::is_header<
+        ConstBufferSequence>::value>::type
+#endif
     accept(ConstBufferSequence const& buffers);
 
     /** Read and respond to a WebSocket HTTP Upgrade request.
@@ -516,7 +523,12 @@ public:
     */
     template<class ConstBufferSequence,
         class ResponseDecorator>
+#if BEAST_DOXYGEN
     void
+#else
+    typename std::enable_if<! http::detail::is_header<
+        ConstBufferSequence>::value>::type
+#endif
     accept_ex(ConstBufferSequence const& buffers,
         ResponseDecorator const& decorator);
 
@@ -550,7 +562,12 @@ public:
         @param ec Set to indicate what error occurred, if any.
     */
     template<class ConstBufferSequence>
+#if BEAST_DOXYGEN
     void
+#else
+    typename std::enable_if<! http::detail::is_header<
+        ConstBufferSequence>::value>::type
+#endif
     accept(ConstBufferSequence const& buffers, error_code& ec);
 
     /** Read and respond to a WebSocket HTTP Upgrade request.
@@ -593,7 +610,12 @@ public:
     */
     template<class ConstBufferSequence,
         class ResponseDecorator>
+#if BEAST_DOXYGEN
     void
+#else
+    typename std::enable_if<! http::detail::is_header<
+        ConstBufferSequence>::value>::type
+#endif
     accept_ex(ConstBufferSequence const& buffers,
         ResponseDecorator const& decorator,
             error_code& ec);
@@ -1085,8 +1107,9 @@ public:
 #if BEAST_DOXYGEN
     void_or_deduced
 #else
-    async_return_type<
-        AcceptHandler, void(error_code)>
+    typename std::enable_if<
+        ! http::detail::is_header<ConstBufferSequence>::value,
+        async_return_type<AcceptHandler, void(error_code)>>::type
 #endif
     async_accept(ConstBufferSequence const& buffers,
         AcceptHandler&& handler);
@@ -1153,8 +1176,9 @@ public:
 #if BEAST_DOXYGEN
     void_or_deduced
 #else
-    async_return_type<
-        AcceptHandler, void(error_code)>
+    typename std::enable_if<
+        ! http::detail::is_header<ConstBufferSequence>::value,
+        async_return_type<AcceptHandler, void(error_code)>>::type
 #endif
     async_accept_ex(ConstBufferSequence const& buffers,
         ResponseDecorator const& decorator,
@@ -2975,9 +2999,9 @@ private:
             string_view const& target,
                 Decorator const& decorator);
 
-    template<class Decorator>
+    template<class Fields, class Decorator>
     response_type
-    build_response(request_type const& req,
+    build_response(http::header<true, Fields> const& req,
         Decorator const& decorator);
 
     void

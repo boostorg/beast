@@ -11,9 +11,11 @@ add_executable (http-tests
     test_parser.hpp
     ../../extras/beast/unit_test/main.cpp
     basic_parser.cpp
+    buffer_body.cpp
     concepts.cpp
     design.cpp
     dynamic_body.cpp
+    empty_body.cpp
     error.cpp
     fields.cpp
     header_parser.cpp
@@ -23,7 +25,6 @@ add_executable (http-tests
     rfc7230.cpp
     string_body.cpp
     write.cpp
-    chunk_encode.cpp
 )
 
 if (NOT WIN32)

@@ -9,6 +9,7 @@
 #define BEAST_WEBSOCKET_IMPL_HANDSHAKE_IPP
 
 #include <beast/websocket/detail/type_traits.hpp>
+#include <beast/http/empty_body.hpp>
 #include <beast/http/message.hpp>
 #include <beast/http/read.hpp>
 #include <beast/http/write.hpp>
@@ -38,7 +39,8 @@ class stream<NextLayer>::handshake_op
         stream<NextLayer>& ws;
         response_type* res_p;
         detail::sec_ws_key_type key;
-        request_type req;
+        http::message<true,
+            http::empty_body, http::fields> req;
         response_type res;
         int state = 0;
 

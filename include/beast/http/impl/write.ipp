@@ -9,10 +9,12 @@
 #define BEAST_HTTP_IMPL_WRITE_IPP
 
 #include <beast/http/concepts.hpp>
-#include <beast/http/chunk_encode.hpp>
+#include <beast/http/error.hpp>
 #include <beast/core/buffer_cat.hpp>
+#include <beast/core/buffer_prefix.hpp>
 #include <beast/core/bind_handler.hpp>
 #include <beast/core/ostream.hpp>
+#include <beast/core/handler_alloc.hpp>
 #include <beast/core/handler_ptr.hpp>
 #include <beast/core/multi_buffer.hpp>
 #include <beast/core/type_traits.hpp>
@@ -82,162 +84,791 @@ write_fields(std::ostream& os,
 
 //------------------------------------------------------------------------------
 
-namespace detail {
-
+template<bool isRequest, class Body, class Fields,
+    class Decorator, class Allocator>
 template<class Stream, class Handler>
-class write_streambuf_op
+class serializer<isRequest, Body, Fields,
+    Decorator, Allocator>::async_op
 {
-    struct data
-    {
-        bool cont;
-        Stream& s;
-        multi_buffer b;
-        int state = 0;
-
-        data(Handler& handler, Stream& s_,
-                multi_buffer&& sb_)
-            : s(s_)
-            , b(std::move(sb_))
-        {
-            using boost::asio::asio_handler_is_continuation;
-            cont = asio_handler_is_continuation(std::addressof(handler));
-        }
-    };
-
-    handler_ptr<data, Handler> d_;
+    serializer<isRequest, Body, Fields,
+        Decorator, Allocator>& w_;
+    Stream& s_;
+    Handler h_;
+    bool cont_;
 
 public:
-    write_streambuf_op(write_streambuf_op&&) = default;
-    write_streambuf_op(write_streambuf_op const&) = default;
+    async_op(async_op&&) = default;
+    async_op(async_op const&) = default;
 
-    template<class DeducedHandler, class... Args>
-    write_streambuf_op(DeducedHandler&& h, Stream& s,
-            Args&&... args)
-        : d_(std::forward<DeducedHandler>(h),
-            s, std::forward<Args>(args)...)
+    async_op(Handler&& h, Stream& s,
+        serializer<isRequest, Body, Fields,
+            Decorator, Allocator>& w)
+        : w_(w)
+        , s_(s)
+        , h_(std::move(h))
     {
-        (*this)(error_code{}, 0, false);
+        using boost::asio::asio_handler_is_continuation;
+        cont_ = asio_handler_is_continuation(
+            std::addressof(h_));
+    }
+
+    async_op(Handler const& h, Stream& s,
+        serializer<isRequest, Body, Fields,
+            Decorator, Allocator>& w)
+        : w_(w)
+        , s_(s)
+        , h_(h)
+    {
+        using boost::asio::asio_handler_is_continuation;
+        cont_ = asio_handler_is_continuation(
+            std::addressof(h_));
     }
 
     void
-    operator()(error_code ec,
-        std::size_t bytes_transferred, bool again = true);
+    operator()(error_code ec, std::size_t
+        bytes_transferred, bool again = true);
 
     friend
     void* asio_handler_allocate(
-        std::size_t size, write_streambuf_op* op)
+        std::size_t size, async_op* op)
     {
         using boost::asio::asio_handler_allocate;
         return asio_handler_allocate(
-            size, std::addressof(op->d_.handler()));
+            size, std::addressof(op->h_));
     }
 
     friend
     void asio_handler_deallocate(
-        void* p, std::size_t size, write_streambuf_op* op)
+        void* p, std::size_t size, async_op* op)
     {
         using boost::asio::asio_handler_deallocate;
         asio_handler_deallocate(
-            p, size, std::addressof(op->d_.handler()));
+            p, size, std::addressof(op->h_));
     }
 
     friend
-    bool asio_handler_is_continuation(write_streambuf_op* op)
+    bool asio_handler_is_continuation(async_op* op)
     {
-        return op->d_->cont;
+        return op->cont_;
     }
 
     template<class Function>
     friend
-    void asio_handler_invoke(Function&& f, write_streambuf_op* op)
+    void asio_handler_invoke(
+        Function&& f, async_op* op)
     {
         using boost::asio::asio_handler_invoke;
         asio_handler_invoke(
-            f, std::addressof(op->d_.handler()));
+            f, std::addressof(op->h_));
     }
 };
 
+template<bool isRequest, class Body, class Fields,
+    class Decorator, class Allocator>
 template<class Stream, class Handler>
 void
-write_streambuf_op<Stream, Handler>::
-operator()(error_code ec, std::size_t, bool again)
+serializer<isRequest, Body, Fields,
+    Decorator, Allocator>::
+async_op<Stream, Handler>::
+operator()(error_code ec,
+    std::size_t bytes_transferred, bool again)
 {
-    auto& d = *d_;
-    d.cont = d.cont || again;
-    while(! ec && d.state != 99)
+    cont_ = again || cont_;
+    using boost::asio::buffer_size;
+    if(ec)
+        goto upcall;
+    switch(w_.s_)
     {
-        switch(d.state)
+    case do_init:
+    {
+        if(w_.split_)
+            goto go_header_only;
+        w_.wr_.emplace(w_.m_);
+        w_.wr_->init(ec);
+        if(ec)
+            return s_.get_io_service().post(
+                bind_handler(std::move(*this), ec, 0));
+        auto result = w_.wr_->get(ec);
+        if(ec)
         {
-        case 0:
-        {
-            d.state = 99;
-            boost::asio::async_write(d.s,
-                d.b.data(), std::move(*this));
-            return;
+            // Can't use need_more when ! is_deferred
+            BOOST_ASSERT(ec != error::need_more);
+            return s_.get_io_service().post(
+                bind_handler(std::move(*this), ec, 0));
         }
-        }
+        if(! result)
+            goto go_header_only;
+        w_.more_ = result->second;
+        w_.v_ = cb0_t{
+            boost::in_place_init,
+            w_.b_.data(),
+            result->first};
+        // [[fallthrough]]
     }
-    d_.invoke(ec);
+
+    case do_header:
+        w_.s_ = do_header + 1;
+        return s_.async_write_some(
+            buffer_prefix(w_.limit_,
+                boost::get<cb0_t>(w_.v_)),
+                    std::move(*this));
+
+    case do_header + 1:
+        boost::get<cb0_t>(w_.v_).consume(
+            bytes_transferred);
+        if(buffer_size(
+            boost::get<cb0_t>(w_.v_)) > 0)
+        {
+            w_.s_ = do_header;
+            break;
+        }
+        w_.header_done_ = true;
+        w_.v_ = boost::blank{};
+        w_.b_.consume(w_.b_.size()); // VFALCO delete b_?
+        if(! w_.more_)
+            goto go_complete;
+        w_.s_ = do_body;
+        break;
+
+         go_header_only:
+    case do_header_only:
+        w_.s_ = do_header_only + 1;
+        return s_.async_write_some(
+            buffer_prefix(w_.limit_,
+                w_.b_.data()), std::move(*this));
+
+    case do_header_only + 1:
+        w_.b_.consume(bytes_transferred);
+        if(buffer_size(w_.b_.data()) > 0)
+        {
+            w_.s_ = do_header_only;
+            break;
+        }
+        // VFALCO delete b_?
+        w_.header_done_ = true;
+        if(! is_deferred::value)
+            goto go_complete;
+        BOOST_ASSERT(! w_.wr_);
+        w_.wr_.emplace(w_.m_);
+        w_.wr_->init(ec);
+        if(ec)
+            goto upcall;
+        w_.s_ = do_body;
+        break;
+
+    case do_body:
+    {
+        auto result = w_.wr_->get(ec);
+        if(ec)
+            return s_.get_io_service().post(
+                bind_handler(std::move(*this), ec, 0));
+        if(! result)
+
+        {
+            w_.s_ = do_complete;
+            return s_.get_io_service().post(
+                bind_handler(std::move(*this),
+                    error_code{}, 0));
+        }
+        w_.more_ = result->second;
+        w_.v_ = cb1_t{result->first};
+        // [[fallthrough]]
+    }
+
+    case do_body + 1:
+        w_.s_ = do_body + 2;
+        return s_.async_write_some(
+            buffer_prefix(w_.limit_,
+                boost::get<cb1_t>(w_.v_)),
+                    std::move(*this));
+
+    case do_body + 2:
+        boost::get<cb1_t>(w_.v_).consume(
+            bytes_transferred);
+        if(buffer_size(
+            boost::get<cb1_t>(w_.v_)) > 0)
+        {
+            w_.s_ = do_body + 1;
+            break;
+        }
+        w_.v_ = boost::blank{};
+        if(! w_.more_)
+            goto go_complete;
+        w_.s_ = do_body;
+        break;
+
+    //----------------------------------------------------------------------
+
+    case do_init_c:
+    {
+        if(w_.split_)
+            goto go_header_only_c;
+        w_.wr_.emplace(w_.m_);
+        w_.wr_->init(ec);
+        if(ec)
+            return s_.get_io_service().post(
+                bind_handler(std::move(*this), ec, 0));
+        auto result = w_.wr_->get(ec);
+        if(ec)
+        {
+            // Can't use need_more when ! is_deferred
+            BOOST_ASSERT(ec != error::need_more);
+            return s_.get_io_service().post(
+                bind_handler(std::move(*this), ec, 0));
+        }
+        if(! result)
+            goto go_header_only_c;
+        w_.more_ = result->second;
+        w_.v_ = ch0_t{
+            boost::in_place_init,
+            w_.b_.data(),
+            detail::chunk_header{
+                buffer_size(result->first)},
+            [&]()
+            {
+                auto sv = w_.d_(result->first);
+                return boost::asio::const_buffers_1{
+                    sv.data(), sv.size()};
+                
+            }(),
+            result->first,
+            detail::chunk_crlf()};
+        // [[fallthrough]]
+    }
+
+    case do_header_c:
+        w_.s_ = do_header_c + 1;
+        return s_.async_write_some(
+            buffer_prefix(w_.limit_,
+                boost::get<ch0_t>(w_.v_)),
+                    std::move(*this));
+
+    case do_header_c + 1:
+        boost::get<ch0_t>(w_.v_).consume(
+            bytes_transferred);
+        if(buffer_size(
+            boost::get<ch0_t>(w_.v_)) > 0)
+        {
+            w_.s_ = do_header_c;
+            break;
+        }
+        w_.header_done_ = true;
+        w_.v_ = boost::blank{};
+        w_.b_.consume(w_.b_.size()); // VFALCO delete b_?
+        if(! w_.more_)
+            w_.s_ = do_final_c;
+        else
+            w_.s_ = do_body_c;
+        break;
+
+         go_header_only_c:
+    case do_header_only_c:
+        w_.s_ = do_header_only_c + 1;
+        return s_.async_write_some(
+            buffer_prefix(w_.limit_,
+                w_.b_.data()), std::move(*this));
+
+    case do_header_only_c + 1:
+        w_.b_.consume(bytes_transferred);
+        if(buffer_size(w_.b_.data()) > 0)
+        {
+            w_.s_ = do_header_only_c;
+            break;
+        }
+        // VFALCO delete b_?
+        w_.header_done_ = true;
+        if(! is_deferred::value)
+        {
+            w_.s_ = do_final_c;
+            break;
+        }
+        BOOST_ASSERT(! w_.wr_);
+        w_.wr_.emplace(w_.m_);
+        w_.wr_->init(ec);
+        if(ec)
+            goto upcall;
+        w_.s_ = do_body_c;
+        break;
+
+    case do_body_c:
+    {
+        auto result = w_.wr_->get(ec);
+        if(ec)
+            return s_.get_io_service().post(
+                bind_handler(std::move(*this),
+                    ec, 0));
+        if(! result)
+            goto go_final_c;
+        w_.more_ = result->second;
+        w_.v_ = ch1_t{
+            boost::in_place_init,
+            detail::chunk_header{
+                buffer_size(result->first)},
+            [&]()
+            {
+                auto sv = w_.d_(result->first);
+                return boost::asio::const_buffers_1{
+                    sv.data(), sv.size()};
+                
+            }(),
+            result->first,
+            detail::chunk_crlf()};
+        // [[fallthrough]]
+    }
+
+    case do_body_c + 1:
+        w_.s_ = do_body_c + 2;
+        return s_.async_write_some(
+            buffer_prefix(w_.limit_,
+                boost::get<ch1_t>(w_.v_)),
+                    std::move(*this));
+
+    case do_body_c + 2:
+        boost::get<ch1_t>(w_.v_).consume(
+            bytes_transferred);
+        if(buffer_size(
+            boost::get<ch1_t>(w_.v_)) > 0)
+        {
+            w_.s_ = do_body_c + 1;
+            break;
+        }
+        w_.v_ = boost::blank{};
+        if(w_.more_)
+            w_.s_ = do_body_c;
+        else
+            w_.s_ = do_final_c;
+        break;
+
+         go_final_c:
+    case do_final_c:
+        w_.v_ = ch2_t{
+            boost::in_place_init,
+            detail::chunk_final(),
+            [&]()
+            {
+                auto sv = w_.d_(
+                    boost::asio::null_buffers{});
+                return boost::asio::const_buffers_1{
+                    sv.data(), sv.size()};
+                
+            }(),
+            detail::chunk_crlf()};
+        // [[fallthrough]]
+
+    case do_final_c + 1:
+        w_.s_ = do_final_c + 2;
+        return s_.async_write_some(
+            buffer_prefix(w_.limit_,
+                boost::get<ch2_t>(w_.v_)),
+                    std::move(*this));
+
+    case do_final_c + 2:
+        boost::get<ch2_t>(w_.v_).consume(
+            bytes_transferred);
+        if(buffer_size(boost::get<ch2_t>(w_.v_)) > 0)
+        {
+            w_.s_ = do_final_c + 1;
+            break;
+        }
+        w_.v_ = boost::blank{};
+        goto go_complete;
+
+        //----------------------------------------------------------------------
+
+    default:
+        BOOST_ASSERT(false);
+
+         go_complete:
+ w_.s_ = do_complete;
+    case do_complete:
+        if(w_.close_)
+            // VFALCO TODO Decide on an error code
+            ec = boost::asio::error::eof;
+        break;
+    }
+
+upcall:
+    h_(ec);
 }
 
-} // detail
+//------------------------------------------------------------------------------
 
-template<class SyncWriteStream,
-    bool isRequest, class Fields>
-void
-write(SyncWriteStream& stream,
-    header<isRequest, Fields> const& msg)
+template<bool isRequest, class Body, class Fields,
+    class Decorator, class Allocator>
+serializer<isRequest, Body, Fields,
+    Decorator, Allocator>::
+serializer(message<isRequest, Body, Fields> const& m,
+        Decorator const& d,
+            Allocator const& alloc)
+    : m_(m)
+    , d_(d)
+    , b_(1024, alloc)
+    , chunked_(token_list{
+        m.fields["Transfer-Encoding"]}.exists("chunked"))
+    , close_(token_list{
+        m.fields["Connection"]}.exists("close") ||
+            (m.version < 11 && ! m.fields.exists(
+                "Content-Length")))
 {
-    static_assert(is_sync_write_stream<SyncWriteStream>::value,
+    s_ = chunked_ ? do_init_c : do_init;
+    auto os = ostream(b_);
+    detail::write_start_line(os, m_);
+    detail::write_fields(os, m_.fields);
+    os << "\r\n";
+}
+
+template<bool isRequest, class Body, class Fields,
+    class Decorator, class Allocator>
+template<class SyncWriteStream>
+void
+serializer<isRequest, Body, Fields,
+    Decorator, Allocator>::
+write_some(SyncWriteStream& stream)
+{
+    static_assert(
+        is_sync_write_stream<SyncWriteStream>::value,
         "SyncWriteStream requirements not met");
+    static_assert(is_Body<Body>::value,
+        "Body requirements not met");
+    static_assert(has_writer<Body>::value,
+        "Body::writer requirements not met");
+    static_assert(is_Writer<Body>::value,
+            "Writer requirements not met");
     error_code ec;
-    write(stream, msg, ec);
+    write_some(stream, ec);
     if(ec)
         BOOST_THROW_EXCEPTION(system_error{ec});
 }
 
-template<class SyncWriteStream,
-    bool isRequest, class Fields>
+template<bool isRequest, class Body, class Fields,
+    class Decorator, class Allocator>
+template<class SyncWriteStream>
 void
-write(SyncWriteStream& stream,
-    header<isRequest, Fields> const& msg,
-        error_code& ec)
+serializer<isRequest, Body, Fields,
+    Decorator, Allocator>::
+write_some(SyncWriteStream& stream, error_code &ec)
 {
-    static_assert(is_sync_write_stream<SyncWriteStream>::value,
+    static_assert(
+        is_sync_write_stream<SyncWriteStream>::value,
         "SyncWriteStream requirements not met");
-    multi_buffer b;
+    static_assert(is_Body<Body>::value,
+        "Body requirements not met");
+    static_assert(has_writer<Body>::value,
+        "Body::writer requirements not met");
+    static_assert(is_Writer<Body>::value,
+            "Writer requirements not met");
+
+    using boost::asio::buffer_size;
+    switch(s_)
     {
-        auto os = ostream(b);
-        detail::write_start_line(os, msg);
-        detail::write_fields(os, msg.fields);
-        os << "\r\n";
+    case do_init:
+    {
+        if(split_)
+            goto go_header_only;
+        wr_.emplace(m_);
+        wr_->init(ec);
+        if(ec)
+            return;
+        auto result = wr_->get(ec);
+        if(ec)
+        {
+            // Can't use need_more when ! is_deferred
+            BOOST_ASSERT(ec != error::need_more);
+            return;
+        }
+        if(! result)
+            goto go_header_only;
+        more_ = result->second;
+        v_ = cb0_t{
+            boost::in_place_init,
+            b_.data(),
+            result->first};
+        s_ = do_header;
+        // [[fallthrough]]
     }
-    boost::asio::write(stream, b.data(), ec);
+
+    case do_header:
+    {
+        auto bytes_transferred =
+            stream.write_some(
+                buffer_prefix(limit_,
+                    boost::get<cb0_t>(v_)), ec);
+        if(ec)
+            return;
+        boost::get<cb0_t>(v_).consume(
+            bytes_transferred);
+        if(buffer_size(boost::get<cb0_t>(v_)) > 0)
+            break;
+        header_done_ = true;
+        v_ = boost::blank{};
+        b_.consume(b_.size()); // VFALCO delete b_?
+        if(! more_)
+            goto go_complete;
+        s_ = do_body;
+        break;
+    }
+
+         go_header_only:
+    s_ = do_header_only;
+    case do_header_only:
+    {
+        auto bytes_transferred =
+            stream.write_some(buffer_prefix(
+                limit_, b_.data()), ec);
+        if(ec)
+            return;
+        b_.consume(bytes_transferred);
+        if(buffer_size(b_.data()) > 0)
+            break;
+        // VFALCO delete b_?
+        header_done_ = true;
+        if(! is_deferred::value)
+            goto go_complete;
+        BOOST_ASSERT(! wr_);
+        wr_.emplace(m_);
+        wr_->init(ec);
+        if(ec)
+            return;
+        s_ = do_body;
+        break;
+    }
+
+    case do_body:
+    {
+        auto result = wr_->get(ec);
+        if(ec)
+            return;
+        if(! result)
+            goto go_complete;
+        more_ = result->second;
+        v_ = cb1_t{result->first};
+        s_ = do_body + 1;
+        // [[fallthrough]]
+    }
+
+    case do_body + 1:
+    {
+        auto bytes_transferred =
+            stream.write_some(buffer_prefix(
+                limit_, boost::get<cb1_t>(v_)), ec);
+        if(ec)
+            return;
+        boost::get<cb1_t>(v_).consume(
+            bytes_transferred);
+        if(buffer_size(boost::get<cb1_t>(v_)) > 0)
+            break;
+        v_ = boost::blank{};
+        if(! more_)
+            goto go_complete;
+        s_ = do_body;
+        break;
+    }
+
+    //----------------------------------------------------------------------
+
+    case do_init_c:
+    {
+        if(split_)
+            goto go_header_only_c;
+        wr_.emplace(m_);
+        wr_->init(ec);
+        if(ec)
+            return;
+        auto result = wr_->get(ec);
+        if(ec)
+        {
+            // Can't use need_more when ! is_deferred
+            BOOST_ASSERT(ec != error::need_more);
+            return;
+        }
+        if(! result)
+            goto go_header_only_c;
+        more_ = result->second;
+        v_ = ch0_t{
+            boost::in_place_init,
+            b_.data(),
+            detail::chunk_header{
+                buffer_size(result->first)},
+            [&]()
+            {
+                auto sv = d_(result->first);
+                return boost::asio::const_buffers_1{
+                    sv.data(), sv.size()};
+                
+            }(),
+            result->first,
+            detail::chunk_crlf()};
+        s_ = do_header_c;
+        // [[fallthrough]]
+    }
+
+    case do_header_c:
+    {
+        auto bytes_transferred =
+            stream.write_some(buffer_prefix(
+                limit_, boost::get<ch0_t>(v_)), ec);
+        if(ec)
+            return;
+        boost::get<ch0_t>(v_).consume(
+            bytes_transferred);
+        if(buffer_size(boost::get<ch0_t>(v_)) > 0)
+            break;
+        header_done_ = true;
+        v_ = boost::blank{};
+        b_.consume(b_.size()); // VFALCO delete b_?
+        if(more_)
+            s_ = do_body_c;
+        else
+            s_ = do_final_c;
+        break;
+    }
+
+         go_header_only_c:
+    s_ = do_header_only_c;
+    case do_header_only_c:
+    {
+        auto bytes_transferred =
+            stream.write_some(buffer_prefix(
+                limit_, b_.data()), ec);
+        if(ec)
+            return;
+        b_.consume(bytes_transferred);
+        if(buffer_size(b_.data()) > 0)
+            break;
+        // VFALCO delete b_?
+        header_done_ = true;
+        if(! is_deferred::value)
+        {
+            s_ = do_final_c;
+            break;
+        }
+        BOOST_ASSERT(! wr_);
+        wr_.emplace(m_);
+        wr_->init(ec);
+        if(ec)
+            return;
+        s_ = do_body_c;
+        break;
+    }
+
+    case do_body_c:
+    {
+        auto result = wr_->get(ec);
+        if(ec)
+            return;
+        if(! result)
+            goto go_final_c;
+        more_ = result->second;
+        v_ = ch1_t{
+            boost::in_place_init,
+            detail::chunk_header{
+                buffer_size(result->first)},
+            [&]()
+            {
+                auto sv = d_(result->first);
+                return boost::asio::const_buffers_1{
+                    sv.data(), sv.size()};
+                
+            }(),
+            result->first,
+            detail::chunk_crlf()};
+        s_ = do_body_c + 1;
+        // [[fallthrough]]
+    }
+
+    case do_body_c + 1:
+    {
+        auto bytes_transferred =
+            stream.write_some(buffer_prefix(
+                limit_, boost::get<ch1_t>(v_)), ec);
+        if(ec)
+            return;
+        boost::get<ch1_t>(v_).consume(
+            bytes_transferred);
+        if(buffer_size(boost::get<ch1_t>(v_)) > 0)
+            break;
+        v_ = boost::blank{};
+        if(more_)
+            s_ = do_body_c;
+        else
+            s_ = do_final_c;
+        break;
+    }
+
+         go_final_c:
+    case do_final_c:
+        v_ = ch2_t{
+            boost::in_place_init,
+            detail::chunk_final(),
+            [&]()
+            {
+                auto sv = d_(
+                    boost::asio::null_buffers{});
+                return boost::asio::const_buffers_1{
+                    sv.data(), sv.size()};
+                
+            }(),
+            detail::chunk_crlf()};
+        s_ = do_final_c + 1;
+        // [[fallthrough]]
+
+    case do_final_c + 1:
+    {
+        auto bytes_transferred =
+            stream.write_some(buffer_prefix(
+                limit_, boost::get<ch2_t>(v_)), ec);
+        if(ec)
+            return;
+        boost::get<ch2_t>(v_).consume(
+            bytes_transferred);
+        if(buffer_size(boost::get<ch2_t>(v_)) > 0)
+            break;
+        v_ = boost::blank{};
+        goto go_complete;
+    }
+
+    default:
+    case do_complete:
+        BOOST_ASSERT(false);
+
+    //----------------------------------------------------------------------
+
+    go_complete:
+        s_ = do_complete;
+        if(close_)
+        {
+            // VFALCO TODO Decide on an error code
+            ec = boost::asio::error::eof;
+            return;
+        }
+        break;
+    }
 }
 
-template<class AsyncWriteStream,
-    bool isRequest, class Fields,
-        class WriteHandler>
-async_return_type<
-    WriteHandler, void(error_code)>
-async_write(AsyncWriteStream& stream,
-    header<isRequest, Fields> const& msg,
-        WriteHandler&& handler)
+template<bool isRequest, class Body, class Fields,
+    class Decorator, class Allocator>
+template<class AsyncWriteStream, class WriteHandler>
+async_return_type<WriteHandler, void(error_code)>
+serializer<isRequest, Body, Fields,
+    Decorator, Allocator>::
+async_write_some(AsyncWriteStream& stream,
+    WriteHandler&& handler)
 {
     static_assert(is_async_write_stream<AsyncWriteStream>::value,
         "AsyncWriteStream requirements not met");
+    static_assert(is_Body<Body>::value,
+        "Body requirements not met");
+    static_assert(has_writer<Body>::value,
+        "Body::writer requirements not met");
+    static_assert(is_Writer<Body>::value,
+            "Writer requirements not met");
     async_completion<WriteHandler,
         void(error_code)> init{handler};
-    multi_buffer b;
-    {
-        auto os = ostream(b);
-        detail::write_start_line(os, msg);
-        detail::write_fields(os, msg.fields);
-        os << "\r\n";
-    }
-    detail::write_streambuf_op<AsyncWriteStream,
-        handler_type<WriteHandler, void(error_code)>>{
-            init.completion_handler, stream, std::move(b)};
+    async_op<AsyncWriteStream, handler_type<
+        WriteHandler, void(error_code)>>{
+            init.completion_handler, stream, *this}(
+                error_code{}, 0, false);
+
     return init.result.get();
 }
 
@@ -245,117 +876,23 @@ async_write(AsyncWriteStream& stream,
 
 namespace detail {
 
-template<bool isRequest, class Body, class Fields>
-struct write_preparation
-{
-    message<isRequest, Body, Fields> const& msg;
-    typename Body::writer w;
-    multi_buffer b;
-    bool chunked;
-    bool close;
-
-    explicit
-    write_preparation(
-            message<isRequest, Body, Fields> const& msg_)
-        : msg(msg_)
-        , w(msg)
-        , chunked(token_list{
-            msg.fields["Transfer-Encoding"]}.exists("chunked"))
-        , close(token_list{
-            msg.fields["Connection"]}.exists("close") ||
-                (msg.version < 11 && ! msg.fields.exists(
-                    "Content-Length")))
-    {
-    }
-
-    void
-    init(error_code& ec)
-    {
-        w.init(ec);
-        if(ec)
-            return;
-
-        auto os = ostream(b);
-        write_start_line(os, msg);
-        write_fields(os, msg.fields);
-        os << "\r\n";
-    }
-};
-
 template<class Stream, class Handler,
     bool isRequest, class Body, class Fields>
 class write_op
 {
     struct data
     {
-        bool cont;
-        Stream& s;
-        // VFALCO How do we use handler_alloc in write_preparation?
-        write_preparation<
-            isRequest, Body, Fields> wp;
         int state = 0;
+        Stream& s;
+        serializer<isRequest, Body, Fields,
+            empty_decorator, handler_alloc<char, Handler>> ws;
 
-        data(Handler& handler, Stream& s_,
-                message<isRequest, Body, Fields> const& m_)
+        data(Handler& h, Stream& s_, message<
+                isRequest, Body, Fields> const& m_)
             : s(s_)
-            , wp(m_)
+            , ws(m_, empty_decorator{},
+                handler_alloc<char, Handler>{h})
         {
-            using boost::asio::asio_handler_is_continuation;
-            cont = asio_handler_is_continuation(std::addressof(handler));
-        }
-    };
-
-    class writef0_lambda
-    {
-        write_op& self_;
-
-    public:
-        explicit
-        writef0_lambda(write_op& self)
-            : self_(self)
-        {
-        }
-
-        template<class ConstBufferSequence>
-        void operator()(ConstBufferSequence const& buffers) const
-        {
-            auto& d = *self_.d_;
-            // write header and body
-            if(d.wp.chunked)
-                boost::asio::async_write(d.s,
-                    buffer_cat(d.wp.b.data(),
-                        chunk_encode(false, buffers)),
-                            std::move(self_));
-            else
-                boost::asio::async_write(d.s,
-                    buffer_cat(d.wp.b.data(),
-                        buffers), std::move(self_));
-        }
-    };
-
-    class writef_lambda
-    {
-        write_op& self_;
-
-    public:
-        explicit
-        writef_lambda(write_op& self)
-            : self_(self)
-        {
-        }
-
-        template<class ConstBufferSequence>
-        void operator()(ConstBufferSequence const& buffers) const
-        {
-            auto& d = *self_.d_;
-            // write body
-            if(d.wp.chunked)
-                boost::asio::async_write(d.s,
-                    chunk_encode(false, buffers),
-                        std::move(self_));
-            else
-                boost::asio::async_write(d.s,
-                    buffers, std::move(self_));
         }
     };
 
@@ -370,12 +907,10 @@ public:
         : d_(std::forward<DeducedHandler>(h),
             s, std::forward<Args>(args)...)
     {
-        (*this)(error_code{}, 0, false);
     }
 
     void
-    operator()(error_code ec,
-        std::size_t bytes_transferred, bool again = true);
+    operator()(error_code ec);
 
     friend
     void* asio_handler_allocate(
@@ -398,7 +933,10 @@ public:
     friend
     bool asio_handler_is_continuation(write_op* op)
     {
-        return op->d_->cont;
+        using boost::asio::asio_handler_is_continuation;
+        return op->d_->state == 2 ||
+            asio_handler_is_continuation(
+                std::addressof(op->d_.handler()));
     }
 
     template<class Function>
@@ -415,155 +953,26 @@ template<class Stream, class Handler,
     bool isRequest, class Body, class Fields>
 void
 write_op<Stream, Handler, isRequest, Body, Fields>::
-operator()(error_code ec, std::size_t, bool again)
+operator()(error_code ec)
 {
     auto& d = *d_;
-    d.cont = d.cont || again;
-    while(! ec && d.state != 99)
+    if(ec)
+        goto upcall;    
+    switch(d.state)
     {
-        switch(d.state)
-        {
-        case 0:
-        {
-            d.wp.init(ec);
-            if(ec)
-            {
-                // call handler
-                d.state = 99;
-                d.s.get_io_service().post(bind_handler(
-                    std::move(*this), ec, 0, false));
-                return;
-            }
-            d.state = 1;
+    case 0:
+        d.state = 1;
+        return d.ws.async_write_some(d.s, std::move(*this));
+    case 1:
+        d.state = 2;
+    case 2:
+        if(d.ws.is_done())
             break;
-        }
-
-        case 1:
-        {
-            auto const result =
-                d.wp.w.write(ec,
-                    writef0_lambda{*this});
-            if(ec)
-            {
-                // call handler
-                d.state = 99;
-                d.s.get_io_service().post(bind_handler(
-                    std::move(*this), ec, false));
-                return;
-            }
-            if(result)
-                d.state = d.wp.chunked ? 4 : 5;
-            else
-                d.state = 2;
-            return;
-        }
-
-        // sent header and body
-        case 2:
-            d.wp.b.consume(d.wp.b.size());
-            d.state = 3;
-            break;
-
-        case 3:
-        {
-            auto const result =
-                d.wp.w.write(ec,
-                    writef_lambda{*this});
-            if(ec)
-            {
-                // call handler
-                d.state = 99;
-                break;
-            }
-            if(result)
-                d.state = d.wp.chunked ? 4 : 5;
-            else
-                d.state = 2;
-            return;
-        }
-
-        case 4:
-            // VFALCO Unfortunately the current interface to the
-            //        Writer concept prevents us from coalescing the
-            //        final body chunk with the final chunk delimiter.
-            //
-            // write final chunk
-            d.state = 5;
-            boost::asio::async_write(d.s,
-                chunk_encode_final(), std::move(*this));
-            return;
-
-        case 5:
-            if(d.wp.close)
-            {
-                // VFALCO TODO Decide on an error code
-                ec = boost::asio::error::eof;
-            }
-            d.state = 99;
-            break;
-        }
+        return d.ws.async_write_some(d.s, std::move(*this));
     }
+upcall:
     d_.invoke(ec);
 }
-
-template<class SyncWriteStream, class DynamicBuffer>
-class writef0_lambda
-{
-    DynamicBuffer const& sb_;
-    SyncWriteStream& stream_;
-    bool chunked_;
-    error_code& ec_;
-
-public:
-    writef0_lambda(SyncWriteStream& stream,
-            DynamicBuffer const& b, bool chunked, error_code& ec)
-        : sb_(b)
-        , stream_(stream)
-        , chunked_(chunked)
-        , ec_(ec)
-    {
-    }
-
-    template<class ConstBufferSequence>
-    void operator()(ConstBufferSequence const& buffers) const
-    {
-        // write header and body
-        if(chunked_)
-            boost::asio::write(stream_, buffer_cat(
-                sb_.data(), chunk_encode(false, buffers)), ec_);
-        else
-            boost::asio::write(stream_, buffer_cat(
-                sb_.data(), buffers), ec_);
-    }
-};
-
-template<class SyncWriteStream>
-class writef_lambda
-{
-    SyncWriteStream& stream_;
-    bool chunked_;
-    error_code& ec_;
-
-public:
-    writef_lambda(SyncWriteStream& stream,
-            bool chunked, error_code& ec)
-        : stream_(stream)
-        , chunked_(chunked)
-        , ec_(ec)
-    {
-    }
-
-    template<class ConstBufferSequence>
-    void operator()(ConstBufferSequence const& buffers) const
-    {
-        // write body
-        if(chunked_)
-            boost::asio::write(stream_,
-                chunk_encode(false, buffers), ec_);
-        else
-            boost::asio::write(stream_, buffers, ec_);
-    }
-};
 
 } // detail
 
@@ -579,8 +988,7 @@ write(SyncWriteStream& stream,
         "Body requirements not met");
     static_assert(has_writer<Body>::value,
         "Body has no writer");
-    static_assert(is_Writer<typename Body::writer,
-        message<isRequest, Body, Fields>>::value,
+    static_assert(is_Writer<Body>::value,
             "Writer requirements not met");
     error_code ec;
     write(stream, msg, ec);
@@ -601,48 +1009,16 @@ write(SyncWriteStream& stream,
         "Body requirements not met");
     static_assert(has_writer<Body>::value,
         "Body has no writer");
-    static_assert(is_Writer<typename Body::writer,
-        message<isRequest, Body, Fields>>::value,
+    static_assert(is_Writer<Body>::value,
             "Writer requirements not met");
-    detail::write_preparation<isRequest, Body, Fields> wp(msg);
-    wp.init(ec);
-    if(ec)
-        return;
-    auto result = wp.w.write(
-        ec, detail::writef0_lambda<
-            SyncWriteStream, decltype(wp.b)>{
-                stream, wp.b, wp.chunked, ec});
-    if(ec)
-        return;
-    wp.b.consume(wp.b.size());
-    if(! result)
+    auto ws = make_write_stream(msg);
+    for(;;)
     {
-        detail::writef_lambda<SyncWriteStream> wf{
-            stream, wp.chunked, ec};
-        for(;;)
-        {
-            result = wp.w.write(ec, wf);
-            if(ec)
-                return;
-            if(result)
-                break;
-        }
-    }
-    if(wp.chunked)
-    {
-        // VFALCO Unfortunately the current interface to the
-        //        Writer concept prevents us from using coalescing the
-        //        final body chunk with the final chunk delimiter.
-        //
-        // write final chunk
-        boost::asio::write(stream, chunk_encode_final(), ec);
+        ws.write_some(stream, ec);
         if(ec)
             return;
-    }
-    if(wp.close)
-    {
-        // VFALCO TODO Decide on an error code
-        ec = boost::asio::error::eof;
+        if(ws.is_done())
+            break;
     }
 }
 
@@ -655,20 +1031,22 @@ async_write(AsyncWriteStream& stream,
     message<isRequest, Body, Fields> const& msg,
         WriteHandler&& handler)
 {
-    static_assert(is_async_write_stream<AsyncWriteStream>::value,
+    static_assert(
+        is_async_write_stream<AsyncWriteStream>::value,
         "AsyncWriteStream requirements not met");
     static_assert(is_Body<Body>::value,
         "Body requirements not met");
     static_assert(has_writer<Body>::value,
         "Body has no writer");
-    static_assert(is_Writer<typename Body::writer,
-        message<isRequest, Body, Fields>>::value,
+    static_assert(is_Writer<Body>::value,
             "Writer requirements not met");
     async_completion<WriteHandler,
         void(error_code)> init{handler};
     detail::write_op<AsyncWriteStream, handler_type<
-        WriteHandler, void(error_code)>, isRequest,
-            Body, Fields>{init.completion_handler, stream, msg};
+        WriteHandler, void(error_code)>,
+            isRequest, Body, Fields>{
+                init.completion_handler, stream, msg}(
+                    error_code{});
     return init.result.get();
 }
 
@@ -679,11 +1057,9 @@ std::ostream&
 operator<<(std::ostream& os,
     header<isRequest, Fields> const& msg)
 {
-    beast::detail::sync_ostream oss{os};
-    error_code ec;
-    write(oss, msg, ec);
-    if(ec)
-        BOOST_THROW_EXCEPTION(system_error{ec});
+    detail::write_start_line(os, msg);
+    detail::write_fields(os, msg.fields);
+    os << "\r\n";
     return os;
 }
 
@@ -696,8 +1072,7 @@ operator<<(std::ostream& os,
         "Body requirements not met");
     static_assert(has_writer<Body>::value,
         "Body has no writer");
-    static_assert(is_Writer<typename Body::writer,
-        message<isRequest, Body, Fields>>::value,
+    static_assert(is_Writer<Body>::value,
             "Writer requirements not met");
     beast::detail::sync_ostream oss{os};
     error_code ec;

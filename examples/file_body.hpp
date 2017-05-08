@@ -13,6 +13,7 @@
 #include <boost/asio/buffer.hpp>
 #include <boost/assert.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/optional.hpp>
 #include <cstdio>
 #include <cstdint>
 
@@ -33,12 +34,18 @@ struct file_body
         std::size_t buf_len_;
 
     public:
+        using is_deferred = std::true_type;
+
+        using const_buffers_type =
+            boost::asio::const_buffers_1;
+
+        writer(writer&&) = default;
         writer(writer const&) = delete;
         writer& operator=(writer const&) = delete;
 
         template<bool isRequest, class Fields>
         writer(message<isRequest,
-                file_body, Fields> const& m) noexcept
+                file_body, Fields> const& m)
             : path_(m.body)
         {
         }
@@ -50,7 +57,7 @@ struct file_body
         }
 
         void
-        init(error_code& ec) noexcept
+        init(error_code& ec)
         {
             file_ = fopen(path_.c_str(), "rb");
             if(! file_)
@@ -61,14 +68,13 @@ struct file_body
         }
 
         std::uint64_t
-        content_length() const noexcept
+        content_length() const
         {
             return size_;
         }
 
-        template<class WriteFunction>
-        bool
-        write(error_code& ec, WriteFunction&& wf) noexcept
+        boost::optional<std::pair<const_buffers_type, bool>>
+        get(error_code& ec)
         {
             if(size_ - offset_ < sizeof(buf_))
                 buf_len_ = static_cast<std::size_t>(
@@ -79,14 +85,13 @@ struct file_body
                 buf_, 1, sizeof(buf_), file_);
             if(ferror(file_))
             {
-                ec = error_code(errno,
-                    system_category());
-                return true;
+                ec = error_code(errno, system_category());
+                return boost::none;
             }
             BOOST_ASSERT(nread != 0);
             offset_ += nread;
-            wf(boost::asio::buffer(buf_, nread));
-            return offset_ >= size_;
+            return {{const_buffers_type{buf_, nread},
+                offset_ >= size_}};
         }
     };
 };

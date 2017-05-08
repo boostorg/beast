@@ -196,10 +196,10 @@ build_request(detail::sec_ws_key_type& key,
 }
 
 template<class NextLayer>
-template<class Decorator>
+template<class Fields, class Decorator>
 response_type
 stream<NextLayer>::
-build_response(request_type const& req,
+build_response(http::header<true, Fields> const& req,
     Decorator const& decorator)
 {
     auto const decorate =

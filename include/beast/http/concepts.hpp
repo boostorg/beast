@@ -10,6 +10,7 @@
 
 #include <beast/config.hpp>
 #include <beast/core/error.hpp>
+#include <beast/core/string_view.hpp>
 #include <beast/core/type_traits.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/optional.hpp>
@@ -19,7 +20,17 @@
 namespace beast {
 namespace http {
 
+template<bool, class, class>
+struct message;
+
 namespace detail {
+
+struct fields_model
+{
+    string_view method() const;
+    string_view reason() const;
+    string_view target() const;
+};
 
 struct write_function
 {
@@ -48,43 +59,6 @@ struct has_content_length<T, beast::detail::void_t<decltype(
         decltype(std::declval<T>().content_length()),
             std::uint64_t>::value,
         "Writer::content_length requirements not met");
-};
-
-template<class T, class M>
-class is_Writer
-{
-    template<class U, class R = decltype(
-        std::declval<U>().init(std::declval<error_code&>()),
-            std::true_type{})>
-    static R check1(int);
-    template<class>
-    static std::false_type check1(...);
-    using type1 = decltype(check1<T>(0));
-
-    // VFALCO This is unfortunate, we have to provide the template
-    //        argument type because this is not a deduced context?
-    //
-    template<class U, class R =
-        std::is_convertible<decltype(
-            std::declval<U>().template write<detail::write_function>(
-                std::declval<error_code&>(),
-                std::declval<detail::write_function>()))
-            , bool>>
-    static R check2(int);
-    template<class>
-    static std::false_type check2(...);
-    using type2 = decltype(check2<T>(0));
-
-public:
-    static_assert(std::is_same<
-        typename M::body_type::writer, T>::value,
-            "Mismatched writer and message");
-
-    using type = std::integral_constant<bool,
-        std::is_nothrow_constructible<T, M const&>::value
-        && type1::value
-        && type2::value
-    >;
 };
 
 } // detail
@@ -173,18 +147,34 @@ struct is_Reader<T, M, beast::detail::void_t<decltype(
 };
 #endif
 
-/** Determine if `T` meets the requirements of @b Writer for `M`.
+/** Determine if a @b Body type has a writer which meets requirements.
 
-    @tparam T The type to test.
-
-    @tparam M The message type to test with, which must be of
-    type `message`.
+    @tparam T The body type to test.
 */
-template<class T, class M>
 #if BEAST_DOXYGEN
+template<class T>
 struct is_Writer : std::integral_constant<bool, ...> {};
 #else
-using is_Writer = typename detail::is_Writer<T, M>::type;
+template<class T, class = void>
+struct is_Writer : std::false_type {};
+
+template<class T>
+struct is_Writer<T, beast::detail::void_t<
+    typename T::writer,
+    typename T::writer::const_buffers_type,
+        decltype(
+    std::declval<typename T::writer&>().init(std::declval<error_code&>()),
+    std::declval<boost::optional<std::pair<
+            typename T::writer::const_buffers_type, bool>>&>() =
+            std::declval<typename T::writer>().get(std::declval<error_code&>()),
+        (void)0)>> : std::integral_constant<bool,
+    is_const_buffer_sequence<
+        typename T::writer::const_buffers_type>::value &&
+    std::is_constructible<typename T::writer,
+        message<true, T, detail::fields_model> const& >::value
+        >
+{
+};
 #endif
 
 } // http

@@ -9,6 +9,7 @@
 #define BEAST_WEBSOCKET_IMPL_ACCEPT_IPP
 
 #include <beast/websocket/detail/type_traits.hpp>
+#include <beast/http/empty_body.hpp>
 #include <beast/http/message.hpp>
 #include <beast/http/header_parser.hpp>
 #include <beast/http/read.hpp>
@@ -39,7 +40,8 @@ class stream<NextLayer>::response_op
     {
         bool cont;
         stream<NextLayer>& ws;
-        http::header<false, http::fields> res;
+        http::message<false,
+            http::empty_body, http::fields> res;
         int state = 0;
 
         template<class Fields, class Decorator>
@@ -188,8 +190,8 @@ class stream<NextLayer>::accept_op
 
         template<class Buffers>
         data(Handler& handler, stream<NextLayer>& ws_,
-                Buffers const& buffers,
-                    Decorator const& decorator_)
+            Buffers const& buffers,
+                Decorator const& decorator_)
             : ws(ws_)
             , decorator(decorator_)
         {
@@ -365,7 +367,8 @@ accept_ex(ResponseDecorator const& decorator, error_code& ec)
 
 template<class NextLayer>
 template<class ConstBufferSequence>
-void
+typename std::enable_if<! http::detail::is_header<
+    ConstBufferSequence>::value>::type
 stream<NextLayer>::
 accept(ConstBufferSequence const& buffers)
 {
@@ -383,7 +386,8 @@ accept(ConstBufferSequence const& buffers)
 template<class NextLayer>
 template<
     class ConstBufferSequence, class ResponseDecorator>
-void
+typename std::enable_if<! http::detail::is_header<
+    ConstBufferSequence>::value>::type
 stream<NextLayer>::
 accept_ex(ConstBufferSequence const& buffers,
     ResponseDecorator const &decorator)
@@ -404,7 +408,8 @@ accept_ex(ConstBufferSequence const& buffers,
 
 template<class NextLayer>
 template<class ConstBufferSequence>
-void
+typename std::enable_if<! http::detail::is_header<
+    ConstBufferSequence>::value>::type
 stream<NextLayer>::
 accept(ConstBufferSequence const& buffers, error_code& ec)
 {
@@ -425,7 +430,8 @@ accept(ConstBufferSequence const& buffers, error_code& ec)
 template<class NextLayer>
 template<
     class ConstBufferSequence, class ResponseDecorator>
-void
+typename std::enable_if<! http::detail::is_header<
+    ConstBufferSequence>::value>::type
 stream<NextLayer>::
 accept_ex(ConstBufferSequence const& buffers,
     ResponseDecorator const& decorator, error_code& ec)
@@ -641,8 +647,9 @@ async_accept_ex(ResponseDecorator const& decorator,
 
 template<class NextLayer>
 template<class ConstBufferSequence, class AcceptHandler>
-async_return_type<
-    AcceptHandler, void(error_code)>
+typename std::enable_if<
+    ! http::detail::is_header<ConstBufferSequence>::value,
+    async_return_type<AcceptHandler, void(error_code)>>::type
 stream<NextLayer>::
 async_accept(ConstBufferSequence const& buffers,
     AcceptHandler&& handler)
@@ -664,8 +671,9 @@ async_accept(ConstBufferSequence const& buffers,
 template<class NextLayer>
 template<class ConstBufferSequence,
     class ResponseDecorator, class AcceptHandler>
-async_return_type<
-    AcceptHandler, void(error_code)>
+typename std::enable_if<
+    ! http::detail::is_header<ConstBufferSequence>::value,
+    async_return_type<AcceptHandler, void(error_code)>>::type
 stream<NextLayer>::
 async_accept_ex(ConstBufferSequence const& buffers,
     ResponseDecorator const& decorator,

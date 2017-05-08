@@ -193,6 +193,15 @@ used in the examples:
 `value_type` of [link beast.ref.multi_buffer `multi_buffer`]: an efficient storage
 object which uses multiple octet arrays of varying lengths to represent data.
 
+* [link beast.ref.http__buffer_body [*`buffer_body`:]] A write-only body
+with a `value_type` representing a __ConstBufferSequence__. This special
+body allows the caller to implement their own write loop for advanced
+use-cases such as relaying.
+
+* [link beast.ref.http__empty_body [*`empty_body`:]] A write-only body
+with an empty `value_type` representing an HTTP message with no content
+body.
+
 [heading Advanced]
 
 User-defined types are possible for the message body, where the type meets the

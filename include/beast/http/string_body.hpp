@@ -13,25 +13,27 @@
 #include <beast/http/message.hpp>
 #include <beast/core/detail/type_traits.hpp>
 #include <boost/asio/buffer.hpp>
+#include <boost/optional.hpp>
 #include <memory>
 #include <string>
+#include <utility>
 
 namespace beast {
 namespace http {
 
-/** A Body represented by a std::string.
+/** An HTTP message body represented by a `std::string`.
 
     Meets the requirements of @b Body.
 */
 struct string_body
 {
-    /// The type of the `message::body` member
+    /// The type of the body member when used in a message.
     using value_type = std::string;
 
 #if BEAST_DOXYGEN
-private:
-#endif
-
+    /// The algorithm used when parsing this body.
+    using reader = implementation_defined;
+#else
     class reader
     {
         value_type& body_;
@@ -88,40 +90,50 @@ private:
             body_.resize(len_);
         }
     };
+#endif
 
+#if BEAST_DOXYGEN
+    /// The algorithm used when serializing this body.
+    using writer = implementation_defined;
+#else
     class writer
     {
         value_type const& body_;
 
     public:
+        using is_deferred = std::false_type;
+
+        using const_buffers_type =
+            boost::asio::const_buffers_1;
+
         template<bool isRequest, class Fields>
         explicit
         writer(message<
-                isRequest, string_body, Fields> const& msg) noexcept
+                isRequest, string_body, Fields> const& msg)
             : body_(msg.body)
         {
         }
 
         void
-        init(error_code& ec) noexcept
+        init(error_code& ec)
         {
             beast::detail::ignore_unused(ec);
         }
 
         std::uint64_t
-        content_length() const noexcept
+        content_length() const
         {
             return body_.size();
         }
 
-        template<class WriteFunction>
-        bool
-        write(error_code&, WriteFunction&& wf) noexcept
+        boost::optional<std::pair<const_buffers_type, bool>>
+        get(error_code& ec)
         {
-            wf(boost::asio::buffer(body_));
-            return true;
+            return {{const_buffers_type{
+                body_.data(), body_.size()}, false}};
         }
     };
+#endif
 };
 
 } // http

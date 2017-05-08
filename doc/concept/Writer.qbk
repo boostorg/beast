@@ -1,0 +1,179 @@
+[/
+    Copyright (c) 2013-2017 Vinnie Falco (vinnie dot falco at gmail dot com)
+
+    Distributed under the Boost Software License, Version 1.0. (See accompanying
+    file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+]
+
+[section:Writer Writer requirements]
+
+A [*Writer] provides an online algorithm to obtain a sequence of zero
+or more buffers from a body during serialization. The implementation creates
+an instance of this type when needed, and calls into it zero or more times to
+retrieve buffers with body octets. The interface of [*Writer] is intended to
+allow serialization in these scenarios:
+
+* A body that does not entirely fit in memory.
+* A body produced incrementally from coroutine output.
+* A body represented by zero or more buffers already in memory.
+* A body as a series of buffers when the content size is not known ahead of time.
+* Body data generated on demand from other threads.
+* Body data computed algorithmically.
+
+In this table:
+
+* `X` denotes a type meeting the requirements of [*Writer].
+
+* `a` denotes a value of type `X`.
+
+* `m` denotes a value of type `message const&` where
+        `std::is_same<decltype(m.body), Body::value_type>:value == true`.
+
+* `ec` is a value of type [link beast.ref.error_code `error_code&`].
+
+* `B<T>` is the type `boost::optional<std::pair<T, bool>>`.
+
+[table Writer requirements
+[[operation] [type] [semantics, pre/post-conditions]]
+[
+    [`X::const_buffers_type`]
+    []
+    [
+        A nested type which meets the requirements of __ConstBufferSequence__.
+        This is the type of buffer returned by `X::get`.
+    ]
+]
+[
+    [`X(m);`]
+    []
+    [
+        Constructible from `m`. The lifetime of `m` is guaranteed
+        to end no earlier than after the `X` is destroyed.
+    ]
+]
+[
+    [`a.init(ec)`]
+    [`void`]
+    [
+        Called immediately after construction. If the function sets an
+        error code in `ec`, the serialization is aborted and the error
+        is propagated to the caller.
+    ]
+]
+[
+    [`a.content_length()`]
+    [`std::uint64_t`]
+    [
+        If this member is present, it is called after initialization
+        and before calls to provide buffers. The serialized message will
+        have the Content-Length field set to the value returned from
+        this function. If this member is absent, the serialized message
+        body will be chunk-encoded for HTTP versions 1.1 and later, else
+        the serialized message body will be sent unmodified, with the
+        error `boost::asio::error::eof` returned to the caller, to notify
+        they should close the connection to indicate the end of the message.
+        This function must be `noexcept`.
+    ]
+]
+[
+    [`a.get(ec)`]
+    [`B<X::const_buffers_type>`]
+    [
+        Called repeatedly after `init` succeeds. This function returns
+        `boost::none` if all buffers representing the body have been
+        returned in previous calls or if it sets `ec` to indicate an
+        error. Otherwise, if there are buffers remaining the function
+        should return a pair with the first element containing a non-zero
+        length buffer sequence representing the next set of octets in
+        the body, while the second element is a `bool` meaning `true`
+        if there may be additional buffers returned on a subsequent call,
+        or `false` if the buffer returned on this call is the last
+        buffer representing the body.
+    ]
+]
+[
+    [`http::is_Writer<X>`]
+    [`std::true_type`]
+    [
+        An alias for `std::true_type` for `X`, otherwise an
+        alias for `std::false_type`.
+    ]
+]
+]
+
+[note
+    Definitions for required `Writer` member functions should be declared
+    inline so the generated code can become part of the implementation.
+]
+
+Exemplar:
+```
+struct writer
+{
+public:
+    /** Controls when the implementation requests buffers.
+
+        If false, the implementation will request the first buffer
+        immediately and try to send both the header and the body
+        buffer in a single call to the stream's `write_some`
+        function.
+    */
+    using is_deferred = std::false_type;
+
+    /** The type of buffer returned by `get`.
+    */
+    using const_buffers_type = boost::asio::const_buffers_1;
+
+    /** Construct the writer.
+
+        The msg object is guaranteed to exist for the lifetime of the writer.
+
+        @param msg The message whose body is to be written.
+    */
+    template<bool isRequest, class Body, class Headers>
+    explicit
+    writer(message<isRequest, Body, Headers> const& msg);
+
+    /** Initialize the writer.
+
+        Called once immediately after construction.
+        The writer can perform initialization which may fail.
+
+        @param ec Contains the error code if any errors occur.
+    */
+    void
+    init(error_code& ec);
+
+    /** Returns the content length.
+
+        If this member is present, the implementation will set the
+        Content-Length field accordingly. If absent, the implementation will
+        use chunk-encoding or terminate the connection to indicate the end
+        of the message.
+    */
+    std::uint64_t
+    content_length();
+
+    /** Returns the next buffer in the body.
+
+        @li If the return value is `boost::none` (unseated optional) and
+            `ec` does not contain an error, this indicates the end of the
+            body, no more buffers are present.
+
+        @li If the optional contains a value, the first element of the
+            pair represents a @b ConstBufferSequence containing one or
+            more octets of the body data. The second element indicates
+            whether or not there are additional octets of body data.
+            A value of `true` means there is more data, and that the
+            implementation will perform a subsequent call to `get`.
+            A value of `false` means there is no more body data.
+
+        @li If `ec` contains an error code, the return value is ignored.
+    */
+    template<class WriteFunction>
+    boost::optional<std::pair<const_buffers_type, bool>>
+    get(error_code& ec);
+};
+```
+
+[endsect]

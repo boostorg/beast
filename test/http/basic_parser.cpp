@@ -13,6 +13,7 @@
 #include <beast/core/buffer_cat.hpp>
 #include <beast/core/consuming_buffers.hpp>
 #include <beast/core/multi_buffer.hpp>
+#include <beast/core/ostream.hpp>
 #include <beast/unit_test/suite.hpp>
 
 namespace beast {
@@ -903,7 +904,7 @@ public:
     {
 #if 0
         multi_buffer b;
-        b << 
+        ostream(b) << 
             "POST / HTTP/1.1\r\n"
             "Content-Length: 5\r\n"
             "\r\n"

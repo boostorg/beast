@@ -163,8 +163,7 @@ prepare(message<isRequest, Body, Fields>& msg,
         "Body requirements not met");
     static_assert(has_writer<Body>::value,
         "Body has no writer");
-    static_assert(is_Writer<typename Body::writer,
-        message<isRequest, Body, Fields>>::value,
+    static_assert(is_Writer<Body>::value,
             "Writer requirements not met");
     detail::prepare_info pi;
     detail::prepare_content_length(pi, msg,

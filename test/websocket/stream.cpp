@@ -130,7 +130,8 @@ public:
         }
 
         template<class NextLayer, class Buffers>
-        void
+        typename std::enable_if<
+            ! http::detail::is_header<Buffers>::value>::type
         accept(stream<NextLayer>& ws,
             Buffers const& buffers) const
         {
@@ -165,7 +166,8 @@ public:
 
         template<class NextLayer,
             class Buffers, class Decorator>
-        void
+        typename std::enable_if<
+            ! http::detail::is_header<Buffers>::value>::type
         accept_ex(stream<NextLayer>& ws,
             Buffers const& buffers,
                 Decorator const& d) const
@@ -319,7 +321,8 @@ public:
         }
 
         template<class NextLayer, class Buffers>
-        void
+        typename std::enable_if<
+            ! http::detail::is_header<Buffers>::value>::type
         accept(stream<NextLayer>& ws,
             Buffers const& buffers) const
         {
@@ -367,7 +370,8 @@ public:
 
         template<class NextLayer,
             class Buffers, class Decorator>
-        void
+        typename std::enable_if<
+            ! http::detail::is_header<Buffers>::value>::type
         accept_ex(stream<NextLayer>& ws,
             Buffers const& buffers,
                 Decorator const& d) const
