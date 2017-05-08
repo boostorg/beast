@@ -17,7 +17,7 @@
 #include <beast/core/async_result.hpp>
 #include <beast/core/buffered_read_stream.hpp>
 #include <beast/core/string_view.hpp>
-#include <beast/core/detail/get_lowest_layer.hpp>
+#include <beast/core/detail/type_traits.hpp>
 #include <boost/asio.hpp>
 #include <algorithm>
 #include <cstdint>

@@ -40,7 +40,6 @@ unit-test core-tests :
     core/string_view.cpp
     core/base64.cpp
     core/empty_base_optimization.cpp
-    core/get_lowest_layer.cpp
     core/sha1.cpp
     core/type_traits.cpp
     ;

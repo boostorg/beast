@@ -127,6 +127,39 @@ struct is_invocable<C, R(A...)>
 };
 /** @} */
 
+template<class T>
+class has_lowest_layer
+{
+    template<class U, class R =
+        typename U::lowest_layer_type>
+    static std::true_type check(int);
+    template<class>
+    static std::false_type check(...);
+    using type = decltype(check<T>(0));
+public:
+    static bool constexpr value = type::value;
+};
+
+template<class T, bool B>
+struct maybe_get_lowest_layer
+{
+    using type = T;
+};
+
+template<class T>
+struct maybe_get_lowest_layer<T, true>
+{
+    using type = typename T::lowest_layer_type;
+};
+
+// Returns T::lowest_layer_type if it exists, else T
+template<class T>
+struct get_lowest_layer
+{
+    using type = typename maybe_get_lowest_layer<T,
+        has_lowest_layer<T>::value>::type;
+};
+
 } // detail
 } // beast
 

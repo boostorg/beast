@@ -33,7 +33,6 @@ add_executable (core-tests
     string_view.cpp
     base64.cpp
     empty_base_optimization.cpp
-    get_lowest_layer.cpp
     sha1.cpp
     type_traits.cpp
 )
