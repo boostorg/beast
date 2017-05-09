@@ -80,9 +80,7 @@ implementation_defined
 #else
 detail::ostream_helper<
     DynamicBuffer, char, std::char_traits<char>,
-        std::is_move_constructible<
-            detail::ostream_buffer<DynamicBuffer,
-                char, std::char_traits<char>>>::value>
+        detail::basic_streambuf_movable::value>
 #endif
 ostream(DynamicBuffer& buffer)
 {
@@ -90,9 +88,7 @@ ostream(DynamicBuffer& buffer)
         "DynamicBuffer requirements not met");
     return detail::ostream_helper<
         DynamicBuffer, char, std::char_traits<char>,
-            std::is_move_constructible<
-            detail::ostream_buffer<DynamicBuffer,
-                char, std::char_traits<char>>>::value>{buffer};
+            detail::basic_streambuf_movable::value>{buffer};
 }
 
 } // beast
