@@ -1,6 +1,7 @@
 1.0.0-b39
 
 * Use beast::string_view alias
+* Fixed braced-init error with older gcc
 
 HTTP
 

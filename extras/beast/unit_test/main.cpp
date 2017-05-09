@@ -99,7 +99,7 @@ int main(int ac, char const* av[])
     po::store(po::parse_command_line(ac, av, desc), vm);
     po::notify(vm);
 
-    dstream log{std::cerr};
+    dstream log(std::cerr);
     std::unitbuf(log);
 
     if(vm.count("help"))
