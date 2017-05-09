@@ -2,6 +2,7 @@
 
 * Use beast::string_view alias
 * Fixed braced-init error with older gcc
+* Use gcc 4.8 on Travis
 
 HTTP
 

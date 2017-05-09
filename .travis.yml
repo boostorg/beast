@@ -18,8 +18,8 @@ addons:
   apt:
     sources: ['ubuntu-toolchain-r-test']
     packages:
-      - gcc-5
-      - g++-5
+      - gcc-4.8
+      - g++-4.8
       - python-software-properties
       - libssl-dev
       - libffi-dev
@@ -38,7 +38,7 @@ matrix:
     # GCC/Coverage/Autobahn (if master or develop branch)
     - compiler: gcc
       env:
-        - GCC_VER=5
+        - GCC_VER=4.8
         - VARIANT=coverage
         - ADDRESS_MODEL=64
         - BUILD_SYSTEM=cmake
@@ -47,7 +47,7 @@ matrix:
     # Clang/UndefinedBehaviourSanitizer
     - compiler: clang
       env:
-        - GCC_VER=5
+        - GCC_VER=4.8
         - VARIANT=usan
         - CLANG_VER=3.8
         - ADDRESS_MODEL=64
@@ -59,7 +59,7 @@ matrix:
     # Clang/AddressSanitizer
     - compiler: clang
       env:
-        - GCC_VER=5
+        - GCC_VER=4.8
         - VARIANT=asan
         - CLANG_VER=3.8
         - ADDRESS_MODEL=64
