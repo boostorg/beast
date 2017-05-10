@@ -41,6 +41,11 @@ namespace http {
     being parsed. This additional data is stored in the dynamic
     buffer, which may be used in subsequent calls.
 
+    If the end of the stream is reached during the read, the
+    value @ref error::partial_message is indicated as the
+    error if bytes have been processed, else the error
+    @ref error::end_of_stream is indicated.
+    
     @param stream The stream from which the data is to be read.
     The type must support the @b SyncReadStream concept.
 
@@ -91,6 +96,11 @@ read_some(
     read additional octets that lie past the end of the object
     being parsed. This additional data is stored in the dynamic
     buffer, which may be used in subsequent calls.
+
+    If the end of the stream is reached during the read, the
+    value @ref error::partial_message is indicated as the
+    error if bytes have been processed, else the error
+    @ref error::end_of_stream is indicated.
 
     @param stream The stream from which the data is to be read.
     The type must support the @b SyncReadStream concept.
@@ -151,6 +161,11 @@ read_some(
     processed from the dynamic buffer. The caller should remove
     these bytes by calling `consume` on the dynamic buffer.
 
+    If the end of the stream is reached during the read, the
+    value @ref error::partial_message is indicated as the
+    error if bytes have been processed, else the error
+    @ref error::end_of_stream is indicated.
+
     @param stream The stream from which the data is to be read.
     The type must support the @b AsyncReadStream concept.
 
@@ -205,6 +220,11 @@ async_read_some(
     being parsed. This additional data is stored in the dynamic
     buffer, which may be used in subsequent calls.
 
+    If the end of the stream is reached during the read, the
+    value @ref error::partial_message is indicated as the
+    error if bytes have been processed, else the error
+    @ref error::end_of_stream is indicated.
+
     @param stream The stream from which the data is to be read.
     The type must support the @b SyncReadStream concept.
 
@@ -243,6 +263,11 @@ read(
     read additional octets that lie past the end of the object
     being parsed. This additional data is stored in the dynamic
     buffer, which may be used in subsequent calls.
+
+    If the end of the stream is reached during the read, the
+    value @ref error::partial_message is indicated as the
+    error if bytes have been processed, else the error
+    @ref error::end_of_stream is indicated.
 
     @param stream The stream from which the data is to be read.
     The type must support the @b SyncReadStream concept.
@@ -286,6 +311,11 @@ read(
     The implementation may read additional octets that lie past the
     end of the object being parsed. This additional data is stored
     in the stream buffer, which may be used in subsequent calls.
+
+    If the end of the stream is reached during the read, the
+    value @ref error::partial_message is indicated as the
+    error if bytes have been processed, else the error
+    @ref error::end_of_stream is indicated.
 
     @param stream The stream from which the data is to be read.
     The type must support the @b AsyncReadStream concept.
@@ -338,6 +368,11 @@ async_read(
     being parsed. This additional data is stored in the dynamic
     buffer, which may be used in subsequent calls.
 
+    If the end of the stream is reached during the read, the
+    value @ref error::partial_message is indicated as the
+    error if bytes have been processed, else the error
+    @ref error::end_of_stream is indicated.
+
     @param stream The stream from which the data is to be read.
     The type must support the @b `SyncReadStream` concept.
 
@@ -378,6 +413,11 @@ read(
     read additional octets that lie past the end of the message
     being parsed. This additional data is stored in the dynamic
     buffer, which may be used in subsequent calls.
+
+    If the end of the stream is reached during the read, the
+    value @ref error::partial_message is indicated as the
+    error if bytes have been processed, else the error
+    @ref error::end_of_stream is indicated.
 
     @param stream The stream from which the data is to be read.
     The type must support the @b `SyncReadStream` concept.
@@ -423,6 +463,11 @@ read(
     The implementation may read additional octets that lie past the
     end of the message being parsed. This additional data is stored
     in the dynamic buffer, which may be used in subsequent calls.
+
+    If the end of the stream is reached during the read, the
+    value @ref error::partial_message is indicated as the
+    error if bytes have been processed, else the error
+    @ref error::end_of_stream is indicated.
 
     @param stream The stream to read the message from.
     The type must support the @b `AsyncReadStream` concept.
