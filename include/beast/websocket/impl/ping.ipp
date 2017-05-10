@@ -11,7 +11,7 @@
 #include <beast/core/bind_handler.hpp>
 #include <beast/core/handler_helpers.hpp>
 #include <beast/core/handler_ptr.hpp>
-#include <beast/core/stream_concepts.hpp>
+#include <beast/core/type_traits.hpp>
 #include <beast/websocket/detail/frame.hpp>
 #include <memory>
 
@@ -200,7 +200,7 @@ async_return_type<
 stream<NextLayer>::
 async_ping(ping_data const& payload, WriteHandler&& handler)
 {
-    static_assert(is_AsyncStream<next_layer_type>::value,
+    static_assert(is_async_stream<next_layer_type>::value,
         "AsyncStream requirements requirements not met");
     async_completion<WriteHandler,
         void(error_code)> init{handler};
@@ -217,7 +217,7 @@ async_return_type<
 stream<NextLayer>::
 async_pong(ping_data const& payload, WriteHandler&& handler)
 {
-    static_assert(is_AsyncStream<next_layer_type>::value,
+    static_assert(is_async_stream<next_layer_type>::value,
         "AsyncStream requirements requirements not met");
     async_completion<WriteHandler,
         void(error_code)> init{handler};

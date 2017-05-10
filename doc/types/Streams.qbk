@@ -21,14 +21,14 @@ A type modeling [*`Stream`] meets either or both of the following requirements:
 
 A type modeling [*`AsyncStream`] meets the following requirements:
 
-* [@http://www.boost.org/doc/libs/1_61_0/doc/html/boost_asio/reference/AsyncReadStream.html [*`AsyncReadStream`]]
-* [@http://www.boost.org/doc/libs/1_61_0/doc/html/boost_asio/reference/AsyncWriteStream.html [*`AsyncWriteStream`]]
+* __AsyncReadStream__
+* __AsyncWriteStream__
 
 [heading:SyncStream SyncStream]
 
 A type modeling [*`SyncStream`] meets the following requirements:
 
-* [@http://www.boost.org/doc/libs/1_61_0/doc/html/boost_asio/reference/SyncReadStream.html [*`SyncReadStream`]]
-* [@http://www.boost.org/doc/libs/1_61_0/doc/html/boost_asio/reference/SyncWriteStream.html [*`SyncWriteStream`]]
+* __SyncReadStream__
+* __SyncWriteStream__
 
 [endsect]

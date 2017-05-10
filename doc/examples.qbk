@@ -127,6 +127,15 @@ type, in `file_body`.
 * [@examples/http_sync_server.hpp]
 * [@examples/http_server.cpp]
 
+[heading Composed Operations]
+
+This program shows how to use Beast's core foundations to build a
+composable asynchronous initiation function with associated composed
+operation implementation. This is a complete, runnable version of
+the example described in the Core Foundations document section.
+
+* [@examples/echo_op.cpp]
+
 [heading Listings]
 
 These are stand-alone listings of the HTTP and WebSocket examples.

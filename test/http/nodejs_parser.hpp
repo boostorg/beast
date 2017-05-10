@@ -12,8 +12,8 @@
 
 #include <beast/http/message.hpp>
 #include <beast/http/rfc7230.hpp>
-#include <beast/core/buffer_concepts.hpp>
 #include <beast/core/error.hpp>
+#include <beast/core/type_traits.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/system/error_code.hpp>
 #include <cstdint>

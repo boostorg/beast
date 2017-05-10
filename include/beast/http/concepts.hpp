@@ -10,8 +10,7 @@
 
 #include <beast/config.hpp>
 #include <beast/core/error.hpp>
-#include <beast/core/buffer_concepts.hpp>
-#include <beast/core/detail/type_traits.hpp>
+#include <beast/core/type_traits.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/optional.hpp>
 #include <type_traits>

@@ -486,7 +486,7 @@ start. Other design goals:
     Beast doesn't allocate or make copies of buffers when sending data. The
     caller's buffers are sent in-place. You can use any object meeting the
     requirements of
-    [@http://www.boost.org/doc/libs/1_60_0/doc/html/boost_asio/reference/ConstBufferSequence.html ConstBufferSequence],
+    [@http://www.boost.org/doc/html/boost_asio/reference/ConstBufferSequence.html ConstBufferSequence],
     permitting efficient scatter-gather I/O.
 
     The [*ConstBufferSequence] interface allows callers to send data from
@@ -588,8 +588,8 @@ start. Other design goals:
 
     [table
         [
-            [[@http://www.boost.org/doc/libs/1_60_0/doc/html/boost_asio/reference/async_connect.html Beast],
-                [@http://www.boost.org/doc/libs/1_60_0/doc/html/boost_asio/reference/basic_socket_acceptor/async_accept.html also]]
+            [[@http://www.boost.org/doc/html/boost_asio/reference/async_connect.html Beast],
+                [@http://www.boost.org/doc/html/boost_asio/reference/basic_socket_acceptor/async_accept.html also]]
             [[@https://github.com/zaphoyd/websocketpp/blob/378437aecdcb1dfe62096ffd5d944bf1f640ccc3/websocketpp/transport/asio/endpoint.hpp#L52 websocketpp]]
         ][
             [```

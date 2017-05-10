@@ -9,16 +9,16 @@
 #define BEAST_BUFFERS_ADAPTER_HPP
 
 #include <beast/config.hpp>
-#include <beast/core/buffer_concepts.hpp>
+#include <beast/core/type_traits.hpp>
 #include <boost/asio/buffer.hpp>
 #include <type_traits>
 
 namespace beast {
 
-/** Adapts a @b `MutableBufferSequence` into a @b `DynamicBuffer`.
+/** Adapts a @b MutableBufferSequence into a @b DynamicBuffer.
 
-    This class wraps a @b `MutableBufferSequence` to meet the requirements
-    of @b `DynamicBuffer`. Upon construction the input and output sequences are
+    This class wraps a @b MutableBufferSequence to meet the requirements
+    of @b DynamicBuffer. Upon construction the input and output sequences are
     empty. A copy of the mutable buffer sequence object is stored; however,
     ownership of the underlying memory is not transferred. The caller is
     responsible for making sure that referenced memory remains valid

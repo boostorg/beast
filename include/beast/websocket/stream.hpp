@@ -81,17 +81,17 @@ struct frame_info
 
     @tparam NextLayer The type representing the next layer, to which
     data will be read and written during operations. For synchronous
-    operations, the type must support the @b `SyncStream` concept.
+    operations, the type must support the @b SyncStream concept.
     For asynchronous operations, the type must support the
-    @b `AsyncStream` concept.
+    @b AsyncStream concept.
 
     @note A stream object must not be moved or destroyed while there
     are pending asynchronous operations associated with it.
 
     @par Concepts
-        @b `AsyncStream`,
-        @b `DynamicBuffer`,
-        @b `SyncStream`
+        @b AsyncStream,
+        @b DynamicBuffer,
+        @b SyncStream
 */
 template<class NextLayer>
 class stream : public detail::stream_base

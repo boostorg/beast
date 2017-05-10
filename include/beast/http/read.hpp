@@ -374,9 +374,9 @@ async_read(
     @ref error::end_of_stream is indicated.
 
     @param stream The stream from which the data is to be read.
-    The type must support the @b `SyncReadStream` concept.
+    The type must support the @b SyncReadStream concept.
 
-    @param dynabuf A @b `DynamicBuffer` holding additional bytes
+    @param dynabuf A @b DynamicBuffer holding additional bytes
     read by the implementation from the stream. This is both
     an input and an output parameter; on entry, any data in the
     dynamic buffer's input sequence will be given to the parser
@@ -420,9 +420,9 @@ read(
     @ref error::end_of_stream is indicated.
 
     @param stream The stream from which the data is to be read.
-    The type must support the @b `SyncReadStream` concept.
+    The type must support the @b SyncReadStream concept.
 
-    @param dynabuf A @b `DynamicBuffer` holding additional bytes
+    @param dynabuf A @b DynamicBuffer holding additional bytes
     read by the implementation from the stream. This is both
     an input and an output parameter; on entry, any data in the
     dynamic buffer's input sequence will be given to the parser
@@ -470,9 +470,9 @@ read(
     @ref error::end_of_stream is indicated.
 
     @param stream The stream to read the message from.
-    The type must support the @b `AsyncReadStream` concept.
+    The type must support the @b AsyncReadStream concept.
 
-    @param dynabuf A @b `DynamicBuffer` holding additional bytes
+    @param dynabuf A @b DynamicBuffer holding additional bytes
     read by the implementation from the stream. This is both
     an input and an output parameter; on entry, any data in the
     dynamic buffer's input sequence will be given to the parser

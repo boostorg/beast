@@ -37,8 +37,8 @@ In the table below:
 * `a` denotes a value of type `X`.
 * `c` denotes a (possibly const) value of type `X`.
 * `n` denotes a value of type `std::size_t`.
-* `T` denotes a type meeting the requirements for [@http://www.boost.org/doc/libs/1_61_0/doc/html/boost_asio/reference/ConstBufferSequence.html `ConstBufferSequence`].
-* `U` denotes a type meeting the requirements for [@http://www.boost.org/doc/libs/1_61_0/doc/html/boost_asio/reference/MutableBufferSequence.html `MutableBufferSequence`].
+* `T` denotes a type meeting the requirements for __ConstBufferSequence__.
+* `U` denotes a type meeting the requirements for __MutableBufferSequence__.
 
 [table DynamicBuffer requirements
 [[operation] [type] [semantics, pre/post-conditions]]

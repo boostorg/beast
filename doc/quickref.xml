@@ -29,7 +29,7 @@
         <entry valign="top">
           <bridgehead renderas="sect3">Classes</bridgehead>
           <simplelist type="vert" columns="1">
-            <member><link linkend="beast.ref.http__basic_dynamic_body">http__basic_dynamic_body</link></member>
+            <member><link linkend="beast.ref.http__basic_dynamic_body">basic_dynamic_body</link></member>
             <member><link linkend="beast.ref.http__basic_fields">basic_fields</link></member>
             <member><link linkend="beast.ref.http__basic_parser">basic_parser</link></member>
             <member><link linkend="beast.ref.http__dynamic_body">dynamic_body</link></member>
@@ -159,7 +159,6 @@
             <member><link linkend="beast.ref.buffers_adapter">buffers_adapter</link></member>
             <member><link linkend="beast.ref.consuming_buffers">consuming_buffers</link></member>
             <member><link linkend="beast.ref.buffered_read_stream">buffered_read_stream</link></member>
-            <member><link linkend="beast.ref.errc">errc</link></member>
             <member><link linkend="beast.ref.error_category">error_category</link></member>
             <member><link linkend="beast.ref.error_code">error_code</link></member>
             <member><link linkend="beast.ref.error_condition">error_condition</link></member>
@@ -187,23 +186,35 @@
             <member><link linkend="beast.ref.system_category">system_category</link></member>
             <member><link linkend="beast.ref.to_static_string">to_static_string</link></member>
           </simplelist>
+          <bridgehead renderas="sect3">Constants</bridgehead>
+          <simplelist type="vert" columns="1">
+            <member><link linkend="beast.ref.errc">errc</link></member>
+          </simplelist>
         </entry>
         <entry valign="top">
           <bridgehead renderas="sect3">Type Traits</bridgehead>
           <simplelist type="vert" columns="1">
-            <member><link linkend="beast.ref.is_AsyncReadStream">is_AsyncReadStream</link></member>
-            <member><link linkend="beast.ref.is_AsyncWriteStream">is_AsyncWriteStream</link></member>
-            <member><link linkend="beast.ref.is_AsyncStream">is_AsyncStream</link></member>
-            <member><link linkend="beast.ref.is_CompletionHandler">is_CompletionHandler</link></member>
+            <member><link linkend="beast.ref.has_get_io_service">has_get_io_service</link></member>
+            <member><link linkend="beast.ref.is_async_read_stream">is_async_read_stream</link></member>
+            <member><link linkend="beast.ref.is_async_write_stream">is_async_write_stream</link></member>
+            <member><link linkend="beast.ref.is_async_stream">is_async_stream</link></member>
+            <member><link linkend="beast.ref.is_completion_handler">is_completion_handler</link></member>
             <member><link linkend="beast.ref.is_const_buffer_sequence">is_const_buffer_sequence</link></member>
             <member><link linkend="beast.ref.is_dynamic_buffer">is_dynamic_buffer</link></member>
             <member><link linkend="beast.ref.is_mutable_buffer_sequence">is_mutable_buffer_sequence</link></member>
-            <member><link linkend="beast.ref.is_SyncReadStream">is_SyncReadStream</link></member>
-            <member><link linkend="beast.ref.is_SyncStream">is_SyncStream</link></member>
-            <member><link linkend="beast.ref.is_SyncWriteStream">is_SyncWriteStream</link></member>
+            <member><link linkend="beast.ref.is_sync_read_stream">is_sync_read_stream</link></member>
+            <member><link linkend="beast.ref.is_sync_stream">is_sync_stream</link></member>
+            <member><link linkend="beast.ref.is_sync_write_stream">is_sync_write_stream</link></member>
           </simplelist>
         </entry>
         <entry valign="top">
+          <bridgehead renderas="sect3">Helpers</bridgehead>
+          <simplelist type="vert" columns="1">
+            <member><link linkend="beast.ref.beast_asio_helpers__allocate">allocate</link></member>
+            <member><link linkend="beast.ref.beast_asio_helpers__deallocate">deallocate</link></member>
+            <member><link linkend="beast.ref.beast_asio_helpers__invoke">invoke</link></member>
+            <member><link linkend="beast.ref.beast_asio_helpers__is_continuation">is_continuation</link></member>
+          </simplelist>
           <bridgehead renderas="sect3">Concepts</bridgehead>
           <simplelist type="vert" columns="1">
             <member><link linkend="beast.ref.streams.AsyncStream">AsyncStream</link></member>

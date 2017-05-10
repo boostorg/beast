@@ -1,0 +1,611 @@
+[/
+    Copyright (c) 2013-2017 Vinnie Falco (vinnie dot falco at gmail dot com)
+
+    Distributed under the Boost Software License, Version 1.0. (See accompanying
+    file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+]
+
+[section:core Core Concepts]
+
+[block '''
+<informaltable frame="all"><tgroup cols="1"><colspec colname="a"/><tbody><row><entry valign="top"><simplelist>
+  <member><link linkend="beast.core.concepts">Concepts</link></member>
+  <member><link linkend="beast.core.dynamic_buffer">DynamicBuffer</link></member>
+  <member><link linkend="beast.core.algorithms">Buffer Algorithms</link></member>
+  <member><link linkend="beast.core.async">Asynchronous Model</link></member>
+  <member><link linkend="beast.core.tutorial">Tutorial</link></member>
+</simplelist></entry></row></tbody></tgroup></informaltable>
+''']
+
+In addition to network protocols, Beast provides users with robust concepts,
+implementations, and algorithms which can be used to design higher level
+abstractions that interoperate with Boost.Asio. In the sections that follow
+are descriptions of these concepts, followed by algorithms using the concepts,
+and then concluding with a tutorial on developing composed asynchronous
+operations which are compatible with the Extensible Asynchronous Model provided
+in Boost.Asio, __N3747__, and __N4588__.
+
+
+
+[section:concepts Concepts]
+
+Beast provides template metaprogramming functions to allow users to perform
+concept checks on parameters, preventing undefined or illegal use. These trait
+traits are used in the implementation of the library and part of its public
+interface so users may build on the library using the same features. Use of
+concept checks benefit users by providing accurate, concise compilation error
+diagnostics.
+
+[table Type Traits
+[[Name][Description]]
+[[
+    [link beast.ref.has_get_io_service `has_get_io_service`]
+][
+    Determine if the `get_io_service` member function is present with the
+    correct signature.
+]]
+[[
+    [link beast.ref.is_async_read_stream `is_async_read_stream`]
+][
+    Determine if a type meets the requirements of __AsyncReadStream__.
+]]
+[[
+    [link beast.ref.is_async_stream `is_async_stream`]
+][
+    Determine if a type meets the requirements of both __AsyncReadStream__
+    and __AsyncWriteStream__.
+]]
+[[
+    [link beast.ref.is_async_write_stream `is_async_write_stream`]
+][
+    Determine if a type meets the requirements of __AsyncWriteStream__.
+]]
+[[
+    [link beast.ref.is_completion_handler `is_completion_handler`]
+][
+    Determine if a type meets the requirements of __CompletionHandler__,
+    and is callable with a specified signature.
+]]
+[[
+    [link beast.ref.is_const_buffer_sequence `is_const_buffer_sequence`]
+][
+    Determine if a type meets the requirements of __ConstBufferSequence__.
+]]
+[[
+    [link beast.ref.is_dynamic_buffer `is_dynamic_buffer`]
+][
+    Determine if a type meets the requirements of __DynamicBuffer__.
+]]
+[[
+    [link beast.ref.is_mutable_buffer_sequence `is_mutable_buffer_sequence`]
+][
+    Determine if a type meets the requirements of __MutableBufferSequence__.
+]]
+[[
+    [link beast.ref.is_sync_read_stream `is_sync_read_stream`]
+][
+    Determine if a type meets the requirements of __SyncReadStream__.
+]]
+[[
+    [link beast.ref.is_sync_stream `is_sync_stream`]
+][
+    Determine if a type meets the requirements of both __SyncReadStream__
+    and __SyncWriteStream__.
+]]
+[[
+    [link beast.ref.is_sync_write_stream `is_sync_write_stream`]
+][
+    Determine if a type meets the requirements of __SyncWriteStream__.
+]]
+]
+
+[endsect]
+
+
+
+
+[section:dynamic_buffer DynamicBuffer]
+
+The networking technical specification described in __N4588__ provides a
+concept called a __DynamicBuffer__. Instances of this concept define
+an output area expressed as a __MutableBufferSequence__ and an input area
+expressed as a __ConstBufferSequence__. Octets may be moved from the output
+area to the input area through a structured interface, and later consumed
+from the input area when the data is no longer needed. Beast adopts this
+concept by providing a concise definition taken directly from the technical
+specification and using it as the interface for operations which require
+dynamically sized buffers. Several classes are provided which implement the
+dynamic buffer concept using various strategies:
+
+[table Dynamic buffer implementations
+[[Name][Description]]
+[[
+    [link beast.ref.multi_buffer `multi_buffer`]
+    [link beast.ref.basic_multi_buffer `basic_multi_buffer`]
+][
+    Uses a sequence of one or more character arrays of varying sizes.
+    Additional character array objects are appended to the sequence to
+    accommodate changes in the size of the character sequence. The basic
+    container supports the standard allocator model.
+]]
+[[
+    [link beast.ref.flat_buffer `flat_buffer`]
+    [link beast.ref.basic_flat_buffer `basic_flat_buffer`]
+][
+    Guarantees that input and output areas are buffer sequences with
+    length one. Upon construction an optional upper limit to the total
+    size of the input and output areas may be set. The basic container
+    supports the standard allocator model.
+]]
+[[
+    [link beast.ref.static_buffer `static_buffer`]
+    [link beast.ref.static_buffer `static_buffer_n`]
+][
+    Provides the facilities of a dynamic buffer, subject to an upper
+    limit placed on the total size of the input and output areas defined
+    by a constexpr template parameter. The storage for the sequences are
+    kept in the class; the implementation does not perform heap allocations.
+]]
+[[
+    [link beast.ref.buffers_adapter `buffers_adapter`]
+][
+    This wrapper adapts any __MutableBufferSequence__ into a
+    __DynamicBuffer__ with an upper limit on the total size of the input and
+    output areas equal to the size of the underlying mutable buffer sequence.
+    The implementation does not perform heap allocations.
+]]
+]
+
+[endsect]
+
+
+
+[section:algorithms Buffer Algorithms]
+
+Beast provides a collection of algorithms to work on __ConstBufferSequence__
+or __MutableBufferSequence__ objects. These algorithms allow composition of
+new algorithms which work on any objects meeting the buffer sequence
+requirements, in an efficient way: no memory allocations are performed;
+instead, the algorithms implement lightweight iterators over the existing
+underlying memory, whose lifetime is retained by the caller.
+
+[table Buffer algorithms
+[[Name][Description]]
+[[
+    [link beast.ref.buffer_cat `buffer_cat`]
+][
+    The functions returns a new buffer sequence which, when iterated,
+    traverses the sequence which would be formed if all of the input buffer
+    sequences were concatenated. This powerful function allows multiple calls
+    to a stream's `write_some` function to be combined into one, eliminating
+    expensive system calls.
+]]
+[[
+    [link beast.ref.consuming_buffers `consuming_buffers`]
+][
+    This class wraps the underlying memory of an existing buffer sequence
+    and presents a suffix of the original sequence. The length of the suffix
+    may be progressively shortened. This lets callers work with sequential
+    increments of a buffer sequence.
+]]
+[[
+    [link beast.ref.prepare_buffer `prepare_buffer`]
+    [link beast.ref.prepare_buffers `prepare_buffers`]
+][
+    These functions return a new buffer sequence which wraps the underlying
+    memory of an existing buffer sequence, but with a smaller size. This
+    lets callers work with a prefix of a buffer sequence.
+]]
+]
+
+[endsect]
+
+
+
+[section:async Asynchronous Model]
+
+Asynchronous operations are started by calling a free function or member
+function known as an ['asynchronous initiation function]. The initiation
+function accepts parameters specific to the operation as well as a "completion
+token." This token is either a completion handler, or another type allowing for
+customization of how the result of the asynchronous operation is conveyed to
+callers. Boost.Asio allows the special completion tokens __use_future__ and
+objects of type __yield_context__ to allow callers to specify the use of futures
+and coroutines respectively. This system, where the return value and method of
+indicating completion may be customize at the call site of the asynchronous
+initiation function, is known as the ['Extensible Asynchronous Model] described
+in __N3747__, and built-in to __N4588__.
+
+[note
+    A full explanation of completion handlers, the Extensible Asynchronous
+    Model and how Boost.Asio's asynchronous interfaces are used is beyond the
+    scope of this document. Readers should consult the Boost.Asio documentation
+    for a comprehensive treatment.
+]
+
+Since Beast is low level, authors of libraries may wish to create higher level
+interfaces using the primitives found in this library. Non-trivial applications
+will want to provide their own asychronous initiation functions which perform
+a series of other, intermediate asynchronous operations before invoking the
+final completion handler. The set of intermediate actions produced by calling
+an initiation function is known as a ['composed operation]. To ensure full
+interoperability and well-defined behavior, Boost.Asio imposes requirements on
+the implementation of composed operations. Beast provides a number of useful
+classes and macros to facilitate the development of composed operations and
+the associated asynchronous initiation functions used to launch them.
+
+[table Asynchronous Helpers
+[[Name][Description]]
+[[
+    [link beast.ref.handler_type `handler_type`]
+][
+    This template alias converts a completion token and signature to the
+    correct completion handler type. It is used in the implementation of
+    asynchronous initiation functions to meet the requirements of the
+    Extensible Asynchronous Model.
+]]
+[[
+    [link beast.ref.async_return_type `async_return_type`]
+][
+    This template alias determines the return value of an asynchronous
+    initiation function given the completion token and signature. It is used
+    by asynchronous initiation functions to meet the requirements of the
+    Extensible Asynchronous Model.
+]]
+[[
+    [link beast.ref.async_completion `async_completion`]
+][
+    This class aggregates the completion handler customization point and
+    the asynchronous initiation function return value customization point
+    into a single object which exposes the appropriate output types for the
+    given input types, and also contains boilerplate that is necessary to
+    implement an initiation function using the Extensible Model.
+]]
+[[
+    [link beast.ref.handler_alloc `handler_alloc`]
+][
+    This class meets the requirements of [*Allocator], and uses any custom
+    memory allocation and deallocation hooks associated with a given handler.
+    It is useful for when a composed operation requires temporary dynamic
+    allocations to achieve its result. Memory allocated using this allocator
+    must be freed before the final completion handler is invoked.
+]]
+[[
+    [link beast.ref.handler_ptr `handler_ptr`]
+][
+    This is a smart pointer container used to manage the internal state of a
+    composed operation. It is useful when the state is non trivial. For example
+    when the state has non-copyable or expensive to copy types. The container
+    takes ownership of the final completion handler, and provides boilerplate
+    to invoke the final handler in a way that also deletes the internal state.
+    The internal state is allocated using the final completion handler's
+    associated allocator, benefiting from all handler memory management
+    optimizations transparently.
+]]
+[[
+    [link beast.ref.bind_handler `bind_handler`]
+][
+    This function returns a new, nullary completion handler which when
+    invoked with no arguments invokes the original completion handler with a
+    list of bound arguments. The invocation is made from the same implicit
+    or explicit strand as that which would be used to invoke the original
+    handler. This is accomplished by using the correct overload of
+    `asio_handler_invoke` associated with the original completion handler.
+
+]]
+]
+
+When implementing composed operations it is necessary to provide hooks for
+the composed operation which forward the hook calls to the hooks associated
+with the final completion handler. These calls must be made from a namespace
+that does not include overloads of the hook functions, since they depend on
+argument dependent lookup to resolve. Beast provides a set of public helper
+functions to invoke these hooks. These hooks are all located in the
+`beast_asio_helpers` namespace rather than the `beast` namespace:
+
+[table Handler Hooks
+[[Name][Description]]
+[[
+    [link beast.ref.beast_asio_helpers__allocate `allocate`]
+][
+    Allocation function for a handler. Asynchronous operations may need to
+    allocate temporary objects. Since asynchronous operations have a handler
+    function object, these temporary objects can be said to be associated with
+    the handler.
+]]
+[[
+    [link beast.ref.beast_asio_helpers__deallocate `deallocate`]
+][
+    Deallocation function for a handler. The implementation guarantees that
+    the deallocation will occur before the associated handler is invoked, which
+    means the memory is ready to be reused for any new asynchronous operations
+    started by the handler.
+]]
+[[
+    [link beast.ref.beast_asio_helpers__invoke `invoke`]
+][
+    Invocation function for a handler. When asynchronous operations are
+    composed from other asynchronous operations, all intermediate handlers
+    should be invoked using the same method as the final handler. This is
+    required to ensure that user-defined objects are not accessed in a way
+    that may violate the guarantees. This hooking function ensures that the
+    invoked method used for the final handler is accessible at each
+    intermediate step.
+]]
+[[
+    [link beast.ref.beast_asio_helpers__is_continuation `is_continuation`]
+][
+    Continuation function for a handler. Asynchronous operations may represent
+    a continuation of the asynchronous control flow associated with the current
+    handler. The implementation can use this knowledge to optimise scheduling
+    of the handler.
+]]
+]
+
+[endsect]
+
+
+
+[section:tutorial Tutorial]
+
+To illustrate the usage of the asynchronous helpers in the core section of
+this library, we will develop a simple asynchronous composed operation called
+[*echo]. This operation will read up to the first newline on a stream, and
+then write the same line including the newline back on the stream.
+
+First we define the input parameters and results, then declare our initiation
+function. For our echo operation the only inputs are the stream and the
+completion token. The output is the error code which is usually included in
+all completion handler signatures.
+
+```
+    #include <beast/core.hpp>
+    #include <boost/asio.hpp>
+    #include <cstddef>
+    #include <memory>
+    #include <utility>
+
+    // Read a line and echo it back
+    //
+    template<class AsyncStream, class CompletionToken>
+    beast::async_return_type<CompletionToken, void(beast::error_code)>
+    async_echo(AsyncStream& stream, CompletionToken&& token)
+```
+
+Now that we have a declaration, we will define the body of the function. We
+want to achieve the following goals: perform static type checking on the input
+parameters, set up the return value as per __N3747__, and launch the composed
+operation by constructing the object and invoking it.
+
+```
+    template<class AsyncStream, class Handler>
+    class echo_op; // This is our composed operation implementation
+
+    // Read a line and echo it back
+    //
+    template<class AsyncStream, class CompletionToken>
+    beast::async_return_type<CompletionToken, void(beast::error_code)>
+    async_echo(AsyncStream& stream, CompletionToken&& token)
+    {
+        // Make sure stream meets the requirements. We use static_assert
+        // instead of letting the compiler generate several pages of hard
+        // to read error messages.
+        //
+        static_assert(beast::is_async_stream<AsyncStream>::value,
+            "AsyncStream requirements not met");
+
+        // This helper manages some of the handler's lifetime and
+        // uses the result and handler specializations associated with
+        // the completion token to help customize the return value.
+        //
+        beast::async_completion<CompletionToken, void(beast::error_code)> init{token};
+
+        // Create the composed operation and launch it. This is a constructor
+        // call followed by invocation of operator(). We use BEAST_HANDLER_TYPE
+        // to convert the completion token into the correct handler type,
+        // allowing user defined specializations of the async result template
+        // to take effect.
+        //
+        echo_op<AsyncStream, beast::handler_type<CompletionToken, void(beast::error_code)>>{
+            stream, init.completion_handler}(beast::error_code{}, 0);
+
+        // This hook lets the caller see a return value when appropriate.
+        // For example this might return std::future<error_code> if
+        // CompletionToken is boost::asio::use_future, or this might
+        // return an error code if CompletionToken specifies a coroutine.
+        //
+        return init.result.get();
+    }
+```
+
+The initiation function contains a few relatively simple parts. There is the
+customization of the return value type, static type checking, building the
+return value type using the helper, and creating and launching the composed
+operation object. The [*`echo_op`] object does most of the work here, and has
+a somewhat non-trivial structure. This structure is necessary to meet the
+stringent requirements of composed operations (described in more detail in
+the Boost.Asio documentation). We will touch on these requirements without
+explaining them in depth.
+
+First we will create boilerplate which is present in all composed operations
+written in this style:
+
+```
+    // This composed operation reads a line of input and echoes it back.
+    //
+    template<class AsyncStream, class Handler>
+    class echo_op
+    {
+        // This holds all of the state information required by the operation.
+        struct state
+        {
+            // The stream to read and write to
+            AsyncStream& stream;
+
+            // Indicates what step in the operation's state machine
+            // to perform next, starting from zero.
+            int step = 0;
+
+            // The buffer used to hold the input and output data.
+            // Note that we use a custom allocator for performance,
+            // this allows the implementation of the io_service to
+            // make efficient re-use of memory allocated by composed
+            // operations during continuations.
+            //
+            boost::asio::basic_streambuf<beast::handler_alloc<char, Handler>> buffer;
+
+            // handler_ptr requires that the first parameter to the
+            // contained object constructor is a reference to the
+            // managed final completion handler.
+            //
+            explicit state(Handler& handler, AsyncStream& stream_)
+                : stream(stream_)
+                , buffer((std::numeric_limits<std::size_t>::max)(),
+                    beast::handler_alloc<char, Handler>{handler})
+            {
+            }
+        };
+
+        // This smart pointer container allocates our state using the
+        // memory allocation hooks associated with the final completion
+        // handler, manages the lifetime of that handler for us, and
+        // enforces the destroy-before-invocation requirement on memory
+        // allocated using the hooks.
+        //
+        beast::handler_ptr<state, Handler> p_;
+
+    public:
+        // Boost.Asio requires that handlers are CopyConstructible.
+        // In some cases, it takes advantage of handlers that are
+        // MoveConstructible. This operation supports both.
+        //
+        echo_op(echo_op&&) = default;
+        echo_op(echo_op const&) = default;
+
+        // The constructor simply creates our state variables in
+        // the smart pointer container.
+        //
+        template<class DeducedHandler, class... Args>
+        echo_op(AsyncStream& stream, DeducedHandler&& handler)
+            : p_(std::forward<DeducedHandler>(handler), stream)
+        {
+        }
+
+        // Determines if the next asynchronous operation represents a
+        // continuation of the asynchronous flow of control associated
+        // with the final handler. If we are past step one, it means
+        // we have performed an asynchronous operation therefore any
+        // subsequent operation would represent a continuation.
+        // Otherwise, we propagate the handler's associated value of
+        // is_continuation. Getting this right means the implementation
+        // may schedule the invokation of the invoked functions more
+        // efficiently.
+        //
+        friend bool asio_handler_is_continuation(echo_op* op)
+        {
+            // This next call is structured to permit argument
+            // dependent lookup to take effect.
+            using boost::asio::asio_handler_is_continuation;
+
+            // Always use std::addressof to pass the pointer to the handler,
+            // otherwise an unwanted overload of operator& may be called instead.
+            return op->p_->step > 1 ||
+                asio_handler_is_continuation(std::addressof(op->p_.handler()));
+        }
+
+        // Handler hook forwarding. These free functions invoke the hooks
+        // associated with the final completion handler. In effect, they
+        // make the Asio implementation treat our composed operation the
+        // same way it would treat the final completion handler for the
+        // purpose of memory allocation and invocation.
+        //
+        // Our implementation just passes through the call to the hook
+        // associated with the final handler.
+
+        friend void* asio_handler_allocate(std::size_t size, echo_op* op)
+        {
+            using boost::asio::asio_handler_allocate;
+            return asio_handler_allocate(size, std::addressof(op->p_.handler()));
+        }
+
+        friend void asio_handler_deallocate(void* p, std::size_t size, echo_op* op)
+        {
+            using boost::asio::asio_handler_deallocate;
+            return asio_handler_deallocate(p, size, std::addressof(op->p_.handler()));
+        }
+
+        template<class Function>
+        friend void asio_handler_invoke(Function&& f, echo_op* op)
+        {
+            using boost::asio::asio_handler_invoke;
+            return asio_handler_invoke(f, std::addressof(op->p_.handler()));
+        }
+
+        // Our main entry point. This will get called as our
+        // intermediate operations complete. Definition below.
+        //
+        void operator()(beast::error_code ec, std::size_t bytes_transferred);
+    };
+```
+
+We have the common boilerplate for a composed operation and now we just need
+to implement the function call operator. Our strategy is to make our composed
+object meet the requirements of a completion handler by being copyable (also
+movable), and by providing the function call operator with the correct
+signature. Rather than using `std::bind` or `boost::bind`, which destroys
+the type information and therefore breaks the allocation and invocation
+hooks, we will simply pass `std::move(*this)` as the completion handler
+parameter for any operations that we initiate. For the move to work correctly,
+care must be taken to ensure that no access to data members are made after the
+move takes place. Here is the implementation of the function call operator for
+this echo operation:
+```
+    // We are callable with the signature void(error_code, bytes_transferred),
+    // allowing `*this` to be used as both a ReadHandler and a WriteHandler.
+    //
+    template<class AsyncStream, class Handler>
+    void echo_op<AsyncStream, Handler>::
+    operator()(beast::error_code ec, std::size_t bytes_transferred)
+    {
+        // Store a reference to our state. The address of the state won't
+        // change, and this solves the problem where dereferencing the
+        // data member is undefined after a move.
+        auto& p = *p_;
+
+        // Now perform the next step in the state machine
+        switch(ec ? 2 : p.step)
+        {
+            // initial entry
+            case 0:
+                // read up to the first newline
+                p.step = 1;
+                return boost::asio::async_read_until(p.stream, p.buffer, "\n", std::move(*this));
+
+            case 1:
+                // write everything back
+                p.step = 2;
+                return boost::asio::async_write(p.stream, p.buffer.data(), std::move(*this));
+
+            case 2:
+                break;
+        }
+
+        // Invoke the final handler. If we wanted to pass any arguments
+        // which come from our state, they would have to be moved to the
+        // stack first, since the `handler_ptr` guarantees that the state
+        // is destroyed before
+        // the handler is invoked.
+        //
+        p_.invoke(ec);
+        return;
+    }
+```
+
+A complete, runnable version of this example may be found in the examples
+directory.
+
+[endsect]
+
+
+
+[endsect]

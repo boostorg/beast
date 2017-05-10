@@ -9,8 +9,7 @@
 #define BEAST_ASYNC_COMPLETION_HPP
 
 #include <beast/config.hpp>
-#include <beast/core/handler_concepts.hpp>
-#include <beast/core/detail/type_traits.hpp>
+#include <beast/core/type_traits.hpp>
 #include <boost/asio/async_result.hpp>
 #include <boost/asio/handler_type.hpp>
 #include <type_traits>
@@ -18,11 +17,11 @@
 
 namespace beast {
 
-/** An interface for customising the behaviour of an initiating function.
+/** An interface for customising the behaviour of an asynchronous initiation function.
 
-    The async_result class is used for determining:
+    This class is used for determining:
     
-    @li the concrete completion handler type to be called at the end of the
+    @li The concrete completion handler type to be called at the end of the
     asynchronous operation;
     
     @li the initiating function return type; and
@@ -91,12 +90,6 @@ public:
     allows customization of the return type of the initiating function, and the
     function signature of the final handler.
 
-    @tparam CompletionToken A completion handler, or a user defined type
-    with specializations for customizing the return type (for example,
-    `boost::asio::use_future` or `boost::asio::yield_context`).
-
-    @tparam Signature The callable signature of the final completion handler.
-
     Example:
     @code
     ...
@@ -150,7 +143,7 @@ struct async_completion
         , result(completion_handler)
     {
         // CompletionToken is not invokable with the given signature
-        static_assert(is_CompletionHandler<
+        static_assert(is_completion_handler<
                 completion_handler_type, Signature>::value,
             "CompletionToken requirements not met: signature mismatch");
     }
@@ -167,37 +160,11 @@ struct async_completion
         CompletionToken>::type, Signature> result;
 };
 
-/** Convert a completion token to the correct completion handler type.
-
-    This helps asynchronous initiation functions to meet the
-    requirements of the Extensible Asynchronous Model.
-
-    @tparam CompletionToken Specifies the model used to obtain the result of
-    the asynchronous operation.
-
-    @tparam Signature The call signature for the completion handler type invoked
-    on completion of the asynchronous operation.
-
-    @see @ref async_completion, @ref async_return_type
-*/
 template<class CompletionToken, typename Signature>
 using handler_type = typename beast::async_result<
     typename std::decay<CompletionToken>::type,
         Signature>::completion_handler_type;
 
-/** Determine the return value of an asynchronous initiation function
-
-    This helps asynchronous initiation functions to meet the
-    requirements of the Extensible Asynchronous Model.
-
-    @tparam CompletionToken Specifies the model used to obtain the result of
-    the asynchronous operation.
-
-    @tparam Signature The call signature for the completion handler type invoked
-    on completion of the asynchronous operation.
-
-    @see @ref async_completion, @ref handler_type
-*/
 template<class CompletionToken, typename Signature>
 using async_return_type = typename beast::async_result<
     typename std::decay<CompletionToken>::type,

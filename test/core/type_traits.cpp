@@ -6,9 +6,12 @@
 //
 
 // Test that header file is self-contained.
-#include <beast/core/detail/type_traits.hpp>
+#include <beast/core/type_traits.hpp>
+
+#include <boost/asio/ip/tcp.hpp>
 
 namespace beast {
+
 namespace detail {
 
 namespace {
@@ -60,13 +63,8 @@ static_assert(! is_invocable<
 // get_lowest_layer
 //
 
-struct F1
-{
-};
-
-struct F2
-{
-};
+struct F1 {};
+struct F2 {};
 
 template<class F>
 struct F3
@@ -120,4 +118,61 @@ static_assert(std::is_same<
 } // (anonymous)
 
 } // detail
+
+//
+// buffer concepts
+//
+
+namespace {
+
+struct T {};
+
+static_assert(is_const_buffer_sequence<detail::ConstBufferSequence>::value, "");
+static_assert(! is_const_buffer_sequence<T>::value, "");
+
+static_assert(is_mutable_buffer_sequence<detail::MutableBufferSequence>::value, "");
+static_assert(! is_mutable_buffer_sequence<T>::value, "");
+
+} // (anonymous)
+
+//
+// handler concepts
+//
+
+namespace {
+
+struct H
+{
+    void operator()(int);
+};
+
+} // anonymous
+
+static_assert(is_completion_handler<H, void(int)>::value, "");
+static_assert(! is_completion_handler<H, void(void)>::value, "");
+
+//
+// stream concepts
+//
+
+//namespace {
+
+using stream_type = boost::asio::ip::tcp::socket;
+
+static_assert(has_get_io_service<stream_type>::value, "");
+static_assert(is_async_read_stream<stream_type>::value, "");
+static_assert(is_async_write_stream<stream_type>::value, "");
+static_assert(is_async_stream<stream_type>::value, "");
+static_assert(is_sync_read_stream<stream_type>::value, "");
+static_assert(is_sync_write_stream<stream_type>::value, "");
+static_assert(is_sync_stream<stream_type>::value, "");
+
+static_assert(! has_get_io_service<int>::value, "");
+static_assert(! is_async_read_stream<int>::value, "");
+static_assert(! is_async_write_stream<int>::value, "");
+static_assert(! is_sync_read_stream<int>::value, "");
+static_assert(! is_sync_write_stream<int>::value, "");
+
+//} // (anonymous)
+
 } // beast

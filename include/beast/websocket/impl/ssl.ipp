@@ -10,8 +10,8 @@
 
 #include <beast/core/async_result.hpp>
 #include <beast/core/handler_helpers.hpp>
-#include <beast/core/handler_concepts.hpp>
 #include <beast/core/handler_ptr.hpp>
+#include <beast/core/type_traits.hpp>
 
 namespace beast {
 namespace websocket {
@@ -139,7 +139,7 @@ async_teardown(teardown_tag,
     boost::asio::ssl::stream<AsyncStream>& stream,
         TeardownHandler&& handler)
 {
-    static_assert(beast::is_CompletionHandler<
+    static_assert(beast::is_completion_handler<
         TeardownHandler, void(error_code)>::value,
             "TeardownHandler requirements not met");
     detail::teardown_ssl_op<AsyncStream, typename std::decay<

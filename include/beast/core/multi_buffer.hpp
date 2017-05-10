@@ -19,7 +19,7 @@
 
 namespace beast {
 
-/** A @b `DynamicBuffer` that uses multiple buffers internally.
+/** A @b DynamicBuffer that uses multiple buffers internally.
 
     The implementation uses a sequence of one or more character arrays
     of varying sizes. Additional character array objects are appended to
@@ -315,15 +315,7 @@ private:
     debug_check() const;
 };
 
-/** A @b `DynamicBuffer` that uses multiple buffers internally.
-
-    The implementation uses a sequence of one or more character arrays
-    of varying sizes. Additional character array objects are appended to
-    the sequence to accommodate changes in the size of the character
-    sequence.
-
-    @note Meets the requirements of @b `DynamicBuffer`.
-*/
+/// A typical multi buffer
 using multi_buffer = basic_multi_buffer<std::allocator<char>>;
 
 } // beast

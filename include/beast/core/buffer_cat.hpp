@@ -34,8 +34,8 @@ namespace beast {
     @return A new buffer sequence that represents the concatenation of
     the input buffer sequences. This buffer sequence will be a
     @b MutableBufferSequence if each of the passed buffer sequences is
-    also a @b MutableBufferSequence, else the returned buffer sequence
-    will be a @b ConstBufferSequence.
+    also a @b MutableBufferSequence; otherwise the returned buffer
+    sequence will be a @b ConstBufferSequence.
 */
 #if BEAST_DOXYGEN
 template<class... BufferSequence>

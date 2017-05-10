@@ -301,7 +301,7 @@ void
 stream<NextLayer>::
 accept()
 {
-    static_assert(is_SyncStream<next_layer_type>::value,
+    static_assert(is_sync_stream<next_layer_type>::value,
         "SyncStream requirements not met");
     error_code ec;
     accept(ec);
@@ -315,7 +315,7 @@ void
 stream<NextLayer>::
 accept_ex(ResponseDecorator const& decorator)
 {
-    static_assert(is_SyncStream<next_layer_type>::value,
+    static_assert(is_sync_stream<next_layer_type>::value,
         "SyncStream requirements not met");
     static_assert(detail::is_ResponseDecorator<
         ResponseDecorator>::value,
@@ -331,7 +331,7 @@ void
 stream<NextLayer>::
 accept(error_code& ec)
 {
-    static_assert(is_SyncStream<next_layer_type>::value,
+    static_assert(is_sync_stream<next_layer_type>::value,
         "SyncStream requirements not met");
     reset();
     do_accept(&default_decorate_res, ec);
@@ -343,7 +343,7 @@ void
 stream<NextLayer>::
 accept_ex(ResponseDecorator const& decorator, error_code& ec)
 {
-    static_assert(is_SyncStream<next_layer_type>::value,
+    static_assert(is_sync_stream<next_layer_type>::value,
         "SyncStream requirements not met");
     static_assert(detail::is_ResponseDecorator<
         ResponseDecorator>::value,
@@ -358,7 +358,7 @@ void
 stream<NextLayer>::
 accept(ConstBufferSequence const& buffers)
 {
-    static_assert(is_SyncStream<next_layer_type>::value,
+    static_assert(is_sync_stream<next_layer_type>::value,
         "SyncStream requirements not met");
     static_assert(is_const_buffer_sequence<
         ConstBufferSequence>::value,
@@ -377,7 +377,7 @@ stream<NextLayer>::
 accept_ex(ConstBufferSequence const& buffers,
     ResponseDecorator const &decorator)
 {
-    static_assert(is_SyncStream<next_layer_type>::value,
+    static_assert(is_sync_stream<next_layer_type>::value,
         "SyncStream requirements not met");
     static_assert(is_const_buffer_sequence<
         ConstBufferSequence>::value,
@@ -397,7 +397,7 @@ void
 stream<NextLayer>::
 accept(ConstBufferSequence const& buffers, error_code& ec)
 {
-    static_assert(is_SyncStream<next_layer_type>::value,
+    static_assert(is_sync_stream<next_layer_type>::value,
         "SyncStream requirements not met");
     static_assert(is_const_buffer_sequence<
         ConstBufferSequence>::value,
@@ -419,7 +419,7 @@ stream<NextLayer>::
 accept_ex(ConstBufferSequence const& buffers,
     ResponseDecorator const& decorator, error_code& ec)
 {
-    static_assert(is_SyncStream<next_layer_type>::value,
+    static_assert(is_sync_stream<next_layer_type>::value,
         "SyncStream requirements not met");
     static_assert(is_const_buffer_sequence<
         ConstBufferSequence>::value,
@@ -442,7 +442,7 @@ void
 stream<NextLayer>::
 accept(http::header<true, Fields> const& req)
 {
-    static_assert(is_SyncStream<next_layer_type>::value,
+    static_assert(is_sync_stream<next_layer_type>::value,
         "SyncStream requirements not met");
     error_code ec;
     accept(req, ec);
@@ -457,7 +457,7 @@ stream<NextLayer>::
 accept_ex(http::header<true, Fields> const& req,
     ResponseDecorator const& decorator)
 {
-    static_assert(is_SyncStream<next_layer_type>::value,
+    static_assert(is_sync_stream<next_layer_type>::value,
         "SyncStream requirements not met");
     static_assert(detail::is_ResponseDecorator<
         ResponseDecorator>::value,
@@ -475,7 +475,7 @@ stream<NextLayer>::
 accept(http::header<true, Fields> const& req,
     error_code& ec)
 {
-    static_assert(is_SyncStream<next_layer_type>::value,
+    static_assert(is_sync_stream<next_layer_type>::value,
         "SyncStream requirements not met");
     reset();
     do_accept(req, &default_decorate_res, ec);
@@ -488,7 +488,7 @@ stream<NextLayer>::
 accept_ex(http::header<true, Fields> const& req,
     ResponseDecorator const& decorator, error_code& ec)
 {
-    static_assert(is_SyncStream<next_layer_type>::value,
+    static_assert(is_sync_stream<next_layer_type>::value,
         "SyncStream requirements not met");
     static_assert(detail::is_ResponseDecorator<
         ResponseDecorator>::value,
@@ -504,7 +504,7 @@ stream<NextLayer>::
 accept(http::header<true, Fields> const& req,
     ConstBufferSequence const& buffers)
 {
-    static_assert(is_SyncStream<next_layer_type>::value,
+    static_assert(is_sync_stream<next_layer_type>::value,
         "SyncStream requirements not met");
     static_assert(is_const_buffer_sequence<
         ConstBufferSequence>::value,
@@ -524,7 +524,7 @@ accept_ex(http::header<true, Fields> const& req,
     ConstBufferSequence const& buffers,
         ResponseDecorator const& decorator)
 {
-    static_assert(is_SyncStream<next_layer_type>::value,
+    static_assert(is_sync_stream<next_layer_type>::value,
         "SyncStream requirements not met");
     static_assert(is_const_buffer_sequence<
         ConstBufferSequence>::value,
@@ -545,7 +545,7 @@ stream<NextLayer>::
 accept(http::header<true, Fields> const& req,
     ConstBufferSequence const& buffers, error_code& ec)
 {
-    static_assert(is_SyncStream<next_layer_type>::value,
+    static_assert(is_sync_stream<next_layer_type>::value,
         "SyncStream requirements not met");
     static_assert(is_const_buffer_sequence<
         ConstBufferSequence>::value,
@@ -569,7 +569,7 @@ accept_ex(http::header<true, Fields> const& req,
         ResponseDecorator const& decorator,
             error_code& ec)
 {
-    static_assert(is_SyncStream<next_layer_type>::value,
+    static_assert(is_sync_stream<next_layer_type>::value,
         "SyncStream requirements not met");
     static_assert(is_const_buffer_sequence<
         ConstBufferSequence>::value,
@@ -595,7 +595,7 @@ async_return_type<
 stream<NextLayer>::
 async_accept(AcceptHandler&& handler)
 {
-    static_assert(is_AsyncStream<next_layer_type>::value,
+    static_assert(is_async_stream<next_layer_type>::value,
         "AsyncStream requirements requirements not met");
     async_completion<AcceptHandler,
         void(error_code)> init{handler};
@@ -614,7 +614,7 @@ stream<NextLayer>::
 async_accept_ex(ResponseDecorator const& decorator,
     AcceptHandler&& handler)
 {
-    static_assert(is_AsyncStream<next_layer_type>::value,
+    static_assert(is_async_stream<next_layer_type>::value,
         "AsyncStream requirements requirements not met");
     static_assert(detail::is_ResponseDecorator<
         ResponseDecorator>::value,
@@ -636,7 +636,7 @@ stream<NextLayer>::
 async_accept(ConstBufferSequence const& buffers,
     AcceptHandler&& handler)
 {
-    static_assert(is_AsyncStream<next_layer_type>::value,
+    static_assert(is_async_stream<next_layer_type>::value,
         "AsyncStream requirements requirements not met");
     static_assert(is_const_buffer_sequence<
         ConstBufferSequence>::value,
@@ -660,7 +660,7 @@ async_accept_ex(ConstBufferSequence const& buffers,
     ResponseDecorator const& decorator,
         AcceptHandler&& handler)
 {
-    static_assert(is_AsyncStream<next_layer_type>::value,
+    static_assert(is_async_stream<next_layer_type>::value,
         "AsyncStream requirements requirements not met");
     static_assert(is_const_buffer_sequence<
         ConstBufferSequence>::value,
@@ -685,7 +685,7 @@ stream<NextLayer>::
 async_accept(http::header<true, Fields> const& req,
     AcceptHandler&& handler)
 {
-    static_assert(is_AsyncStream<next_layer_type>::value,
+    static_assert(is_async_stream<next_layer_type>::value,
         "AsyncStream requirements requirements not met");
     async_completion<AcceptHandler,
         void(error_code)> init{handler};
@@ -707,7 +707,7 @@ stream<NextLayer>::
 async_accept_ex(http::header<true, Fields> const& req,
     ResponseDecorator const& decorator, AcceptHandler&& handler)
 {
-    static_assert(is_AsyncStream<next_layer_type>::value,
+    static_assert(is_async_stream<next_layer_type>::value,
         "AsyncStream requirements requirements not met");
     static_assert(detail::is_ResponseDecorator<
         ResponseDecorator>::value,
@@ -733,7 +733,7 @@ async_accept(http::header<true, Fields> const& req,
     ConstBufferSequence const& buffers,
         AcceptHandler&& handler)
 {
-    static_assert(is_AsyncStream<next_layer_type>::value,
+    static_assert(is_async_stream<next_layer_type>::value,
         "AsyncStream requirements requirements not met");
     static_assert(is_const_buffer_sequence<
         ConstBufferSequence>::value,
@@ -760,7 +760,7 @@ async_accept_ex(http::header<true, Fields> const& req,
         ResponseDecorator const& decorator,
             AcceptHandler&& handler)
 {
-    static_assert(is_AsyncStream<next_layer_type>::value,
+    static_assert(is_async_stream<next_layer_type>::value,
         "AsyncStream requirements requirements not met");
     static_assert(is_const_buffer_sequence<
         ConstBufferSequence>::value,

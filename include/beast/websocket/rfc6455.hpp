@@ -30,6 +30,21 @@ namespace websocket {
     the request should be routed to an instance of
     @ref websocket::stream.
 
+    @par Example
+    @code
+    void handle_connection(boost::asio::ip::tcp::socket& sock)
+    {
+        beast::flat_buffer buffer;
+        beast::http::request<beast::http::string_body> req;
+        beast::http::read(sock, buffer, req);
+        if(beast::websocket::is_upgrade(req))
+        {
+            beast::websocket::stream<decltype(sock)> ws{std::move(sock)};
+            ws.accept(req);
+        }
+    }
+    @endcode
+
     @param req The HTTP Request object to check.
 
     @return `true` if the request is a WebSocket Upgrade.

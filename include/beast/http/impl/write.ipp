@@ -12,12 +12,11 @@
 #include <beast/http/chunk_encode.hpp>
 #include <beast/core/buffer_cat.hpp>
 #include <beast/core/bind_handler.hpp>
-#include <beast/core/buffer_concepts.hpp>
 #include <beast/core/ostream.hpp>
 #include <beast/core/handler_helpers.hpp>
 #include <beast/core/handler_ptr.hpp>
-#include <beast/core/stream_concepts.hpp>
 #include <beast/core/multi_buffer.hpp>
+#include <beast/core/type_traits.hpp>
 #include <beast/core/detail/sync_ostream.hpp>
 #include <boost/asio/write.hpp>
 #include <condition_variable>
@@ -183,7 +182,7 @@ void
 write(SyncWriteStream& stream,
     header<isRequest, Fields> const& msg)
 {
-    static_assert(is_SyncWriteStream<SyncWriteStream>::value,
+    static_assert(is_sync_write_stream<SyncWriteStream>::value,
         "SyncWriteStream requirements not met");
     error_code ec;
     write(stream, msg, ec);
@@ -198,7 +197,7 @@ write(SyncWriteStream& stream,
     header<isRequest, Fields> const& msg,
         error_code& ec)
 {
-    static_assert(is_SyncWriteStream<SyncWriteStream>::value,
+    static_assert(is_sync_write_stream<SyncWriteStream>::value,
         "SyncWriteStream requirements not met");
     multi_buffer b;
     {
@@ -219,7 +218,7 @@ async_write(AsyncWriteStream& stream,
     header<isRequest, Fields> const& msg,
         WriteHandler&& handler)
 {
-    static_assert(is_AsyncWriteStream<AsyncWriteStream>::value,
+    static_assert(is_async_write_stream<AsyncWriteStream>::value,
         "AsyncWriteStream requirements not met");
     async_completion<WriteHandler,
         void(error_code)> init{handler};
@@ -565,7 +564,7 @@ void
 write(SyncWriteStream& stream,
     message<isRequest, Body, Fields> const& msg)
 {
-    static_assert(is_SyncWriteStream<SyncWriteStream>::value,
+    static_assert(is_sync_write_stream<SyncWriteStream>::value,
         "SyncWriteStream requirements not met");
     static_assert(is_Body<Body>::value,
         "Body requirements not met");
@@ -587,7 +586,7 @@ write(SyncWriteStream& stream,
     message<isRequest, Body, Fields> const& msg,
         error_code& ec)
 {
-    static_assert(is_SyncWriteStream<SyncWriteStream>::value,
+    static_assert(is_sync_write_stream<SyncWriteStream>::value,
         "SyncWriteStream requirements not met");
     static_assert(is_Body<Body>::value,
         "Body requirements not met");
@@ -647,7 +646,7 @@ async_write(AsyncWriteStream& stream,
     message<isRequest, Body, Fields> const& msg,
         WriteHandler&& handler)
 {
-    static_assert(is_AsyncWriteStream<AsyncWriteStream>::value,
+    static_assert(is_async_write_stream<AsyncWriteStream>::value,
         "AsyncWriteStream requirements not met");
     static_assert(is_Body<Body>::value,
         "Body requirements not met");
