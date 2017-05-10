@@ -31,7 +31,6 @@ unit-test core-tests :
     core/handler_ptr.cpp
     core/multi_buffer.cpp
     core/ostream.cpp
-    core/placeholders.cpp
     core/prepare_buffer.cpp
     core/prepare_buffers.cpp
     core/static_buffer.cpp

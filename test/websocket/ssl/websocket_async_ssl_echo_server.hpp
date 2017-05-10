@@ -8,7 +8,6 @@
 #ifndef WEBSOCKET_ASYNC_SSL_ECHO_SERVER_HPP
 #define WEBSOCKET_ASYNC_SSL_ECHO_SERVER_HPP
 
-#include <beast/core/placeholders.hpp>
 #include <beast/core/multi_buffer.hpp>
 #include <beast/websocket/ssl.hpp>
 #include <beast/websocket/stream.hpp>
@@ -141,7 +140,7 @@ public:
             return fail("listen", ec);
         acceptor_.async_accept(sock_, ep_,
             std::bind(&async_ssl_echo_server::on_accept, this,
-                beast::asio::placeholders::error));
+                std::placeholders::_1));
     }
 
 private:
@@ -299,7 +298,7 @@ private:
         connection{*this, ep_, std::move(sock_)}.run();
         acceptor_.async_accept(sock_, ep_,
             std::bind(&async_ssl_echo_server::on_accept, this,
-                beast::asio::placeholders::error));
+                std::placeholders::_1));
     }
 };
 

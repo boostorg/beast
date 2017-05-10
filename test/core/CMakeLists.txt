@@ -24,7 +24,6 @@ add_executable (core-tests
     handler_ptr.cpp
     multi_buffer.cpp
     ostream.cpp
-    placeholders.cpp
     prepare_buffer.cpp
     prepare_buffers.cpp
     static_buffer.cpp
