@@ -8,10 +8,9 @@
 #ifndef BEAST_HTTP_IMPL_BASIC_PARSER_IPP
 #define BEAST_HTTP_IMPL_BASIC_PARSER_IPP
 
-#include <beast/core/buffer_concepts.hpp>
+#include <beast/core/type_traits.hpp>
 #include <beast/core/detail/ci_char_traits.hpp>
 #include <beast/core/detail/clamp.hpp>
-#include <beast/core/detail/type_traits.hpp>
 #include <beast/http/error.hpp>
 #include <beast/http/rfc7230.hpp>
 #include <boost/asio/buffer.hpp>

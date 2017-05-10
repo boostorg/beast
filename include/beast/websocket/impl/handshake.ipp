@@ -14,7 +14,7 @@
 #include <beast/http/write.hpp>
 #include <beast/core/handler_helpers.hpp>
 #include <beast/core/handler_ptr.hpp>
-#include <beast/core/stream_concepts.hpp>
+#include <beast/core/type_traits.hpp>
 #include <boost/assert.hpp>
 #include <memory>
 
@@ -167,7 +167,7 @@ async_handshake(string_view const& host,
     string_view const& target,
         HandshakeHandler&& handler)
 {
-    static_assert(is_AsyncStream<next_layer_type>::value,
+    static_assert(is_async_stream<next_layer_type>::value,
         "AsyncStream requirements not met");
     async_completion<HandshakeHandler,
         void(error_code)> init{handler};
@@ -188,7 +188,7 @@ async_handshake(response_type& res,
         string_view const& target,
             HandshakeHandler&& handler)
 {
-    static_assert(is_AsyncStream<next_layer_type>::value,
+    static_assert(is_async_stream<next_layer_type>::value,
         "AsyncStream requirements not met");
     async_completion<HandshakeHandler,
         void(error_code)> init{handler};
@@ -209,7 +209,7 @@ async_handshake_ex(string_view const& host,
         RequestDecorator const& decorator,
             HandshakeHandler&& handler)
 {
-    static_assert(is_AsyncStream<next_layer_type>::value,
+    static_assert(is_async_stream<next_layer_type>::value,
         "AsyncStream requirements not met");
     static_assert(detail::is_RequestDecorator<
             RequestDecorator>::value,
@@ -234,7 +234,7 @@ async_handshake_ex(response_type& res,
             RequestDecorator const& decorator,
                 HandshakeHandler&& handler)
 {
-    static_assert(is_AsyncStream<next_layer_type>::value,
+    static_assert(is_async_stream<next_layer_type>::value,
         "AsyncStream requirements not met");
     static_assert(detail::is_RequestDecorator<
             RequestDecorator>::value,
@@ -254,7 +254,7 @@ stream<NextLayer>::
 handshake(string_view const& host,
     string_view const& target)
 {
-    static_assert(is_SyncStream<next_layer_type>::value,
+    static_assert(is_sync_stream<next_layer_type>::value,
         "SyncStream requirements not met");
     error_code ec;
     handshake(
@@ -270,7 +270,7 @@ handshake(response_type& res,
     string_view const& host,
         string_view const& target)
 {
-    static_assert(is_SyncStream<next_layer_type>::value,
+    static_assert(is_sync_stream<next_layer_type>::value,
         "SyncStream requirements not met");
     error_code ec;
     handshake(res, host, target, ec);
@@ -286,7 +286,7 @@ handshake_ex(string_view const& host,
     string_view const& target,
         RequestDecorator const& decorator)
 {
-    static_assert(is_SyncStream<next_layer_type>::value,
+    static_assert(is_sync_stream<next_layer_type>::value,
         "SyncStream requirements not met");
     static_assert(detail::is_RequestDecorator<
             RequestDecorator>::value,
@@ -306,7 +306,7 @@ handshake_ex(response_type& res,
         string_view const& target,
             RequestDecorator const& decorator)
 {
-    static_assert(is_SyncStream<next_layer_type>::value,
+    static_assert(is_sync_stream<next_layer_type>::value,
         "SyncStream requirements not met");
     static_assert(detail::is_RequestDecorator<
             RequestDecorator>::value,
@@ -323,7 +323,7 @@ stream<NextLayer>::
 handshake(string_view const& host,
     string_view const& target, error_code& ec)
 {
-    static_assert(is_SyncStream<next_layer_type>::value,
+    static_assert(is_sync_stream<next_layer_type>::value,
         "SyncStream requirements not met");
     do_handshake(nullptr,
         host, target, &default_decorate_req, ec);
@@ -337,7 +337,7 @@ handshake(response_type& res,
         string_view const& target,
             error_code& ec)
 {
-    static_assert(is_SyncStream<next_layer_type>::value,
+    static_assert(is_sync_stream<next_layer_type>::value,
         "SyncStream requirements not met");
     do_handshake(&res,
         host, target, &default_decorate_req, ec);
@@ -352,7 +352,7 @@ handshake_ex(string_view const& host,
         RequestDecorator const& decorator,
             error_code& ec)
 {
-    static_assert(is_SyncStream<next_layer_type>::value,
+    static_assert(is_sync_stream<next_layer_type>::value,
         "SyncStream requirements not met");
     static_assert(detail::is_RequestDecorator<
             RequestDecorator>::value,
@@ -371,7 +371,7 @@ handshake_ex(response_type& res,
             RequestDecorator const& decorator,
                 error_code& ec)
 {
-    static_assert(is_SyncStream<next_layer_type>::value,
+    static_assert(is_sync_stream<next_layer_type>::value,
         "SyncStream requirements not met");
     static_assert(detail::is_RequestDecorator<
             RequestDecorator>::value,

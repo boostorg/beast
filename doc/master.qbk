@@ -23,22 +23,25 @@
 [template indexterm1[term1] '''<indexterm><primary>'''[term1]'''</primary></indexterm>''']
 [template indexterm2[term1 term2] '''<indexterm><primary>'''[term1]'''</primary><secondary>'''[term2]'''</secondary></indexterm>''']
 
+[def __N3747__ [@http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3747.pdf [*N3747]]]
 [def __N4588__ [@http://cplusplus.github.io/networking-ts/draft.pdf [*N4588]]]
 [def __rfc6455__ [@https://tools.ietf.org/html/rfc6455 rfc6455]]
 [def __rfc7230__ [@https://tools.ietf.org/html/rfc7230 rfc7230]]
 
-[def __asio_handler_invoke__ [@http://www.boost.org/doc/libs/1_61_0/doc/html/boost_asio/reference/asio_handler_invoke.html `asio_handler_invoke`]]
-[def __asio_handler_allocate__ [@http://www.boost.org/doc/libs/1_61_0/doc/html/boost_asio/reference/asio_handler_allocate.html `asio_handler_allocate`]]
-[def __void_or_deduced__ [@http://www.boost.org/doc/libs/1_61_0/doc/html/boost_asio/reference/asynchronous_operations.html#boost_asio.reference.asynchronous_operations.return_type_of_an_initiating_function ['void-or-deduced]]]
+[def __asio_handler_invoke__ [@http://www.boost.org/doc/html/boost_asio/reference/asio_handler_invoke.html `asio_handler_invoke`]]
+[def __asio_handler_allocate__ [@http://www.boost.org/doc/html/boost_asio/reference/asio_handler_allocate.html `asio_handler_allocate`]]
+[def __void_or_deduced__ [@http://www.boost.org/doc/html/boost_asio/reference/asynchronous_operations.html#boost_asio.reference.asynchronous_operations.return_type_of_an_initiating_function ['void-or-deduced]]]
+[def __use_future__ [@http://www.boost.org/doc/html/boost_asio/reference/use_future_t.html `boost::asio::use_future`]]
+[def __yield_context__ [@http://www.boost.org/doc/html/boost_asio/reference/yield_context.html `boost::asio::yield_context`]]
 
-[def __AsyncReadStream__ [@http://www.boost.org/doc/libs/1_61_0/doc/html/boost_asio/reference/AsyncReadStream.html [*AsyncReadStream]]]
-[def __AsyncWriteStream__ [@http://www.boost.org/doc/libs/1_61_0/doc/html/boost_asio/reference/AsyncWriteStream.html [*AsyncWriteStream]]]
-[def __CompletionHandler__ [@http://www.boost.org/doc/libs/1_61_0/doc/html/boost_asio/reference/CompletionHandler.html [*CompletionHandler]]]
-[def __ConstBufferSequence__ [@http://www.boost.org/doc/libs/1_61_0/doc/html/boost_asio/reference/ConstBufferSequence.html [*ConstBufferSequence]]]
-[def __Handler__ [@http://www.boost.org/doc/libs/1_61_0/doc/html/boost_asio/reference/Handler.html [*Handler]]]
-[def __MutableBufferSequence__ [@http://www.boost.org/doc/libs/1_61_0/doc/html/boost_asio/reference/MutableBufferSequence.html [*MutableBufferSequence]]]
-[def __SyncReadStream__ [@http://www.boost.org/doc/libs/1_61_0/doc/html/boost_asio/reference/SyncReadStream.html [*SyncReadStream]]]
-[def __SyncWriteStream__ [@http://www.boost.org/doc/libs/1_61_0/doc/html/boost_asio/reference/SyncWriteStream.html [*SyncWriteStream]]]
+[def __AsyncReadStream__ [@http://www.boost.org/doc/html/boost_asio/reference/AsyncReadStream.html [*AsyncReadStream]]]
+[def __AsyncWriteStream__ [@http://www.boost.org/doc/html/boost_asio/reference/AsyncWriteStream.html [*AsyncWriteStream]]]
+[def __CompletionHandler__ [@http://www.boost.org/doc/html/boost_asio/reference/CompletionHandler.html [*CompletionHandler]]]
+[def __ConstBufferSequence__ [@http://www.boost.org/doc/html/boost_asio/reference/ConstBufferSequence.html [*ConstBufferSequence]]]
+[def __Handler__ [@http://www.boost.org/doc/html/boost_asio/reference/Handler.html [*Handler]]]
+[def __MutableBufferSequence__ [@http://www.boost.org/doc/html/boost_asio/reference/MutableBufferSequence.html [*MutableBufferSequence]]]
+[def __SyncReadStream__ [@http://www.boost.org/doc/html/boost_asio/reference/SyncReadStream.html [*SyncReadStream]]]
+[def __SyncWriteStream__ [@http://www.boost.org/doc/html/boost_asio/reference/SyncWriteStream.html [*SyncWriteStream]]]
 
 [def __Body__               [link beast.ref.Body [*`Body`]]]
 [def __DynamicBuffer__      [link beast.ref.DynamicBuffer [*DynamicBuffer]]]
@@ -61,6 +64,11 @@ provides implementations of the HTTP and WebSocket protocols.
     [link beast.overview Overview]
   ][
     An introduction with features, requirements, and credits.
+  ]]
+  [[
+    [link beast.core Core Concepts]
+  ][
+    Library-wide concepts, classes, functions, and traits.
   ]]
   [[
     [link beast.http Using HTTP]
@@ -96,6 +104,7 @@ provides implementations of the HTTP and WebSocket protocols.
 ]
 
 [include overview.qbk]
+[include core.qbk]
 [include http.qbk]
 [include websocket.qbk]
 [include examples.qbk]

@@ -10,9 +10,9 @@
 
 #include <beast/core/bind_handler.hpp>
 #include <beast/core/error.hpp>
-#include <beast/core/handler_concepts.hpp>
 #include <beast/core/handler_helpers.hpp>
 #include <beast/core/handler_ptr.hpp>
+#include <beast/core/type_traits.hpp>
 
 namespace beast {
 
@@ -164,12 +164,12 @@ async_write_some(ConstBufferSequence const& buffers,
         WriteHandler&& handler) ->
     async_return_type<WriteHandler, void(error_code)>
 {
-    static_assert(is_AsyncWriteStream<next_layer_type>::value,
+    static_assert(is_async_write_stream<next_layer_type>::value,
         "AsyncWriteStream requirements not met");
     static_assert(is_const_buffer_sequence<
         ConstBufferSequence>::value,
             "ConstBufferSequence requirements not met");
-    static_assert(is_CompletionHandler<WriteHandler,
+    static_assert(is_completion_handler<WriteHandler,
         void(error_code, std::size_t)>::value,
             "WriteHandler requirements not met");
     return next_layer_.async_write_some(buffers,
@@ -183,7 +183,7 @@ buffered_read_stream<Stream, DynamicBuffer>::
 read_some(
     MutableBufferSequence const& buffers)
 {
-    static_assert(is_SyncReadStream<next_layer_type>::value,
+    static_assert(is_sync_read_stream<next_layer_type>::value,
         "SyncReadStream requirements not met");
     static_assert(is_mutable_buffer_sequence<
         MutableBufferSequence>::value,
@@ -202,7 +202,7 @@ buffered_read_stream<Stream, DynamicBuffer>::
 read_some(MutableBufferSequence const& buffers,
     error_code& ec)
 {
-    static_assert(is_SyncReadStream<next_layer_type>::value,
+    static_assert(is_sync_read_stream<next_layer_type>::value,
         "SyncReadStream requirements not met");
     static_assert(is_mutable_buffer_sequence<
         MutableBufferSequence>::value,
@@ -232,7 +232,7 @@ async_read_some(MutableBufferSequence const& buffers,
         ReadHandler&& handler) ->
     async_return_type<ReadHandler, void(error_code)>
 {
-    static_assert(is_AsyncReadStream<next_layer_type>::value,
+    static_assert(is_async_read_stream<next_layer_type>::value,
         "Stream requirements not met");
     static_assert(is_mutable_buffer_sequence<
         MutableBufferSequence>::value,

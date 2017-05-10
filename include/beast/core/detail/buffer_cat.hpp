@@ -8,8 +8,7 @@
 #ifndef BEAST_DETAIL_BUFFER_CAT_HPP
 #define BEAST_DETAIL_BUFFER_CAT_HPP
 
-#include <beast/core/buffer_concepts.hpp>
-#include <beast/core/detail/type_traits.hpp>
+#include <beast/core/type_traits.hpp>
 #include <boost/asio/buffer.hpp>
 #include <cstdint>
 #include <iterator>

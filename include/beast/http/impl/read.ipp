@@ -15,7 +15,7 @@
 #include <beast/core/bind_handler.hpp>
 #include <beast/core/handler_helpers.hpp>
 #include <beast/core/handler_ptr.hpp>
-#include <beast/core/stream_concepts.hpp>
+#include <beast/core/type_traits.hpp>
 #include <boost/assert.hpp>
 #include <boost/optional.hpp>
 
@@ -192,7 +192,7 @@ read_some(
     DynamicBuffer& dynabuf,
     basic_parser<isRequest, isDirect, Derived>& parser)
 {
-    static_assert(is_SyncReadStream<SyncReadStream>::value,
+    static_assert(is_sync_read_stream<SyncReadStream>::value,
         "SyncReadStream requirements not met");
     static_assert(is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
@@ -216,7 +216,7 @@ read_some(
     basic_parser<isRequest, isDirect, Derived>& parser,
     error_code& ec)
 {
-    static_assert(is_SyncReadStream<SyncReadStream>::value,
+    static_assert(is_sync_read_stream<SyncReadStream>::value,
         "SyncReadStream requirements not met");
     static_assert(is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
@@ -234,7 +234,7 @@ read(
     DynamicBuffer& dynabuf,
     basic_parser<isRequest, isDirect, Derived>& parser)
 {
-    static_assert(is_SyncReadStream<SyncReadStream>::value,
+    static_assert(is_sync_read_stream<SyncReadStream>::value,
         "SyncReadStream requirements not met");
     static_assert(is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
@@ -256,7 +256,7 @@ read(
     basic_parser<isRequest, isDirect, Derived>& parser,
     error_code& ec)
 {
-    static_assert(is_SyncReadStream<SyncReadStream>::value,
+    static_assert(is_sync_read_stream<SyncReadStream>::value,
         "SyncReadStream requirements not met");
     static_assert(is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
@@ -282,7 +282,7 @@ read(
     DynamicBuffer& dynabuf,
     message<isRequest, Body, Fields>& msg)
 {
-    static_assert(is_SyncReadStream<SyncReadStream>::value,
+    static_assert(is_sync_read_stream<SyncReadStream>::value,
         "SyncReadStream requirements not met");
     static_assert(is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
@@ -310,7 +310,7 @@ read(
     message<isRequest, Body, Fields>& msg,
     error_code& ec)
 {
-    static_assert(is_SyncReadStream<SyncReadStream>::value,
+    static_assert(is_sync_read_stream<SyncReadStream>::value,
         "SyncReadStream requirements not met");
     static_assert(is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");

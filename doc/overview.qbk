@@ -43,7 +43,7 @@ Beast requires:
 * [*Boost.] Beast is built on Boost, especially Boost.Asio.
 * [*OpenSSL.] If using TLS/Secure sockets (optional).
 
-[note Tested compilers: msvc-14+, gcc 5+, clang 3.6+]
+[note Tested compilers: msvc-14+, gcc 4.8+, clang 3.6+]
 
 The library is [*header-only]. It is not necessary to add any .cpp files,
 or to add commands to your build script for building Beast. To link your

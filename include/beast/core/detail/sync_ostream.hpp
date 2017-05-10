@@ -8,8 +8,8 @@
 #ifndef BEAST_DETAIL_SYNC_OSTREAM_HPP
 #define BEAST_DETAIL_SYNC_OSTREAM_HPP
 
-#include <beast/core/buffer_concepts.hpp>
 #include <beast/core/error.hpp>
+#include <beast/core/type_traits.hpp>
 #include <boost/asio/buffer.hpp>
 #include <ostream>
 

@@ -25,6 +25,11 @@ namespace beast {
     of template functions receiving static stream buffer arguments in a
     deduced context, the signature of the receiving function should use
     @ref static_buffer.
+
+    When used with @ref static_buffer_n this implements a dynamic
+    buffer using no memory allocations.
+
+    @see @ref static_buffer_n
 */
 class static_buffer
 {
@@ -141,11 +146,15 @@ protected:
 
 /** A @b DynamicBuffer with a fixed size internal buffer.
 
+    This implements a dynamic buffer using no memory allocations.
+
     @tparam N The number of bytes in the internal buffer.
 
     @note To reduce the number of template instantiations when passing
     objects of this type in a deduced context, the signature of the
-    receiving function should use `static_buffer` instead.
+    receiving function should use @ref static_buffer instead.
+
+    @see @ref static_buffer
 */
 template<std::size_t N>
 class static_buffer_n
@@ -179,9 +188,10 @@ public:
 
     /** Reset the static buffer.
 
-        Postconditions:
-            The input sequence and output sequence are empty,
-            `max_size()` returns `N`.
+        @par Effects
+
+        The input sequence and output sequence are empty,
+        @ref max_size returns `N`.
     */
     void
     reset()

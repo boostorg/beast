@@ -10,13 +10,12 @@
 
 #include <beast/core/bind_handler.hpp>
 #include <beast/core/buffer_cat.hpp>
-#include <beast/core/buffer_concepts.hpp>
 #include <beast/core/consuming_buffers.hpp>
 #include <beast/core/handler_helpers.hpp>
 #include <beast/core/handler_ptr.hpp>
 #include <beast/core/prepare_buffer.hpp>
 #include <beast/core/static_buffer.hpp>
-#include <beast/core/stream_concepts.hpp>
+#include <beast/core/type_traits.hpp>
 #include <beast/core/detail/clamp.hpp>
 #include <beast/websocket/detail/frame.hpp>
 #include <boost/assert.hpp>
@@ -551,7 +550,7 @@ stream<NextLayer>::
 async_write_frame(bool fin,
     ConstBufferSequence const& bs, WriteHandler&& handler)
 {
-    static_assert(is_AsyncStream<next_layer_type>::value,
+    static_assert(is_async_stream<next_layer_type>::value,
         "AsyncStream requirements not met");
     static_assert(beast::is_const_buffer_sequence<
         ConstBufferSequence>::value,
@@ -570,7 +569,7 @@ void
 stream<NextLayer>::
 write_frame(bool fin, ConstBufferSequence const& buffers)
 {
-    static_assert(is_SyncStream<next_layer_type>::value,
+    static_assert(is_sync_stream<next_layer_type>::value,
         "SyncStream requirements not met");
     static_assert(beast::is_const_buffer_sequence<
         ConstBufferSequence>::value,
@@ -588,7 +587,7 @@ stream<NextLayer>::
 write_frame(bool fin,
     ConstBufferSequence const& buffers, error_code& ec)
 {
-    static_assert(is_SyncStream<next_layer_type>::value,
+    static_assert(is_sync_stream<next_layer_type>::value,
         "SyncStream requirements not met");
     static_assert(beast::is_const_buffer_sequence<
         ConstBufferSequence>::value,
@@ -900,7 +899,7 @@ async_return_type<
 stream<NextLayer>::
 async_write(ConstBufferSequence const& bs, WriteHandler&& handler)
 {
-    static_assert(is_AsyncStream<next_layer_type>::value,
+    static_assert(is_async_stream<next_layer_type>::value,
         "AsyncStream requirements not met");
     static_assert(beast::is_const_buffer_sequence<
         ConstBufferSequence>::value,
@@ -919,7 +918,7 @@ void
 stream<NextLayer>::
 write(ConstBufferSequence const& buffers)
 {
-    static_assert(is_SyncStream<next_layer_type>::value,
+    static_assert(is_sync_stream<next_layer_type>::value,
         "SyncStream requirements not met");
     static_assert(beast::is_const_buffer_sequence<
         ConstBufferSequence>::value,
@@ -936,7 +935,7 @@ void
 stream<NextLayer>::
 write(ConstBufferSequence const& buffers, error_code& ec)
 {
-    static_assert(is_SyncStream<next_layer_type>::value,
+    static_assert(is_sync_stream<next_layer_type>::value,
         "SyncStream requirements not met");
     static_assert(beast::is_const_buffer_sequence<
         ConstBufferSequence>::value,

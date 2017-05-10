@@ -8,7 +8,7 @@
 #ifndef BEAST_TEST_BUFFER_TEST_HPP
 #define BEAST_TEST_BUFFER_TEST_HPP
 
-#include <beast/core/buffer_concepts.hpp>
+#include <beast/core/type_traits.hpp>
 #include <boost/asio/buffer.hpp>
 #include <algorithm>
 #include <type_traits>

@@ -15,7 +15,7 @@
 #include <beast/core/bind_handler.hpp>
 #include <beast/core/handler_helpers.hpp>
 #include <beast/core/handler_ptr.hpp>
-#include <beast/core/stream_concepts.hpp>
+#include <beast/core/type_traits.hpp>
 #include <boost/assert.hpp>
 #include <boost/optional.hpp>
 
@@ -645,7 +645,7 @@ async_read_some(
     basic_parser<isRequest, isDirect, Derived>& parser,
     ReadHandler&& handler)
 {
-    static_assert(is_AsyncReadStream<AsyncReadStream>::value,
+    static_assert(is_async_read_stream<AsyncReadStream>::value,
         "AsyncReadStream requirements not met");
     static_assert(is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
@@ -667,7 +667,7 @@ async_read(
     basic_parser<isRequest, isDirect, Derived>& parser,
     ReadHandler&& handler)
 {
-    static_assert(is_AsyncReadStream<AsyncReadStream>::value,
+    static_assert(is_async_read_stream<AsyncReadStream>::value,
         "AsyncReadStream requirements not met");
     static_assert(is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
@@ -694,7 +694,7 @@ async_read(
     message<isRequest, Body, Fields>& msg,
     ReadHandler&& handler)
 {
-    static_assert(is_AsyncReadStream<AsyncReadStream>::value,
+    static_assert(is_async_read_stream<AsyncReadStream>::value,
         "AsyncReadStream requirements not met");
     static_assert(is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");

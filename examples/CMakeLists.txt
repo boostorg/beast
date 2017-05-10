@@ -5,6 +5,17 @@ GroupSources(include/beast beast)
 
 GroupSources(examples "/")
 
+add_executable (echo-op
+    ${BEAST_INCLUDES}
+    echo_op.cpp
+)
+
+if (NOT WIN32)
+    target_link_libraries(echo-op ${Boost_LIBRARIES} Threads::Threads)
+else()
+    target_link_libraries(echo-op ${Boost_LIBRARIES})
+endif()
+
 add_executable (http-crawl
     ${BEAST_INCLUDES}
     ${EXTRAS_INCLUDES}

@@ -19,7 +19,6 @@ unit-test core-tests :
     core/async_result.cpp
     core/bind_handler.cpp
     core/buffer_cat.cpp
-    core/buffer_concepts.cpp
     core/buffered_read_stream.cpp
     core/buffers_adapter.cpp
     core/clamp.cpp
@@ -27,19 +26,17 @@ unit-test core-tests :
     core/error.cpp
     core/flat_buffer.cpp
     core/handler_alloc.cpp
-    core/handler_concepts.cpp
     core/handler_ptr.cpp
     core/multi_buffer.cpp
     core/ostream.cpp
     core/prepare_buffer.cpp
     core/static_buffer.cpp
     core/static_string.cpp
-    core/stream_concepts.cpp
     core/string_view.cpp
+    core/type_traits.cpp
     core/base64.cpp
     core/empty_base_optimization.cpp
     core/sha1.cpp
-    core/type_traits.cpp
     ;
 
 unit-test http-tests :

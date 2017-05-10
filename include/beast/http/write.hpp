@@ -36,7 +36,7 @@ namespace http {
     this function will not return `boost::asio::error::eof`.
 
     @param stream The stream to which the data is to be written.
-    The type must support the @b `SyncWriteStream` concept.
+    The type must support the @b SyncWriteStream concept.
 
     @param msg The header to write.
 
@@ -66,7 +66,7 @@ write(SyncWriteStream& stream,
     this function will not return `boost::asio::error::eof`.
 
     @param stream The stream to which the data is to be written.
-    The type must support the @b `SyncWriteStream` concept.
+    The type must support the @b SyncWriteStream concept.
 
     @param msg The header to write.
 
@@ -101,7 +101,7 @@ write(SyncWriteStream& stream,
     this function will not return `boost::asio::error::eof`.
 
     @param stream The stream to which the data is to be written.
-    The type must support the @b `AsyncWriteStream` concept.
+    The type must support the @b AsyncWriteStream concept.
 
     @param msg The header to write. The object must remain valid
     at least until the completion handler is called; ownership is
@@ -148,7 +148,7 @@ async_write(AsyncWriteStream& stream,
     function will be `boost::asio::error::eof`.
 
     @param stream The stream to which the data is to be written.
-    The type must support the @b `SyncWriteStream` concept.
+    The type must support the @b SyncWriteStream concept.
 
     @param msg The message to write.
 
@@ -179,7 +179,7 @@ write(SyncWriteStream& stream,
     function will be `boost::asio::error::eof`.
 
     @param stream The stream to which the data is to be written.
-    The type must support the @b `SyncWriteStream` concept.
+    The type must support the @b SyncWriteStream concept.
 
     @param msg The message to write.
 
@@ -216,7 +216,7 @@ write(SyncWriteStream& stream,
     the error set to `boost::asio::error::eof`.
 
     @param stream The stream to which the data is to be written.
-    The type must support the @b `AsyncWriteStream` concept.
+    The type must support the @b AsyncWriteStream concept.
 
     @param msg The message to write. The object must remain valid
     at least until the completion handler is called; ownership is

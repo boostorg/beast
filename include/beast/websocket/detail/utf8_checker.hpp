@@ -8,9 +8,9 @@
 #ifndef BEAST_WEBSOCKET_DETAIL_UTF8_CHECKER_HPP
 #define BEAST_WEBSOCKET_DETAIL_UTF8_CHECKER_HPP
 
+#include <beast/core/type_traits.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/assert.hpp>
-#include <beast/core/buffer_concepts.hpp>
 #include <algorithm>
 #include <cstdint>
 
@@ -105,7 +105,8 @@ public:
 
 template<class _>
 void
-utf8_checker_t<_>::reset()
+utf8_checker_t<_>::
+reset()
 {
     need_ = 0;
     p_ = have_;
@@ -113,7 +114,8 @@ utf8_checker_t<_>::reset()
 
 template<class _>
 bool
-utf8_checker_t<_>::finish()
+utf8_checker_t<_>::
+finish()
 {
     auto const success = need_ == 0;
     reset();
@@ -123,7 +125,8 @@ utf8_checker_t<_>::finish()
 template<class _>
 template<class ConstBufferSequence>
 bool
-utf8_checker_t<_>::write(ConstBufferSequence const& bs)
+utf8_checker_t<_>::
+write(ConstBufferSequence const& bs)
 {
     static_assert(is_const_buffer_sequence<ConstBufferSequence>::value,
         "ConstBufferSequence requirements not met");
@@ -138,7 +141,8 @@ utf8_checker_t<_>::write(ConstBufferSequence const& bs)
 
 template<class _>
 bool
-utf8_checker_t<_>::write(std::uint8_t const* in, std::size_t size)
+utf8_checker_t<_>::
+write(std::uint8_t const* in, std::size_t size)
 {
     auto const valid =
         [](std::uint8_t const*& in)

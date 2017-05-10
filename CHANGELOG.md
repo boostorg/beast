@@ -1,6 +1,7 @@
 Version 41
 
 * Trim Appveyor matrix rows
+* Concept revision and documentation
 
 API Changes
 

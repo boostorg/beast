@@ -10,11 +10,9 @@
 
 #include <beast/config.hpp>
 #include <beast/core/async_result.hpp>
-#include <beast/core/buffer_concepts.hpp>
 #include <beast/core/error.hpp>
-#include <beast/core/stream_concepts.hpp>
 #include <beast/core/multi_buffer.hpp>
-#include <beast/core/detail/type_traits.hpp>
+#include <beast/core/type_traits.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/asio/io_service.hpp>
 #include <cstdint>
@@ -26,7 +24,7 @@ namespace beast {
 
     This wraps a @b Stream implementation so that calls to write are
     passed through to the underlying stream, while calls to read will
-    first consume the input sequence stored in a @b `DynamicBuffer` which
+    first consume the input sequence stored in a @b DynamicBuffer which
     is part of the object.
 
     The use-case for this class is different than that of the
@@ -292,7 +290,7 @@ public:
     std::size_t
     write_some(ConstBufferSequence const& buffers)
     {
-        static_assert(is_SyncWriteStream<next_layer_type>::value,
+        static_assert(is_sync_write_stream<next_layer_type>::value,
             "SyncWriteStream requirements not met");
         return next_layer_.write_some(buffers);
     }
@@ -314,7 +312,7 @@ public:
     write_some(ConstBufferSequence const& buffers,
         error_code& ec)
     {
-        static_assert(is_SyncWriteStream<next_layer_type>::value,
+        static_assert(is_sync_write_stream<next_layer_type>::value,
             "SyncWriteStream requirements not met");
         return next_layer_.write_some(buffers, ec);
     }

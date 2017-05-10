@@ -9,7 +9,7 @@
 #define BEAST_WRITE_OSTREAM_HPP
 
 #include <beast/config.hpp>
-#include <beast/core/buffer_concepts.hpp>
+#include <beast/core/type_traits.hpp>
 #include <beast/core/detail/ostream.hpp>
 #include <type_traits>
 #include <streambuf>
@@ -35,6 +35,8 @@ namespace beast {
 
     @param b An object meeting the requirements of @b ConstBufferSequence
     to be streamed. The implementation will make a copy of this object.
+    Ownership of the underlying memory is not transferred, the application
+    is still responsible for managing its lifetime.
 */
 template<class ConstBufferSequence>
 #if BEAST_DOXYGEN
@@ -68,11 +70,12 @@ buffers(ConstBufferSequence const& b)
     @param buffer An object meeting the requirements of @b DynamicBuffer
     into which the formatted output will be placed.
 
-    @return An object derived from `std::ostream` which directs output
-    into the specified dynamic buffer. Ownership of the dynamic buffer
-    is not transferred. The caller is responsible for ensuring the
-    dynamic buffer is not destroyed for the lifetime of the output
-    stream.
+    @return An object derived from `std::ostream` which redirects output
+    The wrapped dynamic buffer is not modified, a copy is made instead.
+    Ownership of the underlying memory is not transferred, the application
+    is still responsible for managing its lifetime. The caller is
+    responsible for ensuring the dynamic buffer is not destroyed for the
+    lifetime of the output stream.
 */
 template<class DynamicBuffer>
 #if BEAST_DOXYGEN

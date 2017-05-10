@@ -11,7 +11,7 @@
 #include <beast/core/handler_helpers.hpp>
 #include <beast/core/handler_ptr.hpp>
 #include <beast/core/static_buffer.hpp>
-#include <beast/core/stream_concepts.hpp>
+#include <beast/core/type_traits.hpp>
 #include <memory>
 
 namespace beast {
@@ -202,7 +202,7 @@ async_return_type<
 stream<NextLayer>::
 async_close(close_reason const& cr, CloseHandler&& handler)
 {
-    static_assert(is_AsyncStream<next_layer_type>::value,
+    static_assert(is_async_stream<next_layer_type>::value,
         "AsyncStream requirements not met");
     async_completion<CloseHandler,
         void(error_code)> init{handler};
@@ -217,7 +217,7 @@ void
 stream<NextLayer>::
 close(close_reason const& cr)
 {
-    static_assert(is_SyncStream<next_layer_type>::value,
+    static_assert(is_sync_stream<next_layer_type>::value,
         "SyncStream requirements not met");
     error_code ec;
     close(cr, ec);
@@ -230,7 +230,7 @@ void
 stream<NextLayer>::
 close(close_reason const& cr, error_code& ec)
 {
-    static_assert(is_SyncStream<next_layer_type>::value,
+    static_assert(is_sync_stream<next_layer_type>::value,
         "SyncStream requirements not met");
     BOOST_ASSERT(! wr_close_);
     wr_close_ = true;

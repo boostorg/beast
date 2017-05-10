@@ -8,7 +8,7 @@
 #ifndef BEAST_IMPL_CONSUMING_BUFFERS_IPP
 #define BEAST_IMPL_CONSUMING_BUFFERS_IPP
 
-#include <beast/core/buffer_concepts.hpp>
+#include <beast/core/type_traits.hpp>
 #include <algorithm>
 #include <cstdint>
 #include <iterator>

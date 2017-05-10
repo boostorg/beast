@@ -16,9 +16,9 @@
 namespace beast {
 namespace http {
 
-/** A message body represented by a @b `DynamicBuffer`
+/** A message body represented by a @b DynamicBuffer
 
-    Meets the requirements of @b `Body`.
+    Meets the requirements of @b Body.
 */
 template<class DynamicBuffer>
 struct basic_dynamic_body
@@ -113,7 +113,7 @@ private:
 
 /** A dynamic message body represented by a @ref multi_buffer
 
-    Meets the requirements of @b `Body`.
+    Meets the requirements of @b Body.
 */
 using dynamic_body = basic_dynamic_body<multi_buffer>;
 

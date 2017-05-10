@@ -9,12 +9,11 @@
 #define BEAST_WEBSOCKET_IMPL_READ_IPP
 
 #include <beast/websocket/teardown.hpp>
-#include <beast/core/buffer_concepts.hpp>
 #include <beast/core/handler_helpers.hpp>
 #include <beast/core/handler_ptr.hpp>
 #include <beast/core/prepare_buffer.hpp>
 #include <beast/core/static_buffer.hpp>
-#include <beast/core/stream_concepts.hpp>
+#include <beast/core/type_traits.hpp>
 #include <beast/core/detail/clamp.hpp>
 #include <boost/assert.hpp>
 #include <boost/optional.hpp>
@@ -692,7 +691,7 @@ stream<NextLayer>::
 async_read_frame(frame_info& fi,
     DynamicBuffer& dynabuf, ReadHandler&& handler)
 {
-    static_assert(is_AsyncStream<next_layer_type>::value,
+    static_assert(is_async_stream<next_layer_type>::value,
         "AsyncStream requirements requirements not met");
     static_assert(beast::is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
@@ -710,7 +709,7 @@ void
 stream<NextLayer>::
 read_frame(frame_info& fi, DynamicBuffer& dynabuf)
 {
-    static_assert(is_SyncStream<next_layer_type>::value,
+    static_assert(is_sync_stream<next_layer_type>::value,
         "SyncStream requirements not met");
     static_assert(beast::is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
@@ -726,7 +725,7 @@ void
 stream<NextLayer>::
 read_frame(frame_info& fi, DynamicBuffer& dynabuf, error_code& ec)
 {
-    static_assert(is_SyncStream<next_layer_type>::value,
+    static_assert(is_sync_stream<next_layer_type>::value,
         "SyncStream requirements not met");
     static_assert(beast::is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
@@ -1104,7 +1103,7 @@ stream<NextLayer>::
 async_read(opcode& op,
     DynamicBuffer& dynabuf, ReadHandler&& handler)
 {
-    static_assert(is_AsyncStream<next_layer_type>::value,
+    static_assert(is_async_stream<next_layer_type>::value,
         "AsyncStream requirements requirements not met");
     static_assert(beast::is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
@@ -1122,7 +1121,7 @@ void
 stream<NextLayer>::
 read(opcode& op, DynamicBuffer& dynabuf)
 {
-    static_assert(is_SyncStream<next_layer_type>::value,
+    static_assert(is_sync_stream<next_layer_type>::value,
         "SyncStream requirements not met");
     static_assert(beast::is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
@@ -1138,7 +1137,7 @@ void
 stream<NextLayer>::
 read(opcode& op, DynamicBuffer& dynabuf, error_code& ec)
 {
-    static_assert(is_SyncStream<next_layer_type>::value,
+    static_assert(is_sync_stream<next_layer_type>::value,
         "SyncStream requirements not met");
     static_assert(beast::is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
