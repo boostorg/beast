@@ -5,10 +5,9 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#ifndef BEAST_DETAIL_PREPARED_BUFFERS_HPP
-#define BEAST_DETAIL_PREPARED_BUFFERS_HPP
+#ifndef BEAST_DETAIL_PREPARE_BUFFER_HPP
+#define BEAST_DETAIL_PREPARE_BUFFER_HPP
 
-#include <beast/core/prepare_buffer.hpp>
 #include <boost/asio/buffer.hpp>
 #include <algorithm>
 #include <cstdint>
@@ -20,6 +19,28 @@
 namespace beast {
 namespace detail {
 
+inline
+boost::asio::const_buffer
+prepare_buffer(std::size_t n,
+    boost::asio::const_buffer buffer)
+{
+    using boost::asio::buffer_cast;
+    using boost::asio::buffer_size;
+    return { buffer_cast<void const*>(buffer),
+        (std::min)(n, buffer_size(buffer)) };
+}
+
+inline
+boost::asio::mutable_buffer
+prepare_buffer(std::size_t n,
+    boost::asio::mutable_buffer buffer)
+{
+    using boost::asio::buffer_cast;
+    using boost::asio::buffer_size;
+    return { buffer_cast<void*>(buffer),
+        (std::min)(n, buffer_size(buffer)) };
+}
+
 /** A buffer sequence adapter that shortens the sequence size.
 
     The class adapts a buffer sequence to efficiently represent
@@ -29,7 +50,7 @@ namespace detail {
     @tparam BufferSequence The buffer sequence to adapt.
 */
 template<class BufferSequence>
-class prepared_buffers
+class prepare_buffers_helper
 {
     using iter_type =
         typename BufferSequence::const_iterator;
@@ -40,7 +61,7 @@ class prepared_buffers
     std::size_t size_;
 
     template<class Deduced>
-    prepared_buffers(Deduced&& other,
+    prepare_buffers_helper(Deduced&& other,
             std::size_t nback, std::size_t nend)
         : bs_(std::forward<Deduced>(other).bs_)
         , back_(std::next(bs_.begin(), nback))
@@ -71,16 +92,16 @@ public:
 #endif
 
     /// Move constructor.
-    prepared_buffers(prepared_buffers&&);
+    prepare_buffers_helper(prepare_buffers_helper&&);
 
     /// Copy constructor.
-    prepared_buffers(prepared_buffers const&);
+    prepare_buffers_helper(prepare_buffers_helper const&);
 
     /// Move assignment.
-    prepared_buffers& operator=(prepared_buffers&&);
+    prepare_buffers_helper& operator=(prepare_buffers_helper&&);
 
     /// Copy assignment.
-    prepared_buffers& operator=(prepared_buffers const&);
+    prepare_buffers_helper& operator=(prepare_buffers_helper const&);
 
     /** Construct a shortened buffer sequence.
 
@@ -93,7 +114,7 @@ public:
         the sequence will be made, but ownership of the underlying
         memory is not transferred.
     */
-    prepared_buffers(std::size_t n, BufferSequence const& buffers);
+    prepare_buffers_helper(std::size_t n, BufferSequence const& buffers);
 
     /// Get a bidirectional iterator to the first element.
     const_iterator
@@ -105,14 +126,14 @@ public:
 };
 
 template<class BufferSequence>
-class prepared_buffers<BufferSequence>::const_iterator
+class prepare_buffers_helper<BufferSequence>::const_iterator
 {
-    friend class prepared_buffers<BufferSequence>;
+    friend class prepare_buffers_helper<BufferSequence>;
 
     using iter_type =
         typename BufferSequence::const_iterator;
 
-    prepared_buffers const* b_ = nullptr;
+    prepare_buffers_helper const* b_ = nullptr;
     typename BufferSequence::const_iterator it_;
 
 public:
@@ -188,7 +209,7 @@ public:
     }
 
 private:
-    const_iterator(prepared_buffers const& b,
+    const_iterator(prepare_buffers_helper const& b,
             bool at_end)
         : b_(&b)
         , it_(at_end ? b.end_ : b.bs_.begin())
@@ -198,7 +219,7 @@ private:
 
 template<class BufferSequence>
 void
-prepared_buffers<BufferSequence>::
+prepare_buffers_helper<BufferSequence>::
 setup(std::size_t n)
 {
     for(end_ = bs_.begin(); end_ != bs_.end(); ++end_)
@@ -218,7 +239,7 @@ setup(std::size_t n)
 }
 
 template<class BufferSequence>
-prepared_buffers<BufferSequence>::const_iterator::
+prepare_buffers_helper<BufferSequence>::const_iterator::
 const_iterator(const_iterator&& other)
     : b_(other.b_)
     , it_(std::move(other.it_))
@@ -226,7 +247,7 @@ const_iterator(const_iterator&& other)
 }
 
 template<class BufferSequence>
-prepared_buffers<BufferSequence>::const_iterator::
+prepare_buffers_helper<BufferSequence>::const_iterator::
 const_iterator(const_iterator const& other)
     : b_(other.b_)
     , it_(other.it_)
@@ -235,7 +256,7 @@ const_iterator(const_iterator const& other)
 
 template<class BufferSequence>
 auto
-prepared_buffers<BufferSequence>::const_iterator::
+prepare_buffers_helper<BufferSequence>::const_iterator::
 operator=(const_iterator&& other) ->
     const_iterator&
 {
@@ -246,7 +267,7 @@ operator=(const_iterator&& other) ->
 
 template<class BufferSequence>
 auto
-prepared_buffers<BufferSequence>::const_iterator::
+prepare_buffers_helper<BufferSequence>::const_iterator::
 operator=(const_iterator const& other) ->
     const_iterator&
 {
@@ -258,18 +279,18 @@ operator=(const_iterator const& other) ->
 }
 
 template<class BufferSequence>
-prepared_buffers<BufferSequence>::
-prepared_buffers(prepared_buffers&& other)
-    : prepared_buffers(std::move(other),
+prepare_buffers_helper<BufferSequence>::
+prepare_buffers_helper(prepare_buffers_helper&& other)
+    : prepare_buffers_helper(std::move(other),
         std::distance<iter_type>(other.bs_.begin(), other.back_),
         std::distance<iter_type>(other.bs_.begin(), other.end_))
 {
 }
 
 template<class BufferSequence>
-prepared_buffers<BufferSequence>::
-prepared_buffers(prepared_buffers const& other)
-    : prepared_buffers(other,
+prepare_buffers_helper<BufferSequence>::
+prepare_buffers_helper(prepare_buffers_helper const& other)
+    : prepare_buffers_helper(other,
         std::distance<iter_type>(other.bs_.begin(), other.back_),
         std::distance<iter_type>(other.bs_.begin(), other.end_))
 {
@@ -277,9 +298,9 @@ prepared_buffers(prepared_buffers const& other)
 
 template<class BufferSequence>
 auto
-prepared_buffers<BufferSequence>::
-operator=(prepared_buffers&& other) ->
-    prepared_buffers&
+prepare_buffers_helper<BufferSequence>::
+operator=(prepare_buffers_helper&& other) ->
+    prepare_buffers_helper&
 {
     auto const nback = std::distance<iter_type>(
         other.bs_.begin(), other.back_);
@@ -294,9 +315,9 @@ operator=(prepared_buffers&& other) ->
 
 template<class BufferSequence>
 auto
-prepared_buffers<BufferSequence>::
-operator=(prepared_buffers const& other) ->
-    prepared_buffers&
+prepare_buffers_helper<BufferSequence>::
+operator=(prepare_buffers_helper const& other) ->
+    prepare_buffers_helper&
 {
     auto const nback = std::distance<iter_type>(
         other.bs_.begin(), other.back_);
@@ -310,8 +331,8 @@ operator=(prepared_buffers const& other) ->
 }
 
 template<class BufferSequence>
-prepared_buffers<BufferSequence>::
-prepared_buffers(std::size_t n, BufferSequence const& bs)
+prepare_buffers_helper<BufferSequence>::
+prepare_buffers_helper(std::size_t n, BufferSequence const& bs)
     : bs_(bs)
 {
     setup(n);
@@ -320,7 +341,7 @@ prepared_buffers(std::size_t n, BufferSequence const& bs)
 template<class BufferSequence>
 inline
 auto
-prepared_buffers<BufferSequence>::begin() const ->
+prepare_buffers_helper<BufferSequence>::begin() const ->
     const_iterator
 {
     return const_iterator{*this, false};
@@ -329,7 +350,7 @@ prepared_buffers<BufferSequence>::begin() const ->
 template<class BufferSequence>
 inline
 auto
-prepared_buffers<BufferSequence>::end() const ->
+prepare_buffers_helper<BufferSequence>::end() const ->
     const_iterator
 {
     return const_iterator{*this, true};

@@ -18,7 +18,7 @@
 #include <beast/core/buffer_cat.hpp>
 #include <beast/core/buffer_concepts.hpp>
 #include <beast/core/consuming_buffers.hpp>
-#include <beast/core/prepare_buffers.hpp>
+#include <beast/core/prepare_buffer.hpp>
 #include <beast/core/static_buffer.hpp>
 #include <beast/core/stream_concepts.hpp>
 #include <beast/core/detail/type_traits.hpp>
