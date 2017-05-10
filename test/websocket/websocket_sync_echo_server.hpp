@@ -8,7 +8,6 @@
 #ifndef BEAST_WEBSOCKET_SYNC_ECHO_SERVER_HPP
 #define BEAST_WEBSOCKET_SYNC_ECHO_SERVER_HPP
 
-#include <beast/core/placeholders.hpp>
 #include <beast/core/multi_buffer.hpp>
 #include <beast/websocket.hpp>
 #include <boost/lexical_cast.hpp>
@@ -191,7 +190,7 @@ public:
             return fail("listen", ec);
         acceptor_.async_accept(sock_, ep_,
             std::bind(&sync_echo_server::on_accept, this,
-                beast::asio::placeholders::error));
+                std::placeholders::_1));
         thread_ = std::thread{[&]{ ios_.run(); }};
     }
 
@@ -259,7 +258,7 @@ private:
         std::thread{lambda{*this, ep_, std::move(sock_)}}.detach();
         acceptor_.async_accept(sock_, ep_,
             std::bind(&sync_echo_server::on_accept, this,
-                beast::asio::placeholders::error));
+                std::placeholders::_1));
     }
 
     template<class DynamicBuffer, std::size_t N>

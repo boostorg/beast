@@ -12,7 +12,6 @@
 #include "mime_type.hpp"
 
 #include <beast/http.hpp>
-#include <beast/core/placeholders.hpp>
 #include <beast/core/multi_buffer.hpp>
 #include <boost/asio.hpp>
 #include <cstdint>
@@ -59,7 +58,7 @@ public:
             boost::asio::socket_base::max_connections);
         acceptor_.async_accept(sock_,
             std::bind(&http_sync_server::on_accept, this,
-                beast::asio::placeholders::error));
+                std::placeholders::_1));
         thread_ = std::thread{[&]{ ios_.run(); }};
     }
 
@@ -143,7 +142,7 @@ private:
         std::thread{lambda{++id_, *this, std::move(sock_)}}.detach();
         acceptor_.async_accept(sock_,
             std::bind(&http_sync_server::on_accept, this,
-                asio::placeholders::error));
+                std::placeholders::_1));
     }
 
     void

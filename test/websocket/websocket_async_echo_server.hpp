@@ -8,7 +8,6 @@
 #ifndef BEAST_WEBSOCKET_ASYNC_ECHO_SERVER_HPP
 #define BEAST_WEBSOCKET_ASYNC_ECHO_SERVER_HPP
 
-#include <beast/core/placeholders.hpp>
 #include <beast/core/multi_buffer.hpp>
 #include <beast/websocket/stream.hpp>
 #include <boost/lexical_cast.hpp>
@@ -202,7 +201,7 @@ public:
             return fail("listen", ec);
         acceptor_.async_accept(sock_, ep_,
             std::bind(&async_echo_server::on_accept, this,
-                beast::asio::placeholders::error));
+                std::placeholders::_1));
     }
 
 private:
@@ -405,7 +404,7 @@ private:
         peer{*this, ep_, std::move(sock_)};
         acceptor_.async_accept(sock_, ep_,
             std::bind(&async_echo_server::on_accept, this,
-                beast::asio::placeholders::error));
+                std::placeholders::_1));
     }
 };
 

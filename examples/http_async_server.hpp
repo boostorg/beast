@@ -14,11 +14,11 @@
 #include <beast/http.hpp>
 #include <beast/core/handler_helpers.hpp>
 #include <beast/core/handler_ptr.hpp>
-#include <beast/core/placeholders.hpp>
 #include <beast/core/multi_buffer.hpp>
 #include <boost/asio.hpp>
 #include <cstddef>
 #include <cstdio>
+#include <functional>
 #include <iostream>
 #include <memory>
 #include <mutex>
@@ -58,7 +58,7 @@ public:
             boost::asio::socket_base::max_connections);
         acceptor_.async_accept(sock_,
             std::bind(&http_async_server::on_accept, this,
-                beast::asio::placeholders::error));
+                std::placeholders::_1));
         thread_.reserve(threads);
         for(std::size_t i = 0; i < threads; ++i)
             thread_.emplace_back(
@@ -218,7 +218,7 @@ private:
         {
             async_read(sock_, sb_, req_, strand_.wrap(
                 std::bind(&peer::on_read, shared_from_this(),
-                    asio::placeholders::error)));
+                    std::placeholders::_1)));
         }
 
         void on_read(error_code const& ec)
@@ -241,7 +241,7 @@ private:
                 prepare(res);
                 async_write(sock_, std::move(res),
                     std::bind(&peer::on_write, shared_from_this(),
-                        asio::placeholders::error));
+                        std::placeholders::_1));
                 return;
             }
             try
@@ -256,7 +256,7 @@ private:
                 prepare(res);
                 async_write(sock_, std::move(res),
                     std::bind(&peer::on_write, shared_from_this(),
-                        asio::placeholders::error));
+                        std::placeholders::_1));
             }
             catch(std::exception const& e)
             {
@@ -271,7 +271,7 @@ private:
                 prepare(res);
                 async_write(sock_, std::move(res),
                     std::bind(&peer::on_write, shared_from_this(),
-                        asio::placeholders::error));
+                        std::placeholders::_1));
             }
         }
 
@@ -312,7 +312,7 @@ private:
         socket_type sock(std::move(sock_));
         acceptor_.async_accept(sock_,
             std::bind(&http_async_server::on_accept, this,
-                asio::placeholders::error));
+                std::placeholders::_1));
         std::make_shared<peer>(std::move(sock), *this)->run();
     }
 };
