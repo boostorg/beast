@@ -60,11 +60,7 @@ struct basic_streambuf_movable_helper :
 };
 
 using basic_streambuf_movable =
-#if 0
     std::is_move_constructible<basic_streambuf_movable_helper>;
-#else
-    std::false_type;
-#endif
 
 //------------------------------------------------------------------------------
 
