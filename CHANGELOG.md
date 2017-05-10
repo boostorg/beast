@@ -2,6 +2,7 @@ Version 40
 
 * Add to_static_string
 * Consolidate get_lowest_layer in type_traits.hpp
+* Fix basic_streambuf movable trait
 
 --------------------------------------------------------------------------------
 
