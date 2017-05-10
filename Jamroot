@@ -60,6 +60,14 @@ variant coverage
     <linkflags>"-lgcov"
   ;
 
+variant ubasan
+  :
+    release
+  :
+    <cxxflags>"-funsigned-char -fno-omit-frame-pointer -fsanitize=address,undefined -fsanitize-blacklist=scripts/blacklist.supp"
+    <linkflags>"-fsanitize=address,undefined"
+  ;
+
 variant asan
   :
     release
@@ -80,7 +88,7 @@ variant usan
   :
     debug
   :
-    <cxxflags>"-fsanitize=undefined -fsanitize-blacklist=scripts/usan.supp -fno-omit-frame-pointer"
+    <cxxflags>"-fsanitize=undefined -fsanitize-blacklist=scripts/blacklist.supp -fno-omit-frame-pointer"
     <linkflags>"-fsanitize=undefined"
   ;
 

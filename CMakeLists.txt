@@ -115,6 +115,12 @@ if ("${VARIANT}" STREQUAL "coverage")
     set(CMAKE_BUILD_TYPE RELWITHDEBINFO)
     set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lgcov")
 
+elseif ("${VARIANT}" STREQUAL "ubasan")
+    set(CMAKE_CXX_FLAGS
+      "${CMAKE_CXX_FLAGS} -funsigned-char -fno-omit-frame-pointer -fsanitize=address,undefined -fsanitize-blacklist=${PROJECT_SOURCE_DIR}/scripts/blacklist.supp")
+    set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=address,undefined")
+    set(CMAKE_BUILD_TYPE RELWITHDEBINFO)
+
 elseif ("${VARIANT}" STREQUAL "asan")
     set(CMAKE_CXX_FLAGS
       "${CMAKE_CXX_FLAGS} -funsigned-char -fsanitize=address -fno-omit-frame-pointer")
@@ -123,7 +129,7 @@ elseif ("${VARIANT}" STREQUAL "asan")
 
 elseif ("${VARIANT}" STREQUAL "usan")
     set(CMAKE_CXX_FLAGS
-      "${CMAKE_CXX_FLAGS} -fsanitize=undefined -fsanitize-blacklist=${PROJECT_SOURCE_DIR}/scripts/usan.supp -fno-omit-frame-pointer")
+      "${CMAKE_CXX_FLAGS} -fsanitize=undefined -fsanitize-blacklist=${PROJECT_SOURCE_DIR}/scripts/blacklist.supp -fno-omit-frame-pointer")
     set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=undefined")
     set(CMAKE_BUILD_TYPE RELWITHDEBINFO)
 

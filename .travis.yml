@@ -16,10 +16,9 @@ env:
 
 addons:
   apt:
-    sources: ['ubuntu-toolchain-r-test']
-    packages:
-      - gcc-5
-      - g++-5
+    sources: &base_sources
+      - ubuntu-toolchain-r-test
+    packages: &base_packages
       - python-software-properties
       - libssl-dev
       - libffi-dev
@@ -35,7 +34,7 @@ addons:
 
 matrix:
   include:
-    # GCC/Coverage/Autobahn (if master or develop branch)
+    # gcc coverage (+valgrind,+Autobahn if master or develop)
     - compiler: gcc
       env:
         - GCC_VER=5
@@ -43,27 +42,99 @@ matrix:
         - ADDRESS_MODEL=64
         - BUILD_SYSTEM=cmake
         - PATH=$PWD/cmake/bin:$PATH
+      addons:
+        apt:
+          packages:
+            - gcc-5
+            - g++-5
+            - *base_packages
+          sources:
+            - *base_sources
 
-    # Clang/UndefinedBehaviourSanitizer
+    # older GCC, release
+    - compiler: gcc
+      env:
+        - GCC_VER=4.8
+        - VARIANT=release
+        - ADDRESS_MODEL=64
+      addons:
+        apt:
+          packages:
+            - gcc-4.8
+            - g++-4.8
+            - *base_packages
+          sources:
+            - *base_sources
+
+    # later GCC
+    - compiler: gcc
+      env:
+        - GCC_VER=6
+        - VARIANT=release
+        - ADDRESS_MODEL=64
+        - BUILD_SYSTEM=cmake
+        - PATH=$PWD/cmake/bin:$PATH
+      addons:
+        apt:
+          packages:
+            - gcc-6
+            - g++-6
+            - *base_packages
+          sources:
+            - *base_sources
+
+    # clang ubsan+asan
     - compiler: clang
       env:
         - GCC_VER=5
-        - VARIANT=usan
+        - VARIANT=ubasan
         - CLANG_VER=3.8
         - ADDRESS_MODEL=64
         - UBSAN_OPTIONS='print_stacktrace=1'
         - BUILD_SYSTEM=cmake
         - PATH=$PWD/cmake/bin:$PATH
         - PATH=$PWD/llvm-$LLVM_VERSION/bin:$PATH
+      addons:
+        apt:
+          packages:
+            - gcc-5
+            - g++-5
+            - *base_packages
+          sources:
+            - *base_sources
+
+    # Clang/UndefinedBehaviourSanitizer
+    #- compiler: clang
+    #  env:
+    #    - GCC_VER=4.8
+    #    - VARIANT=usan
+    #    - CLANG_VER=3.8
+    #    - ADDRESS_MODEL=64
+    #    - UBSAN_OPTIONS='print_stacktrace=1'
+    #    - BUILD_SYSTEM=cmake
+    #    - PATH=$PWD/cmake/bin:$PATH
+    #    - PATH=$PWD/llvm-$LLVM_VERSION/bin:$PATH
+    #  addons:
+    #    apt:
+    #      packages:
+    #        - *base_packages
+    #      sources:
+    #        - *base_sources
 
     # Clang/AddressSanitizer
-    - compiler: clang
-      env:
-        - GCC_VER=5
-        - VARIANT=asan
-        - CLANG_VER=3.8
-        - ADDRESS_MODEL=64
-        - PATH=$PWD/llvm-$LLVM_VERSION/bin:$PATH
+    #- compiler: clang
+    #  env:
+    #    - GCC_VER=5
+    #    - VARIANT=asan
+    #    - CLANG_VER=3.8
+    #    - ADDRESS_MODEL=64
+    #    - PATH=$PWD/llvm-$LLVM_VERSION/bin:$PATH
+    #  addons:
+    #    apt:
+    #      packages:
+    #        - *base_packages
+    #      sources:
+    #        - *base_sources
 
 cache:
   directories:
@@ -72,7 +143,7 @@ cache:
   - llvm-$LLVM_VERSION
   - cmake
 
-before_install:
+before_install: &base_before_install
   - scripts/install-dependencies.sh
 
 script:
