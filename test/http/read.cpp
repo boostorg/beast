@@ -253,7 +253,7 @@ public:
             message_parser<true, dynamic_body, fields> p;
             error_code ec;
             read(ss, b, p, ec);
-            BEAST_EXPECT(ec == boost::asio::error::eof);
+            BEAST_EXPECT(ec == http::error::end_of_stream);
         }
         {
             multi_buffer b;
@@ -261,7 +261,7 @@ public:
             message_parser<true, dynamic_body, fields> p;
             error_code ec;
             async_read(ss, b, p, do_yield[ec]);
-            BEAST_EXPECT(ec == boost::asio::error::eof);
+            BEAST_EXPECT(ec == http::error::end_of_stream);
         }
     }
 

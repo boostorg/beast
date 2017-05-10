@@ -76,7 +76,9 @@ read_some_buffer(
                 if(ec)
                     return 0;
                 BOOST_ASSERT(parser.is_complete());
+                break;
             }
+            ec = error::end_of_stream;
             break;
         }
         else if(ec)

@@ -185,8 +185,11 @@ operator()(error_code ec,
                 BOOST_ASSERT(bytes_transferred == 0);
                 d.bytes_used = 0;
                 if(! d.p.got_some())
+                {
+                    ec = error::end_of_stream;
                     goto upcall;
-                // caller sees EOF on next read.
+                }
+                // caller sees end_of_stream on next read.
                 ec = {};
                 d.p.write_eof(ec);
                 if(ec)
@@ -194,7 +197,7 @@ operator()(error_code ec,
                 BOOST_ASSERT(d.p.is_complete());
                 goto upcall;
             }
-            else if(ec)
+            if(ec)
             {
                 d.bytes_used = 0;
                 goto upcall;

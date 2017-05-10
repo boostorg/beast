@@ -1,3 +1,11 @@
+Version 41
+
+API Changes
+
+* Return http::error::end_of_stream on HTTP read eof
+
+--------------------------------------------------------------------------------
+
 Version 40
 
 * Add to_static_string
