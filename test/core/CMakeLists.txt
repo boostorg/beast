@@ -25,7 +25,6 @@ add_executable (core-tests
     multi_buffer.cpp
     ostream.cpp
     prepare_buffer.cpp
-    prepare_buffers.cpp
     static_buffer.cpp
     static_string.cpp
     stream_concepts.cpp

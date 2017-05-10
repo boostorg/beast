@@ -16,7 +16,7 @@
 #include <beast/http/write.hpp>
 #include <beast/core/handler_helpers.hpp>
 #include <beast/core/handler_ptr.hpp>
-#include <beast/core/prepare_buffers.hpp>
+#include <beast/core/prepare_buffer.hpp>
 #include <beast/core/detail/type_traits.hpp>
 #include <boost/assert.hpp>
 #include <memory>

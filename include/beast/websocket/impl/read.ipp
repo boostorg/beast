@@ -12,7 +12,7 @@
 #include <beast/core/buffer_concepts.hpp>
 #include <beast/core/handler_helpers.hpp>
 #include <beast/core/handler_ptr.hpp>
-#include <beast/core/prepare_buffers.hpp>
+#include <beast/core/prepare_buffer.hpp>
 #include <beast/core/static_buffer.hpp>
 #include <beast/core/stream_concepts.hpp>
 #include <beast/core/detail/clamp.hpp>

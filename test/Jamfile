@@ -32,7 +32,6 @@ unit-test core-tests :
     core/multi_buffer.cpp
     core/ostream.cpp
     core/prepare_buffer.cpp
-    core/prepare_buffers.cpp
     core/static_buffer.cpp
     core/static_string.cpp
     core/stream_concepts.cpp
