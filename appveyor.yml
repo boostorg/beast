@@ -8,11 +8,11 @@ version: "{branch} (#{build})"
 shallow_clone: true
 
 platform:
-  - x86
+  #- x86
   - x64
 
 configuration:
-  - Debug
+  #- Debug
   - Release
 
 install:

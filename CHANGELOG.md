@@ -1,5 +1,7 @@
 Version 41
 
+* Trim Appveyor matrix rows
+
 API Changes
 
 * Return http::error::end_of_stream on HTTP read eof
