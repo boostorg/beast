@@ -579,7 +579,7 @@ async_return_type<
     ReadHandler, void(error_code, std::size_t)>
 async_read_some(
     AsyncReadStream& stream,
-    DynamicBuffer& dynabuf,
+    DynamicBuffer& buffer,
     basic_parser<isRequest, true, Derived>& parser,
     ReadHandler&& handler)
 {
@@ -592,14 +592,14 @@ async_read_some(
         detail::read_some_buffer_op<AsyncReadStream,
             DynamicBuffer, isRequest, true, Derived, handler_type<
                 ReadHandler, void(error_code, std::size_t)>>{
-                    init.completion_handler, stream, dynabuf, parser};
+                    init.completion_handler, stream, buffer, parser};
         break;
 
     default:
         detail::read_some_body_op<AsyncReadStream,
             DynamicBuffer, isRequest, Derived, handler_type<
                 ReadHandler, void(error_code, std::size_t)>>{
-                    init.completion_handler, stream, dynabuf, parser};
+                    init.completion_handler, stream, buffer, parser};
         break;
     }
     return init.result.get();
@@ -615,7 +615,7 @@ async_return_type<
     ReadHandler, void(error_code, std::size_t)>
 async_read_some(
     AsyncReadStream& stream,
-    DynamicBuffer& dynabuf,
+    DynamicBuffer& buffer,
     basic_parser<isRequest, false, Derived>& parser,
     ReadHandler&& handler)
 {
@@ -624,7 +624,7 @@ async_read_some(
     detail::read_some_buffer_op<AsyncReadStream,
         DynamicBuffer, isRequest, false, Derived, handler_type<
             ReadHandler, void(error_code, std::size_t)>>{
-                init.completion_handler, stream, dynabuf, parser};
+                init.completion_handler, stream, buffer, parser};
     return init.result.get();
 }
 
@@ -641,7 +641,7 @@ async_return_type<
     ReadHandler, void(error_code, std::size_t)>
 async_read_some(
     AsyncReadStream& stream,
-    DynamicBuffer& dynabuf,
+    DynamicBuffer& buffer,
     basic_parser<isRequest, isDirect, Derived>& parser,
     ReadHandler&& handler)
 {
@@ -650,7 +650,7 @@ async_read_some(
     static_assert(is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
     BOOST_ASSERT(! parser.is_complete());
-    return detail::async_read_some(stream, dynabuf, parser,
+    return detail::async_read_some(stream, buffer, parser,
         std::forward<ReadHandler>(handler));
 }
 
@@ -663,7 +663,7 @@ async_return_type<
     ReadHandler, void(error_code)>
 async_read(
     AsyncReadStream& stream,
-    DynamicBuffer& dynabuf,
+    DynamicBuffer& buffer,
     basic_parser<isRequest, isDirect, Derived>& parser,
     ReadHandler&& handler)
 {
@@ -677,7 +677,7 @@ async_read(
     detail::parse_op<AsyncReadStream, DynamicBuffer,
         isRequest, isDirect, Derived, handler_type<
             ReadHandler, void(error_code)>>{
-                init.completion_handler, stream, dynabuf, parser};
+                init.completion_handler, stream, buffer, parser};
     return init.result.get();
 }
 
@@ -690,7 +690,7 @@ async_return_type<
     ReadHandler, void(error_code)>
 async_read(
     AsyncReadStream& stream,
-    DynamicBuffer& dynabuf,
+    DynamicBuffer& buffer,
     message<isRequest, Body, Fields>& msg,
     ReadHandler&& handler)
 {
@@ -710,7 +710,7 @@ async_read(
     detail::read_message_op<AsyncReadStream, DynamicBuffer,
         isRequest, Body, Fields, handler_type<
             ReadHandler, void(error_code)>>{
-                init.completion_handler, stream, dynabuf, msg};
+                init.completion_handler, stream, buffer, msg};
     return init.result.get();
 }
 

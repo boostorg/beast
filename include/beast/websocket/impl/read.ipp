@@ -689,7 +689,7 @@ async_return_type<
     ReadHandler, void(error_code)>
 stream<NextLayer>::
 async_read_frame(frame_info& fi,
-    DynamicBuffer& dynabuf, ReadHandler&& handler)
+    DynamicBuffer& buffer, ReadHandler&& handler)
 {
     static_assert(is_async_stream<next_layer_type>::value,
         "AsyncStream requirements requirements not met");
@@ -699,7 +699,7 @@ async_read_frame(frame_info& fi,
         void(error_code)> init{handler};
     read_frame_op<DynamicBuffer, handler_type<
         ReadHandler, void(error_code)>>{init.completion_handler,
-            *this, fi, dynabuf};
+            *this, fi, buffer};
     return init.result.get();
 }
 
@@ -707,14 +707,14 @@ template<class NextLayer>
 template<class DynamicBuffer>
 void
 stream<NextLayer>::
-read_frame(frame_info& fi, DynamicBuffer& dynabuf)
+read_frame(frame_info& fi, DynamicBuffer& buffer)
 {
     static_assert(is_sync_stream<next_layer_type>::value,
         "SyncStream requirements not met");
     static_assert(beast::is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
     error_code ec;
-    read_frame(fi, dynabuf, ec);
+    read_frame(fi, buffer, ec);
     if(ec)
         throw system_error{ec};
 }
@@ -1101,7 +1101,7 @@ async_return_type<
     ReadHandler, void(error_code)>
 stream<NextLayer>::
 async_read(opcode& op,
-    DynamicBuffer& dynabuf, ReadHandler&& handler)
+    DynamicBuffer& buffer, ReadHandler&& handler)
 {
     static_assert(is_async_stream<next_layer_type>::value,
         "AsyncStream requirements requirements not met");
@@ -1111,7 +1111,7 @@ async_read(opcode& op,
         void(error_code)> init{handler};
     read_op<DynamicBuffer, handler_type<
         ReadHandler, void(error_code)>>{init.completion_handler,
-            *this, op, dynabuf};
+            *this, op, buffer};
     return init.result.get();
 }
 
@@ -1119,14 +1119,14 @@ template<class NextLayer>
 template<class DynamicBuffer>
 void
 stream<NextLayer>::
-read(opcode& op, DynamicBuffer& dynabuf)
+read(opcode& op, DynamicBuffer& buffer)
 {
     static_assert(is_sync_stream<next_layer_type>::value,
         "SyncStream requirements not met");
     static_assert(beast::is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
     error_code ec;
-    read(op, dynabuf, ec);
+    read(op, buffer, ec);
     if(ec)
         throw system_error{ec};
 }
@@ -1135,7 +1135,7 @@ template<class NextLayer>
 template<class DynamicBuffer>
 void
 stream<NextLayer>::
-read(opcode& op, DynamicBuffer& dynabuf, error_code& ec)
+read(opcode& op, DynamicBuffer& buffer, error_code& ec)
 {
     static_assert(is_sync_stream<next_layer_type>::value,
         "SyncStream requirements not met");
@@ -1144,7 +1144,7 @@ read(opcode& op, DynamicBuffer& dynabuf, error_code& ec)
     frame_info fi;
     for(;;)
     {
-        read_frame(fi, dynabuf, ec);
+        read_frame(fi, buffer, ec);
         if(ec)
             break;
         op = fi.op;

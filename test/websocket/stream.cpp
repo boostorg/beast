@@ -263,9 +263,9 @@ public:
             class NextLayer, class DynamicBuffer>
         void
         read(stream<NextLayer>& ws,
-            opcode& op, DynamicBuffer& dynabuf) const
+            opcode& op, DynamicBuffer& buffer) const
         {
-            ws.read(op, dynabuf);
+            ws.read(op, buffer);
         }
 
         template<
@@ -499,10 +499,10 @@ public:
             class NextLayer, class DynamicBuffer>
         void
         read(stream<NextLayer>& ws,
-            opcode& op, DynamicBuffer& dynabuf) const
+            opcode& op, DynamicBuffer& buffer) const
         {
             error_code ec;
-            ws.async_read(op, dynabuf, yield_[ec]);
+            ws.async_read(op, buffer, yield_[ec]);
             if(ec)
                 throw system_error{ec};
         }

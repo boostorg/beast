@@ -505,7 +505,7 @@ public:
     */
     template<class DynamicBuffer>
     std::size_t
-    copy_body(DynamicBuffer& dynabuf);
+    copy_body(DynamicBuffer& buffer);
 
     /** Returns a set of buffers for storing body data.
 
