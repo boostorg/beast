@@ -7,6 +7,7 @@ API Changes
 * Return http::error::end_of_stream on HTTP read eof
 * Remove placeholders
 * Move prepare_buffers to prepare_buffer.hpp
+* Replace asynchronous helper macros with template aliases
 
 --------------------------------------------------------------------------------
 

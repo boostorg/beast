@@ -213,8 +213,8 @@ write(SyncWriteStream& stream,
 template<class AsyncWriteStream,
     bool isRequest, class Fields,
         class WriteHandler>
-BEAST_INITFN_RESULT_TYPE(
-    WriteHandler, void(error_code))
+async_return_type<
+    WriteHandler, void(error_code)>
 async_write(AsyncWriteStream& stream,
     header<isRequest, Fields> const& msg,
         WriteHandler&& handler)
@@ -231,7 +231,7 @@ async_write(AsyncWriteStream& stream,
         os << "\r\n";
     }
     detail::write_streambuf_op<AsyncWriteStream,
-        BEAST_HANDLER_TYPE(WriteHandler, void(error_code))>{
+        handler_type<WriteHandler, void(error_code)>>{
             init.completion_handler, stream, std::move(b)};
     return init.result.get();
 }
@@ -641,8 +641,8 @@ write(SyncWriteStream& stream,
 template<class AsyncWriteStream,
     bool isRequest, class Body, class Fields,
         class WriteHandler>
-BEAST_INITFN_RESULT_TYPE(
-    WriteHandler, void(error_code))
+async_return_type<
+    WriteHandler, void(error_code)>
 async_write(AsyncWriteStream& stream,
     message<isRequest, Body, Fields> const& msg,
         WriteHandler&& handler)
@@ -658,8 +658,8 @@ async_write(AsyncWriteStream& stream,
             "Writer requirements not met");
     async_completion<WriteHandler,
         void(error_code)> init{handler};
-    detail::write_op<AsyncWriteStream, BEAST_HANDLER_TYPE(
-        WriteHandler, void(error_code)), isRequest,
+    detail::write_op<AsyncWriteStream, handler_type<
+        WriteHandler, void(error_code)>, isRequest,
             Body, Fields>{init.completion_handler, stream, msg};
     return init.result.get();
 }

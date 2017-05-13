@@ -162,7 +162,7 @@ auto
 buffered_read_stream<Stream, DynamicBuffer>::
 async_write_some(ConstBufferSequence const& buffers,
         WriteHandler&& handler) ->
-    BEAST_INITFN_RESULT_TYPE(WriteHandler, void(error_code))
+    async_return_type<WriteHandler, void(error_code)>
 {
     static_assert(is_AsyncWriteStream<next_layer_type>::value,
         "AsyncWriteStream requirements not met");
@@ -230,7 +230,7 @@ auto
 buffered_read_stream<Stream, DynamicBuffer>::
 async_read_some(MutableBufferSequence const& buffers,
         ReadHandler&& handler) ->
-    BEAST_INITFN_RESULT_TYPE(ReadHandler, void(error_code))
+    async_return_type<ReadHandler, void(error_code)>
 {
     static_assert(is_AsyncReadStream<next_layer_type>::value,
         "Stream requirements not met");
@@ -239,8 +239,8 @@ async_read_some(MutableBufferSequence const& buffers,
             "MutableBufferSequence requirements not met");
     async_completion<ReadHandler,
         void(error_code, std::size_t)> init{handler};
-    read_some_op<MutableBufferSequence, BEAST_HANDLER_TYPE(
-        ReadHandler, void(error_code, std::size_t))>{
+    read_some_op<MutableBufferSequence, handler_type<
+        ReadHandler, void(error_code, std::size_t)>>{
             init.completion_handler, *this, buffers};
     return init.result.get();
 }

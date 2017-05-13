@@ -78,8 +78,8 @@ public:
     }
 
     template<class MutableBufferSequence, class ReadHandler>
-    BEAST_INITFN_RESULT_TYPE(
-        ReadHandler, void(error_code, std::size_t))
+    async_return_type<
+        ReadHandler, void(error_code, std::size_t)>
     async_read_some(MutableBufferSequence const& buffers,
         ReadHandler&& handler)
     {
@@ -124,8 +124,8 @@ public:
     }
 
     template<class ConstBufferSequence, class WriteHandler>
-    BEAST_INITFN_RESULT_TYPE(
-        WriteHandler, void(error_code, std::size_t))
+    async_return_type<
+        WriteHandler, void(error_code, std::size_t)>
     async_write_some(ConstBufferSequence const& buffers,
         WriteHandler&& handler)
     {

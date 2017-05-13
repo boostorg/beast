@@ -121,8 +121,8 @@ write(SyncWriteStream& stream,
 template<class AsyncWriteStream,
     bool isRequest, class Fields,
         class WriteHandler>
-BEAST_INITFN_RESULT_TYPE(
-    WriteHandler, void(error_code))
+async_return_type<
+    WriteHandler, void(error_code)>
 async_write(AsyncWriteStream& stream,
     header<isRequest, Fields> const& msg,
         WriteHandler&& handler);
@@ -236,8 +236,8 @@ write(SyncWriteStream& stream,
 template<class AsyncWriteStream,
     bool isRequest, class Body, class Fields,
         class WriteHandler>
-BEAST_INITFN_RESULT_TYPE(
-    WriteHandler, void(error_code))
+async_return_type<
+    WriteHandler, void(error_code)>
 async_write(AsyncWriteStream& stream,
     message<isRequest, Body, Fields> const& msg,
         WriteHandler&& handler);

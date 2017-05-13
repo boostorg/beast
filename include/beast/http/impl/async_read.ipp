@@ -575,8 +575,8 @@ template<
     class DynamicBuffer,
     bool isRequest, class Derived,
     class ReadHandler>
-BEAST_INITFN_RESULT_TYPE(
-    ReadHandler, void(error_code, std::size_t))
+async_return_type<
+    ReadHandler, void(error_code, std::size_t)>
 async_read_some(
     AsyncReadStream& stream,
     DynamicBuffer& dynabuf,
@@ -590,15 +590,15 @@ async_read_some(
     case parse_state::header:
     case parse_state::chunk_header:
         detail::read_some_buffer_op<AsyncReadStream,
-            DynamicBuffer, isRequest, true, Derived, BEAST_HANDLER_TYPE(
-                ReadHandler, void(error_code, std::size_t))>{
+            DynamicBuffer, isRequest, true, Derived, handler_type<
+                ReadHandler, void(error_code, std::size_t)>>{
                     init.completion_handler, stream, dynabuf, parser};
         break;
 
     default:
         detail::read_some_body_op<AsyncReadStream,
-            DynamicBuffer, isRequest, Derived, BEAST_HANDLER_TYPE(
-                ReadHandler, void(error_code, std::size_t))>{
+            DynamicBuffer, isRequest, Derived, handler_type<
+                ReadHandler, void(error_code, std::size_t)>>{
                     init.completion_handler, stream, dynabuf, parser};
         break;
     }
@@ -611,8 +611,8 @@ template<
     bool isRequest, class Derived,
     class ReadHandler>
 inline
-BEAST_INITFN_RESULT_TYPE(
-    ReadHandler, void(error_code, std::size_t))
+async_return_type<
+    ReadHandler, void(error_code, std::size_t)>
 async_read_some(
     AsyncReadStream& stream,
     DynamicBuffer& dynabuf,
@@ -622,8 +622,8 @@ async_read_some(
     async_completion<ReadHandler,
         void(error_code, std::size_t)> init{handler};
     detail::read_some_buffer_op<AsyncReadStream,
-        DynamicBuffer, isRequest, false, Derived, BEAST_HANDLER_TYPE(
-            ReadHandler, void(error_code, std::size_t))>{
+        DynamicBuffer, isRequest, false, Derived, handler_type<
+            ReadHandler, void(error_code, std::size_t)>>{
                 init.completion_handler, stream, dynabuf, parser};
     return init.result.get();
 }
@@ -637,8 +637,8 @@ template<
     class DynamicBuffer,
     bool isRequest, bool isDirect, class Derived,
     class ReadHandler>
-BEAST_INITFN_RESULT_TYPE(
-    ReadHandler, void(error_code, std::size_t))
+async_return_type<
+    ReadHandler, void(error_code, std::size_t)>
 async_read_some(
     AsyncReadStream& stream,
     DynamicBuffer& dynabuf,
@@ -659,8 +659,8 @@ template<
     class DynamicBuffer,
     bool isRequest, bool isDirect, class Derived,
     class ReadHandler>
-BEAST_INITFN_RESULT_TYPE(
-    ReadHandler, void(error_code))
+async_return_type<
+    ReadHandler, void(error_code)>
 async_read(
     AsyncReadStream& stream,
     DynamicBuffer& dynabuf,
@@ -675,8 +675,8 @@ async_read(
     async_completion<ReadHandler,
         void(error_code)> init{handler};
     detail::parse_op<AsyncReadStream, DynamicBuffer,
-        isRequest, isDirect, Derived, BEAST_HANDLER_TYPE(
-            ReadHandler, void(error_code))>{
+        isRequest, isDirect, Derived, handler_type<
+            ReadHandler, void(error_code)>>{
                 init.completion_handler, stream, dynabuf, parser};
     return init.result.get();
 }
@@ -686,8 +686,8 @@ template<
     class DynamicBuffer,
     bool isRequest, class Body, class Fields,
     class ReadHandler>
-BEAST_INITFN_RESULT_TYPE(
-    ReadHandler, void(error_code))
+async_return_type<
+    ReadHandler, void(error_code)>
 async_read(
     AsyncReadStream& stream,
     DynamicBuffer& dynabuf,
@@ -708,8 +708,8 @@ async_read(
     async_completion<ReadHandler,
         void(error_code)> init{handler};
     detail::read_message_op<AsyncReadStream, DynamicBuffer,
-        isRequest, Body, Fields, BEAST_HANDLER_TYPE(
-            ReadHandler, void(error_code))>{
+        isRequest, Body, Fields, handler_type<
+            ReadHandler, void(error_code)>>{
                 init.completion_handler, stream, dynabuf, msg};
     return init.result.get();
 }

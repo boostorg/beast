@@ -545,8 +545,8 @@ upcall:
 
 template<class NextLayer>
 template<class ConstBufferSequence, class WriteHandler>
-BEAST_INITFN_RESULT_TYPE(
-    WriteHandler, void(error_code))
+async_return_type<
+    WriteHandler, void(error_code)>
 stream<NextLayer>::
 async_write_frame(bool fin,
     ConstBufferSequence const& bs, WriteHandler&& handler)
@@ -558,8 +558,8 @@ async_write_frame(bool fin,
             "ConstBufferSequence requirements not met");
     async_completion<WriteHandler,
         void(error_code)> init{handler};
-    write_frame_op<ConstBufferSequence, BEAST_HANDLER_TYPE(
-        WriteHandler, void(error_code))>{init.completion_handler,
+    write_frame_op<ConstBufferSequence, handler_type<
+        WriteHandler, void(error_code)>>{init.completion_handler,
             *this, fin, bs};
     return init.result.get();
 }
@@ -895,8 +895,8 @@ operator()(error_code ec, bool again)
 
 template<class NextLayer>
 template<class ConstBufferSequence, class WriteHandler>
-BEAST_INITFN_RESULT_TYPE(
-    WriteHandler, void(error_code))
+async_return_type<
+    WriteHandler, void(error_code)>
 stream<NextLayer>::
 async_write(ConstBufferSequence const& bs, WriteHandler&& handler)
 {
@@ -907,8 +907,8 @@ async_write(ConstBufferSequence const& bs, WriteHandler&& handler)
             "ConstBufferSequence requirements not met");
     async_completion<WriteHandler,
         void(error_code)> init{handler};
-    write_op<ConstBufferSequence, BEAST_HANDLER_TYPE(
-        WriteHandler, void(error_code))>{
+    write_op<ConstBufferSequence, handler_type<
+        WriteHandler, void(error_code)>>{
             init.completion_handler, *this, bs};
     return init.result.get();
 }
