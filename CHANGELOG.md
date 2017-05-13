@@ -5,6 +5,10 @@ Version 41
 * Remove coveralls integration
 * Tidy up formal parameter names
 
+WebSocket
+
+* Tidy up websocket::close_code enum and constructors
+
 API Changes
 
 * Return http::error::end_of_stream on HTTP read eof
