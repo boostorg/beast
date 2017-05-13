@@ -156,7 +156,7 @@ if [[ $VARIANT == "coverage" ]]; then
   lcov -e "lcov-all.info" "$PWD/include/beast/*" -o lcov.info > /dev/null
 
   ~/.local/bin/codecov -X gcov
-  cat lcov.info | node_modules/.bin/coveralls
+  #cat lcov.info | node_modules/.bin/coveralls
 
   # Clean up these stragglers so BOOST_ROOT cache is clean
   find $BOOST_ROOT/bin.v2 -name "*.gcda" | xargs rm -f

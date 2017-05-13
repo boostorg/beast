@@ -2,6 +2,7 @@ Version 41
 
 * Trim Appveyor matrix rows
 * Concept revision and documentation
+* Remove coveralls integration
 
 API Changes
 

@@ -71,6 +71,6 @@ mkdir -p $LCOV_ROOT
 cd $HOME/lcov-1.12 && make install PREFIX=$LCOV_ROOT
 
 # Install coveralls reporter
-cd $HERE
-mkdir -p node_modules
-npm install coveralls
+#cd $HERE
+#mkdir -p node_modules
+#npm install coveralls
