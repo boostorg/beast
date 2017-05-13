@@ -49,7 +49,7 @@ namespace http {
     @param stream The stream from which the data is to be read.
     The type must support the @b SyncReadStream concept.
 
-    @param dynabuf A @b DynamicBuffer holding additional bytes
+    @param buffer A @b DynamicBuffer holding additional bytes
     read by the implementation from the stream. This is both
     an input and an output parameter; on entry, any data in the
     dynamic buffer's input sequence will be given to the parser
@@ -70,7 +70,7 @@ template<
 std::size_t
 read_some(
     SyncReadStream& stream,
-    DynamicBuffer& dynabuf,
+    DynamicBuffer& buffer,
     basic_parser<isRequest, isDirect, Derived>& parser);
 
 /** Read some HTTP/1 message data from a stream.
@@ -105,7 +105,7 @@ read_some(
     @param stream The stream from which the data is to be read.
     The type must support the @b SyncReadStream concept.
 
-    @param dynabuf A @b DynamicBuffer holding additional bytes
+    @param buffer A @b DynamicBuffer holding additional bytes
     read by the implementation from the stream. This is both
     an input and an output parameter; on entry, any data in the
     dynamic buffer's input sequence will be given to the parser
@@ -126,7 +126,7 @@ template<
 std::size_t
 read_some(
     SyncReadStream& stream,
-    DynamicBuffer& dynabuf,
+    DynamicBuffer& buffer,
     basic_parser<isRequest, isDirect, Derived>& parser,
     error_code& ec);
 
@@ -169,7 +169,7 @@ read_some(
     @param stream The stream from which the data is to be read.
     The type must support the @b AsyncReadStream concept.
 
-    @param dynabuf A @b DynamicBuffer holding additional bytes
+    @param buffer A @b DynamicBuffer holding additional bytes
     read by the implementation from the stream. This is both
     an input and an output parameter; on entry, any data in the
     dynamic buffer's input sequence will be given to the parser
@@ -198,7 +198,7 @@ async_return_type<
     ReadHandler, void(error_code, std::size_t)>
 async_read_some(
     AsyncReadStream& stream,
-    DynamicBuffer& dynabuf,
+    DynamicBuffer& buffer,
     basic_parser<isRequest, isDirect, Derived>& parser,
     ReadHandler&& handler);
 
@@ -228,7 +228,7 @@ async_read_some(
     @param stream The stream from which the data is to be read.
     The type must support the @b SyncReadStream concept.
 
-    @param dynabuf A @b DynamicBuffer holding additional bytes
+    @param buffer A @b DynamicBuffer holding additional bytes
     read by the implementation from the stream. This is both
     an input and an output parameter; on entry, any data in the
     dynamic buffer's input sequence will be given to the parser
@@ -245,7 +245,7 @@ template<
 void
 read(
     SyncReadStream& stream,
-    DynamicBuffer& dynabuf,
+    DynamicBuffer& buffer,
     basic_parser<isRequest, isDirect, Derived>& parser);
 
 /** Read an HTTP/1 message from a stream.
@@ -272,7 +272,7 @@ read(
     @param stream The stream from which the data is to be read.
     The type must support the @b SyncReadStream concept.
 
-    @param dynabuf A @b DynamicBuffer holding additional bytes
+    @param buffer A @b DynamicBuffer holding additional bytes
     read by the implementation from the stream. This is both
     an input and an output parameter; on entry, any data in the
     dynamic buffer's input sequence will be given to the parser
@@ -289,7 +289,7 @@ template<
 void
 read(
     SyncReadStream& stream,
-    DynamicBuffer& dynabuf,
+    DynamicBuffer& buffer,
     basic_parser<isRequest, isDirect, Derived>& parser,
     error_code& ec);
 
@@ -320,7 +320,7 @@ read(
     @param stream The stream from which the data is to be read.
     The type must support the @b AsyncReadStream concept.
 
-    @param dynabuf A @b DynamicBuffer holding additional bytes
+    @param buffer A @b DynamicBuffer holding additional bytes
     read by the implementation from the stream. This is both
     an input and an output parameter; on entry, any data in the
     dynamic buffer's input sequence will be given to the parser
@@ -348,7 +348,7 @@ async_return_type<
     ReadHandler, void(error_code)>
 async_read(
     AsyncReadStream& stream,
-    DynamicBuffer& dynabuf,
+    DynamicBuffer& buffer,
     basic_parser<isRequest, isDirect, Derived>& parser,
     ReadHandler&& handler);
 
@@ -376,7 +376,7 @@ async_read(
     @param stream The stream from which the data is to be read.
     The type must support the @b SyncReadStream concept.
 
-    @param dynabuf A @b DynamicBuffer holding additional bytes
+    @param buffer A @b DynamicBuffer holding additional bytes
     read by the implementation from the stream. This is both
     an input and an output parameter; on entry, any data in the
     dynamic buffer's input sequence will be given to the parser
@@ -395,7 +395,7 @@ template<
 void
 read(
     SyncReadStream& stream,
-    DynamicBuffer& dynabuf,
+    DynamicBuffer& buffer,
     message<isRequest, Body, Fields>& msg);
 
 /** Read a HTTP/1 message from a stream.
@@ -422,7 +422,7 @@ read(
     @param stream The stream from which the data is to be read.
     The type must support the @b SyncReadStream concept.
 
-    @param dynabuf A @b DynamicBuffer holding additional bytes
+    @param buffer A @b DynamicBuffer holding additional bytes
     read by the implementation from the stream. This is both
     an input and an output parameter; on entry, any data in the
     dynamic buffer's input sequence will be given to the parser
@@ -441,7 +441,7 @@ template<
 void
 read(
     SyncReadStream& stream,
-    DynamicBuffer& dynabuf,
+    DynamicBuffer& buffer,
     message<isRequest, Body, Fields>& msg,
     error_code& ec);
 
@@ -472,7 +472,7 @@ read(
     @param stream The stream to read the message from.
     The type must support the @b AsyncReadStream concept.
 
-    @param dynabuf A @b DynamicBuffer holding additional bytes
+    @param buffer A @b DynamicBuffer holding additional bytes
     read by the implementation from the stream. This is both
     an input and an output parameter; on entry, any data in the
     dynamic buffer's input sequence will be given to the parser
@@ -503,7 +503,7 @@ async_return_type<
     ReadHandler, void(error_code)>
 async_read(
     AsyncReadStream& stream,
-    DynamicBuffer& dynabuf,
+    DynamicBuffer& buffer,
     message<isRequest, Body, Fields>& msg,
     ReadHandler&& handler);
 

@@ -32,17 +32,17 @@ inline
 std::size_t
 read_some_buffer(
     SyncReadStream& stream,
-    DynamicBuffer& dynabuf,
+    DynamicBuffer& buffer,
     basic_parser<isRequest, isDirect, Derived>& parser,
     error_code& ec)
 {
     std::size_t bytes_used;
-    if(dynabuf.size() == 0)
+    if(buffer.size() == 0)
         goto do_read;
     for(;;)
     {
         bytes_used = parser.write(
-            dynabuf.data(), ec);
+            buffer.data(), ec);
         if(ec)
             return 0;
         if(bytes_used > 0)
@@ -51,11 +51,11 @@ read_some_buffer(
         boost::optional<typename
             DynamicBuffer::mutable_buffers_type> mb;
         auto const size =
-            read_size_helper(dynabuf, 65536);
+            read_size_helper(buffer, 65536);
         BOOST_ASSERT(size > 0);
         try
         {
-            mb.emplace(dynabuf.prepare(size));
+            mb.emplace(buffer.prepare(size));
         }
         catch(std::length_error const&)
         {
@@ -86,7 +86,7 @@ read_some_buffer(
             return 0;
         }
         BOOST_ASSERT(bytes_transferred > 0);
-        dynabuf.commit(bytes_transferred);
+        buffer.commit(bytes_transferred);
     }
 do_finish:
     return bytes_used;
@@ -100,12 +100,12 @@ inline
 std::size_t
 read_some_body(
     SyncReadStream& stream,
-    DynamicBuffer& dynabuf,
+    DynamicBuffer& buffer,
     basic_parser<isRequest, true, Derived>& parser,
     error_code& ec)
 {
-    if(dynabuf.size() > 0)
-        return parser.copy_body(dynabuf);
+    if(buffer.size() > 0)
+        return parser.copy_body(buffer);
     boost::optional<typename
         Derived::mutable_buffers_type> mb;
     try
@@ -145,7 +145,7 @@ inline
 std::size_t
 read_some(
     SyncReadStream& stream,
-    DynamicBuffer& dynabuf,
+    DynamicBuffer& buffer,
     basic_parser<isRequest, true, Derived>& parser,
     error_code& ec)
 {
@@ -154,11 +154,11 @@ read_some(
     case parse_state::header:
     case parse_state::chunk_header:
         return detail::read_some_buffer(
-            stream, dynabuf, parser, ec);
+            stream, buffer, parser, ec);
 
     default:
         return detail::read_some_body(
-            stream, dynabuf, parser, ec);
+            stream, buffer, parser, ec);
     }
 }
 
@@ -170,12 +170,12 @@ inline
 std::size_t
 read_some(
     SyncReadStream& stream,
-    DynamicBuffer& dynabuf,
+    DynamicBuffer& buffer,
     basic_parser<isRequest, false, Derived>& parser,
     error_code& ec)
 {
     return detail::read_some_buffer(
-        stream, dynabuf, parser, ec);
+        stream, buffer, parser, ec);
 }
 
 } // detail
@@ -189,7 +189,7 @@ template<
 std::size_t
 read_some(
     SyncReadStream& stream,
-    DynamicBuffer& dynabuf,
+    DynamicBuffer& buffer,
     basic_parser<isRequest, isDirect, Derived>& parser)
 {
     static_assert(is_sync_read_stream<SyncReadStream>::value,
@@ -199,7 +199,7 @@ read_some(
     BOOST_ASSERT(! parser.is_complete());
     error_code ec;
     auto const bytes_used =
-        read_some(stream, dynabuf, parser, ec);
+        read_some(stream, buffer, parser, ec);
     if(ec)
         throw system_error{ec};
     return bytes_used;
@@ -212,7 +212,7 @@ template<
 std::size_t
 read_some(
     SyncReadStream& stream,
-    DynamicBuffer& dynabuf,
+    DynamicBuffer& buffer,
     basic_parser<isRequest, isDirect, Derived>& parser,
     error_code& ec)
 {
@@ -221,7 +221,7 @@ read_some(
     static_assert(is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
     BOOST_ASSERT(! parser.is_complete());
-    return detail::read_some(stream, dynabuf, parser, ec);
+    return detail::read_some(stream, buffer, parser, ec);
 }
 
 template<
@@ -231,7 +231,7 @@ template<
 void
 read(
     SyncReadStream& stream,
-    DynamicBuffer& dynabuf,
+    DynamicBuffer& buffer,
     basic_parser<isRequest, isDirect, Derived>& parser)
 {
     static_assert(is_sync_read_stream<SyncReadStream>::value,
@@ -240,7 +240,7 @@ read(
         "DynamicBuffer requirements not met");
     BOOST_ASSERT(! parser.is_complete());
     error_code ec;
-    read(stream, dynabuf, parser, ec);
+    read(stream, buffer, parser, ec);
     if(ec)
         throw system_error{ec};
 }
@@ -252,7 +252,7 @@ template<
 void
 read(
     SyncReadStream& stream,
-    DynamicBuffer& dynabuf,
+    DynamicBuffer& buffer,
     basic_parser<isRequest, isDirect, Derived>& parser,
     error_code& ec)
 {
@@ -264,10 +264,10 @@ read(
     do
     {
         auto const bytes_used =
-            read_some(stream, dynabuf, parser, ec);
+            read_some(stream, buffer, parser, ec);
         if(ec)
             return;
-        dynabuf.consume(bytes_used);
+        buffer.consume(bytes_used);
     }
     while(! parser.is_complete());
 }
@@ -279,7 +279,7 @@ template<
 void
 read(
     SyncReadStream& stream,
-    DynamicBuffer& dynabuf,
+    DynamicBuffer& buffer,
     message<isRequest, Body, Fields>& msg)
 {
     static_assert(is_sync_read_stream<SyncReadStream>::value,
@@ -294,7 +294,7 @@ read(
         message<isRequest, Body, Fields>>::value,
             "Reader requirements not met");
     error_code ec;
-    beast::http::read(stream, dynabuf, msg, ec);
+    beast::http::read(stream, buffer, msg, ec);
     if(ec)
         throw system_error{ec};
 }
@@ -306,7 +306,7 @@ template<
 void
 read(
     SyncReadStream& stream,
-    DynamicBuffer& dynabuf,
+    DynamicBuffer& buffer,
     message<isRequest, Body, Fields>& msg,
     error_code& ec)
 {
@@ -322,7 +322,7 @@ read(
         message<isRequest, Body, Fields>>::value,
             "Reader requirements not met");
     message_parser<isRequest, Body, Fields> p;
-    beast::http::read(stream, dynabuf, p, ec);
+    beast::http::read(stream, buffer, p, ec);
     if(ec)
         return;
     msg = p.release();

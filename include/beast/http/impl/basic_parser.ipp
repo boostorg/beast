@@ -117,14 +117,14 @@ template<bool isRequest, bool isDirect, class Derived>
 template<class DynamicBuffer>
 std::size_t
 basic_parser<isRequest, isDirect, Derived>::
-copy_body(DynamicBuffer& dynabuf)
+copy_body(DynamicBuffer& buffer)
 {
     // This function not available when isDirect==false
     static_assert(isDirect, "");
 
     using boost::asio::buffer_copy;
     using boost::asio::buffer_size;
-    BOOST_ASSERT(dynabuf.size() > 0);
+    BOOST_ASSERT(buffer.size() > 0);
     BOOST_ASSERT(
         state_ == parse_state::body ||
         state_ == parse_state::body_to_eof ||
@@ -135,14 +135,14 @@ copy_body(DynamicBuffer& dynabuf)
     case parse_state::body_to_eof:
     {
         auto const buffers =
-            impl().on_prepare(dynabuf.size());
+            impl().on_prepare(buffer.size());
         BOOST_ASSERT(
             buffer_size(buffers) >= 1 &&
             buffer_size(buffers) <=
-                dynabuf.size());
+                buffer.size());
         auto const n = buffer_copy(
-            buffers, dynabuf.data());
-        dynabuf.consume(n);
+            buffers, buffer.data());
+        buffer.consume(n);
         impl().on_commit(n);
         return n;
     }
@@ -158,7 +158,7 @@ copy_body(DynamicBuffer& dynabuf)
             buffer_size(buffers) <=
                 beast::detail::clamp(len_));
         auto const n = buffer_copy(
-            buffers, dynabuf.data());
+            buffers, buffer.data());
         commit_body(n);
         return n;
     }

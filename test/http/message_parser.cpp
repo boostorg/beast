@@ -37,12 +37,12 @@ public:
         beast::test::string_istream ss{get_io_service(), s};
         error_code ec;
     #if 0
-        multi_buffer dynabuf;
+        multi_buffer buffer;
     #else
-        flat_buffer dynabuf{1024};
+        flat_buffer buffer{1024};
     #endif
         message<isRequest, string_body, fields> m;
-        read(ss, dynabuf, m, ec);
+        read(ss, buffer, m, ec);
         if(! BEAST_EXPECTS(! ec, ec.message()))
             return;
         pred(m);

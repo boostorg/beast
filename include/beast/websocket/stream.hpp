@@ -2351,14 +2351,14 @@ public:
         @param op A value to receive the message type.
         This object must remain valid until the handler is called.
 
-        @param dynabuf A dynamic buffer to hold the message data after
+        @param buffer A dynamic buffer to hold the message data after
         any masking or decompression has been applied.
 
         @throws system_error Thrown on failure.
     */
     template<class DynamicBuffer>
     void
-    read(opcode& op, DynamicBuffer& dynabuf);
+    read(opcode& op, DynamicBuffer& buffer);
 
     /** Read a message from the stream.
 
@@ -2391,14 +2391,14 @@ public:
         @param op A value to receive the message type.
         This object must remain valid until the handler is called.
 
-        @param dynabuf A dynamic buffer to hold the message data after
+        @param buffer A dynamic buffer to hold the message data after
         any masking or decompression has been applied.
 
         @param ec Set to indicate what error occurred, if any.
     */
     template<class DynamicBuffer>
     void
-    read(opcode& op, DynamicBuffer& dynabuf, error_code& ec);
+    read(opcode& op, DynamicBuffer& buffer, error_code& ec);
 
     /** Start an asynchronous operation to read a message from the stream.
 
@@ -2442,7 +2442,7 @@ public:
         @param op A value to receive the message type.
         This object must remain valid until the handler is called.
 
-        @param dynabuf A dynamic buffer to hold the message data after
+        @param buffer A dynamic buffer to hold the message data after
         any masking or decompression has been applied. This object must
         remain valid until the handler is called.
 
@@ -2462,7 +2462,7 @@ public:
     template<class DynamicBuffer, class ReadHandler>
     async_return_type<
         ReadHandler, void(error_code)>
-    async_read(opcode& op, DynamicBuffer& dynabuf, ReadHandler&& handler);
+    async_read(opcode& op, DynamicBuffer& buffer, ReadHandler&& handler);
 
     /** Read a message frame from the stream.
 
@@ -2498,14 +2498,14 @@ public:
 
         @param fi An object to store metadata about the message.
 
-        @param dynabuf A dynamic buffer to hold the message data after
+        @param buffer A dynamic buffer to hold the message data after
         any masking or decompression has been applied.
 
         @throws system_error Thrown on failure.
     */
     template<class DynamicBuffer>
     void
-    read_frame(frame_info& fi, DynamicBuffer& dynabuf);
+    read_frame(frame_info& fi, DynamicBuffer& buffer);
 
     /** Read a message frame from the stream.
 
@@ -2541,14 +2541,14 @@ public:
 
         @param fi An object to store metadata about the message.
 
-        @param dynabuf A dynamic buffer to hold the message data after
+        @param buffer A dynamic buffer to hold the message data after
         any masking or decompression has been applied.
 
         @param ec Set to indicate what error occurred, if any.
     */
     template<class DynamicBuffer>
     void
-    read_frame(frame_info& fi, DynamicBuffer& dynabuf, error_code& ec);
+    read_frame(frame_info& fi, DynamicBuffer& buffer, error_code& ec);
 
     /** Start an asynchronous operation to read a message frame from the stream.
 
@@ -2596,7 +2596,7 @@ public:
         @param fi An object to store metadata about the message.
         This object must remain valid until the handler is called.
 
-        @param dynabuf A dynamic buffer to hold the message data after
+        @param buffer A dynamic buffer to hold the message data after
         any masking or decompression has been applied. This object must
         remain valid until the handler is called.
 
@@ -2617,7 +2617,7 @@ public:
     async_return_type<
         ReadHandler, void(error_code)>
     async_read_frame(frame_info& fi,
-        DynamicBuffer& dynabuf, ReadHandler&& handler);
+        DynamicBuffer& buffer, ReadHandler&& handler);
 
     /** Write a message to the stream.
 

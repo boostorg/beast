@@ -356,7 +356,7 @@ template<class InflateStream, class DynamicBuffer>
 void
 inflate(
     InflateStream& zi,
-    DynamicBuffer& dynabuf,
+    DynamicBuffer& buffer,
     boost::asio::const_buffer const& in,
     error_code& ec)
 {
@@ -368,13 +368,13 @@ inflate(
     for(;;)
     {
         // VFALCO we could be smarter about the size
-        auto const bs = dynabuf.prepare(
-            read_size_helper(dynabuf, 65536));
+        auto const bs = buffer.prepare(
+            read_size_helper(buffer, 65536));
         auto const out = *bs.begin();
         zs.avail_out = buffer_size(out);
         zs.next_out = buffer_cast<void*>(out);
         zi.write(zs, zlib::Flush::sync, ec);
-        dynabuf.commit(zs.total_out);
+        buffer.commit(zs.total_out);
         zs.total_out = 0;
         if( ec == zlib::error::need_buffers ||
             ec == zlib::error::end_of_stream)
