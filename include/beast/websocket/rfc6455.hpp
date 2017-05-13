@@ -10,6 +10,7 @@
 
 #include <beast/config.hpp>
 #include <beast/core/static_string.hpp>
+#include <beast/core/string_view.hpp>
 #include <beast/http/message.hpp>
 #include <array>
 #include <cstdint>
@@ -79,9 +80,8 @@ enum class opcode : std::uint8_t
     These codes accompany close frames.
 
     @see <a href="https://tools.ietf.org/html/rfc6455#section-7.4.1">RFC 6455 7.4.1 Defined Status Codes</a>
-
 */
-enum close_code
+enum close_code : std::uint16_t
 {
     /// Normal closure; the connection successfully completed whatever purpose for which it was created.
     normal          = 1000,
@@ -195,20 +195,24 @@ struct close_reason
     {
     }
 
-    /// Construct from a reason. code is close_code::normal.
-    template<std::size_t N>
-    close_reason(char const (&reason_)[N])
+    /// Construct from a reason string. code is @ref close_code::normal.
+    close_reason(string_view s)
         : code(close_code::normal)
-        , reason(reason_)
+        , reason(s)
     {
     }
 
-    /// Construct from a code and reason.
-    template<std::size_t N>
-    close_reason(close_code code_,
-            char const (&reason_)[N])
+    /// Construct from a reason string literal. code is @ref close_code::normal.
+    close_reason(char const* s)
+        : code(close_code::normal)
+        , reason(s)
+    {
+    }
+
+    /// Construct from a close code and reason string.
+    close_reason(close_code code_, string_view s)
         : code(code_)
-        , reason(reason_)
+        , reason(s)
     {
     }
 
