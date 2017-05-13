@@ -194,8 +194,8 @@ template<
     class DynamicBuffer,
     bool isRequest, bool isDirect, class Derived,
     class ReadHandler>
-BEAST_INITFN_RESULT_TYPE(
-    ReadHandler, void(error_code, std::size_t))
+async_return_type<
+    ReadHandler, void(error_code, std::size_t)>
 async_read_some(
     AsyncReadStream& stream,
     DynamicBuffer& dynabuf,
@@ -344,8 +344,8 @@ template<
     class DynamicBuffer,
     bool isRequest, bool isDirect, class Derived,
     class ReadHandler>
-BEAST_INITFN_RESULT_TYPE(
-    ReadHandler, void(error_code))
+async_return_type<
+    ReadHandler, void(error_code)>
 async_read(
     AsyncReadStream& stream,
     DynamicBuffer& dynabuf,
@@ -499,8 +499,8 @@ template<
     class DynamicBuffer,
     bool isRequest, class Body, class Fields,
     class ReadHandler>
-BEAST_INITFN_RESULT_TYPE(
-    ReadHandler, void(error_code))
+async_return_type<
+    ReadHandler, void(error_code)>
 async_read(
     AsyncReadStream& stream,
     DynamicBuffer& dynabuf,

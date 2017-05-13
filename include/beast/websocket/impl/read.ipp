@@ -686,8 +686,8 @@ upcall:
 
 template<class NextLayer>
 template<class DynamicBuffer, class ReadHandler>
-BEAST_INITFN_RESULT_TYPE(
-    ReadHandler, void(error_code))
+async_return_type<
+    ReadHandler, void(error_code)>
 stream<NextLayer>::
 async_read_frame(frame_info& fi,
     DynamicBuffer& dynabuf, ReadHandler&& handler)
@@ -698,8 +698,8 @@ async_read_frame(frame_info& fi,
         "DynamicBuffer requirements not met");
     async_completion<ReadHandler,
         void(error_code)> init{handler};
-    read_frame_op<DynamicBuffer, BEAST_HANDLER_TYPE(
-        ReadHandler, void(error_code))>{init.completion_handler,
+    read_frame_op<DynamicBuffer, handler_type<
+        ReadHandler, void(error_code)>>{init.completion_handler,
             *this, fi, dynabuf};
     return init.result.get();
 }
@@ -1098,8 +1098,8 @@ upcall:
 
 template<class NextLayer>
 template<class DynamicBuffer, class ReadHandler>
-BEAST_INITFN_RESULT_TYPE(
-    ReadHandler, void(error_code))
+async_return_type<
+    ReadHandler, void(error_code)>
 stream<NextLayer>::
 async_read(opcode& op,
     DynamicBuffer& dynabuf, ReadHandler&& handler)
@@ -1110,8 +1110,8 @@ async_read(opcode& op,
         "DynamicBuffer requirements not met");
     async_completion<ReadHandler,
         void(error_code)> init{handler};
-    read_op<DynamicBuffer, BEAST_HANDLER_TYPE(
-        ReadHandler, void(error_code))>{init.completion_handler,
+    read_op<DynamicBuffer, handler_type<
+        ReadHandler, void(error_code)>>{init.completion_handler,
             *this, op, dynabuf};
     return init.result.get();
 }

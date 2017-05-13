@@ -160,8 +160,8 @@ operator()(error_code ec, bool again)
 
 template<class NextLayer>
 template<class HandshakeHandler>
-BEAST_INITFN_RESULT_TYPE(
-    HandshakeHandler, void(error_code))
+async_return_type<
+    HandshakeHandler, void(error_code)>
 stream<NextLayer>::
 async_handshake(string_view const& host,
     string_view const& target,
@@ -171,8 +171,8 @@ async_handshake(string_view const& host,
         "AsyncStream requirements not met");
     async_completion<HandshakeHandler,
         void(error_code)> init{handler};
-    handshake_op<BEAST_HANDLER_TYPE(
-        HandshakeHandler, void(error_code))>{
+    handshake_op<handler_type<
+        HandshakeHandler, void(error_code)>>{
             init.completion_handler, *this, nullptr, host,
                 target, &default_decorate_req};
     return init.result.get();
@@ -180,8 +180,8 @@ async_handshake(string_view const& host,
 
 template<class NextLayer>
 template<class HandshakeHandler>
-BEAST_INITFN_RESULT_TYPE(
-    HandshakeHandler, void(error_code))
+async_return_type<
+    HandshakeHandler, void(error_code)>
 stream<NextLayer>::
 async_handshake(response_type& res,
     string_view const& host,
@@ -192,8 +192,8 @@ async_handshake(response_type& res,
         "AsyncStream requirements not met");
     async_completion<HandshakeHandler,
         void(error_code)> init{handler};
-    handshake_op<BEAST_HANDLER_TYPE(
-        HandshakeHandler, void(error_code))>{
+    handshake_op<handler_type<
+        HandshakeHandler, void(error_code)>>{
             init.completion_handler, *this, &res, host,
                 target, &default_decorate_req};
     return init.result.get();
@@ -201,8 +201,8 @@ async_handshake(response_type& res,
 
 template<class NextLayer>
 template<class RequestDecorator, class HandshakeHandler>
-BEAST_INITFN_RESULT_TYPE(
-    HandshakeHandler, void(error_code))
+async_return_type<
+    HandshakeHandler, void(error_code)>
 stream<NextLayer>::
 async_handshake_ex(string_view const& host,
     string_view const& target,
@@ -216,8 +216,8 @@ async_handshake_ex(string_view const& host,
         "RequestDecorator requirements not met");
     async_completion<HandshakeHandler,
         void(error_code)> init{handler};
-    handshake_op<BEAST_HANDLER_TYPE(
-        HandshakeHandler, void(error_code))>{
+    handshake_op<handler_type<
+        HandshakeHandler, void(error_code)>>{
             init.completion_handler, *this, nullptr, host,
                 target, decorator};
     return init.result.get();
@@ -225,8 +225,8 @@ async_handshake_ex(string_view const& host,
 
 template<class NextLayer>
 template<class RequestDecorator, class HandshakeHandler>
-BEAST_INITFN_RESULT_TYPE(
-    HandshakeHandler, void(error_code))
+async_return_type<
+    HandshakeHandler, void(error_code)>
 stream<NextLayer>::
 async_handshake_ex(response_type& res,
     string_view const& host,
@@ -241,8 +241,8 @@ async_handshake_ex(response_type& res,
         "RequestDecorator requirements not met");
     async_completion<HandshakeHandler,
         void(error_code)> init{handler};
-    handshake_op<BEAST_HANDLER_TYPE(
-        HandshakeHandler, void(error_code))>{
+    handshake_op<handler_type<
+        HandshakeHandler, void(error_code)>>{
             init.completion_handler, *this, &res, host,
                 target, decorator};
     return init.result.get();
