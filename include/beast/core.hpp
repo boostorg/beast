@@ -20,7 +20,6 @@
 #include <beast/core/error.hpp>
 #include <beast/core/flat_buffer.hpp>
 #include <beast/core/handler_alloc.hpp>
-#include <beast/core/handler_helpers.hpp>
 #include <beast/core/handler_ptr.hpp>
 #include <beast/core/multi_buffer.hpp>
 #include <beast/core/ostream.hpp>

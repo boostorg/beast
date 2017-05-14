@@ -13,11 +13,13 @@
 #include <beast/core/buffer_cat.hpp>
 #include <beast/core/bind_handler.hpp>
 #include <beast/core/ostream.hpp>
-#include <beast/core/handler_helpers.hpp>
 #include <beast/core/handler_ptr.hpp>
 #include <beast/core/multi_buffer.hpp>
 #include <beast/core/type_traits.hpp>
 #include <beast/core/detail/sync_ostream.hpp>
+#include <boost/asio/handler_alloc_hook.hpp>
+#include <boost/asio/handler_continuation_hook.hpp>
+#include <boost/asio/handler_invoke_hook.hpp>
 #include <boost/asio/write.hpp>
 #include <condition_variable>
 #include <mutex>
@@ -93,11 +95,11 @@ class write_streambuf_op
 
         data(Handler& handler, Stream& s_,
                 multi_buffer&& sb_)
-            : cont(beast_asio_helpers::
-                is_continuation(handler))
-            , s(s_)
+            : s(s_)
             , b(std::move(sb_))
         {
+            using boost::asio::asio_handler_is_continuation;
+            cont = asio_handler_is_continuation(std::addressof(handler));
         }
     };
 
@@ -124,16 +126,18 @@ public:
     void* asio_handler_allocate(
         std::size_t size, write_streambuf_op* op)
     {
-        return beast_asio_helpers::
-            allocate(size, op->d_.handler());
+        using boost::asio::asio_handler_allocate;
+        return asio_handler_allocate(
+            size, std::addressof(op->d_.handler()));
     }
 
     friend
     void asio_handler_deallocate(
         void* p, std::size_t size, write_streambuf_op* op)
     {
-        return beast_asio_helpers::
-            deallocate(p, size, op->d_.handler());
+        using boost::asio::asio_handler_deallocate;
+        asio_handler_deallocate(
+            p, size, std::addressof(op->d_.handler()));
     }
 
     friend
@@ -146,8 +150,9 @@ public:
     friend
     void asio_handler_invoke(Function&& f, write_streambuf_op* op)
     {
-        return beast_asio_helpers::
-            invoke(f, op->d_.handler());
+        using boost::asio::asio_handler_invoke;
+        asio_handler_invoke(
+            f, std::addressof(op->d_.handler()));
     }
 };
 
@@ -291,11 +296,11 @@ class write_op
 
         data(Handler& handler, Stream& s_,
                 message<isRequest, Body, Fields> const& m_)
-            : cont(beast_asio_helpers::
-                is_continuation(handler))
-            , s(s_)
+            : s(s_)
             , wp(m_)
         {
+            using boost::asio::asio_handler_is_continuation;
+            cont = asio_handler_is_continuation(std::addressof(handler));
         }
     };
 
@@ -375,16 +380,18 @@ public:
     void* asio_handler_allocate(
         std::size_t size, write_op* op)
     {
-        return beast_asio_helpers::
-            allocate(size, op->d_.handler());
+        using boost::asio::asio_handler_allocate;
+        return asio_handler_allocate(
+            size, std::addressof(op->d_.handler()));
     }
 
     friend
     void asio_handler_deallocate(
         void* p, std::size_t size, write_op* op)
     {
-        return beast_asio_helpers::
-            deallocate(p, size, op->d_.handler());
+        using boost::asio::asio_handler_deallocate;
+        asio_handler_deallocate(
+            p, size, std::addressof(op->d_.handler()));
     }
 
     friend
@@ -397,8 +404,9 @@ public:
     friend
     void asio_handler_invoke(Function&& f, write_op* op)
     {
-        return beast_asio_helpers::
-            invoke(f, op->d_.handler());
+        using boost::asio::asio_handler_invoke;
+        asio_handler_invoke(
+            f, std::addressof(op->d_.handler()));
     }
 };
 

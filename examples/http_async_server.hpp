@@ -12,7 +12,6 @@
 #include "mime_type.hpp"
 
 #include <beast/http.hpp>
-#include <beast/core/handler_helpers.hpp>
 #include <beast/core/handler_ptr.hpp>
 #include <beast/core/multi_buffer.hpp>
 #include <boost/asio.hpp>
@@ -98,11 +97,11 @@ private:
 
             data(Handler& handler, Stream& s_,
                     message<isRequest, Body, Fields>&& m_)
-                : cont(beast_asio_helpers::
-                    is_continuation(handler))
-                , s(s_)
+                : s(s_)
                 , m(std::move(m_))
             {
+                using boost::asio::asio_handler_is_continuation;
+                cont = asio_handler_is_continuation(std::addressof(handler));
             }
         };
 
@@ -137,16 +136,18 @@ private:
         void* asio_handler_allocate(
             std::size_t size, write_op* op)
         {
-            return beast_asio_helpers::
-                allocate(size, op->d_.handler());
+            using boost::asio::asio_handler_allocate;
+            return asio_handler_allocate(
+                size, std::addressof(op->d_.handler()));
         }
 
         friend
         void asio_handler_deallocate(
             void* p, std::size_t size, write_op* op)
         {
-            return beast_asio_helpers::
-                deallocate(p, size, op->d_.handler());
+            using boost::asio::asio_handler_deallocate;
+            asio_handler_deallocate(
+                p, size, std::addressof(op->d_.handler()));
         }
 
         friend
@@ -159,8 +160,9 @@ private:
         friend
         void asio_handler_invoke(Function&& f, write_op* op)
         {
-            return beast_asio_helpers::
-                invoke(f, op->d_.handler());
+            using boost::asio::asio_handler_invoke;
+            asio_handler_invoke(
+                f, std::addressof(op->d_.handler()));
         }
     };
 

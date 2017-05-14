@@ -12,9 +12,11 @@
 #include <beast/http/message.hpp>
 #include <beast/http/read.hpp>
 #include <beast/http/write.hpp>
-#include <beast/core/handler_helpers.hpp>
 #include <beast/core/handler_ptr.hpp>
 #include <beast/core/type_traits.hpp>
+#include <boost/asio/handler_alloc_hook.hpp>
+#include <boost/asio/handler_continuation_hook.hpp>
+#include <boost/asio/handler_invoke_hook.hpp>
 #include <boost/assert.hpp>
 #include <memory>
 
@@ -45,13 +47,13 @@ class stream<NextLayer>::handshake_op
                 string_view const& host,
                     string_view const& target,
                         Decorator const& decorator)
-            : cont(beast_asio_helpers::
-                is_continuation(handler))
-            , ws(ws_)
+            : ws(ws_)
             , res_p(res_p_)
             , req(ws.build_request(key,
                 host, target, decorator))
         {
+            using boost::asio::asio_handler_is_continuation;
+            cont = asio_handler_is_continuation(std::addressof(handler));
             ws.reset();
         }
     };
@@ -78,16 +80,18 @@ public:
     void* asio_handler_allocate(
         std::size_t size, handshake_op* op)
     {
-        return beast_asio_helpers::
-            allocate(size, op->d_.handler());
+        using boost::asio::asio_handler_allocate;
+        return asio_handler_allocate(
+            size, std::addressof(op->d_.handler()));
     }
 
     friend
     void asio_handler_deallocate(
         void* p, std::size_t size, handshake_op* op)
     {
-        return beast_asio_helpers::
-            deallocate(p, size, op->d_.handler());
+        using boost::asio::asio_handler_deallocate;
+        asio_handler_deallocate(
+            p, size, std::addressof(op->d_.handler()));
     }
 
     friend
@@ -100,8 +104,9 @@ public:
     friend
     void asio_handler_invoke(Function&& f, handshake_op* op)
     {
-        return beast_asio_helpers::
-            invoke(f, op->d_.handler());
+        using boost::asio::asio_handler_invoke;
+        asio_handler_invoke(
+            f, std::addressof(op->d_.handler()));
     }
 };
 

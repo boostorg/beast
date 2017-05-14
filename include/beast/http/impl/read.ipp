@@ -13,9 +13,11 @@
 #include <beast/http/message_parser.hpp>
 #include <beast/http/read.hpp>
 #include <beast/core/bind_handler.hpp>
-#include <beast/core/handler_helpers.hpp>
 #include <beast/core/handler_ptr.hpp>
 #include <beast/core/type_traits.hpp>
+#include <boost/asio/handler_alloc_hook.hpp>
+#include <boost/asio/handler_continuation_hook.hpp>
+#include <boost/asio/handler_invoke_hook.hpp>
 #include <boost/assert.hpp>
 #include <boost/optional.hpp>
 

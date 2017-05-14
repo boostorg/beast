@@ -9,7 +9,7 @@
 #define BEAST_HANDLER_ALLOC_HPP
 
 #include <beast/config.hpp>
-#include <beast/core/handler_helpers.hpp>
+#include <boost/asio/handler_alloc_hook.hpp>
 #include <cstdlib>
 #include <memory>
 #include <type_traits>
@@ -92,17 +92,17 @@ public:
     allocate(std::ptrdiff_t n)
     {
         auto const size = n * sizeof(T);
+        using boost::asio::asio_handler_allocate;
         return static_cast<value_type*>(
-            beast_asio_helpers::allocate(
-                size, h_));
+            asio_handler_allocate(size, std::addressof(h_)));
     }
 
     void
     deallocate(value_type* p, std::ptrdiff_t n)
     {
         auto const size = n * sizeof(T);
-        beast_asio_helpers::deallocate(
-            p, size, h_);
+        using boost::asio::asio_handler_deallocate;
+        asio_handler_deallocate(p, size, std::addressof(h_));
     }
 
 #ifdef _MSC_VER

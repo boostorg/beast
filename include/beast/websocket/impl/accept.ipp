@@ -15,9 +15,11 @@
 #include <beast/http/string_body.hpp>
 #include <beast/http/write.hpp>
 #include <beast/core/buffer_prefix.hpp>
-#include <beast/core/handler_helpers.hpp>
 #include <beast/core/handler_ptr.hpp>
 #include <beast/core/detail/type_traits.hpp>
+#include <boost/asio/handler_alloc_hook.hpp>
+#include <boost/asio/handler_continuation_hook.hpp>
+#include <boost/asio/handler_invoke_hook.hpp>
 #include <boost/assert.hpp>
 #include <memory>
 #include <type_traits>
@@ -92,16 +94,18 @@ public:
     void* asio_handler_allocate(
         std::size_t size, response_op* op)
     {
-        return beast_asio_helpers::
-            allocate(size, op->d_.handler());
+        using boost::asio::asio_handler_allocate;
+        return asio_handler_allocate(
+            size, std::addressof(op->d_.handler()));
     }
 
     friend
     void asio_handler_deallocate(
         void* p, std::size_t size, response_op* op)
     {
-        return beast_asio_helpers::
-            deallocate(p, size, op->d_.handler());
+        using boost::asio::asio_handler_deallocate;
+        asio_handler_deallocate(
+            p, size, std::addressof(op->d_.handler()));
     }
 
     friend
@@ -114,8 +118,9 @@ public:
     friend
     void asio_handler_invoke(Function&& f, response_op* op)
     {
-        return beast_asio_helpers::
-            invoke(f, op->d_.handler());
+        using boost::asio::asio_handler_invoke;
+        asio_handler_invoke(
+            f, std::addressof(op->d_.handler()));
     }
 };
 
@@ -173,20 +178,22 @@ class stream<NextLayer>::accept_op
 
         data(Handler& handler, stream<NextLayer>& ws_,
                 Decorator const& decorator_)
-            : cont(beast_asio_helpers::is_continuation(handler))
-            , ws(ws_)
+            : ws(ws_)
             , decorator(decorator_)
         {
+            using boost::asio::asio_handler_is_continuation;
+            cont = asio_handler_is_continuation(std::addressof(handler));
         }
 
         template<class Buffers>
         data(Handler& handler, stream<NextLayer>& ws_,
                 Buffers const& buffers,
                     Decorator const& decorator_)
-            : cont(beast_asio_helpers::is_continuation(handler))
-            , ws(ws_)
+            : ws(ws_)
             , decorator(decorator_)
         {
+            using boost::asio::asio_handler_is_continuation;
+            cont = asio_handler_is_continuation(std::addressof(handler));
             using boost::asio::buffer_copy;
             using boost::asio::buffer_size;
             // VFALCO What about catch(std::length_error const&)?
@@ -218,16 +225,18 @@ public:
     void* asio_handler_allocate(
         std::size_t size, accept_op* op)
     {
-        return beast_asio_helpers::
-            allocate(size, op->d_.handler());
+        using boost::asio::asio_handler_allocate;
+        return asio_handler_allocate(
+            size, std::addressof(op->d_.handler()));
     }
 
     friend
     void asio_handler_deallocate(
         void* p, std::size_t size, accept_op* op)
     {
-        return beast_asio_helpers::
-            deallocate(p, size, op->d_.handler());
+        using boost::asio::asio_handler_deallocate;
+        asio_handler_deallocate(
+            p, size, std::addressof(op->d_.handler()));
     }
 
     friend
@@ -240,8 +249,9 @@ public:
     friend
     void asio_handler_invoke(Function&& f, accept_op* op)
     {
-        return beast_asio_helpers::
-            invoke(f, op->d_.handler());
+        using boost::asio::asio_handler_invoke;
+        asio_handler_invoke(
+            f, std::addressof(op->d_.handler()));
     }
 };
 
@@ -690,11 +700,12 @@ async_accept(http::header<true, Fields> const& req,
     async_completion<AcceptHandler,
         void(error_code)> init{handler};
     reset();
+    using boost::asio::asio_handler_is_continuation;
     response_op<handler_type<
         AcceptHandler, void(error_code)>>{init.completion_handler,
             *this, req, &default_decorate_res,
-                beast_asio_helpers::is_continuation(
-                    init.completion_handler)};
+                asio_handler_is_continuation(
+                    std::addressof(init.completion_handler))};
     return init.result.get();
 }
 
@@ -715,11 +726,12 @@ async_accept_ex(http::header<true, Fields> const& req,
     async_completion<AcceptHandler,
         void(error_code)> init{handler};
     reset();
+    using boost::asio::asio_handler_is_continuation;
     response_op<handler_type<
         AcceptHandler, void(error_code)>>{
             init.completion_handler, *this, req, decorator,
-                beast_asio_helpers::is_continuation(
-                    init.completion_handler)};
+                asio_handler_is_continuation(
+                    std::addressof(init.completion_handler))};
     return init.result.get();
 }
 
@@ -741,11 +753,12 @@ async_accept(http::header<true, Fields> const& req,
     async_completion<AcceptHandler,
         void(error_code)> init{handler};
     reset();
+    using boost::asio::asio_handler_is_continuation;
     response_op<handler_type<
         AcceptHandler, void(error_code)>>{
             init.completion_handler, *this, req, buffers,
-                &default_decorate_res, beast_asio_helpers::
-                    is_continuation(init.completion_handler)};
+                &default_decorate_res, asio_handler_is_continuation(
+                    std::addressof(init.completion_handler))};
     return init.result.get();
 }
 
@@ -771,11 +784,11 @@ async_accept_ex(http::header<true, Fields> const& req,
     async_completion<AcceptHandler,
         void(error_code)> init{handler};
     reset();
+    using boost::asio::asio_handler_is_continuation;
     response_op<handler_type<
         AcceptHandler, void(error_code)>>{init.completion_handler,
-            *this, req, buffers, decorator,
-                beast_asio_helpers::is_continuation(
-                    init.completion_handler)};
+            *this, req, buffers, decorator, asio_handler_is_continuation(
+                std::addressof(init.completion_handler))};
     return init.result.get();
 }
 
