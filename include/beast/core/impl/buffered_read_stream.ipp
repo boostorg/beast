@@ -10,9 +10,11 @@
 
 #include <beast/core/bind_handler.hpp>
 #include <beast/core/error.hpp>
-#include <beast/core/handler_helpers.hpp>
 #include <beast/core/handler_ptr.hpp>
 #include <beast/core/type_traits.hpp>
+#include <boost/asio/handler_alloc_hook.hpp>
+#include <boost/asio/handler_continuation_hook.hpp>
+#include <boost/asio/handler_invoke_hook.hpp>
 
 namespace beast {
 
@@ -59,31 +61,35 @@ public:
     void* asio_handler_allocate(
         std::size_t size, read_some_op* op)
     {
-        return beast_asio_helpers::
-            allocate(size, op->d_.handler());
+        using boost::asio::asio_handler_allocate;
+        return asio_handler_allocate(
+            size, std::addressof(op->d_.handler()));
     }
 
     friend
     void asio_handler_deallocate(
         void* p, std::size_t size, read_some_op* op)
     {
-        return beast_asio_helpers::
-            deallocate(p, size, op->d_.handler());
+        using boost::asio::asio_handler_deallocate;
+        asio_handler_deallocate(
+            p, size, std::addressof(op->d_.handler()));
     }
 
     friend
     bool asio_handler_is_continuation(read_some_op* op)
     {
-        return beast_asio_helpers::
-            is_continuation(op->d_.handler());
+        using boost::asio::asio_handler_is_continuation;
+        return asio_handler_is_continuation(
+            std::addressof(op->d_.handler()));
     }
 
     template<class Function>
     friend
     void asio_handler_invoke(Function&& f, read_some_op* op)
     {
-        return beast_asio_helpers::
-            invoke(f, op->d_.handler());
+        using boost::asio::asio_handler_invoke;
+        asio_handler_invoke(
+            f, std::addressof(op->d_.handler()));
     }
 };
 

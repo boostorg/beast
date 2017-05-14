@@ -9,9 +9,11 @@
 #define BEAST_WEBSOCKET_IMPL_SSL_IPP_INCLUDED
 
 #include <beast/core/async_result.hpp>
-#include <beast/core/handler_helpers.hpp>
 #include <beast/core/handler_ptr.hpp>
 #include <beast/core/type_traits.hpp>
+#include <boost/asio/handler_alloc_hook.hpp>
+#include <boost/asio/handler_continuation_hook.hpp>
+#include <boost/asio/handler_invoke_hook.hpp>
 
 namespace beast {
 namespace websocket {
@@ -45,10 +47,10 @@ class teardown_ssl_op
         int state = 0;
 
         data(Handler& handler, stream_type& stream_)
-            : cont(beast_asio_helpers::
-                is_continuation(handler))
-            , stream(stream_)
+            : stream(stream_)
         {
+            using boost::asio::asio_handler_is_continuation;
+            cont = asio_handler_is_continuation(std::addressof(handler));
         }
     };
 
@@ -71,16 +73,18 @@ public:
     void* asio_handler_allocate(std::size_t size,
         teardown_ssl_op* op)
     {
-        return beast_asio_helpers::
-            allocate(size, op->d_.handler());
+        using boost::asio::asio_handler_allocate;
+        return asio_handler_allocate(
+            size, std::addressof(op->d_.handler()));
     }
 
     friend
     void asio_handler_deallocate(void* p,
         std::size_t size, teardown_ssl_op* op)
     {
-        return beast_asio_helpers::
-            deallocate(p, size, op->d_.handler());
+        using boost::asio::asio_handler_deallocate;
+        asio_handler_deallocate(
+            p, size, std::addressof(op->d_.handler()));
     }
 
     friend
@@ -95,8 +99,9 @@ public:
     void asio_handler_invoke(Function&& f,
         teardown_ssl_op* op)
     {
-        return beast_asio_helpers::
-            invoke(f, op->d_.handler());
+        using boost::asio::asio_handler_invoke;
+        asio_handler_invoke(
+            f, std::addressof(op->d_.handler()));
     }
 };
 
