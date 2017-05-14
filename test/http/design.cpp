@@ -5,8 +5,8 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
+#include <beast/core/buffer_prefix.hpp>
 #include <beast/core/flat_buffer.hpp>
-#include <beast/core/prepare_buffer.hpp>
 #include <beast/http/chunk_encode.hpp>
 #include <beast/http/read.hpp>
 #include <beast/http/write.hpp>

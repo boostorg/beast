@@ -9,9 +9,9 @@
 #define BEAST_WEBSOCKET_IMPL_READ_IPP
 
 #include <beast/websocket/teardown.hpp>
+#include <beast/core/buffer_prefix.hpp>
 #include <beast/core/handler_helpers.hpp>
 #include <beast/core/handler_ptr.hpp>
-#include <beast/core/prepare_buffer.hpp>
 #include <beast/core/static_buffer.hpp>
 #include <beast/core/type_traits.hpp>
 #include <beast/core/detail/clamp.hpp>
@@ -228,7 +228,7 @@ operator()(error_code ec,
             case do_read_payload + 2:
             {
                 d.remain -= bytes_transferred;
-                auto const pb = prepare_buffers(
+                auto const pb = buffer_prefix(
                     bytes_transferred, *d.dmb);
                 if(d.fh.mask)
                     detail::mask_inplace(pb, d.key);
@@ -864,7 +864,7 @@ read_frame(frame_info& fi, DynamicBuffer& dynabuf, error_code& ec)
                     return;
                 BOOST_ASSERT(bytes_transferred > 0);
                 remain -= bytes_transferred;
-                auto const pb = prepare_buffers(
+                auto const pb = buffer_prefix(
                     bytes_transferred, b);
                 if(fh.mask)
                     detail::mask_inplace(pb, key);

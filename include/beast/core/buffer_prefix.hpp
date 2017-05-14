@@ -5,22 +5,19 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#ifndef BEAST_PREPARE_BUFFER_HPP
-#define BEAST_PREPARE_BUFFER_HPP
+#ifndef BEAST_BUFFER_PREFIX_HPP
+#define BEAST_BUFFER_PREFIX_HPP
 
 #include <beast/config.hpp>
-#include <beast/core/detail/prepare_buffer.hpp>
+#include <beast/core/type_traits.hpp>
+#include <beast/core/detail/buffer_prefix.hpp>
 #include <boost/asio/buffer.hpp>
-#include <algorithm>
 #include <cstdint>
-#include <iterator>
-#include <stdexcept>
 #include <type_traits>
-#include <utility>
 
 namespace beast {
 
-/** Return a shortened buffer.
+/** Returns a prefix of a constant buffer sequence.
 
     The returned buffer points to the same memory as the
     passed buffer, but with a size that is equal to or less
@@ -36,7 +33,7 @@ namespace beast {
 */
 inline
 boost::asio::const_buffer
-prepare_buffer(std::size_t n,
+buffer_prefix(std::size_t n,
     boost::asio::const_buffer buffer)
 {
     using boost::asio::buffer_cast;
@@ -45,7 +42,7 @@ prepare_buffer(std::size_t n,
         (std::min)(n, buffer_size(buffer)) };
 }
 
-/** Return a shortened buffer.
+/** Returns a prefix of a mutable buffer sequence.
 
     The returned buffer points to the same memory as the
     passed buffer, but with a size that is equal to or less
@@ -61,7 +58,7 @@ prepare_buffer(std::size_t n,
 */
 inline
 boost::asio::mutable_buffer
-prepare_buffer(std::size_t n,
+buffer_prefix(std::size_t n,
     boost::asio::mutable_buffer buffer)
 {
     using boost::asio::buffer_cast;
@@ -70,32 +67,38 @@ prepare_buffer(std::size_t n,
         (std::min)(n, buffer_size(buffer)) };
 }
 
-/** Return a shortened buffer sequence.
+/** Returns a prefix of a buffer sequence.
 
-    This function returns a new buffer sequence which adapts the
-    passed buffer sequence and efficiently presents a shorter subset
-    of the original list of buffers starting with the first byte of
-    the original sequence.
+    This function returns a new buffer sequence which when iterated,
+    presents a shorter subset of the original list of buffers starting
+    with the first byte of the original sequence.
 
     @param n The maximum number of bytes in the wrapped
     sequence. If this is larger than the size of passed,
     buffers, the resulting sequence will represent the
     entire input sequence.
 
-    @param buffers The buffer sequence to adapt. A copy of
-    the sequence will be made, but ownership of the underlying
-    memory is not transferred.
+    @param buffers An instance of @b ConstBufferSequence or
+    @MutableBufferSequence to adapt. A copy of the sequence
+    will be made, but ownership of the underlying memory is
+    not transferred.
 */
 template<class BufferSequence>
 #if BEAST_DOXYGEN
 implementation_defined
 #else
 inline
-detail::prepare_buffers_helper<BufferSequence>
+typename std::enable_if<
+    ! std::is_convertible<BufferSequence, boost::asio::const_buffer>::value,
+        detail::buffer_prefix_helper<BufferSequence>>::type
 #endif
-prepare_buffers(std::size_t n, BufferSequence const& buffers)
+buffer_prefix(std::size_t n, BufferSequence const& buffers)
 {
-    return detail::prepare_buffers_helper<BufferSequence>(n, buffers);
+    static_assert(
+        is_const_buffer_sequence<BufferSequence>::value ||
+        is_mutable_buffer_sequence<BufferSequence>::value,
+            "BufferSequence requirements not met");
+    return detail::buffer_prefix_helper<BufferSequence>(n, buffers);
 }
 
 } // beast

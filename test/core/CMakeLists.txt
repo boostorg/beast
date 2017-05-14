@@ -12,6 +12,7 @@ add_executable (core-tests
     async_result.cpp
     bind_handler.cpp
     buffer_cat.cpp
+    buffer_prefix.cpp
     buffers_adapter.cpp
     clamp.cpp
     consuming_buffers.cpp
@@ -22,7 +23,6 @@ add_executable (core-tests
     handler_ptr.cpp
     multi_buffer.cpp
     ostream.cpp
-    prepare_buffer.cpp
     static_buffer.cpp
     static_string.cpp
     string_view.cpp

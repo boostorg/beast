@@ -10,10 +10,10 @@
 
 #include <beast/core/bind_handler.hpp>
 #include <beast/core/buffer_cat.hpp>
+#include <beast/core/buffer_prefix.hpp>
 #include <beast/core/consuming_buffers.hpp>
 #include <beast/core/handler_helpers.hpp>
 #include <beast/core/handler_ptr.hpp>
-#include <beast/core/prepare_buffer.hpp>
 #include <beast/core/static_buffer.hpp>
 #include <beast/core/type_traits.hpp>
 #include <beast/core/detail/clamp.hpp>
@@ -267,7 +267,7 @@ operator()(error_code ec,
                 do_upcall : do_nomask_frag + 2;
             boost::asio::async_write(d.ws.stream_,
                 buffer_cat(d.fh_buf.data(),
-                    prepare_buffers(n, d.cb)),
+                    buffer_prefix(n, d.cb)),
                         std::move(*this));
             return;
         }
@@ -698,7 +698,7 @@ write_frame(bool fin,
                 wr_.cont = ! fin;
                 boost::asio::write(stream_,
                     buffer_cat(fh_buf.data(),
-                        prepare_buffers(n, cb)), ec);
+                        buffer_prefix(n, cb)), ec);
                 failed_ = ec != 0;
                 if(failed_)
                     return;
@@ -879,7 +879,7 @@ operator()(error_code ec, bool again)
             auto const fin = d.remain <= 0;
             if(fin)
                 d.state = 99;
-            auto const pb = prepare_buffers(n, d.cb);
+            auto const pb = buffer_prefix(n, d.cb);
             d.cb.consume(n);
             d.ws.async_write_frame(fin, pb, std::move(*this));
             return;

@@ -189,12 +189,11 @@ underlying memory, whose lifetime is retained by the caller.
     increments of a buffer sequence.
 ]]
 [[
-    [link beast.ref.prepare_buffer `prepare_buffer`]
-    [link beast.ref.prepare_buffers `prepare_buffers`]
+    [link beast.ref.buffer_prefix `buffer_prefix`]
 ][
-    These functions return a new buffer sequence which wraps the underlying
-    memory of an existing buffer sequence, but with a smaller size. This
-    lets callers work with a prefix of a buffer sequence.
+    This function returns a new buffer or buffer sequence which wraps the
+    underlying memory of an existing buffer sequence, but with a smaller size.
+    This lets callers work with a prefix of a buffer sequence.
 ]]
 ]
 
