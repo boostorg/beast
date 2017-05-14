@@ -19,6 +19,7 @@ unit-test core-tests :
     core/async_result.cpp
     core/bind_handler.cpp
     core/buffer_cat.cpp
+    core/buffer_prefix.cpp
     core/buffered_read_stream.cpp
     core/buffers_adapter.cpp
     core/clamp.cpp
@@ -29,7 +30,6 @@ unit-test core-tests :
     core/handler_ptr.cpp
     core/multi_buffer.cpp
     core/ostream.cpp
-    core/prepare_buffer.cpp
     core/static_buffer.cpp
     core/static_string.cpp
     core/string_view.cpp

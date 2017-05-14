@@ -6,7 +6,7 @@
 //
 
 // Test that header file is self-contained.
-#include <beast/core/prepare_buffer.hpp>
+#include <beast/core/buffer_prefix.hpp>
 
 #include <beast/core/consuming_buffers.hpp>
 #include <beast/unit_test/suite.hpp>
@@ -15,7 +15,7 @@
 
 namespace beast {
 
-class prepare_buffer_test : public beast::unit_test::suite
+class buffer_prefix_test : public beast::unit_test::suite
 {
 public:
     template<class ConstBufferSequence>
@@ -100,14 +100,14 @@ public:
                 BufferType{&s[x+y], z}}};
             for(std::size_t i = 0; i <= s.size() + 1; ++i)
             {
-                auto pb = prepare_buffers(i, bs);
+                auto pb = buffer_prefix(i, bs);
                 BEAST_EXPECT(to_string(pb) == s.substr(0, i));
                 auto pb2 = pb;
                 BEAST_EXPECT(to_string(pb2) == to_string(pb));
-                pb = prepare_buffers(0, bs);
+                pb = buffer_prefix(0, bs);
                 pb2 = pb;
                 BEAST_EXPECT(buffer_size(pb2) == 0);
-                pb2 = prepare_buffers(i, bs);
+                pb2 = buffer_prefix(i, bs);
                 BEAST_EXPECT(to_string(pb2) == s.substr(0, i));
             }
         }
@@ -119,9 +119,9 @@ public:
         using boost::asio::buffer_copy;
         using boost::asio::buffer_size;
         using boost::asio::null_buffers;
-        auto pb0 = prepare_buffers(0, null_buffers{});
+        auto pb0 = buffer_prefix(0, null_buffers{});
         BEAST_EXPECT(buffer_size(pb0) == 0);
-        auto pb1 = prepare_buffers(1, null_buffers{});
+        auto pb1 = buffer_prefix(1, null_buffers{});
         BEAST_EXPECT(buffer_size(pb1) == 0);
         BEAST_EXPECT(buffer_copy(pb0, pb1) == 0);
 
@@ -133,7 +133,7 @@ public:
         BEAST_EXPECT(buffer_size(cb) == 0);
         BEAST_EXPECT(buffer_copy(cb, pb1) == 0);
 
-        auto pbc = prepare_buffers(2, cb);
+        auto pbc = buffer_prefix(2, cb);
         BEAST_EXPECT(buffer_size(pbc) == 0);
         BEAST_EXPECT(buffer_copy(pbc, cb) == 0);
     }
@@ -147,7 +147,7 @@ public:
             const_buffer{&b[0], 1},
             const_buffer{&b[1], 1},
             const_buffer{&b[2], 1}}};
-        auto pb = prepare_buffers(2, bs);
+        auto pb = buffer_prefix(2, bs);
         BEAST_EXPECT(bsize1(pb) == 2);
         BEAST_EXPECT(bsize2(pb) == 2);
         BEAST_EXPECT(bsize3(pb) == 2);
@@ -172,6 +172,6 @@ public:
     }
 };
 
-BEAST_DEFINE_TESTSUITE(prepare_buffer,core,beast);
+BEAST_DEFINE_TESTSUITE(buffer_prefix,core,beast);
 
 } // beast
