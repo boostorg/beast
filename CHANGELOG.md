@@ -1,3 +1,9 @@
+Version 42
+
+* Fix javadoc typo
+
+--------------------------------------------------------------------------------
+
 Version 41
 
 * Trim Appveyor matrix rows
