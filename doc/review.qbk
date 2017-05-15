@@ -1,0 +1,148 @@
+[/
+    Copyright (c) 2013-2017 Vinnie Falco (vinnie dot falco at gmail dot com)
+
+    Distributed under the Boost Software License, Version 1.0. (See accompanying
+    file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+]
+
+[section:review For Reviewers]
+
+To set realistic expectations and prevent a litany of duplicate review
+statements, these notes address the most common questions and comments
+about Beast and other HTTP libraries that have gone through formal review.
+
+[variablelist
+[[
+    "Beast requires too much user code to do anything!"
+][
+    It is not the intention of the library to provide turn-key
+    solutions for specific HTTP or WebSocket use-cases.
+    Instead, it is a sensible protocol layering on top of
+    Boost.Asio which retains the Boost.Asio memory
+    management style and asynchronous model. 
+]]
+[[
+    "Beast does not offer an HTTP server?"
+][
+    The scope of the library is to provide a message container,
+    and serialization and deserialization algorithms, with an
+    interface permitting users to achieve all the behaviors
+    necessary to implement high performance, conforming servers.
+    However, management of listening sockets, io_service threads,
+    individual connections, and HTTP semantics such as pipelining,
+    redirection, Expect: 100-continue, cookies, and request routing
+    are not handled by Beast.
+    It is the author's position that keeping the library low-level
+    will establish it as a building block which the greater C++
+    community at large can leverage to produce higher level
+    libraries competing with each other to figure out the best
+    way to solve these problems.
+]]
+[[
+    "Beast does not offer an HTTP client?"
+][
+    "I just want to download a resource using HTTP" is a common
+    cry from users and reviewers. Such functionality is beyond
+    the scope of Beast and will likely never be added. Building
+    a robust HTTP client is a difficult task. The source code for
+    such a client would probably be several times larger than
+    the entirety of Beast! There are many things to deal with
+    such as the various message body encodings, complex parsing
+    of headers, difficult header semantics such as Range and
+    Cache-Control, redirection, Expect:100-continue, connection
+    retrying, domain name resolution, TLS, and much, much more.
+    It is the author's position that Boost first needs a common
+    set of nouns and verbs for manipulating HTTP at the protocol
+    level; Beast provides that language.
+]]
+[[
+    "There's no HTTP/2 support yet!"
+][
+    The Beast HTTP message model was designed with the new protocol
+    in mind and should be evaluated in that context. There are plans
+    to add HTTP/2 in the future, but there is no rush to do so.
+    Users cannot work with HTTP/1 now; we should not deny them that
+    functionality today to wait for a newer protocol tomorrow.
+    It is the author's position that there is sufficient value in
+    Beast's HTTP/1-only implementation that the lack of HTTP/2
+    should not be a barrier to acceptance.
+]]
+[[
+    "This should work with standalone-Asio!"
+][
+    Beast uses more than Boost.Asio, it depends on a smattering
+    of various parts of Boost. The standalone Asio is currently
+    farther ahead than the Boost version. Keeping Beast maintained
+    against both versions of Asio is beyond the resources of the
+    author at the present time. Compatibility with non-Boost
+    libraries should not be an acceptance criteria. Beast is
+    currently designed to be a part of Boost: nothing more,
+    nothing less.
+    Looking at the bigger picture, it is the author's goal to
+    propose this library for standardization. A logical track for
+    achieving this is as follows:
+
+    [ordered_list
+    [
+        Boost library acceptance.
+    ][
+        Port to the Boost.Asio version of Networking-TS (This has to wait
+        until Boost's version of Asio is updated).
+    ][
+        Wait for Networking-TS to become an official part of C++.
+    ][
+        Port to the standard library versions of networking (gcc, clang, msvc).
+    ][
+        Develop proposed language (This can happen concurrently with steps 3 and 4)
+    ]]
+]]
+[[
+    "You need benchmarks!"
+][
+    The energy invested in Beast went into the design of the interfaces,
+    not performance. That said, the most sensitive parts of Beast have
+    been optimized or designed with optimization in mind. The slow parts
+    of WebSocket processing have been optimized, and the HTTP parser design
+    is lifted from another extremely popular project which has performance
+    as a design goal (see https://github.com/h2o/picohttpparser).
+
+    From: http://www.boost.org/development/requirements.html
+
+        "Aim first for clarity and correctness; optimization should
+         be only a secondary concern in most Boost libraries."
+
+    As the library matures it will undergo optimization passes; benchmarks
+    will logically accompany this process. There is a small benchmarking
+    program included in the tests which compares the performance of
+    Beast's parser to the NodeJS reference parser.
+]]
+[[
+    "Beast is a terrible name!"
+][
+    The name "Boost.Http" or "Boost.WebSocket" would mislead users into
+    believing they could perform an HTTP request on a URL or put up a
+    WebSocket client or server in a couple of lines of code. Where
+    would the core utilities go? Very likely it would step on the
+    owner of Boost.Asio's toes to put things in the Boost.Asio
+    repository; at the very least, it would create unrequested,
+    additional work for the foreign repository.
+    "Beast" is sufficiently vague as to not suggest any particular
+    functionality, while acting as a memorable umbrella term for a
+    family of low level containers and algorithms. People in the know
+    or with a need for low-level network protocol operations will
+    have no trouble finding it, and the chances of luring a novice
+    into a bad experience are greatly reduced.
+    There is precedent for proper names: "Hana", "Fusion", "Phoenix",
+    and "Spirit" come to mind. Is "Beast" really any worse than say,
+    "mp11" for example?
+    Beast also already has a growing body of users and attention from
+    the open source community, the name Beast comes up in reddit posts
+    and StackOverflow as the answer to questions about which HTTP or
+    WebSocket library to use.
+]]
+
+
+
+]
+
+[endsect]
