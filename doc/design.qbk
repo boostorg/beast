@@ -94,7 +94,7 @@ start. Other design goals:
 ]]
 
 [[
-    "A built-in router?"
+    "A built-in HTTP router?"
 ][
     We presume this means a facility to match expressions against the URI
     in HTTP requests, and dispatch them to calling code. The authors feel
@@ -103,7 +103,7 @@ start. Other design goals:
 ]]
 
 [[
-    "Cookies? Forms/File Uploads?"
+    "HTTP Cookies? Forms/File Uploads?"
 ][
     Cookies, or managing these types of HTTP headers in general, is the
     responsibility of higher levels. Beast.HTTP just tries to get complete
