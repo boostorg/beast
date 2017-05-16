@@ -2,6 +2,7 @@ Version 42
 
 * Fix javadoc typo
 * Add formal review notes
+* Make buffers_view a public interface
 
 --------------------------------------------------------------------------------
 
