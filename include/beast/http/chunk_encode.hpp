@@ -39,7 +39,7 @@ template<class ConstBufferSequence>
 #if BEAST_DOXYGEN
 implementation_defined
 #else
-beast::detail::buffer_cat_helper<
+beast::buffers_view<
     detail::chunk_encode_delim,
     ConstBufferSequence,
     boost::asio::const_buffers_1>

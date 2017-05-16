@@ -244,20 +244,6 @@ public:
         type3::value && type4::value>;
 };
 
-template<class B1, class... Bn>
-struct is_all_ConstBufferSequence
-    : std::integral_constant<bool,
-        is_buffer_sequence<B1, boost::asio::const_buffer>::type::value &&
-        is_all_ConstBufferSequence<Bn...>::value>
-{
-};
-
-template<class B1>
-struct is_all_ConstBufferSequence<B1>
-    : is_buffer_sequence<B1, boost::asio::const_buffer>::type
-{
-};
-
 template<class T>
 class is_dynamic_buffer
 {
@@ -331,6 +317,33 @@ public:
         && type6::value
         && type7::value
     >;
+};
+
+//------------------------------------------------------------------------------
+
+template<class B1, class... Bn>
+struct is_all_const_buffer_sequence
+    : std::integral_constant<bool,
+        is_buffer_sequence<B1, boost::asio::const_buffer>::type::value &&
+        is_all_const_buffer_sequence<Bn...>::value>
+{
+};
+
+template<class B1>
+struct is_all_const_buffer_sequence<B1>
+    : is_buffer_sequence<B1, boost::asio::const_buffer>::type
+{
+};
+
+template<class... Bn>
+struct common_buffers_type
+{
+    using type = typename std::conditional<
+        std::is_convertible<std::tuple<Bn...>,
+            typename repeat_tuple<sizeof...(Bn),
+                boost::asio::mutable_buffer>::type>::value,
+                    boost::asio::mutable_buffer,
+                        boost::asio::const_buffer>::type;
 };
 
 //------------------------------------------------------------------------------

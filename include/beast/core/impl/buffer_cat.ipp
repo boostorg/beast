@@ -5,10 +5,10 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#ifndef BEAST_DETAIL_BUFFER_CAT_HPP
-#define BEAST_DETAIL_BUFFER_CAT_HPP
+#ifndef BEAST_IMPL_BUFFER_CAT_IPP
+#define BEAST_IMPL_BUFFER_CAT_IPP
 
-#include <beast/core/type_traits.hpp>
+#include <beast/core/detail/type_traits.hpp>
 #include <boost/asio/buffer.hpp>
 #include <cstdint>
 #include <iterator>
@@ -18,57 +18,16 @@
 #include <utility>
 
 namespace beast {
-namespace detail {
 
 template<class... Bn>
-struct common_buffers_type
-{
-    using type = typename std::conditional<
-        std::is_convertible<std::tuple<Bn...>,
-            typename repeat_tuple<sizeof...(Bn),
-                boost::asio::mutable_buffer>::type>::value,
-                    boost::asio::mutable_buffer,
-                        boost::asio::const_buffer>::type;
-};
-
-template<class... Bn>
-class buffer_cat_helper
-{
-    std::tuple<Bn...> bn_;
-
-public:
-    using value_type = typename
-        common_buffers_type<Bn...>::type;
-
-    class const_iterator;
-
-    buffer_cat_helper(buffer_cat_helper&&) = default;
-    buffer_cat_helper(buffer_cat_helper const&) = default;
-    buffer_cat_helper& operator=(buffer_cat_helper&&) = delete;
-    buffer_cat_helper& operator=(buffer_cat_helper const&) = delete;
-
-    explicit
-    buffer_cat_helper(Bn const&... bn)
-        : bn_(bn...)
-    {
-    }
-
-    const_iterator
-    begin() const;
-
-    const_iterator
-    end() const;
-};
-
-template<class... Bn>
-class buffer_cat_helper<Bn...>::const_iterator
+class buffers_view<Bn...>::const_iterator
 {
     std::size_t n_;
     std::tuple<Bn...> const* bn_;
-    std::array<std::uint8_t,
-        max_sizeof<typename Bn::const_iterator...>()> buf_;
+    char buf_[detail::max_sizeof<
+        typename Bn::const_iterator...>()];
 
-    friend class buffer_cat_helper<Bn...>;
+    friend class buffers_view<Bn...>;
 
     template<std::size_t I>
     using C = std::integral_constant<std::size_t, I>;
@@ -83,8 +42,7 @@ class buffer_cat_helper<Bn...>::const_iterator
     {
         // type-pun
         return *reinterpret_cast<
-            iter_t<I>*>(static_cast<void*>(
-                buf_.data()));
+            iter_t<I>*>(static_cast<void*>(buf_));
     }
 
     template<std::size_t I>
@@ -94,12 +52,12 @@ class buffer_cat_helper<Bn...>::const_iterator
         // type-pun
         return *reinterpret_cast<
             iter_t<I> const*>(static_cast<
-                void const*>(buf_.data()));
+                void const*>(buf_));
     }
 
 public:
     using value_type = typename
-        common_buffers_type<Bn...>::type;
+        detail::common_buffers_type<Bn...>::type;
     using pointer = value_type const*;
     using reference = value_type;
     using difference_type = std::ptrdiff_t;
@@ -119,7 +77,7 @@ public:
     bool
     operator!=(const_iterator const& other) const
     {
-        return !(*this == other);
+        return ! (*this == other);
     }
 
     reference
@@ -169,7 +127,7 @@ private:
             std::get<I>(*bn_).end())
         {
             n_ = I;
-            new(buf_.data()) iter_t<I>{
+            new(buf_) iter_t<I>{
                 std::get<I>(*bn_).begin()};
             return;
         }
@@ -208,7 +166,7 @@ private:
     {
         if(n_ == I)
         {
-            new(buf_.data()) iter_t<I>{
+            new(buf_) iter_t<I>{
                 std::move(other.iter<I>())};
             return;
         }
@@ -228,7 +186,7 @@ private:
     {
         if(n_ == I)
         {
-            new(buf_.data()) iter_t<I>{
+            new(buf_) iter_t<I>{
                 other.iter<I>()};
             return;
         }
@@ -300,7 +258,7 @@ private:
         if(n_ == I)
         {
             --n_;
-            new(buf_.data()) iter_t<I-1>{
+            new(buf_) iter_t<I-1>{
                 std::get<I-1>(*bn_).end()};
         }
         decrement(C<I-1>{});
@@ -333,7 +291,7 @@ private:
             --n_;
             using Iter = iter_t<I>;
             iter<I>().~Iter();
-            new(buf_.data()) iter_t<I-1>{
+            new(buf_) iter_t<I-1>{
                 std::get<I-1>(*bn_).end()};
         }
         decrement(C<I-1>{});
@@ -343,14 +301,14 @@ private:
 //------------------------------------------------------------------------------
 
 template<class... Bn>
-buffer_cat_helper<Bn...>::
+buffers_view<Bn...>::
 const_iterator::~const_iterator()
 {
     destroy(C<0>{});
 }
 
 template<class... Bn>
-buffer_cat_helper<Bn...>::
+buffers_view<Bn...>::
 const_iterator::const_iterator()
     : n_(sizeof...(Bn))
     , bn_(nullptr)
@@ -358,7 +316,7 @@ const_iterator::const_iterator()
 }
 
 template<class... Bn>
-buffer_cat_helper<Bn...>::
+buffers_view<Bn...>::
 const_iterator::const_iterator(
     std::tuple<Bn...> const& bn, bool at_end)
     : bn_(&bn)
@@ -370,7 +328,7 @@ const_iterator::const_iterator(
 }
 
 template<class... Bn>
-buffer_cat_helper<Bn...>::
+buffers_view<Bn...>::
 const_iterator::const_iterator(const_iterator&& other)
     : n_(other.n_)
     , bn_(other.bn_)
@@ -379,7 +337,7 @@ const_iterator::const_iterator(const_iterator&& other)
 }
 
 template<class... Bn>
-buffer_cat_helper<Bn...>::
+buffers_view<Bn...>::
 const_iterator::const_iterator(const_iterator const& other)
     : n_(other.n_)
     , bn_(other.bn_)
@@ -389,7 +347,7 @@ const_iterator::const_iterator(const_iterator const& other)
 
 template<class... Bn>
 auto
-buffer_cat_helper<Bn...>::
+buffers_view<Bn...>::
 const_iterator::operator=(const_iterator&& other) ->
     const_iterator&
 {
@@ -404,7 +362,7 @@ const_iterator::operator=(const_iterator&& other) ->
 
 template<class... Bn>
 auto
-buffer_cat_helper<Bn...>::
+buffers_view<Bn...>::
 const_iterator::operator=(const_iterator const& other) ->
 const_iterator&
 {
@@ -419,7 +377,7 @@ const_iterator&
 
 template<class... Bn>
 bool
-buffer_cat_helper<Bn...>::
+buffers_view<Bn...>::
 const_iterator::operator==(const_iterator const& other) const
 {
     if(bn_ != other.bn_)
@@ -431,7 +389,7 @@ const_iterator::operator==(const_iterator const& other) const
 
 template<class... Bn>
 auto
-buffer_cat_helper<Bn...>::
+buffers_view<Bn...>::
 const_iterator::operator*() const ->
     reference
 {
@@ -440,7 +398,7 @@ const_iterator::operator*() const ->
 
 template<class... Bn>
 auto
-buffer_cat_helper<Bn...>::
+buffers_view<Bn...>::
 const_iterator::operator++() ->
     const_iterator&
 {
@@ -450,7 +408,7 @@ const_iterator::operator++() ->
 
 template<class... Bn>
 auto
-buffer_cat_helper<Bn...>::
+buffers_view<Bn...>::
 const_iterator::operator--() ->
     const_iterator&
 {
@@ -458,10 +416,20 @@ const_iterator::operator--() ->
     return *this;
 }
 
+//------------------------------------------------------------------------------
+
+template<class... Bn>
+buffers_view<Bn...>::
+buffers_view(Bn const&... bn)
+    : bn_(bn...)
+{
+}
+
+
 template<class... Bn>
 inline
 auto
-buffer_cat_helper<Bn...>::begin() const ->
+buffers_view<Bn...>::begin() const ->
     const_iterator
 {
     return const_iterator{bn_, false};
@@ -470,13 +438,12 @@ buffer_cat_helper<Bn...>::begin() const ->
 template<class... Bn>
 inline
 auto
-buffer_cat_helper<Bn...>::end() const ->
+buffers_view<Bn...>::end() const ->
     const_iterator
 {
     return const_iterator{bn_, true};
 }
 
-} // detail
 } // beast
 
 #endif

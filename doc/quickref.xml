@@ -157,6 +157,7 @@
             <member><link linkend="beast.ref.basic_flat_buffer">basic_flat_buffer</link></member>
             <member><link linkend="beast.ref.basic_multi_buffer">basic_multi_buffer</link></member>
             <member><link linkend="beast.ref.buffers_adapter">buffers_adapter</link></member>
+            <member><link linkend="beast.ref.buffers_view">buffers_view</link></member>
             <member><link linkend="beast.ref.consuming_buffers">consuming_buffers</link></member>
             <member><link linkend="beast.ref.buffered_read_stream">buffered_read_stream</link></member>
             <member><link linkend="beast.ref.error_category">error_category</link></member>

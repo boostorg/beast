@@ -9,16 +9,66 @@
 #define BEAST_BUFFER_CAT_HPP
 
 #include <beast/config.hpp>
-#include <beast/core/detail/buffer_cat.hpp>
-#include <boost/asio/buffer.hpp>
-#include <cstdint>
-#include <iterator>
-#include <new>
-#include <stdexcept>
+#include <beast/core/detail/type_traits.hpp>
 #include <tuple>
-#include <utility>
 
 namespace beast {
+
+/** A buffer sequence representing a concatenation of buffer sequences.
+
+    @see @ref buffer_cat
+*/
+template<class... Buffers>
+class buffers_view
+{
+    std::tuple<Buffers...> bn_;
+
+public:
+    /** The type of buffer returned when dereferencing an iterator.
+
+        If every buffer sequence in the view is a @b MutableBufferSequence,
+        then `value_type` will be `boost::asio::mutable_buffer`.
+        Otherwise, `value_type` will be `boost::asio::const_buffer`.
+    */
+    using value_type =
+    #if BEAST_DOXYGEN
+        implementation_defined;
+    #else
+        typename detail::common_buffers_type<Buffers...>::type;
+    #endif
+
+    /// The type of iterator used by the concatenated sequence
+    class const_iterator;
+
+    /// Move constructor
+    buffers_view(buffers_view&&) = default;
+
+    /// Copy constructor
+    buffers_view(buffers_view const&) = default;
+
+    /// Move assignment
+    buffers_view& operator=(buffers_view&&) = default;
+
+    // Copy assignment
+    buffers_view& operator=(buffers_view const&) = default;
+
+    /** Constructor
+
+        @param buffers The list of buffer sequences to concatenate.
+        Copies of the arguments will be made; however, the ownership
+        of memory is not transferred.
+    */
+    explicit
+    buffers_view(Buffers const&... buffers);
+
+    /// Return an iterator to the beginning of the concatenated sequence.
+    const_iterator
+    begin() const;
+
+    /// Return an iterator to the end of the concatenated sequence.
+    const_iterator
+    end() const;
+};
 
 /** Concatenate 2 or more buffer sequences.
 
@@ -36,24 +86,28 @@ namespace beast {
     @b MutableBufferSequence if each of the passed buffer sequences is
     also a @b MutableBufferSequence; otherwise the returned buffer
     sequence will be a @b ConstBufferSequence.
+
+    @see @ref buffers_view
 */
 #if BEAST_DOXYGEN
 template<class... BufferSequence>
-implementation_defined
+buffers_view<BufferSequence...>
 buffer_cat(BufferSequence const&... buffers)
 #else
 template<class B1, class B2, class... Bn>
-detail::buffer_cat_helper<B1, B2, Bn...>
+inline
+buffers_view<B1, B2, Bn...>
 buffer_cat(B1 const& b1, B2 const& b2, Bn const&... bn)
 #endif
 {
     static_assert(
-        detail::is_all_ConstBufferSequence<B1, B2, Bn...>::value,
+        detail::is_all_const_buffer_sequence<B1, B2, Bn...>::value,
             "BufferSequence requirements not met");
-    return detail::buffer_cat_helper<
-        B1, B2, Bn...>{b1, b2, bn...};
+    return buffers_view<B1, B2, Bn...>{b1, b2, bn...};
 }
 
 } // beast
+
+#include <beast/core/impl/buffer_cat.ipp>
 
 #endif

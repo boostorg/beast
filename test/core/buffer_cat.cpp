@@ -215,29 +215,29 @@ public:
         {
         };
 
-        // Check is_all_ConstBufferSequence
+        // Check is_all_const_buffer_sequence
         static_assert(
-            detail::is_all_ConstBufferSequence<
+            detail::is_all_const_buffer_sequence<
                 const_buffers_1
             >::value, "");
         static_assert(
-            detail::is_all_ConstBufferSequence<
+            detail::is_all_const_buffer_sequence<
                 const_buffers_1, const_buffers_1
             >::value, "");
         static_assert(
-            detail::is_all_ConstBufferSequence<
+            detail::is_all_const_buffer_sequence<
                 mutable_buffers_1
             >::value, "");
         static_assert(
-            detail::is_all_ConstBufferSequence<
+            detail::is_all_const_buffer_sequence<
                 mutable_buffers_1, mutable_buffers_1
             >::value, "");
         static_assert(
-            detail::is_all_ConstBufferSequence<
+            detail::is_all_const_buffer_sequence<
                 const_buffers_1, mutable_buffers_1
             >::value, "");
         static_assert(
-            ! detail::is_all_ConstBufferSequence<
+            ! detail::is_all_const_buffer_sequence<
                 const_buffers_1, mutable_buffers_1, int
             >::value, "");
 
