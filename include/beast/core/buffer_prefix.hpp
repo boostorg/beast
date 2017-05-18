@@ -79,7 +79,7 @@ buffer_prefix(std::size_t n,
     entire input sequence.
 
     @param buffers An instance of @b ConstBufferSequence or
-    @MutableBufferSequence to adapt. A copy of the sequence
+    @b MutableBufferSequence to adapt. A copy of the sequence
     will be made, but ownership of the underlying memory is
     not transferred.
 */

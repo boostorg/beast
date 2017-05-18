@@ -1,3 +1,11 @@
+Version 42
+
+* Fix javadoc typo
+* Add formal review notes
+* Make buffers_view a public interface
+
+--------------------------------------------------------------------------------
+
 Version 41
 
 * Trim Appveyor matrix rows

@@ -88,8 +88,13 @@ provides implementations of the HTTP and WebSocket protocols.
   [[
     [link beast.design Design]
   ][
-    Design rationale, answers to review questions, and
+    Design rationale, answers to questions, and
     other library comparisons.
+  ]]
+  [[
+    [link beast.review For Reviewers]
+  ][
+    Participants in Beast's formal review should read this first.
   ]]
   [[
     [link beast.ref Reference]
@@ -109,6 +114,7 @@ provides implementations of the HTTP and WebSocket protocols.
 [include websocket.qbk]
 [include examples.qbk]
 [include design.qbk]
+[include review.qbk]
 
 [section:ref Reference]
 [xinclude quickref.xml]

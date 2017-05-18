@@ -120,13 +120,12 @@ dynamic buffer concept using various strategies:
 [table Dynamic buffer implementations
 [[Name][Description]]
 [[
-    [link beast.ref.multi_buffer `multi_buffer`]
-    [link beast.ref.basic_multi_buffer `basic_multi_buffer`]
+    [link beast.ref.buffers_adapter `buffers_adapter`]
 ][
-    Uses a sequence of one or more character arrays of varying sizes.
-    Additional character array objects are appended to the sequence to
-    accommodate changes in the size of the character sequence. The basic
-    container supports the standard allocator model.
+    This wrapper adapts any __MutableBufferSequence__ into a
+    __DynamicBuffer__ with an upper limit on the total size of the input and
+    output areas equal to the size of the underlying mutable buffer sequence.
+    The implementation does not perform heap allocations.
 ]]
 [[
     [link beast.ref.flat_buffer `flat_buffer`]
@@ -138,6 +137,15 @@ dynamic buffer concept using various strategies:
     supports the standard allocator model.
 ]]
 [[
+    [link beast.ref.multi_buffer `multi_buffer`]
+    [link beast.ref.basic_multi_buffer `basic_multi_buffer`]
+][
+    Uses a sequence of one or more character arrays of varying sizes.
+    Additional character array objects are appended to the sequence to
+    accommodate changes in the size of the character sequence. The basic
+    container supports the standard allocator model.
+]]
+[[
     [link beast.ref.static_buffer `static_buffer`]
     [link beast.ref.static_buffer `static_buffer_n`]
 ][
@@ -145,14 +153,6 @@ dynamic buffer concept using various strategies:
     limit placed on the total size of the input and output areas defined
     by a constexpr template parameter. The storage for the sequences are
     kept in the class; the implementation does not perform heap allocations.
-]]
-[[
-    [link beast.ref.buffers_adapter `buffers_adapter`]
-][
-    This wrapper adapts any __MutableBufferSequence__ into a
-    __DynamicBuffer__ with an upper limit on the total size of the input and
-    output areas equal to the size of the underlying mutable buffer sequence.
-    The implementation does not perform heap allocations.
 ]]
 ]
 
@@ -181,19 +181,26 @@ underlying memory, whose lifetime is retained by the caller.
     expensive system calls.
 ]]
 [[
+    [link beast.ref.buffer_prefix `buffer_prefix`]
+][
+    This function returns a new buffer or buffer sequence which wraps the
+    underlying memory of an existing buffer sequence, but with a smaller size.
+    This lets callers work with a prefix of a buffer sequence.
+]]
+[[
+    [link beast.ref.buffer_cat `buffers_view`]
+][
+    This class represents a buffer sequence which represents the concatenation
+    of two or more buffer sequences. This is type of object returned by
+    [link beast.ref.buffer_cat `buffer_cat`].
+]]
+[[
     [link beast.ref.consuming_buffers `consuming_buffers`]
 ][
     This class wraps the underlying memory of an existing buffer sequence
     and presents a suffix of the original sequence. The length of the suffix
     may be progressively shortened. This lets callers work with sequential
     increments of a buffer sequence.
-]]
-[[
-    [link beast.ref.buffer_prefix `buffer_prefix`]
-][
-    This function returns a new buffer or buffer sequence which wraps the
-    underlying memory of an existing buffer sequence, but with a smaller size.
-    This lets callers work with a prefix of a buffer sequence.
 ]]
 ]
 
@@ -236,12 +243,13 @@ the associated asynchronous initiation functions used to launch them.
 [table Asynchronous Helpers
 [[Name][Description]]
 [[
-    [link beast.ref.handler_type `handler_type`]
+    [link beast.ref.async_completion `async_completion`]
 ][
-    This template alias converts a completion token and signature to the
-    correct completion handler type. It is used in the implementation of
-    asynchronous initiation functions to meet the requirements of the
-    Extensible Asynchronous Model.
+    This class aggregates the completion handler customization point and
+    the asynchronous initiation function return value customization point
+    into a single object which exposes the appropriate output types for the
+    given input types, and also contains boilerplate that is necessary to
+    implement an initiation function using the Extensible Model.
 ]]
 [[
     [link beast.ref.async_return_type `async_return_type`]
@@ -252,13 +260,15 @@ the associated asynchronous initiation functions used to launch them.
     Extensible Asynchronous Model.
 ]]
 [[
-    [link beast.ref.async_completion `async_completion`]
+    [link beast.ref.bind_handler `bind_handler`]
 ][
-    This class aggregates the completion handler customization point and
-    the asynchronous initiation function return value customization point
-    into a single object which exposes the appropriate output types for the
-    given input types, and also contains boilerplate that is necessary to
-    implement an initiation function using the Extensible Model.
+    This function returns a new, nullary completion handler which when
+    invoked with no arguments invokes the original completion handler with a
+    list of bound arguments. The invocation is made from the same implicit
+    or explicit strand as that which would be used to invoke the original
+    handler. This is accomplished by using the correct overload of
+    `asio_handler_invoke` associated with the original completion handler.
+
 ]]
 [[
     [link beast.ref.handler_alloc `handler_alloc`]
@@ -282,15 +292,12 @@ the associated asynchronous initiation functions used to launch them.
     optimizations transparently.
 ]]
 [[
-    [link beast.ref.bind_handler `bind_handler`]
+    [link beast.ref.handler_type `handler_type`]
 ][
-    This function returns a new, nullary completion handler which when
-    invoked with no arguments invokes the original completion handler with a
-    list of bound arguments. The invocation is made from the same implicit
-    or explicit strand as that which would be used to invoke the original
-    handler. This is accomplished by using the correct overload of
-    `asio_handler_invoke` associated with the original completion handler.
-
+    This template alias converts a completion token and signature to the
+    correct completion handler type. It is used in the implementation of
+    asynchronous initiation functions to meet the requirements of the
+    Extensible Asynchronous Model.
 ]]
 ]
 
