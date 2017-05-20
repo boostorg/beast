@@ -9,11 +9,31 @@
 #include <beast/core/buffer_prefix.hpp>
 
 #include <beast/core/consuming_buffers.hpp>
+#include <beast/core/type_traits.hpp>
 #include <beast/unit_test/suite.hpp>
 #include <boost/asio/buffer.hpp>
 #include <string>
 
 namespace beast {
+
+static_assert(
+    std::is_same<boost::asio::const_buffer, decltype(
+        buffer_prefix(0,
+            std::declval<boost::asio::const_buffer>()))>::value, "");
+
+static_assert(
+    is_const_buffer_sequence<decltype(
+        buffer_prefix(0,
+            std::declval<boost::asio::const_buffers_1>()))>::value, "");
+
+static_assert(
+    std::is_same<boost::asio::mutable_buffer, decltype(
+        buffer_prefix(0,
+            std::declval<boost::asio::mutable_buffer>()))>::value, "");
+static_assert(
+    is_mutable_buffer_sequence<decltype(
+        buffer_prefix(0,
+            std::declval<boost::asio::mutable_buffers_1>()))>::value, "");
 
 class buffer_prefix_test : public beast::unit_test::suite
 {

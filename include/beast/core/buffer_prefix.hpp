@@ -89,7 +89,8 @@ implementation_defined
 #else
 inline
 typename std::enable_if<
-    ! std::is_convertible<BufferSequence, boost::asio::const_buffer>::value,
+    ! std::is_same<BufferSequence, boost::asio::const_buffer>::value &&
+    ! std::is_same<BufferSequence, boost::asio::mutable_buffer>::value,
         detail::buffer_prefix_helper<BufferSequence>>::type
 #endif
 buffer_prefix(std::size_t n, BufferSequence const& buffers)
