@@ -2,6 +2,7 @@ Version 43
 
 * Require Boost 1.64.0
 * Fix strict aliasing warnings in buffers_view
+* Tidy up buffer_prefix overloads and test
 
 --------------------------------------------------------------------------------
 
