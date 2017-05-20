@@ -10,6 +10,7 @@
 
 #include <beast/core/async_result.hpp>
 #include <beast/core/bind_handler.hpp>
+#include <beast/core/buffer_prefix.hpp>
 #include <beast/core/error.hpp>
 #include <beast/websocket/teardown.hpp>
 #include <boost/asio/buffer.hpp>
@@ -22,13 +23,17 @@ namespace test {
 class string_ostream
 {
     boost::asio::io_service& ios_;
+    std::size_t write_max_;
 
 public:
     std::string str;
 
     explicit
-    string_ostream(boost::asio::io_service& ios)
+    string_ostream(boost::asio::io_service& ios,
+        std::size_t write_max =
+                (std::numeric_limits<std::size_t>::max)())
         : ios_(ios)
+        , write_max_(write_max)
     {
     }
 
@@ -87,11 +92,12 @@ public:
     write_some(
         ConstBufferSequence const& buffers, error_code&)
     {
-        auto const n = buffer_size(buffers);
         using boost::asio::buffer_size;
         using boost::asio::buffer_cast;
+        auto const n =
+            (std::min)(buffer_size(buffers), write_max_);
         str.reserve(str.size() + n);
-        for(auto const& buffer : buffers)
+        for(auto const& buffer : buffer_prefix(n, buffers))
             str.append(buffer_cast<char const*>(buffer),
                 buffer_size(buffer));
         return n;
