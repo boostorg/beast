@@ -10,6 +10,7 @@
 
 #include <beast/core/detail/type_traits.hpp>
 #include <boost/asio/buffer.hpp>
+#include <array>
 #include <cstdint>
 #include <iterator>
 #include <new>
@@ -24,8 +25,8 @@ class buffers_view<Bn...>::const_iterator
 {
     std::size_t n_;
     std::tuple<Bn...> const* bn_;
-    char buf_[detail::max_sizeof<
-        typename Bn::const_iterator...>()];
+    std::array<char, detail::max_sizeof<
+        typename Bn::const_iterator...>()> buf_;
 
     friend class buffers_view<Bn...>;
 
@@ -42,7 +43,7 @@ class buffers_view<Bn...>::const_iterator
     {
         // type-pun
         return *reinterpret_cast<
-            iter_t<I>*>(static_cast<void*>(buf_));
+            iter_t<I>*>(static_cast<void*>(buf_.data()));
     }
 
     template<std::size_t I>
@@ -52,7 +53,7 @@ class buffers_view<Bn...>::const_iterator
         // type-pun
         return *reinterpret_cast<
             iter_t<I> const*>(static_cast<
-                void const*>(buf_));
+                void const*>(buf_.data()));
     }
 
 public:
@@ -127,7 +128,7 @@ private:
             std::get<I>(*bn_).end())
         {
             n_ = I;
-            new(buf_) iter_t<I>{
+            new(&buf_[0]) iter_t<I>{
                 std::get<I>(*bn_).begin()};
             return;
         }
@@ -166,7 +167,7 @@ private:
     {
         if(n_ == I)
         {
-            new(buf_) iter_t<I>{
+            new(&buf_[0]) iter_t<I>{
                 std::move(other.iter<I>())};
             return;
         }
@@ -186,7 +187,7 @@ private:
     {
         if(n_ == I)
         {
-            new(buf_) iter_t<I>{
+            new(&buf_[0]) iter_t<I>{
                 other.iter<I>()};
             return;
         }
@@ -258,7 +259,7 @@ private:
         if(n_ == I)
         {
             --n_;
-            new(buf_) iter_t<I-1>{
+            new(&buf_[0]) iter_t<I-1>{
                 std::get<I-1>(*bn_).end()};
         }
         decrement(C<I-1>{});
@@ -291,7 +292,7 @@ private:
             --n_;
             using Iter = iter_t<I>;
             iter<I>().~Iter();
-            new(buf_) iter_t<I-1>{
+            new(&buf_[0]) iter_t<I-1>{
                 std::get<I-1>(*bn_).end()};
         }
         decrement(C<I-1>{});
