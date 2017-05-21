@@ -10,56 +10,17 @@
 
 # HTTP and WebSocket built on Boost.Asio in C++11
 
----
-
-## We need your help!
-
-If you would like to contribute to Beast and help us maintain high
-quality, consider performing code reviews on active pull requests.
-Any feedback from users and stakeholders, even simple questions about
-how things work or why they were done a certain way, carries value
-and can be used to improve the library. Code review provides these
-benefits:
-
-* Identify bugs
-* Documentation proof-reading
-* Adjust interfaces to suit use-cases
-* Simplify code
-
-You can look through the Closed pull requests to get an idea of how
-reviews are performed. To give a code review just sign in with your
-GitHub account and then add comments to any open pull requests below,
-don't be shy!
-<p>https://github.com/vinniefalco/Beast/pulls</p>
-
-Here are some resources to learn more about
-code reviews:
-
-* <a href="https://blog.scottnonnenberg.com/top-ten-pull-request-review-mistakes/">Top 10 Pull Request Review Mistakes</a>
-* <a href="https://smartbear.com/SmartBear/media/pdfs/best-kept-secrets-of-peer-code-review.pdf">Best Kept Secrets of Peer Code Review (pdf)</a>
-* <a href="http://support.smartbear.com/support/media/resources/cc/11_Best_Practices_for_Peer_Code_Review.pdf">11 Best Practices for Peer Code Review (pdf)</a>
-* <a href="http://www.evoketechnologies.com/blog/code-review-checklist-perform-effective-code-reviews/">Code Review Checklist – To Perform Effective Code Reviews</a>
-* <a href="https://www.codeproject.com/Articles/524235/Codeplusreviewplusguidelines">Code review guidelines</a>
-* <a href="https://github.com/isocpp/CppCoreGuidelines/blob/master/CppCoreGuidelines.md">C++ Core Guidelines</a>
-* <a href="https://doc.lagout.org/programmation/C/CPP101.pdf">C++ Coding Standards (Sutter & Andrescu)</a>
-
-## Appearances
-
-| <a href="http://cppcast.com/2017/01/vinnie-falco/">CppCast 2017</a> | <a href="https://raw.githubusercontent.com/vinniefalco/Beast/master/doc/images/CppCon2016.pdf">CppCon 2016</a> |
-| ------------ | ----------- |
-| <a href="http://cppcast.com/2017/01/vinnie-falco/"><img width="180" height="180" alt="Vinnie Falco" src="https://avatars1.githubusercontent.com/u/1503976?v=3&u=76c56d989ef4c09625256662eca2775df78a16ad&s=180"></a> | <a href="https://www.youtube.com/watch?v=uJZgRcvPFwI"><img width="320" height = "180" alt="Beast" src="https://raw.githubusercontent.com/vinniefalco/Beast/master/doc/images/CppCon2016.png"></a> |
-
----
-
 ## Contents
 
 - [Introduction](#introduction)
+- [Appearances](#appearances)
 - [Description](#description)
 - [Requirements](#requirements)
 - [Building](#building)
 - [Usage](#usage)
 - [Licence](#licence)
 - [Contact](#contact)
+- [Contributing](#Contributing)
 
 ## Introduction
 
@@ -95,6 +56,12 @@ Beast is used in [rippled](https://github.com/ripple/rippled), an
 open source server application that implements a decentralized
 cryptocurrency system.
 
+## Appearances
+
+| <a href="http://cppcast.com/2017/01/vinnie-falco/">CppCast 2017</a> | <a href="https://raw.githubusercontent.com/vinniefalco/Beast/master/doc/images/CppCon2016.pdf">CppCon 2016</a> |
+| ------------ | ----------- |
+| <a href="http://cppcast.com/2017/01/vinnie-falco/"><img width="180" height="180" alt="Vinnie Falco" src="https://avatars1.githubusercontent.com/u/1503976?v=3&u=76c56d989ef4c09625256662eca2775df78a16ad&s=180"></a> | <a href="https://www.youtube.com/watch?v=uJZgRcvPFwI"><img width="320" height = "180" alt="Beast" src="https://raw.githubusercontent.com/vinniefalco/Beast/master/doc/images/CppCon2016.png"></a> |
+
 ## Description
 
 This software is currently in beta: interfaces may change.
@@ -109,7 +76,7 @@ The library has been submitted to the
 
 ## Requirements
 
-* Boost 1.58 or later
+* Boost 1.64.0 or later
 * C++11 or later
 
 When using Microsoft Visual C++, Visual Studio 2015 Update 3 or later is required.
@@ -267,7 +234,39 @@ http://www.boost.org/LICENSE_1_0.txt)
 Please report issues or questions here:
 https://github.com/vinniefalco/Beast/issues
 
-## Donations
+
+---
+
+## Contributing (We Need Your Help!)
+
+If you would like to contribute to Beast and help us maintain high
+quality, consider performing code reviews on active pull requests.
+Any feedback from users and stakeholders, even simple questions about
+how things work or why they were done a certain way, carries value
+and can be used to improve the library. Code review provides these
+benefits:
+
+* Identify bugs
+* Documentation proof-reading
+* Adjust interfaces to suit use-cases
+* Simplify code
+
+You can look through the Closed pull requests to get an idea of how
+reviews are performed. To give a code review just sign in with your
+GitHub account and then add comments to any open pull requests below,
+don't be shy!
+<p>https://github.com/vinniefalco/Beast/pulls</p>
+
+Here are some resources to learn more about
+code reviews:
+
+* <a href="https://blog.scottnonnenberg.com/top-ten-pull-request-review-mistakes/">Top 10 Pull Request Review Mistakes</a>
+* <a href="https://smartbear.com/SmartBear/media/pdfs/best-kept-secrets-of-peer-code-review.pdf">Best Kept Secrets of Peer Code Review (pdf)</a>
+* <a href="http://support.smartbear.com/support/media/resources/cc/11_Best_Practices_for_Peer_Code_Review.pdf">11 Best Practices for Peer Code Review (pdf)</a>
+* <a href="http://www.evoketechnologies.com/blog/code-review-checklist-perform-effective-code-reviews/">Code Review Checklist – To Perform Effective Code Reviews</a>
+* <a href="https://www.codeproject.com/Articles/524235/Codeplusreviewplusguidelines">Code review guidelines</a>
+* <a href="https://github.com/isocpp/CppCoreGuidelines/blob/master/CppCoreGuidelines.md">C++ Core Guidelines</a>
+* <a href="https://doc.lagout.org/programmation/C/CPP101.pdf">C++ Coding Standards (Sutter & Andrescu)</a>
 
 Beast thrives on code reviews and any sort of feedback from users and
 stakeholders about its interfaces. Even if you just have questions,
