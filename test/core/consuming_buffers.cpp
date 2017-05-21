@@ -9,6 +9,7 @@
 #include <beast/core/consuming_buffers.hpp>
 
 #include "buffer_test.hpp"
+#include <beast/core/buffer_cat.hpp>
 #include <beast/core/ostream.hpp>
 #include <beast/unit_test/suite.hpp>
 #include <boost/asio/buffer.hpp>
@@ -56,7 +57,8 @@ public:
         BEAST_EXPECT(test::size_rev_post(buffers) == n);
     }
 
-    void testMatrix()
+    void
+    testMatrix()
     {
         using boost::asio::buffer;
         using boost::asio::const_buffer;
@@ -98,8 +100,37 @@ public:
         }
         }}}}
     }
+    
+    void
+    testDefaultCtor()
+    {
+        class test_buffer : public boost::asio::const_buffers_1
+        {
+        public:
+            test_buffer()
+                : boost::asio::const_buffers_1("\r\n", 2)
+            {
+            }
+        };
 
-    void testNullBuffers()
+        consuming_buffers<test_buffer> cb;
+        BEAST_EXPECT(to_string(cb) == "\r\n");
+    }
+
+    void
+    testInPlace()
+    {
+        consuming_buffers<buffers_view<
+            boost::asio::const_buffers_1,
+            boost::asio::const_buffers_1>> cb(
+                boost::in_place_init,
+                    boost::asio::const_buffers_1("\r", 1),
+                    boost::asio::const_buffers_1("\n", 1));
+        BEAST_EXPECT(to_string(cb) == "\r\n");
+    }
+
+    void
+    testNullBuffers()
     {
         using boost::asio::buffer_copy;
         using boost::asio::buffer_size;
@@ -112,7 +143,8 @@ public:
         BEAST_EXPECT(buffer_copy(cb2, cb) == 0);
     }
 
-    void testIterator()
+    void
+    testIterator()
     {
         using boost::asio::const_buffer;
         std::array<const_buffer, 3> ba;
@@ -126,6 +158,8 @@ public:
     void run() override
     {
         testMatrix();
+        testDefaultCtor();
+        testInPlace();
         testNullBuffers();
         testIterator();
     }

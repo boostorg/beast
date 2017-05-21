@@ -10,6 +10,7 @@
 
 #include <beast/config.hpp>
 #include <boost/asio/buffer.hpp>
+#include <boost/optional.hpp>
 #include <cstdint>
 #include <iterator>
 #include <type_traits>
@@ -78,6 +79,9 @@ public:
 
 #endif
 
+    /// Default constructor.
+    consuming_buffers();
+
     /// Move constructor.
     consuming_buffers(consuming_buffers&&);
 
@@ -97,6 +101,13 @@ public:
     */
     explicit
     consuming_buffers(BufferSequence const& buffers);
+
+    /** Construct a buffer sequence in-place.
+
+        @param args Arguments forwarded to the contained buffers constructor.
+    */
+    template<class... Args>
+    consuming_buffers(boost::in_place_init_t, Args&&... args);
 
     /// Get a bidirectional iterator to the first element.
     const_iterator
