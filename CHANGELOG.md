@@ -4,6 +4,7 @@ Version 43
 * Fix strict aliasing warnings in buffers_view
 * Tidy up buffer_prefix overloads and test
 * Add write limit to test::string_ostream
+* Additional constructors for consuming_buffers
 
 --------------------------------------------------------------------------------
 

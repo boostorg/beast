@@ -111,6 +111,14 @@ private:
 
 template<class BufferSequence>
 consuming_buffers<BufferSequence>::
+consuming_buffers()
+    : begin_(bs_.begin())
+    , end_(bs_.end())
+{
+}
+
+template<class BufferSequence>
+consuming_buffers<BufferSequence>::
 consuming_buffers(consuming_buffers&& other)
     : consuming_buffers(std::move(other),
         std::distance<iter_type>(
@@ -165,6 +173,21 @@ consuming_buffers(BufferSequence const& bs)
         is_const_buffer_sequence<BufferSequence>::value||
         is_mutable_buffer_sequence<BufferSequence>::value,
             "BufferSequence requirements not met");
+}
+
+template<class BufferSequence>
+template<class... Args>
+consuming_buffers<BufferSequence>::
+consuming_buffers(boost::in_place_init_t, Args&&... args)
+    : bs_(std::forward<Args>(args)...)
+    , begin_(bs_.begin())
+    , end_(bs_.end())
+{
+    static_assert(sizeof...(Args) > 0,
+        "Missing constructor arguments");
+    static_assert(
+        std::is_constructible<BufferSequence, Args...>::value,
+            "BufferSequence is not constructible from arguments");
 }
 
 template<class BufferSequence>
