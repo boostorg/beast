@@ -280,4 +280,4 @@ using <a href="https://bitcoin.org">Bitcoin</a> sent to this address:
 <a href="bitcoin:1DaPsDvv6MjFUSnsxXSHzeYKSjzrWrQY7T?amount=0.03&label=Beast%20Library"><b>1DaPsDvv6MjFUSnsxXSHzeYKSjzrWrQY7T</b></a>
 
 <a href="bitcoin:1DaPsDvv6MjFUSnsxXSHzeYKSjzrWrQY7T?amount=0.03&label=Beast%20Library">
-    <img src="https://raw.githubusercontent.com/vinniefalco/Beast/master/doc/images/btc_qr.png" width="100" height="100"></a>
+    <img src="https://raw.githubusercontent.com/vinniefalco/Beast/master/doc/images/btc_qr2.png" width="490" height="100"></a>
