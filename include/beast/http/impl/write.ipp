@@ -21,6 +21,7 @@
 #include <boost/asio/handler_continuation_hook.hpp>
 #include <boost/asio/handler_invoke_hook.hpp>
 #include <boost/asio/write.hpp>
+#include <boost/throw_exception.hpp>
 #include <condition_variable>
 #include <mutex>
 #include <ostream>
@@ -192,7 +193,7 @@ write(SyncWriteStream& stream,
     error_code ec;
     write(stream, msg, ec);
     if(ec)
-        throw system_error{ec};
+        BOOST_THROW_EXCEPTION(system_error{ec});
 }
 
 template<class SyncWriteStream,
@@ -584,7 +585,7 @@ write(SyncWriteStream& stream,
     error_code ec;
     write(stream, msg, ec);
     if(ec)
-        throw system_error{ec};
+        BOOST_THROW_EXCEPTION(system_error{ec});
 }
 
 template<class SyncWriteStream,
@@ -682,7 +683,7 @@ operator<<(std::ostream& os,
     error_code ec;
     write(oss, msg, ec);
     if(ec)
-        throw system_error{ec};
+        BOOST_THROW_EXCEPTION(system_error{ec});
     return os;
 }
 
@@ -702,7 +703,7 @@ operator<<(std::ostream& os,
     error_code ec;
     write(oss, msg, ec);
     if(ec && ec != boost::asio::error::eof)
-        throw system_error{ec};
+        BOOST_THROW_EXCEPTION(system_error{ec});
     return os;
 }
 

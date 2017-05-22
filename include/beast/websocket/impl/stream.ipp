@@ -23,6 +23,7 @@
 #include <beast/core/detail/type_traits.hpp>
 #include <boost/assert.hpp>
 #include <boost/endian/buffers.hpp>
+#include <boost/throw_exception.hpp>
 #include <algorithm>
 #include <memory>
 #include <stdexcept>
@@ -48,20 +49,20 @@ set_option(permessage_deflate const& o)
 {
     if( o.server_max_window_bits > 15 ||
         o.server_max_window_bits < 9)
-        throw std::invalid_argument{
-            "invalid server_max_window_bits"};
+        BOOST_THROW_EXCEPTION(std::invalid_argument{
+            "invalid server_max_window_bits"});
     if( o.client_max_window_bits > 15 ||
         o.client_max_window_bits < 9)
-        throw std::invalid_argument{
-            "invalid client_max_window_bits"};
+        BOOST_THROW_EXCEPTION(std::invalid_argument{
+            "invalid client_max_window_bits"});
     if( o.compLevel < 0 ||
         o.compLevel > 9)
-        throw std::invalid_argument{
-            "invalid compLevel"};
+        BOOST_THROW_EXCEPTION(std::invalid_argument{
+            "invalid compLevel"});
     if( o.memLevel < 1 ||
         o.memLevel > 9)
-        throw std::invalid_argument{
-            "invalid memLevel"};
+        BOOST_THROW_EXCEPTION(std::invalid_argument{
+            "invalid memLevel"});
     pmd_opts_ = o;
 }
 

@@ -21,6 +21,7 @@
 #include <boost/asio/handler_continuation_hook.hpp>
 #include <boost/asio/handler_invoke_hook.hpp>
 #include <boost/assert.hpp>
+#include <boost/throw_exception.hpp>
 #include <memory>
 #include <type_traits>
 
@@ -316,7 +317,7 @@ accept()
     error_code ec;
     accept(ec);
     if(ec)
-        throw system_error{ec};
+        BOOST_THROW_EXCEPTION(system_error{ec});
 }
 
 template<class NextLayer>
@@ -333,7 +334,7 @@ accept_ex(ResponseDecorator const& decorator)
     error_code ec;
     accept_ex(decorator, ec);
     if(ec)
-        throw system_error{ec};
+        BOOST_THROW_EXCEPTION(system_error{ec});
 }
 
 template<class NextLayer>
@@ -376,7 +377,7 @@ accept(ConstBufferSequence const& buffers)
     error_code ec;
     accept(buffers, ec);
     if(ec)
-        throw system_error{ec};
+        BOOST_THROW_EXCEPTION(system_error{ec});
 }
 
 template<class NextLayer>
@@ -398,7 +399,7 @@ accept_ex(ConstBufferSequence const& buffers,
     error_code ec;
     accept_ex(buffers, decorator, ec);
     if(ec)
-        throw system_error{ec};
+        BOOST_THROW_EXCEPTION(system_error{ec});
 }
 
 template<class NextLayer>
@@ -457,7 +458,7 @@ accept(http::header<true, Fields> const& req)
     error_code ec;
     accept(req, ec);
     if(ec)
-        throw system_error{ec};
+        BOOST_THROW_EXCEPTION(system_error{ec});
 }
 
 template<class NextLayer>
@@ -475,7 +476,7 @@ accept_ex(http::header<true, Fields> const& req,
     error_code ec;
     accept_ex(req, decorator, ec);
     if(ec)
-        throw system_error{ec};
+        BOOST_THROW_EXCEPTION(system_error{ec});
 }
 
 template<class NextLayer>
@@ -522,7 +523,7 @@ accept(http::header<true, Fields> const& req,
     error_code ec;
     accept(req, buffers, ec);
     if(ec)
-        throw system_error{ec};
+        BOOST_THROW_EXCEPTION(system_error{ec});
 }
 
 template<class NextLayer>
@@ -545,7 +546,7 @@ accept_ex(http::header<true, Fields> const& req,
     error_code ec;
     accept_ex(req, buffers, decorator, ec);
     if(ec)
-        throw system_error{ec};
+        BOOST_THROW_EXCEPTION(system_error{ec});
 }
 
 template<class NextLayer>

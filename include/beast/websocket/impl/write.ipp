@@ -21,6 +21,7 @@
 #include <boost/asio/handler_continuation_hook.hpp>
 #include <boost/asio/handler_invoke_hook.hpp>
 #include <boost/assert.hpp>
+#include <boost/throw_exception.hpp>
 #include <algorithm>
 #include <memory>
 
@@ -580,7 +581,7 @@ write_frame(bool fin, ConstBufferSequence const& buffers)
     error_code ec;
     write_frame(fin, buffers, ec);
     if(ec)
-        throw system_error{ec};
+        BOOST_THROW_EXCEPTION(system_error{ec});
 }
 
 template<class NextLayer>
@@ -932,7 +933,7 @@ write(ConstBufferSequence const& buffers)
     error_code ec;
     write(buffers, ec);
     if(ec)
-        throw system_error{ec};
+        BOOST_THROW_EXCEPTION(system_error{ec});
 }
 
 template<class NextLayer>

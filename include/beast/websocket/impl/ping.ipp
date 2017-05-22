@@ -15,6 +15,7 @@
 #include <boost/asio/handler_alloc_hook.hpp>
 #include <boost/asio/handler_continuation_hook.hpp>
 #include <boost/asio/handler_invoke_hook.hpp>
+#include <boost/throw_exception.hpp>
 #include <memory>
 
 namespace beast {
@@ -240,7 +241,7 @@ ping(ping_data const& payload)
     error_code ec;
     ping(payload, ec);
     if(ec)
-        throw system_error{ec};
+        BOOST_THROW_EXCEPTION(system_error{ec});
 }
 
 template<class NextLayer>
@@ -262,7 +263,7 @@ pong(ping_data const& payload)
     error_code ec;
     pong(payload, ec);
     if(ec)
-        throw system_error{ec};
+        BOOST_THROW_EXCEPTION(system_error{ec});
 }
 
 template<class NextLayer>

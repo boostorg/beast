@@ -9,6 +9,7 @@
 #define BEAST_TEST_FAIL_COUNTER_HPP
 
 #include <beast/core/error.hpp>
+#include <boost/throw_exception.hpp>
 
 namespace beast {
 namespace test {
@@ -114,7 +115,7 @@ public:
         if(n_ > 0)
             --n_;
         if(! n_)
-            throw system_error{ec_};
+            BOOST_THROW_EXCEPTION(system_error{ec_});
     }
 
     /// Set an error code on the Nth failure

@@ -19,6 +19,7 @@
 #include <boost/asio/handler_invoke_hook.hpp>
 #include <boost/assert.hpp>
 #include <boost/optional.hpp>
+#include <boost/throw_exception.hpp>
 #include <limits>
 #include <memory>
 
@@ -721,7 +722,7 @@ read_frame(frame_info& fi, DynamicBuffer& buffer)
     error_code ec;
     read_frame(fi, buffer, ec);
     if(ec)
-        throw system_error{ec};
+        BOOST_THROW_EXCEPTION(system_error{ec});
 }
 
 template<class NextLayer>
@@ -1136,7 +1137,7 @@ read(opcode& op, DynamicBuffer& buffer)
     error_code ec;
     read(op, buffer, ec);
     if(ec)
-        throw system_error{ec};
+        BOOST_THROW_EXCEPTION(system_error{ec});
 }
 
 template<class NextLayer>

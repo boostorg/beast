@@ -18,6 +18,7 @@
 #include <boost/asio/handler_continuation_hook.hpp>
 #include <boost/asio/handler_invoke_hook.hpp>
 #include <boost/assert.hpp>
+#include <boost/throw_exception.hpp>
 #include <memory>
 
 namespace beast {
@@ -265,7 +266,7 @@ handshake(string_view const& host,
     handshake(
         host, target, ec);
     if(ec)
-        throw system_error{ec};
+        BOOST_THROW_EXCEPTION(system_error{ec});
 }
 
 template<class NextLayer>
@@ -280,7 +281,7 @@ handshake(response_type& res,
     error_code ec;
     handshake(res, host, target, ec);
     if(ec)
-        throw system_error{ec};
+        BOOST_THROW_EXCEPTION(system_error{ec});
 }
 
 template<class NextLayer>
@@ -299,7 +300,7 @@ handshake_ex(string_view const& host,
     error_code ec;
     handshake_ex(host, target, decorator, ec);
     if(ec)
-        throw system_error{ec};
+        BOOST_THROW_EXCEPTION(system_error{ec});
 }
 
 template<class NextLayer>
@@ -319,7 +320,7 @@ handshake_ex(response_type& res,
     error_code ec;
     handshake_ex(res, host, target, decorator, ec);
     if(ec)
-        throw system_error{ec};
+        BOOST_THROW_EXCEPTION(system_error{ec});
 }
 
 template<class NextLayer>

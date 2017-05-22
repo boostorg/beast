@@ -15,6 +15,7 @@
 #include <boost/asio/handler_alloc_hook.hpp>
 #include <boost/asio/handler_continuation_hook.hpp>
 #include <boost/asio/handler_invoke_hook.hpp>
+#include <boost/throw_exception.hpp>
 
 namespace beast {
 
@@ -197,7 +198,7 @@ read_some(
     error_code ec;
     auto n = read_some(buffers, ec);
     if(ec)
-        throw system_error{ec};
+        BOOST_THROW_EXCEPTION(system_error{ec});
     return n;
 }
 

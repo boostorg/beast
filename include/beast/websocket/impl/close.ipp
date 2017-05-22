@@ -14,6 +14,7 @@
 #include <boost/asio/handler_alloc_hook.hpp>
 #include <boost/asio/handler_continuation_hook.hpp>
 #include <boost/asio/handler_invoke_hook.hpp>
+#include <boost/throw_exception.hpp>
 #include <memory>
 
 namespace beast {
@@ -227,7 +228,7 @@ close(close_reason const& cr)
     error_code ec;
     close(cr, ec);
     if(ec)
-        throw system_error{ec};
+        BOOST_THROW_EXCEPTION(system_error{ec});
 }
 
 template<class NextLayer>

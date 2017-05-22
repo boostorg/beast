@@ -15,6 +15,7 @@
 #include <beast/websocket/teardown.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/asio/io_service.hpp>
+#include <boost/throw_exception.hpp>
 #include <string>
 
 namespace beast {
@@ -57,7 +58,7 @@ public:
         error_code ec;
         auto const n = read_some(buffers, ec);
         if(ec)
-            throw system_error{ec};
+            BOOST_THROW_EXCEPTION(system_error{ec});
         return n;
     }
 
@@ -102,7 +103,7 @@ public:
         error_code ec;
         auto const n = write_some(buffers, ec);
         if(ec)
-            throw system_error{ec};
+            BOOST_THROW_EXCEPTION(system_error{ec});
         return n;
     }
 

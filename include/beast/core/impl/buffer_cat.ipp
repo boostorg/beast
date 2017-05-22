@@ -10,6 +10,7 @@
 
 #include <beast/core/detail/type_traits.hpp>
 #include <boost/asio/buffer.hpp>
+#include <boost/throw_exception.hpp>
 #include <array>
 #include <cstdint>
 #include <iterator>
@@ -215,8 +216,8 @@ private:
     reference
     dereference(C<sizeof...(Bn)> const&) const
     {
-        throw detail::make_exception<std::logic_error>(
-            "invalid iterator", __FILE__, __LINE__);
+        BOOST_THROW_EXCEPTION(std::logic_error{
+            "invalid iterator"});
     }
 
     template<std::size_t I>
@@ -232,8 +233,8 @@ private:
     void
     increment(C<sizeof...(Bn)> const&)
     {
-        throw detail::make_exception<std::logic_error>(
-            "invalid iterator", __FILE__, __LINE__);
+        BOOST_THROW_EXCEPTION(std::logic_error{
+            "invalid iterator"});
     }
 
     template<std::size_t I>
@@ -274,8 +275,8 @@ private:
             --iter<I>();
             return;
         }
-        throw detail::make_exception<std::logic_error>(
-            "invalid iterator", __FILE__, __LINE__);
+        BOOST_THROW_EXCEPTION(std::logic_error{
+            "invalid iterator"});
     }
 
     template<std::size_t I>

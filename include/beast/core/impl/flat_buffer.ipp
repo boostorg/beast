@@ -9,6 +9,7 @@
 #define BEAST_IMPL_FLAT_BUFFER_HPP
 
 #include <boost/assert.hpp>
+#include <boost/throw_exception.hpp>
 #include <stdexcept>
 
 namespace beast {
@@ -211,8 +212,8 @@ prepare(std::size_t n) ->
     }
     // enforce maximum capacity
     if(n > max_ - len)
-        throw std::length_error{
-            "basic_flat_buffer overflow"};
+        BOOST_THROW_EXCEPTION(std::length_error{
+            "basic_flat_buffer overflow"});
     // allocate a new buffer
     auto const new_size = (std::min)(max_,
         std::max<std::size_t>(
@@ -257,8 +258,8 @@ reserve(std::size_t n)
     if(n <= capacity())
         return;
     if(n > max_)
-        throw std::length_error{
-            "basic_flat_buffer overflow"};
+        BOOST_THROW_EXCEPTION(std::length_error{
+            "basic_flat_buffer overflow"});
     auto const new_size = (std::min)(max_,
         std::max<std::size_t>(
             detail::next_pow2(n), min_size));
