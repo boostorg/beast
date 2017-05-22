@@ -61,8 +61,8 @@ private:
         {
             if(content_length >
                     (std::numeric_limits<std::size_t>::max)())
-                throw std::length_error{
-                    "Content-Length overflow"};
+                BOOST_THROW_EXCEPTION(std::length_error{
+                    "Content-Length overflow"});
             body_.reserve(static_cast<
                 std::size_t>(content_length));
         }

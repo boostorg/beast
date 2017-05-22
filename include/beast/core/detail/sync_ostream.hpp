@@ -11,6 +11,8 @@
 #include <beast/core/error.hpp>
 #include <beast/core/type_traits.hpp>
 #include <boost/asio/buffer.hpp>
+#include <boost/throw_exception.hpp>
+// BOOST_THROW_EXCEPTION(
 #include <ostream>
 
 namespace beast {
@@ -56,7 +58,7 @@ write_some(ConstBufferSequence const& buffers)
     error_code ec;
     auto const n = write_some(buffers, ec);
     if(ec)
-        throw system_error{ec};
+        BOOST_THROW_EXCEPTION(system_error{ec});
     return n;
 }
 

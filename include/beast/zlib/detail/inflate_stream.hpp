@@ -41,6 +41,7 @@
 #include <beast/zlib/detail/ranges.hpp>
 #include <beast/zlib/detail/window.hpp>
 #include <beast/core/detail/type_traits.hpp>
+#include <boost/throw_exception.hpp>
 #include <algorithm>
 #include <array>
 #include <cstdint>
@@ -233,8 +234,8 @@ inflate_stream::
 doReset(int windowBits)
 {
     if(windowBits < 8 || windowBits > 15)
-        throw beast::detail::make_exception<std::domain_error>(
-            "windowBits out of range", __FILE__, __LINE__);
+        BOOST_THROW_EXCEPTION(std::domain_error{
+            "windowBits out of range"});
     w_.reset(windowBits);
 
     bi_.flush();
@@ -708,8 +709,8 @@ doWrite(z_params& zs, Flush flush, error_code& ec)
 
         case SYNC:
         default:
-            throw beast::detail::make_exception<std::logic_error>(
-                "stream error", __FILE__, __LINE__);
+            BOOST_THROW_EXCEPTION(std::logic_error{
+                "stream error"});
         }
     }
 }
@@ -935,8 +936,8 @@ inflate_table(
 
     auto const not_enough = []
     {
-        throw beast::detail::make_exception<std::logic_error>(
-            "insufficient output size when inflating tables", __FILE__, __LINE__);
+        BOOST_THROW_EXCEPTION(std::logic_error{
+            "insufficient output size when inflating tables"});
     };
 
     // check available table space
@@ -1077,7 +1078,7 @@ get_fixed_tables() ->
                 inflate_table(build::lens,
                     lens, 288, &next, &lenbits, work, ec);
                 if(ec)
-                    throw std::logic_error{ec.message()};
+                    BOOST_THROW_EXCEPTION(std::logic_error{ec.message()});
             }
 
             // VFALCO These fixups are from ZLib
@@ -1093,7 +1094,7 @@ get_fixed_tables() ->
                 inflate_table(build::dists,
                     lens, 32, &next, &distbits, work, ec);
                 if(ec)
-                    throw std::logic_error{ec.message()};
+                    BOOST_THROW_EXCEPTION(std::logic_error{ec.message()});
             }
         }
     };

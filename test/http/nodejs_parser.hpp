@@ -16,6 +16,7 @@
 #include <beast/core/type_traits.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/system/error_code.hpp>
+#include <boost/throw_exception.hpp>
 #include <cstdint>
 #include <string>
 #include <type_traits>
@@ -174,7 +175,7 @@ public:
         error_code ec;
         auto const used = write(data, size, ec);
         if(ec)
-            throw system_error{ec};
+            BOOST_THROW_EXCEPTION(system_error{ec});
         return used;
     }
 
@@ -189,7 +190,7 @@ public:
         error_code ec;
         auto const used = write(buffers, ec);
         if(ec)
-            throw system_error{ec};
+            BOOST_THROW_EXCEPTION(system_error{ec});
         return used;
     }
 
@@ -204,7 +205,7 @@ public:
         error_code ec;
         write_eof(ec);
         if(ec)
-            throw system_error{ec};
+            BOOST_THROW_EXCEPTION(system_error{ec});
     }
 
     void

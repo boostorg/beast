@@ -11,6 +11,7 @@
 #include <beast/config.hpp>
 #include <beast/http/message.hpp>
 #include <beast/http/basic_parser.hpp>
+#include <boost/throw_exception.hpp>
 #include <array>
 #include <type_traits>
 #include <utility>
@@ -162,8 +163,8 @@ private:
     {
         // Can't write body data with header-only parser!
         BOOST_ASSERT(false);
-        throw std::logic_error{
-            "invalid member function call"};
+        BOOST_THROW_EXCEPTION(std::logic_error{
+            "invalid member function call"});
     }
 
     void

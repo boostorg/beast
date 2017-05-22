@@ -10,6 +10,7 @@
 
 #include <beast/core/detail/type_traits.hpp>
 #include <boost/assert.hpp>
+#include <boost/throw_exception.hpp>
 #include <algorithm>
 #include <exception>
 #include <sstream>
@@ -523,8 +524,8 @@ basic_multi_buffer<Allocator>::basic_multi_buffer(
     , alloc_size_(alloc_size)
 {
     if(alloc_size <= 0)
-        throw detail::make_exception<std::invalid_argument>(
-            "invalid alloc_size", __FILE__, __LINE__);
+        BOOST_THROW_EXCEPTION(std::invalid_argument{
+            "invalid alloc_size"});
 }
 
 template<class Allocator>

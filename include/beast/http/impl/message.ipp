@@ -16,6 +16,7 @@
 #include <beast/core/detail/type_traits.hpp>
 #include <boost/assert.hpp>
 #include <boost/optional.hpp>
+#include <boost/throw_exception.hpp>
 #include <stdexcept>
 
 namespace beast {
@@ -134,7 +135,7 @@ prepare_content_length(prepare_info& pi,
     error_code ec;
     w.init(ec);
     if(ec)
-        throw system_error{ec};
+        BOOST_THROW_EXCEPTION(system_error{ec});
     pi.content_length = w.content_length();
 }
 
@@ -157,8 +158,6 @@ void
 prepare(message<isRequest, Body, Fields>& msg,
     Options&&... options)
 {
-    using beast::detail::make_exception;
-
     // VFALCO TODO
     static_assert(is_Body<Body>::value,
         "Body requirements not met");
@@ -174,16 +173,16 @@ prepare(message<isRequest, Body, Fields>& msg,
         std::forward<Options>(options)...);
 
     if(msg.fields.exists("Connection"))
-        throw make_exception<std::invalid_argument>(
-            "prepare called with Connection field set", __FILE__, __LINE__);
+        BOOST_THROW_EXCEPTION(std::invalid_argument{
+            "prepare called with Connection field set"});
 
     if(msg.fields.exists("Content-Length"))
-        throw make_exception<std::invalid_argument>(
-            "prepare called with Content-Length field set", __FILE__, __LINE__);
+        BOOST_THROW_EXCEPTION(std::invalid_argument{
+            "prepare called with Content-Length field set"});
 
     if(token_list{msg.fields["Transfer-Encoding"]}.exists("chunked"))
-        throw make_exception<std::invalid_argument>(
-            "prepare called with Transfer-Encoding: chunked set", __FILE__, __LINE__);
+        BOOST_THROW_EXCEPTION(std::invalid_argument{
+            "prepare called with Transfer-Encoding: chunked set"});
 
     if(pi.connection_value != connection::upgrade)
     {
@@ -254,8 +253,8 @@ prepare(message<isRequest, Body, Fields>& msg,
     // rfc7230 6.7.
     if(msg.version < 11 && token_list{
             msg.fields["Connection"]}.exists("upgrade"))
-        throw make_exception<std::invalid_argument>(
-            "invalid version for Connection: upgrade", __FILE__, __LINE__);
+        BOOST_THROW_EXCEPTION(std::invalid_argument{
+            "invalid version for Connection: upgrade"});
 }
 
 namespace detail {

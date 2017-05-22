@@ -40,6 +40,7 @@
 #include <beast/core/detail/type_traits.hpp>
 #include <boost/assert.hpp>
 #include <boost/optional.hpp>
+#include <boost/throw_exception.hpp>
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
@@ -894,19 +895,17 @@ doReset(
     if(windowBits == 8)
         windowBits = 9;
 
-    using beast::detail::make_exception;
-
     if(level < 0 || level > 9)
-        throw make_exception<std::invalid_argument>(
-            "invalid level", __FILE__, __LINE__);
+        BOOST_THROW_EXCEPTION(std::invalid_argument{
+            "invalid level"});
 
     if(windowBits < 8 || windowBits > 15)
-        throw make_exception<std::invalid_argument>(
-            "invalid windowBits", __FILE__, __LINE__);
+        BOOST_THROW_EXCEPTION(std::invalid_argument{
+            "invalid windowBits"});
 
     if(memLevel < 1 || memLevel > MAX_MEM_LEVEL)
-        throw make_exception<std::invalid_argument>(
-            "invalid memLevel", __FILE__, __LINE__);
+        BOOST_THROW_EXCEPTION(std::invalid_argument{
+            "invalid memLevel"});
 
     w_bits_ = windowBits;
 

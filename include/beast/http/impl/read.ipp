@@ -20,6 +20,7 @@
 #include <boost/asio/handler_invoke_hook.hpp>
 #include <boost/assert.hpp>
 #include <boost/optional.hpp>
+#include <boost/throw_exception.hpp>
 
 namespace beast {
 namespace http {
@@ -203,7 +204,7 @@ read_some(
     auto const bytes_used =
         read_some(stream, buffer, parser, ec);
     if(ec)
-        throw system_error{ec};
+        BOOST_THROW_EXCEPTION(system_error{ec});
     return bytes_used;
 }
 
@@ -244,7 +245,7 @@ read(
     error_code ec;
     read(stream, buffer, parser, ec);
     if(ec)
-        throw system_error{ec};
+        BOOST_THROW_EXCEPTION(system_error{ec});
 }
 
 template<
@@ -298,7 +299,7 @@ read(
     error_code ec;
     beast::http::read(stream, buffer, msg, ec);
     if(ec)
-        throw system_error{ec};
+        BOOST_THROW_EXCEPTION(system_error{ec});
 }
 
 template<
