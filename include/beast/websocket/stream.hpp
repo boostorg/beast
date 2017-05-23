@@ -965,8 +965,12 @@ public:
         manner equivalent to using `boost::asio::io_service::post`.
     */
     template<class AcceptHandler>
+#if BEAST_DOXYGEN
+    void_or_deduced
+#else
     async_return_type<
         AcceptHandler, void(error_code)>
+#endif
     async_accept(AcceptHandler&& handler);
 
     /** Start reading and responding to a WebSocket HTTP Upgrade request.
@@ -1020,8 +1024,12 @@ public:
         manner equivalent to using `boost::asio::io_service::post`.
     */
     template<class ResponseDecorator, class AcceptHandler>
+#if BEAST_DOXYGEN
+    void_or_deduced
+#else
     async_return_type<
         AcceptHandler, void(error_code)>
+#endif
     async_accept_ex(ResponseDecorator const& decorator,
         AcceptHandler&& handler);
 
@@ -1074,8 +1082,12 @@ public:
         manner equivalent to using `boost::asio::io_service::post`.
     */
     template<class ConstBufferSequence, class AcceptHandler>
+#if BEAST_DOXYGEN
+    void_or_deduced
+#else
     async_return_type<
         AcceptHandler, void(error_code)>
+#endif
     async_accept(ConstBufferSequence const& buffers,
         AcceptHandler&& handler);
 
@@ -1138,8 +1150,12 @@ public:
     */
     template<class ConstBufferSequence,
         class ResponseDecorator, class AcceptHandler>
+#if BEAST_DOXYGEN
+    void_or_deduced
+#else
     async_return_type<
         AcceptHandler, void(error_code)>
+#endif
     async_accept_ex(ConstBufferSequence const& buffers,
         ResponseDecorator const& decorator,
             AcceptHandler&& handler);
@@ -1190,8 +1206,12 @@ public:
         manner equivalent to using `boost::asio::io_service::post`.
     */
     template<class Fields, class AcceptHandler>
+#if BEAST_DOXYGEN
+    void_or_deduced
+#else
     async_return_type<
         AcceptHandler, void(error_code)>
+#endif
     async_accept(http::header<true, Fields> const& req,
         AcceptHandler&& handler);
 
@@ -1251,8 +1271,12 @@ public:
     */
     template<class Fields,
         class ResponseDecorator, class AcceptHandler>
+#if BEAST_DOXYGEN
+    void_or_deduced
+#else
     async_return_type<
         AcceptHandler, void(error_code)>
+#endif
     async_accept_ex(http::header<true, Fields> const& req,
         ResponseDecorator const& decorator,
             AcceptHandler&& handler);
@@ -1311,8 +1335,12 @@ public:
     */
     template<class Fields,
         class ConstBufferSequence, class AcceptHandler>
+#if BEAST_DOXYGEN
+    void_or_deduced
+#else
     async_return_type<
         AcceptHandler, void(error_code)>
+#endif
     async_accept(http::header<true, Fields> const& req,
         ConstBufferSequence const& buffers,
             AcceptHandler&& handler);
@@ -1380,8 +1408,12 @@ public:
     */
     template<class Fields, class ConstBufferSequence,
         class ResponseDecorator, class AcceptHandler>
+#if BEAST_DOXYGEN
+    void_or_deduced
+#else
     async_return_type<
         AcceptHandler, void(error_code)>
+#endif
     async_accept_ex(http::header<true, Fields> const& req,
         ConstBufferSequence const& buffers,
             ResponseDecorator const& decorator,
@@ -1858,8 +1890,12 @@ public:
         manner equivalent to using `boost::asio::io_service::post`.
     */
     template<class HandshakeHandler>
+#if BEAST_DOXYGEN
+    void_or_deduced
+#else
     async_return_type<
         HandshakeHandler, void(error_code)>
+#endif
     async_handshake(string_view const& host,
         string_view const& target,
             HandshakeHandler&& handler);
@@ -1910,8 +1946,12 @@ public:
         manner equivalent to using `boost::asio::io_service::post`.
     */
     template<class HandshakeHandler>
+#if BEAST_DOXYGEN
+    void_or_deduced
+#else
     async_return_type<
         HandshakeHandler, void(error_code)>
+#endif
     async_handshake(response_type& res,
         string_view const& host,
             string_view const& target,
@@ -1968,8 +2008,12 @@ public:
         manner equivalent to using `boost::asio::io_service::post`.
     */
     template<class RequestDecorator, class HandshakeHandler>
+#if BEAST_DOXYGEN
+    void_or_deduced
+#else
     async_return_type<
         HandshakeHandler, void(error_code)>
+#endif
     async_handshake_ex(string_view const& host,
         string_view const& target,
             RequestDecorator const& decorator,
@@ -2030,8 +2074,12 @@ public:
         manner equivalent to using `boost::asio::io_service::post`.
     */
     template<class RequestDecorator, class HandshakeHandler>
+#if BEAST_DOXYGEN
+    void_or_deduced
+#else
     async_return_type<
         HandshakeHandler, void(error_code)>
+#endif
     async_handshake_ex(response_type& res,
         string_view const& host,
             string_view const& target,
@@ -2140,8 +2188,12 @@ public:
         manner equivalent to using `boost::asio::io_service::post`.
     */
     template<class CloseHandler>
+#if BEAST_DOXYGEN
+    void_or_deduced
+#else
     async_return_type<
         CloseHandler, void(error_code)>
+#endif
     async_close(close_reason const& cr, CloseHandler&& handler);
 
     /** Send a WebSocket ping frame.
@@ -2218,8 +2270,12 @@ public:
         manner equivalent to using `boost::asio::io_service::post`.
     */
     template<class WriteHandler>
+#if BEAST_DOXYGEN
+    void_or_deduced
+#else
     async_return_type<
         WriteHandler, void(error_code)>
+#endif
     async_ping(ping_data const& payload, WriteHandler&& handler);
 
     /** Send a WebSocket pong frame.
@@ -2311,8 +2367,12 @@ public:
         manner equivalent to using `boost::asio::io_service::post`.
     */
     template<class WriteHandler>
+#if BEAST_DOXYGEN
+    void_or_deduced
+#else
     async_return_type<
         WriteHandler, void(error_code)>
+#endif
     async_pong(ping_data const& payload, WriteHandler&& handler);
 
     /** Read a message from the stream.
@@ -2455,8 +2515,12 @@ public:
         manner equivalent to using `boost::asio::io_service::post`.
     */
     template<class DynamicBuffer, class ReadHandler>
+#if BEAST_DOXYGEN
+    void_or_deduced
+#else
     async_return_type<
         ReadHandler, void(error_code)>
+#endif
     async_read(opcode& op, DynamicBuffer& buffer, ReadHandler&& handler);
 
     /** Read a message frame from the stream.
@@ -2609,8 +2673,12 @@ public:
         manner equivalent to using boost::asio::io_service::post().
     */
     template<class DynamicBuffer, class ReadHandler>
+#if BEAST_DOXYGEN
+    void_or_deduced
+#else
     async_return_type<
         ReadHandler, void(error_code)>
+#endif
     async_read_frame(frame_info& fi,
         DynamicBuffer& buffer, ReadHandler&& handler);
 
@@ -2731,8 +2799,12 @@ public:
         manner equivalent to using `boost::asio::io_service::post`.
     */
     template<class ConstBufferSequence, class WriteHandler>
+#if BEAST_DOXYGEN
+    void_or_deduced
+#else
     async_return_type<
         WriteHandler, void(error_code)>
+#endif
     async_write(ConstBufferSequence const& buffers,
         WriteHandler&& handler);
 
@@ -2843,8 +2915,12 @@ public:
         ); @endcode
     */
     template<class ConstBufferSequence, class WriteHandler>
+#if BEAST_DOXYGEN
+    void_or_deduced
+#else
     async_return_type<
         WriteHandler, void(error_code)>
+#endif
     async_write_frame(bool fin,
         ConstBufferSequence const& buffers, WriteHandler&& handler);
 
