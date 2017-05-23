@@ -45,7 +45,7 @@ is_alpha(char c)
         0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0, // 224
         0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0  // 240
     };
-    static_assert(sizeof(tab) == 256, "");
+    BOOST_STATIC_ASSERT(sizeof(tab) == 256);
     return tab[static_cast<unsigned char>(c)];
 }
 
@@ -72,7 +72,7 @@ is_text(char c)
         1, 1, 1, 1,  1, 1, 1, 1,  1, 1, 1, 1,  1, 1, 1, 1, // 224
         1, 1, 1, 1,  1, 1, 1, 1,  1, 1, 1, 1,  1, 1, 1, 1  // 240
     };
-    static_assert(sizeof(tab) == 256, "");
+    BOOST_STATIC_ASSERT(sizeof(tab) == 256);
     return tab[static_cast<unsigned char>(c)];
 }
 
@@ -104,7 +104,7 @@ is_tchar(char c)
         0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0, // 224
         0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0  // 240
     };
-    static_assert(sizeof(tab) == 256, "");
+    BOOST_STATIC_ASSERT(sizeof(tab) == 256);
     return tab[static_cast<unsigned char>(c)];
 }
 
@@ -133,7 +133,7 @@ is_qdchar(char c)
         1, 1, 1, 1,  1, 1, 1, 1,  1, 1, 1, 1,  1, 1, 1, 1, // 224
         1, 1, 1, 1,  1, 1, 1, 1,  1, 1, 1, 1,  1, 1, 1, 1  // 240
     };
-    static_assert(sizeof(tab) == 256, "");
+    BOOST_STATIC_ASSERT(sizeof(tab) == 256);
     return tab[static_cast<unsigned char>(c)];
 }
 
@@ -163,7 +163,7 @@ is_qpchar(char c)
         1, 1, 1, 1,  1, 1, 1, 1,  1, 1, 1, 1,  1, 1, 1, 1, // 224
         1, 1, 1, 1,  1, 1, 1, 1,  1, 1, 1, 1,  1, 1, 1, 1  // 240
     };
-    static_assert(sizeof(tab) == 256, "");
+    BOOST_STATIC_ASSERT(sizeof(tab) == 256);
     return tab[static_cast<unsigned char>(c)];
 }
 
@@ -199,7 +199,7 @@ to_field_char(char c)
         0,   0,   0,   0,   0,   0,   0,    0,   0,   0,   0,   0,   0,   0,   0,    0,
         0,   0,   0,   0,   0,   0,   0,    0,   0,   0,   0,   0,   0,   0,   0,    0
     };
-    static_assert(sizeof(tab) == 256, "");
+    BOOST_STATIC_ASSERT(sizeof(tab) == 256);
     return tab[static_cast<unsigned char>(c)];
 }
 
@@ -229,7 +229,7 @@ to_value_char(char c)
         224, 225, 226, 227, 228, 229, 230, 231, 232, 233, 234, 235, 236, 237, 238, 239, // 224
         240, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250, 251, 252, 253, 254, 255  // 240
     };
-    static_assert(sizeof(tab) == 256, "");
+    BOOST_STATIC_ASSERT(sizeof(tab) == 256);
     return static_cast<char>(tab[static_cast<unsigned char>(c)]);
 }
 
@@ -256,7 +256,7 @@ unhex(char c)
         -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, // 224
         -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1  // 240
     };
-    static_assert(sizeof(tab) == 256, "");
+    BOOST_STATIC_ASSERT(sizeof(tab) == 256);
     return tab[static_cast<unsigned char>(c)];
 }
 

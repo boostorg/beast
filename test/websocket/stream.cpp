@@ -1837,23 +1837,23 @@ public:
 
     void run() override
     {
-        static_assert(std::is_constructible<
-            stream<socket_type>, boost::asio::io_service&>::value, "");
+        BOOST_STATIC_ASSERT(std::is_constructible<
+            stream<socket_type>, boost::asio::io_service&>::value);
 
-        static_assert(std::is_move_constructible<
-            stream<socket_type>>::value, "");
+        BOOST_STATIC_ASSERT(std::is_move_constructible<
+            stream<socket_type>>::value);
 
-        static_assert(std::is_move_assignable<
-            stream<socket_type>>::value, "");
+        BOOST_STATIC_ASSERT(std::is_move_assignable<
+            stream<socket_type>>::value);
 
-        static_assert(std::is_constructible<
-            stream<socket_type&>, socket_type&>::value, "");
+        BOOST_STATIC_ASSERT(std::is_constructible<
+            stream<socket_type&>, socket_type&>::value);
 
-        static_assert(std::is_move_constructible<
-            stream<socket_type&>>::value, "");
+        BOOST_STATIC_ASSERT(std::is_move_constructible<
+            stream<socket_type&>>::value);
 
-        static_assert(! std::is_move_assignable<
-            stream<socket_type&>>::value, "");
+        BOOST_STATIC_ASSERT(! std::is_move_assignable<
+            stream<socket_type&>>::value);
 
         log << "sizeof(websocket::stream) == " <<
             sizeof(websocket::stream<boost::asio::ip::tcp::socket&>) << std::endl;

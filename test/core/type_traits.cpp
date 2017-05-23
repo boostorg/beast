@@ -37,26 +37,13 @@ struct is_invocable_udt3
 
 #ifndef __INTELLISENSE__
 // VFALCO Fails to compile with Intellisense
-static_assert(is_invocable<
-    is_invocable_udt1, void(int)>::value, "");
-
-static_assert(! is_invocable<
-    is_invocable_udt1, void(void)>::value, "");
-
-static_assert(is_invocable<
-    is_invocable_udt2, int(int)>::value, "");
-
-static_assert(! is_invocable<
-    is_invocable_udt2, int(void)>::value, "");
-
-static_assert(! is_invocable<
-    is_invocable_udt2, void(void)>::value, "");
-
-static_assert(is_invocable<
-    is_invocable_udt3, int(int)>::value, "");
-
-static_assert(! is_invocable<
-    is_invocable_udt3 const, int(int)>::value, "");
+BOOST_STATIC_ASSERT(is_invocable<is_invocable_udt1, void(int)>::value);
+BOOST_STATIC_ASSERT(is_invocable<is_invocable_udt2, int(int)>::value);
+BOOST_STATIC_ASSERT(is_invocable<is_invocable_udt3, int(int)>::value);
+BOOST_STATIC_ASSERT(! is_invocable<is_invocable_udt1, void(void)>::value);
+BOOST_STATIC_ASSERT(! is_invocable<is_invocable_udt2, int(void)>::value);
+BOOST_STATIC_ASSERT(! is_invocable<is_invocable_udt2, void(void)>::value);
+BOOST_STATIC_ASSERT(! is_invocable<is_invocable_udt3 const, int(int)>::value);
 #endif
 
 //
@@ -86,29 +73,14 @@ struct F4
         get_lowest_layer<next_layer_type>::type;
 };
 
-static_assert(std::is_same<
-    get_lowest_layer<F1>::type, F1>::value, "");
-
-static_assert(std::is_same<
-    get_lowest_layer<F2>::type, F2>::value, "");
-
-static_assert(std::is_same<
-    get_lowest_layer<F3<F1>>::type, F1>::value, "");
-
-static_assert(std::is_same<
-    get_lowest_layer<F3<F2>>::type, F2>::value, "");
-
-static_assert(std::is_same<
-    get_lowest_layer<F4<F1>>::type, F1>::value, "");
-
-static_assert(std::is_same<
-    get_lowest_layer<F4<F2>>::type, F2>::value, "");
-
-static_assert(std::is_same<
-    get_lowest_layer<F4<F3<F1>>>::type, F1>::value, "");
-
-static_assert(std::is_same<
-    get_lowest_layer<F4<F3<F2>>>::type, F2>::value, "");
+BOOST_STATIC_ASSERT(std::is_same<get_lowest_layer<F1>::type, F1>::value);
+BOOST_STATIC_ASSERT(std::is_same<get_lowest_layer<F2>::type, F2>::value);
+BOOST_STATIC_ASSERT(std::is_same<get_lowest_layer<F3<F1>>::type, F1>::value);
+BOOST_STATIC_ASSERT(std::is_same<get_lowest_layer<F3<F2>>::type, F2>::value);
+BOOST_STATIC_ASSERT(std::is_same<get_lowest_layer<F4<F1>>::type, F1>::value);
+BOOST_STATIC_ASSERT(std::is_same<get_lowest_layer<F4<F2>>::type, F2>::value);
+BOOST_STATIC_ASSERT(std::is_same<get_lowest_layer<F4<F3<F1>>>::type, F1>::value);
+BOOST_STATIC_ASSERT(std::is_same<get_lowest_layer<F4<F3<F2>>>::type, F2>::value);
 
 } // (anonymous)
 
@@ -122,11 +94,11 @@ namespace {
 
 struct T {};
 
-static_assert(is_const_buffer_sequence<detail::ConstBufferSequence>::value, "");
-static_assert(! is_const_buffer_sequence<T>::value, "");
+BOOST_STATIC_ASSERT(is_const_buffer_sequence<detail::ConstBufferSequence>::value);
+BOOST_STATIC_ASSERT(! is_const_buffer_sequence<T>::value);
 
-static_assert(is_mutable_buffer_sequence<detail::MutableBufferSequence>::value, "");
-static_assert(! is_mutable_buffer_sequence<T>::value, "");
+BOOST_STATIC_ASSERT(is_mutable_buffer_sequence<detail::MutableBufferSequence>::value);
+BOOST_STATIC_ASSERT(! is_mutable_buffer_sequence<T>::value);
 
 } // (anonymous)
 
@@ -143,8 +115,8 @@ struct H
 
 } // anonymous
 
-static_assert(is_completion_handler<H, void(int)>::value, "");
-static_assert(! is_completion_handler<H, void(void)>::value, "");
+BOOST_STATIC_ASSERT(is_completion_handler<H, void(int)>::value);
+BOOST_STATIC_ASSERT(! is_completion_handler<H, void(void)>::value);
 
 //
 // stream concepts
@@ -154,19 +126,19 @@ static_assert(! is_completion_handler<H, void(void)>::value, "");
 
 using stream_type = boost::asio::ip::tcp::socket;
 
-static_assert(has_get_io_service<stream_type>::value, "");
-static_assert(is_async_read_stream<stream_type>::value, "");
-static_assert(is_async_write_stream<stream_type>::value, "");
-static_assert(is_async_stream<stream_type>::value, "");
-static_assert(is_sync_read_stream<stream_type>::value, "");
-static_assert(is_sync_write_stream<stream_type>::value, "");
-static_assert(is_sync_stream<stream_type>::value, "");
+BOOST_STATIC_ASSERT(has_get_io_service<stream_type>::value);
+BOOST_STATIC_ASSERT(is_async_read_stream<stream_type>::value);
+BOOST_STATIC_ASSERT(is_async_write_stream<stream_type>::value);
+BOOST_STATIC_ASSERT(is_async_stream<stream_type>::value);
+BOOST_STATIC_ASSERT(is_sync_read_stream<stream_type>::value);
+BOOST_STATIC_ASSERT(is_sync_write_stream<stream_type>::value);
+BOOST_STATIC_ASSERT(is_sync_stream<stream_type>::value);
 
-static_assert(! has_get_io_service<int>::value, "");
-static_assert(! is_async_read_stream<int>::value, "");
-static_assert(! is_async_write_stream<int>::value, "");
-static_assert(! is_sync_read_stream<int>::value, "");
-static_assert(! is_sync_write_stream<int>::value, "");
+BOOST_STATIC_ASSERT(! has_get_io_service<int>::value);
+BOOST_STATIC_ASSERT(! is_async_read_stream<int>::value);
+BOOST_STATIC_ASSERT(! is_async_write_stream<int>::value);
+BOOST_STATIC_ASSERT(! is_sync_read_stream<int>::value);
+BOOST_STATIC_ASSERT(! is_sync_write_stream<int>::value);
 
 //} // (anonymous)
 

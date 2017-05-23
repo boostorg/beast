@@ -458,7 +458,7 @@ public:
     body() const
     {
         // This function not available when isDirect==true
-        static_assert(! isDirect, "");
+        BOOST_STATIC_ASSERT(! isDirect);
         return body_;
     }
 
@@ -476,7 +476,7 @@ public:
     chunk_extension() const
     {
         // This function not available when isDirect==true
-        static_assert(! isDirect, "");
+        BOOST_STATIC_ASSERT(! isDirect);
         return ext_;
     }
 

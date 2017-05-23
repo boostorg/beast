@@ -16,24 +16,24 @@
 
 namespace beast {
 
-static_assert(
+BOOST_STATIC_ASSERT(
     std::is_same<boost::asio::const_buffer, decltype(
         buffer_prefix(0,
-            std::declval<boost::asio::const_buffer>()))>::value, "");
+            std::declval<boost::asio::const_buffer>()))>::value);
 
-static_assert(
+BOOST_STATIC_ASSERT(
     is_const_buffer_sequence<decltype(
         buffer_prefix(0,
-            std::declval<boost::asio::const_buffers_1>()))>::value, "");
+            std::declval<boost::asio::const_buffers_1>()))>::value);
 
-static_assert(
+BOOST_STATIC_ASSERT(
     std::is_same<boost::asio::mutable_buffer, decltype(
         buffer_prefix(0,
-            std::declval<boost::asio::mutable_buffer>()))>::value, "");
-static_assert(
+            std::declval<boost::asio::mutable_buffer>()))>::value);
+BOOST_STATIC_ASSERT(
     is_mutable_buffer_sequence<decltype(
         buffer_prefix(0,
-            std::declval<boost::asio::mutable_buffers_1>()))>::value, "");
+            std::declval<boost::asio::mutable_buffers_1>()))>::value);
 
 class buffer_prefix_test : public beast::unit_test::suite
 {

@@ -226,7 +226,7 @@ private:
     on_data(string_view const& s,
         error_code& ec)
     {
-        static_assert(! Body::reader::is_direct, "");
+        BOOST_STATIC_ASSERT(! Body::reader::is_direct);
         r_->write(s, ec);
     }
 
