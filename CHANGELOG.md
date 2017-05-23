@@ -5,6 +5,7 @@ Version 44
 * Require Boost 1.58.0 or later
 * Tidy up and make get_lowest_layer public
 * Use BOOST_STATIC_ASSERT
+* Fix async return values in docs
 
 --------------------------------------------------------------------------------
 

@@ -194,8 +194,12 @@ template<
     class DynamicBuffer,
     bool isRequest, bool isDirect, class Derived,
     class ReadHandler>
+#if BEAST_DOXYGEN
+    void_or_deduced
+#else
 async_return_type<
     ReadHandler, void(error_code, std::size_t)>
+#endif
 async_read_some(
     AsyncReadStream& stream,
     DynamicBuffer& buffer,
@@ -344,8 +348,12 @@ template<
     class DynamicBuffer,
     bool isRequest, bool isDirect, class Derived,
     class ReadHandler>
+#if BEAST_DOXYGEN
+    void_or_deduced
+#else
 async_return_type<
     ReadHandler, void(error_code)>
+#endif
 async_read(
     AsyncReadStream& stream,
     DynamicBuffer& buffer,
@@ -499,8 +507,12 @@ template<
     class DynamicBuffer,
     bool isRequest, class Body, class Fields,
     class ReadHandler>
+#if BEAST_DOXYGEN
+    void_or_deduced
+#else
 async_return_type<
     ReadHandler, void(error_code)>
+#endif
 async_read(
     AsyncReadStream& stream,
     DynamicBuffer& buffer,

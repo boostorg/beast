@@ -121,8 +121,12 @@ write(SyncWriteStream& stream,
 template<class AsyncWriteStream,
     bool isRequest, class Fields,
         class WriteHandler>
+#if BEAST_DOXYGEN
+    void_or_deduced
+#else
 async_return_type<
     WriteHandler, void(error_code)>
+#endif
 async_write(AsyncWriteStream& stream,
     header<isRequest, Fields> const& msg,
         WriteHandler&& handler);
