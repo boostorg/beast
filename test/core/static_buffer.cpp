@@ -8,6 +8,7 @@
 // Test that header file is self-contained.
 #include <beast/core/static_buffer.hpp>
 
+#include "buffer_test.hpp"
 #include <beast/unit_test/suite.hpp>
 #include <boost/asio/buffer.hpp>
 #include <string>
@@ -197,6 +198,8 @@ public:
 
     void run() override
     {
+        test::check_read_size_helper<static_buffer_n<32>>();
+
         testStaticBuffer();
         testIterators();
     }

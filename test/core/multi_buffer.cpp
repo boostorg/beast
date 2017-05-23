@@ -281,14 +281,15 @@ public:
 
     void testCapacity()
     {
+        using beast::detail::read_size_helper;
         using boost::asio::buffer_size;
         {
             multi_buffer b{10};
             BEAST_EXPECT(b.alloc_size() == 10);
             BEAST_EXPECT(read_size_helper(b, 1) == 1);
             BEAST_EXPECT(read_size_helper(b, 10) == 10);
-            BEAST_EXPECT(read_size_helper(b, 20) == 20);
-            BEAST_EXPECT(read_size_helper(b, 1000) == 512);
+            BEAST_EXPECT(read_size_helper(b, 20) == 10);
+            BEAST_EXPECT(read_size_helper(b, 1000) == 10);
             b.prepare(3);
             b.commit(3);
             BEAST_EXPECT(read_size_helper(b, 10) == 7);
@@ -345,6 +346,8 @@ public:
 
     void run() override
     {
+        test::check_read_size_helper<multi_buffer>();
+
         testSpecialMembers();
         testAllocator();
         testPrepare();

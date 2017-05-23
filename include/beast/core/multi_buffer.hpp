@@ -285,13 +285,6 @@ public:
     void
     consume(size_type n);
 
-    // Helper for boost::asio::read_until
-    template<class OtherAllocator>
-    friend
-    std::size_t
-    read_size_helper(basic_multi_buffer<
-        OtherAllocator> const& multi_buffer, std::size_t max_size);
-
 private:
     void
     clear();
@@ -314,6 +307,13 @@ private:
     void
     debug_check() const;
 };
+
+/// Helper for boost::asio::read_until
+template<class Allocator>
+std::size_t
+read_size_helper(
+    basic_multi_buffer<Allocator> const& buffer,
+        std::size_t max_size);
 
 /// A typical multi buffer
 using multi_buffer = basic_multi_buffer<std::allocator<char>>;

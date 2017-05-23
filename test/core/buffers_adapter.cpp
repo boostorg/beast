@@ -8,6 +8,7 @@
 // Test that header file is self-contained.
 #include <beast/core/buffers_adapter.hpp>
 
+#include "buffer_test.hpp"
 #include <beast/core/ostream.hpp>
 #include <beast/core/multi_buffer.hpp>
 #include <beast/unit_test/suite.hpp>
@@ -176,6 +177,9 @@ public:
     }
     void run() override
     {
+        test::check_read_size_helper<buffers_adapter<
+            boost::asio::mutable_buffers_1>>();
+
         testBuffersAdapter();
         testCommit();
     }

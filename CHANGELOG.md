@@ -1,6 +1,7 @@
 Version 44
 
 * Use BOOST_THROW_EXCEPTION
+* Tidy up read_size_helper and dynamic buffers
 
 --------------------------------------------------------------------------------
 
