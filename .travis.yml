@@ -11,8 +11,8 @@ env:
     # to boost's .tar.gz.
     - LCOV_ROOT=$HOME/lcov
     - VALGRIND_ROOT=$HOME/valgrind-install
-    - BOOST_ROOT=$HOME/boost_1_64_0
-    - BOOST_URL='http://sourceforge.net/projects/boost/files/boost/1.64.0/boost_1_64_0.tar.gz'
+    - BOOST_ROOT=$HOME/boost_1_58_0
+    - BOOST_URL='http://sourceforge.net/projects/boost/files/boost/1.58.0/boost_1_58_0.tar.gz'
 
 addons:
   apt:

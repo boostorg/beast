@@ -76,7 +76,7 @@ The library has been submitted to the
 
 ## Requirements
 
-* Boost 1.64.0 or later
+* Boost 1.58.0 or later
 * C++11 or later
 
 When using Microsoft Visual C++, Visual Studio 2015 Update 3 or later is required.
