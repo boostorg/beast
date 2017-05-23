@@ -8,6 +8,8 @@
 #ifndef BEAST_CONFIG_HPP
 #define BEAST_CONFIG_HPP
 
+#include <boost/static_assert.hpp>
+
 /*
 	_MSC_VER and _MSC_FULL_VER by version:
 

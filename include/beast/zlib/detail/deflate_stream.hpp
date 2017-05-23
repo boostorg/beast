@@ -133,7 +133,7 @@ protected:
     static std::uint16_t constexpr maxMatch = 258;
 
     // Can't change minMatch without also changing code, see original zlib
-    static_assert(minMatch==3, "");
+    BOOST_STATIC_ASSERT(minMatch == 3);
 
     // end of block literal code
     static std::uint16_t constexpr END_BLOCK = 256;

@@ -41,8 +41,8 @@ namespace beast {
 template<class CompletionToken, class Signature>
 class async_result
 {
-    static_assert(! std::is_reference<
-        CompletionToken>::value, "");
+    BOOST_STATIC_ASSERT(
+        ! std::is_reference<CompletionToken>::value);
 
     boost::asio::async_result<typename
         boost::asio::handler_type<CompletionToken,

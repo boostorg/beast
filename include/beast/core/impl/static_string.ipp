@@ -593,9 +593,7 @@ template<class Integer>
 static_string<detail::max_digits(sizeof(Integer))>
 to_static_string(Integer x)
 {
-    static_assert(
-        std::is_integral<Integer>::value,
-        "Integral requirements not met");
+    BOOST_STATIC_ASSERT(std::is_integral<Integer>::value);
     return detail::to_static_string(
         x, std::integral_constant<bool,
             std::is_signed<Integer>::value>{});

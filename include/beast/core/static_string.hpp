@@ -820,54 +820,41 @@ private:
 };
 
 //
-// Non-member functions
+// Disallowed operations
 //
+
+// These operations are explicitly deleted since
+// there is no reasonable implementation possible.
 
 template<std::size_t N, std::size_t M, class CharT, class Traits>
 void
 operator+(
     static_string<N, CharT, Traits>const& lhs,
-    static_string<M, CharT, Traits>const& rhs)
-{
-    static_assert(sizeof(CharT) == -1,
-        "operator+ is not available");
-}
+    static_string<M, CharT, Traits>const& rhs) = delete;
 
 template<std::size_t N, class CharT, class Traits>
 void
 operator+(CharT const* lhs,
-    static_string<N, CharT, Traits>const& rhs )
-{
-    static_assert(sizeof(CharT) == -1,
-        "operator+ is not available");
-}
+    static_string<N, CharT, Traits>const& rhs) = delete;
 
 template<std::size_t N, class CharT, class Traits>
 void
 operator+(CharT lhs,
-    static_string<N, CharT, Traits> const& rhs)
-{
-    static_assert(sizeof(CharT) == -1,
-        "operator+ is not available");
-}
+    static_string<N, CharT, Traits> const& rhs) = delete;
 
 template<std::size_t N, class CharT, class Traits>
 void
 operator+(static_string<N, CharT, Traits> const& lhs,
-    CharT const* rhs )
-{
-    static_assert(sizeof(CharT) == -1,
-        "operator+ is not available");
-}
+    CharT const* rhs) = delete;
 
 template<std::size_t N, class CharT, class Traits>
 void
 operator+(static_string<N, CharT, Traits> const& lhs,
-    CharT rhs )
-{
-    static_assert(sizeof(CharT) == -1,
-        "operator+ is not available");
-}
+    CharT rhs) = delete;
+
+//
+// Non-member functions
+//
 
 template<std::size_t N, std::size_t M,
     class CharT, class Traits>

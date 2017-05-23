@@ -120,7 +120,7 @@ basic_parser<isRequest, isDirect, Derived>::
 copy_body(DynamicBuffer& buffer)
 {
     // This function not available when isDirect==false
-    static_assert(isDirect, "");
+    BOOST_STATIC_ASSERT(isDirect);
 
     using boost::asio::buffer_copy;
     using boost::asio::buffer_size;
@@ -173,7 +173,7 @@ prepare_body(boost::optional<
     MutableBufferSequence>& buffers, std::size_t limit)
 {
     // This function not available when isDirect==false
-    static_assert(isDirect, "");
+    BOOST_STATIC_ASSERT(isDirect);
 
     BOOST_ASSERT(limit > 0);
     BOOST_ASSERT(
@@ -202,7 +202,7 @@ basic_parser<isRequest, isDirect, Derived>::
 commit_body(std::size_t n)
 {
     // This function not available when isDirect==false
-    static_assert(isDirect, "");
+    BOOST_STATIC_ASSERT(isDirect);
 
     BOOST_ASSERT(f_ & flagOnBody);
     impl().on_commit(n);

@@ -84,8 +84,7 @@ handler_ptr(Handler&& handler, Args&&... args)
     : p_(new P{std::move(handler),
         std::forward<Args>(args)...})
 {
-    static_assert(! std::is_array<T>::value,
-        "T must not be an array type");
+    BOOST_STATIC_ASSERT(! std::is_array<T>::value);
 }
 
 template<class T, class Handler>
@@ -94,8 +93,7 @@ handler_ptr<T, Handler>::
 handler_ptr(Handler const& handler, Args&&... args)
     : p_(new P{handler, std::forward<Args>(args)...})
 {
-    static_assert(! std::is_array<T>::value,
-        "T must not be an array type");
+    BOOST_STATIC_ASSERT(! std::is_array<T>::value);
 }
 
 template<class T, class Handler>

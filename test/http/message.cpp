@@ -73,39 +73,39 @@ public:
     void
     testMessage()
     {
-        static_assert(std::is_constructible<
-            message<true, default_body, fields>>::value, "");
+        BOOST_STATIC_ASSERT(std::is_constructible<
+            message<true, default_body, fields>>::value);
 
-        static_assert(std::is_constructible<
-            message<true, one_arg_body, fields>, Arg1>::value, "");
+        BOOST_STATIC_ASSERT(std::is_constructible<
+            message<true, one_arg_body, fields>, Arg1>::value);
 
-        static_assert(std::is_constructible<
-            message<true, one_arg_body, fields>, Arg1 const>::value, "");
+        BOOST_STATIC_ASSERT(std::is_constructible<
+            message<true, one_arg_body, fields>, Arg1 const>::value);
 
-        static_assert(std::is_constructible<
-            message<true, one_arg_body, fields>, Arg1 const&>::value, "");
+        BOOST_STATIC_ASSERT(std::is_constructible<
+            message<true, one_arg_body, fields>, Arg1 const&>::value);
 
-        static_assert(std::is_constructible<
-            message<true, one_arg_body, fields>, Arg1&&>::value, "");
+        BOOST_STATIC_ASSERT(std::is_constructible<
+            message<true, one_arg_body, fields>, Arg1&&>::value);
 
-        static_assert(! std::is_constructible<
-            message<true, one_arg_body, fields>>::value, "");
+        BOOST_STATIC_ASSERT(! std::is_constructible<
+            message<true, one_arg_body, fields>>::value);
 
-        static_assert(std::is_constructible<
+        BOOST_STATIC_ASSERT(std::is_constructible<
             message<true, one_arg_body, fields>,
-                Arg1, fields::allocator_type>::value, "");
+                Arg1, fields::allocator_type>::value);
 
-        static_assert(std::is_constructible<
+        BOOST_STATIC_ASSERT(std::is_constructible<
             message<true, one_arg_body, fields>, std::piecewise_construct_t,
-                std::tuple<Arg1>>::value, "");
+                std::tuple<Arg1>>::value);
 
-        static_assert(std::is_constructible<
+        BOOST_STATIC_ASSERT(std::is_constructible<
             message<true, two_arg_body, fields>, std::piecewise_construct_t,
-                std::tuple<Arg1, Arg2>>::value, "");
+                std::tuple<Arg1, Arg2>>::value);
 
-        static_assert(std::is_constructible<
+        BOOST_STATIC_ASSERT(std::is_constructible<
             message<true, two_arg_body, fields>, std::piecewise_construct_t,
-                std::tuple<Arg1, Arg2>, std::tuple<fields::allocator_type>>::value, "");
+                std::tuple<Arg1, Arg2>, std::tuple<fields::allocator_type>>::value);
 
         {
             Arg1 arg1;
@@ -171,16 +171,16 @@ public:
     {
         {
             using req_type = request_header;
-            static_assert(std::is_copy_constructible<req_type>::value, "");
-            static_assert(std::is_move_constructible<req_type>::value, "");
-            static_assert(std::is_copy_assignable<req_type>::value, "");
-            static_assert(std::is_move_assignable<req_type>::value, "");
+            BOOST_STATIC_ASSERT(std::is_copy_constructible<req_type>::value);
+            BOOST_STATIC_ASSERT(std::is_move_constructible<req_type>::value);
+            BOOST_STATIC_ASSERT(std::is_copy_assignable<req_type>::value);
+            BOOST_STATIC_ASSERT(std::is_move_assignable<req_type>::value);
 
             using res_type = response_header;
-            static_assert(std::is_copy_constructible<res_type>::value, "");
-            static_assert(std::is_move_constructible<res_type>::value, "");
-            static_assert(std::is_copy_assignable<res_type>::value, "");
-            static_assert(std::is_move_assignable<res_type>::value, "");
+            BOOST_STATIC_ASSERT(std::is_copy_constructible<res_type>::value);
+            BOOST_STATIC_ASSERT(std::is_move_constructible<res_type>::value);
+            BOOST_STATIC_ASSERT(std::is_copy_assignable<res_type>::value);
+            BOOST_STATIC_ASSERT(std::is_move_assignable<res_type>::value);
         }
 
         {
