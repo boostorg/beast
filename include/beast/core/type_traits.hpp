@@ -15,6 +15,12 @@
 
 namespace beast {
 
+//------------------------------------------------------------------------------
+//
+// Buffer concepts
+//
+//------------------------------------------------------------------------------
+
 /// Determine if `T` meets the requirements of @b ConstBufferSequence.
 template<class T>
 #if BEAST_DOXYGEN
@@ -50,12 +56,54 @@ struct is_mutable_buffer_sequence :
 {
 };
 
+//------------------------------------------------------------------------------
+//
+// Handler concepts
+//
+//------------------------------------------------------------------------------
+
+/// Determine if `T` meets the requirements of @b CompletionHandler.
+template<class T, class Signature>
+#if BEAST_DOXYGEN
+using is_completion_handler = std::integral_constant<bool, ...>;
+#else
+using is_completion_handler = std::integral_constant<bool,
+    std::is_copy_constructible<typename std::decay<T>::type>::value &&
+        detail::is_invocable<T, Signature>::value>;
+#endif
+
+
+//------------------------------------------------------------------------------
+//
+// Stream concepts
+//
+//------------------------------------------------------------------------------
+
 /// Determine if `T` has the `get_io_service` member.
 template<class T>
 #if BEAST_DOXYGEN
 struct has_get_io_service : std::integral_constant<bool, ...>{};
 #else
 using has_get_io_service = typename detail::has_get_io_service<T>::type;
+#endif
+
+/// Returns `T::lowest_layer_type` if it exists, else `T`
+#if BEAST_DOXYGEN
+template<class T>
+struct get_lowest_layer;
+#else
+template<class T, class = void>
+struct get_lowest_layer
+{
+    using type = T;
+};
+
+template<class T>
+struct get_lowest_layer<T, detail::void_t<
+    typename T::lowest_layer_type>>
+{
+    using type = typename T::lowest_layer_type;
+};
 #endif
 
 /// Determine if `T` meets the requirements of @b AsyncReadStream.
@@ -106,16 +154,6 @@ struct is_sync_stream : std::integral_constant<bool, ...>{};
 #else
 using is_sync_stream = std::integral_constant<bool,
     is_sync_read_stream<T>::value && is_sync_write_stream<T>::value>;
-#endif
-
-/// Determine if `T` meets the requirements of @b CompletionHandler.
-template<class T, class Signature>
-#if BEAST_DOXYGEN
-using is_completion_handler = std::integral_constant<bool, ...>;
-#else
-using is_completion_handler = std::integral_constant<bool,
-    std::is_copy_constructible<typename std::decay<T>::type>::value &&
-        detail::is_invocable<T, Signature>::value>;
 #endif
 
 } // beast

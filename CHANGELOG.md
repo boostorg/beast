@@ -3,6 +3,7 @@ Version 44
 * Use BOOST_THROW_EXCEPTION
 * Tidy up read_size_helper and dynamic buffers
 * Require Boost 1.58.0 or later
+* Tidy up and make get_lowest_layer public
 
 --------------------------------------------------------------------------------
 

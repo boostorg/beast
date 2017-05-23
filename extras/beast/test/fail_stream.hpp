@@ -36,8 +36,7 @@ public:
         typename std::remove_reference<NextLayer>::type;
 
     using lowest_layer_type =
-        typename beast::detail::get_lowest_layer<
-            next_layer_type>::type;
+        typename get_lowest_layer<next_layer_type>::type;
 
     fail_stream(fail_stream&&) = delete;
     fail_stream(fail_stream const&) = delete;

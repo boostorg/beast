@@ -139,6 +139,7 @@ Asio library and the ideas upon which Beast is built.
 Beast would not be possible without the considerable time and patience
 contributed by David Schwartz, Edward Hennis, Howard Hinnant, Miguel Portilla,
 Nikolaos Bougalis, Scott Determan, Scott Schurr, and Ripple Labs for
-supporting its early development.
+supporting its early development. Also thanks to Agustín Bergé, Glen Fernandes
+and Peter Dimov for putting up with my endless C++ questions on Slack.
 
 [endsect]
