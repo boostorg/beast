@@ -108,12 +108,7 @@ public:
 
     /// The type of the lowest layer.
     using lowest_layer_type =
-#if BEAST_DOXYGEN
-        implementation_defined;
-#else
-        typename detail::get_lowest_layer<
-            next_layer_type>::type;
-#endif
+        typename get_lowest_layer<next_layer_type>::type;
 
     /** Move constructor.
 

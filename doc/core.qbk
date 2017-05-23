@@ -39,6 +39,11 @@ diagnostics.
 [table Type Traits
 [[Name][Description]]
 [[
+    [link beast.ref.get_lowest_layer `get_lowest_layer`]
+][
+    Returns `T::lowest_layer_type` if it exists, else returns `T`.
+]]
+[[
     [link beast.ref.has_get_io_service `has_get_io_service`]
 ][
     Determine if the `get_io_service` member function is present with the

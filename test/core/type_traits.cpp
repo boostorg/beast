@@ -86,11 +86,6 @@ struct F4
         get_lowest_layer<next_layer_type>::type;
 };
 
-static_assert(! has_lowest_layer<F1>::value, "");
-static_assert(! has_lowest_layer<F2>::value, "");
-static_assert(has_lowest_layer<F3<F1>>::value, "");
-static_assert(has_lowest_layer<F4<F3<F2>>>::value, "");
-
 static_assert(std::is_same<
     get_lowest_layer<F1>::type, F1>::value, "");
 
