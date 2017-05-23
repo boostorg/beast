@@ -854,21 +854,19 @@ basic_multi_buffer<Allocator>::debug_check() const
 
 template<class Allocator>
 std::size_t
-read_size_helper(basic_multi_buffer<
-    Allocator> const& multi_buffer, std::size_t max_size)
+read_size_helper(
+    basic_multi_buffer<Allocator> const& buffer,
+        std::size_t max_size)
 {
     BOOST_ASSERT(max_size >= 1);
-    // If we already have an allocated
-    // buffer, try to fill that up first
-    auto const avail = multi_buffer.capacity() - multi_buffer.size();
-    if (avail > 0)
-        return (std::min)(avail, max_size);
-    // Try to have just one new block allocated
-    constexpr std::size_t low = 512;
-    if (multi_buffer.alloc_size_ > low)
-        return (std::min)(max_size, multi_buffer.alloc_size_);
-    // ...but enforce a 512 byte minimum.
-    return (std::min)(max_size, low);
+    auto const size = buffer.size();
+    auto const avail = std::min<std::size_t>(
+        buffer.capacity() - size, max_size);
+    if(avail > 0)
+        return avail; // avoid allocation
+    return std::min<std::size_t>(
+        std::min<std::size_t>(max_size, buffer.max_size() - size),
+        avail + buffer.alloc_size());
 }
 
 } // beast

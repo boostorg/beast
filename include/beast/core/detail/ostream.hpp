@@ -9,6 +9,7 @@
 #define BEAST_DETAIL_OSTREAM_HPP
 
 #include <boost/asio/buffer.hpp>
+#include <beast/core/detail/read_size_helper.hpp>
 #include <memory>
 #include <ostream>
 #include <streambuf>
@@ -127,6 +128,7 @@ private:
     {
         using boost::asio::buffer_cast;
         using boost::asio::buffer_size;
+        using beast::detail::read_size_helper;
         auto mbs = buf_.prepare(
             read_size_helper(buf_, max_size));
         auto const mb = *mbs.begin();
@@ -207,6 +209,7 @@ private:
     {
         using boost::asio::buffer_cast;
         using boost::asio::buffer_size;
+        using beast::detail::read_size_helper;
         auto mbs = buf_.prepare(
             read_size_helper(buf_, max_size));
         auto const mb = *mbs.begin();

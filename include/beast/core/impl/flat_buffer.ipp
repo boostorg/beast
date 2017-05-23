@@ -311,23 +311,6 @@ shrink_to_fit()
     end_ = out_;
 }
 
-template<class Allocator>
-std::size_t
-read_size_helper(basic_flat_buffer<
-    Allocator> const& fb, std::size_t max_size)
-{
-    BOOST_ASSERT(max_size >= 1);
-    auto const len = fb.size();
-    auto const avail = fb.capacity() - len;
-    if (avail > 0)
-        return (std::min)(avail, max_size);
-    auto size = (std::min)(
-        fb.capacity() * 2, fb.max_size()) - len;
-    if(size == 0)
-        size = 1;
-    return (std::min)(size, max_size);
-}
-
 } // beast
 
 #endif

@@ -15,6 +15,7 @@
 #include <beast/core/bind_handler.hpp>
 #include <beast/core/handler_ptr.hpp>
 #include <beast/core/type_traits.hpp>
+#include <beast/core/detail/read_size_helper.hpp>
 #include <boost/asio/handler_alloc_hook.hpp>
 #include <boost/asio/handler_continuation_hook.hpp>
 #include <boost/asio/handler_invoke_hook.hpp>
@@ -53,6 +54,7 @@ read_some_buffer(
     do_read:
         boost::optional<typename
             DynamicBuffer::mutable_buffers_type> mb;
+        using beast::detail::read_size_helper;
         auto const size =
             read_size_helper(buffer, 65536);
         BOOST_ASSERT(size > 0);

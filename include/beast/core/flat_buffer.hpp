@@ -283,13 +283,6 @@ public:
     void
     shrink_to_fit();
 
-    // Helper for boost::asio::read_until
-    template<class OtherAlloc>
-    friend
-    std::size_t
-    read_size_helper(basic_flat_buffer<
-        OtherAlloc> const&, std::size_t);
-
 private:
     void
     move_from(basic_flat_buffer& other);

@@ -286,6 +286,8 @@ public:
     void
     run() override
     {
+        test::check_read_size_helper<flat_buffer>();
+
         testCtors();
         testOperations();
 
