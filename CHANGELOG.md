@@ -9,6 +9,7 @@ Version 44
 * Fix README websocket example
 * Add buffers_adapter regression test
 * Tidy up is_dynamic_buffer traits test
+* Make buffers_adapter meet requirements
 
 --------------------------------------------------------------------------------
 

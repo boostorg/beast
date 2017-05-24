@@ -112,6 +112,13 @@ public:
     {
         return in_size_;
     }
+    
+    /// Returns the maximum sum of the sizes of the input sequence and output sequence the buffer can hold without requiring reallocation.
+    std::size_t
+    capacity() const
+    {
+        return max_size_;
+    }
 
     /** Get a list of buffers that represents the output sequence, with the given size.
 
