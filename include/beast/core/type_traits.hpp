@@ -33,17 +33,6 @@ struct is_const_buffer_sequence :
 {
 };
 
-/// Determine if `T` meets the requirements of @b DynamicBuffer.
-template<class T>
-#if BEAST_DOXYGEN
-struct is_dynamic_buffer : std::integral_constant<bool, ...>
-#else
-struct is_dynamic_buffer :
-    detail::is_dynamic_buffer<T>::type
-#endif
-{
-};
-
 /// Determine if `T` meets the requirements of @b MutableBufferSequence.
 template<class T>
 #if BEAST_DOXYGEN
@@ -55,6 +44,45 @@ struct is_mutable_buffer_sequence :
 #endif
 {
 };
+
+/// Determine if `T` meets the requirements of @b DynamicBuffer.
+#if BEAST_DOXYGEN
+template<class T>
+struct is_dynamic_buffer : std::integral_constant<bool, ...> {};
+#else
+template<class T, class = void>
+struct is_dynamic_buffer : std::false_type {};
+
+template<class T>
+struct is_dynamic_buffer<T, beast::detail::void_t<
+        decltype(
+    // expressions
+    std::declval<std::size_t&>() =
+        std::declval<T const&>().size(),
+    std::declval<std::size_t&>() =
+        std::declval<T const&>().max_size(),
+#if 0
+    // This check is skipped because boost::asio
+    // types are not up to date with net-ts.
+    std::declval<std::size_t&>() =
+        std::declval<T const&>().capacity(),
+#endif
+    std::declval<T&>().commit(std::declval<std::size_t>()),
+    std::declval<T&>().consume(std::declval<std::size_t>()),
+        (void)0)>> : std::integral_constant<bool,
+    is_const_buffer_sequence<
+        typename T::const_buffers_type>::value &&
+    is_mutable_buffer_sequence<
+        typename T::mutable_buffers_type>::value &&
+    std::is_same<typename T::const_buffers_type,
+        decltype(std::declval<T const&>().data())>::value &&
+    std::is_same<typename T::mutable_buffers_type,
+        decltype(std::declval<T&>().prepare(
+            std::declval<std::size_t>()))>::value
+        >
+{
+};
+#endif
 
 //------------------------------------------------------------------------------
 //

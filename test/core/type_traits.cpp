@@ -9,6 +9,7 @@
 #include <beast/core/type_traits.hpp>
 
 #include <boost/asio/ip/tcp.hpp>
+#include <boost/asio/streambuf.hpp>
 
 namespace beast {
 
@@ -99,6 +100,8 @@ BOOST_STATIC_ASSERT(! is_const_buffer_sequence<T>::value);
 
 BOOST_STATIC_ASSERT(is_mutable_buffer_sequence<detail::MutableBufferSequence>::value);
 BOOST_STATIC_ASSERT(! is_mutable_buffer_sequence<T>::value);
+
+BOOST_STATIC_ASSERT(is_dynamic_buffer<boost::asio::streambuf>::value);
 
 } // (anonymous)
 
