@@ -1,3 +1,9 @@
+Version 45
+
+* Workaround for boost::asio::basic_streambuf type check
+
+--------------------------------------------------------------------------------
+
 Version 44
 
 * Use BOOST_THROW_EXCEPTION

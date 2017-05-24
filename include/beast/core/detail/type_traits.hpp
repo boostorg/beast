@@ -345,4 +345,14 @@ public:
 } // detail
 } // beast
 
+namespace boost {
+namespace asio {
+
+// for is_dynamic_buffer
+template<class Allocator>
+class basic_streambuf;
+
+} // asio
+} // boost
+
 #endif
