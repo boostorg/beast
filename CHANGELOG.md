@@ -8,6 +8,7 @@ Version 44
 * Fix async return values in docs
 * Fix README websocket example
 * Add buffers_adapter regression test
+* Tidy up is_dynamic_buffer traits test
 
 --------------------------------------------------------------------------------
 
