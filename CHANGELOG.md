@@ -6,6 +6,7 @@ Version 44
 * Tidy up and make get_lowest_layer public
 * Use BOOST_STATIC_ASSERT
 * Fix async return values in docs
+* Fix README websocket example
 
 --------------------------------------------------------------------------------
 
