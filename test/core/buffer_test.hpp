@@ -107,6 +107,8 @@ inline
 void
 check_read_size_helper()
 {
+    static_assert(is_dynamic_buffer<DynamicBuffer>::value,
+        "DynamicBuffer requirements not met ");
     static_assert(has_read_size_helper::trait<DynamicBuffer>::value,
         "Missing read_size_helper for dynamic buffer");
 }
