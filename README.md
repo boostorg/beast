@@ -156,7 +156,7 @@ and run yourself (they are in the `examples` directory).
 
 Example WebSocket program:
 ```C++
-#include <beast/core/to_string.hpp>
+#include <beast/core.hpp>
 #include <beast/websocket.hpp>
 #include <boost/asio.hpp>
 #include <iostream>
@@ -178,11 +178,11 @@ int main()
     ws.write(boost::asio::buffer(std::string("Hello, world!")));
 
     // Receive WebSocket message, print and close using beast
-    beast::streambuf sb;
+    beast::multi_buffer b;
     beast::websocket::opcode op;
-    ws.read(op, sb);
+    ws.read(op, b);
     ws.close(beast::websocket::close_code::normal);
-    std::cout << beast::to_string(sb.data()) << "\n";
+    std::cout << beast::buffers(b.data()) << "\n";
 }
 ```
 
