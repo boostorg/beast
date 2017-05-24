@@ -175,6 +175,18 @@ public:
             ba.consume(5);
         }
     }
+
+    void
+    testIssue386()
+    {
+        using type = boost::asio::streambuf;
+        type buffer;
+        buffers_adapter<
+            type::mutable_buffers_type> ba{buffer.prepare(512)};
+        using beast::detail::read_size_helper;
+        read_size_helper(ba, 1024);
+    }
+
     void run() override
     {
         test::check_read_size_helper<buffers_adapter<
@@ -182,6 +194,7 @@ public:
 
         testBuffersAdapter();
         testCommit();
+        testIssue386();
     }
 };
 

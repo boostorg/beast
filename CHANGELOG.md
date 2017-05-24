@@ -7,6 +7,7 @@ Version 44
 * Use BOOST_STATIC_ASSERT
 * Fix async return values in docs
 * Fix README websocket example
+* Add buffers_adapter regression test
 
 --------------------------------------------------------------------------------
 
