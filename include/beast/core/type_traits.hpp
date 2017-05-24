@@ -56,17 +56,12 @@ struct is_dynamic_buffer : std::false_type {};
 template<class T>
 struct is_dynamic_buffer<T, beast::detail::void_t<
         decltype(
-    // expressions
     std::declval<std::size_t&>() =
         std::declval<T const&>().size(),
     std::declval<std::size_t&>() =
         std::declval<T const&>().max_size(),
-#if 0
-    // This check is skipped because boost::asio
-    // types are not up to date with net-ts.
     std::declval<std::size_t&>() =
         std::declval<T const&>().capacity(),
-#endif
     std::declval<T&>().commit(std::declval<std::size_t>()),
     std::declval<T&>().consume(std::declval<std::size_t>()),
         (void)0)>> : std::integral_constant<bool,
@@ -80,6 +75,14 @@ struct is_dynamic_buffer<T, beast::detail::void_t<
         decltype(std::declval<T&>().prepare(
             std::declval<std::size_t>()))>::value
         >
+{
+};
+
+// Special case for Boost.Asio which doesn't adhere to
+// net-ts but still provides a read_size_helper so things work
+template<class Allocator>
+struct is_dynamic_buffer<
+    boost::asio::basic_streambuf<Allocator>> : std::true_type
 {
 };
 #endif
