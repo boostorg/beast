@@ -10,7 +10,6 @@
 
 #include <beast/core/async_result.hpp>
 #include <beast/core/bind_handler.hpp>
-#include <beast/core/buffer_prefix.hpp>
 #include <beast/core/error.hpp>
 #include <beast/websocket/teardown.hpp>
 #include <boost/asio/buffer.hpp>
@@ -68,7 +67,7 @@ public:
         error_code& ec)
     {
         auto const n = boost::asio::buffer_copy(
-            buffers, buffer_prefix(read_max_, cb_));
+            buffers, cb_, read_max_);
         if(n > 0)
             cb_ = cb_ + n;
         else

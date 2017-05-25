@@ -666,9 +666,12 @@ public:
 
     void run() override
     {
-        yield_to(&write_test::testAsyncWriteHeaders, this);
-        yield_to(&write_test::testAsyncWrite, this);
-        yield_to(&write_test::testFailures, this);
+        yield_to([&](yield_context yield){
+            testAsyncWriteHeaders(yield); });
+        yield_to([&](yield_context yield){
+            testAsyncWrite(yield); });
+        yield_to([&](yield_context yield){
+            testFailures(yield); });
         testOutput();
         test_std_ostream();
         testOstream();
