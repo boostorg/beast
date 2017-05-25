@@ -319,9 +319,12 @@ public:
     {
         testThrow();
 
-        yield_to(&read_test::testFailures, this);
-        yield_to(&read_test::testRead, this);
-        yield_to(&read_test::testEof, this);
+        yield_to([&](yield_context yield){
+            testFailures(yield); });
+        yield_to([&](yield_context yield){
+            testRead(yield); });
+        yield_to([&](yield_context yield){
+            testEof(yield); });
 
         testIoService();
     }

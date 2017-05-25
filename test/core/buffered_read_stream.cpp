@@ -132,7 +132,8 @@ public:
     {
         testSpecialMembers();
 
-        yield_to(&self::testRead, this);
+        yield_to([&](yield_context yield){
+            testRead(yield);});
     }
 };
 
