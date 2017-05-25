@@ -91,6 +91,7 @@ private:
     results results_;
     suite_results suite_results_;
     case_results case_results_;
+    bool printed_case_ = false;
 
 public:
     reporter(reporter const&) = delete;
@@ -244,9 +245,7 @@ reporter<_>::
 on_case_begin(std::string const& name)
 {
     case_results_ = case_results(name);
-    os_ << suite_results_.name <<
-        (case_results_.name.empty() ? "" :
-            (" " + case_results_.name)) << std::endl;
+    printed_case_ = false;
 }
 
 template<class _>
@@ -272,6 +271,13 @@ on_fail(std::string const& reason)
 {
     ++case_results_.failed;
     ++case_results_.total;
+    if(!printed_case_)
+    {
+        os_ << suite_results_.name <<
+            (case_results_.name.empty() ? "" :
+                (" " + case_results_.name)) << std::endl;
+        printed_case_ = true;
+    }
     os_ <<
         "#" << case_results_.total << " failed" <<
        (reason.empty() ? "" : ": ") << reason << std::endl;
