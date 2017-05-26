@@ -1,6 +1,7 @@
 Version 45
 
 * Workaround for boost::asio::basic_streambuf type check
+* Fix message doc image
 
 --------------------------------------------------------------------------------
 
