@@ -3,6 +3,8 @@ Version 45
 * Workaround for boost::asio::basic_streambuf type check
 * Fix message doc image
 * Better test::enable_yield_to
+* Add test::pipe
+* Fix header::reason
 
 --------------------------------------------------------------------------------
 
