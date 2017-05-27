@@ -5,6 +5,7 @@ Version 45
 * Better test::enable_yield_to
 * Add test::pipe
 * Fix header::reason
+* Documentation work
 
 --------------------------------------------------------------------------------
 
