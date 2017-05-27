@@ -1,0 +1,284 @@
+[/
+    Copyright (c) 2013-2017 Vinnie Falco (vinnie dot falco at gmail dot com)
+
+    Distributed under the Boost Software License, Version 1.0. (See accompanying
+    file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+]
+
+[section:http_message HTTP Message Container]
+
+In this section we describe the problem of modeling HTTP messages and explain
+how the library arrived at its solution, with a discussion of the benefits
+and drawbacks of the design choices. The goal for creating a message model
+is to create a container with value semantics, possibly movable and/or
+copyable, that completely describes the message. More formally, the container
+has all of the information necessary for the serialization algorithms to
+represent the entire message as a series of octets, and that the parsing
+algorithms store all of the captured information about an entire message
+in the container.
+
+In addition to capturing the entirety of a message, we would like the message
+container to contain enough customization points to permit the following:
+allocator support, user-defined containers to represent header fields, and
+user-defined containers to represent the body. And finally, because requests
+and responses have slightly different information in the ['start-line], we
+would like the containers for requests and responses to be represented by
+different types.
+
+Here is our first attempt at declaring some message containers:
+
+[table
+[[
+```
+/// An HTTP request
+template<class Fields, class Body>
+struct request
+{
+    int version;
+    std::string method;
+    std::string target;
+    Fields fields;
+    typename Body::value_type body;
+};
+```
+][
+```
+/// An HTTP response
+template<class Fields, class Body>
+struct response
+{
+    int version;
+    int status;
+    std::string reason;
+    Fields fields;
+    typename Body::value_type body;
+};
+```
+]]
+]
+
+Here we have accomplished a few things. Request and response objects are
+different types. The user can choose the container used to represent the
+fields. And the user can choose the [*Body] type, which is a concept
+defining not only the type of `body` member but also the algorithms used
+to transfer information in and out of that member when performing
+serialization and parsing.
+
+However, a problem arises. How do we write a function which can accept
+an object that is either a request or a response? As written, the only
+ovious solution is to make the message a template type. Additional traits
+classes would then be needed to make sure that the passed object has a
+valid type which meets the requirements. We can avoid those complexities
+by renaming the containers and making them partial specializations of a
+single class, like this:
+
+```
+/// An HTTP message
+template<bool isRequest, class Fields, class Body>
+struct message;
+
+/// An HTTP request
+template<class Fields, class Body>
+struct message<true, Fields, Body>
+{
+    int version;
+    std::string method;
+    std::string target;
+    Fields fields;
+    typename Body::value_type body;
+};
+
+/// An HTTP response
+template<bool isRequest, class Fields, class Body>
+struct response<false, Fields, Body>
+{
+    int version;
+    int status;
+    std::string reason;
+    Fields fields;
+    typename Body::value_type body;
+};
+```
+
+Now we can declare a function which takes any message as a parameter:
+```
+template<bool isRequest, class Fields, class Body>
+void f(message<isRequest, Fields, Body>& msg);
+```
+
+This function can manipulate the fields common to requests and responses.
+If it needs to access the other fields, it can do so using tag dispatch
+with an object of type `std::integral_constant<bool, isRequest>`.
+
+Often, in non-trivial HTTP applications, we want to read the HTTP header
+and examine its contents before choosing a top for [*Body]. To accomplish
+this, there needs to be a way to model the header portion of a message.
+And we'd like to do this in a way that allows functions which take the
+header as a parameter, to also accept a type representing the whole
+message (the function will see just the header part). This suggests
+inheritance:
+```
+/// An HTTP message header
+template<bool isRequest, class Fields>
+struct header;
+
+/// An HTTP request header
+template<class Fields>
+struct header<true, Fields>
+{
+    int version;
+    std::string method;
+    std::string target;
+    Fields fields;
+};
+
+/// An HTTP response header
+template<class Fields>
+struct header<false, Fields>
+{
+    int version;
+    int status;
+    std::string reason;
+    Fields fields;
+};
+
+/// An HTTP message
+template<bool isRequest, class Fields, class Body>
+struct message : header<isRequest, Fields>
+{
+    typename Body::value_type body;
+
+    /// Construct from a `header`
+    message(header<isRequest, Fields>&& h);
+};
+
+```
+
+Note that the `message` class now has a constructor allowing messages
+to be constructed from a similarly typed `header`. This handles the case
+where the user already has the header and wants to make a commitment to the
+type for [*Body]. This also lets us declare a function accepting any header:
+```
+template<bool isRequest, class Fields>
+void f(header<isRequest, Fields>& msg);
+```
+
+Until now we have not given significant consideration to the constructors
+of the `message` class. But to achieve all our goals we will need to make
+sure that there are enough constructor overloads to not only provide for
+the special copy and move members if the instantiated types support it,
+but also allow the fields container and body container to be constructed
+with arbitrary variadic lists of parameters. This allows those members
+to properly support allocators.
+
+The solution used in the library is to treat the message like a `std::pair`
+for the purposes of construction, except that instead of `first` and `last`
+we have `fields` and `body`. This means that single-argument constructors
+for those fields should be accessible as they are with `std::pair`, and
+that a mechanism identical to the pair's use of `std::piecewise_construct`
+should be provided. Those constructors are too complex to repeat here, but
+interested readers can view the declarations in the corresponding header
+file.
+
+There is now significant progress with our message container but a stumbling
+block remains. The presence of `std::string` members is an obstacle to our
+goal of making messages allocator-aware. One obvious solution is to add an
+allocator to the template parameter list of the header and message classes,
+and allow the string based members to construct with instances of those
+allocators. This is unsatisfying because of the combinatorial explosion of
+constructor variations needed to support the scheme. It also means that
+request messages could have [*four] different allocators: two for the fields
+and body, and two for the method and target strings. A better solution is
+needed.
+
+To make allocators workable, we make a simple change to the interface and
+then engineer a clever concession. First, the interface change:
+```
+/// An HTTP request header
+template<class Fields>
+struct header<true, Fields>
+{
+    int version;
+    string_view method() const;
+    void method(string_view);
+    string_view target(); const;
+    void target(string_view);
+    Fields fields;
+};
+
+/// An HTTP response header
+template<class Fields>
+struct header<false, Fields>
+{
+    int version;
+    int status;
+    string_view reason() const;
+    void reason(string_view);
+    Fields fields;
+};
+```
+
+This approach replaces public data members with traditional accessors
+using non-owning references to string buffers. Now we make a concession:
+management of the corresponding string is delegated to the [*Fields]
+container, which can already be allocator aware and constructed with the
+necessary allocator parameter via the provided constructor overloads for
+`message`. The delegation implementation looks like this (only the
+response header specialization is shown):
+```
+/// An HTTP response header
+template<class Fields>
+struct header<false, Fields>
+{
+    int version;
+    int status;
+
+    auto
+    reason() const -> decltype(std::declval<Fields>().reason()) const
+    {
+        return fields.reason();
+    }
+
+    template<class Value>
+    void
+    reason(Value&& value)
+    {
+        fields.reason(std::forward<Value>(value));
+    }
+
+    Fields fields;
+```
+
+An advantage of this technique is that user-provided implementations of
+[*Fields] may use arbitrary representation strategies. For example, instead
+of explicitly storing the method as a string, store it as an enumerated
+integer with a lookup table of static strings for known message types.
+
+Now that we've accomplished our initial goals and more, there is one small
+quality of life improvement to make. Users will choose different types for
+`Body` far more often than they will for `Fields`. Thus, we swap the order
+of these types and provide a default:
+```
+/// An HTTP header
+template<bool isRequest, class Body, class Fields = fields>
+struct header;
+
+/// An HTTP message
+template<bool isRequest, class Body, class Fields = fields>
+struct message;
+```
+
+This container is also capable of representing complete HTTP/2 messages.
+Not because it was explicitly designed for, but because the IETF wanted to
+preserve message compatibility with HTTP/1. Aside from version specific
+fields such as Connection, the contents of HTTP/1 and HTTP/2 messages are
+identical even though their serialized representation is considerably
+different. The message model presented in this library is ready for HTTP/2.
+
+In conclusion, this representation for the message container is well thought
+out, provides comprehensive flexibility, and avoids the necessity of defining
+additional traits classes. User declarations of functions that accept headers
+or messages as parameters are easy to write in a variety of ways to accomplish
+different results, without forcing cumbersome SFINAE declarations everywhere.
+
+[endsect]
