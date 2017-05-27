@@ -246,7 +246,7 @@ struct header<false, Fields>
     */
     auto
     reason() const ->
-        decltype(std::declval<Fields>().method()) const
+        decltype(std::declval<Fields>().reason()) const
     {
         return fields.reason();
     }
