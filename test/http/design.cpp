@@ -77,7 +77,7 @@ public:
         req.body = "Hello, world!";
 
         // send header
-        auto ws = make_write_stream(req);
+        auto ws = make_serializer(req);
         for(;;)
         {
             ws.async_write_some(stream, yield);
@@ -162,7 +162,7 @@ public:
         m.target("/");
         m.fields.insert("User-Agent", "test");
         m.fields.insert("Content-Length", s.size());
-        auto ws = make_write_stream(m);
+        auto ws = make_serializer(m);
         error_code ec;
         for(;;)
         {

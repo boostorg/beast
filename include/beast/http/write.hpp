@@ -78,7 +78,7 @@ struct empty_decorator
 
     To use this class, construct an instance with the message
     to be sent. To make it easier to declare the type, the
-    helper function @ref make_write_stream is provided:
+    helper function @ref make_serializer is provided:
 
     The implementation will automatically perform chunk encoding
     if the contents of the message indicate that chunk encoding
@@ -156,7 +156,7 @@ struct empty_decorator
 
     @tparam Allocator The type of allocator to use.
 
-    @see @ref make_write_stream
+    @see @ref make_serializer
 */
 template<
     bool isRequest, class Body, class Fields,
@@ -420,7 +420,7 @@ inline
 serializer<isRequest, Body, Fields,
     typename std::decay<Decorator>::type,
     typename std::decay<Allocator>::type>
-make_write_stream(message<isRequest, Body, Fields> const& m,
+make_serializer(message<isRequest, Body, Fields> const& m,
     Decorator const& decorator = Decorator{},
         Allocator const& allocator = Allocator{})
 {

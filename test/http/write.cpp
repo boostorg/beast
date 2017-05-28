@@ -765,7 +765,7 @@ public:
         isRequest, Body, Fields> const& m, error_code& ec,
             Decorator const& decorator = Decorator{})
     {
-        auto ws = make_write_stream(m, decorator);
+        auto ws = make_serializer(m, decorator);
         for(;;)
         {
             stream.nwrite = 0;
@@ -787,7 +787,7 @@ public:
             error_code& ec, yield_context yield,
                 Decorator const& decorator = Decorator{})
     {
-        auto ws = make_write_stream(m);
+        auto ws = make_serializer(m);
         for(;;)
         {
             stream.nwrite = 0;
@@ -969,7 +969,7 @@ public:
         m.body.first = boost::none;
         m.body.second = true;
 
-        auto w = make_write_stream(m);
+        auto w = make_serializer(m);
 
         // send the header first, so the
         // other end gets it right away

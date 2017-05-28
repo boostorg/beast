@@ -43,8 +43,8 @@
             <member><link linkend="beast.ref.http__empty_decorator">empty_decorator</link></member>
             <member><link linkend="beast.ref.http__request">request</link></member>
             <member><link linkend="beast.ref.http__response">response</link></member>
+            <member><link linkend="beast.ref.http__serializer">serializer</link></member>
             <member><link linkend="beast.ref.http__string_body">string_body</link></member>
-            <member><link linkend="beast.ref.http__write_stream">write_stream</link></member>
           </simplelist>
           <bridgehead renderas="sect3">rfc7230</bridgehead>
           <simplelist type="vert" columns="1">
@@ -63,7 +63,7 @@
             <member><link linkend="beast.ref.http__async_write">async_write</link></member>
             <member><link linkend="beast.ref.http__is_keep_alive">is_keep_alive</link></member>
             <member><link linkend="beast.ref.http__is_upgrade">is_upgrade</link></member>
-            <member><link linkend="beast.ref.http__make_write_stream">make_write_stream</link></member>
+            <member><link linkend="beast.ref.http__make_serializer">make_serializer</link></member>
             <member><link linkend="beast.ref.http__operator_ls_">operator&lt;&lt;</link></member>
             <member><link linkend="beast.ref.http__prepare">prepare</link></member>
             <member><link linkend="beast.ref.http__read">read</link></member>
