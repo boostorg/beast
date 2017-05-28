@@ -165,6 +165,12 @@ public:
         }
 
         // decrement iterator
+        /* VFALCO
+            This causes a mysterious "uninitialized variable"
+            warning related to this function (see comment)
+            https://code.woboq.org/qt5/include/c++/6.3.1/bits/stl_iterator.h.html#159
+        */
+#if 0
         {
             auto const rbegin =
                 make_reverse_iterator(bs.end());
@@ -175,6 +181,7 @@ public:
                 n += buffer_size(*it);
             BEAST_EXPECT(n == 9);
         }
+#endif
 
         try
         {

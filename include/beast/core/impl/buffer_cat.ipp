@@ -92,23 +92,13 @@ public:
     operator++();
 
     const_iterator
-    operator++(int)
-    {
-        auto temp = *this;
-        ++(*this);
-        return temp;
-    }
+    operator++(int);
 
     const_iterator&
     operator--();
 
     const_iterator
-    operator--(int)
-    {
-        auto temp = *this;
-        --(*this);
-        return temp;
-    }
+    operator--(int);
 
 private:
     const_iterator(
@@ -384,6 +374,7 @@ const_iterator::operator=(const_iterator&& other) ->
     destroy(C<0>{});
     n_ = other.n_;
     bn_ = other.bn_;
+    // VFALCO What about exceptions?
     move(std::move(other), C<0>{});
     return *this;
 }
@@ -399,6 +390,7 @@ const_iterator&
     destroy(C<0>{});
     n_ = other.n_;
     bn_ = other.bn_;
+    // VFALCO What about exceptions?
     copy(other, C<0>{});
     return *this;
 }
@@ -437,11 +429,33 @@ const_iterator::operator++() ->
 template<class... Bn>
 auto
 buffers_view<Bn...>::
+const_iterator::operator++(int) ->
+    const_iterator
+{
+    auto temp = *this;
+    ++(*this);
+    return temp;
+}
+
+template<class... Bn>
+auto
+buffers_view<Bn...>::
 const_iterator::operator--() ->
     const_iterator&
 {
     decrement(C<sizeof...(Bn)>{});
     return *this;
+}
+
+template<class... Bn>
+auto
+buffers_view<Bn...>::
+const_iterator::operator--(int) ->
+    const_iterator
+{
+    auto temp = *this;
+    --(*this);
+    return temp;
 }
 
 //------------------------------------------------------------------------------
