@@ -7,6 +7,7 @@ Version 45
 * Fix header::reason
 * Documentation work
 * buffer_view skips empty buffer sequences
+* Disable reverse_iterator buffer_view test
 
 --------------------------------------------------------------------------------
 
