@@ -20,7 +20,6 @@
 namespace beast {
 namespace http {
 
-#if BEAST_DOXYGEN
 /** A container for a HTTP request or response header.
 
     A header includes the Start Line and Fields.
@@ -33,11 +32,12 @@ namespace http {
 
     @li Invoke algorithms which operate on the header only.
 */
-template<bool isRequest, class Fields>
+#if BEAST_DOXYGEN
+template<bool isRequest, class Fields = fields>
 struct header
 
 #else
-template<bool isRequest, class Fields>
+template<bool isRequest, class Fields = fields>
 struct header;
 
 template<class Fields>
@@ -285,7 +285,7 @@ struct header<false, Fields>
     @tparam Fields The type of container used to hold the
     field value pairs.
 */
-template<bool isRequest, class Body, class Fields>
+template<bool isRequest, class Body, class Fields = fields>
 struct message : header<isRequest, Fields>
 {
     /// The base class used to hold the header portion of the message.
@@ -442,6 +442,14 @@ private:
     }
 };
 
+/// A typical HTTP request
+template<class Body, class Fields = fields>
+using request = message<true, Body, Fields>;
+
+/// A typical HTTP response
+template<class Body, class Fields = fields>
+using response = message<false, Body, Fields>;
+
 //------------------------------------------------------------------------------
 
 #if BEAST_DOXYGEN
@@ -467,20 +475,6 @@ void
 swap(
     message<isRequest, Body, Fields>& m1,
     message<isRequest, Body, Fields>& m2);
-
-/// A typical HTTP request header
-using request_header = header<true, fields>;
-
-/// Typical HTTP response header
-using response_header = header<false, fields>;
-
-/// A typical HTTP request
-template<class Body, class Fields = fields>
-using request = message<true, Body, Fields>;
-
-/// A typical HTTP response
-template<class Body, class Fields = fields>
-using response = message<false, Body, Fields>;
 
 //------------------------------------------------------------------------------
 

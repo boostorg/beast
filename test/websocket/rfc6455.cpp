@@ -20,7 +20,7 @@ public:
     void
     test_is_upgrade()
     {
-        http::request_header req;
+        http::header<true> req;
         req.version = 10;
         BEAST_EXPECT(! is_upgrade(req));
         req.version = 11;

@@ -5,47 +5,6 @@
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 ]
 
-[/
-ideas:
-    - complete send request walkthrough (client)
-    - complete receive response walkthrough (client)
-    - complete receive request walkthrough (server)
-    - complete send response walkthrough (server)
-
-    - Introduce concepts from simple to complex
-    - Smooth progression of new ideas building on the previous ideas
-
-    - do we show a simplified message with collapsed fields?
-    - do we introduce `header` or `message` first?
-
-
-contents:
-    Message (and header, fields)
-        Create request
-        Create response
-    Algorithms
-        Write
-        Read
-    Examples
-        Send Request
-        Receive Response
-        Receive Request
-        Send Response
-    Advanced
-        Responding to HEAD
-        Expect: 100-continue
-    Body (user defined)
-
-
-section beast.http.examples Examples
-
-note
-  In the example code which follows, `socket` refers to an object of type
-  `boost::asio::ip::tcp::socket` which is currently connected to a remote peer.
-]
-
-
-
 [section:http Using HTTP]
 
 [block '''
@@ -73,8 +32,6 @@ writing of messages and headers in the HTTP/1 wire format using Boost.Asio.
     using namespace beast::http;
     ```
 ]
-
-
 
 
 
@@ -118,18 +75,17 @@ __message__ class templates, as well as the inheritance relationship:
 For notational convenience, these template type aliases are provided which
 supply typical choices for the [*`Fields`] type:
 ```
-using request_header = header<true, fields>;
-using response_header = header<false, fields>;
-
+/// A typical HTTP request
 template<class Body, class Fields = fields>
 using request = message<true, Body, Fields>;
 
+/// A typical HTTP response
 template<class Body, class Fields = fields>
 using response = message<false, Body, Fields>;
 ```
 
-The code examples below show how to create and fill in a request and response
-object:
+The code examples below show how to create and fill in request and response
+objects:
 
 [table Create Message
 [[HTTP Request] [HTTP Response]]
@@ -181,11 +137,7 @@ results when serialized. Note that only the response has a body:
     ```
 ]]]
 
-
-
-
 [endsect]
-
 
 
 

@@ -2,6 +2,10 @@ Version 46
 
 * Add test::pipe
 
+API Changes:
+
+* Remove HTTP header aliases
+
 --------------------------------------------------------------------------------
 
 Version 45
