@@ -213,17 +213,18 @@ shows the customization points available to user-defined body types:
 * [*`value_type`]: Determines the type of the
   [link beast.ref.http__message.body `message::body`] member. If this
   type defines default construction, move, copy, or swap, then message objects
-  declared with this [*`Body`] will have those operations defined.
+  declared with this [*Body] will have those operations defined.
 
-* [*`reader`]: An optional nested type meeting the requirements of
-  [link beast.ref.Reader [*`Reader`]]. If present, this defines the algorithm
-  used for parsing bodies of this type.
+* [*`body_writer`]: An optional nested type meeting the requirements of
+  [link beast.ref.BodyWriter [*BodyWriter]]. If present, this defines the
+  algorithm used to transfer parsed octets into buffers representing the
+  body.
 
-* [*`writer`]: An optional nested type meeting the requirements of
-  [link beast.ref.Writer [*`Writer`]]. If present, this defines the algorithm
-  used for serializing bodies of this type.
+* [*`body_reader`]: An optional nested type meeting the requirements of
+  [link beast.ref.BodyReader [*BodyReader]]. If present, this defines
+  the algorithm used to obtain buffers representing a body of this type.
 
-The examples included with this library provide a Body implementation that
+The examples included with this library provide a [*Body] implementation that
 serializing message bodies that come from a file.
 
 [endsect]

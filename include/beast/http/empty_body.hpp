@@ -29,10 +29,10 @@ struct empty_body
     };
 
 #if BEAST_DOXYGEN
-    /// The algorithm used when serializing this body.
-    using writer = implementation_defined;
+    /// The algorithm to obtain buffers representing the body
+    using reader = implementation_defined;
 #else
-    struct writer
+    struct reader
     {
         using is_deferred = std::false_type;
 
@@ -41,7 +41,7 @@ struct empty_body
 
         template<bool isRequest, class Fields>
         explicit
-        writer(message<
+        reader(message<
             isRequest, empty_body, Fields> const&)
         {
         }

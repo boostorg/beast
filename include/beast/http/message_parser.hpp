@@ -37,16 +37,16 @@ namespace http {
 template<bool isRequest, class Body, class Fields>
 class message_parser
     : public basic_parser<isRequest,
-        Body::reader::is_direct,
+        Body::writer::is_direct,
             message_parser<isRequest, Body, Fields>>
 {
     using base_type = basic_parser<isRequest, true,
         message_parser<isRequest, Body, Fields>>;
 
-    using reader_type = typename Body::reader;
+    using writer_type = typename Body::writer;
 
     message<isRequest, Body, Fields> m_;
-    boost::optional<typename Body::reader> r_;
+    boost::optional<writer_type> wr_;
 
 public:
     /// The type of message returned by the parser
@@ -54,7 +54,7 @@ public:
 
     /// The type of buffer sequence representing the body
     using mutable_buffers_type =
-        typename reader_type::mutable_buffers_type;
+        typename writer_type::mutable_buffers_type;
 
     /// Constructor (default)
     message_parser() = default;
@@ -152,7 +152,7 @@ public:
 
 private:
     friend class basic_parser<
-        isRequest, Body::reader::is_direct,
+        isRequest, Body::writer::is_direct,
             message_parser>;
 
     void
@@ -192,22 +192,22 @@ private:
     void
     on_body()
     {
-        r_.emplace(m_);
-        r_->init();
+        wr_.emplace(m_);
+        wr_->init();
     }
 
     void
     on_body(std::uint64_t content_length)
     {
-        r_.emplace(m_);
-        r_->init(content_length);
+        wr_.emplace(m_);
+        wr_->init(content_length);
     }
 
     void
     on_body(error_code& ec)
     {
-        r_.emplace(m_);
-        r_->init(ec);
+        wr_.emplace(m_);
+        wr_->init(ec);
         if(ec)
             return;
     }
@@ -216,8 +216,8 @@ private:
     on_body(std::uint64_t content_length,
         error_code& ec)
     {
-        r_.emplace(m_);
-        r_->init(content_length, ec);
+        wr_.emplace(m_);
+        wr_->init(content_length, ec);
         if(ec)
             return;
     }
@@ -226,20 +226,20 @@ private:
     on_data(string_view const& s,
         error_code& ec)
     {
-        BOOST_STATIC_ASSERT(! Body::reader::is_direct);
-        r_->write(s, ec);
+        BOOST_STATIC_ASSERT(! Body::writer::is_direct);
+        wr_->write(s, ec);
     }
 
     mutable_buffers_type
     on_prepare(std::size_t n)
     {
-        return r_->prepare(n);
+        return wr_->prepare(n);
     }
 
     void
     on_commit(std::size_t n)
     {
-        r_->commit(n);
+        wr_->commit(n);
     }
 
     void
@@ -252,24 +252,24 @@ private:
     void
     on_complete(error_code& ec)
     {
-        if(r_)
+        if(wr_)
             do_on_complete(ec,
                 std::integral_constant<bool,
-                    Body::reader::is_direct>{});
+                    Body::writer::is_direct>{});
     }
 
     void
     do_on_complete(
         error_code& ec, std::true_type)
     {
-        r_->finish();
+        wr_->finish();
     }
 
     void
     do_on_complete(
         error_code& ec, std::false_type)
     {
-        r_->finish(ec);
+        wr_->finish(ec);
         if(ec)
             return;
     }

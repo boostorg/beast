@@ -43,7 +43,6 @@ unit-test http-tests :
     ../extras/beast/unit_test/main.cpp
     http/basic_parser.cpp
     http/buffer_body.cpp
-    http/concepts.cpp
     http/design.cpp
     http/dynamic_body.cpp
     http/error.cpp
@@ -54,6 +53,7 @@ unit-test http-tests :
     http/read.cpp
     http/rfc7230.cpp
     http/string_body.cpp
+    http/type_traits.cpp
     http/write.cpp
     ;
 

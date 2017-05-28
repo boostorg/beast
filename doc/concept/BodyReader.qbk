@@ -5,42 +5,51 @@
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 ]
 
-[section:Writer Writer requirements]
+[section:BodyReader BodyReader requirements]
 
-A [*Writer] provides an online algorithm to obtain a sequence of zero
+A [*BodyReader] provides an online algorithm to obtain a sequence of zero
 or more buffers from a body during serialization. The implementation creates
-an instance of this type when needed, and calls into it zero or more times to
-retrieve buffers with body octets. The interface of [*Writer] is intended to
-allow serialization in these scenarios:
+an instance of this type when needed, and calls into it one or more times to
+retrieve buffers holding body octets. The interface of [*BodyReader] is
+intended to obtain buffers for these scenarios:
 
 * A body that does not entirely fit in memory.
 * A body produced incrementally from coroutine output.
 * A body represented by zero or more buffers already in memory.
-* A body as a series of buffers when the content size is not known ahead of time.
-* Body data generated on demand from other threads.
+* A body whose size is not known ahead of time.
+* Body data generated dynamically from other threads.
 * Body data computed algorithmically.
 
 In this table:
 
-* `X` denotes a type meeting the requirements of [*Writer].
+* `X` denotes a type meeting the requirements of [*BodyReader].
+
+* `B` denotes a __Body__ where
+      `std::is_same<X, B::reader>::value == true`.
 
 * `a` denotes a value of type `X`.
 
 * `m` denotes a value of type `message const&` where
-        `std::is_same<decltype(m.body), Body::value_type>:value == true`.
+      `std::is_same<decltype(m.body), Body::value_type>:value == true`.
 
 * `ec` is a value of type [link beast.ref.error_code `error_code&`].
 
-* `B<T>` is the type `boost::optional<std::pair<T, bool>>`.
+* `R<T>` is the type `boost::optional<std::pair<T, bool>>`.
 
-[table Writer requirements
-[[operation] [type] [semantics, pre/post-conditions]]
+[table BodyReader requirements
+[[expression] [type] [semantics, pre/post-conditions]]
 [
     [`X::const_buffers_type`]
     []
     [
-        A nested type which meets the requirements of __ConstBufferSequence__.
+        A type which meets the requirements of __ConstBufferSequence__.
         This is the type of buffer returned by `X::get`.
+    ]
+]
+[
+    [`X::is_deferred`]
+    []
+    [
     ]
 ]
 [
@@ -53,7 +62,7 @@ In this table:
 ]
 [
     [`a.init(ec)`]
-    [`void`]
+    []
     [
         Called immediately after construction. If the function sets an
         error code in `ec`, the serialization is aborted and the error
@@ -77,7 +86,7 @@ In this table:
 ]
 [
     [`a.get(ec)`]
-    [`B<X::const_buffers_type>`]
+    [`R<X::const_buffers_type>`]
     [
         Called repeatedly after `init` succeeds. This function returns
         `boost::none` if all buffers representing the body have been
@@ -92,23 +101,24 @@ In this table:
     ]
 ]
 [
-    [`http::is_Writer<X>`]
+    [`is_body_reader<B>`]
     [`std::true_type`]
     [
-        An alias for `std::true_type` for `X`, otherwise an
-        alias for `std::false_type`.
+        An alias for `std::true_type` for `B`, otherwise an alias
+        for `std::false_type`.
     ]
 ]
 ]
 
 [note
-    Definitions for required `Writer` member functions should be declared
-    inline so the generated code can become part of the implementation.
+    Definitions for required [*BodyReader] member functions should
+    be declared inline so the generated code can become part of the
+    implementation.
 ]
 
 Exemplar:
 ```
-struct writer
+struct reader
 {
 public:
     /** Controls when the implementation requests buffers.
@@ -124,22 +134,19 @@ public:
     */
     using const_buffers_type = boost::asio::const_buffers_1;
 
-    /** Construct the writer.
-
-        The msg object is guaranteed to exist for the lifetime of the writer.
+    /** Construct the reader.
 
         @param msg The message whose body is to be written.
     */
     template<bool isRequest, class Body, class Headers>
     explicit
-    writer(message<isRequest, Body, Headers> const& msg);
+    reader(message<isRequest, Body, Headers> const& msg);
 
-    /** Initialize the writer.
+    /** Initialization.
 
         Called once immediately after construction.
-        The writer can perform initialization which may fail.
 
-        @param ec Contains the error code if any errors occur.
+        @param ec Set to the error, if any occurred.
     */
     void
     init(error_code& ec);
@@ -147,9 +154,9 @@ public:
     /** Returns the content length.
 
         If this member is present, the implementation will set the
-        Content-Length field accordingly. If absent, the implementation will
-        use chunk-encoding or terminate the connection to indicate the end
-        of the message.
+        Content-Length field accordingly. If absent, the implementation
+        will use chunk-encoding or terminate the connection to indicate
+        the end of the message.
     */
     std::uint64_t
     content_length();
@@ -170,7 +177,6 @@ public:
 
         @li If `ec` contains an error code, the return value is ignored.
     */
-    template<class WriteFunction>
     boost::optional<std::pair<const_buffers_type, bool>>
     get(error_code& ec);
 };

@@ -8,7 +8,7 @@
 #ifndef BEAST_HTTP_IMPL_READ_IPP_HPP
 #define BEAST_HTTP_IMPL_READ_IPP_HPP
 
-#include <beast/http/concepts.hpp>
+#include <beast/http/type_traits.hpp>
 #include <beast/http/error.hpp>
 #include <beast/http/message_parser.hpp>
 #include <beast/http/read.hpp>
@@ -291,13 +291,10 @@ read(
         "SyncReadStream requirements not met");
     static_assert(is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
-    static_assert(is_Body<Body>::value,
+    static_assert(is_body<Body>::value,
         "Body requirements not met");
-    static_assert(has_reader<Body>::value,
-        "Body has no reader");
-    static_assert(is_Reader<typename Body::reader,
-        message<isRequest, Body, Fields>>::value,
-            "Reader requirements not met");
+    static_assert(is_body_writer<Body>::value,
+        "BodyWriter requirements not met");
     error_code ec;
     beast::http::read(stream, buffer, msg, ec);
     if(ec)
@@ -319,13 +316,10 @@ read(
         "SyncReadStream requirements not met");
     static_assert(is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
-    static_assert(is_Body<Body>::value,
+    static_assert(is_body<Body>::value,
         "Body requirements not met");
-    static_assert(has_reader<Body>::value,
-        "Body has no reader");
-    static_assert(is_Reader<typename Body::reader,
-        message<isRequest, Body, Fields>>::value,
-            "Reader requirements not met");
+    static_assert(is_body_writer<Body>::value,
+        "BodyWriter requirements not met");
     message_parser<isRequest, Body, Fields> p;
     beast::http::read(stream, buffer, p, ec);
     if(ec)

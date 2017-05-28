@@ -12,7 +12,6 @@ add_executable (http-tests
     ../../extras/beast/unit_test/main.cpp
     basic_parser.cpp
     buffer_body.cpp
-    concepts.cpp
     design.cpp
     dynamic_body.cpp
     empty_body.cpp
@@ -24,6 +23,7 @@ add_executable (http-tests
     read.cpp
     rfc7230.cpp
     string_body.cpp
+    type_traits.cpp
     write.cpp
 )
 

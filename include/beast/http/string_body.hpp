@@ -31,10 +31,10 @@ struct string_body
     using value_type = std::string;
 
 #if BEAST_DOXYGEN
-    /// The algorithm used when parsing this body.
-    using reader = implementation_defined;
+    /// The algorithm used store buffers in this body
+    using writer = implementation_defined;
 #else
-    class reader
+    class writer
     {
         value_type& body_;
         std::size_t len_ = 0;
@@ -47,7 +47,7 @@ struct string_body
 
         template<bool isRequest, class Fields>
         explicit
-        reader(message<isRequest,
+        writer(message<isRequest,
                 string_body, Fields>& m)
             : body_(m.body)
         {
@@ -93,10 +93,10 @@ struct string_body
 #endif
 
 #if BEAST_DOXYGEN
-    /// The algorithm used when serializing this body.
-    using writer = implementation_defined;
+    /// The algorithm to obtain buffers representing the body
+    using reader = implementation_defined;
 #else
-    class writer
+    class reader
     {
         value_type const& body_;
 
@@ -108,7 +108,7 @@ struct string_body
 
         template<bool isRequest, class Fields>
         explicit
-        writer(message<
+        reader(message<
                 isRequest, string_body, Fields> const& msg)
             : body_(msg.body)
         {

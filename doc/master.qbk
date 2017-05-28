@@ -43,10 +43,9 @@
 [def __SyncReadStream__ [@http://www.boost.org/doc/html/boost_asio/reference/SyncReadStream.html [*SyncReadStream]]]
 [def __SyncWriteStream__ [@http://www.boost.org/doc/html/boost_asio/reference/SyncWriteStream.html [*SyncWriteStream]]]
 
-[def __Body__               [link beast.ref.Body [*`Body`]]]
+[def __Body__               [link beast.ref.Body [*Body]]]
 [def __DynamicBuffer__      [link beast.ref.DynamicBuffer [*DynamicBuffer]]]
 [def __FieldSequence__      [link beast.ref.FieldSequence [*FieldSequence]]]
-[def __Parser__             [link beast.ref.Parser [*`Parser`]]]
 
 [def __basic_fields__       [link beast.ref.http__basic_fields `basic_fields`]]
 [def __fields__             [link beast.ref.http__fields `fields`]]
@@ -113,13 +112,13 @@ provides implementations of the HTTP and WebSocket protocols.
 [section:ref Reference]
 [xinclude quickref.xml]
 [include concept/Body.qbk]
+[include concept/BodyReader.qbk]
+[include concept/BodyWriter.qbk]
 [include concept/BufferSequence.qbk]
 [include concept/DynamicBuffer.qbk]
 [include concept/Field.qbk]
 [include concept/FieldSequence.qbk]
-[include concept/Reader.qbk]
 [include concept/Streams.qbk]
-[include concept/Writer.qbk]
 [include reference.qbk]
 [endsect]
 

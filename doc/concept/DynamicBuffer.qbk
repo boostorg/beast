@@ -41,7 +41,7 @@ In the table below:
 * `U` denotes a type meeting the requirements for __MutableBufferSequence__.
 
 [table DynamicBuffer requirements
-[[operation] [type] [semantics, pre/post-conditions]]
+[[expression] [type] [semantics, pre/post-conditions]]
 [
     [`X::const_buffers_type`]
     [`T`]

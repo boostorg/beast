@@ -74,11 +74,9 @@
           </simplelist>
           <bridgehead renderas="sect3">Type Traits</bridgehead>
           <simplelist type="vert" columns="1">
-           <member><link linkend="beast.ref.http__is_Body">is_Body</link></member>
-           <member><link linkend="beast.ref.http__is_Reader">is_Reader</link></member>
-           <member><link linkend="beast.ref.http__is_Writer">is_Writer</link></member>
-           <member><link linkend="beast.ref.http__has_reader">has_reader</link></member>
-           <member><link linkend="beast.ref.http__has_writer">has_writer</link></member>
+           <member><link linkend="beast.ref.http__is_body">is_body</link></member>
+           <member><link linkend="beast.ref.http__is_body_writer">is_body_writer</link></member>
+           <member><link linkend="beast.ref.http__is_body_reader">is_body_reader</link></member>
           </simplelist>
         </entry>
         <entry valign="top">
@@ -90,10 +88,10 @@
           <bridgehead renderas="sect3">Concepts</bridgehead>
           <simplelist type="vert" columns="1">
             <member><link linkend="beast.ref.Body">Body</link></member>
+            <member><link linkend="beast.ref.BodyReader">BodyReader</link></member>
+            <member><link linkend="beast.ref.BodyWriter">BodyWriter</link></member>
             <member><link linkend="beast.ref.Field">Field</link></member>
             <member><link linkend="beast.ref.FieldSequence">FieldSequence</link></member>
-            <member><link linkend="beast.ref.Reader">Reader</link></member>
-            <member><link linkend="beast.ref.Writer">Writer</link></member>
           </simplelist>
         </entry>
         <entry valign="top">

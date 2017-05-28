@@ -6,16 +6,16 @@
 //
 
 // Test that header file is self-contained.
-#include <beast/http/concepts.hpp>
+#include <beast/http/type_traits.hpp>
 
 #include <beast/http/empty_body.hpp>
 
 namespace beast {
 namespace http {
 
-BOOST_STATIC_ASSERT(! is_Writer<int>::value);
+BOOST_STATIC_ASSERT(! is_body_reader<int>::value);
 
-BOOST_STATIC_ASSERT(is_Writer<empty_body>::value);
+BOOST_STATIC_ASSERT(is_body_reader<empty_body>::value);
 
 } // http
 } // beast

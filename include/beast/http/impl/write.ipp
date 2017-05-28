@@ -8,7 +8,7 @@
 #ifndef BEAST_HTTP_IMPL_WRITE_IPP
 #define BEAST_HTTP_IMPL_WRITE_IPP
 
-#include <beast/http/concepts.hpp>
+#include <beast/http/type_traits.hpp>
 #include <beast/http/error.hpp>
 #include <beast/core/buffer_cat.hpp>
 #include <beast/core/buffer_prefix.hpp>
@@ -183,12 +183,12 @@ operator()(error_code ec,
     {
         if(w_.split_)
             goto go_header_only;
-        w_.wr_.emplace(w_.m_);
-        w_.wr_->init(ec);
+        w_.rd_.emplace(w_.m_);
+        w_.rd_->init(ec);
         if(ec)
             return s_.get_io_service().post(
                 bind_handler(std::move(*this), ec, 0));
-        auto result = w_.wr_->get(ec);
+        auto result = w_.rd_->get(ec);
         if(ec)
         {
             // Can't use need_more when ! is_deferred
@@ -248,9 +248,9 @@ operator()(error_code ec,
         w_.header_done_ = true;
         if(! is_deferred::value)
             goto go_complete;
-        BOOST_ASSERT(! w_.wr_);
-        w_.wr_.emplace(w_.m_);
-        w_.wr_->init(ec);
+        BOOST_ASSERT(! w_.rd_);
+        w_.rd_.emplace(w_.m_);
+        w_.rd_->init(ec);
         if(ec)
             goto upcall;
         w_.s_ = do_body;
@@ -258,7 +258,7 @@ operator()(error_code ec,
 
     case do_body:
     {
-        auto result = w_.wr_->get(ec);
+        auto result = w_.rd_->get(ec);
         if(ec)
             return s_.get_io_service().post(
                 bind_handler(std::move(*this), ec, 0));
@@ -303,12 +303,12 @@ operator()(error_code ec,
     {
         if(w_.split_)
             goto go_header_only_c;
-        w_.wr_.emplace(w_.m_);
-        w_.wr_->init(ec);
+        w_.rd_.emplace(w_.m_);
+        w_.rd_->init(ec);
         if(ec)
             return s_.get_io_service().post(
                 bind_handler(std::move(*this), ec, 0));
-        auto result = w_.wr_->get(ec);
+        auto result = w_.rd_->get(ec);
         if(ec)
         {
             // Can't use need_more when ! is_deferred
@@ -382,9 +382,9 @@ operator()(error_code ec,
             w_.s_ = do_final_c;
             break;
         }
-        BOOST_ASSERT(! w_.wr_);
-        w_.wr_.emplace(w_.m_);
-        w_.wr_->init(ec);
+        BOOST_ASSERT(! w_.rd_);
+        w_.rd_.emplace(w_.m_);
+        w_.rd_->init(ec);
         if(ec)
             goto upcall;
         w_.s_ = do_body_c;
@@ -392,7 +392,7 @@ operator()(error_code ec,
 
     case do_body_c:
     {
-        auto result = w_.wr_->get(ec);
+        auto result = w_.rd_->get(ec);
         if(ec)
             return s_.get_io_service().post(
                 bind_handler(std::move(*this),
@@ -528,12 +528,10 @@ write_some(SyncWriteStream& stream)
     static_assert(
         is_sync_write_stream<SyncWriteStream>::value,
         "SyncWriteStream requirements not met");
-    static_assert(is_Body<Body>::value,
+    static_assert(is_body<Body>::value,
         "Body requirements not met");
-    static_assert(has_writer<Body>::value,
-        "Body::writer requirements not met");
-    static_assert(is_Writer<Body>::value,
-            "Writer requirements not met");
+    static_assert(is_body_reader<Body>::value,
+        "BodyReader requirements not met");
     error_code ec;
     write_some(stream, ec);
     if(ec)
@@ -551,12 +549,10 @@ write_some(SyncWriteStream& stream, error_code &ec)
     static_assert(
         is_sync_write_stream<SyncWriteStream>::value,
         "SyncWriteStream requirements not met");
-    static_assert(is_Body<Body>::value,
+    static_assert(is_body<Body>::value,
         "Body requirements not met");
-    static_assert(has_writer<Body>::value,
-        "Body::writer requirements not met");
-    static_assert(is_Writer<Body>::value,
-            "Writer requirements not met");
+    static_assert(is_body_reader<Body>::value,
+        "BodyReader requirements not met");
 
     using boost::asio::buffer_size;
     switch(s_)
@@ -565,11 +561,11 @@ write_some(SyncWriteStream& stream, error_code &ec)
     {
         if(split_)
             goto go_header_only;
-        wr_.emplace(m_);
-        wr_->init(ec);
+        rd_.emplace(m_);
+        rd_->init(ec);
         if(ec)
             return;
-        auto result = wr_->get(ec);
+        auto result = rd_->get(ec);
         if(ec)
         {
             // Can't use need_more when ! is_deferred
@@ -624,9 +620,9 @@ write_some(SyncWriteStream& stream, error_code &ec)
         header_done_ = true;
         if(! is_deferred::value)
             goto go_complete;
-        BOOST_ASSERT(! wr_);
-        wr_.emplace(m_);
-        wr_->init(ec);
+        BOOST_ASSERT(! rd_);
+        rd_.emplace(m_);
+        rd_->init(ec);
         if(ec)
             return;
         s_ = do_body;
@@ -635,7 +631,7 @@ write_some(SyncWriteStream& stream, error_code &ec)
 
     case do_body:
     {
-        auto result = wr_->get(ec);
+        auto result = rd_->get(ec);
         if(ec)
             return;
         if(! result)
@@ -670,11 +666,11 @@ write_some(SyncWriteStream& stream, error_code &ec)
     {
         if(split_)
             goto go_header_only_c;
-        wr_.emplace(m_);
-        wr_->init(ec);
+        rd_.emplace(m_);
+        rd_->init(ec);
         if(ec)
             return;
-        auto result = wr_->get(ec);
+        auto result = rd_->get(ec);
         if(ec)
         {
             // Can't use need_more when ! is_deferred
@@ -742,9 +738,9 @@ write_some(SyncWriteStream& stream, error_code &ec)
             s_ = do_final_c;
             break;
         }
-        BOOST_ASSERT(! wr_);
-        wr_.emplace(m_);
-        wr_->init(ec);
+        BOOST_ASSERT(! rd_);
+        rd_.emplace(m_);
+        rd_->init(ec);
         if(ec)
             return;
         s_ = do_body_c;
@@ -753,7 +749,7 @@ write_some(SyncWriteStream& stream, error_code &ec)
 
     case do_body_c:
     {
-        auto result = wr_->get(ec);
+        auto result = rd_->get(ec);
         if(ec)
             return;
         if(! result)
@@ -856,12 +852,10 @@ async_write_some(AsyncWriteStream& stream,
 {
     static_assert(is_async_write_stream<AsyncWriteStream>::value,
         "AsyncWriteStream requirements not met");
-    static_assert(is_Body<Body>::value,
+    static_assert(is_body<Body>::value,
         "Body requirements not met");
-    static_assert(has_writer<Body>::value,
-        "Body::writer requirements not met");
-    static_assert(is_Writer<Body>::value,
-            "Writer requirements not met");
+    static_assert(is_body_reader<Body>::value,
+        "BodyReader requirements not met");
     async_completion<WriteHandler,
         void(error_code)> init{handler};
     async_op<AsyncWriteStream, handler_type<
@@ -984,12 +978,10 @@ write(SyncWriteStream& stream,
 {
     static_assert(is_sync_write_stream<SyncWriteStream>::value,
         "SyncWriteStream requirements not met");
-    static_assert(is_Body<Body>::value,
+    static_assert(is_body<Body>::value,
         "Body requirements not met");
-    static_assert(has_writer<Body>::value,
-        "Body has no writer");
-    static_assert(is_Writer<Body>::value,
-            "Writer requirements not met");
+    static_assert(is_body_reader<Body>::value,
+        "BodyReader requirements not met");
     error_code ec;
     write(stream, msg, ec);
     if(ec)
@@ -1005,12 +997,10 @@ write(SyncWriteStream& stream,
 {
     static_assert(is_sync_write_stream<SyncWriteStream>::value,
         "SyncWriteStream requirements not met");
-    static_assert(is_Body<Body>::value,
+    static_assert(is_body<Body>::value,
         "Body requirements not met");
-    static_assert(has_writer<Body>::value,
-        "Body has no writer");
-    static_assert(is_Writer<Body>::value,
-            "Writer requirements not met");
+    static_assert(is_body_reader<Body>::value,
+        "BodyReader requirements not met");
     auto ws = make_write_stream(msg);
     for(;;)
     {
@@ -1034,12 +1024,10 @@ async_write(AsyncWriteStream& stream,
     static_assert(
         is_async_write_stream<AsyncWriteStream>::value,
         "AsyncWriteStream requirements not met");
-    static_assert(is_Body<Body>::value,
+    static_assert(is_body<Body>::value,
         "Body requirements not met");
-    static_assert(has_writer<Body>::value,
-        "Body has no writer");
-    static_assert(is_Writer<Body>::value,
-            "Writer requirements not met");
+    static_assert(is_body_reader<Body>::value,
+        "BodyReader requirements not met");
     async_completion<WriteHandler,
         void(error_code)> init{handler};
     detail::write_op<AsyncWriteStream, handler_type<
@@ -1068,12 +1056,10 @@ std::ostream&
 operator<<(std::ostream& os,
     message<isRequest, Body, Fields> const& msg)
 {
-    static_assert(is_Body<Body>::value,
+    static_assert(is_body<Body>::value,
         "Body requirements not met");
-    static_assert(has_writer<Body>::value,
-        "Body has no writer");
-    static_assert(is_Writer<Body>::value,
-            "Writer requirements not met");
+    static_assert(is_body_reader<Body>::value,
+        "BodyReader requirements not met");
     beast::detail::sync_ostream oss{os};
     error_code ec;
     write(oss, msg, ec);

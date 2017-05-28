@@ -6,6 +6,7 @@ API Changes:
 
 * Remove HTTP header aliases
 * Refactor HTTP serialization
+* Refactor type traits
 
 --------------------------------------------------------------------------------
 

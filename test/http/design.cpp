@@ -203,7 +203,7 @@ public:
     {
         using value_type = std::string;
 
-        class reader
+        class writer
         {
             value_type& body_;
             std::size_t len_ = 0;
@@ -216,7 +216,7 @@ public:
 
             template<bool isRequest, class Fields>
             explicit
-            reader(message<isRequest, direct_body, Fields>& m)
+            writer(message<isRequest, direct_body, Fields>& m)
                 : body_(m.body)
             {
             }
@@ -315,7 +315,7 @@ public:
     {
         using value_type = std::string;
 
-        class reader
+        class writer
         {
             value_type& body_;
 
@@ -327,7 +327,7 @@ public:
 
             template<bool isRequest, class Fields>
             explicit
-            reader(message<isRequest, indirect_body, Fields>& m)
+            writer(message<isRequest, indirect_body, Fields>& m)
                 : body_(m.body)
             {
             }

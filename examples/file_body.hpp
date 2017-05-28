@@ -24,7 +24,7 @@ struct file_body
 {
     using value_type = std::string;
 
-    class writer
+    class reader
     {
         std::uint64_t size_ = 0;
         std::uint64_t offset_ = 0;
@@ -39,18 +39,18 @@ struct file_body
         using const_buffers_type =
             boost::asio::const_buffers_1;
 
-        writer(writer&&) = default;
-        writer(writer const&) = delete;
-        writer& operator=(writer const&) = delete;
+        reader(reader&&) = default;
+        reader(reader const&) = delete;
+        reader& operator=(reader const&) = delete;
 
         template<bool isRequest, class Fields>
-        writer(message<isRequest,
+        reader(message<isRequest,
                 file_body, Fields> const& m)
             : path_(m.body)
         {
         }
 
-        ~writer()
+        ~reader()
         {
             if(file_)
                 fclose(file_);

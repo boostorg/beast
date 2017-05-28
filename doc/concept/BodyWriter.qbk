@@ -5,25 +5,25 @@
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 ]
 
-[section:Reader Reader requirements]
+[section:BodyWriter BodyWriter requirements]
 
-Parsers provided by the implementation will construct the corresponding
-`reader` object during parsing. This customization point allows the
-Body to determine the strategy for storing incoming message body data.
-Readers come in two flavors, direct and indirect:
+When HTTP messages are parsed, the implementation constructs a
+[*BodyWriter] object to provide the means for transferring parsed body
+octets into the message container. These body writers come in two flavors,
+direct and indirect:
 
-Direct readers provide a buffer to callers, in which body data is placed.
-This type of reader is used when the bytes corresponding to the body data
+Direct writers provide a buffer to callers, into which body data is placed.
+This type of writer is used when the bytes corresponding to the body data
 are stored without transformation. The parse algorithm performs stream or
-socket reads directly into the reader-provided buffer, hence the name
+socket reads directly into the buffer provided by the writer, hence the name
 "direct." This model avoids an unnecessary buffer copy. An example of
-a [*Body] type with a direct reader is
+a __Body__ type with a direct writer is
 [link beast.ref.http__string_body `string_body`].
 
-Indirect readers are passed body data in a buffer managed by the parser
-algorithm. This reader is appropriate when the body data is transformed
+Indirect writers are passed body data in a buffer managed by the parsing
+algorithm. This writer is appropriate when the body data is transformed
 or not otherwised stored verbatim. Some examples of when an indirect
-reader is appropriate:
+writer is appropriate:
 
 * When bytes corresponding to the body are written to a file
   as they are parsed.
@@ -33,7 +33,10 @@ reader is appropriate:
 
 In the tables below:
 
-* `X` denotes a type meeting the requirements of [*`Reader`].
+* `X` denotes a type meeting the requirements of [*Writer].
+
+* `B` denotes a __Body__ where
+      `std::is_same<X, B::writer>::value == true`.
 
 * `a` denotes a value of type `X`.
 
@@ -41,31 +44,28 @@ In the tables below:
 
 * `v` is a value convertible to `std::uint64_t` without loss of precision.
 
-* `s` is a value of type `boost::string_ref`.
+* `s` is a value of type [link beast.ref.string_view `string_view`].
 
 * `ec` is a value of type [link beast.ref.error_code `error_code&`].
 
 * `m` denotes a value of type `message&` where
     `std::is_same<decltype(m.body), Body::value_type>::value == true`.
 
-[table Direct Reader requirements
-[[operation] [type] [semantics, pre/post-conditions]]
+[table Direct Writer requirements
+[[expression] [type] [semantics, pre/post-conditions]]
 [
     [`X::is_direct`]
     [`bool`]
     [
-        This static constant must be set to `true` to indicate that
-        the reader is a direct reader.
+        This static constant must be set to `true` to indicate this
+        is a direct writer.
     ]
 ]
 [
     [`X::mutable_buffers_type`]
     []
     [
-        This member type must be present, and meet the requirements
-        of [*MutableBufferSequence]. It represents the type of
-        the writable buffers returned by the reader, in which
-        bytes representing the body are stored by the implementation.
+        A type which meets the requirements of __MutableBufferSequence__.
     ]
 ]
 [
@@ -85,7 +85,7 @@ In the tables below:
     []
     [
         This function is called once before any bytes corresponding
-        to the body are presented to the reader, for messages whose
+        to the body are presented to the writer, for messages whose
         body is determined by the end-of-file marker on a stream,
         or for messages where the chunked Transfer-Encoding is
         specified.
@@ -96,14 +96,14 @@ In the tables below:
     []
     [
         This function is called once before any bytes corresponding
-        to the body are presented to the reader, for messages where
+        to the body are presented to the writer, for messages where
         the Content-Length is specified. The value of `v` will be
         set to the number of bytes indicated by the content length.
     ]
 ]
 [
     [`a.prepare(n)`]
-    [`mutable_buffers_type`]
+    [`X::mutable_buffers_type`]
     [
         The implementation calls this function to obtain a mutable
         buffer sequence of up to `n` bytes in size in which to place
@@ -116,7 +116,7 @@ In the tables below:
     []
     [
         The implementation calls this function to indicate to the
-        reader that `n` bytes of data have been successfully placed
+        writer that `n` bytes of data have been successfully placed
         into the buffer obtained through a prior call to `prepare`.
         The value of `n` will be less than or equal to the size of
         the buffer returned  in the previous call to `prepare`.
@@ -130,16 +130,24 @@ In the tables below:
         to the body have been written to the buffers and committed.
     ]
 ]
+[
+    [`is_body_writer<B>`]
+    [`std::true_type`]
+    [
+        An alias for `std::true_type` for `B`, otherwise an alias
+        for `std::false_type`.
+    ]
+]
 ]
 
-[table Indirect Reader requirements
-[[operation] [type] [semantics, pre/post-conditions]]
+[table Indirect Writer requirements
+[[expression] [type] [semantics, pre/post-conditions]]
 [
     [`X::is_direct`]
     [`bool`]
     [
-        This static constant must be set to `false` to indicate that
-        the reader is an indirect reader.
+        This static constant must be set to `false` to indicate this
+        is an indirect writer.
     ]
 ]
 [
@@ -159,7 +167,7 @@ In the tables below:
     []
     [
         This function is called once before any bytes corresponding
-        to the body are presented to the reader, for messages whose
+        to the body are presented to the writer, for messages whose
         body is determined by the end-of-file market on a stream,
         or for messages where the chunked Transfer-Encoding is
         specified.
@@ -173,7 +181,7 @@ In the tables below:
     []
     [
         This function is called once before any bytes corresponding
-        to the body are presented to the reader, for messages where
+        to the body are presented to the writer, for messages where
         the Content-Length is specified. The value of `v` will be
         set to the number of bytes indicated by the content length.
         If `ec` is set before returning, parsing will stop
@@ -201,9 +209,17 @@ In the tables below:
         and the error will be returned to the caller.
     ]
 ]
+[
+    [`is_body_writer<B>`]
+    [`std::true_type`]
+    [
+        An alias for `std::true_type` for `B`, otherwise an alias
+        for `std::false_type`.
+    ]
+]
 ]
 [note
-    Definitions for required `Reader` member functions should be declared
+    Definitions for required [*Writer] member functions should be declared
     inline so the generated code can become part of the implementation.
 ]
 
