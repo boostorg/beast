@@ -1001,7 +1001,7 @@ write(SyncWriteStream& stream,
         "Body requirements not met");
     static_assert(is_body_reader<Body>::value,
         "BodyReader requirements not met");
-    auto ws = make_write_stream(msg);
+    auto ws = make_serializer(msg);
     for(;;)
     {
         ws.write_some(stream, ec);
