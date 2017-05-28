@@ -170,13 +170,13 @@ public:
     testHeaders()
     {
         {
-            using req_type = request_header;
+            using req_type = header<true>;
             BOOST_STATIC_ASSERT(std::is_copy_constructible<req_type>::value);
             BOOST_STATIC_ASSERT(std::is_move_constructible<req_type>::value);
             BOOST_STATIC_ASSERT(std::is_copy_assignable<req_type>::value);
             BOOST_STATIC_ASSERT(std::is_move_assignable<req_type>::value);
 
-            using res_type = response_header;
+            using res_type = header<false>;
             BOOST_STATIC_ASSERT(std::is_copy_constructible<res_type>::value);
             BOOST_STATIC_ASSERT(std::is_move_constructible<res_type>::value);
             BOOST_STATIC_ASSERT(std::is_copy_assignable<res_type>::value);

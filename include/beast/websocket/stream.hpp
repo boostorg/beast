@@ -28,7 +28,7 @@ namespace beast {
 namespace websocket {
 
 /// The type of object holding HTTP Upgrade requests
-using request_type = http::request_header;
+using request_type = http::header<true, http::fields>;
 
 /// The type of object holding HTTP Upgrade responses
 using response_type =
@@ -2981,7 +2981,7 @@ private:
         Decorator const& decorator);
 
     void
-    do_response(http::response_header const& resp,
+    do_response(http::header<false> const& resp,
         detail::sec_ws_key_type const& key, error_code& ec);
 };
 

@@ -39,9 +39,7 @@
             <member><link linkend="beast.ref.http__message">message</link></member>
             <member><link linkend="beast.ref.http__message_parser">message_parser</link></member>
             <member><link linkend="beast.ref.http__request">request</link></member>
-            <member><link linkend="beast.ref.http__request_header">request_header</link></member>
             <member><link linkend="beast.ref.http__response">response</link></member>
-            <member><link linkend="beast.ref.http__response_header">response_header</link></member>
             <member><link linkend="beast.ref.http__string_body">string_body</link></member>
           </simplelist>
           <bridgehead renderas="sect3">rfc7230</bridgehead>

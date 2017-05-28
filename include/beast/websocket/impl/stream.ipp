@@ -282,7 +282,7 @@ build_response(request_type const& req,
 template<class NextLayer>
 void
 stream<NextLayer>::
-do_response(http::response_header const& res,
+do_response(http::header<false> const& res,
     detail::sec_ws_key_type const& key, error_code& ec)
 {
     bool const success = [&]()
