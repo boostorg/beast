@@ -125,8 +125,8 @@ private:
     void
     construct(C<I> const&)
     {
-        if(std::get<I>(*bn_).begin() !=
-            std::get<I>(*bn_).end())
+        if(boost::asio::buffer_size(
+            std::get<I>(*bn_)) != 0)
         {
             n_ = I;
             new(&buf_[0]) iter_t<I>{
@@ -134,6 +134,37 @@ private:
             return;
         }
         construct(C<I+1>{});
+    }
+
+    void
+    rconstruct(C<0> const&)
+    {
+        auto constexpr I = 0;
+        if(boost::asio::buffer_size(
+            std::get<I>(*bn_)) != 0)
+        {
+            n_ = I;
+            new(&buf_[0]) iter_t<I>{
+                std::get<I>(*bn_).end()};
+            return;
+        }
+        BOOST_THROW_EXCEPTION(std::logic_error{
+            "invalid iterator"});
+    }
+
+    template<std::size_t I>
+    void
+    rconstruct(C<I> const&)
+    {
+        if(boost::asio::buffer_size(
+            std::get<I>(*bn_)) != 0)
+        {
+            n_ = I;
+            new(&buf_[0]) iter_t<I>{
+                std::get<I>(*bn_).end()};
+            return;
+        }
+        rconstruct(C<I-1>{});
     }
 
     void
@@ -258,25 +289,8 @@ private:
     {
         auto constexpr I = sizeof...(Bn);
         if(n_ == I)
-        {
-            --n_;
-            new(&buf_[0]) iter_t<I-1>{
-                std::get<I-1>(*bn_).end()};
-        }
+            rconstruct(C<I-1>{});
         decrement(C<I-1>{});
-    }
-
-    void
-    decrement(C<0> const&)
-    {
-        auto constexpr I = 0;
-        if(iter<I>() != std::get<I>(*bn_).begin())
-        {
-            --iter<I>();
-            return;
-        }
-        BOOST_THROW_EXCEPTION(std::logic_error{
-            "invalid iterator"});
     }
 
     template<std::size_t I>
@@ -293,10 +307,22 @@ private:
             --n_;
             using Iter = iter_t<I>;
             iter<I>().~Iter();
-            new(&buf_[0]) iter_t<I-1>{
-                std::get<I-1>(*bn_).end()};
+            rconstruct(C<I-1>{});
         }
         decrement(C<I-1>{});
+    }
+
+    void
+    decrement(C<0> const&)
+    {
+        auto constexpr I = 0;
+        if(iter<I>() != std::get<I>(*bn_).begin())
+        {
+            --iter<I>();
+            return;
+        }
+        BOOST_THROW_EXCEPTION(std::logic_error{
+            "invalid iterator"});
     }
 };
 

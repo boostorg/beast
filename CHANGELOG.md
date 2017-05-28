@@ -6,6 +6,7 @@ Version 45
 * Add test::pipe
 * Fix header::reason
 * Documentation work
+* buffer_view skips empty buffer sequences
 
 --------------------------------------------------------------------------------
 
