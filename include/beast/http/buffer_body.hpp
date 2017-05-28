@@ -8,7 +8,7 @@
 #ifndef BEAST_HTTP_BUFFER_BODY_HPP
 #define BEAST_HTTP_BUFFER_BODY_HPP
 
-#include <beast/http/concepts.hpp>
+#include <beast/http/type_traits.hpp>
 #include <beast/http/error.hpp>
 #include <beast/http/message.hpp>
 #include <boost/optional.hpp>
@@ -68,10 +68,10 @@ struct buffer_body
         std::pair<boost::optional<ConstBufferSequence>, bool>;
 
 #if BEAST_DOXYGEN
-    /// The algorithm used when serializing this body
-    using writer = implementation_defined;
+    /// The algorithm to obtain buffers representing the body
+    using reader = implementation_defined;
 #else
-    class writer
+    class reader
     {
         bool toggle_ = false;
         value_type const& body_;
@@ -84,7 +84,7 @@ struct buffer_body
 
         template<bool isRequest, class Fields>
         explicit
-        writer(message<isRequest, buffer_body,
+        reader(message<isRequest, buffer_body,
                 Fields> const& msg)
             : body_(msg.body)
         {

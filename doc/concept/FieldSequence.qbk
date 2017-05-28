@@ -18,7 +18,7 @@ In this table:
 * `c` is a value of type `X const`.
 
 [table FieldSequence requirements
-[[operation][type][semantics, pre/post-conditions]]
+[[expression][type][semantics, pre/post-conditions]]
 [
     [`X::value_type`]
     []

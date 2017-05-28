@@ -111,7 +111,7 @@ If it needs to access the other fields, it can do so using tag dispatch
 with an object of type `std::integral_constant<bool, isRequest>`.
 
 Often, in non-trivial HTTP applications, we want to read the HTTP header
-and examine its contents before choosing a top for [*Body]. To accomplish
+and examine its contents before choosing a type for [*Body]. To accomplish
 this, there needs to be a way to model the header portion of a message.
 And we'd like to do this in a way that allows functions which take the
 header as a parameter, to also accept a type representing the whole

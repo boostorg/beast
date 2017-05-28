@@ -190,27 +190,29 @@ class serializer
     using buffer_type =
         basic_multi_buffer<Allocator>;
 
+    using reader = typename Body::reader;
+
     using is_deferred =
-        typename Body::writer::is_deferred;
+        typename reader::is_deferred;
 
     using cb0_t = consuming_buffers<buffers_view<
         typename buffer_type::const_buffers_type,   // header
-        typename Body::writer::const_buffers_type>>;// body
+        typename reader::const_buffers_type>>; // body
 
     using cb1_t = consuming_buffers<
-        typename Body::writer::const_buffers_type>; // body
+        typename reader::const_buffers_type>;  // body
 
     using ch0_t = consuming_buffers<buffers_view<
         typename buffer_type::const_buffers_type,   // header
         detail::chunk_header,                       // chunk-header
         boost::asio::const_buffers_1,               // chunk-ext+\r\n
-        typename Body::writer::const_buffers_type,  // body
+        typename reader::const_buffers_type,   // body
         boost::asio::const_buffers_1>>;             // crlf
     
     using ch1_t = consuming_buffers<buffers_view<
         detail::chunk_header,                       // chunk-header
         boost::asio::const_buffers_1,               // chunk-ext+\r\n
-        typename Body::writer::const_buffers_type,  // body
+        typename reader::const_buffers_type,   // body
         boost::asio::const_buffers_1>>;             // crlf
 
     using ch2_t = consuming_buffers<buffers_view<
@@ -222,7 +224,7 @@ class serializer
     Decorator d_;
     std::size_t limit_ =
         (std::numeric_limits<std::size_t>::max)();
-    boost::optional<typename Body::writer> wr_;
+    boost::optional<reader> rd_;
     buffer_type b_;
     boost::variant<boost::blank,
         cb0_t, cb1_t, ch0_t, ch1_t, ch2_t> v_;

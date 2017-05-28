@@ -29,10 +29,10 @@ struct basic_dynamic_body
     using value_type = DynamicBuffer;
 
 #if BEAST_DOXYGEN
-    /// The algorithm used when parsing this body.
-    using reader = implementation_defined;
+    /// The algorithm used store buffers in this body
+    using writer = implementation_defined;
 #else
-    class reader
+    class writer
     {
         value_type& body_;
 
@@ -44,7 +44,7 @@ struct basic_dynamic_body
 
         template<bool isRequest, class Fields>
         explicit
-        reader(message<isRequest,
+        writer(message<isRequest,
                 basic_dynamic_body, Fields>& msg)
             : body_(msg.body)
         {
@@ -80,10 +80,10 @@ struct basic_dynamic_body
 #endif
 
 #if BEAST_DOXYGEN
-    /// The algorithm used when serializing this body.
-    using writer = implementation_defined;
+    /// The algorithm to obtain buffers representing the body
+    using reader = implementation_defined;
 #else
-    class writer
+    class reader
     {
         DynamicBuffer const& body_;
 
@@ -95,7 +95,7 @@ struct basic_dynamic_body
 
         template<bool isRequest, class Fields>
         explicit
-        writer(message<
+        reader(message<
                 isRequest, basic_dynamic_body, Fields> const& m)
             : body_(m.body)
         {

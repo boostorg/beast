@@ -12,21 +12,21 @@ asynchronous I/O. They are based on concepts from `boost::asio`.
 
 [heading:Stream Stream]
 
-A type modeling [*`Stream`] meets either or both of the following requirements:
+A type modeling [*Stream] meets either or both of the following requirements:
 
-* [*`AsyncStream`]
-* [*`SyncStream`]
+* [*AsyncStream]
+* [*SyncStream]
 
 [heading:AsyncStream AsyncStream]
 
-A type modeling [*`AsyncStream`] meets the following requirements:
+A type modeling [*AsyncStream] meets the following requirements:
 
 * __AsyncReadStream__
 * __AsyncWriteStream__
 
 [heading:SyncStream SyncStream]
 
-A type modeling [*`SyncStream`] meets the following requirements:
+A type modeling [*SyncStream] meets the following requirements:
 
 * __SyncReadStream__
 * __SyncWriteStream__

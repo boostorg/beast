@@ -12,10 +12,10 @@
 
 namespace beast {
 
-/// The type of string_view used by the library
+/// The type of string view used by the library
 using string_view = boost::string_ref;
 
-/// The type of basic_string_view used by the library
+/// The type of basic string view used by the library
 template<class CharT, class Traits>
 using basic_string_view =
     boost::basic_string_ref<CharT, Traits>;

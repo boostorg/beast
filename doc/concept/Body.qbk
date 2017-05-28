@@ -13,10 +13,10 @@ the algorithms used during parsing and serialization.
 
 In this table:
 
-* `X` is a type meeting the requirements of [*`Body`].
+* `X` is a type meeting the requirements of [*Body].
 
 [table Body requirements
-[[operation] [type] [semantics, pre/post-conditions]]
+[[expression] [type] [semantics, pre/post-conditions]]
 [
     [`X::value_type`]
     []
@@ -27,21 +27,33 @@ In this table:
     ]
 ]
 [
-    [`X::reader`]
-    []
-    [
-        If present, a type meeting the requirements of
-        [link beast.ref.Reader [*`Reader`]].
-        Provides an implementation to parse the body.
-    ]
-]
-[
     [`X::writer`]
     []
     [
-        If present, a type meeting the requirements of
-        [link beast.ref.Writer [*`Writer`]].
-        Provides an implementation to serialize the body.
+        If present, indicates that the body can hold a message body
+        parsing result. The type must meet the requirements of
+        [link beast.ref.BodyWriter [*BodyWriter]]. The implementation
+        constructs an object of this type to obtain buffers into which
+        parsed body octets are placed.
+    ]
+]
+[
+    [`X::reader`]
+    []
+    [
+        If present, indicates that the body is serializable.
+        The type must meet the requirements of
+        [link beast.ref.BodyReader [*BodyReader]]. The implementation
+        constructs an object of this type to obtain buffers representing
+        the message body for serialization.
+    ]
+]
+[
+    [`is_body<X>`]
+    [`std::true_type`]
+    [
+        An alias for `std::true_type` for `X`, otherwise an alias
+        for `std::false_type`.
     ]
 ]
 ]

@@ -7,16 +7,16 @@
 
 [section:Field Field requirements]
 
-A [*`Field`] represents a single HTTP header field/value pair.
+A [*Field] represents a single HTTP header field/value pair.
 
 In this table:
 
-* `X` denotes a type meeting the requirements of [*`Field`].
+* `X` denotes a type meeting the requirements of [*Field].
 * `a` denotes a value of type `X`.
 
 [table Field requirements
 
-[[operation][type][semantics, pre/post-conditions]]
+[[expression][type][semantics, pre/post-conditions]]
 [
     [`a.name()`]
     [`boost::string_ref`]
