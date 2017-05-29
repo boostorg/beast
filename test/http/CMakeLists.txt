@@ -22,6 +22,7 @@ add_executable (http-tests
     message_parser.cpp
     read.cpp
     rfc7230.cpp
+    serializer.cpp
     string_body.cpp
     type_traits.cpp
     write.cpp

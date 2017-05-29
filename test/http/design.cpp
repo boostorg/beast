@@ -77,11 +77,11 @@ public:
         req.body = "Hello, world!";
 
         // send header
-        auto ws = make_serializer(req);
+        auto sr = make_serializer(req);
         for(;;)
         {
-            ws.async_write_some(stream, yield);
-            if(ws.is_header_done())
+            async_write_some(stream, sr, yield);
+            if(sr.is_header_done())
                 break;
         }
         
@@ -92,8 +92,8 @@ public:
         }
 
         // send body
-        while(! ws.is_done())
-            ws.async_write_some(stream, yield);
+        while(! sr.is_done())
+            async_write_some(stream, sr, yield);
     }
 
     void
@@ -162,7 +162,7 @@ public:
         m.target("/");
         m.fields.insert("User-Agent", "test");
         m.fields.insert("Content-Length", s.size());
-        auto ws = make_serializer(m);
+        auto sr = make_serializer(m);
         error_code ec;
         for(;;)
         {
@@ -171,7 +171,7 @@ public:
             m.body.second = s.size() > 3;
             for(;;)
             {
-                ws.write_some(p.client, ec);
+                write_some(p.client, sr, ec);
                 if(ec == error::need_more)
                 {
                     ec = {};
@@ -179,12 +179,12 @@ public:
                 }
                 if(! BEAST_EXPECTS(! ec, ec.message()))
                     return;
-                if(ws.is_done())
+                if(sr.is_done())
                     break;
             }
             s.erase(s.begin(), s.begin() +
                 boost::asio::buffer_size(*m.body.first));
-            if(ws.is_done())
+            if(sr.is_done())
                 break;
         }
         BEAST_EXPECT(p.server.str() ==
