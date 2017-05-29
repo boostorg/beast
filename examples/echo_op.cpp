@@ -151,17 +151,20 @@ operator()(beast::error_code ec, std::size_t bytes_transferred)
         case 1:
             // write everything back
             p.step = 2;
-            return boost::asio::async_write(p.stream, p.buffer.data(), std::move(*this));
+            // async_read_until could have read past the newline,
+            // use buffer_prefix to make sure we only send one line
+            return boost::asio::async_write(p.stream,
+                beast::buffer_prefix(bytes_transferred, p.buffer.data()), std::move(*this));
 
         case 2:
+            p.buffer.consume(bytes_transferred);
             break;
     }
 
     // Invoke the final handler. If we wanted to pass any arguments
     // which come from our state, they would have to be moved to the
     // stack first, since the `handler_ptr` guarantees that the state
-    // is destroyed before
-    // the handler is invoked.
+    // is destroyed before the handler is invoked.
     //
     p_.invoke(ec);
     return;
@@ -174,8 +177,7 @@ beast::async_return_type<CompletionToken, void(beast::error_code)>
 async_echo(AsyncStream& stream, CompletionToken&& token)
 {
     // Make sure stream meets the requirements. We use static_assert
-    // instead of letting the compiler generate several pages of hard
-    // to read error messages.
+    // to cause a friendly message instead of an error novel.
     //
     static_assert(beast::is_async_stream<AsyncStream>::value,
         "AsyncStream requirements not met");
@@ -187,7 +189,7 @@ async_echo(AsyncStream& stream, CompletionToken&& token)
     beast::async_completion<CompletionToken, void(beast::error_code)> init{token};
 
     // Create the composed operation and launch it. This is a constructor
-    // call followed by invocation of operator(). We use BEAST_HANDLER_TYPE
+    // call followed by invocation of operator(). We use handler_type
     // to convert the completion token into the correct handler type,
     // allowing user defined specializations of the async result template
     // to take effect.
@@ -213,14 +215,12 @@ int main()
     // the echo, and then shut everything down and exit.
     boost::asio::io_service ios;
     socket_type sock{ios};
-    {
-        boost::asio::ip::tcp::acceptor acceptor{ios};
-        endpoint_type ep{address_type::from_string("0.0.0.0"), 0};
-        acceptor.open(ep.protocol());
-        acceptor.bind(ep);
-        acceptor.listen();
-        acceptor.accept(sock);
-    }
+    boost::asio::ip::tcp::acceptor acceptor{ios};
+    endpoint_type ep{address_type::from_string("0.0.0.0"), 0};
+    acceptor.open(ep.protocol());
+    acceptor.bind(ep);
+    acceptor.listen();
+    acceptor.accept(sock);
     async_echo(sock,
         [&](beast::error_code ec)
         {

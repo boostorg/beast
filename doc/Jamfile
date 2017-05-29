@@ -65,7 +65,7 @@ explicit examples ;
 
 xml doc
     :
-        master.qbk
+        0_main.qbk
     :
         <location>temp
         <include>$(broot)/tools/boostbook/dtd

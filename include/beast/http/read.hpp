@@ -208,7 +208,7 @@ async_read_some(
 
 //------------------------------------------------------------------------------
 
-/** Read an HTTP/1 message from a stream.
+/** Read into an HTTP/1 parser from a stream.
 
     This function synchronously reads from a stream and passes
     data to the specified parser. The call will block until one
@@ -252,7 +252,7 @@ read(
     DynamicBuffer& buffer,
     basic_parser<isRequest, isDirect, Derived>& parser);
 
-/** Read an HTTP/1 message from a stream.
+/** Read into an HTTP/1 parser from a stream.
 
     This function synchronously reads from a stream and passes
     data to the specified parser. The call will block until one
@@ -297,7 +297,7 @@ read(
     basic_parser<isRequest, isDirect, Derived>& parser,
     error_code& ec);
 
-/** Start an asynchronous operation to read an HTTP/1 message from a stream.
+/** Read into an HTTP/1 parser asynchronously from a stream.
 
     This function is used to asynchronously read from a stream and
     pass the data to the specified parser. The function call always
@@ -406,7 +406,7 @@ read(
     DynamicBuffer& buffer,
     message<isRequest, Body, Fields>& msg);
 
-/** Read a HTTP/1 message from a stream.
+/** Read an HTTP/1 message from a stream.
 
     This function is used to synchronously read a message from
     a stream. The call blocks until one of the following conditions
@@ -453,7 +453,7 @@ read(
     message<isRequest, Body, Fields>& msg,
     error_code& ec);
 
-/** Read a HTTP/1 message asynchronously from a stream.
+/** Read an HTTP/1 message asynchronously from a stream.
 
     This function is used to asynchronously read a message from
     a stream. The function call always returns immediately. The

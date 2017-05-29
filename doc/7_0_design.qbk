@@ -26,7 +26,7 @@ libraries:
 
 * Don't sacrifice performance.
 
-* Mimic Boost.Asio; familiarity breeds confidence.
+* Mimic __Asio__; familiarity breeds confidence.
 
 * Role-symmetric interfaces; client and server the same (or close to it).
 
@@ -34,8 +34,8 @@ libraries:
   managing flow control.
 
 Beast uses the __DynamicBuffer__ concept presented in the Networking TS
-(__N4588__), and relies heavily on the Boost.Asio __ConstBufferSequence__
-and __MutableBufferSequence__ concepts for passing buffers to functions.
+(__N4588__), and relies heavily on the __ConstBufferSequence__ and
+__MutableBufferSequence__ concepts for passing buffers to functions.
 The authors have found the dynamic buffer and buffer sequence interfaces to
 be optimal for interacting with Asio, and for other tasks such as incremental
 parsing of data in buffers (for example, parsing websocket frames stored
@@ -59,9 +59,9 @@ start. Other design goals:
 
 * Allow for customizations, if the user needs it.
 
-[include design/http_message.qbk]
-[include design/http_comparison.qbk]
-[include design/websocket_zaphoyd.qbk]
-[include design/review.qbk]
+[include 7_1_http_message.qbk]
+[include 7_2_http_comparison.qbk]
+[include 7_3_websocket_zaphoyd.qbk]
+[include 7_4_review.qbk]
 
 [endsect]
