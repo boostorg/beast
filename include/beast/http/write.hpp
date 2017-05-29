@@ -132,7 +132,7 @@ async_write_some(AsyncWriteStream& stream, serializer<
     isRequest, Body, Fields, Decorator, Allocator>& sr,
         WriteHandler&& handler);
 
-/** Write a HTTP/1 message to a stream.
+/** Write an HTTP/1 message to a stream.
 
     This function is used to write a message to a stream. The call
     will block until one of the following conditions is true:
@@ -163,7 +163,7 @@ void
 write(SyncWriteStream& stream,
     message<isRequest, Body, Fields> const& msg);
 
-/** Write a HTTP/1 message on a stream.
+/** Write an HTTP/1 message to a stream.
 
     This function is used to write a message to a stream. The call
     will block until one of the following conditions is true:
@@ -195,7 +195,7 @@ write(SyncWriteStream& stream,
     message<isRequest, Body, Fields> const& msg,
         error_code& ec);
 
-/** Write a HTTP/1 message asynchronously to a stream.
+/** Write an HTTP/1 message asynchronously to a stream.
 
     This function is used to asynchronously write a message to
     a stream. The function call always returns immediately. The
@@ -247,7 +247,7 @@ async_write(AsyncWriteStream& stream,
 
 //------------------------------------------------------------------------------
 
-/** Serialize a HTTP/1 header to a `std::ostream`.
+/** Serialize an HTTP/1 header to a `std::ostream`.
 
     The function converts the header to its HTTP/1 serialized
     representation and stores the result in the output stream.
@@ -261,7 +261,7 @@ std::ostream&
 operator<<(std::ostream& os,
     header<isRequest, Fields> const& msg);
 
-/** Serialize a HTTP/1 message to a `std::ostream`.
+/** Serialize an HTTP/1 message to a `std::ostream`.
 
     The function converts the message to its HTTP/1 serialized
     representation and stores the result in the output stream.

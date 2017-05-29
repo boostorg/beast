@@ -120,7 +120,7 @@ about Beast and other HTTP libraries that have gone through formal review.
     been optimized or designed with optimization in mind. The slow parts
     of WebSocket processing have been optimized, and the HTTP parser design
     is lifted from another extremely popular project which has performance
-    as a design goal (see https://github.com/h2o/picohttpparser).
+    as a design goal (see [@https://github.com/h2o/picohttpparser]).
 
     From: [@http://www.boost.org/development/requirements.html]
 
@@ -139,9 +139,10 @@ about Beast and other HTTP libraries that have gone through formal review.
     believing they could perform an HTTP request on a URL or put up a
     WebSocket client or server in a couple of lines of code. Where
     would the core utilities go? Very likely it would step on the
-    owner of Boost.Asio's toes to put things in the Boost.Asio
-    repository; at the very least, it would create unrequested,
+    owner of Boost.Asio's toes to put things in the boost/asio 
+    directory; at the very least, it would create unrequested,
     additional work for the foreign repository.
+    
     "Beast" is sufficiently vague as to not suggest any particular
     functionality, while acting as a memorable umbrella term for a
     family of low level containers and algorithms. People in the know

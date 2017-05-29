@@ -1,0 +1,339 @@
+[/
+    Copyright (c) 2013-2017 Vinnie Falco (vinnie dot falco at gmail dot com)
+
+    Distributed under the Boost Software License, Version 1.0. (See accompanying
+    file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+]
+
+[section:adv_http Advanced HTTP]
+
+[block '''
+<informaltable frame="all"><tgroup cols="1"><colspec colname="a"/><tbody><row><entry valign="top"><simplelist>
+  <member><link linkend="beast.adv_http.serialize">Serialization</link></member>
+  <member><link linkend="beast.adv_http.parsing">Parsing</link></member>
+  <member><link linkend="beast.adv_http.fields">Field Containers</link></member>
+  <member><link linkend="beast.adv_http.body">Body Types</link></member>
+</simplelist></entry></row></tbody></tgroup></informaltable>
+''']
+
+The basic interfaces for reading and writing complete messages are
+simple to use and convenient, but may not serve the needs of advanced
+use cases, including:
+
+* Parsing a message from caller-provided buffers
+
+* Serializing a message to caller-provided buffers
+
+* Reading a message from a stream incrementally
+
+* Writing a message to a stream incrementally
+
+In some cases, users may wish to provide their own implementation for
+the fields container and the body type. In the advanced sections we
+discuss the buffer oriented message algorithms, incremental stream
+algorithms, and customization points for messages.
+
+
+
+[section:serialize Serialization (Advanced HTTP)]
+
+Beast uses the __serializer__ class internally to generate a sequence of
+buffers corresponding to the serialized representation of a __message__.
+The basic algorithms send the entire set of buffers at once while the
+incremental algorithms allow the caller to write a bounded amount to
+the stream at each iteration. In between calls to generate buffers or
+write buffers to the stream, the internal state of the serialization
+must be saved. A __serializer__ initializes this internal state and
+stores it in between calls to produce buffers, until all the message
+buffers have been produced. Afterwards, the state object may be destroyed.
+
+The serializer is a class template constructed from an existing
+message. The template types used to instantiate the serializer must
+match the types in the message. Here we declare a request and construct
+an accompanying serializer:
+```
+request<string_body> req;
+serializer<true, string_body, fields> sr{req};
+```
+
+The buffers are produced by first calling
+[link beast.ref.http__serializer.get `serializer::get`]
+to obtain a buffer sequence, and then calling
+[link beast.ref.http__serializer.consume `serializer::consume`]
+to indicate how many bytes in the buffer sequence were consumed.
+This advanced the internal state of the serializer and prepares the
+next set of buffers for delivery.
+[link beast.ref.http__serializer.get `serializer::get`]
+takes an error code parameter and invokes a visitor argument with the
+error code and buffer of unspecified type. In C++14 this is easily
+expressed with a generic lambda. The function
+[link beast.ref.http__serializer.is_done `serializer::is_done`]
+will return `true` when all the buffers have been produced. This example
+prints the buffers to standard output:
+```
+template<bool isRequest, class Body, class Fields>
+void print(message<isRequest, Body, Fields> const& m)
+{
+    error_code ec;
+    serializer<isRequest, Body, Fields> sr{m};
+    do
+    {
+        sr.get(ec,
+            [&sr](error_code& ec, auto const& buffer)
+            {
+                std::cout << buffers(buffer);
+                sr.consume(boost::asio::buffer_size(buffer));
+            });
+    }
+    while(! ec && ! sr.is_done());
+    if(! ec)
+        std::cout << std::endl;
+    else
+        std::cerr << ec.message() << std::endl;
+}
+```
+
+Generic lambda expressions are not available in C++11, so a functor with
+a templated function call operator is necessary:
+```
+template<class Serializer>
+struct lambda
+{
+    Serializer& sr;
+
+    lambda(Serializer& sr_) : sr(sr_) {}
+
+    template<class ConstBufferSequence>
+    void operator()(error_code& ec, ConstBufferSequence const& buffer)
+    {
+        std::cout << buffers(buffer);
+        sr.consume(boost::asio::buffer_size(buffer));
+    }
+};
+
+template<bool isRequest, class Body, class Fields>
+void print(message<isRequest, Body, Fields> const& m)
+{
+    error_code ec;
+    serializer<isRequest, Body, Fields> sr{m};
+    do
+    {
+        sr.get(ec, lambda<decltype(sr)>{sr});
+    }
+    while(! ec && ! sr.is_done());
+    if(! ec)
+        std::cout << std::endl;
+    else
+        std::cerr << ec.message() << std::endl;
+}
+```
+
+[heading Stream Operations]
+
+When working with streams, the use of an explicitly declared serializer
+allows control over the amount of network activity performed in each
+system call. This allows for better application level flow control and
+predictable timeouts. These advanced stream write operations work on
+an object of type __serializer__ which has already been constructed,
+and which must remain valid until the operation is complete:
+
+[table Advanced Streaming
+[[Name][Description]]
+[[
+    [link beast.ref.http__write_some.overload1 [*write_some]]
+][
+    Send __serializer__ buffer data to a __SyncWriteStream__.
+]]
+[[
+    [link beast.ref.http__async_write_some [*async_write_some]]
+][
+    Send some __serializer__ buffer data to an __AsyncWriteStream__.
+]]
+]
+
+Here is an example which synchronously sends a message on a stream using
+a serializer:
+```
+template<class SyncWriteStream, bool isRequest, class Body, class Fields>
+void send(SyncWriteStream& stream, message<isRequest, Body, Fields> const& m)
+{
+    static_assert(is_sync_write_stream<SyncWriteStream>::value,
+        "SyncWriteStream requirements not met");
+    serializer<isRequest, Body, Fields> sr{m};
+    do
+    {
+        write_some(stream, sr);
+    }
+    while(! sr.is_done());
+}
+```
+
+[heading Split Serialization]
+
+In some cases, such as the handling of the
+[@https://tools.ietf.org/html/rfc7231#section-5.1.1 Expect: 100-continue]
+field, it may be desired to first serialize the header, perform some other
+action, and then continue with serialization of the body. This is
+accomplished by calling
+[link beast.ref.http__serializer.split `serializer::split`]
+with a boolean indicating that when buffers are produced, the last buffer
+containing serialized header octets will not contain any octets corresponding
+to the body. The function
+[link beast.ref.http__serializer.is_header_done `serializer::is_header_done`]
+informs the caller whether the header has completed serialization. In this
+C++14 example we print the header first, followed by the body:
+```
+template<bool isRequest, class Body, class Fields>
+void print(message<isRequest, Body, Fields> const& m)
+{
+    error_code ec;
+    serializer<isRequest, Body, Fields> sr{m};
+    sr.split(true);
+    std::cout << "Header:" << std::endl;
+    do
+    {
+        sr.get(ec,
+            [&sr](error_code& ec, auto const& buffer)
+            {
+                std::cout << buffers(buffer);
+                sr.consume(boost::asio::buffer_size(buffer));
+            });
+    }
+    while(! sr.is_header_done());
+    if(! ec && ! sr.is_done())
+    {
+        std::cout << "Body:" << std::endl;
+        do
+        {
+            sr.get(ec,
+                [&sr](error_code& ec, auto const& buffer)
+                {
+                    std::cout << buffers(buffer);
+                    sr.consume(boost::asio::buffer_size(buffer));
+                });
+        }
+        while(! ec && ! sr.is_done());
+    }
+    if(ec)
+        std::cerr << ec.message() << std::endl;
+}
+```
+
+[heading Chunk Decorators]
+
+When the message used to construct the serializer indicates the chunked
+transfer encoding, the serializer will automatically generate the proper
+encoding in the output buffers. __rfc7230__ defines additional fields
+called the
+[@https://tools.ietf.org/html/rfc7230#section-4.1.1 chunk extensions]
+in chunks with body octets, and the
+[@https://tools.ietf.org/html/rfc7230#section-4.1.2 chunked trailer part]
+for the final chunk. Applications that wish to emit chunk extensions
+and trailers may instantiate the serializer with a "chunk decorator" type,
+and pass an instance of the type upon construction. This decorator is
+a function object which, when invoked with a __ConstBufferSequence__,
+returns a
+[link beast.ref.string_view `string_view`] containing either the extensions
+or the trailer. For chunks containing body data, the passed buffer will
+contain one or more corresponding body octets. The decorator may use this
+information as needed. For example, to compute a digest on the data and
+store it as a chunk extension. For the trailers, the serializer will
+invoke the decorator with a buffer sequence of size zero. Or more
+specifically, with an object of type
+[@http://www.boost.org/doc/html/boost_asio/reference/null_buffers.html `boost::asio::null_buffers`].
+
+For body chunks the string returned by the decorator must end in a
+CRLF (`"\r\n"`) and follow the
+[@https://tools.ietf.org/html/rfc7230#section-4.1.1 correct syntax]
+for the entire chunk extension. For the trailer, the returned string
+should consist of zero or more lines ending in a CRLF and containing
+a field name/value pair in the format prescribed in __rfc7230__. It
+is the responsibility of the decorator to manage returned string buffers.
+The implementation guarantees it will not reference previous strings
+after subsequent calls.
+
+Here, we declare a decorator which sets an extension variable `x` equal
+to the size of the chunk in bytes, and returns a single trailer field:
+```
+struct decorator
+{
+    std::string s;
+
+    template<class ConstBufferSequence>
+    string_view
+    operator()(ConstBufferSequence const& buffer) const
+    {
+        s = ";x=" + std::to_string(boost::asio::buffer_size(buffer)) + "\r\n";
+        return s;
+    }
+
+    string_view
+    operator()(boost::asio::null_buffers) const
+    {
+        return "Result: OK\r\n";
+    }
+};
+```
+
+[endsect]
+
+
+
+[section:parsing Parsing (Advanced HTTP)]
+
+[endsect]
+
+
+
+[section:fields Field Containers (Advanced HTTP)]
+
+[endsect]
+
+
+
+[section:body Body Types (Advanced HTTP)]
+
+User-defined types are possible for the message body, where the type meets the
+[link beast.ref.Body [*`Body`]] requirements. This simplified class declaration
+shows the customization points available to user-defined body types:
+
+[$images/body.png [width 525px] [height 190px]]
+
+The meanin of the nested types is as follows
+
+[table Body Type Members
+[[Name][Description]]
+[
+    [`value_type`]
+    [
+        Determines the type of the
+        [link beast.ref.http__message.body `message::body`] member. If this
+        type defines default construction, move, copy, or swap, then message objects
+        declared with this [*Body] will have those operations defined.
+    ]
+][
+    [`body_writer`]
+    [
+        An optional nested type meeting the requirements of
+        [link beast.ref.BodyWriter [*BodyWriter]]. If present, this defines the
+        algorithm used to transfer parsed octets into buffers representing the
+        body.
+    ]
+][
+    [`body_reader`]
+    [
+        An optional nested type meeting the requirements of
+        [link beast.ref.BodyReader [*BodyReader]]. If present, this defines
+        the algorithm used to obtain buffers representing a body of this type.
+    ]
+]
+]
+
+The examples included with this library provide a [*Body] implementation that
+serializing message bodies that come from a file.
+
+[endsect]
+
+
+
+[endsect]

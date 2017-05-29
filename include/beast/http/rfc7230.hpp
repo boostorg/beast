@@ -15,9 +15,9 @@
 namespace beast {
 namespace http {
 
-/** A list of parameters in a HTTP extension field value.
+/** A list of parameters in an HTTP extension field value.
 
-    This container allows iteration of the parameter list in a HTTP
+    This container allows iteration of the parameter list in an HTTP
     extension. The parameter list is a series of name/value pairs
     with each pair starting with a semicolon. The value is optional.
 
@@ -99,7 +99,7 @@ public:
 
 /** A list of extensions in a comma separated HTTP field value.
 
-    This container allows iteration of the extensions in a HTTP
+    This container allows iteration of the extensions in an HTTP
     field value. The extension list is a comma separated list of
     token parameter list pairs.
 

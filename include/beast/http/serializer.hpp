@@ -201,8 +201,8 @@ class serializer
 public:
     /** Constructor
 
-        @param msg The message to serialize. The message object
-        must remain valid for the lifetime of the write stream.
+        @param msg The message to serialize, which must
+        remain valid for the lifetime of the serializer.
 
         @param decorator An optional decorator to use.
 
@@ -213,7 +213,7 @@ public:
         Decorator const& decorator = Decorator{},
             Allocator const& alloc = Allocator{});
 
-    /** Returns `true` if we will pause after writing the header.
+    /** Returns `true` if we will pause after writing the complete header.
     */
     bool
     split() const
@@ -227,8 +227,8 @@ public:
         write only the octets corresponding to the serialized header
         first. If the header has already been written, this function
         will have no effect on output. This function should be called
-        before any writes take place, otherwise the behavior is
-        undefined.
+        before retrieving any buffers using @ref get, otherwise the
+        behavior is undefined.
     */
     void
     split(bool v)
@@ -238,9 +238,8 @@ public:
 
     /** Return `true` if serialization of the header is complete.
 
-        This function indicates whether or not all octets
-        corresponding to the serialized representation of the
-        header have been successfully delivered to the stream.
+        This function indicates whether or not all buffers containing
+        serialized header octets have been retrieved.
     */
     bool
     is_header_done() const
@@ -248,11 +247,11 @@ public:
         return header_done_;
     }
 
-    /** Return `true` if serialization is complete
+    /** Return `true` if serialization is complete.
 
         The operation is complete when all octets corresponding
         to the serialized representation of the message have been
-        successfully delivered to the stream.
+        successfully retrieved.
     */
     bool
     is_done() const
@@ -262,9 +261,11 @@ public:
 
     /** Return `true` if Connection: close semantic is indicated.
 
-        After serialization is complete, if there is an
-        underlying network connection then it should be closed if
-        this function returns `true`.
+        Depending on the contents of the message, the end of
+        the body may be indicated by the end of file. In order
+        for the recipient (if any) to receive a complete message,
+        the underlying network connection must be closed when this
+        function returns `true`.
     */
     bool
     needs_close() const
@@ -288,7 +289,8 @@ public:
 
         @param visit The function to call. The equivalent function
         signature of this object must be:
-        @code template<class ConstBufferSequence>
+        @code
+            template<class ConstBufferSequence>
             void visit(error_code&, ConstBufferSequence const&);
         @endcode
         The function is not copied, if no error occurs it will be

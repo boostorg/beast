@@ -11,19 +11,33 @@ In this section we describe the problem of modeling HTTP messages and explain
 how the library arrived at its solution, with a discussion of the benefits
 and drawbacks of the design choices. The goal for creating a message model
 is to create a container with value semantics, possibly movable and/or
-copyable, that completely describes the message. More formally, the container
-has all of the information necessary for the serialization algorithms to
-represent the entire message as a series of octets, and that the parsing
-algorithms store all of the captured information about an entire message
-in the container.
+copyable, that contains all the information needed to serialize, or all
+of the information captured during parsing. More formally, given:
 
-In addition to capturing the entirety of a message, we would like the message
-container to contain enough customization points to permit the following:
-allocator support, user-defined containers to represent header fields, and
-user-defined containers to represent the body. And finally, because requests
-and responses have slightly different information in the ['start-line], we
-would like the containers for requests and responses to be represented by
-different types.
+* `m` is an instance of an HTTP message container
+
+* `x` is a series of octets describing a valid HTTP message in
+  the serialized format decribed in __rfc7230__.
+
+* `S(m)` is a serialization function which produces a series of octets
+  from a message container.
+
+* `P(x)` is a parsing function which produces a message container from
+  a series of octets.
+
+These relations are true:
+
+* `S(m) == x`
+
+* `P(S(m)) == m`
+
+We would also like our message container to have customization points
+permitting the following: full allocator support, user-defined containers
+to represent header fields, and user-defined types and algorithms to
+represent the body. And finally, because requests and responses have
+different fields in the ['start-line], we would like the containers for
+requests and responses to be represented by different types for function
+overloading.
 
 Here is our first attempt at declaring some message containers:
 
@@ -57,21 +71,20 @@ struct response
 ]]
 ]
 
-Here we have accomplished a few things. Request and response objects are
-different types. The user can choose the container used to represent the
-fields. And the user can choose the [*Body] type, which is a concept
-defining not only the type of `body` member but also the algorithms used
-to transfer information in and out of that member when performing
-serialization and parsing.
+These containers are capable of representing everything in the model
+of HTTP requests and responses described in __rfc7230__. Request and
+response objects are different types. The user can choose the container
+used to represent the fields. And the user can choose the [*Body] type,
+which is a concept defining not only the type of `body` member but also
+the algorithms used to transfer information in and out of that member
+when performing serialization and parsing.
 
 However, a problem arises. How do we write a function which can accept
 an object that is either a request or a response? As written, the only
-ovious solution is to make the message a template type. Additional traits
+obvious solution is to make the message a template type. Additional traits
 classes would then be needed to make sure that the passed object has a
-valid type which meets the requirements. We can avoid those complexities
-by renaming the containers and making them partial specializations of a
-single class, like this:
-
+valid type which meets the requirements. Instead, bypass those complexities
+by making each container a partial specialization of one class:
 ```
 /// An HTTP message
 template<bool isRequest, class Fields, class Body>
@@ -90,7 +103,7 @@ struct message<true, Fields, Body>
 
 /// An HTTP response
 template<bool isRequest, class Fields, class Body>
-struct response<false, Fields, Body>
+struct message<false, Fields, Body>
 {
     int version;
     int status;
@@ -168,8 +181,8 @@ of the `message` class. But to achieve all our goals we will need to make
 sure that there are enough constructor overloads to not only provide for
 the special copy and move members if the instantiated types support it,
 but also allow the fields container and body container to be constructed
-with arbitrary variadic lists of parameters. This allows those members
-to properly support allocators.
+with arbitrary variadic lists of parameters. This allows the container
+to fully support allocators.
 
 The solution used in the library is to treat the message like a `std::pair`
 for the purposes of construction, except that instead of `first` and `last`
@@ -181,18 +194,16 @@ interested readers can view the declarations in the corresponding header
 file.
 
 There is now significant progress with our message container but a stumbling
-block remains. The presence of `std::string` members is an obstacle to our
-goal of making messages allocator-aware. One obvious solution is to add an
-allocator to the template parameter list of the header and message classes,
-and allow the string based members to construct with instances of those
-allocators. This is unsatisfying because of the combinatorial explosion of
-constructor variations needed to support the scheme. It also means that
-request messages could have [*four] different allocators: two for the fields
-and body, and two for the method and target strings. A better solution is
-needed.
+block remains. There is no way to control the allocator for the `std::string`
+members. We could add an allocator to the template parameter list of the
+header and message classes, use it for those strings. This is unsatisfying
+because of the combinatorial explosion of constructor variations needed to
+support the scheme. It also means that request messages could have [*four]
+different allocators: two for the fields and body, and two for the method
+and target strings. A better solution is needed.
 
-To make allocators workable, we make a simple change to the interface and
-then engineer a clever concession. First, the interface change:
+To get around this we make a simple change to the interface and then
+engineer a clever concession. First, the interface change:
 ```
 /// An HTTP request header
 template<class Fields>
@@ -218,8 +229,8 @@ struct header<false, Fields>
 };
 ```
 
-This approach replaces public data members with traditional accessors
-using non-owning references to string buffers. Now we make a concession:
+The start-line data members are replaced traditional accessors using
+non-owning references to string buffers. Now we make a concession:
 management of the corresponding string is delegated to the [*Fields]
 container, which can already be allocator aware and constructed with the
 necessary allocator parameter via the provided constructor overloads for
@@ -247,6 +258,7 @@ struct header<false, Fields>
     }
 
     Fields fields;
+};
 ```
 
 An advantage of this technique is that user-provided implementations of

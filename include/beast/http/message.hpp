@@ -20,7 +20,7 @@
 namespace beast {
 namespace http {
 
-/** A container for a HTTP request or response header.
+/** A container for an HTTP request or response header.
 
     A header includes the Start Line and Fields.
 
@@ -160,7 +160,7 @@ struct header<true, Fields>
     }
 };
 
-/** A container for a HTTP request or response header.
+/** A container for an HTTP request or response header.
 
     A header includes the Start Line and Fields.
 
@@ -510,7 +510,7 @@ enum class connection
     upgrade
 };
 
-/** Prepare a HTTP message.
+/** Prepare an HTTP message.
 
     This function will adjust the Content-Length, Transfer-Encoding,
     and Connection fields of the message based on the properties of

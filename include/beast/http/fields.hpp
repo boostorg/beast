@@ -26,7 +26,7 @@ namespace http {
 /** A container for storing HTTP header fields.
 
     This container is designed to store the field value pairs that make
-    up the fields and trailers in a HTTP message. Objects of this type
+    up the fields and trailers in an HTTP message. Objects of this type
     are iterable, with each element holding the field name and field
     value.
 

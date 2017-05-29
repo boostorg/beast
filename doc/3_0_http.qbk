@@ -1,0 +1,83 @@
+[/
+    Copyright (c) 2013-2017 Vinnie Falco (vinnie dot falco at gmail dot com)
+
+    Distributed under the Boost Software License, Version 1.0. (See accompanying
+    file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+]
+
+[section:http Using HTTP]
+
+[block '''
+<informaltable frame="all"><tgroup cols="1"><colspec colname="a"/><tbody><row><entry valign="top"><simplelist>
+  <member><link linkend="beast.http.primer">HTTP Primer</link></member>
+  <member><link linkend="beast.http.message">Message Containers</link></member>
+  <member><link linkend="beast.http.streams">Stream Operations</link></member>
+</simplelist></entry></row></tbody></tgroup></informaltable>
+''']
+
+This library offers programmers simple and performant models of HTTP
+messages and their associated operations including synchronous and
+asynchronous parsing and serialization of messages in the HTTP/1 wire
+format using __Asio__. Specifically, the library provides:
+
+[variablelist
+[
+    [Message Containers]
+    [
+        Complete HTTP messages are modeled using the __message__ class,
+        with possible user customizations.
+    ]
+][
+    [Stream Reading]
+    [
+        The functions
+        [link beast.ref.http__read `read`],
+        [link beast.ref.http__read_some `read_some`],
+        [link beast.ref.http__async_read `async_read`], and
+        [link beast.ref.http__async_read_some `async_read_some`]
+        read a __message__ from a
+        [link beast.ref.streams stream].
+]
+][
+    [Stream Writing]
+    [
+        The functions
+        [link beast.ref.http__write `write`],
+        [link beast.ref.http__write_some `write_some`],
+        [link beast.ref.http__async_write `async_write`], and
+        [link beast.ref.http__async_write_some `async_write_some`]
+        write a __message__ to a
+        [link beast.ref.streams stream].
+    ]
+][
+    [Serialization]
+    [
+        The __serializer__ produces a series of octet buffers
+        conforming to the __rfc7230__ wire representation of
+        a __message__.
+    ]
+][
+    [Parsing]
+    [
+        The __message_parser__ attempts to convert a series of
+        octet buffers into a __message__.
+    ]
+]
+]
+
+[note
+    The following documentation assumes some familiarity with __Asio__ and
+    the HTTP protocol specification described in __rfc7230__. Sample code
+    and identifiers mentioned in the HTTP documentation sections are
+    written as if these declarations are in effect:
+    ```
+    #include <beast/http.hpp>
+    using namespace beast::http;
+    ```
+]
+
+[include 3_1_primer.qbk]
+[include 3_2_message.qbk]
+[include 3_3_streams.qbk]
+
+[endsect]
