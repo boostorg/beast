@@ -765,15 +765,15 @@ public:
         isRequest, Body, Fields> const& m, error_code& ec,
             Decorator const& decorator = Decorator{})
     {
-        auto ws = make_serializer(m, decorator);
+        auto sr = make_serializer(m, decorator);
         for(;;)
         {
             stream.nwrite = 0;
-            ws.write_some(stream, ec);
+            write_some(stream, sr, ec);
             if(ec)
                 return;
             BEAST_EXPECT(stream.nwrite <= 1);
-            if(ws.is_done())
+            if(sr.is_done())
                 break;
         }
     }
@@ -787,15 +787,15 @@ public:
             error_code& ec, yield_context yield,
                 Decorator const& decorator = Decorator{})
     {
-        auto ws = make_serializer(m);
+        auto sr = make_serializer(m);
         for(;;)
         {
             stream.nwrite = 0;
-            ws.async_write_some(stream, yield[ec]);
+            async_write_some(stream, sr, yield[ec]);
             if(ec)
                 return;
             BEAST_EXPECT(stream.nwrite <= 1);
-            if(ws.is_done())
+            if(sr.is_done())
                 break;
         }
     }
@@ -857,12 +857,12 @@ public:
             {
                 auto m = m0;
                 error_code ec;
-                serializer<false, Body, fields> w{m};
-                w.split(true);
+                serializer<false, Body, fields> sr{m};
+                sr.split(true);
                 for(;;)
                 {
-                    w.write_some(p.client);
-                    if(w.is_header_done())
+                    write_some(p.client, sr);
+                    if(sr.is_header_done())
                         break;
                 }
                 BEAST_EXPECT(! m.body.read);
@@ -871,12 +871,12 @@ public:
             {
                 auto m = m0;
                 error_code ec;
-                serializer<false, Body, fields> w{m};
-                w.split(true);
+                serializer<false, Body, fields> sr{m};
+                sr.split(true);
                 for(;;)
                 {
-                    w.async_write_some(p.client, yield);
-                    if(w.is_header_done())
+                    async_write_some(p.client, sr, yield);
+                    if(sr.is_header_done())
                         break;
                 }
                 BEAST_EXPECT(! m.body.read);
@@ -921,12 +921,12 @@ public:
                 auto m = m0;
                 error_code ec;
                 test::string_ostream so{get_io_service(), 3};
-                serializer<false, Body, fields> w{m};
-                w.split(true);
+                serializer<false, Body, fields> sr{m};
+                sr.split(true);
                 for(;;)
                 {
-                    w.write_some(p.client);
-                    if(w.is_header_done())
+                    write_some(p.client, sr);
+                    if(sr.is_header_done())
                         break;
                 }
                 BEAST_EXPECT(! m.body.read);
@@ -935,12 +935,12 @@ public:
             {
                 auto m = m0;
                 error_code ec;
-                serializer<false, Body, fields> w{m};
-                w.split(true);
+                serializer<false, Body, fields> sr{m};
+                sr.split(true);
                 for(;;)
                 {
-                    w.async_write_some(p.client, yield);
-                    if(w.is_header_done())
+                    async_write_some(p.client, sr, yield);
+                    if(sr.is_header_done())
                         break;
                 }
                 BEAST_EXPECT(! m.body.read);
@@ -969,13 +969,13 @@ public:
         m.body.first = boost::none;
         m.body.second = true;
 
-        auto w = make_serializer(m);
+        auto sr = make_serializer(m);
 
         // send the header first, so the
         // other end gets it right away
         for(;;)
         {
-            w.write_some(output, ec);
+            write_some(output, sr, ec);
             if(ec == error::need_more)
             {
                 ec = {};
@@ -1008,7 +1008,7 @@ public:
             // write to output
             for(;;)
             {
-                w.write_some(output, ec);
+                write_some(output, sr, ec);
                 if(ec == error::need_more)
                 {
                     ec = {};
@@ -1016,7 +1016,7 @@ public:
                 }
                 if(ec)
                     return;
-                if(w.is_done())
+                if(sr.is_done())
                     goto is_done;
             }
             b.consume(b.size());

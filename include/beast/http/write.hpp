@@ -13,6 +13,7 @@
 #include <beast/core/consuming_buffers.hpp>
 #include <beast/core/multi_buffer.hpp>
 #include <beast/http/message.hpp>
+#include <beast/http/serializer.hpp>
 #include <beast/http/detail/chunk_encode.hpp>
 #include <beast/core/error.hpp>
 #include <beast/core/async_result.hpp>
@@ -27,410 +28,109 @@
 namespace beast {
 namespace http {
 
-/** A chunk decorator which does nothing.
+/** Write some serialized message data to a stream.
 
-    When selected as a chunk decorator, objects of this type
-    affect the output of messages specifying chunked
-    transfer encodings as follows:
+    This function is used to write serialized message data to the
+    stream. The function call will block until one of the following
+    conditions is true:
+        
+    @li One or more bytes have been transferred.
 
-    @li chunk headers will have empty chunk extensions, and
+    @li An error occurs on the stream.
 
-    @li final chunks will have an empty set of trailers.
+    In order to completely serialize a message, this function
+    should be called until `sr.is_done()` returns `true`.
+    
+    @param stream The stream to write to. This type must
+    satisfy the requirements of @b SyncWriteStream.
 
-    @see @ref serializer
+    @param sr The serializer to use.
+
+    @throws system_error Thrown on failure.
+
+    @see @ref async_write_some, @ref serializer
 */
-struct empty_decorator
-{
-    template<class ConstBufferSequence>
-    string_view
-    operator()(ConstBufferSequence const&) const
-    {
-        return {"\r\n"};
-    }
-
-    string_view
-    operator()(boost::asio::null_buffers) const
-    {
-        return {};
-    }
-};
-
-/** Provides stream-oriented HTTP message serialization functionality.
-
-    Objects of this type may be used to perform synchronous or
-    asynchronous serialization of an HTTP message on a stream.
-    Unlike functions such as @ref write or @ref async_write,
-    the stream operations provided here guarantee that bounded
-    work will be performed. This is accomplished by making one
-    or more calls to the underlying stream's `write_some` or
-    `async_write_some` member functions. In order to fully
-    serialize the message, multiple calls are required.
-
-    The ability to incrementally serialize a message, peforming
-    bounded work at each iteration is useful in many scenarios,
-    such as:
-
-    @li Setting consistent, per-call timeouts
-
-    @li Efficiently relaying body content from another stream
-
-    @li Performing application-layer flow control
-
-    To use this class, construct an instance with the message
-    to be sent. To make it easier to declare the type, the
-    helper function @ref make_serializer is provided:
-
-    The implementation will automatically perform chunk encoding
-    if the contents of the message indicate that chunk encoding
-    is required. If the semantics of the message indicate that
-    the connection should be closed after the message is sent,
-    the error delivered from stream operations will be
-    `boost::asio::error::eof`.
-
-    @code
-    template<class Stream>
-    void send(Stream& stream, request<string_body> const& msg)
-    {
-        serializer<true, string_body, fields> w{msg};
-        do
-        {
-            w.write_some();
-        }
-        while(! w.is_done());
-    }
-    @endcode
-
-    Upon construction, an optional chunk decorator may be
-    specified. This decorator is a function object called with
-    each buffer sequence of the body when the chunked transfer
-    encoding is indicate in the message header. The decorator
-    will be called with an empty buffer sequence (actually
-    the type `boost::asio::null_buffers`) to indicate the
-    final chunk. The decorator may return a string which forms
-    the chunk extension for chunks, and the field trailers
-    for the final chunk.
-
-    In C++11 the decorator must be declared as a class or
-    struct with a templated operator() thusly:
-
-    @code
-        // The implementation guarantees that operator()
-        // will be called only after the view returned by
-        // any previous calls to operator() are no longer
-        // needed. The decorator instance is intended to
-        // manage the lifetime of the storage for all returned
-        // views.
-        //
-        struct decorator
-        {
-            // Returns the chunk-extension for each chunk.
-            // The buffer returned must include a trailing "\r\n",
-            // and the leading semicolon (";") if one or more
-            // chunk extensions are specified.
-            //
-            template<class ConstBufferSequence>
-            string_view
-            operator()(ConstBufferSequence const&) const;
-
-            // Returns a set of field trailers for the final chunk.
-            // Each field should be formatted according to rfc7230
-            // including the trailing "\r\n" for each field. If
-            // no trailers are indicated, an empty string is returned.
-            //
-            string_view
-            operator()(boost::asio::null_buffers) const;
-        };
-    @endcode
-
-    @par Thread Safety
-    @e Distinct @e objects: Safe.@n
-    @e Shared @e objects: Unsafe.
-
-    @tparam isRequest `true` if the message is a request.
-
-    @tparam Body The body type of the message.
-
-    @tparam Fields The type of fields in the message.
-
-    @tparam Decorator The type of chunk decorator to use.
-
-    @tparam Allocator The type of allocator to use.
-
-    @see @ref make_serializer
-*/
-template<
+template<class SyncWriteStream,
     bool isRequest, class Body, class Fields,
-    class Decorator = empty_decorator,
-    class Allocator = std::allocator<char>
->
-class serializer
-{
-    template<class Stream, class Handler>
-    class async_op;
+        class Decorator, class Allocator>
+void
+write_some(SyncWriteStream& stream, serializer<
+    isRequest, Body, Fields, Decorator, Allocator>& sr);
 
-    enum
-    {
-        do_init             =   0,
-        do_header_only      =  10,
-        do_header           =  20,
-        do_body             =  40,
+
+/** Write some serialized message data to a stream.
+
+    This function is used to write serialized message data to the
+    stream. The function call will block until one of the following
+    conditions is true:
         
-        do_init_c           =  50,
-        do_header_only_c    =  60,
-        do_header_c         =  70,
-        do_body_c           =  90,
-        do_final_c          = 100,
+    @li One or more bytes have been transferred.
 
-        do_complete         = 110
-    };
+    @li An error occurs on the stream.
 
-    void split(bool, std::true_type) {}
-    void split(bool v, std::false_type) { split_ = v; }
-
-    using buffer_type =
-        basic_multi_buffer<Allocator>;
-
-    using reader = typename Body::reader;
-
-    using is_deferred =
-        typename reader::is_deferred;
-
-    using cb0_t = consuming_buffers<buffers_view<
-        typename buffer_type::const_buffers_type,   // header
-        typename reader::const_buffers_type>>; // body
-
-    using cb1_t = consuming_buffers<
-        typename reader::const_buffers_type>;  // body
-
-    using ch0_t = consuming_buffers<buffers_view<
-        typename buffer_type::const_buffers_type,   // header
-        detail::chunk_header,                       // chunk-header
-        boost::asio::const_buffers_1,               // chunk-ext+\r\n
-        typename reader::const_buffers_type,   // body
-        boost::asio::const_buffers_1>>;             // crlf
+    In order to completely serialize a message, this function
+    should be called until `sr.is_done()` returns `true`.
     
-    using ch1_t = consuming_buffers<buffers_view<
-        detail::chunk_header,                       // chunk-header
-        boost::asio::const_buffers_1,               // chunk-ext+\r\n
-        typename reader::const_buffers_type,   // body
-        boost::asio::const_buffers_1>>;             // crlf
+    @param stream The stream to write to. This type must
+    satisfy the requirements of @b SyncWriteStream.
 
-    using ch2_t = consuming_buffers<buffers_view<
-        boost::asio::const_buffers_1,               // chunk-final
-        boost::asio::const_buffers_1,               // trailers 
-        boost::asio::const_buffers_1>>;             // crlf
+    @param sr The serializer to use.
 
-    message<isRequest, Body, Fields> const& m_;
-    Decorator d_;
-    std::size_t limit_ =
-        (std::numeric_limits<std::size_t>::max)();
-    boost::optional<reader> rd_;
-    buffer_type b_;
-    boost::variant<boost::blank,
-        cb0_t, cb1_t, ch0_t, ch1_t, ch2_t> v_;
-    int s_;
-    bool split_ = is_deferred::value;
-    bool header_done_ = false;
-    bool chunked_;
-    bool close_;
-    bool more_;
+    @param ec Set to indicate what error occurred, if any.
 
-public:
-    /** Constructor
+    @see @ref async_write_some, @ref serializer
+*/
+template<class SyncWriteStream,
+    bool isRequest, class Body, class Fields,
+        class Decorator, class Allocator>
+void
+write_some(SyncWriteStream& stream, serializer<
+    isRequest, Body, Fields, Decorator, Allocator>& sr,
+        error_code& ec);
 
-        @param msg The message to serialize. The message object
-        must remain valid for the lifetime of the write stream.
+/** Start an asynchronous write of some serialized message data to a stream.
 
-        @param decorator An optional decorator to use.
+    This function is used to asynchronously write serialized
+    message data to the stream. The function call always returns
+    immediately. The asynchronous operation will continue until
+    one of the following conditions is true:
 
-        @param alloc An optional allocator to use.
-    */
-    explicit
-    serializer(message<isRequest, Body, Fields> const& msg,
-        Decorator const& decorator = Decorator{},
-            Allocator const& alloc = Allocator{});
+    @li One or more bytes have been transferred.
 
-    /// Returns the maximum number of bytes that will be written in each operation
-    std::size_t
-    limit() const
-    {
-        return limit_;
-    }
+    @li An error occurs on the stream.
 
-    /** Returns `true` if we will pause after writing the header.
-    */
-    bool
-    split() const
-    {
-        return split_;
-    }
+    In order to completely serialize a message, this function
+    should be called until `sr.is_done()` returns `true`.
 
-    /** Set whether the header and body are written separately.
+    @param stream The stream to write to. This type must
+    satisfy the requirements of @b SyncWriteStream.
 
-        When the split feature is enabled, the implementation will
-        write only the octets corresponding to the serialized header
-        first. If the header has already been written, this function
-        will have no effect on output. This function should be called
-        before any writes take place, otherwise the behavior is
-        undefined.
-    */
-    void
-    split(bool v)
-    {
-        split(v, is_deferred{});
-    }
+    @param sr The serializer to use for writing.
 
-    /** Set the maximum number of bytes that will be written in each operation.
+    @param handler The handler to be called when the request
+    completes. Copies will be made of the handler as required. The
+    equivalent function signature of the handler must be:
+    @code void handler(
+        error_code const& ec    // Result of operation
+    ); @endcode
+    Regardless of whether the asynchronous operation completes
+    immediately or not, the handler will not be invoked from within
+    this function. Invocation of the handler will be performed in a
+    manner equivalent to using `boost::asio::io_service::post`.
 
-        By default, there is no limit on the size of writes.
-
-        @param n The byte limit. This must be greater than zero.
-    */
-    void
-    limit(std::size_t n)
-    {
-        limit_ = n;
-    }
-
-    /** Return `true` if serialization of the header is complete.
-
-        This function indicates whether or not all octets
-        corresponding to the serialized representation of the
-        header have been successfully delivered to the stream.
-    */
-    bool
-    is_header_done() const
-    {
-        return header_done_;
-    }
-
-    /** Return `true` if serialization is complete
-
-        The operation is complete when all octets corresponding
-        to the serialized representation of the message have been
-        successfully delivered to the stream.
-    */
-    bool
-    is_done() const
-    {
-        return s_ == do_complete;
-    }
-
-    /** Write some serialized message data to the stream.
-
-        This function is used to write serialized message data to the
-        stream. The function call will block until one of the following
-        conditions is true:
-        
-        @li One or more bytes have been transferred.
-
-        @li An error occurs on the stream.
-
-        In order to completely serialize a message, this function
-        should be called until @ref is_done returns `true`. If the
-        semantics of the message indicate that the connection should
-        be closed after the message is sent, the error delivered from
-        this call will be `boost::asio::error::eof`.
-    
-        @param stream The stream to write to. This type must
-        satisfy the requirements of @b SyncWriteStream.
-
-        @throws system_error Thrown on failure.
-    */
-    template<class SyncWriteStream>
-    void
-    write_some(SyncWriteStream& stream);
-
-    /** Write some serialized message data to the stream.
-
-        This function is used to write serialized message data to the
-        stream. The function call will block until one of the following
-        conditions is true:
-        
-        @li One or more bytes have been transferred.
-
-        @li An error occurs on the stream.
-
-        In order to completely serialize a message, this function
-        should be called until @ref is_done returns `true`. If the
-        semantics of the message indicate that the connection should
-        be closed after the message is sent, the error delivered from
-        this call will be `boost::asio::error::eof`.
-
-        @param stream The stream to write to. This type must
-        satisfy the requirements of @b SyncWriteStream.
-
-        @param ec Set to indicate what error occurred, if any.
-    */
-    template<class SyncWriteStream>
-    void
-    write_some(SyncWriteStream& stream, error_code &ec);
-
-    /** Start an asynchronous write of some serialized message data.
-
-        This function is used to asynchronously write serialized
-        message data to the stream. The function call always returns
-        immediately. The asynchronous operation will continue until
-        one of the following conditions is true:
-
-        @li One or more bytes have been transferred.
-
-        @li An error occurs on the stream.
-
-        In order to completely serialize a message, this function
-        should be called until @ref is_done returns `true`. If the
-        semantics of the message indicate that the connection should
-        be closed after the message is sent, the error delivered from
-        this call will be `boost::asio::error::eof`.
-
-        @param stream The stream to write to. This type must
-        satisfy the requirements of @b SyncWriteStream.
-
-        @param handler The handler to be called when the request
-        completes. Copies will be made of the handler as required. The
-        equivalent function signature of the handler must be:
-        @code void handler(
-            error_code const& ec    // Result of operation
-        ); @endcode
-        Regardless of whether the asynchronous operation completes
-        immediately or not, the handler will not be invoked from within
-        this function. Invocation of the handler will be performed in a
-        manner equivalent to using `boost::asio::io_service::post`.
-    */
-    template<class AsyncWriteStream, class WriteHandler>
+    @see @ref write_some, @ref serializer
+*/
+template<class AsyncWriteStream,
+    bool isRequest, class Body, class Fields,
+        class Decorator, class Allocator, class WriteHandler>
 #if BEAST_DOXYGEN
     void_or_deduced
 #else
-    async_return_type<WriteHandler, void(error_code)>
+async_return_type<WriteHandler, void(error_code)>
 #endif
-    async_write_some(AsyncWriteStream& stream,
+async_write_some(AsyncWriteStream& stream, serializer<
+    isRequest, Body, Fields, Decorator, Allocator>& sr,
         WriteHandler&& handler);
-};
-
-/** Return a stateful object to serialize an HTTP message.
-
-    This convenience function makes it easier to declare
-    the variable for a given message.
-*/
-template<
-    bool isRequest, class Body, class Fields,
-    class Decorator = empty_decorator,
-    class Allocator = std::allocator<char>>
-inline
-serializer<isRequest, Body, Fields,
-    typename std::decay<Decorator>::type,
-    typename std::decay<Allocator>::type>
-make_serializer(message<isRequest, Body, Fields> const& m,
-    Decorator const& decorator = Decorator{},
-        Allocator const& allocator = Allocator{})
-{
-    return serializer<isRequest, Body, Fields,
-        typename std::decay<Decorator>::type,
-        typename std::decay<Allocator>::type>{
-            m, decorator, allocator};
-}
-
-//------------------------------------------------------------------------------
 
 /** Write a HTTP/1 message to a stream.
 

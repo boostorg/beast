@@ -52,6 +52,7 @@ unit-test http-tests :
     http/message_parser.cpp
     http/read.cpp
     http/rfc7230.cpp
+    http/serializer.cpp
     http/string_body.cpp
     http/type_traits.cpp
     http/write.cpp

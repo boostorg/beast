@@ -61,6 +61,7 @@
             <member><link linkend="beast.ref.http__async_read">async_read</link></member>
             <member><link linkend="beast.ref.http__async_read_some">async_read_some</link></member>
             <member><link linkend="beast.ref.http__async_write">async_write</link></member>
+            <member><link linkend="beast.ref.http__async_write_some">async_write_some</link></member>
             <member><link linkend="beast.ref.http__is_keep_alive">is_keep_alive</link></member>
             <member><link linkend="beast.ref.http__is_upgrade">is_upgrade</link></member>
             <member><link linkend="beast.ref.http__make_serializer">make_serializer</link></member>
@@ -71,6 +72,7 @@
             <member><link linkend="beast.ref.http__reason_string">reason_string</link></member>
             <member><link linkend="beast.ref.http__swap">swap</link></member>
             <member><link linkend="beast.ref.http__write">write</link></member>
+            <member><link linkend="beast.ref.http__write_some">write_some</link></member>
           </simplelist>
           <bridgehead renderas="sect3">Type Traits</bridgehead>
           <simplelist type="vert" columns="1">
