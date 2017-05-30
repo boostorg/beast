@@ -1,6 +1,7 @@
 Version 46
 
 * Add test::pipe
+* Documentation work
 
 API Changes:
 
