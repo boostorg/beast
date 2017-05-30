@@ -199,7 +199,7 @@ public:
     {
         {
             request<string_body> m;
-            m.method("GET");
+            m.method(verb::get);
             m.target("/");
             m.version = 11;
             m.fields.insert("Upgrade", "test");

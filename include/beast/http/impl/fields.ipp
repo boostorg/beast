@@ -100,6 +100,7 @@ basic_fields(basic_fields&& other)
         std::move(other.member()))
     , detail::basic_fields_base(
         std::move(other.set_), std::move(other.list_))
+    , verb_(other.verb_)
 {
 }
 
@@ -114,6 +115,7 @@ operator=(basic_fields&& other) ->
     clear();
     move_assign(other, std::integral_constant<bool,
         alloc_traits::propagate_on_container_move_assignment::value>{});
+    verb_ = other.verb_;
     return *this;
 }
 
@@ -124,6 +126,7 @@ basic_fields(basic_fields const& other)
         select_on_container_copy_construction(other.member()))
 {
     copy_from(other);
+    verb_ = other.verb_;
 }
 
 template<class Allocator>
@@ -135,6 +138,7 @@ operator=(basic_fields const& other) ->
     clear();
     copy_assign(other, std::integral_constant<bool,
         alloc_traits::propagate_on_container_copy_assignment::value>{});
+    verb_ = other.verb_;
     return *this;
 }
 
@@ -144,6 +148,7 @@ basic_fields<Allocator>::
 basic_fields(basic_fields<OtherAlloc> const& other)
 {
     copy_from(other);
+    verb_ = other.verb_;
 }
 
 template<class Allocator>
@@ -155,16 +160,8 @@ operator=(basic_fields<OtherAlloc> const& other) ->
 {
     clear();
     copy_from(other);
+    verb_ = other.verb_;
     return *this;
-}
-
-template<class Allocator>
-template<class FwdIt>
-basic_fields<Allocator>::
-basic_fields(FwdIt first, FwdIt last)
-{
-    for(;first != last; ++first)
-        insert(first->name(), first->value());
 }
 
 template<class Allocator>
@@ -258,6 +255,37 @@ replace(string_view const& name,
     value = detail::trim(value);
     erase(name);
     insert(name, value);
+}
+
+template<class Allocator>
+string_view
+basic_fields<Allocator>::
+method() const
+{
+    if(verb_)
+        return to_string(*verb_);
+    return (*this)[":method"];
+}
+
+template<class Allocator>
+void
+basic_fields<Allocator>::
+method(verb v)
+{
+    verb_ = v;
+    this->erase(":method");
+}
+
+template<class Allocator>
+void
+basic_fields<Allocator>::
+method(string_view const& s)
+{
+    verb_ = string_to_verb(s);
+    if(verb_)
+        this->erase(":method");
+    else
+        this->replace(":method", s);
 }
 
 } // http

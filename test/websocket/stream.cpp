@@ -704,7 +704,7 @@ public:
                 // request in message
                 {
                     request_type req;
-                    req.method("GET");
+                    req.method(http::verb::get);
                     req.target("/");
                     req.version = 11;
                     req.fields.insert("Host", "localhost");
@@ -718,7 +718,7 @@ public:
                 }
                 {
                     request_type req;
-                    req.method("GET");
+                    req.method(http::verb::get);
                     req.target("/");
                     req.version = 11;
                     req.fields.insert("Host", "localhost");
@@ -736,7 +736,7 @@ public:
                 // request in message, close frame in buffers
                 {
                     request_type req;
-                    req.method("GET");
+                    req.method(http::verb::get);
                     req.target("/");
                     req.version = 11;
                     req.fields.insert("Host", "localhost");
@@ -763,7 +763,7 @@ public:
                 }
                 {
                     request_type req;
-                    req.method("GET");
+                    req.method(http::verb::get);
                     req.target("/");
                     req.version = 11;
                     req.fields.insert("Host", "localhost");
@@ -794,7 +794,7 @@ public:
                 // request in message, close frame in stream
                 {
                     request_type req;
-                    req.method("GET");
+                    req.method(http::verb::get);
                     req.target("/");
                     req.version = 11;
                     req.fields.insert("Host", "localhost");
@@ -822,7 +822,7 @@ public:
                 // request in message, close frame in stream and buffers
                 {
                     request_type req;
-                    req.method("GET");
+                    req.method(http::verb::get);
                     req.target("/");
                     req.version = 11;
                     req.fields.insert("Host", "localhost");
@@ -922,7 +922,7 @@ public:
     {
         static std::size_t constexpr limit = 200;
         std::size_t n;
-        for(n = 0; n < limit; ++n)
+        for(n = 199; n < limit; ++n)
         {
             test::fail_counter fc{n};
             try
@@ -1841,6 +1841,7 @@ public:
 
     void run() override
     {
+testHandshake();
         BOOST_STATIC_ASSERT(std::is_constructible<
             stream<socket_type>, boost::asio::io_service&>::value);
 

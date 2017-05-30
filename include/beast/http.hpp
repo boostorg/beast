@@ -23,6 +23,7 @@
 #include <beast/http/rfc7230.hpp>
 #include <beast/http/serializer.hpp>
 #include <beast/http/string_body.hpp>
+#include <beast/http/verb.hpp>
 #include <beast/http/write.hpp>
 
 #endif

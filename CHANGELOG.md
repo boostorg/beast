@@ -1,3 +1,11 @@
+Version 47
+
+API Changes:
+
+* Refactor treatment of request-method
+
+--------------------------------------------------------------------------------
+
 Version 46
 
 * Add test::pipe

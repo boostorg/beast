@@ -39,25 +39,41 @@ public:
         u = std::forward<V>(v);
     }
 
+    template<class Alloc>
+    static
+    bool
+    empty(basic_fields<Alloc> const& f)
+    {
+        return f.begin() == f.end();
+    }
+
+    template<class Alloc>
+    static
+    std::size_t
+    size(basic_fields<Alloc> const& f)
+    {
+        return std::distance(f.begin(), f.end());
+    }
+
     void testHeaders()
     {
         f_t f1;
-        BEAST_EXPECT(f1.empty());
+        BEAST_EXPECT(empty(f1));
         fill(1, f1);
-        BEAST_EXPECT(f1.size() == 1);
+        BEAST_EXPECT(size(f1) == 1);
         f_t f2;
         f2 = f1;
-        BEAST_EXPECT(f2.size() == 1);
+        BEAST_EXPECT(size(f2) == 1);
         f2.insert("2", "2");
         BEAST_EXPECT(std::distance(f2.begin(), f2.end()) == 2);
         f1 = std::move(f2);
-        BEAST_EXPECT(f1.size() == 2);
-        BEAST_EXPECT(f2.size() == 0);
+        BEAST_EXPECT(size(f1) == 2);
+        BEAST_EXPECT(size(f2) == 0);
         f_t f3(std::move(f1));
-        BEAST_EXPECT(f3.size() == 2);
-        BEAST_EXPECT(f1.size() == 0);
+        BEAST_EXPECT(size(f3) == 2);
+        BEAST_EXPECT(size(f1) == 0);
         self_assign(f3, std::move(f3));
-        BEAST_EXPECT(f3.size() == 2);
+        BEAST_EXPECT(size(f3) == 2);
         BEAST_EXPECT(f2.erase("Not-Present") == 0);
     }
 
@@ -78,15 +94,31 @@ public:
         f.insert("a", "x");
         f.insert("aa", "y");
         f.insert("b", "z");
-        BEAST_EXPECT(f.size() == 4);
+        BEAST_EXPECT(size(f) == 4);
         f.erase("a");
-        BEAST_EXPECT(f.size() == 2);
+        BEAST_EXPECT(size(f) == 2);
+    }
+
+    void
+    testMethod()
+    {
+        f_t f;
+        f.method(verb::get);
+        BEAST_EXPECTS(f.method() == "GET", f.method());
+        f.method("CRY");
+        BEAST_EXPECTS(f.method() == "CRY", f.method());
+        f.method("PUT");
+        BEAST_EXPECTS(f.method() == "PUT", f.method());
+        f.method("CONNECT");
+        BEAST_EXPECTS(f.method() == "CONNECT", f.method());
     }
 
     void run() override
     {
         testHeaders();
         testRFC2616();
+        testErase();
+        testMethod();
     }
 };
 
