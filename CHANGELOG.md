@@ -3,6 +3,7 @@ Version 47
 API Changes:
 
 * Refactor treatment of request-method
+* Refactor treatment of status code and obsolete reason
 
 --------------------------------------------------------------------------------
 

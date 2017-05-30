@@ -53,6 +53,7 @@ unit-test http-tests :
     http/read.cpp
     http/rfc7230.cpp
     http/serializer.cpp
+    http/status.cpp
     http/string_body.cpp
     http/type_traits.cpp
     http/verb.cpp

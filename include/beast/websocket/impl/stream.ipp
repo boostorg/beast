@@ -217,7 +217,6 @@ build_response(http::header<true, Fields> const& req,
         {
             response_type res;
             res.status = 400;
-            res.reason(http::reason_string(res.status));
             res.version = req.version;
             res.body = text;
             prepare(res);
@@ -248,7 +247,6 @@ build_response(http::header<true, Fields> const& req,
         {
             response_type res;
             res.status = 426;
-            res.reason(http::reason_string(res.status));
             res.version = req.version;
             res.fields.insert("Sec-WebSocket-Version", "13");
             prepare(res);
@@ -266,7 +264,6 @@ build_response(http::header<true, Fields> const& req,
             res.fields, unused, offer, pmd_opts_);
     }
     res.status = 101;
-    res.reason(http::reason_string(res.status));
     res.version = req.version;
     res.fields.insert("Upgrade", "websocket");
     res.fields.insert("Connection", "upgrade");
