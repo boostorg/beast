@@ -1,5 +1,7 @@
 Version 47
 
+* Disable operator<< for buffer_body
+
 API Changes:
 
 * Refactor treatment of request-method

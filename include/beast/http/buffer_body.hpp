@@ -120,6 +120,21 @@ struct buffer_body
 #endif
 };
 
+#if ! BEAST_DOXYGEN
+
+template<bool isRequest, class Fields,
+    bool isDeferred, class ConstBufferSequence>
+std::ostream&
+operator<<(std::ostream& os, message<
+    isRequest, buffer_body<isDeferred,
+        ConstBufferSequence>, Fields> const& msg)
+{
+    static_assert(sizeof(ConstBufferSequence) == -1,
+        "operator<< is not supported for buffer_body");
+}
+
+#endif
+
 } // http
 } // beast
 
