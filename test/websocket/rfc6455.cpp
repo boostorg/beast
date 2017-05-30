@@ -24,10 +24,10 @@ public:
         req.version = 10;
         BEAST_EXPECT(! is_upgrade(req));
         req.version = 11;
-        req.method("POST");
+        req.method(http::verb::post);
         req.target("/");
         BEAST_EXPECT(! is_upgrade(req));
-        req.method("GET");
+        req.method(http::verb::get);
         req.fields.insert("Connection", "upgrade");
         BEAST_EXPECT(! is_upgrade(req));
         req.fields.insert("Upgrade", "websocket");

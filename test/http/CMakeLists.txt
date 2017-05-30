@@ -25,6 +25,7 @@ add_executable (http-tests
     serializer.cpp
     string_body.cpp
     type_traits.cpp
+    verb.cpp
     write.cpp
 )
 

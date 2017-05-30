@@ -11,8 +11,10 @@
 #include <beast/config.hpp>
 #include <beast/core/string_view.hpp>
 #include <beast/core/detail/empty_base_optimization.hpp>
+#include <beast/http/verb.hpp>
 #include <beast/http/detail/fields.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/optional.hpp>
 #include <algorithm>
 #include <cctype>
 #include <memory>
@@ -58,6 +60,8 @@ class basic_fields :
 
     using size_type =
         typename std::allocator_traits<Allocator>::size_type;
+
+    boost::optional<verb> verb_;
 
     void
     delete_all();
@@ -146,24 +150,6 @@ public:
     /// Copy assignment.
     template<class OtherAlloc>
     basic_fields& operator=(basic_fields<OtherAlloc> const&);
-
-    /// Construct from a field sequence.
-    template<class FwdIt>
-    basic_fields(FwdIt first, FwdIt last);
-
-    /// Returns `true` if the field sequence contains no elements.
-    bool
-    empty() const
-    {
-        return set_.empty();
-    }
-
-    /// Returns the number of elements in the field sequence.
-    std::size_t
-    size() const
-    {
-        return set_.size();
-    }
 
     /// Returns a const iterator to the beginning of the field sequence.
     const_iterator
@@ -304,16 +290,13 @@ private:
 #endif
 
     string_view
-    method() const
-    {
-        return (*this)[":method"];
-    }
+    method() const;
 
     void
-    method(string_view const& s)
-    {
-        return this->replace(":method", s);
-    }
+    method(verb v);
+
+    void
+    method(string_view const& s);
 
     string_view
     target() const

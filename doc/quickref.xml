@@ -35,12 +35,12 @@
             <member><link linkend="beast.ref.http__buffer_body">buffer_body</link></member>
             <member><link linkend="beast.ref.http__dynamic_body">dynamic_body</link></member>
             <member><link linkend="beast.ref.http__empty_body">empty_body</link></member>
+            <member><link linkend="beast.ref.http__empty_decorator">empty_decorator</link></member>
             <member><link linkend="beast.ref.http__fields">fields</link></member>
             <member><link linkend="beast.ref.http__header">header</link></member>
             <member><link linkend="beast.ref.http__header_parser">header_parser</link></member>
             <member><link linkend="beast.ref.http__message">message</link></member>
             <member><link linkend="beast.ref.http__message_parser">message_parser</link></member>
-            <member><link linkend="beast.ref.http__empty_decorator">empty_decorator</link></member>
             <member><link linkend="beast.ref.http__request">request</link></member>
             <member><link linkend="beast.ref.http__response">response</link></member>
             <member><link linkend="beast.ref.http__serializer">serializer</link></member>
@@ -70,7 +70,9 @@
             <member><link linkend="beast.ref.http__read">read</link></member>
             <member><link linkend="beast.ref.http__read_some">read_some</link></member>
             <member><link linkend="beast.ref.http__reason_string">reason_string</link></member>
+            <member><link linkend="beast.ref.http__string_to_verb">string_to_verb</link></member>
             <member><link linkend="beast.ref.http__swap">swap</link></member>
+            <member><link linkend="beast.ref.http__to_string">to_string</link></member>
             <member><link linkend="beast.ref.http__write">write</link></member>
             <member><link linkend="beast.ref.http__write_some">write_some</link></member>
           </simplelist>
@@ -86,6 +88,7 @@
           <simplelist type="vert" columns="1">
             <member><link linkend="beast.ref.http__connection">connection</link></member>
             <member><link linkend="beast.ref.http__error">error</link></member>
+            <member><link linkend="beast.ref.http__verb">verb</link></member>
           </simplelist>
           <bridgehead renderas="sect3">Concepts</bridgehead>
           <simplelist type="vert" columns="1">

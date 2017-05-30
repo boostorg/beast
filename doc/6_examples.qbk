@@ -36,7 +36,7 @@ int main()
 
     // Send HTTP request using beast
     beast::http::request<beast::http::string_body> req;
-    req.method("GET");
+    req.method(beast::http::verb::get);
     req.target("/");
     req.version = 11;
     req.fields.replace("Host", host + ":" +

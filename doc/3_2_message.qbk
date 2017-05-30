@@ -130,7 +130,7 @@ objects:
 ```
     request<string_body> req;
     req.version = 11;   // HTTP/1.1
-    req.method("GET");
+    req.method(verb::get);
     req.target("/index.htm");
     req.fields.insert("Accept", "text/html");
     req.fields.insert("Connection", "keep-alive");

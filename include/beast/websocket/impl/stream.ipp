@@ -164,7 +164,7 @@ build_request(detail::sec_ws_key_type& key,
     request_type req;
     req.target(target);
     req.version = 11;
-    req.method("GET");
+    req.method(http::verb::get);
     req.fields.insert("Host", host);
     req.fields.insert("Upgrade", "websocket");
     req.fields.insert("Connection", "upgrade");

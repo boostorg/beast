@@ -37,7 +37,7 @@ int main(int, char const*[])
             connect(sock, it);
             auto ep = sock.remote_endpoint();
             request<string_body> req;
-            req.method("GET");
+            req.method(verb::get);
             req.target("/");
             req.version = 11;
             req.fields.insert("Host", host + std::string(":") +

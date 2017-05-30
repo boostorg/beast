@@ -343,7 +343,7 @@ public:
             test::fail_stream<
                 test::string_ostream> fs(fc, ios_);
             message<true, fail_body, fields> m{fc};
-            m.method("GET");
+            m.method(verb::get);
             m.target("/");
             m.version = 10;
             m.fields.insert("User-Agent", "test");
@@ -374,7 +374,7 @@ public:
             test::fail_stream<
                 test::string_ostream> fs(fc, ios_);
             message<true, fail_body, fields> m{fc};
-            m.method("GET");
+            m.method(verb::get);
             m.target("/");
             m.version = 10;
             m.fields.insert("User-Agent", "test");
@@ -407,7 +407,7 @@ public:
             test::fail_stream<
                 test::string_ostream> fs(fc, ios_);
             message<true, fail_body, fields> m{fc};
-            m.method("GET");
+            m.method(verb::get);
             m.target("/");
             m.version = 10;
             m.fields.insert("User-Agent", "test");
@@ -440,7 +440,7 @@ public:
             test::fail_stream<
                 test::string_ostream> fs(fc, ios_);
             message<true, fail_body, fields> m{fc};
-            m.method("GET");
+            m.method(verb::get);
             m.target("/");
             m.version = 10;
             m.fields.insert("User-Agent", "test");
@@ -468,7 +468,7 @@ public:
             test::fail_stream<
                 test::string_ostream> fs(fc, ios_);
             message<true, fail_body, fields> m{fc};
-            m.method("GET");
+            m.method(verb::get);
             m.target("/");
             m.version = 10;
             m.fields.insert("User-Agent", "test");
@@ -497,7 +497,7 @@ public:
         // auto content-length HTTP/1.0
         {
             message<true, string_body, fields> m;
-            m.method("GET");
+            m.method(verb::get);
             m.target("/");
             m.version = 10;
             m.fields.insert("User-Agent", "test");
@@ -514,7 +514,7 @@ public:
         // keep-alive HTTP/1.0
         {
             message<true, string_body, fields> m;
-            m.method("GET");
+            m.method(verb::get);
             m.target("/");
             m.version = 10;
             m.fields.insert("User-Agent", "test");
@@ -532,7 +532,7 @@ public:
         // upgrade HTTP/1.0
         {
             message<true, string_body, fields> m;
-            m.method("GET");
+            m.method(verb::get);
             m.target("/");
             m.version = 10;
             m.fields.insert("User-Agent", "test");
@@ -550,7 +550,7 @@ public:
         // no content-length HTTP/1.0
         {
             message<true, unsized_body, fields> m;
-            m.method("GET");
+            m.method(verb::get);
             m.target("/");
             m.version = 10;
             m.fields.insert("User-Agent", "test");
@@ -570,7 +570,7 @@ public:
         // auto content-length HTTP/1.1
         {
             message<true, string_body, fields> m;
-            m.method("GET");
+            m.method(verb::get);
             m.target("/");
             m.version = 11;
             m.fields.insert("User-Agent", "test");
@@ -587,7 +587,7 @@ public:
         // close HTTP/1.1
         {
             message<true, string_body, fields> m;
-            m.method("GET");
+            m.method(verb::get);
             m.target("/");
             m.version = 11;
             m.fields.insert("User-Agent", "test");
@@ -609,7 +609,7 @@ public:
         // upgrade HTTP/1.1
         {
             message<true, string_body, fields> m;
-            m.method("GET");
+            m.method(verb::get);
             m.target("/");
             m.version = 11;
             m.fields.insert("User-Agent", "test");
@@ -624,7 +624,7 @@ public:
         // no content-length HTTP/1.1
         {
             message<true, unsized_body, fields> m;
-            m.method("GET");
+            m.method(verb::get);
             m.target("/");
             m.version = 11;
             m.fields.insert("User-Agent", "test");
@@ -649,7 +649,7 @@ public:
     {
         // Conversion to std::string via operator<<
         message<true, string_body, fields> m;
-        m.method("GET");
+        m.method(verb::get);
         m.target("/");
         m.version = 11;
         m.fields.insert("User-Agent", "test");
@@ -682,7 +682,7 @@ public:
     void testOstream()
     {
         message<true, string_body, fields> m;
-        m.method("GET");
+        m.method(verb::get);
         m.target("/");
         m.version = 11;
         m.fields.insert("User-Agent", "test");
@@ -723,7 +723,7 @@ public:
             test::string_ostream os{ios};
             BEAST_EXPECT(handler::count() == 0);
             message<true, string_body, fields> m;
-            m.method("GET");
+            m.method(verb::get);
             m.version = 11;
             m.target("/");
             m.fields.insert("Content-Length", 5);
@@ -745,7 +745,7 @@ public:
                 test::string_ostream is{ios};
                 BEAST_EXPECT(handler::count() == 0);
                 message<true, string_body, fields> m;
-                m.method("GET");
+                m.method(verb::get);
                 m.version = 11;
                 m.target("/");
                 m.fields.insert("Content-Length", 5);
