@@ -9,8 +9,10 @@
 #define BEAST_HTTP_IMPL_SERIALIZER_IPP
 
 #include <beast/http/error.hpp>
+#include <beast/http/status.hpp>
 #include <boost/assert.hpp>
 #include <ostream>
+
 
 namespace beast {
 namespace http {
@@ -41,7 +43,12 @@ write_start_line(std::ostream& os,
     case 10: os << "HTTP/1.0 "; break;
     case 11: os << "HTTP/1.1 "; break;
     }
-    os << msg.status << " " << msg.reason() << "\r\n";
+    auto const reason = msg.reason();
+    if(reason.empty())
+        os << msg.status << " " << msg.reason() << "\r\n";
+    else
+        os << msg.status << " " <<
+            obsolete_reason(static_cast<status>(msg.status)) << "\r\n";
 }
 
 template<class FieldSequence>

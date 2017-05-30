@@ -23,6 +23,7 @@ add_executable (http-tests
     read.cpp
     rfc7230.cpp
     serializer.cpp
+    status.cpp
     string_body.cpp
     type_traits.cpp
     verb.cpp

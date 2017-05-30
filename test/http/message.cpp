@@ -297,13 +297,6 @@ public:
     }
 
     void
-    testReasonString()
-    {
-        for(int i = 1; i <= 999; ++i)
-            BEAST_EXPECT(! reason_string(i).empty());
-    }
-
-    void
     run() override
     {
         testMessage();
@@ -312,7 +305,6 @@ public:
         testPrepare();
         testSwap();
         testSpecialMembers();
-        testReasonString();
     }
 };
 
