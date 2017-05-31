@@ -40,6 +40,7 @@ add_executable (http-bench
     ${BEAST_INCLUDES}
     ${EXTRAS_INCLUDES}
     nodejs_parser.hpp
+    message_fuzz.hpp
     ../../extras/beast/unit_test/main.cpp
     nodejs_parser.cpp
     parser_bench.cpp

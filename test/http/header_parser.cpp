@@ -22,6 +22,13 @@ class header_parser_test
     , public test::enable_yield_to
 {
 public:
+    static
+    boost::asio::const_buffers_1
+    buf(string_view s)
+    {
+        return {s.data(), s.size()};
+    }
+
     void
     testParse()
     {
@@ -34,7 +41,7 @@ public:
             flat_buffer db{1024};
             header_parser<true, fields> p;
             read_some(is, db, p);
-            BEAST_EXPECT(p.is_complete());
+            BEAST_EXPECT(p.is_header_done());
         }
         {
             test::string_istream is{ios_,
@@ -47,8 +54,8 @@ public:
             flat_buffer db{1024};
             header_parser<true, fields> p;
             read_some(is, db, p);
-            BEAST_EXPECT(! p.is_complete());
-            BEAST_EXPECT(p.state() == parse_state::body);
+            BEAST_EXPECT(p.is_header_done());
+            BEAST_EXPECT(! p.is_done());
         }
     }
 

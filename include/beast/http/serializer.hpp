@@ -65,7 +65,7 @@ struct empty_decorator
     if the contents of the message indicate that chunk encoding
     is required. If the semantics of the message indicate that
     the connection should be closed after the message is sent, the
-    function @ref needs_close will return `true`.
+    function @ref need_close will return `true`.
 
     Upon construction, an optional chunk decorator may be
     specified. This decorator is a function object called with
@@ -135,9 +135,11 @@ class serializer
 
     enum
     {
-        do_init             =   0,
-        do_header_only      =  10,
-        do_header           =  20,
+        do_construct        =   0,
+
+        do_init             =  10,
+        do_header_only      =  20,
+        do_header           =  30,
         do_body             =  40,
         
         do_init_c           =  50,
@@ -191,7 +193,7 @@ class serializer
     buffer_type b_;
     boost::variant<boost::blank,
         cb0_t, cb1_t, ch0_t, ch1_t, ch2_t> v_;
-    int s_;
+    int s_ = do_construct;
     bool split_ = is_deferred::value;
     bool header_done_ = false;
     bool chunked_;
@@ -201,8 +203,13 @@ class serializer
 public:
     /** Constructor
 
-        @param msg The message to serialize, which must
-        remain valid for the lifetime of the serializer.
+        The implementation guarantees that the message passed on
+        construction will not be accessed until the first call to
+        @ref get. This allows the message to be lazily created.
+        For example, if the header is filled in before serialization.
+
+        @param msg The message to serialize, which must remain valid
+        for the lifetime of the serializer.
 
         @param decorator An optional decorator to use.
 
@@ -268,7 +275,7 @@ public:
         function returns `true`.
     */
     bool
-    needs_close() const
+    need_close() const
     {
         return close_;
     }

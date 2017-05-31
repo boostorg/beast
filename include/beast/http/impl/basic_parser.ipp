@@ -20,36 +20,27 @@
 namespace beast {
 namespace http {
 
-template<bool isRequest, bool isDirect, class Derived>
-template<bool OtherIsDirect, class OtherDerived>
-basic_parser<isRequest, isDirect, Derived>::
-basic_parser(basic_parser<isRequest,
-        OtherIsDirect, OtherDerived>&& other)
+template<bool isRequest, class Derived>
+template<class OtherDerived>
+basic_parser<isRequest, Derived>::
+basic_parser(basic_parser<
+        isRequest, OtherDerived>&& other)
     : len_(other.len_)
     , buf_(std::move(other.buf_))
     , buf_len_(other.buf_len_)
     , skip_(other.skip_)
     , x_(other.x_)
-    , f_(other.f_)
     , state_(other.state_)
+    , f_(other.f_)
 {
 }
 
-template<bool isRequest, bool isDirect, class Derived>
-void
-basic_parser<isRequest, isDirect, Derived>::
-skip_body()
-{
-    BOOST_ASSERT(! got_some());
-    f_ |= flagSkipBody;
-}
-
-template<bool isRequest, bool isDirect, class Derived>
+template<bool isRequest, class Derived>
 bool
-basic_parser<isRequest, isDirect, Derived>::
+basic_parser<isRequest, Derived>::
 is_keep_alive() const
 {
-    BOOST_ASSERT(got_header());
+    BOOST_ASSERT(is_header_done());
     if(f_ & flagHTTP11)
     {
         if(f_ & flagConnectionClose)
@@ -63,193 +54,177 @@ is_keep_alive() const
     return (f_ & flagNeedEOF) == 0;
 }
 
-template<bool isRequest, bool isDirect, class Derived>
+template<bool isRequest, class Derived>
+boost::optional<std::uint64_t>
+basic_parser<isRequest, Derived>::
+content_length() const
+{
+    BOOST_ASSERT(is_header_done());
+    if(! (f_ & flagContentLength))
+        return boost::none;
+    return len_;
+}
+
+template<bool isRequest, class Derived>
+void
+basic_parser<isRequest, Derived>::
+skip(bool v)
+{
+    BOOST_ASSERT(! got_some());
+    if(v)
+        f_ |= flagSkipBody;
+    else
+        f_ &= ~flagSkipBody;
+}
+
+template<bool isRequest, class Derived>
 template<class ConstBufferSequence>
 std::size_t
-basic_parser<isRequest, isDirect, Derived>::
-write(ConstBufferSequence const& buffers,
+basic_parser<isRequest, Derived>::
+put(ConstBufferSequence const& buffers,
     error_code& ec)
 {
     static_assert(is_const_buffer_sequence<
         ConstBufferSequence>::value,
             "ConstBufferSequence requirements not met");
     auto const buffer = maybe_flatten(buffers);
-    return write(boost::asio::const_buffers_1{
+    return put(boost::asio::const_buffers_1{
         buffer.data(), buffer.size()}, ec);
 }
 
-template<bool isRequest, bool isDirect, class Derived>
+template<bool isRequest, class Derived>
 std::size_t
-basic_parser<isRequest, isDirect, Derived>::
-write(boost::asio::const_buffers_1 const& buffer,
+basic_parser<isRequest, Derived>::
+put(boost::asio::const_buffers_1 const& buffer,
     error_code& ec)
 {
-    return do_write(buffer, ec,
-        std::integral_constant<bool, isDirect>{});
+    BOOST_ASSERT(state_ != state::complete);
+    using boost::asio::buffer_size;
+    auto p = boost::asio::buffer_cast<
+        char const*>(*buffer.begin());
+    auto n = buffer_size(*buffer.begin());
+    auto const p0 = p;
+    auto const p1 = p0 + n;
+loop:
+    switch(state_)
+    {
+    case state::nothing_yet:
+        if(n == 0)
+        {
+            ec = error::need_more;
+            return 0;
+        }
+        state_ = state::header;
+        // [[fallthrough]]
+
+    case state::header:
+        parse_header(p, n, ec);
+        if(ec)
+            goto done;
+        break;
+
+    case state::body0:
+        impl().on_body(content_length(), ec);
+        if(ec)
+            goto done;
+        state_ = state::body;
+        // [[fallthrough]]
+
+    case state::body:
+        parse_body(p, n, ec);
+        if(ec)
+            goto done;
+        break;
+
+    case state::body_to_eof0:
+        impl().on_body(content_length(), ec);
+        if(ec)
+            goto done;
+        state_ = state::body_to_eof;
+        // [[fallthrough]]
+
+    case state::body_to_eof:
+        parse_body_to_eof(p, n, ec);
+        if(ec)
+            goto done;
+        break;
+
+    case state::chunk_header0:
+        impl().on_body(content_length(), ec);
+        if(ec)
+            return 0;
+        state_ = state::chunk_header;
+        // [[fallthrough]]
+
+    case state::chunk_header:
+        parse_chunk_header(p, n, ec);
+        if(ec)
+            goto done;
+        break;
+
+    case state::chunk_body:
+        parse_chunk_body(p, n, ec);
+        if(ec)
+            goto done;
+        break;
+
+    case state::complete:
+        break;
+    }
+    if(p < p1 && eager())
+    {
+        n = static_cast<std::size_t>(p1 - p);
+        goto loop;
+    }
+done:
+    return static_cast<std::size_t>(p - p0);
 }
 
-template<bool isRequest, bool isDirect, class Derived>
+template<bool isRequest, class Derived>
 void
-basic_parser<isRequest, isDirect, Derived>::
-write_eof(error_code& ec)
+basic_parser<isRequest, Derived>::
+put_eof(error_code& ec)
 {
     BOOST_ASSERT(got_some());
-    if(state_ == parse_state::header)
+    if(state_ == state::header)
     {
         ec = error::partial_message;
         return;
     }
     if(f_ & (flagContentLength | flagChunked))
     {
-        if(state_ != parse_state::complete)
+        if(state_ != state::complete)
         {
             ec = error::partial_message;
             return;
         }
         return;
     }
-    do_complete(ec);
+    impl().on_complete(ec);
     if(ec)
         return;
+    state_ = state::complete;
 }
 
-template<bool isRequest, bool isDirect, class Derived>
-template<class DynamicBuffer>
-std::size_t
-basic_parser<isRequest, isDirect, Derived>::
-copy_body(DynamicBuffer& buffer)
-{
-    // This function not available when isDirect==false
-    BOOST_STATIC_ASSERT(isDirect);
-
-    using boost::asio::buffer_copy;
-    using boost::asio::buffer_size;
-    BOOST_ASSERT(buffer.size() > 0);
-    BOOST_ASSERT(
-        state_ == parse_state::body ||
-        state_ == parse_state::body_to_eof ||
-        state_ == parse_state::chunk_body);
-    maybe_do_body_direct();
-    switch(state_)
-    {
-    case parse_state::body_to_eof:
-    {
-        auto const buffers =
-            impl().on_prepare(buffer.size());
-        BOOST_ASSERT(
-            buffer_size(buffers) >= 1 &&
-            buffer_size(buffers) <=
-                buffer.size());
-        auto const n = buffer_copy(
-            buffers, buffer.data());
-        buffer.consume(n);
-        impl().on_commit(n);
-        return n;
-    }
-
-    default:
-    {
-        BOOST_ASSERT(len_ > 0);
-        auto const buffers =
-            impl().on_prepare(
-                beast::detail::clamp(len_));
-        BOOST_ASSERT(
-            buffer_size(buffers) >= 1 &&
-            buffer_size(buffers) <=
-                beast::detail::clamp(len_));
-        auto const n = buffer_copy(
-            buffers, buffer.data());
-        commit_body(n);
-        return n;
-    }
-    }
-}
-
-template<bool isRequest, bool isDirect, class Derived>
-template<class MutableBufferSequence>
-void
-basic_parser<isRequest, isDirect, Derived>::
-prepare_body(boost::optional<
-    MutableBufferSequence>& buffers, std::size_t limit)
-{
-    // This function not available when isDirect==false
-    BOOST_STATIC_ASSERT(isDirect);
-
-    BOOST_ASSERT(limit > 0);
-    BOOST_ASSERT(
-        state_ == parse_state::body ||
-        state_ == parse_state::body_to_eof ||
-        state_ == parse_state::chunk_body);
-    maybe_do_body_direct();
-    std::size_t n;
-    switch(state_)
-    {
-    case parse_state::body_to_eof:
-        n = limit;
-        break;
-
-    default:
-        BOOST_ASSERT(len_ > 0);
-        n = beast::detail::clamp(len_, limit);
-        break;
-    }
-    buffers.emplace(impl().on_prepare(n));
-}
-
-template<bool isRequest, bool isDirect, class Derived>
-void
-basic_parser<isRequest, isDirect, Derived>::
-commit_body(std::size_t n)
-{
-    // This function not available when isDirect==false
-    BOOST_STATIC_ASSERT(isDirect);
-
-    BOOST_ASSERT(f_ & flagOnBody);
-    impl().on_commit(n);
-    switch(state_)
-    {
-    case parse_state::body:
-        len_ -= n;
-        if(len_ == 0)
-        {
-            // VFALCO This is no good, throwing out ec?
-            error_code ec;
-            do_complete(ec);
-        }
-        break;
-
-    case parse_state::chunk_body:
-        len_ -= n;
-        if(len_ == 0)
-            state_ = parse_state::chunk_header;
-        break;
-    
-    default:
-        break;
-    }
-}
-
-template<bool isRequest, bool isDirect, class Derived>
+template<bool isRequest, class Derived>
 template<class ConstBufferSequence>
 inline
 string_view
-basic_parser<isRequest, isDirect, Derived>::
+basic_parser<isRequest, Derived>::
 maybe_flatten(
     ConstBufferSequence const& buffers)
 {
-    using boost::asio::buffer;
     using boost::asio::buffer_cast;
     using boost::asio::buffer_copy;
     using boost::asio::buffer_size;
-
-    auto const it = buffers.begin();
+    auto const p = buffers.begin();
     auto const last = buffers.end();
-    if(it == last)
+    if(p == last)
         return {nullptr, 0};
-    if(std::next(it) == last)
+    if(std::next(p) == last)
     {
         // single buffer
-        auto const b = *it;
+        auto const b = *p;
         return {buffer_cast<char const*>(b),
             buffer_size(b)};
     }
@@ -261,182 +236,407 @@ maybe_flatten(
         buf_len_ = len;
     }
     // flatten
-    buffer_copy(
-        buffer(buf_.get(), buf_len_), buffers);
+    buffer_copy(boost::asio::buffer(
+        buf_.get(), buf_len_), buffers);
     return {buf_.get(), buf_len_};
 }
 
-template<bool isRequest, bool isDirect, class Derived>
+template<bool isRequest, class Derived>
 inline
-std::size_t
-basic_parser<isRequest, isDirect, Derived>::
-do_write(boost::asio::const_buffers_1 const& buffer,
-    error_code& ec, std::true_type)
-{
-    BOOST_ASSERT(
-        state_ == parse_state::header ||
-        state_ == parse_state::chunk_header);
-    using boost::asio::buffer_cast;
-    using boost::asio::buffer_size;
-    auto const p =  buffer_cast<
-        char const*>(*buffer.begin());
-    auto const n =
-        buffer_size(*buffer.begin());
-    if(state_ == parse_state::header)
-    {
-        if(n > 0)
-            f_ |= flagGotSome;
-        return parse_header(p, n, ec);
-    }
-    else
-    {
-        maybe_do_body_direct();
-        return parse_chunk_header(p, n, ec);
-    }
-}
-
-template<bool isRequest, bool isDirect, class Derived>
-inline
-std::size_t
-basic_parser<isRequest, isDirect, Derived>::
-do_write(boost::asio::const_buffers_1 const& buffer,
-    error_code& ec, std::false_type)
-{
-    BOOST_ASSERT(state_ != parse_state::complete);
-    using boost::asio::buffer_cast;
-    using boost::asio::buffer_size;
-    auto const p =  buffer_cast<
-        char const*>(*buffer.begin());
-    auto const n =
-        buffer_size(*buffer.begin());
-    switch(state_)
-    {
-    case parse_state::header:
-        if(n > 0)
-            f_ |= flagGotSome;
-        return parse_header(p, n, ec);
-
-    case parse_state::body:
-        maybe_do_body_indirect(ec);
-        if(ec)
-            return 0;
-        return parse_body(p, n, ec);
-
-    case parse_state::body_to_eof:
-        maybe_do_body_indirect(ec);
-        if(ec)
-            return 0;
-        return parse_body_to_eof(p, n, ec);
-
-    case parse_state::chunk_header:
-        maybe_do_body_indirect(ec);
-        if(ec)
-            return 0;
-        return parse_chunk_header(p, n, ec);
-
-    case parse_state::chunk_body:
-        return parse_chunk_body(p, n, ec);
-
-    case parse_state::complete:
-        break;
-    }
-    return 0;
-}
-
-
-template<bool isRequest, bool isDirect, class Derived>
 void
-basic_parser<isRequest, isDirect, Derived>::
-parse_startline(char const*& it,
-    int& version, int& status,
-        error_code& ec, std::true_type)
+basic_parser<isRequest, Derived>::
+parse_header(char const*& p,
+    std::size_t n, error_code& ec)
+{
+    if(n < skip_ + 4)
+    {
+        ec = http::error::need_more;
+        return;
+    }
+    auto const term = find_eom(
+        p + skip_, p + n, ec);
+    if(ec)
+        return;
+    if(! term)
+    {
+        skip_ = n - 3;
+        ec = http::error::need_more;
+        return;
+    }
+    skip_ = 0;
+
+    parse_header(p, term, ec,
+        std::integral_constant<bool, isRequest>{});
+    if(ec)
+        return;
+
+    impl().on_header(ec);
+    if(ec)
+        return;
+    if(state_ == state::complete)
+    {
+        impl().on_complete(ec);
+        if(ec)
+            return;
+    }
+}
+
+template<bool isRequest, class Derived>
+void
+basic_parser<isRequest, Derived>::
+parse_header(char const*& p, char const* term,
+    error_code& ec, std::true_type)
 {
 /*
     request-line   = method SP request-target SP HTTP-version CRLF
     method         = token
 */
-    auto const method = parse_method(it);
+    auto const method = parse_method(p);
     if(method.empty())
     {
         ec = error::bad_method;
         return;
     }
-    if(*it++ != ' ')
+    if(*p++ != ' ')
     {
         ec = error::bad_method;
         return;
     }
 
-    auto const target = parse_target(it);
+    auto const target = parse_target(p);
     if(target.empty())
     {
         ec = error::bad_path;
         return;
     }
-    if(*it++ != ' ')
+    if(*p++ != ' ')
     {
         ec = error::bad_path;
         return;
     }
 
-    version = parse_version(it);
-    if(version < 0 || ! parse_crlf(it))
+    auto const version = parse_version(p);
+    if(version < 0 || ! parse_crlf(p))
     {
         ec = error::bad_version;
         return;
     }
 
+    if(version >= 11)
+        f_ |= flagHTTP11;
+
     impl().on_request(
         method, target, version, ec);
     if(ec)
         return;
+
+    parse_fields(p, term, ec);
+    if(ec)
+        return;
+    BOOST_ASSERT(p == term);
+
+    // RFC 7230 section 3.3
+    // https://tools.ietf.org/html/rfc7230#section-3.3
+
+    if(f_ & flagSkipBody)
+    {
+        state_ = state::complete;
+    }
+    else if(f_ & flagContentLength)
+    {
+        if(len_ > 0)
+        {
+            f_ |= flagHasBody;
+            state_ = state::body0;
+        }
+        else
+        {
+            state_ = state::complete;
+        }
+    }
+    else if(f_ & flagChunked)
+    {
+        f_ |= flagHasBody;
+        state_ = state::chunk_header0;
+    }
+    else
+    {
+        len_ = 0;
+        state_ = state::complete;
+    }
 }
 
-template<bool isRequest, bool isDirect, class Derived>
+template<bool isRequest, class Derived>
 void
-basic_parser<isRequest, isDirect, Derived>::
-parse_startline(char const*& it,
-    int& version, int& status,
-        error_code& ec, std::false_type)
+basic_parser<isRequest, Derived>::
+parse_header(char const*& p, char const* term,
+    error_code& ec, std::false_type)
 {
 /*
      status-line    = HTTP-version SP status-code SP reason-phrase CRLF
      status-code    = 3*DIGIT
      reason-phrase  = *( HTAB / SP / VCHAR / obs-text )
 */
-    version = parse_version(it);
-    if(version < 0 || *it != ' ')
+    auto const version = parse_version(p);
+    if(version < 0 || *p != ' ')
     {
         ec = error::bad_version;
         return;
     }
-    ++it;
+    ++p;
 
-    status = parse_status(it);
-    if(status < 0 || *it != ' ')
+    auto const status = parse_status(p);
+    if(status < 0 || *p != ' ')
     {
         ec = error::bad_status;
         return;
     }
-    ++it;
+    ++p;
 
-    auto const reason = parse_reason(it);
-    if(! parse_crlf(it))
+    auto const reason = parse_reason(p);
+    if(! parse_crlf(p))
     {
         ec = error::bad_reason;
         return;
     }
 
+    if(version >= 11)
+        f_ |= flagHTTP11;
+
     impl().on_response(
         status, reason, version, ec);
     if(ec)
         return;
+
+    parse_fields(p, term, ec);
+    if(ec)
+        return;
+    BOOST_ASSERT(p == term);
+
+    // RFC 7230 section 3.3
+    // https://tools.ietf.org/html/rfc7230#section-3.3
+
+    if( (f_ & flagSkipBody) ||  // e.g. response to a HEAD request
+        status  / 100 == 1 ||   // 1xx e.g. Continue
+        status == 204 ||        // No Content
+        status == 304)          // Not Modified
+    {
+        state_ = state::complete;
+        return;
+    }
+
+    if(f_ & flagContentLength)
+    {
+        if(len_ > 0)
+        {
+            f_ |= flagHasBody;
+            state_ = state::body0;
+        }
+        else
+        {
+            state_ = state::complete;
+        }
+    }
+    else if(f_ & flagChunked)
+    {
+        f_ |= flagHasBody;
+        state_ = state::chunk_header0;
+    }
+    else
+    {
+        f_ |= flagHasBody;
+        f_ |= flagNeedEOF;
+        state_ = state::body_to_eof0;
+    }
 }
 
-template<bool isRequest, bool isDirect, class Derived>
+template<bool isRequest, class Derived>
+inline
 void
-basic_parser<isRequest, isDirect, Derived>::
-parse_fields(char const*& it,
+basic_parser<isRequest, Derived>::
+parse_body(char const*& p,
+    std::size_t n, error_code& ec)
+{
+    n = beast::detail::clamp(len_, n);
+    impl().on_data(string_view{p, n}, ec);
+    if(ec)
+        return;
+    p += n;
+    len_ -= n;
+    if(len_ > 0)
+        return;
+    impl().on_complete(ec);
+    if(ec)
+        return;
+    state_ = state::complete;
+}
+
+template<bool isRequest, class Derived>
+inline
+void
+basic_parser<isRequest, Derived>::
+parse_body_to_eof(char const*& p,
+    std::size_t n, error_code& ec)
+{
+    impl().on_data(string_view{p, n}, ec);
+    if(ec)
+        return;
+    p += n;
+}
+
+template<bool isRequest, class Derived>
+void
+basic_parser<isRequest, Derived>::
+parse_chunk_header(char const*& p,
+    std::size_t n, error_code& ec)
+{
+/*
+    chunked-body   = *chunk last-chunk trailer-part CRLF
+
+    chunk          = chunk-size [ chunk-ext ] CRLF chunk-data CRLF
+    last-chunk     = 1*("0") [ chunk-ext ] CRLF
+    trailer-part   = *( header-field CRLF )
+
+    chunk-size     = 1*HEXDIG
+    chunk-data     = 1*OCTET ; a sequence of chunk-size octets
+    chunk-ext      = *( ";" chunk-ext-name [ "=" chunk-ext-val ] )
+    chunk-ext-name = token
+    chunk-ext-val  = token / quoted-string
+*/
+
+    auto const pend = p + n;
+    auto pbegin = p;
+
+    // Treat the last CRLF in a chunk as
+    // part of the next chunk, so p can
+    // be parsed in one call instead of two.
+    if(f_ & flagExpectCRLF)
+    {
+        if(n < 2 || ! parse_crlf(p))
+        {
+            ec = error::need_more;
+            return;
+        }
+        f_ &= ~flagExpectCRLF;
+        pbegin += 2;
+        n -= 2;
+    }
+
+    char const* term;
+
+    if(! (f_ & flagFinalChunk))
+    {
+        if(n < skip_ + 2)
+        {
+            ec = error::need_more;
+            return;
+        }
+        term = find_eol(p + skip_, pend, ec);
+        if(ec)
+            return;
+        if(! term)
+        {
+            ec = error::need_more;
+            skip_ = n - 1;
+            return;
+        }
+        std::uint64_t v;
+        if(! parse_hex(p, v))
+        {
+            ec = error::bad_chunk;
+            return;
+        }
+        if(v != 0)
+        {
+            if(*p == ';')
+            {
+                // VFALCO We need to parse the chunk
+                // extension to validate p here.
+                auto const ext = make_string(p, term - 2);
+                impl().on_chunk(v, ext, ec);
+                if(ec)
+                    return;
+            }
+            else if(p != term - 2)
+            {
+                ec = error::bad_chunk;
+                return;
+            }
+            p = term;
+            len_ = v;
+            skip_ = 0;
+            f_ |= flagExpectCRLF;
+            state_ = state::chunk_body;
+            return;
+        }
+
+        pbegin = p;
+        n = static_cast<std::size_t>(pend - pbegin);
+        x_ = term - 2 - pbegin; // start of first '\r\n'
+        skip_ = x_;
+
+        f_ |= flagFinalChunk;
+    }
+
+    term = find_eom(
+        pbegin + skip_, pend, ec);
+    if(ec)
+        return;
+    if(! term)
+    {
+        // VFALCO Is this right?
+        if(n > 3)
+            skip_ = (pend - pbegin) - 3;
+        ec = error::need_more;
+        return;
+    }
+
+    if(*p == ';')
+    {
+        auto const ext = make_string(p, pbegin + x_);
+        impl().on_chunk(0, ext, ec);
+        if(ec)
+            return;
+        p = pbegin + x_;
+    }
+    if(! parse_crlf(p))
+    {
+        ec = error::bad_chunk;
+        return;
+    }
+    parse_fields(p, term, ec);
+    if(ec)
+        return;
+    BOOST_ASSERT(p == term);
+
+    impl().on_complete(ec);
+    if(ec)
+        return;
+    state_ = state::complete;
+}
+
+template<bool isRequest, class Derived>
+inline
+void
+basic_parser<isRequest, Derived>::
+parse_chunk_body(char const*& p,
+    std::size_t n, error_code& ec)
+{
+    n = beast::detail::clamp(len_, n);
+    impl().on_data(string_view{p, n}, ec);
+    if(ec)
+        return;
+    p += n;
+    len_ -= n;
+    if(len_ > 0)
+        return;
+    state_ = state::chunk_header;
+}
+
+template<bool isRequest, class Derived>
+void
+basic_parser<isRequest, Derived>::
+parse_fields(char const*& p,
     char const* last, error_code& ec)
 {
 /*  header-field   = field-name ":" OWS field-value OWS
@@ -452,22 +652,22 @@ parse_fields(char const*& it,
 */
     for(;;)
     {
-        auto term = find_eol(it, last, ec);
+        auto term = find_eol(p, last, ec);
         if(ec)
             return;
         BOOST_ASSERT(term);
-        if(it == term - 2)
+        if(p == term - 2)
         {
-            it = term;
+            p = term;
             break;
         }
-        auto const name = parse_name(it);
+        auto const name = parse_name(p);
         if(name.empty())
         {
             ec = error::bad_field;
             return;
         }
-        if(*it++ != ':')
+        if(*p++ != ':')
         {
             ec = error::bad_field;
             return;
@@ -476,17 +676,17 @@ parse_fields(char const*& it,
            *term != '\t')
         {
             auto it2 = term - 2;
-            detail::skip_ows(it, it2);
-            detail::skip_ows_rev(it2, it);
+            detail::skip_ows(p, it2);
+            detail::skip_ows_rev(it2, p);
             auto const value =
-                make_string(it, it2);
+                make_string(p, it2);
             do_field(name, value, ec);
             if(ec)
                 return;
             impl().on_field(name, value, ec);
             if(ec)
                 return;
-            it = term;
+            p = term;
         }
         else
         {
@@ -494,33 +694,33 @@ parse_fields(char const*& it,
             for(;;)
             {
                 auto const it2 = term - 2;
-                detail::skip_ows(it, it2);
-                if(it != it2)
+                detail::skip_ows(p, it2);
+                if(p != it2)
                     break;
-                it = term;
-                if(*it != ' ' && *it != '\t')
+                p = term;
+                if(*p != ' ' && *p != '\t')
                     break;
-                term = find_eol(it, last, ec);
+                term = find_eol(p, last, ec);
                 if(ec)
                     return;
             }
             std::string s;
-            if(it != term)
+            if(p != term)
             {
-                s.append(it, term - 2);
-                it = term;
+                s.append(p, term - 2);
+                p = term;
                 for(;;)
                 {
-                    if(*it != ' ' && *it != '\t')
+                    if(*p != ' ' && *p != '\t')
                         break;
                     s.push_back(' ');
-                    detail::skip_ows(it, term - 2);
-                    term = find_eol(it, last, ec);
+                    detail::skip_ows(p, term - 2);
+                    term = find_eol(p, last, ec);
                     if(ec)
                         return;
-                    if(it != term - 2)
-                        s.append(it, term - 2);
-                    it = term;
+                    if(p != term - 2)
+                        s.append(p, term - 2);
+                    p = term;
                 }
             }
             string_view value{
@@ -535,9 +735,9 @@ parse_fields(char const*& it,
     }
 }
 
-template<bool isRequest, bool isDirect, class Derived>
+template<bool isRequest, class Derived>
 void
-basic_parser<isRequest, isDirect, Derived>::
+basic_parser<isRequest, Derived>::
 do_field(
     string_view const& name,
         string_view const& value,
@@ -577,10 +777,10 @@ do_field(
         return;
     }
 
-    for(auto it = value.begin();
-        it != value.end(); ++it)
+    for(auto p = value.begin();
+        p != value.end(); ++p)
     {
-        if(! is_text(*it))
+        if(! is_text(*p))
         {
             ec = error::bad_value;
             return;
@@ -635,14 +835,14 @@ do_field(
         }
 
         auto const v = token_list{value};
-        auto const it = std::find_if(v.begin(), v.end(),
+        auto const p = std::find_if(v.begin(), v.end(),
             [&](typename token_list::value_type const& s)
             {
                 return strieq("chunked", s);
             });
-        if(it == v.end())
+        if(p == v.end())
             return;
-        if(std::next(it) != v.end())
+        if(std::next(p) != v.end())
             return;
         len_ = 0;
         f_ |= flagChunked;
@@ -656,375 +856,6 @@ do_field(
         ec = {};
         return;
     }
-}
-
-template<bool isRequest, bool isDirect, class Derived>
-inline
-std::size_t
-basic_parser<isRequest, isDirect, Derived>::
-parse_header(char const* p,
-    std::size_t n, error_code& ec)
-{
-    if(n < 4)
-        return 0;
-    auto const term = find_eom(
-        p + skip_, p + n, ec);
-    if(ec)
-        return 0;
-    if(! term)
-    {
-        skip_ = n - 3;
-        return 0;
-    }
-
-    int version;
-    int status; // ignored for requests
-
-    skip_ = 0;
-    n = term - p;
-    parse_startline(p, version, status, ec,
-        std::integral_constant<
-            bool, isRequest>{});
-    if(ec)
-        return 0;
-    if(version >= 11)
-        f_ |= flagHTTP11;
-
-    parse_fields(p, term, ec);
-    if(ec)
-        return 0;
-    BOOST_ASSERT(p == term);
-
-    do_header(status,
-        std::integral_constant<
-            bool, isRequest>{});
-    impl().on_header(ec);
-    if(ec)
-        return 0;
-    if(state_ == parse_state::complete)
-    {
-        impl().on_complete(ec);
-        if(ec)
-            return 0;
-    }
-    return n;
-}
-
-template<bool isRequest, bool isDirect, class Derived>
-void
-basic_parser<isRequest, isDirect, Derived>::
-do_header(int, std::true_type)
-{
-    // RFC 7230 section 3.3
-    // https://tools.ietf.org/html/rfc7230#section-3.3
-
-    if(f_ & flagSkipBody)
-    {
-        state_ = parse_state::complete;
-    }
-    else if(f_ & flagContentLength)
-    {
-        if(len_ > 0)
-        {
-            f_ |= flagHasBody;
-            state_ = parse_state::body;
-        }
-        else
-        {
-            state_ = parse_state::complete;
-        }
-    }
-    else if(f_ & flagChunked)
-    {
-        f_ |= flagHasBody;
-        state_ = parse_state::chunk_header;
-    }
-    else
-    {
-        len_ = 0;
-        state_ = parse_state::complete;
-    }
-}
-
-template<bool isRequest, bool isDirect, class Derived>
-void
-basic_parser<isRequest, isDirect, Derived>::
-do_header(int status, std::false_type)
-{
-    // RFC 7230 section 3.3
-    // https://tools.ietf.org/html/rfc7230#section-3.3
-
-    if( (f_ & flagSkipBody) ||  // e.g. response to a HEAD request
-        status  / 100 == 1 ||   // 1xx e.g. Continue
-        status == 204 ||        // No Content
-        status == 304)          // Not Modified
-    {
-        state_ = parse_state::complete;
-        return;
-    }
-
-    if(f_ & flagContentLength)
-    {
-        if(len_ > 0)
-        {
-            f_ |= flagHasBody;
-            state_ = parse_state::body;
-        }
-        else
-        {
-            state_ = parse_state::complete;
-        }
-    }
-    else if(f_ & flagChunked)
-    {
-        f_ |= flagHasBody;
-        state_ = parse_state::chunk_header;
-    }
-    else
-    {
-        f_ |= flagHasBody;
-        f_ |= flagNeedEOF;
-        state_ = parse_state::body_to_eof;
-    }
-}
-
-template<bool isRequest, bool isDirect, class Derived>
-void
-basic_parser<isRequest, isDirect, Derived>::
-maybe_do_body_direct()
-{
-    if(f_ & flagOnBody)
-        return;
-    f_ |= flagOnBody;
-    if(got_content_length())
-        impl().on_body(len_);
-    else
-        impl().on_body();
-}
-
-template<bool isRequest, bool isDirect, class Derived>
-void
-basic_parser<isRequest, isDirect, Derived>::
-maybe_do_body_indirect(error_code& ec)
-{
-    if(f_ & flagOnBody)
-        return;
-    f_ |= flagOnBody;
-    if(got_content_length())
-    {
-        impl().on_body(len_, ec);
-        if(ec)
-            return;
-    }
-    else
-    {
-        impl().on_body(ec);
-        if(ec)
-            return;
-    }
-}
-
-template<bool isRequest, bool isDirect, class Derived>
-std::size_t
-basic_parser<isRequest, isDirect, Derived>::
-parse_chunk_header(char const* p,
-    std::size_t n, error_code& ec)
-{
-/*
-    chunked-body   = *chunk last-chunk trailer-part CRLF
-
-    chunk          = chunk-size [ chunk-ext ] CRLF chunk-data CRLF
-    last-chunk     = 1*("0") [ chunk-ext ] CRLF
-    trailer-part   = *( header-field CRLF )
-
-    chunk-size     = 1*HEXDIG
-    chunk-data     = 1*OCTET ; a sequence of chunk-size octets
-    chunk-ext      = *( ";" chunk-ext-name [ "=" chunk-ext-val ] )
-    chunk-ext-name = token
-    chunk-ext-val  = token / quoted-string
-*/
-
-    auto const first = p;
-    auto const last = p + n;
-
-    // Treat the last CRLF in a chunk as
-    // part of the next chunk, so it can
-    // be parsed in one call instead of two.
-    if(f_ & flagExpectCRLF)
-    {
-        if(n < 2)
-            return 0;
-        if(! parse_crlf(p))
-        {
-            ec = error::bad_chunk;
-            return 0;
-        }
-        n -= 2;
-    }
-
-    char const* term;
-
-    if(! (f_ & flagFinalChunk))
-    {
-        if(n < 2)
-            return 0;
-        term = find_eol(p + skip_, last, ec);
-        if(ec)
-            return 0;
-        if(! term)
-        {
-            skip_ = n - 1;
-            return 0;
-        }
-        std::uint64_t v;
-        if(! parse_hex(p, v))
-        {
-            ec = error::bad_chunk;
-            return 0;
-        }
-        if(v != 0)
-        {
-            if(*p == ';')
-            {
-                // VFALCO We need to parse the chunk
-                // extension to validate it here.
-                ext_ = make_string(p, term - 2);
-                impl().on_chunk(v, ext_, ec);
-                if(ec)
-                    return 0;
-            }
-            else if(p != term - 2)
-            {
-                ec = error::bad_chunk;
-                return 0;
-            }
-            p = term;
-            len_ = v;
-            skip_ = 0;
-            f_ |= flagExpectCRLF;
-            state_ = parse_state::chunk_body;
-            return p - first;
-        }
-
-        // This is the offset from the buffer
-        // to the beginning of the first '\r\n'
-        x_ = term - 2 - first;
-        skip_ = x_;
-
-        f_ |= flagFinalChunk;
-    }
-    else
-    {
-        // We are parsing the value again
-        // to advance p to the right place.
-        std::uint64_t v;
-        auto const result = parse_hex(p, v);
-        BOOST_ASSERT(result && v == 0);
-        beast::detail::ignore_unused(result);
-        beast::detail::ignore_unused(v);
-    }
-
-    term = find_eom(
-        first + skip_, last, ec);
-    if(ec)
-        return 0;
-    if(! term)
-    {
-        if(n > 3)
-            skip_ = (last - first) - 3;
-        return 0;
-    }
-
-    if(*p == ';')
-    {
-        ext_ = make_string(p, first + x_);
-        impl().on_chunk(0, ext_, ec);
-        if(ec)
-            return 0;
-        p = first + x_;
-    }
-    if(! parse_crlf(p))
-    {
-        ec = error::bad_chunk;
-        return 0;
-    }
-    parse_fields(p, term, ec);
-    if(ec)
-        return 0;
-    BOOST_ASSERT(p == term);
-
-    do_complete(ec);
-    if(ec)
-        return 0;
-    return p - first;
-}
-
-template<bool isRequest, bool isDirect, class Derived>
-inline
-std::size_t
-basic_parser<isRequest, isDirect, Derived>::
-parse_body(char const* p,
-    std::size_t n, error_code& ec)
-{
-    n = beast::detail::clamp(len_, n);
-    body_ = string_view{p, n};
-    impl().on_data(body_, ec);
-    if(ec)
-        return 0;
-    len_ -= n;
-    if(len_ == 0)
-    {
-        do_complete(ec);
-        if(ec)
-            return 0;
-    }
-    return n;
-}
-
-template<bool isRequest, bool isDirect, class Derived>
-inline
-std::size_t
-basic_parser<isRequest, isDirect, Derived>::
-parse_body_to_eof(char const* p,
-    std::size_t n, error_code& ec)
-{
-    body_ = string_view{p, n};
-    impl().on_data(body_, ec);
-    if(ec)
-        return 0;
-    return n;
-}
-
-template<bool isRequest, bool isDirect, class Derived>
-inline
-std::size_t
-basic_parser<isRequest, isDirect, Derived>::
-parse_chunk_body(char const* p,
-    std::size_t n, error_code& ec)
-{
-    n = beast::detail::clamp(len_, n);
-    body_ = string_view{p, n};
-    impl().on_data(body_, ec);
-    if(ec)
-        return 0;
-    len_ -= n;
-    if(len_ == 0)
-    {
-        body_ = {};
-        state_ = parse_state::chunk_header;
-    }
-    return n;
-}
-
-template<bool isRequest, bool isDirect, class Derived>
-void
-basic_parser<isRequest, isDirect, Derived>::
-do_complete(error_code& ec)
-{
-    impl().on_complete(ec);
-    if(ec)
-        return;
-    state_ = parse_state::complete;
 }
 
 } // http

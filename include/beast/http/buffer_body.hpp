@@ -8,9 +8,9 @@
 #ifndef BEAST_HTTP_BUFFER_BODY_HPP
 #define BEAST_HTTP_BUFFER_BODY_HPP
 
-#include <beast/http/type_traits.hpp>
 #include <beast/http/error.hpp>
 #include <beast/http/message.hpp>
+#include <beast/http/type_traits.hpp>
 #include <boost/optional.hpp>
 #include <type_traits>
 #include <utility>
@@ -31,41 +31,30 @@ namespace http {
         ...
     }
     @endcode
-
-    @tparam isDeferred A `bool` which, when set to `true`,
-    indicates to the serialization implementation that it should
-    send the entire HTTP Header before attempting to acquire
-    buffers representing the body.
-
-    @tparam ConstBufferSequence The type of buffer sequence
-    stored in the body by the caller.
 */
-template<
-    bool isDeferred,
-    class ConstBufferSequence>
 struct buffer_body
 {
-    static_assert(is_const_buffer_sequence<ConstBufferSequence>::value,
-        "ConstBufferSequence requirements not met");
+    /// The type of the body member when used in a message.
+    struct value_type
+    {
+        /** A pointer to a contiguous area of memory of @ref size octets, else `nullptr`.
 
-    /** The type of the body member when used in a message.
+            If this is `nullptr` and @ref more is `true`, the error
+            @ref error::need_buffer will be returned by a serializer
+            when attempting to retrieve the next buffer.
+        */
+        void* data;
 
-        When engaged, the first element of the pair represents
-        the current buffer sequence to be written.
+        /** The number of octets in the buffer pointed to by @ref data
 
-        The second element of the pair indicates whether or not
-        additional buffers will be available. A value of `false`
-        indicates the end of the message body.
+            If @ref data is `nullptr` during serialization, this value
+            is not inspected.
+        */
+        std::size_t size;
 
-        If the buffer in the value is disengaged, and the second
-        element of the pair is `true`, @ref serializer operations
-        will return @ref http::error::need_more. This signals the
-        calling code that a new buffer should be placed into the
-        body, or that the caller should indicate that no more
-        buffers will be available.
-    */
-    using value_type =
-        std::pair<boost::optional<ConstBufferSequence>, bool>;
+        /// `true` if this is not the last buffer.
+        bool more;
+    };
 
 #if BEAST_DOXYGEN
     /// The algorithm to obtain buffers representing the body
@@ -77,10 +66,10 @@ struct buffer_body
         value_type const& body_;
 
     public:
-        using is_deferred =
-            std::integral_constant<bool, isDeferred>;
+        using is_deferred = std::false_type;
 
-        using const_buffers_type = ConstBufferSequence;
+        using const_buffers_type =
+            boost::asio::const_buffers_1;
 
         template<bool isRequest, class Fields>
         explicit
@@ -95,44 +84,89 @@ struct buffer_body
         {
         }
 
-        boost::optional<std::pair<ConstBufferSequence, bool>>
+        boost::optional<
+            std::pair<const_buffers_type, bool>>
         get(error_code& ec)
         {
             if(toggle_)
             {
-                if(body_.second)
+                if(body_.more)
                 {
                     toggle_ = false;
-                    ec = error::need_more;
+                    ec = error::need_buffer;
                 }
                 return boost::none;
             }
-            if(body_.first)
+            if(body_.data)
             {
                 toggle_ = true;
-                return {{*body_.first, body_.second}};
+                return {{const_buffers_type{
+                    body_.data, body_.size}, body_.more}};
             }
-            if(body_.second)
-                ec = error::need_more;
+            if(body_.more)
+                ec = error::need_buffer;
             return boost::none;
+        }
+    };
+#endif
+
+#if BEAST_DOXYGEN
+    /// The algorithm used store buffers in this body
+    using writer = implementation_defined;
+#else
+    class writer
+    {
+        value_type& body_;
+
+    public:
+        template<bool isRequest, class Fields>
+        explicit
+        writer(message<isRequest, buffer_body, Fields>& m)
+            : body_(m.body)
+        {
+        }
+
+        void
+        init(boost::optional<std::uint64_t>, error_code&)
+        {
+        }
+
+        template<class ConstBufferSequence>
+        void
+        put(ConstBufferSequence const& buffers,
+            error_code& ec)
+        {
+            using boost::asio::buffer_size;
+            using boost::asio::buffer_copy;
+            auto const n = buffer_size(buffers);
+            if(! body_.data || n > body_.size)
+            {
+                ec = error::need_buffer;
+                return;
+            }
+            auto const bytes_transferred =
+                buffer_copy(boost::asio::buffer(
+                    body_.data, body_.size), buffers);
+            body_.data = reinterpret_cast<char*>(
+                body_.data) + bytes_transferred;
+            body_.size -= bytes_transferred;
+        }
+
+        void
+        finish(error_code&)
+        {
         }
     };
 #endif
 };
 
 #if ! BEAST_DOXYGEN
-
+// operator<< is not supported for buffer_body"
 template<bool isRequest, class Fields,
     bool isDeferred, class ConstBufferSequence>
 std::ostream&
-operator<<(std::ostream& os, message<
-    isRequest, buffer_body<isDeferred,
-        ConstBufferSequence>, Fields> const& msg)
-{
-    static_assert(sizeof(ConstBufferSequence) == -1,
-        "operator<< is not supported for buffer_body");
-}
-
+operator<<(std::ostream& os, message<isRequest,
+    buffer_body, Fields> const& msg) = delete;
 #endif
 
 } // http

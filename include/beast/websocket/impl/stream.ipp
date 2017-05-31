@@ -96,7 +96,7 @@ do_accept(
         next_layer(), stream_.buffer(), p, ec);
     if(ec)
         return;
-    BOOST_ASSERT(p.got_header());
+    BOOST_ASSERT(p.is_header_done());
     stream_.buffer().consume(bytes_used);
     do_accept(p.get(), decorator, ec);
 }

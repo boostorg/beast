@@ -382,7 +382,7 @@ public:
             m.body = "*****";
             error_code ec;
             write(fs, m, ec);
-            if(ec == boost::asio::error::eof)
+            if(ec == error::end_of_stream)
             {
                 BEAST_EXPECT(fs.next_layer().str ==
                     "GET / HTTP/1.0\r\n"
@@ -415,7 +415,7 @@ public:
             m.body = "*****";
             error_code ec;
             async_write(fs, m, do_yield[ec]);
-            if(ec == boost::asio::error::eof)
+            if(ec == error::end_of_stream)
             {
                 BEAST_EXPECT(fs.next_layer().str ==
                     "GET / HTTP/1.0\r\n"
@@ -559,7 +559,7 @@ public:
             test::string_ostream ss(ios_);
             error_code ec;
             write(ss, m, ec);
-            BEAST_EXPECT(ec == boost::asio::error::eof);
+            BEAST_EXPECT(ec == error::end_of_stream);
             BEAST_EXPECT(ss.str ==
                 "GET / HTTP/1.0\r\n"
                 "User-Agent: test\r\n"
@@ -596,7 +596,7 @@ public:
             test::string_ostream ss(ios_);
             error_code ec;
             write(ss, m, ec);
-            BEAST_EXPECT(ec == boost::asio::error::eof);
+            BEAST_EXPECT(ec == error::end_of_stream);
             BEAST_EXPECT(ss.str ==
                 "GET / HTTP/1.1\r\n"
                 "User-Agent: test\r\n"
@@ -949,93 +949,6 @@ public:
         }
     }
 
-    /** Execute a child process and return the output as an HTTP response.
-
-        @param input A stream to read the child process output from.
-
-        @param output A stream to write the HTTP response to.
-    */
-    template<class SyncReadStream, class SyncWriteStream>
-    void
-    cgi_process(SyncReadStream& input, SyncWriteStream& output, error_code& ec)
-    {
-        multi_buffer b;
-        message<false, buffer_body<true,
-            typename multi_buffer::const_buffers_type>, fields> m;
-        m.status = 200;
-        m.version = 11;
-        m.fields.insert("Server", "cgi-process");
-        m.fields.insert("Transfer-Encoding", "chunked");
-        m.body.first = boost::none;
-        m.body.second = true;
-
-        auto sr = make_serializer(m);
-
-        // send the header first, so the
-        // other end gets it right away
-        for(;;)
-        {
-            write_some(output, sr, ec);
-            if(ec == error::need_more)
-            {
-                ec = {};
-                break;
-            }
-            if(ec)
-                return;
-        }
-
-        // send the body
-        for(;;)
-        {
-            // read from input
-            auto bytes_transferred =
-                input.read_some(b.prepare(1024), ec);
-            if(ec == boost::asio::error::eof)
-            {
-                BOOST_ASSERT(bytes_transferred == 0);
-                ec = {};
-                m.body = {boost::none, false};
-            }
-            else
-            {
-                if(ec)
-                    return;
-                b.commit(bytes_transferred);
-                m.body = {b.data(), true};
-            }
-            
-            // write to output
-            for(;;)
-            {
-                write_some(output, sr, ec);
-                if(ec == error::need_more)
-                {
-                    ec = {};
-                    break;
-                }
-                if(ec)
-                    return;
-                if(sr.is_done())
-                    goto is_done;
-            }
-            b.consume(b.size());
-        }
-    is_done:
-        ;
-    }
-
-    void
-    testCgiRelay()
-    {
-        error_code ec;
-        std::string const body = "Hello, world!\n";
-        test::string_ostream so{get_io_service(), 3};
-        test::string_istream si{get_io_service(), body, 6};
-        cgi_process(si, so, ec);
-        BEAST_EXPECT(equal_body<false>(so.str, body));
-    }
-
     void run() override
     {
         yield_to([&](yield_context yield){
@@ -1046,7 +959,6 @@ public:
         test_std_ostream();
         testOstream();
         testIoService();
-        testCgiRelay();
         yield_to(
             [&](yield_context yield)
             {

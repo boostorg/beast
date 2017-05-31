@@ -15,7 +15,7 @@
 int main()
 {
     // Normal boost::asio setup
-    std::string const host = "boost.org";
+    std::string const host = "www.example.com";
     boost::asio::io_service ios;
     boost::asio::ip::tcp::resolver r{ios};
     boost::asio::ip::tcp::socket sock{ios};
@@ -37,5 +37,5 @@ int main()
     beast::flat_buffer b;
     beast::http::response<beast::http::dynamic_body> res;
     beast::http::read(sock, b, res);
-    std::cout << res;
+    std::cout << res << std::endl;
 }

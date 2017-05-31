@@ -16,8 +16,7 @@ namespace http {
 
 template<bool isRequest>
 class test_parser
-    : public basic_parser<isRequest, false,
-        test_parser<isRequest>>
+    : public basic_parser<isRequest, test_parser<isRequest>>
 {
     test::fail_counter* fc_ = nullptr;
 
@@ -36,8 +35,6 @@ public:
     bool got_on_header      = false;
     bool got_on_body        = false;
     bool got_content_length = false;
-    bool got_on_prepare     = false;
-    bool got_on_commit      = false;
     bool got_on_chunk       = false;
     bool got_on_complete    = false;
 
@@ -50,10 +47,9 @@ public:
     }
 
     void
-    on_request(
-        string_view const& method_,
-            string_view const& path_,
-                int version_, error_code& ec)
+    on_request(string_view const& method_,
+        string_view const& path_,
+            int version_, error_code& ec)
     {
         method = std::string(
             method_.data(), method_.size());
@@ -98,19 +94,13 @@ public:
     }
 
     void
-    on_body(error_code& ec)
+    on_body(boost::optional<
+        std::uint64_t> const& content_length_,
+            error_code& ec)
     {
         got_on_body = true;
-        if(fc_)
-            fc_->fail(ec);
-    }
-
-    void
-    on_body(std::uint64_t content_length,
-        error_code& ec)
-    {
-        got_on_body = true;
-        got_content_length = true;
+        got_content_length =
+            static_cast<bool>(content_length_);
         if(fc_)
             fc_->fail(ec);
     }
@@ -120,12 +110,13 @@ public:
         error_code& ec)
     {
         body.append(s.data(), s.size());
+        if(fc_)
+            fc_->fail(ec);
     }
 
     void
     on_chunk(std::uint64_t,
-        string_view const&,
-            error_code& ec)
+        string_view const&, error_code& ec)
     {
         got_on_chunk = true;
         if(fc_)

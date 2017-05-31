@@ -28,27 +28,35 @@
 namespace beast {
 namespace http {
 
-/** Write some serialized message data to a stream.
+/** Write part of a message to a stream using a serializer.
 
-    This function is used to write serialized message data to the
-    stream. The function call will block until one of the following
-    conditions is true:
+    This function is used to write part of a message to a stream using
+    a caller-provided HTTP/1 serializer. The call will block until one
+    of the following conditions is true:
         
     @li One or more bytes have been transferred.
 
+    @li The function @ref serializer::is_done returns `true`
+
     @li An error occurs on the stream.
 
-    In order to completely serialize a message, this function
-    should be called until `sr.is_done()` returns `true`.
+    This operation is implemented in terms of one or more calls
+    to the stream's `write_some` function.
+
+    The amount of data actually transferred is controlled by the behavior
+    of the underlying stream, performing bounded work for each call. This
+    helps applications set reasonable timeouts. It also allows application-level
+    flow control to function correctly. For example when using a TCP/IP based
+    stream.
     
-    @param stream The stream to write to. This type must
-    satisfy the requirements of @b SyncWriteStream.
+    @param stream The stream to which the data is to be written.
+    The type must support the @b SyncWriteStream concept.
 
     @param sr The serializer to use.
 
     @throws system_error Thrown on failure.
 
-    @see @ref async_write_some, @ref serializer
+    @see serializer
 */
 template<class SyncWriteStream,
     bool isRequest, class Body, class Fields,
@@ -57,22 +65,29 @@ void
 write_some(SyncWriteStream& stream, serializer<
     isRequest, Body, Fields, Decorator, Allocator>& sr);
 
+/** Write part of a message to a stream using a serializer.
 
-/** Write some serialized message data to a stream.
-
-    This function is used to write serialized message data to the
-    stream. The function call will block until one of the following
-    conditions is true:
+    This function is used to write part of a message to a stream using
+    a caller-provided HTTP/1 serializer. The call will block until one
+    of the following conditions is true:
         
     @li One or more bytes have been transferred.
 
+    @li The function @ref serializer::is_done returns `true`
+
     @li An error occurs on the stream.
 
-    In order to completely serialize a message, this function
-    should be called until `sr.is_done()` returns `true`.
+    This operation is implemented in terms of one or more calls
+    to the stream's `write_some` function.
+
+    The amount of data actually transferred is controlled by the behavior
+    of the underlying stream, performing bounded work for each call. This
+    helps applications set reasonable timeouts. It also allows application-level
+    flow control to function correctly. For example when using a TCP/IP based
+    stream.
     
-    @param stream The stream to write to. This type must
-    satisfy the requirements of @b SyncWriteStream.
+    @param stream The stream to which the data is to be written.
+    The type must support the @b SyncWriteStream concept.
 
     @param sr The serializer to use.
 
@@ -88,37 +103,47 @@ write_some(SyncWriteStream& stream, serializer<
     isRequest, Body, Fields, Decorator, Allocator>& sr,
         error_code& ec);
 
-/** Start an asynchronous write of some serialized message data to a stream.
+/** Write part of a message to a stream asynchronously using a serializer.
 
-    This function is used to asynchronously write serialized
-    message data to the stream. The function call always returns
-    immediately. The asynchronous operation will continue until
-    one of the following conditions is true:
+    This function is used to write part of a message to a stream
+    asynchronously using a caller-provided HTTP/1 serializer. The function
+    call always returns immediately. The asynchronous operation will continue
+    until one of the following conditions is true:
 
     @li One or more bytes have been transferred.
 
+    @li The function @ref serializer::is_done returns `true`
+
     @li An error occurs on the stream.
 
-    In order to completely serialize a message, this function
-    should be called until `sr.is_done()` returns `true`.
+    This operation is implemented in terms of zero or more calls to the stream's
+    `async_write_some` function, and is known as a <em>composed operation</em>.
+    The program must ensure that the stream performs no other write operations
+    until this operation completes.
 
-    @param stream The stream to write to. This type must
-    satisfy the requirements of @b SyncWriteStream.
+    The amount of data actually transferred is controlled by the behavior
+    of the underlying stream, performing bounded work for each call. This
+    helps applications set reasonable timeouts. It also allows application-level
+    flow control to function correctly. For example when using a TCP/IP based
+    stream.
+    
+    @param stream The stream to which the data is to be written.
+    The type must support the @b AsyncWriteStream concept.
 
-    @param sr The serializer to use for writing.
+    @param sr The serializer to use.
 
-    @param handler The handler to be called when the request
-    completes. Copies will be made of the handler as required. The
-    equivalent function signature of the handler must be:
+    @param handler The handler to be called when the operation
+    completes. Copies will be made of the handler as required.
+    The equivalent function signature of the handler must be:
     @code void handler(
-        error_code const& ec    // Result of operation
+        error_code const& error // result of operation
     ); @endcode
     Regardless of whether the asynchronous operation completes
     immediately or not, the handler will not be invoked from within
     this function. Invocation of the handler will be performed in a
     manner equivalent to using `boost::asio::io_service::post`.
 
-    @see @ref write_some, @ref serializer
+    @see @ref serializer
 */
 template<class AsyncWriteStream,
     bool isRequest, class Body, class Fields,
@@ -132,98 +157,93 @@ async_write_some(AsyncWriteStream& stream, serializer<
     isRequest, Body, Fields, Decorator, Allocator>& sr,
         WriteHandler&& handler);
 
-/** Write an HTTP/1 message to a stream.
+//------------------------------------------------------------------------------
 
-    This function is used to write a message to a stream. The call
-    will block until one of the following conditions is true:
+/** Write a header to a stream using a serializer.
 
-    @li The entire message is written.
+    This function is used to write a header to a stream using a
+    caller-provided HTTP/1 serializer. The call will block until one
+    of the following conditions is true:
+
+    @li The function @ref serializer::is_header_done returns `true`
 
     @li An error occurs.
 
     This operation is implemented in terms of one or more calls
     to the stream's `write_some` function.
 
-    The implementation will automatically perform chunk encoding if
-    the contents of the message indicate that chunk encoding is required.
-    If the semantics of the message indicate that the connection should
-    be closed after the message is sent, the error thrown from this
-    function will be `boost::asio::error::eof`.
-
     @param stream The stream to which the data is to be written.
     The type must support the @b SyncWriteStream concept.
 
-    @param msg The message to write.
+    @param sr The serializer to use.
 
     @throws system_error Thrown on failure.
+
+    @note The implementation will call @ref serializer::split with
+    the value `true` on the serializer passed in.
+
+    @see @ref serializer
 */
 template<class SyncWriteStream,
-    bool isRequest, class Body, class Fields>
+    bool isRequest, class Body, class Fields,
+        class Decorator, class Allocator>
 void
-write(SyncWriteStream& stream,
-    message<isRequest, Body, Fields> const& msg);
+write_header(SyncWriteStream& stream, serializer<
+    isRequest, Body, Fields, Decorator, Allocator>& sr);
 
-/** Write an HTTP/1 message to a stream.
+/** Write a header to a stream using a serializer.
 
-    This function is used to write a message to a stream. The call
-    will block until one of the following conditions is true:
+    This function is used to write a header to a stream using a
+    caller-provided HTTP/1 serializer. The call will block until one
+    of the following conditions is true:
 
-    @li The entire message is written.
+    @li The function @ref serializer::is_header_done returns `true`
 
     @li An error occurs.
 
     This operation is implemented in terms of one or more calls
     to the stream's `write_some` function.
 
-    The implementation will automatically perform chunk encoding if
-    the contents of the message indicate that chunk encoding is required.
-    If the semantics of the message indicate that the connection should
-    be closed after the message is sent, the error returned from this
-    function will be `boost::asio::error::eof`.
-
     @param stream The stream to which the data is to be written.
     The type must support the @b SyncWriteStream concept.
 
-    @param msg The message to write.
+    @param sr The serializer to use.
 
-    @param ec Set to the error, if any occurred.
+    @param ec Set to indicate what error occurred, if any.
+
+    @note The implementation will call @ref serializer::split with
+    the value `true` on the serializer passed in.
+
+    @see @ref serializer
 */
 template<class SyncWriteStream,
-    bool isRequest, class Body, class Fields>
+    bool isRequest, class Body, class Fields,
+        class Decorator, class Allocator>
 void
-write(SyncWriteStream& stream,
-    message<isRequest, Body, Fields> const& msg,
+write_header(SyncWriteStream& stream, serializer<
+    isRequest, Body, Fields, Decorator, Allocator>& sr,
         error_code& ec);
 
-/** Write an HTTP/1 message asynchronously to a stream.
+/** Write a header to a stream asynchronously using a serializer.
 
-    This function is used to asynchronously write a message to
-    a stream. The function call always returns immediately. The
-    asynchronous operation will continue until one of the following
-    conditions is true:
+    This function is used to write a header to a stream asynchronously
+    using a caller-provided HTTP/1 serializer. The function call always
+    returns immediately. The asynchronous operation will continue until
+    one of the following conditions is true:
 
-    @li The entire message is written.
+    @li The function @ref serializer::is_header_done returns `true`
 
     @li An error occurs.
 
-    This operation is implemented in terms of one or more calls to
-    the stream's `async_write_some` functions, and is known as a
-    <em>composed operation</em>. The program must ensure that the
-    stream performs no other write operations until this operation
-    completes.
-
-    The implementation will automatically perform chunk encoding if
-    the contents of the message indicate that chunk encoding is required.
-    If the semantics of the message indicate that the connection should
-    be closed after the message is sent, the operation will complete with
-    the error set to `boost::asio::error::eof`.
+    This operation is implemented in terms of zero or more calls to the stream's
+    `async_write_some` function, and is known as a <em>composed operation</em>.
+    The program must ensure that the stream performs no other write operations
+    until this operation completes.
 
     @param stream The stream to which the data is to be written.
     The type must support the @b AsyncWriteStream concept.
 
-    @param msg The message to write. The object must remain valid
-    at least until the completion handler is called; ownership is
-    not transferred.
+    @param sr The serializer to use.
 
     @param handler The handler to be called when the operation
     completes. Copies will be made of the handler as required.
@@ -235,6 +255,231 @@ write(SyncWriteStream& stream,
     immediately or not, the handler will not be invoked from within
     this function. Invocation of the handler will be performed in a
     manner equivalent to using `boost::asio::io_service::post`.
+
+    @note The implementation will call @ref serializer::split with
+    the value `true` on the serializer passed in.
+
+    @see @ref serializer
+*/
+template<class AsyncWriteStream,
+    bool isRequest, class Body, class Fields,
+        class Decorator, class Allocator, class WriteHandler>
+#if BEAST_DOXYGEN
+    void_or_deduced
+#else
+async_return_type<WriteHandler, void(error_code)>
+#endif
+async_write_header(AsyncWriteStream& stream, serializer<
+    isRequest, Body, Fields, Decorator, Allocator>& sr,
+        WriteHandler&& handler);
+
+//------------------------------------------------------------------------------
+
+/** Write a complete message to a stream using a serializer.
+
+    This function is used to write a complete message to a stream using
+    a caller-provided HTTP/1 serializer. The call will block until one
+    of the following conditions is true:
+
+    @li The function @ref serializer::is_done returns `true`
+
+    @li An error occurs.
+
+    This operation is implemented in terms of one or more calls
+    to the stream's `write_some` function.
+
+    @param stream The stream to which the data is to be written.
+    The type must support the @b SyncWriteStream concept.
+
+    @param sr The serializer to use.
+
+    @throws system_error Thrown on failure.
+
+    @see @ref serializer
+*/
+template<class SyncWriteStream,
+    bool isRequest, class Body, class Fields,
+        class Decorator, class Allocator>
+void
+write(SyncWriteStream& stream, serializer<
+    isRequest, Body, Fields, Decorator, Allocator>& sr);
+
+/** Write a complete message to a stream using a serializer.
+
+    This function is used to write a complete message to a stream using
+    a caller-provided HTTP/1 serializer. The call will block until one
+    of the following conditions is true:
+
+    @li The function @ref serializer::is_done returns `true`
+
+    @li An error occurs.
+
+    This operation is implemented in terms of one or more calls
+    to the stream's `write_some` function.
+
+    @param stream The stream to which the data is to be written.
+    The type must support the @b SyncWriteStream concept.
+
+    @param sr The serializer to use.
+
+    @param ec Set to the error, if any occurred.
+
+    @see @ref serializer
+*/
+template<class SyncWriteStream,
+    bool isRequest, class Body, class Fields,
+        class Decorator, class Allocator>
+void
+write(SyncWriteStream& stream, serializer<
+    isRequest, Body, Fields, Decorator, Allocator>& sr,
+        error_code& ec);
+
+/** Write a complete message to a stream asynchronously using a serializer.
+
+    This function is used to write a complete message to a stream
+    asynchronously using a caller-provided HTTP/1 serializer. The
+    function call always returns immediately. The asynchronous
+    operation will continue until one of the following conditions is true:
+
+    @li The function @ref serializer::is_done returns `true`
+
+    @li An error occurs.
+
+    This operation is implemented in terms of zero or more calls to the stream's
+    `async_write_some` function, and is known as a <em>composed operation</em>.
+    The program must ensure that the stream performs no other write operations
+    until this operation completes.
+
+    @param stream The stream to which the data is to be written.
+    The type must support the @b AsyncWriteStream concept.
+
+    @param sr The serializer to use.
+
+    @param handler The handler to be called when the operation
+    completes. Copies will be made of the handler as required.
+    The equivalent function signature of the handler must be:
+    @code void handler(
+        error_code const& error // result of operation
+    ); @endcode
+    Regardless of whether the asynchronous operation completes
+    immediately or not, the handler will not be invoked from within
+    this function. Invocation of the handler will be performed in a
+    manner equivalent to using `boost::asio::io_service::post`.
+
+    @see @ref serializer
+*/
+template<class AsyncWriteStream,
+    bool isRequest, class Body, class Fields,
+        class Decorator, class Allocator, class WriteHandler>
+#if BEAST_DOXYGEN
+    void_or_deduced
+#else
+async_return_type<WriteHandler, void(error_code)>
+#endif
+async_write(AsyncWriteStream& stream, serializer<
+    isRequest, Body, Fields, Decorator, Allocator>& sr,
+        WriteHandler&& handler);
+
+//------------------------------------------------------------------------------
+
+/** Write a complete message to a stream.
+
+    This function is used to write a complete message to a stream using
+    HTTP/1. The call will block until one of the following conditions is true:
+
+    @li The entire message is written.
+
+    @li An error occurs.
+
+    This operation is implemented in terms of one or more calls to the stream's
+    `write_some` function. The algorithm will use a temporary @ref serializer
+    with an empty chunk decorator to produce buffers. If the semantics of the
+    message indicate that the connection should be closed after the message is
+    sent, the error delivered by this function will be @ref error::end_of_stream
+
+    @param stream The stream to which the data is to be written.
+    The type must support the @b SyncWriteStream concept.
+
+    @param msg The message to write.
+
+    @throws system_error Thrown on failure.
+
+    @see @ref message
+*/
+template<class SyncWriteStream,
+    bool isRequest, class Body, class Fields>
+void
+write(SyncWriteStream& stream,
+    message<isRequest, Body, Fields> const& msg);
+
+/** Write a complete message to a stream.
+
+    This function is used to write a complete message to a stream using
+    HTTP/1. The call will block until one of the following conditions is true:
+
+    @li The entire message is written.
+
+    @li An error occurs.
+
+    This operation is implemented in terms of one or more calls to the stream's
+    `write_some` function. The algorithm will use a temporary @ref serializer
+    with an empty chunk decorator to produce buffers. If the semantics of the
+    message indicate that the connection should be closed after the message is
+    sent, the error delivered by this function will be @ref error::end_of_stream
+
+    @param stream The stream to which the data is to be written.
+    The type must support the @b SyncWriteStream concept.
+
+    @param msg The message to write.
+
+    @param ec Set to the error, if any occurred.
+
+    @see @ref message
+*/
+template<class SyncWriteStream,
+    bool isRequest, class Body, class Fields>
+void
+write(SyncWriteStream& stream,
+    message<isRequest, Body, Fields> const& msg,
+        error_code& ec);
+
+/** Write a complete message to a stream asynchronously.
+
+    This function is used to write a complete message to a stream asynchronously
+    using HTTP/1. The function call always returns immediately. The asynchronous
+    operation will continue until one of the following conditions is true:
+
+    @li The entire message is written.
+
+    @li An error occurs.
+
+    This operation is implemented in terms of zero or more calls to the stream's
+    `async_write_some` function, and is known as a <em>composed operation</em>.
+    The program must ensure that the stream performs no other write operations
+    until this operation completes. The algorithm will use a temporary
+    @ref serializer with an empty chunk decorator to produce buffers. If
+    the semantics of the message indicate that the connection should be
+    closed after the message is sent, the error delivered by this function
+    will be @ref error::end_of_stream
+
+    @param stream The stream to which the data is to be written.
+    The type must support the @b AsyncWriteStream concept.
+
+    @param msg The message to write. The object must remain valid at least
+    until the completion handler is called; ownership is not transferred.
+
+    @param handler The handler to be called when the operation
+    completes. Copies will be made of the handler as required.
+    The equivalent function signature of the handler must be:
+    @code void handler(
+        error_code const& error // result of operation
+    ); @endcode
+    Regardless of whether the asynchronous operation completes
+    immediately or not, the handler will not be invoked from within
+    this function. Invocation of the handler will be performed in a
+    manner equivalent to using `boost::asio::io_service::post`.
+
+    @see @ref message
 */
 template<class AsyncWriteStream,
     bool isRequest, class Body, class Fields,

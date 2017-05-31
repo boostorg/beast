@@ -33,17 +33,18 @@ namespace http {
 */
 template<bool isRequest, class Fields>
 class header_parser
-    : public basic_parser<isRequest, false,
+    : public basic_parser<isRequest,
         header_parser<isRequest, Fields>>
 {
     header<isRequest, Fields> h_;
+    string_view body_;
 
 public:
-    using mutable_buffers_type =
-        boost::asio::null_buffers;
-
     /// The type of @ref header this object produces.
     using value_type = header<isRequest, Fields>;
+
+    /// Default constructor.
+    header_parser() = default;
 
     /// Copy constructor.
     header_parser(header_parser const&) = default;
@@ -58,18 +59,49 @@ public:
     */
     header_parser(header_parser&&) = default;
 
+    /** Move assignment
+
+        After the move, the only valid operation
+        on the moved-from object is destruction.
+    */
+    header_parser& operator=(header_parser&&) = default;
+
     /** Constructor
 
-        @param args If present, additional arguments to be
-        forwarded to the @ref beast::http::header constructor.
+        @param args Optional arguments forwarded
+        forwarded to the @ref http::header constructor.
     */
+#if BEAST_DOXYGEN
     template<class... Args>
     explicit
     header_parser(Args&&... args);
+#else
+    template<class Arg0, class... ArgN,
+        class = typename std::enable_if<
+        ! std::is_convertible<typename
+            std::decay<Arg0>::type,
+                header_parser>::value>>
+    explicit
+    header_parser(Arg0&& arg0, ArgN&&... argn);
+#endif
+
+    /** Returns parsed body octets.
+
+        This function will return the most recent buffer
+        of octets corresponding to the parsed body. This
+        buffer will become invalidated on any subsequent
+        call to @ref put or @ref put_eof
+    */
+    string_view
+    body() const
+    {
+        return body_;
+    }
 
     /** Returns the parsed header
 
-        Only valid if @ref got_header would return `true`.
+        @note The return value is undefined unless
+        @ref is_header_done would return `true`.
     */
     value_type const&
     get() const
@@ -79,7 +111,8 @@ public:
 
     /** Returns the parsed header.
 
-        Only valid if @ref got_header would return `true`.
+        @note The return value is undefined unless
+        @ref is_header_done would return `true`.
     */
     value_type&
     get()
@@ -89,8 +122,10 @@ public:
 
     /** Returns ownership of the parsed header.
 
-        Ownership is transferred to the caller. Only
-        valid if @ref got_header would return `true`.
+        Ownership is transferred to the caller.
+
+        @note The return value is undefined unless
+        @ref is_header_done would return `true`.
 
         Requires:
             @ref value_type is @b MoveConstructible
@@ -98,20 +133,18 @@ public:
     value_type
     release()
     {
-        static_assert(std::is_move_constructible<decltype(h_)>::value,
+        static_assert(
+            std::is_move_constructible<decltype(h_)>::value,
             "MoveConstructible requirements not met");
         return std::move(h_);
     }
 
 private:
-    friend class basic_parser<
-        isRequest, false, header_parser>;
+    friend class basic_parser<isRequest, header_parser>;
 
     void
-    on_request(
-        string_view const& method,
-            string_view const& path,
-                int version, error_code&)
+    on_request(string_view method,
+        string_view path, int version, error_code&)
     {
         h_.target(path);
         h_.method(method);
@@ -119,9 +152,8 @@ private:
     }
 
     void
-    on_response(int status,
-        string_view const& reason,
-            int version, error_code&)
+    on_response(int status, string_view reason,
+        int version, error_code&)
     {
         h_.status = status;
         h_.version = version;
@@ -129,9 +161,8 @@ private:
     }
 
     void
-    on_field(string_view const& name,
-        string_view const& value,
-            error_code&)
+    on_field(string_view name,
+        string_view value, error_code&)
     {
         h_.fields.insert(name, value);
     }
@@ -142,41 +173,28 @@ private:
     }
 
     void
-    on_body(error_code& ec)
+    on_body(boost::optional<std::
+        uint64_t> const&, error_code&)
     {
     }
 
     void
-    on_body(std::uint64_t content_length,
-        error_code& ec)
+    on_data(string_view s, error_code&)
     {
+        body_ = s;
     }
 
     void
-    on_data(string_view const& s,
-        error_code& ec)
+    on_chunk(std::uint64_t,
+        string_view const&, error_code&)
     {
-    }
-
-    void
-    on_commit(std::size_t n)
-    {
-        // Can't write body data with header-only parser!
-        BOOST_ASSERT(false);
-        BOOST_THROW_EXCEPTION(std::logic_error{
-            "invalid member function call"});
-    }
-
-    void
-    on_chunk(std::uint64_t n,
-        string_view const& ext,
-            error_code& ec)
-    {
+        body_ = {};
     }
 
     void
     on_complete(error_code&)
     {
+        body_ = {};
     }
 };
 

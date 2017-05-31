@@ -12,10 +12,11 @@ namespace beast {
 namespace http {
 
 template<bool isRequest, class Fields>
-template<class... Args>
+template<class Arg0, class... ArgN, class>
 header_parser<isRequest, Fields>::
-header_parser(Args&&... args)
-    : h_(std::forward<Args>(args)...)
+header_parser(Arg0&& arg0, ArgN&&... argn)
+    : h_(std::forward<Arg0>(arg0),
+         std::forward<ArgN>(argn)...)
 {
 }
 

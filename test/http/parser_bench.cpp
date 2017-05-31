@@ -11,6 +11,7 @@
 #include <beast/http.hpp>
 #include <beast/core/consuming_buffers.hpp>
 #include <beast/core/ostream.hpp>
+#include <beast/core/flat_buffer.hpp>
 #include <beast/core/multi_buffer.hpp>
 #include <beast/unit_test/suite.hpp>
 #include <boost/lexical_cast.hpp>
@@ -26,7 +27,8 @@ class parser_bench_test : public beast::unit_test::suite
 public:
     static std::size_t constexpr N = 2000;
 
-    using corpus = std::vector<multi_buffer>;
+    //using corpus = std::vector<multi_buffer>;
+    using corpus = std::vector<flat_buffer>;
 
     corpus creq_;
     corpus cres_;
@@ -41,22 +43,17 @@ public:
             std::string>(buffers(bs));
     }
 
-    parser_bench_test()
-    {
-        creq_ = build_corpus(N/2, std::true_type{});
-        cres_ = build_corpus(N/2, std::false_type{});
-    }
-
     corpus
     build_corpus(std::size_t n, std::true_type)
     {
         corpus v;
-        v.resize(N);
+        v.resize(n);
         message_fuzz mg;
         for(std::size_t i = 0; i < n; ++i)
         {
             mg.request(v[i]);
             size_ += v[i].size();
+            BEAST_EXPECT(v[i].size() > 0);
         }
         return v;
     }
@@ -65,22 +62,23 @@ public:
     build_corpus(std::size_t n, std::false_type)
     {
         corpus v;
-        v.resize(N);
+        v.resize(n);
         message_fuzz mg;
         for(std::size_t i = 0; i < n; ++i)
         {
             mg.response(v[i]);
             size_ += v[i].size();
+            BEAST_EXPECT(v[i].size() > 0);
         }
         return v;
     }
 
     template<class ConstBufferSequence,
-        bool isRequest, bool isDirect, class Derived>
+        bool isRequest, class Derived>
     static
     std::size_t
     feed(ConstBufferSequence const& buffers,
-        basic_parser<isRequest, isDirect, Derived>& parser,
+        basic_parser<isRequest, Derived>& parser,
             error_code& ec)
     {
         using boost::asio::buffer_size;
@@ -90,14 +88,14 @@ public:
         for(;;)
         {
             auto const n =
-                parser.write(cb, ec);
+                parser.put(cb, ec);
             if(ec)
                 return 0;
             if(n == 0)
                 break;
             cb.consume(n);
             used += n;
-            if(parser.is_complete())
+            if(parser.is_done())
                 break;
             if(buffer_size(cb) == 0)
                 break;
@@ -155,14 +153,13 @@ public:
 
     template<bool isRequest>
     struct null_parser :
-        basic_parser<isRequest, true,
-            null_parser<isRequest>>
+        basic_parser<isRequest, null_parser<isRequest>>
     {
     };
 
     template<bool isRequest, class Body, class Fields>
     struct bench_parser : basic_parser<
-        isRequest, false, bench_parser<isRequest, Body, Fields>>
+        isRequest, bench_parser<isRequest, Body, Fields>>
     {
         using mutable_buffers_type =
             boost::asio::mutable_buffers_1;
@@ -194,13 +191,8 @@ public:
         }
 
         void
-        on_body(error_code& ec)
-        {
-        }
-
-        void
-        on_body(std::uint64_t content_length,
-            error_code& ec)
+        on_body(boost::optional<std::uint64_t> const&,
+            error_code&)
         {
         }
 
@@ -218,12 +210,6 @@ public:
         }
 
         void
-        on_body(string_view const&,
-            error_code&)
-        {
-        }
-
-        void
         on_complete(error_code&)
         {
         }
@@ -235,6 +221,9 @@ public:
         static std::size_t constexpr Trials = 3;
         static std::size_t constexpr Repeat = 500;
 
+        creq_ = build_corpus(N/2, std::true_type{});
+        cres_ = build_corpus(N/2, std::false_type{});
+
         log << "sizeof(request parser)  == " <<
             sizeof(null_parser<true>) << '\n';
 
@@ -245,16 +234,6 @@ public:
             ((Repeat * size_ + 512) / 1024) << "KB in " <<
                 (Repeat * (creq_.size() + cres_.size())) << " messages";
 
-        timedTest(Trials, "nodejs_parser",
-            [&]
-            {
-                testParser1<nodejs_parser<
-                    true, dynamic_body, fields>>(
-                        Repeat, creq_);
-                testParser1<nodejs_parser<
-                    false, dynamic_body, fields>>(
-                        Repeat, cres_);
-            });
         timedTest(Trials, "http::basic_parser",
             [&]
             {
@@ -262,6 +241,16 @@ public:
                     true, dynamic_body, fields> >(
                         Repeat, creq_);
                 testParser2<bench_parser<
+                    false, dynamic_body, fields>>(
+                        Repeat, cres_);
+            });
+        timedTest(Trials, "nodejs_parser",
+            [&]
+            {
+                testParser1<nodejs_parser<
+                    true, dynamic_body, fields>>(
+                        Repeat, creq_);
+                testParser1<nodejs_parser<
                     false, dynamic_body, fields>>(
                         Repeat, cres_);
             });

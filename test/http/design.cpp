@@ -8,6 +8,7 @@
 #include <beast/core.hpp>
 #include <beast/http.hpp>
 #include <beast/core/detail/clamp.hpp>
+#include <beast/core/detail/read_size_helper.hpp>
 #include <beast/test/pipe_stream.hpp>
 #include <beast/test/string_istream.hpp>
 #include <beast/test/string_ostream.hpp>
@@ -24,76 +25,165 @@ class design_test
     , public beast::test::enable_yield_to
 {
 public:
-    //--------------------------------------------------------------------------
-    /*
-        Expect: 100-continue
-
-        1. Client sends a header with Expect: 100-continue
-
-        2. Server reads the request header:
-            If "Expect: 100-continue" is present, send 100 status response
-
-        3. Client reads a 100 status response and delivers the body
-
-        4. Server reads the request body
-    */
-    //--------------------------------------------------------------------------
-
-    template<class Stream>
-    void
-    serverExpect100Continue(Stream& stream, yield_context yield)
+    // two threads, for some examples using a pipe
+    design_test()
+        : enable_yield_to(2)
     {
-        flat_buffer buffer;
-        message_parser<true, string_body, fields> parser;
-        // read the header
-        async_read_some(stream, buffer, parser, yield);
-        if(parser.get().fields["Expect"] ==
-            "100-continue")
+    }
+
+    template<bool isRequest>
+    bool
+    equal_body(string_view sv, string_view body)
+    {
+        test::string_istream si{
+            get_io_service(), sv.to_string()};
+        message<isRequest, string_body, fields> m;
+        multi_buffer b;
+        try
+        {
+            read(si, b, m);
+            return m.body == body;
+        }
+        catch(std::exception const& e)
+        {
+            log << "equal_body: " << e.what() << std::endl;
+            return false;
+        }
+    }
+
+    //--------------------------------------------------------------------------
+    //
+    // Example: Expect 100-continue
+    //
+    //--------------------------------------------------------------------------
+
+    /** Send a request with Expect: 100-continue
+
+        This function will send a request with the Expect: 100-continue
+        field by first sending the header, then waiting for a successful
+        response from the server before continuing to send the body. If
+        a non-successful server response is received, the function
+        returns immediately.
+
+        @param stream The remote HTTP server stream.
+
+        @param buffer The buffer used for reading.
+
+        @param req The request to send. This function modifies the object:
+        the Expect header field is inserted into the message if it does
+        not already exist, and set to "100-continue".
+
+        @param ec Set to the error, if any occurred.
+    */
+    template<
+        class SyncStream,
+        class DynamicBuffer,
+        class Body, class Fields>
+    void
+    send_expect_100_continue(
+        SyncStream& stream,
+        DynamicBuffer& buffer,
+        request<Body, Fields>& req,
+        error_code& ec)
+    {
+        static_assert(is_sync_stream<SyncStream>::value,
+            "SyncStream requirements not met");
+
+        static_assert(is_dynamic_buffer<DynamicBuffer>::value,
+            "DynamicBuffer requirements not met");
+
+        // Insert or replace the Expect field
+        req.fields.replace("Expect", "100-continue");
+
+        // Create the serializer
+        auto sr = make_serializer(req);
+
+        // Send just the header
+        write_header(stream, sr, ec);
+        if(ec)
+            return;
+
+        BOOST_ASSERT(sr.is_header_done());
+        BOOST_ASSERT(! sr.is_done());
+
+        // Read the response from the server.
+        // A robust client could set a timeout here.
+        {
+            response<string_body> res;
+            read(stream, buffer, res, ec);
+            if(ec)
+                return;
+            if(res.status != 100)
+            {
+                // The server indicated that it will not
+                // accept the request, so skip sending the body.
+                return;
+            }
+        }
+
+        // Server is OK with the request, send the body
+        write(stream, sr, ec);
+    }
+
+    /** Receive a request, handling Expect: 100-continue if present.
+
+        This function will read a request from the specified stream.
+        If the request contains the Expect: 100-continue field, a
+        status response will be delivered.
+
+        @param stream The remote HTTP client stream.
+
+        @param buffer The buffer used for reading.
+
+        @param ec Set to the error, if any occurred.
+    */
+    template<
+        class SyncStream,
+        class DynamicBuffer>
+    void
+    receive_expect_100_continue(
+        SyncStream& stream,
+        DynamicBuffer& buffer,
+        error_code& ec)
+    {
+        static_assert(is_sync_stream<SyncStream>::value,
+            "SyncStream requirements not met");
+
+        static_assert(is_dynamic_buffer<DynamicBuffer>::value,
+            "DynamicBuffer requirements not met");
+
+        // Declare a parser for a request with a string body
+        request_parser<string_body> parser;
+
+        // Read the header
+        read_header(stream, buffer, parser, ec);
+        if(ec)
+            return;
+
+        // Check for the Expect field value
+        if(parser.get().fields["Expect"] == "100-continue")
         {
             // send 100 response
-            message<false, empty_body, fields> res;
+            response<empty_body> res;
             res.version = 11;
             res.status = 100;
             res.reason("Continue");
             res.fields.insert("Server", "test");
-            async_write(stream, res, yield);
-        }
-        // read the rest of the message
-        while(! parser.is_complete())
-            async_read_some(stream, buffer, parser,yield);
-    }
-
-    template<class Stream>
-    void
-    clientExpect100Continue(Stream& stream, yield_context yield)
-    {
-        flat_buffer buffer;
-        message<true, string_body, fields> req;
-        req.version = 11;
-        req.method("POST");
-        req.target("/");
-        req.fields.insert("User-Agent", "test");
-        req.fields.insert("Expect", "100-continue");
-        req.body = "Hello, world!";
-
-        // send header
-        auto sr = make_serializer(req);
-        for(;;)
-        {
-            async_write_some(stream, sr, yield);
-            if(sr.is_header_done())
-                break;
-        }
-        
-        // read response
-        {
-            message<false, string_body, fields> res;
-            async_read(stream, buffer, res, yield);
+            write(stream, res, ec);
+            if(ec)
+                return;
         }
 
-        // send body
-        while(! sr.is_done())
-            async_write_some(stream, sr, yield);
+        BEAST_EXPECT(! parser.is_done());
+        BEAST_EXPECT(parser.get().body.empty());
+
+        // Read the rest of the message.
+        //
+        // We use parser.base() to return a basic_parser&, to avoid an
+        // ambiguous function error (from boost::asio::read). Another
+        // solution is to qualify the call, e.g. `beast::http::read`
+        //
+        read(stream, buffer, parser.base(), ec);
     }
 
     void
@@ -101,14 +191,315 @@ public:
     {
         test::pipe p{ios_};
         yield_to(
-            [&](yield_context yield)
+            [&](yield_context)
             {
-                serverExpect100Continue(p.server, yield);
+                error_code ec;
+                flat_buffer buffer;
+                receive_expect_100_continue(
+                    p.server, buffer, ec);
+                BEAST_EXPECTS(! ec, ec.message());
             },
-            [&](yield_context yield)
+            [&](yield_context)
             {
-                clientExpect100Continue(p.client, yield);
+                flat_buffer buffer;
+                request<string_body, fields> req;
+                req.version = 11;
+                req.method("POST");
+                req.target("/");
+                req.fields.insert("User-Agent", "test");
+                req.body = "Hello, world!";
+                prepare(req);
+
+                error_code ec;
+                send_expect_100_continue(
+                    p.client, buffer, req, ec);
+                BEAST_EXPECTS(! ec, ec.message());
             });
+    }
+
+    //--------------------------------------------------------------------------
+    //
+    // Example: CGI child process relay
+    //
+    //--------------------------------------------------------------------------
+
+    /** Send the output of a child process as an HTTP response.
+
+        The output of the child process comes from a @b SyncReadStream. Data
+        will be sent continuously as it is produced, without the requirement
+        that the entire process output is buffered before being sent. The
+        response will use the chunked transfer encoding.
+
+        @param input A stream to read the child process output from.
+
+        @param output A stream to write the HTTP response to.
+
+        @param ec Set to the error, if any occurred.
+    */
+    template<
+        class SyncReadStream,
+        class SyncWriteStream>
+    void
+    send_cgi_response(
+        SyncReadStream& input,
+        SyncWriteStream& output,
+        error_code& ec)
+    {
+        static_assert(is_sync_read_stream<SyncReadStream>::value,
+            "SyncReadStream requirements not met");
+
+        static_assert(is_sync_write_stream<SyncWriteStream>::value,
+            "SyncWriteStream requirements not met");
+
+        using boost::asio::buffer_cast;
+        using boost::asio::buffer_size;
+
+        // Set up the response. We use the buffer_body type,
+        // allowing serialization to use manually provided buffers.
+        message<false, buffer_body, fields> res;
+
+        res.status = 200;
+        res.version = 11;
+        res.fields.insert("Server", "Beast");
+        res.fields.insert("Transfer-Encoding", "chunked");
+
+        // No data yet, but we set more = true to indicate
+        // that it might be coming later. Otherwise the
+        // serializer::is_done would return true right after
+        // sending the header.
+        res.body.data = nullptr;
+        res.body.more = true;
+
+        // Create the serializer. We set the split option to
+        // produce the header immediately without also trying
+        // to acquire buffers from the body (which would return
+        // the error http::need_buffer because we set `data`
+        // to `nullptr` above).
+        auto sr = make_serializer(res);
+
+        // Send the header immediately.
+        write_header(output, sr, ec);
+        if(ec)
+            return;
+
+        // Alternate between reading from the child process
+        // and sending all the process output until there
+        // is no more output.
+        do
+        {
+            // Read a buffer from the child process
+            char buffer[2048];
+            auto bytes_transferred = input.read_some(
+                boost::asio::buffer(buffer, sizeof(buffer)), ec);
+            if(ec == boost::asio::error::eof)
+            {
+                ec = {};
+
+                // `nullptr` indicates there is no buffer
+                res.body.data = nullptr;
+
+                // `false` means no more data is coming
+                res.body.more = false;
+            }
+            else
+            {
+                if(ec)
+                    return;
+
+                // Point to our buffer with the bytes that
+                // we received, and indicate that there may
+                // be some more data coming
+                res.body.data = buffer;
+                res.body.size = bytes_transferred;
+                res.body.more = true;
+            }
+            
+            // Write everything in the body buffer
+            write(output, sr, ec);
+
+            // This error is returned by body_buffer during
+            // serialization when it is done sending the data
+            // provided and needs another buffer.
+            if(ec == error::need_buffer)
+            {
+                ec = {};
+                continue;
+            }
+            if(ec)
+                return;
+        }
+        while(! sr.is_done());
+    }
+
+    void
+    doCgiResponse()
+    {
+        std::string const s = "Hello, world!";
+        test::pipe child{ios_};
+        child.server.read_size(3);
+        ostream(child.server.buffer) << s;
+        child.client.close();
+        test::pipe p{ios_};
+        error_code ec;
+        send_cgi_response(child.server, p.client, ec);
+        BEAST_EXPECTS(! ec, ec.message());
+        BEAST_EXPECT(equal_body<false>(p.server.str(), s));
+    }
+
+    //--------------------------------------------------------------------------
+    //
+    // Example: HTTP Relay
+    //
+    //--------------------------------------------------------------------------
+
+    /** Relay an HTTP message.
+
+        This function efficiently relays an HTTP message from a downstream
+        client to an upstream server, or from an upstream server to a
+        downstream client. After the message header is read from the input,
+        a user provided transformation function is invoked which may change
+        the contents of the header before forwarding to the output. This may
+        be used to adjust fields such as Server, or proxy fields.
+
+        @param output The stream to write to.
+
+        @param input The stream to read from.
+
+        @param buffer The buffer to use for the input.
+
+        @param transform The header transformation to apply. The function will
+        be called with this signature:
+        @code
+            void transform(
+                header<isRequest, Fields>&,     // The header to transform
+                error_code&);                   // Set to the error, if any
+        @endcode
+
+        @param ec Set to the error if any occurred.
+
+        @tparam isRequest `true` to relay a request.
+
+        @tparam Fields The type of fields to use for the message.
+    */
+    template<
+        bool isRequest,
+        class Fields = fields,
+        class SyncWriteStream,
+        class SyncReadStream,
+        class DynamicBuffer,
+        class Transform>
+    void
+    relay(
+        SyncWriteStream& output,
+        SyncReadStream& input,
+        DynamicBuffer& buffer,
+        error_code& ec,
+        Transform&& transform)
+    {
+        static_assert(is_sync_write_stream<SyncWriteStream>::value,
+            "SyncWriteStream requirements not met");
+
+        static_assert(is_sync_read_stream<SyncReadStream>::value,
+            "SyncReadStream requirements not met");
+
+        // A small buffer for relaying the body piece by piece
+        char buf[2048];
+
+        // Create a parser with a buffer body to read from the input.
+        message_parser<isRequest, buffer_body, Fields> p;
+
+        // Create a serializer from the message contained in the parser.
+        serializer<isRequest, buffer_body, Fields> sr{p.get()};
+
+        // Read just the header from the input
+        read_header(input, buffer, p, ec);
+        if(ec)
+            return;
+
+        // Apply the caller's header tranformation
+        // base() returns a reference to the header portion of the message.
+        transform(p.get().base(), ec);
+        if(ec)
+            return;
+
+        // Send the transformed message to the output
+        write_header(output, sr, ec);
+        if(ec)
+            return;
+
+        // Loop over the input and transfer it to the output
+        do
+        {
+            if(! p.is_done())
+            {
+                // Set up the body for writing into our small buffer
+                p.get().body.data = buf;
+                p.get().body.size = sizeof(buf);
+
+                // Read as much as we can
+                read(input, buffer, p, ec);
+
+                // This error is returned when buffer_body uses up the buffer
+                if(ec == error::need_buffer)
+                    ec = {};
+                if(ec)
+                    return;
+
+                // Set up the body for reading.
+                // This is how much was parsed:
+                p.get().body.size = sizeof(buf) - p.get().body.size;
+                p.get().body.data = buf;
+                p.get().body.more = ! p.is_done();
+            }
+            else
+            {
+                p.get().body.data = nullptr;
+                p.get().body.size = 0;
+            }
+
+            // Write everything in the buffer (which might be empty)
+            write(output, sr, ec);
+
+            // This error is returned when buffer_body uses up the buffer
+            if(ec == error::need_buffer)
+                ec = {};
+            if(ec)
+                return;
+        }
+        while(! p.is_done() && ! sr.is_done());
+    }
+
+    void
+    doRelay()
+    {
+        request<string_body, fields> req;
+        req.version = 11;
+        req.method("POST");
+        req.target("/");
+        req.fields.insert("User-Agent", "test");
+        req.body = "Hello, world!";
+        prepare(req);
+
+        test::pipe downstream{ios_};
+        downstream.server.read_size(3);
+        test::pipe upstream{ios_};
+        upstream.client.write_size(3);
+
+        error_code ec;
+        write(downstream.client, req);
+        BEAST_EXPECTS(! ec, ec.message());
+        downstream.client.close();
+
+        flat_buffer buffer;
+        relay<true>(upstream.client, downstream.server, buffer, ec,
+            [&](header<true, fields>& h, error_code& ec)
+            {
+                h.fields.erase("Content-Length");
+                h.fields.replace("Transfer-Encoding", "chunked");
+            });
+        BEAST_EXPECTS(! ec, ec.message());
+        BEAST_EXPECT(equal_body<true>(
+            upstream.server.str(), req.body));
     }
 
     //--------------------------------------------------------------------------
@@ -137,354 +528,10 @@ public:
         message_parser<true, string_body, fields> parser2(
             std::move(parser));
 
-        while(! parser2.is_complete())
+        while(! parser2.is_done())
         {
             bytes_used = read_some(p.server, buffer, parser2);
             buffer.consume(bytes_used);
-        }
-    }
-
-    //--------------------------------------------------------------------------
-    //
-    // Write using caller provided buffers
-    //
-    //--------------------------------------------------------------------------
-
-    void
-    doBufferBody()
-    {
-        test::pipe p{ios_};
-        message<true, buffer_body<false,
-            boost::asio::const_buffers_1>, fields> m;
-        std::string s = "Hello, world!";
-        m.version = 11;
-        m.method("POST");
-        m.target("/");
-        m.fields.insert("User-Agent", "test");
-        m.fields.insert("Content-Length", s.size());
-        auto sr = make_serializer(m);
-        error_code ec;
-        for(;;)
-        {
-            m.body.first.emplace(s.data(),
-                std::min<std::size_t>(3, s.size()));
-            m.body.second = s.size() > 3;
-            for(;;)
-            {
-                write_some(p.client, sr, ec);
-                if(ec == error::need_more)
-                {
-                    ec = {};
-                    break;
-                }
-                if(! BEAST_EXPECTS(! ec, ec.message()))
-                    return;
-                if(sr.is_done())
-                    break;
-            }
-            s.erase(s.begin(), s.begin() +
-                boost::asio::buffer_size(*m.body.first));
-            if(sr.is_done())
-                break;
-        }
-        BEAST_EXPECT(p.server.str() ==
-            "POST / HTTP/1.1\r\n"
-            "User-Agent: test\r\n"
-            "Content-Length: 13\r\n"
-            "\r\n"
-            "Hello, world!");
-    }
-
-    //--------------------------------------------------------------------------
-    /*
-        Read a message with a direct Reader Body.
-    */
-    struct direct_body
-    {
-        using value_type = std::string;
-
-        class writer
-        {
-            value_type& body_;
-            std::size_t len_ = 0;
-
-        public:
-            static bool constexpr is_direct = true;
-
-            using mutable_buffers_type =
-                boost::asio::mutable_buffers_1;
-
-            template<bool isRequest, class Fields>
-            explicit
-            writer(message<isRequest, direct_body, Fields>& m)
-                : body_(m.body)
-            {
-            }
-
-            void
-            init()
-            {
-            }
-
-            void
-            init(std::uint64_t content_length)
-            {
-                if(content_length >
-                        (std::numeric_limits<std::size_t>::max)())
-                    throw std::length_error(
-                        "Content-Length max exceeded");
-                body_.reserve(static_cast<
-                    std::size_t>(content_length));
-            }
-
-            mutable_buffers_type
-            prepare(std::size_t n)
-            {
-                body_.resize(len_ + n);
-                return {&body_[len_], n};
-            }
-
-            void
-            commit(std::size_t n)
-            {
-                if(body_.size() > len_ + n)
-                    body_.resize(len_ + n);
-                len_ = body_.size();
-            }
-
-            void
-            finish()
-            {
-                body_.resize(len_);
-            }
-        };
-    };
-
-    void
-    testDirectBody()
-    {
-        // Content-Length
-        {
-            test::string_istream is{ios_,
-                "GET / HTTP/1.1\r\n"
-                "Content-Length: 1\r\n"
-                "\r\n"
-                "*"
-            };
-            message<true, direct_body, fields> m;
-            flat_buffer b{1024};
-            read(is, b, m);
-            BEAST_EXPECT(m.body == "*");
-        }
-
-        // end of file
-        {
-            test::string_istream is{ios_,
-                "HTTP/1.1 200 OK\r\n"
-                "\r\n" // 19 byte header
-                "*"
-            };
-            message<false, direct_body, fields> m;
-            flat_buffer b{20};
-            read(is, b, m);
-            BEAST_EXPECT(m.body == "*");
-        }
-
-        // chunked
-        {
-            test::string_istream is{ios_,
-                "GET / HTTP/1.1\r\n"
-                "Transfer-Encoding: chunked\r\n"
-                "\r\n"
-                "1\r\n"
-                "*\r\n"
-                "0\r\n\r\n"
-            };
-            message<true, direct_body, fields> m;
-            flat_buffer b{100};
-            read(is, b, m);
-            BEAST_EXPECT(m.body == "*");
-        }
-    }
-
-    //--------------------------------------------------------------------------
-    /*
-        Read a message with an indirect Reader Body.
-    */
-    struct indirect_body
-    {
-        using value_type = std::string;
-
-        class writer
-        {
-            value_type& body_;
-
-        public:
-            static bool constexpr is_direct = false;
-
-            using mutable_buffers_type =
-                boost::asio::null_buffers;
-
-            template<bool isRequest, class Fields>
-            explicit
-            writer(message<isRequest, indirect_body, Fields>& m)
-                : body_(m.body)
-            {
-            }
-
-            void
-            init(error_code& ec)
-            {
-            }
-            
-            void
-            init(std::uint64_t content_length,
-                error_code& ec)
-            {
-            }
-            
-            void
-            write(string_view const& s,
-                error_code& ec)
-            {
-                body_.append(s.data(), s.size());
-            }
-
-            void
-            finish(error_code& ec)
-            {
-            }
-        };
-    };
-
-    void
-    testIndirectBody()
-    {
-        // Content-Length
-        {
-            test::string_istream is{ios_,
-                "GET / HTTP/1.1\r\n"
-                "Content-Length: 1\r\n"
-                "\r\n"
-                "*"
-            };
-            message<true, indirect_body, fields> m;
-            flat_buffer b{1024};
-            read(is, b, m);
-            BEAST_EXPECT(m.body == "*");
-        }
-
-        // end of file
-        {
-            test::string_istream is{ios_,
-                "HTTP/1.1 200 OK\r\n"
-                "\r\n" // 19 byte header
-                "*"
-            };
-            message<false, indirect_body, fields> m;
-            flat_buffer b{20};
-            read(is, b, m);
-            BEAST_EXPECT(m.body == "*");
-        }
-
-
-        // chunked
-        {
-            test::string_istream is{ios_,
-                "GET / HTTP/1.1\r\n"
-                "Transfer-Encoding: chunked\r\n"
-                "\r\n"
-                "1\r\n"
-                "*\r\n"
-                "0\r\n\r\n"
-            };
-            message<true, indirect_body, fields> m;
-            flat_buffer b{1024};
-            read(is, b, m);
-            BEAST_EXPECT(m.body == "*");
-        }
-    }
-
-    //--------------------------------------------------------------------------
-    /*
-        Read a message header and manually read the body.
-    */
-    void
-    testManualBody()
-    {
-        // Content-Length
-        {
-            test::string_istream is{ios_,
-                "GET / HTTP/1.1\r\n"
-                "Content-Length: 5\r\n"
-                "\r\n" // 37 byte header
-                "*****"
-            };
-            header_parser<true, fields> p;
-            flat_buffer b{38};
-            auto const bytes_used =
-                read_some(is, b, p);
-            b.consume(bytes_used);
-            BEAST_EXPECT(p.size() == 5);
-            BEAST_EXPECT(b.size() < 5);
-            b.commit(boost::asio::read(
-                is, b.prepare(5 - b.size())));
-            BEAST_EXPECT(b.size() == 5);
-        }
-
-        // end of file
-        {
-            test::string_istream is{ios_,
-                "HTTP/1.1 200 OK\r\n"
-                "\r\n" // 19 byte header
-                "*****"
-            };
-            header_parser<false, fields> p;
-            flat_buffer b{20};
-            auto const bytes_used =
-                read_some(is, b, p);
-            b.consume(bytes_used);
-            BEAST_EXPECT(p.state() ==
-                parse_state::body_to_eof);
-            BEAST_EXPECT(b.size() < 5);
-            b.commit(boost::asio::read(
-                is, b.prepare(5 - b.size())));
-            BEAST_EXPECT(b.size() == 5);
-        }
-    }
-
-    //--------------------------------------------------------------------------
-    /*
-        Read a header, check for Expect: 100-continue,
-        then conditionally read the body.
-    */
-    void
-    testExpect100Continue()
-    {
-        {
-            test::string_istream is{ios_,
-                "GET / HTTP/1.1\r\n"
-                "Expect: 100-continue\r\n"
-                "Content-Length: 5\r\n"
-                "\r\n"
-                "*****"
-            };
-
-            header_parser<true, fields> p;
-            flat_buffer b{128};
-            auto const bytes_used =
-                read_some(is, b, p);
-            b.consume(bytes_used);
-            BEAST_EXPECT(p.got_header());
-            BEAST_EXPECT(
-                p.get().fields["Expect"] ==
-                    "100-continue");
-            message_parser<
-                true, string_body, fields> p1{
-                    std::move(p)};
-            read(is, b, p1);
-            BEAST_EXPECT(
-                p1.get().body == "*****");
         }
     }
 
@@ -521,7 +568,7 @@ public:
             {
             case parse_state::header:
             {
-                BEAST_EXPECT(parser.got_header());
+                BEAST_EXPECT(parser.is_header_done());
                 for(;;)
                 {
                     ws.write_some(out, ec);
@@ -539,7 +586,7 @@ public:
             case parse_state::chunk_header:
             {
                 // inspect parser.chunk_extension() here
-                if(parser.is_complete())
+                if(parser.is_done())
                     boost::asio::write(out,
                         chunk_encode_final());
                 break;
@@ -549,7 +596,7 @@ public:
             case parse_state::body_to_eof:
             case parse_state::chunk_body:
             {
-                if(! parser.is_complete())
+                if(! parser.is_done())
                 {
                     auto const body = parser.body();
                     boost::asio::write(out, chunk_encode(
@@ -564,7 +611,7 @@ public:
             }
             buffer.consume(bytes_used);
         }
-        while(! parser.is_complete());
+        while(! parser.is_done());
     }
 
     void
@@ -615,104 +662,16 @@ public:
         }
     }
 #endif
-
-    //--------------------------------------------------------------------------
-    /*
-        Read the request header, then read the request body content using
-        a fixed-size buffer, i.e. read the body in chunks of 4k for instance.
-        The end of the body should be indicated somehow and chunk-encoding
-        should be decoded by beast.
-    */
-    template<bool isRequest,
-        class SyncReadStream, class BodyCallback>
-    void
-    doFixedRead(SyncReadStream& stream, BodyCallback const& cb)
-    {
-        flat_buffer buffer{4096}; // 4K limit
-        header_parser<isRequest, fields> parser;
-        std::size_t bytes_used;
-        bytes_used = read_some(stream, buffer, parser);
-        BEAST_EXPECT(parser.got_header());
-        buffer.consume(bytes_used);
-        do
-        {
-            bytes_used =
-                read_some(stream, buffer, parser);
-            if(! parser.body().empty())
-                cb(parser.body());
-            buffer.consume(bytes_used);
-        }
-        while(! parser.is_complete());
-    }
     
-    struct bodyHandler
-    {
-        void
-        operator()(string_view const& body) const
-        {
-            // called for each piece of the body,
-        }
-    };
-
-    void
-    testFixedRead()
-    {
-        using boost::asio::buffer;
-        using boost::asio::buffer_cast;
-        using boost::asio::buffer_size;
-
-        // Content-Length
-        {
-            test::string_istream is{ios_,
-                "GET / HTTP/1.1\r\n"
-                "Content-Length: 1\r\n"
-                "\r\n"
-                "*"
-            };
-            doFixedRead<true>(is, bodyHandler{});
-        }
-
-        // end of file
-        {
-            test::string_istream is{ios_,
-                "HTTP/1.1 200 OK\r\n"
-                "\r\n" // 19 byte header
-                "*****"
-            };
-            doFixedRead<false>(is, bodyHandler{});
-        }
-
-        // chunked
-        {
-            test::string_istream is{ios_,
-                "GET / HTTP/1.1\r\n"
-                "Transfer-Encoding: chunked\r\n"
-                "\r\n"
-                "5;x;y=1;z=\"-\"\r\n*****\r\n"
-                "3\r\n---\r\n"
-                "1\r\n+\r\n"
-                "0\r\n\r\n",
-                2 // max_read
-            };
-            doFixedRead<true>(is, bodyHandler{});
-        }
-    }
-
     //--------------------------------------------------------------------------
 
     void
     run()
     {
         doExpect100Continue();
+        doCgiResponse();
+        doRelay();
         doDeferredBody();
-        doBufferBody();
-
-        testDirectBody();
-        testIndirectBody();
-        testManualBody();
-        testExpect100Continue();
-        //testRelay(); // VFALCO Broken with serializer changes
-        testFixedRead();
     }
 };
 

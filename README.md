@@ -188,6 +188,7 @@ int main()
 
 Example HTTP program:
 ```C++
+#include <beast/core.hpp>
 #include <beast/http.hpp>
 #include <boost/asio.hpp>
 #include <boost/lexical_cast.hpp>
@@ -197,7 +198,7 @@ Example HTTP program:
 int main()
 {
     // Normal boost::asio setup
-    std::string const host = "boost.org";
+    std::string const host = "www.example.com";
     boost::asio::io_service ios;
     boost::asio::ip::tcp::resolver r{ios};
     boost::asio::ip::tcp::socket sock{ios};
@@ -206,7 +207,7 @@ int main()
 
     // Send HTTP request using beast
     beast::http::request<beast::http::string_body> req;
-    req.method("GET");
+    req.method(beast::http::verb::get);
     req.target("/");
     req.version = 11;
     req.fields.replace("Host", host + ":" +
@@ -216,10 +217,10 @@ int main()
     beast::http::write(sock, req);
 
     // Receive and print HTTP response using beast
-    beast::streambuf sb;
-    beast::http::response<beast::http::dynamic_body> resp;
-    beast::http::read(sock, sb, resp);
-    std::cout << resp;
+    beast::flat_buffer b;
+    beast::http::response<beast::http::dynamic_body> res;
+    beast::http::read(sock, b, res);
+    std::cout << res << std::endl;
 }
 ```
 

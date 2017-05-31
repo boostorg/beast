@@ -10,11 +10,14 @@
 
 #include "test_parser.hpp"
 
+#include <beast/core/ostream.hpp>
+#include <beast/core/static_buffer.hpp>
 #include <beast/http/fields.hpp>
 #include <beast/http/dynamic_body.hpp>
 #include <beast/http/header_parser.hpp>
 #include <beast/http/string_body.hpp>
 #include <beast/test/fail_stream.hpp>
+#include <beast/test/pipe_stream.hpp>
 #include <beast/test/string_istream.hpp>
 #include <beast/test/yield_to.hpp>
 #include <beast/unit_test/suite.hpp>
@@ -108,13 +111,59 @@ public:
         {
             multi_buffer b;
             test::string_istream ss(ios_, "GET / X");
-            message_parser<true, dynamic_body, fields> p;
+            request_parser<dynamic_body> p;
             read(ss, b, p);
             fail();
         }
         catch(std::exception const&)
         {
             pass();
+        }
+    }
+
+    void
+    testBufferOverflow()
+    {
+        {
+            test::pipe p{ios_};
+            ostream(p.server.buffer) <<
+                "GET / HTTP/1.1\r\n"
+                "Host: localhost\r\n"
+                "User-Agent: test\r\n"
+                "Transfer-Encoding: chunked\r\n"
+                "\r\n"
+                "10\r\n"
+                "****************\r\n"
+                "0\r\n\r\n";
+            static_buffer_n<1024> b;
+            request<string_body> req;
+            try
+            {
+                read(p.server, b, req);
+                pass();
+            }
+            catch(std::exception const& e)
+            {
+                fail(e.what(), __FILE__, __LINE__);
+            }
+        }
+        {
+            test::pipe p{ios_};
+            ostream(p.server.buffer) <<
+                "GET / HTTP/1.1\r\n"
+                "Host: localhost\r\n"
+                "User-Agent: test\r\n"
+                "Transfer-Encoding: chunked\r\n"
+                "\r\n"
+                "10\r\n"
+                "****************\r\n"
+                "0\r\n\r\n";
+            error_code ec;
+            static_buffer_n<10> b;
+            request<string_body> req;
+            read(p.server, b, req, ec);
+            BEAST_EXPECTS(ec == error::buffer_overflow,
+                ec.message());
         }
     }
 
@@ -318,6 +367,7 @@ public:
     run() override
     {
         testThrow();
+        testBufferOverflow();
 
         yield_to([&](yield_context yield){
             testFailures(yield); });

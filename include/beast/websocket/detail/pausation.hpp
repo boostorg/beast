@@ -20,7 +20,7 @@ namespace websocket {
 namespace detail {
 
 // A container that holds a suspended, asynchronous composed
-// operation. The contained object  may be invoked later to
+// operation. The contained object may be invoked later to
 // resume the operation, or the container may be destroyed.
 //
 class pausation

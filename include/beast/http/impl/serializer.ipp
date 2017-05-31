@@ -81,19 +81,7 @@ serializer(message<isRequest, Body, Fields> const& m,
     : m_(m)
     , d_(d)
     , b_(1024, alloc)
-    , chunked_(token_list{
-        m.fields["Transfer-Encoding"]}.exists("chunked"))
-    , close_(token_list{
-        m.fields["Connection"]}.exists("close") ||
-            (m.version < 11 && ! m.fields.exists(
-                "Content-Length")))
 {
-    s_ = chunked_ ? do_init_c : do_init;
-    // VFALCO Move this stuff to the switch?
-    auto os = ostream(b_);
-    detail::write_start_line(os, m_);
-    detail::write_fields(os, m_.fields);
-    os << "\r\n";
 }
 
 template<bool isRequest, class Body, class Fields,
@@ -107,6 +95,22 @@ get(error_code& ec, Visit&& visit)
     using boost::asio::buffer_size;
     switch(s_)
     {
+    case do_construct:
+    {
+        chunked_ = token_list{
+            m_.fields["Transfer-Encoding"]}.exists("chunked");
+        close_ = token_list{m_.fields["Connection"]}.exists("close") ||
+            (m_.version < 11 && ! m_.fields.exists("Content-Length"));
+        auto os = ostream(b_);
+        detail::write_start_line(os, m_);
+        detail::write_fields(os, m_.fields);
+        os << "\r\n";
+        if(chunked_)
+            goto go_init_c;
+        s_ = do_init;
+        // [[fallthrough]]
+    }
+
     case do_init:
     {
         if(split_)
@@ -171,6 +175,8 @@ get(error_code& ec, Visit&& visit)
 
     //----------------------------------------------------------------------
 
+         go_init_c:
+    s_ = do_init_c;
     case do_init_c:
     {
         if(split_)
@@ -320,7 +326,7 @@ consume(std::size_t n)
             break;
         // VFALCO delete b_?
         header_done_ = true;
-        if(! is_deferred::value)
+        if(! split_)
             goto go_complete;
         s_ = do_body;
         break;
@@ -364,7 +370,7 @@ consume(std::size_t n)
             break;
         // VFALCO delete b_?
         header_done_ = true;
-        if(! is_deferred::value)
+        if(! split_)
         {
             s_ = do_final_c;
             break;

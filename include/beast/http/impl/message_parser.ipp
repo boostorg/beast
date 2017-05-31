@@ -26,8 +26,7 @@ message_parser<isRequest, Body, Fields>::
 message_parser(header_parser<
     isRequest, Fields>&& parser, Args&&... args)
     : base_type(std::move(static_cast<basic_parser<
-        isRequest, false, header_parser<
-            isRequest, Fields>>&>(parser)))
+        isRequest, header_parser<isRequest, Fields>>&>(parser)))
     , m_(parser.release(), std::forward<Args>(args)...)
 {
 }

@@ -14,35 +14,63 @@
 namespace beast {
 namespace http {
 
-/// Error codes returned from HTTP parsing
+/// Error codes returned from HTTP algorithms and operations.
 enum class error
 {
     /** The end of the stream was reached.
 
-        This error is returned by @ref basic_parser::write_eof
-        when the end of stream is reached and there are no
-        unparsed bytes in the stream buffer.
+        This error is returned under the following conditions:
+
+        @li When attempting to read HTTP data from a stream and the stream
+        read returns the error `boost::asio::error::eof` before any new octets
+        have been received.
+
+        @li When sending a complete HTTP message at once and the semantics of
+        the message are that the connection should be closed to indicate the
+        end of the message.
     */
     end_of_stream = 1,
 
     /** The incoming message is incomplete.
 
-        This happens when the end of stream is reached
-        and some bytes have been received, but not the
+        This happens when the end of stream is reached during
+        parsing and some octets have been received, but not the
         entire message.
     */
     partial_message,
 
     /** Additional buffers are required.
 
-        This error is generated during serialization of HTTP
-        messages using the @ref buffer_body representation.
-        It indicates to the caller that an additional buffer
-        sequence should be placed into the body, or that the
-        caller should indicate that there are no more bytes
-        remaining in the body to serialize.
+        This error is returned during parsing when additional
+        octets are needed. The caller should append more data
+        to the existing buffer and retry the parse operaetion.
     */
     need_more,
+
+    /** The message container has no body.
+
+        This error is returned when attempting to parse body
+        octets into a message container which has the
+        @ref empty_body body type.
+
+        @see @ref empty_body
+    */
+    missing_body,
+
+    /** Additional buffers are required.
+
+        This error is returned under the following conditions:
+
+        @li During serialization when using @ref buffer_body.
+        The caller should update the body to point to a new
+        buffer or indicate that there are no more octets in
+        the body.
+
+        @li During parsing when using @ref buffer_body.
+        The caller should update the body to point to a new
+        storage area to receive additional body octets.
+    */
+    need_buffer,
 
     /** Buffer maximum exceeded.
 
@@ -51,6 +79,10 @@ enum class error
         exceed the maximum size of the buffer.
     */
     buffer_overflow,
+
+    //
+    // (parser errors)
+    //
 
     /// The line ending was malformed
     bad_line_ending,

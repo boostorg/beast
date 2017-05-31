@@ -18,6 +18,7 @@
 #include <boost/asio/handler_alloc_hook.hpp>
 #include <boost/asio/handler_continuation_hook.hpp>
 #include <boost/asio/handler_invoke_hook.hpp>
+#include <boost/asio/write.hpp>
 #include <boost/optional.hpp>
 #include <boost/throw_exception.hpp>
 #include <ostream>
@@ -27,12 +28,14 @@ namespace beast {
 namespace http {
 namespace detail {
 
-template<
-    class Stream, class Serializer, class Handler>
+template<class Stream, bool isRequest, class Body,
+    class Fields, class Decorator, class Allocator,
+        class Handler>
 class write_some_op
 {
     Stream& s_;
-    Serializer& sr_;
+    serializer<isRequest, Body, Fields,
+        Decorator, Allocator>& sr_;
     Handler h_;
 
     class lambda
@@ -40,7 +43,7 @@ class write_some_op
         write_some_op& op_;
 
     public:
-        bool empty = true;
+        bool invoked = false;
 
         explicit
         lambda(write_some_op& op)
@@ -53,7 +56,7 @@ class write_some_op
         operator()(error_code& ec,
             ConstBufferSequence const& buffer)
         {
-            empty = false;
+            invoked = true;
             return op_.s_.async_write_some(
                 buffer, std::move(op_));
         }
@@ -65,7 +68,8 @@ public:
 
     template<class DeducedHandler>
     write_some_op(DeducedHandler&& h,
-            Stream& s, Serializer& sr)
+        Stream& s, serializer<isRequest, Body,
+            Fields, Decorator, Allocator>& sr)
         : s_(s)
         , sr_(sr)
         , h_(std::forward<DeducedHandler>(h))
@@ -114,25 +118,40 @@ public:
     }
 };
 
-template<
-    class Stream, class Serializer, class Handler>
+template<class Stream, bool isRequest, class Body,
+    class Fields, class Decorator, class Allocator,
+        class Handler>
 void
-write_some_op<Stream, Serializer, Handler>::
+write_some_op<Stream, isRequest, Body,
+    Fields, Decorator, Allocator, Handler>::
 operator()()
 {
-    lambda f{*this};
     error_code ec;
+    if(sr_.is_done())
+        return s_.get_io_service().post(
+            bind_handler(std::move(*this), ec, 0));
+    lambda f{*this};
     sr_.get(ec, f);
-    if(! ec && ! f.empty)
+    if(ec)
+    {
+        BOOST_ASSERT(! f.invoked);
+        return s_.get_io_service().post(
+            bind_handler(std::move(*this), ec, 0));
+    }
+    if(f.invoked)
+        // *this has been moved from,
+        // cannot access members here.
         return;
     return s_.get_io_service().post(
         bind_handler(std::move(*this), ec, 0));
 }
 
-template<
-    class Stream, class Serializer, class Handler>
+template<class Stream, bool isRequest, class Body,
+    class Fields, class Decorator, class Allocator,
+        class Handler>
 void
-write_some_op<Stream, Serializer, Handler>::
+write_some_op<Stream, isRequest, Body,
+    Fields, Decorator, Allocator, Handler>::
 operator()(error_code ec, std::size_t bytes_transferred)
 {
     if(! ec)
@@ -142,13 +161,199 @@ operator()(error_code ec, std::size_t bytes_transferred)
 
 //------------------------------------------------------------------------------
 
+struct serializer_is_header_done
+{
+    template<bool isRequest, class Body, class Fields,
+        class Decorator, class Allocator>
+    bool
+    operator()(serializer<isRequest, Body, Fields,
+        Decorator, Allocator> const& sr) const
+    {
+        return sr.is_header_done();
+    }
+};
+
+struct serializer_is_done
+{
+    template<bool isRequest, class Body, class Fields,
+        class Decorator, class Allocator>
+    bool
+    operator()(serializer<isRequest, Body, Fields,
+        Decorator, Allocator> const& sr) const
+    {
+        return sr.is_done();
+    }
+};
+
+template<class Stream, bool isRequest, class Body,
+    class Fields, class Decorator, class Allocator,
+        class Predicate, class Handler>
+class write_op
+{
+    int state_ = 0;
+    Stream& s_;
+    serializer<isRequest, Body, Fields,
+        Decorator, Allocator>& sr_;
+    Handler h_;
+
+    class lambda
+    {
+        write_op& op_;
+
+    public:
+        bool invoked = false;
+
+        explicit
+        lambda(write_op& op)
+            : op_(op)
+        {
+        }
+
+        template<class ConstBufferSequence>
+        void
+        operator()(error_code& ec,
+            ConstBufferSequence const& buffer)
+        {
+            invoked = true;
+            return op_.s_.async_write_some(
+                buffer, std::move(op_));
+        }
+    };
+
+public:
+    write_op(write_op&&) = default;
+    write_op(write_op const&) = default;
+
+    template<class DeducedHandler>
+    write_op(DeducedHandler&& h, Stream& s,
+        serializer<isRequest, Body, Fields,
+            Decorator, Allocator>& sr)
+        : s_(s)
+        , sr_(sr)
+        , h_(std::forward<DeducedHandler>(h))
+    {
+    }
+
+    void
+    operator()(error_code ec,
+        std::size_t bytes_transferred);
+
+    friend
+    void* asio_handler_allocate(
+        std::size_t size, write_op* op)
+    {
+        using boost::asio::asio_handler_allocate;
+        return asio_handler_allocate(
+            size, std::addressof(op->h_));
+    }
+
+    friend
+    void asio_handler_deallocate(
+        void* p, std::size_t size, write_op* op)
+    {
+        using boost::asio::asio_handler_deallocate;
+        asio_handler_deallocate(
+            p, size, std::addressof(op->h_));
+    }
+
+    friend
+    bool asio_handler_is_continuation(write_op* op)
+    {
+        using boost::asio::asio_handler_is_continuation;
+        return op->state_ >= 3 ||
+            asio_handler_is_continuation(
+                std::addressof(op->h_));
+    }
+
+    template<class Function>
+    friend
+    void asio_handler_invoke(Function&& f, write_op* op)
+    {
+        using boost::asio::asio_handler_invoke;
+        asio_handler_invoke(
+            f, std::addressof(op->h_));
+    }
+};
+
+template<class Stream, bool isRequest, class Body,
+    class Fields, class Decorator, class Allocator,
+        class Predicate, class Handler>
+void
+write_op<Stream, isRequest, Body, Fields,
+    Decorator, Allocator, Predicate, Handler>::
+operator()(error_code ec,
+    std::size_t bytes_transferred)
+{
+    if(ec)
+        goto upcall;
+    switch(state_)
+    {
+    case 0:
+    {
+        if(Predicate{}(sr_))
+        {
+            state_ = 1;
+            return s_.get_io_service().post(
+                bind_handler(std::move(*this), ec, 0));
+        }
+        lambda f{*this};
+        state_ = 2;
+        sr_.get(ec, f);
+        if(ec)
+        {
+            BOOST_ASSERT(! f.invoked);
+            return s_.get_io_service().post(
+                bind_handler(std::move(*this), ec, 0));
+        }
+        if(f.invoked)
+            // *this has been moved from,
+            // cannot access members here.
+            return;
+        BOOST_ASSERT(Predicate{}(sr_));
+        state_ = 1;
+        return s_.get_io_service().post(
+            bind_handler(std::move(*this), ec, 0));
+    }
+
+    case 1:
+        goto upcall;
+
+    case 2:
+        state_ = 3;
+        // [[fallthrough]]
+
+    case 3:
+    {
+        sr_.consume(bytes_transferred);
+        if(Predicate{}(sr_))
+            goto upcall;
+        lambda f{*this};
+        sr_.get(ec, f);
+        if(ec)
+        {
+            BOOST_ASSERT(! f.invoked);
+            goto upcall;
+        }
+        if(f.invoked)
+            // *this has been moved from,
+            // cannot access members here.
+            return;
+        BOOST_ASSERT(Predicate{}(sr_));
+        goto upcall;
+    }
+    }
+upcall:
+    h_(ec);
+}
+
+//------------------------------------------------------------------------------
+
 template<class Stream, class Handler,
     bool isRequest, class Body, class Fields>
-class write_op
+class write_msg_op
 {
     struct data
     {
-        int state = 0;
         Stream& s;
         serializer<isRequest, Body, Fields,
             empty_decorator, handler_alloc<char, Handler>> sr;
@@ -165,22 +370,25 @@ class write_op
     handler_ptr<data, Handler> d_;
 
 public:
-    write_op(write_op&&) = default;
-    write_op(write_op const&) = default;
+    write_msg_op(write_msg_op&&) = default;
+    write_msg_op(write_msg_op const&) = default;
 
     template<class DeducedHandler, class... Args>
-    write_op(DeducedHandler&& h, Stream& s, Args&&... args)
+    write_msg_op(DeducedHandler&& h, Stream& s, Args&&... args)
         : d_(std::forward<DeducedHandler>(h),
             s, std::forward<Args>(args)...)
     {
     }
 
     void
+    operator()();
+
+    void
     operator()(error_code ec);
 
     friend
     void* asio_handler_allocate(
-        std::size_t size, write_op* op)
+        std::size_t size, write_msg_op* op)
     {
         using boost::asio::asio_handler_allocate;
         return asio_handler_allocate(
@@ -189,7 +397,7 @@ public:
 
     friend
     void asio_handler_deallocate(
-        void* p, std::size_t size, write_op* op)
+        void* p, std::size_t size, write_msg_op* op)
     {
         using boost::asio::asio_handler_deallocate;
         asio_handler_deallocate(
@@ -197,17 +405,16 @@ public:
     }
 
     friend
-    bool asio_handler_is_continuation(write_op* op)
+    bool asio_handler_is_continuation(write_msg_op* op)
     {
         using boost::asio::asio_handler_is_continuation;
-        return op->d_->state == 2 ||
-            asio_handler_is_continuation(
-                std::addressof(op->d_.handler()));
+        return asio_handler_is_continuation(
+            std::addressof(op->d_.handler()));
     }
 
     template<class Function>
     friend
-    void asio_handler_invoke(Function&& f, write_op* op)
+    void asio_handler_invoke(Function&& f, write_msg_op* op)
     {
         using boost::asio::asio_handler_invoke;
         asio_handler_invoke(
@@ -218,35 +425,23 @@ public:
 template<class Stream, class Handler,
     bool isRequest, class Body, class Fields>
 void
-write_op<Stream, Handler, isRequest, Body, Fields>::
+write_msg_op<Stream, Handler, isRequest, Body, Fields>::
+operator()()
+{
+    auto& d = *d_;
+    return async_write(d.s, d.sr, std::move(*this));
+}
+
+template<class Stream, class Handler,
+    bool isRequest, class Body, class Fields>
+void
+write_msg_op<Stream, Handler, isRequest, Body, Fields>::
 operator()(error_code ec)
 {
     auto& d = *d_;
-    if(ec)
-        goto upcall;    
-    switch(d.state)
-    {
-    case 0:
-        d.state = 1;
-        write_some_op<Stream, decltype(d.sr),
-            write_op>{std::move(*this), d.s, d.sr}();
-        return;
-    case 1:
-        d.state = 2;
-        // [[fallthrough]]
-    case 2:
-        if(d.sr.is_done())
-        {
-            if(d.sr.needs_close())
-                // VFALCO Choose an error code
-                ec = boost::asio::error::eof;
-            break;
-        }
-        write_some_op<Stream, decltype(d.sr),
-            write_op>{std::move(*this), d.s, d.sr}();
-        return;
-    }
-upcall:
+    if(! ec)
+        if(d.sr.need_close())
+            ec = error::end_of_stream;
     d_.invoke(ec);
 }
 
@@ -258,7 +453,8 @@ class write_some_lambda
     Stream& stream_;
 
 public:
-    boost::optional<std::size_t> bytes_transferred;
+    bool invoked = false;
+    std::size_t bytes_transferred = 0;
 
     explicit
     write_some_lambda(Stream& stream)
@@ -271,8 +467,35 @@ public:
     operator()(error_code& ec,
         ConstBufferSequence const& buffer)
     {
+        invoked = true;
         bytes_transferred =
             stream_.write_some(buffer, ec);
+    }
+};
+
+template<class Stream>
+class write_lambda
+{
+    Stream& stream_;
+
+public:
+    bool invoked = false;
+    std::size_t bytes_transferred = 0;
+
+    explicit
+    write_lambda(Stream& stream)
+        : stream_(stream)
+    {
+    }
+
+    template<class ConstBufferSequence>
+    void
+    operator()(error_code& ec,
+        ConstBufferSequence const& buffer)
+    {
+        invoked = true;
+        bytes_transferred = boost::asio::write(
+            stream_, buffer, ec);
     }
 };
 
@@ -280,16 +503,19 @@ public:
 
 //------------------------------------------------------------------------------
 
-template<
-    class SyncWriteStream,
-    bool isRequest, class Body, class Fields,
-        class Decorator, class Allocator>
+template<class SyncWriteStream, bool isRequest,
+    class Body, class Fields, class Decorator,
+        class Allocator>
 void
 write_some(SyncWriteStream& stream, serializer<
     isRequest, Body, Fields, Decorator, Allocator>& sr)
 {
     static_assert(is_sync_write_stream<SyncWriteStream>::value,
         "SyncWriteStream requirements not met");
+    static_assert(is_body<Body>::value,
+        "Body requirements not met");
+    static_assert(is_body_reader<Body>::value,
+        "BodyReader requirements not met");
     error_code ec;
     write_some(stream, sr, ec);
     if(ec)
@@ -307,15 +533,18 @@ write_some(SyncWriteStream& stream, serializer<
 {
     static_assert(is_sync_write_stream<SyncWriteStream>::value,
         "SyncWriteStream requirements not met");
+    static_assert(is_body<Body>::value,
+        "Body requirements not met");
+    static_assert(is_body_reader<Body>::value,
+        "BodyReader requirements not met");
     detail::write_some_lambda<SyncWriteStream> f{stream};
-    sr.get(ec, f);
-    if(! ec)
+    if(! sr.is_done())
     {
-        if(f.bytes_transferred)
-            sr.consume(*f.bytes_transferred);
-        if(sr.is_done() && sr.needs_close())
-            // VFALCO decide on an error code
-            ec = boost::asio::error::eof;
+        sr.get(ec, f);
+        if(ec)
+            return;
+        if(f.invoked)
+            sr.consume(f.bytes_transferred);
     }
 }
 
@@ -336,11 +565,158 @@ async_write_some(AsyncWriteStream& stream, serializer<
         "BodyReader requirements not met");
     async_completion<WriteHandler,
         void(error_code)> init{handler};
-    detail::write_some_op<AsyncWriteStream, decltype(sr),
-        handler_type<WriteHandler, void(error_code)>>{
+    detail::write_some_op<AsyncWriteStream, isRequest,
+        Body, Fields, Decorator, Allocator, handler_type<
+            WriteHandler, void(error_code)>>{
                 init.completion_handler, stream, sr}();
     return init.result.get();
 }
+
+//------------------------------------------------------------------------------
+
+template<
+    class SyncWriteStream,
+    bool isRequest, class Body, class Fields,
+        class Decorator, class Allocator>
+void
+write_header(SyncWriteStream& stream, serializer<
+    isRequest, Body, Fields, Decorator, Allocator>& sr)
+{
+    static_assert(is_sync_write_stream<SyncWriteStream>::value,
+        "SyncWriteStream requirements not met");
+    static_assert(is_body<Body>::value,
+        "Body requirements not met");
+    static_assert(is_body_reader<Body>::value,
+        "BodyReader requirements not met");
+    error_code ec;
+    write_header(stream, sr, ec);
+    if(ec)
+        BOOST_THROW_EXCEPTION(system_error{ec});
+}
+
+template<
+    class SyncWriteStream,
+    bool isRequest, class Body, class Fields,
+        class Decorator, class Allocator>
+void
+write_header(SyncWriteStream& stream, serializer<
+    isRequest, Body, Fields, Decorator, Allocator>& sr,
+        error_code& ec)
+{
+    static_assert(is_sync_write_stream<SyncWriteStream>::value,
+        "SyncWriteStream requirements not met");
+    static_assert(is_body<Body>::value,
+        "Body requirements not met");
+    static_assert(is_body_reader<Body>::value,
+        "BodyReader requirements not met");
+    sr.split(true);
+    detail::write_lambda<SyncWriteStream> f{stream};
+    while(! sr.is_header_done())
+    {
+        sr.get(ec, f);
+        if(ec)
+            return;
+        BOOST_ASSERT(f.invoked);
+        sr.consume(f.bytes_transferred);
+    }
+}
+
+template<class AsyncWriteStream,
+    bool isRequest, class Body, class Fields,
+        class Decorator, class Allocator, class WriteHandler>
+async_return_type<WriteHandler, void(error_code)>
+async_write_header(AsyncWriteStream& stream, serializer<
+    isRequest, Body, Fields, Decorator, Allocator>& sr,
+        WriteHandler&& handler)
+{
+    static_assert(is_async_write_stream<
+            AsyncWriteStream>::value,
+        "AsyncWriteStream requirements not met");
+    static_assert(is_body<Body>::value,
+        "Body requirements not met");
+    static_assert(is_body_reader<Body>::value,
+        "BodyReader requirements not met");
+    sr.split(true);
+    async_completion<WriteHandler,
+        void(error_code)> init{handler};
+    detail::write_op<AsyncWriteStream, isRequest, Body, Fields,
+        Decorator, Allocator, detail::serializer_is_header_done,
+            handler_type<WriteHandler, void(error_code)>>{
+                init.completion_handler, stream, sr}(
+                    error_code{}, 0);
+    return init.result.get();
+}
+
+//------------------------------------------------------------------------------
+
+template<
+    class SyncWriteStream,
+    bool isRequest, class Body, class Fields,
+        class Decorator, class Allocator>
+void
+write(SyncWriteStream& stream, serializer<
+    isRequest, Body, Fields, Decorator, Allocator>& sr)
+{
+    static_assert(is_sync_write_stream<SyncWriteStream>::value,
+        "SyncWriteStream requirements not met");
+    error_code ec;
+    write(stream, sr, ec);
+    if(ec)
+        BOOST_THROW_EXCEPTION(system_error{ec});
+}
+
+template<
+    class SyncWriteStream,
+    bool isRequest, class Body, class Fields,
+        class Decorator, class Allocator>
+void
+write(SyncWriteStream& stream, serializer<
+    isRequest, Body, Fields, Decorator, Allocator>& sr,
+        error_code& ec)
+{
+    static_assert(is_sync_write_stream<SyncWriteStream>::value,
+        "SyncWriteStream requirements not met");
+    sr.split(false);
+    detail::write_lambda<SyncWriteStream> f{stream};
+    while(! sr.is_done())
+    {
+        sr.get(ec, f);
+        if(ec)
+            return;
+        if(f.invoked)
+            sr.consume(f.bytes_transferred);
+    }
+    if(sr.need_close())
+        ec = error::end_of_stream;
+}
+
+template<class AsyncWriteStream,
+    bool isRequest, class Body, class Fields,
+        class Decorator, class Allocator, class WriteHandler>
+async_return_type<WriteHandler, void(error_code)>
+async_write(AsyncWriteStream& stream, serializer<
+    isRequest, Body, Fields, Decorator, Allocator>& sr,
+        WriteHandler&& handler)
+{
+    static_assert(is_async_write_stream<
+            AsyncWriteStream>::value,
+        "AsyncWriteStream requirements not met");
+    static_assert(is_body<Body>::value,
+        "Body requirements not met");
+    static_assert(is_body_reader<Body>::value,
+        "BodyReader requirements not met");
+    sr.split(false);
+    async_completion<WriteHandler,
+        void(error_code)> init{handler};
+    detail::write_op<AsyncWriteStream, isRequest, Body,
+        Fields, Decorator, Allocator, detail::serializer_is_done,
+            handler_type<WriteHandler, void(error_code)>>{
+                init.completion_handler, stream, sr}(
+                    error_code{}, 0);
+    return init.result.get();
+}
+
+//------------------------------------------------------------------------------
 
 template<class SyncWriteStream,
     bool isRequest, class Body, class Fields>
@@ -374,18 +750,10 @@ write(SyncWriteStream& stream,
     static_assert(is_body_reader<Body>::value,
         "BodyReader requirements not met");
     auto sr = make_serializer(msg);
-    for(;;)
-    {
-#if 0
-        sr.write_some(stream, ec);
-#else
-        write_some(stream, sr, ec);
-#endif
-        if(ec)
-            return;
-        if(sr.is_done())
-            break;
-    }
+    write(stream, sr, ec);
+    if(! ec)
+        if(sr.need_close())
+            ec = error::end_of_stream;
 }
 
 template<class AsyncWriteStream,
@@ -406,11 +774,10 @@ async_write(AsyncWriteStream& stream,
         "BodyReader requirements not met");
     async_completion<WriteHandler,
         void(error_code)> init{handler};
-    detail::write_op<AsyncWriteStream, handler_type<
+    detail::write_msg_op<AsyncWriteStream, handler_type<
         WriteHandler, void(error_code)>,
             isRequest, Body, Fields>{
-                init.completion_handler, stream, msg}(
-                    error_code{});
+                init.completion_handler, stream, msg}();
     return init.result.get();
 }
 
@@ -439,7 +806,7 @@ operator<<(std::ostream& os,
     beast::detail::sync_ostream oss{os};
     error_code ec;
     write(oss, msg, ec);
-    if(ec && ec != boost::asio::error::eof)
+    if(ec && ec != error::end_of_stream)
         BOOST_THROW_EXCEPTION(system_error{ec});
     return os;
 }
