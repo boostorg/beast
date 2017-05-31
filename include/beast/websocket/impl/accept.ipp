@@ -281,7 +281,7 @@ operator()(error_code ec,
 
     case 1:
     {
-        BOOST_ASSERT(d.p.got_header());
+        BOOST_ASSERT(d.p.is_header_done());
         d.ws.stream_.buffer().consume(bytes_used);
         // Arguments from our state must be
         // moved to the stack before releasing

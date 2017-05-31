@@ -9,6 +9,7 @@
 #define BEAST_HTTP_EMPTY_BODY_HPP
 
 #include <beast/config.hpp>
+#include <beast/http/error.hpp>
 #include <beast/http/message.hpp>
 #include <boost/optional.hpp>
 
@@ -26,6 +27,8 @@ struct empty_body
     /// The type of the body member when used in a message.
     struct value_type
     {
+        // VFALCO We could stash boost::optional<std::uint64_t>
+        //        for the content length here, set on init()
     };
 
 #if BEAST_DOXYGEN
@@ -61,6 +64,39 @@ struct empty_body
         get(error_code& ec)
         {
             return boost::none;
+        }
+    };
+#endif
+
+#if BEAST_DOXYGEN
+    /// The algorithm used store buffers in this body
+    using writer = implementation_defined;
+#else
+    struct writer
+    {
+        template<bool isRequest, class Fields>
+        explicit
+        writer(message<isRequest, empty_body, Fields>& msg)
+        {
+        }
+
+        void
+        init(boost::optional<std::uint64_t> const&,
+            error_code&)
+        {
+        }
+
+        template<class ConstBufferSequence>
+        void
+        put(ConstBufferSequence const&,
+            error_code& ec)
+        {
+            ec = error::missing_body;
+        }
+
+        void
+        finish(error_code&)
+        {
         }
     };
 #endif

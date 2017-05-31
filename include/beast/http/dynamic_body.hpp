@@ -9,8 +9,8 @@
 #define BEAST_HTTP_DYNAMIC_BODY_HPP
 
 #include <beast/config.hpp>
-#include <beast/core/error.hpp>
 #include <beast/core/multi_buffer.hpp>
+#include <beast/http/error.hpp>
 #include <beast/http/message.hpp>
 #include <boost/optional.hpp>
 #include <utility>
@@ -27,57 +27,6 @@ struct basic_dynamic_body
 {
     /// The type of the body member when used in a message.
     using value_type = DynamicBuffer;
-
-#if BEAST_DOXYGEN
-    /// The algorithm used store buffers in this body
-    using writer = implementation_defined;
-#else
-    class writer
-    {
-        value_type& body_;
-
-    public:
-        static bool constexpr is_direct = true;
-
-        using mutable_buffers_type =
-            typename DynamicBuffer::mutable_buffers_type;
-
-        template<bool isRequest, class Fields>
-        explicit
-        writer(message<isRequest,
-                basic_dynamic_body, Fields>& msg)
-            : body_(msg.body)
-        {
-        }
-
-        void
-        init()
-        {
-        }
-
-        void
-        init(std::uint64_t content_length)
-        {
-        }
-
-        mutable_buffers_type
-        prepare(std::size_t n)
-        {
-            return body_.prepare(n);
-        }
-
-        void
-        commit(std::size_t n)
-        {
-            body_.commit(n);
-        }
-
-        void
-        finish()
-        {
-        }
-    };
-#endif
 
 #if BEAST_DOXYGEN
     /// The algorithm to obtain buffers representing the body
@@ -116,6 +65,58 @@ struct basic_dynamic_body
         get(error_code& ec)
         {
             return {{body_.data(), false}};
+        }
+    };
+#endif
+
+#if BEAST_DOXYGEN
+    /// The algorithm used store buffers in this body
+    using writer = implementation_defined;
+#else
+    class writer
+    {
+        value_type& body_;
+
+    public:
+        template<bool isRequest, class Fields>
+        explicit
+        writer(message<isRequest,
+                basic_dynamic_body, Fields>& msg)
+            : body_(msg.body)
+        {
+        }
+
+        void
+        init(boost::optional<
+            std::uint64_t> const&, error_code&)
+        {
+        }
+
+        template<class ConstBufferSequence>
+        void
+        put(ConstBufferSequence const& buffers,
+            error_code& ec)
+        {
+            using boost::asio::buffer_copy;
+            using boost::asio::buffer_size;
+            boost::optional<typename
+                DynamicBuffer::mutable_buffers_type> b;
+            try
+            {
+                b.emplace(body_.prepare(
+                    buffer_size(buffers)));
+            }
+            catch(std::length_error const&)
+            {
+                ec = error::buffer_overflow;
+                return;
+            }
+            body_.commit(buffer_copy(*b, buffers));
+        }
+
+        void
+        finish(error_code&)
+        {
         }
     };
 #endif

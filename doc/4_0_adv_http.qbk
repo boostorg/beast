@@ -145,9 +145,19 @@ and which must remain valid until the operation is complete:
     Send __serializer__ buffer data to a __SyncWriteStream__.
 ]]
 [[
+    [link beast.ref.http__write_header.overload1 [*write_header]]
+][
+    Send an entire header from a __serializer__ to a __SyncWriteStream__.
+]]
+[[
     [link beast.ref.http__async_write_some [*async_write_some]]
 ][
     Send some __serializer__ buffer data to an __AsyncWriteStream__.
+]]
+[[
+    [link beast.ref.http__async_write_header [*async_write_header]]
+][
+    Send an entire header from a __serializer__ to a __AsyncWriteStream__.
 ]]
 ]
 

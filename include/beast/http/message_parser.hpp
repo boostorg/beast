@@ -34,13 +34,18 @@ namespace http {
 
     @note A new instance of the parser is required for each message.
 */
-template<bool isRequest, class Body, class Fields>
+template<bool isRequest, class Body, class Fields = fields>
 class message_parser
     : public basic_parser<isRequest,
-        Body::writer::is_direct,
-            message_parser<isRequest, Body, Fields>>
+        message_parser<isRequest, Body, Fields>>
 {
-    using base_type = basic_parser<isRequest, true,
+    static_assert(is_body<Body>::value,
+        "Body requirements not met");
+
+    static_assert(is_body_writer<Body>::value,
+        "BodyWriter requirements not met");
+
+    using base_type = basic_parser<isRequest,
         message_parser<isRequest, Body, Fields>>;
 
     using writer_type = typename Body::writer;
@@ -51,10 +56,6 @@ class message_parser
 public:
     /// The type of message returned by the parser
     using value_type = message<isRequest, Body, Fields>;
-
-    /// The type of buffer sequence representing the body
-    using mutable_buffers_type =
-        typename writer_type::mutable_buffers_type;
 
     /// Constructor (default)
     message_parser() = default;
@@ -99,9 +100,7 @@ public:
 #endif
 
     /** Construct a message parser from a @ref header_parser.
-
         @param parser The header parser to construct from.
-
         @param args Optional arguments forwarded to the message
         constructor.
     */
@@ -152,8 +151,7 @@ public:
 
 private:
     friend class basic_parser<
-        isRequest, Body::writer::is_direct,
-            message_parser>;
+        isRequest, message_parser>;
 
     void
     on_request(
@@ -190,61 +188,25 @@ private:
     }
 
     void
-    on_body()
-    {
-        wr_.emplace(m_);
-        wr_->init();
-    }
-
-    void
-    on_body(std::uint64_t content_length)
-    {
-        wr_.emplace(m_);
-        wr_->init(content_length);
-    }
-
-    void
-    on_body(error_code& ec)
-    {
-        wr_.emplace(m_);
-        wr_->init(ec);
-        if(ec)
-            return;
-    }
-
-    void
-    on_body(std::uint64_t content_length,
-        error_code& ec)
+    on_body(boost::optional<
+        std::uint64_t> const& content_length,
+            error_code& ec)
     {
         wr_.emplace(m_);
         wr_->init(content_length, ec);
-        if(ec)
-            return;
     }
 
     void
     on_data(string_view const& s,
         error_code& ec)
     {
-        BOOST_STATIC_ASSERT(! Body::writer::is_direct);
-        wr_->write(s, ec);
-    }
-
-    mutable_buffers_type
-    on_prepare(std::size_t n)
-    {
-        return wr_->prepare(n);
+        wr_->put(boost::asio::buffer(
+            s.data(), s.size()), ec);
     }
 
     void
-    on_commit(std::size_t n)
-    {
-        wr_->commit(n);
-    }
-
-    void
-    on_chunk(std::uint64_t,
-        string_view const&,
+    on_chunk(
+        std::uint64_t, string_view const&,
             error_code&)
     {
     }
@@ -253,27 +215,17 @@ private:
     on_complete(error_code& ec)
     {
         if(wr_)
-            do_on_complete(ec,
-                std::integral_constant<bool,
-                    Body::writer::is_direct>{});
-    }
-
-    void
-    do_on_complete(
-        error_code& ec, std::true_type)
-    {
-        wr_->finish();
-    }
-
-    void
-    do_on_complete(
-        error_code& ec, std::false_type)
-    {
-        wr_->finish(ec);
-        if(ec)
-            return;
+            wr_->finish(ec);
     }
 };
+
+/// A parser for producing HTTP/1 messages
+template<class Body, class Fields = fields>
+using request_parser = message_parser<true, Body, Fields>;
+
+/// A parser for producing HTTP/1 messages
+template<class Body, class Fields = fields>
+using response_parser = message_parser<false, Body, Fields>;
 
 } // http
 } // beast

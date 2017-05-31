@@ -9,6 +9,7 @@
 #include <beast/http/type_traits.hpp>
 
 #include <beast/http/empty_body.hpp>
+#include <string>
 
 namespace beast {
 namespace http {
@@ -16,6 +17,8 @@ namespace http {
 BOOST_STATIC_ASSERT(! is_body_reader<int>::value);
 
 BOOST_STATIC_ASSERT(is_body_reader<empty_body>::value);
+
+BOOST_STATIC_ASSERT(! is_body_writer<std::string>::value);
 
 } // http
 } // beast

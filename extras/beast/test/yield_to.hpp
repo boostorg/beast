@@ -15,6 +15,7 @@
 #include <functional>
 #include <mutex>
 #include <thread>
+#include <vector>
 
 namespace beast {
 namespace test {
@@ -32,7 +33,7 @@ protected:
 
 private:
     boost::optional<boost::asio::io_service::work> work_;
-    std::thread thread_;
+    std::vector<std::thread> threads_;
     std::mutex m_;
     std::condition_variable cv_;
     std::size_t running_ = 0;
@@ -42,20 +43,21 @@ public:
     using yield_context =
         boost::asio::yield_context;
 
-    enable_yield_to()
+    explicit
+    enable_yield_to(std::size_t concurrency = 1)
         : work_(ios_)
-        , thread_([&]
-            {
-                ios_.run();
-            }
-        )
     {
+        threads_.reserve(concurrency);
+        while(concurrency--)
+            threads_.emplace_back(
+                [&]{ ios_.run(); });
     }
 
     ~enable_yield_to()
     {
         work_ = boost::none;
-        thread_.join();
+        for(auto& t : threads_)
+            t.join();
     }
 
     /// Return the `io_service` associated with the object

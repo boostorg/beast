@@ -62,6 +62,20 @@ namespace detail {
 class basic_parser_base
 {
 protected:
+    enum class state
+    {
+        nothing_yet = 0,
+        header,
+        body0,
+        body,
+        body_to_eof0,
+        body_to_eof,
+        chunk_header0,
+        chunk_header,
+        chunk_body,
+        complete
+    };
+
     static
     bool
     is_pathchar(char c)
@@ -263,11 +277,9 @@ protected:
     bool
     parse_crlf(char const*& it)
     {
-        if(*it != '\r')
+        if( it[0] != '\r' && it[1] != '\n')
             return false;
-        if(*++it != '\n')
-            return false;
-        ++it;
+        it += 2;
         return true;
     }
 

@@ -10,6 +10,7 @@
 
 #include <beast/core/type_traits.hpp>
 #include <boost/assert.hpp>
+#include <boost/throw_exception.hpp>
 #include <algorithm>
 #include <cstddef>
 
@@ -24,9 +25,13 @@ read_size_helper(DynamicBuffer const& buffer, std::size_t max_size)
         "DynamicBuffer requirements not met");
     BOOST_ASSERT(max_size >= 1);
     auto const size = buffer.size();
-    return std::min<std::size_t>(
-        std::max<std::size_t>(512, buffer.capacity() - size),
-        std::min<std::size_t>(max_size, buffer.max_size() - size));
+    auto const limit = buffer.max_size() - size;
+    if(limit > 0)
+        return std::min<std::size_t>(
+            std::max<std::size_t>(512, buffer.capacity() - size),
+            std::min<std::size_t>(max_size, limit));
+    BOOST_THROW_EXCEPTION(std::length_error{
+        "dynamic buffer overflow"});
 }
 
 } // detail

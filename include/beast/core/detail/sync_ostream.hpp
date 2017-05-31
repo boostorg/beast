@@ -80,7 +80,7 @@ write_some(ConstBufferSequence const& buffers,
             buffer_size(buffer));
         if(os_.fail())
         {
-            ec = errc::make_error_code(
+            ec = make_error_code(
                 errc::no_stream_resources);
             break;
         }

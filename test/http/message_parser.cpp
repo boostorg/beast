@@ -14,10 +14,10 @@
 #include <beast/test/string_istream.hpp>
 #include <beast/test/string_ostream.hpp>
 #include <beast/test/yield_to.hpp>
+#include <beast/core/consuming_buffers.hpp>
 #include <beast/core/flat_buffer.hpp>
 #include <beast/core/multi_buffer.hpp>
-#include <beast/http/header_parser.hpp>
-#include <beast/http/read.hpp>
+#include <beast/core/ostream.hpp>
 #include <beast/http/read.hpp>
 #include <beast/http/string_body.hpp>
 #include <boost/system/system_error.hpp>
@@ -30,41 +30,117 @@ class message_parser_test
     , public beast::test::enable_yield_to
 {
 public:
-    template<bool isRequest, class Pred>
-    void
-    testMatrix(std::string const& s, Pred const& pred)
+    template<bool isRequest>
+    using parser_type =
+        message_parser<isRequest, string_body, fields>;
+
+    static
+    boost::asio::const_buffers_1
+    buf(string_view s)
     {
-        beast::test::string_istream ss{get_io_service(), s};
-        error_code ec;
-    #if 0
-        multi_buffer buffer;
-    #else
-        flat_buffer buffer{1024};
-    #endif
-        message<isRequest, string_body, fields> m;
-        read(ss, buffer, m, ec);
-        if(! BEAST_EXPECTS(! ec, ec.message()))
-            return;
-        pred(m);
+        return {s.data(), s.size()};
+    }
+
+    template<class ConstBufferSequence,
+        bool isRequest, class Derived>
+    static
+    void
+    put(ConstBufferSequence const& buffers,
+        basic_parser<isRequest, Derived>& p,
+            error_code& ec)
+    {
+        using boost::asio::buffer_size;
+        consuming_buffers<ConstBufferSequence> cb{buffers};
+        for(;;)
+        {
+            auto const used = p.put(cb, ec);
+            cb.consume(used);
+            if(ec)
+                return;
+            if(p.need_eof() &&
+                buffer_size(cb) == 0)
+            {
+                p.put_eof(ec);
+                if(ec)
+                    return;
+            }
+            if(p.is_done())
+                break;
+        }
+    }
+
+    template<bool isRequest, class F>
+    void
+    doMatrix(string_view s0, F const& f)
+    {
+        using boost::asio::buffer;
+        // parse a single buffer
+        {
+            auto s = s0;
+            error_code ec;
+            parser_type<isRequest> p;
+            put(buffer(s.data(), s.size()), p, ec);
+            if(! BEAST_EXPECTS(! ec, ec.message()))
+                return;
+            f(p);
+        }
+        // parse two buffers
+        for(auto n = s0.size() - 1; n >= 1; --n)
+        {
+            auto s = s0;
+            error_code ec;
+            parser_type<isRequest> p;
+            p.eager(true);
+            auto used =
+                p.put(buffer(s.data(), n), ec);
+            s.remove_prefix(used);
+            if(ec == error::need_more)
+                ec = {};
+            if(! BEAST_EXPECTS(! ec, ec.message()))
+                continue;
+            BEAST_EXPECT(! p.is_done());
+            used = p.put(
+                buffer(s.data(), s.size()), ec);
+            s.remove_prefix(used);
+            if(! BEAST_EXPECTS(! ec, ec.message()))
+                continue;
+            BEAST_EXPECT(s.empty());
+            if(p.need_eof())
+            {
+                p.put_eof(ec);
+                if(! BEAST_EXPECTS(! ec, ec.message()))
+                    continue;
+            }
+            if(BEAST_EXPECT(p.is_done()))
+                f(p);
+        }
     }
 
     void
-    testRead()
+    testParse()
     {
-        testMatrix<false>(
+        doMatrix<false>(
             "HTTP/1.0 200 OK\r\n"
             "Server: test\r\n"
             "\r\n"
-            "*******",
-            [&](message<false, string_body, fields> const& m)
+            "Hello, world!",
+            [&](parser_type<false> const& p)
             {
-                BEAST_EXPECTS(m.body == "*******",
-                    "body='" + m.body + "'");
+                auto const& m = p.get();
+                BEAST_EXPECT(! p.is_chunked());
+                BEAST_EXPECT(p.need_eof());
+                BEAST_EXPECT(p.content_length() == boost::none);
+                BEAST_EXPECT(m.version == 10);
+                BEAST_EXPECT(m.status == 200);
+                BEAST_EXPECT(m.reason() == "OK");
+                BEAST_EXPECT(m.fields["Server"] == "test");
+                BEAST_EXPECT(m.body == "Hello, world!");
             }
         );
-        testMatrix<false>(
-            "HTTP/1.0 200 OK\r\n"
+        doMatrix<false>(
+            "HTTP/1.1 200 OK\r\n"
             "Server: test\r\n"
+            "Expect: Expires, MD5-Fingerprint\r\n"
             "Transfer-Encoding: chunked\r\n"
             "\r\n"
             "5\r\n"
@@ -75,132 +151,137 @@ public:
             "Expires: never\r\n"
             "MD5-Fingerprint: -\r\n"
             "\r\n",
-            [&](message<false, string_body, fields> const& m)
+            [&](parser_type<false> const& p)
             {
+                auto const& m = p.get();
+                BEAST_EXPECT(! p.need_eof());
+                BEAST_EXPECT(p.is_chunked());
+                BEAST_EXPECT(p.content_length() == boost::none);
+                BEAST_EXPECT(m.version == 11);
+                BEAST_EXPECT(m.status == 200);
+                BEAST_EXPECT(m.reason() == "OK");
+                BEAST_EXPECT(m.fields["Server"] == "test");
+                BEAST_EXPECT(m.fields["Transfer-Encoding"] == "chunked");
+                BEAST_EXPECT(m.fields["Expires"] == "never");
+                BEAST_EXPECT(m.fields["MD5-Fingerprint"] == "-");
                 BEAST_EXPECT(m.body == "*****--");
             }
         );
-        testMatrix<false>(
+        doMatrix<false>(
             "HTTP/1.0 200 OK\r\n"
             "Server: test\r\n"
             "Content-Length: 5\r\n"
             "\r\n"
             "*****",
-            [&](message<false, string_body, fields> const& m)
+            [&](parser_type<false> const& p)
             {
+                auto const& m = p.get();
                 BEAST_EXPECT(m.body == "*****");
             }
         );
-        testMatrix<true>(
+        doMatrix<true>(
             "GET / HTTP/1.1\r\n"
             "User-Agent: test\r\n"
             "\r\n",
-            [&](message<true, string_body, fields> const& m)
+            [&](parser_type<true> const& p)
             {
+                auto const& m = p.get();
+                BEAST_EXPECT(m.method() == "GET");
+                BEAST_EXPECT(m.target() == "/");
+                BEAST_EXPECT(m.version == 11);
+                BEAST_EXPECT(! p.need_eof());
+                BEAST_EXPECT(! p.is_chunked());
+                BEAST_EXPECT(p.content_length() == boost::none);
             }
         );
-        testMatrix<true>(
+        doMatrix<true>(
             "GET / HTTP/1.1\r\n"
             "User-Agent: test\r\n"
             "X: \t x \t \r\n"
             "\r\n",
-            [&](message<true, string_body, fields> const& m)
+            [&](parser_type<true> const& p)
             {
+                auto const& m = p.get();
                 BEAST_EXPECT(m.fields["X"] == "x");
             }
         );
-    }
 
-    void
-    testParse()
-    {
-        using boost::asio::buffer;
+        // test eager(true)
         {
             error_code ec;
-            beast::test::string_istream is{
-                get_io_service(), 
+            parser_type<true> p;
+            p.eager(true);
+            p.put(buf(
                 "GET / HTTP/1.1\r\n"
                 "User-Agent: test\r\n"
                 "Content-Length: 1\r\n"
                 "\r\n"
-                "*"};
-            flat_buffer b{1024};
-            message_parser<true, string_body, fields> p;
-            read(is, b, p, ec);
+                "*")
+                , ec);
             auto const& m = p.get();
-            BEAST_EXPECTS(! ec, ec.message());
-            BEAST_EXPECT(p.is_complete());
+            BEAST_EXPECT(! ec);
+            BEAST_EXPECT(p.is_done());
+            BEAST_EXPECT(p.is_header_done());
+            BEAST_EXPECT(! p.need_eof());
             BEAST_EXPECT(m.method() == "GET");
             BEAST_EXPECT(m.target() == "/");
             BEAST_EXPECT(m.version == 11);
             BEAST_EXPECT(m.fields["User-Agent"] == "test");
             BEAST_EXPECT(m.body == "*");
         }
-#if 0
         {
             // test partial parsing of final chunk
             // parse through the chunk body
-            beast::test::string_istream is{
-                get_io_service(), ""};
-            multi_buffer b;
-            b <<
+            error_code ec;
+            flat_buffer b;
+            parser_type<true> p;
+            p.eager(true);
+            ostream(b) <<
                 "PUT / HTTP/1.1\r\n"
                 "Transfer-Encoding: chunked\r\n"
                 "\r\n"
                 "1\r\n"
                 "*";
-            error_code ec;
-            message_parser<true, string_body, fields> p;
-            read(is, b, p, ec);
-            BEAST_EXPECT(b.size() == 0);
-            BEAST_EXPECTS(! ec, ec.message());
-            BEAST_EXPECT(!p.is_complete());
+            auto used = p.put(b.data(), ec);
+            b.consume(used);
+            BEAST_EXPECT(! ec);
+            BEAST_EXPECT(! p.is_done());
             BEAST_EXPECT(p.get().body == "*");
-            b << "\r\n0;d;e=3;f=\"4\"\r\n"
+            ostream(b) <<
+                "\r\n"
+                "0;d;e=3;f=\"4\"\r\n"
                 "Expires: never\r\n"
                 "MD5-Fingerprint: -\r\n";
             // incomplete parse, missing the final crlf
-            BEAST_EXPECT(p.write(b.data(), ec) == 0);
+            used = p.put(b.data(), ec);
+            b.consume(used);
+            BEAST_EXPECT(ec == error::need_more);
+            ec = {};
+            BEAST_EXPECT(! p.is_done());
+            ostream(b) <<
+                "\r\n"; // final crlf to end message
+            used = p.put(b.data(), ec);
+            b.consume(used);
             BEAST_EXPECTS(! ec, ec.message());
-            BEAST_EXPECT(!p.is_complete());
-            b << "\r\n"; // final crlf to end message
-            BEAST_EXPECT(p.write(b.data(), ec) == b.size());
-            BEAST_EXPECTS(! ec, ec.message());
-            BEAST_EXPECT(p.is_complete());
-        }
-        {
-            error_code ec;
-            message_parser<false, string_body, fields> p;
-            std::string const s =
-                "HTTP/1.1 200 OK\r\n"
-                "Server: test\r\n"
-                "Content-Length: 1\r\n"
-                "\r\n"
-                "*";
-            p.write(buffer(s), ec);
-            auto const& m = p.get();
-            BEAST_EXPECTS(! ec, ec.message());
-            BEAST_EXPECT(p.is_complete());
-            BEAST_EXPECT(m.status == 200);
-            BEAST_EXPECT(m.reason() == "OK");
-            BEAST_EXPECT(m.version == 11);
-            BEAST_EXPECT(m.fields["Server"] == "test");
-            BEAST_EXPECT(m.body == "*");
+            BEAST_EXPECT(p.is_done());
         }
         // skip body
         {
             error_code ec;
             message_parser<false, string_body, fields> p;
-            std::string const s =
-                "HTTP/1.1 200 Connection Established\r\n"
-                "Proxy-Agent: Zscaler/5.1\r\n"
-                "\r\n";
-            p.skip_body();
-            p.write(buffer(s), ec);
+            p.skip(true);
+            p.put(buf(
+                "HTTP/1.1 200 OK\r\n"
+                "Content-Length: 5\r\n"
+                "\r\n"
+                "*****")
+                , ec);
             BEAST_EXPECTS(! ec, ec.message());
-            BEAST_EXPECT(p.is_complete());
+            BEAST_EXPECT(p.is_done());
+            BEAST_EXPECT(p.is_header_done());
+            BEAST_EXPECT(p.content_length() &&
+                *p.content_length() == 5);
         }
-#endif
     }
 
     void
@@ -219,8 +300,8 @@ public:
             read_some(ss, b, p0, ec);
         b.consume(bytes_used);
         BEAST_EXPECTS(! ec, ec.message());
-        BEAST_EXPECT(p0.state() != parse_state::header);
-        BEAST_EXPECT(! p0.is_complete());
+        BEAST_EXPECT(p0.is_header_done());
+        BEAST_EXPECT(! p0.is_done());
         message_parser<true,
             string_body, fields> p1{std::move(p0)};
         read(ss, b, p1, ec);
@@ -228,12 +309,57 @@ public:
         BEAST_EXPECT(p1.get().body == "*****");
     }
 
+    //--------------------------------------------------------------------------
+
+    template<class DynamicBuffer>
+    void
+    testNeedMore()
+    {
+        error_code ec;
+        std::size_t used;
+        {
+            DynamicBuffer b;
+            parser_type<true> p;
+            ostream(b) <<
+                "GET / HTTP/1.1\r\n";
+            used = p.put(b.data(), ec);
+            BEAST_EXPECTS(ec == error::need_more, ec.message());
+            b.consume(used);
+            ec = {};
+            ostream(b) <<
+                "User-Agent: test\r\n"
+                "\r\n";
+            used = p.put(b.data(), ec);
+            BEAST_EXPECTS(! ec, ec.message());
+            b.consume(used);
+            BEAST_EXPECT(p.is_done());
+            BEAST_EXPECT(p.is_header_done());
+        }
+    }
+
+    void
+    testGotSome()
+    {
+        error_code ec;
+        parser_type<true> p;
+        auto used = p.put(buf(""), ec);
+        BEAST_EXPECT(ec == error::need_more);
+        BEAST_EXPECT(! p.got_some());
+        BEAST_EXPECT(used == 0);
+        ec = {};
+        used = p.put(buf("G"), ec);
+        BEAST_EXPECT(ec == error::need_more);
+        BEAST_EXPECT(p.got_some());
+        BEAST_EXPECT(used == 0);
+    }
+
     void
     run() override
     {
-        testRead();
         testParse();
-        testExpect100Continue();
+        testNeedMore<flat_buffer>();
+        testNeedMore<multi_buffer>();
+        testGotSome();
     }
 };
 

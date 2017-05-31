@@ -55,6 +55,7 @@ private:
         buffer_type b;
         std::condition_variable cv;
         std::unique_ptr<read_op> op;
+        bool eof = false;
     };
 
     state s_[2];
@@ -150,6 +151,15 @@ public:
             in_.b.consume((std::numeric_limits<
                 std::size_t>::max)());
         }
+
+        /** Close the stream.
+
+            The other end of the pipe will see
+            `boost::asio::error::eof` on read.
+        */
+        template<class = void>
+        void
+        close();
 
         template<class MutableBufferSequence>
         std::size_t
@@ -275,21 +285,48 @@ read_op_impl<Handler, Buffers>::operator()()
         {
             BOOST_ASSERT(s_.in_.op);
             std::unique_lock<std::mutex> lock{s_.in_.m};
-            BOOST_ASSERT(buffer_size(s_.in_.b.data()) > 0);
-            auto const bytes_transferred = buffer_copy(
-                b_, s_.in_.b.data(), s_.read_max_);
-            s_.in_.b.consume(bytes_transferred);
-            auto& s = s_;
-            Handler h{std::move(h_)};
-            lock.unlock();
-            s.in_.op.reset(nullptr);
-            ++s.nread;
-            s.ios_.post(bind_handler(std::move(h),
-                error_code{}, bytes_transferred));
+            if(s_.in_.b.size() > 0)
+            {
+                auto const bytes_transferred = buffer_copy(
+                    b_, s_.in_.b.data(), s_.read_max_);
+                s_.in_.b.consume(bytes_transferred);
+                auto& s = s_;
+                Handler h{std::move(h_)};
+                lock.unlock();
+                s.in_.op.reset(nullptr);
+                ++s.nread;
+                s.ios_.post(bind_handler(std::move(h),
+                    error_code{}, bytes_transferred));
+            }
+            else
+            {
+                BOOST_ASSERT(s_.in_.eof);
+                auto& s = s_;
+                Handler h{std::move(h_)};
+                lock.unlock();
+                s.in_.op.reset(nullptr);
+                ++s.nread;
+                s.ios_.post(bind_handler(std::move(h),
+                    boost::asio::error::eof, 0));
+            }
         });
 }
 
 //------------------------------------------------------------------------------
+
+template<class>
+void
+pipe::stream::
+close()
+{
+    std::lock_guard<std::mutex> lock{out_.m};
+    out_.eof = true;
+    if(out_.op)
+        out_.op.get()->operator()();
+    else
+        out_.cv.notify_all();
+}
+
 
 template<class MutableBufferSequence>
 std::size_t
@@ -318,19 +355,28 @@ read_some(MutableBufferSequence const& buffers,
     using boost::asio::buffer_copy;
     using boost::asio::buffer_size;
     BOOST_ASSERT(! in_.op);
+    BOOST_ASSERT(buffer_size(buffers) > 0);
     if(fc_ && fc_->fail(ec))
         return 0;
     std::unique_lock<std::mutex> lock{in_.m};
     in_.cv.wait(lock,
         [&]()
         {
-            return
-                buffer_size(buffers) == 0 ||
-                buffer_size(in_.b.data()) > 0;
+            return in_.b.size() > 0 || in_.eof;
         });
-    auto const bytes_transferred = buffer_copy(
-        buffers, in_.b.data(), write_max_);
-    in_.b.consume(bytes_transferred);
+    std::size_t bytes_transferred;
+    if(in_.b.size() > 0)
+    {   
+        bytes_transferred = buffer_copy(
+            buffers, in_.b.data(), write_max_);
+        in_.b.consume(bytes_transferred);
+    }
+    else
+    {
+        BOOST_ASSERT(in_.eof);
+        bytes_transferred = 0;
+        ec = boost::asio::error::eof;
+    }
     ++nread;
     return bytes_transferred;
 }
@@ -347,9 +393,10 @@ async_read_some(MutableBufferSequence const& buffers,
         "MutableBufferSequence requirements not met");
     using boost::asio::buffer_copy;
     using boost::asio::buffer_size;
+    BOOST_ASSERT(! in_.op);
+    BOOST_ASSERT(buffer_size(buffers) > 0);
     async_completion<ReadHandler,
         void(error_code, std::size_t)> init{handler};
-    BOOST_ASSERT(! in_.op);
     if(fc_)
     {
         error_code ec;
@@ -359,7 +406,14 @@ async_read_some(MutableBufferSequence const& buffers,
     }
     {
         std::unique_lock<std::mutex> lock{in_.m};
-        if(buffer_size(buffers) == 0 ||
+        if(in_.eof)
+        {
+            lock.unlock();
+            ++nread;
+            ios_.post(bind_handler(init.completion_handler,
+                boost::asio::error::eof, 0));
+        }
+        else if(buffer_size(buffers) == 0 ||
             buffer_size(in_.b.data()) > 0)
         {
             auto const bytes_transferred = buffer_copy(
@@ -389,6 +443,7 @@ write_some(ConstBufferSequence const& buffers)
     static_assert(is_const_buffer_sequence<
             ConstBufferSequence>::value,
         "ConstBufferSequence requirements not met");
+    BOOST_ASSERT(! out_.eof);
     error_code ec;
     auto const bytes_transferred =
         write_some(buffers, ec);
@@ -408,6 +463,7 @@ write_some(
         "ConstBufferSequence requirements not met");
     using boost::asio::buffer_copy;
     using boost::asio::buffer_size;
+    BOOST_ASSERT(! out_.eof);
     if(fc_ && fc_->fail(ec))
         return 0;
     auto const n = (std::min)(
@@ -437,6 +493,7 @@ async_write_some(ConstBufferSequence const& buffers,
         "ConstBufferSequence requirements not met");
     using boost::asio::buffer_copy;
     using boost::asio::buffer_size;
+    BOOST_ASSERT(! out_.eof);
     async_completion<WriteHandler,
         void(error_code, std::size_t)> init{handler};
     if(fc_)
