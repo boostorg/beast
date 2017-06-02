@@ -120,7 +120,7 @@ public:
 template<class Allocator>
 class basic_multi_buffer<Allocator>::const_buffers_type
 {
-    basic_multi_buffer const* sb_;
+    basic_multi_buffer const* b_;
 
     friend class basic_multi_buffer;
 
@@ -142,12 +142,19 @@ public:
 
     const_iterator
     end() const;
+
+    friend
+    std::size_t
+    buffer_size(const_buffers_type const& buffers)
+    {
+        return buffers.b_->size();
+    }
 };
 
 template<class Allocator>
 class basic_multi_buffer<Allocator>::mutable_buffers_type
 {
-    basic_multi_buffer const* sb_;
+    basic_multi_buffer const* b_;
 
     friend class basic_multi_buffer;
 
@@ -175,7 +182,7 @@ public:
 template<class Allocator>
 class basic_multi_buffer<Allocator>::const_buffers_type::const_iterator
 {
-    basic_multi_buffer const* sb_ = nullptr;
+    basic_multi_buffer const* b_ = nullptr;
     typename list_type::const_iterator it_;
 
 public:
@@ -195,7 +202,7 @@ public:
 
     const_iterator(basic_multi_buffer const& b,
             typename list_type::const_iterator const& it)
-        : sb_(&b)
+        : b_(&b)
         , it_(it)
     {
     }
@@ -203,7 +210,7 @@ public:
     bool
     operator==(const_iterator const& other) const
     {
-        return sb_ == other.sb_ && it_ == other.it_;
+        return b_ == other.b_ && it_ == other.it_;
     }
 
     bool
@@ -217,9 +224,9 @@ public:
     {
         auto const& e = *it_;
         return value_type{e.data(),
-           (sb_->out_ == sb_->list_.end() ||
-                &e != &*sb_->out_) ? e.size() : sb_->out_pos_} +
-                   (&e == &*sb_->list_.begin() ? sb_->in_pos_ : 0);
+           (b_->out_ == b_->list_.end() ||
+                &e != &*b_->out_) ? e.size() : b_->out_pos_} +
+                   (&e == &*b_->list_.begin() ? b_->in_pos_ : 0);
     }
 
     pointer
@@ -259,7 +266,7 @@ public:
 template<class Allocator>
 basic_multi_buffer<Allocator>::const_buffers_type::const_buffers_type(
     basic_multi_buffer const& b)
-    : sb_(&b)
+    : b_(&b)
 {
 }
 
@@ -268,7 +275,7 @@ auto
 basic_multi_buffer<Allocator>::const_buffers_type::begin() const ->
     const_iterator
 {
-    return const_iterator{*sb_, sb_->list_.begin()};
+    return const_iterator{*b_, b_->list_.begin()};
 }
 
 template<class Allocator>
@@ -276,9 +283,9 @@ auto
 basic_multi_buffer<Allocator>::const_buffers_type::end() const ->
     const_iterator
 {
-    return const_iterator{*sb_, sb_->out_ ==
-        sb_->list_.end() ? sb_->list_.end() :
-            std::next(sb_->out_)};
+    return const_iterator{*b_, b_->out_ ==
+        b_->list_.end() ? b_->list_.end() :
+            std::next(b_->out_)};
 }
 
 //------------------------------------------------------------------------------
@@ -286,7 +293,7 @@ basic_multi_buffer<Allocator>::const_buffers_type::end() const ->
 template<class Allocator>
 class basic_multi_buffer<Allocator>::mutable_buffers_type::const_iterator
 {
-    basic_multi_buffer const* sb_ = nullptr;
+    basic_multi_buffer const* b_ = nullptr;
     typename list_type::const_iterator it_;
 
 public:
@@ -306,7 +313,7 @@ public:
 
     const_iterator(basic_multi_buffer const& b,
             typename list_type::const_iterator const& it)
-        : sb_(&b)
+        : b_(&b)
         , it_(it)
     {
     }
@@ -314,7 +321,7 @@ public:
     bool
     operator==(const_iterator const& other) const
     {
-        return sb_ == other.sb_ && it_ == other.it_;
+        return b_ == other.b_ && it_ == other.it_;
     }
 
     bool
@@ -328,9 +335,9 @@ public:
     {
         auto const& e = *it_;
         return value_type{e.data(),
-            &e == &*std::prev(sb_->list_.end()) ?
-                sb_->out_end_ : e.size()} +
-                   (&e == &*sb_->out_ ? sb_->out_pos_ : 0);
+            &e == &*std::prev(b_->list_.end()) ?
+                b_->out_end_ : e.size()} +
+                   (&e == &*b_->out_ ? b_->out_pos_ : 0);
     }
 
     pointer
@@ -370,7 +377,7 @@ public:
 template<class Allocator>
 basic_multi_buffer<Allocator>::mutable_buffers_type::mutable_buffers_type(
     basic_multi_buffer const& b)
-    : sb_(&b)
+    : b_(&b)
 {
 }
 
@@ -379,7 +386,7 @@ auto
 basic_multi_buffer<Allocator>::mutable_buffers_type::begin() const ->
     const_iterator
 {
-    return const_iterator{*sb_, sb_->out_};
+    return const_iterator{*b_, b_->out_};
 }
 
 template<class Allocator>
@@ -387,7 +394,7 @@ auto
 basic_multi_buffer<Allocator>::mutable_buffers_type::end() const ->
     const_iterator
 {
-    return const_iterator{*sb_, sb_->list_.end()};
+    return const_iterator{*b_, b_->list_.end()};
 }
 
 //------------------------------------------------------------------------------
@@ -563,7 +570,7 @@ basic_multi_buffer<Allocator>::prepare(size_type n) ->
             out_end_ = out_->size();
             reuse.splice(reuse.end(), list_,
                 std::next(out_), list_.end());
-            debug_check();
+            //debug_check();
         }
         auto const avail = out_->size() - out_pos_;
         if(n > avail)
@@ -576,7 +583,7 @@ basic_multi_buffer<Allocator>::prepare(size_type n) ->
             out_end_ = out_pos_ + n;
             n = 0;
         }
-        debug_check();
+        //debug_check();
     }
     while(n > 0 && ! reuse.empty())
     {
@@ -593,7 +600,7 @@ basic_multi_buffer<Allocator>::prepare(size_type n) ->
             out_end_ = n;
             n = 0;
         }
-        debug_check();
+        //debug_check();
     }
     while(n > 0)
     {
@@ -615,7 +622,7 @@ basic_multi_buffer<Allocator>::prepare(size_type n) ->
             out_end_ = n;
             n = 0;
         }
-        debug_check();
+        //debug_check();
     }
     for(auto it = reuse.begin(); it != reuse.end();)
     {
@@ -647,14 +654,14 @@ basic_multi_buffer<Allocator>::commit(size_type n)
         {
             out_pos_ += n;
             in_size_ += n;
-            debug_check();
+            //debug_check();
             return;
         }
         ++out_;
         n -= avail;
         out_pos_ = 0;
         in_size_ += avail;
-        debug_check();
+        //debug_check();
     }
 
     n = (std::min)(n, out_end_ - out_pos_);
@@ -666,7 +673,7 @@ basic_multi_buffer<Allocator>::commit(size_type n)
         out_pos_ = 0;
         out_end_ = 0;
     }
-    debug_check();
+    //debug_check();
 }
 
 template<class Allocator>
@@ -685,7 +692,7 @@ basic_multi_buffer<Allocator>::consume(size_type n)
             {
                 in_size_ -= n;
                 in_pos_ += n;
-                debug_check();
+                //debug_check();
                 break;
             }
             n -= avail;
@@ -697,7 +704,7 @@ basic_multi_buffer<Allocator>::consume(size_type n)
             alloc_traits::destroy(this->member(), &e);
             alloc_traits::deallocate(this->member(),
                 reinterpret_cast<char*>(&e), len);
-            debug_check();
+            //debug_check();
         }
         else
         {
@@ -724,7 +731,7 @@ basic_multi_buffer<Allocator>::consume(size_type n)
                     out_end_ = 0;
                 }
             }
-            debug_check();
+            //debug_check();
             break;
         }
     }
