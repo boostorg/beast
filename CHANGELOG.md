@@ -1,6 +1,7 @@
 Version 47
 
 * Disable operator<< for buffer_body
+* buffer_size overload for basic_multi_buffer::const_buffers_type
 
 API Changes:
 
