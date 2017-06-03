@@ -456,8 +456,7 @@ operator()(error_code ec,
                         // suspend
                         d.state = do_pong_resume;
                         BOOST_ASSERT(d.ws.wr_block_ != &d);
-                        d.ws.rd_op_.template emplace<
-                            read_frame_op>(std::move(*this));
+                        d.ws.rd_op_.emplace(std::move(*this));
                         return;
                     }
                     d.state = do_pong;
@@ -496,8 +495,7 @@ operator()(error_code ec,
                         {
                             // suspend
                             d.state = do_close_resume;
-                            d.ws.rd_op_.template emplace<
-                                read_frame_op>(std::move(*this));
+                            d.ws.rd_op_.emplace(std::move(*this));
                             return;
                         }
                         d.state = do_close;
@@ -630,8 +628,7 @@ operator()(error_code ec,
                 {
                     // suspend
                     d.state = do_fail + 2;
-                    d.ws.rd_op_.template emplace<
-                        read_frame_op>(std::move(*this));
+                    d.ws.rd_op_.emplace(std::move(*this));
                     return;
                 }
                 // fall through

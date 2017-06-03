@@ -139,8 +139,7 @@ operator()(error_code ec, bool again)
             {
                 // suspend
                 d.state = 2;
-                d.ws.ping_op_.template emplace<
-                    ping_op>(std::move(*this));
+                d.ws.ping_op_.emplace(std::move(*this));
                 return;
             }
             if(d.ws.failed_ || d.ws.wr_close_)

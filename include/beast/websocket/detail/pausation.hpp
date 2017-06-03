@@ -30,7 +30,7 @@ class pausation
         base() = default;
         base(base &&) = default;
         virtual ~base() = default;
-        virtual void move(void* p) = 0;
+        virtual base* move(void* p) = 0;
         virtual void operator()() = 0;
     };
 
@@ -48,10 +48,10 @@ class pausation
         {
         }
 
-        void
+        base*
         move(void* p) override
         {
-            ::new(p) holder(std::move(*this));
+            return ::new(p) holder(std::move(*this));
         }
 
         void
@@ -100,9 +100,7 @@ public:
     {
         if(other.base_)
         {
-            // type-pun
-            base_ = reinterpret_cast<base*>(&buf_[0]);
-            other.base_->move(buf_);
+            base_ = other.base_->move(buf_);
             other.base_ = nullptr;
         }
     }
@@ -117,9 +115,7 @@ public:
 
         if(other.base_)
         {
-            // type-pun
-            base_ = reinterpret_cast<base*>(&buf_[0]);
-            other.base_->move(buf_);
+            base_ = other.base_->move(buf_);
             other.base_ = nullptr;
         }
         return *this;
@@ -147,12 +143,11 @@ template<class F>
 void
 pausation::emplace(F&& f)
 {
-    static_assert(sizeof(buf_type) >= sizeof(holder<F>),
+    using type = holder<typename std::decay<F>::type>;
+    static_assert(sizeof(buf_type) >= sizeof(type),
         "buffer too small");
     BOOST_ASSERT(! base_);
-    ::new(buf_) holder<F>(std::forward<F>(f));
-    // type-pun
-    base_ = reinterpret_cast<base*>(&buf_[0]);
+    base_ = ::new(buf_) type{std::forward<F>(f)};
 }
 
 } // detail
