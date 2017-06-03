@@ -14,7 +14,7 @@
 #include <beast/core/static_buffer.hpp>
 #include <beast/http/fields.hpp>
 #include <beast/http/dynamic_body.hpp>
-#include <beast/http/header_parser.hpp>
+#include <beast/http/parser.hpp>
 #include <beast/http/string_body.hpp>
 #include <beast/test/fail_stream.hpp>
 #include <beast/test/pipe_stream.hpp>

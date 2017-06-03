@@ -10,7 +10,7 @@
 
 #include <beast/http/type_traits.hpp>
 #include <beast/http/error.hpp>
-#include <beast/http/message_parser.hpp>
+#include <beast/http/parser.hpp>
 #include <beast/http/read.hpp>
 #include <beast/core/bind_handler.hpp>
 #include <beast/core/handler_ptr.hpp>

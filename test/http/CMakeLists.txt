@@ -17,9 +17,8 @@ add_executable (http-tests
     empty_body.cpp
     error.cpp
     fields.cpp
-    header_parser.cpp
     message.cpp
-    message_parser.cpp
+    parser.cpp
     read.cpp
     rfc7230.cpp
     serializer.cpp

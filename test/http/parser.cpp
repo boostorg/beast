@@ -6,7 +6,7 @@
 //
 
 // Test that header file is self-contained.
-#include <beast/http/message_parser.hpp>
+#include <beast/http/parser.hpp>
 
 #include "test_parser.hpp"
 
@@ -25,7 +25,58 @@
 namespace beast {
 namespace http {
 
-class message_parser_test
+class header_parser_test
+    : public beast::unit_test::suite
+    , public test::enable_yield_to
+{
+public:
+    static
+    boost::asio::const_buffers_1
+    buf(string_view s)
+    {
+        return {s.data(), s.size()};
+    }
+
+    void
+    testParse()
+    {
+        {
+            test::string_istream is{ios_,
+                "GET / HTTP/1.1\r\n"
+                "User-Agent: test\r\n"
+                "\r\n"
+            };
+            flat_buffer db{1024};
+            header_parser<true, fields> p;
+            read_some(is, db, p);
+            BEAST_EXPECT(p.is_header_done());
+        }
+        {
+            test::string_istream is{ios_,
+                "POST / HTTP/1.1\r\n"
+                "User-Agent: test\r\n"
+                "Content-Length: 1\r\n"
+                "\r\n"
+                "*"
+            };
+            flat_buffer db{1024};
+            header_parser<true, fields> p;
+            read_some(is, db, p);
+            BEAST_EXPECT(p.is_header_done());
+            BEAST_EXPECT(! p.is_done());
+        }
+    }
+
+    void
+    run() override
+    {
+        testParse();
+    }
+};
+
+BEAST_DEFINE_TESTSUITE(header_parser,http,beast);
+
+class parser_test
     : public beast::unit_test::suite
     , public beast::test::enable_yield_to
 {
@@ -363,7 +414,7 @@ public:
     }
 };
 
-BEAST_DEFINE_TESTSUITE(message_parser,http,beast);
+BEAST_DEFINE_TESTSUITE(parser,http,beast);
 
 } // http
 } // beast
