@@ -11,13 +11,19 @@
 <informaltable frame="all"><tgroup cols="1"><colspec colname="a"/><tbody><row><entry valign="top"><simplelist>
   <member><link linkend="beast.http.primer">HTTP Primer</link></member>
   <member><link linkend="beast.http.message">Message Containers</link></member>
-  <member><link linkend="beast.http.streams">Stream Operations</link></member>
+  <member><link linkend="beast.http.streams">Message Stream Operations</link></member>
+  <member><link linkend="beast.http.serializer_streams">Serializer Stream Operations</link></member>
+  <member><link linkend="beast.http.parser_streams">Parser Stream Operations</link></member>
+  <member><link linkend="beast.http.serializer_buffers">Buffer-Oriented Serializing</link></member>
+  <member><link linkend="beast.http.parser_buffers">Buffer-Oriented Parsing</link></member>
+  <member><link linkend="beast.http.custom_parsers">Custom Parsers</link></member>
+  <member><link linkend="beast.http.custom_body">Custom Body Types</link></member>
 </simplelist></entry></row></tbody></tgroup></informaltable>
 ''']
 
-This library offers programmers simple and performant models of HTTP
-messages and their associated operations including synchronous and
-asynchronous parsing and serialization of messages in the HTTP/1 wire
+This library offers programmers simple and performant models of HTTP messages
+and their associated operations including synchronous, asynchronous, and
+buffer-oriented parsing and serialization of messages in the HTTP/1 wire
 format using __Asio__. Specifically, the library provides:
 
 [variablelist
@@ -32,10 +38,12 @@ format using __Asio__. Specifically, the library provides:
     [
         The functions
         [link beast.ref.http__read `read`],
+        [link beast.ref.http__read_header `read_header`],
         [link beast.ref.http__read_some `read_some`],
-        [link beast.ref.http__async_read `async_read`], and
+        [link beast.ref.http__async_read `async_read`],
+        [link beast.ref.http__async_read_header `async_read_header`], and
         [link beast.ref.http__async_read_some `async_read_some`]
-        read a __message__ from a
+        read HTTP/1 message data from a
         [link beast.ref.streams stream].
 ]
 ][
@@ -43,10 +51,12 @@ format using __Asio__. Specifically, the library provides:
     [
         The functions
         [link beast.ref.http__write `write`],
+        [link beast.ref.http__write_header `write_header`],
         [link beast.ref.http__write_some `write_some`],
-        [link beast.ref.http__async_write `async_write`], and
+        [link beast.ref.http__async_write `async_write`],
+        [link beast.ref.http__async_write_header `async_write_header`], and
         [link beast.ref.http__async_write_some `async_write_some`]
-        write a __message__ to a
+        write HTTP/1 message data to a
         [link beast.ref.streams stream].
     ]
 ][
@@ -79,5 +89,11 @@ format using __Asio__. Specifically, the library provides:
 [include 3_1_primer.qbk]
 [include 3_2_message.qbk]
 [include 3_3_streams.qbk]
+[include 3_4_serializer_streams.qbk]
+[include 3_5_parser_streams.qbk]
+[include 3_6_serializer_buffers.qbk]
+[include 3_7_parser_buffers.qbk]
+[include 3_8_custom_parsers.qbk]
+[include 3_9_custom_body.qbk]
 
 [endsect]

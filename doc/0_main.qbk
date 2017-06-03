@@ -57,9 +57,11 @@
 [def __basic_fields__       [link beast.ref.http__basic_fields `basic_fields`]]
 [def __basic_multi_buffer__ [link beast.ref.basic_multi_buffer `basic_multi_buffer`]]
 [def __basic_parser__       [link beast.ref.http__basic_parser `basic_parser`]]
+[def __buffer_body__        [link beast.ref.http__buffer_body `buffer_body`]]
 [def __fields__             [link beast.ref.http__fields `fields`]]
 [def __flat_buffer__        [link beast.ref.flat_buffer `flat_buffer`]]
 [def __header__             [link beast.ref.http__header `header`]]
+[def __header_parser__      [link beast.ref.http__header_parser `header_parser`]]
 [def __message__            [link beast.ref.http__message `message`]]
 [def __message_parser__     [link beast.ref.http__message_parser `message_parser`]]
 [def __multi_buffer__       [link beast.ref.multi_buffer `multi_buffer`]]
@@ -84,11 +86,6 @@ asynchronous model of __Asio__.
     [link beast.http Using HTTP]
   ][
     How to use the basic algorithms in your applications.
-  ]]
-  [[
-    [link beast.adv_http Advanced HTTP]
-  ][
-    A discussion of the advanced interfaces.
   ]]
   [[
     [link beast.websocket Using WebSocket]
@@ -121,10 +118,9 @@ asynchronous model of __Asio__.
 [include 1_overview.qbk]
 [include 2_core.qbk]
 [include 3_0_http.qbk]
-[include 4_0_adv_http.qbk]
-[include 5_websocket.qbk]
-[include 6_examples.qbk]
-[include 7_0_design.qbk]
+[include 4_websocket.qbk]
+[include 5_examples.qbk]
+[include 6_0_design.qbk]
 
 [section:ref Reference]
 [xinclude quickref.xml]

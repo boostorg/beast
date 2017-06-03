@@ -26,18 +26,11 @@ accept any message, or can use partial specialization to accept just
 requests or responses. The default __fields__ is a provided associative
 container using the standard allocator and supporting modification and
 inspection of fields. As per __rfc7230__, a non-case-sensitive comparison
-is used for field names. User defined types for fields are possible. This
-is discussed in
-[link beast.adv_http.fields Advanced Fields].
+is used for field names. User defined types for fields are possible.
 The `Body` type determines the type of the container used to represent the
 body as well as the algorithms for transferring buffers to and from the
-the container. The library comes with a collection of common body types,
-described in
-[link beast.http.message.body Body Types].
-As with fields, user defined body types are possible. This is described in
-[link beast.adv_http.body Advanced Body].
-
-
+the container. The library comes with a collection of common body types.
+As with fields, user defined body types are possible.
 
 Sometimes it is desired to only work with a header. Beast provides a single
 class template __header__ to model HTTP/1 and HTTP/2 headers:
@@ -88,9 +81,10 @@ the __Body__ requirements:
 [[
     [link beast.ref.http__buffer_body `buffer_body`]
 ][
-    A body with `value_type` holding a __ConstBufferSequence__ holding
-    caller provided buffers which must be updated during incremental
-    serialization. Messages with this body type only support serialization.
+    A body whose `value_type` holds a raw pointer and size to a
+    caller-provided buffer. This allows for serialization of body data
+    coming from external sources, and incremental parsing of message
+    body content using a fixed size buffer.
 ]]
 [[
     [link beast.ref.http__dynamic_body `dynamic_body`]
