@@ -299,7 +299,7 @@ public:
         {
             multi_buffer b;
             test::string_istream ss(ios_, "");
-            message_parser<true, dynamic_body, fields> p;
+            request_parser<dynamic_body> p;
             error_code ec;
             read(ss, b, p, ec);
             BEAST_EXPECT(ec == http::error::end_of_stream);
@@ -307,7 +307,7 @@ public:
         {
             multi_buffer b;
             test::string_istream ss(ios_, "");
-            message_parser<true, dynamic_body, fields> p;
+            request_parser<dynamic_body> p;
             error_code ec;
             async_read(ss, b, p, do_yield[ec]);
             BEAST_EXPECT(ec == http::error::end_of_stream);

@@ -69,8 +69,8 @@ format using __Asio__. Specifically, the library provides:
 ][
     [Parsing]
     [
-        The __message_parser__ attempts to convert a series of
-        octet buffers into a __message__.
+        The __parser__ attempts to convert a series of octet
+        buffers into a __message__.
     ]
 ]
 ]

@@ -20,7 +20,7 @@
 namespace beast {
 namespace http {
 
-/** A parser for producing HTTP/1 headers.
+/** An HTTP/1 parser for producing a header.
 
     This class uses the basic HTTP/1 wire format parser to convert
     a series of octets into a @ref header.
@@ -199,7 +199,7 @@ private:
     }
 };
 
-/** A parser for producing HTTP/1 messages.
+/** An HTTP/1 parser for producing a message.
 
     This class uses the basic HTTP/1 wire format parser to convert
     a series of octets into a @ref message.
@@ -214,9 +214,9 @@ private:
     @note A new instance of the parser is required for each message.
 */
 template<bool isRequest, class Body, class Fields = fields>
-class message_parser
+class parser
     : public basic_parser<isRequest,
-        message_parser<isRequest, Body, Fields>>
+        parser<isRequest, Body, Fields>>
 {
     static_assert(is_body<Body>::value,
         "Body requirements not met");
@@ -225,7 +225,7 @@ class message_parser
         "BodyWriter requirements not met");
 
     using base_type = basic_parser<isRequest,
-        message_parser<isRequest, Body, Fields>>;
+        parser<isRequest, Body, Fields>>;
 
     using writer_type = typename Body::writer;
 
@@ -237,20 +237,20 @@ public:
     using value_type = message<isRequest, Body, Fields>;
 
     /// Constructor (default)
-    message_parser() = default;
+    parser() = default;
 
     /// Copy constructor (disallowed)
-    message_parser(message_parser const&) = delete;
+    parser(parser const&) = delete;
 
     /// Copy assignment (disallowed)
-    message_parser& operator=(message_parser const&) = delete;
+    parser& operator=(parser const&) = delete;
 
     /** Move constructor.
 
         After the move, the only valid operation
         on the moved-from object is destruction.
     */
-    message_parser(message_parser&& other);
+    parser(parser&& other);
 
     /** Constructor
 
@@ -259,7 +259,7 @@ public:
 
         @note This function participates in overload
         resolution only if the first argument is not a
-        @ref http::header_parser or @ref message_parser.
+        @ref http::header_parser or @ref parser.
     */
 #if BEAST_DOXYGEN
     template<class... Args>
@@ -272,10 +272,10 @@ public:
                 std::decay<Arg1>::type,
                     header_parser<isRequest, Fields>>::value &&
             ! std::is_same<typename
-                std::decay<Arg1>::type, message_parser>::value
+                std::decay<Arg1>::type, parser>::value
                     >::type>
     explicit
-    message_parser(Arg1&& arg1, ArgN&&... argn);
+    parser(Arg1&& arg1, ArgN&&... argn);
 #endif
 
     /** Construct a message parser from a @ref header_parser.
@@ -285,7 +285,7 @@ public:
     */
     template<class... Args>
     explicit
-    message_parser(header_parser<
+    parser(header_parser<
         isRequest, Fields>&& parser, Args&&... args);
 
     /** Returns the parsed message.
@@ -330,7 +330,7 @@ public:
 
 private:
     friend class basic_parser<
-        isRequest, message_parser>;
+        isRequest, parser>;
 
     void
     on_request(
@@ -398,13 +398,13 @@ private:
     }
 };
 
-/// A parser for producing HTTP/1 messages
+/// An HTTP/1 parser for producing a request message.
 template<class Body, class Fields = fields>
-using request_parser = message_parser<true, Body, Fields>;
+using request_parser = parser<true, Body, Fields>;
 
-/// A parser for producing HTTP/1 messages
+/// An HTTP/1 parser for producing a response message.
 template<class Body, class Fields = fields>
-using response_parser = message_parser<false, Body, Fields>;
+using response_parser = parser<false, Body, Fields>;
 
 } // http
 } // beast

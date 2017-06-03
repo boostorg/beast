@@ -35,7 +35,7 @@ public:
             "\r\n"
             "xyz";
         test::string_istream ss(ios_, s);
-        message_parser<false, dynamic_body, fields> p;
+        response_parser<dynamic_body> p;
         multi_buffer b;
         read(ss, b, p);
         auto const& m = p.get();

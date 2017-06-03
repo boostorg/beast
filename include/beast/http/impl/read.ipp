@@ -309,7 +309,7 @@ template<class Stream, class DynamicBuffer,
 class read_msg_op
 {
     using parser_type =
-        message_parser<isRequest, Body, Fields>;
+        parser<isRequest, Body, Fields>;
 
     using message_type =
         message<isRequest, Body, Fields>;
@@ -739,7 +739,7 @@ read(
         "Body requirements not met");
     static_assert(is_body_writer<Body>::value,
         "BodyWriter requirements not met");
-    message_parser<isRequest, Body, Fields> p;
+    parser<isRequest, Body, Fields> p;
     p.eager(true);
     read(stream, buffer, p.base(), ec);
     if(ec)

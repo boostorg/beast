@@ -7,6 +7,7 @@ API Changes:
 * Tidy up chunk decorator
 * Rename to buffer_cat_view
 * Consolidate parsers to parser.hpp
+* Rename to parser
 
 --------------------------------------------------------------------------------
 
