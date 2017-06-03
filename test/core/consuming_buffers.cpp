@@ -120,7 +120,7 @@ public:
     void
     testInPlace()
     {
-        consuming_buffers<buffers_view<
+        consuming_buffers<buffer_cat_view<
             boost::asio::const_buffers_1,
             boost::asio::const_buffers_1>> cb(
                 boost::in_place_init,

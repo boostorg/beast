@@ -19,7 +19,7 @@ namespace beast {
     @see @ref buffer_cat
 */
 template<class... Buffers>
-class buffers_view
+class buffer_cat_view
 {
     std::tuple<Buffers...> bn_;
 
@@ -41,16 +41,16 @@ public:
     class const_iterator;
 
     /// Move constructor
-    buffers_view(buffers_view&&) = default;
+    buffer_cat_view(buffer_cat_view&&) = default;
 
     /// Copy constructor
-    buffers_view(buffers_view const&) = default;
+    buffer_cat_view(buffer_cat_view const&) = default;
 
     /// Move assignment
-    buffers_view& operator=(buffers_view&&) = default;
+    buffer_cat_view& operator=(buffer_cat_view&&) = default;
 
     // Copy assignment
-    buffers_view& operator=(buffers_view const&) = default;
+    buffer_cat_view& operator=(buffer_cat_view const&) = default;
 
     /** Constructor
 
@@ -59,7 +59,7 @@ public:
         of memory is not transferred.
     */
     explicit
-    buffers_view(Buffers const&... buffers);
+    buffer_cat_view(Buffers const&... buffers);
 
     /// Return an iterator to the beginning of the concatenated sequence.
     const_iterator
@@ -87,23 +87,23 @@ public:
     also a @b MutableBufferSequence; otherwise the returned buffer
     sequence will be a @b ConstBufferSequence.
 
-    @see @ref buffers_view
+    @see @ref buffer_cat_view
 */
 #if BEAST_DOXYGEN
 template<class... BufferSequence>
-buffers_view<BufferSequence...>
+buffer_cat_view<BufferSequence...>
 buffer_cat(BufferSequence const&... buffers)
 #else
 template<class B1, class B2, class... Bn>
 inline
-buffers_view<B1, B2, Bn...>
+buffer_cat_view<B1, B2, Bn...>
 buffer_cat(B1 const& b1, B2 const& b2, Bn const&... bn)
 #endif
 {
     static_assert(
         detail::is_all_const_buffer_sequence<B1, B2, Bn...>::value,
             "BufferSequence requirements not met");
-    return buffers_view<B1, B2, Bn...>{b1, b2, bn...};
+    return buffer_cat_view<B1, B2, Bn...>{b1, b2, bn...};
 }
 
 } // beast

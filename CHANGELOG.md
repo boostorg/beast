@@ -3,6 +3,7 @@ Version 48
 API Changes:
 
 * Tidy up chunk decorator
+* Rename to buffer_cat_view
 
 --------------------------------------------------------------------------------
 
