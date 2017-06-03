@@ -5,7 +5,7 @@
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 ]
 
-[section:streams Stream Operations]
+[section:streams Message Stream Operations]
 
 Beast provides synchronous and asynchronous algorithms to serialize and
 parse HTTP/1 wire format messages on streams. These functions form the
@@ -20,14 +20,14 @@ requiring no separately managed state objects:
     Parse a __message__ from a __SyncReadStream__.
 ]]
 [[
-    [link beast.ref.http__write.overload1 [*write]]
-][
-    Serialize a __message__ to a __SyncWriteStream__.
-]]
-[[
     [link beast.ref.http__async_read.overload2 [*async_read]]
 ][
     Parse a __message__ from an __AsyncReadStream__.
+]]
+[[
+    [link beast.ref.http__write.overload1 [*write]]
+][
+    Serialize a __message__ to a __SyncWriteStream__.
 ]]
 [[
     [link beast.ref.http__async_write [*async_write]]
@@ -36,10 +36,53 @@ requiring no separately managed state objects:
 ]]
 ]
 
-Synchronous stream operations come in two varieties. One which throws
+All synchronous stream operations come in two varieties. One which throws
 an exception upon error, and another which accepts as the last parameter an
 argument of type [link beast.ref.error_code `error_code&`]. If an error
 occurs this argument will be set to contain the error code.
+
+[heading Reading]
+
+Because a serialized header is not length-prefixed, algorithms which parse
+messages from a stream may read past the end of a message for efficiency.
+To hold this surplus data, all stream read operations use a passed-in
+__DynamicBuffer__ which persists between calls. Each read operation may
+consume bytes remaining in the buffer, and leave behind new bytes. In this
+example we declare the buffer and a message variable, then read a complete
+HTTP request synchronously:
+```
+    flat_buffer buffer;         // (The parser is optimized for flat buffers)
+    request<string_body> req;
+    read(sock, buffer, req);
+```
+
+In this example we used the __flat_buffer__. The parser in Beast is
+optimized for structured HTTP data located in a single contiguous memory
+buffer ("flat buffer"). Any dynamic buffer will work with reads. However,
+when not using a flat buffer the implementation may perform an additional
+memory allocation to restructure the input into a single buffer.
+
+[tip
+    User-defined implementations of __DynamicBuffer__ may avoid additional
+    parser memory allocation, if those implementations guarantee that
+    returned buffer sequences will always have length one.
+]
+
+Messages may also be read asynchronously. When performing asynchronous
+stream read operations, the buffer and message variables must remain
+valid until the operation has completed. Beast asynchronous initiation
+functions use Asio's completion handler model. Here we read a message
+asynchronously. When the operation completes the message in the error
+code indicating the result is printed:
+```
+    flat_buffer buffer;
+    response<string_body> res;
+    async_read(sock, buffer,
+        [&](error_code ec)
+        {
+            std::cerr << ec.message() << std::endl;
+        });
+```
 
 [heading Writing]
 
@@ -93,48 +136,6 @@ void send_async(response<Body, Fields> const& res)
                 std::cerr << ec.message() << std::endl;
         });
 }
-```
-
-[heading Reading]
-
-Because a serialized header is not length-prefixed, algorithms which parse
-messages from a stream may read past the end of a message for efficiency.
-To hold this surplus data, all stream read operations use a passed-in
-__DynamicBuffer__. Each read operation may consume bytes remaining in the
-buffer, and leave behind new bytes. In this example we declare the buffer
-and a message variable, then read a complete HTTP request synchronously:
-```
-    flat_buffer buffer;         // (The parser is optimized for flat buffers)
-    request<string_body> req;
-    read(sock, buffer, req);
-```
-
-In this example we used the __flat_buffer__. The parser in Beast is
-optimized for structured HTTP data located in a single contiguous memory
-buffer ("flat buffer"). Any dynamic buffer will work with reads. However,
-when not using a flat buffer the implementation may perform an additional
-memory allocation to restructure the input into a single buffer.
-
-[tip
-    User-defined implementations of __DynamicBuffer__ may avoid additional
-    parser memory allocation, if those implementations guarantee that
-    returned buffer sequences will always have length one.
-]
-
-Messages may also be read asynchronously. When performing asynchronous
-stream read operations, the buffer and message variables must remain
-valid until the operation has completed. Beast asynchronous initiation
-functions use Asio's completion handler model. Here we read a message
-asynchronously. When the operation completes the message in the error
-code indicating the result is printed:
-```
-    flat_buffer buffer;
-    response<string_body> res;
-    async_read(sock, buffer,
-        [&](error_code ec)
-        {
-            std::cerr << ec.message() << std::endl;
-        });
 ```
 
 [endsect]
