@@ -10,6 +10,7 @@
 
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/streambuf.hpp>
+#include <boost/asio/detail/consuming_buffers.hpp>
 
 namespace beast {
 
@@ -125,9 +126,15 @@ BOOST_STATIC_ASSERT(! is_completion_handler<H, void(void)>::value);
 // stream concepts
 //
 
-//namespace {
+namespace {
 
 using stream_type = boost::asio::ip::tcp::socket;
+
+struct not_a_stream
+{
+    void
+    get_io_service();
+};
 
 BOOST_STATIC_ASSERT(has_get_io_service<stream_type>::value);
 BOOST_STATIC_ASSERT(is_async_read_stream<stream_type>::value);
@@ -137,12 +144,12 @@ BOOST_STATIC_ASSERT(is_sync_read_stream<stream_type>::value);
 BOOST_STATIC_ASSERT(is_sync_write_stream<stream_type>::value);
 BOOST_STATIC_ASSERT(is_sync_stream<stream_type>::value);
 
-BOOST_STATIC_ASSERT(! has_get_io_service<int>::value);
-BOOST_STATIC_ASSERT(! is_async_read_stream<int>::value);
-BOOST_STATIC_ASSERT(! is_async_write_stream<int>::value);
-BOOST_STATIC_ASSERT(! is_sync_read_stream<int>::value);
-BOOST_STATIC_ASSERT(! is_sync_write_stream<int>::value);
+BOOST_STATIC_ASSERT(! has_get_io_service<not_a_stream>::value);
+BOOST_STATIC_ASSERT(! is_async_read_stream<not_a_stream>::value);
+BOOST_STATIC_ASSERT(! is_async_write_stream<not_a_stream>::value);
+BOOST_STATIC_ASSERT(! is_sync_read_stream<not_a_stream>::value);
+BOOST_STATIC_ASSERT(! is_sync_write_stream<not_a_stream>::value);
 
-//} // (anonymous)
+} // (anonymous)
 
 } // beast

@@ -16,6 +16,31 @@
 #include <type_traits>
 #include <string>
 
+// A few workarounds to keep things working
+
+namespace boost {
+namespace asio {
+
+// for has_get_io_service
+class io_service;
+
+// for is_dynamic_buffer
+template<class Allocator>
+class basic_streambuf;
+
+namespace detail {
+
+// for is_buffer_sequence
+template<class Buffer, class Buffers>
+class consuming_buffers;
+
+} // detail
+
+} // asio
+} // boost
+
+//------------------------------------------------------------------------------
+
 namespace beast {
 namespace detail {
 
@@ -31,6 +56,11 @@ struct make_void
 
 template<class... Ts>
 using void_t = typename make_void<Ts...>::type;
+
+template<class T>
+inline
+void
+accept_rv(T){}
 
 template<class... Ts>
 inline
@@ -109,8 +139,7 @@ is_invocable_test(C&& c, long, A&& ...a);
 */
 /** @{ */
 template<class C, class F>
-struct is_invocable
-    : std::false_type
+struct is_invocable : std::false_type
 {
 };
 
@@ -145,72 +174,57 @@ using ConstBufferSequence =
 using MutableBufferSequence =
     BufferSequence<boost::asio::mutable_buffer>;
 
-template<class T, class BufferType>
-class is_buffer_sequence
+template<class T, class B, class = void>
+struct is_buffer_sequence : std::false_type {};
+
+template<class T, class B>
+struct is_buffer_sequence<T, B, void_t<decltype(
+    std::declval<typename T::value_type>(),
+    std::declval<typename T::const_iterator&>() =
+        std::declval<T const&>().begin(),
+    std::declval<typename T::const_iterator&>() =
+        std::declval<T const&>().end(),
+        (void)0)>> : std::integral_constant<bool,
+    std::is_convertible<typename T::value_type, B>::value &&
+#if 0
+    std::is_base_of<std::bidirectional_iterator_tag,
+        typename std::iterator_traits<
+            typename T::const_iterator>::iterator_category>::value
+#else
+    // workaround:
+    // boost::asio::detail::consuming_buffers::const_iterator
+    // is not bidirectional
+    std::is_base_of<std::forward_iterator_tag,
+        typename std::iterator_traits<
+            typename T::const_iterator>::iterator_category>::value
+#endif
+        >
 {
-    template<class U, class R = std::is_convertible<
-        typename U::value_type, BufferType> >
-    static R check1(int);
-    template<class>
-    static std::false_type check1(...);
-    using type1 = decltype(check1<T>(0));
-
-    template<class U, class R = std::is_base_of<
-    #if 0
-        std::bidirectional_iterator_tag,
-            typename std::iterator_traits<
-                typename U::const_iterator>::iterator_category>>
-    #else
-        // workaround:
-        // boost::asio::detail::consuming_buffers::const_iterator
-        // is not bidirectional
-        std::forward_iterator_tag,
-            typename std::iterator_traits<
-                typename U::const_iterator>::iterator_category>>
-    #endif
-    static R check2(int);
-    template<class>
-    static std::false_type check2(...);
-    using type2 = decltype(check2<T>(0));
-
-    template<class U, class R = typename
-        std::is_convertible<decltype(
-            std::declval<U>().begin()),
-                typename U::const_iterator>::type>
-    static R check3(int);
-    template<class>
-    static std::false_type check3(...);
-    using type3 = decltype(check3<T>(0));
-
-    template<class U, class R = typename std::is_convertible<decltype(
-        std::declval<U>().end()),
-            typename U::const_iterator>::type>
-    static R check4(int);
-    template<class>
-    static std::false_type check4(...);
-    using type4 = decltype(check4<T>(0));
-
-public:
-    using type = std::integral_constant<bool,
-        std::is_copy_constructible<T>::value &&
-        std::is_destructible<T>::value &&
-        type1::value && type2::value &&
-        type3::value && type4::value>;
 };
 
-//------------------------------------------------------------------------------
+#if 0
+// workaround:
+// boost::asio::detail::consuming_buffers::const_iterator
+// is not bidirectional
+template<class Buffer, class Buffers, class B>
+struct is_buffer_sequence<
+    boost::asio::detail::consuming_buffers<Buffer, Buffers>>
+        : std::true_type
+{
+};     
+#endif
 
 template<class B1, class... Bn>
 struct is_all_const_buffer_sequence
     : std::integral_constant<bool,
-        is_buffer_sequence<B1, boost::asio::const_buffer>::type::value &&
+        is_buffer_sequence<B1, boost::asio::const_buffer>::value &&
         is_all_const_buffer_sequence<Bn...>::value>
 {
 };
 
 template<class B1>
 struct is_all_const_buffer_sequence<B1>
-    : is_buffer_sequence<B1, boost::asio::const_buffer>::type
+    : is_buffer_sequence<B1, boost::asio::const_buffer>
 {
 };
 
@@ -344,15 +358,5 @@ public:
 
 } // detail
 } // beast
-
-namespace boost {
-namespace asio {
-
-// for is_dynamic_buffer
-template<class Allocator>
-class basic_streambuf;
-
-} // asio
-} // boost
 
 #endif
