@@ -1,5 +1,7 @@
 Version 48
 
+* Make buffer_prefix_view public
+
 API Changes:
 
 * Tidy up chunk decorator

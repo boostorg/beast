@@ -327,6 +327,13 @@ caller; ownership is not transferred.
     a prefix of the original buffers.
 ]]
 [[
+    [link beast.ref.buffer_prefix_view `buffer_prefix_view`]
+][
+    This class represents the buffer sequence formed from a prefix of
+    an existing buffer sequence. This is the type of buffer returned by
+    [link beast.ref.buffer_prefix `buffer_prefix`].
+]]
+[[
     [link beast.ref.consuming_buffers `consuming_buffers`]
 ][
     This class wraps the underlying memory of an existing buffer sequence
