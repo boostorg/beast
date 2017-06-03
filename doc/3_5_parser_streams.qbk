@@ -80,14 +80,14 @@ The stream operations which work on parsers are:
 [table Parser Stream Operations
 [[Name][Description]]
 [[
-    [link beast.ref.http__read_some.overload1 [*read_some]]
+    [link beast.ref.http__read.overload1 [*read]]
 ][
-    Read some octets into a parser from a __SyncReadStream__.
+    Read everything into a parser from a __SyncWriteStream__.
 ]]
 [[
-    [link beast.ref.http__async_read_some [*async_read_some]]
+    [link beast.ref.http__async_read.overload1 [*async_read]]
 ][
-    Read some octets into a parser asynchronously from an __AsyncWriteStream__.
+    Read everything into a parser asynchronously from an __AsyncWriteStream__.
 ]]
 [[
     [link beast.ref.http__read_header.overload1 [*read_header]]
@@ -100,14 +100,14 @@ The stream operations which work on parsers are:
     Read only the header octets into a parser asynchronously from an __AsyncWriteStream__.
 ]]
 [[
-    [link beast.ref.http__read.overload1 [*read]]
+    [link beast.ref.http__read_some.overload1 [*read_some]]
 ][
-    Read everything into a parser from a __SyncWriteStream__.
+    Read some octets into a parser from a __SyncReadStream__.
 ]]
 [[
-    [link beast.ref.http__async_read.overload1 [*async_read]]
+    [link beast.ref.http__async_read_some [*async_read_some]]
 ][
-    Read everything into a parser asynchronously from an __AsyncWriteStream__.
+    Read some octets into a parser asynchronously from an __AsyncWriteStream__.
 ]]
 ]
 

@@ -12,7 +12,6 @@ and invoke its methods directly instead of using the provided stream
 algorithms. This could be useful for implementing algorithms on streams
 whose interface does not conform to __Stream__. For example, a
 [@https://github.com/libuv/libuv *libuv* socket].
-
 The serializer interface is interactive; the caller invokes it repeatedly to
 produce buffers until all of the buffers have been generated. Then the
 serializer is destroyed.

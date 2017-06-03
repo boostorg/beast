@@ -93,9 +93,13 @@ of redirects, gzipped transfer encodings, caching, or proxying (to name
 a few) are not directly provided, but nothing stops users from creating
 these features using Beast's HTTP message types.
 
-The library is intended to be the foundation upon which other networking
-libraries are built. It is a goal that other architects will build
-interoperable solutions on top of Beast.
+[important
+  Beast is not an HTTP client or HTTP server, but it can be used to
+  build both. The library is intended to be a foundation upon which
+  new libraries may be built. It is a goal that other architects will
+  build interoperable solutions on top of Beast. The provided example
+  code shows how a client or server may be built.
+]
 
 [heading Credits]
 
