@@ -141,8 +141,7 @@ operator()(error_code ec, bool again)
             {
                 // suspend
                 d.state = 2;
-                d.ws.wr_op_.template emplace<
-                    close_op>(std::move(*this));
+                d.ws.wr_op_.emplace(std::move(*this));
                 return;
             }
             if(d.ws.failed_ || d.ws.wr_close_)

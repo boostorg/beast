@@ -491,8 +491,7 @@ operator()(error_code ec,
             {
                 // suspend
                 d.state = do_maybe_suspend + 1;
-                d.ws.wr_op_.template emplace<
-                    write_frame_op>(std::move(*this));
+                d.ws.wr_op_.emplace(std::move(*this));
                 return;
             }
             if(d.ws.failed_ || d.ws.wr_close_)
