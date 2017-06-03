@@ -7,7 +7,7 @@
 
 [section:parser_buffers Buffer-Oriented Parsing]
 
-In extreme cases, users may wish to create an instance of __message_parser__,
+In extreme cases, users may wish to create an instance of __parser__,
 __header_parser__, or a user-defined type derived from __basic_parser__ and
 invoke its methods directly instead of using the provided stream algorithms.
 This could be useful for implementing algorithms on streams whose interface
@@ -58,7 +58,7 @@ parse_istream(
     error_code& ec)
 {
     // Create the message parser
-    message_parser<isRequest, Body, Fields> parser;
+    parser<isRequest, Body, Fields> parser;
 
     do
     {

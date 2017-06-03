@@ -26,15 +26,15 @@ defined types deriving from the basic parser are possible:
 [table Parser Implementations
 [[Name][Description]]
 [[
-    __message_parser__
+    __parser__
 ][
     ```
-    /// A parser for a message
+    /// An HTTP/1 parser for producing a message.
     template<
         bool isRequest,         // `true` to parse an HTTP request
         class Body,             // The Body type for the resulting message
         class Fields>           // The type of container representing the fields
-    class message_parser
+    class parser
         : public basic_parser<...>;
     ```
 ]]
@@ -42,12 +42,30 @@ defined types deriving from the basic parser are possible:
     __header_parser__
 ][
     ```
-    /// A parser for a header
+    /// An HTTP/1 parser for producing a header.
     template<
         bool isRequest,         // `true` to parse an HTTP request
         class Fields>           // The type of container representing the fields
     class header_parser
         : public basic_parser<...>;
+    ```
+]]
+[[
+    [link beast.ref.http__request_parser `request_parser`]
+][
+    ```
+    /// An HTTP/1 parser for producing a request message.
+    template<class Body, class Fields = fields>
+    using request_parser = parser<true, Body, Fields>;
+    ```
+]]
+[[
+    [link beast.ref.http__response_parser `response_parser`]
+][
+    ```
+    /// An HTTP/1 parser for producing a response message.
+    template<class Body, class Fields = fields>
+    using response_parser = parser<false, Body, Fields>;
     ```
 ]]
 ]
@@ -134,8 +152,8 @@ immediate informational response before sending the the message body, which
 presumably may be expensive to compute or large. This behavior is described in
 [@https://tools.ietf.org/html/rfc7231#section-5.1.1 rfc7231 section 5.1.1].
 Handling the Expect field can be implemented easily in a server by constructing
-a __message_parser__ to read the header first, then send an informational
-HTTP response, and finally read the body using the same parser instance. A
+a __parser__ to read the header first, then send an informational HTTP
+response, and finally read the body using the same parser instance. A
 synchronous version of this server action looks like this:
 ```
 /** Receive a request, handling Expect: 100-continue if present.
@@ -209,7 +227,7 @@ The example that follows implements a synchronous HTTP relay. It uses a
 fixed size buffer, to avoid reading in the entire body so that the upstream
 connection sees a header without unnecessary latency. This example brings
 together all of the concepts discussed so far, it uses both a __serializer__
-and a __message_parser__ to achieve its goal:
+and a __parser__ to achieve its goal:
 ```
 /** Relay an HTTP message.
 
@@ -265,7 +283,7 @@ relay(
     char buf[2048];
 
     // Create a parser with a buffer body to read from the input.
-    message_parser<isRequest, buffer_body, Fields> p;
+    parser<isRequest, buffer_body, Fields> p;
 
     // Create a serializer from the message contained in the parser.
     serializer<isRequest, buffer_body, Fields> sr{p.get()};

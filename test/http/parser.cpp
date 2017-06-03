@@ -83,7 +83,7 @@ class parser_test
 public:
     template<bool isRequest>
     using parser_type =
-        message_parser<isRequest, string_body, fields>;
+        parser<isRequest, string_body, fields>;
 
     static
     boost::asio::const_buffers_1
@@ -319,7 +319,7 @@ public:
         // skip body
         {
             error_code ec;
-            message_parser<false, string_body, fields> p;
+            response_parser<string_body> p;
             p.skip(true);
             p.put(buf(
                 "HTTP/1.1 200 OK\r\n"
@@ -353,8 +353,7 @@ public:
         BEAST_EXPECTS(! ec, ec.message());
         BEAST_EXPECT(p0.is_header_done());
         BEAST_EXPECT(! p0.is_done());
-        message_parser<true,
-            string_body, fields> p1{std::move(p0)};
+        request_parser<string_body> p1{std::move(p0)};
         read(ss, b, p1, ec);
         BEAST_EXPECTS(! ec, ec.message());
         BEAST_EXPECT(p1.get().body == "*****");

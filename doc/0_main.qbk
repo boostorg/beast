@@ -63,8 +63,8 @@
 [def __header__             [link beast.ref.http__header `header`]]
 [def __header_parser__      [link beast.ref.http__header_parser `header_parser`]]
 [def __message__            [link beast.ref.http__message `message`]]
-[def __message_parser__     [link beast.ref.http__message_parser `message_parser`]]
 [def __multi_buffer__       [link beast.ref.multi_buffer `multi_buffer`]]
+[def __parser__             [link beast.ref.http__parser `parser`]]
 [def __serializer__         [link beast.ref.http__serializer `serializer`]]
 
 Beast is a cross-platform, header-only C++11 library for low-level HTTP

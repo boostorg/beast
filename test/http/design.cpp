@@ -407,7 +407,7 @@ public:
         char buf[2048];
 
         // Create a parser with a buffer body to read from the input.
-        message_parser<isRequest, buffer_body, Fields> p;
+        parser<isRequest, buffer_body, Fields> p;
 
         // Create a serializer from the message contained in the parser.
         serializer<isRequest, buffer_body, Fields> sr{p.get()};
@@ -534,7 +534,7 @@ public:
         error_code& ec)
     {
         // Create the message parser
-        message_parser<isRequest, Body, Fields> parser;
+        parser<isRequest, Body, Fields> parser;
 
         do
         {
@@ -641,7 +641,7 @@ public:
             read_some(p.server, buffer, parser);
         buffer.consume(bytes_used);
 
-        message_parser<true, string_body, fields> parser2(
+        request_parser<string_body> parser2(
             std::move(parser));
 
         while(! parser2.is_done())
