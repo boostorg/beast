@@ -220,7 +220,7 @@ prepare(std::size_t n) ->
             detail::next_pow2(len + n), min_size));
     auto const p = alloc_traits::allocate(
         this->member(), new_size);
-    if(len > 0)
+    if(p_)
     {
         BOOST_ASSERT(p);
         BOOST_ASSERT(in_);
@@ -266,7 +266,7 @@ reserve(std::size_t n)
     auto const p = alloc_traits::allocate(
         this->member(), new_size);
     auto const len = size();
-    if(len > 0)
+    if(p_)
     {
         BOOST_ASSERT(p_);
         BOOST_ASSERT(in_);

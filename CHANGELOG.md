@@ -3,6 +3,7 @@ Version 47
 * Disable operator<< for buffer_body
 * buffer_size overload for basic_multi_buffer::const_buffers_type
 * Fix undefined behavior in pausation
+* Fix leak in basic_flat_buffer
 
 API Changes:
 
