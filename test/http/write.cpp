@@ -759,7 +759,7 @@ public:
 
     template<class Stream,
         bool isRequest, class Body, class Fields,
-            class Decorator = empty_decorator>
+            class Decorator = no_chunk_decorator>
     void
     do_write(Stream& stream, message<
         isRequest, Body, Fields> const& m, error_code& ec,
@@ -780,7 +780,7 @@ public:
 
     template<class Stream,
         bool isRequest, class Body, class Fields,
-            class Decorator = empty_decorator>
+            class Decorator = no_chunk_decorator>
     void
     do_async_write(Stream& stream,
         message<isRequest, Body, Fields> const& m,
@@ -802,17 +802,20 @@ public:
 
     struct test_decorator
     {
+        std::string s;
+
         template<class ConstBufferSequence>
         string_view
-        operator()(ConstBufferSequence const&) const
+        operator()(ConstBufferSequence const& buffers)
         {
-            return {";x\r\n"};
+            s = ";x=" + std::to_string(boost::asio::buffer_size(buffers));
+            return s;
         }
 
         string_view
-        operator()(boost::asio::null_buffers) const
+        operator()(boost::asio::null_buffers)
         {
-            return {"F: v\r\n"};
+            return "Result: OK\r\n";
         }
     };
 

@@ -73,11 +73,11 @@ write_fields(std::ostream& os,
 //------------------------------------------------------------------------------
 
 template<bool isRequest, class Body, class Fields,
-    class Decorator, class Allocator>
+    class ChunkDecorator, class Allocator>
 serializer<isRequest, Body, Fields,
-    Decorator, Allocator>::
+    ChunkDecorator, Allocator>::
 serializer(message<isRequest, Body, Fields> const& m,
-        Decorator const& d, Allocator const& alloc)
+        ChunkDecorator const& d, Allocator const& alloc)
     : m_(m)
     , d_(d)
     , b_(1024, alloc)
@@ -85,11 +85,11 @@ serializer(message<isRequest, Body, Fields> const& m,
 }
 
 template<bool isRequest, class Body, class Fields,
-    class Decorator, class Allocator>
+    class ChunkDecorator, class Allocator>
 template<class Visit>
 void
 serializer<isRequest, Body, Fields,
-    Decorator, Allocator>::
+    ChunkDecorator, Allocator>::
 get(error_code& ec, Visit&& visit)
 {
     using boost::asio::buffer_size;
@@ -207,6 +207,7 @@ get(error_code& ec, Visit&& visit)
                     sv.data(), sv.size()};
                 
             }(),
+            detail::chunk_crlf(),
             result->first,
             detail::chunk_crlf()};
         s_ = do_header_c;
@@ -251,6 +252,7 @@ get(error_code& ec, Visit&& visit)
                     sv.data(), sv.size()};
                 
             }(),
+            detail::chunk_crlf(),
             result->first,
             detail::chunk_crlf()};
         s_ = do_body_c + 2;
@@ -296,10 +298,10 @@ get(error_code& ec, Visit&& visit)
 }
 
 template<bool isRequest, class Body, class Fields,
-    class Decorator, class Allocator>
+    class ChunkDecorator, class Allocator>
 void
 serializer<isRequest, Body, Fields,
-    Decorator, Allocator>::
+    ChunkDecorator, Allocator>::
 consume(std::size_t n)
 {
     using boost::asio::buffer_size;
