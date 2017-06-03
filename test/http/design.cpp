@@ -16,6 +16,7 @@
 #include <beast/unit_test/suite.hpp>
 #include <boost/asio/read.hpp>
 #include <boost/asio/write.hpp>
+#include <sstream>
 
 namespace beast {
 namespace http {
@@ -504,6 +505,121 @@ public:
 
     //--------------------------------------------------------------------------
     //
+    // Example: Parse from std::istream
+    //
+    //--------------------------------------------------------------------------
+
+    /** Parse an HTTP/1 message from a `std::istream`.
+
+        This function attempts to parse a complete message from the stream.
+
+        @param is The `std::istream` to read from.
+
+        @param buffer The buffer to use.
+
+        @param msg The message to store the result.
+
+        @param ec Set to the error, if any occurred.
+    */
+    template<
+        class Allocator,
+        bool isRequest,
+        class Body,
+        class Fields>
+    void
+    parse_istream(
+        std::istream& is,
+        basic_flat_buffer<Allocator>& buffer,
+        message<isRequest, Body, Fields>& msg,
+        error_code& ec)
+    {
+        // Create the message parser
+        message_parser<isRequest, Body, Fields> parser;
+
+        do
+        {
+            // Extract whatever characters are presently available in the istream
+            if(is.rdbuf()->in_avail() > 0)
+            {
+                // Get a mutable buffer sequence for writing
+                auto const mb = buffer.prepare(is.rdbuf()->in_avail());
+
+                // Now get everything we can from the istream
+                buffer.commit(is.readsome(
+                    boost::asio::buffer_cast<char*>(mb),
+                    boost::asio::buffer_size(mb)));
+            }
+            else if(buffer.size() == 0)
+            {
+                // Our buffer is empty and we need more characters, 
+                // see if we've reached the end of file on the istream
+                if(! is.eof())
+                {
+                    // Get a mutable buffer sequence for writing
+                    auto const mb = buffer.prepare(1024);
+
+                    // Try to get more from the istream. This might block.
+                    is.read(
+                        boost::asio::buffer_cast<char*>(mb),
+                        boost::asio::buffer_size(mb));
+
+                    // If an error occurs on the istream then return it to the caller.
+                    if(is.fail() && ! is.eof())
+                    {
+                        // We'll just re-use io_error since std::istream has no error_code interface.
+                        ec = make_error_code(errc::io_error);
+                        return;
+                    }
+
+                    // Commit the characters we got to the buffer.
+                    buffer.commit(is.gcount());
+                }
+                else
+                {
+                    // Inform the parser that we've reached the end of the istream.
+                    parser.put_eof(ec);
+                    if(ec)
+                        return;
+                    break;
+                }
+            }
+
+            // Write the data to the parser
+            auto const bytes_used = parser.put(buffer.data(), ec);
+
+            // This error means that the parser needs additional octets.
+            if(ec == error::need_more)
+                ec = {};
+            if(ec)
+                return;
+
+            // Consume the buffer octets that were actually parsed.
+            buffer.consume(bytes_used);
+        }
+        while(! parser.is_done());
+
+        // Transfer ownership of the message container in the parser to the caller.
+        msg = parser.release();
+    }
+
+    void
+    doParseStdStream()
+    {
+        std::istringstream is(
+            "HTTP/1.0 200 OK\r\n"
+            "User-Agent: test\r\n"
+            "\r\n"
+            "Hello, world!"
+        );
+        error_code ec;
+        flat_buffer buffer;
+        response<string_body> res;
+        parse_istream(is, buffer, res, ec);
+        BEAST_EXPECTS(! ec, ec.message());
+    }
+
+    //--------------------------------------------------------------------------
+    //
     // Deferred Body type commitment
     //
     //--------------------------------------------------------------------------
@@ -671,6 +787,7 @@ public:
         doExpect100Continue();
         doCgiResponse();
         doRelay();
+        doParseStdStream();
         doDeferredBody();
     }
 };

@@ -10,8 +10,7 @@
 In extreme cases, users may wish to create an instance of __serializer__
 and invoke its methods directly instead of using the provided stream
 algorithms. This could be useful for implementing algorithms on streams
-whose asynchronous interface does not conform to __AsyncStream__. For
-example, a
+whose interface does not conform to __Stream__. For example, a
 [@https://github.com/libuv/libuv *libuv* socket].
 
 The serializer interface is interactive; the caller invokes it repeatedly to
@@ -30,8 +29,8 @@ takes an error code parameter and invokes a visitor argument with the
 error code and buffer of unspecified type. In C++14 this is easily
 expressed with a generic lambda. The function
 [link beast.ref.http__serializer.is_done `serializer::is_done`]
-will return `true` when all the buffers have been produced. This example
-prints the buffers to standard output:
+will return `true` when all the buffers have been produced. This C++14
+example prints the buffers to standard output:
 ```
 template<bool isRequest, class Body, class Fields>
 void print(message<isRequest, Body, Fields> const& m)
@@ -55,8 +54,8 @@ void print(message<isRequest, Body, Fields> const& m)
 }
 ```
 
-Generic lambda expressions are not available in C++11, so a functor with
-a templated function call operator is necessary:
+Generic lambda expressions are only available in C++14 or later. A functor
+with a templated function call operator is necessary to use C++11 as shown:
 ```
 template<class Serializer>
 struct lambda
