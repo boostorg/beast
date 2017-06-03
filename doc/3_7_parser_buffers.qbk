@@ -7,4 +7,130 @@
 
 [section:parser_buffers Buffer-Oriented Parsing]
 
+In extreme cases, users may wish to create an instance of __message_parser__,
+__header_parser__, or a user-defined type derived from __basic_parser__ and
+invoke its methods directly instead of using the provided stream algorithms.
+This could be useful for implementing algorithms on streams whose interface
+does not conform to any __Stream__. For example, a
+[@http://zeromq.org/ *ZeroMQ* socket].
+
+The basic parser interface is interactive; the caller invokes the function
+[link beast.ref.http__basic_parser.put `basic_parser::put`]
+repeatedly with buffers until an error occurs or the parsing is done. The
+function
+[link beast.ref.http__basic_parser.put_eof `basic_parser::put_eof`]
+Is used when the caller knows that there will never be more data (for example,
+if the underlying connection is closed), 
+
+[heading Split Parsing]
+
+[heading Eager Parsing]
+
+[heading Example: Parsing from a std::istream]
+
+The standard library provides the type `std::istream` for performing high
+level operations on character streams. The variable `std::cin` is based
+on this input stream. In this example, we build a stream operation which
+parses an HTTP message from a `std::istream`:
+```
+/** Parse an HTTP/1 message from a `std::istream`.
+
+    This function attempts to parse a complete message from the stream.
+
+    @param is The `std::istream` to read from.
+
+    @param buffer The buffer to use.
+
+    @param msg The message to store the result.
+
+    @param ec Set to the error, if any occurred.
+*/
+template<
+    class Allocator,
+    bool isRequest,
+    class Body,
+    class Fields>
+void
+parse_istream(
+    std::istream& is,
+    basic_flat_buffer<Allocator>& buffer,
+    message<isRequest, Body, Fields>& msg,
+    error_code& ec)
+{
+    // Create the message parser
+    message_parser<isRequest, Body, Fields> parser;
+
+    do
+    {
+        // Extract whatever characters are presently available in the istream
+        if(is.rdbuf()->in_avail() > 0)
+        {
+            // Get a mutable buffer sequence for writing
+            auto const mb = buffer.prepare(is.rdbuf()->in_avail());
+
+            // Now get everything we can from the istream
+            buffer.commit(is.readsome(
+                boost::asio::buffer_cast<char*>(mb),
+                boost::asio::buffer_size(mb)));
+        }
+        else if(buffer.size() == 0)
+        {
+            // Our buffer is empty and we need more characters, 
+            // see if we've reached the end of file on the istream
+            if(! is.eof())
+            {
+                // Get a mutable buffer sequence for writing
+                auto const mb = buffer.prepare(1024);
+
+                // Try to get more from the istream. This might block.
+                is.read(
+                    boost::asio::buffer_cast<char*>(mb),
+                    boost::asio::buffer_size(mb));
+
+                // If an error occurs on the istream then return it to the caller.
+                if(is.fail() && ! is.eof())
+                {
+                    // We'll just re-use io_error since std::istream has no error_code interface.
+                    ec = make_error_code(errc::io_error);
+                    return;
+                }
+
+                // Commit the characters we got to the buffer.
+                buffer.commit(is.gcount());
+            }
+            else
+            {
+                // Inform the parser that we've reached the end of the istream.
+                parser.put_eof(ec);
+                if(ec)
+                    return;
+                break;
+            }
+        }
+
+        // Write the data to the parser
+        auto const bytes_used = parser.put(buffer.data(), ec);
+
+        // This error means that the parser needs additional octets.
+        if(ec == error::need_more)
+            ec = {};
+        if(ec)
+            return;
+
+        // Consume the buffer octets that were actually parsed.
+        buffer.consume(bytes_used);
+    }
+    while(! parser.is_done());
+
+    // Transfer ownership of the message container in the parser to the caller.
+    msg = parser.release();
+}
+```
+[tip
+    Parsing from a `std::istream` could be implemented using an alternate
+    strategy: adapt the `std::istream` interface to a __SyncReadStream__.
+    This would allow it to work with the library's existing algorithms.
+    We leave this as an exercise for the reader.
+]
+
 [endsect]

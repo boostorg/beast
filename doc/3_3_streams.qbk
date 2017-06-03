@@ -84,6 +84,25 @@ code indicating the result is printed:
         });
 ```
 
+If a read stream algorithm cannot complete its operation without exceeding
+the maximum specified size of the dynamic buffer provided, the error
+[link beast.ref.http__error `buffer_overflow`]
+is returned. This may be used to impose a limit on the maximum size of an
+HTTP message header for protection from buffer overflow attacks. The following
+code will generate an error:
+```
+    // This buffer is too small for much of anything
+    flat_buffer buffer{10};
+
+    // Try to read a request
+    error_code ec;
+    request<string_body> req;
+    read(sock, buffer, req, ec);
+    if(ec == error::buffer_overflow)
+        std::cerr << "Buffer limit exceeded!" << std::endl;
+
+```
+
 [heading Writing]
 
 A set of free functions allow serialization of an entire HTTP message to
