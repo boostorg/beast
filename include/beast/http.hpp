@@ -16,9 +16,8 @@
 #include <beast/http/empty_body.hpp>
 #include <beast/http/error.hpp>
 #include <beast/http/fields.hpp>
-#include <beast/http/header_parser.hpp>
 #include <beast/http/message.hpp>
-#include <beast/http/message_parser.hpp>
+#include <beast/http/parser.hpp>
 #include <beast/http/read.hpp>
 #include <beast/http/rfc7230.hpp>
 #include <beast/http/serializer.hpp>

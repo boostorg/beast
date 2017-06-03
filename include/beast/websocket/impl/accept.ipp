@@ -10,8 +10,7 @@
 
 #include <beast/websocket/detail/type_traits.hpp>
 #include <beast/http/empty_body.hpp>
-#include <beast/http/message.hpp>
-#include <beast/http/header_parser.hpp>
+#include <beast/http/parser.hpp>
 #include <beast/http/read.hpp>
 #include <beast/http/string_body.hpp>
 #include <beast/http/write.hpp>

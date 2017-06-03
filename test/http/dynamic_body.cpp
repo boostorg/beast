@@ -10,7 +10,7 @@
 
 #include <beast/core/ostream.hpp>
 #include <beast/http/fields.hpp>
-#include <beast/http/message_parser.hpp>
+#include <beast/http/parser.hpp>
 #include <beast/http/read.hpp>
 #include <beast/http/write.hpp>
 #include <beast/test/string_istream.hpp>

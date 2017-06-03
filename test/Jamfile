@@ -47,9 +47,8 @@ unit-test http-tests :
     http/dynamic_body.cpp
     http/error.cpp
     http/fields.cpp
-    http/header_parser.cpp
     http/message.cpp
-    http/message_parser.cpp
+    http/parser.cpp
     http/read.cpp
     http/rfc7230.cpp
     http/serializer.cpp
