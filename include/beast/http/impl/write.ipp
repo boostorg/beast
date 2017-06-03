@@ -356,12 +356,12 @@ class write_msg_op
     {
         Stream& s;
         serializer<isRequest, Body, Fields,
-            empty_decorator, handler_alloc<char, Handler>> sr;
+            no_chunk_decorator, handler_alloc<char, Handler>> sr;
 
         data(Handler& h, Stream& s_, message<
                 isRequest, Body, Fields> const& m_)
             : s(s_)
-            , sr(m_, empty_decorator{},
+            , sr(m_, no_chunk_decorator{},
                 handler_alloc<char, Handler>{h})
         {
         }

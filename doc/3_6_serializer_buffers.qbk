@@ -164,12 +164,11 @@ invoke the decorator with a buffer sequence of size zero. Or more
 specifically, with an object of type
 [@http://www.boost.org/doc/html/boost_asio/reference/null_buffers.html `boost::asio::null_buffers`].
 
-For body chunks the string returned by the decorator must end in a
-CRLF (`"\r\n"`) and follow the
+For body chunks the string returned by the decorator must follow the
 [@https://tools.ietf.org/html/rfc7230#section-4.1.1 correct syntax]
 for the entire chunk extension. For the trailer, the returned string
 should consist of zero or more lines ending in a CRLF and containing
-a field name/value pair in the format prescribed in __rfc7230__. It
+a field name/value pair in the format prescribed by __rfc7230__. It
 is the responsibility of the decorator to manage returned string buffers.
 The implementation guarantees it will not reference previous strings
 after subsequent calls.
@@ -183,14 +182,14 @@ struct decorator
 
     template<class ConstBufferSequence>
     string_view
-    operator()(ConstBufferSequence const& buffer) const
+    operator()(ConstBufferSequence const& buffers)
     {
-        s = ";x=" + std::to_string(boost::asio::buffer_size(buffer)) + "\r\n";
+        s = ";x=" + std::to_string(boost::asio::buffer_size(buffers));
         return s;
     }
 
     string_view
-    operator()(boost::asio::null_buffers) const
+    operator()(boost::asio::null_buffers)
     {
         return "Result: OK\r\n";
     }

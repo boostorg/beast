@@ -37,13 +37,13 @@ namespace http {
 
     @see @ref serializer
 */
-struct empty_decorator
+struct no_chunk_decorator
 {
     template<class ConstBufferSequence>
     string_view
     operator()(ConstBufferSequence const&) const
     {
-        return {"\r\n"};
+        return {};
     }
 
     string_view
@@ -115,7 +115,7 @@ struct empty_decorator
 
     @tparam Fields The type of fields in the message.
 
-    @tparam Decorator The type of chunk decorator to use.
+    @tparam ChunkDecorator The type of chunk decorator to use.
 
     @tparam Allocator The type of allocator to use.
 
@@ -123,7 +123,7 @@ struct empty_decorator
 */
 template<
     bool isRequest, class Body, class Fields,
-    class Decorator = empty_decorator,
+    class ChunkDecorator = no_chunk_decorator,
     class Allocator = std::allocator<char>
 >
 class serializer
@@ -172,13 +172,15 @@ class serializer
     using ch0_t = consuming_buffers<buffers_view<
         typename buffer_type::const_buffers_type,   // header
         detail::chunk_header,                       // chunk-header
-        boost::asio::const_buffers_1,               // chunk-ext+\r\n
+        boost::asio::const_buffers_1,               // chunk-ext
+        boost::asio::const_buffers_1,               // crlf
         typename reader::const_buffers_type,        // body
         boost::asio::const_buffers_1>>;             // crlf
     
     using ch1_t = consuming_buffers<buffers_view<
         detail::chunk_header,                       // chunk-header
-        boost::asio::const_buffers_1,               // chunk-ext+\r\n
+        boost::asio::const_buffers_1,               // chunk-ext
+        boost::asio::const_buffers_1,               // crlf
         typename reader::const_buffers_type,        // body
         boost::asio::const_buffers_1>>;             // crlf
 
@@ -188,7 +190,7 @@ class serializer
         boost::asio::const_buffers_1>>;             // crlf
 
     message<isRequest, Body, Fields> const& m_;
-    Decorator d_;
+    ChunkDecorator d_;
     boost::optional<reader> rd_;
     buffer_type b_;
     boost::variant<boost::blank,
@@ -217,7 +219,7 @@ public:
     */
     explicit
     serializer(message<isRequest, Body, Fields> const& msg,
-        Decorator const& decorator = Decorator{},
+        ChunkDecorator const& decorator = ChunkDecorator{},
             Allocator const& alloc = Allocator{});
 
     /** Returns `true` if we will pause after writing the complete header.
@@ -335,18 +337,18 @@ public:
 */
 template<
     bool isRequest, class Body, class Fields,
-    class Decorator = empty_decorator,
+    class ChunkDecorator = no_chunk_decorator,
     class Allocator = std::allocator<char>>
 inline
 serializer<isRequest, Body, Fields,
-    typename std::decay<Decorator>::type,
+    typename std::decay<ChunkDecorator>::type,
     typename std::decay<Allocator>::type>
 make_serializer(message<isRequest, Body, Fields> const& m,
-    Decorator const& decorator = Decorator{},
+    ChunkDecorator const& decorator = ChunkDecorator{},
         Allocator const& allocator = Allocator{})
 {
     return serializer<isRequest, Body, Fields,
-        typename std::decay<Decorator>::type,
+        typename std::decay<ChunkDecorator>::type,
         typename std::decay<Allocator>::type>{
             m, decorator, allocator};
 }

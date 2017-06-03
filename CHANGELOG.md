@@ -1,3 +1,11 @@
+Version 48
+
+API Changes:
+
+* Tidy up chunk decorator
+
+--------------------------------------------------------------------------------
+
 Version 47
 
 * Disable operator<< for buffer_body

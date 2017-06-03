@@ -27,7 +27,7 @@ template<
     bool isRequest,
     class Body,
     class Fields,
-    class Decorator = empty_decorator,
+    class ChunkDecorator = no_chunk_decorator,
     class Allocator = std::allocator<char>
 >
 class serializer;
