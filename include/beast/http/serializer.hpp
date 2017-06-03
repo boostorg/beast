@@ -162,14 +162,14 @@ class serializer
     using is_deferred =
         typename reader::is_deferred;
 
-    using cb0_t = consuming_buffers<buffers_view<
+    using cb0_t = consuming_buffers<buffer_cat_view<
         typename buffer_type::const_buffers_type,   // header
         typename reader::const_buffers_type>>;      // body
 
     using cb1_t = consuming_buffers<
         typename reader::const_buffers_type>;       // body
 
-    using ch0_t = consuming_buffers<buffers_view<
+    using ch0_t = consuming_buffers<buffer_cat_view<
         typename buffer_type::const_buffers_type,   // header
         detail::chunk_header,                       // chunk-header
         boost::asio::const_buffers_1,               // chunk-ext
@@ -177,14 +177,14 @@ class serializer
         typename reader::const_buffers_type,        // body
         boost::asio::const_buffers_1>>;             // crlf
     
-    using ch1_t = consuming_buffers<buffers_view<
+    using ch1_t = consuming_buffers<buffer_cat_view<
         detail::chunk_header,                       // chunk-header
         boost::asio::const_buffers_1,               // chunk-ext
         boost::asio::const_buffers_1,               // crlf
         typename reader::const_buffers_type,        // body
         boost::asio::const_buffers_1>>;             // crlf
 
-    using ch2_t = consuming_buffers<buffers_view<
+    using ch2_t = consuming_buffers<buffer_cat_view<
         boost::asio::const_buffers_1,               // chunk-final
         boost::asio::const_buffers_1,               // trailers 
         boost::asio::const_buffers_1>>;             // crlf
