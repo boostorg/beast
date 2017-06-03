@@ -26,19 +26,19 @@ The meaning of the nested types is as follows
         declared with this [*Body] will have those operations defined.
     ]
 ][
-    [`body_writer`]
+    [`reader`]
+    [
+        An optional nested type meeting the requirements of
+        [link beast.ref.BodyReader [*BodyReader]]. If present, this defines
+        the algorithm used to obtain buffers representing a body of this type.
+    ]
+][
+    [`writer`]
     [
         An optional nested type meeting the requirements of
         [link beast.ref.BodyWriter [*BodyWriter]]. If present, this defines the
         algorithm used to transfer parsed octets into buffers representing the
         body.
-    ]
-][
-    [`body_reader`]
-    [
-        An optional nested type meeting the requirements of
-        [link beast.ref.BodyReader [*BodyReader]]. If present, this defines
-        the algorithm used to obtain buffers representing a body of this type.
     ]
 ]
 ]

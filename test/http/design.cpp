@@ -21,6 +21,130 @@
 namespace beast {
 namespace http {
 
+namespace design {
+
+//--------------------------------------------------------------------------
+//
+// Example: Custom Parser
+//
+//--------------------------------------------------------------------------
+
+template<bool isRequest>
+class custom_parser
+    : public basic_parser<isRequest, custom_parser<isRequest>>
+{
+    friend class basic_parser<isRequest, custom_parser>;
+
+    /// Called after receiving the request-line (isRequest == true).
+    void
+    on_request(
+        string_view method,     // The method
+        string_view target,     // The request-target
+        int version,            // The HTTP-version
+        error_code& ec);        // The error returned to the caller, if any
+
+    /// Called after receiving the start-line (isRequest == false).
+    void
+    on_response(
+        int status,             // The status-code
+        string_view reason,     // The obsolete reason-phrase
+        int version,            // The HTTP-version
+        error_code& ec);        // The error returned to the caller, if any
+
+    /// Called after receiving a header field.
+    void
+    on_field(
+        string_view name,       // The field name
+        string_view value,      // The field value
+        error_code& ec);        // The error returned to the caller, if any
+
+    /// Called after the complete header is received.
+    void
+    on_header(
+        error_code& ec);        // The error returned to the caller, if any
+
+    /// Called just before processing the body, if a body exists.
+    void
+    on_body(boost::optional<
+            std::uint64_t> const&
+        content_length,         // Content length if known, else `boost::none`
+        error_code& ec);        // The error returned to the caller, if any
+
+    /// Called for each piece of the body, if a body exists.
+    //
+    //  If present, the chunked Transfer-Encoding will be removed
+    //  before this callback is invoked.
+    //
+    void
+    on_data(
+        string_view s,          // A portion of the body
+        error_code& ec);        // The error returned to the caller, if any
+
+    /// Called for each chunk header.
+    void
+    on_chunk(
+        std::uint64_t size,     // The size of the upcoming chunk
+        string_view extension,  // The chunk-extension (may be empty)
+        error_code& ec);        // The error returned to the caller, if any
+
+    /// Called when the complete message is parsed.
+    void
+    on_complete(error_code& ec);
+
+public:
+    custom_parser() = default;
+};
+
+template<bool isRequest>
+void custom_parser<isRequest>::
+on_request(string_view method, string_view path, int version, error_code& ec)
+{
+}
+
+template<bool isRequest>
+void custom_parser<isRequest>::
+on_response(int status, string_view reason, int version, error_code& ec)
+{
+}
+
+template<bool isRequest>
+void custom_parser<isRequest>::
+on_field(string_view name, string_view value, error_code& ec)
+{
+}
+
+template<bool isRequest>
+void custom_parser<isRequest>::
+on_header(error_code& ec)
+{
+}
+
+template<bool isRequest>
+void custom_parser<isRequest>::
+on_body(boost::optional<std::uint64_t> const& content_length, error_code& ec)
+{
+}
+
+template<bool isRequest>
+void custom_parser<isRequest>::
+on_data(string_view s, error_code& ec)
+{
+}
+
+template<bool isRequest>
+void custom_parser<isRequest>::
+on_chunk(std::uint64_t size, string_view extension, error_code& ec)
+{
+}
+
+template<bool isRequest>
+void custom_parser<isRequest>::
+on_complete(error_code& ec)
+{
+}
+
+} // design
+
 class design_test
     : public beast::unit_test::suite
     , public beast::test::enable_yield_to
@@ -620,6 +744,48 @@ public:
 
     //--------------------------------------------------------------------------
     //
+    // Example: Custom Parser
+    //
+    //--------------------------------------------------------------------------
+
+    void
+    doCustomParser()
+    {
+        {
+            string_view s{
+                "POST / HTTP/1.1\r\n"
+                "User-Agent: test\r\n"
+                "Content-Length: 13\r\n"
+                "\r\n"
+                "Hello, world!"
+            };
+            error_code ec;
+            design::custom_parser<true> p;
+            p.put(boost::asio::buffer(
+                s.data(), s.size()), ec);
+            BEAST_EXPECTS(! ec, ec.message());
+        }
+        {
+            string_view s{
+                "HTTP/1.1 200 OK\r\n"
+                "Server: test\r\n"
+                "Transfer-Encoding: chunked\r\n"
+                "\r\n"
+                "d\r\n"
+                "Hello, world!"
+                "\r\n"
+                "0\r\n\r\n"
+            };
+            error_code ec;
+            design::custom_parser<false> p;
+            p.put(boost::asio::buffer(
+                s.data(), s.size()), ec);
+            BEAST_EXPECTS(! ec, ec.message());
+        }
+    }
+
+    //--------------------------------------------------------------------------
+    //
     // Deferred Body type commitment
     //
     //--------------------------------------------------------------------------
@@ -788,6 +954,8 @@ public:
         doCgiResponse();
         doRelay();
         doParseStdStream();
+        doCustomParser();
+
         doDeferredBody();
     }
 };

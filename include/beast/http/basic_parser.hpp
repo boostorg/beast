@@ -29,95 +29,6 @@ namespace http {
     state. It will handle chunked encoding and it understands
     the semantics of the Connection, Content-Length, and Upgrade
     fields.
-
-    The interface uses CRTP (Curiously Recurring Template Pattern).
-    To use this class, derive from @ref basic_parser. When bytes
-    are presented, the implementation will make a series of zero
-    or more calls to derived class members functions (referred to
-    as "callbacks" from here on) matching a specific signature.
-
-    Every callback must be provided by the derived class, or else
-    a compilation error will be generated. This exemplar shows
-    the signature and description of the callbacks required in
-    the derived class.
-
-    @par Derived Example
-
-    @code
-    template<bool isRequest>
-    struct derived
-        : basic_parser<isRequest, derived<isRequest>>
-    {
-        // When isRequest == true, called
-        // after the Request Line is received.
-        //
-        void
-        on_request(
-            string_view method,
-            string_view target,
-            int version,
-            error_code& ec);
-
-        // When isRequest == false, called
-        // after the Status Line is received.
-        //
-        void
-        on_response(
-            int status,
-            string_view reason,
-            int version,
-            error_code& ec);
-
-        // Called after receiving a field/value pair.
-        //
-        void
-        on_field(
-            string_view name,
-            string_view value,
-            error_code& ec);
-
-        // Called after the header is complete.
-        //
-        void
-        on_header(
-            error_code& ec);
-
-        // Called once before the body, if any, is started.
-        //
-        void
-        on_body(
-            boost::optional<std::uint64_t> content_length,
-            error_code& ec);
-
-        // Called zero or more times to provide body data.
-        //
-        void
-        on_data(
-            string_view s,
-            error_code& ec);
-
-        // If the Transfer-Encoding is specified, and the
-        // last item in the list of encodings is "chunked",
-        // called after receiving a chunk header or a final
-        // chunk.
-        //
-        void
-        on_chunk(
-            std::uint64_t length,       // Length of this chunk
-            string_view const& ext,     // The chunk extensions, if any
-            error_code& ec);
-
-        // Called once when the message is complete.
-        // This will be called even if there is no body.
-        //
-        void
-        on_complete(error_code& ec);
-    };
-    @endcode
-
-    If a callback sets the error code, the error will be propagated
-    to the caller of the parser.
-
     The parser is optimized for the case where the input buffer
     sequence consists of a single contiguous buffer. The
     @ref beast::flat_buffer class is provided, which guarantees
@@ -129,6 +40,88 @@ namespace http {
     Alternatively, the caller may use custom techniques to ensure that
     the structured portion of the HTTP message (header or chunk header)
     is contained in a linear buffer.
+
+    The interface uses CRTP (Curiously Recurring Template Pattern).
+    To use this class directly, derive from @ref basic_parser. When
+    bytes are presented, the implementation will make a series of zero
+    or more calls to derived class members functions (termed "callbacks"
+    in this context) matching a specific signature.
+
+    Every callback must be provided by the derived class, or else
+    a compilation error will be generated. This exemplar shows
+    the signature and description of the callbacks required in
+    the derived class. If a callback sets the error code, the error
+    will be propagated to the caller of the parser.
+
+    @par Example
+
+    @code
+    template<bool isRequest>
+    class custom_parser
+        : public basic_parser<isRequest, custom_parser<isRequest>>
+    {
+        friend class basic_parser<isRequest, custom_parser>;
+
+        /// Called after receiving the request-line (isRequest == true).
+        void
+        on_request(
+            string_view method,     // The method
+            string_view target,     // The request-target
+            int version,            // The HTTP-version
+            error_code& ec);        // The error returned to the caller, if any
+
+        /// Called after receiving the start-line (isRequest == false).
+        void
+        on_response(
+            int status,             // The status-code
+            string_view reason,     // The obsolete reason-phrase
+            int version,            // The HTTP-version
+            error_code& ec);        // The error returned to the caller, if any
+
+        /// Called after receiving a header field.
+        void
+        on_field(
+            string_view name,       // The field name
+            string_view value,      // The field value
+            error_code& ec);        // The error returned to the caller, if any
+
+        /// Called after the complete header is received.
+        void
+        on_header(
+            error_code& ec);        // The error returned to the caller, if any
+
+        /// Called just before processing the body, if a body exists.
+        void
+        on_body(boost::optional<
+                std::uint64_t> const&
+            content_length,         // Content length if known, else `boost::none`
+            error_code& ec);        // The error returned to the caller, if any
+
+        /// Called for each piece of the body, if a body exists.
+        //
+        //  If present, the chunked Transfer-Encoding will be removed
+        //  before this callback is invoked.
+        //
+        void
+        on_data(
+            string_view s,          // A portion of the body
+            error_code& ec);        // The error returned to the caller, if any
+
+        /// Called for each chunk header.
+        void
+        on_chunk(
+            std::uint64_t size,     // The size of the upcoming chunk
+            string_view extension,  // The chunk-extension (may be empty)
+            error_code& ec);        // The error returned to the caller, if any
+
+        /// Called when the complete message is parsed.
+        void
+        on_complete(error_code& ec);
+
+    public:
+        custom_parser() = default;
+    };
+    @endcode
 
     @tparam isRequest A `bool` indicating whether the parser will be
     presented with request or response message.
@@ -319,16 +312,19 @@ public:
 
     /** Set the eager parse option.
 
-        This option controls whether or not the parser will attempt
-        to consume all of the octets provided during parsing, or
-        if it will stop when it reaches one of the following positions
-        within the serialized message:
+        Normally the parser returns after successfully parsing a structured
+        element (header, chunk header, or chunk body) even if there are octets
+        remaining in the input. This is necessary when attempting to parse the
+        header first, or when the caller wants to inspect information which may
+        be invalidated by subsequent parsing, such as a chunk extension. The
+        `eager` option controls whether the parser keeps going after parsing
+        structured element if there are octets remaining in the buffer and no
+        error occurs. This option is automatically set or cleared during certain
+        stream operations to improve performance with no change in functionality.
 
-        @li Immediately after the header
+        The default setting is `false`.
 
-        @li Immediately after any chunk header
-
-        The default is to stop after the header or any chunk header.
+        @param v `true` to set the eager parse option or `false` to disable it.
     */
     void
     eager(bool v)
@@ -339,25 +335,25 @@ public:
             f_ &= ~flagEager;
     }
 
-    /// Returns `true` if the parser will ignore the message body.
+    /// Returns `true` if the skip parse option is set.
     bool
     skip()
     {
         return (f_ & flagSkipBody) != 0;
     }
 
-    /** Set the skip body option.
+    /** Set the skip parse option.
 
-        The option controls whether or not the parser expects to
-        see an HTTP body, regardless of the presence or absence of
-        certain fields such as Content-Length.
+        This option controls whether or not the parser expects to see an HTTP
+        body, regardless of the presence or absence of certain fields such as
+        Content-Length or a chunked Transfer-Encoding. Depending on the request,
+        some responses do not carry a body. For example, a 200 response to a
+        CONNECT request from a tunneling proxy, or a response to a HEAD request.
+        In these cases, callers may use this function inform the parser that
+        no body is expected. The parser will consider the message complete
+        after the header has been received.
 
-        Depending on the request, some responses do not carry a
-        body. For example, a 200 response to a CONNECT request
-        from a tunneling proxy. In these cases, callers may use
-        this function inform the parser that no body is expected.
-        The parser will consider the message complete after the
-        header has been received.
+        @param v `true` to set the skip body option or `false` to disable it.
 
         @note This function must called before any bytes are processed.
     */

@@ -227,10 +227,8 @@ class parser
     using base_type = basic_parser<isRequest,
         parser<isRequest, Body, Fields>>;
 
-    using writer_type = typename Body::writer;
-
     message<isRequest, Body, Fields> m_;
-    boost::optional<writer_type> wr_;
+    boost::optional<typename Body::writer> wr_;
 
 public:
     /// The type of message returned by the parser
@@ -329,8 +327,7 @@ public:
     }
 
 private:
-    friend class basic_parser<
-        isRequest, parser>;
+    friend class basic_parser<isRequest, parser>;
 
     void
     on_request(
