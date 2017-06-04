@@ -182,7 +182,7 @@ public:
                 BEAST_EXPECT(p.need_eof());
                 BEAST_EXPECT(p.content_length() == boost::none);
                 BEAST_EXPECT(m.version == 10);
-                BEAST_EXPECT(m.status == 200);
+                BEAST_EXPECT(m.result() == status::ok);
                 BEAST_EXPECT(m.reason() == "OK");
                 BEAST_EXPECT(m.fields["Server"] == "test");
                 BEAST_EXPECT(m.body == "Hello, world!");
@@ -209,7 +209,7 @@ public:
                 BEAST_EXPECT(p.is_chunked());
                 BEAST_EXPECT(p.content_length() == boost::none);
                 BEAST_EXPECT(m.version == 11);
-                BEAST_EXPECT(m.status == 200);
+                BEAST_EXPECT(m.result() == status::ok);
                 BEAST_EXPECT(m.reason() == "OK");
                 BEAST_EXPECT(m.fields["Server"] == "test");
                 BEAST_EXPECT(m.fields["Transfer-Encoding"] == "chunked");

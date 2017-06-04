@@ -262,19 +262,20 @@ public:
     {
         message<false, string_body, fields> m1;
         message<false, string_body, fields> m2;
-        m1.status = 200;
+        m1.result(status::ok);
         m1.version = 10;
         m1.body = "1";
         m1.fields.insert("h", "v");
-        m2.status = 404;
-        m2.reason("OK");
+        m2.result(status::not_found);
         m2.body = "2";
         m2.version = 11;
         swap(m1, m2);
-        BEAST_EXPECT(m1.status == 404);
-        BEAST_EXPECT(m2.status == 200);
-        BEAST_EXPECT(m1.reason() == "OK");
-        BEAST_EXPECT(m2.reason().empty());
+        BEAST_EXPECT(m1.result() == status::not_found);
+        BEAST_EXPECT(m1.result_int() == 404);
+        BEAST_EXPECT(m2.result() == status::ok);
+        BEAST_EXPECT(m2.result_int() == 200);
+        BEAST_EXPECT(m1.reason() == "Not Found");
+        BEAST_EXPECT(m2.reason() == "OK");
         BEAST_EXPECT(m1.version == 11);
         BEAST_EXPECT(m2.version == 10);
         BEAST_EXPECT(m1.body == "2");
@@ -322,6 +323,35 @@ public:
     }
 
     void
+    testStatus()
+    {
+        header<false> h;
+        h.result(200);
+        BEAST_EXPECT(h.result_int() == 200);
+        BEAST_EXPECT(h.result() == status::ok);
+        h.result(status::switching_protocols);
+        BEAST_EXPECT(h.result_int() == 101);
+        BEAST_EXPECT(h.result() == status::switching_protocols);
+        h.result(1);
+        BEAST_EXPECT(h.result_int() == 1);
+        BEAST_EXPECT(h.result() == status::unknown);
+    }
+
+    void
+    testReason()
+    {
+        header<false> h;
+        h.result(status::ok);
+        BEAST_EXPECT(h.reason() == "OK");
+        h.reason("Pepe");
+        BEAST_EXPECT(h.reason() == "Pepe");
+        h.result(status::not_found);
+        BEAST_EXPECT(h.reason() == "Pepe");
+        h.reason({});
+        BEAST_EXPECT(h.reason() == "Not Found");
+    }
+
+    void
     run() override
     {
         testMessage();
@@ -331,6 +361,8 @@ public:
         testSwap();
         testSpecialMembers();
         testMethod();
+        testStatus();
+        testReason();
     }
 };
 

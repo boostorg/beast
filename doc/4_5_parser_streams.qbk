@@ -197,8 +197,7 @@ receive_expect_100_continue(
         // send 100 response
         response<empty_body> res;
         res.version = 11;
-        res.status = 100;
-        res.reason("Continue");
+        res.result(status::continue_);
         res.fields.insert("Server", "test");
         write(stream, res, ec);
         if(ec)

@@ -46,7 +46,7 @@ class custom_parser
     /// Called after receiving the start-line (isRequest == false).
     void
     on_response(
-        int status,             // The status-code
+        int code,               // The status-code
         string_view reason,     // The obsolete reason-phrase
         int version,            // The HTTP-version
         error_code& ec);        // The error returned to the caller, if any
@@ -238,7 +238,7 @@ public:
             read(stream, buffer, res, ec);
             if(ec)
                 return;
-            if(res.status != 100)
+            if(res.result() != status::continue_)
             {
                 // The server indicated that it will not
                 // accept the request, so skip sending the body.
@@ -291,8 +291,7 @@ public:
             // send 100 response
             response<empty_body> res;
             res.version = 11;
-            res.status = 100;
-            res.reason("Continue");
+            res.result(status::continue_);
             res.fields.insert("Server", "test");
             write(stream, res, ec);
             if(ec)
@@ -383,7 +382,7 @@ public:
         // allowing serialization to use manually provided buffers.
         message<false, buffer_body, fields> res;
 
-        res.status = 200;
+        res.result(status::ok);
         res.version = 11;
         res.fields.insert("Server", "Beast");
         res.fields.insert("Transfer-Encoding", "chunked");

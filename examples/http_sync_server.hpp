@@ -164,8 +164,7 @@ private:
             if(! boost::filesystem::exists(path))
             {
                 response<string_body> res;
-                res.status = 404;
-                res.reason("Not Found");
+                res.result(status::not_found);
                 res.version = req.version;
                 res.fields.insert("Server", "http_sync_server");
                 res.fields.insert("Content-Type", "text/html");
@@ -179,7 +178,7 @@ private:
             try
             {
                 resp_type res;
-                res.status = 200;
+                res.result(status::ok);
                 res.reason("OK");
                 res.version = req.version;
                 res.fields.insert("Server", "http_sync_server");
@@ -193,7 +192,7 @@ private:
             catch(std::exception const& e)
             {
                 response<string_body> res;
-                res.status = 500;
+                res.result(status::internal_server_error);
                 res.reason("Internal Error");
                 res.version = req.version;
                 res.fields.insert("Server", "http_sync_server");

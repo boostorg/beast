@@ -286,33 +286,48 @@ private:
 #endif
 
     string_view
-    method_string() const;
+    method_impl() const
+    {
+        return (*this)[":method"];
+    }
 
     void
-    method_string(string_view s);
+    method_impl(string_view s)
+    {
+        if(s.empty())
+            this->erase(":method");
+        else
+            this->replace(":method", s);
+    }
 
     string_view
-    target() const
+    target_impl() const
     {
         return (*this)[":target"];
     }
 
     void
-    target(string_view s)
+    target_impl(string_view s)
     {
-        return this->replace(":target", s);
+        if(s.empty())
+            this->erase(":target");
+        else
+            return this->replace(":target", s);
     }
 
     string_view
-    reason() const
+    reason_impl() const
     {
         return (*this)[":reason"];
     }
 
     void
-    reason(string_view s)
+    reason_impl(string_view s)
     {
-        return this->replace(":reason", s);
+        if(s.empty())
+            this->erase(":reason");
+        else
+            this->replace(":reason", s);
     }
 };
 

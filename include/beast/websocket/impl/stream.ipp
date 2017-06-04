@@ -112,7 +112,7 @@ do_accept(http::header<true, Fields> const& req,
     http::write(stream_, res, ec);
     if(ec)
         return;
-    if(res.status != 101)
+    if(res.result() != http::status::switching_protocols)
     {
         ec = error::handshake_failed;
         // VFALCO TODO Respect keep alive setting, perform
@@ -216,7 +216,7 @@ build_response(http::header<true, Fields> const& req,
         [&](std::string const& text)
         {
             response_type res;
-            res.status = 400;
+            res.result(http::status::bad_request);
             res.version = req.version;
             res.body = text;
             prepare(res);
@@ -246,7 +246,7 @@ build_response(http::header<true, Fields> const& req,
         if(version != "13")
         {
             response_type res;
-            res.status = 426;
+            res.result(http::status::upgrade_required);
             res.version = req.version;
             res.fields.insert("Sec-WebSocket-Version", "13");
             prepare(res);
@@ -263,7 +263,7 @@ build_response(http::header<true, Fields> const& req,
         pmd_negotiate(
             res.fields, unused, offer, pmd_opts_);
     }
-    res.status = 101;
+    res.result(http::status::switching_protocols);
     res.version = req.version;
     res.fields.insert("Upgrade", "websocket");
     res.fields.insert("Connection", "upgrade");
@@ -286,7 +286,7 @@ do_response(http::header<false> const& res,
     {
         if(res.version < 11)
             return false;
-        if(res.status != 101)
+        if(res.result() != http::status::switching_protocols)
             return false;
         if(! is_upgrade(res))
             return false;

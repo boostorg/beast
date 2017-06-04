@@ -56,7 +56,7 @@ class custom_parser
     /// Called after receiving the start-line (isRequest == false).
     void
     on_response(
-        int status,             // The status-code
+        int code,               // The status-code
         string_view reason,     // The obsolete reason-phrase
         int version,            // The HTTP-version
         error_code& ec);        // The error returned to the caller, if any

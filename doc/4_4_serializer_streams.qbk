@@ -164,7 +164,7 @@ send_expect_100_continue(
     {
         response<string_body> res;
         read(stream, buffer, res);
-        if(res.status != 100)
+        if(res.result() != status::continue_)
         {
             // The server indicated that it will not
             // accept the request, so skip sending the body.
@@ -229,7 +229,7 @@ send_cgi_response(
     // allowing serialization to use manually provided buffers.
     message<false, buffer_body, fields> res;
 
-    res.status = 200;
+    res.result(status::ok);
     res.version = 11;
     res.fields.insert("Server", "Beast");
     res.fields.insert("Transfer-Encoding", "chunked");

@@ -147,8 +147,7 @@ objects:
 ```
     response<string_body> res;
     res.version = 11;   // HTTP/1.1
-    res.status = 200;
-    res.reason("OK");
+    res.result(status::ok);
     res.body = "Hello, world!";
     res.fields.insert("Server", "Beast");
     res.fields.insert("Content-Length", res.body.size());

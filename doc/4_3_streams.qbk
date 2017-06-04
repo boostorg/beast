@@ -128,8 +128,7 @@ the number of octets received prior to the server closing the connection:
     {
         response<string_body> res;
         res.version = 11;
-        res.status = 200;
-        res.reason("OK");
+        res.result(status::ok);
         res.fields.insert("Server", "Beast");
         res.body = "Hello, world!";
 

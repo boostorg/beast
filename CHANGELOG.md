@@ -4,6 +4,8 @@ API Changes:
 
 * Refactor method and verb
 * Canonicalize string_view parameter types
+* Tidy up empty_body writer error
+* Refactor header status, reason, and target
 
 --------------------------------------------------------------------------------
 
