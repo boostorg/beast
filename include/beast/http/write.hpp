@@ -19,9 +19,9 @@
 #include <beast/core/async_result.hpp>
 #include <beast/core/string_view.hpp>
 #include <boost/variant.hpp>
+#include <iosfwd>
 #include <limits>
 #include <memory>
-#include <ostream>
 #include <type_traits>
 #include <utility>
 

@@ -10,7 +10,7 @@
 
 #include <beast/config.hpp>
 #include <beast/core/string_view.hpp>
-#include <ostream>
+#include <iosfwd>
 
 namespace beast {
 namespace http {

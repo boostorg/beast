@@ -1,5 +1,7 @@
 Version 49
 
+* Use <iosfwd> instead of <ostream>
+
 API Changes:
 
 * Refactor method and verb
