@@ -1,6 +1,7 @@
 Version 48
 
 * Make buffer_prefix_view public
+* Remove detail::sync_ostream
 
 API Changes:
 

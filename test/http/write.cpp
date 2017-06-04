@@ -658,48 +658,6 @@ public:
             "GET / HTTP/1.1\r\nUser-Agent: test\r\n\r\n*");
         BEAST_EXPECT(boost::lexical_cast<std::string>(m.base()) ==
             "GET / HTTP/1.1\r\nUser-Agent: test\r\n\r\n");
-        {
-            std::stringstream ss;
-            // header
-            ss << m.base();
-
-            // Cause exception in operator<<
-            ss.setstate(ss.rdstate() |
-                std::stringstream::failbit);
-            try
-            {
-                // message
-                ss << m;
-                fail("", __FILE__, __LINE__);
-            }
-            catch(std::exception const&)
-            {
-                pass();
-            }
-        }
-    }
-
-    void testOstream()
-    {
-        message<true, string_body, fields> m;
-        m.method(verb::get);
-        m.target("/");
-        m.version = 11;
-        m.fields.insert("User-Agent", "test");
-        m.body = "*";
-        prepare(m);
-        std::stringstream ss;
-        ss.setstate(ss.rdstate() |
-            std::stringstream::failbit);
-        try
-        {
-            ss << m;
-            fail();
-        }
-        catch(std::exception const&)
-        {
-            pass();
-        }
     }
 
     // Ensure completion handlers are not leaked
@@ -960,7 +918,6 @@ public:
             testFailures(yield); });
         testOutput();
         test_std_ostream();
-        testOstream();
         testIoService();
         yield_to(
             [&](yield_context yield)
