@@ -39,7 +39,10 @@ public:
         check("http", error::end_of_stream);
         check("http", error::partial_message);
         check("http", error::need_more);
+        check("http", error::unexpected_body);
+        check("http", error::need_buffer);
         check("http", error::buffer_overflow);
+
         check("http", error::bad_line_ending);
         check("http", error::bad_method);
         check("http", error::bad_path);
