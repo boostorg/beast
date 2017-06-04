@@ -165,22 +165,22 @@ public:
             boost::asio::mutable_buffers_1;
 
         void
-        on_request(string_view const&,
-            string_view const&,
+        on_request(string_view,
+            string_view,
                 int, error_code&)
         {
         }
 
         void
         on_response(int,
-            string_view const&,
+            string_view,
                 int, error_code&)
         {
         }
 
         void
-        on_field(string_view const&,
-            string_view const&,
+        on_field(string_view,
+            string_view,
                 error_code&)
         {
         }
@@ -197,14 +197,14 @@ public:
         }
 
         void
-        on_data(string_view const&,
+        on_data(string_view,
             error_code& ec)
         {
         }
 
         void
         on_chunk(std::uint64_t,
-            string_view const&,
+            string_view,
                 error_code&)
         {
         }

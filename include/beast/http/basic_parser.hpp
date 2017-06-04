@@ -463,8 +463,8 @@ private:
         char const* last, error_code& ec);
 
     void
-    do_field(string_view const& name,
-        string_view const& value,
+    do_field(string_view name,
+        string_view value,
             error_code& ec);
 };
 
