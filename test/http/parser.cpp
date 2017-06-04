@@ -237,7 +237,7 @@ public:
             [&](parser_type<true> const& p)
             {
                 auto const& m = p.get();
-                BEAST_EXPECT(m.method() == "GET");
+                BEAST_EXPECT(m.method() == verb::get);
                 BEAST_EXPECT(m.target() == "/");
                 BEAST_EXPECT(m.version == 11);
                 BEAST_EXPECT(! p.need_eof());
@@ -274,7 +274,7 @@ public:
             BEAST_EXPECT(p.is_done());
             BEAST_EXPECT(p.is_header_done());
             BEAST_EXPECT(! p.need_eof());
-            BEAST_EXPECT(m.method() == "GET");
+            BEAST_EXPECT(m.method() == verb::get);
             BEAST_EXPECT(m.target() == "/");
             BEAST_EXPECT(m.version == 11);
             BEAST_EXPECT(m.fields["User-Agent"] == "test");

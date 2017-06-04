@@ -10,9 +10,12 @@
 
 #include <beast/config.hpp>
 #include <beast/http/fields.hpp>
+#include <beast/http/verb.hpp>
 #include <beast/core/string_view.hpp>
 #include <beast/core/detail/integer_sequence.hpp>
+#include <boost/throw_exception.hpp>
 #include <memory>
+#include <stdexcept>
 #include <string>
 #include <tuple>
 #include <utility>
@@ -66,28 +69,64 @@ struct header<true, Fields>
     */
     int version;
 
-    /** Return the Request Method
+    /** Return the request-method verb.
+
+        If the request-method is not one of the recognized verbs,
+        @ref verb::unknown is returned. Callers may use @ref method_string
+        to retrieve the exact text.
 
         @note This function is only available if `isRequest == true`.
+
+        @see @ref method_string
     */
-    auto
-    method() const ->
-        decltype(std::declval<Fields>().method()) const
+    verb
+    method() const
     {
-        return fields.method();
+        return method_;
     }
 
-    /** Set the Request Method
+    /** Set the request-method verb.
 
-        @param value A value that represents the request method.
+        This function will set the method for requests to one
+        of the known verbs.
+
+        @param v The request method verb to set.
+        This may not be @ref verb::unknown.
+
+        @throw std::invalid_argument when `v == verb::unknown`.
+    */
+    void
+    method(verb v)
+    {
+        set_method(v);
+    }
+
+    /** Return the request-method as a string.
+
+        @note This function is only available if `isRequest == true`.
+
+        @see @ref method
+    */
+    string_view
+    method_string() const
+    {
+        return get_method_string();
+    }
+
+    /** Set the request-method using a string.
+
+        This function will set the method for requests to a verb
+        if the string matches a known verb, otherwise it will
+        store a copy of the passed string as the method.
+
+        @param s A string representing the request method.
 
         @note This function is only available if `isRequest == true`.
     */
-    template<class Value>
     void
-    method(Value&& value)
+    method(string_view s)
     {
-        fields.method(std::forward<Value>(value));
+        set_method(s);
     }
 
     /** Return the Request Target
@@ -158,6 +197,28 @@ struct header<true, Fields>
             std::forward<ArgN>(argn)...)
     {
     }
+
+private:
+    template<class Fields>
+    friend
+    void
+    swap(
+        header<true, Fields>& m1,
+        header<true, Fields>& m2);
+
+    template<class = void>
+    string_view
+    get_method_string() const;
+
+    template<class = void>
+    void
+    set_method(verb v);
+
+    template<class = void>
+    void
+    set_method(string_view v);
+
+    verb method_ = verb::unknown;
 };
 
 /** A container for an HTTP request or response header.

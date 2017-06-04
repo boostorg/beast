@@ -137,8 +137,8 @@ public:
         m2.method("G");
         m2.body = "2";
         swap(m1, m2);
-        BEAST_EXPECT(m1.method() == "G");
-        BEAST_EXPECT(m2.method().empty());
+        BEAST_EXPECT(m1.method_string() == "G");
+        BEAST_EXPECT(m2.method_string().empty());
         BEAST_EXPECT(m1.target().empty());
         BEAST_EXPECT(m2.target() == "u");
         BEAST_EXPECT(m1.body == "2");
@@ -297,6 +297,31 @@ public:
     }
 
     void
+    testMethod()
+    {
+        header<true> h;
+        auto const vcheck =
+            [&](verb v)
+            {
+                h.method(v);
+                BEAST_EXPECT(h.method() == v);
+                BEAST_EXPECT(h.method_string() == to_string(v));
+            };
+        auto const scheck =
+            [&](string_view s)
+            {
+                h.method(s);
+                BEAST_EXPECT(h.method() == string_to_verb(s));
+                BEAST_EXPECT(h.method_string() == s);
+            };
+        vcheck(verb::get);
+        vcheck(verb::head);
+        scheck("GET");
+        scheck("HEAD");
+        scheck("XYZ");
+    }
+
+    void
     run() override
     {
         testMessage();
@@ -305,6 +330,7 @@ public:
         testPrepare();
         testSwap();
         testSpecialMembers();
+        testMethod();
     }
 };
 

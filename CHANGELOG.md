@@ -1,5 +1,9 @@
 Version 49
 
+API Changes:
+
+* Refactor method and verb
+
 --------------------------------------------------------------------------------
 
 Version 48

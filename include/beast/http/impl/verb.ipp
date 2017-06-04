@@ -62,13 +62,16 @@ verb_to_string(verb v)
 
     case verb::link:          return "LINK";
     case verb::unlink:        return "UNLINK";
+    
+    case verb::unknown:
+        return "<unknown>";
     }
 
-    BOOST_THROW_EXCEPTION(std::logic_error{"unknown method"});
+    BOOST_THROW_EXCEPTION(std::invalid_argument{"unknown verb"});
 }
 
 template<class = void>
-boost::optional<verb>
+verb
 string_to_verb(string_view v)
 {
 /*
@@ -107,7 +110,8 @@ string_to_verb(string_view v)
     UNSUBSCRIBE
 */
     if(v.size() < 3)
-        return boost::none;
+        return verb::unknown;
+    // s must be null terminated
     auto const eq =
         [](string_view sv, char const* s)
         {
@@ -118,8 +122,8 @@ string_to_verb(string_view v)
                     return false;
                 ++s;
                 ++p;
-                if(*s == 0)
-                    return *p == 0;
+                if(! *s)
+                    return p == sv.end();
             }
         };
     auto c = v[0];
@@ -303,7 +307,7 @@ string_to_verb(string_view v)
         break;
     }
 
-    return boost::none;
+    return verb::unknown;
 }
 
 } // detail
@@ -316,7 +320,7 @@ to_string(verb v)
 }
 
 inline
-boost::optional<verb>
+verb
 string_to_verb(string_view s)
 {
     return detail::string_to_verb(s);

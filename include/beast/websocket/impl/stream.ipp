@@ -225,7 +225,7 @@ build_response(http::header<true, Fields> const& req,
         };
     if(req.version < 11)
         return err("HTTP version 1.1 required");
-    if(req.method() != "GET")
+    if(req.method() != http::verb::get)
         return err("Wrong method");
     if(! is_upgrade(req))
         return err("Expected Upgrade request");
