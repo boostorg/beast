@@ -48,7 +48,7 @@ buffers(ConstBufferSequence const& b)
 {
     static_assert(is_const_buffer_sequence<
         ConstBufferSequence>::value,
-            "ConstBufferSequence not met");
+            "ConstBufferSequence requirements not met");
     return detail::buffers_helper<
         ConstBufferSequence>{b};
 }
