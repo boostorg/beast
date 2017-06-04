@@ -13,7 +13,6 @@
 #include <boost/assert.hpp>
 #include <ostream>
 
-
 namespace beast {
 namespace http {
 namespace detail {
