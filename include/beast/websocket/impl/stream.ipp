@@ -128,8 +128,8 @@ template<class RequestDecorator>
 void
 stream<NextLayer>::
 do_handshake(response_type* res_p,
-    string_view const& host,
-        string_view const& target,
+    string_view host,
+        string_view target,
             RequestDecorator const& decorator,
                 error_code& ec)
 {
@@ -157,8 +157,8 @@ template<class Decorator>
 request_type
 stream<NextLayer>::
 build_request(detail::sec_ws_key_type& key,
-    string_view const& host,
-        string_view const& target,
+    string_view host,
+        string_view target,
             Decorator const& decorator)
 {
     request_type req;

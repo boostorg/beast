@@ -161,7 +161,7 @@ operator=(basic_fields<OtherAlloc> const& other) ->
 template<class Allocator>
 std::size_t
 basic_fields<Allocator>::
-count(string_view const& name) const
+count(string_view name) const
 {
     auto const it = set_.find(name, less{});
     if(it == set_.end())
@@ -173,7 +173,7 @@ count(string_view const& name) const
 template<class Allocator>
 auto
 basic_fields<Allocator>::
-find(string_view const& name) const ->
+find(string_view name) const ->
     iterator
 {
     auto const it = set_.find(name, less{});
@@ -185,7 +185,7 @@ find(string_view const& name) const ->
 template<class Allocator>
 string_view const
 basic_fields<Allocator>::
-operator[](string_view const& name) const
+operator[](string_view name) const
 {
     auto const it = find(name);
     if(it == end())
@@ -206,7 +206,7 @@ clear() noexcept
 template<class Allocator>
 std::size_t
 basic_fields<Allocator>::
-erase(string_view const& name)
+erase(string_view name)
 {
     auto it = set_.find(name, less{});
     if(it == set_.end())
@@ -230,7 +230,7 @@ erase(string_view const& name)
 template<class Allocator>
 void
 basic_fields<Allocator>::
-insert(string_view const& name,
+insert(string_view name,
     string_view value)
 {
     value = detail::trim(value);
@@ -243,7 +243,7 @@ insert(string_view const& name,
 template<class Allocator>
 void
 basic_fields<Allocator>::
-replace(string_view const& name,
+replace(string_view name,
     string_view value)
 {
     value = detail::trim(value);

@@ -47,7 +47,7 @@ struct pmd_offer
 
 template<class = void>
 int
-parse_bits(string_view const& s)
+parse_bits(string_view s)
 {
     if(s.size() == 0)
         return -1;

@@ -29,8 +29,8 @@ public:
         std::string first;
         std::string second;
 
-        value_type(string_view const& name_,
-                string_view const& value_)
+        value_type(string_view name_,
+                string_view value_)
             : first(name_)
             , second(value_)
         {
@@ -63,8 +63,8 @@ protected:
     {
         value_type data;
 
-        element(string_view const& name,
-                string_view const& value)
+        element(string_view name,
+                string_view value)
             : data(name, value)
         {
         }

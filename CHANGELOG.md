@@ -3,6 +3,7 @@ Version 49
 API Changes:
 
 * Refactor method and verb
+* Canonicalize string_view parameter types
 
 --------------------------------------------------------------------------------
 

@@ -187,7 +187,7 @@ private:
 
     void
     on_chunk(std::uint64_t,
-        string_view const&, error_code&)
+        string_view, error_code&)
     {
         body_ = {};
     }
@@ -331,8 +331,8 @@ private:
 
     void
     on_request(
-        string_view const& method,
-            string_view const& target,
+        string_view method,
+            string_view target,
                 int version, error_code&)
     {
         m_.target(target);
@@ -342,7 +342,7 @@ private:
 
     void
     on_response(int status,
-        string_view const& reason,
+        string_view reason,
             int version, error_code&)
     {
         m_.status = status;
@@ -351,8 +351,8 @@ private:
     }
 
     void
-    on_field(string_view const& name,
-        string_view const& value,
+    on_field(string_view name,
+        string_view value,
             error_code&)
     {
         m_.fields.insert(name, value);
@@ -373,7 +373,7 @@ private:
     }
 
     void
-    on_data(string_view const& s,
+    on_data(string_view s,
         error_code& ec)
     {
         wr_->put(boost::asio::buffer(
@@ -382,7 +382,7 @@ private:
 
     void
     on_chunk(
-        std::uint64_t, string_view const&,
+        std::uint64_t, string_view,
             error_code&)
     {
     }

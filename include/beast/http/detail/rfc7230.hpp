@@ -329,7 +329,7 @@ skip_token(FwdIt& it, FwdIt const& last)
 
 inline
 string_view
-trim(string_view const& s)
+trim(string_view s)
 {
     auto first = s.begin();
     auto last = s.end();
@@ -459,7 +459,7 @@ struct opt_token_list_policy
 
     bool
     operator()(value_type& v,
-        char const*& it, string_view const& s) const
+        char const*& it, string_view s) const
     {
         v = {};
         auto need_comma = it != s.begin();

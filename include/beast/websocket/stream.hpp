@@ -1471,8 +1471,8 @@ public:
         @endcode
     */
     void
-    handshake(string_view const& host,
-        string_view const& target);
+    handshake(string_view host,
+        string_view target);
 
     /** Send an HTTP WebSocket Upgrade request and receive the response.
 
@@ -1519,8 +1519,8 @@ public:
     */
     void
     handshake(response_type& res,
-        string_view const& host,
-            string_view const& target);
+        string_view host,
+            string_view target);
 
     /** Send an HTTP WebSocket Upgrade request and receive the response.
 
@@ -1576,8 +1576,8 @@ public:
     */
     template<class RequestDecorator>
     void
-    handshake_ex(string_view const& host,
-        string_view const& target,
+    handshake_ex(string_view host,
+        string_view target,
             RequestDecorator const& decorator);
 
     /** Send an HTTP WebSocket Upgrade request and receive the response.
@@ -1639,8 +1639,8 @@ public:
     template<class RequestDecorator>
     void
     handshake_ex(response_type& res,
-        string_view const& host,
-            string_view const& target,
+        string_view host,
+            string_view target,
                 RequestDecorator const& decorator);
 
     /** Send an HTTP WebSocket Upgrade request and receive the response.
@@ -1681,8 +1681,8 @@ public:
         @endcode
     */
     void
-    handshake(string_view const& host,
-        string_view const& target, error_code& ec);
+    handshake(string_view host,
+        string_view target, error_code& ec);
 
     /** Send an HTTP WebSocket Upgrade request and receive the response.
 
@@ -1727,8 +1727,8 @@ public:
     */
     void
     handshake(response_type& res,
-        string_view const& host,
-            string_view const& target,
+        string_view host,
+            string_view target,
                 error_code& ec);
 
     /** Send an HTTP WebSocket Upgrade request and receive the response.
@@ -1784,8 +1784,8 @@ public:
     */
     template<class RequestDecorator>
     void
-    handshake_ex(string_view const& host,
-        string_view const& target,
+    handshake_ex(string_view host,
+        string_view target,
             RequestDecorator const& decorator,
                 error_code& ec);
 
@@ -1847,8 +1847,8 @@ public:
     template<class RequestDecorator>
     void
     handshake_ex(response_type& res,
-        string_view const& host,
-            string_view const& target,
+        string_view host,
+            string_view target,
                 RequestDecorator const& decorator,
                     error_code& ec);
 
@@ -1899,8 +1899,8 @@ public:
     async_return_type<
         HandshakeHandler, void(error_code)>
 #endif
-    async_handshake(string_view const& host,
-        string_view const& target,
+    async_handshake(string_view host,
+        string_view target,
             HandshakeHandler&& handler);
 
     /** Start an asynchronous operation to send an upgrade request and receive the response.
@@ -1955,8 +1955,8 @@ public:
         HandshakeHandler, void(error_code)>
 #endif
     async_handshake(response_type& res,
-        string_view const& host,
-            string_view const& target,
+        string_view host,
+            string_view target,
                 HandshakeHandler&& handler);
 
     /** Start an asynchronous operation to send an upgrade request and receive the response.
@@ -2015,8 +2015,8 @@ public:
     async_return_type<
         HandshakeHandler, void(error_code)>
 #endif
-    async_handshake_ex(string_view const& host,
-        string_view const& target,
+    async_handshake_ex(string_view host,
+        string_view target,
             RequestDecorator const& decorator,
                 HandshakeHandler&& handler);
 
@@ -2081,8 +2081,8 @@ public:
         HandshakeHandler, void(error_code)>
 #endif
     async_handshake_ex(response_type& res,
-        string_view const& host,
-            string_view const& target,
+        string_view host,
+            string_view target,
                 RequestDecorator const& decorator,
                     HandshakeHandler&& handler);
 
@@ -2963,16 +2963,16 @@ private:
     template<class RequestDecorator>
     void
     do_handshake(response_type* res_p,
-        string_view const& host,
-            string_view const& target,
+        string_view host,
+            string_view target,
                 RequestDecorator const& decorator,
                     error_code& ec);
 
     template<class Decorator>
     request_type
     build_request(detail::sec_ws_key_type& key,
-        string_view const& host,
-            string_view const& target,
+        string_view host,
+            string_view target,
                 Decorator const& decorator);
 
     template<class Fields, class Decorator>
