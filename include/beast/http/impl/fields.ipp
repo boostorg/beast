@@ -230,8 +230,7 @@ erase(string_view name)
 template<class Allocator>
 void
 basic_fields<Allocator>::
-insert(string_view name,
-    string_view value)
+insert(string_view name, string_view value)
 {
     value = detail::trim(value);
     auto const p = alloc_traits::allocate(this->member(), 1);
@@ -243,31 +242,11 @@ insert(string_view name,
 template<class Allocator>
 void
 basic_fields<Allocator>::
-replace(string_view name,
-    string_view value)
+replace(string_view name, string_view value)
 {
     value = detail::trim(value);
     erase(name);
     insert(name, value);
-}
-
-template<class Allocator>
-string_view
-basic_fields<Allocator>::
-method_string() const
-{
-    return (*this)[":method"];
-}
-
-template<class Allocator>
-void
-basic_fields<Allocator>::
-method_string(string_view s)
-{
-    if(s.empty())
-        this->erase(":method");
-    else
-        this->replace(":method", s);
 }
 
 } // http

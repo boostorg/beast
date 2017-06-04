@@ -292,7 +292,7 @@ public:
         {
             message<false, string_body, fields> m;
             m.version = 10;
-            m.status = 200;
+            m.result(status::ok);
             m.reason("OK");
             m.fields.insert("Server", "test");
             m.fields.insert("Content-Length", "5");
@@ -311,7 +311,7 @@ public:
         {
             message<false, string_body, fields> m;
             m.version = 11;
-            m.status = 200;
+            m.result(status::ok);
             m.reason("OK");
             m.fields.insert("Server", "test");
             m.fields.insert("Transfer-Encoding", "chunked");
@@ -786,7 +786,7 @@ public:
 
         message<false, Body, fields> m0;
         m0.version = 11;
-        m0.status = 200;
+        m0.result(status::ok);
         m0.reason("OK");
         m0.fields.insert("Server", "test");
         m0.body.s = "Hello, world!\n";

@@ -148,7 +148,8 @@ operator()(error_code ec, bool again)
         // sent response
         case 1:
             d.state = 99;
-            if(d.res.status != 101)
+            if(d.res.result() !=
+                    http::status::switching_protocols)
                 ec = error::handshake_failed;
             if(! ec)
             {

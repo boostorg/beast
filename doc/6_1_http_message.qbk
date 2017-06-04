@@ -256,13 +256,13 @@ struct header<false, Fields>
     string_view
     reason() const
     {
-        return fields.reason();
+        return fields.reason_impl();
     }
 
     void
     reason(string_view s)
     {
-        fields.reason(s);
+        fields.reason_impl(s);
     }
 
     Fields fields;

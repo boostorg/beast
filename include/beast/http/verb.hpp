@@ -128,7 +128,7 @@ enum class verb
 /** Converts a string to the request method verb.
 
     If the string does not match a known request method,
-    `boost::none` is returned.
+    @ref verb::unknown is returned.
 */
 verb
 string_to_verb(string_view s);

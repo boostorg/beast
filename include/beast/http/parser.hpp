@@ -153,10 +153,10 @@ private:
     }
 
     void
-    on_response(int status, string_view reason,
+    on_response(int code, string_view reason,
         int version, error_code&)
     {
-        h_.status = status;
+        h_.result(code);
         h_.version = version;
         h_.reason(reason);
     }
@@ -341,11 +341,11 @@ private:
     }
 
     void
-    on_response(int status,
+    on_response(int code,
         string_view reason,
             int version, error_code&)
     {
-        m_.status = status;
+        m_.result(code);
         m_.version = version;
         m_.reason(reason);
     }

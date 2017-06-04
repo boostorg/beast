@@ -23,6 +23,7 @@ void
 write_start_line(std::ostream& os,
     header<true, Fields> const& msg)
 {
+    // VFALCO This should all be done without dynamic allocation
     BOOST_ASSERT(msg.version == 10 || msg.version == 11);
     os << msg.method() << " " << msg.target();
     switch(msg.version)
@@ -37,18 +38,14 @@ void
 write_start_line(std::ostream& os,
     header<false, Fields> const& msg)
 {
+    // VFALCO This should all be done without dynamic allocation
     BOOST_ASSERT(msg.version == 10 || msg.version == 11);
     switch(msg.version)
     {
     case 10: os << "HTTP/1.0 "; break;
     case 11: os << "HTTP/1.1 "; break;
     }
-    auto const reason = msg.reason();
-    if(reason.empty())
-        os << msg.status << " " << msg.reason() << "\r\n";
-    else
-        os << msg.status << " " <<
-            obsolete_reason(static_cast<status>(msg.status)) << "\r\n";
+    os << msg.result_int() << " " << msg.reason() << "\r\n";
 }
 
 template<class FieldSequence>

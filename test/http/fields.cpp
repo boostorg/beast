@@ -103,12 +103,12 @@ public:
     testMethodString()
     {
         f_t f;
-        f.method_string("CRY");
-        BEAST_EXPECTS(f.method_string() == "CRY", f.method_string());
-        f.method_string("PUT");
-        BEAST_EXPECTS(f.method_string() == "PUT", f.method_string());
-        f.method_string({});
-        BEAST_EXPECTS(f.method_string().empty(), f.method_string());
+        f.method_impl("CRY");
+        BEAST_EXPECTS(f.method_impl() == "CRY", f.method_impl());
+        f.method_impl("PUT");
+        BEAST_EXPECTS(f.method_impl() == "PUT", f.method_impl());
+        f.method_impl({});
+        BEAST_EXPECTS(f.method_impl().empty(), f.method_impl());
     }
 
     void run() override

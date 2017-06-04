@@ -42,6 +42,8 @@ public:
         case error::end_of_stream: return "end of stream";
         case error::partial_message: return "partial message";
         case error::need_more: return "need more";
+        case error::unexpected_body: return "unexpected body";
+        case error::need_buffer: return "need buffer";
         case error::buffer_overflow: return "buffer overflow";
         case error::bad_line_ending: return "bad line ending";
         case error::bad_method: return "bad method";

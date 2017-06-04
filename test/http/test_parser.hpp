@@ -62,11 +62,11 @@ public:
     }
 
     void
-    on_response(int status_,
+    on_response(int code,
         string_view reason_,
             int version_, error_code& ec)
     {
-        status = status_;
+        status = code;
         reason = std::string(
             reason_.data(), reason_.size());
         version = version_;

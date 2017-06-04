@@ -8,9 +8,100 @@
 #ifndef BEAST_HTTP_IMPL_STATUS_IPP
 #define BEAST_HTTP_IMPL_STATUS_IPP
 
+#include <boost/throw_exception.hpp>
+
 namespace beast {
 namespace http {
 namespace detail {
+
+template<class = void>
+status
+int_to_status(int v)
+{
+    switch(static_cast<status>(v))
+    {
+    // 1xx
+    case status::continue_:
+    case status::switching_protocols:
+    case status::processing:
+        // [[fallthrough]]
+
+    // 2xx
+    case status::ok:
+    case status::created:
+    case status::accepted:
+    case status::non_authoritative_information:
+    case status::no_content:
+    case status::reset_content:
+    case status::partial_content:
+    case status::multi_status:
+    case status::already_reported:
+    case status::im_used:
+        // [[fallthrough]]
+
+    // 3xx
+    case status::multiple_choices:
+    case status::moved_permanently:
+    case status::found:
+    case status::see_other:
+    case status::not_modified:
+    case status::use_proxy:
+    case status::temporary_redirect:
+    case status::permanent_redirect:
+        // [[fallthrough]]
+
+    // 4xx
+    case status::bad_request:
+    case status::unauthorized:
+    case status::payment_required:
+    case status::forbidden:
+    case status::not_found:
+    case status::method_not_allowed:
+    case status::not_acceptable:
+    case status::proxy_authentication_required:
+    case status::request_timeout:
+    case status::conflict:
+    case status::gone:
+    case status::length_required:
+    case status::precondition_failed:
+    case status::payload_too_large:
+    case status::uri_too_long:
+    case status::unsupported_media_type:
+    case status::range_not_satisfiable:
+    case status::expectation_failed:
+    case status::misdirected_request:
+    case status::unprocessable_entity:
+    case status::locked:
+    case status::failed_dependency:
+    case status::upgrade_required:
+    case status::precondition_required:
+    case status::too_many_requests:
+    case status::request_header_fields_too_large:
+    case status::connection_closed_without_response:
+    case status::unavailable_for_legal_reasons:
+    case status::client_closed_request:
+        // [[fallthrough]]
+
+    // 5xx
+    case status::internal_server_error:
+    case status::not_implemented:
+    case status::bad_gateway:
+    case status::service_unavailable:
+    case status::gateway_timeout:
+    case status::http_version_not_supported:
+    case status::variant_also_negotiates:
+    case status::insufficient_storage:
+    case status::loop_detected:
+    case status::not_extended:
+    case status::network_authentication_required:
+    case status::network_connect_timeout_error:
+        return static_cast<status>(v);
+
+    default:
+        break;
+    }
+    return status::unknown;
+}
 
 template<class = void>
 string_view
@@ -92,10 +183,48 @@ status_to_string(int v)
     default:
         break;
     }
-    return "Unknown Status";
+    return "<unknown-status>";
+}
+
+template<class = void>
+status_class
+to_status_class(int v)
+{
+    switch(v / 100)
+    {
+    case 1: return status_class::informational;
+    case 2: return status_class::successful;
+    case 3: return status_class::redirection;
+    case 4: return status_class::client_error;
+    case 5: return status_class::server_error;
+    default:
+        break;
+    }
+    return status_class::unknown;
 }
 
 } // detail
+
+inline
+status
+int_to_status(int v)
+{
+    return detail::int_to_status(v);
+}
+
+inline
+status_class
+to_status_class(int v)
+{
+    return detail::to_status_class(v);
+}
+
+inline
+status_class
+to_status_class(status v)
+{
+    return to_status_class(static_cast<int>(v));
+}
 
 inline
 string_view

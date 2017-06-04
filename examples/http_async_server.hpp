@@ -234,8 +234,7 @@ private:
             if(! boost::filesystem::exists(path))
             {
                 response<string_body> res;
-                res.status = 404;
-                res.reason("Not Found");
+                res.result(status::not_found);
                 res.version = req_.version;
                 res.fields.insert("Server", "http_async_server");
                 res.fields.insert("Content-Type", "text/html");
@@ -249,8 +248,7 @@ private:
             try
             {
                 resp_type res;
-                res.status = 200;
-                res.reason("OK");
+                res.result(status::ok);
                 res.version = req_.version;
                 res.fields.insert("Server", "http_async_server");
                 res.fields.insert("Content-Type", mime_type(path));
@@ -263,8 +261,7 @@ private:
             catch(std::exception const& e)
             {
                 response<string_body> res;
-                res.status = 500;
-                res.reason("Internal Error");
+                res.result(status::internal_server_error);
                 res.version = req_.version;
                 res.fields.insert("Server", "http_async_server");
                 res.fields.insert("Content-Type", "text/html");

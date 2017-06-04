@@ -88,6 +88,7 @@
             <member><link linkend="beast.ref.http__connection">connection</link></member>
             <member><link linkend="beast.ref.http__error">error</link></member>
             <member><link linkend="beast.ref.http__status">status</link></member>
+            <member><link linkend="beast.ref.http__status_class">status_class</link></member>
             <member><link linkend="beast.ref.http__verb">verb</link></member>
           </simplelist>
           <bridgehead renderas="sect3">Type Traits</bridgehead>
