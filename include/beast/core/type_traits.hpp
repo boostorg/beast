@@ -23,22 +23,29 @@ namespace beast {
 
 /** Determine if `T` meets the requirements of @b ConstBufferSequence.
 
+    Metafunctions are used to perform compile time checking of template
+    types. This type will be `std::true_type` if `T` meets the requirements,
+    else the type will be `std::false_type`. 
+
     @par Example
+
     Use with `static_assert`:
+
     @code
-        template<class ConstBufferSequence>
-        void f(ConstBufferSequence const& buffers)
-        {
-            static_assert(is_const_buffer_sequence<ConstBufferSequence>::value,
-                "ConstBufferSequence requirements not met");
-            ...
-        }
+    template<class ConstBufferSequence>
+    void f(ConstBufferSequence const& buffers)
+    {
+        static_assert(is_const_buffer_sequence<ConstBufferSequence>::value,
+            "ConstBufferSequence requirements not met");
+    ...
     @endcode
-    Use with `std::enable_if`
+
+    Use with `std::enable_if` (SFINAE):
+
     @code
-        template<class ConstBufferSequence>
-        typename std::enable_if<is_const_buffer_sequence<ConstBufferSequence>::value>::type
-        f(ConstBufferSequence const& buffers);
+    template<class ConstBufferSequence>
+    typename std::enable_if<is_const_buffer_sequence<ConstBufferSequence>::value>::type
+    f(ConstBufferSequence const& buffers);
     @endcode
 */
 template<class T>
@@ -53,22 +60,29 @@ struct is_const_buffer_sequence :
 
 /** Determine if `T` meets the requirements of @b MutableBufferSequence.
 
+    Metafunctions are used to perform compile time checking of template
+    types. This type will be `std::true_type` if `T` meets the requirements,
+    else the type will be `std::false_type`. 
+
     @par Example
+
     Use with `static_assert`:
+
     @code
-        template<class MutableBufferSequence>
-        void f(MutableBufferSequence const& buffers)
-        {
-            static_assert(is_const_buffer_sequence<MutableBufferSequence>::value,
-                "MutableBufferSequence requirements not met");
-            ...
-        }
+    template<class MutableBufferSequence>
+    void f(MutableBufferSequence const& buffers)
+    {
+        static_assert(is_const_buffer_sequence<MutableBufferSequence>::value,
+            "MutableBufferSequence requirements not met");
+    ...
     @endcode
-    Use with `std::enable_if`
+
+    Use with `std::enable_if` (SFINAE):
+
     @code
-        template<class MutableBufferSequence>
-        typename std::enable_if<is_mutable_buffer_sequence<MutableBufferSequence>::value>::type
-        f(MutableBufferSequence const& buffers);
+    template<class MutableBufferSequence>
+    typename std::enable_if<is_mutable_buffer_sequence<MutableBufferSequence>::value>::type
+    f(MutableBufferSequence const& buffers);
     @endcode
 */
 template<class T>
@@ -83,22 +97,29 @@ struct is_mutable_buffer_sequence :
 
 /** Determine if `T` meets the requirements of @b DynamicBuffer.
 
+    Metafunctions are used to perform compile time checking of template
+    types. This type will be `std::true_type` if `T` meets the requirements,
+    else the type will be `std::false_type`. 
+
     @par Example
+
     Use with `static_assert`:
+
     @code
-        template<class DynamicBuffer>
-        void f(DynamicBuffer& buffer)
-        {
-            static_assert(is_dynamic_buffer<DynamicBuffer>::value,
-                "DynamicBuffer requirements not met");
-            ...
-        }
+    template<class DynamicBuffer>
+    void f(DynamicBuffer& buffer)
+    {
+        static_assert(is_dynamic_buffer<DynamicBuffer>::value,
+            "DynamicBuffer requirements not met");
+    ...
     @endcode
-    Use with `std::enable_if`
+
+    Use with `std::enable_if` (SFINAE):
+
     @code
-        template<class DynamicBuffer>
-        typename std::enable_if<is_dynamic_buffer<DynamicBuffer>::value>::type
-        f(DynamicBuffer const& buffer);
+    template<class DynamicBuffer>
+    typename std::enable_if<is_dynamic_buffer<DynamicBuffer>::value>::type
+    f(DynamicBuffer const& buffer);
     @endcode
 */
 #if BEAST_DOXYGEN
@@ -149,11 +170,16 @@ struct is_dynamic_buffer<
 
 /** Determine if `T` meets the requirements of @b CompletionHandler.
 
-    This metafunction will be equivalent to `std::true_type` if `T`
-    meets the requirements for a completion handler callable with
-    the given signature.
+    This trait checks whether a type meets the requirements for a completion
+    handler, and is also callable with the specified signature.
+    Metafunctions are used to perform compile time checking of template
+    types. This type will be `std::true_type` if `T` meets the requirements,
+    else the type will be `std::false_type`. 
 
     @par Example
+
+    Use with `static_assert`:
+
     @code
     struct handler
     {
@@ -181,7 +207,36 @@ using is_completion_handler = std::integral_constant<bool,
 
 /** Determine if `T` has the `get_io_service` member.
 
+    Metafunctions are used to perform compile time checking of template
+    types. This type will be `std::true_type` if `T` has the member
+    function with the correct signature, else type will be `std::false_type`. 
+
     @par Example
+
+    Use with tag dispatching:
+
+    @code
+    template<class T>
+    void maybe_hello(T& t, std::true_type)
+    {
+        t.get_io_service().post([]{ std::cout << "Hello, world!" << std::endl; });
+    }
+
+    template<class T>
+    void maybe_hello(T&, std::false_type)
+    {
+        // T does not have get_io_service
+    }
+
+    template<class T>
+    void maybe_hello(T& t)
+    {
+        maybe_hello(t, has_get_io_service<T>{});
+    }
+    @endcode
+
+    Use with `static_assert`:
+
     @code
     struct stream
     {
@@ -208,7 +263,13 @@ struct has_get_io_service<T, beast::detail::void_t<decltype(
 
 /** Returns `T::lowest_layer_type` if it exists, else `T`
 
+    This will contain a nested `type` equal to `T::lowest_layer_type`
+    if it exists, else `type` will be equal to `T`.
+
     @par Example
+
+    Declaring a wrapper:
+
     @code
     template<class Stream>
     struct stream_wrapper
@@ -216,6 +277,15 @@ struct has_get_io_service<T, beast::detail::void_t<decltype(
         using next_layer_type = typename std::remove_reference<Stream>::type;
         using lowest_layer_type = typename get_lowest_layer<stream_type>::type;
     };
+    @endcode
+
+    Defining a metafunction:
+
+    @code
+    /// Alias for `std::true_type` if `T` wraps another stream
+    template<class T>
+    using is_stream_wrapper : std::integral_constant<bool,
+        ! std::is_same<T, typename get_lowest_layer<T>::type>::value> {};
     @endcode
 */
 #if BEAST_DOXYGEN
@@ -238,18 +308,25 @@ struct get_lowest_layer<T, detail::void_t<
 
 /** Determine if `T` meets the requirements of @b AsyncReadStream.
 
+    Metafunctions are used to perform compile time checking of template
+    types. This type will be `std::true_type` if `T` meets the requirements,
+    else the type will be `std::false_type`. 
+
     @par Example
+    
     Use with `static_assert`:
+    
     @code
-        template<class AsyncReadStream>
-        void f(AsyncReadStream& stream)
-        {
-            static_assert(is_async_read_stream<AsyncReadStream>::value,
-                "AsyncReadStream requirements not met");
-            ...
-        }
+    template<class AsyncReadStream>
+    void f(AsyncReadStream& stream)
+    {
+        static_assert(is_async_read_stream<AsyncReadStream>::value,
+            "AsyncReadStream requirements not met");
+    ...
     @endcode
-    Use with `std::enable_if`
+    
+    Use with `std::enable_if` (SFINAE):
+    
     @code
         template<class AsyncReadStream>
         typename std::enable_if<is_async_read_stream<AsyncReadStream>::value>::type
@@ -275,22 +352,29 @@ struct is_async_read_stream<T, detail::void_t<decltype(
 
 /** Determine if `T` meets the requirements of @b AsyncWriteStream.
 
+    Metafunctions are used to perform compile time checking of template
+    types. This type will be `std::true_type` if `T` meets the requirements,
+    else the type will be `std::false_type`. 
+
     @par Example
+
     Use with `static_assert`:
+
     @code
-        template<class AsyncWriteStream>
-        void f(AsyncWriteStream& stream)
-        {
-            static_assert(is_async_write_stream<AsyncWriteStream>::value,
-                "AsyncWriteStream requirements not met");
-            ...
-        }
+    template<class AsyncWriteStream>
+    void f(AsyncWriteStream& stream)
+    {
+        static_assert(is_async_write_stream<AsyncWriteStream>::value,
+            "AsyncWriteStream requirements not met");
+    ...
     @endcode
-    Use with `std::enable_if`
+
+    Use with `std::enable_if` (SFINAE):
+
     @code
-        template<class AsyncWriteStream>
-        typename std::enable_if<is_async_write_stream<AsyncWriteStream>::value>::type
-        f(AsyncWriteStream& stream);
+    template<class AsyncWriteStream>
+    typename std::enable_if<is_async_write_stream<AsyncWriteStream>::value>::type
+    f(AsyncWriteStream& stream);
     @endcode
 */
 #if BEAST_DOXYGEN
@@ -312,22 +396,29 @@ struct is_async_write_stream<T, detail::void_t<decltype(
 
 /** Determine if `T` meets the requirements of @b SyncReadStream.
 
+    Metafunctions are used to perform compile time checking of template
+    types. This type will be `std::true_type` if `T` meets the requirements,
+    else the type will be `std::false_type`. 
+
     @par Example
+
     Use with `static_assert`:
+
     @code
-        template<class SyncReadStream>
-        void f(SyncReadStream& stream)
-        {
-            static_assert(is_sync_read_stream<SyncReadStream>::value,
-                "SyncReadStream requirements not met");
-            ...
-        }
+    template<class SyncReadStream>
+    void f(SyncReadStream& stream)
+    {
+        static_assert(is_sync_read_stream<SyncReadStream>::value,
+            "SyncReadStream requirements not met");
+    ...
     @endcode
-    Use with `std::enable_if`
+
+    Use with `std::enable_if` (SFINAE):
+
     @code
-        template<class SyncReadStream>
-        typename std::enable_if<is_sync_read_stream<SyncReadStream>::value>::type
-        f(SyncReadStream& stream);
+    template<class SyncReadStream>
+    typename std::enable_if<is_sync_read_stream<SyncReadStream>::value>::type
+    f(SyncReadStream& stream);
     @endcode
 */
 #if BEAST_DOXYGEN
@@ -351,22 +442,29 @@ struct is_sync_read_stream<T, detail::void_t<decltype(
 
 /** Determine if `T` meets the requirements of @b SyncWriterStream.
 
+    Metafunctions are used to perform compile time checking of template
+    types. This type will be `std::true_type` if `T` meets the requirements,
+    else the type will be `std::false_type`. 
+
     @par Example
+
     Use with `static_assert`:
+
     @code
-        template<class SyncReadStream>
-        void f(SyncReadStream& stream)
-        {
-            static_assert(is_sync_read_stream<SyncReadStream>::value,
-                "SyncReadStream requirements not met");
-            ...
-        }
+    template<class SyncReadStream>
+    void f(SyncReadStream& stream)
+    {
+        static_assert(is_sync_read_stream<SyncReadStream>::value,
+            "SyncReadStream requirements not met");
+    ...
     @endcode
-    Use with `std::enable_if`
+
+    Use with `std::enable_if` (SFINAE):
+
     @code
-        template<class SyncReadStream>
-        typename std::enable_if<is_sync_read_stream<SyncReadStream>::value>::type
-        f(SyncReadStream& stream);
+    template<class SyncReadStream>
+    typename std::enable_if<is_sync_read_stream<SyncReadStream>::value>::type
+    f(SyncReadStream& stream);
     @endcode
 */
 #if BEAST_DOXYGEN
@@ -390,22 +488,29 @@ struct is_sync_write_stream<T, detail::void_t<decltype(
 
 /** Determine if `T` meets the requirements of @b AsyncStream.
 
+    Metafunctions are used to perform compile time checking of template
+    types. This type will be `std::true_type` if `T` meets the requirements,
+    else the type will be `std::false_type`. 
+
     @par Example
+
     Use with `static_assert`:
+
     @code
-        template<class AsyncStream>
-        void f(AsyncStream& stream)
-        {
-            static_assert(is_async_stream<AsyncStream>::value,
-                "AsyncStream requirements not met");
-            ...
-        }
+    template<class AsyncStream>
+    void f(AsyncStream& stream)
+    {
+        static_assert(is_async_stream<AsyncStream>::value,
+            "AsyncStream requirements not met");
+    ...
     @endcode
-    Use with `std::enable_if`
+
+    Use with `std::enable_if` (SFINAE):
+
     @code
-        template<class AsyncStream>
-        typename std::enable_if<is_async_stream<AsyncStream>::value>::type
-        f(AsyncStream& stream);
+    template<class AsyncStream>
+    typename std::enable_if<is_async_stream<AsyncStream>::value>::type
+    f(AsyncStream& stream);
     @endcode
 */
 #if BEAST_DOXYGEN
@@ -419,23 +524,29 @@ using is_async_stream = std::integral_constant<bool,
 
 /** Determine if `T` meets the requirements of @b SyncStream.
 
+    Metafunctions are used to perform compile time checking of template
+    types. This type will be `std::true_type` if `T` meets the requirements,
+    else the type will be `std::false_type`. 
 
     @par Example
+
     Use with `static_assert`:
+
     @code
-        template<class SyncStream>
-        void f(SyncStream& stream)
-        {
-            static_assert(is_sync_stream<SyncStream>::value,
-                "SyncStream requirements not met");
-            ...
-        }
+    template<class SyncStream>
+    void f(SyncStream& stream)
+    {
+        static_assert(is_sync_stream<SyncStream>::value,
+            "SyncStream requirements not met");
+    ...
     @endcode
-    Use with `std::enable_if`
+
+    Use with `std::enable_if` (SFINAE):
+
     @code
-        template<class SyncStream>
-        typename std::enable_if<is_sync_stream<SyncStream>::value>::type
-        f(SyncStream& stream);
+    template<class SyncStream>
+    typename std::enable_if<is_sync_stream<SyncStream>::value>::type
+    f(SyncStream& stream);
     @endcode
 */
 #if BEAST_DOXYGEN

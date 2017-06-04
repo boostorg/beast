@@ -44,10 +44,10 @@ lists these facilities by group, with descriptions.
     ```
 ]
 
-[include 2_1_asio.qbk]
-[include 2_2_streams.qbk]
-[include 2_3_buffers.qbk]
-[include 2_4_async.qbk]
-[include 2_5_tutorial.qbk]
+[include 3_1_asio.qbk]
+[include 3_2_streams.qbk]
+[include 3_3_buffers.qbk]
+[include 3_4_async.qbk]
+[include 3_5_tutorial.qbk]
 
 [endsect]
