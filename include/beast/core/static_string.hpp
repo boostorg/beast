@@ -22,7 +22,7 @@
 
 namespace beast {
 
-/** A string with a fixed-size storage area.
+/** A modifiable string with a fixed-size storage area.
 
     These objects behave like `std::string` except that the storage
     is not dynamically allocated but rather fixed in size.

@@ -81,32 +81,33 @@ struct no_chunk_decorator
     struct with a templated operator() thusly:
 
     @code
-        // The implementation guarantees that operator()
-        // will be called only after the view returned by
-        // any previous calls to operator() are no longer
-        // needed. The decorator instance is intended to
-        // manage the lifetime of the storage for all returned
-        // views.
+    // The implementation guarantees that operator()
+    // will be called only after the view returned by
+    // any previous calls to operator() are no longer
+    // needed. The decorator instance is intended to
+    // manage the lifetime of the storage for all returned
+    // views.
+    //
+    struct decorator
+    {
+        // Returns the chunk-extension for each chunk,
+        // or an empty string for no chunk extension. The
+        // buffer must include the leading semicolon (";")
+        // and follow the format for chunk extensions defined
+        // in rfc7230.
         //
-        struct decorator
-        {
-            // Returns the chunk-extension for each chunk.
-            // The buffer returned must include a trailing "\r\n",
-            // and the leading semicolon (";") if one or more
-            // chunk extensions are specified.
-            //
-            template<class ConstBufferSequence>
-            string_view
-            operator()(ConstBufferSequence const&) const;
+        template<class ConstBufferSequence>
+        string_view
+        operator()(ConstBufferSequence const&) const;
 
-            // Returns a set of field trailers for the final chunk.
-            // Each field should be formatted according to rfc7230
-            // including the trailing "\r\n" for each field. If
-            // no trailers are indicated, an empty string is returned.
-            //
-            string_view
-            operator()(boost::asio::null_buffers) const;
-        };
+        // Returns a set of field trailers for the final chunk.
+        // Each field should be formatted according to rfc7230
+        // including the trailing "\r\n" for each field. If
+        // no trailers are indicated, an empty string is returned.
+        //
+        string_view
+        operator()(boost::asio::null_buffers) const;
+    };
     @endcode
 
     @tparam isRequest `true` if the message is a request.
@@ -130,6 +131,7 @@ class serializer
 {
     static_assert(is_body<Body>::value,
         "Body requirements not met");
+    
     static_assert(is_body_reader<Body>::value,
         "BodyReader requirements not met");
 

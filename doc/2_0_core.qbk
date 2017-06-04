@@ -1,0 +1,53 @@
+[/
+    Copyright (c) 2013-2017 Vinnie Falco (vinnie dot falco at gmail dot com)
+
+    Distributed under the Boost Software License, Version 1.0. (See accompanying
+    file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+]
+
+[section:core Core Concepts]
+
+[block '''
+<informaltable frame="all"><tgroup cols="1"><colspec colname="a"/><tbody><row><entry valign="top"><simplelist>
+  <member><link linkend="beast.core.asio">Working With Asio</link></member>
+  <member><link linkend="beast.core.streams">Stream Concepts</link></member>
+  <member><link linkend="beast.core.buffers">Buffer Concepts</link></member>
+  <member><link linkend="beast.core.async">Asynchronous Utilities</link></member>
+  <member><link linkend="beast.core.tutorial">Writing Composed Operations</link></member>
+</simplelist></entry></row></tbody></tgroup></informaltable>
+''']
+
+A goal of the library is expose implementation primitives in order that
+users may build their own library-like components. These primitives include
+traits, buffers, buffer algorithms, and helpers for implementing asynchronous
+operations compatible with __Asio__ and described in __N3747__. This section
+lists these facilities by group, with descriptions.
+
+[important
+    This documentation assumes familiarity with __Asio__. Sample
+    code and identifiers used throughout are written as if the
+    following declarations are in effect:
+    ```
+    #include <beast/core.hpp>
+    #include <boost/asio.hpp>
+    #include <iostream>
+    #include <thread>
+ 
+    using namespace beast;
+
+    boost::asio::io_service ios;
+    boost::asio::io_service work{ios};
+    std::thread t{[&](){ ios.run(); }};
+
+    error_code ec;
+
+    ```
+]
+
+[include 2_1_asio.qbk]
+[include 2_2_streams.qbk]
+[include 2_3_buffers.qbk]
+[include 2_4_async.qbk]
+[include 2_5_tutorial.qbk]
+
+[endsect]

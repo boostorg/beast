@@ -109,11 +109,11 @@ A set of free functions allow serialization of an entire HTTP message to
 a stream. This function sends a message synchronously on the socket,
 throwing an exception if an error occurs:
 ```
-template<class Body, class Fields>
-void send(response<Body, Fields> const& res)
-{
-    write(sock, res);
-}
+    template<class Body, class Fields>
+    void send(response<Body, Fields> const& res)
+    {
+        write(sock, res);
+    }
 ```
 
 If a response has no declared content length, and no chunked transfer
@@ -124,37 +124,37 @@ to the caller that the connection should be closed. This example
 constructs and sends a response whose body length is determined by
 the number of octets received prior to the server closing the connection:
 ```
-void send()
-{
-    response<string_body> res;
-    res.version = 11;
-    res.status = 200;
-    res.reason("OK");
-    res.fields.insert("Server", "Beast");
-    res.body = "Hello, world!";
+    void send()
+    {
+        response<string_body> res;
+        res.version = 11;
+        res.status = 200;
+        res.reason("OK");
+        res.fields.insert("Server", "Beast");
+        res.body = "Hello, world!";
 
-    error_code ec;
-    write(sock, res, ec);
-    if(ec == boost::asio::error::eof)
-        sock.close();
-    else
-        BOOST_ASSERT(ec);
-}
+        error_code ec;
+        write(sock, res, ec);
+        if(ec == boost::asio::error::eof)
+            sock.close();
+        else
+            BOOST_ASSERT(ec);
+    }
 ```
 
 An asynchronous version is also available:
 
 ```
-template<class Body, class Fields>
-void send_async(response<Body, Fields> const& res)
-{
-    async_write(sock, res,
-        [&](error_code)
-        {
-            if(ec)
-                std::cerr << ec.message() << std::endl;
-        });
-}
+    template<class Body, class Fields>
+    void send_async(response<Body, Fields> const& res)
+    {
+        async_write(sock, res,
+            [&](error_code)
+            {
+                if(ec)
+                    std::cerr << ec.message() << std::endl;
+            });
+    }
 ```
 
 [endsect]

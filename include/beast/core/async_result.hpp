@@ -36,6 +36,36 @@ namespace beast {
     completion token types. The primary template assumes that the
     @b CompletionToken is the completion handler.
 
+    @par Example
+
+    The example shows how to define an asynchronous initiation function
+    whose completion handler receives an error code:
+
+    @code
+    template<
+        class AsyncStream,          // A stream supporting asynchronous read and write
+        class Handler               // The handler to call with signature void(error_code)
+    >
+    async_return_type<              // This provides the return type customization
+        Handler, void(error_code)>
+    do_async(
+        AsyncStream& stream,        // The stream to work on
+        Handler&& handler)          // Could be an rvalue or const reference
+    {
+        // Make sure we have an async stream
+        static_assert(is_async_stream<AsyncWriteStream>::value,
+            "AsyncStream requirements not met");
+
+        // This helper converts the handler into the real handler type
+        async_completion<WriteHandler, void(error_code)> init{handler};
+
+        ...                         // Create and the composed operation
+
+        // This provides the return value and executor customization
+        return init.result.get();
+    }
+    @endcode
+
     @see @ref async_completion, @ref async_return_type, @ref handler_type
 */
 template<class CompletionToken, class Signature>

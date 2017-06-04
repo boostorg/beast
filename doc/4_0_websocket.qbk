@@ -1,0 +1,50 @@
+[/
+    Copyright (c) 2013-2017 Vinnie Falco (vinnie dot falco at gmail dot com)
+
+    Distributed under the Boost Software License, Version 1.0. (See accompanying
+    file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+]
+
+[section:websocket Using WebSocket]
+
+[block '''
+<informaltable frame="all"><tgroup cols="1"><colspec colname="a"/><tbody><row><entry valign="top"><simplelist>
+  <member><link linkend="beast.websocket.streams">Creating Streams</link></member>
+  <member><link linkend="beast.websocket.connect">Establishing Connections</link></member>
+  <member><link linkend="beast.websocket.client">Handshaking (Clients)</link></member>
+  <member><link linkend="beast.websocket.server">Handshaking (Servers)</link></member>
+  <member><link linkend="beast.websocket.messages">Send and Receive Messages</link></member>
+  <member><link linkend="beast.websocket.control">Control Frames</link></member>
+  <member><link linkend="beast.websocket.notes">Additional Notes</link></member>
+</simplelist></entry></row></tbody></tgroup></informaltable>
+''']
+
+The WebSocket Protocol enables two-way communication between a client
+running untrusted code in a controlled environment to a remote host that has
+opted-in to communications from that code. The protocol consists of an opening
+handshake followed by basic message framing, layered over TCP.  The goal of
+this technology is to provide a mechanism for browser-based applications
+needing two-way communication with servers without relying on opening multiple
+HTTP connections.
+
+Beast provides developers with a robust WebSocket implementation built on
+Boost.Asio with a consistent asynchronous model using a modern C++ approach.
+
+[note
+    The WebSocket documentation assumes familiarity the WebSocket protocol
+    specification described in __rfc6455__. Code appearing in these
+    sections is written as if the following declarations are in effect:
+    ```
+    #include <beast/websocket.hpp>
+    ```
+]
+
+[include 4_1_streams.qbk]
+[include 4_2_connect.qbk]
+[include 4_3_client.qbk]
+[include 4_4_server.qbk]
+[include 4_5_messages.qbk]
+[include 4_6_control.qbk]
+[include 4_7_notes.qbk]
+
+[endsect]

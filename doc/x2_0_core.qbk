@@ -54,14 +54,14 @@ invoke library algorithms it is necessary to first have a connected socket,
 SSL stream, or other object which meets the required stream concepts. This
 example is provided as a reminder of how to work with sockets:
 ```
-auto host = "www.example.com";
-boost::asio::ip::tcp::resolver r{ios};
-boost::asio::ip::tcp::socket sock{ios};
-boost::asio::connect(sock, r.resolve(
-    boost::asio::ip::tcp::resolver::query{host, "http"}));
+    auto host = "www.example.com";
+    boost::asio::ip::tcp::resolver r{ios};
+    boost::asio::ip::tcp::socket sock{ios};
+    boost::asio::connect(sock, r.resolve(
+        boost::asio::ip::tcp::resolver::query{host, "http"}));
 
-// At this point `sock` is a connected to a remote
-// host and may be used to perform stream operations.
+    // At this point `sock` is a connected to a remote
+    // host and may be used to perform stream operations.
 ```
 
 Throughout this documentation identifiers with the following names have
@@ -93,9 +93,6 @@ special meaning:
     which is already connected and has handshaked with a remote host.
 ]]
 ]
-
-
-
 
 [heading:streams Stream Concepts]
 

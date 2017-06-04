@@ -1,0 +1,100 @@
+[/
+    Copyright (c) 2013-2017 Vinnie Falco (vinnie dot falco at gmail dot com)
+
+    Distributed under the Boost Software License, Version 1.0. (See accompanying
+    file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+]
+
+[heading:async Asynchronous Utilities]
+
+Asynchronous operations are started by calling a free function or member
+function known as an ['asynchronous initiation function]. The initiation
+function accepts parameters specific to the operation as well as a "completion
+token." This token is either a completion handler, or another type allowing for
+customization of how the result of the asynchronous operation is conveyed to
+callers. __Asio__ allows the special completion tokens __use_future__ and
+objects of type __yield_context__ to allow callers to specify the use of futures
+and coroutines respectively. This system, where the return value and method of
+indicating completion may be customize at the call site of the asynchronous
+initiation function, is known as the ['Extensible Asynchronous Model] described
+in __N3747__, and built-in to __N4588__.
+
+[note
+    A full explanation of completion handlers, the Extensible Asynchronous
+    Model and how these asynchronous interfaces are used is beyond the
+    scope of this document. Interested readers should consult the
+    __Asio__ documentation.
+]
+
+Since the interfaces provided here are low level, authors of libraries
+may wish to create higher level interfaces using the primitives found
+in this library. Non-trivial applications will want to provide their own
+asychronous initiation functions which perform a series of other,
+intermediate asynchronous operations before invoking the final completion
+handler. The set of intermediate actions produced by calling an initiation
+function is known as a ['composed operation]. To ensure full interoperability
+and well-defined behavior, __Asio__ imposes requirements on the implementation
+of composed operations. A number of useful classes and macros to facilitate
+the development of composed operations and the associated asynchronous
+initiation functions used to launch them are available:
+
+[table Asynchronous Helpers
+[[Name][Description]]
+[[
+    [link beast.ref.async_completion `async_completion`]
+][
+    This class aggregates the completion handler customization point and
+    the asynchronous initiation function return value customization point
+    into a single object which exposes the appropriate output types for the
+    given input types, and also contains boilerplate that is necessary to
+    implement an initiation function using the Extensible Model.
+]]
+[[
+    [link beast.ref.async_return_type `async_return_type`]
+][
+    This template alias determines the return value of an asynchronous
+    initiation function given the completion token and signature. It is used
+    by asynchronous initiation functions to meet the requirements of the
+    Extensible Asynchronous Model.
+]]
+[[
+    [link beast.ref.bind_handler `bind_handler`]
+][
+    This function returns a new, nullary completion handler which when
+    invoked with no arguments invokes the original completion handler with a
+    list of bound arguments. The invocation is made from the same implicit
+    or explicit strand as that which would be used to invoke the original
+    handler. This is accomplished by using the correct overload of
+    `asio_handler_invoke` associated with the original completion handler.
+
+]]
+[[
+    [link beast.ref.handler_alloc `handler_alloc`]
+][
+    This class meets the requirements of [*Allocator], and uses any custom
+    memory allocation and deallocation hooks associated with a given handler.
+    It is useful for when a composed operation requires temporary dynamic
+    allocations to achieve its result. Memory allocated using this allocator
+    must be freed before the final completion handler is invoked.
+]]
+[[
+    [link beast.ref.handler_ptr `handler_ptr`]
+][
+    This is a smart pointer container used to manage the internal state of a
+    composed operation. It is useful when the state is non trivial. For example
+    when the state has non-copyable or expensive to copy types. The container
+    takes ownership of the final completion handler, and provides boilerplate
+    to invoke the final handler in a way that also deletes the internal state.
+    The internal state is allocated using the final completion handler's
+    associated allocator, benefiting from all handler memory management
+    optimizations transparently.
+]]
+[[
+    [link beast.ref.handler_type `handler_type`]
+][
+    This template alias converts a completion token and signature to the
+    correct completion handler type. It is used in the implementation of
+    asynchronous initiation functions to meet the requirements of the
+    Extensible Asynchronous Model.
+]]
+]
