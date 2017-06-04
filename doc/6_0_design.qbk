@@ -12,7 +12,7 @@
   <member><link linkend="beast.design.http_message">HTTP Message Container</link></member>
   <member><link linkend="beast.design.http_comparison">HTTP Comparison to Other Libraries</link></member>
   <member><link linkend="beast.design.websocket_zaphoyd">Comparison to Zaphoyd Studios WebSocket++</link></member>
-  <member><link linkend="beast.design.review">Boost Formal Review FAQ</link></member>
+  <member><link linkend="beast.design.faq">FAQ</link></member>
 </simplelist></entry></row></tbody></tgroup></informaltable>
 ''']
 
@@ -62,6 +62,6 @@ start. Other design goals:
 [include 6_1_http_message.qbk]
 [include 6_2_http_comparison.qbk]
 [include 6_3_websocket_zaphoyd.qbk]
-[include 6_4_review.qbk]
+[include 6_4_faq.qbk]
 
 [endsect]

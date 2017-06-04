@@ -318,8 +318,7 @@ public:
         Upgrade request and send the HTTP response. The call blocks
         until one of the following conditions is true:
 
-        @li The HTTP request finishes receiving, and the HTTP response
-        finishes sending.
+        @li The request is received and the response finishes sending.
 
         @li An error occurs on the stream.
 
@@ -346,8 +345,7 @@ public:
         Upgrade request and send the HTTP response. The call blocks
         until one of the following conditions is true:
 
-        @li The HTTP request finishes receiving, and the HTTP response
-        finishes sending.
+        @li The request is received and the response finishes sending.
 
         @li An error occurs on the stream.
 
@@ -384,8 +382,7 @@ public:
         Upgrade request and send the HTTP response. The call blocks
         until one of the following conditions is true:
 
-        @li The HTTP request finishes receiving, and the HTTP response
-        finishes sending.
+        @li The request is received and the response finishes sending.
 
         @li An error occurs on the stream.
 
@@ -412,8 +409,7 @@ public:
         Upgrade request and send the HTTP response. The call blocks
         until one of the following conditions is true:
 
-        @li The HTTP request finishes receiving, and the HTTP response
-        finishes sending.
+        @li The request is received and the response finishes sending.
 
         @li An error occurs on the stream.
 
@@ -451,8 +447,7 @@ public:
         Upgrade request and send the HTTP response. The call blocks
         until one of the following conditions is true:
 
-        @li The HTTP request finishes receiving, and the HTTP response
-        finishes sending.
+        @li The request is received and the response finishes sending.
 
         @li An error occurs on the stream.
 
@@ -489,8 +484,7 @@ public:
         Upgrade request and send the HTTP response. The call blocks
         until one of the following conditions is true:
 
-        @li The HTTP request finishes receiving, and the HTTP response
-        finishes sending.
+        @li The request is received and the response finishes sending.
 
         @li An error occurs on the stream.
 
@@ -538,8 +532,7 @@ public:
         Upgrade request and send the HTTP response. The call blocks
         until one of the following conditions is true:
 
-        @li The HTTP request finishes receiving, and the HTTP response
-        finishes sending.
+        @li The request is received and the response finishes sending.
 
         @li An error occurs on the stream.
 
@@ -576,8 +569,7 @@ public:
         Upgrade request and send the HTTP response. The call blocks
         until one of the following conditions is true:
 
-        @li The HTTP request finishes receiving, and the HTTP response
-        finishes sending.
+        @li The request is received and the response finishes sending.
 
         @li An error occurs on the stream.
 
@@ -626,7 +618,7 @@ public:
         to an HTTP request possibly containing a WebSocket Upgrade.
         The call blocks until one of the following conditions is true:
 
-        @li The HTTP response finishes sending.
+        @li The response finishes sending.
 
         @li An error occurs on the stream.
 
@@ -658,7 +650,7 @@ public:
         to an HTTP request possibly containing a WebSocket Upgrade.
         The call blocks until one of the following conditions is true:
 
-        @li The HTTP response finishes sending.
+        @li The response finishes sending.
 
         @li An error occurs on the stream.
 
@@ -700,7 +692,7 @@ public:
         to an HTTP request possibly containing a WebSocket Upgrade.
         The call blocks until one of the following conditions is true:
 
-        @li The HTTP response finishes sending.
+        @li The response finishes sending.
 
         @li An error occurs on the stream.
 
@@ -733,7 +725,7 @@ public:
         to an HTTP request possibly containing a WebSocket Upgrade.
         The call blocks until one of the following conditions is true:
 
-        @li The HTTP response finishes sending.
+        @li The response finishes sending.
 
         @li An error occurs on the stream.
 
@@ -776,7 +768,7 @@ public:
         to an HTTP request possibly containing a WebSocket Upgrade.
         The call blocks until one of the following conditions is true:
 
-        @li The HTTP response finishes sending.
+        @li The response finishes sending.
 
         @li An error occurs on the stream.
 
@@ -814,7 +806,7 @@ public:
         to an HTTP request possibly containing a WebSocket Upgrade.
         The call blocks until one of the following conditions is true:
 
-        @li The HTTP response finishes sending.
+        @li The response finishes sending.
 
         @li An error occurs on the stream.
 
@@ -863,7 +855,7 @@ public:
         to an HTTP request possibly containing a WebSocket Upgrade.
         The call blocks until one of the following conditions is true:
 
-        @li The HTTP response finishes sending.
+        @li The response finishes sending.
 
         @li An error occurs on the stream.
 
@@ -901,7 +893,7 @@ public:
         to an HTTP request possibly containing a WebSocket Upgrade.
         The call blocks until one of the following conditions is true:
 
-        @li The HTTP response finishes sending.
+        @li The response finishes sending.
 
         @li An error occurs on the stream.
 
@@ -952,8 +944,7 @@ public:
         always returns immediately. The asynchronous operation will
         continue until one of the following conditions is true:
 
-        @li The HTTP request finishes receiving, and the HTTP response
-        finishes sending.
+        @li The request is received and the response finishes sending.
 
         @li An error occurs on the stream.
 
@@ -1002,8 +993,7 @@ public:
         always returns immediately. The asynchronous operation will
         continue until one of the following conditions is true:
 
-        @li The HTTP request finishes receiving, and the HTTP response
-        finishes sending.
+        @li The request is received and the response finishes sending.
 
         @li An error occurs on the stream.
 
@@ -1062,8 +1052,7 @@ public:
         always returns immediately. The asynchronous operation will
         continue until one of the following conditions is true:
 
-        @li The HTTP request finishes receiving, and the HTTP response
-        finishes sending.
+        @li The request is received and the response finishes sending.
 
         @li An error occurs on the stream.
 
@@ -1121,8 +1110,7 @@ public:
         always returns immediately. The asynchronous operation will
         continue until one of the following conditions is true:
 
-        @li The HTTP request finishes receiving, and the HTTP response
-        finishes sending.
+        @li The request is received and the response finishes sending.
 
         @li An error occurs on the stream.
 
@@ -1192,7 +1180,7 @@ public:
         asynchronous operation will continue until one of the following
         conditions is true:
 
-        @li The HTTP response finishes sending.
+        @li The response finishes sending.
 
         @li An error occurs on the stream.
 
@@ -1247,7 +1235,7 @@ public:
         asynchronous operation will continue until one of the following
         conditions is true:
 
-        @li The HTTP response finishes sending.
+        @li The response finishes sending.
 
         @li An error occurs on the stream.
 
@@ -1313,7 +1301,7 @@ public:
         asynchronous operation will continue until one of the following
         conditions is true:
 
-        @li The HTTP response finishes sending.
+        @li The response finishes sending.
 
         @li An error occurs on the stream.
 
@@ -1377,7 +1365,7 @@ public:
         asynchronous operation will continue until one of the following
         conditions is true:
 
-        @li The HTTP response finishes sending.
+        @li The response finishes sending.
 
         @li An error occurs on the stream.
 
@@ -1449,8 +1437,7 @@ public:
         upgrade HTTP request. The call blocks until one of the
         following conditions is true:
 
-        @li A HTTP request finishes sending and an HTTP response finishes
-        receiving.
+        @li The request is sent and the response is received.
 
         @li An error occurs on the stream
 
@@ -1493,8 +1480,7 @@ public:
         upgrade HTTP request. The call blocks until one of the
         following conditions is true:
 
-        @li A HTTP request finishes sending and an HTTP response finishes
-        receiving.
+        @li The request is sent and the response is received.
 
         @li An error occurs on the stream
 
@@ -1542,8 +1528,7 @@ public:
         upgrade HTTP request. The call blocks until one of the
         following conditions is true:
 
-        @li A HTTP request finishes sending and an HTTP response finishes
-        receiving.
+        @li The request is sent and the response is received.
 
         @li An error occurs on the stream
 
@@ -1601,8 +1586,7 @@ public:
         upgrade HTTP request. The call blocks until one of the
         following conditions is true:
 
-        @li A HTTP request finishes sending and an HTTP response finishes
-        receiving.
+        @li The request is sent and the response is received.
 
         @li An error occurs on the stream
 
@@ -1665,8 +1649,7 @@ public:
         upgrade HTTP request. The call blocks until one of the
         following conditions is true:
 
-        @li A HTTP request finishes sending and an HTTP response finishes
-        receiving.
+        @li The request is sent and the response is received.
 
         @li An error occurs on the stream
 
@@ -1707,8 +1690,7 @@ public:
         upgrade HTTP request. The call blocks until one of the
         following conditions is true:
 
-        @li A HTTP request finishes sending and an HTTP response finishes
-        receiving.
+        @li The request is sent and the response is received.
 
         @li An error occurs on the stream
 
@@ -1755,8 +1737,7 @@ public:
         upgrade HTTP request. The call blocks until one of the
         following conditions is true:
 
-        @li A HTTP request finishes sending and an HTTP response finishes
-        receiving.
+        @li The request is sent and the response is received.
 
         @li An error occurs on the stream
 
@@ -1814,8 +1795,7 @@ public:
         upgrade HTTP request. The call blocks until one of the
         following conditions is true:
 
-        @li A HTTP request finishes sending and an HTTP response finishes
-        receiving.
+        @li The request is sent and the response is received.
 
         @li An error occurs on the stream
 
@@ -1880,10 +1860,9 @@ public:
         operation will continue until one of the following conditions is
         true:
 
-        @li A HTTP request finishes sending and an HTTP response finishes
-        receiving.
+        @li The request is sent and the response is received.
 
-        @li An error occurs on the stream.
+        @li An error occurs on the stream
 
         This operation is implemented in terms of one or more calls to the
         next layer's `async_read_some` and `async_write_some` functions, and
@@ -1932,10 +1911,9 @@ public:
         operation will continue until one of the following conditions is
         true:
 
-        @li A HTTP request finishes sending and an HTTP response finishes
-        receiving.
+        @li The request is sent and the response is received.
 
-        @li An error occurs on the stream.
+        @li An error occurs on the stream
 
         This operation is implemented in terms of one or more calls to the
         next layer's `async_read_some` and `async_write_some` functions, and
@@ -1989,10 +1967,9 @@ public:
         operation will continue until one of the following conditions is
         true:
 
-        @li A HTTP request finishes sending and an HTTP response finishes
-        receiving.
+        @li The request is sent and the response is received.
 
-        @li An error occurs on the stream.
+        @li An error occurs on the stream
 
         This operation is implemented in terms of one or more calls to the
         next layer's `async_read_some` and `async_write_some` functions, and
@@ -2051,10 +2028,9 @@ public:
         operation will continue until one of the following conditions is
         true:
 
-        @li A HTTP request finishes sending and an HTTP response finishes
-        receiving.
+        @li The request is sent and the response is received.
 
-        @li An error occurs on the stream.
+        @li An error occurs on the stream
 
         This operation is implemented in terms of one or more calls to the
         next layer's `async_read_some` and `async_write_some` functions, and

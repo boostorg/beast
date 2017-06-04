@@ -8,7 +8,7 @@
 [section:custom_body Custom Body Types]
 
 User-defined types are possible for the message body, where the type meets the
-[link beast.ref.Body [*`Body`]] requirements. This simplified class declaration
+__Body__ requirements. This simplified class declaration
 shows the customization points available to user-defined body types:
 
 [$images/body.png [width 525px] [height 190px]]
@@ -21,29 +21,64 @@ The meaning of the nested types is as follows
     [`value_type`]
     [
         Determines the type of the
-        [link beast.ref.http__message.body `message::body`] member. If this
-        type defines default construction, move, copy, or swap, then message objects
-        declared with this [*Body] will have those operations defined.
+        [link beast.ref.http__message.body `message::body`]
+        member. If this type defines default construction, move, copy,
+        or swap, then message objects declared with this __Body__ will
+        have those operations defined.
     ]
 ][
     [`reader`]
     [
-        An optional nested type meeting the requirements of
-        [link beast.ref.BodyReader [*BodyReader]]. If present, this defines
-        the algorithm used to obtain buffers representing a body of this type.
+        An optional nested type meeting the requirements of __BodyReader__.
     ]
 ][
     [`writer`]
     [
-        An optional nested type meeting the requirements of
-        [link beast.ref.BodyWriter [*BodyWriter]]. If present, this defines the
-        algorithm used to transfer parsed octets into buffers representing the
-        body.
+        An optional nested type meeting the requirements of __BodyWriter__.
     ]
 ]
 ]
 
-The examples included with this library provide a [*Body] implementation that
-serializing message bodies that come from a file.
+[heading Value Type]
+
+The `value_type` nested type allows the body to define the declaration of
+the body type as it appears in the message. This can be any type. For
+example, a body's value type may specify `std::vector<char>` or even
+`std::list<std::string>`. By also providing suitable definitions of
+corresponding `reader` and `writer` types, messages with that body
+become serializable and parseable respectively.
+
+A custom body may even set the value type to something that is not a container
+for body octets, such as a
+[@http://www.boost.org/libs/filesystem/doc/reference.html#class-path `boost::filesystem::path`].
+In this case the reader may obtain buffers corresponding to a file on disk,
+while the writer may store incoming buffers to a file on disk.
+
+Another option is to use a structured container for the value type. For
+example, a JSON tree structure such as the property tree produced by Boost's
+[@http://www.boost.org/doc/html/property_tree/parsers.html#property_tree.parsers.json_parser `json_parser`]
+As long as a suitable reader or writer is available to provide the algorithm
+for transferring buffers in and out of the value type, even if abstract,
+those bodies may be serialized or parsed.
+
+[note
+    The examples included with this library provide a [*Body]
+    implementation that serializes message bodies coming from a file.
+    This is part of the HTTP server example.
+]
+
+[heading Reader]
+
+The reader provides the algorithm for transferring buffers containing body
+octets obtained during parsing into the body container. The requirements
+for this type are described in the __BodyReader__ concept. When a body type
+defines a reader it may then be parsed using a __parser__.
+
+[heading Writer]
+
+The writer provides the algorithm for converting the body container into a
+series of buffers. The requirements for this type are described in the
+__BodyWriter__ concept. When a body type defines a writer it may then be
+serialized using a __serializer__.
 
 [endsect]
