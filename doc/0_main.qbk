@@ -80,6 +80,11 @@ asynchronous model of __Asio__.
     An explanation of requirements, audience, features, and credits.
   ]]
   [[
+    [link beast.example Examples]
+  ][
+    Examples that illustrate usage for typical scenarios.
+  ]]
+  [[
     [link beast.core Core Concepts]
   ][
     Library-wide concepts for working with buffers and streams.
@@ -93,11 +98,6 @@ asynchronous model of __Asio__.
     [link beast.websocket Using WebSocket]
   ][
     How to use the WebSocket interfaces in your applications.
-  ]]
-  [[
-    [link beast.example Examples]
-  ][
-    Examples that illustrate usage for typical scenarios.
   ]]
   [[
     [link beast.design Design]
@@ -117,10 +117,10 @@ asynchronous model of __Asio__.
 ]
 
 [include 1_overview.qbk]
-[include 2_0_core.qbk]
-[include 3_0_http.qbk]
-[include 4_0_websocket.qbk]
-[include 5_examples.qbk]
+[include 2_examples.qbk]
+[include 3_0_core.qbk]
+[include 4_0_http.qbk]
+[include 5_0_websocket.qbk]
 [include 6_0_design.qbk]
 
 [section:ref Reference]

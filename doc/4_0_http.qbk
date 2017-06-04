@@ -86,14 +86,14 @@ format using __Asio__. Specifically, the library provides:
     ```
 ]
 
-[include 3_1_primer.qbk]
-[include 3_2_message.qbk]
-[include 3_3_streams.qbk]
-[include 3_4_serializer_streams.qbk]
-[include 3_5_parser_streams.qbk]
-[include 3_6_serializer_buffers.qbk]
-[include 3_7_parser_buffers.qbk]
-[include 3_8_custom_parsers.qbk]
-[include 3_9_custom_body.qbk]
+[include 4_1_primer.qbk]
+[include 4_2_message.qbk]
+[include 4_3_streams.qbk]
+[include 4_4_serializer_streams.qbk]
+[include 4_5_parser_streams.qbk]
+[include 4_6_serializer_buffers.qbk]
+[include 4_7_parser_buffers.qbk]
+[include 4_8_custom_parsers.qbk]
+[include 4_9_custom_body.qbk]
 
 [endsect]
