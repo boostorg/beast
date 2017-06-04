@@ -10,7 +10,6 @@
 
 #include <beast/config.hpp>
 #include <beast/core/string_view.hpp>
-#include <boost/optional.hpp>
 #include <ostream>
 
 namespace beast {
@@ -23,8 +22,16 @@ namespace http {
 */
 enum class verb
 {
+    /** An unknown method.
+
+        This value indicates that the request method string is not
+        one of the recognized verbs. Callers interested in the method
+        should use an interface which returns the original string.
+    */
+    unknown = 0,
+
     /// The DELETE method deletes the specified resource
-    delete_ = 1,
+    delete_,
 
     /** The GET method requests a representation of the specified resource.
 
@@ -123,7 +130,7 @@ enum class verb
     If the string does not match a known request method,
     `boost::none` is returned.
 */
-boost::optional<verb>
+verb
 string_to_verb(string_view s);
 
 /// Returns the text representation of a request method verb.

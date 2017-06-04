@@ -11,10 +11,8 @@
 #include <beast/config.hpp>
 #include <beast/core/string_view.hpp>
 #include <beast/core/detail/empty_base_optimization.hpp>
-#include <beast/http/verb.hpp>
 #include <beast/http/detail/fields.hpp>
 #include <boost/lexical_cast.hpp>
-#include <boost/optional.hpp>
 #include <algorithm>
 #include <cctype>
 #include <memory>
@@ -60,8 +58,6 @@ class basic_fields :
 
     using size_type =
         typename std::allocator_traits<Allocator>::size_type;
-
-    boost::optional<verb> verb_;
 
     void
     delete_all();
@@ -290,13 +286,10 @@ private:
 #endif
 
     string_view
-    method() const;
+    method_string() const;
 
     void
-    method(verb v);
-
-    void
-    method(string_view const& s);
+    method_string(string_view s);
 
     string_view
     target() const
@@ -305,7 +298,7 @@ private:
     }
 
     void
-    target(string_view const& s)
+    target(string_view s)
     {
         return this->replace(":target", s);
     }
@@ -317,7 +310,7 @@ private:
     }
 
     void
-    reason(string_view const& s)
+    reason(string_view s)
     {
         return this->replace(":reason", s);
     }

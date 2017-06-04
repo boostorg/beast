@@ -210,11 +210,16 @@ template<class Fields>
 struct header<true, Fields>
 {
     int version;
-    string_view method() const;
+    verb method() const;
+    string_view method_string() const;
+    void method(verb);
     void method(string_view);
     string_view target(); const;
     void target(string_view);
     Fields fields;
+
+private:
+    verb method_;
 };
 
 /// An HTTP response header
@@ -230,12 +235,16 @@ struct header<false, Fields>
 ```
 
 The start-line data members are replaced traditional accessors using
-non-owning references to string buffers. Now we make a concession:
-management of the corresponding string is delegated to the [*Fields]
-container, which can already be allocator aware and constructed with the
-necessary allocator parameter via the provided constructor overloads for
-`message`. The delegation implementation looks like this (only the
-response header specialization is shown):
+non-owning references to string buffers. The method is stored using
+a simple integer instead of the entire string, for the case where
+the method is recognized from the set of known verb strings.
+
+Now we make a concession: management of the corresponding string is
+delegated to the [*Fields] container, which can already be allocator
+aware and constructed with the necessary allocator parameter via the
+provided constructor overloads for `message`. The delegation
+implementation looks like this (only the response header specialization
+is shown):
 ```
 /// An HTTP response header
 template<class Fields>
@@ -244,27 +253,21 @@ struct header<false, Fields>
     int version;
     int status;
 
-    auto
-    reason() const -> decltype(std::declval<Fields>().reason()) const
+    string_view
+    reason() const
     {
         return fields.reason();
     }
 
-    template<class Value>
     void
-    reason(Value&& value)
+    reason(string_view s)
     {
-        fields.reason(std::forward<Value>(value));
+        fields.reason(s);
     }
 
     Fields fields;
 };
 ```
-
-An advantage of this technique is that user-provided implementations of
-[*Fields] may use arbitrary representation strategies. For example, instead
-of explicitly storing the method as a string, store it as an enumerated
-integer with a lookup table of static strings for known message types.
 
 Now that we've accomplished our initial goals and more, there is one small
 quality of life improvement to make. Users will choose different types for

@@ -100,17 +100,15 @@ public:
     }
 
     void
-    testMethod()
+    testMethodString()
     {
         f_t f;
-        f.method(verb::get);
-        BEAST_EXPECTS(f.method() == "GET", f.method());
-        f.method("CRY");
-        BEAST_EXPECTS(f.method() == "CRY", f.method());
-        f.method("PUT");
-        BEAST_EXPECTS(f.method() == "PUT", f.method());
-        f.method("CONNECT");
-        BEAST_EXPECTS(f.method() == "CONNECT", f.method());
+        f.method_string("CRY");
+        BEAST_EXPECTS(f.method_string() == "CRY", f.method_string());
+        f.method_string("PUT");
+        BEAST_EXPECTS(f.method_string() == "PUT", f.method_string());
+        f.method_string({});
+        BEAST_EXPECTS(f.method_string().empty(), f.method_string());
     }
 
     void run() override
@@ -118,7 +116,7 @@ public:
         testHeaders();
         testRFC2616();
         testErase();
-        testMethod();
+        testMethodString();
     }
 };
 
