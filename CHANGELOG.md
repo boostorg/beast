@@ -2,6 +2,10 @@ Version 49
 
 * Use <iosfwd> instead of <ostream>
 
+HTTP:
+
+* Add HEAD request example
+
 API Changes:
 
 * Refactor method and verb

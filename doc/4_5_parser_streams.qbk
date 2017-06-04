@@ -214,6 +214,77 @@ receive_expect_100_continue(
 }
 ```
 
+[heading Example: HEAD request (Client)]
+```
+/** Send a HEAD request for a resource.
+
+    This function submits a HEAD request for the specified resource
+    and returns the response.
+
+    @param res The response. This is an output parameter.
+
+    @param stream The synchronous stream to use.
+
+    @param buffer The buffer to use.
+
+    @param target The request target.
+
+    @param ec Set to the error, if any occurred.
+
+    @throws std::invalid_argument if target is empty.
+*/
+template<
+    class SyncStream,
+    class DynamicBuffer
+>
+response<empty_body>
+do_head_request(
+    SyncStream& stream,
+    DynamicBuffer& buffer,
+    string_view target,
+    error_code& ec)
+{
+    // Do some type checking to be a good citizen
+    static_assert(is_sync_stream<SyncStream>::value,
+        "SyncStream requirements not met");
+    static_assert(is_dynamic_buffer<DynamicBuffer>::value,
+        "DynamicBuffer requirments not met");
+
+    // The interfaces we are using are low level and do not
+    // perform any checking of arguments; so we do it here.
+    if(target.empty())
+        throw std::invalid_argument("target may not be empty");
+
+    // Build the HEAD request for the target
+    request<empty_body> req;
+    req.version = 11;
+    req.method(verb::head);
+    req.target(target);
+    req.fields.insert("User-Agent", "test");
+
+    // A client MUST send a Host header field in all HTTP/1.1 request messages.
+    // https://tools.ietf.org/html/rfc7230#section-5.4
+    req.fields.insert("Host", "localhost");
+
+    // Now send it
+    write(stream, req, ec);
+    if(ec)
+        return {};
+
+    // Create a parser to read the response.
+    // Responses to HEAD requests MUST NOT include
+    // a body, so we use the `empty_body` type and
+    // only attempt to read the header.
+    parser<false, empty_body> p;
+    read_header(stream, buffer, p, ec);
+    if(ec)
+        return {};
+
+    // Transfer ownership of the response to the caller.
+    return p.release();
+}
+```
+
 [heading Example: HTTP Relay]
 
 An HTTP proxy acts as a relay between client and server. The proxy reads a

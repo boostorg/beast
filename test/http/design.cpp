@@ -785,6 +785,171 @@ public:
 
     //--------------------------------------------------------------------------
     //
+    // Example: HEAD Request
+    //
+    //--------------------------------------------------------------------------
+
+    /** Handle a HEAD request for a resource.
+    */
+    template<
+        class SyncStream,
+        class DynamicBuffer
+    >
+    void do_server_head(
+        SyncStream& stream,
+        DynamicBuffer& buffer,
+        error_code& ec)
+    {
+        static_assert(is_sync_stream<SyncStream>::value,
+            "SyncStream requirements not met");
+        static_assert(is_dynamic_buffer<DynamicBuffer>::value,
+            "DynamicBuffer requirments not met");
+
+        // We deliver this payload for all GET requests
+        static std::string const payload = "Hello, world!";
+
+        // Read the request
+        request<string_body> req;
+        read(stream, buffer, req, ec);
+        if(ec)
+            return;
+
+        // Set up the response, starting with the common fields
+        response<string_body> res;
+        res.version = 11;
+        res.fields.insert("Server", "test");
+
+        // Now handle request-specific fields
+        switch(req.method())
+        {
+        case verb::head:
+        case verb::get:
+        {
+            // A HEAD request is handled by delivering the same
+            // set of headers that would be sent for a GET request,
+            // including the Content-Length, except for the body.
+            res.result(status::ok);
+            res.fields.insert("Content-Length", payload.size());
+
+            // For GET requests, we include the body
+            if(req.method() == verb::get)
+            {
+                // We deliver the same payload for GET requests
+                // regardless of the target. A real server might
+                // deliver a file based on the target.
+                res.body = payload;
+            }
+            break;
+        }
+
+        default:
+        {
+            // We return responses indicating an error if
+            // we do not recognize the request method.
+            res.result(status::bad_request);
+            res.fields.insert("Content-Type", "text/plain");
+            res.body = "Invalid request-method '" + req.method_string().to_string() + "'";
+            break;
+        }
+        }
+
+        // Send the response
+        write(stream, res, ec);
+        if(ec)
+            return;
+    }
+
+    /** Send a HEAD request for a resource.
+
+        This function submits a HEAD request for the specified resource
+        and returns the response.
+
+        @param res The response. This is an output parameter.
+
+        @param stream The synchronous stream to use.
+
+        @param buffer The buffer to use.
+
+        @param target The request target.
+
+        @param ec Set to the error, if any occurred.
+
+        @throws std::invalid_argument if target is empty.
+    */
+    template<
+        class SyncStream,
+        class DynamicBuffer
+    >
+    response<empty_body>
+    do_head_request(
+        SyncStream& stream,
+        DynamicBuffer& buffer,
+        string_view target,
+        error_code& ec)
+    {
+        // Do some type checking to be a good citizen
+        static_assert(is_sync_stream<SyncStream>::value,
+            "SyncStream requirements not met");
+        static_assert(is_dynamic_buffer<DynamicBuffer>::value,
+            "DynamicBuffer requirments not met");
+
+        // The interfaces we are using are low level and do not
+        // perform any checking of arguments; so we do it here.
+        if(target.empty())
+            throw std::invalid_argument("target may not be empty");
+
+        // Build the HEAD request for the target
+        request<empty_body> req;
+        req.version = 11;
+        req.method(verb::head);
+        req.target(target);
+        req.fields.insert("User-Agent", "test");
+
+        // A client MUST send a Host header field in all HTTP/1.1 request messages.
+        // https://tools.ietf.org/html/rfc7230#section-5.4
+        req.fields.insert("Host", "localhost");
+
+        // Now send it
+        write(stream, req, ec);
+        if(ec)
+            return {};
+
+        // Create a parser to read the response.
+        // Responses to HEAD requests MUST NOT include
+        // a body, so we use the `empty_body` type and
+        // only attempt to read the header.
+        parser<false, empty_body> p;
+        read_header(stream, buffer, p, ec);
+        if(ec)
+            return {};
+
+        // Transfer ownership of the response to the caller.
+        return p.release();
+    }
+
+    void
+    doHEAD()
+    {
+        test::pipe p{ios_};
+        yield_to(
+            [&](yield_context)
+            {
+                error_code ec;
+                flat_buffer buffer;
+                do_server_head(p.server, buffer, ec);
+                BEAST_EXPECTS(! ec, ec.message());
+            },
+            [&](yield_context)
+            {
+                error_code ec;
+                flat_buffer buffer;
+                auto res = do_head_request(p.client, buffer, "/", ec);
+                BEAST_EXPECTS(! ec, ec.message());
+            });
+    }
+
+    //--------------------------------------------------------------------------
+    //
     // Deferred Body type commitment
     //
     //--------------------------------------------------------------------------
@@ -954,6 +1119,7 @@ public:
         doRelay();
         doParseStdStream();
         doCustomParser();
+        doHEAD();
 
         doDeferredBody();
     }
