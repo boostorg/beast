@@ -17,7 +17,7 @@ of the information captured during parsing. More formally, given:
 * `m` is an instance of an HTTP message container
 
 * `x` is a series of octets describing a valid HTTP message in
-  the serialized format decribed in __rfc7230__.
+  the serialized format described in __rfc7230__.
 
 * `S(m)` is a serialization function which produces a series of octets
   from a message container.

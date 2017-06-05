@@ -46,7 +46,7 @@ the body type as it appears in the message. This can be any type. For
 example, a body's value type may specify `std::vector<char>` or even
 `std::list<std::string>`. By also providing suitable definitions of
 corresponding `reader` and `writer` types, messages with that body
-become serializable and parseable respectively.
+become serializable and parsable respectively.
 
 A custom body may even set the value type to something that is not a container
 for body octets, such as a

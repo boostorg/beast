@@ -123,7 +123,7 @@ request as an HTTP WebSocket Upgrade request, additional overloads of
 [link beast.ref.websocket__stream.accept_ex `accept_ex`],
 [link beast.ref.websocket__stream.async_accept `async_accept`], and
 [link beast.ref.websocket__stream.async_accept_ex `async_accept_ex`]
-are provided which receive the additional buffered octects and consume
+are provided which receive the additional buffered octets and consume
 them as part of the handshake.
 
 In this example, the server reads the initial HTTP message into the
