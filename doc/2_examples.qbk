@@ -5,86 +5,30 @@
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 ]
 
-[section:example Examples]
+[section:example Example Programs]
 
 These usage examples are intended to quickly impress upon readers the
 flavor of the library. They are complete programs which may be built
 and run. Source code and build scripts for these programs may be found
 in the examples directory.
 
+
+
 [heading HTTP GET]
 
-Use HTTP to request the root page from a website and print the response:
+Use HTTP to make a GET request to a website and print the response:
 
-```
-#include <beast/core.hpp>
-#include <beast/http.hpp>
-#include <boost/asio.hpp>
-#include <boost/lexical_cast.hpp>
-#include <iostream>
-#include <string>
+[http_example_get]
 
-int main()
-{
-    // Normal boost::asio setup
-    std::string const host = "www.example.com";
-    boost::asio::io_service ios;
-    boost::asio::ip::tcp::resolver r{ios};
-    boost::asio::ip::tcp::socket sock{ios};
-    boost::asio::connect(sock,
-        r.resolve(boost::asio::ip::tcp::resolver::query{host, "http"}));
 
-    // Send HTTP request using beast
-    beast::http::request<beast::http::string_body> req;
-    req.method(beast::http::verb::get);
-    req.target("/");
-    req.version = 11;
-    req.fields.replace("Host", host + ":" +
-        boost::lexical_cast<std::string>(sock.remote_endpoint().port()));
-    req.fields.replace("User-Agent", "Beast");
-    beast::http::prepare(req);
-    beast::http::write(sock, req);
 
-    // Receive and print HTTP response using beast
-    beast::flat_buffer b;
-    beast::http::response<beast::http::dynamic_body> res;
-    beast::http::read(sock, b, res);
-    std::cout << res << std::endl;
-}
-```
 [heading WebSocket]
 
 Establish a WebSocket connection, send a message and receive the reply:
-```
-#include <beast/core.hpp>
-#include <beast/websocket.hpp>
-#include <boost/asio.hpp>
-#include <iostream>
-#include <string>
 
-int main()
-{
-    // Normal boost::asio setup
-    std::string const host = "echo.websocket.org";
-    boost::asio::io_service ios;
-    boost::asio::ip::tcp::resolver r{ios};
-    boost::asio::ip::tcp::socket sock{ios};
-    boost::asio::connect(sock,
-        r.resolve(boost::asio::ip::tcp::resolver::query{host, "80"}));
+[websocket_example_client_echo]
 
-    // WebSocket connect and send message using beast
-    beast::websocket::stream<boost::asio::ip::tcp::socket&> ws{sock};
-    ws.handshake(host, "/");
-    ws.write(boost::asio::buffer(std::string("Hello, world!")));
 
-    // Receive WebSocket message, print and close using beast
-    beast::multi_buffer b;
-    beast::websocket::opcode op;
-    ws.read(op, b);
-    ws.close(beast::websocket::close_code::normal);
-    std::cout << beast::buffers(b.data()) << "\n";
-}
-```
 
 [heading WebSocket Echo Server]
 

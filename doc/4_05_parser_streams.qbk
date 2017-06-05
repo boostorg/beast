@@ -1,0 +1,147 @@
+[/
+    Copyright (c) 2013-2017 Vinnie Falco (vinnie dot falco at gmail dot com)
+
+    Distributed under the Boost Software License, Version 1.0. (See accompanying
+    file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+]
+
+[section:parser_streams Parser Stream Operations]
+
+Algorithms for receiving entire messages from streams are helpful for simple
+use-cases. Sophisticated algorithms will need to do more:
+
+* Receive the message header first.
+
+* Receive a message incrementally: bounded work in each I/O cycle.
+
+* Receive an arbitrarily-sized body using a fixed-size buffer.
+
+* Defer the commitment to a __Body__ type until after reading the header.
+
+All of these operations require callers to manage the lifetime of state
+information associated with the operation, by constructing a class derived
+from __basic_parser__. Beast comes with two instances of parsers, and user
+defined types deriving from the basic parser are possible:
+
+[table Parser Implementations
+[[Name][Description]]
+[[
+    __parser__
+][
+    ```
+    /// An HTTP/1 parser for producing a message.
+    template<
+        bool isRequest,         // `true` to parse an HTTP request
+        class Body,             // The Body type for the resulting message
+        class Fields>           // The type of container representing the fields
+    class parser
+        : public basic_parser<...>;
+    ```
+]]
+[[
+    __header_parser__
+][
+    ```
+    /// An HTTP/1 parser for producing a header.
+    template<
+        bool isRequest,         // `true` to parse an HTTP request
+        class Fields>           // The type of container representing the fields
+    class header_parser
+        : public basic_parser<...>;
+    ```
+]]
+[[
+    [link beast.ref.http__request_parser `request_parser`]
+][
+    ```
+    /// An HTTP/1 parser for producing a request message.
+    template<class Body, class Fields = fields>
+    using request_parser = parser<true, Body, Fields>;
+    ```
+]]
+[[
+    [link beast.ref.http__response_parser `response_parser`]
+][
+    ```
+    /// An HTTP/1 parser for producing a response message.
+    template<class Body, class Fields = fields>
+    using response_parser = parser<false, Body, Fields>;
+    ```
+]]
+]
+
+[note
+    The __basic_parser__ and classes derived from it handle octet streams
+    serialized in the HTTP/1 format described in __rfc7230__.
+]
+
+The stream operations which work on parsers are:
+
+[table Parser Stream Operations
+[[Name][Description]]
+[[
+    [link beast.ref.http__read.overload1 [*read]]
+][
+    Read everything into a parser from a __SyncWriteStream__.
+]]
+[[
+    [link beast.ref.http__async_read.overload1 [*async_read]]
+][
+    Read everything into a parser asynchronously from an __AsyncWriteStream__.
+]]
+[[
+    [link beast.ref.http__read_header.overload1 [*read_header]]
+][
+    Read only the header octets into a parser from a __SyncWriteStream__.
+]]
+[[
+    [link beast.ref.http__async_read_header [*async_read_header]]
+][
+    Read only the header octets into a parser asynchronously from an __AsyncWriteStream__.
+]]
+[[
+    [link beast.ref.http__read_some.overload1 [*read_some]]
+][
+    Read some octets into a parser from a __SyncReadStream__.
+]]
+[[
+    [link beast.ref.http__async_read_some [*async_read_some]]
+][
+    Read some octets into a parser asynchronously from an __AsyncWriteStream__.
+]]
+]
+
+As with the stream parse algorithms which operate on entire messages, stream
+operations for parsers require a passed-in __DynamicBuffer__ which persists
+between calls to hold unused octets from the stream. The basic parser
+implementation is optimized for the case where this dynamic buffer stores
+its input sequence in a single contiguous memory buffer. It is advised to
+use an instance of __flat_buffer__ for this purpose, although a user defined
+instance of __DynamicBuffer__ which produces input sequences of length one
+is also suitable.
+
+The provided parsers use a "captive object" model, acting as container for
+the __message__ or __header__ produced as a result of parsing. The caller
+accesses the contained object, and depending on the types used to instantiate
+the parser, it may be possible to acquire ownership of the header or message
+captive object and destroy the parser. In this example we read an HTTP
+response with a string body using a parser, then print the response:
+```
+template<class SyncReadStream>
+void print_response(SyncReadStream& stream)
+{
+    static_assert(is_sync_read_stream<SyncReadStream>::value,
+        "SyncReadStream requirements not met");
+
+    // Declare a parser for an HTTP response
+    response_parser<string_body> parser;
+
+    // Read the entire message
+    read(stream, parser);
+
+    // Now print the message
+    std::cout << parser.get() << std::endl;
+}
+```
+
+[endsect]

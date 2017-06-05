@@ -5,7 +5,7 @@
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 ]
 
-[section:primer HTTP Primer]
+[section:primer Protocol Primer]
 
 The HTTP protocol defines the
 [@https://tools.ietf.org/html/rfc7230#section-2.1 client and server roles]:
@@ -85,7 +85,7 @@ field informs the remote host of the size of the body which follows.
     This response has a
     [@https://tools.ietf.org/html/rfc7231#section-6 200 status code]
     meaning the operation requested completed successfully. The obsolete
-    reason phrase is "OK". It has specifies HTTP version 1.1, and contains
+    reason phrase is "OK". It specifies HTTP version 1.1, and contains
     a body 13 octets in size with the text "Hello, world!".
 ]]
 ]

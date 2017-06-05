@@ -46,7 +46,7 @@ and `ssl::context` arguments are forwarded to the wrapped stream's constructor:
 [heading Non-owning References]
 
 If a socket type supports move construction, a websocket stream may be
-constructed around the already existing socket by invoke the move
+constructed around the already existing socket by invoking the move
 constructor signature:
 ```
     ...

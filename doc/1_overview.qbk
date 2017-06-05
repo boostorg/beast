@@ -7,10 +7,19 @@
 
 [section:overview Introduction]
 
-Beast is a cross-platform, header-only C++11 library for low-level HTTP
-and WebSocket protocol programming that uses the consistent networking
-and asynchronous model of __Asio__. The design of the library achieves
-these goals:
+[important
+    Beast is a cross-platform, header-only C++11 library for low-level HTTP
+    and WebSocket protocol programming that uses the consistent network and
+    asynchronous model of __Asio__.
+    
+    Beast is not an HTTP client or HTTP server, but it can be used to
+    build those things. The library is intended to be a foundation upon
+    which new libraries may be built. It is a goal that other architects
+    will create interoperable solutions on top of Beast. The provided
+    example programs shows how a client or server might be built.
+]
+
+The design of the library achieves these goals:
 
 * [*Symmetry.] Interfaces are role-agnostic; the same interfaces can be
 used to build clients, servers, or both.
@@ -41,7 +50,7 @@ Beast requires:
 * [*Boost.] Beast is built on Boost, especially Boost.Asio.
 * [*OpenSSL.] If using TLS/Secure sockets (optional).
 
-[note Tested compilers: msvc-14+, gcc 4.8+, clang 3.6+]
+[note Supported compilers: msvc-14+, gcc 4.8+, clang 3.6+]
 
 The library is [*header-only]. It is not necessary to add any .cpp files,
 or to add commands to your build script for building Beast. To link your
@@ -56,7 +65,7 @@ version that works with stand-alone Asio.
 
 [heading Motivation]
 
-There is a noticable shortage of high quality C++ networking libraries,
+There is a noted shortage of high quality C++ networking libraries,
 especially for the HTTP and WebSocket protocols. The author theorizes
 that previous attempts to build such libraries focused too much on end
 user needs instead of applying principles of computer science to solve
@@ -93,14 +102,6 @@ of redirects, gzipped transfer encodings, caching, or proxying (to name
 a few) are not directly provided, but nothing stops users from creating
 these features using Beast's HTTP message types.
 
-[important
-  Beast is not an HTTP client or HTTP server, but it can be used to
-  build both. The library is intended to be a foundation upon which
-  new libraries may be built. It is a goal that other architects will
-  build interoperable solutions on top of Beast. The provided example
-  code shows how a client or server may be built.
-]
-
 [heading Credits]
 
 Boost.Asio is the inspiration behind which all of the interfaces and
@@ -109,22 +110,23 @@ written to closely resemble the wording and presentation of Boost.Asio
 documentation. Credit goes to Christopher Kohlhoff for the wonderful
 Asio library and the ideas upon which Beast is built.
 
-Beast would not be possible without the considerable time and patience
+Beast would not be possible without the support of
+[@https://www.ripple.com Ripple]
+during the library's early development, or the ideas, time and patience
 contributed by
-David Schwartz,
-Edward Hennis,
+[@https://github.com/JoelKatz David Schwartz],
+[@https://github.com/ximinez Edward Hennis],
 [@https://github.com/howardhinnant Howard Hinnant],
-Miguel Portilla,
-Nikolaos Bougalis,
-Scott Determan,
-Scott Schurr,
-and
-[@https://www.ripple.com Ripple Labs]
-for supporting its early development. Also thanks to
-Agustín Bergé,
+[@https://github.com/miguelportilla Miguel Portilla],
+[@https://github.com/nbougalis Nik Bougalis],
+[@https://github.com/seelabs Scott Determan],
+[@https://github.com/scottschurr],
+Many thanks to
+[@https://github.com/K-ballo Agustín Bergé],
 [@http://www.boost.org/users/people/glen_fernandes.html Glen Fernandes],
 and
-Peter Dimov
-for helping me considerably on Slack.
+[https://github.com/pdimov Peter Dimov]
+for tirelessly answering questions on
+[@https://cpplang.slack.com/ Cpplang-Slack].
 
 [endsect]

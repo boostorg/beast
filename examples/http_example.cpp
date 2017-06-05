@@ -5,6 +5,8 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
+//[http_example_get
+
 #include <beast/core.hpp>
 #include <beast/http.hpp>
 #include <boost/asio.hpp>
@@ -39,3 +41,5 @@ int main()
     beast::http::read(sock, b, res);
     std::cout << res << std::endl;
 }
+
+//]

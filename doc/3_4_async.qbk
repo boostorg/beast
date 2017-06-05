@@ -5,7 +5,7 @@
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 ]
 
-[heading:async Asynchronous Utilities]
+[section:async Asynchronous I/O]
 
 Asynchronous operations are started by calling a free function or member
 function known as an ['asynchronous initiation function]. The initiation
@@ -98,3 +98,5 @@ initiation functions used to launch them are available:
     Extensible Asynchronous Model.
 ]]
 ]
+
+[endsect]

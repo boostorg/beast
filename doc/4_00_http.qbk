@@ -7,20 +7,6 @@
 
 [section:http Using HTTP]
 
-[block '''
-<informaltable frame="all"><tgroup cols="1"><colspec colname="a"/><tbody><row><entry valign="top"><simplelist>
-  <member><link linkend="beast.http.primer">HTTP Primer</link></member>
-  <member><link linkend="beast.http.message">Message Containers</link></member>
-  <member><link linkend="beast.http.streams">Message Stream Operations</link></member>
-  <member><link linkend="beast.http.serializer_streams">Serializer Stream Operations</link></member>
-  <member><link linkend="beast.http.parser_streams">Parser Stream Operations</link></member>
-  <member><link linkend="beast.http.serializer_buffers">Buffer-Oriented Serializing</link></member>
-  <member><link linkend="beast.http.parser_buffers">Buffer-Oriented Parsing</link></member>
-  <member><link linkend="beast.http.custom_parsers">Custom Parsers</link></member>
-  <member><link linkend="beast.http.custom_body">Custom Body Types</link></member>
-</simplelist></entry></row></tbody></tgroup></informaltable>
-''']
-
 This library offers programmers simple and performant models of HTTP messages
 and their associated operations including synchronous, asynchronous, and
 buffer-oriented parsing and serialization of messages in the HTTP/1 wire
@@ -44,7 +30,7 @@ format using __Asio__. Specifically, the library provides:
         [link beast.ref.http__async_read_header `async_read_header`], and
         [link beast.ref.http__async_read_some `async_read_some`]
         read HTTP/1 message data from a
-        [link beast.ref.streams stream].
+        [link beast.concept.streams stream].
 ]
 ][
     [Stream Writing]
@@ -57,7 +43,7 @@ format using __Asio__. Specifically, the library provides:
         [link beast.ref.http__async_write_header `async_write_header`], and
         [link beast.ref.http__async_write_some `async_write_some`]
         write HTTP/1 message data to a
-        [link beast.ref.streams stream].
+        [link beast.concept.streams stream].
     ]
 ][
     [Serialization]
@@ -76,24 +62,24 @@ format using __Asio__. Specifically, the library provides:
 ]
 
 [note
-    The following documentation assumes some familiarity with __Asio__ and
-    the HTTP protocol specification described in __rfc7230__. Sample code
-    and identifiers mentioned in the HTTP documentation sections are
-    written as if these declarations are in effect:
+    This documentation assumes some familiarity with __Asio__ and
+    the HTTP protocol specification described in __rfc7230__. Sample
+    code and identifiers mentioned in this section is written as if
+    these declarations are in effect:
     ```
     #include <beast/http.hpp>
     using namespace beast::http;
     ```
 ]
 
-[include 4_1_primer.qbk]
-[include 4_2_message.qbk]
-[include 4_3_streams.qbk]
-[include 4_4_serializer_streams.qbk]
-[include 4_5_parser_streams.qbk]
-[include 4_6_serializer_buffers.qbk]
-[include 4_7_parser_buffers.qbk]
-[include 4_8_custom_parsers.qbk]
-[include 4_9_custom_body.qbk]
+[include 4_01_primer.qbk]
+[include 4_02_message.qbk]
+[include 4_03_streams.qbk]
+[include 4_04_serializer_streams.qbk]
+[include 4_05_parser_streams.qbk]
+[include 4_06_serializer_buffers.qbk]
+[include 4_07_parser_buffers.qbk]
+[include 4_08_custom_parsers.qbk]
+[include 4_09_custom_body.qbk]
 
 [endsect]

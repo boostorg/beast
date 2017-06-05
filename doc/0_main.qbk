@@ -47,14 +47,14 @@
 [def __SyncReadStream__         [@http://www.boost.org/doc/html/boost_asio/reference/SyncReadStream.html [*SyncReadStream]]]
 [def __SyncWriteStream__        [@http://www.boost.org/doc/html/boost_asio/reference/SyncWriteStream.html [*SyncWriteStream]]]
 
-[def __AsyncStream__        [link beast.ref.streams.AsyncStream [*AsyncStream]]]
-[def __Body__               [link beast.ref.Body [*Body]]]
-[def __BodyReader__         [link beast.ref.BodyReader [*BodyReader]]]
-[def __BodyWriter__         [link beast.ref.BodyWriter [*BodyWriter]]]
-[def __DynamicBuffer__      [link beast.ref.DynamicBuffer [*DynamicBuffer]]]
-[def __FieldSequence__      [link beast.ref.FieldSequence [*FieldSequence]]]
-[def __Stream__             [link beast.ref.streams [*Stream]]]
-[def __SyncStream__         [link beast.ref.streams.SyncStream [*SyncStream]]]
+[def __AsyncStream__        [link beast.concept.streams.AsyncStream [*AsyncStream]]]
+[def __Body__               [link beast.concept.Body [*Body]]]
+[def __BodyReader__         [link beast.concept.BodyReader [*BodyReader]]]
+[def __BodyWriter__         [link beast.concept.BodyWriter [*BodyWriter]]]
+[def __DynamicBuffer__      [link beast.concept.DynamicBuffer [*DynamicBuffer]]]
+[def __FieldSequence__      [link beast.concept.FieldSequence [*FieldSequence]]]
+[def __Stream__             [link beast.concept.streams [*Stream]]]
+[def __SyncStream__         [link beast.concept.streams.SyncStream [*SyncStream]]]
 
 [def __basic_fields__       [link beast.ref.http__basic_fields `basic_fields`]]
 [def __basic_multi_buffer__ [link beast.ref.basic_multi_buffer `basic_multi_buffer`]]
@@ -69,71 +69,28 @@
 [def __parser__             [link beast.ref.http__parser `parser`]]
 [def __serializer__         [link beast.ref.http__serializer `serializer`]]
 
-Beast is a cross-platform, header-only C++11 library for low-level HTTP
-and WebSocket protocol programming that uses the consistent network and
-asynchronous model of __Asio__.
-
-[variablelist
-  [[
-    [link beast.overview Overview]
-  ][
-    An explanation of requirements, audience, features, and credits.
-  ]]
-  [[
-    [link beast.example Examples]
-  ][
-    Examples that illustrate usage for typical scenarios.
-  ]]
-  [[
-    [link beast.core Core Concepts]
-  ][
-    Library-wide concepts for working with buffers and streams.
-  ]]
-  [[
-    [link beast.http Using HTTP]
-  ][
-    How to use the basic algorithms in your applications.
-  ]]
-  [[
-    [link beast.websocket Using WebSocket]
-  ][
-    How to use the WebSocket interfaces in your applications.
-  ]]
-  [[
-    [link beast.design Design]
-  ][
-    Rationale, comparison to other libraries, and FAQ.
-  ]]
-  [[
-    [link beast.ref Reference]
-  ][
-    Detailed class and function reference.
-  ]]
-  [[
-    [link beast.index Index]
-  ][
-    Book-style text index of Beast documentation.
-  ]]
-]
+[import ../examples/http_example.cpp]
+[import ../examples/websocket_example.cpp]
+[import ../examples/echo_op.cpp]
+[import ../examples/doc_http_samples.hpp]
 
 [include 1_overview.qbk]
 [include 2_examples.qbk]
 [include 3_0_core.qbk]
-[include 4_0_http.qbk]
-[include 5_0_websocket.qbk]
-[include 6_0_design.qbk]
+[include 4_00_http.qbk]
+[include 5_http_examples.qbk]
+[include 6_0_websocket.qbk]
+[include 7_concepts.qbk]
+[include 8_0_design.qbk]
 
-[section:ref Reference]
+[section:quickref Reference]
 [xinclude quickref.xml]
-[include concept/Body.qbk]
-[include concept/BodyReader.qbk]
-[include concept/BodyWriter.qbk]
-[include concept/BufferSequence.qbk]
-[include concept/DynamicBuffer.qbk]
-[include concept/Field.qbk]
-[include concept/FieldSequence.qbk]
-[include concept/Streams.qbk]
+[endsect]
+
+[block'''<reference id="hidden"><title>This Page Intentionally Left Blank 1/2</title>''']
+[section:ref This Page Intentionally Left Blank 2/2]
 [include reference.qbk]
 [endsect]
+[block'''</reference>''']
 
 [xinclude index.xml]

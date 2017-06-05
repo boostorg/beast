@@ -5,7 +5,7 @@
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 ]
 
-[section:BodyReader BodyReader requirements]
+[section:BodyReader BodyReader]
 
 A [*BodyReader] provides an online algorithm to obtain a sequence of zero
 or more buffers from a body during serialization. The implementation creates

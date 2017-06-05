@@ -1,0 +1,106 @@
+[/
+    Copyright (c) 2013-2017 Vinnie Falco (vinnie dot falco at gmail dot com)
+
+    Distributed under the Boost Software License, Version 1.0. (See accompanying
+    file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+]
+
+[section:serializer_streams Serializer Stream Operations]
+
+Algorithms for sending entire messages to streams are intended for light
+duty use-cases such as simple clients and low utilization servers.
+Sophisticated algorithms will need to do more:
+
+* Send the message header first.
+
+* Send a message incrementally: bounded work in each I/O cycle.
+
+* Use a custom chunk decorator or allocator when sending messages.
+
+* Use a series of caller-provided buffers to represent the body.
+
+All of these operations require callers to manage the lifetime of state
+information associated with the operation, by constructing a __serializer__
+object with the message to be sent. The serializer type has this declaration:
+```
+template<
+    bool isRequest,
+    class Body,
+    class Fields,
+    class ChunkDecorator = no_chunk_decorator,
+    class Allocator = std::allocator<char>
+>
+class serializer;
+```
+
+The choices for template types must match the message passed on construction.
+This code creates an HTTP response and the corresponding serializer:
+```
+    response<string_body> res;
+    ...
+    serializer<false, string_body, fields> sr{res};
+```
+The convenience function
+[link beast.ref.http__make_serializer `make_serializer`]
+is provided to avoid repetition of template argument types. The declaration
+for `sr` in the code above may be written as:
+```
+    ...
+    auto sr = make_serializer(res);
+```
+
+The stream operations which work on serializers are:
+
+[table Serializer Stream Operations
+[[Name][Description]]
+[[
+    [link beast.ref.http__write.overload1 [*write]]
+][
+    Send everything in a __serializer__ to a __SyncWriteStream__.
+]]
+[[
+    [link beast.ref.http__async_write.overload1 [*async_write]]
+][
+    Send everything in a __serializer__ asynchronously to an __AsyncWriteStream__.
+]]
+[[
+    [link beast.ref.http__write_header.overload1 [*write_header]]
+][
+    Send only the header from a __serializer__ to a __SyncWriteStream__.
+]]
+[[
+    [link beast.ref.http__async_write_header [*async_write_header]]
+][
+    Send only the header from a __serializer__ asynchronously to an __AsyncWriteStream__.
+]]
+[[
+    [link beast.ref.http__write_some.overload1 [*write_some]]
+][
+    Send some __serializer__ buffer data to a __SyncWriteStream__.
+]]
+[[
+    [link beast.ref.http__async_write_some [*async_write_some]]
+][
+    Send some __serializer__ buffer data asynchronously to an __AsyncWriteStream__.
+]]
+]
+
+Here is an example of using a serializer to send a message on a stream
+synchronously. This performs the same operation as calling `write(stream, m)`:
+
+```
+template<class SyncWriteStream, bool isRequest, class Body, class Fields>
+void send(SyncWriteStream& stream, message<isRequest, Body, Fields> const& m)
+{
+    static_assert(is_sync_write_stream<SyncWriteStream>::value,
+        "SyncWriteStream requirements not met");
+    serializer<isRequest, Body, Fields> sr{m};
+    do
+    {
+        write_some(stream, sr);
+    }
+    while(! sr.is_done());
+}
+```
+
+[endsect]

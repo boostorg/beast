@@ -5,13 +5,21 @@
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 ]
 
-[heading:asio Working With Asio]
+[section:asio Boost.Asio Refresher]
 
-Beast does not manage sockets, make outgoing connections, accept incoming
-connections, or handle any aspect of connection management. In order to
-invoke library algorithms it is necessary to first have a connected socket,
-SSL stream, or other object which meets the required stream concepts. This
-example is provided as a reminder of how to work with sockets:
+[warning
+    Beast does not manage sockets, make outgoing connections,
+    accept incoming connections, handle timeouts, close endpoints,
+    do name lookups, deal with TLS certificates, perform authentication,
+    or otherwise handle any aspect of connection management. This is
+    left to the interfaces already existing on the underlying streams.
+]
+
+Library stream algorithms require an already-connected socket, SSL stream,
+or other object which meets the required stream concepts and already has
+communication established with an endpoint. This example is provided as a
+reminder of how to work
+with sockets:
 ```
     auto host = "www.example.com";
     boost::asio::ip::tcp::resolver r{ios};
@@ -59,3 +67,5 @@ special meaning:
     which is already connected with a remote host.
 ]]
 ]
+
+[endsect]
