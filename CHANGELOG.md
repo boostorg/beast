@@ -1,5 +1,7 @@
 Version 50
 
+* parser is constructible from other body types
+
 --------------------------------------------------------------------------------
 
 Version 49

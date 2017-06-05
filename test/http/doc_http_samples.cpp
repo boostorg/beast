@@ -220,11 +220,22 @@ public:
             });
     }
 
-    //--------------------------------------------------------------------------
-    //
-    // Deferred Body type commitment
-    //
-    //--------------------------------------------------------------------------
+    struct handler
+    {
+        std::string body;
+
+        template<class Body>
+        void
+        operator()(request<Body>&&)
+        {
+        }
+
+        void
+        operator()(request<string_body>&& req)
+        {
+            body = req.body;
+        }
+    };
 
     void
     doDeferredBody()
@@ -233,24 +244,15 @@ public:
         ostream(p.server.buffer) <<
             "POST / HTTP/1.1\r\n"
             "User-Agent: test\r\n"
+            "Content-Type: multipart/form-data\r\n"
             "Content-Length: 13\r\n"
             "\r\n"
             "Hello, world!";
 
+        handler h;
         flat_buffer buffer;
-        header_parser<true, fields> parser;
-        auto bytes_used =
-            read_some(p.server, buffer, parser);
-        buffer.consume(bytes_used);
-
-        request_parser<string_body> parser2(
-            std::move(parser));
-
-        while(! parser2.is_done())
-        {
-            bytes_used = read_some(p.server, buffer, parser2);
-            buffer.consume(bytes_used);
-        }
+        do_form_request(p.server, buffer, h);
+        BEAST_EXPECT(h.body == "Hello, world!");
     }
 
     //--------------------------------------------------------------------------
