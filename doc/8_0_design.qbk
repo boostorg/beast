@@ -7,20 +7,11 @@
 
 [section:design Design Choices]
 
-[block '''
-<informaltable frame="all"><tgroup cols="1"><colspec colname="a"/><tbody><row><entry valign="top"><simplelist>
-  <member><link linkend="beast.design.http_message">HTTP Message Container</link></member>
-  <member><link linkend="beast.design.http_comparison">HTTP Comparison to Other Libraries</link></member>
-  <member><link linkend="beast.design.websocket_zaphoyd">Comparison to Zaphoyd Studios WebSocket++</link></member>
-  <member><link linkend="beast.design.faq">FAQ</link></member>
-</simplelist></entry></row></tbody></tgroup></informaltable>
-''']
-
-The implementations are driven by business needs of cryptocurrency server
-applications (e.g. [@https://ripple.com Ripple]) written in C++. These
-needs were not met by existing solutions so Beast was written from scratch
-as a solution. Beast's design philosophy avoids flaws exhibited by other
-libraries:
+The implementations were originally driven by business needs of cryptocurrency
+server applications (e.g.  [@https://github.com/ripple/rippled rippled]),
+written in C++. These needs were not met by existing solutions so Beast
+was written from scratch as a solution. Beast's design philosophy avoids
+flaws exhibited by other libraries:
 
 * Don't try to do too much.
 
@@ -30,8 +21,8 @@ libraries:
 
 * Role-symmetric interfaces; client and server the same (or close to it).
 
-* Leave important decisions to the user, such as allocating memory or
-  managing flow control.
+* Leave important decisions, such as allocating memory or
+  managing flow control, to the user.
 
 Beast uses the __DynamicBuffer__ concept presented in the Networking TS
 (__N4588__), and relies heavily on the __ConstBufferSequence__ and
@@ -59,9 +50,9 @@ start. Other design goals:
 
 * Allow for customizations, if the user needs it.
 
-[include 6_1_http_message.qbk]
-[include 6_2_http_comparison.qbk]
-[include 6_3_websocket_zaphoyd.qbk]
-[include 6_4_faq.qbk]
+[include 8_1_http_message.qbk]
+[include 8_2_http_comparison.qbk]
+[include 8_3_websocket_zaphoyd.qbk]
+[include 8_4_faq.qbk]
 
 [endsect]

@@ -121,7 +121,7 @@ struct header<true, Fields>
         @ref verb::unknown is returned. Callers may use @ref method_string
         to retrieve the exact text.
 
-        @note This function is only available if `isRequest == true`.
+        @note This function is only available when `isRequest == true`.
 
         @see @ref method_string
     */
@@ -148,7 +148,7 @@ struct header<true, Fields>
 
     /** Return the request-method string.
 
-        @note This function is only available if `isRequest == true`.
+        @note This function is only available when `isRequest == true`.
 
         @see @ref method
     */
@@ -166,7 +166,7 @@ struct header<true, Fields>
 
         @param s A string representing the request-method.
 
-        @note This function is only available if `isRequest == true`.
+        @note This function is only available when `isRequest == true`.
     */
     void
     method(string_view s)
@@ -176,7 +176,7 @@ struct header<true, Fields>
 
     /** Returns the request-target string.
 
-        @note This function is only available if `isRequest == true`.
+        @note This function is only available when `isRequest == true`.
     */
     string_view
     target() const
@@ -188,7 +188,7 @@ struct header<true, Fields>
 
         @param s A string representing the request-target.
 
-        @note This function is only available if `isRequest == true`.
+        @note This function is only available when `isRequest == true`.
     */
     void
     target(string_view s)
@@ -295,7 +295,7 @@ struct header<false, Fields>
         function returns @ref status::unknown. Use @ref result_int
         to return the raw status code as a number.
 
-        @note This member is only available if `isRequest == false`.
+        @note This member is only available when `isRequest == false`.
     */
     status
     result() const
@@ -308,7 +308,7 @@ struct header<false, Fields>
 
         @param v The code to set.
 
-        @note This member is only available if `isRequest == false`.
+        @note This member is only available when `isRequest == false`.
     */
     void
     result(status v)
@@ -337,7 +337,7 @@ struct header<false, Fields>
         This returns the raw status code as an integer, even
         when that code is not in the list of known status codes.
 
-        @note This member is only available if `isRequest == false`.
+        @note This member is only available when `isRequest == false`.
     */
     int
     result_int() const
@@ -346,11 +346,11 @@ struct header<false, Fields>
     }
 
 
-    /** Return the Reason-Phrase.
+    /** Return the response reason-phrase.
 
-        The Reason-Phrase is obsolete as of rfc7230.
+        The reason-phrase is obsolete as of rfc7230.
 
-        @note This function is only available if `isRequest == false`.
+        @note This function is only available when `isRequest == false`.
     */
     string_view
     reason() const
@@ -358,7 +358,7 @@ struct header<false, Fields>
         return get_reason();
     }
 
-    /** Set the Reason-Phrase
+    /** Set the response reason-phrase (deprecated)
 
         This function sets a custom reason-phrase to a copy of
         the string passed in. Normally it is not necessary to set
@@ -370,11 +370,11 @@ struct header<false, Fields>
         string. This will restore the default standard reason text
         based on the status code used when serializing.
 
-        The Reason-Phrase is obsolete as of rfc7230.
+        The reason-phrase is obsolete as of rfc7230.
 
-        @param value A value that represents the reason phrase.
+        @param s The string to use for the reason-phrase.
 
-        @note This function is only available if `isRequest == false`.
+        @note This function is only available when `isRequest == false`.
     */
     void
     reason(string_view s)

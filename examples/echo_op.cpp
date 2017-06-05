@@ -11,6 +11,18 @@
 #include <memory>
 #include <utility>
 
+//[core_sample_echo_op_1
+
+// Read a line and echo it back
+//
+template<class AsyncStream, class CompletionToken>
+beast::async_return_type<CompletionToken, void(beast::error_code)>
+async_echo(AsyncStream& stream, CompletionToken&& token);
+
+//]
+
+//[core_sample_echo_op_3
+
 // This composed operation reads a line of input and echoes it back.
 //
 template<class AsyncStream, class Handler>
@@ -127,9 +139,10 @@ public:
     void operator()(beast::error_code ec, std::size_t bytes_transferred);
 };
 
-// We are callable with the signature void(error_code, bytes_transferred),
-// allowing `*this` to be used as both a ReadHandler and a WriteHandler.
-//
+//]
+
+//[core_sample_echo_op_4
+
 template<class AsyncStream, class Handler>
 void echo_op<AsyncStream, Handler>::
 operator()(beast::error_code ec, std::size_t bytes_transferred)
@@ -170,6 +183,13 @@ operator()(beast::error_code ec, std::size_t bytes_transferred)
     return;
 }
 
+//]
+
+//[core_sample_echo_op_2
+
+template<class AsyncStream, class Handler>
+class echo_op;
+
 // Read a line and echo it back
 //
 template<class AsyncStream, class CompletionToken>
@@ -204,6 +224,8 @@ async_echo(AsyncStream& stream, CompletionToken&& token)
     //
     return init.result.get();
 }
+
+//]
 
 int main()
 {

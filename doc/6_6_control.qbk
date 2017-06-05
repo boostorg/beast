@@ -58,8 +58,8 @@ signature:
 When a ping callback is registered, all pings and pongs received through
 either synchronous read functions or asynchronous read functions will
 invoke the ping callback, with the value of `is_pong` set to `true` if a
-pong was received else `false` if a ping was received. The payload of
-the ping or pong control frame is passed in the payload argument.
+pong was received or `false` otherwise. The payload of the ping or pong
+control frame is passed in the payload argument.
 
 Unlike regular completion handlers used in calls to asynchronous initiation
 functions, the ping callback only needs to be set once. The callback is not

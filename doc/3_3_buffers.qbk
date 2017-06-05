@@ -5,7 +5,7 @@
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 ]
 
-[heading:buffers Buffer Concepts]
+[section:buffers Using Buffers]
 
 __Asio__ provides the __ConstBufferSequence__ and __MutableBufferSequence__
 concepts, whose models provide ranges of buffers, as well as the __streambuf__
@@ -82,8 +82,8 @@ a special type of range. Algorithms and wrappers are provided which
 transform these buffer sequences ranges efficiently using lazy evaluation.
 No memory allocations are used in the transformations; instead, they
 create lightweight iterators over the existing, unmodified memory
-buffers. The lifetime of the transformed buffers is retained by the
-caller; ownership is not transferred.
+buffers. Control of buffers is retained by the caller; ownership is
+not transferred.
 
 [table Buffer Algorithms
 [[Name][Description]]
@@ -145,3 +145,5 @@ output streams.
     dynamic buffer.
 ]]
 ]
+
+[endsect]
