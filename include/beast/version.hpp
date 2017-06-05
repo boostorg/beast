@@ -20,7 +20,7 @@
     This is a simple integer that is incremented by one every time
     a set of code changes is merged to the master or develop branch.
 */
-#define BEAST_VERSION 48
+#define BEAST_VERSION 49
 
 #define BEAST_VERSION_STRING "Beast/" BEAST_STR(BEAST_VERSION)
 
