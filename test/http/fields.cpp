@@ -14,7 +14,7 @@
 namespace beast {
 namespace http {
 
-class basic_fields_test : public beast::unit_test::suite
+class fields_test : public beast::unit_test::suite
 {
 public:
     template<class Allocator>
@@ -120,7 +120,7 @@ public:
     }
 };
 
-BEAST_DEFINE_TESTSUITE(basic_fields,http,beast);
+BEAST_DEFINE_TESTSUITE(fields,http,beast);
 
 } // http
 } // beast
