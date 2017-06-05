@@ -199,6 +199,20 @@ private:
     }
 };
 
+template<
+    bool isRequest,class Body, class Fields = fields>
+class parser;
+
+namespace detail {
+
+template<class T>
+struct is_parser : std::false_type {};
+
+template<bool isRequest, class Body, class Fields>
+struct is_parser<parser<isRequest, Body, Fields>> : std::true_type {};
+
+} // detail
+
 /** An HTTP/1 parser for producing a message.
 
     This class uses the basic HTTP/1 wire format parser to convert
@@ -213,7 +227,7 @@ private:
 
     @note A new instance of the parser is required for each message.
 */
-template<bool isRequest, class Body, class Fields = fields>
+template<bool isRequest, class Body, class Fields>
 class parser
     : public basic_parser<isRequest,
         parser<isRequest, Body, Fields>>
@@ -223,6 +237,9 @@ class parser
 
     static_assert(is_body_writer<Body>::value,
         "BodyWriter requirements not met");
+
+    template<bool, class, class>
+    friend class parser;
 
     using base_type = basic_parser<isRequest,
         parser<isRequest, Body, Fields>>;
@@ -257,7 +274,7 @@ public:
 
         @note This function participates in overload
         resolution only if the first argument is not a
-        @ref http::header_parser or @ref parser.
+        @ref parser.
     */
 #if BEAST_DOXYGEN
     template<class... Args>
@@ -266,17 +283,50 @@ public:
 #else
     template<class Arg1, class... ArgN,
         class = typename std::enable_if<
-            ! std::is_same<typename
-                std::decay<Arg1>::type,
-                    header_parser<isRequest, Fields>>::value &&
-            ! std::is_same<typename
-                std::decay<Arg1>::type, parser>::value
-                    >::type>
+            ! detail::is_parser<typename
+                std::decay<Arg1>::type>::value>::type>
     explicit
     parser(Arg1&& arg1, ArgN&&... argn);
 #endif
 
-    /** Construct a message parser from a @ref header_parser.
+    /** Construct a parser from another parser, changing the Body type.
+
+        This constructs a new parser by move constructing the
+        header from another parser with a different body type. The
+        constructed-from parser must not have any parsed body octets or
+        initialized @b BodyWriter, otherwise an exception is generated.
+
+        @par Example
+        @code
+        // Deferred body type commitment
+        request_parser<empty_body> req0;
+        ...
+        request_parser<string_body> req{std::move(req0)};
+        @endcode
+
+        If an exception is thrown, the state of the constructed-from
+        parser is undefined.
+
+        @param parser The other parser to construct from. After
+        this call returns, the constructed-from parser may only
+        be destroyed.
+
+        @param args Optional arguments forwarded to the message
+        constructor.
+
+        @throws std::invalid_argument Thrown when the constructed-from
+        parser has already initialized a body writer.
+    */
+#if BEAST_DOXYGEN
+    template<class OtherBody, class... Args>
+#else
+    template<class OtherBody, class... Args>
+#endif
+    explicit
+    parser(parser<isRequest, OtherBody, Fields>&& parser,
+        Args&&... args);
+
+    /** Construct a parser from a @ref header_parser.
         @param parser The header parser to construct from.
         @param args Optional arguments forwarded to the message
         constructor.

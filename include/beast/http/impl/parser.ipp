@@ -8,6 +8,9 @@
 #ifndef BEAST_HTTP_IMPL_PARSER_IPP
 #define BEAST_HTTP_IMPL_PARSER_IPP
 
+#include <boost/throw_exception.hpp>
+#include <stdexcept>
+
 namespace beast {
 namespace http {
 
@@ -27,6 +30,20 @@ parser(Arg1&& arg1, ArgN&&... argn)
     : m_(std::forward<Arg1>(arg1),
         std::forward<ArgN>(argn)...)
 {
+}
+
+template<bool isRequest, class Body, class Fields>
+template<class OtherBody, class... Args>
+parser<isRequest, Body, Fields>::
+parser(parser<isRequest, OtherBody, Fields>&& parser,
+        Args&&... args)
+    : base_type(std::move(parser))
+    , m_(parser.release().base(),
+        std::forward<Args>(args)...)
+{
+    if(parser.wr_)
+        BOOST_THROW_EXCEPTION(std::invalid_argument{
+            "moved-from parser has a body"});
 }
 
 template<bool isRequest, class Body, class Fields>
