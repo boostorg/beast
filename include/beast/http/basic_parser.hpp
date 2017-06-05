@@ -11,6 +11,7 @@
 #include <beast/config.hpp>
 #include <beast/core/error.hpp>
 #include <beast/core/string_view.hpp>
+#include <beast/http/verb.hpp>
 #include <beast/http/detail/basic_parser.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/optional.hpp>
@@ -52,76 +53,6 @@ namespace http {
     the signature and description of the callbacks required in
     the derived class. If a callback sets the error code, the error
     will be propagated to the caller of the parser.
-
-    @par Example
-
-    @code
-    template<bool isRequest>
-    class custom_parser
-        : public basic_parser<isRequest, custom_parser<isRequest>>
-    {
-        friend class basic_parser<isRequest, custom_parser>;
-
-        /// Called after receiving the request-line (isRequest == true).
-        void
-        on_request(
-            string_view method,     // The method
-            string_view target,     // The request-target
-            int version,            // The HTTP-version
-            error_code& ec);        // The error returned to the caller, if any
-
-        /// Called after receiving the start-line (isRequest == false).
-        void
-        on_response(
-            int status,             // The status-code
-            string_view reason,     // The obsolete reason-phrase
-            int version,            // The HTTP-version
-            error_code& ec);        // The error returned to the caller, if any
-
-        /// Called after receiving a header field.
-        void
-        on_field(
-            string_view name,       // The field name
-            string_view value,      // The field value
-            error_code& ec);        // The error returned to the caller, if any
-
-        /// Called after the complete header is received.
-        void
-        on_header(
-            error_code& ec);        // The error returned to the caller, if any
-
-        /// Called just before processing the body, if a body exists.
-        void
-        on_body(boost::optional<
-                std::uint64_t> const&
-            content_length,         // Content length if known, else `boost::none`
-            error_code& ec);        // The error returned to the caller, if any
-
-        /// Called for each piece of the body, if a body exists.
-        //
-        //  If present, the chunked Transfer-Encoding will be removed
-        //  before this callback is invoked.
-        //
-        void
-        on_data(
-            string_view s,          // A portion of the body
-            error_code& ec);        // The error returned to the caller, if any
-
-        /// Called for each chunk header.
-        void
-        on_chunk(
-            std::uint64_t size,     // The size of the upcoming chunk
-            string_view extension,  // The chunk-extension (may be empty)
-            error_code& ec);        // The error returned to the caller, if any
-
-        /// Called when the complete message is parsed.
-        void
-        on_complete(error_code& ec);
-
-    public:
-        custom_parser() = default;
-    };
-    @endcode
 
     @tparam isRequest A `bool` indicating whether the parser will be
     presented with request or response message.

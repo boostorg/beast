@@ -165,9 +165,8 @@ public:
             boost::asio::mutable_buffers_1;
 
         void
-        on_request(string_view,
-            string_view,
-                int, error_code&)
+        on_request(verb, string_view,
+            string_view, int, error_code&)
         {
         }
 

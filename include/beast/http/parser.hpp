@@ -182,13 +182,14 @@ private:
     friend class basic_parser<isRequest, parser>;
 
     void
-    on_request(
-        string_view method,
-            string_view target,
-                int version, error_code&)
+    on_request(verb method, string_view method_str,
+        string_view target, int version, error_code&)
     {
         m_.target(target);
-        m_.method(method);
+        if(method != verb::unknown)
+            m_.method(method);
+        else
+            m_.method(method_str);
         m_.version = version;
     }
 

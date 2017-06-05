@@ -47,12 +47,11 @@ public:
     }
 
     void
-    on_request(string_view method_,
-        string_view path_,
-            int version_, error_code& ec)
+    on_request(verb, string_view method_str_,
+        string_view path_, int version_, error_code& ec)
     {
         method = std::string(
-            method_.data(), method_.size());
+            method_str_.data(), method_str_.size());
         path = std::string(
             path_.data(), path_.size());
         version = version_;

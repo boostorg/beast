@@ -866,12 +866,15 @@ template<bool isRequest>
 class custom_parser
     : public basic_parser<isRequest, custom_parser<isRequest>>
 {
+    // The friend declaration is needed,
+    // otherwise the callbacks must be made public.
     friend class basic_parser<isRequest, custom_parser>;
 
     /// Called after receiving the request-line (isRequest == true).
     void
     on_request(
-        string_view method,     // The method
+        verb method,            // The method verb, verb::unknown if no match
+        string_view method_str, // The method as a string
         string_view target,     // The request-target
         int version,            // The HTTP-version
         error_code& ec);        // The error returned to the caller, if any
@@ -934,19 +937,22 @@ public:
 
 template<bool isRequest>
 void custom_parser<isRequest>::
-on_request(string_view method, string_view path, int version, error_code& ec)
+on_request(verb method, string_view method_str,
+    string_view path, int version, error_code& ec)
 {
 }
 
 template<bool isRequest>
 void custom_parser<isRequest>::
-on_response(int status, string_view reason, int version, error_code& ec)
+on_response(int status, string_view reason,
+    int version, error_code& ec)
 {
 }
 
 template<bool isRequest>
 void custom_parser<isRequest>::
-on_field(string_view name, string_view value, error_code& ec)
+on_field(string_view name,
+    string_view value, error_code& ec)
 {
 }
 
@@ -958,7 +964,8 @@ on_header(error_code& ec)
 
 template<bool isRequest>
 void custom_parser<isRequest>::
-on_body(boost::optional<std::uint64_t> const& content_length, error_code& ec)
+on_body(boost::optional<std::uint64_t> const& content_length,
+    error_code& ec)
 {
 }
 
@@ -970,7 +977,8 @@ on_data(string_view s, error_code& ec)
 
 template<bool isRequest>
 void custom_parser<isRequest>::
-on_chunk(std::uint64_t size, string_view extension, error_code& ec)
+on_chunk(std::uint64_t size,
+    string_view extension, error_code& ec)
 {
 }
 

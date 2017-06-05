@@ -6,6 +6,7 @@ Version 50
 API Changes:
 
 * Remove header_parser
+* Add verb to on_request for parsers
 
 --------------------------------------------------------------------------------
 
