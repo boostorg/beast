@@ -20,17 +20,8 @@ namespace http {
 
 /** A serializable body represented by caller provided buffers.
 
-    This body type permits incremental message sending of caller
-    provided buffers using a @ref serializer.
-
-    @par Example
-    @code
-    template<class SyncWriteStream>
-    void send(SyncWriteStream& stream)
-    {
-        ...
-    }
-    @endcode
+    This body type permits the use of @ref parser or @ref serializer
+    with caller provided buffers.
 */
 struct buffer_body
 {
@@ -39,21 +30,59 @@ struct buffer_body
     {
         /** A pointer to a contiguous area of memory of @ref size octets, else `nullptr`.
 
-            If this is `nullptr` and @ref more is `true`, the error
-            @ref error::need_buffer will be returned by a serializer
-            when attempting to retrieve the next buffer.
+            @par When Serializing
+
+            If this is `nullptr` and `more` is `true`, the error
+            @ref error::need_buffer will be returned from @ref serializer::get
+            Otherwise, the serializer will use the memory pointed to
+            by `data` having `size` octets of valid storage as the
+            next buffer representing the body.
+
+            @par When Parsing
+
+            If this is `nullptr`, the error @ref error::need_buffer
+            will be returned from @ref parser::put. Otherwise, the
+            parser will store body octets into the memory pointed to
+            by `data` having `size` octets of valid storage. After
+            octets are stored, the `data` and `size` members are
+            adjusted: `data` is incremented to point to the next
+            octet after the data written, while `size` is decremented
+            to reflect the remaining space at the memory location
+            pointed to by `data`.
         */
-        void* data;
+        void* data = nullptr;
 
-        /** The number of octets in the buffer pointed to by @ref data
+        /** The number of octets in the buffer pointed to by @ref data.
 
-            If @ref data is `nullptr` during serialization, this value
-            is not inspected.
+            @par When Serializing
+
+            If `data` is `nullptr` during serialization, this value
+            is ignored. Otherwise, it represents the number of valid
+            body octets pointed to by `data`.
+
+            @par When Parsing
+
+            The value of this field will be decremented during parsing
+            to indicate the number of remaining free octets in the
+            buffer pointed to by `data`. When it reaches zero, the
+            parser will return @ref error::need_buffer, indicating to
+            the caller that the values of `data` and `size` should be
+            updated to point to a new memory buffer.
         */
-        std::size_t size;
+        std::size_t size = 0;
 
-        /// `true` if this is not the last buffer.
-        bool more;
+        /** `true` if this is not the last buffer.
+
+            @par When Serializing
+            
+            If this is `true` and `data` is `nullptr`, the error
+            @ref error::need_buffer will be returned from @ref serializer::get
+
+            @par When Parsing
+
+            This field is not used during parsing.
+        */
+        bool more = true;
     };
 
 #if BEAST_DOXYGEN
@@ -161,9 +190,8 @@ struct buffer_body
 };
 
 #if ! BEAST_DOXYGEN
-// operator<< is not supported for buffer_body"
-template<bool isRequest, class Fields,
-    bool isDeferred, class ConstBufferSequence>
+// operator<< is not supported for buffer_body
+template<bool isRequest, class Fields>
 std::ostream&
 operator<<(std::ostream& os, message<isRequest,
     buffer_body, Fields> const& msg) = delete;
