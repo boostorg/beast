@@ -23,7 +23,7 @@ as follows:
   Can user defined types be specified? What's the level of conformance to
   to Asio or Networking-TS concepts?
 
-* Check treatment of buffers. Does the library manage the buffers or
+* Check treatment of buffers. Does the library manage the buffers
   or can users provide their own buffers?
 
 * How does the library handle corner cases such as trailers,
@@ -107,7 +107,7 @@ holds the header fields. We note some problems with the container declaration:
   is that cpp-netlib implementations will be less efficient than an
   equivalent __N4588__ conforming implementation.
 
-* The library uses specializatons of `string<Tag>` to change the type
+* The library uses specializations of `string<Tag>` to change the type
   of string used everywhere, including the body, field name and value
   pairs, and extraneous metadata such as source and destination. The
   user may only choose a single type: field name, field values, and

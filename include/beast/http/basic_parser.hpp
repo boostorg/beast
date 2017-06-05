@@ -370,7 +370,7 @@ public:
 
         In some cases there may be an insufficient number of octets
         in the input buffer in order to make forward progress. This
-        is indicated by the the code @ref error::need_more. When
+        is indicated by the code @ref error::need_more. When
         this happens, the caller should place additional bytes into
         the buffer sequence and call @ref put again.
 

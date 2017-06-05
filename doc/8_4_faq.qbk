@@ -74,7 +74,7 @@ about Beast and other HTTP libraries that have gone through formal review.
     should not be a barrier to acceptance.
 
     The Beast HTTP message model is suitable for HTTP/2 and can be re-used.
-    The IETF HTTP Working Group adopted message compatiblity with HTTP/1.x
+    The IETF HTTP Working Group adopted message compatibility with HTTP/1.x
     as an explicit goal. A parser can simply emit full headers after
     decoding the compressed HTTP/2 headers. The stream ID is not logically
     part of the message but rather message metadata and should be
@@ -222,7 +222,7 @@ about Beast and other HTTP libraries that have gone through formal review.
 [[
     "You should send a 100-continue to ask for the rest of the body if required."
 ][
-    The Beast interface supporst this functionality (by allowing this
+    The Beast interface supports this functionality (by allowing this
     special case of "split" message parsing and serialization). Specifically,
     it lets callers read the request up to just before the body,
     and let callers write the request up to just before the body. However,
@@ -238,7 +238,7 @@ about Beast and other HTTP libraries that have gone through formal review.
 ][
     Beast.HTTP and Beast.WebSocket are production ready and currently
     running on public servers receiving traffic and handling millions of
-    dollars worth of financial transactions daily. The servers run [*rippled],
+    dollars' worth of financial transactions daily. The servers run [*rippled],
     open source software ([@https://github.com/ripple/rippled repository])
     implementing the
     [@https://ripple.com/files/ripple_consensus_whitepaper.pdf [*Ripple Consensus Protocol]],

@@ -386,7 +386,7 @@ in __N3747__, and built-in to __N4588__.
 Since the interfaces provided here are low level, authors of libraries
 may wish to create higher level interfaces using the primitives found
 in this library. Non-trivial applications will want to provide their own
-asychronous initiation functions which perform a series of other,
+asynchronous initiation functions which perform a series of other,
 intermediate asynchronous operations before invoking the final completion
 handler. The set of intermediate actions produced by calling an initiation
 function is known as a ['composed operation]. To ensure full interoperability
