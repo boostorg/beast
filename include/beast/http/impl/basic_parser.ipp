@@ -325,7 +325,7 @@ parse_header(char const*& p, char const* term,
     if(version >= 11)
         f_ |= flagHTTP11;
 
-    impl().on_request(
+    impl().on_request(string_to_verb(method),
         method, target, version, ec);
     if(ec)
         return;
