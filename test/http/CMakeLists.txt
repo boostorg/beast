@@ -18,6 +18,7 @@ add_executable (http-tests
     dynamic_body.cpp
     empty_body.cpp
     error.cpp
+    field.cpp
     fields.cpp
     message.cpp
     parser.cpp

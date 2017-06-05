@@ -1,6 +1,7 @@
 Version 50
 
 * parser is constructible from other body types
+* Add field enumeration
 
 API Changes:
 

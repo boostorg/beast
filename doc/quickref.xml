@@ -66,6 +66,7 @@
             <member><link linkend="beast.ref.http__read">read</link></member>
             <member><link linkend="beast.ref.http__read_header">read_header</link></member>
             <member><link linkend="beast.ref.http__read_some">read_some</link></member>
+            <member><link linkend="beast.ref.http__string_to_field">string_to_field</link></member>
             <member><link linkend="beast.ref.http__string_to_verb">string_to_verb</link></member>
             <member><link linkend="beast.ref.http__swap">swap</link></member>
             <member><link linkend="beast.ref.http__to_string">to_string</link></member>
@@ -86,6 +87,7 @@
           <simplelist type="vert" columns="1">
             <member><link linkend="beast.ref.http__connection">connection</link></member>
             <member><link linkend="beast.ref.http__error">error</link></member>
+            <member><link linkend="beast.ref.http__field">field</link></member>
             <member><link linkend="beast.ref.http__status">status</link></member>
             <member><link linkend="beast.ref.http__status_class">status_class</link></member>
             <member><link linkend="beast.ref.http__verb">verb</link></member>
