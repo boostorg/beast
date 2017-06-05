@@ -37,7 +37,6 @@
             <member><link linkend="beast.ref.http__empty_body">empty_body</link></member>
             <member><link linkend="beast.ref.http__fields">fields</link></member>
             <member><link linkend="beast.ref.http__header">header</link></member>
-            <member><link linkend="beast.ref.http__header_parser">header_parser</link></member>
             <member><link linkend="beast.ref.http__message">message</link></member>
             <member><link linkend="beast.ref.http__parser">parser</link></member>
             <member><link linkend="beast.ref.http__no_chunk_decorator">no_chunk_decorator</link></member>

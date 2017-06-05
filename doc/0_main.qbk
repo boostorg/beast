@@ -63,7 +63,6 @@
 [def __fields__             [link beast.ref.http__fields `fields`]]
 [def __flat_buffer__        [link beast.ref.flat_buffer `flat_buffer`]]
 [def __header__             [link beast.ref.http__header `header`]]
-[def __header_parser__      [link beast.ref.http__header_parser `header_parser`]]
 [def __message__            [link beast.ref.http__message `message`]]
 [def __multi_buffer__       [link beast.ref.multi_buffer `multi_buffer`]]
 [def __parser__             [link beast.ref.http__parser `parser`]]

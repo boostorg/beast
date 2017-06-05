@@ -173,19 +173,15 @@ class stream<NextLayer>::accept_op
 {
     struct data
     {
-        bool cont;
         stream<NextLayer>& ws;
         Decorator decorator;
-        http::header_parser<true, http::fields> p;
-        int state = 0;
+        http::request_parser<http::empty_body> p;
 
         data(Handler& handler, stream<NextLayer>& ws_,
                 Decorator const& decorator_)
             : ws(ws_)
             , decorator(decorator_)
         {
-            using boost::asio::asio_handler_is_continuation;
-            cont = asio_handler_is_continuation(std::addressof(handler));
         }
 
         template<class Buffers>
@@ -195,8 +191,6 @@ class stream<NextLayer>::accept_op
             : ws(ws_)
             , decorator(decorator_)
         {
-            using boost::asio::asio_handler_is_continuation;
-            cont = asio_handler_is_continuation(std::addressof(handler));
             using boost::asio::buffer_copy;
             using boost::asio::buffer_size;
             // VFALCO What about catch(std::length_error const&)?
@@ -218,11 +212,11 @@ public:
         : d_(std::forward<DeducedHandler>(h),
             ws, std::forward<Args>(args)...)
     {
-        (*this)(error_code{}, 0, false);
     }
 
-    void operator()(error_code ec,
-        std::size_t bytes_used, bool again = true);
+    void operator()();
+
+    void operator()(error_code ec);
 
     friend
     void* asio_handler_allocate(
@@ -245,7 +239,9 @@ public:
     friend
     bool asio_handler_is_continuation(accept_op* op)
     {
-        return op->d_->cont;
+        using boost::asio::asio_handler_is_continuation;
+        return asio_handler_is_continuation(
+            std::addressof(op->d_.handler()));
     }
 
     template<class Function>
@@ -262,27 +258,24 @@ template<class NextLayer>
 template<class Decorator, class Handler>
 void
 stream<NextLayer>::accept_op<Decorator, Handler>::
-operator()(error_code ec,
-    std::size_t bytes_used, bool again)
+operator()()
 {
     auto& d = *d_;
-    d.cont = d.cont || again;
-    if(ec)
-        goto upcall;
-    switch(d.state)
-    {
-    case 0:
-        // read message
-        d.state = 1;
-        http::async_read_some(d.ws.next_layer(),
-            d.ws.stream_.buffer(), d.p,
-                std::move(*this));
-        return;
+    http::async_read_header(d.ws.next_layer(), 
+        d.ws.stream_.buffer(), d.p,
+            std::move(*this));
+}
 
-    case 1:
+template<class NextLayer>
+template<class Decorator, class Handler>
+void
+stream<NextLayer>::accept_op<Decorator, Handler>::
+operator()(error_code ec)
+{
+    auto& d = *d_;
+    if(! ec)
     {
         BOOST_ASSERT(d.p.is_header_done());
-        d.ws.stream_.buffer().consume(bytes_used);
         // Arguments from our state must be
         // moved to the stack before releasing
         // the handler.
@@ -302,8 +295,6 @@ operator()(error_code ec,
     #endif
         return;
     }
-    }
-upcall:
     d_.invoke(ec);
 }
 
@@ -619,7 +610,7 @@ async_accept(AcceptHandler&& handler)
     reset();
     accept_op<decltype(&default_decorate_res),
         handler_type<AcceptHandler, void(error_code)>>{
-            init.completion_handler, *this, &default_decorate_res};
+            init.completion_handler, *this, &default_decorate_res}();
     return init.result.get();
 }
 
@@ -641,7 +632,7 @@ async_accept_ex(ResponseDecorator const& decorator,
     reset();
     accept_op<ResponseDecorator, handler_type<
         AcceptHandler, void(error_code)>>{
-            init.completion_handler, *this, decorator};
+            init.completion_handler, *this, decorator}();
     return init.result.get();
 }
 
@@ -664,7 +655,8 @@ async_accept(ConstBufferSequence const& buffers,
     reset();
     accept_op<decltype(&default_decorate_res),
         handler_type<AcceptHandler, void(error_code)>>{
-            init.completion_handler, *this, buffers, &default_decorate_res};
+            init.completion_handler, *this, buffers,
+                &default_decorate_res}();
     return init.result.get();
 }
 
@@ -692,7 +684,8 @@ async_accept_ex(ConstBufferSequence const& buffers,
     reset();
     accept_op<ResponseDecorator, handler_type<
         AcceptHandler, void(error_code)>>{
-            init.completion_handler, *this, buffers, decorator};
+            init.completion_handler, *this, buffers,
+                decorator}();
     return init.result.get();
 }
 

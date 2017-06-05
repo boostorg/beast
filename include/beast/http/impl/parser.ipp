@@ -14,15 +14,6 @@
 namespace beast {
 namespace http {
 
-template<bool isRequest, class Fields>
-template<class Arg0, class... ArgN, class>
-header_parser<isRequest, Fields>::
-header_parser(Arg0&& arg0, ArgN&&... argn)
-    : h_(std::forward<Arg0>(arg0),
-         std::forward<ArgN>(argn)...)
-{
-}
-
 template<bool isRequest, class Body, class Fields>
 template<class Arg1, class... ArgN, class>
 parser<isRequest, Body, Fields>::
@@ -33,7 +24,7 @@ parser(Arg1&& arg1, ArgN&&... argn)
 }
 
 template<bool isRequest, class Body, class Fields>
-template<class OtherBody, class... Args>
+template<class OtherBody, class... Args, class>
 parser<isRequest, Body, Fields>::
 parser(parser<isRequest, OtherBody, Fields>&& parser,
         Args&&... args)
@@ -44,17 +35,6 @@ parser(parser<isRequest, OtherBody, Fields>&& parser,
     if(parser.wr_)
         BOOST_THROW_EXCEPTION(std::invalid_argument{
             "moved-from parser has a body"});
-}
-
-template<bool isRequest, class Body, class Fields>
-template<class... Args>
-parser<isRequest, Body, Fields>::
-parser(header_parser<
-    isRequest, Fields>&& parser, Args&&... args)
-    : base_type(std::move(static_cast<basic_parser<
-        isRequest, header_parser<isRequest, Fields>>&>(parser)))
-    , m_(parser.release(), std::forward<Args>(args)...)
-{
 }
 
 } // http

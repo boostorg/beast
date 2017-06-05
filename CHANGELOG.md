@@ -2,6 +2,10 @@ Version 50
 
 * parser is constructible from other body types
 
+API Changes:
+
+* Remove header_parser
+
 --------------------------------------------------------------------------------
 
 Version 49

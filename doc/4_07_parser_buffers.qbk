@@ -7,11 +7,11 @@
 
 [section:parser_buffers Buffer-Oriented Parsing]
 
-In extreme cases, users may wish to create an instance of __parser__,
-__header_parser__, or a user-defined type derived from __basic_parser__ and
-invoke its methods directly instead of using the provided stream algorithms.
-This could be useful for implementing algorithms on streams whose interface
-does not conform to any __Stream__. For example, a
+In some cases, users may wish to create an instance of __parser__, or a
+user-defined type derived from __basic_parser__ and invoke its methods
+directly instead of using the provided stream algorithms. This could be
+useful for implementing algorithms on streams whose interface does not
+conform to any __Stream__. For example, a
 [@http://zeromq.org/ *ZeroMQ* socket].
 The basic parser interface is interactive; the caller invokes the function
 [link beast.ref.http__basic_parser.put `basic_parser::put`]
