@@ -5,6 +5,8 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
+//[websocket_example_client_echo
+
 #include <beast/core.hpp>
 #include <beast/websocket.hpp>
 #include <boost/asio.hpp>
@@ -33,3 +35,5 @@ int main()
     ws.close(beast::websocket::close_code::normal);
     std::cout << beast::buffers(b.data()) << "\n";
 }
+
+//]

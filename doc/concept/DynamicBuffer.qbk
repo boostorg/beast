@@ -5,7 +5,7 @@
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 ]
 
-[section:DynamicBuffer DynamicBuffer requirements]
+[section:DynamicBuffer DynamicBuffer]
 
 A dynamic buffer encapsulates memory storage that may be automatically resized
 as required, where the memory is divided into an input sequence followed by an

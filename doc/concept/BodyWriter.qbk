@@ -5,7 +5,7 @@
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 ]
 
-[section:BodyWriter BodyWriter requirements]
+[section:BodyWriter BodyWriter]
 
 A [*BodyWriter] provides an online algorithm to transfer a series of zero
 or more buffers containing parsed body octets into a message container. The

@@ -1,0 +1,66 @@
+[/
+    Copyright (c) 2013-2017 Vinnie Falco (vinnie dot falco at gmail dot com)
+
+    Distributed under the Boost Software License, Version 1.0. (See accompanying
+    file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+]
+
+[section:op_tutorial Writing a Composed Operation]
+
+To illustrate the usage of the asynchronous helpers in the core section of
+this library, we will develop a simple asynchronous composed operation called
+[*echo]. This operation will read up to the first newline on a stream, and
+then write the same line including the newline back on the stream.
+
+First we define the input parameters and results, then declare our initiation
+function. For our echo operation the only inputs are the stream and the
+completion token. The output is the error code which is usually included in
+all completion handler signatures.
+
+[core_sample_echo_op_1]
+
+Now that we have a declaration, we will define the body of the function. We
+want to achieve the following goals: perform static type checking on the input
+parameters, set up the return value as per __N3747__, and launch the composed
+operation by constructing the object and invoking it.
+
+[core_sample_echo_op_2]
+
+The initiation function contains a few relatively simple parts. There is the
+customization of the return value type, static type checking, building the
+return value type using the helper, and creating and launching the composed
+operation object. The [*`echo_op`] object does most of the work here, and has
+a somewhat non-trivial structure. This structure is necessary to meet the
+stringent requirements of composed operations (described in more detail in
+the __Asio__ documentation). We will touch on these requirements without
+explaining them in depth.
+
+First we will create boilerplate which is present in all composed operations
+written in this style:
+
+[core_sample_echo_op_3]
+
+We have the common boilerplate for a composed operation and now we just need
+to implement the function call operator. Our strategy is to make our composed
+object meet the requirements of a completion handler by being copyable (also
+movable), and by providing the function call operator with the correct
+signature. Rather than using `std::bind` or `boost::bind`, which destroys
+the type information and therefore breaks the allocation and invocation
+hooks, we will simply pass `std::move(*this)` as the completion handler
+parameter for any operations that we initiate. For the move to work correctly,
+care must be taken to ensure that no access to data members are made after the
+move takes place. Here is the implementation of the function call operator for
+this echo operation:
+
+[core_sample_echo_op_4]
+
+```
+// echo_op is callable with the signature void(error_code, bytes_transferred),
+// allowing `*this` to be used as both a ReadHandler and a WriteHandler.
+//
+```
+
+A complete, runnable version of this example may be found in the examples
+directory.
+
+[endsect]

@@ -7,18 +7,6 @@
 
 [section:websocket Using WebSocket]
 
-[block '''
-<informaltable frame="all"><tgroup cols="1"><colspec colname="a"/><tbody><row><entry valign="top"><simplelist>
-  <member><link linkend="beast.websocket.streams">Creating Streams</link></member>
-  <member><link linkend="beast.websocket.connect">Establishing Connections</link></member>
-  <member><link linkend="beast.websocket.client">Handshaking (Clients)</link></member>
-  <member><link linkend="beast.websocket.server">Handshaking (Servers)</link></member>
-  <member><link linkend="beast.websocket.messages">Send and Receive Messages</link></member>
-  <member><link linkend="beast.websocket.control">Control Frames</link></member>
-  <member><link linkend="beast.websocket.notes">Additional Notes</link></member>
-</simplelist></entry></row></tbody></tgroup></informaltable>
-''']
-
 The WebSocket Protocol enables two-way communication between a client
 running untrusted code in a controlled environment to a remote host that has
 opted-in to communications from that code. The protocol consists of an opening
@@ -39,12 +27,12 @@ Boost.Asio with a consistent asynchronous model using a modern C++ approach.
     ```
 ]
 
-[include 5_1_streams.qbk]
-[include 5_2_connect.qbk]
-[include 5_3_client.qbk]
-[include 5_4_server.qbk]
-[include 5_5_messages.qbk]
-[include 5_6_control.qbk]
-[include 5_7_notes.qbk]
+[include 6_1_streams.qbk]
+[include 6_2_connect.qbk]
+[include 6_3_client.qbk]
+[include 6_4_server.qbk]
+[include 6_5_messages.qbk]
+[include 6_6_control.qbk]
+[include 6_7_notes.qbk]
 
 [endsect]

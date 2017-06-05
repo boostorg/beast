@@ -141,6 +141,7 @@ elseif ("${VARIANT}" STREQUAL "release")
 
 endif()
 
+include_directories (.)
 include_directories (extras)
 include_directories (include)
 
@@ -171,6 +172,10 @@ file(GLOB_RECURSE BEAST_INCLUDES
     ${PROJECT_SOURCE_DIR}/include/beast/*.hpp
     ${PROJECT_SOURCE_DIR}/include/beast/*.ipp
 )
+
+file(GLOB_RECURSE EXAMPLES_INCLUDES
+    ${PROJECT_SOURCE_DIR}/examples/*.hpp
+  )
 
 file(GLOB_RECURSE EXTRAS_INCLUDES
     ${PROJECT_SOURCE_DIR}/extras/beast/*.hpp

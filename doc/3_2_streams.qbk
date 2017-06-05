@@ -5,7 +5,7 @@
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 ]
 
-[heading:streams Stream Concepts]
+[section:streams Using Streams]
 
 A __Stream__ is communication channel where data expressed as octet
 buffers is transferred sequentially. Streams are either synchronous
@@ -127,3 +127,5 @@ synchronous stream may check its argument:
         boost::asio::write(stream, boost::asio::const_buffers_1(s.data(), s.size()));
     }
 ```
+
+[endsect]

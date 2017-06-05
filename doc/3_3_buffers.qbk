@@ -5,7 +5,7 @@
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 ]
 
-[heading:buffers Buffer Concepts]
+[section:buffers Using Buffers]
 
 __Asio__ provides the __ConstBufferSequence__ and __MutableBufferSequence__
 concepts, whose models provide ranges of buffers, as well as the __streambuf__
@@ -145,3 +145,5 @@ output streams.
     dynamic buffer.
 ]]
 ]
+
+[endsect]

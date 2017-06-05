@@ -99,11 +99,11 @@
           </simplelist>
           <bridgehead renderas="sect3">Concepts</bridgehead>
           <simplelist type="vert" columns="1">
-            <member><link linkend="beast.ref.Body">Body</link></member>
-            <member><link linkend="beast.ref.BodyReader">BodyReader</link></member>
-            <member><link linkend="beast.ref.BodyWriter">BodyWriter</link></member>
-            <member><link linkend="beast.ref.Field">Field</link></member>
-            <member><link linkend="beast.ref.FieldSequence">FieldSequence</link></member>
+            <member><link linkend="beast.concept.Body">Body</link></member>
+            <member><link linkend="beast.concept.BodyReader">BodyReader</link></member>
+            <member><link linkend="beast.concept.BodyWriter">BodyWriter</link></member>
+            <member><link linkend="beast.concept.Field">Field</link></member>
+            <member><link linkend="beast.concept.FieldSequence">FieldSequence</link></member>
           </simplelist>
         </entry>
         <entry valign="top">
@@ -223,11 +223,11 @@
         <entry valign="top">
           <bridgehead renderas="sect3">Concepts</bridgehead>
           <simplelist type="vert" columns="1">
-            <member><link linkend="beast.ref.streams.AsyncStream">AsyncStream</link></member>
-            <member><link linkend="beast.ref.BufferSequence">BufferSequence</link></member>
-            <member><link linkend="beast.ref.DynamicBuffer">DynamicBuffer</link></member>
-            <member><link linkend="beast.ref.streams.Stream">Stream</link></member>
-            <member><link linkend="beast.ref.streams.SyncStream">SyncStream</link></member>
+            <member><link linkend="beast.concept.streams.AsyncStream">AsyncStream</link></member>
+            <member><link linkend="beast.concept.BufferSequence">BufferSequence</link></member>
+            <member><link linkend="beast.concept.DynamicBuffer">DynamicBuffer</link></member>
+            <member><link linkend="beast.concept.streams.Stream">Stream</link></member>
+            <member><link linkend="beast.concept.streams.SyncStream">SyncStream</link></member>
           </simplelist>
         </entry>
         <entry valign="top">
