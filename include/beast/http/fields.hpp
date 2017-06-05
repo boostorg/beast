@@ -10,11 +10,13 @@
 
 #include <beast/config.hpp>
 #include <beast/core/string_view.hpp>
-#include <beast/core/detail/empty_base_optimization.hpp>
-#include <beast/http/detail/fields.hpp>
+#include <beast/core/detail/ci_char_traits.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/intrusive/list.hpp>
+#include <boost/intrusive/set.hpp>
 #include <algorithm>
 #include <cctype>
+#include <cstring>
 #include <memory>
 #include <string>
 #include <type_traits>
@@ -39,70 +41,44 @@ namespace http {
     @note Meets the requirements of @b FieldSequence.
 */
 template<class Allocator>
-class basic_fields :
-#if ! BEAST_DOXYGEN
-    private beast::detail::empty_base_optimization<
-        typename std::allocator_traits<Allocator>::
-            template rebind_alloc<
-                detail::basic_fields_base::element>>,
-#endif
-    public detail::basic_fields_base
+class basic_fields
 {
-    using alloc_type = typename
-        std::allocator_traits<Allocator>::
-            template rebind_alloc<
-                detail::basic_fields_base::element>;
+private:
+    using off_t = std::uint16_t;
 
-    using alloc_traits =
-        std::allocator_traits<alloc_type>;
+public:
+    /** The value type of the field sequence.
 
-    using size_type =
-        typename std::allocator_traits<Allocator>::size_type;
-
-    void
-    delete_all();
-
-    void
-    move_assign(basic_fields&, std::false_type);
-
-    void
-    move_assign(basic_fields&, std::true_type);
-
-    void
-    copy_assign(basic_fields const&, std::false_type);
-
-    void
-    copy_assign(basic_fields const&, std::true_type);
-
-    template<class FieldSequence>
-    void
-    copy_from(FieldSequence const& fs)
+        Meets the requirements of @b Field.
+    */
+    struct value_type
     {
-        for(auto const& e : fs)
-            insert(e.first, e.second);
-    }
+        string_view
+        name() const
+        {
+            return {first, off - 2u};
+        }
+
+        string_view
+        value() const
+        {
+            return {first + off, len};
+        }
+
+        char const* first;
+        off_t off;
+        off_t len;
+    };
 
 public:
     /// The type of allocator used.
     using allocator_type = Allocator;
 
-    /** The value type of the field sequence.
+    /// A constant iterator to the field sequence.
+    class const_iterator;
 
-        Meets the requirements of @b Field.
-    */
-#if BEAST_DOXYGEN
-    using value_type = implementation_defined;
-#endif
-
-    /// A const iterator to the field sequence
-#if BEAST_DOXYGEN
-    using iterator = implementation_defined;
-#endif
-
-    /// A const iterator to the field sequence
-#if BEAST_DOXYGEN
-    using const_iterator = implementation_defined;
-#endif
+    /// A constant iterator to the field sequence.
+    using iterator = const_iterator;
 
     /// Default constructor.
     basic_fields() = default;
@@ -147,42 +123,51 @@ public:
     template<class OtherAlloc>
     basic_fields& operator=(basic_fields<OtherAlloc> const&);
 
-    /// Returns a const iterator to the beginning of the field sequence.
+    /// Return a copy of the allocator associated with the container.
+    allocator_type
+    get_allocator() const
+    {
+        return typename std::allocator_traits<
+            Allocator>::template rebind_alloc<
+                element>(alloc_);
+    }
+
+    /// Return a const iterator to the beginning of the field sequence.
     const_iterator
     begin() const
     {
         return list_.cbegin();
     }
 
-    /// Returns a const iterator to the end of the field sequence.
+    /// Return a const iterator to the end of the field sequence.
     const_iterator
     end() const
     {
         return list_.cend();
     }
 
-    /// Returns a const iterator to the beginning of the field sequence.
+    /// Return a const iterator to the beginning of the field sequence.
     const_iterator
     cbegin() const
     {
         return list_.cbegin();
     }
 
-    /// Returns a const iterator to the end of the field sequence.
+    /// Return a const iterator to the end of the field sequence.
     const_iterator
     cend() const
     {
         return list_.cend();
     }
 
-    /// Returns `true` if the specified field exists.
+    /// Return `true` if the specified field exists.
     bool
     exists(string_view name) const
     {
         return set_.find(name, less{}) != set_.end();
     }
 
-    /// Returns the number of values for the specified field.
+    /// Return the number of values for the specified field.
     std::size_t
     count(string_view name) const;
 
@@ -247,6 +232,7 @@ public:
         ! std::is_constructible<string_view, T>::value>::type
     insert(string_view name, T const& value)
     {
+        // VFALCO This should use a static buffer, see lexical_cast doc
         insert(name, boost::lexical_cast<std::string>(value));
     }
 
@@ -277,6 +263,7 @@ public:
         ! std::is_constructible<string_view, T>::value>::type
     replace(string_view name, T const& value)
     {
+        // VFALCO This should use a static buffer, see lexical_cast doc
         replace(name,
             boost::lexical_cast<std::string>(value));
     }
@@ -329,6 +316,111 @@ private:
         else
             this->replace(":reason", s);
     }
+
+private:
+    struct element
+        : boost::intrusive::set_base_hook <
+            boost::intrusive::link_mode <
+                boost::intrusive::normal_link>>
+        , boost::intrusive::list_base_hook <
+            boost::intrusive::link_mode <
+                boost::intrusive::normal_link>>
+    {
+        element(
+            string_view name, string_view value)
+        {
+            char* p = reinterpret_cast<char*>(this + 1);
+            data.first = p;
+            data.off =
+                static_cast<off_t>(name.size() + 2);
+            data.len =
+                static_cast<off_t>(value.size());
+            std::memcpy(p, name.data(), name.size());
+            p[data.off-2] = ':';
+            p[data.off-1] = ' ';
+            std::memcpy(
+                p + data.off, value.data(), value.size());
+            p[data.off + data.len] = '\r';
+            p[data.off + data.len + 1] = '\n';
+        }
+
+        value_type data;
+    };
+
+    struct less : private beast::detail::ci_less
+    {
+        template<class String>
+        bool
+        operator()(String const& lhs, element const& rhs) const
+        {
+            return ci_less::operator()(lhs, rhs.data.name());
+        }
+
+        template<class String>
+        bool
+        operator()(element const& lhs, String const& rhs) const
+        {
+            return ci_less::operator()(lhs.data.name(), rhs);
+        }
+
+        bool
+        operator()(element const& lhs, element const& rhs) const
+        {
+            return ci_less::operator()(
+                lhs.data.name(), rhs.data.name());
+        }
+    };
+
+    using alloc_type = typename
+        std::allocator_traits<Allocator>::
+            template rebind_alloc<element>;
+
+    using alloc_traits =
+        std::allocator_traits<alloc_type>;
+
+    using size_type =
+        typename std::allocator_traits<Allocator>::size_type;
+
+    using list_t = typename boost::intrusive::make_list<
+        element, boost::intrusive::constant_time_size<
+            false>>::type;
+
+    using set_t = typename boost::intrusive::make_multiset<
+        element, boost::intrusive::constant_time_size<
+            true>, boost::intrusive::compare<less>>::type;
+
+    void
+    delete_all();
+
+    void
+    move_assign(basic_fields&, std::false_type);
+
+    void
+    move_assign(basic_fields&, std::true_type);
+
+    void
+    copy_assign(basic_fields const&, std::false_type);
+
+    void
+    copy_assign(basic_fields const&, std::true_type);
+
+    template<class FieldSequence>
+    void
+    copy_from(FieldSequence const& fs)
+    {
+        for(auto const& e : fs)
+            insert(e.name(), e.value());
+    }
+
+    element&
+    new_element(string_view name, string_view value);
+
+    void
+    delete_element(element& e);
+
+    set_t set_;
+    list_t list_;
+    alloc_type alloc_;
 };
 
 /// A typical HTTP header fields container
