@@ -91,13 +91,11 @@ stream<NextLayer>::
 do_accept(
     Decorator const& decorator, error_code& ec)
 {
-    http::header_parser<true, http::fields> p;
-    auto const bytes_used = http::read_some(
-        next_layer(), stream_.buffer(), p, ec);
+    http::request_parser<http::empty_body> p;
+    http::read_header(next_layer(),
+        stream_.buffer(), p, ec);
     if(ec)
         return;
-    BOOST_ASSERT(p.is_header_done());
-    stream_.buffer().consume(bytes_used);
     do_accept(p.get(), decorator, ec);
 }
 

@@ -39,18 +39,6 @@ defined types deriving from the basic parser are possible:
     ```
 ]]
 [[
-    __header_parser__
-][
-    ```
-    /// An HTTP/1 parser for producing a header.
-    template<
-        bool isRequest,         // `true` to parse an HTTP request
-        class Fields>           // The type of container representing the fields
-    class header_parser
-        : public basic_parser<...>;
-    ```
-]]
-[[
     [link beast.ref.http__request_parser `request_parser`]
 ][
     ```

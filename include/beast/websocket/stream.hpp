@@ -30,12 +30,10 @@ namespace beast {
 namespace websocket {
 
 /// The type of object holding HTTP Upgrade requests
-using request_type =
-    http::message<true, http::empty_body, http::fields>;
+using request_type = http::request<http::empty_body>;
 
 /// The type of object holding HTTP Upgrade responses
-using response_type =
-    http::message<false, http::string_body, http::fields>;
+using response_type = http::response<http::string_body>;
 
 /** Information about a WebSocket frame.
 

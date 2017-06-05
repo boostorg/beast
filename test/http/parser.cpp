@@ -25,57 +25,6 @@
 namespace beast {
 namespace http {
 
-class header_parser_test
-    : public beast::unit_test::suite
-    , public test::enable_yield_to
-{
-public:
-    static
-    boost::asio::const_buffers_1
-    buf(string_view s)
-    {
-        return {s.data(), s.size()};
-    }
-
-    void
-    testParse()
-    {
-        {
-            test::string_istream is{ios_,
-                "GET / HTTP/1.1\r\n"
-                "User-Agent: test\r\n"
-                "\r\n"
-            };
-            flat_buffer db{1024};
-            header_parser<true, fields> p;
-            read_some(is, db, p);
-            BEAST_EXPECT(p.is_header_done());
-        }
-        {
-            test::string_istream is{ios_,
-                "POST / HTTP/1.1\r\n"
-                "User-Agent: test\r\n"
-                "Content-Length: 1\r\n"
-                "\r\n"
-                "*"
-            };
-            flat_buffer db{1024};
-            header_parser<true, fields> p;
-            read_some(is, db, p);
-            BEAST_EXPECT(p.is_header_done());
-            BEAST_EXPECT(! p.is_done());
-        }
-    }
-
-    void
-    run() override
-    {
-        testParse();
-    }
-};
-
-BEAST_DEFINE_TESTSUITE(header_parser,http,beast);
-
 class parser_test
     : public beast::unit_test::suite
     , public beast::test::enable_yield_to
@@ -333,30 +282,6 @@ public:
             BEAST_EXPECT(p.content_length() &&
                 *p.content_length() == 5);
         }
-    }
-
-    void
-    testExpect100Continue()
-    {
-        test::string_istream ss{ios_,
-            "POST / HTTP/1.1\r\n"
-            "Expect: 100-continue\r\n"
-            "Content-Length: 5\r\n"
-            "\r\n"
-            "*****"};
-        multi_buffer b;
-        error_code ec;
-        header_parser<true, fields> p0;
-        auto const bytes_used =
-            read_some(ss, b, p0, ec);
-        b.consume(bytes_used);
-        BEAST_EXPECTS(! ec, ec.message());
-        BEAST_EXPECT(p0.is_header_done());
-        BEAST_EXPECT(! p0.is_done());
-        request_parser<string_body> p1{std::move(p0)};
-        read(ss, b, p1, ec);
-        BEAST_EXPECTS(! ec, ec.message());
-        BEAST_EXPECT(p1.get().body == "*****");
     }
 
     //--------------------------------------------------------------------------
