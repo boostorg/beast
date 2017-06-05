@@ -318,8 +318,7 @@ public:
         Upgrade request and send the HTTP response. The call blocks
         until one of the following conditions is true:
 
-        @li The HTTP request finishes receiving, and the HTTP response
-        finishes sending.
+        @li The request is received and the response finishes sending.
 
         @li An error occurs on the stream.
 
@@ -346,8 +345,7 @@ public:
         Upgrade request and send the HTTP response. The call blocks
         until one of the following conditions is true:
 
-        @li The HTTP request finishes receiving, and the HTTP response
-        finishes sending.
+        @li The request is received and the response finishes sending.
 
         @li An error occurs on the stream.
 
@@ -384,8 +382,7 @@ public:
         Upgrade request and send the HTTP response. The call blocks
         until one of the following conditions is true:
 
-        @li The HTTP request finishes receiving, and the HTTP response
-        finishes sending.
+        @li The request is received and the response finishes sending.
 
         @li An error occurs on the stream.
 
@@ -412,8 +409,7 @@ public:
         Upgrade request and send the HTTP response. The call blocks
         until one of the following conditions is true:
 
-        @li The HTTP request finishes receiving, and the HTTP response
-        finishes sending.
+        @li The request is received and the response finishes sending.
 
         @li An error occurs on the stream.
 
@@ -451,8 +447,7 @@ public:
         Upgrade request and send the HTTP response. The call blocks
         until one of the following conditions is true:
 
-        @li The HTTP request finishes receiving, and the HTTP response
-        finishes sending.
+        @li The request is received and the response finishes sending.
 
         @li An error occurs on the stream.
 
@@ -489,8 +484,7 @@ public:
         Upgrade request and send the HTTP response. The call blocks
         until one of the following conditions is true:
 
-        @li The HTTP request finishes receiving, and the HTTP response
-        finishes sending.
+        @li The request is received and the response finishes sending.
 
         @li An error occurs on the stream.
 
@@ -538,8 +532,7 @@ public:
         Upgrade request and send the HTTP response. The call blocks
         until one of the following conditions is true:
 
-        @li The HTTP request finishes receiving, and the HTTP response
-        finishes sending.
+        @li The request is received and the response finishes sending.
 
         @li An error occurs on the stream.
 
@@ -576,8 +569,7 @@ public:
         Upgrade request and send the HTTP response. The call blocks
         until one of the following conditions is true:
 
-        @li The HTTP request finishes receiving, and the HTTP response
-        finishes sending.
+        @li The request is received and the response finishes sending.
 
         @li An error occurs on the stream.
 
@@ -626,7 +618,7 @@ public:
         to an HTTP request possibly containing a WebSocket Upgrade.
         The call blocks until one of the following conditions is true:
 
-        @li The HTTP response finishes sending.
+        @li The response finishes sending.
 
         @li An error occurs on the stream.
 
@@ -658,7 +650,7 @@ public:
         to an HTTP request possibly containing a WebSocket Upgrade.
         The call blocks until one of the following conditions is true:
 
-        @li The HTTP response finishes sending.
+        @li The response finishes sending.
 
         @li An error occurs on the stream.
 
@@ -700,7 +692,7 @@ public:
         to an HTTP request possibly containing a WebSocket Upgrade.
         The call blocks until one of the following conditions is true:
 
-        @li The HTTP response finishes sending.
+        @li The response finishes sending.
 
         @li An error occurs on the stream.
 
@@ -733,7 +725,7 @@ public:
         to an HTTP request possibly containing a WebSocket Upgrade.
         The call blocks until one of the following conditions is true:
 
-        @li The HTTP response finishes sending.
+        @li The response finishes sending.
 
         @li An error occurs on the stream.
 
@@ -776,7 +768,7 @@ public:
         to an HTTP request possibly containing a WebSocket Upgrade.
         The call blocks until one of the following conditions is true:
 
-        @li The HTTP response finishes sending.
+        @li The response finishes sending.
 
         @li An error occurs on the stream.
 
@@ -814,7 +806,7 @@ public:
         to an HTTP request possibly containing a WebSocket Upgrade.
         The call blocks until one of the following conditions is true:
 
-        @li The HTTP response finishes sending.
+        @li The response finishes sending.
 
         @li An error occurs on the stream.
 
@@ -863,7 +855,7 @@ public:
         to an HTTP request possibly containing a WebSocket Upgrade.
         The call blocks until one of the following conditions is true:
 
-        @li The HTTP response finishes sending.
+        @li The response finishes sending.
 
         @li An error occurs on the stream.
 
@@ -901,7 +893,7 @@ public:
         to an HTTP request possibly containing a WebSocket Upgrade.
         The call blocks until one of the following conditions is true:
 
-        @li The HTTP response finishes sending.
+        @li The response finishes sending.
 
         @li An error occurs on the stream.
 
@@ -952,8 +944,7 @@ public:
         always returns immediately. The asynchronous operation will
         continue until one of the following conditions is true:
 
-        @li The HTTP request finishes receiving, and the HTTP response
-        finishes sending.
+        @li The request is received and the response finishes sending.
 
         @li An error occurs on the stream.
 
@@ -1002,8 +993,7 @@ public:
         always returns immediately. The asynchronous operation will
         continue until one of the following conditions is true:
 
-        @li The HTTP request finishes receiving, and the HTTP response
-        finishes sending.
+        @li The request is received and the response finishes sending.
 
         @li An error occurs on the stream.
 
@@ -1062,8 +1052,7 @@ public:
         always returns immediately. The asynchronous operation will
         continue until one of the following conditions is true:
 
-        @li The HTTP request finishes receiving, and the HTTP response
-        finishes sending.
+        @li The request is received and the response finishes sending.
 
         @li An error occurs on the stream.
 
@@ -1121,8 +1110,7 @@ public:
         always returns immediately. The asynchronous operation will
         continue until one of the following conditions is true:
 
-        @li The HTTP request finishes receiving, and the HTTP response
-        finishes sending.
+        @li The request is received and the response finishes sending.
 
         @li An error occurs on the stream.
 
@@ -1192,7 +1180,7 @@ public:
         asynchronous operation will continue until one of the following
         conditions is true:
 
-        @li The HTTP response finishes sending.
+        @li The response finishes sending.
 
         @li An error occurs on the stream.
 
@@ -1247,7 +1235,7 @@ public:
         asynchronous operation will continue until one of the following
         conditions is true:
 
-        @li The HTTP response finishes sending.
+        @li The response finishes sending.
 
         @li An error occurs on the stream.
 
@@ -1313,7 +1301,7 @@ public:
         asynchronous operation will continue until one of the following
         conditions is true:
 
-        @li The HTTP response finishes sending.
+        @li The response finishes sending.
 
         @li An error occurs on the stream.
 
@@ -1377,7 +1365,7 @@ public:
         asynchronous operation will continue until one of the following
         conditions is true:
 
-        @li The HTTP response finishes sending.
+        @li The response finishes sending.
 
         @li An error occurs on the stream.
 
@@ -1449,8 +1437,7 @@ public:
         upgrade HTTP request. The call blocks until one of the
         following conditions is true:
 
-        @li A HTTP request finishes sending and an HTTP response finishes
-        receiving.
+        @li The request is sent and the response is received.
 
         @li An error occurs on the stream
 
@@ -1484,8 +1471,8 @@ public:
         @endcode
     */
     void
-    handshake(string_view const& host,
-        string_view const& target);
+    handshake(string_view host,
+        string_view target);
 
     /** Send an HTTP WebSocket Upgrade request and receive the response.
 
@@ -1493,8 +1480,7 @@ public:
         upgrade HTTP request. The call blocks until one of the
         following conditions is true:
 
-        @li A HTTP request finishes sending and an HTTP response finishes
-        receiving.
+        @li The request is sent and the response is received.
 
         @li An error occurs on the stream
 
@@ -1533,8 +1519,8 @@ public:
     */
     void
     handshake(response_type& res,
-        string_view const& host,
-            string_view const& target);
+        string_view host,
+            string_view target);
 
     /** Send an HTTP WebSocket Upgrade request and receive the response.
 
@@ -1542,8 +1528,7 @@ public:
         upgrade HTTP request. The call blocks until one of the
         following conditions is true:
 
-        @li A HTTP request finishes sending and an HTTP response finishes
-        receiving.
+        @li The request is sent and the response is received.
 
         @li An error occurs on the stream
 
@@ -1591,8 +1576,8 @@ public:
     */
     template<class RequestDecorator>
     void
-    handshake_ex(string_view const& host,
-        string_view const& target,
+    handshake_ex(string_view host,
+        string_view target,
             RequestDecorator const& decorator);
 
     /** Send an HTTP WebSocket Upgrade request and receive the response.
@@ -1601,8 +1586,7 @@ public:
         upgrade HTTP request. The call blocks until one of the
         following conditions is true:
 
-        @li A HTTP request finishes sending and an HTTP response finishes
-        receiving.
+        @li The request is sent and the response is received.
 
         @li An error occurs on the stream
 
@@ -1655,8 +1639,8 @@ public:
     template<class RequestDecorator>
     void
     handshake_ex(response_type& res,
-        string_view const& host,
-            string_view const& target,
+        string_view host,
+            string_view target,
                 RequestDecorator const& decorator);
 
     /** Send an HTTP WebSocket Upgrade request and receive the response.
@@ -1665,8 +1649,7 @@ public:
         upgrade HTTP request. The call blocks until one of the
         following conditions is true:
 
-        @li A HTTP request finishes sending and an HTTP response finishes
-        receiving.
+        @li The request is sent and the response is received.
 
         @li An error occurs on the stream
 
@@ -1698,8 +1681,8 @@ public:
         @endcode
     */
     void
-    handshake(string_view const& host,
-        string_view const& target, error_code& ec);
+    handshake(string_view host,
+        string_view target, error_code& ec);
 
     /** Send an HTTP WebSocket Upgrade request and receive the response.
 
@@ -1707,8 +1690,7 @@ public:
         upgrade HTTP request. The call blocks until one of the
         following conditions is true:
 
-        @li A HTTP request finishes sending and an HTTP response finishes
-        receiving.
+        @li The request is sent and the response is received.
 
         @li An error occurs on the stream
 
@@ -1745,8 +1727,8 @@ public:
     */
     void
     handshake(response_type& res,
-        string_view const& host,
-            string_view const& target,
+        string_view host,
+            string_view target,
                 error_code& ec);
 
     /** Send an HTTP WebSocket Upgrade request and receive the response.
@@ -1755,8 +1737,7 @@ public:
         upgrade HTTP request. The call blocks until one of the
         following conditions is true:
 
-        @li A HTTP request finishes sending and an HTTP response finishes
-        receiving.
+        @li The request is sent and the response is received.
 
         @li An error occurs on the stream
 
@@ -1803,8 +1784,8 @@ public:
     */
     template<class RequestDecorator>
     void
-    handshake_ex(string_view const& host,
-        string_view const& target,
+    handshake_ex(string_view host,
+        string_view target,
             RequestDecorator const& decorator,
                 error_code& ec);
 
@@ -1814,8 +1795,7 @@ public:
         upgrade HTTP request. The call blocks until one of the
         following conditions is true:
 
-        @li A HTTP request finishes sending and an HTTP response finishes
-        receiving.
+        @li The request is sent and the response is received.
 
         @li An error occurs on the stream
 
@@ -1867,8 +1847,8 @@ public:
     template<class RequestDecorator>
     void
     handshake_ex(response_type& res,
-        string_view const& host,
-            string_view const& target,
+        string_view host,
+            string_view target,
                 RequestDecorator const& decorator,
                     error_code& ec);
 
@@ -1880,10 +1860,9 @@ public:
         operation will continue until one of the following conditions is
         true:
 
-        @li A HTTP request finishes sending and an HTTP response finishes
-        receiving.
+        @li The request is sent and the response is received.
 
-        @li An error occurs on the stream.
+        @li An error occurs on the stream
 
         This operation is implemented in terms of one or more calls to the
         next layer's `async_read_some` and `async_write_some` functions, and
@@ -1920,8 +1899,8 @@ public:
     async_return_type<
         HandshakeHandler, void(error_code)>
 #endif
-    async_handshake(string_view const& host,
-        string_view const& target,
+    async_handshake(string_view host,
+        string_view target,
             HandshakeHandler&& handler);
 
     /** Start an asynchronous operation to send an upgrade request and receive the response.
@@ -1932,10 +1911,9 @@ public:
         operation will continue until one of the following conditions is
         true:
 
-        @li A HTTP request finishes sending and an HTTP response finishes
-        receiving.
+        @li The request is sent and the response is received.
 
-        @li An error occurs on the stream.
+        @li An error occurs on the stream
 
         This operation is implemented in terms of one or more calls to the
         next layer's `async_read_some` and `async_write_some` functions, and
@@ -1977,8 +1955,8 @@ public:
         HandshakeHandler, void(error_code)>
 #endif
     async_handshake(response_type& res,
-        string_view const& host,
-            string_view const& target,
+        string_view host,
+            string_view target,
                 HandshakeHandler&& handler);
 
     /** Start an asynchronous operation to send an upgrade request and receive the response.
@@ -1989,10 +1967,9 @@ public:
         operation will continue until one of the following conditions is
         true:
 
-        @li A HTTP request finishes sending and an HTTP response finishes
-        receiving.
+        @li The request is sent and the response is received.
 
-        @li An error occurs on the stream.
+        @li An error occurs on the stream
 
         This operation is implemented in terms of one or more calls to the
         next layer's `async_read_some` and `async_write_some` functions, and
@@ -2038,8 +2015,8 @@ public:
     async_return_type<
         HandshakeHandler, void(error_code)>
 #endif
-    async_handshake_ex(string_view const& host,
-        string_view const& target,
+    async_handshake_ex(string_view host,
+        string_view target,
             RequestDecorator const& decorator,
                 HandshakeHandler&& handler);
 
@@ -2051,10 +2028,9 @@ public:
         operation will continue until one of the following conditions is
         true:
 
-        @li A HTTP request finishes sending and an HTTP response finishes
-        receiving.
+        @li The request is sent and the response is received.
 
-        @li An error occurs on the stream.
+        @li An error occurs on the stream
 
         This operation is implemented in terms of one or more calls to the
         next layer's `async_read_some` and `async_write_some` functions, and
@@ -2105,8 +2081,8 @@ public:
         HandshakeHandler, void(error_code)>
 #endif
     async_handshake_ex(response_type& res,
-        string_view const& host,
-            string_view const& target,
+        string_view host,
+            string_view target,
                 RequestDecorator const& decorator,
                     HandshakeHandler&& handler);
 
@@ -2987,16 +2963,16 @@ private:
     template<class RequestDecorator>
     void
     do_handshake(response_type* res_p,
-        string_view const& host,
-            string_view const& target,
+        string_view host,
+            string_view target,
                 RequestDecorator const& decorator,
                     error_code& ec);
 
     template<class Decorator>
     request_type
     build_request(detail::sec_ws_key_type& key,
-        string_view const& host,
-            string_view const& target,
+        string_view host,
+            string_view target,
                 Decorator const& decorator);
 
     template<class Fields, class Decorator>

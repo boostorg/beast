@@ -47,7 +47,7 @@ enum class error
     */
     need_more,
 
-    /** The message container has no body.
+    /** An unexpected body was encountered during parsing.
 
         This error is returned when attempting to parse body
         octets into a message container which has the
@@ -55,7 +55,7 @@ enum class error
 
         @see @ref empty_body
     */
-    missing_body,
+    unexpected_body,
 
     /** Additional buffers are required.
 

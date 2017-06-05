@@ -211,8 +211,8 @@ protected:
     template<class = void>
     static
     bool
-    strieq(string_view const& s1,
-        string_view const& s2)
+    strieq(string_view s1,
+        string_view s2)
     {
         if(s1.size() != s2.size())
             return false;
@@ -227,7 +227,7 @@ protected:
     template<std::size_t N>
     bool
     strieq(const char (&s1)[N],
-        string_view const& s2)
+        string_view s2)
     {
         return strieq({s1, N-1}, s2);
     }

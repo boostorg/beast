@@ -16,11 +16,15 @@
 namespace beast {
 namespace http {
 
-/** An empty message body
+/** An empty message body.
 
-    Meets the requirements of @b Body.
+    This body is used to represent messages which do not have a
+    message body. If this body is used with a parser, and the
+    parser encounters octets corresponding to a message body,
+    the parser will fail with the error @ref http::unexpected_body.
 
-    @note This body type may only be written, not read.
+    Meets the requirements of @b Body. The Content-Length of this
+    body is always 0.
 */
 struct empty_body
 {
@@ -91,7 +95,7 @@ struct empty_body
         put(ConstBufferSequence const&,
             error_code& ec)
         {
-            ec = error::missing_body;
+            ec = error::unexpected_body;
         }
 
         void

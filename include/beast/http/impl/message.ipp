@@ -23,6 +23,55 @@ namespace beast {
 namespace http {
 
 template<class Fields>
+template<class>
+string_view
+header<true, Fields>::
+get_method_string() const
+{
+    if(method_ != verb::unknown)
+        return to_string(method_);
+    return fields.method_impl();
+}
+
+template<class Fields>
+template<class>
+void
+header<true, Fields>::
+set_method(verb v)
+{
+    if(v == verb::unknown)
+        BOOST_THROW_EXCEPTION(
+            std::invalid_argument{"unknown verb"});
+    method_ = v;
+    fields.method_impl({});
+}
+
+template<class Fields>
+template<class>
+void
+header<true, Fields>::
+set_method(string_view s)
+{
+    method_ = string_to_verb(s);
+    if(method_ != verb::unknown)
+        fields.method_impl({});
+    else
+        fields.method_impl(s);
+}
+
+template<class Fields>
+template<class>
+string_view
+header<false, Fields>::
+get_reason() const
+{
+    auto const s = fields.reason_impl();
+    if(! s.empty())
+        return s;
+    return obsolete_reason(result_);
+}
+
+template<class Fields>
 void
 swap(
     header<true, Fields>& m1,
@@ -31,6 +80,7 @@ swap(
     using std::swap;
     swap(m1.version, m2.version);
     swap(m1.fields, m2.fields);
+    swap(m1.method_, m2.method_);
 }
 
 template<class Fields>
@@ -41,8 +91,8 @@ swap(
 {
     using std::swap;
     swap(a.version, b.version);
-    swap(a.status, b.status);
     swap(a.fields, b.fields);
+    swap(a.result_, b.result_);
 }
 
 template<bool isRequest, class Body, class Fields>
@@ -193,7 +243,7 @@ prepare(message<isRequest, Body, Fields>& msg,
                 {
                     using beast::detail::ci_equal;
                     if(*pi.content_length > 0 ||
-                        ci_equal(msg.method(), "POST"))
+                        msg.method() == verb::post)
                     {
                         msg.fields.insert(
                             "Content-Length", *pi.content_length);
@@ -204,9 +254,9 @@ prepare(message<isRequest, Body, Fields>& msg,
                 operator()(message<false, Body, Fields>& msg,
                     detail::prepare_info const& pi) const
                 {
-                    if((msg.status / 100 ) != 1 &&
-                        msg.status != 204 &&
-                        msg.status != 304)
+                    if(to_status_class(msg.result()) != status_class::informational &&
+                        msg.result() != status::no_content &&
+                        msg.result() != status::not_modified)
                     {
                         msg.fields.insert(
                             "Content-Length", *pi.content_length);

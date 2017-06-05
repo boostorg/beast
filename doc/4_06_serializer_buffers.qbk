@@ -10,10 +10,8 @@
 In extreme cases, users may wish to create an instance of __serializer__
 and invoke its methods directly instead of using the provided stream
 algorithms. This could be useful for implementing algorithms on streams
-whose asynchronous interface does not conform to __AsyncStream__. For
-example, a
+whose interface does not conform to __Stream__. For example, a
 [@https://github.com/libuv/libuv *libuv* socket].
-
 The serializer interface is interactive; the caller invokes it repeatedly to
 produce buffers until all of the buffers have been generated. Then the
 serializer is destroyed.
@@ -30,8 +28,8 @@ takes an error code parameter and invokes a visitor argument with the
 error code and buffer of unspecified type. In C++14 this is easily
 expressed with a generic lambda. The function
 [link beast.ref.http__serializer.is_done `serializer::is_done`]
-will return `true` when all the buffers have been produced. This example
-prints the buffers to standard output:
+will return `true` when all the buffers have been produced. This C++14
+example prints the buffers to standard output:
 ```
 template<bool isRequest, class Body, class Fields>
 void print(message<isRequest, Body, Fields> const& m)
@@ -55,8 +53,8 @@ void print(message<isRequest, Body, Fields> const& m)
 }
 ```
 
-Generic lambda expressions are not available in C++11, so a functor with
-a templated function call operator is necessary:
+Generic lambda expressions are only available in C++14 or later. A functor
+with a templated function call operator is necessary to use C++11 as shown:
 ```
 template<class Serializer>
 struct lambda
@@ -164,12 +162,11 @@ invoke the decorator with a buffer sequence of size zero. Or more
 specifically, with an object of type
 [@http://www.boost.org/doc/html/boost_asio/reference/null_buffers.html `boost::asio::null_buffers`].
 
-For body chunks the string returned by the decorator must end in a
-CRLF (`"\r\n"`) and follow the
+For body chunks the string returned by the decorator must follow the
 [@https://tools.ietf.org/html/rfc7230#section-4.1.1 correct syntax]
 for the entire chunk extension. For the trailer, the returned string
 should consist of zero or more lines ending in a CRLF and containing
-a field name/value pair in the format prescribed in __rfc7230__. It
+a field name/value pair in the format prescribed by __rfc7230__. It
 is the responsibility of the decorator to manage returned string buffers.
 The implementation guarantees it will not reference previous strings
 after subsequent calls.
@@ -183,14 +180,14 @@ struct decorator
 
     template<class ConstBufferSequence>
     string_view
-    operator()(ConstBufferSequence const& buffer) const
+    operator()(ConstBufferSequence const& buffers)
     {
-        s = ";x=" + std::to_string(boost::asio::buffer_size(buffer)) + "\r\n";
+        s = ";x=" + std::to_string(boost::asio::buffer_size(buffers));
         return s;
     }
 
     string_view
-    operator()(boost::asio::null_buffers) const
+    operator()(boost::asio::null_buffers)
     {
         return "Result: OK\r\n";
     }

@@ -217,7 +217,7 @@ public:
 
     template<bool isRequest, class Pred>
     void
-    good(string_view const& s,
+    good(string_view s,
         Pred const& pred, bool skipBody = false)
     {
         using boost::asio::buffer;
@@ -239,7 +239,7 @@ public:
 
     template<bool isRequest>
     void
-    good(string_view const& s)
+    good(string_view s)
     {
         good<isRequest>(s,
             [](test_parser<isRequest> const&)
@@ -249,7 +249,7 @@ public:
 
     template<bool isRequest>
     void
-    bad(string_view const& s,
+    bad(string_view s,
         error_code const& ev, bool skipBody = false)
     {
         using boost::asio::buffer;

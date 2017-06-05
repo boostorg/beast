@@ -11,10 +11,8 @@
 #include <beast/config.hpp>
 #include <beast/core/string_view.hpp>
 #include <beast/core/detail/empty_base_optimization.hpp>
-#include <beast/http/verb.hpp>
 #include <beast/http/detail/fields.hpp>
 #include <boost/lexical_cast.hpp>
-#include <boost/optional.hpp>
 #include <algorithm>
 #include <cctype>
 #include <memory>
@@ -60,8 +58,6 @@ class basic_fields :
 
     using size_type =
         typename std::allocator_traits<Allocator>::size_type;
-
-    boost::optional<verb> verb_;
 
     void
     delete_all();
@@ -181,14 +177,14 @@ public:
 
     /// Returns `true` if the specified field exists.
     bool
-    exists(string_view const& name) const
+    exists(string_view name) const
     {
         return set_.find(name, less{}) != set_.end();
     }
 
     /// Returns the number of values for the specified field.
     std::size_t
-    count(string_view const& name) const;
+    count(string_view name) const;
 
     /** Returns an iterator to the case-insensitive matching field name.
 
@@ -196,7 +192,7 @@ public:
         first field defined by insertion order is returned.
     */
     iterator
-    find(string_view const& name) const;
+    find(string_view name) const;
 
     /** Returns the value for a case-insensitive matching header, or `""`.
 
@@ -204,7 +200,7 @@ public:
         first field defined by insertion order is returned.
     */
     string_view const
-    operator[](string_view const& name) const;
+    operator[](string_view name) const;
 
     /// Clear the contents of the basic_fields.
     void
@@ -220,7 +216,7 @@ public:
         @return The number of fields removed.
     */
     std::size_t
-    erase(string_view const& name);
+    erase(string_view name);
 
     /** Insert a field value.
 
@@ -233,7 +229,7 @@ public:
         @param value A string holding the value of the field.
     */
     void
-    insert(string_view const& name, string_view value);
+    insert(string_view name, string_view value);
 
     /** Insert a field value.
 
@@ -264,7 +260,7 @@ public:
         @param value A string holding the value of the field.
     */
     void
-    replace(string_view const& name, string_view value);
+    replace(string_view name, string_view value);
 
     /** Replace a field value.
 
@@ -279,7 +275,7 @@ public:
     template<class T>
     typename std::enable_if<
         ! std::is_constructible<string_view, T>::value>::type
-    replace(string_view const& name, T const& value)
+    replace(string_view name, T const& value)
     {
         replace(name,
             boost::lexical_cast<std::string>(value));
@@ -290,36 +286,48 @@ private:
 #endif
 
     string_view
-    method() const;
+    method_impl() const
+    {
+        return (*this)[":method"];
+    }
 
     void
-    method(verb v);
-
-    void
-    method(string_view const& s);
+    method_impl(string_view s)
+    {
+        if(s.empty())
+            this->erase(":method");
+        else
+            this->replace(":method", s);
+    }
 
     string_view
-    target() const
+    target_impl() const
     {
         return (*this)[":target"];
     }
 
     void
-    target(string_view const& s)
+    target_impl(string_view s)
     {
-        return this->replace(":target", s);
+        if(s.empty())
+            this->erase(":target");
+        else
+            return this->replace(":target", s);
     }
 
     string_view
-    reason() const
+    reason_impl() const
     {
         return (*this)[":reason"];
     }
 
     void
-    reason(string_view const& s)
+    reason_impl(string_view s)
     {
-        return this->replace(":reason", s);
+        if(s.empty())
+            this->erase(":reason");
+        else
+            this->replace(":reason", s);
     }
 };
 

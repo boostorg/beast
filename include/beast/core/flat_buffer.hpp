@@ -28,6 +28,10 @@ namespace beast {
     construction. Attempts to exceed the buffer size will throw
     `std::length_error`.
 
+    Upon construction, a maximum size for the buffer may be
+    specified. If this limit is exceeded, the `std::length_error`
+    exception will be thrown.
+
     @note This class is designed for use with algorithms that
     take dynamic buffers as parameters, and are optimized
     for the case where the input sequence or output sequence

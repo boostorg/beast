@@ -128,7 +128,7 @@ public:
 
     /// Construct a list from a string
     explicit
-    basic_parsed_list(string_view const& s)
+    basic_parsed_list(string_view s)
         : s_(s)
     {
     }

@@ -11,7 +11,7 @@
 #include <boost/asio/buffer.hpp>
 #include <beast/core/detail/read_size_helper.hpp>
 #include <memory>
-#include <ostream>
+#include <iosfwd>
 #include <streambuf>
 #include <type_traits>
 #include <utility>

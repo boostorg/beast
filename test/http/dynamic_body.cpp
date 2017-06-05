@@ -10,7 +10,7 @@
 
 #include <beast/core/ostream.hpp>
 #include <beast/http/fields.hpp>
-#include <beast/http/message_parser.hpp>
+#include <beast/http/parser.hpp>
 #include <beast/http/read.hpp>
 #include <beast/http/write.hpp>
 #include <beast/test/string_istream.hpp>
@@ -35,7 +35,7 @@ public:
             "\r\n"
             "xyz";
         test::string_istream ss(ios_, s);
-        message_parser<false, dynamic_body, fields> p;
+        response_parser<dynamic_body> p;
         multi_buffer b;
         read(ss, b, p);
         auto const& m = p.get();

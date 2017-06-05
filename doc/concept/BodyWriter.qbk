@@ -5,11 +5,11 @@
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 ]
 
-[section:BodyWriter BodyWriter requirements]
+[section:BodyWriter BodyWriter]
 
 A [*BodyWriter] provides an online algorithm to transfer a series of zero
 or more buffers containing parsed body octets into a message container. The
-__message_parser__ creates an instance of this type when needed, and calls into
+__parser__ creates an instance of this type when needed, and calls into
 it zero or more times to transfer buffers. The interface of [*BodyWriter]
 is intended to allow the conversion of buffers into these scenarios for
 representation:

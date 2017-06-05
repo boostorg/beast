@@ -6,7 +6,7 @@
 //
 
 // Test that header file is self-contained.
-#include <beast/http/message_parser.hpp>
+#include <beast/http/parser.hpp>
 
 #include "test_parser.hpp"
 
@@ -25,14 +25,65 @@
 namespace beast {
 namespace http {
 
-class message_parser_test
+class header_parser_test
+    : public beast::unit_test::suite
+    , public test::enable_yield_to
+{
+public:
+    static
+    boost::asio::const_buffers_1
+    buf(string_view s)
+    {
+        return {s.data(), s.size()};
+    }
+
+    void
+    testParse()
+    {
+        {
+            test::string_istream is{ios_,
+                "GET / HTTP/1.1\r\n"
+                "User-Agent: test\r\n"
+                "\r\n"
+            };
+            flat_buffer db{1024};
+            header_parser<true, fields> p;
+            read_some(is, db, p);
+            BEAST_EXPECT(p.is_header_done());
+        }
+        {
+            test::string_istream is{ios_,
+                "POST / HTTP/1.1\r\n"
+                "User-Agent: test\r\n"
+                "Content-Length: 1\r\n"
+                "\r\n"
+                "*"
+            };
+            flat_buffer db{1024};
+            header_parser<true, fields> p;
+            read_some(is, db, p);
+            BEAST_EXPECT(p.is_header_done());
+            BEAST_EXPECT(! p.is_done());
+        }
+    }
+
+    void
+    run() override
+    {
+        testParse();
+    }
+};
+
+BEAST_DEFINE_TESTSUITE(header_parser,http,beast);
+
+class parser_test
     : public beast::unit_test::suite
     , public beast::test::enable_yield_to
 {
 public:
     template<bool isRequest>
     using parser_type =
-        message_parser<isRequest, string_body, fields>;
+        parser<isRequest, string_body, fields>;
 
     static
     boost::asio::const_buffers_1
@@ -131,7 +182,7 @@ public:
                 BEAST_EXPECT(p.need_eof());
                 BEAST_EXPECT(p.content_length() == boost::none);
                 BEAST_EXPECT(m.version == 10);
-                BEAST_EXPECT(m.status == 200);
+                BEAST_EXPECT(m.result() == status::ok);
                 BEAST_EXPECT(m.reason() == "OK");
                 BEAST_EXPECT(m.fields["Server"] == "test");
                 BEAST_EXPECT(m.body == "Hello, world!");
@@ -158,7 +209,7 @@ public:
                 BEAST_EXPECT(p.is_chunked());
                 BEAST_EXPECT(p.content_length() == boost::none);
                 BEAST_EXPECT(m.version == 11);
-                BEAST_EXPECT(m.status == 200);
+                BEAST_EXPECT(m.result() == status::ok);
                 BEAST_EXPECT(m.reason() == "OK");
                 BEAST_EXPECT(m.fields["Server"] == "test");
                 BEAST_EXPECT(m.fields["Transfer-Encoding"] == "chunked");
@@ -186,7 +237,7 @@ public:
             [&](parser_type<true> const& p)
             {
                 auto const& m = p.get();
-                BEAST_EXPECT(m.method() == "GET");
+                BEAST_EXPECT(m.method() == verb::get);
                 BEAST_EXPECT(m.target() == "/");
                 BEAST_EXPECT(m.version == 11);
                 BEAST_EXPECT(! p.need_eof());
@@ -223,7 +274,7 @@ public:
             BEAST_EXPECT(p.is_done());
             BEAST_EXPECT(p.is_header_done());
             BEAST_EXPECT(! p.need_eof());
-            BEAST_EXPECT(m.method() == "GET");
+            BEAST_EXPECT(m.method() == verb::get);
             BEAST_EXPECT(m.target() == "/");
             BEAST_EXPECT(m.version == 11);
             BEAST_EXPECT(m.fields["User-Agent"] == "test");
@@ -268,7 +319,7 @@ public:
         // skip body
         {
             error_code ec;
-            message_parser<false, string_body, fields> p;
+            response_parser<string_body> p;
             p.skip(true);
             p.put(buf(
                 "HTTP/1.1 200 OK\r\n"
@@ -302,8 +353,7 @@ public:
         BEAST_EXPECTS(! ec, ec.message());
         BEAST_EXPECT(p0.is_header_done());
         BEAST_EXPECT(! p0.is_done());
-        message_parser<true,
-            string_body, fields> p1{std::move(p0)};
+        request_parser<string_body> p1{std::move(p0)};
         read(ss, b, p1, ec);
         BEAST_EXPECTS(! ec, ec.message());
         BEAST_EXPECT(p1.get().body == "*****");
@@ -363,7 +413,7 @@ public:
     }
 };
 
-BEAST_DEFINE_TESTSUITE(message_parser,http,beast);
+BEAST_DEFINE_TESTSUITE(parser,http,beast);
 
 } // http
 } // beast

@@ -10,8 +10,7 @@
 
 #include <beast/websocket/detail/type_traits.hpp>
 #include <beast/http/empty_body.hpp>
-#include <beast/http/message.hpp>
-#include <beast/http/header_parser.hpp>
+#include <beast/http/parser.hpp>
 #include <beast/http/read.hpp>
 #include <beast/http/string_body.hpp>
 #include <beast/http/write.hpp>
@@ -149,7 +148,8 @@ operator()(error_code ec, bool again)
         // sent response
         case 1:
             d.state = 99;
-            if(d.res.status != 101)
+            if(d.res.result() !=
+                    http::status::switching_protocols)
                 ec = error::handshake_failed;
             if(! ec)
             {

@@ -5,10 +5,9 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#ifndef BEAST_DETAIL_PREPARE_BUFFER_HPP
-#define BEAST_DETAIL_PREPARE_BUFFER_HPP
+#ifndef BEAST_IMPL_BUFFER_PREFIX_IPP
+#define BEAST_IMPL_BUFFER_PREFIX_IPP
 
-#include <boost/asio/buffer.hpp>
 #include <algorithm>
 #include <cstdint>
 #include <iterator>
@@ -17,6 +16,7 @@
 #include <utility>
 
 namespace beast {
+
 namespace detail {
 
 inline
@@ -41,99 +41,17 @@ buffer_prefix(std::size_t n,
         (std::min)(n, buffer_size(buffer)) };
 }
 
-/** A buffer sequence adapter that shortens the sequence size.
-
-    The class adapts a buffer sequence to efficiently represent
-    a shorter subset of the original list of buffers starting
-    with the first byte of the original sequence.
-
-    @tparam BufferSequence The buffer sequence to adapt.
-*/
-template<class BufferSequence>
-class buffer_prefix_helper
-{
-    using iter_type =
-        typename BufferSequence::const_iterator;
-
-    BufferSequence bs_;
-    iter_type back_;
-    iter_type end_;
-    std::size_t size_;
-
-    template<class Deduced>
-    buffer_prefix_helper(Deduced&& other,
-            std::size_t nback, std::size_t nend)
-        : bs_(std::forward<Deduced>(other).bs_)
-        , back_(std::next(bs_.begin(), nback))
-        , end_(std::next(bs_.begin(), nend))
-        , size_(other.size_)
-    {
-    }
-
-    void
-    setup(std::size_t n);
-
-public:
-    /// The type for each element in the list of buffers.
-    using value_type = typename std::conditional<
-        std::is_convertible<typename
-            std::iterator_traits<iter_type>::value_type,
-                boost::asio::mutable_buffer>::value,
-                    boost::asio::mutable_buffer,
-                        boost::asio::const_buffer>::type;
-
-#if BEAST_DOXYGEN
-    /// A bidirectional iterator type that may be used to read elements.
-    using const_iterator = implementation_defined;
-
-#else
-    class const_iterator;
-
-#endif
-
-    /// Move constructor.
-    buffer_prefix_helper(buffer_prefix_helper&&);
-
-    /// Copy constructor.
-    buffer_prefix_helper(buffer_prefix_helper const&);
-
-    /// Move assignment.
-    buffer_prefix_helper& operator=(buffer_prefix_helper&&);
-
-    /// Copy assignment.
-    buffer_prefix_helper& operator=(buffer_prefix_helper const&);
-
-    /** Construct a shortened buffer sequence.
-
-        @param n The maximum number of bytes in the wrapped
-        sequence. If this is larger than the size of passed,
-        buffers, the resulting sequence will represent the
-        entire input sequence.
-
-        @param buffers The buffer sequence to adapt. A copy of
-        the sequence will be made, but ownership of the underlying
-        memory is not transferred.
-    */
-    buffer_prefix_helper(std::size_t n, BufferSequence const& buffers);
-
-    /// Get a bidirectional iterator to the first element.
-    const_iterator
-    begin() const;
-
-    /// Get a bidirectional iterator to one past the last element.
-    const_iterator
-    end() const;
-};
+} // detail
 
 template<class BufferSequence>
-class buffer_prefix_helper<BufferSequence>::const_iterator
+class buffer_prefix_view<BufferSequence>::const_iterator
 {
-    friend class buffer_prefix_helper<BufferSequence>;
+    friend class buffer_prefix_view<BufferSequence>;
 
     using iter_type =
         typename BufferSequence::const_iterator;
 
-    buffer_prefix_helper const* b_ = nullptr;
+    buffer_prefix_view const* b_ = nullptr;
     typename BufferSequence::const_iterator it_;
 
 public:
@@ -171,7 +89,7 @@ public:
     operator*() const
     {
         if(it_ == b_->back_)
-            return buffer_prefix(b_->size_, *it_);
+            return detail::buffer_prefix(b_->size_, *it_);
         return *it_;
     }
 
@@ -209,7 +127,7 @@ public:
     }
 
 private:
-    const_iterator(buffer_prefix_helper const& b,
+    const_iterator(buffer_prefix_view const& b,
             bool at_end)
         : b_(&b)
         , it_(at_end ? b.end_ : b.bs_.begin())
@@ -219,7 +137,7 @@ private:
 
 template<class BufferSequence>
 void
-buffer_prefix_helper<BufferSequence>::
+buffer_prefix_view<BufferSequence>::
 setup(std::size_t n)
 {
     for(end_ = bs_.begin(); end_ != bs_.end(); ++end_)
@@ -239,7 +157,7 @@ setup(std::size_t n)
 }
 
 template<class BufferSequence>
-buffer_prefix_helper<BufferSequence>::const_iterator::
+buffer_prefix_view<BufferSequence>::const_iterator::
 const_iterator(const_iterator&& other)
     : b_(other.b_)
     , it_(std::move(other.it_))
@@ -247,7 +165,7 @@ const_iterator(const_iterator&& other)
 }
 
 template<class BufferSequence>
-buffer_prefix_helper<BufferSequence>::const_iterator::
+buffer_prefix_view<BufferSequence>::const_iterator::
 const_iterator(const_iterator const& other)
     : b_(other.b_)
     , it_(other.it_)
@@ -256,7 +174,7 @@ const_iterator(const_iterator const& other)
 
 template<class BufferSequence>
 auto
-buffer_prefix_helper<BufferSequence>::const_iterator::
+buffer_prefix_view<BufferSequence>::const_iterator::
 operator=(const_iterator&& other) ->
     const_iterator&
 {
@@ -267,7 +185,7 @@ operator=(const_iterator&& other) ->
 
 template<class BufferSequence>
 auto
-buffer_prefix_helper<BufferSequence>::const_iterator::
+buffer_prefix_view<BufferSequence>::const_iterator::
 operator=(const_iterator const& other) ->
     const_iterator&
 {
@@ -279,18 +197,18 @@ operator=(const_iterator const& other) ->
 }
 
 template<class BufferSequence>
-buffer_prefix_helper<BufferSequence>::
-buffer_prefix_helper(buffer_prefix_helper&& other)
-    : buffer_prefix_helper(std::move(other),
+buffer_prefix_view<BufferSequence>::
+buffer_prefix_view(buffer_prefix_view&& other)
+    : buffer_prefix_view(std::move(other),
         std::distance<iter_type>(other.bs_.begin(), other.back_),
         std::distance<iter_type>(other.bs_.begin(), other.end_))
 {
 }
 
 template<class BufferSequence>
-buffer_prefix_helper<BufferSequence>::
-buffer_prefix_helper(buffer_prefix_helper const& other)
-    : buffer_prefix_helper(other,
+buffer_prefix_view<BufferSequence>::
+buffer_prefix_view(buffer_prefix_view const& other)
+    : buffer_prefix_view(other,
         std::distance<iter_type>(other.bs_.begin(), other.back_),
         std::distance<iter_type>(other.bs_.begin(), other.end_))
 {
@@ -298,9 +216,9 @@ buffer_prefix_helper(buffer_prefix_helper const& other)
 
 template<class BufferSequence>
 auto
-buffer_prefix_helper<BufferSequence>::
-operator=(buffer_prefix_helper&& other) ->
-    buffer_prefix_helper&
+buffer_prefix_view<BufferSequence>::
+operator=(buffer_prefix_view&& other) ->
+    buffer_prefix_view&
 {
     auto const nback = std::distance<iter_type>(
         other.bs_.begin(), other.back_);
@@ -315,9 +233,9 @@ operator=(buffer_prefix_helper&& other) ->
 
 template<class BufferSequence>
 auto
-buffer_prefix_helper<BufferSequence>::
-operator=(buffer_prefix_helper const& other) ->
-    buffer_prefix_helper&
+buffer_prefix_view<BufferSequence>::
+operator=(buffer_prefix_view const& other) ->
+    buffer_prefix_view&
 {
     auto const nback = std::distance<iter_type>(
         other.bs_.begin(), other.back_);
@@ -331,8 +249,8 @@ operator=(buffer_prefix_helper const& other) ->
 }
 
 template<class BufferSequence>
-buffer_prefix_helper<BufferSequence>::
-buffer_prefix_helper(std::size_t n, BufferSequence const& bs)
+buffer_prefix_view<BufferSequence>::
+buffer_prefix_view(std::size_t n, BufferSequence const& bs)
     : bs_(bs)
 {
     setup(n);
@@ -341,7 +259,7 @@ buffer_prefix_helper(std::size_t n, BufferSequence const& bs)
 template<class BufferSequence>
 inline
 auto
-buffer_prefix_helper<BufferSequence>::begin() const ->
+buffer_prefix_view<BufferSequence>::begin() const ->
     const_iterator
 {
     return const_iterator{*this, false};
@@ -350,13 +268,12 @@ buffer_prefix_helper<BufferSequence>::begin() const ->
 template<class BufferSequence>
 inline
 auto
-buffer_prefix_helper<BufferSequence>::end() const ->
+buffer_prefix_view<BufferSequence>::end() const ->
     const_iterator
 {
     return const_iterator{*this, true};
 }
 
-} // detail
 } // beast
 
 #endif

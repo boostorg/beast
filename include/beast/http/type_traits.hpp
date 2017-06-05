@@ -12,6 +12,7 @@
 #include <beast/core/error.hpp>
 #include <beast/core/string_view.hpp>
 #include <beast/core/type_traits.hpp>
+#include <beast/http/detail/type_traits.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/optional.hpp>
 #include <type_traits>
@@ -20,43 +21,23 @@
 namespace beast {
 namespace http {
 
-template<bool, class, class>
-struct message;
+/** Determine if `T` meets the requirements of @b Body.
 
-namespace detail {
+    This metafunction is equivalent to `std::true_type`
+    if `T` has a nested type named `value_type`.
 
-struct fields_model
-{
-    string_view method() const;
-    string_view reason() const;
-    string_view target() const;
-};
+    @tparam T The body type to test.
 
-template<class T, class = beast::detail::void_t<>>
-struct has_value_type : std::false_type {};
-
-template<class T>
-struct has_value_type<T, beast::detail::void_t<
-    typename T::value_type
-        > > : std::true_type {};
-
-template<class T, class = beast::detail::void_t<>>
-struct has_content_length : std::false_type {};
-
-template<class T>
-struct has_content_length<T, beast::detail::void_t<decltype(
-    std::declval<T>().content_length()
-        )> > : std::true_type
-{
-    static_assert(std::is_convertible<
-        decltype(std::declval<T>().content_length()),
-            std::uint64_t>::value,
-        "Writer::content_length requirements not met");
-};
-
-} // detail
-
-/// Determine if `T` meets the requirements of @b Body.
+    @par Example
+    @code
+    template<bool isRequest, class Body, class Fields>
+    void check_body(message<isRequest, Body, Fields> const&)
+    {
+        static_assert(is_body<Body>::value,
+            "Body requirements not met");
+    }
+    @endcode
+*/
 template<class T>
 #if BEAST_DOXYGEN
 struct is_body : std::integral_constant<bool, ...>{};
@@ -68,11 +49,20 @@ using is_body = detail::has_value_type<T>;
 
     This metafunction is equivalent to `std::true_type` if:
 
-    @li @b T has a nested type named `reader`
+    @li `T` has a nested type named `reader`
 
     @li The nested type meets the requirements of @b BodyReader.
 
     @tparam T The body type to test.
+
+    @par Example
+    @code
+    template<bool isRequest, class Body, class Fields>
+    void check_can_serialize(message<isRequest, Body, Fields> const&)
+    {
+        static_assert(is_body_reader<Body>::value,
+            "Cannot serialize Body, no reader");
+    @endcode
 */
 #if BEAST_DOXYGEN
 template<class T>
@@ -95,20 +85,27 @@ struct is_body_reader<T, beast::detail::void_t<
         typename T::reader::const_buffers_type>::value &&
     std::is_constructible<typename T::reader,
         message<true, T, detail::fields_model> const& >::value
-        >
-{
-};
+        > {};
 #endif
 
 /** Determine if a @b Body type has a writer.
 
     This metafunction is equivalent to `std::true_type` if:
 
-    @li @b T has a nested type named `writer`
+    @li `T` has a nested type named `writer`
 
     @li The nested type meets the requirements of @b BodyWriter.
 
     @tparam T The body type to test.
+
+    @par Example
+    @code
+    template<bool isRequest, class Body, class Fields>
+    void check_can_parse(message<isRequest, Body, Fields>&)
+    {
+        static_assert(is_body_writer<Body>::value,
+            "Cannot parse Body, no writer");
+    @endcode
 */
 #if BEAST_DOXYGEN
 template<class T>

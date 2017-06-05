@@ -19,9 +19,9 @@
 #include <beast/core/async_result.hpp>
 #include <beast/core/string_view.hpp>
 #include <boost/variant.hpp>
+#include <iosfwd>
 #include <limits>
 #include <memory>
-#include <ostream>
 #include <type_traits>
 #include <utility>
 
@@ -131,6 +131,8 @@ write_some(SyncWriteStream& stream, serializer<
     The type must support the @b AsyncWriteStream concept.
 
     @param sr The serializer to use.
+    The object must remain valid at least until the
+    handler is called; ownership is not transferred.
 
     @param handler The handler to be called when the operation
     completes. Copies will be made of the handler as required.
@@ -244,6 +246,8 @@ write_header(SyncWriteStream& stream, serializer<
     The type must support the @b AsyncWriteStream concept.
 
     @param sr The serializer to use.
+    The object must remain valid at least until the
+    handler is called; ownership is not transferred.
 
     @param handler The handler to be called when the operation
     completes. Copies will be made of the handler as required.
@@ -354,6 +358,8 @@ write(SyncWriteStream& stream, serializer<
     The type must support the @b AsyncWriteStream concept.
 
     @param sr The serializer to use.
+    The object must remain valid at least until the
+    handler is called; ownership is not transferred.
 
     @param handler The handler to be called when the operation
     completes. Copies will be made of the handler as required.
@@ -465,8 +471,9 @@ write(SyncWriteStream& stream,
     @param stream The stream to which the data is to be written.
     The type must support the @b AsyncWriteStream concept.
 
-    @param msg The message to write. The object must remain valid at least
-    until the completion handler is called; ownership is not transferred.
+    @param msg The message to write.
+    The object must remain valid at least until the
+    handler is called; ownership is not transferred.
 
     @param handler The handler to be called when the operation
     completes. Copies will be made of the handler as required.

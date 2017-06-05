@@ -87,7 +87,7 @@ private:
     template<class = void>
     static
     std::string
-    unquote(string_view const& sr);
+    unquote(string_view sr);
 
     template<class = void>
     void
@@ -133,7 +133,7 @@ cend() const ->
 template<class>
 std::string
 param_list::const_iterator::
-unquote(string_view const& sr)
+unquote(string_view sr)
 {
     std::string s;
     s.reserve(sr.size());

@@ -10,13 +10,22 @@
 
 #include <beast/config.hpp>
 #include <beast/core/string_view.hpp>
-#include <ostream>
+#include <iosfwd>
 
 namespace beast {
 namespace http {
 
-enum class status : int
+enum class status : unsigned short
 {
+    /** An unknown status-code.
+
+        This value indicates that the value for the status code
+        is not in the list of commonly recognized status codes.
+        Callers interested in the exactly value should use the
+        interface which provides the raw integer.
+    */
+    unknown = 0,
+
     continue_                           = 100,
     switching_protocols                 = 101,
     processing                          = 102,
@@ -85,13 +94,66 @@ enum class status : int
     network_connect_timeout_error       = 599
 };
 
-/// Returns the obsolete reason-phrase text for a status code.
+/** Represents the class of a status-code.
+*/
+enum class status_class : int
+{
+    /// Unknown status-class
+    unknown = 0,
+
+    /// The request was received, continuing processing.
+    informational = 1,
+
+    /// The request was successfully received, understood, and accepted.
+    successful = 2,
+
+    /// Further action needs to be taken in order to complete the request.
+    redirection = 3,
+
+    /// The request contains bad syntax or cannot be fulfilled.
+    client_error = 4,
+
+    /// The server failed to fulfill an apparently valid request.
+    server_error = 5,
+};
+
+/** Converts the integer to a known status-code.
+
+    If the integer does not match a known status code,
+    @ref status::unknown is returned.
+*/
+status
+int_to_status(int v);
+
+/** Convert an integer to a status_class.
+
+    @param v The integer representing a status code.
+
+    @return The status class. If the integer does not match
+    a known status class, @ref status_class::unknown is returned.
+*/
+status_class
+to_status_class(int v);
+
+/** Convert a status_code to a status_class.
+
+    @param v The status code to convert.
+
+    @return The status class.
+*/
+status_class
+to_status_class(status v);
+
+/** Returns the obsolete reason-phrase text for a status code.
+
+    @param v The status code to use.
+*/
 string_view
 obsolete_reason(status v);
 
-/// Outputs the reason phrase of a status code to a stream.
+/// Outputs the standard reason phrase of a status code to a stream.
 std::ostream&
-operator<<(std::ostream& os, status v);
+operator<<(std::ostream&, status);
 
 } // http
 } // beast

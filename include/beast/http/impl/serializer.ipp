@@ -13,7 +13,6 @@
 #include <boost/assert.hpp>
 #include <ostream>
 
-
 namespace beast {
 namespace http {
 namespace detail {
@@ -23,6 +22,7 @@ void
 write_start_line(std::ostream& os,
     header<true, Fields> const& msg)
 {
+    // VFALCO This should all be done without dynamic allocation
     BOOST_ASSERT(msg.version == 10 || msg.version == 11);
     os << msg.method() << " " << msg.target();
     switch(msg.version)
@@ -37,18 +37,14 @@ void
 write_start_line(std::ostream& os,
     header<false, Fields> const& msg)
 {
+    // VFALCO This should all be done without dynamic allocation
     BOOST_ASSERT(msg.version == 10 || msg.version == 11);
     switch(msg.version)
     {
     case 10: os << "HTTP/1.0 "; break;
     case 11: os << "HTTP/1.1 "; break;
     }
-    auto const reason = msg.reason();
-    if(reason.empty())
-        os << msg.status << " " << msg.reason() << "\r\n";
-    else
-        os << msg.status << " " <<
-            obsolete_reason(static_cast<status>(msg.status)) << "\r\n";
+    os << msg.result_int() << " " << msg.reason() << "\r\n";
 }
 
 template<class FieldSequence>
@@ -73,11 +69,11 @@ write_fields(std::ostream& os,
 //------------------------------------------------------------------------------
 
 template<bool isRequest, class Body, class Fields,
-    class Decorator, class Allocator>
+    class ChunkDecorator, class Allocator>
 serializer<isRequest, Body, Fields,
-    Decorator, Allocator>::
+    ChunkDecorator, Allocator>::
 serializer(message<isRequest, Body, Fields> const& m,
-        Decorator const& d, Allocator const& alloc)
+        ChunkDecorator const& d, Allocator const& alloc)
     : m_(m)
     , d_(d)
     , b_(1024, alloc)
@@ -85,11 +81,11 @@ serializer(message<isRequest, Body, Fields> const& m,
 }
 
 template<bool isRequest, class Body, class Fields,
-    class Decorator, class Allocator>
+    class ChunkDecorator, class Allocator>
 template<class Visit>
 void
 serializer<isRequest, Body, Fields,
-    Decorator, Allocator>::
+    ChunkDecorator, Allocator>::
 get(error_code& ec, Visit&& visit)
 {
     using boost::asio::buffer_size;
@@ -207,6 +203,7 @@ get(error_code& ec, Visit&& visit)
                     sv.data(), sv.size()};
                 
             }(),
+            detail::chunk_crlf(),
             result->first,
             detail::chunk_crlf()};
         s_ = do_header_c;
@@ -251,6 +248,7 @@ get(error_code& ec, Visit&& visit)
                     sv.data(), sv.size()};
                 
             }(),
+            detail::chunk_crlf(),
             result->first,
             detail::chunk_crlf()};
         s_ = do_body_c + 2;
@@ -296,10 +294,10 @@ get(error_code& ec, Visit&& visit)
 }
 
 template<bool isRequest, class Body, class Fields,
-    class Decorator, class Allocator>
+    class ChunkDecorator, class Allocator>
 void
 serializer<isRequest, Body, Fields,
-    Decorator, Allocator>::
+    ChunkDecorator, Allocator>::
 consume(std::size_t n)
 {
     using boost::asio::buffer_size;

@@ -47,8 +47,8 @@ public:
     }
 
     void
-    on_request(string_view const& method_,
-        string_view const& path_,
+    on_request(string_view method_,
+        string_view path_,
             int version_, error_code& ec)
     {
         method = std::string(
@@ -62,11 +62,11 @@ public:
     }
 
     void
-    on_response(int status_,
-        string_view const& reason_,
+    on_response(int code,
+        string_view reason_,
             int version_, error_code& ec)
     {
-        status = status_;
+        status = code;
         reason = std::string(
             reason_.data(), reason_.size());
         version = version_;
@@ -76,8 +76,8 @@ public:
     }
 
     void
-    on_field(string_view const&,
-        string_view const&,
+    on_field(string_view,
+        string_view,
             error_code& ec)
     {
         got_on_field = true;
@@ -106,7 +106,7 @@ public:
     }
 
     void
-    on_data(string_view const& s,
+    on_data(string_view s,
         error_code& ec)
     {
         body.append(s.data(), s.size());
@@ -116,7 +116,7 @@ public:
 
     void
     on_chunk(std::uint64_t,
-        string_view const&, error_code& ec)
+        string_view, error_code& ec)
     {
         got_on_chunk = true;
         if(fc_)

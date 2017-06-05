@@ -1,0 +1,71 @@
+[/
+    Copyright (c) 2013-2017 Vinnie Falco (vinnie dot falco at gmail dot com)
+
+    Distributed under the Boost Software License, Version 1.0. (See accompanying
+    file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+]
+
+[section:asio Boost.Asio Refresher]
+
+[warning
+    Beast does not manage sockets, make outgoing connections,
+    accept incoming connections, handle timeouts, close endpoints,
+    do name lookups, deal with TLS certificates, perform authentication,
+    or otherwise handle any aspect of connection management. This is
+    left to the interfaces already existing on the underlying streams.
+]
+
+Library stream algorithms require an already-connected socket, SSL stream,
+or other object which meets the required stream concepts and already has
+communication established with an endpoint. This example is provided as a
+reminder of how to work
+with sockets:
+```
+    auto host = "www.example.com";
+    boost::asio::ip::tcp::resolver r{ios};
+    boost::asio::ip::tcp::socket sock{ios};
+    boost::asio::connect(sock, r.resolve(
+        boost::asio::ip::tcp::resolver::query{host, "http"}));
+
+    // At this point `sock` is a connected to a remote
+    // host and may be used to perform stream operations.
+```
+
+Throughout this documentation identifiers with the following names have
+special meaning:
+
+[table Global Variables
+[[Name][Description]]
+[[
+    [@http://www.boost.org/doc/html/boost_asio/reference/io_service.html [*`ios`]]
+][
+    A variable of type
+    [@http://www.boost.org/doc/html/boost_asio/reference/io_service.html `boost::asio::io_service`]
+    which is running on one separate thread, and upon which a
+    [@http://www.boost.org/doc/html/boost_asio/reference/io_service__work.html `boost::asio::io_service::work`]
+    object has been constructed.
+]]
+[[
+    [@http://www.boost.org/doc/html/boost_asio/reference/ip__tcp/socket.html [*`sock`]]
+][
+    A variable of type
+    [@http://www.boost.org/doc/html/boost_asio/reference/ip__tcp/socket.html `boost::asio::ip::tcp::socket`]
+    which has already been connected to a remote host.
+]]
+[[
+    [@http://www.boost.org/doc/html/boost_asio/reference/ssl__stream.html [*`ssl_sock`]]
+][
+    A variable of type
+    [@http://www.boost.org/doc/html/boost_asio/reference/ssl__stream.html `boost::asio::ssl::stream<boost::asio::ip::tcp::socket>`]
+    which is already connected and has handshaked with a remote host.
+]]
+[[
+    [link beast.ref.websocket__stream [*`ws`]]
+][
+    A variable of type
+    [link beast.ref.websocket__stream `websocket::stream<boost::asio::ip::tcp::socket>`]
+    which is already connected with a remote host.
+]]
+]
+
+[endsect]

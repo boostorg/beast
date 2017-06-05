@@ -54,14 +54,14 @@ invoke library algorithms it is necessary to first have a connected socket,
 SSL stream, or other object which meets the required stream concepts. This
 example is provided as a reminder of how to work with sockets:
 ```
-auto host = "www.example.com";
-boost::asio::ip::tcp::resolver r{ios};
-boost::asio::ip::tcp::socket sock{ios};
-boost::asio::connect(sock, r.resolve(
-    boost::asio::ip::tcp::resolver::query{host, "http"}));
+    auto host = "www.example.com";
+    boost::asio::ip::tcp::resolver r{ios};
+    boost::asio::ip::tcp::socket sock{ios};
+    boost::asio::connect(sock, r.resolve(
+        boost::asio::ip::tcp::resolver::query{host, "http"}));
 
-// At this point `sock` is a connected to a remote
-// host and may be used to perform stream operations.
+    // At this point `sock` is a connected to a remote
+    // host and may be used to perform stream operations.
 ```
 
 Throughout this documentation identifiers with the following names have
@@ -93,9 +93,6 @@ special meaning:
     which is already connected and has handshaked with a remote host.
 ]]
 ]
-
-
-
 
 [heading:streams Stream Concepts]
 
@@ -307,25 +304,31 @@ caller; ownership is not transferred.
 [[
     [link beast.ref.buffer_cat `buffer_cat`]
 ][
-    The functions returns a new buffer sequence which, when iterated,
+    This functions returns a new buffer sequence which, when iterated,
     traverses the sequence which would be formed if all of the input buffer
-    sequences were concatenated. This powerful function allows multiple calls
-    to a stream's `write_some` function to be combined into one, eliminating
+    sequences were concatenated. With this routine, multiple calls to a
+    stream's `write_some` function may be combined into one, eliminating
     expensive system calls.
 ]]
 [[
-    [link beast.ref.buffer_prefix `buffer_prefix`]
-][
-    This function returns a new buffer or buffer sequence which wraps the
-    underlying memory of an existing buffer sequence, but with a smaller size.
-    This lets callers work with a prefix of a buffer sequence.
-]]
-[[
-    [link beast.ref.buffer_cat `buffers_view`]
+    [link beast.ref.buffer_cat_view `buffer_cat_view`]
 ][
     This class represents the buffer sequence formed by concatenating
     two or more buffer sequences. This is type of object returned by
     [link beast.ref.buffer_cat `buffer_cat`].
+]]
+[[
+    [link beast.ref.buffer_prefix `buffer_prefix`]
+][
+    This function returns a new buffer or buffer sequence which represents
+    a prefix of the original buffers.
+]]
+[[
+    [link beast.ref.buffer_prefix_view `buffer_prefix_view`]
+][
+    This class represents the buffer sequence formed from a prefix of
+    an existing buffer sequence. This is the type of buffer returned by
+    [link beast.ref.buffer_prefix `buffer_prefix`].
 ]]
 [[
     [link beast.ref.consuming_buffers `consuming_buffers`]

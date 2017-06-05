@@ -77,7 +77,7 @@ public:
         must remain valid for the lifetime of the container.
     */
     explicit
-    param_list(string_view const& s)
+    param_list(string_view s)
         : s_(s)
     {
     }
@@ -163,7 +163,7 @@ public:
         must remain valid for the lifetime of the container.
     */
     explicit
-    ext_list(string_view const& s)
+    ext_list(string_view s)
         : s_(s)
     {
     }
@@ -251,7 +251,7 @@ public:
         must remain valid for the lifetime of the container.
     */
     explicit
-    token_list(string_view const& s)
+    token_list(string_view s)
         : s_(s)
     {
     }

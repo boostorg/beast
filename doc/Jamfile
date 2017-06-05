@@ -86,7 +86,7 @@ boostbook boostdoc
         <xsl:param>toc.section.depth=8                  # How deep should recursive sections appear in the TOC?
         <xsl:param>toc.max.depth=8                      # How many levels should be created for each TOC?
         <xsl:param>generate.section.toc.level=8         # Control depth of TOC generation in sections
-        <xsl:param>generate.toc="chapter nop section nop"
+        <xsl:param>generate.toc="chapter toc,title section nop reference nop"
         <include>$(broot)/tools/boostbook/dtd
     :
         <location>temp

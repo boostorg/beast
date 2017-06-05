@@ -5,10 +5,10 @@
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 ]
 
-[section:FieldSequence FieldSequence requirements]
+[section:FieldSequence FieldSequence]
 
 A [*FieldSequence] is an iterable container whose value type meets
-the requirements of [link beast.ref.Field [*Field]]. Objects that meet
+the requirements of [link beast.concept.Field [*Field]]. Objects that meet
 these requirements become serializable by the implementation.
 
 In this table:
@@ -23,7 +23,8 @@ In this table:
     [`X::value_type`]
     []
     [
-        A type that meets the requirements of [link beast.ref.Field [*Field]].
+        A type that meets the requirements of
+        [link beast.concept.Field [*Field]].
     ]
 ]
 [
@@ -31,7 +32,7 @@ In this table:
     []
     [
         An iterator type whose `reference` type meets the
-        requirements of [link beast.ref.Field [*Field]], and which
+        requirements of [link beast.concept.Field [*Field]], and which
         satisfies all the requirements of [*ForwardIterator],
         except that:
 

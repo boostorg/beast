@@ -37,13 +37,13 @@ namespace http {
 
     @see @ref serializer
 */
-struct empty_decorator
+struct no_chunk_decorator
 {
     template<class ConstBufferSequence>
     string_view
     operator()(ConstBufferSequence const&) const
     {
-        return {"\r\n"};
+        return {};
     }
 
     string_view
@@ -81,32 +81,33 @@ struct empty_decorator
     struct with a templated operator() thusly:
 
     @code
-        // The implementation guarantees that operator()
-        // will be called only after the view returned by
-        // any previous calls to operator() are no longer
-        // needed. The decorator instance is intended to
-        // manage the lifetime of the storage for all returned
-        // views.
+    // The implementation guarantees that operator()
+    // will be called only after the view returned by
+    // any previous calls to operator() are no longer
+    // needed. The decorator instance is intended to
+    // manage the lifetime of the storage for all returned
+    // views.
+    //
+    struct decorator
+    {
+        // Returns the chunk-extension for each chunk,
+        // or an empty string for no chunk extension. The
+        // buffer must include the leading semicolon (";")
+        // and follow the format for chunk extensions defined
+        // in rfc7230.
         //
-        struct decorator
-        {
-            // Returns the chunk-extension for each chunk.
-            // The buffer returned must include a trailing "\r\n",
-            // and the leading semicolon (";") if one or more
-            // chunk extensions are specified.
-            //
-            template<class ConstBufferSequence>
-            string_view
-            operator()(ConstBufferSequence const&) const;
+        template<class ConstBufferSequence>
+        string_view
+        operator()(ConstBufferSequence const&) const;
 
-            // Returns a set of field trailers for the final chunk.
-            // Each field should be formatted according to rfc7230
-            // including the trailing "\r\n" for each field. If
-            // no trailers are indicated, an empty string is returned.
-            //
-            string_view
-            operator()(boost::asio::null_buffers) const;
-        };
+        // Returns a set of field trailers for the final chunk.
+        // Each field should be formatted according to rfc7230
+        // including the trailing "\r\n" for each field. If
+        // no trailers are indicated, an empty string is returned.
+        //
+        string_view
+        operator()(boost::asio::null_buffers) const;
+    };
     @endcode
 
     @tparam isRequest `true` if the message is a request.
@@ -115,7 +116,7 @@ struct empty_decorator
 
     @tparam Fields The type of fields in the message.
 
-    @tparam Decorator The type of chunk decorator to use.
+    @tparam ChunkDecorator The type of chunk decorator to use.
 
     @tparam Allocator The type of allocator to use.
 
@@ -123,13 +124,14 @@ struct empty_decorator
 */
 template<
     bool isRequest, class Body, class Fields,
-    class Decorator = empty_decorator,
+    class ChunkDecorator = no_chunk_decorator,
     class Allocator = std::allocator<char>
 >
 class serializer
 {
     static_assert(is_body<Body>::value,
         "Body requirements not met");
+    
     static_assert(is_body_reader<Body>::value,
         "BodyReader requirements not met");
 
@@ -162,33 +164,35 @@ class serializer
     using is_deferred =
         typename reader::is_deferred;
 
-    using cb0_t = consuming_buffers<buffers_view<
+    using cb0_t = consuming_buffers<buffer_cat_view<
         typename buffer_type::const_buffers_type,   // header
         typename reader::const_buffers_type>>;      // body
 
     using cb1_t = consuming_buffers<
         typename reader::const_buffers_type>;       // body
 
-    using ch0_t = consuming_buffers<buffers_view<
+    using ch0_t = consuming_buffers<buffer_cat_view<
         typename buffer_type::const_buffers_type,   // header
         detail::chunk_header,                       // chunk-header
-        boost::asio::const_buffers_1,               // chunk-ext+\r\n
+        boost::asio::const_buffers_1,               // chunk-ext
+        boost::asio::const_buffers_1,               // crlf
         typename reader::const_buffers_type,        // body
         boost::asio::const_buffers_1>>;             // crlf
     
-    using ch1_t = consuming_buffers<buffers_view<
+    using ch1_t = consuming_buffers<buffer_cat_view<
         detail::chunk_header,                       // chunk-header
-        boost::asio::const_buffers_1,               // chunk-ext+\r\n
+        boost::asio::const_buffers_1,               // chunk-ext
+        boost::asio::const_buffers_1,               // crlf
         typename reader::const_buffers_type,        // body
         boost::asio::const_buffers_1>>;             // crlf
 
-    using ch2_t = consuming_buffers<buffers_view<
+    using ch2_t = consuming_buffers<buffer_cat_view<
         boost::asio::const_buffers_1,               // chunk-final
         boost::asio::const_buffers_1,               // trailers 
         boost::asio::const_buffers_1>>;             // crlf
 
     message<isRequest, Body, Fields> const& m_;
-    Decorator d_;
+    ChunkDecorator d_;
     boost::optional<reader> rd_;
     buffer_type b_;
     boost::variant<boost::blank,
@@ -217,7 +221,7 @@ public:
     */
     explicit
     serializer(message<isRequest, Body, Fields> const& msg,
-        Decorator const& decorator = Decorator{},
+        ChunkDecorator const& decorator = ChunkDecorator{},
             Allocator const& alloc = Allocator{});
 
     /** Returns `true` if we will pause after writing the complete header.
@@ -335,18 +339,18 @@ public:
 */
 template<
     bool isRequest, class Body, class Fields,
-    class Decorator = empty_decorator,
+    class ChunkDecorator = no_chunk_decorator,
     class Allocator = std::allocator<char>>
 inline
 serializer<isRequest, Body, Fields,
-    typename std::decay<Decorator>::type,
+    typename std::decay<ChunkDecorator>::type,
     typename std::decay<Allocator>::type>
 make_serializer(message<isRequest, Body, Fields> const& m,
-    Decorator const& decorator = Decorator{},
+    ChunkDecorator const& decorator = ChunkDecorator{},
         Allocator const& allocator = Allocator{})
 {
     return serializer<isRequest, Body, Fields,
-        typename std::decay<Decorator>::type,
+        typename std::decay<ChunkDecorator>::type,
         typename std::decay<Allocator>::type>{
             m, decorator, allocator};
 }

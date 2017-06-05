@@ -14,7 +14,6 @@
 #include <beast/core/handler_alloc.hpp>
 #include <beast/core/handler_ptr.hpp>
 #include <beast/core/type_traits.hpp>
-#include <beast/core/detail/sync_ostream.hpp>
 #include <boost/asio/handler_alloc_hook.hpp>
 #include <boost/asio/handler_continuation_hook.hpp>
 #include <boost/asio/handler_invoke_hook.hpp>
@@ -356,12 +355,12 @@ class write_msg_op
     {
         Stream& s;
         serializer<isRequest, Body, Fields,
-            empty_decorator, handler_alloc<char, Handler>> sr;
+            no_chunk_decorator, handler_alloc<char, Handler>> sr;
 
         data(Handler& h, Stream& s_, message<
                 isRequest, Body, Fields> const& m_)
             : s(s_)
-            , sr(m_, empty_decorator{},
+            , sr(m_, no_chunk_decorator{},
                 handler_alloc<char, Handler>{h})
         {
         }
@@ -783,6 +782,46 @@ async_write(AsyncWriteStream& stream,
 
 //------------------------------------------------------------------------------
 
+namespace detail {
+
+template<class Serializer>
+class write_ostream_lambda
+{
+    std::ostream& os_;
+    Serializer& sr_;
+
+public:
+    write_ostream_lambda(std::ostream& os,
+            Serializer& sr)
+        : os_(os)
+        , sr_(sr)
+    {
+    }
+
+    template<class ConstBufferSequence>
+    void
+    operator()(error_code&,
+        ConstBufferSequence const& buffers) const
+    {
+        std::size_t bytes_transferred = 0;
+        using boost::asio::buffer_cast;
+        using boost::asio::buffer_size;
+        for(auto it = buffers.begin();
+            it != buffers.end(); ++it)
+        {
+            boost::asio::const_buffer b = *it;
+            auto const n = buffer_size(b);
+            os_.write(buffer_cast<char const*>(b), n);
+            if(os_.fail())
+                return;
+            bytes_transferred += n;
+        }
+        sr_.consume(bytes_transferred);
+    }
+};
+
+} // detail
+
 template<bool isRequest, class Fields>
 std::ostream&
 operator<<(std::ostream& os,
@@ -803,11 +842,23 @@ operator<<(std::ostream& os,
         "Body requirements not met");
     static_assert(is_body_reader<Body>::value,
         "BodyReader requirements not met");
-    beast::detail::sync_ostream oss{os};
+    serializer<isRequest, Body, Fields> sr{msg};
     error_code ec;
-    write(oss, msg, ec);
-    if(ec && ec != error::end_of_stream)
-        BOOST_THROW_EXCEPTION(system_error{ec});
+    detail::write_ostream_lambda<decltype(sr)> f{os, sr};
+    do
+    {
+        sr.get(ec, f);
+        if(os.fail())
+            break;
+        if(ec == error::end_of_stream)
+            ec = {};
+        if(ec)
+        {
+            os.setstate(std::ios::failbit);
+            break;
+        }   
+    }
+    while(! sr.is_done());
     return os;
 }
 

@@ -739,8 +739,8 @@ template<bool isRequest, class Derived>
 void
 basic_parser<isRequest, Derived>::
 do_field(
-    string_view const& name,
-        string_view const& value,
+    string_view name,
+        string_view value,
             error_code& ec)
 {
     // Connection

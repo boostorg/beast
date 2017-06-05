@@ -14,7 +14,7 @@
 #include <beast/core/static_buffer.hpp>
 #include <beast/http/fields.hpp>
 #include <beast/http/dynamic_body.hpp>
-#include <beast/http/header_parser.hpp>
+#include <beast/http/parser.hpp>
 #include <beast/http/string_body.hpp>
 #include <beast/test/fail_stream.hpp>
 #include <beast/test/pipe_stream.hpp>
@@ -299,7 +299,7 @@ public:
         {
             multi_buffer b;
             test::string_istream ss(ios_, "");
-            message_parser<true, dynamic_body, fields> p;
+            request_parser<dynamic_body> p;
             error_code ec;
             read(ss, b, p, ec);
             BEAST_EXPECT(ec == http::error::end_of_stream);
@@ -307,7 +307,7 @@ public:
         {
             multi_buffer b;
             test::string_istream ss(ios_, "");
-            message_parser<true, dynamic_body, fields> p;
+            request_parser<dynamic_body> p;
             error_code ec;
             async_read(ss, b, p, do_yield[ec]);
             BEAST_EXPECT(ec == http::error::end_of_stream);

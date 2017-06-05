@@ -35,12 +35,12 @@
             <member><link linkend="beast.ref.http__buffer_body">buffer_body</link></member>
             <member><link linkend="beast.ref.http__dynamic_body">dynamic_body</link></member>
             <member><link linkend="beast.ref.http__empty_body">empty_body</link></member>
-            <member><link linkend="beast.ref.http__empty_decorator">empty_decorator</link></member>
             <member><link linkend="beast.ref.http__fields">fields</link></member>
             <member><link linkend="beast.ref.http__header">header</link></member>
             <member><link linkend="beast.ref.http__header_parser">header_parser</link></member>
             <member><link linkend="beast.ref.http__message">message</link></member>
-            <member><link linkend="beast.ref.http__message_parser">message_parser</link></member>
+            <member><link linkend="beast.ref.http__parser">parser</link></member>
+            <member><link linkend="beast.ref.http__no_chunk_decorator">no_chunk_decorator</link></member>
             <member><link linkend="beast.ref.http__request">request</link></member>
             <member><link linkend="beast.ref.http__request_parser">request_parser</link></member>
             <member><link linkend="beast.ref.http__response">response</link></member>
@@ -88,6 +88,7 @@
             <member><link linkend="beast.ref.http__connection">connection</link></member>
             <member><link linkend="beast.ref.http__error">error</link></member>
             <member><link linkend="beast.ref.http__status">status</link></member>
+            <member><link linkend="beast.ref.http__status_class">status_class</link></member>
             <member><link linkend="beast.ref.http__verb">verb</link></member>
           </simplelist>
           <bridgehead renderas="sect3">Type Traits</bridgehead>
@@ -98,11 +99,11 @@
           </simplelist>
           <bridgehead renderas="sect3">Concepts</bridgehead>
           <simplelist type="vert" columns="1">
-            <member><link linkend="beast.ref.Body">Body</link></member>
-            <member><link linkend="beast.ref.BodyReader">BodyReader</link></member>
-            <member><link linkend="beast.ref.BodyWriter">BodyWriter</link></member>
-            <member><link linkend="beast.ref.Field">Field</link></member>
-            <member><link linkend="beast.ref.FieldSequence">FieldSequence</link></member>
+            <member><link linkend="beast.concept.Body">Body</link></member>
+            <member><link linkend="beast.concept.BodyReader">BodyReader</link></member>
+            <member><link linkend="beast.concept.BodyWriter">BodyWriter</link></member>
+            <member><link linkend="beast.concept.Field">Field</link></member>
+            <member><link linkend="beast.concept.FieldSequence">FieldSequence</link></member>
           </simplelist>
         </entry>
         <entry valign="top">
@@ -166,10 +167,11 @@
             <member><link linkend="beast.ref.async_return_type">async_return_type</link></member>
             <member><link linkend="beast.ref.basic_flat_buffer">basic_flat_buffer</link></member>
             <member><link linkend="beast.ref.basic_multi_buffer">basic_multi_buffer</link></member>
-            <member><link linkend="beast.ref.buffers_adapter">buffers_adapter</link></member>
-            <member><link linkend="beast.ref.buffers_view">buffers_view</link></member>
-            <member><link linkend="beast.ref.consuming_buffers">consuming_buffers</link></member>
+            <member><link linkend="beast.ref.buffer_cat_view">buffer_cat_view</link></member>
+            <member><link linkend="beast.ref.buffer_prefix_view">buffer_prefix_view</link></member>
             <member><link linkend="beast.ref.buffered_read_stream">buffered_read_stream</link></member>
+            <member><link linkend="beast.ref.buffers_adapter">buffers_adapter</link></member>
+            <member><link linkend="beast.ref.consuming_buffers">consuming_buffers</link></member>
             <member><link linkend="beast.ref.error_category">error_category</link></member>
             <member><link linkend="beast.ref.error_code">error_code</link></member>
             <member><link linkend="beast.ref.error_condition">error_condition</link></member>
@@ -221,11 +223,11 @@
         <entry valign="top">
           <bridgehead renderas="sect3">Concepts</bridgehead>
           <simplelist type="vert" columns="1">
-            <member><link linkend="beast.ref.streams.AsyncStream">AsyncStream</link></member>
-            <member><link linkend="beast.ref.BufferSequence">BufferSequence</link></member>
-            <member><link linkend="beast.ref.DynamicBuffer">DynamicBuffer</link></member>
-            <member><link linkend="beast.ref.streams.Stream">Stream</link></member>
-            <member><link linkend="beast.ref.streams.SyncStream">SyncStream</link></member>
+            <member><link linkend="beast.concept.streams.AsyncStream">AsyncStream</link></member>
+            <member><link linkend="beast.concept.BufferSequence">BufferSequence</link></member>
+            <member><link linkend="beast.concept.DynamicBuffer">DynamicBuffer</link></member>
+            <member><link linkend="beast.concept.streams.Stream">Stream</link></member>
+            <member><link linkend="beast.concept.streams.SyncStream">SyncStream</link></member>
           </simplelist>
         </entry>
         <entry valign="top">

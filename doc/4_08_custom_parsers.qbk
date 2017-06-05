@@ -1,0 +1,109 @@
+[/
+    Copyright (c) 2013-2017 Vinnie Falco (vinnie dot falco at gmail dot com)
+
+    Distributed under the Boost Software License, Version 1.0. (See accompanying
+    file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+]
+
+[section:custom_parsers Custom Parsers]
+
+While the parsers included in the library will handle a broad number of
+use-cases, the __basic_parser__ interface can be subclassed to implement
+custom parsing strategies: the parser processes the incoming octets into
+elements according to the HTTP/1 protocol specification, while the derived
+class decides what to do with those elements. In particular, users who
+create exotic containers for [*Fields] may need to also create their own
+parser. Custom parsers will work with all of the stream read operations
+that work on parsers, as those algorithms use only the basic parser interface.
+
+
+The basic parser uses the Curiously Recurring Template Pattern
+([@https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern CRTP]).
+To declare your user defined parser, first derive it from __basic_parser__:
+```
+template<bool isRequest>
+class custom_parser
+    : public basic_parser<isRequest, custom_parser<isRequest>>
+{
+    friend class basic_parser<isRequest, custom_parser>;
+    ...
+```
+
+The interface to the parser is event-driven. Member functions of the derived
+class (termed "callbacks" in this context) are invoked with parsed elements
+as they become available, requiring either the `friend` declaration as shown
+above or that the member functions are declared public (not recommended).
+Buffers provided by the parser are non-owning references, it is the
+responsibility of the derived class to copy any information it needs before
+returning from the callback.
+
+
+```
+template<bool isRequest>
+class custom_parser
+    : public basic_parser<isRequest, custom_parser<isRequest>>
+{
+    friend class basic_parser<isRequest, custom_parser>;
+    
+    /// Called after receiving the request-line (isRequest == true).
+    void
+    on_request(
+        string_view method,     // The method
+        string_view target,     // The request-target
+        int version,            // The HTTP-version
+        error_code& ec);        // The error returned to the caller, if any
+
+    /// Called after receiving the start-line (isRequest == false).
+    void
+    on_response(
+        int code,               // The status-code
+        string_view reason,     // The obsolete reason-phrase
+        int version,            // The HTTP-version
+        error_code& ec);        // The error returned to the caller, if any
+
+    /// Called after receiving a header field.
+    void
+    on_field(
+        string_view name,       // The field name
+        string_view value,      // The field value
+        error_code& ec);        // The error returned to the caller, if any
+
+    /// Called after the complete header is received.
+    void
+    on_header(
+        error_code& ec);        // The error returned to the caller, if any
+
+    /// Called just before processing the body, if a body exists.
+    void
+    on_body(boost::optional<
+            std::uint64_t> const&
+        content_length,         // Content length if known, else `boost::none`
+        error_code& ec);        // The error returned to the caller, if any
+
+    /// Called for each piece of the body, if a body exists.
+    //
+    //  If present, the chunked Transfer-Encoding will be removed
+    //  before this callback is invoked.
+    //
+    void
+    on_data(
+        string_view s,          // A portion of the body
+        error_code& ec);        // The error returned to the caller, if any
+
+    /// Called for each chunk header.
+    void
+    on_chunk(
+        std::uint64_t size,     // The size of the upcoming chunk
+        string_view extension,  // The chunk-extension (may be empty)
+        error_code& ec);        // The error returned to the caller, if any
+
+    /// Called when the complete message is parsed.
+    void
+    on_complete(error_code& ec);
+
+public:
+    custom_parser() = default;
+};
+```
+
+[endsect]

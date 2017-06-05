@@ -134,14 +134,6 @@ chunk_crlf()
     return {"\r\n", 2};
 }
 
-/// Returns a buffer sequence holding a CRLF then final chunk
-inline
-boost::asio::const_buffers_1
-chunk_crlf_final()
-{
-    return {"\r\n0\r\n\r\n", 7};
-}
-
 /// Returns a buffer sequence holding a final chunk header
 inline
 boost::asio::const_buffers_1

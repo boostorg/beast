@@ -292,7 +292,7 @@ public:
         {
             message<false, string_body, fields> m;
             m.version = 10;
-            m.status = 200;
+            m.result(status::ok);
             m.reason("OK");
             m.fields.insert("Server", "test");
             m.fields.insert("Content-Length", "5");
@@ -311,7 +311,7 @@ public:
         {
             message<false, string_body, fields> m;
             m.version = 11;
-            m.status = 200;
+            m.result(status::ok);
             m.reason("OK");
             m.fields.insert("Server", "test");
             m.fields.insert("Transfer-Encoding", "chunked");
@@ -658,48 +658,6 @@ public:
             "GET / HTTP/1.1\r\nUser-Agent: test\r\n\r\n*");
         BEAST_EXPECT(boost::lexical_cast<std::string>(m.base()) ==
             "GET / HTTP/1.1\r\nUser-Agent: test\r\n\r\n");
-        {
-            std::stringstream ss;
-            // header
-            ss << m.base();
-
-            // Cause exception in operator<<
-            ss.setstate(ss.rdstate() |
-                std::stringstream::failbit);
-            try
-            {
-                // message
-                ss << m;
-                fail("", __FILE__, __LINE__);
-            }
-            catch(std::exception const&)
-            {
-                pass();
-            }
-        }
-    }
-
-    void testOstream()
-    {
-        message<true, string_body, fields> m;
-        m.method(verb::get);
-        m.target("/");
-        m.version = 11;
-        m.fields.insert("User-Agent", "test");
-        m.body = "*";
-        prepare(m);
-        std::stringstream ss;
-        ss.setstate(ss.rdstate() |
-            std::stringstream::failbit);
-        try
-        {
-            ss << m;
-            fail();
-        }
-        catch(std::exception const&)
-        {
-            pass();
-        }
     }
 
     // Ensure completion handlers are not leaked
@@ -759,7 +717,7 @@ public:
 
     template<class Stream,
         bool isRequest, class Body, class Fields,
-            class Decorator = empty_decorator>
+            class Decorator = no_chunk_decorator>
     void
     do_write(Stream& stream, message<
         isRequest, Body, Fields> const& m, error_code& ec,
@@ -780,7 +738,7 @@ public:
 
     template<class Stream,
         bool isRequest, class Body, class Fields,
-            class Decorator = empty_decorator>
+            class Decorator = no_chunk_decorator>
     void
     do_async_write(Stream& stream,
         message<isRequest, Body, Fields> const& m,
@@ -802,17 +760,20 @@ public:
 
     struct test_decorator
     {
+        std::string s;
+
         template<class ConstBufferSequence>
         string_view
-        operator()(ConstBufferSequence const&) const
+        operator()(ConstBufferSequence const& buffers)
         {
-            return {";x\r\n"};
+            s = ";x=" + std::to_string(boost::asio::buffer_size(buffers));
+            return s;
         }
 
         string_view
-        operator()(boost::asio::null_buffers) const
+        operator()(boost::asio::null_buffers)
         {
-            return {"F: v\r\n"};
+            return "Result: OK\r\n";
         }
     };
 
@@ -825,7 +786,7 @@ public:
 
         message<false, Body, fields> m0;
         m0.version = 11;
-        m0.status = 200;
+        m0.result(status::ok);
         m0.reason("OK");
         m0.fields.insert("Server", "test");
         m0.body.s = "Hello, world!\n";
@@ -957,7 +918,6 @@ public:
             testFailures(yield); });
         testOutput();
         test_std_ostream();
-        testOstream();
         testIoService();
         yield_to(
             [&](yield_context yield)
