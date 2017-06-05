@@ -46,6 +46,7 @@ unit-test http-tests :
     http/doc_http_samples.cpp
     http/dynamic_body.cpp
     http/error.cpp
+    http/field.cpp
     http/fields.cpp
     http/message.cpp
     http/parser.cpp

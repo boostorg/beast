@@ -8,6 +8,7 @@
 #ifndef BEAST_HTTP_BUFFER_BODY_HPP
 #define BEAST_HTTP_BUFFER_BODY_HPP
 
+#include <beast/config.hpp>
 #include <beast/http/error.hpp>
 #include <beast/http/message.hpp>
 #include <beast/http/type_traits.hpp>
