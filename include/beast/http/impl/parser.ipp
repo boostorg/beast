@@ -29,8 +29,7 @@ parser<isRequest, Body, Fields>::
 parser(parser<isRequest, OtherBody, Fields>&& parser,
         Args&&... args)
     : base_type(std::move(parser))
-    , m_(parser.release().base(),
-        std::forward<Args>(args)...)
+    , m_(parser.release(), std::forward<Args>(args)...)
 {
     if(parser.wr_)
         BOOST_THROW_EXCEPTION(std::invalid_argument{

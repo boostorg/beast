@@ -41,7 +41,7 @@ int main()
     req.insert("Host", host + ":" +
         boost::lexical_cast<std::string>(sock.remote_endpoint().port()));
     req.insert("User-Agent", "Beast");
-    beast::http::prepare(req);
+    req.prepare();
     beast::http::write(stream, req);
 
     // Receive and print HTTP response using Beast

@@ -205,56 +205,13 @@ public:
             m.insert("Upgrade", "test");
             BEAST_EXPECT(! is_upgrade(m));
 
-            prepare(m, connection::upgrade);
+            m.prepare(connection::upgrade);
             BEAST_EXPECT(is_upgrade(m));
             BEAST_EXPECT(m["Connection"] == "upgrade");
 
             m.version = 10;
             BEAST_EXPECT(! is_upgrade(m));
         }
-    }
-
-    void
-    testPrepare()
-    {
-        request<string_body> m;
-        m.version = 10;
-        BEAST_EXPECT(! is_upgrade(m));
-        m.insert("Transfer-Encoding", "chunked");
-        try
-        {
-            prepare(m);
-            fail();
-        }
-        catch(std::exception const&)
-        {
-        }
-        m.erase("Transfer-Encoding");
-        m.insert("Content-Length", "0");
-        try
-        {
-            prepare(m);
-            fail();
-        }
-        catch(std::exception const&)
-        {
-            pass();
-        }
-        m.erase("Content-Length");
-        m.insert("Connection", "keep-alive");
-        try
-        {
-            prepare(m);
-            fail();
-        }
-        catch(std::exception const&)
-        {
-            pass();
-        }
-        m.version = 11;
-        m.erase("Connection");
-        m.insert("Connection", "close");
-        BEAST_EXPECT(! is_keep_alive(m));
     }
 
     void
@@ -357,7 +314,6 @@ public:
         testMessage();
         testHeaders();
         testFreeFunctions();
-        testPrepare();
         testSwap();
         testSpecialMembers();
         testMethod();

@@ -21,6 +21,9 @@
 namespace beast {
 namespace http {
 
+template<bool, class, class>
+struct message;
+
 /** Determine if `T` meets the requirements of @b Body.
 
     This metafunction is equivalent to `std::true_type`

@@ -239,7 +239,7 @@ private:
                 res.insert("Server", "http_async_server");
                 res.insert("Content-Type", "text/html");
                 res.body = "The file '" + path + "' was not found";
-                prepare(res);
+                res.prepare();
                 async_write(sock_, std::move(res),
                     std::bind(&peer::on_write, shared_from_this(),
                         std::placeholders::_1));
@@ -253,7 +253,7 @@ private:
                 res.insert("Server", "http_async_server");
                 res.insert("Content-Type", mime_type(path));
                 res.body = path;
-                prepare(res);
+                res.prepare();
                 async_write(sock_, std::move(res),
                     std::bind(&peer::on_write, shared_from_this(),
                         std::placeholders::_1));
@@ -267,7 +267,7 @@ private:
                 res.insert("Content-Type", "text/html");
                 res.body =
                     std::string{"An internal error occurred"} + e.what();
-                prepare(res);
+                res.prepare();
                 async_write(sock_, std::move(res),
                     std::bind(&peer::on_write, shared_from_this(),
                         std::placeholders::_1));

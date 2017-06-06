@@ -35,6 +35,15 @@ struct empty_body
         //        for the content length here, set on init()
     };
 
+    /// Returns the content length of the body in a message.
+    template<bool isRequest, class Fields>
+    static
+    std::uint64_t
+    size(message<isRequest, empty_body, Fields> const& m)
+    {
+        return 0;
+    }
+
 #if BEAST_DOXYGEN
     /// The algorithm to obtain buffers representing the body
     using reader = implementation_defined;
@@ -56,12 +65,6 @@ struct empty_body
         void
         init(error_code&)
         {
-        }
-
-        std::uint64_t
-        content_length() const
-        {
-            return 0;
         }
 
         boost::optional<std::pair<const_buffers_type, bool>>

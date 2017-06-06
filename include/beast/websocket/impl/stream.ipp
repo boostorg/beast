@@ -213,10 +213,10 @@ build_response(http::header<true, Fields> const& req,
         [&](std::string const& text)
         {
             response_type res;
-            res.result(http::status::bad_request);
             res.version = req.version;
+            res.result(http::status::bad_request);
             res.body = text;
-            prepare(res);
+            res.prepare();
             decorate(res);
             return res;
         };
@@ -246,7 +246,7 @@ build_response(http::header<true, Fields> const& req,
             res.result(http::status::upgrade_required);
             res.version = req.version;
             res.insert("Sec-WebSocket-Version", "13");
-            prepare(res);
+            res.prepare();
             decorate(res);
             return res;
         }

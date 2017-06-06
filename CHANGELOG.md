@@ -8,6 +8,7 @@ API Changes:
 
 * Remove header_parser
 * Add verb to on_request for parsers
+* Refactor prepare
 
 --------------------------------------------------------------------------------
 

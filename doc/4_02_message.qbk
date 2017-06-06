@@ -154,7 +154,7 @@ objects:
 ```
 ][
 ```
-    200 OK HTTP/1.1\r\n
+    HTTP/1.1 200 OK\r\n
     Server: Beast\r\n
     Content-Length: 13\r\n
     \r\n

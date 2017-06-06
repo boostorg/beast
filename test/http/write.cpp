@@ -55,9 +55,8 @@ public:
             }
 
             void
-            init(error_code& ec)
+            init(error_code&)
             {
-                beast::detail::ignore_unused(ec);
             }
             
             boost::optional<std::pair<const_buffers_type, bool>>
@@ -502,7 +501,7 @@ public:
             m.version = 10;
             m.insert("User-Agent", "test");
             m.body = "*";
-            prepare(m);
+            m.prepare();
             BEAST_EXPECT(str(m) ==
                 "GET / HTTP/1.0\r\n"
                 "User-Agent: test\r\n"
@@ -519,12 +518,12 @@ public:
             m.version = 10;
             m.insert("User-Agent", "test");
             m.body = "*";
-            prepare(m, connection::keep_alive);
+            m.prepare(connection::keep_alive);
             BEAST_EXPECT(str(m) ==
                 "GET / HTTP/1.0\r\n"
                 "User-Agent: test\r\n"
-                "Content-Length: 1\r\n"
                 "Connection: keep-alive\r\n"
+                "Content-Length: 1\r\n"
                 "\r\n"
                 "*"
             );
@@ -539,7 +538,7 @@ public:
             m.body = "*";
             try
             {
-                prepare(m, connection::upgrade);
+                m.prepare( connection::upgrade);
                 fail();
             }
             catch(std::exception const&)
@@ -555,7 +554,7 @@ public:
             m.version = 10;
             m.insert("User-Agent", "test");
             m.body = "*";
-            prepare(m);
+            m.prepare();
             test::string_ostream ss(ios_);
             error_code ec;
             write(ss, m, ec);
@@ -575,7 +574,7 @@ public:
             m.version = 11;
             m.insert("User-Agent", "test");
             m.body = "*";
-            prepare(m);
+            m.prepare();
             BEAST_EXPECT(str(m) ==
                 "GET / HTTP/1.1\r\n"
                 "User-Agent: test\r\n"
@@ -592,7 +591,7 @@ public:
             m.version = 11;
             m.insert("User-Agent", "test");
             m.body = "*";
-            prepare(m, connection::close);
+            m.prepare(connection::close);
             test::string_ostream ss(ios_);
             error_code ec;
             write(ss, m, ec);
@@ -600,8 +599,8 @@ public:
             BEAST_EXPECT(ss.str ==
                 "GET / HTTP/1.1\r\n"
                 "User-Agent: test\r\n"
-                "Content-Length: 1\r\n"
                 "Connection: close\r\n"
+                "Content-Length: 1\r\n"
                 "\r\n"
                 "*"
             );
@@ -613,7 +612,7 @@ public:
             m.target("/");
             m.version = 11;
             m.insert("User-Agent", "test");
-            prepare(m, connection::upgrade);
+            m.prepare(connection::upgrade);
             BEAST_EXPECT(str(m) ==
                 "GET / HTTP/1.1\r\n"
                 "User-Agent: test\r\n"
@@ -629,7 +628,7 @@ public:
             m.version = 11;
             m.insert("User-Agent", "test");
             m.body = "*";
-            prepare(m);
+            m.prepare();
             test::string_ostream ss(ios_);
             error_code ec;
             write(ss, m, ec);
@@ -656,8 +655,6 @@ public:
         m.body = "*";
         BEAST_EXPECT(boost::lexical_cast<std::string>(m) ==
             "GET / HTTP/1.1\r\nUser-Agent: test\r\n\r\n*");
-        BEAST_EXPECT(boost::lexical_cast<std::string>(m.base()) ==
-            "GET / HTTP/1.1\r\nUser-Agent: test\r\n\r\n");
     }
 
     // Ensure completion handlers are not leaked
