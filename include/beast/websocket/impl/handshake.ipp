@@ -132,8 +132,7 @@ operator()(error_code ec, bool again)
             // VFALCO Do we need the ability to move
             //        a message on the async_write?
             //
-            pmd_read(
-                d.ws.pmd_config_, d.req.fields);
+            pmd_read(d.ws.pmd_config_, d.req);
             http::async_write(d.ws.stream_,
                 d.req, std::move(*this));
             // TODO We don't need d.req now. Figure

@@ -66,11 +66,11 @@ public:
             [&](yield_context)
             {
                 flat_buffer buffer;
-                request<string_body, fields> req;
+                request<string_body> req;
                 req.version = 11;
                 req.method("POST");
                 req.target("/");
-                req.fields.insert("User-Agent", "test");
+                req.insert("User-Agent", "test");
                 req.body = "Hello, world!";
                 prepare(req);
 
@@ -99,11 +99,11 @@ public:
     void
     doRelay()
     {
-        request<string_body, fields> req;
+        request<string_body> req;
         req.version = 11;
         req.method("POST");
         req.target("/");
-        req.fields.insert("User-Agent", "test");
+        req.insert("User-Agent", "test");
         req.body = "Hello, world!";
         prepare(req);
 
@@ -121,8 +121,8 @@ public:
         relay<true>(upstream.client, downstream.server, buffer, ec,
             [&](header<true, fields>& h, error_code& ec)
             {
-                h.fields.erase("Content-Length");
-                h.fields.replace("Transfer-Encoding", "chunked");
+                h.erase("Content-Length");
+                h.replace("Transfer-Encoding", "chunked");
             });
         BEAST_EXPECTS(! ec, ec.message());
         BEAST_EXPECT(equal_body<true>(
@@ -155,7 +155,7 @@ public:
         req.version = 11;
         req.method(verb::get);
         req.target("/");
-        req.fields.insert("User-Agent", "test");
+        req.insert("User-Agent", "test");
         error_code ec;
         write_ostream(os, req, ec);
         BEAST_EXPECTS(! ec, ec.message());

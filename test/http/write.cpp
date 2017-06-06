@@ -294,8 +294,8 @@ public:
             m.version = 10;
             m.result(status::ok);
             m.reason("OK");
-            m.fields.insert("Server", "test");
-            m.fields.insert("Content-Length", "5");
+            m.insert("Server", "test");
+            m.insert("Content-Length", "5");
             m.body = "*****";
             error_code ec;
             test::string_ostream ss{ios_};
@@ -313,8 +313,8 @@ public:
             m.version = 11;
             m.result(status::ok);
             m.reason("OK");
-            m.fields.insert("Server", "test");
-            m.fields.insert("Transfer-Encoding", "chunked");
+            m.insert("Server", "test");
+            m.insert("Transfer-Encoding", "chunked");
             m.body = "*****";
             error_code ec;
             test::string_ostream ss(ios_);
@@ -346,8 +346,8 @@ public:
             m.method(verb::get);
             m.target("/");
             m.version = 10;
-            m.fields.insert("User-Agent", "test");
-            m.fields.insert("Content-Length", "5");
+            m.insert("User-Agent", "test");
+            m.insert("Content-Length", "5");
             m.body = "*****";
             try
             {
@@ -377,8 +377,8 @@ public:
             m.method(verb::get);
             m.target("/");
             m.version = 10;
-            m.fields.insert("User-Agent", "test");
-            m.fields.insert("Transfer-Encoding", "chunked");
+            m.insert("User-Agent", "test");
+            m.insert("Transfer-Encoding", "chunked");
             m.body = "*****";
             error_code ec;
             write(fs, m, ec);
@@ -410,8 +410,8 @@ public:
             m.method(verb::get);
             m.target("/");
             m.version = 10;
-            m.fields.insert("User-Agent", "test");
-            m.fields.insert("Transfer-Encoding", "chunked");
+            m.insert("User-Agent", "test");
+            m.insert("Transfer-Encoding", "chunked");
             m.body = "*****";
             error_code ec;
             async_write(fs, m, do_yield[ec]);
@@ -443,8 +443,8 @@ public:
             m.method(verb::get);
             m.target("/");
             m.version = 10;
-            m.fields.insert("User-Agent", "test");
-            m.fields.insert("Content-Length", "5");
+            m.insert("User-Agent", "test");
+            m.insert("Content-Length", "5");
             m.body = "*****";
             error_code ec;
             write(fs, m, ec);
@@ -471,8 +471,8 @@ public:
             m.method(verb::get);
             m.target("/");
             m.version = 10;
-            m.fields.insert("User-Agent", "test");
-            m.fields.insert("Content-Length", "5");
+            m.insert("User-Agent", "test");
+            m.insert("Content-Length", "5");
             m.body = "*****";
             error_code ec;
             async_write(fs, m, do_yield[ec]);
@@ -500,7 +500,7 @@ public:
             m.method(verb::get);
             m.target("/");
             m.version = 10;
-            m.fields.insert("User-Agent", "test");
+            m.insert("User-Agent", "test");
             m.body = "*";
             prepare(m);
             BEAST_EXPECT(str(m) ==
@@ -517,7 +517,7 @@ public:
             m.method(verb::get);
             m.target("/");
             m.version = 10;
-            m.fields.insert("User-Agent", "test");
+            m.insert("User-Agent", "test");
             m.body = "*";
             prepare(m, connection::keep_alive);
             BEAST_EXPECT(str(m) ==
@@ -535,7 +535,7 @@ public:
             m.method(verb::get);
             m.target("/");
             m.version = 10;
-            m.fields.insert("User-Agent", "test");
+            m.insert("User-Agent", "test");
             m.body = "*";
             try
             {
@@ -553,7 +553,7 @@ public:
             m.method(verb::get);
             m.target("/");
             m.version = 10;
-            m.fields.insert("User-Agent", "test");
+            m.insert("User-Agent", "test");
             m.body = "*";
             prepare(m);
             test::string_ostream ss(ios_);
@@ -573,7 +573,7 @@ public:
             m.method(verb::get);
             m.target("/");
             m.version = 11;
-            m.fields.insert("User-Agent", "test");
+            m.insert("User-Agent", "test");
             m.body = "*";
             prepare(m);
             BEAST_EXPECT(str(m) ==
@@ -590,7 +590,7 @@ public:
             m.method(verb::get);
             m.target("/");
             m.version = 11;
-            m.fields.insert("User-Agent", "test");
+            m.insert("User-Agent", "test");
             m.body = "*";
             prepare(m, connection::close);
             test::string_ostream ss(ios_);
@@ -612,7 +612,7 @@ public:
             m.method(verb::get);
             m.target("/");
             m.version = 11;
-            m.fields.insert("User-Agent", "test");
+            m.insert("User-Agent", "test");
             prepare(m, connection::upgrade);
             BEAST_EXPECT(str(m) ==
                 "GET / HTTP/1.1\r\n"
@@ -627,7 +627,7 @@ public:
             m.method(verb::get);
             m.target("/");
             m.version = 11;
-            m.fields.insert("User-Agent", "test");
+            m.insert("User-Agent", "test");
             m.body = "*";
             prepare(m);
             test::string_ostream ss(ios_);
@@ -652,7 +652,7 @@ public:
         m.method(verb::get);
         m.target("/");
         m.version = 11;
-        m.fields.insert("User-Agent", "test");
+        m.insert("User-Agent", "test");
         m.body = "*";
         BEAST_EXPECT(boost::lexical_cast<std::string>(m) ==
             "GET / HTTP/1.1\r\nUser-Agent: test\r\n\r\n*");
@@ -684,7 +684,7 @@ public:
             m.method(verb::get);
             m.version = 11;
             m.target("/");
-            m.fields.insert("Content-Length", 5);
+            m.insert("Content-Length", 5);
             m.body = "*****";
             async_write(os, m, handler{});
             BEAST_EXPECT(handler::count() > 0);
@@ -706,7 +706,7 @@ public:
                 m.method(verb::get);
                 m.version = 11;
                 m.target("/");
-                m.fields.insert("Content-Length", 5);
+                m.insert("Content-Length", 5);
                 m.body = "*****";
                 async_write(is, m, handler{});
                 BEAST_EXPECT(handler::count() > 0);
@@ -788,7 +788,7 @@ public:
         m0.version = 11;
         m0.result(status::ok);
         m0.reason("OK");
-        m0.fields.insert("Server", "test");
+        m0.insert("Server", "test");
         m0.body.s = "Hello, world!\n";
 
         {
@@ -845,7 +845,7 @@ public:
             }
         }
         {
-            m0.fields.insert("Transfer-Encoding", "chunked");
+            m0.insert("Transfer-Encoding", "chunked");
             {
                 auto m = m0;
                 error_code ec;

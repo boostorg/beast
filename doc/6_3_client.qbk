@@ -61,7 +61,7 @@ on the request:
 ```
     void decorate(websocket::request_type& req)
     {
-        req.fields.insert("Sec-WebSocket-Protocol", "xmpp;ws-chat");
+        req.insert("Sec-WebSocket-Protocol", "xmpp;ws-chat");
     }
     ...
     ws.handshake_ex("localhost", "/", &decorate);
@@ -102,7 +102,7 @@ as follows:
 ```
     websocket::response_type res;
     ws.handshake(res, "localhost", "/");
-    if(! res.fields.exists("Sec-WebSocket-Protocol"))
+    if(! res.exists("Sec-WebSocket-Protocol"))
         throw std::invalid_argument("missing subprotocols");
 ```
 

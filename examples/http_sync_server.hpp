@@ -166,8 +166,8 @@ private:
                 response<string_body> res;
                 res.result(status::not_found);
                 res.version = req.version;
-                res.fields.insert("Server", "http_sync_server");
-                res.fields.insert("Content-Type", "text/html");
+                res.insert("Server", "http_sync_server");
+                res.insert("Content-Type", "text/html");
                 res.body = "The file '" + path + "' was not found";
                 prepare(res);
                 write(sock, res, ec);
@@ -181,8 +181,8 @@ private:
                 res.result(status::ok);
                 res.reason("OK");
                 res.version = req.version;
-                res.fields.insert("Server", "http_sync_server");
-                res.fields.insert("Content-Type", mime_type(path));
+                res.insert("Server", "http_sync_server");
+                res.insert("Content-Type", mime_type(path));
                 res.body = path;
                 prepare(res);
                 write(sock, res, ec);
@@ -195,8 +195,8 @@ private:
                 res.result(status::internal_server_error);
                 res.reason("Internal Error");
                 res.version = req.version;
-                res.fields.insert("Server", "http_sync_server");
-                res.fields.insert("Content-Type", "text/html");
+                res.insert("Server", "http_sync_server");
+                res.insert("Content-Type", "text/html");
                 res.body =
                     std::string{"An internal error occurred: "} + e.what();
                 prepare(res);

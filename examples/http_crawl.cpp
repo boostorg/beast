@@ -40,9 +40,9 @@ int main(int, char const*[])
             req.method(verb::get);
             req.target("/");
             req.version = 11;
-            req.fields.insert("Host", host + std::string(":") +
+            req.insert("Host", host + std::string(":") +
                 boost::lexical_cast<std::string>(ep.port()));
-            req.fields.insert("User-Agent", "beast/http");
+            req.insert("User-Agent", "beast/http");
             prepare(req);
             write(sock, req);
             response<string_body> res;

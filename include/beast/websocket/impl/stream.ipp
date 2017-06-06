@@ -117,7 +117,7 @@ do_accept(http::header<true, Fields> const& req,
         //             teardown if Connection: close.
         return;
     }
-    pmd_read(pmd_config_, req.fields);
+    pmd_read(pmd_config_, req);
     open(detail::role_type::server);
 }
 
@@ -137,7 +137,7 @@ do_handshake(response_type* res_p,
     {
         auto const req = build_request(
             key, host, target, decorator);
-        pmd_read(pmd_config_, req.fields);
+        pmd_read(pmd_config_, req);
         http::write(stream_, req, ec);
     }
     if(ec)
@@ -163,12 +163,12 @@ build_request(detail::sec_ws_key_type& key,
     req.target(target);
     req.version = 11;
     req.method(http::verb::get);
-    req.fields.insert("Host", host);
-    req.fields.insert("Upgrade", "websocket");
-    req.fields.insert("Connection", "upgrade");
+    req.insert("Host", host);
+    req.insert("Upgrade", "websocket");
+    req.insert("Connection", "upgrade");
     detail::make_sec_ws_key(key, maskgen_);
-    req.fields.insert("Sec-WebSocket-Key", key);
-    req.fields.insert("Sec-WebSocket-Version", "13");
+    req.insert("Sec-WebSocket-Key", key);
+    req.insert("Sec-WebSocket-Version", "13");
     if(pmd_opts_.client_enable)
     {
         detail::pmd_offer config;
@@ -181,14 +181,13 @@ build_request(detail::sec_ws_key_type& key,
             pmd_opts_.server_no_context_takeover;
         config.client_no_context_takeover =
             pmd_opts_.client_no_context_takeover;
-        detail::pmd_write(
-            req.fields, config);
+        detail::pmd_write(req, config);
     }
     decorator(req);
-    if(! req.fields.exists("User-Agent"))
+    if(! req.exists("User-Agent"))
     {
         static_string<20> s(BEAST_VERSION_STRING);
-        req.fields.insert("User-Agent", s);
+        req.insert("User-Agent", s);
     }
     return req;
 }
@@ -204,10 +203,10 @@ build_response(http::header<true, Fields> const& req,
         [&decorator](response_type& res)
         {
             decorator(res);
-            if(! res.fields.exists("Server"))
+            if(! res.exists("Server"))
             {
                 static_string<20> s(BEAST_VERSION_STRING);
-                res.fields.insert("Server", s);
+                res.insert("Server", s);
             }
         };
     auto err =
@@ -227,18 +226,18 @@ build_response(http::header<true, Fields> const& req,
         return err("Wrong method");
     if(! is_upgrade(req))
         return err("Expected Upgrade request");
-    if(! req.fields.exists("Host"))
+    if(! req.exists("Host"))
         return err("Missing Host");
-    if(! req.fields.exists("Sec-WebSocket-Key"))
+    if(! req.exists("Sec-WebSocket-Key"))
         return err("Missing Sec-WebSocket-Key");
-    if(! http::token_list{req.fields["Upgrade"]}.exists("websocket"))
+    if(! http::token_list{req["Upgrade"]}.exists("websocket"))
         return err("Missing websocket Upgrade token");
-    auto const key = req.fields["Sec-WebSocket-Key"];
+    auto const key = req["Sec-WebSocket-Key"];
     if(key.size() > detail::sec_ws_key_type::max_size_n)
         return err("Invalid Sec-WebSocket-Key");
     {
         auto const version =
-            req.fields["Sec-WebSocket-Version"];
+            req["Sec-WebSocket-Version"];
         if(version.empty())
             return err("Missing Sec-WebSocket-Version");
         if(version != "13")
@@ -246,7 +245,7 @@ build_response(http::header<true, Fields> const& req,
             response_type res;
             res.result(http::status::upgrade_required);
             res.version = req.version;
-            res.fields.insert("Sec-WebSocket-Version", "13");
+            res.insert("Sec-WebSocket-Version", "13");
             prepare(res);
             decorate(res);
             return res;
@@ -257,18 +256,17 @@ build_response(http::header<true, Fields> const& req,
     {
         detail::pmd_offer offer;
         detail::pmd_offer unused;
-        pmd_read(offer, req.fields);
-        pmd_negotiate(
-            res.fields, unused, offer, pmd_opts_);
+        pmd_read(offer, req);
+        pmd_negotiate(res, unused, offer, pmd_opts_);
     }
     res.result(http::status::switching_protocols);
     res.version = req.version;
-    res.fields.insert("Upgrade", "websocket");
-    res.fields.insert("Connection", "upgrade");
+    res.insert("Upgrade", "websocket");
+    res.insert("Connection", "upgrade");
     {
         detail::sec_ws_accept_type accept;
         detail::make_sec_ws_accept(accept, key);
-        res.fields.insert("Sec-WebSocket-Accept", accept);
+        res.insert("Sec-WebSocket-Accept", accept);
     }
     decorate(res);
     return res;
@@ -288,14 +286,14 @@ do_response(http::header<false> const& res,
             return false;
         if(! is_upgrade(res))
             return false;
-        if(! http::token_list{res.fields["Upgrade"]}.exists("websocket"))
+        if(! http::token_list{res["Upgrade"]}.exists("websocket"))
             return false;
-        if(! res.fields.exists("Sec-WebSocket-Accept"))
+        if(! res.exists("Sec-WebSocket-Accept"))
             return false;
         detail::sec_ws_accept_type accept;
         detail::make_sec_ws_accept(accept, key);
         if(accept.compare(
-                res.fields["Sec-WebSocket-Accept"]) != 0)
+                res["Sec-WebSocket-Accept"]) != 0)
             return false;
         return true;
     }();
@@ -305,7 +303,7 @@ do_response(http::header<false> const& res,
         return;
     }
     detail::pmd_offer offer;
-    pmd_read(offer, res.fields);
+    pmd_read(offer, res);
     // VFALCO see if offer satisfies pmd_config_,
     //        return an error if not.
     pmd_config_ = offer; // overwrite for now

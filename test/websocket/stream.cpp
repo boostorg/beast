@@ -707,11 +707,11 @@ public:
                     req.method(http::verb::get);
                     req.target("/");
                     req.version = 11;
-                    req.fields.insert("Host", "localhost");
-                    req.fields.insert("Upgrade", "websocket");
-                    req.fields.insert("Connection", "upgrade");
-                    req.fields.insert("Sec-WebSocket-Key", "dGhlIHNhbXBsZSBub25jZQ==");
-                    req.fields.insert("Sec-WebSocket-Version", "13");
+                    req.insert("Host", "localhost");
+                    req.insert("Upgrade", "websocket");
+                    req.insert("Connection", "upgrade");
+                    req.insert("Sec-WebSocket-Key", "dGhlIHNhbXBsZSBub25jZQ==");
+                    req.insert("Sec-WebSocket-Version", "13");
                     stream<test::fail_stream<
                         test::string_ostream>> ws{fc, ios_};
                     c.accept(ws, req);
@@ -721,11 +721,11 @@ public:
                     req.method(http::verb::get);
                     req.target("/");
                     req.version = 11;
-                    req.fields.insert("Host", "localhost");
-                    req.fields.insert("Upgrade", "websocket");
-                    req.fields.insert("Connection", "upgrade");
-                    req.fields.insert("Sec-WebSocket-Key", "dGhlIHNhbXBsZSBub25jZQ==");
-                    req.fields.insert("Sec-WebSocket-Version", "13");
+                    req.insert("Host", "localhost");
+                    req.insert("Upgrade", "websocket");
+                    req.insert("Connection", "upgrade");
+                    req.insert("Sec-WebSocket-Key", "dGhlIHNhbXBsZSBub25jZQ==");
+                    req.insert("Sec-WebSocket-Version", "13");
                     stream<test::fail_stream<
                         test::string_ostream>> ws{fc, ios_};
                     bool called = false;
@@ -739,11 +739,11 @@ public:
                     req.method(http::verb::get);
                     req.target("/");
                     req.version = 11;
-                    req.fields.insert("Host", "localhost");
-                    req.fields.insert("Upgrade", "websocket");
-                    req.fields.insert("Connection", "upgrade");
-                    req.fields.insert("Sec-WebSocket-Key", "dGhlIHNhbXBsZSBub25jZQ==");
-                    req.fields.insert("Sec-WebSocket-Version", "13");
+                    req.insert("Host", "localhost");
+                    req.insert("Upgrade", "websocket");
+                    req.insert("Connection", "upgrade");
+                    req.insert("Sec-WebSocket-Key", "dGhlIHNhbXBsZSBub25jZQ==");
+                    req.insert("Sec-WebSocket-Version", "13");
                     stream<test::fail_stream<
                         test::string_ostream>> ws{fc, ios_};
                     c.accept(ws, req,
@@ -766,11 +766,11 @@ public:
                     req.method(http::verb::get);
                     req.target("/");
                     req.version = 11;
-                    req.fields.insert("Host", "localhost");
-                    req.fields.insert("Upgrade", "websocket");
-                    req.fields.insert("Connection", "upgrade");
-                    req.fields.insert("Sec-WebSocket-Key", "dGhlIHNhbXBsZSBub25jZQ==");
-                    req.fields.insert("Sec-WebSocket-Version", "13");
+                    req.insert("Host", "localhost");
+                    req.insert("Upgrade", "websocket");
+                    req.insert("Connection", "upgrade");
+                    req.insert("Sec-WebSocket-Key", "dGhlIHNhbXBsZSBub25jZQ==");
+                    req.insert("Sec-WebSocket-Version", "13");
                     stream<test::fail_stream<
                         test::string_ostream>> ws{fc, ios_};
                     bool called = false;
@@ -797,11 +797,11 @@ public:
                     req.method(http::verb::get);
                     req.target("/");
                     req.version = 11;
-                    req.fields.insert("Host", "localhost");
-                    req.fields.insert("Upgrade", "websocket");
-                    req.fields.insert("Connection", "upgrade");
-                    req.fields.insert("Sec-WebSocket-Key", "dGhlIHNhbXBsZSBub25jZQ==");
-                    req.fields.insert("Sec-WebSocket-Version", "13");
+                    req.insert("Host", "localhost");
+                    req.insert("Upgrade", "websocket");
+                    req.insert("Connection", "upgrade");
+                    req.insert("Sec-WebSocket-Key", "dGhlIHNhbXBsZSBub25jZQ==");
+                    req.insert("Sec-WebSocket-Version", "13");
                     stream<test::fail_stream<
                         test::string_iostream>> ws{fc, ios_,
                         "\x88\x82\xff\xff\xff\xff\xfc\x17"};
@@ -825,11 +825,11 @@ public:
                     req.method(http::verb::get);
                     req.target("/");
                     req.version = 11;
-                    req.fields.insert("Host", "localhost");
-                    req.fields.insert("Upgrade", "websocket");
-                    req.fields.insert("Connection", "upgrade");
-                    req.fields.insert("Sec-WebSocket-Key", "dGhlIHNhbXBsZSBub25jZQ==");
-                    req.fields.insert("Sec-WebSocket-Version", "13");
+                    req.insert("Host", "localhost");
+                    req.insert("Upgrade", "websocket");
+                    req.insert("Connection", "upgrade");
+                    req.insert("Sec-WebSocket-Key", "dGhlIHNhbXBsZSBub25jZQ==");
+                    req.insert("Sec-WebSocket-Version", "13");
                     stream<test::fail_stream<
                         test::string_iostream>> ws{fc, ios_,
                         "xff\xff\xfc\x17"};

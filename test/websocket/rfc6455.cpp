@@ -28,11 +28,11 @@ public:
         req.target("/");
         BEAST_EXPECT(! is_upgrade(req));
         req.method(http::verb::get);
-        req.fields.insert("Connection", "upgrade");
+        req.insert("Connection", "upgrade");
         BEAST_EXPECT(! is_upgrade(req));
-        req.fields.insert("Upgrade", "websocket");
+        req.insert("Upgrade", "websocket");
         BEAST_EXPECT(! is_upgrade(req));
-        req.fields.insert("Sec-WebSocket-Version", "13");
+        req.insert("Sec-WebSocket-Version", "13");
         BEAST_EXPECT(is_upgrade(req));
     }
 

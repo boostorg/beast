@@ -51,7 +51,7 @@ This diagram shows the inheritance relationship between header and message,
 along with the fields from the different partial specializations for each
 possible value of `isRequest`:
 
-[$images/message.png [width 711px] [height 424px]]
+[$images/message.png [width 730px] [height 410px]]
 
 For notational convenience, the template type aliases 
 [link beast.ref.http__request `request`] and
@@ -126,9 +126,9 @@ objects:
     req.version = 11;   // HTTP/1.1
     req.method(verb::get);
     req.target("/index.htm");
-    req.fields.insert("Accept", "text/html");
-    req.fields.insert("Connection", "keep-alive");
-    req.fields.insert("User-Agent", "Beast");
+    req.insert("Accept", "text/html");
+    req.insert("Connection", "keep-alive");
+    req.insert("User-Agent", "Beast");
 ```
 ][
 ```
@@ -149,8 +149,8 @@ objects:
     res.version = 11;   // HTTP/1.1
     res.result(status::ok);
     res.body = "Hello, world!";
-    res.fields.insert("Server", "Beast");
-    res.fields.insert("Content-Length", res.body.size());
+    res.insert("Server", "Beast");
+    res.insert("Content-Length", res.body.size());
 ```
 ][
 ```

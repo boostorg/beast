@@ -208,7 +208,7 @@ private:
         string_view value,
             error_code&)
     {
-        m_.fields.insert(name, value);
+        m_.insert(name, value);
     }
 
     void

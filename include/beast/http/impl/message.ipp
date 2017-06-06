@@ -30,7 +30,7 @@ get_method_string() const
 {
     if(method_ != verb::unknown)
         return to_string(method_);
-    return fields.method_impl();
+    return this->method_impl();
 }
 
 template<class Fields>
@@ -43,7 +43,7 @@ set_method(verb v)
         BOOST_THROW_EXCEPTION(
             std::invalid_argument{"unknown verb"});
     method_ = v;
-    fields.method_impl({});
+    this->method_impl({});
 }
 
 template<class Fields>
@@ -54,9 +54,9 @@ set_method(string_view s)
 {
     method_ = string_to_verb(s);
     if(method_ != verb::unknown)
-        fields.method_impl({});
+        this->method_impl({});
     else
-        fields.method_impl(s);
+        this->method_impl(s);
 }
 
 template<class Fields>
@@ -65,7 +65,7 @@ string_view
 header<false, Fields>::
 get_reason() const
 {
-    auto const s = fields.reason_impl();
+    auto const s = this->reason_impl();
     if(! s.empty())
         return s;
     return obsolete_reason(result_);
@@ -74,25 +74,29 @@ get_reason() const
 template<class Fields>
 void
 swap(
-    header<true, Fields>& m1,
-    header<true, Fields>& m2)
+    header<true, Fields>& h1,
+    header<true, Fields>& h2)
 {
     using std::swap;
-    swap(m1.version, m2.version);
-    swap(m1.fields, m2.fields);
-    swap(m1.method_, m2.method_);
+    swap(
+        static_cast<Fields&>(h1),
+        static_cast<Fields&>(h2));
+    swap(h1.version, h2.version);
+    swap(h1.method_, h2.method_);
 }
 
 template<class Fields>
 void
 swap(
-    header<false, Fields>& a,
-    header<false, Fields>& b)
+    header<false, Fields>& h1,
+    header<false, Fields>& h2)
 {
     using std::swap;
-    swap(a.version, b.version);
-    swap(a.fields, b.fields);
-    swap(a.result_, b.result_);
+    swap(
+        static_cast<Fields&>(h1),
+        static_cast<Fields&>(h2));
+    swap(h1.version, h2.version);
+    swap(h1.result_, h2.result_);
 }
 
 template<bool isRequest, class Body, class Fields>
@@ -113,11 +117,11 @@ is_keep_alive(header<isRequest, Fields> const& msg)
     BOOST_ASSERT(msg.version == 10 || msg.version == 11);
     if(msg.version == 11)
     {
-        if(token_list{msg.fields["Connection"]}.exists("close"))
+        if(token_list{msg["Connection"]}.exists("close"))
             return false;
         return true;
     }
-    if(token_list{msg.fields["Connection"]}.exists("keep-alive"))
+    if(token_list{msg["Connection"]}.exists("keep-alive"))
         return true;
     return false;
 }
@@ -129,7 +133,7 @@ is_upgrade(header<isRequest, Fields> const& msg)
     BOOST_ASSERT(msg.version == 10 || msg.version == 11);
     if(msg.version == 10)
         return false;
-    if(token_list{msg.fields["Connection"]}.exists("upgrade"))
+    if(token_list{msg["Connection"]}.exists("upgrade"))
         return true;
     return false;
 }
@@ -219,15 +223,15 @@ prepare(message<isRequest, Body, Fields>& msg,
     detail::prepare_options(pi, msg,
         std::forward<Options>(options)...);
 
-    if(msg.fields.exists("Connection"))
+    if(msg.exists("Connection"))
         BOOST_THROW_EXCEPTION(std::invalid_argument{
             "prepare called with Connection field set"});
 
-    if(msg.fields.exists("Content-Length"))
+    if(msg.exists("Content-Length"))
         BOOST_THROW_EXCEPTION(std::invalid_argument{
             "prepare called with Content-Length field set"});
 
-    if(token_list{msg.fields["Transfer-Encoding"]}.exists("chunked"))
+    if(token_list{msg["Transfer-Encoding"]}.exists("chunked"))
         BOOST_THROW_EXCEPTION(std::invalid_argument{
             "prepare called with Transfer-Encoding: chunked set"});
 
@@ -245,7 +249,7 @@ prepare(message<isRequest, Body, Fields>& msg,
                     if(*pi.content_length > 0 ||
                         msg.method() == verb::post)
                     {
-                        msg.fields.insert(
+                        msg.insert(
                             "Content-Length", *pi.content_length);
                     }
                 }
@@ -258,7 +262,7 @@ prepare(message<isRequest, Body, Fields>& msg,
                         msg.result() != status::no_content &&
                         msg.result() != status::not_modified)
                     {
-                        msg.fields.insert(
+                        msg.insert(
                             "Content-Length", *pi.content_length);
                     }
                 }
@@ -267,39 +271,39 @@ prepare(message<isRequest, Body, Fields>& msg,
         }
         else if(msg.version >= 11)
         {
-            msg.fields.insert("Transfer-Encoding", "chunked");
+            msg.insert("Transfer-Encoding", "chunked");
         }
     }
 
     auto const content_length =
-        msg.fields.exists("Content-Length");
+        msg.exists("Content-Length");
 
     if(pi.connection_value)
     {
         switch(*pi.connection_value)
         {
         case connection::upgrade:
-            msg.fields.insert("Connection", "upgrade");
+            msg.insert("Connection", "upgrade");
             break;
 
         case connection::keep_alive:
             if(msg.version < 11)
             {
                 if(content_length)
-                    msg.fields.insert("Connection", "keep-alive");
+                    msg.insert("Connection", "keep-alive");
             }
             break;
 
         case connection::close:
             if(msg.version >= 11)
-                msg.fields.insert("Connection", "close");
+                msg.insert("Connection", "close");
             break;
         }
     }
 
     // rfc7230 6.7.
     if(msg.version < 11 && token_list{
-            msg.fields["Connection"]}.exists("upgrade"))
+            msg["Connection"]}.exists("upgrade"))
         BOOST_THROW_EXCEPTION(std::invalid_argument{
             "invalid version for Connection: upgrade"});
 }

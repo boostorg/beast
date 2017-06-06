@@ -268,54 +268,14 @@ public:
             boost::lexical_cast<std::string>(value));
     }
 
-#if BEAST_DOXYGEN
-private:
-#endif
-
-    string_view
-    method_impl() const
-    {
-        return (*this)[":method"];
-    }
-
-    void
-    method_impl(string_view s)
-    {
-        if(s.empty())
-            this->erase(":method");
-        else
-            this->replace(":method", s);
-    }
-
-    string_view
-    target_impl() const
-    {
-        return (*this)[":target"];
-    }
-
-    void
-    target_impl(string_view s)
-    {
-        if(s.empty())
-            this->erase(":target");
-        else
-            return this->replace(":target", s);
-    }
-
-    string_view
-    reason_impl() const
-    {
-        return (*this)[":reason"];
-    }
-
-    void
-    reason_impl(string_view s)
-    {
-        if(s.empty())
-            this->erase(":reason");
-        else
-            this->replace(":reason", s);
-    }
+protected:
+    // for header
+    string_view method_impl() const;
+    string_view target_impl() const;
+    string_view reason_impl() const;
+    void method_impl(string_view s);
+    void target_impl(string_view s);
+    void reason_impl(string_view s);
 
 private:
     struct element

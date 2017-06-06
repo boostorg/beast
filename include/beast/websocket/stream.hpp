@@ -1563,7 +1563,7 @@ public:
             ws.handshake("localhost", "/",
                 [](request_type& req)
                 {
-                    req.fields.insert("User-Agent", "Beast");
+                    req.insert("User-Agent", "Beast");
                 });
         }
         catch(...)
@@ -1625,7 +1625,7 @@ public:
             ws.handshake(res, "localhost", "/",
                 [](request_type& req)
                 {
-                    req.fields.insert("User-Agent", "Beast");
+                    req.insert("User-Agent", "Beast");
                 });
         }
         catch(...)
@@ -1771,7 +1771,7 @@ public:
         ws.handshake("localhost", "/",
             [](request_type& req)
             {
-                req.fields.insert("User-Agent", "Beast");
+                req.insert("User-Agent", "Beast");
             },
             ec);
         if(ec)
@@ -1833,7 +1833,7 @@ public:
         ws.handshake(res, "localhost", "/",
             [](request_type& req)
             {
-                req.fields.insert("User-Agent", "Beast");
+                req.insert("User-Agent", "Beast");
             },
             ec);
         if(ec)

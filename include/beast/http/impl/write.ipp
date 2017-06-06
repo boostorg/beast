@@ -828,7 +828,7 @@ operator<<(std::ostream& os,
     header<isRequest, Fields> const& msg)
 {
     detail::write_start_line(os, msg);
-    detail::write_fields(os, msg.fields);
+    detail::write_fields(os, msg);
     os << "\r\n";
     return os;
 }

@@ -225,7 +225,7 @@ private:
                 d.ws.async_accept_ex(
                     [](beast::websocket::response_type& res)
                     {
-                        res.fields.insert(
+                        res.insert(
                             "Server", "async_ssl_echo_server");
                     },
                     d.strand.wrap(std::move(*this)));

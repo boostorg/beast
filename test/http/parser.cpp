@@ -133,7 +133,7 @@ public:
                 BEAST_EXPECT(m.version == 10);
                 BEAST_EXPECT(m.result() == status::ok);
                 BEAST_EXPECT(m.reason() == "OK");
-                BEAST_EXPECT(m.fields["Server"] == "test");
+                BEAST_EXPECT(m["Server"] == "test");
                 BEAST_EXPECT(m.body == "Hello, world!");
             }
         );
@@ -160,10 +160,10 @@ public:
                 BEAST_EXPECT(m.version == 11);
                 BEAST_EXPECT(m.result() == status::ok);
                 BEAST_EXPECT(m.reason() == "OK");
-                BEAST_EXPECT(m.fields["Server"] == "test");
-                BEAST_EXPECT(m.fields["Transfer-Encoding"] == "chunked");
-                BEAST_EXPECT(m.fields["Expires"] == "never");
-                BEAST_EXPECT(m.fields["MD5-Fingerprint"] == "-");
+                BEAST_EXPECT(m["Server"] == "test");
+                BEAST_EXPECT(m["Transfer-Encoding"] == "chunked");
+                BEAST_EXPECT(m["Expires"] == "never");
+                BEAST_EXPECT(m["MD5-Fingerprint"] == "-");
                 BEAST_EXPECT(m.body == "*****--");
             }
         );
@@ -202,7 +202,7 @@ public:
             [&](parser_type<true> const& p)
             {
                 auto const& m = p.get();
-                BEAST_EXPECT(m.fields["X"] == "x");
+                BEAST_EXPECT(m["X"] == "x");
             }
         );
 
@@ -226,7 +226,7 @@ public:
             BEAST_EXPECT(m.method() == verb::get);
             BEAST_EXPECT(m.target() == "/");
             BEAST_EXPECT(m.version == 11);
-            BEAST_EXPECT(m.fields["User-Agent"] == "test");
+            BEAST_EXPECT(m["User-Agent"] == "test");
             BEAST_EXPECT(m.body == "*");
         }
         {

@@ -27,6 +27,71 @@ basic_fields<Allocator>::
 //------------------------------------------------------------------------------
 
 template<class Allocator>
+inline
+string_view
+basic_fields<Allocator>::
+method_impl() const
+{
+    return (*this)[":method"];
+}
+
+template<class Allocator>
+inline
+string_view
+basic_fields<Allocator>::
+target_impl() const
+{
+    return (*this)[":target"];
+}
+
+template<class Allocator>
+inline
+string_view
+basic_fields<Allocator>::
+reason_impl() const
+{
+    return (*this)[":reason"];
+}
+
+template<class Allocator>
+inline
+void
+basic_fields<Allocator>::
+method_impl(string_view s)
+{
+    if(s.empty())
+        this->erase(":method");
+    else
+        this->replace(":method", s);
+}
+
+template<class Allocator>
+inline
+void
+basic_fields<Allocator>::
+target_impl(string_view s)
+{
+    if(s.empty())
+        this->erase(":target");
+    else
+        return this->replace(":target", s);
+}
+
+template<class Allocator>
+inline
+void
+basic_fields<Allocator>::
+reason_impl(string_view s)
+{
+    if(s.empty())
+        this->erase(":reason");
+    else
+        this->replace(":reason", s);
+}
+
+//------------------------------------------------------------------------------
+
+template<class Allocator>
 class basic_fields<Allocator>::
     const_iterator
 {
