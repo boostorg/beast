@@ -36,8 +36,8 @@ void fxx() {
     req.version = 11;   // HTTP/1.1
     req.method(verb::get);
     req.target("/index.htm");
-    req.insert("Accept", "text/html");
-    req.insert("User-Agent", "Beast");
+    req.insert(field::accept, "text/html");
+    req.insert(field::user_agent, "Beast");
     req.prepare(connection::close);
 
 //]
@@ -49,7 +49,7 @@ void fxx() {
     response<string_body> res;
     res.version = 11;   // HTTP/1.1
     res.result(status::ok);
-    res.insert("Server", "Beast");
+    res.insert(field::server, "Beast");
     res.body = "Hello, world!";
     res.prepare();
 
@@ -101,7 +101,7 @@ void fxx() {
     response<string_body> res;
     res.version = 11;
     res.result(status::ok);
-    res.insert("Server", "Beast");
+    res.insert(field::server, "Beast");
     res.body = "Hello, world!";
 
     write(sock, res, ec);

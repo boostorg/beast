@@ -136,7 +136,7 @@ receive_expect_100_continue(
         response<empty_body> res;
         res.version = 11;
         res.result(status::continue_);
-        res.insert("Server", "test");
+        res.insert(field::server, "test");
         write(stream, res, ec);
         if(ec)
             return;
@@ -198,8 +198,8 @@ send_cgi_response(
 
     res.result(status::ok);
     res.version = 11;
-    res.insert("Server", "Beast");
-    res.insert("Transfer-Encoding", "chunked");
+    res.insert(field::server, "Beast");
+    res.insert(field::transfer_encoding, "chunked");
 
     // No data yet, but we set more = true to indicate
     // that it might be coming later. Otherwise the
@@ -307,7 +307,7 @@ void do_server_head(
     // Set up the response, starting with the common fields
     response<string_body> res;
     res.version = 11;
-    res.insert("Server", "test");
+    res.insert(field::server, "test");
 
     // Now handle request-specific fields
     switch(req.method())
@@ -319,7 +319,7 @@ void do_server_head(
         // set of headers that would be sent for a GET request,
         // including the Content-Length, except for the body.
         res.result(status::ok);
-        res.insert("Content-Length", payload.size());
+        res.content_length(payload.size());
 
         // For GET requests, we include the body
         if(req.method() == verb::get)
@@ -337,7 +337,7 @@ void do_server_head(
         // We return responses indicating an error if
         // we do not recognize the request method.
         res.result(status::bad_request);
-        res.insert("Content-Type", "text/plain");
+        res.insert(field::content_type, "text/plain");
         res.body = "Invalid request-method '" + req.method_string().to_string() + "'";
         break;
     }
@@ -397,11 +397,11 @@ do_head_request(
     req.version = 11;
     req.method(verb::head);
     req.target(target);
-    req.insert("User-Agent", "test");
+    req.insert(field::user_agent, "test");
 
     // A client MUST send a Host header field in all HTTP/1.1 request messages.
     // https://tools.ietf.org/html/rfc7230#section-5.4
-    req.insert("Host", "localhost");
+    req.insert(field::host, "localhost");
 
     // Now send it
     write(stream, req, ec);

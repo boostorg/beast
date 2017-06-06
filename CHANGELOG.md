@@ -4,6 +4,7 @@ Version 50
 * Add field enumeration
 * Use allocator more in basic_fields
 * Fix basic_fields allocator awareness
+* Use field in basic_fields and call sites
 
 API Changes:
 

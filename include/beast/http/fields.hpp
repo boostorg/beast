@@ -12,6 +12,7 @@
 #include <beast/core/string_view.hpp>
 #include <beast/core/detail/ci_char_traits.hpp>
 #include <beast/http/connection.hpp>
+#include <beast/http/field.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/intrusive/list.hpp>
 #include <boost/intrusive/set.hpp>
@@ -226,7 +227,19 @@ public:
     void
     clear() noexcept;
 
-    /** Remove a field.
+    /** Remove zero or more known fields.
+
+        If more than one field with the specified name exists, all
+        matching fields will be removed.
+
+        @param f The known field constant.
+
+        @return The number of fields removed.
+    */
+    std::size_t
+    erase(field f);
+
+    /** Remove zero or more fields by name.
 
         If more than one field with the specified name exists, all
         matching fields will be removed.
@@ -238,7 +251,22 @@ public:
     std::size_t
     erase(string_view name);
 
-    /** Insert a field value.
+    /** Insert a value for a known field.
+
+        If a field with the same name already exists, the
+        existing field is untouched and a new field value pair
+        is inserted into the container.
+
+        @param f The known field constant.
+
+        @param name The name of the field.
+
+        @param value A string holding the value of the field.
+    */
+    void
+    insert(field f, string_view value);
+
+    /** Insert a value for a field by name.
 
         If a field with the same name already exists, the
         existing field is untouched and a new field value pair
@@ -314,16 +342,70 @@ protected:
     // for `header
     //
 
+    /** Returns the stored request-method string.
+
+        @note This is called by the @ref header implementation.
+    */
     string_view method_impl() const;
+
+    /** Returns the stored request-target string.
+
+        @note This is called by the @ref header implementation.
+    */
     string_view target_impl() const;
+
+    /** Returns the stored obsolete reason-phrase string.
+
+        @note This is called by the @ref header implementation.
+    */
     string_view reason_impl() const;
+
+    /** Set or clear the stored request-method string.
+
+        @note This is called by the @ref header implementation.
+    */
     void method_impl(string_view s);
+
+    /** Set or clear the stored request-target string.
+
+        @note This is called by the @ref header implementation.
+    */
     void target_impl(string_view s);
+
+    /** Set or clear the stored obsolete reason-phrase string.
+
+        @note This is called by the @ref header implementation.
+    */
     void reason_impl(string_view s);
+
+    /** Set the Content-Length field to the specified value.
+
+        @note This is called by the @ref header implementation.
+    */
     void content_length_impl(std::uint64_t n);
+
+    /** Add close to the Connection field.
+
+        @note This is called by the @ref header implementation.
+    */
     void connection_impl(close_t);
+
+    /** Add keep-alive to the Connection field.
+
+        @note This is called by the @ref header implementation.
+    */
     void connection_impl(keep_alive_t);
+
+    /** Add upgrade to the Connection field.
+
+        @note This is called by the @ref header implementation.
+    */
     void connection_impl(upgrade_t);
+
+    /** Add chunked to the Transfer-Encoding field.
+
+        @note This is called by the @ref header implementation.
+    */
     void chunked_impl();
 
 private:

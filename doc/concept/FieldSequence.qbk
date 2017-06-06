@@ -59,3 +59,44 @@ In this table:
 ]
 
 [endsect]
+
+
+
+[/
+
+
+[section:Fields Fields]
+
+A type meeting the requirements of [*Fields] represents a container
+used to store HTTP header fields.
+
+In this table:
+
+* `X` denotes a type that meets the requirements of [*Fields].
+
+* `c` is a value of type `X const`.
+
+
+[table FieldSequence requirements
+[[expression][type][semantics, pre/post-conditions]]
+[
+    []
+    []
+    [
+    ]
+]
+]
+
+[endsect]
+
+Operations we'd like to perform
+
+Determine if a field exists
+    bool exists(field f) const;
+    bool exists(string_view s) const;
+    
+    iterator find(field f) const;
+    iterator find(string_view s);
+
+
+]

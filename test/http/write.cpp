@@ -293,7 +293,7 @@ public:
             m.version = 10;
             m.result(status::ok);
             m.reason("OK");
-            m.insert("Server", "test");
+            m.insert(field::server, "test");
             m.insert("Content-Length", "5");
             m.body = "*****";
             error_code ec;
@@ -312,7 +312,7 @@ public:
             m.version = 11;
             m.result(status::ok);
             m.reason("OK");
-            m.insert("Server", "test");
+            m.insert(field::server, "test");
             m.insert("Transfer-Encoding", "chunked");
             m.body = "*****";
             error_code ec;
@@ -345,7 +345,7 @@ public:
             m.method(verb::get);
             m.target("/");
             m.version = 10;
-            m.insert("User-Agent", "test");
+            m.insert(field::user_agent, "test");
             m.insert("Content-Length", "5");
             m.body = "*****";
             try
@@ -376,7 +376,7 @@ public:
             m.method(verb::get);
             m.target("/");
             m.version = 10;
-            m.insert("User-Agent", "test");
+            m.insert(field::user_agent, "test");
             m.insert("Transfer-Encoding", "chunked");
             m.body = "*****";
             error_code ec;
@@ -409,7 +409,7 @@ public:
             m.method(verb::get);
             m.target("/");
             m.version = 10;
-            m.insert("User-Agent", "test");
+            m.insert(field::user_agent, "test");
             m.insert("Transfer-Encoding", "chunked");
             m.body = "*****";
             error_code ec;
@@ -442,7 +442,7 @@ public:
             m.method(verb::get);
             m.target("/");
             m.version = 10;
-            m.insert("User-Agent", "test");
+            m.insert(field::user_agent, "test");
             m.insert("Content-Length", "5");
             m.body = "*****";
             error_code ec;
@@ -470,7 +470,7 @@ public:
             m.method(verb::get);
             m.target("/");
             m.version = 10;
-            m.insert("User-Agent", "test");
+            m.insert(field::user_agent, "test");
             m.insert("Content-Length", "5");
             m.body = "*****";
             error_code ec;
@@ -499,7 +499,7 @@ public:
             m.method(verb::get);
             m.target("/");
             m.version = 10;
-            m.insert("User-Agent", "test");
+            m.insert(field::user_agent, "test");
             m.body = "*";
             m.prepare();
             BEAST_EXPECT(str(m) ==
@@ -516,7 +516,7 @@ public:
             m.method(verb::get);
             m.target("/");
             m.version = 10;
-            m.insert("User-Agent", "test");
+            m.insert(field::user_agent, "test");
             m.body = "*";
             m.prepare(connection::keep_alive);
             BEAST_EXPECT(str(m) ==
@@ -534,7 +534,7 @@ public:
             m.method(verb::get);
             m.target("/");
             m.version = 10;
-            m.insert("User-Agent", "test");
+            m.insert(field::user_agent, "test");
             m.body = "*";
             try
             {
@@ -552,7 +552,7 @@ public:
             m.method(verb::get);
             m.target("/");
             m.version = 10;
-            m.insert("User-Agent", "test");
+            m.insert(field::user_agent, "test");
             m.body = "*";
             m.prepare();
             test::string_ostream ss(ios_);
@@ -572,7 +572,7 @@ public:
             m.method(verb::get);
             m.target("/");
             m.version = 11;
-            m.insert("User-Agent", "test");
+            m.insert(field::user_agent, "test");
             m.body = "*";
             m.prepare();
             BEAST_EXPECT(str(m) ==
@@ -589,7 +589,7 @@ public:
             m.method(verb::get);
             m.target("/");
             m.version = 11;
-            m.insert("User-Agent", "test");
+            m.insert(field::user_agent, "test");
             m.body = "*";
             m.prepare(connection::close);
             test::string_ostream ss(ios_);
@@ -611,7 +611,7 @@ public:
             m.method(verb::get);
             m.target("/");
             m.version = 11;
-            m.insert("User-Agent", "test");
+            m.insert(field::user_agent, "test");
             m.prepare(connection::upgrade);
             BEAST_EXPECT(str(m) ==
                 "GET / HTTP/1.1\r\n"
@@ -626,7 +626,7 @@ public:
             m.method(verb::get);
             m.target("/");
             m.version = 11;
-            m.insert("User-Agent", "test");
+            m.insert(field::user_agent, "test");
             m.body = "*";
             m.prepare();
             test::string_ostream ss(ios_);
@@ -651,7 +651,7 @@ public:
         m.method(verb::get);
         m.target("/");
         m.version = 11;
-        m.insert("User-Agent", "test");
+        m.insert(field::user_agent, "test");
         m.body = "*";
         BEAST_EXPECT(boost::lexical_cast<std::string>(m) ==
             "GET / HTTP/1.1\r\nUser-Agent: test\r\n\r\n*");
@@ -785,7 +785,7 @@ public:
         m0.version = 11;
         m0.result(status::ok);
         m0.reason("OK");
-        m0.insert("Server", "test");
+        m0.insert(field::server, "test");
         m0.body.s = "Hello, world!\n";
 
         {

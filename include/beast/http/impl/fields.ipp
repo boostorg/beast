@@ -303,6 +303,14 @@ clear() noexcept
 template<class Allocator>
 std::size_t
 basic_fields<Allocator>::
+erase(field f)
+{
+    return erase(to_string(f));
+}
+
+template<class Allocator>
+std::size_t
+basic_fields<Allocator>::
 erase(string_view name)
 {
     auto it = set_.find(name, less{});
@@ -321,6 +329,14 @@ erase(string_view name)
         ++n;
     }
     return n;
+}
+
+template<class Allocator>
+void
+basic_fields<Allocator>::
+insert(field f, string_view value)
+{
+    insert(to_string(f), value);
 }
 
 template<class Allocator>

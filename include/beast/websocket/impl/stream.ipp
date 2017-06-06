@@ -163,12 +163,12 @@ build_request(detail::sec_ws_key_type& key,
     req.target(target);
     req.version = 11;
     req.method(http::verb::get);
-    req.insert("Host", host);
-    req.insert("Upgrade", "websocket");
-    req.insert("Connection", "upgrade");
+    req.insert(http::field::host, host);
+    req.insert(http::field::upgrade, "websocket");
+    req.insert(http::field::connection, "upgrade");
     detail::make_sec_ws_key(key, maskgen_);
-    req.insert("Sec-WebSocket-Key", key);
-    req.insert("Sec-WebSocket-Version", "13");
+    req.insert(http::field::sec_websocket_key, key);
+    req.insert(http::field::sec_websocket_version, "13");
     if(pmd_opts_.client_enable)
     {
         detail::pmd_offer config;
@@ -187,7 +187,7 @@ build_request(detail::sec_ws_key_type& key,
     if(! req.exists("User-Agent"))
     {
         static_string<20> s(BEAST_VERSION_STRING);
-        req.insert("User-Agent", s);
+        req.insert(http::field::user_agent, s);
     }
     return req;
 }
@@ -205,8 +205,9 @@ build_response(http::header<true, Fields> const& req,
             decorator(res);
             if(! res.exists("Server"))
             {
+                BOOST_STATIC_ASSERT(sizeof(BEAST_VERSION_STRING) < 20);
                 static_string<20> s(BEAST_VERSION_STRING);
-                res.insert("Server", s);
+                res.insert(http::field::server, s);
             }
         };
     auto err =
@@ -245,7 +246,7 @@ build_response(http::header<true, Fields> const& req,
             response_type res;
             res.result(http::status::upgrade_required);
             res.version = req.version;
-            res.insert("Sec-WebSocket-Version", "13");
+            res.insert(http::field::sec_websocket_version, "13");
             res.prepare();
             decorate(res);
             return res;
@@ -261,12 +262,12 @@ build_response(http::header<true, Fields> const& req,
     }
     res.result(http::status::switching_protocols);
     res.version = req.version;
-    res.insert("Upgrade", "websocket");
-    res.insert("Connection", "upgrade");
+    res.insert(http::field::upgrade, "websocket");
+    res.insert(http::field::connection, "upgrade");
     {
         detail::sec_ws_accept_type accept;
         detail::make_sec_ws_accept(accept, key);
-        res.insert("Sec-WebSocket-Accept", accept);
+        res.insert(http::field::sec_websocket_accept, accept);
     }
     decorate(res);
     return res;
