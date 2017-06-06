@@ -47,6 +47,13 @@
             <member><link linkend="beast.ref.http__serializer">serializer</link></member>
             <member><link linkend="beast.ref.http__string_body">string_body</link></member>
           </simplelist>
+          <bridgehead renderas="sect3">rfc7230</bridgehead>
+          <simplelist type="vert" columns="1">
+           <member><link linkend="beast.ref.http__ext_list">ext_list</link></member>
+           <member><link linkend="beast.ref.http__opt_token_list">opt_token_list</link></member>
+           <member><link linkend="beast.ref.http__param_list">param_list</link></member>
+           <member><link linkend="beast.ref.http__token_list">token_list</link></member>
+          </simplelist>
         </entry>
         <entry valign="top">
           <bridgehead renderas="sect3">Functions</bridgehead>
@@ -75,13 +82,6 @@
           </simplelist>
         </entry>
         <entry valign="top">
-          <bridgehead renderas="sect3">rfc7230</bridgehead>
-          <simplelist type="vert" columns="1">
-           <member><link linkend="beast.ref.http__ext_list">ext_list</link></member>
-           <member><link linkend="beast.ref.http__opt_token_list">opt_token_list</link></member>
-           <member><link linkend="beast.ref.http__param_list">param_list</link></member>
-           <member><link linkend="beast.ref.http__token_list">token_list</link></member>
-          </simplelist>
           <bridgehead renderas="sect3">Constants</bridgehead>
           <simplelist type="vert" columns="1">
             <member><link linkend="beast.ref.http__connection">connection</link></member>
