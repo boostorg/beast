@@ -559,6 +559,8 @@ struct message : header<isRequest, Fields>
 
         The value of the Content-Length field will be unconditionally
         set to the specified number of octets.
+
+        @para n The number of octets to set for the Content-Length field.
     */
     void
     content_length(std::uint64_t n);
@@ -575,7 +577,7 @@ struct message : header<isRequest, Fields>
         req.version = 11;
         req.method(verb::upgrade);
         req.target("/");
-        req.insert("User-Agent", "Beast");
+        req.insert(field::user_agent, "Beast");
         req.prepare(connection::close, connection::upgrade);
         @endcode
 

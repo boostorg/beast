@@ -70,7 +70,7 @@ public:
                 req.version = 11;
                 req.method("POST");
                 req.target("/");
-                req.insert("User-Agent", "test");
+                req.insert(field::user_agent, "test");
                 req.body = "Hello, world!";
                 req.prepare();
 
@@ -103,7 +103,7 @@ public:
         req.version = 11;
         req.method("POST");
         req.target("/");
-        req.insert("User-Agent", "test");
+        req.insert(field::user_agent, "test");
         req.body = "Hello, world!";
         req.prepare();
 
@@ -155,7 +155,7 @@ public:
         req.version = 11;
         req.method(verb::get);
         req.target("/");
-        req.insert("User-Agent", "test");
+        req.insert(field::user_agent, "test");
         error_code ec;
         write_ostream(os, req, ec);
         BEAST_EXPECTS(! ec, ec.message());

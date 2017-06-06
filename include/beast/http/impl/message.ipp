@@ -104,6 +104,14 @@ size() const
 }
 
 template<bool isRequest, class Body, class Fields>
+void
+message<isRequest, Body, Fields>::
+content_length(std::uint64_t n)
+{
+    this->content_length_impl(n);
+}
+
+template<bool isRequest, class Body, class Fields>
 template<class... Args>
 void
 message<isRequest, Body, Fields>::

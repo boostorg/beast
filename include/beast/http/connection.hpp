@@ -59,7 +59,7 @@ connection_impl<_>::upgrade;
     req.version = 11;
     req.method(verb::upgrade);
     req.target("/");
-    req.insert("User-Agent", "Beast");
+    req.insert(field::user_agent, "Beast");
     req.prepare(connection::close, connection::upgrade);
     @endcode
 
