@@ -72,7 +72,7 @@ public:
                 req.target("/");
                 req.insert("User-Agent", "test");
                 req.body = "Hello, world!";
-                prepare(req);
+                req.prepare();
 
                 error_code ec;
                 send_expect_100_continue(
@@ -105,7 +105,7 @@ public:
         req.target("/");
         req.insert("User-Agent", "test");
         req.body = "Hello, world!";
-        prepare(req);
+        req.prepare();
 
         test::pipe downstream{ios_};
         downstream.server.read_size(3);

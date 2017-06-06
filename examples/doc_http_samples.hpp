@@ -449,9 +449,10 @@ do_head_request(
     @param transform The header transformation to apply. The function will
     be called with this signature:
     @code
-        void transform(
-            header<isRequest, Fields>&,     // The header to transform
-            error_code&);                   // Set to the error, if any
+        template<class Body>
+        void transform(message<
+            isRequest, Body, Fields>&,  // The message to transform
+            error_code&);               // Set to the error, if any
     @endcode
 
     @param ec Set to the error if any occurred.
@@ -496,8 +497,7 @@ relay(
         return;
 
     // Apply the caller's header tranformation
-    // base() returns a reference to the header portion of the message.
-    transform(p.get().base(), ec);
+    transform(p.get(), ec);
     if(ec)
         return;
 

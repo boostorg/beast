@@ -11,6 +11,7 @@
 #include <beast/config.hpp>
 #include <beast/core/string_view.hpp>
 #include <beast/core/detail/ci_char_traits.hpp>
+#include <beast/http/connection.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/intrusive/list.hpp>
 #include <boost/intrusive/set.hpp>
@@ -276,6 +277,11 @@ protected:
     void method_impl(string_view s);
     void target_impl(string_view s);
     void reason_impl(string_view s);
+    void content_length_impl(std::uint64_t n);
+    void connection_impl(close_t);
+    void connection_impl(keep_alive_t);
+    void connection_impl(upgrade_t);
+    void chunked_impl();
 
 private:
     struct element

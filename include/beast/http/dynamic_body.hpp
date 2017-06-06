@@ -28,6 +28,16 @@ struct basic_dynamic_body
     /// The type of the body member when used in a message.
     using value_type = DynamicBuffer;
 
+    /// Returns the content length of this body in a message.
+    template<bool isRequest, class Fields>
+    static
+    std::uint64_t
+    size(message<isRequest,
+        basic_dynamic_body, Fields> const& m)
+    {
+        return m.body.size();
+    }
+
 #if BEAST_DOXYGEN
     /// The algorithm to obtain buffers representing the body
     using reader = implementation_defined;
@@ -53,12 +63,6 @@ struct basic_dynamic_body
         void
         init(error_code&)
         {
-        }
-
-        std::uint64_t
-        content_length() const
-        {
-            return body_.size();
         }
 
         boost::optional<std::pair<const_buffers_type, bool>>

@@ -38,12 +38,12 @@ int main(int, char const*[])
             auto ep = sock.remote_endpoint();
             request<string_body> req;
             req.method(verb::get);
-            req.target("/");
             req.version = 11;
+            req.target("/");
             req.insert("Host", host + std::string(":") +
                 boost::lexical_cast<std::string>(ep.port()));
             req.insert("User-Agent", "beast/http");
-            prepare(req);
+            req.prepare();
             write(sock, req);
             response<string_body> res;
             beast::multi_buffer b;

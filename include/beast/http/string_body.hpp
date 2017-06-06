@@ -30,6 +30,16 @@ struct string_body
     /// The type of the body member when used in a message.
     using value_type = std::string;
 
+    /// Returns the content length of the body in a message.
+    template<bool isRequest, class Fields>
+    static
+    std::uint64_t
+    size(
+        message<isRequest, string_body, Fields> const& m)
+    {
+        return m.body.size();
+    }
+
 #if BEAST_DOXYGEN
     /// The algorithm to obtain buffers representing the body
     using reader = implementation_defined;
@@ -53,19 +63,12 @@ struct string_body
         }
 
         void
-        init(error_code& ec)
+        init(error_code&)
         {
-            beast::detail::ignore_unused(ec);
-        }
-
-        std::uint64_t
-        content_length() const
-        {
-            return body_.size();
         }
 
         boost::optional<std::pair<const_buffers_type, bool>>
-        get(error_code& ec)
+        get(error_code&)
         {
             return {{const_buffers_type{
                 body_.data(), body_.size()}, false}};

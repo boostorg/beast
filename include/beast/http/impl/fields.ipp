@@ -8,6 +8,7 @@
 #ifndef BEAST_HTTP_IMPL_FIELDS_IPP
 #define BEAST_HTTP_IMPL_FIELDS_IPP
 
+#include <beast/core/static_string.hpp>
 #include <beast/http/detail/rfc7230.hpp>
 #include <boost/throw_exception.hpp>
 #include <algorithm>
@@ -74,7 +75,7 @@ target_impl(string_view s)
     if(s.empty())
         this->erase(":target");
     else
-        return this->replace(":target", s);
+        this->replace(":target", s);
 }
 
 template<class Allocator>
@@ -87,6 +88,73 @@ reason_impl(string_view s)
         this->erase(":reason");
     else
         this->replace(":reason", s);
+}
+
+template<class Allocator>
+inline
+void
+basic_fields<Allocator>::
+content_length_impl(std::uint64_t n)
+{
+    this->erase("Content-Length");
+    this->insert("Content-Length",
+        to_static_string(n));
+}
+
+template<class Allocator>
+inline
+void
+basic_fields<Allocator>::
+connection_impl(close_t)
+{
+    auto it = find("Connection");
+    if(it == end())
+        this->insert("Connection", "close");
+    else
+        this->replace("Connection",
+            it->value().to_string() + ", close");
+}
+
+template<class Allocator>
+inline
+void
+basic_fields<Allocator>::
+connection_impl(keep_alive_t)
+{
+    auto it = find("Connection");
+    if(it == end())
+        this->insert("Connection", "keep-alive");
+    else
+        this->replace("Connection",
+            it->value().to_string() + ", keep-alive");
+}
+
+template<class Allocator>
+inline
+void
+basic_fields<Allocator>::
+connection_impl(upgrade_t)
+{
+    auto it = find("Connection");
+    if(it == end())
+        this->insert("Connection", "upgrade");
+    else
+        this->replace("Connection",
+            it->value().to_string() + ", upgrade");
+}
+
+template<class Allocator>
+inline
+void
+basic_fields<Allocator>::
+chunked_impl()
+{
+    auto it = find("Transfer-Encoding");
+    if(it == end())
+        this->insert("Transfer-Encoding", "chunked");
+    else
+        this->replace("Transfer-Encoding",
+            it->value().to_string() + ", chunked");
 }
 
 //------------------------------------------------------------------------------

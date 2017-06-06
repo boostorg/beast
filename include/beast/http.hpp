@@ -12,9 +12,11 @@
 
 #include <beast/http/basic_parser.hpp>
 #include <beast/http/buffer_body.hpp>
+#include <beast/http/connection.hpp>
 #include <beast/http/dynamic_body.hpp>
 #include <beast/http/empty_body.hpp>
 #include <beast/http/error.hpp>
+#include <beast/http/field.hpp>
 #include <beast/http/fields.hpp>
 #include <beast/http/message.hpp>
 #include <beast/http/parser.hpp>

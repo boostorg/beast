@@ -59,19 +59,21 @@ struct has_value_type<T, beast::detail::void_t<
     typename T::value_type
         > > : std::true_type {};
 
-template<class T, class = beast::detail::void_t<>>
-struct has_content_length : std::false_type {};
+/** Determine if a @b Body type has a size
 
-template<class T>
-struct has_content_length<T, beast::detail::void_t<decltype(
-    std::declval<T>().content_length()
-        )> > : std::true_type
-{
-    static_assert(std::is_convertible<
-        decltype(std::declval<T>().content_length()),
-            std::uint64_t>::value,
-        "Writer::content_length requirements not met");
-};
+    This metafunction is equivalent to `std::true_type` if
+    Body contains a static member function called `content_lengeth`.
+*/
+template<class T, class M, class = void>
+struct is_body_sized : std::false_type {};
+
+template<class T, class M>
+struct is_body_sized<T, M, beast::detail::void_t<
+    typename T::value_type,
+        decltype(
+    std::declval<std::uint64_t&>() =
+        T::size(std::declval<M const&>()),
+    (void)0)>> : std::true_type {};
 
 } // detail
 } // http

@@ -9,11 +9,14 @@
 #define BEAST_HTTP_MESSAGE_HPP
 
 #include <beast/config.hpp>
+#include <beast/http/connection.hpp>
 #include <beast/http/fields.hpp>
 #include <beast/http/verb.hpp>
 #include <beast/http/status.hpp>
+#include <beast/http/type_traits.hpp>
 #include <beast/core/string_view.hpp>
 #include <beast/core/detail/integer_sequence.hpp>
+#include <boost/optional.hpp>
 #include <boost/throw_exception.hpp>
 #include <memory>
 #include <stdexcept>
@@ -49,12 +52,7 @@ struct header<true, Fields> : Fields
 #endif
 {
     /// Indicates if the header is a request or response.
-#if BEAST_DOXYGEN
-    static bool constexpr is_request = isRequest;
-
-#else
-    static bool constexpr is_request = true;
-#endif
+    using is_request = std::true_type;
 
     /// The type representing the fields.
     using fields_type = Fields;
@@ -194,6 +192,9 @@ struct header<true, Fields> : Fields
     }
 
 private:
+    template<bool, class, class>
+    friend struct message;
+
     template<class T>
     friend
     void
@@ -230,7 +231,7 @@ template<class Fields>
 struct header<false, Fields> : Fields
 {
     /// Indicates if the header is a request or response.
-    static bool constexpr is_request = false;
+    using is_request = std::false_type;
 
     /// The type representing the fields.
     using fields_type = Fields;
@@ -377,6 +378,9 @@ struct header<false, Fields> : Fields
     }
    
 private:
+    template<bool, class, class>
+    friend struct message;
+
     template<class T>
     friend
     void
@@ -412,7 +416,7 @@ template<bool isRequest, class Body, class Fields = fields>
 struct message : header<isRequest, Fields>
 {
     /// The base class used to hold the header portion of the message.
-    using base_type = header<isRequest, Fields>;
+    using header_type = header<isRequest, Fields>;
 
     /** The type providing the body traits.
 
@@ -445,8 +449,8 @@ struct message : header<isRequest, Fields>
     */
     template<class... Args>
     explicit
-    message(base_type&& base, Args&&... args)
-        : base_type(std::move(base))
+    message(header_type&& base, Args&&... args)
+        : header_type(std::move(base))
         , body(std::forward<Args>(args)...)
     {
     }
@@ -458,8 +462,8 @@ struct message : header<isRequest, Fields>
     */
     template<class... Args>
     explicit
-    message(base_type const& base, Args&&... args)
-        : base_type(base)
+    message(header_type const& base, Args&&... args)
+        : header_type(base)
         , body(std::forward<Args>(args)...)
     {
     }
@@ -469,13 +473,13 @@ struct message : header<isRequest, Fields>
         @param u An argument forwarded to the body constructor.
 
         @note This constructor participates in overload resolution
-        only if `u` is not convertible to `base_type`.
+        only if `u` is not convertible to `header_type`.
     */
     template<class U
 #if ! BEAST_DOXYGEN
         , class = typename std::enable_if<
             ! std::is_convertible<typename
-                std::decay<U>::type, base_type>::value>::type
+                std::decay<U>::type, header_type>::value>::type
 #endif
     >
     explicit
@@ -491,16 +495,16 @@ struct message : header<isRequest, Fields>
         @param v An argument forwarded to the fields constructor.
 
         @note This constructor participates in overload resolution
-        only if `u` is not convertible to `base_type`.
+        only if `u` is not convertible to `header_type`.
     */
     template<class U, class V
 #if ! BEAST_DOXYGEN
         ,class = typename std::enable_if<! std::is_convertible<
-            typename std::decay<U>::type, base_type>::value>::type
+            typename std::decay<U>::type, header_type>::value>::type
 #endif
     >
     message(U&& u, V&& v)
-        : base_type(std::forward<V>(v))
+        : header_type(std::forward<V>(v))
         , body(std::forward<U>(u))
     {
     }
@@ -531,24 +535,71 @@ struct message : header<isRequest, Fields>
     {
     }
 
-    /// Returns the header portion of the message
-    base_type&
-    base()
-    {
-        return *this;
-    }
+    /** Returns `true` if Transfer-Encoding is present, and chunked appears last.
+    */
+    bool
+    chunked() const;
 
-    /// Returns the header portion of the message
-    base_type const&
-    base() const
-    {
-        return *this;
-    }
+    /** Returns the payload size of the body in octets if possible.
+
+        This function invokes the @b Body algorithm to measure
+        the number of octets in the serialized body container. If
+        there is no body, this will return zero. Otherwise, if the
+        body exists but is not known ahead of time, `boost::none`
+        is returned (usually indicating that a chunked Transfer-Encoding
+        will be used).
+
+        @note The value of the Content-Length field in the message
+        is not inspected.
+    */
+    boost::optional<std::uint64_t>
+    size() const;
+
+    /** Set the Content-Length field.
+
+        The value of the Content-Length field will be unconditionally
+        set to the specified number of octets.
+    */
+    void
+    content_length(std::uint64_t n);
+
+    /** Prepare some fields automatically.
+
+        This function will adjust the Connection, Content-Length
+        and Transfer-Encoding, fields of the message based on the
+        properties of the body and the options passed in.
+
+        @par Example
+        @code
+        request<empty_body> req;
+        req.version = 11;
+        req.method(verb::upgrade);
+        req.target("/");
+        req.insert("User-Agent", "Beast");
+        req.prepare(connection::close, connection::upgrade);
+        @endcode
+
+        @param args An list of zero or more options to use.
+
+        @throw std::invalid_argument if the values of certain
+        fields detectably violate the semantic requirements of HTTP.
+
+        @note Undefined behavior if called more than once.
+
+        @see @ref connection
+    */
+    template<class... Args>
+    void
+    prepare(Args const&... args);
 
 private:
+    static_assert(is_body<Body>::value,
+        "Body requirements not met");
+
     template<class... Un, size_t... IUn>
     message(std::piecewise_construct_t,
-            std::tuple<Un...>& tu, beast::detail::index_sequence<IUn...>)
+        std::tuple<Un...>& tu,
+            beast::detail::index_sequence<IUn...>)
         : body(std::forward<Un>(std::get<IUn>(tu))...)
     {
     }
@@ -559,10 +610,46 @@ private:
             std::tuple<Un...>& tu, std::tuple<Vn...>& tv,
                 beast::detail::index_sequence<IUn...>,
                     beast::detail::index_sequence<IVn...>)
-        : base_type(std::forward<Vn>(std::get<IVn>(tv))...)
+        : header_type(std::forward<Vn>(std::get<IVn>(tv))...)
         , body(std::forward<Un>(std::get<IUn>(tu))...)
     {
     }
+
+    boost::optional<std::uint64_t>
+    size(std::true_type) const
+    {
+        return Body::size(*this);
+    }
+
+    boost::optional<std::uint64_t>
+    size(std::false_type) const
+    {
+        return boost::none;
+    }
+
+    template<class Arg, class... Args>
+    void
+    prepare_opt(unsigned&, Arg const&, Args const&...);
+
+    void
+    prepare_opt(unsigned&)
+    {
+    }
+
+    void
+    prepare_opt(unsigned&, close_t);
+
+    void
+    prepare_opt(unsigned&, keep_alive_t);
+
+    void
+    prepare_opt(unsigned&, upgrade_t);
+
+    void
+    prepare_payload(std::true_type);
+
+    void
+    prepare_payload(std::false_type);
 };
 
 /// A typical HTTP request
@@ -616,39 +703,6 @@ is_keep_alive(header<isRequest, Fields> const& msg);
 template<bool isRequest, class Fields>
 bool
 is_upgrade(header<isRequest, Fields> const& msg);
-
-/** HTTP/1 connection prepare options.
-
-    @note These values are used with @ref prepare.
-*/
-enum class connection
-{
-    /// Specify Connection: close.
-    close,
-
-    /// Specify Connection: keep-alive where possible.
-    keep_alive,
-
-    /// Specify Connection: upgrade.
-    upgrade
-};
-
-/** Prepare an HTTP message.
-
-    This function will adjust the Content-Length, Transfer-Encoding,
-    and Connection fields of the message based on the properties of
-    the body and the options passed in.
-
-    @param msg The message to prepare. The fields may be modified.
-
-    @param options A list of prepare options.
-*/
-template<
-    bool isRequest, class Body, class Fields,
-    class... Options>
-void
-prepare(message<isRequest, Body, Fields>& msg,
-    Options&&... options);
 
 } // http
 } // beast

@@ -62,7 +62,6 @@
             <member><link linkend="beast.ref.http__make_serializer">make_serializer</link></member>
             <member><link linkend="beast.ref.http__obsolete_reason">obsolete_reason</link></member>
             <member><link linkend="beast.ref.http__operator_ls_">operator&lt;&lt;</link></member>
-            <member><link linkend="beast.ref.http__prepare">prepare</link></member>
             <member><link linkend="beast.ref.http__read">read</link></member>
             <member><link linkend="beast.ref.http__read_header">read_header</link></member>
             <member><link linkend="beast.ref.http__read_some">read_some</link></member>

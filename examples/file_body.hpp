@@ -24,6 +24,16 @@ struct file_body
 {
     using value_type = std::string;
 
+    /// Returns the content length of the body in a message.
+    template<bool isRequest, class Fields>
+    static
+    std::uint64_t
+    size(
+        message<isRequest, file_body, Fields> const& m)
+    {
+        return boost::filesystem::file_size(m.body.c_str());
+    }
+
     class reader
     {
         std::uint64_t size_ = 0;
@@ -65,12 +75,6 @@ struct file_body
                     system_category()};
             else
                 size_ = boost::filesystem::file_size(path_);
-        }
-
-        std::uint64_t
-        content_length() const
-        {
-            return size_;
         }
 
         boost::optional<std::pair<const_buffers_type, bool>>
