@@ -11,6 +11,7 @@
 #include <beast/config.hpp>
 #include <beast/core/error.hpp>
 #include <beast/core/string_view.hpp>
+#include <beast/http/field.hpp>
 #include <beast/http/verb.hpp>
 #include <beast/http/detail/basic_parser.hpp>
 #include <boost/asio/buffer.hpp>
@@ -394,9 +395,8 @@ private:
         char const* last, error_code& ec);
 
     void
-    do_field(string_view name,
-        string_view value,
-            error_code& ec);
+    do_field(field f,
+        string_view value, error_code& ec);
 };
 
 } // http

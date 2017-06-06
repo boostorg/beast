@@ -678,12 +678,12 @@ parse_fields(char const*& p,
             auto it2 = term - 2;
             detail::skip_ows(p, it2);
             detail::skip_ows_rev(it2, p);
-            auto const value =
-                make_string(p, it2);
-            do_field(name, value, ec);
+            auto const f = string_to_field(name);
+            auto const value = make_string(p, it2);
+            do_field(f, value, ec);
             if(ec)
                 return;
-            impl().on_field(name, value, ec);
+            impl().on_field(f, name, value, ec);
             if(ec)
                 return;
             p = term;
@@ -723,12 +723,12 @@ parse_fields(char const*& p,
                     p = term;
                 }
             }
-            string_view value{
-                s.data(), s.size()};
-            do_field(name, value, ec);
+            auto const f = string_to_field(name);
+            string_view const value{s.data(), s.size()};
+            do_field(f, value, ec);
             if(ec)
                 return;
-            impl().on_field(name, value, ec);
+            impl().on_field(f, name, value, ec);
             if(ec)
                 return;
         }
@@ -738,14 +738,12 @@ parse_fields(char const*& p,
 template<bool isRequest, class Derived>
 void
 basic_parser<isRequest, Derived>::
-do_field(
-    string_view name,
-        string_view value,
-            error_code& ec)
+do_field(field f,
+    string_view value, error_code& ec)
 {
     // Connection
-    if(strieq("connection", name) ||
-        strieq("proxy-connection", name))
+    if(f == field::connection ||
+        f == field::proxy_connection)
     {
         auto const list = opt_token_list{value};
         if(! validate_list(list))
@@ -788,7 +786,7 @@ do_field(
     }
 
     // Content-Length
-    if(strieq("content-length", name))
+    if(f == field::content_length)
     {
         if(f_ & flagContentLength)
         {
@@ -818,7 +816,7 @@ do_field(
     }
 
     // Transfer-Encoding
-    if(strieq("transfer-encoding", name))
+    if(f == field::transfer_encoding)
     {
         if(f_ & flagChunked)
         {
@@ -850,7 +848,7 @@ do_field(
     }
 
     // Upgrade
-    if(strieq("upgrade", name))
+    if(f == field::upgrade)
     {
         f_ |= flagUpgrade;
         ec = {};

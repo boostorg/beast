@@ -21,7 +21,7 @@ namespace detail {
 class field_strings
 {
     using array_type =
-        std::array<string_view, 301>;
+        std::array<string_view, 302>;
 
     array_type v_;
 
@@ -257,6 +257,7 @@ public:
             "Proxy-Authenticate",
             "Proxy-Authentication-Info",
             "Proxy-Authorization",
+            "Proxy-Connection",
             "Proxy-Features",
             "Proxy-Instruction",
             "Public",
