@@ -114,14 +114,14 @@ public:
         }
 
         {
-            fields h;
+            header<true, fields> h;
             h.insert("User-Agent", "test");
             message<true, one_arg_body, fields> m{Arg1{}, h};
             BEAST_EXPECT(h["User-Agent"] == "test");
             BEAST_EXPECT(m["User-Agent"] == "test");
         }
         {
-            fields h;
+            header<true, fields> h;
             h.insert("User-Agent", "test");
             message<true, one_arg_body, fields> m{Arg1{}, std::move(h)};
             BEAST_EXPECT(! h.exists("User-Agent"));

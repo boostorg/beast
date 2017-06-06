@@ -71,15 +71,11 @@ public:
         off_t len;
     };
 
-public:
-    /// The type of allocator used.
-    using allocator_type = Allocator;
-
-    /// A constant iterator to the field sequence.
-    class const_iterator;
-
-    /// A constant iterator to the field sequence.
-    using iterator = const_iterator;
+protected:
+    //
+    // These are for `header`
+    //
+    friend class fields_test;
 
     /// Destructor
     ~basic_fields();
@@ -151,6 +147,16 @@ public:
             Allocator>::value>::type>
 #endif
     basic_fields& operator=(basic_fields<OtherAlloc> const&);
+
+public:
+    /// The type of allocator used.
+    using allocator_type = Allocator;
+
+    /// A constant iterator to the field sequence.
+    class const_iterator;
+
+    /// A constant iterator to the field sequence.
+    using iterator = const_iterator;
 
     /// Return a copy of the allocator associated with the container.
     allocator_type
@@ -304,7 +310,10 @@ public:
     swap(basic_fields<Alloc>& lhs, basic_fields<Alloc>& rhs);
 
 protected:
-    // for header
+    //
+    // for `header
+    //
+
     string_view method_impl() const;
     string_view target_impl() const;
     string_view reason_impl() const;
