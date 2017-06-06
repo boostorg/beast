@@ -45,7 +45,7 @@ template<bool isRequest, class Fields = fields>
 struct header;
 
 template<class Fields>
-struct header<true, Fields>
+struct header<true, Fields> : Fields
 #endif
 {
     /// Indicates if the header is a request or response.
@@ -58,6 +58,17 @@ struct header<true, Fields>
 
     /// The type representing the fields.
     using fields_type = Fields;
+
+    /** The HTTP-version.
+
+        This holds both the major and minor version numbers,
+        using these formulas:
+        @code
+            int major = version / 10;
+            int minor = version % 10;
+        @endcode
+    */
+    int version;
 
     /// Default constructor
     header() = default;
@@ -96,24 +107,10 @@ struct header<true, Fields>
                     header>::value>::type>
     explicit
     header(Arg1&& arg1, ArgN&&... argn)
-        : fields(std::forward<Arg1>(arg1),
+        : Fields(std::forward<Arg1>(arg1),
             std::forward<ArgN>(argn)...)
     {
     }
-
-    /** The HTTP-version.
-
-        This holds both the major and minor version numbers,
-        using these formulas:
-        @code
-            int major = version / 10;
-            int minor = version % 10;
-        @endcode
-    */
-    int version;
-
-    /// The HTTP field values.
-    fields_type fields;
 
     /** Return the request-method verb.
 
@@ -181,7 +178,7 @@ struct header<true, Fields>
     string_view
     target() const
     {
-        return fields.target_impl();
+        return this->target_impl();
     }
 
     /** Set the request-target string.
@@ -193,7 +190,7 @@ struct header<true, Fields>
     void
     target(string_view s)
     {
-        fields.target_impl(s);
+        this->target_impl(s);
     }
 
 private:
@@ -230,7 +227,7 @@ private:
     @li Invoke algorithms which operate on the header only.
 */
 template<class Fields>
-struct header<false, Fields>
+struct header<false, Fields> : Fields
 {
     /// Indicates if the header is a request or response.
     static bool constexpr is_request = false;
@@ -248,9 +245,6 @@ struct header<false, Fields>
         @endcode
     */
     int version;
-
-    /// The HTTP field values.
-    fields_type fields;
 
     /// Default constructor.
     header() = default;
@@ -283,7 +277,7 @@ struct header<false, Fields>
                     header>::value>::type>
     explicit
     header(Arg1&& arg1, ArgN&&... argn)
-        : fields(std::forward<Arg1>(arg1),
+        : Fields(std::forward<Arg1>(arg1),
             std::forward<ArgN>(argn)...)
     {
     }
@@ -379,7 +373,7 @@ struct header<false, Fields>
     void
     reason(string_view s)
     {
-        fields.reason_impl(s);
+        this->reason_impl(s);
     }
    
 private:

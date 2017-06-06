@@ -53,7 +53,7 @@ field on the response:
     ws.accept_ex(
         [](websocket::response_type& res)
         {
-            res.fields.insert("Server", "AcmeServer");
+            res.insert("Server", "AcmeServer");
         });
 
 ```

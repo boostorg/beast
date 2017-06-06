@@ -153,8 +153,7 @@ operator()(error_code ec, bool again)
                 ec = error::handshake_failed;
             if(! ec)
             {
-                pmd_read(
-                    d.ws.pmd_config_, d.res.fields);
+                pmd_read(d.ws.pmd_config_, d.res);
                 d.ws.open(detail::role_type::server);
             }
             break;

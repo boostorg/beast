@@ -293,7 +293,7 @@ private:
         ws.accept_ex(
             [](beast::websocket::response_type& res)
             {
-                res.fields.insert(
+                res.insert(
                     "Server", "sync_echo_server");
             },
             ec);

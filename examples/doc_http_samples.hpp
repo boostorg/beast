@@ -61,7 +61,7 @@ send_expect_100_continue(
         "DynamicBuffer requirements not met");
 
     // Insert or replace the Expect field
-    req.fields.replace("Expect", "100-continue");
+    req.replace("Expect", "100-continue");
 
     // Create the serializer
     auto sr = make_serializer(req);
@@ -130,13 +130,13 @@ receive_expect_100_continue(
         return;
 
     // Check for the Expect field value
-    if(parser.get().fields["Expect"] == "100-continue")
+    if(parser.get()["Expect"] == "100-continue")
     {
         // send 100 response
         response<empty_body> res;
         res.version = 11;
         res.result(status::continue_);
-        res.fields.insert("Server", "test");
+        res.insert("Server", "test");
         write(stream, res, ec);
         if(ec)
             return;
@@ -198,8 +198,8 @@ send_cgi_response(
 
     res.result(status::ok);
     res.version = 11;
-    res.fields.insert("Server", "Beast");
-    res.fields.insert("Transfer-Encoding", "chunked");
+    res.insert("Server", "Beast");
+    res.insert("Transfer-Encoding", "chunked");
 
     // No data yet, but we set more = true to indicate
     // that it might be coming later. Otherwise the
@@ -307,7 +307,7 @@ void do_server_head(
     // Set up the response, starting with the common fields
     response<string_body> res;
     res.version = 11;
-    res.fields.insert("Server", "test");
+    res.insert("Server", "test");
 
     // Now handle request-specific fields
     switch(req.method())
@@ -319,7 +319,7 @@ void do_server_head(
         // set of headers that would be sent for a GET request,
         // including the Content-Length, except for the body.
         res.result(status::ok);
-        res.fields.insert("Content-Length", payload.size());
+        res.insert("Content-Length", payload.size());
 
         // For GET requests, we include the body
         if(req.method() == verb::get)
@@ -337,7 +337,7 @@ void do_server_head(
         // We return responses indicating an error if
         // we do not recognize the request method.
         res.result(status::bad_request);
-        res.fields.insert("Content-Type", "text/plain");
+        res.insert("Content-Type", "text/plain");
         res.body = "Invalid request-method '" + req.method_string().to_string() + "'";
         break;
     }
@@ -397,11 +397,11 @@ do_head_request(
     req.version = 11;
     req.method(verb::head);
     req.target(target);
-    req.fields.insert("User-Agent", "test");
+    req.insert("User-Agent", "test");
 
     // A client MUST send a Host header field in all HTTP/1.1 request messages.
     // https://tools.ietf.org/html/rfc7230#section-5.4
-    req.fields.insert("Host", "localhost");
+    req.insert("Host", "localhost");
 
     // Now send it
     write(stream, req, ec);
@@ -813,8 +813,8 @@ do_form_request(
     case verb::post:
     {
         // If this is not a form upload then use a string_body
-        if( req0.get().fields["Content-Type"] != "application/x-www-form-urlencoded" &&
-            req0.get().fields["Content-Type"] != "multipart/form-data")
+        if( req0.get()["Content-Type"] != "application/x-www-form-urlencoded" &&
+            req0.get()["Content-Type"] != "multipart/form-data")
             goto do_string_body;
 
         // Commit to string_body as the body type.

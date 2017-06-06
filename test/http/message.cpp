@@ -118,14 +118,14 @@ public:
             h.insert("User-Agent", "test");
             message<true, one_arg_body, fields> m{Arg1{}, h};
             BEAST_EXPECT(h["User-Agent"] == "test");
-            BEAST_EXPECT(m.fields["User-Agent"] == "test");
+            BEAST_EXPECT(m["User-Agent"] == "test");
         }
         {
             fields h;
             h.insert("User-Agent", "test");
             message<true, one_arg_body, fields> m{Arg1{}, std::move(h)};
             BEAST_EXPECT(! h.exists("User-Agent"));
-            BEAST_EXPECT(m.fields["User-Agent"] == "test");
+            BEAST_EXPECT(m["User-Agent"] == "test");
         }
 
         // swap
@@ -133,7 +133,7 @@ public:
         message<true, string_body, fields> m2;
         m1.target("u");
         m1.body = "1";
-        m1.fields.insert("h", "v");
+        m1.insert("h", "v");
         m2.method("G");
         m2.body = "2";
         swap(m1, m2);
@@ -143,8 +143,8 @@ public:
         BEAST_EXPECT(m2.target() == "u");
         BEAST_EXPECT(m1.body == "2");
         BEAST_EXPECT(m2.body == "1");
-        BEAST_EXPECT(! m1.fields.exists("h"));
-        BEAST_EXPECT(m2.fields.exists("h"));
+        BEAST_EXPECT(! m1.exists("h"));
+        BEAST_EXPECT(m2.exists("h"));
     }
 
     struct MoveFields : fields
@@ -187,10 +187,10 @@ public:
             MoveFields h;
             header<true, MoveFields> r{std::move(h)};
             BEAST_EXPECT(h.moved_from);
-            BEAST_EXPECT(r.fields.moved_to);
+            BEAST_EXPECT(r.moved_to);
             request<string_body, MoveFields> m{std::move(r)};
-            BEAST_EXPECT(r.fields.moved_from);
-            BEAST_EXPECT(m.fields.moved_to);
+            BEAST_EXPECT(r.moved_from);
+            BEAST_EXPECT(m.moved_to);
         }
     }
 
@@ -202,12 +202,12 @@ public:
             m.method(verb::get);
             m.target("/");
             m.version = 11;
-            m.fields.insert("Upgrade", "test");
+            m.insert("Upgrade", "test");
             BEAST_EXPECT(! is_upgrade(m));
 
             prepare(m, connection::upgrade);
             BEAST_EXPECT(is_upgrade(m));
-            BEAST_EXPECT(m.fields["Connection"] == "upgrade");
+            BEAST_EXPECT(m["Connection"] == "upgrade");
 
             m.version = 10;
             BEAST_EXPECT(! is_upgrade(m));
@@ -220,7 +220,7 @@ public:
         request<string_body> m;
         m.version = 10;
         BEAST_EXPECT(! is_upgrade(m));
-        m.fields.insert("Transfer-Encoding", "chunked");
+        m.insert("Transfer-Encoding", "chunked");
         try
         {
             prepare(m);
@@ -229,8 +229,8 @@ public:
         catch(std::exception const&)
         {
         }
-        m.fields.erase("Transfer-Encoding");
-        m.fields.insert("Content-Length", "0");
+        m.erase("Transfer-Encoding");
+        m.insert("Content-Length", "0");
         try
         {
             prepare(m);
@@ -240,8 +240,8 @@ public:
         {
             pass();
         }
-        m.fields.erase("Content-Length");
-        m.fields.insert("Connection", "keep-alive");
+        m.erase("Content-Length");
+        m.insert("Connection", "keep-alive");
         try
         {
             prepare(m);
@@ -252,8 +252,8 @@ public:
             pass();
         }
         m.version = 11;
-        m.fields.erase("Connection");
-        m.fields.insert("Connection", "close");
+        m.erase("Connection");
+        m.insert("Connection", "close");
         BEAST_EXPECT(! is_keep_alive(m));
     }
 
@@ -265,7 +265,7 @@ public:
         m1.result(status::ok);
         m1.version = 10;
         m1.body = "1";
-        m1.fields.insert("h", "v");
+        m1.insert("h", "v");
         m2.result(status::not_found);
         m2.body = "2";
         m2.version = 11;
@@ -280,8 +280,8 @@ public:
         BEAST_EXPECT(m2.version == 10);
         BEAST_EXPECT(m1.body == "2");
         BEAST_EXPECT(m2.body == "1");
-        BEAST_EXPECT(! m1.fields.exists("h"));
-        BEAST_EXPECT(m2.fields.exists("h"));
+        BEAST_EXPECT(! m1.exists("h"));
+        BEAST_EXPECT(m2.exists("h"));
     }
 
     void

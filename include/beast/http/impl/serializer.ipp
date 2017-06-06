@@ -94,12 +94,12 @@ get(error_code& ec, Visit&& visit)
     case do_construct:
     {
         chunked_ = token_list{
-            m_.fields["Transfer-Encoding"]}.exists("chunked");
-        close_ = token_list{m_.fields["Connection"]}.exists("close") ||
-            (m_.version < 11 && ! m_.fields.exists("Content-Length"));
+            m_["Transfer-Encoding"]}.exists("chunked");
+        close_ = token_list{m_["Connection"]}.exists("close") ||
+            (m_.version < 11 && ! m_.exists("Content-Length"));
         auto os = ostream(b_);
         detail::write_start_line(os, m_);
-        detail::write_fields(os, m_.fields);
+        detail::write_fields(os, m_);
         os << "\r\n";
         if(chunked_)
             goto go_init_c;

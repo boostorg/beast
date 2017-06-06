@@ -236,8 +236,8 @@ private:
                 response<string_body> res;
                 res.result(status::not_found);
                 res.version = req_.version;
-                res.fields.insert("Server", "http_async_server");
-                res.fields.insert("Content-Type", "text/html");
+                res.insert("Server", "http_async_server");
+                res.insert("Content-Type", "text/html");
                 res.body = "The file '" + path + "' was not found";
                 prepare(res);
                 async_write(sock_, std::move(res),
@@ -250,8 +250,8 @@ private:
                 resp_type res;
                 res.result(status::ok);
                 res.version = req_.version;
-                res.fields.insert("Server", "http_async_server");
-                res.fields.insert("Content-Type", mime_type(path));
+                res.insert("Server", "http_async_server");
+                res.insert("Content-Type", mime_type(path));
                 res.body = path;
                 prepare(res);
                 async_write(sock_, std::move(res),
@@ -263,8 +263,8 @@ private:
                 response<string_body> res;
                 res.result(status::internal_server_error);
                 res.version = req_.version;
-                res.fields.insert("Server", "http_async_server");
-                res.fields.insert("Content-Type", "text/html");
+                res.insert("Server", "http_async_server");
+                res.insert("Content-Type", "text/html");
                 res.body =
                     std::string{"An internal error occurred"} + e.what();
                 prepare(res);
