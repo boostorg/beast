@@ -208,11 +208,22 @@ private:
         string_view value, error_code&)
     {
         if(f != field::unknown)
-            // VFALCO Note we are not preserving the
-            //        capitalization of the field name.
+        {
+        #if 1
+            // This preserves capitalization of field names
+            if(to_string(f) == name)
+                m_.insert(f, value);
+            else
+                m_.insert(name, value);
+        #else
+            // This doesn't.
             m_.insert(f, value);
+        #endif
+        }
         else
+        {
             m_.insert(name, value);
+        }
     }
 
     void

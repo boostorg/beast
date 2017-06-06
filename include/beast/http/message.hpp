@@ -104,11 +104,7 @@ struct header<true, Fields> : Fields
                 typename std::decay<Arg1>::type,
                     header>::value>::type>
     explicit
-    header(Arg1&& arg1, ArgN&&... argn)
-        : Fields(std::forward<Arg1>(arg1),
-            std::forward<ArgN>(argn)...)
-    {
-    }
+    header(Arg1&& arg1, ArgN&&... argn);
 
     /** Return the request-method verb.
 
@@ -121,10 +117,7 @@ struct header<true, Fields> : Fields
         @see @ref method_string
     */
     verb
-    method() const
-    {
-        return method_;
-    }
+    method() const;
 
     /** Set the request-method verb.
 
@@ -136,10 +129,7 @@ struct header<true, Fields> : Fields
         @throw std::invalid_argument when `v == verb::unknown`.
     */
     void
-    method(verb v)
-    {
-        set_method(v);
-    }
+    method(verb v);
 
     /** Return the request-method string.
 
@@ -148,10 +138,7 @@ struct header<true, Fields> : Fields
         @see @ref method
     */
     string_view
-    method_string() const
-    {
-        return get_method_string();
-    }
+    method_string() const;
 
     /** Set the request-method string.
 
@@ -164,20 +151,14 @@ struct header<true, Fields> : Fields
         @note This function is only available when `isRequest == true`.
     */
     void
-    method(string_view s)
-    {
-        set_method(s);
-    }
+    method(string_view s);
 
     /** Returns the request-target string.
 
         @note This function is only available when `isRequest == true`.
     */
     string_view
-    target() const
-    {
-        return this->target_impl();
-    }
+    target() const;
 
     /** Set the request-target string.
 
@@ -186,10 +167,7 @@ struct header<true, Fields> : Fields
         @note This function is only available when `isRequest == true`.
     */
     void
-    target(string_view s)
-    {
-        this->target_impl(s);
-    }
+    target(string_view s);
 
 private:
     template<bool, class, class>
@@ -199,18 +177,6 @@ private:
     friend
     void
     swap(header<true, T>& m1, header<true, T>& m2);
-
-    template<class = void>
-    string_view
-    get_method_string() const;
-
-    template<class = void>
-    void
-    set_method(verb v);
-
-    template<class = void>
-    void
-    set_method(string_view v);
 
     verb method_ = verb::unknown;
 };
@@ -277,11 +243,7 @@ struct header<false, Fields> : Fields
                 typename std::decay<Arg1>::type,
                     header>::value>::type>
     explicit
-    header(Arg1&& arg1, ArgN&&... argn)
-        : Fields(std::forward<Arg1>(arg1),
-            std::forward<ArgN>(argn)...)
-    {
-    }
+    header(Arg1&& arg1, ArgN&&... argn);
 #endif
 
     /** The response status-code result.
@@ -293,25 +255,18 @@ struct header<false, Fields> : Fields
         @note This member is only available when `isRequest == false`.
     */
     status
-    result() const
-    {
-        return int_to_status(
-            static_cast<int>(result_));
-    }
+    result() const;
 
-    /** Set the response status-code result.
+    /** Set the response status-code.
 
         @param v The code to set.
 
         @note This member is only available when `isRequest == false`.
     */
     void
-    result(status v)
-    {
-        result_ = v;
-    }
+    result(status v);
 
-    /** Set the raw status-code result as an integer.
+    /** Set the response status-code as an integer.
 
         This sets the status code to the exact number passed in.
         If the number does not correspond to one of the known
@@ -320,26 +275,21 @@ struct header<false, Fields> : Fields
         original raw status-code.
 
         @param v The status-code integer to set.
+
+        @throw std::invalid_argument if `v > 999`.
     */
     void
-    result(int v)
-    {
-        result_ = static_cast<status>(v);
-    }
+    result(unsigned v);
 
-    /** The response status-code result expressed as an integer.
+    /** The response status-code expressed as an integer.
 
         This returns the raw status code as an integer, even
         when that code is not in the list of known status codes.
 
         @note This member is only available when `isRequest == false`.
     */
-    int
-    result_int() const
-    {
-        return static_cast<int>(result_);
-    }
-
+    unsigned
+    result_int() const;
 
     /** Return the response reason-phrase.
 
@@ -348,10 +298,7 @@ struct header<false, Fields> : Fields
         @note This function is only available when `isRequest == false`.
     */
     string_view
-    reason() const
-    {
-        return get_reason();
-    }
+    reason() const;
 
     /** Set the response reason-phrase (deprecated)
 
@@ -372,10 +319,7 @@ struct header<false, Fields> : Fields
         @note This function is only available when `isRequest == false`.
     */
     void
-    reason(string_view s)
-    {
-        this->reason_impl(s);
-    }
+    reason(string_view s);
    
 private:
     template<bool, class, class>
@@ -385,10 +329,6 @@ private:
     friend
     void
     swap(header<false, T>& m1, header<false, T>& m2);
-
-    template<class = void>
-    string_view
-    get_reason() const;
 
     status result_;
 };

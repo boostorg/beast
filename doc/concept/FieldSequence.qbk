@@ -64,39 +64,70 @@ In this table:
 
 [/
 
+/** OutputFields
 
-[section:Fields Fields]
+    Can be serialized by `beast::http::serializer`
+*/
+    public:
+        // This algorithm produces a set of buffers
+        // corresponding to the serialized representation
+        // of the fields
+        //
+        struct reader
+        {
+            using const_buffers_type = implementation-defined
 
-A type meeting the requirements of [*Fields] represents a container
-used to store HTTP header fields.
+            ...
+        };
 
-In this table:
+    protected:
+        string_view method_impl() const;
+        string_view target_impl() const;
+        string_view reason_impl() const;
 
-* `X` denotes a type that meets the requirements of [*Fields].
+        bool close_impl () const;
+        bool chunked_impl () const;
+        bool content_length_impl () const;
 
-* `c` is a value of type `X const`.
 
 
-[table FieldSequence requirements
-[[expression][type][semantics, pre/post-conditions]]
-[
-    []
-    []
-    [
-    ]
-]
-]
+/** InputFields
 
-[endsect]
+    Can be parsed by `beast::http::parser`
+*/
+    public:
+        void insert (field f, string_view value);
+        void insert (string_view name, string_view value);
 
-Operations we'd like to perform
+    protected:
+        void method_impl (string_view s);
+        void target_impl (string_view s);
+        void reason_impl (string_view s);
 
-Determine if a field exists
-    bool exists(field f) const;
-    bool exists(string_view s) const;
-    
-    iterator find(field f) const;
-    iterator find(string_view s);
+
+/** Fields
+
+    Has a container interface and supports input and output.
+    `beast::http:basic_fields` is a model.
+*/
+
+    public:
+        bool exists(field f) const;
+        bool exists(string_view s) const;
+        
+        iterator find(field f) const;
+        iterator find(string_view s);
+
+        std::size_t erase (field f);
+        std::size_t erase (string_view s);
+        iterator erase (iterator);
+
+    protected:
+        void content_length_impl(std::uint64_t n);
+        void connection_impl(close_t);
+        void connection_impl(keep_alive_t);
+        void connection_impl(upgrade_t);
+        void chunked_impl();
 
 
 ]
