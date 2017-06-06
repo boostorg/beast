@@ -3,6 +3,7 @@ Version 50
 * parser is constructible from other body types
 * Add field enumeration
 * Use allocator more in basic_fields
+* Fix basic_fields allocator awareness
 
 API Changes:
 

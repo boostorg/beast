@@ -81,13 +81,13 @@ public:
     /// A constant iterator to the field sequence.
     using iterator = const_iterator;
 
-    /// Default constructor.
-    basic_fields() = default;
-
     /// Destructor
     ~basic_fields();
 
-    /** Construct the fields.
+    /// Default constructor.
+    basic_fields() = default;
+
+    /** Constructor.
 
         @param alloc The allocator to use.
     */
@@ -96,32 +96,60 @@ public:
 
     /** Move constructor.
 
-        The moved-from object becomes an empty field sequence.
-
-        @param other The object to move from.
+        The moved-from object behaves as if by call to @ref clear.
     */
-    basic_fields(basic_fields&& other);
-
-    /** Move assignment.
-
-        The moved-from object becomes an empty field sequence.
-
-        @param other The object to move from.
-    */
-    basic_fields& operator=(basic_fields&& other);
+    basic_fields(basic_fields&&);
 
     /// Copy constructor.
     basic_fields(basic_fields const&);
 
+    /** Copy constructor.
+
+        @param alloc The allocator to use.
+    */
+    basic_fields(basic_fields const&, Allocator const& alloc);
+
+    /// Copy constructor.
+#if BEAST_DOXYGEN
+    template<class OtherAlloc>
+#else
+    template<class OtherAlloc, class =
+        typename std::enable_if<! std::is_same<OtherAlloc,
+            Allocator>::value>::type>
+#endif
+    basic_fields(basic_fields<OtherAlloc> const&);
+
+    /** Copy constructor.
+
+        @param alloc The allocator to use.
+    */
+#if BEAST_DOXYGEN
+    template<class OtherAlloc>
+#else
+    template<class OtherAlloc, class =
+        typename std::enable_if<! std::is_same<OtherAlloc,
+            Allocator>::value>::type>
+#endif
+    basic_fields(basic_fields<OtherAlloc> const&,
+        Allocator const& alloc);
+
+    /** Move assignment.
+
+        The moved-from object behaves as if by call to @ref clear.
+    */
+    basic_fields& operator=(basic_fields&&);
+
     /// Copy assignment.
     basic_fields& operator=(basic_fields const&);
 
-    /// Copy constructor.
-    template<class OtherAlloc>
-    basic_fields(basic_fields<OtherAlloc> const&);
-
     /// Copy assignment.
+#if BEAST_DOXYGEN
     template<class OtherAlloc>
+#else
+    template<class OtherAlloc, class =
+        typename std::enable_if<! std::is_same<OtherAlloc,
+            Allocator>::value>::type>
+#endif
     basic_fields& operator=(basic_fields<OtherAlloc> const&);
 
     /// Return a copy of the allocator associated with the container.
@@ -269,6 +297,12 @@ public:
             boost::lexical_cast<std::string>(value));
     }
 
+    /// Swap two field containers
+    template<class Alloc>
+    friend
+    void
+    swap(basic_fields<Alloc>& lhs, basic_fields<Alloc>& rhs);
+
 protected:
     // for header
     string_view method_impl() const;
@@ -284,31 +318,25 @@ protected:
     void chunked_impl();
 
 private:
-    struct element
-        : boost::intrusive::set_base_hook <
+    class element
+        : public boost::intrusive::set_base_hook <
             boost::intrusive::link_mode <
                 boost::intrusive::normal_link>>
-        , boost::intrusive::list_base_hook <
+        , public boost::intrusive::list_base_hook <
             boost::intrusive::link_mode <
                 boost::intrusive::normal_link>>
     {
-        element(
-            string_view name, string_view value)
-        {
-            char* p = reinterpret_cast<char*>(this + 1);
-            data.first = p;
-            data.off =
-                static_cast<off_t>(name.size() + 2);
-            data.len =
-                static_cast<off_t>(value.size());
-            std::memcpy(p, name.data(), name.size());
-            p[data.off-2] = ':';
-            p[data.off-1] = ' ';
-            std::memcpy(
-                p + data.off, value.data(), value.size());
-            p[data.off + data.len] = '\r';
-            p[data.off + data.len + 1] = '\n';
-        }
+        off_t off_;
+        off_t len_;
+
+    public:
+        element(string_view name, string_view value);
+
+        string_view
+        name() const;
+
+        string_view
+        value() const;
 
         value_type data;
     };
@@ -355,37 +383,47 @@ private:
         element, boost::intrusive::constant_time_size<
             true>, boost::intrusive::compare<less>>::type;
 
-    void
-    delete_all();
-
-    void
-    move_assign(basic_fields&, std::false_type);
-
-    void
-    move_assign(basic_fields&, std::true_type);
-
-    void
-    copy_assign(basic_fields const&, std::false_type);
-
-    void
-    copy_assign(basic_fields const&, std::true_type);
-
-    template<class FieldSequence>
-    void
-    copy_from(FieldSequence const& fs)
-    {
-        for(auto const& e : fs)
-            insert(e.name(), e.value());
-    }
-
     element&
     new_element(string_view name, string_view value);
 
     void
     delete_element(element& e);
 
+    void
+    realloc_string(string_view& dest, string_view s);
+
+    template<class OtherAlloc>
+    void
+    copy_all(basic_fields<OtherAlloc> const&);
+
+    void
+    clear_all();
+
+    void
+    delete_list();
+
+    void
+    move_assign(basic_fields&, std::true_type);
+
+    void
+    move_assign(basic_fields&, std::false_type);
+
+    void
+    copy_assign(basic_fields const&, std::true_type);
+
+    void
+    copy_assign(basic_fields const&, std::false_type);
+
+    void
+    swap(basic_fields& other, std::true_type);
+
+    void
+    swap(basic_fields& other, std::false_type);
+
     set_t set_;
     list_t list_;
+    string_view method_;
+    string_view target_or_reason_;
     alloc_type alloc_;
 };
 
