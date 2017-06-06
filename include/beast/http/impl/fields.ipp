@@ -365,7 +365,7 @@ template<class Allocator>
 inline
 string_view
 basic_fields<Allocator>::
-method_impl() const
+get_method_impl() const
 {
     return method_;
 }
@@ -374,7 +374,7 @@ template<class Allocator>
 inline
 string_view
 basic_fields<Allocator>::
-target_impl() const
+get_target_impl() const
 {
     return target_or_reason_;
 }
@@ -383,7 +383,7 @@ template<class Allocator>
 inline
 string_view
 basic_fields<Allocator>::
-reason_impl() const
+get_reason_impl() const
 {
     return target_or_reason_;
 }
@@ -392,7 +392,7 @@ template<class Allocator>
 inline
 void
 basic_fields<Allocator>::
-method_impl(string_view s)
+set_method_impl(string_view s)
 {
     realloc_string(method_, s);
 }
@@ -401,7 +401,7 @@ template<class Allocator>
 inline
 void
 basic_fields<Allocator>::
-target_impl(string_view s)
+set_target_impl(string_view s)
 {
     realloc_string(target_or_reason_, s);
 }
@@ -410,10 +410,12 @@ template<class Allocator>
 inline
 void
 basic_fields<Allocator>::
-reason_impl(string_view s)
+set_reason_impl(string_view s)
 {
     realloc_string(target_or_reason_, s);
 }
+
+//---
 
 template<class Allocator>
 inline

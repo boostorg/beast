@@ -338,45 +338,57 @@ public:
     swap(basic_fields<Alloc>& lhs, basic_fields<Alloc>& rhs);
 
 protected:
+
+    //--------------------------------------------------------------------------
     //
-    // for `header
+    // for serializing
     //
 
     /** Returns the stored request-method string.
 
         @note This is called by the @ref header implementation.
     */
-    string_view method_impl() const;
+    string_view get_method_impl() const;
 
     /** Returns the stored request-target string.
 
         @note This is called by the @ref header implementation.
     */
-    string_view target_impl() const;
+    string_view get_target_impl() const;
 
     /** Returns the stored obsolete reason-phrase string.
 
         @note This is called by the @ref header implementation.
     */
-    string_view reason_impl() const;
+    string_view get_reason_impl() const;
+
+    //--------------------------------------------------------------------------
+    //
+    // for parsing
+    //
 
     /** Set or clear the stored request-method string.
 
         @note This is called by the @ref header implementation.
     */
-    void method_impl(string_view s);
+    void set_method_impl(string_view s);
 
     /** Set or clear the stored request-target string.
 
         @note This is called by the @ref header implementation.
     */
-    void target_impl(string_view s);
+    void set_target_impl(string_view s);
 
     /** Set or clear the stored obsolete reason-phrase string.
 
         @note This is called by the @ref header implementation.
     */
-    void reason_impl(string_view s);
+    void set_reason_impl(string_view s);
+
+    //--------------------------------------------------------------------------
+    //
+    // for container
+    //
 
     /** Set the Content-Length field to the specified value.
 
