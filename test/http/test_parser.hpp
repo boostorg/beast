@@ -75,9 +75,8 @@ public:
     }
 
     void
-    on_field(string_view,
-        string_view,
-            error_code& ec)
+    on_field(field f, string_view,
+        string_view, error_code& ec)
     {
         got_on_field = true;
         if(fc_)

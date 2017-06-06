@@ -253,6 +253,7 @@ public:
         match(field::proxy_authenticate, "Proxy-Authenticate");
         match(field::proxy_authentication_info, "Proxy-Authentication-Info");
         match(field::proxy_authorization, "Proxy-Authorization");
+        match(field::proxy_connection, "Proxy-Connection");
         match(field::proxy_features, "Proxy-Features");
         match(field::proxy_instruction, "Proxy-Instruction");
         match(field::public_, "Public");

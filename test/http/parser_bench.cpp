@@ -178,9 +178,8 @@ public:
         }
 
         void
-        on_field(string_view,
-            string_view,
-                error_code&)
+        on_field(field,
+            string_view, string_view, error_code&)
         {
         }
 

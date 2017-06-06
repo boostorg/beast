@@ -890,7 +890,8 @@ class custom_parser
     /// Called after receiving a header field.
     void
     on_field(
-        string_view name,       // The field name
+        field f,                // The known-field enumeration constant
+        string_view name,       // The field name string.
         string_view value,      // The field value
         error_code& ec);        // The error returned to the caller, if any
 
@@ -951,7 +952,7 @@ on_response(int status, string_view reason,
 
 template<bool isRequest>
 void custom_parser<isRequest>::
-on_field(string_view name,
+on_field(field f, string_view name,
     string_view value, error_code& ec)
 {
 }

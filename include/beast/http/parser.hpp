@@ -204,11 +204,15 @@ private:
     }
 
     void
-    on_field(string_view name,
-        string_view value,
-            error_code&)
+    on_field(field f, string_view name,
+        string_view value, error_code&)
     {
-        m_.insert(name, value);
+        if(f != field::unknown)
+            // VFALCO Note we are not preserving the
+            //        capitalization of the field name.
+            m_.insert(f, value);
+        else
+            m_.insert(name, value);
     }
 
     void

@@ -239,6 +239,7 @@ enum class field : unsigned short
     proxy_authenticate,
     proxy_authentication_info,
     proxy_authorization,
+    proxy_connection,
     proxy_features,
     proxy_instruction,
     public_,
