@@ -19,147 +19,6 @@ namespace http {
 //------------------------------------------------------------------------------
 
 template<class Allocator>
-basic_fields<Allocator>::
-~basic_fields()
-{
-    delete_all();
-}
-
-//------------------------------------------------------------------------------
-
-template<class Allocator>
-inline
-string_view
-basic_fields<Allocator>::
-method_impl() const
-{
-    return (*this)[":method"];
-}
-
-template<class Allocator>
-inline
-string_view
-basic_fields<Allocator>::
-target_impl() const
-{
-    return (*this)[":target"];
-}
-
-template<class Allocator>
-inline
-string_view
-basic_fields<Allocator>::
-reason_impl() const
-{
-    return (*this)[":reason"];
-}
-
-template<class Allocator>
-inline
-void
-basic_fields<Allocator>::
-method_impl(string_view s)
-{
-    if(s.empty())
-        this->erase(":method");
-    else
-        this->replace(":method", s);
-}
-
-template<class Allocator>
-inline
-void
-basic_fields<Allocator>::
-target_impl(string_view s)
-{
-    if(s.empty())
-        this->erase(":target");
-    else
-        this->replace(":target", s);
-}
-
-template<class Allocator>
-inline
-void
-basic_fields<Allocator>::
-reason_impl(string_view s)
-{
-    if(s.empty())
-        this->erase(":reason");
-    else
-        this->replace(":reason", s);
-}
-
-template<class Allocator>
-inline
-void
-basic_fields<Allocator>::
-content_length_impl(std::uint64_t n)
-{
-    this->erase("Content-Length");
-    this->insert("Content-Length",
-        to_static_string(n));
-}
-
-template<class Allocator>
-inline
-void
-basic_fields<Allocator>::
-connection_impl(close_t)
-{
-    auto it = find("Connection");
-    if(it == end())
-        this->insert("Connection", "close");
-    else
-        this->replace("Connection",
-            it->value().to_string() + ", close");
-}
-
-template<class Allocator>
-inline
-void
-basic_fields<Allocator>::
-connection_impl(keep_alive_t)
-{
-    auto it = find("Connection");
-    if(it == end())
-        this->insert("Connection", "keep-alive");
-    else
-        this->replace("Connection",
-            it->value().to_string() + ", keep-alive");
-}
-
-template<class Allocator>
-inline
-void
-basic_fields<Allocator>::
-connection_impl(upgrade_t)
-{
-    auto it = find("Connection");
-    if(it == end())
-        this->insert("Connection", "upgrade");
-    else
-        this->replace("Connection",
-            it->value().to_string() + ", upgrade");
-}
-
-template<class Allocator>
-inline
-void
-basic_fields<Allocator>::
-chunked_impl()
-{
-    auto it = find("Transfer-Encoding");
-    if(it == end())
-        this->insert("Transfer-Encoding", "chunked");
-    else
-        this->replace("Transfer-Encoding",
-            it->value().to_string() + ", chunked");
-}
-
-//------------------------------------------------------------------------------
-
-template<class Allocator>
 class basic_fields<Allocator>::
     const_iterator
 {
@@ -245,102 +104,62 @@ public:
     }
 };
 
+//------------------------------------------------------------------------------
+
 template<class Allocator>
-void
 basic_fields<Allocator>::
-delete_all()
+element::
+element(string_view name, string_view value)
+    : off_(static_cast<off_t>(name.size() + 2))
+    , len_(static_cast<off_t>(value.size()))
 {
-    for(auto it = list_.begin(); it != list_.end();)
-        delete_element(*it++);
+    char* p = reinterpret_cast<char*>(this + 1);
+    data.first = p;
+    data.off = off_;
+    data.len = len_;
+
+    p[off_-2] = ':';
+    p[off_-1] = ' ';
+    p[off_ + len_] = '\r';
+    p[off_ + len_ + 1] = '\n';
+    std::memcpy(p, name.data(), name.size());
+    std::memcpy(p + off_, value.data(), value.size());
 }
 
 template<class Allocator>
 inline
-void
+string_view
 basic_fields<Allocator>::
-move_assign(basic_fields& other, std::false_type)
+element::
+name() const
 {
-    if(alloc_ != other.alloc_)
-    {
-        copy_from(other);
-        other.clear();
-    }
-    else
-    {
-        set_ = std::move(other.set_);
-        list_ = std::move(other.list_);
-    }
+    return {reinterpret_cast<
+        char const*>(this + 1),
+            static_cast<std::size_t>(off_ - 2)};
 }
 
 template<class Allocator>
 inline
-void
+string_view
 basic_fields<Allocator>::
-move_assign(basic_fields& other, std::true_type)
+element::
+value() const
 {
-    alloc_ = std::move(other.alloc_);
-    set_ = std::move(other.set_);
-    list_ = std::move(other.list_);
-}
-
-template<class Allocator>
-inline
-void
-basic_fields<Allocator>::
-copy_assign(basic_fields const& other, std::false_type)
-{
-    copy_from(other);
-}
-
-template<class Allocator>
-inline
-void
-basic_fields<Allocator>::
-copy_assign(basic_fields const& other, std::true_type)
-{
-    alloc_ = other.alloc_;
-    copy_from(other);
-}
-
-template<class Allocator>
-auto
-basic_fields<Allocator>::
-new_element(string_view name, string_view value) ->
-    element&
-{
-    if(name.size() + 2 >
-            (std::numeric_limits<off_t>::max)())
-        BOOST_THROW_EXCEPTION(std::length_error{
-            "field name too large"});
-    if(value.size() + 2 >
-            (std::numeric_limits<off_t>::max)())
-        BOOST_THROW_EXCEPTION(std::length_error{
-            "field value too large"});
-    value = detail::trim(value);
-    std::uint16_t const off =
-        static_cast<off_t>(name.size() + 2);
-    std::uint16_t const len =
-        static_cast<off_t>(value.size());
-    auto const p = alloc_traits::allocate(alloc_,
-        1 + (off + len + 2 + sizeof(element) - 1) /
-            sizeof(element));
-    alloc_traits::construct(alloc_, p, name, value);
-    return *p;
-}
-
-template<class Allocator>
-void
-basic_fields<Allocator>::
-delete_element(element& e)
-{
-    auto const n = 1 +
-        (e.data.off + e.data.len + 2 +
-            sizeof(element) - 1) / sizeof(element);
-    alloc_traits::destroy(alloc_, &e);
-    alloc_traits::deallocate(alloc_, &e, n);
+    return {reinterpret_cast<
+        char const*>(this + 1) + off_,
+            static_cast<std::size_t>(len_)};
 }
 
 //------------------------------------------------------------------------------
+
+template<class Allocator>
+basic_fields<Allocator>::
+~basic_fields()
+{
+    delete_list();
+    realloc_string(method_, {});
+    realloc_string(target_or_reason_, {});
+}
 
 template<class Allocator>
 basic_fields<Allocator>::
@@ -354,8 +173,48 @@ basic_fields<Allocator>::
 basic_fields(basic_fields&& other)
     : set_(std::move(other.set_))
     , list_(std::move(other.list_))
+    , method_(other.method_)
+    , target_or_reason_(other.target_or_reason_)
     , alloc_(std::move(other.alloc_))
 {
+    other.method_.clear();
+    other.target_or_reason_.clear();
+}
+
+template<class Allocator>
+basic_fields<Allocator>::
+basic_fields(basic_fields const& other)
+    : basic_fields(alloc_traits::
+        select_on_container_copy_construction(other.alloc_))
+{
+    copy_all(other);
+}
+
+template<class Allocator>
+basic_fields<Allocator>::
+basic_fields(basic_fields const& other,
+        Allocator const& alloc)
+    : alloc_(alloc)
+{
+    copy_all(other);
+}
+
+template<class Allocator>
+template<class OtherAlloc, class>
+basic_fields<Allocator>::
+basic_fields(basic_fields<OtherAlloc> const& other)
+{
+    copy_all(other);
+}
+
+template<class Allocator>
+template<class OtherAlloc, class>
+basic_fields<Allocator>::
+basic_fields(basic_fields<OtherAlloc> const& other,
+        Allocator const& alloc)
+    : alloc_(alloc)
+{
+    copy_all(other);
 }
 
 template<class Allocator>
@@ -366,19 +225,9 @@ operator=(basic_fields&& other) ->
 {
     if(this == &other)
         return *this;
-    clear();
-    move_assign(other, std::integral_constant<bool,
-        alloc_traits::propagate_on_container_move_assignment::value>{});
+    move_assign(other, typename alloc_traits::
+        propagate_on_container_move_assignment{});
     return *this;
-}
-
-template<class Allocator>
-basic_fields<Allocator>::
-basic_fields(basic_fields const& other)
-    : basic_fields(alloc_traits::
-        select_on_container_copy_construction(other.alloc_))
-{
-    copy_from(other);
 }
 
 template<class Allocator>
@@ -387,31 +236,24 @@ basic_fields<Allocator>::
 operator=(basic_fields const& other) ->
     basic_fields&
 {
-    clear();
-    copy_assign(other, std::integral_constant<bool,
-        alloc_traits::propagate_on_container_copy_assignment::value>{});
+    copy_assign(other, typename alloc_traits::
+        propagate_on_container_copy_assignment{});
     return *this;
 }
 
 template<class Allocator>
-template<class OtherAlloc>
-basic_fields<Allocator>::
-basic_fields(basic_fields<OtherAlloc> const& other)
-{
-    copy_from(other);
-}
-
-template<class Allocator>
-template<class OtherAlloc>
+template<class OtherAlloc, class>
 auto
 basic_fields<Allocator>::
 operator=(basic_fields<OtherAlloc> const& other) ->
     basic_fields&
 {
-    clear();
-    copy_from(other);
+    clear_all();
+    copy_all(other);
     return *this;
 }
+
+//------------------------------------------------------------------------------
 
 template<class Allocator>
 std::size_t
@@ -453,9 +295,9 @@ void
 basic_fields<Allocator>::
 clear() noexcept
 {
-    delete_all();
-    list_.clear();
+    delete_list();
     set_.clear();
+    list_.clear();
 }
 
 template<class Allocator>
@@ -500,6 +342,328 @@ replace(string_view name, string_view value)
     erase(name);
     insert(name, value);
 }
+
+//------------------------------------------------------------------------------
+
+template<class Allocator>
+inline
+string_view
+basic_fields<Allocator>::
+method_impl() const
+{
+    return method_;
+}
+
+template<class Allocator>
+inline
+string_view
+basic_fields<Allocator>::
+target_impl() const
+{
+    return target_or_reason_;
+}
+
+template<class Allocator>
+inline
+string_view
+basic_fields<Allocator>::
+reason_impl() const
+{
+    return target_or_reason_;
+}
+
+template<class Allocator>
+inline
+void
+basic_fields<Allocator>::
+method_impl(string_view s)
+{
+    realloc_string(method_, s);
+}
+
+template<class Allocator>
+inline
+void
+basic_fields<Allocator>::
+target_impl(string_view s)
+{
+    realloc_string(target_or_reason_, s);
+}
+
+template<class Allocator>
+inline
+void
+basic_fields<Allocator>::
+reason_impl(string_view s)
+{
+    realloc_string(target_or_reason_, s);
+}
+
+template<class Allocator>
+inline
+void
+basic_fields<Allocator>::
+content_length_impl(std::uint64_t n)
+{
+    this->erase("Content-Length");
+    this->insert("Content-Length",
+        to_static_string(n));
+}
+
+template<class Allocator>
+inline
+void
+basic_fields<Allocator>::
+connection_impl(close_t)
+{
+    auto it = find("Connection");
+    if(it == end())
+        this->insert("Connection", "close");
+    else
+        this->replace("Connection",
+            it->value().to_string() + ", close");
+}
+
+template<class Allocator>
+inline
+void
+basic_fields<Allocator>::
+connection_impl(keep_alive_t)
+{
+    auto it = find("Connection");
+    if(it == end())
+        this->insert("Connection", "keep-alive");
+    else
+        this->replace("Connection",
+            it->value().to_string() + ", keep-alive");
+}
+
+template<class Allocator>
+inline
+void
+basic_fields<Allocator>::
+connection_impl(upgrade_t)
+{
+    auto it = find("Connection");
+    if(it == end())
+        this->insert("Connection", "upgrade");
+    else
+        this->replace("Connection",
+            it->value().to_string() + ", upgrade");
+}
+
+template<class Allocator>
+inline
+void
+basic_fields<Allocator>::
+chunked_impl()
+{
+    auto it = find("Transfer-Encoding");
+    if(it == end())
+        this->insert("Transfer-Encoding", "chunked");
+    else
+        this->replace("Transfer-Encoding",
+            it->value().to_string() + ", chunked");
+}
+
+//------------------------------------------------------------------------------
+
+template<class Allocator>
+auto
+basic_fields<Allocator>::
+new_element(string_view name, string_view value) ->
+    element&
+{
+    if(name.size() + 2 >
+            (std::numeric_limits<off_t>::max)())
+        BOOST_THROW_EXCEPTION(std::length_error{
+            "field name too large"});
+    if(value.size() + 2 >
+            (std::numeric_limits<off_t>::max)())
+        BOOST_THROW_EXCEPTION(std::length_error{
+            "field value too large"});
+    value = detail::trim(value);
+    std::uint16_t const off =
+        static_cast<off_t>(name.size() + 2);
+    std::uint16_t const len =
+        static_cast<off_t>(value.size());
+    auto const p = alloc_traits::allocate(alloc_,
+        1 + (off + len + 2 + sizeof(element) - 1) /
+            sizeof(element));
+    alloc_traits::construct(alloc_, p, name, value);
+    return *p;
+}
+
+template<class Allocator>
+void
+basic_fields<Allocator>::
+delete_element(element& e)
+{
+    auto const n = 1 +
+        (e.data.off + e.data.len + 2 +
+            sizeof(element) - 1) / sizeof(element);
+    alloc_traits::destroy(alloc_, &e);
+    alloc_traits::deallocate(alloc_, &e, n);
+}
+
+template<class Allocator>
+void
+basic_fields<Allocator>::
+realloc_string(string_view& dest, string_view s)
+{
+    s = detail::trim(s);
+    if(dest.empty() && s.empty())
+        return;
+    auto a = typename std::allocator_traits<
+        Allocator>::template rebind_alloc<
+            char>(alloc_);
+    if(! dest.empty())
+    {
+        a.deallocate(const_cast<char*>(
+            dest.data()), dest.size());
+        dest.clear();
+    }
+    if(! s.empty())
+    {
+        auto const p = a.allocate(s.size());
+        std::memcpy(p, s.data(), s.size());
+        dest = {p, s.size()};
+    }
+}
+
+template<class Allocator>
+template<class OtherAlloc>
+void
+basic_fields<Allocator>::
+copy_all(basic_fields<OtherAlloc> const& other)
+{
+    for(auto const& e : other.list_)
+        insert(e.name(), e.value());
+    realloc_string(method_, other.method_);
+    realloc_string(target_or_reason_,
+        other.target_or_reason_);
+}
+
+template<class Allocator>
+void
+basic_fields<Allocator>::
+clear_all()
+{
+    clear();
+    realloc_string(method_, {});
+    realloc_string(target_or_reason_, {});
+}
+
+template<class Allocator>
+void
+basic_fields<Allocator>::
+delete_list()
+{
+    for(auto it = list_.begin(); it != list_.end();)
+        delete_element(*it++);
+}
+
+//------------------------------------------------------------------------------
+
+template<class Allocator>
+inline
+void
+basic_fields<Allocator>::
+move_assign(basic_fields& other, std::true_type)
+{
+    clear_all();
+    set_ = std::move(other.set_);
+    list_ = std::move(other.list_);
+    method_ = other.method_;
+    target_or_reason_ = other.target_or_reason_;
+    other.method_.clear();
+    other.target_or_reason_.clear();
+    alloc_ = other.alloc_;
+}
+
+template<class Allocator>
+inline
+void
+basic_fields<Allocator>::
+move_assign(basic_fields& other, std::false_type)
+{
+    clear_all();
+    if(alloc_ != other.alloc_)
+    {
+        copy_all(other);
+        other.clear_all();
+    }
+    else
+    {
+        set_ = std::move(other.set_);
+        list_ = std::move(other.list_);
+        method_ = other.method_;
+        target_or_reason_ = other.target_or_reason_;
+        other.method_.clear();
+        other.target_or_reason_.clear();
+    }
+}
+
+template<class Allocator>
+inline
+void
+basic_fields<Allocator>::
+copy_assign(basic_fields const& other, std::true_type)
+{
+    clear_all();
+    alloc_ = other.alloc_;
+    copy_all(other);
+}
+
+template<class Allocator>
+inline
+void
+basic_fields<Allocator>::
+copy_assign(basic_fields const& other, std::false_type)
+{
+    clear_all();
+    copy_all(other);
+}
+
+template<class Allocator>
+void
+swap(basic_fields<Allocator>& lhs,
+    basic_fields<Allocator>& rhs)
+{
+    using alloc_traits = typename
+        basic_fields<Allocator>::alloc_traits;
+    lhs.swap(rhs, typename alloc_traits::
+        propagate_on_container_swap{});
+}
+
+template<class Allocator>
+inline
+void
+basic_fields<Allocator>::
+swap(basic_fields& other, std::true_type)
+{
+    using std::swap;
+    swap(alloc_, other.alloc_);
+    swap(set_, other.set_);
+    swap(list_, other.list_);
+    swap(method_, other.method_);
+    swap(target_or_reason_, other.target_or_reason_);
+}
+
+template<class Allocator>
+inline
+void
+basic_fields<Allocator>::
+swap(basic_fields& other, std::false_type)
+{
+    BOOST_ASSERT(alloc_ == other.alloc_);
+    using std::swap;
+    swap(set_, other.set_);
+    swap(list_, other.list_);
+    swap(method_, other.method_);
+    swap(target_or_reason_, other.target_or_reason_);
+}
+
 
 } // http
 } // beast
