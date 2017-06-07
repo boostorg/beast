@@ -1,3 +1,9 @@
+Version 51
+
+* Fix operator<< for header
+
+--------------------------------------------------------------------------------
+
 Version 50
 
 * parser is constructible from other body types
