@@ -35,7 +35,6 @@ template<class Stream, class DynamicBuffer,
 class read_some_op
 {
     int state_ = 0;
-    std::size_t used_ = 0;
     Stream& s_;
     DynamicBuffer& b_;
     basic_parser<isRequest, Derived>& p_;
@@ -136,7 +135,7 @@ operator()(error_code ec, std::size_t bytes_transferred)
         b_.commit(bytes_transferred);
 
     do_parse:
-        used_ += p_.put(b_.data(), ec);
+        b_.consume(p_.put(b_.data(), ec));
         if(! ec || ec != http::error::need_more)
             goto do_upcall;
         ec = {};
@@ -167,7 +166,7 @@ operator()(error_code ec, std::size_t bytes_transferred)
         break;
     }
 upcall:
-    h_(ec, used_);
+    h_(ec);
 }
 
 //------------------------------------------------------------------------------
@@ -221,7 +220,7 @@ public:
     }
 
     void
-    operator()(error_code ec, std::size_t bytes_used);
+    operator()(error_code ec);
 
     friend
     void* asio_handler_allocate(
@@ -266,7 +265,7 @@ template<class Stream, class DynamicBuffer,
 void
 read_op<Stream, DynamicBuffer,
     isRequest, Derived, Condition, Handler>::
-operator()(error_code ec, std::size_t bytes_used)
+operator()(error_code ec)
 {
     switch(state_)
     {
@@ -275,7 +274,7 @@ operator()(error_code ec, std::size_t bytes_used)
         {
             state_ = 1;
             return s_.get_io_service().post(
-                bind_handler(std::move(*this), ec, 0));
+                bind_handler(std::move(*this), ec));
         }
         state_ = 2;
         // [[fallthrough]]
@@ -289,7 +288,6 @@ operator()(error_code ec, std::size_t bytes_used)
 
     case 2:
     case 3:
-        b_.consume(bytes_used);
         if(ec)
             goto upcall;
         if(Condition{}(p_))
@@ -346,7 +344,7 @@ public:
     }
 
     void
-    operator()(error_code ec, std::size_t bytes_used);
+    operator()(error_code ec);
 
     friend
     void* asio_handler_allocate(
@@ -391,7 +389,7 @@ template<class Stream, class DynamicBuffer,
 void
 read_msg_op<Stream, DynamicBuffer,
     isRequest, Body, Fields, Handler>::
-operator()(error_code ec, std::size_t bytes_used)
+operator()(error_code ec)
 {
     auto& d = *d_;
     switch(d.state)
@@ -405,7 +403,6 @@ operator()(error_code ec, std::size_t bytes_used)
 
     case 1:
     case 2:
-        d.b.consume(bytes_used);
         if(ec)
             goto upcall;
         if(d.p.is_done())
@@ -428,7 +425,7 @@ template<
     class SyncReadStream,
     class DynamicBuffer,
     bool isRequest, class Derived>
-std::size_t
+void
 read_some(
     SyncReadStream& stream,
     DynamicBuffer& buffer,
@@ -440,18 +437,16 @@ read_some(
         "DynamicBuffer requirements not met");
     BOOST_ASSERT(! parser.is_done());
     error_code ec;
-    auto const bytes_used =
-        read_some(stream, buffer, parser, ec);
+    read_some(stream, buffer, parser, ec);
     if(ec)
         BOOST_THROW_EXCEPTION(system_error{ec});
-    return bytes_used;
 }
 
 template<
     class SyncReadStream,
     class DynamicBuffer,
     bool isRequest, class Derived>
-std::size_t
+void
 read_some(
     SyncReadStream& stream,
     DynamicBuffer& buffer,
@@ -463,13 +458,12 @@ read_some(
     static_assert(is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
     BOOST_ASSERT(! parser.is_done());
-    std::size_t bytes_used = 0;
     if(buffer.size() == 0)
         goto do_read;
     for(;;)
     {
         // invoke parser
-        bytes_used += parser.put(buffer.data(), ec);
+        buffer.consume(parser.put(buffer.data(), ec));
         if(! ec)
             break;
         if(ec != http::error::need_more)
@@ -511,7 +505,6 @@ read_some(
             break;
         buffer.commit(bytes_transferred);
     }
-    return bytes_used;
 }
 
 template<
@@ -520,7 +513,7 @@ template<
     bool isRequest, class Derived,
     class ReadHandler>
 async_return_type<
-    ReadHandler, void(error_code, std::size_t)>
+    ReadHandler, void(error_code)>
 async_read_some(
     AsyncReadStream& stream,
     DynamicBuffer& buffer,
@@ -532,8 +525,7 @@ async_read_some(
     static_assert(is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
     BOOST_ASSERT(! parser.is_done());
-    async_completion<ReadHandler,
-        void(error_code, std::size_t)> init{handler};
+    async_completion<ReadHandler, void(error_code)> init{handler};
     detail::read_some_op<AsyncReadStream,
         DynamicBuffer, isRequest, Derived, handler_type<
             ReadHandler, void(error_code, std::size_t)>>{
@@ -582,9 +574,7 @@ read_header(
     parser.eager(false);
     while(! parser.is_header_done())
     {
-        auto const bytes_used =
-            read_some(stream, buffer, parser, ec);
-        buffer.consume(bytes_used);
+        read_some(stream, buffer, parser, ec);
         if(ec)
             return;
     }
@@ -595,8 +585,7 @@ template<
     class DynamicBuffer,
     bool isRequest, class Derived,
     class ReadHandler>
-async_return_type<
-    ReadHandler, void(error_code)>
+async_return_type<ReadHandler, void(error_code)>
 async_read_header(
     AsyncReadStream& stream,
     DynamicBuffer& buffer,
@@ -614,7 +603,7 @@ async_read_header(
         isRequest, Derived, detail::parser_is_header_done,
             handler_type<ReadHandler, void(error_code)>>{
                 init.completion_handler, stream, buffer, parser}(
-                    error_code{}, 0);
+                    error_code{});
     return init.result.get();
 }
 
@@ -658,9 +647,7 @@ read(
     parser.eager(true);
     while(! parser.is_done())
     {
-        auto const bytes_used = read_some(
-            stream, buffer, parser, ec);
-        buffer.consume(bytes_used);
+        read_some(stream, buffer, parser, ec);
         if(ec)
             return;
     }
@@ -671,8 +658,7 @@ template<
     class DynamicBuffer,
     bool isRequest, class Derived,
     class ReadHandler>
-async_return_type<
-    ReadHandler, void(error_code)>
+async_return_type<ReadHandler, void(error_code)>
 async_read(
     AsyncReadStream& stream,
     DynamicBuffer& buffer,
@@ -690,7 +676,7 @@ async_read(
         isRequest, Derived, detail::parser_is_done,
             handler_type<ReadHandler, void(error_code)>>{
                 init.completion_handler, stream, buffer, parser}(
-                    error_code{}, 0);
+                    error_code{});
     return init.result.get();
 }
 
@@ -752,8 +738,7 @@ template<
     class DynamicBuffer,
     bool isRequest, class Body, class Fields,
     class ReadHandler>
-async_return_type<
-    ReadHandler, void(error_code)>
+async_return_type<ReadHandler, void(error_code)>
 async_read(
     AsyncReadStream& stream,
     DynamicBuffer& buffer,
@@ -774,7 +759,7 @@ async_read(
         isRequest, Body, Fields, handler_type<
             ReadHandler, void(error_code)>>{
                 init.completion_handler, stream, buffer, msg}(
-                    error_code{}, 0);
+                    error_code{});
     return init.result.get();
 }
 
