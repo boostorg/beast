@@ -368,7 +368,7 @@ read_some(MutableBufferSequence const& buffers,
     if(in_.b.size() > 0)
     {   
         bytes_transferred = buffer_copy(
-            buffers, in_.b.data(), write_max_);
+            buffers, in_.b.data(), read_max_);
         in_.b.consume(bytes_transferred);
     }
     else
