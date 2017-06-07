@@ -11,6 +11,7 @@ Version 50
 * Body documentation work
 * Add missing handler_alloc nested types
 * Fix chunk delimiter parsing
+* Fix test::pipe read_size
 
 API Changes:
 
