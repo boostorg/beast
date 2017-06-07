@@ -10,7 +10,7 @@
 In some cases, users may wish to create an instance of __parser__, or a
 user-defined type derived from __basic_parser__ and invoke its methods
 directly instead of using the provided stream algorithms. This could be
-useful for implementing algorithms on streams whose interface does not
+useful for implementing algorithms on objects whose interface does not
 conform to any __Stream__. For example, a
 [@http://zeromq.org/ *ZeroMQ* socket].
 The basic parser interface is interactive; the caller invokes the function

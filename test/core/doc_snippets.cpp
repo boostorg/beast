@@ -23,14 +23,14 @@ void fxx()
 
 //[snippet_core_1b
 //
-    using namespace beast;
+using namespace beast;
 
-    boost::asio::io_service ios;
-    boost::asio::io_service::work work{ios};
-    std::thread t{[&](){ ios.run(); }};
+boost::asio::io_service ios;
+boost::asio::io_service::work work{ios};
+std::thread t{[&](){ ios.run(); }};
 
-    error_code ec;
-    boost::asio::ip::tcp::socket sock{ios};
+error_code ec;
+boost::asio::ip::tcp::socket sock{ios};
 
 //]
 

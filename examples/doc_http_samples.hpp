@@ -7,13 +7,9 @@
 
 #include <beast.hpp>
 
-/*
-    This file contains all of the example code snippets contained
-    in the documentation, which directly includes this source code.
-*/
+// Contains the HTTP Examples from the documentation.
 
 // The documentation assumes the beast::http namespace
-
 namespace beast {
 namespace http {
 
@@ -194,7 +190,7 @@ send_cgi_response(
 
     // Set up the response. We use the buffer_body type,
     // allowing serialization to use manually provided buffers.
-    message<false, buffer_body, fields> res;
+    response<buffer_body> res;
 
     res.result(status::ok);
     res.version = 11;

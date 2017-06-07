@@ -122,7 +122,6 @@ void fxx() {
 //[http_snippet_10
 
     response<string_body> res;
-
     serializer<false, string_body, fields> sr{res};
 
 //]

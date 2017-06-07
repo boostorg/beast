@@ -39,7 +39,11 @@ namespace http {
 
     @li @ref error::end_of_stream if no octets were parsed, or
 
-    @li @ref error::partial_message if any octets were parsed.
+    @li @ref error::partial_message if any octets were parsed but the
+    message was incomplete, otherwise:
+
+    @li A successful result. A subsequent attempt to read will
+    return @ref error::end_of_stream
 
     @param stream The stream from which the data is to be read.
     The type must support the @b SyncReadStream concept.
@@ -86,7 +90,11 @@ read_some(
 
     @li @ref error::end_of_stream if no octets were parsed, or
 
-    @li @ref error::partial_message if any octets were parsed.
+    @li @ref error::partial_message if any octets were parsed but the
+    message was incomplete, otherwise:
+
+    @li A successful result. A subsequent attempt to read will
+    return @ref error::end_of_stream
 
     The function returns the number of bytes processed from the dynamic
     buffer. The caller should remove these bytes by calling `consume` on
@@ -141,7 +149,11 @@ read_some(
 
     @li @ref error::end_of_stream if no octets were parsed, or
 
-    @li @ref error::partial_message if any octets were parsed.
+    @li @ref error::partial_message if any octets were parsed but the
+    message was incomplete, otherwise:
+
+    @li A successful result. A subsequent attempt to read will
+    return @ref error::end_of_stream
 
     @param stream The stream from which the data is to be read.
     The type must support the @b AsyncReadStream concept.
@@ -212,7 +224,11 @@ async_read_some(
 
     @li @ref error::end_of_stream if no octets were parsed, or
 
-    @li @ref error::partial_message if any octets were parsed.
+    @li @ref error::partial_message if any octets were parsed but the
+    message was incomplete, otherwise:
+
+    @li A successful result. A subsequent attempt to read will
+    return @ref error::end_of_stream
 
     @param stream The stream from which the data is to be read.
     The type must support the @b SyncReadStream concept.
@@ -261,7 +277,11 @@ read_header(
 
     @li @ref error::end_of_stream if no octets were parsed, or
 
-    @li @ref error::partial_message if any octets were parsed.
+    @li @ref error::partial_message if any octets were parsed but the
+    message was incomplete, otherwise:
+
+    @li A successful result. A subsequent attempt to read will
+    return @ref error::end_of_stream
 
     @param stream The stream from which the data is to be read.
     The type must support the @b SyncReadStream concept.
@@ -314,7 +334,11 @@ read_header(
 
     @li @ref error::end_of_stream if no octets were parsed, or
 
-    @li @ref error::partial_message if any octets were parsed.
+    @li @ref error::partial_message if any octets were parsed but the
+    message was incomplete, otherwise:
+
+    @li A successful result. A subsequent attempt to read will
+    return @ref error::end_of_stream
 
     @param stream The stream from which the data is to be read.
     The type must support the @b AsyncReadStream concept.
@@ -383,7 +407,11 @@ async_read_header(
 
     @li @ref error::end_of_stream if no octets were parsed, or
 
-    @li @ref error::partial_message if any octets were parsed.
+    @li @ref error::partial_message if any octets were parsed but the
+    message was incomplete, otherwise:
+
+    @li A successful result. A subsequent attempt to read will
+    return @ref error::end_of_stream
 
     @param stream The stream from which the data is to be read.
     The type must support the @b SyncReadStream concept.
@@ -432,7 +460,11 @@ read(
 
     @li @ref error::end_of_stream if no octets were parsed, or
 
-    @li @ref error::partial_message if any octets were parsed.
+    @li @ref error::partial_message if any octets were parsed but the
+    message was incomplete, otherwise:
+
+    @li A successful result. A subsequent attempt to read will
+    return @ref error::end_of_stream
 
     @param stream The stream from which the data is to be read.
     The type must support the @b SyncReadStream concept.
@@ -485,7 +517,11 @@ read(
 
     @li @ref error::end_of_stream if no octets were parsed, or
 
-    @li @ref error::partial_message if any octets were parsed.
+    @li @ref error::partial_message if any octets were parsed but the
+    message was incomplete, otherwise:
+
+    @li A successful result. A subsequent attempt to read will
+    return @ref error::end_of_stream
 
     @param stream The stream from which the data is to be read.
     The type must support the @b AsyncReadStream concept.
@@ -553,7 +589,11 @@ async_read(
 
     @li @ref error::end_of_stream if no octets were parsed, or
 
-    @li @ref error::partial_message if any octets were parsed.
+    @li @ref error::partial_message if any octets were parsed but the
+    message was incomplete, otherwise:
+
+    @li A successful result. A subsequent attempt to read will
+    return @ref error::end_of_stream
 
     @param stream The stream from which the data is to be read.
     The type must support the @b SyncReadStream concept.
@@ -599,7 +639,11 @@ read(
 
     @li @ref error::end_of_stream if no octets were parsed, or
 
-    @li @ref error::partial_message if any octets were parsed.
+    @li @ref error::partial_message if any octets were parsed but the
+    message was incomplete, otherwise:
+
+    @li A successful result. A subsequent attempt to read will
+    return @ref error::end_of_stream
 
     @param stream The stream from which the data is to be read.
     The type must support the @b SyncReadStream concept.
@@ -650,7 +694,11 @@ read(
 
     @li @ref error::end_of_stream if no octets were parsed, or
 
-    @li @ref error::partial_message if any octets were parsed.
+    @li @ref error::partial_message if any octets were parsed but the
+    message was incomplete, otherwise:
+
+    @li A successful result. A subsequent attempt to read will
+    return @ref error::end_of_stream
 
     @param stream The stream from which the data is to be read.
     The type must support the @b AsyncReadStream concept.

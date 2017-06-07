@@ -74,63 +74,63 @@ public:
     testMessage()
     {
         BOOST_STATIC_ASSERT(std::is_constructible<
-            message<true, default_body, fields>>::value);
+            request<default_body>>::value);
 
         BOOST_STATIC_ASSERT(std::is_constructible<
-            message<true, one_arg_body, fields>, Arg1>::value);
+            request<one_arg_body>, Arg1>::value);
 
         BOOST_STATIC_ASSERT(std::is_constructible<
-            message<true, one_arg_body, fields>, Arg1 const>::value);
+            request<one_arg_body>, Arg1 const>::value);
 
         BOOST_STATIC_ASSERT(std::is_constructible<
-            message<true, one_arg_body, fields>, Arg1 const&>::value);
+            request<one_arg_body>, Arg1 const&>::value);
 
         BOOST_STATIC_ASSERT(std::is_constructible<
-            message<true, one_arg_body, fields>, Arg1&&>::value);
+            request<one_arg_body>, Arg1&&>::value);
 
         BOOST_STATIC_ASSERT(! std::is_constructible<
-            message<true, one_arg_body, fields>>::value);
+            request<one_arg_body>>::value);
 
         BOOST_STATIC_ASSERT(std::is_constructible<
-            message<true, one_arg_body, fields>,
+            request<one_arg_body>,
                 Arg1, fields::allocator_type>::value);
 
         BOOST_STATIC_ASSERT(std::is_constructible<
-            message<true, one_arg_body, fields>, std::piecewise_construct_t,
+            request<one_arg_body>, std::piecewise_construct_t,
                 std::tuple<Arg1>>::value);
 
         BOOST_STATIC_ASSERT(std::is_constructible<
-            message<true, two_arg_body, fields>, std::piecewise_construct_t,
+            request<two_arg_body>, std::piecewise_construct_t,
                 std::tuple<Arg1, Arg2>>::value);
 
         BOOST_STATIC_ASSERT(std::is_constructible<
-            message<true, two_arg_body, fields>, std::piecewise_construct_t,
+            request<two_arg_body>, std::piecewise_construct_t,
                 std::tuple<Arg1, Arg2>, std::tuple<fields::allocator_type>>::value);
 
         {
             Arg1 arg1;
-            message<true, one_arg_body, fields>{std::move(arg1)};
+            request<one_arg_body>{std::move(arg1)};
             BEAST_EXPECT(arg1.moved);
         }
 
         {
-            header<true, fields> h;
+            header<true> h;
             h.insert(field::user_agent, "test");
-            message<true, one_arg_body, fields> m{Arg1{}, h};
+            request<one_arg_body> m{Arg1{}, h};
             BEAST_EXPECT(h["User-Agent"] == "test");
             BEAST_EXPECT(m["User-Agent"] == "test");
         }
         {
-            header<true, fields> h;
+            header<true> h;
             h.insert(field::user_agent, "test");
-            message<true, one_arg_body, fields> m{Arg1{}, std::move(h)};
+            request<one_arg_body> m{Arg1{}, std::move(h)};
             BEAST_EXPECT(! h.exists("User-Agent"));
             BEAST_EXPECT(m["User-Agent"] == "test");
         }
 
         // swap
-        message<true, string_body, fields> m1;
-        message<true, string_body, fields> m2;
+        request<string_body> m1;
+        request<string_body> m2;
         m1.target("u");
         m1.body = "1";
         m1.insert("h", "v");
@@ -197,8 +197,8 @@ public:
     void
     testSwap()
     {
-        message<false, string_body, fields> m1;
-        message<false, string_body, fields> m2;
+        response<string_body> m1;
+        response<string_body> m2;
         m1.result(status::ok);
         m1.version = 10;
         m1.body = "1";

@@ -13,6 +13,7 @@
 ## Contents
 
 - [Introduction](#introduction)
+- [Audience](audience)
 - [Appearances](#appearances)
 - [Description](#description)
 - [Requirements](#requirements)
@@ -24,37 +25,36 @@
 
 ## Introduction
 
-Beast is a header-only, cross-platform C++ library built on Boost.Asio and
-Boost, containing two modules implementing widely used network protocols.
-Beast.HTTP offers a universal model for describing, sending, and receiving
-HTTP messages while Beast.WebSocket provides a complete implementation of
-the WebSocket protocol. Their design achieves these goals:
+Beast is a cross-platform, header-only C++11 library for low-level
+HTTP/1 and WebSocket protocol programming
+using the consistent asynchronous networking model of Boost.Asio.
+Beast is not an HTTP client or HTTP server, but it can be used to
+build those things. It is intended to be a foundation for writing
+other interoperable libraries by providing HTTP vocabulary types
+and algorithms. The provided examples show how clients and servers
+might be built.
 
-* **Symmetry.** Interfaces are role-agnostic; the same interfaces can be
-used to build clients, servers, or both.
+This library is designed for:
 
-* **Ease of Use.** HTTP messages are modeled using simple, readily
-accessible objects. Functions and classes used to send and receive HTTP
-or WebSocket messages are designed to resemble Boost.Asio as closely as
-possible. Users familiar with Boost.Asio will be immediately comfortable
-using this library.
+* **Symmetry:** Interfaces are role-agnostic; build clients, servers, or both.
 
-* **Flexibility.** Interfaces do not mandate specific implementation
-strategies; important decisions such as buffer or thread management are
-left to users of the library.
+* **Ease of Use:** Boost.Asio users will immediately understand Beast.
 
-* **Performance.** The implementation performs competitively, making it a
-realistic choice for building high performance network servers.
+* **Flexibility:** Users make the important decisions such as buffer or
+  thread management.
 
-* **Scalability.** Development of network applications that scale to thousands
-of concurrent connections is possible with the implementation.
+* **Performance:** Build applications handling thousands of connections or more.
 
-* **Basis for further abstraction.** The interfaces facilitate the
-development of other libraries that provide higher levels of abstraction.
+* **Basis for Further Abstraction.** Components are open-ended and
+  suited for building higher level libraries.
 
-Beast is used in [rippled](https://github.com/ripple/rippled), an
-open source server application that implements a decentralized
-cryptocurrency system.
+## Audience
+
+Beast is for network programmers who have some familiarity with
+Boost.Asio. In particular, users who wish to write asynchronous programs
+with Beast should already know how to use Asio sockets and streams,
+and should know how to create concurrent network programs using
+Asio callbacks or coroutines.
 
 ## Appearances
 
@@ -76,17 +76,16 @@ The library has been submitted to the
 
 ## Requirements
 
-* Boost 1.58.0 or later
-* C++11 or later
+* **C++11:** Robust support for most language features.
+* **Boost:** Boost.Asio and some other parts of Boost.
+* **OpenSSL:** Optional, for using TLS/Secure sockets.
 
 When using Microsoft Visual C++, Visual Studio 2015 Update 3 or later is required.
 
-These components are optionally required in order to build the
-tests and examples:
+These components are required in order to build the tests and examples:
 
-* OpenSSL (optional)
-* CMake 3.7.2 or later (optional)
-* Properly configured bjam/b2 (optional)
+* CMake 3.7.2 or later
+* Properly configured bjam/b2
 
 ## Building
 
@@ -210,10 +209,10 @@ int main()
     req.method(beast::http::verb::get);
     req.target("/");
     req.version = 11;
-    req.fields.replace("Host", host + ":" +
+    req.insert(beast::http::field::host, host + ":" +
         boost::lexical_cast<std::string>(sock.remote_endpoint().port()));
-    req.fields.replace("User-Agent", "Beast");
-    beast::http::prepare(req);
+    req.insert(beast::http::field::user_agent, "Beast");
+    req.prepare();
     beast::http::write(sock, req);
 
     // Receive and print HTTP response using beast

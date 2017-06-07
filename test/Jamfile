@@ -70,6 +70,7 @@ unit-test http-bench :
 
 unit-test websocket-tests :
     ../extras/beast/unit_test/main.cpp
+    websocket/doc_snippets.cpp
     websocket/error.cpp
     websocket/option.cpp
     websocket/rfc6455.cpp

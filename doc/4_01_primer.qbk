@@ -24,7 +24,7 @@ Every message contains a set of zero or more field name/value pairs,
 collectively called "fields". The names and values are represented using
 text strings with various requirements. A serialized field contains the
 field name, then a colon followed by a space (`": "`), and finally the field
-value.
+value with a trailing CRLF.
 
 When a client and server have established a connection and intend to
 use HTTP, the client sends a series of requests while the server reads

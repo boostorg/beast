@@ -39,8 +39,7 @@ class stream<NextLayer>::handshake_op
         stream<NextLayer>& ws;
         response_type* res_p;
         detail::sec_ws_key_type key;
-        http::message<true,
-            http::empty_body, http::fields> req;
+        http::request<http::empty_body> req;
         response_type res;
         int state = 0;
 

@@ -10,6 +10,7 @@ add_executable (websocket-tests
     ../../extras/beast/unit_test/main.cpp
     websocket_async_echo_server.hpp
     websocket_sync_echo_server.hpp
+    doc_snippets.cpp
     error.cpp
     option.cpp
     rfc6455.cpp

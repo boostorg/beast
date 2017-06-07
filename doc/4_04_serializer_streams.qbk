@@ -7,21 +7,20 @@
 
 [section:serializer_streams Serializer Stream Operations]
 
-Algorithms for sending entire messages to streams are intended for light
-duty use-cases such as simple clients and low utilization servers.
-Sophisticated algorithms will need to do more:
+Message oriented stream operations provide for limited control.
+Sophisticated algorithms may need to do more, such as:
 
-* Send the message header first.
+* Send the header first, and the body later.
+
+* Set chunk extensions or trailers using a chunk decorator.
 
 * Send a message incrementally: bounded work in each I/O cycle.
 
-* Use a custom chunk decorator or allocator when sending messages.
-
 * Use a series of caller-provided buffers to represent the body.
 
-All of these operations require callers to manage the lifetime of state
-information associated with the operation, by constructing a __serializer__
-object with the message to be sent. The serializer type has this declaration:
+These tasks may be performed by using the serializer stream interfaces.
+To use these interfaces, first construct a __serializer__ object with
+the message to be sent. The serializer type has this declaration:
 
 [http_snippet_9]
 
@@ -30,10 +29,9 @@ This code creates an HTTP response and the corresponding serializer:
 
 [http_snippet_10]
 
-The convenience function
+The function
 [link beast.ref.http__make_serializer `make_serializer`]
-is provided to avoid repetition of template argument types. The declaration
-for `sr` in the code above may be written as:
+is provided to simplify creation of variables:
 
 [http_snippet_11]
 
@@ -64,12 +62,12 @@ The stream operations which work on serializers are:
 [[
     [link beast.ref.http__write_some.overload1 [*write_some]]
 ][
-    Send some __serializer__ buffer data to a __SyncWriteStream__.
+    Send part of a __serializer__ to a __SyncWriteStream__.
 ]]
 [[
     [link beast.ref.http__async_write_some [*async_write_some]]
 ][
-    Send some __serializer__ buffer data asynchronously to an __AsyncWriteStream__.
+    Send part of a __serializer__ asynchronously to an __AsyncWriteStream__.
 ]]
 ]
 
@@ -77,5 +75,42 @@ Here is an example of using a serializer to send a message on a stream
 synchronously. This performs the same operation as calling `write(stream, m)`:
 
 [http_snippet_12]
+
+[heading Chunk Decorators]
+
+When the message used to construct the serializer indicates the chunked
+transfer encoding, the serializer will automatically generate the proper
+encoding in the output buffers. __rfc7230__ defines additional fields
+called the
+[@https://tools.ietf.org/html/rfc7230#section-4.1.1 chunk extensions]
+in chunks with body octets, and the
+[@https://tools.ietf.org/html/rfc7230#section-4.1.2 chunked trailer part]
+for the final chunk. Applications that wish to emit chunk extensions
+and trailers may instantiate the serializer with a "chunk decorator" type,
+and pass an instance of the type upon construction. This decorator is
+a function object which, when invoked with a __ConstBufferSequence__,
+returns a
+[link beast.ref.string_view `string_view`] containing either the extensions
+or the trailer. For chunks containing body data, the passed buffer will
+contain one or more corresponding body octets. The decorator may use this
+information as needed. For example, to compute a digest on the data and
+store it as a chunk extension. For the trailers, the serializer will
+invoke the decorator with a buffer sequence of size zero. Or more
+specifically, with an object of type
+[@http://www.boost.org/doc/html/boost_asio/reference/null_buffers.html `boost::asio::null_buffers`].
+
+For body chunks the string returned by the decorator must follow the
+[@https://tools.ietf.org/html/rfc7230#section-4.1.1 correct syntax]
+for the entire chunk extension. For the trailer, the returned string
+should consist of zero or more lines ending in a CRLF and containing
+a field name/value pair in the format prescribed by __rfc7230__. It
+is the responsibility of the decorator to manage returned string buffers.
+The implementation guarantees it will not reference previous strings
+after subsequent calls.
+
+Here, we declare a decorator which sets an extension variable `x` equal
+to the size of the chunk in bytes, and returns a single trailer field:
+
+[http_snippet_17]
 
 [endsect]

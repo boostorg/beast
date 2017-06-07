@@ -7,6 +7,14 @@
 
 [section:http Using HTTP]
 
+[warning
+    Higher level functions such as Basic
+    Authentication,  mime/multipart encoding, cookies, automatic handling
+    of redirects, gzipped transfer encodings, caching, or proxying (to name
+    a few) are not directly provided, but nothing stops users from creating
+    these features using Beast's HTTP message types.
+]
+
 This library offers programmers simple and performant models of HTTP messages
 and their associated operations including synchronous, asynchronous, and
 buffer-oriented parsing and serialization of messages in the HTTP/1 wire

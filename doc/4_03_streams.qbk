@@ -8,31 +8,30 @@
 [section:streams Message Stream Operations]
 
 Beast provides synchronous and asynchronous algorithms to serialize and
-parse HTTP/1 wire format messages on streams. These functions form the
-basic interface which works on the entire header or message at once,
-requiring no separately managed state objects:
+parse HTTP/1 wire format messages on streams. These functions form a
+basic interface for operating on entire messages:
 
 [table Basic Interface
 [[Name][Description]]
 [[
     [link beast.ref.http__read.overload3 [*read]]
 ][
-    Parse a __message__ from a __SyncReadStream__.
+    Read a __message__ from a __SyncReadStream__.
 ]]
 [[
     [link beast.ref.http__async_read.overload2 [*async_read]]
 ][
-    Parse a __message__ from an __AsyncReadStream__.
+    Read a __message__ from an __AsyncReadStream__.
 ]]
 [[
     [link beast.ref.http__write.overload1 [*write]]
 ][
-    Serialize a __message__ to a __SyncWriteStream__.
+    Write a __message__ to a __SyncWriteStream__.
 ]]
 [[
     [link beast.ref.http__async_write [*async_write]]
 ][
-    Serialize a __message__ to an __AsyncWriteStream__.
+    Write a __message__ to an __AsyncWriteStream__.
 ]]
 ]
 
@@ -45,13 +44,13 @@ occurs this argument will be set to contain the error code.
 
 [heading Reading]
 
-Because a serialized header is not length-prefixed, algorithms which parse
-messages from a stream may read past the end of a message for efficiency.
-To hold this surplus data, all stream read operations use a passed-in
-__DynamicBuffer__ which persists between calls. Each read operation may
-consume bytes remaining in the buffer, and leave behind new bytes. In this
-example we declare the buffer and a message variable, then read a complete
-HTTP request synchronously:
+Because a serialized header is not length-prefixed, algorithms which
+parse messages from a stream may read past the end of a message for
+efficiency. To hold this surplus data, all stream read operations use
+a passed-in __DynamicBuffer__ which must be persisted between calls.
+Each read operation may consume bytes remaining in the buffer, and
+leave behind new bytes. In this example we declare the buffer and a
+message variable, then read a complete HTTP request synchronously:
 
 [http_snippet_4]
 
