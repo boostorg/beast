@@ -64,8 +64,7 @@
             <member><link linkend="beast.ref.http__async_write">async_write</link></member>
             <member><link linkend="beast.ref.http__async_write_header">async_write_header</link></member>
             <member><link linkend="beast.ref.http__async_write_some">async_write_some</link></member>
-            <member><link linkend="beast.ref.http__is_keep_alive">is_keep_alive</link></member>
-            <member><link linkend="beast.ref.http__is_upgrade">is_upgrade</link></member>
+            <member><link linkend="beast.ref.http__int_to_status">int_to_status</link></member>
             <member><link linkend="beast.ref.http__make_serializer">make_serializer</link></member>
             <member><link linkend="beast.ref.http__obsolete_reason">obsolete_reason</link></member>
             <member><link linkend="beast.ref.http__operator_ls_">operator&lt;&lt;</link></member>
@@ -76,6 +75,7 @@
             <member><link linkend="beast.ref.http__string_to_verb">string_to_verb</link></member>
             <member><link linkend="beast.ref.http__swap">swap</link></member>
             <member><link linkend="beast.ref.http__to_string">to_string</link></member>
+            <member><link linkend="beast.ref.http__to_status_class">to_status_class</link></member>
             <member><link linkend="beast.ref.http__write">write</link></member>
             <member><link linkend="beast.ref.http__write_header">write_header</link></member>
             <member><link linkend="beast.ref.http__write_some">write_some</link></member>
@@ -84,7 +84,6 @@
         <entry valign="top">
           <bridgehead renderas="sect3">Constants</bridgehead>
           <simplelist type="vert" columns="1">
-            <member><link linkend="beast.ref.http__connection">connection</link></member>
             <member><link linkend="beast.ref.http__error">error</link></member>
             <member><link linkend="beast.ref.http__field">field</link></member>
             <member><link linkend="beast.ref.http__status">status</link></member>

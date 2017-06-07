@@ -595,24 +595,6 @@ swap(
     message<isRequest, Body, Fields>& m1,
     message<isRequest, Body, Fields>& m2);
 
-//------------------------------------------------------------------------------
-
-/** Returns `true` if the HTTP/1 message indicates a keep alive.
-
-    Undefined behavior if version is greater than 11.
-*/
-template<bool isRequest, class Fields>
-bool
-is_keep_alive(header<isRequest, Fields> const& msg);
-
-/** Returns `true` if the HTTP/1 message indicates an Upgrade request or response.
-
-    Undefined behavior if version is greater than 11.
-*/
-template<bool isRequest, class Fields>
-bool
-is_upgrade(header<isRequest, Fields> const& msg);
-
 } // http
 } // beast
 

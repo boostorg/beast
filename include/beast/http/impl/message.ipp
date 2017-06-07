@@ -9,10 +9,10 @@
 #define BEAST_HTTP_IMPL_MESSAGE_IPP
 
 #include <beast/core/error.hpp>
-#include <beast/http/rfc7230.hpp>
 #include <beast/core/detail/ci_char_traits.hpp>
 #include <beast/core/detail/type_traits.hpp>
 #include <boost/assert.hpp>
+#include <boost/throw_exception.hpp>
 #include <stdexcept>
 
 namespace beast {
@@ -43,7 +43,7 @@ method(verb v)
 {
     if(v == verb::unknown)
         BOOST_THROW_EXCEPTION(
-            std::invalid_argument{"unknown verb"});
+            std::invalid_argument{"unknown method"});
     method_ = v;
     this->set_method_impl({});
 }
@@ -140,7 +140,7 @@ result(unsigned v)
     if(v > 999)
         BOOST_THROW_EXCEPTION(
             std::invalid_argument{
-                "invalid result-code"});
+                "invalid status-code"});
     result_ = static_cast<status>(v);
 }
 
@@ -307,8 +307,8 @@ message<isRequest, Body, Fields>::
 prepare(std::true_type)
 {
     auto const n = size();
-    if(this->method_ == verb::trace &&
-            (! n || *n > 0))
+    if(this->method_ == verb::trace && (
+            ! n || *n > 0))
         BOOST_THROW_EXCEPTION(std::invalid_argument{
             "invalid request body"});
     if(n)
@@ -364,34 +364,6 @@ swap(
         static_cast<header<isRequest, Fields>&>(m1),
         static_cast<header<isRequest, Fields>&>(m2));
     swap(m1.body, m2.body);
-}
-
-template<bool isRequest, class Fields>
-bool
-is_keep_alive(header<isRequest, Fields> const& msg)
-{
-    BOOST_ASSERT(msg.version == 10 || msg.version == 11);
-    if(msg.version == 11)
-    {
-        if(token_list{msg["Connection"]}.exists("close"))
-            return false;
-        return true;
-    }
-    if(token_list{msg["Connection"]}.exists("keep-alive"))
-        return true;
-    return false;
-}
-
-template<bool isRequest, class Fields>
-bool
-is_upgrade(header<isRequest, Fields> const& msg)
-{
-    BOOST_ASSERT(msg.version == 10 || msg.version == 11);
-    if(msg.version == 10)
-        return false;
-    if(token_list{msg["Connection"]}.exists("upgrade"))
-        return true;
-    return false;
 }
 
 } // http
