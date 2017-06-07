@@ -52,7 +52,8 @@
 [def __BodyReader__         [link beast.concept.BodyReader [*BodyReader]]]
 [def __BodyWriter__         [link beast.concept.BodyWriter [*BodyWriter]]]
 [def __DynamicBuffer__      [link beast.concept.DynamicBuffer [*DynamicBuffer]]]
-[def __FieldSequence__      [link beast.concept.FieldSequence [*FieldSequence]]]
+[def __Fields__             [link beast.concept.Fields [*Fields]]]
+[def __FieldsReader__       [link beast.concept.FieldsReader [*FieldsReader]]]
 [def __Stream__             [link beast.concept.streams [*Stream]]]
 [def __SyncStream__         [link beast.concept.streams.SyncStream [*SyncStream]]]
 

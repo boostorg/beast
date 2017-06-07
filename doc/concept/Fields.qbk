@@ -1,0 +1,112 @@
+[/
+    Copyright (c) 2013-2017 Vinnie Falco (vinnie dot falco at gmail dot com)
+
+    Distributed under the Boost Software License, Version 1.0. (See accompanying
+    file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+]
+
+[section:Fields Fields]
+
+An instance of [*Fields] is a container for holding HTTP header fields
+and their values. The implementation also calls upon the container to
+store the request target and non-standard strings for method and obsolete
+reason phrase as needed. Types which meet these requirements can always
+be serialized.
+
+In this table:
+
+* `X` denotes a type that meets the requirements of [*Fields].
+
+* `R` denotes a type meeting the requiremnets of __FieldsReader__.
+
+* `a` denotes a value of type `X`.
+
+* `c` denotes a (possibly const) value of type `X`.
+
+* `s` is a value of type [link beast.ref.string_view `string_view`].
+
+[table Fields requirements
+[[expression][type][semantics, pre/post-conditions]]
+[
+    [`X::reader`]
+    [`R`]
+    [
+        A type which meets the requirements of __FieldsReader__.
+    ]
+][
+    [`c.has_close_impl()`]
+    [`bool`]
+    [
+        Returns `true` if the value for Connection has "close" in the list.
+    ]
+][
+    [`c.has_chunked_impl()`]
+    [`bool`]
+    [
+        Returns `true` if "chunked" is the last Transfer-Encoding.
+    ]
+][
+    [`c.has_content_length_impl()`]
+    [`bool`]
+    [
+        Returns `true` if the Content-Length field is present.
+    ]
+][
+    [`c.get_method_impl()`]
+    [`string_view`]
+    [
+        Returns the method text.
+        The implementation only calls this function for request
+        headers when retrieving the method text previously set
+        with a call to `set_method_impl` using a non-empty string.
+    ]
+][
+    [`c.get_target_impl()`]
+    [`string_view`]
+    [
+        Returns the target string.
+        The implementation only calls this function for request headers.
+    ]
+][
+    [`c.get_reason_impl()`]
+    [`string_view`]
+    [
+        Returns the obsolete request text.
+        The implementation only calls this for response headers when
+        retrieving the reason text previously set with a call to
+        `set_reason_impl` using a non-empty string.
+    ]
+][
+    [`a.set_method_impl(s)`]
+    []
+    [
+        Stores a copy of `s` as the method text, or erases the previously
+        stored value if `s` is empty.
+        The implementation only calls this function for request headers.
+        This function may throw `std::invalid_argument` if the operation
+        is not supported by the container.
+    ]
+][
+    [`a.set_target_impl(s)`]
+    []
+    [
+        Stores a copy of `s` as the target, or erases the previously
+        stored value if `s` is empty.
+        The implementation only calls this function for request headers.
+        This function may throw `std::invalid_argument` if the operation
+        is not supported by the container.
+    ]
+][
+    [`a.set_reason_impl(s)`]
+    []
+    [
+        Stores a copy of `s` as the reason text, or erases the previously
+        stored value of the reason text if `s` is empty.
+        The implementation only calls this function for request headers.
+        This function may throw `std::invalid_argument` if the operation
+        is not supported by the container.
+    ]
+]
+]
+
+[endsect]

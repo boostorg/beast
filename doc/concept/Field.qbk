@@ -19,7 +19,7 @@ In this table:
 [[expression][type][semantics, pre/post-conditions]]
 [
     [`a.name()`]
-    [`boost::string_ref`]
+    [[link beast.ref.string_view `string_view`]]
     [
         This function returns a value implicitly convertible to
         `boost::string_ref` containing the case-insensitive field
@@ -28,7 +28,7 @@ In this table:
 ]
 [
     [`a.value()`]
-    [`boost::string_ref`]
+    [[link beast.ref.string_view `string_view`]]
     [
         This function returns a value implicitly convertible to
         `boost::string_ref` containing the value for the field. The

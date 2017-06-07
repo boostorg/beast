@@ -61,7 +61,7 @@ method_string() const
 template<class Fields>
 void
 header<true, Fields>::
-method(string_view s)
+method_string(string_view s)
 {
     method_ = string_to_verb(s);
     if(method_ != verb::unknown)
@@ -190,21 +190,85 @@ swap(
 //------------------------------------------------------------------------------
 
 template<bool isRequest, class Body, class Fields>
+template<class... Args>
+message<isRequest, Body, Fields>::
+message(header_type&& base, Args&&... args)
+    : header_type(std::move(base))
+    , body(std::forward<Args>(args)...)
+{
+}
+
+template<bool isRequest, class Body, class Fields>
+template<class... Args>
+message<isRequest, Body, Fields>::
+message(header_type const& base, Args&&... args)
+    : header_type(base)
+    , body(std::forward<Args>(args)...)
+{
+}
+
+template<bool isRequest, class Body, class Fields>
+template<class U, class>
+message<isRequest, Body, Fields>::
+message(U&& u)
+    : body(std::forward<U>(u))
+{
+}
+
+template<bool isRequest, class Body, class Fields>
+template<class U, class V, class>
+message<isRequest, Body, Fields>::
+message(U&& u, V&& v)
+    : header_type(std::forward<V>(v))
+    , body(std::forward<U>(u))
+{
+}
+
+template<bool isRequest, class Body, class Fields>
+template<class... Un>
+message<isRequest, Body, Fields>::
+message(std::piecewise_construct_t, std::tuple<Un...> un)
+    : message(std::piecewise_construct, un,
+        beast::detail::make_index_sequence<sizeof...(Un)>{})
+{
+}
+
+template<bool isRequest, class Body, class Fields>
+template<class... Un, class... Vn>
+message<isRequest, Body, Fields>::
+message(std::piecewise_construct_t,
+        std::tuple<Un...>&& un, std::tuple<Vn...>&& vn)
+    : message(std::piecewise_construct, un, vn,
+        beast::detail::make_index_sequence<sizeof...(Un)>{},
+        beast::detail::make_index_sequence<sizeof...(Vn)>{})
+{
+}
+
+template<bool isRequest, class Body, class Fields>
+inline
 bool
 message<isRequest, Body, Fields>::
-chunked() const
+has_close() const
 {
-    auto const it0 = this->find("Transfer-Encoding");
-    if(it0 == this->end())
-        return false;
-    token_list value{*it0};
-    for(auto it = value.begin(); it != value.end();)
-    {
-        auto cur = it++;
-        if(it == value.end())
-            return *cur == "chunked";
-    }
-    return false;
+    return this->has_close_impl();
+}
+
+template<bool isRequest, class Body, class Fields>
+inline
+bool
+message<isRequest, Body, Fields>::
+has_chunked() const
+{
+    return this->has_chunked_impl();
+}
+
+template<bool isRequest, class Body, class Fields>
+inline
+bool
+message<isRequest, Body, Fields>::
+has_content_length() const
+{
+    return this->has_content_length_impl();
 }
 
 template<bool isRequest, class Body, class Fields>
@@ -326,7 +390,7 @@ prepare_payload(std::true_type)
     }
     else if(this->version >= 11)
     {
-        this->chunked_impl();
+        this->set_chunked_impl(true);
     }
 }
 
@@ -350,7 +414,7 @@ prepare_payload(std::false_type)
     if(n)
         this->content_length_impl(*n);
     else if(this->version >= 11)
-        this->chunked_impl();
+        this->set_chunked_impl(true);
 }
 
 //------------------------------------------------------------------------------

@@ -119,7 +119,7 @@ struct header<true, Fields> : Fields
     verb
     method() const;
 
-    /** Set the request-method verb.
+    /** Set the request-method.
 
         This function will set the method for requests to a known verb.
 
@@ -127,11 +127,13 @@ struct header<true, Fields> : Fields
         This may not be @ref verb::unknown.
 
         @throw std::invalid_argument when `v == verb::unknown`.
+
+        @note This function is only available when `isRequest == true`.
     */
     void
     method(verb v);
 
-    /** Return the request-method string.
+    /** Return the request-method as a string.
 
         @note This function is only available when `isRequest == true`.
 
@@ -140,18 +142,18 @@ struct header<true, Fields> : Fields
     string_view
     method_string() const;
 
-    /** Set the request-method string.
+    /** Set the request-method.
 
-        This function will set the method for requests to a verb
-        if the string matches a known verb, otherwise it will
-        store a copy of the passed string as the method.
+        This function will set the request-method a known verb
+        if the string matches, otherwise it will store a copy of
+        the passed string.
 
         @param s A string representing the request-method.
 
         @note This function is only available when `isRequest == true`.
     */
     void
-    method(string_view s);
+    method_string(string_view s);
 
     /** Returns the request-target string.
 
@@ -382,31 +384,27 @@ struct message : header<isRequest, Fields>
     /// Copy assignment
     message& operator=(message const&) = default;
 
-    /** Construct a message from a header.
+    /** Constructor.
 
-        Additional arguments, if any, are forwarded to
-        the constructor of the body member.
+        @param h The header to move construct from.
+
+        @param args Optional arguments forwarded
+        to the body constructor.
     */
     template<class... Args>
     explicit
-    message(header_type&& base, Args&&... args)
-        : header_type(std::move(base))
-        , body(std::forward<Args>(args)...)
-    {
-    }
+    message(header_type&& h, Args&&... args);
 
-    /** Construct a message from a header.
+    /** Constructor.
 
-        Additional arguments, if any, are forwarded to
-        the constructor of the body member.
+        @param h The header to copy construct from.
+
+        @param args Optional arguments forwarded
+        to the body constructor.
     */
     template<class... Args>
     explicit
-    message(header_type const& base, Args&&... args)
-        : header_type(base)
-        , body(std::forward<Args>(args)...)
-    {
-    }
+    message(header_type const& h, Args&&... args);
 
     /** Construct a message.
 
@@ -423,10 +421,7 @@ struct message : header<isRequest, Fields>
 #endif
     >
     explicit
-    message(U&& u)
-        : body(std::forward<U>(u))
-    {
-    }
+    message(U&& u);
 
     /** Construct a message.
 
@@ -443,22 +438,14 @@ struct message : header<isRequest, Fields>
             typename std::decay<U>::type, header_type>::value>::type
 #endif
     >
-    message(U&& u, V&& v)
-        : header_type(std::forward<V>(v))
-        , body(std::forward<U>(u))
-    {
-    }
+    message(U&& u, V&& v);
 
     /** Construct a message.
 
         @param un A tuple forwarded as a parameter pack to the body constructor.
     */
     template<class... Un>
-    message(std::piecewise_construct_t, std::tuple<Un...> un)
-        : message(std::piecewise_construct, un,
-            beast::detail::make_index_sequence<sizeof...(Un)>{})
-    {
-    }
+    message(std::piecewise_construct_t, std::tuple<Un...> un);
 
     /** Construct a message.
 
@@ -468,17 +455,25 @@ struct message : header<isRequest, Fields>
     */
     template<class... Un, class... Vn>
     message(std::piecewise_construct_t,
-            std::tuple<Un...>&& un, std::tuple<Vn...>&& vn)
-        : message(std::piecewise_construct, un, vn,
-            beast::detail::make_index_sequence<sizeof...(Un)>{},
-            beast::detail::make_index_sequence<sizeof...(Vn)>{})
-    {
-    }
+            std::tuple<Un...>&& un, std::tuple<Vn...>&& vn);
 
-    /** Returns `true` if Transfer-Encoding is present, and chunked appears last.
+    /// Returns `true` if "close" is specified in the Connection field.
+    bool
+    has_close() const;
+
+    /// Returns `true` if "chunked" is the last Transfer-Encoding.
+    bool
+    has_chunked() const;
+
+    /** Returns `true` if the Content-Length field is present.
+
+        This function checks the fields to determine if the content
+        length field is present, regardless of the actual value.
+
+        @note The contents of the body payload are not inspected.
     */
     bool
-    chunked() const;
+    has_content_length() const;
 
     /** Returns the payload size of the body in octets if possible.
 

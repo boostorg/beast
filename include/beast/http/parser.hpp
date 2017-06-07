@@ -189,7 +189,7 @@ private:
         if(method != verb::unknown)
             m_.method(method);
         else
-            m_.method(method_str);
+            m_.method_string(method_str);
         m_.version = version;
     }
 
@@ -241,17 +241,15 @@ private:
     }
 
     void
-    on_data(string_view s,
-        error_code& ec)
+    on_data(string_view s, error_code& ec)
     {
         wr_->put(boost::asio::buffer(
             s.data(), s.size()), ec);
     }
 
     void
-    on_chunk(
-        std::uint64_t, string_view,
-            error_code&)
+    on_chunk(std::uint64_t,
+        string_view, error_code&)
     {
     }
 
