@@ -19,12 +19,12 @@ Beast provides developers with a robust WebSocket implementation built on
 Boost.Asio with a consistent asynchronous model using a modern C++ approach.
 
 [note
-    The WebSocket documentation assumes familiarity the WebSocket protocol
-    specification described in __rfc6455__. Code appearing in these
-    sections is written as if the following declarations are in effect:
-    ```
-    #include <beast/websocket.hpp>
-    ```
+    This documentation assumes familiarity with __Asio__ and
+    the protocol specification described in __rfc6455__.
+    Sample code and identifiers appearing in this section is written
+    as if these declarations are in effect:
+
+    [ws_snippet_1]
 ]
 
 [include 6_1_streams.qbk]

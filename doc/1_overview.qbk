@@ -8,107 +8,94 @@
 [section:overview Introduction]
 
 [important
-    Beast is a cross-platform, header-only C++11 library for low-level HTTP
-    and WebSocket protocol programming that uses the consistent network and
-    asynchronous model of __Asio__.
-    
+    Beast is a cross-platform, header-only C++11 library for low-level
+    [*HTTP/1 and WebSocket protocol] programming
+    using the consistent asynchronous networking model of __Asio__.
     Beast is not an HTTP client or HTTP server, but it can be used to
-    build those things. The library is intended to be a foundation upon
-    which new libraries may be built. It is a goal that other architects
-    will create interoperable solutions on top of Beast. The provided
-    example programs shows how a client or server might be built.
+    build those things. It is intended to be a foundation for writing
+    other interoperable libraries by providing HTTP vocabulary types
+    and algorithms. The provided examples show how clients and servers
+    might be built.
 ]
 
-The design of the library achieves these goals:
+This library is designed for:
 
-* [*Symmetry.] Interfaces are role-agnostic; the same interfaces can be
-used to build clients, servers, or both.
+* [*Symmetry:] Interfaces are role-agnostic; build clients, servers, or both.
 
-* [*Ease of Use.] HTTP messages are modeled using a simple, expressive
-  container. Algorithms used to send and receive HTTP or WebSocket
-  messages are designed to make users already familiar with __Asio__
-  immediately comfortable using this library.
+* [*Ease of Use:] __Asio__ users will immediately understand Beast.
 
-* [*Flexibility.] Interfaces do not mandate specific implementation
-  strategies; users make the important decisions such as buffer or
+* [*Flexibility:] Users make the important decisions such as buffer or
   thread management.
 
-* [*Performance.] The implementation performs competitively, making it
-  a realistic choice for building high performance network servers.
+* [*Performance:] Build applications handling thousands of connections or more.
 
-* [*Scalability.] Development of network applications that scale to
-  thousands of concurrent connections is possible with the implementation.
+* [*Basis for Further Abstraction.] Components are open-ended and
+  suited for building higher level libraries.
 
-* [*Basis for Further Abstraction.] The interfaces facilitate the
-  development of other libraries that provide higher levels of abstraction.
+[heading Audience]
+
+Beast is for network programmers who have some familiarity with
+__Asio__. In particular, users who wish to write asynchronous programs
+with Beast should already know how to use Asio sockets and streams,
+and should know how to create concurrent network programs using
+Asio callbacks or coroutines.
+
+[heading Motivation]
+
+An absence of high quality C++ network protocol libraries has led
+to a patchwork of open-source solutions lacking suitable conciseness
+and expressive power for standardization. Part of this problem is
+caused by the lack of a standardized C++ networking interface. This
+will change soon with the Networking Technical Specification
+(__N4588__): a uniform interface for networking on track to become
+standardized. This technical specification is modeled closely after
+Boost.Asio.
+The HTTP and WebSocket protocols drive most of the World Wide Web.
+Every web browser implements these protocols to load webpages and
+to enable client side programs (often written in JavaScript) to
+communicate interactively. C++ benefits greatly from having a
+standardized implementation of these protocols.
+
+[note
+    The Beast roadmap includes a port to the standardized C++
+    networking interface based on __N4588__.
+]
 
 [heading Requirements]
 
 Beast requires:
 
-* [*C++11.] A minimum of C++11 is needed.
-* [*Boost.] Beast is built on Boost, especially Boost.Asio.
-* [*OpenSSL.] If using TLS/Secure sockets (optional).
+* [*C++11:] Robust support for most language features.
+* [*Boost:] Boost.Asio and some other parts of Boost.
+* [*OpenSSL:] Optional, for using TLS/Secure sockets.
 
 [note Supported compilers: msvc-14+, gcc 4.8+, clang 3.6+]
 
-The library is [*header-only]. It is not necessary to add any .cpp files,
-or to add commands to your build script for building Beast. To link your
-program successfully, you'll need to add the Boost.System library to link
-with. If you use coroutines you'll also need the Boost.Coroutine library.
-Please visit the Boost documentation for instructions on how to do this for
-your particular build system.
+This library is [*header-only]. To link a program using Beast
+successfully, add the
+[@http://www.boost.org/libs/system/doc/reference.html Boost.System]
+library to the list of linked libraries. If you use coroutines
+you'll also need the
+[@http://www.boost.org/libs/coroutine/doc/html/index.html Boost.Coroutine]
+library. Please visit the
+[@http://www.boost.org/doc/ Boost documentation]
+for instructions on how to do this for your particular build system.
 
-Beast does not compile using the stand-alone version of Asio, since it
-relies on other Boost parts. There are no immediate plans to offer a
-version that works with stand-alone Asio.
-
-[heading Motivation]
-
-There is a noted shortage of high quality C++ networking libraries,
-especially for the HTTP and WebSocket protocols. The author theorizes
-that previous attempts to build such libraries focused too much on end
-user needs instead of applying principles of computer science to solve
-the problem more formally. Another factor is that there no current
-standardized interface for networking. This may change soon; with the
-the introduction of the Networking Technical Specification (__N4588__),
-a uniform interface for networking is on track to become standardized.
-This technical specification is modeled closely after Boost.Asio.
-Beast is built on Boost.Asio, with plans to adapt it to the networking
-interfaces which become part of the C++ Standard.
-
-The HTTP and WebSocket protocols drive most of the World Wide Web. Every
-web browser implements these protocols to load webpages and to enable
-client side programs (often written in JavaScript) to communicate
-interactively. C++ benefits greatly from having a standardized
-implementation of these protocols.
-
-[heading Audience]
-
-Beast is for network programmers who have some familiarity with __Asio__.
-In particular, users who wish to write asynchronous programs with Beast
-should already have knowledge and experience with Asio's asynchronous
-model and style of asynchronous programming using callbacks or coroutines.
-The protocol interfaces are low level. There are no out of the box solutions
-for implementing clients or servers. For example, users must provide their
-own code to make connections, handle timeouts, reconnect a dropped connection,
-accept incoming connections, or manage connection resources on a server.
-
-The HTTP interfaces provide functionality only for modelling HTTP
-messages and serializing or parsing them on streams, including TCP/IP
-sockets or OpenSSL streams. Higher level functions such as Basic
-Authentication,  mime/multipart encoding, cookies, automatic handling
-of redirects, gzipped transfer encodings, caching, or proxying (to name
-a few) are not directly provided, but nothing stops users from creating
-these features using Beast's HTTP message types.
+[note
+    Beast does not compile using the
+    [@https://github.com/chriskohlhoff/asio stand-alone Asio],
+    since it relies on other Boost parts. There are no immediate
+    plans to offer a version that works with stand-alone Asio.
+]
 
 [heading Credits]
 
 Boost.Asio is the inspiration behind which all of the interfaces and
 implementation strategies are built. Some parts of the documentation are
 written to closely resemble the wording and presentation of Boost.Asio
-documentation. Credit goes to Christopher Kohlhoff for the wonderful
-Asio library and the ideas upon which Beast is built.
+documentation. Credit goes to
+[@https://github.com/chriskohlhoff Christopher Kohlhoff]
+for his wonderful Asio library and the ideas in __N4588__ which power Beast.
 
 Beast would not be possible without the support of
 [@https://www.ripple.com Ripple]
@@ -120,12 +107,12 @@ contributed by
 [@https://github.com/miguelportilla Miguel Portilla],
 [@https://github.com/nbougalis Nik Bougalis],
 [@https://github.com/seelabs Scott Determan],
-[@https://github.com/scottschurr],
+[@https://github.com/scottschurr Scott Schurr],
 Many thanks to
 [@https://github.com/K-ballo Agustín Bergé],
 [@http://www.boost.org/users/people/glen_fernandes.html Glen Fernandes],
 and
-[https://github.com/pdimov Peter Dimov]
+[@https://github.com/pdimov Peter Dimov]
 for tirelessly answering questions on
 [@https://cpplang.slack.com/ Cpplang-Slack].
 

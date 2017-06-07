@@ -11,6 +11,7 @@ add_executable (websocket-ssl-tests
     ${BEAST_INCLUDES}
     ${EXTRAS_INCLUDES}
     ../../../extras/beast/unit_test/main.cpp
+    doc_snippets.cpp
     websocket_async_ssl_echo_server.hpp
     ssl_server.cpp
 )

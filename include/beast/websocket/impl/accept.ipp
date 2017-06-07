@@ -39,8 +39,7 @@ class stream<NextLayer>::response_op
     {
         bool cont;
         stream<NextLayer>& ws;
-        http::message<false,
-            http::empty_body, http::fields> res;
+        http::response<http::empty_body> res;
         int state = 0;
 
         template<class Fields, class Decorator>

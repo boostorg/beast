@@ -53,10 +53,12 @@ possible value of `isRequest`:
 
 [$images/message.png [width 730px] [height 410px]]
 
-For notational convenience, the template type aliases 
+The template type aliases 
 [link beast.ref.http__request `request`] and
 [link beast.ref.http__response `response`]
-are provided, which also supply commonly chosen __fields__ type as a default:
+are provided for notational convenience. They also come with the default
+__fields__, a common choice.
+
 ```
 /// A typical HTTP request
 template<class Body, class Fields = fields>
@@ -138,8 +140,8 @@ Here we create an HTTP response indicating success. Note that this
 message has a body. The function
 [link beast.ref.http__message.prepare prepare]
 automatically sets the Content-Length or Transfer-Encoding field
-depending on the body type. The use of prepare is optional, the
-fields may be set manually if desired.
+depending on the content and type of the `body` member. The use
+of prepare is optional; these fields may also be set.
 
 [table Create Response
 [[Statements] [Serialized Result]]

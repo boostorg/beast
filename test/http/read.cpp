@@ -336,7 +336,7 @@ public:
                 "GET / HTTP/1.1\r\n\r\n"};
             BEAST_EXPECT(handler::count() == 0);
             multi_buffer b;
-            message<true, dynamic_body, fields> m;
+            request<dynamic_body> m;
             async_read(is, b, m, handler{});
             BEAST_EXPECT(handler::count() > 0);
             ios.stop();
@@ -355,7 +355,7 @@ public:
                     "GET / HTTP/1.1\r\n\r\n"};
                 BEAST_EXPECT(handler::count() == 0);
                 multi_buffer b;
-                message<true, dynamic_body, fields> m;
+                request<dynamic_body> m;
                 async_read(is, b, m, handler{});
                 BEAST_EXPECT(handler::count() > 0);
             }

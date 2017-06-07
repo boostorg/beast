@@ -289,7 +289,7 @@ public:
     testAsyncWrite(yield_context do_yield)
     {
         {
-            message<false, string_body, fields> m;
+            response<string_body> m;
             m.version = 10;
             m.result(status::ok);
             m.reason("OK");
@@ -308,7 +308,7 @@ public:
                     "*****");
         }
         {
-            message<false, string_body, fields> m;
+            response<string_body> m;
             m.version = 11;
             m.result(status::ok);
             m.reason("OK");
@@ -341,7 +341,7 @@ public:
             test::fail_counter fc(n);
             test::fail_stream<
                 test::string_ostream> fs(fc, ios_);
-            message<true, fail_body, fields> m{fc};
+            request<fail_body> m{fc};
             m.method(verb::get);
             m.target("/");
             m.version = 10;
@@ -372,7 +372,7 @@ public:
             test::fail_counter fc(n);
             test::fail_stream<
                 test::string_ostream> fs(fc, ios_);
-            message<true, fail_body, fields> m{fc};
+            request<fail_body> m{fc};
             m.method(verb::get);
             m.target("/");
             m.version = 10;
@@ -405,7 +405,7 @@ public:
             test::fail_counter fc(n);
             test::fail_stream<
                 test::string_ostream> fs(fc, ios_);
-            message<true, fail_body, fields> m{fc};
+            request<fail_body> m{fc};
             m.method(verb::get);
             m.target("/");
             m.version = 10;
@@ -438,7 +438,7 @@ public:
             test::fail_counter fc(n);
             test::fail_stream<
                 test::string_ostream> fs(fc, ios_);
-            message<true, fail_body, fields> m{fc};
+            request<fail_body> m{fc};
             m.method(verb::get);
             m.target("/");
             m.version = 10;
@@ -466,7 +466,7 @@ public:
             test::fail_counter fc(n);
             test::fail_stream<
                 test::string_ostream> fs(fc, ios_);
-            message<true, fail_body, fields> m{fc};
+            request<fail_body> m{fc};
             m.method(verb::get);
             m.target("/");
             m.version = 10;
@@ -495,7 +495,7 @@ public:
     {
         // auto content-length HTTP/1.0
         {
-            message<true, string_body, fields> m;
+            request<string_body> m;
             m.method(verb::get);
             m.target("/");
             m.version = 10;
@@ -512,7 +512,7 @@ public:
         }
         // no content-length HTTP/1.0
         {
-            message<true, unsized_body, fields> m;
+            request<unsized_body> m;
             m.method(verb::get);
             m.target("/");
             m.version = 10;
@@ -532,7 +532,7 @@ public:
         }
         // auto content-length HTTP/1.1
         {
-            message<true, string_body, fields> m;
+            request<string_body> m;
             m.method(verb::get);
             m.target("/");
             m.version = 11;
@@ -549,7 +549,7 @@ public:
         }
         // no content-length HTTP/1.1
         {
-            message<true, unsized_body, fields> m;
+            request<unsized_body> m;
             m.method(verb::get);
             m.target("/");
             m.version = 11;
@@ -574,7 +574,7 @@ public:
     void test_std_ostream()
     {
         // Conversion to std::string via operator<<
-        message<true, string_body, fields> m;
+        request<string_body> m;
         m.method(verb::get);
         m.target("/");
         m.version = 11;
@@ -604,7 +604,7 @@ public:
             boost::asio::io_service ios;
             test::string_ostream os{ios};
             BEAST_EXPECT(handler::count() == 0);
-            message<true, string_body, fields> m;
+            request<string_body> m;
             m.method(verb::get);
             m.version = 11;
             m.target("/");
@@ -626,7 +626,7 @@ public:
                 boost::asio::io_service ios;
                 test::string_ostream is{ios};
                 BEAST_EXPECT(handler::count() == 0);
-                message<true, string_body, fields> m;
+                request<string_body> m;
                 m.method(verb::get);
                 m.version = 11;
                 m.target("/");
@@ -708,7 +708,7 @@ public:
         test::pipe p{ios_};
         p.client.write_size(3);
 
-        message<false, Body, fields> m0;
+        response<Body> m0;
         m0.version = 11;
         m0.result(status::ok);
         m0.reason("OK");

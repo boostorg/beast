@@ -7,14 +7,14 @@
 
 [section:parser_streams Parser Stream Operations]
 
-Algorithms for receiving entire messages from streams are helpful for simple
-use-cases. Sophisticated algorithms will need to do more:
+Message oriented stream operations provide for limited control.
+Sophisticated algorithms may need to do more, such as:
 
-* Receive the message header first.
+* Receive the header first, then the body later.
+
+* Receive a large body using a fixed-size buffer.
 
 * Receive a message incrementally: bounded work in each I/O cycle.
-
-* Receive an arbitrarily-sized body using a fixed-size buffer.
 
 * Defer the commitment to a __Body__ type until after reading the header.
 
@@ -99,21 +99,20 @@ The stream operations which work on parsers are:
 ]]
 ]
 
-As with the stream parse algorithms which operate on entire messages, stream
-operations for parsers require a passed-in __DynamicBuffer__ which persists
-between calls to hold unused octets from the stream. The basic parser
-implementation is optimized for the case where this dynamic buffer stores
-its input sequence in a single contiguous memory buffer. It is advised to
-use an instance of __flat_buffer__ for this purpose, although a user defined
-instance of __DynamicBuffer__ which produces input sequences of length one
-is also suitable.
+As with message stream operations, parser stream operations require a
+persisted __DynamicBuffer__  for holding unused octets from the stream.
+The basic parser implementation is optimized for the case where this dynamic
+buffer stores its input sequence in a single contiguous memory buffer. It is
+advised to use an instance of __flat_buffer__, __static_buffer__, or
+__static_buffer_n__ for this purpose, although a user defined instance of
+__DynamicBuffer__ which produces input sequences of length one is also suitable.
 
 The provided parsers use a "captive object" model, acting as container for
-the __message__ or __header__ produced as a result of parsing. The caller
-accesses the contained object, and depending on the types used to instantiate
-the parser, it may be possible to acquire ownership of the header or message
-captive object and destroy the parser. In this example we read an HTTP
-response with a string body using a parser, then print the response:
+the __message__ produced as a result of parsing. The caller accesses the
+contained object, and depending on the types used to instantiate the parser,
+it may be possible to acquire ownership of the header or message captive
+object and destroy the parser. In this example we read an HTTP response
+with a string body using a parser, then print the response:
 
 [http_snippet_13]
 
