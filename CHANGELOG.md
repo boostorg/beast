@@ -23,6 +23,7 @@ API Changes:
 * Remove message connection settings
 * Remove message free functions
 * Remove obsolete serializer allocator
+* http read_some, async_read_some don't return bytes
 
 --------------------------------------------------------------------------------
 
