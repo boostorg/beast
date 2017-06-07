@@ -512,9 +512,14 @@ parse_chunk_header(char const*& p,
     // be parsed in one call instead of two.
     if(f_ & flagExpectCRLF)
     {
-        if(n < 2 || ! parse_crlf(p))
+        if(n < 2)
         {
             ec = error::need_more;
+            return;
+        }
+        if(! parse_crlf(p))
+        {
+            ec = error::bad_chunk;
             return;
         }
         f_ &= ~flagExpectCRLF;

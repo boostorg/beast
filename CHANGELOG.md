@@ -10,6 +10,7 @@ Version 50
 * Fields concept work
 * Body documentation work
 * Add missing handler_alloc nested types
+* Fix chunk delimiter parsing
 
 API Changes:
 
