@@ -9,6 +9,7 @@ Version 50
 * Tidy up basic_fields, header, and field concepts
 * Fields concept work
 * Body documentation work
+* Add missing handler_alloc nested types
 
 API Changes:
 
