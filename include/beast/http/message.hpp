@@ -9,7 +9,6 @@
 #define BEAST_HTTP_MESSAGE_HPP
 
 #include <beast/config.hpp>
-#include <beast/http/connection.hpp>
 #include <beast/http/fields.hpp>
 #include <beast/http/verb.hpp>
 #include <beast/http/status.hpp>
@@ -500,34 +499,25 @@ struct message : header<isRequest, Fields>
     void
     content_length(std::uint64_t n);
 
-    /** Prepare some fields automatically.
+    /** Prepare the message payload fields for the body.
 
-        This function will adjust the Connection, Content-Length
-        and Transfer-Encoding, fields of the message based on the
-        properties of the body and the options passed in.
+        This function will adjust the Content-Length and
+        Transfer-Encoding field values based on the properties
+        of the body.
 
         @par Example
         @code
-        request<empty_body> req;
+        request<string_body> req;
         req.version = 11;
         req.method(verb::upgrade);
         req.target("/");
         req.insert(field::user_agent, "Beast");
-        req.prepare(connection::close, connection::upgrade);
+        req.body = "Hello, world!";
+        req.prepare();
         @endcode
-
-        @param args An list of zero or more options to use.
-
-        @throw std::invalid_argument if the values of certain
-        fields detectably violate the semantic requirements of HTTP.
-
-        @note Undefined behavior if called more than once.
-
-        @see @ref connection
     */
-    template<class... Args>
     void
-    prepare(Args const&... args);
+    prepare();
 
 private:
     static_assert(is_body<Body>::value,
@@ -564,29 +554,11 @@ private:
         return boost::none;
     }
 
-    template<class Arg, class... Args>
     void
-    prepare_opt(unsigned&, Arg const&, Args const&...);
+    prepare(std::true_type);
 
     void
-    prepare_opt(unsigned&)
-    {
-    }
-
-    void
-    prepare_opt(unsigned&, close_t);
-
-    void
-    prepare_opt(unsigned&, keep_alive_t);
-
-    void
-    prepare_opt(unsigned&, upgrade_t);
-
-    void
-    prepare_payload(std::true_type);
-
-    void
-    prepare_payload(std::false_type);
+    prepare(std::false_type);
 };
 
 /// A typical HTTP request

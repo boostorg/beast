@@ -205,9 +205,8 @@ public:
             m.insert("Upgrade", "test");
             BEAST_EXPECT(! is_upgrade(m));
 
-            m.prepare(connection::upgrade);
+            m.insert(field::connection, "upgrade");
             BEAST_EXPECT(is_upgrade(m));
-            BEAST_EXPECT(m["Connection"] == "upgrade");
 
             m.version = 10;
             BEAST_EXPECT(! is_upgrade(m));
