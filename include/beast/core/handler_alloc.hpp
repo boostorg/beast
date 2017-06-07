@@ -10,6 +10,7 @@
 
 #include <beast/config.hpp>
 #include <boost/asio/handler_alloc_hook.hpp>
+#include <cstddef>
 #include <cstdlib>
 #include <memory>
 #include <type_traits>
@@ -56,6 +57,12 @@ private:
 public:
     using value_type = T;
     using is_always_equal = std::true_type;
+    using pointer = T*;
+    using reference = T&;
+    using const_pointer = T const*;
+    using const_reference = T const&;
+    using size_type = std::size_t;
+    using difference_type = std::ptrdiff_t;
 
     template<class U>
     struct rebind
