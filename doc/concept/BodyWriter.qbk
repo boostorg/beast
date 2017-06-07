@@ -49,8 +49,7 @@ In the table below:
         will be called the complete header is stored in `m`, and before
         parsing body octets for messages indicating that a body is present.
     ]
-]
-[
+][
     [`a.init(length,ec)`]
     []
     [
@@ -61,8 +60,7 @@ In the table below:
         [*BodyWriter] may use this information to optimize allocation.
         If `ec` is set, the error will be propagated to the caller.
     ]
-]
-[
+][
     [`a.put(b,ec)`]
     []
     [
@@ -70,16 +68,14 @@ In the table below:
         into the body representation.
         If `ec` is set, the error will be propagated to the caller.
     ]
-]
-[
+][
     [`a.finish(ec)`]
     []
     [
         This function is called when no more body octets are remaining.
         If `ec` is set, the error will be propagated to the caller.
     ]
-]
-[
+][
     [`is_body_writer<B>`]
     [`std::true_type`]
     [
@@ -88,9 +84,11 @@ In the table below:
     ]
 ]
 ]
+
 [note
-    Definitions for required [*BodyWriter] member functions should be declared
-    inline so the generated code can become part of the implementation.
+    Definitions for required [*BodyReader] member functions may
+    be declared inline so the generated code can become part of
+    the implementation.
 ]
 
 Exemplar:

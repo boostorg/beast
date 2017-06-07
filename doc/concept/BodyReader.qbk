@@ -45,8 +45,7 @@ In this table:
         A type which meets the requirements of __ConstBufferSequence__.
         This is the type of buffer returned by `X::get`.
     ]
-]
-[
+][
     [`X::is_deferred`]
     []
     [
@@ -62,16 +61,14 @@ In this table:
         latency experienced by the remote host when expecting to read
         the HTTP header.
     ]
-]
-[
+][
     [`X(m);`]
     []
     [
         Constructible from `m`. The lifetime of `m` is guaranteed
         to end no earlier than after the `X` is destroyed.
     ]
-]
-[
+][
     [`a.init(ec)`]
     []
     [
@@ -79,23 +76,7 @@ In this table:
         error code in `ec`, the serialization is aborted and the error
         is propagated to the caller.
     ]
-]
-[
-    [`a.content_length()`]
-    [`std::uint64_t`]
-    [
-        If this member is present, it is called after initialization
-        and before calls to provide buffers. The serialized message will
-        have the Content-Length field set to the value returned from
-        this function. If this member is absent, the serialized message
-        body will be chunk-encoded for HTTP versions 1.1 and later, else
-        the serialized message body will be sent unmodified, with the
-        error `boost::asio::error::eof` returned to the caller, to notify
-        they should close the connection to indicate the end of the message.
-        This function must be `noexcept`.
-    ]
-]
-[
+][
     [`a.get(ec)`]
     [`R<X::const_buffers_type>`]
     [
@@ -110,8 +91,7 @@ In this table:
         or `false` if the buffer returned on this call is the last
         buffer representing the body.
     ]
-]
-[
+][
     [`is_body_reader<B>`]
     [`std::true_type`]
     [
@@ -122,9 +102,9 @@ In this table:
 ]
 
 [note
-    Definitions for required [*BodyReader] member functions should
-    be declared inline so the generated code can become part of the
-    implementation.
+    Definitions for required [*BodyReader] member functions may
+    be declared inline so the generated code can become part of
+    the implementation.
 ]
 
 Exemplar:
@@ -159,16 +139,6 @@ public:
     */
     void
     init(error_code& ec);
-
-    /** Returns the content length.
-
-        If this member is present, the implementation will set the
-        Content-Length field accordingly. If absent, the implementation
-        will use chunk-encoding or terminate the connection to indicate
-        the end of the message.
-    */
-    std::uint64_t
-    content_length();
 
     /** Returns the next buffer in the body.
 
