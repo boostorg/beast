@@ -8,6 +8,7 @@
 #ifndef BEAST_WEBSOCKET_IMPL_STREAM_IPP
 #define BEAST_WEBSOCKET_IMPL_STREAM_IPP
 
+#include <beast/websocket/rfc6455.hpp>
 #include <beast/websocket/teardown.hpp>
 #include <beast/websocket/detail/hybi13.hpp>
 #include <beast/websocket/detail/pmd_extension.hpp>
@@ -285,7 +286,7 @@ do_response(http::header<false> const& res,
             return false;
         if(res.result() != http::status::switching_protocols)
             return false;
-        if(! is_upgrade(res))
+        if(! http::token_list{res["Connection"]}.exists("upgrade"))
             return false;
         if(! http::token_list{res["Upgrade"]}.exists("websocket"))
             return false;

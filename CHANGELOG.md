@@ -17,6 +17,7 @@ API Changes:
 * Refactor prepare
 * Protect basic_fields special members
 * Remove message connection settings
+* Remove message free functions
 
 --------------------------------------------------------------------------------
 

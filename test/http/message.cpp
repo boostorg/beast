@@ -195,25 +195,6 @@ public:
     }
 
     void
-    testFreeFunctions()
-    {
-        {
-            request<string_body> m;
-            m.method(verb::get);
-            m.target("/");
-            m.version = 11;
-            m.insert("Upgrade", "test");
-            BEAST_EXPECT(! is_upgrade(m));
-
-            m.insert(field::connection, "upgrade");
-            BEAST_EXPECT(is_upgrade(m));
-
-            m.version = 10;
-            BEAST_EXPECT(! is_upgrade(m));
-        }
-    }
-
-    void
     testSwap()
     {
         message<false, string_body, fields> m1;
@@ -312,7 +293,6 @@ public:
     {
         testMessage();
         testHeaders();
-        testFreeFunctions();
         testSwap();
         testSpecialMembers();
         testMethod();
