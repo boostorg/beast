@@ -813,15 +813,25 @@ public:
 
 } // detail
 
-#if 0
-template<bool isRequest, class Fields>
+template<class Fields>
 std::ostream&
 operator<<(std::ostream& os,
-    header<isRequest, Fields> const& msg)
+    header<true, Fields> const& h)
 {
-    // VFALCO TODO
+    typename Fields::reader fr{
+        h, h.version, h.method()};
+    return os << buffers(fr.get());
 }
-#endif
+
+template<class Fields>
+std::ostream&
+operator<<(std::ostream& os,
+    header<false, Fields> const& h)
+{
+    typename Fields::reader fr{
+        h, h.version, h.result_int()};
+    return os << buffers(fr.get());
+}
 
 template<bool isRequest, class Body, class Fields>
 std::ostream&
