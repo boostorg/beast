@@ -38,7 +38,6 @@ void fxx() {
     req.target("/index.htm");
     req.insert(field::accept, "text/html");
     req.insert(field::user_agent, "Beast");
-    req.prepare(connection::close);
 
 //]
 }

@@ -292,85 +292,19 @@ content_length(std::uint64_t n)
 }
 
 template<bool isRequest, class Body, class Fields>
-template<class... Args>
 void
 message<isRequest, Body, Fields>::
-prepare(Args const&... args)
+prepare()
 {
-    static_assert(is_body_reader<Body>::value,
-        "BodyReader requirements not met");
-
-    unsigned f = 0;
-    prepare_opt(f, args...);
-
-    if(f & 1)
-    {
-        if(this->version > 10)
-            this->connection_impl(connection::close);
-    }
-
-    if(f & 2)
-    {
-        if(this->version < 11)
-            this->connection_impl(connection::keep_alive);
-    }
-
-    if(f & 4)
-    {
-        if(this->version < 11)
-            BOOST_THROW_EXCEPTION(std::invalid_argument{
-                "invalid connection upgrade"});
-        this->connection_impl(connection::upgrade);
-    }
-
-    prepare_payload(typename header<
+    prepare(typename header<
         isRequest, Fields>::is_request{});
 }
 
 template<bool isRequest, class Body, class Fields>
-template<class Arg, class... Args>
 inline
 void
 message<isRequest, Body, Fields>::
-prepare_opt(unsigned& f,
-    Arg const& arg, Args const&... args)
-{
-    prepare_opt(f, arg);
-    prepare_opt(f, args...);
-}
-
-template<bool isRequest, class Body, class Fields>
-inline
-void
-message<isRequest, Body, Fields>::
-prepare_opt(unsigned& f, close_t)
-{
-    f |= 1;
-}
-
-template<bool isRequest, class Body, class Fields>
-inline
-void
-message<isRequest, Body, Fields>::
-prepare_opt(unsigned& f, keep_alive_t)
-{
-    f |= 2;
-}
-
-template<bool isRequest, class Body, class Fields>
-inline
-void
-message<isRequest, Body, Fields>::
-prepare_opt(unsigned& f, upgrade_t)
-{
-    f |= 4;
-}
-
-template<bool isRequest, class Body, class Fields>
-inline
-void
-message<isRequest, Body, Fields>::
-prepare_payload(std::true_type)
+prepare(std::true_type)
 {
     auto const n = size();
     if(this->method_ == verb::trace &&
@@ -398,7 +332,7 @@ template<bool isRequest, class Body, class Fields>
 inline
 void
 message<isRequest, Body, Fields>::
-prepare_payload(std::false_type)
+prepare(std::false_type)
 {
     auto const n = size();
     if((status_class(this->result_) ==

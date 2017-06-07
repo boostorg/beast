@@ -118,10 +118,7 @@ the __Body__ requirements:
 The code examples below show how to create and fill in request and response
 objects: Here is simple example of building an
 [@https://tools.ietf.org/html/rfc7231#section-4.3.1 HTTP GET]
-request. The function
-[link beast.ref.http__message.prepare prepare]
-allows for various connection options. The use of prepare is optional,
-the Connection field may be set manually if desired.
+request.
 
 [table Create Request
 [[Statements] [Serialized Result]]
@@ -132,7 +129,6 @@ the Connection field may be set manually if desired.
     GET /index.htm HTTP/1.1\r\n
     Accept: text/html\r\n
     User-Agent: Beast\r\n
-    Connection: close\r\n
     \r\n
 ```
 ]]
@@ -143,7 +139,7 @@ message has a body. The function
 [link beast.ref.http__message.prepare prepare]
 automatically sets the Content-Length or Transfer-Encoding field
 depending on the body type. The use of prepare is optional, the
-Content-Length and other fields may be set manually if desired.
+fields may be set manually if desired.
 
 [table Create Response
 [[Statements] [Serialized Result]]

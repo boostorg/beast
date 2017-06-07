@@ -11,7 +11,6 @@
 #include <beast/config.hpp>
 #include <beast/core/string_view.hpp>
 #include <beast/core/detail/ci_char_traits.hpp>
-#include <beast/http/connection.hpp>
 #include <beast/http/field.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/lexical_cast.hpp>
@@ -395,24 +394,6 @@ protected:
         @note This is called by the @ref header implementation.
     */
     void content_length_impl(std::uint64_t n);
-
-    /** Add close to the Connection field.
-
-        @note This is called by the @ref header implementation.
-    */
-    void connection_impl(close_t);
-
-    /** Add keep-alive to the Connection field.
-
-        @note This is called by the @ref header implementation.
-    */
-    void connection_impl(keep_alive_t);
-
-    /** Add upgrade to the Connection field.
-
-        @note This is called by the @ref header implementation.
-    */
-    void connection_impl(upgrade_t);
 
     /** Add chunked to the Transfer-Encoding field.
 

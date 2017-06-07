@@ -16,6 +16,7 @@ API Changes:
 * Add verb to on_request for parsers
 * Refactor prepare
 * Protect basic_fields special members
+* Remove message connection settings
 
 --------------------------------------------------------------------------------
 

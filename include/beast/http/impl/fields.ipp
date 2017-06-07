@@ -666,48 +666,6 @@ template<class Allocator>
 inline
 void
 basic_fields<Allocator>::
-connection_impl(close_t)
-{
-    auto it = find("Connection");
-    if(it == end())
-        this->insert("Connection", "close");
-    else
-        this->replace("Connection",
-            it->value().to_string() + ", close");
-}
-
-template<class Allocator>
-inline
-void
-basic_fields<Allocator>::
-connection_impl(keep_alive_t)
-{
-    auto it = find("Connection");
-    if(it == end())
-        this->insert("Connection", "keep-alive");
-    else
-        this->replace("Connection",
-            it->value().to_string() + ", keep-alive");
-}
-
-template<class Allocator>
-inline
-void
-basic_fields<Allocator>::
-connection_impl(upgrade_t)
-{
-    auto it = find("Connection");
-    if(it == end())
-        this->insert("Connection", "upgrade");
-    else
-        this->replace("Connection",
-            it->value().to_string() + ", upgrade");
-}
-
-template<class Allocator>
-inline
-void
-basic_fields<Allocator>::
 set_chunked_impl(bool v)
 {
     BOOST_ASSERT(v);

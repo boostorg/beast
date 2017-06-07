@@ -510,42 +510,6 @@ public:
                 "*"
             );
         }
-        // keep-alive HTTP/1.0
-        {
-            message<true, string_body, fields> m;
-            m.method(verb::get);
-            m.target("/");
-            m.version = 10;
-            m.insert(field::user_agent, "test");
-            m.body = "*";
-            m.prepare(connection::keep_alive);
-            BEAST_EXPECT(str(m) ==
-                "GET / HTTP/1.0\r\n"
-                "User-Agent: test\r\n"
-                "Connection: keep-alive\r\n"
-                "Content-Length: 1\r\n"
-                "\r\n"
-                "*"
-            );
-        }
-        // upgrade HTTP/1.0
-        {
-            message<true, string_body, fields> m;
-            m.method(verb::get);
-            m.target("/");
-            m.version = 10;
-            m.insert(field::user_agent, "test");
-            m.body = "*";
-            try
-            {
-                m.prepare( connection::upgrade);
-                fail();
-            }
-            catch(std::exception const&)
-            {
-                pass();
-            }
-        }
         // no content-length HTTP/1.0
         {
             message<true, unsized_body, fields> m;
@@ -581,43 +545,6 @@ public:
                 "Content-Length: 1\r\n"
                 "\r\n"
                 "*"
-            );
-        }
-        // close HTTP/1.1
-        {
-            message<true, string_body, fields> m;
-            m.method(verb::get);
-            m.target("/");
-            m.version = 11;
-            m.insert(field::user_agent, "test");
-            m.body = "*";
-            m.prepare(connection::close);
-            test::string_ostream ss(ios_);
-            error_code ec;
-            write(ss, m, ec);
-            BEAST_EXPECT(ec == error::end_of_stream);
-            BEAST_EXPECT(ss.str ==
-                "GET / HTTP/1.1\r\n"
-                "User-Agent: test\r\n"
-                "Connection: close\r\n"
-                "Content-Length: 1\r\n"
-                "\r\n"
-                "*"
-            );
-        }
-        // upgrade HTTP/1.1
-        {
-            message<true, string_body, fields> m;
-            m.method(verb::get);
-            m.target("/");
-            m.version = 11;
-            m.insert(field::user_agent, "test");
-            m.prepare(connection::upgrade);
-            BEAST_EXPECT(str(m) ==
-                "GET / HTTP/1.1\r\n"
-                "User-Agent: test\r\n"
-                "Connection: upgrade\r\n"
-                "\r\n"
             );
         }
         // no content-length HTTP/1.1
