@@ -18,6 +18,7 @@ API Changes:
 * Protect basic_fields special members
 * Remove message connection settings
 * Remove message free functions
+* Remove obsolete serializer allocator
 
 --------------------------------------------------------------------------------
 
