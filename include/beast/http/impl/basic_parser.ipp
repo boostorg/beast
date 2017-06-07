@@ -29,7 +29,6 @@ basic_parser(basic_parser<
     , buf_(std::move(other.buf_))
     , buf_len_(other.buf_len_)
     , skip_(other.skip_)
-    , x_(other.x_)
     , state_(other.state_)
     , f_(other.f_)
 {
@@ -152,7 +151,7 @@ loop:
     case state::chunk_header0:
         impl().on_body(content_length(), ec);
         if(ec)
-            return 0;
+            goto done;
         state_ = state::chunk_header;
         // [[fallthrough]]
 
@@ -487,7 +486,7 @@ parse_body_to_eof(char const*& p,
 template<bool isRequest, class Derived>
 void
 basic_parser<isRequest, Derived>::
-parse_chunk_header(char const*& p,
+parse_chunk_header(char const*& p0,
     std::size_t n, error_code& ec)
 {
 /*
@@ -504,30 +503,9 @@ parse_chunk_header(char const*& p,
     chunk-ext-val  = token / quoted-string
 */
 
+    auto p = p0;
     auto const pend = p + n;
-    auto pbegin = p;
-
-    // Treat the last CRLF in a chunk as
-    // part of the next chunk, so p can
-    // be parsed in one call instead of two.
-    if(f_ & flagExpectCRLF)
-    {
-        if(n < 2)
-        {
-            ec = error::need_more;
-            return;
-        }
-        if(! parse_crlf(p))
-        {
-            ec = error::bad_chunk;
-            return;
-        }
-        f_ &= ~flagExpectCRLF;
-        pbegin += 2;
-        n -= 2;
-    }
-
-    char const* term;
+    char const* eol;
 
     if(! (f_ & flagFinalChunk))
     {
@@ -536,15 +514,29 @@ parse_chunk_header(char const*& p,
             ec = error::need_more;
             return;
         }
-        term = find_eol(p + skip_, pend, ec);
+        if(f_ & flagExpectCRLF)
+        {
+            // Treat the last CRLF in a chunk as
+            // part of the next chunk, so p can
+            // be parsed in one call instead of two.
+            if(! parse_crlf(p))
+            {
+                ec = error::bad_chunk;
+                return;
+            }
+        }
+        eol = find_eol(p0 + skip_, pend, ec);
         if(ec)
             return;
-        if(! term)
+        if(! eol)
         {
             ec = error::need_more;
             skip_ = n - 1;
             return;
         }
+        skip_ = static_cast<
+            std::size_t>(eol - 2 - p0);
+
         std::uint64_t v;
         if(! parse_hex(p, v))
         {
@@ -555,64 +547,63 @@ parse_chunk_header(char const*& p,
         {
             if(*p == ';')
             {
-                // VFALCO We need to parse the chunk
-                // extension to validate p here.
-                auto const ext = make_string(p, term - 2);
-                impl().on_chunk(v, ext, ec);
+                // VFALCO TODO Validate extension
+                impl().on_chunk(v, make_string(
+                    p, eol - 2), ec);
                 if(ec)
                     return;
             }
-            else if(p != term - 2)
+            else if(p != eol - 2)
             {
                 ec = error::bad_chunk;
                 return;
             }
-            p = term;
             len_ = v;
-            skip_ = 0;
+            skip_ = 2;
+            p0 = eol;
             f_ |= flagExpectCRLF;
             state_ = state::chunk_body;
             return;
         }
 
-        pbegin = p;
-        n = static_cast<std::size_t>(pend - pbegin);
-        x_ = term - 2 - pbegin; // start of first '\r\n'
-        skip_ = x_;
-
         f_ |= flagFinalChunk;
     }
+    else
+    {
+        BOOST_ASSERT(n >= 5);
+        if(f_ & flagExpectCRLF)
+            BOOST_VERIFY(parse_crlf(p));
+        std::uint64_t v;
+        BOOST_VERIFY(parse_hex(p, v));
+        eol = find_eol(p, pend, ec);
+        BOOST_ASSERT(! ec);
+    }
 
-    term = find_eom(
-        pbegin + skip_, pend, ec);
+    auto eom = find_eom(p0 + skip_, pend, ec);
     if(ec)
         return;
-    if(! term)
+    if(! eom)
     {
-        // VFALCO Is this right?
-        if(n > 3)
-            skip_ = (pend - pbegin) - 3;
+        BOOST_ASSERT(n >= 3);
+        skip_ = n - 3;
         ec = error::need_more;
         return;
     }
 
     if(*p == ';')
     {
-        auto const ext = make_string(p, pbegin + x_);
-        impl().on_chunk(0, ext, ec);
+        // VFALCO TODO Validate extension
+        impl().on_chunk(0, make_string(
+            p, eol - 2), ec);
         if(ec)
             return;
-        p = pbegin + x_;
     }
-    if(! parse_crlf(p))
-    {
-        ec = error::bad_chunk;
-        return;
-    }
-    parse_fields(p, term, ec);
+    p = eol;
+    parse_fields(p, eom, ec);
     if(ec)
         return;
-    BOOST_ASSERT(p == term);
+    BOOST_ASSERT(p == eom);
+    p0 = eom;
 
     impl().on_complete(ec);
     if(ec)
