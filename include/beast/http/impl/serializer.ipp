@@ -16,43 +16,39 @@
 namespace beast {
 namespace http {
 
-template<bool isRequest, class Body, class Fields,
-    class ChunkDecorator, class Allocator>
+template<bool isRequest, class Body,
+    class Fields, class ChunkDecorator>
 void
-serializer<isRequest, Body, Fields,
-    ChunkDecorator, Allocator>::
+serializer<isRequest, Body, Fields, ChunkDecorator>::
 frdinit(std::true_type)
 {
     frd_.emplace(m_, m_.version, m_.method());
 }
 
-template<bool isRequest, class Body, class Fields,
-    class ChunkDecorator, class Allocator>
+template<bool isRequest, class Body,
+    class Fields, class ChunkDecorator>
 void
-serializer<isRequest, Body, Fields,
-    ChunkDecorator, Allocator>::
+serializer<isRequest, Body, Fields, ChunkDecorator>::
 frdinit(std::false_type)
 {
     frd_.emplace(m_, m_.version, m_.result_int());
 }
 
-template<bool isRequest, class Body, class Fields,
-    class ChunkDecorator, class Allocator>
-serializer<isRequest, Body, Fields,
-    ChunkDecorator, Allocator>::
+template<bool isRequest, class Body,
+    class Fields, class ChunkDecorator>
+serializer<isRequest, Body, Fields, ChunkDecorator>::
 serializer(message<isRequest, Body, Fields> const& m,
-        ChunkDecorator const& d, Allocator const& alloc)
+        ChunkDecorator const& d)
     : m_(m)
     , d_(d)
 {
 }
 
-template<bool isRequest, class Body, class Fields,
-    class ChunkDecorator, class Allocator>
+template<bool isRequest, class Body,
+    class Fields, class ChunkDecorator>
 template<class Visit>
 void
-serializer<isRequest, Body, Fields,
-    ChunkDecorator, Allocator>::
+serializer<isRequest, Body, Fields, ChunkDecorator>::
 get(error_code& ec, Visit&& visit)
 {
     using boost::asio::buffer_size;
@@ -258,11 +254,10 @@ get(error_code& ec, Visit&& visit)
     }
 }
 
-template<bool isRequest, class Body, class Fields,
-    class ChunkDecorator, class Allocator>
+template<bool isRequest, class Body,
+    class Fields, class ChunkDecorator>
 void
-serializer<isRequest, Body, Fields,
-    ChunkDecorator, Allocator>::
+serializer<isRequest, Body, Fields, ChunkDecorator>::
 consume(std::size_t n)
 {
     using boost::asio::buffer_size;

@@ -9,7 +9,6 @@
 #define BEAST_HTTP_SERIALIZER_HPP
 
 #include <beast/config.hpp>
-#include <beast/core/async_result.hpp>
 #include <beast/core/buffer_cat.hpp>
 #include <beast/core/consuming_buffers.hpp>
 #include <beast/core/string_view.hpp>
@@ -19,7 +18,6 @@
 #include <boost/asio/buffer.hpp>
 #include <boost/optional.hpp>
 #include <boost/variant.hpp>
-#include <memory>
 
 namespace beast {
 namespace http {
@@ -117,15 +115,11 @@ struct no_chunk_decorator
 
     @tparam ChunkDecorator The type of chunk decorator to use.
 
-    @tparam Allocator The type of allocator to use.
-
     @see @ref make_serializer
 */
 template<
     bool isRequest, class Body, class Fields,
-    class ChunkDecorator = no_chunk_decorator,
-    class Allocator = std::allocator<char>
->
+    class ChunkDecorator = no_chunk_decorator>
 class serializer
 {
     static_assert(is_body<Body>::value,
@@ -194,7 +188,6 @@ class serializer
 
     message<isRequest, Body, Fields> const& m_;
     boost::optional<typename Fields::reader> frd_;
-    ChunkDecorator d_;
     boost::optional<reader> rd_;
     boost::variant<boost::blank,
         ch_t, cb0_t, cb1_t, ch0_t, ch1_t, ch2_t> v_;
@@ -204,6 +197,7 @@ class serializer
     bool chunked_;
     bool close_;
     bool more_;
+    ChunkDecorator d_;
 
 public:
     /** Constructor
@@ -217,13 +211,10 @@ public:
         for the lifetime of the serializer.
 
         @param decorator An optional decorator to use.
-
-        @param alloc An optional allocator to use.
     */
     explicit
     serializer(message<isRequest, Body, Fields> const& msg,
-        ChunkDecorator const& decorator = ChunkDecorator{},
-            Allocator const& alloc = Allocator{});
+        ChunkDecorator const& decorator = ChunkDecorator{});
 
     /** Returns `true` if we will pause after writing the complete header.
     */
@@ -340,20 +331,16 @@ public:
 */
 template<
     bool isRequest, class Body, class Fields,
-    class ChunkDecorator = no_chunk_decorator,
-    class Allocator = std::allocator<char>>
+    class ChunkDecorator = no_chunk_decorator>
 inline
 serializer<isRequest, Body, Fields,
-    typename std::decay<ChunkDecorator>::type,
-    typename std::decay<Allocator>::type>
+    typename std::decay<ChunkDecorator>::type>
 make_serializer(message<isRequest, Body, Fields> const& m,
-    ChunkDecorator const& decorator = ChunkDecorator{},
-        Allocator const& allocator = Allocator{})
+    ChunkDecorator const& decorator = ChunkDecorator{})
 {
     return serializer<isRequest, Body, Fields,
-        typename std::decay<ChunkDecorator>::type,
-        typename std::decay<Allocator>::type>{
-            m, decorator, allocator};
+        typename std::decay<ChunkDecorator>::type>{
+            m, decorator};
 }
 
 } // http

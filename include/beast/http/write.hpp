@@ -58,12 +58,11 @@ namespace http {
 
     @see serializer
 */
-template<class SyncWriteStream,
-    bool isRequest, class Body, class Fields,
-        class Decorator, class Allocator>
+template<class SyncWriteStream, bool isRequest,
+    class Body, class Fields, class Decorator>
 void
 write_some(SyncWriteStream& stream, serializer<
-    isRequest, Body, Fields, Decorator, Allocator>& sr);
+    isRequest, Body, Fields, Decorator>& sr);
 
 /** Write part of a message to a stream using a serializer.
 
@@ -95,12 +94,11 @@ write_some(SyncWriteStream& stream, serializer<
 
     @see @ref async_write_some, @ref serializer
 */
-template<class SyncWriteStream,
-    bool isRequest, class Body, class Fields,
-        class Decorator, class Allocator>
+template<class SyncWriteStream, bool isRequest,
+    class Body, class Fields, class Decorator>
 void
 write_some(SyncWriteStream& stream, serializer<
-    isRequest, Body, Fields, Decorator, Allocator>& sr,
+    isRequest, Body, Fields, Decorator>& sr,
         error_code& ec);
 
 /** Write part of a message to a stream asynchronously using a serializer.
@@ -149,14 +147,14 @@ write_some(SyncWriteStream& stream, serializer<
 */
 template<class AsyncWriteStream,
     bool isRequest, class Body, class Fields,
-        class Decorator, class Allocator, class WriteHandler>
+        class Decorator, class WriteHandler>
 #if BEAST_DOXYGEN
     void_or_deduced
 #else
 async_return_type<WriteHandler, void(error_code)>
 #endif
 async_write_some(AsyncWriteStream& stream, serializer<
-    isRequest, Body, Fields, Decorator, Allocator>& sr,
+    isRequest, Body, Fields, Decorator>& sr,
         WriteHandler&& handler);
 
 //------------------------------------------------------------------------------
@@ -186,12 +184,11 @@ async_write_some(AsyncWriteStream& stream, serializer<
 
     @see @ref serializer
 */
-template<class SyncWriteStream,
-    bool isRequest, class Body, class Fields,
-        class Decorator, class Allocator>
+template<class SyncWriteStream, bool isRequest,
+    class Body, class Fields, class Decorator>
 void
 write_header(SyncWriteStream& stream, serializer<
-    isRequest, Body, Fields, Decorator, Allocator>& sr);
+    isRequest, Body, Fields, Decorator>& sr);
 
 /** Write a header to a stream using a serializer.
 
@@ -218,12 +215,11 @@ write_header(SyncWriteStream& stream, serializer<
 
     @see @ref serializer
 */
-template<class SyncWriteStream,
-    bool isRequest, class Body, class Fields,
-        class Decorator, class Allocator>
+template<class SyncWriteStream, bool isRequest,
+    class Body, class Fields, class Decorator>
 void
 write_header(SyncWriteStream& stream, serializer<
-    isRequest, Body, Fields, Decorator, Allocator>& sr,
+    isRequest, Body, Fields, Decorator>& sr,
         error_code& ec);
 
 /** Write a header to a stream asynchronously using a serializer.
@@ -267,14 +263,14 @@ write_header(SyncWriteStream& stream, serializer<
 */
 template<class AsyncWriteStream,
     bool isRequest, class Body, class Fields,
-        class Decorator, class Allocator, class WriteHandler>
+        class Decorator, class WriteHandler>
 #if BEAST_DOXYGEN
     void_or_deduced
 #else
 async_return_type<WriteHandler, void(error_code)>
 #endif
 async_write_header(AsyncWriteStream& stream, serializer<
-    isRequest, Body, Fields, Decorator, Allocator>& sr,
+    isRequest, Body, Fields, Decorator>& sr,
         WriteHandler&& handler);
 
 //------------------------------------------------------------------------------
@@ -301,12 +297,11 @@ async_write_header(AsyncWriteStream& stream, serializer<
 
     @see @ref serializer
 */
-template<class SyncWriteStream,
-    bool isRequest, class Body, class Fields,
-        class Decorator, class Allocator>
+template<class SyncWriteStream, bool isRequest,
+    class Body, class Fields, class Decorator>
 void
 write(SyncWriteStream& stream, serializer<
-    isRequest, Body, Fields, Decorator, Allocator>& sr);
+    isRequest, Body, Fields, Decorator>& sr);
 
 /** Write a complete message to a stream using a serializer.
 
@@ -330,12 +325,11 @@ write(SyncWriteStream& stream, serializer<
 
     @see @ref serializer
 */
-template<class SyncWriteStream,
-    bool isRequest, class Body, class Fields,
-        class Decorator, class Allocator>
+template<class SyncWriteStream, bool isRequest,
+    class Body, class Fields, class Decorator>
 void
 write(SyncWriteStream& stream, serializer<
-    isRequest, Body, Fields, Decorator, Allocator>& sr,
+    isRequest, Body, Fields, Decorator>& sr,
         error_code& ec);
 
 /** Write a complete message to a stream asynchronously using a serializer.
@@ -376,14 +370,14 @@ write(SyncWriteStream& stream, serializer<
 */
 template<class AsyncWriteStream,
     bool isRequest, class Body, class Fields,
-        class Decorator, class Allocator, class WriteHandler>
+        class Decorator, class WriteHandler>
 #if BEAST_DOXYGEN
     void_or_deduced
 #else
 async_return_type<WriteHandler, void(error_code)>
 #endif
 async_write(AsyncWriteStream& stream, serializer<
-    isRequest, Body, Fields, Decorator, Allocator>& sr,
+    isRequest, Body, Fields, Decorator>& sr,
         WriteHandler&& handler);
 
 //------------------------------------------------------------------------------

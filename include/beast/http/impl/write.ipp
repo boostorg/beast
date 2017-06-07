@@ -27,14 +27,14 @@ namespace beast {
 namespace http {
 namespace detail {
 
-template<class Stream, bool isRequest, class Body,
-    class Fields, class Decorator, class Allocator,
+template<class Stream, bool isRequest,
+    class Body, class Fields, class Decorator,
         class Handler>
 class write_some_op
 {
     Stream& s_;
-    serializer<isRequest, Body, Fields,
-        Decorator, Allocator>& sr_;
+    serializer<isRequest,
+        Body, Fields, Decorator>& sr_;
     Handler h_;
 
     class lambda
@@ -68,7 +68,7 @@ public:
     template<class DeducedHandler>
     write_some_op(DeducedHandler&& h,
         Stream& s, serializer<isRequest, Body,
-            Fields, Decorator, Allocator>& sr)
+            Fields, Decorator>& sr)
         : s_(s)
         , sr_(sr)
         , h_(std::forward<DeducedHandler>(h))
@@ -117,12 +117,11 @@ public:
     }
 };
 
-template<class Stream, bool isRequest, class Body,
-    class Fields, class Decorator, class Allocator,
-        class Handler>
+template<class Stream, bool isRequest,class Body,
+    class Fields, class Decorator, class Handler>
 void
 write_some_op<Stream, isRequest, Body,
-    Fields, Decorator, Allocator, Handler>::
+    Fields, Decorator, Handler>::
 operator()()
 {
     error_code ec;
@@ -146,11 +145,10 @@ operator()()
 }
 
 template<class Stream, bool isRequest, class Body,
-    class Fields, class Decorator, class Allocator,
-        class Handler>
+    class Fields, class Decorator, class Handler>
 void
 write_some_op<Stream, isRequest, Body,
-    Fields, Decorator, Allocator, Handler>::
+    Fields, Decorator, Handler>::
 operator()(error_code ec, std::size_t bytes_transferred)
 {
     if(! ec)
@@ -162,11 +160,11 @@ operator()(error_code ec, std::size_t bytes_transferred)
 
 struct serializer_is_header_done
 {
-    template<bool isRequest, class Body, class Fields,
-        class Decorator, class Allocator>
+    template<bool isRequest, class Body,
+        class Fields, class Decorator>
     bool
-    operator()(serializer<isRequest, Body, Fields,
-        Decorator, Allocator> const& sr) const
+    operator()(serializer<isRequest, Body,
+        Fields, Decorator> const& sr) const
     {
         return sr.is_header_done();
     }
@@ -174,25 +172,25 @@ struct serializer_is_header_done
 
 struct serializer_is_done
 {
-    template<bool isRequest, class Body, class Fields,
-        class Decorator, class Allocator>
+    template<bool isRequest, class Body,
+        class Fields, class Decorator>
     bool
-    operator()(serializer<isRequest, Body, Fields,
-        Decorator, Allocator> const& sr) const
+    operator()(serializer<isRequest, Body,
+        Fields, Decorator> const& sr) const
     {
         return sr.is_done();
     }
 };
 
-template<class Stream, bool isRequest, class Body,
-    class Fields, class Decorator, class Allocator,
+template<class Stream, bool isRequest,
+    class Body, class Fields, class Decorator,
         class Predicate, class Handler>
 class write_op
 {
     int state_ = 0;
     Stream& s_;
-    serializer<isRequest, Body, Fields,
-        Decorator, Allocator>& sr_;
+    serializer<isRequest,
+        Body, Fields, Decorator>& sr_;
     Handler h_;
 
     class lambda
@@ -226,7 +224,7 @@ public:
     template<class DeducedHandler>
     write_op(DeducedHandler&& h, Stream& s,
         serializer<isRequest, Body, Fields,
-            Decorator, Allocator>& sr)
+            Decorator>& sr)
         : s_(s)
         , sr_(sr)
         , h_(std::forward<DeducedHandler>(h))
@@ -275,11 +273,11 @@ public:
 };
 
 template<class Stream, bool isRequest, class Body,
-    class Fields, class Decorator, class Allocator,
-        class Predicate, class Handler>
+    class Fields, class Decorator, class Predicate,
+        class Handler>
 void
 write_op<Stream, isRequest, Body, Fields,
-    Decorator, Allocator, Predicate, Handler>::
+    Decorator, Predicate, Handler>::
 operator()(error_code ec,
     std::size_t bytes_transferred)
 {
@@ -354,14 +352,13 @@ class write_msg_op
     struct data
     {
         Stream& s;
-        serializer<isRequest, Body, Fields,
-            no_chunk_decorator, handler_alloc<char, Handler>> sr;
+        serializer<isRequest,
+            Body, Fields, no_chunk_decorator> sr;
 
         data(Handler& h, Stream& s_, message<
                 isRequest, Body, Fields> const& m_)
             : s(s_)
-            , sr(m_, no_chunk_decorator{},
-                handler_alloc<char, Handler>{h})
+            , sr(m_, no_chunk_decorator{})
         {
         }
     };
@@ -503,11 +500,10 @@ public:
 //------------------------------------------------------------------------------
 
 template<class SyncWriteStream, bool isRequest,
-    class Body, class Fields, class Decorator,
-        class Allocator>
+    class Body, class Fields, class Decorator>
 void
 write_some(SyncWriteStream& stream, serializer<
-    isRequest, Body, Fields, Decorator, Allocator>& sr)
+    isRequest, Body, Fields, Decorator>& sr)
 {
     static_assert(is_sync_write_stream<SyncWriteStream>::value,
         "SyncWriteStream requirements not met");
@@ -521,13 +517,12 @@ write_some(SyncWriteStream& stream, serializer<
         BOOST_THROW_EXCEPTION(system_error{ec});
 }
 
-template<
-    class SyncWriteStream,
+template<class SyncWriteStream,
     bool isRequest, class Body, class Fields,
-        class Decorator, class Allocator>
+        class Decorator>
 void
 write_some(SyncWriteStream& stream, serializer<
-    isRequest, Body, Fields, Decorator, Allocator>& sr,
+    isRequest, Body, Fields, Decorator>& sr,
         error_code& ec)
 {
     static_assert(is_sync_write_stream<SyncWriteStream>::value,
@@ -549,10 +544,10 @@ write_some(SyncWriteStream& stream, serializer<
 
 template<class AsyncWriteStream,
     bool isRequest, class Body, class Fields,
-        class Decorator, class Allocator, class WriteHandler>
+        class Decorator, class WriteHandler>
 async_return_type<WriteHandler, void(error_code)>
 async_write_some(AsyncWriteStream& stream, serializer<
-    isRequest, Body, Fields, Decorator, Allocator>& sr,
+    isRequest, Body, Fields, Decorator>& sr,
         WriteHandler&& handler)
 {
     static_assert(is_async_write_stream<
@@ -565,7 +560,7 @@ async_write_some(AsyncWriteStream& stream, serializer<
     async_completion<WriteHandler,
         void(error_code)> init{handler};
     detail::write_some_op<AsyncWriteStream, isRequest,
-        Body, Fields, Decorator, Allocator, handler_type<
+        Body, Fields, Decorator, handler_type<
             WriteHandler, void(error_code)>>{
                 init.completion_handler, stream, sr}();
     return init.result.get();
@@ -573,13 +568,12 @@ async_write_some(AsyncWriteStream& stream, serializer<
 
 //------------------------------------------------------------------------------
 
-template<
-    class SyncWriteStream,
+template<class SyncWriteStream,
     bool isRequest, class Body, class Fields,
-        class Decorator, class Allocator>
+        class Decorator>
 void
 write_header(SyncWriteStream& stream, serializer<
-    isRequest, Body, Fields, Decorator, Allocator>& sr)
+    isRequest, Body, Fields, Decorator>& sr)
 {
     static_assert(is_sync_write_stream<SyncWriteStream>::value,
         "SyncWriteStream requirements not met");
@@ -593,13 +587,12 @@ write_header(SyncWriteStream& stream, serializer<
         BOOST_THROW_EXCEPTION(system_error{ec});
 }
 
-template<
-    class SyncWriteStream,
+template<class SyncWriteStream,
     bool isRequest, class Body, class Fields,
-        class Decorator, class Allocator>
+        class Decorator>
 void
 write_header(SyncWriteStream& stream, serializer<
-    isRequest, Body, Fields, Decorator, Allocator>& sr,
+    isRequest, Body, Fields, Decorator>& sr,
         error_code& ec)
 {
     static_assert(is_sync_write_stream<SyncWriteStream>::value,
@@ -622,10 +615,10 @@ write_header(SyncWriteStream& stream, serializer<
 
 template<class AsyncWriteStream,
     bool isRequest, class Body, class Fields,
-        class Decorator, class Allocator, class WriteHandler>
+        class Decorator, class WriteHandler>
 async_return_type<WriteHandler, void(error_code)>
 async_write_header(AsyncWriteStream& stream, serializer<
-    isRequest, Body, Fields, Decorator, Allocator>& sr,
+    isRequest, Body, Fields, Decorator>& sr,
         WriteHandler&& handler)
 {
     static_assert(is_async_write_stream<
@@ -639,7 +632,7 @@ async_write_header(AsyncWriteStream& stream, serializer<
     async_completion<WriteHandler,
         void(error_code)> init{handler};
     detail::write_op<AsyncWriteStream, isRequest, Body, Fields,
-        Decorator, Allocator, detail::serializer_is_header_done,
+        Decorator, detail::serializer_is_header_done,
             handler_type<WriteHandler, void(error_code)>>{
                 init.completion_handler, stream, sr}(
                     error_code{}, 0);
@@ -648,13 +641,12 @@ async_write_header(AsyncWriteStream& stream, serializer<
 
 //------------------------------------------------------------------------------
 
-template<
-    class SyncWriteStream,
+template<class SyncWriteStream,
     bool isRequest, class Body, class Fields,
-        class Decorator, class Allocator>
+        class Decorator>
 void
 write(SyncWriteStream& stream, serializer<
-    isRequest, Body, Fields, Decorator, Allocator>& sr)
+    isRequest, Body, Fields, Decorator>& sr)
 {
     static_assert(is_sync_write_stream<SyncWriteStream>::value,
         "SyncWriteStream requirements not met");
@@ -664,13 +656,12 @@ write(SyncWriteStream& stream, serializer<
         BOOST_THROW_EXCEPTION(system_error{ec});
 }
 
-template<
-    class SyncWriteStream,
+template<class SyncWriteStream,
     bool isRequest, class Body, class Fields,
-        class Decorator, class Allocator>
+        class Decorator>
 void
 write(SyncWriteStream& stream, serializer<
-    isRequest, Body, Fields, Decorator, Allocator>& sr,
+    isRequest, Body, Fields, Decorator>& sr,
         error_code& ec)
 {
     static_assert(is_sync_write_stream<SyncWriteStream>::value,
@@ -691,10 +682,10 @@ write(SyncWriteStream& stream, serializer<
 
 template<class AsyncWriteStream,
     bool isRequest, class Body, class Fields,
-        class Decorator, class Allocator, class WriteHandler>
+        class Decorator, class WriteHandler>
 async_return_type<WriteHandler, void(error_code)>
 async_write(AsyncWriteStream& stream, serializer<
-    isRequest, Body, Fields, Decorator, Allocator>& sr,
+    isRequest, Body, Fields, Decorator>& sr,
         WriteHandler&& handler)
 {
     static_assert(is_async_write_stream<
@@ -708,7 +699,7 @@ async_write(AsyncWriteStream& stream, serializer<
     async_completion<WriteHandler,
         void(error_code)> init{handler};
     detail::write_op<AsyncWriteStream, isRequest, Body,
-        Fields, Decorator, Allocator, detail::serializer_is_done,
+        Fields, Decorator, detail::serializer_is_done,
             handler_type<WriteHandler, void(error_code)>>{
                 init.completion_handler, stream, sr}(
                     error_code{}, 0);
