@@ -363,9 +363,86 @@ public:
         }
     }
 
+    // https://github.com/vinniefalco/Beast/issues/430
+    void
+    testRegression430()
+    {
+        test::pipe c{ios_};
+        c.server.read_size(1);
+        ostream(c.server.buffer) <<
+          "HTTP/1.1 200 OK\r\n"
+          "Transfer-Encoding: chunked\r\n"
+          "Content-Type: application/octet-stream\r\n"
+          "\r\n"
+          "4\r\nabcd\r\n"
+          "0\r\n\r\n";
+        error_code ec;
+        flat_buffer fb;
+        parser<false, dynamic_body> p;
+        read(c.server, fb, p, ec);
+        BEAST_EXPECTS(! ec, ec.message());
+    }
+
+    //--------------------------------------------------------------------------
+
+    template<class Parser, class Pred>
+    void
+    readgrind(string_view s, Pred&& pred)
+    {
+        using boost::asio::buffer;
+        for(std::size_t n = 1; n < s.size() - 1; ++n)
+        {
+            Parser p;
+            error_code ec;
+            flat_buffer b;
+            test::pipe c{ios_};
+            ostream(c.server.buffer) << s;
+            c.server.read_size(n);
+            read(c.server, b, p, ec);
+            if(! BEAST_EXPECTS(! ec, ec.message()))
+                continue;
+            pred(p);
+        }
+    }
+
+    void
+    testReadGrind()
+    {
+        readgrind<test_parser<false>>(
+            "HTTP/1.1 200 OK\r\n"
+            "Transfer-Encoding: chunked\r\n"
+            "Content-Type: application/octet-stream\r\n"
+            "\r\n"
+            "4\r\nabcd\r\n"
+            "0\r\n\r\n"
+            ,[&](test_parser<false> const& p)
+            {
+                BEAST_EXPECT(p.body == "abcd");
+            });
+        readgrind<test_parser<false>>(
+            "HTTP/1.1 200 OK\r\n"
+            "Server: test\r\n"
+            "Expect: Expires, MD5-Fingerprint\r\n"
+            "Transfer-Encoding: chunked\r\n"
+            "\r\n"
+            "5\r\n"
+            "*****\r\n"
+            "2;a;b=1;c=\"2\"\r\n"
+            "--\r\n"
+            "0;d;e=3;f=\"4\"\r\n"
+            "Expires: never\r\n"
+            "MD5-Fingerprint: -\r\n"
+            "\r\n"
+            ,[&](test_parser<false> const& p)
+            {
+                BEAST_EXPECT(p.body == "*****--");
+            });
+    }
+
     void
     run() override
     {
+#if 0
         testThrow();
         testBufferOverflow();
 
@@ -377,6 +454,9 @@ public:
             testEof(yield); });
 
         testIoService();
+        testRegression430();
+#endif
+        testReadGrind();
     }
 };
 

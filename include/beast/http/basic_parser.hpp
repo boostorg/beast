@@ -85,19 +85,18 @@ class basic_parser
     static unsigned constexpr flagHTTP11                = 1<<  4;
     static unsigned constexpr flagNeedEOF               = 1<<  5;
     static unsigned constexpr flagExpectCRLF            = 1<<  6;
-    static unsigned constexpr flagFinalChunk            = 1<<  7;
-    static unsigned constexpr flagConnectionClose       = 1<<  8;
-    static unsigned constexpr flagConnectionUpgrade     = 1<<  9;
-    static unsigned constexpr flagConnectionKeepAlive   = 1<< 10;
-    static unsigned constexpr flagContentLength         = 1<< 11;
-    static unsigned constexpr flagChunked               = 1<< 12;
-    static unsigned constexpr flagUpgrade               = 1<< 13;
+    static unsigned constexpr flagConnectionClose       = 1<<  7;
+    static unsigned constexpr flagConnectionUpgrade     = 1<<  8;
+    static unsigned constexpr flagConnectionKeepAlive   = 1<<  9;
+    static unsigned constexpr flagContentLength         = 1<< 10;
+    static unsigned constexpr flagChunked               = 1<< 11;
+    static unsigned constexpr flagUpgrade               = 1<< 12;
+    static unsigned constexpr flagFinalChunk            = 1<< 13;
 
     std::uint64_t len_;     // size of chunk or body
     std::unique_ptr<char[]> buf_;
     std::size_t buf_len_ = 0;
     std::size_t skip_ = 0;  // search from here
-    std::size_t x_;         // scratch variable
     state state_ = state::nothing_yet;
     unsigned f_ = 0;        // flags
 

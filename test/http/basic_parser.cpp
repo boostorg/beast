@@ -942,6 +942,116 @@ public:
 #endif
     }
 
+    //--------------------------------------------------------------------------
+
+    template<bool isRequest, class Derived>
+    void
+    put(basic_parser<isRequest, Derived>& p,
+        string_view s)
+    {
+        error_code ec;
+        auto const bytes_used = p.put(
+            boost::asio::buffer(s.data(), s.size()), ec);
+        BEAST_EXPECTS(! ec, ec.message());
+        BEAST_EXPECT(bytes_used == s.size());
+    }
+
+    // https://github.com/vinniefalco/Beast/issues/430
+    void
+    testRegression430()
+    {
+        {
+            test_parser<false> p;
+            p.eager(true);
+            put(p,
+              "HTTP/1.1 200 OK\r\n" "Transfer-Encoding: chunked\r\n" "Content-Type: application/octet-stream\r\n" "\r\n"
+              "4\r\nabcd\r\n"
+              "0\r\n\r\n"
+            );
+        }
+        {
+            test_parser<false> p;
+            p.eager(true);
+            put(p,
+              "HTTP/1.1 200 OK\r\n" "Transfer-Encoding: chunked\r\n" "Content-Type: application/octet-stream\r\n" "\r\n"
+              "4\r\nabcd");
+            put(p,
+              "\r\n"
+              "0\r\n\r\n"
+            );
+        }
+    }
+
+    //--------------------------------------------------------------------------
+
+    template<class Parser, class Pred>
+    void
+    bufgrind(string_view s, Pred&& pred)
+    {
+        using boost::asio::buffer;
+        for(std::size_t n = 1; n < s.size() - 1; ++n)
+        {
+            Parser p;
+            p.eager(true);
+            error_code ec;
+            std::size_t used;
+            used = p.put(buffer(s.data(), n), ec);
+            if(ec == error::need_more)
+                continue;
+            if(! BEAST_EXPECTS(! ec, ec.message()))
+                continue;
+            if(! BEAST_EXPECT(used == n))
+                continue;
+            used = p.put(buffer(
+                s.data() + n, s.size() - n), ec);
+            if(ec == error::need_more)
+                continue;
+            if(! BEAST_EXPECTS(! ec, ec.message()))
+                continue;
+            if(! BEAST_EXPECT(used == s.size() -n))
+                continue;
+            if(! BEAST_EXPECT(p.is_done()))
+                continue;
+            pred(p);
+        }
+    }
+
+    void
+    testBufGrind()
+    {
+        bufgrind<test_parser<false>>(
+            "HTTP/1.1 200 OK\r\n"
+            "Transfer-Encoding: chunked\r\n"
+            "Content-Type: application/octet-stream\r\n"
+            "\r\n"
+            "4\r\nabcd\r\n"
+            "0\r\n\r\n"
+            ,[&](test_parser<false> const& p)
+            {
+                BEAST_EXPECT(p.body == "abcd");
+            });
+        bufgrind<test_parser<false>>(
+            "HTTP/1.1 200 OK\r\n"
+            "Server: test\r\n"
+            "Expect: Expires, MD5-Fingerprint\r\n"
+            "Transfer-Encoding: chunked\r\n"
+            "\r\n"
+            "5\r\n"
+            "*****\r\n"
+            "2;a;b=1;c=\"2\"\r\n"
+            "--\r\n"
+            "0;d;e=3;f=\"4\"\r\n"
+            "Expires: never\r\n"
+            "MD5-Fingerprint: -\r\n"
+            "\r\n"
+            ,[&](test_parser<false> const& p)
+            {
+                BEAST_EXPECT(p.body == "*****--");
+            });
+    }
+
+    //--------------------------------------------------------------------------
+
     void
     run() override
     {
@@ -956,6 +1066,8 @@ public:
         testUpgradeField();
         testBody();
         testSplit();
+        testRegression430();
+        testBufGrind();
     }
 };
 
