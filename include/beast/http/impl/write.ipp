@@ -822,16 +822,15 @@ public:
 
 } // detail
 
+#if 0
 template<bool isRequest, class Fields>
 std::ostream&
 operator<<(std::ostream& os,
     header<isRequest, Fields> const& msg)
 {
-    detail::write_start_line(os, msg);
-    detail::write_fields(os, msg);
-    os << "\r\n";
-    return os;
+    // VFALCO TODO
 }
+#endif
 
 template<bool isRequest, class Body, class Fields>
 std::ostream&

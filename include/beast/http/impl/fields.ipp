@@ -8,8 +8,13 @@
 #ifndef BEAST_HTTP_IMPL_FIELDS_IPP
 #define BEAST_HTTP_IMPL_FIELDS_IPP
 
+#include <beast/core/buffer_cat.hpp>
 #include <beast/core/static_string.hpp>
-#include <beast/http/detail/rfc7230.hpp>
+#include <beast/core/detail/ci_char_traits.hpp>
+#include <beast/http/verb.hpp>
+#include <beast/http/rfc7230.hpp>
+#include <beast/http/status.hpp>
+#include <beast/http/detail/chunk_encode.hpp>
 #include <boost/throw_exception.hpp>
 #include <algorithm>
 
@@ -107,6 +112,177 @@ public:
 //------------------------------------------------------------------------------
 
 template<class Allocator>
+class basic_fields<Allocator>::reader
+{
+public:
+    using iter_type = typename list_t::const_iterator;
+
+    struct field_iterator
+    {
+        iter_type it_;
+
+        using value_type = boost::asio::const_buffer;
+        using pointer = value_type const*;
+        using reference = value_type const;
+        using difference_type = std::ptrdiff_t;
+        using iterator_category =
+            std::bidirectional_iterator_tag;
+
+        field_iterator() = default;
+        field_iterator(field_iterator&& other) = default;
+        field_iterator(field_iterator const& other) = default;
+        field_iterator& operator=(field_iterator&& other) = default;
+        field_iterator& operator=(field_iterator const& other) = default;
+
+        explicit
+        field_iterator(iter_type it)
+            : it_(it)
+        {
+        }
+
+        bool
+        operator==(field_iterator const& other) const
+        {
+            return it_ == other.it_;
+        }
+
+        bool
+        operator!=(field_iterator const& other) const
+        {
+            return !(*this == other);
+        }
+
+        reference
+        operator*() const
+        {
+            return it_->buffer();
+        }
+
+        field_iterator&
+        operator++()
+        {
+            ++it_;
+            return *this;
+        }
+
+        field_iterator
+        operator++(int)
+        {
+            auto temp = *this;
+            ++(*this);
+            return temp;
+        }
+
+        field_iterator&
+        operator--()
+        {
+            --it_;
+            return *this;
+        }
+
+        field_iterator
+        operator--(int)
+        {
+            auto temp = *this;
+            --(*this);
+            return temp;
+        }
+    };
+
+    class field_range
+    {
+        field_iterator first_;
+        field_iterator last_;
+
+    public:
+        using const_iterator =
+            field_iterator;
+
+        using value_type =
+            typename const_iterator::value_type;
+
+        field_range(field_range const&) = default;
+
+        field_range(iter_type first, iter_type last)
+            : first_(first)
+            , last_(last)
+        {
+        }
+
+        const_iterator
+        begin() const
+        {
+            return first_;
+        }
+
+        const_iterator
+        end() const
+        {
+            return last_;
+        }
+    };
+
+    basic_fields const& f_;
+    std::string s_;
+
+public:
+    using const_buffers_type =
+        buffer_cat_view<
+            boost::asio::const_buffers_1,
+            field_range,
+            boost::asio::const_buffers_1>;
+
+    reader(basic_fields const& f, int version, verb v)
+        : f_(f)
+    {
+        s_ = v == verb::unknown ?
+            f_.get_method_impl().to_string() :
+            to_string(v).to_string();
+        s_ += " ";
+        s_ += f_.get_target_impl().to_string();
+        if(version == 11)
+            s_ += " HTTP/1.1";
+        else if(version == 10)
+            s_ += " HTTP/1.0";
+        else
+            s_ += " HTTP/" +
+                std::to_string(version / 10) + "." +
+                std::to_string(version % 10);
+        s_ += "\r\n";
+    }
+
+    reader(basic_fields const& f, int version, int code)
+        : f_(f)
+    {
+        if(version == 11)
+            s_ += "HTTP/1.1 ";
+        else if(version == 10)
+            s_ += "HTTP/1.0 ";
+        else
+            s_ += "HTTP/" +
+                std::to_string(version / 10) + "." +
+                std::to_string(version % 10) + " ";
+        s_ += std::to_string(code) + " ";
+        if(int_to_status(code) == status::unknown)
+            s_ += f_.get_reason_impl().to_string();
+        else
+            s_ += obsolete_reason(int_to_status(code)).to_string();
+        s_ += "\r\n";
+    }
+
+    const_buffers_type
+    get() const
+    {
+        return buffer_cat(
+            boost::asio::buffer(s_.data(), s_.size()),
+            field_range(f_.list_.begin(), f_.list_.end()),
+            detail::chunk_crlf());
+    }
+};
+
+//------------------------------------------------------------------------------
+
+template<class Allocator>
 basic_fields<Allocator>::
 element::
 element(string_view name, string_view value)
@@ -148,6 +324,18 @@ value() const
     return {reinterpret_cast<
         char const*>(this + 1) + off_,
             static_cast<std::size_t>(len_)};
+}
+
+template<class Allocator>
+inline
+boost::asio::const_buffer
+basic_fields<Allocator>::
+element::
+buffer() const
+{
+    return boost::asio::const_buffer{
+        reinterpret_cast<char const*>(this + 1),
+        static_cast<std::size_t>(off_) + len_ + 2};
 }
 
 //------------------------------------------------------------------------------
@@ -361,31 +549,50 @@ replace(string_view name, string_view value)
 
 //------------------------------------------------------------------------------
 
+// Fields
+
 template<class Allocator>
-inline
-string_view
+bool
 basic_fields<Allocator>::
-get_method_impl() const
+has_close_impl() const
 {
-    return method_;
+    auto const fit = set_.find(
+        to_string(field::connection), less{});
+    if(fit == set_.end())
+        return false;
+    return token_list{fit->value()}.exists("close");
 }
 
 template<class Allocator>
-inline
-string_view
+bool
 basic_fields<Allocator>::
-get_target_impl() const
+has_chunked_impl() const
 {
-    return target_or_reason_;
+    auto const fit = set_.find(to_string(
+        field::transfer_encoding), less{});
+    if(fit == set_.end())
+        return false;
+    token_list const v{fit->value()};
+    auto it = v.begin();
+    if(it == v.end())
+        return false;
+    for(;;)
+    {
+        auto cur = it++;
+        if(it == v.end())
+            return beast::detail::ci_equal(
+                *cur, "chunked");
+    }
 }
 
 template<class Allocator>
-inline
-string_view
+bool
 basic_fields<Allocator>::
-get_reason_impl() const
+has_content_length_impl() const
 {
-    return target_or_reason_;
+    auto const fit = set_.find(
+        to_string(field::content_length), less{});
+    return fit != set_.end();
 }
 
 template<class Allocator>
@@ -413,6 +620,33 @@ basic_fields<Allocator>::
 set_reason_impl(string_view s)
 {
     realloc_string(target_or_reason_, s);
+}
+
+template<class Allocator>
+inline
+string_view
+basic_fields<Allocator>::
+get_method_impl() const
+{
+    return method_;
+}
+
+template<class Allocator>
+inline
+string_view
+basic_fields<Allocator>::
+get_target_impl() const
+{
+    return target_or_reason_;
+}
+
+template<class Allocator>
+inline
+string_view
+basic_fields<Allocator>::
+get_reason_impl() const
+{
+    return target_or_reason_;
 }
 
 //---
@@ -474,8 +708,9 @@ template<class Allocator>
 inline
 void
 basic_fields<Allocator>::
-chunked_impl()
+set_chunked_impl(bool v)
 {
+    BOOST_ASSERT(v);
     auto it = find("Transfer-Encoding");
     if(it == end())
         this->insert("Transfer-Encoding", "chunked");
@@ -681,7 +916,6 @@ swap(basic_fields& other, std::false_type)
     swap(method_, other.method_);
     swap(target_or_reason_, other.target_or_reason_);
 }
-
 
 } // http
 } // beast

@@ -68,7 +68,7 @@ public:
                 flat_buffer buffer;
                 request<string_body> req;
                 req.version = 11;
-                req.method("POST");
+                req.method_string("POST");
                 req.target("/");
                 req.insert(field::user_agent, "test");
                 req.body = "Hello, world!";
@@ -101,7 +101,7 @@ public:
     {
         request<string_body> req;
         req.version = 11;
-        req.method("POST");
+        req.method_string("POST");
         req.target("/");
         req.insert(field::user_agent, "test");
         req.body = "Hello, world!";

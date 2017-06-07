@@ -21,6 +21,12 @@ namespace beast {
 template<class... Buffers>
 class buffer_cat_view
 {
+#if 0
+    static_assert(
+        detail::is_all_const_buffer_sequence<Buffers...>::value,
+            "BufferSequence requirements not met");
+#endif
+
     std::tuple<Buffers...> bn_;
 
 public:

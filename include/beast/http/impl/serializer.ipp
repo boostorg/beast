@@ -15,58 +15,26 @@
 
 namespace beast {
 namespace http {
-namespace detail {
 
-template<class Fields>
+template<bool isRequest, class Body, class Fields,
+    class ChunkDecorator, class Allocator>
 void
-write_start_line(std::ostream& os,
-    header<true, Fields> const& msg)
+serializer<isRequest, Body, Fields,
+    ChunkDecorator, Allocator>::
+frdinit(std::true_type)
 {
-    // VFALCO This should all be done without dynamic allocation
-    BOOST_ASSERT(msg.version == 10 || msg.version == 11);
-    os << msg.method() << " " << msg.target();
-    switch(msg.version)
-    {
-    case 10: os << " HTTP/1.0\r\n"; break;
-    case 11: os << " HTTP/1.1\r\n"; break;
-    }
+    frd_.emplace(m_, m_.version, m_.method());
 }
 
-template<class Fields>
+template<bool isRequest, class Body, class Fields,
+    class ChunkDecorator, class Allocator>
 void
-write_start_line(std::ostream& os,
-    header<false, Fields> const& msg)
+serializer<isRequest, Body, Fields,
+    ChunkDecorator, Allocator>::
+frdinit(std::false_type)
 {
-    // VFALCO This should all be done without dynamic allocation
-    BOOST_ASSERT(msg.version == 10 || msg.version == 11);
-    switch(msg.version)
-    {
-    case 10: os << "HTTP/1.0 "; break;
-    case 11: os << "HTTP/1.1 "; break;
-    }
-    os << msg.result_int() << " " << msg.reason() << "\r\n";
+    frd_.emplace(m_, m_.version, m_.result_int());
 }
-
-template<class FieldSequence>
-void
-write_fields(std::ostream& os,
-    FieldSequence const& fields)
-{
-    //static_assert(is_FieldSequence<FieldSequence>::value,
-    //    "FieldSequence requirements not met");
-    for(auto const& field : fields)
-    {
-        auto const name = field.name();
-        BOOST_ASSERT(! name.empty());
-        if(name[0] == ':')
-            continue;
-        os << field.name() << ": " << field.value() << "\r\n";
-    }
-}
-
-} // detail
-
-//------------------------------------------------------------------------------
 
 template<bool isRequest, class Body, class Fields,
     class ChunkDecorator, class Allocator>
@@ -76,7 +44,6 @@ serializer(message<isRequest, Body, Fields> const& m,
         ChunkDecorator const& d, Allocator const& alloc)
     : m_(m)
     , d_(d)
-    , b_(1024, alloc)
 {
 }
 
@@ -93,15 +60,11 @@ get(error_code& ec, Visit&& visit)
     {
     case do_construct:
     {
-        chunked_ = token_list{
-            m_["Transfer-Encoding"]}.exists("chunked");
-        close_ = token_list{m_["Connection"]}.exists("close") ||
-            (m_.version < 11 && ! m_.exists("Content-Length"));
-        auto os = ostream(b_);
-        detail::write_start_line(os, m_);
-        detail::write_fields(os, m_);
-        os << "\r\n";
-        if(chunked_)
+        frdinit(std::integral_constant<bool,
+            isRequest>{});
+        close_ = m_.has_close() || (
+            m_.version < 11 && ! m_.has_content_length());
+        if(m_.has_chunked())
             goto go_init_c;
         s_ = do_init;
         // [[fallthrough]]
@@ -127,7 +90,7 @@ get(error_code& ec, Visit&& visit)
         more_ = result->second;
         v_ = cb0_t{
             boost::in_place_init,
-            b_.data(),
+            frd_->get(),
             result->first};
         s_ = do_header;
         // [[fallthrough]]
@@ -137,10 +100,11 @@ get(error_code& ec, Visit&& visit)
         visit(ec, boost::get<cb0_t>(v_));
         break;
 
-         go_header_only:
-    s_ = do_header_only;
+    go_header_only:
+        v_ = ch_t{frd_->get()};
+        s_ = do_header_only;
     case do_header_only:
-        visit(ec, b_.data());
+        visit(ec, boost::get<ch_t>(v_));
         break;
 
     case do_body:
@@ -193,7 +157,7 @@ get(error_code& ec, Visit&& visit)
         more_ = result->second;
         v_ = ch0_t{
             boost::in_place_init,
-            b_.data(),
+            frd_->get(),
             detail::chunk_header{
                 buffer_size(result->first)},
             [&]()
@@ -214,10 +178,11 @@ get(error_code& ec, Visit&& visit)
         visit(ec, boost::get<ch0_t>(v_));
         break;
 
-         go_header_only_c:
-    s_ = do_header_only_c;
+    go_header_only_c:
+        v_ = ch_t{frd_->get()};
+        s_ = do_header_only_c;
     case do_header_only_c:
-        visit(ec, b_.data());
+        visit(ec, boost::get<ch_t>(v_));
         break;
 
     case do_body_c:
@@ -311,18 +276,18 @@ consume(std::size_t n)
             break;
         header_done_ = true;
         v_ = boost::blank{};
-        b_.consume(b_.size()); // VFALCO delete b_?
         if(! more_)
             goto go_complete;
         s_ = do_body + 1;
         break;
 
     case do_header_only:
-        BOOST_ASSERT(n <= b_.size());
-        b_.consume(n);
-        if(buffer_size(b_.data()) > 0)
+        BOOST_ASSERT(n <= buffer_size(
+            boost::get<ch_t>(v_)));
+        boost::get<ch_t>(v_).consume(n);
+        if(buffer_size(boost::get<ch_t>(v_)) > 0)
             break;
-        // VFALCO delete b_?
+        frd_ = boost::none;
         header_done_ = true;
         if(! split_)
             goto go_complete;
@@ -353,7 +318,6 @@ consume(std::size_t n)
             break;
         header_done_ = true;
         v_ = boost::blank{};
-        b_.consume(b_.size()); // VFALCO delete b_?
         if(more_)
             s_ = do_body_c + 1;
         else
@@ -362,11 +326,12 @@ consume(std::size_t n)
 
     case do_header_only_c:
     {
-        BOOST_ASSERT(n <= buffer_size(b_.data()));
-        b_.consume(n);
-        if(buffer_size(b_.data()) > 0)
+        BOOST_ASSERT(n <= buffer_size(
+            boost::get<ch_t>(v_)));
+        boost::get<ch_t>(v_).consume(n);
+        if(buffer_size(boost::get<ch_t>(v_)) > 0)
             break;
-        // VFALCO delete b_?
+        frd_ = boost::none;
         header_done_ = true;
         if(! split_)
         {

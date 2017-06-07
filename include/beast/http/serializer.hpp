@@ -12,7 +12,6 @@
 #include <beast/core/async_result.hpp>
 #include <beast/core/buffer_cat.hpp>
 #include <beast/core/consuming_buffers.hpp>
-#include <beast/core/multi_buffer.hpp>
 #include <beast/core/string_view.hpp>
 #include <beast/core/type_traits.hpp>
 #include <beast/http/message.hpp>
@@ -155,24 +154,26 @@ class serializer
 
     void split(bool, std::true_type) {}
     void split(bool v, std::false_type) { split_ = v; }
-
-    using buffer_type =
-        basic_multi_buffer<Allocator>;
+    void frdinit(std::true_type);
+    void frdinit(std::false_type);
 
     using reader = typename Body::reader;
 
     using is_deferred =
         typename reader::is_deferred;
 
+    using ch_t = consuming_buffers<typename
+        Fields::reader::const_buffers_type>;        // header
+
     using cb0_t = consuming_buffers<buffer_cat_view<
-        typename buffer_type::const_buffers_type,   // header
+        typename Fields::reader::const_buffers_type,// header
         typename reader::const_buffers_type>>;      // body
 
     using cb1_t = consuming_buffers<
         typename reader::const_buffers_type>;       // body
 
     using ch0_t = consuming_buffers<buffer_cat_view<
-        typename buffer_type::const_buffers_type,   // header
+        typename Fields::reader::const_buffers_type,// header
         detail::chunk_header,                       // chunk-header
         boost::asio::const_buffers_1,               // chunk-ext
         boost::asio::const_buffers_1,               // crlf
@@ -192,11 +193,11 @@ class serializer
         boost::asio::const_buffers_1>>;             // crlf
 
     message<isRequest, Body, Fields> const& m_;
+    boost::optional<typename Fields::reader> frd_;
     ChunkDecorator d_;
     boost::optional<reader> rd_;
-    buffer_type b_;
     boost::variant<boost::blank,
-        cb0_t, cb1_t, ch0_t, ch1_t, ch2_t> v_;
+        ch_t, cb0_t, cb1_t, ch0_t, ch1_t, ch2_t> v_;
     int s_ = do_construct;
     bool split_ = is_deferred::value;
     bool header_done_ = false;

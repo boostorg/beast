@@ -134,7 +134,7 @@ public:
         m1.target("u");
         m1.body = "1";
         m1.insert("h", "v");
-        m2.method("G");
+        m2.method_string("G");
         m2.body = "2";
         swap(m1, m2);
         BEAST_EXPECT(m1.method_string() == "G");
@@ -268,7 +268,7 @@ public:
         auto const scheck =
             [&](string_view s)
             {
-                h.method(s);
+                h.method_string(s);
                 BEAST_EXPECT(h.method() == string_to_verb(s));
                 BEAST_EXPECT(h.method_string() == s);
             };

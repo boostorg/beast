@@ -15,7 +15,8 @@
 [include concept/BufferSequence.qbk]
 [include concept/DynamicBuffer.qbk]
 [include concept/Field.qbk]
-[include concept/FieldSequence.qbk]
+[include concept/Fields.qbk]
+[include concept/FieldsReader.qbk]
 [include concept/Streams.qbk]
 
 [endsect]

@@ -13,6 +13,7 @@
 #include <beast/core/detail/ci_char_traits.hpp>
 #include <beast/http/connection.hpp>
 #include <beast/http/field.hpp>
+#include <boost/asio/buffer.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/intrusive/list.hpp>
 #include <boost/intrusive/set.hpp>
@@ -40,7 +41,7 @@ namespace http {
     as a `std::multiset`; there will be a separate value for each occurrence
     of the field name.
 
-    @note Meets the requirements of @b FieldSequence.
+    @note Meets the requirements of @b Fields
 */
 template<class Allocator>
 class basic_fields
@@ -259,8 +260,6 @@ public:
 
         @param f The known field constant.
 
-        @param name The name of the field.
-
         @param value A string holding the value of the field.
     */
     void
@@ -337,53 +336,54 @@ public:
     void
     swap(basic_fields<Alloc>& lhs, basic_fields<Alloc>& rhs);
 
+    /// The algorithm used to serialize the header
+    class reader;
+
 protected:
+    /// Returns `true` if the value for Connection has "close" in the list.
+    bool has_close_impl() const;
 
-    //--------------------------------------------------------------------------
-    //
-    // for serializing
-    //
+    /// Returns `true` if "chunked" is the last Transfer-Encoding
+    bool has_chunked_impl() const;
 
-    /** Returns the stored request-method string.
+    /// Returns `true` if the Content-Length field is present
+    bool has_content_length_impl() const;
 
-        @note This is called by the @ref header implementation.
-    */
-    string_view get_method_impl() const;
+    /** Set or clear the method string.
 
-    /** Returns the stored request-target string.
-
-        @note This is called by the @ref header implementation.
-    */
-    string_view get_target_impl() const;
-
-    /** Returns the stored obsolete reason-phrase string.
-
-        @note This is called by the @ref header implementation.
-    */
-    string_view get_reason_impl() const;
-
-    //--------------------------------------------------------------------------
-    //
-    // for parsing
-    //
-
-    /** Set or clear the stored request-method string.
-
-        @note This is called by the @ref header implementation.
+        @note Only called for requests.
     */
     void set_method_impl(string_view s);
 
-    /** Set or clear the stored request-target string.
+    /** Set or clear the target string.
 
-        @note This is called by the @ref header implementation.
+        @note Only called for requests.
     */
     void set_target_impl(string_view s);
 
-    /** Set or clear the stored obsolete reason-phrase string.
+    /** Set or clear the reason string.
 
-        @note This is called by the @ref header implementation.
+        @note Only called for responses.
     */
     void set_reason_impl(string_view s);
+
+    /** Returns the request-method string.
+
+        @note Only called for requests.
+    */
+    string_view get_method_impl() const;
+
+    /** Returns the request-target string.
+
+        @note Only called for requests.
+    */
+    string_view get_target_impl() const;
+
+    /** Returns the response reason-phrase string.
+
+        @note Only called for responses.
+    */
+    string_view get_reason_impl() const;
 
     //--------------------------------------------------------------------------
     //
@@ -418,7 +418,7 @@ protected:
 
         @note This is called by the @ref header implementation.
     */
-    void chunked_impl();
+    void set_chunked_impl(bool v);
 
 private:
     class element
@@ -440,6 +440,9 @@ private:
 
         string_view
         value() const;
+
+        boost::asio::const_buffer
+        buffer() const;
 
         value_type data;
     };
