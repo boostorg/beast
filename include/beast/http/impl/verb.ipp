@@ -8,6 +8,7 @@
 #ifndef BEAST_HTTP_IMPL_VERB_IPP
 #define BEAST_HTTP_IMPL_VERB_IPP
 
+#include <boost/config.hpp>
 #include <boost/throw_exception.hpp>
 #include <stdexcept>
 
@@ -155,7 +156,7 @@ string_to_verb(string_view v)
                 return verb::connect;
             if(eq(v, "PY"))
                 return verb::copy;
-            // [[fallthrough]]
+            BOOST_FALLTHROUGH;
 
         default:
             break;
@@ -216,7 +217,7 @@ string_to_verb(string_view v)
         case 'O':
             if(eq(v, "VE"))
                 return verb::move;
-            // [[fallthrough]]
+            BOOST_FALLTHROUGH;
 
         default:
             break;
@@ -260,7 +261,7 @@ string_to_verb(string_view v)
                 return verb::purge;
             if(eq(v, "T"))
                 return verb::put;
-            // [[fallthrough]]
+            BOOST_FALLTHROUGH;
 
         default:
             break;

@@ -18,6 +18,7 @@
 #include <boost/asio/handler_continuation_hook.hpp>
 #include <boost/asio/handler_invoke_hook.hpp>
 #include <boost/asio/write.hpp>
+#include <boost/config.hpp>
 #include <boost/optional.hpp>
 #include <boost/throw_exception.hpp>
 #include <ostream>
@@ -317,7 +318,7 @@ operator()(error_code ec,
 
     case 2:
         state_ = 3;
-        // [[fallthrough]]
+        BOOST_FALLTHROUGH;
 
     case 3:
     {

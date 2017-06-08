@@ -18,6 +18,7 @@
 #include <boost/asio/handler_continuation_hook.hpp>
 #include <boost/asio/handler_invoke_hook.hpp>
 #include <boost/assert.hpp>
+#include <boost/config.hpp>
 #include <boost/optional.hpp>
 #include <boost/throw_exception.hpp>
 #include <limits>
@@ -522,7 +523,7 @@ operator()(error_code ec,
                     ec = boost::asio::error::operation_aborted;
                     goto upcall;
                 }
-                // [[fallthrough]]
+                BOOST_FALLTHROUGH;
 
             //------------------------------------------------------------------
 
