@@ -17,21 +17,9 @@ lists these facilities by group, with descriptions.
     This documentation assumes familiarity with __Asio__. Sample
     code and identifiers used throughout are written as if the
     following declarations are in effect:
-    ```
-    #include <beast/core.hpp>
-    #include <boost/asio.hpp>
-    #include <iostream>
-    #include <thread>
- 
-    using namespace beast;
 
-    boost::asio::io_service ios;
-    boost::asio::io_service work{ios};
-    std::thread t{[&](){ ios.run(); }};
-
-    error_code ec;
-
-    ```
+    [snippet_core_1a]
+    [snippet_core_1b]
 ]
 
 [include 3_1_asio.qbk]

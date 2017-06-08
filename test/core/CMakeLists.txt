@@ -8,15 +8,16 @@ add_executable (core-tests
     ${BEAST_INCLUDES}
     ${EXTRAS_INCLUDES}
     ../../extras/beast/unit_test/main.cpp
-    buffer_test.hpp
     async_result.cpp
     bind_handler.cpp
     buffer_cat.cpp
     buffer_prefix.cpp
+    buffer_test.hpp
+    buffered_read_stream.cpp
     buffers_adapter.cpp
     clamp.cpp
     consuming_buffers.cpp
-    buffered_read_stream.cpp
+    doc_snippets.cpp
     error.cpp
     flat_buffer.cpp
     handler_alloc.cpp

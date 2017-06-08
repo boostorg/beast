@@ -116,42 +116,39 @@ the __Body__ requirements:
 [heading Usage]
 
 The code examples below show how to create and fill in request and response
-objects:
+objects: Here is simple example of building an
+[@https://tools.ietf.org/html/rfc7231#section-4.3.1 HTTP GET]
+request. The function
+[link beast.ref.http__message.prepare prepare]
+allows for various connection options. The use of prepare is optional,
+the Connection field may be set manually if desired.
 
 [table Create Request
 [[Statements] [Serialized Result]]
 [[
-```
-    request<string_body> req;
-    req.version = 11;   // HTTP/1.1
-    req.method(verb::get);
-    req.target("/index.htm");
-    req.insert("Accept", "text/html");
-    req.insert("Connection", "keep-alive");
-    req.insert("User-Agent", "Beast");
-```
+    [http_snippet_2]
 ][
 ```
     GET /index.htm HTTP/1.1\r\n
     Accept: text/html\r\n
-    Connection: keep-alive\r\n
     User-Agent: Beast\r\n
+    Connection: close\r\n
     \r\n
 ```
 ]]
 ]
 
+Here we create an HTTP response indicating success. Note that this
+message has a body. The function
+[link beast.ref.http__message.prepare prepare]
+automatically sets the Content-Length or Transfer-Encoding field
+depending on the body type. The use of prepare is optional, the
+Content-Length and other fields may be set manually if desired.
+
 [table Create Response
 [[Statements] [Serialized Result]]
 [[
-```
-    response<string_body> res;
-    res.version = 11;   // HTTP/1.1
-    res.result(status::ok);
-    res.body = "Hello, world!";
-    res.insert("Server", "Beast");
-    res.insert("Content-Length", res.body.size());
-```
+    [http_snippet_3]
 ][
 ```
     HTTP/1.1 200 OK\r\n

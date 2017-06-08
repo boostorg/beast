@@ -15,6 +15,7 @@ add_executable (http-tests
     basic_parser.cpp
     buffer_body.cpp
     doc_http_samples.cpp
+    doc_snippets.cpp
     dynamic_body.cpp
     empty_body.cpp
     error.cpp

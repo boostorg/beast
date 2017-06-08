@@ -20,16 +20,8 @@ or other object which meets the required stream concepts and already has
 communication established with an endpoint. This example is provided as a
 reminder of how to work
 with sockets:
-```
-    auto host = "www.example.com";
-    boost::asio::ip::tcp::resolver r{ios};
-    boost::asio::ip::tcp::socket sock{ios};
-    boost::asio::connect(sock, r.resolve(
-        boost::asio::ip::tcp::resolver::query{host, "http"}));
 
-    // At this point `sock` is a connected to a remote
-    // host and may be used to perform stream operations.
-```
+[snippet_core_2]
 
 Throughout this documentation identifiers with the following names have
 special meaning:

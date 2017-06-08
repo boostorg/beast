@@ -72,6 +72,8 @@
 [import ../examples/websocket_example.cpp]
 [import ../examples/echo_op.cpp]
 [import ../examples/doc_http_samples.hpp]
+[import ../test/core/doc_snippets.cpp]
+[import ../test/http/doc_snippets.cpp]
 
 [include 1_overview.qbk]
 [include 2_examples.qbk]

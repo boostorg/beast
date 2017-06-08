@@ -66,10 +66,8 @@ format using __Asio__. Specifically, the library provides:
     the HTTP protocol specification described in __rfc7230__. Sample
     code and identifiers mentioned in this section is written as if
     these declarations are in effect:
-    ```
-    #include <beast/http.hpp>
-    using namespace beast::http;
-    ```
+
+    [http_snippet_1]
 ]
 
 [include 4_01_primer.qbk]

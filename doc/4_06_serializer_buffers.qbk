@@ -30,63 +30,13 @@ expressed with a generic lambda. The function
 [link beast.ref.http__serializer.is_done `serializer::is_done`]
 will return `true` when all the buffers have been produced. This C++14
 example prints the buffers to standard output:
-```
-template<bool isRequest, class Body, class Fields>
-void print(message<isRequest, Body, Fields> const& m)
-{
-    error_code ec;
-    serializer<isRequest, Body, Fields> sr{m};
-    do
-    {
-        sr.get(ec,
-            [&sr](error_code& ec, auto const& buffer)
-            {
-                std::cout << buffers(buffer);
-                sr.consume(boost::asio::buffer_size(buffer));
-            });
-    }
-    while(! ec && ! sr.is_done());
-    if(! ec)
-        std::cout << std::endl;
-    else
-        std::cerr << ec.message() << std::endl;
-}
-```
+
+[http_snippet_14]
 
 Generic lambda expressions are only available in C++14 or later. A functor
 with a templated function call operator is necessary to use C++11 as shown:
-```
-template<class Serializer>
-struct lambda
-{
-    Serializer& sr;
 
-    lambda(Serializer& sr_) : sr(sr_) {}
-
-    template<class ConstBufferSequence>
-    void operator()(error_code& ec, ConstBufferSequence const& buffer)
-    {
-        std::cout << buffers(buffer);
-        sr.consume(boost::asio::buffer_size(buffer));
-    }
-};
-
-template<bool isRequest, class Body, class Fields>
-void print(message<isRequest, Body, Fields> const& m)
-{
-    error_code ec;
-    serializer<isRequest, Body, Fields> sr{m};
-    do
-    {
-        sr.get(ec, lambda<decltype(sr)>{sr});
-    }
-    while(! ec && ! sr.is_done());
-    if(! ec)
-        std::cout << std::endl;
-    else
-        std::cerr << ec.message() << std::endl;
-}
-```
+[http_snippet_15]
 
 [heading Split Serialization]
 
@@ -102,42 +52,8 @@ to the body. The function
 [link beast.ref.http__serializer.is_header_done `serializer::is_header_done`]
 informs the caller whether the header has completed serialization. In this
 C++14 example we print the header first, followed by the body:
-```
-template<bool isRequest, class Body, class Fields>
-void print(message<isRequest, Body, Fields> const& m)
-{
-    error_code ec;
-    serializer<isRequest, Body, Fields> sr{m};
-    sr.split(true);
-    std::cout << "Header:" << std::endl;
-    do
-    {
-        sr.get(ec,
-            [&sr](error_code& ec, auto const& buffer)
-            {
-                std::cout << buffers(buffer);
-                sr.consume(boost::asio::buffer_size(buffer));
-            });
-    }
-    while(! sr.is_header_done());
-    if(! ec && ! sr.is_done())
-    {
-        std::cout << "Body:" << std::endl;
-        do
-        {
-            sr.get(ec,
-                [&sr](error_code& ec, auto const& buffer)
-                {
-                    std::cout << buffers(buffer);
-                    sr.consume(boost::asio::buffer_size(buffer));
-                });
-        }
-        while(! ec && ! sr.is_done());
-    }
-    if(ec)
-        std::cerr << ec.message() << std::endl;
-}
-```
+
+[http_snippet_16]
 
 [heading Chunk Decorators]
 
@@ -173,25 +89,7 @@ after subsequent calls.
 
 Here, we declare a decorator which sets an extension variable `x` equal
 to the size of the chunk in bytes, and returns a single trailer field:
-```
-struct decorator
-{
-    std::string s;
 
-    template<class ConstBufferSequence>
-    string_view
-    operator()(ConstBufferSequence const& buffers)
-    {
-        s = ";x=" + std::to_string(boost::asio::buffer_size(buffers));
-        return s;
-    }
-
-    string_view
-    operator()(boost::asio::null_buffers)
-    {
-        return "Result: OK\r\n";
-    }
-};
-```
+[http_snippet_17]
 
 [endsect]
