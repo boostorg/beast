@@ -114,22 +114,7 @@ accesses the contained object, and depending on the types used to instantiate
 the parser, it may be possible to acquire ownership of the header or message
 captive object and destroy the parser. In this example we read an HTTP
 response with a string body using a parser, then print the response:
-```
-template<class SyncReadStream>
-void print_response(SyncReadStream& stream)
-{
-    static_assert(is_sync_read_stream<SyncReadStream>::value,
-        "SyncReadStream requirements not met");
 
-    // Declare a parser for an HTTP response
-    response_parser<string_body> parser;
-
-    // Read the entire message
-    read(stream, parser);
-
-    // Now print the message
-    std::cout << parser.get() << std::endl;
-}
-```
+[http_snippet_13]
 
 [endsect]

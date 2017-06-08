@@ -118,14 +118,7 @@ Using the type checks with `static_assert` on function or class template
 types will provide users with helpful error messages and prevent undefined
 behaviors. This example shows how a template function which writes to a
 synchronous stream may check its argument:
-```
-    template<class SyncWriteStream>
-    void write_string(SyncWriteStream& stream, string_view s)
-    {
-        static_assert(is_sync_write_stream<SyncWriteStream>::value,
-            "SyncWriteStream requirements not met");
-        boost::asio::write(stream, boost::asio::const_buffers_1(s.data(), s.size()));
-    }
-```
+
+[snippet_core_3]
 
 [endsect]

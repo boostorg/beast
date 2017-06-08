@@ -54,12 +54,6 @@ this echo operation:
 
 [core_sample_echo_op_4]
 
-```
-// echo_op is callable with the signature void(error_code, bytes_transferred),
-// allowing `*this` to be used as both a ReadHandler and a WriteHandler.
-//
-```
-
 A complete, runnable version of this example may be found in the examples
 directory.
 

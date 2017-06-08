@@ -41,6 +41,8 @@ an exception upon error, and another which accepts as the last parameter an
 argument of type [link beast.ref.error_code `error_code&`]. If an error
 occurs this argument will be set to contain the error code.
 
+
+
 [heading Reading]
 
 Because a serialized header is not length-prefixed, algorithms which parse
@@ -50,11 +52,8 @@ __DynamicBuffer__ which persists between calls. Each read operation may
 consume bytes remaining in the buffer, and leave behind new bytes. In this
 example we declare the buffer and a message variable, then read a complete
 HTTP request synchronously:
-```
-    flat_buffer buffer;         // (The parser is optimized for flat buffers)
-    request<string_body> req;
-    read(sock, buffer, req);
-```
+
+[http_snippet_4]
 
 In this example we used the __flat_buffer__. The parser in Beast is
 optimized for structured HTTP data located in a single contiguous memory
@@ -74,15 +73,8 @@ valid until the operation has completed. Beast asynchronous initiation
 functions use Asio's completion handler model. Here we read a message
 asynchronously. When the operation completes the message in the error
 code indicating the result is printed:
-```
-    flat_buffer buffer;
-    response<string_body> res;
-    async_read(sock, buffer,
-        [&](error_code ec)
-        {
-            std::cerr << ec.message() << std::endl;
-        });
-```
+
+[http_snippet_5]
 
 If a read stream algorithm cannot complete its operation without exceeding
 the maximum specified size of the dynamic buffer provided, the error
@@ -90,70 +82,27 @@ the maximum specified size of the dynamic buffer provided, the error
 is returned. This may be used to impose a limit on the maximum size of an
 HTTP message header for protection from buffer overflow attacks. The following
 code will generate an error:
-```
-    // This buffer is too small for much of anything
-    flat_buffer buffer{10};
 
-    // Try to read a request
-    error_code ec;
-    request<string_body> req;
-    read(sock, buffer, req, ec);
-    if(ec == error::buffer_overflow)
-        std::cerr << "Buffer limit exceeded!" << std::endl;
+[http_snippet_6]
 
-```
+
 
 [heading Writing]
 
 A set of free functions allow serialization of an entire HTTP message to
-a stream. This function sends a message synchronously on the socket,
-throwing an exception if an error occurs:
-```
-    template<class Body, class Fields>
-    void send(response<Body, Fields> const& res)
-    {
-        write(sock, res);
-    }
-```
-
-If a response has no declared content length, and no chunked transfer
-encoding, the end of the message is indicated by the server closing
+a stream. If a response has no declared content length, and no chunked
+transfer encoding, the end of the message is indicated by the server closing
 the connection. When sending such a response, Beast will return the
-error `boost::asio::error::eof` from the write algorithm to indicate
+[link beast.ref.http__error `error::end_of_stream`]
+from the write algorithm to indicate
 to the caller that the connection should be closed. This example
 constructs and sends a response whose body length is determined by
 the number of octets received prior to the server closing the connection:
-```
-    void send()
-    {
-        response<string_body> res;
-        res.version = 11;
-        res.result(status::ok);
-        res.insert("Server", "Beast");
-        res.body = "Hello, world!";
 
-        error_code ec;
-        write(sock, res, ec);
-        if(ec == boost::asio::error::eof)
-            sock.close();
-        else
-            BOOST_ASSERT(ec);
-    }
-```
+[http_snippet_7]
 
-An asynchronous version is also available:
+The asynchronous version could be used instead:
 
-```
-    template<class Body, class Fields>
-    void send_async(response<Body, Fields> const& res)
-    {
-        async_write(sock, res,
-            [&](error_code)
-            {
-                if(ec)
-                    std::cerr << ec.message() << std::endl;
-            });
-    }
-```
+[http_snippet_8]
 
 [endsect]

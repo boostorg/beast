@@ -143,6 +143,9 @@ public:
 
 //[core_sample_echo_op_4
 
+// echo_op is callable with the signature void(error_code, bytes_transferred),
+// allowing `*this` to be used as both a ReadHandler and a WriteHandler.
+//
 template<class AsyncStream, class Handler>
 void echo_op<AsyncStream, Handler>::
 operator()(beast::error_code ec, std::size_t bytes_transferred)
