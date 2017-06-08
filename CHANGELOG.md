@@ -5,6 +5,7 @@ Version 51
 * Fix file_body::get() not setting the more flag correctly
 * Use BOOST_FALLTHROUGH
 * Use BOOST_STRINGIZE
+* DynamicBuffer benchmarks
 
 API Changes:
 

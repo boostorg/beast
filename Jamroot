@@ -54,9 +54,9 @@ if [ os.name ] = MACOSX
 
 variant coverage
   :
-    debug
+    release
   :
-    <cxxflags>"-fprofile-arcs -ftest-coverage"
+    <cxxflags>"-DBEAST_NO_BUFFER_BENCH=1 -fprofile-arcs -ftest-coverage"
     <linkflags>"-lgcov"
   ;
 
@@ -64,32 +64,8 @@ variant ubasan
   :
     release
   :
-    <cxxflags>"-funsigned-char -fno-omit-frame-pointer -fsanitize=address,undefined -fsanitize-blacklist=scripts/blacklist.supp"
+    <cxxflags>"-DBEAST_NO_BUFFER_BENCH=1 -funsigned-char -fno-omit-frame-pointer -fsanitize=address,undefined -fsanitize-blacklist=scripts/blacklist.supp"
     <linkflags>"-fsanitize=address,undefined"
-  ;
-
-variant asan
-  :
-    release
-  :
-    <cxxflags>"-funsigned-char -fsanitize=address -fno-omit-frame-pointer"
-    <linkflags>"-fsanitize=address"
-  ;
-
-variant msan
-  :
-    debug
-  :
-    <cxxflags>"-fsanitize=memory -fsanitize-memory-track-origins=2 -fsanitize-memory-use-after-dtor -fno-omit-frame-pointer"
-    <linkflags>"-fsanitize=memory"
-  ;
-
-variant usan
-  :
-    debug
-  :
-    <cxxflags>"-fsanitize=undefined -fsanitize-blacklist=scripts/blacklist.supp -fno-omit-frame-pointer"
-    <linkflags>"-fsanitize=undefined"
   ;
 
 project beast

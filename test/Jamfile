@@ -18,6 +18,7 @@ unit-test core-tests :
     ../extras/beast/unit_test/main.cpp
     core/async_result.cpp
     core/bind_handler.cpp
+    core/buffer_bench.cpp
     core/buffer_cat.cpp
     core/buffer_prefix.cpp
     core/buffered_read_stream.cpp
