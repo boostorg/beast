@@ -21,6 +21,7 @@
 #include <boost/asio/handler_continuation_hook.hpp>
 #include <boost/asio/handler_invoke_hook.hpp>
 #include <boost/assert.hpp>
+#include <boost/config.hpp>
 #include <boost/throw_exception.hpp>
 #include <algorithm>
 #include <memory>
@@ -230,7 +231,7 @@ operator()(error_code ec,
         case do_nomask_nofrag:
             BOOST_ASSERT(! d.ws.wr_block_);
             d.ws.wr_block_ = &d;
-            // [[fallthrough]]
+            BOOST_FALLTHROUGH;
 
         case do_nomask_nofrag + 1:
         {
@@ -253,7 +254,7 @@ operator()(error_code ec,
         case do_nomask_frag:
             BOOST_ASSERT(! d.ws.wr_block_);
             d.ws.wr_block_ = &d;
-            // [[fallthrough]]
+            BOOST_FALLTHROUGH;
 
         case do_nomask_frag + 1:
         {
@@ -301,7 +302,7 @@ operator()(error_code ec,
         case do_mask_nofrag:
             BOOST_ASSERT(! d.ws.wr_block_);
             d.ws.wr_block_ = &d;
-            // [[fallthrough]]
+            BOOST_FALLTHROUGH;
 
         case do_mask_nofrag + 1:
         {
@@ -353,7 +354,7 @@ operator()(error_code ec,
         case do_mask_frag:
             BOOST_ASSERT(! d.ws.wr_block_);
             d.ws.wr_block_ = &d;
-            // [[fallthrough]]
+            BOOST_FALLTHROUGH;
 
         case do_mask_frag + 1:
         {
@@ -406,7 +407,7 @@ operator()(error_code ec,
         case do_deflate:
             BOOST_ASSERT(! d.ws.wr_block_);
             d.ws.wr_block_ = &d;
-            // [[fallthrough]]
+            BOOST_FALLTHROUGH;
 
         case do_deflate + 1:
         {

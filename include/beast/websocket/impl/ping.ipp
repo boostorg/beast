@@ -15,6 +15,7 @@
 #include <boost/asio/handler_alloc_hook.hpp>
 #include <boost/asio/handler_continuation_hook.hpp>
 #include <boost/asio/handler_invoke_hook.hpp>
+#include <boost/config.hpp>
 #include <boost/throw_exception.hpp>
 #include <memory>
 
@@ -152,7 +153,7 @@ operator()(error_code ec, bool again)
                 return;
             }
             d.ws.wr_block_ = &d;
-            // [[fallthrough]]
+            BOOST_FALLTHROUGH;
 
         case 1:
             // send ping frame

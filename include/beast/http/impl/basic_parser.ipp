@@ -14,6 +14,7 @@
 #include <beast/http/error.hpp>
 #include <beast/http/rfc7230.hpp>
 #include <boost/asio/buffer.hpp>
+#include <boost/config.hpp>
 #include <algorithm>
 #include <utility>
 
@@ -114,7 +115,7 @@ loop:
             return 0;
         }
         state_ = state::header;
-        // [[fallthrough]]
+        BOOST_FALLTHROUGH;
 
     case state::header:
         parse_header(p, n, ec);
@@ -127,7 +128,7 @@ loop:
         if(ec)
             goto done;
         state_ = state::body;
-        // [[fallthrough]]
+        BOOST_FALLTHROUGH;
 
     case state::body:
         parse_body(p, n, ec);
@@ -140,7 +141,7 @@ loop:
         if(ec)
             goto done;
         state_ = state::body_to_eof;
-        // [[fallthrough]]
+        BOOST_FALLTHROUGH;
 
     case state::body_to_eof:
         parse_body_to_eof(p, n, ec);
@@ -153,7 +154,7 @@ loop:
         if(ec)
             goto done;
         state_ = state::chunk_header;
-        // [[fallthrough]]
+        BOOST_FALLTHROUGH;
 
     case state::chunk_header:
         parse_chunk_header(p, n, ec);

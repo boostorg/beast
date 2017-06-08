@@ -12,6 +12,7 @@
 #include <beast/websocket/ssl.hpp>
 #include <beast/websocket/stream.hpp>
 #include <boost/asio/ssl.hpp>
+#include <boost/config.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/optional.hpp>
 #include <atomic>
@@ -234,7 +235,7 @@ private:
             case 2:
                 if(ec)
                     return fail("async_handshake", ec);
-                // [[fallthrough]]
+                BOOST_FALLTHROUGH;
 
             // WebSocket read
             case 3:

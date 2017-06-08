@@ -20,6 +20,7 @@
 #include <boost/asio/handler_continuation_hook.hpp>
 #include <boost/asio/handler_invoke_hook.hpp>
 #include <boost/assert.hpp>
+#include <boost/config.hpp>
 #include <boost/optional.hpp>
 #include <boost/throw_exception.hpp>
 
@@ -139,7 +140,7 @@ operator()(error_code ec, std::size_t bytes_transferred)
         if(! ec || ec != http::error::need_more)
             goto do_upcall;
         ec = {};
-        // [[fallthrough]]
+        BOOST_FALLTHROUGH;
 
     do_read:
         try
@@ -277,7 +278,7 @@ operator()(error_code ec)
                 bind_handler(std::move(*this), ec));
         }
         state_ = 2;
-        // [[fallthrough]]
+        BOOST_FALLTHROUGH;
 
     do_read:
         return async_read_some(
