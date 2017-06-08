@@ -49,11 +49,8 @@ To be notified of ping and pong control frames, callers may register a
 "ping callback" using [link beast.ref.websocket__stream.set_option `set_option`].
 The object provided with this option should be callable with the following
 signature:
-```
-    void on_ping(bool is_pong, websocket::ping_data const& payload);
-    ...
-    ws.set_option(ping_callback{&on_ping});
-```
+
+[ws_snippet_17]
 
 When a ping callback is registered, all pings and pongs received through
 either synchronous read functions or asynchronous read functions will
@@ -80,11 +77,9 @@ The WebSocket protocol defines a procedure and control message for initiating
 a close of the session. Handling of close initiated by the remote end of the
 connection is performed automatically. To manually initiate a close, use
 the
-[link beast.ref.websocket__stream.close `close`]
-function:
-```
-    ws.close();
-```
+[link beast.ref.websocket__stream.close `close`] function:
+
+[ws_snippet_18]
 
 When the remote peer initiates a close by sending a close frame, Beast
 will handle it for you by causing the next read to return `error::closed`.
@@ -107,10 +102,7 @@ To ensure timely delivery of control frames, large messages can be broken up
 into smaller sized frames. The automatic fragment option turns on this
 feature, and the write buffer size option determines the maximum size of
 the fragments:
-```
-    ...
-    ws.set_option(websocket::auto_fragment{true});
-    ws.set_option(websocket::write_buffer_size{16384});
-```
+
+[ws_snippet_19]
 
 [endsect]

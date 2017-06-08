@@ -198,6 +198,16 @@ public:
 
     /// Return `true` if the specified field exists.
     bool
+    exists(field f) const
+    {
+        // VFALCO Should we throw here?
+        if(f == field::unknown)
+            return false;
+        return set_.find(to_string(f), less{}) != set_.end();
+    }
+
+    /// Return `true` if the specified field exists.
+    bool
     exists(string_view name) const
     {
         return set_.find(name, less{}) != set_.end();

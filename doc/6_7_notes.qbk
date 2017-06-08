@@ -20,28 +20,14 @@ of the underlying TCP/IP connection.
 [heading Asynchronous Operations]
 
 Asynchronous versions are available for all functions:
-```
-    websocket::opcode op;
-    ws.async_read(op, sb,
-        [](boost::system::error_code const& ec)
-        {
-            ...
-        });
-```
+
+[ws_snippet_20]
 
 Calls to asynchronous initiation functions support the extensible asynchronous
 model developed by the Boost.Asio author, allowing for traditional completion
 handlers, stackful or stackless coroutines, and even futures:
-```
-    void echo(websocket::stream<ip::tcp::socket>& ws,
-        boost::asio::yield_context yield)
-    {
-        ws.async_read(sb, yield);
-        std::future<websocket::error_code> fut =
-            ws.async_write, sb.data(), boost::use_future);
-        ...
-    }
-```
+
+[ws_snippet_21]
 
 [heading The io_service]
 

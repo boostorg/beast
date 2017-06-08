@@ -10,19 +10,8 @@
 After the WebSocket handshake is accomplished, callers may send and receive
 messages using the message oriented interface. This interface requires that
 all of the buffers representing the message are known ahead of time:
-```
-    template<class NextLayer>
-    void echo(websocket::stream<NextLayer>& ws)
-    {
-        multi_buffer b;
-        websocket::opcode::value op;
-        ws.read(op, b);
 
-        ws.set_option(websocket::message_type{op});
-        ws.write(b.data());
-        b.consume(b.size());
-    }
-```
+[ws_snippet_15]
 
 [important
     Calls to [link beast.ref.websocket__stream.set_option `set_option`]
@@ -41,37 +30,7 @@ message ahead of time:
 
 For these cases, the frame oriented interface may be used. This
 example reads and echoes a complete message using this interface:
-```
-    template<class NextLayer>
-    void echo(websocket::stream<NextLayer>& ws)
-    {
-        multi_buffer b;
-        websocket::frame_info fi;
-        for(;;)
-        {
-            ws.read_frame(fi, b);
-            if(fi.fin)
-                break;
-        }
-        ws.set_option(websocket::message_type{fi.op});
-        consuming_buffers<
-            multi_buffer::const_buffers_type> cb{b.data()};
-        for(;;)
-        {
-            using boost::asio::buffer_size;
-            std::size_t size = std::min(buffer_size(cb));
-            if(size > 512)
-            {
-                ws.write_frame(false, prepare_buffers(512, cb));
-                cb.consume(512);
-            }
-            else
-            {
-                ws.write_frame(true, cb);
-                break;
-            }
-        }
-    }
-```
+
+[ws_snippet_16]
 
 [endsect]
