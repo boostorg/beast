@@ -72,9 +72,10 @@ private:
         typename std::iterator_traits<const_iterator>::iterator_category>::value,
             "BidirectionalIterator requirements not met");
 
+    std::size_t max_ =
+        (std::numeric_limits<std::size_t>::max)();
     list_type list_;        // list of allocated buffers
     iterator out_;          // element that contains out_pos_
-    size_type alloc_size_;  // min amount to allocate
     size_type in_size_ = 0; // size of the input sequence
     size_type in_pos_ = 0;  // input offset in list_.front()
     size_type out_pos_ = 0; // output offset in *out_
@@ -97,6 +98,9 @@ public:
 
     /// Destructor.
     ~basic_multi_buffer();
+
+    /// Default constructor.
+    basic_multi_buffer();
 
     /** Move constructor.
 
@@ -124,18 +128,6 @@ public:
     basic_multi_buffer(basic_multi_buffer&&,
         allocator_type const& alloc);
 
-    /** Move assignment.
-
-        This object will have the input sequence of
-        the other stream buffer, and an empty output sequence.
-
-        @note After the move, the moved-from object will have
-        an empty input and output sequence, with no internal
-        buffers allocated.
-    */
-    basic_multi_buffer&
-    operator=(basic_multi_buffer&&);
-
     /** Copy constructor.
 
         This object will have a copy of the other stream
@@ -153,13 +145,6 @@ public:
     */
     basic_multi_buffer(basic_multi_buffer const&,
         allocator_type const& alloc);
-
-    /** Copy assignment.
-
-        This object will have a copy of the other stream
-        buffer's input sequence, and an empty output sequence.
-    */
-    basic_multi_buffer& operator=(basic_multi_buffer const&);
 
     /** Copy constructor.
 
@@ -181,6 +166,43 @@ public:
     basic_multi_buffer(basic_multi_buffer<OtherAlloc> const&,
         allocator_type const& alloc);
 
+    /** Constructor.
+
+        @param limit The maximum allowed sum of the input and
+        output sequence sizes.
+    */
+    explicit
+    basic_multi_buffer(std::size_t limit);
+
+    /** Constructor.
+
+        @param limit The maximum allowed sum of the input and
+        output sequence sizes.
+
+        @param alloc The allocator to use.
+    */
+    basic_multi_buffer(
+        std::size_t limit, Allocator const& alloc);
+
+    /** Move assignment.
+
+        This object will have the input sequence of
+        the other stream buffer, and an empty output sequence.
+
+        @note After the move, the moved-from object will have
+        an empty input and output sequence, with no internal
+        buffers allocated.
+    */
+    basic_multi_buffer&
+    operator=(basic_multi_buffer&&);
+
+    /** Copy assignment.
+
+        This object will have a copy of the other stream
+        buffer's input sequence, and an empty output sequence.
+    */
+    basic_multi_buffer& operator=(basic_multi_buffer const&);
+
     /** Copy assignment.
 
         This object will have a copy of the other stream
@@ -189,55 +211,11 @@ public:
     template<class OtherAlloc>
     basic_multi_buffer& operator=(basic_multi_buffer<OtherAlloc> const&);
 
-    /** Construct a stream buffer.
-
-        @param alloc_size The size of buffer to allocate. This is a
-        soft limit, calls to prepare for buffers exceeding this size
-        will allocate the larger size. The default allocation size
-        is 1KB (1024 bytes).
-
-        @param alloc The allocator to use. If this parameter is
-        unspecified, a default constructed allocator will be used.
-    */
-    explicit
-    basic_multi_buffer(std::size_t alloc_size = 1024,
-        Allocator const& alloc = allocator_type{});
-
     /// Returns a copy of the associated allocator.
     allocator_type
     get_allocator() const
     {
         return this->member();
-    }
-
-    /** Returns the default allocation size.
-
-        This is the smallest size that the stream buffer will allocate.
-        The size of the allocation can influence capacity, which will
-        affect algorithms that use capacity to efficiently read from
-        streams.
-    */
-    std::size_t
-    alloc_size() const
-    {
-        return alloc_size_;
-    }
-
-    /** Set the default allocation size.
-
-        This is the smallest size that the stream buffer will allocate.
-        The size of the allocation can influence capacity, which will
-        affect algorithms that use capacity to efficiently read from
-        streams.
-
-        @note This will not affect any already-existing allocations.
-
-        @param n The number of bytes.
-    */
-    void
-    alloc_size(std::size_t n)
-    {
-        alloc_size_ = n;
     }
 
     /// Returns the size of the input sequence.
@@ -251,7 +229,7 @@ public:
     size_type
     max_size() const
     {
-        return (std::numeric_limits<std::size_t>::max)();
+        return max_;
     }
 
     /// Returns the maximum sum of the sizes of the input sequence and output sequence the buffer can hold without requiring reallocation.
@@ -308,12 +286,14 @@ private:
     debug_check() const;
 };
 
+#if 0
 /// Helper for boost::asio::read_until
 template<class Allocator>
 std::size_t
 read_size_helper(
     basic_multi_buffer<Allocator> const& buffer,
         std::size_t max_size);
+#endif
 
 /// A typical multi buffer
 using multi_buffer = basic_multi_buffer<std::allocator<char>>;

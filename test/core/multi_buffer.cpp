@@ -72,7 +72,7 @@ public:
         for(std::size_t y = 1; y < 4; ++y) {
         std::size_t z = s.size() - (x + y);
         {
-            multi_buffer b(i);
+            multi_buffer b;//(i);
             b.commit(buffer_copy(b.prepare(x), buffer(s.data(), x)));
             b.commit(buffer_copy(b.prepare(y), buffer(s.data()+x, y)));
             b.commit(buffer_copy(b.prepare(z), buffer(s.data()+x+y, z)));
@@ -132,44 +132,6 @@ public:
         }
     }
 
-    void
-    testPrepare()
-    {
-        using boost::asio::buffer_size;
-        {
-            multi_buffer b(2);
-            BEAST_EXPECT(buffer_size(b.prepare(5)) == 5);
-            BEAST_EXPECT(buffer_size(b.prepare(8)) == 8);
-            BEAST_EXPECT(buffer_size(b.prepare(7)) == 7);
-        }
-        {
-            multi_buffer b(2);
-            b.prepare(2);
-            BEAST_EXPECT(test::buffer_count(b.prepare(5)) == 2);
-            BEAST_EXPECT(test::buffer_count(b.prepare(8)) == 3);
-            BEAST_EXPECT(test::buffer_count(b.prepare(4)) == 2);
-        }
-    }
-
-    void testCommit()
-    {
-        multi_buffer b(2);
-        b.prepare(2);
-        b.prepare(5);
-        b.commit(1);
-        expect_size(1, b.data());
-    }
-
-    void testConsume()
-    {
-        multi_buffer b(1);
-        expect_size(5, b.prepare(5));
-        b.commit(3);
-        expect_size(3, b.data());
-        b.consume(1);
-        expect_size(2, b.data());
-    }
-
     void testMatrix()
     {
         using boost::asio::buffer;
@@ -184,7 +146,7 @@ public:
         std::size_t z = s.size() - (x + y);
         std::size_t v = s.size() - (t + u);
         {
-            multi_buffer b(i);
+            multi_buffer b;//(i);
             {
                 auto d = b.prepare(z);
                 BEAST_EXPECT(buffer_size(d) == z);
@@ -267,7 +229,7 @@ public:
     void testIterators()
     {
         using boost::asio::buffer_size;
-        multi_buffer b(1);
+        multi_buffer b;
         b.prepare(1);
         b.commit(1);
         b.prepare(2);
@@ -276,72 +238,6 @@ public:
         b.prepare(1);
         expect_size(3, b.prepare(3));
         b.commit(2);
-        BEAST_EXPECT(test::buffer_count(b.data()) == 4);
-    }
-
-    void testCapacity()
-    {
-        using beast::detail::read_size_helper;
-        using boost::asio::buffer_size;
-        {
-            multi_buffer b{10};
-            BEAST_EXPECT(b.alloc_size() == 10);
-            BEAST_EXPECT(read_size_helper(b, 1) == 1);
-            BEAST_EXPECT(read_size_helper(b, 10) == 10);
-            BEAST_EXPECT(read_size_helper(b, 20) == 10);
-            BEAST_EXPECT(read_size_helper(b, 1000) == 10);
-            b.prepare(3);
-            b.commit(3);
-            BEAST_EXPECT(read_size_helper(b, 10) == 7);
-            BEAST_EXPECT(read_size_helper(b, 1000) == 7);
-        }
-        {
-            multi_buffer b(1000);
-            BEAST_EXPECT(b.alloc_size() == 1000);
-            BEAST_EXPECT(read_size_helper(b, 1) == 1);
-            BEAST_EXPECT(read_size_helper(b, 1000) == 1000);
-            BEAST_EXPECT(read_size_helper(b, 2000) == 1000);
-            b.prepare(3);
-            BEAST_EXPECT(read_size_helper(b, 1) == 1);
-            BEAST_EXPECT(read_size_helper(b, 1000) == 1000);
-            BEAST_EXPECT(read_size_helper(b, 2000) == 1000);
-            b.commit(3);
-            BEAST_EXPECT(read_size_helper(b, 1) == 1);
-            BEAST_EXPECT(read_size_helper(b, 1000) == 997);
-            BEAST_EXPECT(read_size_helper(b, 2000) == 997);
-            b.consume(2);
-            BEAST_EXPECT(read_size_helper(b, 1) == 1);
-            BEAST_EXPECT(read_size_helper(b, 1000) == 997);
-            BEAST_EXPECT(read_size_helper(b, 2000) == 997);
-        }
-        {
-            multi_buffer b{2};
-            BEAST_EXPECT(b.alloc_size() == 2);
-            BEAST_EXPECT(test::buffer_count(b.prepare(2)) == 1);
-            BEAST_EXPECT(test::buffer_count(b.prepare(3)) == 2);
-            BEAST_EXPECT(buffer_size(b.prepare(5)) == 5);
-            BEAST_EXPECT(read_size_helper(b, 10) == 6);
-        }
-        {
-            auto avail =
-                [](multi_buffer const& b)
-                {
-                    return b.capacity() - b.size();
-                };
-            multi_buffer b{100};
-            BEAST_EXPECT(b.alloc_size() == 100);
-            BEAST_EXPECT(avail(b) == 0);
-            b.prepare(100);
-            BEAST_EXPECT(avail(b) == 100);
-            b.commit(100);
-            BEAST_EXPECT(avail(b) == 0);
-            b.consume(100);
-            BEAST_EXPECT(avail(b) == 0);
-            b.alloc_size(200);
-            BEAST_EXPECT(b.alloc_size() == 200);
-            b.prepare(1);
-            BEAST_EXPECT(avail(b) == 200);
-        }
     }
 
     void run() override
@@ -350,12 +246,8 @@ public:
 
         testSpecialMembers();
         testAllocator();
-        testPrepare();
-        testCommit();
-        testConsume();
         testMatrix();
         testIterators();
-        testCapacity();
     }
 };
 

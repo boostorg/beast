@@ -10,6 +10,12 @@ Version 51
 API Changes:
 
 * Tune up static_buffer
+* multi_buffer implementation change 
+
+Actions Required:
+
+* Call sites passing a number to multi_buffer's constructor
+  will need to be adjusted, see the corresponding commit message.
 
 --------------------------------------------------------------------------------
 

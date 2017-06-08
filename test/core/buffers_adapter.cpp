@@ -161,7 +161,7 @@ public:
         }
         {
             using sb_type = beast::multi_buffer;
-            sb_type b(2);
+            sb_type b;
             b.prepare(3);
             buffers_adapter<
                 sb_type::mutable_buffers_type> ba(b.prepare(8));
