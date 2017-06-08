@@ -10,6 +10,7 @@
 
 #include <beast/config.hpp>
 #include <boost/asio/handler_alloc_hook.hpp>
+#include <boost/config.hpp>
 #include <cstddef>
 #include <cstdlib>
 #include <memory>
@@ -96,7 +97,7 @@ public:
     }
 
     value_type*
-    allocate(std::ptrdiff_t n)
+    allocate(size_type n)
     {
         auto const size = n * sizeof(T);
         using boost::asio::asio_handler_allocate;
@@ -105,21 +106,28 @@ public:
     }
 
     void
-    deallocate(value_type* p, std::ptrdiff_t n)
+    deallocate(value_type* p, size_type n)
     {
         auto const size = n * sizeof(T);
         using boost::asio::asio_handler_deallocate;
         asio_handler_deallocate(p, size, std::addressof(h_));
     }
 
-#ifdef _MSC_VER
-    // Work-around for MSVC not using allocator_traits
-    // in the implementation of shared_ptr
-    //
+//#if BOOST_WORKAROUND(BOOST_GCC, < 60000) // Works, but too coarse
+
+#if defined(BOOST_LIBSTDCXX_VERSION) && BOOST_LIBSTDCXX_VERSION < 60000
+    template<class U, class... Args>
     void
-    destroy(T* t)
+    construct(U* ptr, Args&&... args)
     {
-        t->~T();
+        ::new((void*)ptr) U(std::forward<Args>(args)...);
+    }
+
+    template<class U>
+    void
+    destroy(U* ptr)
+    {
+        ptr->~U();
     }
 #endif
 
