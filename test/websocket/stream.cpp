@@ -1839,9 +1839,9 @@ public:
         BEAST_EXPECT(n < limit);
     }
 
-    void run() override
+    void
+    run() override
     {
-testHandshake();
         BOOST_STATIC_ASSERT(std::is_constructible<
             stream<socket_type>, boost::asio::io_service&>::value);
 

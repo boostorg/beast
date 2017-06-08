@@ -9,9 +9,7 @@
 #define BEAST_STATIC_BUFFER_HPP
 
 #include <beast/config.hpp>
-#include <boost/utility/base_from_member.hpp>
-#include <algorithm>
-#include <array>
+#include <boost/asio/buffer.hpp>
 #include <cstring>
 
 namespace beast {
@@ -33,28 +31,18 @@ namespace beast {
 */
 class static_buffer
 {
-#if BEAST_DOXYGEN
-private:
-#else
-protected:
-#endif
-    std::uint8_t* begin_;
-    std::uint8_t* in_;
-    std::uint8_t* out_;
-    std::uint8_t* last_;
-    std::uint8_t* end_;
+    char* begin_;
+    char* in_;
+    char* out_;
+    char* last_;
+    char* end_;
 
 public:
-#if BEAST_DOXYGEN
     /// The type used to represent the input sequence as a list of buffers.
-    using const_buffers_type = implementation_defined;
+    using const_buffers_type = boost::asio::const_buffers_1;
 
     /// The type used to represent the output sequence as a list of buffers.
-    using mutable_buffers_type = implementation_defined;
-
-#else
-    class const_buffers_type;
-    class mutable_buffers_type;
+    using mutable_buffers_type = boost::asio::mutable_buffers_1;
 
     static_buffer(
         static_buffer const& other) noexcept = delete;
@@ -62,7 +50,18 @@ public:
     static_buffer& operator=(
         static_buffer const&) noexcept = delete;
 
-#endif
+    /** Constructor.
+
+        This creates a dynamic buffer using the provided storage area.
+
+        @param p A pointer to valid storage of at least `n` bytes.
+
+        @param n The number of valid bytes pointed to by `p`.
+    */
+    static_buffer(void* p, std::size_t n)
+    {
+        reset_impl(p, n);
+    }
 
     /// Return the size of the input sequence.
     std::size_t
@@ -75,14 +74,14 @@ public:
     std::size_t
     max_size() const
     {
-        return end_ - begin_;
+        return dist(begin_, end_);
     }
 
     /// Return the maximum sum of input and output sizes that can be held without an allocation.
     std::size_t
     capacity() const
     {
-        return end_ - in_;
+        return max_size();
     }
 
     /** Get a list of buffers that represent the input sequence.
@@ -118,28 +117,52 @@ public:
     void
     consume(std::size_t n)
     {
-        in_ += std::min<std::size_t>(n, out_ - in_);
+        consume_impl(n);
     }
 
-#if BEAST_DOXYGEN
-private:
-#else
 protected:
-#endif
-    static_buffer(std::uint8_t* p, std::size_t n)
+    /** Default constructor.
+
+        The buffer will be in an undefined state. It is necessary
+        for the derived class to call @ref reset in order to
+        initialize the object.
+    */
+    static_buffer();
+
+    /** Reset the pointed-to buffer.
+
+        This function resets the internal state to the buffer provided.
+        All input and output sequences are invalidated. This function
+        allows the derived class to construct its members before
+        initializing the static buffer.
+
+        @param p A pointer to valid storage of at least `n` bytes.
+
+        @param n The number of valid bytes pointed to by `p`.
+    */
+    void
+    reset(void* p, std::size_t n);
+
+private:
+    static
+    inline
+    std::size_t
+    dist(char const* first, char const* last)
     {
-        reset(p, n);
+        return static_cast<std::size_t>(last - first);
     }
 
+    template<class = void>
     void
-    reset(std::uint8_t* p, std::size_t n)
-    {
-        begin_ = p;
-        in_ = p;
-        out_ = p;
-        last_ = p;
-        end_ = p + n;
-    }
+    reset_impl(void* p, std::size_t n);
+
+    template<class = void>
+    mutable_buffers_type
+    prepare_impl(std::size_t n);
+
+    template<class = void>
+    void
+    consume_impl(std::size_t n);
 };
 
 //------------------------------------------------------------------------------
@@ -157,48 +180,21 @@ protected:
     @see @ref static_buffer
 */
 template<std::size_t N>
-class static_buffer_n
-    : public static_buffer
-#if ! BEAST_DOXYGEN
-    , private boost::base_from_member<
-        std::array<std::uint8_t, N>>
-#endif
+class static_buffer_n : public static_buffer
 {
-    using member_type = boost::base_from_member<
-        std::array<std::uint8_t, N>>;
+    char buf_[N];
+
 public:
-#if BEAST_DOXYGEN
-private:
-#endif
-    static_buffer_n(
-        static_buffer_n const&) = delete;
-    static_buffer_n& operator=(
-        static_buffer_n const&) = delete;
-#if BEAST_DOXYGEN
-public:
-#endif
+    /// Copy constructor (disallowed).
+    static_buffer_n(static_buffer_n const&) = delete;
+
+    /// Copy assignment (disallowed).
+    static_buffer_n& operator=(static_buffer_n const&) = delete;
 
     /// Construct a static buffer.
     static_buffer_n()
-        : static_buffer(
-            member_type::member.data(),
-                member_type::member.size())
+        : static_buffer(buf_, N)
     {
-    }
-
-    /** Reset the static buffer.
-
-        @par Effects
-
-        The input sequence and output sequence are empty,
-        @ref max_size returns `N`.
-    */
-    void
-    reset()
-    {
-        static_buffer::reset(
-            member_type::member.data(),
-                member_type::member.size());
     }
 };
 

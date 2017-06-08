@@ -16,7 +16,7 @@ namespace beast {
 
 /*  Memory is laid out thusly:
 
-    p_ ..|.. in_ ..|.. out_ ..|.. last_ ..|.. end_
+    begin_ ..|.. in_ ..|.. out_ ..|.. last_ ..|.. end_
 */
 
 namespace detail {
@@ -41,13 +41,13 @@ void
 basic_flat_buffer<Allocator>::
 move_from(basic_flat_buffer& other)
 {
-    p_ = other.p_;
+    begin_ = other.begin_;
     in_ = other.in_;
     out_ = other.out_;
     last_ = out_;
     end_ = other.end_;
     max_ = other.max_;
-    other.p_ = nullptr;
+    other.begin_ = nullptr;
     other.in_ = nullptr;
     other.out_ = nullptr;
     other.last_ = nullptr;
@@ -65,16 +65,16 @@ copy_from(basic_flat_buffer<
     auto const n = other.size();
     if(n > 0)
     {
-        p_ = alloc_traits::allocate(
+        begin_ = alloc_traits::allocate(
             this->member(), n);
-        in_ = p_;
-        out_ = p_ + n;
+        in_ = begin_;
+        out_ = begin_ + n;
         last_ = out_;
         end_ = out_;
         std::memcpy(in_, other.in_, n);
         return;
     }
-    p_ = nullptr;
+    begin_ = nullptr;
     in_ = nullptr;
     out_ = nullptr;
     last_ = nullptr;
@@ -85,9 +85,9 @@ template<class Allocator>
 basic_flat_buffer<Allocator>::
 ~basic_flat_buffer()
 {
-    if(p_)
+    if(begin_)
         alloc_traits::deallocate(
-            this->member(), p_, dist(p_, end_));
+            this->member(), begin_, dist(begin_, end_));
 }
 
 template<class Allocator>
@@ -160,7 +160,7 @@ basic_flat_buffer(
 template<class Allocator>
 basic_flat_buffer<Allocator>::
 basic_flat_buffer(std::size_t limit)
-    : p_(nullptr)
+    : begin_(nullptr)
     , in_(nullptr)
     , out_(nullptr)
     , last_(nullptr)
@@ -176,7 +176,7 @@ basic_flat_buffer(Allocator const& alloc,
         std::size_t limit)
     : detail::empty_base_optimization<
         allocator_type>(alloc)
-    , p_(nullptr)
+    , begin_(nullptr)
     , in_(nullptr)
     , out_(nullptr)
     , last_(nullptr)
@@ -204,8 +204,8 @@ prepare(std::size_t n) ->
         // after a memmove,
         // existing capacity is sufficient
         if(len > 0)
-            std::memmove(p_, in_, len);
-        in_ = p_;
+            std::memmove(begin_, in_, len);
+        in_ = begin_;
         out_ = in_ + len;
         last_ = out_ + n;
         return {out_, n};
@@ -220,19 +220,19 @@ prepare(std::size_t n) ->
             detail::next_pow2(len + n), min_size));
     auto const p = alloc_traits::allocate(
         this->member(), new_size);
-    if(p_)
+    if(begin_)
     {
         BOOST_ASSERT(p);
         BOOST_ASSERT(in_);
         std::memcpy(p, in_, len);
         alloc_traits::deallocate(
-            this->member(), p_, capacity());
+            this->member(), begin_, capacity());
     }
-    p_ = p;
-    in_ = p_;
+    begin_ = p;
+    in_ = begin_;
     out_ = in_ + len;
     last_ = out_ + n;
-    end_ = p_ + new_size;
+    end_ = begin_ + new_size;
     return {out_, n};
 }
 
@@ -243,8 +243,8 @@ consume(std::size_t n)
 {
     if(n >= dist(in_, out_))
     {
-        in_ = p_;
-        out_ = p_;
+        in_ = begin_;
+        out_ = begin_;
         return;
     }
     in_ += n;
@@ -266,19 +266,19 @@ reserve(std::size_t n)
     auto const p = alloc_traits::allocate(
         this->member(), new_size);
     auto const len = size();
-    if(p_)
+    if(begin_)
     {
-        BOOST_ASSERT(p_);
+        BOOST_ASSERT(begin_);
         BOOST_ASSERT(in_);
         std::memcpy(p, in_, len);
         alloc_traits::deallocate(
-            this->member(), p_, capacity());
+            this->member(), begin_, capacity());
     }
-    p_ = p;
-    in_ = p_;
-    out_ = p_ + len;
+    begin_ = p;
+    in_ = begin_;
+    out_ = begin_ + len;
     last_ = out_;
-    end_ = p_ + new_size;
+    end_ = begin_ + new_size;
 }
 
 template<class Allocator>
@@ -292,7 +292,7 @@ shrink_to_fit()
     char* p;
     if(len > 0)
     {
-        BOOST_ASSERT(p_);
+        BOOST_ASSERT(begin_);
         BOOST_ASSERT(in_);
         p = alloc_traits::allocate(
             this->member(), len);
@@ -303,10 +303,10 @@ shrink_to_fit()
         p = nullptr;
     }
     alloc_traits::deallocate(
-        this->member(), p_, dist(p_, end_));
-    p_ = p;
-    in_ = p_;
-    out_ = p_ + len;
+        this->member(), begin_, dist(begin_, end_));
+    begin_ = p;
+    in_ = begin_;
+    out_ = begin_ + len;
     last_ = out_;
     end_ = out_;
 }
