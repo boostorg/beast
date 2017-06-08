@@ -95,7 +95,7 @@ struct file_body
             BOOST_ASSERT(nread != 0);
             offset_ += nread;
             return {{const_buffers_type{buf_, nread},
-                offset_ >= size_}};
+                offset_ < size_}};
         }
     };
 };
