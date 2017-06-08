@@ -6,6 +6,7 @@ Version 51
 * Use BOOST_FALLTHROUGH
 * Use BOOST_STRINGIZE
 * DynamicBuffer benchmarks
+* Add construct, destroy to handler_alloc
 
 API Changes:
 
