@@ -9,9 +9,7 @@
 #define BEAST_VERSION_HPP
 
 #include <beast/config.hpp>
-
-#define BEAST_QUOTE(arg) #arg
-#define BEAST_STR(arg) BEAST_QUOTE(arg)
+#include <boost/config.hpp>
 
 /** @def BEAST_API_VERSION 
 
@@ -22,7 +20,7 @@
 */
 #define BEAST_VERSION 50
 
-#define BEAST_VERSION_STRING "Beast/" BEAST_STR(BEAST_VERSION)
+#define BEAST_VERSION_STRING "Beast/" BOOST_STRINGIZE(BEAST_VERSION)
 
 #endif
 
