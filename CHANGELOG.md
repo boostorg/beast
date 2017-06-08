@@ -1,6 +1,7 @@
 Version 51
 
 * Fix operator<< for header
+* Tidy up file_body
 
 API Changes:
 
