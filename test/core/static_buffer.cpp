@@ -130,7 +130,7 @@ public:
             }
             try
             {
-                ba.prepare(1);
+                ba.prepare(ba.capacity() - ba.size() + 1);
                 fail();
             }
             catch(...)
@@ -141,59 +141,9 @@ public:
         }}}}}}
     }
 
-    void testIterators()
+    void
+    testReadSizeHelper()
     {
-        static_buffer_n<2> ba;
-        {
-            auto mb = ba.prepare(2);
-            std::size_t n;
-            n = 0;
-            for(auto it = mb.begin();
-                    it != mb.end(); it++)
-                ++n;
-            BEAST_EXPECT(n == 1);
-            mb = ba.prepare(2);
-            n = 0;
-            for(auto it = mb.begin();
-                    it != mb.end(); ++it)
-                ++n;
-            BEAST_EXPECT(n == 1);
-            mb = ba.prepare(2);
-            n = 0;
-            for(auto it = mb.end();
-                    it != mb.begin(); it--)
-                ++n;
-            BEAST_EXPECT(n == 1);
-            mb = ba.prepare(2);
-            n = 0;
-            for(auto it = mb.end();
-                    it != mb.begin(); --it)
-                ++n;
-            BEAST_EXPECT(n == 1);
-        }
-        ba.prepare(2);
-        ba.commit(1);
-        std::size_t n;
-        n = 0;
-        for(auto it = ba.data().begin();
-                it != ba.data().end(); it++)
-            ++n;
-        BEAST_EXPECT(n == 1);
-        n = 0;
-        for(auto it = ba.data().begin();
-                it != ba.data().end(); ++it)
-            ++n;
-        BEAST_EXPECT(n == 1);
-        n = 0;
-        for(auto it = ba.data().end();
-                it != ba.data().begin(); it--)
-            ++n;
-        BEAST_EXPECT(n == 1);
-        n = 0;
-        for(auto it = ba.data().end();
-                it != ba.data().begin(); --it)
-            ++n;
-        BEAST_EXPECT(n == 1);
     }
 
     void run() override
@@ -201,7 +151,6 @@ public:
         test::check_read_size_helper<static_buffer_n<32>>();
 
         testStaticBuffer();
-        testIterators();
     }
 };
 

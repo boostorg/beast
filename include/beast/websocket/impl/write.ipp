@@ -279,7 +279,7 @@ operator()(error_code ec,
         case do_nomask_frag + 2:
             d.cb.consume(
                 bytes_transferred - d.fh_buf.size());
-            d.fh_buf.reset();
+            d.fh_buf.consume(d.fh_buf.size());
             d.fh.op = opcode::cont;
             if(d.ws.wr_block_ == &d)
                 d.ws.wr_block_ = nullptr;
@@ -384,7 +384,7 @@ operator()(error_code ec,
         case do_mask_frag + 2:
             d.cb.consume(
                 bytes_transferred - d.fh_buf.size());
-            d.fh_buf.reset();
+            d.fh_buf.consume(d.fh_buf.size());
             d.fh.op = opcode::cont;
             BOOST_ASSERT(d.ws.wr_block_ == &d);
             d.ws.wr_block_ = nullptr;

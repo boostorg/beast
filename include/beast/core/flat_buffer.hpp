@@ -75,7 +75,7 @@ private:
         return static_cast<std::size_t>(last - first);
     }
 
-    char* p_;
+    char* begin_;
     char* in_;
     char* out_;
     char* last_;
@@ -218,7 +218,7 @@ public:
     std::size_t
     capacity() const
     {
-        return dist(p_, end_);
+        return dist(begin_, end_);
     }
 
     /// Get a list of buffers that represent the input sequence.

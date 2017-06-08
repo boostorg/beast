@@ -2,6 +2,10 @@ Version 51
 
 * Fix operator<< for header
 
+API Changes:
+
+* Tune up static_buffer
+
 --------------------------------------------------------------------------------
 
 Version 50

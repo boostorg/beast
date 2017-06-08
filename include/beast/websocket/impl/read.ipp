@@ -440,7 +440,7 @@ operator()(error_code ec,
                 {
                     ping_data payload;
                     detail::read(payload, d.fb.data());
-                    d.fb.reset();
+                    d.fb.consume(d.fb.size());
                     if(d.ws.ping_cb_)
                         d.ws.ping_cb_(false, payload);
                     if(d.ws.wr_close_)
@@ -469,7 +469,7 @@ operator()(error_code ec,
                     detail::read(payload, d.fb.data());
                     if(d.ws.ping_cb_)
                         d.ws.ping_cb_(true, payload);
-                    d.fb.reset();
+                    d.fb.consume(d.fb.size());
                     d.state = do_read_fh;
                     break;
                 }
@@ -488,7 +488,7 @@ operator()(error_code ec,
                         if(cr.code == close_code::none)
                             cr.code = close_code::normal;
                         cr.reason = "";
-                        d.fb.reset();
+                        d.fb.consume(d.fb.size());
                         d.ws.template write_close<
                             static_buffer>(d.fb, cr);
                         if(d.ws.wr_block_)
@@ -535,7 +535,7 @@ operator()(error_code ec,
                         BOOST_ASSERT(d.ws.wr_block_ == &d);
                         d.ws.wr_block_ = nullptr;
                     }
-                    d.fb.reset();
+                    d.fb.consume(d.fb.size());
                     d.state = do_read_fh;
                     break;
                 }
@@ -550,7 +550,7 @@ operator()(error_code ec,
                 return;
 
             case do_pong + 1:
-                d.fb.reset();
+                d.fb.consume(d.fb.size());
                 d.state = do_read_fh;
                 d.ws.wr_block_ = nullptr;
                 break;
@@ -621,7 +621,7 @@ operator()(error_code ec,
                     d.state = do_fail + 4;
                     break;
                 }
-                d.fb.reset();
+                d.fb.consume(d.fb.size());
                 d.ws.template write_close<
                     static_buffer>(d.fb, code);
                 if(d.ws.wr_block_)
@@ -793,7 +793,7 @@ read_frame(frame_info& fi, DynamicBuffer& dynabuf, error_code& ec)
             {
                 ping_data payload;
                 detail::read(payload, fb.data());
-                fb.reset();
+                fb.consume(fb.size());
                 if(ping_cb_)
                     ping_cb_(false, payload);
                 write_ping<static_buffer>(
@@ -823,7 +823,7 @@ read_frame(frame_info& fi, DynamicBuffer& dynabuf, error_code& ec)
                     if(cr.code == close_code::none)
                         cr.code = close_code::normal;
                     cr.reason = "";
-                    fb.reset();
+                    fb.consume(fb.size());
                     wr_close_ = true;
                     write_close<static_buffer>(fb, cr);
                     boost::asio::write(stream_, fb.data(), ec);
