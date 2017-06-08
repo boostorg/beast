@@ -2,6 +2,7 @@ Version 51
 
 * Fix operator<< for header
 * Tidy up file_body
+* Fix file_body::get() not setting the more flag correctly
 
 API Changes:
 
