@@ -14,6 +14,7 @@
 #include <boost/assert.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/optional.hpp>
+#include <algorithm>
 #include <cstdio>
 #include <cstdint>
 
@@ -41,7 +42,6 @@ struct file_body
         std::string const& path_;
         FILE* file_ = nullptr;
         char buf_[4096];
-        std::size_t buf_len_;
 
     public:
         using is_deferred = std::true_type;
@@ -71,8 +71,7 @@ struct file_body
         {
             file_ = fopen(path_.c_str(), "rb");
             if(! file_)
-                ec = error_code{errno,
-                    system_category()};
+                ec = error_code{errno, system_category()};
             else
                 size_ = boost::filesystem::file_size(path_);
         }
@@ -80,13 +79,8 @@ struct file_body
         boost::optional<std::pair<const_buffers_type, bool>>
         get(error_code& ec)
         {
-            if(size_ - offset_ < sizeof(buf_))
-                buf_len_ = static_cast<std::size_t>(
-                    size_ - offset_);
-            else
-                buf_len_ = sizeof(buf_);
-            auto const nread = fread(
-                buf_, 1, sizeof(buf_), file_);
+            auto const amount = std::min<std::uint64_t>(size_ - offset_, sizeof(buf_));
+            auto const nread = fread(buf_, 1, amount, file_);
             if(ferror(file_))
             {
                 ec = error_code(errno, system_category());
@@ -94,8 +88,7 @@ struct file_body
             }
             BOOST_ASSERT(nread != 0);
             offset_ += nread;
-            return {{const_buffers_type{buf_, nread},
-                offset_ >= size_}};
+            return {{const_buffers_type{buf_, nread}, offset_ >= size_}};
         }
     };
 };
