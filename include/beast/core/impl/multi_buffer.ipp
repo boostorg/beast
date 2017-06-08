@@ -264,7 +264,9 @@ public:
 };
 
 template<class Allocator>
-basic_multi_buffer<Allocator>::const_buffers_type::const_buffers_type(
+basic_multi_buffer<Allocator>::
+const_buffers_type::
+const_buffers_type(
     basic_multi_buffer const& b)
     : b_(&b)
 {
@@ -272,7 +274,9 @@ basic_multi_buffer<Allocator>::const_buffers_type::const_buffers_type(
 
 template<class Allocator>
 auto
-basic_multi_buffer<Allocator>::const_buffers_type::begin() const ->
+basic_multi_buffer<Allocator>::
+const_buffers_type::
+begin() const ->
     const_iterator
 {
     return const_iterator{*b_, b_->list_.begin()};
@@ -280,7 +284,9 @@ basic_multi_buffer<Allocator>::const_buffers_type::begin() const ->
 
 template<class Allocator>
 auto
-basic_multi_buffer<Allocator>::const_buffers_type::end() const ->
+basic_multi_buffer<Allocator>::
+const_buffers_type::
+end() const ->
     const_iterator
 {
     return const_iterator{*b_, b_->out_ ==
@@ -375,7 +381,9 @@ public:
 };
 
 template<class Allocator>
-basic_multi_buffer<Allocator>::mutable_buffers_type::mutable_buffers_type(
+basic_multi_buffer<Allocator>::
+mutable_buffers_type::
+mutable_buffers_type(
     basic_multi_buffer const& b)
     : b_(&b)
 {
@@ -383,7 +391,9 @@ basic_multi_buffer<Allocator>::mutable_buffers_type::mutable_buffers_type(
 
 template<class Allocator>
 auto
-basic_multi_buffer<Allocator>::mutable_buffers_type::begin() const ->
+basic_multi_buffer<Allocator>::
+mutable_buffers_type::
+begin() const ->
     const_iterator
 {
     return const_iterator{*b_, b_->out_};
@@ -391,7 +401,9 @@ basic_multi_buffer<Allocator>::mutable_buffers_type::begin() const ->
 
 template<class Allocator>
 auto
-basic_multi_buffer<Allocator>::mutable_buffers_type::end() const ->
+basic_multi_buffer<Allocator>::
+mutable_buffers_type::
+end() const ->
     const_iterator
 {
     return const_iterator{*b_, b_->list_.end()};
@@ -400,9 +412,17 @@ basic_multi_buffer<Allocator>::mutable_buffers_type::end() const ->
 //------------------------------------------------------------------------------
 
 template<class Allocator>
-basic_multi_buffer<Allocator>::~basic_multi_buffer()
+basic_multi_buffer<Allocator>::
+~basic_multi_buffer()
 {
     delete_list();
+}
+
+template<class Allocator>
+basic_multi_buffer<Allocator>::
+basic_multi_buffer()
+    : out_(list_.end())
+{
 }
 
 template<class Allocator>
@@ -410,7 +430,7 @@ basic_multi_buffer<Allocator>::
 basic_multi_buffer(basic_multi_buffer&& other)
     : detail::empty_base_optimization<allocator_type>(
         std::move(other.member()))
-    , alloc_size_(other.alloc_size_)
+    , max_(other.max_)
     , in_size_(other.in_size_)
     , in_pos_(other.in_pos_)
     , out_pos_(other.out_pos_)
@@ -431,7 +451,7 @@ template<class Allocator>
 basic_multi_buffer<Allocator>::
 basic_multi_buffer(basic_multi_buffer&& other,
         allocator_type const& alloc)
-    : basic_multi_buffer(other.alloc_size_, alloc)
+    : basic_multi_buffer(other.max_, alloc)
 {
     using boost::asio::buffer_copy;
     if(this->member() != other.member())
@@ -441,48 +461,100 @@ basic_multi_buffer(basic_multi_buffer&& other,
 }
 
 template<class Allocator>
-auto
-basic_multi_buffer<Allocator>::operator=(
-    basic_multi_buffer&& other) -> basic_multi_buffer&
-{
-    if(this == &other)
-        return *this;
-    // VFALCO If any memory allocated we could use it first?
-    clear();
-    alloc_size_ = other.alloc_size_;
-    move_assign(other, std::integral_constant<bool,
-        alloc_traits::propagate_on_container_move_assignment::value>{});
-    return *this;
-}
-
-template<class Allocator>
 basic_multi_buffer<Allocator>::
 basic_multi_buffer(basic_multi_buffer const& other)
-    : basic_multi_buffer(other.alloc_size_,
+    : basic_multi_buffer(other.max_,
         alloc_traits::select_on_container_copy_construction(other.member()))
 {
-    commit(boost::asio::buffer_copy(prepare(other.size()), other.data()));
+    commit(boost::asio::buffer_copy(
+        prepare(other.size()), other.data()));
 }
 
 template<class Allocator>
 basic_multi_buffer<Allocator>::
 basic_multi_buffer(basic_multi_buffer const& other,
         allocator_type const& alloc)
-    : basic_multi_buffer(other.alloc_size_, alloc)
+    : basic_multi_buffer(other.max_, alloc)
 {
-    commit(boost::asio::buffer_copy(prepare(other.size()), other.data()));
+    commit(boost::asio::buffer_copy(
+        prepare(other.size()), other.data()));
+}
+
+template<class Allocator>
+template<class OtherAlloc>
+basic_multi_buffer<Allocator>::
+basic_multi_buffer(
+        basic_multi_buffer<OtherAlloc> const& other)
+    : basic_multi_buffer(other.max_)
+{
+    using boost::asio::buffer_copy;
+    commit(buffer_copy(prepare(other.size()), other.data()));
+}
+
+template<class Allocator>
+template<class OtherAlloc>
+basic_multi_buffer<Allocator>::
+basic_multi_buffer(
+    basic_multi_buffer<OtherAlloc> const& other,
+        allocator_type const& alloc)
+    : basic_multi_buffer(other.max_, alloc)
+{
+    using boost::asio::buffer_copy;
+    commit(buffer_copy(prepare(other.size()), other.data()));
+}
+
+template<class Allocator>
+basic_multi_buffer<Allocator>::
+basic_multi_buffer(std::size_t limit)
+    : max_(limit)
+    , out_(list_.end())
+{
+    if(max_ <= 0)
+        BOOST_THROW_EXCEPTION(std::invalid_argument{
+            "invalid limit"});
+}
+
+template<class Allocator>
+basic_multi_buffer<Allocator>::
+basic_multi_buffer(std::size_t limit,
+        Allocator const& alloc)
+    : detail::empty_base_optimization<
+        allocator_type>(alloc)
+    , max_(limit)
+    , out_(list_.end())
+{
+    if(max_ <= 0)
+        BOOST_THROW_EXCEPTION(std::invalid_argument{
+            "invalid limit"});
 }
 
 template<class Allocator>
 auto
-basic_multi_buffer<Allocator>::operator=(
-    basic_multi_buffer const& other) ->
-        basic_multi_buffer&
+basic_multi_buffer<Allocator>::
+operator=(basic_multi_buffer&& other) ->
+    basic_multi_buffer&
+{
+    if(this == &other)
+        return *this;
+    // VFALCO If any memory allocated we could use it first?
+    clear();
+    max_ = other.max_;
+    move_assign(other, std::integral_constant<bool,
+        alloc_traits::propagate_on_container_move_assignment::value>{});
+    return *this;
+}
+
+template<class Allocator>
+auto
+basic_multi_buffer<Allocator>::
+operator=(basic_multi_buffer const& other) ->
+basic_multi_buffer&
 {
     if(this == &other)
         return *this;
     using boost::asio::buffer_copy;
     clear();
+    max_ = other.max_;
     copy_assign(other, std::integral_constant<bool,
         alloc_traits::propagate_on_container_copy_assignment::value>{});
     commit(buffer_copy(prepare(other.size()), other.data()));
@@ -491,53 +563,23 @@ basic_multi_buffer<Allocator>::operator=(
 
 template<class Allocator>
 template<class OtherAlloc>
-basic_multi_buffer<Allocator>::basic_multi_buffer(
-    basic_multi_buffer<OtherAlloc> const& other)
-    : basic_multi_buffer(other.alloc_size_)
-{
-    using boost::asio::buffer_copy;
-    commit(buffer_copy(prepare(other.size()), other.data()));
-}
-
-template<class Allocator>
-template<class OtherAlloc>
-basic_multi_buffer<Allocator>::basic_multi_buffer(
-    basic_multi_buffer<OtherAlloc> const& other,
-        allocator_type const& alloc)
-    : basic_multi_buffer(other.alloc_size_, alloc)
-{
-    using boost::asio::buffer_copy;
-    commit(buffer_copy(prepare(other.size()), other.data()));
-}
-
-template<class Allocator>
-template<class OtherAlloc>
 auto
-basic_multi_buffer<Allocator>::operator=(
+basic_multi_buffer<Allocator>::
+operator=(
     basic_multi_buffer<OtherAlloc> const& other) ->
         basic_multi_buffer&
 {
     using boost::asio::buffer_copy;
     clear();
+    max_ = other.max_;
     commit(buffer_copy(prepare(other.size()), other.data()));
     return *this;
 }
 
 template<class Allocator>
-basic_multi_buffer<Allocator>::basic_multi_buffer(
-        std::size_t alloc_size, Allocator const& alloc)
-    : detail::empty_base_optimization<allocator_type>(alloc)
-    , out_(list_.end())
-    , alloc_size_(alloc_size)
-{
-    if(alloc_size <= 0)
-        BOOST_THROW_EXCEPTION(std::invalid_argument{
-            "invalid alloc_size"});
-}
-
-template<class Allocator>
 std::size_t
-basic_multi_buffer<Allocator>::capacity() const
+basic_multi_buffer<Allocator>::
+capacity() const
 {
     auto pos = out_;
     if(pos == list_.end())
@@ -559,9 +601,13 @@ data() const ->
 
 template<class Allocator>
 auto
-basic_multi_buffer<Allocator>::prepare(size_type n) ->
+basic_multi_buffer<Allocator>::
+prepare(size_type n) ->
     mutable_buffers_type
 {
+    if(in_size_ + n > max_)
+        BOOST_THROW_EXCEPTION(std::length_error{
+            "dynamic buffer overflow"});
     list_type reuse;
     if(out_ != list_.end())
     {
@@ -570,7 +616,9 @@ basic_multi_buffer<Allocator>::prepare(size_type n) ->
             out_end_ = out_->size();
             reuse.splice(reuse.end(), list_,
                 std::next(out_), list_.end());
-            //debug_check();
+        #if BEAST_MULTI_BUFFER_DEBUG_CHECK
+            debug_check();
+        #endif
         }
         auto const avail = out_->size() - out_pos_;
         if(n > avail)
@@ -583,7 +631,9 @@ basic_multi_buffer<Allocator>::prepare(size_type n) ->
             out_end_ = out_pos_ + n;
             n = 0;
         }
-        //debug_check();
+    #if BEAST_MULTI_BUFFER_DEBUG_CHECK
+        debug_check();
+    #endif
     }
     while(n > 0 && ! reuse.empty())
     {
@@ -600,11 +650,21 @@ basic_multi_buffer<Allocator>::prepare(size_type n) ->
             out_end_ = n;
             n = 0;
         }
-        //debug_check();
+    #if BEAST_MULTI_BUFFER_DEBUG_CHECK
+        debug_check();
+    #endif
     }
     while(n > 0)
     {
-        auto const size = std::max(alloc_size_, n);
+        static auto const growth_factor = 2.0f;
+        auto const size =
+            std::min<std::size_t>(
+                max_ - in_size_,
+                std::max<std::size_t>({
+                    static_cast<std::size_t>(
+                        in_size_ * growth_factor - in_size_),
+                    1024,
+                    n}));
         auto& e = *reinterpret_cast<element*>(static_cast<
             void*>(alloc_traits::allocate(this->member(),
                 sizeof(element) + size)));
@@ -622,7 +682,9 @@ basic_multi_buffer<Allocator>::prepare(size_type n) ->
             out_end_ = n;
             n = 0;
         }
-        //debug_check();
+    #if BEAST_MULTI_BUFFER_DEBUG_CHECK
+        debug_check();
+    #endif
     }
     for(auto it = reuse.begin(); it != reuse.end();)
     {
@@ -638,7 +700,8 @@ basic_multi_buffer<Allocator>::prepare(size_type n) ->
 
 template<class Allocator>
 void
-basic_multi_buffer<Allocator>::commit(size_type n)
+basic_multi_buffer<Allocator>::
+commit(size_type n)
 {
     if(list_.empty())
         return;
@@ -654,14 +717,18 @@ basic_multi_buffer<Allocator>::commit(size_type n)
         {
             out_pos_ += n;
             in_size_ += n;
-            //debug_check();
+        #if BEAST_MULTI_BUFFER_DEBUG_CHECK
+            debug_check();
+        #endif
             return;
         }
         ++out_;
         n -= avail;
         out_pos_ = 0;
         in_size_ += avail;
-        //debug_check();
+    #if BEAST_MULTI_BUFFER_DEBUG_CHECK
+        debug_check();
+    #endif
     }
 
     n = (std::min)(n, out_end_ - out_pos_);
@@ -673,12 +740,15 @@ basic_multi_buffer<Allocator>::commit(size_type n)
         out_pos_ = 0;
         out_end_ = 0;
     }
-    //debug_check();
+#if BEAST_MULTI_BUFFER_DEBUG_CHECK
+    debug_check();
+#endif
 }
 
 template<class Allocator>
 void
-basic_multi_buffer<Allocator>::consume(size_type n)
+basic_multi_buffer<Allocator>::
+consume(size_type n)
 {
     if(list_.empty())
         return;
@@ -692,7 +762,9 @@ basic_multi_buffer<Allocator>::consume(size_type n)
             {
                 in_size_ -= n;
                 in_pos_ += n;
-                //debug_check();
+            #if BEAST_MULTI_BUFFER_DEBUG_CHECK
+                debug_check();
+            #endif
                 break;
             }
             n -= avail;
@@ -704,7 +776,9 @@ basic_multi_buffer<Allocator>::consume(size_type n)
             alloc_traits::destroy(this->member(), &e);
             alloc_traits::deallocate(this->member(),
                 reinterpret_cast<char*>(&e), len);
-            //debug_check();
+        #if BEAST_MULTI_BUFFER_DEBUG_CHECK
+            debug_check();
+        #endif
         }
         else
         {
@@ -731,7 +805,9 @@ basic_multi_buffer<Allocator>::consume(size_type n)
                     out_end_ = 0;
                 }
             }
-            //debug_check();
+        #if BEAST_MULTI_BUFFER_DEBUG_CHECK
+            debug_check();
+        #endif
             break;
         }
     }
@@ -792,7 +868,8 @@ move_assign(basic_multi_buffer& other, std::true_type)
 template<class Allocator>
 void
 basic_multi_buffer<Allocator>::
-copy_assign(basic_multi_buffer const& other, std::false_type)
+copy_assign(
+    basic_multi_buffer const& other, std::false_type)
 {
     beast::detail::ignore_unused(other);
 }
@@ -800,14 +877,16 @@ copy_assign(basic_multi_buffer const& other, std::false_type)
 template<class Allocator>
 void
 basic_multi_buffer<Allocator>::
-copy_assign(basic_multi_buffer const& other, std::true_type)
+copy_assign(
+    basic_multi_buffer const& other, std::true_type)
 {
     this->member() = other.member();
 }
 
 template<class Allocator>
 void
-basic_multi_buffer<Allocator>::delete_list()
+basic_multi_buffer<Allocator>::
+delete_list()
 {
     for(auto iter = list_.begin(); iter != list_.end();)
     {
@@ -821,7 +900,8 @@ basic_multi_buffer<Allocator>::delete_list()
 
 template<class Allocator>
 void
-basic_multi_buffer<Allocator>::debug_check() const
+basic_multi_buffer<Allocator>::
+debug_check() const
 {
 #ifndef NDEBUG
     using boost::asio::buffer_size;
@@ -859,6 +939,7 @@ basic_multi_buffer<Allocator>::debug_check() const
 #endif
 }
 
+#if 0
 template<class Allocator>
 std::size_t
 read_size_helper(
@@ -867,6 +948,11 @@ read_size_helper(
 {
     BOOST_ASSERT(max_size >= 1);
     auto const size = buffer.size();
+    auto const limit = buffer.max_size() - size;
+    if(limit <= 0)
+        BOOST_THROW_EXCEPTION(std::length_error{
+            "dynamic buffer overflow"});
+
     auto const avail = std::min<std::size_t>(
         buffer.capacity() - size, max_size);
     if(avail > 0)
@@ -875,6 +961,7 @@ read_size_helper(
         std::min<std::size_t>(max_size, buffer.max_size() - size),
         avail + buffer.alloc_size());
 }
+#endif
 
 } // beast
 

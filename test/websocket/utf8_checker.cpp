@@ -379,7 +379,7 @@ public:
                 consuming_buffers<
                     boost::asio::const_buffers_1> cb{
                         boost::asio::const_buffers_1(s.data(), n)};
-                multi_buffer b{size};
+                multi_buffer b;
                 while(n)
                 {
                     auto const amount = (std::min)(n, size);

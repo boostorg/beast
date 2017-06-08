@@ -40,7 +40,7 @@ public:
                 "0123456789abcdef" "0123456789abcdef" "0123456789abcdef" "0123456789abcdef" 
                 "0123456789abcdef" "0123456789abcdef" "0123456789abcdef" "0123456789abcdef" 
                 "0123456789abcdef" "0123456789abcdef" "0123456789abcdef" "0123456789abcdef";
-            multi_buffer b(512);
+            multi_buffer b;
             ostream(b) << s;
             BEAST_EXPECT(boost::lexical_cast<std::string>(
                 buffers(b.data())) == s);

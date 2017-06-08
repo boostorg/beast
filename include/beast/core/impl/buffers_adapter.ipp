@@ -416,7 +416,7 @@ buffers_adapter<MutableBufferSequence>::prepare(std::size_t n) ->
     }
     if(n > 0)
         BOOST_THROW_EXCEPTION(std::length_error{
-            "no space"});
+            "buffer overflow"});
     return mutable_buffers_type{*this};
 }
 
