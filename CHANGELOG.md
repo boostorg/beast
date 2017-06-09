@@ -7,6 +7,7 @@ Version 51
 * Use BOOST_STRINGIZE
 * DynamicBuffer benchmarks
 * Add construct, destroy to handler_alloc
+* Fix infinite loop in basic_parser
 
 API Changes:
 

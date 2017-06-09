@@ -171,7 +171,7 @@ loop:
     case state::complete:
         break;
     }
-    if(p < p1 && eager())
+    if(p < p1 && ! is_done() && eager())
     {
         n = static_cast<std::size_t>(p1 - p);
         goto loop;

@@ -984,6 +984,25 @@ public:
 
     //--------------------------------------------------------------------------
 
+    // https://github.com/vinniefalco/Beast/issues/452
+    void
+    testRegression452()
+    {
+        error_code ec;
+        test_parser<true> p;
+        p.eager(true);
+        string_view s =
+            "GET / HTTP/1.1\r\n"
+            "\r\n"
+            "die!"
+            ;
+        p.put(boost::asio::buffer(
+            s.data(), s.size()), ec);
+        pass();
+    }
+
+    //--------------------------------------------------------------------------
+
     template<class Parser, class Pred>
     void
     bufgrind(string_view s, Pred&& pred)
@@ -1067,6 +1086,7 @@ public:
         testBody();
         testSplit();
         testRegression430();
+        testRegression452();
         testBufGrind();
     }
 };
