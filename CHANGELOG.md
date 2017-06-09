@@ -2,45 +2,45 @@ Version 52:
 
 API Changes:
 
-* auto_fragment is a member of stream
-* binary, text are members of stream
-* read_buffer_size is a member of stream
-* read_message_max is a member of stream
-* write_buffer_size is a member of stream
-* ping_callback is a member of stream
-* Remove opcode from read, async_read
-* read_frame returns `bool` fin
+* `auto_fragment` is a member of `stream`
+* `binary`, `text` are members of `stream`
+* read_buffer_size is a member of `stream`
+* read_message_max is a member of `stream`
+* `write_buffer_size` is a member of `stream`
+* `ping_callback` is a member of stream
+* Remove `opcode` from `read`, `async_read`
+* `read_frame` returns `bool` fin
 
 Actions Required:
 
-* Change call sites which use auto_fragment with set_option
-  to call stream::auto_fragment instead.
+* Change call sites which use `auto_fragment` with `set_option`
+  to call `stream::auto_fragment` instead.
 
-* Change call sites which use message_type with set_option
-  to call stream::binary or stream::text instead.
+* Change call sites which use message_type with `set_option`
+  to call `stream::binary` or `stream::text` instead.
 
-* Change call sites which use read_buffer_size with set_option to
-  call stream::read_buffer_size instead.
+* Change call sites which use read_buffer_size with `set_option` to
+  call `stream::read_buffer_size` instead.
 
-* Change call sites which use read_message_max with set_option to
-  call stream::read_message_max instead.
+* Change call sites which use read_message_max with `set_option` to
+  call `stream::read_message_max` instead.
 
-* Change call sites which use write_buffer_size with set_option to
-  call stream::write_buffer_size instead.
+* Change call sites which use write_buffer_size with `set_option` to
+  call `stream::write_buffer_size` instead.
 
-* Change call sites which use ping_callback with set_option to
-  call stream::ping_callback instead.
+* Change call sites which use ping_callback with `set_option` to
+  call `stream::ping_callback` instead.
 
 * Remove the `opcode` reference parameter from calls to synchronous
   and asynchronous read functions, replace the logic with calls to
-  stream::got_binary and stream::got_text instead.
+  `stream::got_binary` and `stream::got_text` instead.
 
-* Remove the frame_info parameter from all read frame call sites
+* Remove the `frame_info` parameter from all read frame call sites
 
-* Check the return value 'fin' for calls to read_frame
+* Check the return value 'fin' for calls to `read_frame`
 
-* Change ReadHandlers passed to async_read_frame to have
-  the signature void(error_code, bool fin), use the bool
+* Change ReadHandlers passed to `async_read_frame` to have
+  the signature `void(error_code, bool fin)`, use the `bool`
   to indicate if the frame is the last frame.
 
 --------------------------------------------------------------------------------
