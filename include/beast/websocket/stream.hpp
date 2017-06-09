@@ -263,13 +263,6 @@ public:
         ping_cb_ = std::move(o.value);
     }
 
-    /// Set the maximum incoming message size allowed
-    void
-    set_option(read_message_max const& o)
-    {
-        rd_msg_max_ = o.value;
-    }
-
     /// Set the size of the write buffer
     void
     set_option(write_buffer_size const& o)
@@ -375,6 +368,36 @@ public:
     read_buffer_size() const
     {
         return rd_buf_size_;
+    }
+
+    /** Set the maximum incoming message size option.
+
+        Sets the largest permissible incoming message size. Message
+        frame fields indicating a size that would bring the total
+        message size over this limit will cause a protocol failure.
+
+        The default setting is 16 megabytes. A value of zero indicates
+        a limit of the maximum value of a `std::uint64_t`.
+
+        @par Example
+        Setting the maximum read message size.
+        @code
+            ws.read_message_max(65536);
+        @endcode
+
+        @param n The limit on the size of incoming messages.
+    */
+    void
+    read_message_max(std::size_t n)
+    {
+        rd_msg_max_ = n;
+    }
+
+    /// Returns the maximum incoming message size setting.
+    std::size_t
+    read_message_max() const
+    {
+        return rd_msg_max_;
     }
 
     /** Returns the close reason received from the peer.

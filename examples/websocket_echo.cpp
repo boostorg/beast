@@ -44,7 +44,7 @@ public:
     {
         ws.auto_fragment(false);
         ws.set_option(pmd_);
-        ws.set_option(beast::websocket::read_message_max{64 * 1024 * 1024});
+        ws.read_message_max(64 * 1024 * 1024);
     }
 };
 
