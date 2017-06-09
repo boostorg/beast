@@ -312,7 +312,7 @@ private:
                 auto const s = ec.message();
                 break;
             }
-            ws.set_option(beast::websocket::message_type{op});
+            ws.binary(op == beast::websocket::opcode::binary);
             if(match(b, "RAW"))
             {
                 boost::asio::write(
@@ -320,9 +320,7 @@ private:
             }
             else if(match(b, "TEXT"))
             {
-                ws.set_option(
-                    beast::websocket::message_type{
-                        beast::websocket::opcode::text});
+                ws.binary(false);
                 ws.write(b.data(), ec);
             }
             else if(match(b, "PING"))

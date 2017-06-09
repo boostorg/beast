@@ -555,21 +555,12 @@ public:
         stream<socket_type> ws(ios_);
         ws.auto_fragment(true);
         ws.set_option(write_buffer_size{2048});
-        ws.set_option(message_type{opcode::text});
+        ws.binary(false);
         ws.set_option(read_buffer_size{8192});
         ws.set_option(read_message_max{1 * 1024 * 1024});
         try
         {
             ws.set_option(write_buffer_size{7});
-            fail();
-        }
-        catch(std::exception const&)
-        {
-            pass();
-        }
-        try
-        {
-            message_type{opcode::close};
             fail();
         }
         catch(std::exception const&)
@@ -1279,7 +1270,7 @@ public:
         ws.handshake("localhost", "/");
 
         // Make remote send a ping frame
-        ws.set_option(message_type(opcode::text));
+        ws.binary(false);
         ws.write(buffer_cat(sbuf("PING"), sbuf("ping")));
 
         std::size_t count = 0;
@@ -1346,7 +1337,7 @@ public:
         ws.handshake("localhost", "/");
 
         // Make remote send a text message with bad utf8.
-        ws.set_option(message_type(opcode::binary));
+        ws.binary(true);
         ws.write(buffer_cat(sbuf("TEXT"),
             cbuf(0x03, 0xea, 0xf0, 0x28, 0x8c, 0xbc)));
         opcode op;
@@ -1415,7 +1406,7 @@ public:
         ws.handshake("localhost", "/");
 
         // Cause close to be received
-        ws.set_option(message_type(opcode::binary));
+        ws.binary(true);
         ws.write(sbuf("CLOSE"));
         opcode op;
         multi_buffer db;
@@ -1481,7 +1472,7 @@ public:
         ws.handshake("localhost", "/");
 
         // Cause close to be received
-        ws.set_option(message_type(opcode::binary));
+        ws.binary(true);
         ws.write(sbuf("CLOSE"));
         opcode op;
         multi_buffer db;
@@ -1656,7 +1647,7 @@ public:
 
                 // send message
                 ws.auto_fragment(false);
-                ws.set_option(message_type(opcode::text));
+                ws.binary(false);
                 c.write(ws, sbuf("Hello"));
                 {
                     // receive echoed message
@@ -1690,7 +1681,7 @@ public:
                         BEAST_EXPECT(payload == "");
                     }});
                 c.ping(ws, "");
-                ws.set_option(message_type(opcode::binary));
+                ws.binary(true);
                 c.write(ws, sbuf("Hello"));
                 {
                     // receive echoed message
@@ -1756,9 +1747,9 @@ public:
                 }
 
                 // cause ping
-                ws.set_option(message_type(opcode::binary));
+                ws.binary(true);
                 c.write(ws, sbuf("PING"));
-                ws.set_option(message_type(opcode::text));
+                ws.binary(false);
                 c.write(ws, sbuf("Hello"));
                 {
                     // receive echoed message
@@ -1770,25 +1761,25 @@ public:
                 }
 
                 // cause close
-                ws.set_option(message_type(opcode::binary));
+                ws.binary(true);
                 c.write(ws, sbuf("CLOSE"));
                 restart(error::closed);
 
                 // send bad utf8
-                ws.set_option(message_type(opcode::binary));
+                ws.binary(true);
                 c.write(ws, buffer_cat(sbuf("TEXT"),
                     cbuf(0x03, 0xea, 0xf0, 0x28, 0x8c, 0xbc)));
                 restart(error::failed);
 
                 // cause bad utf8
-                ws.set_option(message_type(opcode::binary));
+                ws.binary(true);
                 c.write(ws, buffer_cat(sbuf("TEXT"),
                     cbuf(0x03, 0xea, 0xf0, 0x28, 0x8c, 0xbc)));
                 c.write(ws, sbuf("Hello"));
                 restart(error::failed);
 
                 // cause bad close
-                ws.set_option(message_type(opcode::binary));
+                ws.binary(true);
                 c.write(ws, buffer_cat(sbuf("RAW"),
                     cbuf(0x88, 0x02, 0x03, 0xed)));
                 restart(error::failed);

@@ -154,7 +154,7 @@ boost::asio::ip::tcp::socket sock{ios};
     opcode op;
     ws.read(op, buffer);
 
-    ws.set_option(message_type{op});
+    ws.binary(op == opcode::binary);
     ws.write(buffer.data());
     buffer.consume(buffer.size());
 //]
@@ -171,7 +171,7 @@ boost::asio::ip::tcp::socket sock{ios};
         if(fi.fin)
             break;
     }
-    ws.set_option(message_type{fi.op});
+    ws.binary(fi.op == opcode::binary);
     consuming_buffers<multi_buffer::const_buffers_type> cb{buffer.data()};
     for(;;)
     {
