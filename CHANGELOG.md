@@ -8,6 +8,7 @@ API Changes:
 * read_message_max is a member of stream
 * write_buffer_size is a member of stream
 * ping_callback is a member of stream
+* Remove opcode from read, async_read
 
 Actions Required:
 
@@ -28,6 +29,10 @@ Actions Required:
 
 * Change call sites which use ping_callback with set_option to
   call stream::ping_callback instead.
+
+* Remove the `opcode` reference parameter from calls to synchronous
+  and asynchronous read functions, replace the logic with calls to
+  stream::got_binary and stream::got_text instead.
 
 --------------------------------------------------------------------------------
 

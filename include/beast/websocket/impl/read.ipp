@@ -1001,16 +1001,13 @@ class stream<NextLayer>::read_op
     {
         bool cont;
         stream<NextLayer>& ws;
-        opcode& op;
         DynamicBuffer& db;
         frame_info fi;
         int state = 0;
 
-        data(Handler& handler,
-            stream<NextLayer>& ws_, opcode& op_,
+        data(Handler& handler, stream<NextLayer>& ws_,
                 DynamicBuffer& sb_)
             : ws(ws_)
-            , op(op_)
             , db(sb_)
         {
             using boost::asio::asio_handler_is_continuation;
@@ -1091,7 +1088,6 @@ operator()(error_code const& ec, bool again)
 
         // got payload
         case 1:
-            d.op = d.fi.op;
             if(d.fi.fin)
                 goto upcall;
             d.state = 0;
@@ -1107,8 +1103,7 @@ template<class DynamicBuffer, class ReadHandler>
 async_return_type<
     ReadHandler, void(error_code)>
 stream<NextLayer>::
-async_read(opcode& op,
-    DynamicBuffer& buffer, ReadHandler&& handler)
+async_read(DynamicBuffer& buffer, ReadHandler&& handler)
 {
     static_assert(is_async_stream<next_layer_type>::value,
         "AsyncStream requirements requirements not met");
@@ -1117,8 +1112,8 @@ async_read(opcode& op,
     async_completion<ReadHandler,
         void(error_code)> init{handler};
     read_op<DynamicBuffer, handler_type<
-        ReadHandler, void(error_code)>>{init.completion_handler,
-            *this, op, buffer};
+        ReadHandler, void(error_code)>>{
+            init.completion_handler, *this, buffer};
     return init.result.get();
 }
 
@@ -1126,14 +1121,14 @@ template<class NextLayer>
 template<class DynamicBuffer>
 void
 stream<NextLayer>::
-read(opcode& op, DynamicBuffer& buffer)
+read(DynamicBuffer& buffer)
 {
     static_assert(is_sync_stream<next_layer_type>::value,
         "SyncStream requirements not met");
     static_assert(beast::is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
     error_code ec;
-    read(op, buffer, ec);
+    read(buffer, ec);
     if(ec)
         BOOST_THROW_EXCEPTION(system_error{ec});
 }
@@ -1142,7 +1137,7 @@ template<class NextLayer>
 template<class DynamicBuffer>
 void
 stream<NextLayer>::
-read(opcode& op, DynamicBuffer& buffer, error_code& ec)
+read(DynamicBuffer& buffer, error_code& ec)
 {
     static_assert(is_sync_stream<next_layer_type>::value,
         "SyncStream requirements not met");
@@ -1154,7 +1149,6 @@ read(opcode& op, DynamicBuffer& buffer, error_code& ec)
         read_frame(fi, buffer, ec);
         if(ec)
             break;
-        op = fi.op;
         if(fi.fin)
             break;
     }

@@ -130,14 +130,13 @@ public:
 
         // Receive Secure WebSocket message, print and close using Beast
         beast::multi_buffer b;
-        beast::websocket::opcode op;
-        ws.read(op, b);
+        ws.read(b);
         ws.close(beast::websocket::close_code::normal);
         try
         {
             for(;;)
             {
-                ws.read(op, b);
+                ws.read(b);
                 b.consume(b.size());
             }
         }

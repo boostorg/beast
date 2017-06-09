@@ -304,15 +304,14 @@ private:
         }
         for(;;)
         {
-            beast::websocket::opcode op;
             beast::multi_buffer b;
-            ws.read(op, b, ec);
+            ws.read(b, ec);
             if(ec)
             {
                 auto const s = ec.message();
                 break;
             }
-            ws.binary(op == beast::websocket::opcode::binary);
+            ws.binary(ws.got_binary());
             if(match(b, "RAW"))
             {
                 boost::asio::write(

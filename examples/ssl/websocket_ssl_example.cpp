@@ -42,8 +42,6 @@ int main()
 
     // Receive Secure WebSocket message, print and close using Beast
     beast::multi_buffer b;
-    beast::websocket::opcode op;
-    ws.read(op, b);
     ws.close(beast::websocket::close_code::normal);
     std::cout << beast::buffers(b.data()) << "\n";
 }

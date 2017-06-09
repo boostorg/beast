@@ -30,8 +30,7 @@ int main()
 
     // Receive WebSocket message, print and close using beast
     beast::multi_buffer b;
-    beast::websocket::opcode op;
-    ws.read(op, b);
+    ws.read(b);
     ws.close(beast::websocket::close_code::normal);
     std::cout << beast::buffers(b.data()) << "\n";
 }
