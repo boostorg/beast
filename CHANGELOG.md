@@ -9,6 +9,7 @@ API Changes:
 * write_buffer_size is a member of stream
 * ping_callback is a member of stream
 * Remove opcode from read, async_read
+* read_frame returns `bool` fin
 
 Actions Required:
 
@@ -33,6 +34,14 @@ Actions Required:
 * Remove the `opcode` reference parameter from calls to synchronous
   and asynchronous read functions, replace the logic with calls to
   stream::got_binary and stream::got_text instead.
+
+* Remove the frame_info parameter from all read frame call sites
+
+* Check the return value 'fin' for calls to read_frame
+
+* Change ReadHandlers passed to async_read_frame to have
+  the signature void(error_code, bool fin), use the bool
+  to indicate if the frame is the last frame.
 
 --------------------------------------------------------------------------------
 

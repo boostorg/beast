@@ -163,14 +163,10 @@ boost::asio::ip::tcp::socket sock{ios};
     stream<boost::asio::ip::tcp::socket> ws{ios};
 //[ws_snippet_16
     multi_buffer buffer;
-    frame_info fi;
     for(;;)
-    {
-        ws.read_frame(fi, buffer);
-        if(fi.fin)
+        if(ws.read_frame(buffer))
             break;
-    }
-    ws.binary(fi.op == opcode::binary);
+    ws.binary(ws.got_binary());
     consuming_buffers<multi_buffer::const_buffers_type> cb{buffer.data()};
     for(;;)
     {

@@ -35,20 +35,6 @@ using request_type = http::request<http::empty_body>;
 /// The type of object holding HTTP Upgrade responses
 using response_type = http::response<http::string_body>;
 
-/** Information about a WebSocket frame.
-
-    This information is provided to callers during frame
-    read operations.
-*/
-struct frame_info
-{
-    /// Indicates the type of message (binary or text).
-    opcode op;
-
-    /// `true` if this is the last frame in the current message.
-    bool fin;
-};
-
 //--------------------------------------------------------------------
 
 /** Provides message-oriented functionality using WebSocket.
@@ -2730,13 +2716,6 @@ public:
         This call is implemented in terms of one or more calls to the
         stream's `read_some` and `write_some` operations.
 
-        Upon success, `fi` is filled out to reflect the message payload
-        contents. `op` is set to binary or text, and the `fin` flag
-        indicates if all the message data has been read in. To read the
-        entire message, callers should keep calling @ref read_frame
-        until `fi.fin == true`. A message with no payload will have
-        `fi.fin == true`, and zero bytes placed into the stream buffer.
-
         During reads, the implementation handles control frames as
         follows:
 
@@ -2749,16 +2728,16 @@ public:
             is received. In this case, the operation will eventually
             complete with the error set to @ref error::closed.
 
-        @param fi An object to store metadata about the message.
-
         @param buffer A dynamic buffer to hold the message data after
         any masking or decompression has been applied.
+
+        @return `true` if this is the last frame of the message.
 
         @throws system_error Thrown on failure.
     */
     template<class DynamicBuffer>
-    void
-    read_frame(frame_info& fi, DynamicBuffer& buffer);
+    bool
+    read_frame(DynamicBuffer& buffer);
 
     /** Read a message frame from the stream.
 
@@ -2773,13 +2752,6 @@ public:
         This call is implemented in terms of one or more calls to the
         stream's `read_some` and `write_some` operations.
 
-        Upon success, `fi` is filled out to reflect the message payload
-        contents. `op` is set to binary or text, and the `fin` flag
-        indicates if all the message data has been read in. To read the
-        entire message, callers should keep calling @ref read_frame
-        until `fi.fin == true`. A message with no payload will have
-        `fi.fin == true`, and zero bytes placed into the stream buffer.
-
         During reads, the implementation handles control frames as
         follows:
 
@@ -2792,16 +2764,16 @@ public:
             is received. In this case, the operation will eventually
             complete with the error set to @ref error::closed.
 
-        @param fi An object to store metadata about the message.
-
         @param buffer A dynamic buffer to hold the message data after
         any masking or decompression has been applied.
 
         @param ec Set to indicate what error occurred, if any.
+
+        @return `true` if this is the last frame of the message.
     */
     template<class DynamicBuffer>
-    void
-    read_frame(frame_info& fi, DynamicBuffer& buffer, error_code& ec);
+    bool
+    read_frame(DynamicBuffer& buffer, error_code& ec);
 
     /** Start an asynchronous operation to read a message frame from the stream.
 
@@ -2819,14 +2791,6 @@ public:
         and is known as a <em>composed operation</em>. The program must
         ensure that the stream performs no other reads until this operation
         completes.
-
-        Upon a successful completion, `fi` is filled out to reflect the
-        message payload contents. `op` is set to binary or text, and the
-        `fin` flag indicates if all the message data has been read in.
-        To read the entire message, callers should keep calling
-        @ref read_frame until `fi.fin == true`. A message with no payload
-        will have `fi.fin == true`, and zero bytes placed into the stream
-        buffer.
 
         During reads, the implementation handles control frames as
         follows:
@@ -2846,9 +2810,6 @@ public:
         read and asynchronous write operation pending simultaneously
         (a user initiated call to @ref async_close counts as a write).
 
-        @param fi An object to store metadata about the message.
-        This object must remain valid until the handler is called.
-
         @param buffer A dynamic buffer to hold the message data after
         any masking or decompression has been applied. This object must
         remain valid until the handler is called.
@@ -2858,7 +2819,8 @@ public:
         function signature of the handler must be:
         @code
         void handler(
-            error_code const& ec     // Result of operation
+            error_code const& ec,   // Result of operation
+            bool fin                // `true` if this is the last frame
         );
         @endcode
         Regardless of whether the asynchronous operation completes
@@ -2870,11 +2832,9 @@ public:
 #if BEAST_DOXYGEN
     void_or_deduced
 #else
-    async_return_type<
-        ReadHandler, void(error_code)>
+    async_return_type<ReadHandler, void(error_code, bool)>
 #endif
-    async_read_frame(frame_info& fi,
-        DynamicBuffer& buffer, ReadHandler&& handler);
+    async_read_frame(DynamicBuffer& buffer, ReadHandler&& handler);
 
     /** Write a message to the stream.
 
