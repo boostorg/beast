@@ -139,7 +139,6 @@ private:
             int state = 0;
             beast::websocket::stream<socket_type> ws;
             boost::asio::io_service::strand strand;
-            beast::websocket::opcode op;
             beast::multi_buffer db;
             std::size_t id;
 
@@ -218,7 +217,7 @@ private:
                 d.db.consume(d.db.size());
                 // read message
                 d.state = 2;
-                d.ws.async_read(d.op, d.db,
+                d.ws.async_read(d.db,
                     d.strand.wrap(std::move(*this)));
                 return;
 
@@ -230,7 +229,7 @@ private:
                     return fail("async_read", ec);
                 // write message
                 d.state = 1;
-                d.ws.binary(d.op == beast::websocket::opcode::binary);
+                d.ws.binary(d.ws.got_binary());
                 d.ws.async_write(d.db.data(),
                     d.strand.wrap(std::move(*this)));
                 return;

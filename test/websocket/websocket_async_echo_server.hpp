@@ -312,7 +312,7 @@ private:
                 d.db.consume(d.db.size());
                 // read message
                 d.state = 2;
-                d.ws.async_read(d.op, d.db,
+                d.ws.async_read(d.db,
                     d.strand.wrap(std::move(*this)));
                 return;
 
@@ -357,7 +357,7 @@ private:
                 }
                 // write message
                 d.state = 1;
-                d.ws.binary(d.op == beast::websocket::opcode::binary);
+                d.ws.binary(d.ws.got_binary());
                 d.ws.async_write(d.db.data(),
                     d.strand.wrap(std::move(*this)));
                 return;

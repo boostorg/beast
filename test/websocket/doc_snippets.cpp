@@ -151,10 +151,9 @@ boost::asio::ip::tcp::socket sock{ios};
     stream<boost::asio::ip::tcp::socket> ws{ios};
 //[ws_snippet_15
     multi_buffer buffer;
-    opcode op;
-    ws.read(op, buffer);
+    ws.read(buffer);
 
-    ws.binary(op == opcode::binary);
+    ws.text(ws.got_text());
     ws.write(buffer.data());
     buffer.consume(buffer.size());
 //]
@@ -210,9 +209,8 @@ boost::asio::ip::tcp::socket sock{ios};
 //]
 
 //[ws_snippet_20
-    opcode op;
     multi_buffer buffer;
-    ws.async_read(op, buffer,
+    ws.async_read(buffer,
         [](error_code ec)
         {
             // Do something with the buffer
@@ -226,8 +224,7 @@ boost::asio::ip::tcp::socket sock{ios};
 void echo(stream<boost::asio::ip::tcp::socket>& ws,
     multi_buffer& buffer, boost::asio::yield_context yield)
 {
-    opcode op;
-    ws.async_read(op, buffer, yield);
+    ws.async_read(buffer, yield);
     std::future<void> fut =
         ws.async_write(buffer.data(), boost::asio::use_future);
 }

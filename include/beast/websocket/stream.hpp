@@ -75,8 +75,8 @@ struct frame_info
     @endcode
     Alternatively, you can write:
     @code
-    ip::tcp::socket sock(io_service);
-    websocket::stream<ip::tcp::socket&> ws(sock);
+    ip::tcp::socket sock{io_service};
+    websocket::stream<ip::tcp::socket&> ws{sock};
     @endcode
 
     @tparam NextLayer The type representing the next layer, to which
@@ -221,28 +221,6 @@ public:
     lowest_layer() const
     {
         return stream_.lowest_layer();
-    }
-
-    /** Set options on the stream.
-
-        The application must ensure that calls to set options
-        are performed within the same implicit or explicit strand.
-
-        @param args One or more stream options to set.
-    */
-#if BEAST_DOXYGEN
-    template<class... Args>
-    void
-    set_option(Args&&... args)
-#else
-    template<class A1, class A2, class... An>
-    void
-    set_option(A1&& a1, A2&& a2, An&&... an)
-#endif
-    {
-        set_option(std::forward<A1>(a1));
-        set_option(std::forward<A2>(a2),
-            std::forward<An>(an)...);
     }
 
     /// Set the permessage-deflate extension options
@@ -469,6 +447,38 @@ public:
         return wr_buf_size_;
     }
 
+    /** Set the text message option.
+
+        This controls whether or not outgoing message opcodes
+        are set to binary or text. The setting is only applied
+        at the start when a caller begins a new message. Changing
+        the opcode after a message is started will only take effect
+        after the current message being sent is complete.
+
+        The default setting is to send text messages.
+
+        @param v `true` if outgoing messages should indicate
+        text, or `false` if they should indicate binary.
+
+        @par Example
+        Setting the message type to text.
+        @code
+            ws.text(true);
+        @endcode
+    */
+    void
+    text(bool v)
+    {
+        wr_opcode_ = v ? opcode::text : opcode::binary;
+    }
+
+    /// Returns `true` if the text message option is set.
+    bool
+    text() const
+    {
+        return wr_opcode_ == opcode::text;
+    }
+
     /** Returns the close reason received from the peer.
 
         This is only valid after a read completes with error::closed.
@@ -477,6 +487,36 @@ public:
     reason() const
     {
         return cr_;
+    }
+
+    /** Returns `true` if the latest message data indicates binary.
+
+        This function informs the caller of whether the last
+        received message frame represents a message with the
+        binary opcode.
+
+        If there is no last message frame, the return value is
+        undefined.
+    */
+    bool
+    got_binary()
+    {
+        return rd_.op == opcode::binary;
+    }
+
+    /** Returns `true` if the latest message data indicates text.
+
+        This function informs the caller of whether the last
+        received message frame represents a message with the
+        text opcode.
+
+        If there is no last message frame, the return value is
+        undefined.
+    */
+    bool
+    got_text()
+    {
+        return ! got_binary();
     }
 
     /** Read and respond to a WebSocket HTTP Upgrade request.
@@ -1638,8 +1678,7 @@ public:
         @endcode
     */
     void
-    handshake(string_view host,
-        string_view target);
+    handshake(string_view host, string_view target);
 
     /** Send an HTTP WebSocket Upgrade request and receive the response.
 
@@ -1686,8 +1725,7 @@ public:
     */
     void
     handshake(response_type& res,
-        string_view host,
-            string_view target);
+        string_view host, string_view target);
 
     /** Send an HTTP WebSocket Upgrade request and receive the response.
 
@@ -1743,9 +1781,8 @@ public:
     */
     template<class RequestDecorator>
     void
-    handshake_ex(string_view host,
-        string_view target,
-            RequestDecorator const& decorator);
+    handshake_ex(string_view host, string_view target,
+        RequestDecorator const& decorator);
 
     /** Send an HTTP WebSocket Upgrade request and receive the response.
 
@@ -1806,9 +1843,8 @@ public:
     template<class RequestDecorator>
     void
     handshake_ex(response_type& res,
-        string_view host,
-            string_view target,
-                RequestDecorator const& decorator);
+        string_view host, string_view target,
+            RequestDecorator const& decorator);
 
     /** Send an HTTP WebSocket Upgrade request and receive the response.
 
@@ -1894,9 +1930,7 @@ public:
     */
     void
     handshake(response_type& res,
-        string_view host,
-            string_view target,
-                error_code& ec);
+        string_view host, string_view target, error_code& ec);
 
     /** Send an HTTP WebSocket Upgrade request and receive the response.
 
@@ -1952,9 +1986,8 @@ public:
     template<class RequestDecorator>
     void
     handshake_ex(string_view host,
-        string_view target,
-            RequestDecorator const& decorator,
-                error_code& ec);
+        string_view target, RequestDecorator const& decorator,
+            error_code& ec);
 
     /** Send an HTTP WebSocket Upgrade request and receive the response.
 
@@ -2014,10 +2047,8 @@ public:
     template<class RequestDecorator>
     void
     handshake_ex(response_type& res,
-        string_view host,
-            string_view target,
-                RequestDecorator const& decorator,
-                    error_code& ec);
+        string_view host, string_view target,
+            RequestDecorator const& decorator, error_code& ec);
 
     /** Start an asynchronous operation to send an upgrade request and receive the response.
 
@@ -2067,8 +2098,7 @@ public:
         HandshakeHandler, void(error_code)>
 #endif
     async_handshake(string_view host,
-        string_view target,
-            HandshakeHandler&& handler);
+        string_view target, HandshakeHandler&& handler);
 
     /** Start an asynchronous operation to send an upgrade request and receive the response.
 
@@ -2122,9 +2152,8 @@ public:
         HandshakeHandler, void(error_code)>
 #endif
     async_handshake(response_type& res,
-        string_view host,
-            string_view target,
-                HandshakeHandler&& handler);
+        string_view host, string_view target,
+            HandshakeHandler&& handler);
 
     /** Start an asynchronous operation to send an upgrade request and receive the response.
 
@@ -2183,9 +2212,8 @@ public:
         HandshakeHandler, void(error_code)>
 #endif
     async_handshake_ex(string_view host,
-        string_view target,
-            RequestDecorator const& decorator,
-                HandshakeHandler&& handler);
+        string_view target, RequestDecorator const& decorator,
+            HandshakeHandler&& handler);
 
     /** Start an asynchronous operation to send an upgrade request and receive the response.
 
@@ -2248,10 +2276,9 @@ public:
         HandshakeHandler, void(error_code)>
 #endif
     async_handshake_ex(response_type& res,
-        string_view host,
-            string_view target,
-                RequestDecorator const& decorator,
-                    HandshakeHandler&& handler);
+        string_view host, string_view target,
+            RequestDecorator const& decorator,
+                HandshakeHandler&& handler);
 
     /** Send a WebSocket close frame.
 
@@ -2580,7 +2607,7 @@ public:
     */
     template<class DynamicBuffer>
     void
-    read(opcode& op, DynamicBuffer& buffer);
+    read(DynamicBuffer& buffer);
 
     /** Read a message from the stream.
 
@@ -2620,7 +2647,7 @@ public:
     */
     template<class DynamicBuffer>
     void
-    read(opcode& op, DynamicBuffer& buffer, error_code& ec);
+    read(DynamicBuffer& buffer, error_code& ec);
 
     /** Start an asynchronous operation to read a message from the stream.
 
@@ -2688,7 +2715,7 @@ public:
     async_return_type<
         ReadHandler, void(error_code)>
 #endif
-    async_read(opcode& op, DynamicBuffer& buffer, ReadHandler&& handler);
+    async_read(DynamicBuffer& buffer, ReadHandler&& handler);
 
     /** Read a message frame from the stream.
 

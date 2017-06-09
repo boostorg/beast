@@ -265,9 +265,9 @@ public:
             class NextLayer, class DynamicBuffer>
         void
         read(stream<NextLayer>& ws,
-            opcode& op, DynamicBuffer& buffer) const
+            DynamicBuffer& buffer) const
         {
-            ws.read(op, buffer);
+            ws.read(buffer);
         }
 
         template<
@@ -503,10 +503,10 @@ public:
             class NextLayer, class DynamicBuffer>
         void
         read(stream<NextLayer>& ws,
-            opcode& op, DynamicBuffer& buffer) const
+            DynamicBuffer& buffer) const
         {
             error_code ec;
-            ws.async_read(op, buffer, yield_[ec]);
+            ws.async_read(buffer, yield_[ec]);
             if(ec)
                 throw system_error{ec};
         }
@@ -741,9 +741,8 @@ public:
                         cbuf(0x88, 0x82, 0xff, 0xff, 0xff, 0xff, 0xfc, 0x17));
                     try
                     {
-                        opcode op;
                         multi_buffer b;
-                        c.read(ws, op, b);
+                        c.read(ws, b);
                         fail("success", __FILE__, __LINE__);
                     }
                     catch(system_error const& e)
@@ -771,9 +770,8 @@ public:
                     BEAST_EXPECT(called);
                     try
                     {
-                        opcode op;
                         multi_buffer b;
-                        c.read(ws, op, b);
+                        c.read(ws, b);
                         fail("success", __FILE__, __LINE__);
                     }
                     catch(system_error const& e)
@@ -799,9 +797,8 @@ public:
                     c.accept(ws, req);
                     try
                     {
-                        opcode op;
                         multi_buffer b;
-                        c.read(ws, op, b);
+                        c.read(ws, b);
                         fail("success", __FILE__, __LINE__);
                     }
                     catch(system_error const& e)
@@ -828,9 +825,8 @@ public:
                         cbuf(0x88, 0x82, 0xff, 0xff));
                     try
                     {
-                        opcode op;
                         multi_buffer b;
-                        c.read(ws, op, b);
+                        c.read(ws, b);
                         fail("success", __FILE__, __LINE__);
                     }
                     catch(system_error const& e)
@@ -1193,9 +1189,8 @@ public:
                 ws.write(boost::asio::buffer(v), ec);
                 if(! BEAST_EXPECTS(! ec, ec.message()))
                     break;
-                opcode op;
                 multi_buffer db;
-                ws.read(op, db, ec);
+                ws.read(db, ec);
                 if(! BEAST_EXPECTS(! ec, ec.message()))
                     break;
                 BEAST_EXPECT(to_string(db.data()) ==
@@ -1219,9 +1214,8 @@ public:
                 ws.async_write(boost::asio::buffer(v), do_yield[ec]);
                 if(! BEAST_EXPECTS(! ec, ec.message()))
                     break;
-                opcode op;
                 multi_buffer db;
-                ws.async_read(op, db, do_yield[ec]);
+                ws.async_read(db, do_yield[ec]);
                 if(! BEAST_EXPECTS(! ec, ec.message()))
                     break;
                 BEAST_EXPECT(to_string(db.data()) ==
@@ -1284,10 +1278,9 @@ public:
             });
 
         // Read
-        opcode op;
         multi_buffer db;
         ++count;
-        ws.async_read(op, db,
+        ws.async_read(db,
             [&](error_code ec)
             {
                 --count;
@@ -1340,12 +1333,11 @@ public:
         ws.binary(true);
         ws.write(buffer_cat(sbuf("TEXT"),
             cbuf(0x03, 0xea, 0xf0, 0x28, 0x8c, 0xbc)));
-        opcode op;
         multi_buffer db;
         std::size_t count = 0;
         // Read text message with bad utf8.
         // Causes a close to be sent, blocking writes.
-        ws.async_read(op, db,
+        ws.async_read(db,
             [&](error_code ec)
             {
                 // Read should fail with protocol error
@@ -1353,7 +1345,7 @@ public:
                 BEAST_EXPECTS(
                     ec == error::failed, ec.message());
                 // Reads after failure are aborted
-                ws.async_read(op, db,
+                ws.async_read(db,
                     [&](error_code ec)
                     {
                         ++count;
@@ -1408,12 +1400,11 @@ public:
         // Cause close to be received
         ws.binary(true);
         ws.write(sbuf("CLOSE"));
-        opcode op;
         multi_buffer db;
         std::size_t count = 0;
         // Read a close frame.
         // Sends a close frame, blocking writes.
-        ws.async_read(op, db,
+        ws.async_read(db,
             [&](error_code ec)
             {
                 // Read should complete with error::closed
@@ -1474,10 +1465,9 @@ public:
         // Cause close to be received
         ws.binary(true);
         ws.write(sbuf("CLOSE"));
-        opcode op;
         multi_buffer db;
         std::size_t count = 0;
-        ws.async_read(op, db,
+        ws.async_read(db,
             [&](error_code ec)
             {
                 ++count;
@@ -1525,9 +1515,8 @@ public:
                         BEAST_EXPECT(! ec);
                     });
             });
-        opcode op;
         multi_buffer db;
-        ws.async_read(op, db,
+        ws.async_read(db,
             [&](error_code ec)
             {
                 BEAST_EXPECTS(ec == error::closed, ec.message());
@@ -1558,8 +1547,7 @@ public:
         ws.write_frame(false, sbuf("u"));
         ws.write_frame(true, sbuf("v"));
         multi_buffer b;
-        opcode op;
-        ws.read(op, b, ec);
+        ws.read(b, ec);
         if(! BEAST_EXPECTS(! ec, ec.message()))
             return;
     }
@@ -1617,9 +1605,8 @@ public:
                 {
                     try
                     {
-                        opcode op;
                         multi_buffer db;
-                        c.read(ws, op, db);
+                        c.read(ws, db);
                         fail();
                         throw abort_test{};
                     }
@@ -1651,10 +1638,9 @@ public:
                 c.write(ws, sbuf("Hello"));
                 {
                     // receive echoed message
-                    opcode op;
                     multi_buffer db;
-                    c.read(ws, op, db);
-                    BEAST_EXPECT(op == opcode::text);
+                    c.read(ws, db);
+                    BEAST_EXPECT(ws.got_text());
                     BEAST_EXPECT(to_string(db.data()) == "Hello");
                 }
 
@@ -1685,11 +1671,10 @@ public:
                 c.write(ws, sbuf("Hello"));
                 {
                     // receive echoed message
-                    opcode op;
                     multi_buffer db;
-                    c.read(ws, op, db);
+                    c.read(ws, db);
                     BEAST_EXPECT(pong == 1);
-                    BEAST_EXPECT(op == opcode::binary);
+                    BEAST_EXPECT(ws.got_binary());
                     BEAST_EXPECT(to_string(db.data()) == "Hello");
                 }
                 ws.ping_callback({});
@@ -1707,9 +1692,8 @@ public:
                 c.write_frame(ws, true, sbuf("World!"));
                 {
                     // receive echoed message
-                    opcode op;
                     multi_buffer db;
-                    c.read(ws, op, db);
+                    c.read(ws, db);
                     BEAST_EXPECT(pong == 1);
                     BEAST_EXPECT(to_string(db.data()) == "Hello, World!");
                 }
@@ -1724,9 +1708,8 @@ public:
                 c.write(ws, sbuf("Now is the time for all good men"));
                 {
                     // receive echoed message
-                    opcode op;
                     multi_buffer b;
-                    c.read(ws, op, b);
+                    c.read(ws, b);
                     BEAST_EXPECT(to_string(b.data()) == "Now is the time for all good men");
                 }
                 ws.auto_fragment(false);
@@ -1739,9 +1722,8 @@ public:
                     c.write(ws, buffer(s.data(), s.size()));
                     {
                         // receive echoed message
-                        opcode op;
                         multi_buffer db;
-                        c.read(ws, op, db);
+                        c.read(ws, db);
                         BEAST_EXPECT(to_string(db.data()) == s);
                     }
                 }
@@ -1753,10 +1735,9 @@ public:
                 c.write(ws, sbuf("Hello"));
                 {
                     // receive echoed message
-                    opcode op;
                     multi_buffer db;
-                    c.read(ws, op, db);
-                    BEAST_EXPECT(op == opcode::text);
+                    c.read(ws, db);
+                    BEAST_EXPECT(ws.got_text());
                     BEAST_EXPECT(to_string(db.data()) == "Hello");
                 }
 
