@@ -2583,9 +2583,6 @@ public:
             is received. In this case, the operation will eventually
             complete with the error set to @ref error::closed.
 
-        @param op A value to receive the message type.
-        This object must remain valid until the handler is called.
-
         @param buffer A dynamic buffer to hold the message data after
         any masking or decompression has been applied.
 
@@ -2622,9 +2619,6 @@ public:
         @li The WebSocket close procedure is started if a close frame
             is received. In this case, the operation will eventually
             complete with the error set to @ref error::closed.
-
-        @param op A value to receive the message type.
-        This object must remain valid until the handler is called.
 
         @param buffer A dynamic buffer to hold the message data after
         any masking or decompression has been applied.
@@ -2673,9 +2667,6 @@ public:
         transparently; callers can still have one active asynchronous
         read and asynchronous write operation pending simultaneously
         (a user initiated call to @ref async_close counts as a write).
-
-        @param op A value to receive the message type.
-        This object must remain valid until the handler is called.
 
         @param buffer A dynamic buffer to hold the message data after
         any masking or decompression has been applied. This object must
