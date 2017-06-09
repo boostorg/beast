@@ -263,13 +263,6 @@ public:
         ping_cb_ = std::move(o.value);
     }
 
-    /// Set the size of the write buffer
-    void
-    set_option(write_buffer_size const& o)
-    {
-        wr_buf_size_ = o.value;
-    }
-
     /** Set the automatic fragmentation option.
 
         Determines if outgoing message payloads are broken up into
@@ -280,6 +273,8 @@ public:
         than the write buffer size.
 
         The default setting is to fragment messages.
+
+        @param v A `bool` indicating if auto fragmentation should be on.
 
         @par Example
         Setting the automatic fragmentation option:
@@ -310,15 +305,15 @@ public:
 
         The default setting is to send text messages.
 
+        @param v `true` if outgoing messages should indicate
+        binary, or `false` if they should indicate text.
+
         @par Example
         Setting the message type to binary.
         @code
             ws.binary(true);
         @endcode
-
-        @param v `true` if outgoing messages should indicate
-        binary, or `false` if they should indicate text.
-    */
+        */
     void
     binary(bool v)
     {
@@ -344,22 +339,22 @@ public:
 
         The default setting is 4096. The minimum value is 8.
 
+        @param n The size of the read buffer.
+
+        @throw std::invalid_argument If the buffer size is less than 8.
+
         @par Example
         Setting the read buffer size.
         @code
             ws.read_buffer_size(16 * 1024);
         @endcode
-
-        @param n The size of the read buffer.
-
-        @throw std::invalid_argument If the buffer size is less than 8.
     */
     void
     read_buffer_size(std::size_t n)
     {
         if(n < 8)
             BOOST_THROW_EXCEPTION(std::invalid_argument{
-                "read buffer size is too small"});
+                "read buffer size underflow"});
         rd_buf_size_ = n;
     }
 
@@ -398,6 +393,47 @@ public:
     read_message_max() const
     {
         return rd_msg_max_;
+    }
+
+    /** Set the write buffer size option.
+
+        Sets the size of the write buffer used by the implementation to
+        send frames. The write buffer is needed when masking payload data
+        in the client role, compressing frames, or auto-fragmenting message
+        data.
+
+        Lowering the size of the buffer can decrease the memory requirements
+        for each connection, while increasing the size of the buffer can reduce
+        the number of calls made to the next layer to write data.
+
+        The default setting is 4096. The minimum value is 8.
+
+        The write buffer size can only be changed when the stream is not
+        open. Undefined behavior results if the option is modified after a
+        successful WebSocket handshake.
+
+        @par Example
+        Setting the write buffer size.
+        @code
+            ws.write_buffer_size(8192);
+        @endcode
+
+        @param n The size of the write buffer in bytes.
+    */
+    void
+    write_buffer_size(std::size_t n)
+    {
+        if(n < 8)
+            BOOST_THROW_EXCEPTION(std::invalid_argument{
+                "write buffer size underflow"});
+        wr_buf_size_ = n;
+    };
+
+    /// Returns the size of the write buffer.
+    std::size_t
+    write_buffer_size() const
+    {
+        return wr_buf_size_;
     }
 
     /** Returns the close reason received from the peer.

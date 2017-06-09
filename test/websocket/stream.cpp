@@ -554,13 +554,13 @@ public:
     {
         stream<socket_type> ws(ios_);
         ws.auto_fragment(true);
-        ws.set_option(write_buffer_size{2048});
+        ws.write_buffer_size(2048);
         ws.binary(false);
         ws.read_buffer_size(8192);
         ws.read_message_max(1 * 1024 * 1024);
         try
         {
-            ws.set_option(write_buffer_size{7});
+            ws.write_buffer_size(7);
             fail();
         }
         catch(std::exception const&)
@@ -1720,7 +1720,7 @@ public:
 
                 // send auto fragmented message
                 ws.auto_fragment(true);
-                ws.set_option(write_buffer_size{8});
+                ws.write_buffer_size(8);
                 c.write(ws, sbuf("Now is the time for all good men"));
                 {
                     // receive echoed message
@@ -1730,12 +1730,12 @@ public:
                     BEAST_EXPECT(to_string(b.data()) == "Now is the time for all good men");
                 }
                 ws.auto_fragment(false);
-                ws.set_option(write_buffer_size{4096});
+                ws.write_buffer_size(4096);
 
                 // send message with write buffer limit
                 {
                     std::string s(2000, '*');
-                    ws.set_option(write_buffer_size(1200));
+                    ws.write_buffer_size(1200);
                     c.write(ws, buffer(s.data(), s.size()));
                     {
                         // receive echoed message
