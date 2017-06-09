@@ -179,7 +179,7 @@ operator()(error_code ec,
             d.fh.rsv2 = false;
             d.fh.rsv3 = false;
             d.fh.op = d.ws.wr_.cont ?
-                opcode::cont : d.ws.wr_opcode_;
+                detail::opcode::cont : d.ws.wr_opcode_;
             d.fh.mask =
                 d.ws.role_ == detail::role_type::client;
 
@@ -281,7 +281,7 @@ operator()(error_code ec,
             d.cb.consume(
                 bytes_transferred - d.fh_buf.size());
             d.fh_buf.consume(d.fh_buf.size());
-            d.fh.op = opcode::cont;
+            d.fh.op = detail::opcode::cont;
             if(d.ws.wr_block_ == &d)
                 d.ws.wr_block_ = nullptr;
             // Allow outgoing control frames to
@@ -386,7 +386,7 @@ operator()(error_code ec,
             d.cb.consume(
                 bytes_transferred - d.fh_buf.size());
             d.fh_buf.consume(d.fh_buf.size());
-            d.fh.op = opcode::cont;
+            d.fh.op = detail::opcode::cont;
             BOOST_ASSERT(d.ws.wr_block_ == &d);
             d.ws.wr_block_ = nullptr;
             // Allow outgoing control frames to
@@ -458,7 +458,7 @@ operator()(error_code ec,
         }
 
         case do_deflate + 2:
-            d.fh.op = opcode::cont;
+            d.fh.op = detail::opcode::cont;
             d.fh.rsv1 = false;
             BOOST_ASSERT(d.ws.wr_block_ == &d);
             d.ws.wr_block_ = nullptr;
@@ -612,7 +612,8 @@ write_frame(bool fin,
     }
     fh.rsv2 = false;
     fh.rsv3 = false;
-    fh.op = wr_.cont ? opcode::cont : wr_opcode_;
+    fh.op = wr_.cont ?
+        detail::opcode::cont : wr_opcode_;
     fh.mask = role_ == detail::role_type::client;
     auto remain = buffer_size(buffers);
     if(wr_.compress)
@@ -658,7 +659,7 @@ write_frame(bool fin,
                 return;
             if(! more)
                 break;
-            fh.op = opcode::cont;
+            fh.op = detail::opcode::cont;
             fh.rsv1 = false;
         }
         if(fh.fin && (
@@ -708,7 +709,7 @@ write_frame(bool fin,
                     return;
                 if(remain == 0)
                     break;
-                fh.op = opcode::cont;
+                fh.op = detail::opcode::cont;
                 cb.consume(n);
             }
         }
@@ -782,7 +783,7 @@ write_frame(bool fin,
                 return;
             if(remain == 0)
                 break;
-            fh.op = opcode::cont;
+            fh.op = detail::opcode::cont;
             cb.consume(n);
         }
         return;

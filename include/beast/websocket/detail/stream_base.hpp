@@ -57,7 +57,8 @@ protected:
     bool wr_autofrag_ = true;               // auto fragment
     std::size_t wr_buf_size_ = 4096;        // write buffer size
     std::size_t rd_buf_size_ = 4096;        // read buffer size
-    opcode wr_opcode_ = opcode::text;       // outgoing message type
+    detail::opcode wr_opcode_ =
+        detail::opcode::text;               // outgoing message type
     ping_callback_type ping_cb_;            // ping callback
     role_type role_;                        // server or client
     bool failed_;                           // the connection failed
@@ -76,7 +77,7 @@ protected:
     struct rd_t
     {
         // opcode of current message being read
-        opcode op;
+        detail::opcode op;
 
         // `true` if the next frame is a continuation.
         bool cont;
@@ -194,7 +195,8 @@ protected:
 
     template<class DynamicBuffer>
     void
-    write_ping(DynamicBuffer& db, opcode op, ping_data const& data);
+    write_ping(DynamicBuffer& db,
+        detail::opcode op, ping_data const& data);
 };
 
 template<class>
@@ -285,15 +287,16 @@ read_fh1(detail::frame_header& fh,
     fh.mask = (b[1] & 0x80) != 0;
     if(fh.mask)
         need += 4;
-    fh.op   = static_cast<opcode>(b[0] & 0x0f);
+    fh.op   = static_cast<
+        detail::opcode>(b[0] & 0x0f);
     fh.fin  = (b[0] & 0x80) != 0;
     fh.rsv1 = (b[0] & 0x40) != 0;
     fh.rsv2 = (b[0] & 0x20) != 0;
     fh.rsv3 = (b[0] & 0x10) != 0;
     switch(fh.op)
     {
-    case opcode::binary:
-    case opcode::text:
+    case detail::opcode::binary:
+    case detail::opcode::text:
         if(rd_.cont)
         {
             // new data frame when continuation expected
@@ -309,7 +312,7 @@ read_fh1(detail::frame_header& fh,
             pmd_->rd_set = fh.rsv1;
         break;
 
-    case opcode::cont:
+    case detail::opcode::cont:
         if(! rd_.cont)
         {
             // continuation without an active message
@@ -418,7 +421,7 @@ read_fh2(detail::frame_header& fh,
     }
     if(! is_control(fh.op))
     {
-        if(fh.op != opcode::cont)
+        if(fh.op != detail::opcode::cont)
         {
             rd_.size = 0;
             rd_.op = fh.op;
@@ -485,7 +488,7 @@ write_close(DynamicBuffer& db, close_reason const& cr)
 {
     using namespace boost::endian;
     frame_header fh;
-    fh.op = opcode::close;
+    fh.op = detail::opcode::close;
     fh.fin = true;
     fh.rsv1 = false;
     fh.rsv2 = false;
@@ -528,8 +531,8 @@ write_close(DynamicBuffer& db, close_reason const& cr)
 template<class DynamicBuffer>
 void
 stream_base::
-write_ping(
-    DynamicBuffer& db, opcode op, ping_data const& data)
+write_ping(DynamicBuffer& db,
+    detail::opcode op, ping_data const& data)
 {
     frame_header fh;
     fh.op = op;

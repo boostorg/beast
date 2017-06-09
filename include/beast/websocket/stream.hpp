@@ -274,14 +274,16 @@ public:
     void
     binary(bool v)
     {
-        wr_opcode_ = v ? opcode::binary : opcode::text;
+        wr_opcode_ = v ?
+            detail::opcode::binary :
+            detail::opcode::text;
     }
 
     /// Returns `true` if the binary message option is set.
     bool
     binary() const
     {
-        return wr_opcode_ == opcode::binary;
+        return wr_opcode_ == detail::opcode::binary;
     }
 
     /** Set the ping callback.
@@ -455,14 +457,16 @@ public:
     void
     text(bool v)
     {
-        wr_opcode_ = v ? opcode::text : opcode::binary;
+        wr_opcode_ = v ?
+            detail::opcode::text :
+            detail::opcode::binary;
     }
 
     /// Returns `true` if the text message option is set.
     bool
     text() const
     {
-        return wr_opcode_ == opcode::text;
+        return wr_opcode_ == detail::opcode::text;
     }
 
     /** Returns the close reason received from the peer.
@@ -487,7 +491,7 @@ public:
     bool
     got_binary()
     {
-        return rd_.op == opcode::binary;
+        return rd_.op == detail::opcode::binary;
     }
 
     /** Returns `true` if the latest message data indicates text.

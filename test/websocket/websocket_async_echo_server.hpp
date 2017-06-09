@@ -214,7 +214,6 @@ private:
             int state = 0;
             beast::websocket::stream<socket_type> ws;
             boost::asio::io_service::strand strand;
-            beast::websocket::opcode op;
             beast::multi_buffer db;
             std::size_t id;
 

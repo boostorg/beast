@@ -38,7 +38,7 @@ class stream<NextLayer>::ping_op
         int state = 0;
 
         data(Handler& handler, stream<NextLayer>& ws_,
-                opcode op_, ping_data const& payload)
+                detail::opcode op_, ping_data const& payload)
             : ws(ws_)
         {
             using boost::asio::asio_handler_is_continuation;
@@ -212,7 +212,8 @@ async_ping(ping_data const& payload, WriteHandler&& handler)
         void(error_code)> init{handler};
     ping_op<handler_type<
         WriteHandler, void(error_code)>>{
-            init.completion_handler, *this, opcode::ping, payload};
+            init.completion_handler, *this,
+                detail::opcode::ping, payload};
     return init.result.get();
 }
 
@@ -229,7 +230,8 @@ async_pong(ping_data const& payload, WriteHandler&& handler)
         void(error_code)> init{handler};
     ping_op<handler_type<
         WriteHandler, void(error_code)>>{
-            init.completion_handler, *this, opcode::pong, payload};
+            init.completion_handler, *this,
+                detail::opcode::pong, payload};
     return init.result.get();
 }
 
@@ -251,7 +253,7 @@ ping(ping_data const& payload, error_code& ec)
 {
     detail::frame_streambuf db;
     write_ping<static_buffer>(
-        db, opcode::ping, payload);
+        db, detail::opcode::ping, payload);
     boost::asio::write(stream_, db.data(), ec);
 }
 
@@ -273,7 +275,7 @@ pong(ping_data const& payload, error_code& ec)
 {
     detail::frame_streambuf db;
     write_ping<static_buffer>(
-        db, opcode::pong, payload);
+        db, detail::opcode::pong, payload);
     boost::asio::write(stream_, db.data(), ec);
 }
 

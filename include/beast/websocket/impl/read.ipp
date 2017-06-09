@@ -237,7 +237,7 @@ operator()(error_code ec,
                     bytes_transferred, *d.dmb);
                 if(d.fh.mask)
                     detail::mask_inplace(pb, d.key);
-                if(d.ws.rd_.op == opcode::text)
+                if(d.ws.rd_.op == detail::opcode::text)
                 {
                     if(! d.ws.rd_.utf8.write(pb) ||
                         (d.remain == 0 && d.fh.fin &&
@@ -309,7 +309,7 @@ operator()(error_code ec,
                     if(d.ws.failed_)
                         break;
                 }
-                if(d.ws.rd_.op == opcode::text)
+                if(d.ws.rd_.op == detail::opcode::text)
                 {
                     consuming_buffers<typename
                         DynamicBuffer::const_buffers_type
@@ -402,8 +402,8 @@ operator()(error_code ec,
                     d.state = do_control;
                     break;
                 }
-                if(d.fh.op == opcode::text ||
-                        d.fh.op == opcode::binary)
+                if(d.fh.op == detail::opcode::text ||
+                        d.fh.op == detail::opcode::binary)
                     d.ws.rd_begin();
                 if(d.fh.len == 0 && ! d.fh.fin)
                 {
@@ -432,7 +432,7 @@ operator()(error_code ec,
             //------------------------------------------------------------------
 
             case do_control:
-                if(d.fh.op == opcode::ping)
+                if(d.fh.op == detail::opcode::ping)
                 {
                     ping_data payload;
                     detail::read(payload, d.fb.data());
@@ -446,7 +446,7 @@ operator()(error_code ec,
                         break;
                     }
                     d.ws.template write_ping<static_buffer>(
-                        d.fb, opcode::pong, payload);
+                        d.fb, detail::opcode::pong, payload);
                     if(d.ws.wr_block_)
                     {
                         // suspend
@@ -458,7 +458,7 @@ operator()(error_code ec,
                     d.state = do_pong;
                     break;
                 }
-                else if(d.fh.op == opcode::pong)
+                else if(d.fh.op == detail::opcode::pong)
                 {
                     code = close_code::none;
                     ping_data payload;
@@ -469,7 +469,7 @@ operator()(error_code ec,
                     d.state = do_read_fh;
                     break;
                 }
-                BOOST_ASSERT(d.fh.op == opcode::close);
+                BOOST_ASSERT(d.fh.op == detail::opcode::close);
                 {
                     detail::read(d.ws.cr_, d.fb.data(), code);
                     if(code != close_code::none)
@@ -786,22 +786,22 @@ read_frame(DynamicBuffer& dynabuf, error_code& ec)
                 fb.commit(static_cast<std::size_t>(fh.len));
             }
             // Process control frame
-            if(fh.op == opcode::ping)
+            if(fh.op == detail::opcode::ping)
             {
                 ping_data payload;
                 detail::read(payload, fb.data());
                 fb.consume(fb.size());
                 if(ping_cb_)
                     ping_cb_(false, payload);
-                write_ping<static_buffer>(
-                    fb, opcode::pong, payload);
+                write_ping<static_buffer>(fb,
+                    detail::opcode::pong, payload);
                 boost::asio::write(stream_, fb.data(), ec);
                 failed_ = ec != 0;
                 if(failed_)
                     return false;
                 continue;
             }
-            else if(fh.op == opcode::pong)
+            else if(fh.op == detail::opcode::pong)
             {
                 ping_data payload;
                 detail::read(payload, fb.data());
@@ -809,7 +809,7 @@ read_frame(DynamicBuffer& dynabuf, error_code& ec)
                     ping_cb_(true, payload);
                 continue;
             }
-            BOOST_ASSERT(fh.op == opcode::close);
+            BOOST_ASSERT(fh.op == detail::opcode::close);
             {
                 detail::read(cr_, fb.data(), code);
                 if(code != close_code::none)
@@ -831,7 +831,7 @@ read_frame(DynamicBuffer& dynabuf, error_code& ec)
                 goto do_close;
             }
         }
-        if(fh.op != opcode::cont)
+        if(fh.op != detail::opcode::cont)
             rd_begin();
         if(fh.len == 0 && ! fh.fin)
         {
@@ -868,7 +868,7 @@ read_frame(DynamicBuffer& dynabuf, error_code& ec)
                     bytes_transferred, b);
                 if(fh.mask)
                     detail::mask_inplace(pb, key);
-                if(rd_.op == opcode::text)
+                if(rd_.op == detail::opcode::text)
                 {
                     if(! rd_.utf8.write(pb) ||
                         (remain == 0 && fh.fin &&
@@ -915,7 +915,7 @@ read_frame(DynamicBuffer& dynabuf, error_code& ec)
                     if(failed_)
                         return false;
                 }
-                if(rd_.op == opcode::text)
+                if(rd_.op == detail::opcode::text)
                 {
                     consuming_buffers<typename
                         DynamicBuffer::const_buffers_type

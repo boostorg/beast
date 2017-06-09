@@ -23,6 +23,27 @@ namespace beast {
 namespace websocket {
 namespace detail {
 
+/** WebSocket frame header opcodes. */
+enum class opcode : std::uint8_t
+{
+    cont    = 0,
+    text    = 1,
+    binary  = 2,
+    rsv3    = 3,
+    rsv4    = 4,
+    rsv5    = 5,
+    rsv6    = 6,
+    rsv7    = 7,
+    close   = 8,
+    ping    = 9,
+    pong    = 10,
+    crsvb   = 11,
+    crsvc   = 12,
+    crsvd   = 13,
+    crsve   = 14,
+    crsvf   = 15
+};
+
 // Contents of a WebSocket frame header
 struct frame_header
 {
