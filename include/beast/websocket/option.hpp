@@ -124,41 +124,6 @@ struct ping_callback
 };
 #endif
 
-/** Maximum incoming message size option.
-
-    Sets the largest permissible incoming message size. Message
-    frame fields indicating a size that would bring the total
-    message size over this limit will cause a protocol failure.
-
-    The default setting is 16 megabytes. A value of zero indicates
-    a limit of the maximum value of a `std::uint64_t`.
-
-    @note Objects of this type are used with
-          @ref beast::websocket::stream::set_option.
-
-    @par Example
-    Setting the maximum read message size.
-    @code
-    ...
-    websocket::stream<ip::tcp::socket> ws(ios);
-    ws.set_option(read_message_max{65536});
-    @endcode
-*/
-#if BEAST_DOXYGEN
-using read_message_max = implementation_defined;
-#else
-struct read_message_max
-{
-    std::size_t value;
-
-    explicit
-    read_message_max(std::size_t n)
-        : value(n)
-    {
-    }
-};
-#endif
-
 /** Write buffer size option.
 
     Sets the size of the write buffer used by the implementation to

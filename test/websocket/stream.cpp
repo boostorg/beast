@@ -557,7 +557,7 @@ public:
         ws.set_option(write_buffer_size{2048});
         ws.binary(false);
         ws.read_buffer_size(8192);
-        ws.set_option(read_message_max{1 * 1024 * 1024});
+        ws.read_message_max(1 * 1024 * 1024);
         try
         {
             ws.set_option(write_buffer_size{7});
@@ -1815,10 +1815,10 @@ public:
                     restart(error::closed);
 
                     // message size exceeds max
-                    ws.set_option(read_message_max{1});
+                    ws.read_message_max(1);
                     c.write(ws, cbuf(0x00, 0x00));
                     restart(error::failed);
-                    ws.set_option(read_message_max{16*1024*1024});
+                    ws.read_message_max(16*1024*1024);
                 }
             }
             catch(system_error const&)
