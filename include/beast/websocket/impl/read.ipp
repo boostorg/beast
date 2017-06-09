@@ -49,7 +49,6 @@ class stream<NextLayer>::read_frame_op
     {
         bool cont;
         stream<NextLayer>& ws;
-        frame_info& fi;
         DynamicBuffer& db;
         fb_type fb;
         std::uint64_t remain;
@@ -60,9 +59,8 @@ class stream<NextLayer>::read_frame_op
         int state = 0;
 
         data(Handler& handler, stream<NextLayer>& ws_,
-                frame_info& fi_, DynamicBuffer& sb_)
+                DynamicBuffer& sb_)
             : ws(ws_)
-            , fi(fi_)
             , db(sb_)
         {
             using boost::asio::asio_handler_is_continuation;
@@ -345,9 +343,6 @@ operator()(error_code ec,
             //------------------------------------------------------------------
 
             case do_frame_done:
-                // call handler
-                d.fi.op = d.ws.rd_.op;
-                d.fi.fin = d.fh.fin;
                 goto upcall;
 
             //------------------------------------------------------------------
@@ -684,50 +679,51 @@ upcall:
         d.ws.wr_block_ = nullptr;
     d.ws.ping_op_.maybe_invoke() ||
         d.ws.wr_op_.maybe_invoke();
-    d_.invoke(ec);
+    bool const fin = (! ec) ? d.fh.fin : false;
+    d_.invoke(ec, fin);
 }
 
 template<class NextLayer>
 template<class DynamicBuffer, class ReadHandler>
 async_return_type<
-    ReadHandler, void(error_code)>
+    ReadHandler, void(error_code, bool)>
 stream<NextLayer>::
-async_read_frame(frame_info& fi,
-    DynamicBuffer& buffer, ReadHandler&& handler)
+async_read_frame(DynamicBuffer& buffer, ReadHandler&& handler)
 {
     static_assert(is_async_stream<next_layer_type>::value,
         "AsyncStream requirements requirements not met");
     static_assert(beast::is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
     async_completion<ReadHandler,
-        void(error_code)> init{handler};
+        void(error_code, bool)> init{handler};
     read_frame_op<DynamicBuffer, handler_type<
-        ReadHandler, void(error_code)>>{init.completion_handler,
-            *this, fi, buffer};
+        ReadHandler, void(error_code, bool)>>{
+            init.completion_handler,*this, buffer};
     return init.result.get();
 }
 
 template<class NextLayer>
 template<class DynamicBuffer>
-void
+bool
 stream<NextLayer>::
-read_frame(frame_info& fi, DynamicBuffer& buffer)
+read_frame(DynamicBuffer& buffer)
 {
     static_assert(is_sync_stream<next_layer_type>::value,
         "SyncStream requirements not met");
     static_assert(beast::is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
     error_code ec;
-    read_frame(fi, buffer, ec);
+    auto const fin = read_frame(buffer, ec);
     if(ec)
         BOOST_THROW_EXCEPTION(system_error{ec});
+    return fin;
 }
 
 template<class NextLayer>
 template<class DynamicBuffer>
-void
+bool
 stream<NextLayer>::
-read_frame(frame_info& fi, DynamicBuffer& dynabuf, error_code& ec)
+read_frame(DynamicBuffer& dynabuf, error_code& ec)
 {
     static_assert(is_sync_stream<next_layer_type>::value,
         "SyncStream requirements not met");
@@ -748,7 +744,7 @@ read_frame(frame_info& fi, DynamicBuffer& dynabuf, error_code& ec)
                 stream_, fb.prepare(2), ec));
             failed_ = ec != 0;
             if(failed_)
-                return;
+                return false;
             {
                 auto const n = read_fh1(fh, fb, code);
                 if(code != close_code::none)
@@ -759,14 +755,14 @@ read_frame(frame_info& fi, DynamicBuffer& dynabuf, error_code& ec)
                         stream_, fb.prepare(n), ec));
                     failed_ = ec != 0;
                     if(failed_)
-                        return;
+                        return false;
                 }
             }
             read_fh2(fh, fb, code);
 
             failed_ = ec != 0;
             if(failed_)
-                return;
+                return false;
             if(code != close_code::none)
                 goto do_close;
         }
@@ -780,7 +776,7 @@ read_frame(frame_info& fi, DynamicBuffer& dynabuf, error_code& ec)
                 fb.commit(boost::asio::read(stream_, mb, ec));
                 failed_ = ec != 0;
                 if(failed_)
-                    return;
+                    return false;
                 if(fh.mask)
                 {
                     detail::prepared_key key;
@@ -802,7 +798,7 @@ read_frame(frame_info& fi, DynamicBuffer& dynabuf, error_code& ec)
                 boost::asio::write(stream_, fb.data(), ec);
                 failed_ = ec != 0;
                 if(failed_)
-                    return;
+                    return false;
                 continue;
             }
             else if(fh.op == opcode::pong)
@@ -830,7 +826,7 @@ read_frame(frame_info& fi, DynamicBuffer& dynabuf, error_code& ec)
                     boost::asio::write(stream_, fb.data(), ec);
                     failed_ = ec != 0;
                     if(failed_)
-                        return;
+                        return false;
                 }
                 goto do_close;
             }
@@ -865,7 +861,7 @@ read_frame(frame_info& fi, DynamicBuffer& dynabuf, error_code& ec)
                     stream_.read_some(b, ec);
                 failed_ = ec != 0;
                 if(failed_)
-                    return;
+                    return false;
                 BOOST_ASSERT(bytes_transferred > 0);
                 remain -= bytes_transferred;
                 auto const pb = buffer_prefix(
@@ -897,7 +893,7 @@ read_frame(frame_info& fi, DynamicBuffer& dynabuf, error_code& ec)
                         clamp(remain, rd_.buf_size)), ec);
                 failed_ = ec != 0;
                 if(failed_)
-                    return;
+                    return false;
                 remain -= bytes_transferred;
                 auto const in = buffer(
                     rd_.buf.get(), bytes_transferred);
@@ -907,7 +903,7 @@ read_frame(frame_info& fi, DynamicBuffer& dynabuf, error_code& ec)
                 detail::inflate(pmd_->zi, dynabuf, in, ec);
                 failed_ = ec != 0;
                 if(failed_)
-                    return;
+                    return false;
                 if(remain == 0 && fh.fin)
                 {
                     static std::uint8_t constexpr
@@ -917,7 +913,7 @@ read_frame(frame_info& fi, DynamicBuffer& dynabuf, error_code& ec)
                         buffer(&empty_block[0], 4), ec);
                     failed_ = ec != 0;
                     if(failed_)
-                        return;
+                        return false;
                 }
                 if(rd_.op == opcode::text)
                 {
@@ -943,9 +939,7 @@ read_frame(frame_info& fi, DynamicBuffer& dynabuf, error_code& ec)
                     pmd_config_.client_no_context_takeover)))
                 pmd_->zi.reset();
         }
-        fi.op = rd_.op;
-        fi.fin = fh.fin;
-        return;
+        return fh.fin;
     }
 do_close:
     if(code != close_code::none)
@@ -959,7 +953,7 @@ do_close:
             boost::asio::write(stream_, fb.data(), ec);
             failed_ = ec != 0;
             if(failed_)
-                return;
+                return false;
         }
         websocket_helpers::call_teardown(next_layer(), ec);
         if(ec == boost::asio::error::eof)
@@ -970,10 +964,10 @@ do_close:
         }
         failed_ = ec != 0;
         if(failed_)
-            return;
+            return false;
         ec = error::failed;
         failed_ = true;
-        return;
+        return false;
     }
     if(! ec)
     {
@@ -987,6 +981,9 @@ do_close:
     if(! ec)
         ec = error::closed;
     failed_ = ec != 0;
+    if(failed_)
+        return false;
+    return true;
 }
 
 //------------------------------------------------------------------------------
@@ -997,41 +994,25 @@ template<class NextLayer>
 template<class DynamicBuffer, class Handler>
 class stream<NextLayer>::read_op
 {
-    struct data
-    {
-        bool cont;
-        stream<NextLayer>& ws;
-        DynamicBuffer& db;
-        frame_info fi;
-        int state = 0;
-
-        data(Handler& handler, stream<NextLayer>& ws_,
-                DynamicBuffer& sb_)
-            : ws(ws_)
-            , db(sb_)
-        {
-            using boost::asio::asio_handler_is_continuation;
-            cont = asio_handler_is_continuation(std::addressof(handler));
-        }
-    };
-
-    handler_ptr<data, Handler> d_;
+    int state_ = 0;
+    stream<NextLayer>& ws_;
+    DynamicBuffer& b_;
+    Handler h_;
 
 public:
     read_op(read_op&&) = default;
     read_op(read_op const&) = default;
 
-    template<class DeducedHandler, class... Args>
+    template<class DeducedHandler>
     read_op(DeducedHandler&& h,
-            stream<NextLayer>& ws, Args&&... args)
-        : d_(std::forward<DeducedHandler>(h),
-            ws, std::forward<Args>(args)...)
+            stream<NextLayer>& ws, DynamicBuffer& b)
+        : ws_(ws)
+        , b_(b)
+        , h_(std::forward<DeducedHandler>(h))
     {
-        (*this)(error_code{}, false);
     }
 
-    void operator()(
-        error_code const& ec, bool again = true);
+    void operator()(error_code const& ec, bool fin);
 
     friend
     void* asio_handler_allocate(
@@ -1039,7 +1020,7 @@ public:
     {
         using boost::asio::asio_handler_allocate;
         return asio_handler_allocate(
-            size, std::addressof(op->d_.handler()));
+            size, std::addressof(op->h_));
     }
 
     friend
@@ -1048,13 +1029,15 @@ public:
     {
         using boost::asio::asio_handler_deallocate;
         asio_handler_deallocate(
-            p, size, std::addressof(op->d_.handler()));
+            p, size, std::addressof(op->h_));
     }
 
     friend
     bool asio_handler_is_continuation(read_op* op)
     {
-        return op->d_->cont;
+        using boost::asio::asio_handler_is_continuation;
+        return op->state_ >= 2 ? true:
+            asio_handler_is_continuation(std::addressof(op->h_));
     }
 
     template<class Function>
@@ -1062,8 +1045,7 @@ public:
     void asio_handler_invoke(Function&& f, read_op* op)
     {
         using boost::asio::asio_handler_invoke;
-        asio_handler_invoke(
-            f, std::addressof(op->d_.handler()));
+        asio_handler_invoke(f, std::addressof(op->h_));
     }
 };
 
@@ -1071,31 +1053,29 @@ template<class NextLayer>
 template<class DynamicBuffer, class Handler>
 void
 stream<NextLayer>::read_op<DynamicBuffer, Handler>::
-operator()(error_code const& ec, bool again)
+operator()(error_code const& ec, bool fin)
 {
-    auto& d = *d_;
-    d.cont = d.cont || again;
-    while(! ec)
+    switch(state_)
     {
-        switch(d.state)
-        {
-        case 0:
-            // read payload
-            d.state = 1;
-            d.ws.async_read_frame(
-                d.fi, d.db, std::move(*this));
-            return;
+    case 0:
+        state_ = 1;
+        goto do_read;
 
-        // got payload
-        case 1:
-            if(d.fi.fin)
-                goto upcall;
-            d.state = 0;
-            break;
-        }
+    case 1:
+        state_ = 2;
+        BOOST_FALLTHROUGH;
+
+    case 2:
+        if(ec)
+            goto upcall;
+        if(fin)
+            goto upcall;
+    do_read:
+        return ws_.async_read_frame(
+            b_, std::move(*this));
     }
 upcall:
-    d_.invoke(ec);
+    h_(ec);
 }
 
 template<class NextLayer>
@@ -1113,7 +1093,8 @@ async_read(DynamicBuffer& buffer, ReadHandler&& handler)
         void(error_code)> init{handler};
     read_op<DynamicBuffer, handler_type<
         ReadHandler, void(error_code)>>{
-            init.completion_handler, *this, buffer};
+            init.completion_handler, *this, buffer}(
+                {}, false);
     return init.result.get();
 }
 
@@ -1143,13 +1124,12 @@ read(DynamicBuffer& buffer, error_code& ec)
         "SyncStream requirements not met");
     static_assert(beast::is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
-    frame_info fi;
     for(;;)
     {
-        read_frame(fi, buffer, ec);
+        auto const fin = read_frame(buffer, ec);
         if(ec)
             break;
-        if(fi.fin)
+        if(fin)
             break;
     }
 }
