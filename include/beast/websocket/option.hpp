@@ -124,47 +124,6 @@ struct ping_callback
 };
 #endif
 
-/** Read buffer size option.
-
-    Sets the size of the read buffer used by the implementation to
-    receive frames. The read buffer is needed when permessage-deflate
-    is used.
-
-    Lowering the size of the buffer can decrease the memory requirements
-    for each connection, while increasing the size of the buffer can reduce
-    the number of calls made to the next layer to read data.
-
-    The default setting is 4096. The minimum value is 8.
-
-    @note Objects of this type are used with
-          @ref beast::websocket::stream::set_option.
-
-    @par Example
-    Setting the read buffer size.
-    @code
-    ...
-    websocket::stream<ip::tcp::socket> ws(ios);
-    ws.set_option(read_buffer_size{16 * 1024});
-    @endcode
-*/
-#if BEAST_DOXYGEN
-using read_buffer_size = implementation_defined;
-#else
-struct read_buffer_size
-{
-    std::size_t value;
-
-    explicit
-    read_buffer_size(std::size_t n)
-        : value(n)
-    {
-        if(n < 8)
-            BOOST_THROW_EXCEPTION(std::invalid_argument{
-                "read buffer size is too small"});
-    }
-};
-#endif
-
 /** Maximum incoming message size option.
 
     Sets the largest permissible incoming message size. Message

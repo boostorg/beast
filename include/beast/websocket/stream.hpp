@@ -263,15 +263,6 @@ public:
         ping_cb_ = std::move(o.value);
     }
 
-    /// Set the read buffer size
-    void
-    set_option(read_buffer_size const& o)
-    {
-        rd_buf_size_ = o.value;
-        // VFALCO What was the thinking here?
-        //stream_.capacity(o.value);
-    }
-
     /// Set the maximum incoming message size allowed
     void
     set_option(read_message_max const& o)
@@ -331,6 +322,9 @@ public:
         @code
             ws.binary(true);
         @endcode
+
+        @param v `true` if outgoing messages should indicate
+        binary, or `false` if they should indicate text.
     */
     void
     binary(bool v)
@@ -343,6 +337,44 @@ public:
     binary() const
     {
         return wr_opcode_ == opcode::binary;
+    }
+
+    /** Set the read buffer size option.
+
+        Sets the size of the read buffer used by the implementation to
+        receive frames. The read buffer is needed when permessage-deflate
+        is used.
+
+        Lowering the size of the buffer can decrease the memory requirements
+        for each connection, while increasing the size of the buffer can reduce
+        the number of calls made to the next layer to read data.
+
+        The default setting is 4096. The minimum value is 8.
+
+        @par Example
+        Setting the read buffer size.
+        @code
+            ws.read_buffer_size(16 * 1024);
+        @endcode
+
+        @param n The size of the read buffer.
+
+        @throw std::invalid_argument If the buffer size is less than 8.
+    */
+    void
+    read_buffer_size(std::size_t n)
+    {
+        if(n < 8)
+            BOOST_THROW_EXCEPTION(std::invalid_argument{
+                "read buffer size is too small"});
+        rd_buf_size_ = n;
+    }
+
+    /// Returns the read buffer size setting.
+    std::size_t
+    read_buffer_size() const
+    {
+        return rd_buf_size_;
     }
 
     /** Returns the close reason received from the peer.

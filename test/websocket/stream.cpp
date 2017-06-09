@@ -556,7 +556,7 @@ public:
         ws.auto_fragment(true);
         ws.set_option(write_buffer_size{2048});
         ws.binary(false);
-        ws.set_option(read_buffer_size{8192});
+        ws.read_buffer_size(8192);
         ws.set_option(read_message_max{1 * 1024 * 1024});
         try
         {

@@ -4,6 +4,7 @@ API Changes:
 
 * auto_fragment is a member of stream
 * binary, text are members of stream
+* read_buffer_size is a member of stream
 
 Actions Required:
 
@@ -12,6 +13,9 @@ Actions Required:
 
 * Change call sites which use message_type with set_option
   to call stream::binary or stream::text instead.
+
+* Change call sites which use read_buffer_size with set_option to
+  call stream::read_buffer_size instead.
 
 --------------------------------------------------------------------------------
 
