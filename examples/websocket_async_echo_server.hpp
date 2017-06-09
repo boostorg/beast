@@ -20,8 +20,6 @@
 #include <string>
 #include <thread>
 #include <type_traits>
-#include <typeindex>
-#include <unordered_map>
 #include <utility>
 
 namespace websocket {
@@ -37,81 +35,6 @@ public:
     using endpoint_type = boost::asio::ip::tcp::endpoint;
 
 private:
-    /** A container of type-erased option setters.
-    */
-    template<class NextLayer>
-    class options_set
-    {
-        // workaround for std::function bug in msvc
-        struct callable
-        {
-            virtual ~callable() = default;
-            virtual void operator()(
-                beast::websocket::stream<NextLayer>&) = 0;
-        };
-
-        template<class T>
-        class callable_impl : public callable
-        {
-            T t_;
-
-        public:
-            template<class U>
-            callable_impl(U&& u)
-                : t_(std::forward<U>(u))
-            {
-            }
-
-            void
-            operator()(beast::websocket::stream<NextLayer>& ws)
-            {
-                t_(ws);
-            }
-        };
-
-        template<class Opt>
-        class lambda
-        {
-            Opt opt_;
-
-        public:
-            lambda(lambda&&) = default;
-            lambda(lambda const&) = default;
-
-            lambda(Opt const& opt)
-                : opt_(opt)
-            {
-            }
-
-            void
-            operator()(beast::websocket::stream<NextLayer>& ws) const
-            {
-                ws.set_option(opt_);
-            }
-        };
-
-        std::unordered_map<std::type_index,
-            std::unique_ptr<callable>> list_;
-
-    public:
-        template<class Opt>
-        void
-        set_option(Opt const& opt)
-        {
-            std::unique_ptr<callable> p;
-            p.reset(new callable_impl<lambda<Opt>>{opt});
-            list_[std::type_index{
-                typeid(Opt)}] = std::move(p);
-        }
-
-        void
-        set_options(beast::websocket::stream<NextLayer>& ws)
-        {
-            for(auto const& op : list_)
-                (*op.second)(ws);
-        }
-    };
-
     std::ostream* log_;
     boost::asio::io_service ios_;
     socket_type sock_;
@@ -119,7 +42,7 @@ private:
     boost::asio::ip::tcp::acceptor acceptor_;
     std::vector<std::thread> thread_;
     boost::optional<boost::asio::io_service::work> work_;
-    options_set<socket_type> opts_;
+    std::function<void(beast::websocket::stream<socket_type>&)> mod_;
 
 public:
     async_echo_server(async_echo_server const&) = delete;
@@ -150,9 +73,12 @@ public:
     ~async_echo_server()
     {
         work_ = boost::none;
-        error_code ec;
         ios_.dispatch(
-            [&]{ acceptor_.close(ec); });
+            [&]
+            {
+                error_code ec;
+                acceptor_.close(ec);
+            });
         for(auto& t : thread_)
             t.join();
     }
@@ -165,17 +91,16 @@ public:
         return acceptor_.local_endpoint();
     }
 
-    /** Set a websocket option.
+    /** Set a handler called for new streams.
 
-        The option will be applied to all new connections.
-
-        @param opt The option to apply.
+        This function is called for each new stream.
+        It is used to set options for every connection.
     */
-    template<class Opt>
+    template<class F>
     void
-    set_option(Opt const& opt)
+    on_new_stream(F const& f)
     {
-        opts_.set_option(opt);
+        mod_ = f;
     }
 
     /** Open a listening port.
@@ -253,7 +178,7 @@ private:
                     std::forward<Args>(args)...))
         {
             auto& d = *d_;
-            d.server.opts_.set_options(d.ws);
+            d.server.mod_(d.ws);
             run();
         }
 

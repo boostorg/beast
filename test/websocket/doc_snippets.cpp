@@ -205,7 +205,7 @@ boost::asio::ip::tcp::socket sock{ios};
 //]
 
 //[ws_snippet_19
-    ws.set_option(auto_fragment{true});
+    ws.auto_fragment(true);
     ws.set_option(write_buffer_size{16384});
 //]
 

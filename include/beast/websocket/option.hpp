@@ -22,43 +22,6 @@
 namespace beast {
 namespace websocket {
 
-/** Automatic fragmentation option.
-
-    Determines if outgoing message payloads are broken up into
-    multiple pieces.
-
-    When the automatic fragmentation size is turned on, outgoing
-    message payloads are broken up into multiple frames no larger
-    than the write buffer size.
-
-    The default setting is to fragment messages.
-
-    @note Objects of this type are used with
-          @ref beast::websocket::stream::set_option.
-
-    @par Example
-    Setting the automatic fragmentation option:
-    @code
-    ...
-    websocket::stream<ip::tcp::socket> stream(ios);
-    stream.set_option(auto_fragment{true});
-    @endcode
-*/
-#if BEAST_DOXYGEN
-using auto_fragment = implementation_defined;
-#else
-struct auto_fragment
-{
-    bool value;
-
-    explicit
-    auto_fragment(bool v)
-        : value(v)
-    {
-    }
-};
-#endif
-
 /** Message type option.
 
     This controls the opcode set for outgoing messages. Valid

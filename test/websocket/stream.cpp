@@ -553,7 +553,7 @@ public:
     testOptions()
     {
         stream<socket_type> ws(ios_);
-        ws.set_option(auto_fragment{true});
+        ws.auto_fragment(true);
         ws.set_option(write_buffer_size{2048});
         ws.set_option(message_type{opcode::text});
         ws.set_option(read_buffer_size{8192});
@@ -1655,7 +1655,7 @@ public:
                 c.handshake(ws, "localhost", "/");
 
                 // send message
-                ws.set_option(auto_fragment{false});
+                ws.auto_fragment(false);
                 ws.set_option(message_type(opcode::text));
                 c.write(ws, sbuf("Hello"));
                 {
@@ -1728,7 +1728,7 @@ public:
                 c.pong(ws, "");
 
                 // send auto fragmented message
-                ws.set_option(auto_fragment{true});
+                ws.auto_fragment(true);
                 ws.set_option(write_buffer_size{8});
                 c.write(ws, sbuf("Now is the time for all good men"));
                 {
@@ -1738,7 +1738,7 @@ public:
                     c.read(ws, op, b);
                     BEAST_EXPECT(to_string(b.data()) == "Now is the time for all good men");
                 }
-                ws.set_option(auto_fragment{false});
+                ws.auto_fragment(false);
                 ws.set_option(write_buffer_size{4096});
 
                 // send message with write buffer limit
