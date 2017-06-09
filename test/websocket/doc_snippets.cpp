@@ -216,6 +216,7 @@ boost::asio::ip::tcp::socket sock{ios};
 
 } // fxx()
 
+#if 0
 //[ws_snippet_21
 void echo(stream<boost::asio::ip::tcp::socket>& ws,
     multi_buffer& buffer, boost::asio::yield_context yield)
@@ -225,5 +226,6 @@ void echo(stream<boost::asio::ip::tcp::socket>& ws,
         ws.async_write(buffer.data(), boost::asio::use_future);
 }
 //]
+#endif
 
 } // doc_ws_snippets
