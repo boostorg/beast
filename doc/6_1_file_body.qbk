@@ -1,0 +1,52 @@
+[/
+    Copyright (c) 2013-2017 Vinnie Falco (vinnie dot falco at gmail dot com)
+
+    Distributed under the Boost Software License, Version 1.0. (See accompanying
+    file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+]
+
+[section File Body Type]
+
+Use of the flexible __Body__ concept customization point enables authors to
+preserve the self-contained nature of the __message__ object while allowing
+domain specific behaviors. Common operations for HTTP servers include sending
+responses which deliver file contents, and allowing for file uploads. In this
+example we build the `file_body` type which supports both reading and writing
+to a file on the file system. 
+
+First we declare the type itself, along with the required members:
+
+[http_sample_file_body_1]
+
+The `size` function is a simple call to retrieve the file size:
+
+[http_sample_file_body_2]
+
+Our implementation of __BodyReader__ will contain a small buffer
+from which the file contents are read. The buffer is provided to
+the implementation on each call until everything has been read in.
+
+[http_sample_file_body_3]
+
+And here are the definitions for the functions we have declared:
+
+[http_sample_file_body_4]
+
+Files can be read now, and the next step is to allow writing to files
+by implementing the __BodyWriter__. The style is similar to the reader,
+except that buffers are incoming instead of outgoing. Here's the
+declaration:
+
+[http_sample_file_body_5]
+
+Finally, here is the implementation of the writer member functions:
+
+[http_sample_file_body_6]
+
+We have created a full featured body type capable of reading and
+writing files on the filesystem, integrating seamlessly with the
+HTTP algorithms and message container. Source code for this body
+type, and HTTP servers that use it, are available in the examples
+directory.
+
+[endsect]

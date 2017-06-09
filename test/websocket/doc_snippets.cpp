@@ -216,7 +216,8 @@ boost::asio::ip::tcp::socket sock{ios};
 
 } // fxx()
 
-#if 0
+// workaround for https://github.com/chriskohlhoff/asio/issues/112
+#ifdef _MSC_VER
 //[ws_snippet_21
 void echo(stream<boost::asio::ip::tcp::socket>& ws,
     multi_buffer& buffer, boost::asio::yield_context yield)

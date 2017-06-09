@@ -57,6 +57,7 @@ install:
   - git submodule update --init libs/lambda
   - git submodule update --init libs/lexical_cast
   - git submodule update --init libs/locale
+  - git submodule update --init libs/logic
   - git submodule update --init libs/math
   - git submodule update --init libs/move
   - git submodule update --init libs/mpl

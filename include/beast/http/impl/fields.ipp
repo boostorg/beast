@@ -468,9 +468,33 @@ find(string_view name) const ->
 }
 
 template<class Allocator>
+auto
+basic_fields<Allocator>::
+find(field name) const ->
+    iterator
+{
+    auto const it = set_.find(
+        to_string(name), less{});
+    if(it == set_.end())
+        return list_.end();
+    return list_.iterator_to(*it);
+}
+
+template<class Allocator>
 string_view const
 basic_fields<Allocator>::
 operator[](string_view name) const
+{
+    auto const it = find(name);
+    if(it == end())
+        return {};
+    return it->value();
+}
+
+template<class Allocator>
+string_view const
+basic_fields<Allocator>::
+operator[](field name) const
 {
     auto const it = find(name);
     if(it == end())
@@ -541,6 +565,16 @@ template<class Allocator>
 void
 basic_fields<Allocator>::
 replace(string_view name, string_view value)
+{
+    value = detail::trim(value);
+    erase(name);
+    insert(name, value);
+}
+
+template<class Allocator>
+void
+basic_fields<Allocator>::
+replace(field name, string_view value)
 {
     value = detail::trim(value);
     erase(name);

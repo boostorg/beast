@@ -57,7 +57,7 @@ send_expect_100_continue(
         "DynamicBuffer requirements not met");
 
     // Insert or replace the Expect field
-    req.replace("Expect", "100-continue");
+    req.replace(field::expect, "100-continue");
 
     // Create the serializer
     auto sr = make_serializer(req);
@@ -126,7 +126,7 @@ receive_expect_100_continue(
         return;
 
     // Check for the Expect field value
-    if(parser.get()["Expect"] == "100-continue")
+    if(parser.get()[field::expect] == "100-continue")
     {
         // send 100 response
         response<empty_body> res;
@@ -809,8 +809,8 @@ do_form_request(
     case verb::post:
     {
         // If this is not a form upload then use a string_body
-        if( req0.get()["Content-Type"] != "application/x-www-form-urlencoded" &&
-            req0.get()["Content-Type"] != "multipart/form-data")
+        if( req0.get()[field::content_type] != "application/x-www-form-urlencoded" &&
+            req0.get()[field::content_type] != "multipart/form-data")
             goto do_string_body;
 
         // Commit to string_body as the body type.

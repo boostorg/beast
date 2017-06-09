@@ -7,8 +7,6 @@
 
 [section:concept Concepts]
 
-
-
 [include concept/Body.qbk]
 [include concept/BodyReader.qbk]
 [include concept/BodyWriter.qbk]

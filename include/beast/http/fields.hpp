@@ -225,6 +225,16 @@ public:
     iterator
     find(string_view name) const;
 
+    /** Returns an iterator to the case-insensitive matching field.
+
+        If more than one field with the specified name exists, the
+        first field defined by insertion order is returned.
+
+        @param name The field to find.
+    */
+    iterator
+    find(field name) const;
+
     /** Returns the value for a case-insensitive matching header, or `""`.
 
         If more than one field with the specified name exists, the
@@ -232,6 +242,16 @@ public:
     */
     string_view const
     operator[](string_view name) const;
+
+    /** Returns the value for a field, or `""` if it does not exist.
+
+        If more than one field with the specified name exists, the
+        first field defined by insertion order is returned.
+
+        @param name The field to retrieve.
+    */
+    string_view const
+    operator[](field name) const;
 
     /// Clear the contents of the basic_fields.
     void
@@ -318,6 +338,18 @@ public:
     */
     void
     replace(string_view name, string_view value);
+
+    /** Replace a field value.
+
+        First removes any values with matching field names, then
+        inserts the new field value.
+
+        @param name The field to replace.
+
+        @param value A string holding the value of the field.
+    */
+    void
+    replace(field name, string_view value);
 
     /** Replace a field value.
 

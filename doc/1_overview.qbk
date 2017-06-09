@@ -8,13 +8,13 @@
 [section:overview Introduction]
 
 [important
-    Beast is a cross-platform, header-only C++11 library for low-level
-    [*HTTP/1 and WebSocket protocol] programming
-    using the consistent asynchronous networking model of __Asio__.
-    Beast is not an HTTP client or HTTP server, but it can be used to
-    build those things. It is intended to be a foundation for writing
-    other interoperable libraries by providing HTTP vocabulary types
-    and algorithms. The provided examples show how clients and servers
+    Beast is a cross-platform, header-only C++11 library for
+    [*low-level HTTP/1, WebSocket, and network protocol] programming
+    using the consistent asynchronous model of __Asio__. Beast is
+    not an HTTP client or HTTP server, but it can be used to build
+    those things. It is intended to be a foundation for writing other
+    interoperable libraries by providing HTTP vocabulary types and
+    algorithms. The provided examples show how clients and servers
     might be built.
 ]
 
