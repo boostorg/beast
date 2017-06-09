@@ -332,9 +332,7 @@ private:
                 else if(match(d.db, "TEXT"))
                 {
                     d.state = 1;
-                    d.ws.set_option(
-                        beast::websocket::message_type{
-                            beast::websocket::opcode::text});
+                    d.ws.binary(false);
                     d.ws.async_write(
                         d.db.data(), d.strand.wrap(std::move(*this)));
                     return;
@@ -359,8 +357,7 @@ private:
                 }
                 // write message
                 d.state = 1;
-                d.ws.set_option(
-                    beast::websocket::message_type(d.op));
+                d.ws.binary(d.op == beast::websocket::opcode::binary);
                 d.ws.async_write(d.db.data(),
                     d.strand.wrap(std::move(*this)));
                 return;

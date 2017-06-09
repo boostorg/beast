@@ -123,7 +123,6 @@
           </simplelist>
           <bridgehead renderas="sect3">Options</bridgehead>
           <simplelist type="vert" columns="1">
-            <member><link linkend="beast.ref.websocket__message_type">message_type</link></member>
             <member><link linkend="beast.ref.websocket__permessage_deflate">permessage_deflate</link></member>
             <member><link linkend="beast.ref.websocket__ping_callback">ping_callback</link></member>
             <member><link linkend="beast.ref.websocket__read_buffer_size">read_buffer_size</link></member>

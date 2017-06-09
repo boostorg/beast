@@ -151,111 +151,6 @@ public:
     */
     ~stream() = default;
 
-    /** Set the automatic fragmentation option.
-
-        Determines if outgoing message payloads are broken up into
-        multiple pieces.
-
-        When the automatic fragmentation size is turned on, outgoing
-        message payloads are broken up into multiple frames no larger
-        than the write buffer size.
-
-        The default setting is to fragment messages.
-
-        @note Objects of this type are used with
-              @ref beast::websocket::stream::set_option.
-
-        @par Example
-        Setting the automatic fragmentation option:
-        @code
-        ...
-        websocket::stream<ip::tcp::socket> stream{ios};
-        stream.auto_fragment(true);
-        @endcode
-    */
-    void
-    auto_fragment(bool v)
-    {
-        wr_autofrag_ = v;
-    }
-
-    /// Returns `true` if the automatic fragmentation option is set.
-    bool
-    auto_fragment() const
-    {
-        return wr_autofrag_;
-    }
-
-    /** Set options on the stream.
-
-        The application must ensure that calls to set options
-        are performed within the same implicit or explicit strand.
-
-        @param args One or more stream options to set.
-    */
-#if BEAST_DOXYGEN
-    template<class... Args>
-    void
-    set_option(Args&&... args)
-#else
-    template<class A1, class A2, class... An>
-    void
-    set_option(A1&& a1, A2&& a2, An&&... an)
-#endif
-    {
-        set_option(std::forward<A1>(a1));
-        set_option(std::forward<A2>(a2),
-            std::forward<An>(an)...);
-    }
-
-    /// Set the outgoing message type
-    void
-    set_option(message_type const& o)
-    {
-        wr_opcode_ = o.value;
-    }
-
-    /// Set the permessage-deflate extension options
-    void
-    set_option(permessage_deflate const& o);
-
-    /// Get the permessage-deflate extension options
-    void
-    get_option(permessage_deflate& o)
-    {
-        o = pmd_opts_;
-    }
-
-    /// Set the ping callback
-    void
-    set_option(ping_callback o)
-    {
-        ping_cb_ = std::move(o.value);
-    }
-
-    /// Set the read buffer size
-    void
-    set_option(read_buffer_size const& o)
-    {
-        rd_buf_size_ = o.value;
-        // VFALCO What was the thinking here?
-        //stream_.capacity(o.value);
-    }
-
-    /// Set the maximum incoming message size allowed
-    void
-    set_option(read_message_max const& o)
-    {
-        rd_msg_max_ = o.value;
-    }
-
-    /// Set the size of the write buffer
-    void
-    set_option(write_buffer_size const& o)
-    {
-        wr_buf_size_ = o.value;
-    }
-
     /** Get the io_service associated with the stream.
 
         This function may be used to obtain the io_service object
@@ -326,6 +221,128 @@ public:
     lowest_layer() const
     {
         return stream_.lowest_layer();
+    }
+
+    /** Set options on the stream.
+
+        The application must ensure that calls to set options
+        are performed within the same implicit or explicit strand.
+
+        @param args One or more stream options to set.
+    */
+#if BEAST_DOXYGEN
+    template<class... Args>
+    void
+    set_option(Args&&... args)
+#else
+    template<class A1, class A2, class... An>
+    void
+    set_option(A1&& a1, A2&& a2, An&&... an)
+#endif
+    {
+        set_option(std::forward<A1>(a1));
+        set_option(std::forward<A2>(a2),
+            std::forward<An>(an)...);
+    }
+
+    /// Set the permessage-deflate extension options
+    void
+    set_option(permessage_deflate const& o);
+
+    /// Get the permessage-deflate extension options
+    void
+    get_option(permessage_deflate& o)
+    {
+        o = pmd_opts_;
+    }
+
+    /// Set the ping callback
+    void
+    set_option(ping_callback o)
+    {
+        ping_cb_ = std::move(o.value);
+    }
+
+    /// Set the read buffer size
+    void
+    set_option(read_buffer_size const& o)
+    {
+        rd_buf_size_ = o.value;
+        // VFALCO What was the thinking here?
+        //stream_.capacity(o.value);
+    }
+
+    /// Set the maximum incoming message size allowed
+    void
+    set_option(read_message_max const& o)
+    {
+        rd_msg_max_ = o.value;
+    }
+
+    /// Set the size of the write buffer
+    void
+    set_option(write_buffer_size const& o)
+    {
+        wr_buf_size_ = o.value;
+    }
+
+    /** Set the automatic fragmentation option.
+
+        Determines if outgoing message payloads are broken up into
+        multiple pieces.
+
+        When the automatic fragmentation size is turned on, outgoing
+        message payloads are broken up into multiple frames no larger
+        than the write buffer size.
+
+        The default setting is to fragment messages.
+
+        @par Example
+        Setting the automatic fragmentation option:
+        @code
+            ws.auto_fragment(true);
+        @endcode
+    */
+    void
+    auto_fragment(bool v)
+    {
+        wr_autofrag_ = v;
+    }
+
+    /// Returns `true` if the automatic fragmentation option is set.
+    bool
+    auto_fragment() const
+    {
+        return wr_autofrag_;
+    }
+
+    /** Set the binary message option.
+
+        This controls whether or not outgoing message opcodes
+        are set to binary or text. The setting is only applied
+        at the start when a caller begins a new message. Changing
+        the opcode after a message is started will only take effect
+        after the current message being sent is complete.
+
+        The default setting is to send text messages.
+
+        @par Example
+        Setting the message type to binary.
+        @code
+            ws.binary(true);
+        @endcode
+    */
+    void
+    binary(bool v)
+    {
+        wr_opcode_ = v ? opcode::binary : opcode::text;
+    }
+
+    /// Returns `true` if the binary message option is set.
+    bool
+    binary() const
+    {
+        return wr_opcode_ == opcode::binary;
     }
 
     /** Returns the close reason received from the peer.
@@ -2721,7 +2738,7 @@ public:
         This operation is implemented in terms of one or more calls to the
         next layer's `write_some` function.
 
-        The current setting of the @ref message_type option controls
+        The current setting of the @ref binary option controls
         whether the message opcode is set to text or binary. If the
         @ref auto_fragment option is set, the message will be split
         into one or more frames as necessary. The actual payload contents
@@ -2756,7 +2773,7 @@ public:
         This operation is implemented in terms of one or more calls to the
         next layer's `write_some` function.
 
-        The current setting of the @ref message_type option controls
+        The current setting of the @ref binary option controls
         whether the message opcode is set to text or binary. If the
         @ref auto_fragment option is set, the message will be split
         into one or more frames as necessary. The actual payload contents
@@ -2798,7 +2815,7 @@ public:
         stream::async_write, stream::async_write_frame, or
         stream::async_close).
 
-        The current setting of the @ref message_type option controls
+        The current setting of the @ref binary option controls
         whether the message opcode is set to text or binary. If the
         @ref auto_fragment option is set, the message will be split
         into one or more frames as necessary. The actual payload contents
@@ -2851,8 +2868,8 @@ public:
 
         If this is the beginning of a new message, the message opcode
         will be set to text or binary as per the current setting of
-        the @ref message_type option. The actual payload sent
-        may be transformed as per the WebSocket protocol settings.
+        the @ref binary option. The actual payload sent may be
+        transformed as per the WebSocket protocol settings.
 
         @param fin `true` if this is the last frame in the message.
 
@@ -2883,8 +2900,8 @@ public:
 
         If this is the beginning of a new message, the message opcode
         will be set to text or binary as per the current setting of
-        the @ref message_type option. The actual payload sent
-        may be transformed as per the WebSocket protocol settings.
+        the @ref binary option. The actual payload sent may be
+        transformed as per the WebSocket protocol settings.
 
         @param fin `true` if this is the last frame in the message.
 
@@ -2920,8 +2937,8 @@ public:
 
         If this is the beginning of a new message, the message opcode
         will be set to text or binary as per the current setting of
-        the @ref message_type option. The actual payload sent
-        may be transformed as per the WebSocket protocol settings.
+        the @ref binary option. The actual payload sent may be
+        transformed as per the WebSocket protocol settings.
 
         @param fin A bool indicating whether or not the frame is the
         last frame in the corresponding WebSockets message.

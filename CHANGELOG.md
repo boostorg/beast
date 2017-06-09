@@ -3,11 +3,15 @@ Version 52:
 API Changes:
 
 * auto_fragment is a member of stream
+* binary, text are members of stream
 
 Actions Required:
 
 * Change call sites which use auto_fragment with set_option
   to call stream::auto_fragment instead.
+
+* Change call sites which use message_type with set_option
+  to call stream::binary or stream::text instead.
 
 --------------------------------------------------------------------------------
 

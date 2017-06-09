@@ -22,45 +22,6 @@
 namespace beast {
 namespace websocket {
 
-/** Message type option.
-
-    This controls the opcode set for outgoing messages. Valid
-    choices are opcode::binary or opcode::text. The setting is
-    only applied at the start when a caller begins a new message.
-    Changing the opcode after a message is started will only
-    take effect after the current message being sent is complete.
-
-    The default setting is opcode::text.
-
-    @note Objects of this type are used with
-          @ref beast::websocket::stream::set_option.
-
-    @par Example
-    Setting the message type to binary.
-    @code
-    ...
-    websocket::stream<ip::tcp::socket> ws(ios);
-    ws.set_option(message_type{opcode::binary});
-    @endcode
-*/
-#if BEAST_DOXYGEN
-using message_type = implementation_defined;
-#else
-struct message_type
-{
-    opcode value;
-
-    explicit
-    message_type(opcode op)
-    {
-        if(op != opcode::binary && op != opcode::text)
-            BOOST_THROW_EXCEPTION(std::invalid_argument{
-                "bad opcode"});
-        value = op;
-    }
-};
-#endif
-
 namespace detail {
 
 using ping_cb = std::function<void(bool, ping_data const&)>;
