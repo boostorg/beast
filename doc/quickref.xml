@@ -124,7 +124,6 @@
           <bridgehead renderas="sect3">Options</bridgehead>
           <simplelist type="vert" columns="1">
             <member><link linkend="beast.ref.websocket__permessage_deflate">permessage_deflate</link></member>
-            <member><link linkend="beast.ref.websocket__ping_callback">ping_callback</link></member>
           </simplelist>
           <bridgehead renderas="sect3">Constants</bridgehead>
           <simplelist type="vert" columns="1">

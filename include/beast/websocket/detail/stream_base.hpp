@@ -46,6 +46,9 @@ struct stream_base
 protected:
     friend class frame_test;
 
+    using ping_callback_type =
+        std::function<void(bool, ping_data const&)>;
+
     struct op {};
 
     detail::maskgen maskgen_;               // source of mask keys
@@ -55,7 +58,7 @@ protected:
     std::size_t wr_buf_size_ = 4096;        // write buffer size
     std::size_t rd_buf_size_ = 4096;        // read buffer size
     opcode wr_opcode_ = opcode::text;       // outgoing message type
-    ping_cb ping_cb_;                       // ping callback
+    ping_callback_type ping_cb_;            // ping callback
     role_type role_;                        // server or client
     bool failed_;                           // the connection failed
 
