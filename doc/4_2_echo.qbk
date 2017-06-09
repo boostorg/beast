@@ -5,12 +5,13 @@
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 ]
 
-[section:op_tutorial Writing a Composed Operation]
+[section:echo Echo Composed Operation]
 
-To illustrate the usage of the asynchronous helpers in the core section of
-this library, we will develop a simple asynchronous composed operation called
+Here we developed a more advanced asynchronous composed operation called
 [*echo]. This operation will read up to the first newline on a stream, and
-then write the same line including the newline back on the stream.
+then write the same line including the newline back on the stream. The
+implementation performs both reading and writing, and has a
+non-trivially-copyable state.
 
 First we define the input parameters and results, then declare our initiation
 function. For our echo operation the only inputs are the stream and the

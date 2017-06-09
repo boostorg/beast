@@ -105,7 +105,7 @@ private:
     fail(int id, error_code const& ec)
     {
         if(ec != boost::asio::error::operation_aborted &&
-                ec != boost::asio::error::eof)
+                ec != error::end_of_stream)
             log("#", id, " ", ec.message(), "\n");
     }
 

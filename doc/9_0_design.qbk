@@ -50,9 +50,9 @@ start. Other design goals:
 
 * Allow for customizations, if the user needs it.
 
-[include 8_1_http_message.qbk]
-[include 8_2_http_comparison.qbk]
-[include 8_3_websocket_zaphoyd.qbk]
-[include 8_4_faq.qbk]
+[include 9_1_http_message.qbk]
+[include 9_2_http_comparison.qbk]
+[include 9_3_websocket_zaphoyd.qbk]
+[include 9_4_faq.qbk]
 
 [endsect]

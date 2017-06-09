@@ -5,7 +5,7 @@
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 ]
 
-[section:core Library Basics]
+[section:core Using Networking]
 
 A goal of the library is expose implementation primitives in order that
 users may build their own library-like components. These primitives include
@@ -26,6 +26,5 @@ lists these facilities by group, with descriptions.
 [include 3_2_streams.qbk]
 [include 3_3_buffers.qbk]
 [include 3_4_async.qbk]
-[include 3_5_op_tutorial.qbk]
 
 [endsect]

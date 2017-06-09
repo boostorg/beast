@@ -15,7 +15,7 @@ customization of how the result of the asynchronous operation is conveyed to
 callers. __Asio__ allows the special completion tokens __use_future__ and
 objects of type __yield_context__ to allow callers to specify the use of futures
 and coroutines respectively. This system, where the return value and method of
-indicating completion may be customize at the call site of the asynchronous
+indicating completion may be customized at the call site of the asynchronous
 initiation function, is known as the ['Extensible Asynchronous Model] described
 in __N3747__, and built-in to __N4588__.
 

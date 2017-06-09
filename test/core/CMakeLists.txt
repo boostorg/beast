@@ -1,11 +1,13 @@
 # Part of Beast
 
+GroupSources(examples examples)
 GroupSources(extras/beast extras)
 GroupSources(include/beast beast)
 GroupSources(test/core "/")
 
 add_executable (core-tests
     ${BEAST_INCLUDES}
+    ${EXAMPLES_INCLUDES}
     ${EXTRAS_INCLUDES}
     ../../extras/beast/unit_test/main.cpp
     async_result.cpp
@@ -18,6 +20,7 @@ add_executable (core-tests
     buffers_adapter.cpp
     clamp.cpp
     consuming_buffers.cpp
+    doc_core_samples.cpp
     doc_snippets.cpp
     error.cpp
     flat_buffer.cpp

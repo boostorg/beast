@@ -6,6 +6,7 @@
 //
 
 #include <examples/doc_http_samples.hpp>
+#include <examples/file_body.hpp>
 
 #include <beast/core/detail/clamp.hpp>
 #include <beast/core/detail/read_size_helper.hpp>
@@ -258,6 +259,56 @@ public:
     //--------------------------------------------------------------------------
 
     void
+    doFileBody()
+    {
+        test::pipe c{ios_};
+
+        boost::filesystem::path const path = "temp.txt";
+        std::string const body = "Hello, world!\n";
+        {
+            request<string_body> req;
+            req.version = 11;
+            req.method(verb::put);
+            req.target("/");
+            req.body = body;
+            req.prepare();
+            write(c.client, req);
+        }
+        {
+            flat_buffer b;
+            request_parser<empty_body> p0;
+            read_header(c.server, b, p0);
+            BEAST_EXPECTS(p0.get().method() == verb::put,
+                p0.get().method_string());
+            {
+                request_parser<file_body> p{std::move(p0)};
+                p.get().body = path;
+                read(c.server, b, p);
+            }
+        }
+        {
+            response<file_body> res;
+            res.version = 11;
+            res.result(status::ok);
+            res.insert(field::server, "test");
+            res.body = path;
+            res.prepare();
+            write(c.server, res);
+        }
+        {
+            flat_buffer b;
+            response<string_body> res;
+            read(c.client, b, res);
+            BEAST_EXPECTS(res.body == body, body);
+        }
+        error_code ec;
+        boost::filesystem::remove(path, ec);
+        BEAST_EXPECTS(! ec, ec.message());
+    }
+
+    //--------------------------------------------------------------------------
+
+    void
     run()
     {
         doExpect100Continue();
@@ -268,6 +319,7 @@ public:
         doCustomParser();
         doHEAD();
         doDeferredBody();
+        doFileBody();
     }
 };
 

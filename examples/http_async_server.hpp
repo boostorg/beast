@@ -207,7 +207,8 @@ private:
         void
         fail(error_code ec, std::string what)
         {
-            if(ec != boost::asio::error::operation_aborted)
+            if(ec != boost::asio::error::operation_aborted &&
+                    ec != error::end_of_stream)
                 server_.log("#", id_, " ", what, ": ", ec.message(), "\n");
         }
 
