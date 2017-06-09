@@ -1672,14 +1672,14 @@ public:
 
                 // send ping and message
                 bool pong = false;
-                ws.set_option(ping_callback{
+                ws.ping_callback(
                     [&](bool is_pong, ping_data const& payload)
                     {
                         BEAST_EXPECT(is_pong);
                         BEAST_EXPECT(! pong);
                         pong = true;
                         BEAST_EXPECT(payload == "");
-                    }});
+                    });
                 c.ping(ws, "");
                 ws.binary(true);
                 c.write(ws, sbuf("Hello"));
@@ -1692,15 +1692,15 @@ public:
                     BEAST_EXPECT(op == opcode::binary);
                     BEAST_EXPECT(to_string(db.data()) == "Hello");
                 }
-                ws.set_option(ping_callback{});
+                ws.ping_callback({});
 
                 // send ping and fragmented message
-                ws.set_option(ping_callback{
+                ws.ping_callback(
                     [&](bool is_pong, ping_data const& payload)
                     {
                         BEAST_EXPECT(is_pong);
                         BEAST_EXPECT(payload == "payload");
-                    }});
+                    });
                 ws.ping("payload");
                 c.write_frame(ws, false, sbuf("Hello, "));
                 c.write_frame(ws, false, sbuf(""));
@@ -1713,7 +1713,7 @@ public:
                     BEAST_EXPECT(pong == 1);
                     BEAST_EXPECT(to_string(db.data()) == "Hello, World!");
                 }
-                ws.set_option(ping_callback{});
+                ws.ping_callback({});
 
                 // send pong
                 c.pong(ws, "");

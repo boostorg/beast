@@ -7,6 +7,7 @@ API Changes:
 * read_buffer_size is a member of stream
 * read_message_max is a member of stream
 * write_buffer_size is a member of stream
+* ping_callback is a member of stream
 
 Actions Required:
 
@@ -24,6 +25,9 @@ Actions Required:
 
 * Change call sites which use write_buffer_size with set_option to
   call stream::write_buffer_size instead.
+
+* Change call sites which use ping_callback with set_option to
+  call stream::ping_callback instead.
 
 --------------------------------------------------------------------------------
 

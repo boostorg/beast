@@ -193,11 +193,11 @@ boost::asio::ip::tcp::socket sock{ios};
 {
     stream<boost::asio::ip::tcp::socket> ws{ios};
 //[ws_snippet_17
-    ws.set_option(ping_callback(
+    ws.ping_callback(
         [](bool is_pong, ping_data const& payload)
         {
             // Do something with the payload
-        }));
+        });
 //]
 
 //[ws_snippet_18

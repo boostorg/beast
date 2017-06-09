@@ -256,13 +256,6 @@ public:
         o = pmd_opts_;
     }
 
-    /// Set the ping callback
-    void
-    set_option(ping_callback o)
-    {
-        ping_cb_ = std::move(o.value);
-    }
-
     /** Set the automatic fragmentation option.
 
         Determines if outgoing message payloads are broken up into
@@ -325,6 +318,46 @@ public:
     binary() const
     {
         return wr_opcode_ == opcode::binary;
+    }
+
+    /** Set the ping callback.
+
+        Sets the callback to be invoked whenever a ping or pong is
+        received during a call to one of the following functions:
+
+        @li @ref beast::websocket::stream::read
+        @li @ref beast::websocket::stream::read_frame
+        @li @ref beast::websocket::stream::async_read
+        @li @ref beast::websocket::stream::async_read_frame
+
+        Unlike completion handlers, the callback will be invoked
+        for each received ping and pong during a call to any
+        synchronous or asynchronous read function. The operation is
+        passive, with no associated error code, and triggered by reads.
+
+        The signature of the callback must be:
+        @code
+        void
+        callback(
+            bool is_pong,               // `true` if this is a pong
+            ping_data const& payload    // Payload of the pong frame
+        );
+        @endcode
+
+        The value of `is_pong` will be `true` if a pong control frame
+        is received, and `false` if a ping control frame is received.
+
+        If the read operation receiving a ping or pong frame is an
+        asynchronous operation, the callback will be invoked using
+        the same method as that used to invoke the final handler.
+
+        @param cb The callback to set.
+    */
+    void
+    ping_callback(
+        std::function<void(bool, ping_data const&)> cb)
+    {
+        ping_cb_ = std::move(cb);
     }
 
     /** Set the read buffer size option.
