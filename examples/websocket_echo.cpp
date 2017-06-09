@@ -25,6 +25,29 @@ sig_wait()
     ios.run();
 }
 
+class set_stream_options
+{
+    beast::websocket::permessage_deflate pmd_;
+
+public:
+    set_stream_options(set_stream_options const&) = default;
+
+    set_stream_options(
+            beast::websocket::permessage_deflate const& pmd)
+        : pmd_(pmd)
+    {
+    }
+
+    template<class NextLayer>
+    void
+    operator()(beast::websocket::stream<NextLayer>& ws) const
+    {
+        ws.auto_fragment(false);
+        ws.set_option(pmd_);
+        ws.set_option(beast::websocket::read_message_max{64 * 1024 * 1024});
+    }
+};
+
 int main()
 {
     using namespace beast::websocket;
@@ -39,16 +62,12 @@ int main()
     pmd.compLevel = 3;
 
     websocket::async_echo_server s1{&std::cout, 1};
-    s1.set_option(read_message_max{64 * 1024 * 1024});
-    s1.set_option(auto_fragment{false});
-    s1.set_option(pmd);
+    s1.on_new_stream(set_stream_options{pmd});
     s1.open(endpoint_type{
         address_type::from_string("127.0.0.1"), 6000 }, ec);
 
     websocket::sync_echo_server s2{&std::cout};
-    s2.set_option(read_message_max{64 * 1024 * 1024});
-    s2.set_option(auto_fragment{false});
-    s2.set_option(pmd);
+    s2.on_new_stream(set_stream_options{pmd});
     s2.open(endpoint_type{
         address_type::from_string("127.0.0.1"), 6001 }, ec);
 

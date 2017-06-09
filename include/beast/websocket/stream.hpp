@@ -151,6 +151,41 @@ public:
     */
     ~stream() = default;
 
+    /** Set the automatic fragmentation option.
+
+        Determines if outgoing message payloads are broken up into
+        multiple pieces.
+
+        When the automatic fragmentation size is turned on, outgoing
+        message payloads are broken up into multiple frames no larger
+        than the write buffer size.
+
+        The default setting is to fragment messages.
+
+        @note Objects of this type are used with
+              @ref beast::websocket::stream::set_option.
+
+        @par Example
+        Setting the automatic fragmentation option:
+        @code
+        ...
+        websocket::stream<ip::tcp::socket> stream{ios};
+        stream.auto_fragment(true);
+        @endcode
+    */
+    void
+    auto_fragment(bool v)
+    {
+        wr_autofrag_ = v;
+    }
+
+    /// Returns `true` if the automatic fragmentation option is set.
+    bool
+    auto_fragment() const
+    {
+        return wr_autofrag_;
+    }
+
     /** Set options on the stream.
 
         The application must ensure that calls to set options
@@ -171,13 +206,6 @@ public:
         set_option(std::forward<A1>(a1));
         set_option(std::forward<A2>(a2),
             std::forward<An>(an)...);
-    }
-
-    /// Set the automatic fragment size option
-    void
-    set_option(auto_fragment const& o)
-    {
-        wr_autofrag_ = o.value;
     }
 
     /// Set the outgoing message type
