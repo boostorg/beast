@@ -73,6 +73,11 @@ struct string_body
             return {{const_buffers_type{
                 body_.data(), body_.size()}, false}};
         }
+
+        void
+        finish(error_code&)
+        {
+        }
     };
 #endif
 

@@ -11,6 +11,7 @@ API Changes:
 * Remove `opcode` from `read`, `async_read`
 * `read_frame` returns `bool` fin
 * `opcode` is private
+* finish(error_code&) is a BodyReader requirement
 
 Actions Required:
 

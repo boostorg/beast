@@ -92,6 +92,14 @@ In this table:
         buffer representing the body.
     ]
 ][
+    [`a.finish(ec)`]
+    []
+    [
+        This function is called after the reader indicates there
+        are no more buffers remaining.
+        If `ec` is set, the error will be propagated to the caller.
+    ]
+][
     [`is_body_reader<B>`]
     [`std::true_type`]
     [
@@ -155,9 +163,18 @@ public:
             A value of `false` means there is no more body data.
 
         @li If `ec` contains an error code, the return value is ignored.
+
+        @param ec Set to the error, if any occurred.
     */
     boost::optional<std::pair<const_buffers_type, bool>>
     get(error_code& ec);
+
+    /** Called after `get` indicates there are no more buffers.
+
+        @param ec Set to the error, if any occurred.
+    */
+    void
+    finish(error_code& ec);
 };
 ```
 

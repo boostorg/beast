@@ -137,6 +137,11 @@ struct buffer_body
                 ec = error::need_buffer;
             return boost::none;
         }
+
+        void
+        finish(error_code&)
+        {
+        }
     };
 #endif
 

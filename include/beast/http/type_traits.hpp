@@ -83,6 +83,7 @@ struct is_body_reader<T, beast::detail::void_t<
     std::declval<boost::optional<std::pair<
             typename T::reader::const_buffers_type, bool>>&>() =
             std::declval<typename T::reader>().get(std::declval<error_code&>()),
+    std::declval<typename T::reader&>().finish(std::declval<error_code&>()),
         (void)0)>> : std::integral_constant<bool,
     is_const_buffer_sequence<
         typename T::reader::const_buffers_type>::value &&
