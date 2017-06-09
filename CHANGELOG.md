@@ -10,6 +10,7 @@ API Changes:
 * `ping_callback` is a member of stream
 * Remove `opcode` from `read`, `async_read`
 * `read_frame` returns `bool` fin
+* `opcode` is private
 
 Actions Required:
 
@@ -19,16 +20,16 @@ Actions Required:
 * Change call sites which use message_type with `set_option`
   to call `stream::binary` or `stream::text` instead.
 
-* Change call sites which use read_buffer_size with `set_option` to
+* Change call sites which use 1read_buffer_size1 with `set_option` to
   call `stream::read_buffer_size` instead.
 
-* Change call sites which use read_message_max with `set_option` to
+* Change call sites which use 1read_message_max1 with `set_option` to
   call `stream::read_message_max` instead.
 
-* Change call sites which use write_buffer_size with `set_option` to
+* Change call sites which use 1write_buffer_size1 with `set_option` to
   call `stream::write_buffer_size` instead.
 
-* Change call sites which use ping_callback with `set_option` to
+* Change call sites which use 1ping_callback1 with `set_option` to
   call `stream::ping_callback` instead.
 
 * Remove the `opcode` reference parameter from calls to synchronous
@@ -42,6 +43,8 @@ Actions Required:
 * Change ReadHandlers passed to `async_read_frame` to have
   the signature `void(error_code, bool fin)`, use the `bool`
   to indicate if the frame is the last frame.
+
+* Remove all occurences of the `opcode` enum at call sites
 
 --------------------------------------------------------------------------------
 

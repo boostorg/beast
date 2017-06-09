@@ -55,7 +55,7 @@ public:
     {
         test_fh()
         {
-            op = opcode::text;
+            op = detail::opcode::text;
             fin = false;
             mask = false;
             rsv1 = false;
@@ -151,7 +151,7 @@ public:
 
             test_fh fh;
 
-            fh.op = opcode::close;
+            fh.op = detail::opcode::close;
             fh.fin = true;
             fh.len = 126;
             check(fh);
@@ -169,11 +169,11 @@ public:
             check(fh);
             fh.rsv3 = false;
 
-            fh.op = opcode::rsv3;
+            fh.op = detail::opcode::rsv3;
             check(fh);
-            fh.op = opcode::text;
+            fh.op = detail::opcode::text;
 
-            fh.op = opcode::ping;
+            fh.op = detail::opcode::ping;
             fh.fin = false;
             check(fh);
             fh.fin = true;
