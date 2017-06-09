@@ -6,6 +6,7 @@ API Changes:
 * binary, text are members of stream
 * read_buffer_size is a member of stream
 * read_message_max is a member of stream
+* write_buffer_size is a member of stream
 
 Actions Required:
 
@@ -20,6 +21,9 @@ Actions Required:
 
 * Change call sites which use read_message_max with set_option to
   call stream::read_message_max instead.
+
+* Change call sites which use write_buffer_size with set_option to
+  call stream::write_buffer_size instead.
 
 --------------------------------------------------------------------------------
 

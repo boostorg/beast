@@ -124,51 +124,6 @@ struct ping_callback
 };
 #endif
 
-/** Write buffer size option.
-
-    Sets the size of the write buffer used by the implementation to
-    send frames. The write buffer is needed when masking payload data
-    in the client role, compressing frames, or auto-fragmenting message
-    data.
-
-    Lowering the size of the buffer can decrease the memory requirements
-    for each connection, while increasing the size of the buffer can reduce
-    the number of calls made to the next layer to write data.
-
-    The default setting is 4096. The minimum value is 8.
-
-    The write buffer size can only be changed when the stream is not
-    open. Undefined behavior results if the option is modified after a
-    successful WebSocket handshake.
-
-    @note Objects of this type are used with
-          @ref beast::websocket::stream::set_option.
-
-    @par Example
-    Setting the write buffer size.
-    @code
-    ...
-    websocket::stream<ip::tcp::socket> ws(ios);
-    ws.set_option(write_buffer_size{8192});
-    @endcode
-*/
-#if BEAST_DOXYGEN
-using write_buffer_size = implementation_defined;
-#else
-struct write_buffer_size
-{
-    std::size_t value;
-
-    explicit
-    write_buffer_size(std::size_t n)
-        : value(n)
-    {
-        if(n < 8)
-            BOOST_THROW_EXCEPTION(std::invalid_argument{
-                "write buffer size is too small"});
-    }
-};
-#endif
 
 } // websocket
 } // beast
