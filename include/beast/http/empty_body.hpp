@@ -72,6 +72,11 @@ struct empty_body
         {
             return boost::none;
         }
+
+        void
+        finish(error_code&)
+        {
+        }
     };
 #endif
 

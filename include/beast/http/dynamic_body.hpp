@@ -70,6 +70,11 @@ struct basic_dynamic_body
         {
             return {{body_.data(), false}};
         }
+
+        void
+        finish(error_code&)
+        {
+        }
     };
 #endif
 

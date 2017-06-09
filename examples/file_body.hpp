@@ -90,6 +90,11 @@ struct file_body
             offset_ += nread;
             return {{const_buffers_type{buf_, nread}, offset_ < size_}};
         }
+
+        void
+        finish(error_code&)
+        {
+        }
     };
 };
 

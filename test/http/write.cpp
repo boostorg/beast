@@ -65,6 +65,11 @@ public:
                 return {{const_buffers_type{
                     body_.data(), body_.size()}, false}};
             }
+
+            void
+            finish(error_code&)
+            {
+            }
         };
     };
 
@@ -113,6 +118,11 @@ public:
                 return get(
                     std::integral_constant<bool, isSplit>{},
                     std::integral_constant<bool, isFinalEmpty>{});
+            }
+
+            void
+            finish(error_code&)
+            {
             }
 
         private:
@@ -252,6 +262,12 @@ public:
                     return boost::none;
                 return {{const_buffers_type{
                     body_.s_.data() + n_++, 1}, true}};
+            }
+
+            void
+            finish(error_code& ec)
+            {
+                body_.fc_.fail(ec);
             }
         };
     };

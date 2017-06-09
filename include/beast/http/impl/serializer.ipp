@@ -250,6 +250,10 @@ get(error_code& ec, Visit&& visit)
         break;
 
     go_complete:
+        if(rd_)
+            rd_->finish(ec);
+        if(ec)
+            return;
         s_ = do_complete;
         break;
     }
