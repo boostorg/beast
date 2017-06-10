@@ -19,25 +19,6 @@ namespace beast {
     begin_ ..|.. in_ ..|.. out_ ..|.. last_ ..|.. end_
 */
 
-namespace detail {
-
-inline
-std::size_t
-next_pow2(std::size_t x)
-{
-    std::size_t n = 0;
-    while(x > 0)
-    {
-        ++n;
-        x >>= 1;
-    }
-    return std::size_t{1} << n;
-}
-
-} // detail
-
-//------------------------------------------------------------------------------
-
 template<class Allocator>
 basic_flat_buffer<Allocator>::
 ~basic_flat_buffer()
@@ -235,6 +216,19 @@ operator=(basic_flat_buffer const& other) ->
     return *this;
 }
 
+template<class Allocator>
+template<class OtherAlloc>
+auto
+basic_flat_buffer<Allocator>::
+operator=(basic_flat_buffer<OtherAlloc> const& other) ->
+    basic_flat_buffer&
+{
+    reset();
+    max_ = other.max_;
+    copy_from(other);
+    return *this;
+}
+
 //------------------------------------------------------------------------------
 
 template<class Allocator>
@@ -266,9 +260,9 @@ prepare(std::size_t n) ->
         BOOST_THROW_EXCEPTION(std::length_error{
             "basic_flat_buffer overflow"});
     // allocate a new buffer
-    auto const new_size = (std::min)(max_,
-        std::max<std::size_t>(
-            detail::next_pow2(len + n), min_size));
+    auto const new_size = std::min<std::size_t>(
+        max_,
+        std::max<std::size_t>(2 * len, len + n));
     auto const p = alloc_traits::allocate(
         this->member(), new_size);
     if(begin_)
@@ -299,37 +293,6 @@ consume(std::size_t n)
         return;
     }
     in_ += n;
-}
-
-template<class Allocator>
-void
-basic_flat_buffer<Allocator>::
-reserve(std::size_t n)
-{
-    if(n <= capacity())
-        return;
-    if(n > max_)
-        BOOST_THROW_EXCEPTION(std::length_error{
-            "basic_flat_buffer overflow"});
-    auto const new_size = (std::min)(max_,
-        std::max<std::size_t>(
-            detail::next_pow2(n), min_size));
-    auto const p = alloc_traits::allocate(
-        this->member(), new_size);
-    auto const len = size();
-    if(begin_)
-    {
-        BOOST_ASSERT(begin_);
-        BOOST_ASSERT(in_);
-        std::memcpy(p, in_, len);
-        alloc_traits::deallocate(
-            this->member(), begin_, capacity());
-    }
-    begin_ = p;
-    in_ = begin_;
-    out_ = begin_ + len;
-    last_ = out_;
-    end_ = begin_ + new_size;
 }
 
 template<class Allocator>
@@ -434,6 +397,7 @@ basic_flat_buffer<Allocator>::
 copy_assign(basic_flat_buffer const& other, std::true_type)
 {
     reset();
+    max_ = other.max_;
     this->member() = other.member();
     copy_from(other);
 }
@@ -445,6 +409,7 @@ basic_flat_buffer<Allocator>::
 copy_assign(basic_flat_buffer const& other, std::false_type)
 {
     reset();
+    max_ = other.max_;
     copy_from(other);
 }
 
@@ -454,8 +419,8 @@ void
 basic_flat_buffer<Allocator>::
 swap(basic_flat_buffer& other)
 {
-    swap(other,
-        typename alloc_traits::propagate_on_container_swap{});
+    swap(other, typename
+        alloc_traits::propagate_on_container_swap{});
 }
 
 template<class Allocator>
@@ -466,12 +431,13 @@ swap(basic_flat_buffer& other, std::true_type)
 {
     using std::swap;
     swap(this->member(), other.member());
-    swap(this->begin_, other.begin_);
-    swap(this->in_, other.in_);
-    swap(this->out_, other.out_);
-    this->last_ = this->out_;
-    other->last_ = other->out_;
-    swap(this->end_, other.end_);
+    swap(max_, other.max_);
+    swap(begin_, other.begin_);
+    swap(in_, other.in_);
+    swap(out_, other.out_);
+    last_ = this->out_;
+    other.last_ = other.out_;
+    swap(end_, other.end_);
 }
 
 template<class Allocator>
@@ -482,12 +448,13 @@ swap(basic_flat_buffer& other, std::false_type)
 {
     BOOST_ASSERT(this->member() == other.member());
     using std::swap;
-    swap(this->begin_, other.begin_);
-    swap(this->in_, other.in_);
-    swap(this->out_, other.out_);
-    this->last_ = this->out_;
-    other->last_ = other->out_;
-    swap(this->end_, other.end_);
+    swap(max_, other.max_);
+    swap(begin_, other.begin_);
+    swap(in_, other.in_);
+    swap(out_, other.out_);
+    last_ = this->out_;
+    other.last_ = other.out_;
+    swap(end_, other.end_);
 }
 
 template<class Allocator>
