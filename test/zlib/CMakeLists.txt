@@ -19,8 +19,4 @@ add_executable (zlib-tests
     inflate_stream.cpp
 )
 
-if (NOT WIN32)
-    target_link_libraries(zlib-tests ${Boost_LIBRARIES} Threads::Threads)
-else()
-    target_link_libraries(zlib-tests ${Boost_LIBRARIES})
-endif()
+target_link_libraries(zlib-tests Beast Boost::program_options Boost::filesystem)

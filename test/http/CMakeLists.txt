@@ -33,11 +33,7 @@ add_executable (http-tests
     write.cpp
 )
 
-if (NOT WIN32)
-    target_link_libraries(http-tests ${Boost_LIBRARIES} Threads::Threads)
-else()
-    target_link_libraries(http-tests ${Boost_LIBRARIES})
-endif()
+target_link_libraries(http-tests Beast Boost::program_options Boost::filesystem Boost::coroutine Boost::thread Boost::context)
 
 add_executable (http-bench
     ${BEAST_INCLUDES}
@@ -49,8 +45,4 @@ add_executable (http-bench
     parser_bench.cpp
 )
 
-if (NOT WIN32)
-    target_link_libraries(http-bench ${Boost_LIBRARIES} Threads::Threads)
-else()
-    target_link_libraries(http-bench ${Boost_LIBRARIES})
-endif()
+target_link_libraries(http-bench Beast Boost::program_options Boost::filesystem)

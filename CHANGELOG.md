@@ -1,6 +1,7 @@
 Version 55:
 
 * Don't allocate memory to handle obs-fold
+* Add Beast CMake interface target
 
 --------------------------------------------------------------------------------
 

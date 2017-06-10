@@ -16,11 +16,7 @@ add_executable (lib-tests
     zlib.cpp
 )
 
-if (NOT WIN32)
-    target_link_libraries(lib-tests ${Boost_LIBRARIES} Threads::Threads)
-else()
-    target_link_libraries(lib-tests ${Boost_LIBRARIES})
-endif()
+target_link_libraries(lib-tests Beast Boost::program_options)
 
 if (MINGW)
     set_target_properties(lib-tests PROPERTIES COMPILE_FLAGS "-Wa,-mbig-obj")
