@@ -8,6 +8,7 @@
 // Test that header file is self-contained.
 #include <beast/http/fields.hpp>
 
+#include <beast/test/test_allocator.hpp>
 #include <beast/unit_test/suite.hpp>
 #include <boost/lexical_cast.hpp>
 
@@ -55,6 +56,232 @@ public:
         return std::distance(f.begin(), f.end());
     }
 
+    void
+    testMembers()
+    {
+        using namespace test;
+
+        // compare equal
+        using equal_t = test::test_allocator<char,
+            true, true, true, true, true>;
+
+        // compare not equal
+        using unequal_t = test::test_allocator<char,
+            false, true, true, true, true>;
+
+        // construction
+        {
+            {
+                fields f;
+                BEAST_EXPECT(f.begin() == f.end());
+            }
+            {
+                unequal_t a1;
+                basic_fields<unequal_t> f{a1};
+                BEAST_EXPECT(f.get_allocator() == a1);
+                BEAST_EXPECT(f.get_allocator() != unequal_t{});
+            }
+        }
+
+        // move construction
+        {
+            {
+                basic_fields<equal_t> f1;
+                BEAST_EXPECT(f1.get_allocator()->nmove == 0);
+                f1.insert("1", "1");
+                BEAST_EXPECT(f1["1"] == "1");
+                basic_fields<equal_t> f2{std::move(f1)};
+                BEAST_EXPECT(f2.get_allocator()->nmove == 1);
+                BEAST_EXPECT(f2["1"] == "1");
+                BEAST_EXPECT(f1["1"] == "");
+            }
+            // allocators equal
+            {
+                basic_fields<equal_t> f1;
+                f1.insert("1", "1");
+                equal_t a;
+                basic_fields<equal_t> f2{std::move(f1), a};
+                BEAST_EXPECT(f2["1"] == "1");
+                BEAST_EXPECT(f1["1"] == "");
+            }
+            {
+                // allocators unequal
+                basic_fields<unequal_t> f1;
+                f1.insert("1", "1");
+                unequal_t a;
+                basic_fields<unequal_t> f2{std::move(f1), a};
+                BEAST_EXPECT(f2["1"] == "1");
+            }
+        }
+
+        // copy construction
+        {
+            {
+                basic_fields<equal_t> f1;
+                f1.insert("1", "1");
+                basic_fields<equal_t> f2{f1};
+                BEAST_EXPECT(f1.get_allocator() == f2.get_allocator());
+                BEAST_EXPECT(f1["1"] == "1");
+                BEAST_EXPECT(f2["1"] == "1");
+            }
+            {
+                basic_fields<unequal_t> f1;
+                f1.insert("1", "1");
+                unequal_t a;
+                basic_fields<unequal_t> f2(f1, a);
+                BEAST_EXPECT(f1.get_allocator() != f2.get_allocator());
+                BEAST_EXPECT(f1["1"] == "1");
+                BEAST_EXPECT(f2["1"] == "1");
+            }
+            {
+                basic_fields<equal_t> f1;
+                f1.insert("1", "1");
+                basic_fields<unequal_t> f2(f1);
+                BEAST_EXPECT(f1["1"] == "1");
+                BEAST_EXPECT(f2["1"] == "1");
+            }
+            {
+                basic_fields<unequal_t> f1;
+                f1.insert("1", "1");
+                equal_t a;
+                basic_fields<equal_t> f2(f1, a);
+                BEAST_EXPECT(f2.get_allocator() == a);
+                BEAST_EXPECT(f1["1"] == "1");
+                BEAST_EXPECT(f2["1"] == "1");
+            }
+        }
+
+        // move assignment
+        {
+            {
+                fields f1;
+                f1.insert("1", "1");
+                fields f2;
+                f2 = std::move(f1);
+                BEAST_EXPECT(f1.begin() == f1.end());
+                BEAST_EXPECT(f2["1"] == "1");
+            }
+            {
+                // propagate_on_container_move_assignment : true
+                using pocma_t = test::test_allocator<char,
+                    true, true, true, true, true>;
+                basic_fields<pocma_t> f1;
+                f1.insert("1", "1");
+                basic_fields<pocma_t> f2;
+                f2 = std::move(f1);
+                BEAST_EXPECT(f1.begin() == f1.end());
+                BEAST_EXPECT(f2["1"] == "1");
+            }
+            {
+                // propagate_on_container_move_assignment : false
+                using pocma_t = test::test_allocator<char,
+                    true, true, false, true, true>;
+                basic_fields<pocma_t> f1;
+                f1.insert("1", "1");
+                basic_fields<pocma_t> f2;
+                f2 = std::move(f1);
+                BEAST_EXPECT(f1.begin() == f1.end());
+                BEAST_EXPECT(f2["1"] == "1");
+            }
+        }
+
+        // copy assignment
+        {
+            {
+                fields f1;
+                f1.insert("1", "1");
+                fields f2;
+                f2 = f1;
+                BEAST_EXPECT(f1["1"] == "1");
+                BEAST_EXPECT(f2["1"] == "1");
+                basic_fields<equal_t> f3;
+                f3 = f2;
+                BEAST_EXPECT(f3["1"] == "1");
+            }
+            {
+                // propagate_on_container_copy_assignment : true
+                using pocca_t = test::test_allocator<char,
+                    true, true, true, true, true>;
+                basic_fields<pocca_t> f1;
+                f1.insert("1", "1");
+                basic_fields<pocca_t> f2;
+                f2 = f1;
+                BEAST_EXPECT(f2["1"] == "1");
+            }
+            {
+                // propagate_on_container_copy_assignment : false
+                using pocca_t = test::test_allocator<char,
+                    true, false, true, true, true>;
+                basic_fields<pocca_t> f1;
+                f1.insert("1", "1");
+                basic_fields<pocca_t> f2;
+                f2 = f1;
+                BEAST_EXPECT(f2["1"] == "1");
+            }
+        }
+
+        // swap
+        {
+            {
+                // propagate_on_container_swap : true
+                using pocs_t = test::test_allocator<char,
+                    false, true, true, true, true>;
+                pocs_t a1, a2;
+                BEAST_EXPECT(a1 != a2);
+                basic_fields<pocs_t> f1{a1};
+                f1.insert("1", "1");
+                basic_fields<pocs_t> f2{a2};
+                BEAST_EXPECT(f1.get_allocator() == a1);
+                BEAST_EXPECT(f2.get_allocator() == a2);
+                swap(f1, f2);
+                BEAST_EXPECT(f1.get_allocator() == a2);
+                BEAST_EXPECT(f2.get_allocator() == a1);
+                BEAST_EXPECT(f1.begin() == f1.end());
+                BEAST_EXPECT(f2["1"] == "1");
+                swap(f1, f2);
+                BEAST_EXPECT(f1.get_allocator() == a1);
+                BEAST_EXPECT(f2.get_allocator() == a2);
+                BEAST_EXPECT(f1["1"] == "1");
+                BEAST_EXPECT(f2.begin() == f2.end());
+            }
+            {
+                // propagate_on_container_swap : false
+                using pocs_t = test::test_allocator<char,
+                    true, true, true, false, true>;
+                pocs_t a1, a2;
+                BEAST_EXPECT(a1 == a2);
+                BEAST_EXPECT(a1.id() != a2.id());
+                basic_fields<pocs_t> f1{a1};
+                f1.insert("1", "1");
+                basic_fields<pocs_t> f2{a2};
+                BEAST_EXPECT(f1.get_allocator() == a1);
+                BEAST_EXPECT(f2.get_allocator() == a2);
+                swap(f1, f2);
+                BEAST_EXPECT(f1.get_allocator().id() == a1.id());
+                BEAST_EXPECT(f2.get_allocator().id() == a2.id());
+                BEAST_EXPECT(f1.begin() == f1.end());
+                BEAST_EXPECT(f2["1"] == "1");
+                swap(f1, f2);
+                BEAST_EXPECT(f1.get_allocator().id() == a1.id());
+                BEAST_EXPECT(f2.get_allocator().id() == a2.id());
+                BEAST_EXPECT(f1["1"] == "1");
+                BEAST_EXPECT(f2.begin() == f2.end());
+            }
+        }
+
+        // operations
+        {
+            fields f;
+            f.insert(field::user_agent, "x");
+            BEAST_EXPECT(f.exists(field::user_agent));
+            BEAST_EXPECT(f.exists(to_string(field::user_agent)));
+            BEAST_EXPECT(f.count(field::user_agent) == 1);
+            BEAST_EXPECT(f.count(to_string(field::user_agent)) == 1);
+            f.insert(field::user_agent, "y");
+            BEAST_EXPECT(f.count(field::user_agent) == 2);
+        }
+    }
+
     void testHeaders()
     {
         f_t f1;
@@ -83,7 +310,7 @@ public:
         f.insert("a", "w");
         f.insert("a", "x");
         f.insert("aa", "y");
-        f.insert("b", "z");
+        f.insert("f", "z");
         BEAST_EXPECT(f.count("a") == 2);
     }
 
@@ -93,7 +320,7 @@ public:
         f.insert("a", "w");
         f.insert("a", "x");
         f.insert("aa", "y");
-        f.insert("b", "z");
+        f.insert("f", "z");
         BEAST_EXPECT(size(f) == 4);
         f.erase("a");
         BEAST_EXPECT(size(f) == 2);
@@ -101,6 +328,7 @@ public:
 
     void run() override
     {
+        testMembers();
         testHeaders();
         testRFC2616();
         testErase();

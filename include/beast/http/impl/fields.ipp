@@ -359,11 +359,11 @@ basic_fields(Allocator const& alloc)
 template<class Allocator>
 basic_fields<Allocator>::
 basic_fields(basic_fields&& other)
-    : set_(std::move(other.set_))
+    : alloc_(std::move(other.alloc_))
+    , set_(std::move(other.set_))
     , list_(std::move(other.list_))
     , method_(other.method_)
     , target_or_reason_(other.target_or_reason_)
-    , alloc_(std::move(other.alloc_))
 {
     other.method_.clear();
     other.target_or_reason_.clear();
@@ -371,8 +371,27 @@ basic_fields(basic_fields&& other)
 
 template<class Allocator>
 basic_fields<Allocator>::
+basic_fields(basic_fields&& other, Allocator const& alloc)
+    : alloc_(alloc)
+{
+    if(alloc_ != other.alloc_)
+    {
+        copy_all(other);
+        other.clear_all();
+    }
+    else
+    {
+        set_ = std::move(other.set_);
+        list_ = std::move(other.list_);
+        method_ = other.method_;
+        target_or_reason_ = other.target_or_reason_;
+    }
+}
+
+template<class Allocator>
+basic_fields<Allocator>::
 basic_fields(basic_fields const& other)
-    : basic_fields(alloc_traits::
+    : alloc_(alloc_traits::
         select_on_container_copy_construction(other.alloc_))
 {
     copy_all(other);
@@ -388,7 +407,7 @@ basic_fields(basic_fields const& other,
 }
 
 template<class Allocator>
-template<class OtherAlloc, class>
+template<class OtherAlloc>
 basic_fields<Allocator>::
 basic_fields(basic_fields<OtherAlloc> const& other)
 {
@@ -396,7 +415,7 @@ basic_fields(basic_fields<OtherAlloc> const& other)
 }
 
 template<class Allocator>
-template<class OtherAlloc, class>
+template<class OtherAlloc>
 basic_fields<Allocator>::
 basic_fields(basic_fields<OtherAlloc> const& other,
         Allocator const& alloc)
@@ -430,7 +449,7 @@ operator=(basic_fields const& other) ->
 }
 
 template<class Allocator>
-template<class OtherAlloc, class>
+template<class OtherAlloc>
 auto
 basic_fields<Allocator>::
 operator=(basic_fields<OtherAlloc> const& other) ->
