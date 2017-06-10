@@ -9,6 +9,7 @@
 #include <beast/core/consuming_buffers.hpp>
 
 #include "buffer_test.hpp"
+
 #include <beast/core/buffer_cat.hpp>
 #include <beast/core/ostream.hpp>
 #include <beast/unit_test/suite.hpp>
@@ -20,15 +21,6 @@ namespace beast {
 class consuming_buffers_test : public beast::unit_test::suite
 {
 public:
-    template<class ConstBufferSequence>
-    static
-    std::string
-    to_string(ConstBufferSequence const& bs)
-    {
-        return boost::lexical_cast<
-            std::string>(buffers(bs));
-    }
-
     template<class BufferSequence>
     static
     consuming_buffers<BufferSequence>
@@ -44,6 +36,7 @@ public:
     bool
     eq(Buffers1 const& lhs, Buffers2 const& rhs)
     {
+        using namespace test;
         return to_string(lhs) == to_string(rhs);
     }
 
@@ -58,8 +51,23 @@ public:
     }
 
     void
+    testMembers()
+    {
+        char buf[12];
+        consuming_buffers<
+            boost::asio::const_buffers_1> cb1{
+                boost::in_place_init, buf, sizeof(buf)};
+        consuming_buffers<
+            boost::asio::const_buffers_1> cb2{
+                boost::in_place_init, nullptr, 0};
+        cb2 = cb1;
+        cb1 = std::move(cb2);
+    }
+
+    void
     testMatrix()
     {
+        using namespace test;
         using boost::asio::buffer;
         using boost::asio::const_buffer;
         char buf[12];
@@ -104,6 +112,7 @@ public:
     void
     testDefaultCtor()
     {
+        using namespace test;
         class test_buffer : public boost::asio::const_buffers_1
         {
         public:
@@ -120,6 +129,7 @@ public:
     void
     testInPlace()
     {
+        using namespace test;
         consuming_buffers<buffer_cat_view<
             boost::asio::const_buffers_1,
             boost::asio::const_buffers_1>> cb(
@@ -157,6 +167,7 @@ public:
 
     void run() override
     {
+        testMembers();
         testMatrix();
         testDefaultCtor();
         testInPlace();
