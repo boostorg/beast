@@ -5,6 +5,7 @@ Version 54:
 * multi_buffer coverage
 * consuming_buffers members and coverage
 * basic_fields members and coverage
+* Add string_param
 
 --------------------------------------------------------------------------------
 
