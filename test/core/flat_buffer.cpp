@@ -143,16 +143,11 @@ public:
             BEAST_EXPECT(b.size() == 1);
         }
         {
-            flat_buffer b{10};
-            try
-            {
-                b.reserve(11);
-                fail("", __FILE__, __LINE__);
-            }
-            catch(std::length_error const&)
-            {
-                pass();
-            }
+            flat_buffer b{20};
+            ostream(b) << "12345";
+            b.consume(3);
+            ostream(b) << "67890123";
+            BEAST_EXPECT(to_string(b.data()) == "4567890123");
         }
     }
 

@@ -369,9 +369,8 @@ inflate(
     for(;;)
     {
         // VFALCO we could be smarter about the size
-        using beast::detail::read_size_helper;
         auto const bs = buffer.prepare(
-            read_size_helper(buffer, 65536));
+            maybe_read_size_helper(buffer, 65536));
         auto const out = *bs.begin();
         zs.avail_out = buffer_size(out);
         zs.next_out = buffer_cast<void*>(out);

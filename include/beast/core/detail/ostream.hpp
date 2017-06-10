@@ -128,9 +128,8 @@ private:
     {
         using boost::asio::buffer_cast;
         using boost::asio::buffer_size;
-        using beast::detail::read_size_helper;
         auto mbs = buf_.prepare(
-            read_size_helper(buf_, max_size));
+            maybe_read_size_helper(buf_, max_size));
         auto const mb = *mbs.begin();
         auto const p = buffer_cast<CharT*>(mb);
         this->setp(p,
@@ -209,9 +208,8 @@ private:
     {
         using boost::asio::buffer_cast;
         using boost::asio::buffer_size;
-        using beast::detail::read_size_helper;
         auto mbs = buf_.prepare(
-            read_size_helper(buf_, max_size));
+            maybe_read_size_helper(buf_, max_size));
         auto const mb = *mbs.begin();
         auto const p = buffer_cast<CharT*>(mb);
         this->setp(p,
