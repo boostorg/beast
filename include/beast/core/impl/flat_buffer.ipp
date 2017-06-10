@@ -36,50 +36,7 @@ next_pow2(std::size_t x)
 
 } // detail
 
-template<class Allocator>
-void
-basic_flat_buffer<Allocator>::
-move_from(basic_flat_buffer& other)
-{
-    begin_ = other.begin_;
-    in_ = other.in_;
-    out_ = other.out_;
-    last_ = out_;
-    end_ = other.end_;
-    max_ = other.max_;
-    other.begin_ = nullptr;
-    other.in_ = nullptr;
-    other.out_ = nullptr;
-    other.last_ = nullptr;
-    other.end_ = nullptr;
-}
-
-template<class Allocator>
-template<class OtherAlloc>
-void
-basic_flat_buffer<Allocator>::
-copy_from(basic_flat_buffer<
-    OtherAlloc> const& other)
-{
-    max_ = other.max_;
-    auto const n = other.size();
-    if(n > 0)
-    {
-        begin_ = alloc_traits::allocate(
-            this->member(), n);
-        in_ = begin_;
-        out_ = begin_ + n;
-        last_ = out_;
-        end_ = out_;
-        std::memcpy(in_, other.in_, n);
-        return;
-    }
-    begin_ = nullptr;
-    in_ = nullptr;
-    out_ = nullptr;
-    last_ = nullptr;
-    end_ = nullptr;
-}
+//------------------------------------------------------------------------------
 
 template<class Allocator>
 basic_flat_buffer<Allocator>::
@@ -92,69 +49,14 @@ basic_flat_buffer<Allocator>::
 
 template<class Allocator>
 basic_flat_buffer<Allocator>::
-basic_flat_buffer(basic_flat_buffer&& other)
-    : detail::empty_base_optimization<
-        allocator_type>(std::move(other.member()))
+basic_flat_buffer()
+    : begin_(nullptr)
+    , in_(nullptr)
+    , out_(nullptr)
+    , last_(nullptr)
+    , end_(nullptr)
+    , max_((std::numeric_limits<std::size_t>::max)())
 {
-    move_from(other);
-}
-
-template<class Allocator>
-basic_flat_buffer<Allocator>::
-basic_flat_buffer(basic_flat_buffer&& other,
-        Allocator const& alloc)
-    : detail::empty_base_optimization<
-        allocator_type>(alloc)
-{
-    if(this->member() != other.member())
-    {
-        copy_from(other);
-        return;
-    }
-    move_from(other);
-}
-
-template<class Allocator>
-basic_flat_buffer<Allocator>::
-basic_flat_buffer(
-        basic_flat_buffer const& other)
-    : detail::empty_base_optimization<allocator_type>(
-        alloc_traits::select_on_container_copy_construction(
-            other.member()))
-{
-    copy_from(other);
-}
-
-template<class Allocator>
-basic_flat_buffer<Allocator>::
-basic_flat_buffer(
-    basic_flat_buffer const& other,
-        Allocator const& alloc)
-    : detail::empty_base_optimization<
-        allocator_type>(alloc)
-{
-    copy_from(other);
-}
-    
-template<class Allocator>
-template<class OtherAlloc>
-basic_flat_buffer<Allocator>::
-basic_flat_buffer(
-    basic_flat_buffer<OtherAlloc> const& other)
-{
-    copy_from(other);
-}
-
-template<class Allocator>
-template<class OtherAlloc>
-basic_flat_buffer<Allocator>::
-basic_flat_buffer(
-    basic_flat_buffer<OtherAlloc> const& other,
-        Allocator const& alloc)
-    : detail::empty_base_optimization<
-        allocator_type>(alloc)
-{
-    copy_from(other);
 }
 
 template<class Allocator>
@@ -167,15 +69,25 @@ basic_flat_buffer(std::size_t limit)
     , end_(nullptr)
     , max_(limit)
 {
-    BOOST_ASSERT(limit >= 1);
 }
 
 template<class Allocator>
 basic_flat_buffer<Allocator>::
-basic_flat_buffer(Allocator const& alloc,
-        std::size_t limit)
-    : detail::empty_base_optimization<
-        allocator_type>(alloc)
+basic_flat_buffer(Allocator const& alloc)
+    : detail::empty_base_optimization<allocator_type>(alloc)
+    , begin_(nullptr)
+    , in_(nullptr)
+    , out_(nullptr)
+    , last_(nullptr)
+    , end_(nullptr)
+    , max_((std::numeric_limits<std::size_t>::max)())
+{
+}
+
+template<class Allocator>
+basic_flat_buffer<Allocator>::
+basic_flat_buffer(std::size_t limit, Allocator const& alloc)
+    : detail::empty_base_optimization<allocator_type>(alloc)
     , begin_(nullptr)
     , in_(nullptr)
     , out_(nullptr)
@@ -183,8 +95,147 @@ basic_flat_buffer(Allocator const& alloc,
     , end_(nullptr)
     , max_(limit)
 {
-    BOOST_ASSERT(limit >= 1);
 }
+
+template<class Allocator>
+basic_flat_buffer<Allocator>::
+basic_flat_buffer(basic_flat_buffer&& other)
+    : detail::empty_base_optimization<allocator_type>(
+        std::move(other.member()))
+    , begin_(other.begin_)
+    , in_(other.in_)
+    , out_(other.out_)
+    , last_(out_)
+    , end_(other.end_)
+    , max_(other.max_)
+{
+    other.begin_ = nullptr;
+    other.in_ = nullptr;
+    other.out_ = nullptr;
+    other.last_ = nullptr;
+    other.end_ = nullptr;
+}
+
+template<class Allocator>
+basic_flat_buffer<Allocator>::
+basic_flat_buffer(basic_flat_buffer&& other,
+        Allocator const& alloc)
+    : detail::empty_base_optimization<allocator_type>(alloc)
+{
+    if(this->member() != other.member())
+    {
+        begin_ = nullptr;
+        in_ = nullptr;
+        out_ = nullptr;
+        last_ = nullptr;
+        end_ = nullptr;
+        max_ = other.max_;
+        copy_from(other);
+        other.reset();
+    }
+    else
+    {
+        begin_ = other.begin_;
+        in_ = other.in_;
+        out_ = other.out_;
+        last_ = out_;
+        end_ = other.end_;
+        max_ = other.max_;
+        other.begin_ = nullptr;
+        other.in_ = nullptr;
+        other.out_ = nullptr;
+        other.last_ = nullptr;
+        other.end_ = nullptr;
+    }
+}
+
+template<class Allocator>
+basic_flat_buffer<Allocator>::
+basic_flat_buffer(basic_flat_buffer const& other)
+    : detail::empty_base_optimization<allocator_type>(
+        alloc_traits::select_on_container_copy_construction(
+            other.member()))
+    , begin_(nullptr)
+    , in_(nullptr)
+    , out_(nullptr)
+    , last_(nullptr)
+    , end_(nullptr)
+    , max_(other.max_)
+{
+    copy_from(other);
+}
+
+template<class Allocator>
+basic_flat_buffer<Allocator>::
+basic_flat_buffer(basic_flat_buffer const& other,
+        Allocator const& alloc)
+    : detail::empty_base_optimization<allocator_type>(alloc)
+    , begin_(nullptr)
+    , in_(nullptr)
+    , out_(nullptr)
+    , last_(nullptr)
+    , end_(nullptr)
+    , max_(other.max_)
+{
+    copy_from(other);
+}
+
+template<class Allocator>
+template<class OtherAlloc>
+basic_flat_buffer<Allocator>::
+basic_flat_buffer(
+        basic_flat_buffer<OtherAlloc> const& other)
+    : begin_(nullptr)
+    , in_(nullptr)
+    , out_(nullptr)
+    , last_(nullptr)
+    , end_(nullptr)
+    , max_(other.max_)
+{
+    copy_from(other);
+}
+
+template<class Allocator>
+template<class OtherAlloc>
+basic_flat_buffer<Allocator>::
+basic_flat_buffer(basic_flat_buffer<OtherAlloc> const& other,
+        Allocator const& alloc)
+    : detail::empty_base_optimization<allocator_type>(alloc)
+    , begin_(nullptr)
+    , in_(nullptr)
+    , out_(nullptr)
+    , last_(nullptr)
+    , end_(nullptr)
+    , max_(other.max_)
+{
+    copy_from(other);
+}
+
+template<class Allocator>
+auto
+basic_flat_buffer<Allocator>::
+operator=(basic_flat_buffer&& other) ->
+    basic_flat_buffer&
+{
+    if(this != &other)
+        move_assign(other,
+            typename alloc_traits::propagate_on_container_move_assignment{});
+    return *this;
+}
+
+template<class Allocator>
+auto
+basic_flat_buffer<Allocator>::
+operator=(basic_flat_buffer const& other) ->
+    basic_flat_buffer&
+{
+    if(this != &other)
+        copy_assign(other,
+            typename alloc_traits::propagate_on_container_copy_assignment{});
+    return *this;
+}
+
+//------------------------------------------------------------------------------
 
 template<class Allocator>
 auto
@@ -309,6 +360,143 @@ shrink_to_fit()
     out_ = begin_ + len;
     last_ = out_;
     end_ = out_;
+}
+
+//------------------------------------------------------------------------------
+
+template<class Allocator>
+inline
+void
+basic_flat_buffer<Allocator>::
+reset()
+{
+    consume(size());
+    shrink_to_fit();
+}
+
+template<class Allocator>
+template<class DynamicBuffer>
+inline
+void
+basic_flat_buffer<Allocator>::
+copy_from(DynamicBuffer const& buffer)
+{
+    if(buffer.size() == 0)
+        return;
+    using boost::asio::buffer_copy;
+    commit(buffer_copy(
+        prepare(buffer.size()), buffer.data()));
+}
+
+template<class Allocator>
+inline
+void
+basic_flat_buffer<Allocator>::
+move_assign(basic_flat_buffer& other, std::true_type)
+{
+    reset();
+    this->member() = std::move(other.member());
+    begin_ = other.begin_;
+    in_ = other.in_;
+    out_ = other.out_;
+    last_ = out_;
+    end_ = other.end_;
+    max_ = other.max_;
+    other.begin_ = nullptr;
+    other.in_ = nullptr;
+    other.out_ = nullptr;
+    other.last_ = nullptr;
+    other.end_ = nullptr;
+}
+
+template<class Allocator>
+inline
+void
+basic_flat_buffer<Allocator>::
+move_assign(basic_flat_buffer& other, std::false_type)
+{
+    reset();
+    if(this->member() != other.member())
+    {
+        copy_from(other);
+        other.reset();
+    }
+    else
+    {
+        move_assign(other, std::true_type{});
+    }
+}
+
+template<class Allocator>
+inline
+void
+basic_flat_buffer<Allocator>::
+copy_assign(basic_flat_buffer const& other, std::true_type)
+{
+    reset();
+    this->member() = other.member();
+    copy_from(other);
+}
+
+template<class Allocator>
+inline
+void
+basic_flat_buffer<Allocator>::
+copy_assign(basic_flat_buffer const& other, std::false_type)
+{
+    reset();
+    copy_from(other);
+}
+
+template<class Allocator>
+inline
+void
+basic_flat_buffer<Allocator>::
+swap(basic_flat_buffer& other)
+{
+    swap(other,
+        typename alloc_traits::propagate_on_container_swap{});
+}
+
+template<class Allocator>
+inline
+void
+basic_flat_buffer<Allocator>::
+swap(basic_flat_buffer& other, std::true_type)
+{
+    using std::swap;
+    swap(this->member(), other.member());
+    swap(this->begin_, other.begin_);
+    swap(this->in_, other.in_);
+    swap(this->out_, other.out_);
+    this->last_ = this->out_;
+    other->last_ = other->out_;
+    swap(this->end_, other.end_);
+}
+
+template<class Allocator>
+inline
+void
+basic_flat_buffer<Allocator>::
+swap(basic_flat_buffer& other, std::false_type)
+{
+    BOOST_ASSERT(this->member() == other.member());
+    using std::swap;
+    swap(this->begin_, other.begin_);
+    swap(this->in_, other.in_);
+    swap(this->out_, other.out_);
+    this->last_ = this->out_;
+    other->last_ = other->out_;
+    swap(this->end_, other.end_);
+}
+
+template<class Allocator>
+void
+swap(
+    basic_flat_buffer<Allocator>& lhs,
+    basic_flat_buffer<Allocator>& rhs)
+{
+    lhs.swap(rhs);
 }
 
 } // beast
