@@ -1,6 +1,7 @@
 Version 54:
 
 * static_buffer coverage
+* flat_buffer coverage
 
 --------------------------------------------------------------------------------
 

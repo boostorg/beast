@@ -204,6 +204,16 @@ public:
     basic_flat_buffer&
     operator=(basic_flat_buffer const& other);
 
+    /** Copy assignment
+
+        After the copy, `*this` will have an empty output sequence.
+
+        @param other The object to copy from.
+    */
+    template<class OtherAlloc>
+    basic_flat_buffer&
+    operator=(basic_flat_buffer<OtherAlloc> const& other);
+
     /// Returns a copy of the associated allocator.
     allocator_type
     get_allocator() const
@@ -274,21 +284,6 @@ public:
     */
     void
     consume(std::size_t n);
-
-    /** Reserve space in the stream.
-
-        This reallocates the buffer if necessary.
-
-        @note All previous buffers sequences obtained from
-        calls to @ref data or @ref prepare are invalidated.
-
-        @param n The number of bytes to reserve. Upon success,
-        the capacity will be at least `n`. 
-
-        @throws std::length_error if `n` exceeds `max_size()`.
-    */
-    void
-    reserve(std::size_t n);
 
     /** Reallocate the buffer to fit the input sequence.
 
