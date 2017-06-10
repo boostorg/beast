@@ -9,11 +9,11 @@
 #define BEAST_HTTP_FIELDS_HPP
 
 #include <beast/config.hpp>
+#include <beast/core/string_param.hpp>
 #include <beast/core/string_view.hpp>
 #include <beast/core/detail/ci_char_traits.hpp>
 #include <beast/http/field.hpp>
 #include <boost/asio/buffer.hpp>
-#include <boost/lexical_cast.hpp>
 #include <boost/intrusive/list.hpp>
 #include <boost/intrusive/set.hpp>
 #include <algorithm>
@@ -49,28 +49,95 @@ private:
     using off_t = std::uint16_t;
 
 public:
-    /** The value type of the field sequence.
+    /// The type of allocator used.
+    using allocator_type = Allocator;
 
-        Meets the requirements of @b Field.
-    */
-    struct value_type
+    /// The type of element used to represent a field 
+    class value_type
     {
-        string_view
-        name() const
-        {
-            return {first, off - 2u};
-        }
+        friend class basic_fields;
 
-        string_view
-        value() const
-        {
-            return {first + off, len};
-        }
+        boost::asio::const_buffer
+        buffer() const;
 
-        char const* first;
-        off_t off;
-        off_t len;
+        value_type(field name,
+            string_view sname, string_view value);
+
+        boost::intrusive::list_member_hook<
+            boost::intrusive::link_mode<
+                boost::intrusive::normal_link>>
+                    list_hook_;
+        boost::intrusive::set_member_hook<
+            boost::intrusive::link_mode<
+                boost::intrusive::normal_link>>
+                    set_hook_;
+        off_t off_;
+        off_t len_;
+        field f_;
+
+    public:
+        /// Returns the field enum, which can be @ref field::unknown
+        field
+        name() const;
+
+        /// Returns the field name as a string
+        string_view
+        name_string() const;
+
+        /// Returns the value of the field
+        string_view
+        value() const;
     };
+
+    /// A function that compares keys as LessThanComparable
+    struct key_compare : private beast::detail::ci_less
+    {
+        /// Returns `true` if lhs is less than rhs using a strict ordering
+        template<class String>
+        bool
+        operator()(String const& lhs, value_type const& rhs) const
+        {
+            return ci_less::operator()(lhs, rhs.name_string());
+        }
+
+        /// Returns `true` if lhs is less than rhs using a strict ordering
+        template<class String>
+        bool
+        operator()(value_type const& lhs, String const& rhs) const
+        {
+            return ci_less::operator()(lhs.name_string(), rhs);
+        }
+
+        /// Returns `true` if lhs is less than rhs using a strict ordering
+        bool
+        operator()(value_type const& lhs, value_type const& rhs) const
+        {
+            return ci_less::operator()(
+                lhs.name(), rhs.name());
+        }
+    };
+
+    /// The algorithm used to serialize the header
+    class reader;
+
+private:
+    using list_t = typename boost::intrusive::make_list<
+        value_type, boost::intrusive::member_hook<
+            value_type, boost::intrusive::list_member_hook<
+                boost::intrusive::link_mode<
+                    boost::intrusive::normal_link>>,
+                        &value_type::list_hook_>,
+                            boost::intrusive::constant_time_size<
+                                false>>::type;
+
+    using set_t = typename boost::intrusive::make_multiset<
+        value_type, boost::intrusive::member_hook<value_type,
+            boost::intrusive::set_member_hook<
+                boost::intrusive::link_mode<
+                    boost::intrusive::normal_link>>,
+                        &value_type::set_hook_>,
+                            boost::intrusive::constant_time_size<true>,
+                                boost::intrusive::compare<key_compare>>::type;
 
 protected:
     friend class fields_test; // for `header`
@@ -90,13 +157,15 @@ protected:
 
     /** Move constructor.
 
-        The moved-from object behaves as if by call to @ref clear.
+        The state of the moved-from object is
+        as if constructed using the same allocator.
     */
     basic_fields(basic_fields&&);
 
     /** Move constructor.
 
-        The moved-from object behaves as if by call to @ref clear.
+        The state of the moved-from object is
+        as if constructed using the same allocator.
 
         @param alloc The allocator to use.
     */
@@ -125,7 +194,8 @@ protected:
 
     /** Move assignment.
 
-        The moved-from object behaves as if by call to @ref clear.
+        The state of the moved-from object is
+        as if constructed using the same allocator.
     */
     basic_fields& operator=(basic_fields&&);
 
@@ -137,11 +207,12 @@ protected:
     basic_fields& operator=(basic_fields<OtherAlloc> const&);
 
 public:
-    /// The type of allocator used.
-    using allocator_type = Allocator;
-
     /// A constant iterator to the field sequence.
-    class const_iterator;
+#if BEAST_DOXYGEN
+    using const_iterator = implementation_defined;
+#else
+    using const_iterator = typename list_t::const_iterator;
+#endif
 
     /// A constant iterator to the field sequence.
     using iterator = const_iterator;
@@ -152,8 +223,62 @@ public:
     {
         return typename std::allocator_traits<
             Allocator>::template rebind_alloc<
-                element>(alloc_);
+                value_type>(alloc_);
     }
+
+    //--------------------------------------------------------------------------
+    //
+    // Element access
+    //
+    //--------------------------------------------------------------------------
+
+    /** Returns the value for a field, or throws an exception.
+
+        @param name The name of the field.
+
+        @return The field value.
+
+        @throws std::out_of_range if the field is not found.
+    */
+    string_view
+    at(field name) const;
+
+    /** Returns the value for a field, or throws an exception.
+
+        @param name The name of the field.
+
+        @return The field value.
+
+        @throws std::out_of_range if the field is not found.
+    */
+    string_view
+    at(string_view name) const;
+
+    /** Returns the value for a field, or `""` if it does not exist.
+
+        If more than one field with the specified name exists, the
+        first field defined by insertion order is returned.
+
+        @param name The name of the field.
+    */
+    string_view
+    operator[](field name) const;
+
+    /** Returns the value for a case-insensitive matching header, or `""`.
+
+        If more than one field with the specified name exists, the
+        first field defined by insertion order is returned.
+
+        @param name The name of the field.
+    */
+    string_view
+    operator[](string_view name) const;
+
+    //--------------------------------------------------------------------------
+    //
+    // Iterators
+    //
+    //--------------------------------------------------------------------------
 
     /// Return a const iterator to the beginning of the field sequence.
     const_iterator
@@ -183,187 +308,159 @@ public:
         return list_.cend();
     }
 
-    /// Return `true` if the specified field exists.
+    //--------------------------------------------------------------------------
+    //
+    // Capacity
+    //
+    //--------------------------------------------------------------------------
+
+private:
+    // VFALCO Since the header and message derive from Fields,
+    //        what does the expression m.empty() mean? Its confusing.
     bool
-    exists(field f) const
+    empty() const
     {
-        // VFALCO Should we throw here?
-        if(f == field::unknown)
-            return false;
-        return set_.find(to_string(f), less{}) != set_.end();
+        return list_.empty();
     }
+public:
 
-    /// Return `true` if the specified field exists.
-    bool
-    exists(string_view name) const
-    {
-        return set_.find(name, less{}) != set_.end();
-    }
+    //--------------------------------------------------------------------------
+    //
+    // Modifiers
+    //
+    //--------------------------------------------------------------------------
 
-    /// Return the number of values for the specified field.
-    std::size_t
-    count(field name) const
-    {
-        return count(to_string(name));
-    }
+private:
+    // VFALCO But this leaves behind the method, target, and reason!
+    /** Remove all fields from the container
 
-    /// Return the number of values for the specified field.
-    std::size_t
-    count(string_view name) const;
-
-    /** Returns an iterator to the case-insensitive matching field name.
-
-        If more than one field with the specified name exists, the
-        first field defined by insertion order is returned.
+        All references, pointers, or iterators referring to contained
+        elements are invalidated. All past-the-end iterators are also
+        invalidated.
     */
-    iterator
-    find(string_view name) const;
-
-    /** Returns an iterator to the case-insensitive matching field.
-
-        If more than one field with the specified name exists, the
-        first field defined by insertion order is returned.
-
-        @param name The field to find.
-    */
-    iterator
-    find(field name) const;
-
-    /** Returns the value for a case-insensitive matching header, or `""`.
-
-        If more than one field with the specified name exists, the
-        first field defined by insertion order is returned.
-    */
-    string_view const
-    operator[](string_view name) const;
-
-    /** Returns the value for a field, or `""` if it does not exist.
-
-        If more than one field with the specified name exists, the
-        first field defined by insertion order is returned.
-
-        @param name The field to retrieve.
-    */
-    string_view const
-    operator[](field name) const;
-
-    /// Clear the contents of the basic_fields.
     void
-    clear() noexcept;
+    clear();
+public:
 
-    /** Remove zero or more known fields.
+    /** Insert a field.
 
-        If more than one field with the specified name exists, all
-        matching fields will be removed.
+        If one or more fields with the same name already exist,
+        the new field will be inserted after the last field with
+        the matching name, in serialization order.
 
-        @param f The known field constant.
+        @param name The field name.
+
+        @param value The value of the field, as a @ref string_param
+    */
+    void
+    insert(field name, string_param const& value);
+
+    /** Insert a field.
+
+        If one or more fields with the same name already exist,
+        the new field will be inserted after the last field with
+        the matching name, in serialization order.
+
+        @param name The field name.
+
+        @param value The value of the field, as a @ref string_param
+    */
+    void
+    insert(string_view name, string_param const& value);
+
+    /** Insert a field.
+
+        If one or more fields with the same name already exist,
+        the new field will be inserted after the last field with
+        the matching name, in serialization order.
+
+        @param name The field name.
+
+        @param name_string The literal text corresponding to the
+        field name. If `name != field::unknown`, then this value
+        must be equal to `to_string(name)` using a case-insensitive
+        comparison, otherwise the behavior is undefined.
+
+        @param value The value of the field, as a @ref string_param
+    */
+    void
+    insert(field name, string_view name_string,
+        string_param const& value);
+
+    /** Replace a field value.
+
+        First removes any values with matching field names, then
+        inserts the new field value.
+
+        @param name The field name.
+
+        @param value The value of the field, as a @ref string_param
+
+        @return The field value.
+    */
+    void
+    replace(field name, string_param const& value);
+
+    /** Replace a field value.
+
+        First removes any values with matching field names, then
+        inserts the new field value.
+
+        @param name The field name.
+
+        @param value The value of the field, as a @ref string_param
+    */
+    void
+    replace(string_view name, string_param const& value);
+
+    /** Remove a field.
+
+        References and iterators to the erased elements are
+        invalidated. Other references and iterators are not
+        affected.
+
+        @param pos An iterator to the element to remove.
+
+        @return An iterator following the last removed element.
+        If the iterator refers to the last element, the end()
+        iterator is returned.
+    */
+    const_iterator
+    erase(const_iterator pos);
+
+    /** Remove all fields with the specified name.
+
+        All fields with the same field name are erased from the
+        container.
+        References and iterators to the erased elements are
+        invalidated. Other references and iterators are not
+        affected.
+
+        @param name The field name.
 
         @return The number of fields removed.
     */
     std::size_t
-    erase(field f);
+    erase(field name);
 
-    /** Remove zero or more fields by name.
+    /** Remove all fields with the specified name.
 
-        If more than one field with the specified name exists, all
-        matching fields will be removed.
+        All fields with the same field name are erased from the
+        container.
+        References and iterators to the erased elements are
+        invalidated. Other references and iterators are not
+        affected.
 
-        @param name The name of the field(s) to remove.
+        @param name The field name.
 
         @return The number of fields removed.
     */
     std::size_t
     erase(string_view name);
 
-    /** Insert a value for a known field.
-
-        If a field with the same name already exists, the
-        existing field is untouched and a new field value pair
-        is inserted into the container.
-
-        @param f The known field constant.
-
-        @param value A string holding the value of the field.
-    */
+    /// Swap this container with another
     void
-    insert(field f, string_view value);
-
-    /** Insert a value for a field by name.
-
-        If a field with the same name already exists, the
-        existing field is untouched and a new field value pair
-        is inserted into the container.
-
-        @param name The name of the field.
-
-        @param value A string holding the value of the field.
-    */
-    void
-    insert(string_view name, string_view value);
-
-    /** Insert a field value.
-
-        If a field with the same name already exists, the
-        existing field is untouched and a new field value pair
-        is inserted into the container.
-
-        @param name The name of the field
-
-        @param value The value of the field. The object will be
-        converted to a string using `boost::lexical_cast`.
-    */
-    template<class T>
-    typename std::enable_if<
-        ! std::is_constructible<string_view, T>::value>::type
-    insert(string_view name, T const& value)
-    {
-        // VFALCO This should use a static buffer, see lexical_cast doc
-        insert(name, boost::lexical_cast<std::string>(value));
-    }
-
-    /** Replace a field value.
-
-        First removes any values with matching field names, then
-        inserts the new field value.
-
-        @param name The name of the field.
-
-        @param value A string holding the value of the field.
-    */
-    void
-    replace(string_view name, string_view value);
-
-    /** Replace a field value.
-
-        First removes any values with matching field names, then
-        inserts the new field value.
-
-        @param name The field to replace.
-
-        @param value A string holding the value of the field.
-    */
-    void
-    replace(field name, string_view value);
-
-    /** Replace a field value.
-
-        First removes any values with matching field names, then
-        inserts the new field value.
-
-        @param name The name of the field
-
-        @param value The value of the field. The object will be
-        converted to a string using `boost::lexical_cast`.
-    */
-    template<class T>
-    typename std::enable_if<
-        ! std::is_constructible<string_view, T>::value>::type
-    replace(string_view name, T const& value)
-    {
-        // VFALCO This should use a static buffer, see lexical_cast doc
-        replace(name,
-            boost::lexical_cast<std::string>(value));
-    }
+    swap(basic_fields& other);
 
     /// Swap two field containers
     template<class Alloc>
@@ -371,8 +468,83 @@ public:
     void
     swap(basic_fields<Alloc>& lhs, basic_fields<Alloc>& rhs);
 
-    /// The algorithm used to serialize the header
-    class reader;
+    //--------------------------------------------------------------------------
+    //
+    // Lookup
+    //
+    //--------------------------------------------------------------------------
+
+    /** Return the number of fields with the specified name.
+
+        @param name The field name.
+    */
+    std::size_t
+    count(field name) const;
+
+    /** Return the number of fields with the specified name.
+
+        @param name The field name.
+    */
+    std::size_t
+    count(string_view name) const;
+
+    /** Returns an iterator to the case-insensitive matching field.
+
+        If more than one field with the specified name exists, the
+        first field defined by insertion order is returned.
+
+        @param name The field name.
+
+        @return An iterator to the matching field, or `end()` if
+        no match was found.
+    */
+    const_iterator
+    find(field name) const;
+
+    /** Returns an iterator to the case-insensitive matching field name.
+
+        If more than one field with the specified name exists, the
+        first field defined by insertion order is returned.
+
+        @param name The field name.
+
+        @return An iterator to the matching field, or `end()` if
+        no match was found.
+    */
+    const_iterator
+    find(string_view name) const;
+
+    /** Returns a range of iterators to the fields with the specified name.
+
+        @param name The field name.
+
+        @return A range of iterators to fields with the same name,
+        otherwise an empty range.
+    */
+    std::pair<const_iterator, const_iterator>
+    equal_range(field name) const;
+
+    /** Returns a range of iterators to the fields with the specified name.
+
+        @param name The field name.
+
+        @return A range of iterators to fields with the same name,
+        otherwise an empty range.
+    */
+    std::pair<const_iterator, const_iterator>
+    equal_range(string_view name) const;
+
+    //--------------------------------------------------------------------------
+    //
+    // Observers
+    //
+    //--------------------------------------------------------------------------
+
+    key_compare
+    key_comp() const
+    {
+        return key_compare{};
+    }
 
 protected:
     /// Returns `true` if the value for Connection has "close" in the list.
@@ -441,59 +613,9 @@ private:
     template<class OtherAlloc>
     friend class basic_fields;
 
-    class element
-        : public boost::intrusive::set_base_hook <
-            boost::intrusive::link_mode <
-                boost::intrusive::normal_link>>
-        , public boost::intrusive::list_base_hook <
-            boost::intrusive::link_mode <
-                boost::intrusive::normal_link>>
-    {
-        off_t off_;
-        off_t len_;
-
-    public:
-        element(string_view name, string_view value);
-
-        string_view
-        name() const;
-
-        string_view
-        value() const;
-
-        boost::asio::const_buffer
-        buffer() const;
-
-        value_type data;
-    };
-
-    struct less : private beast::detail::ci_less
-    {
-        template<class String>
-        bool
-        operator()(String const& lhs, element const& rhs) const
-        {
-            return ci_less::operator()(lhs, rhs.data.name());
-        }
-
-        template<class String>
-        bool
-        operator()(element const& lhs, String const& rhs) const
-        {
-            return ci_less::operator()(lhs.data.name(), rhs);
-        }
-
-        bool
-        operator()(element const& lhs, element const& rhs) const
-        {
-            return ci_less::operator()(
-                lhs.data.name(), rhs.data.name());
-        }
-    };
-
     using alloc_type = typename
         std::allocator_traits<Allocator>::
-            template rebind_alloc<element>;
+            template rebind_alloc<value_type>;
 
     using alloc_traits =
         std::allocator_traits<alloc_type>;
@@ -501,19 +623,12 @@ private:
     using size_type =
         typename std::allocator_traits<Allocator>::size_type;
 
-    using list_t = typename boost::intrusive::make_list<
-        element, boost::intrusive::constant_time_size<
-            false>>::type;
-
-    using set_t = typename boost::intrusive::make_multiset<
-        element, boost::intrusive::constant_time_size<
-            true>, boost::intrusive::compare<less>>::type;
-
-    element&
-    new_element(string_view name, string_view value);
+    value_type&
+    new_element(field name,
+        string_view sname, string_view value);
 
     void
-    delete_element(element& e);
+    delete_element(value_type& e);
 
     void
     realloc_string(string_view& dest, string_view s);

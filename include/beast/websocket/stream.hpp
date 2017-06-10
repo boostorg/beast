@@ -340,7 +340,7 @@ public:
 
         @param n The size of the read buffer.
 
-        @throw std::invalid_argument If the buffer size is less than 8.
+        @throws std::invalid_argument If the buffer size is less than 8.
 
         @par Example
         Setting the read buffer size.

@@ -88,7 +88,7 @@ boost::asio::ip::tcp::socket sock{ios};
 //[ws_snippet_10
     response_type res;
     ws.handshake(res, "localhost", "/");
-    if(! res.exists(http::field::sec_websocket_protocol))
+    if(! res.count(http::field::sec_websocket_protocol))
         throw std::invalid_argument("missing subprotocols");
 //]
 

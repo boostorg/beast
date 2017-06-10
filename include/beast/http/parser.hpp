@@ -204,26 +204,10 @@ private:
     }
 
     void
-    on_field(field f, string_view name,
+    on_field(field name, string_view name_string,
         string_view value, error_code&)
     {
-        if(f != field::unknown)
-        {
-        #if 1
-            // This preserves capitalization of field names
-            if(to_string(f) == name)
-                m_.insert(f, value);
-            else
-                m_.insert(name, value);
-        #else
-            // This doesn't.
-            m_.insert(f, value);
-        #endif
-        }
-        else
-        {
-            m_.insert(name, value);
-        }
+        m_.insert(name, name_string, value);
     }
 
     void
