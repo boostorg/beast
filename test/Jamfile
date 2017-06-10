@@ -36,6 +36,7 @@ unit-test core-tests :
     core/ostream.cpp
     core/static_buffer.cpp
     core/static_string.cpp
+    core/string_param.cpp
     core/string_view.cpp
     core/type_traits.cpp
     core/base64.cpp

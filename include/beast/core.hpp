@@ -14,9 +14,10 @@
 #include <beast/core/bind_handler.hpp>
 #include <beast/core/buffer_cat.hpp>
 #include <beast/core/buffer_prefix.hpp>
+#include <beast/core/buffered_read_stream.hpp>
 #include <beast/core/buffers_adapter.hpp>
 #include <beast/core/consuming_buffers.hpp>
-#include <beast/core/buffered_read_stream.hpp>
+#include <beast/core/drain_buffer.hpp>
 #include <beast/core/error.hpp>
 #include <beast/core/flat_buffer.hpp>
 #include <beast/core/handler_alloc.hpp>
@@ -25,6 +26,8 @@
 #include <beast/core/ostream.hpp>
 #include <beast/core/static_buffer.hpp>
 #include <beast/core/static_string.hpp>
+#include <beast/core/string_param.hpp>
+#include <beast/core/string_view.hpp>
 #include <beast/core/type_traits.hpp>
 
 #endif
