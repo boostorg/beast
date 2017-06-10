@@ -22,6 +22,7 @@ add_executable (core-tests
     consuming_buffers.cpp
     doc_core_samples.cpp
     doc_snippets.cpp
+    drain_buffer.cpp
     error.cpp
     flat_buffer.cpp
     handler_alloc.cpp

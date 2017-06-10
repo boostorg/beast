@@ -165,6 +165,7 @@
             <member><link linkend="beast.ref.buffered_read_stream">buffered_read_stream</link></member>
             <member><link linkend="beast.ref.buffers_adapter">buffers_adapter</link></member>
             <member><link linkend="beast.ref.consuming_buffers">consuming_buffers</link></member>
+            <member><link linkend="beast.ref.drain_buffer">drain_buffer</link></member>
             <member><link linkend="beast.ref.error_category">error_category</link></member>
             <member><link linkend="beast.ref.error_code">error_code</link></member>
             <member><link linkend="beast.ref.error_condition">error_condition</link></member>
