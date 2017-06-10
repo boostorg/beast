@@ -5,6 +5,7 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
+#include <beast/core.hpp>
 #include <beast/http.hpp>
 #include <boost/asio.hpp>
 #include <boost/asio/ssl.hpp>
@@ -45,7 +46,7 @@ int main()
     beast::http::write(stream, req);
 
     // Receive and print HTTP response using Beast
-    beast::multi_buffer b;
+    beast::flat_buffer b;
     beast::http::response<beast::http::dynamic_body> resp;
     beast::http::read(stream, b, resp);
     std::cout << resp;

@@ -238,7 +238,7 @@ maybe_flatten(
     // flatten
     buffer_copy(boost::asio::buffer(
         buf_.get(), buf_len_), buffers);
-    return {buf_.get(), buf_len_};
+    return {buf_.get(), len};
 }
 
 template<bool isRequest, class Derived>
