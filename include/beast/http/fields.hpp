@@ -73,15 +73,12 @@ public:
     };
 
 protected:
-    //
-    // These are for `header`
-    //
-    friend class fields_test;
+    friend class fields_test; // for `header`
 
     /// Destructor
     ~basic_fields();
 
-    /// Default constructor.
+    /// Constructor.
     basic_fields() = default;
 
     /** Constructor.
@@ -97,6 +94,14 @@ protected:
     */
     basic_fields(basic_fields&&);
 
+    /** Move constructor.
+
+        The moved-from object behaves as if by call to @ref clear.
+
+        @param alloc The allocator to use.
+    */
+    basic_fields(basic_fields&&, Allocator const& alloc);
+
     /// Copy constructor.
     basic_fields(basic_fields const&);
 
@@ -107,26 +112,14 @@ protected:
     basic_fields(basic_fields const&, Allocator const& alloc);
 
     /// Copy constructor.
-#if BEAST_DOXYGEN
     template<class OtherAlloc>
-#else
-    template<class OtherAlloc, class =
-        typename std::enable_if<! std::is_same<OtherAlloc,
-            Allocator>::value>::type>
-#endif
     basic_fields(basic_fields<OtherAlloc> const&);
 
     /** Copy constructor.
 
         @param alloc The allocator to use.
     */
-#if BEAST_DOXYGEN
     template<class OtherAlloc>
-#else
-    template<class OtherAlloc, class =
-        typename std::enable_if<! std::is_same<OtherAlloc,
-            Allocator>::value>::type>
-#endif
     basic_fields(basic_fields<OtherAlloc> const&,
         Allocator const& alloc);
 
@@ -140,13 +133,7 @@ protected:
     basic_fields& operator=(basic_fields const&);
 
     /// Copy assignment.
-#if BEAST_DOXYGEN
     template<class OtherAlloc>
-#else
-    template<class OtherAlloc, class =
-        typename std::enable_if<! std::is_same<OtherAlloc,
-            Allocator>::value>::type>
-#endif
     basic_fields& operator=(basic_fields<OtherAlloc> const&);
 
 public:
@@ -211,6 +198,13 @@ public:
     exists(string_view name) const
     {
         return set_.find(name, less{}) != set_.end();
+    }
+
+    /// Return the number of values for the specified field.
+    std::size_t
+    count(field name) const
+    {
+        return count(to_string(name));
     }
 
     /// Return the number of values for the specified field.
@@ -444,6 +438,9 @@ protected:
     void set_chunked_impl(bool v);
 
 private:
+    template<class OtherAlloc>
+    friend class basic_fields;
+
     class element
         : public boost::intrusive::set_base_hook <
             boost::intrusive::link_mode <
@@ -549,16 +546,15 @@ private:
     void
     swap(basic_fields& other, std::false_type);
 
+    alloc_type alloc_;
     set_t set_;
     list_t list_;
     string_view method_;
     string_view target_or_reason_;
-    alloc_type alloc_;
 };
 
 /// A typical HTTP header fields container
-using fields =
-    basic_fields<std::allocator<char>>;
+using fields = basic_fields<std::allocator<char>>;
 
 } // http
 } // beast

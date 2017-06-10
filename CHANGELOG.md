@@ -4,6 +4,7 @@ Version 54:
 * flat_buffer coverage
 * multi_buffer coverage
 * consuming_buffers members and coverage
+* basic_fields members and coverage
 
 --------------------------------------------------------------------------------
 
