@@ -1,5 +1,7 @@
 Version 52:
 
+* flat_buffer is an AllocatorAwareContainer
+
 API Changes:
 
 * `auto_fragment` is a member of `stream`

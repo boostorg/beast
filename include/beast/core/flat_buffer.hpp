@@ -89,109 +89,120 @@ public:
     /// The type used to represent the output sequence as a list of buffers.
     using mutable_buffers_type = boost::asio::mutable_buffers_1;
 
-    /// Copy assignment (disallowed).
-    basic_flat_buffer&
-    operator=(basic_flat_buffer const&) = delete;
-
-    /// Destructor.
+    /// Destructor
     ~basic_flat_buffer();
 
-    /** Move constructor.
+    /** Constructor
 
-        The new object will have the same input sequence
-        and an empty output sequence.
-
-        @note After the move, the moved-from object will
-        have a capacity of zero, an empty input sequence,
-        and an empty output sequence.
+        Upon construction, capacity will be zero.
     */
-    basic_flat_buffer(basic_flat_buffer&&);
+    basic_flat_buffer();
 
-    /** Move constructor.
+    /** Constructor
 
-        The new object will have the same input sequence
-        and an empty output sequence.
+        Upon construction, capacity will be zero.
 
-        @note After the move, the moved-from object will
-        have a capacity of zero, an empty input sequence,
-        and an empty output sequence.
-
-        @param alloc The allocator to associate with the
-        stream buffer.
-    */
-    basic_flat_buffer(basic_flat_buffer&&,
-        Allocator const& alloc);
-    
-    /** Copy constructor.
-
-        The new object will have a copy of the input sequence
-        and an empty output sequence.
-    */
-    basic_flat_buffer(basic_flat_buffer const&);
-
-    /** Copy constructor.
-
-        The new object will have a copy of the input sequence
-        and an empty output sequence.
-
-        @param alloc The allocator to associate with the
-        stream buffer.
-    */
-    basic_flat_buffer(basic_flat_buffer const&,
-        Allocator const& alloc);
-    
-    /** Copy constructor.
-
-        The new object will have a copy of the input sequence
-        and an empty output sequence.
-    */
-    template<class OtherAlloc>
-    basic_flat_buffer(
-        basic_flat_buffer<OtherAlloc> const&);
-
-    /** Copy constructor.
-
-        The new object will have a copy of the input sequence
-        and an empty output sequence.
-
-        @param alloc The allocator to associate with the
-        stream buffer.
-    */
-    template<class OtherAlloc>
-    basic_flat_buffer(
-        basic_flat_buffer<OtherAlloc> const&,
-            Allocator const& alloc);
-
-    /** Construct a flat stream buffer.
-
-        No allocation is performed; the buffer will have
-        empty input and output sequences.
-
-        @param limit An optional non-zero value specifying the
-        maximum of the sum of the input and output sequence sizes
-        that can be allocated. If unspecified, the largest
-        possible value of `std::size_t` is used.
+        @param limit The setting for @ref max_size.
     */
     explicit
-    basic_flat_buffer(std::size_t limit = (
-        std::numeric_limits<std::size_t>::max)());
+    basic_flat_buffer(std::size_t limit);
 
-    /** Construct a flat stream buffer.
+    /** Constructor
 
-        No allocation is performed; the buffer will have
-        empty input and output sequences.
+        Upon construction, capacity will be zero.
 
-        @param alloc The allocator to associate with the
-        stream buffer.
-
-        @param limit An optional non-zero value specifying the
-        maximum of the sum of the input and output sequence sizes
-        that can be allocated. If unspecified, the largest
-        possible value of `std::size_t` is used.
+        @param alloc The allocator to construct with.
     */
-    basic_flat_buffer(Allocator const& alloc,
-        std::size_t limit = (
-            std::numeric_limits<std::size_t>::max)());
+    explicit
+    basic_flat_buffer(Allocator const& alloc);
+
+    /** Constructor
+
+        Upon construction, capacity will be zero.
+
+        @param limit The setting for @ref max_size.
+
+        @param alloc The allocator to use.
+    */
+    basic_flat_buffer(
+        std::size_t limit, Allocator const& alloc);
+
+    /** Move constructor
+
+        After the move, `*this` will have an empty output sequence.
+
+        @param other The object to move from. After the move,
+        The object's state will be as if constructed using
+        its current allocator and limit.
+    */
+    basic_flat_buffer(basic_flat_buffer&& other);
+
+    /** Move constructor
+
+        After the move, `*this` will have an empty output sequence.
+
+        @param other The object to move from. After the move,
+        The object's state will be as if constructed using
+        its current allocator and limit.
+
+        @param alloc The allocator to use.
+    */
+    basic_flat_buffer(
+        basic_flat_buffer&& other, Allocator const& alloc);
+
+    /** Copy constructor
+
+        @param other The object to copy from.
+    */
+    basic_flat_buffer(basic_flat_buffer const& other);
+
+    /** Copy constructor
+
+        @param other The object to copy from.
+
+        @param alloc The allocator to use.
+    */
+    basic_flat_buffer(basic_flat_buffer const& other,
+        Allocator const& alloc);
+
+    /** Copy constructor
+
+        @param other The object to copy from.
+    */
+    template<class OtherAlloc>
+    basic_flat_buffer(
+        basic_flat_buffer<OtherAlloc> const& other);
+
+    /** Copy constructor
+
+        @param other The object to copy from.
+
+        @param alloc The allocator to use.
+    */
+    template<class OtherAlloc>
+    basic_flat_buffer(
+        basic_flat_buffer<OtherAlloc> const& other,
+            Allocator const& alloc);
+
+    /** Move assignment
+
+        After the move, `*this` will have an empty output sequence.
+
+        @param other The object to move from. After the move,
+        The object's state will be as if constructed using
+        its current allocator and limit.
+    */
+    basic_flat_buffer&
+    operator=(basic_flat_buffer&& other);
+
+    /** Copy assignment
+
+        After the copy, `*this` will have an empty output sequence.
+
+        @param other The object to copy from.
+    */
+    basic_flat_buffer&
+    operator=(basic_flat_buffer const& other);
 
     /// Returns a copy of the associated allocator.
     allocator_type
@@ -287,14 +298,41 @@ public:
     void
     shrink_to_fit();
 
+    template<class Alloc>
+    friend
+    void
+    swap(
+        basic_flat_buffer<Alloc>& lhs,
+        basic_flat_buffer<Alloc>& rhs);
+
 private:
     void
-    move_from(basic_flat_buffer& other);
+    reset();
 
-    template<class OtherAlloc>
+    template<class DynamicBuffer>
     void
-    copy_from(basic_flat_buffer<
-        OtherAlloc> const& other);
+    copy_from(DynamicBuffer const& other);
+
+    void
+    move_assign(basic_flat_buffer&, std::true_type);
+
+    void
+    move_assign(basic_flat_buffer&, std::false_type);
+
+    void
+    copy_assign(basic_flat_buffer const&, std::true_type);
+
+    void
+    copy_assign(basic_flat_buffer const&, std::false_type);
+
+    void
+    swap(basic_flat_buffer&);
+
+    void
+    swap(basic_flat_buffer&, std::true_type);
+
+    void
+    swap(basic_flat_buffer&, std::false_type);
 };
 
 using flat_buffer =

@@ -87,7 +87,7 @@ public:
             basic_flat_buffer<allocator> b1{10};
         }
         {
-            basic_flat_buffer<allocator> b1{allocator{}, 10};
+            basic_flat_buffer<allocator> b1{10, allocator{}};
         }
     }
 
@@ -193,11 +193,11 @@ public:
                 basic_flat_buffer<alloc_type>;
             alloc_type alloc;
             {
-                type fba{alloc, 1};
+                type fba{1, alloc};
                 BEAST_EXPECT(fba.max_size() == 1);
             }
             {
-                type fba{alloc, 1024};
+                type fba{1024, alloc};
                 BEAST_EXPECT(fba.max_size() == 1024);
             }
             {
