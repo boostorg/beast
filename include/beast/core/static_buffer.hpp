@@ -10,6 +10,8 @@
 
 #include <beast/config.hpp>
 #include <boost/asio/buffer.hpp>
+#include <algorithm>
+#include <cstddef>
 #include <cstring>
 
 namespace beast {
@@ -37,18 +39,15 @@ class static_buffer
     char* last_;
     char* end_;
 
+    static_buffer(static_buffer const& other) = delete;
+    static_buffer& operator=(static_buffer const&) = delete;
+
 public:
     /// The type used to represent the input sequence as a list of buffers.
     using const_buffers_type = boost::asio::const_buffers_1;
 
     /// The type used to represent the output sequence as a list of buffers.
     using mutable_buffers_type = boost::asio::mutable_buffers_1;
-
-    static_buffer(
-        static_buffer const& other) noexcept = delete;
-
-    static_buffer& operator=(
-        static_buffer const&) noexcept = delete;
 
     /** Constructor.
 
@@ -185,16 +184,30 @@ class static_buffer_n : public static_buffer
     char buf_[N];
 
 public:
-    /// Copy constructor (disallowed).
-    static_buffer_n(static_buffer_n const&) = delete;
+    /// Copy constructor
+    static_buffer_n(static_buffer_n const&);
 
-    /// Copy assignment (disallowed).
-    static_buffer_n& operator=(static_buffer_n const&) = delete;
+    /// Copy assignment
+    static_buffer_n& operator=(static_buffer_n const&);
 
     /// Construct a static buffer.
     static_buffer_n()
         : static_buffer(buf_, N)
     {
+    }
+
+    /// Returns the @ref static_buffer portion of this object
+    static_buffer&
+    base()
+    {
+        return *this;
+    }
+
+    /// Returns the @ref static_buffer portion of this object
+    static_buffer const&
+    base() const
+    {
+        return *this;
     }
 };
 

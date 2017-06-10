@@ -76,7 +76,7 @@ prepare_impl(std::size_t n) ->
     auto const len = size();
     if(n > capacity() - len)
         BOOST_THROW_EXCEPTION(std::length_error{
-            "static_buffer overflow"});
+            "buffer overflow"});
     if(len > 0)
         std::memmove(begin_, in_, len);
     in_ = begin_;
@@ -97,6 +97,31 @@ consume_impl(std::size_t n)
         return;
     }
     in_ += n;
+}
+
+//------------------------------------------------------------------------------
+
+template<std::size_t N>
+static_buffer_n<N>::
+static_buffer_n(static_buffer_n const& other)
+    : static_buffer(buf_, N)
+{
+    using boost::asio::buffer_copy;
+    this->commit(buffer_copy(
+        this->prepare(other.size()), other.data()));
+}
+
+template<std::size_t N>
+auto
+static_buffer_n<N>::
+operator=(static_buffer_n const& other) ->
+    static_buffer_n<N>&
+{
+    using boost::asio::buffer_copy;
+    this->consume(this->size());
+    this->commit(buffer_copy(
+        this->prepare(other.size()), other.data()));
+    return *this;
 }
 
 } // beast

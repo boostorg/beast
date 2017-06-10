@@ -8,15 +8,42 @@
 #ifndef BEAST_TEST_BUFFER_TEST_HPP
 #define BEAST_TEST_BUFFER_TEST_HPP
 
+#include <beast/core/string_view.hpp>
 #include <beast/core/type_traits.hpp>
 #include <beast/core/detail/read_size_helper.hpp>
 #include <beast/core/detail/type_traits.hpp>
 #include <boost/asio/buffer.hpp>
 #include <algorithm>
+#include <string>
 #include <type_traits>
 
 namespace beast {
 namespace test {
+
+template<class ConstBufferSequence>
+typename std::enable_if<
+    is_const_buffer_sequence<ConstBufferSequence>::value,
+std::string>::type
+to_string(ConstBufferSequence const& bs)
+{
+    using boost::asio::buffer_cast;
+    using boost::asio::buffer_size;
+    std::string s;
+    s.reserve(buffer_size(bs));
+    for(auto const& b : bs)
+        s.append(buffer_cast<char const*>(b),
+            buffer_size(b));
+    return s;
+}
+
+template<class DynamicBuffer>
+void
+write_buffer(DynamicBuffer& b, string_view s)
+{
+    b.commit(boost::asio::buffer_copy(
+        b.prepare(s.size()), boost::asio::buffer(
+            s.data(), s.size())));
+}
 
 template<class ConstBufferSequence>
 typename std::enable_if<
@@ -101,6 +128,8 @@ namespace has_read_size_helper
     };
 }
 
+//------------------------------------------------------------------------------
+
 // Make sure read_size_helper works
 template<class DynamicBuffer>
 inline
@@ -109,6 +138,7 @@ check_read_size_helper()
 {
     static_assert(is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met ");
+
     static_assert(has_read_size_helper::trait<DynamicBuffer>::value,
         "Missing read_size_helper for dynamic buffer");
 }
