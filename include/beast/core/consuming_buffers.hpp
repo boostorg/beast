@@ -80,20 +80,14 @@ public:
 
 #endif
 
-    /// Default constructor.
+    /// Constructor
     consuming_buffers();
 
-    /// Move constructor.
+    /// Move constructor
     consuming_buffers(consuming_buffers&&);
 
-    /// Copy constructor.
+    /// Copy constructor
     consuming_buffers(consuming_buffers const&);
-
-    /// Move assignment.
-    consuming_buffers& operator=(consuming_buffers&&);
-
-    /// Copy assignment.
-    consuming_buffers& operator=(consuming_buffers const&);
 
     /** Construct to represent a buffer sequence.
 
@@ -109,6 +103,12 @@ public:
     */
     template<class... Args>
     consuming_buffers(boost::in_place_init_t, Args&&... args);
+
+    /// Move assignment
+    consuming_buffers& operator=(consuming_buffers&&);
+
+    /// Copy assignmen
+    consuming_buffers& operator=(consuming_buffers const&);
 
     /// Get a bidirectional iterator to the first element.
     const_iterator
