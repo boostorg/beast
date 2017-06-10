@@ -124,7 +124,7 @@ public:
             header<true> h;
             h.insert(field::user_agent, "test");
             request<one_arg_body> m{Arg1{}, std::move(h)};
-            BEAST_EXPECT(! h.exists("User-Agent"));
+            BEAST_EXPECT(! h.count(http::field::user_agent));
             BEAST_EXPECT(m["User-Agent"] == "test");
         }
 
@@ -143,8 +143,8 @@ public:
         BEAST_EXPECT(m2.target() == "u");
         BEAST_EXPECT(m1.body == "2");
         BEAST_EXPECT(m2.body == "1");
-        BEAST_EXPECT(! m1.exists("h"));
-        BEAST_EXPECT(m2.exists("h"));
+        BEAST_EXPECT(! m1.count("h"));
+        BEAST_EXPECT(m2.count("h"));
     }
 
     struct MoveFields : fields
@@ -217,8 +217,8 @@ public:
         BEAST_EXPECT(m2.version == 10);
         BEAST_EXPECT(m1.body == "2");
         BEAST_EXPECT(m2.body == "1");
-        BEAST_EXPECT(! m1.exists("h"));
-        BEAST_EXPECT(m2.exists("h"));
+        BEAST_EXPECT(! m1.count("h"));
+        BEAST_EXPECT(m2.count("h"));
     }
 
     void

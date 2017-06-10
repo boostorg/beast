@@ -16,100 +16,10 @@
 #include <beast/http/status.hpp>
 #include <beast/http/detail/chunk_encode.hpp>
 #include <boost/throw_exception.hpp>
-#include <algorithm>
+#include <stdexcept>
 
 namespace beast {
 namespace http {
-
-//------------------------------------------------------------------------------
-
-template<class Allocator>
-class basic_fields<Allocator>::
-    const_iterator
-{
-    using iter_type = typename list_t::const_iterator;
-
-    iter_type it_;
-
-    template<class Alloc>
-    friend class beast::http::basic_fields;
-
-    const_iterator(iter_type it)
-        : it_(it)
-    {
-    }
-
-public:
-    using value_type = typename
-        basic_fields<Allocator>::value_type;
-    using pointer = value_type const*;
-    using reference = value_type const&;
-    using difference_type = std::ptrdiff_t;
-    using iterator_category =
-        std::bidirectional_iterator_tag;
-
-    const_iterator() = default;
-    const_iterator(const_iterator&& other) = default;
-    const_iterator(const_iterator const& other) = default;
-    const_iterator& operator=(const_iterator&& other) = default;
-    const_iterator& operator=(const_iterator const& other) = default;
-
-    bool
-    operator==(const_iterator const& other) const
-    {
-        return it_ == other.it_;
-    }
-
-    bool
-    operator!=(const_iterator const& other) const
-    {
-        return !(*this == other);
-    }
-
-    reference
-    operator*() const
-    {
-        return it_->data;
-    }
-
-    pointer
-    operator->() const
-    {
-        return &**this;
-    }
-
-    const_iterator&
-    operator++()
-    {
-        ++it_;
-        return *this;
-    }
-
-    const_iterator
-    operator++(int)
-    {
-        auto temp = *this;
-        ++(*this);
-        return temp;
-    }
-
-    const_iterator&
-    operator--()
-    {
-        --it_;
-        return *this;
-    }
-
-    const_iterator
-    operator--(int)
-    {
-        auto temp = *this;
-        --(*this);
-        return temp;
-    }
-};
-
-//------------------------------------------------------------------------------
 
 template<class Allocator>
 class basic_fields<Allocator>::reader
@@ -284,30 +194,40 @@ public:
 
 template<class Allocator>
 basic_fields<Allocator>::
-element::
-element(string_view name, string_view value)
-    : off_(static_cast<off_t>(name.size() + 2))
+value_type::
+value_type(field name,
+        string_view sname, string_view value)
+    : off_(static_cast<off_t>(sname.size() + 2))
     , len_(static_cast<off_t>(value.size()))
+    , f_(name)
 {
+    //BOOST_ASSERT(name == field::unknown ||
+    //    detail::ci_equal(sname, to_string(name)));
     char* p = reinterpret_cast<char*>(this + 1);
-    data.first = p;
-    data.off = off_;
-    data.len = len_;
-
     p[off_-2] = ':';
     p[off_-1] = ' ';
     p[off_ + len_] = '\r';
     p[off_ + len_ + 1] = '\n';
-    std::memcpy(p, name.data(), name.size());
+    std::memcpy(p, sname.data(), sname.size());
     std::memcpy(p + off_, value.data(), value.size());
+}
+
+template<class Allocator>
+inline
+field
+basic_fields<Allocator>::
+value_type::
+name() const
+{
+    return f_;
 }
 
 template<class Allocator>
 inline
 string_view
 basic_fields<Allocator>::
-element::
-name() const
+value_type::
+name_string() const
 {
     return {reinterpret_cast<
         char const*>(this + 1),
@@ -318,7 +238,7 @@ template<class Allocator>
 inline
 string_view
 basic_fields<Allocator>::
-element::
+value_type::
 value() const
 {
     return {reinterpret_cast<
@@ -330,7 +250,7 @@ template<class Allocator>
 inline
 boost::asio::const_buffer
 basic_fields<Allocator>::
-element::
+value_type::
 buffer() const
 {
     return boost::asio::const_buffer{
@@ -461,46 +381,50 @@ operator=(basic_fields<OtherAlloc> const& other) ->
 }
 
 //------------------------------------------------------------------------------
+//
+// Element access
+//
+//------------------------------------------------------------------------------
 
 template<class Allocator>
-std::size_t
+string_view
 basic_fields<Allocator>::
-count(string_view name) const
+at(field name) const
 {
-    auto const it = set_.find(name, less{});
-    if(it == set_.end())
-        return 0;
-    auto const last = set_.upper_bound(name, less{});
-    return static_cast<std::size_t>(std::distance(it, last));
+    BOOST_ASSERT(name != field::unknown);
+    auto const it = find(name);
+    if(it == end())
+        BOOST_THROW_EXCEPTION(std::out_of_range{
+            "field not found"});
+    return it->value();
 }
 
 template<class Allocator>
-auto
+string_view
 basic_fields<Allocator>::
-find(string_view name) const ->
-    iterator
+at(string_view name) const
 {
-    auto const it = set_.find(name, less{});
-    if(it == set_.end())
-        return list_.end();
-    return list_.iterator_to(*it);
+    auto const it = find(name);
+    if(it == end())
+        BOOST_THROW_EXCEPTION(std::out_of_range{
+            "field not found"});
+    return it->value();
 }
 
 template<class Allocator>
-auto
+string_view
 basic_fields<Allocator>::
-find(field name) const ->
-    iterator
+operator[](field name) const
 {
-    auto const it = set_.find(
-        to_string(name), less{});
-    if(it == set_.end())
-        return list_.end();
-    return list_.iterator_to(*it);
+    BOOST_ASSERT(name != field::unknown);
+    auto const it = find(name);
+    if(it == end())
+        return {};
+    return it->value();
 }
 
 template<class Allocator>
-string_view const
+string_view
 basic_fields<Allocator>::
 operator[](string_view name) const
 {
@@ -510,21 +434,16 @@ operator[](string_view name) const
     return it->value();
 }
 
-template<class Allocator>
-string_view const
-basic_fields<Allocator>::
-operator[](field name) const
-{
-    auto const it = find(name);
-    if(it == end())
-        return {};
-    return it->value();
-}
+//------------------------------------------------------------------------------
+//
+// Modifiers
+//
+//------------------------------------------------------------------------------
 
 template<class Allocator>
 void
 basic_fields<Allocator>::
-clear() noexcept
+clear()
 {
     delete_list();
     set_.clear();
@@ -532,11 +451,101 @@ clear() noexcept
 }
 
 template<class Allocator>
+inline
+void
+basic_fields<Allocator>::
+insert(field name, string_param const& value)
+{
+    BOOST_ASSERT(name != field::unknown);
+    insert(name, to_string(name), value);
+}
+
+template<class Allocator>
+void
+basic_fields<Allocator>::
+insert(string_view sname, string_param const& value)
+{
+    auto const name =
+        string_to_field(sname);
+    insert(name, sname, value);
+}
+
+template<class Allocator>
+void
+basic_fields<Allocator>::
+insert(field name,
+    string_view sname, string_param const& value)
+{
+    auto& e = new_element(
+        name, sname, value.str());
+    auto const before =
+        set_.upper_bound(sname, key_compare{});
+    if(before == set_.end())
+    {
+        set_.push_back(e);
+        list_.push_back(e);
+        return;
+    }
+    if(before == set_.begin())
+    {
+        set_.push_front(e);
+        list_.push_back(e);
+        return;
+    }
+    auto const last = std::prev(before);
+    if(! beast::detail::ci_equal(
+        sname, last->name_string()))
+    {
+        set_.insert_before(before, e);
+        list_.push_back(e);
+        return;
+    }
+    // count(name_string) > 0
+    set_.insert_before(before, e);
+    list_.insert(list_.iterator_to(*before), e);
+}
+
+template<class Allocator>
+void
+basic_fields<Allocator>::
+replace(field name, string_param const& value)
+{
+    BOOST_ASSERT(name != field::unknown);
+    erase(name);
+    insert(name, value);
+}
+
+template<class Allocator>
+void
+basic_fields<Allocator>::
+replace(string_view sname, string_param const& value)
+{
+    auto const name = string_to_field(sname);
+    erase(sname);
+    insert(name, sname, value);
+}
+
+template<class Allocator>
+auto
+basic_fields<Allocator>::
+erase(const_iterator pos) ->
+    const_iterator
+{
+    auto next = pos.iter();
+    auto& e = *next++;
+    set_.erase(e);
+    list_.erase(e);
+    delete_element(e);
+    return next;
+}
+
+template<class Allocator>
 std::size_t
 basic_fields<Allocator>::
-erase(field f)
+erase(field name)
 {
-    return erase(to_string(f));
+    BOOST_ASSERT(name != field::unknown);
+    return erase(to_string(name));
 }
 
 template<class Allocator>
@@ -544,60 +553,105 @@ std::size_t
 basic_fields<Allocator>::
 erase(string_view name)
 {
-    auto it = set_.find(name, less{});
-    if(it == set_.end())
-        return 0;
-    auto const last = set_.upper_bound(name, less{});
-    std::size_t n = 1;
-    for(;;)
-    {
-        auto& e = *it++;
-        set_.erase(set_.iterator_to(e));
-        list_.erase(list_.iterator_to(e));
-        delete_element(e);
-        if(it == last)
-            break;
-        ++n;
-    }
+    std::size_t n =0;
+    set_.erase_and_dispose(name, key_compare{},
+        [&](value_type* e)
+        {
+            ++n;
+            list_.erase(list_.iterator_to(*e));
+            delete_element(*e);
+        });
     return n;
 }
 
 template<class Allocator>
 void
 basic_fields<Allocator>::
-insert(field f, string_view value)
+swap(basic_fields<Allocator>& other)
 {
-    insert(to_string(f), value);
+    swap(other, typename alloc_traits::
+        propagate_on_container_swap{});
 }
 
 template<class Allocator>
 void
-basic_fields<Allocator>::
-insert(string_view name, string_view value)
+swap(
+    basic_fields<Allocator>& lhs,
+    basic_fields<Allocator>& rhs)
 {
-    auto& e = new_element(name, value);
-    set_.insert_before(set_.upper_bound(name, less{}), e);
-    list_.push_back(e);
+    lhs.swap(rhs);
+}
+
+//------------------------------------------------------------------------------
+//
+// Lookup
+//
+//------------------------------------------------------------------------------
+
+template<class Allocator>
+inline
+std::size_t
+basic_fields<Allocator>::
+count(field name) const
+{
+    BOOST_ASSERT(name != field::unknown);
+    return count(to_string(name));
 }
 
 template<class Allocator>
-void
+std::size_t
 basic_fields<Allocator>::
-replace(string_view name, string_view value)
+count(string_view name) const
 {
-    value = detail::trim(value);
-    erase(name);
-    insert(name, value);
+    return set_.count(name, key_compare{});
 }
 
 template<class Allocator>
-void
+inline
+auto
 basic_fields<Allocator>::
-replace(field name, string_view value)
+find(field name) const ->
+    const_iterator
 {
-    value = detail::trim(value);
-    erase(name);
-    insert(name, value);
+    BOOST_ASSERT(name != field::unknown);
+    return find(to_string(name));
+}
+
+template<class Allocator>
+auto
+basic_fields<Allocator>::
+find(string_view name) const ->
+    const_iterator
+{
+    auto const it = set_.find(
+        name, key_compare{});
+    if(it == set_.end())
+        return list_.end();
+    return list_.iterator_to(*it);
+}
+
+template<class Allocator>
+inline
+auto
+basic_fields<Allocator>::
+equal_range(field name) const ->
+    std::pair<const_iterator, const_iterator>
+{
+    BOOST_ASSERT(name != field::unknown);
+    return equal_range(to_string(name));
+}
+
+template<class Allocator>
+auto
+basic_fields<Allocator>::
+equal_range(string_view name) const ->
+    std::pair<const_iterator, const_iterator>
+{
+    auto const result =
+        set_.equal_range(name, key_compare{});
+    return {
+        list_.iterator_to(result->first),
+        list_.iterator_to(result->second)};
 }
 
 //------------------------------------------------------------------------------
@@ -610,7 +664,7 @@ basic_fields<Allocator>::
 has_close_impl() const
 {
     auto const fit = set_.find(
-        to_string(field::connection), less{});
+        to_string(field::connection), key_compare{});
     if(fit == set_.end())
         return false;
     return token_list{fit->value()}.exists("close");
@@ -622,7 +676,7 @@ basic_fields<Allocator>::
 has_chunked_impl() const
 {
     auto const fit = set_.find(to_string(
-        field::transfer_encoding), less{});
+        field::transfer_encoding), key_compare{});
     if(fit == set_.end())
         return false;
     token_list const v{fit->value()};
@@ -644,7 +698,7 @@ basic_fields<Allocator>::
 has_content_length_impl() const
 {
     auto const fit = set_.find(
-        to_string(field::content_length), less{});
+        to_string(field::content_length), key_compare{});
     return fit != set_.end();
 }
 
@@ -710,9 +764,8 @@ void
 basic_fields<Allocator>::
 content_length_impl(std::uint64_t n)
 {
-    this->erase("Content-Length");
-    this->insert("Content-Length",
-        to_static_string(n));
+    erase(field::content_length);
+    insert(field::content_length, n);
 }
 
 template<class Allocator>
@@ -721,12 +774,13 @@ void
 basic_fields<Allocator>::
 set_chunked_impl(bool v)
 {
+    // VFALCO We need to handle removing the chunked as well
     BOOST_ASSERT(v);
-    auto it = find("Transfer-Encoding");
+    auto it = find(field::transfer_encoding);
     if(it == end())
-        this->insert("Transfer-Encoding", "chunked");
+        this->insert(field::transfer_encoding, "chunked");
     else
-        this->replace("Transfer-Encoding",
+        this->replace(field::transfer_encoding,
             it->value().to_string() + ", chunked");
 }
 
@@ -735,10 +789,11 @@ set_chunked_impl(bool v)
 template<class Allocator>
 auto
 basic_fields<Allocator>::
-new_element(string_view name, string_view value) ->
-    element&
+new_element(field name,
+    string_view sname, string_view value) ->
+        value_type&
 {
-    if(name.size() + 2 >
+    if(sname.size() + 2 >
             (std::numeric_limits<off_t>::max)())
         BOOST_THROW_EXCEPTION(std::length_error{
             "field name too large"});
@@ -748,24 +803,26 @@ new_element(string_view name, string_view value) ->
             "field value too large"});
     value = detail::trim(value);
     std::uint16_t const off =
-        static_cast<off_t>(name.size() + 2);
+        static_cast<off_t>(sname.size() + 2);
     std::uint16_t const len =
         static_cast<off_t>(value.size());
     auto const p = alloc_traits::allocate(alloc_,
-        1 + (off + len + 2 + sizeof(element) - 1) /
-            sizeof(element));
-    alloc_traits::construct(alloc_, p, name, value);
+        1 + (off + len + 2 + sizeof(value_type) - 1) /
+            sizeof(value_type));
+    // VFALCO allocator can't call the constructor because its private
+    //alloc_traits::construct(alloc_, p, name, sname, value);
+    new(p) value_type{name, sname, value};
     return *p;
 }
 
 template<class Allocator>
 void
 basic_fields<Allocator>::
-delete_element(element& e)
+delete_element(value_type& e)
 {
     auto const n = 1 +
-        (e.data.off + e.data.len + 2 +
-            sizeof(element) - 1) / sizeof(element);
+        (e.off_ + e.len_ + 2 +
+            sizeof(value_type) - 1) / sizeof(value_type);
     alloc_traits::destroy(alloc_, &e);
     alloc_traits::deallocate(alloc_, &e, n);
 }
@@ -802,7 +859,7 @@ basic_fields<Allocator>::
 copy_all(basic_fields<OtherAlloc> const& other)
 {
     for(auto const& e : other.list_)
-        insert(e.name(), e.value());
+        insert(e.name(), e.name_string(), e.value());
     realloc_string(method_, other.method_);
     realloc_string(target_or_reason_,
         other.target_or_reason_);
@@ -887,17 +944,6 @@ copy_assign(basic_fields const& other, std::false_type)
 {
     clear_all();
     copy_all(other);
-}
-
-template<class Allocator>
-void
-swap(basic_fields<Allocator>& lhs,
-    basic_fields<Allocator>& rhs)
-{
-    using alloc_traits = typename
-        basic_fields<Allocator>::alloc_traits;
-    lhs.swap(rhs, typename alloc_traits::
-        propagate_on_container_swap{});
 }
 
 template<class Allocator>

@@ -25,7 +25,7 @@ is_upgrade(http::header<true, Fields> const& req)
         return false;
     if(! http::token_list{req["Upgrade"]}.exists("websocket"))
         return false;
-    if(! req.exists("Sec-WebSocket-Version"))
+    if(! req.count(http::field::sec_websocket_version))
         return false;
     return true;
 }

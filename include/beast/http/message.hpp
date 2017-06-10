@@ -125,7 +125,7 @@ struct header<true, Fields> : Fields
         @param v The request method verb to set.
         This may not be @ref verb::unknown.
 
-        @throw std::invalid_argument when `v == verb::unknown`.
+        @throws std::invalid_argument when `v == verb::unknown`.
 
         @note This function is only available when `isRequest == true`.
     */
@@ -277,7 +277,7 @@ struct header<false, Fields> : Fields
 
         @param v The status-code integer to set.
 
-        @throw std::invalid_argument if `v > 999`.
+        @throws std::invalid_argument if `v > 999`.
     */
     void
     result(unsigned v);

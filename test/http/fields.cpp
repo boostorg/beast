@@ -273,8 +273,8 @@ public:
         {
             fields f;
             f.insert(field::user_agent, "x");
-            BEAST_EXPECT(f.exists(field::user_agent));
-            BEAST_EXPECT(f.exists(to_string(field::user_agent)));
+            BEAST_EXPECT(f.count(field::user_agent));
+            BEAST_EXPECT(f.count(to_string(field::user_agent)));
             BEAST_EXPECT(f.count(field::user_agent) == 1);
             BEAST_EXPECT(f.count(to_string(field::user_agent)) == 1);
             f.insert(field::user_agent, "y");
@@ -326,12 +326,64 @@ public:
         BEAST_EXPECT(size(f) == 2);
     }
 
+    void
+    testContainer()
+    {
+        {
+            // group fields
+            fields f;
+            f.insert(field::age,   1);
+            f.insert(field::body,  2);
+            f.insert(field::close, 3);
+            f.insert(field::body,  4);
+            BEAST_EXPECT(std::next(f.begin(), 0)->name() == field::age);
+            BEAST_EXPECT(std::next(f.begin(), 1)->name() == field::body);
+            BEAST_EXPECT(std::next(f.begin(), 2)->name() == field::body);
+            BEAST_EXPECT(std::next(f.begin(), 3)->name() == field::close);
+            BEAST_EXPECT(std::next(f.begin(), 0)->name_string() == "Age");
+            BEAST_EXPECT(std::next(f.begin(), 1)->name_string() == "Body");
+            BEAST_EXPECT(std::next(f.begin(), 2)->name_string() == "Body");
+            BEAST_EXPECT(std::next(f.begin(), 3)->name_string() == "Close");
+            BEAST_EXPECT(std::next(f.begin(), 0)->value() == "1");
+            BEAST_EXPECT(std::next(f.begin(), 1)->value() == "2");
+            BEAST_EXPECT(std::next(f.begin(), 2)->value() == "4");
+            BEAST_EXPECT(std::next(f.begin(), 3)->value() == "3");
+            BEAST_EXPECT(f.erase(field::body) == 2);
+            BEAST_EXPECT(std::next(f.begin(), 0)->name_string() == "Age");
+            BEAST_EXPECT(std::next(f.begin(), 1)->name_string() == "Close");
+        }
+        {
+            // group fields, case insensitive
+            fields f;
+            f.insert("a",  1);
+            f.insert("ab", 2);
+            f.insert("b",  3);
+            f.insert("AB", 4);
+            BEAST_EXPECT(std::next(f.begin(), 0)->name() == field::unknown);
+            BEAST_EXPECT(std::next(f.begin(), 1)->name() == field::unknown);
+            BEAST_EXPECT(std::next(f.begin(), 2)->name() == field::unknown);
+            BEAST_EXPECT(std::next(f.begin(), 3)->name() == field::unknown);
+            BEAST_EXPECT(std::next(f.begin(), 0)->name_string() == "a");
+            BEAST_EXPECT(std::next(f.begin(), 1)->name_string() == "ab");
+            BEAST_EXPECT(std::next(f.begin(), 2)->name_string() == "AB");
+            BEAST_EXPECT(std::next(f.begin(), 3)->name_string() == "b");
+            BEAST_EXPECT(std::next(f.begin(), 0)->value() == "1");
+            BEAST_EXPECT(std::next(f.begin(), 1)->value() == "2");
+            BEAST_EXPECT(std::next(f.begin(), 2)->value() == "4");
+            BEAST_EXPECT(std::next(f.begin(), 3)->value() == "3");
+            BEAST_EXPECT(f.erase("Ab") == 2);
+            BEAST_EXPECT(std::next(f.begin(), 0)->name_string() == "a");
+            BEAST_EXPECT(std::next(f.begin(), 1)->name_string() == "b");
+        }
+    }
+
     void run() override
     {
         testMembers();
         testHeaders();
         testRFC2616();
         testErase();
+        testContainer();
     }
 };
 

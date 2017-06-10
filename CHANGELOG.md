@@ -7,6 +7,10 @@ Version 54:
 * basic_fields members and coverage
 * Add string_param
 
+API Changes:
+
+* basic_fields refactor 
+
 --------------------------------------------------------------------------------
 
 Version 53:

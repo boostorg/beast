@@ -185,11 +185,9 @@ build_request(detail::sec_ws_key_type& key,
         detail::pmd_write(req, config);
     }
     decorator(req);
-    if(! req.exists("User-Agent"))
-    {
-        static_string<20> s(BEAST_VERSION_STRING);
-        req.insert(http::field::user_agent, s);
-    }
+    if(! req.count(http::field::user_agent))
+        req.insert(http::field::user_agent,
+            BEAST_VERSION_STRING);
     return req;
 }
 
@@ -204,7 +202,7 @@ build_response(http::header<true, Fields> const& req,
         [&decorator](response_type& res)
         {
             decorator(res);
-            if(! res.exists("Server"))
+            if(! res.count(http::field::server))
             {
                 BOOST_STATIC_ASSERT(sizeof(BEAST_VERSION_STRING) < 20);
                 static_string<20> s(BEAST_VERSION_STRING);
@@ -228,18 +226,18 @@ build_response(http::header<true, Fields> const& req,
         return err("Wrong method");
     if(! is_upgrade(req))
         return err("Expected Upgrade request");
-    if(! req.exists("Host"))
+    if(! req.count(http::field::host))
         return err("Missing Host");
-    if(! req.exists("Sec-WebSocket-Key"))
+    if(! req.count(http::field::sec_websocket_key))
         return err("Missing Sec-WebSocket-Key");
-    if(! http::token_list{req["Upgrade"]}.exists("websocket"))
+    if(! http::token_list{req[http::field::upgrade]}.exists("websocket"))
         return err("Missing websocket Upgrade token");
-    auto const key = req["Sec-WebSocket-Key"];
+    auto const key = req[http::field::sec_websocket_key];
     if(key.size() > detail::sec_ws_key_type::max_size_n)
         return err("Invalid Sec-WebSocket-Key");
     {
         auto const version =
-            req["Sec-WebSocket-Version"];
+            req[http::field::sec_websocket_version];
         if(version.empty())
             return err("Missing Sec-WebSocket-Version");
         if(version != "13")
@@ -286,16 +284,16 @@ do_response(http::header<false> const& res,
             return false;
         if(res.result() != http::status::switching_protocols)
             return false;
-        if(! http::token_list{res["Connection"]}.exists("upgrade"))
+        if(! http::token_list{res[http::field::connection]}.exists("upgrade"))
             return false;
-        if(! http::token_list{res["Upgrade"]}.exists("websocket"))
+        if(! http::token_list{res[http::field::upgrade]}.exists("websocket"))
             return false;
-        if(! res.exists("Sec-WebSocket-Accept"))
+        if(res.count(http::field::sec_websocket_accept) != 1)
             return false;
         detail::sec_ws_accept_type accept;
         detail::make_sec_ws_accept(accept, key);
         if(accept.compare(
-                res["Sec-WebSocket-Accept"]) != 0)
+                res[http::field::sec_websocket_accept]) != 0)
             return false;
         return true;
     }();
