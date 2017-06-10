@@ -1,6 +1,7 @@
 Version 53:
 
 * Fix basic_parser::maybe_flatten
+* Fix read_size_helper usage
 
 --------------------------------------------------------------------------------
 

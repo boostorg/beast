@@ -145,9 +145,8 @@ operator()(error_code ec, std::size_t bytes_transferred)
     do_read:
         try
         {
-            using beast::detail::read_size_helper;
             mb_.emplace(b_.prepare(
-                read_size_helper(b_, 65536)));
+                maybe_read_size_helper(b_, 65536)));
         }
         catch(std::length_error const&)
         {
@@ -475,9 +474,9 @@ read_some(
             DynamicBuffer::mutable_buffers_type> b;
         try
         {
-            using beast::detail::read_size_helper;
             b.emplace(buffer.prepare(
-                read_size_helper(buffer, 65536)));
+                beast::detail::maybe_read_size_helper(
+                    buffer, 65536)));
         }
         catch(std::length_error const&)
         {
