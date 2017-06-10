@@ -1,3 +1,9 @@
+Version 53:
+
+* Fix basic_parser::maybe_flatten
+
+--------------------------------------------------------------------------------
+
 Version 52:
 
 * flat_buffer is an AllocatorAwareContainer
