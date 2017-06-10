@@ -1,3 +1,9 @@
+Version 54:
+
+* static_buffer coverage
+
+--------------------------------------------------------------------------------
+
 Version 53:
 
 * Fix basic_parser::maybe_flatten

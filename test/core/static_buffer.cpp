@@ -9,33 +9,25 @@
 #include <beast/core/static_buffer.hpp>
 
 #include "buffer_test.hpp"
+
+#include <beast/core/ostream.hpp>
+#include <beast/core/string_view.hpp>
 #include <beast/unit_test/suite.hpp>
-#include <boost/asio/buffer.hpp>
 #include <string>
 
 namespace beast {
 
+static_assert(
+    is_dynamic_buffer<static_buffer>::value,
+    "DynamicBuffer requirements not met");
+
 class static_buffer_test : public beast::unit_test::suite
 {
 public:
-    template<class ConstBufferSequence>
-    static
-    std::string
-    to_string(ConstBufferSequence const& bs)
-    {
-        using boost::asio::buffer_cast;
-        using boost::asio::buffer_size;
-        std::string s;
-        s.reserve(buffer_size(bs));
-        for(auto const& b : bs)
-            s.append(buffer_cast<char const*>(b),
-                buffer_size(b));
-        return s;
-    }
-
     void
     testStaticBuffer()
     {
+        using namespace test;
         using boost::asio::buffer;
         using boost::asio::buffer_cast;
         using boost::asio::buffer_size;
@@ -142,15 +134,100 @@ public:
     }
 
     void
-    testReadSizeHelper()
+    testBuffer()
     {
+        using namespace test;
+        string_view const s = "Hello, world!";
+        
+        // static_buffer
+        {
+            char buf[64];
+            static_buffer b{buf, sizeof(buf)};
+            ostream(b) << s;
+            BEAST_EXPECT(to_string(b.data()) == s);
+            b.consume(b.size());
+            BEAST_EXPECT(to_string(b.data()) == "");
+        }
+
+        // static_buffer_n
+        {
+            static_buffer_n<64> b1;
+            BEAST_EXPECT(b1.size() == 0);
+            BEAST_EXPECT(b1.max_size() == 64);
+            BEAST_EXPECT(b1.capacity() == 64);
+            ostream(b1) << s;
+            BEAST_EXPECT(to_string(b1.data()) == s);
+            {
+                static_buffer_n<64> b2{b1};
+                BEAST_EXPECT(to_string(b2.data()) == s);
+                b2.consume(7);
+                BEAST_EXPECT(to_string(b2.data()) == s.substr(7));
+            }
+            {
+                static_buffer_n<64> b2;
+                b2 = b1;
+                BEAST_EXPECT(to_string(b2.data()) == s);
+                b2.consume(7);
+                BEAST_EXPECT(to_string(b2.data()) == s.substr(7));
+            }
+        }
+
+        // cause memmove
+        {
+            static_buffer_n<10> b;
+            write_buffer(b, "12345");
+            b.consume(3);
+            write_buffer(b, "67890123");
+            BEAST_EXPECT(to_string(b.data()) == "4567890123");
+            try
+            {
+                b.prepare(1);
+                fail("", __FILE__, __LINE__);
+            }
+            catch(std::length_error const&)
+            {
+                pass();
+            }
+        }
+
+        // read_size_helper
+        {
+            using detail::read_size_helper;
+            static_buffer_n<10> b;
+            BEAST_EXPECT(read_size_helper(b, 512) == 10);
+            b.prepare(4);
+            b.commit(4);
+            BEAST_EXPECT(read_size_helper(b, 512) == 6);
+            b.consume(2);
+            BEAST_EXPECT(read_size_helper(b, 512) == 8);
+            b.prepare(8);
+            b.commit(8);
+            BEAST_EXPECT(read_size_helper(b, 512) == 0);
+        }
+
+        // base
+        {
+            static_buffer_n<10> b;
+            [&](static_buffer& b)
+            {
+                BEAST_EXPECT(b.max_size() == b.capacity());
+            }
+            (b.base());
+
+            [&](static_buffer const&)
+            {
+                BEAST_EXPECT(b.max_size() == b.capacity());
+            }
+            (b.base());
+        }
     }
 
     void run() override
     {
         test::check_read_size_helper<static_buffer_n<32>>();
 
-        testStaticBuffer();
+        testBuffer();
+        //testStaticBuffer();
     }
 };
 

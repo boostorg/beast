@@ -44,9 +44,7 @@ read_size_helper(
     BOOST_ASSERT(max_size >= 1);
     auto const size = buffer.size();
     auto const limit = buffer.max_size() - size;
-    if(limit <= 0)
-        BOOST_THROW_EXCEPTION(std::length_error{
-            "dynamic buffer overflow"});
+    BOOST_ASSERT(size <= buffer.max_size());
     return std::min<std::size_t>(
         std::max<std::size_t>(512, buffer.capacity() - size),
         std::min<std::size_t>(max_size, limit));
