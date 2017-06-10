@@ -1,8 +1,12 @@
-# Part of Beast
+#-------------------------------------------------------------------------------
+#
+# Beast
+#
+#-------------------------------------------------------------------------------
 
 cmake_minimum_required (VERSION 3.5.2)
 
-project (Beast)
+project (Beast VERSION 1.0.0)
 
 set_property (GLOBAL PROPERTY USE_FOLDERS ON)
 
@@ -29,10 +33,10 @@ if (MSVC)
     set (CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO ${replacement_flags})
 
 else()
-    set(THREADS_PREFER_PTHREAD_FLAG ON)
-    find_package(Threads)
+    set (THREADS_PREFER_PTHREAD_FLAG ON)
+    find_package (Threads)
 
-    set(CMAKE_CXX_FLAGS
+    set (CMAKE_CXX_FLAGS
       "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wextra -Wpedantic -Wno-unused-parameter")
 endif()
 
@@ -40,30 +44,25 @@ endif()
 #
 # Boost
 #
+#-------------------------------------------------------------------------------
 
 option (Boost_USE_STATIC_LIBS "Use static libraries for boost" ON)
 
 set (Boost_NO_SYSTEM_PATHS ON)
 set (Boost_USE_MULTITHREADED ON)
-add_definitions (-DBOOST_COROUTINES_NO_DEPRECATION_WARNING=1) # for asio
 
 unset (Boost_INCLUDE_DIR CACHE)
 unset (Boost_LIBRARY_DIRS CACHE)
-if (MSVC)
-    find_package (Boost REQUIRED)
-else()
-    find_package (Boost REQUIRED COMPONENTS
-        coroutine
-        context
-        filesystem
-        program_options
-        system
-        thread
-        )
-    link_libraries (${Boost_LIBRARIES})
-endif()
+set (BOOST_COMPONENTS coroutine context filesystem program_options system thread)
+find_package (Boost REQUIRED COMPONENTS ${BOOST_COMPONENTS})
 
-include_directories (SYSTEM ${Boost_INCLUDE_DIRS})
+# Workaround for Jenkins incomplete install
+if (NOT TARGET Boost::atomic)
+    add_library(Boost::atomic INTERFACE IMPORTED)
+endif()
+if (NOT TARGET Boost::date_time)
+  add_library(Boost::date_time INTERFACE IMPORTED)
+endif()
 
 if (MINGW)
     link_libraries(ws2_32 mswsock)
@@ -73,17 +72,18 @@ endif()
 #
 # OpenSSL
 #
+#-------------------------------------------------------------------------------
 
 if (APPLE AND NOT DEFINED ENV{OPENSSL_ROOT_DIR})
-  find_program(HOMEBREW brew)
-  if (NOT HOMEBREW STREQUAL "HOMEBREW-NOTFOUND")
-    execute_process(COMMAND brew --prefix openssl
-      OUTPUT_VARIABLE OPENSSL_ROOT_DIR
-      OUTPUT_STRIP_TRAILING_WHITESPACE)
-  endif()
+    find_program(HOMEBREW brew)
+    if (NOT HOMEBREW STREQUAL "HOMEBREW-NOTFOUND")
+        execute_process(COMMAND brew --prefix openssl
+        OUTPUT_VARIABLE OPENSSL_ROOT_DIR
+        OUTPUT_STRIP_TRAILING_WHITESPACE)
+    endif()
 endif()
 
-find_package(OpenSSL)
+find_package (OpenSSL)
 
 #
 #-------------------------------------------------------------------------------
@@ -129,6 +129,25 @@ elseif ("${VARIANT}" STREQUAL "release")
 
 endif()
 
+#-------------------------------------------------------------------------------
+#
+# Library interface
+#
+#-------------------------------------------------------------------------------
+
+add_library(${PROJECT_NAME} INTERFACE)
+target_link_libraries(${PROJECT_NAME} INTERFACE Boost::system Boost::disable_autolinking)
+if (NOT MSVC)
+    target_link_libraries(${PROJECT_NAME} INTERFACE Threads::Threads)
+endif()
+target_compile_definitions(${PROJECT_NAME} INTERFACE BOOST_COROUTINES_NO_DEPRECATION_WARNING=1)
+
+#-------------------------------------------------------------------------------
+#
+# Tests and Examples
+#
+#-------------------------------------------------------------------------------
+
 include_directories (.)
 include_directories (extras)
 include_directories (include)
@@ -170,6 +189,12 @@ file(GLOB_RECURSE EXTRAS_INCLUDES
     ${PROJECT_SOURCE_DIR}/extras/beast/*.ipp
 )
 
+add_subdirectory (test)
+add_subdirectory (test/core)
+add_subdirectory (test/http)
+add_subdirectory (test/websocket)
+add_subdirectory (test/zlib)
+
 add_subdirectory (examples)
 if (NOT OPENSSL_FOUND)
     message("OpenSSL not found. Not building SSL tests and examples")
@@ -177,9 +202,3 @@ else()
     add_subdirectory (examples/ssl)
     add_subdirectory (test/websocket/ssl)
 endif()
-
-add_subdirectory (test)
-add_subdirectory (test/core)
-add_subdirectory (test/http)
-add_subdirectory (test/websocket)
-add_subdirectory (test/zlib)
