@@ -96,120 +96,121 @@ public:
 
 #endif
 
-    /// Destructor.
+    /// Destructor
     ~basic_multi_buffer();
 
-    /// Default constructor.
+    /** Constructor
+
+        Upon construction, capacity will be zero.
+    */
     basic_multi_buffer();
-
-    /** Move constructor.
-
-        The new object will have the input sequence of
-        the other stream buffer, and an empty output sequence.
-
-        @note After the move, the moved-from object will have
-        an empty input and output sequence, with no internal
-        buffers allocated.
-    */
-    basic_multi_buffer(basic_multi_buffer&&);
-
-    /** Move constructor.
-
-        The new object will have the input sequence of
-        the other stream buffer, and an empty output sequence.
-
-        @note After the move, the moved-from object will have
-        an empty input and output sequence, with no internal
-        buffers allocated.
-
-        @param alloc The allocator to associate with the
-        stream buffer.
-    */
-    basic_multi_buffer(basic_multi_buffer&&,
-        allocator_type const& alloc);
-
-    /** Copy constructor.
-
-        This object will have a copy of the other stream
-        buffer's input sequence, and an empty output sequence.
-    */
-    basic_multi_buffer(basic_multi_buffer const&);
-
-    /** Copy constructor.
-
-        This object will have a copy of the other stream
-        buffer's input sequence, and an empty output sequence.
-
-        @param alloc The allocator to associate with the
-        stream buffer.
-    */
-    basic_multi_buffer(basic_multi_buffer const&,
-        allocator_type const& alloc);
-
-    /** Copy constructor.
-
-        This object will have a copy of the other stream
-        buffer's input sequence, and an empty output sequence.
-    */
-    template<class OtherAlloc>
-    basic_multi_buffer(basic_multi_buffer<OtherAlloc> const&);
-
-    /** Copy constructor.
-
-        This object will have a copy of the other stream
-        buffer's input sequence, and an empty output sequence.
-
-        @param alloc The allocator to associate with the
-        stream buffer.
-    */
-    template<class OtherAlloc>
-    basic_multi_buffer(basic_multi_buffer<OtherAlloc> const&,
-        allocator_type const& alloc);
 
     /** Constructor.
 
-        @param limit The maximum allowed sum of the input and
-        output sequence sizes.
+        @param limit The setting for @ref max_size.
     */
     explicit
     basic_multi_buffer(std::size_t limit);
 
     /** Constructor.
 
-        @param limit The maximum allowed sum of the input and
-        output sequence sizes.
+        @param alloc The allocator to use.
+    */
+    basic_multi_buffer(Allocator const& alloc);
+
+    /** Constructor.
+
+        @param limit The setting for @ref max_size.
 
         @param alloc The allocator to use.
     */
     basic_multi_buffer(
         std::size_t limit, Allocator const& alloc);
 
-    /** Move assignment.
+    /** Move constructor
 
-        This object will have the input sequence of
-        the other stream buffer, and an empty output sequence.
+        After the move, `*this` will have an empty output sequence.
 
-        @note After the move, the moved-from object will have
-        an empty input and output sequence, with no internal
-        buffers allocated.
+        @param other The object to move from. After the move,
+        The object's state will be as if constructed using
+        its current allocator and limit.
     */
-    basic_multi_buffer&
-    operator=(basic_multi_buffer&&);
+    basic_multi_buffer(basic_multi_buffer&& other);
 
-    /** Copy assignment.
+    /** Move constructor
 
-        This object will have a copy of the other stream
-        buffer's input sequence, and an empty output sequence.
+        After the move, `*this` will have an empty output sequence.
+
+        @param other The object to move from. After the move,
+        The object's state will be as if constructed using
+        its current allocator and limit.
+
+        @param alloc The allocator to use.
     */
-    basic_multi_buffer& operator=(basic_multi_buffer const&);
+    basic_multi_buffer(basic_multi_buffer&& other,
+        Allocator const& alloc);
 
-    /** Copy assignment.
+    /** Copy constructor.
 
-        This object will have a copy of the other stream
-        buffer's input sequence, and an empty output sequence.
+        @param other The object to copy from.
+    */
+    basic_multi_buffer(basic_multi_buffer const& other);
+
+    /** Copy constructor
+
+        @param other The object to copy from.
+
+        @param alloc The allocator to use.
+    */
+    basic_multi_buffer(basic_multi_buffer const& other,
+        Allocator const& alloc);
+
+    /** Copy constructor.
+
+        @param other The object to copy from.
     */
     template<class OtherAlloc>
-    basic_multi_buffer& operator=(basic_multi_buffer<OtherAlloc> const&);
+    basic_multi_buffer(basic_multi_buffer<
+        OtherAlloc> const& other);
+
+    /** Copy constructor.
+
+        @param other The object to copy from.
+
+        @param alloc The allocator to use.
+    */
+    template<class OtherAlloc>
+    basic_multi_buffer(basic_multi_buffer<
+        OtherAlloc> const& other, allocator_type const& alloc);
+
+    /** Move assignment
+
+        After the move, `*this` will have an empty output sequence.
+
+        @param other The object to move from. After the move,
+        The object's state will be as if constructed using
+        its current allocator and limit.
+    */
+    basic_multi_buffer&
+    operator=(basic_multi_buffer&& other);
+
+    /** Copy assignment
+
+        After the copy, `*this` will have an empty output sequence.
+
+        @param other The object to copy from.
+    */
+    basic_multi_buffer& operator=(basic_multi_buffer const& other);
+
+    /** Copy assignment
+
+        After the copy, `*this` will have an empty output sequence.
+
+        @param other The object to copy from.
+    */
+    template<class OtherAlloc>
+    basic_multi_buffer& operator=(
+        basic_multi_buffer<OtherAlloc> const& other);
 
     /// Returns a copy of the associated allocator.
     allocator_type
@@ -263,9 +264,29 @@ public:
     void
     consume(size_type n);
 
-private:
+    template<class Alloc>
+    friend
     void
-    clear();
+    swap(
+        basic_multi_buffer<Alloc>& lhs,
+        basic_multi_buffer<Alloc>& rhs);
+
+private:
+    template<class OtherAlloc>
+    friend class basic_multi_buffer;
+
+    void
+    delete_element(element& e);
+
+    void
+    delete_list();
+
+    void
+    reset();
+
+    template<class DynamicBuffer>
+    void
+    copy_from(DynamicBuffer const& other);
 
     void
     move_assign(basic_multi_buffer& other, std::false_type);
@@ -280,20 +301,17 @@ private:
     copy_assign(basic_multi_buffer const& other, std::true_type);
 
     void
-    delete_list();
+    swap(basic_multi_buffer&);
+
+    void
+    swap(basic_multi_buffer&, std::true_type);
+
+    void
+    swap(basic_multi_buffer&, std::false_type);
 
     void
     debug_check() const;
 };
-
-#if 0
-/// Helper for boost::asio::read_until
-template<class Allocator>
-std::size_t
-read_size_helper(
-    basic_multi_buffer<Allocator> const& buffer,
-        std::size_t max_size);
-#endif
 
 /// A typical multi buffer
 using multi_buffer = basic_multi_buffer<std::allocator<char>>;
