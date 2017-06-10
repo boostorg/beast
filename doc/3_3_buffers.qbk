@@ -48,6 +48,15 @@ To suit various needs, several implementation of dynamic buffer are available:
     The implementation does not perform heap allocations.
 ]]
 [[
+    [link beast.ref.drain_buffer `drain_buffer`]
+][
+    A drain buffer has a small internal buffer and maximum size that
+    uses no dynamic allocation. It always has a size of zero, and
+    silently discards its input. This buffer may be passed to functions
+    which store data in a dynamic buffer when the caller wishes to
+    efficiently discard the data.
+]]
+[[
     [link beast.ref.flat_buffer `flat_buffer`]
     [link beast.ref.basic_flat_buffer `basic_flat_buffer`]
 ][

@@ -27,6 +27,7 @@ unit-test core-tests :
     core/consuming_buffers.cpp
     core/doc_core_samples.cpp
     core/doc_snippets.cpp
+    core/drain_buffer.cpp
     core/error.cpp
     core/flat_buffer.cpp
     core/handler_alloc.cpp

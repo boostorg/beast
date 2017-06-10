@@ -1,6 +1,7 @@
 Version 52:
 
 * flat_buffer is an AllocatorAwareContainer
+* Add drain_buffer class
 
 API Changes:
 
