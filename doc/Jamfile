@@ -49,20 +49,6 @@ install callouts
 
 explicit callout ;
 
-install examples
-    :
-        [ glob
-            ../examples/*.cpp
-            ../examples/*.hpp
-            ../examples/ssl/*.cpp
-            ../examples/ssl/*.hpp
-            ]
-    :
-        <location>$(here)/html/examples
-    ;
-
-explicit examples ;
-
 xml doc
     :
         0_main.qbk
@@ -90,7 +76,6 @@ boostbook boostdoc
         <include>$(broot)/tools/boostbook/dtd
     :
         <location>temp
-        <dependency>examples
         <dependency>images
         <dependency>stylesheets
     ;

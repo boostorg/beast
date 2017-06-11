@@ -179,11 +179,9 @@ send(
 
 //[http_snippet_13
 
-template<
-    class SyncReadStream>
+template<class SyncReadStream>
 void
-print_response(
-    SyncReadStream& stream)
+print_response(SyncReadStream& stream)
 {
     static_assert(is_sync_read_stream<SyncReadStream>::value,
         "SyncReadStream requirements not met");
@@ -238,7 +236,7 @@ struct lambda
     lambda(Serializer& sr_) : sr(sr_) {}
 
     template<class ConstBufferSequence>
-    void operator()(error_code& ec, ConstBufferSequence const& buffer)
+    void operator()(error_code& ec, ConstBufferSequence const& buffer) const
     {
         std::cout << buffers(buffer);
         sr.consume(boost::asio::buffer_size(buffer));

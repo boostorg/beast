@@ -7,9 +7,8 @@
 
 [section:example Example Programs]
 
-These usage examples are intended to quickly impress upon readers the
-flavor of the library. They are complete programs which may be built
-and run. Source code and build scripts for these programs may be found
+These complete programs are intended to quickly impress upon readers the
+flavor of the library. Source code and build scripts for them are located
 in the examples directory.
 
 
@@ -18,47 +17,47 @@ in the examples directory.
 
 Use HTTP to make a GET request to a website and print the response:
 
+File: [repo_file examples/http_example.cpp]
+
 [http_example_get]
-
-
 
 [heading WebSocket]
 
 Establish a WebSocket connection, send a message and receive the reply:
 
+File: [repo_file examples/websocket_example.cpp]
+
 [websocket_example_client_echo]
-
-
 
 [heading WebSocket Echo Server]
 
 This example demonstrates both synchronous and asynchronous
 WebSocket server implementations.
 
-* [@examples/websocket_async_echo_server.hpp]
-* [@examples/websocket_sync_echo_server.hpp]
-* [@examples/websocket_echo.cpp]
+* [repo_file examples/websocket_async_echo_server.hpp]
+* [repo_file examples/websocket_sync_echo_server.hpp]
+* [repo_file examples/websocket_echo.cpp]
 
 [heading Secure WebSocket]
 
 Establish a WebSocket connection over an encrypted TLS connection,
 send a message and receive the reply. Requires OpenSSL to build.
 
-* [@examples/websocket_ssl_example.cpp]
+* [repo_file examples/ssl/websocket_ssl_example.cpp]
 
 [heading HTTPS GET]
 
 This example demonstrates sending and receiving HTTP messages
 over a TLS connection. Requires OpenSSL to build.
 
-* [@examples/http_ssl_example.cpp]
+* [repo_file examples/ssl/http_ssl_example.cpp]
 
 [heading HTTP Crawl]
 
 This example retrieves the page at each of the most popular domains
 as measured by Alexa.
 
-* [@examples/http_crawl.cpp]
+* [repo_file examples/http_crawl.cpp]
 
 [heading HTTP Server]
 
@@ -66,10 +65,10 @@ This example demonstrates both synchronous and asynchronous server
 implementations. It also provides an example of implementing a [*Body]
 type, in `file_body`.
 
-* [@examples/file_body.hpp]
-* [@examples/http_async_server.hpp]
-* [@examples/http_sync_server.hpp]
-* [@examples/http_server.cpp]
+* [repo_file examples/file_body.hpp]
+* [repo_file examples/http_async_server.hpp]
+* [repo_file examples/http_sync_server.hpp]
+* [repo_file examples/http_server.cpp]
 
 [heading Composed Operations]
 
@@ -78,13 +77,16 @@ composable asynchronous initiation function with associated composed
 operation implementation. This is a complete, runnable version of
 the example described in the Core Foundations document section.
 
-* [@examples/echo_op.cpp]
+* [repo_file examples/echo_op.cpp]
 
-[heading Listings]
+[heading Documentation Samples]
 
-These are stand-alone listings of the HTTP and WebSocket examples.
+Here are all of the example functions and classes presented
+throughout the documentation, they can be included and used
+in your program without modification
 
-* [@examples/http_example.cpp]
-* [@examples/websocket_example.cpp]
+* [repo_file examples/doc_core_samples.hpp]
+
+* [repo_file examples/doc_http_samples.hpp]
 
 [endsect]

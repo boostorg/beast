@@ -7,8 +7,8 @@
 
 [section:serializer_streams Serializer Stream Operations]
 
-Message oriented stream operations provide for limited control.
-Sophisticated algorithms may need to do more, such as:
+Non-trivial algorithms need to do more than send entire messages
+at once, such as:
 
 * Send the header first, and the body later.
 
@@ -108,7 +108,7 @@ is the responsibility of the decorator to manage returned string buffers.
 The implementation guarantees it will not reference previous strings
 after subsequent calls.
 
-Here, we declare a decorator which sets an extension variable `x` equal
+This defines a decorator which sets an extension variable `x` equal
 to the size of the chunk in bytes, and returns a single trailer field:
 
 [http_snippet_17]

@@ -101,7 +101,6 @@
             <member><link linkend="beast.concept.Body">Body</link></member>
             <member><link linkend="beast.concept.BodyReader">BodyReader</link></member>
             <member><link linkend="beast.concept.BodyWriter">BodyWriter</link></member>
-            <member><link linkend="beast.concept.Field">Field</link></member>
             <member><link linkend="beast.concept.Fields">Fields</link></member>
             <member><link linkend="beast.concept.FieldsReader">FieldsReader</link></member>
           </simplelist>

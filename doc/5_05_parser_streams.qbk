@@ -7,10 +7,11 @@
 
 [section:parser_streams Parser Stream Operations]
 
-Message oriented stream operations provide for limited control.
-Sophisticated algorithms may need to do more, such as:
+Non-trivial algorithms need to do more than receive entire messages
+at once, such as:
 
-* Receive the header first, then the body later.
+
+* Receive the header first and body later.
 
 * Receive a large body using a fixed-size buffer.
 
@@ -18,10 +19,10 @@ Sophisticated algorithms may need to do more, such as:
 
 * Defer the commitment to a __Body__ type until after reading the header.
 
-All of these operations require callers to manage the lifetime of state
-information associated with the operation, by constructing a class derived
-from __basic_parser__. Beast comes with two instances of parsers, and user
-defined types deriving from the basic parser are possible:
+These types of operations require callers to manage the lifetime of
+associated state, by constructing a class derived from __basic_parser__.
+Beast comes with the derived instance __parser__ which creates complete
+__message__ objects; user-defined parsers are also possible:
 
 [table Parser Implementations
 [[Name][Description]]
@@ -33,7 +34,7 @@ defined types deriving from the basic parser are possible:
     template<
         bool isRequest,         // `true` to parse an HTTP request
         class Body,             // The Body type for the resulting message
-        class Fields>           // The type of container representing the fields
+        class Fields = fields>  // The type of container representing the fields
     class parser
         : public basic_parser<...>;
     ```
@@ -107,12 +108,15 @@ advised to use an instance of __flat_buffer__, __static_buffer__, or
 __static_buffer_n__ for this purpose, although a user defined instance of
 __DynamicBuffer__ which produces input sequences of length one is also suitable.
 
-The provided parsers use a "captive object" model, acting as container for
-the __message__ produced as a result of parsing. The caller accesses the
-contained object, and depending on the types used to instantiate the parser,
-it may be possible to acquire ownership of the header or message captive
-object and destroy the parser. In this example we read an HTTP response
-with a string body using a parser, then print the response:
+The parser contains a message constructed internally. Arguments passed
+to the parser's constructor are forwarded into the message container.
+The caller can access the message inside the parser by calling
+[link beast.ref.http__parser.get `parser::get`].
+If the `Fields` and `Body` types are [*MoveConstructible], the caller
+can take ownership of the message by calling
+[link beast.ref.http__parser.release `parser::release`]. In this example
+we read an HTTP response with a string body using a parser, then print
+the response:
 
 [http_snippet_13]
 

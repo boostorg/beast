@@ -32,11 +32,13 @@ in this library. Non-trivial applications will want to provide their own
 asynchronous initiation functions which perform a series of other,
 intermediate asynchronous operations before invoking the final completion
 handler. The set of intermediate actions produced by calling an initiation
-function is known as a ['composed operation]. To ensure full interoperability
-and well-defined behavior, __Asio__ imposes requirements on the implementation
-of composed operations. A number of useful classes and macros to facilitate
-the development of composed operations and the associated asynchronous
-initiation functions used to launch them are available:
+function is known as a
+[@http://blog.think-async.com/2009/08/composed-operations-coroutines-and-code.html ['composed operation]].
+To ensure full interoperability and well-defined behavior, __Asio__ imposes
+requirements on the implementation of composed operations. A number of useful
+classes and macros to facilitate the development of composed operations and
+the associated asynchronous initiation functions used to launch them are
+available:
 
 [table Asynchronous Helpers
 [[Name][Description]]
