@@ -7,6 +7,7 @@ Version 54:
 * basic_fields members and coverage
 * Add string_param
 * Retain ownership when reading using a message
+* Fix incorrect use of [[fallthrough]]
 
 API Changes:
 
