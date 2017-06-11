@@ -6,6 +6,7 @@ Version 54:
 * consuming_buffers members and coverage
 * basic_fields members and coverage
 * Add string_param
+* Retain ownership when reading using a message
 
 API Changes:
 

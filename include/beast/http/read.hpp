@@ -604,8 +604,8 @@ async_read(
     dynamic buffer's input sequence will be given to the parser
     first.
 
-    @param msg An object used to store the message. Any contents will
-    be overwritten. The type must support copy or move assignment.
+    @param msg An object to be overwritten with the message contents.
+    The type must be @b MoveAssignable and @b MoveConstructible.
 
     @throws system_error Thrown on failure.
 */
@@ -654,8 +654,8 @@ read(
     dynamic buffer's input sequence will be given to the parser
     first.
 
-    @param msg An object used to store the message. Any contents will
-    be overwritten. The type must support copy or move assignment.
+    @param msg An object to be overwritten with the message contents.
+    The type must be @b MoveAssignable and @b MoveConstructible.
 
     @param ec Set to the error, if any occurred.
 */
@@ -709,8 +709,8 @@ read(
     dynamic buffer's input sequence will be given to the parser
     first.
 
-    @param msg An object used to store the message. Any contents will
-    be overwritten. The type must support copy or move assignment.
+    @param msg An object to be overwritten with the message contents.
+    The type must be @b MoveAssignable and @b MoveConstructible.
     The object must remain valid at least until the
     handler is called; ownership is not transferred.
 
