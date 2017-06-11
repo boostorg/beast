@@ -60,6 +60,9 @@ namespace http {
 
     @tparam Derived The derived class type. This is part of the
     Curiously Recurring Template Pattern interface.
+
+    @note If the parser encounters a field value with obs-fold
+    longer than 4 kilobytes in length, an error is generated.
 */
 template<bool isRequest, class Derived>
 class basic_parser
@@ -67,6 +70,9 @@ class basic_parser
 {
     template<bool OtherIsRequest, class OtherDerived>
     friend class basic_parser;
+
+    // limit on the size of the obs-fold buffer
+    static std::size_t constexpr max_obs_fold = 4096;
 
     // Message will be complete after reading header
     static unsigned constexpr flagSkipBody              = 1<<  0;
