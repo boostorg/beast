@@ -18,7 +18,7 @@
     This is a simple integer that is incremented by one every time
     a set of code changes is merged to the master or develop branch.
 */
-#define BEAST_VERSION 53
+#define BEAST_VERSION 54
 
 #define BEAST_VERSION_STRING "Beast/" BOOST_STRINGIZE(BEAST_VERSION)
 
