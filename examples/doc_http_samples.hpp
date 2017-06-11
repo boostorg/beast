@@ -686,7 +686,13 @@ read_istream(
     error_code& ec)
 {
     // Create the message parser
-    parser<isRequest, Body, Fields> parser;
+    //
+    // Arguments passed to the parser's constructor are
+    // forwarded to the message constructor. Here, we use
+    // a move construction in case the caller has constructed
+    // their message in a non-default way.
+    //
+    parser<isRequest, Body, Fields> p{std::move(msg)};
 
     do
     {
@@ -729,7 +735,7 @@ read_istream(
             else
             {
                 // Inform the parser that we've reached the end of the istream.
-                parser.put_eof(ec);
+                p.put_eof(ec);
                 if(ec)
                     return;
                 break;
@@ -737,7 +743,7 @@ read_istream(
         }
 
         // Write the data to the parser
-        auto const bytes_used = parser.put(buffer.data(), ec);
+        auto const bytes_used = p.put(buffer.data(), ec);
 
         // This error means that the parser needs additional octets.
         if(ec == error::need_more)
@@ -748,10 +754,10 @@ read_istream(
         // Consume the buffer octets that were actually parsed.
         buffer.consume(bytes_used);
     }
-    while(! parser.is_done());
+    while(! p.is_done());
 
     // Transfer ownership of the message container in the parser to the caller.
-    msg = parser.release();
+    msg = p.release();
 }
 
 //]

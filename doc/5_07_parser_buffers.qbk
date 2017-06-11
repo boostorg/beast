@@ -7,11 +7,10 @@
 
 [section:parser_buffers Buffer-Oriented Parsing]
 
-In some cases, users may wish to create an instance of __parser__, or a
-user-defined type derived from __basic_parser__ and invoke its methods
-directly instead of using the provided stream algorithms. This could be
-useful for implementing algorithms on objects whose interface does not
-conform to any __Stream__. For example, a
+A subclass of __basic_parser__ can be invoked directly, without using 
+the provided stream operations. This could be useful for implementing
+algorithms on objects whose interface does not conform to any __Stream__.
+For example, a
 [@http://zeromq.org/ *ZeroMQ* socket].
 The basic parser interface is interactive; the caller invokes the function
 [link beast.ref.http__basic_parser.put `basic_parser::put`]
@@ -58,6 +57,23 @@ The parser provides two options which may be set before parsing begins:
     no body is expected. The parser will consider the message complete
     after the header has been received.
 ]]
+]
+
+[heading Example: Read From std::istream]
+
+The standard library provides the type `std::istream` for performing high
+level read operations on character streams. The variable `std::cin` is based
+on this input stream. This example uses the buffer oriented interface of
+__basic_parser__ to build a stream operation which parses an HTTP message
+from a `std::istream`:
+
+[http_sample_read_istream]
+
+[tip
+    Parsing from a `std::istream` could be implemented using an alternate
+    strategy: adapt the `std::istream` interface to a __SyncReadStream__,
+    enabling use with the library's existing stream algorithms. This is
+    left as an exercise for the reader.
 ]
 
 [endsect]

@@ -12,15 +12,14 @@
     [*low-level HTTP/1, WebSocket, and network protocol] programming
     using the consistent asynchronous model of __Asio__. Beast is
     not an HTTP client or HTTP server, but it can be used to build
-    those things. It is intended to be a foundation for writing other
-    interoperable libraries by providing HTTP vocabulary types and
-    algorithms. The provided examples show how clients and servers
-    might be built.
+    those things. It is a foundation for writing interoperable
+    libraries by providing HTTP vocabulary types and algorithms. The
+    examples show how client and server applications might be built.
 ]
 
 This library is designed for:
 
-* [*Symmetry:] Interfaces are role-agnostic; build clients, servers, or both.
+* [*Symmetry:] Algorithms are role-agnostic; build clients, servers, or both.
 
 * [*Ease of Use:] __Asio__ users will immediately understand Beast.
 
@@ -29,8 +28,7 @@ This library is designed for:
 
 * [*Performance:] Build applications handling thousands of connections or more.
 
-* [*Basis for Further Abstraction.] Components are open-ended and
-  suited for building higher level libraries.
+* [*Basis for Further Abstraction.] Components are well-suited for building upon.
 
 [heading Audience]
 
@@ -44,12 +42,11 @@ Asio callbacks or coroutines.
 
 An absence of high quality C++ network protocol libraries has led
 to a patchwork of open-source solutions lacking suitable conciseness
-and expressive power for standardization. Part of this problem is
-caused by the lack of a standardized C++ networking interface. This
-will change soon with the Networking Technical Specification
-(__N4588__): a uniform interface for networking on track to become
-standardized. This technical specification is modeled closely after
-Boost.Asio.
+and expressive power for standardization. Part of this problem is a
+lack of common C++ networking interfaces. This is changing soon with
+the Networking Technical Specification (__N4588__): a uniform interface
+on track to become standardized. This technical specification is modeled
+closely after Boost.Asio.
 The HTTP and WebSocket protocols drive most of the World Wide Web.
 Every web browser implements these protocols to load webpages and
 to enable client side programs (often written in JavaScript) to
@@ -57,8 +54,8 @@ communicate interactively. C++ benefits greatly from having a
 standardized implementation of these protocols.
 
 [note
-    The Beast roadmap includes a port to the standardized C++
-    networking interface based on __N4588__.
+    The Beast roadmap includes a port to the networking
+    interface based on __N4588__.
 ]
 
 [heading Requirements]

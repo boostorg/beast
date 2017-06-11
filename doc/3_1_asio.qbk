@@ -15,11 +15,10 @@
     left to the interfaces already existing on the underlying streams.
 ]
 
-Library stream algorithms require an already-connected socket, SSL stream,
-or other object which meets the required stream concepts and already has
-communication established with an endpoint. This example is provided as a
-reminder of how to work
-with sockets:
+Library stream algorithms require a __socket__, __ssl_stream__, or other
+__Stream__ object that has already established communication with an
+endpoint. This example is provided as a reminder of how to work with
+sockets:
 
 [snippet_core_2]
 

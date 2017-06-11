@@ -7,26 +7,24 @@
 
 [section:serializer_buffers Buffer-Oriented Serializing]
 
-In extreme cases, users may wish to create an instance of __serializer__
-and invoke its methods directly instead of using the provided stream
-algorithms. This could be useful for implementing algorithms on streams
-whose interface does not conform to __Stream__. For example, a
+An instance of __serializer__ can be invoked directly, without using
+the provided stream operations. This could be useful for implementing
+algorithms on streams whose interface does not conform to __Stream__.
+For example, a
 [@https://github.com/libuv/libuv *libuv* socket].
-The serializer interface is interactive; the caller invokes it repeatedly to
-produce buffers until all of the buffers have been generated. Then the
+The serializer interface is interactive; the caller invokes it repeatedly
+to produce buffers until all of the buffers have been generated. Then the
 serializer is destroyed.
 
-After the serializer is created, the buffers are produced by first calling
-[link beast.ref.http__serializer.get `serializer::get`]
-to obtain a buffer sequence, and then calling
+To obtain the serialized next buffer sequence, call
+[link beast.ref.http__serializer.get `serializer::get`].
+Then, call 
 [link beast.ref.http__serializer.consume `serializer::consume`]
-to indicate how many bytes in the buffer sequence were consumed.
-This advanced the internal state of the serializer and prepares the
-next set of buffers for delivery.
-[link beast.ref.http__serializer.get `serializer::get`]
-takes an error code parameter and invokes a visitor argument with the
-error code and buffer of unspecified type. In C++14 this is easily
-expressed with a generic lambda. The function
+to indicate the number of bytes consumed. This updates the next
+set of buffers to be returned, if any.
+`serializer::get` takes an error code parameter and invokes a visitor
+argument with the error code and buffer of unspecified type. In C++14
+this is easily expressed with a generic lambda. The function
 [link beast.ref.http__serializer.is_done `serializer::is_done`]
 will return `true` when all the buffers have been produced. This C++14
 example prints the buffers to standard output:
@@ -50,9 +48,27 @@ with a boolean indicating that when buffers are produced, the last buffer
 containing serialized header octets will not contain any octets corresponding
 to the body. The function
 [link beast.ref.http__serializer.is_header_done `serializer::is_header_done`]
-informs the caller whether the header has completed serialization. In this
+informs the caller whether the header been serialized fully. In this
 C++14 example we print the header first, followed by the body:
 
 [http_snippet_16]
+
+[heading Example: Write To std::ostream]
+
+The standard library provides the type `std::ostream` for performing high
+level write operations on character streams. The variable `std::cout` is
+based on this output stream. This example uses the buffer oriented interface
+of __serializer__ to write an HTTP message to a `std::ostream`:
+
+[http_sample_write_ostream]
+
+[tip
+    Serializing to a `std::ostream` could be implemented using an alternate
+    strategy: adapt the `std::ostream` interface to a __SyncWriteStream__,
+    enable use with the library's existing stream algorithms. This is
+    left as an exercise for the reader.
+]
+
+
 
 [endsect]

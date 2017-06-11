@@ -7,11 +7,12 @@
 
 [section:core Using Networking]
 
-A goal of the library is expose implementation primitives in order that
-users may build their own library-like components. These primitives include
-traits, buffers, buffer algorithms, and helpers for implementing asynchronous
-operations compatible with __Asio__ and described in __N3747__. This section
-lists these facilities by group, with descriptions.
+This library makes network primitives used by the implementation publicly
+available so users can take advantage of them in their own libraries.
+These primitives include traits, buffers, buffer algorithms, and helpers
+for implementing asynchronous operations compatible with __Asio__ and
+described in __N3747__. This section lists these facilities by group,
+with descriptions.
 
 [important
     This documentation assumes familiarity with __Asio__. Sample

@@ -21,7 +21,7 @@ class message;
 ```
 
 The container offers value semantics including move and copy if supported
-by `Body` and `Fields`. User defined template function parameters can
+by __Body__ and __Fields__. User defined template function parameters can
 accept any message, or can use partial specialization to accept just
 requests or responses. The default __fields__ is a provided associative
 container using the standard allocator and supporting modification and
@@ -47,17 +47,19 @@ a few members unique to the type. This is implemented by declaring the
 header classes as partial specializations of `isRequest`. Furthermore,
 __message__ is derived from __header__; a message may be passed as an
 argument to a function taking a suitably typed header as a parameter.
-This diagram shows the inheritance relationship between header and message,
-along with the fields from the different partial specializations for each
-possible value of `isRequest`:
+Furthermore, `header` is publicly derived from `Fields`; a message
+inherits all of the fields member functions. Since `fields` is a
+container, iterating a message iterates its header fields. This
+diagram shows the inheritance relationship between header and message,
+along with the fields from the different partial specializations for
+each possible value of `isRequest`:
 
 [$images/message.png [width 730px] [height 410px]]
 
 The template type aliases 
 [link beast.ref.http__request `request`] and
 [link beast.ref.http__response `response`]
-are provided for notational convenience. They also come with the default
-__fields__, a common choice.
+are provided for brevity. They specify the common default of `fields`.
 
 ```
 /// A typical HTTP request
@@ -72,21 +74,24 @@ using response = message<false, Body, Fields>;
 [heading:body Body Types]
 
 Beast defines the __Body__ concept, which determines both the type of
-the `message::body` member (as seen in the diagram above) and may also
-include algorithms for transferring buffers in and out. These algorithms
-are used during parsing and serialization. These body types are available
-within the library, and users may define their own body types which meet
-the __Body__ requirements:
+the [link beast.ref.http__message.body `message::body`] member
+(as seen in the diagram above) and may also include algorithms for
+transferring buffers in and out. These algorithms are used during
+parsing and serialization. These body types are available within the
+library, and users may define their own body types which meet the
+__Body__ requirements:
 
 [table
 [[Name][Description]]
 [[
     [link beast.ref.http__buffer_body `buffer_body`]
 ][
-    A body whose `value_type` holds a raw pointer and size to a
-    caller-provided buffer. This allows for serialization of body data
-    coming from external sources, and incremental parsing of message
-    body content using a fixed size buffer.
+    A body whose
+    [link beast.ref.http__buffer_body__value_type `value_type`]
+    holds a raw pointer and size to a caller-provided buffer.
+    This allows for serialization of body data coming from
+    external sources, and incremental parsing of message body
+    content using a fixed size buffer.
 ]]
 [[
     [link beast.ref.http__dynamic_body `dynamic_body`]
@@ -141,7 +146,7 @@ message has a body. The function
 [link beast.ref.http__message.prepare prepare]
 automatically sets the Content-Length or Transfer-Encoding field
 depending on the content and type of the `body` member. The use
-of prepare is optional; these fields may also be set.
+of prepare is optional; these fields may also be set explicitly.
 
 [table Create Response
 [[Statements] [Serialized Result]]
@@ -157,5 +162,11 @@ of prepare is optional; these fields may also be set.
 ```
 ]]
 ]
+
+The implementation will automatically fill in the obsolete
+[@https://tools.ietf.org/html/rfc7230#section-3.1.2 reason-phrase]
+from the status code when serializing a message. Or it may
+be set directly using
+[link beast.ref.http__header.reason.overload2 `header::reason`].
 
 [endsect]

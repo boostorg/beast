@@ -7,17 +7,13 @@
 
 [section:streams Using Streams]
 
-A __Stream__ is a communication channel where data expressed as octet
-buffers is transferred sequentially. Streams are either synchronous
+A __Stream__ is a communication channel where data is transferred as
+an ordered sequence of octet buffers. Streams are either synchronous
 or asynchronous, and may allow reading, writing, or both. Note that
 a particular type may model more than one concept. For example, the
-Asio types 
-[@http://www.boost.org/doc/html/boost_asio/reference/ip__tcp/socket.html `boost::asio::ip::tcp::socket`]
-and
-[@http://www.boost.org/doc/html/boost_asio/reference/ssl__stream.html `boost::asio::ssl::stream`]
-support everything. All stream algorithms in Beast are declared as
-template functions with specific concept requirements chosen from
-this list:
+Asio types  __socket__ and __ssl_stream__ and support everything.
+All stream algorithms in Beast are declared as template functions
+with specific concept requirements chosen from this list:
 
 [table Stream Concepts
 [[Concept][Description]]

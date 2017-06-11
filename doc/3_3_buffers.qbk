@@ -11,13 +11,18 @@ __Asio__ provides the __ConstBufferSequence__ and __MutableBufferSequence__
 concepts, whose models provide ranges of buffers, as well as the __streambuf__
 class which encapsulates memory storage that may be automatically resized as
 required, where the memory is divided into an input sequence followed by an
-output sequence. The Networking TS (__N4588__) generalizes the `streambuf`
+output sequence. The Networking TS (__N4588__) generalizes this `streambuf`
 interface into the __DynamicBuffer__ concept. Beast algorithms which require
-resizable buffers accept as parameters dynamic buffer objects. These
-metafunctions check types against these buffer concepts:
+resizable buffers accept dynamic buffer objects as templated parameters.
+These metafunctions check if types match the buffer concepts:
 
 [table Buffer Type Checks
 [[Name][Description]]
+[[
+    [link beast.ref.is_dynamic_buffer `is_dynamic_buffer`]
+][
+    Determine if a type meets the requirements of __DynamicBuffer__.
+]]
 [[
     [link beast.ref.is_const_buffer_sequence `is_const_buffer_sequence`]
 ][
@@ -27,11 +32,6 @@ metafunctions check types against these buffer concepts:
     [link beast.ref.is_mutable_buffer_sequence `is_mutable_buffer_sequence`]
 ][
     Determine if a type meets the requirements of __MutableBufferSequence__.
-]]
-[[
-    [link beast.ref.is_dynamic_buffer `is_dynamic_buffer`]
-][
-    Determine if a type meets the requirements of __DynamicBuffer__.
 ]]
 ]
 
@@ -88,11 +88,11 @@ To suit various needs, several implementation of dynamic buffer are available:
 Network applications frequently need to manipulate buffer sequences. To
 facilitate working with buffers the library treats these sequences as
 a special type of range. Algorithms and wrappers are provided which
-transform these buffer sequences ranges efficiently using lazy evaluation.
-No memory allocations are used in the transformations; instead, they
-create lightweight iterators over the existing, unmodified memory
-buffers. Control of buffers is retained by the caller; ownership is
-not transferred.
+transform these ranges efficiently using lazy evaluation. No memory
+allocations are used in the transformations; instead, they create
+lightweight iterators over the existing, unmodified memory buffers.
+Control of buffers is retained by the caller; ownership is not
+transferred.
 
 [table Buffer Algorithms
 [[Name][Description]]

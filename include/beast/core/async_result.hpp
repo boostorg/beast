@@ -59,7 +59,7 @@ namespace beast {
         // This helper converts the handler into the real handler type
         async_completion<WriteHandler, void(error_code)> init{handler};
 
-        ...                         // Create and the composed operation
+        ... // Create and invoke the composed operation
 
         // This provides the return value and executor customization
         return init.result.get();

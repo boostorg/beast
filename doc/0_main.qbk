@@ -22,6 +22,7 @@
 [template mdash[] '''&mdash; ''']
 [template indexterm1[term1] '''<indexterm><primary>'''[term1]'''</primary></indexterm>''']
 [template indexterm2[term1 term2] '''<indexterm><primary>'''[term1]'''</primary><secondary>'''[term2]'''</secondary></indexterm>''']
+[template repo_file[path] '''<ulink url="https://github.com/vinniefalco/Beast/blob/master/'''[path]'''">'''[path]'''</ulink>''']
 
 [def __N3747__ [@http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3747.pdf [*N3747]]]
 [def __N4588__ [@http://cplusplus.github.io/networking-ts/draft.pdf [*N4588]]]
@@ -33,7 +34,9 @@
 [def __asio_handler_invoke__    [@http://www.boost.org/doc/html/boost_asio/reference/asio_handler_invoke.html `asio_handler_invoke`]]
 [def __asio_handler_allocate__  [@http://www.boost.org/doc/html/boost_asio/reference/asio_handler_allocate.html `asio_handler_allocate`]]
 [def __io_service__             [@http://www.boost.org/doc/html/boost_asio/reference/io_service.html `io_service`]]
-[def __streambuf__              [@http://www.boost.org/doc/html/boost_asio/reference/streambuf.html [*boost::asio::streambuf]]]
+[def __socket__                 [@http://www.boost.org/doc/html/boost_asio/reference/ip__tcp/socket.html `boost::asio::ip::tcp::socket`]]
+[def __ssl_stream__             [@http://www.boost.org/doc/html/boost_asio/reference/ssl_stream.html `boost::asio::ssl::stream`]]
+[def __streambuf__              [@http://www.boost.org/doc/html/boost_asio/reference/streambuf.html `boost::asio::streambuf`]]
 [def __use_future__             [@http://www.boost.org/doc/html/boost_asio/reference/use_future_t.html `boost::asio::use_future`]]
 [def __void_or_deduced__        [@http://www.boost.org/doc/html/boost_asio/reference/asynchronous_operations.html#boost_asio.reference.asynchronous_operations.return_type_of_an_initiating_function ['void-or-deduced]]]
 [def __yield_context__          [@http://www.boost.org/doc/html/boost_asio/reference/yield_context.html `boost::asio::yield_context`]]

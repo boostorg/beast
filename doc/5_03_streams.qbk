@@ -7,11 +7,11 @@
 
 [section:streams Message Stream Operations]
 
-Beast provides synchronous and asynchronous algorithms to serialize and
-parse HTTP/1 wire format messages on streams. These functions form a
-basic interface for operating on entire messages:
+Beast provides synchronous and asynchronous algorithms to parse and
+serialize HTTP/1 wire format messages on streams. These functions form
+the message-oriented stream interface:
 
-[table Basic Interface
+[table Message Stream Operations
 [[Name][Description]]
 [[
     [link beast.ref.http__read.overload3 [*read]]
@@ -54,16 +54,16 @@ message variable, then read a complete HTTP request synchronously:
 
 [http_snippet_4]
 
-In this example we used the __flat_buffer__. The parser in Beast is
-optimized for structured HTTP data located in a single contiguous memory
-buffer ("flat buffer"). Any dynamic buffer will work with reads. However,
-when not using a flat buffer the implementation may perform an additional
-memory allocation to restructure the input into a single buffer.
+This example uses __flat_buffer__. Beast's __basic_parser__ is
+optimized for structured HTTP data located in a single contiguous
+(['flat]) memory buffer. When not using a flat buffer the implementation
+may perform an additional memory allocations to restructure the input
+into a single buffer for parsing.
 
 [tip
-    User-defined implementations of __DynamicBuffer__ may avoid additional
-    parser memory allocation, if those implementations guarantee that
-    returned buffer sequences will always have length one.
+    Other Implementations of __DynamicBuffer__ may avoid parser
+    memory allocation by always returning buffer sequences of
+    length one.
 ]
 
 Messages may also be read asynchronously. When performing asynchronous
