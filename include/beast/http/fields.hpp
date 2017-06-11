@@ -40,12 +40,11 @@ namespace http {
     as a `std::multiset`; there will be a separate value for each occurrence
     of the field name.
 
-    @note Meets the requirements of @b Fields
+    Meets the requirements of @b Fields
 */
 template<class Allocator>
 class basic_fields
 {
-private:
     using off_t = std::uint16_t;
 
 public:

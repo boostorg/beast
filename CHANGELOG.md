@@ -1,3 +1,9 @@
+Version 55:
+
+* Don't allocate memory to handle obs-fold
+
+--------------------------------------------------------------------------------
+
 Version 54:
 
 * static_buffer coverage

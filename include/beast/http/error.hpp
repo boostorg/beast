@@ -115,7 +115,10 @@ enum class error
     bad_transfer_encoding,
 
     /// The chunk syntax is invalid.
-    bad_chunk
+    bad_chunk,
+
+    /// An obs-fold exceeded an internal limit.
+    bad_obs_fold
 };
 
 } // http

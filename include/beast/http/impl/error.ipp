@@ -56,6 +56,7 @@ public:
         case error::bad_content_length: return "bad Content-Length";
         case error::bad_transfer_encoding: return "bad Transfer-Encoding";
         case error::bad_chunk: return "bad chunk";
+        case error::bad_obs_fold: return "bad obs-fold";
         }
     }
 

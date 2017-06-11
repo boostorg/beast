@@ -8,6 +8,7 @@
 #ifndef BEAST_HTTP_IMPL_BASIC_PARSER_IPP
 #define BEAST_HTTP_IMPL_BASIC_PARSER_IPP
 
+#include <beast/core/static_string.hpp>
 #include <beast/core/type_traits.hpp>
 #include <beast/core/detail/ci_char_traits.hpp>
 #include <beast/core/detail/clamp.hpp>
@@ -701,24 +702,33 @@ parse_fields(char const*& p,
                 if(ec)
                     return;
             }
-            std::string s;
-            if(p != term)
+            // https://stackoverflow.com/questions/686217/maximum-on-http-header-values
+            static_string<max_obs_fold> s;
+            try
             {
-                s.append(p, term - 2);
-                p = term;
-                for(;;)
+                if(p != term)
                 {
-                    if(*p != ' ' && *p != '\t')
-                        break;
-                    s.push_back(' ');
-                    detail::skip_ows(p, term - 2);
-                    term = find_eol(p, last, ec);
-                    if(ec)
-                        return;
-                    if(p != term - 2)
-                        s.append(p, term - 2);
+                    s.append(p, term - 2);
                     p = term;
+                    for(;;)
+                    {
+                        if(*p != ' ' && *p != '\t')
+                            break;
+                        s.push_back(' ');
+                        detail::skip_ows(p, term - 2);
+                        term = find_eol(p, last, ec);
+                        if(ec)
+                            return;
+                        if(p != term - 2)
+                            s.append(p, term - 2);
+                        p = term;
+                    }
                 }
+            }
+            catch(std::length_error const&)
+            {
+                ec = error::bad_obs_fold;
+                return;
             }
             auto const f = string_to_field(name);
             string_view const value{s.data(), s.size()};
