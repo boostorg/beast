@@ -140,7 +140,6 @@ operator()(error_code ec, std::size_t bytes_transferred)
         if(! ec || ec != http::error::need_more)
             goto do_upcall;
         ec = {};
-        BOOST_FALLTHROUGH;
 
     do_read:
         try
@@ -277,7 +276,6 @@ operator()(error_code ec)
                 bind_handler(std::move(*this), ec));
         }
         state_ = 2;
-        BOOST_FALLTHROUGH;
 
     do_read:
         return async_read_some(
