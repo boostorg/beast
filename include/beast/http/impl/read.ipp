@@ -325,6 +325,7 @@ class read_msg_op
             : s(s_)
             , b(b_)
             , m(m_)
+            , p(std::move(m))
         {
             p.eager(true);
         }
@@ -725,7 +726,7 @@ read(
         "Body requirements not met");
     static_assert(is_body_writer<Body>::value,
         "BodyWriter requirements not met");
-    parser<isRequest, Body, Fields> p;
+    parser<isRequest, Body, Fields> p{std::move(msg)};
     p.eager(true);
     read(stream, buffer, p.base(), ec);
     if(ec)
