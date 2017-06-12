@@ -10,8 +10,8 @@
 
 #include <beast/core/error.hpp>
 #include <beast/core/consuming_buffers.hpp>
+#include <beast/core/read_size.hpp>
 #include <beast/core/detail/ci_char_traits.hpp>
-#include <beast/core/detail/read_size_helper.hpp>
 #include <beast/zlib/deflate_stream.hpp>
 #include <beast/zlib/inflate_stream.hpp>
 #include <beast/websocket/option.hpp>
@@ -370,7 +370,7 @@ inflate(
     {
         // VFALCO we could be smarter about the size
         auto const bs = buffer.prepare(
-            maybe_read_size_helper(buffer, 65536));
+            read_size_or_throw(buffer, 65536));
         auto const out = *bs.begin();
         zs.avail_out = buffer_size(out);
         zs.next_out = buffer_cast<void*>(out);

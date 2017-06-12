@@ -562,27 +562,24 @@ public:
             }
         }
 
-        // read_size_helper
+        // read_size
         {
-            using detail::read_size_helper;
             multi_buffer b{10};
-            BEAST_EXPECT(read_size_helper(b, 512) == 10);
+            BEAST_EXPECT(read_size(b, 512) == 10);
             b.prepare(4);
             b.commit(4);
-            BEAST_EXPECT(read_size_helper(b, 512) == 6);
+            BEAST_EXPECT(read_size(b, 512) == 6);
             b.consume(2);
-            BEAST_EXPECT(read_size_helper(b, 512) == 8);
+            BEAST_EXPECT(read_size(b, 512) == 8);
             b.prepare(8);
             b.commit(8);
-            BEAST_EXPECT(read_size_helper(b, 512) == 0);
+            BEAST_EXPECT(read_size(b, 512) == 0);
         }
     }
 
     void
     run() override
     {
-        test::check_read_size_helper<multi_buffer>();
-
         testMatrix1();
         testMatrix2();
         testIterators();

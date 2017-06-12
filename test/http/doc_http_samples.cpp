@@ -8,8 +8,8 @@
 #include <examples/doc_http_samples.hpp>
 #include <examples/file_body.hpp>
 
+#include <beast/core/read_size.hpp>
 #include <beast/core/detail/clamp.hpp>
-#include <beast/core/detail/read_size_helper.hpp>
 #include <beast/test/pipe_stream.hpp>
 #include <beast/test/string_istream.hpp>
 #include <beast/test/string_ostream.hpp>

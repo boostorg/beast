@@ -7,8 +7,8 @@
 
 #include <beast/core/flat_buffer.hpp>
 #include <beast/core/multi_buffer.hpp>
+#include <beast/core/read_size.hpp>
 #include <beast/core/string_view.hpp>
-#include <beast/core/detail/read_size_helper.hpp>
 #include <beast/unit_test/suite.hpp>
 #include <boost/asio/streambuf.hpp>
 #include <algorithm>
@@ -111,9 +111,8 @@ public:
             {
                 for(auto remain = size; remain;)
                 {
-                    using beast::detail::read_size_helper;
                     auto const n = fill(b.prepare(
-                        read_size_helper(b, remain)));
+                        read_size(b, remain)));
                     b.commit(n);
                     remain -= n;
                     total += n;
