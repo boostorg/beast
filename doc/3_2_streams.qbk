@@ -5,7 +5,7 @@
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 ]
 
-[section:streams Using Streams]
+[section:streams Stream Types]
 
 A __Stream__ is a communication channel where data is transferred as
 an ordered sequence of octet buffers. Streams are either synchronous

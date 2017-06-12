@@ -37,7 +37,7 @@ boost::asio::ip::tcp::socket sock{ios};
 {
 //[snippet_core_2
 
-auto host = "www.example.com";
+char const* const host = "www.example.com";
 boost::asio::ip::tcp::resolver r{ios};
 boost::asio::ip::tcp::socket stream{ios};
 boost::asio::connect(stream, r.resolve(

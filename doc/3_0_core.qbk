@@ -26,6 +26,7 @@ with descriptions.
 [include 3_1_asio.qbk]
 [include 3_2_streams.qbk]
 [include 3_3_buffers.qbk]
-[include 3_4_async.qbk]
+[include 3_4_composed.qbk]
+[include 3_5_detect_ssl.qbk]
 
 [endsect]

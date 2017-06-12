@@ -9,7 +9,7 @@
 
 A subclass of __basic_parser__ can be invoked directly, without using 
 the provided stream operations. This could be useful for implementing
-algorithms on objects whose interface does not conform to any __Stream__.
+algorithms on objects whose interface does not conform to __Stream__.
 For example, a
 [@http://zeromq.org/ *ZeroMQ* socket].
 The basic parser interface is interactive; the caller invokes the function

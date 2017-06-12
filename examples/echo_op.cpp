@@ -13,11 +13,51 @@
 
 //[core_sample_echo_op_1
 
-// Read a line and echo it back
-//
-template<class AsyncStream, class CompletionToken>
-beast::async_return_type<CompletionToken, void(beast::error_code)>
-async_echo(AsyncStream& stream, CompletionToken&& token);
+/** Asynchronously read a line and echo it back.
+
+    This function is used to asynchronously read a line ending
+    in a carriage-return linefeed ("CRLF") from the stream,
+    and then write it back. The function call always returns
+    immediately. The asynchronous operation will continue until
+    one of the following conditions is true:
+
+    @li A line was read in and sent back on the stream
+
+    @li An error occurs.
+
+    This operation is implemented in terms of one or more calls to
+    the stream's `async_read_some` and `async_write_some` functions,
+    and is known as a <em>composed operation</em>. The program must
+    ensure that the stream performs no other operations until this
+    operation completes. The implementation may read additional octets
+    that lie past the end of the line being read. These octets are
+    silently discarded.
+
+    @param The stream to operate on. The type must meet the
+    requirements of @b AsyncReadStream and @AsyncWriteStream
+
+    @param token The completion token to use. If this is a
+    completion handler, copies will be made as required.
+    The signature of the handler must be:
+    @code
+    void handler(
+        error_code& ec      // result of operation
+    );
+    @endcode
+    Regardless of whether the asynchronous operation completes
+    immediately or not, the handler will not be invoked from within
+    this function. Invocation of the handler will be performed in a
+    manner equivalent to using `boost::asio::io_service::post`.
+*/
+template<
+    class AsyncStream,
+    class CompletionToken>
+beast::async_return_type<       /*< The [link beast.ref.async_return_type `async_return_type`] customizes the return value based on the completion token >*/
+    CompletionToken,
+    void(beast::error_code)>    /*< This is the signature for the completion handler >*/
+async_echo(
+    AsyncStream& stream,
+    CompletionToken&& token);
 
 //]
 
