@@ -147,12 +147,18 @@ detect_ssl(
         // The algorithm should never need more than 4 bytes
         BOOST_ASSERT(buffer.size() < 4);
 
-        // We need more bytes, but no more than four total.
-        buffer.commit(stream.read_some(buffer.prepare(4 - buffer.size()), ec));
+        // Create up to 4 bytes of space in the buffer's output area.
+        auto const mutable_buffer = buffer.prepare(4 - buffer.size());
+
+        // Try to fill our buffer by reading from the stream
+        std::size_t const bytes_transferred = stream.read_some(mutable_buffer, ec);
 
         // Check for an error
         if(ec)
             break;
+
+        // Commit what we read into the buffer's input area.
+        buffer.commit(bytes_transferred);
     }
 
     // error

@@ -88,7 +88,6 @@
 [include 1_overview.qbk]
 [include 2_examples.qbk]
 [include 3_0_core.qbk]
-[include 4_0_network.qbk]
 [include 5_00_http.qbk]
 [include 6_0_http_examples.qbk]
 [include 7_0_websocket.qbk]

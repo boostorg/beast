@@ -42,10 +42,6 @@ using response_type = http::response<http::string_body>;
     The @ref stream class template provides asynchronous and blocking
     message-oriented functionality necessary for clients and servers
     to utilize the WebSocket protocol.
-
-    @par Thread Safety
-    @e Distinct @e objects: Safe.@n
-    @e Shared @e objects: Unsafe.
     
     For asynchronous operations, the application must ensure
     that they are are all performed within the same implicit
@@ -56,6 +52,12 @@ using response_type = http::response<http::string_body>;
     To use the @ref stream template with an `ip::tcp::socket`,
     you would write:
 
+    @tparam NextLayer The type representing the next layer, to which
+    data will be read and written during operations. For synchronous
+    operations, the type must support the @b SyncStream concept.
+    For asynchronous operations, the type must support the
+    @b AsyncStream concept.
+
     @code
     websocket::stream<ip::tcp::socket> ws{io_service};
     @endcode
@@ -65,11 +67,9 @@ using response_type = http::response<http::string_body>;
     websocket::stream<ip::tcp::socket&> ws{sock};
     @endcode
 
-    @tparam NextLayer The type representing the next layer, to which
-    data will be read and written during operations. For synchronous
-    operations, the type must support the @b SyncStream concept.
-    For asynchronous operations, the type must support the
-    @b AsyncStream concept.
+    @par Thread Safety
+    @e Distinct @e objects: Safe.@n
+    @e Shared @e objects: Unsafe.
 
     @note A stream object must not be moved or destroyed while there
     are pending asynchronous operations associated with it.
@@ -95,7 +95,7 @@ public:
     using lowest_layer_type =
         typename get_lowest_layer<next_layer_type>::type;
 
-    /** Move-construct a stream.
+    /** Move constructor
 
         If @c NextLayer is move constructible, this function
         will move-construct a new stream from the existing stream.
@@ -105,17 +105,17 @@ public:
     */
     stream(stream&&) = default;
 
-    /** Move assignment.
+    /** Move assignment
 
-        If `NextLayer` is move constructible, this function
-        will move-construct a new stream from the existing stream.
+        If `NextLayer` is move assignable, this function
+        will move-assign a new stream from the existing stream.
 
         @note The behavior of move assignment on or from streams
         with active or pending operations is undefined.
     */
     stream& operator=(stream&&) = default;
 
-    /** Construct a WebSocket stream.
+    /** Constructor
 
         This constructor creates a websocket stream and initializes
         the next layer object.
@@ -130,22 +130,21 @@ public:
     explicit
     stream(Args&&... args);
 
-    /** Destructor.
+    /** Destructor
 
         @note A stream object must not be destroyed while there
         are pending asynchronous operations associated with it.
     */
     ~stream() = default;
 
-    /** Get the io_service associated with the stream.
+    /** Return the `io_service` associated with the stream
 
-        This function may be used to obtain the io_service object
+        This function may be used to obtain the `io_service` object
         that the stream uses to dispatch handlers for asynchronous
         operations.
 
         @return A reference to the io_service object that the stream
-        will use to dispatch handlers. Ownership is not transferred
-        to the caller.
+        will use to dispatch handlers. 
     */
     boost::asio::io_service&
     get_io_service()
@@ -153,13 +152,13 @@ public:
         return stream_.get_io_service();
     }
 
-    /** Get a reference to the next layer.
+    /** Get a reference to the next layer
 
         This function returns a reference to the next layer
         in a stack of stream layers.
 
         @return A reference to the next layer in the stack of
-        stream layers. Ownership is not transferred to the caller.
+        stream layers.
     */
     next_layer_type&
     next_layer()
@@ -167,13 +166,13 @@ public:
         return stream_.next_layer();
     }
 
-    /** Get a reference to the next layer.
+    /** Get a reference to the next layer
 
         This function returns a reference to the next layer in a
         stack of stream layers.
 
         @return A reference to the next layer in the stack of
-        stream layers. Ownership is not transferred to the caller.
+        stream layers.
     */
     next_layer_type const&
     next_layer() const
@@ -181,13 +180,13 @@ public:
         return stream_.next_layer();
     }
 
-    /** Get a reference to the lowest layer.
+    /** Get a reference to the lowest layer
 
         This function returns a reference to the lowest layer
         in a stack of stream layers.
 
         @return A reference to the lowest layer in the stack of
-        stream layers. Ownership is not transferred to the caller.
+        stream layers.
     */
     lowest_layer_type&
     lowest_layer()
@@ -195,7 +194,7 @@ public:
         return stream_.lowest_layer();
     }
 
-    /** Get a reference to the lowest layer.
+    /** Get a reference to the lowest layer
 
         This function returns a reference to the lowest layer
         in a stack of stream layers.
@@ -2571,9 +2570,11 @@ public:
         This call is implemented in terms of one or more calls to the
         stream's `read_some` and `write_some` operations.
 
-        Upon a success, op is set to either binary or text depending on
-        the message type, and the input area of the stream buffer will
-        hold all the message payload bytes (which may be zero in length).
+        Upon a success, the input area of the stream buffer will
+        hold the received message payload bytes (which may be zero
+        in length). The functions @ref got_binary and @ref got_text
+        may be used to query the stream and determine the type
+        of the last received message.
 
         During reads, the implementation handles control frames as
         follows:
@@ -2608,9 +2609,11 @@ public:
         This call is implemented in terms of one or more calls to the
         stream's `read_some` and `write_some` operations.
 
-        Upon a success, op is set to either binary or text depending on
-        the message type, and the input area of the stream buffer will
-        hold all the message payload bytes (which may be zero in length).
+        Upon a success, the input area of the stream buffer will
+        hold the received message payload bytes (which may be zero
+        in length). The functions @ref got_binary and @ref got_text
+        may be used to query the stream and determine the type
+        of the last received message.
 
         During reads, the implementation handles control frames as
         follows:
@@ -2650,9 +2653,11 @@ public:
         ensure that the stream performs no other reads until this operation
         completes.
 
-        Upon a success, op is set to either binary or text depending on
-        the message type, and the input area of the stream buffer will
-        hold all the message payload bytes (which may be zero in length).
+        Upon a success, the input area of the stream buffer will
+        hold the received message payload bytes (which may be zero
+        in length). The functions @ref got_binary and @ref got_text
+        may be used to query the stream and determine the type
+        of the last received message.
 
         During reads, the implementation handles control frames as
         follows:
