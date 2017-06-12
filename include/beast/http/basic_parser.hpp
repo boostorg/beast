@@ -74,6 +74,9 @@ class basic_parser
     // limit on the size of the obs-fold buffer
     static std::size_t constexpr max_obs_fold = 4096;
 
+    // limit on the size of the stack flat buffer
+    static std::size_t constexpr max_stack_buffer = 8192;
+
     // Message will be complete after reading header
     static unsigned constexpr flagSkipBody              = 1<<  0;
 
@@ -363,9 +366,10 @@ private:
     }
 
     template<class ConstBufferSequence>
-    string_view
-    maybe_flatten(
-        ConstBufferSequence const& buffers);
+    std::size_t
+    put_from_stack(std::size_t size,
+        ConstBufferSequence const& buffers,
+            error_code& ec);
 
     void
     parse_header(char const*& p,
