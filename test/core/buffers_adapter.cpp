@@ -183,15 +183,11 @@ public:
         type buffer;
         buffers_adapter<
             type::mutable_buffers_type> ba{buffer.prepare(512)};
-        using beast::detail::read_size_helper;
-        read_size_helper(ba, 1024);
+        read_size(ba, 1024);
     }
 
     void run() override
     {
-        test::check_read_size_helper<buffers_adapter<
-            boost::asio::mutable_buffers_1>>();
-
         testBuffersAdapter();
         testCommit();
         testIssue386();

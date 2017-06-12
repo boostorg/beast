@@ -29,6 +29,7 @@ add_executable (core-tests
     handler_ptr.cpp
     multi_buffer.cpp
     ostream.cpp
+    read_size.cpp
     static_buffer.cpp
     static_string.cpp
     string_param.cpp

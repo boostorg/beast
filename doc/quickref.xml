@@ -189,6 +189,8 @@
             <member><link linkend="beast.ref.buffer_prefix">buffer_prefix</link></member>
             <member><link linkend="beast.ref.buffers">buffers</link></member>
             <member><link linkend="beast.ref.ostream">ostream</link></member>
+            <member><link linkend="beast.ref.read_size">read_size</link></member>
+            <member><link linkend="beast.ref.read_size_or_throw">read_size_or_throw</link></member>
             <member><link linkend="beast.ref.system_category">system_category</link></member>
             <member><link linkend="beast.ref.to_static_string">to_static_string</link></member>
           </simplelist>

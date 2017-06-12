@@ -9,7 +9,7 @@
 #define BEAST_DETAIL_OSTREAM_HPP
 
 #include <boost/asio/buffer.hpp>
-#include <beast/core/detail/read_size_helper.hpp>
+#include <beast/core/read_size.hpp>
 #include <memory>
 #include <iosfwd>
 #include <streambuf>
@@ -129,7 +129,7 @@ private:
         using boost::asio::buffer_cast;
         using boost::asio::buffer_size;
         auto mbs = buf_.prepare(
-            maybe_read_size_helper(buf_, max_size));
+            read_size_or_throw(buf_, max_size));
         auto const mb = *mbs.begin();
         auto const p = buffer_cast<CharT*>(mb);
         this->setp(p,
@@ -209,7 +209,7 @@ private:
         using boost::asio::buffer_cast;
         using boost::asio::buffer_size;
         auto mbs = buf_.prepare(
-            maybe_read_size_helper(buf_, max_size));
+            read_size_or_throw(buf_, max_size));
         auto const mb = *mbs.begin();
         auto const p = buffer_cast<CharT*>(mb);
         this->setp(p,

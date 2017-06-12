@@ -14,8 +14,8 @@
 #include <beast/http/read.hpp>
 #include <beast/core/bind_handler.hpp>
 #include <beast/core/handler_ptr.hpp>
+#include <beast/core/read_size.hpp>
 #include <beast/core/type_traits.hpp>
-#include <beast/core/detail/read_size_helper.hpp>
 #include <boost/asio/handler_alloc_hook.hpp>
 #include <boost/asio/handler_continuation_hook.hpp>
 #include <boost/asio/handler_invoke_hook.hpp>
@@ -145,7 +145,7 @@ operator()(error_code ec, std::size_t bytes_transferred)
         try
         {
             mb_.emplace(b_.prepare(
-                maybe_read_size_helper(b_, 65536)));
+                read_size_or_throw(b_, 65536)));
         }
         catch(std::length_error const&)
         {
@@ -474,8 +474,7 @@ read_some(
         try
         {
             b.emplace(buffer.prepare(
-                beast::detail::maybe_read_size_helper(
-                    buffer, 65536)));
+                read_size_or_throw(buffer, 65536)));
         }
         catch(std::length_error const&)
         {

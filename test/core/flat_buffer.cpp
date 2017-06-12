@@ -11,8 +11,8 @@
 #include "buffer_test.hpp"
 
 #include <beast/core/ostream.hpp>
+#include <beast/core/read_size.hpp>
 #include <beast/core/string_view.hpp>
-#include <beast/core/detail/read_size_helper.hpp>
 #include <beast/test/test_allocator.hpp>
 #include <beast/unit_test/suite.hpp>
 #include <boost/lexical_cast.hpp>
@@ -261,19 +261,18 @@ public:
             BEAST_EXPECT(to_string(b.data()) == "4567890123");
         }
 
-        // read_size_helper
+        // read_size
         {
-            using detail::read_size_helper;
             flat_buffer b{10};
-            BEAST_EXPECT(read_size_helper(b, 512) == 10);
+            BEAST_EXPECT(read_size(b, 512) == 10);
             b.prepare(4);
             b.commit(4);
-            BEAST_EXPECT(read_size_helper(b, 512) == 6);
+            BEAST_EXPECT(read_size(b, 512) == 6);
             b.consume(2);
-            BEAST_EXPECT(read_size_helper(b, 512) == 8);
+            BEAST_EXPECT(read_size(b, 512) == 8);
             b.prepare(8);
             b.commit(8);
-            BEAST_EXPECT(read_size_helper(b, 512) == 0);
+            BEAST_EXPECT(read_size(b, 512) == 0);
         }
 
         // swap
@@ -344,8 +343,6 @@ public:
     void
     run() override
     {
-        test::check_read_size_helper<flat_buffer>();
-
         testBuffer();
     }
 };
