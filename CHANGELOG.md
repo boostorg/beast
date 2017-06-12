@@ -2,6 +2,7 @@ Version 55:
 
 * Don't allocate memory to handle obs-fold
 * Add Beast CMake interface target
+* Avoid a parser allocation using non-flat buffer
 
 --------------------------------------------------------------------------------
 

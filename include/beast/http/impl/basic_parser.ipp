@@ -88,9 +88,35 @@ put(ConstBufferSequence const& buffers,
     static_assert(is_const_buffer_sequence<
         ConstBufferSequence>::value,
             "ConstBufferSequence requirements not met");
-    auto const buffer = maybe_flatten(buffers);
+    using boost::asio::buffer_cast;
+    using boost::asio::buffer_copy;
+    using boost::asio::buffer_size;
+    auto const p = buffers.begin();
+    auto const last = buffers.end();
+    if(p == last)
+        return 0;
+    if(std::next(p) == last)
+    {
+        // single buffer
+        auto const b = *p;
+        return put(boost::asio::const_buffers_1{
+            buffer_cast<char const*>(b),
+            buffer_size(b)}, ec);
+    }
+    auto const size = buffer_size(buffers);
+    if(size <= max_stack_buffer)
+        return put_from_stack(size, buffers, ec);
+    if(size > buf_len_)
+    {
+        // reallocate
+        buf_.reset(new char[size]);
+        buf_len_ = size;
+    }
+    // flatten
+    buffer_copy(boost::asio::buffer(
+        buf_.get(), buf_len_), buffers);
     return put(boost::asio::const_buffers_1{
-        buffer.data(), buffer.size()}, ec);
+        buf_.get(), buf_len_}, ec);
 }
 
 template<bool isRequest, class Derived>
@@ -209,37 +235,18 @@ put_eof(error_code& ec)
 
 template<bool isRequest, class Derived>
 template<class ConstBufferSequence>
-inline
-string_view
+std::size_t
 basic_parser<isRequest, Derived>::
-maybe_flatten(
-    ConstBufferSequence const& buffers)
+put_from_stack(std::size_t size,
+    ConstBufferSequence const& buffers,
+        error_code& ec)
 {
-    using boost::asio::buffer_cast;
+    char buf[max_stack_buffer];
+    using boost::asio::buffer;
     using boost::asio::buffer_copy;
-    using boost::asio::buffer_size;
-    auto const p = buffers.begin();
-    auto const last = buffers.end();
-    if(p == last)
-        return {nullptr, 0};
-    if(std::next(p) == last)
-    {
-        // single buffer
-        auto const b = *p;
-        return {buffer_cast<char const*>(b),
-            buffer_size(b)};
-    }
-    auto const len = buffer_size(buffers);
-    if(len > buf_len_)
-    {
-        // reallocate
-        buf_.reset(new char[len]);
-        buf_len_ = len;
-    }
-    // flatten
-    buffer_copy(boost::asio::buffer(
-        buf_.get(), buf_len_), buffers);
-    return {buf_.get(), len};
+    buffer_copy(buffer(buf, sizeof(buf)), buffers);
+    return put(boost::asio::const_buffers_1{
+        buf, size}, ec);
 }
 
 template<bool isRequest, class Derived>
