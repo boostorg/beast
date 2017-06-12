@@ -239,12 +239,6 @@ struct common_buffers_type
                         boost::asio::const_buffer>::type;
 };
 
-//------------------------------------------------------------------------------
-
-//
-// stream concepts
-//
-
 // Types that meet the requirements,
 // for use with std::declval only.
 struct StreamHandler
@@ -254,107 +248,6 @@ struct StreamHandler
 };
 using ReadHandler = StreamHandler;
 using WriteHandler = StreamHandler;
-
-template<class T>
-class has_get_io_service
-{
-    template<class U, class R = typename std::is_same<
-        decltype(std::declval<U>().get_io_service()),
-            boost::asio::io_service&>>
-    static R check(int);
-    template<class>
-    static std::false_type check(...);
-public:
-    using type = decltype(check<T>(0));
-};
-
-template<class T>
-class is_async_read_stream
-{
-    template<class U, class R = decltype(
-        std::declval<U>().async_read_some(
-            std::declval<MutableBufferSequence>(),
-                std::declval<ReadHandler>()),
-                    std::true_type{})>
-    static R check(int);
-    template<class>
-    static std::false_type check(...);
-    using type1 = decltype(check<T>(0));
-public:
-    using type = std::integral_constant<bool,
-        type1::value &&
-        has_get_io_service<T>::type::value>;
-};
-
-template<class T>
-class is_async_write_stream
-{
-    template<class U, class R = decltype(
-        std::declval<U>().async_write_some(
-            std::declval<ConstBufferSequence>(),
-                std::declval<WriteHandler>()),
-                    std::true_type{})>
-    static R check(int);
-    template<class>
-    static std::false_type check(...);
-    using type1 = decltype(check<T>(0));
-public:
-    using type = std::integral_constant<bool,
-        type1::value &&
-        has_get_io_service<T>::type::value>;
-};
-
-template<class T>
-class is_sync_read_stream
-{
-    template<class U, class R = std::is_same<decltype(
-        std::declval<U>().read_some(
-            std::declval<MutableBufferSequence>())),
-                std::size_t>>
-    static R check1(int);
-    template<class>
-    static std::false_type check1(...);
-    using type1 = decltype(check1<T>(0));
-
-    template<class U, class R = std::is_same<decltype(
-        std::declval<U>().read_some(
-            std::declval<MutableBufferSequence>(),
-                std::declval<error_code&>())), std::size_t>>
-    static R check2(int);
-    template<class>
-    static std::false_type check2(...);
-    using type2 = decltype(check2<T>(0));
-
-public:
-    using type = std::integral_constant<bool,
-        type1::value && type2::value>;
-};
-
-template<class T>
-class is_sync_write_stream
-{
-    template<class U, class R = std::is_same<decltype(
-        std::declval<U>().write_some(
-            std::declval<ConstBufferSequence>())),
-                std::size_t>>
-    static R check1(int);
-    template<class>
-    static std::false_type check1(...);
-    using type1 = decltype(check1<T>(0));
-
-    template<class U, class R = std::is_same<decltype(
-        std::declval<U>().write_some(
-            std::declval<ConstBufferSequence>(),
-                std::declval<error_code&>())), std::size_t>>
-    static R check2(int);
-    template<class>
-    static std::false_type check2(...);
-    using type2 = decltype(check2<T>(0));
-
-public:
-    using type = std::integral_constant<bool,
-        type1::value && type2::value>;
-};
 
 } // detail
 } // beast
