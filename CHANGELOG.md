@@ -6,6 +6,7 @@ Version 56:
 * HTTP/1.1 is the default version
 * Try harder to find Boost (cmake)
 * Reset error codes
+* More basic_parser tests
 
 --------------------------------------------------------------------------------
 
