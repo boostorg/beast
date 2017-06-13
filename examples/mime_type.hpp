@@ -8,15 +8,16 @@
 #ifndef BEAST_EXAMPLE_HTTP_MIME_TYPE_H_INCLUDED
 #define BEAST_EXAMPLE_HTTP_MIME_TYPE_H_INCLUDED
 
-#include <string>
+#include <beast/core/string_view.hpp>
 #include <boost/filesystem/path.hpp>
+#include <string>
 
 namespace beast {
 namespace http {
 
 // Return the Mime-Type for a given file extension
 template<class = void>
-std::string
+string_view
 mime_type(std::string const& path)
 {
     auto const ext =
