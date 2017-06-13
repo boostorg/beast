@@ -15,6 +15,13 @@
     left to the interfaces already existing on the underlying streams.
 ]
 
+Library stream algorithms require a __socket__, __ssl_stream__, or other
+__Stream__ object that has already established communication with an
+endpoint. This example is provided as a reminder of how to work with
+sockets:
+
+[snippet_core_2]
+
 Throughout this documentation identifiers with the following names have
 special meaning:
 
@@ -51,12 +58,5 @@ special meaning:
     which is already connected with a remote host.
 ]]
 ]
-
-Library stream algorithms require a __socket__, __ssl_stream__, or other
-__Stream__ object that has already established communication with an
-endpoint. This example is provided as a reminder of how to work with
-sockets:
-
-[snippet_core_2]
 
 [endsect]

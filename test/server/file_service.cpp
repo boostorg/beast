@@ -5,12 +5,6 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#ifndef BEAST_EXAMPLE_HTTP_CRAWL_URLS_LARGE_DATA_HPP
-#define BEAST_EXAMPLE_HTTP_CRAWL_URLS_LARGE_DATA_HPP
+// Test that header file is self-contained.
+#include "../../example/server-framework/file_service.hpp"
 
-#include <vector>
-
-std::vector<char const*> const&
-urls_large_data();
-
-#endif

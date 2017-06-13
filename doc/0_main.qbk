@@ -79,7 +79,7 @@
 [import ../example/doc/http_examples.hpp]
 [import ../example/echo-op/echo_op.cpp]
 [import ../example/http-client/http_client.cpp]
-[import ../example/http-server/file_body.hpp]
+[import ../example/server-framework/file_body.hpp]
 [import ../example/websocket-client/websocket_client.cpp]
 
 [import ../test/core/doc_snippets.cpp]

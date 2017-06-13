@@ -5,8 +5,8 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#ifndef BEAST_EXAMPLE_FILE_BODY_H_INCLUDED
-#define BEAST_EXAMPLE_FILE_BODY_H_INCLUDED
+#ifndef BEAST_EXAMPLE_HTTP_SERVER_FILE_BODY_HPP
+#define BEAST_EXAMPLE_HTTP_SERVER_FILE_BODY_HPP
 
 #include <beast/core/error.hpp>
 #include <beast/http/message.hpp>
@@ -18,11 +18,18 @@
 #include <cstdint>
 #include <utility>
 
-namespace beast {
-namespace http {
-
 //[example_http_file_body_1
 
+/** A message body represented by a file on the filesystem.
+
+    Messages with this type have bodies represented by a
+    file on the file system. When parsing a message using
+    this body type, the data is stored in the file pointed
+    to by the path, which must be writable. When serializing,
+    the implementation will read the file and present those
+    octets as the body content. This may be used to serve
+    content from a directory as part of a web service.
+*/
 struct file_body
 {
     /** The type of the @ref message::body member.
@@ -71,6 +78,7 @@ struct file_body
 
 //[example_http_file_body_2
 
+inline
 std::uint64_t
 file_body::
 size(value_type const& v)
@@ -111,7 +119,7 @@ public:
     // always have the `file_body` as the body type.
     //
     template<bool isRequest, class Fields>
-    reader(message<isRequest, file_body, Fields> const& m);
+    reader(beast::http::message<isRequest, file_body, Fields> const& m);
 
     // Destructor
     ~reader();
@@ -120,7 +128,7 @@ public:
     // of the body is started.
     //
     void
-    init(error_code& ec);
+    init(beast::error_code& ec);
 
     // This function is called zero or more times to
     // retrieve buffers. A return value of `boost::none`
@@ -129,7 +137,7 @@ public:
     // to serialize, and a `bool` indicating whether
     // or not there may be additional buffers.
     boost::optional<std::pair<const_buffers_type, bool>>
-    get(error_code& ec);
+    get(beast::error_code& ec);
 
     // This function is called when reading is complete.
     // It is an opportunity to perform any final actions
@@ -138,7 +146,7 @@ public:
     // destructors, since an exception thrown from there
     // would terminate the program.
     void
-    finish(error_code& ec);
+    finish(beast::error_code& ec);
 };
 
 //]
@@ -151,7 +159,7 @@ public:
 //
 template<bool isRequest, class Fields>
 file_body::reader::
-reader(message<isRequest, file_body, Fields> const& m)
+reader(beast::http::message<isRequest, file_body, Fields> const& m)
     : path_(m.body)
 {
 }
@@ -164,7 +172,7 @@ reader(message<isRequest, file_body, Fields> const& m)
 inline
 void
 file_body::reader::
-init(error_code& ec)
+init(beast::error_code& ec)
 {
     // Attempt to open the file for reading
     file_ = fopen(path_.string().c_str(), "rb");
@@ -173,7 +181,7 @@ init(error_code& ec)
     {
         // Convert the old-school `errno` into
         // an error code using the system category.
-        ec = error_code{errno, system_category()};
+        ec = beast::error_code{errno, beast::system_category()};
         return;
     }
 
@@ -191,7 +199,7 @@ init(error_code& ec)
 inline
 auto
 file_body::reader::
-get(error_code& ec) ->
+get(beast::error_code& ec) ->
     boost::optional<std::pair<const_buffers_type, bool>>
 {
     // Calculate the smaller of our buffer size,
@@ -212,7 +220,7 @@ get(error_code& ec) ->
     if(ferror(file_))
     {
         // Convert old-school `errno` to error_code
-        ec = error_code(errno, system_category());
+        ec = beast::error_code(errno, beast::system_category());
         return boost::none;
     }
 
@@ -242,7 +250,7 @@ get(error_code& ec) ->
 inline
 void
 file_body::reader::
-finish(error_code& ec)
+finish(beast::error_code& ec)
 {
     // Functions which pass back errors are
     // responsible for clearing the error code.
@@ -281,20 +289,20 @@ public:
     //
     template<bool isRequest, class Fields>
     explicit
-    writer(message<isRequest, file_body, Fields>& m);
+    writer(beast::http::message<isRequest, file_body, Fields>& m);
 
     // This function is called once before parsing
     // of the body is started.
     //
     void
-    init(boost::optional<std::uint64_t> const& content_length, error_code& ec);
+    init(boost::optional<std::uint64_t> const& content_length, beast::error_code& ec);
 
     // This function is called one or more times to store
     // buffer sequences corresponding to the incoming body.
     //
     template<class ConstBufferSequence>
     void
-    put(ConstBufferSequence const& buffers, error_code& ec);
+    put(ConstBufferSequence const& buffers, beast::error_code& ec);
 
     // This function is called when writing is complete.
     // It is an opportunity to perform any final actions
@@ -304,7 +312,7 @@ public:
     // would terminate the program.
     //
     void
-    finish(error_code& ec);
+    finish(beast::error_code& ec);
 
     // Destructor.
     //
@@ -320,7 +328,7 @@ public:
 // Just stash a reference to the path so we can open the file later.
 template<bool isRequest, class Fields>
 file_body::writer::
-writer(message<isRequest, file_body, Fields>& m)
+writer(beast::http::message<isRequest, file_body, Fields>& m)
     : path_(m.body)
 {
 }
@@ -334,7 +342,7 @@ writer(message<isRequest, file_body, Fields>& m)
 inline
 void
 file_body::writer::
-init(boost::optional<std::uint64_t> const& content_length, error_code& ec)
+init(boost::optional<std::uint64_t> const& content_length, beast::error_code& ec)
 {
     // Attempt to open the file for writing
     file_ = fopen(path_.string().c_str(), "wb");
@@ -343,7 +351,7 @@ init(boost::optional<std::uint64_t> const& content_length, error_code& ec)
     {
         // Convert the old-school `errno` into
         // an error code using the system category.
-        ec = error_code{errno, system_category()};
+        ec = beast::error_code{errno, beast::system_category()};
         return;
     }
 
@@ -356,7 +364,7 @@ init(boost::optional<std::uint64_t> const& content_length, error_code& ec)
 template<class ConstBufferSequence>
 void
 file_body::writer::
-put(ConstBufferSequence const& buffers, error_code& ec)
+put(ConstBufferSequence const& buffers, beast::error_code& ec)
 {
     // Loop over all the buffers in the sequence,
     // and write each one to the file.
@@ -372,7 +380,7 @@ put(ConstBufferSequence const& buffers, error_code& ec)
         if(ferror(file_))
         {
             // Convert old-school `errno` to error_code
-            ec = error_code(errno, system_category());
+            ec = beast::error_code(errno, beast::system_category());
             return;
         }
     }
@@ -385,8 +393,10 @@ put(ConstBufferSequence const& buffers, error_code& ec)
 inline
 void
 file_body::writer::
-finish(error_code& ec)
+finish(beast::error_code& ec)
 {
+    // This has to be cleared before returning, to
+    // indicate no error. The specification requires it.
     ec = {};
 }
 
@@ -404,8 +414,5 @@ file_body::writer::
 }
 
 //]
-
-} // http
-} // beast
 
 #endif

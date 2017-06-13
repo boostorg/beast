@@ -6,7 +6,7 @@
 //
 
 #include "example/doc/http_examples.hpp"
-#include "example/http-server/file_body.hpp"
+#include "example/server-framework/file_body.hpp"
 
 #include <beast/core/read_size.hpp>
 #include <beast/core/detail/clamp.hpp>
