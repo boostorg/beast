@@ -4,6 +4,7 @@ Version 56:
 * Add string_view_body
 * Call on_chunk when the extension is empty
 * HTTP/1.1 is the default version
+* Try harder to find Boost (cmake)
 
 --------------------------------------------------------------------------------
 

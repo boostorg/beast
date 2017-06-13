@@ -43,9 +43,6 @@ endif()
 
 option (Boost_USE_STATIC_LIBS "Use static libraries for boost" ON)
 
-set (Boost_NO_SYSTEM_PATHS ON)
-set (Boost_USE_MULTITHREADED ON)
-
 add_definitions (-DBOOST_COROUTINES_NO_DEPRECATION_WARNING=1) # for asio
 
 unset (Boost_INCLUDE_DIR CACHE)
