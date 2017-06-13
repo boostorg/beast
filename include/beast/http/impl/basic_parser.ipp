@@ -567,6 +567,9 @@ parse_chunk_header(char const*& p0,
                 ec = error::bad_chunk;
                 return;
             }
+            impl().on_chunk(v, {}, ec);
+            if(ec)
+                return;
             len_ = v;
             skip_ = 2;
             p0 = eol;
