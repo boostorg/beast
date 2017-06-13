@@ -85,7 +85,7 @@ format using __Asio__. Specifically, the library provides:
 [include 5_05_parser_streams.qbk]
 [include 5_06_serializer_buffers.qbk]
 [include 5_07_parser_buffers.qbk]
-[include 5_08_custom_parsers.qbk]
-[include 5_09_custom_body.qbk]
+[include 5_08_custom_body.qbk]
+[include 5_09_custom_parsers.qbk]
 
 [endsect]

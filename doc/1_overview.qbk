@@ -42,9 +42,11 @@ standardized implementation of these protocols.
 
 [heading Requirements]
 
-This library is for programmers familiar with __Asio__. Users who
-wish to use asynchronous interfaces should already know how to
-create concurrent network programs using callbacks or coroutines.
+[important
+    This library is for programmers familiar with __Asio__. Users who
+    wish to use asynchronous interfaces should already know how to
+    create concurrent network programs using callbacks or coroutines.
+]
 
 Beast requires:
 

@@ -8,6 +8,5 @@
 build-project echo-op ;
 build-project http-client ;
 build-project http-crawl ;
-build-project http-server ;
+build-project server-framework ;
 build-project websocket-client ;
-build-project websocket-server ;
