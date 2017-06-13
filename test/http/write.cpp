@@ -395,7 +395,7 @@ public:
             m.insert(field::user_agent, "test");
             m.insert("Transfer-Encoding", "chunked");
             m.body = "*****";
-            error_code ec;
+            error_code ec = test::error::fail_error;
             write(fs, m, ec);
             if(ec == error::end_of_stream)
             {
@@ -428,7 +428,7 @@ public:
             m.insert(field::user_agent, "test");
             m.insert("Transfer-Encoding", "chunked");
             m.body = "*****";
-            error_code ec;
+            error_code ec = test::error::fail_error;
             async_write(fs, m, do_yield[ec]);
             if(ec == error::end_of_stream)
             {
@@ -461,7 +461,7 @@ public:
             m.insert(field::user_agent, "test");
             m.insert("Content-Length", "5");
             m.body = "*****";
-            error_code ec;
+            error_code ec = test::error::fail_error;
             write(fs, m, ec);
             if(! ec)
             {
@@ -489,7 +489,7 @@ public:
             m.insert(field::user_agent, "test");
             m.insert("Content-Length", "5");
             m.body = "*****";
-            error_code ec;
+            error_code ec = test::error::fail_error;
             async_write(fs, m, do_yield[ec]);
             if(! ec)
             {

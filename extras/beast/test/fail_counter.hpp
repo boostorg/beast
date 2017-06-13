@@ -83,6 +83,26 @@ make_error_code(error ev)
             detail::get_error_category()};
 }
 
+/** An error code with an error set on default construction
+
+    Default constructed versions of this object will have
+    an error code set right away. This helps tests find code
+    which forgets to clear the error code on success.
+*/
+struct fail_error_code : error_code
+{
+    fail_error_code()
+        : error_code(make_error_code(error::fail_error))
+    {
+    }
+
+    template<class Arg0, class... ArgN>
+    fail_error_code(Arg0&& arg0, ArgN&&... argn)
+        : error_code(arg0, std::forward<ArgN>(argn)...)
+    {
+    }
+};
+
 /** A countdown to simulated failure.
 
     On the Nth operation, the class will fail with the specified
