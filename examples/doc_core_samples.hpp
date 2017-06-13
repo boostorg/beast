@@ -132,7 +132,7 @@ detect_ssl(
         "SyncReadStream requirements not met");
     static_assert(is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
-    
+
     // Loop until an error occurs or we get a definitive answer
     for(;;)
     {
@@ -142,7 +142,10 @@ detect_ssl(
 
         // If we got an answer, return it
         if(! boost::indeterminate(result))
+        {
+            ec = {}; // indicate no error
             return result;
+        }
 
         // The algorithm should never need more than 4 bytes
         BOOST_ASSERT(buffer.size() < 4);

@@ -52,8 +52,11 @@ namespace http {
     Every callback must be provided by the derived class, or else
     a compilation error will be generated. This exemplar shows
     the signature and description of the callbacks required in
-    the derived class. If a callback sets the error code, the error
-    will be propagated to the caller of the parser.
+    the derived class.
+    For each callback, the function will ensure that `!ec` is `true`
+    if there was no error or set to the appropriate error code if
+    there was one.  If an error is set, the value is propagated to
+    the caller of the parser.
 
     @tparam isRequest A `bool` indicating whether the parser will be
     presented with request or response message.

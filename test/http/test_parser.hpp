@@ -58,6 +58,8 @@ public:
         got_on_begin = true;
         if(fc_)
             fc_->fail(ec);
+        else
+            ec = {};
     }
 
     void
@@ -72,6 +74,8 @@ public:
         got_on_begin = true;
         if(fc_)
             fc_->fail(ec);
+        else
+            ec = {};
     }
 
     void
@@ -81,6 +85,8 @@ public:
         got_on_field = true;
         if(fc_)
             fc_->fail(ec);
+        else
+            ec = {};
     }
 
     void
@@ -89,6 +95,8 @@ public:
         got_on_header = true;
         if(fc_)
             fc_->fail(ec);
+        else
+            ec = {};
     }
 
     void
@@ -101,6 +109,8 @@ public:
             static_cast<bool>(content_length_);
         if(fc_)
             fc_->fail(ec);
+        else
+            ec = {};
     }
 
     void
@@ -110,6 +120,8 @@ public:
         body.append(s.data(), s.size());
         if(fc_)
             fc_->fail(ec);
+        else
+            ec = {};
     }
 
     void
@@ -119,6 +131,8 @@ public:
         got_on_chunk = true;
         if(fc_)
             fc_->fail(ec);
+        else
+            ec = {};
     }
 
     void
@@ -127,6 +141,8 @@ public:
         got_on_complete = true;
         if(fc_)
             fc_->fail(ec);
+        else
+            ec = {};
     }
 };
 

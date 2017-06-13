@@ -61,19 +61,22 @@ struct basic_dynamic_body
         }
 
         void
-        init(error_code&)
+        init(error_code& ec)
         {
+            ec = {};
         }
 
         boost::optional<std::pair<const_buffers_type, bool>>
         get(error_code& ec)
         {
+            ec = {};
             return {{body_.data(), false}};
         }
 
         void
-        finish(error_code&)
+        finish(error_code& ec)
         {
+            ec = {};
         }
     };
 #endif
@@ -97,8 +100,9 @@ struct basic_dynamic_body
 
         void
         init(boost::optional<
-            std::uint64_t> const&, error_code&)
+            std::uint64_t> const&, error_code& ec)
         {
+            ec = {};
         }
 
         template<class ConstBufferSequence>
@@ -120,12 +124,14 @@ struct basic_dynamic_body
                 ec = error::buffer_overflow;
                 return;
             }
+            ec = {};
             body_.commit(buffer_copy(*b, buffers));
         }
 
         void
-        finish(error_code&)
+        finish(error_code& ec)
         {
+            ec = {};
         }
     };
 #endif

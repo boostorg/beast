@@ -91,8 +91,9 @@ public:
     template<class ConstBufferSequence>
     std::size_t
     write_some(
-        ConstBufferSequence const& buffers, error_code&)
+        ConstBufferSequence const& buffers, error_code& ec)
     {
+        ec = {};
         using boost::asio::buffer_size;
         using boost::asio::buffer_cast;
         auto const n =
@@ -125,6 +126,7 @@ public:
         string_ostream& stream,
             boost::system::error_code& ec)
     {
+        ec = {};
     }
 
     template<class TeardownHandler>

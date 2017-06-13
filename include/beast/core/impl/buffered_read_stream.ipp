@@ -225,6 +225,10 @@ read_some(MutableBufferSequence const& buffers,
         if(ec)
             return 0;
     }
+    else
+    {
+        ec = {};
+    }
     auto bytes_transferred =
         buffer_copy(buffers, sb_.data());
     sb_.consume(bytes_transferred);
