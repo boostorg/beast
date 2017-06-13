@@ -124,7 +124,7 @@ public:
         using boost::asio::buffer_cast;
         auto const n = buffer_size(buffers);
         str.reserve(str.size() + n);
-        for(auto const& buffer : buffers)
+        for(boost::asio::const_buffer buffer : buffers)
             str.append(buffer_cast<char const*>(buffer),
                 buffer_size(buffer));
         return n;

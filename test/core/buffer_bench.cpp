@@ -66,7 +66,7 @@ public:
         std::size_t n = 0;
         using boost::asio::buffer_cast;
         using boost::asio::buffer_size;
-        for(auto const& buffer : buffers)
+        for(boost::asio::mutable_buffer buffer : buffers)
         {
             std::fill(
                 buffer_cast<char*>(buffer),

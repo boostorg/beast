@@ -500,7 +500,7 @@ public:
             auto const len = rand(500);
             ostream(db) <<
                 "Content-Length: " << len << "\r\n\r\n";
-            for(auto const& b : db.prepare(len))
+            for(boost::asio::mutable_buffer b : db.prepare(len))
             {
                 auto p = boost::asio::buffer_cast<char*>(b);
                 auto n = boost::asio::buffer_size(b);
@@ -520,7 +520,7 @@ public:
                 len -= n;
                 ostream(db) <<
                     to_hex(n) << "\r\n";
-                for(auto const& b : db.prepare(n))
+                for(boost::asio::mutable_buffer b : db.prepare(n))
                 {
                     auto p = boost::asio::buffer_cast<char*>(b);
                     auto m = boost::asio::buffer_size(b);

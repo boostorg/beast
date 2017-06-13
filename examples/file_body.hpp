@@ -362,7 +362,7 @@ put(ConstBufferSequence const& buffers, error_code& ec)
 {
     // Loop over all the buffers in the sequence,
     // and write each one to the file.
-    for(auto const& buffer : buffers)
+    for(boost::asio::const_buffer buffer : buffers)
     {
         // Write this buffer to the file
         fwrite(

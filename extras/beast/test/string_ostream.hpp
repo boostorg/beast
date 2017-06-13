@@ -99,7 +99,8 @@ public:
         auto const n =
             (std::min)(buffer_size(buffers), write_max_);
         str.reserve(str.size() + n);
-        for(auto const& buffer : buffer_prefix(n, buffers))
+        for(boost::asio::const_buffer buffer :
+                buffer_prefix(n, buffers))
             str.append(buffer_cast<char const*>(buffer),
                 buffer_size(buffer));
         return n;

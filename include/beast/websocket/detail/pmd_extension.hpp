@@ -409,7 +409,7 @@ deflate(
     zs.next_in = nullptr;
     zs.avail_out = buffer_size(out);
     zs.next_out = buffer_cast<void*>(out);
-    for(auto const& in : cb)
+    for(boost::asio::const_buffer in : cb)
     {
         zs.avail_in = buffer_size(in);
         if(zs.avail_in == 0)
