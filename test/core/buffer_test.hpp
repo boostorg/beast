@@ -30,7 +30,7 @@ to_string(ConstBufferSequence const& bs)
     using boost::asio::buffer_size;
     std::string s;
     s.reserve(buffer_size(bs));
-    for(auto const& b : bs)
+    for(boost::asio::const_buffer b : bs)
         s.append(buffer_cast<char const*>(b),
             buffer_size(b));
     return s;

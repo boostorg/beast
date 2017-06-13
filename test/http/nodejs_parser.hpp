@@ -489,7 +489,7 @@ nodejs_basic_parser<Derived>::write(
     using boost::asio::buffer_cast;
     using boost::asio::buffer_size;
     std::size_t bytes_used = 0;
-    for(auto const& buffer : buffers)
+    for(boost::asio::const_buffer buffer : buffers)
     {
         auto const n = write(
             buffer_cast<void const*>(buffer),

@@ -8,6 +8,7 @@ Version 56:
 * Reset error codes
 * More basic_parser tests
 * Add an INTERFACE cmake target
+* Convert buffer in range loops
 
 --------------------------------------------------------------------------------
 

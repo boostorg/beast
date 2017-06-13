@@ -132,7 +132,7 @@ write(ConstBufferSequence const& bs)
         "ConstBufferSequence requirements not met");
     using boost::asio::buffer_cast;
     using boost::asio::buffer_size;
-    for(auto const& b : bs)
+    for(boost::asio::const_buffer b : bs)
         if(! write(buffer_cast<std::uint8_t const*>(b),
                 buffer_size(b)))
             return false;

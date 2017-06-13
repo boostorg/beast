@@ -45,7 +45,7 @@ operator<<(std::ostream& os,
 {
     using boost::asio::buffer_cast;
     using boost::asio::buffer_size;
-    for(auto const& b : v.b_)
+    for(boost::asio::const_buffer b : v.b_)
         os.write(buffer_cast<char const*>(b),
             buffer_size(b));
     return os;
