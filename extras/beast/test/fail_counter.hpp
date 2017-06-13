@@ -149,6 +149,7 @@ public:
             ec = ec_;
             return true;
         }
+        ec = {};
         return false;
     }
 };

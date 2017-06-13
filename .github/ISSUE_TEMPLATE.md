@@ -1,3 +1,5 @@
+PLEASE DON'T FORGET TO "STAR" THIS REPOSITORY :)
+
 When reporting a bug please include the following:
 
 ### Version of Beast

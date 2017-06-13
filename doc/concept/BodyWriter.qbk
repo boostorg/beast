@@ -58,7 +58,8 @@ In the table below:
         be set to the content length of the body if known, otherwise
         `length` will be equal to `boost::none`. Implementations of
         [*BodyWriter] may use this information to optimize allocation.
-        If `ec` is set, the error will be propagated to the caller.
+        The function will ensure that `!ec` is `true` if there was
+        no error or set to the appropriate error code if there was one. 
     ]
 ][
     [`a.put(b,ec)`]
@@ -66,14 +67,16 @@ In the table below:
     [
         This function is called to append the buffers specified by `b`
         into the body representation.
-        If `ec` is set, the error will be propagated to the caller.
+        The function will ensure that `!ec` is `true` if there was
+        no error or set to the appropriate error code if there was one. 
     ]
 ][
     [`a.finish(ec)`]
     []
     [
         This function is called when no more body octets are remaining.
-        If `ec` is set, the error will be propagated to the caller.
+        The function will ensure that `!ec` is `true` if there was
+        no error or set to the appropriate error code if there was one. 
     ]
 ][
     [`is_body_writer<B>`]
@@ -112,7 +115,11 @@ struct writer
         @param ec Set to the error, if any occurred.
     */
     void
-    init(boost::optional<std::uint64_t> content_length, error_code& ec);
+    init(boost::optional<std::uint64_t> content_length, error_code& ec)
+    {
+        // The specification requires this to indicate "no error"
+        ec = {};
+    }
 
     /** Store buffers.
 

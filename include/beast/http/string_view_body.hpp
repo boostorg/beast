@@ -64,19 +64,22 @@ struct string_view_body
         }
 
         void
-        init(error_code&)
+        init(error_code& ec)
         {
+            ec = {};
         }
 
         boost::optional<std::pair<const_buffers_type, bool>>
         get(error_code& ec)
         {
+            ec = {};
             return {{{body_.data(), body_.size()}, false}};
         }
 
         void
-        finish(error_code&)
+        finish(error_code& ec)
         {
+            ec = {};
         }
     };
 #endif

@@ -122,6 +122,7 @@ public:
         relay<true>(upstream.client, downstream.server, buffer, ec,
             [&](header<true, fields>& h, error_code& ec)
             {
+                ec = {};
                 h.erase("Content-Length");
                 h.replace("Transfer-Encoding", "chunked");
             });

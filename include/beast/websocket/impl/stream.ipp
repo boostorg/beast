@@ -148,7 +148,7 @@ do_handshake(response_type* res_p,
         return;
     do_response(res, key, ec);
     if(res_p)
-        swap(res, *res_p);
+        *res_p = std::move(res);
 }
 
 template<class NextLayer>
@@ -302,6 +302,7 @@ do_response(http::header<false> const& res,
         ec = error::handshake_failed;
         return;
     }
+    ec = {};
     detail::pmd_offer offer;
     pmd_read(offer, res);
     // VFALCO see if offer satisfies pmd_config_,
