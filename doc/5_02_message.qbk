@@ -118,6 +118,14 @@ __Body__ requirements:
     Messages with this body type may be serialized and parsed. This
     is the type of body used in the examples.
 ]]
+[[
+    [link beast.ref.http__string_view_body `string_view_body`]
+][
+    A body whose `value_type` is [link beast.ref.string_view `string_view`].
+    Messages with this body type may be serialized only, and the caller
+    is responsible for managing the lifetime of the buffer pointed to
+    by the string view.
+]]
 ]
 
 [heading Usage]

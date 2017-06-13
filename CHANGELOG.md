@@ -1,6 +1,7 @@
 Version 56:
 
 * Add provisional IANA header field names
+* Add string_view_body
 
 --------------------------------------------------------------------------------
 

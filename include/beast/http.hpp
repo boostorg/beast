@@ -24,6 +24,7 @@
 #include <beast/http/serializer.hpp>
 #include <beast/http/status.hpp>
 #include <beast/http/string_body.hpp>
+#include <beast/http/string_view_body.hpp>
 #include <beast/http/verb.hpp>
 #include <beast/http/write.hpp>
 
