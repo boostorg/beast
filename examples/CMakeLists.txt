@@ -10,7 +10,11 @@ add_executable (echo-op
     echo_op.cpp
 )
 
-target_link_libraries(echo-op Beast)
+if (NOT WIN32)
+    target_link_libraries(echo-op ${Boost_LIBRARIES} Threads::Threads)
+else()
+    target_link_libraries(echo-op ${Boost_LIBRARIES})
+endif()
 
 add_executable (http-crawl
     ${BEAST_INCLUDES}
@@ -20,7 +24,11 @@ add_executable (http-crawl
     http_crawl.cpp
 )
 
-target_link_libraries(http-crawl Beast)
+if (NOT WIN32)
+    target_link_libraries(http-crawl ${Boost_LIBRARIES} Threads::Threads)
+else()
+    target_link_libraries(http-crawl ${Boost_LIBRARIES})
+endif()
 
 add_executable (http-server
     ${BEAST_INCLUDES}
@@ -32,7 +40,11 @@ add_executable (http-server
     http_server.cpp
 )
 
-target_link_libraries(http-server Beast Boost::program_options Boost::filesystem)
+if (NOT WIN32)
+    target_link_libraries(http-server ${Boost_LIBRARIES} Threads::Threads)
+else()
+    target_link_libraries(http-server ${Boost_LIBRARIES})
+endif()
 
 
 add_executable (http-example
@@ -41,7 +53,11 @@ add_executable (http-example
     http_example.cpp
 )
 
-target_link_libraries(http-example Beast)
+if (NOT WIN32)
+    target_link_libraries(http-example ${Boost_LIBRARIES} Threads::Threads)
+else()
+    target_link_libraries(http-example ${Boost_LIBRARIES})
+endif()
 
 
 add_executable (websocket-echo
@@ -51,7 +67,11 @@ add_executable (websocket-echo
     websocket_echo.cpp
 )
 
-target_link_libraries(websocket-echo Beast)
+if (NOT WIN32)
+    target_link_libraries(websocket-echo ${Boost_LIBRARIES} Threads::Threads)
+else()
+    target_link_libraries(websocket-echo ${Boost_LIBRARIES})
+endif()
 
 
 add_executable (websocket-example
@@ -60,4 +80,8 @@ add_executable (websocket-example
     websocket_example.cpp
 )
 
-target_link_libraries(websocket-example Beast)
+if (NOT WIN32)
+    target_link_libraries(websocket-example ${Boost_LIBRARIES} Threads::Threads)
+else()
+    target_link_libraries(websocket-example ${Boost_LIBRARIES})
+endif()
