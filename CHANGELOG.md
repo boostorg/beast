@@ -3,6 +3,7 @@ Version 56:
 * Add provisional IANA header field names
 * Add string_view_body
 * Call on_chunk when the extension is empty
+* HTTP/1.1 is the default version
 
 --------------------------------------------------------------------------------
 
