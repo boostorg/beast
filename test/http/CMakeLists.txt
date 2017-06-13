@@ -28,6 +28,7 @@ add_executable (http-tests
     serializer.cpp
     status.cpp
     string_body.cpp
+    string_view_body.cpp
     type_traits.cpp
     verb.cpp
     write.cpp

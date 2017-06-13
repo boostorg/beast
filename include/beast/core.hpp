@@ -24,6 +24,7 @@
 #include <beast/core/handler_ptr.hpp>
 #include <beast/core/multi_buffer.hpp>
 #include <beast/core/ostream.hpp>
+#include <beast/core/read_size.hpp>
 #include <beast/core/static_buffer.hpp>
 #include <beast/core/static_string.hpp>
 #include <beast/core/string_param.hpp>
