@@ -69,9 +69,14 @@ public:
         auto const n = boost::asio::buffer_copy(
             buffers, cb_, read_max_);
         if(n > 0)
+        {
+            ec = {};
             cb_ = cb_ + n;
+        }
         else
+        {
             ec = boost::asio::error::eof;
+        }
         return n;
     }
 
@@ -109,8 +114,9 @@ public:
     template<class ConstBufferSequence>
     std::size_t
     write_some(ConstBufferSequence const& buffers,
-        error_code&)
+        error_code& ec)
     {
+        ec = {};
         return boost::asio::buffer_size(buffers);
     }
 
@@ -133,6 +139,7 @@ public:
         string_istream& stream,
             boost::system::error_code& ec)
     {
+        ec = {};
     }
 
     template<class TeardownHandler>

@@ -166,50 +166,58 @@ public:
 
         void
         on_request(verb, string_view,
-            string_view, int, error_code&)
+            string_view, int, error_code& ec)
         {
+            ec = {};
         }
 
         void
         on_response(int,
             string_view,
-                int, error_code&)
+                int, error_code& ec)
         {
+            ec = {};
         }
 
         void
         on_field(field,
-            string_view, string_view, error_code&)
+            string_view, string_view, error_code& ec)
         {
+            ec = {};
         }
 
         void
         on_header(error_code& ec)
         {
+            ec = {};
         }
 
         void
         on_body(boost::optional<std::uint64_t> const&,
-            error_code&)
+            error_code& ec)
         {
+            ec = {};
         }
 
         void
         on_data(string_view,
             error_code& ec)
         {
+            ec = {};
         }
 
         void
         on_chunk(std::uint64_t,
             string_view,
-                error_code&)
+                error_code& ec)
         {
+            ec = {};
         }
 
         void
-        on_complete(error_code&)
+        on_complete(error_code& ec)
         {
+            ec = {};
         }
     };
 

@@ -467,7 +467,6 @@ read_some(
             break;
         if(ec != http::error::need_more)
             break;
-        ec = {};
     do_read:
         boost::optional<typename
             DynamicBuffer::mutable_buffers_type> b;
@@ -479,7 +478,7 @@ read_some(
         catch(std::length_error const&)
         {
             ec = error::buffer_overflow;
-            break;
+            return;
         }
         auto const bytes_transferred =
             stream.read_some(*b, ec);
@@ -489,7 +488,6 @@ read_some(
             if(parser.got_some())
             {
                 // caller sees EOF on next read
-                ec = {};
                 parser.put_eof(ec);
                 if(ec)
                     break;
@@ -570,12 +568,18 @@ read_header(
     static_assert(is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
     parser.eager(false);
-    while(! parser.is_header_done())
+    if(parser.is_header_done())
+    {
+        ec = {};
+        return;
+    }
+    do
     {
         read_some(stream, buffer, parser, ec);
         if(ec)
             return;
     }
+    while(! parser.is_header_done());
 }
 
 template<
@@ -643,12 +647,18 @@ read(
     static_assert(is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
     parser.eager(true);
-    while(! parser.is_done())
+    if(parser.is_done())
+    {
+        ec = {};
+        return;
+    }
+    do
     {
         read_some(stream, buffer, parser, ec);
         if(ec)
             return;
     }
+    while(! parser.is_done());
 }
 
 template<

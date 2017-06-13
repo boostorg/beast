@@ -56,6 +56,7 @@ class write_some_op
         operator()(error_code& ec,
             ConstBufferSequence const& buffer)
         {
+            ec = {};
             invoked = true;
             return op_.s_.async_write_some(
                 buffer, std::move(op_));
@@ -212,6 +213,7 @@ class write_op
         operator()(error_code& ec,
             ConstBufferSequence const& buffer)
         {
+            ec = {};
             invoked = true;
             return op_.s_.async_write_some(
                 buffer, std::move(op_));
@@ -533,14 +535,16 @@ write_some(SyncWriteStream& stream, serializer<
     static_assert(is_body_reader<Body>::value,
         "BodyReader requirements not met");
     detail::write_some_lambda<SyncWriteStream> f{stream};
-    if(! sr.is_done())
+    if(sr.is_done())
     {
-        sr.get(ec, f);
-        if(ec)
-            return;
-        if(f.invoked)
-            sr.consume(f.bytes_transferred);
+        ec = {};
+        return;
     }
+    sr.get(ec, f);
+    if(ec)
+        return;
+    if(f.invoked)
+        sr.consume(f.bytes_transferred);
 }
 
 template<class AsyncWriteStream,
@@ -603,8 +607,13 @@ write_header(SyncWriteStream& stream, serializer<
     static_assert(is_body_reader<Body>::value,
         "BodyReader requirements not met");
     sr.split(true);
+    if(sr.is_header_done())
+    {
+        ec = {};
+        return;
+    }
     detail::write_lambda<SyncWriteStream> f{stream};
-    while(! sr.is_header_done())
+    do
     {
         sr.get(ec, f);
         if(ec)
@@ -612,6 +621,7 @@ write_header(SyncWriteStream& stream, serializer<
         BOOST_ASSERT(f.invoked);
         sr.consume(f.bytes_transferred);
     }
+    while(! sr.is_header_done());
 }
 
 template<class AsyncWriteStream,
@@ -668,8 +678,13 @@ write(SyncWriteStream& stream, serializer<
     static_assert(is_sync_write_stream<SyncWriteStream>::value,
         "SyncWriteStream requirements not met");
     sr.split(false);
+    if(sr.is_done())
+    {
+        ec = {};
+        return;
+    }
     detail::write_lambda<SyncWriteStream> f{stream};
-    while(! sr.is_done())
+    do
     {
         sr.get(ec, f);
         if(ec)
@@ -677,6 +692,7 @@ write(SyncWriteStream& stream, serializer<
         if(f.invoked)
             sr.consume(f.bytes_transferred);
     }
+    while(! sr.is_done());
     if(sr.need_close())
         ec = error::end_of_stream;
 }
@@ -792,9 +808,12 @@ public:
 
     template<class ConstBufferSequence>
     void
-    operator()(error_code&,
+    operator()(error_code& ec,
         ConstBufferSequence const& buffers) const
     {
+        ec = {};
+        if(os_.fail())
+            return;
         std::size_t bytes_transferred = 0;
         using boost::asio::buffer_cast;
         using boost::asio::buffer_size;

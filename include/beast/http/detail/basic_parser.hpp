@@ -389,16 +389,23 @@ protected:
         for(;;)
         {
             if(it == last)
+            {
+                ec = {};
                 return nullptr;
+            }
             if(*it == '\r')
             {
                 if(++it == last)
+                {
+                    ec = {};
                     return nullptr;
+                }
                 if(*it != '\n')
                 {
                     ec = error::bad_line_ending;
                     return nullptr;
                 }
+                ec = {};
                 return ++it;
             }
             // VFALCO Should we handle the legacy case
@@ -418,30 +425,43 @@ protected:
         for(;;)
         {
             if(it == last)
+            {
+                ec = {};
                 return nullptr;
+            }
             if(*it == '\r')
             {
                 if(++it == last)
+                {
+                    ec = {};
                     return nullptr;
+                }
                 if(*it != '\n')
                 {
                     ec = error::bad_line_ending;
                     return nullptr;
                 }
                 if(++it == last)
+                {
+                    ec = {};
                     return nullptr;
+                }
                 if(*it != '\r')
                 {
                     ++it;
                     continue;
                 }
                 if(++it == last)
+                {
+                    ec = {};
                     return nullptr;
+                }
                 if(*it != '\n')
                 {
                     ec = error::bad_line_ending;
                     return nullptr;
                 }
+                ec = {};
                 return ++it;
             }
             // VFALCO Should we handle the legacy case

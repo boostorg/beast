@@ -461,6 +461,7 @@ deflate(
             }
         }
     }
+    ec = {};
     out = buffer(
         buffer_cast<void*>(out), zs.total_out);
     return true;

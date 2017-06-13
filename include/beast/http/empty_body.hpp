@@ -63,19 +63,22 @@ struct empty_body
         }
 
         void
-        init(error_code&)
+        init(error_code& ec)
         {
+            ec = {};
         }
 
         boost::optional<std::pair<const_buffers_type, bool>>
         get(error_code& ec)
         {
+            ec = {};
             return boost::none;
         }
 
         void
-        finish(error_code&)
+        finish(error_code& ec)
         {
+            ec = {};
         }
     };
 #endif
@@ -94,8 +97,9 @@ struct empty_body
 
         void
         init(boost::optional<std::uint64_t> const&,
-            error_code&)
+            error_code& ec)
         {
+            ec = {};
         }
 
         template<class ConstBufferSequence>
@@ -107,8 +111,9 @@ struct empty_body
         }
 
         void
-        finish(error_code&)
+        finish(error_code& ec)
         {
+            ec = {};
         }
     };
 #endif

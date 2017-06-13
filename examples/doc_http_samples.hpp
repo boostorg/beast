@@ -581,6 +581,9 @@ public:
         using boost::asio::buffer_cast;
         using boost::asio::buffer_size;
 
+        // Error codes must be cleared on success
+        ec = {};
+
         // Keep a running total of how much we wrote
         std::size_t bytes_transferred = 0;
 
@@ -943,6 +946,7 @@ void custom_parser<isRequest>::
 on_request(verb method, string_view method_str,
     string_view path, int version, error_code& ec)
 {
+    ec = {};
 }
 
 template<bool isRequest>
@@ -950,6 +954,7 @@ void custom_parser<isRequest>::
 on_response(int status, string_view reason,
     int version, error_code& ec)
 {
+    ec = {};
 }
 
 template<bool isRequest>
@@ -957,12 +962,14 @@ void custom_parser<isRequest>::
 on_field(field f, string_view name,
     string_view value, error_code& ec)
 {
+    ec = {};
 }
 
 template<bool isRequest>
 void custom_parser<isRequest>::
 on_header(error_code& ec)
 {
+    ec = {};
 }
 
 template<bool isRequest>
@@ -970,12 +977,14 @@ void custom_parser<isRequest>::
 on_body(boost::optional<std::uint64_t> const& content_length,
     error_code& ec)
 {
+    ec = {};
 }
 
 template<bool isRequest>
 void custom_parser<isRequest>::
 on_data(string_view s, error_code& ec)
 {
+    ec = {};
 }
 
 template<bool isRequest>
@@ -983,12 +992,14 @@ void custom_parser<isRequest>::
 on_chunk(std::uint64_t size,
     string_view extension, error_code& ec)
 {
+    ec = {};
 }
 
 template<bool isRequest>
 void custom_parser<isRequest>::
 on_complete(error_code& ec)
 {
+    ec = {};
 }
 
 } // http

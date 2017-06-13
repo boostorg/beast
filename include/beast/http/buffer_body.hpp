@@ -110,8 +110,9 @@ struct buffer_body
         }
 
         void
-        init(error_code&)
+        init(error_code& ec)
         {
+            ec = {};
         }
 
         boost::optional<
@@ -125,22 +126,27 @@ struct buffer_body
                     toggle_ = false;
                     ec = error::need_buffer;
                 }
+                ec = {};
                 return boost::none;
             }
             if(body_.data)
             {
+                ec = {};
                 toggle_ = true;
                 return {{const_buffers_type{
                     body_.data, body_.size}, body_.more}};
             }
             if(body_.more)
                 ec = error::need_buffer;
+            else
+                ec = {};
             return boost::none;
         }
 
         void
-        finish(error_code&)
+        finish(error_code& ec)
         {
+            ec = {};
         }
     };
 #endif
@@ -162,8 +168,9 @@ struct buffer_body
         }
 
         void
-        init(boost::optional<std::uint64_t>, error_code&)
+        init(boost::optional<std::uint64_t>, error_code& ec)
         {
+            ec = {};
         }
 
         template<class ConstBufferSequence>
@@ -179,6 +186,7 @@ struct buffer_body
                 ec = error::need_buffer;
                 return;
             }
+            ec = {};
             auto const bytes_transferred =
                 buffer_copy(boost::asio::buffer(
                     body_.data, body_.size), buffers);
@@ -188,8 +196,9 @@ struct buffer_body
         }
 
         void
-        finish(error_code&)
+        finish(error_code& ec)
         {
+            ec = {};
         }
     };
 #endif
