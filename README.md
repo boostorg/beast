@@ -112,10 +112,13 @@ Xcode project files using CMake by executing these commands from
 the root of the repository:
 
 ```
+mkdir bin
 cd bin
 cmake ..                                    # for 32-bit Windows builds
 cmake -G Xcode ..                           # for Apple Xcode builds
 
+cd ..
+mkdir bin64
 cd ../bin64
 cmake -G"Visual Studio 14 2015 Win64" ..    # for 64-bit Windows builds (VS2015)
 cmake -G"Visual Studio 15 2017 Win64" ..    # for 64-bit Windows builds (VS2017)
@@ -137,8 +140,8 @@ The files in the repository are laid out thusly:
 
 ```
 ./
-    bin/            Holds executables and project files
-    bin64/          Holds 64-bit Windows executables and project files
+    bin/            Create this to hold executables and project files
+    bin64/          Create this to hold 64-bit Windows executables and project files
     doc/            Source code and scripts for the documentation
     include/        Add this to your compiler includes
         beast/

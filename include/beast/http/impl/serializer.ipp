@@ -60,7 +60,8 @@ get(error_code& ec, Visit&& visit)
         frdinit(std::integral_constant<bool,
             isRequest>{});
         close_ = m_.has_close() || (
-            m_.version < 11 && ! m_.has_content_length());
+            m_.version < 11 &&
+            ! m_.has_content_length());
         if(m_.has_chunked())
             goto go_init_c;
         s_ = do_init;

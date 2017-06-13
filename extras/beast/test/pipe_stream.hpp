@@ -196,6 +196,7 @@ public:
         teardown(websocket::teardown_tag,
             stream&, boost::system::error_code& ec)
         {
+            ec = {};
         }
 
         template<class TeardownHandler>
@@ -367,6 +368,7 @@ read_some(MutableBufferSequence const& buffers,
     std::size_t bytes_transferred;
     if(in_.b.size() > 0)
     {   
+        ec = {};
         bytes_transferred = buffer_copy(
             buffers, in_.b.data(), read_max_);
         in_.b.consume(bytes_transferred);
@@ -478,6 +480,7 @@ write_some(
     else
         out_.cv.notify_all();
     ++nwrite;
+    ec = {};
     return bytes_transferred;
 }
 

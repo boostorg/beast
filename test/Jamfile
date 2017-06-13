@@ -62,6 +62,7 @@ unit-test http-tests :
     http/serializer.cpp
     http/status.cpp
     http/string_body.cpp
+    http/string_view_body.cpp
     http/type_traits.cpp
     http/verb.cpp
     http/write.cpp

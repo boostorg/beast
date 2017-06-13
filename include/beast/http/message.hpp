@@ -64,8 +64,10 @@ struct header<true, Fields> : Fields
             int major = version / 10;
             int minor = version % 10;
         @endcode
+
+        Newly constructed headers will use HTTP/1.1 by default.
     */
-    int version;
+    int version = 11;
 
     /// Default constructor
     header() = default;
@@ -211,8 +213,10 @@ struct header<false, Fields> : Fields
             major = version / 10;
             minor = version % 10;
         @endcode
+
+        Newly constructed headers will use HTTP/1.1 by default.
     */
-    int version;
+    int version = 11;
 
     /// Default constructor.
     header() = default;

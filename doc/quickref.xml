@@ -46,6 +46,7 @@
             <member><link linkend="beast.ref.http__response_parser">response_parser</link></member>
             <member><link linkend="beast.ref.http__serializer">serializer</link></member>
             <member><link linkend="beast.ref.http__string_body">string_body</link></member>
+            <member><link linkend="beast.ref.http__string_view_body">string_view_body</link></member>
           </simplelist>
           <bridgehead renderas="sect3">rfc7230</bridgehead>
           <simplelist type="vert" columns="1">

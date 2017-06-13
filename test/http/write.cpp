@@ -55,20 +55,23 @@ public:
             }
 
             void
-            init(error_code&)
+            init(error_code& ec)
             {
+                ec = {};
             }
             
             boost::optional<std::pair<const_buffers_type, bool>>
-            get(error_code&)
+            get(error_code& ec)
             {
+                ec = {};
                 return {{const_buffers_type{
                     body_.data(), body_.size()}, false}};
             }
 
             void
-            finish(error_code&)
+            finish(error_code& ec)
             {
+                ec = {};
             }
         };
     };
@@ -107,13 +110,15 @@ public:
             }
 
             void
-            init(error_code&)
+            init(error_code& ec)
             {
+                ec = {};
             }
 
             boost::optional<std::pair<const_buffers_type, bool>>
-            get(error_code&)
+            get(error_code& ec)
             {
+                ec = {};
                 body_.read = true;
                 return get(
                     std::integral_constant<bool, isSplit>{},
@@ -121,8 +126,9 @@ public:
             }
 
             void
-            finish(error_code&)
+            finish(error_code& ec)
             {
+                ec = {};
             }
 
         private:

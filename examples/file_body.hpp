@@ -181,6 +181,7 @@ init(error_code& ec)
 
     // The file was opened successfully, get the size
     // of the file to know how much we need to read.
+    ec = {};
     remain_ = boost::filesystem::file_size(path_);
 }
 
@@ -201,7 +202,10 @@ get(error_code& ec) ->
 
     // Check for an empty file
     if(amount == 0)
+    {
+        ec = {};
         return boost::none;
+    }
 
     // Now read the next buffer
     auto const nread = fread(buf_, 1, amount, file_);
@@ -229,6 +233,7 @@ get(error_code& ec) ->
     // we set this bool to `false` so we will not be called
     // again.
     //
+    ec = {};
     return {{
         const_buffers_type{buf_, nread},    // buffer to return.
         remain_ > 0                         // `true` if there are more buffers.
@@ -241,6 +246,9 @@ void
 file_body::reader::
 finish(error_code& ec)
 {
+    // Functions which pass back errors are
+    // responsible for clearing the error code.
+    ec = {};
 }
 
 // The destructor is always invoked if construction succeeds.
@@ -340,6 +348,9 @@ init(boost::optional<std::uint64_t> const& content_length, error_code& ec)
         ec = error_code{errno, system_category()};
         return;
     }
+
+    // Indicate success
+    ec = {};
 }
 
 // This will get called one or more times with body buffers
@@ -367,6 +378,9 @@ put(ConstBufferSequence const& buffers, error_code& ec)
             return;
         }
     }
+
+    // Indicate success
+    ec = {};
 }
 
 // Called after writing is done when there's no error.
@@ -375,6 +389,7 @@ void
 file_body::writer::
 finish(error_code& ec)
 {
+    ec = {};
 }
 
 // The destructor is always invoked if construction succeeds

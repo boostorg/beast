@@ -148,73 +148,6 @@ public:
         return {s, N-1};
     }
 
-    template<bool isRequest, class Derived>
-    static
-    std::size_t
-    feed(boost::asio::const_buffer buffer,
-        basic_parser<isRequest, Derived>& parser,
-            error_code& ec)
-    {
-        using boost::asio::const_buffers_1;
-        std::size_t used = 0;
-        for(;;)
-        {
-            auto const n = parser.put(
-                const_buffers_1{buffer}, ec);
-            if(ec)
-                return 0;
-            if(n == 0)
-                break;
-            buffer = buffer + n;
-            used += n;
-            if(parser.is_done())
-                break;
-            if(buffer_size(buffer) == 0)
-                break;
-        }
-        return used;
-    }
-
-    template<class ConstBufferSequence,
-        bool isRequest, class Derived>
-    static
-    std::size_t
-    feed(ConstBufferSequence const& buffers,
-        basic_parser<isRequest, Derived>& parser,
-            error_code& ec)
-    {
-        using boost::asio::buffer_size;
-        consuming_buffers<
-            ConstBufferSequence> cb{buffers};
-        std::size_t used = 0;
-        for(;;)
-        {
-            auto const n =
-                parser.put(cb, ec);
-            if(ec)
-                return 0;
-            if(n == 0)
-                break;
-            cb.consume(n);
-            used += n;
-            if(parser.is_done())
-                break;
-            if(buffer_size(cb) == 0)
-                break;
-        }
-        return used;
-    }
-
-    template<bool isRequest, class Derived>
-    static
-    std::size_t
-    feed(boost::asio::const_buffers_1 buffers,
-        basic_parser<isRequest, Derived>& parser,
-            error_code& ec)
-    {
-        return feed(*buffers.begin(), parser, ec);
-    }
-
     template<bool isRequest, class Pred>
     void
     good(string_view s,
@@ -222,11 +155,12 @@ public:
     {
         using boost::asio::buffer;
         test_parser<isRequest> p;
+        p.eager(true);
         if(skipBody)
             p.skip(true);
         error_code ec;
-        auto const n = feed(buffer(
-            s.data(), s.size()), p, ec);
+        auto const n = p.put(
+            buffer(s.data(), s.size()), ec);
         if(! BEAST_EXPECTS(! ec, ec.message()))
             return;
         if(! BEAST_EXPECT(n == s.size()))
@@ -254,11 +188,11 @@ public:
     {
         using boost::asio::buffer;
         test_parser<isRequest> p;
+        p.eager(true);
         if(skipBody)
             p.skip(true);
         error_code ec;
-        feed(buffer(
-            s.data(), s.size()), p, ec);
+        p.put(buffer(s.data(), s.size()), ec);
         if(! ec && ev)
             p.put_eof(ec);
         BEAST_EXPECTS(ec == ev, ec.message());
@@ -267,7 +201,6 @@ public:
     void
     testFlatten()
     {
-#if 0
         using boost::asio::buffer;
         {
             std::string const s =
@@ -283,10 +216,12 @@ public:
                 auto const b2 = buffer(
                     s.data() + i, s.size() - i);
                 test_parser<true> p;
+                p.eager(true);
                 error_code ec;
-                feed(b1, p, ec);
-                BEAST_EXPECTS(! ec, ec.message());
-                feed(buffer_cat(b1, b2), p, ec);
+                p.put(b1, ec);
+                BEAST_EXPECTS(ec == error::need_more, ec.message());
+                ec = {};
+                p.put(boost::asio::buffer(s.data(), s.size()), ec);
                 BEAST_EXPECTS(! ec, ec.message());
                 BEAST_EXPECT(p.is_done());
             }
@@ -303,16 +238,16 @@ public:
                 auto const b2 = buffer(
                     s.data() + i, s.size() - i);
                 test_parser<false> p;
+                p.eager(true);
                 error_code ec;
-                feed(b1, p, ec);
-                BEAST_EXPECTS(! ec, ec.message());
+                p.put(b1, ec);
+                BEAST_EXPECTS(ec == error::need_more, ec.message());
                 ec = {};
-                feed(buffer_cat(b1, b2), p, ec);
+                p.put(buffer_cat(b1, b2), ec);
                 BEAST_EXPECTS(! ec, ec.message());
                 p.put_eof(ec);
             }
         }
-#endif
     }
 
     // Check that all callbacks are invoked
@@ -322,6 +257,7 @@ public:
         using boost::asio::buffer;
         {
             test_parser<true> p;
+            p.eager(true);
             error_code ec;
             std::string const s =
                 "GET / HTTP/1.1\r\n"
@@ -329,7 +265,7 @@ public:
                 "Content-Length: 1\r\n"
                 "\r\n"
                 "*";
-            feed(buffer(s), p, ec);
+            p.put(buffer(s), ec);
             BEAST_EXPECTS(! ec, ec.message());
             BEAST_EXPECT(p.is_done());
             BEAST_EXPECT(p.got_on_begin);
@@ -341,6 +277,7 @@ public:
         }
         {
             test_parser<false> p;
+            p.eager(true);
             error_code ec;
             std::string const s =
                 "HTTP/1.1 200 OK\r\n"
@@ -348,7 +285,7 @@ public:
                 "Content-Length: 1\r\n"
                 "\r\n"
                 "*";
-            feed(buffer(s), p, ec);
+            p.put(buffer(s), ec);
             BEAST_EXPECTS(! ec, ec.message());
             BEAST_EXPECT(p.is_done());
             BEAST_EXPECT(p.got_on_begin);
@@ -356,6 +293,48 @@ public:
             BEAST_EXPECT(p.got_on_header);
             BEAST_EXPECT(p.got_on_body);
             BEAST_EXPECT(! p.got_on_chunk);
+            BEAST_EXPECT(p.got_on_complete);
+        }
+        {
+            test_parser<false> p;
+            p.eager(true);
+            error_code ec;
+            std::string const s =
+                "HTTP/1.1 200 OK\r\n"
+                "Server: test\r\n"
+                "Transfer-Encoding: chunked\r\n"
+                "\r\n"
+                "1\r\n*\r\n"
+                "0\r\n\r\n";
+            p.put(buffer(s), ec);
+            BEAST_EXPECTS(! ec, ec.message());
+            BEAST_EXPECT(p.is_done());
+            BEAST_EXPECT(p.got_on_begin);
+            BEAST_EXPECT(p.got_on_field);
+            BEAST_EXPECT(p.got_on_header);
+            BEAST_EXPECT(p.got_on_body);
+            BEAST_EXPECT(p.got_on_chunk);
+            BEAST_EXPECT(p.got_on_complete);
+        }
+        {
+            test_parser<false> p;
+            p.eager(true);
+            error_code ec;
+            std::string const s =
+                "HTTP/1.1 200 OK\r\n"
+                "Server: test\r\n"
+                "Transfer-Encoding: chunked\r\n"
+                "\r\n"
+                "1;x\r\n*\r\n"
+                "0\r\n\r\n";
+            p.put(buffer(s), ec);
+            BEAST_EXPECTS(! ec, ec.message());
+            BEAST_EXPECT(p.is_done());
+            BEAST_EXPECT(p.got_on_begin);
+            BEAST_EXPECT(p.got_on_field);
+            BEAST_EXPECT(p.got_on_header);
+            BEAST_EXPECT(p.got_on_body);
+            BEAST_EXPECT(p.got_on_chunk);
             BEAST_EXPECT(p.got_on_complete);
         }
     }

@@ -63,20 +63,23 @@ struct string_body
         }
 
         void
-        init(error_code&)
+        init(error_code& ec)
         {
+            ec = {};
         }
 
         boost::optional<std::pair<const_buffers_type, bool>>
-        get(error_code&)
+        get(error_code& ec)
         {
+            ec = {};
             return {{const_buffers_type{
                 body_.data(), body_.size()}, false}};
         }
 
         void
-        finish(error_code&)
+        finish(error_code& ec)
         {
+            ec = {};
         }
     };
 #endif
@@ -110,6 +113,7 @@ struct string_body
                         errc::not_enough_memory);
                     return;
                 }
+                ec = {};
                 body_.reserve(static_cast<
                     std::size_t>(*content_length));
             }
@@ -133,13 +137,15 @@ struct string_body
                 ec = error::buffer_overflow;
                 return;
             }
+            ec = {};
             buffer_copy(boost::asio::buffer(
                 &body_[0] + len, n), buffers);
         }
 
         void
-        finish(error_code&)
+        finish(error_code& ec)
         {
+            ec = {};
         }
     };
 #endif

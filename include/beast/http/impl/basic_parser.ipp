@@ -94,7 +94,10 @@ put(ConstBufferSequence const& buffers,
     auto const p = buffers.begin();
     auto const last = buffers.end();
     if(p == last)
+    {
+        ec = {};
         return 0;
+    }
     if(std::next(p) == last)
     {
         // single buffer
@@ -196,7 +199,8 @@ loop:
         break;
 
     case state::complete:
-        break;
+        ec = {};
+        goto done;
     }
     if(p < p1 && ! is_done() && eager())
     {
@@ -225,6 +229,7 @@ put_eof(error_code& ec)
             ec = error::partial_message;
             return;
         }
+        ec = {};
         return;
     }
     impl().on_complete(ec);
@@ -567,6 +572,9 @@ parse_chunk_header(char const*& p0,
                 ec = error::bad_chunk;
                 return;
             }
+            impl().on_chunk(v, {}, ec);
+            if(ec)
+                return;
             len_ = v;
             skip_ = 2;
             p0 = eol;
@@ -786,6 +794,7 @@ do_field(field f,
                 continue;
             }
         }
+        ec = {};
         return;
     }
 
@@ -824,6 +833,7 @@ do_field(field f,
             return;
         }
 
+        ec = {};
         len_ = v;
         f_ |= flagContentLength;
         return;
@@ -846,6 +856,7 @@ do_field(field f,
             return;
         }
 
+        ec = {};
         auto const v = token_list{value};
         auto const p = std::find_if(v.begin(), v.end(),
             [&](typename token_list::value_type const& s)
@@ -864,10 +875,12 @@ do_field(field f,
     // Upgrade
     if(f == field::upgrade)
     {
-        f_ |= flagUpgrade;
         ec = {};
+        f_ |= flagUpgrade;
         return;
     }
+
+    ec = {};
 }
 
 } // http
