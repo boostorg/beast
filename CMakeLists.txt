@@ -2,7 +2,7 @@
 
 cmake_minimum_required (VERSION 3.5.2)
 
-project (Beast)
+project (Beast VERSION 56)
 
 set_property (GLOBAL PROPERTY USE_FOLDERS ON)
 
@@ -128,6 +128,24 @@ elseif ("${VARIANT}" STREQUAL "release")
     set(CMAKE_BUILD_TYPE RELEASE)
 
 endif()
+
+#-------------------------------------------------------------------------------
+#
+# Library interface
+#
+
+add_library(${PROJECT_NAME} INTERFACE)
+target_link_libraries(${PROJECT_NAME} INTERFACE ${Boost_SYSTEM_LIBRARY})
+if (NOT MSVC)
+    target_link_libraries(${PROJECT_NAME} INTERFACE Threads::Threads)
+endif()
+target_include_directories(${PROJECT_NAME} INTERFACE ${Boost_INCLUDE_DIRS})
+target_compile_definitions(${PROJECT_NAME} INTERFACE BOOST_COROUTINES_NO_DEPRECATION_WARNING=1)
+
+#-------------------------------------------------------------------------------
+#
+# Tests and examples
+#
 
 include_directories (.)
 include_directories (extras)

@@ -7,6 +7,7 @@ Version 56:
 * Try harder to find Boost (cmake)
 * Reset error codes
 * More basic_parser tests
+* Add an INTERFACE cmake target
 
 --------------------------------------------------------------------------------
 
