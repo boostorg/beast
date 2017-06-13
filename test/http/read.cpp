@@ -50,7 +50,7 @@ public:
             test::fail_stream<
                 test::string_istream> fs{fc, ios_, ""};
             test_parser<isRequest> p(fc);
-            error_code ec;
+            error_code ec = test::error::fail_error;
             read(fs, b, p, ec);
             if(! ec)
                 break;
@@ -66,7 +66,7 @@ public:
             test::fail_stream<test::string_istream> fs{
                 fc, ios_, std::string{s + pre, len - pre}};
             test_parser<isRequest> p(fc);
-            error_code ec;
+            error_code ec = test::error::fail_error;
             read(fs, b, p, ec);
             if(! ec)
                 break;
@@ -81,7 +81,7 @@ public:
             test::fail_stream<
                 test::string_istream> fs{fc, ios_, ""};
             test_parser<isRequest> p(fc);
-            error_code ec;
+            error_code ec = test::error::fail_error;
             async_read(fs, b, p, do_yield[ec]);
             if(! ec)
                 break;
@@ -97,7 +97,7 @@ public:
             test::fail_stream<test::string_istream> fs{
                 fc, ios_, std::string{s + pre, len - pre}};
             test_parser<isRequest> p(fc);
-            error_code ec;
+            error_code ec = test::error::fail_error;
             async_read(fs, b, p, do_yield[ec]);
             if(! ec)
                 break;
@@ -158,7 +158,7 @@ public:
                 "10\r\n"
                 "****************\r\n"
                 "0\r\n\r\n";
-            error_code ec;
+            error_code ec = test::error::fail_error;
             static_buffer_n<10> b;
             request<string_body> req;
             read(p.server, b, req, ec);
@@ -266,7 +266,7 @@ public:
                 "\r\n"
             );
             request<dynamic_body> m;
-            error_code ec;
+            error_code ec = test::error::fail_error;
             multi_buffer b;
             read(fs, b, m, ec);
             if(! ec)
@@ -284,7 +284,7 @@ public:
                 "\r\n"
             );
             request<dynamic_body> m;
-            error_code ec;
+            error_code ec = test::error::fail_error;
             multi_buffer b;
             async_read(fs, b, m, do_yield[ec]);
             if(! ec)
@@ -393,7 +393,7 @@ public:
         for(std::size_t n = 1; n < s.size() - 1; ++n)
         {
             Parser p;
-            error_code ec;
+            error_code ec = test::error::fail_error;
             flat_buffer b;
             test::pipe c{ios_};
             ostream(c.server.buffer) << s;
@@ -442,7 +442,6 @@ public:
     void
     run() override
     {
-#if 0
         testThrow();
         testBufferOverflow();
 
@@ -455,7 +454,6 @@ public:
 
         testIoService();
         testRegression430();
-#endif
         testReadGrind();
     }
 };

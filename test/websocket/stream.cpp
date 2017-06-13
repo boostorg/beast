@@ -965,7 +965,7 @@ public:
     void
     testHandshake()
     {
-        error_code ec;
+        error_code ec = test::error::fail_error;
         ::websocket::async_echo_server server{nullptr, 1};
         auto const any = endpoint_type{
             address_type::from_string("127.0.0.1"), 0};
@@ -1177,7 +1177,7 @@ public:
             std::vector<char> v;
             for(char n = 0; n < 20; ++n)
             {
-                error_code ec;
+                error_code ec = test::error::fail_error;
                 socket_type sock(ios_);
                 sock.connect(ep, ec);
                 if(! BEAST_EXPECTS(! ec, ec.message()))
@@ -1202,7 +1202,7 @@ public:
             std::vector<char> v;
             for(char n = 0; n < 20; ++n)
             {
-                error_code ec;
+                error_code ec = test::error::fail_error;
                 socket_type sock(ios_);
                 sock.connect(ep, ec);
                 if(! BEAST_EXPECTS(! ec, ec.message()))
