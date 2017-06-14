@@ -10,14 +10,13 @@
 Asynchronous operations are started by calling a free function or member
 function known as an ['asynchronous initiation function]. The initiation
 function accepts parameters specific to the operation as well as a "completion
-token." This token is either a completion handler, or another type allowing for
-customization of how the result of the asynchronous operation is conveyed to
-callers. __Asio__ allows the special completion tokens __use_future__ and
-objects of type __yield_context__ to allow callers to specify the use of futures
-and coroutines respectively. This system, where the return value and method of
-indicating completion may be customized at the call site of the asynchronous
-initiation function, is known as the ['Extensible Asynchronous Model] described
-in __N3747__, and built-in to __N4588__.
+token." This token is either a completion handler, or a type defining how
+the caller is informed of the asynchronous operation result. __Asio__ comes
+with the special completion tokens __use_future__ and __yield_context__ for
+using futures and coroutines respectively. This system of customizing the
+return value and method of completion notification is known as the
+['Extensible Asynchronous Model] described in __N3747__, and a built in
+to __N4588__.
 
 [note
     A full explanation of completion handlers, the Extensible Asynchronous
