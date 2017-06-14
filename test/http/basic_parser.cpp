@@ -220,14 +220,10 @@ public:
             for(std::size_t i = 1;
                 i < s.size() - 1; ++i)
             {
-                auto const b1 =
-                    buffer(s.data(), i);
-                auto const b2 = buffer(
-                    s.data() + i, s.size() - i);
                 test_parser<true> p;
                 p.eager(true);
                 error_code ec;
-                p.put(b1, ec);
+                p.put(buffer(s.data(), i), ec);
                 BEAST_EXPECTS(ec == error::need_more, ec.message());
                 ec = {};
                 p.put(boost::asio::buffer(s.data(), s.size()), ec);
@@ -943,26 +939,32 @@ public:
 
     // https://github.com/vinniefalco/Beast/issues/430
     void
-    testRegression430()
+    testIssue430()
     {
         {
             test_parser<false> p;
             p.eager(true);
             put(p,
-              "HTTP/1.1 200 OK\r\n" "Transfer-Encoding: chunked\r\n" "Content-Type: application/octet-stream\r\n" "\r\n"
-              "4\r\nabcd\r\n"
-              "0\r\n\r\n"
+                "HTTP/1.1 200 OK\r\n"
+                "Transfer-Encoding: chunked\r\n"
+                "Content-Type: application/octet-stream\r\n"
+                "\r\n"
+                "4\r\nabcd\r\n"
+                "0\r\n\r\n"
             );
         }
         {
             test_parser<false> p;
             p.eager(true);
             put(p,
-              "HTTP/1.1 200 OK\r\n" "Transfer-Encoding: chunked\r\n" "Content-Type: application/octet-stream\r\n" "\r\n"
-              "4\r\nabcd");
+                "HTTP/1.1 200 OK\r\n"
+                "Transfer-Encoding: chunked\r\n"
+                "Content-Type: application/octet-stream\r\n"
+                "\r\n"
+                "4\r\nabcd");
             put(p,
-              "\r\n"
-              "0\r\n\r\n"
+                "\r\n"
+                "0\r\n\r\n"
             );
         }
     }
@@ -971,7 +973,7 @@ public:
 
     // https://github.com/vinniefalco/Beast/issues/452
     void
-    testRegression452()
+    testIssue452()
     {
         error_code ec;
         test_parser<true> p;
@@ -1008,8 +1010,6 @@ public:
                 continue;
             used = p.put(buffer(
                 s.data() + n, s.size() - n), ec);
-            if(ec == error::need_more)
-                continue;
             if(! BEAST_EXPECTS(! ec, ec.message()))
                 continue;
             if(! BEAST_EXPECT(used == s.size() -n))
@@ -1070,8 +1070,8 @@ public:
         testUpgradeField();
         testBody();
         testSplit();
-        testRegression430();
-        testRegression452();
+        testIssue430();
+        testIssue452();
         testBufGrind();
     }
 };
