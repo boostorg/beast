@@ -51,7 +51,11 @@ struct header<true, Fields> : Fields
 #endif
 {
     /// Indicates if the header is a request or response.
+#if BEAST_DOXYGEN
+    using is_request = isRequest;
+#else
     using is_request = std::true_type;
+#endif
 
     /// The type representing the fields.
     using fields_type = Fields;
@@ -83,29 +87,6 @@ struct header<true, Fields> : Fields
 
     /// Copy assignment
     header& operator=(header const&) = default;
-
-    /** Construct the header.
-
-        All arguments are forwarded to the constructor
-        of the `fields` member.
-
-        @note This constructor participates in overload resolution
-        if and only if the first parameter is not convertible to
-        `header`.
-    */
-#if BEAST_DOXYGEN
-    template<class... Args>
-    explicit
-    header(Args&&... args);
-
-#else
-    template<class Arg1, class... ArgN,
-        class = typename std::enable_if<
-            (sizeof...(ArgN) > 0) || ! std::is_convertible<
-                typename std::decay<Arg1>::type,
-                    header>::value>::type>
-    explicit
-    header(Arg1&& arg1, ArgN&&... argn);
 
     /** Return the request-method verb.
 
@@ -171,6 +152,32 @@ struct header<true, Fields> : Fields
     */
     void
     target(string_view s);
+
+    // VFALCO Don't move these declarations around,
+    //        otherwise the documentation will be wrong.
+
+    /** Construct the header.
+
+        All arguments are forwarded to the constructor
+        of the `fields` member.
+
+        @note This constructor participates in overload resolution
+        if and only if the first parameter is not convertible to
+        `header`.
+    */
+#if BEAST_DOXYGEN
+    template<class... Args>
+    explicit
+    header(Args&&... args);
+
+#else
+    template<class Arg1, class... ArgN,
+        class = typename std::enable_if<
+            (sizeof...(ArgN) > 0) || ! std::is_convertible<
+                typename std::decay<Arg1>::type,
+                    header>::value>::type>
+    explicit
+    header(Arg1&& arg1, ArgN&&... argn);
 
 private:
     template<bool, class, class>
@@ -327,6 +334,7 @@ struct header<false, Fields> : Fields
     reason(string_view s);
    
 private:
+#if ! BEAST_DOXYGEN
     template<bool, class, class>
     friend struct message;
 
@@ -336,6 +344,7 @@ private:
     swap(header<false, T>& m1, header<false, T>& m2);
 
     status result_;
+#endif
 };
 
 /** A container for a complete HTTP message.
