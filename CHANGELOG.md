@@ -1,3 +1,9 @@
+Version 57:
+
+* Fix message.hpp javadocs
+
+--------------------------------------------------------------------------------
+
 Version 56:
 
 * Add provisional IANA header field names
