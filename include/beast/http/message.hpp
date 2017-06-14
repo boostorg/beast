@@ -28,19 +28,17 @@ namespace http {
 
 /** A container for an HTTP request or response header.
 
-    A header includes the Start Line and Fields.
+    This container is derived from the `Fields` template type.
+    To understand all of the members of this class it is necessary
+    to view the declaration for the `Fields` type. When using
+    the default fields container, those declarations are in
+    @ref fields.
 
-    Some use-cases:
-
-    @li When the message has no body, such as a response to a HEAD request.
-
-    @li When the caller wishes to defer instantiation of the body.
-
-    @li Invoke algorithms which operate on the header only.
+    A `header` includes the start-line and header-fields.
 */
 #if BEAST_DOXYGEN
 template<bool isRequest, class Fields = fields>
-struct header
+struct header : Fields
 
 #else
 template<bool isRequest, class Fields = fields>
@@ -193,15 +191,7 @@ private:
 
 /** A container for an HTTP request or response header.
 
-    A header includes the Start Line and Fields.
-
-    Some use-cases:
-
-    @li When the message has no body, such as a response to a HEAD request.
-
-    @li When the caller wishes to defer instantiation of the body.
-
-    @li Invoke algorithms which operate on the header only.
+    A `header` includes the start-line and header-fields.
 */
 template<class Fields>
 struct header<false, Fields> : Fields
@@ -348,6 +338,12 @@ private:
 };
 
 /** A container for a complete HTTP message.
+
+    This container is derived from the `Fields` template type.
+    To understand all of the members of this class it is necessary
+    to view the declaration for the `Fields` type. When using
+    the default fields container, those declarations are in
+    @ref fields.
 
     A message can be a request or response, depending on the
     `isRequest` template argument value. Requests and responses

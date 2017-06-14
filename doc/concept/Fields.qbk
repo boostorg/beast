@@ -17,7 +17,7 @@ In this table:
 
 * `X` denotes a type that meets the requirements of [*Fields].
 
-* `R` denotes a type meeting the requiremnets of __FieldsReader__.
+* `R` denotes a type meeting the requirements of __FieldsReader__.
 
 * `a` denotes a value of type `X`.
 
