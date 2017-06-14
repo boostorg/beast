@@ -2,7 +2,7 @@
 
 cmake_minimum_required (VERSION 3.5.2)
 
-project (Beast VERSION 56)
+project (Beast VERSION 57)
 
 set_property (GLOBAL PROPERTY USE_FOLDERS ON)
 
