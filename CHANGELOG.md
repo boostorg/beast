@@ -2,6 +2,7 @@ Version 57:
 
 * Fix message.hpp javadocs
 * Fix warning in basic_parser.cpp
+* Integrate docca for documentation and tidy
 
 --------------------------------------------------------------------------------
 

@@ -13,10 +13,10 @@ algorithms on objects whose interface does not conform to __Stream__.
 For example, a
 [@http://zeromq.org/ *ZeroMQ* socket].
 The basic parser interface is interactive; the caller invokes the function
-[link beast.ref.http__basic_parser.put `basic_parser::put`]
+[link beast.ref.beast__http__basic_parser.put `basic_parser::put`]
 repeatedly with buffers until an error occurs or the parsing is done. The
 function
-[link beast.ref.http__basic_parser.put_eof `basic_parser::put_eof`]
+[link beast.ref.beast__http__basic_parser.put_eof `basic_parser::put_eof`]
 Is used when the caller knows that there will never be more data (for example,
 if the underlying connection is closed), 
 
@@ -27,7 +27,7 @@ The parser provides two options which may be set before parsing begins:
 [table Parser Options
 [[Name][Default][Description]]
 [[
-    [link beast.ref.http__basic_parser.eager.overload2 `eager`]
+    [link beast.ref.beast__http__basic_parser.eager.overload2 `eager`]
 ][
     `false`
 ][
@@ -42,7 +42,7 @@ The parser provides two options which may be set before parsing begins:
     stream operations to improve performance with no change in functionality.
 ]]
 [[
-    [link beast.ref.http__basic_parser.skip.overload2 `skip`]
+    [link beast.ref.beast__http__basic_parser.skip.overload2 `skip`]
 ][
     `false`
 ][

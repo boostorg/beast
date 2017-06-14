@@ -21,7 +21,7 @@ The meaning of the nested types is as follows
     [`value_type`]
     [
         Determines the type of the
-        [link beast.ref.http__message.body `message::body`]
+        [link beast.ref.beast__http__message.body `message::body`]
         member.
     ]
 ][

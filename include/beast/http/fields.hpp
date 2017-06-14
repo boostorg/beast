@@ -41,6 +41,9 @@ namespace http {
     of the field name.
 
     Meets the requirements of @b Fields
+
+    @tparam Allocator The allocator to use. This must meet the
+    requirements of @b Allocator.
 */
 template<class Allocator>
 class basic_fields
@@ -137,6 +140,7 @@ private:
                         &value_type::set_hook_>,
                             boost::intrusive::constant_time_size<true>,
                                 boost::intrusive::compare<key_compare>>::type;
+
 
 protected:
     friend class fields_test; // for `header`
@@ -263,7 +267,7 @@ public:
     string_view
     operator[](field name) const;
 
-    /** Returns the value for a case-insensitive matching header, or `""`.
+    /** Returns the value for a case-insensitive matching header, or `""` if it does not exist.
 
         If more than one field with the specified name exists, the
         first field defined by insertion order is returned.

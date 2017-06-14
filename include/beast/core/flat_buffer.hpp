@@ -293,6 +293,7 @@ public:
     void
     shrink_to_fit();
 
+    /// Exchange two flat buffers
     template<class Alloc>
     friend
     void

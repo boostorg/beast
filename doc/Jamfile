@@ -17,13 +17,13 @@ using doxygen ;
 
 import quickbook ;
 
-path-constant here : . ;
+path-constant out : . ;
 
 install stylesheets
     :
         $(broot)/doc/src/boostbook.css
     :
-        <location>$(here)/html
+        <location>$(out)/html
     ;
 
 explicit stylesheets ;
@@ -35,7 +35,7 @@ install images
         images/body.png
         images/message.png
     :
-        <location>$(here)/html/images
+        <location>$(out)/html/images
     ;
 
 explicit images ;
@@ -44,7 +44,7 @@ install callouts
     :
         [ glob $(broot)/doc/src/images/callouts/*.png ]
     :
-        <location>$(here)/html/images/callouts
+        <location>$(out)/html/images/callouts
     ;
 
 explicit callout ;

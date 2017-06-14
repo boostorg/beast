@@ -19,17 +19,17 @@ These metafunctions check if types match the buffer concepts:
 [table Buffer Type Checks
 [[Name][Description]]
 [[
-    [link beast.ref.is_dynamic_buffer `is_dynamic_buffer`]
+    [link beast.ref.beast__is_dynamic_buffer `is_dynamic_buffer`]
 ][
     Determine if a type meets the requirements of __DynamicBuffer__.
 ]]
 [[
-    [link beast.ref.is_const_buffer_sequence `is_const_buffer_sequence`]
+    [link beast.ref.beast__is_const_buffer_sequence `is_const_buffer_sequence`]
 ][
     Determine if a type meets the requirements of __ConstBufferSequence__.
 ]]
 [[
-    [link beast.ref.is_mutable_buffer_sequence `is_mutable_buffer_sequence`]
+    [link beast.ref.beast__is_mutable_buffer_sequence `is_mutable_buffer_sequence`]
 ][
     Determine if a type meets the requirements of __MutableBufferSequence__.
 ]]
@@ -40,7 +40,7 @@ To suit various needs, several implementation of dynamic buffer are available:
 [table Dynamic Buffer Implementations
 [[Name][Description]]
 [[
-    [link beast.ref.buffers_adapter `buffers_adapter`]
+    [link beast.ref.beast__buffers_adapter `buffers_adapter`]
 ][
     This wrapper adapts any __MutableBufferSequence__ into a
     __DynamicBuffer__ with an upper limit on the total size of the input and
@@ -48,7 +48,7 @@ To suit various needs, several implementation of dynamic buffer are available:
     The implementation does not perform heap allocations.
 ]]
 [[
-    [link beast.ref.drain_buffer `drain_buffer`]
+    [link beast.ref.beast__drain_buffer `drain_buffer`]
 ][
     A drain buffer has a small internal buffer and maximum size that
     uses no dynamic allocation. It always has a size of zero, and
@@ -57,8 +57,8 @@ To suit various needs, several implementation of dynamic buffer are available:
     efficiently discard the data.
 ]]
 [[
-    [link beast.ref.flat_buffer `flat_buffer`]
-    [link beast.ref.basic_flat_buffer `basic_flat_buffer`]
+    [link beast.ref.beast__flat_buffer `flat_buffer`]
+    [link beast.ref.beast__basic_flat_buffer `basic_flat_buffer`]
 ][
     Guarantees that input and output areas are buffer sequences with
     length one. Upon construction an optional upper limit to the total
@@ -66,8 +66,8 @@ To suit various needs, several implementation of dynamic buffer are available:
     supports the standard allocator model.
 ]]
 [[
-    [link beast.ref.multi_buffer `multi_buffer`]
-    [link beast.ref.basic_multi_buffer `basic_multi_buffer`]
+    [link beast.ref.beast__multi_buffer `multi_buffer`]
+    [link beast.ref.beast__basic_multi_buffer `basic_multi_buffer`]
 ][
     Uses a sequence of one or more character arrays of varying sizes.
     Additional character array objects are appended to the sequence to
@@ -75,8 +75,8 @@ To suit various needs, several implementation of dynamic buffer are available:
     container supports the standard allocator model.
 ]]
 [[
-    [link beast.ref.static_buffer `static_buffer`]
-    [link beast.ref.static_buffer `static_buffer_n`]
+    [link beast.ref.beast__static_buffer `static_buffer`]
+    [link beast.ref.beast__static_buffer `static_buffer_n`]
 ][
     Provides the facilities of a dynamic buffer, subject to an upper
     limit placed on the total size of the input and output areas defined
@@ -97,7 +97,7 @@ transferred.
 [table Buffer Algorithms
 [[Name][Description]]
 [[
-    [link beast.ref.buffer_cat `buffer_cat`]
+    [link beast.ref.beast__buffer_cat `buffer_cat`]
 ][
     This functions returns a new buffer sequence which, when iterated,
     traverses the sequence which would be formed if all of the input buffer
@@ -106,27 +106,27 @@ transferred.
     expensive system calls.
 ]]
 [[
-    [link beast.ref.buffer_cat_view `buffer_cat_view`]
+    [link beast.ref.beast__buffer_cat_view `buffer_cat_view`]
 ][
     This class represents the buffer sequence formed by concatenating
     two or more buffer sequences. This is type of object returned by
-    [link beast.ref.buffer_cat `buffer_cat`].
+    [link beast.ref.beast__buffer_cat `buffer_cat`].
 ]]
 [[
-    [link beast.ref.buffer_prefix `buffer_prefix`]
+    [link beast.ref.beast__buffer_prefix `buffer_prefix`]
 ][
     This function returns a new buffer or buffer sequence which represents
     a prefix of the original buffers.
 ]]
 [[
-    [link beast.ref.buffer_prefix_view `buffer_prefix_view`]
+    [link beast.ref.beast__buffer_prefix_view `buffer_prefix_view`]
 ][
     This class represents the buffer sequence formed from a prefix of
     an existing buffer sequence. This is the type of buffer returned by
-    [link beast.ref.buffer_prefix `buffer_prefix`].
+    [link beast.ref.beast__buffer_prefix `buffer_prefix`].
 ]]
 [[
-    [link beast.ref.consuming_buffers `consuming_buffers`]
+    [link beast.ref.beast__consuming_buffers `consuming_buffers`]
 ][
     This class wraps the underlying memory of an existing buffer sequence
     and presents a suffix of the original sequence. The length of the suffix
@@ -141,13 +141,13 @@ output streams.
 [table Buffer Output Streams
 [[Name][Description]]
 [[
-    [link beast.ref.buffers `buffers`]
+    [link beast.ref.beast__buffers `buffers`]
 ][
     This function wraps a __ConstBufferSequence__ so it may be
     used with `operator<<` and `std::ostream`.
 ]]
 [[
-    [link beast.ref.ostream `ostream`]
+    [link beast.ref.beast__ostream `ostream`]
 ][
     This function returns a `std::ostream` which wraps a dynamic buffer.
     Characters sent to the stream using `operator<<` is stored in the

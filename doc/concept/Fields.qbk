@@ -23,7 +23,7 @@ In this table:
 
 * `c` denotes a (possibly const) value of type `X`.
 
-* `s` is a value of type [link beast.ref.string_view `string_view`].
+* `s` is a value of type [link beast.ref.beast__string_view `string_view`].
 
 [table Fields requirements
 [[expression][type][semantics, pre/post-conditions]]
