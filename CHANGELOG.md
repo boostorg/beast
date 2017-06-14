@@ -1,6 +1,7 @@
 Version 57:
 
 * Fix message.hpp javadocs
+* Fix warning in basic_parser.cpp
 
 --------------------------------------------------------------------------------
 
