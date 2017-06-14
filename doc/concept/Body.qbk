@@ -53,7 +53,7 @@ In this table:
     [
         If present, returns the serialized size of `m.body` not including
         any chunked transfer encoding. When this function is provided,
-        [link beast.ref.http__message.prepare `message::prepare`]
+        [link beast.ref.beast__http__message.prepare `message::prepare`]
         will automatically set the content length field based on the
         value. Otherwise, the chunked transfer encoding will be set.
     ]

@@ -14,22 +14,22 @@ the message-oriented stream interface:
 [table Message Stream Operations
 [[Name][Description]]
 [[
-    [link beast.ref.http__read.overload3 [*read]]
+    [link beast.ref.beast__http__read.overload3 [*read]]
 ][
     Read a __message__ from a __SyncReadStream__.
 ]]
 [[
-    [link beast.ref.http__async_read.overload2 [*async_read]]
+    [link beast.ref.beast__http__async_read.overload2 [*async_read]]
 ][
     Read a __message__ from an __AsyncReadStream__.
 ]]
 [[
-    [link beast.ref.http__write.overload1 [*write]]
+    [link beast.ref.beast__http__write.overload1 [*write]]
 ][
     Write a __message__ to a __SyncWriteStream__.
 ]]
 [[
-    [link beast.ref.http__async_write [*async_write]]
+    [link beast.ref.beast__http__async_write [*async_write]]
 ][
     Write a __message__ to an __AsyncWriteStream__.
 ]]
@@ -37,7 +37,7 @@ the message-oriented stream interface:
 
 All synchronous stream operations come in two varieties. One which throws
 an exception upon error, and another which accepts as the last parameter an
-argument of type [link beast.ref.error_code `error_code&`]. If an error
+argument of type [link beast.ref.beast__error_code `error_code&`]. If an error
 occurs this argument will be set to contain the error code.
 
 
@@ -77,7 +77,7 @@ code indicating the result is printed:
 
 If a read stream algorithm cannot complete its operation without exceeding
 the maximum specified size of the dynamic buffer provided, the error
-[link beast.ref.http__error `buffer_overflow`]
+[link beast.ref.beast__http__error `buffer_overflow`]
 is returned. This may be used to impose a limit on the maximum size of an
 HTTP message header for protection from buffer overflow attacks. The following
 code will generate an error:
@@ -92,7 +92,7 @@ A set of free functions allow serialization of an entire HTTP message to
 a stream. If a response has no declared content length, and no chunked
 transfer encoding, the end of the message is indicated by the server closing
 the connection. When sending such a response, Beast will return the
-[link beast.ref.http__error `error::end_of_stream`]
+[link beast.ref.beast__http__error `error::end_of_stream`]
 from the write algorithm to indicate
 to the caller that the connection should be closed. This example
 constructs and sends a response whose body length is determined by

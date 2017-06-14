@@ -30,7 +30,7 @@ This code creates an HTTP response and the corresponding serializer:
 [http_snippet_10]
 
 The function
-[link beast.ref.http__make_serializer `make_serializer`]
+[link beast.ref.beast__http__make_serializer `make_serializer`]
 is provided to simplify creation of variables:
 
 [http_snippet_11]
@@ -40,32 +40,32 @@ The stream operations which work on serializers are:
 [table Serializer Stream Operations
 [[Name][Description]]
 [[
-    [link beast.ref.http__write.overload1 [*write]]
+    [link beast.ref.beast__http__write.overload1 [*write]]
 ][
     Send everything in a __serializer__ to a __SyncWriteStream__.
 ]]
 [[
-    [link beast.ref.http__async_write.overload1 [*async_write]]
+    [link beast.ref.beast__http__async_write.overload1 [*async_write]]
 ][
     Send everything in a __serializer__ asynchronously to an __AsyncWriteStream__.
 ]]
 [[
-    [link beast.ref.http__write_header.overload1 [*write_header]]
+    [link beast.ref.beast__http__write_header.overload1 [*write_header]]
 ][
     Send only the header from a __serializer__ to a __SyncWriteStream__.
 ]]
 [[
-    [link beast.ref.http__async_write_header [*async_write_header]]
+    [link beast.ref.beast__http__async_write_header [*async_write_header]]
 ][
     Send only the header from a __serializer__ asynchronously to an __AsyncWriteStream__.
 ]]
 [[
-    [link beast.ref.http__write_some.overload1 [*write_some]]
+    [link beast.ref.beast__http__write_some.overload1 [*write_some]]
 ][
     Send part of a __serializer__ to a __SyncWriteStream__.
 ]]
 [[
-    [link beast.ref.http__async_write_some [*async_write_some]]
+    [link beast.ref.beast__http__async_write_some [*async_write_some]]
 ][
     Send part of a __serializer__ asynchronously to an __AsyncWriteStream__.
 ]]
@@ -90,7 +90,7 @@ and trailers may instantiate the serializer with a "chunk decorator" type,
 and pass an instance of the type upon construction. This decorator is
 a function object which, when invoked with a __ConstBufferSequence__,
 returns a
-[link beast.ref.string_view `string_view`] containing either the extensions
+[link beast.ref.beast__string_view `string_view`] containing either the extensions
 or the trailer. For chunks containing body data, the passed buffer will
 contain one or more corresponding body octets. The decorator may use this
 information as needed. For example, to compute a digest on the data and

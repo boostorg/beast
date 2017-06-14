@@ -57,8 +57,8 @@ each possible value of `isRequest`:
 [$images/message.png [width 730px] [height 410px]]
 
 The template type aliases 
-[link beast.ref.http__request `request`] and
-[link beast.ref.http__response `response`]
+[link beast.ref.beast__http__request `request`] and
+[link beast.ref.beast__http__response `response`]
 are provided for brevity. They specify the common default of `fields`.
 
 ```
@@ -74,7 +74,7 @@ using response = message<false, Body, Fields>;
 [heading:body Body Types]
 
 Beast defines the __Body__ concept, which determines both the type of
-the [link beast.ref.http__message.body `message::body`] member
+the [link beast.ref.beast__http__message.body `message::body`] member
 (as seen in the diagram above) and may also include algorithms for
 transferring buffers in and out. These algorithms are used during
 parsing and serialization. These body types are available within the
@@ -84,26 +84,26 @@ __Body__ requirements:
 [table
 [[Name][Description]]
 [[
-    [link beast.ref.http__buffer_body `buffer_body`]
+    [link beast.ref.beast__http__buffer_body `buffer_body`]
 ][
     A body whose
-    [link beast.ref.http__buffer_body__value_type `value_type`]
+    [link beast.ref.beast__http__buffer_body__value_type `value_type`]
     holds a raw pointer and size to a caller-provided buffer.
     This allows for serialization of body data coming from
     external sources, and incremental parsing of message body
     content using a fixed size buffer.
 ]]
 [[
-    [link beast.ref.http__dynamic_body `dynamic_body`]
+    [link beast.ref.beast__http__dynamic_body `dynamic_body`]
 
-    [link beast.ref.http__basic_dynamic_body `basic_dynamic_body`]
+    [link beast.ref.beast__http__basic_dynamic_body `basic_dynamic_body`]
 ][
     A body whose `value_type` is a __DynamicBuffer__. It inherits
     the insertion complexity of the underlying choice of dynamic buffer.
     Messages with this body type may be serialized and parsed.
 ]]
 [[
-    [link beast.ref.http__empty_body `empty_body`]
+    [link beast.ref.beast__http__empty_body `empty_body`]
 ][
     A special body with an empty `value_type` indicating that the
     message has no body. Messages with this body may be serialized
@@ -111,7 +111,7 @@ __Body__ requirements:
     with this body will generate a unique error.
 ]]
 [[
-    [link beast.ref.http__string_body `string_body`]
+    [link beast.ref.beast__http__string_body `string_body`]
 ][
     A body whose `value_type` is `std::string`. Insertion complexity
     is amortized constant time, while capacity grows geometrically.
@@ -119,9 +119,9 @@ __Body__ requirements:
     is the type of body used in the examples.
 ]]
 [[
-    [link beast.ref.http__string_view_body `string_view_body`]
+    [link beast.ref.beast__http__string_view_body `string_view_body`]
 ][
-    A body whose `value_type` is [link beast.ref.string_view `string_view`].
+    A body whose `value_type` is [link beast.ref.beast__string_view `string_view`].
     Messages with this body type may be serialized only, and the caller
     is responsible for managing the lifetime of the buffer pointed to
     by the string view.
@@ -151,7 +151,7 @@ request.
 
 Here we create an HTTP response indicating success. Note that this
 message has a body. The function
-[link beast.ref.http__message.prepare prepare]
+[link beast.ref.beast__http__message.prepare prepare]
 automatically sets the Content-Length or Transfer-Encoding field
 depending on the content and type of the `body` member. The use
 of prepare is optional; these fields may also be set explicitly.
@@ -175,6 +175,6 @@ The implementation will automatically fill in the obsolete
 [@https://tools.ietf.org/html/rfc7230#section-3.1.2 reason-phrase]
 from the status code when serializing a message. Or it may
 be set directly using
-[link beast.ref.http__header.reason.overload2 `header::reason`].
+[link beast.ref.beast__http__header.reason.overload2 `header::reason`].
 
 [endsect]

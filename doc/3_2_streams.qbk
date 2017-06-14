@@ -60,51 +60,51 @@ checks helps provide more concise errors during compilation:
 [table Stream Type Checks
 [[Name][Description]]
 [[
-    [link beast.ref.get_lowest_layer `get_lowest_layer`]
+    [link beast.ref.beast__get_lowest_layer `get_lowest_layer`]
 ][
     Returns `T::lowest_layer_type` if it exists, else returns `T`.
 ]]
 [[
-    [link beast.ref.has_get_io_service `has_get_io_service`]
+    [link beast.ref.beast__has_get_io_service `has_get_io_service`]
 ][
     Determine if the `get_io_service` member function is present,
     and returns an __io_service__.
 ]]
 [[
-    [link beast.ref.is_async_read_stream `is_async_read_stream`]
+    [link beast.ref.beast__is_async_read_stream `is_async_read_stream`]
 ][
     Determine if a type meets the requirements of __AsyncReadStream__.
 ]]
 [[
-    [link beast.ref.is_async_stream `is_async_stream`]
+    [link beast.ref.beast__is_async_stream `is_async_stream`]
 ][
     Determine if a type meets the requirements of both __AsyncReadStream__
     and __AsyncWriteStream__.
 ]]
 [[
-    [link beast.ref.is_async_write_stream `is_async_write_stream`]
+    [link beast.ref.beast__is_async_write_stream `is_async_write_stream`]
 ][
     Determine if a type meets the requirements of __AsyncWriteStream__.
 ]]
 [[
-    [link beast.ref.is_completion_handler `is_completion_handler`]
+    [link beast.ref.beast__is_completion_handler `is_completion_handler`]
 ][
     Determine if a type meets the requirements of __CompletionHandler__,
     and is callable with a specified signature.
 ]]
 [[
-    [link beast.ref.is_sync_read_stream `is_sync_read_stream`]
+    [link beast.ref.beast__is_sync_read_stream `is_sync_read_stream`]
 ][
     Determine if a type meets the requirements of __SyncReadStream__.
 ]]
 [[
-    [link beast.ref.is_sync_stream `is_sync_stream`]
+    [link beast.ref.beast__is_sync_stream `is_sync_stream`]
 ][
     Determine if a type meets the requirements of both __SyncReadStream__
     and __SyncWriteStream__.
 ]]
 [[
-    [link beast.ref.is_sync_write_stream `is_sync_write_stream`]
+    [link beast.ref.beast__is_sync_write_stream `is_sync_write_stream`]
 ][
     Determine if a type meets the requirements of __SyncWriteStream__.
 ]]

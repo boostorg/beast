@@ -36,7 +36,7 @@ In the table below:
 * `m` denotes a value of type `message&` where
     `std::is_same<decltype(m.body), Body::value_type>::value == true`.
 
-* `ec` is a value of type [link beast.ref.error_code `error_code&`].
+* `ec` is a value of type [link beast.ref.beast__error_code `error_code&`].
 
 [table Writer requirements
 [[expression] [type] [semantics, pre/post-conditions]]

@@ -17,15 +17,15 @@ to produce buffers until all of the buffers have been generated. Then the
 serializer is destroyed.
 
 To obtain the serialized next buffer sequence, call
-[link beast.ref.http__serializer.get `serializer::get`].
+[link beast.ref.beast__http__serializer.get `serializer::get`].
 Then, call 
-[link beast.ref.http__serializer.consume `serializer::consume`]
+[link beast.ref.beast__http__serializer.consume `serializer::consume`]
 to indicate the number of bytes consumed. This updates the next
 set of buffers to be returned, if any.
 `serializer::get` takes an error code parameter and invokes a visitor
 argument with the error code and buffer of unspecified type. In C++14
 this is easily expressed with a generic lambda. The function
-[link beast.ref.http__serializer.is_done `serializer::is_done`]
+[link beast.ref.beast__http__serializer.is_done `serializer::is_done`]
 will return `true` when all the buffers have been produced. This C++14
 example prints the buffers to standard output:
 
@@ -43,11 +43,11 @@ In some cases, such as the handling of the
 field, it may be desired to first serialize the header, perform some other
 action, and then continue with serialization of the body. This is
 accomplished by calling
-[link beast.ref.http__serializer.split `serializer::split`]
+[link beast.ref.beast__http__serializer.split `serializer::split`]
 with a boolean indicating that when buffers are produced, the last buffer
 containing serialized header octets will not contain any octets corresponding
 to the body. The function
-[link beast.ref.http__serializer.is_header_done `serializer::is_header_done`]
+[link beast.ref.beast__http__serializer.is_header_done `serializer::is_header_done`]
 informs the caller whether the header been serialized fully. In this
 C++14 example we print the header first, followed by the body:
 

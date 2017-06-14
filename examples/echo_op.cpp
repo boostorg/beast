@@ -52,7 +52,7 @@
 template<
     class AsyncStream,
     class CompletionToken>
-beast::async_return_type<       /*< The [link beast.ref.async_return_type `async_return_type`] customizes the return value based on the completion token >*/
+beast::async_return_type<       /*< The [link beast.ref.beast__async_return_type `async_return_type`] customizes the return value based on the completion token >*/
     CompletionToken,
     void(beast::error_code)>    /*< This is the signature for the completion handler >*/
 async_echo(

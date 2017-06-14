@@ -31,12 +31,12 @@ format using __Asio__. Specifically, the library provides:
     [Stream Reading]
     [
         The functions
-        [link beast.ref.http__read `read`],
-        [link beast.ref.http__read_header `read_header`],
-        [link beast.ref.http__read_some `read_some`],
-        [link beast.ref.http__async_read `async_read`],
-        [link beast.ref.http__async_read_header `async_read_header`], and
-        [link beast.ref.http__async_read_some `async_read_some`]
+        [link beast.ref.beast__http__read `read`],
+        [link beast.ref.beast__http__read_header `read_header`],
+        [link beast.ref.beast__http__read_some `read_some`],
+        [link beast.ref.beast__http__async_read `async_read`],
+        [link beast.ref.beast__http__async_read_header `async_read_header`], and
+        [link beast.ref.beast__http__async_read_some `async_read_some`]
         read HTTP/1 message data from a
         [link beast.concept.streams stream].
 ]
@@ -44,12 +44,12 @@ format using __Asio__. Specifically, the library provides:
     [Stream Writing]
     [
         The functions
-        [link beast.ref.http__write `write`],
-        [link beast.ref.http__write_header `write_header`],
-        [link beast.ref.http__write_some `write_some`],
-        [link beast.ref.http__async_write `async_write`],
-        [link beast.ref.http__async_write_header `async_write_header`], and
-        [link beast.ref.http__async_write_some `async_write_some`]
+        [link beast.ref.beast__http__write `write`],
+        [link beast.ref.beast__http__write_header `write_header`],
+        [link beast.ref.beast__http__write_some `write_some`],
+        [link beast.ref.beast__http__async_write `async_write`],
+        [link beast.ref.beast__http__async_write_header `async_write_header`], and
+        [link beast.ref.beast__http__async_write_some `async_write_some`]
         write HTTP/1 message data to a
         [link beast.concept.streams stream].
     ]

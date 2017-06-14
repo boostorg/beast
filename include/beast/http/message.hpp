@@ -503,7 +503,7 @@ struct message : header<isRequest, Fields>
         The value of the Content-Length field will be unconditionally
         set to the specified number of octets.
 
-        @par n The number of octets to set for the Content-Length field.
+        @param n The number of octets to set for the Content-Length field.
     */
     void
     content_length(std::uint64_t n);

@@ -42,7 +42,7 @@ available:
 [table Asynchronous Helpers
 [[Name][Description]]
 [[
-    [link beast.ref.async_completion `async_completion`]
+    [link beast.ref.beast__async_completion `async_completion`]
 ][
     This class aggregates the completion handler customization point and
     the asynchronous initiation function return value customization point
@@ -51,7 +51,7 @@ available:
     implement an initiation function using the Extensible Model.
 ]]
 [[
-    [link beast.ref.async_return_type `async_return_type`]
+    [link beast.ref.beast__async_return_type `async_return_type`]
 ][
     This template alias determines the return value of an asynchronous
     initiation function given the completion token and signature. It is used
@@ -59,7 +59,7 @@ available:
     Extensible Asynchronous Model.
 ]]
 [[
-    [link beast.ref.bind_handler `bind_handler`]
+    [link beast.ref.beast__bind_handler `bind_handler`]
 ][
     This function returns a new, nullary completion handler which when
     invoked with no arguments invokes the original completion handler with a
@@ -70,7 +70,7 @@ available:
 
 ]]
 [[
-    [link beast.ref.handler_alloc `handler_alloc`]
+    [link beast.ref.beast__handler_alloc `handler_alloc`]
 ][
     This class meets the requirements of [*Allocator], and uses any custom
     memory allocation and deallocation hooks associated with a given handler.
@@ -79,7 +79,7 @@ available:
     must be freed before the final completion handler is invoked.
 ]]
 [[
-    [link beast.ref.handler_ptr `handler_ptr`]
+    [link beast.ref.beast__handler_ptr `handler_ptr`]
 ][
     This is a smart pointer container used to manage the internal state of a
     composed operation. It is useful when the state is non trivial. For example
@@ -91,7 +91,7 @@ available:
     optimizations transparently.
 ]]
 [[
-    [link beast.ref.handler_type `handler_type`]
+    [link beast.ref.beast__handler_type `handler_type`]
 ][
     This template alias converts a completion token and signature to the
     correct completion handler type. It is used in the implementation of

@@ -218,7 +218,7 @@ template<
     class AsyncReadStream,
     class DynamicBuffer,
     class CompletionToken>
-async_return_type< /*< The [link beast.ref.async_return_type `async_return_type`] customizes the return value based on the completion token >*/
+async_return_type< /*< The [link beast.ref.beast__async_return_type `async_return_type`] customizes the return value based on the completion token >*/
     CompletionToken,
     void(error_code, boost::tribool)> /*< This is the signature for the completion handler >*/
 async_detect_ssl(

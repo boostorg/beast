@@ -27,7 +27,7 @@ In this table:
 
 * `c` is an integer representing the HTTP status-code.
 
-* `m` is a value of type [link beast.ref.http__verb `verb`].
+* `m` is a value of type [link beast.ref.beast__http__verb `verb`].
 
 [table FieldsReader requirements
 [[expression][type][semantics, pre/post-conditions]]

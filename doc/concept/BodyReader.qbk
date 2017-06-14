@@ -32,7 +32,7 @@ In this table:
 * `m` denotes a value of type `message const&` where
       `std::is_same<decltype(m.body), Body::value_type>:value == true`.
 
-* `ec` is a value of type [link beast.ref.error_code `error_code&`].
+* `ec` is a value of type [link beast.ref.beast__error_code `error_code&`].
 
 * `R<T>` is the type `boost::optional<std::pair<T, bool>>`.
 

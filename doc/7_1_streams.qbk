@@ -8,7 +8,7 @@
 [section:streams Creating Streams]
 
 The interface to the WebSocket implementation is a single template class
-[link beast.ref.websocket__stream `stream`]
+[link beast.ref.beast__websocket__stream `stream`]
 which wraps an existing network transport object or other type of
 octet oriented stream. The wrapped object is called the "next layer"
 and must meet the requirements of __SyncStream__ if synchronous
@@ -52,7 +52,7 @@ underlying socket being wrapped:
 
 Once the WebSocket stream wrapper is created, the wrapped object may be
 accessed by calling
-[link beast.ref.websocket__stream.next_layer.overload1 `stream::next_layer`]:
+[link beast.ref.beast__websocket__stream.next_layer.overload1 `stream::next_layer`]:
 
 [ws_snippet_5]
 
