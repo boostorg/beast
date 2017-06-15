@@ -13,8 +13,4 @@ add_executable (http-crawl
     http_crawl.cpp
 )
 
-if (NOT WIN32)
-    target_link_libraries(http-crawl ${Boost_LIBRARIES} Threads::Threads)
-else()
-    target_link_libraries(http-crawl ${Boost_LIBRARIES})
-endif()
+target_link_libraries(http-crawl Beast)

@@ -47,27 +47,8 @@ endif()
 
 option (Boost_USE_STATIC_LIBS "Use static libraries for boost" ON)
 
-set (Boost_USE_MULTITHREADED ON)
-
-add_definitions (-DBOOST_COROUTINES_NO_DEPRECATION_WARNING=1) # for asio
-
-unset (Boost_INCLUDE_DIR CACHE)
-unset (Boost_LIBRARY_DIRS CACHE)
-if (MSVC)
-    find_package (Boost REQUIRED)
-else()
-    find_package (Boost REQUIRED COMPONENTS
-        coroutine
-        context
-        filesystem
-        program_options
-        system
-        thread
-        )
-    link_libraries (${Boost_LIBRARIES})
-endif()
-
-include_directories (SYSTEM ${Boost_INCLUDE_DIRS})
+set (BOOST_COMPONENTS coroutine context filesystem program_options system thread)
+find_package (Boost REQUIRED COMPONENTS ${BOOST_COMPONENTS})
 
 if (MINGW)
     link_libraries(ws2_32 mswsock)
@@ -143,7 +124,8 @@ target_link_libraries(${PROJECT_NAME} INTERFACE ${Boost_SYSTEM_LIBRARY})
 if (NOT MSVC)
     target_link_libraries(${PROJECT_NAME} INTERFACE Threads::Threads)
 endif()
-target_include_directories(${PROJECT_NAME} INTERFACE ${Boost_INCLUDE_DIRS})
+set_property(TARGET ${PROJECT_NAME} PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${Boost_INCLUDE_DIRS})
+set_property(TARGET ${PROJECT_NAME} PROPERTY  INTERFACE_SYSTEM_INCLUDE_DIRECTORIES ${Boost_INCLUDE_DIRS})
 target_compile_definitions(${PROJECT_NAME} INTERFACE BOOST_COROUTINES_NO_DEPRECATION_WARNING=1)
 
 #-------------------------------------------------------------------------------

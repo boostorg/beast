@@ -12,8 +12,4 @@ add_executable (websocket-server
     websocket_sync_echo_server.hpp
 )
 
-if (NOT WIN32)
-    target_link_libraries(websocket-server ${Boost_LIBRARIES} Threads::Threads)
-else()
-    target_link_libraries(websocket-server ${Boost_LIBRARIES})
-endif()
+target_link_libraries(websocket-server Beast)
