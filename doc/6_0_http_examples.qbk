@@ -5,7 +5,7 @@
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 ]
 
-[section HTTP Examples]
+[section More Examples]
 
 These examples in this section are working functions that may be found
 in the examples directory. They demonstrate the usage of the library for
@@ -27,7 +27,7 @@ by information from the header or elsewhere.
 This example illustrates how a server may make the commitment of a body
 type depending on the method verb:
 
-[http_sample_defer_body]
+[example_http_defer_body]
 
 [endsect]
 
@@ -46,7 +46,7 @@ the server response, and finally conditionally send the body using the same
 serializer instance. A synchronous, simplified version (no timeout) of
 this client action looks like this:
 
-[http_sample_send_expect_100_continue]
+[example_http_send_expect_100_continue]
 
 [endsect]
 
@@ -64,7 +64,7 @@ a __parser__ to read the header first, then send an informational HTTP
 response, and finally read the body using the same parser instance. A
 synchronous version of this server action looks like this:
 
-[http_sample_receive_expect_100_continue]
+[example_http_receive_expect_100_continue]
 
 [endsect]
 
@@ -78,7 +78,7 @@ method indicates to the server that the client wishes to receive the
 entire header that would be delivered if the method was GET, except
 that the body is omitted.
 
-[http_sample_do_head_request]
+[example_http_do_head_request]
 
 [endsect]
 
@@ -91,7 +91,7 @@ When a server receives a
 the response should contain the entire header that would be delivered
 if the method was GET, except that the body is omitted.
 
-[http_sample_do_head_response]
+[example_http_do_head_response]
 
 [endsect]
 
@@ -111,7 +111,7 @@ connection sees a header without unnecessary latency. This example brings
 together all of the concepts discussed so far, it uses both a __serializer__
 and a __parser__ to achieve its goal:
 
-[http_sample_relay]
+[example_http_relay]
 
 [endsect]
 
@@ -134,7 +134,7 @@ the pointer and size fields before calling a stream write function.
 This example reads from a child process and sends the output back in an
 HTTP response. The output of the process is sent as it becomes available:
 
-[http_sample_send_cgi_response]
+[example_http_send_cgi_response]
 
 [endsect]
 

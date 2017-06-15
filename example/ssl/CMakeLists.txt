@@ -3,7 +3,7 @@
 GroupSources(extras/beast extras)
 GroupSources(include/beast beast)
 
-GroupSources(examples/ssl "/")
+GroupSources(example/ssl "/")
 
 include_directories(${OPENSSL_INCLUDE_DIR})
 

@@ -97,5 +97,5 @@ install:
 build: off
 
 test_script:
-  - b2 libs/beast/examples toolset=msvc-14.0
+  - b2 libs/beast/example toolset=msvc-14.0
   - b2 libs/beast/test toolset=msvc-14.0

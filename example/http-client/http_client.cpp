@@ -5,7 +5,7 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-//[http_example_get
+//[example_http_client
 
 #include <beast/core.hpp>
 #include <beast/http.hpp>

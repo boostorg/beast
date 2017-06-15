@@ -6,6 +6,7 @@
 ]
 
 [section:parser_buffers Buffer-Oriented Parsing]
+[block'''<?dbhtml stop-chunking?>''']
 
 A subclass of __basic_parser__ can be invoked directly, without using 
 the provided stream operations. This could be useful for implementing
@@ -59,7 +60,9 @@ The parser provides two options which may be set before parsing begins:
 ]]
 ]
 
-[heading Example: Read From std::istream]
+
+
+[section Read From std::istream]
 
 The standard library provides the type `std::istream` for performing high
 level read operations on character streams. The variable `std::cin` is based
@@ -67,7 +70,7 @@ on this input stream. This example uses the buffer oriented interface of
 __basic_parser__ to build a stream operation which parses an HTTP message
 from a `std::istream`:
 
-[http_sample_read_istream]
+[example_http_read_istream]
 
 [tip
     Parsing from a `std::istream` could be implemented using an alternate
@@ -75,5 +78,9 @@ from a `std::istream`:
     enabling use with the library's existing stream algorithms. This is
     left as an exercise for the reader.
 ]
+
+[endsect]
+
+
 
 [endsect]

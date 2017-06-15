@@ -6,6 +6,7 @@
 ]
 
 [section:serializer_buffers Buffer-Oriented Serializing]
+[block'''<?dbhtml stop-chunking?>''']
 
 An instance of __serializer__ can be invoked directly, without using
 the provided stream operations. This could be useful for implementing
@@ -53,14 +54,16 @@ C++14 example we print the header first, followed by the body:
 
 [http_snippet_16]
 
-[heading Example: Write To std::ostream]
+
+
+[section Write To std::ostream]
 
 The standard library provides the type `std::ostream` for performing high
 level write operations on character streams. The variable `std::cout` is
 based on this output stream. This example uses the buffer oriented interface
 of __serializer__ to write an HTTP message to a `std::ostream`:
 
-[http_sample_write_ostream]
+[example_http_write_ostream]
 
 [tip
     Serializing to a `std::ostream` could be implemented using an alternate
@@ -68,6 +71,8 @@ of __serializer__ to write an HTTP message to a `std::ostream`:
     enable use with the library's existing stream algorithms. This is
     left as an exercise for the reader.
 ]
+
+[endsect]
 
 
 

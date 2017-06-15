@@ -23,7 +23,6 @@
 [template indexterm1[term1] '''<indexterm><primary>'''[term1]'''</primary></indexterm>''']
 [template indexterm2[term1 term2] '''<indexterm><primary>'''[term1]'''</primary><secondary>'''[term2]'''</secondary></indexterm>''']
 [template repo_file[path] '''<ulink url="https://github.com/vinniefalco/Beast/blob/master/'''[path]'''">'''[path]'''</ulink>''']
-
 [template include_file[path][^<'''<ulink url="https://github.com/vinniefalco/Beast/blob/master/include/'''[path]'''">'''[path]'''</ulink>'''>]]
 
 [def __N3747__ [@http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3747.pdf [*N3747]]]
@@ -76,12 +75,13 @@
 [def __static_buffer__          [link beast.ref.beast__static_buffer `static_buffer`]]
 [def __static_buffer_n__        [link beast.ref.beast__static_buffer_n `static_buffer_n`]]
 
-[import ../examples/file_body.hpp]
-[import ../examples/http_example.cpp]
-[import ../examples/websocket_example.cpp]
-[import ../examples/echo_op.cpp]
-[import ../examples/doc_core_samples.hpp]
-[import ../examples/doc_http_samples.hpp]
+[import ../example/doc/core_examples.hpp]
+[import ../example/doc/http_examples.hpp]
+[import ../example/echo-op/echo_op.cpp]
+[import ../example/http-client/http_client.cpp]
+[import ../example/http-server/file_body.hpp]
+[import ../example/websocket-client/websocket_client.cpp]
+
 [import ../test/core/doc_snippets.cpp]
 [import ../test/http/doc_snippets.cpp]
 [import ../test/websocket/doc_snippets.cpp]
