@@ -532,7 +532,7 @@ private:
     static_assert(is_body<Body>::value,
         "Body requirements not met");
 
-    template<class... Un, size_t... IUn>
+    template<class... Un, std::size_t... IUn>
     message(std::piecewise_construct_t,
         std::tuple<Un...>& tu,
             beast::detail::index_sequence<IUn...>)

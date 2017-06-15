@@ -1,6 +1,7 @@
 Version 58:
 
 * Fix unaligned reads in utf8-checker
+* Qualify size_t in message template
 
 --------------------------------------------------------------------------------
 
