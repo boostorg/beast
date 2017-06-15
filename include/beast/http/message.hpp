@@ -154,14 +154,14 @@ struct header<true, Fields> : Fields
     // VFALCO Don't move these declarations around,
     //        otherwise the documentation will be wrong.
 
-    /** Construct the header.
+    /** Constructor
 
-        All arguments are forwarded to the constructor
-        of the `fields` member.
+        @param args Arguments forwarded to the `Fields`
+        base class constructor.
 
-        @note This constructor participates in overload resolution
-        if and only if the first parameter is not convertible to
-        `header`.
+        @note This constructor participates in overload
+        resolution if and only if the first parameter is
+        not convertible to @ref header.
     */
 #if BEAST_DOXYGEN
     template<class... Args>
@@ -230,14 +230,14 @@ struct header<false, Fields> : Fields
     /// Copy assignment
     header& operator=(header const&) = default;
 
-    /** Construct the header.
+    /** Constructor
 
-        All arguments are forwarded to the constructor
-        of the `fields` member.
+        @param args Arguments forwarded to the `Fields`
+        base class constructor.
 
-        @note This constructor participates in overload resolution
-        if and only if the first parameter is not convertible to
-        `header`.
+        @note This constructor participates in overload
+        resolution if and only if the first parameter is
+        not convertible to @ref header.
     */
     template<class Arg1, class... ArgN,
         class = typename std::enable_if<
@@ -416,54 +416,58 @@ struct message : header<isRequest, Fields>
 
     /** Construct a message.
 
-        @param u An argument forwarded to the body constructor.
+        @param body_arg An argument forwarded to the body constructor.
 
         @note This constructor participates in overload resolution
-        only if `u` is not convertible to `header_type`.
+        only if `body_arg` is not convertible to `header_type`.
     */
-    template<class U
+    template<class BodyArg
 #if ! BEAST_DOXYGEN
         , class = typename std::enable_if<
             ! std::is_convertible<typename
-                std::decay<U>::type, header_type>::value>::type
+                std::decay<BodyArg>::type, header_type>::value>::type
 #endif
     >
     explicit
-    message(U&& u);
+    message(BodyArg&& body_arg);
 
     /** Construct a message.
 
-        @param u An argument forwarded to the body constructor.
+        @param body_arg An argument forwarded to the body constructor.
 
-        @param v An argument forwarded to the fields constructor.
+        @param header_arg An argument forwarded to the header constructor.
 
         @note This constructor participates in overload resolution
-        only if `u` is not convertible to `header_type`.
+        only if `body_arg` is not convertible to `header_type`.
     */
-    template<class U, class V
+    template<class BodyArg, class HeaderArg
 #if ! BEAST_DOXYGEN
-        ,class = typename std::enable_if<! std::is_convertible<
-            typename std::decay<U>::type, header_type>::value>::type
+        ,class = typename std::enable_if<
+            ! std::is_convertible<
+                typename std::decay<BodyArg>::type,
+                    header_type>::value>::type
 #endif
     >
-    message(U&& u, V&& v);
+    message(BodyArg&& body_arg, HeaderArg&& header_arg);
 
     /** Construct a message.
 
-        @param un A tuple forwarded as a parameter pack to the body constructor.
+        @param body_args A tuple forwarded as a parameter pack to the body constructor.
     */
-    template<class... Un>
-    message(std::piecewise_construct_t, std::tuple<Un...> un);
-
-    /** Construct a message.
-
-        @param un A tuple forwarded as a parameter pack to the body constructor.
-
-        @param vn A tuple forwarded as a parameter pack to the fields constructor.
-    */
-    template<class... Un, class... Vn>
+    template<class... BodyArgs>
     message(std::piecewise_construct_t,
-            std::tuple<Un...>&& un, std::tuple<Vn...>&& vn);
+        std::tuple<BodyArgs...> body_args);
+
+    /** Construct a message.
+
+        @param body_args A tuple forwarded as a parameter pack to the body constructor.
+
+        @param header_args A tuple forwarded as a parameter pack to the fields constructor.
+    */
+    template<class... BodyArgs, class... HeaderArgs>
+    message(std::piecewise_construct_t,
+        std::tuple<BodyArgs...>&& body_args,
+            std::tuple<HeaderArgs...>&& header_args);
 
     /// Returns `true` if "close" is specified in the Connection field.
     bool

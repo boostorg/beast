@@ -192,8 +192,8 @@ swap(
 template<bool isRequest, class Body, class Fields>
 template<class... Args>
 message<isRequest, Body, Fields>::
-message(header_type&& base, Args&&... args)
-    : header_type(std::move(base))
+message(header_type&& h, Args&&... args)
+    : header_type(std::move(h))
     , body(std::forward<Args>(args)...)
 {
 }
@@ -201,46 +201,52 @@ message(header_type&& base, Args&&... args)
 template<bool isRequest, class Body, class Fields>
 template<class... Args>
 message<isRequest, Body, Fields>::
-message(header_type const& base, Args&&... args)
-    : header_type(base)
+message(header_type const& h, Args&&... args)
+    : header_type(h)
     , body(std::forward<Args>(args)...)
 {
 }
 
 template<bool isRequest, class Body, class Fields>
-template<class U, class>
+template<class BodyArg, class>
 message<isRequest, Body, Fields>::
-message(U&& u)
-    : body(std::forward<U>(u))
+message(BodyArg&& body_arg)
+    : body(std::forward<BodyArg>(body_arg))
 {
 }
 
 template<bool isRequest, class Body, class Fields>
-template<class U, class V, class>
+template<class BodyArg, class HeaderArg, class>
 message<isRequest, Body, Fields>::
-message(U&& u, V&& v)
-    : header_type(std::forward<V>(v))
-    , body(std::forward<U>(u))
+message(BodyArg&& body_arg, HeaderArg&& header_arg)
+    : header_type(std::forward<HeaderArg>(header_arg))
+    , body(std::forward<BodyArg>(body_arg))
 {
 }
 
 template<bool isRequest, class Body, class Fields>
-template<class... Un>
-message<isRequest, Body, Fields>::
-message(std::piecewise_construct_t, std::tuple<Un...> un)
-    : message(std::piecewise_construct, un,
-        beast::detail::make_index_sequence<sizeof...(Un)>{})
-{
-}
-
-template<bool isRequest, class Body, class Fields>
-template<class... Un, class... Vn>
+template<class... BodyArgs>
 message<isRequest, Body, Fields>::
 message(std::piecewise_construct_t,
-        std::tuple<Un...>&& un, std::tuple<Vn...>&& vn)
-    : message(std::piecewise_construct, un, vn,
-        beast::detail::make_index_sequence<sizeof...(Un)>{},
-        beast::detail::make_index_sequence<sizeof...(Vn)>{})
+        std::tuple<BodyArgs...> body_args)
+    : message(std::piecewise_construct, body_args,
+        beast::detail::make_index_sequence<
+            sizeof...(BodyArgs)>{})
+{
+}
+
+template<bool isRequest, class Body, class Fields>
+template<class... BodyArgs, class... HeaderArgs>
+message<isRequest, Body, Fields>::
+message(std::piecewise_construct_t,
+    std::tuple<BodyArgs...>&& body_args,
+        std::tuple<HeaderArgs...>&& header_args)
+    : message(std::piecewise_construct,
+        body_args, header_args,
+            beast::detail::make_index_sequence<
+                sizeof...(BodyArgs)>{},
+                    beast::detail::make_index_sequence<
+                        sizeof...(HeaderArgs)>{})
 {
 }
 
