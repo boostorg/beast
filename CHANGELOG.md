@@ -9,6 +9,7 @@ Version 58:
 * basic_fields::set optimization
 * basic_parser::put doc
 * Use static string in basic_fields::reader
+* Remove redundant code
 
 API Changes:
 

@@ -758,9 +758,6 @@ write(SyncWriteStream& stream,
         "BodyReader requirements not met");
     auto sr = make_serializer(msg);
     write(stream, sr, ec);
-    if(! ec)
-        if(sr.need_close())
-            ec = error::end_of_stream;
 }
 
 template<class AsyncWriteStream,
