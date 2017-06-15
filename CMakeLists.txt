@@ -5,6 +5,8 @@ cmake_minimum_required (VERSION 3.5.2)
 project (Beast VERSION 57)
 
 set_property (GLOBAL PROPERTY USE_FOLDERS ON)
+option (Beast_BUILD_EXAMPLES "Build examples" ON)
+option (Beast_BUILD_TESTS "Build tests" ON)
 
 if (MSVC)
     set (CMAKE_VERBOSE_MAKEFILE FALSE)
@@ -56,14 +58,11 @@ unset (Boost_LIBRARY_DIRS CACHE)
 if (MSVC)
     find_package (Boost REQUIRED)
 else()
-    find_package (Boost REQUIRED COMPONENTS
-        coroutine
-        context
-        filesystem
-        program_options
-        system
-        thread
-        )
+    set(BOOST_COMPONENTS system)
+    if (Beast_BUILD_EXAMPLES OR Beast_BUILD_TESTS)
+        list(APPEND BOOST_COMPONENTS coroutine context thread filesystem program_options)
+    endif()
+    find_package (Boost REQUIRED COMPONENTS ${BOOST_COMPONENTS})
     link_libraries (${Boost_LIBRARIES})
 endif()
 
@@ -78,16 +77,21 @@ endif()
 # OpenSSL
 #
 
-if (APPLE AND NOT DEFINED ENV{OPENSSL_ROOT_DIR})
-  find_program(HOMEBREW brew)
-  if (NOT HOMEBREW STREQUAL "HOMEBREW-NOTFOUND")
-    execute_process(COMMAND brew --prefix openssl
-      OUTPUT_VARIABLE OPENSSL_ROOT_DIR
-      OUTPUT_STRIP_TRAILING_WHITESPACE)
-  endif()
-endif()
+if (Beast_BUILD_EXAMPLES OR Beast_BUILD_TESTS)
+    if (APPLE AND NOT DEFINED ENV{OPENSSL_ROOT_DIR})
+        find_program(HOMEBREW brew)
+        if (NOT HOMEBREW STREQUAL "HOMEBREW-NOTFOUND")
+            execute_process(COMMAND brew --prefix openssl
+              OUTPUT_VARIABLE OPENSSL_ROOT_DIR
+              OUTPUT_STRIP_TRAILING_WHITESPACE)
+        endif()
+    endif()
 
-find_package(OpenSSL)
+    find_package(OpenSSL)
+    if (NOT OPENSSL_FOUND)
+        message("OpenSSL not found. Not building SSL tests and examples")
+    endif()
+endif()
 
 #
 #-------------------------------------------------------------------------------
@@ -155,28 +159,30 @@ include_directories (.)
 include_directories (extras)
 include_directories (include)
 
-set(ZLIB_SOURCES
-    ${PROJECT_SOURCE_DIR}/test/zlib/zlib-1.2.8/crc32.h
-    ${PROJECT_SOURCE_DIR}/test/zlib/zlib-1.2.8/deflate.h
-    ${PROJECT_SOURCE_DIR}/test/zlib/zlib-1.2.8/inffast.h
-    ${PROJECT_SOURCE_DIR}/test/zlib/zlib-1.2.8/inffixed.h
-    ${PROJECT_SOURCE_DIR}/test/zlib/zlib-1.2.8/inflate.h
-    ${PROJECT_SOURCE_DIR}/test/zlib/zlib-1.2.8/inftrees.h
-    ${PROJECT_SOURCE_DIR}/test/zlib/zlib-1.2.8/trees.h
-    ${PROJECT_SOURCE_DIR}/test/zlib/zlib-1.2.8/zlib.h
-    ${PROJECT_SOURCE_DIR}/test/zlib/zlib-1.2.8/zutil.h
-    ${PROJECT_SOURCE_DIR}/test/zlib/zlib-1.2.8/adler32.c
-    ${PROJECT_SOURCE_DIR}/test/zlib/zlib-1.2.8/compress.c
-    ${PROJECT_SOURCE_DIR}/test/zlib/zlib-1.2.8/crc32.c
-    ${PROJECT_SOURCE_DIR}/test/zlib/zlib-1.2.8/deflate.c
-    ${PROJECT_SOURCE_DIR}/test/zlib/zlib-1.2.8/infback.c
-    ${PROJECT_SOURCE_DIR}/test/zlib/zlib-1.2.8/inffast.c
-    ${PROJECT_SOURCE_DIR}/test/zlib/zlib-1.2.8/inflate.c
-    ${PROJECT_SOURCE_DIR}/test/zlib/zlib-1.2.8/inftrees.c
-    ${PROJECT_SOURCE_DIR}/test/zlib/zlib-1.2.8/trees.c
-    ${PROJECT_SOURCE_DIR}/test/zlib/zlib-1.2.8/uncompr.c
-    ${PROJECT_SOURCE_DIR}/test/zlib/zlib-1.2.8/zutil.c
-)
+if (Beast_BUILD_TESTS)
+    set(ZLIB_SOURCES
+        ${PROJECT_SOURCE_DIR}/test/zlib/zlib-1.2.8/crc32.h
+        ${PROJECT_SOURCE_DIR}/test/zlib/zlib-1.2.8/deflate.h
+        ${PROJECT_SOURCE_DIR}/test/zlib/zlib-1.2.8/inffast.h
+        ${PROJECT_SOURCE_DIR}/test/zlib/zlib-1.2.8/inffixed.h
+        ${PROJECT_SOURCE_DIR}/test/zlib/zlib-1.2.8/inflate.h
+        ${PROJECT_SOURCE_DIR}/test/zlib/zlib-1.2.8/inftrees.h
+        ${PROJECT_SOURCE_DIR}/test/zlib/zlib-1.2.8/trees.h
+        ${PROJECT_SOURCE_DIR}/test/zlib/zlib-1.2.8/zlib.h
+        ${PROJECT_SOURCE_DIR}/test/zlib/zlib-1.2.8/zutil.h
+        ${PROJECT_SOURCE_DIR}/test/zlib/zlib-1.2.8/adler32.c
+        ${PROJECT_SOURCE_DIR}/test/zlib/zlib-1.2.8/compress.c
+        ${PROJECT_SOURCE_DIR}/test/zlib/zlib-1.2.8/crc32.c
+        ${PROJECT_SOURCE_DIR}/test/zlib/zlib-1.2.8/deflate.c
+        ${PROJECT_SOURCE_DIR}/test/zlib/zlib-1.2.8/infback.c
+        ${PROJECT_SOURCE_DIR}/test/zlib/zlib-1.2.8/inffast.c
+        ${PROJECT_SOURCE_DIR}/test/zlib/zlib-1.2.8/inflate.c
+        ${PROJECT_SOURCE_DIR}/test/zlib/zlib-1.2.8/inftrees.c
+        ${PROJECT_SOURCE_DIR}/test/zlib/zlib-1.2.8/trees.c
+        ${PROJECT_SOURCE_DIR}/test/zlib/zlib-1.2.8/uncompr.c
+        ${PROJECT_SOURCE_DIR}/test/zlib/zlib-1.2.8/zutil.c
+    )
+endif()
 
 file(GLOB_RECURSE BEAST_INCLUDES
     ${PROJECT_SOURCE_DIR}/include/beast/*.hpp
@@ -192,16 +198,20 @@ file(GLOB_RECURSE EXTRAS_INCLUDES
     ${PROJECT_SOURCE_DIR}/extras/beast/*.ipp
 )
 
-add_subdirectory (examples)
-if (NOT OPENSSL_FOUND)
-    message("OpenSSL not found. Not building SSL tests and examples")
-else()
-    add_subdirectory (examples/ssl)
-    add_subdirectory (test/websocket/ssl)
+if (Beast_BUILD_EXAMPLES)
+    add_subdirectory (examples)
+    if (OPENSSL_FOUND)
+       add_subdirectory (examples/ssl)
+    endif()
 endif()
 
-add_subdirectory (test)
-add_subdirectory (test/core)
-add_subdirectory (test/http)
-add_subdirectory (test/websocket)
-add_subdirectory (test/zlib)
+if (Beast_BUILD_TESTS)
+    add_subdirectory (test)
+    add_subdirectory (test/core)
+    add_subdirectory (test/http)
+    add_subdirectory (test/websocket)
+    add_subdirectory (test/zlib)
+    if (OPENSSL_FOUND)
+        add_subdirectory (test/websocket/ssl)
+    endif()
+endif()
