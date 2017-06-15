@@ -17,6 +17,7 @@
 #include <beast/http/detail/chunk_encode.hpp>
 #include <boost/throw_exception.hpp>
 #include <stdexcept>
+#include <string>
 
 namespace beast {
 namespace http {
@@ -132,7 +133,19 @@ public:
         }
     };
 
+    template<class String>
+    void
+    prepare(String& s, basic_fields const& f,
+        int version, verb v);
+
+    template<class String>
+    void
+    prepare(String&s, basic_fields const& f,
+        int version, int code);
+
     basic_fields const& f_;
+    static_string<max_static_start_line> ss_;
+    string_view sv_;
     std::string s_;
 
 public:
@@ -142,53 +155,136 @@ public:
             field_range,
             boost::asio::const_buffers_1>;
 
-    reader(basic_fields const& f, int version, verb v)
-        : f_(f)
-    {
-        s_ = v == verb::unknown ?
-            f_.get_method_impl().to_string() :
-            to_string(v).to_string();
-        s_ += " ";
-        s_ += f_.get_target_impl().to_string();
-        if(version == 11)
-            s_ += " HTTP/1.1";
-        else if(version == 10)
-            s_ += " HTTP/1.0";
-        else
-            s_ += " HTTP/" +
-                std::to_string(version / 10) + "." +
-                std::to_string(version % 10);
-        s_ += "\r\n";
-    }
+    reader(basic_fields const& f, int version, verb v);
 
-    reader(basic_fields const& f, int version, int code)
-        : f_(f)
-    {
-        if(version == 11)
-            s_ += "HTTP/1.1 ";
-        else if(version == 10)
-            s_ += "HTTP/1.0 ";
-        else
-            s_ += "HTTP/" +
-                std::to_string(version / 10) + "." +
-                std::to_string(version % 10) + " ";
-        s_ += std::to_string(code) + " ";
-        if(int_to_status(code) == status::unknown)
-            s_ += f_.get_reason_impl().to_string();
-        else
-            s_ += obsolete_reason(int_to_status(code)).to_string();
-        s_ += "\r\n";
-    }
+    reader(basic_fields const& f, int version, int code);
 
     const_buffers_type
     get() const
     {
         return buffer_cat(
-            boost::asio::buffer(s_.data(), s_.size()),
+            boost::asio::buffer(sv_.data(), sv_.size()),
             field_range(f_.list_.begin(), f_.list_.end()),
             detail::chunk_crlf());
     }
 };
+
+template<class Allocator>
+template<class String>
+void
+basic_fields<Allocator>::reader::
+prepare(String& s, basic_fields const& f,
+    int version, verb v)
+{
+    if(v == verb::unknown)
+    {
+        auto const sv =
+            f_.get_method_impl();
+        s.append(sv.data(), sv.size());
+    }
+    else
+    {
+        auto const sv = to_string(v);
+        s.append(sv.data(), sv.size());
+    }
+    s.push_back(' ');
+    {
+        auto const sv = f_.get_target_impl();
+        s.append(sv.data(), sv.size());
+    }
+    if(version == 11)
+    {
+        s.append(" HTTP/1.1\r\n");
+    }
+    else if(version == 10)
+    {
+        s.append(" HTTP/1.0\r\n");
+    }
+    else
+    {
+        s.append(" HTTP/");
+        s.push_back('0' + ((version / 10) % 10));
+        s.push_back('.');
+        s.push_back('0' + (version % 10));
+        s.append("\r\n");
+    }
+}
+
+template<class Allocator>
+template<class String>
+void
+basic_fields<Allocator>::reader::
+prepare(String& s,basic_fields const& f,
+    int version, int code)
+{
+    if(version == 11)
+    {
+        s.append("HTTP/1.1 ");
+    }
+    else if(version == 10)
+    {
+        s.append("HTTP/1.0 ");
+    }
+    else
+    {
+        s.append("HTTP/");
+        s.push_back('0' + ((version / 10) % 10));
+        s.push_back('.');
+        s.push_back('0' + (version % 10));
+        s.push_back(' ');
+    }
+    {
+        auto const ss = to_static_string(code);
+        s.append(ss.data(), ss.size());
+    }
+    s.push_back(' ');
+    if(int_to_status(code) == status::unknown)
+    {
+        auto const sv = f_.get_reason_impl();
+        s.append(sv.data(), sv.size());
+    }
+    else
+    {
+        auto const sv =
+            obsolete_reason(int_to_status(code));
+        s.append(sv.data(), sv.size());
+    }
+    s.append("\r\n");
+}
+
+template<class Allocator>
+basic_fields<Allocator>::reader::
+reader(basic_fields const& f, int version, verb v)
+    : f_(f)
+{
+    try
+    {
+        prepare(ss_, f, version, v);
+        sv_ = ss_;
+    }
+    catch(std::length_error const&)
+    {
+        prepare(s_, f, version, v);
+        sv_ = s_;
+    }
+}
+
+template<class Allocator>
+basic_fields<Allocator>::reader::
+reader(basic_fields const& f, int version, int code)
+    : f_(f)
+{
+    try
+    {
+        prepare(ss_, f, version, code);
+        sv_ = ss_;
+    }
+    catch(std::length_error const&)
+    {
+        prepare(s_, f, version, code);
+        sv_ = s_;
+    }
+}
 
 //------------------------------------------------------------------------------
 

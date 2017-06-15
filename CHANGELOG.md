@@ -8,6 +8,7 @@ Version 58:
 * Fix basic_fields insert ordering
 * basic_fields::set optimization
 * basic_parser::put doc
+* Use static string in basic_fields::reader
 
 API Changes:
 
