@@ -7,6 +7,7 @@ Version 58:
 * Avoid `std::string` in websocket
 * Fix basic_fields insert ordering
 * basic_fields::set optimization
+* basic_parser::put doc
 
 API Changes:
 
