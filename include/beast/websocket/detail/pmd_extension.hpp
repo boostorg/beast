@@ -236,7 +236,7 @@ pmd_write(Fields& fields, pmd_offer const& offer)
     {
         s += "; client_no_context_takeover";
     }
-    fields.replace("Sec-WebSocket-Extensions", s);
+    fields.set(http::field::sec_websocket_extensions, s);
 }
 
 // Negotiate a permessage-deflate client offer
@@ -329,7 +329,7 @@ pmd_negotiate(
         break;
     }
     if(config.accept)
-        fields.replace("Sec-WebSocket-Extensions", s);
+        fields.set(http::field::sec_websocket_extensions, s);
 }
 
 // Normalize the server's response

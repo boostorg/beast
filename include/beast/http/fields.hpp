@@ -390,7 +390,7 @@ public:
     insert(field name, string_view name_string,
         string_param const& value);
 
-    /** Replace a field value.
+    /** Set a field value, removing any other instances of that field.
 
         First removes any values with matching field names, then
         inserts the new field value.
@@ -402,9 +402,9 @@ public:
         @return The field value.
     */
     void
-    replace(field name, string_param const& value);
+    set(field name, string_param const& value);
 
-    /** Replace a field value.
+    /** Set a field value, removing any other instances of that field.
 
         First removes any values with matching field names, then
         inserts the new field value.
@@ -414,7 +414,7 @@ public:
         @param value The value of the field, as a @ref string_param
     */
     void
-    replace(string_view name, string_param const& value);
+    set(string_view name, string_param const& value);
 
     /** Remove a field.
 

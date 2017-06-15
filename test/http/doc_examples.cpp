@@ -124,7 +124,7 @@ public:
             {
                 ec = {};
                 h.erase("Content-Length");
-                h.replace("Transfer-Encoding", "chunked");
+                h.set("Transfer-Encoding", "chunked");
             });
         BEAST_EXPECTS(! ec, ec.message());
         BEAST_EXPECT(equal_body<true>(
