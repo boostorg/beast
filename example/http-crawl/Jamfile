@@ -5,27 +5,7 @@
 # file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 #
 
-exe echo-op :
-    echo_op.cpp
-    ;
-
 exe http-crawl :
     http_crawl.cpp
     urls_large_data.cpp
-    ;
-
-exe http-server :
-    http_server.cpp
-    ;
-
-exe http-example :
-    http_example.cpp
-    ;
-
-exe websocket-echo :
-    websocket_echo.cpp
-    ;
-
-exe websocket-example :
-    websocket_example.cpp
     ;

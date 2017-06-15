@@ -183,8 +183,8 @@ file(GLOB_RECURSE BEAST_INCLUDES
     ${PROJECT_SOURCE_DIR}/include/beast/*.ipp
 )
 
-file(GLOB_RECURSE EXAMPLES_INCLUDES
-    ${PROJECT_SOURCE_DIR}/examples/*.hpp
+file(GLOB_RECURSE EXAMPLE_INCLUDES
+    ${PROJECT_SOURCE_DIR}/example/*.hpp
   )
 
 file(GLOB_RECURSE EXTRAS_INCLUDES
@@ -192,16 +192,17 @@ file(GLOB_RECURSE EXTRAS_INCLUDES
     ${PROJECT_SOURCE_DIR}/extras/beast/*.ipp
 )
 
-add_subdirectory (examples)
-if (NOT OPENSSL_FOUND)
-    message("OpenSSL not found. Not building SSL tests and examples")
-else()
-    add_subdirectory (examples/ssl)
-    add_subdirectory (test/websocket/ssl)
-endif()
-
 add_subdirectory (test)
 add_subdirectory (test/core)
 add_subdirectory (test/http)
 add_subdirectory (test/websocket)
 add_subdirectory (test/zlib)
+
+add_subdirectory (example)
+
+if (NOT OPENSSL_FOUND)
+    message("OpenSSL not found. Not building SSL tests and examples")
+else()
+    add_subdirectory (example/ssl)
+    add_subdirectory (test/websocket/ssl)
+endif()

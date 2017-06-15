@@ -67,7 +67,7 @@ on this input stream. This example uses the buffer oriented interface of
 __basic_parser__ to build a stream operation which parses an HTTP message
 from a `std::istream`:
 
-[http_sample_read_istream]
+[example_http_read_istream]
 
 [tip
     Parsing from a `std::istream` could be implemented using an alternate

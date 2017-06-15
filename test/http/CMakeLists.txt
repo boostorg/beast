@@ -1,20 +1,21 @@
 # Part of Beast
 
-GroupSources(examples examples)
+GroupSources(example example)
 GroupSources(extras/beast extras)
 GroupSources(include/beast beast)
+
 GroupSources(test/http "/")
 
 add_executable (http-tests
     ${BEAST_INCLUDES}
-    ${EXAMPLES_INCLUDES}
+    ${EXAMPLE_INCLUDES}
     ${EXTRAS_INCLUDES}
     message_fuzz.hpp
     test_parser.hpp
     ../../extras/beast/unit_test/main.cpp
     basic_parser.cpp
     buffer_body.cpp
-    doc_http_samples.cpp
+    doc_examples.cpp
     doc_snippets.cpp
     dynamic_body.cpp
     empty_body.cpp

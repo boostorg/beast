@@ -112,14 +112,14 @@ initiation function. For our echo operation the only inputs are the
 stream and the completion token. The output is the error code which
 is usually included in all completion handler signatures.
 
-[core_sample_echo_op_1]
+[example_core_echo_op_1]
 
 Now that we have a declaration, we will define the body of the function.
 We want to achieve the following goals: perform static type checking on
 the input parameters, set up the return value as per __N3747__, and launch
 the composed operation by constructing the object and invoking it.
 
-[core_sample_echo_op_2]
+[example_core_echo_op_2]
 
 The initiation function contains a few relatively simple parts. There is
 the customization of the return value type, static type checking, building
@@ -133,7 +133,7 @@ without explaining them in depth.
 Here is the boilerplate present in all composed operations written
 in this style:
 
-[core_sample_echo_op_3]
+[example_core_echo_op_3]
 
 We have the common boilerplate for a composed operation and now we just need
 to implement the function call operator. Our strategy is to make our composed
@@ -147,7 +147,7 @@ care must be taken to ensure that no access to data members are made after the
 move takes place. Here is the implementation of the function call operator for
 this echo operation:
 
-[core_sample_echo_op_4]
+[example_core_echo_op_4]
 
 A complete, runnable version of this example may be found in the examples
 directory.

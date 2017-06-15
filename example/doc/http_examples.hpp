@@ -7,7 +7,12 @@
 
 #include <beast.hpp>
 
-// Contains the HTTP Examples from the documentation.
+/*  This file contains the functions and classes found in the documentation
+
+    They are compiled and run as part of the unit tests, so you can copy
+    the code and use it in your own projects as a starting point for
+    building a network application.
+*/
 
 // The documentation assumes the beast::http namespace
 namespace beast {
@@ -19,7 +24,7 @@ namespace http {
 //
 //------------------------------------------------------------------------------
 
-//[http_sample_send_expect_100_continue
+//[http_example_send_expect_100_continue
 
 /** Send a request with Expect: 100-continue
 
@@ -88,7 +93,7 @@ send_expect_100_continue(
 
 //]
 
-//[http_sample_receive_expect_100_continue
+//[http_example_receive_expect_100_continue
 
 /** Receive a request, handling Expect: 100-continue if present.
 
@@ -155,7 +160,7 @@ receive_expect_100_continue(
 //
 //------------------------------------------------------------------------------
 
-//[http_sample_send_cgi_response
+//[http_example_send_cgi_response
 
 /** Send the output of a child process as an HTTP response.
 
@@ -273,7 +278,7 @@ send_cgi_response(
 //
 //--------------------------------------------------------------------------
 
-//[http_sample_do_head_response
+//[http_example_do_head_response
 
 /** Handle a HEAD request for a resource.
 */
@@ -347,7 +352,7 @@ void do_server_head(
 
 //]
 
-//[http_sample_do_head_request
+//[http_example_do_head_request
 
 /** Send a HEAD request for a resource.
 
@@ -425,7 +430,7 @@ do_head_request(
 //
 //------------------------------------------------------------------------------
 
-//[http_sample_relay
+//[http_example_relay
 
 /** Relay an HTTP message.
 
@@ -552,7 +557,7 @@ relay(
 //
 //------------------------------------------------------------------------------
 
-//[http_sample_write_ostream
+//[http_example_write_ostream
 
 // The detail namespace means "not public"
 namespace detail {
@@ -662,7 +667,7 @@ write_ostream(
 //
 //------------------------------------------------------------------------------
 
-//[http_sample_read_istream
+//[http_example_read_istream
 
 /** Read a message from a `std::istream`.
 
@@ -771,7 +776,7 @@ read_istream(
 //
 //------------------------------------------------------------------------------
 
-//[http_sample_defer_body
+//[http_example_defer_body
 
 /** Handle a form PUT request, choosing a body type depending on the Content-Type.
 
@@ -865,7 +870,7 @@ do_form_request(
 //
 //------------------------------------------------------------------------------
 
-//[http_sample_custom_parser
+//[http_example_custom_parser
 
 template<bool isRequest>
 class custom_parser

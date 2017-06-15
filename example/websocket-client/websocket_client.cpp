@@ -5,7 +5,7 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-//[websocket_example_client_echo
+//[example_websocket_client
 
 #include <beast/core.hpp>
 #include <beast/websocket.hpp>
