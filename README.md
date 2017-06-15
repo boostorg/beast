@@ -13,7 +13,6 @@
 ## Contents
 
 - [Introduction](#introduction)
-- [Audience](audience)
 - [Appearances](#appearances)
 - [Description](#description)
 - [Requirements](#requirements)
@@ -25,18 +24,14 @@
 
 ## Introduction
 
-Beast is a cross-platform, header-only C++11 library for low-level
-HTTP/1 and WebSocket protocol programming
-using the consistent asynchronous networking model of Boost.Asio.
-Beast is not an HTTP client or HTTP server, but it can be used to
-build those things. It is intended to be a foundation for writing
-other interoperable libraries by providing HTTP vocabulary types
-and algorithms. The provided examples show how clients and servers
-might be built.
+Beast is a C++ header-only library serving as a foundation for writing
+interoperable networking libraries by providing **low-level HTTP/1,
+WebSocket, and networking protocol** vocabulary types and algorithms
+using the consistent asynchronous model of Boost.Asio.
 
 This library is designed for:
 
-* **Symmetry:** Interfaces are role-agnostic; build clients, servers, or both.
+* **Symmetry:** Algorithms are role-agnostic; build clients, servers, or both.
 
 * **Ease of Use:** Boost.Asio users will immediately understand Beast.
 
@@ -45,16 +40,7 @@ This library is designed for:
 
 * **Performance:** Build applications handling thousands of connections or more.
 
-* **Basis for Further Abstraction.** Components are open-ended and
-  suited for building higher level libraries.
-
-## Audience
-
-Beast is for network programmers who have some familiarity with
-Boost.Asio. In particular, users who wish to write asynchronous programs
-with Beast should already know how to use Asio sockets and streams,
-and should know how to create concurrent network programs using
-Asio callbacks or coroutines.
+* **Basis for Further Abstraction.** Components are well-suited for building upon.
 
 ## Appearances
 
@@ -75,6 +61,10 @@ The library has been submitted to the
 * [Autobahn.testsuite results](http://vinniefalco.github.io/autobahn/index.html)
 
 ## Requirements
+
+This library is for programmers familiar with Boost.Asio. Users
+who wish to use asynchronous interfaces should already know how to
+create concurrent network programs using callbacks or coroutines.
 
 * **C++11:** Robust support for most language features.
 * **Boost:** Boost.Asio and some other parts of Boost.
@@ -146,7 +136,7 @@ The files in the repository are laid out thusly:
     include/        Add this to your compiler includes
         beast/
     extras/         Additional APIs, may change
-    examples/       Self contained example programs
+    example/        Self contained example programs
     test/           Unit tests and benchmarks
 ```
 

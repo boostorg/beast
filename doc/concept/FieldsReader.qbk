@@ -42,7 +42,7 @@ In this table:
     [`X(f,v,m)`]
     []
     [
-        The implementatation uses this constructor to indicate
+        The implementation calls this constructor to indicate
         that the fields being serialized form part of an HTTP
         request. The lifetime of `f` is guaranteed
         to end no earlier than after the `X` is destroyed.
@@ -51,7 +51,7 @@ In this table:
     [`X(f,v,c)`]
     []
     [
-        The implementatation uses this constructor to indicate
+        The implementation calls this constructor to indicate
         that the fields being serialized form part of an HTTP
         response. The lifetime of `f` is guaranteed
         to end no earlier than after the `X` is destroyed.
