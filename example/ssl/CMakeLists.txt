@@ -13,11 +13,7 @@ add_executable (http-ssl-example
     http_ssl_example.cpp
 )
 
-target_link_libraries(http-ssl-example ${OPENSSL_LIBRARIES})
-
-if (NOT WIN32)
-    target_link_libraries(http-ssl-example ${Boost_LIBRARIES} Threads::Threads)
-endif()
+target_link_libraries(http-ssl-example Beast ${OPENSSL_LIBRARIES})
 
 add_executable (websocket-ssl-example
     ${BEAST_INCLUDES}
@@ -25,8 +21,4 @@ add_executable (websocket-ssl-example
     websocket_ssl_example.cpp
 )
 
-target_link_libraries(websocket-ssl-example ${OPENSSL_LIBRARIES})
-
-if (NOT WIN32)
-    target_link_libraries(websocket-ssl-example ${Boost_LIBRARIES} Threads::Threads)
-endif()
+target_link_libraries(websocket-ssl-example Beast ${OPENSSL_LIBRARIES})

@@ -11,9 +11,4 @@ add_executable (websocket-client
     websocket_client.cpp
 )
 
-if (NOT WIN32)
-    target_link_libraries(websocket-client ${Boost_LIBRARIES} Threads::Threads)
-else()
-    target_link_libraries(websocket-client ${Boost_LIBRARIES})
-endif()
-
+target_link_libraries(websocket-client Beast)

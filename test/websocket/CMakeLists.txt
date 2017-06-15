@@ -21,11 +21,7 @@ add_executable (websocket-tests
     utf8_checker.cpp
 )
 
-if (NOT WIN32)
-    target_link_libraries(websocket-tests ${Boost_LIBRARIES} Threads::Threads)
-else()
-    target_link_libraries(websocket-tests ${Boost_LIBRARIES})
-endif()
+target_link_libraries(websocket-tests Beast ${Boost_PROGRAM_OPTIONS_LIBRARY} ${Boost_FILESYSTEM_LIBRARY} ${Boost_COROUTINE_LIBRARY} ${Boost_THREAD_LIBRARY} ${Boost_CONTEXT_LIBRARY})
 
 if (MINGW)
     set_target_properties(websocket-tests PROPERTIES COMPILE_FLAGS "-Wa,-mbig-obj -Og")

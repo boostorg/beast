@@ -10,8 +10,4 @@ add_executable (echo-op
     echo_op.cpp
 )
 
-if (NOT WIN32)
-    target_link_libraries(echo-op ${Boost_LIBRARIES} Threads::Threads)
-else()
-    target_link_libraries(echo-op ${Boost_LIBRARIES})
-endif()
+target_link_libraries(echo-op Beast)

@@ -16,8 +16,4 @@ add_executable (websocket-ssl-tests
     ssl_server.cpp
 )
 
-target_link_libraries(websocket-ssl-tests ${OPENSSL_LIBRARIES})
-
-if (NOT WIN32)
-    target_link_libraries(websocket-ssl-tests ${Boost_LIBRARIES} Threads::Threads)
-endif()
+target_link_libraries(websocket-ssl-tests Beast ${OPENSSL_LIBRARIES} ${Boost_PROGRAM_OPTIONS_LIBRARY} ${Boost_FILESYSTEM_LIBRARY})
