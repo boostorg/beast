@@ -200,14 +200,14 @@ template<class Fields>
 void
 pmd_write(Fields& fields, pmd_offer const& offer)
 {
-    std::string s;
+    static_string<512> s;
     s = "permessage-deflate";
     if(offer.server_max_window_bits != 0)
     {
         if(offer.server_max_window_bits != -1)
         {
             s += "; server_max_window_bits=";
-            s += std::to_string(
+            s += to_static_string(
                 offer.server_max_window_bits);
         }
         else
@@ -220,7 +220,7 @@ pmd_write(Fields& fields, pmd_offer const& offer)
         if(offer.client_max_window_bits != -1)
         {
             s += "; client_max_window_bits=";
-            s += std::to_string(
+            s += to_static_string(
                 offer.client_max_window_bits);
         }
         else
@@ -256,7 +256,7 @@ pmd_negotiate(
     }
     config.accept = true;
 
-    std::string s = "permessage-deflate";
+    static_string<512> s = "permessage-deflate";
 
     config.server_no_context_takeover =
         offer.server_no_context_takeover ||
@@ -286,7 +286,7 @@ pmd_negotiate(
             config.server_max_window_bits = 9;
 
         s += "; server_max_window_bits=";
-        s += std::to_string(
+        s += to_static_string(
             config.server_max_window_bits);
     }
 
@@ -299,7 +299,7 @@ pmd_negotiate(
         if(config.client_max_window_bits < 15)
         {
             s += "; client_max_window_bits=";
-            s += std::to_string(
+            s += to_static_string(
                 config.client_max_window_bits);
         }
         break;
@@ -324,7 +324,7 @@ pmd_negotiate(
             o.client_max_window_bits,
                 offer.client_max_window_bits);
         s += "; client_max_window_bits=";
-        s += std::to_string(
+        s += to_static_string(
             config.client_max_window_bits);
         break;
     }
