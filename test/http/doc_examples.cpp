@@ -5,8 +5,8 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#include <examples/doc_http_samples.hpp>
-#include <examples/file_body.hpp>
+#include "example/doc/http_examples.hpp"
+#include "example/http-server/file_body.hpp"
 
 #include <beast/core/read_size.hpp>
 #include <beast/core/detail/clamp.hpp>

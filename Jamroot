@@ -112,4 +112,4 @@ project beast
   ;
 
 build-project test ;
-build-project examples ;
+build-project example ;

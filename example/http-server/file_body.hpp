@@ -21,7 +21,7 @@
 namespace beast {
 namespace http {
 
-//[http_sample_file_body_1
+//[example_http_file_body_1
 
 struct file_body
 {
@@ -70,7 +70,7 @@ struct file_body
 
 //]
 
-//[http_sample_file_body_2
+//[example_http_file_body_2
 
 template<bool isRequest, class Fields>
 std::uint64_t
@@ -82,7 +82,7 @@ size(message<isRequest, file_body, Fields> const& m)
 
 //]
 
-//[http_sample_file_body_3
+//[example_http_file_body_3
 
 class file_body::reader
 {
@@ -145,7 +145,7 @@ public:
 
 //]
 
-//[http_sample_file_body_4
+//[example_http_file_body_4
 
 // Here we just stash a reference to the path for later.
 // Rather than dealing with messy constructor exceptions,
@@ -266,7 +266,7 @@ file_body::reader::
 
 //]
 
-//[http_sample_file_body_5
+//[example_http_file_body_5
 
 class file_body::writer
 {
@@ -317,7 +317,7 @@ public:
 
 //]
 
-//[http_sample_file_body_6
+//[example_http_file_body_6
 
 // Just stash a reference to the path so we can open the file later.
 template<bool isRequest, class Fields>

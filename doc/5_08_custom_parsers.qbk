@@ -34,6 +34,6 @@ Buffers provided by the parser are non-owning references; it is the
 responsibility of the derived class to copy any information it needs before
 returning from the callback.
 
-[http_sample_custom_parser]
+[example_http_custom_parser]
 
 [endsect]

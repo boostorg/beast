@@ -7,7 +7,7 @@ GroupSources(test/core "/")
 
 add_executable (core-tests
     ${BEAST_INCLUDES}
-    ${EXAMPLES_INCLUDES}
+    ${EXAMPLE_INCLUDES}
     ${EXTRAS_INCLUDES}
     ../../extras/beast/unit_test/main.cpp
     async_result.cpp
@@ -20,7 +20,7 @@ add_executable (core-tests
     buffers_adapter.cpp
     clamp.cpp
     consuming_buffers.cpp
-    doc_core_samples.cpp
+    doc_examples.cpp
     doc_snippets.cpp
     drain_buffer.cpp
     error.cpp

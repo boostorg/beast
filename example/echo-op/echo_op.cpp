@@ -11,7 +11,7 @@
 #include <memory>
 #include <utility>
 
-//[core_sample_echo_op_1
+//[example_core_echo_op_1
 
 /** Asynchronously read a line and echo it back.
 
@@ -61,7 +61,7 @@ async_echo(
 
 //]
 
-//[core_sample_echo_op_3
+//[example_core_echo_op_3
 
 // This composed operation reads a line of input and echoes it back.
 //
@@ -181,7 +181,7 @@ public:
 
 //]
 
-//[core_sample_echo_op_4
+//[example_core_echo_op_4
 
 // echo_op is callable with the signature void(error_code, bytes_transferred),
 // allowing `*this` to be used as both a ReadHandler and a WriteHandler.
@@ -228,7 +228,7 @@ operator()(beast::error_code ec, std::size_t bytes_transferred)
 
 //]
 
-//[core_sample_echo_op_2
+//[example_core_echo_op_2
 
 template<class AsyncStream, class Handler>
 class echo_op;

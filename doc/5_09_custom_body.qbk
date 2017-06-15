@@ -6,6 +6,7 @@
 ]
 
 [section:custom_body Custom Body Types]
+[block'''<?dbhtml stop-chunking?>''']
 
 User-defined types are possible for the message body, where the type meets the
 __Body__ requirements. This simplified class declaration
@@ -72,7 +73,9 @@ As long as a suitable reader or writer is available to provide the
 algorithm for transferring buffers in and out of the value type,
 those bodies may be serialized or parsed.
 
-[heading Example: File Body Type]
+
+
+[section File Body Type]
 
 Use of the flexible __Body__ concept customization point enables authors to
 preserve the self-contained nature of the __message__ object while allowing
@@ -83,37 +86,41 @@ to a file on the file system.
 
 First we declare the type itself, along with the required members:
 
-[http_sample_file_body_1]
+[example_http_file_body_1]
 
 The `size` function is a simple call to retrieve the file size:
 
-[http_sample_file_body_2]
+[example_http_file_body_2]
 
 Our implementation of __BodyReader__ will contain a small buffer
 from which the file contents are read. The buffer is provided to
 the implementation on each call until everything has been read in.
 
-[http_sample_file_body_3]
+[example_http_file_body_3]
 
 And here are the definitions for the functions we have declared:
 
-[http_sample_file_body_4]
+[example_http_file_body_4]
 
 Files can be read now, and the next step is to allow writing to files
 by implementing the __BodyWriter__. The style is similar to the reader,
 except that buffers are incoming instead of outgoing. Here's the
 declaration:
 
-[http_sample_file_body_5]
+[example_http_file_body_5]
 
 Finally, here is the implementation of the writer member functions:
 
-[http_sample_file_body_6]
+[example_http_file_body_6]
 
 We have created a full featured body type capable of reading and
 writing files on the filesystem, integrating seamlessly with the
 HTTP algorithms and message container. Source code for this body
 type, and HTTP servers that use it, are available in the examples
 directory.
+
+[endsect]
+
+
 
 [endsect]

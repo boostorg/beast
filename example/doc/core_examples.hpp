@@ -8,13 +8,19 @@
 #include <boost/assert.hpp>
 #include <boost/config.hpp>
 
+/*  This file contains the functions and classes found in the documentation
+
+    They are compiled and run as part of the unit tests, so you can copy
+    the code and use it in your own projects as a starting point for
+    building a network application.
+*/
 //------------------------------------------------------------------------------
 //
 // Example: Detect TLS/SSL
 //
 //------------------------------------------------------------------------------
 
-//[core_sample_detect_tls_1
+//[example_core_detect_tls_1
 
 #include <beast.hpp>
 #include <boost/logic/tribool.hpp>
@@ -49,7 +55,7 @@ is_ssl_handshake(ConstBufferSequence const& buffers);
 
 using namespace beast;
 
-//[core_sample_detect_tls_2
+//[example_core_detect_tls_2
 
 template<
     class ConstBufferSequence>
@@ -88,7 +94,7 @@ is_ssl_handshake(
 
 //]
 
-//[core_sample_detect_tls_3
+//[example_core_detect_tls_3
 
 /** Detect a TLS/SSL handshake on a stream.
 
@@ -170,7 +176,7 @@ detect_ssl(
 
 //]
 
-//[core_sample_detect_tls_4
+//[example_core_detect_tls_4
 
 /** Detect a TLS/SSL handshake asynchronously on a stream.
 
@@ -228,7 +234,7 @@ async_detect_ssl(
 
 //]
 
-//[core_sample_detect_tls_5
+//[example_core_detect_tls_5
 
 // This is the composed operation.
 template<
@@ -286,7 +292,7 @@ async_detect_ssl(
 
 //]
 
-//[core_sample_detect_tls_6
+//[example_core_detect_tls_6
 
 // Read from a stream to invoke is_tls_handshake asynchronously
 //
@@ -383,7 +389,7 @@ public:
 
 //]
 
-//[core_sample_detect_tls_7
+//[example_core_detect_tls_7
 
 // detect_ssl_op is callable with the signature
 // void(error_code, bytes_transferred),
