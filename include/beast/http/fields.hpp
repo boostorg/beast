@@ -40,6 +40,7 @@ namespace http {
     as a `std::multiset`; there will be a separate value for each occurrence
     of the field name.
 
+
     Meets the requirements of @b Fields
 
     @tparam Allocator The allocator to use. This must meet the
@@ -48,6 +49,8 @@ namespace http {
 template<class Allocator>
 class basic_fields
 {
+    static std::size_t constexpr max_static_start_line = 4096;
+
     using off_t = std::uint16_t;
 
 public:
