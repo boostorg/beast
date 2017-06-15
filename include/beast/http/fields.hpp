@@ -115,7 +115,7 @@ public:
         operator()(value_type const& lhs, value_type const& rhs) const
         {
             return ci_less::operator()(
-                lhs.name(), rhs.name());
+                lhs.name_string(), rhs.name_string());
         }
     };
 
@@ -632,6 +632,9 @@ private:
 
     void
     delete_element(value_type& e);
+
+    void
+    set_element(value_type& e);
 
     void
     realloc_string(string_view& dest, string_view s);
