@@ -11,6 +11,7 @@ Version 58:
 * Use static string in basic_fields::reader
 * Remove redundant code
 * Fix parsing chunk size with leading zeroes
+* Better message formal parameter names
 
 API Changes:
 
