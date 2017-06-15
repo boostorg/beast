@@ -1,3 +1,9 @@
+Version 58:
+
+* Fix unaligned reads in utf8-checker
+
+--------------------------------------------------------------------------------
+
 Version 57:
 
 * Fix message.hpp javadocs
