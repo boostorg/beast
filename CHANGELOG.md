@@ -4,6 +4,7 @@ Version 58:
 * Qualify size_t in message template
 * Reorganize examples
 * Specification for http read
+* Avoid `std::string` in websocket
 
 API Changes:
 
