@@ -10,6 +10,7 @@ Version 58:
 * basic_parser::put doc
 * Use static string in basic_fields::reader
 * Remove redundant code
+* Fix parsing chunk size with leading zeroes
 
 API Changes:
 

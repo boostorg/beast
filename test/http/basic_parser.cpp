@@ -1054,6 +1054,24 @@ public:
             });
     }
 
+    // https://github.com/vinniefalco/Beast/issues/496
+    void
+    testIssue496()
+    {
+        // The bug affected hex parsing with leading zeroes
+        bufgrind<test_parser<false>>(
+            "HTTP/1.1 200 OK\r\n"
+            "Transfer-Encoding: chunked\r\n"
+            "Content-Type: application/octet-stream\r\n"
+            "\r\n"
+            "0004\r\nabcd\r\n"
+            "0\r\n\r\n"
+            ,[&](test_parser<false> const& p)
+            {
+                BEAST_EXPECT(p.body == "abcd");
+            });
+    }
+
     //--------------------------------------------------------------------------
 
     void
@@ -1072,6 +1090,7 @@ public:
         testSplit();
         testIssue430();
         testIssue452();
+        testIssue496();
         testBufGrind();
     }
 };

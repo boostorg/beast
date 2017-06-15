@@ -267,7 +267,7 @@ protected:
                 break;
             auto const v0 = v;
             v = 16 * v + d;
-            if(v <= v0)
+            if(v < v0)
                 return false;
         }
         return true;
