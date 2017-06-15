@@ -508,7 +508,7 @@ insert(field name,
 template<class Allocator>
 void
 basic_fields<Allocator>::
-replace(field name, string_param const& value)
+set(field name, string_param const& value)
 {
     BOOST_ASSERT(name != field::unknown);
     erase(name);
@@ -518,7 +518,7 @@ replace(field name, string_param const& value)
 template<class Allocator>
 void
 basic_fields<Allocator>::
-replace(string_view sname, string_param const& value)
+set(string_view sname, string_param const& value)
 {
     auto const name = string_to_field(sname);
     erase(sname);
@@ -780,7 +780,7 @@ set_chunked_impl(bool v)
     if(it == end())
         this->insert(field::transfer_encoding, "chunked");
     else
-        this->replace(field::transfer_encoding,
+        this->set(field::transfer_encoding,
             it->value().to_string() + ", chunked");
 }
 

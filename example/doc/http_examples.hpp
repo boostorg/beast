@@ -62,7 +62,7 @@ send_expect_100_continue(
         "DynamicBuffer requirements not met");
 
     // Insert or replace the Expect field
-    req.replace(field::expect, "100-continue");
+    req.set(field::expect, "100-continue");
 
     // Create the serializer
     auto sr = make_serializer(req);

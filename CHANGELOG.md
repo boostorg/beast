@@ -5,6 +5,14 @@ Version 58:
 * Reorganize examples
 * Specification for http read
 
+API Changes:
+
+* `basic_fields::set` renamed from `basic_fields::replace`
+
+Actions Required:
+
+* Rename calls to `basic_fields::replace` to `basic_fields::set`
+
 --------------------------------------------------------------------------------
 
 Version 57:
