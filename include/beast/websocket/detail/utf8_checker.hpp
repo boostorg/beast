@@ -245,39 +245,59 @@ write(std::uint8_t const* in, std::size_t size)
         p_ = have_;
     }
 
-    auto last = in + size - 7;
-    while(in < last)
-    {
-#if BEAST_WEBSOCKET_NO_UNALIGNED_READ
-        auto constexpr align = sizeof(std::size_t) - 1;
-        auto constexpr mask = static_cast<
-            std::size_t>(0x8080808080808080 &
-                ~std::size_t{0});
-        if(
-            ((reinterpret_cast<
-                std::uintptr_t>(in) & align) == 0) &&
-            (*reinterpret_cast<
-                std::size_t const*>(in) & mask) == 0)
-            in += sizeof(std::size_t);
-        else if(! valid(in))
-            return false;
-#else
-        auto constexpr mask = static_cast<
-            std::size_t>(0x8080808080808080 &
-                ~std::size_t{0});
-        if(
-            (*reinterpret_cast<
-                std::size_t const*>(in) & mask) == 0)
-            in += sizeof(std::size_t);
-        else if(! valid(in))
-            return false;
-#endif
-    }
-    last += 4;
-    while(in < last)
-        if(! valid(in))
-            return false;
+    if(size <= sizeof(std::size_t))
+        goto slow;
 
+    // align in to sizeof(std::size_t) boundary
+    {
+        auto const in0 = in;
+        auto last = reinterpret_cast<std::uint8_t const*>(
+            ((reinterpret_cast<std::uintptr_t>(in) + sizeof(std::size_t) - 1) /
+                sizeof(std::size_t)) * sizeof(std::size_t));
+        while(in < last)
+        {
+            if(*in & 0x80)
+            {
+                size = size - (in - in0);
+                goto slow;
+            }
+            ++in;
+        }
+        size = size - (in - in0);
+    }
+
+    // fast loop
+    {
+        auto const in0 = in;
+        auto last = in + size - 7;
+        auto constexpr mask = static_cast<
+            std::size_t>(0x8080808080808080 & ~std::size_t{0});
+        while(in < last)
+        {
+            if((*reinterpret_cast<std::size_t const*>(in) & mask) != 0)
+            {
+                size = size - (in - in0);
+                goto slow;
+            }
+            in += sizeof(std::size_t);
+        }
+        last += 4;
+        while(in < last)
+            if(! valid(in))
+                return false;
+        goto tail;
+    }
+
+    // slow loop: one code point at a time
+slow:
+    {
+        auto last = in + size - 3;
+        while(in < last)
+            if(! valid(in))
+                return false;
+    }
+
+tail:
     for(;;)
     {
         auto n = end - in;
