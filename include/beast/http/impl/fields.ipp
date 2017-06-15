@@ -507,8 +507,8 @@ basic_fields<Allocator>::
 set(field name, string_param const& value)
 {
     BOOST_ASSERT(name != field::unknown);
-    erase(name);
-    insert(name, value);
+    set_element(new_element(name,
+        to_string(name), value.str()));
 }
 
 template<class Allocator>
@@ -516,9 +516,9 @@ void
 basic_fields<Allocator>::
 set(string_view sname, string_param const& value)
 {
-    auto const name = string_to_field(sname);
-    erase(sname);
-    insert(name, sname, value);
+    set_element(new_element(
+        string_to_field(sname),
+            sname, value.str()));
 }
 
 template<class Allocator>
@@ -774,9 +774,9 @@ set_chunked_impl(bool v)
     BOOST_ASSERT(v);
     auto it = find(field::transfer_encoding);
     if(it == end())
-        this->insert(field::transfer_encoding, "chunked");
+        insert(field::transfer_encoding, "chunked");
     else
-        this->set(field::transfer_encoding,
+        set(field::transfer_encoding,
             it->value().to_string() + ", chunked");
 }
 
@@ -816,11 +816,41 @@ void
 basic_fields<Allocator>::
 delete_element(value_type& e)
 {
-    auto const n = 1 +
-        (e.off_ + e.len_ + 2 +
-            sizeof(value_type) - 1) / sizeof(value_type);
+    auto const n = 1 + (e.off_ + e.len_ + 2 +
+        sizeof(value_type) - 1) / sizeof(value_type);
     alloc_traits::destroy(alloc_, &e);
     alloc_traits::deallocate(alloc_, &e, n);
+}
+
+template<class Allocator>
+void
+basic_fields<Allocator>::
+set_element(value_type& e)
+{
+    auto it = set_.lower_bound(
+        e.name_string(), key_compare{});
+    if(it == set_.end() || ! beast::detail::ci_equal(
+        e.name_string(), it->name_string()))
+    {
+        set_.insert_before(it, e);
+        list_.push_back(e);
+        return;
+    }
+    for(;;)
+    {
+        auto next = it;
+        ++next;
+        set_.erase(it);
+        list_.erase(list_.iterator_to(*it));
+        delete_element(*it);
+        it = next;
+        if(it == set_.end() ||
+            ! beast::detail::ci_equal(
+                e.name_string(), it->name_string()))
+            break;
+    }
+    set_.insert_before(it, e);
+    list_.push_back(e);
 }
 
 template<class Allocator>
