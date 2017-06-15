@@ -11,8 +11,4 @@ add_executable (http-client
     http_client.cpp
 )
 
-if (NOT WIN32)
-    target_link_libraries(http-client ${Boost_LIBRARIES} Threads::Threads)
-else()
-    target_link_libraries(http-client ${Boost_LIBRARIES})
-endif()
+target_link_libraries(http-client Beast)

@@ -15,8 +15,4 @@ add_executable (http-server
     main.cpp
 )
 
-if (NOT WIN32)
-    target_link_libraries(http-server ${Boost_LIBRARIES} Threads::Threads)
-else()
-    target_link_libraries(http-server ${Boost_LIBRARIES})
-endif()
+target_link_libraries(http-server Beast ${Boost_PROGRAM_OPTIONS_LIBRARY} ${Boost_FILESYSTEM_LIBRARY} )
