@@ -5,6 +5,7 @@ Version 58:
 * Reorganize examples
 * Specification for http read
 * Avoid `std::string` in websocket
+* Fix basic_fields insert ordering
 
 API Changes:
 

@@ -375,6 +375,26 @@ public:
             BEAST_EXPECT(std::next(f.begin(), 0)->name_string() == "a");
             BEAST_EXPECT(std::next(f.begin(), 1)->name_string() == "b");
         }
+        {
+            // verify insertion orde
+            fields f;
+            f.insert( "a", 1);
+            f.insert("dd", 2);
+            f.insert("b",  3);
+            f.insert("dD", 4);
+            f.insert("c",  5);
+            f.insert("Dd", 6);
+            f.insert("DD", 7);
+            f.insert( "e", 8);
+            BEAST_EXPECT(f.count("dd") == 4);
+            BEAST_EXPECT(std::next(f.begin(), 1)->name_string() == "dd");
+            BEAST_EXPECT(std::next(f.begin(), 2)->name_string() == "dD");
+            BEAST_EXPECT(std::next(f.begin(), 3)->name_string() == "Dd");
+            BEAST_EXPECT(std::next(f.begin(), 4)->name_string() == "DD");
+            f.set("dd", "-");
+            BEAST_EXPECT(f.count("dd") == 1);
+            BEAST_EXPECT(f["dd"] == "-");
+        }
     }
 
     void run() override
