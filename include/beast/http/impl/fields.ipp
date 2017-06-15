@@ -480,29 +480,25 @@ insert(field name,
         name, sname, value.str());
     auto const before =
         set_.upper_bound(sname, key_compare{});
-    if(before == set_.end())
-    {
-        set_.push_back(e);
-        list_.push_back(e);
-        return;
-    }
     if(before == set_.begin())
     {
-        set_.push_front(e);
-        list_.push_back(e);
-        return;
-    }
-    auto const last = std::prev(before);
-    if(! beast::detail::ci_equal(
-        sname, last->name_string()))
-    {
+        BOOST_ASSERT(count(sname) == 0);
         set_.insert_before(before, e);
         list_.push_back(e);
         return;
     }
-    // count(name_string) > 0
+    auto const last = std::prev(before);
+    // VFALCO is it worth comparing `field name` first?
+    if(! beast::detail::ci_equal(sname, last->name_string()))
+    {
+        BOOST_ASSERT(count(sname) == 0);
+        set_.insert_before(before, e);
+        list_.push_back(e);
+        return;
+    }
+    // keep duplicate fields together in the list
     set_.insert_before(before, e);
-    list_.insert(list_.iterator_to(*before), e);
+    list_.insert(++list_.iterator_to(*last), e);
 }
 
 template<class Allocator>
