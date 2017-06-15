@@ -68,7 +68,7 @@ of __serializer__ to write an HTTP message to a `std::ostream`:
 [tip
     Serializing to a `std::ostream` could be implemented using an alternate
     strategy: adapt the `std::ostream` interface to a __SyncWriteStream__,
-    enable use with the library's existing stream algorithms. This is
+    enabling use with the library's existing stream algorithms. This is
     left as an exercise for the reader.
 ]
 
