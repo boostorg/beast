@@ -2,6 +2,7 @@ Version 59:
 
 * Integrated Beast INTERFACE (cmake)
 * Fix base64 alphabet
+* Remove obsolete doc/README.md
 
 API Changes:
 
