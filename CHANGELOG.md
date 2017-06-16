@@ -1,6 +1,7 @@
 Version 60:
 
 * String comparisons are public interfaces
+* Fix response message type in async websocket accept
 
 --------------------------------------------------------------------------------
 
