@@ -9,7 +9,7 @@
 #define BEAST_WEBSOCKET_DETAIL_HYBI13_HPP
 
 #include <beast/core/static_string.hpp>
-#include <beast/core/string_view.hpp>
+#include <beast/core/string.hpp>
 #include <beast/core/detail/base64.hpp>
 #include <beast/core/detail/sha1.hpp>
 #include <boost/assert.hpp>

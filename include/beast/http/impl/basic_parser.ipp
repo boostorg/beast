@@ -10,7 +10,6 @@
 
 #include <beast/core/static_string.hpp>
 #include <beast/core/type_traits.hpp>
-#include <beast/core/detail/ci_char_traits.hpp>
 #include <beast/core/detail/clamp.hpp>
 #include <beast/http/error.hpp>
 #include <beast/http/rfc7230.hpp>

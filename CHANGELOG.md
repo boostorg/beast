@@ -1,3 +1,9 @@
+Version 60:
+
+* String comparisons are public interfaces
+
+--------------------------------------------------------------------------------
+
 Version 59:
 
 * Integrated Beast INTERFACE (cmake)

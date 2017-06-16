@@ -9,7 +9,6 @@
 #include <beast/http/field.hpp>
 
 #include <beast/unit_test/suite.hpp>
-#include <boost/lexical_cast.hpp>
 
 namespace beast {
 namespace http {
@@ -23,8 +22,7 @@ public:
         auto const match =
             [&](field f, string_view s)
             {
-                BEAST_EXPECT(
-                    beast::detail::ci_equal(to_string(f), s));
+                BEAST_EXPECT(iequals(to_string(f), s));
                 BEAST_EXPECT(string_to_field(s) == f);
             };
 

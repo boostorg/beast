@@ -142,10 +142,10 @@
     <colspec colname="e"/>
     <thead>
       <row>
-        <entry valign="center" namest="a" nameend="d">
+        <entry valign="center" namest="a" nameend="e">
           <bridgehead renderas="sect2">Core</bridgehead>
         </entry>
-        <entry valign="center" namest="e" nameend="e">
+        <entry valign="center" namest="f" nameend="f">
           <bridgehead renderas="sect2">ZLib</bridgehead>
         </entry>
       </row>
@@ -169,10 +169,17 @@
             <member><link linkend="beast.ref.beast__error_category">error_category</link></member>
             <member><link linkend="beast.ref.beast__error_code">error_code</link></member>
             <member><link linkend="beast.ref.beast__error_condition">error_condition</link></member>
+          </simplelist>
+        </entry>
+        <entry valign="top">
+          <bridgehead renderas="sect3">&nbsp;</bridgehead>
+          <simplelist type="vert" columns="1">
             <member><link linkend="beast.ref.beast__flat_buffer">flat_buffer</link></member>
             <member><link linkend="beast.ref.beast__handler_alloc">handler_alloc</link></member>
             <member><link linkend="beast.ref.beast__handler_ptr">handler_ptr</link></member>
             <member><link linkend="beast.ref.beast__handler_type">handler_type</link></member>
+            <member><link linkend="beast.ref.beast__iequal">iequal</link></member>
+            <member><link linkend="beast.ref.beast__iless">iless</link></member>
             <member><link linkend="beast.ref.beast__multi_buffer">multi_buffer</link></member>
             <member><link linkend="beast.ref.beast__static_buffer">static_buffer</link></member>
             <member><link linkend="beast.ref.beast__static_buffer_n">static_buffer_n</link></member>
@@ -189,6 +196,7 @@
             <member><link linkend="beast.ref.beast__buffer_cat">buffer_cat</link></member>
             <member><link linkend="beast.ref.beast__buffer_prefix">buffer_prefix</link></member>
             <member><link linkend="beast.ref.beast__buffers">buffers</link></member>
+            <member><link linkend="beast.ref.beast__iequals">iequals</link></member>
             <member><link linkend="beast.ref.beast__ostream">ostream</link></member>
             <member><link linkend="beast.ref.beast__read_size">read_size</link></member>
             <member><link linkend="beast.ref.beast__read_size_or_throw">read_size_or_throw</link></member>

@@ -10,8 +10,7 @@
 
 #include <beast/config.hpp>
 #include <beast/core/string_param.hpp>
-#include <beast/core/string_view.hpp>
-#include <beast/core/detail/ci_char_traits.hpp>
+#include <beast/core/string.hpp>
 #include <beast/http/field.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/intrusive/list.hpp>
@@ -94,15 +93,18 @@ public:
         value() const;
     };
 
-    /// A function that compares keys as LessThanComparable
-    struct key_compare : private beast::detail::ci_less
+    /** A strictly less predicate for comparing keys, using a case-insensitive comparison.
+
+        The case-comparison operation is defined only for low-ASCII characters.
+    */
+    struct key_compare : beast::iless
     {
         /// Returns `true` if lhs is less than rhs using a strict ordering
         template<class String>
         bool
         operator()(String const& lhs, value_type const& rhs) const
         {
-            return ci_less::operator()(lhs, rhs.name_string());
+            return iless::operator()(lhs, rhs.name_string());
         }
 
         /// Returns `true` if lhs is less than rhs using a strict ordering
@@ -110,15 +112,14 @@ public:
         bool
         operator()(value_type const& lhs, String const& rhs) const
         {
-            return ci_less::operator()(lhs.name_string(), rhs);
+            return iless::operator()(lhs.name_string(), rhs);
         }
 
         /// Returns `true` if lhs is less than rhs using a strict ordering
         bool
         operator()(value_type const& lhs, value_type const& rhs) const
         {
-            return ci_less::operator()(
-                lhs.name_string(), rhs.name_string());
+            return iless::operator()(lhs.name_string(), rhs.name_string());
         }
     };
 
@@ -546,6 +547,7 @@ public:
     //
     //--------------------------------------------------------------------------
 
+    /// Returns a copy of the key comparison function
     key_compare
     key_comp() const
     {

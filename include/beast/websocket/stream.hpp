@@ -18,7 +18,7 @@
 #include <beast/http/detail/type_traits.hpp>
 #include <beast/core/async_result.hpp>
 #include <beast/core/buffered_read_stream.hpp>
-#include <beast/core/string_view.hpp>
+#include <beast/core/string.hpp>
 #include <beast/core/detail/type_traits.hpp>
 #include <boost/asio.hpp>
 #include <algorithm>

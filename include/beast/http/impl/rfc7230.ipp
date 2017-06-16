@@ -8,7 +8,6 @@
 #ifndef BEAST_HTTP_IMPL_RFC7230_IPP
 #define BEAST_HTTP_IMPL_RFC7230_IPP
 
-#include <beast/core/detail/ci_char_traits.hpp>
 #include <beast/http/detail/rfc7230.hpp>
 #include <iterator>
 
@@ -291,7 +290,7 @@ find(T const& s) ->
     return std::find_if(begin(), end(),
         [&s](value_type const& v)
         {
-            return beast::detail::ci_equal(s, v.first);
+            return iequals(s, v.first);
         });
 }
 
@@ -537,7 +536,7 @@ exists(T const& s)
     return std::find_if(begin(), end(),
         [&s](value_type const& v)
         {
-            return beast::detail::ci_equal(s, v);
+            return iequals(s, v);
         }
     ) != end();
 }

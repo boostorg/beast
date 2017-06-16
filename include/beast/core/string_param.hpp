@@ -9,7 +9,7 @@
 #define BEAST_STRING_PARAM_HPP
 
 #include <beast/config.hpp>
-#include <beast/core/string_view.hpp>
+#include <beast/core/string.hpp>
 #include <beast/core/detail/static_ostream.hpp>
 #include <beast/core/detail/type_traits.hpp>
 

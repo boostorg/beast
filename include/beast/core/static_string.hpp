@@ -9,7 +9,7 @@
 #define BEAST_STATIC_STRING_HPP
 
 #include <beast/config.hpp>
-#include <beast/core/string_view.hpp>
+#include <beast/core/string.hpp>
 #include <beast/core/detail/static_string.hpp>
 #include <algorithm>
 #include <cstdint>

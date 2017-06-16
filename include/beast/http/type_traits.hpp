@@ -10,7 +10,7 @@
 
 #include <beast/config.hpp>
 #include <beast/core/error.hpp>
-#include <beast/core/string_view.hpp>
+#include <beast/core/string.hpp>
 #include <beast/core/type_traits.hpp>
 #include <beast/http/detail/type_traits.hpp>
 #include <boost/asio/buffer.hpp>

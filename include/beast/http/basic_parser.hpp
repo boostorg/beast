@@ -10,7 +10,7 @@
 
 #include <beast/config.hpp>
 #include <beast/core/error.hpp>
-#include <beast/core/string_view.hpp>
+#include <beast/core/string.hpp>
 #include <beast/http/field.hpp>
 #include <beast/http/verb.hpp>
 #include <beast/http/detail/basic_parser.hpp>

@@ -8,7 +8,7 @@
 #ifndef BEAST_HTTP_DETAIL_RFC7230_HPP
 #define BEAST_HTTP_DETAIL_RFC7230_HPP
 
-#include <beast/core/string_view.hpp>
+#include <beast/core/string.hpp>
 #include <iterator>
 #include <utility>
 

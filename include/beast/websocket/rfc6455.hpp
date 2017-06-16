@@ -10,7 +10,7 @@
 
 #include <beast/config.hpp>
 #include <beast/core/static_string.hpp>
-#include <beast/core/string_view.hpp>
+#include <beast/core/string.hpp>
 #include <beast/http/message.hpp>
 #include <array>
 #include <cstdint>

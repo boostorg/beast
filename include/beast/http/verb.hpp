@@ -9,7 +9,7 @@
 #define BEAST_HTTP_VERB_HPP
 
 #include <beast/config.hpp>
-#include <beast/core/string_view.hpp>
+#include <beast/core/string.hpp>
 #include <iosfwd>
 
 namespace beast {

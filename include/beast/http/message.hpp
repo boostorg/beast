@@ -13,7 +13,7 @@
 #include <beast/http/verb.hpp>
 #include <beast/http/status.hpp>
 #include <beast/http/type_traits.hpp>
-#include <beast/core/string_view.hpp>
+#include <beast/core/string.hpp>
 #include <beast/core/detail/integer_sequence.hpp>
 #include <boost/optional.hpp>
 #include <boost/throw_exception.hpp>

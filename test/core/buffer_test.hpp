@@ -8,7 +8,7 @@
 #ifndef BEAST_TEST_BUFFER_TEST_HPP
 #define BEAST_TEST_BUFFER_TEST_HPP
 
-#include <beast/core/string_view.hpp>
+#include <beast/core/string.hpp>
 #include <beast/core/read_size.hpp>
 #include <beast/core/type_traits.hpp>
 #include <beast/core/detail/type_traits.hpp>
