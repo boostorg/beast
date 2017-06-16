@@ -36,10 +36,9 @@ struct empty_body
     };
 
     /// Returns the content length of the body in a message.
-    template<bool isRequest, class Fields>
     static
     std::uint64_t
-    size(message<isRequest, empty_body, Fields> const& m)
+    size(empty_body)
     {
         return 0;
     }

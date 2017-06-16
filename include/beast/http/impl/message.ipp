@@ -285,8 +285,7 @@ size() const
     static_assert(is_body_reader<Body>::value,
         "BodyReader requirements not met");
 
-    return size(detail::is_body_sized<
-        Body, decltype(*this)>{});
+    return size(detail::is_body_sized<Body>{});
 }
 
 template<bool isRequest, class Body, class Fields>

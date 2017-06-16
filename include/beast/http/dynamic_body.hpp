@@ -29,13 +29,11 @@ struct basic_dynamic_body
     using value_type = DynamicBuffer;
 
     /// Returns the content length of this body in a message.
-    template<bool isRequest, class Fields>
     static
     std::uint64_t
-    size(message<isRequest,
-        basic_dynamic_body, Fields> const& m)
+    size(value_type const& v)
     {
-        return m.body.size();
+        return v.size();
     }
 
 #if BEAST_DOXYGEN

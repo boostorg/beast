@@ -558,7 +558,7 @@ private:
     boost::optional<std::uint64_t>
     size(std::true_type) const
     {
-        return Body::size(*this);
+        return Body::size(body);
     }
 
     boost::optional<std::uint64_t>

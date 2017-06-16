@@ -62,17 +62,17 @@ struct has_value_type<T, beast::detail::void_t<
 /** Determine if a @b Body type has a size
 
     This metafunction is equivalent to `std::true_type` if
-    Body contains a static member function called `content_lengeth`.
+    Body contains a static member function called `size`.
 */
-template<class T, class M, class = void>
+template<class T, class = void>
 struct is_body_sized : std::false_type {};
 
-template<class T, class M>
-struct is_body_sized<T, M, beast::detail::void_t<
+template<class T>
+struct is_body_sized<T, beast::detail::void_t<
     typename T::value_type,
         decltype(
     std::declval<std::uint64_t&>() =
-        T::size(std::declval<M const&>()),
+        T::size(std::declval<typename T::value_type const&>()),
     (void)0)>> : std::true_type {};
 
 } // detail
