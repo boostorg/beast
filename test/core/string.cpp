@@ -6,4 +6,4 @@
 //
 
 // Test that header file is self-contained.
-#include <beast/core/string_view.hpp>
+#include <beast/core/string.hpp>

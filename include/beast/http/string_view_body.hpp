@@ -9,7 +9,7 @@
 #define BEAST_HTTP_STRING_VIEW_BODY
 
 #include <beast/config.hpp>
-#include <beast/core/string_view.hpp>
+#include <beast/core/string.hpp>
 #include <beast/http/message.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/optional.hpp>

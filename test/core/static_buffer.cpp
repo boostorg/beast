@@ -11,7 +11,7 @@
 #include "buffer_test.hpp"
 
 #include <beast/core/ostream.hpp>
-#include <beast/core/string_view.hpp>
+#include <beast/core/string.hpp>
 #include <beast/unit_test/suite.hpp>
 #include <string>
 

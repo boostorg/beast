@@ -28,7 +28,7 @@
 #include <beast/core/static_buffer.hpp>
 #include <beast/core/static_string.hpp>
 #include <beast/core/string_param.hpp>
-#include <beast/core/string_view.hpp>
+#include <beast/core/string.hpp>
 #include <beast/core/type_traits.hpp>
 
 #endif

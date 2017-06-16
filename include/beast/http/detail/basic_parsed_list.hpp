@@ -8,7 +8,7 @@
 #ifndef BEAST_HTTP_DETAIL_BASIC_PARSED_LIST_HPP
 #define BEAST_HTTP_DETAIL_BASIC_PARSED_LIST_HPP
 
-#include <beast/core/string_view.hpp>
+#include <beast/core/string.hpp>
 #include <beast/core/detail/empty_base_optimization.hpp>
 #include <cstddef>
 #include <iterator>

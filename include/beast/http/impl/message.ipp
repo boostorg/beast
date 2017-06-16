@@ -9,7 +9,6 @@
 #define BEAST_HTTP_IMPL_MESSAGE_IPP
 
 #include <beast/core/error.hpp>
-#include <beast/core/detail/ci_char_traits.hpp>
 #include <beast/core/detail/type_traits.hpp>
 #include <boost/assert.hpp>
 #include <boost/throw_exception.hpp>

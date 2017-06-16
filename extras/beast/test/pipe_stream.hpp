@@ -11,7 +11,7 @@
 #include <beast/core/async_result.hpp>
 #include <beast/core/bind_handler.hpp>
 #include <beast/core/flat_buffer.hpp>
-#include <beast/core/string_view.hpp>
+#include <beast/core/string.hpp>
 #include <beast/core/type_traits.hpp>
 #include <beast/websocket/teardown.hpp>
 #include <beast/test/fail_counter.hpp>

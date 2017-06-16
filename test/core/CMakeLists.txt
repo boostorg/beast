@@ -32,8 +32,8 @@ add_executable (core-tests
     read_size.cpp
     static_buffer.cpp
     static_string.cpp
+    string.cpp
     string_param.cpp
-    string_view.cpp
     type_traits.cpp
     base64.cpp
     empty_base_optimization.cpp

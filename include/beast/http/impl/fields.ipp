@@ -10,7 +10,6 @@
 
 #include <beast/core/buffer_cat.hpp>
 #include <beast/core/static_string.hpp>
-#include <beast/core/detail/ci_char_traits.hpp>
 #include <beast/http/verb.hpp>
 #include <beast/http/rfc7230.hpp>
 #include <beast/http/status.hpp>
@@ -298,7 +297,7 @@ value_type(field name,
     , f_(name)
 {
     //BOOST_ASSERT(name == field::unknown ||
-    //    detail::ci_equal(sname, to_string(name)));
+    //    iequals(sname, to_string(name)));
     char* p = reinterpret_cast<char*>(this + 1);
     p[off_-2] = ':';
     p[off_-1] = ' ';
@@ -585,7 +584,7 @@ insert(field name,
     }
     auto const last = std::prev(before);
     // VFALCO is it worth comparing `field name` first?
-    if(! beast::detail::ci_equal(sname, last->name_string()))
+    if(! iequals(sname, last->name_string()))
     {
         BOOST_ASSERT(count(sname) == 0);
         set_.insert_before(before, e);
@@ -779,8 +778,7 @@ has_chunked_impl() const
     {
         auto cur = it++;
         if(it == v.end())
-            return beast::detail::ci_equal(
-                *cur, "chunked");
+            return iequals(*cur, "chunked");
     }
 }
 
@@ -925,7 +923,7 @@ set_element(value_type& e)
 {
     auto it = set_.lower_bound(
         e.name_string(), key_compare{});
-    if(it == set_.end() || ! beast::detail::ci_equal(
+    if(it == set_.end() || ! iequals(
         e.name_string(), it->name_string()))
     {
         set_.insert_before(it, e);
@@ -941,8 +939,7 @@ set_element(value_type& e)
         delete_element(*it);
         it = next;
         if(it == set_.end() ||
-            ! beast::detail::ci_equal(
-                e.name_string(), it->name_string()))
+            ! iequals(e.name_string(), it->name_string()))
             break;
     }
     set_.insert_before(it, e);

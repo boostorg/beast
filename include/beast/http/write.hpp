@@ -17,7 +17,7 @@
 #include <beast/http/detail/chunk_encode.hpp>
 #include <beast/core/error.hpp>
 #include <beast/core/async_result.hpp>
-#include <beast/core/string_view.hpp>
+#include <beast/core/string.hpp>
 #include <boost/variant.hpp>
 #include <iosfwd>
 #include <limits>

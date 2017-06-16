@@ -8,8 +8,7 @@
 #ifndef BEAST_HTTP_DETAIL_BASIC_PARSER_HPP
 #define BEAST_HTTP_DETAIL_BASIC_PARSER_HPP
 
-#include <beast/core/string_view.hpp>
-#include <beast/core/detail/ci_char_traits.hpp>
+#include <beast/core/string.hpp>
 #include <beast/http/error.hpp>
 #include <beast/http/detail/rfc7230.hpp>
 #include <boost/version.hpp>

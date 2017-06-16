@@ -8,7 +8,6 @@
 #ifndef BEAST_HTTP_IMPL_FIELD_IPP
 #define BEAST_HTTP_IMPL_FIELD_IPP
 
-#include <beast/core/detail/ci_char_traits.hpp>
 #include <algorithm>
 #include <array>
 #include <boost/assert.hpp>
@@ -435,13 +434,13 @@ string_to_field(string_view s)
     auto const& v = get_field_strings();
     auto const it = std::lower_bound(
         v.begin(), v.end(), s,
-            beast::detail::ci_less{});
+            beast::iless{});
     if(it == v.end())
         return field::unknown;
-    if(! beast::detail::ci_equal(s, *it))
+    if(! iequals(s, *it))
         return field::unknown;
-    BOOST_ASSERT(beast::detail::ci_equal(s,
-        to_string(static_cast<field>(it - v.begin()))));
+    BOOST_ASSERT(iequals(s, to_string(
+        static_cast<field>(it - v.begin()))));
     return static_cast<field>(it - v.begin());
 }
 

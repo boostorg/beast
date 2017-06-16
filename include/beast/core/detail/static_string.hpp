@@ -8,7 +8,7 @@
 #ifndef BEAST_DETAIL_STATIC_STRING_HPP
 #define BEAST_DETAIL_STATIC_STRING_HPP
 
-#include <beast/core/string_view.hpp>
+#include <beast/core/string.hpp>
 #include <iterator>
 #include <type_traits>
 

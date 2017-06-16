@@ -8,7 +8,7 @@
 #ifndef BEAST_EXAMPLE_HTTP_MIME_TYPE_H_INCLUDED
 #define BEAST_EXAMPLE_HTTP_MIME_TYPE_H_INCLUDED
 
-#include <beast/core/string_view.hpp>
+#include <beast/core/string.hpp>
 #include <boost/filesystem/path.hpp>
 #include <string>
 

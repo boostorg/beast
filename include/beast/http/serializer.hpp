@@ -11,7 +11,7 @@
 #include <beast/config.hpp>
 #include <beast/core/buffer_cat.hpp>
 #include <beast/core/consuming_buffers.hpp>
-#include <beast/core/string_view.hpp>
+#include <beast/core/string.hpp>
 #include <beast/core/type_traits.hpp>
 #include <beast/http/message.hpp>
 #include <beast/http/detail/chunk_encode.hpp>

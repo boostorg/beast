@@ -11,7 +11,6 @@
 #include <beast/core/error.hpp>
 #include <beast/core/consuming_buffers.hpp>
 #include <beast/core/read_size.hpp>
-#include <beast/core/detail/ci_char_traits.hpp>
 #include <beast/zlib/deflate_stream.hpp>
 #include <beast/zlib/inflate_stream.hpp>
 #include <beast/websocket/option.hpp>
@@ -77,16 +76,15 @@ pmd_read(pmd_offer& offer, Fields const& fields)
     offer.server_no_context_takeover = false;
     offer.client_no_context_takeover = false;
 
-    using beast::detail::ci_equal;
     http::ext_list list{
         fields["Sec-WebSocket-Extensions"]};
     for(auto const& ext : list)
     {
-        if(ci_equal(ext.first, "permessage-deflate"))
+        if(iequals(ext.first, "permessage-deflate"))
         {
             for(auto const& param : ext.second)
             {
-                if(ci_equal(param.first,
+                if(iequals(param.first,
                     "server_max_window_bits"))
                 {
                     if(offer.server_max_window_bits != 0)
@@ -114,7 +112,7 @@ pmd_read(pmd_offer& offer, Fields const& fields)
                         return; // MUST decline
                     }
                 }
-                else if(ci_equal(param.first,
+                else if(iequals(param.first,
                     "client_max_window_bits"))
                 {
                     if(offer.client_max_window_bits != 0)
@@ -142,7 +140,7 @@ pmd_read(pmd_offer& offer, Fields const& fields)
                         offer.client_max_window_bits = -1;
                     }
                 }
-                else if(ci_equal(param.first,
+                else if(iequals(param.first,
                     "server_no_context_takeover"))
                 {
                     if(offer.server_no_context_takeover)
@@ -161,7 +159,7 @@ pmd_read(pmd_offer& offer, Fields const& fields)
                     }
                     offer.server_no_context_takeover = true;
                 }
-                else if(ci_equal(param.first,
+                else if(iequals(param.first,
                     "client_no_context_takeover"))
                 {
                     if(offer.client_no_context_takeover)
