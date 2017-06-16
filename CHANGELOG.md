@@ -1,6 +1,7 @@
 Version 59:
 
 * Integrated Beast INTERFACE (cmake)
+* Fix base64 alphabet
 
 API Changes:
 
