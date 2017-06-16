@@ -1,3 +1,19 @@
+Version 59:
+
+* Integrated Beast INTERFACE (cmake)
+
+API Changes:
+
+* Change Body::size signature (API Change):
+
+Actions Required:
+
+* For any user-defined models of Body, change the function signature
+  to accept `value_type const&` and modify the function definition
+  accordingly.
+
+--------------------------------------------------------------------------------
+
 Version 58:
 
 * Fix unaligned reads in utf8-checker

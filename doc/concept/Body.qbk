@@ -48,10 +48,10 @@ In this table:
         the message body for serialization.
     ]
 ][
-    [`X::size(m)`]
+    [`X::size(X::value_type const& v)`]
     [`std::uint64_t`]
     [
-        If present, returns the serialized size of `m.body` not including
+        If present, returns the serialized size of `v` not including
         any chunked transfer encoding. When this function is provided,
         [link beast.ref.beast__http__message.prepare `message::prepare`]
         will automatically set the content length field based on the
@@ -80,10 +80,9 @@ struct body
     class writer;
 
     /// Returns the body's payload size
-    template<bool isRequest, class Fields>
     static
     std::uint64_t
-    size(message<isRequest, empty_body, Fields> const& m);
+    size(value_type const& v);
 }
 ```
 

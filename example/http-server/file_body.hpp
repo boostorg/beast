@@ -48,10 +48,9 @@ struct file_body
 
         @return The size of the file in bytes.
     */
-    template<bool isRequest, class Fields>
     static
     std::uint64_t
-    size(message<isRequest, file_body, Fields> const& m);
+    size(value_type const& v);
 
     /** Algorithm for retrieving buffers when serializing.
 
@@ -72,12 +71,11 @@ struct file_body
 
 //[example_http_file_body_2
 
-template<bool isRequest, class Fields>
 std::uint64_t
 file_body::
-size(message<isRequest, file_body, Fields> const& m)
+size(value_type const& v)
 {
-    return boost::filesystem::file_size(m.body);
+    return boost::filesystem::file_size(v);
 }
 
 //]

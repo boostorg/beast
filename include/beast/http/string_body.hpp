@@ -31,13 +31,11 @@ struct string_body
     using value_type = std::string;
 
     /// Returns the content length of the body in a message.
-    template<bool isRequest, class Fields>
     static
     std::uint64_t
-    size(
-        message<isRequest, string_body, Fields> const& m)
+    size(value_type const& v)
     {
-        return m.body.size();
+        return v.size();
     }
 
 #if BEAST_DOXYGEN
