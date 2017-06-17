@@ -5,7 +5,7 @@
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 ]
 
-[section:serializer_buffers Buffer-Oriented Serializing]
+[section Buffer-Oriented Serializing]
 [block'''<?dbhtml stop-chunking?>''']
 
 An instance of __serializer__ can be invoked directly, without using

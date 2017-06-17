@@ -5,14 +5,31 @@
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 ]
 
-[section:custom_body Custom Body Types]
+[section Custom Body Types]
 [block'''<?dbhtml stop-chunking?>''']
 
 User-defined types are possible for the message body, where the type meets the
 __Body__ requirements. This simplified class declaration
 shows the customization points available to user-defined body types:
+```
+/// Defines a Body type
+struct body
+{
+    /// This determines the type of the `message::body` member
+    using value_type = ...;
 
-[$images/body.png [width 525px] [height 190px]]
+    /// An optional function, returns the body's payload size
+    static
+    std::uint64_t
+    size(value_type const& v);
+
+    /// The algorithm used for extracting buffers
+    class reader;
+
+    /// The algorithm used for inserting buffers
+    class writer;
+}
+```
 
 The meaning of the nested types is as follows
 
@@ -80,7 +97,7 @@ those bodies may be serialized or parsed.
 
 
 
-[section File Body Type]
+[section File Body]
 
 Use of the flexible __Body__ concept customization point enables authors to
 preserve the self-contained nature of the __message__ object while allowing

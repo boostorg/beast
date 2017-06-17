@@ -5,7 +5,7 @@
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 ]
 
-[section:parser_streams Parser Stream Operations]
+[section Parser Stream Operations]
 
 Non-trivial algorithms need to do more than receive entire messages
 at once, such as:

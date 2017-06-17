@@ -5,7 +5,7 @@
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 ]
 
-[section:messages Send and Receive Messages]
+[section Send and Receive Messages]
 
 After the WebSocket handshake is accomplished, callers may send and receive
 messages using the message oriented interface. This interface requires that

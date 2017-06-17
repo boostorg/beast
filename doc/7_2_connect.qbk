@@ -5,7 +5,7 @@
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 ]
 
-[section:connect Establishing Connections]
+[section Establishing Connections]
 
 Connections are established by invoking functions directly on the next layer
 object. For example, to make an outgoing connection using a standard TCP/IP

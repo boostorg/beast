@@ -5,7 +5,7 @@
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 ]
 
-[section:composed Composed Operations]
+[section Composed Operations]
 [block'''<?dbhtml stop-chunking?>''']
 
 Asynchronous operations are started by calling a free function or member
@@ -103,7 +103,7 @@ available:
 
 
 
-[section Asynchronous Echo]
+[section Echo]
 
 Here we develop an asynchronous composed operation called [*echo].
 This operation will read up to the first newline on a stream, and

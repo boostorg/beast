@@ -5,14 +5,8 @@
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 ]
 
-[section:example Examples]
+[section Quick Start]
 [block'''<?dbhtml stop-chunking?>''']
-
-These complete programs are intended to quickly impress upon readers the
-flavor of the library. Source code and build scripts for them are located
-in the examples directory.
-
-
 
 [section HTTP Client]
 
@@ -21,6 +15,38 @@ Use HTTP to make a GET request to a website and print the response:
 File: [repo_file example/http-client/http_client.cpp]
 
 [example_http_client]
+
+[endsect]
+
+[section WebSocket Client]
+
+Establish a WebSocket connection, send a message and receive the reply:
+
+File: [repo_file example/websocket-client/websocket_client.cpp]
+
+[example_websocket_client]
+
+[endsect]
+
+[endsect]
+
+
+
+[section Examples]
+[block'''<?dbhtml stop-chunking?>''']
+
+These complete programs are intended to quickly impress upon readers the
+flavor of the library. Source code and build scripts for them are located
+in the examples directory.
+
+
+
+[section HTTP Crawl]
+
+This example retrieves the page at each of the most popular domains
+as measured by Alexa.
+
+* [repo_file example/http-crawl/http_crawl.cpp]
 
 [endsect]
 
@@ -37,35 +63,39 @@ over a TLS connection. Requires OpenSSL to build.
 
 
 
-[section HTTP Crawl]
-
-This example retrieves the page at each of the most popular domains
-as measured by Alexa.
-
-* [repo_file example/http-crawl/http_crawl.cpp]
-
-[endsect]
-
-
-
-[section WebSocket Client]
-
-Establish a WebSocket connection, send a message and receive the reply:
-
-File: [repo_file example/websocket-client/websocket_client.cpp]
-
-[example_websocket_client]
-
-[endsect]
-
-
-
 [section WebSocket Client (with SSL)]
 
 Establish a WebSocket connection over an encrypted TLS connection,
 send a message and receive the reply. Requires OpenSSL to build.
 
 * [repo_file example/ssl/websocket_ssl_example.cpp]
+
+[endsect]
+
+
+
+[section Documentation Samples]
+
+Here are all of the example functions and classes presented
+throughout the documentation, they can be included and used
+in your program without modification
+
+* [repo_file example/doc/core_examples.hpp]
+
+* [repo_file example/doc/http_examples.hpp]
+
+[endsect]
+
+
+
+[section Composed Operations]
+
+This program shows how to use Beast's network foundations to build a
+composable asynchronous initiation function with associated composed
+operation implementation. This is a complete, runnable version of
+the example described in the Core Foundations document section.
+
+* [repo_file example/echo-op/echo_op.cpp]
 
 [endsect]
 
@@ -91,33 +121,6 @@ for writing their own servers. It serves both HTTP and WebSocket.
 * [repo_file example/server-framework/ws_async_port.hpp]
 * [repo_file example/server-framework/ws_sync_port.hpp]
 * [repo_file example/server-framework/ws_upgrade_service.hpp]
-
-[endsect]
-
-
-
-[section Composed Operations]
-
-This program shows how to use Beast's network foundations to build a
-composable asynchronous initiation function with associated composed
-operation implementation. This is a complete, runnable version of
-the example described in the Core Foundations document section.
-
-* [repo_file example/echo-op/echo_op.cpp]
-
-[endsect]
-
-
-
-[section Documentation Samples]
-
-Here are all of the example functions and classes presented
-throughout the documentation, they can be included and used
-in your program without modification
-
-* [repo_file example/doc/core_examples.hpp]
-
-* [repo_file example/doc/http_examples.hpp]
 
 [endsect]
 

@@ -5,7 +5,7 @@
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 ]
 
-[section:overview Introduction]
+[section Introduction]
 
 Beast is a C++ header-only library serving as a foundation for writing
 interoperable networking libraries by providing [*low-level HTTP/1,

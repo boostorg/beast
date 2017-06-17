@@ -5,7 +5,7 @@
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 ]
 
-[section:http_comparison HTTP Comparison to Other Libraries]
+[section HTTP Comparison to Other Libraries]
 
 There are a few C++ published libraries which implement some of the HTTP
 protocol. We analyze the message model chosen by those libraries and discuss

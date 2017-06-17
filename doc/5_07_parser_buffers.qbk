@@ -5,7 +5,7 @@
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 ]
 
-[section:parser_buffers Buffer-Oriented Parsing]
+[section Buffer-Oriented Parsing]
 [block'''<?dbhtml stop-chunking?>''']
 
 A subclass of __basic_parser__ can be invoked directly, without using 

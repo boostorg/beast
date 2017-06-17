@@ -5,7 +5,7 @@
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 ]
 
-[section:server Handshaking (Servers)]
+[section Handshaking (Servers)]
 
 A
 [link beast.ref.beast__websocket__stream `stream`]

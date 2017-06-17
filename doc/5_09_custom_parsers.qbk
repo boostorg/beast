@@ -5,7 +5,7 @@
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 ]
 
-[section:custom_parsers Custom Parsers]
+[section Custom Parsers]
 
 While the parsers included in the library will handle a broad number of
 use-cases, the __basic_parser__ interface can be subclassed to implement

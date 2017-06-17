@@ -5,7 +5,7 @@
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 ]
 
-[section:http_message HTTP Message Container]
+[section HTTP Message Container]
 
 In this section we describe the problem of modeling HTTP messages and explain
 how the library arrived at its solution, with a discussion of the benefits

@@ -5,7 +5,7 @@
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 ]
 
-[section:streams Creating Streams]
+[section Creating Streams]
 
 The interface to the WebSocket implementation is a single template class
 [link beast.ref.beast__websocket__stream `stream`]
