@@ -5,7 +5,7 @@
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 ]
 
-[section:notes Notes]
+[section Notes]
 
 Because calls to read data may return a variable amount of bytes, the
 interface to calls that read data require an object that meets the requirements

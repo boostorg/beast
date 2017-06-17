@@ -5,7 +5,7 @@
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 ]
 
-[section:message Message Containers]
+[section Message Containers]
 
 Beast provides a single class template __message__ which models
 HTTP/1 and

@@ -32,7 +32,6 @@ install images
     :
         [ glob $(broot)/doc/src/images/*.png ]
         images/beast.png
-        images/body.png
         images/message.png
     :
         <location>$(out)/html/images

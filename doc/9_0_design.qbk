@@ -5,7 +5,7 @@
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 ]
 
-[section:design Design Choices]
+[section Design Choices]
 
 The implementations were originally driven by business needs of cryptocurrency
 server applications (e.g.  [@https://github.com/ripple/rippled rippled]),

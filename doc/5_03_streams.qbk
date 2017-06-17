@@ -5,7 +5,7 @@
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 ]
 
-[section:streams Message Stream Operations]
+[section Message Stream Operations]
 
 Beast provides synchronous and asynchronous algorithms to parse and
 serialize HTTP/1 wire format messages on streams. These functions form

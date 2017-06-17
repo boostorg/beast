@@ -87,7 +87,7 @@
 [import ../test/websocket/doc_snippets.cpp]
 [import ../test/websocket/ssl/doc_snippets.cpp]
 
-[include 1_overview.qbk]
+[include 1_intro.qbk]
 [include 2_examples.qbk]
 [include 3_0_core.qbk]
 [include 5_00_http.qbk]

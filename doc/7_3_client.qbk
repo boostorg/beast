@@ -5,7 +5,7 @@
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 ]
 
-[section:client Handshaking (Clients)]
+[section Handshaking (Clients)]
 
 A WebSocket session begins when a client sends the HTTP/1
 [@https://tools.ietf.org/html/rfc7230#section-6.7 Upgrade]

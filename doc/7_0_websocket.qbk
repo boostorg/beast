@@ -5,7 +5,7 @@
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 ]
 
-[section:websocket Using WebSocket]
+[section Using WebSocket]
 
 The WebSocket Protocol enables two-way communication between a client
 running untrusted code in a controlled environment to a remote host that has
