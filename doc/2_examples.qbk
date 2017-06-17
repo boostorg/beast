@@ -113,14 +113,18 @@ for writing their own servers. It serves both HTTP and WebSocket.
 * [repo_file example/server-framework/http_async_port.hpp]
 * [repo_file example/server-framework/http_base.hpp]
 * [repo_file example/server-framework/http_sync_port.hpp]
+* [repo_file example/server-framework/https_ports.hpp]
 * [repo_file example/server-framework/main.cpp]
 * [repo_file example/server-framework/rfc7231.hpp]
 * [repo_file example/server-framework/server.hpp]
 * [repo_file example/server-framework/service_list.hpp]
+* [repo_file example/server-framework/ssl_certificate.hpp]
+* [repo_file example/server-framework/ssl_stream.hpp]
 * [repo_file example/server-framework/write_msg.hpp]
 * [repo_file example/server-framework/ws_async_port.hpp]
 * [repo_file example/server-framework/ws_sync_port.hpp]
 * [repo_file example/server-framework/ws_upgrade_service.hpp]
+* [repo_file example/server-framework/wss_ports.hpp]
 
 [endsect]
 

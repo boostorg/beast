@@ -42,7 +42,7 @@ namespace framework {
     @tparam Services The list of services this connection will support.
 */
 template<class Derived, class... Services>
-class sync_http_con
+class sync_http_con_base
     : public http_base
 {
     // This function lets us access members of the derived class
@@ -71,7 +71,7 @@ class sync_http_con
 
 public:
     /// Constructor
-    sync_http_con(
+    sync_http_con_base(
         beast::string_view server_name,
         std::ostream& log,
         service_list<Services...> const& services,
@@ -90,17 +90,34 @@ public:
     {
     }
 
+    // This is called to start the connection after
+    // it is accepted.
+    //
     void
     run()
     {
         // Bind a shared pointer into the lambda for the
-        // thread, so the sync_http_con is destroyed after
+        // thread, so the sync_http_con_base is destroyed after
         // the thread function exits.
         //
         std::thread{
-            &sync_http_con::do_run,
+            &sync_http_con_base::do_run,
             impl().shared_from_this()
         }.detach();
+    }
+
+protected:
+    // Called when a failure occurs
+    //
+    void
+    fail(std::string what, error_code ec)
+    {
+        if(ec)
+        {
+            log_ <<
+                "[#" << id_ << " " << ep_ << "] " <<
+            what << ": " << ec.message() << std::endl;
+        }
     }
 
 private:
@@ -113,7 +130,7 @@ private:
     struct send_lambda
     {
         // holds "this"
-        sync_http_con& self_;
+        sync_http_con_base& self_;
 
         // holds the captured error code
         error_code& ec_;
@@ -123,7 +140,7 @@ private:
         //
         // Capture "this" and "ec"
         //
-        send_lambda(sync_http_con& self, error_code& ec)
+        send_lambda(sync_http_con_base& self, error_code& ec)
             : self_(self)
             , ec_(ec)
         {
@@ -146,6 +163,16 @@ private:
     void
     do_run()
     {
+        error_code ec;
+
+        // Give the derived class a chance to do stuff before we
+        // enter the main loop. This is for SSL connections really.
+        //
+        impl().do_handshake(ec);
+
+        if(ec)
+            return fail("handshake", ec);
+
         // The main connection loop, we alternate between
         // reading a request and sending a response. On
         // error we log and return, which destroys the thread
@@ -153,8 +180,6 @@ private:
         //
         for(;;)
         {
-            error_code ec;
-
             // Arguments passed to the parser constructor are
             // forwarded to the message object. A single argument
             // is forwarded to the body constructor.
@@ -167,8 +192,20 @@ private:
             // Read the header first
             beast::http::read_header(impl().stream(), buffer_, parser, ec);
 
+            // This happens when the other end closes gracefully
+            //
+            if(ec == beast::http::error::end_of_stream)
+            {
+                // Give the derived class a chance to do stuff
+                impl().do_shutdown(ec);
+                if(ec)
+                    return fail("shutdown", ec);
+                return;
+            }
+
+            // Any other error and we fail the connection
             if(ec)
-                return fail("on_read", ec);
+                return fail("read_header", ec);
 
             send_lambda send{*this, ec};
 
@@ -182,56 +219,103 @@ private:
                 // so send the appropriate response synchronously.
                 //
                 send(this->continue_100(req));
+
+                // This happens when we send an HTTP message
+                // whose semantics indicate that the connection
+                // should be closed afterwards. For example if
+                // we send a Connection: close.
+                //
+                if(ec == beast::http::error::end_of_stream)
+                {
+                    // Give the derived class a chance to do stuff
+                    impl().do_shutdown(ec);
+                    if(ec)
+                        return fail("shutdown", ec);
+                    return;
+                }
+
+                // Have to check the error every time we call the lambda
+                //
+                if(ec)
+                    return fail("write", ec);
             }
 
             // Read the rest of the message, if any.
             //
             beast::http::read(impl().stream(), buffer_, parser, ec);
 
-            // Give each services a chance to handle the request
+            // Shouldn't be getting end_of_stream here;
+            // that would mean that we got an incomplete
+            // message, counting as an error.
+            //
+            if(ec)
+                return fail("read", ec);
+
+            // Give each service a chance to handle the request
             //
             if(! services_.respond(
-                    impl().stream(),
-                    ep_,
-                    std::move(req),
-                    send))
+                std::move(impl().stream()),
+                ep_,
+                std::move(req),
+                send))
             {
                 // No service handled the request,
                 // send a Bad Request result to the client.
                 //
                 send(this->bad_request(req));
+
+                // This happens when we send an HTTP message
+                // whose semantics indicate that the connection
+                // should be closed afterwards. For example if
+                // we send a Connection: close.
+                //
+                if(ec == beast::http::error::end_of_stream)
+                {
+                    // Give the derived class a chance to do stuff
+                    impl().do_shutdown(ec);
+                    if(ec)
+                        return fail("shutdown", ec);
+                    return;
+                }
+
+                // Have to check the error every time we call the lambda
+                //
+                if(ec)
+                    return fail("write", ec);
             }
             else
             {
+                // This happens when we send an HTTP message
+                // whose semantics indicate that the connection
+                // should be closed afterwards. For example if
+                // we send a Connection: close.
+                //
+                if(ec == beast::http::error::end_of_stream)
+                {
+                    // Give the derived class a chance to do stuff
+                    impl().do_shutdown(ec);
+                    if(ec)
+                        return fail("shutdown", ec);
+                    return;
+                }
+
+                // Have to check the error every time we call the lambda
+                //
+                if(ec)
+                    return fail("write", ec);
+
                 // See if the service that handled the
                 // response took ownership of the stream.
-                if(! impl().stream().is_open())
+                if(! impl().stream().lowest_layer().is_open())
                 {
                     // They took ownership so just return and
-                    // let this sync_http_con object get destroyed.
+                    // let this sync_http_con_base object get destroyed.
                     return;
                 }
             }
 
-            if(ec)
-                return fail("on_write", ec);
-
             // Theres no pipelining possible in a synchronous server
             // because we can't do reads and writes at the same time.
-        }
-    }
-
-    // Called when a failure occurs
-    //
-    void
-    fail(std::string what, error_code ec)
-    {
-        if( ec != beast::http::error::end_of_stream &&
-            ec != boost::asio::error::operation_aborted)
-        {
-            log_ <<
-                "[#" << id_ << " " << ep_ << "] " <<
-            what << ": " << ec.message() << std::endl;
         }
     }
 };
@@ -242,12 +326,12 @@ private:
 // uses a plain TCP/IP socket (no encryption) as the stream.
 //
 template<class... Services>
-class sync_http_con_plain
+class sync_http_con
 
     // Note that we give this object the `enable_shared_from_this`, and have
     // the base class call `impl().shared_from_this()` when needed.
     //
-    : public std::enable_shared_from_this<sync_http_con_plain<Services...>>
+    : public std::enable_shared_from_this<sync_http_con<Services...>>
 
     // We want the socket to be created before the base class so we use
     // the "base from member" idiom which Boost provides as a class.
@@ -256,17 +340,17 @@ class sync_http_con_plain
 
     // Declare this base last now that everything else got set up first.
     //
-    , public sync_http_con<sync_http_con_plain<Services...>, Services...>
+    , public sync_http_con_base<sync_http_con<Services...>, Services...>
 {
 public:
     // Construct the plain connection.
     //
     template<class... Args>
-    sync_http_con_plain(
+    sync_http_con(
         socket_type&& sock,
         Args&&... args)
         : base_from_member<socket_type>(std::move(sock))
-        , sync_http_con<sync_http_con_plain<Services...>, Services...>(
+        , sync_http_con_base<sync_http_con<Services...>, Services...>(
             std::forward<Args>(args)...)
     {
     }
@@ -280,6 +364,29 @@ public:
     stream()
     {
         return this->member;
+    }
+
+private:
+    // Base class needs to be a friend to call our private members
+    friend class sync_http_con_base<sync_http_con<Services...>, Services...>;
+
+    // This is called by the base before running the main loop.
+    // There's nothing to do for a plain connection.
+    //
+    void
+    do_handshake(error_code& ec)
+    {
+        // This is required by the specifications for error_code
+        //
+        ec = {};
+    }
+
+    // This is called when the other end closes the connection gracefully.
+    //
+    void
+    do_shutdown(error_code& ec)
+    {
+        stream().shutdown(socket_type::shutdown_both, ec);
     }
 };
 
@@ -345,7 +452,7 @@ public:
         // Create a plain http connection object
         // and transfer ownership of the socket.
         //
-        std::make_shared<sync_http_con_plain<Services...>>(
+        std::make_shared<sync_http_con<Services...>>(
             std::move(sock),
             "http_sync_port",
             log_,
