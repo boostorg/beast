@@ -57,7 +57,7 @@ as measured by Alexa.
 This example demonstrates sending and receiving HTTP messages
 over a TLS connection. Requires OpenSSL to build.
 
-* [repo_file example/ssl/http_ssl_example.cpp]
+* [repo_file example/ssl-http-client/ssl_http_client.cpp]
 
 [endsect]
 
@@ -68,7 +68,7 @@ over a TLS connection. Requires OpenSSL to build.
 Establish a WebSocket connection over an encrypted TLS connection,
 send a message and receive the reply. Requires OpenSSL to build.
 
-* [repo_file example/ssl/websocket_ssl_example.cpp]
+* [repo_file example/ssl-websocket-client/ssl_websocket_client.cpp]
 
 [endsect]
 

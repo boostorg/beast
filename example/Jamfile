@@ -10,3 +10,7 @@ build-project http-client ;
 build-project http-crawl ;
 build-project server-framework ;
 build-project websocket-client ;
+
+# VFALCO How do I make this work on Windows and if OpenSSL is not available?
+#build-project ssl-http-client ;
+#build-project ssl-websocket-client ;
