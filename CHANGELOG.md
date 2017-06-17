@@ -1,6 +1,7 @@
 Version 61:
 
 * Remove Spirit dependency
+* Use generic_cateogry for errno
 
 --------------------------------------------------------------------------------
 
