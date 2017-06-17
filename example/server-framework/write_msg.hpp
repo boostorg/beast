@@ -35,9 +35,19 @@ template<
     bool isRequest, class Body, class Fields>
 class write_msg_op
 {
+    // This composed operation has a state which is not trivial
+    // to copy (msg) so we need to store the state in an allocated
+    // object.
+    //
     struct data
     {
+        // The stream we are writing to
         AsyncWriteStream& stream;
+
+        // The message we are sending. Note that this composed
+        // operation takes ownership of the message and destroys
+        // it when it is done.
+        //
         beast::http::message<isRequest, Body, Fields> msg;
 
         data(
@@ -50,19 +60,40 @@ class write_msg_op
         }
     };
 
+    // `handler_ptr` is a utility which helps to manage a composed
+    // operation's state. It is similar to a shared pointer, but
+    // it uses handler allocation hooks to allocate and free memory,
+    // and it also helps to meet Asio's deallocate-before-invocation
+    // guarantee.
+    //
     beast::handler_ptr<data, Handler> d_;
 
 public:
+    // Asio can move and copy the handler, we support both
     write_msg_op(write_msg_op&&) = default;
     write_msg_op(write_msg_op const&) = default;
 
-    template<class DeducedHandler, class... Args>
-    write_msg_op(DeducedHandler&& h, AsyncWriteStream& s, Args&&... args)
+    // Constructor
+    //
+    // We take the handler as a template type to
+    // support both const and rvalue references.
+    //
+    template<
+        class DeducedHandler,
+        class... Args>
+    write_msg_op(
+        DeducedHandler&& h,
+        AsyncWriteStream& s,
+        Args&&... args)
         : d_(std::forward<DeducedHandler>(h),
             s, std::forward<Args>(args)...)
     {
     }
 
+    // Entry point
+    //
+    // The initiation function calls this to start the operation
+    //
     void
     operator()()
     {
@@ -71,11 +102,21 @@ public:
             d.stream, d.msg, std::move(*this));
     }
 
+    // Completion handler
+    //
+    // This gets called when beast::http::async_write completes
+    //
     void
     operator()(error_code ec)
     {
         d_.invoke(ec);
     }
+
+    //
+    // These hooks are necessary for Asio
+    //
+    // The meaning is explained in the Beast documentation
+    //
 
     friend
     void* asio_handler_allocate(

@@ -35,7 +35,7 @@ namespace framework {
     synchronous calls.
 
     It uses the Curiously Recurring Template pattern (CRTP) where
-    we refer to the derivd class in order to access the stream object
+    we refer to the derived class in order to access the stream object
     to use for reading and writing. This lets the same class be used
     for plain and SSL stream objects.
 
@@ -45,6 +45,7 @@ template<class Derived, class... Services>
 class sync_http_con
     : public http_base
 {
+    // This function lets us access members of the derived class
     Derived&
     impl()
     {
@@ -271,6 +272,7 @@ public:
     }
 
     // Returns the stream.
+    //
     // The base class calls this to obtain the object to
     // use for reading and writing HTTP messages.
     //
@@ -297,7 +299,12 @@ class http_sync_port
     service_list<Services...> services_;
 
 public:
-    // Constructor
+    /** Constructor
+
+        @param instance The server instance which owns this port
+
+        @param log The stream to use for logging
+    */
     http_sync_port(
         server& instance,
         std::ostream& log)

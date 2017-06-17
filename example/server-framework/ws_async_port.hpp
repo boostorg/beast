@@ -21,13 +21,11 @@ namespace framework {
 // This object holds the state of the connection
 // including, most importantly, the socket or stream.
 //
-// `Stream` is the type of socket or stream used as the
-// transport. Examples include boost::asio::ip::tcp::socket
-// or `ssl_stream`.
 //
 template<class Derived>
 class async_ws_con
 {
+    // This function lets us access members of the derived class
     Derived&
     impl()
     {
@@ -201,12 +199,28 @@ private:
 
 //------------------------------------------------------------------------------
 
+// This class represents an asynchronous WebSocket connection
+// which uses a plain TCP/IP socket (no encryption) as the stream.
+//
 class async_ws_con_plain
+
+    // Note that we give this object the `enable_shared_from_this`, and have
+    // the base class call `impl().shared_from_this()` when needed.
+    //
     : public std::enable_shared_from_this<async_ws_con_plain>
+
+    // We want the socket to be created before the base class so we use
+    // the "base from member" idiom which Boost provides as a class.
+    //
     , public base_from_member<beast::websocket::stream<socket_type>>
+
+    // Declare this base last now that everything else got set up first.
+    //
     , public async_ws_con<async_ws_con_plain>
 {
 public:
+    // Construct the plain connection.
+    //
     template<class... Args>
     explicit
     async_ws_con_plain(
@@ -217,6 +231,10 @@ public:
     {
     }
 
+    // Returns the stream.
+    //
+    // The base class calls this to obtain the websocket stream object.
+    //
     beast::websocket::stream<socket_type>&
     ws()
     {
@@ -226,7 +244,7 @@ public:
 
 //------------------------------------------------------------------------------
 
-/** An synchronous WebSocket @b PortHandler which implements echo.
+/** An asynchronous WebSocket @b PortHandler which implements echo.
 
     This is a port handler which accepts WebSocket upgrade HTTP
     requests and implements the echo protocol. All received
@@ -272,10 +290,10 @@ public:
     {
     }
 
-    /** Accept a TCP/IP async_ws_con.
+    /** Accept a TCP/IP connection.
 
         This function is called when the server has accepted an
-        incoming async_ws_con.
+        incoming connection.
 
         @param sock The connected socket.
 
@@ -298,10 +316,10 @@ public:
 
     /** Accept a WebSocket upgrade request.
 
-        This is used to accept a async_ws_con that has already
+        This is used to accept a connection that has already
         delivered the handshake.
 
-        @param stream The stream corresponding to the async_ws_con.
+        @param stream The stream corresponding to the connection.
 
         @param ep The remote endpoint.
 
@@ -310,12 +328,12 @@ public:
     template<class Body, class Fields>
     void
     accept(
-        socket_type&& stream,
+        socket_type&& sock,
         endpoint_type ep,
         beast::http::request<Body, Fields>&& req)
     {
         std::make_shared<async_ws_con_plain>(
-            std::move(stream),
+            std::move(sock),
             "ws_async_port",
             log_,
             instance_.next_id(),

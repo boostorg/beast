@@ -19,16 +19,20 @@
 
 namespace framework {
 
-// The connection object holds the state of the connection
-// including, most importantly, the socket or stream.
-//
-// `Stream` is the type of socket or stream used as the
-// transport. Examples include boost::asio::ip::tcp::socket
-// or `ssl_stream`.
-//
+/** A synchronous WebSocket connection.
+
+    This base class implements a WebSocket connection object
+    using synchronous calls.
+
+    It uses the Curiously Recurring Template pattern (CRTP) where
+    we refer to the derived class in order to access the stream object
+    to use for reading and writing. This lets the same class be used
+    for plain and SSL stream objects.
+*/
 template<class Derived>
 class sync_ws_con
 {
+    // This function lets us access members of the derived class
     Derived&
     impl()
     {
@@ -237,12 +241,28 @@ private:
 
 //------------------------------------------------------------------------------
 
+// This class represents a synchronous WebSocket connection
+// which uses a plain TCP/IP socket (no encryption) as the stream.
+//
 class sync_ws_con_plain
+
+    // Note that we give this object the `enable_shared_from_this`, and have
+    // the base class call `impl().shared_from_this()` when needed.
+    //
     : public std::enable_shared_from_this<sync_ws_con_plain>
+
+    // We want the socket to be created before the base class so we use
+    // the "base from member" idiom which Boost provides as a class.
+    //
     , public base_from_member<beast::websocket::stream<socket_type>>
+
+    // Declare this base last now that everything else got set up first.
+    //
     , public sync_ws_con<sync_ws_con_plain>
 {
 public:
+    // Construct the plain connection.
+    //
     template<class... Args>
     explicit
     sync_ws_con_plain(
@@ -253,6 +273,10 @@ public:
     {
     }
 
+    // Returns the stream.
+    //
+    // The base class calls this to obtain the websocket stream object.
+    //
     beast::websocket::stream<socket_type>&
     ws()
     {
