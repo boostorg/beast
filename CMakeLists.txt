@@ -70,6 +70,13 @@ endif()
 
 find_package(OpenSSL)
 
+if (OPENSSL_FOUND)
+    add_definitions (-DBEAST_USE_OPENSSL=1)
+else()
+    add_definitions (-DBEAST_USE_OPENSSL=0)
+    message("OpenSSL not found.")
+endif()
+
 #
 #-------------------------------------------------------------------------------
 
@@ -182,9 +189,7 @@ add_subdirectory (test)
 
 add_subdirectory (example)
 
-if (NOT OPENSSL_FOUND)
-    message("OpenSSL not found. Not building SSL tests and examples")
-else()
+if (OPENSSL_FOUND)
     add_subdirectory (example/ssl-http-client)
     add_subdirectory (example/ssl-websocket-client)
     add_subdirectory (test/websocket/ssl)
