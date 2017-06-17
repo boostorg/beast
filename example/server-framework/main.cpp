@@ -12,6 +12,12 @@
 #include "ws_async_port.hpp"
 #include "ws_sync_port.hpp"
 
+#if BEAST_USE_OPENSSL
+#include "https_ports.hpp"
+#include "wss_ports.hpp"
+#include "ssl_certificate.hpp"
+#endif
+
 #include "file_service.hpp"
 #include "ws_upgrade_service.hpp"
 
@@ -133,6 +139,13 @@ main(
     // Create our server instance with the specified number of threads
     server instance{threads};
 
+    //--------------------------------------------------------------------------
+    //
+    // Asynchronous WebSocket   HTTP
+    //
+    //              port        port + 1
+    //
+    //--------------------------------------------------------------------------
     {
         // Install an asynchronous WebSocket echo port handler
         //
@@ -185,6 +198,13 @@ main(
             return fail("http_async_port/file_service", ec);
     }
 
+    //--------------------------------------------------------------------------
+    //
+    // Synchronous  WebSocket   HTTP
+    //
+    //              port + 2    port + 3
+    //
+    //--------------------------------------------------------------------------
     {
         // Install a synchronous WebSocket echo port handler
         //
@@ -237,6 +257,139 @@ main(
         if(ec)
             return fail("http_sync_port/file_service", ec);
     }
+
+    //
+    // If OpenSSL is available then install some SSL-enabled ports
+    //
+
+#if BEAST_USE_OPENSSL
+
+    ssl_certificate cert;
+
+    //--------------------------------------------------------------------------
+    //
+    // Asynchronous Secure WebSocket    HTTPS
+    //
+    //              port + 4            port + 5
+    //
+    //--------------------------------------------------------------------------
+    {
+        // Install an asynchronous Secure WebSocket echo port handler
+        //
+        auto wsp = instance.make_port<wss_async_port>(
+            ec,
+            endpoint_type{addr,
+                static_cast<unsigned short>(port + 4)},
+            instance,
+            std::cout,
+            cert.get(),
+            set_ws_options{pmd}
+        );
+
+        if(ec)
+            return fail("ws_async_port", ec);
+
+        // Install an asynchronous HTTPS port handler
+        //
+        auto sp = instance.make_port<https_async_port<
+                ws_upgrade_service<wss_async_port>,
+                file_service
+            >>(
+            ec,
+            endpoint_type{addr,
+                static_cast<unsigned short>(port + 5)},
+            instance,
+            std::cout,
+            cert.get());
+
+        if(ec)
+            return fail("https_async_port", ec);
+
+        // Set up the ws_upgrade_service. We will route upgrade
+        // requests to the websocket port handler created earlier.
+        //
+        sp->template init<0>(
+            ec,
+            wsp                     // The websocket port handler
+            );
+
+        if(ec)
+            return fail("https_async_port/ws_upgrade_service", ec);
+
+        // Set up the file_service to point to the root path.
+        //
+        sp->template init<1>(
+            ec,
+            root,                   // The root path
+            "https_async_port"      // The value for the Server field
+            );
+
+        if(ec)
+            return fail("https_async_port/file_service", ec);
+    }
+
+    //--------------------------------------------------------------------------
+    //
+    // Synchronous  Secure WebSocket    HTTPS
+    //
+    //              port + 6            port + 7
+    //
+    //--------------------------------------------------------------------------
+    {
+        // Install a synchronous Secure WebSocket echo port handler
+        //
+        auto wsp = instance.make_port<wss_sync_port>(
+            ec,
+            endpoint_type{addr,
+                static_cast<unsigned short>(port + 6)},
+            instance,
+            std::cout,
+            cert.get(),
+            set_ws_options{pmd});
+
+        if(ec)
+            return fail("wss_sync_port", ec);
+
+        // Install a synchronous HTTPS port handler
+        //
+        auto sp = instance.make_port<https_sync_port<
+                ws_upgrade_service<wss_sync_port>,
+                file_service
+            >>(
+            ec,
+            endpoint_type{addr,
+                static_cast<unsigned short>(port + 7)},
+            instance,
+            std::cout,
+            cert.get());
+
+        if(ec)
+            return fail("https_sync_port", ec);
+
+        // Set up the ws_upgrade_service. We will route upgrade
+        // requests to the websocket port handler created earlier.
+        //
+        sp->template init<0>(
+            ec,
+            wsp                     // The websocket port handler
+            );
+
+        if(ec)
+            return fail("http_sync_port/ws_upgrade_service", ec);
+
+        // Set up the file_service to point to the root path.
+        //
+        sp->template init<1>(
+            ec,
+            root,
+            "https_sync_port"
+            );
+
+        if(ec)
+            return fail("https_sync_port/file_service", ec);
+    }
+
+#endif
 
     sig_wait();
 }

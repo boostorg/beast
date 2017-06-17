@@ -8,24 +8,40 @@
 #ifndef BEAST_EXAMPLE_SERVER_SSL_STREAM_HPP
 #define BEAST_EXAMPLE_SERVER_SSL_STREAM_HPP
 
+// This include is necessary to work with `ssl::stream` and `beast::websocket::stream`
+#include <beast/websocket/ssl.hpp>
+
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/ssl/stream.hpp>
+#include <cstddef>
 #include <memory>
+#include <type_traits>
+#include <utility>
 
-namespace beast {
-
-/** Movable SSL socket wrapper
+/** C++11 enabled SSL socket wrapper
 
     This wrapper provides an interface identical to `boost::asio::ssl::stream`,
-    which is additionally move constructible and move assignable.
+    with the following additional properties:
+    
+    @li Satisfies @b MoveConstructible
+    
+    @li Satisfies @b MoveAssignable
+   
+    @li Constructible from a moved socket.
 */
 template<class NextLayer>
 class ssl_stream
     : public boost::asio::ssl::stream_base
 {
+    // only works for boost::asio::ip::tcp::socket
+    // for now because of the move limitations
+    static_assert(std::is_same<NextLayer, boost::asio::ip::tcp::socket>::value,
+        "NextLayer requirements not met");
+
     using stream_type = boost::asio::ssl::stream<NextLayer>;
 
     std::unique_ptr<stream_type> p_;
+    boost::asio::ssl::context* ctx_;
 
 public:
     /// The native handle type of the SSL stream.
@@ -43,15 +59,30 @@ public:
     /// The type of the lowest layer.
     using lowest_layer_type = typename stream_type::lowest_layer_type;
 
-    ssl_stream(ssl_stream&&) = default;
-    ssl_stream(ssl_stream const&) = delete;
-    ssl_stream& operator=(ssl_stream&&) = default;
-    ssl_stream& operator=(ssl_stream const&) = delete;
-
-    template<class... Args>
-    ssl_stream(Args&&... args)
-        : p_(new stream_type{std::forward<Args>(args)...)
+    ssl_stream(boost::asio::ip::tcp::socket&& sock, boost::asio::ssl::context& ctx)
+        : p_(new stream_type{sock.get_io_service(), ctx})
+        , ctx_(&ctx)
     {
+        p_->next_layer() = std::move(sock);
+    }
+
+    ssl_stream(ssl_stream&& other)
+        : p_(new stream_type(other.get_io_service(), *other.ctx_))
+        , ctx_(other.ctx_)
+    {
+        using std::swap;
+        swap(p_, other.p_);
+    }
+
+    ssl_stream& operator=(ssl_stream&& other)
+    {
+        std::unique_ptr<stream_type> p(
+            new stream_type{other.get_io_service(), other.ctx_});
+        using std::swap;
+        swap(p_, p);
+        swap(p_, other.p_);
+        ctx_ = other.ctx_;
+        return *this;
     }
 
     boost::asio::io_service&
@@ -184,7 +215,7 @@ public:
         BOOST_ASIO_MOVE_ARG(BufferedHandshakeHandler) handler)
     {
         return p_->async_handshake(type, buffers,
-            BOOST_ASIO__MOVE_CAST(BufferedHandshakeHandler)(handler));
+            BOOST_ASIO_MOVE_CAST(BufferedHandshakeHandler)(handler));
     }
 
     void
@@ -251,14 +282,53 @@ public:
     template<class MutableBufferSequence, class ReadHandler>
     BOOST_ASIO_INITFN_RESULT_TYPE(ReadHandler,
         void(boost::system::error_code, std::size_t))
-    async_read_some(MutableBufferSequence& buffers,
+    async_read_some(MutableBufferSequence const& buffers,
         BOOST_ASIO_MOVE_ARG(ReadHandler) handler)
     {
         return p_->async_read_some(buffers,
-            BOOST_ASIO_MOVE_CAST(ReadHandler)(handler))
+            BOOST_ASIO_MOVE_CAST(ReadHandler)(handler));
     }
+
+    template<class SyncStream>
+    friend
+    void
+    teardown(beast::websocket::teardown_tag,
+        ssl_stream<SyncStream>& stream,
+            boost::system::error_code& ec);
+
+    template<class AsyncStream, class TeardownHandler>
+    friend
+    void
+    async_teardown(beast::websocket::teardown_tag,
+        ssl_stream<AsyncStream>& stream, TeardownHandler&& handler);
 };
 
-} // beast
+// These hooks are used to inform beast::websocket::stream on
+// how to tear down the connection as part of the WebSocket
+// protocol specifications
+
+template<class SyncStream>
+inline
+void
+teardown(beast::websocket::teardown_tag,
+    ssl_stream<SyncStream>& stream,
+        boost::system::error_code& ec)
+{
+    // Just forward it to the wrapped ssl::stream
+    using beast::websocket::teardown;
+    teardown(beast::websocket::teardown_tag{}, *stream.p_, ec);
+}
+
+template<class AsyncStream, class TeardownHandler>
+inline
+void
+async_teardown(beast::websocket::teardown_tag,
+    ssl_stream<AsyncStream>& stream, TeardownHandler&& handler)
+{
+    // Just forward it to the wrapped ssl::stream
+    using beast::websocket::async_teardown;
+    async_teardown(beast::websocket::teardown_tag{},
+        *stream.p_, std::forward<TeardownHandler>(handler));
+}
 
 #endif

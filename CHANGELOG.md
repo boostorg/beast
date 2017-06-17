@@ -8,6 +8,7 @@ Version 61:
 * Tidy up names in error categories
 * Flush the output stream in the example
 * Clean close in Secure WebSocket client
+* Add server-framework SSL HTTP and WebSocket ports
 
 API Changes:
 
