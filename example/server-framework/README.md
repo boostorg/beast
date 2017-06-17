@@ -39,8 +39,6 @@ A port handler takes the stream object resulting form an incoming connection
 request and constructs a handler-specific connection object which provides
 the desired behavior.
 
-## Service
-
 The HTTP ports which come with the example have a system built in which allows
 installation of framework and user-defined "HTTP services". These services
 inform connections using the port on how to handle specific requests. This is
@@ -66,3 +64,74 @@ the HTTP ports:
 <img width="880" height = "344" alt = "ServerFramework"
     src="https://raw.githubusercontent.com/vinniefalco/Beast/server/doc/images/server.png">
 
+## PortHandler Requirements
+```C++
+/** An synchronous WebSocket @b PortHandler which implements echo.
+
+    This is a port handler which accepts WebSocket upgrade HTTP
+    requests and implements the echo protocol. All received
+    WebSocket messages will be echoed back to the remote host.
+*/
+struct PortHandler
+{
+    /** Accept a TCP/IP socket.
+
+        This function is called when the server has accepted an
+        incoming connection.
+
+        @param sock The connected socket.
+
+        @param ep The endpoint of the remote host.
+    */
+    void
+    on_accept(
+        socket_type&& sock,
+        endpoint_type ep);
+};
+```
+
+## Service Requirements
+
+```C++
+struct Service
+{
+    /** Initialize the service
+
+        @param ec Set to the error, if any occurred
+    */
+    void
+    init(error_code& ec);
+
+    /** Maybe respond to an HTTP request
+
+        Upon handling the response, the service may optionally
+        take ownership of either the stream, the request, or both.
+
+        @param stream The stream representing the connection
+
+        @param ep The remote endpoint of the stream
+
+        @param req The HTTP request
+
+        @param send A function object which operates on a single
+        argument of type beast::http::message. The function object
+        has this equivalent signature:
+        @code
+        template<class Body, class Fields>
+        void send(beast::http::response<Body, Fields>&& res);
+        @endcode
+
+        @return `true` if the service handled the response.
+    */
+    template<
+        class Stream,
+        class Body, class Fields,
+        class Send>
+    bool
+    respond(
+        Stream&& stream,
+        endpoint_type const& ep,
+        beast::http::request<Body, Fields>&& req,
+        Send const& send) const
+};
+```

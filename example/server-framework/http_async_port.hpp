@@ -27,7 +27,7 @@
 
 namespace framework {
 
-// Base class for a type-erased, queued asynchronous HTTP write
+// Base class for a type-erased, queued asynchronous HTTP write operation
 //
 struct queued_http_write
 {
@@ -111,7 +111,7 @@ make_queued_http_write(
     asynchronous calls.
 
     It uses the Curiously Recurring Template pattern (CRTP) where
-    we refer to the derivd class in order to access the stream object
+    we refer to the derived class in order to access the stream object
     to use for reading and writing. This lets the same class be used
     for plain and SSL stream objects.
 
@@ -492,7 +492,12 @@ class http_async_port
     service_list<Services...> services_;
 
 public:
-    // Constructor
+    /** Constructor
+
+        @param instance The server instance which owns this port
+
+        @param log The stream to use for logging
+    */
     http_async_port(
         server& instance,
         std::ostream& log)
