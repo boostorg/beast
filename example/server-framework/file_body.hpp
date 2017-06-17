@@ -204,7 +204,8 @@ get(beast::error_code& ec) ->
 {
     // Calculate the smaller of our buffer size,
     // or the amount of unread data in the file.
-    auto const amount = std::min<std::uint64_t>(remain_, sizeof(buf_));
+    auto const amount =  remain_ > sizeof(buf_) ?
+        sizeof(buf_) : static_cast<std::size_t>(remain_);
 
     // Check for an empty file
     if(amount == 0)

@@ -3,6 +3,7 @@ Version 61:
 * Remove Spirit dependency
 * Use generic_cateogry for errno
 * Reorganize SSL examples
+* Tidy up some integer conversion warnings
 
 --------------------------------------------------------------------------------
 

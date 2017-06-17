@@ -209,7 +209,7 @@ private:
 
     void
     fail(std::string what, error_code ec,
-        int id, endpoint_type const& ep)
+        std::size_t id, endpoint_type const& ep)
     {
         if(log_)
             if(ec != beast::websocket::error::closed)
