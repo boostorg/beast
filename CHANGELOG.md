@@ -1,3 +1,9 @@
+Version 61:
+
+* Remove Spirit dependency
+
+--------------------------------------------------------------------------------
+
 Version 60:
 
 * String comparisons are public interfaces
