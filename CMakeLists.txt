@@ -13,7 +13,12 @@ if (MSVC)
     add_definitions (-D_SCL_SECURE_NO_WARNINGS=1)
     add_definitions (-D_CRT_SECURE_NO_WARNINGS=1)
 
-    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4100 /wd4244 /MP /W4 /bigobj")
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4100)
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4244")
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj")
+
     set (CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /Ob2 /Oi /Ot /GL")
     set (CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} /Oi /Ot")
 
@@ -32,8 +37,12 @@ else()
     set(THREADS_PREFER_PTHREAD_FLAG ON)
     find_package(Threads)
 
-    set(CMAKE_CXX_FLAGS
-      "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wextra -Wpedantic -Wno-unused-parameter")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wextra")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-parameter")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wpedantic")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wshadow")
 
     if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wrange-loop-analysis")
@@ -69,6 +78,13 @@ if (APPLE AND NOT DEFINED ENV{OPENSSL_ROOT_DIR})
 endif()
 
 find_package(OpenSSL)
+
+if (OPENSSL_FOUND)
+    add_definitions (-DBEAST_USE_OPENSSL=1)
+else()
+    add_definitions (-DBEAST_USE_OPENSSL=0)
+    message("OpenSSL not found.")
+endif()
 
 #
 #-------------------------------------------------------------------------------
@@ -182,9 +198,8 @@ add_subdirectory (test)
 
 add_subdirectory (example)
 
-if (NOT OPENSSL_FOUND)
-    message("OpenSSL not found. Not building SSL tests and examples")
-else()
-    add_subdirectory (example/ssl)
+if (OPENSSL_FOUND)
+    add_subdirectory (example/ssl-http-client)
+    add_subdirectory (example/ssl-websocket-client)
     add_subdirectory (test/websocket/ssl)
 endif()

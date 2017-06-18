@@ -5,13 +5,11 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-//[example_http_client
-
 #include <beast/core.hpp>
 #include <beast/http.hpp>
 #include <boost/asio.hpp>
+#include <boost/asio/ssl.hpp>
 #include <boost/lexical_cast.hpp>
-#include <cstdlib>
 #include <iostream>
 #include <string>
 
@@ -28,14 +26,14 @@ int main()
 
     boost::system::error_code ec;
 
-    // Set up an asio socket
+    // Normal boost::asio setup
     boost::asio::io_service ios;
     boost::asio::ip::tcp::resolver r{ios};
     boost::asio::ip::tcp::socket sock{ios};
 
     // Look up the domain name
     std::string const host = "www.example.com";
-    auto const lookup = r.resolve(boost::asio::ip::tcp::resolver::query{host, "http"}, ec);
+    auto const lookup = r.resolve(boost::asio::ip::tcp::resolver::query{host, "https"}, ec);
     if(ec)
         return fail("resolve", ec);
 
@@ -43,6 +41,16 @@ int main()
     boost::asio::connect(sock, lookup, ec);
     if(ec)
         return fail("connect", ec);
+
+    // Wrap the now-connected socket in an SSL stream
+    boost::asio::ssl::context ctx{boost::asio::ssl::context::sslv23};
+    boost::asio::ssl::stream<boost::asio::ip::tcp::socket&> stream{sock, ctx};
+    stream.set_verify_mode(boost::asio::ssl::verify_none);
+
+    // Perform SSL handshaking
+    stream.handshake(boost::asio::ssl::stream_base::client, ec);
+    if(ec)
+        return fail("handshake", ec);
 
     // Set up an HTTP GET request message
     beast::http::request<beast::http::string_body> req;
@@ -55,7 +63,7 @@ int main()
     req.prepare();
 
     // Write the HTTP request to the remote host
-    beast::http::write(sock, req, ec);
+    beast::http::write(stream, req, ec);
     if(ec)
         return fail("write", ec);
 
@@ -66,20 +74,18 @@ int main()
     beast::http::response<beast::http::dynamic_body> res;
 
     // Read the response
-    beast::http::read(sock, b, res, ec);
+    beast::http::read(stream, b, res, ec);
     if(ec)
         return fail("read", ec);
 
     // Write the message to standard out
     std::cout << res << std::endl;
 
-    // Gracefully close the socket
-    sock.shutdown(boost::asio::ip::tcp::socket::shutdown_both, ec);
-    if(ec)
-        return fail("shutdown", ec);
+    // Shut down SSL on the stream
+    stream.shutdown(ec);
+    if(ec && ec != boost::asio::error::eof)
+        fail("ssl shutdown ", ec);
 
     // If we get here then the connection is closed gracefully
     return EXIT_SUCCESS;
 }
-
-//]

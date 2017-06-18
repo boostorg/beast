@@ -144,77 +144,9 @@ The files in the repository are laid out thusly:
 ## Usage
 
 These examples are complete, self-contained programs that you can build
-and run yourself (they are in the `examples` directory).
+and run yourself (they are in the `example` directory).
 
-Example WebSocket program:
-```C++
-#include <beast/core.hpp>
-#include <beast/websocket.hpp>
-#include <boost/asio.hpp>
-#include <iostream>
-#include <string>
-
-int main()
-{
-    // Normal boost::asio setup
-    std::string const host = "echo.websocket.org";
-    boost::asio::io_service ios;
-    boost::asio::ip::tcp::resolver r{ios};
-    boost::asio::ip::tcp::socket sock{ios};
-    boost::asio::connect(sock,
-        r.resolve(boost::asio::ip::tcp::resolver::query{host, "80"}));
-
-    // WebSocket connect and send message using beast
-    beast::websocket::stream<boost::asio::ip::tcp::socket&> ws{sock};
-    ws.handshake(host, "/");
-    ws.write(boost::asio::buffer(std::string("Hello, world!")));
-
-    // Receive WebSocket message, print and close using beast
-    beast::multi_buffer b;
-    beast::websocket::opcode op;
-    ws.read(op, b);
-    ws.close(beast::websocket::close_code::normal);
-    std::cout << beast::buffers(b.data()) << "\n";
-}
-```
-
-Example HTTP program:
-```C++
-#include <beast/core.hpp>
-#include <beast/http.hpp>
-#include <boost/asio.hpp>
-#include <boost/lexical_cast.hpp>
-#include <iostream>
-#include <string>
-
-int main()
-{
-    // Normal boost::asio setup
-    std::string const host = "www.example.com";
-    boost::asio::io_service ios;
-    boost::asio::ip::tcp::resolver r{ios};
-    boost::asio::ip::tcp::socket sock{ios};
-    boost::asio::connect(sock,
-        r.resolve(boost::asio::ip::tcp::resolver::query{host, "http"}));
-
-    // Send HTTP request using beast
-    beast::http::request<beast::http::string_body> req;
-    req.method(beast::http::verb::get);
-    req.target("/");
-    req.version = 11;
-    req.insert(beast::http::field::host, host + ":" +
-        boost::lexical_cast<std::string>(sock.remote_endpoint().port()));
-    req.insert(beast::http::field::user_agent, "Beast");
-    req.prepare();
-    beast::http::write(sock, req);
-
-    // Receive and print HTTP response using beast
-    beast::flat_buffer b;
-    beast::http::response<beast::http::dynamic_body> res;
-    beast::http::read(sock, b, res);
-    std::cout << res << std::endl;
-}
-```
+http://vinniefalco.github.io/beast/beast/quick_start.html
 
 ## License
 

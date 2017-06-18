@@ -63,13 +63,13 @@ struct header<true, Fields> : Fields
         This holds both the major and minor version numbers,
         using these formulas:
         @code
-            int major = version / 10;
-            int minor = version % 10;
+            unsigned major = version / 10;
+            unsigned minor = version % 10;
         @endcode
 
         Newly constructed headers will use HTTP/1.1 by default.
     */
-    int version = 11;
+    unsigned version = 11;
 
     /// Default constructor
     header() = default;
@@ -207,13 +207,13 @@ struct header<false, Fields> : Fields
         This holds both the major and minor version numbers,
         using these formulas:
         @code
-            major = version / 10;
-            minor = version % 10;
+            unsigned major = version / 10;
+            unsigned minor = version % 10;
         @endcode
 
         Newly constructed headers will use HTTP/1.1 by default.
     */
-    int version = 11;
+    unsigned version = 11;
 
     /// Default constructor.
     header() = default;
@@ -322,7 +322,7 @@ struct header<false, Fields> : Fields
     */
     void
     reason(string_view s);
-   
+
 private:
 #if ! BEAST_DOXYGEN
     template<bool, class, class>
@@ -468,6 +468,20 @@ struct message : header<isRequest, Fields>
     message(std::piecewise_construct_t,
         std::tuple<BodyArgs...>&& body_args,
             std::tuple<HeaderArgs...>&& header_args);
+
+    /// Returns the header portion of the message
+    header_type const&
+    header_part() const
+    {
+        return *this;
+    }
+
+    /// Returns the header portion of the message
+    header_type&
+    header_part()
+    {
+        return *this;
+    }
 
     /// Returns `true` if "close" is specified in the Connection field.
     bool

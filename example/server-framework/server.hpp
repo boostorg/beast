@@ -154,6 +154,10 @@ public:
 
 //------------------------------------------------------------------------------
 
+/*  This implementation class wraps the PortHandler and
+    manages the listening socket. Upon an incoming connection
+    it transfers ownership of the socket to the PortHandler.
+*/
 template<class PortHandler>
 class port
     : public std::enable_shared_from_this<
@@ -228,7 +232,11 @@ private:
         if(ec == boost::asio::error::operation_aborted)
             return;
         if(! ec)
+        {
+            // Transfer ownership of the socket to the PortHandler
+            //
             handler_.on_accept(std::move(sock_), ep_);
+        }
         acceptor_.async_accept(sock_, ep_,
             std::bind(&port::on_accept, this->shared_from_this(),
                 std::placeholders::_1));

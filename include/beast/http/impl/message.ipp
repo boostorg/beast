@@ -300,8 +300,7 @@ void
 message<isRequest, Body, Fields>::
 prepare()
 {
-    prepare(typename header<
-        isRequest, Fields>::is_request{});
+    prepare(typename header_type::is_request{});
 }
 
 template<bool isRequest, class Body, class Fields>

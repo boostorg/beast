@@ -15,7 +15,7 @@
 namespace beast {
 namespace http {
 
-enum class status : unsigned short
+enum class status : unsigned
 {
     /** An unknown status-code.
 
@@ -96,7 +96,7 @@ enum class status : unsigned short
 
 /** Represents the class of a status-code.
 */
-enum class status_class : int
+enum class status_class : unsigned
 {
     /// Unknown status-class
     unknown = 0,
@@ -123,7 +123,7 @@ enum class status_class : int
     @ref status::unknown is returned.
 */
 status
-int_to_status(int v);
+int_to_status(unsigned v);
 
 /** Convert an integer to a status_class.
 
@@ -133,7 +133,7 @@ int_to_status(int v);
     a known status class, @ref status_class::unknown is returned.
 */
 status_class
-to_status_class(int v);
+to_status_class(unsigned v);
 
 /** Convert a status_code to a status_class.
 
