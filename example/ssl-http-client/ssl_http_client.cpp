@@ -15,48 +15,77 @@
 
 int main()
 {
-    using boost::asio::connect;
-    using socket = boost::asio::ip::tcp::socket;
-    using resolver = boost::asio::ip::tcp::resolver;
-    using io_service = boost::asio::io_service;
-    namespace ssl = boost::asio::ssl;
+    // A helper for reporting errors
+    auto const fail =
+        [](std::string what, beast::error_code ec)
+        {
+            std::cerr << what << ": " << ec.message() << std::endl;
+            std::cerr.flush();
+            return EXIT_FAILURE;
+        };
+
+    boost::system::error_code ec;
 
     // Normal boost::asio setup
-    std::string const host = "localhost";
-    io_service ios;
-    resolver r{ios};
-    socket sock{ios};
-    connect(sock, r.resolve(resolver::query{host, "1007"}));
+    boost::asio::io_service ios;
+    boost::asio::ip::tcp::resolver r{ios};
+    boost::asio::ip::tcp::socket sock{ios};
+
+    // Look up the domain name
+    std::string const host = "www.example.com";
+    auto const lookup = r.resolve(boost::asio::ip::tcp::resolver::query{host, "https"}, ec);
+    if(ec)
+        return fail("resolve", ec);
+
+    // Make the connection on the IP address we get from a lookup
+    boost::asio::connect(sock, lookup, ec);
+    if(ec)
+        return fail("connect", ec);
+
+    // Wrap the now-connected socket in an SSL stream
+    boost::asio::ssl::context ctx{boost::asio::ssl::context::sslv23};
+    boost::asio::ssl::stream<boost::asio::ip::tcp::socket&> stream{sock, ctx};
+    stream.set_verify_mode(boost::asio::ssl::verify_none);
 
     // Perform SSL handshaking
-    ssl::context ctx{ssl::context::sslv23};
-    ssl::stream<socket&> stream{sock, ctx};
-    stream.set_verify_mode(ssl::verify_none);
-    stream.handshake(ssl::stream_base::client);
+    stream.handshake(boost::asio::ssl::stream_base::client, ec);
+    if(ec)
+        return fail("handshake", ec);
 
-    // Send HTTP request over SSL using Beast
+    // Set up an HTTP GET request message
     beast::http::request<beast::http::string_body> req;
     req.method(beast::http::verb::get);
     req.target("/");
     req.version = 11;
-    req.insert(beast::http::field::host, host + ":" +
+    req.set(beast::http::field::host, host + ":" +
         boost::lexical_cast<std::string>(sock.remote_endpoint().port()));
-    req.insert(beast::http::field::user_agent, "Beast");
+    req.set(beast::http::field::user_agent, "Beast");
     req.prepare();
-    beast::http::write(stream, req);
 
-    // Receive and print HTTP response using Beast
+    // Write the HTTP request to the remote host
+    beast::http::write(stream, req, ec);
+    if(ec)
+        return fail("write", ec);
+
+    // This buffer is used for reading and must be persisted
     beast::flat_buffer b;
-    beast::http::response<beast::http::dynamic_body> resp;
-    beast::http::read(stream, b, resp);
-    std::cout << resp;
+
+    // Declare a container to hold the response
+    beast::http::response<beast::http::dynamic_body> res;
+
+    // Read the response
+    beast::http::read(stream, b, res, ec);
+    if(ec)
+        return fail("read", ec);
+
+    // Write the message to standard out
+    std::cout << res << std::endl;
 
     // Shut down SSL on the stream
-    boost::system::error_code ec;
     stream.shutdown(ec);
     if(ec && ec != boost::asio::error::eof)
-        std::cout << "error: " << ec.message();
+        fail("ssl shutdown ", ec);
 
-    // Make sure everything is written before we leave main
-    std::cout.flush();
+    // If we get here then the connection is closed gracefully
+    return EXIT_SUCCESS;
 }
