@@ -263,7 +263,6 @@ main(
     //
 
 #if BEAST_USE_OPENSSL
-
     ssl_certificate cert;
 
     //--------------------------------------------------------------------------
@@ -274,6 +273,10 @@ main(
     //
     //--------------------------------------------------------------------------
     {
+
+        // VFALCO This blows up clang
+#if 0
+
         // Install an asynchronous Secure WebSocket echo port handler
         //
         auto wsp = instance.make_port<wss_async_port>(
@@ -288,7 +291,9 @@ main(
 
         if(ec)
             return fail("ws_async_port", ec);
+#endif
 
+#if 0
         // Install an asynchronous HTTPS port handler
         //
         auto sp = instance.make_port<https_async_port<
@@ -326,6 +331,7 @@ main(
 
         if(ec)
             return fail("https_async_port/file_service", ec);
+#endif
     }
 
     //--------------------------------------------------------------------------
@@ -388,7 +394,6 @@ main(
         if(ec)
             return fail("https_sync_port/file_service", ec);
     }
-
 #endif
 
     sig_wait();
