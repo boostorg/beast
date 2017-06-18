@@ -5,11 +5,11 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-//[example_websocket_client
-
 #include <beast/core.hpp>
 #include <beast/websocket.hpp>
+#include <beast/websocket/ssl.hpp>
 #include <boost/asio.hpp>
+#include <boost/asio/ssl.hpp>
 #include <cstdlib>
 #include <iostream>
 #include <string>
@@ -27,14 +27,14 @@ int main()
 
     boost::system::error_code ec;
 
-    // Set up an asio socket
+    // Set up an asio socket to connect to a remote host
     boost::asio::io_service ios;
     boost::asio::ip::tcp::resolver r{ios};
     boost::asio::ip::tcp::socket sock{ios};
 
     // Look up the domain name
     std::string const host = "echo.websocket.org";
-    auto const lookup = r.resolve(boost::asio::ip::tcp::resolver::query{host, "http"}, ec);
+    auto const lookup = r.resolve(boost::asio::ip::tcp::resolver::query{host, "https"}, ec);
     if(ec)
         return fail("resolve", ec);
 
@@ -43,16 +43,27 @@ int main()
     if(ec)
         return fail("connect", ec);
 
-    // Wrap the now-connected socket in a websocket stream
-    beast::websocket::stream<boost::asio::ip::tcp::socket&> ws{sock};
+    // Wrap the now-connected socket in an SSL stream
+    using stream_type = boost::asio::ssl::stream<boost::asio::ip::tcp::socket&>;
+    boost::asio::ssl::context ctx{boost::asio::ssl::context::sslv23};
+    stream_type stream{sock, ctx};
+    stream.set_verify_mode(boost::asio::ssl::verify_none);
 
-    // Perform the websocket handhskae
+    // Perform SSL handshaking
+    stream.handshake(boost::asio::ssl::stream_base::client, ec);
+    if(ec)
+        return fail("ssl handshake", ec);
+
+    // Now wrap the handshaked SSL stream in a websocket stream
+    beast::websocket::stream<stream_type&> ws{stream};
+
+    // Perform the websocket handshake
     ws.handshake(host, "/", ec);
     if(ec)
         return fail("handshake", ec);
 
     // Send a message
-    ws.write(boost::asio::buffer(std::string("Hello, world!")), ec);
+    ws.write(boost::asio::buffer("Hello, world!"), ec);
     if(ec)
         return fail("write", ec);
 
@@ -91,8 +102,5 @@ int main()
             return fail("close", ec);
     }
 
-    // If we get here the connection was cleanly closed
     return EXIT_SUCCESS;
 }
-
-//]

@@ -24,38 +24,6 @@ namespace framework {
     `true` if the request is processed or `false` if it does not
     process the request.
 
-    @b Service requirements
-
-    @code
-
-    struct Service
-    {
-        // Initialize the service
-        //
-        void
-        init(error_code& ec);
-
-        // Maybe respond to an HTTP request
-        //
-        // Returns `true` if it handled the response.
-        //
-        // Upon handling the response, the service may optionally
-        // take ownership of either the stream, the request, or both.
-        //
-        template<
-            class Stream,
-            class Body, class Fields,
-            class Send>
-        bool
-        respond(
-            Stream&&,
-            endpoint_type const& ep,
-            beast::http::request<Body, Fields>&& req,
-            Send const& send) const
-    };
-
-    @endcode
-
     @see file_service, ws_upgrade_service
 */
 template<class... Services>

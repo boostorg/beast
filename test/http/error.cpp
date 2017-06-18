@@ -36,24 +36,25 @@ public:
     void
     run() override
     {
-        check("http", error::end_of_stream);
-        check("http", error::partial_message);
-        check("http", error::need_more);
-        check("http", error::unexpected_body);
-        check("http", error::need_buffer);
-        check("http", error::buffer_overflow);
+        check("beast.http", error::end_of_stream);
+        check("beast.http", error::partial_message);
+        check("beast.http", error::need_more);
+        check("beast.http", error::unexpected_body);
+        check("beast.http", error::need_buffer);
+        check("beast.http", error::buffer_overflow);
 
-        check("http", error::bad_line_ending);
-        check("http", error::bad_method);
-        check("http", error::bad_path);
-        check("http", error::bad_version);
-        check("http", error::bad_status);
-        check("http", error::bad_reason);
-        check("http", error::bad_field);
-        check("http", error::bad_value);
-        check("http", error::bad_content_length);
-        check("http", error::bad_transfer_encoding);
-        check("http", error::bad_chunk);
+        check("beast.http", error::bad_line_ending);
+        check("beast.http", error::bad_method);
+        check("beast.http", error::bad_path);
+        check("beast.http", error::bad_version);
+        check("beast.http", error::bad_status);
+        check("beast.http", error::bad_reason);
+        check("beast.http", error::bad_field);
+        check("beast.http", error::bad_value);
+        check("beast.http", error::bad_content_length);
+        check("beast.http", error::bad_transfer_encoding);
+        check("beast.http", error::bad_chunk);
+        check("beast.http", error::bad_obs_fold);
     }
 };
 

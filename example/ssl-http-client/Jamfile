@@ -43,12 +43,7 @@ project
     <library>crypto
   ;
 
-exe http-ssl-example
+exe ssl-http-client
   :
-    http_ssl_example.cpp
-  ;
-
-exe websocket-ssl-example
-  :
-    websocket_ssl_example.cpp
+    ssl_http_client.cpp
   ;

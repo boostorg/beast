@@ -19,16 +19,20 @@
 
 namespace framework {
 
-// The connection object holds the state of the connection
-// including, most importantly, the socket or stream.
-//
-// `Stream` is the type of socket or stream used as the
-// transport. Examples include boost::asio::ip::tcp::socket
-// or `ssl_stream`.
-//
+/** A synchronous WebSocket connection.
+
+    This base class implements a WebSocket connection object
+    using synchronous calls.
+
+    It uses the Curiously Recurring Template pattern (CRTP) where
+    we refer to the derived class in order to access the stream object
+    to use for reading and writing. This lets the same class be used
+    for plain and SSL stream objects.
+*/
 template<class Derived>
-class sync_ws_con
+class sync_ws_con_base
 {
+    // This function lets us access members of the derived class
     Derived&
     impl()
     {
@@ -52,7 +56,7 @@ class sync_ws_con
 public:
     // Constructor
     template<class Callback>
-    sync_ws_con(
+    sync_ws_con_base(
         beast::string_view server_name,
         std::ostream& log,
         std::size_t id,
@@ -63,22 +67,23 @@ public:
         , id_(id)
         , ep_(ep)
     {
-        cb(impl().ws());
+        cb(impl().stream());
     }
 
-    // Run the connection.
+    // Run the connection. This is called for the case
+    // where we have not received the upgrade request yet.
     //
     void
     run()
     {
-        // We run the do_accept function in its own thread,
+        // We run the do_run function in its own thread,
         // and bind a shared pointer to the connection object
         // into the function. The last reference to the shared
         // pointer will go away when the thread exits, thus
         // destroying the connection object.
         //
         std::thread{
-            &sync_ws_con::do_accept,
+            &sync_ws_con_base::do_accept,
             impl().shared_from_this()
         }.detach();
     }
@@ -102,7 +107,58 @@ public:
         }}.detach();
     }
 
+protected:
+    // Called when a failure occurs
+    //
+    void
+    fail(std::string what, error_code ec)
+    {
+        // Don't report the "closed" error since that
+        // happens under normal circumstances.
+        //
+        if(ec && ec != beast::websocket::error::closed)
+        {
+            log_ <<
+                "[#" << id_ << " " << ep_ << "] " <<
+            what << ": " << ec.message() << std::endl;
+            log_.flush();
+        }
+    }
+
 private:
+    // This function performs the WebSocket handshake
+    // and runs the main loop upon success.
+    void
+    do_accept()
+    {
+        error_code ec;
+
+        // Give the derived class a chance to do stuff before we
+        // enter the main loop. This is for SSL connections really.
+        //
+        impl().do_handshake(ec);
+
+        if(ec)
+            return fail("handshake", ec);
+
+        // Read the WebSocket upgrade request and attempt
+        // to send back the response.
+        //
+        impl().stream().accept_ex(
+            [&](beast::websocket::response_type& res)
+            {
+                res.insert(beast::http::field::server, server_name_);
+            },
+            ec);
+
+        if(ec)
+            return fail("accept", ec);
+
+        // Run the connection
+        //
+        do_run();
+    }
+
     // This is the lambda used when launching a connection from
     // an already-received request. In C++14 we could simply use
     // a lambda capture but this example requires only C++11 so
@@ -112,7 +168,7 @@ private:
     template<class Body, class Fields>
     class lambda
     {
-        std::shared_ptr<sync_ws_con> self_;
+        std::shared_ptr<sync_ws_con_base> self_;
         beast::http::request<Body, Fields> req_;
         
     public:
@@ -121,7 +177,7 @@ private:
         // This is the equivalent of the capture section of the lambda.
         //
         lambda(
-            std::shared_ptr<sync_ws_con> self,
+            std::shared_ptr<sync_ws_con_base> self,
             beast::http::request<Body, Fields>&& req)
             : self_(std::move(self))
             , req_(std::move(req))
@@ -147,7 +203,7 @@ private:
                 // the request by parameter, instead of reading
                 // it from the network.
                 //
-                self_->impl().ws().accept_ex(req,
+                self_->impl().stream().accept_ex(req,
                     [&](beast::websocket::response_type& res)
                     {
                         res.insert(beast::http::field::server, self_->server_name_);
@@ -155,54 +211,17 @@ private:
                     ec);
             }
 
-            // Run the connection
-            //
-            self_->do_run(ec);
+            if(ec)
+                return self_->fail("accept", ec);
+
+            self_->do_run();
         }
     };
 
     void
-    do_accept()
+    do_run()
     {
         error_code ec;
-
-        // Read the WebSocket upgrade request and attempt
-        // to send back the response.
-        //
-        impl().ws().accept_ex(
-            [&](beast::websocket::response_type& res)
-            {
-                res.insert(beast::http::field::server, server_name_);
-            },
-            ec);
-
-        // Run the connection
-        //
-        do_run(ec);
-    }
-
-    void
-    do_run(error_code ec)
-    {
-        // Helper lambda to report a failure
-        //
-        auto const fail =
-            [&](std::string const& what, error_code ev)
-            {
-                if(ev != beast::websocket::error::closed)
-                    log_ <<
-                        "[#" << id_ << " " << ep_ << "] " <<
-                        what << ": " << ev.message() << std::endl;
-            };
-
-        // Check for an error upon entry. This will
-        // come from one of the two calls to accept()
-        //
-        if(ec)
-        {
-            fail("accept", ec);
-            return;
-        }
 
         // Loop, reading messages and echoing them back.
         //
@@ -215,7 +234,7 @@ private:
 
             // Read the message
             //
-            impl().ws().read(buffer, ec);
+            impl().stream().read(buffer, ec);
 
             if(ec)
                 return fail("read", ec);
@@ -223,11 +242,11 @@ private:
             // Set the outgoing message type. We will use
             // the same setting as the message we just read.
             //
-            impl().ws().binary(impl().ws().got_binary());
+            impl().stream().binary(impl().stream().got_binary());
 
             // Now echo back the message
             //
-            impl().ws().write(buffer.data(), ec);
+            impl().stream().write(buffer.data(), ec);
 
             if(ec)
                 return fail("write", ec);
@@ -237,26 +256,61 @@ private:
 
 //------------------------------------------------------------------------------
 
-class sync_ws_con_plain
-    : public std::enable_shared_from_this<sync_ws_con_plain>
+// This class represents a synchronous WebSocket connection
+// which uses a plain TCP/IP socket (no encryption) as the stream.
+//
+class sync_ws_con
+
+    // Note that we give this object the `enable_shared_from_this`, and have
+    // the base class call `impl().shared_from_this()` when needed.
+    //
+    : public std::enable_shared_from_this<sync_ws_con>
+
+    // We want the socket to be created before the base class so we use
+    // the "base from member" idiom which Boost provides as a class.
+    //
     , public base_from_member<beast::websocket::stream<socket_type>>
-    , public sync_ws_con<sync_ws_con_plain>
+
+    // Declare this base last now that everything else got set up first.
+    //
+    , public sync_ws_con_base<sync_ws_con>
 {
 public:
+    // Construct the plain connection.
+    //
     template<class... Args>
     explicit
-    sync_ws_con_plain(
+    sync_ws_con(
         socket_type&& sock,
         Args&&... args)
         : base_from_member<beast::websocket::stream<socket_type>>(std::move(sock))
-        , sync_ws_con<sync_ws_con_plain>(std::forward<Args>(args)...)
+        , sync_ws_con_base<sync_ws_con>(std::forward<Args>(args)...)
     {
     }
 
+    // Returns the stream.
+    //
+    // The base class calls this to obtain the websocket stream object.
+    //
     beast::websocket::stream<socket_type>&
-    ws()
+    stream()
     {
         return this->member;
+    }
+
+private:
+    // Base class needs to be a friend to call our private members
+    friend class sync_ws_con_base<sync_ws_con>;
+
+    // This is called by the base before running the main loop.
+    // There's nothing to do for a plain connection.
+    //
+    void
+    do_handshake(error_code& ec)
+    {
+        // This is required by the specifications for error_code
+        //
+        ec = {};
     }
 };
 
@@ -322,7 +376,7 @@ public:
     {
         // Create our connection object and run it
         //
-        std::make_shared<sync_ws_con_plain>(
+        std::make_shared<sync_ws_con>(
             std::move(sock),
             "ws_sync_port",
             log_,
@@ -353,7 +407,7 @@ public:
         // Create the connection object and run it,
         // transferring ownershop of the ugprade request.
         //
-        std::make_shared<sync_ws_con_plain>(
+        std::make_shared<sync_ws_con>(
             std::move(sock),
             "ws_sync_port",
             log_,

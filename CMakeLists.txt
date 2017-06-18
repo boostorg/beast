@@ -46,6 +46,8 @@ endif()
 #
 
 option (Boost_USE_STATIC_LIBS "Use static libraries for boost" ON)
+option (BEAST_BUILD_EXAMPLES "Build Beast examples" ON)
+option (BEAST_BUILD_TESTS "Build Beast test" ON)
 
 set (BOOST_COMPONENTS coroutine context filesystem program_options system thread)
 find_package (Boost REQUIRED COMPONENTS ${BOOST_COMPONENTS})
@@ -69,6 +71,13 @@ if (APPLE AND NOT DEFINED ENV{OPENSSL_ROOT_DIR})
 endif()
 
 find_package(OpenSSL)
+
+if (OPENSSL_FOUND)
+    add_definitions (-DBEAST_USE_OPENSSL=1)
+else()
+    add_definitions (-DBEAST_USE_OPENSSL=0)
+    message("OpenSSL not found.")
+endif()
 
 #
 #-------------------------------------------------------------------------------
@@ -178,13 +187,20 @@ file(GLOB_RECURSE SERVER_INCLUDES
     ${PROJECT_SOURCE_DIR}/example/server-framework/*.hpp
   )
 
-add_subdirectory (test)
+if (BEAST_BUILD_TESTS)
+    add_subdirectory (test)
+endif()
 
-add_subdirectory (example)
+if (BEAST_BUILD_EXAMPLES)
+    add_subdirectory (example)
+endif()
 
-if (NOT OPENSSL_FOUND)
-    message("OpenSSL not found. Not building SSL tests and examples")
-else()
-    add_subdirectory (example/ssl)
-    add_subdirectory (test/websocket/ssl)
+if (OPENSSL_FOUND)
+    if (BEAST_BUILD_EXAMPLES)
+        add_subdirectory (example/ssl-http-client)
+        add_subdirectory (example/ssl-websocket-client)
+    endif()
+    if (BEAST_BUILD_TESTS)
+        add_subdirectory (test/websocket/ssl)
+    endif()
 endif()

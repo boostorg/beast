@@ -21,13 +21,11 @@ namespace framework {
 // This object holds the state of the connection
 // including, most importantly, the socket or stream.
 //
-// `Stream` is the type of socket or stream used as the
-// transport. Examples include boost::asio::ip::tcp::socket
-// or `ssl_stream`.
 //
 template<class Derived>
-class async_ws_con
+class async_ws_con_base
 {
+    // This function lets us access members of the derived class
     Derived&
     impl()
     {
@@ -60,7 +58,7 @@ protected:
 public:
     // Constructor
     template<class Callback>
-    async_ws_con(
+    async_ws_con_base(
         beast::string_view server_name,
         std::ostream& log,
         std::size_t id,
@@ -74,9 +72,9 @@ public:
         // Limit of 1MB on messages
         , buffer_(1024 * 1024)
 
-        , strand_(impl().ws().get_io_service())
+        , strand_(impl().stream().get_io_service())
     {
-        cb(impl().ws());
+        cb(impl().stream());
     }
 
     // Run the connection
@@ -84,18 +82,7 @@ public:
     void
     run()
     {
-        // Read the WebSocket upgrade request and attempt
-        // to send back the response.
-        //
-        impl().ws().async_accept_ex(
-            [&](beast::websocket::response_type& res)
-            {
-                res.set(beast::http::field::server, server_name_);
-            },
-            strand_.wrap(std::bind(
-                &async_ws_con::on_accept,
-                impl().shared_from_this(),
-                std::placeholders::_1)));
+        impl().do_handshake();
     }
 
     // Run the connection.
@@ -111,15 +98,45 @@ public:
         // the request by parameter, instead of reading
         // it from the network.
         //
-        impl().ws().async_accept_ex(req,
+        impl().stream().async_accept_ex(req,
             [&](beast::websocket::response_type& res)
             {
                 res.set(beast::http::field::server, server_name_);
             },
             strand_.wrap(std::bind(
-                &async_ws_con::on_accept,
+                &async_ws_con_base::on_accept,
                 impl().shared_from_this(),
                 std::placeholders::_1)));
+    }
+
+protected:
+    // Performs the WebSocket handshake
+    void
+    do_accept()
+    {
+        // Read the WebSocket upgrade request and attempt
+        // to send back the response.
+        //
+        impl().stream().async_accept_ex(
+            [&](beast::websocket::response_type& res)
+            {
+                res.set(beast::http::field::server, server_name_);
+            },
+            strand_.wrap(std::bind(
+                &async_ws_con_base::on_accept,
+                impl().shared_from_this(),
+                std::placeholders::_1)));
+    }
+
+    // This helper reports failures
+    //
+    void
+    fail(std::string what, error_code ec)
+    {
+        if(ec != beast::websocket::error::closed)
+            log_ <<
+                "[#" << id_ << " " << ep_ << "] " <<
+            what << ": " << ec.message() << std::endl;
     }
 
 private:
@@ -138,10 +155,10 @@ private:
     void
     do_read()
     {
-        impl().ws().async_read(
+        impl().stream().async_read(
             buffer_,
             strand_.wrap(std::bind(
-                &async_ws_con::on_read,
+                &async_ws_con_base::on_read,
                 impl().shared_from_this(),
                 std::placeholders::_1)));
     }
@@ -157,14 +174,14 @@ private:
         // Set the outgoing message type. We will use
         // the same setting as the message we just read.
         //
-        impl().ws().binary(impl().ws().got_binary());
+        impl().stream().binary(impl().stream().got_binary());
 
         // Now echo back the message
         //
-        impl().ws().async_write(
+        impl().stream().async_write(
             buffer_.data(),
             strand_.wrap(std::bind(
-                &async_ws_con::on_write,
+                &async_ws_con_base::on_write,
                 impl().shared_from_this(),
                 std::placeholders::_1)));
     }
@@ -186,47 +203,66 @@ private:
         //
         do_read();
     }
-
-    // This helper reports failures
-    //
-    void
-    fail(std::string what, error_code ec)
-    {
-        if(ec != beast::websocket::error::closed)
-            log_ <<
-                "[#" << id_ << " " << ep_ << "] " <<
-            what << ": " << ec.message() << std::endl;
-    }
 };
 
 //------------------------------------------------------------------------------
 
-class async_ws_con_plain
-    : public std::enable_shared_from_this<async_ws_con_plain>
+// This class represents an asynchronous WebSocket connection
+// which uses a plain TCP/IP socket (no encryption) as the stream.
+//
+class async_ws_con
+
+    // Note that we give this object the `enable_shared_from_this`, and have
+    // the base class call `impl().shared_from_this()` when needed.
+    //
+    : public std::enable_shared_from_this<async_ws_con>
+
+    // We want the socket to be created before the base class so we use
+    // the "base from member" idiom which Boost provides as a class.
+    //
     , public base_from_member<beast::websocket::stream<socket_type>>
-    , public async_ws_con<async_ws_con_plain>
+
+    // Declare this base last now that everything else got set up first.
+    //
+    , public async_ws_con_base<async_ws_con>
 {
 public:
+    // Construct the plain connection.
+    //
     template<class... Args>
     explicit
-    async_ws_con_plain(
+    async_ws_con(
         socket_type&& sock,
         Args&&... args)
         : base_from_member<beast::websocket::stream<socket_type>>(std::move(sock))
-        , async_ws_con<async_ws_con_plain>(std::forward<Args>(args)...)
+        , async_ws_con_base<async_ws_con>(std::forward<Args>(args)...)
     {
     }
 
+    // Returns the stream.
+    //
+    // The base class calls this to obtain the websocket stream object.
+    //
     beast::websocket::stream<socket_type>&
-    ws()
+    stream()
     {
         return this->member;
+    }
+
+private:
+    // Base class needs to be a friend to call our private members
+    friend async_ws_con_base<async_ws_con>;
+
+    void
+    do_handshake()
+    {
+        do_accept();
     }
 };
 
 //------------------------------------------------------------------------------
 
-/** An synchronous WebSocket @b PortHandler which implements echo.
+/** An asynchronous WebSocket @b PortHandler which implements echo.
 
     This is a port handler which accepts WebSocket upgrade HTTP
     requests and implements the echo protocol. All received
@@ -272,10 +308,10 @@ public:
     {
     }
 
-    /** Accept a TCP/IP async_ws_con.
+    /** Accept a TCP/IP connection.
 
         This function is called when the server has accepted an
-        incoming async_ws_con.
+        incoming connection.
 
         @param sock The connected socket.
 
@@ -286,7 +322,7 @@ public:
         socket_type&& sock,
         endpoint_type ep)
     {
-        std::make_shared<async_ws_con_plain>(
+        std::make_shared<async_ws_con>(
             std::move(sock),
             "ws_async_port",
             log_,
@@ -298,10 +334,10 @@ public:
 
     /** Accept a WebSocket upgrade request.
 
-        This is used to accept a async_ws_con that has already
+        This is used to accept a connection that has already
         delivered the handshake.
 
-        @param stream The stream corresponding to the async_ws_con.
+        @param stream The stream corresponding to the connection.
 
         @param ep The remote endpoint.
 
@@ -310,12 +346,12 @@ public:
     template<class Body, class Fields>
     void
     accept(
-        socket_type&& stream,
+        socket_type&& sock,
         endpoint_type ep,
         beast::http::request<Body, Fields>&& req)
     {
-        std::make_shared<async_ws_con_plain>(
-            std::move(stream),
+        std::make_shared<async_ws_con>(
+            std::move(sock),
             "ws_async_port",
             log_,
             instance_.next_id(),

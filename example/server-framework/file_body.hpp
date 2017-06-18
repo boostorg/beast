@@ -180,8 +180,8 @@ init(beast::error_code& ec)
     if(! file_)
     {
         // Convert the old-school `errno` into
-        // an error code using the system category.
-        ec = beast::error_code{errno, beast::system_category()};
+        // an error code using the generic category.
+        ec = beast::error_code{errno, beast::generic_category()};
         return;
     }
 
@@ -204,7 +204,8 @@ get(beast::error_code& ec) ->
 {
     // Calculate the smaller of our buffer size,
     // or the amount of unread data in the file.
-    auto const amount = std::min<std::uint64_t>(remain_, sizeof(buf_));
+    auto const amount =  remain_ > sizeof(buf_) ?
+        sizeof(buf_) : static_cast<std::size_t>(remain_);
 
     // Check for an empty file
     if(amount == 0)
@@ -219,8 +220,9 @@ get(beast::error_code& ec) ->
     // Handle any errors
     if(ferror(file_))
     {
-        // Convert old-school `errno` to error_code
-        ec = beast::error_code(errno, beast::system_category());
+        // Convert the old-school `errno` into
+        // an error code using the generic category.
+        ec = beast::error_code{errno, beast::generic_category()};
         return boost::none;
     }
 
@@ -350,8 +352,8 @@ init(boost::optional<std::uint64_t> const& content_length, beast::error_code& ec
     if(! file_)
     {
         // Convert the old-school `errno` into
-        // an error code using the system category.
-        ec = beast::error_code{errno, beast::system_category()};
+        // an error code using the generic category.
+        ec = beast::error_code{errno, beast::generic_category()};
         return;
     }
 
@@ -379,8 +381,9 @@ put(ConstBufferSequence const& buffers, beast::error_code& ec)
         // Handle any errors
         if(ferror(file_))
         {
-            // Convert old-school `errno` to error_code
-            ec = beast::error_code(errno, beast::system_category());
+            // Convert the old-school `errno` into
+            // an error code using the generic category.
+            ec = beast::error_code{errno, beast::generic_category()};
             return;
         }
     }

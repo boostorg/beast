@@ -27,7 +27,7 @@
 
 namespace framework {
 
-// Base class for a type-erased, queued asynchronous HTTP write
+// Base class for a type-erased, queued asynchronous HTTP write operation
 //
 struct queued_http_write
 {
@@ -111,14 +111,14 @@ make_queued_http_write(
     asynchronous calls.
 
     It uses the Curiously Recurring Template pattern (CRTP) where
-    we refer to the derivd class in order to access the stream object
+    we refer to the derived class in order to access the stream object
     to use for reading and writing. This lets the same class be used
     for plain and SSL stream objects.
 
     @tparam Services The list of services this connection will support.
 */
 template<class Derived, class... Services>
-class async_http_con : public http_base
+class async_http_con_base : public http_base
 {
     // This function lets us access members of the derived class
     Derived&
@@ -161,7 +161,7 @@ protected:
 
 public:
     // Constructor
-    async_http_con(
+    async_http_con_base(
         beast::string_view server_name,
         std::ostream& log,
         service_list<Services...> const& services,
@@ -180,13 +180,34 @@ public:
     {
     }
 
-    // Called by the port after creating the object
     void
     run()
     {
-        // Start reading the header for the first request.
+        // Give the derived class a chance to do stuff
         //
+        impl().do_handshake();
+    }
+
+protected:
+    void
+    do_run()
+    {
         do_read_header();
+    }
+
+    // Called when a failure occurs
+    //
+    void
+    fail(std::string what, error_code ec)
+    {
+        // Don't log operation aborted since those happen normally.
+        //
+        if(ec && ec != boost::asio::error::operation_aborted)
+        {
+            log_ <<
+                "[#" << id_ << " " << ep_ << "] " <<
+            what << ": " << ec.message() << std::endl;
+        }
     }
 
 private:
@@ -214,7 +235,7 @@ private:
             buffer_,
             *parser_,
             strand_.wrap(std::bind(
-                &async_http_con::on_read_header,
+                &async_http_con_base::on_read_header,
                 impl().shared_from_this(),
                 std::placeholders::_1)));
     }
@@ -228,12 +249,12 @@ private:
     struct send_lambda
     {
         // holds "this"
-        async_http_con& self_;
+        async_http_con_base& self_;
 
     public:
         // capture "this"
         explicit
-        send_lambda(async_http_con& self)
+        send_lambda(async_http_con_base& self)
             : self_(self)
         {
         }
@@ -251,9 +272,17 @@ private:
     void
     on_read_header(error_code ec)
     {
+        // This happens when the other end closes gracefully
+        //
+        if(ec == beast::http::error::end_of_stream)
+        {
+            // VFALCO what about the write queue?
+            return impl().do_shutdown();
+        }
+
         // On failure we just return, the shared_ptr that is bound
         // into the completion will go out of scope and eventually
-        // we will get destroyed.
+        // this will get destroyed.
         //
         if(ec)
             return fail("on_read", ec);
@@ -281,7 +310,7 @@ private:
             buffer_,
             *parser_,
             strand_.wrap(std::bind(
-                &async_http_con::on_read,
+                &async_http_con_base::on_read,
                 impl().shared_from_this(),
                 std::placeholders::_1)));
     }
@@ -290,6 +319,13 @@ private:
     void
     on_read(error_code ec)
     {
+        // Shouldn't be getting end_of_stream here;
+        // that would mean that we got an incomplete
+        // message, counting as an error.
+        //
+        if(ec)
+            return fail("on_read", ec);
+
         // Grab a reference to the request again
         auto& req = parser_->get();
 
@@ -298,10 +334,10 @@ private:
         //
         send_lambda send{*this};
 
-        // Give each services a chance to handle the request
+        // Give each service a chance to handle the request
         //
         if(! services_.respond(
-            impl().stream(),
+            std::move(impl().stream()),
             ep_,
             std::move(req),
             send))
@@ -319,7 +355,7 @@ private:
             if(! impl().stream().lowest_layer().is_open())
             {
                 // They took ownership so just return and
-                // let this async_http_con object get destroyed.
+                // let this async_http_con_base object get destroyed.
                 //
                 return;
             }
@@ -357,7 +393,7 @@ private:
                 impl().stream(),
                 std::move(res),
                 strand_.wrap(std::bind(
-                    &async_http_con::on_write,
+                    &async_http_con_base::on_write,
                     impl().shared_from_this(),
                     std::placeholders::_1)));
         }
@@ -369,7 +405,7 @@ private:
             impl().stream(),
             std::move(res),
             strand_.wrap(std::bind(
-                &async_http_con::on_write,
+                &async_http_con_base::on_write,
                 impl().shared_from_this(),
                 std::placeholders::_1))));
     }
@@ -380,6 +416,14 @@ private:
     {
         // Make sure our state is what we think it is
         BOOST_ASSERT(writing_);
+
+        // This happens when we send an HTTP message
+        // whose semantics indicate that the connection
+        // should be closed afterwards. For example if
+        // we send a Connection: close.
+        //
+        if(ec == beast::http::error::end_of_stream)
+            return impl().do_shutdown();
 
         // On failure just log and return
         if(ec)
@@ -403,23 +447,6 @@ private:
         // Delete the item since we used it
         queue_.erase(queue_.begin());
     }
-
-    // Called when a failure occurs
-    //
-    void
-    fail(std::string what, error_code ec)
-    {
-        // Don't log end of stream or operation aborted
-        // since those happen under normal circumstances.
-        //
-        if( ec != beast::http::error::end_of_stream &&
-            ec != boost::asio::error::operation_aborted)
-        {
-            log_ <<
-                "[#" << id_ << " " << ep_ << "] " <<
-            what << ": " << ec.message() << std::endl;
-        }
-    }
 };
 
 //------------------------------------------------------------------------------
@@ -428,7 +455,7 @@ private:
 // uses a plain TCP/IP socket (no encryption) as the stream.
 //
 template<class... Services>
-class async_http_con_plain
+class async_http_con
 
     // Note that we give this object the enable_shared_from_this, and have
     // the base class call impl().shared_from_this(). The reason we do that
@@ -436,7 +463,7 @@ class async_http_con_plain
     // derived class (this class) use its members in calls to std::bind,
     // without an ugly call to `dynamic_downcast` or other nonsense.
     //
-    : public std::enable_shared_from_this<async_http_con_plain<Services...>>
+    : public std::enable_shared_from_this<async_http_con<Services...>>
 
     // We want the socket to be created before the base class so we use
     // the "base from member" idiom which Boost provides as a class.
@@ -445,17 +472,17 @@ class async_http_con_plain
 
     // Declare this base last now that everything else got set up first.
     //
-    , public async_http_con<async_http_con_plain<Services...>, Services...>
+    , public async_http_con_base<async_http_con<Services...>, Services...>
 {
 public:
     // Construct the plain connection.
     //
     template<class... Args>
-    async_http_con_plain(
+    async_http_con(
         socket_type&& sock,
         Args&&... args)
         : base_from_member<socket_type>(std::move(sock))
-        , async_http_con<async_http_con_plain<Services...>, Services...>(
+        , async_http_con_base<async_http_con<Services...>, Services...>(
             std::forward<Args>(args)...)
     {
     }
@@ -468,6 +495,31 @@ public:
     stream()
     {
         return this->member;
+    }
+
+private:
+    // Base class needs to be a friend to call our private members
+    friend class async_http_con_base<async_http_con<Services...>, Services...>;
+
+    // This is called by the base before running the main loop.
+    //
+    void
+    do_handshake()
+    {
+        // Run the main loop right away
+        //
+        this->do_run();
+    }
+
+    // This is called when the other end closes the connection gracefully.
+    //
+    void
+    do_shutdown()
+    {
+        error_code ec;
+        stream().shutdown(socket_type::shutdown_both, ec);
+        if(ec)
+            return this->fail("shutdown", ec);
     }
 };
 
@@ -492,7 +544,12 @@ class http_async_port
     service_list<Services...> services_;
 
 public:
-    // Constructor
+    /** Constructor
+
+        @param instance The server instance which owns this port
+
+        @param log The stream to use for logging
+    */
     http_async_port(
         server& instance,
         std::ostream& log)
@@ -534,7 +591,7 @@ public:
         // Create a plain http connection object
         // and transfer ownership of the socket.
         //
-        std::make_shared<async_http_con_plain<Services...>>(
+        std::make_shared<async_http_con<Services...>>(
             std::move(sock),
             "http_async_port",
             log_,
