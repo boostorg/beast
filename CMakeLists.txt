@@ -46,6 +46,8 @@ endif()
 #
 
 option (Boost_USE_STATIC_LIBS "Use static libraries for boost" ON)
+option (BEAST_BUILD_EXAMPLES "Build Beast examples" ON)
+option (BEAST_BUILD_TESTS "Build Beast test" ON)
 
 set (BOOST_COMPONENTS coroutine context filesystem program_options system thread)
 find_package (Boost REQUIRED COMPONENTS ${BOOST_COMPONENTS})
@@ -185,12 +187,20 @@ file(GLOB_RECURSE SERVER_INCLUDES
     ${PROJECT_SOURCE_DIR}/example/server-framework/*.hpp
   )
 
-add_subdirectory (test)
+if (BEAST_BUILD_TESTS)
+    add_subdirectory (test)
+endif()
 
-add_subdirectory (example)
+if (BEAST_BUILD_EXAMPLES)
+    add_subdirectory (example)
+endif()
 
 if (OPENSSL_FOUND)
-    add_subdirectory (example/ssl-http-client)
-    add_subdirectory (example/ssl-websocket-client)
-    add_subdirectory (test/websocket/ssl)
+    if (BEAST_BUILD_EXAMPLES)
+        add_subdirectory (example/ssl-http-client)
+        add_subdirectory (example/ssl-websocket-client)
+    endif()
+    if (BEAST_BUILD_TESTS)
+        add_subdirectory (test/websocket/ssl)
+    endif()
 endif()
