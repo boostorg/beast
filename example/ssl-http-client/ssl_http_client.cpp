@@ -22,11 +22,11 @@ int main()
     namespace ssl = boost::asio::ssl;
 
     // Normal boost::asio setup
-    std::string const host = "github.com";
+    std::string const host = "localhost";
     io_service ios;
     resolver r{ios};
     socket sock{ios};
-    connect(sock, r.resolve(resolver::query{host, "https"}));
+    connect(sock, r.resolve(resolver::query{host, "1007"}));
 
     // Perform SSL handshaking
     ssl::context ctx{ssl::context::sslv23};
@@ -56,4 +56,7 @@ int main()
     stream.shutdown(ec);
     if(ec && ec != boost::asio::error::eof)
         std::cout << "error: " << ec.message();
+
+    // Make sure everything is written before we leave main
+    std::cout.flush();
 }

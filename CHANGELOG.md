@@ -6,6 +6,7 @@ Version 61:
 * Tidy up some integer conversion warnings
 * Add message::header_part()
 * Tidy up names in error categories
+* Flush the output stream in the example
 
 API Changes:
 
