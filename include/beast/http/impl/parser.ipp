@@ -26,12 +26,12 @@ parser(Arg1&& arg1, ArgN&&... argn)
 template<bool isRequest, class Body, class Fields>
 template<class OtherBody, class... Args, class>
 parser<isRequest, Body, Fields>::
-parser(parser<isRequest, OtherBody, Fields>&& parser,
+parser(parser<isRequest, OtherBody, Fields>&& p,
         Args&&... args)
-    : base_type(std::move(parser))
-    , m_(parser.release(), std::forward<Args>(args)...)
+    : base_type(std::move(p))
+    , m_(p.release(), std::forward<Args>(args)...)
 {
-    if(parser.wr_)
+    if(p.wr_)
         BOOST_THROW_EXCEPTION(std::invalid_argument{
             "moved-from parser has a body"});
 }

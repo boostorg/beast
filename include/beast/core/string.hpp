@@ -83,9 +83,9 @@ struct iless
         using std::end;
         return std::lexicographical_compare(
             begin(lhs), end(lhs), begin(rhs), end(rhs),
-            [](char lhs, char rhs)
+            [](char c1, char c2)
             {
-                return detail::ascii_tolower(lhs) < detail::ascii_tolower(rhs);
+                return detail::ascii_tolower(c1) < detail::ascii_tolower(c2);
             }
         );
     }
