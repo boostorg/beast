@@ -32,8 +32,8 @@ class sync_https_con
     //
     : public std::enable_shared_from_this<sync_https_con<Services...>>
 
-    // We want the socket to be created before the base class so we use
-    // the "base from member" idiom which Boost provides as a class.
+    // We want the socket to be created before the
+    // base class so we use the "base from member" idiom.
     //
     , public base_from_member<ssl_stream<socket_type>>
 
@@ -107,8 +107,8 @@ class async_https_con
     //
     : public std::enable_shared_from_this<async_https_con<Services...>>
 
-    // We want the socket to be created before the base class so we use
-    // the "base from member" idiom which Boost provides as a class.
+    // We want the socket to be created before the
+    // base class so we use the "base from member" idiom.
     //
     , public base_from_member<ssl_stream<socket_type>>
 
@@ -140,6 +140,33 @@ public:
         return this->member;
     }
 
+    // Called by the multi-port after reading some
+    // bytes from the stream and detecting SSL.
+    // 
+    template<class ConstBufferSequence>
+    void
+    handshake(ConstBufferSequence const& buffers)
+    {
+        // Copy the caller's bytes into the buffer we
+        // use for reading HTTP messages, otherwise
+        // the memory pointed to by buffers will go out
+        // of scope.
+        //
+        this->buffer_.commit(boost::asio::buffer_copy(
+            this->buffer_.prepare(boost::asio::buffer_size(
+                buffers)), buffers));
+
+        // Perform SSL handshake. We use the "buffered"
+        // overload which lets us pass those extra bytes.
+        //
+        stream().async_handshake(
+            boost::asio::ssl::stream_base::server,
+                buffers, this->strand_.wrap(std::bind(
+                    &async_https_con::on_buffered_handshake,
+                        this->shared_from_this(),
+                            std::placeholders::_1, std::placeholders::_2)));
+    }
+
 private:
     friend class async_http_con_base<async_https_con<Services...>, Services...>;
 
@@ -164,6 +191,20 @@ private:
     {
         if(ec)
             return this->fail("on_handshake", ec);
+
+        // No error so run the main loop
+        this->do_run();
+    }
+
+    // Called when the buffered SSL handshake completes
+    void
+    on_buffered_handshake(error_code ec, std::size_t bytes_transferred)
+    {
+        if(ec)
+            return this->fail("on_handshake", ec);
+
+        // Consume what was read but leave the rest
+        this->buffer_.consume(bytes_transferred);
 
         // No error so run the main loop
         this->do_run();

@@ -12,7 +12,7 @@
 
 #include <beast/core/multi_buffer.hpp>
 #include <beast/websocket/stream.hpp>
-#include <functional>
+#include <boost/function.hpp>
 #include <memory>
 #include <ostream>
 
@@ -217,8 +217,8 @@ class async_ws_con
     //
     : public std::enable_shared_from_this<async_ws_con>
 
-    // We want the socket to be created before the base class so we use
-    // the "base from member" idiom which Boost provides as a class.
+    // We want the socket to be created before the
+    // base class so we use the "base from member" idiom.
     //
     , public base_from_member<beast::websocket::stream<socket_type>>
 
@@ -271,8 +271,7 @@ private:
 class ws_async_port
 {
     // The type of the on_stream callback
-    using on_new_stream_cb = std::function<
-        void(beast::websocket::stream<socket_type>&)>;
+    using on_new_stream_cb = boost::function<void(beast::websocket::stream<socket_type>&)>;
 
     server& instance_;
     std::ostream& log_;
@@ -345,7 +344,7 @@ public:
     */
     template<class Body, class Fields>
     void
-    accept(
+    on_upgrade(
         socket_type&& sock,
         endpoint_type ep,
         beast::http::request<Body, Fields>&& req)

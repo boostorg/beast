@@ -333,8 +333,8 @@ class sync_http_con
     //
     : public std::enable_shared_from_this<sync_http_con<Services...>>
 
-    // We want the socket to be created before the base class so we use
-    // the "base from member" idiom which Boost provides as a class.
+    // We want the socket to be created before the
+    // base class so we use the "base from member" idiom.
     //
     , public base_from_member<socket_type>
 

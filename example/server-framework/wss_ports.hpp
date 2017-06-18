@@ -28,8 +28,8 @@ class sync_wss_con
     //
     : public std::enable_shared_from_this<sync_wss_con>
 
-    // We want the socket to be created before the base class so we use
-    // the "base from member" idiom which Boost provides as a class.
+    // We want the socket to be created before the
+    // base class so we use the "base from member" idiom.
     //
     , public base_from_member<beast::websocket::stream<ssl_stream<socket_type>>>
 
@@ -103,8 +103,8 @@ class async_wss_con
     //
     : public std::enable_shared_from_this<async_wss_con>
 
-    // We want the socket to be created before the base class so we use
-    // the "base from member" idiom which Boost provides as a class.
+    // We want the socket to be created before the
+    // base class so we use the "base from member" idiom.
     //
     , public base_from_member<beast::websocket::stream<ssl_stream<socket_type>>>
 
@@ -276,7 +276,7 @@ public:
     */
     template<class Body, class Fields>
     void
-    accept(
+    on_upgrade(
         ssl_stream<socket_type>&& stream,
         endpoint_type ep,
         beast::http::request<Body, Fields>&& req)
@@ -314,9 +314,16 @@ class wss_async_port
     using on_new_stream_cb2 = boost::function<
         void(beast::websocket::stream<ssl_stream<socket_type>>&)>;
 
+    // Reference to the server instance that made us
     server& instance_;
+
+    // The stream to log to
     std::ostream& log_;
+
+    // The context holds the SSL certificates the server uses
     boost::asio::ssl::context& ctx_;
+
+    // Called for each new websocket stream
     on_new_stream_cb1 cb1_;
     on_new_stream_cb2 cb2_;
 
@@ -393,7 +400,7 @@ public:
     */
     template<class Body, class Fields>
     void
-    accept(
+    on_upgrade(
         ssl_stream<socket_type>&& stream,
         endpoint_type ep,
         beast::http::request<Body, Fields>&& req)
