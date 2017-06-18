@@ -538,7 +538,7 @@ struct message : header<isRequest, Fields>
         req.version = 11;
         req.method(verb::upgrade);
         req.target("/");
-        req.insert(field::user_agent, "Beast");
+        req.set(field::user_agent, "Beast");
         req.body = "Hello, world!";
         req.prepare();
         @endcode

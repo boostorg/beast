@@ -207,15 +207,15 @@ public:
         // base
         {
             static_buffer_n<10> b;
-            [&](static_buffer& b)
+            [&](static_buffer& base)
             {
-                BEAST_EXPECT(b.max_size() == b.capacity());
+                BEAST_EXPECT(base.max_size() == b.capacity());
             }
             (b.base());
 
-            [&](static_buffer const&)
+            [&](static_buffer const& base)
             {
-                BEAST_EXPECT(b.max_size() == b.capacity());
+                BEAST_EXPECT(base.max_size() == b.capacity());
             }
             (b.base());
         }

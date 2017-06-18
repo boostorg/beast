@@ -1759,7 +1759,7 @@ public:
             ws.handshake("localhost", "/",
                 [](request_type& req)
                 {
-                    req.insert(field::user_agent, "Beast");
+                    req.set(field::user_agent, "Beast");
                 });
         }
         catch(...)
@@ -1820,7 +1820,7 @@ public:
             ws.handshake(res, "localhost", "/",
                 [](request_type& req)
                 {
-                    req.insert(field::user_agent, "Beast");
+                    req.set(field::user_agent, "Beast");
                 });
         }
         catch(...)
@@ -1963,7 +1963,7 @@ public:
         ws.handshake("localhost", "/",
             [](request_type& req)
             {
-                req.insert(field::user_agent, "Beast");
+                req.set(field::user_agent, "Beast");
             },
             ec);
         if(ec)
@@ -2024,7 +2024,7 @@ public:
         ws.handshake(res, "localhost", "/",
             [](request_type& req)
             {
-                req.insert(field::user_agent, "Beast");
+                req.set(field::user_agent, "Beast");
             },
             ec);
         if(ec)
