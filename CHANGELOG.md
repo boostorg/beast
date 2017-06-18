@@ -6,6 +6,10 @@ Version 61:
 * Tidy up some integer conversion warnings
 * Add message::header_part()
 
+API Changes:
+
+* header::version is unsigned
+
 --------------------------------------------------------------------------------
 
 Version 60:

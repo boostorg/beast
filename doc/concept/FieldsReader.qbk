@@ -23,9 +23,9 @@ In this table:
 
 * `f` is a value of type `F`.
 
-* `v` is an integer representing the HTTP version.
+* `v` is an `unsigned` value representing the HTTP version.
 
-* `c` is an integer representing the HTTP status-code.
+* `c` is an `unsigned` representing the HTTP status-code.
 
 * `m` is a value of type [link beast.ref.beast__http__verb `verb`].
 
@@ -74,5 +74,24 @@ In this table:
     ]
 ]
 ]
+
+Exemplar:
+```
+struct FieldsReader
+{
+    // The type of buffers returned by `get`
+    using const_buffers_type = implementation-defined;
+
+    // Constructor for requests
+    FieldsReader(F const& f, unsigned version, verb method);
+
+    // Constructor for responses
+    FieldsReader(F const& f, unsigned version, unsigned status);
+
+    // Returns the serialized header buffers
+    const_buffers_type
+    get();
+};
+```
 
 [endsect]
