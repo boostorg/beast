@@ -9,6 +9,7 @@ Version 61:
 API Changes:
 
 * header::version is unsigned
+* status-codes is unsigned
 
 --------------------------------------------------------------------------------
 

@@ -140,7 +140,7 @@ public:
     template<class String>
     void
     prepare(String&s, basic_fields const& f,
-        unsigned version, int code);
+        unsigned version, unsigned code);
 
     basic_fields const& f_;
     static_string<max_static_start_line> ss_;
@@ -158,7 +158,7 @@ public:
         unsigned version, verb v);
 
     reader(basic_fields const& f,
-        unsigned version, int code);
+        unsigned version, unsigned code);
 
     const_buffers_type
     get() const
@@ -216,7 +216,7 @@ template<class String>
 void
 basic_fields<Allocator>::reader::
 prepare(String& s,basic_fields const& f,
-    unsigned version, int code)
+    unsigned version, unsigned code)
 {
     if(version == 11)
     {
@@ -274,7 +274,7 @@ reader(basic_fields const& f,
 template<class Allocator>
 basic_fields<Allocator>::reader::
 reader(basic_fields const& f,
-        unsigned version, int code)
+        unsigned version, unsigned code)
     : f_(f)
 {
     try
