@@ -5,6 +5,7 @@ Version 61:
 * Reorganize SSL examples
 * Tidy up some integer conversion warnings
 * Add message::header_part()
+* Tidy up names in error categories
 
 API Changes:
 

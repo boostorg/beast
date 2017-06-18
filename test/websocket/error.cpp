@@ -34,9 +34,9 @@ public:
 
     void run() override
     {
-        check("websocket", error::closed);
-        check("websocket", error::failed);
-        check("websocket", error::handshake_failed);
+        check("beast.websocket", error::closed);
+        check("beast.websocket", error::failed);
+        check("beast.websocket", error::handshake_failed);
     }
 };
 
