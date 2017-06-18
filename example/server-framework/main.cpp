@@ -263,9 +263,9 @@ main(
     //
 
 #if BEAST_USE_OPENSSL
-
     ssl_certificate cert;
 
+#if 0
     //--------------------------------------------------------------------------
     //
     // Asynchronous Secure WebSocket    HTTPS
@@ -327,6 +327,7 @@ main(
         if(ec)
             return fail("https_async_port/file_service", ec);
     }
+#endif
 
     //--------------------------------------------------------------------------
     //
@@ -388,7 +389,6 @@ main(
         if(ec)
             return fail("https_sync_port/file_service", ec);
     }
-
 #endif
 
     sig_wait();
