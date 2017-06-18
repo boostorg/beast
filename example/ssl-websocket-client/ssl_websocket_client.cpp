@@ -5,43 +5,102 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#include <beast/core/ostream.hpp>
+#include <beast/core.hpp>
 #include <beast/websocket.hpp>
 #include <beast/websocket/ssl.hpp>
 #include <boost/asio.hpp>
 #include <boost/asio/ssl.hpp>
+#include <cstdlib>
 #include <iostream>
 #include <string>
 
 int main()
 {
-    using boost::asio::connect;
-    using socket = boost::asio::ip::tcp::socket;
-    using resolver = boost::asio::ip::tcp::resolver;
-    using io_service = boost::asio::io_service;
-    namespace ssl = boost::asio::ssl;
+    // A helper for reporting errors
+    auto const fail =
+        [](std::string what, beast::error_code ec)
+        {
+            std::cerr << what << ": " << ec.message() << std::endl;
+            std::cerr.flush();
+            return EXIT_FAILURE;
+        };
 
-    // Normal boost::asio setup
+    boost::system::error_code ec;
+
+    // Set up an asio socket to connect to a remote host
+    boost::asio::io_service ios;
+    boost::asio::ip::tcp::resolver r{ios};
+    boost::asio::ip::tcp::socket sock{ios};
+
+    // Look up the domain name
     std::string const host = "echo.websocket.org";
-    io_service ios;
-    resolver r{ios};
-    socket sock{ios};
-    connect(sock, r.resolve(resolver::query{host, "https"}));
+    auto const lookup = r.resolve(boost::asio::ip::tcp::resolver::query{host, "https"}, ec);
+    if(ec)
+        return fail("resolve", ec);
+
+    // Make the connection on the IP address we get from a lookup
+    boost::asio::connect(sock, lookup, ec);
+    if(ec)
+        return fail("connect", ec);
+
+    // Wrap the now-connected socket in an SSL stream
+    using stream_type = boost::asio::ssl::stream<boost::asio::ip::tcp::socket&>;
+    boost::asio::ssl::context ctx{boost::asio::ssl::context::sslv23};
+    stream_type stream{sock, ctx};
+    stream.set_verify_mode(boost::asio::ssl::verify_none);
 
     // Perform SSL handshaking
-    using stream_type = ssl::stream<socket&>;
-    ssl::context ctx{ssl::context::sslv23};
-    stream_type stream{sock, ctx};
-    stream.set_verify_mode(ssl::verify_none);
-    stream.handshake(ssl::stream_base::client);
+    stream.handshake(boost::asio::ssl::stream_base::client, ec);
+    if(ec)
+        return fail("ssl handshake", ec);
 
-    // Secure WebSocket connect and send message using Beast
+    // Now wrap the handshaked SSL stream in a websocket stream
     beast::websocket::stream<stream_type&> ws{stream};
-    ws.handshake(host, "/");
-    ws.write(boost::asio::buffer("Hello, world!"));
 
-    // Receive Secure WebSocket message, print and close using Beast
+    // Perform the websocket handshake
+    ws.handshake(host, "/", ec);
+    if(ec)
+        return fail("handshake", ec);
+
+    // Send a message
+    ws.write(boost::asio::buffer("Hello, world!"), ec);
+    if(ec)
+        return fail("write", ec);
+
+    // This buffer will hold the incoming message
     beast::multi_buffer b;
-    ws.close(beast::websocket::close_code::normal);
-    std::cout << beast::buffers(b.data()) << "\n";
+
+    // Read the message into our buffer
+    ws.read(b, ec);
+    if(ec)
+        return fail("read", ec);
+
+    // Send a "close" frame to the other end, this is a websocket thing
+    ws.close(beast::websocket::close_code::normal, ec);
+    if(ec)
+        return fail("close", ec);
+
+    // The buffers() function helps print a ConstBufferSequence
+    std::cout << beast::buffers(b.data()) << std::endl;
+
+    // WebSocket says that to close a connection you have
+    // to keep reading messages until you receive a close frame.
+    // Beast delivers the close frame as an error from read.
+    //
+    beast::drain_buffer drain; // Throws everything away efficiently
+    for(;;)
+    {
+        // Keep reading messages...
+        ws.read(drain, ec);
+
+        // ...until we get the special error code
+        if(ec == beast::websocket::error::closed)
+            break;
+
+        // Some other error occurred, report it and exit.
+        if(ec)
+            return fail("close", ec);
+    }
+
+    return EXIT_SUCCESS;
 }

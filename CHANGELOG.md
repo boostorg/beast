@@ -7,6 +7,7 @@ Version 61:
 * Add message::header_part()
 * Tidy up names in error categories
 * Flush the output stream in the example
+* Clean close in Secure WebSocket client
 
 API Changes:
 
