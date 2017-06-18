@@ -31,6 +31,9 @@ namespace framework {
 //
 struct queued_http_write
 {
+    // Destructor must be virtual since we delete a
+    // derived class through a pointer to the base!
+    //
     virtual ~queued_http_write() = default;
 
     // When invoked, performs the write operation.
@@ -49,8 +52,13 @@ template<
     class Handler>
 class queued_http_write_impl : public queued_http_write
 {
+    // The stream to write to
     Stream& stream_;
+
+    // The message to send, which we acquire by move or copy
     beast::http::message<isRequest, Body, Fields> msg_;
+
+    // The handler to invoke when the send completes.
     Handler handler_;
 
 public:
@@ -69,7 +77,13 @@ public:
     {
     }
 
-    // Writes the stored message
+    // Writes the stored message.
+    //
+    // The caller must make sure this invocation represents
+    // a continuation of an asynchronous operation which is
+    // already in the right context. For example, already
+    // running on the associated strand.
+    //
     void
     invoke() override
     {
@@ -120,6 +134,7 @@ make_queued_http_write(
 template<class Derived, class... Services>
 class async_http_con_base : public http_base
 {
+protected:
     // This function lets us access members of the derived class
     Derived&
     impl()
@@ -153,7 +168,6 @@ class async_http_con_base : public http_base
     // Indicates if we have a write active.
     bool writing_ = false;
 
-protected:
     // The strand makes sure that our data is
     // accessed from only one thread at a time.
     //
@@ -172,17 +186,40 @@ public:
         , services_(services)
         , id_(id)
         , ep_(ep)
+
         // The buffer has a limit of 8192, otherwise
         // the server is vulnerable to a buffer attack.
         //
         , buffer_(8192)
+
         , strand_(impl().stream().get_io_service())
     {
     }
 
+    // Called to start the object after the listener accepts
+    // an incoming connection, when no bytes have been read yet.
+    //
     void
     run()
     {
+        // Just call run with an empty buffer
+        run(boost::asio::null_buffers{});
+    }
+
+    // Called to start the object after the
+    // listener accepts an incoming connection.
+    //
+    template<class ConstBufferSequence>
+    void
+    run(ConstBufferSequence const& buffers)
+    {
+        // Copy the data into the buffer for performing
+        // HTTP reads, so that the bytes get used.
+        //
+        buffer_.commit(boost::asio::buffer_copy(
+            buffer_.prepare(boost::asio::buffer_size(buffers)),
+                buffers));
+
         // Give the derived class a chance to do stuff
         //
         impl().do_handshake();
@@ -210,7 +247,6 @@ protected:
         }
     }
 
-private:
     // Perform an asynchronous read for the next request header
     //
     void
@@ -457,25 +493,28 @@ private:
 template<class... Services>
 class async_http_con
 
-    // Note that we give this object the enable_shared_from_this, and have
-    // the base class call impl().shared_from_this(). The reason we do that
-    // is so that the shared_ptr has the correct type. This lets the
-    // derived class (this class) use its members in calls to std::bind,
-    // without an ugly call to `dynamic_downcast` or other nonsense.
+    // Give this object the enable_shared_from_this, and have
+    // the base class call impl().shared_from_this(). The reason
+    // is so that the shared_ptr has the correct type. This lets
+    // the derived class (this class) use its members in calls to
+    // `std::bind`, without an ugly call to `dynamic_downcast` or
+    // other nonsense.
     //
     : public std::enable_shared_from_this<async_http_con<Services...>>
 
-    // We want the socket to be created before the base class so we use
-    // the "base from member" idiom which Boost provides as a class.
+    // The stream should be created before the base class so
+    // use the "base from member" idiom.
     //
     , public base_from_member<socket_type>
 
-    // Declare this base last now that everything else got set up first.
+    // Constructs last, destroys first
     //
     , public async_http_con_base<async_http_con<Services...>, Services...>
 {
 public:
-    // Construct the plain connection.
+    // Constructor
+    //
+    // Additional arguments are forwarded to the base class
     //
     template<class... Args>
     async_http_con(
@@ -488,8 +527,11 @@ public:
     }
 
     // Returns the stream.
-    // The base class calls this to obtain the object to
-    // use for reading and writing HTTP messages.
+    //
+    // The base class calls this to obtain the object to use for
+    // reading and writing HTTP messages. This allows the same base
+    // class to work with different return types for `stream()` such
+    // as a `boost::asio::ip::tcp::socket&` or a `boost::asio::ssl::stream&`
     //
     socket_type&
     stream()
@@ -597,8 +639,7 @@ public:
             log_,
             services_,
             instance_.next_id(),
-            ep
-                )->run();
+            ep)->run();
     }
 };
 

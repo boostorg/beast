@@ -24,25 +24,28 @@ namespace framework {
 template<class... Services>
 class sync_https_con
 
-    // Note that we give this object the enable_shared_from_this, and have
-    // the base class call impl().shared_from_this(). The reason we do that
-    // is so that the shared_ptr has the correct type. This lets the
-    // derived class (this class) use its members in calls to std::bind,
-    // without an ugly call to `dynamic_downcast` or other nonsense.
+    // Give this object the enable_shared_from_this, and have
+    // the base class call impl().shared_from_this(). The reason
+    // is so that the shared_ptr has the correct type. This lets
+    // the derived class (this class) use its members in calls to
+    // `std::bind`, without an ugly call to `dynamic_downcast` or
+    // other nonsense.
     //
     : public std::enable_shared_from_this<sync_https_con<Services...>>
 
-    // We want the socket to be created before the base class so we use
-    // the "base from member" idiom which Boost provides as a class.
+    // The stream should be created before the base class so
+    // use the "base from member" idiom.
     //
     , public base_from_member<ssl_stream<socket_type>>
 
-    // Declare this base last now that everything else got set up first.
+    // Constructs last, destroys first
     //
     , public sync_http_con_base<sync_https_con<Services...>, Services...>
 {
 public:
-    // Construct the plain connection.
+    // Constructor
+    //
+    // Additional arguments are forwarded to the base class
     //
     template<class... Args>
     sync_https_con(
@@ -56,8 +59,11 @@ public:
     }
 
     // Returns the stream.
-    // The base class calls this to obtain the object to
-    // use for reading and writing HTTP messages.
+    //
+    // The base class calls this to obtain the object to use for
+    // reading and writing HTTP messages. This allows the same base
+    // class to work with different return types for `stream()` such
+    // as a `boost::asio::ip::tcp::socket&` or a `boost::asio::ssl::stream&`
     //
     ssl_stream<socket_type>&
     stream()
@@ -99,25 +105,28 @@ private:
 template<class... Services>
 class async_https_con
 
-    // Note that we give this object the enable_shared_from_this, and have
-    // the base class call impl().shared_from_this(). The reason we do that
-    // is so that the shared_ptr has the correct type. This lets the
-    // derived class (this class) use its members in calls to std::bind,
-    // without an ugly call to `dynamic_downcast` or other nonsense.
+    // Give this object the enable_shared_from_this, and have
+    // the base class call impl().shared_from_this(). The reason
+    // is so that the shared_ptr has the correct type. This lets
+    // the derived class (this class) use its members in calls to
+    // `std::bind`, without an ugly call to `dynamic_downcast` or
+    // other nonsense.
     //
     : public std::enable_shared_from_this<async_https_con<Services...>>
 
-    // We want the socket to be created before the base class so we use
-    // the "base from member" idiom which Boost provides as a class.
+    // The stream should be created before the base class so
+    // use the "base from member" idiom.
     //
     , public base_from_member<ssl_stream<socket_type>>
 
-    // Declare this base last now that everything else got set up first.
+    // Constructs last, destroys first
     //
     , public async_http_con_base<async_https_con<Services...>, Services...>
 {
 public:
-    // Construct the plain connection.
+    // Constructor
+    //
+    // Additional arguments are forwarded to the base class
     //
     template<class... Args>
     async_https_con(
@@ -131,13 +140,47 @@ public:
     }
 
     // Returns the stream.
-    // The base class calls this to obtain the object to
-    // use for reading and writing HTTP messages.
+    //
+    // The base class calls this to obtain the object to use for
+    // reading and writing HTTP messages. This allows the same base
+    // class to work with different return types for `stream()` such
+    // as a `boost::asio::ip::tcp::socket&` or a `boost::asio::ssl::stream&`
     //
     ssl_stream<socket_type>&
     stream()
     {
         return this->member;
+    }
+
+    // Called by the multi-port after reading some
+    // bytes from the stream and detecting SSL.
+    // 
+    template<class ConstBufferSequence>
+    void
+    handshake(ConstBufferSequence const& buffers)
+    {
+        // Copy the caller's bytes into the buffer we
+        // use for reading HTTP messages, otherwise
+        // the memory pointed to by buffers will go out
+        // of scope.
+        //
+        this->buffer_.commit(
+            boost::asio::buffer_copy(
+                this->buffer_.prepare(boost::asio::buffer_size(buffers)),
+                buffers));
+
+        // Perform SSL handshake. We use the "buffered"
+        // overload which lets us pass those extra bytes.
+        //
+        stream().async_handshake(
+            boost::asio::ssl::stream_base::server,
+            buffers,
+            this->strand_.wrap(
+                std::bind(
+                    &async_https_con::on_buffered_handshake,
+                    this->shared_from_this(),
+                    std::placeholders::_1,
+                    std::placeholders::_2)));
     }
 
 private:
@@ -152,10 +195,11 @@ private:
         //
         stream().async_handshake(
             boost::asio::ssl::stream_base::server,
-                this->strand_.wrap(std::bind(
+            this->strand_.wrap(
+                std::bind(
                     &async_https_con::on_handshake,
-                        this->shared_from_this(),
-                            std::placeholders::_1)));
+                    this->shared_from_this(),
+                    std::placeholders::_1)));
     }
 
     // Called when the SSL handshake completes
@@ -169,6 +213,20 @@ private:
         this->do_run();
     }
 
+    // Called when the buffered SSL handshake completes
+    void
+    on_buffered_handshake(error_code ec, std::size_t bytes_transferred)
+    {
+        if(ec)
+            return this->fail("on_handshake", ec);
+
+        // Consume what was read but leave the rest
+        this->buffer_.consume(bytes_transferred);
+
+        // No error so run the main loop
+        this->do_run();
+    }
+
     // Called when the end of stream is reached
     void
     do_shutdown()
@@ -176,10 +234,11 @@ private:
         // This is an SSL shutdown
         //
         stream().async_shutdown(
-            this->strand_.wrap(std::bind(
-                &async_https_con::on_shutdown,
+            this->strand_.wrap(
+                std::bind(
+                    &async_https_con::on_shutdown,
                     this->shared_from_this(),
-                        std::placeholders::_1)));
+                    std::placeholders::_1)));
     }
 
     // Called when the SSL shutdown completes
@@ -273,8 +332,7 @@ public:
             log_,
             services_,
             instance_.next_id(),
-            ep
-                )->run();
+            ep)->run();
     }
 };
 
@@ -348,7 +406,7 @@ public:
     void
     on_accept(socket_type&& sock, endpoint_type ep)
     {
-        // Create an HTTPS connection object
+        // Create an SSL connection object
         // and transfer ownership of the socket.
         //
         std::make_shared<async_https_con<Services...>>(
@@ -358,8 +416,7 @@ public:
             log_,
             services_,
             instance_.next_id(),
-            ep
-                )->run();
+            ep)->run();
     }
 };
 

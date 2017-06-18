@@ -11,6 +11,7 @@ Version 61:
 * Add server-framework SSL HTTP and WebSocket ports
 * Fix shadowing warnings
 * Tidy up http-crawl example
+* Add multi_port to server-framework
 
 API Changes:
 

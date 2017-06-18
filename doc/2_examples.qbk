@@ -107,6 +107,7 @@ This is a complete program and framework of classes implementing
 a general purpose server that users may copy to use as the basis
 for writing their own servers. It serves both HTTP and WebSocket.
 
+* [repo_file example/server-framework/detect_ssl.hpp]
 * [repo_file example/server-framework/file_body.hpp]
 * [repo_file example/server-framework/file_service.hpp]
 * [repo_file example/server-framework/framework.hpp]
@@ -115,6 +116,7 @@ for writing their own servers. It serves both HTTP and WebSocket.
 * [repo_file example/server-framework/http_sync_port.hpp]
 * [repo_file example/server-framework/https_ports.hpp]
 * [repo_file example/server-framework/main.cpp]
+* [repo_file example/server-framework/multi_port.hpp]
 * [repo_file example/server-framework/rfc7231.hpp]
 * [repo_file example/server-framework/server.hpp]
 * [repo_file example/server-framework/service_list.hpp]

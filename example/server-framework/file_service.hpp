@@ -15,7 +15,9 @@
 #include <beast/http/empty_body.hpp>
 #include <beast/http/message.hpp>
 #include <beast/http/string_body.hpp>
+
 #include <boost/filesystem/path.hpp>
+
 #include <string>
 
 namespace framework {
@@ -47,8 +49,8 @@ public:
     */
     explicit
     file_service(
-            boost::filesystem::path const& root,
-            beast::string_view server)
+        boost::filesystem::path const& root,
+        beast::string_view server)
         : root_(root)
         , server_(server)
     {
@@ -70,10 +72,33 @@ public:
         ec = {};
     }
 
-    /** Process a request.
-    
-    
-        @note This is needed for to meet the requirements for @b Service
+    /** Try to handle a file request.
+
+        @param stream The stream belonging to the connection.
+        Ownership is not transferred.
+
+        @param ep The remote endpoint of the connection
+        corresponding to the stream.
+
+        @param req The request message to attempt handling. 
+        Ownership is not transferred.
+
+        @param send The function to invoke with the response.
+        The function will have this equivalent signature:
+
+        @code
+
+        template<class Body, class Fields>
+        void
+        send(response<Body, Fields>&&);
+
+        @endcode
+
+        In C++14 this can be expressed using a generic lambda. In
+        C++11 it will require a template member function of an invocable
+        object.
+
+        @return `true` if the request was handled by the service.
     */
     template<
         class Stream,
@@ -86,7 +111,7 @@ public:
         beast::http::request<Body, Fields>&& req,
         Send const& send) const
     {
-        // Check the method and take action
+        // Determine our action based on the method
         switch(req.method())
         {
         case beast::http::verb::get:
@@ -190,7 +215,8 @@ private:
     //
     template<class Body, class Fields>
     beast::http::response<beast::http::string_body>
-    not_found(beast::http::request<Body, Fields> const& req,
+    not_found(
+        beast::http::request<Body, Fields> const& req,
         boost::filesystem::path const& rel_path) const
     {
         beast::http::response<beast::http::string_body> res;
@@ -207,7 +233,8 @@ private:
     //
     template<class Body, class Fields>
     beast::http::response<file_body>
-    get(beast::http::request<Body, Fields> const& req,
+    get(
+        beast::http::request<Body, Fields> const& req,
         boost::filesystem::path const& full_path) const
     {
         beast::http::response<file_body> res;
@@ -224,7 +251,8 @@ private:
     //
     template<class Body, class Fields>
     beast::http::response<beast::http::empty_body>
-    head(beast::http::request<Body, Fields> const& req,
+    head(
+        beast::http::request<Body, Fields> const& req,
         boost::filesystem::path const& full_path) const
     {
         beast::http::response<beast::http::empty_body> res;

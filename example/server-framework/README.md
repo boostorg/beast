@@ -62,7 +62,7 @@ ports created in the example program, and the HTTP services contained by
 the HTTP ports:
 
 <img width="880" height = "344" alt = "ServerFramework"
-    src="https://raw.githubusercontent.com/vinniefalco/Beast/server/doc/images/server.png">
+    src="https://raw.githubusercontent.com/vinniefalco/Beast/master/doc/images/server.png">
 
 ## PortHandler Requirements
 ```C++

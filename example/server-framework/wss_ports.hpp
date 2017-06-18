@@ -19,26 +19,32 @@ namespace framework {
 
 //------------------------------------------------------------------------------
 
-// This class represents a synchronous Secure WebSocket connection
+// A synchronous WebSocket connection over an SSL connection
 //
 class sync_wss_con
 
-    // Note that we give this object the `enable_shared_from_this`, and have
-    // the base class call `impl().shared_from_this()` when needed.
+    // Give this object the enable_shared_from_this, and have
+    // the base class call impl().shared_from_this(). The reason
+    // is so that the shared_ptr has the correct type. This lets
+    // the derived class (this class) use its members in calls to
+    // `std::bind`, without an ugly call to `dynamic_downcast` or
+    // other nonsense.
     //
     : public std::enable_shared_from_this<sync_wss_con>
 
-    // We want the socket to be created before the base class so we use
-    // the "base from member" idiom which Boost provides as a class.
+    // The stream should be created before the base class so
+    // use the "base from member" idiom.
     //
     , public base_from_member<beast::websocket::stream<ssl_stream<socket_type>>>
 
-    // Declare this base last now that everything else got set up first.
+    // Constructs last, destroys first
     //
     , public sync_ws_con_base<sync_wss_con>
 {
 public:
-    // Construct the plain connection.
+    // Constructor
+    //
+    // Additional arguments are forwarded to the base class
     //
     template<class... Args>
     explicit
@@ -51,7 +57,7 @@ public:
     {
     }
 
-    // Construct the connection from an existing, handshaked SSL stream
+    // Construct from an existing, handshaked SSL stream
     //
     template<class... Args>
     sync_wss_con(
@@ -64,7 +70,10 @@ public:
 
     // Returns the stream.
     //
-    // The base class calls this to obtain the websocket stream object.
+    // The base class calls this to obtain the object to use for
+    // reading and writing HTTP messages. This allows the same base
+    // class to work with different return types for `stream()` such
+    // as a `boost::asio::ip::tcp::socket&` or a `boost::asio::ssl::stream&`
     //
     beast::websocket::stream<ssl_stream<socket_type>>&
     stream()
@@ -90,30 +99,32 @@ private:
 
 //------------------------------------------------------------------------------
 
-// This class represents an asynchronous Secure WebSocket
-// connection which uses an OpenSSL socket as the stream.
+// An asynchronous WebSocket connection over an SSL connection
 //
 class async_wss_con
 
-    // Note that we give this object the enable_shared_from_this, and have
-    // the base class call impl().shared_from_this(). The reason we do that
-    // is so that the shared_ptr has the correct type. This lets the
-    // derived class (this class) use its members in calls to std::bind,
-    // without an ugly call to `dynamic_downcast` or other nonsense.
+    // Give this object the enable_shared_from_this, and have
+    // the base class call impl().shared_from_this(). The reason
+    // is so that the shared_ptr has the correct type. This lets
+    // the derived class (this class) use its members in calls to
+    // `std::bind`, without an ugly call to `dynamic_downcast` or
+    // other nonsense.
     //
     : public std::enable_shared_from_this<async_wss_con>
 
-    // We want the socket to be created before the base class so we use
-    // the "base from member" idiom which Boost provides as a class.
+    // The stream should be created before the base class so
+    // use the "base from member" idiom.
     //
     , public base_from_member<beast::websocket::stream<ssl_stream<socket_type>>>
 
-    // Declare this base last now that everything else got set up first.
+    // Constructs last, destroys first
     //
     , public async_ws_con_base<async_wss_con>
 {
 public:
-    // Construct the connection.
+    // Constructor
+    //
+    // Additional arguments are forwarded to the base class
     //
     template<class... Args>
     async_wss_con(
@@ -125,7 +136,7 @@ public:
     {
     }
 
-    // Construct the connection from an existing, handshaked SSL stream
+    // Construct from an existing, handshaked SSL stream
     //
     template<class... Args>
     async_wss_con(
@@ -137,8 +148,11 @@ public:
     }
 
     // Returns the stream.
-    // The base class calls this to obtain the object to
-    // use for reading and writing HTTP messages.
+    //
+    // The base class calls this to obtain the object to use for
+    // reading and writing HTTP messages. This allows the same base
+    // class to work with different return types for `stream()` such
+    // as a `boost::asio::ip::tcp::socket&` or a `boost::asio::ssl::stream&`
     //
     beast::websocket::stream<ssl_stream<socket_type>>&
     stream()
@@ -159,13 +173,15 @@ private:
         //
         stream().next_layer().async_handshake(
             boost::asio::ssl::stream_base::server,
-                this->strand_.wrap(std::bind(
+            this->strand_.wrap(
+                std::bind(
                     &async_wss_con::on_handshake,
-                        this->shared_from_this(),
-                            std::placeholders::_1)));
+                    this->shared_from_this(),
+                    std::placeholders::_1)));
     }
 
     // Called when the SSL handshake completes
+    //
     void
     on_handshake(error_code ec)
     {
@@ -191,11 +207,13 @@ class wss_sync_port
     // VFALCO We use boost::function to work around a compiler
     //        crash with gcc and clang using libstdc++
 
-    // The types of the on_stream callback
-    using on_new_stream_cb1 = boost::function<
-        void(beast::websocket::stream<socket_type>&)>;
-    using on_new_stream_cb2 = boost::function<
-        void(beast::websocket::stream<ssl_stream<socket_type>>&)>;
+    // The types of the on_new_stream callbacks
+    //
+    using on_new_stream_cb1 =
+        boost::function<void(beast::websocket::stream<socket_type>&)>;
+    
+    using on_new_stream_cb2 =
+        boost::function<void(beast::websocket::stream<ssl_stream<socket_type>>&)>;
 
     server& instance_;
     std::ostream& log_;
@@ -259,8 +277,7 @@ public:
             log_,
             instance_.next_id(),
             ep,
-            cb2_
-                )->run();
+            cb2_)->run();
     }
 
     /** Accept a WebSocket upgrade request.
@@ -276,13 +293,13 @@ public:
     */
     template<class Body, class Fields>
     void
-    accept(
+    on_upgrade(
         ssl_stream<socket_type>&& stream,
         endpoint_type ep,
         beast::http::request<Body, Fields>&& req)
     {
         // Create the connection object and run it,
-        // transferring ownershop of the ugprade request.
+        // transferring ownership of the ugprade request.
         //
         std::make_shared<sync_wss_con>(
             std::move(stream),
@@ -290,8 +307,7 @@ public:
             log_,
             instance_.next_id(),
             ep,
-            cb2_
-                )->run(std::move(req));
+            cb2_)->run(std::move(req));
     }
 };
 
@@ -308,15 +324,24 @@ class wss_async_port
     // VFALCO We use boost::function to work around a compiler
     //        crash with gcc and clang using libstdc++
 
-    // The types of the on_stream callback
-    using on_new_stream_cb1 = boost::function<
-        void(beast::websocket::stream<socket_type>&)>;
-    using on_new_stream_cb2 = boost::function<
-        void(beast::websocket::stream<ssl_stream<socket_type>>&)>;
+    // The types of the on_new_stream callbacks
+    //
+    using on_new_stream_cb1 =
+        boost::function<void(beast::websocket::stream<socket_type>&)>;
 
+    using on_new_stream_cb2 =
+        boost::function<void(beast::websocket::stream<ssl_stream<socket_type>>&)>;
+
+    // Reference to the server instance that made us
     server& instance_;
+
+    // The stream to log to
     std::ostream& log_;
+
+    // The context holds the SSL certificates the server uses
     boost::asio::ssl::context& ctx_;
+
+    // Called for each new websocket stream
     on_new_stream_cb1 cb1_;
     on_new_stream_cb2 cb2_;
 
@@ -376,8 +401,7 @@ public:
             log_,
             instance_.next_id(),
             ep,
-            cb2_
-                )->run();
+            cb2_)->run();
     }
 
     /** Accept a WebSocket upgrade request.
@@ -393,7 +417,7 @@ public:
     */
     template<class Body, class Fields>
     void
-    accept(
+    on_upgrade(
         ssl_stream<socket_type>&& stream,
         endpoint_type ep,
         beast::http::request<Body, Fields>&& req)
@@ -404,8 +428,7 @@ public:
             log_,
             instance_.next_id(),
             ep,
-            cb2_
-                )->run(std::move(req));
+            cb2_)->run(std::move(req));
     }
 };
 

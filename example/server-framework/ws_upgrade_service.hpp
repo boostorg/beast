@@ -25,7 +25,7 @@ namespace framework {
 template<class PortHandler>
 class ws_upgrade_service
 {
-    std::shared_ptr<PortHandler> handler_;
+    PortHandler& handler_;
 
 public:
     /** Constructor
@@ -34,9 +34,8 @@ public:
         handle WebSocket upgrade requests.
     */
     explicit
-    ws_upgrade_service(
-        std::shared_ptr<PortHandler> handler)
-        : handler_(std::move(handler))
+    ws_upgrade_service(PortHandler& handler)
+        : handler_(handler)
     {
     }
 
@@ -86,7 +85,7 @@ public:
         // Its an ugprade request, so transfer ownership
         // of the stream and request to the port handler.
         //
-        handler_->accept(
+        handler_.on_upgrade(
             std::move(stream),
             ep,
             std::move(req));
