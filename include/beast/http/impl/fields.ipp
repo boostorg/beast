@@ -135,12 +135,12 @@ public:
     template<class String>
     void
     prepare(String& s, basic_fields const& f,
-        int version, verb v);
+        unsigned version, verb v);
 
     template<class String>
     void
     prepare(String&s, basic_fields const& f,
-        int version, int code);
+        unsigned version, int code);
 
     basic_fields const& f_;
     static_string<max_static_start_line> ss_;
@@ -154,9 +154,11 @@ public:
             field_range,
             boost::asio::const_buffers_1>;
 
-    reader(basic_fields const& f, int version, verb v);
+    reader(basic_fields const& f,
+        unsigned version, verb v);
 
-    reader(basic_fields const& f, int version, int code);
+    reader(basic_fields const& f,
+        unsigned version, int code);
 
     const_buffers_type
     get() const
@@ -173,7 +175,7 @@ template<class String>
 void
 basic_fields<Allocator>::reader::
 prepare(String& s, basic_fields const& f,
-    int version, verb v)
+    unsigned version, verb v)
 {
     if(v == verb::unknown)
     {
@@ -214,7 +216,7 @@ template<class String>
 void
 basic_fields<Allocator>::reader::
 prepare(String& s,basic_fields const& f,
-    int version, int code)
+    unsigned version, int code)
 {
     if(version == 11)
     {
@@ -253,7 +255,8 @@ prepare(String& s,basic_fields const& f,
 
 template<class Allocator>
 basic_fields<Allocator>::reader::
-reader(basic_fields const& f, int version, verb v)
+reader(basic_fields const& f,
+        unsigned version, verb v)
     : f_(f)
 {
     try
@@ -270,7 +273,8 @@ reader(basic_fields const& f, int version, verb v)
 
 template<class Allocator>
 basic_fields<Allocator>::reader::
-reader(basic_fields const& f, int version, int code)
+reader(basic_fields const& f,
+        unsigned version, int code)
     : f_(f)
 {
     try
