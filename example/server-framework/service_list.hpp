@@ -90,7 +90,7 @@ public:
         to the stream.
 
         @param req The request message to attempt handling. A service
-        which handles the request may optionally take ownershop of the
+        which handles the request may optionally take ownership of the
         message.
 
         @param send The function to invoke with the response. The function 

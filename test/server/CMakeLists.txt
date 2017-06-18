@@ -26,6 +26,7 @@ add_executable (server-test
     http_sync_port.cpp
     https_ports.cpp
     main.cpp
+    multi_port.cpp
     rfc7231.cpp
     server.cpp
     service_list.cpp

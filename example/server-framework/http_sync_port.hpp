@@ -328,22 +328,28 @@ private:
 template<class... Services>
 class sync_http_con
 
-    // Note that we give this object the `enable_shared_from_this`, and have
-    // the base class call `impl().shared_from_this()` when needed.
+    // Give this object the enable_shared_from_this, and have
+    // the base class call impl().shared_from_this(). The reason
+    // is so that the shared_ptr has the correct type. This lets
+    // the derived class (this class) use its members in calls to
+    // `std::bind`, without an ugly call to `dynamic_downcast` or
+    // other nonsense.
     //
     : public std::enable_shared_from_this<sync_http_con<Services...>>
 
-    // We want the socket to be created before the base class so we use
-    // the "base from member" idiom which Boost provides as a class.
+    // The stream should be created before the base class so
+    // use the "base from member" idiom.
     //
     , public base_from_member<socket_type>
 
-    // Declare this base last now that everything else got set up first.
+    // Constructs last, destroys first
     //
     , public sync_http_con_base<sync_http_con<Services...>, Services...>
 {
 public:
-    // Construct the plain connection.
+    // Constructor
+    //
+    // Additional arguments are forwarded to the base class
     //
     template<class... Args>
     sync_http_con(
@@ -357,8 +363,10 @@ public:
 
     // Returns the stream.
     //
-    // The base class calls this to obtain the object to
-    // use for reading and writing HTTP messages.
+    // The base class calls this to obtain the object to use for
+    // reading and writing HTTP messages. This allows the same base
+    // class to work with different return types for `stream()` such
+    // as a `boost::asio::ip::tcp::socket&` or a `boost::asio::ssl::stream&`
     //
     socket_type&
     stream()
@@ -458,8 +466,7 @@ public:
             log_,
             services_,
             instance_.next_id(),
-            ep
-                )->run();
+            ep)->run();
     }
 };
 
