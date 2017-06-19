@@ -250,33 +250,6 @@ message(std::piecewise_construct_t,
 }
 
 template<bool isRequest, class Body, class Fields>
-inline
-bool
-message<isRequest, Body, Fields>::
-has_close() const
-{
-    return this->has_close_impl();
-}
-
-template<bool isRequest, class Body, class Fields>
-inline
-bool
-message<isRequest, Body, Fields>::
-has_chunked() const
-{
-    return this->has_chunked_impl();
-}
-
-template<bool isRequest, class Body, class Fields>
-inline
-bool
-message<isRequest, Body, Fields>::
-has_content_length() const
-{
-    return this->has_content_length_impl();
-}
-
-template<bool isRequest, class Body, class Fields>
 boost::optional<std::uint64_t>
 message<isRequest, Body, Fields>::
 size() const

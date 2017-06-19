@@ -132,6 +132,12 @@ public:
         }
     };
 
+    bool
+    get_chunked() const;
+
+    bool
+    get_keep_alive(int version) const;
+
     template<class String>
     void
     prepare(String& s, basic_fields const& f,
@@ -146,6 +152,8 @@ public:
     static_string<max_static_start_line> ss_;
     string_view sv_;
     std::string s_;
+    bool chunked_;
+    bool keep_alive_;
 
 public:
     using const_buffers_type =
@@ -160,6 +168,18 @@ public:
     reader(basic_fields const& f,
         unsigned version, unsigned code);
 
+    bool
+    chunked()
+    {
+        return chunked_;
+    }
+
+    bool
+    keep_alive()
+    {
+        return keep_alive_;
+    }
+
     const_buffers_type
     get() const
     {
@@ -169,6 +189,41 @@ public:
             detail::chunk_crlf());
     }
 };
+
+template<class Allocator>
+bool
+basic_fields<Allocator>::reader::
+get_chunked() const
+{
+    auto const te = token_list{
+        f_[field::transfer_encoding]};
+    for(auto it = te.begin(); it != te.end();)
+    {
+        auto next = std::next(it);
+        if(next == te.end())
+            return iequals(*it, "chunked");
+        it = next;
+    }
+    return false;
+}
+
+template<class Allocator>
+bool
+basic_fields<Allocator>::reader::
+get_keep_alive(int version) const
+{
+    if(version < 11)
+    {
+        auto const it = f_.find(field::connection);
+        if(it == f_.end())
+            return false;
+        return token_list{it->value()}.exists("keep-alive");
+    }
+    auto const it = f_.find(field::connection);
+    if(it == f_.end())
+        return true;
+    return ! token_list{it->value()}.exists("close");
+}
 
 template<class Allocator>
 template<class String>
@@ -258,6 +313,8 @@ basic_fields<Allocator>::reader::
 reader(basic_fields const& f,
         unsigned version, verb v)
     : f_(f)
+    , chunked_(get_chunked())
+    , keep_alive_(get_keep_alive(version))
 {
     try
     {
@@ -276,6 +333,8 @@ basic_fields<Allocator>::reader::
 reader(basic_fields const& f,
         unsigned version, unsigned code)
     : f_(f)
+    , chunked_(get_chunked())
+    , keep_alive_(get_keep_alive(version))
 {
     try
     {
@@ -752,49 +811,6 @@ equal_range(string_view name) const ->
 //------------------------------------------------------------------------------
 
 // Fields
-
-template<class Allocator>
-bool
-basic_fields<Allocator>::
-has_close_impl() const
-{
-    auto const fit = set_.find(
-        to_string(field::connection), key_compare{});
-    if(fit == set_.end())
-        return false;
-    return token_list{fit->value()}.exists("close");
-}
-
-template<class Allocator>
-bool
-basic_fields<Allocator>::
-has_chunked_impl() const
-{
-    auto const fit = set_.find(to_string(
-        field::transfer_encoding), key_compare{});
-    if(fit == set_.end())
-        return false;
-    token_list const v{fit->value()};
-    auto it = v.begin();
-    if(it == v.end())
-        return false;
-    for(;;)
-    {
-        auto cur = it++;
-        if(it == v.end())
-            return iequals(*cur, "chunked");
-    }
-}
-
-template<class Allocator>
-bool
-basic_fields<Allocator>::
-has_content_length_impl() const
-{
-    auto const fit = set_.find(
-        to_string(field::content_length), key_compare{});
-    return fit != set_.end();
-}
 
 template<class Allocator>
 inline

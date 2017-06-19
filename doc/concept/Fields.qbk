@@ -34,24 +34,6 @@ In this table:
         A type which meets the requirements of __FieldsReader__.
     ]
 ][
-    [`c.has_close_impl()`]
-    [`bool`]
-    [
-        Returns `true` if the value for Connection has "close" in the list.
-    ]
-][
-    [`c.has_chunked_impl()`]
-    [`bool`]
-    [
-        Returns `true` if "chunked" is the last Transfer-Encoding.
-    ]
-][
-    [`c.has_content_length_impl()`]
-    [`bool`]
-    [
-        Returns `true` if the Content-Length field is present.
-    ]
-][
     [`c.get_method_impl()`]
     [`string_view`]
     [
@@ -108,5 +90,49 @@ In this table:
     ]
 ]
 ]
+
+[heading Exemplar]
+
+```
+class Fields
+{
+protected:
+    /** Set or clear the method string.
+
+        @note Only called for requests.
+    */
+    void set_method_impl(string_view s);
+
+    /** Set or clear the target string.
+
+        @note Only called for requests.
+    */
+    void set_target_impl(string_view s);
+
+    /** Set or clear the reason string.
+
+        @note Only called for responses.
+    */
+    void set_reason_impl(string_view s);
+
+    /** Returns the request-method string.
+
+        @note Only called for requests.
+    */
+    string_view get_method_impl() const;
+
+    /** Returns the request-target string.
+
+        @note Only called for requests.
+    */
+    string_view get_target_impl() const;
+
+    /** Returns the response reason-phrase string.
+
+        @note Only called for responses.
+    */
+    string_view get_reason_impl() const;
+};
+```
 
 [endsect]

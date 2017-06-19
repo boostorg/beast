@@ -483,24 +483,6 @@ struct message : header<isRequest, Fields>
         return *this;
     }
 
-    /// Returns `true` if "close" is specified in the Connection field.
-    bool
-    has_close() const;
-
-    /// Returns `true` if "chunked" is the last Transfer-Encoding.
-    bool
-    has_chunked() const;
-
-    /** Returns `true` if the Content-Length field is present.
-
-        This function checks the fields to determine if the content
-        length field is present, regardless of the actual value.
-
-        @note The contents of the body payload are not inspected.
-    */
-    bool
-    has_content_length() const;
-
     /** Returns the payload size of the body in octets if possible.
 
         This function invokes the @b Body algorithm to measure
