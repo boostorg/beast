@@ -26,7 +26,7 @@ int main()
             return EXIT_FAILURE;
         };
 
-    boost::system::error_code ec;
+    beast::error_code ec;
 
     // Set up an asio socket
     boost::asio::io_service ios;
