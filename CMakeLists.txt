@@ -190,7 +190,5 @@ add_subdirectory (test)
 add_subdirectory (example)
 
 if (OPENSSL_FOUND)
-    add_subdirectory (example/ssl-http-client)
-    add_subdirectory (example/ssl-websocket-client)
     add_subdirectory (test/websocket/ssl)
 endif()

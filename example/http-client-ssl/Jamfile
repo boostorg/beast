@@ -43,7 +43,7 @@ project
     <library>crypto
   ;
 
-exe ssl-http-client
+exe http-client-ssl
   :
-    ssl_http_client.cpp
+    http_client_ssl.cpp
   ;
