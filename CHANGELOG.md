@@ -12,6 +12,7 @@ API Changes:
 
 * parser requires basic_fields
 * Refine FieldsReader concept
+* message::prepare_payload replaces message::prepare
 
 Actions Required:
 
@@ -20,6 +21,10 @@ Actions Required:
   with their custom fields type.
 
 * Implement chunked() and keep_alive() for user defined FieldsReader types.
+
+* Change calls to msg.prepare to msg.prepare_payload. For messages
+  with a user-defined Fields, provide the function prepare_payload_impl
+  in the fields type according to the Fields requirements.
 
 --------------------------------------------------------------------------------
 

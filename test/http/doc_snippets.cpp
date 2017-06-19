@@ -49,7 +49,7 @@ void fxx() {
     res.result(status::ok);
     res.set(field::server, "Beast");
     res.body = "Hello, world!";
-    res.prepare();
+    res.prepare_payload();
 
 //]
 }

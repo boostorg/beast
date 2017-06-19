@@ -31,7 +31,7 @@ public:
         req.version = 11;
         req.method(verb::post);
         req.target("/");
-        req.prepare();
+        req.prepare_payload();
         static_buffer_n<512> b;
         ostream(b) << req;
         string_view const s{

@@ -15,6 +15,7 @@
 #include <boost/asio/buffer.hpp>
 #include <boost/intrusive/list.hpp>
 #include <boost/intrusive/set.hpp>
+#include <boost/optional.hpp>
 #include <algorithm>
 #include <cctype>
 #include <cstring>
@@ -39,7 +40,6 @@ namespace http {
     as a `std::multiset`; there will be a separate value for each occurrence
     of the field name.
 
-
     Meets the requirements of @b Fields
 
     @tparam Allocator The allocator to use. This must meet the
@@ -48,7 +48,7 @@ namespace http {
 template<class Allocator>
 class basic_fields
 {
-    static std::size_t constexpr max_static_start_line = 4096;
+    static std::size_t constexpr max_static_buffer = 4096;
 
     using off_t = std::uint16_t;
 
@@ -591,22 +591,11 @@ protected:
     */
     string_view get_reason_impl() const;
 
-    //--------------------------------------------------------------------------
-    //
-    // for container
-    //
-
-    /** Set the Content-Length field to the specified value.
-
-        @note This is called by the @ref header implementation.
+    /** Adjusts the payload related fields
     */
-    void content_length_impl(std::uint64_t n);
-
-    /** Add chunked to the Transfer-Encoding field.
-
-        @note This is called by the @ref header implementation.
-    */
-    void set_chunked_impl(bool v);
+    void
+    prepare_payload_impl(bool chunked,
+        boost::optional<std::uint64_t> size);
 
 private:
     template<class OtherAlloc>

@@ -151,7 +151,7 @@ request.
 
 Here we create an HTTP response indicating success. Note that this
 message has a body. The function
-[link beast.ref.beast__http__message.prepare prepare]
+[link beast.ref.beast__http__message.prepare_payload `message::prepare_payload`]
 automatically sets the Content-Length or Transfer-Encoding field
 depending on the content and type of the `body` member. The use
 of prepare is optional; these fields may also be set explicitly.

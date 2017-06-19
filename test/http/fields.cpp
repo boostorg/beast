@@ -8,6 +8,8 @@
 // Test that header file is self-contained.
 #include <beast/http/fields.hpp>
 
+#include <beast/http/empty_body.hpp>
+#include <beast/http/message.hpp>
 #include <beast/test/test_allocator.hpp>
 #include <beast/unit_test/suite.hpp>
 #include <boost/lexical_cast.hpp>
@@ -397,6 +399,188 @@ public:
         }
     }
 
+    struct sized_body
+    {
+        using value_type = std::uint64_t;
+
+        static
+        std::uint64_t
+        size(value_type const& v)
+        {
+            return v;
+        }
+    };
+
+    struct unsized_body
+    {
+        struct value_type {};
+    };
+
+    void
+    testPreparePayload()
+    {
+        // GET, empty
+        {
+            request<empty_body> req;
+            req.version = 11;
+            req.method(verb::get);
+
+            req.prepare_payload();
+            BEAST_EXPECT(req.count(field::content_length) == 0);
+            BEAST_EXPECT(req.count(field::transfer_encoding) == 0);
+
+            req.set(field::content_length, "0");
+            req.set(field::transfer_encoding, "chunked");
+            req.prepare_payload();
+
+            BEAST_EXPECT(req.count(field::content_length) == 0);
+            BEAST_EXPECT(req.count(field::transfer_encoding) == 0);
+
+            req.set(field::transfer_encoding, "deflate");
+            req.prepare_payload();
+            BEAST_EXPECT(req.count(field::content_length) == 0);
+            BEAST_EXPECT(req[field::transfer_encoding] == "deflate");
+
+            req.set(field::transfer_encoding, "deflate, chunked");
+            req.prepare_payload();
+            BEAST_EXPECT(req.count(field::content_length) == 0);
+            BEAST_EXPECT(req[field::transfer_encoding] == "deflate");
+        }
+
+        // GET, sized
+        {
+            request<sized_body> req;
+            req.version = 11;
+            req.method(verb::get);
+            req.body = 50;
+
+            req.prepare_payload();
+            BEAST_EXPECT(req[field::content_length] == "50");
+            BEAST_EXPECT(req[field::transfer_encoding] == "");
+
+            req.set(field::content_length, "0");
+            req.set(field::transfer_encoding, "chunked");
+            req.prepare_payload();
+            BEAST_EXPECT(req[field::content_length] == "50");
+            BEAST_EXPECT(req.count(field::transfer_encoding) == 0);
+
+            req.set(field::transfer_encoding, "deflate, chunked");
+            req.prepare_payload();
+            BEAST_EXPECT(req[field::content_length] == "50");
+            BEAST_EXPECT(req[field::transfer_encoding] == "deflate");
+        }
+
+        // PUT, empty
+        {
+            request<empty_body> req;
+            req.version = 11;
+            req.method(verb::put);
+
+            req.prepare_payload();
+            BEAST_EXPECT(req[field::content_length] == "0");
+            BEAST_EXPECT(req.count(field::transfer_encoding) == 0);
+
+            req.set(field::content_length, "50");
+            req.set(field::transfer_encoding, "deflate, chunked");
+            req.prepare_payload();
+            BEAST_EXPECT(req[field::content_length] == "0");
+            BEAST_EXPECT(req[field::transfer_encoding] == "deflate");
+        }
+
+        // PUT, sized
+        {
+            request<sized_body> req;
+            req.version = 11;
+            req.method(verb::put);
+            req.body = 50;
+
+            req.prepare_payload();
+            BEAST_EXPECT(req[field::content_length] == "50");
+            BEAST_EXPECT(req.count(field::transfer_encoding) == 0);
+
+            req.set(field::content_length, "25");
+            req.set(field::transfer_encoding, "deflate, chunked");
+            req.prepare_payload();
+            BEAST_EXPECT(req[field::content_length] == "50");
+            BEAST_EXPECT(req[field::transfer_encoding] == "deflate");
+        }
+
+        // POST, unsized
+        {
+            request<unsized_body> req;
+            req.version = 11;
+            req.method(verb::post);
+
+            req.prepare_payload();
+            BEAST_EXPECT(req.count(field::content_length) == 0);
+            BEAST_EXPECT(req[field::transfer_encoding] == "chunked");
+
+            req.set(field::transfer_encoding, "deflate");
+            req.prepare_payload();
+            BEAST_EXPECT(req.count(field::content_length) == 0);
+            BEAST_EXPECT(req[field::transfer_encoding] == "deflate, chunked");
+        }
+
+        // POST, unsized HTTP/1.0
+        {
+            request<unsized_body> req;
+            req.version = 10;
+            req.method(verb::post);
+
+            req.prepare_payload();
+            BEAST_EXPECT(req.count(field::content_length) == 0);
+            BEAST_EXPECT(req.count(field::transfer_encoding) == 0);
+
+            req.set(field::transfer_encoding, "deflate");
+            req.prepare_payload();
+            BEAST_EXPECT(req.count(field::content_length) == 0);
+            BEAST_EXPECT(req[field::transfer_encoding] == "deflate");
+        }
+
+        // OK, empty
+        {
+            response<empty_body> res;
+            res.version = 11;
+
+            res.prepare_payload();
+            BEAST_EXPECT(res[field::content_length] == "0");
+            BEAST_EXPECT(res.count(field::transfer_encoding) == 0);
+
+            res.erase(field::content_length);
+            res.set(field::transfer_encoding, "chunked");
+            res.prepare_payload();
+            BEAST_EXPECT(res[field::content_length] == "0");
+            BEAST_EXPECT(res.count(field::transfer_encoding) == 0);
+        }
+
+        // OK, sized
+        {
+            response<sized_body> res;
+            res.version = 11;
+            res.body = 50;
+
+            res.prepare_payload();
+            BEAST_EXPECT(res[field::content_length] == "50");
+            BEAST_EXPECT(res.count(field::transfer_encoding) == 0);
+
+            res.erase(field::content_length);
+            res.set(field::transfer_encoding, "chunked");
+            res.prepare_payload();
+            BEAST_EXPECT(res[field::content_length] == "50");
+            BEAST_EXPECT(res.count(field::transfer_encoding) == 0);
+        }
+
+        // OK, unsized
+        {
+            response<unsized_body> res;
+            res.version = 11;
+
+            res.prepare_payload();
+            BEAST_EXPECT(res.count(field::content_length) == 0);
+            BEAST_EXPECT(res[field::transfer_encoding] == "chunked");
+        }
+    }
+
     void run() override
     {
         testMembers();
@@ -404,6 +588,7 @@ public:
         testRFC2616();
         testErase();
         testContainer();
+        testPreparePayload();
     }
 };
 

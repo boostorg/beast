@@ -25,6 +25,10 @@ In this table:
 
 * `s` is a value of type [link beast.ref.beast__string_view `string_view`].
 
+* `b` is a value of type `bool`
+
+* `n` is a value of type `boost::optional<std::uint64_t>`.
+
 [table Fields requirements
 [[expression][type][semantics, pre/post-conditions]]
 [
@@ -88,6 +92,29 @@ In this table:
         This function may throw `std::invalid_argument` if the operation
         is not supported by the container.
     ]
+][
+    [`a.prepare_payload_impl(b,n)`]
+    []
+    [
+        Adjusts the Content-Length and Transfer-Encoding fields to
+        account for the payload metadata indicated by `b` and `n` as
+        follows:
+
+        * If `b` is `true`, the chunked Transfer-Encoding should be applied
+        to the end of the list of encodings if it is not already there
+        or if the field was not present. Any Content-Length fields should
+        be removed.
+
+        * If `b` is `false` and `n` contains a value, set the Content-Length
+        field to `*n`, replacing any previous Content-Length fields. Remove
+        the chunked encoding from the end of the Transfer-Encoding field
+        if the field is present ahd chunked is the last encoding.
+
+        * If `b` is `false` and `n` contains no value, remove all Content-Length
+        fields, and remove the chunked encoding from the end of the
+        Transfer-Encoding field if the field is present ahd chunked is the
+        last encoding.
+    ]
 ]
 ]
 
@@ -132,6 +159,14 @@ protected:
         @note Only called for responses.
     */
     string_view get_reason_impl() const;
+
+    /** Updates the payload metadata.
+
+        @param b `true` if chunked
+
+        @param n The content length if known, otherwise `boost::none`
+    */
+    void prepare_payload_impl(bool b, boost::optional<std::uint64_t> n)
 };
 ```
 

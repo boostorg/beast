@@ -532,7 +532,7 @@ public:
             m.version = 10;
             m.insert(field::user_agent, "test");
             m.body = "*";
-            m.prepare();
+            m.prepare_payload();
             BEAST_EXPECT(str(m) ==
                 "GET / HTTP/1.0\r\n"
                 "User-Agent: test\r\n"
@@ -549,7 +549,7 @@ public:
             m.version = 10;
             m.insert(field::user_agent, "test");
             m.body = "*";
-            m.prepare();
+            m.prepare_payload();
             test::string_ostream ss(ios_);
             error_code ec;
             write(ss, m, ec);
@@ -569,7 +569,7 @@ public:
             m.version = 11;
             m.insert(field::user_agent, "test");
             m.body = "*";
-            m.prepare();
+            m.prepare_payload();
             BEAST_EXPECT(str(m) ==
                 "GET / HTTP/1.1\r\n"
                 "User-Agent: test\r\n"
@@ -586,7 +586,7 @@ public:
             m.version = 11;
             m.insert(field::user_agent, "test");
             m.body = "*";
-            m.prepare();
+            m.prepare_payload();
             test::string_ostream ss(ios_);
             error_code ec;
             write(ss, m, ec);

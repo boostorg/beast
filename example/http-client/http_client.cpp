@@ -55,7 +55,7 @@ int main()
     req.set(http::field::host, host + ":" +
         boost::lexical_cast<std::string>(sock.remote_endpoint().port()));
     req.set(http::field::user_agent, "Beast");
-    req.prepare();
+    req.prepare_payload();
 
     // Write the HTTP request to the remote host
     http::write(sock, req, ec);

@@ -496,17 +496,8 @@ struct message : header<isRequest, Fields>
         is not inspected.
     */
     boost::optional<std::uint64_t>
-    size() const;
+    payload_size() const;
 
-    /** Set the Content-Length field.
-
-        The value of the Content-Length field will be unconditionally
-        set to the specified number of octets.
-
-        @param n The number of octets to set for the Content-Length field.
-    */
-    void
-    content_length(std::uint64_t n);
 
     /** Prepare the message payload fields for the body.
 
@@ -522,11 +513,14 @@ struct message : header<isRequest, Fields>
         req.target("/");
         req.set(field::user_agent, "Beast");
         req.body = "Hello, world!";
-        req.prepare();
+        req.prepare_payload();
         @endcode
     */
     void
-    prepare();
+    prepare_payload()
+    {
+        prepare_payload(typename header_type::is_request{});
+    }
 
 private:
     static_assert(is_body<Body>::value,
@@ -552,22 +546,22 @@ private:
     }
 
     boost::optional<std::uint64_t>
-    size(std::true_type) const
+    payload_size(std::true_type) const
     {
         return Body::size(body);
     }
 
     boost::optional<std::uint64_t>
-    size(std::false_type) const
+    payload_size(std::false_type) const
     {
         return boost::none;
     }
 
     void
-    prepare(std::true_type);
+    prepare_payload(std::true_type);
 
     void
-    prepare(std::false_type);
+    prepare_payload(std::false_type);
 };
 
 /// A typical HTTP request
