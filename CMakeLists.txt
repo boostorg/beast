@@ -186,9 +186,5 @@ file(GLOB_RECURSE SERVER_INCLUDES
   )
 
 add_subdirectory (test)
-
 add_subdirectory (example)
 
-if (OPENSSL_FOUND)
-    add_subdirectory (test/websocket/ssl)
-endif()

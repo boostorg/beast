@@ -31,9 +31,9 @@ and `ssl::context` arguments are forwarded to the wrapped stream's constructor:
 [wss_snippet_1]
 [wss_snippet_2]
 
-[note
-    Code which declares stream objects using Asio SSL types
-    must include the file `<beast/websocket/ssl.hpp>`.
+[important
+    Code which declares websocket stream objects using Asio SSL types
+    must include the file [include_file beast/websocket/ssl.hpp].
 ]
 
 [heading Non-owning References]

@@ -6,6 +6,10 @@ GroupSources(test/websocket "/")
 
 include_directories(../../example/)
 
+if (OPENSSL_FOUND)
+  include_directories(${OPENSSL_INCLUDE_DIR})
+endif()
+
 add_executable (websocket-tests
     ${BEAST_INCLUDES}
     ${EXTRAS_INCLUDES}
@@ -31,3 +35,7 @@ target_link_libraries(websocket-tests
     ${Boost_THREAD_LIBRARY}
     ${Boost_CONTEXT_LIBRARY}
     )
+
+if (OPENSSL_FOUND)
+  target_link_libraries(websocket-tests ${OPENSSL_LIBRARIES})
+endif()

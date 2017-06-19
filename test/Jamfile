@@ -14,83 +14,8 @@ compile version.cpp : : ;
 compile websocket.cpp : : ;
 compile zlib.cpp : : ;
 
+build-project core ;
+build-project http ;
 build-project server ;
 build-project websocket ;
-
-unit-test core-tests :
-    ../extras/beast/unit_test/main.cpp
-    core/async_result.cpp
-    core/bind_handler.cpp
-    core/buffer_bench.cpp
-    core/buffer_cat.cpp
-    core/buffer_prefix.cpp
-    core/buffered_read_stream.cpp
-    core/buffers_adapter.cpp
-    core/clamp.cpp
-    core/consuming_buffers.cpp
-    core/doc_examples.cpp
-    core/doc_snippets.cpp
-    core/drain_buffer.cpp
-    core/error.cpp
-    core/flat_buffer.cpp
-    core/handler_alloc.cpp
-    core/handler_ptr.cpp
-    core/multi_buffer.cpp
-    core/ostream.cpp
-    core/read_size.cpp
-    core/static_buffer.cpp
-    core/static_string.cpp
-    core/string.cpp
-    core/string_param.cpp
-    core/type_traits.cpp
-    core/base64.cpp
-    core/empty_base_optimization.cpp
-    core/sha1.cpp
-    ;
-
-unit-test http-tests :
-    ../extras/beast/unit_test/main.cpp
-    http/basic_parser.cpp
-    http/buffer_body.cpp
-    http/doc_examples.cpp
-    http/doc_snippets.cpp
-    http/dynamic_body.cpp
-    http/error.cpp
-    http/field.cpp
-    http/fields.cpp
-    http/message.cpp
-    http/parser.cpp
-    http/read.cpp
-    http/rfc7230.cpp
-    http/serializer.cpp
-    http/status.cpp
-    http/string_body.cpp
-    http/string_view_body.cpp
-    http/type_traits.cpp
-    http/verb.cpp
-    http/write.cpp
-    ;
-
-unit-test http-bench :
-    ../extras/beast/unit_test/main.cpp
-    http/nodejs_parser.cpp
-    http/parser_bench.cpp
-    ;
-
-unit-test zlib-tests :
-    ../extras/beast/unit_test/main.cpp
-    zlib/zlib-1.2.8/adler32.c
-    zlib/zlib-1.2.8/compress.c
-    zlib/zlib-1.2.8/crc32.c
-    zlib/zlib-1.2.8/deflate.c
-    zlib/zlib-1.2.8/infback.c
-    zlib/zlib-1.2.8/inffast.c
-    zlib/zlib-1.2.8/inflate.c
-    zlib/zlib-1.2.8/inftrees.c
-    zlib/zlib-1.2.8/trees.c
-    zlib/zlib-1.2.8/uncompr.c
-    zlib/zlib-1.2.8/zutil.c
-    zlib/deflate_stream.cpp
-    zlib/error.cpp
-    zlib/inflate_stream.cpp
-    ;
+build-project zlib ;

@@ -1,21 +1,17 @@
-# Part of Beast
+#
+# Copyright (c) 2013-2017 Vinnie Falco (vinnie dot falco at gmail dot com)
+#
+# Distributed under the Boost Software License, Version 1.0. (See accompanying
+# file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+#
 
-GroupSources(examples examples)
-GroupSources(extras/beast extras)
-GroupSources(include/beast beast)
-GroupSources(test/core "/")
-
-add_executable (core-tests
-    ${BEAST_INCLUDES}
-    ${EXAMPLE_INCLUDES}
-    ${EXTRAS_INCLUDES}
+unit-test core-tests :
     ../../extras/beast/unit_test/main.cpp
     async_result.cpp
     bind_handler.cpp
     buffer_bench.cpp
     buffer_cat.cpp
     buffer_prefix.cpp
-    buffer_test.hpp
     buffered_read_stream.cpp
     buffers_adapter.cpp
     clamp.cpp
@@ -38,13 +34,4 @@ add_executable (core-tests
     base64.cpp
     empty_base_optimization.cpp
     sha1.cpp
-)
-
-target_link_libraries(core-tests
-    Beast
-    ${Boost_PROGRAM_OPTIONS_LIBRARY}
-    ${Boost_FILESYSTEM_LIBRARY}
-    ${Boost_COROUTINE_LIBRARY}
-    ${Boost_THREAD_LIBRARY}
-    ${Boost_CONTEXT_LIBRARY}
-    )
+    ;
