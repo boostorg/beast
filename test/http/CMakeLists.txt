@@ -35,7 +35,14 @@ add_executable (http-tests
     write.cpp
 )
 
-target_link_libraries(http-tests Beast ${Boost_PROGRAM_OPTIONS_LIBRARY} ${Boost_FILESYSTEM_LIBRARY} ${Boost_COROUTINE_LIBRARY} ${Boost_THREAD_LIBRARY} ${Boost_CONTEXT_LIBRARY})
+target_link_libraries(http-tests
+    Beast
+    ${Boost_PROGRAM_OPTIONS_LIBRARY}
+    ${Boost_FILESYSTEM_LIBRARY}
+    ${Boost_COROUTINE_LIBRARY}
+    ${Boost_THREAD_LIBRARY}
+    ${Boost_CONTEXT_LIBRARY}
+    )
 
 add_executable (http-bench
     ${BEAST_INCLUDES}
@@ -47,4 +54,8 @@ add_executable (http-bench
     parser_bench.cpp
 )
 
-target_link_libraries(http-bench Beast ${Boost_PROGRAM_OPTIONS_LIBRARY} ${Boost_FILESYSTEM_LIBRARY})
+target_link_libraries(http-bench
+    Beast
+    ${Boost_PROGRAM_OPTIONS_LIBRARY}
+    ${Boost_FILESYSTEM_LIBRARY}
+    )
