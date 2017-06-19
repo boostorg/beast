@@ -48,7 +48,7 @@ main(int, char const*[])
 
         // Look up the domain name
         boost::asio::ip::tcp::resolver r(ios);
-        auto lookup = r.resolve(boost::asio::ip::tcp::resolver::query{host, "http"}, ec);
+        auto lookup = r.resolve({host, "http"}, ec);
         if(ec)
         {
             fail("resolve", ec);

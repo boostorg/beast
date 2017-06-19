@@ -34,7 +34,7 @@ int main()
 
     // Look up the domain name
     std::string const host = "echo.websocket.org";
-    auto const lookup = r.resolve(boost::asio::ip::tcp::resolver::query{host, "http"}, ec);
+    auto const lookup = r.resolve({host, "http"}, ec);
     if(ec)
         return fail("resolve", ec);
 

@@ -12,6 +12,7 @@ Version 61:
 * Fix shadowing warnings
 * Tidy up http-crawl example
 * Add multi_port to server-framework
+* Tidy up resolver calls
 
 API Changes:
 

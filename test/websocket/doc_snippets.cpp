@@ -58,8 +58,7 @@ boost::asio::ip::tcp::socket sock{ios};
     std::string const host = "mywebapp.com";
     boost::asio::ip::tcp::resolver r{ios};
     stream<boost::asio::ip::tcp::socket> ws{ios};
-    boost::asio::connect(ws.next_layer(),
-        r.resolve(boost::asio::ip::tcp::resolver::query{host, "ws"}));
+    boost::asio::connect(ws.next_layer(), r.resolve({host, "ws"}));
 //]
 }
 

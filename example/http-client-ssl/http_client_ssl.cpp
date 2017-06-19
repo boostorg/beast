@@ -33,7 +33,7 @@ int main()
 
     // Look up the domain name
     std::string const host = "www.example.com";
-    auto const lookup = r.resolve(boost::asio::ip::tcp::resolver::query{host, "https"}, ec);
+    auto const lookup = r.resolve({host, "https"}, ec);
     if(ec)
         return fail("resolve", ec);
 

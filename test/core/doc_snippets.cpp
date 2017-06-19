@@ -40,8 +40,7 @@ boost::asio::ip::tcp::socket sock{ios};
 char const* const host = "www.example.com";
 boost::asio::ip::tcp::resolver r{ios};
 boost::asio::ip::tcp::socket stream{ios};
-boost::asio::connect(stream, r.resolve(
-    boost::asio::ip::tcp::resolver::query{host, "http"}));
+boost::asio::connect(stream, r.resolve({host, "http"}));
 
 // At this point `stream` is a connected to a remote
 // host and may be used to perform stream operations.
