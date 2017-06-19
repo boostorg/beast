@@ -403,7 +403,9 @@ public:
     }
 };
 
+#if defined(NDEBUG) && ! BEAST_NO_SLOW_TESTS
 BEAST_DEFINE_TESTSUITE(utf8_checker,websocket,beast);
+#endif
 
 } // detail
 } // websocket
