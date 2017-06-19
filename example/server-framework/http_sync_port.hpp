@@ -357,8 +357,10 @@ public:
 
     // Returns the stream.
     //
-    // The base class calls this to obtain the object to
-    // use for reading and writing HTTP messages.
+    // The base class calls this to obtain the object to use for
+    // reading and writing HTTP messages. This allows the same base
+    // class to work with different return types for `stream()` such
+    // as a `boost::asio::ip::tcp::socket&` or a `boost::asio::ssl::stream&`
     //
     socket_type&
     stream()

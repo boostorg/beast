@@ -290,7 +290,10 @@ public:
 
     // Returns the stream.
     //
-    // The base class calls this to obtain the websocket stream object.
+    // The base class calls this to obtain the object to use for
+    // reading and writing HTTP messages. This allows the same base
+    // class to work with different return types for `stream()` such
+    // as a `boost::asio::ip::tcp::socket&` or a `boost::asio::ssl::stream&`
     //
     beast::websocket::stream<socket_type>&
     stream()
@@ -325,7 +328,7 @@ private:
 class ws_sync_port
 {
     // The type of the on_stream callback
-    using on_new_stream_cb = std::function<void(beast::websocket::stream<socket_type>&)>;
+    using on_new_stream_cb = boost::function<void(beast::websocket::stream<socket_type>&)>;
 
     server& instance_;
     std::ostream& log_;

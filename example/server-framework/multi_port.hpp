@@ -20,11 +20,11 @@
 
 namespace framework {
 
-// This class represents a connection that detects an opening SSL handshake.
+// A connection that detects an opening SSL handshake
 //
-// If the handshake is detected, an HTTPS connection object is move
-// constructed from this object. Otherwise, this object continues as
-// a normal unencrypted HTTP connection. If the underlying port has
+// If the SSL handshake is detected, then an HTTPS connection object
+// is move constructed from this object. Otherwise, this object continues
+// as a normal unencrypted HTTP connection. If the underlying port has
 // the ws_upgrade_service configured, the connection may be optionally
 // be upgraded to WebSocket by the client.
 //
@@ -48,14 +48,16 @@ class multi_con
     //
     , public async_http_con_base<multi_con<Services...>, Services...>
 {
-    // This is the context to use if we get an SSL handshake
+    // Context to use if we get an SSL handshake
     boost::asio::ssl::context& ctx_;
 
-    // This buffer holds the data we read during ssl detection
+    // Holds the data we read during ssl detection
     beast::static_buffer_n<6> buffer_;
 
 public:
-    // Construct the plain connection.
+    // Constructor
+    //
+    // Additional arguments are simply forwarded to the base class
     //
     template<class... Args>
     multi_con(
@@ -63,15 +65,17 @@ public:
         boost::asio::ssl::context& ctx,
         Args&&... args)
         : base_from_member<socket_type>(std::move(sock))
-        , async_http_con_base<multi_con<Services...>, Services...>(
-            std::forward<Args>(args)...)
+        , async_http_con_base<multi_con<Services...>, Services...>(std::forward<Args>(args)...)
         , ctx_(ctx)
     {
     }
 
     // Returns the stream.
-    // The base class calls this to obtain the object to
-    // use for reading and writing HTTP messages.
+    //
+    // The base class calls this to obtain the object to use for
+    // reading and writing HTTP messages. This allows the same base
+    // class to work with different return types for `stream()` such
+    // as a `boost::asio::ip::tcp::socket&` or a `boost::asio::ssl::stream&`
     //
     socket_type&
     stream()
@@ -83,33 +87,48 @@ public:
     void
     detect()
     {
-        async_detect_ssl(stream(), buffer_, this->strand_.wrap(
-            std::bind(&multi_con::on_detect, this->shared_from_this(),
-                std::placeholders::_1, std::placeholders::_2)));
+        // The detect function operates asynchronously by reading
+        // in some data from the stream to figure out if its an SSL
+        // handshake. When it completes, it informs us of the result
+        // and also stores the bytes it read in the buffer.
+        //
+        async_detect_ssl(
+            stream(),
+            buffer_,
+            this->strand_.wrap(
+                std::bind(
+                    &multi_con::on_detect,
+                    this->shared_from_this(),
+                    std::placeholders::_1,
+                    std::placeholders::_2)));
     }
 
 private:
     // Base class needs to be a friend to call our private members
     friend class async_http_con_base<multi_con<Services...>, Services...>;
 
+    // Called when the handshake detection is complete
+    //
     void
-    on_detect(error_code ec, boost::tribool result)
+    on_detect(
+        error_code ec,
+        boost::tribool result)
     {
-        // Check for a failure
+        // Report failures if any
         if(ec)
             return this->fail("on_detect", ec);
 
-        // See if we detected SSL
+        // Was an SSL handshake detected?
         if(result)
         {
-            // Get the remote endpoint, we need
-            // it to construct the new connection.
+            // Yes, get the remote endpoint since it is
+            // needed to construct the new connection.
             //
             endpoint_type ep = stream().remote_endpoint(ec);
             if(ec)
                 return this->fail("remote_endpoint", ec);
 
-            // Yes, so launch an async HTTPS connection
+            // Now launch our new connection object
             //
             std::make_shared<async_https_con<Services...>>(
                 std::move(stream()),
@@ -120,10 +139,15 @@ private:
                 this->id_,
                 ep
                     )->handshake(buffer_.data());
+
+            // When we return the last shared pointer to this
+            // object will go away and `*this` will be destroyed.
+            //
             return;
         }
 
-        // No, so start the HTTP connection normally.
+        // No SSL handshake, so start the HTTP connection normally.
+        //
         // Since we read some bytes from the connection that might
         // contain an HTTP request, we pass the buffer holding those
         // bytes to the base class so it can use them.
@@ -136,7 +160,7 @@ private:
     void
     do_handshake()
     {
-        // Run the main loop right away
+        // Just run the main loop right away.
         //
         this->do_run();
     }
@@ -146,8 +170,15 @@ private:
     void
     do_shutdown()
     {
+        // Attempt a clean TCP/IP shutdown
+        //
         error_code ec;
-        stream().shutdown(socket_type::shutdown_both, ec);
+        stream().shutdown(
+            socket_type::shutdown_both,
+            ec);
+
+        // Report failure if any
+        //
         if(ec)
             return this->fail("shutdown", ec);
     }
@@ -157,13 +188,21 @@ private:
 
 /*  An asynchronous HTTP and WebSocket port handler, plain or SSL
 
-    This type meets the requirements of @b PortHandler. It supports
+    This type meets the requirements of @b PortHandler. It supports a
     variable list of HTTP services in its template parameter list,
     and provides a synchronous connection implementation to service.
 
     The port will automatically detect OpenSSL handshakes and establish
     encrypted connections, otherwise will use a plain unencrypted
     connection. This all happens through the same port.
+
+    In addition this port can process WebSocket upgrade requests by
+    launching them as a new asynchronous WebSocket connection using
+    either plain or OpenSSL transport.
+
+    This class is split up into two parts, the multi_port_base,
+    and the multi_port, to avoid a recursive type reference when
+    we name the type of the ws_upgrade_service.
 */
 class multi_port_base
 {
@@ -172,10 +211,8 @@ protected:
     //        crash with gcc and clang using libstdc++
 
     // The types of the on_stream callback
-    using on_new_stream_cb1 = boost::function<
-        void(beast::websocket::stream<socket_type>&)>;
-    using on_new_stream_cb2 = boost::function<
-        void(beast::websocket::stream<ssl_stream<socket_type>>&)>;
+    using on_new_stream_cb1 = boost::function<void(beast::websocket::stream<socket_type>&)>;
+    using on_new_stream_cb2 = boost::function<void(beast::websocket::stream<ssl_stream<socket_type>>&)>;
 
     // Reference to the server instance that made us
     server& instance_;
@@ -243,6 +280,9 @@ public:
         endpoint_type ep,
         beast::http::request<Body, Fields>&& req)
     {
+        // Create the connection and call the version of
+        // run that takes the request since we have it already
+        //
         std::make_shared<async_ws_con>(
             std::move(sock),
             "multi_port",
@@ -282,6 +322,11 @@ public:
     }
 };
 
+/*  An asynchronous HTTP and WebSocket port handler, plain or SSL
+
+    This class is the other half of multi_port_base. It gets the
+    Services... variadic type list and owns the service list.
+*/
 template<class... Services>
 class multi_port : public multi_port_base
 {
@@ -327,10 +372,13 @@ public:
         @ep The remote endpoint
     */
     void
-    on_accept(socket_type&& sock, endpoint_type ep)
+    on_accept(
+        socket_type&& sock,
+        endpoint_type ep)
     {
-        // Create a plain http connection object
-        // and transfer ownership of the socket.
+        // Create a plain http connection object by transferring
+        // ownership of the socket, then launch it to perform
+        // the SSL handshake detection.
         //
         std::make_shared<multi_con<Services...>>(
             std::move(sock),
