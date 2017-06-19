@@ -13,6 +13,7 @@ Version 61:
 * Tidy up http-crawl example
 * Add multi_port to server-framework
 * Tidy up resolver calls
+* Use one job on CI
 
 API Changes:
 

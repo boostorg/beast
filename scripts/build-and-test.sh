@@ -43,6 +43,9 @@ elif [[ $(uname -s) == "Linux" ]]; then
   if [[ "${TRAVIS}" == "true" && ${NUM_PROCESSORS:=2} > ${num_jobs} ]]; then
       num_jobs=$NUM_PROCESSORS
   fi
+  if [[ "$TRAVIS" == "true" ]] && (( "$num_jobs" > 1)); then
+      num_jobs=$((num_jobs - 1))
+  fi
 fi
 
 echo "using toolset: $CC"
