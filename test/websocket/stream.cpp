@@ -1912,6 +1912,7 @@ public:
         pmd.server_enable = false;
         doClientTests(pmd);
 
+    #if ! BEAST_NO_SLOW_TESTS
         pmd.client_enable = true;
         pmd.server_enable = true;
         pmd.client_max_window_bits = 10;
@@ -1923,6 +1924,7 @@ public:
         pmd.client_max_window_bits = 10;
         pmd.client_no_context_takeover = true;
         doClientTests(pmd);
+    #endif
     }
 };
 

@@ -56,7 +56,7 @@ variant coverage
   :
     release
   :
-    <cxxflags>"-DBEAST_NO_BUFFER_BENCH=1 -fprofile-arcs -ftest-coverage"
+    <cxxflags>"-DBEAST_NO_SLOW_TESTS=1 -fprofile-arcs -ftest-coverage"
     <linkflags>"-lgcov"
   ;
 
@@ -64,7 +64,7 @@ variant ubasan
   :
     release
   :
-    <cxxflags>"-DBEAST_NO_BUFFER_BENCH=1 -funsigned-char -fno-omit-frame-pointer -fsanitize=address,undefined -fsanitize-blacklist=scripts/blacklist.supp"
+    <cxxflags>"-DBEAST_NO_SLOW_TESTS=1 -funsigned-char -fno-omit-frame-pointer -fsanitize=address,undefined -fsanitize-blacklist=scripts/blacklist.supp"
     <linkflags>"-fsanitize=address,undefined"
   ;
 

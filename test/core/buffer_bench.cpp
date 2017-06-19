@@ -233,7 +233,7 @@ public:
     }
 };
 
-#if defined(NDEBUG) && ! BEAST_NO_BUFFER_BENCH
+#if defined(NDEBUG) && ! BEAST_NO_SLOW_TESTS
 BEAST_DEFINE_TESTSUITE(buffer_bench,core,beast);
 #endif
 

@@ -14,6 +14,7 @@ Version 61:
 * Add multi_port to server-framework
 * Tidy up resolver calls
 * Use one job on CI
+* Don't run slow tests on certain targets
 
 API Changes:
 
