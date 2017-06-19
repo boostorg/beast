@@ -15,6 +15,7 @@ compile websocket.cpp : : ;
 compile zlib.cpp : : ;
 
 build-project server ;
+build-project websocket ;
 
 unit-test core-tests :
     ../extras/beast/unit_test/main.cpp
@@ -74,19 +75,6 @@ unit-test http-bench :
     ../extras/beast/unit_test/main.cpp
     http/nodejs_parser.cpp
     http/parser_bench.cpp
-    ;
-
-unit-test websocket-tests :
-    ../extras/beast/unit_test/main.cpp
-    websocket/doc_snippets.cpp
-    websocket/error.cpp
-    websocket/option.cpp
-    websocket/rfc6455.cpp
-    websocket/stream.cpp
-    websocket/teardown.cpp
-    websocket/frame.cpp
-    websocket/mask.cpp
-    websocket/utf8_checker.cpp
     ;
 
 unit-test zlib-tests :

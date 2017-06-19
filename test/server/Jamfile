@@ -5,23 +5,24 @@
 # file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 #
 
-exe server-test :
+unit-test server-test :
+    ../../extras/beast/unit_test/main.cpp
     file_body.cpp
     file_service.cpp
     framework.cpp
     http_async_port.cpp
     http_base.cpp
     http_sync_port.cpp
-    main.cpp
+    https_ports.cpp
+    multi_port.cpp
     rfc7231.cpp
     server.cpp
     service_list.cpp
+    ssl_certificate.cpp
+    ssl_stream.cpp
+    tests.cpp
     write_msg.cpp
     ws_async_port.cpp
     ws_sync_port.cpp
     ws_upgrade_service.cpp
-   #https_ports.cpp
-   #multi_port.cpp
-   #ssl_certificate.cpp
-   #ssl_stream.cpp
     ;

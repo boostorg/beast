@@ -138,8 +138,7 @@ private:
                 this->log_,
                 this->services_,
                 this->id_,
-                ep
-                    )->handshake(buffer_.data());
+                ep)->handshake(buffer_.data());
 
             // When we return the last shared pointer to this
             // object will go away and `*this` will be destroyed.
@@ -318,8 +317,7 @@ public:
             log_,
             instance_.next_id(),
             ep,
-            cb2_
-                )->run(std::move(req));
+            cb2_)->run(std::move(req));
     }
 };
 
@@ -388,8 +386,7 @@ public:
             log_,
             services_,
             instance_.next_id(),
-            ep
-                )->detect();
+            ep)->detect();
     }
 };
 

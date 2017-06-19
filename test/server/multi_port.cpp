@@ -5,6 +5,10 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
+#if BEAST_USE_OPENSSL
+
 // Test that header file is self-contained.
 #include "../../example/server-framework/multi_port.hpp"
+
+#endif
 
