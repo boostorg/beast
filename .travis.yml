@@ -20,7 +20,6 @@ addons:
       - ubuntu-toolchain-r-test
     packages: &base_packages
       - python-software-properties
-      - libssl-dev
       - libffi-dev
       - libstdc++6
       - binutils-gold
@@ -47,6 +46,7 @@ matrix:
           packages:
             - gcc-5
             - g++-5
+            - libssl-dev
             - *base_packages
           sources:
             - *base_sources
@@ -79,6 +79,7 @@ matrix:
           packages:
             - gcc-6
             - g++-6
+            - libssl-dev
             - *base_packages
           sources:
             - *base_sources
@@ -99,6 +100,7 @@ matrix:
           packages:
             - gcc-5
             - g++-5
+            - libssl-dev
             - *base_packages
           sources:
             - *base_sources

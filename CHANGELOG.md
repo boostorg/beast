@@ -1,3 +1,9 @@
+Version 62:
+
+* Remove libssl-dev from a Travis matrix item
+
+--------------------------------------------------------------------------------
+
 Version 61:
 
 * Remove Spirit dependency
