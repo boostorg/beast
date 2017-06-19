@@ -17,7 +17,7 @@ namespace detail {
 
 template<class = void>
 status
-int_to_status(int v)
+int_to_status(unsigned v)
 {
     switch(static_cast<status>(v))
     {
@@ -106,7 +106,7 @@ int_to_status(int v)
 
 template<class = void>
 string_view
-status_to_string(int v)
+status_to_string(unsigned v)
 {
     switch(static_cast<status>(v))
     {
@@ -189,7 +189,7 @@ status_to_string(int v)
 
 template<class = void>
 status_class
-to_status_class(int v)
+to_status_class(unsigned v)
 {
     switch(v / 100)
     {
@@ -208,14 +208,14 @@ to_status_class(int v)
 
 inline
 status
-int_to_status(int v)
+int_to_status(unsigned v)
 {
     return detail::int_to_status(v);
 }
 
 inline
 status_class
-to_status_class(int v)
+to_status_class(unsigned v)
 {
     return detail::to_status_class(v);
 }
@@ -232,7 +232,7 @@ string_view
 obsolete_reason(status v)
 {
     return detail::status_to_string(
-        static_cast<int>(v));
+        static_cast<unsigned>(v));
 }
 
 inline

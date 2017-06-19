@@ -26,7 +26,6 @@ void fxx() {
     boost::asio::io_service ios;
     boost::asio::io_service::work work{ios};
     std::thread t{[&](){ ios.run(); }};
-    error_code ec;
     boost::asio::ip::tcp::socket sock{ios};
 
 {
@@ -36,8 +35,8 @@ void fxx() {
     req.version = 11;   // HTTP/1.1
     req.method(verb::get);
     req.target("/index.htm");
-    req.insert(field::accept, "text/html");
-    req.insert(field::user_agent, "Beast");
+    req.set(field::accept, "text/html");
+    req.set(field::user_agent, "Beast");
 
 //]
 }
@@ -48,7 +47,7 @@ void fxx() {
     response<string_body> res;
     res.version = 11;   // HTTP/1.1
     res.result(status::ok);
-    res.insert(field::server, "Beast");
+    res.set(field::server, "Beast");
     res.body = "Hello, world!";
     res.prepare();
 
@@ -86,6 +85,7 @@ void fxx() {
     flat_buffer buffer{10};
 
     // Try to read a request
+    error_code ec;
     request<string_body> req;
     read(sock, buffer, req, ec);
     if(ec == error::buffer_overflow)
@@ -100,9 +100,10 @@ void fxx() {
     response<string_body> res;
     res.version = 11;
     res.result(status::ok);
-    res.insert(field::server, "Beast");
+    res.set(field::server, "Beast");
     res.body = "Hello, world!";
 
+    error_code ec;
     write(sock, res, ec);
     if(ec == error::end_of_stream)
         sock.close();

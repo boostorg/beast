@@ -8,8 +8,8 @@
 #ifndef BEAST_STRING_HPP
 #define BEAST_STRING_HPP
 
-#include <boost/spirit/home/support/char_encoding/ascii.hpp>
 #include <boost/utility/string_ref.hpp>
+#include <algorithm>
 
 namespace beast {
 
@@ -23,6 +23,15 @@ using basic_string_view =
 
 namespace detail {
 
+inline
+char
+ascii_tolower(char c)
+{
+    if(c >= 'A' && c <= 'Z')
+        c += 'a' - 'A';
+    return c;
+}
+
 template<class = void>
 bool
 iequals(
@@ -34,9 +43,8 @@ iequals(
         return false;
     auto p1 = lhs.data();
     auto p2 = rhs.data();
-    using namespace boost::spirit::char_encoding;
     while(n--)
-        if(ascii::tolower(*p1) != ascii::tolower(*p2))
+        if(ascii_tolower(*p1) != ascii_tolower(*p2))
             return false;
     return true;
 }
@@ -73,12 +81,11 @@ struct iless
     {
         using std::begin;
         using std::end;
-        using namespace boost::spirit::char_encoding;
         return std::lexicographical_compare(
             begin(lhs), end(lhs), begin(rhs), end(rhs),
-            [](char lhs, char rhs)
+            [](char c1, char c2)
             {
-                return ascii::tolower(lhs) < ascii::tolower(rhs);
+                return detail::ascii_tolower(c1) < detail::ascii_tolower(c2);
             }
         );
     }

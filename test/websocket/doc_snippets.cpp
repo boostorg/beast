@@ -79,9 +79,9 @@ boost::asio::ip::tcp::socket sock{ios};
 
 //[ws_snippet_9
     ws.handshake_ex("localhost", "/",
-        [](request_type& req)
+        [](request_type& m)
         {
-            req.insert(http::field::sec_websocket_protocol, "xmpp;ws-chat");
+            m.insert(http::field::sec_websocket_protocol, "xmpp;ws-chat");
         });
 //]
 
@@ -98,9 +98,9 @@ boost::asio::ip::tcp::socket sock{ios};
 
 //[ws_snippet_12
     ws.accept_ex(
-        [](response_type& res)
+        [](response_type& m)
         {
-            res.insert(http::field::server, "MyServer");
+            m.insert(http::field::server, "MyServer");
         });
 //]
 }
@@ -207,7 +207,7 @@ boost::asio::ip::tcp::socket sock{ios};
 //[ws_snippet_20
     multi_buffer buffer;
     ws.async_read(buffer,
-        [](error_code ec)
+        [](error_code)
         {
             // Do something with the buffer
         });

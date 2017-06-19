@@ -23,6 +23,14 @@ using system_error = boost::system::system_error;
 /// The type of error category used by the library
 using error_category = boost::system::error_category;
 
+/// A function to return the generic error category used by the library
+#if BEAST_DOXYGEN
+error_category const&
+generic_category();
+#else
+using boost::system::generic_category;
+#endif
+
 /// A function to return the system error category used by the library
 #if BEAST_DOXYGEN
 error_category const&

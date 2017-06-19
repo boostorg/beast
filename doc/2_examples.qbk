@@ -57,7 +57,7 @@ as measured by Alexa.
 This example demonstrates sending and receiving HTTP messages
 over a TLS connection. Requires OpenSSL to build.
 
-* [repo_file example/ssl/http_ssl_example.cpp]
+* [repo_file example/http-client-ssl/http_client_ssl.cpp]
 
 [endsect]
 
@@ -68,7 +68,7 @@ over a TLS connection. Requires OpenSSL to build.
 Establish a WebSocket connection over an encrypted TLS connection,
 send a message and receive the reply. Requires OpenSSL to build.
 
-* [repo_file example/ssl/websocket_ssl_example.cpp]
+* [repo_file example/websocket-client-ssl/websocket_client_ssl.cpp]
 
 [endsect]
 
@@ -107,20 +107,26 @@ This is a complete program and framework of classes implementing
 a general purpose server that users may copy to use as the basis
 for writing their own servers. It serves both HTTP and WebSocket.
 
+* [repo_file example/server-framework/detect_ssl.hpp]
 * [repo_file example/server-framework/file_body.hpp]
 * [repo_file example/server-framework/file_service.hpp]
 * [repo_file example/server-framework/framework.hpp]
 * [repo_file example/server-framework/http_async_port.hpp]
 * [repo_file example/server-framework/http_base.hpp]
 * [repo_file example/server-framework/http_sync_port.hpp]
+* [repo_file example/server-framework/https_ports.hpp]
 * [repo_file example/server-framework/main.cpp]
+* [repo_file example/server-framework/multi_port.hpp]
 * [repo_file example/server-framework/rfc7231.hpp]
 * [repo_file example/server-framework/server.hpp]
 * [repo_file example/server-framework/service_list.hpp]
+* [repo_file example/server-framework/ssl_certificate.hpp]
+* [repo_file example/server-framework/ssl_stream.hpp]
 * [repo_file example/server-framework/write_msg.hpp]
 * [repo_file example/server-framework/ws_async_port.hpp]
 * [repo_file example/server-framework/ws_sync_port.hpp]
 * [repo_file example/server-framework/ws_upgrade_service.hpp]
+* [repo_file example/server-framework/wss_ports.hpp]
 
 [endsect]
 

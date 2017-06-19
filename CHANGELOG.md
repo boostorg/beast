@@ -1,3 +1,25 @@
+Version 61:
+
+* Remove Spirit dependency
+* Use generic_cateogry for errno
+* Reorganize SSL examples
+* Tidy up some integer conversion warnings
+* Add message::header_part()
+* Tidy up names in error categories
+* Flush the output stream in the example
+* Clean close in Secure WebSocket client
+* Add server-framework SSL HTTP and WebSocket ports
+* Fix shadowing warnings
+* Tidy up http-crawl example
+* Add multi_port to server-framework
+
+API Changes:
+
+* header::version is unsigned
+* status-codes is unsigned
+
+--------------------------------------------------------------------------------
+
 Version 60:
 
 * String comparisons are public interfaces

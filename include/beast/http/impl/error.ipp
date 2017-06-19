@@ -30,7 +30,7 @@ public:
     const char*
     name() const noexcept override
     {
-        return "http";
+        return "beast.http";
     }
 
     std::string
@@ -38,7 +38,6 @@ public:
     {
         switch(static_cast<error>(ev))
         {
-        default:
         case error::end_of_stream: return "end of stream";
         case error::partial_message: return "partial message";
         case error::need_more: return "need more";
@@ -57,6 +56,9 @@ public:
         case error::bad_transfer_encoding: return "bad Transfer-Encoding";
         case error::bad_chunk: return "bad chunk";
         case error::bad_obs_fold: return "bad obs-fold";
+
+        default:
+            return "beast.http error";
         }
     }
 

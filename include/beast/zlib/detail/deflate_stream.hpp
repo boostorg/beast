@@ -2282,18 +2282,18 @@ fill_window(z_params& zs)
     if(high_water_ < window_size_)
     {
         std::uint32_t curr = strstart_ + (std::uint32_t)(lookahead_);
-        std::uint32_t init;
+        std::uint32_t winit;
 
         if(high_water_ < curr)
         {
             /*  Previous high water mark below current data -- zero kWinInit
                 bytes or up to end of window, whichever is less.
             */
-            init = window_size_ - curr;
-            if(init > kWinInit)
-                init = kWinInit;
-            std::memset(window_ + curr, 0, (unsigned)init);
-            high_water_ = curr + init;
+            winit = window_size_ - curr;
+            if(winit > kWinInit)
+                winit = kWinInit;
+            std::memset(window_ + curr, 0, (unsigned)winit);
+            high_water_ = curr + winit;
         }
         else if(high_water_ < (std::uint32_t)curr + kWinInit)
         {
@@ -2301,11 +2301,11 @@ fill_window(z_params& zs)
                 plus kWinInit -- zero out to current data plus kWinInit, or up
                 to end of window, whichever is less.
             */
-            init = (std::uint32_t)curr + kWinInit - high_water_;
-            if(init > window_size_ - high_water_)
-                init = window_size_ - high_water_;
-            std::memset(window_ + high_water_, 0, (unsigned)init);
-            high_water_ += init;
+            winit = (std::uint32_t)curr + kWinInit - high_water_;
+            if(winit > window_size_ - high_water_)
+                winit = window_size_ - high_water_;
+            std::memset(window_ + high_water_, 0, (unsigned)winit);
+            high_water_ += winit;
         }
     }
 }

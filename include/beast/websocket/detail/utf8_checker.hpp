@@ -145,40 +145,40 @@ utf8_checker_t<_>::
 write(std::uint8_t const* in, std::size_t size)
 {
     auto const valid =
-        [](std::uint8_t const*& in)
+        [](std::uint8_t const*& p)
         {
-            if (in[0] < 128)
+            if (p[0] < 128)
             {
-                ++in;
+                ++p;
                 return true;
             }
-            if ((in[0] & 0x60) == 0x40)
+            if ((p[0] & 0x60) == 0x40)
             {
-                if ((in[1] & 0xc0) != 0x80)
+                if ((p[1] & 0xc0) != 0x80)
                     return false;
-                in += 2;
+                p += 2;
                 return true;
             }
-            if ((in[0] & 0xf0) == 0xe0)
+            if ((p[0] & 0xf0) == 0xe0)
             {
-                if ((in[1] & 0xc0) != 0x80 ||
-                    (in[2] & 0xc0) != 0x80 ||
-                    (in[0] == 224 && in[1] < 160) ||
-                    (in[0] == 237 && in[1] > 159))
+                if ((p[1] & 0xc0) != 0x80 ||
+                    (p[2] & 0xc0) != 0x80 ||
+                    (p[0] == 224 && p[1] < 160) ||
+                    (p[0] == 237 && p[1] > 159))
                         return false;
-                in += 3;
+                p += 3;
                 return true;
             }
-            if ((in[0] & 0xf8) == 0xf0)
+            if ((p[0] & 0xf8) == 0xf0)
             {
-                if (in[0] > 244 ||
-                    (in[1] & 0xc0) != 0x80 ||
-                    (in[2] & 0xc0) != 0x80 ||
-                    (in[3] & 0xc0) != 0x80 ||
-                    (in[0] == 240 && in[1] < 144) ||
-                    (in[0] == 244 && in[1] > 143))
+                if (p[0] > 244 ||
+                    (p[1] & 0xc0) != 0x80 ||
+                    (p[2] & 0xc0) != 0x80 ||
+                    (p[3] & 0xc0) != 0x80 ||
+                    (p[0] == 240 && p[1] < 144) ||
+                    (p[0] == 244 && p[1] > 143))
                         return false;
-                in += 4;
+                p += 4;
                 return true;
             }
             return false;
@@ -199,10 +199,10 @@ write(std::uint8_t const* in, std::size_t size)
             }
             if ((have_[0] & 0xf8) == 0xf0)
             {
-                auto const size = p_ - have_;
-                if (size > 2 && (have_[2] & 0xc0) != 0x80)
+                auto const n = p_ - have_;
+                if (n > 2 && (have_[2] & 0xc0) != 0x80)
                     return false;
-                if (size > 1 &&
+                if (n > 1 &&
                     ((have_[1] & 0xc0) != 0x80 ||
                     (have_[0] == 240 && have_[1] < 144) ||
                     (have_[0] == 244 && have_[1] > 143)))
@@ -211,17 +211,17 @@ write(std::uint8_t const* in, std::size_t size)
             return true;
         };
     auto const needed =
-        [](std::uint8_t const in)
+        [](std::uint8_t const v)
         {
-            if (in < 128)
+            if (v < 128)
                 return 1;
-            if (in < 194)
+            if (v < 194)
                 return 0;
-            if (in < 224)
+            if (v < 224)
                 return 2;
-            if (in < 240)
+            if (v < 240)
                 return 3;
-            if (in < 245)
+            if (v < 245)
                 return 4;
             return 0;
         };

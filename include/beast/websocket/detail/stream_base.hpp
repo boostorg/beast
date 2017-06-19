@@ -532,10 +532,10 @@ template<class DynamicBuffer>
 void
 stream_base::
 write_ping(DynamicBuffer& db,
-    detail::opcode op, ping_data const& data)
+    detail::opcode code, ping_data const& data)
 {
     frame_header fh;
-    fh.op = op;
+    fh.op = code;
     fh.fin = true;
     fh.rsv1 = false;
     fh.rsv2 = false;

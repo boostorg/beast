@@ -63,18 +63,18 @@ public:
                 BEAST_EXPECTS(got == s, fmt(got));
             };
         auto const cs =
-            [&](std::string const& s, std::string const& good)
+            [&](std::string const& s, std::string const& answer)
             {
-                ce(good);
+                ce(answer);
                 auto const got = str(param_list{s});
                 ce(got);
-                BEAST_EXPECTS(got == good, fmt(got));
+                BEAST_EXPECTS(got == answer, fmt(got));
             };
         auto const cq =
-            [&](std::string const& s, std::string const& good)
+            [&](std::string const& s, std::string const& answer)
             {
                 auto const got = str(param_list{s});
-                BEAST_EXPECTS(got == good, fmt(got));
+                BEAST_EXPECTS(got == answer, fmt(got));
             };
 
         ce("");

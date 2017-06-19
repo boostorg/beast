@@ -28,7 +28,7 @@ public:
     const char*
     name() const noexcept override
     {
-        return "websocket";
+        return "beast.websocket";
     }
 
     std::string
@@ -41,7 +41,7 @@ public:
         case error::handshake_failed: return "WebSocket Upgrade handshake failed";
 
         default:
-            return "websocket error";
+            return "beast.websocket error";
         }
     }
 

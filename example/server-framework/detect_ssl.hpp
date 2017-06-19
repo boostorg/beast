@@ -5,22 +5,19 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
+#ifndef BEAST_EXAMPLE_SERVER_DETECT_SSL_HPP
+#define BEAST_EXAMPLE_SERVER_DETECT_SSL_HPP
+
 #include <boost/assert.hpp>
 #include <boost/config.hpp>
 
-/*  This file contains the functions and classes found in the documentation
-
-    They are compiled and run as part of the unit tests, so you can copy
-    the code and use it in your own projects as a starting point for
-    building a network application.
-*/
 //------------------------------------------------------------------------------
 //
 // Example: Detect TLS/SSL
 //
 //------------------------------------------------------------------------------
 
-//[example_core_detect_tls_1
+//[example_core_detect_ssl_1
 
 #include <beast.hpp>
 #include <boost/logic/tribool.hpp>
@@ -55,7 +52,7 @@ is_ssl_handshake(ConstBufferSequence const& buffers);
 
 using namespace beast;
 
-//[example_core_detect_tls_2
+//[example_core_detect_ssl_2
 
 template<
     class ConstBufferSequence>
@@ -94,7 +91,7 @@ is_ssl_handshake(
 
 //]
 
-//[example_core_detect_tls_3
+//[example_core_detect_ssl_3
 
 /** Detect a TLS/SSL handshake on a stream.
 
@@ -176,7 +173,7 @@ detect_ssl(
 
 //]
 
-//[example_core_detect_tls_4
+//[example_core_detect_ssl_4
 
 /** Detect a TLS/SSL handshake asynchronously on a stream.
 
@@ -234,7 +231,7 @@ async_detect_ssl(
 
 //]
 
-//[example_core_detect_tls_5
+//[example_core_detect_ssl_5
 
 // This is the composed operation.
 template<
@@ -292,7 +289,7 @@ async_detect_ssl(
 
 //]
 
-//[example_core_detect_tls_6
+//[example_core_detect_ssl_6
 
 // Read from a stream to invoke is_tls_handshake asynchronously
 //
@@ -389,7 +386,7 @@ public:
 
 //]
 
-//[example_core_detect_tls_7
+//[example_core_detect_ssl_7
 
 // detect_ssl_op is callable with the signature
 // void(error_code, bytes_transferred),
@@ -481,4 +478,4 @@ operator()(beast::error_code ec, std::size_t bytes_transferred)
 
 //]
 
-//------------------------------------------------------------------------------
+#endif

@@ -51,7 +51,7 @@ public:
     inline
     size_type
     throughput(std::chrono::duration<
-        double> const& elapsed, std::size_t items)
+        double> const& elapsed, size_type items)
     {
         using namespace std::chrono;
         return static_cast<size_type>(

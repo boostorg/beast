@@ -120,9 +120,9 @@ public:
 
         flat_buffer buffer;
         relay<true>(upstream.client, downstream.server, buffer, ec,
-            [&](header<true, fields>& h, error_code& ec)
+            [&](header<true, fields>& h, error_code& ev)
             {
-                ec = {};
+                ev = {};
                 h.erase("Content-Length");
                 h.set("Transfer-Encoding", "chunked");
             });
