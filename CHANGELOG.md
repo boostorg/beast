@@ -6,6 +6,7 @@ Version 62:
 * Doc fixes and tidy
 * Tidy up namespaces in examples
 * Clear the error faster
+* Avoid explicit operator bool for error
 
 --------------------------------------------------------------------------------
 

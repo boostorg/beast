@@ -243,7 +243,7 @@ close(close_reason const& cr, error_code& ec)
     detail::frame_streambuf fb;
     write_close<static_buffer>(fb, cr);
     boost::asio::write(stream_, fb.data(), ec);
-    failed_ = ec != 0;
+    failed_ = !!ec;
 }
 
 //------------------------------------------------------------------------------

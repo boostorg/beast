@@ -295,7 +295,7 @@ operator()(error_code ec,
                     detail::mask_inplace(in, d.key);
                 auto const prev = d.db.size();
                 detail::inflate(d.ws.pmd_->zi, d.db, in, ec);
-                d.ws.failed_ = ec != 0;
+                d.ws.failed_ = !!ec;
                 if(d.ws.failed_)
                     break;
                 if(d.remain == 0 && d.fh.fin)
@@ -305,7 +305,7 @@ operator()(error_code ec,
                             0x00, 0x00, 0xff, 0xff };
                     detail::inflate(d.ws.pmd_->zi, d.db,
                         buffer(&empty_block[0], 4), ec);
-                    d.ws.failed_ = ec != 0;
+                    d.ws.failed_ = !!ec;
                     if(d.ws.failed_)
                         break;
                 }
@@ -742,7 +742,7 @@ read_frame(DynamicBuffer& dynabuf, error_code& ec)
         {
             fb.commit(boost::asio::read(
                 stream_, fb.prepare(2), ec));
-            failed_ = ec != 0;
+            failed_ = !!ec;
             if(failed_)
                 return false;
             {
@@ -753,14 +753,14 @@ read_frame(DynamicBuffer& dynabuf, error_code& ec)
                 {
                     fb.commit(boost::asio::read(
                         stream_, fb.prepare(n), ec));
-                    failed_ = ec != 0;
+                    failed_ = !!ec;
                     if(failed_)
                         return false;
                 }
             }
             read_fh2(fh, fb, code);
 
-            failed_ = ec != 0;
+            failed_ = !!ec;
             if(failed_)
                 return false;
             if(code != close_code::none)
@@ -774,7 +774,7 @@ read_frame(DynamicBuffer& dynabuf, error_code& ec)
                 auto const mb = fb.prepare(
                     static_cast<std::size_t>(fh.len));
                 fb.commit(boost::asio::read(stream_, mb, ec));
-                failed_ = ec != 0;
+                failed_ = !!ec;
                 if(failed_)
                     return false;
                 if(fh.mask)
@@ -796,7 +796,7 @@ read_frame(DynamicBuffer& dynabuf, error_code& ec)
                 write_ping<static_buffer>(fb,
                     detail::opcode::pong, payload);
                 boost::asio::write(stream_, fb.data(), ec);
-                failed_ = ec != 0;
+                failed_ = !!ec;
                 if(failed_)
                     return false;
                 continue;
@@ -824,7 +824,7 @@ read_frame(DynamicBuffer& dynabuf, error_code& ec)
                     wr_close_ = true;
                     write_close<static_buffer>(fb, cr);
                     boost::asio::write(stream_, fb.data(), ec);
-                    failed_ = ec != 0;
+                    failed_ = !!ec;
                     if(failed_)
                         return false;
                 }
@@ -859,7 +859,7 @@ read_frame(DynamicBuffer& dynabuf, error_code& ec)
                     dynabuf.prepare(clamp(remain));
                 auto const bytes_transferred =
                     stream_.read_some(b, ec);
-                failed_ = ec != 0;
+                failed_ = !!ec;
                 if(failed_)
                     return false;
                 BOOST_ASSERT(bytes_transferred > 0);
@@ -891,7 +891,7 @@ read_frame(DynamicBuffer& dynabuf, error_code& ec)
                 auto const bytes_transferred =
                     stream_.read_some(buffer(rd_.buf.get(),
                         clamp(remain, rd_.buf_size)), ec);
-                failed_ = ec != 0;
+                failed_ = !!ec;
                 if(failed_)
                     return false;
                 remain -= bytes_transferred;
@@ -901,7 +901,7 @@ read_frame(DynamicBuffer& dynabuf, error_code& ec)
                     detail::mask_inplace(in, key);
                 auto const prev = dynabuf.size();
                 detail::inflate(pmd_->zi, dynabuf, in, ec);
-                failed_ = ec != 0;
+                failed_ = !!ec;
                 if(failed_)
                     return false;
                 if(remain == 0 && fh.fin)
@@ -911,7 +911,7 @@ read_frame(DynamicBuffer& dynabuf, error_code& ec)
                             0x00, 0x00, 0xff, 0xff };
                     detail::inflate(pmd_->zi, dynabuf,
                         buffer(&empty_block[0], 4), ec);
-                    failed_ = ec != 0;
+                    failed_ = !!ec;
                     if(failed_)
                         return false;
                 }
@@ -951,7 +951,7 @@ do_close:
             detail::frame_streambuf fb;
             write_close<static_buffer>(fb, code);
             boost::asio::write(stream_, fb.data(), ec);
-            failed_ = ec != 0;
+            failed_ = !!ec;
             if(failed_)
                 return false;
         }
@@ -962,7 +962,7 @@ do_close:
             // http://stackoverflow.com/questions/25587403/boost-asio-ssl-async-shutdown-always-finishes-with-an-error
             ec.assign(0, ec.category());
         }
-        failed_ = ec != 0;
+        failed_ = !!ec;
         if(failed_)
             return false;
         ec = error::failed;
@@ -980,7 +980,7 @@ do_close:
     }
     if(! ec)
         ec = error::closed;
-    failed_ = ec != 0;
+    failed_ = !!ec;
     if(failed_)
         return false;
     return true;
