@@ -614,12 +614,12 @@ async_read(
 template<
     class SyncReadStream,
     class DynamicBuffer,
-    bool isRequest, class Body, class Fields>
+    bool isRequest, class Body, class Allocator>
 void
 read(
     SyncReadStream& stream,
     DynamicBuffer& buffer,
-    message<isRequest, Body, Fields>& msg);
+    message<isRequest, Body, basic_fields<Allocator>>& msg);
 
 /** Read a complete message from a stream.
 
@@ -666,12 +666,12 @@ read(
 template<
     class SyncReadStream,
     class DynamicBuffer,
-    bool isRequest, class Body, class Fields>
+    bool isRequest, class Body, class Allocator>
 void
 read(
     SyncReadStream& stream,
     DynamicBuffer& buffer,
-    message<isRequest, Body, Fields>& msg,
+    message<isRequest, Body, basic_fields<Allocator>>& msg,
     error_code& ec);
 
 /** Read a complete message from a stream asynchronously.
@@ -735,7 +735,7 @@ read(
 template<
     class AsyncReadStream,
     class DynamicBuffer,
-    bool isRequest, class Body, class Fields,
+    bool isRequest, class Body, class Allocator,
     class ReadHandler>
 #if BEAST_DOXYGEN
     void_or_deduced
@@ -746,7 +746,7 @@ async_return_type<
 async_read(
     AsyncReadStream& stream,
     DynamicBuffer& buffer,
-    message<isRequest, Body, Fields>& msg,
+    message<isRequest, Body, basic_fields<Allocator>>& msg,
     ReadHandler&& handler);
 
 } // http

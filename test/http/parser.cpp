@@ -32,7 +32,7 @@ class parser_test
 public:
     template<bool isRequest>
     using parser_type =
-        parser<isRequest, string_body, fields>;
+        parser<isRequest, string_body>;
 
     static
     boost::asio::const_buffers_1

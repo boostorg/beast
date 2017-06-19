@@ -14,6 +14,7 @@
 #include <beast/http/type_traits.hpp>
 #include <boost/optional.hpp>
 #include <boost/throw_exception.hpp>
+#include <memory>
 #include <type_traits>
 #include <utility>
 
@@ -23,24 +24,27 @@ namespace http {
 /** An HTTP/1 parser for producing a message.
 
     This class uses the basic HTTP/1 wire format parser to convert
-    a series of octets into a @ref message.
+    a series of octets into a @ref message using the @ref basic_fields
+    container to represent the fields.
 
     @tparam isRequest Indicates whether a request or response
     will be parsed.
 
-    @tparam Body The type used to represent the body.
+    @tparam Body The type used to represent the body. This must
+    meet the requirements of @b Body.
 
-    @tparam Fields The type of container used to represent the fields.
+    @tparam Allocator The type of allocator used with the
+    @ref basic_fields container.
 
     @note A new instance of the parser is required for each message.
 */
 template<
     bool isRequest,
     class Body,
-    class Fields = fields>
+    class Allocator = std::allocator<char>>
 class parser
     : public basic_parser<isRequest,
-        parser<isRequest, Body, Fields>>
+        parser<isRequest, Body, Allocator>>
 {
     static_assert(is_body<Body>::value,
         "Body requirements not met");
@@ -52,14 +56,15 @@ class parser
     friend class parser;
 
     using base_type = basic_parser<isRequest,
-        parser<isRequest, Body, Fields>>;
+        parser<isRequest, Body, Allocator>>;
 
-    message<isRequest, Body, Fields> m_;
+    message<isRequest, Body, basic_fields<Allocator>> m_;
     boost::optional<typename Body::writer> wr_;
 
 public:
     /// The type of message returned by the parser
-    using value_type = message<isRequest, Body, Fields>;
+    using value_type =
+        message<isRequest, Body, basic_fields<Allocator>>;
 
     /// Constructor (default)
     parser() = default;
@@ -126,6 +131,9 @@ public:
 
         @throws std::invalid_argument Thrown when the constructed-from
         parser has already initialized a body writer.
+
+        @note This function participates in overload resolution only
+        if the other parser uses a different body type.
     */
 #if BEAST_DOXYGEN
     template<class OtherBody, class... Args>
@@ -135,13 +143,13 @@ public:
             ! std::is_same<Body, OtherBody>::value>::type>
 #endif
     explicit
-    parser(parser<isRequest, OtherBody, Fields>&& parser,
-        Args&&... args);
+    parser(parser<isRequest, OtherBody,
+        Allocator>&& parser, Args&&... args);
 
     /** Returns the parsed message.
 
-        Depending on the progress of the parser, portions
-        of this object may be incomplete.
+        Depending on the parser's progress,
+        parts of this object may be incomplete.
     */
     value_type const&
     get() const
@@ -151,8 +159,8 @@ public:
 
     /** Returns the parsed message.
 
-        Depending on the progress of the parser, portions
-        of this object may be incomplete.
+        Depending on the parser's progress,
+        parts of this object may be incomplete.
     */
     value_type&
     get()
@@ -163,8 +171,8 @@ public:
     /** Returns ownership of the parsed message.
 
         Ownership is transferred to the caller.
-        Depending on the progress of the parser, portions
-        of this object may be incomplete.
+        Depending on the parser's progress,
+        parts of this object may be incomplete.
 
         @par Requires
 
@@ -253,12 +261,12 @@ private:
 };
 
 /// An HTTP/1 parser for producing a request message.
-template<class Body, class Fields = fields>
-using request_parser = parser<true, Body, Fields>;
+template<class Body, class Allocator = std::allocator<char>>
+using request_parser = parser<true, Body, Allocator>;
 
 /// An HTTP/1 parser for producing a response message.
-template<class Body, class Fields = fields>
-using response_parser = parser<false, Body, Fields>;
+template<class Body, class Allocator = std::allocator<char>>
+using response_parser = parser<false, Body, Allocator>;
 
 } // http
 } // beast

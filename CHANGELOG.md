@@ -8,6 +8,16 @@ Version 62:
 * Clear the error faster
 * Avoid explicit operator bool for error
 
+API Changes:
+
+* parser requires basic_fields
+
+Actions Required:
+
+* Callers using `parser` with Fields types other than basic_fields
+  will need to create their own subclass of basic_parser to work
+  with their custom fields type.
+
 --------------------------------------------------------------------------------
 
 Version 61:
