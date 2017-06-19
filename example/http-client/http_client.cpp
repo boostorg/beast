@@ -15,6 +15,9 @@
 #include <iostream>
 #include <string>
 
+using tcp = boost::asio::ip::tcp; // from <boost/asio.hpp>
+namespace http = beast::http; // from <beast/http.hpp>
+
 int main()
 {
     // A helper for reporting errors
@@ -30,8 +33,8 @@ int main()
 
     // Set up an asio socket
     boost::asio::io_service ios;
-    boost::asio::ip::tcp::resolver r{ios};
-    boost::asio::ip::tcp::socket sock{ios};
+    tcp::resolver r{ios};
+    tcp::socket sock{ios};
 
     // Look up the domain name
     std::string const host = "www.example.com";
@@ -45,17 +48,17 @@ int main()
         return fail("connect", ec);
 
     // Set up an HTTP GET request message
-    beast::http::request<beast::http::string_body> req;
-    req.method(beast::http::verb::get);
+    http::request<http::string_body> req;
+    req.method(http::verb::get);
     req.target("/");
     req.version = 11;
-    req.set(beast::http::field::host, host + ":" +
+    req.set(http::field::host, host + ":" +
         boost::lexical_cast<std::string>(sock.remote_endpoint().port()));
-    req.set(beast::http::field::user_agent, "Beast");
+    req.set(http::field::user_agent, "Beast");
     req.prepare();
 
     // Write the HTTP request to the remote host
-    beast::http::write(sock, req, ec);
+    http::write(sock, req, ec);
     if(ec)
         return fail("write", ec);
 
@@ -63,10 +66,10 @@ int main()
     beast::flat_buffer b;
 
     // Declare a container to hold the response
-    beast::http::response<beast::http::dynamic_body> res;
+    http::response<http::dynamic_body> res;
 
     // Read the response
-    beast::http::read(sock, b, res, ec);
+    http::read(sock, b, res, ec);
     if(ec)
         return fail("read", ec);
 
@@ -74,7 +77,7 @@ int main()
     std::cout << res << std::endl;
 
     // Gracefully close the socket
-    sock.shutdown(boost::asio::ip::tcp::socket::shutdown_both, ec);
+    sock.shutdown(tcp::socket::shutdown_both, ec);
     if(ec)
         return fail("shutdown", ec);
 
