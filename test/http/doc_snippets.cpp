@@ -213,7 +213,7 @@ print_cxx14(message<isRequest, Body, Fields> const& m)
         sr.get(ec,
             [&sr](error_code& ec, auto const& buffer)
             {
-                ec = {};
+                ec.assign(0, ec.category());
                 std::cout << buffers(buffer);
                 sr.consume(boost::asio::buffer_size(buffer));
             });
@@ -240,7 +240,7 @@ struct lambda
     template<class ConstBufferSequence>
     void operator()(error_code& ec, ConstBufferSequence const& buffer) const
     {
-        ec = {};
+        ec.assign(0, ec.category());
         std::cout << buffers(buffer);
         sr.consume(boost::asio::buffer_size(buffer));
     }
@@ -281,7 +281,7 @@ split_print_cxx14(message<isRequest, Body, Fields> const& m)
         sr.get(ec,
             [&sr](error_code& ec, auto const& buffer)
             {
-                ec = {};
+                ec.assign(0, ec.category());
                 std::cout << buffers(buffer);
                 sr.consume(boost::asio::buffer_size(buffer));
             });
@@ -295,7 +295,7 @@ split_print_cxx14(message<isRequest, Body, Fields> const& m)
             sr.get(ec,
                 [&sr](error_code& ec, auto const& buffer)
                 {
-                    ec = {};
+                    ec.assign(0, ec.category());
                     std::cout << buffers(buffer);
                     sr.consume(boost::asio::buffer_size(buffer));
                 });

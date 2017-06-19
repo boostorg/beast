@@ -112,7 +112,7 @@ struct buffer_body
         void
         init(error_code& ec)
         {
-            ec = {};
+            ec.assign(0, ec.category());
         }
 
         boost::optional<
@@ -128,13 +128,13 @@ struct buffer_body
                 }
                 else
                 {
-                    ec = {};
+                    ec.assign(0, ec.category());
                 }
                 return boost::none;
             }
             if(body_.data)
             {
-                ec = {};
+                ec.assign(0, ec.category());
                 toggle_ = true;
                 return {{const_buffers_type{
                     body_.data, body_.size}, body_.more}};
@@ -142,14 +142,14 @@ struct buffer_body
             if(body_.more)
                 ec = error::need_buffer;
             else
-                ec = {};
+                ec.assign(0, ec.category());
             return boost::none;
         }
 
         void
         finish(error_code& ec)
         {
-            ec = {};
+            ec.assign(0, ec.category());
         }
     };
 #endif
@@ -173,7 +173,7 @@ struct buffer_body
         void
         init(boost::optional<std::uint64_t>, error_code& ec)
         {
-            ec = {};
+            ec.assign(0, ec.category());
         }
 
         template<class ConstBufferSequence>
@@ -189,7 +189,7 @@ struct buffer_body
                 ec = error::need_buffer;
                 return;
             }
-            ec = {};
+            ec.assign(0, ec.category());
             auto const bytes_transferred =
                 buffer_copy(boost::asio::buffer(
                     body_.data, body_.size), buffers);
@@ -201,7 +201,7 @@ struct buffer_body
         void
         finish(error_code& ec)
         {
-            ec = {};
+            ec.assign(0, ec.category());
         }
     };
 #endif

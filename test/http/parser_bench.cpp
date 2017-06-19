@@ -168,7 +168,7 @@ public:
         on_request(verb, string_view,
             string_view, int, error_code& ec)
         {
-            ec = {};
+            ec.assign(0, ec.category());
         }
 
         void
@@ -176,34 +176,34 @@ public:
             string_view,
                 int, error_code& ec)
         {
-            ec = {};
+            ec.assign(0, ec.category());
         }
 
         void
         on_field(field,
             string_view, string_view, error_code& ec)
         {
-            ec = {};
+            ec.assign(0, ec.category());
         }
 
         void
         on_header(error_code& ec)
         {
-            ec = {};
+            ec.assign(0, ec.category());
         }
 
         void
         on_body(boost::optional<std::uint64_t> const&,
             error_code& ec)
         {
-            ec = {};
+            ec.assign(0, ec.category());
         }
 
         void
         on_data(string_view,
             error_code& ec)
         {
-            ec = {};
+            ec.assign(0, ec.category());
         }
 
         void
@@ -211,13 +211,13 @@ public:
             string_view,
                 error_code& ec)
         {
-            ec = {};
+            ec.assign(0, ec.category());
         }
 
         void
         on_complete(error_code& ec)
         {
-            ec = {};
+            ec.assign(0, ec.category());
         }
     };
 

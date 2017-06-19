@@ -93,7 +93,7 @@ public:
     write_some(
         ConstBufferSequence const& buffers, error_code& ec)
     {
-        ec = {};
+        ec.assign(0, ec.category());
         using boost::asio::buffer_size;
         using boost::asio::buffer_cast;
         auto const n =
@@ -127,7 +127,7 @@ public:
         string_ostream& stream,
             boost::system::error_code& ec)
     {
-        ec = {};
+        ec.assign(0, ec.category());
     }
 
     template<class TeardownHandler>

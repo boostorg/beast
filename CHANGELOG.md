@@ -5,6 +5,7 @@ Version 62:
 * Add server-framework tests
 * Doc fixes and tidy
 * Tidy up namespaces in examples
+* Clear the error faster
 
 --------------------------------------------------------------------------------
 

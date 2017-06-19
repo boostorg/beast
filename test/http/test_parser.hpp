@@ -59,7 +59,7 @@ public:
         if(fc_)
             fc_->fail(ec);
         else
-            ec = {};
+            ec.assign(0, ec.category());
     }
 
     void
@@ -75,7 +75,7 @@ public:
         if(fc_)
             fc_->fail(ec);
         else
-            ec = {};
+            ec.assign(0, ec.category());
     }
 
     void
@@ -86,7 +86,7 @@ public:
         if(fc_)
             fc_->fail(ec);
         else
-            ec = {};
+            ec.assign(0, ec.category());
     }
 
     void
@@ -96,7 +96,7 @@ public:
         if(fc_)
             fc_->fail(ec);
         else
-            ec = {};
+            ec.assign(0, ec.category());
     }
 
     void
@@ -110,7 +110,7 @@ public:
         if(fc_)
             fc_->fail(ec);
         else
-            ec = {};
+            ec.assign(0, ec.category());
     }
 
     void
@@ -121,7 +121,7 @@ public:
         if(fc_)
             fc_->fail(ec);
         else
-            ec = {};
+            ec.assign(0, ec.category());
     }
 
     void
@@ -132,7 +132,7 @@ public:
         if(fc_)
             fc_->fail(ec);
         else
-            ec = {};
+            ec.assign(0, ec.category());
     }
 
     void
@@ -142,7 +142,7 @@ public:
         if(fc_)
             fc_->fail(ec);
         else
-            ec = {};
+            ec.assign(0, ec.category());
     }
 };
 

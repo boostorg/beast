@@ -64,20 +64,20 @@ struct string_view_body
         void
         init(error_code& ec)
         {
-            ec = {};
+            ec.assign(0, ec.category());
         }
 
         boost::optional<std::pair<const_buffers_type, bool>>
         get(error_code& ec)
         {
-            ec = {};
+            ec.assign(0, ec.category());
             return {{{body_.data(), body_.size()}, false}};
         }
 
         void
         finish(error_code& ec)
         {
-            ec = {};
+            ec.assign(0, ec.category());
         }
     };
 #endif

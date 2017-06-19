@@ -302,7 +302,7 @@ do_response(http::header<false> const& res,
         ec = error::handshake_failed;
         return;
     }
-    ec = {};
+    ec.assign(0, ec.category());
     detail::pmd_offer offer;
     pmd_read(offer, res);
     // VFALCO see if offer satisfies pmd_config_,

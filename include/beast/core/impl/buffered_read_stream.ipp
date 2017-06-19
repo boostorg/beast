@@ -227,7 +227,7 @@ read_some(MutableBufferSequence const& buffers,
     }
     else
     {
-        ec = {};
+        ec.assign(0, ec.category());
     }
     auto bytes_transferred =
         buffer_copy(buffers, sb_.data());

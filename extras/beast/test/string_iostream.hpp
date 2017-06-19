@@ -73,7 +73,7 @@ public:
             buffers, buffer_prefix(read_max_, cb_));
         if(n > 0)
         {
-            ec = {};
+            ec.assign(0, ec.category());
             cb_ = cb_ + n;
         }
         else
@@ -119,7 +119,7 @@ public:
     write_some(
         ConstBufferSequence const& buffers, error_code& ec)
     {
-        ec = {};
+        ec.assign(0, ec.category());
         using boost::asio::buffer_size;
         using boost::asio::buffer_cast;
         auto const n = buffer_size(buffers);
@@ -151,7 +151,7 @@ public:
         string_iostream& stream,
             boost::system::error_code& ec)
     {
-        ec = {};
+        ec.assign(0, ec.category());
     }
 
     template<class TeardownHandler>
