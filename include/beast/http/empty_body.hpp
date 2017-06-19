@@ -38,7 +38,7 @@ struct empty_body
     /// Returns the content length of the body in a message.
     static
     std::uint64_t
-    size(empty_body)
+    size(value_type)
     {
         return 0;
     }

@@ -252,69 +252,53 @@ message(std::piecewise_construct_t,
 template<bool isRequest, class Body, class Fields>
 boost::optional<std::uint64_t>
 message<isRequest, Body, Fields>::
-size() const
+payload_size() const
 {
-    static_assert(is_body_reader<Body>::value,
-        "BodyReader requirements not met");
-
-    return size(detail::is_body_sized<Body>{});
+    return payload_size(detail::is_body_sized<Body>{});
 }
 
 template<bool isRequest, class Body, class Fields>
 void
 message<isRequest, Body, Fields>::
-content_length(std::uint64_t n)
+prepare_payload(std::true_type)
 {
-    this->content_length_impl(n);
-}
-
-template<bool isRequest, class Body, class Fields>
-void
-message<isRequest, Body, Fields>::
-prepare()
-{
-    prepare(typename header_type::is_request{});
-}
-
-template<bool isRequest, class Body, class Fields>
-inline
-void
-message<isRequest, Body, Fields>::
-prepare(std::true_type)
-{
-    auto const n = size();
-    if(this->method_ == verb::trace && (
-            ! n || *n > 0))
+    auto const n = payload_size();
+    if(this->method() == verb::trace && (! n || *n > 0))
         BOOST_THROW_EXCEPTION(std::invalid_argument{
             "invalid request body"});
     if(n)
     {
         if(*n > 0 ||
-            this->method_ == verb::options ||
-            this->method_ == verb::put ||
-            this->method_ == verb::post
-            )
+            this->method() == verb::options ||
+            this->method() == verb::put ||
+            this->method() == verb::post)
         {
-            this->content_length_impl(*n);
+            this->prepare_payload_impl(false, *n);
+        }
+        else
+        {
+            this->prepare_payload_impl(false, boost::none);
         }
     }
     else if(this->version >= 11)
     {
-        this->set_chunked_impl(true);
+        this->prepare_payload_impl(true, boost::none);
+    }
+    else
+    {
+        this->prepare_payload_impl(false, boost::none);
     }
 }
 
 template<bool isRequest, class Body, class Fields>
-inline
 void
 message<isRequest, Body, Fields>::
-prepare(std::false_type)
+prepare_payload(std::false_type)
 {
-    auto const n = size();
-    if((status_class(this->result_) ==
-            status_class::informational ||
-        this->result_ == status::no_content ||
-        this->result_ == status::not_modified))
+    auto const n = payload_size();
+    if((status_class(this->result()) == status_class::informational ||
+        this->result() == status::no_content ||
+        this->result() == status::not_modified))
     {
         if(! n || *n > 0)
             // The response body MUST BE empty for this case
@@ -322,9 +306,13 @@ prepare(std::false_type)
                 "invalid response body"});
     }
     if(n)
-        this->content_length_impl(*n);
-    else if(this->version >= 11)
-        this->set_chunked_impl(true);
+    {
+        this->prepare_payload_impl(false, *n);
+    }
+    else
+    {
+        this->prepare_payload_impl(true, boost::none);
+    }
 }
 
 //------------------------------------------------------------------------------

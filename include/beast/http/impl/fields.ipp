@@ -9,6 +9,7 @@
 #define BEAST_HTTP_IMPL_FIELDS_IPP
 
 #include <beast/core/buffer_cat.hpp>
+#include <beast/core/string.hpp>
 #include <beast/core/static_string.hpp>
 #include <beast/http/verb.hpp>
 #include <beast/http/rfc7230.hpp>
@@ -149,7 +150,7 @@ public:
         unsigned version, unsigned code);
 
     basic_fields const& f_;
-    static_string<max_static_start_line> ss_;
+    static_string<max_static_buffer> ss_;
     string_view sv_;
     std::string s_;
     bool chunked_;
@@ -199,7 +200,7 @@ get_chunked() const
         f_[field::transfer_encoding]};
     for(auto it = te.begin(); it != te.end();)
     {
-        auto next = std::next(it);
+        auto const next = std::next(it);
         if(next == te.end())
             return iequals(*it, "chunked");
         it = next;
@@ -866,32 +867,119 @@ get_reason_impl() const
     return target_or_reason_;
 }
 
-//---
+namespace detail {
 
-template<class Allocator>
-inline
+// Builds a new string with "chunked" maybe taken off the end
+template<class String>
 void
-basic_fields<Allocator>::
-content_length_impl(std::uint64_t n)
+without_chunked_last(String& s, string_view const& tokens)
 {
-    erase(field::content_length);
-    insert(field::content_length, n);
+    token_list te{tokens};
+    if(te.begin() != te.end())
+    {
+        auto it = te.begin();
+        auto next = std::next(it);
+        if(next == te.end())
+        {
+            if(! iequals(*it, "chunked"))
+                s.append(it->data(), it->size());
+            return;
+        }
+        s.append(it->data(), it->size());
+        for(;;)
+        {
+            it = next;
+            next = std::next(it);
+            if(next == te.end())
+            {
+                if(! iequals(*it, "chunked"))
+                {
+                    s.append(", ");
+                    s.append(it->data(), it->size());
+                }
+                return;
+            }
+            s.append(", ");
+            s.append(it->data(), it->size());
+        }
+    }
 }
 
+} // detail
+
 template<class Allocator>
-inline
 void
 basic_fields<Allocator>::
-set_chunked_impl(bool v)
+prepare_payload_impl(bool chunked,
+    boost::optional<std::uint64_t> size)
 {
-    // VFALCO We need to handle removing the chunked as well
-    BOOST_ASSERT(v);
-    auto it = find(field::transfer_encoding);
-    if(it == end())
-        insert(field::transfer_encoding, "chunked");
+    if(chunked)
+    {
+        BOOST_ASSERT(! size);
+        erase(field::content_length);
+        auto it = find(field::transfer_encoding);
+        if(it == end())
+        {
+            set(field::transfer_encoding, "chunked");
+            return;
+        }
+
+        static_string<max_static_buffer> temp;
+        if(it->value().size() <= temp.size() + 9)
+        {
+            temp.append(it->value().data(), it->value().size());
+            temp.append(", chunked", 9);
+            set(field::transfer_encoding, temp);
+        }
+        else
+        {
+            std::string s;
+            s.reserve(it->value().size() + 9);
+            s.append(it->value().data(), it->value().size());
+            s.append(", chunked", 9);
+            set(field::transfer_encoding, s);
+        }
+        return;
+    }
+    auto const clear_chunked =
+        [this]()
+        {
+            auto it = find(field::transfer_encoding);
+            if(it == end())
+                return;
+
+            // We have to just try it because we can't
+            // know ahead of time if there's enough room.
+            try
+            {
+                static_string<max_static_buffer> temp;
+                detail::without_chunked_last(temp, it->value());
+                if(! temp.empty())
+                    set(field::transfer_encoding, temp);
+                else
+                    erase(field::transfer_encoding);
+            }
+            catch(std::length_error const&)
+            {
+                std::string s;
+                s.reserve(it->value().size());
+                detail::without_chunked_last(s, it->value());
+                if(! s.empty())
+                    set(field::transfer_encoding, s);
+                else
+                    erase(field::transfer_encoding);
+            }
+        };
+    if(size)
+    {
+        clear_chunked();
+        set(field::content_length, *size);
+    }
     else
-        set(field::transfer_encoding,
-            it->value().to_string() + ", chunked");
+    {
+        clear_chunked();
+        erase(field::content_length);
+    }
 }
 
 //------------------------------------------------------------------------------

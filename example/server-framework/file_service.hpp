@@ -225,7 +225,7 @@ private:
         res.set(beast::http::field::server, server_);
         res.set(beast::http::field::content_type, "text/html");
         res.body = "The file was not found"; // VFALCO append rel_path
-        res.prepare();
+        res.prepare_payload();
         return res;
     }
 
@@ -243,7 +243,7 @@ private:
         res.set(beast::http::field::server, server_);
         res.set(beast::http::field::content_type, mime_type(full_path));
         res.body = full_path;
-        res.prepare();
+        res.prepare_payload();
         return res;
     }
 

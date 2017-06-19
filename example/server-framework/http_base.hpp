@@ -50,7 +50,7 @@ protected:
         res.set(beast::http::field::server, server_name_);
         res.set(beast::http::field::content_type, "text/html");
         res.body = "Bad request";
-        res.prepare();
+        res.prepare_payload();
         return res;
     }
 

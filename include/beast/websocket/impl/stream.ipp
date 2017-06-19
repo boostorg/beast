@@ -218,7 +218,7 @@ build_response(http::header<true,
             res.version = req.version;
             res.result(http::status::bad_request);
             res.body = text;
-            res.prepare();
+            res.prepare_payload();
             decorate(res);
             return res;
         };
@@ -248,7 +248,7 @@ build_response(http::header<true,
             res.result(http::status::upgrade_required);
             res.version = req.version;
             res.set(http::field::sec_websocket_version, "13");
-            res.prepare();
+            res.prepare_payload();
             decorate(res);
             return res;
         }

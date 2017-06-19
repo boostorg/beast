@@ -73,7 +73,7 @@ public:
                 req.target("/");
                 req.insert(field::user_agent, "test");
                 req.body = "Hello, world!";
-                req.prepare();
+                req.prepare_payload();
 
                 error_code ec;
                 send_expect_100_continue(
@@ -106,7 +106,7 @@ public:
         req.target("/");
         req.insert(field::user_agent, "test");
         req.body = "Hello, world!";
-        req.prepare();
+        req.prepare_payload();
 
         test::pipe downstream{ios_};
         downstream.server.read_size(3);
@@ -272,7 +272,7 @@ public:
             req.method(verb::put);
             req.target("/");
             req.body = body;
-            req.prepare();
+            req.prepare_payload();
             write(c.client, req);
         }
         {
@@ -293,7 +293,7 @@ public:
             res.result(status::ok);
             res.insert(field::server, "test");
             res.body = path;
-            res.prepare();
+            res.prepare_payload();
             write(c.server, res);
         }
         {
