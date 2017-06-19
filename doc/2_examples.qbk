@@ -80,8 +80,6 @@ Here are all of the example functions and classes presented
 throughout the documentation, they can be included and used
 in your program without modification
 
-* [repo_file example/doc/core_examples.hpp]
-
 * [repo_file example/doc/http_examples.hpp]
 
 [endsect]
