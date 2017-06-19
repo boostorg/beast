@@ -14,19 +14,19 @@
 namespace beast {
 namespace http {
 
-template<bool isRequest, class Body, class Fields>
+template<bool isRequest, class Body, class Allocator>
 template<class Arg1, class... ArgN, class>
-parser<isRequest, Body, Fields>::
+parser<isRequest, Body, Allocator>::
 parser(Arg1&& arg1, ArgN&&... argn)
     : m_(std::forward<Arg1>(arg1),
         std::forward<ArgN>(argn)...)
 {
 }
 
-template<bool isRequest, class Body, class Fields>
+template<bool isRequest, class Body, class Allocator>
 template<class OtherBody, class... Args, class>
-parser<isRequest, Body, Fields>::
-parser(parser<isRequest, OtherBody, Fields>&& p,
+parser<isRequest, Body, Allocator>::
+parser(parser<isRequest, OtherBody, Allocator>&& p,
         Args&&... args)
     : base_type(std::move(p))
     , m_(p.release(), std::forward<Args>(args)...)

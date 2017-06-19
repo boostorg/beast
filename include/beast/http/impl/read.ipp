@@ -300,15 +300,15 @@ upcall:
 //------------------------------------------------------------------------------
 
 template<class Stream, class DynamicBuffer,
-    bool isRequest, class Body, class Fields,
+    bool isRequest, class Body, class Allocator,
         class Handler>
 class read_msg_op
 {
     using parser_type =
-        parser<isRequest, Body, Fields>;
+        parser<isRequest, Body, Allocator>;
 
     using message_type =
-        message<isRequest, Body, Fields>;
+        typename parser_type::value_type;
 
     struct data
     {
@@ -383,11 +383,11 @@ public:
 };
 
 template<class Stream, class DynamicBuffer,
-    bool isRequest, class Body, class Fields,
+    bool isRequest, class Body, class Allocator,
         class Handler>
 void
 read_msg_op<Stream, DynamicBuffer,
-    isRequest, Body, Fields, Handler>::
+    isRequest, Body, Allocator, Handler>::
 operator()(error_code ec)
 {
     auto& d = *d_;
@@ -693,12 +693,12 @@ async_read(
 template<
     class SyncReadStream,
     class DynamicBuffer,
-    bool isRequest, class Body, class Fields>
+    bool isRequest, class Body, class Allocator>
 void
 read(
     SyncReadStream& stream,
     DynamicBuffer& buffer,
-    message<isRequest, Body, Fields>& msg)
+    message<isRequest, Body, basic_fields<Allocator>>& msg)
 {
     static_assert(is_sync_read_stream<SyncReadStream>::value,
         "SyncReadStream requirements not met");
@@ -717,12 +717,12 @@ read(
 template<
     class SyncReadStream,
     class DynamicBuffer,
-    bool isRequest, class Body, class Fields>
+    bool isRequest, class Body, class Allocator>
 void
 read(
     SyncReadStream& stream,
     DynamicBuffer& buffer,
-    message<isRequest, Body, Fields>& msg,
+    message<isRequest, Body, basic_fields<Allocator>>& msg,
     error_code& ec)
 {
     static_assert(is_sync_read_stream<SyncReadStream>::value,
@@ -733,7 +733,7 @@ read(
         "Body requirements not met");
     static_assert(is_body_writer<Body>::value,
         "BodyWriter requirements not met");
-    parser<isRequest, Body, Fields> p{std::move(msg)};
+    parser<isRequest, Body, Allocator> p{std::move(msg)};
     p.eager(true);
     read(stream, buffer, p.base(), ec);
     if(ec)
@@ -744,13 +744,13 @@ read(
 template<
     class AsyncReadStream,
     class DynamicBuffer,
-    bool isRequest, class Body, class Fields,
+    bool isRequest, class Body, class Allocator,
     class ReadHandler>
 async_return_type<ReadHandler, void(error_code)>
 async_read(
     AsyncReadStream& stream,
     DynamicBuffer& buffer,
-    message<isRequest, Body, Fields>& msg,
+    message<isRequest, Body, basic_fields<Allocator>>& msg,
     ReadHandler&& handler)
 {
     static_assert(is_async_read_stream<AsyncReadStream>::value,
@@ -764,7 +764,7 @@ async_read(
     async_completion<ReadHandler,
         void(error_code)> init{handler};
     detail::read_msg_op<AsyncReadStream, DynamicBuffer,
-        isRequest, Body, Fields, handler_type<
+        isRequest, Body, Allocator, handler_type<
             ReadHandler, void(error_code)>>{
                 init.completion_handler, stream, buffer, msg}(
                     error_code{});

@@ -464,7 +464,6 @@ do_head_request(
 */
 template<
     bool isRequest,
-    class Fields = fields,
     class SyncWriteStream,
     class SyncReadStream,
     class DynamicBuffer,
@@ -487,10 +486,10 @@ relay(
     char buf[2048];
 
     // Create a parser with a buffer body to read from the input.
-    parser<isRequest, buffer_body, Fields> p;
+    parser<isRequest, buffer_body> p;
 
     // Create a serializer from the message contained in the parser.
-    serializer<isRequest, buffer_body, Fields> sr{p.get()};
+    serializer<isRequest, buffer_body, fields> sr{p.get()};
 
     // Read just the header from the input
     read_header(input, buffer, p, ec);
@@ -684,13 +683,12 @@ write_ostream(
 template<
     class Allocator,
     bool isRequest,
-    class Body,
-    class Fields>
+    class Body>
 void
 read_istream(
     std::istream& is,
     basic_flat_buffer<Allocator>& buffer,
-    message<isRequest, Body, Fields>& msg,
+    message<isRequest, Body, fields>& msg,
     error_code& ec)
 {
     // Create the message parser
@@ -700,7 +698,7 @@ read_istream(
     // a move construction in case the caller has constructed
     // their message in a non-default way.
     //
-    parser<isRequest, Body, Fields> p{std::move(msg)};
+    parser<isRequest, Body> p{std::move(msg)};
 
     do
     {
