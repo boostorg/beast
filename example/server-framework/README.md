@@ -10,6 +10,7 @@ It contains the following components
 
 * WebSocket ports (synchronous and asynchronous)
     - Echoes back any message received
+    - Plain or SSL (if OpenSSL available)
 
 * HTTP ports (synchronous and asynchronous)
     - Serves files from a configurable directory on GET request
@@ -17,6 +18,9 @@ It contains the following components
     - Routes WebSocket Upgrade requests to a WebSocket port
     - Handles Expect: 100-continue
     - Supports pipelined requests
+    - Plain or SSL (if OpenSSL available)
+
+* Multi-Port: Plain, OpenSSL, HTTP, WebSocket **All on the same port!**
 
 The server is designed to use modular components that users may simply copy
 into their own project to get started quickly. Two concepts are introduced:
@@ -24,16 +28,17 @@ into their own project to get started quickly. Two concepts are introduced:
 ## PortHandler
 
 The **PortHandler** concept defines an algorithm for handling incoming
-connections received on a listening socket. The example comes with four
-port handlers:
+connections received on a listening socket. The example comes with a
+total of *nine* port handlers!
 
-* `http_sync_port` Serves HTTP content using synchronous Beast calls
+| Type  | Plain             | SSL                |           
+| ----- | ----------------- | ------------------ |
+| Sync  | `http_sync_port`  | `https_sync_port`  |
+|       | `ws_sync_port`    | `wss_sync_port`    |
+| Async | `http_async_port` | `https_async_port` |
+|       | `wss_sync_port`   | `wss_async_port`   |
+|       | `multi_port`      | `multi_port`       |
 
-* `http_async_port` Serves HTTP content using asynchronous Beast calls
-
-* `ws_sync_port` A synchronous WebSocket echo server using synchronous Beast calls
-
-* `ws_async_port` An asynchronous WebSocket echo server using synchronous Beast calls
 
 A port handler takes the stream object resulting form an incoming connection
 request and constructs a handler-specific connection object which provides
@@ -57,7 +62,7 @@ to a websocket port handler.
 
 ## Relationship
 
-This diagram shows the relationship of the server object, to the four
+This diagram shows the relationship of the server object, to the nine
 ports created in the example program, and the HTTP services contained by
 the HTTP ports:
 
@@ -134,4 +139,21 @@ struct Service
         beast::http::request<Body, Fields>&& req,
         Send const& send) const
 };
+```
+
+## Upgrade Service Requirements
+
+To work with the `ws_upgrade_service`, a port or handler needs
+this signature:
+```C++
+
+struct UpgradePort
+{
+    template<class Stream, class Body, class Fields>
+    void
+    on_upgrade(
+        Stream&& stream,
+        endpoint_type ep,
+        beast::http::request<Body, Fields>&& req);
+
 ```

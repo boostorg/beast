@@ -3,6 +3,7 @@ Version 62:
 * Remove libssl-dev from a Travis matrix item
 * Increase detail::static_ostream coverage
 * Add server-framework tests
+* Doc fixes and tidy
 
 --------------------------------------------------------------------------------
 
