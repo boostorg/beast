@@ -46,6 +46,8 @@ endif()
 #
 
 option (Boost_USE_STATIC_LIBS "Use static libraries for boost" ON)
+option (BEAST_BUILD_EXAMPLES "Build Beast examples" ON)
+option (BEAST_BUILD_TESTS "Build Beast test" ON)
 
 set (BOOST_COMPONENTS coroutine context filesystem program_options system thread)
 find_package (Boost REQUIRED COMPONENTS ${BOOST_COMPONENTS})
@@ -131,9 +133,13 @@ target_link_libraries(${PROJECT_NAME} INTERFACE ${Boost_SYSTEM_LIBRARY})
 if (NOT MSVC)
     target_link_libraries(${PROJECT_NAME} INTERFACE Threads::Threads)
 endif()
-set_property(TARGET ${PROJECT_NAME} PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${Boost_INCLUDE_DIRS})
-set_property(TARGET ${PROJECT_NAME} PROPERTY  INTERFACE_SYSTEM_INCLUDE_DIRECTORIES ${Boost_INCLUDE_DIRS})
+target_include_directories(${PROJECT_NAME} SYSTEM INTERFACE ${Boost_INCLUDE_DIRS})
+target_include_directories(${PROJECT_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_compile_definitions(${PROJECT_NAME} INTERFACE BOOST_COROUTINES_NO_DEPRECATION_WARNING=1)
+if (OPENSSL_FOUND)
+    target_link_libraries(${PROJECT_NAME} INTERFACE ${OPENSSL_LIBRARIES})
+    target_include_directories(${PROJECT_NAME} SYSTEM INTERFACE ${OPENSSL_INCLUDE_DIR})
+endif()
 
 #-------------------------------------------------------------------------------
 #
@@ -185,10 +191,16 @@ file(GLOB_RECURSE SERVER_INCLUDES
     ${PROJECT_SOURCE_DIR}/example/server-framework/*.hpp
   )
 
-add_subdirectory (test)
+if (BEAST_BUILD_TESTS)
+    add_subdirectory (test)
+endif()
 
-add_subdirectory (example)
+if (BEAST_BUILD_EXAMPLES)
+    add_subdirectory (example)
+endif()
 
 if (OPENSSL_FOUND)
-    add_subdirectory (test/websocket/ssl)
+    if (BEAST_BUILD_TESTS)
+        add_subdirectory (test/websocket/ssl)
+    endif()
 endif()
