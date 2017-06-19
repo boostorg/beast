@@ -555,15 +555,6 @@ public:
     }
 
 protected:
-    /// Returns `true` if the value for Connection has "close" in the list.
-    bool has_close_impl() const;
-
-    /// Returns `true` if "chunked" is the last Transfer-Encoding
-    bool has_chunked_impl() const;
-
-    /// Returns `true` if the Content-Length field is present
-    bool has_content_length_impl() const;
-
     /** Set or clear the method string.
 
         @note Only called for requests.

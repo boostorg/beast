@@ -11,12 +11,15 @@ Version 62:
 API Changes:
 
 * parser requires basic_fields
+* Refine FieldsReader concept
 
 Actions Required:
 
 * Callers using `parser` with Fields types other than basic_fields
   will need to create their own subclass of basic_parser to work
   with their custom fields type.
+
+* Implement chunked() and keep_alive() for user defined FieldsReader types.
 
 --------------------------------------------------------------------------------
 

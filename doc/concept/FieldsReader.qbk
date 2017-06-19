@@ -57,6 +57,27 @@ In this table:
         to end no earlier than after the `X` is destroyed.
     ]
 ][
+    [`a.chunked()`]
+    [`bool`]
+    [
+        Called once after construction, this function returns `true`
+        if the [*Transfer-Encoding] field is present, and the last
+        token in its value is [*"chunked"].
+    ]
+][
+    [`a.keep_alive()`]
+    [`bool`]
+    [
+        Called once after construction, this function returns `true`
+        if the semantics of the mesage indicate that the connection
+        should remain open after processing the message. When the
+        HTTP version is below 1.1, `keep_alive` returns `true` when
+        the [*Connection] field is present, and its value contains the
+        "keep-alive" token. Otherwise, `keep_alive` returns `true`
+        when either the [*Connection] field is absent, or if the
+        value does not contain the "close" token.
+    ]
+][
     [`a.get()`]
     [X::const_buffers_type]
     [
@@ -75,7 +96,8 @@ In this table:
 ]
 ]
 
-Exemplar:
+[heading Exemplar]
+
 ```
 struct FieldsReader
 {
@@ -87,6 +109,14 @@ struct FieldsReader
 
     // Constructor for responses
     FieldsReader(F const& f, unsigned version, unsigned status);
+
+    // Returns `true` if the payload uses the chunked Transfer-Encoding
+    bool
+    chunked();
+
+    // Returns `true` if keep-alive is indicated
+    bool
+    keep_alive();
 
     // Returns the serialized header buffers
     const_buffers_type

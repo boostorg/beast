@@ -67,9 +67,10 @@ In this table:
 ]
 ]
 
-Exemplar:
+[heading Exemplar]
+
 ```
-struct body
+struct Body
 {
     using value_type = implementation_defined;
 

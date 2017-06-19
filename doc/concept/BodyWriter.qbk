@@ -94,9 +94,10 @@ In the table below:
     the implementation.
 ]
 
-Exemplar:
+[heading Exemplar]
+
 ```
-struct writer
+struct BodyWriter
 {
     /** Construct the writer.
 
@@ -104,7 +105,7 @@ struct writer
     */
     template<bool isRequest, class Body, class Fields>
     explicit
-    writer(message<isRequest, Body, Fields>& msg);
+    BodyWriter(message<isRequest, Body, Fields>& msg);
 
     /** Initialization.
 

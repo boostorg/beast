@@ -303,7 +303,10 @@ public:
     str(message<isRequest, Body, Fields> const& m)
     {
         test::string_ostream ss(ios_);
-        write(ss, m);
+        error_code ec;
+        write(ss, m, ec);
+        if(ec && ec != error::end_of_stream)
+            BOOST_THROW_EXCEPTION(system_error{ec});
         return ss.str;
     }
 
@@ -321,7 +324,7 @@ public:
             error_code ec;
             test::string_ostream ss{ios_};
             async_write(ss, m, do_yield[ec]);
-            if(BEAST_EXPECTS(! ec, ec.message()))
+            if(BEAST_EXPECTS(ec == error::end_of_stream, ec.message()))
                 BEAST_EXPECT(ss.str ==
                     "HTTP/1.0 200 OK\r\n"
                     "Server: test\r\n"
@@ -368,7 +371,8 @@ public:
             m.target("/");
             m.version = 10;
             m.insert(field::user_agent, "test");
-            m.insert("Content-Length", "5");
+            m.set(field::connection, "keep-alive");
+            m.set(field::content_length, "5");
             m.body = "*****";
             try
             {
@@ -376,6 +380,7 @@ public:
                 BEAST_EXPECT(fs.next_layer().str ==
                     "GET / HTTP/1.0\r\n"
                     "User-Agent: test\r\n"
+                    "Connection: keep-alive\r\n"
                     "Content-Length: 5\r\n"
                     "\r\n"
                     "*****"
@@ -465,7 +470,8 @@ public:
             m.target("/");
             m.version = 10;
             m.insert(field::user_agent, "test");
-            m.insert("Content-Length", "5");
+            m.set(field::connection, "keep-alive");
+            m.set(field::content_length, "5");
             m.body = "*****";
             error_code ec = test::error::fail_error;
             write(fs, m, ec);
@@ -474,6 +480,7 @@ public:
                 BEAST_EXPECT(fs.next_layer().str ==
                     "GET / HTTP/1.0\r\n"
                     "User-Agent: test\r\n"
+                    "Connection: keep-alive\r\n"
                     "Content-Length: 5\r\n"
                     "\r\n"
                     "*****"
@@ -493,7 +500,8 @@ public:
             m.target("/");
             m.version = 10;
             m.insert(field::user_agent, "test");
-            m.insert("Content-Length", "5");
+            m.set(field::connection, "keep-alive");
+            m.set(field::content_length, "5");
             m.body = "*****";
             error_code ec = test::error::fail_error;
             async_write(fs, m, do_yield[ec]);
@@ -502,6 +510,7 @@ public:
                 BEAST_EXPECT(fs.next_layer().str ==
                     "GET / HTTP/1.0\r\n"
                     "User-Agent: test\r\n"
+                    "Connection: keep-alive\r\n"
                     "Content-Length: 5\r\n"
                     "\r\n"
                     "*****"
@@ -858,10 +867,8 @@ public:
 
     void run() override
     {
-        yield_to([&](yield_context yield){
-            testAsyncWrite(yield); });
-        yield_to([&](yield_context yield){
-            testFailures(yield); });
+        yield_to([&](yield_context yield){ testAsyncWrite(yield); });
+        yield_to([&](yield_context yield){ testFailures(yield); });
         testOutput();
         test_std_ostream();
         testIoService();

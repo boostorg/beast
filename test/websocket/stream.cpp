@@ -1004,7 +1004,7 @@ public:
                 }
             };
         // wrong version
-        check(error::handshake_failed,
+        check(http::error::end_of_stream,
             "GET / HTTP/1.0\r\n"
             "Host: localhost:80\r\n"
             "Upgrade: WebSocket\r\n"
