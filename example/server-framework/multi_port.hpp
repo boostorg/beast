@@ -273,12 +273,12 @@ public:
 
         @param req The upgrade request.
     */
-    template<class Body, class Fields>
+    template<class Body>
     void
     on_upgrade(
         socket_type&& sock,
         endpoint_type ep,
-        beast::http::request<Body, Fields>&& req)
+        beast::http::request<Body>&& req)
     {
         // Create the connection and call the version of
         // run that takes the request since we have it already
@@ -304,12 +304,12 @@ public:
 
         @param req The upgrade request.
     */
-    template<class Body, class Fields>
+    template<class Body>
     void
     on_upgrade(
         ssl_stream<socket_type>&& stream,
         endpoint_type ep,
-        beast::http::request<Body, Fields>&& req)
+        beast::http::request<Body>&& req)
     {
         std::make_shared<async_wss_con>(
             std::move(stream),

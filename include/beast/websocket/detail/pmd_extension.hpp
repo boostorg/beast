@@ -66,9 +66,10 @@ parse_bits(string_view s)
 
 // Parse permessage-deflate request fields
 //
-template<class Fields>
+template<class Allocator>
 void
-pmd_read(pmd_offer& offer, Fields const& fields)
+pmd_read(pmd_offer& offer,
+    http::basic_fields<Allocator> const& fields)
 {
     offer.accept = false;
     offer.server_max_window_bits= 0;
@@ -194,9 +195,10 @@ pmd_read(pmd_offer& offer, Fields const& fields)
 
 // Set permessage-deflate fields for a client offer
 //
-template<class Fields>
+template<class Allocator>
 void
-pmd_write(Fields& fields, pmd_offer const& offer)
+pmd_write(http::basic_fields<Allocator>& fields,
+    pmd_offer const& offer)
 {
     static_string<512> s;
     s = "permessage-deflate";
@@ -239,10 +241,10 @@ pmd_write(Fields& fields, pmd_offer const& offer)
 
 // Negotiate a permessage-deflate client offer
 //
-template<class Fields>
+template<class Allocator>
 void
 pmd_negotiate(
-    Fields& fields,
+    http::basic_fields<Allocator>& fields,
     pmd_offer& config,
     pmd_offer const& offer,
     permessage_deflate const& o)

@@ -98,9 +98,9 @@ public:
 
         @code
 
-        template<class Body, class Fields>
+        template<class Body>
         void
-        send(response<Body, Fields>&&);
+        send(response<Body>&&);
 
         @endcode
 
@@ -112,13 +112,13 @@ public:
     */
     template<
         class Stream,
-        class Body, class Fields,
+        class Body,
         class Send>
     bool
     respond(
         Stream&& stream,
         endpoint_type const& ep,
-        beast::http::request<Body, Fields>&& req,
+        beast::http::request<Body>&& req,
         Send const& send) const
     {
         return try_respond(
@@ -135,13 +135,13 @@ private:
     */
     template<
         class Stream,
-        class Body, class Fields,
+        class Body,
         class Send>
     bool
     try_respond(
         Stream&&,
         endpoint_type const&,
-        beast::http::request<Body, Fields>&&,
+        beast::http::request<Body>&&,
         Send const&,
         C<sizeof...(Services)> const&) const
     {
@@ -155,14 +155,14 @@ private:
     //
     template<
         class Stream,
-        class Body, class Fields,
+        class Body,
         class Send,
         std::size_t I>
     bool
     try_respond(
         Stream&& stream,
         endpoint_type const& ep,
-        beast::http::request<Body, Fields>&& req,
+        beast::http::request<Body>&& req,
         Send const& send,
         C<I> const&) const
     {

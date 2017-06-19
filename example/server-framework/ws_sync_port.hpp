@@ -93,9 +93,9 @@ public:
 
     // Run the connection from an already-received Upgrade request.
     //
-    template<class Body, class Fields>
+    template<class Body>
     void
-    run(beast::http::request<Body, Fields>&& req)
+    run(beast::http::request<Body>&& req)
     {
         BOOST_ASSERT(beast::websocket::is_upgrade(req));
 
@@ -104,7 +104,7 @@ public:
         // so we have to write it out by manually specifying the lambda.
         //
         std::thread{
-            lambda<Body, Fields>{
+            lambda<Body>{
                 impl().shared_from_this(),
                 std::move(req)
         }}.detach();
@@ -168,11 +168,11 @@ private:
     // we write out the lambda ourselves. This is similar to what
     // the compiler would generate anyway.
     //
-    template<class Body, class Fields>
+    template<class Body>
     class lambda
     {
         std::shared_ptr<sync_ws_con_base> self_;
-        beast::http::request<Body, Fields> req_;
+        beast::http::request<Body> req_;
         
     public:
         // Constructor
@@ -181,7 +181,7 @@ private:
         //
         lambda(
             std::shared_ptr<sync_ws_con_base> self,
-            beast::http::request<Body, Fields>&& req)
+            beast::http::request<Body>&& req)
             : self_(std::move(self))
             , req_(std::move(req))
         {
@@ -407,12 +407,12 @@ public:
 
         @param req The upgrade request.
     */
-    template<class Body, class Fields>
+    template<class Body>
     void
     on_upgrade(
         socket_type&& sock,
         endpoint_type ep,
-        beast::http::request<Body, Fields>&& req)
+        beast::http::request<Body>&& req)
     {
         // Create the connection object and run it,
         // transferring ownership of the ugprade request.

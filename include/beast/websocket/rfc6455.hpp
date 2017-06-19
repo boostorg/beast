@@ -50,9 +50,10 @@ namespace websocket {
 
     @return `true` if the request is a WebSocket Upgrade.
 */
-template<class Fields>
+template<class Allocator>
 bool
-is_upgrade(beast::http::header<true, Fields> const& req);
+is_upgrade(beast::http::header<true,
+    http::basic_fields<Allocator>> const& req);
 
 /** Close status codes.
 

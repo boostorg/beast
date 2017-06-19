@@ -67,13 +67,13 @@ public:
     */
     template<
         class Stream,
-        class Body, class Fields,
+        class Body,
         class Send>
     bool
     respond(
         Stream&& stream,
         endpoint_type const& ep,
-        beast::http::request<Body, Fields>&& req,
+        beast::http::request<Body>&& req,
         Send const&) const
     {
         // If its not an upgrade request, return `false`

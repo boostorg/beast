@@ -47,12 +47,12 @@ namespace http {
 template<
     class SyncStream,
     class DynamicBuffer,
-    class Body, class Fields>
+    class Body, class Allocator>
 void
 send_expect_100_continue(
     SyncStream& stream,
     DynamicBuffer& buffer,
-    request<Body, Fields>& req,
+    request<Body, basic_fields<Allocator>>& req,
     error_code& ec)
 {
     static_assert(is_sync_stream<SyncStream>::value,

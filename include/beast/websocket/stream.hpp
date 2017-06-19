@@ -836,9 +836,9 @@ public:
 
         @throws system_error Thrown on failure.
     */
-    template<class Fields>
+    template<class Allocator>
     void
-    accept(http::header<true, Fields> const& req);
+    accept(http::header<true, http::basic_fields<Allocator>> const& req);
 
     /** Respond to a WebSocket HTTP Upgrade request
 
@@ -877,10 +877,11 @@ public:
 
         @throws system_error Thrown on failure.
     */
-    template<class Fields, class ResponseDecorator>
+    template<class Allocator, class ResponseDecorator>
     void
-    accept_ex(http::header<true, Fields> const& req,
-        ResponseDecorator const& decorator);
+    accept_ex(http::header<true,
+        http::basic_fields<Allocator>> const& req,
+            ResponseDecorator const& decorator);
 
     /** Respond to a WebSocket HTTP Upgrade request
 
@@ -910,9 +911,9 @@ public:
 
         @param ec Set to indicate what error occurred, if any.
     */
-    template<class Fields>
+    template<class Allocator>
     void
-    accept(http::header<true, Fields> const& req,
+    accept(http::header<true, http::basic_fields<Allocator>> const& req,
         error_code& ec);
 
     /** Respond to a WebSocket HTTP Upgrade request
@@ -952,11 +953,12 @@ public:
 
         @param ec Set to indicate what error occurred, if any.
     */
-    template<class Fields, class ResponseDecorator>
+    template<class Allocator, class ResponseDecorator>
     void
-    accept_ex(http::header<true, Fields> const& req,
-        ResponseDecorator const& decorator,
-            error_code& ec);
+    accept_ex(http::header<true,
+        http::basic_fields<Allocator>> const& req,
+            ResponseDecorator const& decorator,
+                error_code& ec);
 
     /** Respond to a WebSocket HTTP Upgrade request
 
@@ -991,9 +993,9 @@ public:
 
         @throws system_error Thrown on failure.
     */
-    template<class Fields, class ConstBufferSequence>
+    template<class Allocator, class ConstBufferSequence>
     void
-    accept(http::header<true, Fields> const& req,
+    accept(http::header<true, http::basic_fields<Allocator>> const& req,
         ConstBufferSequence const& buffers);
 
     /** Respond to a WebSocket HTTP Upgrade request
@@ -1038,12 +1040,13 @@ public:
 
         @throws system_error Thrown on failure.
     */
-    template<class Fields, class ConstBufferSequence,
+    template<class Allocator, class ConstBufferSequence,
         class ResponseDecorator>
     void
-    accept_ex(http::header<true, Fields> const& req,
-        ConstBufferSequence const& buffers,
-            ResponseDecorator const& decorator);
+    accept_ex(http::header<true,
+        http::basic_fields<Allocator>> const& req,
+            ConstBufferSequence const& buffers,
+                ResponseDecorator const& decorator);
 
     /** Respond to a WebSocket HTTP Upgrade request
 
@@ -1078,9 +1081,9 @@ public:
 
         @param ec Set to indicate what error occurred, if any.
     */
-    template<class Fields, class ConstBufferSequence>
+    template<class Allocator, class ConstBufferSequence>
     void
-    accept(http::header<true, Fields> const& req,
+    accept(http::header<true, Allocator> const& req,
         ConstBufferSequence const& buffers, error_code& ec);
 
     /** Respond to a WebSocket HTTP Upgrade request
@@ -1125,13 +1128,14 @@ public:
 
         @param ec Set to indicate what error occurred, if any.
     */
-    template<class Fields, class ConstBufferSequence,
+    template<class Allocator, class ConstBufferSequence,
         class ResponseDecorator>
     void
-    accept_ex(http::header<true, Fields> const& req,
-        ConstBufferSequence const& buffers,
-            ResponseDecorator const& decorator,
-                error_code& ec);
+    accept_ex(http::header<true,
+        http::basic_fields<Allocator>> const& req,
+            ConstBufferSequence const& buffers,
+                ResponseDecorator const& decorator,
+                    error_code& ec);
 
     /** Start reading and responding to a WebSocket HTTP Upgrade request.
 
@@ -1413,15 +1417,16 @@ public:
         this function. Invocation of the handler will be performed in a
         manner equivalent to using `boost::asio::io_service::post`.
     */
-    template<class Fields, class AcceptHandler>
+    template<class Allocator, class AcceptHandler>
 #if BEAST_DOXYGEN
     void_or_deduced
 #else
     async_return_type<
         AcceptHandler, void(error_code)>
 #endif
-    async_accept(http::header<true, Fields> const& req,
-        AcceptHandler&& handler);
+    async_accept(http::header<true,
+        http::basic_fields<Allocator>> const& req,
+            AcceptHandler&& handler);
 
     /** Start responding to a WebSocket HTTP Upgrade request.
 
@@ -1477,7 +1482,7 @@ public:
         this function. Invocation of the handler will be performed in a
         manner equivalent to using `boost::asio::io_service::post`.
     */
-    template<class Fields,
+    template<class Allocator,
         class ResponseDecorator, class AcceptHandler>
 #if BEAST_DOXYGEN
     void_or_deduced
@@ -1485,9 +1490,10 @@ public:
     async_return_type<
         AcceptHandler, void(error_code)>
 #endif
-    async_accept_ex(http::header<true, Fields> const& req,
-        ResponseDecorator const& decorator,
-            AcceptHandler&& handler);
+    async_accept_ex(http::header<true,
+        http::basic_fields<Allocator>> const& req,
+            ResponseDecorator const& decorator,
+                AcceptHandler&& handler);
 
     /** Start responding to a WebSocket HTTP Upgrade request.
 
@@ -1541,7 +1547,7 @@ public:
         this function. Invocation of the handler will be performed in a
         manner equivalent to using `boost::asio::io_service::post`.
     */
-    template<class Fields,
+    template<class Allocator,
         class ConstBufferSequence, class AcceptHandler>
 #if BEAST_DOXYGEN
     void_or_deduced
@@ -1549,9 +1555,10 @@ public:
     async_return_type<
         AcceptHandler, void(error_code)>
 #endif
-    async_accept(http::header<true, Fields> const& req,
-        ConstBufferSequence const& buffers,
-            AcceptHandler&& handler);
+    async_accept(http::header<true,
+        http::basic_fields<Allocator>> const& req,
+            ConstBufferSequence const& buffers,
+                AcceptHandler&& handler);
 
     /** Start responding to a WebSocket HTTP Upgrade request.
 
@@ -1614,7 +1621,7 @@ public:
         this function. Invocation of the handler will be performed in a
         manner equivalent to using `boost::asio::io_service::post`.
     */
-    template<class Fields, class ConstBufferSequence,
+    template<class Allocator, class ConstBufferSequence,
         class ResponseDecorator, class AcceptHandler>
 #if BEAST_DOXYGEN
     void_or_deduced
@@ -1622,10 +1629,11 @@ public:
     async_return_type<
         AcceptHandler, void(error_code)>
 #endif
-    async_accept_ex(http::header<true, Fields> const& req,
-        ConstBufferSequence const& buffers,
-            ResponseDecorator const& decorator,
-                AcceptHandler&& handler);
+    async_accept_ex(http::header<true,
+        http::basic_fields<Allocator>> const& req,
+            ConstBufferSequence const& buffers,
+                ResponseDecorator const& decorator,
+                    AcceptHandler&& handler);
 
     /** Send an HTTP WebSocket Upgrade request and receive the response.
 
@@ -3109,10 +3117,11 @@ private:
     do_accept(Decorator const& decorator,
         error_code& ec);
 
-    template<class Fields, class Decorator>
+    template<class Allocator, class Decorator>
     void
-    do_accept(http::header<true, Fields> const& req,
-        Decorator const& decorator, error_code& ec);
+    do_accept(http::header<true,
+        http::basic_fields<Allocator>> const& req,
+            Decorator const& decorator, error_code& ec);
 
     template<class RequestDecorator>
     void
@@ -3129,10 +3138,11 @@ private:
             string_view target,
                 Decorator const& decorator);
 
-    template<class Fields, class Decorator>
+    template<class Allocator, class Decorator>
     response_type
-    build_response(http::header<true, Fields> const& req,
-        Decorator const& decorator);
+    build_response(http::header<true,
+        http::basic_fields<Allocator>> const& req,
+            Decorator const& decorator);
 
     void
     do_response(http::header<false> const& resp,

@@ -26,9 +26,10 @@ namespace rfc7231 {
 
     @see https://tools.ietf.org/html/rfc7231#section-5.1.1
 */
-template<class Body, class Fields>
+template<class Body, class Allocator>
 bool
-is_expect_100_continue(beast::http::request<Body, Fields> const& req)
+is_expect_100_continue(beast::http::request<
+    Body, beast::http::basic_fields<Allocator>> const& req)
 {
     return beast::iequals(
         req[beast::http::field::expect], "100-continue");
