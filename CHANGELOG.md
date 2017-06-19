@@ -10,6 +10,7 @@ Version 61:
 * Clean close in Secure WebSocket client
 * Add server-framework SSL HTTP and WebSocket ports
 * Fix shadowing warnings
+* Tidy up http-crawl example
 
 API Changes:
 
