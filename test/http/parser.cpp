@@ -95,7 +95,7 @@ public:
                 p.put(buffer(s.data(), n), ec);
             s.remove_prefix(used);
             if(ec == error::need_more)
-                ec = {};
+                ec.assign(0, ec.category());
             if(! BEAST_EXPECTS(! ec, ec.message()))
                 continue;
             BEAST_EXPECT(! p.is_done());
@@ -256,7 +256,7 @@ public:
             used = p.put(b.data(), ec);
             b.consume(used);
             BEAST_EXPECT(ec == error::need_more);
-            ec = {};
+            ec.assign(0, ec.category());
             BEAST_EXPECT(! p.is_done());
             ostream(b) <<
                 "\r\n"; // final crlf to end message
@@ -300,7 +300,7 @@ public:
             used = p.put(b.data(), ec);
             BEAST_EXPECTS(ec == error::need_more, ec.message());
             b.consume(used);
-            ec = {};
+            ec.assign(0, ec.category());
             ostream(b) <<
                 "User-Agent: test\r\n"
                 "\r\n";
@@ -321,7 +321,7 @@ public:
         BEAST_EXPECT(ec == error::need_more);
         BEAST_EXPECT(! p.got_some());
         BEAST_EXPECT(used == 0);
-        ec = {};
+        ec.assign(0, ec.category());
         used = p.put(buf("G"), ec);
         BEAST_EXPECT(ec == error::need_more);
         BEAST_EXPECT(p.got_some());

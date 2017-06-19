@@ -389,14 +389,14 @@ protected:
         {
             if(it == last)
             {
-                ec = {};
+                ec.assign(0, ec.category());
                 return nullptr;
             }
             if(*it == '\r')
             {
                 if(++it == last)
                 {
-                    ec = {};
+                    ec.assign(0, ec.category());
                     return nullptr;
                 }
                 if(*it != '\n')
@@ -404,7 +404,7 @@ protected:
                     ec = error::bad_line_ending;
                     return nullptr;
                 }
-                ec = {};
+                ec.assign(0, ec.category());
                 return ++it;
             }
             // VFALCO Should we handle the legacy case
@@ -425,14 +425,14 @@ protected:
         {
             if(it == last)
             {
-                ec = {};
+                ec.assign(0, ec.category());
                 return nullptr;
             }
             if(*it == '\r')
             {
                 if(++it == last)
                 {
-                    ec = {};
+                    ec.assign(0, ec.category());
                     return nullptr;
                 }
                 if(*it != '\n')
@@ -442,7 +442,7 @@ protected:
                 }
                 if(++it == last)
                 {
-                    ec = {};
+                    ec.assign(0, ec.category());
                     return nullptr;
                 }
                 if(*it != '\r')
@@ -452,7 +452,7 @@ protected:
                 }
                 if(++it == last)
                 {
-                    ec = {};
+                    ec.assign(0, ec.category());
                     return nullptr;
                 }
                 if(*it != '\n')
@@ -460,7 +460,7 @@ protected:
                     ec = error::bad_line_ending;
                     return nullptr;
                 }
-                ec = {};
+                ec.assign(0, ec.category());
                 return ++it;
             }
             // VFALCO Should we handle the legacy case

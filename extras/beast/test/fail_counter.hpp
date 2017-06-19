@@ -149,7 +149,7 @@ public:
             ec = ec_;
             return true;
         }
-        ec = {};
+        ec.assign(0, ec.category());
         return false;
     }
 };

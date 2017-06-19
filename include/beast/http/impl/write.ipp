@@ -56,7 +56,7 @@ class write_some_op
         operator()(error_code& ec,
             ConstBufferSequence const& buffer)
         {
-            ec = {};
+            ec.assign(0, ec.category());
             invoked = true;
             return op_.s_.async_write_some(
                 buffer, std::move(op_));
@@ -213,7 +213,7 @@ class write_op
         operator()(error_code& ec,
             ConstBufferSequence const& buffer)
         {
-            ec = {};
+            ec.assign(0, ec.category());
             invoked = true;
             return op_.s_.async_write_some(
                 buffer, std::move(op_));
@@ -537,7 +537,7 @@ write_some(SyncWriteStream& stream, serializer<
     detail::write_some_lambda<SyncWriteStream> f{stream};
     if(sr.is_done())
     {
-        ec = {};
+        ec.assign(0, ec.category());
         return;
     }
     sr.get(ec, f);
@@ -609,7 +609,7 @@ write_header(SyncWriteStream& stream, serializer<
     sr.split(true);
     if(sr.is_header_done())
     {
-        ec = {};
+        ec.assign(0, ec.category());
         return;
     }
     detail::write_lambda<SyncWriteStream> f{stream};
@@ -680,7 +680,7 @@ write(SyncWriteStream& stream, serializer<
     sr.split(false);
     if(sr.is_done())
     {
-        ec = {};
+        ec.assign(0, ec.category());
         return;
     }
     detail::write_lambda<SyncWriteStream> f{stream};
@@ -808,7 +808,7 @@ public:
     operator()(error_code& ec,
         ConstBufferSequence const& buffers) const
     {
-        ec = {};
+        ec.assign(0, ec.category());
         if(os_.fail())
             return;
         std::size_t bytes_transferred = 0;
@@ -868,7 +868,7 @@ operator<<(std::ostream& os,
         if(os.fail())
             break;
         if(ec == error::end_of_stream)
-            ec = {};
+            ec.assign(0, ec.category());
         if(ec)
         {
             os.setstate(std::ios::failbit);

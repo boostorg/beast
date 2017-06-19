@@ -997,7 +997,7 @@ doParams(z_params& zs, int level, Strategy strategy, error_code& ec)
         // Flush the last buffer:
         doWrite(zs, Flush::block, ec);
         if(ec == error::need_buffers && pending_ == 0)
-            ec = {};
+            ec.assign(0, ec.category());
     }
     if(level_ != level)
     {

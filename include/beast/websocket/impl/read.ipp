@@ -178,7 +178,7 @@ operator()(error_code ec,
     {
         // Rationale:
         // http://stackoverflow.com/questions/25587403/boost-asio-ssl-async-shutdown-always-finishes-with-an-error
-        ec = {};
+        ec.assign(0, ec.category());
     }
     if(! ec)
     {
@@ -960,7 +960,7 @@ do_close:
         {
             // Rationale:
             // http://stackoverflow.com/questions/25587403/boost-asio-ssl-async-shutdown-always-finishes-with-an-error
-            ec = {};
+            ec.assign(0, ec.category());
         }
         failed_ = ec != 0;
         if(failed_)
@@ -975,7 +975,7 @@ do_close:
         if(ec == boost::asio::error::eof)
         {
             // (See above)
-            ec = {};
+            ec.assign(0, ec.category());
         }
     }
     if(! ec)

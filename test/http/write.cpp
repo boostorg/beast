@@ -57,13 +57,13 @@ public:
             void
             init(error_code& ec)
             {
-                ec = {};
+                ec.assign(0, ec.category());
             }
             
             boost::optional<std::pair<const_buffers_type, bool>>
             get(error_code& ec)
             {
-                ec = {};
+                ec.assign(0, ec.category());
                 return {{const_buffers_type{
                     body_.data(), body_.size()}, false}};
             }
@@ -71,7 +71,7 @@ public:
             void
             finish(error_code& ec)
             {
-                ec = {};
+                ec.assign(0, ec.category());
             }
         };
     };
@@ -112,13 +112,13 @@ public:
             void
             init(error_code& ec)
             {
-                ec = {};
+                ec.assign(0, ec.category());
             }
 
             boost::optional<std::pair<const_buffers_type, bool>>
             get(error_code& ec)
             {
-                ec = {};
+                ec.assign(0, ec.category());
                 body_.read = true;
                 return get(
                     std::integral_constant<bool, isSplit>{},
@@ -128,7 +128,7 @@ public:
             void
             finish(error_code& ec)
             {
-                ec = {};
+                ec.assign(0, ec.category());
             }
 
         private:

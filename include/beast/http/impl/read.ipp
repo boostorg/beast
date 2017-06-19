@@ -121,7 +121,7 @@ operator()(error_code ec, std::size_t bytes_transferred)
             if(p_.got_some())
             {
                 // caller sees EOF on next read
-                ec = {};
+                ec.assign(0, ec.category());
                 p_.put_eof(ec);
                 if(ec)
                     goto upcall;
@@ -139,7 +139,7 @@ operator()(error_code ec, std::size_t bytes_transferred)
         b_.consume(p_.put(b_.data(), ec));
         if(! ec || ec != http::error::need_more)
             goto do_upcall;
-        ec = {};
+        ec.assign(0, ec.category());
 
     do_read:
         try
@@ -570,7 +570,7 @@ read_header(
     parser.eager(false);
     if(parser.is_header_done())
     {
-        ec = {};
+        ec.assign(0, ec.category());
         return;
     }
     do
@@ -649,7 +649,7 @@ read(
     parser.eager(true);
     if(parser.is_done())
     {
-        ec = {};
+        ec.assign(0, ec.category());
         return;
     }
     do

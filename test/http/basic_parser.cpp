@@ -225,7 +225,7 @@ public:
                 error_code ec;
                 p.put(buffer(s.data(), i), ec);
                 BEAST_EXPECTS(ec == error::need_more, ec.message());
-                ec = {};
+                ec.assign(0, ec.category());
                 p.put(boost::asio::buffer(s.data(), s.size()), ec);
                 BEAST_EXPECTS(! ec, ec.message());
                 BEAST_EXPECT(p.is_done());
@@ -247,7 +247,7 @@ public:
                 error_code ec;
                 p.put(b1, ec);
                 BEAST_EXPECTS(ec == error::need_more, ec.message());
-                ec = {};
+                ec.assign(0, ec.category());
                 p.put(buffer_cat(b1, b2), ec);
                 BEAST_EXPECTS(! ec, ec.message());
                 p.put_eof(ec);

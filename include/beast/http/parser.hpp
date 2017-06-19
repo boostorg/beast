@@ -185,7 +185,7 @@ private:
     on_request(verb method, string_view method_str,
         string_view target, int version, error_code& ec)
     {
-        ec = {};
+        ec.assign(0, ec.category());
         m_.target(target);
         if(method != verb::unknown)
             m_.method(method);
@@ -199,7 +199,7 @@ private:
         string_view reason,
             int version, error_code& ec)
     {
-        ec = {};
+        ec.assign(0, ec.category());
         m_.result(code);
         m_.version = version;
         m_.reason(reason);
@@ -209,14 +209,14 @@ private:
     on_field(field name, string_view name_string,
         string_view value, error_code& ec)
     {
-        ec = {};
+        ec.assign(0, ec.category());
         m_.insert(name, name_string, value);
     }
 
     void
     on_header(error_code& ec)
     {
-        ec = {};
+        ec.assign(0, ec.category());
     }
 
     void
@@ -239,7 +239,7 @@ private:
     on_chunk(std::uint64_t,
         string_view, error_code& ec)
     {
-        ec = {};
+        ec.assign(0, ec.category());
     }
 
     void
@@ -248,7 +248,7 @@ private:
         if(wr_)
             wr_->finish(ec);
         else
-            ec = {};
+            ec.assign(0, ec.category());
     }
 };
 

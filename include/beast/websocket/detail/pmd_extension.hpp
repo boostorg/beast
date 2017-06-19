@@ -378,7 +378,7 @@ inflate(
         if( ec == zlib::error::need_buffers ||
             ec == zlib::error::end_of_stream)
         {
-            ec = {};
+            ec.assign(0, ec.category());
             break;
         }
         if(ec)
@@ -420,7 +420,7 @@ deflate(
                 return false;
             BOOST_ASSERT(zs.avail_out == 0);
             BOOST_ASSERT(zs.total_out == buffer_size(out));
-            ec = {};
+            ec.assign(0, ec.category());
             break;
         }
         if(zs.avail_out == 0)
@@ -444,7 +444,7 @@ deflate(
             zo.write(zs, zlib::Flush::block, ec);
             BOOST_ASSERT(! ec || ec == zlib::error::need_buffers);
             if(ec == zlib::error::need_buffers)
-                ec = {};
+                ec.assign(0, ec.category());
             if(ec)
                 return false;
             if(zs.avail_out >= 6)
@@ -459,7 +459,7 @@ deflate(
             }
         }
     }
-    ec = {};
+    ec.assign(0, ec.category());
     out = buffer(
         buffer_cast<void*>(out), zs.total_out);
     return true;

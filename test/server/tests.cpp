@@ -224,7 +224,7 @@ public:
         con.shutdown(ec);
         // VFALCO No idea why we get eof in the normal case
         if(ec == boost::asio::error::eof)
-            ec = {};
+            ec.assign(0, ec.category());
         if(! BEAST_EXPECTS(! ec, ec.message()))
             return;
     }
