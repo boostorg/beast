@@ -14,6 +14,10 @@
 #include <iostream>
 #include <string>
 
+using tcp = boost::asio::ip::tcp; // from <boost/asio.hpp>
+namespace ssl = boost::asio::ssl; // from <boost/asio/ssl.hpp>
+namespace websocket = beast::websocket; // from <beast/websocket.hpp>
+
 int main()
 {
     // A helper for reporting errors
@@ -29,8 +33,8 @@ int main()
 
     // Set up an asio socket to connect to a remote host
     boost::asio::io_service ios;
-    boost::asio::ip::tcp::resolver r{ios};
-    boost::asio::ip::tcp::socket sock{ios};
+    tcp::resolver r{ios};
+    tcp::socket sock{ios};
 
     // Look up the domain name
     std::string const host = "echo.websocket.org";
@@ -44,18 +48,18 @@ int main()
         return fail("connect", ec);
 
     // Wrap the now-connected socket in an SSL stream
-    using stream_type = boost::asio::ssl::stream<boost::asio::ip::tcp::socket&>;
-    boost::asio::ssl::context ctx{boost::asio::ssl::context::sslv23};
+    using stream_type = ssl::stream<tcp::socket&>;
+    ssl::context ctx{ssl::context::sslv23};
     stream_type stream{sock, ctx};
-    stream.set_verify_mode(boost::asio::ssl::verify_none);
+    stream.set_verify_mode(ssl::verify_none);
 
     // Perform SSL handshaking
-    stream.handshake(boost::asio::ssl::stream_base::client, ec);
+    stream.handshake(ssl::stream_base::client, ec);
     if(ec)
         return fail("ssl handshake", ec);
 
     // Now wrap the handshaked SSL stream in a websocket stream
-    beast::websocket::stream<stream_type&> ws{stream};
+    websocket::stream<stream_type&> ws{stream};
 
     // Perform the websocket handshake
     ws.handshake(host, "/", ec);
@@ -76,7 +80,7 @@ int main()
         return fail("read", ec);
 
     // Send a "close" frame to the other end, this is a websocket thing
-    ws.close(beast::websocket::close_code::normal, ec);
+    ws.close(websocket::close_code::normal, ec);
     if(ec)
         return fail("close", ec);
 
@@ -94,7 +98,7 @@ int main()
         ws.read(drain, ec);
 
         // ...until we get the special error code
-        if(ec == beast::websocket::error::closed)
+        if(ec == websocket::error::closed)
             break;
 
         // Some other error occurred, report it and exit.

@@ -15,6 +15,9 @@
 #include <cstdlib>
 #include <iostream>
 
+using tcp = boost::asio::ip::tcp; // from <boost/asio.hpp>
+namespace http = beast::http; // from <beast/http.hpp>
+
 template<class String>
 void
 err(beast::error_code const& ec, String const& what)
@@ -47,7 +50,7 @@ main(int, char const*[])
         beast::error_code ec;
 
         // Look up the domain name
-        boost::asio::ip::tcp::resolver r(ios);
+        tcp::resolver r(ios);
         auto lookup = r.resolve({host, "http"}, ec);
         if(ec)
         {
@@ -56,7 +59,7 @@ main(int, char const*[])
         }
 
         // Now create a socket and connect
-        boost::asio::ip::tcp::socket sock(ios);
+        tcp::socket sock(ios);
         boost::asio::connect(sock, lookup, ec);
         if(ec)
         {
@@ -73,30 +76,30 @@ main(int, char const*[])
         }
 
         // Set up an HTTP GET request
-        beast::http::request<beast::http::string_body> req;
+        http::request<http::string_body> req;
         req.version = 11;
-        req.method(beast::http::verb::get);
+        req.method(http::verb::get);
         req.target("/");
-        req.set(beast::http::field::host, host + std::string(":") +
+        req.set(http::field::host, host + std::string(":") +
             boost::lexical_cast<std::string>(ep.port()));
-        req.set(beast::http::field::user_agent, BEAST_VERSION_STRING);
+        req.set(http::field::user_agent, BEAST_VERSION_STRING);
 
         // Set the Connection: close field, this way the server will close
         // the connection. This consumes less resources (no TIME_WAIT) because
         // of the graceful close. It also makes things go a little faster.
         //
-        req.set(beast::http::field::connection, "close");
+        req.set(http::field::connection, "close");
 
         // Send the GET request
-        beast::http::write(sock, req, ec);
-        if(ec == beast::http::error::end_of_stream)
+        http::write(sock, req, ec);
+        if(ec == http::error::end_of_stream)
         {
             // This special error received on a write indicates that the
             // semantics of the sent message are such that the connection
             // should be closed after the response is done. We do a TCP/IP
             // "half-close" here to shut down our end.
             //
-            sock.shutdown(boost::asio::ip::tcp::socket::shutdown_send, ec);
+            sock.shutdown(tcp::socket::shutdown_send, ec);
             if(ec)
                 return fail("shutdown", ec);
         }
@@ -110,11 +113,11 @@ main(int, char const*[])
         beast::multi_buffer b;
 
         // The response will go into this object
-        beast::http::response<beast::http::string_body> res;
+        http::response<http::string_body> res;
 
         // Read the response
-        beast::http::read(sock, b, res, ec);
-        if(ec == beast::http::error::end_of_stream)
+        http::read(sock, b, res, ec);
+        if(ec == http::error::end_of_stream)
         {
             // This special error means that the other end closed the socket,
             // which is what we want since we asked for Connection: close.
@@ -130,7 +133,7 @@ main(int, char const*[])
 
         // Now we do the other half of the close,
         // which is to shut down the receiver. 
-        sock.shutdown(boost::asio::ip::tcp::socket::shutdown_receive, ec);
+        sock.shutdown(tcp::socket::shutdown_receive, ec);
         if(ec)
             return fail("shutdown", ec);
 

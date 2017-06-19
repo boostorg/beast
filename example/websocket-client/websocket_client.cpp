@@ -14,6 +14,9 @@
 #include <iostream>
 #include <string>
 
+using tcp = boost::asio::ip::tcp; // from <boost/asio.hpp>
+namespace websocket = beast::websocket; // from <beast/websocket.hpp>
+
 int main()
 {
     // A helper for reporting errors
@@ -29,8 +32,8 @@ int main()
 
     // Set up an asio socket
     boost::asio::io_service ios;
-    boost::asio::ip::tcp::resolver r{ios};
-    boost::asio::ip::tcp::socket sock{ios};
+    tcp::resolver r{ios};
+    tcp::socket sock{ios};
 
     // Look up the domain name
     std::string const host = "echo.websocket.org";
@@ -44,7 +47,7 @@ int main()
         return fail("connect", ec);
 
     // Wrap the now-connected socket in a websocket stream
-    beast::websocket::stream<boost::asio::ip::tcp::socket&> ws{sock};
+    websocket::stream<tcp::socket&> ws{sock};
 
     // Perform the websocket handhskae
     ws.handshake(host, "/", ec);
@@ -65,7 +68,7 @@ int main()
         return fail("read", ec);
 
     // Send a "close" frame to the other end, this is a websocket thing
-    ws.close(beast::websocket::close_code::normal, ec);
+    ws.close(websocket::close_code::normal, ec);
     if(ec)
         return fail("close", ec);
 
@@ -83,7 +86,7 @@ int main()
         ws.read(drain, ec);
 
         // ...until we get the special error code
-        if(ec == beast::websocket::error::closed)
+        if(ec == websocket::error::closed)
             break;
 
         // Some other error occurred, report it and exit.

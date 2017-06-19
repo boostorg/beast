@@ -4,6 +4,7 @@ Version 62:
 * Increase detail::static_ostream coverage
 * Add server-framework tests
 * Doc fixes and tidy
+* Tidy up namespaces in examples
 
 --------------------------------------------------------------------------------
 
