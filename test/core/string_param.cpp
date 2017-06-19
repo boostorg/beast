@@ -26,9 +26,29 @@ public:
         BEAST_EXPECT(v.str() == s);
     }
 
-    void
-    run() override
+    class repeater
     {
+        std::size_t n_;
+
+    public:
+        explicit
+        repeater(std::size_t n)
+            : n_(n)
+        {
+        }
+
+        friend
+        std::ostream&
+        operator<<(std::ostream& os, repeater const& v)
+        {
+            return os << std::string(v.n_, '*');
+        }
+    };
+
+    void
+    testConversion()
+    {
+        // Make sure things convert correctly
         check(std::string("hello"), "hello");
         check("xyz", "xyz");
         check(1, "1");
@@ -36,6 +56,21 @@ public:
         check(123, "123");
         check(1234, "1234");
         check(12345, "12345");
+    }
+
+    void
+    testStaticOstream()
+    {
+        // exercise static_ostream for coverage
+        std::string s(500, '*');
+        check(repeater{500}, s);
+    }
+
+    void
+    run() override
+    {
+        testConversion();
+        testStaticOstream();
     }
 };
 
