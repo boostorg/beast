@@ -416,7 +416,7 @@ operator()(error_code ec,
                 d.ws.wr_.buf_size);
             auto const more = detail::deflate(
                 d.ws.pmd_->zo, b, d.cb, d.fin, ec);
-            d.ws.failed_ = ec != 0;
+            d.ws.failed_ = !!ec;
             if(d.ws.failed_)
                 goto upcall;
             auto const n = buffer_size(b);
@@ -626,7 +626,7 @@ write_frame(bool fin,
                 wr_.buf.get(), wr_.buf_size);
             auto const more = detail::deflate(
                 pmd_->zo, b, cb, fin, ec);
-            failed_ = ec != 0;
+            failed_ = !!ec;
             if(failed_)
                 return;
             auto const n = buffer_size(b);
@@ -654,7 +654,7 @@ write_frame(bool fin,
             wr_.cont = ! fin;
             boost::asio::write(stream_,
                 buffer_cat(fh_buf.data(), b), ec);
-            failed_ = ec != 0;
+            failed_ = !!ec;
             if(failed_)
                 return;
             if(! more)
@@ -682,7 +682,7 @@ write_frame(bool fin,
             wr_.cont = ! fin;
             boost::asio::write(stream_,
                 buffer_cat(fh_buf.data(), buffers), ec);
-            failed_ = ec != 0;
+            failed_ = !!ec;
             if(failed_)
                 return;
         }
@@ -704,7 +704,7 @@ write_frame(bool fin,
                 boost::asio::write(stream_,
                     buffer_cat(fh_buf.data(),
                         buffer_prefix(n, cb)), ec);
-                failed_ = ec != 0;
+                failed_ = !!ec;
                 if(failed_)
                     return;
                 if(remain == 0)
@@ -737,7 +737,7 @@ write_frame(bool fin,
             wr_.cont = ! fin;
             boost::asio::write(stream_,
                 buffer_cat(fh_buf.data(), b), ec);
-            failed_ = ec != 0;
+            failed_ = !!ec;
             if(failed_)
                 return;
         }
@@ -750,7 +750,7 @@ write_frame(bool fin,
             remain -= n;
             detail::mask_inplace(b, key);
             boost::asio::write(stream_, b, ec);
-            failed_ = ec != 0;
+            failed_ = !!ec;
             if(failed_)
                 return;
         }
@@ -778,7 +778,7 @@ write_frame(bool fin,
             detail::write<static_buffer>(fh_buf, fh);
             boost::asio::write(stream_,
                 buffer_cat(fh_buf.data(), b), ec);
-            failed_ = ec != 0;
+            failed_ = !!ec;
             if(failed_)
                 return;
             if(remain == 0)
