@@ -8,14 +8,16 @@
 #ifndef BEAST_WEBSOCKET_IMPL_RFC6455_IPP
 #define BEAST_WEBSOCKET_IMPL_RFC6455_IPP
 
+#include <beast/http/fields.hpp>
 #include <beast/http/rfc7230.hpp>
 
 namespace beast {
 namespace websocket {
 
-template<class Fields>
+template<class Allocator>
 bool
-is_upgrade(http::header<true, Fields> const& req)
+is_upgrade(http::header<true,
+    http::basic_fields<Allocator>> const& req)
 {
     if(req.version < 11)
         return false;

@@ -101,11 +101,12 @@ do_accept(
 }
 
 template<class NextLayer>
-template<class Fields, class Decorator>
+template<class Allocator, class Decorator>
 void
 stream<NextLayer>::
-do_accept(http::header<true, Fields> const& req,
-    Decorator const& decorator, error_code& ec)
+do_accept(http::header<true,
+    http::basic_fields<Allocator>> const& req,
+        Decorator const& decorator, error_code& ec)
 {
     auto const res = build_response(req, decorator);
     http::write(stream_, res, ec);
@@ -192,11 +193,12 @@ build_request(detail::sec_ws_key_type& key,
 }
 
 template<class NextLayer>
-template<class Fields, class Decorator>
+template<class Allocator, class Decorator>
 response_type
 stream<NextLayer>::
-build_response(http::header<true, Fields> const& req,
-    Decorator const& decorator)
+build_response(http::header<true,
+    http::basic_fields<Allocator>> const& req,
+        Decorator const& decorator)
 {
     auto const decorate =
         [&decorator](response_type& res)

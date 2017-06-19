@@ -90,9 +90,9 @@ public:
     // This overload handles the case where we
     // already have the WebSocket Upgrade request.
     //
-    template<class Body, class Fields>
+    template<class Body>
     void
-    run(beast::http::request<Body, Fields> const& req)
+    run(beast::http::request<Body> const& req)
     {
         // Call the overload of accept() which takes
         // the request by parameter, instead of reading
@@ -352,12 +352,12 @@ public:
 
         @param req The upgrade request.
     */
-    template<class Body, class Fields>
+    template<class Body>
     void
     on_upgrade(
         socket_type&& sock,
         endpoint_type ep,
-        beast::http::request<Body, Fields>&& req)
+        beast::http::request<Body>&& req)
     {
         std::make_shared<async_ws_con>(
             std::move(sock),

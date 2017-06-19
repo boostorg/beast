@@ -291,12 +291,12 @@ public:
 
         @param req The upgrade request.
     */
-    template<class Body, class Fields>
+    template<class Body>
     void
     on_upgrade(
         ssl_stream<socket_type>&& stream,
         endpoint_type ep,
-        beast::http::request<Body, Fields>&& req)
+        beast::http::request<Body>&& req)
     {
         // Create the connection object and run it,
         // transferring ownership of the ugprade request.
@@ -415,12 +415,12 @@ public:
 
         @param req The upgrade request.
     */
-    template<class Body, class Fields>
+    template<class Body>
     void
     on_upgrade(
         ssl_stream<socket_type>&& stream,
         endpoint_type ep,
-        beast::http::request<Body, Fields>&& req)
+        beast::http::request<Body>&& req)
     {
         std::make_shared<async_wss_con>(
             std::move(stream),
