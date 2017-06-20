@@ -7,6 +7,7 @@ Version 62:
 * Tidy up namespaces in examples
 * Clear the error faster
 * Avoid explicit operator bool for error
+* Add http::is_fields trait
 
 API Changes:
 

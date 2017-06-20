@@ -20,5 +20,13 @@ BOOST_STATIC_ASSERT(is_body_reader<empty_body>::value);
 
 BOOST_STATIC_ASSERT(! is_body_writer<std::string>::value);
 
+namespace {
+
+struct not_fields {};
+
+} // (anonymous)
+
+BOOST_STATIC_ASSERT(! is_fields<not_fields>::value);
+
 } // http
 } // beast

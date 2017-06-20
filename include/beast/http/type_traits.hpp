@@ -137,6 +137,39 @@ struct is_body_writer<T, beast::detail::void_t<decltype(
 };
 #endif
 
+/** Determine if `T` meets the requirements of @b Fields
+
+    @tparam T The body type to test.
+
+    @par Example
+
+    Use with `static_assert`:
+
+    @code
+    template<bool isRequest, class Body, class Fields>
+    void f(message<isRequest, Body, Fields> const&)
+    {
+        static_assert(is_fields<Fields>::value,
+            "Fields requirements not met");
+    ...
+    @endcode
+
+    Use with `std::enable_if` (SFINAE):
+
+    @code
+    template<bool isRequest, class Body, class Fields>
+    typename std::enable_if<is_fields<Fields>::value>::type
+    f(message<isRequest, Body, Fields> const&);
+    @endcode
+*/
+#if BEAST_DOXYGEN
+template<class T>
+struct is_fields : std::integral_constant<bool, ...> {};
+#else
+template<class T>
+using is_fields = typename detail::is_fields_helper<T>::type;
+#endif
+
 } // http
 } // beast
 
