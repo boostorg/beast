@@ -177,9 +177,10 @@ private:
             socket_type::shutdown_both,
             ec);
 
-        // Report failure if any
+        // not_connected happens under normal
+        // circumstances so don't bother reporting it.
         //
-        if(ec)
+        if(ec && ec != beast::errc::not_connected)
             return this->fail("shutdown", ec);
     }
 };

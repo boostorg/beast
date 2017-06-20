@@ -78,7 +78,11 @@ int main()
 
     // Gracefully close the socket
     sock.shutdown(tcp::socket::shutdown_both, ec);
-    if(ec)
+
+    // not_connected happens sometimes
+    // so don't bother reporting it.
+    //
+    if(ec && ec != beast::errc::not_connected)
         return fail("shutdown", ec);
 
     // If we get here then the connection is closed gracefully

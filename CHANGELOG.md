@@ -8,6 +8,7 @@ Version 62:
 * Clear the error faster
 * Avoid explicit operator bool for error
 * Add http::is_fields trait
+* Squelch harmless not_connected errors
 
 API Changes:
 

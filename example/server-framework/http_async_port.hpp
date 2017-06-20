@@ -560,7 +560,11 @@ private:
     {
         error_code ec;
         stream().shutdown(socket_type::shutdown_both, ec);
-        if(ec)
+
+        // not_connected happens under normal
+        // circumstances so don't bother reporting it.
+        //
+        if(ec && ec != beast::errc::not_connected)
             return this->fail("shutdown", ec);
     }
 };

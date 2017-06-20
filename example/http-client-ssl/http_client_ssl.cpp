@@ -88,7 +88,7 @@ int main()
     // Shut down SSL on the stream
     stream.shutdown(ec);
     if(ec && ec != boost::asio::error::eof)
-        fail("ssl shutdown ", ec);
+        fail("ssl_shutdown ", ec);
 
     // If we get here then the connection is closed gracefully
     return EXIT_SUCCESS;

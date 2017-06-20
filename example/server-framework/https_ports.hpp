@@ -93,7 +93,7 @@ private:
         //
         stream().shutdown(ec);
         if(ec)
-            return this->fail("shutdown", ec);
+            return this->fail("ssl_shutdown", ec);
     }
 };
 

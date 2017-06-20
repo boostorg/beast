@@ -198,7 +198,7 @@ private:
             {
                 // Give the derived class a chance to do stuff
                 impl().do_shutdown(ec);
-                if(ec)
+                if(ec && ec != beast::errc::not_connected)
                     return fail("shutdown", ec);
                 return;
             }
@@ -229,7 +229,7 @@ private:
                 {
                     // Give the derived class a chance to do stuff
                     impl().do_shutdown(ec);
-                    if(ec)
+                    if(ec && ec != beast::errc::not_connected)
                         return fail("shutdown", ec);
                     return;
                 }
@@ -273,7 +273,7 @@ private:
                 {
                     // Give the derived class a chance to do stuff
                     impl().do_shutdown(ec);
-                    if(ec)
+                    if(ec && ec != beast::errc::not_connected)
                         return fail("shutdown", ec);
                     return;
                 }
@@ -293,7 +293,7 @@ private:
                 if(ec == beast::http::error::end_of_stream)
                 {
                     // Give the derived class a chance to do stuff
-                    impl().do_shutdown(ec);
+                    if(ec && ec != beast::errc::not_connected)
                     if(ec)
                         return fail("shutdown", ec);
                     return;
