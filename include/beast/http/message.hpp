@@ -48,6 +48,9 @@ template<class Fields>
 struct header<true, Fields> : Fields
 #endif
 {
+    static_assert(is_fields<Fields>::value,
+        "Fields requirements not met");
+
     /// Indicates if the header is a request or response.
 #if BEAST_DOXYGEN
     using is_request = isRequest;
@@ -196,6 +199,9 @@ private:
 template<class Fields>
 struct header<false, Fields> : Fields
 {
+    static_assert(is_fields<Fields>::value,
+        "Fields requirements not met");
+
     /// Indicates if the header is a request or response.
     using is_request = std::false_type;
 

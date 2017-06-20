@@ -115,6 +115,13 @@ In this table:
         Transfer-Encoding field if the field is present ahd chunked is the
         last encoding.
     ]
+][
+    [`is_fields<X>`]
+    [`std::true_type`]
+    [
+        An alias for `std::true_type` for `X`, otherwise an alias
+        for `std::false_type`.
+    ]
 ]
 ]
 

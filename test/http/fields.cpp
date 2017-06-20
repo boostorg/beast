@@ -10,12 +10,15 @@
 
 #include <beast/http/empty_body.hpp>
 #include <beast/http/message.hpp>
+#include <beast/http/type_traits.hpp>
 #include <beast/test/test_allocator.hpp>
 #include <beast/unit_test/suite.hpp>
 #include <boost/lexical_cast.hpp>
 
 namespace beast {
 namespace http {
+
+BOOST_STATIC_ASSERT(is_fields<fields>::value);
 
 class fields_test : public beast::unit_test::suite
 {
