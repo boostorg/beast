@@ -7,7 +7,7 @@
 # When testing you can force a boost build by clearing travis caches:
 # https://travis-ci.org/ripple/rippled/caches
 set -eu
-if [ ! -d "$BOOST_ROOT/lib" ]
+if [ ! -d "$BOOST_ROOT" ]
 then
   wget $BOOST_URL -O /tmp/boost.tar.gz
   cd `dirname $BOOST_ROOT`
