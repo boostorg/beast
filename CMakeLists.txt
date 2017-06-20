@@ -102,16 +102,21 @@ endfunction()
 #-------------------------------------------------------------------------------
 
 if ("${VARIANT}" STREQUAL "coverage")
-    set(CMAKE_CXX_FLAGS
-      "${CMAKE_CXX_FLAGS} -fprofile-arcs -ftest-coverage")
-    set (CMAKE_BUILD_TYPE RELWITHDEBINFO)
-    set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lgcov")
+    if (MSVC)
+    else()
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-arcs -ftest-coverage")
+        set (CMAKE_BUILD_TYPE RELWITHDEBINFO)
+        set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lgcov")
+    endif()
 
 elseif ("${VARIANT}" STREQUAL "ubasan")
-    set(CMAKE_CXX_FLAGS
-      "${CMAKE_CXX_FLAGS} -DBEAST_NO_SLOW_TESTS=1 -funsigned-char -fno-omit-frame-pointer -fsanitize=address,undefined -fsanitize-blacklist=${PROJECT_SOURCE_DIR}/scripts/blacklist.supp")
-    set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=address,undefined")
-    set(CMAKE_BUILD_TYPE RELWITHDEBINFO)
+    if (MSVC)
+    else()
+        set(CMAKE_CXX_FLAGS
+          "${CMAKE_CXX_FLAGS} -DBEAST_NO_SLOW_TESTS=1 -funsigned-char -fno-omit-frame-pointer -fsanitize=address,undefined -fsanitize-blacklist=${PROJECT_SOURCE_DIR}/scripts/blacklist.supp")
+        set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=address,undefined")
+        set(CMAKE_BUILD_TYPE RELWITHDEBINFO)
+    endif()
 
 elseif ("${VARIANT}" STREQUAL "debug")
     set(CMAKE_BUILD_TYPE DEBUG)
@@ -186,5 +191,8 @@ file(GLOB_RECURSE SERVER_INCLUDES
   )
 
 add_subdirectory (test)
-add_subdirectory (example)
+if (NOT "${VARIANT}" STREQUAL "coverage")
+    add_subdirectory (example)
+endif()
+
 

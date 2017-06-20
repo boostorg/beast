@@ -7,4 +7,6 @@
 
 exe websocket-client :
     websocket_client.cpp
+    :
+    <variant>coverage:<build>no
     ;
