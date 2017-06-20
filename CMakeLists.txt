@@ -191,8 +191,8 @@ file(GLOB_RECURSE SERVER_INCLUDES
   )
 
 add_subdirectory (test)
-if (NOT "${VARIANT}" STREQUAL "coverage")
+
+if ((NOT "${VARIANT}" STREQUAL "coverage") AND
+    (NOT "${VARIANT}" STREQUAL "ubasan"))
     add_subdirectory (example)
 endif()
-
-
