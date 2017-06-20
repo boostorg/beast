@@ -12,7 +12,6 @@ add_executable (core-tests
     ../../extras/beast/unit_test/main.cpp
     async_result.cpp
     bind_handler.cpp
-    buffer_bench.cpp
     buffer_cat.cpp
     buffer_prefix.cpp
     buffer_test.hpp

@@ -6,7 +6,7 @@
 //
 
 #include "nodejs_parser.hpp"
-#include "message_fuzz.hpp"
+#include "../http/message_fuzz.hpp"
 
 #include <beast/http.hpp>
 #include <beast/core/consuming_buffers.hpp>
@@ -22,7 +22,7 @@
 namespace beast {
 namespace http {
 
-class parser_bench_test : public beast::unit_test::suite
+class parser_test : public beast::unit_test::suite
 {
 public:
     static std::size_t constexpr N = 2000;
@@ -270,7 +270,7 @@ public:
     }
 };
 
-BEAST_DEFINE_TESTSUITE(parser_bench,http,beast);
+BEAST_DEFINE_TESTSUITE(parser,benchmarks,beast);
 
 } // http
 } // beast
