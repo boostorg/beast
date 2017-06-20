@@ -100,7 +100,7 @@ main(int, char const*[])
             // "half-close" here to shut down our end.
             //
             sock.shutdown(tcp::socket::shutdown_send, ec);
-            if(ec)
+            if(ec && ec != beast::errc::not_connected)
                 return fail("shutdown", ec);
         }
         if(ec)
@@ -134,7 +134,7 @@ main(int, char const*[])
         // Now we do the other half of the close,
         // which is to shut down the receiver. 
         sock.shutdown(tcp::socket::shutdown_receive, ec);
-        if(ec)
+        if(ec && ec != beast::errc::not_connected)
             return fail("shutdown", ec);
 
         std::cout << res << std::endl;
