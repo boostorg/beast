@@ -9,6 +9,7 @@ Version 62:
 * Avoid explicit operator bool for error
 * Add http::is_fields trait
 * Squelch harmless not_connected errors
+* Put slow tests back for coverage builds
 
 API Changes:
 
