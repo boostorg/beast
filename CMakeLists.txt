@@ -103,7 +103,7 @@ endfunction()
 
 if ("${VARIANT}" STREQUAL "coverage")
     set(CMAKE_CXX_FLAGS
-      "${CMAKE_CXX_FLAGS} -DBEAST_NO_SLOW_TESTS=1 -fprofile-arcs -ftest-coverage")
+      "${CMAKE_CXX_FLAGS} -fprofile-arcs -ftest-coverage")
     set (CMAKE_BUILD_TYPE RELWITHDEBINFO)
     set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lgcov")
 
