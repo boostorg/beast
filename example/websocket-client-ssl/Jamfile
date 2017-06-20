@@ -43,7 +43,8 @@ project
     <library>crypto
   ;
 
-exe ssl-websocket-client
-  :
+exe ssl-websocket-client :
     ssl_websocket_client.cpp
-  ;
+    :
+    <variant>coverage:<build>no
+    ;

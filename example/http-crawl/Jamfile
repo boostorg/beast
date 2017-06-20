@@ -8,4 +8,6 @@
 exe http-crawl :
     http_crawl.cpp
     urls_large_data.cpp
+    :
+    <variant>coverage:<build>no
     ;
