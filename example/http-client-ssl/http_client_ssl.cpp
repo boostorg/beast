@@ -9,7 +9,6 @@
 #include <beast/http.hpp>
 #include <boost/asio.hpp>
 #include <boost/asio/ssl.hpp>
-#include <boost/lexical_cast.hpp>
 #include <iostream>
 #include <string>
 
@@ -62,7 +61,7 @@ int main()
     req.target("/");
     req.version = 11;
     req.set(http::field::host, host + ":" +
-        boost::lexical_cast<std::string>(sock.remote_endpoint().port()));
+        std::to_string(sock.remote_endpoint().port()));
     req.set(http::field::user_agent, "Beast");
     req.prepare_payload();
 

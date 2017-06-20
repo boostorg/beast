@@ -11,7 +11,6 @@
 #include <beast/http.hpp>
 #include <beast/version.hpp>
 #include <boost/asio.hpp>
-#include <boost/lexical_cast.hpp>
 #include <cstdlib>
 #include <iostream>
 
@@ -80,8 +79,7 @@ main(int, char const*[])
         req.version = 11;
         req.method(http::verb::get);
         req.target("/");
-        req.set(http::field::host, host + std::string(":") +
-            boost::lexical_cast<std::string>(ep.port()));
+        req.set(http::field::host, host + std::string(":") + std::to_string(ep.port()));
         req.set(http::field::user_agent, BEAST_VERSION_STRING);
 
         // Set the Connection: close field, this way the server will close
