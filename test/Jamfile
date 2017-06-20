@@ -14,6 +14,7 @@ compile version.cpp :   <variant>coverage:<build>no : ;
 compile websocket.cpp : <variant>coverage:<build>no : ;
 compile zlib.cpp :      <variant>coverage:<build>no : ;
 
+build-project benchmarks ;
 build-project core ;
 build-project http ;
 build-project server ;

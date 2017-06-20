@@ -27,9 +27,3 @@ unit-test http-tests :
     verb.cpp
     write.cpp
     ;
-
-unit-test http-bench :
-    ../../extras/beast/unit_test/main.cpp
-    nodejs_parser.cpp
-    parser_bench.cpp
-    ;

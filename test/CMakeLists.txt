@@ -1,5 +1,6 @@
 # Part of Beast
 
+add_subdirectory (benchmarks)
 add_subdirectory (core)
 add_subdirectory (http)
 add_subdirectory (server)
