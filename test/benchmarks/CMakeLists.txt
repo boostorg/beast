@@ -1,27 +1,23 @@
 # Part of Beast
 
-if (NOT "${VARIANT}" STREQUAL "coverage")
+GroupSources(extras/beast extras)
+GroupSources(include/beast beast)
+GroupSources(test/benchmarks "/")
+GroupSources(test/http "/")
 
-    GroupSources(extras/beast extras)
-    GroupSources(include/beast beast)
-    GroupSources(test/benchmarks "/")
-    GroupSources(test/http "/")
+add_executable (benchmarks
+    ${BEAST_INCLUDES}
+    ${EXTRAS_INCLUDES}
+    ../../extras/beast/unit_test/main.cpp
+    ../http/message_fuzz.hpp
+    nodejs_parser.hpp
+    buffers.cpp
+    nodejs_parser.cpp
+    parser.cpp
+)
 
-    add_executable (benchmarks
-        ${BEAST_INCLUDES}
-        ${EXTRAS_INCLUDES}
-        ../../extras/beast/unit_test/main.cpp
-        ../http/message_fuzz.hpp
-        nodejs_parser.hpp
-        buffers.cpp
-        nodejs_parser.cpp
-        parser.cpp
+target_link_libraries(benchmarks
+    Beast
+    ${Boost_PROGRAM_OPTIONS_LIBRARY}
+    ${Boost_FILESYSTEM_LIBRARY}
     )
-
-    target_link_libraries(benchmarks
-        Beast
-        ${Boost_PROGRAM_OPTIONS_LIBRARY}
-        ${Boost_FILESYSTEM_LIBRARY}
-        )
-
-endif()

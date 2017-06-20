@@ -1,13 +1,16 @@
 # Part of Beast
 
-add_subdirectory (benchmarks)
 add_subdirectory (core)
 add_subdirectory (http)
-add_subdirectory (server)
 add_subdirectory (websocket)
 add_subdirectory (zlib)
 
-if (NOT "${VARIANT}" STREQUAL "coverage")
+if ((NOT "${VARIANT}" STREQUAL "coverage") AND
+    (NOT "${VARIANT}" STREQUAL "ubasan"))
+
+    add_subdirectory (benchmarks)
+    add_subdirectory (server)
+
     GroupSources(extras/beast extras)
     GroupSources(include/beast beast)
     GroupSources(test "/")
