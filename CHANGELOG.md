@@ -1,3 +1,9 @@
+Version 63:
+
+* Use std::to_string instead of lexical_cast
+
+--------------------------------------------------------------------------------
+
 Version 62:
 
 * Remove libssl-dev from a Travis matrix item
