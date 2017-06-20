@@ -7,4 +7,6 @@
 
 exe http-client :
     http_client.cpp
+    :
+    <variant>coverage:<build>no
     ;

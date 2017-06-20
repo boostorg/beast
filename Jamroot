@@ -52,19 +52,18 @@ if [ os.name ] = MACOSX
   using clang : : ;
 }
 
-variant coverage
-  :
+variant coverage :
     release
-  :
+    :
     <cxxflags>"-fprofile-arcs -ftest-coverage"
     <linkflags>"-lgcov"
-  ;
+    ;
 
 variant ubasan
   :
     release
   :
-    <cxxflags>"-DBEAST_NO_SLOW_TESTS=1 -funsigned-char -fno-omit-frame-pointer -fsanitize=address,undefined -fsanitize-blacklist=scripts/blacklist.supp"
+    <cxxflags>"-funsigned-char -fno-omit-frame-pointer -fsanitize=address,undefined -fsanitize-blacklist=scripts/blacklist.supp"
     <linkflags>"-fsanitize=address,undefined"
   ;
 
@@ -112,4 +111,4 @@ project beast
   ;
 
 build-project test ;
-build-project example ;
+#build-project example ;

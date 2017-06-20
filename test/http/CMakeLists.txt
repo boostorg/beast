@@ -44,18 +44,20 @@ target_link_libraries(http-tests
     ${Boost_CONTEXT_LIBRARY}
     )
 
-add_executable (http-bench
-    ${BEAST_INCLUDES}
-    ${EXTRAS_INCLUDES}
-    nodejs_parser.hpp
-    message_fuzz.hpp
-    ../../extras/beast/unit_test/main.cpp
-    nodejs_parser.cpp
-    parser_bench.cpp
-)
-
-target_link_libraries(http-bench
-    Beast
-    ${Boost_PROGRAM_OPTIONS_LIBRARY}
-    ${Boost_FILESYSTEM_LIBRARY}
+if (NOT "${VARIANT}" STREQUAL "coverage")
+    add_executable (http-bench
+        ${BEAST_INCLUDES}
+        ${EXTRAS_INCLUDES}
+        nodejs_parser.hpp
+        message_fuzz.hpp
+        ../../extras/beast/unit_test/main.cpp
+        nodejs_parser.cpp
+        parser_bench.cpp
     )
+
+    target_link_libraries(http-bench
+        Beast
+        ${Boost_PROGRAM_OPTIONS_LIBRARY}
+        ${Boost_FILESYSTEM_LIBRARY}
+        )
+endif()

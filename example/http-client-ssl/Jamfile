@@ -43,7 +43,8 @@ project
     <library>crypto
   ;
 
-exe http-client-ssl
-  :
+exe http-client-ssl :
     http_client_ssl.cpp
-  ;
+    :
+    <variant>coverage:<build>no
+    ;
