@@ -20,7 +20,7 @@
 
 namespace beast {
 
-class buffer_bench_test : public beast::unit_test::suite
+class buffers_test : public beast::unit_test::suite
 {
 public:
     using size_type = std::uint64_t;
@@ -233,8 +233,6 @@ public:
     }
 };
 
-#if defined(NDEBUG) && ! BEAST_NO_SLOW_TESTS
-BEAST_DEFINE_TESTSUITE(buffer_bench,core,beast);
-#endif
+BEAST_DEFINE_TESTSUITE(buffers,benchmarks,beast);
 
 } // beast
