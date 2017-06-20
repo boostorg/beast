@@ -17,7 +17,7 @@ In this table:
 * `X` denotes a type that meets the requirements of [*FieldsReader].
 
 * `F` denotes a __Fields__ where
-      `std::is_same<X, F::reader>::value == `true`.
+      `std::is_same<X, F::reader>::value == true`.
 
 * `a` is a value of type `X`.
 
@@ -62,7 +62,7 @@ In this table:
     [
         Called once after construction, this function returns `true`
         if the [*Transfer-Encoding] field is present, and the last
-        token in its value is [*"chunked"].
+        token in its value is "chunked".
     ]
 ][
     [`a.keep_alive()`]
@@ -71,15 +71,15 @@ In this table:
         Called once after construction, this function returns `true`
         if the semantics of the mesage indicate that the connection
         should remain open after processing the message. When the
-        HTTP version is below 1.1, `keep_alive` returns `true` when
-        the [*Connection] field is present, and its value contains the
-        "keep-alive" token. Otherwise, `keep_alive` returns `true`
-        when either the [*Connection] field is absent, or if the
-        value does not contain the "close" token.
+        HTTP version is below 1.1, the function returns `true` only
+        if the [*Connection] field is present, and its value contains
+        the "keep-alive" token. For HTTP versions 1.1 and above, the
+        function returns `true` if the [*Connection] field is absent,
+        or if the field value does not contain the "close" token.
     ]
 ][
     [`a.get()`]
-    [X::const_buffers_type]
+    [`X::const_buffers_type`]
     [
         Called once after construction, this function returns
         a constant buffer sequence containing the serialized

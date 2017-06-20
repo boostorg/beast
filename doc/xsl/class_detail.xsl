@@ -27,6 +27,9 @@
     <xsl:when test="declname = 'DynamicBuffer' or type = 'class DynamicBuffer'">
       <xsl:text>class ``[link beast.concept.DynamicBuffer [*DynamicBuffer]]``</xsl:text>
     </xsl:when>
+    <xsl:when test="type = 'class Fields' or substring(type, 1, 13) = 'class Fields '">
+      <xsl:text>class ``[link beast.concept.Fields [*Fields]]``</xsl:text>
+    </xsl:when>
     <xsl:when test="declname = 'Handler' or type = 'class Handler'">
       <xsl:text>class __Handler__</xsl:text>
     </xsl:when>

@@ -8,6 +8,10 @@
 [section Quick Start]
 [block'''<?dbhtml stop-chunking?>''']
 
+These complete programs are intended to quickly impress upon readers
+the flavor of the library. Source code and build scripts for them are
+located in the example/ directory.
+
 [section HTTP Client]
 
 Use HTTP to make a GET request to a website and print the response:
@@ -35,9 +39,8 @@ File: [repo_file example/websocket-client/websocket_client.cpp]
 [section Examples]
 [block'''<?dbhtml stop-chunking?>''']
 
-These complete programs are intended to quickly impress upon readers the
-flavor of the library. Source code and build scripts for them are located
-in the examples directory.
+Source code and build scripts for these programs are located
+in the example/ directory.
 
 
 
