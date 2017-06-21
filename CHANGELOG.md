@@ -2,6 +2,7 @@ Version 63:
 
 * Use std::to_string instead of lexical_cast
 * Don't use cached Boost
+* Control running with valgrind explicitly
 
 --------------------------------------------------------------------------------
 
