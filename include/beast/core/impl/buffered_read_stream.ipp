@@ -16,6 +16,7 @@
 #include <boost/asio/handler_continuation_hook.hpp>
 #include <boost/asio/handler_invoke_hook.hpp>
 #include <boost/throw_exception.hpp>
+#include <boost/config.hpp>
 
 namespace beast {
 
@@ -24,22 +25,10 @@ template<class MutableBufferSequence, class Handler>
 class buffered_read_stream<
     Stream, DynamicBuffer>::read_some_op
 {
-    // VFALCO What about bool cont for is_continuation?
-    struct data
-    {
-        buffered_read_stream& srs;
-        MutableBufferSequence bs;
-        int state = 0;
-
-        data(Handler&, buffered_read_stream& srs_,
-                MutableBufferSequence const& bs_)
-            : srs(srs_)
-            , bs(bs_)
-        {
-        }
-    };
-
-    handler_ptr<data, Handler> d_;
+    int step_ = 0;
+    buffered_read_stream& s_;
+    MutableBufferSequence b_;
+    Handler h_;
 
 public:
     read_some_op(read_some_op&&) = default;
@@ -47,11 +36,12 @@ public:
 
     template<class DeducedHandler, class... Args>
     read_some_op(DeducedHandler&& h,
-            buffered_read_stream& srs, Args&&... args)
-        : d_(std::forward<DeducedHandler>(h),
-            srs, std::forward<Args>(args)...)
+        buffered_read_stream& s,
+            MutableBufferSequence const& b)
+        : s_(s)
+        , b_(b)
+        , h_(std::forward<DeducedHandler>(h))
     {
-        (*this)(error_code{}, 0);
     }
 
     void
@@ -64,7 +54,7 @@ public:
     {
         using boost::asio::asio_handler_allocate;
         return asio_handler_allocate(
-            size, std::addressof(op->d_.handler()));
+            size, std::addressof(op->h_));
     }
 
     friend
@@ -73,7 +63,7 @@ public:
     {
         using boost::asio::asio_handler_deallocate;
         asio_handler_deallocate(
-            p, size, std::addressof(op->d_.handler()));
+            p, size, std::addressof(op->h_));
     }
 
     friend
@@ -81,7 +71,7 @@ public:
     {
         using boost::asio::asio_handler_is_continuation;
         return asio_handler_is_continuation(
-            std::addressof(op->d_.handler()));
+            std::addressof(op->h_));
     }
 
     template<class Function>
@@ -89,8 +79,7 @@ public:
     void asio_handler_invoke(Function&& f, read_some_op* op)
     {
         using boost::asio::asio_handler_invoke;
-        asio_handler_invoke(
-            f, std::addressof(op->d_.handler()));
+        asio_handler_invoke(f, std::addressof(op->h_));
     }
 };
 
@@ -101,56 +90,46 @@ buffered_read_stream<Stream, DynamicBuffer>::
 read_some_op<MutableBufferSequence, Handler>::operator()(
     error_code const& ec, std::size_t bytes_transferred)
 {
-    auto& d = *d_;
-    while(! ec && d.state != 99)
+    switch(step_)
     {
-        switch(d.state)
+    case 0:
+        if(s_.sb_.size() == 0)
         {
-        case 0:
-            if(d.srs.sb_.size() == 0)
+            if(s_.capacity_ == 0)
             {
-                d.state =
-                    d.srs.capacity_ > 0 ? 2 : 1;
-                break;
+                // read (unbuffered)
+                step_ = 1;
+                return s_.next_layer_.async_read_some(
+                    b_, std::move(*this));
             }
-            d.state = 4;
-            d.srs.get_io_service().post(
-                bind_handler(std::move(*this), ec, 0));
-            return;
 
-        case 1:
-            // read (unbuffered)
-            d.state = 99;
-            d.srs.next_layer_.async_read_some(
-                d.bs, std::move(*this));
-            return;
-
-        case 2:
             // read
-            d.state = 3;
-            d.srs.next_layer_.async_read_some(
-                d.srs.sb_.prepare(d.srs.capacity_),
+            step_ = 2;
+            return s_.next_layer_.async_read_some(
+                s_.sb_.prepare(s_.capacity_),
                     std::move(*this));
-            return;
 
-        // got data
-        case 3:
-            d.state = 4;
-            d.srs.sb_.commit(bytes_transferred);
-            break;
-
-        // copy
-        case 4:
-            bytes_transferred =
-                boost::asio::buffer_copy(
-                    d.bs, d.srs.sb_.data());
-            d.srs.sb_.consume(bytes_transferred);
-            // call handler
-            d.state = 99;
-            break;
         }
+        step_ = 3;
+        s_.get_io_service().post(
+            bind_handler(std::move(*this), ec, 0));
+        return;
+
+    case 1:
+        // upcall
+        break;
+
+    case 2:
+        s_.sb_.commit(bytes_transferred);
+        BOOST_FALLTHROUGH;
+
+    case 3:
+        bytes_transferred =
+            boost::asio::buffer_copy(b_, s_.sb_.data());
+        s_.sb_.consume(bytes_transferred);
+        break;
     }
-    d_.invoke(ec, bytes_transferred);
+    h_(ec, bytes_transferred);
 }
 
 //------------------------------------------------------------------------------
@@ -252,7 +231,8 @@ async_read_some(MutableBufferSequence const& buffers,
         void(error_code, std::size_t)> init{handler};
     read_some_op<MutableBufferSequence, handler_type<
         ReadHandler, void(error_code, std::size_t)>>{
-            init.completion_handler, *this, buffers};
+            init.completion_handler, *this, buffers}(
+                error_code{}, 0);
     return init.result.get();
 }
 
