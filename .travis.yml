@@ -33,12 +33,13 @@ addons:
 
 matrix:
   include:
-    # gcc coverage (+valgrind,+Autobahn if master or develop)
+    # gcc coverage
     - compiler: gcc
       env:
         - GCC_VER=5
         - VARIANT=coverage
         - ADDRESS_MODEL=64
+        - DO_VALGRIND=false
         - BUILD_SYSTEM=cmake
         - PATH=$PWD/cmake/bin:$PATH
       addons:
@@ -56,6 +57,7 @@ matrix:
       env:
         - GCC_VER=4.8
         - VARIANT=release
+        - DO_VALGRIND=false
         - ADDRESS_MODEL=64
       addons:
         apt:
@@ -71,6 +73,7 @@ matrix:
       env:
         - GCC_VER=6
         - VARIANT=release
+        - DO_VALGRIND=true
         - ADDRESS_MODEL=64
         - BUILD_SYSTEM=cmake
         - PATH=$PWD/cmake/bin:$PATH
@@ -90,6 +93,7 @@ matrix:
         - GCC_VER=5
         - VARIANT=ubasan
         - CLANG_VER=3.8
+        - DO_VALGRIND=false
         - ADDRESS_MODEL=64
         - UBSAN_OPTIONS='print_stacktrace=1'
         - BUILD_SYSTEM=cmake
