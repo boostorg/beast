@@ -2,6 +2,7 @@ Version 64:
 
 * Simplify buffered_read_stream composed op
 * Simplify ssl teardown composed op
+* Simplify websocket write_op
 
 --------------------------------------------------------------------------------
 
