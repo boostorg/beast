@@ -43,7 +43,7 @@ class stream<NextLayer>::write_frame_op
         detail::fh_streambuf fh_buf;
         detail::prepared_key key;
         std::uint64_t remain;
-        int state = 0;
+        int step = 0;
         int entry_state;
 
         data(Handler& handler, stream<NextLayer>& ws_,
@@ -164,7 +164,7 @@ operator()(error_code ec,
         goto upcall;
     for(;;)
     {
-        switch(d.state)
+        switch(d.step)
         {
         case do_init:
             if(! d.ws.wr_.cont)
@@ -223,7 +223,7 @@ operator()(error_code ec,
                         d.entry_state = do_mask_nofrag;
                 }
             }
-            d.state = do_maybe_suspend;
+            d.step = do_maybe_suspend;
             break;
 
         //----------------------------------------------------------------------
@@ -242,7 +242,7 @@ operator()(error_code ec,
                 d.fh_buf, d.fh);
             d.ws.wr_.cont = ! d.fin;
             // Send frame
-            d.state = do_upcall;
+            d.step = do_upcall;
             boost::asio::async_write(d.ws.stream_,
                 buffer_cat(d.fh_buf.data(), d.cb),
                     std::move(*this));
@@ -268,7 +268,7 @@ operator()(error_code ec,
                 d.fh_buf, d.fh);
             d.ws.wr_.cont = ! d.fin;
             // Send frame
-            d.state = d.remain == 0 ?
+            d.step = d.remain == 0 ?
                 do_upcall : do_nomask_frag + 2;
             boost::asio::async_write(d.ws.stream_,
                 buffer_cat(d.fh_buf.data(),
@@ -289,12 +289,12 @@ operator()(error_code ec,
             if(d.ws.rd_op_.maybe_invoke() ||
                 d.ws.ping_op_.maybe_invoke())
             {
-                d.state = do_maybe_suspend;
+                d.step = do_maybe_suspend;
                 d.ws.get_io_service().post(
                     std::move(*this));
                 return;
             }
-            d.state = d.entry_state;
+            d.step = d.entry_state;
             break;
 
         //----------------------------------------------------------------------
@@ -323,7 +323,7 @@ operator()(error_code ec,
             d.remain -= n;
             d.ws.wr_.cont = ! d.fin;
             // Send frame header and partial payload
-            d.state = d.remain == 0 ?
+            d.step = d.remain == 0 ?
                 do_upcall : do_mask_nofrag + 2;
             boost::asio::async_write(d.ws.stream_,
                 buffer_cat(d.fh_buf.data(), b),
@@ -343,7 +343,7 @@ operator()(error_code ec,
             d.remain -= n;
             // Send parial payload
             if(d.remain == 0)
-                d.state = do_upcall;
+                d.step = do_upcall;
             boost::asio::async_write(
                 d.ws.stream_, b, std::move(*this));
             return;
@@ -374,7 +374,7 @@ operator()(error_code ec,
                 d.fh_buf, d.fh);
             d.ws.wr_.cont = ! d.fin;
             // Send frame
-            d.state = d.remain == 0 ?
+            d.step = d.remain == 0 ?
                 do_upcall : do_mask_frag + 2;
             boost::asio::async_write(d.ws.stream_,
                 buffer_cat(d.fh_buf.data(), b),
@@ -394,12 +394,12 @@ operator()(error_code ec,
             if(d.ws.rd_op_.maybe_invoke() ||
                 d.ws.ping_op_.maybe_invoke())
             {
-                d.state = do_maybe_suspend;
+                d.step = do_maybe_suspend;
                 d.ws.get_io_service().post(
                     std::move(*this));
                 return;
             }
-            d.state = d.entry_state;
+            d.step = d.entry_state;
             break;
 
         //----------------------------------------------------------------------
@@ -432,7 +432,7 @@ operator()(error_code ec,
                 // asynchronous initiation function is
                 // not on call stack but its hard to
                 // figure out so be safe and dispatch.
-                d.state = do_upcall;
+                d.step = do_upcall;
                 d.ws.get_io_service().post(std::move(*this));
                 return;
             }
@@ -449,7 +449,7 @@ operator()(error_code ec,
             detail::write<static_buffer>(fh_buf, d.fh);
             d.ws.wr_.cont = ! d.fin;
             // Send frame
-            d.state = more ?
+            d.step = more ?
                 do_deflate + 2 : do_deflate + 3;
             boost::asio::async_write(d.ws.stream_,
                 buffer_cat(fh_buf.data(), b),
@@ -467,12 +467,12 @@ operator()(error_code ec,
             if(d.ws.rd_op_.maybe_invoke() ||
                 d.ws.ping_op_.maybe_invoke())
             {
-                d.state = do_maybe_suspend;
+                d.step = do_maybe_suspend;
                 d.ws.get_io_service().post(
                     std::move(*this));
                 return;
             }
-            d.state = d.entry_state;
+            d.step = d.entry_state;
             break;
 
         case do_deflate + 3:
@@ -491,27 +491,27 @@ operator()(error_code ec,
             if(d.ws.wr_block_)
             {
                 // suspend
-                d.state = do_maybe_suspend + 1;
+                d.step = do_maybe_suspend + 1;
                 d.ws.wr_op_.emplace(std::move(*this));
                 return;
             }
             if(d.ws.failed_ || d.ws.wr_close_)
             {
                 // call handler
-                d.state = do_upcall;
+                d.step = do_upcall;
                 d.ws.get_io_service().post(
                     bind_handler(std::move(*this),
                         boost::asio::error::operation_aborted));
                 return;
             }
-            d.state = d.entry_state;
+            d.step = d.entry_state;
             break;
         }
 
         case do_maybe_suspend + 1:
             BOOST_ASSERT(! d.ws.wr_block_);
             d.ws.wr_block_ = &d;
-            d.state = do_maybe_suspend + 2;
+            d.step = do_maybe_suspend + 2;
             // The current context is safe but might not be
             // the same as the one for this operation (since
             // we are being called from a write operation).
@@ -529,7 +529,7 @@ operator()(error_code ec,
                 ec = boost::asio::error::operation_aborted;
                 goto upcall;
             }
-            d.state = d.entry_state + 1;
+            d.step = d.entry_state + 1;
             break;
 
         //----------------------------------------------------------------------
@@ -798,11 +798,10 @@ class stream<NextLayer>::write_op
 {
     struct data : op
     {
-        bool cont;
+        int step = 0;
         stream<NextLayer>& ws;
         consuming_buffers<Buffers> cb;
         std::size_t remain;
-        int state = 0;
 
         data(Handler& handler, stream<NextLayer>& ws_,
                 Buffers const& bs)
@@ -810,8 +809,6 @@ class stream<NextLayer>::write_op
             , cb(bs)
             , remain(boost::asio::buffer_size(cb))
         {
-            using boost::asio::asio_handler_is_continuation;
-            cont = asio_handler_is_continuation(std::addressof(handler));
         }
     };
 
@@ -828,10 +825,9 @@ public:
         : d_(std::forward<DeducedHandler>(h),
             ws, std::forward<Args>(args)...)
     {
-        (*this)(error_code{}, false);
     }
 
-    void operator()(error_code ec, bool again = true);
+    void operator()(error_code ec);
 
     friend
     void* asio_handler_allocate(
@@ -854,7 +850,10 @@ public:
     friend
     bool asio_handler_is_continuation(write_op* op)
     {
-        return op->d_->cont;
+        using boost::asio::asio_handler_is_continuation;
+        return op->d_->step > 2 ||
+            asio_handler_is_continuation(
+                std::addressof(op->d_.handler()));
     }
 
     template<class Function>
@@ -872,30 +871,33 @@ template<class Buffers, class Handler>
 void
 stream<NextLayer>::
 write_op<Buffers, Handler>::
-operator()(error_code ec, bool again)
+operator()(error_code ec)
 {
     auto& d = *d_;
-    d.cont = d.cont || again;
-    if(! ec)
+    switch(d.step)
     {
-        switch(d.state)
-        {
-        case 0:
-        {
-            auto const n = d.remain;
-            d.remain -= n;
-            auto const fin = d.remain <= 0;
-            if(fin)
-                d.state = 99;
-            auto const pb = buffer_prefix(n, d.cb);
-            d.cb.consume(n);
-            d.ws.async_write_frame(fin, pb, std::move(*this));
-            return;
-        }
+    case 2:
+        d.step = 3;
+        BOOST_FALLTHROUGH;
+    case 3:
+    case 0:
+    {
+        auto const n = d.remain;
+        d.remain -= n;
+        auto const fin = d.remain <= 0;
+        if(fin)
+            d.step = d.step ? 4 : 1;
+        else
+            d.step = d.step ? 3 : 2;
+        auto const pb = buffer_prefix(n, d.cb);
+        d.cb.consume(n);
+        return d.ws.async_write_frame(
+            fin, pb, std::move(*this));
+    }
 
-        case 99:
-            break;
-        }
+    case 1:
+    case 4:
+        break;
     }
     d_.invoke(ec);
 }
@@ -916,7 +918,8 @@ async_write(ConstBufferSequence const& bs, WriteHandler&& handler)
         void(error_code)> init{handler};
     write_op<ConstBufferSequence, handler_type<
         WriteHandler, void(error_code)>>{
-            init.completion_handler, *this, bs};
+            init.completion_handler, *this, bs}(
+                error_code{});
     return init.result.get();
 }
 
