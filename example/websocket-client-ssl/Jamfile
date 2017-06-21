@@ -47,4 +47,5 @@ exe ssl-websocket-client :
     ssl_websocket_client.cpp
     :
     <variant>coverage:<build>no
+    <variant>ubasan:<build>no
     ;

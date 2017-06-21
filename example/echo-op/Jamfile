@@ -9,4 +9,5 @@ exe echo-op :
     echo_op.cpp
     :
     <variant>coverage:<build>no
+    <variant>ubasan:<build>no
     ;
