@@ -25,4 +25,7 @@ unit-test server-test :
     ws_async_port.cpp
     ws_sync_port.cpp
     ws_upgrade_service.cpp
+    :
+    <variant>coverage:<build>no
+    <variant>ubasan:<build>no
     ;

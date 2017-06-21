@@ -7,12 +7,23 @@
 
 import os ;
 
-compile config.cpp :    <variant>coverage:<build>no : ;
-compile core.cpp :      <variant>coverage:<build>no : ;
-compile http.cpp :      <variant>coverage:<build>no : ;
-compile version.cpp :   <variant>coverage:<build>no : ;
-compile websocket.cpp : <variant>coverage:<build>no : ;
-compile zlib.cpp :      <variant>coverage:<build>no : ;
+compile config.cpp :    <variant>coverage:<build>no
+                        <variant>ubasan:<build>no : ;
+
+compile core.cpp :      <variant>coverage:<build>no
+                        <variant>ubasan:<build>no : ;
+
+compile http.cpp :      <variant>coverage:<build>no
+                        <variant>ubasan:<build>no : ;
+
+compile version.cpp :   <variant>coverage:<build>no
+                        <variant>ubasan:<build>no : ;
+
+compile websocket.cpp : <variant>coverage:<build>no
+                        <variant>ubasan:<build>no : ;
+
+compile zlib.cpp :      <variant>coverage:<build>no
+                        <variant>ubasan:<build>no : ;
 
 build-project benchmarks ;
 build-project core ;
