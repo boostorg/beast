@@ -4,6 +4,7 @@ Version 64:
 * Simplify ssl teardown composed op
 * Simplify websocket write_op
 * Exemplars are compiled code
+* Better User-Agent in examples
 
 --------------------------------------------------------------------------------
 
