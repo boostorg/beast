@@ -2,7 +2,7 @@
 
 cmake_minimum_required (VERSION 3.5.2)
 
-project (Beast VERSION 62)
+project (Beast VERSION 63)
 
 set_property (GLOBAL PROPERTY USE_FOLDERS ON)
 
@@ -29,10 +29,10 @@ if (MSVC)
     set (CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO ${replacement_flags})
 
 else()
-    set(THREADS_PREFER_PTHREAD_FLAG ON)
-    find_package(Threads)
+    set (THREADS_PREFER_PTHREAD_FLAG ON)
+    find_package (Threads)
 
-    set(CMAKE_CXX_FLAGS
+    set( CMAKE_CXX_FLAGS
       "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wextra -Wpedantic -Wno-unused-parameter")
 
     if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
@@ -72,6 +72,7 @@ find_package(OpenSSL)
 
 if (OPENSSL_FOUND)
     add_definitions (-DBEAST_USE_OPENSSL=1)
+
 else()
     add_definitions (-DBEAST_USE_OPENSSL=0)
     message("OpenSSL not found.")
@@ -81,11 +82,11 @@ endif()
 #-------------------------------------------------------------------------------
 
 function(DoGroupSources curdir rootdir folder)
-    file(GLOB children RELATIVE ${PROJECT_SOURCE_DIR}/${curdir} ${PROJECT_SOURCE_DIR}/${curdir}/*)
-    foreach(child ${children})
-        if(IS_DIRECTORY ${PROJECT_SOURCE_DIR}/${curdir}/${child})
+    file (GLOB children RELATIVE ${PROJECT_SOURCE_DIR}/${curdir} ${PROJECT_SOURCE_DIR}/${curdir}/*)
+    foreach (child ${children})
+        if (IS_DIRECTORY ${PROJECT_SOURCE_DIR}/${curdir}/${child})
             DoGroupSources(${curdir}/${child} ${rootdir} ${folder})
-        elseif(${child} STREQUAL "CMakeLists.txt")
+        elseif (${child} STREQUAL "CMakeLists.txt")
             source_group("" FILES ${PROJECT_SOURCE_DIR}/${curdir}/${child})
         else()
             string(REGEX REPLACE ^${rootdir} ${folder} groupname ${curdir})
@@ -96,28 +97,33 @@ function(DoGroupSources curdir rootdir folder)
 endfunction()
 
 function(GroupSources curdir folder)
-    DoGroupSources(${curdir} ${curdir} ${folder})
+    DoGroupSources (${curdir} ${curdir} ${folder})
 endfunction()
 
 #-------------------------------------------------------------------------------
 
 if ("${VARIANT}" STREQUAL "coverage")
-    set(CMAKE_CXX_FLAGS
-      "${CMAKE_CXX_FLAGS} -fprofile-arcs -ftest-coverage")
-    set (CMAKE_BUILD_TYPE RELWITHDEBINFO)
-    set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lgcov")
+    if (MSVC)
+    else()
+        set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-arcs -ftest-coverage")
+        set (CMAKE_BUILD_TYPE RELWITHDEBINFO)
+        set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lgcov")
+    endif()
 
 elseif ("${VARIANT}" STREQUAL "ubasan")
-    set(CMAKE_CXX_FLAGS
-      "${CMAKE_CXX_FLAGS} -DBEAST_NO_SLOW_TESTS=1 -funsigned-char -fno-omit-frame-pointer -fsanitize=address,undefined -fsanitize-blacklist=${PROJECT_SOURCE_DIR}/scripts/blacklist.supp")
-    set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=address,undefined")
-    set(CMAKE_BUILD_TYPE RELWITHDEBINFO)
+    if (MSVC)
+    else()
+        set (CMAKE_CXX_FLAGS
+          "${CMAKE_CXX_FLAGS} -DBEAST_NO_SLOW_TESTS=1 -funsigned-char -fno-omit-frame-pointer -fsanitize=address,undefined -fsanitize-blacklist=${PROJECT_SOURCE_DIR}/scripts/blacklist.supp")
+        set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=address,undefined")
+        set (CMAKE_BUILD_TYPE RELWITHDEBINFO)
+    endif()
 
 elseif ("${VARIANT}" STREQUAL "debug")
-    set(CMAKE_BUILD_TYPE DEBUG)
+    set (CMAKE_BUILD_TYPE DEBUG)
 
 elseif ("${VARIANT}" STREQUAL "release")
-    set(CMAKE_BUILD_TYPE RELEASE)
+    set (CMAKE_BUILD_TYPE RELEASE)
 
 endif()
 
@@ -126,14 +132,14 @@ endif()
 # Library interface
 #
 
-add_library(${PROJECT_NAME} INTERFACE)
-target_link_libraries(${PROJECT_NAME} INTERFACE ${Boost_SYSTEM_LIBRARY})
+add_library (${PROJECT_NAME} INTERFACE)
+target_link_libraries (${PROJECT_NAME} INTERFACE ${Boost_SYSTEM_LIBRARY})
 if (NOT MSVC)
-    target_link_libraries(${PROJECT_NAME} INTERFACE Threads::Threads)
+    target_link_libraries (${PROJECT_NAME} INTERFACE Threads::Threads)
 endif()
-set_property(TARGET ${PROJECT_NAME} PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${Boost_INCLUDE_DIRS})
-set_property(TARGET ${PROJECT_NAME} PROPERTY  INTERFACE_SYSTEM_INCLUDE_DIRECTORIES ${Boost_INCLUDE_DIRS})
-target_compile_definitions(${PROJECT_NAME} INTERFACE BOOST_COROUTINES_NO_DEPRECATION_WARNING=1)
+set_property (TARGET ${PROJECT_NAME} PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${Boost_INCLUDE_DIRS})
+set_property (TARGET ${PROJECT_NAME} PROPERTY  INTERFACE_SYSTEM_INCLUDE_DIRECTORIES ${Boost_INCLUDE_DIRS})
+target_compile_definitions (${PROJECT_NAME} INTERFACE BOOST_COROUTINES_NO_DEPRECATION_WARNING=1)
 
 #-------------------------------------------------------------------------------
 #
@@ -143,6 +149,10 @@ target_compile_definitions(${PROJECT_NAME} INTERFACE BOOST_COROUTINES_NO_DEPRECA
 include_directories (.)
 include_directories (extras)
 include_directories (include)
+
+if (OPENSSL_FOUND)
+    include_directories (${OPENSSL_INCLUDE_DIR})
+endif()
 
 set(ZLIB_SOURCES
     ${PROJECT_SOURCE_DIR}/test/zlib/zlib-1.2.8/crc32.h
@@ -186,5 +196,8 @@ file(GLOB_RECURSE SERVER_INCLUDES
   )
 
 add_subdirectory (test)
-add_subdirectory (example)
 
+if ((NOT "${VARIANT}" STREQUAL "coverage") AND
+    (NOT "${VARIANT}" STREQUAL "ubasan"))
+    add_subdirectory (example)
+endif()

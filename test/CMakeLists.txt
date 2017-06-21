@@ -2,28 +2,35 @@
 
 add_subdirectory (core)
 add_subdirectory (http)
-add_subdirectory (server)
 add_subdirectory (websocket)
 add_subdirectory (zlib)
 
-GroupSources(extras/beast extras)
-GroupSources(include/beast beast)
-GroupSources(test "/")
+if ((NOT "${VARIANT}" STREQUAL "coverage") AND
+    (NOT "${VARIANT}" STREQUAL "ubasan"))
 
-add_executable (lib-tests
-    ${BEAST_INCLUDES}
-    ${EXTRAS_INCLUDES}
-    ../extras/beast/unit_test/main.cpp
-    config.cpp
-    core.cpp
-    http.cpp
-    version.cpp
-    websocket.cpp
-    zlib.cpp
-)
+    add_subdirectory (benchmarks)
+    add_subdirectory (server)
 
-target_link_libraries(lib-tests Beast ${Boost_PROGRAM_OPTIONS_LIBRARY})
+    GroupSources(extras/beast extras)
+    GroupSources(include/beast beast)
+    
+    GroupSources(test "/")
 
-if (MINGW)
-    set_target_properties(lib-tests PROPERTIES COMPILE_FLAGS "-Wa,-mbig-obj")
+    add_executable (lib-tests
+        ${BEAST_INCLUDES}
+        ${EXTRAS_INCLUDES}
+        ../extras/beast/unit_test/main.cpp
+        config.cpp
+        core.cpp
+        http.cpp
+        version.cpp
+        websocket.cpp
+        zlib.cpp
+    )
+
+    target_link_libraries(lib-tests Beast ${Boost_PROGRAM_OPTIONS_LIBRARY})
+
+    if (MINGW)
+        set_target_properties(lib-tests PROPERTIES COMPILE_FLAGS "-Wa,-mbig-obj")
+    endif()
 endif()
