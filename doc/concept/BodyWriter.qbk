@@ -20,7 +20,7 @@ representation:
   to compress it first.
 * Saving body data to a file
 
-In the table below:
+In this table:
 
 * `X` denotes a type meeting the requirements of [*BodyWriter].
 
@@ -88,59 +88,8 @@ In the table below:
 ]
 ]
 
-[note
-    Definitions for required [*BodyReader] member functions may
-    be declared inline so the generated code can become part of
-    the implementation.
-]
-
 [heading Exemplar]
 
-```
-struct BodyWriter
-{
-    /** Construct the writer.
-
-        @param msg The message whose body is to be stored.
-    */
-    template<bool isRequest, class Body, class Fields>
-    explicit
-    BodyWriter(message<isRequest, Body, Fields>& msg);
-
-    /** Initialization.
-
-        Called once immediately before storing any buffers.
-
-        @param content_length The content length if known, else `boost::none`.
-
-        @param ec Set to the error, if any occurred.
-    */
-    void
-    init(boost::optional<std::uint64_t> content_length, error_code& ec)
-    {
-        // The specification requires this to indicate "no error"
-        ec = {};
-    }
-
-    /** Store buffers.
-
-        This is called zero or more times with parsed body octets.
-
-        @param buffers The constant buffer sequence to store.
-
-        @param ec Set to the error, if any occurred.
-    */
-    template<class ConstBufferSequence>
-    void
-    put(ConstBufferSequence const& buffers, error_code& ec);
-
-    /** Called when the body is complete.
-
-        @param ec Set to the error, if any occurred.
-    */
-    void
-    finish(error_code& ec);
-};
-```
+[concept_BodyWriter]
 
 [endsect]

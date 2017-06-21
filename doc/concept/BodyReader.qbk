@@ -112,78 +112,8 @@ In this table:
 ]
 ]
 
-[note
-    Definitions for required [*BodyReader] member functions may
-    be declared inline so the generated code can become part of
-    the implementation.
-]
-
 [heading Exemplar]
 
-```
-struct BodyReader
-{
-public:
-    /** Controls when the implementation requests buffers.
-
-        If false, the implementation will request the first buffer
-        immediately and try to serialize both the header and some
-        or all of the body in a single buffer.
-    */
-    using is_deferred = std::false_type;
-
-    /// The type of buffer returned by `get`.
-    using const_buffers_type = boost::asio::const_buffers_1;
-
-    /** Construct the reader.
-
-        @param msg The message whose body is to be retrieved.
-    */
-    template<bool isRequest, class Body, class Headers>
-    explicit
-    BodyReader(message<isRequest, Body, Headers> const& msg);
-
-    /** Initialization.
-
-        Called once immediately after construction.
-
-        @param ec Set to the error, if any occurred.
-    */
-    void
-    init(error_code& ec)
-    {
-        // The specification requires this to indicate "no error"
-        ec = {};
-    }
-
-    /** Returns the next buffer in the body.
-
-        @li If the return value is `boost::none` (unseated optional) and
-            `ec` does not contain an error, this indicates the end of the
-            body, no more buffers are present.
-
-        @li If the optional contains a value, the first element of the
-            pair represents a @b ConstBufferSequence containing one or
-            more octets of the body data. The second element indicates
-            whether or not there are additional octets of body data.
-            A value of `true` means there is more data, and that the
-            implementation will perform a subsequent call to `get`.
-            A value of `false` means there is no more body data.
-
-        @li If `ec` contains an error code, the return value is ignored.
-
-        @param ec Set to the error, if any occurred.
-    */
-    boost::optional<std::pair<const_buffers_type, bool>>
-    get(error_code& ec);
-
-    /** Called after `get` indicates there are no more buffers.
-
-        @param ec Set to the error, if any occurred.
-    */
-    void
-    finish(error_code& ec);
-};
-```
+[concept_BodyReader]
 
 [endsect]

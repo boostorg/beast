@@ -31,7 +31,7 @@ implementation strategies:
   size of the character sequence. This is the implementation approach
   currently offered by __multi_buffer__.
 
-In the table below:
+In this table:
 
 * `X` denotes a dynamic buffer class.
 * `a` denotes a value of type `X`.

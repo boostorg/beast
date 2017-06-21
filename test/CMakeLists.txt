@@ -22,6 +22,7 @@ if ((NOT "${VARIANT}" STREQUAL "coverage") AND
         ../extras/beast/unit_test/main.cpp
         config.cpp
         core.cpp
+        exemplars.cpp
         http.cpp
         version.cpp
         websocket.cpp
