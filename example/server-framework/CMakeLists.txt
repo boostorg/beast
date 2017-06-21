@@ -4,10 +4,6 @@ GroupSources(include/beast beast)
 
 GroupSources(example/server-framework "/")
 
-if (OPENSSL_FOUND)
-  include_directories(${OPENSSL_INCLUDE_DIR})
-endif()
-
 add_executable (server-framework
     ${BEAST_INCLUDES}
     ${SERVER_INCLUDES}
@@ -21,5 +17,5 @@ target_link_libraries(
     ${Boost_FILESYSTEM_LIBRARY})
 
 if (OPENSSL_FOUND)
-  target_link_libraries(server-framework ${OPENSSL_LIBRARIES})
+    target_link_libraries(server-framework ${OPENSSL_LIBRARIES})
 endif()
