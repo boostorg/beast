@@ -1,6 +1,13 @@
 Version 63:
 
 * Use std::to_string instead of lexical_cast
+* Put num_jobs back up on Travis
+* Fix BOOST_ROOT dir check when installing
+* Only build and run tests in variant=coverage
+* Move benchmarks to a separate project
+* Only run the tests under ubasan
+* Tidy up CMakeLists.txt
+* Tidy up Jamfiles
 * Control running with valgrind explicitly
 
 --------------------------------------------------------------------------------
