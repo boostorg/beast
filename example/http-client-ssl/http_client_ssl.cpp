@@ -7,6 +7,7 @@
 
 #include <beast/core.hpp>
 #include <beast/http.hpp>
+#include <beast/version.hpp>
 #include <boost/asio.hpp>
 #include <boost/asio/ssl.hpp>
 #include <iostream>
@@ -62,7 +63,7 @@ int main()
     req.version = 11;
     req.set(http::field::host, host + ":" +
         std::to_string(sock.remote_endpoint().port()));
-    req.set(http::field::user_agent, "Beast");
+    req.set(http::field::user_agent, BEAST_VERSION_STRING);
     req.prepare_payload();
 
     // Write the HTTP request to the remote host
