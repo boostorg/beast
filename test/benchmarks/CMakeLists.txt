@@ -2,6 +2,7 @@
 
 GroupSources(extras/beast extras)
 GroupSources(include/beast beast)
+
 GroupSources(test/benchmarks "/")
 GroupSources(test/http "/")
 

@@ -6,10 +6,6 @@ GroupSources(include/beast beast)
 
 GroupSources(test/server "/")
 
-if (OPENSSL_FOUND)
-  include_directories(${OPENSSL_INCLUDE_DIR})
-endif()
-
 add_executable (server-test
     ${BEAST_INCLUDES}
     ${SERVER_INCLUDES}
@@ -42,5 +38,5 @@ target_link_libraries(server-test
     )
 
 if (OPENSSL_FOUND)
-  target_link_libraries(server-test ${OPENSSL_LIBRARIES})
+    target_link_libraries (server-test ${OPENSSL_LIBRARIES})
 endif()
