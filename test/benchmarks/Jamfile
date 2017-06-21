@@ -12,4 +12,5 @@ unit-test benchmarks :
     parser.cpp
     :
     <variant>coverage:<build>no
+    <variant>ubasan:<build>no
     ;

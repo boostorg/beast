@@ -10,4 +10,5 @@ exe http-crawl :
     urls_large_data.cpp
     :
     <variant>coverage:<build>no
+    <variant>ubasan:<build>no
     ;

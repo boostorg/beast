@@ -9,4 +9,5 @@ exe server-framework :
     main.cpp
     :
     <variant>coverage:<build>no
+    <variant>ubasan:<build>no
     ;

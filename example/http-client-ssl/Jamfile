@@ -47,4 +47,5 @@ exe http-client-ssl :
     http_client_ssl.cpp
     :
     <variant>coverage:<build>no
+    <variant>ubasan:<build>no
     ;
