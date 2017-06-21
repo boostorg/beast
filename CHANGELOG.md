@@ -1,3 +1,9 @@
+Version 64:
+
+* Simplify buffered_read_stream composed op
+
+--------------------------------------------------------------------------------
+
 Version 63:
 
 * Use std::to_string instead of lexical_cast
