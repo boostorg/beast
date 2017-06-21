@@ -82,6 +82,7 @@
 [import ../example/server-framework/file_body.hpp]
 [import ../example/websocket-client/websocket_client.cpp]
 
+[import ../test/exemplars.cpp]
 [import ../test/core/doc_snippets.cpp]
 [import ../test/http/doc_snippets.cpp]
 [import ../test/websocket/doc_snippets.cpp]

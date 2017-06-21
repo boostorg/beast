@@ -13,6 +13,9 @@ compile config.cpp :    <variant>coverage:<build>no
 compile core.cpp :      <variant>coverage:<build>no
                         <variant>ubasan:<build>no : ;
 
+compile exemplars.cpp : <variant>coverage:<build>no
+                        <variant>ubasan:<build>no : ;
+
 compile http.cpp :      <variant>coverage:<build>no
                         <variant>ubasan:<build>no : ;
 

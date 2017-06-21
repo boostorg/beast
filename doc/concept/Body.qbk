@@ -69,22 +69,6 @@ In this table:
 
 [heading Exemplar]
 
-```
-struct Body
-{
-    using value_type = implementation_defined;
-
-    /// The algorithm used for extracting buffers
-    class reader;
-
-    /// The algorithm used for inserting buffers
-    class writer;
-
-    /// Returns the body's payload size
-    static
-    std::uint64_t
-    size(value_type const& v);
-}
-```
+[concept_Body]
 
 [endsect]

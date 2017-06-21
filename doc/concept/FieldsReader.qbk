@@ -98,30 +98,6 @@ In this table:
 
 [heading Exemplar]
 
-```
-struct FieldsReader
-{
-    // The type of buffers returned by `get`
-    using const_buffers_type = implementation-defined;
-
-    // Constructor for requests
-    FieldsReader(F const& f, unsigned version, verb method);
-
-    // Constructor for responses
-    FieldsReader(F const& f, unsigned version, unsigned status);
-
-    // Returns `true` if the payload uses the chunked Transfer-Encoding
-    bool
-    chunked();
-
-    // Returns `true` if keep-alive is indicated
-    bool
-    keep_alive();
-
-    // Returns the serialized header buffers
-    const_buffers_type
-    get();
-};
-```
+[concept_FieldsReader]
 
 [endsect]
