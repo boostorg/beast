@@ -1,6 +1,5 @@
 # Part of Beast
 
-GroupSources(extras/beast extras)
 GroupSources(include/beast beast)
 
 GroupSources(example/echo-op "/")

@@ -3,6 +3,7 @@
 GroupSources(examples examples)
 GroupSources(extras/beast extras)
 GroupSources(include/beast beast)
+
 GroupSources(test/core "/")
 
 add_executable (core-tests

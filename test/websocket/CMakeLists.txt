@@ -2,13 +2,10 @@
 
 GroupSources(extras/beast extras)
 GroupSources(include/beast beast)
+
 GroupSources(test/websocket "/")
 
-include_directories(../../example/)
-
-if (OPENSSL_FOUND)
-  include_directories(${OPENSSL_INCLUDE_DIR})
-endif()
+#include_directories(../../example/)
 
 add_executable (websocket-tests
     ${BEAST_INCLUDES}
@@ -37,5 +34,5 @@ target_link_libraries(websocket-tests
     )
 
 if (OPENSSL_FOUND)
-  target_link_libraries(websocket-tests ${OPENSSL_LIBRARIES})
+    target_link_libraries(websocket-tests ${OPENSSL_LIBRARIES})
 endif()
