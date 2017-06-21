@@ -546,26 +546,119 @@ upcall:
     d_.invoke(ec);
 }
 
+//------------------------------------------------------------------------------
+
 template<class NextLayer>
-template<class ConstBufferSequence, class WriteHandler>
-async_return_type<
-    WriteHandler, void(error_code)>
-stream<NextLayer>::
-async_write_frame(bool fin,
-    ConstBufferSequence const& bs, WriteHandler&& handler)
+template<class Buffers, class Handler>
+class stream<NextLayer>::write_op
 {
-    static_assert(is_async_stream<next_layer_type>::value,
-        "AsyncStream requirements not met");
-    static_assert(beast::is_const_buffer_sequence<
-        ConstBufferSequence>::value,
-            "ConstBufferSequence requirements not met");
-    async_completion<WriteHandler,
-        void(error_code)> init{handler};
-    write_frame_op<ConstBufferSequence, handler_type<
-        WriteHandler, void(error_code)>>{init.completion_handler,
-            *this, fin, bs};
-    return init.result.get();
+    struct data : op
+    {
+        int step = 0;
+        stream<NextLayer>& ws;
+        consuming_buffers<Buffers> cb;
+        std::size_t remain;
+
+        data(Handler& handler, stream<NextLayer>& ws_,
+                Buffers const& bs)
+            : ws(ws_)
+            , cb(bs)
+            , remain(boost::asio::buffer_size(cb))
+        {
+        }
+    };
+
+    handler_ptr<data, Handler> d_;
+
+public:
+    write_op(write_op&&) = default;
+    write_op(write_op const&) = default;
+
+    template<class DeducedHandler, class... Args>
+    explicit
+    write_op(DeducedHandler&& h,
+            stream<NextLayer>& ws, Args&&... args)
+        : d_(std::forward<DeducedHandler>(h),
+            ws, std::forward<Args>(args)...)
+    {
+    }
+
+    void operator()(error_code ec);
+
+    friend
+    void* asio_handler_allocate(
+        std::size_t size, write_op* op)
+    {
+        using boost::asio::asio_handler_allocate;
+        return asio_handler_allocate(
+            size, std::addressof(op->d_.handler()));
+    }
+
+    friend
+    void asio_handler_deallocate(
+        void* p, std::size_t size, write_op* op)
+    {
+        using boost::asio::asio_handler_deallocate;
+        asio_handler_deallocate(
+            p, size, std::addressof(op->d_.handler()));
+    }
+
+    friend
+    bool asio_handler_is_continuation(write_op* op)
+    {
+        using boost::asio::asio_handler_is_continuation;
+        return op->d_->step > 2 ||
+            asio_handler_is_continuation(
+                std::addressof(op->d_.handler()));
+    }
+
+    template<class Function>
+    friend
+    void asio_handler_invoke(Function&& f, write_op* op)
+    {
+        using boost::asio::asio_handler_invoke;
+        asio_handler_invoke(
+            f, std::addressof(op->d_.handler()));
+    }
+};
+
+template<class NextLayer>
+template<class Buffers, class Handler>
+void
+stream<NextLayer>::
+write_op<Buffers, Handler>::
+operator()(error_code ec)
+{
+    auto& d = *d_;
+    switch(d.step)
+    {
+    case 2:
+        d.step = 3;
+        BOOST_FALLTHROUGH;
+    case 3:
+    case 0:
+    {
+        auto const n = d.remain;
+        d.remain -= n;
+        auto const fin = d.remain <= 0;
+        if(fin)
+            d.step = d.step ? 4 : 1;
+        else
+            d.step = d.step ? 3 : 2;
+        auto const pb = buffer_prefix(n, d.cb);
+        d.cb.consume(n);
+        return d.ws.async_write_frame(
+            fin, pb, std::move(*this));
+    }
+
+    case 1:
+    case 4:
+        break;
+    }
+    d_.invoke(ec);
 }
+
+//------------------------------------------------------------------------------
 
 template<class NextLayer>
 template<class ConstBufferSequence>
@@ -790,124 +883,13 @@ write_frame(bool fin,
     }
 }
 
-//------------------------------------------------------------------------------
-
-template<class NextLayer>
-template<class Buffers, class Handler>
-class stream<NextLayer>::write_op
-{
-    struct data : op
-    {
-        int step = 0;
-        stream<NextLayer>& ws;
-        consuming_buffers<Buffers> cb;
-        std::size_t remain;
-
-        data(Handler& handler, stream<NextLayer>& ws_,
-                Buffers const& bs)
-            : ws(ws_)
-            , cb(bs)
-            , remain(boost::asio::buffer_size(cb))
-        {
-        }
-    };
-
-    handler_ptr<data, Handler> d_;
-
-public:
-    write_op(write_op&&) = default;
-    write_op(write_op const&) = default;
-
-    template<class DeducedHandler, class... Args>
-    explicit
-    write_op(DeducedHandler&& h,
-            stream<NextLayer>& ws, Args&&... args)
-        : d_(std::forward<DeducedHandler>(h),
-            ws, std::forward<Args>(args)...)
-    {
-    }
-
-    void operator()(error_code ec);
-
-    friend
-    void* asio_handler_allocate(
-        std::size_t size, write_op* op)
-    {
-        using boost::asio::asio_handler_allocate;
-        return asio_handler_allocate(
-            size, std::addressof(op->d_.handler()));
-    }
-
-    friend
-    void asio_handler_deallocate(
-        void* p, std::size_t size, write_op* op)
-    {
-        using boost::asio::asio_handler_deallocate;
-        asio_handler_deallocate(
-            p, size, std::addressof(op->d_.handler()));
-    }
-
-    friend
-    bool asio_handler_is_continuation(write_op* op)
-    {
-        using boost::asio::asio_handler_is_continuation;
-        return op->d_->step > 2 ||
-            asio_handler_is_continuation(
-                std::addressof(op->d_.handler()));
-    }
-
-    template<class Function>
-    friend
-    void asio_handler_invoke(Function&& f, write_op* op)
-    {
-        using boost::asio::asio_handler_invoke;
-        asio_handler_invoke(
-            f, std::addressof(op->d_.handler()));
-    }
-};
-
-template<class NextLayer>
-template<class Buffers, class Handler>
-void
-stream<NextLayer>::
-write_op<Buffers, Handler>::
-operator()(error_code ec)
-{
-    auto& d = *d_;
-    switch(d.step)
-    {
-    case 2:
-        d.step = 3;
-        BOOST_FALLTHROUGH;
-    case 3:
-    case 0:
-    {
-        auto const n = d.remain;
-        d.remain -= n;
-        auto const fin = d.remain <= 0;
-        if(fin)
-            d.step = d.step ? 4 : 1;
-        else
-            d.step = d.step ? 3 : 2;
-        auto const pb = buffer_prefix(n, d.cb);
-        d.cb.consume(n);
-        return d.ws.async_write_frame(
-            fin, pb, std::move(*this));
-    }
-
-    case 1:
-    case 4:
-        break;
-    }
-    d_.invoke(ec);
-}
-
 template<class NextLayer>
 template<class ConstBufferSequence, class WriteHandler>
 async_return_type<
     WriteHandler, void(error_code)>
 stream<NextLayer>::
-async_write(ConstBufferSequence const& bs, WriteHandler&& handler)
+async_write_frame(bool fin,
+    ConstBufferSequence const& bs, WriteHandler&& handler)
 {
     static_assert(is_async_stream<next_layer_type>::value,
         "AsyncStream requirements not met");
@@ -916,12 +898,13 @@ async_write(ConstBufferSequence const& bs, WriteHandler&& handler)
             "ConstBufferSequence requirements not met");
     async_completion<WriteHandler,
         void(error_code)> init{handler};
-    write_op<ConstBufferSequence, handler_type<
-        WriteHandler, void(error_code)>>{
-            init.completion_handler, *this, bs}(
-                error_code{});
+    write_frame_op<ConstBufferSequence, handler_type<
+        WriteHandler, void(error_code)>>{init.completion_handler,
+            *this, fin, bs};
     return init.result.get();
 }
+
+//------------------------------------------------------------------------------
 
 template<class NextLayer>
 template<class ConstBufferSequence>
@@ -952,6 +935,28 @@ write(ConstBufferSequence const& buffers, error_code& ec)
         ConstBufferSequence>::value,
             "ConstBufferSequence requirements not met");
     write_frame(true, buffers, ec);
+}
+
+template<class NextLayer>
+template<class ConstBufferSequence, class WriteHandler>
+async_return_type<
+    WriteHandler, void(error_code)>
+stream<NextLayer>::
+async_write(
+    ConstBufferSequence const& bs, WriteHandler&& handler)
+{
+    static_assert(is_async_stream<next_layer_type>::value,
+        "AsyncStream requirements not met");
+    static_assert(beast::is_const_buffer_sequence<
+        ConstBufferSequence>::value,
+            "ConstBufferSequence requirements not met");
+    async_completion<WriteHandler,
+        void(error_code)> init{handler};
+    write_op<ConstBufferSequence, handler_type<
+        WriteHandler, void(error_code)>>{
+            init.completion_handler, *this, bs}(
+                error_code{});
+    return init.result.get();
 }
 
 } // websocket

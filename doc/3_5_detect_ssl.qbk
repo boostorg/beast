@@ -9,7 +9,7 @@
 
 In this example we will build a simple function to detect the presence
 of the SSL handshake given an input buffer sequence. Then we build on
-the example by adding synchronous stream algorithms. Finally, we 
+the example by adding a synchronous stream algorithm. Finally, we 
 implemement an asynchronous detection function using a composed operation.
 This SSL detector may be used to allow a server to accept both SSL/TLS and
 unencrypted connections at the same port.
@@ -32,11 +32,11 @@ synchronous version which takes the stream and buffer as input:
 
 The synchronous algorithm is the model for building the asynchronous
 operation which has more boilerplate. First, we declare the asynchronous
-initiation function:
+initiating function:
 
 [example_core_detect_ssl_4]
 
-The implementation of the initiation function is straightforward
+The implementation of the initiating function is straightforward
 and contains mostly boilerplate. It is to construct the return
 type customization helper to obtain the actual handler, and
 then create the composed operation and launch it. The actual
@@ -51,7 +51,7 @@ is worth the effort.
 
 [example_core_detect_ssl_6]
 
-The boilerplate is all done, and now we need to implemnt the function
+The boilerplate is all done, and now we need to implement the function
 call operator that turns this composed operation a completion handler
 with the signature `void(error_code, std::size_t)` which is exactly
 the signature needed when performing asynchronous reads. This function

@@ -13,13 +13,24 @@
 
 //[example_core_echo_op_1
 
+template<
+    class AsyncStream,
+    class CompletionToken>
+auto
+async_echo(AsyncStream& stream, CompletionToken&& token)
+
+//]
+    -> beast::async_return_type<CompletionToken, void(beast::error_code)>;
+
+//[example_core_echo_op_2
+
 /** Asynchronously read a line and echo it back.
 
     This function is used to asynchronously read a line ending
-    in a carriage-return linefeed ("CRLF") from the stream,
-    and then write it back. The function call always returns
-    immediately. The asynchronous operation will continue until
-    one of the following conditions is true:
+    in a carriage-return ("CR") from the stream, and then write
+    it back. The function call always returns immediately. The
+    asynchronous operation will continue until one of the
+    following conditions is true:
 
     @li A line was read in and sent back on the stream
 
@@ -38,10 +49,10 @@
 
     @param token The completion token to use. If this is a
     completion handler, copies will be made as required.
-    The signature of the handler must be:
+    The equivalent signature of the handler must be:
     @code
     void handler(
-        error_code& ec      // result of operation
+        error_code ec       // result of operation
     );
     @endcode
     Regardless of whether the asynchronous operation completes
@@ -61,7 +72,7 @@ async_echo(
 
 //]
 
-//[example_core_echo_op_3
+//[example_core_echo_op_4
 
 // This composed operation reads a line of input and echoes it back.
 //
@@ -79,10 +90,11 @@ class echo_op
         int step = 0;
 
         // The buffer used to hold the input and output data.
-        // Note that we use a custom allocator for performance,
-        // this allows the implementation of the io_service to
-        // make efficient re-use of memory allocated by composed
-        // operations during continuations.
+        //
+        // We use a custom allocator for performance, this allows
+        // the implementation of the io_service to make efficient
+        // re-use of memory allocated by composed operations during
+        // a continuation.
         //
         boost::asio::basic_streambuf<beast::handler_alloc<char, Handler>> buffer;
 
@@ -98,11 +110,17 @@ class echo_op
         }
     };
 
-    // This smart pointer container allocates our state using the
-    // memory allocation hooks associated with the final completion
-    // handler, manages the lifetime of that handler for us, and
-    // enforces the destroy-before-invocation requirement on memory
-    // allocated using the hooks.
+    // The operation's data is kept in a cheap-to-copy smart
+    // pointer container called `handler_ptr`. This efficiently
+    // satisfies the CopyConstructible requirements of completion
+    // handlers.
+    //
+    // `handler_ptr` uses these memory allocation hooks associated
+    // with the final completion handler, in order to allocate the
+    // storage for `state`:
+    //
+    //      asio_handler_allocate
+    //      asio_handler_deallocate
     //
     beast::handler_ptr<state, Handler> p_;
 
@@ -123,65 +141,35 @@ public:
     {
     }
 
-    // Determines if the next asynchronous operation represents a
-    // continuation of the asynchronous flow of control associated
-    // with the final handler. If we are past step one, it means
-    // we have performed an asynchronous operation therefore any
-    // subsequent operation would represent a continuation.
-    // Otherwise, we propagate the handler's associated value of
-    // is_continuation. Getting this right means the implementation
-    // may schedule the invokation of the invoked functions more
-    // efficiently.
-    //
-    friend bool asio_handler_is_continuation(echo_op* op)
-    {
-        // This next call is structured to permit argument
-        // dependent lookup to take effect.
-        using boost::asio::asio_handler_is_continuation;
-
-        // Always use std::addressof to pass the pointer to the handler,
-        // otherwise an unwanted overload of operator& may be called instead.
-        return op->p_->step > 1 ||
-            asio_handler_is_continuation(std::addressof(op->p_.handler()));
-    }
-
-    // Handler hook forwarding. These free functions invoke the hooks
-    // associated with the final completion handler. In effect, they
-    // make the Asio implementation treat our composed operation the
-    // same way it would treat the final completion handler for the
-    // purpose of memory allocation and invocation.
-    //
-    // Our implementation just passes through the call to the hook
-    // associated with the final handler.
-
-    friend void* asio_handler_allocate(std::size_t size, echo_op* op)
-    {
-        using boost::asio::asio_handler_allocate;
-        return asio_handler_allocate(size, std::addressof(op->p_.handler()));
-    }
-
-    friend void asio_handler_deallocate(void* p, std::size_t size, echo_op* op)
-    {
-        using boost::asio::asio_handler_deallocate;
-        return asio_handler_deallocate(p, size, std::addressof(op->p_.handler()));
-    }
-
-    template<class Function>
-    friend void asio_handler_invoke(Function&& f, echo_op* op)
-    {
-        using boost::asio::asio_handler_invoke;
-        return asio_handler_invoke(f, std::addressof(op->p_.handler()));
-    }
-
-    // Our main entry point. This will get called as our
-    // intermediate operations complete. Definition below.
+    // The entry point for this handler. This will get called
+    // as our intermediate operations complete. Definition below.
     //
     void operator()(beast::error_code ec, std::size_t bytes_transferred);
+
+    // The next four functions are required for our class
+    // to meet the requirements for composed operations.
+    // Definitions and exposition will follow.
+
+    template<class AsyncStream_, class Handler_, class Function>
+    friend void  asio_handler_invoke(
+        Function&& f, echo_op<AsyncStream_, Handler_>* op);
+
+    template<class AsyncStream_, class Handler_>
+    friend void* asio_handler_allocate(
+        std::size_t size, echo_op<AsyncStream_, Handler_>* op);
+
+    template<class AsyncStream_, class Handler_>
+    friend void  asio_handler_deallocate(
+        void* p, std::size_t size, echo_op<AsyncStream_, Handler_>* op);
+
+    template<class AsyncStream_, class Handler_>
+    friend bool  asio_handler_is_continuation(
+        echo_op<AsyncStream_, Handler_>* op);
 };
 
 //]
 
-//[example_core_echo_op_4
+//[example_core_echo_op_5
 
 // echo_op is callable with the signature void(error_code, bytes_transferred),
 // allowing `*this` to be used as both a ReadHandler and a WriteHandler.
@@ -202,7 +190,7 @@ operator()(beast::error_code ec, std::size_t bytes_transferred)
         case 0:
             // read up to the first newline
             p.step = 1;
-            return boost::asio::async_read_until(p.stream, p.buffer, "\n", std::move(*this));
+            return boost::asio::async_read_until(p.stream, p.buffer, "\r", std::move(*this));
 
         case 1:
             // write everything back
@@ -217,10 +205,15 @@ operator()(beast::error_code ec, std::size_t bytes_transferred)
             break;
     }
 
-    // Invoke the final handler. If we wanted to pass any arguments
-    // which come from our state, they would have to be moved to the
-    // stack first, since the `handler_ptr` guarantees that the state
-    // is destroyed before the handler is invoked.
+    // Invoke the final handler. The implementation of `handler_ptr`
+    // will deallocate the storage for the state before the handler
+    // is invoked. This is necessary to provide the
+    // destroy-before-invocation guarantee on handler memory
+    // customizations.
+    //
+    // If we wanted to pass any arguments to the handler which come
+    // from the `state`, they would have to be moved to the stack
+    // first or else undefined behavior results.
     //
     p_.invoke(ec);
     return;
@@ -228,7 +221,72 @@ operator()(beast::error_code ec, std::size_t bytes_transferred)
 
 //]
 
-//[example_core_echo_op_2
+//[example_core_echo_op_6
+
+// Handler hook forwarding. These free functions invoke the hooks
+// associated with the final completion handler. In effect, they
+// make the Asio implementation treat our composed operation the
+// same way it would treat the final completion handler for the
+// purpose of memory allocation and invocation.
+//
+// Our implementation just passes the call through to the hook
+// associated with the final handler. The "using" statements are
+// structured to permit argument dependent lookup. Always use
+// `std::addressof` or its equivalent to pass the pointer to the
+// handler, otherwise an unwanted overload of `operator&` may be
+// called instead.
+
+template<class AsyncStream, class Handler, class Function>
+void asio_handler_invoke(
+    Function&& f, echo_op<AsyncStream, Handler>* op)
+{
+    using boost::asio::asio_handler_invoke;
+    return asio_handler_invoke(f, std::addressof(op->p_.handler()));
+}
+
+template<class AsyncStream, class Handler>
+void* asio_handler_allocate(
+    std::size_t size, echo_op<AsyncStream, Handler>* op)
+{
+    using boost::asio::asio_handler_allocate;
+    return asio_handler_allocate(size, std::addressof(op->p_.handler()));
+}
+
+template<class AsyncStream, class Handler>
+void asio_handler_deallocate(
+    void* p, std::size_t size, echo_op<AsyncStream, Handler>* op)
+{
+    using boost::asio::asio_handler_deallocate;
+    return asio_handler_deallocate(p, size,
+        std::addressof(op->p_.handler()));
+}
+
+// Determines if the next asynchronous operation represents a
+// continuation of the asynchronous flow of control associated
+// with the final handler. If we are past step one, it means
+// we have performed an asynchronous operation therefore any
+// subsequent operation would represent a continuation.
+// Otherwise, we propagate the handler's associated value of
+// is_continuation. Getting this right means the implementation
+// may schedule the invokation of the invoked functions more
+// efficiently.
+//
+template<class AsyncStream, class Handler>
+bool asio_handler_is_continuation(echo_op<AsyncStream, Handler>* op)
+{
+    // This next call is structured to permit argument
+    // dependent lookup to take effect.
+    using boost::asio::asio_handler_is_continuation;
+
+    // Always use std::addressof to pass the pointer to the handler,
+    // otherwise an unwanted overload of operator& may be called instead.
+    return op->p_->step > 1 ||
+        asio_handler_is_continuation(std::addressof(op->p_.handler()));
+}
+
+//]
+
+//[example_core_echo_op_3
 
 template<class AsyncStream, class Handler>
 class echo_op;
@@ -254,8 +312,8 @@ async_echo(AsyncStream& stream, CompletionToken&& token)
     // Create the composed operation and launch it. This is a constructor
     // call followed by invocation of operator(). We use handler_type
     // to convert the completion token into the correct handler type,
-    // allowing user defined specializations of the async result template
-    // to take effect.
+    // allowing user-defined specializations of the async_result template
+    // to be used.
     //
     echo_op<AsyncStream, beast::handler_type<CompletionToken, void(beast::error_code)>>{
         stream, init.completion_handler}(beast::error_code{}, 0);

@@ -31,7 +31,7 @@ void fxx() {
 {
 //[http_snippet_2
 
-    request<string_body> req;
+    request<empty_body> req;
     req.version = 11;   // HTTP/1.1
     req.method(verb::get);
     req.target("/index.htm");

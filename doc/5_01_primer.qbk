@@ -9,15 +9,19 @@
 
 The HTTP protocol defines the
 [@https://tools.ietf.org/html/rfc7230#section-2.1 client and server roles]:
-clients send requests and servers send back responses. A request
-or response is an
+clients send requests and servers send back responses. When a client and
+server have established a connection, the client sends a series of requests
+while the server sends back at least one response for each received request
+in the order those requests were received.
+
+A request or response is an
 [@https://tools.ietf.org/html/rfc7230#section-3 HTTP message]
-(referred to hereafter as "message"), with two parts:
-a header containing structured metadata and an optional variable-length
-body containing arbitrary data. A serialized header is one or more text
-lines where each line ends in a carriage return followed by linefeed
-(`"\r\n"`). An empty line marks the end of the header. The first line
-in the header is called the ['start-line]. The start line contents are
+(referred to hereafter as "message") having two parts:
+a header with structured metadata and an optional variable-length body
+holding arbitrary data. A serialized header is one or more text lines
+where each line ends in a carriage return followed by linefeed (`"\r\n"`).
+An empty line marks the end of the header. The first line in the header
+is called the ['start-line]. The contents of the start line contents are
 different for requests and responses.
 
 Every message contains a set of zero or more field name/value pairs,
@@ -25,11 +29,6 @@ collectively called "fields". The names and values are represented using
 text strings with various requirements. A serialized field contains the
 field name, then a colon followed by a space (`": "`), and finally the field
 value with a trailing CRLF.
-
-When a client and server have established a connection and intend to
-use HTTP, the client sends a series of requests while the server reads
-sends back at least one response for each request in the order those
-requests were received.
 
 [heading Requests]
 
@@ -90,11 +89,21 @@ field informs the remote host of the size of the body which follows.
 ]]
 ]
 
+[heading Body]
+
+Messages may optionally carry a body. The size of the message body
+is determined by the semantics of the message and the special fields
+Content-Length and Transfer-Encoding.
+[@https://tools.ietf.org/html/rfc7230#section-3.3 rfc7230 section 3.3]
+provides a comprehensive description for how the body length is
+determined.
+
 [heading Special Fields]
 
 Certain fields appearing in messages are special. The library understands
 these fields when performing serialization and parsing, taking automatic
-action as needed when the fields are present:
+action as needed when the fields are parsed in a message and also setting
+the fields if the caller requests it.
 
 [table Special Fields
 [[Field][Description]]
@@ -126,8 +135,8 @@ action as needed when the fields are present:
         Beast understands the "chunked" coding scheme when it is the last
         (outermost) applied coding. The library will automatically apply
         chunked encoding when the content length is not known ahead of time
-        during serialization, and the library will automatically removed chunked
-        encoding from parsed messages.
+        during serialization, and the library will automatically remove chunked
+        encoding from parsed messages when present.
     ]
 ][
     [

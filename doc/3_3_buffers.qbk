@@ -35,7 +35,8 @@ These metafunctions check if types match the buffer concepts:
 ]]
 ]
 
-To suit various needs, several implementation of dynamic buffer are available:
+Beast provides several dynamic buffer implementations for a variety
+of scenarios:
 
 [table Dynamic Buffer Implementations
 [[Name][Description]]
@@ -63,7 +64,8 @@ To suit various needs, several implementation of dynamic buffer are available:
     Guarantees that input and output areas are buffer sequences with
     length one. Upon construction an optional upper limit to the total
     size of the input and output areas may be set. The basic container
-    supports the standard allocator model.
+    is an
+    [@http://en.cppreference.com/w/cpp/concept/AllocatorAwareContainer [*AllocatorAwareContainer]].
 ]]
 [[
     [link beast.ref.beast__multi_buffer `multi_buffer`]
@@ -72,7 +74,8 @@ To suit various needs, several implementation of dynamic buffer are available:
     Uses a sequence of one or more character arrays of varying sizes.
     Additional character array objects are appended to the sequence to
     accommodate changes in the size of the character sequence. The basic
-    container supports the standard allocator model.
+    container is an
+    [@http://en.cppreference.com/w/cpp/concept/AllocatorAwareContainer [*AllocatorAwareContainer]].
 ]]
 [[
     [link beast.ref.beast__static_buffer `static_buffer`]
@@ -150,7 +153,7 @@ output streams.
     [link beast.ref.beast__ostream `ostream`]
 ][
     This function returns a `std::ostream` which wraps a dynamic buffer.
-    Characters sent to the stream using `operator<<` is stored in the
+    Characters sent to the stream using `operator<<` are stored in the
     dynamic buffer.
 ]]
 ]

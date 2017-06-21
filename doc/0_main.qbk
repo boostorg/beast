@@ -51,6 +51,8 @@
 [def __SyncReadStream__         [@http://www.boost.org/doc/html/boost_asio/reference/SyncReadStream.html [*SyncReadStream]]]
 [def __SyncWriteStream__        [@http://www.boost.org/doc/html/boost_asio/reference/SyncWriteStream.html [*SyncWriteStream]]]
 
+[def __async_initfn__           [@http://www.boost.org/doc/html/boost_asio/reference/asynchronous_operations.html initiating function]]
+
 [def __AsyncStream__            [link beast.concept.streams.AsyncStream [*AsyncStream]]]
 [def __Body__                   [link beast.concept.Body [*Body]]]
 [def __BodyReader__             [link beast.concept.BodyReader [*BodyReader]]]
