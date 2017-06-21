@@ -9,6 +9,8 @@ shopt -s globstar
 
 ################################## ENVIRONMENT #################################
 
+DO_VALGRIND=${DO_VALGRIND:-false}
+
 # If not CI, then set some defaults
 if [[ "${CI:-}" == "" ]]; then
   TRAVIS_BRANCH=${TRAVIS_BRANCH:-feature}
@@ -140,7 +142,7 @@ if [[ $VARIANT == "coverage" ]]; then
   lcov --no-external -c -i -d . -o baseline.info > /dev/null
 
   # Perform test
-  if [[ $MAIN_BRANCH == "1" ]]; then
+  if [[ $MAIN_BRANCH == "1" && "$DO_VALGRIND" = true ]]; then
     run_tests_with_valgrind
     # skip slow autobahn tests
     #run_autobahn_test_suite
@@ -164,5 +166,9 @@ if [[ $VARIANT == "coverage" ]]; then
   # Clean up these stragglers so BOOST_ROOT cache is clean
   find $BOOST_ROOT/bin.v2 -name "*.gcda" | xargs rm -f
 else
-  run_tests_with_debugger
+  if [[ $MAIN_BRANCH == "1" && "$DO_VALGRIND" = true ]]; then
+    run_tests_with_valgrind
+  else
+    run_tests_with_debugger
+  fi
 fi

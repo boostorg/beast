@@ -1,6 +1,7 @@
 Version 63:
 
 * Use std::to_string instead of lexical_cast
+* Control running with valgrind explicitly
 
 --------------------------------------------------------------------------------
 
