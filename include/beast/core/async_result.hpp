@@ -32,7 +32,7 @@ namespace beast {
     where the specific completion handler signature is known.
 
     This template takes advantage of specializations of both
-    `boost::asio_async_result` and `boost::asio::handler_type` for user-defined
+    `boost::asio::async_result` and `boost::asio::handler_type` for user-defined
     completion token types. The primary template assumes that the
     @b CompletionToken is the completion handler.
 

@@ -35,10 +35,10 @@ namespace http {
     value.
 
     Field names are stored as-is, but comparisons are case-insensitive.
-    When the container is iterated, the fields are presented in the order
-    of insertion. For fields with the same name, the container behaves
-    as a `std::multiset`; there will be a separate value for each occurrence
-    of the field name.
+    The container behaves as a `std::multiset`; there will be a separate
+    value for each occurrence of the same field name. When the container
+    is iterated the fields are presented in the order of insertion, with
+    fields having the same name following each other consecutively.
 
     Meets the requirements of @b Fields
 

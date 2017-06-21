@@ -42,6 +42,7 @@ public:
     /// Copy constructor
     drain_buffer(drain_buffer const&)
     {
+        // Previously returned ranges are invalidated
     }
 
     /// Copy assignment

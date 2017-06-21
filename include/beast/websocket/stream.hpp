@@ -47,16 +47,14 @@ using response_type = http::response<http::string_body>;
     that they are are all performed within the same implicit
     or explicit strand.
 
+    @par Thread Safety
+    @e Distinct @e objects: Safe.@n
+    @e Shared @e objects: Unsafe.
+
     @par Example
 
     To use the @ref stream template with an `ip::tcp::socket`,
     you would write:
-
-    @tparam NextLayer The type representing the next layer, to which
-    data will be read and written during operations. For synchronous
-    operations, the type must support the @b SyncStream concept.
-    For asynchronous operations, the type must support the
-    @b AsyncStream concept.
 
     @code
     websocket::stream<ip::tcp::socket> ws{io_service};
@@ -67,9 +65,11 @@ using response_type = http::response<http::string_body>;
     websocket::stream<ip::tcp::socket&> ws{sock};
     @endcode
 
-    @par Thread Safety
-    @e Distinct @e objects: Safe.@n
-    @e Shared @e objects: Unsafe.
+    @tparam NextLayer The type representing the next layer, to which
+    data will be read and written during operations. For synchronous
+    operations, the type must support the @b SyncStream concept.
+    For asynchronous operations, the type must support the
+    @b AsyncStream concept.
 
     @note A stream object must not be moved or destroyed while there
     are pending asynchronous operations associated with it.

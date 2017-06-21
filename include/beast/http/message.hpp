@@ -53,7 +53,7 @@ struct header<true, Fields> : Fields
 
     /// Indicates if the header is a request or response.
 #if BEAST_DOXYGEN
-    using is_request = isRequest;
+    using is_request = std::integral_constant<bool, isRequest>;
 #else
     using is_request = std::true_type;
 #endif
@@ -203,7 +203,11 @@ struct header<false, Fields> : Fields
         "Fields requirements not met");
 
     /// Indicates if the header is a request or response.
+#if BEAST_DOXYGEN
+    using is_request = std::integral_constant<bool, isRequest>;
+#else
     using is_request = std::false_type;
+#endif
 
     /// The type representing the fields.
     using fields_type = Fields;

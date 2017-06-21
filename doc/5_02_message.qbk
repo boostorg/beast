@@ -44,22 +44,21 @@ class header;
 
 Requests and responses share the version, fields, and body but have
 a few members unique to the type. This is implemented by declaring the
-header classes as partial specializations of `isRequest`. Furthermore,
-__message__ is derived from __header__; a message may be passed as an
-argument to a function taking a suitably typed header as a parameter.
-Furthermore, `header` is publicly derived from `Fields`; a message
-inherits all of the fields member functions. Since `fields` is a
-container, iterating a message iterates its header fields. This
-diagram shows the inheritance relationship between header and message,
-along with the fields from the different partial specializations for
-each possible value of `isRequest`:
+header classes as partial specializations of `isRequest`. __message__
+is derived from __header__; a message may be passed as an argument to
+a function taking a suitably typed header as a parameter. Additionally,
+`header` is publicly derived from `Fields`; a message inherits all the
+member functions of `Fields`. This diagram shows the inheritance
+relationship between header and message, along with some of the
+notable differences in members in each partial specialization:
 
 [$images/message.png [width 730px] [height 410px]]
 
 The template type aliases 
 [link beast.ref.beast__http__request `request`] and
 [link beast.ref.beast__http__response `response`]
-are provided for brevity. They specify the common default of `fields`.
+are provided for brevity. They specify __fields__ as the default for [*Fields].
+
 
 ```
 /// A typical HTTP request
@@ -77,9 +76,8 @@ Beast defines the __Body__ concept, which determines both the type of
 the [link beast.ref.beast__http__message.body `message::body`] member
 (as seen in the diagram above) and may also include algorithms for
 transferring buffers in and out. These algorithms are used during
-parsing and serialization. These body types are available within the
-library, and users may define their own body types which meet the
-__Body__ requirements:
+parsing and serialization. Users may define their own body types which
+meet the requirements, or use the ones that come with the library:
 
 [table
 [[Name][Description]]
@@ -130,10 +128,10 @@ __Body__ requirements:
 
 [heading Usage]
 
-The code examples below show how to create and fill in request and response
-objects: Here is simple example of building an
+These examples show how to create and fill in request and response
+objects: Here we build an
 [@https://tools.ietf.org/html/rfc7231#section-4.3.1 HTTP GET]
-request.
+request with an empty message body:
 
 [table Create Request
 [[Statements] [Serialized Result]]
@@ -149,12 +147,12 @@ request.
 ]]
 ]
 
-Here we create an HTTP response indicating success. Note that this
-message has a body. The function
+In this code we create an HTTP response with a status code indicating success.
+This message has a body with a non-zero length. The function
 [link beast.ref.beast__http__message.prepare_payload `message::prepare_payload`]
 automatically sets the Content-Length or Transfer-Encoding field
-depending on the content and type of the `body` member. The use
-of prepare is optional; these fields may also be set explicitly.
+depending on the content and type of the `body` member. Use of this function
+is optional; these fields may also be set explicitly.
 
 [table Create Response
 [[Statements] [Serialized Result]]
