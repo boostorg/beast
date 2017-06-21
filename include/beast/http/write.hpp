@@ -488,7 +488,7 @@ template<class AsyncWriteStream,
 async_return_type<
     WriteHandler, void(error_code)>
 async_write(AsyncWriteStream& stream,
-    message<isRequest, Body, Fields> const& msg,
+    message<isRequest, Body, Fields>& msg,
         WriteHandler&& handler);
 
 //------------------------------------------------------------------------------

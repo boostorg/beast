@@ -5,6 +5,8 @@ Version 64:
 * Simplify websocket write_op
 * Exemplars are compiled code
 * Better User-Agent in examples
+* async_write requires a non-const message
+* Doc tidying
 
 --------------------------------------------------------------------------------
 

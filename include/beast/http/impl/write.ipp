@@ -359,7 +359,7 @@ class write_msg_op
             Body, Fields, no_chunk_decorator> sr;
 
         data(Handler& h, Stream& s_, message<
-                isRequest, Body, Fields> const& m_)
+                isRequest, Body, Fields>& m_)
             : s(s_)
             , sr(m_, no_chunk_decorator{})
         {
@@ -766,7 +766,7 @@ template<class AsyncWriteStream,
 async_return_type<
     WriteHandler, void(error_code)>
 async_write(AsyncWriteStream& stream,
-    message<isRequest, Body, Fields> const& msg,
+    message<isRequest, Body, Fields>& msg,
         WriteHandler&& handler)
 {
     static_assert(
