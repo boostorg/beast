@@ -8,17 +8,10 @@
 #ifndef BEAST_WEBSOCKET_IMPL_SSL_IPP_INCLUDED
 #define BEAST_WEBSOCKET_IMPL_SSL_IPP_INCLUDED
 
-#include <beast/core/async_result.hpp>
-#include <beast/core/handler_ptr.hpp>
-#include <beast/core/type_traits.hpp>
-#include <boost/asio/handler_alloc_hook.hpp>
-#include <boost/asio/handler_continuation_hook.hpp>
-#include <boost/asio/handler_invoke_hook.hpp>
+#include <utility>
 
 namespace beast {
 namespace websocket {
-
-namespace detail {
 
 /*
 
@@ -34,100 +27,6 @@ Behavior of ssl::stream regarding close_
     to async_shutdown will complete with eof.
 
 */
-template<class AsyncStream, class Handler>
-class teardown_ssl_op
-{
-    using stream_type =
-        boost::asio::ssl::stream<AsyncStream>;
-
-    struct data
-    {
-        bool cont;
-        stream_type& stream;
-        int state = 0;
-
-        data(Handler& handler, stream_type& stream_)
-            : stream(stream_)
-        {
-            using boost::asio::asio_handler_is_continuation;
-            cont = asio_handler_is_continuation(std::addressof(handler));
-        }
-    };
-
-    handler_ptr<data, Handler> d_;
-
-public:
-    template<class DeducedHandler>
-    explicit
-    teardown_ssl_op(
-            DeducedHandler&& h, stream_type& stream)
-        : d_(std::forward<DeducedHandler>(h), stream)
-    {
-        (*this)(error_code{}, false);
-    }
-
-    void
-    operator()(error_code ec, bool again = true);
-
-    friend
-    void* asio_handler_allocate(std::size_t size,
-        teardown_ssl_op* op)
-    {
-        using boost::asio::asio_handler_allocate;
-        return asio_handler_allocate(
-            size, std::addressof(op->d_.handler()));
-    }
-
-    friend
-    void asio_handler_deallocate(void* p,
-        std::size_t size, teardown_ssl_op* op)
-    {
-        using boost::asio::asio_handler_deallocate;
-        asio_handler_deallocate(
-            p, size, std::addressof(op->d_.handler()));
-    }
-
-    friend
-    bool asio_handler_is_continuation(
-        teardown_ssl_op* op)
-    {
-        return op->d_->cont;
-    }
-
-    template<class Function>
-    friend
-    void asio_handler_invoke(Function&& f,
-        teardown_ssl_op* op)
-    {
-        using boost::asio::asio_handler_invoke;
-        asio_handler_invoke(
-            f, std::addressof(op->d_.handler()));
-    }
-};
-
-template<class AsyncStream, class Handler>
-void
-teardown_ssl_op<AsyncStream, Handler>::
-operator()(error_code ec, bool again)
-{
-    auto& d = *d_;
-    d.cont = d.cont || again;
-    while(!ec && d.state != 99)
-    {
-        switch(d.state)
-        {
-        case 0:
-            d.state = 99;
-            d.stream.async_shutdown(*this);
-            return;
-        }
-    }
-    d_.invoke(ec);
-}
-
-} // detail
-
-//------------------------------------------------------------------------------
 
 template<class AsyncStream>
 void
@@ -144,12 +43,7 @@ async_teardown(teardown_tag,
     boost::asio::ssl::stream<AsyncStream>& stream,
         TeardownHandler&& handler)
 {
-    static_assert(beast::is_completion_handler<
-        TeardownHandler, void(error_code)>::value,
-            "TeardownHandler requirements not met");
-    detail::teardown_ssl_op<AsyncStream, typename std::decay<
-        TeardownHandler>::type>{std::forward<TeardownHandler>(
-            handler), stream};
+    stream.async_shutdown(std::forward<TeardownHandler>(handler));
 }
 
 } // websocket
