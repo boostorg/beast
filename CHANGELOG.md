@@ -5,6 +5,7 @@ Version 65:
 * Fix narrowing in static_ostream
 * Fix narrowing in ostream
 * Fix narrowing in inflate_stream
+* Fix narrowing in deflate_stream
 
 --------------------------------------------------------------------------------
 
