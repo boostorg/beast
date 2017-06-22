@@ -7,6 +7,7 @@ Version 64:
 * Better User-Agent in examples
 * async_write requires a non-const message
 * Doc tidying
+* Add link_directories to cmake
 
 --------------------------------------------------------------------------------
 
