@@ -8,6 +8,7 @@
 #ifndef BEAST_IMPL_STATIC_STRING_IPP
 #define BEAST_IMPL_STATIC_STRING_IPP
 
+#include <beast/core/detail/static_string.hpp>
 #include <beast/core/detail/type_traits.hpp>
 #include <boost/throw_exception.hpp>
 
@@ -534,12 +535,12 @@ assign_char(CharT, std::false_type) ->
 namespace detail {
 
 template<class Integer>
-static_string<1+max_digits(sizeof(Integer))>
+static_string<max_digits(sizeof(Integer))>
 to_static_string(Integer x, std::true_type)
 {
     if(x == 0)
         return {'0'};
-    static_string<1 + detail::max_digits(
+    static_string<detail::max_digits(
         sizeof(Integer))> s;
     if(x < 0)
     {
@@ -593,10 +594,19 @@ template<class Integer>
 static_string<detail::max_digits(sizeof(Integer))>
 to_static_string(Integer x)
 {
+    using CharT = char;
+    using Traits = std::char_traits<CharT>;
     BOOST_STATIC_ASSERT(std::is_integral<Integer>::value);
-    return detail::to_static_string(
-        x, std::integral_constant<bool,
-            std::is_signed<Integer>::value>{});
+    char buf[detail::max_digits(sizeof(Integer))];
+    auto last = buf + sizeof(buf);
+    auto it = detail::raw_to_string<
+        CharT, Integer, Traits>(last, sizeof(buf), x);
+    static_string<detail::max_digits(sizeof(Integer))> s;
+    s.resize(static_cast<std::size_t>(last - it));
+    auto p = s.data();
+    while(it < last)
+        Traits::assign(*p++, *it++);
+    return s;
 }
 
 } // beast

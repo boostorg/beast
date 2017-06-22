@@ -27,17 +27,20 @@ class static_ostream_buffer
     using traits_type = typename
         std::basic_streambuf<CharT, Traits>::traits_type;
 
-    char buf_[128];
-    std::string s_;
+    char* data_;
+    std::size_t size_;
     std::size_t len_ = 0;
+    std::string s_;
 
 public:
     static_ostream_buffer(static_ostream_buffer&&) = delete;
     static_ostream_buffer(static_ostream_buffer const&) = delete;
 
-    static_ostream_buffer()
+    static_ostream_buffer(char* data, std::size_t size)
+        : data_(data)
+        , size_(size)
     {
-        this->setp(buf_, buf_ + sizeof(buf_) - 1);
+        this->setp(data_, data_ + size - 1);
     }
 
     ~static_ostream_buffer() noexcept
@@ -49,7 +52,7 @@ public:
     {
         if(! s_.empty())
             return {s_.data(), len_};
-        return {buf_, len_};
+        return {data_, len_};
     }
 
     int_type
@@ -81,17 +84,17 @@ private:
     {
         static auto const growth_factor = 1.5;
 
-        if(len_ < sizeof(buf_) - 1)
+        if(len_ < size_ - 1)
         {
-            this->setp(&buf_[len_],
-                &buf_[sizeof(buf_) - 2]);
+            this->setp(
+                data_ + len_, data_ + size_ - 2);
             return;
         }
         if(s_.empty())
         {
             s_.resize(static_cast<std::size_t>(
                 growth_factor * len_));
-            Traits::copy(&s_[0], buf_, len_);
+            Traits::copy(&s_[0], data_, len_);
         }
         else
         {
@@ -115,8 +118,9 @@ class static_ostream : public std::basic_ostream<char>
     static_ostream_buffer osb_;
 
 public:
-    static_ostream()
+    static_ostream(char* data, std::size_t size)
         : std::basic_ostream<char>(&this->osb_)
+        , osb_(data, size)
     {
         imbue(std::locale::classic());
     }

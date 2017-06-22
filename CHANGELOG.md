@@ -1,3 +1,9 @@
+Version 66:
+
+* string_param optimizations
+
+--------------------------------------------------------------------------------
+
 Version 65:
 
 * Enable narrowing warning on msvc cmake
