@@ -57,7 +57,8 @@ public:
     {
         if(! Traits::eq_int_type(ch, Traits::eof()))
         {
-            Traits::assign(*this->pptr(), ch);
+            Traits::assign(*this->pptr(),
+                static_cast<CharT>(ch));
             flush(1);
             prepare();
             return ch;
