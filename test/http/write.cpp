@@ -678,7 +678,7 @@ public:
         isRequest, Body, Fields> const& m, error_code& ec,
             Decorator const& decorator = Decorator{})
     {
-        auto sr = make_serializer(m, decorator);
+        serializer<isRequest, Body, Fields, Decorator> sr{m};
         for(;;)
         {
             stream.nwrite = 0;
@@ -700,7 +700,7 @@ public:
             error_code& ec, yield_context yield,
                 Decorator const& decorator = Decorator{})
     {
-        auto sr = make_serializer(m);
+        serializer<isRequest, Body, Fields, Decorator> sr{m};
         for(;;)
         {
             stream.nwrite = 0;

@@ -128,15 +128,6 @@ void fxx() {
 //]
 }
 
-{
-    response<string_body> res;
-//[http_snippet_11
-
-    auto sr = make_serializer(res);
-
-//]
-}
-
 } // fxx()
 
 //[http_snippet_12

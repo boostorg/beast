@@ -9,6 +9,14 @@ Version 64:
 * Doc tidying
 * Add link_directories to cmake
 
+API Changes:
+
+* Remove make_serializer
+
+Actions Required:
+
+* Replace calls to make_serializer with variable declarations
+
 --------------------------------------------------------------------------------
 
 Version 63:

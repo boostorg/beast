@@ -756,7 +756,7 @@ write(SyncWriteStream& stream,
         "Body requirements not met");
     static_assert(is_body_reader<Body>::value,
         "BodyReader requirements not met");
-    auto sr = make_serializer(msg);
+    serializer<isRequest, Body, Fields> sr{msg};
     write(stream, sr, ec);
 }
 
