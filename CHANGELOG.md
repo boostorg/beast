@@ -4,6 +4,7 @@ Version 65:
 * Fix integer types in deflate_stream::bi_reverse
 * Fix narrowing in static_ostream
 * Fix narrowing in ostream
+* Fix narrowing in inflate_stream
 
 --------------------------------------------------------------------------------
 
