@@ -50,6 +50,8 @@ option (Boost_USE_STATIC_LIBS "Use static libraries for boost" ON)
 set (BOOST_COMPONENTS coroutine context filesystem program_options system thread)
 find_package (Boost REQUIRED COMPONENTS ${BOOST_COMPONENTS})
 
+link_directories(${Boost_LIBRARY_DIRS})
+
 if (MINGW)
     link_libraries(ws2_32 mswsock)
 endif()
