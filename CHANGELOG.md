@@ -1,3 +1,9 @@
+Version 65:
+
+* Enable narrowing warning on msvc cmake
+
+--------------------------------------------------------------------------------
+
 Version 64:
 
 * Simplify buffered_read_stream composed op
