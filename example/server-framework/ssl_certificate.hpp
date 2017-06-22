@@ -119,7 +119,7 @@ ssl_certificate::construct()
         "-----END DH PARAMETERS-----\n";
     
     ctx_.set_password_callback(
-        [](std::size_t size,
+        [](std::size_t,
             boost::asio::ssl::context_base::password_purpose)
         {
             return "test";

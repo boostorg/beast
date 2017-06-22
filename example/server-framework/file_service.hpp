@@ -111,6 +111,8 @@ public:
         beast::http::request<Body, Fields>&& req,
         Send const& send) const
     {
+        boost::ignore_unused(ep);
+
         // Determine our action based on the method
         switch(req.method())
         {
@@ -219,6 +221,7 @@ private:
         beast::http::request<Body, Fields> const& req,
         boost::filesystem::path const& rel_path) const
     {
+        boost::ignore_unused(rel_path);
         beast::http::response<beast::http::string_body> res;
         res.version = req.version;
         res.result(beast::http::status::not_found);

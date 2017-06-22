@@ -8,6 +8,7 @@
 #ifndef BEAST_CONFIG_HPP
 #define BEAST_CONFIG_HPP
 
+#include <boost/core/ignore_unused.hpp>
 #include <boost/static_assert.hpp>
 
 /*

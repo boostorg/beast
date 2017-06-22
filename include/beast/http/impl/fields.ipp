@@ -230,7 +230,7 @@ template<class Allocator>
 template<class String>
 void
 basic_fields<Allocator>::reader::
-prepare(String& s, basic_fields const& f,
+prepare(String& s, basic_fields const&,
     unsigned version, verb v)
 {
     if(v == verb::unknown)
@@ -271,7 +271,7 @@ template<class Allocator>
 template<class String>
 void
 basic_fields<Allocator>::reader::
-prepare(String& s,basic_fields const& f,
+prepare(String& s, basic_fields const&,
     unsigned version, unsigned code)
 {
     if(version == 11)

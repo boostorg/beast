@@ -148,7 +148,7 @@ public:
     friend
     void
     teardown(websocket::teardown_tag,
-        string_iostream& stream,
+        string_iostream&,
             boost::system::error_code& ec)
     {
         ec.assign(0, ec.category());

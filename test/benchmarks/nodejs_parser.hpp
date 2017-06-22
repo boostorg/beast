@@ -768,31 +768,30 @@ private:
     }
 
     void
-    on_field(std::string const& field, std::string const& value)
+    on_field(std::string const&, std::string const&)
     {
     }
 
     void
-    on_headers_complete(error_code&)
+    on_headers_complete(error_code& ec)
     {
         // vFALCO TODO Decode the Content-Length and
         // Transfer-Encoding, see if we can reserve the buffer.
         //
         // r_.reserve(content_length)
+        ec.assign(0, ec.category());
     }
 
     bool
-    on_request(unsigned method, std::string const& url,
-        int major, int minor, bool /*keep_alive*/, bool /*upgrade*/,
-            std::true_type)
+    on_request(unsigned, std::string const&,
+        int, int, bool, bool, std::true_type)
     {
         return true;
     }
 
     bool
     on_request(unsigned, std::string const&,
-        int, int, bool, bool,
-            std::false_type)
+        int, int, bool, bool, std::false_type)
     {
         return true;
     }
@@ -808,11 +807,9 @@ private:
     }
 
     bool
-    on_response(int status, std::string const& reason,
-        int major, int minor, bool keep_alive, bool upgrade,
-            std::true_type)
+    on_response(int, std::string const&,
+        int, int, bool, bool, std::true_type)
     {
-        beast::detail::ignore_unused(keep_alive, upgrade);
         return true;
     }
 
@@ -833,9 +830,9 @@ private:
     }
 
     void
-    on_body(void const* data,
-        std::size_t size, error_code& ec)
+    on_body(void const*, std::size_t, error_code& ec)
     {
+        ec.assign(0, ec.category());
     }
 
     void

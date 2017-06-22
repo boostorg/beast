@@ -160,7 +160,7 @@ public:
             other.moved_from = true;
         }
 
-        MoveFields& operator=(MoveFields&& other)
+        MoveFields& operator=(MoveFields&&)
         {
             return *this;
         }

@@ -8,6 +8,7 @@
 #include <beast/core.hpp>
 #include <boost/asio.hpp>
 #include <cstddef>
+#include <iostream>
 #include <memory>
 #include <utility>
 
@@ -328,7 +329,7 @@ async_echo(AsyncStream& stream, CompletionToken&& token)
 
 //]
 
-int main()
+int main(int, char** argv)
 {
     using address_type = boost::asio::ip::address;
     using socket_type = boost::asio::ip::tcp::socket;
@@ -347,6 +348,8 @@ int main()
     async_echo(sock,
         [&](beast::error_code ec)
         {
+            if(ec)
+                std::cerr << argv[0] << ": " << ec.message() << std::endl;
         });
     ios.run();
     return 0;

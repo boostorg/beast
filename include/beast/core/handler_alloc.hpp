@@ -134,8 +134,9 @@ public:
     template<class U>
     friend
     bool
-    operator==(handler_alloc const& lhs,
-        handler_alloc<U, Handler> const& rhs)
+    operator==(
+        handler_alloc const&,
+        handler_alloc<U, Handler> const&)
     {
         return true;
     }
@@ -143,7 +144,8 @@ public:
     template<class U>
     friend
     bool
-    operator!=(handler_alloc const& lhs,
+    operator!=(
+        handler_alloc const& lhs,
         handler_alloc<U, Handler> const& rhs)
     {
         return ! (lhs == rhs);

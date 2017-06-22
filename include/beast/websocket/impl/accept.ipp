@@ -175,7 +175,7 @@ class stream<NextLayer>::accept_op
         Decorator decorator;
         http::request_parser<http::empty_body> p;
 
-        data(Handler& handler, stream<NextLayer>& ws_,
+        data(Handler&, stream<NextLayer>& ws_,
                 Decorator const& decorator_)
             : ws(ws_)
             , decorator(decorator_)
@@ -183,7 +183,7 @@ class stream<NextLayer>::accept_op
         }
 
         template<class Buffers>
-        data(Handler& handler, stream<NextLayer>& ws_,
+        data(Handler&, stream<NextLayer>& ws_,
             Buffers const& buffers,
                 Decorator const& decorator_)
             : ws(ws_)
