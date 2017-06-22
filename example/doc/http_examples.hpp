@@ -706,12 +706,13 @@ read_istream(
         if(is.rdbuf()->in_avail() > 0)
         {
             // Get a mutable buffer sequence for writing
-            auto const mb = buffer.prepare(is.rdbuf()->in_avail());
+            auto const mb = buffer.prepare(
+                static_cast<std::size_t>(is.rdbuf()->in_avail()));
 
             // Now get everything we can from the istream
-            buffer.commit(is.readsome(
+            buffer.commit(static_cast<std::size_t>(is.readsome(
                 boost::asio::buffer_cast<char*>(mb),
-                boost::asio::buffer_size(mb)));
+                boost::asio::buffer_size(mb))));
         }
         else if(buffer.size() == 0)
         {
@@ -736,7 +737,7 @@ read_istream(
                 }
 
                 // Commit the characters we got to the buffer.
-                buffer.commit(is.gcount());
+                buffer.commit(static_cast<std::size_t>(is.gcount()));
             }
             else
             {

@@ -49,7 +49,7 @@ public:
                 BEAST_EXPECT(! utf8.write(&(*it), 1));
 
         // Invalid sequence
-        std::fill(buf.begin(), buf.end(), 0xFF);
+        std::fill(buf.begin(), buf.end(), '\xff');
         BEAST_EXPECT(! utf8.write(&buf.front(), buf.size()));
     }
 

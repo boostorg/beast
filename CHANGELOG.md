@@ -6,6 +6,7 @@ Version 65:
 * Fix narrowing in ostream
 * Fix narrowing in inflate_stream
 * Fix narrowing in deflate_stream
+* Fix integer warnings
 
 --------------------------------------------------------------------------------
 

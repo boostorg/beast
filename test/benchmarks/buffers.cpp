@@ -71,7 +71,7 @@ public:
             std::fill(
                 buffer_cast<char*>(buffer),
                 buffer_cast<char*>(buffer) +
-                    buffer_size(buffer), 0);
+                    buffer_size(buffer), '\0');
             n += buffer_size(buffer);
         }
         return n;
