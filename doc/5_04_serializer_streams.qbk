@@ -29,12 +29,6 @@ This code creates an HTTP response and the corresponding serializer:
 
 [http_snippet_10]
 
-The function
-[link beast.ref.beast__http__make_serializer `make_serializer`]
-is provided to simplify creation of variables:
-
-[http_snippet_11]
-
 The stream operations which work on serializers are:
 
 [table Serializer Stream Operations

@@ -53,10 +53,8 @@ struct no_chunk_decorator
 /** Provides buffer oriented HTTP message serialization functionality.
 
     An object of this type is used to serialize a complete
-    HTTP message into a seriest of octets. To use this class,
+    HTTP message into a sequence of octets. To use this class,
     construct an instance with the message to be serialized.
-    To make it easier to declare the type, the helper function
-    @ref make_serializer is provided.
 
     The implementation will automatically perform chunk encoding
     if the contents of the message indicate that chunk encoding
@@ -114,11 +112,11 @@ struct no_chunk_decorator
     @tparam Fields The type of fields in the message.
 
     @tparam ChunkDecorator The type of chunk decorator to use.
-
-    @see @ref make_serializer
 */
 template<
-    bool isRequest, class Body, class Fields,
+    bool isRequest,
+    class Body,
+    class Fields = fields,
     class ChunkDecorator = no_chunk_decorator>
 class serializer
 {
@@ -321,27 +319,6 @@ public:
     void
     consume(std::size_t n);
 };
-
-/** Return a stateful object to serialize an HTTP message.
-
-    This convenience function makes it easier to declare
-    the variable for a given message.
-
-    @see @ref serializer
-*/
-template<
-    bool isRequest, class Body, class Fields,
-    class ChunkDecorator = no_chunk_decorator>
-inline
-serializer<isRequest, Body, Fields,
-    typename std::decay<ChunkDecorator>::type>
-make_serializer(message<isRequest, Body, Fields> const& m,
-    ChunkDecorator const& decorator = ChunkDecorator{})
-{
-    return serializer<isRequest, Body, Fields,
-        typename std::decay<ChunkDecorator>::type>{
-            m, decorator};
-}
 
 } // http
 } // beast

@@ -66,7 +66,6 @@
             <member><link linkend="beast.ref.beast__http__async_write_header">async_write_header</link></member>
             <member><link linkend="beast.ref.beast__http__async_write_some">async_write_some</link></member>
             <member><link linkend="beast.ref.beast__http__int_to_status">int_to_status</link></member>
-            <member><link linkend="beast.ref.beast__http__make_serializer">make_serializer</link></member>
             <member><link linkend="beast.ref.beast__http__obsolete_reason">obsolete_reason</link></member>
             <member><link linkend="beast.ref.beast__http__operator_lt__lt_">operator&lt;&lt;</link></member>
             <member><link linkend="beast.ref.beast__http__read">read</link></member>
