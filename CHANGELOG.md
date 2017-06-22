@@ -1,6 +1,7 @@
 Version 65:
 
 * Enable narrowing warning on msvc cmake
+* Fix integer types in deflate_stream::bi_reverse
 
 --------------------------------------------------------------------------------
 

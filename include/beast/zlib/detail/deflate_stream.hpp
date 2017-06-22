@@ -646,9 +646,10 @@ protected:
             init();
     }
 
+    template<class Unsigned>
     static
-    unsigned
-    bi_reverse(unsigned code, int len);
+    Unsigned
+    bi_reverse(Unsigned code, unsigned len);
 
     template<class = void>
     static
@@ -742,12 +743,15 @@ protected:
 //--------------------------------------------------------------------------
 
 // Reverse the first len bits of a code
+template<class Unsigned>
 inline
-unsigned
+Unsigned
 deflate_stream::
-bi_reverse(unsigned code, int len)
+bi_reverse(Unsigned code, unsigned len)
 {
-    unsigned res = 0;
+    BOOST_STATIC_ASSERT(std::is_unsigned<Unsigned>::value);
+    BOOST_ASSERT(len <= 8 * sizeof(unsigned));
+    Unsigned res = 0;
     do
     {
         res |= code & 1;
