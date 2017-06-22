@@ -635,8 +635,8 @@ basic_fields<Allocator>::
 insert(field name,
     string_view sname, string_param const& value)
 {
-    auto& e = new_element(
-        name, sname, value.str());
+    auto& e = new_element(name, sname,
+        static_cast<string_view>(value));
     auto const before =
         set_.upper_bound(sname, key_compare{});
     if(before == set_.begin())
@@ -666,8 +666,8 @@ basic_fields<Allocator>::
 set(field name, string_param const& value)
 {
     BOOST_ASSERT(name != field::unknown);
-    set_element(new_element(name,
-        to_string(name), value.str()));
+    set_element(new_element(name, to_string(name),
+        static_cast<string_view>(value)));
 }
 
 template<class Allocator>
@@ -676,8 +676,8 @@ basic_fields<Allocator>::
 set(string_view sname, string_param const& value)
 {
     set_element(new_element(
-        string_to_field(sname),
-            sname, value.str()));
+        string_to_field(sname), sname,
+            static_cast<string_view>(value)));
 }
 
 template<class Allocator>

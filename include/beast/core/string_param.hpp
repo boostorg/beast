@@ -10,8 +10,10 @@
 
 #include <beast/config.hpp>
 #include <beast/core/string.hpp>
+#include <beast/core/static_string.hpp>
 #include <beast/core/detail/static_ostream.hpp>
 #include <beast/core/detail/type_traits.hpp>
+#include <boost/optional.hpp>
 
 namespace beast {
 
@@ -26,34 +28,47 @@ namespace beast {
 */
 class string_param
 {
-    template<class T, class = void>
-    struct is_streamable : std::false_type{};
-
-#if ! BEAST_DOXYGEN
-    template<class T>
-    struct is_streamable<T, detail::void_t<decltype(
-        std::declval<std::ostream&>() << std::declval<T const&>()
-            )>> : std::true_type {};
-#endif
-
-    template<class T>
-    void
-    assign(T const& t, std::true_type)
-    {
-        sv_ = t;
-    }
-
-    template<class T>
-    void
-    assign(T const& t, std::false_type)
-    {
-        os_ << t;
-        os_.flush();
-        sv_ = os_.str();
-    }
-
-    detail::static_ostream os_;
     string_view sv_;
+    char buf_[128];
+    boost::optional<detail::static_ostream> os_;
+
+    template<class T>
+    typename std::enable_if<
+        std::is_integral<T>::value>::type
+    print(T const&);
+
+    template<class T>
+    typename std::enable_if<
+        ! std::is_integral<T>::value &&
+        ! std::is_convertible<T, string_view>::value
+    >::type
+    print(T const&);
+
+    void
+    print(string_view const&);
+
+    template<class T>
+    typename std::enable_if<
+        std::is_integral<T>::value>::type
+    print_1(T const&);
+
+    template<class T>
+    typename std::enable_if<
+        ! std::is_integral<T>::value>::type
+    print_1(T const&);
+
+    void
+    print_n()
+    {
+    }
+
+    template<class T0, class... TN>
+    void
+    print_n(T0 const&, TN const&...);
+
+    template<class T0, class T1, class... TN>
+    void
+    print(T0 const&, T1 const&, TN const&...);
 
 public:
     /// Copy constructor (disallowed)
@@ -64,62 +79,31 @@ public:
 
     /** Constructor
 
-        This function constructs a string from the specified
-        parameter.
-        
-        If @ref string_view is constructible from `T` then
-        the complexity is O(1), and no dynamic allocation
-        takes place.
+        This function constructs a string as if by concatenating
+        the result of streaming each argument in order into an
+        output stream. It is used as a notational convenience
+        at call sites which expect a parameter with the semantics
+        of a @ref string_view.
 
-        Otherwise, the argument is converted to a string
-        as if by a call to `boost::lexical_cast<std::string>(t)`.
-        An attempt is made to store this string in a reasonably
-        sized buffer inside the class, to avoid dynamic allocation.
+        The implementation uses a small, internal static buffer
+        to avoid memory allocations especially for the case where
+        the list of arguments to be converted consists of a single
+        integral type.
 
-        If the argument could not be converted given the space
-        of the class buffer, a final attempt is made to convert
-        the argument to a `std::string`. This attempt may cause
-        a memory allocation.
-
-        @param t The argument to convert to string.
-
-        @note This function participates in overload resolution
-        only if `T` is convertible to @ref string_view, or if
-        `operator<<(std::ostream&, T)` is defined.
+        @param args One or more arguments to convert
     */
-#if BEAST_DOXYGEN
-    template<class T>
-#else
-    template<class T, class = typename std::enable_if<
-        std::is_convertible<T, string_view>::value ||
-        is_streamable<T>::value
-            >::type>
-#endif
-    string_param(T const& t);
+    template<class... Args>
+    string_param(Args const&... args);
 
-    /// Conversion to @ref string_view for the converted argument.
-    string_view const
-    str() const
-    {
-        return sv_;
-    }
-
-    /// Conversion to @ref string_view operator
+    /// Implicit conversion to @ref string_view
     operator string_view const() const
     {
         return sv_;
     }
 };
 
-#if ! BEAST_DOXYGEN
-template<class T, class>
-string_param::
-string_param(T const& t)
-{
-    assign(t, std::is_convertible<T, string_view>{});
-}
-#endif
-
 } // beast
+
+#include <beast/core/impl/string_param.ipp>
 
 #endif

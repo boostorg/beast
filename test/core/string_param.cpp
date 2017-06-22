@@ -18,12 +18,10 @@ class string_param_test : public unit_test::suite
 public:
     struct nop {};
 
-    static_assert(! std::is_constructible<string_param, nop>::value, "");
-
     void
     check(string_param const& v, string_view s)
     {
-        BEAST_EXPECT(v.str() == s);
+        BEAST_EXPECT(static_cast<string_view>(v) == s);
     }
 
     class repeater
@@ -56,6 +54,8 @@ public:
         check(123, "123");
         check(1234, "1234");
         check(12345, "12345");
+        check({"a", "b"}, "ab");
+        check({1, 2, 3}, "123");
     }
 
     void
