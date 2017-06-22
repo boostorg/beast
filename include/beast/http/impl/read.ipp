@@ -318,7 +318,7 @@ class read_msg_op
         message_type& m;
         parser_type p;
 
-        data(Handler& handler, Stream& s_,
+        data(Handler&, Stream& s_,
                 DynamicBuffer& b_, message_type& m_)
             : s(s_)
             , b(b_)

@@ -524,7 +524,7 @@ assign_char(CharT ch, std::true_type) ->
 template<std::size_t N, class CharT, class Traits>
 auto
 static_string<N, CharT, Traits>::
-assign_char(CharT ch, std::false_type) ->
+assign_char(CharT, std::false_type) ->
     static_string&
 {
     BOOST_THROW_EXCEPTION(std::length_error{

@@ -3099,13 +3099,13 @@ private:
 
     static
     void
-    default_decorate_req(request_type& res)
+    default_decorate_req(request_type&)
     {
     }
 
     static
     void
-    default_decorate_res(response_type& res)
+    default_decorate_res(response_type&)
     {
     }
 

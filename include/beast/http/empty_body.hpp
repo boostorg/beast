@@ -90,7 +90,7 @@ struct empty_body
     {
         template<bool isRequest, class Fields>
         explicit
-        writer(message<isRequest, empty_body, Fields>& msg)
+        writer(message<isRequest, empty_body, Fields>&)
         {
         }
 

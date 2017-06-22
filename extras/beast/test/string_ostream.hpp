@@ -57,7 +57,7 @@ public:
 
     template<class MutableBufferSequence>
     std::size_t
-    read_some(MutableBufferSequence const& buffers,
+    read_some(MutableBufferSequence const&,
         error_code& ec)
     {
         ec = boost::asio::error::eof;
@@ -67,7 +67,7 @@ public:
     template<class MutableBufferSequence, class ReadHandler>
     async_return_type<
         ReadHandler, void(error_code, std::size_t)>
-    async_read_some(MutableBufferSequence const& buffers,
+    async_read_some(MutableBufferSequence const&,
         ReadHandler&& handler)
     {
         async_completion<ReadHandler,
@@ -124,7 +124,7 @@ public:
     friend
     void
     teardown(websocket::teardown_tag,
-        string_ostream& stream,
+        string_ostream&,
             boost::system::error_code& ec)
     {
         ec.assign(0, ec.category());

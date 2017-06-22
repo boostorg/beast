@@ -950,6 +950,7 @@ void custom_parser<isRequest>::
 on_request(verb method, string_view method_str,
     string_view path, int version, error_code& ec)
 {
+    boost::ignore_unused(method, method_str, path, version);
     ec = {};
 }
 
@@ -958,6 +959,7 @@ void custom_parser<isRequest>::
 on_response(int status, string_view reason,
     int version, error_code& ec)
 {
+    boost::ignore_unused(status, reason, version);
     ec = {};
 }
 
@@ -966,6 +968,7 @@ void custom_parser<isRequest>::
 on_field(field f, string_view name,
     string_view value, error_code& ec)
 {
+    boost::ignore_unused(f, name, value);
     ec = {};
 }
 
@@ -981,6 +984,7 @@ void custom_parser<isRequest>::
 on_body(boost::optional<std::uint64_t> const& content_length,
     error_code& ec)
 {
+    boost::ignore_unused(content_length);
     ec = {};
 }
 
@@ -988,6 +992,7 @@ template<bool isRequest>
 void custom_parser<isRequest>::
 on_data(string_view s, error_code& ec)
 {
+    boost::ignore_unused(s);
     ec = {};
 }
 
@@ -996,6 +1001,7 @@ void custom_parser<isRequest>::
 on_chunk(std::uint64_t size,
     string_view extension, error_code& ec)
 {
+    boost::ignore_unused(size, extension);
     ec = {};
 }
 

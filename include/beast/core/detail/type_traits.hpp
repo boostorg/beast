@@ -62,19 +62,6 @@ inline
 void
 accept_rv(T){}
 
-template<class... Ts>
-inline
-void
-ignore_unused(Ts const& ...)
-{
-}
-
-template<class... Ts>
-inline
-void
-ignore_unused()
-{}
-
 template<class U>
 std::size_t constexpr
 max_sizeof()

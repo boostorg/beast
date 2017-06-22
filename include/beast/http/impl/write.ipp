@@ -358,7 +358,7 @@ class write_msg_op
         serializer<isRequest,
             Body, Fields, no_chunk_decorator> sr;
 
-        data(Handler& h, Stream& s_, message<
+        data(Handler&, Stream& s_, message<
                 isRequest, Body, Fields>& m_)
             : s(s_)
             , sr(m_, no_chunk_decorator{})

@@ -559,7 +559,7 @@ class stream<NextLayer>::write_op
         consuming_buffers<Buffers> cb;
         std::size_t remain;
 
-        data(Handler& handler, stream<NextLayer>& ws_,
+        data(Handler&, stream<NextLayer>& ws_,
                 Buffers const& bs)
             : ws(ws_)
             , cb(bs)

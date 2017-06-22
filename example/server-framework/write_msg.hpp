@@ -57,6 +57,7 @@ class write_msg_op
             : stream(stream_)
             , msg(std::move(msg_))
         {
+            boost::ignore_unused(handler);
         }
     };
 

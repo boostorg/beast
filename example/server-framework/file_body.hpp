@@ -346,6 +346,8 @@ void
 file_body::writer::
 init(boost::optional<std::uint64_t> const& content_length, beast::error_code& ec)
 {
+    boost::ignore_unused(content_length);
+
     // Attempt to open the file for writing
     file_ = fopen(path_.string().c_str(), "wb");
 

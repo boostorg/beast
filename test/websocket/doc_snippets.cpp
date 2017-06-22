@@ -191,6 +191,7 @@ boost::asio::ip::tcp::socket sock{ios};
         [](bool is_pong, ping_data const& payload)
         {
             // Do something with the payload
+            boost::ignore_unused(is_pong, payload);
         });
 //]
 
