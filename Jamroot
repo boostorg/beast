@@ -91,7 +91,7 @@ project beast
     <toolset>clang:<cxxflags>-Wrange-loop-analysis
     <toolset>msvc:<define>_SCL_SECURE_NO_WARNINGS=1
     <toolset>msvc:<define>_CRT_SECURE_NO_WARNINGS=1
-    <toolset>msvc:<cxxflags>"/wd4100 /wd4251 /bigobj"
+    <toolset>msvc:<cxxflags>"/bigobj"
     <toolset>msvc:<variant>release:<cxxflags>"/Ob2 /Oi /Ot"
     <os>LINUX:<define>_XOPEN_SOURCE=600
     <os>LINUX:<define>_GNU_SOURCE=1
