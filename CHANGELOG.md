@@ -7,6 +7,7 @@ Version 65:
 * Fix narrowing in inflate_stream
 * Fix narrowing in deflate_stream
 * Fix integer warnings
+* Enable unused variable warning on msvc cmake
 
 --------------------------------------------------------------------------------
 
