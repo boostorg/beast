@@ -812,7 +812,7 @@ deflate_stream::get_lut() ->
             //std::uint16_t bl_count[maxBits+1];
 
             // Initialize the mapping length (0..255) -> length code (0..28)
-            int length = 0;
+            std::uint8_t length = 0;
             for(std::uint8_t code = 0; code < lengthCodes-1; ++code)
             {
                 tables.base_length[code] = length;
@@ -820,7 +820,7 @@ deflate_stream::get_lut() ->
                 for(unsigned n = 0; n < run; ++n)
                     tables.length_code[length++] = code;
             }
-            BOOST_ASSERT(length == 256);
+            BOOST_ASSERT(length == 0);
             // Note that the length 255 (match length 258) can be represented
             // in two different ways: code 284 + 5 bits or code 285, so we
             // overwrite length_code[255] to use the best encoding:
@@ -1439,7 +1439,7 @@ gen_bitlen(tree_desc *desc)
     std::uint16_t f;                // frequency
     int overflow = 0;               // number of elements with bit length too large
 
-    std::fill(&bl_count_[0], &bl_count_[maxBits+1], 0);
+    std::fill(&bl_count_[0], &bl_count_[maxBits+1], std::uint16_t{0});
 
     /* In a first pass, compute the optimal bit lengths (which may
      * overflow in the case of the bit length tree).
@@ -1618,7 +1618,7 @@ scan_tree(
     int prevlen = -1;           // last emitted length
     int curlen;                 // length of current code
     int nextlen = tree[0].dl;   // length of next code
-    int count = 0;              // repeat count of the current code
+    std::uint16_t count = 0;    // repeat count of the current code
     int max_count = 7;          // max repeat count
     int min_count = 4;          // min repeat count
 
@@ -2629,8 +2629,8 @@ f_fast(z_params& zs, Flush flush) ->
         }
         if(match_length_ >= minMatch)
         {
-            tr_tally_dist(strstart_ - match_start_,
-                           match_length_ - minMatch, bflush);
+            tr_tally_dist(static_cast<std::uint16_t>(strstart_ - match_start_),
+                static_cast<std::uint8_t>(match_length_ - minMatch), bflush);
 
             lookahead_ -= match_length_;
 
@@ -2765,8 +2765,9 @@ f_slow(z_params& zs, Flush flush) ->
             /* Do not insert strings in hash table beyond this. */
             uInt max_insert = strstart_ + lookahead_ - minMatch;
 
-            tr_tally_dist(strstart_ -1 - prev_match_,
-                           prev_length_ - minMatch, bflush);
+            tr_tally_dist(
+                static_cast<std::uint16_t>(strstart_ -1 - prev_match_),
+                static_cast<std::uint8_t>(prev_length_ - minMatch), bflush);
 
             /* Insert in hash table all strings up to the end of the match.
              * strstart-1 and strstart are already inserted. If there is not
@@ -2890,7 +2891,9 @@ f_rle(z_params& zs, Flush flush) ->
 
         /* Emit match if have run of minMatch or longer, else emit literal */
         if(match_length_ >= minMatch) {
-            tr_tally_dist(1, match_length_ - minMatch, bflush);
+            tr_tally_dist(std::uint16_t{1},
+                static_cast<std::uint8_t>(match_length_ - minMatch),
+                bflush);
 
             lookahead_ -= match_length_;
             strstart_ += match_length_;
