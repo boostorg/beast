@@ -1067,10 +1067,10 @@ get_fixed_tables() ->
             std::uint16_t lens[320];
             std::uint16_t work[288];
 
-            std::fill(&lens[  0], &lens[144], 8);
-            std::fill(&lens[144], &lens[256], 9);
-            std::fill(&lens[256], &lens[280], 7);
-            std::fill(&lens[280], &lens[288], 8);
+            std::fill(&lens[  0], &lens[144], std::uint16_t{8});
+            std::fill(&lens[144], &lens[256], std::uint16_t{9});
+            std::fill(&lens[256], &lens[280], std::uint16_t{7});
+            std::fill(&lens[280], &lens[288], std::uint16_t{8});
 
             {
                 error_code ec;
@@ -1090,7 +1090,7 @@ get_fixed_tables() ->
             {
                 error_code ec;
                 auto next = &dist_[0];
-                std::fill(&lens[0], &lens[32], 5);
+                std::fill(&lens[0], &lens[32], std::uint16_t{5});
                 inflate_table(build::dists,
                     lens, 32, &next, &distbits, work, ec);
                 if(ec)
