@@ -39,6 +39,7 @@
 #include <beast/zlib/detail/ranges.hpp>
 #include <beast/core/detail/type_traits.hpp>
 #include <boost/assert.hpp>
+#include <boost/config.hpp>
 #include <boost/optional.hpp>
 #include <boost/throw_exception.hpp>
 #include <cstdint>
@@ -667,7 +668,7 @@ protected:
     template<class = void> std::size_t doUpperBound (std::size_t sourceLen) const;
     template<class = void> void doTune              (int good_length, int max_lazy, int nice_length, int max_chain);
     template<class = void> void doParams            (z_params& zs, int level, Strategy strategy, error_code& ec);
-    template<class = void> void doWrite             (z_params& zs, Flush flush, error_code& ec);
+    template<class = void> void doWrite             (z_params& zs, boost::optional<Flush> flush, error_code& ec);
     template<class = void> void doDictionary        (Byte const* dict, uInt dictLength, error_code& ec);
     template<class = void> void doPrime             (int bits, int value, error_code& ec);
     template<class = void> void doPending           (unsigned* value, int* bits);
@@ -1014,10 +1015,14 @@ doParams(z_params& zs, int level, Strategy strategy, error_code& ec)
     strategy_ = strategy;
 }
 
+// VFALCO boost::optional param is a workaround for
+//        gcc "maybe uninitialized" warning
+//        https://github.com/vinniefalco/Beast/issues/532
+//
 template<class>
 void
 deflate_stream::
-doWrite(z_params& zs, Flush flush, error_code& ec)
+doWrite(z_params& zs, boost::optional<Flush> flush, error_code& ec)
 {
     maybe_init();
 
@@ -1081,14 +1086,14 @@ doWrite(z_params& zs, Flush flush, error_code& ec)
         switch(strategy_)
         {
         case Strategy::huffman:
-            bstate = deflate_huff(zs, flush);
+            bstate = deflate_huff(zs, flush.get());
             break;
         case Strategy::rle:
-            bstate = deflate_rle(zs, flush);
+            bstate = deflate_rle(zs, flush.get());
             break;
         default:
         {
-            bstate = (this->*(get_config(level_).func))(zs, flush);
+            bstate = (this->*(get_config(level_).func))(zs, flush.get());
             break;
         }
         }
