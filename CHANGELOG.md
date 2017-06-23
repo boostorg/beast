@@ -6,6 +6,7 @@ Version 66:
 * Fix costly potential value-init in parser
 * Fix unused parameter warning
 * Handle bad_alloc in parser
+* Tidy up message piecewise ctors
 
 --------------------------------------------------------------------------------
 

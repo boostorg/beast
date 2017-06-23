@@ -536,23 +536,37 @@ private:
     static_assert(is_body<Body>::value,
         "Body requirements not met");
 
-    template<class... Un, std::size_t... IUn>
-    message(std::piecewise_construct_t,
-        std::tuple<Un...>& tu,
-            beast::detail::index_sequence<IUn...>)
-        : body(std::forward<Un>(std::get<IUn>(tu))...)
+    template<
+        class... BodyArgs,
+        std::size_t... IBodyArgs>
+    message(
+        std::piecewise_construct_t,
+        std::tuple<BodyArgs...>& body_args,
+        beast::detail::index_sequence<IBodyArgs...>)
+        : body(std::forward<BodyArgs>(
+            std::get<IBodyArgs>(body_args))...)
     {
+        boost::ignore_unused(body_args);
     }
 
-    template<class... Un, class... Vn,
-        std::size_t... IUn, std::size_t... IVn>
-    message(std::piecewise_construct_t,
-            std::tuple<Un...>& tu, std::tuple<Vn...>& tv,
-                beast::detail::index_sequence<IUn...>,
-                    beast::detail::index_sequence<IVn...>)
-        : header_type(std::forward<Vn>(std::get<IVn>(tv))...)
-        , body(std::forward<Un>(std::get<IUn>(tu))...)
+    template<
+        class... BodyArgs,
+        class... FieldsArgs,
+        std::size_t... IBodyArgs,
+        std::size_t... IFieldsArgs>
+    message(
+        std::piecewise_construct_t,
+        std::tuple<BodyArgs...>& body_args,
+        std::tuple<FieldsArgs...>& fields_args,
+        beast::detail::index_sequence<IBodyArgs...>,
+        beast::detail::index_sequence<IFieldsArgs...>)
+        : header_type(std::forward<FieldsArgs>(
+            std::get<IFieldsArgs>(fields_args))...)
+        , body(std::forward<BodyArgs>(
+            std::get<IBodyArgs>(body_args))...)
     {
+        boost::ignore_unused(body_args);
+        boost::ignore_unused(fields_args);
     }
 
     boost::optional<std::uint64_t>
