@@ -129,4 +129,9 @@ In this table:
 
 [concept_Fields]
 
+[heading Models]
+
+* [link beast.ref.beast__http__basic_fields `basic_fields`]
+* [link beast.ref.beast__http__fields `fields`]
+
 [endsect]

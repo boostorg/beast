@@ -324,39 +324,3 @@ struct decorator
 //]
 
 } // doc_http_snippets
-
-namespace beast {
-namespace http {
-
-#if 0
-//[http_snippet_9]
-
-/// Provides buffer oriented HTTP message serialization functionality.
-template<
-    bool isRequest,
-    class Body,
-    class Fields = fields,
-    class ChunkDecorator = no_chunk_decorator
->
-class serializer;
-
-/// A serializer for HTTP/1 requests
-template<
-    class Body,
-    class Fields = fields,
-    class ChunkDecorator = no_chunk_decorator>
-using request_serializer = serializer<true, Body, Fields, ChunkDecorator>;
-
-/// A serializer for HTTP/1 responses
-template<
-    class Body,
-    class Fields = fields,
-    class ChunkDecorator = no_chunk_decorator>
-using response_serializer = serializer<false, Body, Fields, ChunkDecorator>;
-
-//]
-#endif
-
-} // http
-} // beast
-

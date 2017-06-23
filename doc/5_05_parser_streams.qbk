@@ -24,7 +24,7 @@ associated state, by constructing a class derived from __basic_parser__.
 Beast comes with the derived instance __parser__ which creates complete
 __message__ objects; user-defined parsers are also possible:
 
-[table Parser Implementations
+[table Parser
 [[Name][Description]]
 [[
     __parser__
