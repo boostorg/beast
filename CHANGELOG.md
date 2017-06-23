@@ -10,6 +10,7 @@ Version 66:
 * Add header aliases
 * basic_fields optimizations
 * Add http-server example
+* Squelch spurious warning on gcc
 
 --------------------------------------------------------------------------------
 
