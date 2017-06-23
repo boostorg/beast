@@ -119,6 +119,7 @@ template<
 CharT*
 raw_to_string(CharT* last, std::size_t size, Integer i)
 {
+    boost::ignore_unused(size);
     BOOST_ASSERT(size >= max_digits(sizeof(Integer)));
     return raw_to_string<CharT, Integer, Traits>(
         last, i, std::is_signed<Integer>{});

@@ -67,7 +67,12 @@ public:
         message<isRequest, Body, basic_fields<Allocator>>;
 
     /// Constructor (default)
-    parser() = default;
+    parser()
+    {
+        // avoid `parser()=default` otherwise value-init
+        // for members can happen (i.e. a big memset on
+        // static_buffer_n).
+    }
 
     /// Copy constructor (disallowed)
     parser(parser const&) = delete;
