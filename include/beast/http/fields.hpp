@@ -624,6 +624,10 @@ private:
     void
     realloc_string(string_view& dest, string_view s);
 
+    void
+    realloc_target(
+        string_view& dest, string_view s);
+
     template<class OtherAlloc>
     void
     copy_all(basic_fields<OtherAlloc> const&);

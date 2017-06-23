@@ -139,26 +139,17 @@ public:
     bool
     get_keep_alive(int version) const;
 
-    template<class String>
-    void
-    prepare(String& s, basic_fields const& f,
-        unsigned version, verb v);
-
-    template<class String>
-    void
-    prepare(String&s, basic_fields const& f,
-        unsigned version, unsigned code);
-
     basic_fields const& f_;
-    static_string<max_static_buffer> ss_;
-    string_view sv_;
-    std::string s_;
+    boost::asio::const_buffer cb_[3];
+    char buf_[13];
     bool chunked_;
     bool keep_alive_;
 
 public:
     using const_buffers_type =
         buffer_cat_view<
+            boost::asio::const_buffers_1,
+            boost::asio::const_buffers_1,
             boost::asio::const_buffers_1,
             field_range,
             boost::asio::const_buffers_1>;
@@ -185,7 +176,9 @@ public:
     get() const
     {
         return buffer_cat(
-            boost::asio::buffer(sv_.data(), sv_.size()),
+            boost::asio::const_buffers_1{cb_[0]},
+            boost::asio::const_buffers_1{cb_[1]},
+            boost::asio::const_buffers_1{cb_[2]},
             field_range(f_.list_.begin(), f_.list_.end()),
             detail::chunk_crlf());
     }
@@ -227,89 +220,6 @@ get_keep_alive(int version) const
 }
 
 template<class Allocator>
-template<class String>
-void
-basic_fields<Allocator>::reader::
-prepare(String& s, basic_fields const&,
-    unsigned version, verb v)
-{
-    if(v == verb::unknown)
-    {
-        auto const sv =
-            f_.get_method_impl();
-        s.append(sv.data(), sv.size());
-    }
-    else
-    {
-        auto const sv = to_string(v);
-        s.append(sv.data(), sv.size());
-    }
-    s.push_back(' ');
-    {
-        auto const sv = f_.get_target_impl();
-        s.append(sv.data(), sv.size());
-    }
-    if(version == 11)
-    {
-        s.append(" HTTP/1.1\r\n");
-    }
-    else if(version == 10)
-    {
-        s.append(" HTTP/1.0\r\n");
-    }
-    else
-    {
-        s.append(" HTTP/");
-        s.push_back('0' + ((version / 10) % 10));
-        s.push_back('.');
-        s.push_back('0' + (version % 10));
-        s.append("\r\n");
-    }
-}
-
-template<class Allocator>
-template<class String>
-void
-basic_fields<Allocator>::reader::
-prepare(String& s, basic_fields const&,
-    unsigned version, unsigned code)
-{
-    if(version == 11)
-    {
-        s.append("HTTP/1.1 ");
-    }
-    else if(version == 10)
-    {
-        s.append("HTTP/1.0 ");
-    }
-    else
-    {
-        s.append("HTTP/");
-        s.push_back('0' + ((version / 10) % 10));
-        s.push_back('.');
-        s.push_back('0' + (version % 10));
-        s.push_back(' ');
-    }
-    {
-        auto const ss = to_static_string(code);
-        s.append(ss.data(), ss.size());
-    }
-    s.push_back(' ');
-    if(int_to_status(code) == status::unknown)
-    {
-        auto const sv = f_.get_reason_impl();
-        s.append(sv.data(), sv.size());
-    }
-    else
-    {
-        auto const sv =
-            obsolete_reason(int_to_status(code));
-        s.append(sv.data(), sv.size());
-    }
-    s.append("\r\n");
-}
-
-template<class Allocator>
 basic_fields<Allocator>::reader::
 reader(basic_fields const& f,
         unsigned version, verb v)
@@ -317,16 +227,36 @@ reader(basic_fields const& f,
     , chunked_(get_chunked())
     , keep_alive_(get_keep_alive(version))
 {
-    try
-    {
-        prepare(ss_, f, version, v);
-        sv_ = ss_;
-    }
-    catch(std::length_error const&)
-    {
-        prepare(s_, f, version, v);
-        sv_ = s_;
-    }
+/*
+    request
+        "<method>"
+        " <target>"
+        " HTTP/X.Y\r\n" (11 chars)
+*/
+    string_view sv;
+    if(v == verb::unknown)
+        sv = f_.get_method_impl();
+    else
+        sv = to_string(v);
+    cb_[0] = {sv.data(), sv.size()};
+
+    // target_or_reason_ has a leading SP
+    cb_[1] = {
+        f_.target_or_reason_.data(),
+        f_.target_or_reason_.size()};
+
+    buf_[0] = ' ';
+    buf_[1] = 'H';
+    buf_[2] = 'T';
+    buf_[3] = 'T';
+    buf_[4] = 'P';
+    buf_[5] = '/';
+    buf_[6] = '0' + static_cast<char>(version / 10);
+    buf_[7] = '.';
+    buf_[8] = '0' + static_cast<char>(version % 10);
+    buf_[9] = '\r';
+    buf_[10]= '\n';
+    cb_[2] = {buf_, 11};
 }
 
 template<class Allocator>
@@ -337,16 +267,35 @@ reader(basic_fields const& f,
     , chunked_(get_chunked())
     , keep_alive_(get_keep_alive(version))
 {
-    try
-    {
-        prepare(ss_, f, version, code);
-        sv_ = ss_;
-    }
-    catch(std::length_error const&)
-    {
-        prepare(s_, f, version, code);
-        sv_ = s_;
-    }
+/*
+    response
+        "HTTP/X.Y ### " (13 chars)
+        "<reason>"
+        "\r\n"
+*/
+    buf_[0] = 'H';
+    buf_[1] = 'T';
+    buf_[2] = 'T';
+    buf_[3] = 'P';
+    buf_[4] = '/';
+    buf_[5] = '0' + static_cast<char>(version / 10);
+    buf_[6] = '.';
+    buf_[7] = '0' + static_cast<char>(version % 10);
+    buf_[8] = ' ';
+    buf_[9] = '0' + static_cast<char>(code / 100);
+    buf_[10]= '0' + static_cast<char>((code / 10) % 10);
+    buf_[11]= '0' + static_cast<char>(code % 10);
+    buf_[12]= ' ';
+    cb_[0] = {buf_, 13};
+
+    string_view sv;
+    if(! f_.target_or_reason_.empty())
+        sv = f_.target_or_reason_;
+    else
+        sv = obsolete_reason(static_cast<status>(code));
+    cb_[1] = {sv.data(), sv.size()};
+
+    cb_[2] = detail::chunk_crlf();
 }
 
 //------------------------------------------------------------------------------
@@ -425,7 +374,8 @@ basic_fields<Allocator>::
 {
     delete_list();
     realloc_string(method_, {});
-    realloc_string(target_or_reason_, {});
+    realloc_string(
+        target_or_reason_, {});
 }
 
 template<class Allocator>
@@ -828,7 +778,8 @@ void
 basic_fields<Allocator>::
 set_target_impl(string_view s)
 {
-    realloc_string(target_or_reason_, s);
+    realloc_target(
+        target_or_reason_, s);
 }
 
 template<class Allocator>
@@ -837,7 +788,8 @@ void
 basic_fields<Allocator>::
 set_reason_impl(string_view s)
 {
-    realloc_string(target_or_reason_, s);
+    realloc_string(
+        target_or_reason_, s);
 }
 
 template<class Allocator>
@@ -855,7 +807,11 @@ string_view
 basic_fields<Allocator>::
 get_target_impl() const
 {
-    return target_or_reason_;
+    if(target_or_reason_.empty())
+        return target_or_reason_;
+    return {
+        target_or_reason_.data() + 1,
+        target_or_reason_.size() - 1};
 }
 
 template<class Allocator>
@@ -869,7 +825,7 @@ get_reason_impl() const
 
 namespace detail {
 
-// Builds a new string with "chunked" maybe taken off the end
+// Builds a new string with "chunked" taken off the end if present
 template<class String>
 void
 without_chunked_last(String& s, string_view const& tokens)
@@ -1059,7 +1015,6 @@ void
 basic_fields<Allocator>::
 realloc_string(string_view& dest, string_view s)
 {
-    s = detail::trim(s);
     if(dest.empty() && s.empty())
         return;
     auto a = typename std::allocator_traits<
@@ -1076,6 +1031,35 @@ realloc_string(string_view& dest, string_view s)
         auto const p = a.allocate(s.size());
         std::memcpy(p, s.data(), s.size());
         dest = {p, s.size()};
+    }
+}
+
+template<class Allocator>
+void
+basic_fields<Allocator>::
+realloc_target(
+    string_view& dest, string_view s)
+{
+    // The target string are stored with an
+    // extra space at the beginning to help
+    // the reader class.
+    if(dest.empty() && s.empty())
+        return;
+    auto a = typename std::allocator_traits<
+        Allocator>::template rebind_alloc<
+            char>(alloc_);
+    if(! dest.empty())
+    {
+        a.deallocate(const_cast<char*>(
+            dest.data()), dest.size());
+        dest.clear();
+    }
+    if(! s.empty())
+    {
+        auto const p = a.allocate(1 + s.size());
+        p[0] = ' ';
+        std::memcpy(p + 1, s.data(), s.size());
+        dest = {p, 1 + s.size()};
     }
 }
 
