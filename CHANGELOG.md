@@ -3,6 +3,8 @@ Version 66:
 * string_param optimizations
 * Add serializer request/response aliases
 * Make consuming_buffers smaller
+* Fix costly potential value-init in parser
+* Fix unused parameter warning
 
 --------------------------------------------------------------------------------
 
