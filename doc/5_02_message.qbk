@@ -7,8 +7,8 @@
 
 [section Message Containers]
 
-Beast provides a single class template __message__ which models
-HTTP/1 and
+Beast provides a single class template __message__ and some aliases which
+model HTTP/1 and
 [@https://tools.ietf.org/html/rfc7540 HTTP/2]
 messages:
 ```
@@ -18,6 +18,14 @@ template<
     class Body,                 // Controls the container and algorithms used for the body
     class Fields = fields>      // The type of container to store the fields
 class message;
+
+/// A typical HTTP request
+template<class Body, class Fields = fields>
+using request = message<true, Body, Fields>;
+
+/// A typical HTTP response
+template<class Body, class Fields = fields>
+using response = message<false, Body, Fields>;
 ```
 
 The container offers value semantics including move and copy if supported
@@ -33,13 +41,21 @@ the container. The library comes with a collection of common body types.
 As with fields, user defined body types are possible.
 
 Sometimes it is desired to only work with a header. Beast provides a single
-class template __header__ to model HTTP/1 and HTTP/2 headers:
+class template __header__ and some aliases to model HTTP/1 and HTTP/2 headers:
 ```
 /// An HTTP header
 template<
     bool isRequest,             // `true` for requests, `false` for responses
     class Fields = fields>      // The type of container to store the fields
 class header;
+
+/// A typical HTTP request header
+template<class Fields>
+using request_header = header<true, Fields>;
+
+/// A typical HTTP response header
+template<class Fields>
+using response_header = header<false, Fields>;
 ```
 
 Requests and responses share the version, fields, and body but have
