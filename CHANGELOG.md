@@ -1,3 +1,9 @@
+Version 67:
+
+* Fix doc example link
+
+--------------------------------------------------------------------------------
+
 Version 66:
 
 * string_param optimizations

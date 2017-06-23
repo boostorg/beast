@@ -71,7 +71,7 @@ over a TLS connection. Requires OpenSSL to build.
 This example implements a very simple HTTP server with
 some optimizations suitable for calculating benchmarks.
 
-* [repo_file example/http-server/fields_alloc.cpp]
+* [repo_file example/http-server/fields_alloc.hpp]
 * [repo_file example/http-server/http_server.cpp]
 
 [endsect]
