@@ -1,6 +1,7 @@
 Version 66:
 
 * string_param optimizations
+* Add serializer request/response aliases
 
 --------------------------------------------------------------------------------
 

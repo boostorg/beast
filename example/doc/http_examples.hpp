@@ -65,7 +65,7 @@ send_expect_100_continue(
     req.set(field::expect, "100-continue");
 
     // Create the serializer
-    serializer<true, Body, basic_fields<Allocator>> sr{req};
+    request_serializer<Body, basic_fields<Allocator>> sr{req};
 
     // Send just the header
     write_header(stream, sr, ec);
@@ -214,7 +214,7 @@ send_cgi_response(
     // to acquire buffers from the body (which would return
     // the error http::need_buffer because we set `data`
     // to `nullptr` above).
-    serializer<false, buffer_body, fields> sr{res};
+    response_serializer<buffer_body, fields> sr{res};
 
     // Send the header immediately.
     write_header(output, sr, ec);

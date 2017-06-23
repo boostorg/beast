@@ -320,6 +320,20 @@ public:
     consume(std::size_t n);
 };
 
+/// A serializer for HTTP/1 requests
+template<
+    class Body,
+    class Fields = fields,
+    class ChunkDecorator = no_chunk_decorator>
+using request_serializer = serializer<true, Body, Fields, ChunkDecorator>;
+
+/// A serializer for HTTP/1 responses
+template<
+    class Body,
+    class Fields = fields,
+    class ChunkDecorator = no_chunk_decorator>
+using response_serializer = serializer<false, Body, Fields, ChunkDecorator>;
+
 } // http
 } // beast
 
