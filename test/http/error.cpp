@@ -42,6 +42,7 @@ public:
         check("beast.http", error::unexpected_body);
         check("beast.http", error::need_buffer);
         check("beast.http", error::buffer_overflow);
+        check("beast.http", error::bad_alloc);
 
         check("beast.http", error::bad_line_ending);
         check("beast.http", error::bad_method);

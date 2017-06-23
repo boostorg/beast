@@ -198,12 +198,19 @@ private:
     on_request(verb method, string_view method_str,
         string_view target, int version, error_code& ec)
     {
-        ec.assign(0, ec.category());
-        m_.target(target);
-        if(method != verb::unknown)
-            m_.method(method);
-        else
-            m_.method_string(method_str);
+        try
+        {
+            m_.target(target);
+            if(method != verb::unknown)
+                m_.method(method);
+            else
+                m_.method_string(method_str);
+            ec.assign(0, ec.category());
+        }
+        catch(std::bad_alloc const&)
+        {
+            ec = error::bad_alloc;
+        }
         m_.version = version;
     }
 
@@ -212,18 +219,32 @@ private:
         string_view reason,
             int version, error_code& ec)
     {
-        ec.assign(0, ec.category());
         m_.result(code);
         m_.version = version;
-        m_.reason(reason);
+        try
+        {
+            m_.reason(reason);
+            ec.assign(0, ec.category());
+        }
+        catch(std::bad_alloc const&)
+        {
+            ec = error::bad_alloc;
+        }
     }
 
     void
     on_field(field name, string_view name_string,
         string_view value, error_code& ec)
     {
-        ec.assign(0, ec.category());
-        m_.insert(name, name_string, value);
+        try
+        {
+            m_.insert(name, name_string, value);
+            ec.assign(0, ec.category());
+        }
+        catch(std::bad_alloc const&)
+        {
+            ec = error::bad_alloc;
+        }
     }
 
     void
