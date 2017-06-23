@@ -9,6 +9,7 @@ Version 66:
 * Tidy up message piecewise ctors
 * Add header aliases
 * basic_fields optimizations
+* Add http-server example
 
 --------------------------------------------------------------------------------
 
