@@ -44,6 +44,7 @@ public:
         case error::unexpected_body: return "unexpected body";
         case error::need_buffer: return "need buffer";
         case error::buffer_overflow: return "buffer overflow";
+        case error::bad_alloc: return "bad alloc";
         case error::bad_line_ending: return "bad line ending";
         case error::bad_method: return "bad method";
         case error::bad_path: return "bad path";

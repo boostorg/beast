@@ -80,6 +80,13 @@ enum class error
     */
     buffer_overflow,
 
+    /** A memory allocation failed.
+
+        When basic_fields throws std::bad_alloc, it is
+        converted into this error by @ref parser.
+    */
+    bad_alloc,
+
     //
     // (parser errors)
     //

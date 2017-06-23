@@ -5,6 +5,7 @@ Version 66:
 * Make consuming_buffers smaller
 * Fix costly potential value-init in parser
 * Fix unused parameter warning
+* Handle bad_alloc in parser
 
 --------------------------------------------------------------------------------
 
