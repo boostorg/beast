@@ -347,6 +347,14 @@ private:
 #endif
 };
 
+/// A typical HTTP request header
+template<class Fields = fields>
+using request_header = header<true, Fields>;
+
+/// A typical HTTP response header
+template<class Fields = fields>
+using response_header = header<false, Fields>;
+
 /** A container for a complete HTTP message.
 
     This container is derived from the `Fields` template type.

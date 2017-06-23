@@ -7,6 +7,7 @@ Version 66:
 * Fix unused parameter warning
 * Handle bad_alloc in parser
 * Tidy up message piecewise ctors
+* Add header aliases
 
 --------------------------------------------------------------------------------
 
