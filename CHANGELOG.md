@@ -8,6 +8,7 @@ Version 66:
 * Handle bad_alloc in parser
 * Tidy up message piecewise ctors
 * Add header aliases
+* basic_fields optimizations
 
 --------------------------------------------------------------------------------
 
