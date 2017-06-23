@@ -20,7 +20,7 @@ at once, such as:
 
 These tasks may be performed by using the serializer stream interfaces.
 To use these interfaces, first construct a __serializer__ object with
-the message to be sent. The serializer type has this declaration:
+the message to be sent. The serializer type has these declarations:
 
 [http_snippet_9]
 

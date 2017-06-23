@@ -773,7 +773,7 @@ public:
             {
                 auto m = m0;
                 error_code ec;
-                serializer<false, Body, fields> sr{m};
+                response_serializer<Body, fields> sr{m};
                 sr.split(true);
                 for(;;)
                 {
@@ -787,7 +787,7 @@ public:
             {
                 auto m = m0;
                 error_code ec;
-                serializer<false, Body, fields> sr{m};
+                response_serializer<Body, fields> sr{m};
                 sr.split(true);
                 for(;;)
                 {
@@ -837,7 +837,7 @@ public:
                 auto m = m0;
                 error_code ec;
                 test::string_ostream so{get_io_service(), 3};
-                serializer<false, Body, fields> sr{m};
+                response_serializer<Body, fields> sr{m};
                 sr.split(true);
                 for(;;)
                 {
@@ -851,7 +851,7 @@ public:
             {
                 auto m = m0;
                 error_code ec;
-                serializer<false, Body, fields> sr{m};
+                response_serializer<Body, fields> sr{m};
                 sr.split(true);
                 for(;;)
                 {
