@@ -41,7 +41,6 @@ class consuming_buffers
 
     BufferSequence bs_;
     iter_type begin_;
-    iter_type end_;
     std::size_t skip_ = 0;
 
     template<class Deduced>

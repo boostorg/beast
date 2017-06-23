@@ -115,7 +115,6 @@ template<class Buffers>
 consuming_buffers<Buffers>::
 consuming_buffers()
     : begin_(bs_.begin())
-    , end_(bs_.end())
 {
 }
 
@@ -155,7 +154,6 @@ consuming_buffers<Buffers>::
 consuming_buffers(boost::in_place_init_t, Args&&... args)
     : bs_(std::forward<Args>(args)...)
     , begin_(bs_.begin())
-    , end_(bs_.end())
 {
     static_assert(sizeof...(Args) > 0,
         "Missing constructor arguments");
