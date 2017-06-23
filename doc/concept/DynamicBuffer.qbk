@@ -123,4 +123,14 @@ In this table:
 ]
 ]
 
+[heading Models]
+
+* [link beast.ref.beast__basic_flat_buffer `basic_flat_buffer`]
+* [link beast.ref.beast__basic_multi_buffer `basic_multi_buffer`]
+* [link beast.ref.beast__drain_buffer `drain_buffer`]
+* [link beast.ref.beast__flat_buffer `flat_buffer`]
+* [link beast.ref.beast__multi_buffer `multi_buffer`]
+* [link beast.ref.beast__static_buffer `static_buffer`]
+* [link beast.ref.beast__static_buffer_n `static_buffer_n`]
+
 [endsect]

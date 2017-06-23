@@ -19,10 +19,50 @@ at once, such as:
 * Use a series of caller-provided buffers to represent the body.
 
 These tasks may be performed by using the serializer stream interfaces.
-To use these interfaces, first construct a __serializer__ object with
-the message to be sent. The serializer type has these declarations:
+To use these interfaces, first construct a suitable object with
+the message to be sent:
 
-[http_snippet_9]
+[table Serializer
+[[Name][Description]]
+[[
+    __serializer__
+][
+    ```
+    /// Provides buffer oriented HTTP message serialization functionality.
+    template<
+        bool isRequest,
+        class Body,
+        class Fields = fields,
+        class ChunkDecorator = no_chunk_decorator
+    >
+    class serializer;
+    ```
+]]
+[[
+    [link beast.ref.beast__http__request_serializer `request_serializer`]
+][
+    ```
+    /// A serializer for HTTP/1 requests
+    template<
+        class Body,
+        class Fields = fields,
+        class ChunkDecorator = no_chunk_decorator>
+    using request_serializer = serializer<true, Body, Fields, ChunkDecorator>;
+    ```
+]]
+[[
+    [link beast.ref.beast__http__response_serializer `response_serializer`]
+][
+    ```
+    /// A serializer for HTTP/1 responses
+    template<
+        class Body,
+        class Fields = fields,
+        class ChunkDecorator = no_chunk_decorator>
+    using response_serializer = serializer<false, Body, Fields, ChunkDecorator>;
+    ```
+]]
+]
 
 The choices for template types must match the message passed on construction.
 This code creates an HTTP response and the corresponding serializer:

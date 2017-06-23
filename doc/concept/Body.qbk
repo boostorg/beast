@@ -71,4 +71,13 @@ In this table:
 
 [concept_Body]
 
+[heading Models]
+
+* [link beast.ref.beast__http__basic_dynamic_body `basic_dynamic_body`]
+* [link beast.ref.beast__http__buffer_body `buffer_body`]
+* [link beast.ref.beast__http__dynamic_body `dynamic_body`]
+* [link beast.ref.beast__http__empty_body `empty_body`]
+* [link beast.ref.beast__http__string_body `string_body`]
+* [link beast.ref.beast__http__string_view_body `string_view_body`]
+
 [endsect]

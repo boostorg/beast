@@ -11,22 +11,40 @@ Beast provides a single class template __message__ and some aliases which
 model HTTP/1 and
 [@https://tools.ietf.org/html/rfc7540 HTTP/2]
 messages:
-```
-/// An HTTP message
-template<
-    bool isRequest,             // `true` for requests, `false` for responses
-    class Body,                 // Controls the container and algorithms used for the body
-    class Fields = fields>      // The type of container to store the fields
-class message;
 
-/// A typical HTTP request
-template<class Body, class Fields = fields>
-using request = message<true, Body, Fields>;
-
-/// A typical HTTP response
-template<class Body, class Fields = fields>
-using response = message<false, Body, Fields>;
-```
+[table Message
+[[Name][Description]]
+[[
+    __message__
+][
+    ```
+    /// An HTTP message
+    template<
+        bool isRequest,             // `true` for requests, `false` for responses
+        class Body,                 // Controls the container and algorithms used for the body
+        class Fields = fields>      // The type of container to store the fields
+    class message;
+    ```
+]]
+[[
+    [link beast.ref.beast__http__request `request`]
+][
+    ```
+    /// A typical HTTP request
+    template<class Body, class Fields = fields>
+    using request = message<true, Body, Fields>;
+    ```
+]]
+[[
+    [link beast.ref.beast__http__response `response`]
+][
+    ```
+    /// A typical HTTP response
+    template<class Body, class Fields = fields>
+    using response = message<false, Body, Fields>;
+    ```
+]]
+]
 
 The container offers value semantics including move and copy if supported
 by __Body__ and __Fields__. User defined template function parameters can
@@ -42,21 +60,39 @@ As with fields, user defined body types are possible.
 
 Sometimes it is desired to only work with a header. Beast provides a single
 class template __header__ and some aliases to model HTTP/1 and HTTP/2 headers:
-```
-/// An HTTP header
-template<
-    bool isRequest,             // `true` for requests, `false` for responses
-    class Fields = fields>      // The type of container to store the fields
-class header;
 
-/// A typical HTTP request header
-template<class Fields>
-using request_header = header<true, Fields>;
-
-/// A typical HTTP response header
-template<class Fields>
-using response_header = header<false, Fields>;
-```
+[table Header
+[[Name][Description]]
+[[
+    __header__
+][
+    ```
+    /// An HTTP header
+    template<
+        bool isRequest,             // `true` for requests, `false` for responses
+        class Fields = fields>      // The type of container to store the fields
+    class header;
+    ```
+]]
+[[
+    [link beast.ref.beast__http__request_header `request_header`]
+][
+    ```
+    /// A typical HTTP request header
+    template<class Fields>
+    using request_header = header<true, Fields>;
+    ```
+]]
+[[
+    [link beast.ref.beast__http__response_header `response_header`]
+][
+    ```
+    /// A typical HTTP response header
+    template<class Fields>
+    using response_header = header<false, Fields>;
+    ```
+]]
+]
 
 Requests and responses share the version, fields, and body but have
 a few members unique to the type. This is implemented by declaring the
@@ -69,22 +105,6 @@ relationship between header and message, along with some of the
 notable differences in members in each partial specialization:
 
 [$images/message.png [width 730px] [height 410px]]
-
-The template type aliases 
-[link beast.ref.beast__http__request `request`] and
-[link beast.ref.beast__http__response `response`]
-are provided for brevity. They specify __fields__ as the default for [*Fields].
-
-
-```
-/// A typical HTTP request
-template<class Body, class Fields = fields>
-using request = message<true, Body, Fields>;
-
-/// A typical HTTP response
-template<class Body, class Fields = fields>
-using response = message<false, Body, Fields>;
-```
 
 [heading:body Body Types]
 
