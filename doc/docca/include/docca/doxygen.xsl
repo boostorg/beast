@@ -741,7 +741,8 @@
           <xsl:text>`]</xsl:text>
         </xsl:when>
         <xsl:otherwise>
-          <xsl:text>[role red |1|</xsl:text>
+          <xsl:text>[role red </xsl:text>
+          <xsl:if test="$debug &gt; 0">|1|</xsl:if>
           <xsl:text></xsl:text>
           <xsl:value-of select="$display-name"/>
           <xsl:text>]</xsl:text>
@@ -790,7 +791,8 @@
       <xsl:text>`]</xsl:text>
     </xsl:when>
     <xsl:otherwise>
-      <xsl:text>[role red |2|</xsl:text>
+      <xsl:text>[role red </xsl:text>
+      <xsl:if test="$debug &gt; 0">|2|</xsl:if>
       <xsl:value-of select="$display-name"/>
       <xsl:text>]</xsl:text>
     </xsl:otherwise>
@@ -811,7 +813,8 @@
   <xsl:variable name="name">
     <xsl:value-of select="."/>
   </xsl:variable>
-  <xsl:text>[role red |6|</xsl:text>
+  <xsl:text>[role red </xsl:text>
+  <xsl:if test="$debug &gt; 0">|6|</xsl:if>
   <xsl:value-of select="."/>
   <xsl:text>]</xsl:text>
 </xsl:template>
@@ -865,14 +868,16 @@
           <xsl:text>`]</xsl:text>
         </xsl:when>
         <xsl:otherwise>
-          <xsl:text>[role red |8|</xsl:text>
+          <xsl:text>[role red </xsl:text>
+          <xsl:if test="$debug &gt; 0">|8|</xsl:if>
           <xsl:value-of select="$name"/>
           <xsl:text>]</xsl:text>
         </xsl:otherwise>
       </xsl:choose>
     </xsl:when>
     <xsl:otherwise>
-      <xsl:text>[role red |9|</xsl:text>
+      <xsl:text>[role red </xsl:text>
+      <xsl:if test="$debug &gt; 0">|9|</xsl:if>
       <xsl:value-of select="$name"/>
       <xsl:text>]</xsl:text>
     </xsl:otherwise>
