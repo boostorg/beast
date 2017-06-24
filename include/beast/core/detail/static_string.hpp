@@ -41,7 +41,7 @@ template<class CharT, class Traits>
 inline
 int
 lexicographical_compare(
-    boost::basic_string_ref<CharT, Traits> s1,
+    basic_string_view<CharT, Traits> s1,
     CharT const* s2, std::size_t n2)
 {
     return lexicographical_compare<CharT, Traits>(
@@ -52,8 +52,8 @@ template<class CharT, class Traits>
 inline
 int
 lexicographical_compare(
-    boost::basic_string_ref<CharT, Traits> s1,
-    boost::basic_string_ref<CharT, Traits> s2)
+    basic_string_view<CharT, Traits> s1,
+    basic_string_view<CharT, Traits> s2)
 {
     return lexicographical_compare<CharT, Traits>(
         s1.data(), s1.size(), s2.data(), s2.size());
