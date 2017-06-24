@@ -181,7 +181,7 @@ operator()(error_code ec,
             d.fh.op = d.ws.wr_.cont ?
                 detail::opcode::cont : d.ws.wr_opcode_;
             d.fh.mask =
-                d.ws.role_ == detail::role_type::client;
+                d.ws.role_ == role_type::client;
 
             // entry_state determines which algorithm
             // we will use to send. If we suspend, we
@@ -477,9 +477,9 @@ operator()(error_code ec,
 
         case do_deflate + 3:
             if(d.fh.fin && (
-                (d.ws.role_ == detail::role_type::client &&
+                (d.ws.role_ == role_type::client &&
                     d.ws.pmd_config_.client_no_context_takeover) ||
-                (d.ws.role_ == detail::role_type::server &&
+                (d.ws.role_ == role_type::server &&
                     d.ws.pmd_config_.server_no_context_takeover)))
                 d.ws.pmd_->zo.reset();
             goto upcall;
@@ -707,7 +707,7 @@ write_frame(bool fin,
     fh.rsv3 = false;
     fh.op = wr_.cont ?
         detail::opcode::cont : wr_opcode_;
-    fh.mask = role_ == detail::role_type::client;
+    fh.mask = role_ == role_type::client;
     auto remain = buffer_size(buffers);
     if(wr_.compress)
     {
@@ -756,9 +756,9 @@ write_frame(bool fin,
             fh.rsv1 = false;
         }
         if(fh.fin && (
-            (role_ == detail::role_type::client &&
+            (role_ == role_type::client &&
                 pmd_config_.client_no_context_takeover) ||
-            (role_ == detail::role_type::server &&
+            (role_ == role_type::server &&
                 pmd_config_.server_no_context_takeover)))
             pmd_->zo.reset();
         return;

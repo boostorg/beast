@@ -153,7 +153,7 @@ operator()(error_code ec, bool again)
             if(! ec)
             {
                 pmd_read(d.ws.pmd_config_, d.res);
-                d.ws.open(detail::role_type::server);
+                d.ws.open(role_type::server);
             }
             break;
         }

@@ -9,9 +9,15 @@
 #define BEAST_WEBSOCKET_STREAM_HPP
 
 #include <beast/config.hpp>
+#include <beast/websocket/error.hpp>
 #include <beast/websocket/option.hpp>
+#include <beast/websocket/rfc6455.hpp>
+#include <beast/websocket/detail/frame.hpp>
 #include <beast/websocket/detail/hybi13.hpp>
-#include <beast/websocket/detail/stream_base.hpp>
+#include <beast/websocket/detail/mask.hpp>
+#include <beast/websocket/detail/pausation.hpp>
+#include <beast/websocket/detail/pmd_extension.hpp>
+#include <beast/websocket/detail/utf8_checker.hpp>
 #include <beast/http/empty_body.hpp>
 #include <beast/http/message.hpp>
 #include <beast/http/string_body.hpp>
@@ -20,6 +26,8 @@
 #include <beast/core/buffered_read_stream.hpp>
 #include <beast/core/string.hpp>
 #include <beast/core/detail/type_traits.hpp>
+#include <beast/zlib/deflate_stream.hpp>
+#include <beast/zlib/inflate_stream.hpp>
 #include <boost/asio.hpp>
 #include <algorithm>
 #include <cstdint>
@@ -29,11 +37,16 @@
 namespace beast {
 namespace websocket {
 
+namespace detail {
+class frame_test;
+}
+
 /// The type of object holding HTTP Upgrade requests
 using request_type = http::request<http::empty_body>;
 
 /// The type of object holding HTTP Upgrade responses
 using response_type = http::response<http::string_body>;
+
 
 //--------------------------------------------------------------------
 
@@ -80,11 +93,166 @@ using response_type = http::response<http::string_body>;
         @b SyncStream
 */
 template<class NextLayer>
-class stream : public detail::stream_base
+class stream
 {
+    friend class detail::frame_test;
     friend class stream_test;
 
     buffered_read_stream<NextLayer, multi_buffer> stream_;
+
+    /// Identifies the role of a WebSockets stream.
+    enum class role_type
+    {
+        /// Stream is operating as a client.
+        client,
+
+        /// Stream is operating as a server.
+        server
+    };
+
+    friend class frame_test;
+
+    using ping_callback_type =
+        std::function<void(bool, ping_data const&)>;
+
+    struct op {};
+
+    detail::maskgen maskgen_;               // source of mask keys
+    std::size_t rd_msg_max_ =
+        16 * 1024 * 1024;                   // max message size
+    bool wr_autofrag_ = true;               // auto fragment
+    std::size_t wr_buf_size_ = 4096;        // write buffer size
+    std::size_t rd_buf_size_ = 4096;        // read buffer size
+    detail::opcode wr_opcode_ =
+        detail::opcode::text;               // outgoing message type
+    ping_callback_type ping_cb_;            // ping callback
+    role_type role_;                        // server or client
+    bool failed_;                           // the connection failed
+
+    bool wr_close_;                         // sent close frame
+    op* wr_block_;                          // op currenly writing
+
+    ping_data* ping_data_;                  // where to put the payload
+    detail::pausation rd_op_;               // parked read op
+    detail::pausation wr_op_;               // parked write op
+    detail::pausation ping_op_;             // parked ping op
+    close_reason cr_;                       // set from received close frame
+
+    // State information for the message being received
+    //
+    struct rd_t
+    {
+        // opcode of current message being read
+        detail::opcode op;
+
+        // `true` if the next frame is a continuation.
+        bool cont;
+
+        // Checks that test messages are valid utf8
+        detail::utf8_checker utf8;
+
+        // Size of the current message so far.
+        std::uint64_t size;
+
+        // Size of the read buffer.
+        // This gets set to the read buffer size option at the
+        // beginning of sending a message, so that the option can be
+        // changed mid-send without affecting the current message.
+        std::size_t buf_size;
+
+        // The read buffer. Used for compression and masking.
+        std::unique_ptr<std::uint8_t[]> buf;
+    };
+
+    rd_t rd_;
+
+    // State information for the message being sent
+    //
+    struct wr_t
+    {
+        // `true` if next frame is a continuation,
+        // `false` if next frame starts a new message
+        bool cont;
+
+        // `true` if this message should be auto-fragmented
+        // This gets set to the auto-fragment option at the beginning
+        // of sending a message, so that the option can be changed
+        // mid-send without affecting the current message.
+        bool autofrag;
+
+        // `true` if this message should be compressed.
+        // This gets set to the compress option at the beginning of
+        // of sending a message, so that the option can be changed
+        // mid-send without affecting the current message.
+        bool compress;
+
+        // Size of the write buffer.
+        // This gets set to the write buffer size option at the
+        // beginning of sending a message, so that the option can be
+        // changed mid-send without affecting the current message.
+        std::size_t buf_size;
+
+        // The write buffer. Used for compression and masking.
+        // The buffer is allocated or reallocated at the beginning of
+        // sending a message.
+        std::unique_ptr<std::uint8_t[]> buf;
+    };
+
+    wr_t wr_;
+
+    // State information for the permessage-deflate extension
+    struct pmd_t
+    {
+        // `true` if current read message is compressed
+        bool rd_set;
+
+        zlib::deflate_stream zo;
+        zlib::inflate_stream zi;
+    };
+
+    // If not engaged, then permessage-deflate is not
+    // enabled for the currently active session.
+    std::unique_ptr<pmd_t> pmd_;
+
+    // Local options for permessage-deflate
+    permessage_deflate pmd_opts_;
+
+    // Offer for clients, negotiated result for servers
+    detail::pmd_offer pmd_config_;
+
+    void
+    open(role_type role);
+
+    void
+    close();
+
+    template<class DynamicBuffer>
+    std::size_t
+    read_fh1(detail::frame_header& fh,
+        DynamicBuffer& db, close_code& code);
+
+    template<class DynamicBuffer>
+    void
+    read_fh2(detail::frame_header& fh,
+        DynamicBuffer& db, close_code& code);
+
+    // Called before receiving the first frame of each message
+    void
+    rd_begin();
+
+    // Called before sending the first frame of each message
+    //
+    void
+    wr_begin();
+
+    template<class DynamicBuffer>
+    void
+    write_close(DynamicBuffer& db, close_reason const& rc);
+
+    template<class DynamicBuffer>
+    void
+    write_ping(DynamicBuffer& db,
+        detail::opcode op, ping_data const& data);
 
 public:
     /// The type of the next layer.

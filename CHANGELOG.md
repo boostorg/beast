@@ -2,6 +2,7 @@ Version 67:
 
 * Fix doc example link
 * Add http-server-small example
+* Merge stream_base to stream and tidy
 
 --------------------------------------------------------------------------------
 
