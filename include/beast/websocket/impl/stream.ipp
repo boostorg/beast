@@ -120,7 +120,7 @@ do_accept(http::header<true,
         return;
     }
     pmd_read(pmd_config_, req);
-    open(detail::role_type::server);
+    open(role_type::server);
 }
 
 template<class NextLayer>
@@ -310,7 +310,373 @@ do_response(http::header<false> const& res,
     // VFALCO see if offer satisfies pmd_config_,
     //        return an error if not.
     pmd_config_ = offer; // overwrite for now
-    open(detail::role_type::client);
+    open(role_type::client);
+}
+
+//------------------------------------------------------------------------------
+
+template<class NextLayer>
+void
+stream<NextLayer>::
+open(role_type role)
+{
+    // VFALCO TODO analyze and remove dupe code in reset()
+    role_ = role;
+    failed_ = false;
+    rd_.cont = false;
+    wr_close_ = false;
+    wr_block_ = nullptr;    // should be nullptr on close anyway
+    ping_data_ = nullptr;   // should be nullptr on close anyway
+
+    wr_.cont = false;
+    wr_.buf_size = 0;
+
+    if(((role_ == role_type::client && pmd_opts_.client_enable) ||
+        (role_ == role_type::server && pmd_opts_.server_enable)) &&
+            pmd_config_.accept)
+    {
+        pmd_normalize(pmd_config_);
+        pmd_.reset(new pmd_t);
+        if(role_ == role_type::client)
+        {
+            pmd_->zi.reset(
+                pmd_config_.server_max_window_bits);
+            pmd_->zo.reset(
+                pmd_opts_.compLevel,
+                pmd_config_.client_max_window_bits,
+                pmd_opts_.memLevel,
+                zlib::Strategy::normal);
+        }
+        else
+        {
+            pmd_->zi.reset(
+                pmd_config_.client_max_window_bits);
+            pmd_->zo.reset(
+                pmd_opts_.compLevel,
+                pmd_config_.server_max_window_bits,
+                pmd_opts_.memLevel,
+                zlib::Strategy::normal);
+        }
+    }
+}
+
+template<class NextLayer>
+void
+stream<NextLayer>::
+close()
+{
+    rd_.buf.reset();
+    wr_.buf.reset();
+    pmd_.reset();
+}
+
+// Read fixed frame header from buffer
+// Requires at least 2 bytes
+//
+template<class NextLayer>
+template<class DynamicBuffer>
+std::size_t
+stream<NextLayer>::
+read_fh1(detail::frame_header& fh,
+    DynamicBuffer& db, close_code& code)
+{
+    using boost::asio::buffer;
+    using boost::asio::buffer_copy;
+    using boost::asio::buffer_size;
+    auto const err =
+        [&](close_code cv)
+        {
+            code = cv;
+            return 0;
+        };
+    std::uint8_t b[2];
+    BOOST_ASSERT(buffer_size(db.data()) >= sizeof(b));
+    db.consume(buffer_copy(buffer(b), db.data()));
+    std::size_t need;
+    fh.len = b[1] & 0x7f;
+    switch(fh.len)
+    {
+        case 126: need = 2; break;
+        case 127: need = 8; break;
+        default:
+            need = 0;
+    }
+    fh.mask = (b[1] & 0x80) != 0;
+    if(fh.mask)
+        need += 4;
+    fh.op   = static_cast<
+        detail::opcode>(b[0] & 0x0f);
+    fh.fin  = (b[0] & 0x80) != 0;
+    fh.rsv1 = (b[0] & 0x40) != 0;
+    fh.rsv2 = (b[0] & 0x20) != 0;
+    fh.rsv3 = (b[0] & 0x10) != 0;
+    switch(fh.op)
+    {
+    case detail::opcode::binary:
+    case detail::opcode::text:
+        if(rd_.cont)
+        {
+            // new data frame when continuation expected
+            return err(close_code::protocol_error);
+        }
+        if((fh.rsv1 && ! pmd_) ||
+            fh.rsv2 || fh.rsv3)
+        {
+            // reserved bits not cleared
+            return err(close_code::protocol_error);
+        }
+        if(pmd_)
+            pmd_->rd_set = fh.rsv1;
+        break;
+
+    case detail::opcode::cont:
+        if(! rd_.cont)
+        {
+            // continuation without an active message
+            return err(close_code::protocol_error);
+        }
+        if(fh.rsv1 || fh.rsv2 || fh.rsv3)
+        {
+            // reserved bits not cleared
+            return err(close_code::protocol_error);
+        }
+        break;
+
+    default:
+        if(is_reserved(fh.op))
+        {
+            // reserved opcode
+            return err(close_code::protocol_error);
+        }
+        if(! fh.fin)
+        {
+            // fragmented control message
+            return err(close_code::protocol_error);
+        }
+        if(fh.len > 125)
+        {
+            // invalid length for control message
+            return err(close_code::protocol_error);
+        }
+        if(fh.rsv1 || fh.rsv2 || fh.rsv3)
+        {
+            // reserved bits not cleared
+            return err(close_code::protocol_error);
+        }
+        break;
+    }
+    // unmasked frame from client
+    if(role_ == role_type::server && ! fh.mask)
+    {
+        code = close_code::protocol_error;
+        return 0;
+    }
+    // masked frame from server
+    if(role_ == role_type::client && fh.mask)
+    {
+        code = close_code::protocol_error;
+        return 0;
+    }
+    code = close_code::none;
+    return need;
+}
+
+// Decode variable frame header from buffer
+//
+template<class NextLayer>
+template<class DynamicBuffer>
+void
+stream<NextLayer>::
+read_fh2(detail::frame_header& fh,
+    DynamicBuffer& db, close_code& code)
+{
+    using boost::asio::buffer;
+    using boost::asio::buffer_copy;
+    using boost::asio::buffer_size;
+    using namespace boost::endian;
+    switch(fh.len)
+    {
+    case 126:
+    {
+        std::uint8_t b[2];
+        BOOST_ASSERT(buffer_size(db.data()) >= sizeof(b));
+        db.consume(buffer_copy(buffer(b), db.data()));
+        fh.len = detail::big_uint16_to_native(&b[0]);
+        // length not canonical
+        if(fh.len < 126)
+        {
+            code = close_code::protocol_error;
+            return;
+        }
+        break;
+    }
+    case 127:
+    {
+        std::uint8_t b[8];
+        BOOST_ASSERT(buffer_size(db.data()) >= sizeof(b));
+        db.consume(buffer_copy(buffer(b), db.data()));
+        fh.len = detail::big_uint64_to_native(&b[0]);
+        // length not canonical
+        if(fh.len < 65536)
+        {
+            code = close_code::protocol_error;
+            return;
+        }
+        break;
+    }
+    }
+    if(fh.mask)
+    {
+        std::uint8_t b[4];
+        BOOST_ASSERT(buffer_size(db.data()) >= sizeof(b));
+        db.consume(buffer_copy(buffer(b), db.data()));
+        fh.key = detail::little_uint32_to_native(&b[0]);
+    }
+    else
+    {
+        // initialize this otherwise operator== breaks
+        fh.key = 0;
+    }
+    if(! is_control(fh.op))
+    {
+        if(fh.op != detail::opcode::cont)
+        {
+            rd_.size = 0;
+            rd_.op = fh.op;
+        }
+        else
+        {
+            if(rd_.size > (std::numeric_limits<
+                std::uint64_t>::max)() - fh.len)
+            {
+                code = close_code::too_big;
+                return;
+            }
+        }
+        rd_.cont = ! fh.fin;
+    }
+    code = close_code::none;
+}
+
+template<class NextLayer>
+void
+stream<NextLayer>::
+rd_begin()
+{
+    // Maintain the read buffer
+    if(pmd_)
+    {
+        if(! rd_.buf || rd_.buf_size != rd_buf_size_)
+        {
+            rd_.buf_size = rd_buf_size_;
+            rd_.buf.reset(new std::uint8_t[rd_.buf_size]);
+        }
+    }
+}
+
+template<class NextLayer>
+void
+stream<NextLayer>::
+wr_begin()
+{
+    wr_.autofrag = wr_autofrag_;
+    wr_.compress = static_cast<bool>(pmd_);
+
+    // Maintain the write buffer
+    if( wr_.compress ||
+        role_ == role_type::client)
+    {
+        if(! wr_.buf || wr_.buf_size != wr_buf_size_)
+        {
+            wr_.buf_size = wr_buf_size_;
+            wr_.buf.reset(new std::uint8_t[wr_.buf_size]);
+        }
+    }
+    else
+    {
+        wr_.buf_size = wr_buf_size_;
+        wr_.buf.reset();
+    }
+}
+
+template<class NextLayer>
+template<class DynamicBuffer>
+void
+stream<NextLayer>::
+write_close(DynamicBuffer& db, close_reason const& cr)
+{
+    using namespace boost::endian;
+    detail::frame_header fh;
+    fh.op = detail::opcode::close;
+    fh.fin = true;
+    fh.rsv1 = false;
+    fh.rsv2 = false;
+    fh.rsv3 = false;
+    fh.len = cr.code == close_code::none ?
+        0 : 2 + cr.reason.size();
+    fh.mask = role_ == role_type::client;
+    if(fh.mask)
+        fh.key = maskgen_();
+    detail::write(db, fh);
+    if(cr.code != close_code::none)
+    {
+        detail::prepared_key key;
+        if(fh.mask)
+            detail::prepare_key(key, fh.key);
+        {
+            std::uint8_t b[2];
+            ::new(&b[0]) big_uint16_buf_t{
+                (std::uint16_t)cr.code};
+            auto d = db.prepare(2);
+            boost::asio::buffer_copy(d,
+                boost::asio::buffer(b));
+            if(fh.mask)
+                detail::mask_inplace(d, key);
+            db.commit(2);
+        }
+        if(! cr.reason.empty())
+        {
+            auto d = db.prepare(cr.reason.size());
+            boost::asio::buffer_copy(d,
+                boost::asio::const_buffer(
+                    cr.reason.data(), cr.reason.size()));
+            if(fh.mask)
+                detail::mask_inplace(d, key);
+            db.commit(cr.reason.size());
+        }
+    }
+}
+
+template<class NextLayer>
+template<class DynamicBuffer>
+void
+stream<NextLayer>::
+write_ping(DynamicBuffer& db,
+    detail::opcode code, ping_data const& data)
+{
+    detail::frame_header fh;
+    fh.op = code;
+    fh.fin = true;
+    fh.rsv1 = false;
+    fh.rsv2 = false;
+    fh.rsv3 = false;
+    fh.len = data.size();
+    fh.mask = role_ == role_type::client;
+    if(fh.mask)
+        fh.key = maskgen_();
+    detail::write(db, fh);
+    if(data.empty())
+        return;
+    detail::prepared_key key;
+    if(fh.mask)
+        detail::prepare_key(key, fh.key);
+    auto d = db.prepare(data.size());
+    boost::asio::buffer_copy(d,
+        boost::asio::const_buffers_1(
+            data.data(), data.size()));
+    if(fh.mask)
+        detail::mask_inplace(d, key);
+    db.commit(data.size());
 }
 
 } // websocket

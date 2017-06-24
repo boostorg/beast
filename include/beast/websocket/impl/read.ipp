@@ -331,9 +331,9 @@ operator()(error_code ec,
                     break;
                 }
                 if(d.fh.fin && (
-                    (d.ws.role_ == detail::role_type::client &&
+                    (d.ws.role_ == role_type::client &&
                         d.ws.pmd_config_.server_no_context_takeover) ||
-                    (d.ws.role_ == detail::role_type::server &&
+                    (d.ws.role_ == role_type::server &&
                         d.ws.pmd_config_.client_no_context_takeover)))
                     d.ws.pmd_->zi.reset();
                 d.state = do_frame_done;
@@ -933,9 +933,9 @@ read_frame(DynamicBuffer& dynabuf, error_code& ec)
                     break;
             }
             if(fh.fin && (
-                (role_ == detail::role_type::client &&
+                (role_ == role_type::client &&
                     pmd_config_.server_no_context_takeover) ||
-                (role_ == detail::role_type::server &&
+                (role_ == role_type::server &&
                     pmd_config_.client_no_context_takeover)))
                 pmd_->zi.reset();
         }

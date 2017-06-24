@@ -5,9 +5,11 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
+#include <beast/websocket/stream.hpp>
 #include <beast/websocket/detail/frame.hpp>
-#include <beast/websocket/detail/stream_base.hpp>
 #include <beast/unit_test/suite.hpp>
+#include <beast/test/pipe_stream.hpp>
+#include <beast/test/yield_to.hpp>
 #include <initializer_list>
 #include <climits>
 
@@ -30,7 +32,9 @@ operator==(frame_header const& lhs, frame_header const& rhs)
         lhs.key == rhs.key;
 }
 
-class frame_test : public beast::unit_test::suite
+class frame_test
+    : public beast::unit_test::suite
+    , public test::enable_yield_to
 {
 public:
     void testCloseCodes()
@@ -68,9 +72,14 @@ public:
 
     void testFrameHeader()
     {
+        using stream_type =
+            beast::websocket::stream<test::pipe::stream&>;
+        test::pipe p{ios_};
+
         // good frame fields
         {
-            role_type role = role_type::client;
+            stream_type::role_type role =
+                stream_type::role_type::client;
 
             auto check =
                 [&](frame_header const& fh)
@@ -78,7 +87,7 @@ public:
                     fh_streambuf b;
                     write(b, fh);
                     close_code code;
-                    stream_base stream;
+                    stream_type stream{p.server};
                     stream.open(role);
                     detail::frame_header fh1;
                     auto const n =
@@ -99,7 +108,7 @@ public:
 
             check(fh);
 
-            role = role_type::server;
+            role = stream_type::role_type::server;
             fh.mask = true;
             fh.key = 1;
             check(fh);
@@ -122,7 +131,7 @@ public:
 
         // bad frame fields
         {
-            role_type role = role_type::client;
+            stream_type::role_type role = stream_type::role_type::client;
 
             auto check =
                 [&](frame_header const& fh)
@@ -130,9 +139,9 @@ public:
                     fh_streambuf b;
                     write(b, fh);
                     close_code code;
-                    stream_base stream;
+                    stream_type stream{p.server};
                     stream.open(role);
-                    detail::frame_header fh1;
+                    frame_header fh1;
                     auto const n =
                         stream.read_fh1(fh1, b, code);
                     if(code)
@@ -181,7 +190,7 @@ public:
             fh.mask = true;
             check(fh);
 
-            role = role_type::server;
+            role = stream_type::role_type::server;
             fh.mask = false;
             check(fh);
         }
@@ -189,13 +198,16 @@ public:
 
     void bad(std::initializer_list<std::uint8_t> bs)
     {
+        using stream_type =
+            beast::websocket::stream<test::pipe::stream&>;
         using boost::asio::buffer;
         using boost::asio::buffer_copy;
-        static role_type constexpr role = role_type::client;
+        test::pipe p{ios_};
+        static stream_type::role_type constexpr role = stream_type::role_type::client;
         std::vector<std::uint8_t> v{bs};
         fh_streambuf b;
         b.commit(buffer_copy(b.prepare(v.size()), buffer(v)));
-        stream_base stream;
+        stream_type stream{p.server};
         stream.open(role);
         close_code code;
         detail::frame_header fh;
