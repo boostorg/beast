@@ -4,6 +4,7 @@ Version 67:
 * Add http-server-small example
 * Merge stream_base to stream and tidy
 * Use boost::string_view
+* Rename to http-server-fast
 
 API Changes:
 

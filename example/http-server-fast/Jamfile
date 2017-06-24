@@ -5,8 +5,8 @@
 # file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 #
 
-exe http-server :
-    http_server.cpp
+exe http-server-fast :
+    http_server_fast.cpp
     :
     <variant>coverage:<build>no
     <variant>ubasan:<build>no
