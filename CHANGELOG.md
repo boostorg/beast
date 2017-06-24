@@ -1,6 +1,7 @@
 Version 67:
 
 * Fix doc example link
+* Add http-server-small example
 
 --------------------------------------------------------------------------------
 
