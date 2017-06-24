@@ -8,18 +8,18 @@
 #ifndef BEAST_STRING_HPP
 #define BEAST_STRING_HPP
 
-#include <boost/utility/string_ref.hpp>
+#include <boost/utility/string_view.hpp>
 #include <algorithm>
 
 namespace beast {
 
 /// The type of string view used by the library
-using string_view = boost::string_ref;
+using string_view = boost::string_view;
 
 /// The type of basic string view used by the library
 template<class CharT, class Traits>
 using basic_string_view =
-    boost::basic_string_ref<CharT, Traits>;
+    boost::basic_string_view<CharT, Traits>;
 
 namespace detail {
 

@@ -345,7 +345,7 @@ public:
     /// Convert a static string to a `string_view_type`
     operator string_view_type() const
     {
-        return boost::basic_string_ref<
+        return basic_string_view<
             CharT, Traits>{data(), size()};
     }
 

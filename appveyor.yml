@@ -19,6 +19,7 @@ install:
   - cd ..
   - git clone https://github.com/boostorg/boost.git boost
   - cd boost
+  - git checkout boost-1.64.0
   - xcopy /s /e /q %APPVEYOR_BUILD_FOLDER% libs\beast\
   - git submodule update --init tools/build
   - git submodule update --init libs/config
