@@ -437,8 +437,9 @@ operator()(error_code ec,
                     ping_data payload;
                     detail::read(payload, d.fb.data());
                     d.fb.consume(d.fb.size());
-                    if(d.ws.ping_cb_)
-                        d.ws.ping_cb_(false, payload);
+                    if(d.ws.ctrl_cb_)
+                        d.ws.ctrl_cb_(
+                            frame_type::ping, payload);
                     if(d.ws.wr_close_)
                     {
                         // ignore ping when closing
@@ -463,8 +464,9 @@ operator()(error_code ec,
                     code = close_code::none;
                     ping_data payload;
                     detail::read(payload, d.fb.data());
-                    if(d.ws.ping_cb_)
-                        d.ws.ping_cb_(true, payload);
+                    if(d.ws.ctrl_cb_)
+                        d.ws.ctrl_cb_(
+                            frame_type::pong, payload);
                     d.fb.consume(d.fb.size());
                     d.state = do_read_fh;
                     break;
@@ -478,6 +480,9 @@ operator()(error_code ec,
                         d.state = do_fail;
                         break;
                     }
+                    if(d.ws.ctrl_cb_)
+                        d.ws.ctrl_cb_(frame_type::close,
+                            d.ws.cr_.reason);
                     if(! d.ws.wr_close_)
                     {
                         auto cr = d.ws.cr_;
@@ -791,8 +796,8 @@ read_frame(DynamicBuffer& dynabuf, error_code& ec)
                 ping_data payload;
                 detail::read(payload, fb.data());
                 fb.consume(fb.size());
-                if(ping_cb_)
-                    ping_cb_(false, payload);
+                if(ctrl_cb_)
+                    ctrl_cb_(frame_type::ping, payload);
                 write_ping<static_buffer>(fb,
                     detail::opcode::pong, payload);
                 boost::asio::write(stream_, fb.data(), ec);
@@ -805,8 +810,8 @@ read_frame(DynamicBuffer& dynabuf, error_code& ec)
             {
                 ping_data payload;
                 detail::read(payload, fb.data());
-                if(ping_cb_)
-                    ping_cb_(true, payload);
+                if(ctrl_cb_)
+                    ctrl_cb_(frame_type::pong, payload);
                 continue;
             }
             BOOST_ASSERT(fh.op == detail::opcode::close);
@@ -814,6 +819,8 @@ read_frame(DynamicBuffer& dynabuf, error_code& ec)
                 detail::read(cr_, fb.data(), code);
                 if(code != close_code::none)
                     goto do_close;
+                if(ctrl_cb_)
+                    ctrl_cb_(frame_type::close, cr_.reason);
                 if(! wr_close_)
                 {
                     auto cr = cr_;

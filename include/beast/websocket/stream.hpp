@@ -31,6 +31,7 @@
 #include <boost/asio.hpp>
 #include <algorithm>
 #include <cstdint>
+#include <functional>
 #include <limits>
 #include <type_traits>
 
@@ -47,6 +48,22 @@ using request_type = http::request<http::empty_body>;
 /// The type of object holding HTTP Upgrade responses
 using response_type = http::response<http::string_body>;
 
+/** The type of received control frame.
+
+    Values of this type are passed to the control frame
+    callback set using @ref stream::control_callback.
+*/
+enum class frame_type
+{
+    /// A close frame was received
+    close,
+
+    /// A ping frame was received
+    ping,
+
+    /// A pong frame was received
+    pong
+};
 
 //--------------------------------------------------------------------
 
@@ -112,8 +129,8 @@ class stream
 
     friend class frame_test;
 
-    using ping_callback_type =
-        std::function<void(bool, ping_data const&)>;
+    using control_cb_type =
+        std::function<void(frame_type, string_view)>;
 
     struct op {};
 
@@ -125,7 +142,7 @@ class stream
     std::size_t rd_buf_size_ = 4096;        // read buffer size
     detail::opcode wr_opcode_ =
         detail::opcode::text;               // outgoing message type
-    ping_callback_type ping_cb_;            // ping callback
+    control_cb_type ctrl_cb_;               // control callback
     role_type role_;                        // server or client
     bool failed_;                           // the connection failed
 
@@ -453,10 +470,11 @@ public:
         return wr_opcode_ == detail::opcode::binary;
     }
 
-    /** Set the ping callback.
+    /** Set the control frame callback.
 
-        Sets the callback to be invoked whenever a ping or pong is
-        received during a call to one of the following functions:
+        Sets the callback to be invoked whenever a ping, pong,
+        or close control frame is received during a call to one
+        of the following functions:
 
         @li @ref beast::websocket::stream::read
         @li @ref beast::websocket::stream::read_frame
@@ -464,33 +482,38 @@ public:
         @li @ref beast::websocket::stream::async_read_frame
 
         Unlike completion handlers, the callback will be invoked
-        for each received ping and pong during a call to any
-        synchronous or asynchronous read function. The operation is
-        passive, with no associated error code, and triggered by reads.
+        for each control frame during a call to any synchronous
+        or asynchronous read function. The operation is passive,
+        with no associated error code, and triggered by reads.
 
         The signature of the callback must be:
         @code
         void
         callback(
-            bool is_pong,               // `true` if this is a pong
-            ping_data const& payload    // Payload of the pong frame
+            frame_type kind,       // The type of frame
+            string_view payload    // The payload in the frame
         );
         @endcode
 
-        The value of `is_pong` will be `true` if a pong control frame
-        is received, and `false` if a ping control frame is received.
+        For close frames, the close reason code may be obtained by
+        calling the function @ref reason.
 
-        If the read operation receiving a ping or pong frame is an
-        asynchronous operation, the callback will be invoked using
+        If the read operation which receives the control frame is
+        an asynchronous operation, the callback will be invoked using
         the same method as that used to invoke the final handler.
+
+        @note It is not necessary to send a close frame upon receipt
+        of a close frame. The implementation does this automatically.
+        Attempting to send a close frame after a close frame is
+        received will result in undefined behavior.
 
         @param cb The callback to set.
     */
     void
-    ping_callback(
-        std::function<void(bool, ping_data const&)> cb)
+    control_callback(
+        std::function<void(frame_type, string_view)> cb)
     {
-        ping_cb_ = std::move(cb);
+        ctrl_cb_ = std::move(cb);
     }
 
     /** Set the read buffer size option.
@@ -2757,7 +2780,7 @@ public:
 
         @li A pong frame is sent when a ping frame is received.
 
-        @li The @ref ping_callback is invoked when a ping frame
+        @li The @ref control_callback is invoked when a ping frame
             or pong frame is received.
 
         @li The WebSocket close procedure is started if a close frame
@@ -2794,7 +2817,7 @@ public:
         During reads, the implementation handles control frames as
         follows:
 
-        @li The @ref ping_callback is invoked when a ping frame
+        @li The @ref control_callback is invoked when a ping frame
             or pong frame is received.
 
         @li A pong frame is sent when a ping frame is received.
@@ -2838,7 +2861,7 @@ public:
         During reads, the implementation handles control frames as
         follows:
 
-        @li The @ref ping_callback is invoked when a ping frame
+        @li The @ref control_callback is invoked when a ping frame
             or pong frame is received.
 
         @li A pong frame is sent when a ping frame is received.
@@ -2895,7 +2918,7 @@ public:
         During reads, the implementation handles control frames as
         follows:
 
-        @li The @ref ping_callback is invoked when a ping frame
+        @li The @ref control_callback is invoked when a ping frame
             or pong frame is received.
 
         @li A pong frame is sent when a ping frame is received.
@@ -2931,7 +2954,7 @@ public:
         During reads, the implementation handles control frames as
         follows:
 
-        @li The @ref ping_callback is invoked when a ping frame
+        @li The @ref control_callback is invoked when a ping frame
             or pong frame is received.
 
         @li A pong frame is sent when a ping frame is received.
@@ -2971,7 +2994,7 @@ public:
         During reads, the implementation handles control frames as
         follows:
 
-        @li The @ref ping_callback is invoked when a ping frame
+        @li The @ref control_callback is invoked when a ping frame
             or pong frame is received.
 
         @li A pong frame is sent when a ping frame is received.

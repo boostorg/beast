@@ -5,6 +5,18 @@ Version 67:
 * Merge stream_base to stream and tidy
 * Use boost::string_view
 
+API Changes:
+
+* control_callback replaces ping_callback
+
+Actions Required:
+
+* Change calls to websocket::stream::ping_callback to use
+  websocket::stream::control_callback
+
+* Change user defined ping callbacks to have the new
+  signature and adjust the callback definition appropriately.
+
 --------------------------------------------------------------------------------
 
 Version 66:
