@@ -66,13 +66,24 @@ over a TLS connection. Requires OpenSSL to build.
 
 
 
-[section HTTP Server]
+[section HTTP Server (Fast)]
 
 This example implements a very simple HTTP server with
 some optimizations suitable for calculating benchmarks.
 
 * [repo_file example/http-server/fields_alloc.hpp]
 * [repo_file example/http-server/http_server.cpp]
+
+[endsect]
+
+
+
+[section HTTP Server (Small)]
+
+This example implements a very simple HTTP server
+suitable as a starting point on an embedded device.
+
+* [repo_file example/http-server-small/http_server_small.cpp]
 
 [endsect]
 
