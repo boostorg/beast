@@ -1656,15 +1656,17 @@ public:
                 c.close(ws, {close_code::going_away, "Going away"});
                 restart(error::closed);
 
+                bool once;
+
                 // send ping and message
-                bool pong = false;
-                ws.ping_callback(
-                    [&](bool is_pong, ping_data const& payload)
+                once = false;
+                ws.control_callback(
+                    [&](frame_type kind, string_view s)
                     {
-                        BEAST_EXPECT(is_pong);
-                        BEAST_EXPECT(! pong);
-                        pong = true;
-                        BEAST_EXPECT(payload == "");
+                        BEAST_EXPECT(kind == frame_type::pong);
+                        BEAST_EXPECT(! once);
+                        once = true;
+                        BEAST_EXPECT(s == "");
                     });
                 c.ping(ws, "");
                 ws.binary(true);
@@ -1673,18 +1675,21 @@ public:
                     // receive echoed message
                     multi_buffer db;
                     c.read(ws, db);
-                    BEAST_EXPECT(pong == 1);
+                    BEAST_EXPECT(once);
                     BEAST_EXPECT(ws.got_binary());
                     BEAST_EXPECT(to_string(db.data()) == "Hello");
                 }
-                ws.ping_callback({});
+                ws.control_callback({});
 
                 // send ping and fragmented message
-                ws.ping_callback(
-                    [&](bool is_pong, ping_data const& payload)
+                once = false;
+                ws.control_callback(
+                    [&](frame_type kind, string_view s)
                     {
-                        BEAST_EXPECT(is_pong);
-                        BEAST_EXPECT(payload == "payload");
+                        BEAST_EXPECT(kind == frame_type::pong);
+                        BEAST_EXPECT(! once);
+                        once = true;
+                        BEAST_EXPECT(s == "payload");
                     });
                 ws.ping("payload");
                 c.write_frame(ws, false, sbuf("Hello, "));
@@ -1694,10 +1699,10 @@ public:
                     // receive echoed message
                     multi_buffer db;
                     c.read(ws, db);
-                    BEAST_EXPECT(pong == 1);
+                    BEAST_EXPECT(once);
                     BEAST_EXPECT(to_string(db.data()) == "Hello, World!");
                 }
-                ws.ping_callback({});
+                ws.control_callback({});
 
                 // send pong
                 c.pong(ws, "");

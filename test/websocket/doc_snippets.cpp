@@ -187,11 +187,11 @@ boost::asio::ip::tcp::socket sock{ios};
 {
     stream<boost::asio::ip::tcp::socket> ws{ios};
 //[ws_snippet_17
-    ws.ping_callback(
-        [](bool is_pong, ping_data const& payload)
+    ws.control_callback(
+        [](frame_type kind, string_view payload)
         {
             // Do something with the payload
-            boost::ignore_unused(is_pong, payload);
+            boost::ignore_unused(kind, payload);
         });
 //]
 
