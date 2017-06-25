@@ -5,7 +5,7 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#include "example/server-framework/detect_ssl.hpp"
+#include "example/common/detect_ssl.hpp"
 
 #include <beast/core/flat_buffer.hpp>
 #include <beast/core/ostream.hpp>

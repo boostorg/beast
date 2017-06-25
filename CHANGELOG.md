@@ -5,6 +5,8 @@ Version 67:
 * Merge stream_base to stream and tidy
 * Use boost::string_view
 * Rename to http-server-fast
+* Appveyor use Boost 1.64.0
+* Group common example headers
 
 API Changes:
 

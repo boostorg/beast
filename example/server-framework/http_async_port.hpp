@@ -11,9 +11,10 @@
 #include "server.hpp"
 
 #include "http_base.hpp"
-#include "rfc7231.hpp"
 #include "service_list.hpp"
-#include "write_msg.hpp"
+
+#include "../common/rfc7231.hpp"
+#include "../common/write_msg.hpp"
 
 #include <beast/core/flat_buffer.hpp>
 #include <beast/http/dynamic_body.hpp>
