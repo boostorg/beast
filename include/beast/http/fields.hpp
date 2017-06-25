@@ -104,6 +104,10 @@ public:
         bool
         operator()(String const& lhs, value_type const& rhs) const
         {
+            if(lhs.size() < rhs.name_string().size())
+                return true;
+            if(lhs.size() > rhs.name_string().size())
+                return false;
             return iless::operator()(lhs, rhs.name_string());
         }
 
@@ -112,6 +116,10 @@ public:
         bool
         operator()(value_type const& lhs, String const& rhs) const
         {
+            if(lhs.name_string().size() < rhs.size())
+                return true;
+            if(lhs.name_string().size() > rhs.size())
+                return false;
             return iless::operator()(lhs.name_string(), rhs);
         }
 
@@ -119,6 +127,10 @@ public:
         bool
         operator()(value_type const& lhs, value_type const& rhs) const
         {
+            if(lhs.name_string().size() < rhs.name_string().size())
+                return true;
+            if(lhs.name_string().size() > rhs.name_string().size())
+                return false;
             return iless::operator()(lhs.name_string(), rhs.name_string());
         }
     };
