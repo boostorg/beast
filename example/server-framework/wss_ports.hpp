@@ -10,7 +10,8 @@
 
 #include "ws_sync_port.hpp"
 #include "ws_async_port.hpp"
-#include "ssl_stream.hpp"
+
+#include "../common/ssl_stream.hpp"
 
 #include <boost/asio/ssl.hpp>
 #include <boost/function.hpp>

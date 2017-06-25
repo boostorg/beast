@@ -5,13 +5,12 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#ifndef BEAST_EXAMPLE_SERVER_RFC7231_HPP
-#define BEAST_EXAMPLE_SERVER_RFC7231_HPP
+#ifndef BEAST_EXAMPLE_COMMON_RFC7231_HPP
+#define BEAST_EXAMPLE_COMMON_RFC7231_HPP
 
 #include <beast/core/string.hpp>
 #include <beast/http/message.hpp>
 
-namespace framework {
 namespace rfc7231 {
 
 // This aggregates a collection of algorithms
@@ -36,6 +35,5 @@ is_expect_100_continue(beast::http::request<
 }
 
 } // rfc7231
-} // framework
 
 #endif

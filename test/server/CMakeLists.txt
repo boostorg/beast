@@ -10,7 +10,6 @@ add_executable (server-test
     ${BEAST_INCLUDES}
     ${SERVER_INCLUDES}
     ../../extras/beast/unit_test/main.cpp
-    file_body.cpp
     file_service.cpp
     framework.cpp
     http_async_port.cpp
@@ -18,17 +17,21 @@ add_executable (server-test
     http_sync_port.cpp
     https_ports.cpp
     multi_port.cpp
-    rfc7231.cpp
     server.cpp
     service_list.cpp
     ssl_certificate
-    ssl_stream.cpp
     tests.cpp
-    write_msg.cpp
     ws_async_port.cpp
     ws_sync_port.cpp
     ws_upgrade_service.cpp
     wss_ports.cpp
+
+    detect_ssl.cpp
+    file_body.cpp
+    mime_types.cpp
+    rfc7231.cpp
+    ssl_stream.cpp
+    write_msg.cpp
 )
 
 target_link_libraries(server-test

@@ -6,5 +6,5 @@
 //
 
 // Test that header file is self-contained.
-#include "../../example/server-framework/write_msg.hpp"
+#include "../../example/common/write_msg.hpp"
 
