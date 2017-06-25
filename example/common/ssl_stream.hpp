@@ -5,8 +5,8 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#ifndef BEAST_EXAMPLE_SERVER_SSL_STREAM_HPP
-#define BEAST_EXAMPLE_SERVER_SSL_STREAM_HPP
+#ifndef BEAST_EXAMPLE_COMMON_SSL_STREAM_HPP
+#define BEAST_EXAMPLE_COMMON_SSL_STREAM_HPP
 
 // This include is necessary to work with `ssl::stream` and `beast::websocket::stream`
 #include <beast/websocket/ssl.hpp>

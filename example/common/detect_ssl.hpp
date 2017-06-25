@@ -5,8 +5,8 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#ifndef BEAST_EXAMPLE_SERVER_DETECT_SSL_HPP
-#define BEAST_EXAMPLE_SERVER_DETECT_SSL_HPP
+#ifndef BEAST_EXAMPLE_COMMON_DETECT_SSL_HPP
+#define BEAST_EXAMPLE_COMMON_DETECT_SSL_HPP
 
 #include <boost/assert.hpp>
 #include <boost/config.hpp>

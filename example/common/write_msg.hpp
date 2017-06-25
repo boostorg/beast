@@ -5,10 +5,8 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#ifndef BEAST_EXAMPLE_SERVER_WRITE_MSG_HPP
-#define BEAST_EXAMPLE_SERVER_WRITE_MSG_HPP
-
-#include "server.hpp"
+#ifndef BEAST_EXAMPLE_COMMON_WRITE_MSG_HPP
+#define BEAST_EXAMPLE_COMMON_WRITE_MSG_HPP
 
 #include <beast/core/async_result.hpp>
 #include <beast/core/handler_ptr.hpp>
@@ -19,8 +17,6 @@
 #include <boost/asio/handler_alloc_hook.hpp>
 #include <boost/asio/handler_continuation_hook.hpp>
 #include <boost/asio/handler_invoke_hook.hpp>
-
-namespace framework {
 
 namespace detail {
 
@@ -108,7 +104,7 @@ public:
     // This gets called when beast::http::async_write completes
     //
     void
-    operator()(error_code ec)
+    operator()(beast::error_code ec)
     {
         d_.invoke(ec);
     }
@@ -196,7 +192,7 @@ template<
     class AsyncWriteStream,
     bool isRequest, class Body, class Fields,
     class WriteHandler>
-beast::async_return_type<WriteHandler, void(error_code)>
+beast::async_return_type<WriteHandler, void(beast::error_code)>
 async_write_msg(
     AsyncWriteStream& stream,
     beast::http::message<isRequest, Body, Fields>&& msg,
@@ -212,11 +208,11 @@ async_write_msg(
     static_assert(beast::http::is_body_reader<Body>::value,
         "BodyReader requirements not met");
 
-    beast::async_completion<WriteHandler, void(error_code)> init{handler};
+    beast::async_completion<WriteHandler, void(beast::error_code)> init{handler};
 
-    detail::write_msg_op<
+    ::detail::write_msg_op<
         AsyncWriteStream,
-        beast::handler_type<WriteHandler, void(error_code)>,
+        beast::handler_type<WriteHandler, void(beast::error_code)>,
         isRequest, Body, Fields>{
             init.completion_handler,
             stream,
@@ -224,7 +220,5 @@ async_write_msg(
 
     return init.result.get();
 }
-
-} // framework
 
 #endif

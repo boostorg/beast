@@ -3,9 +3,15 @@
 GroupSources(include/beast beast)
 
 GroupSources(example/server-framework "/")
+GroupSources(example/common "common")
+
+file(GLOB_RECURSE SERVER_INCLUDES
+    ${PROJECT_SOURCE_DIR}/example/server-framework/*.hpp
+  )
 
 add_executable (server-framework
     ${BEAST_INCLUDES}
+    ${COMMON_INCLUDES}
     ${SERVER_INCLUDES}
     main.cpp
 )

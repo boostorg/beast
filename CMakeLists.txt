@@ -184,18 +184,14 @@ file(GLOB_RECURSE BEAST_INCLUDES
     ${PROJECT_SOURCE_DIR}/include/beast/*.ipp
 )
 
-file(GLOB_RECURSE EXAMPLE_INCLUDES
-    ${PROJECT_SOURCE_DIR}/example/*.hpp
+file(GLOB_RECURSE COMMON_INCLUDES
+    ${PROJECT_SOURCE_DIR}/example/common/*.hpp
   )
 
 file(GLOB_RECURSE EXTRAS_INCLUDES
     ${PROJECT_SOURCE_DIR}/extras/beast/*.hpp
     ${PROJECT_SOURCE_DIR}/extras/beast/*.ipp
 )
-
-file(GLOB_RECURSE SERVER_INCLUDES
-    ${PROJECT_SOURCE_DIR}/example/server-framework/*.hpp
-  )
 
 add_subdirectory (test)
 

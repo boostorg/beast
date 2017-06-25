@@ -125,14 +125,28 @@ the example described in the Core Foundations document section.
 
 
 
+[section Common Code]
+
+This code is reused between some of the examples. The header files
+stand alone can be directly included in your projects.
+
+* [repo_file example/common/detect_ssl.hpp]
+* [repo_file example/common/file_body.hpp]
+* [repo_file example/common/mime_types.hpp]
+* [repo_file example/common/rfc7231.hpp]
+* [repo_file example/common/ssl_stream.hpp]
+* [repo_file example/common/write_msg.hpp]
+
+[endsect]
+
+
+
 [section Server Framework]
 
 This is a complete program and framework of classes implementing
 a general purpose server that users may copy to use as the basis
 for writing their own servers. It serves both HTTP and WebSocket.
 
-* [repo_file example/server-framework/detect_ssl.hpp]
-* [repo_file example/server-framework/file_body.hpp]
 * [repo_file example/server-framework/file_service.hpp]
 * [repo_file example/server-framework/framework.hpp]
 * [repo_file example/server-framework/http_async_port.hpp]
@@ -145,7 +159,6 @@ for writing their own servers. It serves both HTTP and WebSocket.
 * [repo_file example/server-framework/server.hpp]
 * [repo_file example/server-framework/service_list.hpp]
 * [repo_file example/server-framework/ssl_certificate.hpp]
-* [repo_file example/server-framework/ssl_stream.hpp]
 * [repo_file example/server-framework/write_msg.hpp]
 * [repo_file example/server-framework/ws_async_port.hpp]
 * [repo_file example/server-framework/ws_sync_port.hpp]

@@ -8,11 +8,12 @@
 #ifndef BEAST_EXAMPLE_SERVER_MULTI_PORT_HPP
 #define BEAST_EXAMPLE_SERVER_MULTI_PORT_HPP
 
-#include "detect_ssl.hpp"
 #include "ws_async_port.hpp"
 #include "http_async_port.hpp"
 #include "https_ports.hpp"
 #include "wss_ports.hpp"
+
+#include "../common/detect_ssl.hpp"
 
 #include <beast/core.hpp>
 

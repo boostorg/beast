@@ -5,8 +5,8 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#ifndef BEAST_EXAMPLE_HTTP_SERVER_FILE_BODY_HPP
-#define BEAST_EXAMPLE_HTTP_SERVER_FILE_BODY_HPP
+#ifndef BEAST_EXAMPLE_COMMON_FILE_BODY_HPP
+#define BEAST_EXAMPLE_COMMON_FILE_BODY_HPP
 
 #include <beast/core/error.hpp>
 #include <beast/http/message.hpp>

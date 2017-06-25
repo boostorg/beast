@@ -6,5 +6,5 @@
 //
 
 // Test that header file is self-contained.
-#include "../../example/server-framework/rfc7231.hpp"
+#include "../../example/common/rfc7231.hpp"
 
