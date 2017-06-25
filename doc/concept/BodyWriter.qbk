@@ -29,35 +29,29 @@ In this table:
 
 * `a` denotes a value of type `X`.
 
-* `length` is a value of type `boost::optional<std::uint64_t>`.
-
 * `b` is an object whose type meets the requirements of __ConstBufferSequence__
 
 * `m` denotes a value of type `message&` where
     `std::is_same<decltype(m.body), Body::value_type>::value == true`.
+
+* `n` is a value of type `boost::optional<std::uint64_t>`.
 
 * `ec` is a value of type [link beast.ref.beast__error_code `error_code&`].
 
 [table Writer requirements
 [[expression] [type] [semantics, pre/post-conditions]]
 [
-    [`X(m);`]
+    [`X(m,n,ec);`]
     []
     [
         Constructible from `m`. The lifetime of `m` is guaranteed
         to end no earlier than after the `X` is destroyed. The constructor
-        will be called the complete header is stored in `m`, and before
+        will be called after a complete header is stored in `m`, and before
         parsing body octets for messages indicating that a body is present.
-    ]
-][
-    [`a.init(length,ec)`]
-    []
-    [
-        This function is called after construction and before any body
-        octets are presented to the writer. The value of `length` will
-        be set to the content length of the body if known, otherwise
-        `length` will be equal to `boost::none`. Implementations of
-        [*BodyWriter] may use this information to optimize allocation.
+        The value of `n` will be set to the content length of the
+        body if known, otherwise `n` will be equal to `boost::none`.
+        Implementations of [*BodyWriter] may use this information to
+        optimize allocation.
         The function will ensure that `!ec` is `true` if there was
         no error or set to the appropriate error code if there was one. 
     ]

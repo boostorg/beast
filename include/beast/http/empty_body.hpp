@@ -56,13 +56,8 @@ struct empty_body
 
         template<bool isRequest, class Fields>
         explicit
-        reader(message<
-            isRequest, empty_body, Fields> const&)
-        {
-        }
-
-        void
-        init(error_code& ec)
+        reader(message<isRequest, empty_body,
+            Fields> const&, error_code& ec)
         {
             ec.assign(0, ec.category());
         }
@@ -72,12 +67,6 @@ struct empty_body
         {
             ec.assign(0, ec.category());
             return boost::none;
-        }
-
-        void
-        finish(error_code& ec)
-        {
-            ec.assign(0, ec.category());
         }
     };
 #endif
@@ -90,13 +79,9 @@ struct empty_body
     {
         template<bool isRequest, class Fields>
         explicit
-        writer(message<isRequest, empty_body, Fields>&)
-        {
-        }
-
-        void
-        init(boost::optional<std::uint64_t> const&,
-            error_code& ec)
+        writer(message<isRequest, empty_body, Fields>&,
+            boost::optional<std::uint64_t> const&,
+                error_code& ec)
         {
             ec.assign(0, ec.category());
         }
