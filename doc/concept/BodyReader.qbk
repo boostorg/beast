@@ -62,17 +62,11 @@ In this table:
         the HTTP header.
     ]
 ][
-    [`X(m);`]
+    [`X(m,ec);`]
     []
     [
         Constructible from `m`. The lifetime of `m` is guaranteed
         to end no earlier than after the `X` is destroyed.
-    ]
-][
-    [`a.init(ec)`]
-    []
-    [
-        Called immediately after construction.
         The function will ensure that `!ec` is `true` if there was
         no error or set to the appropriate error code if there was one. 
     ]
@@ -90,15 +84,6 @@ In this table:
         if there may be additional buffers returned on a subsequent call,
         or `false` if the buffer returned on this call is the last
         buffer representing the body.
-        The function will ensure that `!ec` is `true` if there was
-        no error or set to the appropriate error code if there was one. 
-    ]
-][
-    [`a.finish(ec)`]
-    []
-    [
-        This function is called after the reader indicates there
-        are no more buffers remaining.
         The function will ensure that `!ec` is `true` if there was
         no error or set to the appropriate error code if there was one. 
     ]

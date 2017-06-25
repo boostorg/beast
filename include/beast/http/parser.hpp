@@ -258,8 +258,7 @@ private:
         std::uint64_t> const& content_length,
             error_code& ec)
     {
-        wr_.emplace(m_);
-        wr_->init(content_length, ec);
+        wr_.emplace(m_, content_length, ec);
     }
 
     void

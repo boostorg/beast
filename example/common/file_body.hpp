@@ -119,16 +119,11 @@ public:
     // always have the `file_body` as the body type.
     //
     template<bool isRequest, class Fields>
-    reader(beast::http::message<isRequest, file_body, Fields> const& m);
+    reader(beast::http::message<isRequest, file_body, Fields> const& m,
+        beast::error_code& ec);
 
     // Destructor
     ~reader();
-
-    // This function is called once before serialization
-    // of the body is started.
-    //
-    void
-    init(beast::error_code& ec);
 
     // This function is called zero or more times to
     // retrieve buffers. A return value of `boost::none`
@@ -138,15 +133,6 @@ public:
     // or not there may be additional buffers.
     boost::optional<std::pair<const_buffers_type, bool>>
     get(beast::error_code& ec);
-
-    // This function is called when reading is complete.
-    // It is an opportunity to perform any final actions
-    // which might fail, in order to return an error code.
-    // Operations that might fail should not be attemped in
-    // destructors, since an exception thrown from there
-    // would terminate the program.
-    void
-    finish(beast::error_code& ec);
 };
 
 //]
@@ -159,20 +145,9 @@ public:
 //
 template<bool isRequest, class Fields>
 file_body::reader::
-reader(beast::http::message<isRequest, file_body, Fields> const& m)
+reader(beast::http::message<isRequest, file_body, Fields> const& m,
+        beast::error_code& ec)
     : path_(m.body)
-{
-}
-
-// This gets called right after construction, and provides
-// the opportunity to return an error code. The error code
-// will be propagated to the serializer and eventually
-// returned to the caller.
-//
-inline
-void
-file_body::reader::
-init(beast::error_code& ec)
 {
     // Attempt to open the file for reading
     file_ = fopen(path_.string().c_str(), "rb");
@@ -185,9 +160,11 @@ init(beast::error_code& ec)
         return;
     }
 
+    // This is required by the error_code specification
+    ec = {};
+
     // The file was opened successfully, get the size
     // of the file to know how much we need to read.
-    ec = {};
     remain_ = boost::filesystem::file_size(path_);
 }
 
@@ -248,17 +225,6 @@ get(beast::error_code& ec) ->
         }};
 }
 
-// Called after reading is done when there's no error.
-inline
-void
-file_body::reader::
-finish(beast::error_code& ec)
-{
-    // Functions which pass back errors are
-    // responsible for clearing the error code.
-    ec = {};
-}
-
 // The destructor is always invoked if construction succeeds.
 //
 inline
@@ -291,13 +257,9 @@ public:
     //
     template<bool isRequest, class Fields>
     explicit
-    writer(beast::http::message<isRequest, file_body, Fields>& m);
-
-    // This function is called once before parsing
-    // of the body is started.
-    //
-    void
-    init(boost::optional<std::uint64_t> const& content_length, beast::error_code& ec);
+    writer(beast::http::message<isRequest, file_body, Fields>& m,
+        boost::optional<std::uint64_t> const& content_length,
+            beast::error_code& ec);
 
     // This function is called one or more times to store
     // buffer sequences corresponding to the incoming body.
@@ -330,21 +292,10 @@ public:
 // Just stash a reference to the path so we can open the file later.
 template<bool isRequest, class Fields>
 file_body::writer::
-writer(beast::http::message<isRequest, file_body, Fields>& m)
+writer(beast::http::message<isRequest, file_body, Fields>& m,
+    boost::optional<std::uint64_t> const& content_length,
+        beast::error_code& ec)
     : path_(m.body)
-{
-}
-
-// This gets called once when we know there's a body.
-// If the content_length is set, it lets us know the exact size
-// of the body. An implementation could use this to optimize its
-// storage strategy. For example by attempting to reserve space
-// ahead of time.
-//
-inline
-void
-file_body::writer::
-init(boost::optional<std::uint64_t> const& content_length, beast::error_code& ec)
 {
     boost::ignore_unused(content_length);
 
@@ -359,7 +310,7 @@ init(boost::optional<std::uint64_t> const& content_length, beast::error_code& ec
         return;
     }
 
-    // Indicate success
+    // This is required by the error_code specification
     ec = {};
 }
 

@@ -54,14 +54,9 @@ struct string_body
 
         template<bool isRequest, class Fields>
         explicit
-        reader(message<
-                isRequest, string_body, Fields> const& msg)
+        reader(message<isRequest, string_body,
+                Fields> const& msg, error_code& ec)
             : body_(msg.body)
-        {
-        }
-
-        void
-        init(error_code& ec)
         {
             ec.assign(0, ec.category());
         }
@@ -72,12 +67,6 @@ struct string_body
             ec.assign(0, ec.category());
             return {{const_buffers_type{
                 body_.data(), body_.size()}, false}};
-        }
-
-        void
-        finish(error_code& ec)
-        {
-            ec.assign(0, ec.category());
         }
     };
 #endif
@@ -93,14 +82,10 @@ struct string_body
     public:
         template<bool isRequest, class Fields>
         explicit
-        writer(message<isRequest, string_body, Fields>& m)
+        writer(message<isRequest, string_body, Fields>& m,
+            boost::optional<std::uint64_t> content_length,
+                error_code& ec)
             : body_(m.body)
-        {
-        }
-
-        void
-        init(boost::optional<
-            std::uint64_t> content_length, error_code& ec)
         {
             if(content_length)
             {
@@ -114,6 +99,10 @@ struct string_body
                 ec.assign(0, ec.category());
                 body_.reserve(static_cast<
                     std::size_t>(*content_length));
+            }
+            else
+            {
+                ec.assign(0, ec.category());
             }
         }
 

@@ -1,3 +1,16 @@
+Version 68:
+
+API Changes:
+
+* Change BodyReader, BodyWriter requirements
+
+Actions Required:
+
+* Change user defined instances of BodyReader and BodyWriter
+  to meet the new requirements.
+
+--------------------------------------------------------------------------------
+
 Version 67:
 
 * Fix doc example link

@@ -55,14 +55,9 @@ struct string_view_body
 
         template<bool isRequest, class Fields>
         explicit
-        reader(message<
-                isRequest, string_view_body, Fields> const& m)
+        reader(message<isRequest, string_view_body,
+                Fields> const& m, error_code& ec)
             : body_(m.body)
-        {
-        }
-
-        void
-        init(error_code& ec)
         {
             ec.assign(0, ec.category());
         }
@@ -72,12 +67,6 @@ struct string_view_body
         {
             ec.assign(0, ec.category());
             return {{{body_.data(), body_.size()}, false}};
-        }
-
-        void
-        finish(error_code& ec)
-        {
-            ec.assign(0, ec.category());
         }
     };
 #endif
