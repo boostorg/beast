@@ -1,6 +1,7 @@
 # Part of Beast
 
 GroupSources(example/server-framework framework)
+GroupSources(example/common common)
 GroupSources(extras/beast extras)
 GroupSources(include/beast beast)
 
@@ -8,6 +9,7 @@ GroupSources(test/server "/")
 
 add_executable (server-test
     ${BEAST_INCLUDES}
+    ${COMMON_INCLUDES}
     ${SERVER_INCLUDES}
     ../../extras/beast/unit_test/main.cpp
     file_service.cpp
@@ -25,13 +27,6 @@ add_executable (server-test
     ws_sync_port.cpp
     ws_upgrade_service.cpp
     wss_ports.cpp
-
-    detect_ssl.cpp
-    file_body.cpp
-    mime_types.cpp
-    rfc7231.cpp
-    ssl_stream.cpp
-    write_msg.cpp
 )
 
 target_link_libraries(server-test

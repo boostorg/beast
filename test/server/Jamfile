@@ -18,17 +18,10 @@ unit-test server-test :
     service_list.cpp
     ssl_certificate.cpp
     tests.cpp
-    write_msg.cpp
     ws_async_port.cpp
     ws_sync_port.cpp
     ws_upgrade_service.cpp
-
-    detect_ssl.cpp
-    file_body.cpp
-    mime_types.cpp
-    rfc7231.cpp
-    ssl_stream.cpp
-    write_msg.cpp
+    wss_ports.cpp
     :
     <variant>coverage:<build>no
     <variant>ubasan:<build>no
