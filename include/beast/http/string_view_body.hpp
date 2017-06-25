@@ -48,8 +48,6 @@ struct string_view_body
         string_view body_;
 
     public:
-        using is_deferred = std::false_type;
-
         using const_buffers_type =
             boost::asio::const_buffers_1;
 

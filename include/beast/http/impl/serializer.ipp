@@ -74,12 +74,10 @@ get(error_code& ec, Visit&& visit)
         if(ec)
             return;
         auto result = rd_->get(ec);
+        if(ec == error::need_more)
+            goto go_header_only;
         if(ec)
-        {
-            // Can't use need_more when ! is_deferred
-            BOOST_ASSERT(ec != error::need_more);
             return;
-        }
         if(! result)
             goto go_header_only;
         more_ = result->second;
@@ -103,10 +101,12 @@ get(error_code& ec, Visit&& visit)
         break;
 
     case do_body:
-        BOOST_ASSERT(! rd_);
-        rd_.emplace(m_, ec);
-        if(ec)
-            return;
+        if(! rd_)
+        {
+            rd_.emplace(m_, ec);
+            if(ec)
+                return;
+        }
         s_ = do_body + 1;
         BOOST_FALLTHROUGH;
 
@@ -139,12 +139,10 @@ get(error_code& ec, Visit&& visit)
         if(ec)
             return;
         auto result = rd_->get(ec);
+        if(ec == error::need_more)
+            goto go_header_only_c;
         if(ec)
-        {
-            // Can't use need_more when ! is_deferred
-            BOOST_ASSERT(ec != error::need_more);
             return;
-        }
         if(! result)
             goto go_header_only_c;
         more_ = result->second;
@@ -179,10 +177,12 @@ get(error_code& ec, Visit&& visit)
         break;
 
     case do_body_c:
-        BOOST_ASSERT(! rd_);
-        rd_.emplace(m_, ec);
-        if(ec)
-            return;
+        if(! rd_)
+        {
+            rd_.emplace(m_, ec);
+            if(ec)
+                return;
+        }
         s_ = do_body_c + 1;
         BOOST_FALLTHROUGH;
 

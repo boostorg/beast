@@ -3,6 +3,7 @@ Version 68:
 API Changes:
 
 * Change BodyReader, BodyWriter requirements
+* Remove BodyReader::is_deferred
 
 Actions Required:
 

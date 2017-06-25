@@ -48,14 +48,6 @@ struct Body_BodyReader {
 struct BodyReader
 {
 public:
-    /** Controls when the implementation requests buffers.
-
-        If false, the implementation will request the first buffer
-        immediately and try to serialize both the header and some
-        or all of the body in a single buffer.
-    */
-    using is_deferred = std::false_type;
-
     /// The type of buffer returned by `get`.
     using const_buffers_type = boost::asio::const_buffers_1;
 
