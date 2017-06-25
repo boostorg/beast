@@ -9,6 +9,7 @@ if ((NOT "${VARIANT}" STREQUAL "coverage") AND
     (NOT "${VARIANT}" STREQUAL "ubasan"))
 
     add_subdirectory (benchmarks)
+    add_subdirectory (common)
     add_subdirectory (server)
 
     GroupSources(extras/beast extras)
