@@ -2,6 +2,7 @@ Version 68:
 
 * Split common tests to a new project
 * Small speed up in fields comparisons
+* Adjust buffer size in fast server
 
 API Changes:
 

@@ -202,7 +202,7 @@ private:
         // Fill out the reply to be sent to the client.
         response_.set(http::field::content_type, mime_type(target.to_string()));
         response_.body.clear();
-        for (char buf[512]; is.read(buf, sizeof(buf)).gcount() > 0;)
+        for (char buf[2048]; is.read(buf, sizeof(buf)).gcount() > 0;)
             response_.body.append(buf, static_cast<std::size_t>(is.gcount()));
         response_.prepare_payload();
     }
