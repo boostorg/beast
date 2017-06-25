@@ -42,8 +42,6 @@ public:
             value_type const& body_;
 
         public:
-            using is_deferred = std::false_type;
-
             using const_buffers_type =
                 boost::asio::const_buffers_1;
 
@@ -67,7 +65,6 @@ public:
     };
 
     template<
-        bool isDeferred,
         bool isSplit,
         bool isFinalEmpty
     >
@@ -85,9 +82,6 @@ public:
             value_type const& body_;
 
         public:
-            using is_deferred =
-                std::integral_constant<bool, isDeferred>;
-
             using const_buffers_type =
                 boost::asio::const_buffers_1;
 
@@ -220,8 +214,6 @@ public:
             value_type const& body_;
 
         public:
-            using is_deferred = std::false_type;
-
             using const_buffers_type =
                 boost::asio::const_buffers_1;
 
@@ -844,14 +836,10 @@ public:
         yield_to(
             [&](yield_context yield)
             {
-                testWriteStream<test_body<false, false, false>>(yield);
-                testWriteStream<test_body<false, false,  true>>(yield);
-                testWriteStream<test_body<false,  true, false>>(yield);
-                testWriteStream<test_body<false,  true,  true>>(yield);
-                testWriteStream<test_body< true, false, false>>(yield);
-                testWriteStream<test_body< true, false,  true>>(yield);
-                testWriteStream<test_body< true,  true, false>>(yield);
-                testWriteStream<test_body< true,  true,  true>>(yield);
+                testWriteStream<test_body<false, false>>(yield);
+                testWriteStream<test_body<false,  true>>(yield);
+                testWriteStream<test_body< true, false>>(yield);
+                testWriteStream<test_body< true,  true>>(yield);
             });
     }
 };

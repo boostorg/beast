@@ -98,14 +98,6 @@ class file_body::reader
     char buf_[4096];            // Small buffer for reading
 
 public:
-    // This nested type informs the serializer that it should
-    // wait until after sending the header to initialize the
-    // reader. We set this to true, otherwise opening the file
-    // during `init` could introduce latency which delays
-    // the remote endpoint from receiving the header quickly.
-    //
-    using is_deferred = std::true_type;
-
     // The type of buffer sequence returned by `get`.
     //
     using const_buffers_type =
@@ -113,8 +105,6 @@ public:
 
     // Constructor.
     //
-    // This is called after the header is serialized, because
-    // we declared `is_deferred` to be `std::true_type`.
     // `m` holds the message we are sending, which will
     // always have the `file_body` as the body type.
     //

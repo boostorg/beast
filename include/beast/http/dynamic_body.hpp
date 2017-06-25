@@ -45,8 +45,6 @@ struct basic_dynamic_body
         DynamicBuffer const& body_;
 
     public:
-        using is_deferred = std::false_type;
-
         using const_buffers_type =
             typename DynamicBuffer::const_buffers_type;
 

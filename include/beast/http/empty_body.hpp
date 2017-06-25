@@ -49,8 +49,6 @@ struct empty_body
 #else
     struct reader
     {
-        using is_deferred = std::false_type;
-
         using const_buffers_type =
             boost::asio::null_buffers;
 

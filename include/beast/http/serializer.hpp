@@ -144,15 +144,10 @@ class serializer
         do_complete         = 110
     };
 
-    void split(bool, std::true_type) {}
-    void split(bool v, std::false_type) { split_ = v; }
     void frdinit(std::true_type);
     void frdinit(std::false_type);
 
     using reader = typename Body::reader;
-
-    using is_deferred =
-        typename reader::is_deferred;
 
     using ch_t = consuming_buffers<typename
         Fields::reader::const_buffers_type>;        // header
@@ -190,7 +185,7 @@ class serializer
     boost::variant<boost::blank,
         ch_t, cb0_t, cb1_t, ch0_t, ch1_t, ch2_t> v_;
     int s_ = do_construct;
-    bool split_ = is_deferred::value;
+    bool split_ = false;
     bool header_done_ = false;
     bool chunked_;
     bool close_;
@@ -227,14 +222,12 @@ public:
         When the split feature is enabled, the implementation will
         write only the octets corresponding to the serialized header
         first. If the header has already been written, this function
-        will have no effect on output. This function should be called
-        before retrieving any buffers using @ref get, otherwise the
-        behavior is undefined.
+        will have no effect on output.
     */
     void
     split(bool v)
     {
-        split(v, is_deferred{});
+        split_ = v;
     }
 
     /** Return `true` if serialization of the header is complete.

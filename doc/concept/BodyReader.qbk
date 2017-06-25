@@ -46,22 +46,6 @@ In this table:
         This is the type of buffer returned by `X::get`.
     ]
 ][
-    [`X::is_deferred`]
-    []
-    [
-        The type `std::true_type` if the serialization implementation
-        should only attempt to retrieve buffers from the reader after
-        the header has been serialized. Otherwise, if this type is
-        `std::false_type` the implementation will activate an
-        optimization: the first buffer produced during serialization
-        will contain both the header and some or all of this body.
-
-        Implementations of [*BodyReader] for which initialization is
-        expensive, should use `std::false_type` here, to reduce the
-        latency experienced by the remote host when expecting to read
-        the HTTP header.
-    ]
-][
     [`X(m,ec);`]
     []
     [

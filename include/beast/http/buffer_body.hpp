@@ -96,8 +96,6 @@ struct buffer_body
         value_type const& body_;
 
     public:
-        using is_deferred = std::false_type;
-
         using const_buffers_type =
             boost::asio::const_buffers_1;
 
