@@ -46,7 +46,7 @@ struct is_mutable_container<T, beast::detail::void_t<
 template <typename Container>
 struct mutable_body
 {
-    static_assert(detail::is_const_character<typename Container::value_type>::value,
+    static_assert(detail::is_mutable_character<typename Container::value_type>::value,
         "Mutable character requirements not met");
     static_assert(detail::is_mutable_container<Container>::value,
         "Mutable container requirements not met");
