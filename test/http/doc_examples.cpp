@@ -20,9 +20,28 @@
 #include <sstream>
 #include <array>
 #include <vector>
+#include <list>
 
 namespace beast {
 namespace http {
+
+BOOST_STATIC_ASSERT(::detail::is_const_character<char>::value == true);
+BOOST_STATIC_ASSERT(::detail::is_const_character<unsigned char>::value == true);
+BOOST_STATIC_ASSERT(::detail::is_const_character<char32_t>::value == false);
+
+BOOST_STATIC_ASSERT(::detail::is_const_container<std::string>::value == true);
+BOOST_STATIC_ASSERT(::detail::is_const_container<string_view>::value == true);
+BOOST_STATIC_ASSERT(::detail::is_const_container<std::vector<char>>::value == true);
+BOOST_STATIC_ASSERT(::detail::is_const_container<std::list<char>>::value == false);
+
+BOOST_STATIC_ASSERT(::detail::is_mutable_character<char>::value == true);
+BOOST_STATIC_ASSERT(::detail::is_mutable_character<unsigned char>::value == true);
+BOOST_STATIC_ASSERT(::detail::is_mutable_character<char32_t>::value == false);
+
+BOOST_STATIC_ASSERT(::detail::is_mutable_container<std::string>::value == true);
+BOOST_STATIC_ASSERT(::detail::is_mutable_container<string_view>::value == false);
+BOOST_STATIC_ASSERT(::detail::is_mutable_container<std::vector<char>>::value == true);
+BOOST_STATIC_ASSERT(::detail::is_mutable_container<std::list<char>>::value == false);
 
 class doc_http_samples_test
     : public beast::unit_test::suite
@@ -316,6 +335,9 @@ public:
     {
         test::pipe c{ios_};
 
+        // people using std::array need to be careful
+        // because the entire array will be written out
+        // no matter how big the string is!
         std::array<char, 15> const body {{"Hello, world!\n"}};
         {
             request<const_body<std::array<char, 15>>> req;
@@ -356,36 +378,6 @@ public:
         }
     }
 
-    void
-	checkConstBody()
-    {
-    	BEAST_EXPECTS(::detail::is_const_container<std::string>::value == true,
-    	    "is_const_container<std::string>::value");
-    	BEAST_EXPECTS(::detail::is_const_container<string_view>::value == true,
-    	    "is_const_container<string_view>::value");
-    	BEAST_EXPECTS(::detail::is_const_container<std::vector<char>>::value == true,
-    	    "is_const_container<std::vector<char>>::value");
-    	BEAST_EXPECTS(::detail::is_const_container<std::vector<unsigned char>>::value == true,
-    	    "is_const_container<std::vector<unsigned char>>::value");
-    	BEAST_EXPECTS(::detail::is_const_container<std::list<char>>::value == false,
-    	    "is_const_container<std::list<char>>::value");
-    }
-
-    void
-	checkMutableBody()
-    {
-    	BEAST_EXPECTS(::detail::is_mutable_container<std::string>::value == true,
-    	    "is_mutable_container<std::string>::value");
-    	BEAST_EXPECTS(::detail::is_mutable_container<string_view>::value == false,
-    	    "is_mutable_container<string_view>::value");
-    	BEAST_EXPECTS(::detail::is_mutable_container<std::vector<char>>::value == true,
-    	    "is_mutable_container<std::vector<char>>::value");
-    	BEAST_EXPECTS(::detail::is_mutable_container<std::vector<unsigned char>>::value == true,
-    	    "is_mutable_container<std::vector<unsigned char>>::value");
-    	BEAST_EXPECTS(::detail::is_mutable_container<std::list<char>>::value == false,
-    	    "is_mutable_container<std::list<char>>::value");
-    }
-
     //--------------------------------------------------------------------------
 
     void
@@ -401,8 +393,6 @@ public:
         doDeferredBody();
         doFileBody();
         doConstAndMutableBody();
-        checkConstBody();
-        checkMutableBody();
     }
 };
 
