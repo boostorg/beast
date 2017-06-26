@@ -14,29 +14,21 @@
 #include <beast/core/detail/type_traits.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/optional.hpp>
-#include <boost/tti/has_type.hpp>
-#include <boost/tti/has_member_function.hpp>
-#include <boost/mpl/identity.hpp>
 #include <memory>
 #include <string>
 #include <utility>
 
-namespace const_detail
-{
-    BOOST_TTI_HAS_TYPE(value_type)
-    BOOST_TTI_HAS_TYPE(iterator)
-    BOOST_TTI_HAS_TYPE(size_type)
-    BOOST_TTI_HAS_TYPE(reference)
-    BOOST_TTI_HAS_MEMBER_FUNCTION(data)
+namespace detail {
 
-    template <typename T>
-    using is_container = boost::mpl::bool_<
-        has_type_value_type<T>::value &&
-        has_type_iterator<T>::value &&
-        has_type_size_type<T>::value &&
-        has_type_reference<T>::value &&
-        has_member_function_data<T, const typename T::value_type*, boost::mpl::vector<>, boost::function_types::const_qualified>::value
-    >;
+template<class T, class = void>
+struct is_const_container : std::false_type { };
+
+template< class T >
+struct is_const_container<T, beast::detail::void_t<
+    decltype( std::declval<T&>().size() ),
+    decltype( std::declval<T&>().data() )
+> > : std::true_type { };
+
 }
 
 /** An HTTP message body represented by a constant character container.
@@ -47,7 +39,7 @@ template <typename Container>
 struct const_body
 {
     static_assert(sizeof(typename Container::value_type) == 1, "Const character requirements not met");
-    static_assert(const_detail::is_container<Container>::value, "Const container requirements not met");
+    static_assert(detail::is_const_container<Container>::value, "Const container requirements2 not met");
 
     /// The type of the body member when used in a message.
     using value_type = Container;
