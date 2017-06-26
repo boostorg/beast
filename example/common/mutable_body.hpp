@@ -8,15 +8,10 @@
 #ifndef BEAST_EXAMPLE_COMMON_MUTABLE_BODY_HPP_
 #define BEAST_EXAMPLE_COMMON_MUTABLE_BODY_HPP_
 
-#include <beast/config.hpp>
-#include <beast/http/error.hpp>
 #include <beast/http/message.hpp>
-#include <beast/core/detail/type_traits.hpp>
+#include <beast/http/error.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/optional.hpp>
-#include <memory>
-#include <string>
-#include <utility>
 
 namespace detail {
 
@@ -31,8 +26,8 @@ struct is_mutable_container : std::false_type { };
 
 template< class T >
 struct is_mutable_container<T, beast::detail::void_t<
-    decltype( std::declval<T&>().size() ),
-    decltype( std::declval<T&>().data() ),
+    decltype( std::declval<typename T::size_type&>() = std::declval<T&>().size() ),
+    decltype( std::declval<const typename T::value_type*&>() = std::declval<T&>().data() ),
     decltype( std::declval<T&>().reserve(0) ),
     decltype( std::declval<T&>().resize(0) )
 > > : std::true_type { };
