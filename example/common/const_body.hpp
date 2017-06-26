@@ -39,7 +39,7 @@ template <typename Container>
 struct const_body
 {
     static_assert(sizeof(typename Container::value_type) == 1, "Const character requirements not met");
-    static_assert(detail::is_const_container<Container>::value, "Const container requirements2 not met");
+    static_assert(detail::is_const_container<Container>::value, "Const container requirements not met");
 
     /// The type of the body member when used in a message.
     using value_type = Container;
