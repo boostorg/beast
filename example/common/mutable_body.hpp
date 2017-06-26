@@ -20,6 +20,12 @@
 
 namespace detail {
 
+template <typename T>
+using is_mutable_character = std::integral_constant<bool,
+    std::is_integral<T>::value &&
+    sizeof(T) == 1
+>;
+
 template<class T, class = void>
 struct is_mutable_container : std::false_type { };
 
@@ -40,8 +46,10 @@ struct is_mutable_container<T, beast::detail::void_t<
 template <typename Container>
 struct mutable_body
 {
-    static_assert(sizeof(typename Container::value_type) == 1, "Mutable character requirements not met");
-    static_assert(detail::is_mutable_container<Container>::value, "Mutable container requirements not met");
+    static_assert(detail::is_const_character<typename Container::value_type>::value,
+        "Mutable character requirements not met");
+    static_assert(detail::is_mutable_container<Container>::value,
+        "Mutable container requirements not met");
 
     /// The type of the body member when used in a message.
     using value_type = Container;
@@ -63,21 +71,14 @@ struct mutable_body
         value_type const& body_;
 
     public:
-        using is_deferred = std::true_type;
-
         using const_buffers_type =
             boost::asio::const_buffers_1;
 
         template<bool isRequest, class Fields>
         explicit
-        reader(beast::http::message<
-                isRequest, mutable_body, Fields> const& msg)
+        reader(beast::http::message<isRequest, mutable_body,
+                Fields> const& msg, beast::error_code& ec)
             : body_(msg.body)
-        {
-        }
-
-        void
-        init(beast::error_code& ec)
         {
             ec.assign(0, ec.category());
         }
@@ -88,12 +89,6 @@ struct mutable_body
             ec.assign(0, ec.category());
             return {{const_buffers_type{
                 body_.data(), body_.size()}, false}};
-        }
-
-        void
-        finish(beast::error_code& ec)
-        {
-            ec.assign(0, ec.category());
         }
     };
 #endif
@@ -109,14 +104,10 @@ struct mutable_body
     public:
         template<bool isRequest, class Fields>
         explicit
-        writer(beast::http::message<isRequest, mutable_body, Fields>& m)
+        writer(beast::http::message<isRequest, mutable_body, Fields>& m,
+            boost::optional<std::uint64_t> const& content_length,
+                beast::error_code& ec)
             : body_(m.body)
-        {
-        }
-
-        void
-        init(boost::optional<
-            std::uint64_t> content_length, beast::error_code& ec)
         {
             if(content_length)
             {

@@ -20,10 +20,16 @@
 
 namespace detail {
 
+template <typename T>
+using is_const_character = std::integral_constant<bool,
+    std::is_integral<T>::value &&
+    sizeof(T) == 1
+>;
+
 template<class T, class = void>
 struct is_const_container : std::false_type { };
 
-template< class T >
+template<class T>
 struct is_const_container<T, beast::detail::void_t<
     decltype( std::declval<T&>().size() ),
     decltype( std::declval<T&>().data() )
@@ -38,8 +44,10 @@ struct is_const_container<T, beast::detail::void_t<
 template <typename Container>
 struct const_body
 {
-    static_assert(sizeof(typename Container::value_type) == 1, "Const character requirements not met");
-    static_assert(detail::is_const_container<Container>::value, "Const container requirements not met");
+    static_assert(detail::is_const_character<typename Container::value_type>::value,
+        "Const character requirements not met");
+    static_assert(detail::is_const_container<Container>::value,
+        "Const container requirements not met");
 
     /// The type of the body member when used in a message.
     using value_type = Container;
@@ -61,21 +69,14 @@ struct const_body
         value_type const& body_;
 
     public:
-        using is_deferred = std::true_type;
-
         using const_buffers_type =
             boost::asio::const_buffers_1;
 
         template<bool isRequest, class Fields>
         explicit
-        reader(beast::http::message<
-                isRequest, const_body, Fields> const& msg)
+        reader(beast::http::message<isRequest, const_body,
+                Fields> const& msg, beast::error_code& ec)
             : body_(msg.body)
-        {
-        }
-
-        void
-        init(beast::error_code& ec)
         {
             ec.assign(0, ec.category());
         }
@@ -86,12 +87,6 @@ struct const_body
             ec.assign(0, ec.category());
             return {{const_buffers_type{
                 body_.data(), body_.size()}, false}};
-        }
-
-        void
-        finish(beast::error_code& ec)
-        {
-            ec.assign(0, ec.category());
         }
     };
 #endif
