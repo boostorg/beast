@@ -8,8 +8,11 @@
 #ifndef BEAST_HTTP_IMPL_FIELD_IPP
 #define BEAST_HTTP_IMPL_FIELD_IPP
 
+#include <beast/core/string.hpp>
 #include <algorithm>
 #include <array>
+#include <unordered_map>
+#include <vector>
 #include <boost/assert.hpp>
 
 namespace beast {
@@ -17,24 +20,70 @@ namespace http {
 
 namespace detail {
 
-class field_strings
+struct field_table
 {
     using array_type =
         std::array<string_view, 352>;
 
-    array_type v_;
+    struct hash
+    {
+        std::size_t
+        operator()(string_view const& s) const
+        {
+            auto const n = s.size();
+            return
+                beast::detail::ascii_tolower(s[0]) *
+                beast::detail::ascii_tolower(s[n/2]) ^
+                beast::detail::ascii_tolower(s[n-1]);   // hist[] = 331, 10, max_load_factor = 0.15f
+        }
+    };
 
-public:
-    using const_iterator =
-        array_type::const_iterator; 
+    struct iequal
+    {
+        // assumes inputs have equal length
+        bool
+        operator()(
+            string_view const& lhs,
+            string_view const& rhs) const
+        {
+            auto p1 = lhs.data();
+            auto p2 = rhs.data();
+            auto pend = lhs.end();
+            char a, b;
+            while(p1 < pend)
+            {
+                a = *p1++;
+                b = *p2++;
+                if(a != b)
+                    goto slow;
+            }
+            return true;
 
+            while(p1 < pend)
+            {
+            slow:
+                if( beast::detail::ascii_tolower(a) !=
+                    beast::detail::ascii_tolower(b))
+                    return false;
+                a = *p1++;
+                b = *p2++;
+            }
+            return true;
+        }
+    };
+
+    using map_type = std::unordered_map<
+        string_view, field, hash, iequal>;
+
+    array_type by_name_;
+    std::vector<map_type> by_size_;
 /*
     From:
     
     https://www.iana.org/assignments/message-headers/message-headers.xhtml
 */
-    field_strings()
-        : v_({{
+    field_table()
+        : by_name_({{
             "<unknown-field>",
             "A-IM",
             "Accept",
@@ -389,59 +438,101 @@ public:
             "Xref"
         }})
     {
+        // find the longest field length
+        std::size_t high = 0;
+        for(auto const& s : by_name_)
+            if(high < s.size())
+                high = s.size();
+        // build by_size map
+        // skip field::unknown
+        by_size_.resize(high + 1);
+        for(auto& map : by_size_)
+            map.max_load_factor(.15f);
+        for(std::size_t i = 1;
+            i < by_name_.size(); ++i)
+        {
+            auto const& s = by_name_[i];
+            by_size_[s.size()].emplace(
+                s, static_cast<field>(i));
+        }
+
+#if 0
+        // This snippet calculates the performance
+        // of the hash function and map settings
+        {
+            std::vector<std::size_t> hist;
+            for(auto const& map : by_size_)
+            {
+                for(std::size_t i = 0; i < map.bucket_count(); ++i)
+                {
+                    auto const n = map.bucket_size(i);
+                    if(n > 0)
+                    {
+                        if(hist.size() < n)
+                            hist.resize(n);
+                        ++hist[n-1];
+                    }
+                }
+            }
+        }
+#endif
     }
+
+    field
+    string_to_field(string_view s) const
+    {
+        if(s.size() >= by_size_.size())
+            return field::unknown;
+        auto const& map = by_size_[s.size()];
+        if(map.empty())
+            return field::unknown;
+        auto it = map.find(s);
+        if(it == map.end())
+            return field::unknown;
+        return it->second;
+    }
+
+    //
+    // Deprecated
+    //
+
+    using const_iterator =
+    array_type::const_iterator; 
 
     std::size_t
     size() const
     {
-        return v_.size();
+        return by_name_.size();
     }
 
     const_iterator
     begin() const
     {
-        return v_.begin();
+        return by_name_.begin();
     }
 
     const_iterator
     end() const
     {
-        return v_.end();
+        return by_name_.end();
     }
 };
 
 inline
-field_strings const&
-get_field_strings()
+field_table const&
+get_field_table()
 {
-    static field_strings const fs;
-    return fs;
+    static field_table const tab;
+    return tab;
 }
 
 template<class = void>
 string_view
 to_string(field f)
 {
-    auto const& v = get_field_strings();
+    auto const& v = get_field_table();
     BOOST_ASSERT(static_cast<unsigned>(f) < v.size());
     return v.begin()[static_cast<unsigned>(f)];
-}
-
-template<class = void>
-field
-string_to_field(string_view s)
-{
-    auto const& v = get_field_strings();
-    auto const it = std::lower_bound(
-        v.begin(), v.end(), s,
-            beast::iless{});
-    if(it == v.end())
-        return field::unknown;
-    if(! iequals(s, *it))
-        return field::unknown;
-    BOOST_ASSERT(iequals(s, to_string(
-        static_cast<field>(it - v.begin()))));
-    return static_cast<field>(it - v.begin());
 }
 
 } // detail
@@ -457,7 +548,7 @@ inline
 field
 string_to_field(string_view s)
 {
-    return detail::string_to_field(s);
+    return detail::get_field_table().string_to_field(s);
 }
 
 } // http

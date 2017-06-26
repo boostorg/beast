@@ -211,237 +211,15 @@ public:
     void
     write_eof(error_code& ec);
 
+    void
+    check_header();
+
 private:
     Derived&
     impl()
     {
         return *static_cast<Derived*>(this);
     }
-
-    template<class C>
-    class has_on_start_t
-    {
-        template<class T, class R =
-            decltype(std::declval<T>().on_start(), std::true_type{})>
-        static R check(int);
-        template<class>
-        static std::false_type check(...);
-        using type = decltype(check<C>(0));
-    public:
-        static bool const value = type::value;
-    };
-    template<class C>
-    using has_on_start =
-        std::integral_constant<bool, has_on_start_t<C>::value>;
-
-    void
-    call_on_start(std::true_type)
-    {
-        impl().on_start();
-    }
-
-    void
-    call_on_start(std::false_type)
-    {
-    }
-
-    template<class C>
-    class has_on_field_t
-    {
-        template<class T, class R =
-            decltype(std::declval<T>().on_field(
-                std::declval<std::string const&>(),
-                    std::declval<std::string const&>()),
-                        std::true_type{})>
-        static R check(int);
-        template<class>
-        static std::false_type check(...);
-        using type = decltype(check<C>(0));
-    public:
-        static bool const value = type::value;
-    };
-    template<class C>
-    using has_on_field =
-        std::integral_constant<bool, has_on_field_t<C>::value>;
-
-    void
-    call_on_field(std::string const& field,
-        std::string const& value, std::true_type)
-    {
-        impl().on_field(field, value);
-    }
-
-    void
-    call_on_field(std::string const&, std::string const&,
-        std::false_type)
-    {
-    }
-
-    template<class C>
-    class has_on_headers_complete_t
-    {
-        template<class T, class R =
-            decltype(std::declval<T>().on_headers_complete(
-                std::declval<error_code&>()), std::true_type{})>
-        static R check(int);
-        template<class>
-        static std::false_type check(...);
-        using type = decltype(check<C>(0));
-    public:
-        static bool const value = type::value;
-    };
-    template<class C>
-    using has_on_headers_complete =
-        std::integral_constant<bool, has_on_headers_complete_t<C>::value>;
-
-    void
-    call_on_headers_complete(error_code& ec, std::true_type)
-    {
-        impl().on_headers_complete(ec);
-    }
-
-    void
-    call_on_headers_complete(error_code&, std::false_type)
-    {
-    }
-
-    template<class C>
-    class has_on_request_t
-    {
-        template<class T, class R =
-            decltype(std::declval<T>().on_request(
-                std::declval<unsigned>(), std::declval<std::string>(),
-                    std::declval<int>(), std::declval<int>(),
-                        std::declval<bool>(), std::declval<bool>()),
-                            std::true_type{})>
-        static R check(int);
-        template<class>
-        static std::false_type check(...);
-        using type = decltype(check<C>(0));
-    public:
-        static bool const value = type::value;
-    };
-    template<class C>
-    using has_on_request =
-        std::integral_constant<bool, has_on_request_t<C>::value>;
-
-    void
-    call_on_request(unsigned method, std::string url,
-        int major, int minor, bool keep_alive, bool upgrade,
-            std::true_type)
-    {
-        impl().on_request(
-            method, url, major, minor, keep_alive, upgrade);
-    }
-
-    void
-    call_on_request(unsigned, std::string, int, int, bool, bool,
-        std::false_type)
-    {
-    }
-
-    template<class C>
-    class has_on_response_t
-    {
-        template<class T, class R =
-            decltype(std::declval<T>().on_response(
-                std::declval<int>(), std::declval<std::string>,
-                    std::declval<int>(), std::declval<int>(),
-                        std::declval<bool>(), std::declval<bool>()),
-                            std::true_type{})>
-        static R check(int);
-        template<class>
-        static std::false_type check(...);
-#if 0
-        using type = decltype(check<C>(0));
-#else
-        // VFALCO Trait seems broken for http::parser
-        using type = std::true_type;
-#endif
-    public:
-        static bool const value = type::value;
-    };
-    template<class C>
-    using has_on_response =
-        std::integral_constant<bool, has_on_response_t<C>::value>;
-
-    bool
-    call_on_response(int status, std::string text,
-        int major, int minor, bool keep_alive, bool upgrade,
-            std::true_type)
-    {
-        return impl().on_response(
-            status, text, major, minor, keep_alive, upgrade);
-    }
-
-    bool
-    call_on_response(int, std::string, int, int, bool, bool,
-        std::false_type)
-    {
-        // VFALCO Certainly incorrect
-        return true;
-    }
-
-    template<class C>
-    class has_on_body_t
-    {
-        template<class T, class R =
-            decltype(std::declval<T>().on_body(
-                std::declval<void const*>(), std::declval<std::size_t>(),
-                    std::declval<error_code&>()), std::true_type{})>
-        static R check(int);
-        template<class>
-        static std::false_type check(...);
-        using type = decltype(check<C>(0));
-    public:
-        static bool const value = type::value;
-    };
-    template<class C>
-    using has_on_body =
-        std::integral_constant<bool, has_on_body_t<C>::value>;
-
-    void
-    call_on_body(void const* data, std::size_t bytes,
-        error_code& ec, std::true_type)
-    {
-        impl().on_body(data, bytes, ec);
-    }
-
-    void
-    call_on_body(void const*, std::size_t,
-        error_code&, std::false_type)
-    {
-    }
-
-    template<class C>
-    class has_on_complete_t
-    {
-        template<class T, class R =
-            decltype(std::declval<T>().on_complete(), std::true_type{})>
-        static R check(int);
-        template<class>
-        static std::false_type check(...);
-        using type = decltype(check<C>(0));
-    public:
-        static bool const value = type::value;
-    };
-    template<class C>
-    using has_on_complete =
-        std::integral_constant<bool, has_on_complete_t<C>::value>;
-
-    void
-    call_on_complete(std::true_type)
-    {
-        impl().on_complete();
-    }
-
-    void
-    call_on_complete(std::false_type)
-    {
-    }
-
-    void
-    check_header();
 
     static int cb_message_start(http_parser*);
     static int cb_url(http_parser*, char const*, std::size_t);
@@ -526,7 +304,8 @@ nodejs_basic_parser(nodejs_basic_parser&& other)
 
 template<class Derived>
 auto
-nodejs_basic_parser<Derived>::operator=(nodejs_basic_parser&& other) ->
+nodejs_basic_parser<Derived>::
+operator=(nodejs_basic_parser&& other) ->
     nodejs_basic_parser&
 {
     state_ = other.state_;
@@ -569,7 +348,8 @@ operator=(nodejs_basic_parser const& other) ->
 }
 
 template<class Derived>
-nodejs_basic_parser<Derived>::nodejs_basic_parser(bool request) noexcept
+nodejs_basic_parser<Derived>::
+nodejs_basic_parser(bool request) noexcept
 {
     state_.data = this;
     http_parser_init(&state_, request
@@ -579,7 +359,8 @@ nodejs_basic_parser<Derived>::nodejs_basic_parser(bool request) noexcept
 
 template<class Derived>
 std::size_t
-nodejs_basic_parser<Derived>::write(void const* data,
+nodejs_basic_parser<Derived>::
+write(void const* data,
     std::size_t size, error_code& ec)
 {
     ec_ = &ec;
@@ -596,11 +377,11 @@ nodejs_basic_parser<Derived>::write(void const* data,
 
 template<class Derived>
 void
-nodejs_basic_parser<Derived>::write_eof(error_code& ec)
+nodejs_basic_parser<Derived>::
+write_eof(error_code& ec)
 {
     ec_ = &ec;
-    http_parser_execute(
-        &state_, hooks(), nullptr, 0);
+    http_parser_execute(&state_, hooks(), nullptr, 0);
     if(! ec)
         ec = detail::make_nodejs_error(
             static_cast<int>(state_.http_errno));
@@ -608,13 +389,12 @@ nodejs_basic_parser<Derived>::write_eof(error_code& ec)
 
 template<class Derived>
 void
-nodejs_basic_parser<Derived>::check_header()
+nodejs_basic_parser<Derived>::
+check_header()
 {
     if(! value_.empty())
     {
-        //detail::trim(value_);
-        call_on_field(field_, value_,
-            has_on_field<Derived>{});
+        impl().on_field(field_, value_);
         field_.clear();
         value_.clear();
     }
@@ -622,7 +402,8 @@ nodejs_basic_parser<Derived>::check_header()
 
 template<class Derived>
 int
-nodejs_basic_parser<Derived>::cb_message_start(http_parser* p)
+nodejs_basic_parser<Derived>::
+cb_message_start(http_parser* p)
 {
     auto& t = *reinterpret_cast<nodejs_basic_parser*>(p->data);
     t.complete_ = false;
@@ -630,13 +411,14 @@ nodejs_basic_parser<Derived>::cb_message_start(http_parser* p)
     t.status_.clear();
     t.field_.clear();
     t.value_.clear();
-    t.call_on_start(has_on_start<Derived>{});
+    t.impl().on_start();
     return 0;
 }
 
 template<class Derived>
 int
-nodejs_basic_parser<Derived>::cb_url(http_parser* p,
+nodejs_basic_parser<Derived>::
+cb_url(http_parser* p,
     char const* in, std::size_t bytes)
 {
     auto& t = *reinterpret_cast<nodejs_basic_parser*>(p->data);
@@ -646,7 +428,8 @@ nodejs_basic_parser<Derived>::cb_url(http_parser* p,
 
 template<class Derived>
 int
-nodejs_basic_parser<Derived>::cb_status(http_parser* p,
+nodejs_basic_parser<Derived>::
+cb_status(http_parser* p,
     char const* in, std::size_t bytes)
 {
     auto& t = *reinterpret_cast<nodejs_basic_parser*>(p->data);
@@ -656,7 +439,8 @@ nodejs_basic_parser<Derived>::cb_status(http_parser* p,
 
 template<class Derived>
 int
-nodejs_basic_parser<Derived>::cb_header_field(http_parser* p,
+nodejs_basic_parser<Derived>::
+cb_header_field(http_parser* p,
     char const* in, std::size_t bytes)
 {
     auto& t = *reinterpret_cast<nodejs_basic_parser*>(p->data);
@@ -667,7 +451,8 @@ nodejs_basic_parser<Derived>::cb_header_field(http_parser* p,
 
 template<class Derived>
 int
-nodejs_basic_parser<Derived>::cb_header_value(http_parser* p,
+nodejs_basic_parser<Derived>::
+cb_header_value(http_parser* p,
     char const* in, std::size_t bytes)
 {
     auto& t = *reinterpret_cast<nodejs_basic_parser*>(p->data);
@@ -677,61 +462,67 @@ nodejs_basic_parser<Derived>::cb_header_value(http_parser* p,
 
 template<class Derived>
 int
-nodejs_basic_parser<Derived>::cb_headers_complete(http_parser* p)
+nodejs_basic_parser<Derived>::
+cb_headers_complete(http_parser* p)
 {
     auto& t = *reinterpret_cast<nodejs_basic_parser*>(p->data);
     t.check_header();
-    t.call_on_headers_complete(*t.ec_,
-        has_on_headers_complete<Derived>{});
+    t.impl().on_headers_complete(*t.ec_);
     if(*t.ec_)
         return 1;
     bool const keep_alive =
         http_should_keep_alive(p) != 0;
     if(p->type == http_parser_type::HTTP_REQUEST)
     {
-        t.call_on_request(p->method, t.url_,
+        t.impl().on_request(p->method, t.url_,
             p->http_major, p->http_minor, keep_alive,
-                p->upgrade, has_on_request<Derived>{});
+                p->upgrade);
         return 0;
     }
-    return t.call_on_response(p->status_code, t.status_,
+    return t.impl().on_response(p->status_code, t.status_,
         p->http_major, p->http_minor, keep_alive,
-            p->upgrade, has_on_response<Derived>{}) ? 0 : 1;
+            p->upgrade) ? 0 : 1;
 }
 
 template<class Derived>
 int
-nodejs_basic_parser<Derived>::cb_body(http_parser* p,
+nodejs_basic_parser<Derived>::
+cb_body(http_parser* p,
     char const* in, std::size_t bytes)
 {
     auto& t = *reinterpret_cast<nodejs_basic_parser*>(p->data);
-    t.call_on_body(in, bytes, *t.ec_, has_on_body<Derived>{});
+    t.impl().on_body(in, bytes, *t.ec_);
     return *t.ec_ ? 1 : 0;
 }
 
 template<class Derived>
 int
-nodejs_basic_parser<Derived>::cb_message_complete(http_parser* p)
+nodejs_basic_parser<Derived>::
+cb_message_complete(http_parser* p)
 {
     auto& t = *reinterpret_cast<nodejs_basic_parser*>(p->data);
     t.complete_ = true;
-    t.call_on_complete(has_on_complete<Derived>{});
+    t.impl().on_complete();
     return 0;
 }
 
 template<class Derived>
 int
-nodejs_basic_parser<Derived>::cb_chunk_header(http_parser*)
+nodejs_basic_parser<Derived>::
+cb_chunk_header(http_parser*)
 {
     return 0;
 }
 
 template<class Derived>
 int
-nodejs_basic_parser<Derived>::cb_chunk_complete(http_parser*)
+nodejs_basic_parser<Derived>::
+cb_chunk_complete(http_parser*)
 {
     return 0;
 }
+
+//------------------------------------------------------------------------------
 
 /** A HTTP parser.
 

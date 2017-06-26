@@ -4,6 +4,7 @@ Version 68:
 * Small speed up in fields comparisons
 * Adjust buffer size in fast server
 * Use string_ref in older Boost versions
+* Optimize field lookups
 
 API Changes:
 
