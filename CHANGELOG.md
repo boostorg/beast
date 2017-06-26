@@ -5,6 +5,7 @@ Version 68:
 * Adjust buffer size in fast server
 * Use string_ref in older Boost versions
 * Optimize field lookups
+* Add const_body, mutable_body to examples
 
 API Changes:
 
