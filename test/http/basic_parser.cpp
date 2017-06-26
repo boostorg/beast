@@ -378,8 +378,8 @@ public:
         bad<true>("GET / HTTP/1.0 \r\n"     "\r\n",     error::bad_version);
         bad<true>("GET / HTTP/1_0\r\n"      "\r\n",     error::bad_version);
         bad<true>("GET / HTTP/1.0\n\r\n"    "\r\n",     error::bad_version);
-        bad<true>("GET / HTTP/1.0\n\r\r\n"  "\r\n",     error::bad_line_ending);
-        bad<true>("GET / HTTP/1.0\r\r\n"    "\r\n",     error::bad_line_ending);
+        bad<true>("GET / HTTP/1.0\n\r\r\n"  "\r\n",     error::bad_version);
+        bad<true>("GET / HTTP/1.0\r\r\n"    "\r\n",     error::bad_version);
     }
 
     void
@@ -403,7 +403,7 @@ public:
         good<false>("HTTP/1.1 200 \x80\x81...\xfe\xff\r\n\r\n");
         good<false>("HTTP/1.1 200 !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\r\n\r\n");
 
-        bad<false>("\rHTTP/1.0 200 OK\r\n"  "\r\n",     error::bad_line_ending);
+        bad<false>("\rHTTP/1.0 200 OK\r\n"  "\r\n",     error::bad_version);
         bad<false>("\nHTTP/1.0 200 OK\r\n"  "\r\n",     error::bad_version);
         bad<false>(" HTTP/1.0 200 OK\r\n"   "\r\n",     error::bad_version);
         bad<false>("_TTP/1.0 200 OK\r\n"    "\r\n",     error::bad_version);
@@ -426,7 +426,7 @@ public:
         bad<false>("HTTP/1.0 200 \x01\r\n"  "\r\n",     error::bad_reason);
         bad<false>("HTTP/1.0 200 \x7f\r\n"  "\r\n",     error::bad_reason);
         bad<false>("HTTP/1.0 200 OK\n\r\n"  "\r\n",     error::bad_reason);
-        bad<false>("HTTP/1.0 200 OK\r\r\n"  "\r\n",     error::bad_line_ending);
+        bad<false>("HTTP/1.0 200 OK\r\r\n"  "\r\n",     error::bad_reason);
     }
 
     void

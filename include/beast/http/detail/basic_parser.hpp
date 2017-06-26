@@ -12,6 +12,7 @@
 #include <beast/http/error.hpp>
 #include <beast/http/detail/rfc7230.hpp>
 #include <boost/version.hpp>
+#include <algorithm>
 #include <cstddef>
 #include <utility>
 
@@ -276,7 +277,7 @@ protected:
     bool
     parse_crlf(char const*& it)
     {
-        if( it[0] != '\r' && it[1] != '\n')
+        if( it[0] != '\r' || it[1] != '\n')
             return false;
         it += 2;
         return true;
@@ -381,10 +382,31 @@ protected:
     static
     char const*
     find_eol(
-        char const* first, char const* last,
+        char const* it, char const* last,
             error_code& ec)
     {
-        auto it = first;
+#if 0
+        // SLOWER
+        it = reinterpret_cast<char const*>(
+            std::memchr(it, '\r', last - it));
+        if(! it)
+        {
+            ec.assign(0, ec.category());
+            return nullptr;
+        }
+        if(it + 2 > last)
+        {
+            ec.assign(0, ec.category());
+            return nullptr;
+        }
+        if(it[1] != '\n')
+        {
+            ec = error::bad_line_ending;
+            return nullptr;
+        }
+        ec.assign(0, ec.category());
+        return it + 2;
+#else
         for(;;)
         {
             if(it == last)
@@ -411,61 +433,41 @@ protected:
             // for lines terminated with a single '\n'?
             ++it;
         }
+#endif
     }
 
     // VFALCO Can SIMD help this?
     static
     char const*
-    find_eom(
-        char const* first, char const* last,
-            error_code& ec)
+    find_eom(char const* p, char const* last)
     {
-        auto it = first;
         for(;;)
         {
-            if(it == last)
-            {
-                ec.assign(0, ec.category());
+            if(p + 4 > last)
                 return nullptr;
-            }
-            if(*it == '\r')
+            if(p[3] != '\n')
             {
-                if(++it == last)
-                {
-                    ec.assign(0, ec.category());
-                    return nullptr;
-                }
-                if(*it != '\n')
-                {
-                    ec = error::bad_line_ending;
-                    return nullptr;
-                }
-                if(++it == last)
-                {
-                    ec.assign(0, ec.category());
-                    return nullptr;
-                }
-                if(*it != '\r')
-                {
-                    ++it;
-                    continue;
-                }
-                if(++it == last)
-                {
-                    ec.assign(0, ec.category());
-                    return nullptr;
-                }
-                if(*it != '\n')
-                {
-                    ec = error::bad_line_ending;
-                    return nullptr;
-                }
-                ec.assign(0, ec.category());
-                return ++it;
+                if(p[3] == '\r')
+                    ++p;
+                else
+                    p += 4;
             }
-            // VFALCO Should we handle the legacy case
-            // for lines terminated with a single '\n'?
-            ++it;
+            else if(p[2] != '\r')
+            {
+                p += 4;
+            }
+            else if(p[1] != '\n')
+            {
+                p += 2;
+            }
+            else if(p[0] != '\r')
+            {
+                p += 2;
+            }
+            else
+            {
+                return p + 4;
+            }
         }
     }
 };
