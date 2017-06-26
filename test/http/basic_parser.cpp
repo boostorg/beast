@@ -360,9 +360,9 @@ public:
 
         bad<true>("\tGET / HTTP/1.0\r\n"    "\r\n",     error::bad_method);
         bad<true>("GET\x01 / HTTP/1.0\r\n"  "\r\n",     error::bad_method);
-        bad<true>("GET  / HTTP/1.0\r\n"     "\r\n",     error::bad_path);
-        bad<true>("GET \x01 HTTP/1.0\r\n"   "\r\n",     error::bad_path);
-        bad<true>("GET /\x01 HTTP/1.0\r\n"  "\r\n",     error::bad_path);
+        bad<true>("GET  / HTTP/1.0\r\n"     "\r\n",     error::bad_target);
+        bad<true>("GET \x01 HTTP/1.0\r\n"   "\r\n",     error::bad_target);
+        bad<true>("GET /\x01 HTTP/1.0\r\n"  "\r\n",     error::bad_target);
         // VFALCO TODO various forms of bad request-target (uri)
         bad<true>("GET /  HTTP/1.0\r\n"     "\r\n",     error::bad_version);
         bad<true>("GET / _TTP/1.0\r\n"      "\r\n",     error::bad_version);

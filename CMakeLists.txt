@@ -2,7 +2,7 @@
 
 cmake_minimum_required (VERSION 3.5.2)
 
-project (Beast VERSION 67)
+project (Beast VERSION 68)
 
 set_property (GLOBAL PROPERTY USE_FOLDERS ON)
 
@@ -48,7 +48,7 @@ endif()
 option (Boost_USE_STATIC_LIBS "Use static libraries for boost" ON)
 
 set (BOOST_COMPONENTS coroutine context filesystem program_options system thread)
-find_package (Boost REQUIRED COMPONENTS ${BOOST_COMPONENTS})
+find_package (Boost 1.58.0 REQUIRED COMPONENTS ${BOOST_COMPONENTS})
 
 link_directories(${Boost_LIBRARY_DIRS})
 

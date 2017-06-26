@@ -1,34 +1,53 @@
 //
-// Copyright (c) 2013-2017 Vinnie Falco (vinnie dot falco at gmail dot com)
+// Copyright (c) 2013-2017 Mike Gresens (mike dot gresens at gmail dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#ifndef BEAST_HTTP_STRING_BODY_HPP
-#define BEAST_HTTP_STRING_BODY_HPP
+#ifndef BEAST_EXAMPLE_COMMON_MUTABLE_BODY_HPP_
+#define BEAST_EXAMPLE_COMMON_MUTABLE_BODY_HPP_
 
-#include <beast/config.hpp>
-#include <beast/http/error.hpp>
 #include <beast/http/message.hpp>
-#include <beast/core/detail/type_traits.hpp>
+#include <beast/http/error.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/optional.hpp>
-#include <memory>
-#include <string>
-#include <utility>
 
-namespace beast {
-namespace http {
+namespace detail {
 
-/** An HTTP message body represented by a `std::string`.
+template <typename T>
+using is_mutable_character = std::integral_constant<bool,
+    std::is_integral<T>::value &&
+    sizeof(T) == 1
+>;
+
+template<class T, class = void>
+struct is_mutable_container : std::false_type { };
+
+template< class T >
+struct is_mutable_container<T, beast::detail::void_t<
+    decltype( std::declval<typename T::size_type&>() = std::declval<T&>().size() ),
+    decltype( std::declval<const typename T::value_type*&>() = std::declval<T&>().data() ),
+    decltype( std::declval<T&>().reserve(0) ),
+    decltype( std::declval<T&>().resize(0) )
+> > : std::true_type { };
+
+}
+
+/** An HTTP message body represented by a mutable character container.
 
     Meets the requirements of @b Body.
 */
-struct string_body
+template <typename Container>
+struct mutable_body
 {
+    static_assert(detail::is_mutable_character<typename Container::value_type>::value,
+        "Mutable character requirements not met");
+    static_assert(detail::is_mutable_container<Container>::value,
+        "Mutable container requirements not met");
+
     /// The type of the body member when used in a message.
-    using value_type = std::string;
+    using value_type = Container;
 
     /// Returns the content length of the body in a message.
     static
@@ -52,15 +71,15 @@ struct string_body
 
         template<bool isRequest, class Fields>
         explicit
-        reader(message<isRequest, string_body,
-                Fields> const& msg, error_code& ec)
+        reader(beast::http::message<isRequest, mutable_body,
+                Fields> const& msg, beast::error_code& ec)
             : body_(msg.body)
         {
             ec.assign(0, ec.category());
         }
 
         boost::optional<std::pair<const_buffers_type, bool>>
-        get(error_code& ec)
+        get(beast::error_code& ec)
         {
             ec.assign(0, ec.category());
             return {{const_buffers_type{
@@ -80,9 +99,9 @@ struct string_body
     public:
         template<bool isRequest, class Fields>
         explicit
-        writer(message<isRequest, string_body, Fields>& m,
-            boost::optional<std::uint64_t> content_length,
-                error_code& ec)
+        writer(beast::http::message<isRequest, mutable_body, Fields>& m,
+            boost::optional<std::uint64_t> const& content_length,
+                beast::error_code& ec)
             : body_(m.body)
         {
             if(content_length)
@@ -90,24 +109,20 @@ struct string_body
                 if(*content_length > (std::numeric_limits<
                         std::size_t>::max)())
                 {
-                    ec = make_error_code(
-                        errc::not_enough_memory);
+                    ec = boost::system::errc::make_error_code(
+                            boost::system::errc::not_enough_memory);
                     return;
                 }
                 ec.assign(0, ec.category());
                 body_.reserve(static_cast<
                     std::size_t>(*content_length));
             }
-            else
-            {
-                ec.assign(0, ec.category());
-            }
         }
 
         template<class ConstBufferSequence>
         void
         put(ConstBufferSequence const& buffers,
-            error_code& ec)
+                beast::error_code& ec)
         {
             using boost::asio::buffer_size;
             using boost::asio::buffer_copy;
@@ -119,7 +134,7 @@ struct string_body
             }
             catch(std::length_error const&)
             {
-                ec = error::buffer_overflow;
+                ec = beast::http::error::buffer_overflow;
                 return;
             }
             ec.assign(0, ec.category());
@@ -128,15 +143,13 @@ struct string_body
         }
 
         void
-        finish(error_code& ec)
+        finish(beast::error_code& ec)
         {
             ec.assign(0, ec.category());
         }
     };
 #endif
-};
 
-} // http
-} // beast
+};
 
 #endif

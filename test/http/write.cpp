@@ -42,20 +42,14 @@ public:
             value_type const& body_;
 
         public:
-            using is_deferred = std::false_type;
-
             using const_buffers_type =
                 boost::asio::const_buffers_1;
 
             template<bool isRequest, class Allocator>
             explicit
-            reader(message<isRequest, unsized_body, Allocator> const& msg)
+            reader(message<isRequest, unsized_body,
+                    Allocator> const& msg, error_code &ec)
                 : body_(msg.body)
-            {
-            }
-
-            void
-            init(error_code& ec)
             {
                 ec.assign(0, ec.category());
             }
@@ -67,17 +61,10 @@ public:
                 return {{const_buffers_type{
                     body_.data(), body_.size()}, false}};
             }
-
-            void
-            finish(error_code& ec)
-            {
-                ec.assign(0, ec.category());
-            }
         };
     };
 
     template<
-        bool isDeferred,
         bool isSplit,
         bool isFinalEmpty
     >
@@ -95,22 +82,14 @@ public:
             value_type const& body_;
 
         public:
-            using is_deferred =
-                std::integral_constant<bool, isDeferred>;
-
             using const_buffers_type =
                 boost::asio::const_buffers_1;
 
             template<bool isRequest, class Fields>
             explicit
             reader(message<isRequest, test_body,
-                    Fields> const& msg)
+                    Fields> const& msg, error_code& ec)
                 : body_(msg.body)
-            {
-            }
-
-            void
-            init(error_code& ec)
             {
                 ec.assign(0, ec.category());
             }
@@ -123,12 +102,6 @@ public:
                 return get(
                     std::integral_constant<bool, isSplit>{},
                     std::integral_constant<bool, isFinalEmpty>{});
-            }
-
-            void
-            finish(error_code& ec)
-            {
-                ec.assign(0, ec.category());
             }
 
         private:
@@ -241,20 +214,14 @@ public:
             value_type const& body_;
 
         public:
-            using is_deferred = std::false_type;
-
             using const_buffers_type =
                 boost::asio::const_buffers_1;
 
             template<bool isRequest, class Allocator>
             explicit
-            reader(message<isRequest, fail_body, Allocator> const& msg)
+            reader(message<isRequest, fail_body,
+                    Allocator> const& msg, error_code& ec)
                 : body_(msg.body)
-            {
-            }
-
-            void
-            init(error_code& ec)
             {
                 body_.fc_.fail(ec);
             }
@@ -268,12 +235,6 @@ public:
                     return boost::none;
                 return {{const_buffers_type{
                     body_.s_.data() + n_++, 1}, true}};
-            }
-
-            void
-            finish(error_code& ec)
-            {
-                body_.fc_.fail(ec);
             }
         };
     };
@@ -875,14 +836,10 @@ public:
         yield_to(
             [&](yield_context yield)
             {
-                testWriteStream<test_body<false, false, false>>(yield);
-                testWriteStream<test_body<false, false,  true>>(yield);
-                testWriteStream<test_body<false,  true, false>>(yield);
-                testWriteStream<test_body<false,  true,  true>>(yield);
-                testWriteStream<test_body< true, false, false>>(yield);
-                testWriteStream<test_body< true, false,  true>>(yield);
-                testWriteStream<test_body< true,  true, false>>(yield);
-                testWriteStream<test_body< true,  true,  true>>(yield);
+                testWriteStream<test_body<false, false>>(yield);
+                testWriteStream<test_body<false,  true>>(yield);
+                testWriteStream<test_body< true, false>>(yield);
+                testWriteStream<test_body< true,  true>>(yield);
             });
     }
 };

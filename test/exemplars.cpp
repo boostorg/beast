@@ -48,37 +48,19 @@ struct Body_BodyReader {
 struct BodyReader
 {
 public:
-    /** Controls when the implementation requests buffers.
-
-        If false, the implementation will request the first buffer
-        immediately and try to serialize both the header and some
-        or all of the body in a single buffer.
-    */
-    using is_deferred = std::false_type;
-
     /// The type of buffer returned by `get`.
     using const_buffers_type = boost::asio::const_buffers_1;
 
     /** Construct the reader.
 
         @param msg The message whose body is to be retrieved.
-    */
-    template<bool isRequest, class Body, class Headers>
-    explicit
-    BodyReader(message<isRequest, Body, Headers> const& msg);
-
-    /** Initialization.
-
-        Called once immediately after construction.
 
         @param ec Set to the error, if any occurred.
     */
-    void
-    init(error_code& ec)
-    {
-        // The specification requires this to indicate "no error"
-        ec = {};
-    }
+    template<bool isRequest, class Body, class Headers>
+    explicit
+    BodyReader(message<isRequest, Body, Headers> const& msg,
+        error_code &ec);
 
     /** Returns the next buffer in the body.
 
@@ -106,17 +88,6 @@ public:
 
         return boost::none; // for exposition only
     }
-
-    /** Called after `get` indicates there are no more buffers.
-
-        @param ec Set to the error, if any occurred.
-    */
-    void
-    finish(error_code& ec)
-    {
-        // The specification requires this to indicate "no error"
-        ec = {};
-    }
 };
 
 //]
@@ -137,19 +108,12 @@ struct BodyWriter
     */
     template<bool isRequest, class Body, class Fields>
     explicit
-    BodyWriter(message<isRequest, Body, Fields>& msg);
-
-    /** Initialization.
-
-        Called once immediately before storing any buffers.
-
-        @param content_length The content length if known, else `boost::none`.
-
-        @param ec Set to the error, if any occurred.
-    */
-    void
-    init(boost::optional<std::uint64_t> content_length, error_code& ec)
+    BodyWriter(message<isRequest, Body, Fields>& msg,
+        boost::optional<std::uint64_t> content_length,
+            error_code& ec)
     {
+        boost::ignore_unused(msg, content_length);
+
         // The specification requires this to indicate "no error"
         ec = {};
     }

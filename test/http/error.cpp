@@ -46,7 +46,7 @@ public:
 
         check("beast.http", error::bad_line_ending);
         check("beast.http", error::bad_method);
-        check("beast.http", error::bad_path);
+        check("beast.http", error::bad_target);
         check("beast.http", error::bad_version);
         check("beast.http", error::bad_status);
         check("beast.http", error::bad_reason);

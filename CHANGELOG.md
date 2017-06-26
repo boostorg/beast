@@ -1,3 +1,25 @@
+Version 68:
+
+* Split common tests to a new project
+* Small speed up in fields comparisons
+* Adjust buffer size in fast server
+* Use string_ref in older Boost versions
+
+API Changes:
+
+* Change BodyReader, BodyWriter requirements
+* Remove BodyReader::is_deferred
+* http::error::bad_target replaces bad_path
+
+Actions Required:
+
+* Change user defined instances of BodyReader and BodyWriter
+  to meet the new requirements.
+
+* Replace references to http::error::bad_path with http::error::bad_target
+
+--------------------------------------------------------------------------------
+
 Version 67:
 
 * Fix doc example link
