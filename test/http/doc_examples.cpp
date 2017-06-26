@@ -25,9 +25,14 @@
 namespace beast {
 namespace http {
 
+struct Thing {
+    char value;
+};
+
 BOOST_STATIC_ASSERT(::detail::is_const_character<char>::value == true);
 BOOST_STATIC_ASSERT(::detail::is_const_character<unsigned char>::value == true);
 BOOST_STATIC_ASSERT(::detail::is_const_character<char32_t>::value == false);
+BOOST_STATIC_ASSERT(::detail::is_const_character<Thing>::value == false);
 
 BOOST_STATIC_ASSERT(::detail::is_const_container<std::string>::value == true);
 BOOST_STATIC_ASSERT(::detail::is_const_container<string_view>::value == true);
@@ -37,6 +42,7 @@ BOOST_STATIC_ASSERT(::detail::is_const_container<std::list<char>>::value == fals
 BOOST_STATIC_ASSERT(::detail::is_mutable_character<char>::value == true);
 BOOST_STATIC_ASSERT(::detail::is_mutable_character<unsigned char>::value == true);
 BOOST_STATIC_ASSERT(::detail::is_mutable_character<char32_t>::value == false);
+BOOST_STATIC_ASSERT(::detail::is_mutable_character<Thing>::value == false);
 
 BOOST_STATIC_ASSERT(::detail::is_mutable_container<std::string>::value == true);
 BOOST_STATIC_ASSERT(::detail::is_mutable_container<string_view>::value == false);
