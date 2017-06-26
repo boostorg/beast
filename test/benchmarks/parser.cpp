@@ -224,7 +224,7 @@ public:
     void
     testSpeed()
     {
-        static std::size_t constexpr Trials = 3;
+        static std::size_t constexpr Trials = 10;
         static std::size_t constexpr Repeat = 500;
 
         creq_ = build_corpus(N/2, std::true_type{});
@@ -240,6 +240,15 @@ public:
             ((Repeat * size_ + 512) / 1024) << "KB in " <<
                 (Repeat * (creq_.size() + cres_.size())) << " messages";
 
+#if 0
+        timedTest(Trials, "http::parser",
+            [&]
+            {
+                testParser2<request_parser<dynamic_body>>(Repeat, creq_);
+                testParser2<response_parser<dynamic_body>>(Repeat, cres_);
+            });
+#endif
+#if 1
         timedTest(Trials, "http::basic_parser",
             [&]
             {
@@ -250,6 +259,7 @@ public:
                     false, dynamic_body, fields>>(
                         Repeat, cres_);
             });
+#if 1
         timedTest(Trials, "nodejs_parser",
             [&]
             {
@@ -260,6 +270,8 @@ public:
                     false, dynamic_body, fields>>(
                         Repeat, cres_);
             });
+#endif
+#endif
         pass();
     }
 

@@ -67,9 +67,24 @@ iequals(
         return false;
     auto p1 = lhs.data();
     auto p2 = rhs.data();
+    char a, b;
     while(n--)
-        if(ascii_tolower(*p1) != ascii_tolower(*p2))
+    {
+        a = *p1++;
+        b = *p2++;
+        if(a != b)
+            goto slow;
+    }
+    return true;
+
+    while(n--)
+    {
+    slow:
+        if(ascii_tolower(a) != ascii_tolower(b))
             return false;
+        a = *p1++;
+        b = *p2++;
+    }
     return true;
 }
 
@@ -92,7 +107,7 @@ iequals(
     return detail::iequals(lhs, rhs);
 }
 
-/** A strictly less predicate for strings, using a case-insensitive comparison.
+/** A case-insensitive less predicate for strings.
 
     The case-comparison operation is defined only for low-ASCII characters.
 */
@@ -100,8 +115,8 @@ struct iless
 {
     bool
     operator()(
-        beast::string_view const& lhs,
-        beast::string_view const& rhs) const
+        string_view const& lhs,
+        string_view const& rhs) const
     {
         using std::begin;
         using std::end;
@@ -115,7 +130,7 @@ struct iless
     }
 };
 
-/** A predicate for string equality, using a case-insensitive comparison.
+/** A case-insensitive equality predicate for strings.
 
     The case-comparison operation is defined only for low-ASCII characters.
 */
@@ -123,8 +138,8 @@ struct iequal
 {
     bool
     operator()(
-        beast::string_view const& lhs,
-        beast::string_view const& rhs) const
+        string_view const& lhs,
+        string_view const& rhs) const
     {
         return iequals(lhs, rhs);
     }
