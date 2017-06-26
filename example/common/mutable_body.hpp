@@ -14,33 +14,23 @@
 #include <beast/core/detail/type_traits.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/optional.hpp>
-#include <boost/tti/has_type.hpp>
-#include <boost/tti/has_member_function.hpp>
-#include <boost/mpl/identity.hpp>
 #include <memory>
 #include <string>
 #include <utility>
 
-namespace mutable_detail
-{
-    BOOST_TTI_HAS_TYPE(value_type)
-    BOOST_TTI_HAS_TYPE(iterator)
-    BOOST_TTI_HAS_TYPE(size_type)
-    BOOST_TTI_HAS_TYPE(reference)
-    BOOST_TTI_HAS_MEMBER_FUNCTION(data)
-    BOOST_TTI_HAS_MEMBER_FUNCTION(reserve)
-    BOOST_TTI_HAS_MEMBER_FUNCTION(resize)
+namespace detail {
 
-    template <typename T>
-    using is_container = boost::mpl::bool_<
-        has_type_value_type<T>::value &&
-        has_type_iterator<T>::value &&
-        has_type_size_type<T>::value &&
-        has_type_reference<T>::value &&
-        has_member_function_data<T, const typename T::value_type*, boost::mpl::vector<>, boost::function_types::const_qualified>::value &&
-        has_member_function_reserve<T, void, boost::mpl::vector<size_t>>::value &&
-        has_member_function_resize<T, void, boost::mpl::vector<size_t>>::value
-    >;
+template<class T, class = void>
+struct is_mutable_container : std::false_type { };
+
+template< class T >
+struct is_mutable_container<T, beast::detail::void_t<
+    decltype( std::declval<T&>().size() ),
+    decltype( std::declval<T&>().data() ),
+    decltype( std::declval<T&>().reserve(0) ),
+    decltype( std::declval<T&>().resize(0) )
+> > : std::true_type { };
+
 }
 
 /** An HTTP message body represented by a mutable character container.
@@ -51,7 +41,7 @@ template <typename Container>
 struct mutable_body
 {
     static_assert(sizeof(typename Container::value_type) == 1, "Mutable character requirements not met");
-    static_assert(mutable_detail::is_container<Container>::value, "Mutable container requirements not met");
+    static_assert(detail::is_mutable_container<Container>::value, "Mutable container requirements not met");
 
     /// The type of the body member when used in a message.
     using value_type = Container;
