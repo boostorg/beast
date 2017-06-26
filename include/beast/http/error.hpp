@@ -98,7 +98,7 @@ enum class error
     bad_method,
 
     /// The request-target is invalid.
-    bad_path,
+    bad_target,
 
     /// The HTTP-version is invalid.
     bad_version,

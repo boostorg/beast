@@ -318,12 +318,12 @@ parse_header(char const*& p, char const* term,
     auto const target = parse_target(p);
     if(target.empty())
     {
-        ec = error::bad_path;
+        ec = error::bad_target;
         return;
     }
     if(*p++ != ' ')
     {
-        ec = error::bad_path;
+        ec = error::bad_target;
         return;
     }
 
