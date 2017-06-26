@@ -351,8 +351,39 @@ public:
             flat_buffer b;
             response<mutable_body<std::vector<char>>> res;
             read(c.client, b, res);
-            BEAST_EXPECTS(res.body == std::vector<char>(body.begin(), body.end()), std::string(body.begin(), body.end()));
+            BEAST_EXPECTS(res.body == std::vector<char>(body.begin(), body.end()),
+                std::string(body.begin(), body.end()));
         }
+    }
+
+    void
+	checkConstBody()
+    {
+    	BEAST_EXPECTS(::detail::is_const_container<std::string>::value == true,
+    	    "is_const_container<std::string>::value");
+    	BEAST_EXPECTS(::detail::is_const_container<string_view>::value == true,
+    	    "is_const_container<string_view>::value");
+    	BEAST_EXPECTS(::detail::is_const_container<std::vector<char>>::value == true,
+    	    "is_const_container<std::vector<char>>::value");
+    	BEAST_EXPECTS(::detail::is_const_container<std::vector<unsigned char>>::value == true,
+    	    "is_const_container<std::vector<unsigned char>>::value");
+    	BEAST_EXPECTS(::detail::is_const_container<std::list<char>>::value == false,
+    	    "is_const_container<std::list<char>>::value");
+    }
+
+    void
+	checkMutableBody()
+    {
+    	BEAST_EXPECTS(::detail::is_mutable_container<std::string>::value == true,
+    	    "is_mutable_container<std::string>::value");
+    	BEAST_EXPECTS(::detail::is_mutable_container<string_view>::value == false,
+    	    "is_mutable_container<string_view>::value");
+    	BEAST_EXPECTS(::detail::is_mutable_container<std::vector<char>>::value == true,
+    	    "is_mutable_container<std::vector<char>>::value");
+    	BEAST_EXPECTS(::detail::is_mutable_container<std::vector<unsigned char>>::value == true,
+    	    "is_mutable_container<std::vector<unsigned char>>::value");
+    	BEAST_EXPECTS(::detail::is_mutable_container<std::list<char>>::value == false,
+    	    "is_mutable_container<std::list<char>>::value");
     }
 
     //--------------------------------------------------------------------------
@@ -370,6 +401,8 @@ public:
         doDeferredBody();
         doFileBody();
         doConstAndMutableBody();
+        checkConstBody();
+        checkMutableBody();
     }
 };
 
