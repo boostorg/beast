@@ -1,3 +1,9 @@
+Version 69:
+
+* basic_parser optimizations
+
+--------------------------------------------------------------------------------
+
 Version 68:
 
 * Split common tests to a new project

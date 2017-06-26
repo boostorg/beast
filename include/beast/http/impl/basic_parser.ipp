@@ -21,6 +21,40 @@
 namespace beast {
 namespace http {
 
+namespace detail {
+
+template<class FwdIt>
+inline
+FwdIt
+skip_ows2(FwdIt it, FwdIt const& end)
+{
+    while(it != end)
+    {
+        if(*it != ' ' && *it != '\t')
+            break;
+        ++it;
+    }
+    return it;
+}
+
+template<class RanIt>
+inline
+RanIt
+skip_ows_rev2(
+    RanIt it, RanIt const& first)
+{
+    while(it != first)
+    {
+        auto const c = it[-1];
+        if(c != ' ' && c != '\t')
+            break;
+        --it;
+    }
+    return it;
+}
+
+} // detail
+
 template<bool isRequest, class Derived>
 template<class OtherDerived>
 basic_parser<isRequest, Derived>::
@@ -265,10 +299,8 @@ parse_header(char const*& p,
         ec = http::error::need_more;
         return;
     }
-    auto const term = find_eom(
-        p + skip_, p + n, ec);
-    if(ec)
-        return;
+    auto const term =
+        find_eom(p + skip_, p + n);
     if(! term)
     {
         skip_ = n - 3;
@@ -328,7 +360,13 @@ parse_header(char const*& p, char const* term,
     }
 
     auto const version = parse_version(p);
-    if(version < 0 || ! parse_crlf(p))
+    if(version < 0)
+    {
+        ec = error::bad_version;
+        return;
+    }
+
+    if(! parse_crlf(p))
     {
         ec = error::bad_version;
         return;
@@ -595,9 +633,7 @@ parse_chunk_header(char const*& p0,
         BOOST_ASSERT(! ec);
     }
 
-    auto eom = find_eom(p0 + skip_, pend, ec);
-    if(ec)
-        return;
+    auto eom = find_eom(p0 + skip_, pend);
     if(! eom)
     {
         BOOST_ASSERT(n >= 3);
@@ -688,8 +724,8 @@ parse_fields(char const*& p,
            *term != '\t')
         {
             auto it2 = term - 2;
-            detail::skip_ows(p, it2);
-            detail::skip_ows_rev(it2, p);
+            p = detail::skip_ows2(p, it2);
+            it2 = detail::skip_ows_rev2(it2, p);
             auto const f = string_to_field(name);
             auto const value = make_string(p, it2);
             do_field(f, value, ec);
@@ -706,7 +742,7 @@ parse_fields(char const*& p,
             for(;;)
             {
                 auto const it2 = term - 2;
-                detail::skip_ows(p, it2);
+                p = detail::skip_ows2(p, it2);
                 if(p != it2)
                     break;
                 p = term;
@@ -729,7 +765,7 @@ parse_fields(char const*& p,
                         if(*p != ' ' && *p != '\t')
                             break;
                         s.push_back(' ');
-                        detail::skip_ows(p, term - 2);
+                        p = detail::skip_ows2(p, term - 2);
                         term = find_eol(p, last, ec);
                         if(ec)
                             return;
