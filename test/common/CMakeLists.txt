@@ -10,6 +10,8 @@ add_executable (common-test
     ${COMMON_INCLUDES}
     detect_ssl.cpp
     file_body.cpp
+    const_body.cpp
+    mutable_body.cpp
     mime_types.cpp
     rfc7231.cpp
     ssl_stream.cpp
