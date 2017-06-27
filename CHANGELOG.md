@@ -1,6 +1,7 @@
 * Documentation tidying
 * is_invocable works with move-only types
 * Use std::function and reference wrapper
+* Add session_alloc to example/common
 
 WebSocket
 
@@ -203,7 +204,6 @@ HTTP:
 WebSocket:
 
 * Add websocket-server-async example
-
 
 --------------------------------------------------------------------------------
 
