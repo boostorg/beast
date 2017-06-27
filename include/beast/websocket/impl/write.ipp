@@ -16,6 +16,7 @@
 #include <beast/core/static_buffer.hpp>
 #include <beast/core/type_traits.hpp>
 #include <beast/core/detail/clamp.hpp>
+#include <beast/core/detail/config.hpp>
 #include <beast/websocket/detail/frame.hpp>
 #include <boost/asio/handler_alloc_hook.hpp>
 #include <boost/asio/handler_continuation_hook.hpp>
@@ -231,7 +232,7 @@ operator()(error_code ec,
         case do_nomask_nofrag:
             BOOST_ASSERT(! d.ws.wr_block_);
             d.ws.wr_block_ = &d;
-            BOOST_FALLTHROUGH;
+            BEAST_FALLTHROUGH;
 
         case do_nomask_nofrag + 1:
         {
@@ -254,7 +255,7 @@ operator()(error_code ec,
         case do_nomask_frag:
             BOOST_ASSERT(! d.ws.wr_block_);
             d.ws.wr_block_ = &d;
-            BOOST_FALLTHROUGH;
+            BEAST_FALLTHROUGH;
 
         case do_nomask_frag + 1:
         {
@@ -302,7 +303,7 @@ operator()(error_code ec,
         case do_mask_nofrag:
             BOOST_ASSERT(! d.ws.wr_block_);
             d.ws.wr_block_ = &d;
-            BOOST_FALLTHROUGH;
+            BEAST_FALLTHROUGH;
 
         case do_mask_nofrag + 1:
         {
@@ -354,7 +355,7 @@ operator()(error_code ec,
         case do_mask_frag:
             BOOST_ASSERT(! d.ws.wr_block_);
             d.ws.wr_block_ = &d;
-            BOOST_FALLTHROUGH;
+            BEAST_FALLTHROUGH;
 
         case do_mask_frag + 1:
         {
@@ -407,7 +408,7 @@ operator()(error_code ec,
         case do_deflate:
             BOOST_ASSERT(! d.ws.wr_block_);
             d.ws.wr_block_ = &d;
-            BOOST_FALLTHROUGH;
+            BEAST_FALLTHROUGH;
 
         case do_deflate + 1:
         {
@@ -634,7 +635,7 @@ operator()(error_code ec)
     {
     case 2:
         d.step = 3;
-        BOOST_FALLTHROUGH;
+        BEAST_FALLTHROUGH;
     case 3:
     case 0:
     {

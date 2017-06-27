@@ -14,6 +14,7 @@
 #include <beast/core/static_buffer.hpp>
 #include <beast/core/type_traits.hpp>
 #include <beast/core/detail/clamp.hpp>
+#include <beast/core/detail/config.hpp>
 #include <boost/asio/handler_alloc_hook.hpp>
 #include <boost/asio/handler_continuation_hook.hpp>
 #include <boost/asio/handler_invoke_hook.hpp>
@@ -523,7 +524,7 @@ operator()(error_code ec,
                     ec = boost::asio::error::operation_aborted;
                     goto upcall;
                 }
-                BOOST_FALLTHROUGH;
+                BEAST_FALLTHROUGH;
 
             //------------------------------------------------------------------
 
@@ -1070,7 +1071,7 @@ operator()(error_code const& ec, bool fin)
 
     case 1:
         state_ = 2;
-        BOOST_FALLTHROUGH;
+        BEAST_FALLTHROUGH;
 
     case 2:
         if(ec)
