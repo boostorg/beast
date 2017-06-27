@@ -10,8 +10,8 @@
 
 #include <beast/http/error.hpp>
 #include <beast/http/status.hpp>
+#include <beast/core/detail/config.hpp>
 #include <boost/assert.hpp>
-#include <boost/config.hpp>
 #include <ostream>
 
 namespace beast {
@@ -63,7 +63,7 @@ get(error_code& ec, Visit&& visit)
         if(frd_->chunked())
             goto go_init_c;
         s_ = do_init;
-        BOOST_FALLTHROUGH;
+        BEAST_FALLTHROUGH;
     }
 
     case do_init:
@@ -86,7 +86,7 @@ get(error_code& ec, Visit&& visit)
             frd_->get(),
             result->first};
         s_ = do_header;
-        BOOST_FALLTHROUGH;
+        BEAST_FALLTHROUGH;
     }
 
     case do_header:
@@ -108,7 +108,7 @@ get(error_code& ec, Visit&& visit)
                 return;
         }
         s_ = do_body + 1;
-        BOOST_FALLTHROUGH;
+        BEAST_FALLTHROUGH;
 
     case do_body + 1:
     {
@@ -120,7 +120,7 @@ get(error_code& ec, Visit&& visit)
         more_ = result->second;
         v_ = cb1_t{result->first};
         s_ = do_body + 2;
-        BOOST_FALLTHROUGH;
+        BEAST_FALLTHROUGH;
     }
 
     case do_body + 2:
@@ -162,7 +162,7 @@ get(error_code& ec, Visit&& visit)
             result->first,
             detail::chunk_crlf()};
         s_ = do_header_c;
-        BOOST_FALLTHROUGH;
+        BEAST_FALLTHROUGH;
     }
 
     case do_header_c:
@@ -184,7 +184,7 @@ get(error_code& ec, Visit&& visit)
                 return;
         }
         s_ = do_body_c + 1;
-        BOOST_FALLTHROUGH;
+        BEAST_FALLTHROUGH;
 
     case do_body_c + 1:
     {
@@ -209,7 +209,7 @@ get(error_code& ec, Visit&& visit)
             result->first,
             detail::chunk_crlf()};
         s_ = do_body_c + 2;
-        BOOST_FALLTHROUGH;
+        BEAST_FALLTHROUGH;
     }
 
     case do_body_c + 2:
@@ -231,7 +231,7 @@ get(error_code& ec, Visit&& visit)
             }(),
             detail::chunk_crlf()};
         s_ = do_final_c + 1;
-        BOOST_FALLTHROUGH;
+        BEAST_FALLTHROUGH;
 
     case do_final_c + 1:
         visit(ec, boost::get<ch2_t>(v_));

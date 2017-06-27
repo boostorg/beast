@@ -5,13 +5,23 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
+#if defined(__GNUC__) && (__GNUC__ >= 7)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
+#endif
+
 #ifdef _MSC_VER
 # pragma warning (push)
 # pragma warning (disable: 4127) // conditional expression is constant
 # pragma warning (disable: 4244) // integer conversion, possible loss of data
 #endif
+
 #include "nodejs-parser/http_parser.c"
+
 #ifdef _MSC_VER
 # pragma warning (pop)
 #endif
 
+#if defined(__GNUC__) && (__GNUC__ >= 7)
+#pragma GCC diagnostic pop
+#endif

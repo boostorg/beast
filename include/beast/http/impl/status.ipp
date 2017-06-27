@@ -8,7 +8,7 @@
 #ifndef BEAST_HTTP_IMPL_STATUS_IPP
 #define BEAST_HTTP_IMPL_STATUS_IPP
 
-#include <boost/config.hpp>
+#include <beast/core/detail/config.hpp>
 #include <boost/throw_exception.hpp>
 
 namespace beast {
@@ -25,7 +25,7 @@ int_to_status(unsigned v)
     case status::continue_:
     case status::switching_protocols:
     case status::processing:
-        BOOST_FALLTHROUGH;
+        BEAST_FALLTHROUGH;
 
     // 2xx
     case status::ok:
@@ -38,7 +38,7 @@ int_to_status(unsigned v)
     case status::multi_status:
     case status::already_reported:
     case status::im_used:
-        BOOST_FALLTHROUGH;
+        BEAST_FALLTHROUGH;
 
     // 3xx
     case status::multiple_choices:
@@ -49,7 +49,7 @@ int_to_status(unsigned v)
     case status::use_proxy:
     case status::temporary_redirect:
     case status::permanent_redirect:
-        BOOST_FALLTHROUGH;
+        BEAST_FALLTHROUGH;
 
     // 4xx
     case status::bad_request:
@@ -81,7 +81,7 @@ int_to_status(unsigned v)
     case status::connection_closed_without_response:
     case status::unavailable_for_legal_reasons:
     case status::client_closed_request:
-        BOOST_FALLTHROUGH;
+        BEAST_FALLTHROUGH;
 
     // 5xx
     case status::internal_server_error:

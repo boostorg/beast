@@ -12,11 +12,11 @@
 #include <beast/core/error.hpp>
 #include <beast/core/handler_ptr.hpp>
 #include <beast/core/type_traits.hpp>
+#include <beast/core/detail/config.hpp>
 #include <boost/asio/handler_alloc_hook.hpp>
 #include <boost/asio/handler_continuation_hook.hpp>
 #include <boost/asio/handler_invoke_hook.hpp>
 #include <boost/throw_exception.hpp>
-#include <boost/config.hpp>
 
 namespace beast {
 
@@ -121,7 +121,7 @@ read_some_op<MutableBufferSequence, Handler>::operator()(
 
     case 2:
         s_.sb_.commit(bytes_transferred);
-        BOOST_FALLTHROUGH;
+        BEAST_FALLTHROUGH;
 
     case 3:
         bytes_transferred =
