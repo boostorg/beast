@@ -36,7 +36,7 @@ matrix:
     # gcc coverage
     - compiler: gcc
       env:
-        - GCC_VER=5
+        - GCC_VER=6
         - VARIANT=coverage
         - ADDRESS_MODEL=64
         - DO_VALGRIND=false
@@ -45,8 +45,8 @@ matrix:
       addons:
         apt:
           packages:
-            - gcc-5
-            - g++-5
+            - gcc-6
+            - g++-6
             - libssl-dev
             - *base_packages
           sources:
@@ -71,7 +71,7 @@ matrix:
     # later GCC
     - compiler: gcc
       env:
-        - GCC_VER=6
+        - GCC_VER=5
         - VARIANT=release
         - DO_VALGRIND=true
         - ADDRESS_MODEL=64
@@ -80,8 +80,8 @@ matrix:
       addons:
         apt:
           packages:
-            - gcc-6
-            - g++-6
+            - gcc-5
+            - g++-5
             - libssl-dev
             - *base_packages
           sources:
@@ -108,39 +108,6 @@ matrix:
             - *base_packages
           sources:
             - *base_sources
-
-    # Clang/UndefinedBehaviourSanitizer
-    #- compiler: clang
-    #  env:
-    #    - GCC_VER=4.8
-    #    - VARIANT=usan
-    #    - CLANG_VER=3.8
-    #    - ADDRESS_MODEL=64
-    #    - UBSAN_OPTIONS='print_stacktrace=1'
-    #    - BUILD_SYSTEM=cmake
-    #    - PATH=$PWD/cmake/bin:$PATH
-    #    - PATH=$PWD/llvm-$LLVM_VERSION/bin:$PATH
-    #  addons:
-    #    apt:
-    #      packages:
-    #        - *base_packages
-    #      sources:
-    #        - *base_sources
-
-    # Clang/AddressSanitizer
-    #- compiler: clang
-    #  env:
-    #    - GCC_VER=5
-    #    - VARIANT=asan
-    #    - CLANG_VER=3.8
-    #    - ADDRESS_MODEL=64
-    #    - PATH=$PWD/llvm-$LLVM_VERSION/bin:$PATH
-    #  addons:
-    #    apt:
-    #      packages:
-    #        - *base_packages
-    #      sources:
-    #        - *base_sources
 
 cache:
   directories:
