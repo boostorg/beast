@@ -1,3 +1,9 @@
+Version 70:
+
+* Serialize in one step when possible
+
+--------------------------------------------------------------------------------
+
 Version 69:
 
 * basic_parser optimizations
