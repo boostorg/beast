@@ -6,6 +6,7 @@ Version 68:
 * Use string_ref in older Boost versions
 * Optimize field lookups
 * Add const_body, mutable_body to examples
+* Link statically on cmake MSVC
 
 API Changes:
 
