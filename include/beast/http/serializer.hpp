@@ -16,8 +16,18 @@
 #include <beast/http/message.hpp>
 #include <beast/http/detail/chunk_encode.hpp>
 #include <boost/asio/buffer.hpp>
+#include <boost/config.hpp>
 #include <boost/optional.hpp>
 #include <boost/variant.hpp>
+#include <boost/version.hpp>
+
+#ifndef BEAST_NO_BIG_VARIANTS
+# if BOOST_WORKAROUND(BOOST_GCC, < 50000) && BOOST_VERSION < 106400
+#  define BEAST_NO_BIG_VARIANTS 1
+# else
+#  define BEAST_NO_BIG_VARIANTS 0
+# endif
+#endif
 
 namespace beast {
 namespace http {
@@ -134,14 +144,18 @@ class serializer
         do_header_only      =  20,
         do_header           =  30,
         do_body             =  40,
-        
+
         do_init_c           =  50,
         do_header_only_c    =  60,
         do_header_c         =  70,
-        do_body_c           =  90,
-        do_final_c          = 100,
+        do_body_c           =  80,
+    #if ! BEAST_NO_BIG_VARIANTS
+        do_body_final_c     =  90,
+        do_all_c            = 100,
+    #endif
+        do_final_c          = 110,
 
-        do_complete         = 110
+        do_complete         = 120
     };
 
     void frdinit(std::true_type);
@@ -166,7 +180,7 @@ class serializer
         boost::asio::const_buffers_1,               // crlf
         typename reader::const_buffers_type,        // body
         boost::asio::const_buffers_1>>;             // crlf
-    
+
     using ch1_t = consuming_buffers<buffer_cat_view<
         detail::chunk_header,                       // chunk-header
         boost::asio::const_buffers_1,               // chunk-ext
@@ -174,7 +188,30 @@ class serializer
         typename reader::const_buffers_type,        // body
         boost::asio::const_buffers_1>>;             // crlf
 
+#if ! BEAST_NO_BIG_VARIANTS
     using ch2_t = consuming_buffers<buffer_cat_view<
+        detail::chunk_header,                       // chunk-header
+        boost::asio::const_buffers_1,               // chunk-ext
+        boost::asio::const_buffers_1,               // crlf
+        typename reader::const_buffers_type,        // body
+        boost::asio::const_buffers_1,               // crlf
+        boost::asio::const_buffers_1,               // chunk-final
+        boost::asio::const_buffers_1,               // trailers 
+        boost::asio::const_buffers_1>>;             // crlf
+
+    using ch3_t = consuming_buffers<buffer_cat_view<
+        typename Fields::reader::const_buffers_type,// header
+        detail::chunk_header,                       // chunk-header
+        boost::asio::const_buffers_1,               // chunk-ext
+        boost::asio::const_buffers_1,               // crlf
+        typename reader::const_buffers_type,        // body
+        boost::asio::const_buffers_1,               // crlf
+        boost::asio::const_buffers_1,               // chunk-final
+        boost::asio::const_buffers_1,               // trailers 
+        boost::asio::const_buffers_1>>;             // crlf
+#endif
+
+    using ch4_t = consuming_buffers<buffer_cat_view<
         boost::asio::const_buffers_1,               // chunk-final
         boost::asio::const_buffers_1,               // trailers 
         boost::asio::const_buffers_1>>;             // crlf
@@ -183,7 +220,12 @@ class serializer
     boost::optional<typename Fields::reader> frd_;
     boost::optional<reader> rd_;
     boost::variant<boost::blank,
-        ch_t, cb0_t, cb1_t, ch0_t, ch1_t, ch2_t> v_;
+        ch_t,  cb0_t, cb1_t, ch0_t,
+        ch1_t
+    #if ! BEAST_NO_BIG_VARIANTS
+        ,ch2_t, ch3_t
+    #endif
+        ,ch4_t> v_;
     int s_ = do_construct;
     bool split_ = false;
     bool header_done_ = false;
