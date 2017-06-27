@@ -2,6 +2,7 @@ Version 69:
 
 * basic_parser optimizations
 * Use BEAST_FALLTHROUGH to silence warnings
+* Serialize in one step when possible
 
 --------------------------------------------------------------------------------
 

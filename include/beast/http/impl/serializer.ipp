@@ -146,6 +146,38 @@ get(error_code& ec, Visit&& visit)
         if(! result)
             goto go_header_only_c;
         more_ = result->second;
+    #if ! BEAST_NO_BIG_VARIANTS
+        if(! more_)
+        {
+            // do it all in one buffer
+            v_ = ch3_t{
+                boost::in_place_init,
+                frd_->get(),
+                detail::chunk_header{
+                    buffer_size(result->first)},
+                [&]()
+                {
+                    auto sv = d_(result->first);
+                    return boost::asio::const_buffers_1{
+                        sv.data(), sv.size()};
+                
+                }(),
+                detail::chunk_crlf(),
+                result->first,
+                detail::chunk_crlf(),
+                detail::chunk_final(),
+                [&]()
+                {
+                    auto sv = d_(
+                        boost::asio::null_buffers{});
+                    return boost::asio::const_buffers_1{
+                        sv.data(), sv.size()};
+                
+                }(),
+                detail::chunk_crlf()};
+            goto go_all_c;
+        }
+    #endif
         v_ = ch0_t{
             boost::in_place_init,
             frd_->get(),
@@ -194,6 +226,37 @@ get(error_code& ec, Visit&& visit)
         if(! result)
             goto go_final_c;
         more_ = result->second;
+    #if ! BEAST_NO_BIG_VARIANTS
+        if(! more_)
+        {
+            // do it all in one buffer
+            v_ = ch2_t{
+                boost::in_place_init,
+                detail::chunk_header{
+                    buffer_size(result->first)},
+                [&]()
+                {
+                    auto sv = d_(result->first);
+                    return boost::asio::const_buffers_1{
+                        sv.data(), sv.size()};
+                
+                }(),
+                detail::chunk_crlf(),
+                result->first,
+                detail::chunk_crlf(),
+                detail::chunk_final(),
+                [&]()
+                {
+                    auto sv = d_(
+                        boost::asio::null_buffers{});
+                    return boost::asio::const_buffers_1{
+                        sv.data(), sv.size()};
+                
+                }(),
+                detail::chunk_crlf()};
+            goto go_body_final_c;
+        }
+    #endif
         v_ = ch1_t{
             boost::in_place_init,
             detail::chunk_header{
@@ -216,9 +279,23 @@ get(error_code& ec, Visit&& visit)
         visit(ec, boost::get<ch1_t>(v_));
         break;
 
+#if ! BEAST_NO_BIG_VARIANTS
+    go_body_final_c:
+        s_ = do_body_final_c;
+    case do_body_final_c:
+        visit(ec, boost::get<ch2_t>(v_));
+        break;
+
+    go_all_c:
+        s_ = do_all_c;
+    case do_all_c:
+        visit(ec, boost::get<ch3_t>(v_));
+        break;
+#endif
+
          go_final_c:
     case do_final_c:
-        v_ = ch2_t{
+        v_ = ch4_t{
             boost::in_place_init,
             detail::chunk_final(),
             [&]()
@@ -234,7 +311,7 @@ get(error_code& ec, Visit&& visit)
         BEAST_FALLTHROUGH;
 
     case do_final_c + 1:
-        visit(ec, boost::get<ch2_t>(v_));
+        visit(ec, boost::get<ch4_t>(v_));
         break;
 
     //----------------------------------------------------------------------
@@ -260,10 +337,11 @@ consume(std::size_t n)
     switch(s_)
     {
     case do_header:
-        BOOST_ASSERT(n <= buffer_size(
-            boost::get<cb0_t>(v_)));
-        boost::get<cb0_t>(v_).consume(n);
-        if(buffer_size(boost::get<cb0_t>(v_)) > 0)
+    {
+        auto& b = boost::get<cb0_t>(v_);
+        BOOST_ASSERT(n <= buffer_size(b));
+        b.consume(n);
+        if(buffer_size(b) > 0)
             break;
         header_done_ = true;
         v_ = boost::blank{};
@@ -271,12 +349,14 @@ consume(std::size_t n)
             goto go_complete;
         s_ = do_body + 1;
         break;
+    }
 
     case do_header_only:
-        BOOST_ASSERT(n <= buffer_size(
-            boost::get<ch_t>(v_)));
-        boost::get<ch_t>(v_).consume(n);
-        if(buffer_size(boost::get<ch_t>(v_)) > 0)
+    {
+        auto& b = boost::get<ch_t>(v_);
+        BOOST_ASSERT(n <= buffer_size(b));
+        b.consume(n);
+        if(buffer_size(b) > 0)
             break;
         frd_ = boost::none;
         header_done_ = true;
@@ -284,13 +364,14 @@ consume(std::size_t n)
             goto go_complete;
         s_ = do_body;
         break;
+    }
 
     case do_body + 2:
     {
-        BOOST_ASSERT(n <= buffer_size(
-            boost::get<cb1_t>(v_)));
-        boost::get<cb1_t>(v_).consume(n);
-        if(buffer_size(boost::get<cb1_t>(v_)) > 0)
+        auto& b = boost::get<cb1_t>(v_);
+        BOOST_ASSERT(n <= buffer_size(b));
+        b.consume(n);
+        if(buffer_size(b) > 0)
             break;
         v_ = boost::blank{};
         if(! more_)
@@ -302,10 +383,11 @@ consume(std::size_t n)
     //----------------------------------------------------------------------
 
     case do_header_c:
-        BOOST_ASSERT(n <= buffer_size(
-            boost::get<ch0_t>(v_)));
-        boost::get<ch0_t>(v_).consume(n);
-        if(buffer_size(boost::get<ch0_t>(v_)) > 0)
+    {
+        auto& b = boost::get<ch0_t>(v_);
+        BOOST_ASSERT(n <= buffer_size(b));
+        b.consume(n);
+        if(buffer_size(b) > 0)
             break;
         header_done_ = true;
         v_ = boost::blank{};
@@ -314,13 +396,14 @@ consume(std::size_t n)
         else
             s_ = do_final_c;
         break;
+    }
 
     case do_header_only_c:
     {
-        BOOST_ASSERT(n <= buffer_size(
-            boost::get<ch_t>(v_)));
-        boost::get<ch_t>(v_).consume(n);
-        if(buffer_size(boost::get<ch_t>(v_)) > 0)
+        auto& b = boost::get<ch_t>(v_);
+        BOOST_ASSERT(n <= buffer_size(b));
+        b.consume(n);
+        if(buffer_size(b) > 0)
             break;
         frd_ = boost::none;
         header_done_ = true;
@@ -334,10 +417,11 @@ consume(std::size_t n)
     }
 
     case do_body_c + 2:
-        BOOST_ASSERT(n <= buffer_size(
-            boost::get<ch1_t>(v_)));
-        boost::get<ch1_t>(v_).consume(n);
-        if(buffer_size(boost::get<ch1_t>(v_)) > 0)
+    {
+        auto& b = boost::get<ch1_t>(v_);
+        BOOST_ASSERT(n <= buffer_size(b));
+        b.consume(n);
+        if(buffer_size(b) > 0)
             break;
         v_ = boost::blank{};
         if(more_)
@@ -345,15 +429,45 @@ consume(std::size_t n)
         else
             s_ = do_final_c;
         break;
+    }
+
+#if ! BEAST_NO_BIG_VARIANTS
+    case do_body_final_c:
+    {
+        auto& b = boost::get<ch2_t>(v_);
+        BOOST_ASSERT(n <= buffer_size(b));
+        b.consume(n);
+        if(buffer_size(b) > 0)
+            break;
+        v_ = boost::blank{};
+        s_ = do_complete;
+        break;
+    }
+
+    case do_all_c:
+    {
+        auto& b = boost::get<ch3_t>(v_);
+        BOOST_ASSERT(n <= buffer_size(b));
+        b.consume(n);
+        if(buffer_size(b) > 0)
+            break;
+        header_done_ = true;
+        v_ = boost::blank{};
+        s_ = do_complete;
+        break;
+    }
+#endif
 
     case do_final_c + 1:
-        BOOST_ASSERT(buffer_size(
-            boost::get<ch2_t>(v_)));
-        boost::get<ch2_t>(v_).consume(n);
-        if(buffer_size(boost::get<ch2_t>(v_)) > 0)
+    {
+        auto& b = boost::get<ch4_t>(v_);
+        BOOST_ASSERT(n <= buffer_size(b));
+        b.consume(n);
+        if(buffer_size(b) > 0)
             break;
         v_ = boost::blank{};
         goto go_complete;
+    }
 
     //----------------------------------------------------------------------
 
