@@ -11,11 +11,11 @@
 #include <beast/core/bind_handler.hpp>
 #include <beast/core/handler_ptr.hpp>
 #include <beast/core/type_traits.hpp>
+#include <beast/core/detail/config.hpp>
 #include <beast/websocket/detail/frame.hpp>
 #include <boost/asio/handler_alloc_hook.hpp>
 #include <boost/asio/handler_continuation_hook.hpp>
 #include <boost/asio/handler_invoke_hook.hpp>
-#include <boost/config.hpp>
 #include <boost/throw_exception.hpp>
 #include <memory>
 
@@ -153,7 +153,7 @@ operator()(error_code ec, bool again)
                 return;
             }
             d.ws.wr_block_ = &d;
-            BOOST_FALLTHROUGH;
+            BEAST_FALLTHROUGH;
 
         case 1:
             // send ping frame

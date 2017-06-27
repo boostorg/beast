@@ -14,11 +14,11 @@
 #include <beast/core/handler_alloc.hpp>
 #include <beast/core/handler_ptr.hpp>
 #include <beast/core/type_traits.hpp>
+#include <beast/core/detail/config.hpp>
 #include <boost/asio/handler_alloc_hook.hpp>
 #include <boost/asio/handler_continuation_hook.hpp>
 #include <boost/asio/handler_invoke_hook.hpp>
 #include <boost/asio/write.hpp>
-#include <boost/config.hpp>
 #include <boost/optional.hpp>
 #include <boost/throw_exception.hpp>
 #include <ostream>
@@ -320,7 +320,7 @@ operator()(error_code ec,
 
     case 2:
         state_ = 3;
-        BOOST_FALLTHROUGH;
+        BEAST_FALLTHROUGH;
 
     case 3:
     {
