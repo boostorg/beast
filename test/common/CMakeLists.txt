@@ -11,6 +11,7 @@ add_executable (common-test
     detect_ssl.cpp
     mime_types.cpp
     rfc7231.cpp
+    session_alloc.cpp
     ssl_stream.cpp
     write_msg.cpp
     main.cpp
