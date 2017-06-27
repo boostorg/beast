@@ -386,6 +386,11 @@ public:
 
 //]
 
+#if BOOST_WORKAROUND(BOOST_GCC, >= 70000)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
+#endif
+
 //[example_core_detect_ssl_7
 
 // detect_ssl_op is callable with the signature
@@ -477,5 +482,9 @@ operator()(beast::error_code ec, std::size_t bytes_transferred)
 }
 
 //]
+
+#if BOOST_WORKAROUND(BOOST_GCC, >= 70000)
+#pragma GCC diagnostic pop
+#endif
 
 #endif

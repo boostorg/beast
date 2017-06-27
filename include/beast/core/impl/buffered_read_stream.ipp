@@ -18,6 +18,11 @@
 #include <boost/asio/handler_invoke_hook.hpp>
 #include <boost/throw_exception.hpp>
 
+#if BOOST_WORKAROUND(BOOST_GCC, >= 70000)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
+#endif
+
 namespace beast {
 
 template<class Stream, class DynamicBuffer>
@@ -237,5 +242,9 @@ async_read_some(MutableBufferSequence const& buffers,
 }
 
 } // beast
+
+#if BOOST_WORKAROUND(BOOST_GCC, >= 70000)
+#pragma GCC diagnostic pop
+#endif
 
 #endif

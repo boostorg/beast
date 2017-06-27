@@ -27,6 +27,11 @@
 #include <algorithm>
 #include <memory>
 
+#if BOOST_WORKAROUND(BOOST_GCC, >= 70000)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
+#endif
+
 namespace beast {
 namespace websocket {
 
@@ -962,5 +967,9 @@ async_write(
 
 } // websocket
 } // beast
+
+#if BOOST_WORKAROUND(BOOST_GCC, >= 70000)
+#pragma GCC diagnostic pop
+#endif
 
 #endif

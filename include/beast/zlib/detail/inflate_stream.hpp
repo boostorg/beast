@@ -48,6 +48,11 @@
 #include <cstring>
 #include <stdexcept>
 
+#if BOOST_WORKAROUND(BOOST_GCC, >= 70000)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
+#endif
+
 namespace beast {
 namespace zlib {
 namespace detail {
@@ -1302,5 +1307,9 @@ inflate_fast(ranges& r, error_code& ec)
 } // detail
 } // zlib
 } // beast
+
+#if BOOST_WORKAROUND(BOOST_GCC, >= 70000)
+#pragma GCC diagnostic pop
+#endif
 
 #endif

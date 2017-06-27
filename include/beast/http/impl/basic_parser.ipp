@@ -18,6 +18,11 @@
 #include <algorithm>
 #include <utility>
 
+#if BOOST_WORKAROUND(BOOST_GCC, >= 70000)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
+#endif
+
 namespace beast {
 namespace http {
 
@@ -920,5 +925,9 @@ do_field(field f,
 
 } // http
 } // beast
+
+#if BOOST_WORKAROUND(BOOST_GCC, >= 70000)
+#pragma GCC diagnostic pop
+#endif
 
 #endif

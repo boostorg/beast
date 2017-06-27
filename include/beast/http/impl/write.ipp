@@ -24,6 +24,11 @@
 #include <ostream>
 #include <sstream>
 
+#if BOOST_WORKAROUND(BOOST_GCC, >= 70000)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
+#endif
+
 namespace beast {
 namespace http {
 namespace detail {
@@ -881,5 +886,9 @@ operator<<(std::ostream& os,
 
 } // http
 } // beast
+
+#if BOOST_WORKAROUND(BOOST_GCC, >= 70000)
+#pragma GCC diagnostic pop
+#endif
 
 #endif

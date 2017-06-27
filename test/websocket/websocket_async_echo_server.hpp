@@ -24,6 +24,11 @@
 #include <unordered_map>
 #include <utility>
 
+#if BOOST_WORKAROUND(BOOST_GCC, >= 70000)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
+#endif
+
 namespace websocket {
 
 /** Asynchronous WebSocket echo client/server
@@ -405,5 +410,9 @@ private:
 };
 
 } // websocket
+
+#if BOOST_WORKAROUND(BOOST_GCC, >= 70000)
+#pragma GCC diagnostic pop
+#endif
 
 #endif

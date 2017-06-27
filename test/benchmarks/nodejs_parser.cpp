@@ -10,8 +10,18 @@
 # pragma warning (disable: 4127) // conditional expression is constant
 # pragma warning (disable: 4244) // integer conversion, possible loss of data
 #endif
+
+#if defined(__GNUC__) && (__GNUC__ >= 7)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
+#endif
+
 #include "nodejs-parser/http_parser.c"
+
 #ifdef _MSC_VER
 # pragma warning (pop)
 #endif
 
+#if defined(__GNUC__) && (__GNUC__ >= 7)
+#pragma GCC diagnostic pop
+#endif

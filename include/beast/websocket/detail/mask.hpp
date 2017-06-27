@@ -15,6 +15,11 @@
 #include <random>
 #include <type_traits>
 
+#if BOOST_WORKAROUND(BOOST_GCC, >= 70000)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
+#endif
+
 namespace beast {
 namespace websocket {
 namespace detail {
@@ -261,5 +266,9 @@ mask_inplace(
 } // detail
 } // websocket
 } // beast
+
+#if BOOST_WORKAROUND(BOOST_GCC, >= 70000)
+#pragma GCC diagnostic pop
+#endif
 
 #endif
