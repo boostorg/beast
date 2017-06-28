@@ -14,6 +14,7 @@
 #include <beast/http/type_traits.hpp>
 #include <boost/optional.hpp>
 #include <boost/throw_exception.hpp>
+#include <functional>
 #include <memory>
 #include <type_traits>
 #include <utility>
@@ -60,6 +61,7 @@ class parser
 
     message<isRequest, Body, basic_fields<Allocator>> m_;
     boost::optional<typename Body::writer> wr_;
+    std::function<void(parser&, error_code&)> cb_;
 
 public:
     /// The type of message returned by the parser
@@ -191,6 +193,28 @@ public:
         return std::move(m_);
     }
 
+    /** Set the on_header callback.
+
+        This optional callback is invoked after the parser receives
+        a complete header. The function must be invokable with
+        this signature:
+        @code
+        void callback(
+            parser<isRequest, Body, Fields>& p,     // `*this`
+            error_code& ec)                         // Set to the error, if any
+        @endcode
+        The callback will ensure that `!ec` is `true` if there was
+        no error or set to the appropriate error code if there was one. 
+
+        The callback may not call @ref put or @ref put_eof, or 
+        else the behavior is undefined.
+    */
+    void
+    on_header(std::function<void(parser&, error_code&)> cb)
+    {
+        cb_ = cb;
+    }
+
 private:
     friend class basic_parser<isRequest, parser>;
 
@@ -250,7 +274,10 @@ private:
     void
     on_header(error_code& ec)
     {
-        ec.assign(0, ec.category());
+        if(cb_)
+            cb_(*this, ec);
+        else
+            ec.assign(0, ec.category());
     }
 
     void

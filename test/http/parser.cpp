@@ -329,12 +329,56 @@ public:
     }
 
     void
+    testCallback()
+    {
+        {
+            multi_buffer b;
+            ostream(b) << 
+                "POST / HTTP/1.1\r\n"
+                "Content-Length: 2\r\n"
+                "\r\n"
+                "**";
+            error_code ec;
+            parser<true, string_body> p;
+            p.eager(true);
+            p.put(b.data(), ec);
+            p.on_header(
+                [this](parser<true, string_body>& p, error_code& ec)
+                {
+                    BEAST_EXPECT(p.is_header_done());
+                    ec.assign(0, ec.category());
+                });
+            BEAST_EXPECTS(! ec, ec.message());
+        }
+        {
+            multi_buffer b;
+            ostream(b) << 
+                "POST / HTTP/1.1\r\n"
+                "Content-Length: 2\r\n"
+                "\r\n"
+                "**";
+            error_code ec;
+            parser<true, string_body> p;
+            p.eager(true);
+            p.put(b.data(), ec);
+            p.on_header(
+                [this](parser<true, string_body>&, error_code& ec)
+                {
+                    ec.assign(errc::bad_message,
+                        generic_category());
+                });
+            BEAST_EXPECTS(! ec, ec.message());
+        }
+    }
+
+    void
     run() override
     {
         testParse();
         testNeedMore<flat_buffer>();
         testNeedMore<multi_buffer>();
         testGotSome();
+        testCallback();
     }
 };
 
