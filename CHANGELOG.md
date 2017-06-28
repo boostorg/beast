@@ -3,6 +3,7 @@ Version 70:
 * Serialize in one step when possible
 * Add basic_parser header and body limits
 * Add parser::on_header to set a callback
+* Fix BEAST_FALLTHROUGH
 
 API Changes:
 

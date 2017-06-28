@@ -14,7 +14,7 @@
 #if BOOST_VERSION >= 106500 || ! defined(BOOST_GCC) || BOOST_GCC < 70000
 # define BEAST_FALLTHROUGH BOOST_FALLTHROUGH
 #else
-# define BEAST_FALLTHROUGH _attribute__((fallthrough))
+# define BEAST_FALLTHROUGH __attribute__((fallthrough))
 #endif
 
 #endif
