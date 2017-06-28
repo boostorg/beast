@@ -10,6 +10,7 @@ WebSockets:
 * Allow close, ping, and write to happen concurrently
 * Fix race in websocket read op
 * Fix websocket write op
+* Add cmake options for examples and tests
 
 --------------------------------------------------------------------------------
 
