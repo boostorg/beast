@@ -4,6 +4,7 @@ Version 70:
 * Add basic_parser header and body limits
 * Add parser::on_header to set a callback
 * Fix HEAD response in file_service
+* Fix BEAST_FALLTHROUGH in config
 
 API Changes:
 
