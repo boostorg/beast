@@ -2,6 +2,14 @@ Version 70:
 
 * Serialize in one step when possible
 
+API Changes:
+
+* Rename to message::base
+
+Actions Required:
+
+* Change calls to message::header_part() with message::base()
+
 --------------------------------------------------------------------------------
 
 Version 69:
