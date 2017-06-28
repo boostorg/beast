@@ -157,7 +157,7 @@ public:
             boost::filesystem::path full_path = root_ / rel_path;
 
             // Make sure the file is there
-            if(! boost::filesystem::exists(full_path))
+            if(boost::filesystem::exists(full_path))
             {
                 // Send a HEAD response
                 send(head(req, full_path));
