@@ -489,14 +489,14 @@ struct message : header<isRequest, Fields>
 
     /// Returns the header portion of the message
     header_type const&
-    header_part() const
+    base() const
     {
         return *this;
     }
 
     /// Returns the header portion of the message
     header_type&
-    header_part()
+    base()
     {
         return *this;
     }
