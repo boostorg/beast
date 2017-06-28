@@ -80,6 +80,20 @@ enum class error
     */
     buffer_overflow,
 
+    /** Header limit exceeded.
+
+        The parser detected an incoming message header which
+        exceeded a configured limit.
+    */
+    header_limit,
+
+    /** Body limit exceeded.
+
+        The parser detected an incoming message body which
+        exceeded a configured limit.
+    */
+    body_limit,
+
     /** A memory allocation failed.
 
         When basic_fields throws std::bad_alloc, it is
