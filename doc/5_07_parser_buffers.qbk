@@ -23,7 +23,7 @@ if the underlying connection is closed),
 
 [heading Parser Options]
 
-The parser provides two options which may be set before parsing begins:
+The parser provides a few options which may be set before parsing begins:
 
 [table Parser Options
 [[Name][Default][Description]]
@@ -57,6 +57,27 @@ The parser provides two options which may be set before parsing begins:
     In these cases, callers may use this function inform the parser that
     no body is expected. The parser will consider the message complete
     after the header has been received.
+]]
+[[
+    [link beast.ref.beast__http__basic_parser.body_limit `body_limit`]
+][
+    1MB/8MB
+][
+    This function sets the maximum allowed size of the content body.
+    When a body larger than the specified size is detected, an error
+    is generated and parsing terminates. This setting helps protect
+    servers from resource exhaustion attacks. The default limit when
+    parsing requests is 1MB, and for parsing responses 8MB.
+]]
+[[
+    [link beast.ref.beast__http__basic_parser.header_limit `header_limit`]
+][
+    8KB
+][
+    This function sets the maximum allowed size of the header
+    including all field name, value, and delimiter characters
+    and also including the CRLF sequences in the serialized
+    input.
 ]]
 ]
 

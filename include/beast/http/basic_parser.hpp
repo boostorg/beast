@@ -17,6 +17,7 @@
 #include <boost/asio/buffer.hpp>
 #include <boost/optional.hpp>
 #include <boost/assert.hpp>
+#include <limits>
 #include <memory>
 #include <utility>
 
@@ -105,29 +106,49 @@ class basic_parser
     static unsigned constexpr flagUpgrade               = 1<< 12;
     static unsigned constexpr flagFinalChunk            = 1<< 13;
 
-    std::uint64_t len_;     // size of chunk or body
-    std::unique_ptr<char[]> buf_;
-    std::size_t buf_len_ = 0;
-    std::size_t skip_ = 0;  // search from here
-    state state_ = state::nothing_yet;
-    unsigned f_ = 0;        // flags
+    static
+    std::uint64_t
+    default_body_limit(std::true_type)
+    {
+        // limit for requests
+        return 1 * 1024 * 1024; // 1MB
+    }
+
+    static
+    std::uint64_t
+    default_body_limit(std::false_type)
+    {
+        // limit for responses
+        return 8 * 1024 * 1024; // 8MB
+    }
+
+    std::uint64_t body_limit_;      // max payload body
+    std::uint64_t len_;             // size of chunk or body
+    std::unique_ptr<char[]> buf_;   // temp storage
+    std::size_t buf_len_ = 0;       // size of buf_
+    std::size_t skip_ = 0;          // resume search here
+    std::uint32_t
+        header_limit_ = 8192;       // max header size
+    state state_ =                  // initial state
+        state::nothing_yet;
+    unsigned f_ = 0;                // flags
 
 public:
+    /// `true` if this parser parses requests, `false` for responses.
+    using is_request =
+        std::integral_constant<bool, isRequest>;
+
     /// Copy constructor (disallowed)
     basic_parser(basic_parser const&) = delete;
 
     /// Copy assignment (disallowed)
     basic_parser& operator=(basic_parser const&) = delete;
 
-    /// Default constructor
-    basic_parser() = default;
-
-    /// `true` if this parser parses requests, `false` for responses.
-    using is_request =
-        std::integral_constant<bool, isRequest>;
-
     /// Destructor
     ~basic_parser() = default;
+
+    /// Default constructor
+    basic_parser();;
 
     /** Move constructor
 
@@ -244,6 +265,58 @@ public:
     need_eof() const
     {
         return (f_ & flagNeedEOF) != 0;
+    }
+
+    /** Set the limit on the payload body.
+
+        This function sets the maximum allowed size of the payload body,
+        before any encodings except chunked have been removed. Depending
+        on the message semantics, one of these cases will apply:
+
+        @li The Content-Length is specified and exceeds the limit. In
+        this case the result @ref error::body_limit is returned
+        immediately after the header is parsed.
+
+        @li The Content-Length is unspecified and the chunked encoding
+        is not specified as the last encoding. In this case the end of
+        message is determined by the end of file indicator on the
+        associated stream or input source. If a sufficient number of
+        body payload octets are presented to the parser to exceed the
+        configured limit, the parse fails with the result
+        @ref error::body_limit
+
+        @li The Transfer-Encoding specifies the chunked encoding as the
+        last encoding. In this case, when the number of payload body
+        octets produced by removing the chunked encoding  exceeds
+        the configured limit, the parse fails with the result
+        @ref error::body_limit.
+        
+        Setting the limit after any body octets have been parsed
+        results in undefined behavior.
+
+        The default limit is 1MB for requests and 8MB for responses.
+
+        @param v The payload body limit to set
+    */
+    void
+    body_limit(std::uint64_t v)
+    {
+        body_limit_ = v;
+    }
+
+    /** Set a limit on the total size of the header.
+
+        This function sets the maximum allowed size of the header
+        including all field name, value, and delimiter characters
+        and also including the CRLF sequences in the serialized
+        input. If the end of the header is not found within the
+        limit of the header size, the error @ref error::header_limit
+        is returned by @ref put.
+    */
+    void
+    header_limit(std::uint32_t v)
+    {
+        header_limit_ = v;
     }
 
     /// Returns `true` if the eager parse option is set.

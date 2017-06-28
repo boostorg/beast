@@ -56,11 +56,20 @@ skip_ows_rev2(
 } // detail
 
 template<bool isRequest, class Derived>
+basic_parser<isRequest, Derived>::
+basic_parser()
+    : body_limit_(
+        default_body_limit(is_request{}))
+{
+}
+
+template<bool isRequest, class Derived>
 template<class OtherDerived>
 basic_parser<isRequest, Derived>::
 basic_parser(basic_parser<
         isRequest, OtherDerived>&& other)
-    : len_(other.len_)
+    : body_limit_(other.body_limit_)
+    , len_(other.len_)
     , buf_(std::move(other.buf_))
     , buf_len_(other.buf_len_)
     , skip_(other.skip_)
@@ -294,9 +303,11 @@ basic_parser<isRequest, Derived>::
 parse_header(char const*& p,
     std::size_t n, error_code& ec)
 {
+    if( n > header_limit_)
+        n = header_limit_;
     if(n < skip_ + 4)
     {
-        ec = http::error::need_more;
+        ec = error::need_more;
         return;
     }
     auto const term =
@@ -304,6 +315,11 @@ parse_header(char const*& p,
     if(! term)
     {
         skip_ = n - 3;
+        if(skip_ + 4 > header_limit_)
+        {
+            ec = error::header_limit;
+            return;
+        }
         ec = http::error::need_more;
         return;
     }
@@ -528,6 +544,12 @@ basic_parser<isRequest, Derived>::
 parse_body_to_eof(char const*& p,
     std::size_t n, error_code& ec)
 {
+    if(n > body_limit_)
+    {
+        ec = error::body_limit;
+        return;
+    }
+    body_limit_ = body_limit_ - n;
     impl().on_data(string_view{p, n}, ec);
     if(ec)
         return;
@@ -596,6 +618,12 @@ parse_chunk_header(char const*& p0,
         }
         if(v != 0)
         {
+            if(v > body_limit_)
+            {
+                ec = error::body_limit;
+                return;
+            }
+            body_limit_ -= v;
             if(*p == ';')
             {
                 // VFALCO TODO Validate extension
@@ -865,6 +893,12 @@ do_field(field f,
             value.begin(), value.end(), v))
         {
             ec = error::bad_content_length;
+            return;
+        }
+
+        if(v > body_limit_)
+        {
+            ec = error::body_limit;
             return;
         }
 
