@@ -44,6 +44,8 @@ public:
         case error::unexpected_body: return "unexpected body";
         case error::need_buffer: return "need buffer";
         case error::buffer_overflow: return "buffer overflow";
+        case error::header_limit: return "header limit exceeded";
+        case error::body_limit: return "body limit exceeded";
         case error::bad_alloc: return "bad alloc";
         case error::bad_line_ending: return "bad line ending";
         case error::bad_method: return "bad method";
