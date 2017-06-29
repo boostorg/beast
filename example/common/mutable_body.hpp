@@ -109,14 +109,21 @@ struct mutable_body
                 if(*content_length > (std::numeric_limits<
                         std::size_t>::max)())
                 {
-                    ec = boost::system::errc::make_error_code(
-                            boost::system::errc::not_enough_memory);
+                    ec = beast::http::error::buffer_overflow;
                     return;
                 }
-                ec.assign(0, ec.category());
-                body_.reserve(static_cast<
-                    std::size_t>(*content_length));
+                try
+                {
+                    body_.reserve(static_cast<
+                        std::size_t>(*content_length));
+                }
+                catch(std::exception const&)
+                {
+                    ec = beast::http::error::buffer_overflow;
+                    return;
+                }
             }
+            ec.assign(0, ec.category());
         }
 
         template<class ConstBufferSequence>
@@ -132,7 +139,7 @@ struct mutable_body
             {
                 body_.resize(len + n);
             }
-            catch(std::length_error const&)
+            catch(std::exception const&)
             {
                 ec = beast::http::error::buffer_overflow;
                 return 0;

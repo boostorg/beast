@@ -5,6 +5,7 @@ Version 71:
 * Fix spurious on_chunk invocation
 * Call prepare_payload in HTTP example
 * Check trailers in test
+* Fix buffer overflow handling for string_body and mutable_body
 
 WebSockets:
 
