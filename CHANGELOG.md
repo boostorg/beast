@@ -1,6 +1,7 @@
 Version 71:
 
 * Fix extra ; warning
+* Documentation revision
 
 --------------------------------------------------------------------------------
 

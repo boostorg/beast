@@ -101,7 +101,7 @@ public:
 #if BEAST_DOXYGEN
     template<class... Args>
     explicit
-    msesage_parser(Args&&... args);
+    parser(Args&&... args);
 #else
     template<class Arg1, class... ArgN,
         class = typename std::enable_if<
@@ -195,8 +195,8 @@ public:
 
     /** Set the on_header callback.
 
-        This optional callback is invoked after the parser receives
-        a complete header. The function must be invokable with
+        When the callback is set, it is called after the parser
+        receives a complete header. The function must be invocable with
         this signature:
         @code
         void callback(
@@ -212,7 +212,7 @@ public:
     void
     on_header(std::function<void(parser&, error_code&)> cb)
     {
-        cb_ = cb;
+        cb_ = std::move(cb);
     }
 
 private:

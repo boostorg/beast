@@ -97,7 +97,7 @@ lightweight iterators over the existing, unmodified memory buffers.
 Control of buffers is retained by the caller; ownership is not
 transferred.
 
-[table Buffer Algorithms
+[table Buffer Algorithms and Types
 [[Name][Description]]
 [[
     [link beast.ref.beast__buffer_cat `buffer_cat`]
@@ -126,7 +126,7 @@ transferred.
 ][
     This class represents the buffer sequence formed from a prefix of
     an existing buffer sequence. This is the type of buffer returned by
-    [link beast.ref.beast__buffer_prefix `buffer_prefix`].
+    [link beast.ref.beast__buffer_prefix.overload3 `buffer_prefix`].
 ]]
 [[
     [link beast.ref.beast__consuming_buffers `consuming_buffers`]

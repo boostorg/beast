@@ -109,7 +109,7 @@ cmake -G Xcode ..                           # for Apple Xcode builds
 
 cd ..
 mkdir bin64
-cd ../bin64
+cd bin64
 cmake -G"Visual Studio 14 2015 Win64" ..    # for 64-bit Windows builds (VS2015)
 cmake -G"Visual Studio 15 2017 Win64" ..    # for 64-bit Windows builds (VS2017)
 
