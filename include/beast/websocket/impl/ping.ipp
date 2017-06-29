@@ -192,8 +192,8 @@ operator()(error_code ec, bool again)
         }
     }
 upcall:
-    if(d.ws.wr_block_ == &d)
-        d.ws.wr_block_ = nullptr;
+    BOOST_ASSERT(d.ws.wr_block_ == &d);
+    d.ws.wr_block_ = nullptr;
     d.ws.rd_op_.maybe_invoke() ||
         d.ws.wr_op_.maybe_invoke();
     d_.invoke(ec);

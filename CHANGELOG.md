@@ -3,6 +3,10 @@ Version 71:
 * Fix extra ; warning
 * Documentation revision
 
+WebSockets:
+
+* Fine tune websocket op asserts
+
 --------------------------------------------------------------------------------
 
 Version 70:
