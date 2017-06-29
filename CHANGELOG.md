@@ -6,6 +6,7 @@ Version 71:
 WebSockets:
 
 * Fine tune websocket op asserts
+* Refactor websocket composed ops
 
 --------------------------------------------------------------------------------
 
