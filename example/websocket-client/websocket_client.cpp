@@ -49,7 +49,7 @@ int main()
     // Wrap the now-connected socket in a websocket stream
     websocket::stream<tcp::socket&> ws{sock};
 
-    // Perform the websocket handhskae
+    // Perform the websocket handshake
     ws.handshake(host, "/", ec);
     if(ec)
         return fail("handshake", ec);

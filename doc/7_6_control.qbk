@@ -22,10 +22,10 @@ The connection is considered gracefully closed when each side has sent
 and received a close frame.
 
 During read operations, Beast automatically reads and processes control
-frames. Pings are replied to as soon as possible with a pong, received
-ping and pongs are delivered to the ping callback. The receipt of a close
-frame initiates the WebSocket close procedure, eventually resulting in the
-error code
+frames. If a control callback is registered, the callback is notified of
+the incoming control frame. The implementation will respond to pings
+automatically. The receipt of a close frame initiates the WebSocket
+close procedure, eventually resulting in the error code
 [link beast.ref.beast__websocket__error `error::closed`]
 being delivered to the caller in a subsequent read operation, assuming
 no other error takes place.
@@ -35,36 +35,39 @@ operations can cause socket writes. However, these writes will not
 compete with caller-initiated write operations. For the purposes of
 correctness with respect to the stream invariants, caller-initiated
 read operations still only count as a read. This means that callers can
-have a simultaneously active read, write, and ping operation in progress,
-while the implementation also automatically handles control frames.
+have a simultaneously active read, write, and ping/pong operation in
+progress, while the implementation also automatically handles control
+frames.
 
 [heading Control Callback]
 
-Ping and pong messages are control frames which may be sent at any time
-by either peer on an established WebSocket connection. They are sent
-using the functions
-[link beast.ref.beast__websocket__stream.ping `ping`] and
+Ping, pong, and close messages are control frames which may be sent at
+any time by either peer on an established WebSocket connection. They
+are sent using the functions
+[link beast.ref.beast__websocket__stream.ping `ping`],
 [link beast.ref.beast__websocket__stream.pong `pong`].
-To be notified of control frames, including pings, pongs, and close frames,
-callers may register a ['control callback] using
+and
+[link beast.ref.beast__websocket__stream.close `close`].
+To be notified of control frames, callers may register a
+['control callback] using
 [link beast.ref.beast__websocket__stream.control_callback `control_callback`].
 The object provided with this option should be callable with the following
 signature:
 
 [ws_snippet_17]
 
-When a ping callback is registered, all pings and pongs received through
-either synchronous read functions or asynchronous read functions will
-invoke the ping callback, with the value of `is_pong` set to `true` if a
-pong was received or `false` otherwise. The payload of the ping or pong
-control frame is passed in the payload argument.
+When a control callback is registered, it will be invoked for all pings,
+pongs, and close frames received through either synchronous read functions
+or asynchronous read functions. The type of frame and payload text are
+passed as parameters to the control callback. If the frame is a close
+frame, the close reason may be obtained by calling
+[link beast.ref.beast__websocket__stream.reason `reason`].
 
 Unlike regular completion handlers used in calls to asynchronous initiation
-functions, the ping callback only needs to be set once. The callback is not
-reset when a ping or pong is received. The same callback is used for both
-synchronous and asynchronous reads. The ping callback is passive; in order
-to receive pings and pongs, a synchronous or asynchronous stream read
-function must be active.
+functions, the control callback only needs to be set once. The callback is
+not reset after being called. The same callback is used for both synchronous
+and asynchronous reads. The callback is passive; in order to be called,
+a stream read operation must be active.
 
 [note
     When an asynchronous read function receives a control frame, the

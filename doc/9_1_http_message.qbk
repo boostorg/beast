@@ -124,8 +124,22 @@ void f(message<isRequest, Fields, Body>& msg);
 ```
 
 This function can manipulate the fields common to requests and responses.
-If it needs to access the other fields, it can do so using tag dispatch
-with an object of type `std::integral_constant<bool, isRequest>`. 
+If it needs to access the other fields, it can use overloads with
+partial specialization, or in C++17 a `constexpr` expression:
+```
+template<bool isRequest, class Fields, class Body>
+void f(message<isRequest, Fields, Body>& msg)
+{
+    if constexpr(isRequest)
+    {
+        // call msg.method(), msg.target()
+    }
+    else
+    {
+        // call msg.result(), msg.reason()
+    }
+}
+```
 
 Often, in non-trivial HTTP applications, we want to read the HTTP header
 and examine its contents before choosing a type for [*Body]. To accomplish

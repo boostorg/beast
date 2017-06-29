@@ -123,7 +123,8 @@ void fxx() {
 //[http_snippet_10
 
     response<string_body> res;
-    response_serializer<string_body, fields> sr{res};
+
+    response_serializer<string_body> sr{res};
 
 //]
 }

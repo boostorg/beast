@@ -24,36 +24,33 @@ about Beast and other HTTP libraries that have gone through formal review.
 [[
     "Beast does not offer an HTTP server?"
 ][
-    The scope of the library is to provide a message container,
-    and serialization and deserialization algorithms, with an
-    interface permitting users to achieve all the behaviors
-    necessary to implement high performance, conforming servers.
-    However, management of listening sockets, io_service threads,
-    individual connections, and HTTP semantics such as pipelining,
-    redirection, Expect: 100-continue, cookies, and request routing
-    are not handled by Beast.
-    It is the author's position that keeping the library low-level
-    will establish it as a building block which the greater C++
-    community at large can leverage to produce higher level
-    libraries competing with each other to figure out the best
-    way to solve these problems.
+    Beast has a functional HTTP server in the example directory. The
+    server supports both HTTP and WebSocket using synchronous and
+    asynchronous shared or dedicated ports. In addition, the server
+    supports encrypted TLS connections if OpenSSL is available, on
+    dedicated ports. And the server comes with a "multi-port", a
+    flexible single port which supports both encrypted and unencrypted
+    connections, both HTTP and WebSocket, all on the same port. The
+    server is not part of Beast's public interfaces, as that
+    functionality is outside the scope of the library. The author
+    feels that attempting to broaden the scope of the library will
+    reduce its appeal for standardization.
 ]]
 [[
     "Beast does not offer an HTTP client?"
 ][
     "I just want to download a resource using HTTP" is a common
     cry from users and reviewers. Such functionality is beyond
-    the scope of Beast and will likely never be added. Building
-    a robust HTTP client is a difficult task. The source code for
-    such a client would probably be several times larger than
-    the entirety of Beast! There are many things to deal with
-    such as the various message body encodings, complex parsing
-    of headers, difficult header semantics such as Range and
-    Cache-Control, redirection, Expect:100-continue, connection
-    retrying, domain name resolution, TLS, and much, much more.
-    It is the author's position that Boost first needs a common
-    set of nouns and verbs for manipulating HTTP at the protocol
-    level; Beast provides that language.
+    the scope of Beast. Building a full featured HTTP client is
+    a difficult task and large enough to deserve its own library.
+    There are many things to deal with such as the various message
+    body encodings, complex parsing of headers, difficult header
+    semantics such as Range and Cache-Control, redirection,
+    Expect:100-continue, connection retrying, domain name
+    resolution, TLS, and much, much more. It is the author's
+    position that Boost first needs a common set of nouns and
+    verbs for manipulating HTTP at the protocol level; Beast
+    provides that language.
 ]]
 [[
     "There's no HTTP/2 support yet!"
@@ -86,17 +83,15 @@ about Beast and other HTTP libraries that have gone through formal review.
 [[
     "This should work with standalone-Asio!"
 ][
-    Beast uses more than Boost.Asio, it depends on a smattering
-    of various parts of Boost. The standalone Asio is currently
-    farther ahead than the Boost version. Keeping Beast maintained
-    against both versions of Asio is beyond the resources of the
-    author at the present time. Compatibility with non-Boost
-    libraries should not be an acceptance criteria. Beast is
-    currently designed to be a part of Boost: nothing more,
-    nothing less.
-    Looking at the bigger picture, it is the author's goal to
-    propose this library for standardization. A logical track for
-    achieving this is as follows:
+    Beast uses more than Boost.Asio, it depends on various other parts
+    of Boost. The standalone Asio is currently farther ahead than the
+    Boost version. Keeping Beast maintained against both versions of
+    Asio is beyond the resources of the author at the present time.
+    Compatibility with non-Boost libraries should not be an acceptance
+    criteria. Beast is currently designed to be a part of Boost:
+    nothing more, nothing less. Looking at the bigger picture, it
+    is the author's goal to propose this library for standardization.
+    A logical track for achieving this is as follows:
 
     [ordered_list
     [
@@ -130,7 +125,9 @@ about Beast and other HTTP libraries that have gone through formal review.
     As the library matures it will undergo optimization passes; benchmarks
     will logically accompany this process. There is a small benchmarking
     program included in the tests which compares the performance of
-    Beast's parser to the NodeJS reference parser.
+    Beast's parser to the NodeJS reference parser, as well as some
+    benchmarks which compare the performance of various Beast dynamic
+    buffer implementations against Asio's.
 ]]
 [[
     "Beast is a terrible name!"
@@ -164,12 +161,13 @@ about Beast and other HTTP libraries that have gone through formal review.
     "Some more advanced examples, e.g. including TLS with client/server
     certificates would help."
 ][
-    The HTTP interface doesn't try to reinvent the wheel, it just uses
-    the `boost::asio::ip::tcp::socket` or `boost::asio::ssl::stream` that
-    you set up beforehand. Callers use the interfaces already existing
-    on those objects to make outgoing connections, accept incoming connections,
-    or establish TLS sessions with certificates. We find the available Asio
-    examples for performing these tasks sufficient.
+    The server-framework example demonstrates how to implement a server
+    that supports TLS using certificates. There are also websocket and
+    HTTP client examples which use TLS. Furthermore, management of
+    certificates is beyond the scope of the public interfaces of the
+    library. Asio already provides documentation, interfaces, and
+    examples for performing these tasks - Beast does not intend to
+    reinvent them or to redundantly provide this information.
 ]]
 
 [[
@@ -178,14 +176,17 @@ about Beast and other HTTP libraries that have gone through formal review.
     We presume this means a facility to match expressions against the URI
     in HTTP requests, and dispatch them to calling code. The authors feel
     that this is a responsibility of higher level code. Beast does
-    not try to offer a web server.
+    not try to offer a web server. That said, the server-framework
+    example has a concept of request routing called a Service. Two
+    services are provided, one for serving files and the other for
+    handling WebSocket upgrade requests.
 ]]
 
 [[
     "HTTP Cookies? Forms/File Uploads?"
 ][
     Cookies, or managing these types of HTTP headers in general, is the
-    responsibility of higher levels. Beast.HTTP just tries to get complete
+    responsibility of higher levels. Beast just tries to get complete
     messages to and from the calling code. It deals in the HTTP headers just
     enough to process the message body and leaves the rest to callers. However,
     for forms and file uploads the symmetric interface of the message class
@@ -197,11 +198,8 @@ about Beast and other HTTP libraries that have gone through formal review.
     "...supporting TLS (is this a feature? If not this would be a show-stopper),
     etc."
 ][
-    Beast does not provide direct facilities for implementing TLS connections;
-    however, the interfaces already existing on the `boost::asio::ssl::stream`
-    are available and can be used to establish secure connections. Then,
-    functions like `http::read` or `http::async_write` can work with those
-    encrypted connections with no problem.
+    Beast works with the Stream concept, so it automatically works with the
+    `boost::asio::ssl::stream` that you have already set up through Asio.
 ]]
 
 [[
@@ -215,18 +213,18 @@ about Beast and other HTTP libraries that have gone through formal review.
     which higher abstractions such as the aforementioned HTTP service or
     cgi-gateway can be built.
 
-    One of the example programs implements a simple HTTP server that
-    delivers files from the filesystem.
+    There are several HTTP servers in the example directory which deliver
+    files, as well as some tested and compiled code snippets which can be
+    used as a starting point for interfacing with other processes.
 ]]
 
 [[
     "You should send a 100-continue to ask for the rest of the body if required."
 ][
-    The Beast interface supports this functionality (by allowing this
-    special case of "split" message parsing and serialization). Specifically,
-    it lets callers read the request up to just before the body,
-    and let callers write the request up to just before the body. However,
-    making use of this behavior is up to callers (since Beast is low level).
+    Deciding on whether to send the "Expect: 100-continue" header or
+    how to handle it on the server side is the caller's responsibility;
+    Beast provides the functionality to send or inspect the header before
+    sending or reading the body.
 ]]
 
 
@@ -236,13 +234,18 @@ about Beast and other HTTP libraries that have gone through formal review.
     in production. That would give some evidence that the design
     works in practice."
 ][
-    Beast.HTTP and Beast.WebSocket are production ready and currently
-    running on public servers receiving traffic and handling millions of
-    dollars' worth of financial transactions daily. The servers run [*rippled],
-    open source software ([@https://github.com/ripple/rippled repository])
+    Beast has already been on public servers receiving traffic and handling
+    hundreds of millions of dollars' worth of financial transactions daily.
+    The servers run [*rippled], open source software
+    ([@https://github.com/ripple/rippled repository])
     implementing the
     [@https://ripple.com/files/ripple_consensus_whitepaper.pdf [*Ripple Consensus Protocol]],
     technology provided by [@http://ripple.com Ripple].
+
+    Furthermore, the repository has grown significantly in popularity in
+    2017. There are many users, and some of them participate directly in
+    the repository by reporting issues, performing testing, and in some
+    cases submitting pull requests with code contributions.
 ]]
 
 
@@ -263,8 +266,8 @@ about Beast and other HTTP libraries that have gone through formal review.
     `boost::asio::ssl::stream`). You establish your TLS connection using the
     interface on `ssl::stream` like shown in all of the Asio examples, then
     construct your `websocket::stream` around it. It works perfectly fine;
-    Beast.WebSocket doesn't try to reinvent the wheel or put a fresh coat of
-    interface paint on the `ssl::stream`.
+    Beast comes with an `ssl_stream` wrapper in the example directory which
+    allows the SSL stream to be moved, overcoming an Asio limitation.
 
     The WebSocket implementation [*does] provide support for shutting down
     the TLS connection through the use of the ADL compile-time virtual functions
