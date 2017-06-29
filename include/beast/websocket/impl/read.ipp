@@ -81,7 +81,6 @@ public:
         : d_(std::forward<DeducedHandler>(h),
             ws, std::forward<Args>(args)...)
     {
-        (*this)(error_code{}, 0, false);
     }
 
     void operator()()
@@ -165,9 +164,8 @@ operator()(error_code ec,
         do_control_payload = 8,
         do_control = 9,
         do_pong_resume = 10,
-        do_pong = 12,
+        do_ponged = 12,
         do_close_resume = 14,
-        do_close = 16,
         do_teardown = 17,
         do_fail = 19,
 
@@ -221,7 +219,7 @@ operator()(error_code ec,
                 d.remain = d.fh.len;
                 if(d.fh.mask)
                     detail::prepare_key(d.key, d.fh.key);
-                // fall through
+                BEAST_FALLTHROUGH;
 
             case do_read_payload + 1:
                 d.state = do_read_payload + 2;
@@ -452,15 +450,15 @@ operator()(error_code ec,
                     if(d.ws.wr_block_)
                     {
                         // suspend
-                        d.state = do_pong_resume;
                         BOOST_ASSERT(d.ws.wr_block_ != &d);
+                        d.state = do_pong_resume;
                         d.ws.rd_op_.emplace(std::move(*this));
                         return;
                     }
-                    d.state = do_pong;
-                    break;
+                    d.ws.wr_block_ = &d;
+                    goto go_pong;
                 }
-                else if(d.fh.op == detail::opcode::pong)
+                if(d.fh.op == detail::opcode::pong)
                 {
                     code = close_code::none;
                     ping_data payload;
@@ -496,12 +494,13 @@ operator()(error_code ec,
                         if(d.ws.wr_block_)
                         {
                             // suspend
+                            BOOST_ASSERT(d.ws.wr_block_ != &d);
                             d.state = do_close_resume;
                             d.ws.rd_op_.emplace(std::move(*this));
                             return;
                         }
-                        d.state = do_close;
-                        break;
+                        d.ws.wr_block_ = &d;
+                        goto go_close;
                     }
                     d.state = do_teardown;
                     break;
@@ -513,48 +512,47 @@ operator()(error_code ec,
                 BOOST_ASSERT(! d.ws.wr_block_);
                 d.ws.wr_block_ = &d;
                 d.state = do_pong_resume + 1;
+                // The current context is safe but might not be
+                // the same as the one for this operation (since
+                // we are being called from a write operation).
+                // Call post to make sure we are invoked the same
+                // way as the final handler for this operation.
                 d.ws.get_io_service().post(bind_handler(
-                    std::move(*this), ec, bytes_transferred));
+                    std::move(*this), ec, 0));
                 return;
 
             case do_pong_resume + 1:
+                BOOST_ASSERT(d.ws.wr_block_ == &d);
                 if(d.ws.failed_)
                 {
                     // call handler
                     ec = boost::asio::error::operation_aborted;
                     goto upcall;
                 }
-                BEAST_FALLTHROUGH;
-
-            //------------------------------------------------------------------
-
-            case do_pong:
                 if(d.ws.wr_close_)
                 {
                     // ignore ping when closing
-                    if(d.ws.wr_block_)
-                    {
-                        BOOST_ASSERT(d.ws.wr_block_ == &d);
-                        d.ws.wr_block_ = nullptr;
-                    }
+                    d.ws.wr_block_ = nullptr;
                     d.fb.consume(d.fb.size());
                     d.state = do_read_fh;
                     break;
                 }
+                BEAST_FALLTHROUGH;
+
+            //------------------------------------------------------------------
+
+            go_pong:
                 // send pong
-                if(! d.ws.wr_block_)
-                    d.ws.wr_block_ = &d;
-                else
-                    BOOST_ASSERT(d.ws.wr_block_ == &d);
-                d.state = do_pong + 1;
+                BOOST_ASSERT(d.ws.wr_block_ == &d);
+                d.state = do_ponged;
                 boost::asio::async_write(d.ws.stream_,
                     d.fb.data(), std::move(*this));
                 return;
 
-            case do_pong + 1:
+            case do_ponged:
+                d.ws.wr_block_ = nullptr;
                 d.fb.consume(d.fb.size());
                 d.state = do_read_fh;
-                d.ws.wr_block_ = nullptr;
                 break;
 
             //------------------------------------------------------------------
@@ -582,20 +580,16 @@ operator()(error_code ec,
                 }
                 if(d.ws.wr_close_)
                 {
-                    // call handler
+                    // already sent a close frame
                     ec = error::closed;
                     goto upcall;
                 }
-                d.state = do_close;
-                break;
+                BEAST_FALLTHROUGH;
 
             //------------------------------------------------------------------
 
-            case do_close:
-                if(! d.ws.wr_block_)
-                    d.ws.wr_block_ = &d;
-                else
-                    BOOST_ASSERT(d.ws.wr_block_ == &d);
+            go_close:
+                BOOST_ASSERT(d.ws.wr_block_ == &d);
                 d.state = do_teardown;
                 d.ws.wr_close_ = true;
                 boost::asio::async_write(d.ws.stream_,
@@ -629,34 +623,45 @@ operator()(error_code ec,
                 if(d.ws.wr_block_)
                 {
                     // suspend
+                    BOOST_ASSERT(d.ws.wr_block_ != &d);
                     d.state = do_fail + 2;
                     d.ws.rd_op_.emplace(std::move(*this));
                     return;
                 }
-                // fall through
+                d.ws.wr_block_ = &d;
+                BEAST_FALLTHROUGH;
 
             case do_fail + 1:
+                BOOST_ASSERT(d.ws.wr_block_ == &d);
                 d.ws.failed_ = true;
                 // send close frame
                 d.state = do_fail + 4;
                 d.ws.wr_close_ = true;
-                BOOST_ASSERT(! d.ws.wr_block_);
-                d.ws.wr_block_ = &d;
                 boost::asio::async_write(d.ws.stream_,
                     d.fb.data(), std::move(*this));
                 return;
 
             case do_fail + 2:
+                // resume
+                BOOST_ASSERT(! d.ws.wr_block_);
+                d.ws.wr_block_ = &d;
                 d.state = do_fail + 3;
+                // The current context is safe but might not be
+                // the same as the one for this operation (since
+                // we are being called from a write operation).
+                // Call post to make sure we are invoked the same
+                // way as the final handler for this operation.
                 d.ws.get_io_service().post(bind_handler(
                     std::move(*this), ec, bytes_transferred));
                 return;
 
             case do_fail + 3:
-                if(d.ws.failed_)
+                BOOST_ASSERT(d.ws.wr_block_ == &d);
+                if(d.ws.failed_ || d.ws.wr_close_)
                 {
-                    d.state = do_fail + 5;
-                    break;
+                    // call handler
+                    ec = error::failed;
+                    goto upcall;
                 }
                 d.state = do_fail + 1;
                 break;
@@ -683,7 +688,8 @@ operator()(error_code ec,
 upcall:
     if(d.ws.wr_block_ == &d)
         d.ws.wr_block_ = nullptr;
-    d.ws.ping_op_.maybe_invoke() ||
+    d.ws.close_op_.maybe_invoke() ||
+        d.ws.ping_op_.maybe_invoke() ||
         d.ws.wr_op_.maybe_invoke();
     bool const fin = (! ec) ? d.fh.fin : false;
     d_.invoke(ec, fin);
@@ -704,7 +710,8 @@ async_read_frame(DynamicBuffer& buffer, ReadHandler&& handler)
         void(error_code, bool)> init{handler};
     read_frame_op<DynamicBuffer, handler_type<
         ReadHandler, void(error_code, bool)>>{
-            init.completion_handler,*this, buffer};
+            init.completion_handler,*this, buffer}(
+                {}, 0, false);
     return init.result.get();
 }
 

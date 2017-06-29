@@ -150,9 +150,10 @@ class stream
     op* wr_block_;                          // op currenly writing
 
     ping_data* ping_data_;                  // where to put the payload
-    detail::pausation rd_op_;               // parked read op
-    detail::pausation wr_op_;               // parked write op
-    detail::pausation ping_op_;             // parked ping op
+    detail::pausation rd_op_;               // paused read op
+    detail::pausation wr_op_;               // paused write op
+    detail::pausation ping_op_;             // paused ping op
+    detail::pausation close_op_;            // paused close op
     close_reason cr_;                       // set from received close frame
 
     // State information for the message being received

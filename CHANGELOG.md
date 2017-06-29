@@ -7,6 +7,9 @@ WebSockets:
 
 * Fine tune websocket op asserts
 * Refactor websocket composed ops
+* Allow close, ping, and write to happen concurrently
+* Fix race in websocket read op
+* Fix websocket write op
 
 --------------------------------------------------------------------------------
 
