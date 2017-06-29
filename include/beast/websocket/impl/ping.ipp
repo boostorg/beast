@@ -133,10 +133,9 @@ operator()(error_code ec, std::size_t)
         if(d.ws.failed_ || d.ws.wr_close_)
         {
             // call handler
-            d.ws.get_io_service().post(
+            return d.ws.get_io_service().post(
                 bind_handler(std::move(*this),
                     boost::asio::error::operation_aborted));
-            return;
         }
 
     do_write:
@@ -176,7 +175,8 @@ operator()(error_code ec, std::size_t)
 upcall:
     BOOST_ASSERT(d.ws.wr_block_ == &d);
     d.ws.wr_block_ = nullptr;
-    d.ws.rd_op_.maybe_invoke() ||
+    d.ws.close_op_.maybe_invoke() ||
+        d.ws.rd_op_.maybe_invoke() ||
         d.ws.wr_op_.maybe_invoke();
     d_.invoke(ec);
 }

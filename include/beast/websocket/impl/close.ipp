@@ -125,7 +125,7 @@ operator()(error_code ec, std::size_t)
         {
             // suspend
             d.state = 1;
-            d.ws.wr_op_.emplace(std::move(*this));
+            d.ws.close_op_.emplace(std::move(*this));
             return;
         }
         d.ws.wr_block_ = &d;
