@@ -1,3 +1,9 @@
+Version 71:
+
+* Fix extra ; warning
+
+--------------------------------------------------------------------------------
+
 Version 70:
 
 * Serialize in one step when possible
