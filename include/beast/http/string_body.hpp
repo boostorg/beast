@@ -90,18 +90,21 @@ struct string_body
                 if(*content_length > (std::numeric_limits<
                         std::size_t>::max)())
                 {
-                    ec = make_error_code(
-                        errc::not_enough_memory);
+                    ec = error::buffer_overflow;
                     return;
                 }
-                ec.assign(0, ec.category());
-                body_.reserve(static_cast<
-                    std::size_t>(*content_length));
+                try
+                {
+                    body_.reserve(static_cast<
+                        std::size_t>(*content_length));
+                }
+                catch(std::exception const&)
+                {
+                    ec = error::buffer_overflow;
+                    return;
+                }
             }
-            else
-            {
-                ec.assign(0, ec.category());
-            }
+            ec.assign(0, ec.category());
         }
 
         template<class ConstBufferSequence>
@@ -117,14 +120,14 @@ struct string_body
             {
                 body_.resize(len + n);
             }
-            catch(std::length_error const&)
+            catch(std::exception const&)
             {
                 ec = error::buffer_overflow;
                 return;
             }
-            ec.assign(0, ec.category());
             buffer_copy(boost::asio::buffer(
                 &body_[0] + len, n), buffers);
+            ec.assign(0, ec.category());
         }
 
         void

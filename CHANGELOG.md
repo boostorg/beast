@@ -1,3 +1,9 @@
+Version 71:
+
+* Fix buffer overflow handling for string_body and mutable_body
+
+--------------------------------------------------------------------------------
+
 Version 70:
 
 * Serialize in one step when possible
