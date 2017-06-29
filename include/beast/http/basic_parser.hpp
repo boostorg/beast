@@ -148,7 +148,7 @@ public:
     ~basic_parser() = default;
 
     /// Default constructor
-    basic_parser();;
+    basic_parser();
 
     /** Move constructor
 
