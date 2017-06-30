@@ -75,9 +75,6 @@ class basic_parser
     template<bool OtherIsRequest, class OtherDerived>
     friend class basic_parser;
 
-    // limit on the size of the obs-fold buffer
-    static std::size_t constexpr max_obs_fold = 4096;
-
     // limit on the size of the stack flat buffer
     static std::size_t constexpr max_stack_buffer = 8192;
 
@@ -129,6 +126,7 @@ class basic_parser
     std::size_t skip_ = 0;          // resume search here
     std::uint32_t
         header_limit_ = 8192;       // max header size
+    unsigned short status_;         // response status
     state state_ =                  // initial state
         state::nothing_yet;
     unsigned f_ = 0;                // flags
@@ -212,7 +210,7 @@ public:
     bool
     is_header_done() const
     {
-        return state_ > state::header;
+        return state_ > state::fields;
     }
 
     /** Returns `true` if the message is an upgrade message.
@@ -312,6 +310,9 @@ public:
         input. If the end of the header is not found within the
         limit of the header size, the error @ref error::header_limit
         is returned by @ref put.
+
+        Setting the limit after any header octets have been parsed
+        results in undefined behavior.
     */
     void
     header_limit(std::uint32_t v)
@@ -452,15 +453,31 @@ private:
             error_code& ec);
 
     void
-    parse_header(char const*& p,
-        std::size_t n, error_code& ec);
+    maybe_need_more(
+        char const* p, std::size_t n,
+            error_code& ec);
 
     void
-    parse_header(char const*& p, char const* term,
+    parse_start_line(
+        char const*& p, char const* last,
+            error_code& ec, std::true_type);
+
+    void
+    parse_start_line(
+        char const*& p, char const* last,
+            error_code& ec, std::false_type);
+
+    void
+    parse_fields(
+        char const*& p, char const* last,
+            error_code& ec);
+
+    void
+    finish_header(
         error_code& ec, std::true_type);
 
     void
-    parse_header(char const*& p, char const* term,
+    finish_header(
         error_code& ec, std::false_type);
 
     void
@@ -478,10 +495,6 @@ private:
     void
     parse_chunk_body(char const*& p,
         std::size_t n, error_code& ec);
-
-    void
-    parse_fields(char const*& p,
-        char const* last, error_code& ec);
 
     void
     do_field(field f,
