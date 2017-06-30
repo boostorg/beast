@@ -21,40 +21,6 @@
 namespace beast {
 namespace http {
 
-namespace detail {
-
-template<class FwdIt>
-inline
-FwdIt
-skip_ows2(FwdIt it, FwdIt const& end)
-{
-    while(it != end)
-    {
-        if(*it != ' ' && *it != '\t')
-            break;
-        ++it;
-    }
-    return it;
-}
-
-template<class RanIt>
-inline
-RanIt
-skip_ows_rev2(
-    RanIt it, RanIt const& first)
-{
-    while(it != first)
-    {
-        auto const c = it[-1];
-        if(c != ' ' && c != '\t')
-            break;
-        --it;
-    }
-    return it;
-}
-
-} // detail
-
 template<bool isRequest, class Derived>
 basic_parser<isRequest, Derived>::
 basic_parser()
@@ -177,6 +143,7 @@ put(boost::asio::const_buffers_1 const& buffer,
     auto n = buffer_size(*buffer.begin());
     auto const p0 = p;
     auto const p1 = p0 + n;
+    ec.assign(0, ec.category());
 loop:
     switch(state_)
     {
@@ -186,16 +153,67 @@ loop:
             ec = error::need_more;
             return 0;
         }
-        state_ = state::header;
+        state_ = state::start_line;
         BEAST_FALLTHROUGH;
 
-    case state::header:
-        parse_header(p, n, ec);
+    case state::start_line:
+    {
+        maybe_need_more(p, n, ec);
         if(ec)
             goto done;
+        parse_start_line(p, p + std::min<std::size_t>(
+            header_limit_, n), ec, is_request{});
+        if(ec)
+        {
+            if(ec == error::need_more)
+            {
+                if(n >= header_limit_)
+                {
+                    ec = error::header_limit;
+                    goto done;
+                }
+                if(p + 3 <= p1)
+                    skip_ = static_cast<
+                        std::size_t>(p1 - p - 3);
+            }
+            goto done;
+        }
+        BOOST_ASSERT(! is_done());
+        n = static_cast<std::size_t>(p1 - p);
+        if(p >= p1)
+        {
+            ec = error::need_more;
+            goto done;
+        }
+        BEAST_FALLTHROUGH;
+    }
+
+    case state::fields:
+        maybe_need_more(p, n, ec);
+        if(ec)
+            goto done;
+        parse_fields(p, p + std::min<std::size_t>(
+            header_limit_, n), ec);
+        if(ec)
+        {
+            if(ec == error::need_more)
+            {
+                if(n >= header_limit_)
+                {
+                    ec = error::header_limit;
+                    goto done;
+                }
+                if(p + 3 <= p1)
+                    skip_ = static_cast<
+                        std::size_t>(p1 - p - 3);
+            }
+            goto done;
+        }
+        finish_header(ec, is_request{});
         break;
 
     case state::body0:
+        BOOST_ASSERT(! skip_);
         impl().on_body(content_length(), ec);
         if(ec)
             goto done;
@@ -203,12 +221,14 @@ loop:
         BEAST_FALLTHROUGH;
 
     case state::body:
+        BOOST_ASSERT(! skip_);
         parse_body(p, n, ec);
         if(ec)
             goto done;
         break;
 
     case state::body_to_eof0:
+        BOOST_ASSERT(! skip_);
         impl().on_body(content_length(), ec);
         if(ec)
             goto done;
@@ -216,6 +236,7 @@ loop:
         BEAST_FALLTHROUGH;
 
     case state::body_to_eof:
+        BOOST_ASSERT(! skip_);
         parse_body_to_eof(p, n, ec);
         if(ec)
             goto done;
@@ -259,7 +280,8 @@ basic_parser<isRequest, Derived>::
 put_eof(error_code& ec)
 {
     BOOST_ASSERT(got_some());
-    if(state_ == state::header)
+    if( state_ == state::start_line ||
+        state_ == state::fields)
     {
         ec = error::partial_message;
         return;
@@ -300,9 +322,12 @@ template<bool isRequest, class Derived>
 inline
 void
 basic_parser<isRequest, Derived>::
-parse_header(char const*& p,
-    std::size_t n, error_code& ec)
+maybe_need_more(
+    char const* p, std::size_t n,
+        error_code& ec)
 {
+    if(skip_ == 0)
+        return;
     if( n > header_limit_)
         n = header_limit_;
     if(n < skip_ + 4)
@@ -320,73 +345,57 @@ parse_header(char const*& p,
             ec = error::header_limit;
             return;
         }
-        ec = http::error::need_more;
+        ec = error::need_more;
         return;
     }
     skip_ = 0;
-
-    parse_header(p, term, ec,
-        std::integral_constant<bool, isRequest>{});
-    if(ec)
-        return;
-
-    impl().on_header(ec);
-    if(ec)
-        return;
-    if(state_ == state::complete)
-    {
-        impl().on_complete(ec);
-        if(ec)
-            return;
-    }
 }
 
 template<bool isRequest, class Derived>
+inline
 void
 basic_parser<isRequest, Derived>::
-parse_header(char const*& p, char const* term,
+parse_start_line(
+    char const*& in, char const* last,
     error_code& ec, std::true_type)
 {
 /*
     request-line   = method SP request-target SP HTTP-version CRLF
     method         = token
 */
-    auto const method = parse_method(p);
-    if(method.empty())
-    {
-        ec = error::bad_method;
-        return;
-    }
-    if(*p++ != ' ')
-    {
-        ec = error::bad_method;
-        return;
-    }
+    auto p = in;
 
-    auto const target = parse_target(p);
-    if(target.empty())
-    {
-        ec = error::bad_target;
+    string_view method;
+    parse_method(p, last, method, ec);
+    if(ec)
         return;
-    }
-    if(*p++ != ' ')
-    {
-        ec = error::bad_target;
-        return;
-    }
 
-    auto const version = parse_version(p);
-    if(version < 0)
+    string_view target;
+    parse_target(p, last, target, ec);
+    if(ec)
+        return;
+
+    int version;
+    parse_version(p, last, version, ec);
+    if(ec)
+        return;
+    if(version < 10 || version > 11)
     {
         ec = error::bad_version;
         return;
     }
 
-    if(! parse_crlf(p))
+    if(p + 2 > last)
+    {
+        ec = error::need_more;
+        return;
+    }
+    if(p[0] != '\r' || p[1] != '\n')
     {
         ec = error::bad_version;
         return;
     }
+    p += 2;
 
     if(version >= 11)
         f_ |= flagHTTP11;
@@ -396,11 +405,114 @@ parse_header(char const*& p, char const* term,
     if(ec)
         return;
 
-    parse_fields(p, term, ec);
+    in = p;
+    state_ = state::fields;
+}
+
+template<bool isRequest, class Derived>
+inline
+void
+basic_parser<isRequest, Derived>::
+parse_start_line(
+    char const*& in, char const* last,
+    error_code& ec, std::false_type)
+{
+/*
+     status-line    = HTTP-version SP status-code SP reason-phrase CRLF
+     status-code    = 3*DIGIT
+     reason-phrase  = *( HTAB / SP / VCHAR / obs-text )
+*/
+    auto p = in;
+
+    int version;
+    parse_version(p, last, version, ec);
     if(ec)
         return;
-    BOOST_ASSERT(p == term);
+    if(version < 10 || version > 11)
+    {
+        ec = error::bad_version;
+        return;
+    }
 
+    // SP
+    if(p + 1 > last)
+    {
+        ec = error::need_more;
+        return;
+    }
+    if(*p++ != ' ')
+    {
+        ec = error::bad_version;
+        return;
+    }
+
+    parse_status(p, last, status_, ec);
+    if(ec)
+        return;
+
+    // parse reason CRLF
+    string_view reason;
+    parse_reason(p, last, reason, ec);
+    if(ec)
+        return;
+
+    if(version >= 11)
+        f_ |= flagHTTP11;
+
+    impl().on_response(
+        status_, reason, version, ec);
+    if(ec)
+        return;
+
+    in = p;
+    state_ = state::fields;
+}
+
+template<bool isRequest, class Derived>
+void
+basic_parser<isRequest, Derived>::
+parse_fields(char const*& in,
+    char const* last, error_code& ec)
+{
+    string_view name;
+    string_view value;
+    // https://stackoverflow.com/questions/686217/maximum-on-http-header-values
+    static_string<max_obs_fold> buf;
+    auto p = in;
+    for(;;)
+    {
+        if(p + 2 > last)
+        {
+            ec = error::need_more;
+            return;
+        }
+        if(p[0] == '\r')
+        {
+            if(p[1] != '\n')
+                ec = error::bad_line_ending;
+            in = p + 2;
+            return;
+        }
+        parse_field(p, last, name, value, buf, ec);
+        if(ec)
+            return;
+        auto const f = string_to_field(name);
+        do_field(f, value, ec);
+        if(ec)
+            return;
+        impl().on_field(f, name, value, ec);
+        if(ec)
+            return;
+        in = p;
+    }
+}
+
+template<bool isRequest, class Derived>
+inline
+void
+basic_parser<isRequest, Derived>::
+finish_header(error_code& ec, std::true_type)
+{
     // RFC 7230 section 3.3
     // https://tools.ietf.org/html/rfc7230#section-3.3
 
@@ -430,62 +542,31 @@ parse_header(char const*& p, char const* term,
         len_ = 0;
         state_ = state::complete;
     }
+
+    impl().on_header(ec);
+    if(ec)
+        return;
+    if(state_ == state::complete)
+    {
+        impl().on_complete(ec);
+        if(ec)
+            return;
+    }
 }
 
 template<bool isRequest, class Derived>
+inline
 void
 basic_parser<isRequest, Derived>::
-parse_header(char const*& p, char const* term,
-    error_code& ec, std::false_type)
+finish_header(error_code& ec, std::false_type)
 {
-/*
-     status-line    = HTTP-version SP status-code SP reason-phrase CRLF
-     status-code    = 3*DIGIT
-     reason-phrase  = *( HTAB / SP / VCHAR / obs-text )
-*/
-    auto const version = parse_version(p);
-    if(version < 0 || *p != ' ')
-    {
-        ec = error::bad_version;
-        return;
-    }
-    ++p;
-
-    auto const status = parse_status(p);
-    if(status < 0 || *p != ' ')
-    {
-        ec = error::bad_status;
-        return;
-    }
-    ++p;
-
-    auto const reason = parse_reason(p);
-    if(! parse_crlf(p))
-    {
-        ec = error::bad_reason;
-        return;
-    }
-
-    if(version >= 11)
-        f_ |= flagHTTP11;
-
-    impl().on_response(
-        status, reason, version, ec);
-    if(ec)
-        return;
-
-    parse_fields(p, term, ec);
-    if(ec)
-        return;
-    BOOST_ASSERT(p == term);
-
     // RFC 7230 section 3.3
     // https://tools.ietf.org/html/rfc7230#section-3.3
 
     if( (f_ & flagSkipBody) ||  // e.g. response to a HEAD request
-        status  / 100 == 1 ||   // 1xx e.g. Continue
-        status == 204 ||        // No Content
-        status == 304)          // Not Modified
+        status_  / 100 == 1 ||   // 1xx e.g. Continue
+        status_ == 204 ||        // No Content
+        status_ == 304)          // Not Modified
     {
         state_ = state::complete;
         return;
@@ -513,6 +594,16 @@ parse_header(char const*& p, char const* term,
         f_ |= flagHasBody;
         f_ |= flagNeedEOF;
         state_ = state::body_to_eof0;
+    }
+
+    impl().on_header(ec);
+    if(ec)
+        return;
+    if(state_ == state::complete)
+    {
+        impl().on_complete(ec);
+        if(ec)
+            return;
     }
 }
 
@@ -715,117 +806,6 @@ parse_chunk_body(char const*& p,
 template<bool isRequest, class Derived>
 void
 basic_parser<isRequest, Derived>::
-parse_fields(char const*& p,
-    char const* last, error_code& ec)
-{
-/*  header-field   = field-name ":" OWS field-value OWS
-
-    field-name     = token
-    field-value    = *( field-content / obs-fold )
-    field-content  = field-vchar [ 1*( SP / HTAB ) field-vchar ]
-    field-vchar    = VCHAR / obs-text
-
-    obs-fold       = CRLF 1*( SP / HTAB )
-                   ; obsolete line folding
-                   ; see Section 3.2.4
-*/
-    for(;;)
-    {
-        auto term = find_eol(p, last, ec);
-        if(ec)
-            return;
-        BOOST_ASSERT(term);
-        if(p == term - 2)
-        {
-            p = term;
-            break;
-        }
-        auto const name = parse_name(p);
-        if(name.empty())
-        {
-            ec = error::bad_field;
-            return;
-        }
-        if(*p++ != ':')
-        {
-            ec = error::bad_field;
-            return;
-        }
-        if(*term != ' ' &&
-           *term != '\t')
-        {
-            auto it2 = term - 2;
-            p = detail::skip_ows2(p, it2);
-            it2 = detail::skip_ows_rev2(it2, p);
-            auto const f = string_to_field(name);
-            auto const value = make_string(p, it2);
-            do_field(f, value, ec);
-            if(ec)
-                return;
-            impl().on_field(f, name, value, ec);
-            if(ec)
-                return;
-            p = term;
-        }
-        else
-        {
-            // obs-fold
-            for(;;)
-            {
-                auto const it2 = term - 2;
-                p = detail::skip_ows2(p, it2);
-                if(p != it2)
-                    break;
-                p = term;
-                if(*p != ' ' && *p != '\t')
-                    break;
-                term = find_eol(p, last, ec);
-                if(ec)
-                    return;
-            }
-            // https://stackoverflow.com/questions/686217/maximum-on-http-header-values
-            static_string<max_obs_fold> s;
-            try
-            {
-                if(p != term)
-                {
-                    s.append(p, term - 2);
-                    p = term;
-                    for(;;)
-                    {
-                        if(*p != ' ' && *p != '\t')
-                            break;
-                        s.push_back(' ');
-                        p = detail::skip_ows2(p, term - 2);
-                        term = find_eol(p, last, ec);
-                        if(ec)
-                            return;
-                        if(p != term - 2)
-                            s.append(p, term - 2);
-                        p = term;
-                    }
-                }
-            }
-            catch(std::length_error const&)
-            {
-                ec = error::bad_obs_fold;
-                return;
-            }
-            auto const f = string_to_field(name);
-            string_view const value{s.data(), s.size()};
-            do_field(f, value, ec);
-            if(ec)
-                return;
-            impl().on_field(f, name, value, ec);
-            if(ec)
-                return;
-        }
-    }
-}
-
-template<bool isRequest, class Derived>
-void
-basic_parser<isRequest, Derived>::
 do_field(field f,
     string_view value, error_code& ec)
 {
@@ -842,19 +822,19 @@ do_field(field f,
         }
         for(auto const& s : list)
         {
-            if(strieq("close", s))
+            if(iequals({"close", 5}, s))
             {
                 f_ |= flagConnectionClose;
                 continue;
             }
 
-            if(strieq("keep-alive", s))
+            if(iequals({"keep-alive", 10}, s))
             {
                 f_ |= flagConnectionKeepAlive;
                 continue;
             }
 
-            if(strieq("upgrade", s))
+            if(iequals({"upgrade", 7}, s))
             {
                 f_ |= flagConnectionUpgrade;
                 continue;
@@ -862,16 +842,6 @@ do_field(field f,
         }
         ec.assign(0, ec.category());
         return;
-    }
-
-    for(auto p = value.begin();
-        p != value.end(); ++p)
-    {
-        if(! is_text(*p))
-        {
-            ec = error::bad_value;
-            return;
-        }
     }
 
     // Content-Length
@@ -933,7 +903,7 @@ do_field(field f,
         auto const p = std::find_if(v.begin(), v.end(),
             [&](typename token_list::value_type const& s)
             {
-                return strieq("chunked", s);
+                return iequals({"chunked", 7}, s);
             });
         if(p == v.end())
             return;
