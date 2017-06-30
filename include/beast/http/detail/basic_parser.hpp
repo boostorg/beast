@@ -8,9 +8,12 @@
 #ifndef BEAST_HTTP_DETAIL_BASIC_PARSER_HPP
 #define BEAST_HTTP_DETAIL_BASIC_PARSER_HPP
 
+#include <beast/core/static_string.hpp>
 #include <beast/core/string.hpp>
+#include <beast/core/detail/cpu_info.hpp>
 #include <beast/http/error.hpp>
 #include <beast/http/detail/rfc7230.hpp>
+#include <boost/config.hpp>
 #include <boost/version.hpp>
 #include <algorithm>
 #include <cstddef>
@@ -47,25 +50,41 @@
  * IN THE SOFTWARE.
  */
 
+#if ! BEAST_NO_INTRINSICS
+# ifdef BOOST_MSVC
+#  include <nmmintrin.h>
+# else
+#  include <x86intrin.h>
+# endif
+#endif
+
 namespace beast {
 namespace http {
 namespace detail {
 
-#if __GNUC__ >= 3
-# define BEAST_LIKELY(x) __builtin_expect(!!(x), 1)
-# define BEAST_UNLIKELY(x) __builtin_expect(!!(x), 0)
-#else
-#define BEAST_LIKELY(x) (x)
-#define BEAST_UNLIKELY(x) (x)
-#endif
-
 class basic_parser_base
 {
 protected:
+#if ! BEAST_NO_INTRINSICS
+    bool sse42_;
+
+    basic_parser_base()
+        : sse42_(beast::detail::get_cpu_info().sse42)
+    {
+    }
+#endif
+
+    // limit on the size of the obs-fold buffer
+    //
+    // https://stackoverflow.com/questions/686217/maximum-on-http-header-values
+    //
+    static std::size_t constexpr max_obs_fold = 4096;
+
     enum class state
     {
         nothing_yet = 0,
-        header,
+        start_line,
+        fields,
         body0,
         body,
         body_to_eof0,
@@ -87,59 +106,6 @@ protected:
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //   0
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //  16
             0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, //  32
-            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, //  48
-            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, //  64
-            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, //  80
-            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, //  96
-            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, // 112
-            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, // 128
-            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, // 144
-            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, // 160
-            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, // 176
-            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, // 192
-            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, // 208
-            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, // 224
-            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1  // 240
-        };
-        return tab[static_cast<unsigned char>(c)];
-    }
-
-    static
-    bool
-    is_value_char(char c)
-    {
-        // any OCTET except CTLs and LWS
-        static bool constexpr tab[256] = {
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //   0
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //  16
-            0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, //  32
-            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, //  48
-            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, //  64
-            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, //  80
-            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, //  96
-            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, // 112
-            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, // 128
-            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, // 144
-            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, // 160
-            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, // 176
-            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, // 192
-            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, // 208
-            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, // 224
-            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1  // 240
-        };
-        return tab[static_cast<unsigned char>(c)];
-    }
-
-    static
-    inline
-    bool
-    is_text(char c)
-    {
-        // VCHAR / SP / HT / obs-text
-        static bool constexpr tab[256] = {
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, //   0
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //  16
-            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, //  32
             1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, //  48
             1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, //  64
             1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, //  80
@@ -197,7 +163,37 @@ protected:
     bool
     is_print(char c)
     {
-        return static_cast<unsigned char>(c-33) < 94;
+        return static_cast<unsigned char>(c-32) < 95;
+    }
+
+    template<class FwdIt>
+    static
+    FwdIt
+    trim_front(FwdIt it, FwdIt const& end)
+    {
+        while(it != end)
+        {
+            if(*it != ' ' && *it != '\t')
+                break;
+            ++it;
+        }
+        return it;
+    }
+
+    template<class RanIt>
+    static
+    RanIt
+    trim_back(
+        RanIt it, RanIt const& first)
+    {
+        while(it != first)
+        {
+            auto const c = it[-1];
+            if(c != ' ' && c != '\t')
+                break;
+            --it;
+        }
+        return it;
     }
 
     static
@@ -208,28 +204,214 @@ protected:
             std::size_t>(last - first)};
     }
 
-    template<class = void>
-    static
-    bool
-    strieq(string_view s1,
-        string_view s2)
+    //--------------------------------------------------------------------------
+
+    std::pair<char const*, bool>
+    find_fast(
+        char const* buf,
+        char const* buf_end,
+        char const* ranges,
+        size_t ranges_size)
     {
-        if(s1.size() != s2.size())
-            return false;
-        auto p1 = s1.data();
-        auto p2 = s2.data();
-        for(auto n = s1.size(); n--; ++p1, ++p2)
-            if(*p1 != tolower(*p2))
-                return false;
-        return true;
+        bool found = false;
+
+    #if ! BEAST_NO_INTRINSICS
+        if(BOOST_LIKELY(sse42_))
+        {
+            if(BOOST_LIKELY(buf_end - buf >= 16))
+            {
+                __m128i ranges16 = _mm_loadu_si128((__m128i const*)ranges);
+                std::size_t left = (buf_end - buf) & ~15;
+                do
+                {
+                    __m128i b16 = _mm_loadu_si128((__m128i const*)buf);
+                    int r = _mm_cmpestri(ranges16, ranges_size, b16, 16,
+                        _SIDD_LEAST_SIGNIFICANT | _SIDD_CMP_RANGES | _SIDD_UBYTE_OPS);
+                    if(BOOST_UNLIKELY(r != 16))
+                    {
+                        buf += r;
+                        found = true;
+                        break;
+                    }
+                    buf += 16;
+                    left -= 16;
+                }
+                while(BOOST_LIKELY(left != 0));
+            }
+        }
+
+    #else
+        boost::ignore_unused(buf_end, ranges, ranges_size);
+    
+    #endif
+        return {buf, found};
     }
 
-    template<std::size_t N>
-    bool
-    strieq(const char (&s1)[N],
-        string_view s2)
+    // VFALCO Can SIMD help this?
+    static
+    char const*
+    find_eol(
+        char const* it, char const* last,
+            error_code& ec)
     {
-        return strieq({s1, N-1}, s2);
+        for(;;)
+        {
+            if(it == last)
+            {
+                ec.assign(0, ec.category());
+                return nullptr;
+            }
+            if(*it == '\r')
+            {
+                if(++it == last)
+                {
+                    ec.assign(0, ec.category());
+                    return nullptr;
+                }
+                if(*it != '\n')
+                {
+                    ec = error::bad_line_ending;
+                    return nullptr;
+                }
+                ec.assign(0, ec.category());
+                return ++it;
+            }
+            // VFALCO Should we handle the legacy case
+            // for lines terminated with a single '\n'?
+            ++it;
+        }
+    }
+
+    // VFALCO Can SIMD help this?
+    static
+    char const*
+    find_eom(char const* p, char const* last)
+    {
+        for(;;)
+        {
+            if(p + 4 > last)
+                return nullptr;
+            if(p[3] != '\n')
+            {
+                if(p[3] == '\r')
+                    ++p;
+                else
+                    p += 4;
+            }
+            else if(p[2] != '\r')
+            {
+                p += 4;
+            }
+            else if(p[1] != '\n')
+            {
+                p += 2;
+            }
+            else if(p[0] != '\r')
+            {
+                p += 2;
+            }
+            else
+            {
+                return p + 4;
+            }
+        }
+    }
+
+    //--------------------------------------------------------------------------
+
+    char const*
+    parse_token_to_eol(
+        char const* p,
+        char const* last,
+        char const*& token_last,
+        error_code& ec)
+    {
+    #if ! BEAST_NO_INTRINSICS
+        static char const ranges1[] =
+            "\0\010"    // allow HT */
+            "\012\037"  // allow SP and up to but not including DEL
+            "\177\177"  // allow chars w. MSB set
+            ;
+        bool found;
+        std::tie(p, found) = find_fast(
+            p, last, ranges1, sizeof(ranges1) - 1);
+        if(found)
+            goto found_control;
+    #else
+        /* find non-printable char within the next 8 bytes, this is the hottest code; manually inlined */
+        while(BOOST_LIKELY(last - p >= 8))
+        {
+        #define BEAST_PARSE_TOKEN_TO_EOL_REPEAT()   \
+            do                                      \
+            {                                       \
+                if(BOOST_UNLIKELY(                  \
+                        ! is_print(*p)))            \
+                    goto non_printable;             \
+                ++p;                                \
+            }                                       \
+            while(0);
+                BEAST_PARSE_TOKEN_TO_EOL_REPEAT();
+                BEAST_PARSE_TOKEN_TO_EOL_REPEAT();
+                BEAST_PARSE_TOKEN_TO_EOL_REPEAT();
+                BEAST_PARSE_TOKEN_TO_EOL_REPEAT();
+                BEAST_PARSE_TOKEN_TO_EOL_REPEAT();
+                BEAST_PARSE_TOKEN_TO_EOL_REPEAT();
+                BEAST_PARSE_TOKEN_TO_EOL_REPEAT();
+                BEAST_PARSE_TOKEN_TO_EOL_REPEAT();
+        #undef BEAST_PARSE_TOKEN_TO_EOL_REPEAT
+            continue;
+        non_printable:
+            if((BOOST_LIKELY((unsigned char)*p < '\040') &&
+                BOOST_LIKELY(*p != '\011')) ||
+                BOOST_UNLIKELY(*p == '\177'))
+                goto found_control;
+            ++p;
+        }
+    #endif
+        for(;; ++p)
+        {
+            if(p >= last)
+            {
+                ec = error::need_more;
+                return p;
+            }
+            if(BOOST_UNLIKELY(! is_print(*p)))
+                if((BOOST_LIKELY(static_cast<
+                        unsigned char>(*p) < '\040') &&
+                    BOOST_LIKELY(*p != '\011')) ||
+                    BOOST_UNLIKELY(*p == '\177'))
+                    goto found_control;
+        }
+    found_control:
+        if(BOOST_LIKELY(*p == '\r'))
+        {
+            if(++p >= last)
+            {
+                ec = error::need_more;
+                return last;
+            }
+            if(*p++ != '\n')
+            {
+                ec = error::bad_line_ending;
+                return last;
+            }
+            token_last = p - 2;
+        }
+    #if 0
+        // VFALCO This allows `\n` by itself
+        //        to terminate a line
+        else if(*p == '\n')
+        {
+            token_last = p;
+            ++p;
+        }
+    #endif
+        else
+        {
+            // invalid character
+            return nullptr;
+        }
+        return p;
     }
 
     template<class Iter, class Unsigned>
@@ -284,190 +466,361 @@ protected:
     }
 
     static
-    string_view
-    parse_method(char const*& it)
+    void
+    parse_method(
+        char const*& it, char const* last,
+        string_view& result, error_code& ec)
     {
+        // parse token SP
         auto const first = it;
-        while(detail::is_tchar(*it))
-            ++it;
-        return {first, static_cast<
-            string_view::size_type>(
-                it - first)};
-    }
-
-    static
-    string_view
-    parse_target(char const*& it)
-    {
-        auto const first = it;
-        while(is_pathchar(*it))
-            ++it;
+        for(;; ++it)
+        {
+            if(it + 1 > last)
+            {
+                ec = error::need_more;
+                return;
+            }
+            if(! detail::is_tchar(*it))
+                break;
+        }
+        if(it + 1 > last)
+        {
+            ec = error::need_more;
+            return;
+        }
         if(*it != ' ')
-            return {};
-        return {first, static_cast<
-            string_view::size_type>(
-                it - first)};
+        {
+            ec = error::bad_method;
+            return;
+        }
+        if(it == first)
+        {
+            // cannot be empty
+            ec = error::bad_method;
+            return;
+        }
+        result = make_string(first, it++);
     }
 
     static
-    string_view
-    parse_name(char const*& it)
+    void
+    parse_target(
+        char const*& it, char const* last,
+        string_view& result, error_code& ec)
     {
+        // parse target SP
         auto const first = it;
-        while(to_field_char(*it))
-            ++it;
-        return {first, static_cast<
-            string_view::size_type>(
-                it - first)};
+        for(;; ++it)
+        {
+            if(it + 1 > last)
+            {
+                ec = error::need_more;
+                return;
+            }
+            if(! is_pathchar(*it))
+                break;
+        }
+        if(it + 1 > last)
+        {
+            ec = error::need_more;
+            return;
+        }
+        if(*it != ' ')
+        {
+            ec = error::bad_target;
+            return;
+        }
+        if(it == first)
+        {
+            // cannot be empty
+            ec = error::bad_target;
+            return;
+        }
+        result = make_string(first, it++);
     }
 
     static
-    int
-    parse_version(char const*& it)
+    void
+    parse_version(
+        char const*& it, char const* last,
+        int& result, error_code& ec)
     {
-        if(*it != 'H')
-            return -1;
-        if(*++it != 'T')
-            return -1;
-        if(*++it != 'T')
-            return -1;
-        if(*++it != 'P')
-            return -1;
-        if(*++it != '/')
-            return -1;
-        if(! is_digit(*++it))
-            return -1;
-        int v = 10 * (*it - '0');
-        if(*++it != '.')
-            return -1;
-        if(! is_digit(*++it))
-            return -1;
-        v += *it++ - '0';
-        return v;
-    }
-
-    static
-    int
-    parse_status(char const*& it)
-    {
-        int v;
+        if(it + 8 > last)
+        {
+            ec = error::need_more;
+            return;
+        }
+        if(*it++ != 'H')
+        {
+            ec = error::bad_version;
+            return;
+        }
+        if(*it++ != 'T')
+        {
+            ec = error::bad_version;
+            return;
+        }
+        if(*it++ != 'T')
+        {
+            ec = error::bad_version;
+            return;
+        }
+        if(*it++ != 'P')
+        {
+            ec = error::bad_version;
+            return;
+        }
+        if(*it++ != '/')
+        {
+            ec = error::bad_version;
+            return;
+        }
         if(! is_digit(*it))
-            return -1;
-        v = 100 * (*it - '0');
-        if(! is_digit(*++it))
-            return -1;
-        v += 10 * (*it - '0');
-        if(! is_digit(*++it))
-            return -1;
-        v += (*it++ - '0');
-        return v;
+        {
+            ec = error::bad_version;
+            return;
+        }
+        result = 10 * (*it++ - '0');
+        if(*it++ != '.')
+        {
+            ec = error::bad_version;
+            return;
+        }
+        if(! is_digit(*it))
+        {
+            ec = error::bad_version;
+            return;
+        }
+        result += *it++ - '0';
+    }
+
+    static
+    void
+    parse_status(
+        char const*& it, char const* last,
+        unsigned short& result, error_code& ec)
+    {
+        // parse 3(digit) SP
+        if(it + 4 > last)
+        {
+            ec = error::need_more;
+            return;
+        }
+        if(! is_digit(*it))
+        {
+            ec = error::bad_status;
+            return;
+        }
+        result = 100 * (*it++ - '0');
+        if(! is_digit(*it))
+        {
+            ec = error::bad_status;
+            return;
+        }
+        result += 10 * (*it++ - '0');
+        if(! is_digit(*it))
+        {
+            ec = error::bad_status;
+            return;
+        }
+        result += *it++ - '0';
+        if(*it++ != ' ')
+        {
+            ec = error::bad_status;
+            return;
+        }
     }
     
-    static
-    string_view
-    parse_reason(char const*& it)
+    void
+    parse_reason(
+        char const*& it, char const* last,
+        string_view& result, error_code& ec)
     {
         auto const first = it;
-        while(*it != '\r')
+        char const* token_last;
+        auto p = parse_token_to_eol(
+            it, last, token_last, ec);
+        if(ec)
+            return;
+        if(! p)
         {
-            if(! is_text(*it))
-                return {};
-            ++it;
+            ec = error::bad_reason;
+            return;
         }
-        return {first, static_cast<
-            std::size_t>(it - first)};
+        result = make_string(first, token_last);
+        it = p;
     }
 
-    // VFALCO Can SIMD help this?
-    static
-    char const*
-    find_eol(
-        char const* it, char const* last,
-            error_code& ec)
+    template<std::size_t N>
+    void
+    parse_field(
+        char const*& p,
+        char const* last,
+        string_view& name,
+        string_view& value,
+        static_string<N>& buf,
+        error_code& ec)
     {
-#if 0
-        // SLOWER
-        it = reinterpret_cast<char const*>(
-            std::memchr(it, '\r', last - it));
-        if(! it)
-        {
-            ec.assign(0, ec.category());
-            return nullptr;
-        }
-        if(it + 2 > last)
-        {
-            ec.assign(0, ec.category());
-            return nullptr;
-        }
-        if(it[1] != '\n')
-        {
-            ec = error::bad_line_ending;
-            return nullptr;
-        }
-        ec.assign(0, ec.category());
-        return it + 2;
-#else
-        for(;;)
-        {
-            if(it == last)
-            {
-                ec.assign(0, ec.category());
-                return nullptr;
-            }
-            if(*it == '\r')
-            {
-                if(++it == last)
-                {
-                    ec.assign(0, ec.category());
-                    return nullptr;
-                }
-                if(*it != '\n')
-                {
-                    ec = error::bad_line_ending;
-                    return nullptr;
-                }
-                ec.assign(0, ec.category());
-                return ++it;
-            }
-            // VFALCO Should we handle the legacy case
-            // for lines terminated with a single '\n'?
-            ++it;
-        }
-#endif
-    }
+    /*  header-field    = field-name ":" OWS field-value OWS
 
-    // VFALCO Can SIMD help this?
-    static
-    char const*
-    find_eom(char const* p, char const* last)
-    {
+        field-name      = token
+        field-value     = *( field-content / obs-fold )
+        field-content   = field-vchar [ 1*( SP / HTAB ) field-vchar ]
+        field-vchar     = VCHAR / obs-text
+
+        obs-fold        = CRLF 1*( SP / HTAB )
+                        ; obsolete line folding
+                        ; see Section 3.2.4
+
+        token           = 1*<any CHAR except CTLs or separators>
+        CHAR            = <any US-ASCII character (octets 0 - 127)>
+        sep             = "(" | ")" | "<" | ">" | "@"
+                        | "," | ";" | ":" | "\" | <">
+                        | "/" | "[" | "]" | "?" | "="
+                        | "{" | "}" | SP | HT
+    */
+        static char const* is_token =
+            "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
+            "\0\1\0\1\1\1\1\1\0\0\1\1\0\1\1\0\1\1\1\1\1\1\1\1\1\1\0\0\0\0\0\0"
+            "\0\1\1\1\1\1\1\1\1\1\1\1\1\1\1\1\1\1\1\1\1\1\1\1\1\1\1\0\0\0\1\1"
+            "\1\1\1\1\1\1\1\1\1\1\1\1\1\1\1\1\1\1\1\1\1\1\1\1\1\1\1\0\1\0\1\0"
+            "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
+            "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
+            "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
+            "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0";
+
+        // name
+        BOOST_ALIGNMENT(16) static const char ranges1[] =
+            "\x00 "  /* control chars and up to SP */
+            "\"\""   /* 0x22 */
+            "()"     /* 0x28,0x29 */
+            ",,"     /* 0x2c */
+            "//"     /* 0x2f */
+            ":@"     /* 0x3a-0x40 */
+            "[]"     /* 0x5b-0x5d */
+            "{\377"; /* 0x7b-0xff */
+        auto first = p;
+        bool found;
+        std::tie(p, found) = find_fast(
+            p, last, ranges1, sizeof(ranges1)-1);
+        if(! found && p >= last)
+        {
+            ec = error::need_more;
+            return;
+        }
         for(;;)
         {
-            if(p + 4 > last)
-                return nullptr;
-            if(p[3] != '\n')
+            if(*p == ':')
+                break;
+            if(! is_token[static_cast<
+                unsigned char>(*p)])
             {
-                if(p[3] == '\r')
-                    ++p;
-                else
-                    p += 4;
+                ec = error::bad_field;
+                return;
             }
-            else if(p[2] != '\r')
+            ++p;
+            if(p >= last)
             {
-                p += 4;
+                ec = error::need_more;
+                return;
             }
-            else if(p[1] != '\n')
+        }
+        if(p == first)
+        {
+            // empty name
+            ec = error::bad_field;
+            return;
+        }
+        name = make_string(first, p);
+        ++p; // eat ':'
+        char const* token_last;
+        for(;;)
+        {
+            // eat leading ' ' and '\t'
+            for(;;++p)
             {
-                p += 2;
+                if(p + 1 > last)
+                {
+                    ec = error::need_more;
+                    return;
+                }
+                if(! (*p == ' ' || *p == '\t'))
+                    break;
             }
-            else if(p[0] != '\r')
+            // parse to CRLF
+            first = p;
+            p = parse_token_to_eol(p, last, token_last, ec);
+            if(ec)
+                return;
+            if(! p)
             {
-                p += 2;
+                ec = error::bad_value;
+                return;
             }
-            else
+            // Look 1 char past the CRLF to handle obs-fold.
+            if(p + 1 > last)
             {
-                return p + 4;
+                ec = error::need_more;
+                return;
             }
+            token_last =
+                trim_back(token_last, first);
+            if(*p != ' ' && *p != '\t')
+            {
+                value = make_string(first, token_last);
+                return;
+            }
+            ++p;
+            if(token_last != first)
+                break;
+        }
+        buf.resize(0);
+        buf.append(first, token_last);
+        BOOST_ASSERT(! buf.empty());
+        try
+        {
+            for(;;)
+            {
+                // eat leading ' ' and '\t'
+                for(;;++p)
+                {
+                    if(p + 1 > last)
+                    {
+                        ec = error::need_more;
+                        return;
+                    }
+                    if(! (*p == ' ' || *p == '\t'))
+                        break;
+                }
+                // parse to CRLF
+                first = p;
+                p = parse_token_to_eol(p, last, token_last, ec);
+                if(ec)
+                    return;
+                // Look 1 char past the CRLF to handle obs-fold.
+                if(p + 1 > last)
+                {
+                    ec = error::need_more;
+                    return;
+                }
+                token_last = trim_back(token_last, first);
+                if(first != token_last)
+                {
+                    buf.push_back(' ');
+                    buf.append(first, token_last);
+                }
+                if(*p != ' ' && *p != '\t')
+                {
+                    value = {buf.data(), buf.size()};
+                    return;
+                }
+                ++p;
+            }
+        }
+        catch(std::length_error const&)
+        {
+            ec = error::header_limit;
+            return;
         }
     }
 };
