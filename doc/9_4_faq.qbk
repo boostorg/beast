@@ -64,7 +64,7 @@ about Beast and other HTTP libraries that have gone through formal review.
     The Beast HTTP message model was designed with the new protocol
     in mind and should be evaluated in that context. There are plans
     to add HTTP/2 in the future, but there is no rush to do so.
-    Users cannot work with HTTP/1 now; we should not deny them that
+    Users can work with HTTP/1 now; we should not deny them that
     functionality today to wait for a newer protocol tomorrow.
     It is the author's position that there is sufficient value in
     Beast's HTTP/1-only implementation that the lack of HTTP/2
