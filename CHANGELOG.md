@@ -2,6 +2,7 @@ Version 71:
 
 * Fix extra ; warning
 * Documentation revision
+* Fix spurious on_chunk invocation
 
 WebSockets:
 
