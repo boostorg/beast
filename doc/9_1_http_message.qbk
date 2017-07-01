@@ -209,13 +209,13 @@ with arbitrary variadic lists of parameters. This allows the container
 to fully support allocators.
 
 The solution used in the library is to treat the message like a `std::pair`
-for the purposes of construction, except that instead of `first` and `last`
-we have `fields` and `body`. This means that single-argument constructors
-for those fields should be accessible as they are with `std::pair`, and
-that a mechanism identical to the pair's use of `std::piecewise_construct`
-should be provided. Those constructors are too complex to repeat here, but
-interested readers can view the declarations in the corresponding header
-file.
+for the purposes of construction, except that instead of `first` and `second`
+we have the `Fields` base class and `message::body` member. This means that
+single-argument constructors for those fields should be accessible as they
+are with `std::pair`, and that a mechanism identical to the pair's use of
+`std::piecewise_construct` should be provided. Those constructors are too
+complex to repeat here, but interested readers can view the declarations
+in the corresponding header file.
 
 There is now significant progress with our message container but a stumbling
 block remains. There is no way to control the allocator for the `std::string`
