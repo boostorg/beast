@@ -195,7 +195,7 @@ with arbitrary variadic lists of parameters. This allows the container
 to fully support allocators.
 
 The solution used in the library is to treat the message like a `std::pair`
-for the purposes of construction, except that instead of `first` and `last`
+for the purposes of construction, except that instead of `first` and `second`
 we have `fields` and `body`. This means that single-argument constructors
 for those fields should be accessible as they are with `std::pair`, and
 that a mechanism identical to the pair's use of `std::piecewise_construct`
