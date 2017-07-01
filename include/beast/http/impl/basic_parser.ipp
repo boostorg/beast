@@ -632,14 +632,17 @@ parse_chunk_header(char const*& p0,
                 if(ec)
                     return;
             }
-            else if(p != eol - 2)
+            else if(p == eol - 2)
+            {
+                impl().on_chunk(v, {}, ec);
+                if(ec)
+                    return;
+            }
+            else
             {
                 ec = error::bad_chunk;
                 return;
             }
-            impl().on_chunk(v, {}, ec);
-            if(ec)
-                return;
             len_ = v;
             skip_ = 2;
             p0 = eol;
