@@ -3,6 +3,7 @@ Version 71:
 * Fix extra ; warning
 * Documentation revision
 * Fix spurious on_chunk invocation
+* Call prepare_payload in HTTP example
 
 WebSockets:
 
