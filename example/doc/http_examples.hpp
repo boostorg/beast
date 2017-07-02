@@ -340,6 +340,7 @@ void do_server_head(
         res.result(status::bad_request);
         res.set(field::content_type, "text/plain");
         res.body = "Invalid request-method '" + req.method_string().to_string() + "'";
+        res.prepare_payload();
         break;
     }
     }
