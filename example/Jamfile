@@ -10,6 +10,7 @@ build-project http-client ;
 build-project http-crawl ;
 build-project http-server-fast ;
 build-project http-server-small ;
+build-project http-server-threaded ;
 build-project server-framework ;
 build-project websocket-client ;
 
