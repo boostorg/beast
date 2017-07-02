@@ -89,6 +89,17 @@ suitable as a starting point on an embedded device.
 
 
 
+[section HTTP Server (Threaded)]
+
+This example implements a very simple HTTP server using
+synchronous interfaces and using one thread per connection:
+
+* [repo_file example/http-server-threaded/http_server_threaded.cpp]
+
+[endsect]
+
+
+
 [section WebSocket Client (with SSL)]
 
 Establish a WebSocket connection over an encrypted TLS connection,
