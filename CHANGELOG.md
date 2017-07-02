@@ -7,6 +7,7 @@ Version 71:
 * Check trailers in test
 * Fix buffer overflow handling for string_body and mutable_body
 * Concept check in basic_dynamic_body
+* Tidy up http_sync_port error check
 
 WebSockets:
 
