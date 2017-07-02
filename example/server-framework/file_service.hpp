@@ -129,16 +129,20 @@ public:
             // Calculate full path from root
             boost::filesystem::path full_path = root_ / rel_path;
 
-            // Make sure the file is there
-            if(boost::filesystem::exists(full_path))
+            beast::error_code ec;
+            auto res = get(req, full_path, ec);
+
+            if(ec == beast::errc::no_such_file_or_directory)
             {
-                // Send the file
-                send(get(req, full_path));
+                send(not_found(req, rel_path));
+            }
+            else if(ec)
+            {
+                send(server_error(req, rel_path, ec));
             }
             else
             {
-                // Send a Not Found result
-                send(not_found(req, rel_path));
+                send(std::move(*res));
             }
 
             // Indicate that we handled the request
@@ -156,16 +160,20 @@ public:
             // Calculate full path from root
             boost::filesystem::path full_path = root_ / rel_path;
 
-            // Make sure the file is there
-            if(boost::filesystem::exists(full_path))
+            beast::error_code ec;
+            auto res = head(req, full_path, ec);
+
+            if(ec == beast::errc::no_such_file_or_directory)
             {
-                // Send a HEAD response
-                send(head(req, full_path));
+                send(not_found(req, rel_path));
+            }
+            else if(ec)
+            {
+                send(server_error(req, rel_path, ec));
             }
             else
             {
-                // Send a Not Found result
-                send(not_found(req, rel_path));
+                send(std::move(*res));
             }
 
             // Indicate that we handled the request
@@ -202,44 +210,66 @@ private:
         return res;
     }
 
+    // Return an HTTP Server Error
+    //
+    template<class Body, class Fields>
+    beast::http::response<beast::http::string_body>
+    server_error(
+        beast::http::request<Body, Fields> const& req,
+        boost::filesystem::path const& rel_path,
+        error_code const& ec) const
+    {
+        boost::ignore_unused(rel_path);
+        beast::http::response<beast::http::string_body> res;
+        res.version = req.version;
+        res.result(beast::http::status::internal_server_error);
+        res.set(beast::http::field::server, server_);
+        res.set(beast::http::field::content_type, "text/html");
+        res.body = "Error: " + ec.message();
+        res.prepare_payload();
+        return res;
+    }
+
     // Return a file response to an HTTP GET request
     //
     template<class Body, class Fields>
-    beast::http::response<file_body>
+    boost::optional<beast::http::response<file_body>>
     get(
         beast::http::request<Body, Fields> const& req,
-        boost::filesystem::path const& full_path) const
+        boost::filesystem::path const& full_path,
+        beast::error_code& ec) const
     {
         beast::http::response<file_body> res;
         res.version = req.version;
-        res.result(beast::http::status::ok);
         res.set(beast::http::field::server, server_);
         res.set(beast::http::field::content_type, mime_type(full_path));
-        res.body = full_path;
-        res.prepare_payload();
+        res.body.open(full_path, "rb", ec);
+        if(ec)
+            return boost::none;
+        res.set(beast::http::field::content_length, res.body.size());
         return res;
     }
 
     // Return a response to an HTTP HEAD request
     //
     template<class Body, class Fields>
-    beast::http::response<beast::http::empty_body>
+    boost::optional<beast::http::response<beast::http::empty_body>>
     head(
         beast::http::request<Body, Fields> const& req,
-        boost::filesystem::path const& full_path) const
+        boost::filesystem::path const& full_path,
+        beast::error_code& ec) const
     {
         beast::http::response<beast::http::empty_body> res;
         res.version = req.version;
-        res.result(beast::http::status::ok);
         res.set(beast::http::field::server, server_);
         res.set(beast::http::field::content_type, mime_type(full_path));
 
-        // Set the Content-Length field manually. We don't have a body,
-        // but this is a response to a HEAD request so we include the
-        // content length anyway.
-        //
-        res.set(beast::http::field::content_length, file_body::size(full_path));
-
+        // Use a manual file body here
+        file_body::value_type body;
+        body.open(full_path, "rb", ec);
+        if(ec)
+            return boost::none;
+        res.set(beast::http::field::content_length, body.size());
         return res;
     }
 };

@@ -32,33 +32,6 @@
 */
 struct file_body
 {
-    /** The type of the @ref message::body member.
-
-        Messages declared using `file_body` will have this
-        type for the body member. We use a path indicating
-        the location on the file system for which the data
-        will be read or written.  
-    */
-    using value_type = boost::filesystem::path;
-
-    /** Returns the content length of the body in a message.
-
-        This optional static function returns the size of the
-        body in bytes. It is called from @ref message::size to
-        return the payload size, and from @ref message::prepare
-        to automatically set the Content-Length field. If this
-        function is omitted from a body type, calls to
-        @ref message::prepare will set the chunked transfer
-        encoding.
-
-        @param m The message containing a file body to check.
-
-        @return The size of the file in bytes.
-    */
-    static
-    std::uint64_t
-    size(value_type const& v);
-
     /** Algorithm for retrieving buffers when serializing.
 
         Objects of this type are created during serialization
@@ -72,19 +45,121 @@ struct file_body
         to store incoming buffers representing the body.
     */
     class writer;
+
+    /** The type of the @ref message::body member.
+
+        Messages declared using `file_body` will have this
+        type for the body member. This rich class interface
+        allow the file to be opened with the file handle
+        maintained directly in the object, which is attached
+        to the message.
+    */
+    class value_type;
 };
 
 //]
 
 //[example_http_file_body_2
 
-inline
-std::uint64_t
-file_body::
-size(value_type const& v)
+// The body container holds a handle to the file if
+// it is open, and we also cache the size upon opening.
+//
+class file_body::value_type
 {
-    return boost::filesystem::file_size(v);
-}
+    friend class reader;
+    friend class writer;
+
+    FILE* file_ = nullptr;
+    std::uint64_t size_;
+
+public:
+    /** Destructor.
+
+        If the file handle is open, it is closed first.
+    */
+    ~value_type()
+    {
+        if(file_)
+            fclose(file_);
+    }
+
+    /// Default constructor
+    value_type() = default;
+
+    /// Move constructor
+    value_type(value_type&& other)
+        : file_(other.file_)
+        , size_(other.size_)
+    {
+        other.file_ = nullptr;
+    }
+
+    /// Move assignment
+    value_type& operator=(value_type&& other)
+    {
+        file_ = other.file_;
+        size_ = other.size_;
+        other.file_ = nullptr;
+        return *this;
+    }
+
+    /// Returns `true` if the file is open
+    bool
+    is_open() const
+    {
+        return file_ != nullptr;
+    }
+
+    /** Open a file for reading or writing.
+
+        @param path The path to the file
+
+        @param mode The open mode used with fopen()
+
+        @param ec Set to the error, if any occurred
+    */
+    void
+    open(boost::filesystem::path const& path,
+        char const* mode, beast::error_code& ec)
+    {
+        // Attempt to open the file for reading
+        file_ = fopen(path.string().c_str(), mode);
+
+        if(! file_)
+        {
+            // Convert the old-school `errno` into
+            // an error code using the generic category.
+            ec = beast::error_code{errno, beast::generic_category()};
+            return;
+        }
+
+        // The file was opened successfully.
+        // If we are reading, cache the file size.
+        if(std::string{mode} == "rb")
+        {
+            size_ = boost::filesystem::file_size(path, ec);
+        }
+        else
+        {
+            // This is required by the error_code specification
+            ec = {};
+        }
+    }
+
+    /** Returns the size of the file.
+
+        Preconditions:
+
+        * The file must be open for binary reading (mode=="rb")
+
+        @return The size of the file if a file is open, else undefined.
+    */
+    std::uint64_t
+    size() const
+    {
+        return size_;
+    }
+};
 
 //]
 
@@ -92,9 +167,8 @@ size(value_type const& v)
 
 class file_body::reader
 {
-    value_type const& path_;    // Path of the file
-    FILE* file_ = nullptr;      // File handle
-    std::uint64_t remain_ = 0;  // The number of unread bytes
+    FILE* file_;                // The file handle
+    std::uint64_t remain_;      // The number of unread bytes
     char buf_[4096];            // Small buffer for reading
 
 public:
@@ -111,9 +185,6 @@ public:
     template<bool isRequest, class Fields>
     reader(beast::http::message<isRequest, file_body, Fields> const& m,
         beast::error_code& ec);
-
-    // Destructor
-    ~reader();
 
     // This function is called zero or more times to
     // retrieve buffers. A return value of `boost::none`
@@ -137,25 +208,14 @@ template<bool isRequest, class Fields>
 file_body::reader::
 reader(beast::http::message<isRequest, file_body, Fields> const& m,
         beast::error_code& ec)
-    : path_(m.body)
+    : file_(m.body.file_)
+    , remain_(m.body.size())
 {
-    // Attempt to open the file for reading
-    file_ = fopen(path_.string().c_str(), "rb");
-
-    if(! file_)
-    {
-        // Convert the old-school `errno` into
-        // an error code using the generic category.
-        ec = beast::error_code{errno, beast::generic_category()};
-        return;
-    }
+    // The file must already be open
+    BOOST_ASSERT(file_ != nullptr);
 
     // This is required by the error_code specification
     ec = {};
-
-    // The file was opened successfully, get the size
-    // of the file to know how much we need to read.
-    remain_ = boost::filesystem::file_size(path_);
 }
 
 // This function is called repeatedly by the serializer to
@@ -215,27 +275,13 @@ get(beast::error_code& ec) ->
         }};
 }
 
-// The destructor is always invoked if construction succeeds.
-//
-inline
-file_body::reader::
-~reader()
-{
-    // Just close the file if its open
-    if(file_)
-        fclose(file_);
-
-    // In theory fclose() can fail but how would we handle it?
-}
-
 //]
 
 //[example_http_file_body_5
 
 class file_body::writer
 {
-    value_type const& path_;    // A path to the file
-    FILE* file_ = nullptr;      // The file handle
+    FILE* file_; // The file handle
 
 public:
     // Constructor.
@@ -267,12 +313,6 @@ public:
     //
     void
     finish(beast::error_code& ec);
-
-    // Destructor.
-    //
-    // Avoid calling anything that might fail here.
-    //
-    ~writer();
 };
 
 //]
@@ -285,20 +325,15 @@ file_body::writer::
 writer(beast::http::message<isRequest, file_body, Fields>& m,
     boost::optional<std::uint64_t> const& content_length,
         beast::error_code& ec)
-    : path_(m.body)
+    : file_(m.body.file_)
 {
+    // We don't do anything with this but a sophisticated
+    // application might check available space on the device
+    // to see if there is enough room to store the body.
     boost::ignore_unused(content_length);
 
-    // Attempt to open the file for writing
-    file_ = fopen(path_.string().c_str(), "wb");
-
-    if(! file_)
-    {
-        // Convert the old-school `errno` into
-        // an error code using the generic category.
-        ec = beast::error_code{errno, beast::generic_category()};
-        return;
-    }
+    // The file must already be open for writing
+    BOOST_ASSERT(file_ != nullptr);
 
     // This is required by the error_code specification
     ec = {};
@@ -350,19 +385,6 @@ finish(beast::error_code& ec)
     // This has to be cleared before returning, to
     // indicate no error. The specification requires it.
     ec = {};
-}
-
-// The destructor is always invoked if construction succeeds
-//
-inline
-file_body::writer::
-~writer()
-{
-    // Just close the file if its open
-    if(file_)
-        fclose(file_);
-
-    // In theory fclose() can fail but how would we handle it?
 }
 
 //]
