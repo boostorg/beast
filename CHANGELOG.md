@@ -4,6 +4,7 @@ HTTP:
 
 * Tidy up set payload in http-server-fast
 * Refine Body::size specification
+* Newly constructed responses have a 200 OK result
 
 --------------------------------------------------------------------------------
 

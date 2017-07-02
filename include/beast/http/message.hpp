@@ -34,6 +34,10 @@ namespace http {
     the default fields container, those declarations are in
     @ref fields.
 
+    Newly constructed header objects have version set to
+    HTTP/1.1. Newly constructed response objects also have
+    result code set to @ref status::ok.
+
     A `header` includes the start-line and header-fields.
 */
 #if BEAST_DOXYGEN
@@ -343,7 +347,7 @@ private:
     void
     swap(header<false, T>& m1, header<false, T>& m2);
 
-    status result_;
+    status result_ = status::ok;
 #endif
 };
 
@@ -370,6 +374,10 @@ using response_header = header<false, Fields>;
 
     The `Body` template argument type determines the model used
     to read or write the content body of the message.
+
+    Newly constructed messages objects have version set to
+    HTTP/1.1. Newly constructed response objects also have
+    result code set to @ref status::ok.
 
     @tparam isRequest `true` if this represents a request,
     or `false` if this represents a response. Some class data
