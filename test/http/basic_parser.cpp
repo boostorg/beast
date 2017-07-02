@@ -1099,7 +1099,7 @@ public:
         bufgrind<test_parser<false>>(
             "HTTP/1.1 200 OK\r\n"
             "Server: test\r\n"
-            "Expect: Expires, MD5-Fingerprint\r\n"
+            "Trailer: Expires, MD5-Fingerprint\r\n"
             "Transfer-Encoding: chunked\r\n"
             "\r\n"
             "5\r\n"
@@ -1110,9 +1110,11 @@ public:
             "Expires: never\r\n"
             "MD5-Fingerprint: -\r\n"
             "\r\n"
-            ,[&](test_parser<false> const& p)
+            ,[&](test_parser<false>& p)
             {
                 BEAST_EXPECT(p.body == "*****--");
+                BEAST_EXPECT(p.fields["Expires"] == "never");
+                BEAST_EXPECT(p.fields["MD5-Fingerprint"] == "-");
             });
     }
 

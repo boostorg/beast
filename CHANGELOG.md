@@ -4,6 +4,7 @@ Version 71:
 * Documentation revision
 * Fix spurious on_chunk invocation
 * Call prepare_payload in HTTP example
+* Check trailers in test
 
 WebSockets:
 
