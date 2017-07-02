@@ -6,6 +6,7 @@ Version 71:
 * Call prepare_payload in HTTP example
 * Check trailers in test
 * Fix buffer overflow handling for string_body and mutable_body
+* Concept check in basic_dynamic_body
 
 WebSockets:
 
