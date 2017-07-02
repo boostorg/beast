@@ -523,12 +523,12 @@ basic_parser<isRequest, Derived>::
 parse_body(char const*& p,
     std::size_t n, error_code& ec)
 {
-    n = beast::detail::clamp(len_, n);
-    impl().on_data(string_view{p, n}, ec);
-    if(ec)
-        return;
+    n = impl().on_data(string_view{p,
+        beast::detail::clamp(len_, n)}, ec);
     p += n;
     len_ -= n;
+    if(ec)
+        return;
     if(len_ > 0)
         return;
     impl().on_complete(ec);
@@ -550,10 +550,10 @@ parse_body_to_eof(char const*& p,
         return;
     }
     body_limit_ = body_limit_ - n;
-    impl().on_data(string_view{p, n}, ec);
+    n = impl().on_data(string_view{p, n}, ec);
+    p += n;
     if(ec)
         return;
-    p += n;
 }
 
 template<bool isRequest, class Derived>
@@ -701,12 +701,12 @@ basic_parser<isRequest, Derived>::
 parse_chunk_body(char const*& p,
     std::size_t n, error_code& ec)
 {
-    n = beast::detail::clamp(len_, n);
-    impl().on_data(string_view{p, n}, ec);
-    if(ec)
-        return;
+    n = impl().on_data(string_view{p,
+        beast::detail::clamp(len_, n)}, ec);
     p += n;
     len_ -= n;
+    if(ec)
+        return;
     if(len_ > 0)
         return;
     state_ = state::chunk_header;

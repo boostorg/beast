@@ -1,6 +1,6 @@
 # Part of Beast
 
-GroupSources(examples examples)
+GroupSources(example example)
 GroupSources(extras/beast extras)
 GroupSources(include/beast beast)
 

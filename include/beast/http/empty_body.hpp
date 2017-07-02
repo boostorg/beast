@@ -85,11 +85,12 @@ struct empty_body
         }
 
         template<class ConstBufferSequence>
-        void
+        std::size_t
         put(ConstBufferSequence const&,
             error_code& ec)
         {
             ec = error::unexpected_body;
+            return 0;
         }
 
         void

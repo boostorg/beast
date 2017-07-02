@@ -125,9 +125,11 @@ struct BodyWriter
         @param buffers The constant buffer sequence to store.
 
         @param ec Set to the error, if any occurred.
+
+        @return The number of bytes transferred from the input buffers.
     */
     template<class ConstBufferSequence>
-    void
+    std::size_t
     put(ConstBufferSequence const& buffers, error_code& ec)
     {
         // The specification requires this to indicate "no error"

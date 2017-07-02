@@ -199,11 +199,11 @@ public:
             ec.assign(0, ec.category());
         }
 
-        void
-        on_data(string_view,
-            error_code& ec)
+        std::size_t
+        on_data(string_view s, error_code& ec)
         {
             ec.assign(0, ec.category());
+            return s.size();
         }
 
         void

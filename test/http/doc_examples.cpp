@@ -49,13 +49,13 @@ BOOST_STATIC_ASSERT(::detail::is_mutable_container<string_view>::value == false)
 BOOST_STATIC_ASSERT(::detail::is_mutable_container<std::vector<char>>::value == true);
 BOOST_STATIC_ASSERT(::detail::is_mutable_container<std::list<char>>::value == false);
 
-class doc_http_samples_test
+class doc_examples_test
     : public beast::unit_test::suite
     , public beast::test::enable_yield_to
 {
 public:
     // two threads, for some examples using a pipe
-    doc_http_samples_test()
+    doc_examples_test()
         : enable_yield_to(2)
     {
     }
@@ -387,6 +387,27 @@ public:
     //--------------------------------------------------------------------------
 
     void
+    doIncrementalRead()
+    {
+        test::pipe c{ios_};
+        std::string s(2048, '*');
+        ostream(c.server.buffer) <<
+            "HTTP/1.1 200 OK\r\n"
+            "Content-Length: 2048\r\n"
+            "Server: test\r\n"
+            "\r\n" <<
+            s;
+        error_code ec;
+        flat_buffer b;
+        std::stringstream ss;
+        read_and_print_body<false>(ss, c.server, b, ec);
+        if(BEAST_EXPECTS(! ec, ec.message()))
+            BEAST_EXPECT(ss.str() == s);
+    }
+
+    //--------------------------------------------------------------------------
+
+    void
     run()
     {
         doExpect100Continue();
@@ -399,10 +420,11 @@ public:
         doDeferredBody();
         doFileBody();
         doConstAndMutableBody();
+        doIncrementalRead();
     }
 };
 
-BEAST_DEFINE_TESTSUITE(doc_http_samples,http,beast);
+BEAST_DEFINE_TESTSUITE(doc_examples,http,beast);
 
 } // http
 } // beast

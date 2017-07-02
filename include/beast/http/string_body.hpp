@@ -105,7 +105,7 @@ struct string_body
         }
 
         template<class ConstBufferSequence>
-        void
+        std::size_t
         put(ConstBufferSequence const& buffers,
             error_code& ec)
         {
@@ -120,10 +120,10 @@ struct string_body
             catch(std::length_error const&)
             {
                 ec = error::buffer_overflow;
-                return;
+                return 0;
             }
             ec.assign(0, ec.category());
-            buffer_copy(boost::asio::buffer(
+            return buffer_copy(boost::asio::buffer(
                 &body_[0] + len, n), buffers);
         }
 

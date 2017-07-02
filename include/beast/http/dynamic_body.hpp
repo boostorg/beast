@@ -13,6 +13,7 @@
 #include <beast/http/error.hpp>
 #include <beast/http/message.hpp>
 #include <boost/optional.hpp>
+#include <algorithm>
 #include <utility>
 
 namespace beast {
@@ -86,26 +87,35 @@ struct basic_dynamic_body
         }
 
         template<class ConstBufferSequence>
-        void
+        std::size_t
         put(ConstBufferSequence const& buffers,
             error_code& ec)
         {
             using boost::asio::buffer_copy;
             using boost::asio::buffer_size;
+            auto const n = buffer_size(buffers);
+            if(body_.size() > body_.max_size() - n)
+            {
+                ec = error::buffer_overflow;
+                return 0;
+            }
             boost::optional<typename
                 DynamicBuffer::mutable_buffers_type> b;
             try
             {
-                b.emplace(body_.prepare(
-                    buffer_size(buffers)));
+                b.emplace(body_.prepare((std::min)(n,
+                    body_.max_size() - body_.size())));
             }
             catch(std::length_error const&)
             {
                 ec = error::buffer_overflow;
-                return;
+                return 0;
             }
             ec.assign(0, ec.category());
-            body_.commit(buffer_copy(*b, buffers));
+            auto const bytes_transferred =
+                buffer_copy(*b, buffers);
+            body_.commit(bytes_transferred);
+            return bytes_transferred;
         }
 
         void

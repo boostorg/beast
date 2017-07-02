@@ -174,6 +174,10 @@ file(GLOB_RECURSE COMMON_INCLUDES
     ${PROJECT_SOURCE_DIR}/example/common/*.hpp
   )
 
+file(GLOB_RECURSE EXAMPLE_INCLUDES
+    ${PROJECT_SOURCE_DIR}/example/*.hpp
+  )
+
 file(GLOB_RECURSE EXTRAS_INCLUDES
     ${PROJECT_SOURCE_DIR}/extras/beast/*.hpp
     ${PROJECT_SOURCE_DIR}/extras/beast/*.ipp

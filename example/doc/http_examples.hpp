@@ -6,6 +6,7 @@
 //
 
 #include <beast.hpp>
+#include <iostream>
 
 /*  This file contains the functions and classes found in the documentation
 
@@ -917,12 +918,15 @@ class custom_parser
         content_length,         // Content length if known, else `boost::none`
         error_code& ec);        // The error returned to the caller, if any
 
-    /// Called for each piece of the body, if a body exists.
-    //
-    //  If present, the chunked Transfer-Encoding will be removed
-    //  before this callback is invoked.
-    //
-    void
+    /** Called for each piece of the body, if a body exists.
+      
+        If present, the chunked Transfer-Encoding will be removed
+        before this callback is invoked. The function returns
+        the number of bytes consumed from the input buffer.
+        Any input octets not consumed will be will be presented
+        on subsequent calls.
+    */
+    std::size_t
     on_data(
         string_view s,          // A portion of the body
         error_code& ec);        // The error returned to the caller, if any
@@ -990,11 +994,12 @@ on_body(boost::optional<std::uint64_t> const& content_length,
 }
 
 template<bool isRequest>
-void custom_parser<isRequest>::
+std::size_t custom_parser<isRequest>::
 on_data(string_view s, error_code& ec)
 {
     boost::ignore_unused(s);
     ec = {};
+    return s.size();
 }
 
 template<bool isRequest>
@@ -1012,6 +1017,48 @@ on_complete(error_code& ec)
 {
     ec = {};
 }
+
+//------------------------------------------------------------------------------
+//
+// Example: Incremental Read
+//
+//------------------------------------------------------------------------------
+
+//[example_incremental_read
+
+/*  This function reads a message using a fixed size buffer to hold
+    portions of the body, and prints the body contents to a `std::ostream`.
+*/
+template<
+    bool isRequest,
+    class SyncReadStream,
+    class DynamicBuffer>
+void
+read_and_print_body(
+    std::ostream& os,
+    SyncReadStream& stream,
+    DynamicBuffer& buffer,
+    error_code& ec)
+{
+    parser<isRequest, buffer_body> p;
+    read_header(stream, buffer, p, ec);
+    if(ec)
+        return;
+    while(! p.is_done())
+    {
+        char buf[512];
+        p.get().body.data = buf;
+        p.get().body.size = sizeof(buf);
+        read(stream, buffer, p, ec);
+        if(ec == error::need_buffer)
+            ec.assign(0, ec.category());
+        if(ec)
+            return;
+        os.write(buf, sizeof(buf) - p.get().body.size);
+    }
+}
+
+//]
 
 } // http
 } // beast
