@@ -288,10 +288,10 @@ private:
         wr_.emplace(m_, content_length, ec);
     }
 
-    void
+    std::size_t
     on_data(string_view s, error_code& ec)
     {
-        wr_->put(boost::asio::buffer(
+        return wr_->put(boost::asio::buffer(
             s.data(), s.size()), ec);
     }
 

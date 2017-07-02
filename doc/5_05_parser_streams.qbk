@@ -120,4 +120,19 @@ the response:
 
 [http_snippet_13]
 
+
+
+[section Incremental Read]
+
+This function uses
+[link beast.ref.beast__http__buffer_body `buffer_body`]
+and parser stream operations to read a message body progressively
+using a small, fixed-size buffer:
+
+[example_incremental_read]
+
+[endsect]
+
+
+
 [endsect]

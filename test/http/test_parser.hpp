@@ -118,7 +118,7 @@ public:
             ec.assign(0, ec.category());
     }
 
-    void
+    std::size_t
     on_data(string_view s,
         error_code& ec)
     {
@@ -127,6 +127,7 @@ public:
             fc_->fail(ec);
         else
             ec.assign(0, ec.category());
+        return s.size();
     }
 
     void

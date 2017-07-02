@@ -255,7 +255,7 @@ public:
     // buffer sequences corresponding to the incoming body.
     //
     template<class ConstBufferSequence>
-    void
+    std::size_t
     put(ConstBufferSequence const& buffers, beast::error_code& ec);
 
     // This function is called when writing is complete.
@@ -307,16 +307,20 @@ writer(beast::http::message<isRequest, file_body, Fields>& m,
 // This will get called one or more times with body buffers
 //
 template<class ConstBufferSequence>
-void
+std::size_t
 file_body::writer::
 put(ConstBufferSequence const& buffers, beast::error_code& ec)
 {
+    // This function must return the total number of
+    // bytes transferred from the input buffers.
+    std::size_t bytes_transferred = 0;
+
     // Loop over all the buffers in the sequence,
     // and write each one to the file.
     for(boost::asio::const_buffer buffer : buffers)
     {
         // Write this buffer to the file
-        fwrite(
+        bytes_transferred += fwrite(
             boost::asio::buffer_cast<void const*>(buffer), 1,
             boost::asio::buffer_size(buffer),
             file_);
@@ -327,12 +331,14 @@ put(ConstBufferSequence const& buffers, beast::error_code& ec)
             // Convert the old-school `errno` into
             // an error code using the generic category.
             ec = beast::error_code{errno, beast::generic_category()};
-            return;
+            return bytes_transferred;
         }
     }
 
     // Indicate success
     ec = {};
+
+    return bytes_transferred;
 }
 
 // Called after writing is done when there's no error.

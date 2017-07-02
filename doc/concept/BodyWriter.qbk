@@ -57,10 +57,13 @@ In this table:
     ]
 ][
     [`a.put(b,ec)`]
-    []
+    [`std::size_t`]
     [
-        This function is called to append the buffers specified by `b`
-        into the body representation.
+        This function is called to append some or all of the buffers
+        specified by `b` into the body representation. The number of
+        bytes inserted from `b` is returned. If the number of bytes
+        inserted is less than the total input, the remainder of the
+        input will be presented in the next call to `put`.
         The function will ensure that `!ec` is `true` if there was
         no error or set to the appropriate error code if there was one. 
     ]

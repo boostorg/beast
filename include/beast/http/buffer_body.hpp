@@ -161,25 +161,28 @@ struct buffer_body
         }
 
         template<class ConstBufferSequence>
-        void
+        std::size_t
         put(ConstBufferSequence const& buffers,
             error_code& ec)
         {
             using boost::asio::buffer_size;
             using boost::asio::buffer_copy;
-            auto const n = buffer_size(buffers);
-            if(! body_.data || n > body_.size)
+            if(! body_.data)
             {
                 ec = error::need_buffer;
-                return;
+                return 0;
             }
-            ec.assign(0, ec.category());
             auto const bytes_transferred =
                 buffer_copy(boost::asio::buffer(
                     body_.data, body_.size), buffers);
             body_.data = reinterpret_cast<char*>(
                 body_.data) + bytes_transferred;
             body_.size -= bytes_transferred;
+            if(bytes_transferred == buffer_size(buffers))
+                ec.assign(0, ec.category());
+            else
+                ec = error::need_buffer;
+            return bytes_transferred;
         }
 
         void

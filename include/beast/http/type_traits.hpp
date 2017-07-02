@@ -122,9 +122,10 @@ struct is_body_writer : std::false_type {};
 
 template<class T>
 struct is_body_writer<T, beast::detail::void_t<decltype(
-    std::declval<typename T::writer&>().put(
-        std::declval<boost::asio::const_buffers_1>(),
-        std::declval<error_code&>()),
+    std::declval<std::size_t&>() =
+        std::declval<typename T::writer&>().put(
+            std::declval<boost::asio::const_buffers_1>(),
+            std::declval<error_code&>()),
     std::declval<typename T::writer&>().finish(
         std::declval<error_code&>()),
     (void)0)>> : std::integral_constant<bool,

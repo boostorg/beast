@@ -15,6 +15,15 @@ WebSockets:
 * Fix websocket write op
 * Add cmake options for examples and tests
 
+API Changes:
+
+* Return `std::size_t` from `Body::writer::put`
+
+Actions Required:
+
+* Return the number of bytes actually transferred from the
+  input buffers in user defined `Body::writer::put` functions.
+
 --------------------------------------------------------------------------------
 
 Version 70:
