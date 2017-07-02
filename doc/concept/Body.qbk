@@ -48,14 +48,37 @@ In this table:
         the message body for serialization.
     ]
 ][
-    [`X::size(X::value_type const& v)`]
+    [`X::size(X::value_type v)`]
     [`std::uint64_t`]
     [
-        If present, returns the serialized size of `v` not including
-        any chunked transfer encoding. When this function is provided,
+        This static member function is optional. It returns the payload
+        size of `v` not including any chunked transfer encoding. The
+        function shall not exit via an exception.
+
+        When this function is present:
+
+        * The function shall not fail
+
+        * A call to
+        [link beast.ref.beast__http__message.payload_size `message::payload_size`]
+        will return the same value as `size`.
+
+        * A call to
         [link beast.ref.beast__http__message.prepare_payload `message::prepare_payload`]
-        will automatically set the content length field based on the
-        value. Otherwise, the chunked transfer encoding will be set.
+        will remove "chunked" from the Transfer-Encoding field if it appears
+        as the last encoding, and will set the Content-Length field to the
+        returned value.
+
+        Otherwise, when the function is omitted:
+
+        * A call to
+        [link beast.ref.beast__http__message.payload_size `message::payload_size`]
+        will return `boost::none`.
+
+        * A call to
+        [link beast.ref.beast__http__message.prepare_payload `message::prepare_payload`]
+        will erase the Content-Length field, and add "chunked" as the last
+        encoding in the Transfer-Encoding field if it is not already present.
     ]
 ][
     [`is_body<X>`]
