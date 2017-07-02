@@ -10,6 +10,7 @@
 
 #include <beast/config.hpp>
 #include <beast/core/multi_buffer.hpp>
+#include <beast/core/type_traits.hpp>
 #include <beast/http/error.hpp>
 #include <beast/http/message.hpp>
 #include <boost/optional.hpp>
@@ -26,6 +27,9 @@ namespace http {
 template<class DynamicBuffer>
 struct basic_dynamic_body
 {
+    static_assert(is_dynamic_buffer<DynamicBuffer>::value,
+        "DynamicBuffer requirements not met");
+
     /// The type of the body member when used in a message.
     using value_type = DynamicBuffer;
 
