@@ -1,3 +1,11 @@
+Version 72:
+
+HTTP:
+
+* Tidy up set payload in http-server-fast
+
+--------------------------------------------------------------------------------
+
 Version 71:
 
 * Fix extra ; warning

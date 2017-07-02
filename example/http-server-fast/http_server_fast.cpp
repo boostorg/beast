@@ -168,10 +168,10 @@ private:
             response_.result(http::status::bad_request);
             response_.set(http::field::content_type, "text/plain");
             response_.body = "Invalid request-method '" + req.method_string().to_string() + "'";
-            response_.prepare_payload();
             break;
         }
 
+        response_.prepare_payload();
         write_response();
     }
 
@@ -204,13 +204,10 @@ private:
         response_.body.clear();
         for (char buf[2048]; is.read(buf, sizeof(buf)).gcount() > 0;)
             response_.body.append(buf, static_cast<std::size_t>(is.gcount()));
-        response_.prepare_payload();
     }
 
     void write_response()
     {
-        response_.set(http::field::content_length, response_.body.size());
-
         serializer_.emplace(response_);
 
         http::async_write(
