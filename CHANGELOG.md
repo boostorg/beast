@@ -1,6 +1,7 @@
 Version 72:
 
 * Tidy up set payload in http-server-fast
+* Refine Body::size specification
 
 --------------------------------------------------------------------------------
 
