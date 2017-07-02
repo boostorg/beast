@@ -295,7 +295,6 @@ private:
                 {
                     // Give the derived class a chance to do stuff
                     if(ec && ec != beast::errc::not_connected)
-                    if(ec)
                         return fail("shutdown", ec);
                     return;
                 }
