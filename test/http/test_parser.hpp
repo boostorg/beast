@@ -10,6 +10,8 @@
 
 #include <beast/http/basic_parser.hpp>
 #include <beast/test/fail_counter.hpp>
+#include <string>
+#include <unordered_map>
 
 namespace beast {
 namespace http {
@@ -37,6 +39,8 @@ public:
     bool got_content_length = false;
     bool got_on_chunk       = false;
     bool got_on_complete    = false;
+    std::unordered_map<
+        std::string, std::string> fields;
 
     test_parser() = default;
 
@@ -79,14 +83,15 @@ public:
     }
 
     void
-    on_field(field, string_view,
-        string_view, error_code& ec)
+    on_field(field, string_view name,
+        string_view value, error_code& ec)
     {
         got_on_field = true;
         if(fc_)
             fc_->fail(ec);
         else
             ec.assign(0, ec.category());
+        fields[name.to_string()] = value.to_string();
     }
 
     void
