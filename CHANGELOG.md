@@ -4,6 +4,7 @@ Version 72:
 * Refine Body::size specification
 * Newly constructed responses have a 200 OK result
 * Add http-server-threaded example
+* Add websocket-server-async example
 
 --------------------------------------------------------------------------------
 
