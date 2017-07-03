@@ -111,6 +111,17 @@ send a message and receive the reply. Requires OpenSSL to build.
 
 
 
+[section WebSocket Server (Asynchronous)]
+
+This program implements a WebSocket echo server using asynchronous
+interfaces and a configurable number of threads.
+
+* [repo_file example/websocket-server-async/websocket_server_async.cpp]
+
+[endsect]
+
+
+
 [section Documentation Samples]
 
 Here are all of the example functions and classes presented
@@ -144,6 +155,7 @@ stand alone can be directly included in your projects.
 * [repo_file example/common/const_body.hpp]
 * [repo_file example/common/detect_ssl.hpp]
 * [repo_file example/common/file_body.hpp]
+* [repo_file example/common/helpers.hpp]
 * [repo_file example/common/mime_types.hpp]
 * [repo_file example/common/mutable_body.hpp]
 * [repo_file example/common/rfc7231.hpp]

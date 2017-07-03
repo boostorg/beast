@@ -8,6 +8,10 @@ HTTP:
 * Refactor file_body for best practices
 * Add http-server-threaded example
 
+WebSocket:
+
+* Add websocket-server-async example
+
 --------------------------------------------------------------------------------
 
 Version 71:
