@@ -5,6 +5,7 @@ Version 72:
 * Newly constructed responses have a 200 OK result
 * Add http-server-threaded example
 * Add websocket-server-async example
+* Documentation tidying
 
 --------------------------------------------------------------------------------
 
