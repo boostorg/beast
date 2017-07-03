@@ -7,6 +7,7 @@ HTTP:
 * Newly constructed responses have a 200 OK result
 * Refactor file_body for best practices
 * Add http-server-threaded example
+* Documentation tidying
 
 WebSocket:
 
