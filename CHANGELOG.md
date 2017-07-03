@@ -8,6 +8,7 @@ HTTP:
 * Refactor file_body for best practices
 * Add http-server-threaded example
 * Documentation tidying
+* Various improvements to http_server_fast.cpp
 
 WebSocket:
 
