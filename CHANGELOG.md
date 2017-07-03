@@ -9,6 +9,7 @@ HTTP:
 * Newly constructed responses have a 200 OK result
 * Add http-server-threaded example
 * basic_parser optimizations
+* Various improvements to http_server_fast.cpp
 
 WebSocket:
 
