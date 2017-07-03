@@ -69,7 +69,7 @@ private:
 
     // The timer putting a time limit on requests.
     boost::asio::basic_waitable_timer<std::chrono::steady_clock> request_deadline_{
-        acceptor_.get_io_service(), std::chrono::steady_clock::time_point::max()};
+        acceptor_.get_io_service(), (std::chrono::steady_clock::time_point::max)()};
 
     // The response message.
     boost::optional<http::response<http::string_body, http::basic_fields<alloc_t>>> response_;
