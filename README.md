@@ -1,14 +1,12 @@
 <img width="880" height = "80" alt = "Beast"
     src="https://raw.githubusercontent.com/vinniefalco/Beast/master/doc/images/readme.png">
 
-[![Join the chat at https://gitter.im/vinniefalco/Beast](https://badges.gitter.im/vinniefalco/Beast.svg)](https://gitter.im/vinniefalco/Beast?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-[![Build Status](https://travis-ci.org/vinniefalco/Beast.svg?branch=master)](https://travis-ci.org/vinniefalco/Beast)
-[![Build status](https://ci.appveyor.com/api/projects/status/g0llpbvhpjuxjnlw?svg=true)](https://ci.appveyor.com/project/vinniefalco/beast)
-[![codecov](https://codecov.io/gh/vinniefalco/Beast/branch/master/graph/badge.svg)](https://codecov.io/gh/vinniefalco/Beast)
-[![Documentation](https://img.shields.io/badge/documentation-master-brightgreen.svg)](http://vinniefalco.github.io/beast/)
-[![License](https://img.shields.io/badge/license-boost-brightgreen.svg)](LICENSE_1_0.txt)
-
 # HTTP and WebSocket built on Boost.Asio in C++11
+
+Branch      | Build         | Coverage       | Documentation
+------------|---------------|----------------|---------------
+[master](https://github.com/vinniefalco/Beast/tree/master)   | [![Build Status](https://travis-ci.org/vinniefalco/Beast.svg?branch=master)](https://travis-ci.org/vinniefalco/Beast)  [![Build status](https://ci.appveyor.com/api/projects/status/g0llpbvhpjuxjnlw/branch/master?svg=true)](https://ci.appveyor.com/project/vinniefalco/beast/branch/master)   | [![codecov](https://codecov.io/gh/vinniefalco/Beast/branch/master/graph/badge.svg)](https://codecov.io/gh/vinniefalco/Beast/branch/master)   | [![Documentation](https://img.shields.io/badge/documentation-master-brightgreen.svg)](http://vinniefalco.github.io/beast/)
+[develop](https://github.com/vinniefalco/Beast/tree/develop) | [![Build Status](https://travis-ci.org/vinniefalco/Beast.svg?branch=develop)](https://travis-ci.org/vinniefalco/Beast) [![Build status](https://ci.appveyor.com/api/projects/status/g0llpbvhpjuxjnlw/branch/develop?svg=true)](https://ci.appveyor.com/project/vinniefalco/beast/branch/develop) | [![codecov](https://codecov.io/gh/vinniefalco/Beast/branch/develop/graph/badge.svg)](https://codecov.io/gh/vinniefalco/Beast/branch/develop) | [![Documentation](https://img.shields.io/badge/documentation-develop-brightgreen.svg)](http://vinniefalco.github.io/stage/beast/develop)
 
 ## Contents
 
