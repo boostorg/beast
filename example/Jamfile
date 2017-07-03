@@ -10,8 +10,10 @@ build-project http-client ;
 build-project http-crawl ;
 build-project http-server-fast ;
 build-project http-server-small ;
+build-project http-server-threaded ;
 build-project server-framework ;
 build-project websocket-client ;
+build-project websocket-server-async ;
 
 # VFALCO How do I make this work on Windows and if OpenSSL is not available?
 #build-project ssl-http-client ;

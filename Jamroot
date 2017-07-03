@@ -55,7 +55,7 @@ if [ os.name ] = MACOSX
 variant coverage :
     release
     :
-    <cxxflags>"-fprofile-arcs -ftest-coverage"
+    <cxxflags>"-msse4.2 -fprofile-arcs -ftest-coverage"
     <linkflags>"-lgcov"
     ;
 
@@ -63,7 +63,7 @@ variant ubasan
   :
     release
   :
-    <cxxflags>"-funsigned-char -fno-omit-frame-pointer -fsanitize=address,undefined -fsanitize-blacklist=scripts/blacklist.supp"
+    <cxxflags>"-msse4.2 -funsigned-char -fno-omit-frame-pointer -fsanitize=address,undefined -fsanitize-blacklist=scripts/blacklist.supp"
     <linkflags>"-fsanitize=address,undefined"
   ;
 

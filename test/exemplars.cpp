@@ -134,6 +134,8 @@ struct BodyWriter
     {
         // The specification requires this to indicate "no error"
         ec = {};
+
+        return boost::asio::buffer_size(buffers);
     }
 
     /** Called when the body is complete.

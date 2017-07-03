@@ -2,7 +2,7 @@
 
 cmake_minimum_required (VERSION 3.5.2)
 
-project (Beast VERSION 71)
+project (Beast VERSION 72)
 
 set_property (GLOBAL PROPERTY USE_FOLDERS ON)
 option (Beast_BUILD_EXAMPLES "Build examples" ON)
@@ -116,7 +116,7 @@ endfunction()
 if ("${VARIANT}" STREQUAL "coverage")
     if (MSVC)
     else()
-        set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-arcs -ftest-coverage")
+        set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse4.2 -fprofile-arcs -ftest-coverage")
         set (CMAKE_BUILD_TYPE RELWITHDEBINFO)
         set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lgcov")
     endif()
@@ -125,7 +125,7 @@ elseif ("${VARIANT}" STREQUAL "ubasan")
     if (MSVC)
     else()
         set (CMAKE_CXX_FLAGS
-          "${CMAKE_CXX_FLAGS} -DBEAST_NO_SLOW_TESTS=1 -funsigned-char -fno-omit-frame-pointer -fsanitize=address,undefined -fsanitize-blacklist=${PROJECT_SOURCE_DIR}/scripts/blacklist.supp")
+          "${CMAKE_CXX_FLAGS} -DBEAST_NO_SLOW_TESTS=1 -msse4.2 -funsigned-char -fno-omit-frame-pointer -fsanitize=address,undefined -fsanitize-blacklist=${PROJECT_SOURCE_DIR}/scripts/blacklist.supp")
         set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=address,undefined")
         set (CMAKE_BUILD_TYPE RELWITHDEBINFO)
     endif()

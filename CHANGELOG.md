@@ -1,3 +1,21 @@
+Version 72:
+
+* Documentation tidying
+
+HTTP:
+
+* Refine Body::size specification
+* Tidy up set payload in http-server-fast
+* Newly constructed responses have a 200 OK result
+* Add http-server-threaded example
+* basic_parser optimizations
+
+WebSocket:
+
+* Add websocket-server-async example
+
+--------------------------------------------------------------------------------
+
 Version 71:
 
 * Fix extra ; warning
