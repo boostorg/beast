@@ -210,11 +210,7 @@ send_cgi_response(
     res.body.data = nullptr;
     res.body.more = true;
 
-    // Create the serializer. We set the split option to
-    // produce the header immediately without also trying
-    // to acquire buffers from the body (which would return
-    // the error http::need_buffer because we set `data`
-    // to `nullptr` above).
+    // Create the serializer.
     response_serializer<buffer_body, fields> sr{res};
 
     // Send the header immediately.
