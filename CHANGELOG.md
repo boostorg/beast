@@ -8,6 +8,7 @@ Version 71:
 * Fix buffer overflow handling for string_body and mutable_body
 * Concept check in basic_dynamic_body
 * Tidy up http_sync_port error check
+* Tidy up Jamroot /permissive-
 
 WebSockets:
 
