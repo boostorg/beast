@@ -10,6 +10,7 @@ HTTP:
 * Add http-server-threaded example
 * basic_parser optimizations
 * Various improvements to http_server_fast.cpp
+* Add basic_parser tests
 
 WebSocket:
 

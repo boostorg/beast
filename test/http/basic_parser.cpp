@@ -784,6 +784,40 @@ public:
     }
 
     void
+    testPartial()
+    {
+        // Make sure the slow-loris defense works and that
+        // we don't get duplicate or missing fields on a split.
+        parsegrind<test_parser<true>>(
+            "GET / HTTP/1.1\r\n"
+            "a: 0\r\n"
+            "b: 1\r\n"
+            "c: 2\r\n"
+            "d: 3\r\n"
+            "e: 4\r\n"
+            "f: 5\r\n"
+            "g: 6\r\n"
+            "h: 7\r\n"
+            "i: 8\r\n"
+            "j: 9\r\n"
+            "\r\n",
+            [&](test_parser<true> const& p)
+            {
+                BEAST_EXPECT(p.fields.size() == 10);
+                BEAST_EXPECT(p.fields.at("a") == "0");
+                BEAST_EXPECT(p.fields.at("b") == "1");
+                BEAST_EXPECT(p.fields.at("c") == "2");
+                BEAST_EXPECT(p.fields.at("d") == "3");
+                BEAST_EXPECT(p.fields.at("e") == "4");
+                BEAST_EXPECT(p.fields.at("f") == "5");
+                BEAST_EXPECT(p.fields.at("g") == "6");
+                BEAST_EXPECT(p.fields.at("h") == "7");
+                BEAST_EXPECT(p.fields.at("i") == "8");
+                BEAST_EXPECT(p.fields.at("j") == "9");
+            });
+    }
+
+    void
     testLimits()
     {
         {
@@ -943,7 +977,6 @@ public:
         // response without Content-Length or
         // Transfer-Encoding: chunked requires eof.
         {
-#if 0
             error_code ec;
             test_parser<false> p;
             feed(buf(
@@ -952,17 +985,7 @@ public:
                 ), p, ec);
             BEAST_EXPECTS(! ec, ec.message());
             BEAST_EXPECT(! p.is_done());
-            BEAST_EXPECT(p.state() == parse_state::body_to_eof);
-            feed(buf(
-                "hello"
-                ), p, ec);
-            BEAST_EXPECTS(! ec, ec.message());
-            BEAST_EXPECT(! p.is_done());
-            BEAST_EXPECT(p.state() == parse_state::body_to_eof);
-            p.put_eof(ec);
-            BEAST_EXPECTS(! ec, ec.message());
-            BEAST_EXPECT(p.is_done());
-#endif
+            BEAST_EXPECT(p.need_eof());
         }
 
         // 304 "Not Modified" response does not require eof
@@ -1093,6 +1116,7 @@ public:
         testContentLengthField();
         testTransferEncodingField();
         testUpgradeField();
+        testPartial();
         testLimits();
         testBody();
         testIssue430();
