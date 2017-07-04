@@ -71,11 +71,17 @@ private:
     boost::asio::basic_waitable_timer<std::chrono::steady_clock> request_deadline_{
         acceptor_.get_io_service(), (std::chrono::steady_clock::time_point::max)()};
 
-    // The response message.
-    boost::optional<http::response<http::string_body, http::basic_fields<alloc_t>>> response_;
+    // The string-based response message.
+    boost::optional<http::response<http::string_body, http::basic_fields<alloc_t>>> string_response_;
 
-    // The response serializer.
-    boost::optional<http::response_serializer<http::string_body, http::basic_fields<alloc_t>>> serializer_;
+    // The string-based response serializer.
+    boost::optional<http::response_serializer<http::string_body, http::basic_fields<alloc_t>>> string_serializer_;
+
+    // The file-based response message.
+    boost::optional<http::response<http::file_body, http::basic_fields<alloc_t>>> file_response_;
+
+    // The file-based response serializer.
+    boost::optional<http::response_serializer<http::file_body, http::basic_fields<alloc_t>>> file_serializer_;
 
     void accept()
     {
@@ -136,77 +142,104 @@ private:
 
     void process_request(http::request<request_body_t, http::basic_fields<alloc_t>> const& req)
     {
-        response_.emplace(
-            std::piecewise_construct,
-            std::make_tuple(),
-            std::make_tuple(alloc_));
-
-        response_->set(http::field::connection, "close");
-
         switch (req.method())
         {
         case http::verb::get:
-            response_->result(http::status::ok);
-            response_->set(http::field::server, "Beast");
-            load_file(req.target());
+            send_file(req.target());
             break;
 
         default:
             // We return responses indicating an error if
             // we do not recognize the request method.
-            response_->result(http::status::bad_request);
-            response_->set(http::field::content_type, "text/plain");
-            response_->body = "Invalid request-method '" + req.method_string().to_string() + "'";
+            send_bad_response(
+                http::status::bad_request,
+                "Invalid request-method '" + req.method_string().to_string() + "'\r\n");
             break;
         }
-
-        write_response();
     }
 
-    void load_file(beast::string_view target)
+    void send_bad_response(
+        http::status status,
+        std::string const& error)
+    {
+        string_response_.emplace(
+            std::piecewise_construct,
+            std::make_tuple(),
+            std::make_tuple(alloc_));
+
+        string_response_->result(status);
+        string_response_->set(http::field::server, "Beast");
+        string_response_->set(http::field::connection, "close");
+        string_response_->set(http::field::content_type, "text/plain");
+        string_response_->body = error;
+        string_response_->prepare_payload();
+
+        string_serializer_.emplace(*string_response_);
+
+        http::async_write(
+            socket_,
+            *string_serializer_,
+            [this](beast::error_code ec)
+            {
+                socket_.shutdown(tcp::socket::shutdown_send, ec);
+                string_serializer_.reset();
+                string_response_.reset();
+                accept();
+            });
+    }
+
+    void send_file(beast::string_view target)
     {
         // Request path must be absolute and not contain "..".
         if (target.empty() || target[0] != '/' || target.find("..") != std::string::npos)
         {
-            response_->result(http::status::not_found);
-            response_->set(http::field::content_type, "text/plain");
-            response_->body = "File not found\r\n";
+            send_bad_response(
+                http::status::not_found,
+                "File not found\r\n");
             return;
         }
 
         std::string full_path = doc_root_;
-        full_path.append(target.data(), target.size());
+        full_path.append(
+            target.data(),
+            target.size());
 
-        // Open the file to send back.
-        std::ifstream is(full_path.c_str(), std::ios::in | std::ios::binary);
-        if (!is)
+        http::file_body::value_type file;
+        beast::error_code ec;
+        file.open(
+            full_path,
+            beast::file_mode::read,
+            ec);
+        if(ec)
         {
-            response_->result(http::status::not_found);
-            response_->set(http::field::content_type, "text/plain");
-            response_->body = "File not found\r\n";
+            send_bad_response(
+                http::status::not_found,
+                "File not found\r\n");
             return;
         }
 
-        // Fill out the reply to be sent to the client.
-        response_->set(http::field::content_type, mime_type(target.to_string()));
-        response_->body.clear();
-        for (char buf[2048]; is.read(buf, sizeof(buf)).gcount() > 0;)
-            response_->body.append(buf, static_cast<std::size_t>(is.gcount()));
-    }
+        file_response_.emplace(
+            std::piecewise_construct,
+            std::make_tuple(),
+            std::make_tuple(alloc_));
 
-    void write_response()
-    {
-        response_->prepare_payload();
-        serializer_.emplace(*response_);
+        file_response_->result(http::status::ok);
+        file_response_->set(http::field::server, "Beast");
+        file_response_->set(http::field::connection, "close");
+        file_response_->set(http::field::content_type, mime_type(target.to_string()));
+        file_response_->body = std::move(file);
+        file_response_->prepare_payload();
+
+        file_serializer_.emplace(*file_response_);
 
         http::async_write(
             socket_,
-            *serializer_,
+            *file_serializer_,
             [this](beast::error_code ec)
             {
                 socket_.shutdown(tcp::socket::shutdown_send, ec);
-                serializer_.reset();
-                response_.reset();
+                file_serializer_.reset();
+                file_response_.reset();
                 accept();
             });
     }
