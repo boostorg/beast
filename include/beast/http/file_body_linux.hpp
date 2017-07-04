@@ -8,10 +8,12 @@
 #ifndef BEAST_HTTP_FILE_BODY_LINUX_HPP
 #define BEAST_HTTP_FILE_BODY_LINUX_HPP
 
-#ifdef __linux__
-# define BEAST_NO_LINUX_FILE 0
-#else
-# define BEAST_NO_LINUX_FILE 1
+#ifndef BEAST_NO_LINUX_FILE
+# ifdef __linux__
+#  define BEAST_NO_LINUX_FILE 0
+# else
+#  define BEAST_NO_LINUX_FILE 1
+# endif
 #endif
 
 #if ! BEAST_NO_LINUX_FILE
