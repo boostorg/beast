@@ -3,6 +3,7 @@ Version 73:
 HTTP:
 
 * basic_parser optimizations
+* Add basic_parser tests
 
 --------------------------------------------------------------------------------
 
