@@ -74,7 +74,7 @@ class file_body_stdc::value_type
     friend class writer;
 
     FILE* file_ = nullptr;
-    std::uint64_t size_;
+    std::uint64_t size_{0};
 
 public:
     /** Destructor.
