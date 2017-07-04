@@ -1,3 +1,5 @@
+* Add serializer::is_body_started
+
 API Changes:
 
 * serializer::next replaces serializer::get

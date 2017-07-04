@@ -226,6 +226,7 @@ class serializer
     int s_ = do_construct;
     bool split_ = false;
     bool header_done_ = false;
+    bool body_started_ = false;
     bool chunked_;
     bool close_;
     bool more_;
@@ -278,6 +279,13 @@ public:
     is_header_done() const
     {
         return header_done_;
+    }
+
+    /// Returns `true` if any body octets have been serialized.
+    bool
+    is_body_started() const
+    {
+        return body_started_;
     }
 
     /** Return `true` if serialization is complete.

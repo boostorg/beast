@@ -124,6 +124,7 @@ next(error_code& ec, Visit&& visit)
     }
 
     case do_body + 2:
+        body_started_ = true;
         visit(ec, boost::get<cb1_t>(v_));
         break;
 
@@ -276,6 +277,7 @@ next(error_code& ec, Visit&& visit)
     }
 
     case do_body_c + 2:
+        body_started_ = true;
         visit(ec, boost::get<ch1_t>(v_));
         break;
 
@@ -289,6 +291,7 @@ next(error_code& ec, Visit&& visit)
     go_all_c:
         s_ = do_all_c;
     case do_all_c:
+        body_started_ = true;
         visit(ec, boost::get<ch3_t>(v_));
         break;
 #endif
