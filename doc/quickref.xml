@@ -38,6 +38,7 @@
             <member><link linkend="beast.ref.beast__http__fields">fields</link></member>
             <member><link linkend="beast.ref.beast__http__file_body">file_body</link></member>
             <member><link linkend="beast.ref.beast__http__file_body_stdc">file_body_stdc</link></member>
+            <member><link linkend="beast.ref.beast__http__file_body_win32">file_body_win32</link></member>
             <member><link linkend="beast.ref.beast__http__header">header</link></member>
             <member><link linkend="beast.ref.beast__http__message">message</link></member>
             <member><link linkend="beast.ref.beast__http__parser">parser</link></member>

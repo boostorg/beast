@@ -1,5 +1,6 @@
 * Add serializer::is_body_started
 * Add file_body
+* Add file_body_win32
 
 API Changes:
 

@@ -233,6 +233,9 @@ class serializer
     ChunkDecorator d_;
 
 public:
+    /// The type of message this serializer references
+    using value_type = message<isRequest, Body, Fields>;
+
     /** Constructor
 
         The implementation guarantees that the message passed on
@@ -314,6 +317,13 @@ public:
         return close_;
     }
 
+    /// Returns the message associated with the serializer.
+    value_type const&
+    get() const
+    {
+        return m_;
+    }
+
     /** Returns the next set of buffers in the serialization.
 
         This function will attempt to call the `visit` function
@@ -338,6 +348,7 @@ public:
         invoked before the call to @ref next returns.
 
     */
+    /// VFALCO This has to be renamed!!
     template<class Visit>
     void
     next(error_code& ec, Visit&& visit);

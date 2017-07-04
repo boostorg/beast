@@ -24,6 +24,7 @@ add_executable (http-tests
     fields.cpp
     file_body.cpp
     file_body_stdc.cpp
+    file_body_win32.cpp
     message.cpp
     parser.cpp
     read.cpp
