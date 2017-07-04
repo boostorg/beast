@@ -158,8 +158,8 @@ struct header<true, Fields> : Fields
     void
     target(string_view s);
 
-    // VFALCO Don't move these declarations around,
-    //        otherwise the documentation will be wrong.
+    // VFALCO Don't rearrange these declarations or
+    //        ifdefs, or else the documentation will break.
 
     /** Constructor
 
@@ -168,7 +168,8 @@ struct header<true, Fields> : Fields
 
         @note This constructor participates in overload
         resolution if and only if the first parameter is
-        not convertible to @ref header.
+        not convertible to @ref header, @ref verb, or
+        @ref status.
     */
 #if BEAST_DOXYGEN
     template<class... Args>
@@ -178,9 +179,13 @@ struct header<true, Fields> : Fields
 #else
     template<class Arg1, class... ArgN,
         class = typename std::enable_if<
-            (sizeof...(ArgN) > 0) || ! std::is_convertible<
-                typename std::decay<Arg1>::type,
-                    header>::value>::type>
+            ! std::is_convertible<typename
+                std::decay<Arg1>::type, header>::value &&
+            ! std::is_convertible<typename
+                std::decay<Arg1>::type, verb>::value &&
+            ! std::is_convertible<typename
+                std::decay<Arg1>::type, header>::value
+        >::type>
     explicit
     header(Arg1&& arg1, ArgN&&... argn);
 
@@ -192,6 +197,19 @@ private:
     friend
     void
     swap(header<true, T>& m1, header<true, T>& m2);
+
+    template<class... FieldsArgs>
+    header(
+        verb method,
+        string_view target_,
+        unsigned version_,
+        FieldsArgs&&... fields_args)
+        : Fields(std::forward<FieldsArgs>(fields_args)...)
+        , version(version_)
+        , method_(method)
+    {
+        target(target_);
+    }
 
     verb method_ = verb::unknown;
 };
@@ -207,11 +225,7 @@ struct header<false, Fields> : Fields
         "Fields requirements not met");
 
     /// Indicates if the header is a request or response.
-#if BEAST_DOXYGEN
-    using is_request = std::integral_constant<bool, isRequest>;
-#else
     using is_request = std::false_type;
-#endif
 
     /// The type representing the fields.
     using fields_type = Fields;
@@ -225,7 +239,8 @@ struct header<false, Fields> : Fields
             unsigned minor = version % 10;
         @endcode
 
-        Newly constructed headers will use HTTP/1.1 by default.
+        Newly constructed headers will use HTTP/1.1 by default
+        unless otherwise specified.
     */
     unsigned version = 11;
 
@@ -251,13 +266,16 @@ struct header<false, Fields> : Fields
 
         @note This constructor participates in overload
         resolution if and only if the first parameter is
-        not convertible to @ref header.
+        not convertible to @ref header, @ref verb, or
+        @ref status.
     */
     template<class Arg1, class... ArgN,
         class = typename std::enable_if<
-            (sizeof...(ArgN) > 0) || ! std::is_convertible<
-                typename std::decay<Arg1>::type,
-                    header>::value>::type>
+            ! std::is_convertible<typename
+                std::decay<Arg1>::type, status>::value &&
+            ! std::is_convertible<typename
+                std::decay<Arg1>::type, header>::value
+        >::type>
     explicit
     header(Arg1&& arg1, ArgN&&... argn);
 #endif
@@ -347,6 +365,17 @@ private:
     void
     swap(header<false, T>& m1, header<false, T>& m2);
 
+    template<class... FieldsArgs>
+    header(
+        status result,
+        unsigned version_,
+        FieldsArgs&&... fields_args)
+        : Fields(std::forward<FieldsArgs>(fields_args)...)
+        , version(version_)
+        , result_(result)
+    {
+    }
+
     status result_ = status::ok;
 #endif
 };
@@ -403,82 +432,184 @@ struct message : header<isRequest, Fields>
     /// A value representing the body.
     typename Body::value_type body;
 
-    /// Default constructor
+    /// Constructor
     message() = default;
 
-    /// Move constructor
+    /// Constructor
     message(message&&) = default;
 
-    /// Copy constructor
+    /// Constructor
     message(message const&) = default;
 
-    /// Move assignment
+    /// Assignment
     message& operator=(message&&) = default;
 
-    /// Copy assignment
+    /// Assignment
     message& operator=(message const&) = default;
 
-    /** Constructor.
+    /** Constructor
 
         @param h The header to move construct from.
 
-        @param args Optional arguments forwarded
-        to the body constructor.
+        @param body_args Optional arguments forwarded
+        to the `body` constructor.
     */
-    template<class... Args>
+    template<class... BodyArgs>
     explicit
-    message(header_type&& h, Args&&... args);
+    message(header_type&& h, BodyArgs&&... body_args);
 
     /** Constructor.
 
         @param h The header to copy construct from.
 
-        @param args Optional arguments forwarded
-        to the body constructor.
+        @param body_args Optional arguments forwarded
+        to the `body` constructor.
     */
-    template<class... Args>
+    template<class... BodyArgs>
     explicit
-    message(header_type const& h, Args&&... args);
+    message(header_type const& h, BodyArgs&&... body_args);
 
-    /** Construct a message.
+    /** Constructor
 
-        @param body_arg An argument forwarded to the body constructor.
+        @param method The request-method to use
 
-        @note This constructor participates in overload resolution
-        only if `body_arg` is not convertible to `header_type`.
+        @param target The request-target.
+
+        @param version The HTTP-version
+
+        @note This function is only available when `isRequest == true`.
     */
-    template<class BodyArg
-#if ! BEAST_DOXYGEN
-        , class = typename std::enable_if<
-            ! std::is_convertible<typename
-                std::decay<BodyArg>::type, header_type>::value>::type
+#if BEAST_DOXYGEN
+    message(verb method, string_view target, unsigned version);
+#else
+    template<class Version,
+        class = typename std::enable_if<isRequest &&
+            std::is_convertible<Version, unsigned>::value>::type>
+    message(verb method, string_view target, Version version);
 #endif
-    >
+
+    /** Constructor
+
+        @param method The request-method to use
+
+        @param target The request-target.
+
+        @param version The HTTP-version
+
+        @param body_arg An argument forwarded to the `body` constructor.
+
+        @note This function is only available when `isRequest == true`.
+    */
+#if BEAST_DOXYGEN
+    template<class BodyArg>
+    message(verb method, string_view target,
+        unsigned version, BodyArg&& body_arg);
+#else
+    template<class Version, class BodyArg,
+        class = typename std::enable_if<isRequest &&
+            std::is_convertible<Version, unsigned>::value>::type>
+    message(verb method, string_view target,
+        Version version, BodyArg&& body_arg);
+#endif
+
+    /** Constructor
+
+        @param method The request-method to use
+
+        @param target The request-target.
+
+        @param version The HTTP-version
+
+        @param body_arg An argument forwarded to the `body` constructor.
+
+        @param fields_arg An argument forwarded to the `Fields` constructor.
+
+        @note This function is only available when `isRequest == true`.
+    */
+#if BEAST_DOXYGEN
+    template<class BodyArg, class FieldsArg>
+    message(verb method, string_view target, unsigned version,
+        BodyArg&& body_arg, FieldsArg&& fields_arg);
+#else
+    template<class Version, class BodyArg, class FieldsArg,
+        class = typename std::enable_if<isRequest &&
+            std::is_convertible<Version, unsigned>::value>::type>
+    message(verb method, string_view target, Version version,
+        BodyArg&& body_arg, FieldsArg&& fields_arg);
+#endif
+
+    /** Constructor
+
+        @param result The status-code for the response
+
+        @param version The HTTP-version
+
+        @note This member is only available when `isRequest == false`.
+    */
+#if BEAST_DOXYGEN
+    message(status result, unsigned version);
+#else
+    template<class Version,
+        class = typename std::enable_if<! isRequest &&
+           std::is_convertible<Version, unsigned>::value>::type>
+    message(status result, Version version);
+#endif
+
+    /** Constructor
+
+        @param result The status-code for the response
+
+        @param version The HTTP-version
+
+        @param body_arg An argument forwarded to the `body` constructor.
+
+        @note This member is only available when `isRequest == false`.
+    */
+#if BEAST_DOXYGEN
+    template<class BodyArg>
+    message(status result, unsigned version, BodyArg&& body_arg);
+#else
+    template<class Version, class BodyArg,
+        class = typename std::enable_if<! isRequest &&
+           std::is_convertible<Version, unsigned>::value>::type>
+    message(status result, Version version, BodyArg&& body_arg);
+#endif
+
+    /** Constructor
+
+        @param result The status-code for the response
+
+        @param version The HTTP-version
+
+        @param body_arg An argument forwarded to the `body` constructor.
+
+        @param fields_arg An argument forwarded to the `Fields` base class constructor.
+
+        @note This member is only available when `isRequest == false`.
+    */
+#if BEAST_DOXYGEN
+    template<class BodyArg, class FieldsArg>
+    message(status result, unsigned version,
+        BodyArg&& body_arg, FieldsArg&& fields_arg);
+#else
+    template<class Version, class BodyArg, class FieldsArg,
+        class = typename std::enable_if<! isRequest &&
+           std::is_convertible<Version, unsigned>::value>::type>
+    message(status result, Version version,
+        BodyArg&& body_arg, FieldsArg&& fields_arg);
+#endif
+
+    /** Constructor
+
+        The header and body are default-constructed.
+    */
     explicit
-    message(BodyArg&& body_arg);
+    message(std::piecewise_construct_t);
 
     /** Construct a message.
 
-        @param body_arg An argument forwarded to the body constructor.
-
-        @param header_arg An argument forwarded to the header constructor.
-
-        @note This constructor participates in overload resolution
-        only if `body_arg` is not convertible to `header_type`.
-    */
-    template<class BodyArg, class HeaderArg
-#if ! BEAST_DOXYGEN
-        ,class = typename std::enable_if<
-            ! std::is_convertible<
-                typename std::decay<BodyArg>::type,
-                    header_type>::value>::type
-#endif
-    >
-    message(BodyArg&& body_arg, HeaderArg&& header_arg);
-
-    /** Construct a message.
-
-        @param body_args A tuple forwarded as a parameter pack to the body constructor.
+        @param body_args A tuple forwarded as a parameter
+        pack to the body constructor.
     */
     template<class... BodyArgs>
     message(std::piecewise_construct_t,
@@ -486,14 +617,16 @@ struct message : header<isRequest, Fields>
 
     /** Construct a message.
 
-        @param body_args A tuple forwarded as a parameter pack to the body constructor.
+        @param body_args A tuple forwarded as a parameter
+        pack to the body constructor.
 
-        @param header_args A tuple forwarded as a parameter pack to the fields constructor.
+        @param fields_args A tuple forwarded as a parameter
+        pack to the `Fields` constructor.
     */
-    template<class... BodyArgs, class... HeaderArgs>
+    template<class... BodyArgs, class... FieldsArgs>
     message(std::piecewise_construct_t,
-        std::tuple<BodyArgs...>&& body_args,
-            std::tuple<HeaderArgs...>&& header_args);
+        std::tuple<BodyArgs...> body_args,
+        std::tuple<FieldsArgs...> fields_args);
 
     /// Returns the header portion of the message
     header_type const&
@@ -524,7 +657,6 @@ struct message : header<isRequest, Fields>
     boost::optional<std::uint64_t>
     payload_size() const;
 
-
     /** Prepare the message payload fields for the body.
 
         This function will adjust the Content-Length and
@@ -533,10 +665,7 @@ struct message : header<isRequest, Fields>
 
         @par Example
         @code
-        request<string_body> req;
-        req.version = 11;
-        req.method(verb::upgrade);
-        req.target("/");
+        request<string_body> req{verb::post, "/"};
         req.set(field::user_agent, "Beast");
         req.body = "Hello, world!";
         req.prepare_payload();

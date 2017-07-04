@@ -111,6 +111,19 @@ header(Arg1&& arg1, ArgN&&... argn)
         std::forward<ArgN>(argn)...)
 {
 }
+
+#if 0
+template<class Fields>
+template<class... Args>
+header<false, Fields>::
+header(status result, unsigned version_, Args&&... args)
+    : Fields(std::forward<Args>(args)...)
+    , version(version_)
+    , result_(result)
+{
+}
+#endif
+
 template<class Fields>
 inline
 status
@@ -189,23 +202,118 @@ swap(
 //------------------------------------------------------------------------------
 
 template<bool isRequest, class Body, class Fields>
-template<class... Args>
+template<class... BodyArgs>
 message<isRequest, Body, Fields>::
-message(header_type&& h, Args&&... args)
+message(header_type&& h, BodyArgs&&... body_args)
     : header_type(std::move(h))
-    , body(std::forward<Args>(args)...)
+    , body(std::forward<BodyArgs>(body_args)...)
 {
 }
 
 template<bool isRequest, class Body, class Fields>
-template<class... Args>
+template<class... BodyArgs>
 message<isRequest, Body, Fields>::
-message(header_type const& h, Args&&... args)
+message(header_type const& h, BodyArgs&&... body_args)
     : header_type(h)
-    , body(std::forward<Args>(args)...)
+    , body(std::forward<BodyArgs>(body_args)...)
 {
 }
 
+template<bool isRequest, class Body, class Fields>
+template<class Version, class>
+message<isRequest, Body, Fields>::
+message(verb method, string_view target, Version version)
+    : header_type(method, target, version)
+{
+}
+
+template<bool isRequest, class Body, class Fields>
+template<class Version, class BodyArg, class>
+message<isRequest, Body, Fields>::
+message(verb method, string_view target,
+        Version version, BodyArg&& body_arg)
+    : header_type(method, target, version)
+    , body(std::forward<BodyArg>(body_arg))
+{
+}
+
+template<bool isRequest, class Body, class Fields>
+template<class Version, class BodyArg, class FieldsArg, class>
+message<isRequest, Body, Fields>::
+message(
+    verb method, string_view target, Version version,
+    BodyArg&& body_arg,
+    FieldsArg&& fields_arg)
+    : header_type(method, target, version,
+        std::forward<FieldsArg>(fields_arg))
+    , body(std::forward<BodyArg>(body_arg))
+{
+}
+
+template<bool isRequest, class Body, class Fields>
+template<class Version, class>
+message<isRequest, Body, Fields>::
+message(status result, Version version)
+    : header_type(result, version)
+{
+}
+
+template<bool isRequest, class Body, class Fields>
+template<class Version, class BodyArg, class>
+message<isRequest, Body, Fields>::
+message(status result, Version version,
+    BodyArg&& body_arg)
+    : header_type(result, version)
+    , body(std::forward<BodyArg>(body_arg))
+{
+}
+
+template<bool isRequest, class Body, class Fields>
+template<class Version, class BodyArg, class FieldsArg, class>
+message<isRequest, Body, Fields>::
+message(status result, Version version,
+    BodyArg&& body_arg, FieldsArg&& fields_arg)
+    : header_type(result, version,
+        std::forward<FieldsArg>(fields_arg))
+    , body(std::forward<BodyArg>(body_arg))
+{
+}
+
+template<bool isRequest, class Body, class Fields>
+message<isRequest, Body, Fields>::
+message(std::piecewise_construct_t)
+{
+}
+
+template<bool isRequest, class Body, class Fields>
+template<class... BodyArgs>
+message<isRequest, Body, Fields>::
+message(std::piecewise_construct_t,
+        std::tuple<BodyArgs...> body_args)
+    : message(std::piecewise_construct,
+        body_args,
+        beast::detail::make_index_sequence<
+            sizeof...(BodyArgs)>{})
+{
+}
+
+template<bool isRequest, class Body, class Fields>
+template<class... BodyArgs, class... FieldsArgs>
+message<isRequest, Body, Fields>::
+message(std::piecewise_construct_t,
+    std::tuple<BodyArgs...> body_args,
+    std::tuple<FieldsArgs...> fields_args)
+    : message(std::piecewise_construct,
+        body_args,
+        fields_args,
+        beast::detail::make_index_sequence<
+            sizeof...(BodyArgs)>{},
+        beast::detail::make_index_sequence<
+            sizeof...(FieldsArgs)>{})
+{
+}
+
+#if 0
 template<bool isRequest, class Body, class Fields>
 template<class BodyArg, class>
 message<isRequest, Body, Fields>::
@@ -224,17 +332,6 @@ message(BodyArg&& body_arg, HeaderArg&& header_arg)
 }
 
 template<bool isRequest, class Body, class Fields>
-template<class... BodyArgs>
-message<isRequest, Body, Fields>::
-message(std::piecewise_construct_t,
-        std::tuple<BodyArgs...> body_args)
-    : message(std::piecewise_construct, body_args,
-        beast::detail::make_index_sequence<
-            sizeof...(BodyArgs)>{})
-{
-}
-
-template<bool isRequest, class Body, class Fields>
 template<class... BodyArgs, class... HeaderArgs>
 message<isRequest, Body, Fields>::
 message(std::piecewise_construct_t,
@@ -248,6 +345,7 @@ message(std::piecewise_construct_t,
                         sizeof...(HeaderArgs)>{})
 {
 }
+#endif
 
 template<bool isRequest, class Body, class Fields>
 boost::optional<std::uint64_t>

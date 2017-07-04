@@ -8,6 +8,7 @@
 // Test that header file is self-contained.
 #include <beast/http/message.hpp>
 
+#include <beast/http/empty_body.hpp>
 #include <beast/http/string_body.hpp>
 #include <beast/http/fields.hpp>
 #include <beast/http/string_body.hpp>
@@ -70,62 +71,78 @@ public:
         };
     };
 
+    // 0-arg
+    BOOST_STATIC_ASSERT(std::is_constructible<
+        request<default_body>>::value);
+
+    // 1-arg
+    BOOST_STATIC_ASSERT(! std::is_constructible<request<one_arg_body>
+        >::value);
+
+    //BOOST_STATIC_ASSERT(! std::is_constructible<request<one_arg_body>,
+    //    verb, string_view, unsigned>::value);
+
+    BOOST_STATIC_ASSERT(std::is_constructible<request<one_arg_body>,
+        verb, string_view, unsigned, Arg1>::value);
+
+    BOOST_STATIC_ASSERT(std::is_constructible<request<one_arg_body>,
+        verb, string_view, unsigned, Arg1&&>::value);
+
+    BOOST_STATIC_ASSERT(std::is_constructible<request<one_arg_body>,
+        verb, string_view, unsigned, Arg1 const>::value);
+
+    BOOST_STATIC_ASSERT(std::is_constructible<request<one_arg_body>,
+        verb, string_view, unsigned, Arg1 const&>::value);
+
+    // 1-arg + fields
+    BOOST_STATIC_ASSERT(std::is_constructible<request<one_arg_body>,
+        verb, string_view, unsigned, Arg1, fields::allocator_type>::value);
+
+    BOOST_STATIC_ASSERT(std::is_constructible<request<one_arg_body>, std::piecewise_construct_t,
+            std::tuple<Arg1>>::value);
+
+    BOOST_STATIC_ASSERT(std::is_constructible<request<two_arg_body>, std::piecewise_construct_t,
+            std::tuple<Arg1, Arg2>>::value);
+
+    BOOST_STATIC_ASSERT(std::is_constructible<request<two_arg_body>, std::piecewise_construct_t,
+            std::tuple<Arg1, Arg2>, std::tuple<fields::allocator_type>>::value);
+
+    // special members
+    BOOST_STATIC_ASSERT(std::is_copy_constructible<header<true>>::value);
+    BOOST_STATIC_ASSERT(std::is_move_constructible<header<true>>::value);
+    BOOST_STATIC_ASSERT(std::is_copy_assignable<header<true>>::value);
+    BOOST_STATIC_ASSERT(std::is_move_assignable<header<true>>::value);
+    BOOST_STATIC_ASSERT(std::is_copy_constructible<header<false>>::value);
+    BOOST_STATIC_ASSERT(std::is_move_constructible<header<false>>::value);
+    BOOST_STATIC_ASSERT(std::is_copy_assignable<header<false>>::value);
+    BOOST_STATIC_ASSERT(std::is_move_assignable<header<false>>::value);
+
     void
     testMessage()
     {
-        BOOST_STATIC_ASSERT(std::is_constructible<
-            request<default_body>>::value);
-
-        BOOST_STATIC_ASSERT(std::is_constructible<
-            request<one_arg_body>, Arg1>::value);
-
-        BOOST_STATIC_ASSERT(std::is_constructible<
-            request<one_arg_body>, Arg1 const>::value);
-
-        BOOST_STATIC_ASSERT(std::is_constructible<
-            request<one_arg_body>, Arg1 const&>::value);
-
-        BOOST_STATIC_ASSERT(std::is_constructible<
-            request<one_arg_body>, Arg1&&>::value);
-
-        BOOST_STATIC_ASSERT(! std::is_constructible<
-            request<one_arg_body>>::value);
-
-        BOOST_STATIC_ASSERT(std::is_constructible<
-            request<one_arg_body>,
-                Arg1, fields::allocator_type>::value);
-
-        BOOST_STATIC_ASSERT(std::is_constructible<
-            request<one_arg_body>, std::piecewise_construct_t,
-                std::tuple<Arg1>>::value);
-
-        BOOST_STATIC_ASSERT(std::is_constructible<
-            request<two_arg_body>, std::piecewise_construct_t,
-                std::tuple<Arg1, Arg2>>::value);
-
-        BOOST_STATIC_ASSERT(std::is_constructible<
-            request<two_arg_body>, std::piecewise_construct_t,
-                std::tuple<Arg1, Arg2>, std::tuple<fields::allocator_type>>::value);
-
         {
             Arg1 arg1;
-            request<one_arg_body>{std::move(arg1)};
+            request<one_arg_body>{verb::get, "/", 11, std::move(arg1)};
             BEAST_EXPECT(arg1.moved);
         }
 
         {
             header<true> h;
-            h.insert(field::user_agent, "test");
-            request<one_arg_body> m{Arg1{}, h};
-            BEAST_EXPECT(h["User-Agent"] == "test");
-            BEAST_EXPECT(m["User-Agent"] == "test");
+            h.set(field::user_agent, "test");
+            BEAST_EXPECT(h[field::user_agent] == "test");
+            request<default_body> m{std::move(h)};
+            BEAST_EXPECT(m[field::user_agent] == "test");
+            BEAST_EXPECT(h.count(field::user_agent) == 0);
         }
         {
-            header<true> h;
-            h.insert(field::user_agent, "test");
-            request<one_arg_body> m{Arg1{}, std::move(h)};
-            BEAST_EXPECT(! h.count(http::field::user_agent));
+            request<empty_body> h{verb::get, "/", 10};
+            h.set(field::user_agent, "test");
+            request<one_arg_body> m{std::move(h.base()), Arg1{}};
             BEAST_EXPECT(m["User-Agent"] == "test");
+            BEAST_EXPECT(h.count(http::field::user_agent) == 0);
+            BEAST_EXPECT(m.method() == verb::get);
+            BEAST_EXPECT(m.target() == "/");
+            BEAST_EXPECT(m.version == 10);
         }
 
         // swap
@@ -166,31 +183,79 @@ public:
         }
     };
 
+    struct token {};
+
+    struct test_fields
+    {
+        std::string target;
+
+        test_fields() = delete;
+        test_fields(token) {}
+        void set_method_impl(string_view) {}
+        void set_target_impl(string_view s) { target = s.to_string(); }
+        void set_reason_impl(string_view) {}
+        string_view get_method_impl() const { return {}; }
+        string_view get_target_impl() const { return target; }
+        string_view get_reason_impl() const { return {}; }
+        void prepare_payload_impl(bool, boost::optional<std::uint64_t>) {}
+    };
+
     void
-    testHeaders()
+    testMessageCtors()
     {
         {
-            using req_type = header<true>;
-            BOOST_STATIC_ASSERT(std::is_copy_constructible<req_type>::value);
-            BOOST_STATIC_ASSERT(std::is_move_constructible<req_type>::value);
-            BOOST_STATIC_ASSERT(std::is_copy_assignable<req_type>::value);
-            BOOST_STATIC_ASSERT(std::is_move_assignable<req_type>::value);
-
-            using res_type = header<false>;
-            BOOST_STATIC_ASSERT(std::is_copy_constructible<res_type>::value);
-            BOOST_STATIC_ASSERT(std::is_move_constructible<res_type>::value);
-            BOOST_STATIC_ASSERT(std::is_copy_assignable<res_type>::value);
-            BOOST_STATIC_ASSERT(std::is_move_assignable<res_type>::value);
+            request<empty_body> req;
+            BEAST_EXPECT(req.version == 11);
+            BEAST_EXPECT(req.method() == verb::unknown);
+            BEAST_EXPECT(req.target() == "");
         }
-
         {
-            MoveFields h;
-            header<true, MoveFields> r{std::move(h)};
-            BEAST_EXPECT(h.moved_from);
-            BEAST_EXPECT(r.moved_to);
-            request<string_body, MoveFields> m{std::move(r)};
-            BEAST_EXPECT(r.moved_from);
-            BEAST_EXPECT(m.moved_to);
+            request<empty_body> req{verb::get, "/", 11};
+            BEAST_EXPECT(req.version == 11);
+            BEAST_EXPECT(req.method() == verb::get);
+            BEAST_EXPECT(req.target() == "/");
+        }
+        {
+            request<string_body> req{verb::get, "/", 11, "Hello"};
+            BEAST_EXPECT(req.version == 11);
+            BEAST_EXPECT(req.method() == verb::get);
+            BEAST_EXPECT(req.target() == "/");
+            BEAST_EXPECT(req.body == "Hello");
+        }
+        {
+            request<string_body, test_fields> req{
+                verb::get, "/", 11, "Hello", token{}};
+            BEAST_EXPECT(req.version == 11);
+            BEAST_EXPECT(req.method() == verb::get);
+            BEAST_EXPECT(req.target() == "/");
+            BEAST_EXPECT(req.body == "Hello");
+        }
+        {
+            response<string_body> res;
+            BEAST_EXPECT(res.version == 11);
+            BEAST_EXPECT(res.result() == status::ok);
+            BEAST_EXPECT(res.reason() == "OK");
+        }
+        {
+            response<string_body> res{status::bad_request, 10};
+            BEAST_EXPECT(res.version == 10);
+            BEAST_EXPECT(res.result() == status::bad_request);
+            BEAST_EXPECT(res.reason() == "Bad Request");
+        }
+        {
+            response<string_body> res{status::bad_request, 10, "Hello"};
+            BEAST_EXPECT(res.version == 10);
+            BEAST_EXPECT(res.result() == status::bad_request);
+            BEAST_EXPECT(res.reason() == "Bad Request");
+            BEAST_EXPECT(res.body == "Hello");
+        }
+        {
+            response<string_body, test_fields> res{
+                status::bad_request, 10, "Hello", token{}};
+            BEAST_EXPECT(res.version == 10);
+            BEAST_EXPECT(res.result() == status::bad_request);
+            BEAST_EXPECT(res.reason() == "Bad Request");
+            BEAST_EXPECT(res.body == "Hello");
         }
     }
 
@@ -292,7 +357,7 @@ public:
     run() override
     {
         testMessage();
-        testHeaders();
+        testMessageCtors();
         testSwap();
         testSpecialMembers();
         testMethod();

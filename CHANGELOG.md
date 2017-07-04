@@ -5,6 +5,15 @@ HTTP:
 * basic_parser optimizations
 * Add basic_parser tests
 
+API Changes:
+
+* Refactor header and message constructors
+
+Actions Required:
+
+* Evaluate each message constructor call site and
+  adjust the constructor argument list as needed.
+
 --------------------------------------------------------------------------------
 
 Version 72:

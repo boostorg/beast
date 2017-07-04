@@ -264,7 +264,7 @@ protected:
         // We construct the dynamic body with a 1MB limit
         // to prevent vulnerability to buffer attacks.
         //
-        parser_.emplace(1024 * 1024);
+        parser_.emplace(std::piecewise_construct, std::make_tuple(1024 * 1024));
 
         // Read just the header
         beast::http::async_read_header(
