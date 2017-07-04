@@ -79,6 +79,7 @@ class linux_write_op
     boost::asio::basic_stream_socket<Protocol>& s_;
     serializer<isRequest,
         file_body_linux, Fields, Decorator>& sr_;
+    bool send_header_{true};
     int file_{sr_.get().body.native_handle()};
     off_t offset_{0};
     Handler h_;
@@ -100,10 +101,7 @@ public:
     }
 
     void
-    operator()();
-
-    void
-    operator()(error_code ec,
+    operator()(error_code ec = error_code(),
         std::size_t bytes_transferred = 0);
 
     friend
@@ -147,20 +145,18 @@ template<class Protocol, bool isRequest,
 void
 linux_write_op<Protocol, isRequest,
     Fields, Decorator, Handler>::
-operator()()
-{
-    async_write_header(s_, sr_, std::move(*this));
-}
-
-template<class Protocol, bool isRequest,
-    class Fields, class Decorator, class Handler>
-void
-linux_write_op<Protocol, isRequest,
-    Fields, Decorator, Handler>::
 operator()(error_code ec, std::size_t)
 {
     if(!ec)
     {
+        // Send the header first.
+        if(send_header_)
+        {
+            send_header_ = false;
+            async_write_header(s_, sr_, std::move(*this));
+            return;
+        }
+
         // Put the underlying socket into non-blocking mode.
         if(!s_.native_non_blocking())
             s_.native_non_blocking(true, ec);
@@ -202,13 +198,13 @@ operator()(error_code ec, std::size_t)
 
             // "Loop" around to try calling sendfile again.
             // Post to give another operation a chance to run.
-            s_.get_io_service().post(*this);
+            s_.get_io_service().post(std::move(*this));
             return;
         }
-
-        // Pass result back to user's handler.
-        h_(ec);
     }
+
+    // Pass result back to user's handler.
+    h_(ec);
 }
 
 } // detail

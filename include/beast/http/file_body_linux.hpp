@@ -24,7 +24,9 @@
 #include <boost/asio/buffer.hpp>
 #include <boost/asio/basic_stream_socket.hpp>
 #include <boost/filesystem.hpp>
+#include <csignal>
 #include <sys/sendfile.h>
+#include <unistd.h>
 
 namespace beast {
 namespace http {
@@ -41,6 +43,12 @@ struct file_body_linux
 
         friend class reader;
         friend class writer;
+
+        template<int Signal>
+        static void signal_init()
+        {
+            static auto x{std::signal(Signal, SIG_IGN)};
+        }
 
     public:
         value_type(const value_type&) = delete;
@@ -73,6 +81,7 @@ struct file_body_linux
         {
             value_type tmp(std::move(other));
             std::swap(file_, tmp.file_);
+            std::swap(size_, tmp.size_);
             return *this;
         }
 
@@ -127,6 +136,7 @@ struct file_body_linux
             }
             size_ = s.st_size;
             ec.assign(0, ec.category());
+            signal_init<SIGPIPE>();
         }
 
         /** Returns the size of the file.
@@ -141,6 +151,14 @@ struct file_body_linux
             return size_;
         }
     };
+
+    // Returns the content length of the body in a message.
+    static
+    std::uint64_t
+    size(value_type const& v)
+    {
+        return v.size();
+    }
 
 #if BEAST_DOXYGEN
     class reader;
