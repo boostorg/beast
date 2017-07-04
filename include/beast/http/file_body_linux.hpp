@@ -48,6 +48,7 @@ struct file_body_linux
         static void signal_init()
         {
             static auto x{std::signal(Signal, SIG_IGN)};
+            (void)x;
         }
 
     public:
@@ -120,7 +121,7 @@ struct file_body_linux
             case file_mode::write:  f = O_WRONLY | O_CREAT; break;
             case file_mode::append: f = O_WRONLY | O_APPEND; break;
             }
-            file_ = ::open(path.string().c_str(), f);
+            file_ = ::open(path.string().c_str(), f, 0777);
             if(file_ == -1)
             {
                 ec.assign(errno, beast::system_category());
