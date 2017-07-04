@@ -649,7 +649,7 @@ write_ostream(
         // In C++14 we could use a generic lambda but since we want
         // to require only C++11, the lambda is written out by hand.
         // This function call retrieves the next serialized buffers.
-        sr.get(ec, lambda);
+        sr.next(ec, lambda);
         if(ec)
             return;
     }

@@ -1,3 +1,13 @@
+API Changes:
+
+* serializer::next replaces serializer::get
+
+Actions Required:
+
+* Use serializer::next instead of serializer::get at call sites
+
+--------------------------------------------------------------------------------
+
 Version 72:
 
 * Documentation tidying

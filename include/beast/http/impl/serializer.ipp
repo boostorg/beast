@@ -50,7 +50,7 @@ template<bool isRequest, class Body,
 template<class Visit>
 void
 serializer<isRequest, Body, Fields, ChunkDecorator>::
-get(error_code& ec, Visit&& visit)
+next(error_code& ec, Visit&& visit)
 {
     using boost::asio::buffer_size;
     switch(s_)
