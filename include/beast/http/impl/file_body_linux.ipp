@@ -46,10 +46,10 @@ write(boost::asio::basic_stream_socket<Protocol>& socket,
             65536);
         ec.assign(
             n < 0 ? errno : 0,
-            beast::system_category());
+            system_category());
 
         // Retry immediately if interrupted by signal.
-        if(ec == beast::errc::interrupted)
+        if(ec == errc::interrupted)
             continue;
 
         // Check for success.
@@ -171,15 +171,15 @@ operator()(error_code ec, std::size_t)
                 65536);
             ec.assign(
                 n < 0 ? errno : 0,
-                beast::system_category());
+                system_category());
 
             // Retry immediately if interrupted by signal.
-            if(ec == beast::errc::interrupted)
+            if(ec == errc::interrupted)
                 continue;
 
             // Check if we need to run the operation again.
-            if(ec == beast::errc::operation_would_block
-                || ec == beast::errc::resource_unavailable_try_again)
+            if(ec == errc::operation_would_block
+                || ec == errc::resource_unavailable_try_again)
             {
                 // Wait for socket to become ready again.
                 s_.async_write_some(

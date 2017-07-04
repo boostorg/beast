@@ -126,13 +126,13 @@ struct file_body_linux
             file_ = ::open(path.string().c_str(), f, 0777);
             if(file_ == -1)
             {
-                ec.assign(errno, beast::system_category());
+                ec.assign(errno, system_category());
                 return;
             }
             struct stat s;
             if(::fstat(file_, &s) == -1)
             {
-                ec.assign(errno, beast::system_category());
+                ec.assign(errno, system_category());
                 ::close(file_);
                 file_ = -1;
                 return;
@@ -178,9 +178,9 @@ struct file_body_linux
             boost::asio::const_buffers_1;
 
         template<bool isRequest, class Fields>
-        reader(beast::http::message<isRequest,
+        reader(http::message<isRequest,
             file_body_linux, Fields> const& m,
-                beast::error_code& ec)
+                error_code& ec)
             : file_(m.body.file_)
         {
             BOOST_ASSERT(file_ != -1);
@@ -189,7 +189,7 @@ struct file_body_linux
         }
 
         auto
-        get(beast::error_code& ec) ->
+        get(error_code& ec) ->
             boost::optional<std::pair<const_buffers_type, bool>>
         {
             auto const remain =
@@ -204,13 +204,14 @@ struct file_body_linux
             ssize_t n = ::pread(file_, buf_, amount, offset_);
             if(n < 0)
             {
-                ec.assign(errno, beast::system_category());
+                ec.assign(errno, system_category());
                 return boost::none;
             }
             else if(n == 0)
             {
-                ec.assign(beast::errc::invalid_seek,
-                    beast::system_category());
+                ec.assign(
+                    errc::invalid_seek,
+                    system_category());
                 return boost::none;
             }
             offset_ += amount;
