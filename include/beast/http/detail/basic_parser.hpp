@@ -219,7 +219,7 @@ protected:
     {
         bool found = false;
 
-        #if (!BEAST_NO_INTRINSICS)
+    #if (!BEAST_NO_INTRINSICS)
 
         if(BOOST_LIKELY(sse42_))
         {
@@ -245,7 +245,9 @@ protected:
             }
         }
 
-        #endif
+    #else
+-       boost::ignore_unused(buf_end, ranges, ranges_size);
+    #endif
 
         return {buf, found};
     }
