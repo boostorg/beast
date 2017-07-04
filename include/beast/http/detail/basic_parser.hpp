@@ -19,6 +19,10 @@
 #include <cstddef>
 #include <utility>
 
+#if (!BEAST_NO_INTRINSICS)
+#include <nmmintrin.h>
+#endif
+
 /*
     Portions of this file based on code from picophttpparser,
     copyright notice below.
@@ -215,7 +219,8 @@ protected:
     {
         bool found = false;
 
-    #if ! BEAST_NO_INTRINSICS
+        #if (!BEAST_NO_INTRINSICS)
+
         if(BOOST_LIKELY(sse42_))
         {
             if(BOOST_LIKELY(buf_end - buf >= 16))
@@ -240,12 +245,11 @@ protected:
             }
         }
 
-    #else
-        boost::ignore_unused(buf_end, ranges, ranges_size);
-    
-    #endif
+        #endif
+
         return {buf, found};
     }
+
 
     // VFALCO Can SIMD help this?
     static
