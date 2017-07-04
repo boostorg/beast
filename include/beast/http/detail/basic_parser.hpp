@@ -246,7 +246,7 @@ protected:
         }
 
     #else
--       boost::ignore_unused(buf_end, ranges, ranges_size);
+        boost::ignore_unused(buf_end, ranges, ranges_size);
     #endif
 
         return {buf, found};
