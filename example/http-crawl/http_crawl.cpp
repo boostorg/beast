@@ -75,10 +75,7 @@ main(int, char const*[])
         }
 
         // Set up an HTTP GET request
-        http::request<http::string_body> req;
-        req.version = 11;
-        req.method(http::verb::get);
-        req.target("/");
+        http::request<http::string_body> req{http::verb::get, "/", 11};
         req.set(http::field::host, host + std::string(":") + std::to_string(ep.port()));
         req.set(http::field::user_agent, BEAST_VERSION_STRING);
 
