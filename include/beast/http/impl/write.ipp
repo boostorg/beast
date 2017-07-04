@@ -131,7 +131,7 @@ operator()()
         return s_.get_io_service().post(
             bind_handler(std::move(*this), ec, 0));
     lambda f{*this};
-    sr_.get(ec, f);
+    sr_.next(ec, f);
     if(ec)
     {
         BOOST_ASSERT(! f.invoked);
@@ -298,7 +298,7 @@ operator()(error_code ec,
         }
         lambda f{*this};
         state_ = 2;
-        sr_.get(ec, f);
+        sr_.next(ec, f);
         if(ec)
         {
             BOOST_ASSERT(! f.invoked);
@@ -328,7 +328,7 @@ operator()(error_code ec,
         if(Predicate{}(sr_))
             goto upcall;
         lambda f{*this};
-        sr_.get(ec, f);
+        sr_.next(ec, f);
         if(ec)
         {
             BOOST_ASSERT(! f.invoked);
@@ -540,7 +540,7 @@ write_some(SyncWriteStream& stream, serializer<
         ec.assign(0, ec.category());
         return;
     }
-    sr.get(ec, f);
+    sr.next(ec, f);
     if(ec)
         return;
     if(f.invoked)
@@ -615,7 +615,7 @@ write_header(SyncWriteStream& stream, serializer<
     detail::write_lambda<SyncWriteStream> f{stream};
     do
     {
-        sr.get(ec, f);
+        sr.next(ec, f);
         if(ec)
             return;
         BOOST_ASSERT(f.invoked);
@@ -686,7 +686,7 @@ write(SyncWriteStream& stream, serializer<
     detail::write_lambda<SyncWriteStream> f{stream};
     do
     {
-        sr.get(ec, f);
+        sr.next(ec, f);
         if(ec)
             return;
         if(f.invoked)
@@ -864,7 +864,7 @@ operator<<(std::ostream& os,
     detail::write_ostream_lambda<decltype(sr)> f{os, sr};
     do
     {
-        sr.get(ec, f);
+        sr.next(ec, f);
         if(os.fail())
             break;
         if(ec == error::end_of_stream)

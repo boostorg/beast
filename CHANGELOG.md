@@ -8,11 +8,14 @@ HTTP:
 API Changes:
 
 * Refactor header and message constructors
+* serializer::next replaces serializer::get
 
 Actions Required:
 
 * Evaluate each message constructor call site and
   adjust the constructor argument list as needed.
+
+* Use serializer::next instead of serializer::get at call sites
 
 --------------------------------------------------------------------------------
 

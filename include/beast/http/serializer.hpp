@@ -236,7 +236,7 @@ public:
 
         The implementation guarantees that the message passed on
         construction will not be accessed until the first call to
-        @ref get. This allows the message to be lazily created.
+        @ref next. This allows the message to be lazily created.
         For example, if the header is filled in before serialization.
 
         @param msg The message to serialize, which must remain valid
@@ -327,18 +327,18 @@ public:
             void visit(error_code&, ConstBufferSequence const&);
         @endcode
         The function is not copied, if no error occurs it will be
-        invoked before the call to @ref get returns.
+        invoked before the call to @ref next returns.
 
     */
     template<class Visit>
     void
-    get(error_code& ec, Visit&& visit);
+    next(error_code& ec, Visit&& visit);
 
     /** Consume buffer octets in the serialization.
 
         This function should be called after one or more octets
         contained in the buffers provided in the prior call
-        to @ref get have been used.
+        to @ref next have been used.
 
         After a call to @ref consume, callers should check the
         return value of @ref is_done to determine if the entire
@@ -346,7 +346,7 @@ public:
 
         @param n The number of octets to consume. This number must
         be greater than zero and no greater than the number of
-        octets in the buffers provided in the prior call to @ref get.
+        octets in the buffers provided in the prior call to @ref next.
     */
     void
     consume(std::size_t n);
