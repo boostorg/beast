@@ -103,12 +103,15 @@ Use of the flexible __Body__ concept customization point enables authors to
 preserve the self-contained nature of the __message__ object while allowing
 domain specific behaviors. Common operations for HTTP servers include sending
 responses which deliver file contents, and allowing for file uploads. In this
-example we build the `file_body` type which supports both reading and writing
-to a file on the file system.
+example we build the
+[link beast.ref.beast__http__file_body_stdc `file_body_stdc`]
+type which supports both reading and writing to a file on the file system
+using the standard C library routines. The implementation shown here is the
+same as used by the library.
 
 First we declare the type with its nested types:
 
-[example_http_file_body_1]
+[example_http_file_body_stdc_1]
 
 We will start with the definition of the `value_type`. Our strategy
 will be to store the open file handle directly in the message
@@ -118,28 +121,28 @@ ensures that the file exists throughout the operation and prevent
 the race condition where the file is removed from the file system
 in between calls.
 
-[example_http_file_body_2]
+[example_http_file_body_stdc_2]
 
 Our implementation of __BodyReader__ will contain a small buffer
 from which the file contents are read. The buffer is provided to
 the implementation on each call until everything has been read in.
 
-[example_http_file_body_3]
+[example_http_file_body_stdc_3]
 
 And here are the definitions for the functions we have declared:
 
-[example_http_file_body_4]
+[example_http_file_body_stdc_4]
 
 Files can be read now, and the next step is to allow writing to files
 by implementing the __BodyWriter__. The style is similar to the reader,
 except that buffers are incoming instead of outgoing. Here's the
 declaration:
 
-[example_http_file_body_5]
+[example_http_file_body_stdc_5]
 
 Finally, here is the implementation of the writer member functions:
 
-[example_http_file_body_6]
+[example_http_file_body_stdc_6]
 
 We have created a full featured body type capable of reading and
 writing files on the filesystem, integrating seamlessly with the

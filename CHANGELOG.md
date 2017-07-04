@@ -1,4 +1,5 @@
 * Add serializer::is_body_started
+* Add file_body
 
 API Changes:
 

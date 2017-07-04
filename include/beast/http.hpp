@@ -17,6 +17,9 @@
 #include <beast/http/error.hpp>
 #include <beast/http/field.hpp>
 #include <beast/http/fields.hpp>
+#include <beast/http/file_body.hpp>
+#include <beast/http/file_body_stdc.hpp>
+#include <beast/http/file_body_win32.hpp>
 #include <beast/http/message.hpp>
 #include <beast/http/parser.hpp>
 #include <beast/http/read.hpp>

@@ -5,10 +5,11 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#ifndef BEAST_EXAMPLE_COMMON_FILE_BODY_HPP
-#define BEAST_EXAMPLE_COMMON_FILE_BODY_HPP
+#ifndef BEAST_HTTP_FILE_BODY_STDC_HPP
+#define BEAST_HTTP_FILE_BODY_STDC_HPP
 
 #include <beast/core/error.hpp>
+#include <beast/core/file_base.hpp>
 #include <beast/http/message.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/assert.hpp>
@@ -18,7 +19,10 @@
 #include <cstdint>
 #include <utility>
 
-//[example_http_file_body_1
+namespace beast {
+namespace http {
+
+//[example_http_file_body_stdc_1
 
 /** A message body represented by a file on the filesystem.
 
@@ -30,7 +34,7 @@
     octets as the body content. This may be used to serve
     content from a directory as part of a web service.
 */
-struct file_body
+struct file_body_stdc
 {
     /** Algorithm for retrieving buffers when serializing.
 
@@ -48,7 +52,7 @@ struct file_body
 
     /** The type of the @ref message::body member.
 
-        Messages declared using `file_body` will have this
+        Messages declared using `file_body_stdc` will have this
         type for the body member. This rich class interface
         allow the file to be opened with the file handle
         maintained directly in the object, which is attached
@@ -59,12 +63,12 @@ struct file_body
 
 //]
 
-//[example_http_file_body_2
+//[example_http_file_body_stdc_2
 
 // The body container holds a handle to the file if
 // it is open, and we also cache the size upon opening.
 //
-class file_body::value_type
+class file_body_stdc::value_type
 {
     friend class reader;
     friend class writer;
@@ -120,10 +124,19 @@ public:
     */
     void
     open(boost::filesystem::path const& path,
-        char const* mode, beast::error_code& ec)
+        file_mode mode, beast::error_code& ec)
     {
         // Attempt to open the file for reading
-        file_ = fopen(path.string().c_str(), mode);
+        char const* s;
+        switch(mode)
+        {
+        default:
+        case file_mode::read:   s = "rb"; break;
+        case file_mode::scan:   s = "rb"; break;
+        case file_mode::write:  s = "wb"; break;
+        case file_mode::append: s = "wb+"; break;
+        }
+        file_ = fopen(path.string().c_str(), s);
 
         if(! file_)
         {
@@ -134,16 +147,7 @@ public:
         }
 
         // The file was opened successfully.
-        // If we are reading, cache the file size.
-        if(std::string{mode} == "rb")
-        {
-            size_ = boost::filesystem::file_size(path, ec);
-        }
-        else
-        {
-            // This is required by the error_code specification
-            ec = {};
-        }
+        size_ = boost::filesystem::file_size(path, ec);
     }
 
     /** Returns the size of the file.
@@ -163,9 +167,9 @@ public:
 
 //]
 
-//[example_http_file_body_3
+//[example_http_file_body_stdc_3
 
-class file_body::reader
+class file_body_stdc::reader
 {
     FILE* file_;                // The file handle
     std::uint64_t remain_;      // The number of unread bytes
@@ -180,10 +184,10 @@ public:
     // Constructor.
     //
     // `m` holds the message we are sending, which will
-    // always have the `file_body` as the body type.
+    // always have the `file_body_stdc` as the body type.
     //
     template<bool isRequest, class Fields>
-    reader(beast::http::message<isRequest, file_body, Fields> const& m,
+    reader(beast::http::message<isRequest, file_body_stdc, Fields> const& m,
         beast::error_code& ec);
 
     // This function is called zero or more times to
@@ -198,15 +202,15 @@ public:
 
 //]
 
-//[example_http_file_body_4
+//[example_http_file_body_stdc_4
 
 // Here we just stash a reference to the path for later.
 // Rather than dealing with messy constructor exceptions,
 // we save the things that might fail for the call to `init`.
 //
 template<bool isRequest, class Fields>
-file_body::reader::
-reader(beast::http::message<isRequest, file_body, Fields> const& m,
+file_body_stdc::reader::
+reader(beast::http::message<isRequest, file_body_stdc, Fields> const& m,
         beast::error_code& ec)
     : file_(m.body.file_)
     , remain_(m.body.size())
@@ -225,7 +229,7 @@ reader(beast::http::message<isRequest, file_body, Fields> const& m,
 //
 inline
 auto
-file_body::reader::
+file_body_stdc::reader::
 get(beast::error_code& ec) ->
     boost::optional<std::pair<const_buffers_type, bool>>
 {
@@ -277,9 +281,9 @@ get(beast::error_code& ec) ->
 
 //]
 
-//[example_http_file_body_5
+//[example_http_file_body_stdc_5
 
-class file_body::writer
+class file_body_stdc::writer
 {
     FILE* file_; // The file handle
 
@@ -289,11 +293,11 @@ public:
     // This is called after the header is parsed and
     // indicates that a non-zero sized body may be present.
     // `m` holds the message we are receiving, which will
-    // always have the `file_body` as the body type.
+    // always have the `file_body_stdc` as the body type.
     //
     template<bool isRequest, class Fields>
     explicit
-    writer(beast::http::message<isRequest, file_body, Fields>& m,
+    writer(beast::http::message<isRequest, file_body_stdc, Fields>& m,
         boost::optional<std::uint64_t> const& content_length,
             beast::error_code& ec);
 
@@ -317,12 +321,12 @@ public:
 
 //]
 
-//[example_http_file_body_6
+//[example_http_file_body_stdc_6
 
 // Just stash a reference to the path so we can open the file later.
 template<bool isRequest, class Fields>
-file_body::writer::
-writer(beast::http::message<isRequest, file_body, Fields>& m,
+file_body_stdc::writer::
+writer(beast::http::message<isRequest, file_body_stdc, Fields>& m,
     boost::optional<std::uint64_t> const& content_length,
         beast::error_code& ec)
     : file_(m.body.file_)
@@ -343,7 +347,7 @@ writer(beast::http::message<isRequest, file_body, Fields>& m,
 //
 template<class ConstBufferSequence>
 std::size_t
-file_body::writer::
+file_body_stdc::writer::
 put(ConstBufferSequence const& buffers, beast::error_code& ec)
 {
     // This function must return the total number of
@@ -379,7 +383,7 @@ put(ConstBufferSequence const& buffers, beast::error_code& ec)
 // Called after writing is done when there's no error.
 inline
 void
-file_body::writer::
+file_body_stdc::writer::
 finish(beast::error_code& ec)
 {
     // This has to be cleared before returning, to
@@ -388,5 +392,8 @@ finish(beast::error_code& ec)
 }
 
 //]
+
+} // http
+} // beast
 
 #endif

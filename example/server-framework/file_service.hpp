@@ -9,11 +9,11 @@
 #define BEAST_EXAMPLE_SERVER_FILE_SERVICE_HPP
 
 #include "framework.hpp"
-#include "../common/file_body.hpp"
 #include "../common/mime_types.hpp"
 
 #include <beast/core/string.hpp>
 #include <beast/http/empty_body.hpp>
+#include <beast/http/file_body.hpp>
 #include <beast/http/message.hpp>
 #include <beast/http/string_body.hpp>
 
@@ -233,17 +233,17 @@ private:
     // Return a file response to an HTTP GET request
     //
     template<class Body, class Fields>
-    boost::optional<beast::http::response<file_body>>
+    boost::optional<beast::http::response<beast::http::file_body>>
     get(
         beast::http::request<Body, Fields> const& req,
         boost::filesystem::path const& full_path,
         beast::error_code& ec) const
     {
-        beast::http::response<file_body> res;
+        beast::http::response<beast::http::file_body> res;
         res.version = req.version;
         res.set(beast::http::field::server, server_);
         res.set(beast::http::field::content_type, mime_type(full_path));
-        res.body.open(full_path, "rb", ec);
+        res.body.open(full_path, beast::file_mode::scan, ec);
         if(ec)
             return boost::none;
         res.set(beast::http::field::content_length, res.body.size());
@@ -265,8 +265,8 @@ private:
         res.set(beast::http::field::content_type, mime_type(full_path));
 
         // Use a manual file body here
-        file_body::value_type body;
-        body.open(full_path, "rb", ec);
+        beast::http::file_body::value_type body;
+        body.open(full_path, beast::file_mode::scan, ec);
         if(ec)
             return boost::none;
         res.set(beast::http::field::content_length, body.size());
