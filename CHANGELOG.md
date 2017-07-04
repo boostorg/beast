@@ -1,3 +1,9 @@
+Version 75:
+
+* Use file_body for valid requests, string_body otherwise.
+
+--------------------------------------------------------------------------------
+
 Version 74:
 
 * Add file_stdio and File concept
