@@ -1457,6 +1457,17 @@
         <xsl:text> const</xsl:text>
       </xsl:if>
       <xsl:text>;&#xd;</xsl:text>
+
+      <xsl:text>  ``[''''&amp;raquo;''' </xsl:text>
+      <xsl:text>[link </xsl:text><xsl:value-of select="$doc-ref"/>
+      <xsl:value-of select="$class-id"/>
+      <xsl:text>.</xsl:text>
+      <xsl:value-of select="$id"/>
+      <xsl:text>.overload</xsl:text>
+      <xsl:value-of select="position()"/>
+      <xsl:text> more...]]``</xsl:text>
+      <xsl:text>&#xd;</xsl:text>
+
     </xsl:for-each>
     <xsl:text>```&#xd;</xsl:text>
   </xsl:if>
@@ -1843,6 +1854,15 @@
       <xsl:text>]``(</xsl:text>
       <xsl:apply-templates select="param" mode="class-detail"/>
       <xsl:text>);&#xd;</xsl:text>
+
+      <xsl:text>  ``[''''&amp;raquo;''' </xsl:text>
+      <xsl:text>[link </xsl:text><xsl:value-of select="$doc-ref"/>
+      <xsl:value-of select="$id"/>
+      <xsl:text>.overload</xsl:text>
+      <xsl:value-of select="position()"/>
+      <xsl:text> more...]]``</xsl:text>
+      <xsl:text>&#xd;</xsl:text>
+
     </xsl:for-each>
     <xsl:text>```&#xd;</xsl:text>
     <xsl:for-each select="/doxygen/compounddef[@kind='group' and compoundname=$name]">
