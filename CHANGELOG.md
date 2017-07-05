@@ -4,6 +4,7 @@ Version 73:
 * Verify certificates in SSL clients
 * Adjust benchmarks
 * Initialize local variable in basic_parser
+* Fixes for gcc-4.8
 
 HTTP:
 
