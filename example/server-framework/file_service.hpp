@@ -247,7 +247,7 @@ private:
         if(ec)
             return boost::none;
         res.set(beast::http::field::content_length, res.body.size());
-        return res;
+        return {std::move(res)};
     }
 
     // Return a response to an HTTP HEAD request
@@ -270,7 +270,7 @@ private:
         if(ec)
             return boost::none;
         res.set(beast::http::field::content_length, body.size());
-        return res;
+        return {std::move(res)};
     }
 };
 

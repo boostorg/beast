@@ -99,7 +99,7 @@ private:
 
     // Return a file response to an HTTP GET request
     //
-    boost::optional<beast::http::response<file_body>>
+    beast::http::response<file_body>
     get(boost::filesystem::path const& full_path,
         beast::error_code& ec) const
     {
@@ -109,7 +109,7 @@ private:
         res.set(http::field::connection, "close");
         res.body.open(full_path, "rb", ec);
         if(ec)
-            return boost::none;
+            return res;
         res.set(beast::http::field::content_length, res.body.size());
         return res;
     }
@@ -146,7 +146,7 @@ private:
         else if(ec)
             http::write(sock_, server_error(file_ec), ec);
         else
-            http::write(sock_, std::move(*res), ec);
+            http::write(sock_, std::move(res), ec);
     }
 
     void

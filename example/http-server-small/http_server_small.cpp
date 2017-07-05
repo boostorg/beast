@@ -73,7 +73,7 @@ private:
     void
     read_request()
     {
-        auto self{shared_from_this()};
+        auto self = shared_from_this();
 
         http::async_read(
             socket_,
@@ -160,7 +160,7 @@ private:
     void
     write_response()
     {
-        auto self{shared_from_this()};
+        auto self = shared_from_this();
 
         response_.set(http::field::content_length, response_.body.size());
 
@@ -178,7 +178,7 @@ private:
     void
     check_deadline()
     {
-        auto self{shared_from_this()};
+        auto self = shared_from_this();
 
         deadline_.async_wait(
             [self](beast::error_code ec)
