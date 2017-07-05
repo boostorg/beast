@@ -27,10 +27,11 @@ public:
     {
         static_assert(is_body_reader<string_view_body>::value, "");
         static_assert(! is_body_writer<string_view_body>::value, "");
-        request<string_view_body> req{"Hello, world!"};
+        request<string_view_body> req;
         req.version = 11;
         req.method(verb::post);
         req.target("/");
+        req.body = "Hello, world!";
         req.prepare_payload();
         static_buffer_n<512> b;
         ostream(b) << req;

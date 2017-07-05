@@ -202,7 +202,7 @@ print_cxx14(message<isRequest, Body, Fields> const& m)
     serializer<isRequest, Body, Fields> sr{m};
     do
     {
-        sr.get(ec,
+        sr.next(ec,
             [&sr](error_code& ec, auto const& buffer)
             {
                 ec.assign(0, ec.category());
@@ -246,7 +246,7 @@ print(message<isRequest, Body, Fields> const& m)
     serializer<isRequest, Body, Fields> sr{m};
     do
     {
-        sr.get(ec, lambda<decltype(sr)>{sr});
+        sr.next(ec, lambda<decltype(sr)>{sr});
     }
     while(! ec && ! sr.is_done());
     if(! ec)
@@ -270,7 +270,7 @@ split_print_cxx14(message<isRequest, Body, Fields> const& m)
     std::cout << "Header:" << std::endl;
     do
     {
-        sr.get(ec,
+        sr.next(ec,
             [&sr](error_code& ec, auto const& buffer)
             {
                 ec.assign(0, ec.category());
@@ -284,7 +284,7 @@ split_print_cxx14(message<isRequest, Body, Fields> const& m)
         std::cout << "Body:" << std::endl;
         do
         {
-            sr.get(ec,
+            sr.next(ec,
                 [&sr](error_code& ec, auto const& buffer)
                 {
                     ec.assign(0, ec.category());

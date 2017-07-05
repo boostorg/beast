@@ -188,7 +188,8 @@ private:
             // We construct the dynamic body with a 1MB limit
             // to prevent vulnerability to buffer attacks.
             //
-            beast::http::request_parser<beast::http::dynamic_body> parser(1024* 1024);
+            beast::http::request_parser<beast::http::dynamic_body> parser(
+                std::piecewise_construct, std::make_tuple(1024* 1024));
 
             // Read the header first
             beast::http::read_header(impl().stream(), buffer_, parser, ec);

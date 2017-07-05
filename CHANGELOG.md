@@ -1,3 +1,30 @@
+Version 73:
+
+* Jamroot tweak
+* Verify certificates in SSL clients
+* Adjust benchmarks
+* Initialize local variable in basic_parser
+* Fixes for gcc-4.8
+
+HTTP:
+
+* basic_parser optimizations
+* Add basic_parser tests
+
+API Changes:
+
+* Refactor header and message constructors
+* serializer::next replaces serializer::get
+
+Actions Required:
+
+* Evaluate each message constructor call site and
+  adjust the constructor argument list as needed.
+
+* Use serializer::next instead of serializer::get at call sites
+
+--------------------------------------------------------------------------------
+
 Version 72:
 
 HTTP:
@@ -13,6 +40,7 @@ HTTP:
 WebSocket:
 
 * Add websocket-server-async example
+
 
 --------------------------------------------------------------------------------
 

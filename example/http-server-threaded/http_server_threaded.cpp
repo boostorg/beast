@@ -60,8 +60,7 @@ private:
     http::response<http::string_view_body>
     client_error(http::status result, beast::string_view text)
     {
-        http::response<http::string_view_body> res;
-        res.result(result);
+        http::response<http::string_view_body> res{result, 11};
         res.set(http::field::server, BEAST_VERSION_STRING);
         res.set(http::field::content_type, "text/plain");
         res.set(http::field::connection, "close");
@@ -75,8 +74,7 @@ private:
     beast::http::response<beast::http::string_body>
     not_found() const
     {
-        beast::http::response<beast::http::string_body> res;
-        res.result(beast::http::status::not_found);
+        beast::http::response<beast::http::string_body> res{beast::http::status::not_found, 11};
         res.set(beast::http::field::server, BEAST_VERSION_STRING);
         res.set(beast::http::field::content_type, "text/html");
         res.set(http::field::connection, "close");
@@ -90,8 +88,7 @@ private:
     beast::http::response<beast::http::string_body>
     server_error(beast::error_code const& ec) const
     {
-        beast::http::response<beast::http::string_body> res;
-        res.result(beast::http::status::internal_server_error);
+        beast::http::response<beast::http::string_body> res{beast::http::status::internal_server_error, 11};
         res.set(beast::http::field::server, BEAST_VERSION_STRING);
         res.set(beast::http::field::content_type, "text/html");
         res.set(http::field::connection, "close");
@@ -102,7 +99,7 @@ private:
 
     // Return a file response to an HTTP GET request
     //
-    boost::optional<beast::http::response<file_body>>
+    beast::http::response<file_body>
     get(boost::filesystem::path const& full_path,
         beast::error_code& ec) const
     {
@@ -112,7 +109,7 @@ private:
         res.set(http::field::connection, "close");
         res.body.open(full_path, "rb", ec);
         if(ec)
-            return boost::none;
+            return res;
         res.set(beast::http::field::content_length, res.body.size());
         return res;
     }
@@ -149,7 +146,7 @@ private:
         else if(ec)
             http::write(sock_, server_error(file_ec), ec);
         else
-            http::write(sock_, std::move(*res), ec);
+            http::write(sock_, std::move(res), ec);
     }
 
     void

@@ -48,10 +48,7 @@ int main()
         return fail("connect", ec);
 
     // Set up an HTTP GET request message
-    http::request<http::string_body> req;
-    req.method(http::verb::get);
-    req.target("/");
-    req.version = 11;
+    http::request<http::string_body> req{http::verb::get, "/", 11};
     req.set(http::field::host, host + ":" +
         std::to_string(sock.remote_endpoint().port()));
     req.set(http::field::user_agent, BEAST_VERSION_STRING);

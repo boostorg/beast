@@ -11,9 +11,12 @@
 #include "test_parser.hpp"
 
 #include <beast/core/buffer_cat.hpp>
+#include <beast/core/buffer_prefix.hpp>
 #include <beast/core/consuming_buffers.hpp>
 #include <beast/core/multi_buffer.hpp>
 #include <beast/core/ostream.hpp>
+#include <beast/http/parser.hpp>
+#include <beast/http/string_body.hpp>
 #include <beast/unit_test/suite.hpp>
 
 namespace beast {
@@ -140,293 +143,360 @@ public:
         }
     };
 
-    template<std::size_t N>
-    static
-    boost::asio::const_buffers_1
-    buf(char const (&s)[N])
-    {
-        return {s, N-1};
-    }
+    //--------------------------------------------------------------------------
 
-    template<class ConstBufferSequence, bool isRequest, class Derived>
-    std::size_t
-    feed(ConstBufferSequence const& buffers,
-        basic_parser<isRequest, Derived>& p, error_code& ec)
+    template<class Parser, class ConstBufferSequence, class Test>
+    typename std::enable_if<
+        is_const_buffer_sequence<ConstBufferSequence>::value>::type
+    parsegrind(ConstBufferSequence const& buffers,
+        Test const& test, bool skip = false)
     {
-        p.eager(true);
-        return p.put(buffers, ec);
-    }
-
-    template<bool isRequest, class Pred>
-    void
-    good(string_view s,
-        Pred const& pred, bool skipBody = false)
-    {
-        using boost::asio::buffer;
-        test_parser<isRequest> p;
-        p.eager(true);
-        if(skipBody)
-            p.skip(true);
-        error_code ec;
-        auto const n = p.put(
-            buffer(s.data(), s.size()), ec);
-        if(! BEAST_EXPECTS(! ec, ec.message()))
-            return;
-        if(! BEAST_EXPECT(n == s.size()))
-            return;
-        if(p.need_eof())
-            p.put_eof(ec);
-        if(BEAST_EXPECTS(! ec, ec.message()))
-            pred(p);
-    }
-
-    template<bool isRequest>
-    void
-    good(string_view s)
-    {
-        good<isRequest>(s,
-            [](test_parser<isRequest> const&)
+        auto const size = boost::asio::buffer_size(buffers);
+        for(std::size_t i = 1; i < size - 1; ++i)
+        {
+            Parser p;
+            p.eager(true);
+            p.skip(skip);
+            error_code ec;
+            consuming_buffers<ConstBufferSequence> cb{buffers};
+            auto n = p.put(buffer_prefix(i, cb), ec);
+            if(! BEAST_EXPECTS(! ec ||
+                    ec == error::need_more, ec.message()))
+                continue;
+            if(! BEAST_EXPECT(! p.is_done()))
+                continue;
+            cb.consume(n);
+            n = p.put(cb, ec);
+            if(! BEAST_EXPECTS(! ec, ec.message()))
+                continue;
+            if(! BEAST_EXPECT(n == boost::asio::buffer_size(cb)))
+                continue;
+            if(p.need_eof())
             {
-            });
+                p.put_eof(ec);
+                if(! BEAST_EXPECTS(! ec, ec.message()))
+                    continue;
+            }
+            if(! BEAST_EXPECT(p.is_done()))
+                continue;
+            test(p);
+        }
+        for(std::size_t i = 1; i < size - 1; ++i)
+        {
+            Parser p;
+            p.eager(true);
+            error_code ec;
+            consuming_buffers<ConstBufferSequence> cb{buffers};
+            cb.consume(i);
+            auto n = p.put(buffer_cat(
+                buffer_prefix(i, buffers), cb), ec);
+            if(! BEAST_EXPECTS(! ec, ec.message()))
+                continue;
+            if(! BEAST_EXPECT(n == size))
+                continue;
+            if(p.need_eof())
+            {
+                p.put_eof(ec);
+                if(! BEAST_EXPECTS(! ec, ec.message()))
+                    continue;
+            }
+            test(p);
+        }
     }
 
-    template<bool isRequest>
+    template<class Parser, class Test>
     void
-    bad(string_view s,
-        error_code const& ev, bool skipBody = false)
+    parsegrind(string_view msg, Test const& test, bool skip = false)
     {
-        using boost::asio::buffer;
-        test_parser<isRequest> p;
-        p.eager(true);
-        if(skipBody)
-            p.skip(true);
-        error_code ec;
-        p.put(buffer(s.data(), s.size()), ec);
-        if(! ec && ev)
-            p.put_eof(ec);
-        BEAST_EXPECTS(ec == ev, ec.message());
+        parsegrind<Parser>(boost::asio::const_buffers_1{
+            msg.data(), msg.size()}, test, skip);
     }
+
+    template<class Parser, class ConstBufferSequence>
+    typename std::enable_if<
+        is_const_buffer_sequence<ConstBufferSequence>::value>::type
+    parsegrind(ConstBufferSequence const& buffers)
+    {
+        parsegrind<Parser>(buffers, [](Parser const&){});
+    }
+
+    template<class Parser>
+    void
+    parsegrind(string_view msg)
+    {
+        parsegrind<Parser>(msg, [](Parser const&){});
+    }
+
+    template<class Parser>
+    void
+    failgrind(string_view msg, error_code const& result)
+    {
+        for(std::size_t i = 1; i < msg.size() - 1; ++i)
+        {
+            Parser p;
+            p.eager(true);
+            error_code ec;
+            consuming_buffers<boost::asio::const_buffers_1> cb{
+                boost::in_place_init, msg.data(), msg.size()};
+            auto n = p.put(buffer_prefix(i, cb), ec);
+            if(ec == result)
+            {
+                pass();
+                continue;
+            }
+            if(! BEAST_EXPECTS(
+                ec == error::need_more, ec.message()))
+                continue;
+            if(! BEAST_EXPECT(! p.is_done()))
+                continue;
+            cb.consume(n);
+            n = p.put(cb, ec);
+            if(! ec)
+                p.put_eof(ec);
+            BEAST_EXPECTS(ec == result, ec.message());
+        }
+        for(std::size_t i = 1; i < msg.size() - 1; ++i)
+        {
+            Parser p;
+            p.eager(true);
+            error_code ec;
+            p.put(buffer_cat(
+                boost::asio::const_buffers_1{msg.data(), i},
+                boost::asio::const_buffers_1{
+                    msg.data() + i, msg.size() - i}), ec);
+            if(! ec)
+                p.put_eof(ec);
+            BEAST_EXPECTS(ec == result, ec.message());
+        }
+    }
+
+    //--------------------------------------------------------------------------
 
     void
     testFlatten()
     {
-        using boost::asio::buffer;
-        {
-            std::string const s =
-                "GET / HTTP/1.1\r\n"
-                "Content-Length: 1\r\n"
-                "\r\n"
-                "*";
-            for(std::size_t i = 1;
-                i < s.size() - 1; ++i)
+        parsegrind<test_parser<true>>(
+            "GET / HTTP/1.1\r\n"
+            "\r\n"
+            );
+        parsegrind<test_parser<true>>(
+            "POST / HTTP/1.1\r\n"
+            "Content-Length: 5\r\n"
+            "\r\n"
+            "*****"
+            );
+        parsegrind<test_parser<false>>(
+            "HTTP/1.1 403 Not Found\r\n"
+            "\r\n"
+            );
+        parsegrind<test_parser<false>>(
+            "HTTP/1.1 200 OK\r\n"
+            "Content-Length: 5\r\n"
+            "\r\n"
+            "*****"
+            );
+        parsegrind<test_parser<false>>(
+            "HTTP/1.1 200 OK\r\n"
+            "Transfer-Encoding: chunked\r\n"
+            "\r\n"
+            "5;x\r\n*****\r\n"
+            "0\r\nMD5: 0xff30\r\n"
+            "\r\n"
+            );
+        parsegrind<test_parser<false>>(
+            "HTTP/1.1 200 OK\r\n"
+            "\r\n"
+            "*****"
+            );
+    }
+
+    void
+    testObsFold()
+    {
+        auto const check =
+            [&](std::string const& s, string_view value)
             {
-                test_parser<true> p;
-                p.eager(true);
-                error_code ec;
-                p.put(buffer(s.data(), i), ec);
-                BEAST_EXPECTS(ec == error::need_more, ec.message());
-                ec.assign(0, ec.category());
-                p.put(boost::asio::buffer(s.data(), s.size()), ec);
-                BEAST_EXPECTS(! ec, ec.message());
-                BEAST_EXPECT(p.is_done());
-            }
-        }
-        {
-            std::string const s =
-                "HTTP/1.1 200 OK\r\n"
-                "\r\n";
-            for(std::size_t i = 1;
-                i < s.size() - 1; ++i)
-            {
-                auto const b1 =
-                    buffer(s.data(), i);
-                auto const b2 = buffer(
-                    s.data() + i, s.size() - i);
-                test_parser<false> p;
-                p.eager(true);
-                error_code ec;
-                p.put(b1, ec);
-                BEAST_EXPECTS(ec == error::need_more, ec.message());
-                ec.assign(0, ec.category());
-                p.put(buffer_cat(b1, b2), ec);
-                BEAST_EXPECTS(! ec, ec.message());
-                p.put_eof(ec);
-            }
-        }
+                std::string m =
+                    "GET / HTTP/1.1\r\n"
+                    "f: " + s + "\r\n"
+                    "\r\n";
+                parsegrind<parser<true, string_body>>(m,
+                    [&](parser<true, string_body> const& p)
+                    {
+                        BEAST_EXPECT(p.get()["f"] == value);
+                    });
+            };
+        check("x",                      "x");
+        check(" x",                     "x");
+        check("\tx",                    "x");
+        check(" \tx",                   "x");
+        check("\t x",                   "x");
+        check("x ",                     "x");
+        check(" x\t",                   "x");
+        check("\tx \t",                 "x");
+        check(" \tx\t ",                "x");
+        check("\t x  \t  ",             "x");
+        check("\r\n x",                 "x");
+        check(" \r\n x",                "x");
+        check(" \r\n\tx",               "x");
+        check(" \r\n\t x",              "x");
+        check(" \r\n \tx",              "x");
+        check("  \r\n \r\n \r\n x \t",  "x");
+        check("xy",                     "xy");
+        check("\r\n x",                 "x");
+        check("\r\n  x",                "x");
+        check("\r\n   xy",              "xy");
+        check("\r\n \r\n \r\n x",       "x");
+        check("\r\n \r\n  \r\n xy",     "xy");
+        check("x\r\n y",                "x y");
+        check("x\r\n y\r\n z ",         "x y z");
     }
 
     // Check that all callbacks are invoked
     void
     testCallbacks()
     {
-        using boost::asio::buffer;
-        {
-            test_parser<true> p;
-            p.eager(true);
-            error_code ec;
-            std::string const s =
-                "GET / HTTP/1.1\r\n"
-                "User-Agent: test\r\n"
-                "Content-Length: 1\r\n"
-                "\r\n"
-                "*";
-            p.put(buffer(s), ec);
-            BEAST_EXPECTS(! ec, ec.message());
-            BEAST_EXPECT(p.is_done());
-            BEAST_EXPECT(p.got_on_begin);
-            BEAST_EXPECT(p.got_on_field);
-            BEAST_EXPECT(p.got_on_header);
-            BEAST_EXPECT(p.got_on_body);
-            BEAST_EXPECT(! p.got_on_chunk);
-            BEAST_EXPECT(p.got_on_complete);
-        }
-        {
-            test_parser<false> p;
-            p.eager(true);
-            error_code ec;
-            std::string const s =
-                "HTTP/1.1 200 OK\r\n"
-                "Server: test\r\n"
-                "Content-Length: 1\r\n"
-                "\r\n"
-                "*";
-            p.put(buffer(s), ec);
-            BEAST_EXPECTS(! ec, ec.message());
-            BEAST_EXPECT(p.is_done());
-            BEAST_EXPECT(p.got_on_begin);
-            BEAST_EXPECT(p.got_on_field);
-            BEAST_EXPECT(p.got_on_header);
-            BEAST_EXPECT(p.got_on_body);
-            BEAST_EXPECT(! p.got_on_chunk);
-            BEAST_EXPECT(p.got_on_complete);
-        }
-        {
-            test_parser<false> p;
-            p.eager(true);
-            error_code ec;
-            std::string const s =
-                "HTTP/1.1 200 OK\r\n"
-                "Server: test\r\n"
-                "Transfer-Encoding: chunked\r\n"
-                "\r\n"
-                "1\r\n*\r\n"
-                "0\r\n\r\n";
-            p.put(buffer(s), ec);
-            BEAST_EXPECTS(! ec, ec.message());
-            BEAST_EXPECT(p.is_done());
-            BEAST_EXPECT(p.got_on_begin);
-            BEAST_EXPECT(p.got_on_field);
-            BEAST_EXPECT(p.got_on_header);
-            BEAST_EXPECT(p.got_on_body);
-            BEAST_EXPECT(p.got_on_chunk);
-            BEAST_EXPECT(p.got_on_complete);
-        }
-        {
-            test_parser<false> p;
-            p.eager(true);
-            error_code ec;
-            std::string const s =
-                "HTTP/1.1 200 OK\r\n"
-                "Server: test\r\n"
-                "Transfer-Encoding: chunked\r\n"
-                "\r\n"
-                "1;x\r\n*\r\n"
-                "0\r\n\r\n";
-            p.put(buffer(s), ec);
-            BEAST_EXPECTS(! ec, ec.message());
-            BEAST_EXPECT(p.is_done());
-            BEAST_EXPECT(p.got_on_begin);
-            BEAST_EXPECT(p.got_on_field);
-            BEAST_EXPECT(p.got_on_header);
-            BEAST_EXPECT(p.got_on_body);
-            BEAST_EXPECT(p.got_on_chunk);
-            BEAST_EXPECT(p.got_on_complete);
-        }
+        parsegrind<test_parser<true>>(
+            "GET / HTTP/1.1\r\n"
+            "User-Agent: test\r\n"
+            "Content-Length: 1\r\n"
+            "\r\n"
+            "*",
+            [&](test_parser<true> const& p)
+            {
+                BEAST_EXPECT(p.got_on_begin     == 1);
+                BEAST_EXPECT(p.got_on_field     == 2);
+                BEAST_EXPECT(p.got_on_header    == 1);
+                BEAST_EXPECT(p.got_on_body      == 1);
+                BEAST_EXPECT(p.got_on_chunk     == 0);
+                BEAST_EXPECT(p.got_on_complete  == 1);
+            });
+        parsegrind<test_parser<false>>(
+            "HTTP/1.1 200 OK\r\n"
+            "Server: test\r\n"
+            "Content-Length: 1\r\n"
+            "\r\n"
+            "*",
+            [&](test_parser<false> const& p)
+            {
+                BEAST_EXPECT(p.got_on_begin     == 1);
+                BEAST_EXPECT(p.got_on_field     == 2);
+                BEAST_EXPECT(p.got_on_header    == 1);
+                BEAST_EXPECT(p.got_on_body      == 1);
+                BEAST_EXPECT(p.got_on_chunk     == 0);
+                BEAST_EXPECT(p.got_on_complete  == 1);
+            });
+        parsegrind<test_parser<false>>(
+            "HTTP/1.1 200 OK\r\n"
+            "Server: test\r\n"
+            "Transfer-Encoding: chunked\r\n"
+            "\r\n"
+            "1\r\n*\r\n"
+            "0\r\n\r\n",
+            [&](test_parser<false> const& p)
+            {
+                BEAST_EXPECT(p.got_on_begin     == 1);
+                BEAST_EXPECT(p.got_on_field     == 2);
+                BEAST_EXPECT(p.got_on_header    == 1);
+                BEAST_EXPECT(p.got_on_body      == 1);
+                BEAST_EXPECT(p.got_on_chunk     == 1);
+                BEAST_EXPECT(p.got_on_complete  == 1);
+            });
+        parsegrind<test_parser<false>>(
+            "HTTP/1.1 200 OK\r\n"
+            "Server: test\r\n"
+            "Transfer-Encoding: chunked\r\n"
+            "\r\n"
+            "1;x\r\n*\r\n"
+            "0\r\n\r\n",
+            [&](test_parser<false> const& p)
+            {
+                BEAST_EXPECT(p.got_on_begin     == 1);
+                BEAST_EXPECT(p.got_on_field     == 2);
+                BEAST_EXPECT(p.got_on_header    == 1);
+                BEAST_EXPECT(p.got_on_body      == 1);
+                BEAST_EXPECT(p.got_on_chunk     == 1);
+                BEAST_EXPECT(p.got_on_complete  == 1);
+            });
     }
 
     void
     testRequestLine()
     {
-        good<true>("GET /x HTTP/1.0\r\n\r\n");
-        good<true>("!#$%&'*+-.^_`|~0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz / HTTP/1.0\r\n\r\n");
-        good<true>("GET / HTTP/1.0\r\n\r\n",            expect_version{*this, 10});
-        good<true>("G / HTTP/1.1\r\n\r\n",              expect_version{*this, 11});
-        // VFALCO TODO various forms of good request-target (uri)
-        good<true>("GET / HTTP/0.1\r\n\r\n",            expect_version{*this, 1});
-        good<true>("GET / HTTP/2.3\r\n\r\n",            expect_version{*this, 23});
-        good<true>("GET / HTTP/4.5\r\n\r\n",            expect_version{*this, 45});
-        good<true>("GET / HTTP/6.7\r\n\r\n",            expect_version{*this, 67});
-        good<true>("GET / HTTP/8.9\r\n\r\n",            expect_version{*this, 89});
+        using P = test_parser<true>;
 
-        bad<true>("\tGET / HTTP/1.0\r\n"    "\r\n",     error::bad_method);
-        bad<true>("GET\x01 / HTTP/1.0\r\n"  "\r\n",     error::bad_method);
-        bad<true>("GET  / HTTP/1.0\r\n"     "\r\n",     error::bad_target);
-        bad<true>("GET \x01 HTTP/1.0\r\n"   "\r\n",     error::bad_target);
-        bad<true>("GET /\x01 HTTP/1.0\r\n"  "\r\n",     error::bad_target);
+        parsegrind<P>("GET /x HTTP/1.0\r\n\r\n");
+        parsegrind<P>("!#$%&'*+-.^_`|~0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz / HTTP/1.0\r\n\r\n");
+        parsegrind<P>("GET / HTTP/1.0\r\n\r\n",         expect_version{*this, 10});
+        parsegrind<P>("G / HTTP/1.1\r\n\r\n",           expect_version{*this, 11});
+        // VFALCO TODO various forms of good request-target (uri)
+
+        failgrind<P>("\tGET / HTTP/1.0\r\n"    "\r\n",  error::bad_method);
+        failgrind<P>("GET\x01 / HTTP/1.0\r\n"  "\r\n",  error::bad_method);
+        failgrind<P>("GET  / HTTP/1.0\r\n"     "\r\n",  error::bad_target);
+        failgrind<P>("GET \x01 HTTP/1.0\r\n"   "\r\n",  error::bad_target);
+        failgrind<P>("GET /\x01 HTTP/1.0\r\n"  "\r\n",  error::bad_target);
         // VFALCO TODO various forms of bad request-target (uri)
-        bad<true>("GET /  HTTP/1.0\r\n"     "\r\n",     error::bad_version);
-        bad<true>("GET / _TTP/1.0\r\n"      "\r\n",     error::bad_version);
-        bad<true>("GET / H_TP/1.0\r\n"      "\r\n",     error::bad_version);
-        bad<true>("GET / HT_P/1.0\r\n"      "\r\n",     error::bad_version);
-        bad<true>("GET / HTT_/1.0\r\n"      "\r\n",     error::bad_version);
-        bad<true>("GET / HTTP_1.0\r\n"      "\r\n",     error::bad_version);
-        bad<true>("GET / HTTP/01.2\r\n"     "\r\n",     error::bad_version);
-        bad<true>("GET / HTTP/3.45\r\n"     "\r\n",     error::bad_version);
-        bad<true>("GET / HTTP/67.89\r\n"    "\r\n",     error::bad_version);
-        bad<true>("GET / HTTP/x.0\r\n"      "\r\n",     error::bad_version);
-        bad<true>("GET / HTTP/1.x\r\n"      "\r\n",     error::bad_version);
-        bad<true>("GET / HTTP/1.0 \r\n"     "\r\n",     error::bad_version);
-        bad<true>("GET / HTTP/1_0\r\n"      "\r\n",     error::bad_version);
-        bad<true>("GET / HTTP/1.0\n\r\n"    "\r\n",     error::bad_version);
-        bad<true>("GET / HTTP/1.0\n\r\r\n"  "\r\n",     error::bad_version);
-        bad<true>("GET / HTTP/1.0\r\r\n"    "\r\n",     error::bad_version);
+        failgrind<P>("GET /  HTTP/1.0\r\n"     "\r\n",  error::bad_version);
+        failgrind<P>("GET / _TTP/1.0\r\n"      "\r\n",  error::bad_version);
+        failgrind<P>("GET / H_TP/1.0\r\n"      "\r\n",  error::bad_version);
+        failgrind<P>("GET / HT_P/1.0\r\n"      "\r\n",  error::bad_version);
+        failgrind<P>("GET / HTT_/1.0\r\n"      "\r\n",  error::bad_version);
+        failgrind<P>("GET / HTTP_1.0\r\n"      "\r\n",  error::bad_version);
+        failgrind<P>("GET / HTTP/01.2\r\n"     "\r\n",  error::bad_version);
+        failgrind<P>("GET / HTTP/3.45\r\n"     "\r\n",  error::bad_version);
+        failgrind<P>("GET / HTTP/67.89\r\n"    "\r\n",  error::bad_version);
+        failgrind<P>("GET / HTTP/x.0\r\n"      "\r\n",  error::bad_version);
+        failgrind<P>("GET / HTTP/1.x\r\n"      "\r\n",  error::bad_version);
+        failgrind<P>("GET / HTTP/1.0 \r\n"     "\r\n",  error::bad_version);
+        failgrind<P>("GET / HTTP/1_0\r\n"      "\r\n",  error::bad_version);
+        failgrind<P>("GET / HTTP/1.0\n\r\n"    "\r\n",  error::bad_version);
+        failgrind<P>("GET / HTTP/1.0\n\r\r\n"  "\r\n",  error::bad_version);
+        failgrind<P>("GET / HTTP/1.0\r\r\n"    "\r\n",  error::bad_version);
     }
 
     void
     testStatusLine()
     {
-        good<false>("HTTP/0.1 200 OK\r\n"   "\r\n",     expect_version{*this, 1});
-        good<false>("HTTP/2.3 200 OK\r\n"   "\r\n",     expect_version{*this, 23});
-        good<false>("HTTP/4.5 200 OK\r\n"   "\r\n",     expect_version{*this, 45});
-        good<false>("HTTP/6.7 200 OK\r\n"   "\r\n",     expect_version{*this, 67});
-        good<false>("HTTP/8.9 200 OK\r\n"   "\r\n",     expect_version{*this, 89});
-        good<false>("HTTP/1.0 000 OK\r\n"   "\r\n",     expect_status{*this, 0});
-        good<false>("HTTP/1.1 012 OK\r\n"   "\r\n",     expect_status{*this, 12});
-        good<false>("HTTP/1.0 345 OK\r\n"   "\r\n",     expect_status{*this, 345});
-        good<false>("HTTP/1.0 678 OK\r\n"   "\r\n",     expect_status{*this, 678});
-        good<false>("HTTP/1.0 999 OK\r\n"   "\r\n",     expect_status{*this, 999});
-        good<false>("HTTP/1.0 200 \tX\r\n"  "\r\n",     expect_version{*this, 10});
-        good<false>("HTTP/1.1 200  X\r\n"   "\r\n",     expect_version{*this, 11});
-        good<false>("HTTP/1.0 200 \r\n"     "\r\n");
-        good<false>("HTTP/1.1 200 X \r\n"   "\r\n");
-        good<false>("HTTP/1.1 200 X\t\r\n"  "\r\n");
-        good<false>("HTTP/1.1 200 \x80\x81...\xfe\xff\r\n\r\n");
-        good<false>("HTTP/1.1 200 !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\r\n\r\n");
+        using P = test_parser<false>;
 
-        bad<false>("\rHTTP/1.0 200 OK\r\n"  "\r\n",     error::bad_version);
-        bad<false>("\nHTTP/1.0 200 OK\r\n"  "\r\n",     error::bad_version);
-        bad<false>(" HTTP/1.0 200 OK\r\n"   "\r\n",     error::bad_version);
-        bad<false>("_TTP/1.0 200 OK\r\n"    "\r\n",     error::bad_version);
-        bad<false>("H_TP/1.0 200 OK\r\n"    "\r\n",     error::bad_version);
-        bad<false>("HT_P/1.0 200 OK\r\n"    "\r\n",     error::bad_version);
-        bad<false>("HTT_/1.0 200 OK\r\n"    "\r\n",     error::bad_version);
-        bad<false>("HTTP_1.0 200 OK\r\n"    "\r\n",     error::bad_version);
-        bad<false>("HTTP/01.2 200 OK\r\n"   "\r\n",     error::bad_version);
-        bad<false>("HTTP/3.45 200 OK\r\n"   "\r\n",     error::bad_version);
-        bad<false>("HTTP/67.89 200 OK\r\n"  "\r\n",     error::bad_version);
-        bad<false>("HTTP/x.0 200 OK\r\n"    "\r\n",     error::bad_version);
-        bad<false>("HTTP/1.x 200 OK\r\n"    "\r\n",     error::bad_version);
-        bad<false>("HTTP/1_0 200 OK\r\n"    "\r\n",     error::bad_version);
-        bad<false>("HTTP/1.0  200 OK\r\n"   "\r\n",     error::bad_status);
-        bad<false>("HTTP/1.0 0 OK\r\n"      "\r\n",     error::bad_status);
-        bad<false>("HTTP/1.0 12 OK\r\n"     "\r\n",     error::bad_status);
-        bad<false>("HTTP/1.0 3456 OK\r\n"   "\r\n",     error::bad_status);
-        bad<false>("HTTP/1.0 200\r\n"       "\r\n",     error::bad_status);
-        bad<false>("HTTP/1.0 200 \n\r\n"    "\r\n",     error::bad_reason);
-        bad<false>("HTTP/1.0 200 \x01\r\n"  "\r\n",     error::bad_reason);
-        bad<false>("HTTP/1.0 200 \x7f\r\n"  "\r\n",     error::bad_reason);
-        bad<false>("HTTP/1.0 200 OK\n\r\n"  "\r\n",     error::bad_reason);
-        bad<false>("HTTP/1.0 200 OK\r\r\n"  "\r\n",     error::bad_reason);
+        parsegrind<P>("HTTP/1.0 000 OK\r\n"   "\r\n",   expect_status{*this, 0});
+        parsegrind<P>("HTTP/1.1 012 OK\r\n"   "\r\n",   expect_status{*this, 12});
+        parsegrind<P>("HTTP/1.0 345 OK\r\n"   "\r\n",   expect_status{*this, 345});
+        parsegrind<P>("HTTP/1.0 678 OK\r\n"   "\r\n",   expect_status{*this, 678});
+        parsegrind<P>("HTTP/1.0 999 OK\r\n"   "\r\n",   expect_status{*this, 999});
+        parsegrind<P>("HTTP/1.0 200 \tX\r\n"  "\r\n",   expect_version{*this, 10});
+        parsegrind<P>("HTTP/1.1 200  X\r\n"   "\r\n",   expect_version{*this, 11});
+        parsegrind<P>("HTTP/1.0 200 \r\n"     "\r\n");
+        parsegrind<P>("HTTP/1.1 200 X \r\n"   "\r\n");
+        parsegrind<P>("HTTP/1.1 200 X\t\r\n"  "\r\n");
+        parsegrind<P>("HTTP/1.1 200 \x80\x81...\xfe\xff\r\n\r\n");
+        parsegrind<P>("HTTP/1.1 200 !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\r\n\r\n");
+
+        failgrind<P>("\rHTTP/1.0 200 OK\r\n"  "\r\n",   error::bad_version);
+        failgrind<P>("\nHTTP/1.0 200 OK\r\n"  "\r\n",   error::bad_version);
+        failgrind<P>(" HTTP/1.0 200 OK\r\n"   "\r\n",   error::bad_version);
+        failgrind<P>("_TTP/1.0 200 OK\r\n"    "\r\n",   error::bad_version);
+        failgrind<P>("H_TP/1.0 200 OK\r\n"    "\r\n",   error::bad_version);
+        failgrind<P>("HT_P/1.0 200 OK\r\n"    "\r\n",   error::bad_version);
+        failgrind<P>("HTT_/1.0 200 OK\r\n"    "\r\n",   error::bad_version);
+        failgrind<P>("HTTP_1.0 200 OK\r\n"    "\r\n",   error::bad_version);
+        failgrind<P>("HTTP/01.2 200 OK\r\n"   "\r\n",   error::bad_version);
+        failgrind<P>("HTTP/3.45 200 OK\r\n"   "\r\n",   error::bad_version);
+        failgrind<P>("HTTP/67.89 200 OK\r\n"  "\r\n",   error::bad_version);
+        failgrind<P>("HTTP/x.0 200 OK\r\n"    "\r\n",   error::bad_version);
+        failgrind<P>("HTTP/1.x 200 OK\r\n"    "\r\n",   error::bad_version);
+        failgrind<P>("HTTP/1_0 200 OK\r\n"    "\r\n",   error::bad_version);
+        failgrind<P>("HTTP/1.0  200 OK\r\n"   "\r\n",   error::bad_status);
+        failgrind<P>("HTTP/1.0 0 OK\r\n"      "\r\n",   error::bad_status);
+        failgrind<P>("HTTP/1.0 12 OK\r\n"     "\r\n",   error::bad_status);
+        failgrind<P>("HTTP/1.0 3456 OK\r\n"   "\r\n",   error::bad_status);
+        failgrind<P>("HTTP/1.0 200\r\n"       "\r\n",   error::bad_status);
+        failgrind<P>("HTTP/1.0 200 \n\r\n"    "\r\n",   error::bad_reason);
+        failgrind<P>("HTTP/1.0 200 \x01\r\n"  "\r\n",   error::bad_reason);
+        failgrind<P>("HTTP/1.0 200 \x7f\r\n"  "\r\n",   error::bad_reason);
+        failgrind<P>("HTTP/1.0 200 OK\n\r\n"  "\r\n",   error::bad_reason);
+        failgrind<P>("HTTP/1.0 200 OK\r\r\n"  "\r\n",   error::bad_line_ending);
     }
 
     void
@@ -437,489 +507,314 @@ public:
             {
                 return "GET / HTTP/1.1\r\n" + s + "\r\n";
             };
-        good<true>(m("f:\r\n"));
-        good<true>(m("f: \r\n"));
-        good<true>(m("f:\t\r\n"));
-        good<true>(m("f: \t\r\n"));
-        good<true>(m("f: v\r\n"));
-        good<true>(m("f:\tv\r\n"));
-        good<true>(m("f:\tv \r\n"));
-        good<true>(m("f:\tv\t\r\n"));
-        good<true>(m("f:\tv\t \r\n"));
-        good<true>(m("f:\r\n \r\n"));
-        good<true>(m("f:v\r\n"));
-        good<true>(m("f: v\r\n u\r\n"));
-        good<true>(m("!#$%&'*+-.^_`|~0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz: v\r\n"));
-        good<true>(m("f: !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\x80\x81...\xfe\xff\r\n"));
 
-        bad<true>(m(" f: v\r\n"),                   error::bad_field);
-        bad<true>(m("\tf: v\r\n"),                  error::bad_field);
-        bad<true>(m("f : v\r\n"),                   error::bad_field);
-        bad<true>(m("f\t: v\r\n"),                  error::bad_field);
-        bad<true>(m("f: \n\r\n"),                   error::bad_value);
-        bad<true>(m("f: v\r \r\n"),                 error::bad_line_ending);
-        bad<true>(m("f: \r v\r\n"),                 error::bad_line_ending);
-        bad<true>("GET / HTTP/1.1\r\n\r \n\r\n\r\n",error::bad_line_ending);
+        using P = test_parser<true>;
+
+        parsegrind<P>(m("f:\r\n"));
+        parsegrind<P>(m("f: \r\n"));
+        parsegrind<P>(m("f:\t\r\n"));
+        parsegrind<P>(m("f: \t\r\n"));
+        parsegrind<P>(m("f: v\r\n"));
+        parsegrind<P>(m("f:\tv\r\n"));
+        parsegrind<P>(m("f:\tv \r\n"));
+        parsegrind<P>(m("f:\tv\t\r\n"));
+        parsegrind<P>(m("f:\tv\t \r\n"));
+        parsegrind<P>(m("f:\r\n \r\n"));
+        parsegrind<P>(m("f:v\r\n"));
+        parsegrind<P>(m("f: v\r\n u\r\n"));
+        parsegrind<P>(m("!#$%&'*+-.^_`|~0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz: v\r\n"));
+        parsegrind<P>(m("f: !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\x80\x81...\xfe\xff\r\n"));
+
+        failgrind<P>(m(" f: v\r\n"),        error::bad_field);
+        failgrind<P>(m("\tf: v\r\n"),       error::bad_field);
+        failgrind<P>(m("f : v\r\n"),        error::bad_field);
+        failgrind<P>(m("f\t: v\r\n"),       error::bad_field);
+        failgrind<P>(m("f: \n\r\n"),        error::bad_value);
+        failgrind<P>(m("f: v\r \r\n"),      error::bad_line_ending);
+        failgrind<P>(m("f: \r v\r\n"),      error::bad_line_ending);
+        failgrind<P>(
+            "GET / HTTP/1.1\r\n"
+            "\r \n\r\n"
+            "\r\n",                         error::bad_line_ending);
     }
 
     void
     testConnectionField()
     {
-        auto const m =
-            [](std::string const& s)
-            {
-                return "GET / HTTP/1.1\r\n" + s + "\r\n";
-            };
-        auto const cn =
-            [](std::string const& s)
-            {
-                return "GET / HTTP/1.1\r\nConnection: " + s + "\r\n";
-            };
+        auto const m = [](std::string const& s)
+            { return "GET / HTTP/1.1\r\n" + s + "\r\n"; };
+        auto const cn = [](std::string const& s)
+            { return "GET / HTTP/1.1\r\nConnection: " + s + "\r\n"; };
     #if 0
-        auto const keepalive =
-            [&](bool v)
-            {
-                //return keepalive_f{*this, v};
-                return true;
-            };
+        auto const keepalive = [&](bool v)
+            { //return keepalive_f{*this, v}; return true; };
     #endif
 
-        good<true>(cn("close\r\n"),                         expect_flags{*this, parse_flag::connection_close});
-        good<true>(cn(",close\r\n"),                        expect_flags{*this, parse_flag::connection_close});
-        good<true>(cn(" close\r\n"),                        expect_flags{*this, parse_flag::connection_close});
-        good<true>(cn("\tclose\r\n"),                       expect_flags{*this, parse_flag::connection_close});
-        good<true>(cn("close,\r\n"),                        expect_flags{*this, parse_flag::connection_close});
-        good<true>(cn("close\t\r\n"),                       expect_flags{*this, parse_flag::connection_close});
-        good<true>(cn("close\r\n"),                         expect_flags{*this, parse_flag::connection_close});
-        good<true>(cn(" ,\t,,close,, ,\t,,\r\n"),           expect_flags{*this, parse_flag::connection_close});
-        good<true>(cn("\r\n close\r\n"),                    expect_flags{*this, parse_flag::connection_close});
-        good<true>(cn("close\r\n \r\n"),                    expect_flags{*this, parse_flag::connection_close});
-        good<true>(cn("any,close\r\n"),                     expect_flags{*this, parse_flag::connection_close});
-        good<true>(cn("close,any\r\n"),                     expect_flags{*this, parse_flag::connection_close});
-        good<true>(cn("any\r\n ,close\r\n"),                expect_flags{*this, parse_flag::connection_close});
-        good<true>(cn("close\r\n ,any\r\n"),                expect_flags{*this, parse_flag::connection_close});
-        good<true>(cn("close,close\r\n"),                   expect_flags{*this, parse_flag::connection_close}); // weird but allowed
+        using P = test_parser<true>;
 
-        good<true>(cn("keep-alive\r\n"),                    expect_flags{*this, parse_flag::connection_keep_alive});
-        good<true>(cn("keep-alive \r\n"),                   expect_flags{*this, parse_flag::connection_keep_alive});
-        good<true>(cn("keep-alive\t \r\n"),                 expect_flags{*this, parse_flag::connection_keep_alive});
-        good<true>(cn("keep-alive\t ,x\r\n"),               expect_flags{*this, parse_flag::connection_keep_alive});
-        good<true>(cn("\r\n keep-alive \t\r\n"),            expect_flags{*this, parse_flag::connection_keep_alive});
-        good<true>(cn("keep-alive \r\n \t \r\n"),           expect_flags{*this, parse_flag::connection_keep_alive});
-        good<true>(cn("keep-alive\r\n \r\n"),               expect_flags{*this, parse_flag::connection_keep_alive});
+        parsegrind<P>(cn("close\r\n"),                         expect_flags{*this, parse_flag::connection_close});
+        parsegrind<P>(cn(",close\r\n"),                        expect_flags{*this, parse_flag::connection_close});
+        parsegrind<P>(cn(" close\r\n"),                        expect_flags{*this, parse_flag::connection_close});
+        parsegrind<P>(cn("\tclose\r\n"),                       expect_flags{*this, parse_flag::connection_close});
+        parsegrind<P>(cn("close,\r\n"),                        expect_flags{*this, parse_flag::connection_close});
+        parsegrind<P>(cn("close\t\r\n"),                       expect_flags{*this, parse_flag::connection_close});
+        parsegrind<P>(cn("close\r\n"),                         expect_flags{*this, parse_flag::connection_close});
+        parsegrind<P>(cn(" ,\t,,close,, ,\t,,\r\n"),           expect_flags{*this, parse_flag::connection_close});
+        parsegrind<P>(cn("\r\n close\r\n"),                    expect_flags{*this, parse_flag::connection_close});
+        parsegrind<P>(cn("close\r\n \r\n"),                    expect_flags{*this, parse_flag::connection_close});
+        parsegrind<P>(cn("any,close\r\n"),                     expect_flags{*this, parse_flag::connection_close});
+        parsegrind<P>(cn("close,any\r\n"),                     expect_flags{*this, parse_flag::connection_close});
+        parsegrind<P>(cn("any\r\n ,close\r\n"),                expect_flags{*this, parse_flag::connection_close});
+        parsegrind<P>(cn("close\r\n ,any\r\n"),                expect_flags{*this, parse_flag::connection_close});
+        parsegrind<P>(cn("close,close\r\n"),                   expect_flags{*this, parse_flag::connection_close}); // weird but allowed
 
-        good<true>(cn("upgrade\r\n"),                       expect_flags{*this, parse_flag::connection_upgrade});
-        good<true>(cn("upgrade \r\n"),                      expect_flags{*this, parse_flag::connection_upgrade});
-        good<true>(cn("upgrade\t \r\n"),                    expect_flags{*this, parse_flag::connection_upgrade});
-        good<true>(cn("upgrade\t ,x\r\n"),                  expect_flags{*this, parse_flag::connection_upgrade});
-        good<true>(cn("\r\n upgrade \t\r\n"),               expect_flags{*this, parse_flag::connection_upgrade});
-        good<true>(cn("upgrade \r\n \t \r\n"),              expect_flags{*this, parse_flag::connection_upgrade});
-        good<true>(cn("upgrade\r\n \r\n"),                  expect_flags{*this, parse_flag::connection_upgrade});
+        parsegrind<P>(cn("keep-alive\r\n"),                    expect_flags{*this, parse_flag::connection_keep_alive});
+        parsegrind<P>(cn("keep-alive \r\n"),                   expect_flags{*this, parse_flag::connection_keep_alive});
+        parsegrind<P>(cn("keep-alive\t \r\n"),                 expect_flags{*this, parse_flag::connection_keep_alive});
+        parsegrind<P>(cn("keep-alive\t ,x\r\n"),               expect_flags{*this, parse_flag::connection_keep_alive});
+        parsegrind<P>(cn("\r\n keep-alive \t\r\n"),            expect_flags{*this, parse_flag::connection_keep_alive});
+        parsegrind<P>(cn("keep-alive \r\n \t \r\n"),           expect_flags{*this, parse_flag::connection_keep_alive});
+        parsegrind<P>(cn("keep-alive\r\n \r\n"),               expect_flags{*this, parse_flag::connection_keep_alive});
+
+        parsegrind<P>(cn("upgrade\r\n"),                       expect_flags{*this, parse_flag::connection_upgrade});
+        parsegrind<P>(cn("upgrade \r\n"),                      expect_flags{*this, parse_flag::connection_upgrade});
+        parsegrind<P>(cn("upgrade\t \r\n"),                    expect_flags{*this, parse_flag::connection_upgrade});
+        parsegrind<P>(cn("upgrade\t ,x\r\n"),                  expect_flags{*this, parse_flag::connection_upgrade});
+        parsegrind<P>(cn("\r\n upgrade \t\r\n"),               expect_flags{*this, parse_flag::connection_upgrade});
+        parsegrind<P>(cn("upgrade \r\n \t \r\n"),              expect_flags{*this, parse_flag::connection_upgrade});
+        parsegrind<P>(cn("upgrade\r\n \r\n"),                  expect_flags{*this, parse_flag::connection_upgrade});
 
         // VFALCO What's up with these?
-        //good<true>(cn("close,keep-alive\r\n"),              expect_flags{*this, parse_flag::connection_close | parse_flag::connection_keep_alive});
-        good<true>(cn("upgrade,keep-alive\r\n"),            expect_flags{*this, parse_flag::connection_upgrade | parse_flag::connection_keep_alive});
-        good<true>(cn("upgrade,\r\n keep-alive\r\n"),       expect_flags{*this, parse_flag::connection_upgrade | parse_flag::connection_keep_alive});
-        //good<true>(cn("close,keep-alive,upgrade\r\n"),      expect_flags{*this, parse_flag::connection_close | parse_flag::connection_keep_alive | parse_flag::connection_upgrade});
+        //parsegrind<P>(cn("close,keep-alive\r\n"),              expect_flags{*this, parse_flag::connection_close | parse_flag::connection_keep_alive});
+        parsegrind<P>(cn("upgrade,keep-alive\r\n"),            expect_flags{*this, parse_flag::connection_upgrade | parse_flag::connection_keep_alive});
+        parsegrind<P>(cn("upgrade,\r\n keep-alive\r\n"),       expect_flags{*this, parse_flag::connection_upgrade | parse_flag::connection_keep_alive});
+        //parsegrind<P>(cn("close,keep-alive,upgrade\r\n"),      expect_flags{*this, parse_flag::connection_close | parse_flag::connection_keep_alive | parse_flag::connection_upgrade});
 
-        good<true>("GET / HTTP/1.1\r\n\r\n",                expect_keepalive(*this, true));
-        good<true>("GET / HTTP/1.0\r\n\r\n",                expect_keepalive(*this, false));
-        good<true>("GET / HTTP/1.0\r\n"
+        parsegrind<P>("GET / HTTP/1.1\r\n\r\n",                expect_keepalive(*this, true));
+        parsegrind<P>("GET / HTTP/1.0\r\n\r\n",                expect_keepalive(*this, false));
+        parsegrind<P>("GET / HTTP/1.0\r\n"
                    "Connection: keep-alive\r\n\r\n",        expect_keepalive(*this, true));
-        good<true>("GET / HTTP/1.1\r\n"
+        parsegrind<P>("GET / HTTP/1.1\r\n"
                    "Connection: close\r\n\r\n",             expect_keepalive(*this, false));
 
-        good<true>(cn("x\r\n"),                             expect_flags{*this, 0});
-        good<true>(cn("x,y\r\n"),                           expect_flags{*this, 0});
-        good<true>(cn("x ,y\r\n"),                          expect_flags{*this, 0});
-        good<true>(cn("x\t,y\r\n"),                         expect_flags{*this, 0});
-        good<true>(cn("keep\r\n"),                          expect_flags{*this, 0});
-        good<true>(cn(",keep\r\n"),                         expect_flags{*this, 0});
-        good<true>(cn(" keep\r\n"),                         expect_flags{*this, 0});
-        good<true>(cn("\tnone\r\n"),                        expect_flags{*this, 0});
-        good<true>(cn("keep,\r\n"),                         expect_flags{*this, 0});
-        good<true>(cn("keep\t\r\n"),                        expect_flags{*this, 0});
-        good<true>(cn("keep\r\n"),                          expect_flags{*this, 0});
-        good<true>(cn(" ,\t,,keep,, ,\t,,\r\n"),            expect_flags{*this, 0});
-        good<true>(cn("\r\n keep\r\n"),                     expect_flags{*this, 0});
-        good<true>(cn("keep\r\n \r\n"),                     expect_flags{*this, 0});
-        good<true>(cn("closet\r\n"),                        expect_flags{*this, 0});
-        good<true>(cn(",closet\r\n"),                       expect_flags{*this, 0});
-        good<true>(cn(" closet\r\n"),                       expect_flags{*this, 0});
-        good<true>(cn("\tcloset\r\n"),                      expect_flags{*this, 0});
-        good<true>(cn("closet,\r\n"),                       expect_flags{*this, 0});
-        good<true>(cn("closet\t\r\n"),                      expect_flags{*this, 0});
-        good<true>(cn("closet\r\n"),                        expect_flags{*this, 0});
-        good<true>(cn(" ,\t,,closet,, ,\t,,\r\n"),          expect_flags{*this, 0});
-        good<true>(cn("\r\n closet\r\n"),                   expect_flags{*this, 0});
-        good<true>(cn("closet\r\n \r\n"),                   expect_flags{*this, 0});
-        good<true>(cn("clog\r\n"),                          expect_flags{*this, 0});
-        good<true>(cn("key\r\n"),                           expect_flags{*this, 0});
-        good<true>(cn("uptown\r\n"),                        expect_flags{*this, 0});
-        good<true>(cn("keeper\r\n \r\n"),                   expect_flags{*this, 0});
-        good<true>(cn("keep-alively\r\n \r\n"),             expect_flags{*this, 0});
-        good<true>(cn("up\r\n \r\n"),                       expect_flags{*this, 0});
-        good<true>(cn("upgrader\r\n \r\n"),                 expect_flags{*this, 0});
-        good<true>(cn("none\r\n"),                          expect_flags{*this, 0});
-        good<true>(cn("\r\n none\r\n"),                     expect_flags{*this, 0});
+        parsegrind<P>(cn("x\r\n"),                             expect_flags{*this, 0});
+        parsegrind<P>(cn("x,y\r\n"),                           expect_flags{*this, 0});
+        parsegrind<P>(cn("x ,y\r\n"),                          expect_flags{*this, 0});
+        parsegrind<P>(cn("x\t,y\r\n"),                         expect_flags{*this, 0});
+        parsegrind<P>(cn("keep\r\n"),                          expect_flags{*this, 0});
+        parsegrind<P>(cn(",keep\r\n"),                         expect_flags{*this, 0});
+        parsegrind<P>(cn(" keep\r\n"),                         expect_flags{*this, 0});
+        parsegrind<P>(cn("\tnone\r\n"),                        expect_flags{*this, 0});
+        parsegrind<P>(cn("keep,\r\n"),                         expect_flags{*this, 0});
+        parsegrind<P>(cn("keep\t\r\n"),                        expect_flags{*this, 0});
+        parsegrind<P>(cn("keep\r\n"),                          expect_flags{*this, 0});
+        parsegrind<P>(cn(" ,\t,,keep,, ,\t,,\r\n"),            expect_flags{*this, 0});
+        parsegrind<P>(cn("\r\n keep\r\n"),                     expect_flags{*this, 0});
+        parsegrind<P>(cn("keep\r\n \r\n"),                     expect_flags{*this, 0});
+        parsegrind<P>(cn("closet\r\n"),                        expect_flags{*this, 0});
+        parsegrind<P>(cn(",closet\r\n"),                       expect_flags{*this, 0});
+        parsegrind<P>(cn(" closet\r\n"),                       expect_flags{*this, 0});
+        parsegrind<P>(cn("\tcloset\r\n"),                      expect_flags{*this, 0});
+        parsegrind<P>(cn("closet,\r\n"),                       expect_flags{*this, 0});
+        parsegrind<P>(cn("closet\t\r\n"),                      expect_flags{*this, 0});
+        parsegrind<P>(cn("closet\r\n"),                        expect_flags{*this, 0});
+        parsegrind<P>(cn(" ,\t,,closet,, ,\t,,\r\n"),          expect_flags{*this, 0});
+        parsegrind<P>(cn("\r\n closet\r\n"),                   expect_flags{*this, 0});
+        parsegrind<P>(cn("closet\r\n \r\n"),                   expect_flags{*this, 0});
+        parsegrind<P>(cn("clog\r\n"),                          expect_flags{*this, 0});
+        parsegrind<P>(cn("key\r\n"),                           expect_flags{*this, 0});
+        parsegrind<P>(cn("uptown\r\n"),                        expect_flags{*this, 0});
+        parsegrind<P>(cn("keeper\r\n \r\n"),                   expect_flags{*this, 0});
+        parsegrind<P>(cn("keep-alively\r\n \r\n"),             expect_flags{*this, 0});
+        parsegrind<P>(cn("up\r\n \r\n"),                       expect_flags{*this, 0});
+        parsegrind<P>(cn("upgrader\r\n \r\n"),                 expect_flags{*this, 0});
+        parsegrind<P>(cn("none\r\n"),                          expect_flags{*this, 0});
+        parsegrind<P>(cn("\r\n none\r\n"),                     expect_flags{*this, 0});
 
-        good<true>(m("ConnectioX: close\r\n"),              expect_flags{*this, 0});
-        good<true>(m("Condor: close\r\n"),                  expect_flags{*this, 0});
-        good<true>(m("Connect: close\r\n"),                 expect_flags{*this, 0});
-        good<true>(m("Connections: close\r\n"),             expect_flags{*this, 0});
+        parsegrind<P>(m("ConnectioX: close\r\n"),              expect_flags{*this, 0});
+        parsegrind<P>(m("Condor: close\r\n"),                  expect_flags{*this, 0});
+        parsegrind<P>(m("Connect: close\r\n"),                 expect_flags{*this, 0});
+        parsegrind<P>(m("Connections: close\r\n"),             expect_flags{*this, 0});
 
-        good<true>(m("Proxy-Connection: close\r\n"),        expect_flags{*this, parse_flag::connection_close});
-        good<true>(m("Proxy-Connection: keep-alive\r\n"),   expect_flags{*this, parse_flag::connection_keep_alive});
-        good<true>(m("Proxy-Connection: upgrade\r\n"),      expect_flags{*this, parse_flag::connection_upgrade});
-        good<true>(m("Proxy-ConnectioX: none\r\n"),         expect_flags{*this, 0});
-        good<true>(m("Proxy-Connections: 1\r\n"),           expect_flags{*this, 0});
-        good<true>(m("Proxy-Connotes: see-also\r\n"),       expect_flags{*this, 0});
+        parsegrind<P>(m("Proxy-Connection: close\r\n"),        expect_flags{*this, parse_flag::connection_close});
+        parsegrind<P>(m("Proxy-Connection: keep-alive\r\n"),   expect_flags{*this, parse_flag::connection_keep_alive});
+        parsegrind<P>(m("Proxy-Connection: upgrade\r\n"),      expect_flags{*this, parse_flag::connection_upgrade});
+        parsegrind<P>(m("Proxy-ConnectioX: none\r\n"),         expect_flags{*this, 0});
+        parsegrind<P>(m("Proxy-Connections: 1\r\n"),           expect_flags{*this, 0});
+        parsegrind<P>(m("Proxy-Connotes: see-also\r\n"),       expect_flags{*this, 0});
 
-        bad<true>(cn("[\r\n"),                              error::bad_value);
-        bad<true>(cn("close[\r\n"),                         error::bad_value);
-        bad<true>(cn("close [\r\n"),                        error::bad_value);
-        bad<true>(cn("close, upgrade [\r\n"),               error::bad_value);
-        bad<true>(cn("upgrade[]\r\n"),                      error::bad_value);
-        bad<true>(cn("keep\r\n -alive\r\n"),                error::bad_value);
-        bad<true>(cn("keep-alive[\r\n"),                    error::bad_value);
-        bad<true>(cn("keep-alive []\r\n"),                  error::bad_value);
-        bad<true>(cn("no[ne]\r\n"),                         error::bad_value);
+        failgrind<P>(cn("[\r\n"),                              error::bad_value);
+        failgrind<P>(cn("close[\r\n"),                         error::bad_value);
+        failgrind<P>(cn("close [\r\n"),                        error::bad_value);
+        failgrind<P>(cn("close, upgrade [\r\n"),               error::bad_value);
+        failgrind<P>(cn("upgrade[]\r\n"),                      error::bad_value);
+        failgrind<P>(cn("keep\r\n -alive\r\n"),                error::bad_value);
+        failgrind<P>(cn("keep-alive[\r\n"),                    error::bad_value);
+        failgrind<P>(cn("keep-alive []\r\n"),                  error::bad_value);
+        failgrind<P>(cn("no[ne]\r\n"),                         error::bad_value);
     }
 
     void
     testContentLengthField()
     {
-        auto const length =
+        using P = test_parser<true>;
+        auto const c = [](std::string const& s)
+            { return "GET / HTTP/1.1\r\nContent-Length: " + s + "\r\n"; };
+        auto const m = [](std::string const& s)
+            { return "GET / HTTP/1.1\r\n" + s + "\r\n"; };
+        auto const check =
             [&](std::string const& s, std::uint64_t v)
             {
-                good<true>(s,
-                    [&](test_parser<true> const& p)
+                parsegrind<P>(c(s),
+                    [&](P const& p)
                     {
                         BEAST_EXPECT(p.content_length());
                         BEAST_EXPECT(p.content_length() && *p.content_length() == v);
                     }, true);
             };
-        auto const c =
-            [](std::string const& s)
-            {
-                return "GET / HTTP/1.1\r\nContent-Length: " + s + "\r\n";
-            };
-        auto const m =
-            [](std::string const& s)
-            {
-                return "GET / HTTP/1.1\r\n" + s + "\r\n";
-            };
 
-        length(c("0\r\n"),                                  0);
-        length(c("00\r\n"),                                 0);
-        length(c("1\r\n"),                                  1);
-        length(c("01\r\n"),                                 1);
-        length(c("9\r\n"),                                  9);
-        length(c("42 \r\n"),                                42);
-        length(c("42\t\r\n"),                               42);
-        length(c("42 \t \r\n"),                             42);
+        check("0\r\n",          0);
+        check("00\r\n",         0);
+        check("1\r\n",          1);
+        check("01\r\n",         1);
+        check("9\r\n",          9);
+        check("42 \r\n",        42);
+        check("42\t\r\n",       42);
+        check("42 \t \r\n",     42);
+        check("42\r\n \t \r\n", 42);
 
-        // VFALCO Investigate this failure
-        //length(c("42\r\n \t \r\n"),                         42);
+        parsegrind<P>(m("Content-LengtX: 0\r\n"),           expect_flags{*this, 0});
+        parsegrind<P>(m("Content-Lengths: many\r\n"),       expect_flags{*this, 0});
+        parsegrind<P>(m("Content: full\r\n"),               expect_flags{*this, 0});
 
-        good<true>(m("Content-LengtX: 0\r\n"),              expect_flags{*this, 0});
-        good<true>(m("Content-Lengths: many\r\n"),          expect_flags{*this, 0});
-        good<true>(m("Content: full\r\n"),                  expect_flags{*this, 0});
-
-        bad<true>(c("\r\n"),                                error::bad_content_length);
-        bad<true>(c("18446744073709551616\r\n"),            error::bad_content_length);
-        bad<true>(c("0 0\r\n"),                             error::bad_content_length);
-        bad<true>(c("0 1\r\n"),                             error::bad_content_length);
-        bad<true>(c(",\r\n"),                               error::bad_content_length);
-        bad<true>(c("0,\r\n"),                              error::bad_content_length);
-        bad<true>(m(
+        failgrind<P>(c("\r\n"),                             error::bad_content_length);
+        failgrind<P>(c("18446744073709551616\r\n"),         error::bad_content_length);
+        failgrind<P>(c("0 0\r\n"),                          error::bad_content_length);
+        failgrind<P>(c("0 1\r\n"),                          error::bad_content_length);
+        failgrind<P>(c(",\r\n"),                            error::bad_content_length);
+        failgrind<P>(c("0,\r\n"),                           error::bad_content_length);
+        failgrind<P>(m(
             "Content-Length: 0\r\nContent-Length: 0\r\n"),  error::bad_content_length);
     }
 
     void
     testTransferEncodingField()
     {
-        auto const m =
-            [](std::string const& s)
-            {
-                return "GET / HTTP/1.1\r\n" + s + "\r\n";
-            };
-        auto const ce =
-            [](std::string const& s)
-            {
-                return "GET / HTTP/1.1\r\nTransfer-Encoding: " + s + "\r\n0\r\n\r\n";
-            };
-        auto const te =
-            [](std::string const& s)
-            {
-                return "GET / HTTP/1.1\r\nTransfer-Encoding: " + s + "\r\n";
-            };
-        good<true>(ce("chunked\r\n"),                       expect_flags{*this, parse_flag::chunked});
-        good<true>(ce("chunked \r\n"),                      expect_flags{*this, parse_flag::chunked});
-        good<true>(ce("chunked\t\r\n"),                     expect_flags{*this, parse_flag::chunked});
-        good<true>(ce("chunked \t\r\n"),                    expect_flags{*this, parse_flag::chunked});
-        good<true>(ce(" chunked\r\n"),                      expect_flags{*this, parse_flag::chunked});
-        good<true>(ce("\tchunked\r\n"),                     expect_flags{*this, parse_flag::chunked});
-        good<true>(ce("chunked,\r\n"),                      expect_flags{*this, parse_flag::chunked});
-        good<true>(ce("chunked ,\r\n"),                     expect_flags{*this, parse_flag::chunked});
-        good<true>(ce("chunked, \r\n"),                     expect_flags{*this, parse_flag::chunked});
-        good<true>(ce(",chunked\r\n"),                      expect_flags{*this, parse_flag::chunked});
-        good<true>(ce(", chunked\r\n"),                     expect_flags{*this, parse_flag::chunked});
-        good<true>(ce(" ,chunked\r\n"),                     expect_flags{*this, parse_flag::chunked});
-        good<true>(ce("chunked\r\n \r\n"),                  expect_flags{*this, parse_flag::chunked});
-        good<true>(ce("\r\n chunked\r\n"),                  expect_flags{*this, parse_flag::chunked});
-        good<true>(ce(",\r\n chunked\r\n"),                 expect_flags{*this, parse_flag::chunked});
-        good<true>(ce("\r\n ,chunked\r\n"),                 expect_flags{*this, parse_flag::chunked});
-        good<true>(ce(",\r\n chunked\r\n"),                 expect_flags{*this, parse_flag::chunked});
-        good<true>(ce("gzip, chunked\r\n"),                 expect_flags{*this, parse_flag::chunked});
-        good<true>(ce("gzip, chunked \r\n"),                expect_flags{*this, parse_flag::chunked});
-        good<true>(ce("gzip, \r\n chunked\r\n"),            expect_flags{*this, parse_flag::chunked});
+        auto const m = [](std::string const& s)
+            { return "GET / HTTP/1.1\r\n" + s + "\r\n"; };
+        auto const ce = [](std::string const& s)
+            { return "GET / HTTP/1.1\r\nTransfer-Encoding: " + s + "\r\n0\r\n\r\n"; };
+        auto const te = [](std::string const& s)
+            { return "GET / HTTP/1.1\r\nTransfer-Encoding: " + s + "\r\n"; };
+
+        using P = test_parser<true>;
+
+        parsegrind<P>(ce("chunked\r\n"),                expect_flags{*this, parse_flag::chunked});
+        parsegrind<P>(ce("chunked \r\n"),               expect_flags{*this, parse_flag::chunked});
+        parsegrind<P>(ce("chunked\t\r\n"),              expect_flags{*this, parse_flag::chunked});
+        parsegrind<P>(ce("chunked \t\r\n"),             expect_flags{*this, parse_flag::chunked});
+        parsegrind<P>(ce(" chunked\r\n"),               expect_flags{*this, parse_flag::chunked});
+        parsegrind<P>(ce("\tchunked\r\n"),              expect_flags{*this, parse_flag::chunked});
+        parsegrind<P>(ce("chunked,\r\n"),               expect_flags{*this, parse_flag::chunked});
+        parsegrind<P>(ce("chunked ,\r\n"),              expect_flags{*this, parse_flag::chunked});
+        parsegrind<P>(ce("chunked, \r\n"),              expect_flags{*this, parse_flag::chunked});
+        parsegrind<P>(ce(",chunked\r\n"),               expect_flags{*this, parse_flag::chunked});
+        parsegrind<P>(ce(", chunked\r\n"),              expect_flags{*this, parse_flag::chunked});
+        parsegrind<P>(ce(" ,chunked\r\n"),              expect_flags{*this, parse_flag::chunked});
+        parsegrind<P>(ce("chunked\r\n \r\n"),           expect_flags{*this, parse_flag::chunked});
+        parsegrind<P>(ce("\r\n chunked\r\n"),           expect_flags{*this, parse_flag::chunked});
+        parsegrind<P>(ce(",\r\n chunked\r\n"),          expect_flags{*this, parse_flag::chunked});
+        parsegrind<P>(ce("\r\n ,chunked\r\n"),          expect_flags{*this, parse_flag::chunked});
+        parsegrind<P>(ce(",\r\n chunked\r\n"),          expect_flags{*this, parse_flag::chunked});
+        parsegrind<P>(ce("gzip, chunked\r\n"),          expect_flags{*this, parse_flag::chunked});
+        parsegrind<P>(ce("gzip, chunked \r\n"),         expect_flags{*this, parse_flag::chunked});
+        parsegrind<P>(ce("gzip, \r\n chunked\r\n"),     expect_flags{*this, parse_flag::chunked});
 
         // Technically invalid but beyond the parser's scope to detect
         // VFALCO Look into this
-        //good<true>(ce("custom;key=\",chunked\r\n"),         expect_flags{*this, parse_flag::chunked});
+        //parsegrind<P>(ce("custom;key=\",chunked\r\n"),  expect_flags{*this, parse_flag::chunked});
 
-        good<true>(te("gzip\r\n"),                          expect_flags{*this, 0});
-        good<true>(te("chunked, gzip\r\n"),                 expect_flags{*this, 0});
-        good<true>(te("chunked\r\n , gzip\r\n"),            expect_flags{*this, 0});
-        good<true>(te("chunked,\r\n gzip\r\n"),             expect_flags{*this, 0});
-        good<true>(te("chunked,\r\n ,gzip\r\n"),            expect_flags{*this, 0});
-        good<true>(te("bigchunked\r\n"),                    expect_flags{*this, 0});
-        good<true>(te("chunk\r\n ked\r\n"),                 expect_flags{*this, 0});
-        good<true>(te("bar\r\n ley chunked\r\n"),           expect_flags{*this, 0});
-        good<true>(te("barley\r\n chunked\r\n"),            expect_flags{*this, 0});
+        parsegrind<P>(te("gzip\r\n"),                   expect_flags{*this, 0});
+        parsegrind<P>(te("chunked, gzip\r\n"),          expect_flags{*this, 0});
+        parsegrind<P>(te("chunked\r\n , gzip\r\n"),     expect_flags{*this, 0});
+        parsegrind<P>(te("chunked,\r\n gzip\r\n"),      expect_flags{*this, 0});
+        parsegrind<P>(te("chunked,\r\n ,gzip\r\n"),     expect_flags{*this, 0});
+        parsegrind<P>(te("bigchunked\r\n"),             expect_flags{*this, 0});
+        parsegrind<P>(te("chunk\r\n ked\r\n"),          expect_flags{*this, 0});
+        parsegrind<P>(te("bar\r\n ley chunked\r\n"),    expect_flags{*this, 0});
+        parsegrind<P>(te("barley\r\n chunked\r\n"),     expect_flags{*this, 0});
 
-        good<true>(m("Transfer-EncodinX: none\r\n"),        expect_flags{*this, 0});
-        good<true>(m("Transfer-Encodings: 2\r\n"),          expect_flags{*this, 0});
-        good<true>(m("Transfer-Encoded: false\r\n"),        expect_flags{*this, 0});
+        parsegrind<P>(m("Transfer-EncodinX: none\r\n"), expect_flags{*this, 0});
+        parsegrind<P>(m("Transfer-Encodings: 2\r\n"),   expect_flags{*this, 0});
+        parsegrind<P>(m("Transfer-Encoded: false\r\n"), expect_flags{*this, 0});
 
-        bad<false>(
+        failgrind<test_parser<false>>(
             "HTTP/1.1 200 OK\r\n"
             "Content-Length: 1\r\n"
             "Transfer-Encoding: chunked\r\n"
-            "\r\n",                                         error::bad_transfer_encoding, true);
+            "\r\n",                                     error::bad_transfer_encoding);
     }
 
     void
     testUpgradeField()
     {
-        auto const m =
-            [](std::string const& s)
-            {
-                return "GET / HTTP/1.1\r\n" + s + "\r\n";
-            };
-        good<true>(m("Upgrade:\r\n"),                       expect_flags{*this, parse_flag::upgrade});
-        good<true>(m("Upgrade: \r\n"),                      expect_flags{*this, parse_flag::upgrade});
-        good<true>(m("Upgrade: yes\r\n"),                   expect_flags{*this, parse_flag::upgrade});
+        auto const m = [](std::string const& s)
+            { return "GET / HTTP/1.1\r\n" + s + "\r\n"; };
 
-        good<true>(m("Up: yes\r\n"),                        expect_flags{*this, 0});
-        good<true>(m("UpgradX: none\r\n"),                  expect_flags{*this, 0});
-        good<true>(m("Upgrades: 2\r\n"),                    expect_flags{*this, 0});
-        good<true>(m("Upsample: 4x\r\n"),                   expect_flags{*this, 0});
+        using P = test_parser<true>;
 
-        good<true>(
+        parsegrind<P>(m("Upgrade:\r\n"),                       expect_flags{*this, parse_flag::upgrade});
+        parsegrind<P>(m("Upgrade: \r\n"),                      expect_flags{*this, parse_flag::upgrade});
+        parsegrind<P>(m("Upgrade: yes\r\n"),                   expect_flags{*this, parse_flag::upgrade});
+
+        parsegrind<P>(m("Up: yes\r\n"),                        expect_flags{*this, 0});
+        parsegrind<P>(m("UpgradX: none\r\n"),                  expect_flags{*this, 0});
+        parsegrind<P>(m("Upgrades: 2\r\n"),                    expect_flags{*this, 0});
+        parsegrind<P>(m("Upsample: 4x\r\n"),                   expect_flags{*this, 0});
+
+        parsegrind<P>(
             "GET / HTTP/1.1\r\n"
             "Connection: upgrade\r\n"
             "Upgrade: WebSocket\r\n"
             "\r\n",
-            [&](test_parser<true> const& p)
+            [&](P const& p)
             {
                 BEAST_EXPECT(p.is_upgrade());
             });
     }
 
     void
-    testBody()
+    testPartial()
     {
-        using boost::asio::buffer;
-        good<true>(
+        // Make sure the slow-loris defense works and that
+        // we don't get duplicate or missing fields on a split.
+        parsegrind<test_parser<true>>(
             "GET / HTTP/1.1\r\n"
-            "Content-Length: 1\r\n"
-            "\r\n"
-            "1",
-            expect_body(*this, "1"));
-
-        good<false>(
-            "HTTP/1.0 200 OK\r\n"
-            "\r\n"
-            "hello",
-            expect_body(*this, "hello"));
-
-        // write the body in 3 pieces
-        {
-            error_code ec;
-            test_parser<true> p;
-            feed(buffer_cat(
-                buf("GET / HTTP/1.1\r\n"
-                    "Content-Length: 10\r\n"
-                    "\r\n"),
-                buf("12"),
-                buf("345"),
-                buf("67890")),
-                p, ec);
-            BEAST_EXPECTS(! ec, ec.message());
-            BEAST_EXPECT(p.is_done());
-        }
-
-        // request without Content-Length or
-        // Transfer-Encoding: chunked has no body.
-        {
-            error_code ec;
-            test_parser<true> p;
-            feed(buf(
-                "GET / HTTP/1.0\r\n"
-                "\r\n"
-                ), p, ec);
-            BEAST_EXPECTS(! ec, ec.message());
-            BEAST_EXPECT(p.is_done());
-        }
-        {
-            error_code ec;
-            test_parser<true> p;
-            feed(buf(
-                "GET / HTTP/1.1\r\n"
-                "\r\n"
-                ), p, ec);
-            BEAST_EXPECTS(! ec, ec.message());
-            BEAST_EXPECT(p.is_done());
-        }
-
-        // response without Content-Length or
-        // Transfer-Encoding: chunked requires eof.
-        {
-#if 0
-            error_code ec;
-            test_parser<false> p;
-            feed(buf(
-                "HTTP/1.0 200 OK\r\n"
-                "\r\n"
-                ), p, ec);
-            BEAST_EXPECTS(! ec, ec.message());
-            BEAST_EXPECT(! p.is_done());
-            BEAST_EXPECT(p.state() == parse_state::body_to_eof);
-            feed(buf(
-                "hello"
-                ), p, ec);
-            BEAST_EXPECTS(! ec, ec.message());
-            BEAST_EXPECT(! p.is_done());
-            BEAST_EXPECT(p.state() == parse_state::body_to_eof);
-            p.put_eof(ec);
-            BEAST_EXPECTS(! ec, ec.message());
-            BEAST_EXPECT(p.is_done());
-#endif
-        }
-
-        // 304 "Not Modified" response does not require eof
-        {
-            error_code ec;
-            test_parser<false> p;
-            feed(buf(
-                "HTTP/1.0 304 Not Modified\r\n"
-                "\r\n"
-                ), p, ec);
-            BEAST_EXPECTS(! ec, ec.message());
-            BEAST_EXPECT(p.is_done());
-        }
-
-        // Chunked response does not require eof
-        {
-            error_code ec;
-            test_parser<false> p;
-            feed(buf(
-                "HTTP/1.1 200 OK\r\n"
-                "Transfer-Encoding: chunked\r\n"
-                "\r\n"
-                ), p, ec);
-            BEAST_EXPECTS(! ec, ec.message());
-            BEAST_EXPECT(! p.is_done());
-            feed(buf(
-                "0\r\n\r\n"
-                ), p, ec);
-            BEAST_EXPECTS(! ec, ec.message());
-            BEAST_EXPECT(p.is_done());
-        }
-
-        // restart: 1.0 assumes Connection: close
-        {
-            error_code ec;
-            test_parser<true> p;
-            feed(buf(
-                "GET / HTTP/1.0\r\n"
-                "\r\n"
-                ), p, ec);
-            BEAST_EXPECTS(! ec, ec.message());
-            BEAST_EXPECT(p.is_done());
-        }
-
-        // restart: 1.1 assumes Connection: keep-alive
-        {
-            error_code ec;
-            test_parser<true> p;
-            feed(buf(
-                "GET / HTTP/1.1\r\n"
-                "\r\n"
-                ), p, ec);
-            BEAST_EXPECTS(! ec, ec.message());
-            BEAST_EXPECT(p.is_done());
-        }
-
-        bad<true>(
-            "GET / HTTP/1.1\r\n"
-            "Content-Length: 1\r\n"
+            "a: 0\r\n"
+            "b: 1\r\n"
+            "c: 2\r\n"
+            "d: 3\r\n"
+            "e: 4\r\n"
+            "f: 5\r\n"
+            "g: 6\r\n"
+            "h: 7\r\n"
+            "i: 8\r\n"
+            "j: 9\r\n"
             "\r\n",
-            error::partial_message);
-    }
-
-#if 0
-    template<bool isRequest>
-    void
-    check_header(
-        test_parser<isRequest> const& p)
-    {
-        BEAST_EXPECT(p.got_on_begin);
-        BEAST_EXPECT(p.got_on_field);
-        BEAST_EXPECT(p.got_on_header);
-        BEAST_EXPECT(! p.got_on_body);
-        BEAST_EXPECT(! p.got_on_chunk);
-        BEAST_EXPECT(! p.got_on_end_body);
-        BEAST_EXPECT(! p.got_on_complete);
-        BEAST_EXPECT(p.state() != parse_state::header);
-    }
-#endif
-
-    void
-    testSplit()
-    {
-        multi_buffer b;
-        ostream(b) << 
-            "POST / HTTP/1.1\r\n"
-            "Content-Length: 5\r\n"
-            "\r\n"
-            "*****";
-        error_code ec;
-        test_parser<true> p;
-        auto n = p.put(b.data(), ec);
-        BEAST_EXPECTS(! ec, ec.message());
-        BEAST_EXPECT(p.got_on_begin);
-        BEAST_EXPECT(p.got_on_field);
-        BEAST_EXPECT(p.got_on_header);
-        BEAST_EXPECT(! p.got_on_body);
-        BEAST_EXPECT(! p.got_on_chunk);
-        BEAST_EXPECT(! p.got_on_complete);
-        BEAST_EXPECT(! p.is_done());
-        BEAST_EXPECT(p.is_header_done());
-        BEAST_EXPECT(p.body.empty());
-        b.consume(n);
-        n = feed(b.data(), p, ec);
-        BEAST_EXPECTS(! ec, ec.message());
-        BEAST_EXPECT(p.got_on_begin);
-        BEAST_EXPECT(p.got_on_field);
-        BEAST_EXPECT(p.got_on_header);
-        BEAST_EXPECT(p.got_on_body);
-        BEAST_EXPECT(! p.got_on_chunk);
-        BEAST_EXPECT(p.got_on_complete);
-        BEAST_EXPECT(p.is_done());
-        BEAST_EXPECT(p.body == "*****");
+            [&](test_parser<true> const& p)
+            {
+                BEAST_EXPECT(p.fields.size() == 10);
+                BEAST_EXPECT(p.fields.at("a") == "0");
+                BEAST_EXPECT(p.fields.at("b") == "1");
+                BEAST_EXPECT(p.fields.at("c") == "2");
+                BEAST_EXPECT(p.fields.at("d") == "3");
+                BEAST_EXPECT(p.fields.at("e") == "4");
+                BEAST_EXPECT(p.fields.at("f") == "5");
+                BEAST_EXPECT(p.fields.at("g") == "6");
+                BEAST_EXPECT(p.fields.at("h") == "7");
+                BEAST_EXPECT(p.fields.at("i") == "8");
+                BEAST_EXPECT(p.fields.at("j") == "9");
+            });
     }
 
     void
@@ -984,54 +879,190 @@ public:
         }
     }
 
-
     //--------------------------------------------------------------------------
 
-    template<bool isRequest, class Derived>
-    void
-    put(basic_parser<isRequest, Derived>& p,
-        string_view s)
+    static
+    boost::asio::const_buffers_1
+    buf(string_view s)
     {
-        error_code ec;
-        auto const bytes_used = p.put(
-            boost::asio::buffer(s.data(), s.size()), ec);
-        BEAST_EXPECTS(! ec, ec.message());
-        BEAST_EXPECT(bytes_used == s.size());
+        return {s.data(), s.size()};
     }
+
+    template<class ConstBufferSequence, bool isRequest, class Derived>
+    std::size_t
+    feed(ConstBufferSequence const& buffers,
+        basic_parser<isRequest, Derived>& p, error_code& ec)
+    {
+        p.eager(true);
+        return p.put(buffers, ec);
+    }
+
+    void
+    testBody()
+    {
+        parsegrind<test_parser<false>>(
+            "HTTP/1.1 200 OK\r\n"
+            "Transfer-Encoding: chunked\r\n"
+            "Content-Type: application/octet-stream\r\n"
+            "\r\n"
+            "4\r\nabcd\r\n"
+            "0\r\n\r\n"
+            ,[&](test_parser<false> const& p)
+            {
+                BEAST_EXPECT(p.body == "abcd");
+            });
+        parsegrind<test_parser<false>>(
+            "HTTP/1.1 200 OK\r\n"
+            "Server: test\r\n"
+            "Expect: Expires, MD5-Fingerprint\r\n"
+            "Transfer-Encoding: chunked\r\n"
+            "\r\n"
+            "5\r\n"
+            "*****\r\n"
+            "2;a;b=1;c=\"2\"\r\n"
+            "--\r\n"
+            "0;d;e=3;f=\"4\"\r\n"
+            "Expires: never\r\n"
+            "MD5-Fingerprint: -\r\n"
+            "\r\n"
+            ,[&](test_parser<false> const& p)
+            {
+                BEAST_EXPECT(p.body == "*****--");
+            });
+
+        parsegrind<test_parser<true>>(
+            "GET / HTTP/1.1\r\n"
+            "Content-Length: 1\r\n"
+            "\r\n"
+            "1",
+            expect_body(*this, "1"));
+
+        parsegrind<test_parser<false>>(
+            "HTTP/1.0 200 OK\r\n"
+            "\r\n"
+            "hello",
+            expect_body(*this, "hello"));
+
+        parsegrind<test_parser<true>>(buffer_cat(
+            buf("GET / HTTP/1.1\r\n"
+                "Content-Length: 10\r\n"
+                "\r\n"),
+            buf("12"),
+            buf("345"),
+            buf("67890")));
+
+        // request without Content-Length or
+        // Transfer-Encoding: chunked has no body.
+        {
+            error_code ec;
+            test_parser<true> p;
+            feed(buf(
+                "GET / HTTP/1.0\r\n"
+                "\r\n"
+                ), p, ec);
+            BEAST_EXPECTS(! ec, ec.message());
+            BEAST_EXPECT(p.is_done());
+        }
+        {
+            error_code ec;
+            test_parser<true> p;
+            feed(buf(
+                "GET / HTTP/1.1\r\n"
+                "\r\n"
+                ), p, ec);
+            BEAST_EXPECTS(! ec, ec.message());
+            BEAST_EXPECT(p.is_done());
+        }
+
+        // response without Content-Length or
+        // Transfer-Encoding: chunked requires eof.
+        {
+            error_code ec;
+            test_parser<false> p;
+            feed(buf(
+                "HTTP/1.0 200 OK\r\n"
+                "\r\n"
+                ), p, ec);
+            BEAST_EXPECTS(! ec, ec.message());
+            BEAST_EXPECT(! p.is_done());
+            BEAST_EXPECT(p.need_eof());
+        }
+
+        // 304 "Not Modified" response does not require eof
+        {
+            error_code ec;
+            test_parser<false> p;
+            feed(buf(
+                "HTTP/1.0 304 Not Modified\r\n"
+                "\r\n"
+                ), p, ec);
+            BEAST_EXPECTS(! ec, ec.message());
+            BEAST_EXPECT(p.is_done());
+        }
+
+        // Chunked response does not require eof
+        {
+            error_code ec;
+            test_parser<false> p;
+            feed(buf(
+                "HTTP/1.1 200 OK\r\n"
+                "Transfer-Encoding: chunked\r\n"
+                "\r\n"
+                ), p, ec);
+            BEAST_EXPECTS(! ec, ec.message());
+            BEAST_EXPECT(! p.is_done());
+            feed(buf(
+                "0\r\n\r\n"
+                ), p, ec);
+            BEAST_EXPECTS(! ec, ec.message());
+            BEAST_EXPECT(p.is_done());
+        }
+
+        // restart: 1.0 assumes Connection: close
+        {
+            error_code ec;
+            test_parser<true> p;
+            feed(buf(
+                "GET / HTTP/1.0\r\n"
+                "\r\n"
+                ), p, ec);
+            BEAST_EXPECTS(! ec, ec.message());
+            BEAST_EXPECT(p.is_done());
+        }
+
+        // restart: 1.1 assumes Connection: keep-alive
+        {
+            error_code ec;
+            test_parser<true> p;
+            feed(buf(
+                "GET / HTTP/1.1\r\n"
+                "\r\n"
+                ), p, ec);
+            BEAST_EXPECTS(! ec, ec.message());
+            BEAST_EXPECT(p.is_done());
+        }
+
+        failgrind<test_parser<true>>(
+            "GET / HTTP/1.1\r\n"
+            "Content-Length: 1\r\n"
+            "\r\n",
+            error::partial_message);
+    }
+
+    //--------------------------------------------------------------------------
 
     // https://github.com/vinniefalco/Beast/issues/430
     void
     testIssue430()
     {
-        {
-            test_parser<false> p;
-            p.eager(true);
-            put(p,
-                "HTTP/1.1 200 OK\r\n"
-                "Transfer-Encoding: chunked\r\n"
-                "Content-Type: application/octet-stream\r\n"
-                "\r\n"
-                "4\r\nabcd\r\n"
-                "0\r\n\r\n"
-            );
-        }
-        {
-            test_parser<false> p;
-            p.eager(true);
-            put(p,
-                "HTTP/1.1 200 OK\r\n"
-                "Transfer-Encoding: chunked\r\n"
-                "Content-Type: application/octet-stream\r\n"
-                "\r\n"
-                "4\r\nabcd");
-            put(p,
-                "\r\n"
-                "0\r\n\r\n"
-            );
-        }
+        parsegrind<test_parser<false>>(
+            "HTTP/1.1 200 OK\r\n"
+            "Transfer-Encoding: chunked\r\n"
+            "Content-Type: application/octet-stream\r\n"
+            "\r\n"
+            "4\r\nabcd\r\n"
+            "0\r\n\r\n");
     }
-
-    //--------------------------------------------------------------------------
 
     // https://github.com/vinniefalco/Beast/issues/452
     void
@@ -1043,79 +1074,12 @@ public:
         string_view s =
             "GET / HTTP/1.1\r\n"
             "\r\n"
-            "die!"
-            ;
+            "die!";
         p.put(boost::asio::buffer(
             s.data(), s.size()), ec);
-        pass();
-    }
-
-    //--------------------------------------------------------------------------
-
-    template<class Parser, class Pred>
-    void
-    bufgrind(string_view s, Pred&& pred)
-    {
-        using boost::asio::buffer;
-        for(std::size_t n = 1; n < s.size() - 1; ++n)
-        {
-            Parser p;
-            p.eager(true);
-            error_code ec;
-            std::size_t used;
-            used = p.put(buffer(s.data(), n), ec);
-            if(ec == error::need_more)
-                continue;
-            if(! BEAST_EXPECTS(! ec, ec.message()))
-                continue;
-            if(! BEAST_EXPECT(used == n))
-                continue;
-            used = p.put(buffer(
-                s.data() + n, s.size() - n), ec);
-            if(! BEAST_EXPECTS(! ec, ec.message()))
-                continue;
-            if(! BEAST_EXPECT(used == s.size() -n))
-                continue;
-            if(! BEAST_EXPECT(p.is_done()))
-                continue;
-            pred(p);
-        }
-    }
-
-    void
-    testBufGrind()
-    {
-        bufgrind<test_parser<false>>(
-            "HTTP/1.1 200 OK\r\n"
-            "Transfer-Encoding: chunked\r\n"
-            "Content-Type: application/octet-stream\r\n"
-            "\r\n"
-            "4\r\nabcd\r\n"
-            "0\r\n\r\n"
-            ,[&](test_parser<false> const& p)
-            {
-                BEAST_EXPECT(p.body == "abcd");
-            });
-        bufgrind<test_parser<false>>(
-            "HTTP/1.1 200 OK\r\n"
-            "Server: test\r\n"
-            "Trailer: Expires, MD5-Fingerprint\r\n"
-            "Transfer-Encoding: chunked\r\n"
-            "\r\n"
-            "5\r\n"
-            "*****\r\n"
-            "2;a;b=1;c=\"2\"\r\n"
-            "--\r\n"
-            "0;d;e=3;f=\"4\"\r\n"
-            "Expires: never\r\n"
-            "MD5-Fingerprint: -\r\n"
-            "\r\n"
-            ,[&](test_parser<false>& p)
-            {
-                BEAST_EXPECT(p.body == "*****--");
-                BEAST_EXPECT(p.fields["Expires"] == "never");
-                BEAST_EXPECT(p.fields["MD5-Fingerprint"] == "-");
-            });
+        if(! BEAST_EXPECTS(! ec, ec.message()))
+            return;
+        BEAST_EXPECT(p.is_done());
     }
 
     // https://github.com/vinniefalco/Beast/issues/496
@@ -1123,14 +1087,15 @@ public:
     testIssue496()
     {
         // The bug affected hex parsing with leading zeroes
-        bufgrind<test_parser<false>>(
+        using P = test_parser<false>;
+        parsegrind<P>(
             "HTTP/1.1 200 OK\r\n"
             "Transfer-Encoding: chunked\r\n"
             "Content-Type: application/octet-stream\r\n"
             "\r\n"
             "0004\r\nabcd\r\n"
             "0\r\n\r\n"
-            ,[&](test_parser<false> const& p)
+            ,[&](P const& p)
             {
                 BEAST_EXPECT(p.body == "abcd");
             });
@@ -1142,6 +1107,7 @@ public:
     run() override
     {
         testFlatten();
+        testObsFold();
         testCallbacks();
         testRequestLine();
         testStatusLine();
@@ -1150,13 +1116,12 @@ public:
         testContentLengthField();
         testTransferEncodingField();
         testUpgradeField();
-        testBody();
-        testSplit();
+        testPartial();
         testLimits();
+        testBody();
         testIssue430();
         testIssue452();
         testIssue496();
-        testBufGrind();
     }
 };
 

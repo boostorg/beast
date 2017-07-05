@@ -18,12 +18,12 @@ to produce buffers until all of the buffers have been generated. Then the
 serializer is destroyed.
 
 To obtain the serialized next buffer sequence, call
-[link beast.ref.beast__http__serializer.get `serializer::get`].
+[link beast.ref.beast__http__serializer.next `serializer::next`].
 Then, call 
 [link beast.ref.beast__http__serializer.consume `serializer::consume`]
 to indicate the number of bytes consumed. This updates the next
 set of buffers to be returned, if any.
-`serializer::get` takes an error code parameter and invokes a visitor
+`serializer::next` takes an error code parameter and invokes a visitor
 argument with the error code and buffer of unspecified type. In C++14
 this is easily expressed with a generic lambda. The function
 [link beast.ref.beast__http__serializer.is_done `serializer::is_done`]
