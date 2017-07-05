@@ -5,6 +5,8 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
+#include "../common/root_certificates.hpp"
+
 #include <beast/core.hpp>
 #include <beast/websocket.hpp>
 #include <beast/websocket/ssl.hpp>
@@ -47,9 +49,16 @@ int main()
     if(ec)
         return fail("connect", ec);
 
+    // Create the required ssl context
+    ssl::context ctx{ssl::context::sslv23_client};
+    
+    // This holds the root certificate used for verification
+    load_root_certificates(ctx, ec);
+    if(ec)
+        return fail("certificate", ec);
+
     // Wrap the now-connected socket in an SSL stream
     using stream_type = ssl::stream<tcp::socket&>;
-    ssl::context ctx{ssl::context::sslv23};
     stream_type stream{sock, ctx};
     stream.set_verify_mode(ssl::verify_none);
 
