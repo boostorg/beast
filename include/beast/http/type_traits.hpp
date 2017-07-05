@@ -65,6 +65,7 @@ using is_body = detail::has_value_type<T>;
     {
         static_assert(is_body_reader<Body>::value,
             "Cannot serialize Body, no reader");
+    }
     @endcode
 */
 #if BEAST_DOXYGEN
@@ -111,6 +112,7 @@ struct is_body_reader<T, beast::detail::void_t<
     {
         static_assert(is_body_writer<Body>::value,
             "Cannot parse Body, no writer");
+    }
     @endcode
 */
 #if BEAST_DOXYGEN
