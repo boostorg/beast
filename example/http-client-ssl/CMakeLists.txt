@@ -1,11 +1,12 @@
 # Part of Beast
 
 GroupSources(include/beast beast)
-
+GroupSources(example/common common)
 GroupSources(example/http-client-ssl "/")
 
 add_executable (http-client-ssl
     ${BEAST_INCLUDES}
+    ${COMMON_INCLUDES}
     http_client_ssl.cpp
 )
 
