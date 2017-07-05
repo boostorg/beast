@@ -2,6 +2,7 @@ Version 73:
 
 * Jamroot tweak
 * Verify certificates in SSL clients
+* Adjust benchmarks
 
 HTTP:
 

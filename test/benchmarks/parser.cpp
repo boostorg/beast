@@ -126,6 +126,7 @@ public:
             for(auto const& b : v)
             {
                 Parser p;
+                p.header_limit((std::numeric_limits<std::size_t>::max)());
                 error_code ec;
                 feed(b.data(), p, ec);
                 if(! BEAST_EXPECTS(! ec, ec.message()))
@@ -224,7 +225,7 @@ public:
     void
     testSpeed()
     {
-        static std::size_t constexpr Trials = 10;
+        static std::size_t constexpr Trials = 5;
         static std::size_t constexpr Repeat = 500;
 
         creq_ = build_corpus(N/2, std::true_type{});
@@ -259,7 +260,7 @@ public:
                     false, dynamic_body, fields>>(
                         Repeat, cres_);
             });
-#if 0
+#if 1
         timedTest(Trials, "nodejs_parser",
             [&]
             {
