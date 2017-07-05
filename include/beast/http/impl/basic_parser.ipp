@@ -375,7 +375,7 @@ parse_start_line(
     if(ec)
         return;
 
-    int version;
+    int version = 0;
     parse_version(p, last, version, ec);
     if(ec)
         return;
@@ -424,7 +424,7 @@ parse_start_line(
 */
     auto p = in;
 
-    int version;
+    int version = 0;
     parse_version(p, last, version, ec);
     if(ec)
         return;
