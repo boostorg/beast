@@ -21,6 +21,7 @@ unit-test core-tests :
     error.cpp
     file.cpp
     file_stdio.cpp
+    file_win32.cpp
     flat_buffer.cpp
     handler_alloc.cpp
     handler_ptr.cpp
