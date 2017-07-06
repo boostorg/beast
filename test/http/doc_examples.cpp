@@ -6,7 +6,6 @@
 //
 
 #include "example/doc/http_examples.hpp"
-#include "example/common/file_body.hpp"
 #include "example/common/const_body.hpp"
 #include "example/common/mutable_body.hpp"
 
@@ -286,62 +285,6 @@ public:
         BEAST_EXPECT(h.body == "Hello, world!");
     }
 
-    //--------------------------------------------------------------------------
-
-    void
-    doFileBody()
-    {
-        test::pipe c{ios_};
-
-        boost::filesystem::path const path = "temp.txt";
-        std::string const body = "Hello, world!\n";
-        {
-            request<string_body> req;
-            req.version = 11;
-            req.method(verb::put);
-            req.target("/");
-            req.body = body;
-            req.prepare_payload();
-            write(c.client, req);
-        }
-        {
-            flat_buffer b;
-            request_parser<empty_body> p0;
-            read_header(c.server, b, p0);
-            BEAST_EXPECTS(p0.get().method() == verb::put,
-                p0.get().method_string());
-            {
-                error_code ec;
-                request_parser<file_body> p{std::move(p0)};
-                p.get().body.open(path, "wb", ec);
-                if(ec)
-                    BOOST_THROW_EXCEPTION(system_error{ec});
-                read(c.server, b, p);
-            }
-        }
-        {
-            error_code ec;
-            response<file_body> res;
-            res.version = 11;
-            res.result(status::ok);
-            res.insert(field::server, "test");
-            res.body.open(path, "rb", ec);
-            if(ec)
-                BOOST_THROW_EXCEPTION(system_error{ec});
-            res.set(field::content_length, res.body.size());
-            write(c.server, res);
-        }
-        {
-            flat_buffer b;
-            response<string_body> res;
-            read(c.client, b, res);
-            BEAST_EXPECTS(res.body == body, body);
-        }
-        error_code ec;
-        boost::filesystem::remove(path, ec);
-        BEAST_EXPECTS(! ec, ec.message());
-    }
-
     void
     doConstAndMutableBody()
     {
@@ -424,7 +367,6 @@ public:
         doCustomParser();
         doHEAD();
         doDeferredBody();
-        doFileBody();
         doConstAndMutableBody();
         doIncrementalRead();
     }
