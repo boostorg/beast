@@ -7,7 +7,6 @@
 
 exe common-test :
     detect_ssl.cpp
-    file_body.cpp
     mime_types.cpp
     rfc7231.cpp
     ssl_stream.cpp
