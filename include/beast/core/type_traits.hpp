@@ -9,6 +9,7 @@
 #define BEAST_TYPE_TRAITS_HPP
 
 #include <beast/config.hpp>
+#include <beast/core/file_base.hpp>
 #include <beast/core/detail/type_traits.hpp>
 #include <boost/asio/buffer.hpp>
 #include <type_traits>
@@ -556,6 +557,75 @@ struct is_sync_stream : std::integral_constant<bool, ...>{};
 template<class T>
 using is_sync_stream = std::integral_constant<bool,
     is_sync_read_stream<T>::value && is_sync_write_stream<T>::value>;
+#endif
+
+//------------------------------------------------------------------------------
+//
+// File concepts
+//
+//------------------------------------------------------------------------------
+
+/** Determine if `T` meets the requirements of @b File.
+
+    Metafunctions are used to perform compile time checking of template
+    types. This type will be `std::true_type` if `T` meets the requirements,
+    else the type will be `std::false_type`. 
+
+    @par Example
+
+    Use with `static_assert`:
+
+    @code
+    template<class File>
+    void f(File& file)
+    {
+        static_assert(is_file<File>::value,
+            "File requirements not met");
+    ...
+    @endcode
+
+    Use with `std::enable_if` (SFINAE):
+
+    @code
+    template<class File>
+    typename std::enable_if<is_file<File>::value>::type
+    f(File& file);
+    @endcode
+*/
+#if BEAST_DOXYGEN
+template<class T>
+struct is_file : std::integral_constant<bool, ...>{};
+#else
+template<class T, class = void>
+struct is_file : std::false_type {};
+
+template<class T>
+struct is_file<T, detail::void_t<decltype(
+    std::declval<bool&>() = std::declval<T const&>().is_open(),
+    std::declval<T&>().close(std::declval<error_code&>()),
+    std::declval<T&>().open(
+        std::declval<char const*>(),
+        std::declval<file_mode>(),
+        std::declval<error_code&>()),
+    std::declval<std::uint64_t&>() = std::declval<T&>().size(
+        std::declval<error_code&>()),
+    std::declval<std::uint64_t&>() = std::declval<T&>().pos(
+        std::declval<error_code&>()),
+    std::declval<T&>().seek(
+        std::declval<std::uint64_t>(),
+        std::declval<error_code&>()),
+    std::declval<std::size_t&>() = std::declval<T&>().read(
+        std::declval<void*>(),
+        std::declval<std::size_t>(),
+        std::declval<error_code&>()),
+    std::declval<std::size_t&>() = std::declval<T&>().write(
+        std::declval<void const*>(),
+        std::declval<std::size_t>(),
+        std::declval<error_code&>()),
+            (void)0)>> : std::integral_constant<bool,
+    std::is_default_constructible<T>::value &&
+    std::is_destructible<T>::value
+        > {};
 #endif
 
 } // beast

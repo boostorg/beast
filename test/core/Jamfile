@@ -19,6 +19,8 @@ unit-test core-tests :
     doc_snippets.cpp
     drain_buffer.cpp
     error.cpp
+    file.cpp
+    file_stdio.cpp
     flat_buffer.cpp
     handler_alloc.cpp
     handler_ptr.cpp
