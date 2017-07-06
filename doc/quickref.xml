@@ -173,11 +173,13 @@
             <member><link linkend="beast.ref.beast__error_category">error_category</link></member>
             <member><link linkend="beast.ref.beast__error_code">error_code</link></member>
             <member><link linkend="beast.ref.beast__error_condition">error_condition</link></member>
+            <member><link linkend="beast.ref.beast__file">file</link></member>
           </simplelist>
         </entry>
         <entry valign="top">
           <bridgehead renderas="sect3">&nbsp;</bridgehead>
           <simplelist type="vert" columns="1">
+            <member><link linkend="beast.ref.beast__file_stdio">file_stdio</link></member>
             <member><link linkend="beast.ref.beast__flat_buffer">flat_buffer</link></member>
             <member><link linkend="beast.ref.beast__handler_alloc">handler_alloc</link></member>
             <member><link linkend="beast.ref.beast__handler_ptr">handler_ptr</link></member>
@@ -211,6 +213,7 @@
           <bridgehead renderas="sect3">Constants</bridgehead>
           <simplelist type="vert" columns="1">
             <member><link linkend="beast.ref.beast__errc">errc</link></member>
+            <member><link linkend="beast.ref.beast__file_mode">file_mode</link></member>
           </simplelist>
         </entry>
         <entry valign="top">
@@ -224,6 +227,7 @@
             <member><link linkend="beast.ref.beast__is_completion_handler">is_completion_handler</link></member>
             <member><link linkend="beast.ref.beast__is_const_buffer_sequence">is_const_buffer_sequence</link></member>
             <member><link linkend="beast.ref.beast__is_dynamic_buffer">is_dynamic_buffer</link></member>
+            <member><link linkend="beast.ref.beast__is_file">is_file</link></member>
             <member><link linkend="beast.ref.beast__is_mutable_buffer_sequence">is_mutable_buffer_sequence</link></member>
             <member><link linkend="beast.ref.beast__is_sync_read_stream">is_sync_read_stream</link></member>
             <member><link linkend="beast.ref.beast__is_sync_stream">is_sync_stream</link></member>
@@ -236,6 +240,7 @@
             <member><link linkend="beast.concept.streams.AsyncStream">AsyncStream</link></member>
             <member><link linkend="beast.concept.BufferSequence">BufferSequence</link></member>
             <member><link linkend="beast.concept.DynamicBuffer">DynamicBuffer</link></member>
+            <member><link linkend="beast.concept.File">File</link></member>
             <member><link linkend="beast.concept.streams.Stream">Stream</link></member>
             <member><link linkend="beast.concept.streams.SyncStream">SyncStream</link></member>
           </simplelist>
