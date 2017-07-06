@@ -11,11 +11,12 @@ add_executable (core-tests
     ${EXAMPLE_INCLUDES}
     ${EXTRAS_INCLUDES}
     ../../extras/beast/unit_test/main.cpp
+    buffer_test.hpp
+    file_test.hpp
     async_result.cpp
     bind_handler.cpp
     buffer_cat.cpp
     buffer_prefix.cpp
-    buffer_test.hpp
     buffered_read_stream.cpp
     buffers_adapter.cpp
     clamp.cpp
@@ -26,7 +27,7 @@ add_executable (core-tests
     error.cpp
     file.cpp
     file_stdio.cpp
-    file_test.hpp
+    file_win32.cpp
     flat_buffer.cpp
     handler_alloc.cpp
     handler_ptr.cpp
