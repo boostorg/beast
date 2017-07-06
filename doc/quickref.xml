@@ -30,6 +30,7 @@
           <bridgehead renderas="sect3">Classes</bridgehead>
           <simplelist type="vert" columns="1">
             <member><link linkend="beast.ref.beast__http__basic_dynamic_body">basic_dynamic_body</link></member>
+            <member><link linkend="beast.ref.beast__http__basic_file_body">basic_file_body</link></member>
             <member><link linkend="beast.ref.beast__http__basic_fields">basic_fields</link></member>
             <member><link linkend="beast.ref.beast__http__basic_parser">basic_parser</link></member>
             <member><link linkend="beast.ref.beast__http__buffer_body">buffer_body</link></member>

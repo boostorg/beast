@@ -79,12 +79,12 @@
 [def __static_buffer_n__        [link beast.ref.beast__static_buffer_n `static_buffer_n`]]
 
 [import ../example/common/detect_ssl.hpp]
-[import ../example/common/file_body.hpp]
 [import ../example/doc/http_examples.hpp]
 [import ../example/echo-op/echo_op.cpp]
 [import ../example/http-client/http_client.cpp]
 [import ../example/websocket-client/websocket_client.cpp]
 
+[import ../include/beast/http/file_body.hpp]
 
 [import ../test/exemplars.cpp]
 [import ../test/core/doc_snippets.cpp]
