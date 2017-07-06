@@ -1,3 +1,9 @@
+Version 74:
+
+* Add file_stdio and File concept
+
+--------------------------------------------------------------------------------
+
 Version 73:
 
 * Jamroot tweak

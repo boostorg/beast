@@ -19,6 +19,9 @@
 #include <beast/core/consuming_buffers.hpp>
 #include <beast/core/drain_buffer.hpp>
 #include <beast/core/error.hpp>
+#include <beast/core/file.hpp>
+#include <beast/core/file_base.hpp>
+#include <beast/core/file_stdio.hpp>
 #include <beast/core/flat_buffer.hpp>
 #include <beast/core/handler_alloc.hpp>
 #include <beast/core/handler_ptr.hpp>

@@ -24,6 +24,9 @@ add_executable (core-tests
     doc_snippets.cpp
     drain_buffer.cpp
     error.cpp
+    file.cpp
+    file_stdio.cpp
+    file_test.hpp
     flat_buffer.cpp
     handler_alloc.cpp
     handler_ptr.cpp

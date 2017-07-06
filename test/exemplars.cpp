@@ -6,6 +6,7 @@
 //
 
 #include <beast/core/error.hpp>
+#include <beast/core/file_base.hpp>
 #include <beast/http/message.hpp>
 #include <beast/http/type_traits.hpp>
 #include <boost/optional.hpp>
@@ -243,6 +244,57 @@ struct FieldsReader
 
 //]
 };
+
+//[concept_File
+
+struct File
+{
+    /** Default constructor
+
+        There is no open file initially.
+    */
+    File();
+
+    /** Destructor
+
+        If the file is open it is first closed.
+    */
+    ~File();
+
+    /// Returns `true` if the file is open
+    bool
+    is_open() const;
+
+    /// Close the file if open
+    void
+    close(error_code& ec);
+
+    /// Open a file at the given path with the specified mode
+    void
+    open(char const* path, file_mode mode, error_code& ec);
+
+    /// Return the size of the open file
+    std::uint64_t
+    size(error_code& ec) const;
+
+    /// Return the current position in the open file
+    std::uint64_t
+    pos(error_code& ec) const;
+
+    /// Adjust the current position in the open file
+    void
+    seek(std::uint64_t offset, error_code& ec);
+
+    /// Read from the open file
+    std::size_t
+    read(void* buffer, std::size_t n, error_code& ec) const;
+
+    /// Write to the open file
+    std::size_t
+    write(void const* buffer, std::size_t n, error_code& ec);
+};
+
+//]
 
 } // http
 } // beast
