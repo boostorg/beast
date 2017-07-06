@@ -180,6 +180,7 @@
         <entry valign="top">
           <bridgehead renderas="sect3">&nbsp;</bridgehead>
           <simplelist type="vert" columns="1">
+            <member><link linkend="beast.ref.beast__file_posix">file_posix</link></member>
             <member><link linkend="beast.ref.beast__file_stdio">file_stdio</link></member>
             <member><link linkend="beast.ref.beast__file_win32">file_win32</link></member>
             <member><link linkend="beast.ref.beast__flat_buffer">flat_buffer</link></member>

@@ -26,6 +26,7 @@ add_executable (core-tests
     drain_buffer.cpp
     error.cpp
     file.cpp
+    file_posix.cpp
     file_stdio.cpp
     file_win32.cpp
     flat_buffer.cpp
