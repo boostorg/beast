@@ -148,9 +148,9 @@ target_link_libraries (${PROJECT_NAME} INTERFACE ${Boost_SYSTEM_LIBRARY})
 if (NOT MSVC)
     target_link_libraries (${PROJECT_NAME} INTERFACE Threads::Threads)
 endif()
-set_property (TARGET ${PROJECT_NAME} PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${Boost_INCLUDE_DIRS})
-set_property (TARGET ${PROJECT_NAME} PROPERTY  INTERFACE_SYSTEM_INCLUDE_DIRECTORIES ${Boost_INCLUDE_DIRS})
 target_compile_definitions (${PROJECT_NAME} INTERFACE BOOST_COROUTINES_NO_DEPRECATION_WARNING=1)
+target_include_directories(${PROJECT_NAME} INTERFACE ${PROJECT_SOURCE_DIR}/include)
+target_include_directories(${PROJECT_NAME} SYSTEM INTERFACE ${Boost_INCLUDE_DIRS})
 
 #-------------------------------------------------------------------------------
 #
