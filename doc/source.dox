@@ -285,6 +285,7 @@ INCLUDE_FILE_PATTERNS  =
 
 PREDEFINED             = \
                         BEAST_DOXYGEN \
+                        BEAST_USE_POSIX_FILE=1 \
                         BEAST_USE_WIN32_FILE=1
 
 EXPAND_AS_DEFINED      =
