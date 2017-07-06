@@ -4,6 +4,7 @@ Version 74:
 * Add file_win32
 * Add file_body
 * Remove common/file_body.hpp
+* Add file_posix
 
 --------------------------------------------------------------------------------
 

@@ -9,6 +9,7 @@
 #define BEAST_CORE_FILE_HPP
 
 #include <beast/core/file_base.hpp>
+#include <beast/core/file_posix.hpp>
 #include <beast/core/file_stdio.hpp>
 #include <beast/core/file_win32.hpp>
 #include <boost/config.hpp>
@@ -20,12 +21,16 @@ namespace beast {
     This alias is set to the best available implementation
     of @b File given the platform and build settings.
 */
-#if defined(BOOST_MSVC) && BEAST_USE_WIN32_FILE
+#if BEAST_DOXYGEN
+using file = implementation_defined;
+#else
+#if BEAST_USE_WIN32_FILE
 using file = file_win32;
-
+#elif BEAST_USE_POSIX_FILE
+using file = file_posix;
 #else
 using file = file_stdio;
-
+#endif
 #endif
 
 } // beast
