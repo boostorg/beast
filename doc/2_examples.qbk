@@ -154,7 +154,6 @@ stand alone can be directly included in your projects.
 
 * [repo_file example/common/const_body.hpp]
 * [repo_file example/common/detect_ssl.hpp]
-* [repo_file example/common/file_body.hpp]
 * [repo_file example/common/helpers.hpp]
 * [repo_file example/common/mime_types.hpp]
 * [repo_file example/common/mutable_body.hpp]
