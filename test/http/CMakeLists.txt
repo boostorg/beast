@@ -22,6 +22,7 @@ add_executable (http-tests
     error.cpp
     field.cpp
     fields.cpp
+    file_body.cpp
     message.cpp
     parser.cpp
     read.cpp

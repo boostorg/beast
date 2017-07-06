@@ -2,6 +2,7 @@ Version 74:
 
 * Add file_stdio and File concept
 * Add file_win32
+* Add file_body
 
 --------------------------------------------------------------------------------
 
