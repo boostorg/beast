@@ -285,7 +285,7 @@ INCLUDE_FILE_PATTERNS  =
 
 PREDEFINED             = \
                         BEAST_DOXYGEN \
-                        BEAST_INITFN_RESULT_TYPE(t,a)=void_or_deduced
+                        BEAST_USE_WIN32_FILE=1
 
 EXPAND_AS_DEFINED      =
 SKIP_FUNCTION_MACROS   = YES
