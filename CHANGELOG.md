@@ -5,6 +5,7 @@ Version 74:
 * Add file_body
 * Remove common/file_body.hpp
 * Add file_posix
+* Fix Beast include directories for cmake targets
 
 --------------------------------------------------------------------------------
 
