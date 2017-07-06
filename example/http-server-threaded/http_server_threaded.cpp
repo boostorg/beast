@@ -5,7 +5,6 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#include "../common/file_body.hpp"
 #include "../common/mime_types.hpp"
 
 #include <beast/core.hpp>
@@ -71,12 +70,12 @@ private:
 
     // Return an HTTP Not Found response
     //
-    beast::http::response<beast::http::string_body>
+    http::response<http::string_body>
     not_found() const
     {
-        beast::http::response<beast::http::string_body> res{beast::http::status::not_found, 11};
-        res.set(beast::http::field::server, BEAST_VERSION_STRING);
-        res.set(beast::http::field::content_type, "text/html");
+        http::response<http::string_body> res{http::status::not_found, 11};
+        res.set(http::field::server, BEAST_VERSION_STRING);
+        res.set(http::field::content_type, "text/html");
         res.set(http::field::connection, "close");
         res.body = "The file was not found";
         res.prepare_payload();
@@ -85,12 +84,12 @@ private:
 
     // Return an HTTP Server Error
     //
-    beast::http::response<beast::http::string_body>
+    http::response<http::string_body>
     server_error(beast::error_code const& ec) const
     {
-        beast::http::response<beast::http::string_body> res{beast::http::status::internal_server_error, 11};
-        res.set(beast::http::field::server, BEAST_VERSION_STRING);
-        res.set(beast::http::field::content_type, "text/html");
+        http::response<http::string_body> res{http::status::internal_server_error, 11};
+        res.set(http::field::server, BEAST_VERSION_STRING);
+        res.set(http::field::content_type, "text/html");
         res.set(http::field::connection, "close");
         res.body = "Error: " + ec.message();
         res.prepare_payload();
@@ -99,18 +98,18 @@ private:
 
     // Return a file response to an HTTP GET request
     //
-    beast::http::response<file_body>
+    http::response<beast::http::file_body>
     get(boost::filesystem::path const& full_path,
         beast::error_code& ec) const
     {
-        beast::http::response<file_body> res;
-        res.set(beast::http::field::server, BEAST_VERSION_STRING);
-        res.set(beast::http::field::content_type, mime_type(full_path));
+        http::response<http::file_body> res;
+        res.set(http::field::server, BEAST_VERSION_STRING);
+        res.set(http::field::content_type, mime_type(full_path));
         res.set(http::field::connection, "close");
-        res.body.open(full_path, "rb", ec);
+        res.body.open(full_path.string<std::string>().c_str(), beast::file_mode::scan, ec);
         if(ec)
             return res;
-        res.set(beast::http::field::content_length, res.body.size());
+        res.set(http::field::content_length, res.body.size());
         return res;
     }
 
