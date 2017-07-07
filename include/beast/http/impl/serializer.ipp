@@ -52,11 +52,20 @@ do_visit(error_code& ec, Visit& visit)
         boost::get<T1>(pv_)));
 }
 
+//------------------------------------------------------------------------------
+
 template<bool isRequest, class Body,
     class Fields, class ChunkDecorator>
 serializer<isRequest, Body, Fields, ChunkDecorator>::
-serializer(message<isRequest, Body, Fields> const& m,
-        ChunkDecorator const& d)
+serializer(value_type& m)
+    : m_(m)
+{
+}
+
+template<bool isRequest, class Body,
+    class Fields, class ChunkDecorator>
+serializer<isRequest, Body, Fields, ChunkDecorator>::
+serializer(value_type& m, ChunkDecorator const& d)
     : m_(m)
     , d_(d)
 {

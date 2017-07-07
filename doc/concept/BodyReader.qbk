@@ -29,7 +29,7 @@ In this table:
 
 * `a` denotes a value of type `X`.
 
-* `m` denotes a value of type `message const&` where
+* `m` denotes a possibly const value of type `message&` where
       `std::is_same<decltype(m.body), Body::value_type>:value == true`.
 
 * `ec` is a value of type [link beast.ref.beast__error_code `error_code&`].
@@ -51,6 +51,17 @@ In this table:
     [
         Constructible from `m`. The lifetime of `m` is guaranteed
         to end no earlier than after the `X` is destroyed.
+        The constructor may optionally require that `m` is const, which
+        has these consequences:
+
+        * If `X` requires that `m` is a const reference, then serializers
+        constructed for messages with this body type will also require a
+        `const` reference to a message, otherwise:
+
+        * If `X` requires that `m` is a non-const reference, then serializers
+        constructed for messages with this body type will aso require
+        a non-const reference to a message.
+
         The function will ensure that `!ec` is `true` if there was
         no error or set to the appropriate error code if there was one. 
     ]

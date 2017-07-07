@@ -127,12 +127,34 @@ template<
     class ChunkDecorator = no_chunk_decorator>
 class serializer
 {
+public:
     static_assert(is_body<Body>::value,
         "Body requirements not met");
-    
+
     static_assert(is_body_reader<Body>::value,
         "BodyReader requirements not met");
 
+    /** The type of the message referenced by this object.
+
+        This may be const or non-const depending on the
+        implementation of the corresponding @b BodyReader.
+    */
+#if BEAST_DOXYGEN
+    using value_type = implementation_defined;
+#else
+    using value_type =
+        typename std::conditional<
+            std::is_constructible<typename Body::reader,
+                message<isRequest, Body, Fields>&,
+                    error_code&>::value &&
+            ! std::is_constructible<typename Body::reader,
+                message<isRequest, Body, Fields> const&,
+                    error_code&>::value,
+            message<isRequest, Body, Fields>,
+            message<isRequest, Body, Fields> const>::type;
+#endif
+
+private:
     enum
     {
         do_construct        =   0,
@@ -225,7 +247,7 @@ class serializer
         boost::asio::const_buffers_1>>;             // crlf
     using pcb8_t = buffer_prefix_view<cb8_t const&>;
 
-    message<isRequest, Body, Fields> const& m_;
+    value_type& m_;
     boost::optional<typename Fields::reader> frd_;
     boost::optional<reader> rd_;
     boost::variant<boost::blank,
@@ -258,14 +280,34 @@ public:
         @ref next. This allows the message to be lazily created.
         For example, if the header is filled in before serialization.
 
-        @param msg The message to serialize, which must remain valid
-        for the lifetime of the serializer.
+        @param msg A reference to the message to serialize, which must
+        remain valid for the lifetime of the serializer. Depending on
+        the type of Body used, this may or may not be a `const` reference.
 
-        @param decorator An optional decorator to use.
+        @note This function participates in overload resolution only if
+        Body::reader is constructible from a `const` message reference.
     */
     explicit
-    serializer(message<isRequest, Body, Fields> const& msg,
-        ChunkDecorator const& decorator = ChunkDecorator{});
+    serializer(value_type& msg);
+
+    /** Constructor
+
+        The implementation guarantees that the message passed on
+        construction will not be accessed until the first call to
+        @ref next. This allows the message to be lazily created.
+        For example, if the header is filled in before serialization.
+
+        @param msg A reference to the message to serialize, which must
+        remain valid for the lifetime of the serializer. Depending on
+        the type of Body used, this may or may not be a `const` reference.
+
+        @param decorator The decorator to use.
+
+        @note This function participates in overload resolution only if
+        Body::reader is constructible from a `const` message reference.
+    */
+    explicit
+    serializer(value_type& msg, ChunkDecorator const& decorator);
 
     /// Returns the serialized buffer size limit
     std::size_t

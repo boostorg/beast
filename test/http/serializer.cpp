@@ -17,6 +17,63 @@ namespace http {
 class serializer_test : public beast::unit_test::suite
 {
 public:
+    struct const_body
+    {
+        struct value_type{};
+
+        struct reader
+        {
+            using const_buffers_type =
+                boost::asio::const_buffers_1;
+
+            template<bool isRequest, class Fields>
+            reader(message<isRequest, const_body, Fields> const&,
+                error_code&);
+
+            boost::optional<std::pair<const_buffers_type, bool>>
+            get(error_code&);
+        };
+    };
+
+    struct mutable_body
+    {
+        struct value_type{};
+
+        struct reader
+        {
+            using const_buffers_type =
+                boost::asio::const_buffers_1;
+
+            template<bool isRequest, class Fields>
+            reader(message<isRequest, mutable_body, Fields>&,
+                error_code&);
+
+            boost::optional<std::pair<const_buffers_type, bool>>
+            get(error_code&);
+        };
+    };
+
+    BOOST_STATIC_ASSERT(std::is_const<  serializer<
+        true, const_body>::value_type>::value);
+    BOOST_STATIC_ASSERT(! std::is_const<serializer<
+        true, mutable_body>::value_type>::value);
+
+    BOOST_STATIC_ASSERT(std::is_constructible<
+        serializer<true, const_body>,
+        message   <true, const_body>&>::value);
+
+    BOOST_STATIC_ASSERT(std::is_constructible<
+        serializer<true, const_body>,
+        message   <true, const_body> const&>::value);
+
+    BOOST_STATIC_ASSERT(std::is_constructible<
+        serializer<true, mutable_body>,
+        message   <true, mutable_body>&>::value);
+
+    BOOST_STATIC_ASSERT(! std::is_constructible<
+        serializer<true, mutable_body>,
+        message   <true, mutable_body> const&>::value);
+
     struct lambda
     {
         std::size_t size;
