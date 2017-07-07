@@ -157,7 +157,8 @@ setup(std::size_t n)
 }
 
 template<class BufferSequence>
-buffer_prefix_view<BufferSequence>::const_iterator::
+buffer_prefix_view<BufferSequence>::
+const_iterator::
 const_iterator(const_iterator&& other)
     : b_(other.b_)
     , it_(std::move(other.it_))
@@ -165,7 +166,8 @@ const_iterator(const_iterator&& other)
 }
 
 template<class BufferSequence>
-buffer_prefix_view<BufferSequence>::const_iterator::
+buffer_prefix_view<BufferSequence>::
+const_iterator::
 const_iterator(const_iterator const& other)
     : b_(other.b_)
     , it_(other.it_)
@@ -174,7 +176,8 @@ const_iterator(const_iterator const& other)
 
 template<class BufferSequence>
 auto
-buffer_prefix_view<BufferSequence>::const_iterator::
+buffer_prefix_view<BufferSequence>::
+const_iterator::
 operator=(const_iterator&& other) ->
     const_iterator&
 {
@@ -185,7 +188,8 @@ operator=(const_iterator&& other) ->
 
 template<class BufferSequence>
 auto
-buffer_prefix_view<BufferSequence>::const_iterator::
+buffer_prefix_view<BufferSequence>::
+const_iterator::
 operator=(const_iterator const& other) ->
     const_iterator&
 {
@@ -252,6 +256,16 @@ template<class BufferSequence>
 buffer_prefix_view<BufferSequence>::
 buffer_prefix_view(std::size_t n, BufferSequence const& bs)
     : bs_(bs)
+{
+    setup(n);
+}
+
+template<class BufferSequence>
+template<class... Args>
+buffer_prefix_view<BufferSequence>::
+buffer_prefix_view(std::size_t n,
+        boost::in_place_init_t, Args&&... args)
+    : bs_(std::forward<Args>(args)...)
 {
     setup(n);
 }

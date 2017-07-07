@@ -10,6 +10,7 @@
 
 #include <beast/config.hpp>
 #include <beast/core/type_traits.hpp>
+#include <beast/core/detail/in_place_init.hpp>
 #include <boost/asio/buffer.hpp>
 #include <cstdint>
 #include <type_traits>
@@ -78,18 +79,31 @@ public:
     /// Copy assignment.
     buffer_prefix_view& operator=(buffer_prefix_view const&);
 
-    /** Construct a shortened buffer sequence.
+    /** Construct a buffer sequence prefix.
 
-        @param n The maximum number of bytes in the wrapped
-        sequence. If this is larger than the size of passed,
-        buffers, the resulting sequence will represent the
-        entire input sequence.
+        @param n The maximum number of bytes in the prefix.
+        If this is larger than the size of passed, buffers,
+        the resulting sequence will represent the entire
+        input sequence.
 
         @param buffers The buffer sequence to adapt. A copy of
         the sequence will be made, but ownership of the underlying
         memory is not transferred.
     */
     buffer_prefix_view(std::size_t n, BufferSequence const& buffers);
+
+    /** Construct a buffer sequence prefix in-place.
+
+        @param n The maximum number of bytes in the prefix.
+        If this is larger than the size of passed, buffers,
+        the resulting sequence will represent the entire
+        input sequence.
+
+        @param args Arguments forwarded to the contained buffers constructor.
+    */
+    template<class... Args>
+    buffer_prefix_view(std::size_t n,
+        boost::in_place_init_t, Args&&... args);
 
     /// Get a bidirectional iterator to the first element.
     const_iterator

@@ -9,6 +9,7 @@
 #define BEAST_DETAIL_IN_PLACE_INIT_HPP
 
 #include <boost/version.hpp>
+#include <boost/optional/optional.hpp>
 
 // Provide boost::in_place_init_t and boost::in_place_init
 // for Boost versions earlier than 1.63.0.
