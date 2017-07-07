@@ -146,7 +146,7 @@ next(error_code& ec, Visit&& visit)
         if(! result)
             goto go_header_only_c;
         more_ = result->second;
-    #if ! BEAST_NO_BIG_VARIANTS
+    #ifndef BEAST_NO_BIG_VARIANTS
         if(! more_)
         {
             // do it all in one buffer
@@ -226,7 +226,7 @@ next(error_code& ec, Visit&& visit)
         if(! result)
             goto go_final_c;
         more_ = result->second;
-    #if ! BEAST_NO_BIG_VARIANTS
+    #ifndef BEAST_NO_BIG_VARIANTS
         if(! more_)
         {
             // do it all in one buffer
@@ -279,7 +279,7 @@ next(error_code& ec, Visit&& visit)
         visit(ec, boost::get<ch1_t>(v_));
         break;
 
-#if ! BEAST_NO_BIG_VARIANTS
+#ifndef BEAST_NO_BIG_VARIANTS
     go_body_final_c:
         s_ = do_body_final_c;
     case do_body_final_c:
@@ -423,7 +423,7 @@ consume(std::size_t n)
             s_ = do_final_c;
         break;
 
-#if ! BEAST_NO_BIG_VARIANTS
+#ifndef BEAST_NO_BIG_VARIANTS
     case do_body_final_c:
     {
         auto& b = boost::get<ch2_t>(v_);

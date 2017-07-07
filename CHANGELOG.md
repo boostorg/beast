@@ -2,6 +2,8 @@ Version 75:
 
 * Use file_body for valid requests, string_body otherwise.
 * Construct buffer_prefix_view in-place
+* Shrink serializer buffers using buffers_ref
+* Tidy up BEAST_NO_BIG_VARIANTS
 
 --------------------------------------------------------------------------------
 
