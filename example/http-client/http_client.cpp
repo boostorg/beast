@@ -25,7 +25,6 @@ int main()
         [](std::string what, beast::error_code ec)
         {
             std::cerr << what << ": " << ec.message() << std::endl;
-            std::cerr.flush();
             return EXIT_FAILURE;
         };
 
