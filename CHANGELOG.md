@@ -6,6 +6,7 @@ Version 74:
 * Remove common/file_body.hpp
 * Add file_posix
 * Fix Beast include directories for cmake targets
+* remove redundant flush() from example
 
 --------------------------------------------------------------------------------
 
