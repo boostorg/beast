@@ -314,6 +314,22 @@ public:
         return m_;
     }
 
+    /** Provides access to the associated @b BodyReader
+
+        This function provides access to the instance of the reader
+        associated with the body and created by the serializer
+        upon construction. The behavior of accessing this object
+        is defined by the specification of the particular reader
+        and its associated body.
+
+        @return A reference to the reader.
+    */
+    reader&
+    reader_impl()
+    {
+        return rd_;
+    }
+
     /// Returns the serialized buffer size limit
     std::size_t
     limit()
@@ -335,7 +351,7 @@ public:
     void
     limit(std::size_t limit)
     {
-        limit_ = limit > 0 ? limit:
+        limit_ = limit > 0 ? limit :
             (std::numeric_limits<std::size_t>::max)();
     }
 

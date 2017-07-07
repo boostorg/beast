@@ -516,4 +516,6 @@ using file_body = basic_file_body<file>;
 } // http
 } // beast
 
+#include <beast/http/impl/file_body_win32.ipp>
+
 #endif
