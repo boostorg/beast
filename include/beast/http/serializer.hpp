@@ -309,6 +309,13 @@ public:
     explicit
     serializer(value_type& msg, ChunkDecorator const& decorator);
 
+    /// Returns the message being serialized
+    value_type&
+    get()
+    {
+        return m_;
+    }
+
     /// Returns the serialized buffer size limit
     std::size_t
     limit() const

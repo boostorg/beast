@@ -3,6 +3,7 @@ Version 76:
 * Always go through write_some
 * Use Boost.Config
 * BodyReader may construct from a non-const message
+* Add serializer::get
 
 --------------------------------------------------------------------------------
 
