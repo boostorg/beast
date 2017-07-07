@@ -4,6 +4,7 @@ Version 75:
 * Construct buffer_prefix_view in-place
 * Shrink serializer buffers using buffers_ref
 * Tidy up BEAST_NO_BIG_VARIANTS
+* Shrink serializer buffers using buffers_ref
 
 --------------------------------------------------------------------------------
 

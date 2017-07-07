@@ -8,6 +8,7 @@
 #ifndef BEAST_HTTP_IMPL_SERIALIZER_IPP
 #define BEAST_HTTP_IMPL_SERIALIZER_IPP
 
+#include <beast/core/detail/buffers_ref.hpp>
 #include <beast/http/error.hpp>
 #include <beast/http/status.hpp>
 #include <beast/core/detail/config.hpp>
@@ -53,6 +54,7 @@ serializer<isRequest, Body, Fields, ChunkDecorator>::
 next(error_code& ec, Visit&& visit)
 {
     using boost::asio::buffer_size;
+    using beast::detail::make_buffers_ref;
     switch(s_)
     {
     case do_construct:
@@ -90,14 +92,16 @@ next(error_code& ec, Visit&& visit)
     }
 
     case do_header:
-        visit(ec, boost::get<cb0_t>(v_));
+        visit(ec, make_buffers_ref(
+            boost::get<cb0_t>(v_)));
         break;
 
     go_header_only:
         v_ = ch_t{frd_->get()};
         s_ = do_header_only;
     case do_header_only:
-        visit(ec, boost::get<ch_t>(v_));
+        visit(ec, make_buffers_ref(
+            boost::get<ch_t>(v_)));
         break;
 
     case do_body:
@@ -124,7 +128,8 @@ next(error_code& ec, Visit&& visit)
     }
 
     case do_body + 2:
-        visit(ec, boost::get<cb1_t>(v_));
+        visit(ec, make_buffers_ref(
+            boost::get<cb1_t>(v_)));
         break;
 
     //----------------------------------------------------------------------
@@ -198,14 +203,16 @@ next(error_code& ec, Visit&& visit)
     }
 
     case do_header_c:
-        visit(ec, boost::get<ch0_t>(v_));
+        visit(ec, make_buffers_ref(
+            boost::get<ch0_t>(v_)));
         break;
 
     go_header_only_c:
         v_ = ch_t{frd_->get()};
         s_ = do_header_only_c;
     case do_header_only_c:
-        visit(ec, boost::get<ch_t>(v_));
+        visit(ec, make_buffers_ref(
+            boost::get<ch_t>(v_)));
         break;
 
     case do_body_c:
@@ -276,20 +283,23 @@ next(error_code& ec, Visit&& visit)
     }
 
     case do_body_c + 2:
-        visit(ec, boost::get<ch1_t>(v_));
+        visit(ec, make_buffers_ref(
+            boost::get<ch1_t>(v_)));
         break;
 
 #ifndef BEAST_NO_BIG_VARIANTS
     go_body_final_c:
         s_ = do_body_final_c;
     case do_body_final_c:
-        visit(ec, boost::get<ch2_t>(v_));
+        visit(ec, make_buffers_ref(
+            boost::get<ch2_t>(v_)));
         break;
 
     go_all_c:
         s_ = do_all_c;
     case do_all_c:
-        visit(ec, boost::get<ch3_t>(v_));
+        visit(ec, make_buffers_ref(
+            boost::get<ch3_t>(v_)));
         break;
 #endif
 
@@ -311,7 +321,8 @@ next(error_code& ec, Visit&& visit)
         BEAST_FALLTHROUGH;
 
     case do_final_c + 1:
-        visit(ec, boost::get<ch4_t>(v_));
+        visit(ec, make_buffers_ref(
+            boost::get<ch4_t>(v_)));
         break;
 
     //----------------------------------------------------------------------
