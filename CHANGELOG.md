@@ -5,6 +5,7 @@ Version 75:
 * Shrink serializer buffers using buffers_ref
 * Tidy up BEAST_NO_BIG_VARIANTS
 * Shrink serializer buffers using buffers_ref
+* Add serializer::limit
 
 --------------------------------------------------------------------------------
 

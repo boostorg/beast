@@ -48,11 +48,8 @@ class buffer_prefix_view<BufferSequence>::const_iterator
 {
     friend class buffer_prefix_view<BufferSequence>;
 
-    using iter_type =
-        typename BufferSequence::const_iterator;
-
     buffer_prefix_view const* b_ = nullptr;
-    typename BufferSequence::const_iterator it_;
+    iter_type it_;
 
 public:
     using value_type = typename std::conditional<

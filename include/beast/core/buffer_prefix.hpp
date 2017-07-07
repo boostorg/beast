@@ -28,8 +28,10 @@ namespace beast {
 template<class BufferSequence>
 class buffer_prefix_view
 {
-    using iter_type =
-        typename BufferSequence::const_iterator;
+    using buffers_type = typename
+        std::decay<BufferSequence>::type;
+
+    using iter_type = typename buffers_type::const_iterator;
 
     BufferSequence bs_;
     iter_type back_;

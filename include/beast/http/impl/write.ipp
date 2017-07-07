@@ -54,12 +54,12 @@ class write_some_op
         template<class ConstBufferSequence>
         void
         operator()(error_code& ec,
-            ConstBufferSequence const& buffer)
+            ConstBufferSequence const& buffers)
         {
             ec.assign(0, ec.category());
             invoked = true;
             return op_.s_.async_write_some(
-                buffer, std::move(op_));
+                buffers, std::move(op_));
         }
     };
 
@@ -211,12 +211,12 @@ class write_op
         template<class ConstBufferSequence>
         void
         operator()(error_code& ec,
-            ConstBufferSequence const& buffer)
+            ConstBufferSequence const& buffers)
         {
             ec.assign(0, ec.category());
             invoked = true;
             return op_.s_.async_write_some(
-                buffer, std::move(op_));
+                buffers, std::move(op_));
         }
     };
 
@@ -464,11 +464,11 @@ public:
     template<class ConstBufferSequence>
     void
     operator()(error_code& ec,
-        ConstBufferSequence const& buffer)
+        ConstBufferSequence const& buffers)
     {
         invoked = true;
         bytes_transferred =
-            stream_.write_some(buffer, ec);
+            stream_.write_some(buffers, ec);
     }
 };
 
@@ -490,11 +490,11 @@ public:
     template<class ConstBufferSequence>
     void
     operator()(error_code& ec,
-        ConstBufferSequence const& buffer)
+        ConstBufferSequence const& buffers)
     {
         invoked = true;
         bytes_transferred = boost::asio::write(
-            stream_, buffer, ec);
+            stream_, buffers, ec);
     }
 };
 
