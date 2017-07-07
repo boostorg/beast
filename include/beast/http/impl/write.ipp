@@ -285,7 +285,8 @@ operator()(error_code ec)
                 bind_handler(std::move(*this), ec));
         }
         state_ = 2;
-        return async_write_some(s_, sr_, std::move(*this));
+        return beast::http::async_write_some(
+            s_, sr_, std::move(*this));
     }
 
     case 1:
@@ -299,7 +300,8 @@ operator()(error_code ec)
     {
         if(Predicate{}(sr_))
             goto upcall;
-        return async_write_some(s_, sr_, std::move(*this));
+        return beast::http::async_write_some(
+            s_, sr_, std::move(*this));
     }
     }
 upcall:
@@ -490,6 +492,23 @@ write_some(
         ec.assign(0, ec.category());
 }
 
+template<class AsyncWriteStream,
+    bool isRequest, class Body, class Fields,
+        class Decorator, class WriteHandler>
+async_return_type<WriteHandler, void(error_code)>
+async_write_some(AsyncWriteStream& stream, serializer<
+    isRequest, Body, Fields, Decorator>& sr,
+        WriteHandler&& handler)
+{
+    async_completion<WriteHandler,
+        void(error_code)> init{handler};
+    detail::write_some_op<AsyncWriteStream,
+        handler_type<WriteHandler, void(error_code)>,
+            isRequest, Body, Fields, Decorator>{
+                init.completion_handler, stream, sr}();
+    return init.result.get();
+}
+
 } // detail
 
 template<class SyncWriteStream, bool isRequest,
@@ -542,13 +561,8 @@ async_write_some(AsyncWriteStream& stream, serializer<
         "Body requirements not met");
     static_assert(is_body_reader<Body>::value,
         "BodyReader requirements not met");
-    async_completion<WriteHandler,
-        void(error_code)> init{handler};
-    detail::write_some_op<AsyncWriteStream,
-        handler_type<WriteHandler, void(error_code)>,
-            isRequest, Body, Fields, Decorator>{
-                init.completion_handler, stream, sr}();
-    return init.result.get();
+    return detail::async_write_some(stream, sr,
+        std::forward<WriteHandler>(handler));
 }
 
 //------------------------------------------------------------------------------

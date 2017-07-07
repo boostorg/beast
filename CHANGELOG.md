@@ -7,6 +7,7 @@ Version 76:
 * Add serializer::chunked
 * Serializer members are not const
 * serializing file_body is not const
+* Add file_body_win32
 
 API Changes:
 
