@@ -10,6 +10,7 @@
 
 #include <beast/config.hpp>
 #include <beast/core/buffer_cat.hpp>
+#include <beast/core/buffer_prefix.hpp>
 #include <beast/core/consuming_buffers.hpp>
 #include <beast/core/string.hpp>
 #include <beast/core/type_traits.hpp>
@@ -157,35 +158,44 @@ class serializer
     void frdinit(std::true_type);
     void frdinit(std::false_type);
 
+    template<class T1, class T2, class Visit>
+    void
+    do_visit(error_code& ec, Visit& visit);
+
     using reader = typename Body::reader;
 
-    using ch_t = consuming_buffers<typename
+    using cb1_t = consuming_buffers<typename
         Fields::reader::const_buffers_type>;        // header
+    using pcb1_t  = buffer_prefix_view<cb1_t const&>;
 
-    using cb0_t = consuming_buffers<buffer_cat_view<
+    using cb2_t = consuming_buffers<buffer_cat_view<
         typename Fields::reader::const_buffers_type,// header
         typename reader::const_buffers_type>>;      // body
+    using pcb2_t = buffer_prefix_view<cb2_t const&>;
 
-    using cb1_t = consuming_buffers<
+    using cb3_t = consuming_buffers<
         typename reader::const_buffers_type>;       // body
+    using pcb3_t = buffer_prefix_view<cb3_t const&>;
 
-    using ch0_t = consuming_buffers<buffer_cat_view<
+    using cb4_t = consuming_buffers<buffer_cat_view<
         typename Fields::reader::const_buffers_type,// header
         detail::chunk_header,                       // chunk-header
         boost::asio::const_buffers_1,               // chunk-ext
         boost::asio::const_buffers_1,               // crlf
         typename reader::const_buffers_type,        // body
         boost::asio::const_buffers_1>>;             // crlf
+    using pcb4_t = buffer_prefix_view<cb4_t const&>;
 
-    using ch1_t = consuming_buffers<buffer_cat_view<
+    using cb5_t = consuming_buffers<buffer_cat_view<
         detail::chunk_header,                       // chunk-header
         boost::asio::const_buffers_1,               // chunk-ext
         boost::asio::const_buffers_1,               // crlf
         typename reader::const_buffers_type,        // body
         boost::asio::const_buffers_1>>;             // crlf
+    using pcb5_t = buffer_prefix_view<cb5_t const&>;
 
 #ifndef BEAST_NO_BIG_VARIANTS
-    using ch2_t = consuming_buffers<buffer_cat_view<
+    using cb6_t = consuming_buffers<buffer_cat_view<
         detail::chunk_header,                       // chunk-header
         boost::asio::const_buffers_1,               // chunk-ext
         boost::asio::const_buffers_1,               // crlf
@@ -194,8 +204,9 @@ class serializer
         boost::asio::const_buffers_1,               // chunk-final
         boost::asio::const_buffers_1,               // trailers 
         boost::asio::const_buffers_1>>;             // crlf
+    using pcb6_t = buffer_prefix_view<cb6_t const&>;
 
-    using ch3_t = consuming_buffers<buffer_cat_view<
+    using cb7_t = consuming_buffers<buffer_cat_view<
         typename Fields::reader::const_buffers_type,// header
         detail::chunk_header,                       // chunk-header
         boost::asio::const_buffers_1,               // chunk-ext
@@ -205,22 +216,32 @@ class serializer
         boost::asio::const_buffers_1,               // chunk-final
         boost::asio::const_buffers_1,               // trailers 
         boost::asio::const_buffers_1>>;             // crlf
+    using pcb7_t = buffer_prefix_view<cb7_t const&>;
 #endif
 
-    using ch4_t = consuming_buffers<buffer_cat_view<
+    using cb8_t = consuming_buffers<buffer_cat_view<
         boost::asio::const_buffers_1,               // chunk-final
         boost::asio::const_buffers_1,               // trailers 
         boost::asio::const_buffers_1>>;             // crlf
+    using pcb8_t = buffer_prefix_view<cb8_t const&>;
 
     message<isRequest, Body, Fields> const& m_;
     boost::optional<typename Fields::reader> frd_;
     boost::optional<reader> rd_;
     boost::variant<boost::blank,
-        ch_t, cb0_t, cb1_t, ch0_t, ch1_t
+        cb1_t, cb2_t, cb3_t, cb4_t, cb5_t
     #ifndef BEAST_NO_BIG_VARIANTS
-        ,ch2_t, ch3_t
+        ,cb6_t, cb7_t
     #endif
-        , ch4_t> v_;
+        , cb8_t> v_;
+    boost::variant<boost::blank,
+        pcb1_t, pcb2_t, pcb3_t, pcb4_t, pcb5_t
+    #ifndef BEAST_NO_BIG_VARIANTS
+        ,pcb6_t, pcb7_t
+    #endif
+        , pcb8_t> pv_;
+    std::size_t limit_ =
+        (std::numeric_limits<std::size_t>::max)();
     int s_ = do_construct;
     bool split_ = false;
     bool header_done_ = false;
@@ -245,6 +266,31 @@ public:
     explicit
     serializer(message<isRequest, Body, Fields> const& msg,
         ChunkDecorator const& decorator = ChunkDecorator{});
+
+    /// Returns the serialized buffer size limit
+    std::size_t
+    limit() const
+    {
+        return limit_;
+    }
+
+    /** Set the serialized buffer size limit
+
+        This function adjusts the limit on the maximum size of the
+        buffers passed to the visitor. The new size limit takes effect
+        in the following call to @ref next.
+
+        The default is no buffer size limit.
+
+        @param limit The new buffer size limit. If this number
+        is zero, the size limit is removed.
+    */
+    void
+    limit(std::size_t limit)
+    {
+        limit_ = limit > 0 ? limit:
+            (std::numeric_limits<std::size_t>::max)();
+    }
 
     /** Returns `true` if we will pause after writing the complete header.
     */
