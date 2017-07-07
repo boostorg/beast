@@ -21,9 +21,7 @@
 
 #ifndef BEAST_NO_BIG_VARIANTS
 # if defined(BOOST_GCC) && BOOST_GCC < 50000 && BOOST_VERSION < 106400
-#  define BEAST_NO_BIG_VARIANTS 1
-# else
-#  define BEAST_NO_BIG_VARIANTS 0
+#  define BEAST_NO_BIG_VARIANTS
 # endif
 #endif
 
@@ -148,7 +146,7 @@ class serializer
         do_header_c         =  70,
         do_body_c           =  80,
         do_final_c          =  90,
-    #if ! BEAST_NO_BIG_VARIANTS
+    #ifndef BEAST_NO_BIG_VARIANTS
         do_body_final_c     = 100,
         do_all_c            = 110,
     #endif
@@ -186,7 +184,7 @@ class serializer
         typename reader::const_buffers_type,        // body
         boost::asio::const_buffers_1>>;             // crlf
 
-#if ! BEAST_NO_BIG_VARIANTS
+#ifndef BEAST_NO_BIG_VARIANTS
     using ch2_t = consuming_buffers<buffer_cat_view<
         detail::chunk_header,                       // chunk-header
         boost::asio::const_buffers_1,               // chunk-ext
@@ -219,7 +217,7 @@ class serializer
     boost::optional<reader> rd_;
     boost::variant<boost::blank,
         ch_t, cb0_t, cb1_t, ch0_t, ch1_t
-    #if ! BEAST_NO_BIG_VARIANTS
+    #ifndef BEAST_NO_BIG_VARIANTS
         ,ch2_t, ch3_t
     #endif
         , ch4_t> v_;
