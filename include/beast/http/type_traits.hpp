@@ -87,10 +87,10 @@ struct is_body_reader<T, beast::detail::void_t<
     is_const_buffer_sequence<
         typename T::reader::const_buffers_type>::value &&
     std::is_constructible<typename T::reader,
-        message<true, T, detail::fields_model> const&,
+        message<true, T, detail::fields_model>&,
         error_code&>::value &&
     std::is_constructible<typename T::reader,
-        message<false, T, detail::fields_model> const&,
+        message<false, T, detail::fields_model>&,
         error_code&>::value
     > {};
 #endif
