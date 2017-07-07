@@ -1,3 +1,9 @@
+Version 76:
+
+* Always go through write_some
+
+--------------------------------------------------------------------------------
+
 Version 75:
 
 * Use file_body for valid requests, string_body otherwise.

@@ -811,8 +811,16 @@ public:
 
     void run() override
     {
-        yield_to([&](yield_context yield){ testAsyncWrite(yield); });
-        yield_to([&](yield_context yield){ testFailures(yield); });
+        yield_to(
+            [&](yield_context yield)
+            {
+                testAsyncWrite(yield);
+            });
+        yield_to(
+            [&](yield_context yield)
+            {
+                testFailures(yield);
+            });
         testOutput();
         test_std_ostream();
         testIoService();
