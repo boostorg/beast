@@ -10,7 +10,9 @@
 #pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
 #endif
 
-#ifdef _MSC_VER
+#include <boost/config.hpp>
+
+#ifdef BOOST_MSVC
 # pragma warning (push)
 # pragma warning (disable: 4127) // conditional expression is constant
 # pragma warning (disable: 4244) // integer conversion, possible loss of data
@@ -18,7 +20,7 @@
 
 #include "nodejs-parser/http_parser.c"
 
-#ifdef _MSC_VER
+#ifdef BOOST_MSVC
 # pragma warning (pop)
 #endif
 

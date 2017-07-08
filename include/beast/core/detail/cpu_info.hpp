@@ -20,7 +20,7 @@
 
 #if ! BEAST_NO_INTRINSICS
 
-#if defined(BOOST_MSVC)
+#ifdef BOOST_MSVC
 #include <intrin.h> // __cpuid
 #else
 #include <cpuid.h>  // __get_cpuid
@@ -41,7 +41,7 @@ cpuid(
     std::uint32_t& ecx,
     std::uint32_t& edx)
 {
-#if defined(BOOST_MSVC)
+#ifdef BOOST_MSVC
     int regs[4];
     __cpuid(regs, id);
     eax = regs[0];
