@@ -219,9 +219,9 @@ size(value_type const& v)
 template<class File>
 class basic_file_body<File>::reader
 {
-    value_type const& body_;    // The body we are reading from
-    std::uint64_t remain_;      // The number of unread bytes
-    char buf_[4096];            // Small buffer for reading
+    value_type& body_;      // The body we are reading from
+    std::uint64_t remain_;  // The number of unread bytes
+    char buf_[4096];        // Small buffer for reading
 
 public:
     // The type of buffer sequence returned by `get`.
@@ -234,9 +234,28 @@ public:
     // `m` holds the message we are sending, which will
     // always have the `file_body` as the body type.
     //
+    // Note that the message is passed by non-const reference.
+    // This is intentional, because reading from the file
+    // changes its "current position" which counts makes the
+    // operation logically not-const (although it is bitwise
+    // const).
+    //
+    // The BodyReader concept allows the reader to choose
+    // whether to take the message by const reference or
+    // non-const reference. Depending on the choice, a
+    // serializer constructed using that body type will
+    // require the same const or non-const reference to
+    // construct.
+    //
+    // Readers which accept const messages usually allow
+    // the same body to be serialized by multiple threads
+    // concurrently, while readers accepting non-const
+    // messages may only be serialized by one thread at
+    // a time.
+    //
     template<bool isRequest, class Fields>
     reader(message<
-        isRequest, basic_file_body, Fields> const& m);
+        isRequest, basic_file_body, Fields>& m);
 
     // Initializer
     //
@@ -269,7 +288,7 @@ template<class File>
 template<bool isRequest, class Fields>
 basic_file_body<File>::
 reader::
-reader(message<isRequest, basic_file_body, Fields> const& m)
+reader(message<isRequest, basic_file_body, Fields>& m)
     : body_(m.body)
 {
     // The file must already be open

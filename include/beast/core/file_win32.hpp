@@ -75,7 +75,7 @@ public:
 
     /// Returns the native handle associated with the file.
     native_handle_type
-    native_handle() const
+    native_handle()
     {
         return h_;
     }
@@ -130,7 +130,7 @@ public:
         @return The offset in bytes from the beginning of the file
     */
     std::uint64_t
-    pos(error_code& ec) const;
+    pos(error_code& ec);
 
     /** Adjust the current position in the open file
 
@@ -150,7 +150,7 @@ public:
         @param ec Set to the error, if any occurred
     */
     std::size_t
-    read(void* buffer, std::size_t n, error_code& ec) const;
+    read(void* buffer, std::size_t n, error_code& ec);
 
     /** Write to the open file
 
