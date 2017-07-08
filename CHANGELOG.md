@@ -6,6 +6,7 @@ Version 75:
 * Tidy up BEAST_NO_BIG_VARIANTS
 * Shrink serializer buffers using buffers_ref
 * Add serializer::limit
+* file_body tests
 
 --------------------------------------------------------------------------------
 
