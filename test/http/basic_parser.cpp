@@ -1104,6 +1104,40 @@ public:
     //--------------------------------------------------------------------------
 
     void
+    testFuzz1()
+    {
+        error_code ec;
+        test_parser<true> p;
+        feed(buf(
+            "LOCK /%e7lY;/;;%0b8=p/r HTTP/1.1\r\n"
+            "Accept-Encoding:\r\n"
+            "	 î\r\n"
+            "Original-Message-ID:ë				ÿÿÿÿÿÿÿÿ: \r\n"
+            "	 ÷D›¥Ÿ\r\n"
+            "Resent-Date:ô\r\n"
+            "Alt-Svc: \r\n"
+            "Trailer:  	   \r\n"
+            "List-ID:¦k†		\r\n" 	
+            "Alternate-Recipient:óã\"ïû„qJÌ¼–÷[rñò\r\n"
+            "Location: \r\n"
+            "Accept-Additions: \r\n"
+            "MMHS-Originator-PLAD: \r\n"
+            "Original-Sender: \r\n"
+            "Original-Sender:\r\n"
+            "PICS-Label:\r\n"
+            " 	\r\n"
+            "If: @ÁP\\ÖÃ†ü\\|–E\r\n"
+            "MMHS-Exempted-Address:\r\n"
+            "Injection-Info: \r\n"
+            "Contetn-Length: 0\r\n"
+            "\r\n"
+            ), p, ec);
+        BEAST_EXPECT(ec);
+    }
+
+    //--------------------------------------------------------------------------
+
+    void
     run() override
     {
         testFlatten();
@@ -1122,6 +1156,7 @@ public:
         testIssue430();
         testIssue452();
         testIssue496();
+        testFuzz1();
     }
 };
 

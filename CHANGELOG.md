@@ -8,6 +8,7 @@ Version 76:
 * Serializer members are not const
 * serializing file_body is not const
 * Add file_body_win32
+* Fix parse illegal characters in obs-fold
 
 API Changes:
 
