@@ -87,7 +87,8 @@ next(error_code& ec, Visit&& visit)
         frdinit(std::integral_constant<bool,
             isRequest>{});
         close_ = ! frd_->keep_alive();
-        if(frd_->chunked())
+        chunked_ = frd_->chunked();
+        if(chunked_)
             goto go_init_c;
         s_ = do_init;
         BEAST_FALLTHROUGH;
