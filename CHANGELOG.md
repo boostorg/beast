@@ -6,6 +6,7 @@ Version 76:
 * Add serializer::get
 * Add serializer::chunked
 * Serializer members are not const
+* serializing file_body is not const
 
 API Changes:
 

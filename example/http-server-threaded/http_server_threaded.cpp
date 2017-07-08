@@ -141,11 +141,18 @@ private:
         auto res = get(full_path, file_ec);
 
         if(file_ec == beast::errc::no_such_file_or_directory)
+        {
             http::write(sock_, not_found(), ec);
+        }
         else if(ec)
+        {
             http::write(sock_, server_error(file_ec), ec);
+        }
         else
-            http::write(sock_, std::move(res), ec);
+        {
+            http::serializer<false, decltype(res)::body_type> sr{res};
+            http::write(sock_, sr, ec);
+        }
     }
 
     void

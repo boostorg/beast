@@ -46,12 +46,16 @@ class write_msg_op
         //
         beast::http::message<isRequest, Body, Fields> msg;
 
+        // Serializer for the message
+        beast::http::serializer<isRequest, Body, Fields> sr;
+
         data(
             Handler& handler,
             AsyncWriteStream& stream_,
             beast::http::message<isRequest, Body, Fields>&& msg_)
             : stream(stream_)
             , msg(std::move(msg_))
+            , sr(msg)
         {
             boost::ignore_unused(handler);
         }
@@ -96,7 +100,7 @@ public:
     {
         auto& d = *d_;
         beast::http::async_write(
-            d.stream, d.msg, std::move(*this));
+            d.stream, d.sr, std::move(*this));
     }
 
     // Completion handler

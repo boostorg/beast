@@ -226,7 +226,7 @@ size(error_code& ec) const
 inline
 std::uint64_t
 file_win32::
-pos(error_code& ec) const
+pos(error_code& ec)
 {
     if(h_ == boost::detail::winapi::INVALID_HANDLE_VALUE_)
     {
@@ -272,7 +272,7 @@ seek(std::uint64_t offset, error_code& ec)
 inline
 std::size_t
 file_win32::
-read(void* buffer, std::size_t n, error_code& ec) const
+read(void* buffer, std::size_t n, error_code& ec)
 {
     if(h_ == boost::detail::winapi::INVALID_HANDLE_VALUE_)
     {

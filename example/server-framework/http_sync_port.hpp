@@ -157,7 +157,8 @@ private:
         operator()(
             beast::http::response<Body, Fields>&& res) const
         {
-            beast::http::write(self_.impl().stream(), res, ec_);
+            beast::http::serializer<false, Body, Fields> sr{res};
+            beast::http::write(self_.impl().stream(), sr, ec_);
         }
     };
 
