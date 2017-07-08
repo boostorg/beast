@@ -67,7 +67,7 @@ struct no_chunk_decorator
     if the contents of the message indicate that chunk encoding
     is required. If the semantics of the message indicate that
     the connection should be closed after the message is sent, the
-    function @ref need_close will return `true`.
+    function @ref keep_alive will return `true`.
 
     Upon construction, an optional chunk decorator may be
     specified. This decorator is a function object called with
@@ -268,7 +268,7 @@ private:
     bool split_ = false;
     bool header_done_ = false;
     bool chunked_;
-    bool close_;
+    bool keep_alive_;
     bool more_;
     ChunkDecorator d_;
 
@@ -396,21 +396,28 @@ public:
         return chunked_;
     }
 
-    /** Return `true` if Connection: close semantic is indicated.
+    /** Return `true` if Connection: keep-alive semantic is indicated.
 
-        Depending on the contents of the message, the end of
-        the body may be indicated by the end of file. In order
-        for the recipient (if any) to receive a complete message,
-        the underlying network connection must be closed when this
-        function returns `true`.
+        This function returns `true` if the semantics of the
+        message indicate that the connection should be kept open
+        after the serialized message has been transmitted. The
+        value depends on the HTTP version of the message,
+        the tokens in the Connection header, and the metadata
+        describing the payload body.
+
+        Depending on the payload body, the end of the message may
+        be indicated by connection closuire. In order for the
+        recipient (if any) to receive a complete message, the
+        underlying stream or network connection must be closed
+        when this function returns `false`.
 
         This function may only be called if @ref is_header_done
         would return `true`.
     */
     bool
-    need_close() const
+    keep_alive()
     {
-        return close_;
+        return keep_alive_;
     }
 
     /** Returns the next set of buffers in the serialization.

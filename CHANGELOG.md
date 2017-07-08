@@ -6,6 +6,15 @@ Version 76:
 * Add serializer::get
 * Add serializer::chunked
 
+API Changes:
+
+* Rename to serializer::keep_alive
+
+Actions Required:
+
+* Use serializer::keep_alive instead of serializer::close and
+  take the logical NOT of the return value.
+
 --------------------------------------------------------------------------------
 
 Version 75:
