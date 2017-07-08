@@ -53,13 +53,7 @@
             <member><link linkend="beast.ref.beast__http__serializer">serializer</link></member>
             <member><link linkend="beast.ref.beast__http__string_body">string_body</link></member>
             <member><link linkend="beast.ref.beast__http__string_view_body">string_view_body</link></member>
-          </simplelist>
-          <bridgehead renderas="sect3">rfc7230</bridgehead>
-          <simplelist type="vert" columns="1">
-           <member><link linkend="beast.ref.beast__http__ext_list">ext_list</link></member>
-           <member><link linkend="beast.ref.beast__http__opt_token_list">opt_token_list</link></member>
-           <member><link linkend="beast.ref.beast__http__param_list">param_list</link></member>
-           <member><link linkend="beast.ref.beast__http__token_list">token_list</link></member>
+            <member><link linkend="beast.ref.beast__http__vector_body">vector_body</link></member>
           </simplelist>
         </entry>
         <entry valign="top">
@@ -85,6 +79,13 @@
             <member><link linkend="beast.ref.beast__http__write">write</link></member>
             <member><link linkend="beast.ref.beast__http__write_header">write_header</link></member>
             <member><link linkend="beast.ref.beast__http__write_some">write_some</link></member>
+          </simplelist>
+          <bridgehead renderas="sect3">rfc7230</bridgehead>
+          <simplelist type="vert" columns="1">
+           <member><link linkend="beast.ref.beast__http__ext_list">ext_list</link></member>
+           <member><link linkend="beast.ref.beast__http__opt_token_list">opt_token_list</link></member>
+           <member><link linkend="beast.ref.beast__http__param_list">param_list</link></member>
+           <member><link linkend="beast.ref.beast__http__token_list">token_list</link></member>
           </simplelist>
         </entry>
         <entry valign="top">
