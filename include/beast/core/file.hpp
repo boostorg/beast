@@ -22,7 +22,9 @@ namespace beast {
     of @b File given the platform and build settings.
 */
 #if BEAST_DOXYGEN
-using file = implementation_defined;
+struct file : file_stdio
+{
+};
 #else
 #if BEAST_USE_WIN32_FILE
 using file = file_win32;
