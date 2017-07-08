@@ -58,10 +58,24 @@ public:
 
         @param ec Set to the error, if any occurred.
     */
-    template<bool isRequest, class Body, class Headers>
+    template<bool isRequest, class Body, class Fields>
     explicit
-    BodyReader(message<isRequest, Body, Headers> const& msg,
-        error_code &ec);
+    BodyReader(message<isRequest, Body, Fields> const& msg);
+
+    /** Initialize the reader
+
+        This is called after construction and before the first
+        call to `get`. The message is valid and complete upon
+        entry.
+
+        @param ec Set to the error, if any occurred.
+    */
+    void
+    init(error_code& ec)
+    {
+        // The specification requires this to indicate "no error"
+        ec.assign(0, ec.category());
+    }
 
     /** Returns the next buffer in the body.
 
@@ -85,7 +99,7 @@ public:
     get(error_code& ec)
     {
         // The specification requires this to indicate "no error"
-        ec = {};
+        ec.assign(0, ec.category());
 
         return boost::none; // for exposition only
     }
@@ -109,14 +123,25 @@ struct BodyWriter
     */
     template<bool isRequest, class Body, class Fields>
     explicit
-    BodyWriter(message<isRequest, Body, Fields>& msg,
-        boost::optional<std::uint64_t> content_length,
-            error_code& ec)
+    BodyWriter(message<isRequest, Body, Fields>& msg);
+
+    /** Initialize the writer
+
+        This is called after construction and before the first
+        call to `put`. The message is valid and complete upon
+        entry.
+
+        @param ec Set to the error, if any occurred.
+    */
+    void
+    init(
+        boost::optional<std::uint64_t> const& content_length,
+        error_code& ec)
     {
-        boost::ignore_unused(msg, content_length);
+        boost::ignore_unused(content_length);
 
         // The specification requires this to indicate "no error"
-        ec = {};
+        ec.assign(0, ec.category());
     }
 
     /** Store buffers.

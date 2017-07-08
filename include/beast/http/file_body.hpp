@@ -235,9 +235,17 @@ public:
     // always have the `file_body` as the body type.
     //
     template<bool isRequest, class Fields>
-    reader(
-        message<isRequest, basic_file_body, Fields> const& m,
-        error_code& ec);
+    reader(message<
+        isRequest, basic_file_body, Fields> const& m);
+
+    // Initializer
+    //
+    // This is called before the body is serialized and
+    // gives the reader a chance to do something that might
+    // need to return an error code.
+    //
+    void
+    init(error_code& ec);
 
     // This function is called zero or more times to
     // retrieve buffers. A return value of `boost::none`
@@ -261,18 +269,29 @@ template<class File>
 template<bool isRequest, class Fields>
 basic_file_body<File>::
 reader::
-reader(
-    message<isRequest, basic_file_body, Fields> const& m,
-    error_code& ec)
+reader(message<isRequest, basic_file_body, Fields> const& m)
     : body_(m.body)
 {
     // The file must already be open
     BOOST_ASSERT(body_.file_.is_open());
 
     // Get the size of the file
-    remain_ = body_.file_.size(ec);
-    if(ec)
-        return;
+    remain_ = body_.file_size_;
+}
+
+// Initializer
+template<class File>
+void
+basic_file_body<File>::
+reader::
+init(error_code& ec)
+{
+    // The error_code specification requires that we
+    // either set the error to some value, or set it
+    // to indicate no error.
+    //
+    // We don't do anything fancy so set "no error"
+    ec.assign(0, ec.category());
 }
 
 // This function is called repeatedly by the serializer to
@@ -353,9 +372,18 @@ public:
     template<bool isRequest, class Fields>
     explicit
     writer(
-        message<isRequest, basic_file_body, Fields>& m,
-        boost::optional<std::uint64_t> const& content_length,
-        error_code& ec);
+        message<isRequest, basic_file_body, Fields>& m);
+
+    // Initializer
+    //
+    // This is called before the body is parsed and
+    // gives the writer a chance to do something that might
+    // need to return an error code. It informs us of
+    // the payload size (`content_length`) which we can
+    // optionally use for optimization.
+    //
+    void
+    init(boost::optional<std::uint64_t> const&, error_code& ec);
 
     // This function is called one or more times to store
     // buffer sequences corresponding to the incoming body.
@@ -387,11 +415,18 @@ template<class File>
 template<bool isRequest, class Fields>
 basic_file_body<File>::
 writer::
-writer(
-    message<isRequest, basic_file_body, Fields>& m,
+writer(message<isRequest, basic_file_body, Fields>& m)
+    : body_(m.body)
+{
+}
+
+template<class File>
+void
+basic_file_body<File>::
+writer::
+init(
     boost::optional<std::uint64_t> const& content_length,
     error_code& ec)
-    : body_(m.body)
 {
     // The file must already be open for writing
     BOOST_ASSERT(body_.file_.is_open());
@@ -401,7 +436,11 @@ writer(
     // to see if there is enough room to store the body.
     boost::ignore_unused(content_length);
 
-    // This is required by the error_code specification
+    // The error_code specification requires that we
+    // either set the error to some value, or set it
+    // to indicate no error.
+    //
+    // We don't do anything fancy so set "no error"
     ec.assign(0, ec.category());
 }
 

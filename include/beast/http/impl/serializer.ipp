@@ -59,6 +59,7 @@ template<bool isRequest, class Body,
 serializer<isRequest, Body, Fields, ChunkDecorator>::
 serializer(value_type& m)
     : m_(m)
+    , rd_(m_)
 {
 }
 
@@ -67,6 +68,7 @@ template<bool isRequest, class Body,
 serializer<isRequest, Body, Fields, ChunkDecorator>::
 serializer(value_type& m, ChunkDecorator const& d)
     : m_(m)
+    , rd_(m_)
     , d_(d)
 {
 }
@@ -96,12 +98,12 @@ next(error_code& ec, Visit&& visit)
 
     case do_init:
     {
-        if(split_)
-            goto go_header_only;
-        rd_.emplace(m_, ec);
+        rd_.init(ec);
         if(ec)
             return;
-        auto result = rd_->get(ec);
+        if(split_)
+            goto go_header_only;
+        auto result = rd_.get(ec);
         if(ec == error::need_more)
             goto go_header_only;
         if(ec)
@@ -129,18 +131,12 @@ next(error_code& ec, Visit&& visit)
         break;
 
     case do_body:
-        if(! rd_)
-        {
-            rd_.emplace(m_, ec);
-            if(ec)
-                return;
-        }
         s_ = do_body + 1;
         BEAST_FALLTHROUGH;
 
     case do_body + 1:
     {
-        auto result = rd_->get(ec);
+        auto result = rd_.get(ec);
         if(ec)
             return;
         if(! result)
@@ -161,12 +157,12 @@ next(error_code& ec, Visit&& visit)
     s_ = do_init_c;
     case do_init_c:
     {
-        if(split_)
-            goto go_header_only_c;
-        rd_.emplace(m_, ec);
+        rd_.init(ec);
         if(ec)
             return;
-        auto result = rd_->get(ec);
+        if(split_)
+            goto go_header_only_c;
+        auto result = rd_.get(ec);
         if(ec == error::need_more)
             goto go_header_only_c;
         if(ec)
@@ -237,18 +233,12 @@ next(error_code& ec, Visit&& visit)
         break;
 
     case do_body_c:
-        if(! rd_)
-        {
-            rd_.emplace(m_, ec);
-            if(ec)
-                return;
-        }
         s_ = do_body_c + 1;
         BEAST_FALLTHROUGH;
 
     case do_body_c + 1:
     {
-        auto result = rd_->get(ec);
+        auto result = rd_.get(ec);
         if(ec)
             return;
         if(! result)

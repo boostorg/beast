@@ -15,11 +15,19 @@ namespace beast {
 namespace http {
 
 template<bool isRequest, class Body, class Allocator>
+parser<isRequest, Body, Allocator>::
+parser()
+    : wr_(m_)
+{
+}
+
+template<bool isRequest, class Body, class Allocator>
 template<class Arg1, class... ArgN, class>
 parser<isRequest, Body, Allocator>::
 parser(Arg1&& arg1, ArgN&&... argn)
     : m_(std::forward<Arg1>(arg1),
         std::forward<ArgN>(argn)...)
+    , wr_(m_)
 {
 }
 
@@ -30,8 +38,9 @@ parser(parser<isRequest, OtherBody, Allocator>&& p,
         Args&&... args)
     : base_type(std::move(p))
     , m_(p.release(), std::forward<Args>(args)...)
+    , wr_(m_)
 {
-    if(p.wr_)
+    if(wr_inited_)
         BOOST_THROW_EXCEPTION(std::invalid_argument{
             "moved-from parser has a body"});
 }

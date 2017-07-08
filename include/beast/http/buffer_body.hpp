@@ -101,9 +101,14 @@ struct buffer_body
 
         template<bool isRequest, class Fields>
         explicit
-        reader(message<isRequest, buffer_body,
-                Fields> const& msg, error_code& ec)
+        reader(message<isRequest,
+                buffer_body, Fields> const& msg)
             : body_(msg.body)
+        {
+        }
+
+        void
+        init(error_code& ec)
         {
             ec.assign(0, ec.category());
         }
@@ -152,10 +157,13 @@ struct buffer_body
     public:
         template<bool isRequest, class Fields>
         explicit
-        writer(message<isRequest, buffer_body, Fields>& m,
-                boost::optional<std::uint64_t> const&,
-                    error_code& ec)
+        writer(message<isRequest, buffer_body, Fields>& m)
             : body_(m.body)
+        {
+        }
+
+        void
+        init(boost::optional<std::uint64_t> const&, error_code& ec)
         {
             ec.assign(0, ec.category());
         }

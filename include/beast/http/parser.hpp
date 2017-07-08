@@ -60,21 +60,17 @@ class parser
         parser<isRequest, Body, Allocator>>;
 
     message<isRequest, Body, basic_fields<Allocator>> m_;
-    boost::optional<typename Body::writer> wr_;
+    typename Body::writer wr_;
     std::function<void(parser&, error_code&)> cb_;
+    bool wr_inited_ = false;
 
 public:
     /// The type of message returned by the parser
     using value_type =
         message<isRequest, Body, basic_fields<Allocator>>;
 
-    /// Constructor (default)
-    parser()
-    {
-        // avoid `parser()=default` otherwise value-init
-        // for members can happen (i.e. a big memset on
-        // static_buffer_n).
-    }
+    /// Constructor
+    parser();
 
     /// Copy constructor (disallowed)
     parser(parser const&) = delete;
@@ -285,13 +281,14 @@ private:
         std::uint64_t> const& content_length,
             error_code& ec)
     {
-        wr_.emplace(m_, content_length, ec);
+        wr_.init(content_length, ec);
+        wr_inited_ = true;
     }
 
     std::size_t
     on_data(string_view s, error_code& ec)
     {
-        return wr_->put(boost::asio::buffer(
+        return wr_.put(boost::asio::buffer(
             s.data(), s.size()), ec);
     }
 
@@ -305,10 +302,7 @@ private:
     void
     on_complete(error_code& ec)
     {
-        if(wr_)
-            wr_->finish(ec);
-        else
-            ec.assign(0, ec.category());
+        wr_.finish(ec);
     }
 };
 
