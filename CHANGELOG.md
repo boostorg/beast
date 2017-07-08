@@ -1,5 +1,7 @@
 Version 78:
 
+* Add span
+
 HTTP:
 
 * Tidy up basic_string_body

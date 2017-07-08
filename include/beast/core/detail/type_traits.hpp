@@ -138,6 +138,28 @@ struct is_invocable<C, R(A...)>
 };
 /** @} */
 
+// for span
+template<class T, class E, class = void>
+struct is_contiguous_container: std::false_type {};
+
+template<class T, class E>
+struct is_contiguous_container<T, E, void_t<
+    decltype(
+        std::declval<std::size_t&>() = std::declval<T const&>().size(),
+        std::declval<E*&>() = std::declval<T&>().data(),
+        (void)0),
+    typename std::enable_if<
+        std::is_same<
+            typename std::remove_cv<E>::type,
+            typename std::remove_cv<
+                typename std::remove_pointer<
+                    decltype(std::declval<T&>().data())
+                >::type
+            >::type
+        >::value
+    >::type>>: std::true_type
+{};
+
 //------------------------------------------------------------------------------
 
 //
