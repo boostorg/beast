@@ -97,6 +97,12 @@ public:
     run() override
     {
         doTestFileBody<file_stdio>();
+    #if BEAST_USE_WIN32_FILE
+        doTestFileBody<file_win32>();
+    #endif
+    #if BEAST_USE_POSIX_FILE
+        doTestFileBody<file_posix>();
+    #endif
     }
 };
 
