@@ -7,6 +7,7 @@ Version 75:
 * Shrink serializer buffers using buffers_ref
 * Add serializer::limit
 * file_body tests
+* Using SSE4.2 intrinsics in basic_parser if available
 
 --------------------------------------------------------------------------------
 
