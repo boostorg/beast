@@ -19,45 +19,6 @@
 #include <cstddef>
 #include <utility>
 
-/*
-    Portions of this file based on code from picophttpparser,
-    copyright notice below.
-        https://github.com/h2o/picohttpparser
-*/
-/*
- * Copyright (c) 2009-2014 Kazuho Oku, Tokuhiro Matsuno, Daisuke Murase,
- *                         Shigeo Mitsunari
- *
- * The software is licensed under either the MIT License (below) or the Perl
- * license.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to
- * deal in the Software without restriction, including without limitation the
- * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
- * sell copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
- * IN THE SOFTWARE.
- */
-
-#if ! BEAST_NO_INTRINSICS
-# ifdef BOOST_MSVC
-#  include <nmmintrin.h>
-# else
-#  include <x86intrin.h>
-# endif
-#endif
-
 namespace beast {
 namespace http {
 namespace detail {
@@ -65,15 +26,6 @@ namespace detail {
 class basic_parser_base
 {
 protected:
-#if ! BEAST_NO_INTRINSICS
-    bool sse42_;
-
-    basic_parser_base()
-        : sse42_(beast::detail::get_cpu_info().sse42)
-    {
-    }
-#endif
-
     // limit on the size of the obs-fold buffer
     //
     // https://stackoverflow.com/questions/686217/maximum-on-http-header-values
@@ -214,36 +166,7 @@ protected:
         size_t ranges_size)
     {
         bool found = false;
-
-    #if ! BEAST_NO_INTRINSICS
-        if(BOOST_LIKELY(sse42_))
-        {
-            if(BOOST_LIKELY(buf_end - buf >= 16))
-            {
-                __m128i ranges16 = _mm_loadu_si128((__m128i const*)ranges);
-                std::size_t left = (buf_end - buf) & ~15;
-                do
-                {
-                    __m128i b16 = _mm_loadu_si128((__m128i const*)buf);
-                    int r = _mm_cmpestri(ranges16, ranges_size, b16, 16,
-                        _SIDD_LEAST_SIGNIFICANT | _SIDD_CMP_RANGES | _SIDD_UBYTE_OPS);
-                    if(BOOST_UNLIKELY(r != 16))
-                    {
-                        buf += r;
-                        found = true;
-                        break;
-                    }
-                    buf += 16;
-                    left -= 16;
-                }
-                while(BOOST_LIKELY(left != 0));
-            }
-        }
-
-    #else
         boost::ignore_unused(buf_end, ranges, ranges_size);
-    
-    #endif
         return {buf, found};
     }
 
@@ -326,48 +249,6 @@ protected:
         char const*& token_last,
         error_code& ec)
     {
-    #if ! BEAST_NO_INTRINSICS
-        static char const ranges1[] =
-            "\0\010"    // allow HT */
-            "\012\037"  // allow SP and up to but not including DEL
-            "\177\177"  // allow chars w. MSB set
-            ;
-        bool found;
-        std::tie(p, found) = find_fast(
-            p, last, ranges1, sizeof(ranges1) - 1);
-        if(found)
-            goto found_control;
-    #else
-        /* find non-printable char within the next 8 bytes, this is the hottest code; manually inlined */
-        while(BOOST_LIKELY(last - p >= 8))
-        {
-        #define BEAST_PARSE_TOKEN_TO_EOL_REPEAT()   \
-            do                                      \
-            {                                       \
-                if(BOOST_UNLIKELY(                  \
-                        ! is_print(*p)))            \
-                    goto non_printable;             \
-                ++p;                                \
-            }                                       \
-            while(0);
-                BEAST_PARSE_TOKEN_TO_EOL_REPEAT();
-                BEAST_PARSE_TOKEN_TO_EOL_REPEAT();
-                BEAST_PARSE_TOKEN_TO_EOL_REPEAT();
-                BEAST_PARSE_TOKEN_TO_EOL_REPEAT();
-                BEAST_PARSE_TOKEN_TO_EOL_REPEAT();
-                BEAST_PARSE_TOKEN_TO_EOL_REPEAT();
-                BEAST_PARSE_TOKEN_TO_EOL_REPEAT();
-                BEAST_PARSE_TOKEN_TO_EOL_REPEAT();
-        #undef BEAST_PARSE_TOKEN_TO_EOL_REPEAT
-            continue;
-        non_printable:
-            if((BOOST_LIKELY((unsigned char)*p < '\040') &&
-                BOOST_LIKELY(*p != '\011')) ||
-                BOOST_UNLIKELY(*p == '\177'))
-                goto found_control;
-            ++p;
-        }
-    #endif
         for(;; ++p)
         {
             if(p >= last)
