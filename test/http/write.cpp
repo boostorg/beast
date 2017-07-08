@@ -47,13 +47,18 @@ public:
 
             template<bool isRequest, class Allocator>
             explicit
-            reader(message<isRequest, unsized_body,
-                    Allocator> const& msg, error_code &ec)
+            reader(message<isRequest,
+                    unsized_body, Allocator> const& msg)
                 : body_(msg.body)
+            {
+            }
+
+            void
+            init(error_code& ec)
             {
                 ec.assign(0, ec.category());
             }
-            
+
             boost::optional<std::pair<const_buffers_type, bool>>
             get(error_code& ec)
             {
@@ -87,9 +92,14 @@ public:
 
             template<bool isRequest, class Fields>
             explicit
-            reader(message<isRequest, test_body,
-                    Fields> const& msg, error_code& ec)
+            reader(message<isRequest,
+                    test_body, Fields> const& msg)
                 : body_(msg.body)
+            {
+            }
+
+            void
+            init(error_code& ec)
             {
                 ec.assign(0, ec.category());
             }
@@ -219,9 +229,14 @@ public:
 
             template<bool isRequest, class Allocator>
             explicit
-            reader(message<isRequest, fail_body,
-                    Allocator> const& msg, error_code& ec)
+            reader(message<isRequest,
+                    fail_body, Allocator> const& msg)
                 : body_(msg.body)
+            {
+            }
+
+            void
+            init(error_code& ec)
             {
                 body_.fc_.fail(ec);
             }

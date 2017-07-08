@@ -68,9 +68,14 @@ struct const_body
 
         template<bool isRequest, class Fields>
         explicit
-        reader(beast::http::message<isRequest, const_body,
-                Fields> const& msg, beast::error_code& ec)
+        reader(beast::http::message<isRequest,
+                const_body, Fields> const& msg)
             : body_(msg.body)
+        {
+        }
+
+        void
+        init(beast::error_code& ec)
         {
             ec.assign(0, ec.category());
         }

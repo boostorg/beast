@@ -71,9 +71,14 @@ struct mutable_body
 
         template<bool isRequest, class Fields>
         explicit
-        reader(beast::http::message<isRequest, mutable_body,
-                Fields> const& msg, beast::error_code& ec)
+        reader(beast::http::message<isRequest,
+                mutable_body, Fields> const& msg)
             : body_(msg.body)
+        {
+        }
+
+        void
+        init(beast::error_code& ec)
         {
             ec.assign(0, ec.category());
         }
@@ -99,15 +104,20 @@ struct mutable_body
     public:
         template<bool isRequest, class Fields>
         explicit
-        writer(beast::http::message<isRequest, mutable_body, Fields>& m,
-            boost::optional<std::uint64_t> const& content_length,
-                beast::error_code& ec)
+        writer(beast::http::message<
+                isRequest, mutable_body, Fields>& m)
             : body_(m.body)
         {
-            if(content_length)
+        }
+
+        void
+        init(boost::optional<
+            std::uint64_t> const& length, beast::error_code& ec)
+        {
+            if(length)
             {
-                if(*content_length > (std::numeric_limits<
-                        std::size_t>::max)())
+                if(*length > (std::numeric_limits<
+                    std::size_t>::max)())
                 {
                     ec = beast::http::error::buffer_overflow;
                     return;
@@ -115,7 +125,7 @@ struct mutable_body
                 try
                 {
                     body_.reserve(static_cast<
-                        std::size_t>(*content_length));
+                        std::size_t>(*length));
                 }
                 catch(std::exception const&)
                 {
@@ -129,7 +139,7 @@ struct mutable_body
         template<class ConstBufferSequence>
         std::size_t
         put(ConstBufferSequence const& buffers,
-                beast::error_code& ec)
+            beast::error_code& ec)
         {
             using boost::asio::buffer_size;
             using boost::asio::buffer_copy;

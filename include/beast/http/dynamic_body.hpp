@@ -55,9 +55,14 @@ struct basic_dynamic_body
 
         template<bool isRequest, class Fields>
         explicit
-        reader(message<isRequest, basic_dynamic_body,
-                Fields> const& m, error_code& ec)
+        reader(message<isRequest,
+                basic_dynamic_body, Fields> const& m)
             : body_(m.body)
+        {
+        }
+
+        void
+        init(error_code& ec)
         {
             ec.assign(0, ec.category());
         }
@@ -82,10 +87,13 @@ struct basic_dynamic_body
     public:
         template<bool isRequest, class Fields>
         explicit
-        writer(message<isRequest, basic_dynamic_body, Fields>& msg,
-            boost::optional<std::uint64_t> const&,
-                error_code& ec)
+        writer(message<isRequest, basic_dynamic_body, Fields>& msg)
             : body_(msg.body)
+        {
+        }
+
+        void
+        init(boost::optional<std::uint64_t> const&, error_code& ec)
         {
             ec.assign(0, ec.category());
         }

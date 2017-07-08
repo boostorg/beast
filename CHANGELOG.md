@@ -10,11 +10,16 @@ Version 76:
 API Changes:
 
 * Rename to serializer::keep_alive
+* BodyReader, BodyWriter use two-phase init
 
 Actions Required:
 
 * Use serializer::keep_alive instead of serializer::close and
   take the logical NOT of the return value.
+
+* Modify instances of user-defined BodyReader and BodyWriter
+  types to perfrom two-phase initialization, as per the
+  updated documented type requirements.
 
 --------------------------------------------------------------------------------
 

@@ -52,9 +52,14 @@ struct string_body
 
         template<bool isRequest, class Fields>
         explicit
-        reader(message<isRequest, string_body,
-                Fields> const& msg, error_code& ec)
+        reader(message<isRequest,
+                string_body, Fields> const& msg)
             : body_(msg.body)
+        {
+        }
+
+        void
+        init(error_code& ec)
         {
             ec.assign(0, ec.category());
         }
@@ -80,23 +85,27 @@ struct string_body
     public:
         template<bool isRequest, class Fields>
         explicit
-        writer(message<isRequest, string_body, Fields>& m,
-            boost::optional<std::uint64_t> content_length,
-                error_code& ec)
+        writer(message<isRequest, string_body, Fields>& m)
             : body_(m.body)
         {
-            if(content_length)
+        }
+
+        void
+        init(boost::optional<
+            std::uint64_t> const& length, error_code& ec)
+        {
+            if(length)
             {
-                if(*content_length > (std::numeric_limits<
-                        std::size_t>::max)())
+                if(*length > (
+                    std::numeric_limits<std::size_t>::max)())
                 {
                     ec = error::buffer_overflow;
                     return;
                 }
                 try
                 {
-                    body_.reserve(static_cast<
-                        std::size_t>(*content_length));
+                    body_.reserve(
+                        static_cast<std::size_t>(*length));
                 }
                 catch(std::exception const&)
                 {

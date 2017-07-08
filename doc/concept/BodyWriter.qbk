@@ -38,20 +38,40 @@ In this table:
 
 * `ec` is a value of type [link beast.ref.beast__error_code `error_code&`].
 
+[heading Associated Types]
+
+* __Body__
+* [link beast.ref.beast__http__is_body_writer `is_body_writer`]
+
 [table Writer requirements
 [[expression] [type] [semantics, pre/post-conditions]]
 [
-    [`X(m,n,ec);`]
+    [`X(m);`]
     []
     [
-        Constructible from `m`. The lifetime of `m` is guaranteed
-        to end no earlier than after the `X` is destroyed. The constructor
-        will be called after a complete header is stored in `m`, and before
-        parsing body octets for messages indicating that a body is present.
+        Constructible from `m`. The lifetime of `m` is guaranteed to
+        end no earlier than after the `X` is destroyed. The constructor
+        will be called after a complete header is stored in `m`, and
+        before parsing body octets for messages indicating that a body
+        is present The writer shall not access the contents of `m` before
+        the first call to `init`, permitting lazy construction of the
+        message.
+
+        The function will ensure that `!ec` is `true` if there was
+        no error or set to the appropriate error code if there was one. 
+    ]
+][
+    [`a.init(n, ec)`]
+    []
+    [
+        Called once to fully initialize the object before any calls to
+        `put`. The message body is valid before entering this function,
+        and remains valid until the writer is destroyed.
         The value of `n` will be set to the content length of the
         body if known, otherwise `n` will be equal to `boost::none`.
         Implementations of [*BodyWriter] may use this information to
         optimize allocation.
+
         The function will ensure that `!ec` is `true` if there was
         no error or set to the appropriate error code if there was one. 
     ]
@@ -88,5 +108,12 @@ In this table:
 [heading Exemplar]
 
 [concept_BodyWriter]
+
+[heading Models]
+
+* [link beast.ref.beast__http__basic_dynamic_body.writer `basic_dynamic_body::writer`]
+* [link beast.ref.beast__http__basic_file_body__reader `basic_file_body::writer`]
+* [link beast.ref.beast__http__empty_body.writer `empty_body::writer`]
+* [link beast.ref.beast__http__string_body.writer `string_body::writer`]
 
 [endsect]

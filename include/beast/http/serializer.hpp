@@ -134,7 +134,7 @@ public:
     static_assert(is_body_reader<Body>::value,
         "BodyReader requirements not met");
 
-    /** The type of the message referenced by this object.
+    /** The type of message this serializer uses
 
         This may be const or non-const depending on the
         implementation of the corresponding @b BodyReader.
@@ -145,11 +145,9 @@ public:
     using value_type =
         typename std::conditional<
             std::is_constructible<typename Body::reader,
-                message<isRequest, Body, Fields>&,
-                    error_code&>::value &&
+                message<isRequest, Body, Fields>&>::value &&
             ! std::is_constructible<typename Body::reader,
-                message<isRequest, Body, Fields> const&,
-                    error_code&>::value,
+                message<isRequest, Body, Fields> const&>::value,
             message<isRequest, Body, Fields>,
             message<isRequest, Body, Fields> const>::type;
 #endif
@@ -248,8 +246,8 @@ private:
     using pcb8_t = buffer_prefix_view<cb8_t const&>;
 
     value_type& m_;
+    reader rd_;
     boost::optional<typename Fields::reader> frd_;
-    boost::optional<reader> rd_;
     boost::variant<boost::blank,
         cb1_t, cb2_t, cb3_t, cb4_t, cb5_t
     #ifndef BEAST_NO_BIG_VARIANTS

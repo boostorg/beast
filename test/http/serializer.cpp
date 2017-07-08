@@ -27,8 +27,10 @@ public:
                 boost::asio::const_buffers_1;
 
             template<bool isRequest, class Fields>
-            reader(message<isRequest, const_body, Fields> const&,
-                error_code&);
+            reader(message<isRequest, const_body, Fields> const&);
+
+            void
+            init(error_code& ec);
 
             boost::optional<std::pair<const_buffers_type, bool>>
             get(error_code&);
@@ -45,8 +47,10 @@ public:
                 boost::asio::const_buffers_1;
 
             template<bool isRequest, class Fields>
-            reader(message<isRequest, mutable_body, Fields>&,
-                error_code&);
+            reader(message<isRequest, mutable_body, Fields>&);
+
+            void
+            init(error_code& ec);
 
             boost::optional<std::pair<const_buffers_type, bool>>
             get(error_code&);
@@ -55,6 +59,7 @@ public:
 
     BOOST_STATIC_ASSERT(std::is_const<  serializer<
         true, const_body>::value_type>::value);
+
     BOOST_STATIC_ASSERT(! std::is_const<serializer<
         true, mutable_body>::value_type>::value);
 
