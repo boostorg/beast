@@ -177,7 +177,7 @@ struct serializer_is_header_done
         class Fields, class Decorator>
     bool
     operator()(serializer<isRequest, Body,
-        Fields, Decorator> const& sr) const
+        Fields, Decorator>& sr) const
     {
         return sr.is_header_done();
     }
@@ -189,7 +189,7 @@ struct serializer_is_done
         class Fields, class Decorator>
     bool
     operator()(serializer<isRequest, Body,
-        Fields, Decorator> const& sr) const
+        Fields, Decorator>& sr) const
     {
         return sr.is_done();
     }
