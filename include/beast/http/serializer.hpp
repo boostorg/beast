@@ -385,6 +385,17 @@ public:
         return s_ == do_complete;
     }
 
+    /** Return `true` if the serializer will apply chunk-encoding.
+
+        This function may only be called if @ref is_header_done
+        would return `true`.
+    */
+    bool
+    chunked()
+    {
+        return chunked_;
+    }
+
     /** Return `true` if Connection: close semantic is indicated.
 
         Depending on the contents of the message, the end of
@@ -392,6 +403,9 @@ public:
         for the recipient (if any) to receive a complete message,
         the underlying network connection must be closed when this
         function returns `true`.
+
+        This function may only be called if @ref is_header_done
+        would return `true`.
     */
     bool
     need_close() const

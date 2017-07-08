@@ -4,6 +4,7 @@ Version 76:
 * Use Boost.Config
 * BodyReader may construct from a non-const message
 * Add serializer::get
+* Add serializer::chunked
 
 --------------------------------------------------------------------------------
 
