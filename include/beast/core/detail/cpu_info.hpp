@@ -8,11 +8,10 @@
 #ifndef BEAST_DETAIL_CPU_INFO_HPP
 #define BEAST_DETAIL_CPU_INFO_HPP
 
+#include <boost/config.hpp>
+
 #ifndef BEAST_NO_INTRINSICS
-# if defined(_MSC_VER) || \
-    (defined(__i386__) && defined(__PIC__) && \
-     defined(__GNUC__) && ! defined(__clang__)) || \
-    defined(__i386__)
+# if defined(BOOST_MSVC) || ((defined(BOOST_GCC) || defined(BOOST_CLANG)) && defined(__SSE4_2__))
 #  define BEAST_NO_INTRINSICS 0
 # else
 #  define BEAST_NO_INTRINSICS 1
@@ -21,8 +20,10 @@
 
 #if ! BEAST_NO_INTRINSICS
 
-#if defined(_MSC_VER)
+#if defined(BOOST_MSVC)
 #include <intrin.h> // __cpuid
+#else
+#include <cpuid.h>  // __get_cpuid
 #endif
 
 namespace beast {
@@ -40,34 +41,15 @@ cpuid(
     std::uint32_t& ecx,
     std::uint32_t& edx)
 {
-#if defined(_MSC_VER)
+#if defined(BOOST_MSVC)
     int regs[4];
     __cpuid(regs, id);
     eax = regs[0];
     ebx = regs[1];
     ecx = regs[2];
     edx = regs[3];
-
-#elif defined(__i386__) && defined(__PIC__) && \
-      defined(__GNUC__) && ! defined(__clang__)
-    // We have to backup ebx in 32 bit PIC code because it is reserved by the ABI
-    uint32_t ebx_backup;
-    __asm__ __volatile__
-    (
-        "movl %%ebx, %0\n\t"
-        "movl %1, %%ebx\n\t"
-        "cpuid\n\t"
-        "movl %%ebx, %1\n\t"
-        "movl %0, %%ebx\n\t"
-            : "=m" (ebx_backup), "+m"(ebx), "+a"(eax), "+c"(ecx), "+d"(edx)
-    );
-
-#elif defined(__i386__)
-    __asm__("cpuid" : "=a"(eax), "=b"(ebx), "=c"(ecx), "=d"(edx) : "a"(id) : "ebx");
-
 #else
-# error Unknown compiler!
-
+    __get_cpuid(id, &eax, &ebx, &ecx, &edx);
 #endif
 }
 
@@ -82,13 +64,18 @@ inline
 cpu_info::
 cpu_info()
 {
-    std::uint32_t eax, ebx, ecx, edx;
+    constexpr std::uint32_t SSE42 = 1 << 20;
+
+    std::uint32_t eax = 0;
+    std::uint32_t ebx = 0;
+    std::uint32_t ecx = 0;
+    std::uint32_t edx = 0;
 
     cpuid(0, eax, ebx, ecx, edx);
     if(eax >= 1)
     {
         cpuid(1, eax, ebx, ecx, edx);
-        sse42 = (ecx & (1 << 20)) != 0;
+        sse42 = (ecx & SSE42) != 0;
     }
 }
 
