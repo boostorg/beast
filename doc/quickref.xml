@@ -33,6 +33,7 @@
             <member><link linkend="beast.ref.beast__http__basic_file_body">basic_file_body</link></member>
             <member><link linkend="beast.ref.beast__http__basic_fields">basic_fields</link></member>
             <member><link linkend="beast.ref.beast__http__basic_parser">basic_parser</link></member>
+            <member><link linkend="beast.ref.beast__http__basic_string_body">basic_string_body</link></member>
             <member><link linkend="beast.ref.beast__http__buffer_body">buffer_body</link></member>
             <member><link linkend="beast.ref.beast__http__dynamic_body">dynamic_body</link></member>
             <member><link linkend="beast.ref.beast__http__empty_body">empty_body</link></member>

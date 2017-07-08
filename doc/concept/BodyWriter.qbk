@@ -113,7 +113,7 @@ In this table:
 
 * [link beast.ref.beast__http__basic_dynamic_body.writer `basic_dynamic_body::writer`]
 * [link beast.ref.beast__http__basic_file_body__reader `basic_file_body::writer`]
+* [link beast.ref.beast__http__basic_string_body.writer `basic_string_body::writer`]
 * [link beast.ref.beast__http__empty_body.writer `empty_body::writer`]
-* [link beast.ref.beast__http__string_body.writer `string_body::writer`]
 
 [endsect]

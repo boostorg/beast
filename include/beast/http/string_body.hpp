@@ -14,32 +14,61 @@
 #include <beast/core/detail/type_traits.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/optional.hpp>
+#include <cstdint>
+#include <limits>
 #include <memory>
+#include <stdexcept>
 #include <string>
 #include <utility>
 
 namespace beast {
 namespace http {
 
-/** An HTTP message body represented by a `std::string`.
+/** A @b Body using `std::basic_string`
 
-    Meets the requirements of @b Body.
+    This body uses `std::basic_string` as a memory-based container
+    for holding message payloads. Messages using this body type
+    may be serialized and parsed.
 */
-struct string_body
+template<
+    class CharT,
+    class Traits = std::char_traits<CharT>,
+    class Allocator = std::allocator<CharT>>
+struct basic_string_body
 {
-    /// The type of the body member when used in a message.
-    using value_type = std::string;
+private:
+    static_assert(
+        std::is_integral<CharT>::value &&
+            sizeof(CharT) == 1,
+        "CharT requirements not met");
 
-    /// Returns the content length of the body in a message.
+public:
+    /** The type of container used for the body
+
+        This determines the type of @ref message::body
+        when this body type is used with a message container.
+    */
+    using value_type =
+        std::basic_string<CharT, Traits, Allocator>;
+
+    /** Returns the payload size of the body
+
+        When this body is used with @ref message::prepare_payload,
+        the Content-Length will be set to the payload size, and
+        any chunked Transfer-Encoding will be removed.
+    */
     static
     std::uint64_t
-    size(value_type const& v)
+    size(value_type const& body)
     {
-        return v.size();
+        return body.size();
     }
 
+    /** The algorithm for serializing the body
+
+        Meets the requirements of @b BodyReader.
+    */
 #if BEAST_DOXYGEN
-    /// The algorithm to obtain buffers representing the body
     using reader = implementation_defined;
 #else
     class reader
@@ -53,7 +82,7 @@ struct string_body
         template<bool isRequest, class Fields>
         explicit
         reader(message<isRequest,
-                string_body, Fields> const& msg)
+                basic_string_body, Fields> const& msg)
             : body_(msg.body)
         {
         }
@@ -74,8 +103,11 @@ struct string_body
     };
 #endif
 
+    /** The algorithm for parsing the body
+
+        Meets the requirements of @b BodyReader.
+    */
 #if BEAST_DOXYGEN
-    /// The algorithm used store buffers in this body
     using writer = implementation_defined;
 #else
     class writer
@@ -85,7 +117,8 @@ struct string_body
     public:
         template<bool isRequest, class Fields>
         explicit
-        writer(message<isRequest, string_body, Fields>& m)
+        writer(message<isRequest,
+                basic_string_body, Fields>& m)
             : body_(m.body)
         {
         }
@@ -147,6 +180,9 @@ struct string_body
     };
 #endif
 };
+
+/// A @b Body using `std::string`
+using string_body = basic_string_body<char>;
 
 } // http
 } // beast
