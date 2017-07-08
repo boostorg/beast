@@ -8,6 +8,7 @@
 #ifndef BEAST_DETAIL_INTEGER_SEQUENCE_HPP
 #define BEAST_DETAIL_INTEGER_SEQUENCE_HPP
 
+#include <boost/config.hpp>
 #include <cstddef>
 #include <type_traits>
 #include <utility>
@@ -39,9 +40,9 @@ struct sizeof_workaround
     static std::size_t constexpr size = sizeof... (Args);
 };
 
-#ifdef _MSC_VER
+#ifdef BOOST_MSVC
 
-// This implementation compiles on MSVC and clang but not gcc
+// This implementation compiles on real MSVC and clang but not gcc
 
 template<class T, unsigned long long N, class Seq>
 struct make_integer_sequence_unchecked;

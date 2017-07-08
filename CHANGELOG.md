@@ -1,6 +1,7 @@
 Version 76:
 
 * Always go through write_some
+* Use Boost.Config
 
 --------------------------------------------------------------------------------
 

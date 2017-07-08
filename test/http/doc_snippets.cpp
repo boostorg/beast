@@ -7,6 +7,7 @@
 
 #include <beast/core.hpp>
 #include <boost/asio.hpp>
+#include <boost/config.hpp>
 #include <iostream>
 #include <thread>
 
@@ -191,7 +192,7 @@ print_response(SyncReadStream& stream)
 
 //]
 
-#ifdef _MSC_VER
+#ifdef BOOST_MSVC
 //[http_snippet_14
 
 template<bool isRequest, class Body, class Fields>
@@ -257,7 +258,7 @@ print(message<isRequest, Body, Fields> const& m)
 
 //]
 
-#ifdef _MSC_VER
+#if BOOST_MSVC
 //[http_snippet_16
 
 template<bool isRequest, class Body, class Fields>
