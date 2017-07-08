@@ -5,6 +5,7 @@ Version 76:
 * BodyReader may construct from a non-const message
 * Add serializer::get
 * Add serializer::chunked
+* Serializer members are not const
 
 API Changes:
 
