@@ -163,7 +163,7 @@ operator()(
     {
         sr_.consume(bytes_transferred);
         if(sr_.is_done())
-            if(sr_.need_close())
+            if(! sr_.keep_alive())
                 ec = error::end_of_stream;
     }
     h_(ec);
@@ -480,11 +480,11 @@ write_some(
         if(f.invoked)
             sr.consume(f.bytes_transferred);
         if(sr.is_done())
-            if(sr.need_close())
+            if(! sr.keep_alive())
                 ec = error::end_of_stream;
         return;
     }
-    if(sr.need_close())
+    if(! sr.keep_alive())
         ec = error::end_of_stream;
     else
         ec.assign(0, ec.category());
