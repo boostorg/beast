@@ -35,6 +35,7 @@ add_executable (core-tests
     multi_buffer.cpp
     ostream.cpp
     read_size.cpp
+    span.cpp
     static_buffer.cpp
     static_string.cpp
     string.cpp

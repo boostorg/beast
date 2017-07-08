@@ -192,6 +192,7 @@
             <member><link linkend="beast.ref.beast__iequal">iequal</link></member>
             <member><link linkend="beast.ref.beast__iless">iless</link></member>
             <member><link linkend="beast.ref.beast__multi_buffer">multi_buffer</link></member>
+            <member><link linkend="beast.ref.beast__span">span</link></member>
             <member><link linkend="beast.ref.beast__static_buffer">static_buffer</link></member>
             <member><link linkend="beast.ref.beast__static_buffer_n">static_buffer_n</link></member>
             <member><link linkend="beast.ref.beast__static_string">static_string</link></member>
