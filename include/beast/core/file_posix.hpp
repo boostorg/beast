@@ -32,9 +32,9 @@
 
 namespace beast {
 
-/** An implementation of File for Win32.
+/** An implementation of File for POSIX systems.
 
-    This class implements a @b File using Win32 native interfaces.
+    This class implements a @b File using POSIX interfaces.
 */
 class file_posix
 {
