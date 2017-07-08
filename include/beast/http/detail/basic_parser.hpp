@@ -797,6 +797,11 @@ protected:
                 p = parse_token_to_eol(p, last, token_last, ec);
                 if(ec)
                     return;
+                if(! p)
+                {
+                    ec = error::bad_value;
+                    return;
+                }
                 // Look 1 char past the CRLF to handle obs-fold.
                 if(p + 1 > last)
                 {
