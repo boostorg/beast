@@ -110,7 +110,7 @@ In this table:
 
 * [link beast.ref.beast__http__basic_dynamic_body.reader `basic_dynamic_body::reader`]
 * [link beast.ref.beast__http__basic_file_body__reader `basic_file_body::reader`]
+* [link beast.ref.beast__http__basic_string_body.reader `basic_string_body::reader`]
 * [link beast.ref.beast__http__empty_body.reader `empty_body::reader`]
-* [link beast.ref.beast__http__string_body.reader `string_body::reader`]
 
 [endsect]
