@@ -8,6 +8,7 @@
 #ifndef BEAST_READ_SIZE_HELPER_HPP
 #define BEAST_READ_SIZE_HELPER_HPP
 
+#include <beast/config.hpp>
 #include <beast/core/type_traits.hpp>
 #include <boost/throw_exception.hpp>
 

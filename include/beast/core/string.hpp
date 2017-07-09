@@ -8,6 +8,7 @@
 #ifndef BEAST_STRING_HPP
 #define BEAST_STRING_HPP
 
+#include <beast/config.hpp>
 #include <boost/version.hpp>
 #ifndef BEAST_NO_BOOST_STRING_VIEW
 # if BOOST_VERSION >= 106400

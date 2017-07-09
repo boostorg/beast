@@ -8,6 +8,7 @@
 #ifndef BEAST_CORE_FILE_STDIO_HPP
 #define BEAST_CORE_FILE_STDIO_HPP
 
+#include <beast/config.hpp>
 #include <beast/core/error.hpp>
 #include <beast/core/file_base.hpp>
 #include <cstdio>

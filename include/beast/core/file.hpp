@@ -8,6 +8,7 @@
 #ifndef BEAST_CORE_FILE_HPP
 #define BEAST_CORE_FILE_HPP
 
+#include <beast/config.hpp>
 #include <beast/core/file_base.hpp>
 #include <beast/core/file_posix.hpp>
 #include <beast/core/file_stdio.hpp>

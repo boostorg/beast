@@ -8,6 +8,7 @@
 #ifndef BEAST_CORE_FILE_BASE_HPP
 #define BEAST_CORE_FILE_BASE_HPP
 
+#include <beast/config.hpp>
 #include <beast/core/string.hpp>
 
 namespace beast {
