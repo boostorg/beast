@@ -20,9 +20,11 @@
 namespace beast {
 namespace http {
 
-/** An HTTP message body represented by a @b DynamicBuffer.
+/** A @b Body using a @b DynamicBuffer
 
-    Meets the requirements of @b Body.
+    This body uses a @b DynamicBuffer as a memory-based container
+    for holding message payloads. Messages using this body type
+    may be serialized and parsed.
 */
 template<class DynamicBuffer>
 struct basic_dynamic_body
@@ -30,10 +32,19 @@ struct basic_dynamic_body
     static_assert(is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
 
-    /// The type of the body member when used in a message.
+    /** The type of container used for the body
+
+        This determines the type of @ref message::body
+        when this body type is used with a message container.
+    */
     using value_type = DynamicBuffer;
 
-    /// Returns the content length of this body in a message.
+    /** Returns the payload size of the body
+
+        When this body is used with @ref message::prepare_payload,
+        the Content-Length will be set to the payload size, and
+        any chunked Transfer-Encoding will be removed.
+    */
     static
     std::uint64_t
     size(value_type const& v)
@@ -41,8 +52,11 @@ struct basic_dynamic_body
         return v.size();
     }
 
+    /** The algorithm for serializing the body
+
+        Meets the requirements of @b BodyReader.
+    */
 #if BEAST_DOXYGEN
-    /// The algorithm to obtain buffers representing the body
     using reader = implementation_defined;
 #else
     class reader
@@ -76,8 +90,11 @@ struct basic_dynamic_body
     };
 #endif
 
+    /** The algorithm for parsing the body
+
+        Meets the requirements of @b BodyReader.
+    */
 #if BEAST_DOXYGEN
-    /// The algorithm used store buffers in this body
     using writer = implementation_defined;
 #else
     class writer

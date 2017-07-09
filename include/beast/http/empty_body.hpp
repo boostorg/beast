@@ -16,26 +16,32 @@
 namespace beast {
 namespace http {
 
-/** An empty message body.
+/** An empty @b Body
 
     This body is used to represent messages which do not have a
     message body. If this body is used with a parser, and the
     parser encounters octets corresponding to a message body,
     the parser will fail with the error @ref http::unexpected_body.
 
-    Meets the requirements of @b Body. The Content-Length of this
-    body is always 0.
+    The Content-Length of this body is always 0.
 */
 struct empty_body
 {
-    /// The type of the body member when used in a message.
+    /** The type of container used for the body
+
+        This determines the type of @ref message::body
+        when this body type is used with a message container.
+    */
     struct value_type
     {
-        // VFALCO We could stash boost::optional<std::uint64_t>
-        //        for the content length here, set on init()
     };
 
-    /// Returns the content length of the body in a message.
+    /** Returns the payload size of the body
+
+        When this body is used with @ref message::prepare_payload,
+        the Content-Length will be set to the payload size, and
+        any chunked Transfer-Encoding will be removed.
+    */
     static
     std::uint64_t
     size(value_type)
@@ -43,8 +49,11 @@ struct empty_body
         return 0;
     }
 
+    /** The algorithm for serializing the body
+
+        Meets the requirements of @b BodyReader.
+    */
 #if BEAST_DOXYGEN
-    /// The algorithm to obtain buffers representing the body
     using reader = implementation_defined;
 #else
     struct reader
@@ -74,8 +83,11 @@ struct empty_body
     };
 #endif
 
+    /** The algorithm for parsing the body
+
+        Meets the requirements of @b BodyReader.
+    */
 #if BEAST_DOXYGEN
-    /// The algorithm used store buffers in this body
     using writer = implementation_defined;
 #else
     struct writer
