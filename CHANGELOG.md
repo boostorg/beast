@@ -7,6 +7,7 @@ HTTP:
 
 * Tidy up basic_string_body
 * Add vector_body
+* span, string, vector bodies are public
 
 --------------------------------------------------------------------------------
 
