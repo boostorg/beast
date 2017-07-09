@@ -4,6 +4,7 @@ Version 78:
 * Documentation work
 * Use make_unique_noinit
 * Fix warning in zlib
+* Header file tidying
 
 HTTP:
 

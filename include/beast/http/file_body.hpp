@@ -8,6 +8,7 @@
 #ifndef BEAST_HTTP_FILE_BODY_HPP
 #define BEAST_HTTP_FILE_BODY_HPP
 
+#include <beast/config.hpp>
 #include <beast/core/error.hpp>
 #include <beast/core/file.hpp>
 #include <beast/core/type_traits.hpp>

@@ -28,8 +28,8 @@
 #include <beast/http/string_body.hpp>
 #include <beast/http/string_view_body.hpp>
 #include <beast/http/type_traits.hpp>
-#include <beast/http/verb.hpp>
 #include <beast/http/vector_body.hpp>
+#include <beast/http/verb.hpp>
 #include <beast/http/write.hpp>
 
 #endif
