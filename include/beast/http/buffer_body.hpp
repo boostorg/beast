@@ -19,10 +19,12 @@
 namespace beast {
 namespace http {
 
-/** A serializable body represented by caller provided buffers.
+/** A @b Body using a caller provided buffer
 
-    This body type permits the use of @ref parser or @ref serializer
-    with caller provided buffers.
+    Messages using this body type may be serialized and parsed.
+    To use this class, the caller must initialize the members
+    of @ref buffer_body::value_type to appropriate values before
+    each call to read or write during a stream operation.
 */
 struct buffer_body
 {
@@ -86,8 +88,11 @@ struct buffer_body
         bool more = true;
     };
 
+    /** The algorithm for serializing the body
+
+        Meets the requirements of @b BodyReader.
+    */
 #if BEAST_DOXYGEN
-    /// The algorithm to obtain buffers representing the body
     using reader = implementation_defined;
 #else
     class reader
@@ -146,8 +151,11 @@ struct buffer_body
     };
 #endif
 
+    /** The algorithm for parsing the body
+
+        Meets the requirements of @b BodyReader.
+    */
 #if BEAST_DOXYGEN
-    /// The algorithm used store buffers in this body
     using writer = implementation_defined;
 #else
     class writer
