@@ -1059,8 +1059,9 @@ doWrite(z_params& zs, boost::optional<Flush> flush, error_code& ec)
             return;
         }
     }
-    else if(zs.avail_in == 0 && flush <= old_flush &&
-        flush != Flush::finish)
+    else if(zs.avail_in == 0 && (
+            old_flush && flush <= *old_flush
+        ) && flush != Flush::finish)
     {
         /* Make sure there is something to do and avoid duplicate consecutive
          * flushes. For repeated and useless calls with Flush::finish, we keep
