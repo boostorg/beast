@@ -518,7 +518,7 @@ protected:
         string_view& result, error_code& ec)
     {
         auto const first = it;
-        char const* token_last;
+        char const* token_last = nullptr;
         auto p = parse_token_to_eol(
             it, last, token_last, ec);
         if(ec)
