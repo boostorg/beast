@@ -5,7 +5,7 @@
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 ]
 
-[section Quick Start]
+[section:quickstart Quick Start]
 [block'''<?dbhtml stop-chunking?>''']
 
 These complete programs are intended to quickly impress upon readers
@@ -36,7 +36,7 @@ File: [repo_file example/websocket-client/websocket_client.cpp]
 
 
 
-[section Examples]
+[section:examples Examples]
 [block'''<?dbhtml stop-chunking?>''']
 
 Source code and build scripts for these programs are located
