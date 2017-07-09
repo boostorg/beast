@@ -191,13 +191,17 @@ public:
 
         test_fields() = delete;
         test_fields(token) {}
-        void set_method_impl(string_view) {}
-        void set_target_impl(string_view s) { target = s.to_string(); }
-        void set_reason_impl(string_view) {}
         string_view get_method_impl() const { return {}; }
         string_view get_target_impl() const { return target; }
         string_view get_reason_impl() const { return {}; }
-        void prepare_payload_impl(bool, boost::optional<std::uint64_t>) {}
+        bool get_chunked_impl() const { return false; }
+        bool get_keep_alive_impl(unsigned) const { return true; }
+        void set_method_impl(string_view) {}
+        void set_target_impl(string_view s) { target = s.to_string(); }
+        void set_reason_impl(string_view) {}
+        void set_chunked_impl(bool) {}
+        void set_content_length_impl(boost::optional<std::uint64_t>) {}
+        void set_keep_alive_impl(unsigned, bool) {}
     };
 
     void

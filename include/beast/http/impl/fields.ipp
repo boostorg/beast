@@ -19,6 +19,13 @@
 #include <stdexcept>
 #include <string>
 
+#if defined(BOOST_LIBSTDCXX_VERSION) && BOOST_LIBSTDCXX_VERSION < 60000
+    // Workaround for https://gcc.gnu.org/bugzilla/show_bug.cgi?id=56437
+#ifndef BEAST_HTTP_NO_FIELDS_BASIC_STRING_ALLOCATOR
+#define BEAST_HTTP_NO_FIELDS_BASIC_STRING_ALLOCATOR
+#endif
+#endif
+
 namespace beast {
 namespace http {
 
@@ -133,17 +140,9 @@ public:
         }
     };
 
-    bool
-    get_chunked() const;
-
-    bool
-    get_keep_alive(int version) const;
-
     basic_fields const& f_;
     boost::asio::const_buffer cb_[3];
     char buf_[13];
-    bool chunked_;
-    bool keep_alive_;
 
 public:
     using const_buffers_type =
@@ -160,18 +159,6 @@ public:
     reader(basic_fields const& f,
         unsigned version, unsigned code);
 
-    bool
-    chunked()
-    {
-        return chunked_;
-    }
-
-    bool
-    keep_alive()
-    {
-        return keep_alive_;
-    }
-
     const_buffers_type
     get() const
     {
@@ -185,47 +172,10 @@ public:
 };
 
 template<class Allocator>
-bool
-basic_fields<Allocator>::reader::
-get_chunked() const
-{
-    auto const te = token_list{
-        f_[field::transfer_encoding]};
-    for(auto it = te.begin(); it != te.end();)
-    {
-        auto const next = std::next(it);
-        if(next == te.end())
-            return iequals(*it, "chunked");
-        it = next;
-    }
-    return false;
-}
-
-template<class Allocator>
-bool
-basic_fields<Allocator>::reader::
-get_keep_alive(int version) const
-{
-    if(version < 11)
-    {
-        auto const it = f_.find(field::connection);
-        if(it == f_.end())
-            return false;
-        return token_list{it->value()}.exists("keep-alive");
-    }
-    auto const it = f_.find(field::connection);
-    if(it == f_.end())
-        return true;
-    return ! token_list{it->value()}.exists("close");
-}
-
-template<class Allocator>
 basic_fields<Allocator>::reader::
 reader(basic_fields const& f,
         unsigned version, verb v)
     : f_(f)
-    , chunked_(get_chunked())
-    , keep_alive_(get_keep_alive(version))
 {
 /*
     request
@@ -264,8 +214,6 @@ basic_fields<Allocator>::reader::
 reader(basic_fields const& f,
         unsigned version, unsigned code)
     : f_(f)
-    , chunked_(get_chunked())
-    , keep_alive_(get_keep_alive(version))
 {
 /*
     response
@@ -761,36 +709,144 @@ equal_range(string_view name) const ->
 
 //------------------------------------------------------------------------------
 
+namespace detail {
+
+// Filter a token list
+//
+template<class String, class Pred>
+void
+filter_token_list(
+    String& s,
+    string_view const& value,
+    Pred&& pred)
+{
+    token_list te{value};
+    auto it = te.begin();
+    auto last = te.end();
+    if(it == last)
+        return;
+    while(pred(*it))
+        if(++it == last)
+            return;
+    s.append(it->data(), it->size());
+    while(++it != last)
+    {
+        if(! pred(*it))
+        {
+            s.append(", ");
+            s.append(it->data(), it->size());
+        }
+    }
+}
+
+// Filter the last item in a token list
+template<class String, class Pred>
+void
+filter_token_list_last(
+    String& s,
+    string_view const& value,
+    Pred&& pred)
+{
+    token_list te{value};
+    if(te.begin() != te.end())
+    {
+        auto it = te.begin();
+        auto next = std::next(it);
+        if(next == te.end())
+        {
+            if(! pred(*it))
+                s.append(it->data(), it->size());
+            return;
+        }
+        s.append(it->data(), it->size());
+        for(;;)
+        {
+            it = next;
+            next = std::next(it);
+            if(next == te.end())
+            {
+                if(! pred(*it))
+                {
+                    s.append(", ");
+                    s.append(it->data(), it->size());
+                }
+                return;
+            }
+            s.append(", ");
+            s.append(it->data(), it->size());
+        }
+    }
+}
+
+template<class String>
+void
+keep_alive_impl(
+    String& s, string_view const& value,
+    unsigned version, bool keep_alive)
+{
+    if(version < 11)
+    {
+        if(keep_alive)
+        {
+            // remove close
+            filter_token_list(s, value,
+                [](string_view s)
+                {
+                    return iequals(s, "close");
+                });
+            // add keep-alive
+            if(s.empty())
+                s.append("keep-alive");
+            else if(! token_list{value}.exists("keep-alive"))
+                s.append(", keep-alive");
+        }
+        else
+        {
+            // remove close and keep-alive
+            filter_token_list(s, value,
+                [](string_view s)
+                {
+                    return
+                        iequals(s, "close") ||
+                        iequals(s, "keep-alive");
+                });
+        }
+    }
+    else
+    {
+        if(keep_alive)
+        {
+            // remove close and keep-alive
+            filter_token_list(s, value,
+                [](string_view s)
+                {
+                    return
+                        iequals(s, "close") ||
+                        iequals(s, "keep-alive");
+                });
+        }
+        else
+        {
+            // remove keep-alive
+            filter_token_list(s, value,
+                [](string_view s)
+                {
+                    return iequals(s, "keep-alive");
+                });
+            // add close
+            if(s.empty())
+                s.append("close");
+            else if(! token_list{value}.exists("close"))
+                s.append(", close");
+        }
+    }
+}
+
+} // detail
+
+//------------------------------------------------------------------------------
+
 // Fields
-
-template<class Allocator>
-inline
-void
-basic_fields<Allocator>::
-set_method_impl(string_view s)
-{
-    realloc_string(method_, s);
-}
-
-template<class Allocator>
-inline
-void
-basic_fields<Allocator>::
-set_target_impl(string_view s)
-{
-    realloc_target(
-        target_or_reason_, s);
-}
-
-template<class Allocator>
-inline
-void
-basic_fields<Allocator>::
-set_reason_impl(string_view s)
-{
-    realloc_string(
-        target_or_reason_, s);
-}
 
 template<class Allocator>
 inline
@@ -823,73 +879,118 @@ get_reason_impl() const
     return target_or_reason_;
 }
 
-namespace detail {
-
-// Builds a new string with "chunked" taken off the end if present
-template<class String>
-void
-without_chunked_last(String& s, string_view const& tokens)
+template<class Allocator>
+bool
+basic_fields<Allocator>::
+get_chunked_impl() const
 {
-    token_list te{tokens};
-    if(te.begin() != te.end())
+    auto const te = token_list{
+        (*this)[field::transfer_encoding]};
+    for(auto it = te.begin(); it != te.end();)
     {
-        auto it = te.begin();
-        auto next = std::next(it);
+        auto const next = std::next(it);
         if(next == te.end())
-        {
-            if(! iequals(*it, "chunked"))
-                s.append(it->data(), it->size());
-            return;
-        }
-        s.append(it->data(), it->size());
-        for(;;)
-        {
-            it = next;
-            next = std::next(it);
-            if(next == te.end())
-            {
-                if(! iequals(*it, "chunked"))
-                {
-                    s.append(", ");
-                    s.append(it->data(), it->size());
-                }
-                return;
-            }
-            s.append(", ");
-            s.append(it->data(), it->size());
-        }
+            return iequals(*it, "chunked");
+        it = next;
     }
+    return false;
 }
 
-} // detail
+template<class Allocator>
+bool
+basic_fields<Allocator>::
+get_keep_alive_impl(unsigned version) const
+{
+    auto const it = find(field::connection);
+    if(version < 11)
+    {
+        if(it == end())
+            return false;
+        return token_list{
+            it->value()}.exists("keep-alive");
+    }
+    if(it == end())
+        return true;
+    return ! token_list{
+        it->value()}.exists("close");
+}
+
+template<class Allocator>
+inline
+void
+basic_fields<Allocator>::
+set_method_impl(string_view s)
+{
+    realloc_string(method_, s);
+}
+
+template<class Allocator>
+inline
+void
+basic_fields<Allocator>::
+set_target_impl(string_view s)
+{
+    realloc_target(
+        target_or_reason_, s);
+}
+
+template<class Allocator>
+inline
+void
+basic_fields<Allocator>::
+set_reason_impl(string_view s)
+{
+    realloc_string(
+        target_or_reason_, s);
+}
 
 template<class Allocator>
 void
 basic_fields<Allocator>::
-prepare_payload_impl(bool chunked,
-    boost::optional<std::uint64_t> size)
+set_chunked_impl(bool value)
 {
-    if(chunked)
+    auto it = find(field::transfer_encoding);
+    if(value)
     {
-        BOOST_ASSERT(! size);
-        erase(field::content_length);
-        auto it = find(field::transfer_encoding);
+        // append "chunked"
         if(it == end())
         {
             set(field::transfer_encoding, "chunked");
             return;
         }
-
-        static_string<max_static_buffer> temp;
-        if(it->value().size() <= temp.size() + 9)
+        auto const te = token_list{it->value()};
+        for(auto itt = te.begin();;)
         {
-            temp.append(it->value().data(), it->value().size());
-            temp.append(", chunked", 9);
-            set(field::transfer_encoding, temp);
+            auto const next = std::next(itt);
+            if(next == te.end())
+            {
+                if(iequals(*itt, "chunked"))
+                    return; // already set
+                break;
+            }
+            itt = next;
+        }
+        static_string<max_static_buffer> buf;
+        if(it->value().size() <= buf.size() + 9)
+        {
+            buf.append(it->value().data(), it->value().size());
+            buf.append(", chunked", 9);
+            set(field::transfer_encoding, buf);
         }
         else
         {
+        #ifdef BEAST_HTTP_NO_FIELDS_BASIC_STRING_ALLOCATOR
+            // Workaround for https://gcc.gnu.org/bugzilla/show_bug.cgi?id=56437
             std::string s;
+        #else
+            using rebind_type =
+                typename std::allocator_traits<
+                    Allocator>::template rebind_alloc<char>;
+            std::basic_string<
+                char,
+                std::char_traits<char>,
+                rebind_type> s{rebind_type{alloc_}};
+        #endif
             s.reserve(it->value().size() + 9);
             s.append(it->value().data(), it->value().size());
             s.append(", chunked", 9);
@@ -897,44 +998,100 @@ prepare_payload_impl(bool chunked,
         }
         return;
     }
-    auto const clear_chunked =
-        [this]()
-        {
-            auto it = find(field::transfer_encoding);
-            if(it == end())
-                return;
-
-            // We have to just try it because we can't
-            // know ahead of time if there's enough room.
-            try
-            {
-                static_string<max_static_buffer> temp;
-                detail::without_chunked_last(temp, it->value());
-                if(! temp.empty())
-                    set(field::transfer_encoding, temp);
-                else
-                    erase(field::transfer_encoding);
-            }
-            catch(std::length_error const&)
-            {
-                std::string s;
-                s.reserve(it->value().size());
-                detail::without_chunked_last(s, it->value());
-                if(! s.empty())
-                    set(field::transfer_encoding, s);
-                else
-                    erase(field::transfer_encoding);
-            }
-        };
-    if(size)
+    // filter "chunked"
+    if(it == end())
+        return;
+    try
     {
-        clear_chunked();
-        set(field::content_length, *size);
+        static_string<max_static_buffer> buf;
+        detail::filter_token_list_last(buf, it->value(),
+            [](string_view const& s)
+            {
+                return iequals(s, "chunked");
+            });
+        if(! buf.empty())
+            set(field::transfer_encoding, buf);
+        else
+            erase(field::transfer_encoding);
     }
-    else
+    catch(std::length_error const&)
     {
-        clear_chunked();
+    #ifdef BEAST_HTTP_NO_FIELDS_BASIC_STRING_ALLOCATOR
+        // Workaround for https://gcc.gnu.org/bugzilla/show_bug.cgi?id=56437
+        std::string s;
+    #else
+        using rebind_type =
+            typename std::allocator_traits<
+                Allocator>::template rebind_alloc<char>;
+        std::basic_string<
+            char,
+            std::char_traits<char>,
+            rebind_type> s{rebind_type{alloc_}};
+    #endif
+        s.reserve(it->value().size());
+        detail::filter_token_list_last(s, it->value(),
+            [](string_view const& s)
+            {
+                return iequals(s, "chunked");
+            });
+        if(! s.empty())
+            set(field::transfer_encoding, s);
+        else
+            erase(field::transfer_encoding);
+    }
+}
+
+template<class Allocator>
+void
+basic_fields<Allocator>::
+set_content_length_impl(
+    boost::optional<std::uint64_t> const& value)
+{
+    if(! value)
         erase(field::content_length);
+    else
+        set(field::content_length, *value);
+}
+
+template<class Allocator>
+void
+basic_fields<Allocator>::
+set_keep_alive_impl(
+    unsigned version, bool keep_alive)
+{
+    // VFALCO What about Proxy-Connection ?
+    auto const value = (*this)[field::connection];
+    try
+    {
+        static_string<max_static_buffer> buf;
+        detail::keep_alive_impl(
+            buf, value, version, keep_alive);
+        if(buf.empty())
+            erase(field::connection);
+        else
+            set(field::connection, buf);
+    }
+    catch(std::length_error const&)
+    {
+    #ifdef BEAST_HTTP_NO_FIELDS_BASIC_STRING_ALLOCATOR
+        // Workaround for https://gcc.gnu.org/bugzilla/show_bug.cgi?id=56437
+        std::string s;
+    #else
+        using rebind_type =
+            typename std::allocator_traits<
+                Allocator>::template rebind_alloc<char>;
+        std::basic_string<
+            char,
+            std::char_traits<char>,
+            rebind_type> s{rebind_type{alloc_}};
+    #endif
+        s.reserve(value.size());
+        detail::keep_alive_impl(
+            s, value, version, keep_alive);
+        if(s.empty())
+            erase(field::connection);
+        else
+            set(field::connection, s);
     }
 }
 

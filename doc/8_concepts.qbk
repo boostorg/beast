@@ -13,10 +13,10 @@ This section describes all of the concepts defined by the library.
 [include concept/BodyReader.qbk]
 [include concept/BodyWriter.qbk]
 [include concept/BufferSequence.qbk]
-[include concept/File.qbk]
 [include concept/DynamicBuffer.qbk]
 [include concept/Fields.qbk]
 [include concept/FieldsReader.qbk]
+[include concept/File.qbk]
 [include concept/Streams.qbk]
 
 [endsect]

@@ -65,19 +65,6 @@ In this table:
         token in its value is "chunked".
     ]
 ][
-    [`a.keep_alive()`]
-    [`bool`]
-    [
-        Called once after construction, this function returns `true`
-        if the semantics of the mesage indicate that the connection
-        should remain open after processing the message. When the
-        HTTP version is below 1.1, the function returns `true` only
-        if the [*Connection] field is present, and its value contains
-        the "keep-alive" token. For HTTP versions 1.1 and above, the
-        function returns `true` if the [*Connection] field is absent,
-        or if the field value does not contain the "close" token.
-    ]
-][
     [`a.get()`]
     [`X::const_buffers_type`]
     [

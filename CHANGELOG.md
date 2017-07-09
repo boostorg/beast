@@ -10,6 +10,17 @@ HTTP:
 * Add vector_body
 * span, string, vector bodies are public
 * Fix spurious uninitialized warning
+* fields temp string uses allocator
+
+API Changes:
+
+* Add message::keep_alive()
+* Add message::chunked() and message::content_length()
+
+Actions Required:
+
+* Change user defined implementations of Fields and
+  FieldsReader to meet the new requirements.
 
 --------------------------------------------------------------------------------
 
