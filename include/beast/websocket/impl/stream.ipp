@@ -24,6 +24,7 @@
 #include <beast/core/detail/type_traits.hpp>
 #include <boost/assert.hpp>
 #include <boost/endian/buffers.hpp>
+#include <boost/make_unique.hpp>
 #include <boost/throw_exception.hpp>
 #include <algorithm>
 #include <memory>
@@ -569,7 +570,8 @@ rd_begin()
         if(! rd_.buf || rd_.buf_size != rd_buf_size_)
         {
             rd_.buf_size = rd_buf_size_;
-            rd_.buf.reset(new std::uint8_t[rd_.buf_size]);
+            rd_.buf = boost::make_unique_noinit<
+                std::uint8_t[]>(rd_.buf_size);
         }
     }
 }
@@ -589,7 +591,8 @@ wr_begin()
         if(! wr_.buf || wr_.buf_size != wr_buf_size_)
         {
             wr_.buf_size = wr_buf_size_;
-            wr_.buf.reset(new std::uint8_t[wr_.buf_size]);
+            wr_.buf = boost::make_unique_noinit<
+                std::uint8_t[]>(wr_.buf_size);
         }
     }
     else
