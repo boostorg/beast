@@ -44,11 +44,13 @@ namespace http {
     to the stream's `write_some` function.
 
     The amount of data actually transferred is controlled by the behavior
-    of the underlying stream, performing bounded work for each call. This
-    helps applications set reasonable timeouts. It also allows application-level
-    flow control to function correctly. For example when using a TCP/IP based
+    of the underlying stream, subject to the buffer size limit of the
+    serializer obtained or set through a call to @ref serializer::limit.
+    Setting a limit and performing bounded work helps applications set
+    reasonable timeouts. It also allows application-level flow control
+    to function correctly. For example when using a TCP/IP based
     stream.
-    
+
     @param stream The stream to which the data is to be written.
     The type must support the @b SyncWriteStream concept.
 
@@ -80,9 +82,11 @@ write_some(SyncWriteStream& stream, serializer<
     to the stream's `write_some` function.
 
     The amount of data actually transferred is controlled by the behavior
-    of the underlying stream, performing bounded work for each call. This
-    helps applications set reasonable timeouts. It also allows application-level
-    flow control to function correctly. For example when using a TCP/IP based
+    of the underlying stream, subject to the buffer size limit of the
+    serializer obtained or set through a call to @ref serializer::limit.
+    Setting a limit and performing bounded work helps applications set
+    reasonable timeouts. It also allows application-level flow control
+    to function correctly. For example when using a TCP/IP based
     stream.
     
     @param stream The stream to which the data is to be written.
@@ -120,9 +124,11 @@ write_some(SyncWriteStream& stream, serializer<
     until this operation completes.
 
     The amount of data actually transferred is controlled by the behavior
-    of the underlying stream, performing bounded work for each call. This
-    helps applications set reasonable timeouts. It also allows application-level
-    flow control to function correctly. For example when using a TCP/IP based
+    of the underlying stream, subject to the buffer size limit of the
+    serializer obtained or set through a call to @ref serializer::limit.
+    Setting a limit and performing bounded work helps applications set
+    reasonable timeouts. It also allows application-level flow control
+    to function correctly. For example when using a TCP/IP based
     stream.
     
     @param stream The stream to which the data is to be written.

@@ -5,14 +5,14 @@
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 ]
 
-[section Using Networking]
+[section:using_io Using I/O]
 
-This library makes network primitives used by the implementation publicly
+This library makes I/O primitives used by the implementation publicly
 available so users can take advantage of them in their own libraries.
-These primitives include traits, buffers, buffer algorithms, and helpers
-for implementing asynchronous operations compatible with __Asio__ and
-described in __N3747__. This section lists these facilities by group,
-with descriptions.
+These primitives include traits, buffers, buffer algorithms, files,
+and helpers for implementing asynchronous operations compatible with
+__Asio__ and described in __N3747__. This section lists these facilities
+by group, with descriptions.
 
 [important
     This documentation assumes familiarity with __Asio__. Sample
@@ -26,7 +26,8 @@ with descriptions.
 [include 3_1_asio.qbk]
 [include 3_2_streams.qbk]
 [include 3_3_buffers.qbk]
-[include 3_4_composed.qbk]
-[include 3_5_detect_ssl.qbk]
+[include 3_4_files.qbk]
+[include 3_5_composed.qbk]
+[include 3_6_detect_ssl.qbk]
 
 [endsect]

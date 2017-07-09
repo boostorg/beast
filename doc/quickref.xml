@@ -178,6 +178,7 @@
             <member><link linkend="beast.ref.beast__error_code">error_code</link></member>
             <member><link linkend="beast.ref.beast__error_condition">error_condition</link></member>
             <member><link linkend="beast.ref.beast__file">file</link></member>
+            <member><link linkend="beast.ref.beast__file_mode">file_mode</link></member>
           </simplelist>
         </entry>
         <entry valign="top">
