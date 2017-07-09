@@ -2,6 +2,7 @@ Version 78:
 
 * Add span
 * Documentation work
+* Use make_unique_noinit
 
 HTTP:
 

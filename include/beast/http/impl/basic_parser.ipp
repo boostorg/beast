@@ -15,6 +15,7 @@
 #include <beast/http/error.hpp>
 #include <beast/http/rfc7230.hpp>
 #include <boost/asio/buffer.hpp>
+#include <boost/make_unique.hpp>
 #include <algorithm>
 #include <utility>
 
@@ -120,7 +121,7 @@ put(ConstBufferSequence const& buffers,
     if(size > buf_len_)
     {
         // reallocate
-        buf_.reset(new char[size]);
+        buf_ = boost::make_unique_noinit<char[]>(size);
         buf_len_ = size;
     }
     // flatten
