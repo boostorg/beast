@@ -8,6 +8,7 @@
 // Test that header file is self-contained.
 #include <beast/core/span.hpp>
 
+#include <beast/core/string.hpp>
 #include <beast/unit_test/suite.hpp>
 
 namespace beast {
@@ -15,6 +16,10 @@ namespace beast {
 class span_test : public beast::unit_test::suite
 {
 public:
+    BOOST_STATIC_ASSERT(
+        detail::is_contiguous_container<
+        string_view, char const>::value);
+
     struct base {};
     struct derived : base {};
 

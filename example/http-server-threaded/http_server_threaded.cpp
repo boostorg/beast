@@ -56,10 +56,10 @@ public:
 
 private:
     // Send a client error response
-    http::response<http::string_view_body>
+    http::response<http::span_body<char const>>
     client_error(http::status result, beast::string_view text)
     {
-        http::response<http::string_view_body> res{result, 11};
+        http::response<http::span_body<char const>> res{result, 11};
         res.set(http::field::server, BEAST_VERSION_STRING);
         res.set(http::field::content_type, "text/plain");
         res.set(http::field::connection, "close");
