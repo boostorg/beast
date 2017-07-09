@@ -5,6 +5,7 @@ Version 78:
 * Use make_unique_noinit
 * Fix warning in zlib
 * Header file tidying
+* Tidy up FieldsReader doc
 
 HTTP:
 

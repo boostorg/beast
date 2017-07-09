@@ -12,6 +12,12 @@ representing the complete serialized HTTP/1 header for a set of fields.
 The implementation constructs an instance of this type when needed, and
 calls into it once to retrieve the buffers.
 
+[heading Associated Types]
+
+* __FieldsReader__
+
+[heading Requirements]
+
 In this table:
 
 * `X` denotes a type that meets the requirements of [*FieldsReader].
@@ -29,7 +35,7 @@ In this table:
 
 * `m` is a value of type [link beast.ref.beast__http__verb `verb`].
 
-[table FieldsReader requirements
+[table Valid expressions
 [[expression][type][semantics, pre/post-conditions]]
 [
     [`X::const_buffers_type`]
@@ -57,14 +63,6 @@ In this table:
         to end no earlier than after the `X` is destroyed.
     ]
 ][
-    [`a.chunked()`]
-    [`bool`]
-    [
-        Called once after construction, this function returns `true`
-        if the [*Transfer-Encoding] field is present, and the last
-        token in its value is "chunked".
-    ]
-][
     [`a.get()`]
     [`X::const_buffers_type`]
     [
@@ -73,18 +71,14 @@ In this table:
         representation of the HTTP request or response including
         the final carriage return linefeed sequence (`"\r\n"`).
     ]
-][
-    [`is_fields_reader<F>`]
-    [`std::true_type`]
-    [
-        An alias for `std::true_type` for `F`, otherwise an alias
-        for `std::false_type`.
-    ]
-]
-]
+]]
 
 [heading Exemplar]
 
 [concept_FieldsReader]
+
+[heading Models]
+
+* [link beast.ref.beast__http__basic_fields.reader `basic_fields::reader`]
 
 [endsect]
