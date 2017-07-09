@@ -152,11 +152,9 @@ the example described in the Core Foundations document section.
 This code is reused between some of the examples. The header files
 stand alone can be directly included in your projects.
 
-* [repo_file example/common/const_body.hpp]
 * [repo_file example/common/detect_ssl.hpp]
 * [repo_file example/common/helpers.hpp]
 * [repo_file example/common/mime_types.hpp]
-* [repo_file example/common/mutable_body.hpp]
 * [repo_file example/common/rfc7231.hpp]
 * [repo_file example/common/ssl_stream.hpp]
 * [repo_file example/common/write_msg.hpp]

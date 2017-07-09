@@ -6,8 +6,6 @@
 //
 
 #include "example/doc/http_examples.hpp"
-#include "example/common/const_body.hpp"
-#include "example/common/mutable_body.hpp"
 
 #include <beast/core/read_size.hpp>
 #include <beast/core/detail/clamp.hpp>
@@ -23,30 +21,6 @@
 
 namespace beast {
 namespace http {
-
-struct Thing {
-    char value;
-};
-
-BOOST_STATIC_ASSERT(::detail::is_const_character<char>::value == true);
-BOOST_STATIC_ASSERT(::detail::is_const_character<unsigned char>::value == true);
-BOOST_STATIC_ASSERT(::detail::is_const_character<char32_t>::value == false);
-BOOST_STATIC_ASSERT(::detail::is_const_character<Thing>::value == false);
-
-BOOST_STATIC_ASSERT(::detail::is_const_container<std::string>::value == true);
-BOOST_STATIC_ASSERT(::detail::is_const_container<string_view>::value == true);
-BOOST_STATIC_ASSERT(::detail::is_const_container<std::vector<char>>::value == true);
-BOOST_STATIC_ASSERT(::detail::is_const_container<std::list<char>>::value == false);
-
-BOOST_STATIC_ASSERT(::detail::is_mutable_character<char>::value == true);
-BOOST_STATIC_ASSERT(::detail::is_mutable_character<unsigned char>::value == true);
-BOOST_STATIC_ASSERT(::detail::is_mutable_character<char32_t>::value == false);
-BOOST_STATIC_ASSERT(::detail::is_mutable_character<Thing>::value == false);
-
-BOOST_STATIC_ASSERT(::detail::is_mutable_container<std::string>::value == true);
-BOOST_STATIC_ASSERT(::detail::is_mutable_container<string_view>::value == false);
-BOOST_STATIC_ASSERT(::detail::is_mutable_container<std::vector<char>>::value == true);
-BOOST_STATIC_ASSERT(::detail::is_mutable_container<std::list<char>>::value == false);
 
 class doc_examples_test
     : public beast::unit_test::suite
@@ -285,54 +259,6 @@ public:
         BEAST_EXPECT(h.body == "Hello, world!");
     }
 
-    void
-    doConstAndMutableBody()
-    {
-        test::pipe c{ios_};
-
-        // people using std::array need to be careful
-        // because the entire array will be written out
-        // no matter how big the string is!
-        std::array<char, 15> const body {{"Hello, world!\n"}};
-        {
-            request<const_body<std::array<char, 15>>> req;
-            req.version = 11;
-            req.method(verb::put);
-            req.target("/");
-            req.body = body;
-            req.prepare_payload();
-            write(c.client, req);
-        }
-        {
-            flat_buffer b;
-            request_parser<empty_body> p0;
-            read_header(c.server, b, p0);
-            BEAST_EXPECTS(p0.get().method() == verb::put,
-                p0.get().method_string());
-            {
-                request_parser<mutable_body<std::vector<char>>> p{std::move(p0)};
-                p.get().body = std::vector<char>(body.begin(), body.end());
-                read(c.server, b, p);
-            }
-        }
-        {
-            response<const_body<std::array<char, 15>>> res;
-            res.version = 11;
-            res.result(status::ok);
-            res.insert(field::server, "test");
-            res.body = body;
-            res.prepare_payload();
-            write(c.server, res);
-        }
-        {
-            flat_buffer b;
-            response<mutable_body<std::vector<char>>> res;
-            read(c.client, b, res);
-            BEAST_EXPECTS(res.body == std::vector<char>(body.begin(), body.end()),
-                std::string(body.begin(), body.end()));
-        }
-    }
-
     //--------------------------------------------------------------------------
 
     void
@@ -367,7 +293,6 @@ public:
         doCustomParser();
         doHEAD();
         doDeferredBody();
-        doConstAndMutableBody();
         doIncrementalRead();
     }
 };
