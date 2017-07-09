@@ -278,10 +278,6 @@ struct FieldsReader
     // Constructor for responses
     FieldsReader(F const& f, unsigned version, unsigned status);
 
-    // Returns `true` if the payload uses the chunked Transfer-Encoding
-    bool
-    chunked();
-
     // Returns `true` if keep-alive is indicated
     bool
     keep_alive();
