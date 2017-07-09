@@ -190,7 +190,7 @@ public:
     {
         return data_;
     }
-        
+       
     /// Returns an iterator to one past the end of the span
     const_iterator
     end() const

@@ -28,6 +28,7 @@ add_executable (http-tests
     read.cpp
     rfc7230.cpp
     serializer.cpp
+    span_body.cpp
     status.cpp
     string_body.cpp
     string_view_body.cpp
