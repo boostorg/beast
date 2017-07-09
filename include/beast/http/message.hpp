@@ -642,6 +642,72 @@ struct message : header<isRequest, Fields>
         return *this;
     }
 
+    /// Returns `true` if the chunked Transfer-Encoding is specified
+    bool
+    chunked() const
+    {
+        return this->get_chunked_impl();
+    }
+
+    /** Set or clear the chunked Transfer-Encoding
+
+        This function will set or removed the "chunked" transfer
+        encoding as the last item in the list of encodings in the
+        field.
+
+        If the result of removing the chunked token results in an
+        empty string, the field is erased.
+
+        The Content-Length field is erased unconditionally.
+    */
+    void
+    chunked(bool value);
+
+    /** Set or clear the Content-Length field
+
+        This function adjusts the Content-Length field as follows:
+
+        @li If `value` specifies a value, the Content-Length field
+          is set to the value. Otherwise
+
+        @li The Content-Length field is erased.
+
+        If "chunked" token appears as the last item in the
+        Transfer-Encoding field it is unconditionally removed.
+
+        @param value The value to set for Content-Length.
+    */
+    void
+    content_length(boost::optional<std::uint64_t> const& value);
+
+    /** Returns `true` if the message semantics indicate keep-alive
+
+        The value depends on the version in the message, which must
+        be set to the final value before this function is called or
+        else the return value is unreliable.
+    */
+    bool
+    keep_alive() const
+    {
+        return this->get_keep_alive_impl(this->version);
+    }
+
+    /** Set the keep-alive message semantic option
+
+        This function adjusts the Connection field to indicate
+        whether or not the connection should be kept open after
+        the corresponding response. The result depends on the
+        version set on the message, which must be set to the
+        final value before making this call.
+
+        @param value `true` if the connection should persist.
+    */
+    void
+    keep_alive(bool value)
+    {
+        this->set_keep_alive_impl(this->version, value);
+    }
+
     /** Returns the payload size of the body in octets if possible.
 
         This function invokes the @b Body algorithm to measure

@@ -584,7 +584,323 @@ public:
         }
     }
 
-    void run() override
+    void
+    testKeepAlive()
+    {
+        response<empty_body> res;
+        auto const keep_alive =
+            [&](bool v)
+            {
+                res.keep_alive(v);
+                BEAST_EXPECT(
+                    (res.keep_alive() && v) ||
+                    (! res.keep_alive() && ! v));
+            };
+
+        BOOST_STATIC_ASSERT(fields::max_static_buffer == 4096);
+        std::string const big(4096 + 1, 'a');
+
+        // HTTP/1.0
+        res.version = 10;
+        res.erase(field::connection);
+
+        keep_alive(false);
+        BEAST_EXPECT(res.count(field::connection) == 0);
+
+        res.set(field::connection, "close");
+        keep_alive(false);
+        BEAST_EXPECT(res.count(field::connection) == 0);
+
+        res.set(field::connection, "keep-alive");
+        keep_alive(false);
+        BEAST_EXPECT(res.count(field::connection) == 0);
+
+        res.set(field::connection, "keep-alive, close");
+        keep_alive(false);
+        BEAST_EXPECT(res.count(field::connection) == 0);
+
+        res.erase(field::connection);
+        keep_alive(true);
+        BEAST_EXPECT(res[field::connection] == "keep-alive");
+
+        res.set(field::connection, "close");
+        keep_alive(true);
+        BEAST_EXPECT(res[field::connection] == "keep-alive");
+
+        res.set(field::connection, "keep-alive");
+        keep_alive(true);
+        BEAST_EXPECT(res[field::connection] == "keep-alive");
+
+        res.set(field::connection, "keep-alive, close");
+        keep_alive(true);
+        BEAST_EXPECT(res[field::connection] == "keep-alive");
+
+        auto const test10 =
+            [&](std::string s)
+        {
+            res.set(field::connection, s);
+            keep_alive(false);
+            BEAST_EXPECT(res[field::connection] == s);
+
+            res.set(field::connection, s + ", close");
+            keep_alive(false);
+            BEAST_EXPECT(res[field::connection] == s);
+
+            res.set(field::connection, "keep-alive, " + s);
+            keep_alive(false);
+            BEAST_EXPECT(res[field::connection] == s);
+
+            res.set(field::connection, "keep-alive, " + s + ", close");
+            keep_alive(false);
+            BEAST_EXPECT(res[field::connection] == s);
+
+            res.set(field::connection, s);
+            keep_alive(true);
+            BEAST_EXPECT(res[field::connection] == s + ", keep-alive");
+
+            res.set(field::connection, s + ", close");
+            keep_alive(true);
+            BEAST_EXPECT(res[field::connection] == s + ", keep-alive");
+
+            res.set(field::connection, "keep-alive, " + s);
+            keep_alive(true);
+            BEAST_EXPECT(res[field::connection] == "keep-alive, " + s);
+
+            res.set(field::connection, "keep-alive, " + s+ ", close");
+            keep_alive(true);
+            BEAST_EXPECT(res[field::connection] == "keep-alive, " + s);
+        };
+
+        test10("foo");
+        test10(big);
+
+        // HTTP/1.1
+        res.version = 11;
+
+        res.erase(field::connection);
+        keep_alive(true);
+        BEAST_EXPECT(res.count(field::connection) == 0);
+
+        res.set(field::connection, "close");
+        keep_alive(true);
+        BEAST_EXPECT(res.count(field::connection) == 0);
+
+        res.set(field::connection, "keep-alive");
+        keep_alive(true);
+        BEAST_EXPECT(res.count(field::connection) == 0);
+
+        res.set(field::connection, "keep-alive, close");
+        keep_alive(true);
+        BEAST_EXPECT(res.count(field::connection) == 0);
+
+        res.erase(field::connection);
+        keep_alive(false);
+        BEAST_EXPECT(res[field::connection] == "close");
+
+        res.set(field::connection, "close");
+        keep_alive(false);
+        BEAST_EXPECT(res[field::connection] == "close");
+
+        res.set(field::connection, "keep-alive");
+        keep_alive(false);
+        BEAST_EXPECT(res[field::connection] == "close");
+
+        res.set(field::connection, "keep-alive, close");
+        keep_alive(false);
+        BEAST_EXPECT(res[field::connection] == "close");
+
+        auto const test11 =
+            [&](std::string s)
+        {
+            res.set(field::connection, s);
+            keep_alive(true);
+            BEAST_EXPECT(res[field::connection] == s);
+
+            res.set(field::connection, s + ", close");
+            keep_alive(true);
+            BEAST_EXPECT(res[field::connection] == s);
+
+            res.set(field::connection, "keep-alive, " + s);
+            keep_alive(true);
+            BEAST_EXPECT(res[field::connection] == s);
+
+            res.set(field::connection, "keep-alive, " + s + ", close");
+            keep_alive(true);
+            BEAST_EXPECT(res[field::connection] == s);
+
+            res.set(field::connection, s);
+            keep_alive(false);
+            BEAST_EXPECT(res[field::connection] == s + ", close");
+
+            res.set(field::connection, "close, " + s);
+            keep_alive(false);
+            BEAST_EXPECT(res[field::connection] == "close, " + s);
+
+            res.set(field::connection, "keep-alive, " + s);
+            keep_alive(false);
+            BEAST_EXPECT(res[field::connection] == s + ", close");
+
+            res.set(field::connection, "close, " + s + ", keep-alive");
+            keep_alive(false);
+            BEAST_EXPECT(res[field::connection] == "close, " + s);
+        };
+
+        test11("foo");
+        test11(big);
+    }
+
+    void
+    testContentLength()
+    {
+        response<empty_body> res{status::ok, 11};
+        BEAST_EXPECT(res.count(field::content_length) == 0);
+        BEAST_EXPECT(res.count(field::transfer_encoding) == 0);
+
+        res.content_length(0);
+        BEAST_EXPECT(res[field::content_length] == "0");
+        
+        res.content_length(100);
+        BEAST_EXPECT(res[field::content_length] == "100");
+        
+        res.content_length(boost::none);
+        BEAST_EXPECT(res.count(field::content_length) == 0);
+
+        res.set(field::transfer_encoding, "chunked");
+        res.content_length(0);
+        BEAST_EXPECT(res[field::content_length] == "0");
+        BEAST_EXPECT(res.count(field::transfer_encoding) == 0);
+        
+        res.set(field::transfer_encoding, "chunked");
+        res.content_length(100);
+        BEAST_EXPECT(res[field::content_length] == "100");
+        BEAST_EXPECT(res.count(field::transfer_encoding) == 0);
+        
+        res.set(field::transfer_encoding, "chunked");
+        res.content_length(boost::none);
+        BEAST_EXPECT(res.count(field::content_length) == 0);
+        BEAST_EXPECT(res.count(field::transfer_encoding) == 0);
+
+        auto const check = [&](std::string s)
+        {
+            res.set(field::transfer_encoding, s);
+            res.content_length(0);
+            BEAST_EXPECT(res[field::content_length] == "0");
+            BEAST_EXPECT(res[field::transfer_encoding] == s);
+        
+            res.set(field::transfer_encoding, s);
+            res.content_length(100);
+            BEAST_EXPECT(res[field::content_length] == "100");
+            BEAST_EXPECT(res[field::transfer_encoding] == s);
+        
+            res.set(field::transfer_encoding, s);
+            res.content_length(boost::none);
+            BEAST_EXPECT(res.count(field::content_length) == 0);
+            BEAST_EXPECT(res[field::transfer_encoding] == s);
+
+            res.set(field::transfer_encoding, s + ", chunked");
+            res.content_length(0);
+            BEAST_EXPECT(res[field::content_length] == "0");
+            BEAST_EXPECT(res[field::transfer_encoding] == s);
+        
+            res.set(field::transfer_encoding, s + ", chunked");
+            res.content_length(100);
+            BEAST_EXPECT(res[field::content_length] == "100");
+            BEAST_EXPECT(res[field::transfer_encoding] == s);
+        
+            res.set(field::transfer_encoding, s + ", chunked");
+            res.content_length(boost::none);
+            BEAST_EXPECT(res.count(field::content_length) == 0);
+            BEAST_EXPECT(res[field::transfer_encoding] == s);
+
+            res.set(field::transfer_encoding, "chunked, " + s);
+            res.content_length(0);
+            BEAST_EXPECT(res[field::content_length] == "0");
+            BEAST_EXPECT(res[field::transfer_encoding] == "chunked, " + s);
+        
+            res.set(field::transfer_encoding, "chunked, " + s);
+            res.content_length(100);
+            BEAST_EXPECT(res[field::content_length] == "100");
+            BEAST_EXPECT(res[field::transfer_encoding] == "chunked, " + s);
+        
+            res.set(field::transfer_encoding, "chunked, " + s);
+            res.content_length(boost::none);
+            BEAST_EXPECT(res.count(field::content_length) == 0);
+            BEAST_EXPECT(res[field::transfer_encoding] == "chunked, " + s);
+        };
+
+        check("foo");
+
+        BOOST_STATIC_ASSERT(fields::max_static_buffer == 4096);
+        std::string const big(4096 + 1, 'a');
+
+        check(big);
+    }
+
+    void
+    testChunked()
+    {
+        response<empty_body> res{status::ok, 11};
+        BEAST_EXPECT(res.count(field::content_length) == 0);
+        BEAST_EXPECT(res.count(field::transfer_encoding) == 0);
+
+        auto const chunked =
+            [&](bool v)
+            {
+                res.chunked(v);
+                BEAST_EXPECT(
+                    (res.chunked() && v) ||
+                    (! res.chunked() && ! v));
+                BEAST_EXPECT(res.count(
+                    field::content_length) == 0);
+            };
+
+        res.erase(field::transfer_encoding);
+        res.set(field::content_length, 32);
+        chunked(true);
+        BEAST_EXPECT(res[field::transfer_encoding] == "chunked");
+
+        res.set(field::transfer_encoding, "chunked");
+        chunked(true);
+        BEAST_EXPECT(res[field::transfer_encoding] == "chunked");
+
+        res.erase(field::transfer_encoding);
+        res.set(field::content_length, 32);
+        chunked(false);
+        BEAST_EXPECT(res.count(field::transfer_encoding) == 0);
+
+        res.set(field::transfer_encoding, "chunked");
+        chunked(false);
+        BEAST_EXPECT(res.count(field::transfer_encoding) == 0);
+
+
+
+        res.set(field::transfer_encoding, "foo");
+        chunked(true);
+        BEAST_EXPECT(res[field::transfer_encoding] == "foo, chunked");
+
+        res.set(field::transfer_encoding, "chunked, foo");
+        chunked(true);
+        BEAST_EXPECT(res[field::transfer_encoding] == "chunked, foo, chunked");
+
+        res.set(field::transfer_encoding, "chunked, foo, chunked");
+        chunked(true);
+        BEAST_EXPECT(res[field::transfer_encoding] == "chunked, foo, chunked");
+
+        res.set(field::transfer_encoding, "foo, chunked");
+        chunked(false);
+        BEAST_EXPECT(res[field::transfer_encoding] == "foo");
+
+        res.set(field::transfer_encoding, "chunked, foo");
+        chunked(false);
+        BEAST_EXPECT(res[field::transfer_encoding] == "chunked, foo");
+
+        res.set(field::transfer_encoding, "chunked, foo, chunked");
+        chunked(false);
+        BEAST_EXPECT(res[field::transfer_encoding] == "chunked, foo");
+    }
+
+    void
+    run() override
     {
         testMembers();
         testHeaders();
@@ -592,6 +908,10 @@ public:
         testErase();
         testContainer();
         testPreparePayload();
+
+        testKeepAlive();
+        testContentLength();
+        testChunked();
     }
 };
 

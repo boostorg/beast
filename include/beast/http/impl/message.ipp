@@ -313,39 +313,24 @@ message(std::piecewise_construct_t,
 {
 }
 
-#if 0
 template<bool isRequest, class Body, class Fields>
-template<class BodyArg, class>
+void
 message<isRequest, Body, Fields>::
-message(BodyArg&& body_arg)
-    : body(std::forward<BodyArg>(body_arg))
+chunked(bool value)
 {
+    this->set_chunked_impl(value);
+    this->set_content_length_impl(boost::none);
 }
 
 template<bool isRequest, class Body, class Fields>
-template<class BodyArg, class HeaderArg, class>
+void
 message<isRequest, Body, Fields>::
-message(BodyArg&& body_arg, HeaderArg&& header_arg)
-    : header_type(std::forward<HeaderArg>(header_arg))
-    , body(std::forward<BodyArg>(body_arg))
+content_length(
+    boost::optional<std::uint64_t> const& value)
 {
+    this->set_content_length_impl(value);
+    this->set_chunked_impl(false);
 }
-
-template<bool isRequest, class Body, class Fields>
-template<class... BodyArgs, class... HeaderArgs>
-message<isRequest, Body, Fields>::
-message(std::piecewise_construct_t,
-    std::tuple<BodyArgs...>&& body_args,
-        std::tuple<HeaderArgs...>&& header_args)
-    : message(std::piecewise_construct,
-        body_args, header_args,
-            beast::detail::make_index_sequence<
-                sizeof...(BodyArgs)>{},
-                    beast::detail::make_index_sequence<
-                        sizeof...(HeaderArgs)>{})
-{
-}
-#endif
 
 template<bool isRequest, class Body, class Fields>
 boost::optional<std::uint64_t>
@@ -371,20 +356,20 @@ prepare_payload(std::true_type)
             this->method() == verb::put ||
             this->method() == verb::post)
         {
-            this->prepare_payload_impl(false, *n);
+            this->content_length(n);
         }
         else
         {
-            this->prepare_payload_impl(false, boost::none);
+            this->chunked(false);
         }
     }
     else if(this->version >= 11)
     {
-        this->prepare_payload_impl(true, boost::none);
+        this->chunked(true);
     }
     else
     {
-        this->prepare_payload_impl(false, boost::none);
+        this->chunked(false);
     }
 }
 
@@ -404,13 +389,9 @@ prepare_payload(std::false_type)
                 "invalid response body"});
     }
     if(n)
-    {
-        this->prepare_payload_impl(false, *n);
-    }
+        this->content_length(n);
     else
-    {
-        this->prepare_payload_impl(true, boost::none);
-    }
+        this->chunked(true);
 }
 
 //------------------------------------------------------------------------------

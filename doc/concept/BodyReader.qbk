@@ -39,9 +39,10 @@ In this table:
 [heading Associated Types]
 
 * __Body__
+
 * [link beast.ref.beast__http__is_body_reader `is_body_reader`]
 
-[heading  BodyReader requirements]
+[heading BodyReader requirements]
 [table Valid Expressions
 [[Expression] [Type] [Semantics, Pre/Post-conditions]]
 [

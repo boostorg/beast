@@ -88,8 +88,8 @@ next(error_code& ec, Visit&& visit)
     {
         frdinit(std::integral_constant<bool,
             isRequest>{});
-        keep_alive_ = frd_->keep_alive();
-        chunked_ = frd_->chunked();
+        keep_alive_ = m_.keep_alive();
+        chunked_ = m_.chunked();
         if(chunked_)
             goto go_init_c;
         s_ = do_init;
