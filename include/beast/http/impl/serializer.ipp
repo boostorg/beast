@@ -18,30 +18,30 @@
 namespace beast {
 namespace http {
 
-template<bool isRequest, class Body,
-    class Fields, class ChunkDecorator>
+template<
+    bool isRequest, class Body, class Fields>
 void
-serializer<isRequest, Body, Fields, ChunkDecorator>::
+serializer<isRequest, Body, Fields>::
 frdinit(std::true_type)
 {
     frd_.emplace(m_, m_.version, m_.method());
 }
 
-template<bool isRequest, class Body,
-    class Fields, class ChunkDecorator>
+template<
+    bool isRequest, class Body, class Fields>
 void
-serializer<isRequest, Body, Fields, ChunkDecorator>::
+serializer<isRequest, Body, Fields>::
 frdinit(std::false_type)
 {
     frd_.emplace(m_, m_.version, m_.result_int());
 }
 
-template<bool isRequest, class Body,
-    class Fields, class ChunkDecorator>
+template<
+    bool isRequest, class Body, class Fields>
 template<class T1, class T2, class Visit>
 inline
 void
-serializer<isRequest, Body, Fields, ChunkDecorator>::
+serializer<isRequest, Body, Fields>::
 do_visit(error_code& ec, Visit& visit)
 {
     // VFALCO work-around for missing variant::emplace
@@ -54,30 +54,20 @@ do_visit(error_code& ec, Visit& visit)
 
 //------------------------------------------------------------------------------
 
-template<bool isRequest, class Body,
-    class Fields, class ChunkDecorator>
-serializer<isRequest, Body, Fields, ChunkDecorator>::
+template<
+    bool isRequest, class Body, class Fields>
+serializer<isRequest, Body, Fields>::
 serializer(value_type& m)
     : m_(m)
     , rd_(m_)
 {
 }
 
-template<bool isRequest, class Body,
-    class Fields, class ChunkDecorator>
-serializer<isRequest, Body, Fields, ChunkDecorator>::
-serializer(value_type& m, ChunkDecorator const& d)
-    : m_(m)
-    , rd_(m_)
-    , d_(d)
-{
-}
-
-template<bool isRequest, class Body,
-    class Fields, class ChunkDecorator>
+template<
+    bool isRequest, class Body, class Fields>
 template<class Visit>
 void
-serializer<isRequest, Body, Fields, ChunkDecorator>::
+serializer<isRequest, Body, Fields>::
 next(error_code& ec, Visit&& visit)
 {
     using boost::asio::buffer_size;
@@ -177,46 +167,25 @@ next(error_code& ec, Visit&& visit)
             v_ = cb7_t{
                 boost::in_place_init,
                 frd_->get(),
-                detail::chunk_header{
-                    buffer_size(result->first)},
-                [&]()
-                {
-                    auto sv = d_(result->first);
-                    return boost::asio::const_buffers_1{
-                        sv.data(), sv.size()};
-                
-                }(),
-                detail::chunk_crlf(),
+                buffer_size(result->first),
+                boost::asio::const_buffers_1{nullptr, 0},
+                chunk_crlf{},
                 result->first,
-                detail::chunk_crlf(),
-                detail::chunk_final(),
-                [&]()
-                {
-                    auto sv = d_(
-                        boost::asio::null_buffers{});
-                    return boost::asio::const_buffers_1{
-                        sv.data(), sv.size()};
-                
-                }(),
-                detail::chunk_crlf()};
+                chunk_crlf{},
+                detail::chunk_last(),
+                boost::asio::const_buffers_1{nullptr, 0},
+                chunk_crlf{}};
             goto go_all_c;
         }
     #endif
         v_ = cb4_t{
             boost::in_place_init,
             frd_->get(),
-            detail::chunk_header{
-                buffer_size(result->first)},
-            [&]()
-            {
-                auto sv = d_(result->first);
-                return boost::asio::const_buffers_1{
-                    sv.data(), sv.size()};
-                
-            }(),
-            detail::chunk_crlf(),
+            buffer_size(result->first),
+            boost::asio::const_buffers_1{nullptr, 0},
+            chunk_crlf{},
             result->first,
-            detail::chunk_crlf()};
+            chunk_crlf{}};
         s_ = do_header_c;
         BEAST_FALLTHROUGH;
     }
@@ -250,45 +219,24 @@ next(error_code& ec, Visit&& visit)
             // do it all in one buffer
             v_ = cb6_t{
                 boost::in_place_init,
-                detail::chunk_header{
-                    buffer_size(result->first)},
-                [&]()
-                {
-                    auto sv = d_(result->first);
-                    return boost::asio::const_buffers_1{
-                        sv.data(), sv.size()};
-                
-                }(),
-                detail::chunk_crlf(),
+                buffer_size(result->first),
+                boost::asio::const_buffers_1{nullptr, 0},
+                chunk_crlf{},
                 result->first,
-                detail::chunk_crlf(),
-                detail::chunk_final(),
-                [&]()
-                {
-                    auto sv = d_(
-                        boost::asio::null_buffers{});
-                    return boost::asio::const_buffers_1{
-                        sv.data(), sv.size()};
-                
-                }(),
-                detail::chunk_crlf()};
+                chunk_crlf{},
+                detail::chunk_last(),
+                boost::asio::const_buffers_1{nullptr, 0},
+                chunk_crlf{}};
             goto go_body_final_c;
         }
     #endif
         v_ = cb5_t{
             boost::in_place_init,
-            detail::chunk_header{
-                buffer_size(result->first)},
-            [&]()
-            {
-                auto sv = d_(result->first);
-                return boost::asio::const_buffers_1{
-                    sv.data(), sv.size()};
-                
-            }(),
-            detail::chunk_crlf(),
+            buffer_size(result->first),
+            boost::asio::const_buffers_1{nullptr, 0},
+            chunk_crlf{},
             result->first,
-            detail::chunk_crlf()};
+            chunk_crlf{}};
         s_ = do_body_c + 2;
         BEAST_FALLTHROUGH;
     }
@@ -315,16 +263,9 @@ next(error_code& ec, Visit&& visit)
     case do_final_c:
         v_ = cb8_t{
             boost::in_place_init,
-            detail::chunk_final(),
-            [&]()
-            {
-                auto sv = d_(
-                    boost::asio::null_buffers{});
-                return boost::asio::const_buffers_1{
-                    sv.data(), sv.size()};
-                
-            }(),
-            detail::chunk_crlf()};
+            detail::chunk_last(),
+            boost::asio::const_buffers_1{nullptr, 0},
+            chunk_crlf{}};
         s_ = do_final_c + 1;
         BEAST_FALLTHROUGH;
 
@@ -345,10 +286,10 @@ next(error_code& ec, Visit&& visit)
     }
 }
 
-template<bool isRequest, class Body,
-    class Fields, class ChunkDecorator>
+template<
+    bool isRequest, class Body, class Fields>
 void
-serializer<isRequest, Body, Fields, ChunkDecorator>::
+serializer<isRequest, Body, Fields>::
 consume(std::size_t n)
 {
     using boost::asio::buffer_size;

@@ -170,9 +170,9 @@ public:
     `async_write_some` function, and is known as a <em>composed operation</em>.
     The program must ensure that the stream performs no other write operations
     until this operation completes. The algorithm will use a temporary
-    @ref serializer with an empty chunk decorator to produce buffers. If
-    the semantics of the message indicate that the connection should be
-    closed after the message is sent, the error delivered by this function
+    @ref serializer to produce buffers. If the semantics of the message
+    indicate that the connection should be closed after the message is sent,
+    the error delivered by this function
     will be @ref error::end_of_stream
 
     @param stream The stream to which the data is to be written.

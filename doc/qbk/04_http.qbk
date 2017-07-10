@@ -38,7 +38,7 @@ format using __Asio__. Specifically, the library provides:
         [link beast.ref.beast__http__async_read_header `async_read_header`], and
         [link beast.ref.beast__http__async_read_some `async_read_some`]
         read HTTP/1 message data from a
-        [link beast.concept.streams stream].
+        [link beast.concepts.streams stream].
 ]
 ][
     [Stream Writing]
@@ -51,7 +51,7 @@ format using __Asio__. Specifically, the library provides:
         [link beast.ref.beast__http__async_write_header `async_write_header`], and
         [link beast.ref.beast__http__async_write_some `async_write_some`]
         write HTTP/1 message data to a
-        [link beast.concept.streams stream].
+        [link beast.concepts.streams stream].
     ]
 ][
     [Serialization]
@@ -78,14 +78,15 @@ format using __Asio__. Specifically, the library provides:
     [http_snippet_1]
 ]
 
-[include 5_01_primer.qbk]
-[include 5_02_message.qbk]
-[include 5_03_streams.qbk]
-[include 5_04_serializer_streams.qbk]
-[include 5_05_parser_streams.qbk]
-[include 5_06_serializer_buffers.qbk]
-[include 5_07_parser_buffers.qbk]
-[include 5_08_custom_body.qbk]
-[include 5_09_custom_parsers.qbk]
+[include 04_http/01_primer.qbk]
+[include 04_http/02_message.qbk]
+[include 04_http/03_streams.qbk]
+[include 04_http/04_serializer_streams.qbk]
+[include 04_http/05_parser_streams.qbk]
+[include 04_http/06_serializer_buffers.qbk]
+[include 04_http/07_parser_buffers.qbk]
+[include 04_http/08_chunked_encoding.qbk]
+[include 04_http/09_custom_body.qbk]
+[include 04_http/10_custom_parsers.qbk]
 
 [endsect]

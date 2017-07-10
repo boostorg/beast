@@ -30,7 +30,7 @@ namespace beast {
 namespace http {
 
 namespace detail {
-template<class, class, bool, class, class>
+template<class, class, bool, class>
 class write_some_win32_op;
 } // detail
 
@@ -50,16 +50,16 @@ struct basic_file_body<file_win32>
         friend class writer;
         friend struct basic_file_body<file_win32>;
 
-        template<class, class, bool, class, class>
+        template<class, class, bool, class>
         friend class detail::write_some_win32_op;
-        template<class Protocol, bool isRequest,
-            class Fields, class Decorator>
+        template<
+            class Protocol, bool isRequest, class Fields>
         friend
         void
         write_some(
             boost::asio::basic_stream_socket<Protocol>& sock,
-            serializer<isRequest, basic_file_body<file_win32>,
-                Fields, Decorator>& sr,
+            serializer<isRequest,
+                basic_file_body<file_win32>, Fields>& sr,
             error_code& ec);
 
         file_win32 file_;
@@ -99,16 +99,16 @@ struct basic_file_body<file_win32>
 
     class reader
     {
-        template<class, class, bool, class, class>
+        template<class, class, bool, class>
         friend class detail::write_some_win32_op;
-        template<class Protocol, bool isRequest,
-            class Fields, class Decorator>
+        template<
+            class Protocol, bool isRequest, class Fields>
         friend
         void
         write_some(
             boost::asio::basic_stream_socket<Protocol>& sock,
-            serializer<isRequest, basic_file_body<file_win32>,
-                Fields, Decorator>& sr,
+            serializer<isRequest,
+                basic_file_body<file_win32>, Fields>& sr,
             error_code& ec);
 
         value_type& body_;  // The body we are reading from
@@ -329,13 +329,14 @@ public:
 
 #if BOOST_ASIO_HAS_WINDOWS_OVERLAPPED_PTR
 
-template<class Protocol, class Handler,
-    bool isRequest, class Fields, class Decorator>
+template<
+    class Protocol, class Handler,
+    bool isRequest, class Fields>
 class write_some_win32_op
 {
     boost::asio::basic_stream_socket<Protocol>& sock_;
-    serializer<isRequest, basic_file_body<file_win32>,
-        Fields, Decorator>& sr_;
+    serializer<isRequest,
+        basic_file_body<file_win32>, Fields>& sr_;
     bool header_ = false;
     Handler h_;
 
@@ -347,8 +348,8 @@ public:
     write_some_win32_op(
         DeducedHandler&& h,
         boost::asio::basic_stream_socket<Protocol>& s,
-        serializer<isRequest, basic_file_body<file_win32>,
-            Fields, Decorator>& sr)
+        serializer<isRequest,
+            basic_file_body<file_win32>,Fields>& sr)
         : sock_(s)
         , sr_(sr)
         , h_(std::forward<DeducedHandler>(h))
@@ -398,11 +399,12 @@ public:
     }
 };
 
-template<class Protocol, class Handler,
-    bool isRequest, class Fields, class Decorator>
+template<
+    class Protocol, class Handler,
+    bool isRequest, class Fields>
 void
 write_some_win32_op<
-    Protocol, Handler, isRequest, Fields, Decorator>::
+    Protocol, Handler, isRequest, Fields>::
 operator()()
 {
     if(! sr_.is_header_done())
@@ -449,11 +451,12 @@ operator()()
     overlapped.release();
 }
 
-template<class Protocol, class Handler,
-    bool isRequest, class Fields, class Decorator>
+template<
+    class Protocol, class Handler,
+    bool isRequest, class Fields>
 void
 write_some_win32_op<
-    Protocol, Handler,isRequest, Fields, Decorator>::
+    Protocol, Handler, isRequest, Fields>::
 operator()(error_code ec, std::size_t bytes_transferred)
 {
     if(! ec)
@@ -484,13 +487,12 @@ operator()(error_code ec, std::size_t bytes_transferred)
 
 //------------------------------------------------------------------------------
 
-template<class Protocol,
-    bool isRequest, class Fields, class Decorator>
+template<class Protocol, bool isRequest, class Fields>
 void
 write_some(
     boost::asio::basic_stream_socket<Protocol>& sock,
-    serializer<isRequest, basic_file_body<file_win32>,
-        Fields, Decorator>& sr,
+    serializer<isRequest,
+        basic_file_body<file_win32>, Fields>& sr,
     error_code& ec)
 {
     if(! sr.is_header_done())
@@ -552,20 +554,20 @@ write_some(
 
 template<
     class Protocol,
-    bool isRequest, class Fields, class Decorator,
+    bool isRequest, class Fields,
     class WriteHandler>
 async_return_type<WriteHandler, void(error_code)>
 async_write_some(
     boost::asio::basic_stream_socket<Protocol>& sock,
-    serializer<isRequest, basic_file_body<file_win32>,
-        Fields, Decorator>& sr,
+    serializer<isRequest,
+        basic_file_body<file_win32>, Fields>& sr,
     WriteHandler&& handler)
 {
     async_completion<WriteHandler,
         void(error_code)> init{handler};
     detail::write_some_win32_op<Protocol, handler_type<
-        WriteHandler, void(error_code)>, isRequest, Fields,
-            Decorator>{init.completion_handler, sock, sr}();
+        WriteHandler, void(error_code)>, isRequest, Fields>{
+            init.completion_handler, sock, sr}();
     return init.result.get();
 }
 

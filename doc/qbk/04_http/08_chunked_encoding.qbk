@@ -1,0 +1,147 @@
+[/
+    Copyright (c) 2013-2017 Vinnie Falco (vinnie dot falco at gmail dot com)
+
+    Distributed under the Boost Software License, Version 1.0. (See accompanying
+    file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+]
+
+[section Chunked Encoding]
+
+For message payloads whose size is not known ahead of time, HTTP
+version 1.1 defines the
+[@https://tools.ietf.org/html/rfc7230#section-4.1 ['chunked]]
+transfer coding. This coding consists of zero or more
+[@https://tools.ietf.org/html/rfc7230#section-4.1 ['chunked bodies]],
+followed by a
+[@https://tools.ietf.org/html/rfc7230#section-4.1 ['last chunk]].
+Each chunked body may contain optional application-defined, connection-specific
+[@https://tools.ietf.org/html/rfc7230#section-4.1.1 ['chunk-extensions]].
+The last chunk may contain additional HTTP field values in a section
+of the last chunk called a
+[@https://tools.ietf.org/html/rfc7230#section-4.1.2 ['chunk-trailer]].
+The field values are "promised" in the header as a comma delimited list
+of field names in the
+[@https://tools.ietf.org/html/rfc7230#section-4.4 [*Trailer]]
+field value. Clients indicate their willingness to accept trailers
+by including the "trailers" token in the
+[@https://tools.ietf.org/html/rfc7230#section-4.3 [*TE]]
+field value.
+
+[heading Serializing Chunks]
+
+The __serializer__ automatically applies the chunked tranfer encoding
+when a message returns `true` from
+[link beast.ref.beast__http__message.chunked.overload1 `message::chunked`].
+The boundaries between chunks emitted by the serializer are implementation
+defined. Chunk extensions and trailers are omitted. Applications which
+need precise control over the chunk boundaries, extensions, and trailers
+may use a set of helper classes which enable manual emission of message
+payloads using chunk encoding.
+
+To use these helper classes, first serialize the header portion of the
+message using the standard interface. Then prepare the buffers, chunk
+extensions, and desired trailers, and use them with these helpers:
+
+[table Chunking Helpers
+[[Name][Description]]
+[
+    [[link beast.ref.beast__http__chunk_body `chunk_body`]]
+    [
+        A buffer sequence representing a complete chunk body.
+    ]
+][
+    [[link beast.ref.beast__http__chunk_crlf `chunk_crlf`]]
+    [
+        A buffer sequence representing the CRLF (`"\r\n"`) delimiter.
+        This class is used when the caller desires to emit the
+        chunk body in two or more individual stream operations.
+    ]
+][
+    [
+        [link beast.ref.beast__http__chunk_extensions `chunk_extensions`]
+
+
+        [link beast.ref.beast__http__basic_chunk_extensions `basic_chunk_extensions`]
+    ]
+    [
+        This is a simple, allocating container which lets callers
+        easily build up a set of chunk extensions.
+    ]
+][
+    [[link beast.ref.beast__http__chunk_header `chunk_header`]]
+    [
+        A buffer sequence representing a hex-encoded chunk size,
+        followed by an optional set of chunk extensions, including
+        the terminating CRLF (`"\r\n"`) delimiter which precedes
+        the chunk body. This class is used when the caller desires
+        to emit the chunk body in two or more individual stream
+        operations.
+    ]
+][
+    [[link beast.ref.beast__http__chunk_last `chunk_last`]]
+    [
+        A buffer sequence representing a last chunk. The last chunk
+        indicates the end of the chunked message payload, and may
+        contain optional trailer fields.
+    ]
+][
+    [
+        [link beast.ref.beast__http__make_chunk `make_chunk`]
+
+        [link beast.ref.beast__http__make_chunk_last `make_chunk_last`]
+    ]
+    [
+        These helper functions are used to construct a chunk
+        or last chunk directly at call sites.
+    ]
+]]
+
+We demonstrate the use of these objects first by declaring a function
+which returns the next buffer sequence to use as a chunk body:
+
+[http_snippet_17]
+
+This example demonstrates sending a complete chunked message payload
+manually. No chunk extensions or trailers are emitted:
+
+[http_snippet_18]
+
+The following code sends additional chunks, and sets chunk extensions
+using the helper container. The container automatically quotes values
+in the serialized output when necessary:
+
+[http_snippet_19]
+
+Callers can take over the generation and management of the extensions
+buffer by passing a non-owning string. Note that this requires the
+string contents to adhere to the correct syntax for chunk extensions,
+including the needed double quotes for values which contain spaces:
+
+[http_snippet_20]
+
+The next code sample emits a chunked response which promises two
+trailer fields and delivers them in the last chunk. The implementation
+allocates memory using the default or a passed-in allocator to hold
+the state information required to serialize the trailer:
+
+[http_snippet_21]
+
+Using a custom allocator to serialize the last chunk:
+
+[http_snippet_22]
+
+Alternatively, callers can take over the generation and lifetime
+management of the serialized trailer fields by passing in a non-owning
+string:
+
+[http_snippet_23]
+
+For the ultimate level of control, a caller can manually compose the
+chunk itself by first emitting a header with the correct chunk body
+size, and then by emitting the chunk body in multiple calls to the
+stream write function. In this case the caller is responsible for
+also emitting the terminating CRLF (`"\r\n"`):
+
+[http_snippet_24]
+
+[endsect]
