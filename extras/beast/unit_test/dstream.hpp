@@ -17,7 +17,7 @@
 
 #ifdef BOOST_WINDOWS
 #include <boost/detail/winapi/basic_types.hpp>
-#include <boost/detail/winapi/debugapi.hpp>
+//#include <boost/detail/winapi/debugapi.hpp>
 #endif
 
 namespace beast {
@@ -42,14 +42,14 @@ class dstream_buf
     void write(char const* s)
     {
         if(dbg_)
-            boost::detail::winapi::OutputDebugStringA(s);
+            /*boost::detail::winapi*/::OutputDebugStringA(s);
         os_ << s;
     }
 
     void write(wchar_t const* s)
     {
         if(dbg_)
-            boost::detail::winapi::OutputDebugStringW(s);
+            /*boost::detail::winapi*/::OutputDebugStringW(s);
         os_ << s;
     }
 
@@ -57,7 +57,7 @@ public:
     explicit
     dstream_buf(ostream& os)
         : os_(os)
-        , dbg_(boost::detail::winapi::IsDebuggerPresent() != 0)
+        , dbg_(/*boost::detail::winapi*/::IsDebuggerPresent() != 0)
     {
     }
 

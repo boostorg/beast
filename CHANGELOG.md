@@ -7,6 +7,7 @@ Version 78:
 * Header file tidying
 * Tidy up FieldsReader doc
 * Add Boost.Locale utf8 benchmark comparison
+* Tidy up dstream for existing Boost versions
 
 HTTP:
 
