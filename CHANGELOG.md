@@ -1,4 +1,5 @@
 * buffers_ref is Assignable
+* Shrink chunk header buffer sequence size
 
 --------------------------------------------------------------------------------
 
