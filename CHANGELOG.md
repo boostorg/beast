@@ -9,6 +9,7 @@ Version 78:
 * Add Boost.Locale utf8 benchmark comparison
 * Tidy up dstream for existing Boost versions
 * Tidy up file_posix unused variable
+* Fix warning in root ca declaration
 
 HTTP:
 
