@@ -6,6 +6,7 @@ Version 80:
 * Remove unused file_path
 * Add basic_file_body.hpp
 * buffers_ref is Assignable
+* Shrink chunk header buffer sequence size
 
 --------------------------------------------------------------------------------
 
