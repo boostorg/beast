@@ -15,6 +15,7 @@ add_executable (http-tests
     ../../extras/beast/unit_test/main.cpp
     basic_parser.cpp
     buffer_body.cpp
+    chunk_encode.cpp
     doc_examples.cpp
     doc_snippets.cpp
     dynamic_body.cpp

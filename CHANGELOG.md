@@ -1,5 +1,19 @@
 * buffers_ref is Assignable
+
+HTTP
+
 * Shrink chunk header buffer sequence size
+
+API Changes:
+
+* Refactor chunked-encoding serialization
+
+Actions Required:
+
+* Remove references to ChunkDecorators. Use the new chunk-encoding
+  buffer sequences to manually produce a chunked payload body in
+  the case where control over the chunk-extensions and/or trailers
+  is required.
 
 --------------------------------------------------------------------------------
 

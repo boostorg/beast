@@ -48,6 +48,8 @@ namespace http {
 template<class Allocator>
 class basic_fields
 {
+    friend class fields_test; // for `header`
+
     static std::size_t constexpr max_static_buffer = 4096;
 
     using off_t = std::uint16_t;
@@ -162,9 +164,7 @@ private:
                                 boost::intrusive::compare<key_compare>>::type;
 
 
-protected:
-    friend class fields_test; // for `header`
-
+public:
     /// Destructor
     ~basic_fields();
 
@@ -480,6 +480,16 @@ public:
     */
     std::size_t
     erase(string_view name);
+
+    /** Return a buffer sequence representing the trailers.
+
+        This function returns a buffer sequence holding the
+        serialized representation of the trailer fields promised
+        in the Accept field. Before calling this function the
+        Accept field must contain the exact trailer fields
+        desired. Each field must also exist.
+    */
+
 
     /// Swap this container with another
     void

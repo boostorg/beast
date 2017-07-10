@@ -629,15 +629,16 @@ public:
         }
     }
 
-    template<class Stream,
-        bool isRequest, class Body, class Fields,
-            class Decorator = no_chunk_decorator>
+    template<
+        class Stream,
+        bool isRequest, class Body, class Fields>
     void
-    do_write(Stream& stream, message<
-        isRequest, Body, Fields> const& m, error_code& ec,
-            Decorator const& decorator = Decorator{})
+    do_write(
+        Stream& stream,
+        message<isRequest, Body, Fields> const& m,
+        error_code& ec)
     {
-        serializer<isRequest, Body, Fields, Decorator> sr{m, decorator};
+        serializer<isRequest, Body, Fields> sr{m};
         for(;;)
         {
             stream.nwrite = 0;
@@ -650,16 +651,17 @@ public:
         }
     }
 
-    template<class Stream,
-        bool isRequest, class Body, class Fields,
-            class Decorator = no_chunk_decorator>
+    template<
+        class Stream,
+        bool isRequest, class Body, class Fields>
     void
-    do_async_write(Stream& stream,
+    do_async_write(
+        Stream& stream,
         message<isRequest, Body, Fields> const& m,
-            error_code& ec, yield_context yield,
-                Decorator const& decorator = Decorator{})
+        error_code& ec,
+        yield_context yield)
     {
-        serializer<isRequest, Body, Fields, Decorator> sr{m, decorator};
+        serializer<isRequest, Body, Fields> sr{m};
         for(;;)
         {
             stream.nwrite = 0;
@@ -671,25 +673,6 @@ public:
                 break;
         }
     }
-
-    struct test_decorator
-    {
-        std::string s;
-
-        template<class ConstBufferSequence>
-        string_view
-        operator()(ConstBufferSequence const& buffers)
-        {
-            s = ";x=" + std::to_string(boost::asio::buffer_size(buffers));
-            return s;
-        }
-
-        string_view
-        operator()(boost::asio::null_buffers)
-        {
-            return "Result: OK\r\n";
-        }
-    };
 
     template<class Body>
     void
@@ -771,23 +754,7 @@ public:
             {
                 auto m = m0;
                 error_code ec;
-                do_write(p.client, m, ec, test_decorator{});
-                BEAST_EXPECT(equal_body<false>(
-                    p.server.str(), m.body.s));
-                p.server.clear();
-            }
-            {
-                auto m = m0;
-                error_code ec;
                 do_async_write(p.client, m, ec, yield);
-                BEAST_EXPECT(equal_body<false>(
-                    p.server.str(), m.body.s));
-                p.server.clear();
-            }
-            {
-                auto m = m0;
-                error_code ec;
-                do_async_write(p.client, m, ec, yield, test_decorator{});
                 BEAST_EXPECT(equal_body<false>(
                     p.server.str(), m.body.s));
                 p.server.clear();

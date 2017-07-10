@@ -22,6 +22,16 @@ using namespace beast::http;
 
 namespace doc_http_snippets {
 
+//[http_snippet_17
+// This function returns the buffer containing the next chunk body
+boost::asio::const_buffers_1 get_next_chunk_body();
+//]
+
+boost::asio::const_buffers_1 get_next_chunk_body()
+{
+    return {nullptr, 0};
+}
+
 void fxx() {
 
     boost::asio::io_service ios;
@@ -130,7 +140,169 @@ void fxx() {
 //]
 }
 
+{
+//[http_snippet_18
+    // Prepare an HTTP/1.1 response with a chunked body
+    response<empty_body> res{status::ok, 11};
+    res.set(field::server, "Beast");
+
+    // Set Transfer-Encoding to "chunked".
+    // If a Content-Length was present, it is removed.
+    res.chunked(true);
+
+    // Set up the serializer
+    response_serializer<empty_body> sr{res};
+
+    // Write the header first
+    write_header(sock, sr);
+
+    // Now manually emit three chunks:
+    boost::asio::write(sock, make_chunk(get_next_chunk_body()));
+    boost::asio::write(sock, make_chunk(get_next_chunk_body()));
+    boost::asio::write(sock, make_chunk(get_next_chunk_body()));
+
+    // We are responsible for sending the last chunk:
+    boost::asio::write(sock, make_chunk_last());
+//]
+}
+
+{
+//[http_snippet_19
+    // Prepare a set of chunk extension to emit with the body
+    chunk_extensions ext;
+    ext.insert("mp3");
+    ext.insert("title", "Beale Street Blues");
+    ext.insert("artist", "W.C. Handy");
+
+    // Write the next chunk with the chunk extensions
+    // The implementation will make a copy of the extensions object,
+    // so the caller does not need to manage lifetime issues.
+    boost::asio::async_write(sock, make_chunk(get_next_chunk_body(), ext),
+        [](error_code ec, std::size_t)
+        {
+            if(ec)
+                std::cout << "Error: " << ec.message() << std::endl;
+        });
+
+    // Write the next chunk with the chunk extensions
+    // The implementation will make a copy of the extensions object, storing the copy
+    // using the custom allocator, so the caller does not need to manage lifetime issues.
+    boost::asio::async_write(sock,
+        make_chunk(get_next_chunk_body(), ext, std::allocator<char>{}),
+        [](error_code ec, std::size_t)
+        {
+            if(ec)
+                std::cout << "Error: " << ec.message() << std::endl;
+        });
+
+    // Write the next chunk with the chunk extensions
+    // The implementation allocates memory using the default allocator and takes ownership
+    // of the extensions object, so the caller does not need to manage lifetime issues.
+    // Note: ext is moved
+    boost::asio::async_write(sock, make_chunk(get_next_chunk_body(), std::move(ext)),
+        [](error_code ec, std::size_t)
+        {
+            if(ec)
+                std::cout << "Error: " << ec.message() << std::endl;
+        });
+//]
+}
+
+{
+//[http_snippet_20
+    // Manually specify the chunk extensions.
+    // Some of the strings contain spaces and a period and must be quoted
+    boost::asio::write(sock, make_chunk(get_next_chunk_body(),
+        ";mp3"
+        ";title=\"Danny Boy\""
+        ";artist=\"Fred E. Weatherly\""
+        ));
+//]
+}
+
+{
+//[http_snippet_21
+    // Prepare a chunked HTTP/1.1 response with some trailer fields
+    response<empty_body> res{status::ok, 11};
+    res.set(field::server, "Beast");
+
+    // Inform the client of the trailer fields we will send
+    res.set(field::trailer, "Content-MD5, Expires");
+
+    res.chunked(true);
+
+    // Serialize the header and two chunks
+    response_serializer<empty_body> sr{res};
+    write_header(sock, sr);
+    boost::asio::write(sock, make_chunk(get_next_chunk_body()));
+    boost::asio::write(sock, make_chunk(get_next_chunk_body()));
+
+    // Prepare the trailer
+    fields trailer;
+    trailer.set(field::content_md5, "f4a5c16584f03d90");
+    trailer.set(field::expires, "never");
+
+    // Emit the trailer in the last chunk.
+    // The implementation will use the default allocator to create the storage for holding
+    // the serialized fields.
+    boost::asio::write(sock, make_chunk_last(trailer));
+//]
+}
+
+{
+//[http_snippet_22
+    // Use a custom allocator for serializing the last chunk
+    fields trailer;
+    trailer.set(field::approved, "yes");
+    boost::asio::write(sock, make_chunk_last(trailer, std::allocator<char>{}));
+//]
+}
+
+{
+//[http_snippet_23
+    // Manually emit a trailer.
+    // We are responsible for ensuring that the trailer format adheres to the specification.
+    string_view ext =
+        "Content-MD5: f4a5c16584f03d90\r\n"
+        "Expires: never\r\n"
+        "\r\n";
+    boost::asio::write(sock, make_chunk_last(boost::asio::const_buffers_1{ext.data(), ext.size()}));
+//]
+}
+
+{
+//[http_snippet_24
+    // Prepare a chunked HTTP/1.1 response and send the header
+    response<empty_body> res{status::ok, 11};
+    res.set(field::server, "Beast");
+    res.chunked(true);
+    response_serializer<empty_body> sr{res};
+    write_header(sock, sr);
+
+    // Obtain three body buffers up front
+    auto const cb1 = get_next_chunk_body();
+    auto const cb2 = get_next_chunk_body();
+    auto const cb3 = get_next_chunk_body();
+
+    // Manually emit a chunk by first writing the chunk-size header with the correct size
+    boost::asio::write(sock, chunk_header{
+        boost::asio::buffer_size(cb1) +
+        boost::asio::buffer_size(cb2) +
+        boost::asio::buffer_size(cb3)});
+
+    // And then output the chunk body in three pieces ("chunk the chunk")
+    boost::asio::write(sock, cb1);
+    boost::asio::write(sock, cb2);
+    boost::asio::write(sock, cb3);
+
+    // When we go this deep, we are also responsible for the terminating CRLF
+    boost::asio::write(sock, chunk_crlf{});
+//]
+}
+
 } // fxx()
+
+
 
 //[http_snippet_12
 
@@ -302,27 +474,6 @@ split_print_cxx14(message<isRequest, Body, Fields> const& m)
 //]
 #endif
 
-//[http_snippet_17
-
-struct decorator
-{
-    std::string s;
-
-    template<class ConstBufferSequence>
-    string_view
-    operator()(ConstBufferSequence const& buffers)
-    {
-        s = ";x=" + std::to_string(boost::asio::buffer_size(buffers));
-        return s;
-    }
-
-    string_view
-    operator()(boost::asio::null_buffers)
-    {
-        return "Result: OK\r\n";
-    }
-};
-
-//]
+// Highest snippet: 
 
 } // doc_http_snippets
