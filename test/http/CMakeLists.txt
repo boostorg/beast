@@ -31,7 +31,6 @@ add_executable (http-tests
     span_body.cpp
     status.cpp
     string_body.cpp
-    string_view_body.cpp
     type_traits.cpp
     vector_body.cpp
     verb.cpp

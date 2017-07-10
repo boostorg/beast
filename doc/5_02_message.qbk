@@ -171,14 +171,6 @@ meet the requirements, or use the ones that come with the library:
     and parsed. This is the type of body used in the examples.
 ]]
 [[
-    [link beast.ref.beast__http__string_view_body `string_view_body`]
-][
-    A body whose `value_type` is [link beast.ref.beast__string_view `string_view`].
-    Messages with this body type may be serialized only, and the caller
-    is responsible for managing the lifetime of the buffer pointed to
-    by the string view.
-]]
-[[
     [link beast.ref.beast__http__vector_body `vector_body`]
 ][
     A body whose `value_type` is `std::vector`. Insertion complexity

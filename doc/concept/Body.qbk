@@ -101,6 +101,5 @@ In this table:
 * [link beast.ref.beast__http__dynamic_body `dynamic_body`]
 * [link beast.ref.beast__http__empty_body `empty_body`]
 * [link beast.ref.beast__http__string_body `string_body`]
-* [link beast.ref.beast__http__string_view_body `string_view_body`]
 
 [endsect]
