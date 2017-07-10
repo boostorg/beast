@@ -136,7 +136,11 @@ public:
     };
 
     /// The algorithm used to serialize the header
+#if BEAST_DOXYGEN
+    using reader = implementation_defined;
+#else
     class reader;
+#endif
 
 private:
     using list_t = typename boost::intrusive::make_list<

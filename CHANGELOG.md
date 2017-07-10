@@ -19,11 +19,14 @@ API Changes:
 
 * Add message::keep_alive()
 * Add message::chunked() and message::content_length()
+* Remove string_view_body
 
 Actions Required:
 
 * Change user defined implementations of Fields and
   FieldsReader to meet the new requirements.
+
+* Use span_body<char> instead of string_view_body
 
 --------------------------------------------------------------------------------
 

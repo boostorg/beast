@@ -53,7 +53,6 @@
             <member><link linkend="beast.ref.beast__http__serializer">serializer</link></member>
             <member><link linkend="beast.ref.beast__http__span_body">span_body</link></member>
             <member><link linkend="beast.ref.beast__http__string_body">string_body</link></member>
-            <member><link linkend="beast.ref.beast__http__string_view_body">string_view_body</link></member>
             <member><link linkend="beast.ref.beast__http__vector_body">vector_body</link></member>
           </simplelist>
         </entry>
