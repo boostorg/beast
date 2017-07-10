@@ -1,3 +1,9 @@
+Version 77:
+
+* file_posix works without large file support
+
+--------------------------------------------------------------------------------
+
 Version 76:
 
 * Always go through write_some

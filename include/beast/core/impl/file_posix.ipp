@@ -208,8 +208,6 @@ size(error_code& ec) const
         ec.assign(errc::invalid_argument, generic_category());
         return 0;
     }
-    BOOST_STATIC_ASSERT(
-        sizeof(stat::st_size) == sizeof(std::uint64_t));
     struct stat st;
     if(::fstat(fd_, &st) != 0)
     {
