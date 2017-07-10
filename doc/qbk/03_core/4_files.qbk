@@ -5,7 +5,7 @@
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 ]
 
-[section:files Files]
+[section Files]
 
 Often when implementing network algorithms such as servers, it is necessary
 to interact with files on the system. Beast defines the __File__ concept

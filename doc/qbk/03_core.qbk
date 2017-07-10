@@ -5,7 +5,7 @@
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 ]
 
-[section:using_io Using I/O]
+[section Using I/O]
 
 This library makes I/O primitives used by the implementation publicly
 available so users can take advantage of them in their own libraries.
@@ -23,11 +23,11 @@ by group, with descriptions.
     [snippet_core_1b]
 ]
 
-[include 3_1_asio.qbk]
-[include 3_2_streams.qbk]
-[include 3_3_buffers.qbk]
-[include 3_4_files.qbk]
-[include 3_5_composed.qbk]
-[include 3_6_detect_ssl.qbk]
+[include 03_core/1_asio.qbk]
+[include 03_core/2_streams.qbk]
+[include 03_core/3_buffers.qbk]
+[include 03_core/4_files.qbk]
+[include 03_core/5_composed.qbk]
+[include 03_core/6_detect_ssl.qbk]
 
 [endsect]

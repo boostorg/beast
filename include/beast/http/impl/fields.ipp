@@ -11,10 +11,11 @@
 #include <beast/core/buffer_cat.hpp>
 #include <beast/core/string.hpp>
 #include <beast/core/static_string.hpp>
+#include <beast/core/detail/buffers_ref.hpp>
 #include <beast/http/verb.hpp>
 #include <beast/http/rfc7230.hpp>
 #include <beast/http/status.hpp>
-#include <beast/http/detail/chunk_encode.hpp>
+#include <beast/http/chunk_encode.hpp>
 #include <boost/throw_exception.hpp>
 #include <stdexcept>
 #include <string>
@@ -140,18 +141,20 @@ public:
         }
     };
 
+    using view_type = buffer_cat_view<
+        boost::asio::const_buffers_1,
+        boost::asio::const_buffers_1,
+        boost::asio::const_buffers_1,
+        field_range,
+        chunk_crlf>;
+
     basic_fields const& f_;
-    boost::asio::const_buffer cb_[3];
+    boost::optional<view_type> view_;
     char buf_[13];
 
 public:
     using const_buffers_type =
-        buffer_cat_view<
-            boost::asio::const_buffers_1,
-            boost::asio::const_buffers_1,
-            boost::asio::const_buffers_1,
-            field_range,
-            boost::asio::const_buffers_1>;
+        beast::detail::buffers_ref<view_type>;
 
     reader(basic_fields const& f,
         unsigned version, verb v);
@@ -159,17 +162,27 @@ public:
     reader(basic_fields const& f,
         unsigned version, unsigned code);
 
+    reader(basic_fields const& f);
+
     const_buffers_type
     get() const
     {
-        return buffer_cat(
-            boost::asio::const_buffers_1{cb_[0]},
-            boost::asio::const_buffers_1{cb_[1]},
-            boost::asio::const_buffers_1{cb_[2]},
-            field_range(f_.list_.begin(), f_.list_.end()),
-            detail::chunk_crlf());
+        return const_buffers_type(*view_);
     }
 };
+
+template<class Allocator>
+basic_fields<Allocator>::reader::
+reader(basic_fields const& f)
+    : f_(f)
+{
+    view_.emplace(
+        boost::asio::const_buffers_1{nullptr, 0},
+        boost::asio::const_buffers_1{nullptr, 0},
+        boost::asio::const_buffers_1{nullptr, 0},
+        field_range(f_.list_.begin(), f_.list_.end()),
+        chunk_crlf());
+}
 
 template<class Allocator>
 basic_fields<Allocator>::reader::
@@ -188,12 +201,8 @@ reader(basic_fields const& f,
         sv = f_.get_method_impl();
     else
         sv = to_string(v);
-    cb_[0] = {sv.data(), sv.size()};
 
     // target_or_reason_ has a leading SP
-    cb_[1] = {
-        f_.target_or_reason_.data(),
-        f_.target_or_reason_.size()};
 
     buf_[0] = ' ';
     buf_[1] = 'H';
@@ -206,7 +215,15 @@ reader(basic_fields const& f,
     buf_[8] = '0' + static_cast<char>(version % 10);
     buf_[9] = '\r';
     buf_[10]= '\n';
-    cb_[2] = {buf_, 11};
+
+    view_.emplace(
+        boost::asio::const_buffers_1{sv.data(), sv.size()},
+        boost::asio::const_buffers_1{
+            f_.target_or_reason_.data(),
+            f_.target_or_reason_.size()},
+        boost::asio::const_buffers_1{buf_, 11},
+        field_range(f_.list_.begin(), f_.list_.end()),
+        chunk_crlf());
 }
 
 template<class Allocator>
@@ -234,16 +251,19 @@ reader(basic_fields const& f,
     buf_[10]= '0' + static_cast<char>((code / 10) % 10);
     buf_[11]= '0' + static_cast<char>(code % 10);
     buf_[12]= ' ';
-    cb_[0] = {buf_, 13};
 
     string_view sv;
     if(! f_.target_or_reason_.empty())
         sv = f_.target_or_reason_;
     else
         sv = obsolete_reason(static_cast<status>(code));
-    cb_[1] = {sv.data(), sv.size()};
 
-    cb_[2] = detail::chunk_crlf();
+    view_.emplace(
+        boost::asio::const_buffers_1{buf_, 13},
+        boost::asio::const_buffers_1{sv.data(), sv.size()},
+        boost::asio::const_buffers_1{"\r\n", 2},
+        field_range(f_.list_.begin(), f_.list_.end()),
+        chunk_crlf{});
 }
 
 //------------------------------------------------------------------------------

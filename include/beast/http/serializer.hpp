@@ -15,7 +15,7 @@
 #include <beast/core/string.hpp>
 #include <beast/core/type_traits.hpp>
 #include <beast/http/message.hpp>
-#include <beast/http/detail/chunk_encode.hpp>
+#include <beast/http/chunk_encode.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/optional.hpp>
 #include <boost/variant.hpp>
@@ -29,34 +29,6 @@
 namespace beast {
 namespace http {
 
-/** A chunk decorator which does nothing.
-
-    When selected as a chunk decorator, objects of this type
-    affect the output of messages specifying chunked
-    transfer encodings as follows:
-
-    @li chunk headers will have empty chunk extensions, and
-
-    @li final chunks will have an empty set of trailers.
-
-    @see @ref serializer
-*/
-struct no_chunk_decorator
-{
-    template<class ConstBufferSequence>
-    string_view
-    operator()(ConstBufferSequence const&) const
-    {
-        return {};
-    }
-
-    string_view
-    operator()(boost::asio::null_buffers) const
-    {
-        return {};
-    }
-};
-
 /** Provides buffer oriented HTTP message serialization functionality.
 
     An object of this type is used to serialize a complete
@@ -67,64 +39,27 @@ struct no_chunk_decorator
     if the contents of the message indicate that chunk encoding
     is required. If the semantics of the message indicate that
     the connection should be closed after the message is sent, the
-    function @ref keep_alive will return `true`.
+    function @ref keep_alive will return `false`.
 
-    Upon construction, an optional chunk decorator may be
-    specified. This decorator is a function object called with
-    each buffer sequence of the body when the chunked transfer
-    encoding is indicate in the message header. The decorator
-    will be called with an empty buffer sequence (actually
-    the type `boost::asio::null_buffers`) to indicate the
-    final chunk. The decorator may return a string which forms
-    the chunk extension for chunks, and the field trailers
-    for the final chunk.
-
-    In C++11 the decorator must be declared as a class or
-    struct with a templated operator() thusly:
-
-    @code
-    // The implementation guarantees that operator()
-    // will be called only after the view returned by
-    // any previous calls to operator() are no longer
-    // needed. The decorator instance is intended to
-    // manage the lifetime of the storage for all returned
-    // views.
-    //
-    struct decorator
-    {
-        // Returns the chunk-extension for each chunk,
-        // or an empty string for no chunk extension. The
-        // buffer must include the leading semicolon (";")
-        // and follow the format for chunk extensions defined
-        // in rfc7230.
-        //
-        template<class ConstBufferSequence>
-        string_view
-        operator()(ConstBufferSequence const&) const;
-
-        // Returns a set of field trailers for the final chunk.
-        // Each field should be formatted according to rfc7230
-        // including the trailing "\r\n" for each field. If
-        // no trailers are indicated, an empty string is returned.
-        //
-        string_view
-        operator()(boost::asio::null_buffers) const;
-    };
-    @endcode
+    Chunked output produced by the serializer never contains chunk
+    extensions or trailers, and the location of chunk boundaries
+    is not specified. If callers require chunk extensions, trailers,
+    or control over the exact contents of each chunk they should
+    use the serializer to write just the message header, and then
+    assume control over serializing the chunked payload by using
+    the chunk buffer sequence types @ref chunk_body, @ref chunk_crlf,
+    @ref chunk_header, and @ref chunk_last.
 
     @tparam isRequest `true` if the message is a request.
 
     @tparam Body The body type of the message.
 
     @tparam Fields The type of fields in the message.
-
-    @tparam ChunkDecorator The type of chunk decorator to use.
 */
 template<
     bool isRequest,
     class Body,
-    class Fields = fields,
-    class ChunkDecorator = no_chunk_decorator>
+    class Fields = fields>
 class serializer
 {
 public:
@@ -199,50 +134,50 @@ private:
 
     using cb4_t = consuming_buffers<buffer_cat_view<
         typename Fields::reader::const_buffers_type,// header
-        detail::chunk_header,                       // chunk-header
+        detail::chunk_size,                         // chunk-size
         boost::asio::const_buffers_1,               // chunk-ext
-        boost::asio::const_buffers_1,               // crlf
+        chunk_crlf,                                 // crlf
         typename reader::const_buffers_type,        // body
-        boost::asio::const_buffers_1>>;             // crlf
+        chunk_crlf>>;                               // crlf
     using pcb4_t = buffer_prefix_view<cb4_t const&>;
 
     using cb5_t = consuming_buffers<buffer_cat_view<
-        detail::chunk_header,                       // chunk-header
+        detail::chunk_size,                         // chunk-header
         boost::asio::const_buffers_1,               // chunk-ext
-        boost::asio::const_buffers_1,               // crlf
+        chunk_crlf,                                 // crlf
         typename reader::const_buffers_type,        // body
-        boost::asio::const_buffers_1>>;             // crlf
+        chunk_crlf>>;                               // crlf
     using pcb5_t = buffer_prefix_view<cb5_t const&>;
 
 #ifndef BEAST_NO_BIG_VARIANTS
     using cb6_t = consuming_buffers<buffer_cat_view<
-        detail::chunk_header,                       // chunk-header
-        boost::asio::const_buffers_1,               // chunk-ext
-        boost::asio::const_buffers_1,               // crlf
+        detail::chunk_size,                         // chunk-header
+        boost::asio::const_buffers_1,               // chunk-size
+        chunk_crlf,                                 // crlf
         typename reader::const_buffers_type,        // body
-        boost::asio::const_buffers_1,               // crlf
+        chunk_crlf,                                 // crlf
         boost::asio::const_buffers_1,               // chunk-final
         boost::asio::const_buffers_1,               // trailers 
-        boost::asio::const_buffers_1>>;             // crlf
+        chunk_crlf>>;                               // crlf
     using pcb6_t = buffer_prefix_view<cb6_t const&>;
 
     using cb7_t = consuming_buffers<buffer_cat_view<
         typename Fields::reader::const_buffers_type,// header
-        detail::chunk_header,                       // chunk-header
+        detail::chunk_size,                         // chunk-size
         boost::asio::const_buffers_1,               // chunk-ext
-        boost::asio::const_buffers_1,               // crlf
+        chunk_crlf,                                 // crlf
         typename reader::const_buffers_type,        // body
-        boost::asio::const_buffers_1,               // crlf
+        chunk_crlf,                                 // crlf
         boost::asio::const_buffers_1,               // chunk-final
         boost::asio::const_buffers_1,               // trailers 
-        boost::asio::const_buffers_1>>;             // crlf
+        chunk_crlf>>;                               // crlf
     using pcb7_t = buffer_prefix_view<cb7_t const&>;
 #endif
 
     using cb8_t = consuming_buffers<buffer_cat_view<
         boost::asio::const_buffers_1,               // chunk-final
         boost::asio::const_buffers_1,               // trailers 
-        boost::asio::const_buffers_1>>;             // crlf
+        chunk_crlf>>;                               // crlf
     using pcb8_t = buffer_prefix_view<cb8_t const&>;
 
     value_type& m_;
@@ -268,7 +203,6 @@ private:
     bool chunked_;
     bool keep_alive_;
     bool more_;
-    ChunkDecorator d_;
 
 public:
     /** Constructor
@@ -288,46 +222,11 @@ public:
     explicit
     serializer(value_type& msg);
 
-    /** Constructor
-
-        The implementation guarantees that the message passed on
-        construction will not be accessed until the first call to
-        @ref next. This allows the message to be lazily created.
-        For example, if the header is filled in before serialization.
-
-        @param msg A reference to the message to serialize, which must
-        remain valid for the lifetime of the serializer. Depending on
-        the type of Body used, this may or may not be a `const` reference.
-
-        @param decorator The decorator to use.
-
-        @note This function participates in overload resolution only if
-        Body::reader is constructible from a `const` message reference.
-    */
-    explicit
-    serializer(value_type& msg, ChunkDecorator const& decorator);
-
     /// Returns the message being serialized
     value_type&
     get()
     {
         return m_;
-    }
-
-    /** Provides access to the associated @b BodyReader
-
-        This function provides access to the instance of the reader
-        associated with the body and created by the serializer
-        upon construction. The behavior of accessing this object
-        is defined by the specification of the particular reader
-        and its associated body.
-
-        @return A reference to the reader.
-    */
-    reader&
-    reader_impl()
-    {
-        return rd_;
     }
 
     /// Returns the serialized buffer size limit
@@ -478,21 +377,31 @@ public:
     */
     void
     consume(std::size_t n);
+
+    /** Provides low-level access to the associated @b BodyReader
+
+        This function provides access to the instance of the reader
+        associated with the body and created by the serializer
+        upon construction. The behavior of accessing this object
+        is defined by the specification of the particular reader
+        and its associated body.
+
+        @return A reference to the reader.
+    */
+    reader&
+    reader_impl()
+    {
+        return rd_;
+    }
 };
 
 /// A serializer for HTTP/1 requests
-template<
-    class Body,
-    class Fields = fields,
-    class ChunkDecorator = no_chunk_decorator>
-using request_serializer = serializer<true, Body, Fields, ChunkDecorator>;
+template<class Body, class Fields = fields>
+using request_serializer = serializer<true, Body, Fields>;
 
 /// A serializer for HTTP/1 responses
-template<
-    class Body,
-    class Fields = fields,
-    class ChunkDecorator = no_chunk_decorator>
-using response_serializer = serializer<false, Body, Fields, ChunkDecorator>;
+template<class Body, class Fields = fields>
+using response_serializer = serializer<false, Body, Fields>;
 
 } // http
 } // beast
