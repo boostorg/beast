@@ -57,7 +57,7 @@ load_root_certificates(ssl::context& ctx, boost::system::error_code& ec)
         "Yzi9RKR/5CYrCsSXaQ3pjOLAEFe4yHYSkVXySGnYvCoCWw9E1CAx2/S6cCZdkGCe\n"
         "vEsXCS+0yx5DaMkHJ8HSXPfqIbloEpw8nL+e/IBcm2PN7EeqJSdnoDfzAIJ9VNep\n"
         "+OkuE6N36B9K\n"
-        "-----END CERTIFICATE-----\n";
+        "-----END CERTIFICATE-----\n"
         /*  This is the GeoTrust root certificate.
             
             CN = GeoTrust Global CA
@@ -90,7 +90,8 @@ load_root_certificates(ssl::context& ctx, boost::system::error_code& ec)
         "Yzi9RKR/5CYrCsSXaQ3pjOLAEFe4yHYSkVXySGnYvCoCWw9E1CAx2/S6cCZdkGCe\n"
         "vEsXCS+0yx5DaMkHJ8HSXPfqIbloEpw8nL+e/IBcm2PN7EeqJSdnoDfzAIJ9VNep\n"
         "+OkuE6N36B9K\n"
-        "-----END CERTIFICATE-----\n";
+        "-----END CERTIFICATE-----\n"
+        ;
 
     ctx.add_certificate_authority(
         boost::asio::buffer(cert.data(), cert.size()), ec);
