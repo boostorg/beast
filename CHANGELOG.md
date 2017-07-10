@@ -6,6 +6,7 @@ Version 78:
 * Fix warning in zlib
 * Header file tidying
 * Tidy up FieldsReader doc
+* Add Boost.Locale utf8 benchmark comparison
 
 HTTP:
 

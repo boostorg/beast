@@ -274,7 +274,14 @@ write(std::uint8_t const* in, std::size_t size)
             std::size_t>(0x8080808080808080 & ~std::size_t{0});
         while(in < last)
         {
+#if 0
+            std::size_t temp;
+            std::memcpy(&temp, in, sizeof(temp));
+            if((temp & mask) != 0)
+#else
+            // Technically UB but works on all known platforms
             if((*reinterpret_cast<std::size_t const*>(in) & mask) != 0)
+#endif
             {
                 size = size - (in - in0);
                 goto slow;

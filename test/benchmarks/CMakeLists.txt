@@ -15,6 +15,7 @@ add_executable (benchmarks
     buffers.cpp
     nodejs_parser.cpp
     parser.cpp
+    utf8_checker.cpp
 )
 
 target_link_libraries(benchmarks
