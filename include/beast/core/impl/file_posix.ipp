@@ -114,7 +114,9 @@ open(char const* path, file_mode mode, error_code& ec)
         fd_ = -1;
     }
     int f = 0;
+#ifndef __APPLE__
     int advise = 0;
+#endif
     switch(mode)
     {
     default:
