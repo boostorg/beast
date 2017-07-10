@@ -21,54 +21,49 @@ namespace detail {
 */
 class chunk_header
 {
-    boost::asio::const_buffer cb_;
-
+public:
     // Storage for the longest hex string we might need
-    char buf_[2 * sizeof(std::size_t)];
-
-    template<class = void>
-    void
-    copy(chunk_header const& other);
-
-    template<class = void>
-    void
-    prepare_impl(std::size_t n);
-
-    template<class OutIter>
-    static
-    OutIter
-    to_hex(OutIter last, std::size_t n)
+    class value_type
     {
-        if(n == 0)
+        friend class chunk_header;
+
+        // First byte holds the length
+        char buf_[1 + 2 * sizeof(std::size_t)];
+
+        template<class = void>
+        void
+        prepare(std::size_t n);
+
+        template<class OutIter>
+        static
+        OutIter
+        to_hex(OutIter last, std::size_t n)
         {
-            *--last = '0';
+            if(n == 0)
+            {
+                *--last = '0';
+                return last;
+            }
+            while(n)
+            {
+                *--last = "0123456789abcdef"[n&0xf];
+                n>>=4;
+            }
             return last;
         }
-        while(n)
+    public:
+        operator
+        boost::asio::const_buffer() const
         {
-            *--last = "0123456789abcdef"[n&0xf];
-            n>>=4;
+            return {
+                buf_ + sizeof(buf_) - buf_[0],
+                static_cast<unsigned>(buf_[0])};
         }
-        return last;
-    }
-
-public:
-    using value_type = boost::asio::const_buffer;
+    };
 
     using const_iterator = value_type const*;
 
-    /** Constructor (default)
-
-        Default-constructed chunk headers are in an
-        undefined state.
-    */
-    chunk_header() = default;
-
-    /// Copy constructor
-    chunk_header(chunk_header const& other)
-    {
-        copy(other);
-    }
+    chunk_header(chunk_header const& other) = default;
 
     /** Construct a chunk header
 
@@ -77,13 +72,13 @@ public:
     explicit
     chunk_header(std::size_t n)
     {
-        prepare_impl(n);
+        value_.prepare(n);
     }
 
     const_iterator
     begin() const
     {
-        return &cb_;
+        return &value_;
     }
 
     const_iterator
@@ -92,38 +87,19 @@ public:
         return begin() + 1;
     }
 
-    void
-    prepare(std::size_t n)
-    {
-        prepare_impl(n);
-    }
+private:
+    value_type value_;
 };
 
 template<class>
 void
 chunk_header::
-copy(chunk_header const& other)
+value_type::
+prepare(std::size_t n)
 {
-    using boost::asio::buffer_copy;
-    auto const n =
-        boost::asio::buffer_size(other.cb_);
-    auto const mb = boost::asio::mutable_buffers_1(
-        &buf_[sizeof(buf_) - n], n);
-    cb_ = *mb.begin();
-    buffer_copy(mb,
-        boost::asio::const_buffers_1(other.cb_));
-}
-
-template<class>
-void
-chunk_header::
-prepare_impl(std::size_t n)
-{
-    auto const end = &buf_[sizeof(buf_)];
-    auto it = to_hex(end, n);
-    cb_ = boost::asio::const_buffer{&*it,
-        static_cast<std::size_t>(
-            std::distance(it, end))};
+    auto const last = &buf_[sizeof(buf_)];
+    auto it = to_hex(last, n);
+    buf_[0] = static_cast<char>(last - it);
 }
 
 /// Returns a buffer sequence holding a CRLF for chunk encoding
