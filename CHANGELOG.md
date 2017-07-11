@@ -2,6 +2,7 @@ Version 81:
 
 * Pass string_view by value
 * better is_final on empty_base_optimization
+* Suppress incorrect GCC warning
 
 --------------------------------------------------------------------------------
 
