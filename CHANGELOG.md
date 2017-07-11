@@ -1,3 +1,7 @@
+* buffers_ref is Assignable
+
+--------------------------------------------------------------------------------
+
 Version 79:
 
 * Remove spurious fallthrough guidance
