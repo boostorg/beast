@@ -1,3 +1,9 @@
+Version 79:
+
+* Remove spurious fallthrough guidance
+
+--------------------------------------------------------------------------------
+
 Version 78:
 
 * Add span
