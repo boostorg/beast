@@ -17,7 +17,7 @@ namespace detail {
 template<class BufferSequence>
 class buffers_ref
 {
-    BufferSequence const& buffers_;
+    BufferSequence const* buffers_;
 
 public:
     using value_type =
@@ -27,23 +27,24 @@ public:
         typename BufferSequence::const_iterator;
 
     buffers_ref(buffers_ref const&) = default;
+    buffers_ref& operator=(buffers_ref const&) = default;
 
     explicit
     buffers_ref(BufferSequence const& buffers)
-        : buffers_(buffers)
+        : buffers_(std::addressof(buffers))
     {
     }
 
     const_iterator
     begin() const
     {
-        return buffers_.begin();
+        return buffers_->begin();
     }
 
     const_iterator
     end() const
     {
-        return buffers_.end();
+        return buffers_->end();
     }
 };
 
