@@ -1040,7 +1040,10 @@ doWrite(z_params& zs, boost::optional<Flush> flush, error_code& ec)
     }
 
     // value of flush param for previous deflate call
-    boost::optional<Flush> old_flush = last_flush_;
+    auto old_flush = boost::make_optional<Flush>(
+        last_flush_.is_initialized(),
+        last_flush_ ? *last_flush_ : Flush::none);
+
     last_flush_ = flush;
 
     // Flush as much pending output as possible
