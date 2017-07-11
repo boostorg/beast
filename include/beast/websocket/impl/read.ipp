@@ -537,7 +537,6 @@ operator()(error_code ec,
                     d.state = do_read_fh;
                     break;
                 }
-                BEAST_FALLTHROUGH;
 
             //------------------------------------------------------------------
 
@@ -584,7 +583,6 @@ operator()(error_code ec,
                     ec = error::closed;
                     goto upcall;
                 }
-                BEAST_FALLTHROUGH;
 
             //------------------------------------------------------------------
 
