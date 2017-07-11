@@ -5,6 +5,7 @@ Version 80:
 * Shrink buffer_prefix_view
 * Remove unused file_path
 * Add basic_file_body.hpp
+* buffers_ref is Assignable
 
 --------------------------------------------------------------------------------
 
