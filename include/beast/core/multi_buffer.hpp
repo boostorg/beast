@@ -116,6 +116,7 @@ public:
 
         @param alloc The allocator to use.
     */
+    explicit
     basic_multi_buffer(Allocator const& alloc);
 
     /** Constructor.
