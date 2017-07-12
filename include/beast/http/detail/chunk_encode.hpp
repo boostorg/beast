@@ -8,6 +8,8 @@
 #ifndef BEAST_HTTP_DETAIL_CHUNK_ENCODE_HPP
 #define BEAST_HTTP_DETAIL_CHUNK_ENCODE_HPP
 
+#include <beast/core/type_traits.hpp>
+#include <beast/http/type_traits.hpp>
 #include <boost/asio/buffer.hpp>
 #include <algorithm>
 #include <array>
@@ -17,73 +19,108 @@ namespace beast {
 namespace http {
 namespace detail {
 
-/** A buffer sequence containing a chunk-encoding header
-*/
-class chunk_header
+struct chunk_extensions
 {
-    boost::asio::const_buffer cb_;
+    virtual ~chunk_extensions() = default;
+    virtual boost::asio::const_buffers_1 str() = 0;
+};
+    
+template<class ChunkExtensions>
+struct chunk_extensions_impl : chunk_extensions
+{
+    ChunkExtensions ext_;
 
-    // Storage for the longest hex string we might need
-    char buf_[2 * sizeof(std::size_t)];
-
-    template<class = void>
-    void
-    copy(chunk_header const& other);
-
-    template<class = void>
-    void
-    prepare_impl(std::size_t n);
-
-    template<class OutIter>
-    static
-    OutIter
-    to_hex(OutIter last, std::size_t n)
+    chunk_extensions_impl(ChunkExtensions&& ext)
+        : ext_(std::move(ext))
     {
-        if(n == 0)
-        {
-            *--last = '0';
-            return last;
-        }
-        while(n)
-        {
-            *--last = "0123456789abcdef"[n&0xf];
-            n>>=4;
-        }
-        return last;
     }
 
+    chunk_extensions_impl(ChunkExtensions const& ext)
+        : ext_(ext)
+    {
+    }
+
+    boost::asio::const_buffers_1
+    str() override
+    {
+        auto const s = ext_.str();
+        return {s.data(), s.size()};
+    }
+};
+
+template<class T, class = void>
+struct is_chunk_extensions : std::false_type {};
+
+template<class T>
+struct is_chunk_extensions<T, beast::detail::void_t<decltype(
+    std::declval<string_view&>() = std::declval<T&>().str(),
+        (void)0)>> : std::true_type
+{
+};
+
+//------------------------------------------------------------------------------
+
+/** A buffer sequence containing a chunk-encoding header
+*/
+class chunk_size
+{
 public:
-    using value_type = boost::asio::const_buffer;
+    // Storage for the longest hex string we might need
+    class value_type
+    {
+        friend class chunk_size;
+
+        // First byte holds the length
+        char buf_[1 + 2 * sizeof(std::size_t)];
+
+        template<class = void>
+        void
+        prepare(std::size_t n);
+
+        template<class OutIter>
+        static
+        OutIter
+        to_hex(OutIter last, std::size_t n)
+        {
+            if(n == 0)
+            {
+                *--last = '0';
+                return last;
+            }
+            while(n)
+            {
+                *--last = "0123456789abcdef"[n&0xf];
+                n>>=4;
+            }
+            return last;
+        }
+    public:
+        operator
+        boost::asio::const_buffer() const
+        {
+            return {
+                buf_ + sizeof(buf_) - buf_[0],
+                static_cast<unsigned>(buf_[0])};
+        }
+    };
 
     using const_iterator = value_type const*;
 
-    /** Constructor (default)
-
-        Default-constructed chunk headers are in an
-        undefined state.
-    */
-    chunk_header() = default;
-
-    /// Copy constructor
-    chunk_header(chunk_header const& other)
-    {
-        copy(other);
-    }
+    chunk_size(chunk_size const& other) = default;
 
     /** Construct a chunk header
 
         @param n The number of octets in this chunk.
     */
-    explicit
-    chunk_header(std::size_t n)
+    chunk_size(std::size_t n)
     {
-        prepare_impl(n);
+        value_.prepare(n);
     }
 
     const_iterator
     begin() const
     {
-        return &cb_;
+        return &value_;
     }
 
     const_iterator
@@ -92,39 +129,22 @@ public:
         return begin() + 1;
     }
 
-    void
-    prepare(std::size_t n)
-    {
-        prepare_impl(n);
-    }
+private:
+    value_type value_;
 };
 
 template<class>
 void
-chunk_header::
-copy(chunk_header const& other)
+chunk_size::
+value_type::
+prepare(std::size_t n)
 {
-    using boost::asio::buffer_copy;
-    auto const n =
-        boost::asio::buffer_size(other.cb_);
-    auto const mb = boost::asio::mutable_buffers_1(
-        &buf_[sizeof(buf_) - n], n);
-    cb_ = *mb.begin();
-    buffer_copy(mb,
-        boost::asio::const_buffers_1(other.cb_));
+    auto const last = &buf_[sizeof(buf_)];
+    auto it = to_hex(last, n);
+    buf_[0] = static_cast<char>(last - it);
 }
 
-template<class>
-void
-chunk_header::
-prepare_impl(std::size_t n)
-{
-    auto const end = &buf_[sizeof(buf_)];
-    auto it = to_hex(end, n);
-    cb_ = boost::asio::const_buffer{&*it,
-        static_cast<std::size_t>(
-            std::distance(it, end))};
-}
+//------------------------------------------------------------------------------
 
 /// Returns a buffer sequence holding a CRLF for chunk encoding
 inline
@@ -137,10 +157,99 @@ chunk_crlf()
 /// Returns a buffer sequence holding a final chunk header
 inline
 boost::asio::const_buffers_1
-chunk_final()
+chunk_last()
 {
     return {"0\r\n", 3};
 }
+
+//------------------------------------------------------------------------------
+
+template<class = void>
+struct chunk_crlf_iter_type
+{
+    class value_type
+    {
+        char const s[2] = {'\r', '\n'};
+        
+    public:
+        value_type() = default;
+
+        operator
+        boost::asio::const_buffer() const
+        {
+            return {s, sizeof(s)};
+        }
+    };
+    static value_type value;
+};
+
+template<class T>
+typename chunk_crlf_iter_type<T>::value_type
+chunk_crlf_iter_type<T>::value;
+
+using chunk_crlf_iter = chunk_crlf_iter_type<void>;
+
+//------------------------------------------------------------------------------
+
+template<class = void>
+struct chunk_size0_iter_type
+{
+    class value_type
+    {
+        char const s[3] = {'0', '\r', '\n'};
+        
+    public:
+        value_type() = default;
+
+        operator
+        boost::asio::const_buffer() const
+        {
+            return {s, sizeof(s)};
+        }
+    };
+    static value_type value;
+};
+
+template<class T>
+typename chunk_size0_iter_type<T>::value_type
+chunk_size0_iter_type<T>::value;
+
+using chunk_size0_iter = chunk_size0_iter_type<void>;
+
+struct chunk_size0
+{
+    using value_type = chunk_size0_iter::value_type;
+
+    using const_iterator = value_type const*;
+
+    const_iterator
+    begin() const
+    {
+        return &chunk_size0_iter::value;
+    }
+
+    const_iterator
+    end() const
+    {
+        return begin() + 1;
+    }
+};
+
+//------------------------------------------------------------------------------
+
+template<class T,
+    bool = is_fields<T>::value>
+struct buffers_or_fields
+{
+    using type = typename
+        T::reader::const_buffers_type;
+};
+
+template<class T>
+struct buffers_or_fields<T, false>
+{
+    using type = T;
+};
 
 } // detail
 } // http

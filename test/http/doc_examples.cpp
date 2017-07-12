@@ -7,8 +7,14 @@
 
 #include "example/doc/http_examples.hpp"
 
+#include <beast/core/flat_buffer.hpp>
 #include <beast/core/read_size.hpp>
+#include <beast/core/ostream.hpp>
 #include <beast/core/detail/clamp.hpp>
+#include <beast/http/chunk_encode.hpp>
+#include <beast/http/parser.hpp>
+#include <beast/http/read.hpp>
+#include <beast/http/write.hpp>
 #include <beast/test/pipe_stream.hpp>
 #include <beast/test/string_istream.hpp>
 #include <beast/test/string_ostream.hpp>
@@ -283,6 +289,118 @@ public:
     //--------------------------------------------------------------------------
 
     void
+    doExplicitChunkSerialize()
+    {
+        auto const buf =
+            [](string_view s)
+            {
+                return boost::asio::const_buffers_1{
+                    s.data(), s.size()};
+            };
+        test::pipe p{ios_};
+        
+        response<empty_body> res{status::ok, 11};
+        res.set(field::server, "test");
+        res.set(field::accept, "Expires, Content-MD5");
+        res.chunked(true);
+
+        error_code ec;
+        response_serializer<empty_body> sr{res};
+        write_header(p.client, sr, ec);
+
+        chunk_extensions exts;
+
+        boost::asio::write(p.client,
+            make_chunk(buf("First")), ec);
+
+        exts.insert("quality", "1.0");
+        boost::asio::write(p.client,
+            make_chunk(buf("Hello, world!"), exts), ec);
+
+        exts.clear();
+        exts.insert("file", "abc.txt");
+        exts.insert("quality", "0.7");
+        boost::asio::write(p.client,
+            make_chunk(buf("The Next Chunk"), std::move(exts)), ec);
+
+        exts.clear();
+        exts.insert("last");
+        boost::asio::write(p.client,
+            make_chunk(buf("Last one"), std::move(exts),
+                std::allocator<double>{}), ec);
+
+        fields trailers;
+        trailers.set(field::expires, "never");
+        trailers.set(field::content_md5, "f4a5c16584f03d90");
+
+        boost::asio::write(p.client,
+            make_chunk_last(
+                trailers,
+                std::allocator<double>{}
+                    ), ec);
+        BEAST_EXPECT(
+            boost::lexical_cast<std::string>(
+                buffers(p.server.buffer.data())) ==
+            "HTTP/1.1 200 OK\r\n"
+            "Server: test\r\n"
+            "Accept: Expires, Content-MD5\r\n"
+            "Transfer-Encoding: chunked\r\n"
+            "\r\n"
+            "5\r\n"
+            "First\r\n"
+            "d;quality=1.0\r\n"
+            "Hello, world!\r\n"
+            "e;file=abc.txt;quality=0.7\r\n"
+            "The Next Chunk\r\n"
+            "8;last\r\n"
+            "Last one\r\n"
+            "0\r\n"
+            "Expires: never\r\n"
+            "Content-MD5: f4a5c16584f03d90\r\n"
+            "\r\n");
+    }
+
+    //--------------------------------------------------------------------------
+
+    void
+    doExplicitChunkParse()
+    {
+        test::pipe c{ios_};
+        ostream(c.client.buffer) <<
+            "HTTP/1.1 200 OK\r\n"
+            "Server: test\r\n"
+            "Accept: Expires, Content-MD5\r\n"
+            "Transfer-Encoding: chunked\r\n"
+            "\r\n"
+            "5\r\n"
+            "First\r\n"
+            "d;quality=1.0\r\n"
+            "Hello, world!\r\n"
+            "e;file=abc.txt;quality=0.7\r\n"
+            "The Next Chunk\r\n"
+            "8;last\r\n"
+            "Last one\r\n"
+            "0\r\n"
+            "Expires: never\r\n"
+            "Content-MD5: f4a5c16584f03d90\r\n"
+            "\r\n";
+
+        flat_buffer b;
+        response_parser<empty_body> p;
+        read_header(c.client, b, p);
+        BOOST_ASSERT(p.is_chunked());
+        //while(! p.is_done())
+        {
+            // read the chunk header?
+            // read the next chunk?
+
+        }
+
+    }
+
+    //--------------------------------------------------------------------------
+
+    void
     run()
     {
         doExpect100Continue();
@@ -294,6 +412,8 @@ public:
         doHEAD();
         doDeferredBody();
         doIncrementalRead();
+        doExplicitChunkSerialize();
+        doExplicitChunkParse();
     }
 };
 

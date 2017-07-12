@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE library PUBLIC "-//Boost//DTD BoostBook XML V1.0//EN" "boostbook.dtd">
+<!DOCTYPE library PUBLIC "-//Boost//DTD BoostBook XML V1.0//EN" "../boostbook.dtd">
 
 <!--
   Copyright (c) 2013-2017 Vinnie Falco (vinnie dot falco at gmail dot com)
@@ -29,19 +29,24 @@
         <entry valign="top">
           <bridgehead renderas="sect3">Classes</bridgehead>
           <simplelist type="vert" columns="1">
+            <member><link linkend="beast.ref.beast__http__basic_chunk_extensions">basic_chunk_extensions</link></member>
             <member><link linkend="beast.ref.beast__http__basic_dynamic_body">basic_dynamic_body</link></member>
             <member><link linkend="beast.ref.beast__http__basic_file_body">basic_file_body</link></member>
             <member><link linkend="beast.ref.beast__http__basic_fields">basic_fields</link></member>
             <member><link linkend="beast.ref.beast__http__basic_parser">basic_parser</link></member>
             <member><link linkend="beast.ref.beast__http__basic_string_body">basic_string_body</link></member>
             <member><link linkend="beast.ref.beast__http__buffer_body">buffer_body</link></member>
+            <member><link linkend="beast.ref.beast__http__chunk_body">chunk_body</link></member>
+            <member><link linkend="beast.ref.beast__http__chunk_crlf">chunk_crlf</link></member>
+            <member><link linkend="beast.ref.beast__http__chunk_extensions">chunk_extensions</link></member>
+            <member><link linkend="beast.ref.beast__http__chunk_header">chunk_header</link></member>
+            <member><link linkend="beast.ref.beast__http__chunk_last">chunk_last</link></member>
             <member><link linkend="beast.ref.beast__http__dynamic_body">dynamic_body</link></member>
             <member><link linkend="beast.ref.beast__http__empty_body">empty_body</link></member>
             <member><link linkend="beast.ref.beast__http__fields">fields</link></member>
             <member><link linkend="beast.ref.beast__http__header">header</link></member>
             <member><link linkend="beast.ref.beast__http__message">message</link></member>
             <member><link linkend="beast.ref.beast__http__parser">parser</link></member>
-            <member><link linkend="beast.ref.beast__http__no_chunk_decorator">no_chunk_decorator</link></member>
             <member><link linkend="beast.ref.beast__http__request">request</link></member>
             <member><link linkend="beast.ref.beast__http__request_header">request_header</link></member>
             <member><link linkend="beast.ref.beast__http__request_parser">request_parser</link></member>
@@ -66,6 +71,8 @@
             <member><link linkend="beast.ref.beast__http__async_write_header">async_write_header</link></member>
             <member><link linkend="beast.ref.beast__http__async_write_some">async_write_some</link></member>
             <member><link linkend="beast.ref.beast__http__int_to_status">int_to_status</link></member>
+            <member><link linkend="beast.ref.beast__http__make_chunk">make_chunk</link></member>
+            <member><link linkend="beast.ref.beast__http__make_chunk_last">make_chunk_last</link></member>
             <member><link linkend="beast.ref.beast__http__obsolete_reason">obsolete_reason</link></member>
             <member><link linkend="beast.ref.beast__http__operator_lt__lt_">operator&lt;&lt;</link></member>
             <member><link linkend="beast.ref.beast__http__read">read</link></member>
@@ -106,11 +113,11 @@
           </simplelist>
           <bridgehead renderas="sect3">Concepts</bridgehead>
           <simplelist type="vert" columns="1">
-            <member><link linkend="beast.concept.Body">Body</link></member>
-            <member><link linkend="beast.concept.BodyReader">BodyReader</link></member>
-            <member><link linkend="beast.concept.BodyWriter">BodyWriter</link></member>
-            <member><link linkend="beast.concept.Fields">Fields</link></member>
-            <member><link linkend="beast.concept.FieldsReader">FieldsReader</link></member>
+            <member><link linkend="beast.concepts.Body">Body</link></member>
+            <member><link linkend="beast.concepts.BodyReader">BodyReader</link></member>
+            <member><link linkend="beast.concepts.BodyWriter">BodyWriter</link></member>
+            <member><link linkend="beast.concepts.Fields">Fields</link></member>
+            <member><link linkend="beast.concepts.FieldsReader">FieldsReader</link></member>
           </simplelist>
         </entry>
         <entry valign="top">
@@ -244,12 +251,12 @@
         <entry valign="top">
           <bridgehead renderas="sect3">Concepts</bridgehead>
           <simplelist type="vert" columns="1">
-            <member><link linkend="beast.concept.streams.AsyncStream">AsyncStream</link></member>
-            <member><link linkend="beast.concept.BufferSequence">BufferSequence</link></member>
-            <member><link linkend="beast.concept.DynamicBuffer">DynamicBuffer</link></member>
-            <member><link linkend="beast.concept.File">File</link></member>
-            <member><link linkend="beast.concept.streams.Stream">Stream</link></member>
-            <member><link linkend="beast.concept.streams.SyncStream">SyncStream</link></member>
+            <member><link linkend="beast.concepts.streams.AsyncStream">AsyncStream</link></member>
+            <member><link linkend="beast.concepts.BufferSequence">BufferSequence</link></member>
+            <member><link linkend="beast.concepts.DynamicBuffer">DynamicBuffer</link></member>
+            <member><link linkend="beast.concepts.File">File</link></member>
+            <member><link linkend="beast.concepts.streams.Stream">Stream</link></member>
+            <member><link linkend="beast.concepts.streams.SyncStream">SyncStream</link></member>
           </simplelist>
         </entry>
         <entry valign="top">

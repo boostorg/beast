@@ -50,7 +50,7 @@ explicit callout ;
 
 xml doc
     :
-        0_main.qbk
+        qbk/00_main.qbk
     :
         <location>temp
         <include>$(broot)/tools/boostbook/dtd
