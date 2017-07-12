@@ -10,6 +10,7 @@
 
 #include <beast/config.hpp>
 
+#include <beast/http/basic_dynamic_body.hpp>
 #include <beast/http/basic_parser.hpp>
 #include <beast/http/buffer_body.hpp>
 #include <beast/http/dynamic_body.hpp>
