@@ -83,7 +83,7 @@ public:
 
     /** Construct a buffer sequence prefix.
 
-        @param n The maximum number of bytes in the prefix.
+        @param size The maximum number of bytes in the prefix.
         If this is larger than the size of passed, buffers,
         the resulting sequence will represent the entire
         input sequence.

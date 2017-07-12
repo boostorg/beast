@@ -36,17 +36,20 @@ namespace beast {
 template<class BufferSequence>
 class consuming_buffers
 {
+    using buffers_type =
+        typename std::decay<BufferSequence>::type;
+
     using iter_type =
-        typename BufferSequence::const_iterator;
+        typename buffers_type::const_iterator;
 
     BufferSequence bs_;
     iter_type begin_;
     std::size_t skip_ = 0;
 
     template<class Deduced>
-    consuming_buffers(Deduced&& other, std::size_t nbegin)
+    consuming_buffers(Deduced&& other, std::size_t dist)
         : bs_(std::forward<Deduced>(other).bs_)
-        , begin_(std::next(bs_.begin(), nbegin))
+        , begin_(std::next(bs_.begin(), dist))
         , skip_(other.skip_)
     {
     }
@@ -60,7 +63,7 @@ public:
         `boost::asio::const_buffer`.
     */
 #if BEAST_DOXYGEN
-    using value_type = ...;
+    using value_type = implementation_defined;
 #else
     using value_type = typename std::conditional<
         std::is_convertible<typename
@@ -82,13 +85,13 @@ public:
     /// Constructor
     consuming_buffers();
 
-    /// Move constructor
+    /// Constructor
     consuming_buffers(consuming_buffers&&);
 
-    /// Copy constructor
+    /// Constructor
     consuming_buffers(consuming_buffers const&);
 
-    /** Construct to represent a buffer sequence.
+    /** Constructor
 
         A copy of the buffer sequence is made. Ownership of the
         underlying memory is not transferred or copied.
@@ -96,17 +99,20 @@ public:
     explicit
     consuming_buffers(BufferSequence const& buffers);
 
-    /** Construct a buffer sequence in-place.
+    /** Constructor
 
-        @param args Arguments forwarded to the contained buffers constructor.
+        This constructs the buffer sequence in-place from
+        a list of arguments.
+
+        @param args Arguments forwarded to the buffers constructor.
     */
     template<class... Args>
     consuming_buffers(boost::in_place_init_t, Args&&... args);
 
-    /// Move assignment
+    /// Assignment
     consuming_buffers& operator=(consuming_buffers&&);
 
-    /// Copy assignmen
+    /// Assignmen
     consuming_buffers& operator=(consuming_buffers const&);
 
     /// Get a bidirectional iterator to the first element.
@@ -119,12 +125,12 @@ public:
 
     /** Remove bytes from the beginning of the sequence.
 
-        @param n The number of bytes to remove. If this is
+        @param amount The number of bytes to remove. If this is
         larger than the number of bytes remaining, all the
         bytes remaining are removed.
     */
     void
-    consume(std::size_t n);
+    consume(std::size_t amount);
 };
 
 } // beast
