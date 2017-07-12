@@ -8,7 +8,7 @@
 #ifndef BEAST_ZTEST_HPP
 #define BEAST_ZTEST_HPP
 
-#include "zlib-1.2.8/zlib.h"
+#include "zlib-1.2.11/zlib.h"
 #include <cstdint>
 #include <random>
 #include <string>

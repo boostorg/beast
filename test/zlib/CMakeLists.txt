@@ -6,26 +6,26 @@ GroupSources(include/beast beast)
 GroupSources(test/zlib "/")
 
 set(ZLIB_SOURCES
-    ${CMAKE_CURRENT_LIST_DIR}/zlib-1.2.8/crc32.h
-    ${CMAKE_CURRENT_LIST_DIR}/zlib-1.2.8/deflate.h
-    ${CMAKE_CURRENT_LIST_DIR}/zlib-1.2.8/inffast.h
-    ${CMAKE_CURRENT_LIST_DIR}/zlib-1.2.8/inffixed.h
-    ${CMAKE_CURRENT_LIST_DIR}/zlib-1.2.8/inflate.h
-    ${CMAKE_CURRENT_LIST_DIR}/zlib-1.2.8/inftrees.h
-    ${CMAKE_CURRENT_LIST_DIR}/zlib-1.2.8/trees.h
-    ${CMAKE_CURRENT_LIST_DIR}/zlib-1.2.8/zlib.h
-    ${CMAKE_CURRENT_LIST_DIR}/zlib-1.2.8/zutil.h
-    ${CMAKE_CURRENT_LIST_DIR}/zlib-1.2.8/adler32.c
-    ${CMAKE_CURRENT_LIST_DIR}/zlib-1.2.8/compress.c
-    ${CMAKE_CURRENT_LIST_DIR}/zlib-1.2.8/crc32.c
-    ${CMAKE_CURRENT_LIST_DIR}/zlib-1.2.8/deflate.c
-    ${CMAKE_CURRENT_LIST_DIR}/zlib-1.2.8/infback.c
-    ${CMAKE_CURRENT_LIST_DIR}/zlib-1.2.8/inffast.c
-    ${CMAKE_CURRENT_LIST_DIR}/zlib-1.2.8/inflate.c
-    ${CMAKE_CURRENT_LIST_DIR}/zlib-1.2.8/inftrees.c
-    ${CMAKE_CURRENT_LIST_DIR}/zlib-1.2.8/trees.c
-    ${CMAKE_CURRENT_LIST_DIR}/zlib-1.2.8/uncompr.c
-    ${CMAKE_CURRENT_LIST_DIR}/zlib-1.2.8/zutil.c
+    ${CMAKE_CURRENT_LIST_DIR}/zlib-1.2.11/crc32.h
+    ${CMAKE_CURRENT_LIST_DIR}/zlib-1.2.11/deflate.h
+    ${CMAKE_CURRENT_LIST_DIR}/zlib-1.2.11/inffast.h
+    ${CMAKE_CURRENT_LIST_DIR}/zlib-1.2.11/inffixed.h
+    ${CMAKE_CURRENT_LIST_DIR}/zlib-1.2.11/inflate.h
+    ${CMAKE_CURRENT_LIST_DIR}/zlib-1.2.11/inftrees.h
+    ${CMAKE_CURRENT_LIST_DIR}/zlib-1.2.11/trees.h
+    ${CMAKE_CURRENT_LIST_DIR}/zlib-1.2.11/zlib.h
+    ${CMAKE_CURRENT_LIST_DIR}/zlib-1.2.11/zutil.h
+    ${CMAKE_CURRENT_LIST_DIR}/zlib-1.2.11/adler32.c
+    ${CMAKE_CURRENT_LIST_DIR}/zlib-1.2.11/compress.c
+    ${CMAKE_CURRENT_LIST_DIR}/zlib-1.2.11/crc32.c
+    ${CMAKE_CURRENT_LIST_DIR}/zlib-1.2.11/deflate.c
+    ${CMAKE_CURRENT_LIST_DIR}/zlib-1.2.11/infback.c
+    ${CMAKE_CURRENT_LIST_DIR}/zlib-1.2.11/inffast.c
+    ${CMAKE_CURRENT_LIST_DIR}/zlib-1.2.11/inflate.c
+    ${CMAKE_CURRENT_LIST_DIR}/zlib-1.2.11/inftrees.c
+    ${CMAKE_CURRENT_LIST_DIR}/zlib-1.2.11/trees.c
+    ${CMAKE_CURRENT_LIST_DIR}/zlib-1.2.11/uncompr.c
+    ${CMAKE_CURRENT_LIST_DIR}/zlib-1.2.11/zutil.c
 )
 
 if (MSVC)
