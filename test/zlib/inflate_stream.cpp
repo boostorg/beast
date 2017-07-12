@@ -225,7 +225,7 @@ public:
         {
             level_[0] = 0;
             level_[1] = 9;
-            window_[0] = 8;
+            window_[0] = 9;
             window_[1] = 15;
             strategy_[0] = 0;
             strategy_[1] = 4;

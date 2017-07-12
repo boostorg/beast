@@ -285,6 +285,9 @@ public:
         {
             for(int windowBits = 8; windowBits <= 9; ++windowBits)
             {
+                // zlib has a bug with windowBits==8
+                if(windowBits == 8)
+                    continue;
                 for(int strategy = 0; strategy <= 4; ++strategy)
                 {
                     (this->*pmf)(
