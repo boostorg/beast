@@ -13,9 +13,6 @@
 
 namespace beast {
 
-/// The type of file path used by the library
-using file_path = string_view;
-
 /** File open modes
 
     These modes are used when opening files using
