@@ -172,15 +172,6 @@ public:
         BEAST_EXPECT(bsize2(pb) == 2);
         BEAST_EXPECT(bsize3(pb) == 2);
         BEAST_EXPECT(bsize4(pb) == 2);
-        std::size_t n = 0;
-        for(auto it = pb.end(); it != pb.begin(); --it)
-        {
-            decltype(pb)::const_iterator it2(std::move(it));
-            BEAST_EXPECT(buffer_size(*it2) == 1);
-            it = std::move(it2);
-            ++n;
-        }
-        BEAST_EXPECT(n == 2);
     }
 
     void run() override
