@@ -45,7 +45,7 @@ class string_param
     print(T const&);
 
     void
-    print(string_view const&);
+    print(string_view);
 
     template<class T>
     typename std::enable_if<

@@ -1,3 +1,9 @@
+Version 81:
+
+* Pass string_view by value
+
+--------------------------------------------------------------------------------
+
 Version 80:
 
 * Javadoc tidying

@@ -737,7 +737,7 @@ template<class String, class Pred>
 void
 filter_token_list(
     String& s,
-    string_view const& value,
+    string_view value,
     Pred&& pred)
 {
     token_list te{value};
@@ -764,7 +764,7 @@ template<class String, class Pred>
 void
 filter_token_list_last(
     String& s,
-    string_view const& value,
+    string_view value,
     Pred&& pred)
 {
     token_list te{value};
@@ -801,7 +801,7 @@ filter_token_list_last(
 template<class String>
 void
 keep_alive_impl(
-    String& s, string_view const& value,
+    String& s, string_view value,
     unsigned version, bool keep_alive)
 {
     if(version < 11)
@@ -1025,7 +1025,7 @@ set_chunked_impl(bool value)
     {
         static_string<max_static_buffer> buf;
         detail::filter_token_list_last(buf, it->value(),
-            [](string_view const& s)
+            [](string_view s)
             {
                 return iequals(s, "chunked");
             });
@@ -1050,7 +1050,7 @@ set_chunked_impl(bool value)
     #endif
         s.reserve(it->value().size());
         detail::filter_token_list_last(s, it->value(),
-            [](string_view const& s)
+            [](string_view s)
             {
                 return iequals(s, "chunked");
             });

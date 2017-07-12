@@ -28,7 +28,7 @@ struct field_table
     struct hash
     {
         std::size_t
-        operator()(string_view const& s) const
+        operator()(string_view s) const
         {
             auto const n = s.size();
             return
@@ -43,8 +43,8 @@ struct field_table
         // assumes inputs have equal length
         bool
         operator()(
-            string_view const& lhs,
-            string_view const& rhs) const
+            string_view lhs,
+            string_view rhs) const
         {
             auto p1 = lhs.data();
             auto p2 = rhs.data();

@@ -60,8 +60,8 @@ ascii_tolower(char c)
 template<class = void>
 bool
 iequals(
-    beast::string_view const& lhs,
-    beast::string_view const& rhs)
+    beast::string_view lhs,
+    beast::string_view rhs)
 {
     auto n = lhs.size();
     if(rhs.size() != n)
@@ -102,8 +102,8 @@ iequals(
 inline
 bool
 iequals(
-    beast::string_view const& lhs,
-    beast::string_view const& rhs)
+    beast::string_view lhs,
+    beast::string_view rhs)
 {
     return detail::iequals(lhs, rhs);
 }
@@ -116,8 +116,8 @@ struct iless
 {
     bool
     operator()(
-        string_view const& lhs,
-        string_view const& rhs) const
+        string_view lhs,
+        string_view rhs) const
     {
         using std::begin;
         using std::end;
@@ -139,8 +139,8 @@ struct iequal
 {
     bool
     operator()(
-        string_view const& lhs,
-        string_view const& rhs) const
+        string_view lhs,
+        string_view rhs) const
     {
         return iequals(lhs, rhs);
     }
