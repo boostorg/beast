@@ -2,6 +2,7 @@ Version 80:
 
 * Javadoc tidying
 * Add basic_dynamic_body.hpp
+* Shrink buffer_prefix_view
 
 --------------------------------------------------------------------------------
 

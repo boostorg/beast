@@ -31,25 +31,24 @@ class buffer_prefix_view
     using buffers_type = typename
         std::decay<BufferSequence>::type;
 
-    using iter_type = typename buffers_type::const_iterator;
+    using iter_type =
+        typename buffers_type::const_iterator;
 
     BufferSequence bs_;
-    iter_type back_;
-    iter_type end_;
     std::size_t size_;
+    iter_type end_;
 
     template<class Deduced>
-    buffer_prefix_view(Deduced&& other,
-            std::size_t nback, std::size_t nend)
+    buffer_prefix_view(
+            Deduced&& other, std::size_t dist)
         : bs_(std::forward<Deduced>(other).bs_)
-        , back_(std::next(bs_.begin(), nback))
-        , end_(std::next(bs_.begin(), nend))
         , size_(other.size_)
+        , end_(std::next(bs_.begin(), dist))
     {
     }
 
     void
-    setup(std::size_t n);
+    setup(std::size_t size);
 
 public:
     /// The type for each element in the list of buffers.
@@ -92,11 +91,13 @@ public:
         the sequence will be made, but ownership of the underlying
         memory is not transferred.
     */
-    buffer_prefix_view(std::size_t n, BufferSequence const& buffers);
+    buffer_prefix_view(
+        std::size_t size,
+        BufferSequence const& buffers);
 
     /** Construct a buffer sequence prefix in-place.
 
-        @param n The maximum number of bytes in the prefix.
+        @param size The maximum number of bytes in the prefix.
         If this is larger than the size of passed, buffers,
         the resulting sequence will represent the entire
         input sequence.
@@ -104,8 +105,10 @@ public:
         @param args Arguments forwarded to the contained buffers constructor.
     */
     template<class... Args>
-    buffer_prefix_view(std::size_t n,
-        boost::in_place_init_t, Args&&... args);
+    buffer_prefix_view(
+        std::size_t size,
+        boost::in_place_init_t,
+        Args&&... args);
 
     /// Get a bidirectional iterator to the first element.
     const_iterator
@@ -122,23 +125,23 @@ public:
     passed buffer, but with a size that is equal to or less
     than the size of the original buffer.
 
-    @param n The size of the returned buffer.
+    @param size The size of the returned buffer.
 
     @param buffer The buffer to shorten. The underlying
     memory is not modified.
 
-    @return A new buffer that points to the first `n` bytes
-    of the original buffer.
+    @return A new buffer that points to the first `size`
+    bytes of the original buffer.
 */
 inline
 boost::asio::const_buffer
-buffer_prefix(std::size_t n,
+buffer_prefix(std::size_t size,
     boost::asio::const_buffer buffer)
 {
     using boost::asio::buffer_cast;
     using boost::asio::buffer_size;
     return { buffer_cast<void const*>(buffer),
-        (std::min)(n, buffer_size(buffer)) };
+        (std::min)(size, buffer_size(buffer)) };
 }
 
 /** Returns a prefix of a mutable buffer.
@@ -147,23 +150,23 @@ buffer_prefix(std::size_t n,
     passed buffer, but with a size that is equal to or less
     than the size of the original buffer.
 
-    @param n The size of the returned buffer.
+    @param size The size of the returned buffer.
 
     @param buffer The buffer to shorten. The underlying
     memory is not modified.
 
-    @return A new buffer that points to the first `n` bytes
+    @return A new buffer that points to the first `size` bytes
     of the original buffer.
 */
 inline
 boost::asio::mutable_buffer
-buffer_prefix(std::size_t n,
+buffer_prefix(std::size_t size,
     boost::asio::mutable_buffer buffer)
 {
     using boost::asio::buffer_cast;
     using boost::asio::buffer_size;
-    return { buffer_cast<void*>(buffer),
-        (std::min)(n, buffer_size(buffer)) };
+    return {buffer_cast<void*>(buffer),
+        (std::min)(size, buffer_size(buffer))};
 }
 
 /** Returns a prefix of a buffer sequence.
@@ -172,7 +175,7 @@ buffer_prefix(std::size_t n,
     presents a shorter subset of the original list of buffers starting
     with the first byte of the original sequence.
 
-    @param n The maximum number of bytes in the wrapped
+    @param size The maximum number of bytes in the wrapped
     sequence. If this is larger than the size of passed,
     buffers, the resulting sequence will represent the
     entire input sequence.
@@ -188,17 +191,19 @@ buffer_prefix_view<BufferSequence>
 #else
 inline
 typename std::enable_if<
-    ! std::is_same<BufferSequence, boost::asio::const_buffer>::value &&
-    ! std::is_same<BufferSequence, boost::asio::mutable_buffer>::value,
-        buffer_prefix_view<BufferSequence>>::type
+    ! std::is_same<BufferSequence,
+        boost::asio::const_buffer>::value &&
+    ! std::is_same<BufferSequence,
+        boost::asio::mutable_buffer>::value,
+    buffer_prefix_view<BufferSequence>>::type
 #endif
-buffer_prefix(std::size_t n, BufferSequence const& buffers)
+buffer_prefix(std::size_t size, BufferSequence const& buffers)
 {
     static_assert(
         is_const_buffer_sequence<BufferSequence>::value ||
         is_mutable_buffer_sequence<BufferSequence>::value,
             "BufferSequence requirements not met");
-    return buffer_prefix_view<BufferSequence>(n, buffers);
+    return buffer_prefix_view<BufferSequence>(size, buffers);
 }
 
 } // beast
