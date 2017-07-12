@@ -21,12 +21,6 @@ namespace beast {
 template<class... Buffers>
 class buffer_cat_view
 {
-#if 0
-    static_assert(
-        detail::is_all_const_buffer_sequence<Buffers...>::value,
-            "BufferSequence requirements not met");
-#endif
-
     std::tuple<Buffers...> bn_;
 
 public:
@@ -36,26 +30,23 @@ public:
         then `value_type` will be `boost::asio::mutable_buffer`.
         Otherwise, `value_type` will be `boost::asio::const_buffer`.
     */
-    using value_type =
-    #if BEAST_DOXYGEN
-        implementation_defined;
-    #else
-        typename detail::common_buffers_type<Buffers...>::type;
-    #endif
+#if BEAST_DOXYGEN
+    using value_type = implementation_defined;
+#else
+    using value_type = typename
+        detail::common_buffers_type<Buffers...>::type;
+#endif
 
     /// The type of iterator used by the concatenated sequence
     class const_iterator;
 
-    /// Move constructor
+    /// Constructor
     buffer_cat_view(buffer_cat_view&&) = default;
 
-    /// Copy constructor
-    buffer_cat_view(buffer_cat_view const&) = default;
-
-    /// Move assignment
+    /// Assignment
     buffer_cat_view& operator=(buffer_cat_view&&) = default;
 
-    // Copy assignment
+    /// Assignment
     buffer_cat_view& operator=(buffer_cat_view const&) = default;
 
     /** Constructor
@@ -67,11 +58,16 @@ public:
     explicit
     buffer_cat_view(Buffers const&... buffers);
 
-    /// Return an iterator to the beginning of the concatenated sequence.
+    //-----
+
+    /// Required for @b BufferSequence
+    buffer_cat_view(buffer_cat_view const&) = default;
+
+    /// Required for @b BufferSequence
     const_iterator
     begin() const;
 
-    /// Return an iterator to the end of the concatenated sequence.
+    /// Required for @b BufferSequence
     const_iterator
     end() const;
 };

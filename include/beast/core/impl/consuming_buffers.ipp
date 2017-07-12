@@ -168,10 +168,10 @@ consuming_buffers<Buffers>::
 operator=(consuming_buffers&& other) ->
     consuming_buffers&
 {
-    auto const nbegin = std::distance<iter_type>(
+    auto const dist = std::distance<iter_type>(
         other.bs_.begin(), other.begin_);
     bs_ = std::move(other.bs_);
-    begin_ = std::next(bs_.begin(), nbegin);
+    begin_ = std::next(bs_.begin(), dist);
     skip_ = other.skip_;
     return *this;
 }
@@ -182,10 +182,10 @@ consuming_buffers<Buffers>::
 operator=(consuming_buffers const& other) ->
     consuming_buffers&
 {
-    auto const nbegin = std::distance<iter_type>(
+    auto const dist = std::distance<iter_type>(
         other.bs_.begin(), other.begin_);
     bs_ = other.bs_;
-    begin_ = std::next(bs_.begin(), nbegin);
+    begin_ = std::next(bs_.begin(), dist);
     skip_ = other.skip_;
     return *this;
 }
@@ -213,19 +213,19 @@ end() const ->
 template<class Buffers>
 void
 consuming_buffers<Buffers>::
-consume(std::size_t n)
+consume(std::size_t amount)
 {
     using boost::asio::buffer_size;
-    for(;n > 0 && begin_ != bs_.end(); ++begin_)
+    for(;amount > 0 && begin_ != bs_.end(); ++begin_)
     {
         auto const len =
             buffer_size(*begin_) - skip_;
-        if(n < len)
+        if(amount < len)
         {
-            skip_ += n;
+            skip_ += amount;
             break;
         }
-        n -= len;
+        amount -= len;
         skip_ = 0;
     }
 }

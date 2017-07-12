@@ -113,7 +113,7 @@ public:
         This call has no effect.
     */
     void
-    consume(std::size_t) const
+    consume(std::size_t)
     {
     }
 };

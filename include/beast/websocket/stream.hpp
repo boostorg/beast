@@ -281,7 +281,7 @@ public:
     using lowest_layer_type =
         typename get_lowest_layer<next_layer_type>::type;
 
-    /** Move constructor
+    /** Constructor
 
         If @c NextLayer is move constructible, this function
         will move-construct a new stream from the existing stream.
@@ -291,7 +291,7 @@ public:
     */
     stream(stream&&) = default;
 
-    /** Move assignment
+    /** Assignment
 
         If `NextLayer` is move assignable, this function
         will move-assign a new stream from the existing stream.
@@ -416,7 +416,7 @@ public:
 
         The default setting is to fragment messages.
 
-        @param v A `bool` indicating if auto fragmentation should be on.
+        @param value A `bool` indicating if auto fragmentation should be on.
 
         @par Example
         Setting the automatic fragmentation option:
@@ -425,9 +425,9 @@ public:
         @endcode
     */
     void
-    auto_fragment(bool v)
+    auto_fragment(bool value)
     {
-        wr_autofrag_ = v;
+        wr_autofrag_ = value;
     }
 
     /// Returns `true` if the automatic fragmentation option is set.
@@ -447,7 +447,7 @@ public:
 
         The default setting is to send text messages.
 
-        @param v `true` if outgoing messages should indicate
+        @param value `true` if outgoing messages should indicate
         binary, or `false` if they should indicate text.
 
         @par Example
@@ -457,9 +457,9 @@ public:
         @endcode
         */
     void
-    binary(bool v)
+    binary(bool value)
     {
-        wr_opcode_ = v ?
+        wr_opcode_ = value ?
             detail::opcode::binary :
             detail::opcode::text;
     }
@@ -529,7 +529,7 @@ public:
 
         The default setting is 4096. The minimum value is 8.
 
-        @param n The size of the read buffer.
+        @param amount The size of the read buffer.
 
         @throws std::invalid_argument If the buffer size is less than 8.
 
@@ -540,12 +540,12 @@ public:
         @endcode
     */
     void
-    read_buffer_size(std::size_t n)
+    read_buffer_size(std::size_t amount)
     {
-        if(n < 8)
+        if(amount < 8)
             BOOST_THROW_EXCEPTION(std::invalid_argument{
                 "read buffer size underflow"});
-        rd_buf_size_ = n;
+        rd_buf_size_ = amount;
     }
 
     /// Returns the read buffer size setting.
@@ -570,12 +570,12 @@ public:
             ws.read_message_max(65536);
         @endcode
 
-        @param n The limit on the size of incoming messages.
+        @param amount The limit on the size of incoming messages.
     */
     void
-    read_message_max(std::size_t n)
+    read_message_max(std::size_t amount)
     {
-        rd_msg_max_ = n;
+        rd_msg_max_ = amount;
     }
 
     /// Returns the maximum incoming message size setting.
@@ -608,15 +608,15 @@ public:
             ws.write_buffer_size(8192);
         @endcode
 
-        @param n The size of the write buffer in bytes.
+        @param amount The size of the write buffer in bytes.
     */
     void
-    write_buffer_size(std::size_t n)
+    write_buffer_size(std::size_t amount)
     {
-        if(n < 8)
+        if(amount < 8)
             BOOST_THROW_EXCEPTION(std::invalid_argument{
                 "write buffer size underflow"});
-        wr_buf_size_ = n;
+        wr_buf_size_ = amount;
     };
 
     /// Returns the size of the write buffer.
@@ -636,7 +636,7 @@ public:
 
         The default setting is to send text messages.
 
-        @param v `true` if outgoing messages should indicate
+        @param value `true` if outgoing messages should indicate
         text, or `false` if they should indicate binary.
 
         @par Example
@@ -646,9 +646,9 @@ public:
         @endcode
     */
     void
-    text(bool v)
+    text(bool value)
     {
-        wr_opcode_ = v ?
+        wr_opcode_ = value ?
             detail::opcode::text :
             detail::opcode::binary;
     }
@@ -826,7 +826,8 @@ public:
     */
     template<class ResponseDecorator>
     void
-    accept_ex(ResponseDecorator const& decorator,
+    accept_ex(
+        ResponseDecorator const& decorator,
         error_code& ec);
 
     /** Read and respond to a WebSocket HTTP Upgrade request.
@@ -911,7 +912,8 @@ public:
     typename std::enable_if<! http::detail::is_header<
         ConstBufferSequence>::value>::type
 #endif
-    accept_ex(ConstBufferSequence const& buffers,
+    accept_ex(
+        ConstBufferSequence const& buffers,
         ResponseDecorator const& decorator);
 
     /** Read and respond to a WebSocket HTTP Upgrade request.
@@ -949,7 +951,9 @@ public:
     typename std::enable_if<! http::detail::is_header<
         ConstBufferSequence>::value>::type
 #endif
-    accept(ConstBufferSequence const& buffers, error_code& ec);
+    accept(
+        ConstBufferSequence const& buffers,
+        error_code& ec);
 
     /** Read and respond to a WebSocket HTTP Upgrade request.
 
@@ -988,17 +992,17 @@ public:
 
         @param ec Set to indicate what error occurred, if any.
     */
-    template<class ConstBufferSequence,
-        class ResponseDecorator>
+    template<class ConstBufferSequence, class ResponseDecorator>
 #if BEAST_DOXYGEN
     void
 #else
     typename std::enable_if<! http::detail::is_header<
         ConstBufferSequence>::value>::type
 #endif
-    accept_ex(ConstBufferSequence const& buffers,
+    accept_ex(
+        ConstBufferSequence const& buffers,
         ResponseDecorator const& decorator,
-            error_code& ec);
+        error_code& ec);
 
     /** Respond to a WebSocket HTTP Upgrade request
 
@@ -1867,7 +1871,9 @@ public:
         @endcode
     */
     void
-    handshake(string_view host, string_view target);
+    handshake(
+        string_view host,
+        string_view target);
 
     /** Send an HTTP WebSocket Upgrade request and receive the response.
 
@@ -1913,8 +1919,10 @@ public:
         @endcode
     */
     void
-    handshake(response_type& res,
-        string_view host, string_view target);
+    handshake(
+        response_type& res,
+        string_view host,
+        string_view target);
 
     /** Send an HTTP WebSocket Upgrade request and receive the response.
 
@@ -1970,7 +1978,9 @@ public:
     */
     template<class RequestDecorator>
     void
-    handshake_ex(string_view host, string_view target,
+    handshake_ex(
+        string_view host,
+        string_view target,
         RequestDecorator const& decorator);
 
     /** Send an HTTP WebSocket Upgrade request and receive the response.
@@ -2031,9 +2041,11 @@ public:
     */
     template<class RequestDecorator>
     void
-    handshake_ex(response_type& res,
-        string_view host, string_view target,
-            RequestDecorator const& decorator);
+    handshake_ex(
+        response_type& res,
+        string_view host,
+        string_view target,
+        RequestDecorator const& decorator);
 
     /** Send an HTTP WebSocket Upgrade request and receive the response.
 
@@ -2073,8 +2085,10 @@ public:
         @endcode
     */
     void
-    handshake(string_view host,
-        string_view target, error_code& ec);
+    handshake(
+        string_view host,
+        string_view target,
+        error_code& ec);
 
     /** Send an HTTP WebSocket Upgrade request and receive the response.
 
@@ -2093,6 +2107,9 @@ public:
         a successful HTTP Upgrade (represented by a Status-Code of 101,
         "switching protocols").
 
+        @param res The HTTP Upgrade response returned by the remote
+        endpoint. If `ec` is set, the returned value is undefined.
+
         @param host The name of the remote host,
         required by the HTTP protocol.
 
@@ -2100,9 +2117,6 @@ public:
         required by the HTTP protocol.
 
         @param ec Set to indicate what error occurred, if any.
-
-        @param res The HTTP Upgrade response returned by the remote
-        endpoint. If `ec is set, the return value is undefined.
 
         @par Example
         @code
@@ -2118,8 +2132,11 @@ public:
         @endcode
     */
     void
-    handshake(response_type& res,
-        string_view host, string_view target, error_code& ec);
+    handshake(
+        response_type& res,
+        string_view host,
+        string_view target,
+        error_code& ec);
 
     /** Send an HTTP WebSocket Upgrade request and receive the response.
 
@@ -2174,9 +2191,11 @@ public:
     */
     template<class RequestDecorator>
     void
-    handshake_ex(string_view host,
-        string_view target, RequestDecorator const& decorator,
-            error_code& ec);
+    handshake_ex(
+        string_view host,
+        string_view target,
+        RequestDecorator const& decorator,
+        error_code& ec);
 
     /** Send an HTTP WebSocket Upgrade request and receive the response.
 
@@ -2235,9 +2254,12 @@ public:
     */
     template<class RequestDecorator>
     void
-    handshake_ex(response_type& res,
-        string_view host, string_view target,
-            RequestDecorator const& decorator, error_code& ec);
+    handshake_ex(
+        response_type& res,
+        string_view host,
+        string_view target,
+        RequestDecorator const& decorator,
+        error_code& ec);
 
     /** Start an asynchronous operation to send an upgrade request and receive the response.
 
@@ -2286,8 +2308,10 @@ public:
     async_return_type<
         HandshakeHandler, void(error_code)>
 #endif
-    async_handshake(string_view host,
-        string_view target, HandshakeHandler&& handler);
+    async_handshake(
+        string_view host,
+        string_view target,
+        HandshakeHandler&& handler);
 
     /** Start an asynchronous operation to send an upgrade request and receive the response.
 
@@ -2340,9 +2364,11 @@ public:
     async_return_type<
         HandshakeHandler, void(error_code)>
 #endif
-    async_handshake(response_type& res,
-        string_view host, string_view target,
-            HandshakeHandler&& handler);
+    async_handshake(
+        response_type& res,
+        string_view host,
+        string_view target,
+        HandshakeHandler&& handler);
 
     /** Start an asynchronous operation to send an upgrade request and receive the response.
 
@@ -2400,9 +2426,11 @@ public:
     async_return_type<
         HandshakeHandler, void(error_code)>
 #endif
-    async_handshake_ex(string_view host,
-        string_view target, RequestDecorator const& decorator,
-            HandshakeHandler&& handler);
+    async_handshake_ex(
+        string_view host,
+        string_view target,
+        RequestDecorator const& decorator,
+        HandshakeHandler&& handler);
 
     /** Start an asynchronous operation to send an upgrade request and receive the response.
 
@@ -2464,10 +2492,12 @@ public:
     async_return_type<
         HandshakeHandler, void(error_code)>
 #endif
-    async_handshake_ex(response_type& res,
-        string_view host, string_view target,
-            RequestDecorator const& decorator,
-                HandshakeHandler&& handler);
+    async_handshake_ex(
+        response_type& res,
+        string_view host,
+        string_view target,
+        RequestDecorator const& decorator,
+        HandshakeHandler&& handler);
 
     /** Send a WebSocket close frame.
 

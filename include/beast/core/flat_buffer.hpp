@@ -127,7 +127,7 @@ public:
     basic_flat_buffer(
         std::size_t limit, Allocator const& alloc);
 
-    /** Move constructor
+    /** Constructor
 
         After the move, `*this` will have an empty output sequence.
 
@@ -137,7 +137,7 @@ public:
     */
     basic_flat_buffer(basic_flat_buffer&& other);
 
-    /** Move constructor
+    /** Constructor
 
         After the move, `*this` will have an empty output sequence.
 
@@ -150,13 +150,13 @@ public:
     basic_flat_buffer(
         basic_flat_buffer&& other, Allocator const& alloc);
 
-    /** Copy constructor
+    /** Constructor
 
         @param other The object to copy from.
     */
     basic_flat_buffer(basic_flat_buffer const& other);
 
-    /** Copy constructor
+    /** Constructor
 
         @param other The object to copy from.
 
@@ -165,7 +165,7 @@ public:
     basic_flat_buffer(basic_flat_buffer const& other,
         Allocator const& alloc);
 
-    /** Copy constructor
+    /** Constructor
 
         @param other The object to copy from.
     */
@@ -173,7 +173,7 @@ public:
     basic_flat_buffer(
         basic_flat_buffer<OtherAlloc> const& other);
 
-    /** Copy constructor
+    /** Constructor
 
         @param other The object to copy from.
 
@@ -184,18 +184,18 @@ public:
         basic_flat_buffer<OtherAlloc> const& other,
             Allocator const& alloc);
 
-    /** Move assignment
+    /** Assignment
 
         After the move, `*this` will have an empty output sequence.
 
         @param other The object to move from. After the move,
-        The object's state will be as if constructed using
+        the object's state will be as if constructed using
         its current allocator and limit.
     */
     basic_flat_buffer&
     operator=(basic_flat_buffer&& other);
 
-    /** Copy assignment
+    /** Assignment
 
         After the copy, `*this` will have an empty output sequence.
 

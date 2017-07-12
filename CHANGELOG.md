@@ -1,3 +1,9 @@
+Version 80:
+
+* Javadoc tidying
+
+--------------------------------------------------------------------------------
+
 Version 79:
 
 * Remove spurious fallthrough guidance

@@ -514,6 +514,14 @@ finish(error_code& ec)
 /// A message body represented by a file on the filesystem.
 using file_body = basic_file_body<file>;
 
+#if ! BEAST_DOXYGEN
+// operator<< is not supported for file_body
+template<bool isRequest, class File, class Fields>
+std::ostream&
+operator<<(std::ostream& os, message<
+    isRequest, basic_file_body<File>, Fields> const& msg) = delete;
+#endif
+
 } // http
 } // beast
 
