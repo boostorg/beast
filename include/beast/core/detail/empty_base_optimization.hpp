@@ -8,6 +8,7 @@
 #ifndef BEAST_DETAIL_EMPTY_BASE_OPTIMIZATION_HPP
 #define BEAST_DETAIL_EMPTY_BASE_OPTIMIZATION_HPP
 
+#include <boost/type_traits/is_final.hpp>
 #include <type_traits>
 #include <utility>
 
@@ -16,12 +17,9 @@ namespace detail {
 
 template<class T>
 struct empty_base_optimization_decide
-    : std::integral_constant <bool,
-        std::is_empty <T>::value
-#ifdef __clang__
-        && !__is_final(T)
-#endif
-    >
+    : std::integral_constant<bool,
+        std::is_empty<T>::value &&
+        ! boost::is_final<T>::value>
 {
 };
 
