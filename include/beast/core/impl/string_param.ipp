@@ -41,7 +41,7 @@ print(T const& t)
 inline
 void
 string_param::
-print(string_view const& sv)
+print(string_view sv)
 {
     sv_ = sv;
 }
