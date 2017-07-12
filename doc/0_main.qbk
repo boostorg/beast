@@ -84,7 +84,7 @@
 [import ../example/http-client/http_client.cpp]
 [import ../example/websocket-client/websocket_client.cpp]
 
-[import ../include/beast/http/file_body.hpp]
+[import ../include/beast/http/basic_file_body.hpp]
 
 [import ../test/exemplars.cpp]
 [import ../test/core/doc_snippets.cpp]

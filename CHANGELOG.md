@@ -4,6 +4,7 @@ Version 80:
 * Add basic_dynamic_body.hpp
 * Shrink buffer_prefix_view
 * Remove unused file_path
+* Add basic_file_body.hpp
 
 --------------------------------------------------------------------------------
 
