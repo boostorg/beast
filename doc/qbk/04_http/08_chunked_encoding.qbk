@@ -144,4 +144,119 @@ also emitting the terminating CRLF (`"\r\n"`):
 
 [http_snippet_24]
 
+[heading Parsing Chunks]
+
+The __parser__ automatically removes the chunked transfer coding when
+it is the last encoding in the list. However, it also discards the
+chunk extensions and does not provide a way to determine the boundaries
+between chunks. Advanced applications which need to access the chunk
+extensions or read complete individual chunks may use a callback
+interface provided by __parser__:
+
+[table Chunking Parse Callbacks
+[[Name][Description]]
+[
+    [[link beast.ref.beast__http__parser.on_chunk_header `on_chunk_header`]]
+    [
+        Set a callback to be invoked on each chunk header.
+
+        The callback will be invoked once for every chunk in the message
+        payload, as well as once for the last chunk. The invocation 
+        happens after the chunk header is available but before any body
+        octets have been parsed.
+
+        The extensions are provided in raw, validated form, use
+        [link beast.ref.beast__http__basic_chunk_extensions.parse `chunk_extensions::parse`]
+        to parse the extensions into a structured container for easier access.
+        The implementation type-erases the callback without requiring
+        a dynamic allocation. For this reason, the callback object is
+        passed by a non-constant reference.
+
+        The function object will be called with this equivalent signature:
+        ```
+        void
+        callback(
+            std::uint64_t size,         // Size of the chunk, zero for the last chunk
+            string_view extensions,     // The chunk-extensions in raw form
+            error_code& ec);            // May be set by the callback to indicate an error
+        ```
+    ]
+][
+    [[link beast.ref.beast__http__parser.on_chunk_body `on_chunk_body`]]
+    [
+        Set a callback to be invoked on chunk body data.
+
+        The callback will be invoked one or more times to provide
+        buffers corresponding to the chunk body for the current chunk.
+        The callback receives the number of octets remaining in this
+        chunk body including the octets in the buffer provided.
+
+        The callback must return the number of octets actually consumed.
+        Any octets not consumed will be presented again in a subsequent
+        invocation of the callback.
+        The implementation type-erases the callback without requiring
+        a dynamic allocation. For this reason, the callback object is
+        passed by a non-constant reference.
+
+        The function object will be called with this equivalent signature:
+        ```
+        std::size_t
+        callback(
+            std::uint64_t remain,       // Octets remaining in this chunk, includes `body`
+            string_view body,           // A buffer holding some or all of the remainder of the chunk body
+            error_code& ec);            // May be set by the callback to indicate an error
+        ```
+    ]
+]]
+
+This example will read a message header from the stream, and then manually
+read each chunk. It recognizes the chunk boundaries and outputs the contents
+of each chunk as it comes in. Any chunk extensions are printed, each extension
+on its own line. Finally, any trailers promised in the header are printed.
+
+[example_chunk_parsing]
+
+Given the HTTP response as input on the left, the output of the function shown
+above is shown on the right:
+
+[table Chunk Parsing Example Output
+[[Input][Output]]
+[
+    [
+    ```
+    HTTP/1.1 200 OK\r\n
+    Server: test\r\n
+    Trailer: Expires, Content-MD5\r\n
+    Transfer-Encoding: chunked\r\n
+    \r\n
+    5\r\n
+    First\r\n
+    d;quality=1.0\r\n
+    Hello, world!\r\n
+    e;file=abc.txt;quality=0.7\r\n
+    The Next Chunk\r\n
+    8;last\r\n
+    Last one\r\n
+    0\r\n
+    Expires: never\r\n
+    Content-MD5: f4a5c16584f03d90\r\n
+    \r\n
+    ```
+    ]
+    [
+    ```
+    Chunk Body: First
+    Extension: quality = 1.0
+    Chunk Body: Hello, world!
+    Extension: file = abc.txt
+    Extension: quality = 0.7
+    Chunk Body: The Next Chunk
+    Extension: last
+    Chunk Body: Last one
+    Expires: never
+    Content-MD5: f4a5c16584f03d90
+    ```
+    ]
+]]
+
 [endsect]

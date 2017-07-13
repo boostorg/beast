@@ -14,7 +14,6 @@
 #include <beast/http/type_traits.hpp>
 #include <boost/optional.hpp>
 #include <boost/throw_exception.hpp>
-#include <functional>
 #include <memory>
 #include <type_traits>
 #include <utility>
@@ -56,34 +55,134 @@ class parser
     template<bool, class, class>
     friend class parser;
 
+    struct cb_h_exemplar
+    {
+        void
+        operator()(std::uint64_t, string_view, error_code&);
+    };
+
+    struct cb_h_t
+    {
+        virtual ~cb_h_t() = default;
+        virtual cb_h_t* move(void* dest) = 0;
+        virtual void operator()(
+            std::uint64_t size,
+            string_view extensions,
+            error_code& ec) = 0;
+    };
+
+    template<class Callback>
+    struct cb_h_t_impl : cb_h_t
+    {
+        Callback& cb_;
+
+        explicit
+        cb_h_t_impl(Callback& cb)
+            : cb_(cb)
+        {
+        }
+
+        cb_h_t*
+        move(void* dest) override
+        {
+            new(dest) cb_h_t_impl<
+                Callback>(std::move(*this));
+            return this;
+        }
+
+        void
+        operator()(
+            std::uint64_t size,
+            string_view extensions,
+            error_code& ec) override
+        {
+            cb_(size, extensions, ec);
+        }
+    };
+
+    struct cb_b_exemplar
+    {
+        std::size_t
+        operator()(std::uint64_t, string_view, error_code&);
+    };
+
+    struct cb_b_t
+    {
+        virtual ~cb_b_t() = default;
+        virtual cb_b_t* move(void* dest) = 0;
+        virtual std::size_t operator()(
+            std::uint64_t remain,
+            string_view body,
+            error_code& ec) = 0;
+    };
+
+    template<class Callback>
+    struct cb_b_t_impl : cb_b_t
+    {
+        Callback& cb_;
+
+        explicit
+        cb_b_t_impl(Callback& cb)
+            : cb_(cb)
+        {
+        }
+
+        cb_b_t*
+        move(void* dest) override
+        {
+            new(dest) cb_b_t_impl<
+                Callback>(std::move(*this));
+            return this;
+        }
+
+        std::size_t
+        operator()(
+            std::uint64_t remain,
+            string_view body,
+            error_code& ec) override
+        {
+            return cb_(remain, body, ec);
+        }
+    };
+
     using base_type = basic_parser<isRequest,
         parser<isRequest, Body, Allocator>>;
 
     message<isRequest, Body, basic_fields<Allocator>> m_;
     typename Body::writer wr_;
-    std::function<void(parser&, error_code&)> cb_;
     bool wr_inited_ = false;
+
+    cb_h_t* cb_h_ = nullptr;
+    typename std::aligned_storage<
+        sizeof(cb_h_t_impl<cb_h_exemplar>)>::type cb_h_buf_;
+
+    cb_b_t* cb_b_ = nullptr;
+    typename std::aligned_storage<
+        sizeof(cb_b_t_impl<cb_b_exemplar>)>::type cb_b_buf_;
 
 public:
     /// The type of message returned by the parser
     using value_type =
         message<isRequest, Body, basic_fields<Allocator>>;
 
+    /// Destructor
+    ~parser();
+
     /// Constructor
     parser();
 
-    /// Copy constructor (disallowed)
+    /// Constructor
     parser(parser const&) = delete;
 
-    /// Copy assignment (disallowed)
+    /// Assignment
     parser& operator=(parser const&) = delete;
 
-    /** Move constructor.
+    /** Constructor
 
         After the move, the only valid operation
         on the moved-from object is destruction.
     */
-    parser(parser&& other) = default;
+    parser(parser&& other);
 
     /** Constructor
 
@@ -189,34 +288,92 @@ public:
         return std::move(m_);
     }
 
-    /** Set the on_header callback.
+    /** Set a callback to be invoked on each chunk header.
 
-        When the callback is set, it is called after the parser
-        receives a complete header. The function must be invocable with
-        this signature:
+        The callback will be invoked once for every chunk in the message
+        payload, as well as once for the last chunk. The invocation 
+        happens after the chunk header is available but before any body
+        octets have been parsed.
+
+        The extensions are provided in raw, validated form, use
+        @ref chunk_extensions::parse to parse the extensions into a
+        structured container for easier access.
+        The implementation type-erases the callback without requiring
+        a dynamic allocation. For this reason, the callback object is
+        passed by a non-constant reference.
+
+        @par Example
         @code
-        void callback(
-            parser<isRequest, Body, Fields>& p,     // `*this`
-            error_code& ec)                         // Set to the error, if any
+        auto callback =
+            [](std::uint64_t size, string_view extensions, error_code& ec)
+            {
+                //...
+            };
+        parser.on_chunk_header(callback);
         @endcode
-        The callback will ensure that `!ec` is `true` if there was
-        no error or set to the appropriate error code if there was one. 
 
-        The callback may not call @ref put or @ref put_eof, or 
-        else the behavior is undefined.
+        @param cb The function to set, which must be invocable with
+        this equivalent signature:
+        @code
+        void
+        on_chunk_header(
+            std::uint64_t size,         // Size of the chunk, zero for the last chunk
+            string_view extensions,     // The chunk-extensions in raw form
+            error_code& ec);            // May be set by the callback to indicate an error
+        @endcode
     */
+    template<class Callback>
     void
-    on_header(std::function<void(parser&, error_code&)> cb)
-    {
-        cb_ = std::move(cb);
-    }
+    on_chunk_header(Callback& cb);
+
+    /** Set a callback to be invoked on chunk body data
+
+        The provided function object will be invoked one or more times
+        to provide buffers corresponding to the chunk body for the current
+        chunk. The callback receives the number of octets remaining in this
+        chunk body including the octets in the buffer provided.
+
+        The callback must return the number of octets actually consumed.
+        Any octets not consumed will be presented again in a subsequent
+        invocation of the callback.
+        The implementation type-erases the callback without requiring
+        a dynamic allocation. For this reason, the callback object is
+        passed by a non-constant reference.
+
+        @par Example
+        @code
+        auto callback =
+            [](std::uint64_t remain, string_view body, error_code& ec)
+            {
+                //...
+            };
+        parser.on_chunk_body(callback);
+        @endcode
+
+        @param cb The function to set, which must be invocable with
+        this equivalent signature:
+        @code
+        std::size_t
+        on_chunk_header(
+            std::uint64_t remain,       // Octets remaining in this chunk, includes `body`
+            string_view body,           // A buffer holding some or all of the remainder of the chunk body
+            error_code& ec);            // May be set by the callback to indicate an error
+        @endcode
+        */
+    template<class Callback>
+    void
+    on_chunk_body(Callback& cb);
 
 private:
     friend class basic_parser<isRequest, parser>;
 
     void
-    on_request(verb method, string_view method_str,
-        string_view target, int version, error_code& ec)
+    on_request_impl(
+        verb method,
+        string_view method_str,
+        string_view target,
+        int version,
+        error_code& ec)
     {
         try
         {
@@ -235,9 +392,11 @@ private:
     }
 
     void
-    on_response(int code,
+    on_response_impl(
+        int code,
         string_view reason,
-            int version, error_code& ec)
+        int version,
+        error_code& ec)
     {
         m_.result(code);
         m_.version = version;
@@ -253,8 +412,11 @@ private:
     }
 
     void
-    on_field(field name, string_view name_string,
-        string_view value, error_code& ec)
+    on_field_impl(
+        field name,
+        string_view name_string,
+        string_view value,
+        error_code& ec)
     {
         try
         {
@@ -268,39 +430,54 @@ private:
     }
 
     void
-    on_header(error_code& ec)
+    on_header_impl(error_code& ec)
     {
-        if(cb_)
-            cb_(*this, ec);
-        else
-            ec.assign(0, ec.category());
+        ec.assign(0, ec.category());
     }
 
     void
-    on_body(boost::optional<
-        std::uint64_t> const& content_length,
-            error_code& ec)
+    on_body_init_impl(
+        boost::optional<std::uint64_t> const& content_length,
+        error_code& ec)
     {
         wr_.init(content_length, ec);
         wr_inited_ = true;
     }
 
     std::size_t
-    on_data(string_view s, error_code& ec)
+    on_body_impl(
+        string_view body,
+        error_code& ec)
     {
         return wr_.put(boost::asio::buffer(
-            s.data(), s.size()), ec);
+            body.data(), body.size()), ec);
     }
 
     void
-    on_chunk(std::uint64_t,
-        string_view, error_code& ec)
+    on_chunk_header_impl(
+        std::uint64_t size,
+        string_view extensions,
+        error_code& ec)
     {
+        if(cb_h_)
+            return (*cb_h_)(size, extensions, ec);
         ec.assign(0, ec.category());
     }
 
+    std::size_t
+    on_chunk_body_impl(
+        std::uint64_t remain,
+        string_view body,
+        error_code& ec)
+    {
+        if(cb_b_)
+            return (*cb_b_)(remain, body, ec);
+        return wr_.put(boost::asio::buffer(
+            body.data(), body.size()), ec);
+    }
+
     void
-    on_complete(error_code& ec)
+    on_finish_impl(error_code& ec)
     {
         wr_.finish(ec);
     }

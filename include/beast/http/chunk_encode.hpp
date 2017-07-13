@@ -558,8 +558,9 @@ public:
 
 /** A set of chunk extensions
 
-    This container stores a set of chunk extensions suited
-    for use with @ref chunk_header and @ref chunk_body.
+    This container stores a set of chunk extensions suited for use with
+    @ref chunk_header and @ref chunk_body. The container may be iterated
+    to access the extensions in their structured form.
 
     Meets the requirements of ChunkExtensions
 */
@@ -569,7 +570,27 @@ class basic_chunk_extensions
     std::basic_string<char,
         std::char_traits<char>, Allocator> s_;
 
+    std::basic_string<char,
+        std::char_traits<char>, Allocator> range_;
+
+    template<class FwdIt>
+    FwdIt
+    do_parse(FwdIt it, FwdIt last, error_code& ec);
+
+    void
+    do_insert(string_view name, string_view value);
+
 public:
+    /** The type of value when iterating.
+
+        The first element of the pair is the name, and the second
+        element is the value which may be empty. The value is
+        stored in its raw representation, without quotes or escapes.
+    */
+    using value_type = std::pair<string_view, string_view>;
+
+    class const_iterator;
+
     /// Constructor
     basic_chunk_extensions() = default;
 
@@ -600,6 +621,13 @@ public:
         s_.clear();
     }
 
+    /** Parse a set of chunk extensions
+
+        Any previous extensions will be cleared
+    */
+    void
+    parse(string_view s, error_code& ec);
+
     /** Insert an extension name with an empty value
 
         @param name The name of the extension
@@ -623,6 +651,12 @@ public:
     {
         return s_;
     }
+
+    const_iterator
+    begin() const;
+
+    const_iterator
+    end() const;
 };
 
 //------------------------------------------------------------------------------

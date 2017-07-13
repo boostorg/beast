@@ -78,7 +78,7 @@ is_text(char c)
 
 inline
 char
-is_tchar(char c)
+is_token_char(char c)
 {
     /*
         tchar = "!" | "#" | "$" | "%" | "&" |
@@ -287,7 +287,7 @@ template<class FwdIt>
 void
 skip_token(FwdIt& it, FwdIt const& last)
 {
-    while(it != last && is_tchar(*it))
+    while(it != last && is_token_char(*it))
         ++it;
 }
 
@@ -362,7 +362,7 @@ increment()
     if(it == last)
         return err();
     // param
-    if(! detail::is_tchar(*it))
+    if(! detail::is_token_char(*it))
         return err();
     auto const p0 = it;
     skip_token(++it, last);
@@ -406,7 +406,7 @@ increment()
     else
     {
         // token
-        if(! detail::is_tchar(*it))
+        if(! detail::is_token_char(*it))
             return err();
         auto const p2 = it;
         skip_token(++it, last);
@@ -436,7 +436,7 @@ struct opt_token_list_policy
                 return true;
             }
             auto const c = *it;
-            if(detail::is_tchar(c))
+            if(detail::is_token_char(c))
             {
                 if(need_comma)
                     return false;
@@ -446,7 +446,7 @@ struct opt_token_list_policy
                     ++it;
                     if(it == s.end())
                         break;
-                    if(! detail::is_tchar(*it))
+                    if(! detail::is_token_char(*it))
                         break;
                 }
                 v = string_view{&*p0,

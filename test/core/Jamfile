@@ -38,4 +38,5 @@ unit-test core-tests :
     base64.cpp
     empty_base_optimization.cpp
     sha1.cpp
+    detail/varint.cpp
     ;

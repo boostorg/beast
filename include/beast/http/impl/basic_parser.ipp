@@ -24,6 +24,12 @@ namespace http {
 
 template<bool isRequest, class Derived>
 basic_parser<isRequest, Derived>::
+~basic_parser()
+{
+}
+
+template<bool isRequest, class Derived>
+basic_parser<isRequest, Derived>::
 basic_parser()
     : body_limit_(
         default_body_limit(is_request{}))
@@ -215,7 +221,7 @@ loop:
 
     case state::body0:
         BOOST_ASSERT(! skip_);
-        impl().on_body(content_length(), ec);
+        impl().on_body_init_impl(content_length(), ec);
         if(ec)
             goto done;
         state_ = state::body;
@@ -230,7 +236,7 @@ loop:
 
     case state::body_to_eof0:
         BOOST_ASSERT(! skip_);
-        impl().on_body(content_length(), ec);
+        impl().on_body_init_impl(content_length(), ec);
         if(ec)
             goto done;
         state_ = state::body_to_eof;
@@ -244,7 +250,7 @@ loop:
         break;
 
     case state::chunk_header0:
-        impl().on_body(content_length(), ec);
+        impl().on_body_init_impl(content_length(), ec);
         if(ec)
             goto done;
         state_ = state::chunk_header;
@@ -297,7 +303,7 @@ put_eof(error_code& ec)
         ec.assign(0, ec.category());
         return;
     }
-    impl().on_complete(ec);
+    impl().on_finish_impl(ec);
     if(ec)
         return;
     state_ = state::complete;
@@ -401,7 +407,7 @@ parse_start_line(
     if(version >= 11)
         f_ |= flagHTTP11;
 
-    impl().on_request(string_to_verb(method),
+    impl().on_request_impl(string_to_verb(method),
         method, target, version, ec);
     if(ec)
         return;
@@ -460,7 +466,7 @@ parse_start_line(
     if(version >= 11)
         f_ |= flagHTTP11;
 
-    impl().on_response(
+    impl().on_response_impl(
         status_, reason, version, ec);
     if(ec)
         return;
@@ -501,7 +507,7 @@ parse_fields(char const*& in,
         do_field(f, value, ec);
         if(ec)
             return;
-        impl().on_field(f, name, value, ec);
+        impl().on_field_impl(f, name, value, ec);
         if(ec)
             return;
         in = p;
@@ -544,12 +550,12 @@ finish_header(error_code& ec, std::true_type)
         state_ = state::complete;
     }
 
-    impl().on_header(ec);
+    impl().on_header_impl(ec);
     if(ec)
         return;
     if(state_ == state::complete)
     {
-        impl().on_complete(ec);
+        impl().on_finish_impl(ec);
         if(ec)
             return;
     }
@@ -597,12 +603,12 @@ finish_header(error_code& ec, std::false_type)
         state_ = state::body_to_eof0;
     }
 
-    impl().on_header(ec);
+    impl().on_header_impl(ec);
     if(ec)
         return;
     if(state_ == state::complete)
     {
-        impl().on_complete(ec);
+        impl().on_finish_impl(ec);
         if(ec)
             return;
     }
@@ -615,7 +621,7 @@ basic_parser<isRequest, Derived>::
 parse_body(char const*& p,
     std::size_t n, error_code& ec)
 {
-    n = impl().on_data(string_view{p,
+    n = impl().on_body_impl(string_view{p,
         beast::detail::clamp(len_, n)}, ec);
     p += n;
     len_ -= n;
@@ -623,7 +629,7 @@ parse_body(char const*& p,
         return;
     if(len_ > 0)
         return;
-    impl().on_complete(ec);
+    impl().on_finish_impl(ec);
     if(ec)
         return;
     state_ = state::complete;
@@ -642,7 +648,7 @@ parse_body_to_eof(char const*& p,
         return;
     }
     body_limit_ = body_limit_ - n;
-    n = impl().on_data(string_view{p, n}, ec);
+    n = impl().on_body_impl(string_view{p, n}, ec);
     p += n;
     if(ec)
         return;
@@ -702,40 +708,34 @@ parse_chunk_header(char const*& p0,
         skip_ = static_cast<
             std::size_t>(eol - 2 - p0);
 
-        std::uint64_t v;
-        if(! parse_hex(p, v))
+        std::uint64_t size;
+        if(! parse_hex(p, size))
         {
             ec = error::bad_chunk;
             return;
         }
-        if(v != 0)
+        if(size != 0)
         {
-            if(v > body_limit_)
+            if(size > body_limit_)
             {
                 ec = error::body_limit;
                 return;
             }
-            body_limit_ -= v;
-            if(*p == ';')
+            body_limit_ -= size;
+            auto const start = p;
+            parse_chunk_extensions(p, pend, ec);
+            if(ec)
+                return;
+            if(p != eol -2 )
             {
-                // VFALCO TODO Validate extension
-                impl().on_chunk(v, make_string(
-                    p, eol - 2), ec);
-                if(ec)
-                    return;
-            }
-            else if(p == eol - 2)
-            {
-                impl().on_chunk(v, {}, ec);
-                if(ec)
-                    return;
-            }
-            else
-            {
-                ec = error::bad_chunk;
+                ec = error::bad_chunk_extension;
                 return;
             }
-            len_ = v;
+            auto const ext = make_string(start, p);
+            impl().on_chunk_header_impl(size, ext, ec);
+            if(ec)
+                return;
+            len_ = size;
             skip_ = 2;
             p0 = eol;
             f_ |= flagExpectCRLF;
@@ -750,8 +750,8 @@ parse_chunk_header(char const*& p0,
         BOOST_ASSERT(n >= 5);
         if(f_ & flagExpectCRLF)
             BOOST_VERIFY(parse_crlf(p));
-        std::uint64_t v;
-        BOOST_VERIFY(parse_hex(p, v));
+        std::uint64_t size;
+        BOOST_VERIFY(parse_hex(p, size));
         eol = find_eol(p, pend, ec);
         BOOST_ASSERT(! ec);
     }
@@ -765,14 +765,19 @@ parse_chunk_header(char const*& p0,
         return;
     }
 
-    if(*p == ';')
+    auto const start = p;
+    parse_chunk_extensions(p, pend, ec);
+    if(ec)
+        return;
+    if(p != eol - 2)
     {
-        // VFALCO TODO Validate extension
-        impl().on_chunk(0, make_string(
-            p, eol - 2), ec);
-        if(ec)
-            return;
+        ec = error::bad_chunk_extension;
+        return;
     }
+    auto const ext = make_string(start, p);
+    impl().on_chunk_header_impl(0, ext, ec);
+    if(ec)
+        return;
     p = eol;
     parse_fields(p, eom, ec);
     if(ec)
@@ -780,7 +785,7 @@ parse_chunk_header(char const*& p0,
     BOOST_ASSERT(p == eom);
     p0 = eom;
 
-    impl().on_complete(ec);
+    impl().on_finish_impl(ec);
     if(ec)
         return;
     state_ = state::complete;
@@ -793,15 +798,13 @@ basic_parser<isRequest, Derived>::
 parse_chunk_body(char const*& p,
     std::size_t n, error_code& ec)
 {
-    n = impl().on_data(string_view{p,
-        beast::detail::clamp(len_, n)}, ec);
+    n = impl().on_chunk_body_impl(
+        len_, string_view{p,
+            beast::detail::clamp(len_, n)}, ec);
     p += n;
     len_ -= n;
-    if(ec)
-        return;
-    if(len_ > 0)
-        return;
-    state_ = state::chunk_header;
+    if(len_ == 0)
+        state_ = state::chunk_header;
 }
 
 template<bool isRequest, class Derived>

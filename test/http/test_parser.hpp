@@ -51,7 +51,7 @@ public:
     }
 
     void
-    on_request(verb, string_view method_str_,
+    on_request_impl(verb, string_view method_str_,
         string_view path_, int version_, error_code& ec)
     {
         method = std::string(
@@ -67,7 +67,7 @@ public:
     }
 
     void
-    on_response(int code,
+    on_response_impl(int code,
         string_view reason_,
             int version_, error_code& ec)
     {
@@ -83,7 +83,7 @@ public:
     }
 
     void
-    on_field(field, string_view name,
+    on_field_impl(field, string_view name,
         string_view value, error_code& ec)
     {
         ++got_on_field;
@@ -95,7 +95,7 @@ public:
     }
 
     void
-    on_header(error_code& ec)
+    on_header_impl(error_code& ec)
     {
         ++got_on_header;
         if(fc_)
@@ -105,9 +105,9 @@ public:
     }
 
     void
-    on_body(boost::optional<
-        std::uint64_t> const& content_length_,
-            error_code& ec)
+    on_body_init_impl(
+        boost::optional<std::uint64_t> const& content_length_,
+        error_code& ec)
     {
         ++got_on_body;
         got_content_length =
@@ -119,7 +119,7 @@ public:
     }
 
     std::size_t
-    on_data(string_view s,
+    on_body_impl(string_view s,
         error_code& ec)
     {
         body.append(s.data(), s.size());
@@ -131,8 +131,10 @@ public:
     }
 
     void
-    on_chunk(std::uint64_t,
-        string_view, error_code& ec)
+    on_chunk_header_impl(
+        std::uint64_t,
+        string_view,
+        error_code& ec)
     {
         ++got_on_chunk;
         if(fc_)
@@ -141,8 +143,23 @@ public:
             ec.assign(0, ec.category());
     }
 
+    std::size_t
+    on_chunk_body_impl(
+        std::uint64_t,
+        string_view s,
+        error_code& ec)
+    {
+        body.append(s.data(), s.size());
+        if(fc_)
+            fc_->fail(ec);
+        else
+            ec.assign(0, ec.category());
+        return s.size();
+    }
+
+
     void
-    on_complete(error_code& ec)
+    on_finish_impl(error_code& ec)
     {
         ++got_on_complete;
         if(fc_)
