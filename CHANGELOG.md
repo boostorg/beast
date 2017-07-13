@@ -4,6 +4,7 @@ Version 81:
 * better is_final on empty_base_optimization
 * Suppress incorrect GCC warning
 * multi_buffer ctor is explicit
+* File is not copy-constructible
 
 --------------------------------------------------------------------------------
 
