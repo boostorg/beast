@@ -166,14 +166,14 @@ public:
             boost::asio::mutable_buffers_1;
 
         void
-        on_request(verb, string_view,
+        on_request_impl(verb, string_view,
             string_view, int, error_code& ec)
         {
             ec.assign(0, ec.category());
         }
 
         void
-        on_response(int,
+        on_response_impl(int,
             string_view,
                 int, error_code& ec)
         {
@@ -181,42 +181,50 @@ public:
         }
 
         void
-        on_field(field,
+        on_field_impl(field,
             string_view, string_view, error_code& ec)
         {
             ec.assign(0, ec.category());
         }
 
         void
-        on_header(error_code& ec)
+        on_header_impl(error_code& ec)
         {
             ec.assign(0, ec.category());
         }
 
         void
-        on_body(boost::optional<std::uint64_t> const&,
+        on_body_init_impl(
+            boost::optional<std::uint64_t> const&,
             error_code& ec)
         {
             ec.assign(0, ec.category());
         }
 
         std::size_t
-        on_data(string_view s, error_code& ec)
+        on_body_impl(string_view s, error_code& ec)
         {
             ec.assign(0, ec.category());
             return s.size();
         }
 
         void
-        on_chunk(std::uint64_t,
-            string_view,
-                error_code& ec)
+        on_chunk_header_impl(std::uint64_t,
+            string_view, error_code& ec)
         {
             ec.assign(0, ec.category());
         }
 
+        std::size_t
+        on_chunk_body_impl(std::uint64_t,
+            string_view s, error_code& ec)
+        {
+            ec.assign(0, ec.category());
+            return s.size();
+        }
+
         void
-        on_complete(error_code& ec)
+        on_finish_impl(error_code& ec)
         {
             ec.assign(0, ec.category());
         }

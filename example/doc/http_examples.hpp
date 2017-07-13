@@ -879,64 +879,84 @@ class custom_parser
 
     /// Called after receiving the request-line (isRequest == true).
     void
-    on_request(
-        verb method,            // The method verb, verb::unknown if no match
-        string_view method_str, // The method as a string
-        string_view target,     // The request-target
-        int version,            // The HTTP-version
-        error_code& ec);        // The error returned to the caller, if any
+    on_request_impl(
+        verb method,                // The method verb, verb::unknown if no match
+        string_view method_str,     // The method as a string
+        string_view target,         // The request-target
+        int version,                // The HTTP-version
+        error_code& ec);            // The error returned to the caller, if any
 
     /// Called after receiving the start-line (isRequest == false).
     void
-    on_response(
-        int code,               // The status-code
-        string_view reason,     // The obsolete reason-phrase
-        int version,            // The HTTP-version
-        error_code& ec);        // The error returned to the caller, if any
+    on_response_impl(
+        int code,                   // The status-code
+        string_view reason,         // The obsolete reason-phrase
+        int version,                // The HTTP-version
+        error_code& ec);            // The error returned to the caller, if any
 
     /// Called after receiving a header field.
     void
-    on_field(
-        field f,                // The known-field enumeration constant
-        string_view name,       // The field name string.
-        string_view value,      // The field value
-        error_code& ec);        // The error returned to the caller, if any
+    on_field_impl(
+        field f,                    // The known-field enumeration constant
+        string_view name,           // The field name string.
+        string_view value,          // The field value
+        error_code& ec);            // The error returned to the caller, if any
 
     /// Called after the complete header is received.
     void
-    on_header(
-        error_code& ec);        // The error returned to the caller, if any
+    on_header_impl(
+        error_code& ec);            // The error returned to the caller, if any
 
     /// Called just before processing the body, if a body exists.
     void
-    on_body(boost::optional<
+    on_body_init_impl(
+        boost::optional<
             std::uint64_t> const&
-        content_length,         // Content length if known, else `boost::none`
-        error_code& ec);        // The error returned to the caller, if any
+                content_length,     // Content length if known, else `boost::none`
+        error_code& ec);            // The error returned to the caller, if any
 
     /** Called for each piece of the body, if a body exists.
-      
-        If present, the chunked Transfer-Encoding will be removed
-        before this callback is invoked. The function returns
-        the number of bytes consumed from the input buffer.
-        Any input octets not consumed will be will be presented
-        on subsequent calls.
+
+        This is used when there is no chunked transfer coding.
+
+        The function returns the number of bytes consumed from the
+        input buffer. Any input octets not consumed will be will be
+        presented on subsequent calls.
     */
     std::size_t
-    on_data(
-        string_view s,          // A portion of the body
-        error_code& ec);        // The error returned to the caller, if any
+    on_body_impl(
+        string_view s,              // A portion of the body
+        error_code& ec);            // The error returned to the caller, if any
 
     /// Called for each chunk header.
     void
-    on_chunk(
-        std::uint64_t size,     // The size of the upcoming chunk
-        string_view extension,  // The chunk-extension (may be empty)
-        error_code& ec);        // The error returned to the caller, if any
+    on_chunk_header_impl(
+        std::uint64_t size,         // The size of the upcoming chunk,
+                                    // or zero for the last chunk
+        string_view extension,      // The chunk extensions (may be empty)
+        error_code& ec);            // The error returned to the caller, if any
+
+    /** Called to deliver the chunk body.
+
+        This is used when there is a chunked transfer coding. The
+        implementation will automatically remove the encoding before
+        calling this function.
+
+        The function returns the number of bytes consumed from the
+        input buffer. Any input octets not consumed will be will be
+        presented on subsequent calls.
+    */
+    std::size_t
+    on_chunk_body_impl(
+        std::uint64_t remain,       // The number of bytes remaining in the chunk,
+                                    // including what is being passed here.
+                                    // or zero for the last chunk
+        string_view body,           // The next piece of the chunk body
+        error_code& ec);            // The error returned to the caller, if any
 
     /// Called when the complete message is parsed.
     void
-    on_complete(error_code& ec);
+    on_finish_impl(error_code& ec);
 
 public:
     custom_parser() = default;
@@ -948,7 +968,7 @@ public:
 
 template<bool isRequest>
 void custom_parser<isRequest>::
-on_request(verb method, string_view method_str,
+on_request_impl(verb method, string_view method_str,
     string_view path, int version, error_code& ec)
 {
     boost::ignore_unused(method, method_str, path, version);
@@ -957,8 +977,11 @@ on_request(verb method, string_view method_str,
 
 template<bool isRequest>
 void custom_parser<isRequest>::
-on_response(int status, string_view reason,
-    int version, error_code& ec)
+on_response_impl(
+    int status,
+    string_view reason,
+    int version,
+    error_code& ec)
 {
     boost::ignore_unused(status, reason, version);
     ec = {};
@@ -966,8 +989,11 @@ on_response(int status, string_view reason,
 
 template<bool isRequest>
 void custom_parser<isRequest>::
-on_field(field f, string_view name,
-    string_view value, error_code& ec)
+on_field_impl(
+    field f,
+    string_view name,
+    string_view value,
+    error_code& ec)
 {
     boost::ignore_unused(f, name, value);
     ec = {};
@@ -975,14 +1001,15 @@ on_field(field f, string_view name,
 
 template<bool isRequest>
 void custom_parser<isRequest>::
-on_header(error_code& ec)
+on_header_impl(error_code& ec)
 {
     ec = {};
 }
 
 template<bool isRequest>
 void custom_parser<isRequest>::
-on_body(boost::optional<std::uint64_t> const& content_length,
+on_body_init_impl(
+    boost::optional<std::uint64_t> const& content_length,
     error_code& ec)
 {
     boost::ignore_unused(content_length);
@@ -991,25 +1018,39 @@ on_body(boost::optional<std::uint64_t> const& content_length,
 
 template<bool isRequest>
 std::size_t custom_parser<isRequest>::
-on_data(string_view s, error_code& ec)
+on_body_impl(string_view body, error_code& ec)
 {
-    boost::ignore_unused(s);
+    boost::ignore_unused(body);
     ec = {};
-    return s.size();
+    return body.size();
 }
 
 template<bool isRequest>
 void custom_parser<isRequest>::
-on_chunk(std::uint64_t size,
-    string_view extension, error_code& ec)
+on_chunk_header_impl(
+    std::uint64_t size,
+    string_view extension,
+    error_code& ec)
 {
     boost::ignore_unused(size, extension);
     ec = {};
 }
 
 template<bool isRequest>
+std::size_t custom_parser<isRequest>::
+on_chunk_body_impl(
+    std::uint64_t remain,
+    string_view body,
+    error_code& ec)
+{
+    boost::ignore_unused(remain);
+    ec = {};
+    return body.size();
+}
+
+template<bool isRequest>
 void custom_parser<isRequest>::
-on_complete(error_code& ec)
+on_finish_impl(error_code& ec)
 {
     ec = {};
 }
@@ -1051,6 +1092,140 @@ read_and_print_body(
         if(ec)
             return;
         os.write(buf, sizeof(buf) - p.get().body.size);
+    }
+}
+
+//]
+
+
+//------------------------------------------------------------------------------
+//
+// Example: Expect 100-continue
+//
+//------------------------------------------------------------------------------
+
+//[example_chunk_parsing
+
+/** Read a message with a chunked body and print the chunks and extensions
+*/
+template<
+    bool isRequest,
+    class SyncReadStream,
+    class DynamicBuffer>
+void
+print_chunked_body(
+    std::ostream& os,
+    SyncReadStream& stream,
+    DynamicBuffer& buffer,
+    error_code& ec)
+{
+    // Declare the parser with an empty body since
+    // we plan on capturing the chunks ourselves.
+    parser<isRequest, empty_body> p;
+
+    // First read the complete header
+    read_header(stream, buffer, p, ec);
+    if(ec)
+        return;
+
+    // This container will hold the extensions for each chunk
+    chunk_extensions ce;
+
+    // This string will hold the body of each chunk
+    std::string chunk;
+
+    // Declare our chunk header callback  This is invoked
+    // after each chunk header and also after the last chunk.
+    auto header_cb =
+    [&](std::uint64_t size,         // Size of the chunk, or zero for the last chunk
+        string_view extensions,     // The raw chunk-extensions string. Already validated.
+        error_code& ev)             // We can set this to indicate an error
+    {
+        // Parse the chunk extensions so we can access them easily
+        ce.parse(extensions, ev);
+        if(ev)
+            return;
+
+        // See if the chunk is too big
+        if(size > (std::numeric_limits<std::size_t>::max)())
+        {
+            ev = error::body_limit;
+            return;
+        }
+
+        // Make sure we have enough storage, and
+        // reset the container for the upcoming chunk
+        chunk.reserve(static_cast<std::size_t>(size));
+        chunk.clear();
+    };
+
+    // Set the callback. The function requires a non-const reference so we
+    // use a local variable, since temporaries can only bind to const refs.
+    p.on_chunk_header(header_cb);
+
+    // Declare the chunk body callback. This is called one or
+    // more times for each piece of a chunk body.
+    auto body_cb =            
+    [&](std::uint64_t remain,   // The number of bytes left in this chunk
+        string_view body,       // A buffer holding chunk body data
+        error_code& ec)         // We can set this to indicate an error
+    {
+        // If this is the last piece of the chunk body,
+        // set the error so that the call to `read` returns
+        // and we can process the chunk.
+        if(remain == body.size())
+            ec = error::end_of_chunk;
+
+        // Append this piece to our container
+        chunk.append(body.data(), body.size());
+
+        // The return value informs the parser of how much of the body we
+        // consumed. We will indicate that we consumed everything passed in.
+        return body.size();
+    };
+    p.on_chunk_body(body_cb);
+
+    while(! p.is_done())
+    {   
+        // Read as much as we can. When we reach the end of the chunk, the chunk
+        // body callback will make the read return with the end_of_chunk error.
+        read(stream, buffer, p, ec);
+        if(! ec)
+            continue;
+        else if(ec != error::end_of_chunk)
+            return;
+        else
+            ec.assign(0, ec.category());
+
+        // We got a whole chunk, print the extensions:
+        for(auto const& extension : ce)
+        {
+            os << "Extension: " << extension.first;
+            if(! extension.second.empty())
+                os << " = " << extension.second << std::endl;
+            else
+                os << std::endl;
+        }
+
+        // Now print the chunk body
+        os << "Chunk Body: " << chunk << std::endl;
+    }
+
+    // Get a reference to the parsed message, this is for convenience
+    auto const& msg = p.get();
+
+    // Check each field promised in the "Trailer" header and output it
+    for(auto const& name : token_list{msg[field::trailer]})
+    {
+        // Find the trailer field
+        auto it = msg.find(name);
+        if(it == msg.end())
+        {
+            // Oops! They promised the field but failed to deliver it
+            os << "Missing Trailer: " << name << std::endl;
+            continue;
+        }
+        os << it->name() << ": " << it->value() << std::endl;
     }
 }
 

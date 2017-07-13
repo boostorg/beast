@@ -332,7 +332,7 @@ increment()
         if(it_ == last_)
             return err();
         auto const c = *it_;
-        if(detail::is_tchar(c))
+        if(detail::is_token_char(c))
         {
             if(need_comma)
                 return err();
@@ -342,7 +342,7 @@ increment()
                 ++it_;
                 if(it_ == last_)
                     break;
-                if(! detail::is_tchar(*it_))
+                if(! detail::is_token_char(*it_))
                     break;
             }
             v_.first = string_view{&*p0,
@@ -504,7 +504,7 @@ increment()
         if(it_ == last_)
             return err();
         auto const c = *it_;
-        if(detail::is_tchar(c))
+        if(detail::is_token_char(c))
         {
             if(need_comma)
                 return err();
@@ -514,7 +514,7 @@ increment()
                 ++it_;
                 if(it_ == last_)
                     break;
-                if(! detail::is_tchar(*it_))
+                if(! detail::is_token_char(*it_))
                     break;
             }
             v_ = string_view{&*p0,

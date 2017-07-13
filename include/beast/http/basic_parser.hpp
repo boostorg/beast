@@ -19,6 +19,7 @@
 #include <boost/assert.hpp>
 #include <limits>
 #include <memory>
+#include <type_traits>
 #include <utility>
 
 namespace beast {
@@ -136,16 +137,16 @@ public:
     using is_request =
         std::integral_constant<bool, isRequest>;
 
-    /// Copy constructor (disallowed)
+    /// Destructor
+    ~basic_parser();
+
+    /// Constructor
     basic_parser(basic_parser const&) = delete;
 
-    /// Copy assignment (disallowed)
+    /// Constructor
     basic_parser& operator=(basic_parser const&) = delete;
 
-    /// Destructor
-    ~basic_parser() = default;
-
-    /// Default constructor
+    /// Constructor
     basic_parser();
 
     /** Move constructor

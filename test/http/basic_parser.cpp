@@ -8,6 +8,7 @@
 // Test that header file is self-contained.
 #include <beast/http/basic_parser.hpp>
 
+#include "message_fuzz.hpp"
 #include "test_parser.hpp"
 
 #include <beast/core/buffer_cat.hpp>
@@ -17,6 +18,7 @@
 #include <beast/core/ostream.hpp>
 #include <beast/http/parser.hpp>
 #include <beast/http/string_body.hpp>
+#include <beast/test/fuzz.hpp>
 #include <beast/unit_test/suite.hpp>
 
 namespace beast {
@@ -399,7 +401,7 @@ public:
                 BEAST_EXPECT(p.got_on_field     == 2);
                 BEAST_EXPECT(p.got_on_header    == 1);
                 BEAST_EXPECT(p.got_on_body      == 1);
-                BEAST_EXPECT(p.got_on_chunk     == 1);
+                BEAST_EXPECT(p.got_on_chunk     == 2);
                 BEAST_EXPECT(p.got_on_complete  == 1);
             });
         parsegrind<test_parser<false>>(
@@ -415,7 +417,7 @@ public:
                 BEAST_EXPECT(p.got_on_field     == 2);
                 BEAST_EXPECT(p.got_on_header    == 1);
                 BEAST_EXPECT(p.got_on_body      == 1);
-                BEAST_EXPECT(p.got_on_chunk     == 1);
+                BEAST_EXPECT(p.got_on_chunk     == 2);
                 BEAST_EXPECT(p.got_on_complete  == 1);
             });
     }
@@ -1104,7 +1106,64 @@ public:
     //--------------------------------------------------------------------------
 
     void
-    testFuzz1()
+    testFuzz()
+    {
+        auto const grind =
+        [&](string_view s)
+        {
+            static_string<100> ss{s};
+            test::fuzz_rand r;
+            test::fuzz(ss, 4, 5, r,
+            [&](string_view s)
+            {
+                error_code ec;
+                test_parser<false> p;
+                p.eager(true);
+                p.put(boost::asio::const_buffers_1{
+                    s.data(), s.size()}, ec);
+            });
+        };
+        auto const good =
+        [&](string_view s)
+        {
+            std::string msg =
+                "HTTP/1.1 200 OK\r\n"
+                "Transfer-Encoding: chunked\r\n"
+                "\r\n"
+                "0" + s.to_string() + "\r\n"
+                "\r\n";
+            error_code ec;
+            test_parser<false> p;
+            p.eager(true);
+            p.put(boost::asio::const_buffers_1{
+                msg.data(), msg.size()}, ec);
+            BEAST_EXPECTS(! ec, ec.message());
+            grind(msg);
+        };
+        auto const bad =
+        [&](string_view s)
+        {
+            std::string msg =
+                "HTTP/1.1 200 OK\r\n"
+                "Transfer-Encoding: chunked\r\n"
+                "\r\n"
+                "0" + s.to_string() + "\r\n"
+                "\r\n";
+            error_code ec;
+            test_parser<false> p;
+            p.eager(true);
+            p.put(boost::asio::const_buffers_1{
+                msg.data(), msg.size()}, ec);
+            BEAST_EXPECT(ec);
+            grind(msg);
+        };
+        chunkExtensionsTest(good, bad);
+    }
+
+    //--------------------------------------------------------------------------
+
+    void
+    testRegression1()
     {
         // crash_00cda0b02d5166bd1039ddb3b12618cd80da75f3
         unsigned char buf[] ={
@@ -1154,7 +1213,8 @@ public:
         testIssue430();
         testIssue452();
         testIssue496();
-        testFuzz1();
+        testFuzz();
+        testRegression1();
     }
 };
 

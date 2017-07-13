@@ -72,6 +72,10 @@ enum class error
     */
     need_buffer,
 
+    /** The end of a chunk was reached
+    */
+    end_of_chunk,
+
     /** Buffer maximum exceeded.
 
         This error is returned when reading HTTP content
@@ -137,6 +141,9 @@ enum class error
 
     /// The chunk syntax is invalid.
     bad_chunk,
+
+    /// The chunk extension is invalid.
+    bad_chunk_extension,
 
     /// An obs-fold exceeded an internal limit.
     bad_obs_fold

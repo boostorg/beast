@@ -562,6 +562,42 @@ public:
 
 using message_fuzz = message_fuzz_t<>;
 
+template<class Good, class Bad>
+void
+chunkExtensionsTest(
+    Good const& good, Bad const& bad)
+{
+    good("");
+    good(";x");
+    good(";x;y");
+    good(";x=y");
+    good(";x;y=z");
+    good(" ;x");
+    good("\t;x");
+    good(" \t;x");
+    good("\t ;x");
+    good(" ; x");
+    good(" ;\tx");
+    good("\t ; \tx");
+    good(";x= y");
+    good(" ;x= y");
+    good(" ; x= y");
+    good(R"(;x="\"")");
+    good(R"(;x="\\")");
+    good(R"(;x;y=z;z="\"";p="\\";q="1\"2\\")");
+
+    bad(" ");
+    bad(";");
+    bad("=");
+    bad(" ;");
+    bad("; ");
+    bad(" ; ");
+    bad(" ; x ");
+    bad(";x =");
+    bad(";x = ");
+    bad(";x==");
+}
+
 } // http
 } // beast
 

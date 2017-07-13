@@ -158,6 +158,7 @@ protected:
 
     //--------------------------------------------------------------------------
 
+    static
     std::pair<char const*, bool>
     find_fast(
         char const* buf,
@@ -205,7 +206,6 @@ protected:
         }
     }
 
-    // VFALCO Can SIMD help this?
     static
     char const*
     find_eom(char const* p, char const* last)
@@ -242,6 +242,7 @@ protected:
 
     //--------------------------------------------------------------------------
 
+    static
     char const*
     parse_token_to_eol(
         char const* p,
@@ -317,6 +318,7 @@ protected:
     }
 
     template<class Iter, class Unsigned>
+    static
     bool
     parse_hex(Iter& it, Unsigned& v)
     {
@@ -361,7 +363,7 @@ protected:
                 ec = error::need_more;
                 return;
             }
-            if(! detail::is_tchar(*it))
+            if(! detail::is_token_char(*it))
                 break;
         }
         if(it + 1 > last)
@@ -708,6 +710,178 @@ protected:
             ec = error::header_limit;
             return;
         }
+    }
+
+    void
+    parse_chunk_extensions(
+        char const*& it,
+        char const* last,
+        error_code& ec)
+    {
+    /*
+        chunk-ext       = *( BWS  ";" BWS chunk-ext-name [ BWS  "=" BWS chunk-ext-val ] )
+        BWS             = *( SP / HTAB ) ; "Bad White Space"
+        chunk-ext-name  = token
+        chunk-ext-val   = token / quoted-string
+        token           = 1*tchar
+        quoted-string   = DQUOTE *( qdtext / quoted-pair ) DQUOTE
+        qdtext          = HTAB / SP / "!" / %x23-5B ; '#'-'[' / %x5D-7E ; ']'-'~' / obs-text
+        quoted-pair     = "\" ( HTAB / SP / VCHAR / obs-text )
+        obs-text        = %x80-FF
+
+        https://www.rfc-editor.org/errata_search.php?rfc=7230&eid=4667
+    */
+    loop:
+        if(it == last)
+        {
+            ec = error::need_more;
+            return;
+        }
+        if(*it != ' ' && *it != '\t' && *it != ';')
+            return;
+        // BWS
+        if(*it == ' ' || *it == '\t')
+        {
+            for(;;)
+            {
+                ++it;
+                if(it == last)
+                {
+                    ec = error::need_more;
+                    return;
+                }
+                if(*it != ' ' && *it != '\t')
+                    break;
+            }
+        }
+        // ';'
+        if(*it != ';')
+        {
+            ec = error::bad_chunk_extension;
+            return;
+        }
+    semi:
+        ++it; // skip ';'
+        // BWS
+        for(;;)
+        {
+            if(it == last)
+            {
+                ec = error::need_more;
+                return;
+            }
+            if(*it != ' ' && *it != '\t')
+                break;
+            ++it;
+        }
+        // chunk-ext-name
+        if(! detail::is_token_char(*it))
+        {
+            ec = error::bad_chunk_extension;
+            return;
+        }
+        for(;;)
+        {
+            ++it;
+            if(it == last)
+            {
+                ec = error::need_more;
+                return;
+            }
+            if(! detail::is_token_char(*it))
+                break;
+        }
+        // BWS [ ";" / "=" ]
+        {
+            bool bws;
+            if(*it == ' ' || *it == '\t')
+            {
+                for(;;)
+                {
+                    ++it;
+                    if(it == last)
+                    {
+                        ec = error::need_more;
+                        return;
+                    }
+                    if(*it != ' ' && *it != '\t')
+                        break;
+                }
+                bws = true;
+            }
+            else
+            {
+                bws = false;
+            }
+            if(*it == ';')
+                goto semi;
+            if(*it != '=')
+            {
+                if(bws)
+                    ec = error::bad_chunk_extension;
+                return;
+            }
+            ++it; // skip '='
+        }
+        // BWS
+        for(;;)
+        {
+            if(it == last)
+            {
+                ec = error::need_more;
+                return;
+            }
+            if(*it != ' ' && *it != '\t')
+                break;
+            ++it;
+        }
+        // chunk-ext-val
+        if(*it != '"')
+        {
+            // token
+            if(! detail::is_token_char(*it))
+            {
+                ec = error::bad_chunk_extension;
+                return;
+            }
+            for(;;)
+            {
+                ++it;
+                if(it == last)
+                {
+                    ec = error::need_more;
+                    return;
+                }
+                if(! detail::is_token_char(*it))
+                    break;
+            }
+        }
+        else
+        {
+            // quoted-string
+            for(;;)
+            {
+                ++it;
+                if(it == last)
+                {
+                    ec = error::need_more;
+                    return;
+                }
+                if(*it == '"')
+                    break;
+                if(*it == '\\')
+                {
+                    ++it;
+                    if(it == last)
+                    {
+                        ec = error::need_more;
+                        return;
+                    }
+                }
+            }
+            ++it;
+        }
+        goto loop;
     }
 };
 

@@ -8,9 +8,14 @@
 // Test that header file is self-contained.
 #include <beast/http/chunk_encode.hpp>
 
+#include "message_fuzz.hpp"
+
+#include <beast/core/static_string.hpp>
 #include <beast/http/fields.hpp>
+#include <beast/test/fuzz.hpp>
 #include <beast/unit_test/suite.hpp>
 #include <boost/optional.hpp>
+#include <random>
 
 namespace beast {
 namespace http {
@@ -194,17 +199,94 @@ public:
     void
     testChunkExtensions()
     {
+        auto const str =
+            [](chunk_extensions const& ce)
+            {
+                std::string s;
+                for(auto const& v : ce)
+                {
+                    s.append(v.first.to_string());
+                    s.push_back(',');
+                    if(! v.second.empty())
+                    {
+                        s.append(v.second.to_string());
+                        s.push_back(',');
+                    }
+                }
+                return s;
+            };
         chunk_extensions ce;
         ce.insert("x");
         BEAST_EXPECT(ce.str() == ";x");
+        BEAST_EXPECT(str(ce) == "x,");
         ce.insert("y", "z");
         BEAST_EXPECT(ce.str() == ";x;y=z");
+        BEAST_EXPECT(str(ce) == "x,y,z,");
         ce.insert("z", R"(")");
         BEAST_EXPECT(ce.str() == R"(;x;y=z;z="\"")");
+        BEAST_EXPECT(str(ce)  == R"(x,y,z,z,",)");
         ce.insert("p", R"(\)");
         BEAST_EXPECT(ce.str() == R"(;x;y=z;z="\"";p="\\")");
+        BEAST_EXPECT(str(ce)  == R"(x,y,z,z,",p,\,)");
         ce.insert("q", R"(1"2\)");
         BEAST_EXPECT(ce.str() == R"(;x;y=z;z="\"";p="\\";q="1\"2\\")");
+        BEAST_EXPECT(str(ce)  == R"(x,y,z,z,",p,\,q,1"2\,)");
+    }
+
+    void
+    testParseChunkExtensions()
+    {
+        auto const grind =
+        [&](string_view s)
+        {
+            error_code ec;
+            static_string<200> ss{s};
+            test::fuzz_rand r;
+            for(auto i = 3; i--;)
+            {
+                test::fuzz(ss, 5, 5, r,
+                [&](string_view s)
+                {
+                    chunk_extensions c1;
+                    c1.parse(s, ec);
+                    if(ec)
+                    {
+                        pass();
+                        return;
+                    }
+                    chunk_extensions c2;
+                    c2.parse(c1.str(), ec);
+                    if(! BEAST_EXPECTS(! ec, ec.message()))
+                        return;
+                    chunk_extensions c3;
+                    for(auto const& v : c2)
+                        if(v.second.empty())
+                            c3.insert(v.first);
+                        else
+                            c3.insert(v.first, v.second);
+                    BEAST_EXPECTS(c2.str() == c3.str(), c3.str());
+                });
+            }
+        };
+        auto const good =
+        [&](string_view s)
+        {
+            error_code ec;
+            chunk_extensions ce;
+            ce.parse(s, ec);
+            BEAST_EXPECTS(! ec, ec.message());
+            grind(s);
+        };
+        auto const bad =
+        [&](string_view s)
+        {
+            error_code ec;
+            chunk_extensions ce;
+            ce.parse(s, ec);
+            BEAST_EXPECT(ec);
+            grind(s);
+        };
+        chunkExtensionsTest(good, bad);
     }
 
     void
@@ -215,6 +297,7 @@ public:
         testChunkBody();
         testChunkFinal();
         testChunkExtensions();
+        testParseChunkExtensions();
     }
 };
 

@@ -44,6 +44,7 @@ add_executable (core-tests
     base64.cpp
     empty_base_optimization.cpp
     sha1.cpp
+    detail/varint.cpp
 )
 
 target_link_libraries(core-tests

@@ -43,6 +43,7 @@ public:
         case error::need_more: return "need more";
         case error::unexpected_body: return "unexpected body";
         case error::need_buffer: return "need buffer";
+        case error::end_of_chunk: return "end of chunk";
         case error::buffer_overflow: return "buffer overflow";
         case error::header_limit: return "header limit exceeded";
         case error::body_limit: return "body limit exceeded";
@@ -58,6 +59,7 @@ public:
         case error::bad_content_length: return "bad Content-Length";
         case error::bad_transfer_encoding: return "bad Transfer-Encoding";
         case error::bad_chunk: return "bad chunk";
+        case error::bad_chunk_extension: return "bad chunk extension";
         case error::bad_obs_fold: return "bad obs-fold";
 
         default:

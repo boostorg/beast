@@ -6,6 +6,18 @@ Version 81:
 * multi_buffer ctor is explicit
 * File is not copy-constructible
 
+API Changes:
+
+* Refactor basic_parser, chunk parsing:
+
+Actions Required:
+
+* Adjust signatures for required members of user-defined
+  subclasses of basic_parser
+
+* Use the new basic_parser chunk callbacks for accessing
+  chunk extensions and chunk bodies.
+
 --------------------------------------------------------------------------------
 
 Version 80:

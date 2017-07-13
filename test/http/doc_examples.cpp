@@ -22,8 +22,9 @@
 #include <beast/unit_test/suite.hpp>
 #include <sstream>
 #include <array>
-#include <vector>
+#include <limits>
 #include <list>
+#include <vector>
 
 namespace beast {
 namespace http {
@@ -369,7 +370,7 @@ public:
         ostream(c.client.buffer) <<
             "HTTP/1.1 200 OK\r\n"
             "Server: test\r\n"
-            "Accept: Expires, Content-MD5\r\n"
+            "Trailer: Expires, Content-MD5\r\n"
             "Transfer-Encoding: chunked\r\n"
             "\r\n"
             "5\r\n"
@@ -385,16 +386,23 @@ public:
             "Content-MD5: f4a5c16584f03d90\r\n"
             "\r\n";
 
-        flat_buffer b;
-        response_parser<empty_body> p;
-        read_header(c.client, b, p);
-        BOOST_ASSERT(p.is_chunked());
-        //while(! p.is_done())
-        {
-            // read the chunk header?
-            // read the next chunk?
 
-        }
+        error_code ec;
+        flat_buffer b;
+        std::stringstream ss;
+        print_chunked_body<false>(ss, c.client, b, ec);
+        BEAST_EXPECTS(! ec, ec.message());
+        BEAST_EXPECT(ss.str() ==
+            "Chunk Body: First\n"
+            "Extension: quality = 1.0\n"
+            "Chunk Body: Hello, world!\n"
+            "Extension: file = abc.txt\n"
+            "Extension: quality = 0.7\n"
+            "Chunk Body: The Next Chunk\n"
+            "Extension: last\n"
+            "Chunk Body: Last one\n"
+            "Expires: never\n"
+            "Content-MD5: f4a5c16584f03d90\n");
 
     }
 
