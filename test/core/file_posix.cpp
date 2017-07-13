@@ -17,6 +17,8 @@
 
 namespace beast {
 
+BOOST_STATIC_ASSERT(! std::is_copy_constructible<file_posix>::value);
+
 class file_posix_test
     : public beast::unit_test::suite
 {

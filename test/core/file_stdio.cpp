@@ -15,6 +15,8 @@
 
 namespace beast {
 
+BOOST_STATIC_ASSERT(! std::is_copy_constructible<file_stdio>::value);
+
 class file_stdio_test
     : public beast::unit_test::suite
 {
