@@ -138,19 +138,18 @@ public:
             ws.accept(buffers);
         }
 
-        template<class NextLayer, class Fields>
+        template<class NextLayer>
         void
         accept(stream<NextLayer>& ws,
-            http::header<true, Fields> const& req) const
+            http::request<http::empty_body> const& req) const
         {
             ws.accept(req);
         }
 
-        template<class NextLayer,
-            class Fields, class Buffers>
+        template<class NextLayer, class Buffers>
         void
         accept(stream<NextLayer>& ws,
-            http::header<true, Fields> const& req,
+            http::request<http::empty_body> const& req,
                 Buffers const& buffers) const
         {
             ws.accept(req, buffers);
@@ -175,22 +174,20 @@ public:
             ws.accept_ex(buffers, d);
         }
 
-        template<class NextLayer,
-            class Fields, class Decorator>
+        template<class NextLayer, class Decorator>
         void
         accept_ex(stream<NextLayer>& ws,
-            http::header<true, Fields> const& req,
+            http::request<http::empty_body> const& req,
                 Decorator const& d) const
         {
             ws.accept_ex(req, d);
         }
 
         template<class NextLayer,
-            class Fields, class Buffers,
-                class Decorator>
+            class Buffers, class Decorator>
         void
         accept_ex(stream<NextLayer>& ws,
-            http::header<true, Fields> const& req,
+            http::request<http::empty_body> const& req,
                 Buffers const& buffers,
                     Decorator const& d) const
         {
@@ -332,10 +329,10 @@ public:
                 throw system_error{ec};
         }
 
-        template<class NextLayer, class Fields>
+        template<class NextLayer>
         void
         accept(stream<NextLayer>& ws,
-            http::header<true, Fields> const& req) const
+            http::request<http::empty_body> const& req) const
         {
             error_code ec;
             ws.async_accept(req, yield_[ec]);
@@ -343,11 +340,10 @@ public:
                 throw system_error{ec};
         }
 
-        template<class NextLayer,
-            class Fields, class Buffers>
+        template<class NextLayer, class Buffers>
         void
         accept(stream<NextLayer>& ws,
-            http::header<true, Fields> const& req,
+            http::request<http::empty_body> const& req,
                 Buffers const& buffers) const
         {
             error_code ec;
@@ -382,11 +378,10 @@ public:
                 throw system_error{ec};
         }
 
-        template<class NextLayer,
-            class Fields, class Decorator>
+        template<class NextLayer, class Decorator>
         void
         accept_ex(stream<NextLayer>& ws,
-            http::header<true, Fields> const& req,
+            http::request<http::empty_body> const& req,
                 Decorator const& d) const
         {
             error_code ec;
@@ -395,11 +390,11 @@ public:
                 throw system_error{ec};
         }
 
-        template<class NextLayer, class Fields,
+        template<class NextLayer,
             class Buffers, class Decorator>
         void
         accept_ex(stream<NextLayer>& ws,
-            http::header<true, Fields> const& req,
+            http::request<http::empty_body> const& req,
                 Buffers const& buffers,
                     Decorator const& d) const
         {

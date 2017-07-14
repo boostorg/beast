@@ -501,10 +501,10 @@ build_request(detail::sec_ws_key_type& key,
 }
 
 template<class NextLayer>
-template<class Allocator, class Decorator>
+template<class Body, class Allocator, class Decorator>
 response_type
 stream<NextLayer>::
-build_response(http::header<true,
+build_response(http::request<Body,
     http::basic_fields<Allocator>> const& req,
         Decorator const& decorator)
 {
@@ -598,10 +598,11 @@ do_accept(
 }
 
 template<class NextLayer>
-template<class Allocator, class Decorator>
+template<class Body, class Allocator,
+    class Decorator>
 void
 stream<NextLayer>::
-do_accept(http::header<true,
+do_accept(http::request<Body,
     http::basic_fields<Allocator>> const& req,
         Decorator const& decorator, error_code& ec)
 {
@@ -652,7 +653,7 @@ do_handshake(response_type* res_p,
 template<class NextLayer>
 void
 stream<NextLayer>::
-do_response(http::header<false> const& res,
+do_response(response_type const& res,
     detail::sec_ws_key_type const& key, error_code& ec)
 {
     bool const success = [&]()
