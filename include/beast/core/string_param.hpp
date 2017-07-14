@@ -24,7 +24,17 @@ namespace beast {
     passed in contexts where a string is expected. The conversion
     to string is made using `operator<<` to a non-dynamically
     allocated static buffer if possible, else to a `std::string`
-    on overflow. 
+    on overflow.
+
+    To use it, modify your function signature to accept
+    `string_param` and then extract the string inside the
+    function:
+    @code
+    void print(string_param s)
+    {
+        std::cout << s.str();
+    }
+    @endcode
 */
 class string_param
 {
@@ -94,6 +104,13 @@ public:
     */
     template<class... Args>
     string_param(Args const&... args);
+
+    /// Returns the contained string
+    string_view
+    str() const
+    {
+        return sv_;
+    }
 
     /// Implicit conversion to @ref string_view
     operator string_view const() const
