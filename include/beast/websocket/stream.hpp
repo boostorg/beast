@@ -18,14 +18,15 @@
 #include <beast/websocket/detail/pausation.hpp>
 #include <beast/websocket/detail/pmd_extension.hpp>
 #include <beast/websocket/detail/utf8_checker.hpp>
+#include <beast/core/async_result.hpp>
+#include <beast/core/buffered_read_stream.hpp>
+#include <beast/core/flat_buffer.hpp>
+#include <beast/core/string.hpp>
+#include <beast/core/detail/type_traits.hpp>
 #include <beast/http/empty_body.hpp>
 #include <beast/http/message.hpp>
 #include <beast/http/string_body.hpp>
 #include <beast/http/detail/type_traits.hpp>
-#include <beast/core/async_result.hpp>
-#include <beast/core/buffered_read_stream.hpp>
-#include <beast/core/string.hpp>
-#include <beast/core/detail/type_traits.hpp>
 #include <beast/zlib/deflate_stream.hpp>
 #include <beast/zlib/inflate_stream.hpp>
 #include <boost/asio.hpp>
@@ -200,7 +201,7 @@ class stream
     };
 
     buffered_read_stream<
-        NextLayer, multi_buffer> stream_;   // the wrapped stream
+        NextLayer, flat_buffer> stream_;    // the wrapped stream
     detail::maskgen maskgen_;               // source of mask keys
     std::size_t rd_msg_max_ =
         16 * 1024 * 1024;                   // max message size
