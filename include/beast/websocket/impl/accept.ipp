@@ -42,24 +42,22 @@ class stream<NextLayer>::response_op
         response_type res;
         int state = 0;
 
-        template<class Allocator, class Decorator>
-        data(Handler&, stream<NextLayer>& ws_, http::header<
-            true, http::basic_fields<Allocator>> const& req,
-                Decorator const& decorator,
-                    bool cont_)
+        template<class Body, class Allocator, class Decorator>
+        data(Handler&, stream<NextLayer>& ws_, http::request<
+            Body, http::basic_fields<Allocator>> const& req,
+                Decorator const& decorator, bool cont_)
             : cont(cont_)
             , ws(ws_)
             , res(ws_.build_response(req, decorator))
         {
         }
 
-        template<class Allocator,
+        template<class Body, class Allocator,
             class Buffers, class Decorator>
-        data(Handler&, stream<NextLayer>& ws_, http::header<
-            true, http::basic_fields<Allocator>> const& req,
-                Buffers const& buffers,
-                    Decorator const& decorator,
-                        bool cont_)
+        data(Handler&, stream<NextLayer>& ws_, http::request<
+            Body, http::basic_fields<Allocator>> const& req,
+                Buffers const& buffers, Decorator const& decorator,
+                    bool cont_)
             : cont(cont_)
             , ws(ws_)
             , res(ws_.build_response(req, decorator))
@@ -443,10 +441,10 @@ accept_ex(ConstBufferSequence const& buffers,
 }
 
 template<class NextLayer>
-template<class Allocator>
+template<class Body, class Allocator>
 void
 stream<NextLayer>::
-accept(http::header<true,
+accept(http::request<Body,
     http::basic_fields<Allocator>> const& req)
 {
     static_assert(is_sync_stream<next_layer_type>::value,
@@ -458,10 +456,11 @@ accept(http::header<true,
 }
 
 template<class NextLayer>
-template<class Allocator, class ResponseDecorator>
+template<class Body,
+    class Allocator, class ResponseDecorator>
 void
 stream<NextLayer>::
-accept_ex(http::header<true,
+accept_ex(http::request<Body,
     http::basic_fields<Allocator>> const& req,
     ResponseDecorator const& decorator)
 {
@@ -477,10 +476,10 @@ accept_ex(http::header<true,
 }
 
 template<class NextLayer>
-template<class Allocator>
+template<class Body, class Allocator>
 void
 stream<NextLayer>::
-accept(http::header<true,
+accept(http::request<Body,
     http::basic_fields<Allocator>> const& req,
         error_code& ec)
 {
@@ -491,10 +490,11 @@ accept(http::header<true,
 }
 
 template<class NextLayer>
-template<class Allocator, class ResponseDecorator>
+template<class Body, class Allocator,
+    class ResponseDecorator>
 void
 stream<NextLayer>::
-accept_ex(http::header<true,
+accept_ex(http::request<Body,
     http::basic_fields<Allocator>> const& req,
         ResponseDecorator const& decorator, error_code& ec)
 {
@@ -508,10 +508,11 @@ accept_ex(http::header<true,
 }
 
 template<class NextLayer>
-template<class Allocator, class ConstBufferSequence>
+template<class Body, class Allocator,
+    class ConstBufferSequence>
 void
 stream<NextLayer>::
-accept(http::header<true,
+accept(http::request<Body,
     http::basic_fields<Allocator>> const& req,
         ConstBufferSequence const& buffers)
 {
@@ -527,11 +528,11 @@ accept(http::header<true,
 }
 
 template<class NextLayer>
-template<class Allocator,
+template<class Body, class Allocator,
     class ConstBufferSequence, class ResponseDecorator>
 void
 stream<NextLayer>::
-accept_ex(http::header<true,
+accept_ex(http::request<Body,
     http::basic_fields<Allocator>> const& req,
         ConstBufferSequence const& buffers,
             ResponseDecorator const& decorator)
@@ -551,11 +552,12 @@ accept_ex(http::header<true,
 }
 
 template<class NextLayer>
-template<class Allocator, class ConstBufferSequence>
+template<class Body, class Allocator,
+    class ConstBufferSequence>
 void
 stream<NextLayer>::
-accept(http::header<true,
-    Allocator> const& req,
+accept(http::request<Body,
+    http::basic_fields<Allocator>> const& req,
         ConstBufferSequence const& buffers, error_code& ec)
 {
     static_assert(is_sync_stream<next_layer_type>::value,
@@ -573,11 +575,11 @@ accept(http::header<true,
 }
 
 template<class NextLayer>
-template<class Allocator,
+template<class Body, class Allocator,
     class ConstBufferSequence, class ResponseDecorator>
 void
 stream<NextLayer>::
-accept_ex(http::header<true,
+accept_ex(http::request<Body,
     http::basic_fields<Allocator>> const& req,
         ConstBufferSequence const& buffers,
             ResponseDecorator const& decorator,
@@ -696,11 +698,12 @@ async_accept_ex(ConstBufferSequence const& buffers,
 }
 
 template<class NextLayer>
-template<class Allocator, class AcceptHandler>
+template<class Body, class Allocator,
+    class AcceptHandler>
 async_return_type<
     AcceptHandler, void(error_code)>
 stream<NextLayer>::
-async_accept(http::header<true,
+async_accept(http::request<Body,
     http::basic_fields<Allocator>> const& req,
         AcceptHandler&& handler)
 {
@@ -719,12 +722,12 @@ async_accept(http::header<true,
 }
 
 template<class NextLayer>
-template<class Allocator,
+template<class Body, class Allocator,
     class ResponseDecorator, class AcceptHandler>
 async_return_type<
     AcceptHandler, void(error_code)>
 stream<NextLayer>::
-async_accept_ex(http::header<true,
+async_accept_ex(http::request<Body,
     http::basic_fields<Allocator>> const& req,
         ResponseDecorator const& decorator, AcceptHandler&& handler)
 {
@@ -746,12 +749,12 @@ async_accept_ex(http::header<true,
 }
 
 template<class NextLayer>
-template<class Allocator,
+template<class Body, class Allocator,
     class ConstBufferSequence, class AcceptHandler>
 async_return_type<
     AcceptHandler, void(error_code)>
 stream<NextLayer>::
-async_accept(http::header<true,
+async_accept(http::request<Body,
     http::basic_fields<Allocator>> const& req,
         ConstBufferSequence const& buffers,
             AcceptHandler&& handler)
@@ -774,12 +777,13 @@ async_accept(http::header<true,
 }
 
 template<class NextLayer>
-template<class Allocator, class ConstBufferSequence,
-    class ResponseDecorator, class AcceptHandler>
+template<class Body, class Allocator,
+    class ConstBufferSequence, class ResponseDecorator,
+        class AcceptHandler>
 async_return_type<
     AcceptHandler, void(error_code)>
 stream<NextLayer>::
-async_accept_ex(http::header<true,
+async_accept_ex(http::request<Body,
     http::basic_fields<Allocator>> const& req,
         ConstBufferSequence const& buffers,
             ResponseDecorator const& decorator,

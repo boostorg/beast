@@ -999,9 +999,10 @@ public:
 
         @throws system_error Thrown on failure.
     */
-    template<class Allocator>
+    template<class Body, class Allocator>
     void
-    accept(http::header<true, http::basic_fields<Allocator>> const& req);
+    accept(http::request<Body,
+        http::basic_fields<Allocator>> const& req);
 
     /** Respond to a WebSocket HTTP Upgrade request
 
@@ -1040,9 +1041,10 @@ public:
 
         @throws system_error Thrown on failure.
     */
-    template<class Allocator, class ResponseDecorator>
+    template<class Body, class Allocator,
+        class ResponseDecorator>
     void
-    accept_ex(http::header<true,
+    accept_ex(http::request<Body,
         http::basic_fields<Allocator>> const& req,
             ResponseDecorator const& decorator);
 
@@ -1074,10 +1076,11 @@ public:
 
         @param ec Set to indicate what error occurred, if any.
     */
-    template<class Allocator>
+    template<class Body, class Allocator>
     void
-    accept(http::header<true, http::basic_fields<Allocator>> const& req,
-        error_code& ec);
+    accept(http::request<Body,
+        http::basic_fields<Allocator>> const& req,
+            error_code& ec);
 
     /** Respond to a WebSocket HTTP Upgrade request
 
@@ -1116,9 +1119,10 @@ public:
 
         @param ec Set to indicate what error occurred, if any.
     */
-    template<class Allocator, class ResponseDecorator>
+    template<class Body, class Allocator,
+        class ResponseDecorator>
     void
-    accept_ex(http::header<true,
+    accept_ex(http::request<Body,
         http::basic_fields<Allocator>> const& req,
             ResponseDecorator const& decorator,
                 error_code& ec);
@@ -1156,10 +1160,12 @@ public:
 
         @throws system_error Thrown on failure.
     */
-    template<class Allocator, class ConstBufferSequence>
+    template<class Body, class Allocator,
+        class ConstBufferSequence>
     void
-    accept(http::header<true, http::basic_fields<Allocator>> const& req,
-        ConstBufferSequence const& buffers);
+    accept(http::request<Body,
+        http::basic_fields<Allocator>> const& req,
+            ConstBufferSequence const& buffers);
 
     /** Respond to a WebSocket HTTP Upgrade request
 
@@ -1203,10 +1209,10 @@ public:
 
         @throws system_error Thrown on failure.
     */
-    template<class Allocator, class ConstBufferSequence,
-        class ResponseDecorator>
+    template<class Body, class Allocator,
+        class ConstBufferSequence, class ResponseDecorator>
     void
-    accept_ex(http::header<true,
+    accept_ex(http::request<Body,
         http::basic_fields<Allocator>> const& req,
             ConstBufferSequence const& buffers,
                 ResponseDecorator const& decorator);
@@ -1244,10 +1250,13 @@ public:
 
         @param ec Set to indicate what error occurred, if any.
     */
-    template<class Allocator, class ConstBufferSequence>
+    template<class Body, class Allocator,
+        class ConstBufferSequence>
     void
-    accept(http::header<true, Allocator> const& req,
-        ConstBufferSequence const& buffers, error_code& ec);
+    accept(http::request<Body,
+        http::basic_fields<Allocator>> const& req,
+            ConstBufferSequence const& buffers,
+                error_code& ec);
 
     /** Respond to a WebSocket HTTP Upgrade request
 
@@ -1291,10 +1300,10 @@ public:
 
         @param ec Set to indicate what error occurred, if any.
     */
-    template<class Allocator, class ConstBufferSequence,
-        class ResponseDecorator>
+    template<class Body, class Allocator,
+        class ConstBufferSequence, class ResponseDecorator>
     void
-    accept_ex(http::header<true,
+    accept_ex(http::request<Body,
         http::basic_fields<Allocator>> const& req,
             ConstBufferSequence const& buffers,
                 ResponseDecorator const& decorator,
@@ -1580,14 +1589,15 @@ public:
         this function. Invocation of the handler will be performed in a
         manner equivalent to using `boost::asio::io_service::post`.
     */
-    template<class Allocator, class AcceptHandler>
+    template<class Body, class Allocator,
+        class AcceptHandler>
 #if BEAST_DOXYGEN
     void_or_deduced
 #else
     async_return_type<
         AcceptHandler, void(error_code)>
 #endif
-    async_accept(http::header<true,
+    async_accept(http::request<Body,
         http::basic_fields<Allocator>> const& req,
             AcceptHandler&& handler);
 
@@ -1645,7 +1655,7 @@ public:
         this function. Invocation of the handler will be performed in a
         manner equivalent to using `boost::asio::io_service::post`.
     */
-    template<class Allocator,
+    template<class Body, class Allocator,
         class ResponseDecorator, class AcceptHandler>
 #if BEAST_DOXYGEN
     void_or_deduced
@@ -1653,7 +1663,7 @@ public:
     async_return_type<
         AcceptHandler, void(error_code)>
 #endif
-    async_accept_ex(http::header<true,
+    async_accept_ex(http::request<Body,
         http::basic_fields<Allocator>> const& req,
             ResponseDecorator const& decorator,
                 AcceptHandler&& handler);
@@ -1710,7 +1720,7 @@ public:
         this function. Invocation of the handler will be performed in a
         manner equivalent to using `boost::asio::io_service::post`.
     */
-    template<class Allocator,
+    template<class Body, class Allocator,
         class ConstBufferSequence, class AcceptHandler>
 #if BEAST_DOXYGEN
     void_or_deduced
@@ -1718,7 +1728,7 @@ public:
     async_return_type<
         AcceptHandler, void(error_code)>
 #endif
-    async_accept(http::header<true,
+    async_accept(http::request<Body,
         http::basic_fields<Allocator>> const& req,
             ConstBufferSequence const& buffers,
                 AcceptHandler&& handler);
@@ -1784,19 +1794,23 @@ public:
         this function. Invocation of the handler will be performed in a
         manner equivalent to using `boost::asio::io_service::post`.
     */
-    template<class Allocator, class ConstBufferSequence,
-        class ResponseDecorator, class AcceptHandler>
+    template<
+        class Body, class Allocator,
+        class ConstBufferSequence,
+        class ResponseDecorator,
+        class AcceptHandler>
 #if BEAST_DOXYGEN
     void_or_deduced
 #else
     async_return_type<
         AcceptHandler, void(error_code)>
 #endif
-    async_accept_ex(http::header<true,
-        http::basic_fields<Allocator>> const& req,
-            ConstBufferSequence const& buffers,
-                ResponseDecorator const& decorator,
-                    AcceptHandler&& handler);
+    async_accept_ex(
+        http::request<Body,
+            http::basic_fields<Allocator>> const& req,
+        ConstBufferSequence const& buffers,
+        ResponseDecorator const& decorator,
+        AcceptHandler&& handler);
 
     /** Send an HTTP WebSocket Upgrade request and receive the response.
 
@@ -3326,9 +3340,10 @@ private:
             string_view target,
                 Decorator const& decorator);
 
-    template<class Allocator, class Decorator>
+    template<class Body,
+        class Allocator, class Decorator>
     response_type
-    build_response(http::header<true,
+    build_response(http::request<Body,
         http::basic_fields<Allocator>> const& req,
             Decorator const& decorator);
 
@@ -3337,22 +3352,22 @@ private:
     do_accept(Decorator const& decorator,
         error_code& ec);
 
-    template<class Allocator, class Decorator>
+    template<class Body, class Allocator,
+        class Decorator>
     void
-    do_accept(http::header<true,
+    do_accept(http::request<Body,
         http::basic_fields<Allocator>> const& req,
             Decorator const& decorator, error_code& ec);
 
     template<class RequestDecorator>
     void
     do_handshake(response_type* res_p,
-        string_view host,
-            string_view target,
-                RequestDecorator const& decorator,
-                    error_code& ec);
+        string_view host, string_view target,
+            RequestDecorator const& decorator,
+                error_code& ec);
 
     void
-    do_response(http::header<false> const& resp,
+    do_response(response_type const& resp,
         detail::sec_ws_key_type const& key, error_code& ec);
 };
 

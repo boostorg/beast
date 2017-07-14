@@ -6,6 +6,7 @@ WebSocket
 * stream tidying
 * Add rd_close_ to websocket stream state
 * stream uses flat_buffer
+* accept requires a message
 
 --------------------------------------------------------------------------------
 
