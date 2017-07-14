@@ -213,6 +213,7 @@ class stream
     role_type role_;                        // server or client
     bool failed_;                           // the connection failed
 
+    bool rd_close_;                         // read close frame
     bool wr_close_;                         // sent close frame
     op* wr_block_;                          // op currenly writing
 

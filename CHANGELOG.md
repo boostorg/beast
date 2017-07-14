@@ -1,6 +1,10 @@
 * Documentation tidying
 * is_invocable works with move-only types
+
+WebSocket
+
 * websocket::stream tidying
+* Add rd_close_ to websocket stream state
 
 --------------------------------------------------------------------------------
 

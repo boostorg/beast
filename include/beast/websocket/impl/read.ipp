@@ -472,6 +472,8 @@ operator()(error_code ec,
                 }
                 BOOST_ASSERT(d.fh.op == detail::opcode::close);
                 {
+                    BOOST_ASSERT(! d.ws.rd_close_);
+                    d.ws.rd_close_ = true;
                     detail::read(d.ws.cr_, d.fb.data(), code);
                     if(code != close_code::none)
                     {
@@ -822,6 +824,8 @@ read_frame(DynamicBuffer& dynabuf, error_code& ec)
             }
             BOOST_ASSERT(fh.op == detail::opcode::close);
             {
+                BOOST_ASSERT(! rd_close_);
+                rd_close_ = true;
                 detail::read(cr_, fb.data(), code);
                 if(code != close_code::none)
                     goto do_close;
