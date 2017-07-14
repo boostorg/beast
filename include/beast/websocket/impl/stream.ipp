@@ -79,6 +79,7 @@ open(role_type role)
     role_ = role;
     failed_ = false;
     rd_.cont = false;
+    rd_close_ = false;
     wr_close_ = false;
     wr_block_ = nullptr;    // should be nullptr on close anyway
     ping_data_ = nullptr;   // should be nullptr on close anyway
@@ -132,6 +133,7 @@ reset()
 {
     failed_ = false;
     rd_.cont = false;
+    rd_close_ = false;
     wr_close_ = false;
     wr_.cont = false;
     wr_block_ = nullptr;    // should be nullptr on close anyway
