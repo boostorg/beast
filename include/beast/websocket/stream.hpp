@@ -114,8 +114,12 @@ class stream
 {
     friend class detail::frame_test;
     friend class stream_test;
+    friend class frame_test;
 
-    buffered_read_stream<NextLayer, multi_buffer> stream_;
+    struct op {};
+
+    using control_cb_type =
+        std::function<void(frame_type, string_view)>;
 
     /// Identifies the role of a WebSockets stream.
     enum class role_type
@@ -126,35 +130,6 @@ class stream
         /// Stream is operating as a server.
         server
     };
-
-    friend class frame_test;
-
-    using control_cb_type =
-        std::function<void(frame_type, string_view)>;
-
-    struct op {};
-
-    detail::maskgen maskgen_;               // source of mask keys
-    std::size_t rd_msg_max_ =
-        16 * 1024 * 1024;                   // max message size
-    bool wr_autofrag_ = true;               // auto fragment
-    std::size_t wr_buf_size_ = 4096;        // write buffer size
-    std::size_t rd_buf_size_ = 4096;        // read buffer size
-    detail::opcode wr_opcode_ =
-        detail::opcode::text;               // outgoing message type
-    control_cb_type ctrl_cb_;               // control callback
-    role_type role_;                        // server or client
-    bool failed_;                           // the connection failed
-
-    bool wr_close_;                         // sent close frame
-    op* wr_block_;                          // op currenly writing
-
-    ping_data* ping_data_;                  // where to put the payload
-    detail::pausation rd_op_;               // paused read op
-    detail::pausation wr_op_;               // paused write op
-    detail::pausation ping_op_;             // paused ping op
-    detail::pausation close_op_;            // paused close op
-    close_reason cr_;                       // set from received close frame
 
     // State information for the message being received
     //
@@ -181,8 +156,6 @@ class stream
         // The read buffer. Used for compression and masking.
         std::unique_ptr<std::uint8_t[]> buf;
     };
-
-    rd_t rd_;
 
     // State information for the message being sent
     //
@@ -216,8 +189,6 @@ class stream
         std::unique_ptr<std::uint8_t[]> buf;
     };
 
-    wr_t wr_;
-
     // State information for the permessage-deflate extension
     struct pmd_t
     {
@@ -227,6 +198,32 @@ class stream
         zlib::deflate_stream zo;
         zlib::inflate_stream zi;
     };
+
+    buffered_read_stream<
+        NextLayer, multi_buffer> stream_;   // the wrapped stream
+    detail::maskgen maskgen_;               // source of mask keys
+    std::size_t rd_msg_max_ =
+        16 * 1024 * 1024;                   // max message size
+    bool wr_autofrag_ = true;               // auto fragment
+    std::size_t wr_buf_size_ = 4096;        // write buffer size
+    std::size_t rd_buf_size_ = 4096;        // read buffer size
+    detail::opcode wr_opcode_ =
+        detail::opcode::text;               // outgoing message type
+    control_cb_type ctrl_cb_;               // control callback
+    role_type role_;                        // server or client
+    bool failed_;                           // the connection failed
+
+    bool wr_close_;                         // sent close frame
+    op* wr_block_;                          // op currenly writing
+
+    ping_data* ping_data_;                  // where to put the payload
+    detail::pausation rd_op_;               // paused read op
+    detail::pausation wr_op_;               // paused write op
+    detail::pausation ping_op_;             // paused ping op
+    detail::pausation close_op_;            // paused close op
+    close_reason cr_;                       // set from received close frame
+    rd_t rd_;                               // read state
+    wr_t wr_;                               // write state
 
     // If not engaged, then permessage-deflate is not
     // enabled for the currently active session.
@@ -238,40 +235,6 @@ class stream
     // Offer for clients, negotiated result for servers
     detail::pmd_offer pmd_config_;
 
-    void
-    open(role_type role);
-
-    void
-    close();
-
-    template<class DynamicBuffer>
-    std::size_t
-    read_fh1(detail::frame_header& fh,
-        DynamicBuffer& db, close_code& code);
-
-    template<class DynamicBuffer>
-    void
-    read_fh2(detail::frame_header& fh,
-        DynamicBuffer& db, close_code& code);
-
-    // Called before receiving the first frame of each message
-    void
-    rd_begin();
-
-    // Called before sending the first frame of each message
-    //
-    void
-    wr_begin();
-
-    template<class DynamicBuffer>
-    void
-    write_close(DynamicBuffer& db, close_reason const& rc);
-
-    template<class DynamicBuffer>
-    void
-    write_ping(DynamicBuffer& db,
-        detail::opcode op, ping_data const& data);
-
 public:
     /// The type of the next layer.
     using next_layer_type =
@@ -281,9 +244,18 @@ public:
     using lowest_layer_type =
         typename get_lowest_layer<next_layer_type>::type;
 
+    /** Destructor
+
+        Destroys the stream and all associated resources.
+
+        @note A stream object must not be destroyed while there
+        are pending asynchronous operations associated with it.
+    */
+    ~stream() = default;
+
     /** Constructor
 
-        If @c NextLayer is move constructible, this function
+        If `NextLayer` is move constructible, this function
         will move-construct a new stream from the existing stream.
 
         @note The behavior of move assignment on or from streams
@@ -315,13 +287,6 @@ public:
     template<class... Args>
     explicit
     stream(Args&&... args);
-
-    /** Destructor
-
-        @note A stream object must not be destroyed while there
-        are pending asynchronous operations associated with it.
-    */
-    ~stream() = default;
 
     /** Return the `io_service` associated with the stream
 
@@ -3309,30 +3274,61 @@ public:
         ConstBufferSequence const& buffers, WriteHandler&& handler);
 
 private:
-    template<class Decorator, class Handler> class accept_op;
-    template<class Handler> class close_op;
-    template<class Handler> class handshake_op;
-    template<class Handler> class ping_op;
-    template<class Handler> class response_op;
-    template<class Buffers, class Handler> class write_op;
-    template<class Buffers, class Handler> class write_frame_op;
-    template<class DynamicBuffer, class Handler> class read_op;
-    template<class DynamicBuffer, class Handler> class read_frame_op;
+    template<class Decorator,
+        class Handler>          class accept_op;
+    template<class Handler>     class close_op;
+    template<class Handler>     class handshake_op;
+    template<class Handler>     class ping_op;
+    template<class DynamicBuffer,
+        class Handler>          class read_op;
+    template<class DynamicBuffer,
+        class Handler>          class read_frame_op;
+    template<class Handler>     class response_op;
+    template<class Buffers,
+        class Handler>          class write_frame_op;
+    template<class Buffers,
+        class Handler>          class write_op;
 
-    static
-    void
-    default_decorate_req(request_type&)
-    {
-    }
+    static void default_decorate_req(request_type&) {}
+    static void default_decorate_res(response_type&) {}
 
-    static
-    void
-    default_decorate_res(response_type&)
-    {
-    }
+    void open(role_type role);
+    void close();
+    void reset();
+    void rd_begin();
+    void wr_begin();
 
+    template<class DynamicBuffer>
+    std::size_t
+    read_fh1(detail::frame_header& fh,
+        DynamicBuffer& db, close_code& code);
+
+    template<class DynamicBuffer>
     void
-    reset();
+    read_fh2(detail::frame_header& fh,
+        DynamicBuffer& db, close_code& code);
+
+    template<class DynamicBuffer>
+    void
+    write_close(DynamicBuffer& db, close_reason const& rc);
+
+    template<class DynamicBuffer>
+    void
+    write_ping(DynamicBuffer& db,
+        detail::opcode op, ping_data const& data);
+
+    template<class Decorator>
+    request_type
+    build_request(detail::sec_ws_key_type& key,
+        string_view host,
+            string_view target,
+                Decorator const& decorator);
+
+    template<class Allocator, class Decorator>
+    response_type
+    build_response(http::header<true,
+        http::basic_fields<Allocator>> const& req,
+            Decorator const& decorator);
 
     template<class Decorator>
     void
@@ -3352,19 +3348,6 @@ private:
             string_view target,
                 RequestDecorator const& decorator,
                     error_code& ec);
-
-    template<class Decorator>
-    request_type
-    build_request(detail::sec_ws_key_type& key,
-        string_view host,
-            string_view target,
-                Decorator const& decorator);
-
-    template<class Allocator, class Decorator>
-    response_type
-    build_response(http::header<true,
-        http::basic_fields<Allocator>> const& req,
-            Decorator const& decorator);
 
     void
     do_response(http::header<false> const& resp,
