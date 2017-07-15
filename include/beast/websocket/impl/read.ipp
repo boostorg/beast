@@ -11,7 +11,7 @@
 #include <beast/websocket/teardown.hpp>
 #include <beast/core/buffer_prefix.hpp>
 #include <beast/core/handler_ptr.hpp>
-#include <beast/core/static_buffer.hpp>
+#include <beast/core/flat_static_buffer.hpp>
 #include <beast/core/type_traits.hpp>
 #include <beast/core/detail/clamp.hpp>
 #include <beast/core/detail/config.hpp>
@@ -445,7 +445,7 @@ operator()(error_code ec,
                         d.state = do_read_fh;
                         break;
                     }
-                    d.ws.template write_ping<static_buffer>(
+                    d.ws.template write_ping<flat_static_buffer_base>(
                         d.fb, detail::opcode::pong, payload);
                     if(d.ws.wr_block_)
                     {
@@ -492,7 +492,7 @@ operator()(error_code ec,
                         cr.reason = "";
                         d.fb.consume(d.fb.size());
                         d.ws.template write_close<
-                            static_buffer>(d.fb, cr);
+                            flat_static_buffer_base>(d.fb, cr);
                         if(d.ws.wr_block_)
                         {
                             // suspend
@@ -619,7 +619,7 @@ operator()(error_code ec,
                 }
                 d.fb.consume(d.fb.size());
                 d.ws.template write_close<
-                    static_buffer>(d.fb, code);
+                    flat_static_buffer_base>(d.fb, code);
                 if(d.ws.wr_block_)
                 {
                     // suspend
@@ -806,7 +806,7 @@ read_frame(DynamicBuffer& dynabuf, error_code& ec)
                 fb.consume(fb.size());
                 if(ctrl_cb_)
                     ctrl_cb_(frame_type::ping, payload);
-                write_ping<static_buffer>(fb,
+                write_ping<flat_static_buffer_base>(fb,
                     detail::opcode::pong, payload);
                 boost::asio::write(stream_, fb.data(), ec);
                 failed_ = !!ec;
@@ -839,7 +839,7 @@ read_frame(DynamicBuffer& dynabuf, error_code& ec)
                     cr.reason = "";
                     fb.consume(fb.size());
                     wr_close_ = true;
-                    write_close<static_buffer>(fb, cr);
+                    write_close<flat_static_buffer_base>(fb, cr);
                     boost::asio::write(stream_, fb.data(), ec);
                     failed_ = !!ec;
                     if(failed_)
@@ -966,7 +966,7 @@ do_close:
         {
             wr_close_ = true;
             detail::frame_streambuf fb;
-            write_close<static_buffer>(fb, code);
+            write_close<flat_static_buffer_base>(fb, code);
             boost::asio::write(stream_, fb.data(), ec);
             failed_ = !!ec;
             if(failed_)

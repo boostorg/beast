@@ -47,7 +47,7 @@ public:
 
 private:
     using alloc_t = fields_alloc<char>;
-    using request_body_t = http::basic_dynamic_body<beast::static_buffer_n<1024 * 1024>>;
+    using request_body_t = http::basic_dynamic_body<beast::flat_static_buffer<1024 * 1024>>;
 
     // The acceptor used to listen for incoming connections.
     tcp::acceptor& acceptor_;
@@ -59,7 +59,7 @@ private:
     tcp::socket socket_{acceptor_.get_io_service()};
 
     // The buffer for performing reads
-    beast::static_buffer_n<8192> buffer_;
+    beast::flat_static_buffer<8192> buffer_;
 
     // The allocator used for the fields in the request and reply.
     alloc_t alloc_{8192};

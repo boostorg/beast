@@ -75,8 +75,8 @@
 [def __multi_buffer__           [link beast.ref.beast__multi_buffer `multi_buffer`]]
 [def __parser__                 [link beast.ref.beast__http__parser `parser`]]
 [def __serializer__             [link beast.ref.beast__http__serializer `serializer`]]
-[def __static_buffer__          [link beast.ref.beast__static_buffer `static_buffer`]]
-[def __static_buffer_n__        [link beast.ref.beast__static_buffer_n `static_buffer_n`]]
+[def __flat_static_buffer__      [link beast.ref.beast__flat_static_buffer `flat_static_buffer`]]
+[def __flat_static_buffer_base__ [link beast.ref.beast__flat_static_buffer_base `flat_static_buffer_base`]]
 
 [import ../../example/common/detect_ssl.hpp]
 [import ../../example/doc/http_examples.hpp]

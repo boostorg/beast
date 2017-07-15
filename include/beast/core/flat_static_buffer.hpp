@@ -5,8 +5,8 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#ifndef BEAST_STATIC_BUFFER_HPP
-#define BEAST_STATIC_BUFFER_HPP
+#ifndef BEAST_FLAT_STATIC_BUFFER_HPP
+#define BEAST_FLAT_STATIC_BUFFER_HPP
 
 #include <beast/config.hpp>
 #include <boost/asio/buffer.hpp>
@@ -16,22 +16,24 @@
 
 namespace beast {
 
-/** A @b DynamicBuffer with a fixed size internal buffer.
+/** A flat @b DynamicBuffer with a fixed size internal buffer.
 
+    Buffer sequences returned by @ref data and @ref prepare
+    will always be of length one.
     Ownership of the underlying storage belongs to the derived class.
 
     @note Variables are usually declared using the template class
-    @ref static_buffer_n; however, to reduce the number of instantiations
+    @ref flat_static_buffer; however, to reduce the number of instantiations
     of template functions receiving static stream buffer arguments in a
     deduced context, the signature of the receiving function should use
-    @ref static_buffer.
+    @ref flat_static_buffer_base.
 
-    When used with @ref static_buffer_n this implements a dynamic
+    When used with @ref flat_static_buffer this implements a dynamic
     buffer using no memory allocations.
 
-    @see @ref static_buffer_n
+    @see @ref flat_static_buffer
 */
-class static_buffer
+class flat_static_buffer_base
 {
     char* begin_;
     char* in_;
@@ -39,17 +41,23 @@ class static_buffer
     char* last_;
     char* end_;
 
-    static_buffer(static_buffer const& other) = delete;
-    static_buffer& operator=(static_buffer const&) = delete;
+    flat_static_buffer_base(flat_static_buffer_base const& other) = delete;
+    flat_static_buffer_base& operator=(flat_static_buffer_base const&) = delete;
 
 public:
-    /// The type used to represent the input sequence as a list of buffers.
+    /** The type used to represent the input sequence as a list of buffers.
+
+        This buffer sequence is guaranteed to have length 1.
+    */
     using const_buffers_type = boost::asio::const_buffers_1;
 
-    /// The type used to represent the output sequence as a list of buffers.
+    /** The type used to represent the output sequence as a list of buffers.
+
+        This buffer sequence is guaranteed to have length 1.
+    */
     using mutable_buffers_type = boost::asio::mutable_buffers_1;
 
-    /** Constructor.
+    /** Constructor
 
         This creates a dynamic buffer using the provided storage area.
 
@@ -57,7 +65,7 @@ public:
 
         @param n The number of valid bytes pointed to by `p`.
     */
-    static_buffer(void* p, std::size_t n)
+    flat_static_buffer_base(void* p, std::size_t n)
     {
         reset_impl(p, n);
     }
@@ -120,13 +128,13 @@ public:
     }
 
 protected:
-    /** Default constructor.
+    /** Constructor
 
         The buffer will be in an undefined state. It is necessary
         for the derived class to call @ref reset in order to
         initialize the object.
     */
-    static_buffer();
+    flat_static_buffer_base();
 
     /** Reset the pointed-to buffer.
 
@@ -168,43 +176,45 @@ private:
 
 /** A @b DynamicBuffer with a fixed size internal buffer.
 
+    Buffer sequences returned by @ref data and @ref prepare
+    will always be of length one.
     This implements a dynamic buffer using no memory allocations.
 
     @tparam N The number of bytes in the internal buffer.
 
     @note To reduce the number of template instantiations when passing
     objects of this type in a deduced context, the signature of the
-    receiving function should use @ref static_buffer instead.
+    receiving function should use @ref flat_static_buffer_base instead.
 
-    @see @ref static_buffer
+    @see @ref flat_static_buffer_base
 */
 template<std::size_t N>
-class static_buffer_n : public static_buffer
+class flat_static_buffer : public flat_static_buffer_base
 {
     char buf_[N];
 
 public:
-    /// Copy constructor
-    static_buffer_n(static_buffer_n const&);
+    /// Constructor
+    flat_static_buffer(flat_static_buffer const&);
 
-    /// Copy assignment
-    static_buffer_n& operator=(static_buffer_n const&);
-
-    /// Construct a static buffer.
-    static_buffer_n()
-        : static_buffer(buf_, N)
+    /// Constructor
+    flat_static_buffer()
+        : flat_static_buffer_base(buf_, N)
     {
     }
 
-    /// Returns the @ref static_buffer portion of this object
-    static_buffer&
+    /// Assignment
+    flat_static_buffer& operator=(flat_static_buffer const&);
+
+    /// Returns the @ref flat_static_buffer_base portion of this object
+    flat_static_buffer_base&
     base()
     {
         return *this;
     }
 
-    /// Returns the @ref static_buffer portion of this object
-    static_buffer const&
+    /// Returns the @ref flat_static_buffer_base portion of this object
+    flat_static_buffer_base const&
     base() const
     {
         return *this;
@@ -213,6 +223,6 @@ public:
 
 } // beast
 
-#include <beast/core/impl/static_buffer.ipp>
+#include <beast/core/impl/flat_static_buffer.ipp>
 
 #endif

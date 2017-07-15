@@ -11,7 +11,7 @@
 #include "test_parser.hpp"
 
 #include <beast/core/ostream.hpp>
-#include <beast/core/static_buffer.hpp>
+#include <beast/core/flat_static_buffer.hpp>
 #include <beast/http/fields.hpp>
 #include <beast/http/dynamic_body.hpp>
 #include <beast/http/parser.hpp>
@@ -135,7 +135,7 @@ public:
                 "10\r\n"
                 "****************\r\n"
                 "0\r\n\r\n";
-            static_buffer_n<1024> b;
+            flat_static_buffer<1024> b;
             request<string_body> req;
             try
             {
@@ -159,7 +159,7 @@ public:
                 "****************\r\n"
                 "0\r\n\r\n";
             error_code ec = test::error::fail_error;
-            static_buffer_n<10> b;
+            flat_static_buffer<10> b;
             request<string_body> req;
             read(p.server, b, req, ec);
             BEAST_EXPECTS(ec == error::buffer_overflow,

@@ -10,6 +10,15 @@ WebSocket
 * stream uses flat_buffer
 * accept requires a message
 
+API Changes:
+
+* Rename to flat_static_buffer and flat_static_buffer_base
+
+Actions Required:
+
+* Rename static_buffer to flat_static_buffer_base
+* Rename static_buffer_n to flat_static_buffer
+
 --------------------------------------------------------------------------------
 
 Version 81:

@@ -30,13 +30,13 @@ add_executable (core-tests
     file_stdio.cpp
     file_win32.cpp
     flat_buffer.cpp
+    flat_static_buffer.cpp
     handler_alloc.cpp
     handler_ptr.cpp
     multi_buffer.cpp
     ostream.cpp
     read_size.cpp
     span.cpp
-    static_buffer.cpp
     static_string.cpp
     string.cpp
     string_param.cpp

@@ -9,7 +9,7 @@
 #define BEAST_WEBSOCKET_IMPL_CLOSE_IPP
 
 #include <beast/core/handler_ptr.hpp>
-#include <beast/core/static_buffer.hpp>
+#include <beast/core/flat_static_buffer.hpp>
 #include <beast/core/type_traits.hpp>
 #include <beast/core/detail/config.hpp>
 #include <boost/asio/handler_alloc_hook.hpp>
@@ -42,7 +42,7 @@ class stream<NextLayer>::close_op
             , cr(cr_)
         {
             ws.template write_close<
-                static_buffer>(fb, cr);
+                flat_static_buffer_base>(fb, cr);
         }
     };
 
@@ -227,7 +227,7 @@ close(close_reason const& cr, error_code& ec)
     }
     wr_close_ = true;
     detail::frame_streambuf fb;
-    write_close<static_buffer>(fb, cr);
+    write_close<flat_static_buffer_base>(fb, cr);
     boost::asio::write(stream_, fb.data(), ec);
     failed_ = !!ec;
 }
