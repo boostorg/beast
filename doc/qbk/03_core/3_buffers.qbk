@@ -119,6 +119,12 @@ transferred.
     [link beast.ref.beast__buffer_cat `buffer_cat`].
 ]]
 [[
+    [link beast.ref.beast__buffer_front `buffer_front`]
+][
+    This function returns the first buffer in a buffer sequence,
+    or a buffer of size zero if the buffer sequence has no elements.
+]]
+[[
     [link beast.ref.beast__buffer_prefix `buffer_prefix`]
 ][
     This function returns a new buffer or buffer sequence which represents
