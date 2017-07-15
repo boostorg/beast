@@ -1,5 +1,6 @@
 * Documentation tidying
 * is_invocable works with move-only types
+* Use std::function and reference wrapper
 
 WebSocket
 

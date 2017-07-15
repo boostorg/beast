@@ -14,6 +14,7 @@
 #include <beast/http/type_traits.hpp>
 #include <boost/optional.hpp>
 #include <boost/throw_exception.hpp>
+#include <functional>
 #include <memory>
 #include <type_traits>
 #include <utility>
@@ -55,96 +56,6 @@ class parser
     template<bool, class, class>
     friend class parser;
 
-    struct cb_h_exemplar
-    {
-        void
-        operator()(std::uint64_t, string_view, error_code&);
-    };
-
-    struct cb_h_t
-    {
-        virtual ~cb_h_t() = default;
-        virtual cb_h_t* move(void* dest) = 0;
-        virtual void operator()(
-            std::uint64_t size,
-            string_view extensions,
-            error_code& ec) = 0;
-    };
-
-    template<class Callback>
-    struct cb_h_t_impl : cb_h_t
-    {
-        Callback& cb_;
-
-        explicit
-        cb_h_t_impl(Callback& cb)
-            : cb_(cb)
-        {
-        }
-
-        cb_h_t*
-        move(void* dest) override
-        {
-            new(dest) cb_h_t_impl<
-                Callback>(std::move(*this));
-            return this;
-        }
-
-        void
-        operator()(
-            std::uint64_t size,
-            string_view extensions,
-            error_code& ec) override
-        {
-            cb_(size, extensions, ec);
-        }
-    };
-
-    struct cb_b_exemplar
-    {
-        std::size_t
-        operator()(std::uint64_t, string_view, error_code&);
-    };
-
-    struct cb_b_t
-    {
-        virtual ~cb_b_t() = default;
-        virtual cb_b_t* move(void* dest) = 0;
-        virtual std::size_t operator()(
-            std::uint64_t remain,
-            string_view body,
-            error_code& ec) = 0;
-    };
-
-    template<class Callback>
-    struct cb_b_t_impl : cb_b_t
-    {
-        Callback& cb_;
-
-        explicit
-        cb_b_t_impl(Callback& cb)
-            : cb_(cb)
-        {
-        }
-
-        cb_b_t*
-        move(void* dest) override
-        {
-            new(dest) cb_b_t_impl<
-                Callback>(std::move(*this));
-            return this;
-        }
-
-        std::size_t
-        operator()(
-            std::uint64_t remain,
-            string_view body,
-            error_code& ec) override
-        {
-            return cb_(remain, body, ec);
-        }
-    };
-
     using base_type = basic_parser<isRequest,
         parser<isRequest, Body, Allocator>>;
 
@@ -152,13 +63,15 @@ class parser
     typename Body::writer wr_;
     bool wr_inited_ = false;
 
-    cb_h_t* cb_h_ = nullptr;
-    typename std::aligned_storage<
-        sizeof(cb_h_t_impl<cb_h_exemplar>)>::type cb_h_buf_;
+    std::function<void(
+        std::uint64_t,
+        string_view,
+        error_code&)> cb_h_;
 
-    cb_b_t* cb_b_ = nullptr;
-    typename std::aligned_storage<
-        sizeof(cb_b_t_impl<cb_b_exemplar>)>::type cb_b_buf_;
+    std::function<std::size_t(
+        std::uint64_t,
+        string_view,
+        error_code&)> cb_b_;
 
 public:
     /// The type of message returned by the parser
@@ -166,7 +79,7 @@ public:
         message<isRequest, Body, basic_fields<Allocator>>;
 
     /// Destructor
-    ~parser();
+    ~parser() = default;
 
     /// Constructor
     parser();
@@ -182,7 +95,7 @@ public:
         After the move, the only valid operation
         on the moved-from object is destruction.
     */
-    parser(parser&& other);
+    parser(parser&& other) = default;
 
     /** Constructor
 
@@ -324,7 +237,17 @@ public:
     */
     template<class Callback>
     void
-    on_chunk_header(Callback& cb);
+    on_chunk_header(Callback& cb)
+    {
+        // Callback may not be constant, caller is responsible for
+        // managing the lifetime of the callback. Copies are not made.
+        BOOST_STATIC_ASSERT(! std::is_const<Callback>::value);
+
+        // Can't set the callback after receiving any chunk data!
+        BOOST_ASSERT(! wr_inited_);
+
+        cb_h_ = std::ref(cb);
+    }
 
     /** Set a callback to be invoked on chunk body data
 
@@ -362,7 +285,17 @@ public:
         */
     template<class Callback>
     void
-    on_chunk_body(Callback& cb);
+    on_chunk_body(Callback& cb)
+    {
+        // Callback may not be constant, caller is responsible for
+        // managing the lifetime of the callback. Copies are not made.
+        BOOST_STATIC_ASSERT(! std::is_const<Callback>::value);
+
+        // Can't set the callback after receiving any chunk data!
+        BOOST_ASSERT(! wr_inited_);
+
+        cb_b_ = std::ref(cb);
+    }
 
 private:
     friend class basic_parser<isRequest, parser>;
@@ -460,7 +393,7 @@ private:
         error_code& ec)
     {
         if(cb_h_)
-            return (*cb_h_)(size, extensions, ec);
+            return cb_h_(size, extensions, ec);
         ec.assign(0, ec.category());
     }
 
@@ -471,7 +404,7 @@ private:
         error_code& ec)
     {
         if(cb_b_)
-            return (*cb_b_)(remain, body, ec);
+            return cb_b_(remain, body, ec);
         return wr_.put(boost::asio::buffer(
             body.data(), body.size()), ec);
     }
