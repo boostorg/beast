@@ -51,6 +51,12 @@ public:
     */
     using const_buffers_type = boost::asio::const_buffers_1;
 
+    /** The type used to represent the mutable input sequence as a list of buffers.
+
+        This buffer sequence is guaranteed to have length 1.
+    */
+    using mutable_data_type = boost::asio::mutable_buffers_1;
+
     /** The type used to represent the output sequence as a list of buffers.
 
         This buffer sequence is guaranteed to have length 1.
@@ -97,6 +103,13 @@ public:
     */
     const_buffers_type
     data() const;
+
+    /** Get a list of mutable buffers that represent the input sequence.
+
+        @note These buffers remain valid across subsequent calls to `prepare`.
+    */
+    mutable_data_type
+    mutable_data();
 
     /** Get a list of buffers that represent the output sequence, with the given size.
 
