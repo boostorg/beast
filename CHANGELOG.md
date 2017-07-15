@@ -2,6 +2,7 @@
 * is_invocable works with move-only types
 * Use std::function and reference wrapper
 * Add session_alloc to example/common
+* Silence spurious warning
 
 WebSocket
 
