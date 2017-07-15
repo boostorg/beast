@@ -647,7 +647,7 @@ async_write_header(
             detail::serializer_is_header_done,
                 isRequest, Body, Fields>{
                     init.completion_handler, stream, sr}(
-                        error_code{}, 0);
+                        error_code{});
     return init.result.get();
 }
 

@@ -9,6 +9,7 @@
 #include <beast/http/write.hpp>
 
 #include <beast/http/buffer_body.hpp>
+#include <beast/http/empty_body.hpp>
 #include <beast/http/fields.hpp>
 #include <beast/http/message.hpp>
 #include <beast/http/read.hpp>
@@ -791,16 +792,30 @@ public:
         }
     }
 
+    void
+    testIssue655()
+    {
+        boost::asio::io_service ios;
+        test::pipe c{ios};
+
+        response<empty_body> res;
+        res.chunked(true);
+        response_serializer<empty_body> sr{res};
+        async_write_header(c.client, sr,
+            [&](const error_code&)
+            {
+            });
+
+        ios.run();
+    }
+
     void run() override
     {
+        testIssue655();
         yield_to(
             [&](yield_context yield)
             {
                 testAsyncWrite(yield);
-            });
-        yield_to(
-            [&](yield_context yield)
-            {
                 testFailures(yield);
             });
         testOutput();
