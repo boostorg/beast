@@ -206,6 +206,29 @@ buffer_prefix(std::size_t size, BufferSequence const& buffers)
     return buffer_prefix_view<BufferSequence>(size, buffers);
 }
 
+/** Returns the first buffer in a buffer sequence
+
+    This returns the first buffer in the buffer sequence.
+    If the buffer sequence is an empty range, the returned
+    buffer will have a zero buffer size.
+
+    @param buffers The buffer sequence. If the sequence is
+    mutable, the returned buffer sequence will also be mutable.
+    Otherwise, the returned buffer sequence will be constant.
+*/
+template<class BufferSequence>
+typename std::conditional<
+    is_mutable_buffer_sequence<BufferSequence>::value,
+    boost::asio::mutable_buffer,
+    boost::asio::const_buffer>::type
+buffer_front(BufferSequence const& buffers)
+{
+    auto const first = buffers.begin();
+    if(first == buffers.end())
+        return {nullptr, 0};
+    return *first;
+}
+
 } // beast
 
 #include <beast/core/impl/buffer_prefix.ipp>
