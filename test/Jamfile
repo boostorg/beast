@@ -34,4 +34,5 @@ build-project core ;
 build-project http ;
 build-project server ;
 build-project websocket ;
+build-project wstest ;
 build-project zlib ;
