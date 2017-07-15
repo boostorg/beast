@@ -62,9 +62,10 @@ of scenarios:
     [link beast.ref.beast__basic_flat_buffer `basic_flat_buffer`]
 ][
     Guarantees that input and output areas are buffer sequences with
-    length one. Upon construction an optional upper limit to the total
-    size of the input and output areas may be set. The basic container
-    is an
+    length one.
+    Upon construction an optional upper limit to the total size of the
+    input and output areas may be set.
+    The basic container is an
     [@http://en.cppreference.com/w/cpp/concept/AllocatorAwareContainer [*AllocatorAwareContainer]].
 ]]
 [[
@@ -73,14 +74,16 @@ of scenarios:
 ][
     Uses a sequence of one or more character arrays of varying sizes.
     Additional character array objects are appended to the sequence to
-    accommodate changes in the size of the character sequence. The basic
-    container is an
+    accommodate changes in the size of the character sequence.
+    The basic container is an
     [@http://en.cppreference.com/w/cpp/concept/AllocatorAwareContainer [*AllocatorAwareContainer]].
 ]]
 [[
-    [link beast.ref.beast__static_buffer `static_buffer`]
-    [link beast.ref.beast__static_buffer `static_buffer_n`]
+    [link beast.ref.beast__flat_static_buffer `flat_static_buffer`]
+    [link beast.ref.beast__flat_static_buffer_base `flat_static_buffer_base`]
 ][
+    Guarantees that input and output areas are buffer sequences with
+    length one.
     Provides the facilities of a dynamic buffer, subject to an upper
     limit placed on the total size of the input and output areas defined
     by a constexpr template parameter. The storage for the sequences are

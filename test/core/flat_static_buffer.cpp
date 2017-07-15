@@ -6,7 +6,7 @@
 //
 
 // Test that header file is self-contained.
-#include <beast/core/static_buffer.hpp>
+#include <beast/core/flat_static_buffer.hpp>
 
 #include "buffer_test.hpp"
 
@@ -18,10 +18,10 @@
 namespace beast {
 
 static_assert(
-    is_dynamic_buffer<static_buffer>::value,
+    is_dynamic_buffer<flat_static_buffer_base>::value,
     "DynamicBuffer requirements not met");
 
-class static_buffer_test : public beast::unit_test::suite
+class flat_static_buffer_test : public beast::unit_test::suite
 {
 public:
     void
@@ -44,7 +44,7 @@ public:
         std::size_t v = sizeof(buf) - (t + u);
         {
             std::memset(buf, 0, sizeof(buf));
-            static_buffer_n<sizeof(buf)> ba;
+            flat_static_buffer<sizeof(buf)> ba;
             {
                 auto d = ba.prepare(z);
                 BEAST_EXPECT(buffer_size(d) == z);
@@ -139,32 +139,32 @@ public:
         using namespace test;
         string_view const s = "Hello, world!";
         
-        // static_buffer
+        // flat_static_buffer_base
         {
             char buf[64];
-            static_buffer b{buf, sizeof(buf)};
+            flat_static_buffer_base b{buf, sizeof(buf)};
             ostream(b) << s;
             BEAST_EXPECT(to_string(b.data()) == s);
             b.consume(b.size());
             BEAST_EXPECT(to_string(b.data()) == "");
         }
 
-        // static_buffer_n
+        // flat_static_buffer
         {
-            static_buffer_n<64> b1;
+            flat_static_buffer<64> b1;
             BEAST_EXPECT(b1.size() == 0);
             BEAST_EXPECT(b1.max_size() == 64);
             BEAST_EXPECT(b1.capacity() == 64);
             ostream(b1) << s;
             BEAST_EXPECT(to_string(b1.data()) == s);
             {
-                static_buffer_n<64> b2{b1};
+                flat_static_buffer<64> b2{b1};
                 BEAST_EXPECT(to_string(b2.data()) == s);
                 b2.consume(7);
                 BEAST_EXPECT(to_string(b2.data()) == s.substr(7));
             }
             {
-                static_buffer_n<64> b2;
+                flat_static_buffer<64> b2;
                 b2 = b1;
                 BEAST_EXPECT(to_string(b2.data()) == s);
                 b2.consume(7);
@@ -174,7 +174,7 @@ public:
 
         // cause memmove
         {
-            static_buffer_n<10> b;
+            flat_static_buffer<10> b;
             write_buffer(b, "12345");
             b.consume(3);
             write_buffer(b, "67890123");
@@ -192,7 +192,7 @@ public:
 
         // read_size
         {
-            static_buffer_n<10> b;
+            flat_static_buffer<10> b;
             BEAST_EXPECT(read_size(b, 512) == 10);
             b.prepare(4);
             b.commit(4);
@@ -206,14 +206,14 @@ public:
 
         // base
         {
-            static_buffer_n<10> b;
-            [&](static_buffer& base)
+            flat_static_buffer<10> b;
+            [&](flat_static_buffer_base& base)
             {
                 BEAST_EXPECT(base.max_size() == b.capacity());
             }
             (b.base());
 
-            [&](static_buffer const& base)
+            [&](flat_static_buffer_base const& base)
             {
                 BEAST_EXPECT(base.max_size() == b.capacity());
             }
@@ -228,6 +228,6 @@ public:
     }
 };
 
-BEAST_DEFINE_TESTSUITE(static_buffer,core,beast);
+BEAST_DEFINE_TESTSUITE(flat_static_buffer,core,beast);
 
 } // beastp

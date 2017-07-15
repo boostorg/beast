@@ -5,8 +5,8 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#ifndef BEAST_IMPL_STATIC_BUFFER_IPP
-#define BEAST_IMPL_STATIC_BUFFER_IPP
+#ifndef BEAST_IMPL_FLAT_STATIC_BUFFER_IPP
+#define BEAST_IMPL_FLAT_STATIC_BUFFER_IPP
 
 #include <beast/core/detail/type_traits.hpp>
 #include <boost/asio/buffer.hpp>
@@ -25,7 +25,7 @@ namespace beast {
 
 inline
 auto
-static_buffer::
+flat_static_buffer_base::
 data() const ->
     const_buffers_type
 {
@@ -34,7 +34,7 @@ data() const ->
 
 inline
 auto
-static_buffer::
+flat_static_buffer_base::
 prepare(std::size_t n) ->
     mutable_buffers_type
 {
@@ -43,7 +43,7 @@ prepare(std::size_t n) ->
 
 inline
 void
-static_buffer::
+flat_static_buffer_base::
 reset(void* p, std::size_t n)
 {
     reset_impl(p, n);
@@ -51,7 +51,7 @@ reset(void* p, std::size_t n)
 
 template<class>
 void
-static_buffer::
+flat_static_buffer_base::
 reset_impl(void* p, std::size_t n)
 {
     begin_ =
@@ -64,7 +64,7 @@ reset_impl(void* p, std::size_t n)
 
 template<class>
 auto
-static_buffer::
+flat_static_buffer_base::
 prepare_impl(std::size_t n) ->
     mutable_buffers_type
 {
@@ -87,7 +87,7 @@ prepare_impl(std::size_t n) ->
 
 template<class>
 void
-static_buffer::
+flat_static_buffer_base::
 consume_impl(std::size_t n)
 {
     if(n >= size())
@@ -102,9 +102,9 @@ consume_impl(std::size_t n)
 //------------------------------------------------------------------------------
 
 template<std::size_t N>
-static_buffer_n<N>::
-static_buffer_n(static_buffer_n const& other)
-    : static_buffer(buf_, N)
+flat_static_buffer<N>::
+flat_static_buffer(flat_static_buffer const& other)
+    : flat_static_buffer_base(buf_, N)
 {
     using boost::asio::buffer_copy;
     this->commit(buffer_copy(
@@ -113,9 +113,9 @@ static_buffer_n(static_buffer_n const& other)
 
 template<std::size_t N>
 auto
-static_buffer_n<N>::
-operator=(static_buffer_n const& other) ->
-    static_buffer_n<N>&
+flat_static_buffer<N>::
+operator=(flat_static_buffer const& other) ->
+    flat_static_buffer<N>&
 {
     using boost::asio::buffer_copy;
     this->consume(this->size());

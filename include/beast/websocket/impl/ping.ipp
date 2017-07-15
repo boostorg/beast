@@ -43,7 +43,7 @@ class stream<NextLayer>::ping_op
             using boost::asio::buffer;
             using boost::asio::buffer_copy;
             ws.template write_ping<
-                static_buffer>(fb, op_, payload);
+                flat_static_buffer_base>(fb, op_, payload);
         }
     };
 
@@ -234,7 +234,7 @@ stream<NextLayer>::
 ping(ping_data const& payload, error_code& ec)
 {
     detail::frame_streambuf db;
-    write_ping<static_buffer>(
+    write_ping<flat_static_buffer_base>(
         db, detail::opcode::ping, payload);
     boost::asio::write(stream_, db.data(), ec);
 }
@@ -256,7 +256,7 @@ stream<NextLayer>::
 pong(ping_data const& payload, error_code& ec)
 {
     detail::frame_streambuf db;
-    write_ping<static_buffer>(
+    write_ping<flat_static_buffer_base>(
         db, detail::opcode::pong, payload);
     boost::asio::write(stream_, db.data(), ec);
 }

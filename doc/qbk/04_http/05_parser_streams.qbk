@@ -104,9 +104,10 @@ As with message stream operations, parser stream operations require a
 persisted __DynamicBuffer__  for holding unused octets from the stream.
 The basic parser implementation is optimized for the case where this dynamic
 buffer stores its input sequence in a single contiguous memory buffer. It is
-advised to use an instance of __flat_buffer__, __static_buffer__, or
-__static_buffer_n__ for this purpose, although a user defined instance of
-__DynamicBuffer__ which produces input sequences of length one is also suitable.
+advised to use an instance of __flat_buffer__, __flat_static_buffer__, or
+__flat_static_buffer_base__ for this purpose, although a user defined instance
+of __DynamicBuffer__ which produces input sequences of length one is also
+suitable.
 
 The parser contains a message constructed internally. Arguments passed
 to the parser's constructor are forwarded into the message container.

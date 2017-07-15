@@ -195,6 +195,8 @@
             <member><link linkend="beast.ref.beast__file_stdio">file_stdio</link></member>
             <member><link linkend="beast.ref.beast__file_win32">file_win32</link></member>
             <member><link linkend="beast.ref.beast__flat_buffer">flat_buffer</link></member>
+            <member><link linkend="beast.ref.beast__flat_static_buffer">flat_static_buffer</link></member>
+            <member><link linkend="beast.ref.beast__flat_static_buffer_base">flat_static_buffer_base</link></member>
             <member><link linkend="beast.ref.beast__handler_alloc">handler_alloc</link></member>
             <member><link linkend="beast.ref.beast__handler_ptr">handler_ptr</link></member>
             <member><link linkend="beast.ref.beast__handler_type">handler_type</link></member>
@@ -202,8 +204,6 @@
             <member><link linkend="beast.ref.beast__iless">iless</link></member>
             <member><link linkend="beast.ref.beast__multi_buffer">multi_buffer</link></member>
             <member><link linkend="beast.ref.beast__span">span</link></member>
-            <member><link linkend="beast.ref.beast__static_buffer">static_buffer</link></member>
-            <member><link linkend="beast.ref.beast__static_buffer_n">static_buffer_n</link></member>
             <member><link linkend="beast.ref.beast__static_string">static_string</link></member>
             <member><link linkend="beast.ref.beast__string_param">string_param</link></member>
             <member><link linkend="beast.ref.beast__string_view">string_view</link></member>

@@ -54,7 +54,7 @@ class multi_con
     boost::asio::ssl::context& ctx_;
 
     // Holds the data we read during ssl detection
-    beast::static_buffer_n<6> buffer_;
+    beast::flat_static_buffer<6> buffer_;
 
 public:
     // Constructor

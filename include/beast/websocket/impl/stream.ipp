@@ -19,7 +19,7 @@
 #include <beast/core/buffer_cat.hpp>
 #include <beast/core/buffer_prefix.hpp>
 #include <beast/core/consuming_buffers.hpp>
-#include <beast/core/static_buffer.hpp>
+#include <beast/core/flat_static_buffer.hpp>
 #include <beast/core/type_traits.hpp>
 #include <beast/core/detail/type_traits.hpp>
 #include <boost/assert.hpp>
