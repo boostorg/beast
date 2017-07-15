@@ -202,58 +202,7 @@ class server
             //
             buffer_.consume(buffer_.size());
 
-            // This shows how the server can close the
-            // connection. Alternatively we could call
-            // do_read again and the connection would
-            // stay open until the other side closes it.
-            //
-            do_close();
-        }
-
-        // Sends a websocket close frame
-        void do_close()
-        {
-            // Put the close frame on the timer
-            timer_.expires_from_now(std::chrono::seconds(15));
-
-            // Send the close frame
-            ws_.async_close({},
-                strand_.wrap(std::bind(
-                    &connection::on_close,
-                    shared_from_this(),
-                    std::placeholders::_1)));
-        }
-
-        // Called when writing the close frame completes
-        void on_close(error_code ec)
-        {
-            if(ec)
-                return fail("close", ec);
-
-            on_drain({});
-        }
-
-        // Read and discard any leftover message data
-        void on_drain(error_code ec)
-        {
-            if(ec == websocket::error::closed)
-            {
-                // the connection has been closed gracefully
-                return;
-            }
-
-            if(ec)
-                return fail("drain", ec);
-
-            // WebSocket says that to close a connection you have
-            // to keep reading messages until you receive a close frame.
-            // Beast delivers the close frame as an error from read.
-            //
-            ws_.async_read(drain_,
-                strand_.wrap(std::bind(
-                    &connection::on_drain,
-                    shared_from_this(),
-                    std::placeholders::_1)));
+            do_read();
         }
 
         // Pretty-print an error to the log
