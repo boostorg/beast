@@ -15,6 +15,7 @@
 #include <tuple>
 #include <type_traits>
 #include <string>
+#include <utility>
 
 // A few workarounds to keep things working
 
@@ -108,7 +109,7 @@ template<class R, class C, class ...A>
 auto
 is_invocable_test(C&& c, int, A&& ...a)
     -> decltype(std::is_convertible<
-        decltype(c(a...)), R>::value ||
+        decltype(c(std::forward<A>(a)...)), R>::value ||
             std::is_same<R, void>::value,
                 std::true_type());
 
