@@ -616,7 +616,7 @@ protected:
         }
         name = make_string(first, p);
         ++p; // eat ':'
-        char const* token_last;
+        char const* token_last = nullptr;
         for(;;)
         {
             // eat leading ' ' and '\t'
