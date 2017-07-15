@@ -1,3 +1,9 @@
+Version 83:
+
+* Add flat_static_buffer::mutable_data
+
+--------------------------------------------------------------------------------
+
 Version 82:
 
 * Documentation tidying
