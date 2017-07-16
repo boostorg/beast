@@ -264,7 +264,7 @@ public:
         read(stream<NextLayer>& ws,
             DynamicBuffer& buffer) const
         {
-            ws.read(buffer);
+            return ws.read(buffer);
         }
 
         template<
@@ -279,10 +279,10 @@ public:
         template<
             class NextLayer, class ConstBufferSequence>
         void
-        write_frame(stream<NextLayer>& ws, bool fin,
+        write_some(stream<NextLayer>& ws, bool fin,
             ConstBufferSequence const& buffers) const
         {
-            ws.write_frame(fin, buffers);
+            ws.write_some(fin, buffers);
         }
 
         template<
@@ -521,11 +521,11 @@ public:
         template<
             class NextLayer, class ConstBufferSequence>
         void
-        write_frame(stream<NextLayer>& ws, bool fin,
+        write_some(stream<NextLayer>& ws, bool fin,
             ConstBufferSequence const& buffers) const
         {
             error_code ec;
-            ws.async_write_frame(fin, buffers, yield_[ec]);
+            ws.async_write_some(fin, buffers, yield_[ec]);
             if(ec)
                 throw system_error{ec};
         }
@@ -551,7 +551,6 @@ public:
         ws.auto_fragment(true);
         ws.write_buffer_size(2048);
         ws.binary(false);
-        ws.read_buffer_size(8192);
         ws.read_message_max(1 * 1024 * 1024);
         try
         {
@@ -592,7 +591,7 @@ public:
     {
         static std::size_t constexpr limit = 200;
         std::size_t n;
-        for(n = 0; n < limit; ++n)
+        for(n = 0; n <= limit; ++n)
         {
             test::fail_counter fc{n};
             try
@@ -904,7 +903,7 @@ public:
     {
         static std::size_t constexpr limit = 200;
         std::size_t n;
-        for(n = 199; n < limit; ++n)
+        for(n = 0; n < limit; ++n)
         {
             test::fail_counter fc{n};
             try
@@ -1539,8 +1538,8 @@ public:
         ws.handshake("localhost", "/", ec);
         if(! BEAST_EXPECTS(! ec, ec.message()))
             return;
-        ws.write_frame(false, sbuf("u"));
-        ws.write_frame(true, sbuf("v"));
+        ws.write_some(false, sbuf("u"));
+        ws.write_some(true, sbuf("v"));
         multi_buffer b;
         ws.read(b, ec);
         if(! BEAST_EXPECTS(! ec, ec.message()))
@@ -1562,7 +1561,7 @@ public:
             ws.handshake("localhost", "/", ec);
             if(! BEAST_EXPECTS(! ec, ec.message()))
                 break;
-            ws.async_write_frame(false,
+            ws.async_write_some(false,
                 boost::asio::null_buffers{},
                 [&](error_code)
                 {
@@ -1573,7 +1572,7 @@ public:
                 break;
             //
             // Destruction of the io_service will cause destruction
-            // of the write_frame_op without invoking the final handler.
+            // of the write_some_op without invoking the final handler.
             //
             break;
         }
@@ -1687,9 +1686,9 @@ public:
                         BEAST_EXPECT(s == "payload");
                     });
                 ws.ping("payload");
-                c.write_frame(ws, false, sbuf("Hello, "));
-                c.write_frame(ws, false, sbuf(""));
-                c.write_frame(ws, true, sbuf("World!"));
+                c.write_some(ws, false, sbuf("Hello, "));
+                c.write_some(ws, false, sbuf(""));
+                c.write_some(ws, true, sbuf("World!"));
                 {
                     // receive echoed message
                     multi_buffer db;
@@ -1783,13 +1782,13 @@ public:
                 if(! pmd.client_enable)
                 {
                     // expected cont
-                    c.write_frame(ws, false, boost::asio::null_buffers{});
+                    c.write_some(ws, false, boost::asio::null_buffers{});
                     c.write_raw(ws,
                         cbuf(0x81, 0x80, 0xff, 0xff, 0xff, 0xff));
                     restart(error::closed);
 
                     // message size above 2^64
-                    c.write_frame(ws, false, cbuf(0x00));
+                    c.write_some(ws, false, cbuf(0x00));
                     c.write_raw(ws,
                         cbuf(0x80, 0xff, 0xff, 0xff, 0xff, 0xff,
                             0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff));

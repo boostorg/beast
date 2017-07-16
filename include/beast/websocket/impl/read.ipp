@@ -9,8 +9,9 @@
 #define BEAST_WEBSOCKET_IMPL_READ_IPP
 
 #include <beast/websocket/teardown.hpp>
+#include <beast/core/bind_handler.hpp>
 #include <beast/core/buffer_prefix.hpp>
-#include <beast/core/handler_ptr.hpp>
+#include <beast/core/consuming_buffers.hpp>
 #include <beast/core/flat_static_buffer.hpp>
 #include <beast/core/type_traits.hpp>
 #include <beast/core/detail/clamp.hpp>
@@ -22,6 +23,7 @@
 #include <boost/config.hpp>
 #include <boost/optional.hpp>
 #include <boost/throw_exception.hpp>
+#include <algorithm>
 #include <limits>
 #include <memory>
 
@@ -30,1006 +32,674 @@ namespace websocket {
 
 //------------------------------------------------------------------------------
 
-// Reads a single message frame,
-// processes any received control frames.
-//
+// read a frame header, process control frames
 template<class NextLayer>
-template<class DynamicBuffer, class Handler>
-class stream<NextLayer>::read_frame_op
+template<class Handler>
+class stream<NextLayer>::read_fh_op
 {
-    using fb_type =
-        detail::frame_streambuf;
-
-    using fmb_type =
-        typename fb_type::mutable_buffers_type;
-
-    using dmb_type =
-        typename DynamicBuffer::mutable_buffers_type;
-
-    struct data : op
-    {
-        bool cont;
-        stream<NextLayer>& ws;
-        DynamicBuffer& db;
-        fb_type fb;
-        std::uint64_t remain;
-        detail::frame_header fh;
-        detail::prepared_key key;
-        boost::optional<dmb_type> dmb;
-        boost::optional<fmb_type> fmb;
-        int state = 0;
-
-        data(Handler& handler, stream<NextLayer>& ws_,
-                DynamicBuffer& sb_)
-            : ws(ws_)
-            , db(sb_)
-        {
-            using boost::asio::asio_handler_is_continuation;
-            cont = asio_handler_is_continuation(std::addressof(handler));
-        }
-    };
-
-    handler_ptr<data, Handler> d_;
+    Handler h_;
+    stream<NextLayer>& ws_;
+    int step_ = 0;
+    bool dispatched_ = false;
+    token tok_;
 
 public:
-    read_frame_op(read_frame_op&&) = default;
-    read_frame_op(read_frame_op const&) = default;
+    read_fh_op(read_fh_op&&) = default;
+    read_fh_op(read_fh_op const&) = default;
 
-    template<class DeducedHandler, class... Args>
-    read_frame_op(DeducedHandler&& h,
-            stream<NextLayer>& ws, Args&&... args)
-        : d_(std::forward<DeducedHandler>(h),
-            ws, std::forward<Args>(args)...)
+    template<class DeducedHandler>
+    read_fh_op(
+        DeducedHandler&& h,
+        stream<NextLayer>& ws)
+        : h_(std::forward<DeducedHandler>(h))
+        , ws_(ws)
+        , tok_(ws_.t_.unique())
     {
     }
 
-    void operator()()
+    Handler&
+    handler()
     {
-        (*this)(error_code{}, 0, true);
+        return h_;
     }
 
-    void operator()(error_code const& ec)
-    {
-        (*this)(ec, 0, true);
-    }
-
-    void operator()(error_code ec,
-        std::size_t bytes_transferred);
-
-    void operator()(error_code ec,
-        std::size_t bytes_transferred, bool again);
+    void operator()(error_code ec = {},
+        std::size_t bytes_transferred = 0);
 
     friend
     void* asio_handler_allocate(
-        std::size_t size, read_frame_op* op)
+        std::size_t size, read_fh_op* op)
     {
         using boost::asio::asio_handler_allocate;
         return asio_handler_allocate(
-            size, std::addressof(op->d_.handler()));
+            size, std::addressof(op->h_));
     }
 
     friend
     void asio_handler_deallocate(
-        void* p, std::size_t size, read_frame_op* op)
+        void* p, std::size_t size, read_fh_op* op)
     {
         using boost::asio::asio_handler_deallocate;
         asio_handler_deallocate(
-            p, size, std::addressof(op->d_.handler()));
+            p, size, std::addressof(op->h_));
     }
 
     friend
-    bool asio_handler_is_continuation(read_frame_op* op)
+    bool asio_handler_is_continuation(read_fh_op* op)
     {
-        return op->d_->cont;
+        using boost::asio::asio_handler_is_continuation;
+        return op->dispatched_ ||
+            asio_handler_is_continuation(
+                std::addressof(op->h_));
     }
 
     template<class Function>
     friend
-    void asio_handler_invoke(Function&& f, read_frame_op* op)
+    void asio_handler_invoke(Function&& f, read_fh_op* op)
     {
         using boost::asio::asio_handler_invoke;
-        asio_handler_invoke(
-            f, std::addressof(op->d_.handler()));
+        asio_handler_invoke(f, std::addressof(op->h_));
     }
 };
 
 template<class NextLayer>
-template<class DynamicBuffer, class Handler>
+template<class Handler>
 void
-stream<NextLayer>::read_frame_op<DynamicBuffer, Handler>::
-operator()(error_code ec, std::size_t bytes_transferred)
-{
-    auto& d = *d_;
-    if(ec)
-        d.ws.failed_ = true;
-    (*this)(ec, bytes_transferred, true);
-}
-
-template<class NextLayer>
-template<class DynamicBuffer, class Handler>
-void
-stream<NextLayer>::read_frame_op<DynamicBuffer, Handler>::
-operator()(error_code ec,
-    std::size_t bytes_transferred, bool again)
+stream<NextLayer>::
+read_fh_op<Handler>::
+operator()(
+    error_code ec,
+    std::size_t bytes_transferred)
 {
     using beast::detail::clamp;
-    using boost::asio::buffer;
     enum
     {
-        do_start = 0,
-        do_read_payload = 1,
-        do_inflate_payload = 30,
-        do_frame_done = 4,
-        do_read_fh = 5,
-        do_control_payload = 8,
-        do_control = 9,
-        do_pong_resume = 10,
-        do_ponged = 12,
-        do_close_resume = 14,
-        do_teardown = 17,
-        do_fail = 19,
-
-        do_call_handler = 99
+        do_loop     = 0,
+        do_pong     = 10
     };
-
-    auto& d = *d_;
-    if(d.state == do_teardown + 1 && ec == boost::asio::error::eof)
+    switch(step_)
     {
-        // Rationale:
-        // http://stackoverflow.com/questions/25587403/boost-asio-ssl-async-shutdown-always-finishes-with-an-error
-        ec.assign(0, ec.category());
-    }
-    if(! ec)
+    case do_loop:
+    go_loop:
     {
-        d.cont = d.cont || again;
-        close_code code = close_code::none;
-        do
+        BOOST_ASSERT(
+            ws_.rd_.remain == 0 &&
+            (! ws_.rd_.fh.fin || ws_.rd_.done));
+        if(ws_.failed_)
         {
-            switch(d.state)
-            {
-            case do_start:
-                if(d.ws.failed_)
-                {
-                    d.state = do_call_handler;
-                    d.ws.get_io_service().post(
-                        bind_handler(std::move(*this),
-                            boost::asio::error::operation_aborted, 0));
-                    return;
-                }
-                d.state = do_read_fh;
-                break;
-
-            //------------------------------------------------------------------
-
-            case do_read_payload:
-                if(d.fh.len == 0)
-                {
-                    d.state = do_frame_done;
-                    break;
-                }
-                // Enforce message size limit
-                if(d.ws.rd_msg_max_ && d.fh.len >
-                    d.ws.rd_msg_max_ - d.ws.rd_.size)
-                {
-                    code = close_code::too_big;
-                    d.state = do_fail;
-                    break;
-                }
-                d.ws.rd_.size += d.fh.len;
-                d.remain = d.fh.len;
-                if(d.fh.mask)
-                    detail::prepare_key(d.key, d.fh.key);
-                BEAST_FALLTHROUGH;
-
-            case do_read_payload + 1:
-                d.state = do_read_payload + 2;
-                d.dmb = d.db.prepare(clamp(d.remain));
-                // Read frame payload data
-                d.ws.stream_.async_read_some(
-                    *d.dmb, std::move(*this));
-                return;
-
-            case do_read_payload + 2:
-            {
-                d.remain -= bytes_transferred;
-                auto const pb = buffer_prefix(
-                    bytes_transferred, *d.dmb);
-                if(d.fh.mask)
-                    detail::mask_inplace(pb, d.key);
-                if(d.ws.rd_.op == detail::opcode::text)
-                {
-                    if(! d.ws.rd_.utf8.write(pb) ||
-                        (d.remain == 0 && d.fh.fin &&
-                            ! d.ws.rd_.utf8.finish()))
-                    {
-                        // invalid utf8
-                        code = close_code::bad_payload;
-                        d.state = do_fail;
-                        break;
-                    }
-                }
-                d.db.commit(bytes_transferred);
-                if(d.remain > 0)
-                {
-                    d.state = do_read_payload + 1;
-                    break;
-                }
-                d.state = do_frame_done;
-                break;
-            }
-
-            //------------------------------------------------------------------
-
-            case do_inflate_payload:
-                d.remain = d.fh.len;
-                if(d.fh.len == 0)
-                {
-                    // inflate even if fh.len == 0, otherwise we
-                    // never emit the end-of-stream deflate block.
-                    bytes_transferred = 0;
-                    d.state = do_inflate_payload + 2;
-                    break;
-                }
-                if(d.fh.mask)
-                    detail::prepare_key(d.key, d.fh.key);
-                // fall through
-
-            case do_inflate_payload + 1:
-            {
-                d.state = do_inflate_payload + 2;
-                // Read compressed frame payload data
-                d.ws.stream_.async_read_some(
-                    buffer(d.ws.rd_.buf.get(), clamp(
-                        d.remain, d.ws.rd_.buf_size)),
-                            std::move(*this));
-                return;
-            }
-
-            case do_inflate_payload + 2:
-            {
-                d.remain -= bytes_transferred;
-                auto const in = buffer(
-                    d.ws.rd_.buf.get(), bytes_transferred);
-                if(d.fh.mask)
-                    detail::mask_inplace(in, d.key);
-                auto const prev = d.db.size();
-                detail::inflate(d.ws.pmd_->zi, d.db, in, ec);
-                d.ws.failed_ = !!ec;
-                if(d.ws.failed_)
-                    break;
-                if(d.remain == 0 && d.fh.fin)
-                {
-                    static std::uint8_t constexpr
-                        empty_block[4] = {
-                            0x00, 0x00, 0xff, 0xff };
-                    detail::inflate(d.ws.pmd_->zi, d.db,
-                        buffer(&empty_block[0], 4), ec);
-                    d.ws.failed_ = !!ec;
-                    if(d.ws.failed_)
-                        break;
-                }
-                if(d.ws.rd_.op == detail::opcode::text)
-                {
-                    consuming_buffers<typename
-                        DynamicBuffer::const_buffers_type
-                            > cb{d.db.data()};
-                    cb.consume(prev);
-                    if(! d.ws.rd_.utf8.write(cb) ||
-                        (d.remain == 0 && d.fh.fin &&
-                            ! d.ws.rd_.utf8.finish()))
-                    {
-                        // invalid utf8
-                        code = close_code::bad_payload;
-                        d.state = do_fail;
-                        break;
-                    }
-                }
-                if(d.remain > 0)
-                {
-                    d.state = do_inflate_payload + 1;
-                    break;
-                }
-                if(d.fh.fin && (
-                    (d.ws.role_ == role_type::client &&
-                        d.ws.pmd_config_.server_no_context_takeover) ||
-                    (d.ws.role_ == role_type::server &&
-                        d.ws.pmd_config_.client_no_context_takeover)))
-                    d.ws.pmd_->zi.reset();
-                d.state = do_frame_done;
-                break;
-            }
-
-            //------------------------------------------------------------------
-
-            case do_frame_done:
-                goto upcall;
-
-            //------------------------------------------------------------------
-
-            case do_read_fh:
-                d.state = do_read_fh + 1;
-                boost::asio::async_read(d.ws.stream_,
-                    d.fb.prepare(2), std::move(*this));
-                return;
-
-            case do_read_fh + 1:
-            {
-                d.fb.commit(bytes_transferred);
-                code = close_code::none;
-                auto const n = d.ws.read_fh1(
-                    d.fh, d.fb, code);
-                if(code != close_code::none)
-                {
-                    // protocol error
-                    d.state = do_fail;
-                    break;
-                }
-                d.state = do_read_fh + 2;
-                if(n == 0)
-                {
-                    bytes_transferred = 0;
-                    break;
-                }
-                // read variable header
-                boost::asio::async_read(d.ws.stream_,
-                    d.fb.prepare(n), std::move(*this));
-                return;
-            }
-
-            case do_read_fh + 2:
-                d.fb.commit(bytes_transferred);
-                code = close_code::none;
-                d.ws.read_fh2(d.fh, d.fb, code);
-                if(code != close_code::none)
-                {
-                    // protocol error
-                    d.state = do_fail;
-                    break;
-                }
-                if(detail::is_control(d.fh.op))
-                {
-                    if(d.fh.len > 0)
-                    {
-                        // read control payload
-                        d.state = do_control_payload;
-                        d.fmb = d.fb.prepare(static_cast<
-                            std::size_t>(d.fh.len));
-                        boost::asio::async_read(d.ws.stream_,
-                            *d.fmb, std::move(*this));
-                        return;
-                    }
-                    d.state = do_control;
-                    break;
-                }
-                if(d.fh.op == detail::opcode::text ||
-                        d.fh.op == detail::opcode::binary)
-                    d.ws.rd_begin();
-                if(d.fh.len == 0 && ! d.fh.fin)
-                {
-                    // Empty message frame
-                    d.state = do_frame_done;
-                    break;
-                }
-                if(! d.ws.pmd_ || ! d.ws.pmd_->rd_set)
-                    d.state = do_read_payload;
-                else
-                    d.state = do_inflate_payload;
-                break;
-
-            //------------------------------------------------------------------
-
-            case do_control_payload:
-                if(d.fh.mask)
-                {
-                    detail::prepare_key(d.key, d.fh.key);
-                    detail::mask_inplace(*d.fmb, d.key);
-                }
-                d.fb.commit(bytes_transferred);
-                d.state = do_control; // VFALCO fall through?
-                break;
-
-            //------------------------------------------------------------------
-
-            case do_control:
-                if(d.fh.op == detail::opcode::ping)
-                {
-                    ping_data payload;
-                    detail::read(payload, d.fb.data());
-                    d.fb.consume(d.fb.size());
-                    if(d.ws.ctrl_cb_)
-                        d.ws.ctrl_cb_(
-                            frame_type::ping, payload);
-                    if(d.ws.wr_close_)
-                    {
-                        // ignore ping when closing
-                        d.state = do_read_fh;
-                        break;
-                    }
-                    d.ws.template write_ping<flat_static_buffer_base>(
-                        d.fb, detail::opcode::pong, payload);
-                    if(d.ws.wr_block_)
-                    {
-                        // suspend
-                        BOOST_ASSERT(d.ws.wr_block_ != &d);
-                        d.state = do_pong_resume;
-                        d.ws.rd_op_.emplace(std::move(*this));
-                        return;
-                    }
-                    d.ws.wr_block_ = &d;
-                    goto go_pong;
-                }
-                if(d.fh.op == detail::opcode::pong)
-                {
-                    code = close_code::none;
-                    ping_data payload;
-                    detail::read(payload, d.fb.data());
-                    if(d.ws.ctrl_cb_)
-                        d.ws.ctrl_cb_(
-                            frame_type::pong, payload);
-                    d.fb.consume(d.fb.size());
-                    d.state = do_read_fh;
-                    break;
-                }
-                BOOST_ASSERT(d.fh.op == detail::opcode::close);
-                {
-                    BOOST_ASSERT(! d.ws.rd_close_);
-                    d.ws.rd_close_ = true;
-                    detail::read(d.ws.cr_, d.fb.data(), code);
-                    if(code != close_code::none)
-                    {
-                        // protocol error
-                        d.state = do_fail;
-                        break;
-                    }
-                    if(d.ws.ctrl_cb_)
-                        d.ws.ctrl_cb_(frame_type::close,
-                            d.ws.cr_.reason);
-                    if(! d.ws.wr_close_)
-                    {
-                        auto cr = d.ws.cr_;
-                        if(cr.code == close_code::none)
-                            cr.code = close_code::normal;
-                        cr.reason = "";
-                        d.fb.consume(d.fb.size());
-                        d.ws.template write_close<
-                            flat_static_buffer_base>(d.fb, cr);
-                        if(d.ws.wr_block_)
-                        {
-                            // suspend
-                            BOOST_ASSERT(d.ws.wr_block_ != &d);
-                            d.state = do_close_resume;
-                            d.ws.rd_op_.emplace(std::move(*this));
-                            return;
-                        }
-                        d.ws.wr_block_ = &d;
-                        goto go_close;
-                    }
-                    d.state = do_teardown;
-                    break;
-                }
-
-            //------------------------------------------------------------------
-
-            case do_pong_resume:
-                BOOST_ASSERT(! d.ws.wr_block_);
-                d.ws.wr_block_ = &d;
-                d.state = do_pong_resume + 1;
-                // The current context is safe but might not be
-                // the same as the one for this operation (since
-                // we are being called from a write operation).
-                // Call post to make sure we are invoked the same
-                // way as the final handler for this operation.
-                d.ws.get_io_service().post(bind_handler(
-                    std::move(*this), ec, 0));
-                return;
-
-            case do_pong_resume + 1:
-                BOOST_ASSERT(d.ws.wr_block_ == &d);
-                if(d.ws.failed_)
-                {
-                    // call handler
-                    ec = boost::asio::error::operation_aborted;
-                    goto upcall;
-                }
-                if(d.ws.wr_close_)
-                {
-                    // ignore ping when closing
-                    d.ws.wr_block_ = nullptr;
-                    d.fb.consume(d.fb.size());
-                    d.state = do_read_fh;
-                    break;
-                }
-
-            //------------------------------------------------------------------
-
-            go_pong:
-                // send pong
-                BOOST_ASSERT(d.ws.wr_block_ == &d);
-                d.state = do_ponged;
-                boost::asio::async_write(d.ws.stream_,
-                    d.fb.data(), std::move(*this));
-                return;
-
-            case do_ponged:
-                d.ws.wr_block_ = nullptr;
-                d.fb.consume(d.fb.size());
-                d.state = do_read_fh;
-                break;
-
-            //------------------------------------------------------------------
-
-            case do_close_resume:
-                BOOST_ASSERT(! d.ws.wr_block_);
-                d.ws.wr_block_ = &d;
-                d.state = do_close_resume + 1;
-                // The current context is safe but might not be
-                // the same as the one for this operation (since
-                // we are being called from a write operation).
-                // Call post to make sure we are invoked the same
-                // way as the final handler for this operation.
-                d.ws.get_io_service().post(bind_handler(
-                    std::move(*this), ec, bytes_transferred));
-                return;
-
-            case do_close_resume + 1:
-                BOOST_ASSERT(d.ws.wr_block_ == &d);
-                if(d.ws.failed_)
-                {
-                    // call handler
-                    ec = boost::asio::error::operation_aborted;
-                    goto upcall;
-                }
-                if(d.ws.wr_close_)
-                {
-                    // already sent a close frame
-                    ec = error::closed;
-                    goto upcall;
-                }
-
-            //------------------------------------------------------------------
-
-            go_close:
-                BOOST_ASSERT(d.ws.wr_block_ == &d);
-                d.state = do_teardown;
-                d.ws.wr_close_ = true;
-                boost::asio::async_write(d.ws.stream_,
-                    d.fb.data(), std::move(*this));
-                return;
-
-            //------------------------------------------------------------------
-
-            case do_teardown:
-                d.state = do_teardown + 1;
-                websocket_helpers::call_async_teardown(
-                    d.ws.next_layer(), std::move(*this));
-                return;
-
-            case do_teardown + 1:
-                // call handler
-                ec = error::closed;
-                goto upcall;
-
-            //------------------------------------------------------------------
-
-            case do_fail:
-                if(d.ws.wr_close_)
-                {
-                    d.state = do_fail + 4;
-                    break;
-                }
-                d.fb.consume(d.fb.size());
-                d.ws.template write_close<
-                    flat_static_buffer_base>(d.fb, code);
-                if(d.ws.wr_block_)
-                {
-                    // suspend
-                    BOOST_ASSERT(d.ws.wr_block_ != &d);
-                    d.state = do_fail + 2;
-                    d.ws.rd_op_.emplace(std::move(*this));
-                    return;
-                }
-                d.ws.wr_block_ = &d;
-                BEAST_FALLTHROUGH;
-
-            case do_fail + 1:
-                BOOST_ASSERT(d.ws.wr_block_ == &d);
-                d.ws.failed_ = true;
-                // send close frame
-                d.state = do_fail + 4;
-                d.ws.wr_close_ = true;
-                boost::asio::async_write(d.ws.stream_,
-                    d.fb.data(), std::move(*this));
-                return;
-
-            case do_fail + 2:
-                // resume
-                BOOST_ASSERT(! d.ws.wr_block_);
-                d.ws.wr_block_ = &d;
-                d.state = do_fail + 3;
-                // The current context is safe but might not be
-                // the same as the one for this operation (since
-                // we are being called from a write operation).
-                // Call post to make sure we are invoked the same
-                // way as the final handler for this operation.
-                d.ws.get_io_service().post(bind_handler(
-                    std::move(*this), ec, bytes_transferred));
-                return;
-
-            case do_fail + 3:
-                BOOST_ASSERT(d.ws.wr_block_ == &d);
-                if(d.ws.failed_ || d.ws.wr_close_)
-                {
-                    // call handler
-                    ec = error::failed;
-                    goto upcall;
-                }
-                d.state = do_fail + 1;
-                break;
-
-            case do_fail + 4:
-                d.state = do_fail + 5;
-                websocket_helpers::call_async_teardown(
-                    d.ws.next_layer(), std::move(*this));
-                return;
-
-            case do_fail + 5:
-                // call handler
-                ec = error::failed;
-                goto upcall;
-
-            //------------------------------------------------------------------
-
-            case do_call_handler:
-                goto upcall;
-            }
+            // Reads after failure are aborted
+            ec = boost::asio::error::operation_aborted;
+            break;
         }
-        while(! ec);
-    }
-upcall:
-    if(d.ws.wr_block_ == &d)
-        d.ws.wr_block_ = nullptr;
-    d.ws.close_op_.maybe_invoke() ||
-        d.ws.ping_op_.maybe_invoke() ||
-        d.ws.wr_op_.maybe_invoke();
-    bool const fin = (! ec) ? d.fh.fin : false;
-    d_.invoke(ec, fin);
-}
-
-template<class NextLayer>
-template<class DynamicBuffer, class ReadHandler>
-async_return_type<
-    ReadHandler, void(error_code, bool)>
-stream<NextLayer>::
-async_read_frame(DynamicBuffer& buffer, ReadHandler&& handler)
-{
-    static_assert(is_async_stream<next_layer_type>::value,
-        "AsyncStream requirements requirements not met");
-    static_assert(beast::is_dynamic_buffer<DynamicBuffer>::value,
-        "DynamicBuffer requirements not met");
-    async_completion<ReadHandler,
-        void(error_code, bool)> init{handler};
-    read_frame_op<DynamicBuffer, handler_type<
-        ReadHandler, void(error_code, bool)>>{
-            init.completion_handler,*this, buffer}(
-                {}, 0, false);
-    return init.result.get();
-}
-
-template<class NextLayer>
-template<class DynamicBuffer>
-bool
-stream<NextLayer>::
-read_frame(DynamicBuffer& buffer)
-{
-    static_assert(is_sync_stream<next_layer_type>::value,
-        "SyncStream requirements not met");
-    static_assert(beast::is_dynamic_buffer<DynamicBuffer>::value,
-        "DynamicBuffer requirements not met");
-    error_code ec;
-    auto const fin = read_frame(buffer, ec);
-    if(ec)
-        BOOST_THROW_EXCEPTION(system_error{ec});
-    return fin;
-}
-
-template<class NextLayer>
-template<class DynamicBuffer>
-bool
-stream<NextLayer>::
-read_frame(DynamicBuffer& dynabuf, error_code& ec)
-{
-    static_assert(is_sync_stream<next_layer_type>::value,
-        "SyncStream requirements not met");
-    static_assert(beast::is_dynamic_buffer<DynamicBuffer>::value,
-        "DynamicBuffer requirements not met");
-    using beast::detail::clamp;
-    using boost::asio::buffer;
-    using boost::asio::buffer_cast;
-    using boost::asio::buffer_size;
-    close_code code{};
-    for(;;)
-    {
+        close_code code{};
         // Read frame header
-        detail::frame_header fh;
-        detail::frame_streambuf fb;
+        if(! ws_.parse_fh(ws_.rd_.fh, ws_.rd_.buf, code))
         {
-            fb.commit(boost::asio::read(
-                stream_, fb.prepare(2), ec));
-            failed_ = !!ec;
-            if(failed_)
-                return false;
-            {
-                auto const n = read_fh1(fh, fb, code);
-                if(code != close_code::none)
-                    goto do_close;
-                if(n > 0)
-                {
-                    fb.commit(boost::asio::read(
-                        stream_, fb.prepare(n), ec));
-                    failed_ = !!ec;
-                    if(failed_)
-                        return false;
-                }
-            }
-            read_fh2(fh, fb, code);
-
-            failed_ = !!ec;
-            if(failed_)
-                return false;
             if(code != close_code::none)
-                goto do_close;
-        }
-        if(detail::is_control(fh.op))
-        {
-            // Read control frame payload
-            if(fh.len > 0)
             {
-                auto const mb = fb.prepare(
-                    static_cast<std::size_t>(fh.len));
-                fb.commit(boost::asio::read(stream_, mb, ec));
-                failed_ = !!ec;
-                if(failed_)
-                    return false;
-                if(fh.mask)
-                {
-                    detail::prepared_key key;
-                    detail::prepare_key(key, fh.key);
-                    detail::mask_inplace(mb, key);
-                }
-                fb.commit(static_cast<std::size_t>(fh.len));
+                // _Fail the WebSocket Connection_
+                return fail_op<Handler>{
+                    std::move(h_), ws_, code}();
             }
+            step_ = do_loop + 1;
+            return ws_.stream_.async_read_some(
+                ws_.rd_.buf.prepare(read_size(
+                    ws_.rd_.buf, ws_.rd_.buf.max_size())),
+                        std::move(*this));
+        }
+        // Immediately apply the mask to the portion
+        // of the buffer holding payload data.
+        if(ws_.rd_.fh.len > 0 && ws_.rd_.fh.mask)
+            detail::mask_inplace(buffer_prefix(
+                clamp(ws_.rd_.fh.len),
+                    ws_.rd_.buf.mutable_data()),
+                        ws_.rd_.key);
+        if(detail::is_control(ws_.rd_.fh.op))
+        {
+            // Get control frame payload
+            auto const cb = buffer_prefix(clamp(
+                ws_.rd_.fh.len), ws_.rd_.buf.data());
+            auto const len = buffer_size(cb);
+            BOOST_ASSERT(len == ws_.rd_.fh.len);
             // Process control frame
-            if(fh.op == detail::opcode::ping)
+            if(ws_.rd_.fh.op == detail::opcode::ping)
             {
                 ping_data payload;
-                detail::read(payload, fb.data());
-                fb.consume(fb.size());
-                if(ctrl_cb_)
-                    ctrl_cb_(frame_type::ping, payload);
-                write_ping<flat_static_buffer_base>(fb,
-                    detail::opcode::pong, payload);
-                boost::asio::write(stream_, fb.data(), ec);
-                failed_ = !!ec;
-                if(failed_)
-                    return false;
-                continue;
+                detail::read_ping(payload, cb);
+                ws_.rd_.buf.consume(len);
+                if(ws_.wr_close_)
+                {
+                    // Ignore ping when closing
+                    goto go_loop;
+                }
+                if(ws_.ctrl_cb_)
+                    ws_.ctrl_cb_(frame_type::ping, payload);
+                ws_.rd_.fb.consume(ws_.rd_.fb.size());
+                ws_.template write_ping<
+                    flat_static_buffer_base>(ws_.rd_.fb,
+                        detail::opcode::pong, payload);
+                goto go_pong;
             }
-            else if(fh.op == detail::opcode::pong)
+            if(ws_.rd_.fh.op == detail::opcode::pong)
             {
+                code = close_code::none;
                 ping_data payload;
-                detail::read(payload, fb.data());
-                if(ctrl_cb_)
-                    ctrl_cb_(frame_type::pong, payload);
-                continue;
+                detail::read_ping(payload, cb);
+                ws_.rd_.buf.consume(len);
+                // Ignore pong when closing
+                if(! ws_.wr_close_ && ws_.ctrl_cb_)
+                    ws_.ctrl_cb_(frame_type::pong, payload);
+                goto go_loop;
             }
-            BOOST_ASSERT(fh.op == detail::opcode::close);
+            BOOST_ASSERT(ws_.rd_.fh.op == detail::opcode::close);
             {
-                BOOST_ASSERT(! rd_close_);
-                rd_close_ = true;
-                detail::read(cr_, fb.data(), code);
+                BOOST_ASSERT(! ws_.rd_close_);
+                ws_.rd_close_ = true;
+                detail::read_close(ws_.cr_, cb, code);
                 if(code != close_code::none)
-                    goto do_close;
-                if(ctrl_cb_)
-                    ctrl_cb_(frame_type::close, cr_.reason);
-                if(! wr_close_)
                 {
-                    auto cr = cr_;
-                    if(cr.code == close_code::none)
-                        cr.code = close_code::normal;
-                    cr.reason = "";
-                    fb.consume(fb.size());
-                    wr_close_ = true;
-                    write_close<flat_static_buffer_base>(fb, cr);
-                    boost::asio::write(stream_, fb.data(), ec);
-                    failed_ = !!ec;
-                    if(failed_)
-                        return false;
+                    // _Fail the WebSocket Connection_
+                    return fail_op<Handler>{
+                        std::move(h_), ws_, code}();
                 }
-                goto do_close;
+                ws_.rd_.buf.consume(len);
+                if(ws_.ctrl_cb_)
+                    ws_.ctrl_cb_(frame_type::close,
+                        ws_.cr_.reason);
+                if(ws_.wr_close_)
+                {
+                    // _Close the WebSocket Connection_
+                    return fail_op<Handler>{
+                        std::move(h_), ws_, fail_how::close}();
+                }
+                auto cr = ws_.cr_;
+                if(cr.code == close_code::none)
+                    cr.code = close_code::normal;
+                cr.reason = "";
+                ws_.rd_.fb.consume(ws_.rd_.fb.size());
+                ws_.template write_close<
+                    flat_static_buffer_base>(
+                        ws_.rd_.fb, cr);
+                // _Start the WebSocket Closing Handshake_
+                return fail_op<Handler>{
+                    std::move(h_), ws_, fail_how::close}();
             }
         }
-        if(fh.op != detail::opcode::cont)
-            rd_begin();
-        if(fh.len == 0 && ! fh.fin)
+        if(ws_.rd_.fh.len == 0 && ! ws_.rd_.fh.fin)
         {
-            // empty frame
-            continue;
+            // Empty non-final frame
+            goto go_loop;
         }
-        auto remain = fh.len;
-        detail::prepared_key key;
-        if(fh.mask)
-            detail::prepare_key(key, fh.key);
-        if(! pmd_ || ! pmd_->rd_set)
-        {
-            // Enforce message size limit
-            if(rd_msg_max_ && fh.len >
-                rd_msg_max_ - rd_.size)
-            {
-                code = close_code::too_big;
-                goto do_close;
-            }
-            rd_.size += fh.len;
-            // Read message frame payload
-            while(remain > 0)
-            {
-                auto b =
-                    dynabuf.prepare(clamp(remain));
-                auto const bytes_transferred =
-                    stream_.read_some(b, ec);
-                failed_ = !!ec;
-                if(failed_)
-                    return false;
-                BOOST_ASSERT(bytes_transferred > 0);
-                remain -= bytes_transferred;
-                auto const pb = buffer_prefix(
-                    bytes_transferred, b);
-                if(fh.mask)
-                    detail::mask_inplace(pb, key);
-                if(rd_.op == detail::opcode::text)
-                {
-                    if(! rd_.utf8.write(pb) ||
-                        (remain == 0 && fh.fin &&
-                            ! rd_.utf8.finish()))
-                    {
-                        code = close_code::bad_payload;
-                        goto do_close;
-                    }
-                }
-                dynabuf.commit(bytes_transferred);
-            }
-        }
-        else
-        {
-            // Read compressed message frame payload:
-            // inflate even if fh.len == 0, otherwise we
-            // never emit the end-of-stream deflate block.
-            for(;;)
-            {
-                auto const bytes_transferred =
-                    stream_.read_some(buffer(rd_.buf.get(),
-                        clamp(remain, rd_.buf_size)), ec);
-                failed_ = !!ec;
-                if(failed_)
-                    return false;
-                remain -= bytes_transferred;
-                auto const in = buffer(
-                    rd_.buf.get(), bytes_transferred);
-                if(fh.mask)
-                    detail::mask_inplace(in, key);
-                auto const prev = dynabuf.size();
-                detail::inflate(pmd_->zi, dynabuf, in, ec);
-                failed_ = !!ec;
-                if(failed_)
-                    return false;
-                if(remain == 0 && fh.fin)
-                {
-                    static std::uint8_t constexpr
-                        empty_block[4] = {
-                            0x00, 0x00, 0xff, 0xff };
-                    detail::inflate(pmd_->zi, dynabuf,
-                        buffer(&empty_block[0], 4), ec);
-                    failed_ = !!ec;
-                    if(failed_)
-                        return false;
-                }
-                if(rd_.op == detail::opcode::text)
-                {
-                    consuming_buffers<typename
-                        DynamicBuffer::const_buffers_type
-                            > cb{dynabuf.data()};
-                    cb.consume(prev);
-                    if(! rd_.utf8.write(cb) || (
-                        remain == 0 && fh.fin &&
-                            ! rd_.utf8.finish()))
-                    {
-                        code = close_code::bad_payload;
-                        goto do_close;
-                    }
-                }
-                if(remain == 0)
-                    break;
-            }
-            if(fh.fin && (
-                (role_ == role_type::client &&
-                    pmd_config_.server_no_context_takeover) ||
-                (role_ == role_type::server &&
-                    pmd_config_.client_no_context_takeover)))
-                pmd_->zi.reset();
-        }
-        return fh.fin;
+        ws_.rd_.done = false;
+        break;
     }
-do_close:
-    if(code != close_code::none)
-    {
-        // Fail the connection (per rfc6455)
-        if(! wr_close_)
+
+    case do_loop + 1:
+        dispatched_ = true;
+        ws_.failed_ = !!ec;
+        if(ws_.failed_)
+            break;
+        ws_.rd_.buf.commit(bytes_transferred);
+        goto go_loop;
+
+    go_pong:
+        if(ws_.wr_block_)
         {
-            wr_close_ = true;
-            detail::frame_streambuf fb;
-            write_close<flat_static_buffer_base>(fb, code);
-            boost::asio::write(stream_, fb.data(), ec);
-            failed_ = !!ec;
-            if(failed_)
-                return false;
+            // suspend
+            BOOST_ASSERT(ws_.wr_block_ != tok_);
+            step_ = do_pong;
+            ws_.rd_op_.save(std::move(*this));
+            return;
         }
-        websocket_helpers::call_teardown(next_layer(), ec);
-        if(ec == boost::asio::error::eof)
+        ws_.wr_block_ = tok_;
+        goto go_pong_send;
+
+    case do_pong:
+        BOOST_ASSERT(! ws_.wr_block_);
+        ws_.wr_block_ = tok_;
+        step_ = do_pong + 1;
+        // The current context is safe but might not be
+        // the same as the one for this operation (since
+        // we are being called from a write operation).
+        // Call post to make sure we are invoked the same
+        // way as the final handler for this operation.
+        ws_.get_io_service().post(bind_handler(
+            std::move(*this), ec, 0));
+        return;
+
+    case do_pong + 1:
+        BOOST_ASSERT(ws_.wr_block_ == tok_);
+        dispatched_ = true;
+        if(ws_.failed_)
         {
-            // Rationale:
-            // http://stackoverflow.com/questions/25587403/boost-asio-ssl-async-shutdown-always-finishes-with-an-error
-            ec.assign(0, ec.category());
+            // call handler
+            ws_.wr_block_.reset();
+            ec = boost::asio::error::operation_aborted;
+            break;
         }
-        failed_ = !!ec;
-        if(failed_)
-            return false;
-        ec = error::failed;
-        failed_ = true;
-        return false;
+        if(ws_.wr_close_)
+        {
+            // ignore ping when closing
+            ws_.wr_block_.reset();
+            ws_.rd_.fb.consume(ws_.rd_.fb.size());
+            goto go_loop;
+        }
+    go_pong_send:
+        // send pong
+        BOOST_ASSERT(ws_.wr_block_ == tok_);
+        step_ = do_pong + 2;
+        boost::asio::async_write(ws_.stream_,
+            ws_.rd_.fb.data(), std::move(*this));
+        return;
+
+    case do_pong + 2:
+        BOOST_ASSERT(ws_.wr_block_ == tok_);
+        dispatched_ = true;
+        ws_.wr_block_.reset();
+        ws_.failed_ = !!ec;
+        if(ws_.failed_)
+            break;
+        ws_.rd_.fb.consume(ws_.rd_.fb.size());
+        goto go_loop;
     }
-    if(! ec)
-    {
-        websocket_helpers::call_teardown(next_layer(), ec);
-        if(ec == boost::asio::error::eof)
-        {
-            // (See above)
-            ec.assign(0, ec.category());
-        }
-    }
-    if(! ec)
-        ec = error::closed;
-    failed_ = !!ec;
-    if(failed_)
-        return false;
-    return true;
+    // upcall
+    BOOST_ASSERT(ws_.wr_block_ != tok_);
+    ws_.close_op_.maybe_invoke() ||
+        ws_.ping_op_.maybe_invoke() ||
+        ws_.wr_op_.maybe_invoke();
+    if(! dispatched_)
+        ws_.stream_.get_io_service().post(
+            bind_handler(std::move(h_), ec));
+    else
+        h_(ec);
 }
 
 //------------------------------------------------------------------------------
 
-// read an entire message
+// Reads a single message frame,
+// processes any received control frames.
 //
 template<class NextLayer>
-template<class DynamicBuffer, class Handler>
+template<
+    class MutableBufferSequence,
+    class Handler>
+class stream<NextLayer>::read_some_op
+{
+    Handler h_;
+    stream<NextLayer>& ws_;
+    consuming_buffers<MutableBufferSequence> cb_;
+    std::size_t bytes_written_ = 0;
+    int step_ = 0;
+    bool did_read_ = false;
+    bool dispatched_ = false;
+
+public:
+    read_some_op(read_some_op&&) = default;
+    read_some_op(read_some_op const&) = default;
+
+    template<class DeducedHandler>
+    read_some_op(
+        DeducedHandler&& h,
+        stream<NextLayer>& ws,
+        MutableBufferSequence const& bs)
+        : h_(std::forward<DeducedHandler>(h))
+        , ws_(ws)
+        , cb_(bs)
+    {
+    }
+
+    void operator()(error_code ec = {},
+        std::size_t bytes_transferred = 0);
+
+    friend
+    void* asio_handler_allocate(
+        std::size_t size, read_some_op* op)
+    {
+        using boost::asio::asio_handler_allocate;
+        return asio_handler_allocate(
+            size, std::addressof(op->h_));
+    }
+
+    friend
+    void asio_handler_deallocate(
+        void* p, std::size_t size, read_some_op* op)
+    {
+        using boost::asio::asio_handler_deallocate;
+        asio_handler_deallocate(p, size,
+            std::addressof(op->h_));
+    }
+
+    friend
+    bool asio_handler_is_continuation(read_some_op* op)
+    {
+        using boost::asio::asio_handler_is_continuation;
+        return op->dispatched_ ||
+            asio_handler_is_continuation(
+                std::addressof(op->h_));
+    }
+
+    template<class Function>
+    friend
+    void asio_handler_invoke(Function&& f, read_some_op* op)
+    {
+        using boost::asio::asio_handler_invoke;
+        asio_handler_invoke(
+            f, std::addressof(op->h_));
+    }
+};
+
+template<class NextLayer>
+template<class MutableBufferSequence, class Handler>
+void
+stream<NextLayer>::
+read_some_op<MutableBufferSequence, Handler>::
+operator()(
+    error_code ec,
+    std::size_t bytes_transferred)
+{
+    enum
+    {
+        do_start        = 0,
+        do_maybe_fill   = 10,
+        do_read         = 20,
+        do_inflate      = 30
+    };
+    using beast::detail::clamp;
+    using boost::asio::buffer;
+    using boost::asio::buffer_cast;
+    using boost::asio::buffer_size;
+    switch(step_)
+    {
+    case do_start:
+        if(ws_.failed_)
+        {
+            // Reads after failure are aborted
+            ec = boost::asio::error::operation_aborted;
+            break;
+        }
+        // See if we need to read a frame header. This
+        // condition is structured to give the decompressor
+        // a chance to emit the final empty deflate block
+        //
+        if(ws_.rd_.remain == 0 &&
+            (! ws_.rd_.fh.fin || ws_.rd_.done))
+        {
+            step_ = do_maybe_fill;
+            return read_fh_op<read_some_op>{
+                std::move(*this), ws_}({}, 0);
+        }
+        goto go_maybe_fill;
+
+    case do_maybe_fill:
+        if(ec)
+            break;
+        dispatched_ = true;
+
+    go_maybe_fill:
+        if(ws_.pmd_ && ws_.pmd_->rd_set)
+            goto go_inflate;
+        if(ws_.rd_.buf.size() == 0 && ws_.rd_.buf.max_size() >
+            (std::min)(clamp(ws_.rd_.remain),
+                buffer_size(cb_)))
+        {
+            // Fill the read buffer first, otherwise we
+            // get fewer bytes at the cost of one I/O.
+            auto const mb = ws_.rd_.buf.prepare(
+                read_size(ws_.rd_.buf,
+                    ws_.rd_.buf.max_size()));
+            step_ = do_maybe_fill + 1;
+            return ws_.stream_.async_read_some(
+                mb, std::move(*this));
+        }
+        goto go_rd_buf;
+
+    case do_maybe_fill + 1:
+        dispatched_ = true;
+        ws_.failed_ = !!ec;
+        if(ws_.failed_)
+            break;
+        ws_.rd_.buf.commit(bytes_transferred);
+        if(ws_.rd_.fh.mask)
+            detail::mask_inplace(buffer_prefix(clamp(
+                ws_.rd_.remain), ws_.rd_.buf.mutable_data()),
+                    ws_.rd_.key);
+
+    go_rd_buf:
+        if(ws_.rd_.buf.size() > 0)
+        {
+            // Copy from the read buffer.
+            // The mask was already applied.
+            bytes_transferred = buffer_copy(cb_,
+                ws_.rd_.buf.data(), clamp(ws_.rd_.remain));
+            auto const mb = buffer_prefix(
+                bytes_transferred, cb_);
+            ws_.rd_.remain -= bytes_transferred;
+            if(ws_.rd_.op == detail::opcode::text)
+            {
+                if(! ws_.rd_.utf8.write(mb) ||
+                    (ws_.rd_.remain == 0 && ws_.rd_.fh.fin &&
+                        ! ws_.rd_.utf8.finish()))
+                {
+                    // _Fail the WebSocket Connection_
+                    return fail_op<Handler>{std::move(h_),
+                        ws_, close_code::bad_payload}({}, 0);
+                }
+            }
+            bytes_written_ += bytes_transferred;
+            ws_.rd_.size += bytes_transferred;
+            ws_.rd_.buf.consume(bytes_transferred);
+            goto go_done;
+        }
+        // Read into caller's buffer
+        step_ = do_read;
+        return ws_.stream_.async_read_some(buffer_prefix(
+            clamp(ws_.rd_.remain), cb_), std::move(*this));
+
+    case do_read:
+    {
+        dispatched_ = true;
+        ws_.failed_ = !!ec;
+        if(ws_.failed_)
+            break;
+        BOOST_ASSERT(bytes_transferred > 0);
+        auto const mb = buffer_prefix(
+            bytes_transferred, cb_);
+        ws_.rd_.remain -= bytes_transferred;
+        if(ws_.rd_.fh.mask)
+            detail::mask_inplace(mb, ws_.rd_.key);
+        if(ws_.rd_.op == detail::opcode::text)
+        {
+            if(! ws_.rd_.utf8.write(mb) ||
+                (ws_.rd_.remain == 0 && ws_.rd_.fh.fin &&
+                    ! ws_.rd_.utf8.finish()))
+            {
+                // _Fail the WebSocket Connection_
+                return fail_op<Handler>{std::move(h_),
+                    ws_, close_code::bad_payload}();
+            }
+        }
+        bytes_written_ += bytes_transferred;
+        ws_.rd_.size += bytes_transferred;
+    }
+
+    go_done:
+        if(ws_.rd_.remain == 0 && ws_.rd_.fh.fin)
+            ws_.rd_.done = true;
+        break;
+
+    case do_inflate:
+    go_inflate:
+    {
+        // Read compressed message frame payload:
+        // inflate even if rd_.fh.len == 0, otherwise we
+        // never emit the end-of-stream deflate block.
+        while(buffer_size(cb_) > 0)
+        {
+            zlib::z_params zs;
+            {
+                auto const out = buffer_front(cb_);
+                zs.next_out = buffer_cast<void*>(out);
+                zs.avail_out = buffer_size(out);
+                BOOST_ASSERT(zs.avail_out > 0);
+            }
+            if(ws_.rd_.remain > 0)
+            {
+                if(ws_.rd_.buf.size() > 0)
+                {
+                    // use what's there
+                    auto const in = buffer_prefix(
+                        clamp(ws_.rd_.remain), buffer_front(
+                            ws_.rd_.buf.data()));
+                    zs.avail_in = buffer_size(in);
+                    zs.next_in = buffer_cast<void const*>(in);
+                }
+                else if(! did_read_)
+                {
+                    // read new
+                    step_ = do_inflate + 1;
+                    return ws_.stream_.async_read_some(
+                        ws_.rd_.buf.prepare(read_size(
+                            ws_.rd_.buf, ws_.rd_.buf.max_size())),
+                                std::move(*this));
+                }
+                else
+                {
+                    break;
+                }
+            }
+            else if(ws_.rd_.fh.fin)
+            {
+                // append the empty block codes
+                static std::uint8_t constexpr
+                    empty_block[4] = {
+                        0x00, 0x00, 0xff, 0xff };
+                zs.next_in = empty_block;
+                zs.avail_in = sizeof(empty_block);
+                ws_.pmd_->zi.write(zs, zlib::Flush::sync, ec);
+                BOOST_ASSERT(! ec);
+                ws_.failed_ = !!ec;
+                if(ws_.failed_)
+                    break;
+                // VFALCO See:
+                // https://github.com/madler/zlib/issues/280
+                BOOST_ASSERT(zs.total_out == 0);
+                cb_.consume(zs.total_out);
+                ws_.rd_.size += zs.total_out;
+                bytes_written_ += zs.total_out;
+                if(
+                    (ws_.role_ == role_type::client &&
+                        ws_.pmd_config_.server_no_context_takeover) ||
+                    (ws_.role_ == role_type::server &&
+                        ws_.pmd_config_.client_no_context_takeover))
+                    ws_.pmd_->zi.reset();
+                ws_.rd_.done = true;
+                break;
+            }
+            else
+            {
+                break;
+            }
+            ws_.pmd_->zi.write(zs, zlib::Flush::sync, ec);
+            BOOST_ASSERT(ec != zlib::error::end_of_stream);
+            ws_.failed_ = !!ec;
+            if(ws_.failed_)
+                break;
+            if(ws_.rd_msg_max_ && beast::detail::sum_exceeds(
+                ws_.rd_.size, zs.total_out, ws_.rd_msg_max_))
+            {
+                // _Fail the WebSocket Connection_
+                return fail_op<Handler>{std::move(h_),
+                    ws_, close_code::too_big}();
+            }
+            cb_.consume(zs.total_out);
+            ws_.rd_.size += zs.total_out;
+            ws_.rd_.remain -= zs.total_in;
+            ws_.rd_.buf.consume(zs.total_in);
+            bytes_written_ += zs.total_out;
+        }
+        if(ws_.rd_.op == detail::opcode::text)
+        {
+            // check utf8
+            if(! ws_.rd_.utf8.write(
+                buffer_prefix(bytes_written_, cb_.get())) || (
+                    ws_.rd_.remain == 0 && ws_.rd_.fh.fin &&
+                        ! ws_.rd_.utf8.finish()))
+            {
+                // _Fail the WebSocket Connection_
+                return fail_op<Handler>{std::move(h_),
+                    ws_, close_code::bad_payload}();
+            }
+        }
+        break;
+    }
+
+    case do_inflate + 1:
+    {
+        ws_.failed_ = !!ec;
+        if(ws_.failed_)
+            break;
+        BOOST_ASSERT(bytes_transferred > 0);
+        ws_.rd_.buf.commit(bytes_transferred);
+        if(ws_.rd_.fh.mask)
+            detail::mask_inplace(
+                buffer_prefix(clamp(ws_.rd_.remain),
+                    ws_.rd_.buf.mutable_data()), ws_.rd_.key);
+        did_read_ = true;
+        goto go_inflate;
+    }
+    }
+    // upcall
+    if(! dispatched_)
+    {
+        ws_.stream_.get_io_service().post(
+            bind_handler(std::move(h_),
+                ec, bytes_written_));
+    }
+    else
+    {
+        h_(ec, bytes_written_);
+    }
+}
+
+//------------------------------------------------------------------------------
+
+template<class NextLayer>
+template<
+    class DynamicBuffer,
+    class Handler>
 class stream<NextLayer>::read_op
 {
-    int state_ = 0;
+    Handler h_;
     stream<NextLayer>& ws_;
     DynamicBuffer& b_;
-    Handler h_;
+    std::size_t limit_;
+    std::size_t bytes_written_ = 0;
+    int step_ = 0;
+    bool some_;
 
 public:
     read_op(read_op&&) = default;
     read_op(read_op const&) = default;
 
     template<class DeducedHandler>
-    read_op(DeducedHandler&& h,
-            stream<NextLayer>& ws, DynamicBuffer& b)
-        : ws_(ws)
+    read_op(
+        DeducedHandler&& h,
+        stream<NextLayer>& ws,
+        DynamicBuffer& b,
+        std::size_t limit,
+        bool some)
+        : h_(std::forward<DeducedHandler>(h))
+        , ws_(ws)
         , b_(b)
-        , h_(std::forward<DeducedHandler>(h))
+        , limit_(limit ? limit : (
+            std::numeric_limits<std::size_t>::max)())
+        , some_(some)
     {
     }
 
-    void operator()(error_code const& ec, bool fin);
+    void operator()(
+        error_code ec = {},
+        std::size_t bytes_transferred = 0);
 
     friend
     void* asio_handler_allocate(
@@ -1053,7 +723,7 @@ public:
     bool asio_handler_is_continuation(read_op* op)
     {
         using boost::asio::asio_handler_is_continuation;
-        return op->state_ >= 2 ? true:
+        return op->step_ >= 2 ||
             asio_handler_is_continuation(std::addressof(op->h_));
     }
 
@@ -1062,58 +732,72 @@ public:
     void asio_handler_invoke(Function&& f, read_op* op)
     {
         using boost::asio::asio_handler_invoke;
-        asio_handler_invoke(f, std::addressof(op->h_));
+        asio_handler_invoke(
+            f, std::addressof(op->h_));
     }
 };
 
 template<class NextLayer>
 template<class DynamicBuffer, class Handler>
 void
-stream<NextLayer>::read_op<DynamicBuffer, Handler>::
-operator()(error_code const& ec, bool fin)
+stream<NextLayer>::
+read_op<DynamicBuffer, Handler>::
+operator()(
+    error_code ec,
+    std::size_t bytes_transferred)
 {
-    switch(state_)
+    using beast::detail::clamp;
+    switch(ec ? 3 : step_)
     {
     case 0:
-        state_ = 1;
-        goto do_read;
+    {
+        if(ws_.failed_)
+        {
+            // Reads after failure are aborted
+            ec = boost::asio::error::operation_aborted;
+            break;
+        }
+        step_ = 1;
+    do_read:
+        using buffers_type = typename
+            DynamicBuffer::mutable_buffers_type;
+        auto const size = clamp(
+            ws_.read_size_hint(b_), limit_);
+        boost::optional<buffers_type> mb;
+        try
+        {
+            mb.emplace(b_.prepare(size));
+        }
+        catch(std::length_error const&)
+        {
+            ec = error::buffer_overflow;
+            break;
+        }
+        return read_some_op<buffers_type, read_op>{
+            std::move(*this), ws_, *mb}();
+    }
 
     case 1:
-        state_ = 2;
-        BEAST_FALLTHROUGH;
-
     case 2:
-        if(ec)
-            goto upcall;
-        if(fin)
-            goto upcall;
-    do_read:
-        return ws_.async_read_frame(
-            b_, std::move(*this));
+        b_.commit(bytes_transferred);
+        bytes_written_ += bytes_transferred;
+        if(some_ || ws_.is_message_done())
+            break;
+        step_ = 2;
+        goto do_read;
+
+    case 3:
+        break;
     }
-upcall:
-    h_(ec);
+    if(step_ == 0)
+        return ws_.get_io_service().post(
+            bind_handler(std::move(h_),
+                ec, bytes_written_));
+    else
+        h_(ec, bytes_written_);
 }
 
-template<class NextLayer>
-template<class DynamicBuffer, class ReadHandler>
-async_return_type<
-    ReadHandler, void(error_code)>
-stream<NextLayer>::
-async_read(DynamicBuffer& buffer, ReadHandler&& handler)
-{
-    static_assert(is_async_stream<next_layer_type>::value,
-        "AsyncStream requirements requirements not met");
-    static_assert(beast::is_dynamic_buffer<DynamicBuffer>::value,
-        "DynamicBuffer requirements not met");
-    async_completion<ReadHandler,
-        void(error_code)> init{handler};
-    read_op<DynamicBuffer, handler_type<
-        ReadHandler, void(error_code)>>{
-            init.completion_handler, *this, buffer}(
-                {}, false);
-    return init.result.get();
-}
+//------------------------------------------------------------------------------
 
 template<class NextLayer>
 template<class DynamicBuffer>
@@ -1141,17 +825,531 @@ read(DynamicBuffer& buffer, error_code& ec)
         "SyncStream requirements not met");
     static_assert(beast::is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
-    for(;;)
+    do
     {
-        auto const fin = read_frame(buffer, ec);
+        read_some(buffer, 0, ec);
         if(ec)
-            break;
-        if(fin)
-            break;
+            return;
     }
+    while(! is_message_done());
+}
+
+template<class NextLayer>
+template<class DynamicBuffer, class ReadHandler>
+async_return_type<ReadHandler, void(error_code)>
+stream<NextLayer>::
+async_read(DynamicBuffer& buffer, ReadHandler&& handler)
+{
+    static_assert(is_async_stream<next_layer_type>::value,
+        "AsyncStream requirements requirements not met");
+    static_assert(beast::is_dynamic_buffer<DynamicBuffer>::value,
+        "DynamicBuffer requirements not met");
+    async_completion<
+        ReadHandler, void(error_code)> init{handler};
+    read_op<
+        DynamicBuffer,
+        beast::detail::bound_handler<
+            handler_type<ReadHandler, void(error_code)>,
+            decltype(std::placeholders::_1) const&> >{
+        beast::bind_handler(
+            init.completion_handler,
+            std::placeholders::_1),
+        *this,
+        buffer,
+        0,
+        false}();
+    return init.result.get();
 }
 
 //------------------------------------------------------------------------------
+
+template<class NextLayer>
+template<class DynamicBuffer>
+std::size_t
+stream<NextLayer>::
+read_some(
+    DynamicBuffer& buffer,
+    std::size_t limit)
+{
+    static_assert(is_sync_stream<next_layer_type>::value,
+        "SyncStream requirements not met");
+    static_assert(beast::is_dynamic_buffer<DynamicBuffer>::value,
+        "DynamicBuffer requirements not met");
+    error_code ec;
+    auto const bytes_written =
+        read_some(buffer, limit, ec);
+    if(ec)
+        BOOST_THROW_EXCEPTION(system_error{ec});
+    return bytes_written;
+}
+
+template<class NextLayer>
+template<class DynamicBuffer>
+std::size_t
+stream<NextLayer>::
+read_some(
+    DynamicBuffer& buffer,
+    std::size_t limit,
+    error_code& ec)
+{
+    static_assert(is_sync_stream<next_layer_type>::value,
+        "SyncStream requirements not met");
+    static_assert(is_dynamic_buffer<DynamicBuffer>::value,
+        "DynamicBuffer requirements not met");
+    using beast::detail::clamp;
+    if(! limit)
+        limit = (std::numeric_limits<std::size_t>::max)();
+    auto const size =
+        clamp(read_size_hint(buffer), limit);
+    BOOST_ASSERT(size > 0);
+    boost::optional<typename
+        DynamicBuffer::mutable_buffers_type> mb;
+    try
+    {
+        mb.emplace(buffer.prepare(size));
+    }
+    catch(std::length_error const&)
+    {
+        ec = error::buffer_overflow;
+        return 0;
+    }
+    auto const bytes_written = read_some(*mb, ec);
+    buffer.commit(bytes_written);
+    return bytes_written;
+}
+
+template<class NextLayer>
+template<class DynamicBuffer, class ReadHandler>
+async_return_type<ReadHandler,
+    void(error_code, std::size_t)>
+stream<NextLayer>::
+async_read_some(
+    DynamicBuffer& buffer,
+    std::size_t limit,
+    ReadHandler&& handler)
+{
+    static_assert(is_async_stream<next_layer_type>::value,
+        "AsyncStream requirements requirements not met");
+    static_assert(is_dynamic_buffer<DynamicBuffer>::value,
+        "DynamicBuffer requirements not met");
+    async_completion<
+        ReadHandler, void(error_code)> init{handler};
+    read_op<
+        DynamicBuffer,
+        handler_type<ReadHandler,
+            void(error_code, std::size_t)>>{
+        init.completion_handler,
+        *this,
+        buffer,
+        limit,
+        true}({}, 0);
+    return init.result.get();
+}
+
+//------------------------------------------------------------------------------
+
+template<class NextLayer>
+template<class MutableBufferSequence>
+std::size_t
+stream<NextLayer>::
+read_some(
+    MutableBufferSequence const& buffers)
+{
+    static_assert(is_sync_stream<next_layer_type>::value,
+        "SyncStream requirements not met");
+    static_assert(is_mutable_buffer_sequence<
+            MutableBufferSequence>::value,
+        "MutableBufferSequence requirements not met");
+    error_code ec;
+    auto const bytes_written = read_some(buffers, ec);
+    if(ec)
+        BOOST_THROW_EXCEPTION(system_error{ec});
+    return bytes_written;
+}
+
+template<class NextLayer>
+template<class MutableBufferSequence>
+std::size_t
+stream<NextLayer>::
+read_some(
+    MutableBufferSequence const& buffers,
+    error_code& ec)
+{
+    static_assert(is_sync_stream<next_layer_type>::value,
+        "SyncStream requirements not met");
+    static_assert(is_mutable_buffer_sequence<
+            MutableBufferSequence>::value,
+        "MutableBufferSequence requirements not met");
+    using beast::detail::clamp;
+    using boost::asio::buffer;
+    using boost::asio::buffer_cast;
+    using boost::asio::buffer_size;
+    close_code code{};
+    std::size_t bytes_written = 0;
+loop:
+    // See if we need to read a frame header. This
+    // condition is structured to give the decompressor
+    // a chance to emit the final empty deflate block
+    //
+    if(rd_.remain == 0 && (! rd_.fh.fin || rd_.done))
+    {
+        // Read frame header
+        while(! parse_fh(rd_.fh, rd_.buf, code))
+        {
+            if(code != close_code::none)
+                goto do_close;
+            auto const bytes_transferred =
+                stream_.read_some(
+                    rd_.buf.prepare(read_size(
+                        rd_.buf, rd_.buf.max_size())),
+                    ec);
+            failed_ = !!ec;
+            if(failed_)
+                return bytes_written;
+            rd_.buf.commit(bytes_transferred);
+        }
+        // Immediately apply the mask to the portion
+        // of the buffer holding payload data.
+        if(rd_.fh.len > 0 && rd_.fh.mask)
+            detail::mask_inplace(buffer_prefix(
+                clamp(rd_.fh.len), rd_.buf.mutable_data()),
+                    rd_.key);
+        if(detail::is_control(rd_.fh.op))
+        {
+            // Get control frame payload
+            auto const cb = buffer_prefix(
+                clamp(rd_.fh.len), rd_.buf.data());
+            auto const len = buffer_size(cb);
+            BOOST_ASSERT(len == rd_.fh.len);
+            // Process control frame
+            if(rd_.fh.op == detail::opcode::ping)
+            {
+                ping_data payload;
+                detail::read_ping(payload, cb);
+                rd_.buf.consume(len);
+                if(wr_close_)
+                {
+                    // Ignore ping when closing
+                    goto loop;
+                }
+                if(ctrl_cb_)
+                    ctrl_cb_(frame_type::ping, payload);
+                detail::frame_streambuf fb;
+                write_ping<flat_static_buffer_base>(fb,
+                    detail::opcode::pong, payload);
+                boost::asio::write(stream_, fb.data(), ec);
+                failed_ = !!ec;
+                if(failed_)
+                    return bytes_written;
+                goto loop;
+            }
+            else if(rd_.fh.op == detail::opcode::pong)
+            {
+                ping_data payload;
+                detail::read_ping(payload, cb);
+                rd_.buf.consume(len);
+                if(ctrl_cb_)
+                    ctrl_cb_(frame_type::pong, payload);
+                goto loop;
+            }
+            BOOST_ASSERT(rd_.fh.op == detail::opcode::close);
+            {
+                BOOST_ASSERT(! rd_close_);
+                rd_close_ = true;
+                detail::read_close(cr_, cb, code);
+                if(code != close_code::none)
+                    goto do_close;
+                rd_.buf.consume(len);
+                if(ctrl_cb_)
+                    ctrl_cb_(frame_type::close, cr_.reason);
+                if(! wr_close_)
+                {
+                    auto cr = cr_;
+                    if(cr.code == close_code::none)
+                        cr.code = close_code::normal;
+                    cr.reason = "";
+                    detail::frame_streambuf fb;
+                    wr_close_ = true;
+                    write_close<
+                        flat_static_buffer_base>(fb, cr);
+                    boost::asio::write(stream_, fb.data(), ec);
+                    failed_ = !!ec;
+                    if(failed_)
+                        return bytes_written;
+                }
+                goto do_close;
+            }
+        }
+        if(rd_.fh.len == 0 && ! rd_.fh.fin)
+        {
+            // Empty non-final frame
+            goto loop;
+        }
+        rd_.done = false;
+    }
+    else
+    {
+        ec.assign(0, ec.category());
+    }
+    if(! pmd_ || ! pmd_->rd_set)
+    {
+        if(rd_.buf.size() == 0 && rd_.buf.max_size() >
+            (std::min)(clamp(rd_.remain),
+                buffer_size(buffers)))
+        {
+            // Fill the read buffer first, otherwise we
+            // get fewer bytes at the cost of one I/O.
+            auto const mb = rd_.buf.prepare(
+                read_size(rd_.buf, rd_.buf.max_size()));
+            auto const bytes_transferred =
+                stream_.read_some(mb, ec);
+            failed_ = !!ec;
+            if(failed_)
+                return bytes_written;
+            if(rd_.fh.mask)
+                detail::mask_inplace(buffer_prefix(
+                    clamp(rd_.remain), mb), rd_.key);
+            rd_.buf.commit(bytes_transferred);
+        }
+        if(rd_.buf.size() > 0)
+        {
+            // Copy from the read buffer.
+            // The mask was already applied.
+            auto const bytes_transferred =
+                buffer_copy(buffers, rd_.buf.data(),
+                    clamp(rd_.remain));
+            auto const mb = buffer_prefix(
+                bytes_transferred, buffers);
+            rd_.remain -= bytes_transferred;
+            if(rd_.op == detail::opcode::text)
+            {
+                if(! rd_.utf8.write(mb) ||
+                    (rd_.remain == 0 && rd_.fh.fin &&
+                        ! rd_.utf8.finish()))
+                {
+                    code = close_code::bad_payload;
+                    goto do_close;
+                }
+            }
+            bytes_written += bytes_transferred;
+            rd_.size += bytes_transferred;
+            rd_.buf.consume(bytes_transferred);
+        }
+        else
+        {
+            // Read into caller's buffer
+            auto const bytes_transferred =
+                stream_.read_some(buffer_prefix(
+                    clamp(rd_.remain), buffers), ec);
+            failed_ = !!ec;
+            if(failed_)
+                return bytes_written;
+            BOOST_ASSERT(bytes_transferred > 0);
+            auto const mb = buffer_prefix(
+                bytes_transferred, buffers);
+            rd_.remain -= bytes_transferred;
+            if(rd_.fh.mask)
+                detail::mask_inplace(mb, rd_.key);
+            if(rd_.op == detail::opcode::text)
+            {
+                if(! rd_.utf8.write(mb) ||
+                    (rd_.remain == 0 && rd_.fh.fin &&
+                        ! rd_.utf8.finish()))
+                {
+                    code = close_code::bad_payload;
+                    goto do_close;
+                }
+            }
+            bytes_written += bytes_transferred;
+            rd_.size += bytes_transferred;
+        }
+        if(rd_.remain == 0 && rd_.fh.fin)
+            rd_.done = true;
+    }
+    else
+    {
+        // Read compressed message frame payload:
+        // inflate even if rd_.fh.len == 0, otherwise we
+        // never emit the end-of-stream deflate block.
+        //
+        bool did_read = false;
+        consuming_buffers<MutableBufferSequence> cb{buffers};
+        while(buffer_size(cb) > 0)
+        {
+            zlib::z_params zs;
+            {
+                auto const out = buffer_front(cb);
+                zs.next_out = buffer_cast<void*>(out);
+                zs.avail_out = buffer_size(out);
+                BOOST_ASSERT(zs.avail_out > 0);
+            }
+            if(rd_.remain > 0)
+            {
+                if(rd_.buf.size() > 0)
+                {
+                    // use what's there
+                    auto const in = buffer_prefix(
+                        clamp(rd_.remain), buffer_front(
+                            rd_.buf.data()));
+                    zs.avail_in = buffer_size(in);
+                    zs.next_in = buffer_cast<void const*>(in);
+                }
+                else if(! did_read)
+                {
+                    // read new
+                    auto const bytes_transferred =
+                        stream_.read_some(
+                            rd_.buf.prepare(read_size(
+                                rd_.buf, rd_.buf.max_size())),
+                            ec);
+                    failed_ = !!ec;
+                    if(failed_)
+                        return bytes_written;
+                    BOOST_ASSERT(bytes_transferred > 0);
+                    rd_.buf.commit(bytes_transferred);
+                    if(rd_.fh.mask)
+                        detail::mask_inplace(
+                            buffer_prefix(clamp(rd_.remain),
+                                rd_.buf.mutable_data()), rd_.key);
+                    auto const in = buffer_prefix(
+                        clamp(rd_.remain), buffer_front(
+                            rd_.buf.data()));
+                    zs.avail_in = buffer_size(in);
+                    zs.next_in = buffer_cast<void const*>(in);
+                    did_read = true;
+                }
+                else
+                {
+                    break;
+                }
+            }
+            else if(rd_.fh.fin)
+            {
+                // append the empty block codes
+                static std::uint8_t constexpr
+                    empty_block[4] = {
+                        0x00, 0x00, 0xff, 0xff };
+                zs.next_in = empty_block;
+                zs.avail_in = sizeof(empty_block);
+                pmd_->zi.write(zs, zlib::Flush::sync, ec);
+                BOOST_ASSERT(! ec);
+                failed_ = !!ec;
+                if(failed_)
+                    return bytes_written;
+                // VFALCO See:
+                // https://github.com/madler/zlib/issues/280
+                BOOST_ASSERT(zs.total_out == 0);
+                cb.consume(zs.total_out);
+                rd_.size += zs.total_out;
+                bytes_written += zs.total_out;
+                if(
+                    (role_ == role_type::client &&
+                        pmd_config_.server_no_context_takeover) ||
+                    (role_ == role_type::server &&
+                        pmd_config_.client_no_context_takeover))
+                    pmd_->zi.reset();
+                rd_.done = true;
+                break;
+            }
+            else
+            {
+                break;
+            }
+            pmd_->zi.write(zs, zlib::Flush::sync, ec);
+            BOOST_ASSERT(ec != zlib::error::end_of_stream);
+            failed_ = !!ec;
+            if(failed_)
+                return bytes_written;
+            if(rd_msg_max_ && beast::detail::sum_exceeds(
+                rd_.size, zs.total_out, rd_msg_max_))
+            {
+                code = close_code::too_big;
+                goto do_close;
+            }
+            cb.consume(zs.total_out);
+            rd_.size += zs.total_out;
+            rd_.remain -= zs.total_in;
+            rd_.buf.consume(zs.total_in);
+            bytes_written += zs.total_out;
+        }
+        if(rd_.op == detail::opcode::text)
+        {
+            // check utf8
+            if(! rd_.utf8.write(
+                buffer_prefix(bytes_written, buffers)) || (
+                    rd_.remain == 0 && rd_.fh.fin &&
+                        ! rd_.utf8.finish()))
+            {
+                code = close_code::bad_payload;
+                goto do_close;
+            }
+        }
+    }
+    return bytes_written;
+do_close:
+    if(code != close_code::none)
+    {
+        // Fail the connection (per rfc6455)
+        if(! wr_close_)
+        {
+            wr_close_ = true;
+            detail::frame_streambuf fb;
+            write_close<flat_static_buffer_base>(fb, code);
+            boost::asio::write(stream_, fb.data(), ec);
+            failed_ = !!ec;
+            if(failed_)
+                return bytes_written;
+        }
+        websocket_helpers::call_teardown(next_layer(), ec);
+        if(ec == boost::asio::error::eof)
+        {
+            // Rationale:
+            // http://stackoverflow.com/questions/25587403/boost-asio-ssl-async-shutdown-always-finishes-with-an-error
+            ec.assign(0, ec.category());
+        }
+        failed_ = !!ec;
+        if(failed_)
+            return bytes_written;
+        ec = error::failed;
+        failed_ = true;
+        return bytes_written;
+    }
+    if(! ec)
+    {
+        websocket_helpers::call_teardown(next_layer(), ec);
+        if(ec == boost::asio::error::eof)
+        {
+            // (See above)
+            ec.assign(0, ec.category());
+        }
+    }
+    if(! ec)
+        ec = error::closed;
+    failed_ = !!ec;
+    return bytes_written;
+}
+
+template<class NextLayer>
+template<class MutableBufferSequence, class ReadHandler>
+async_return_type<ReadHandler, void(error_code, std::size_t)>
+stream<NextLayer>::
+async_read_some(
+    MutableBufferSequence const& buffers,
+    ReadHandler&& handler)
+{
+    static_assert(is_async_stream<next_layer_type>::value,
+        "AsyncStream requirements requirements not met");
+    static_assert(is_mutable_buffer_sequence<
+            MutableBufferSequence>::value,
+        "MutableBufferSequence requirements not met");
+    async_completion<ReadHandler,
+        void(error_code, std::size_t)> init{handler};
+    read_some_op<MutableBufferSequence, handler_type<
+        ReadHandler, void(error_code, std::size_t)>>{
+            init.completion_handler,*this, buffers}(
+                {}, 0);
+    return init.result.get();
+}
 
 } // websocket
 } // beast

@@ -24,7 +24,10 @@ enum class error
     failed,
 
     /// Upgrade handshake failed
-    handshake_failed
+    handshake_failed,
+
+    /// buffer overflow
+    buffer_overflow
 };
 
 } // websocket

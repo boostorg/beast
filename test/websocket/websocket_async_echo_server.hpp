@@ -10,6 +10,7 @@
 
 #include <beast/core/multi_buffer.hpp>
 #include <beast/websocket/stream.hpp>
+#include <boost/asio.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/optional.hpp>
 #include <atomic>

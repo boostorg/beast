@@ -163,7 +163,7 @@ boost::asio::ip::tcp::socket sock{ios};
 //[ws_snippet_16
     multi_buffer buffer;
     for(;;)
-        if(ws.read_frame(buffer))
+        if(ws.read_some(buffer, 0))
             break;
     ws.binary(ws.got_binary());
     consuming_buffers<multi_buffer::const_buffers_type> cb{buffer.data()};
@@ -172,12 +172,12 @@ boost::asio::ip::tcp::socket sock{ios};
         using boost::asio::buffer_size;
         if(buffer_size(cb) > 512)
         {
-            ws.write_frame(false, buffer_prefix(512, cb));
+            ws.write_some(false, buffer_prefix(512, cb));
             cb.consume(512);
         }
         else
         {
-            ws.write_frame(true, cb);
+            ws.write_some(true, cb);
             break;
         }
     }

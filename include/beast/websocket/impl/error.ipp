@@ -39,6 +39,7 @@ public:
         case error::closed: return "WebSocket connection closed normally";
         case error::failed: return "WebSocket connection failed due to a protocol violation";
         case error::handshake_failed: return "WebSocket Upgrade handshake failed";
+        case error::buffer_overflow: return "buffer overflow";
 
         default:
             return "beast.websocket error";

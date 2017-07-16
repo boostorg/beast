@@ -96,14 +96,14 @@ enum class opcode : std::uint8_t
 // Contents of a WebSocket frame header
 struct frame_header
 {
-    opcode op;
-    bool fin;
-    bool mask;
-    bool rsv1;
-    bool rsv2;
-    bool rsv3;
     std::uint64_t len;
     std::uint32_t key;
+    opcode op;
+    bool fin  : 1;
+    bool mask : 1;
+    bool rsv1 : 1;
+    bool rsv2 : 1;
+    bool rsv3 : 1;
 };
 
 // holds the largest possible frame header
@@ -226,7 +226,7 @@ write(DynamicBuffer& db, frame_header const& fh)
 //
 template<class Buffers>
 void
-read(ping_data& data, Buffers const& bs)
+read_ping(ping_data& data, Buffers const& bs)
 {
     using boost::asio::buffer_copy;
     using boost::asio::buffer_size;
@@ -242,7 +242,7 @@ read(ping_data& data, Buffers const& bs)
 //
 template<class Buffers>
 void
-read(close_reason& cr,
+read_close(close_reason& cr,
     Buffers const& bs, close_code& code)
 {
     using boost::asio::buffer;
@@ -279,7 +279,7 @@ read(close_reason& cr,
     {
         cr.reason.resize(n);
         buffer_copy(buffer(&cr.reason[0], n), cb);
-        if(! detail::check_utf8(
+        if(! check_utf8(
             cr.reason.data(), cr.reason.size()))
         {
             code = close_code::protocol_error;

@@ -22,6 +22,7 @@
 #include "file_service.hpp"
 #include "ws_upgrade_service.hpp"
 
+#include <boost/asio/signal_set.hpp>
 #include <boost/program_options.hpp>
 
 #include <iostream>

@@ -21,6 +21,7 @@
 #include <beast/core/consuming_buffers.hpp>
 #include <beast/core/flat_static_buffer.hpp>
 #include <beast/core/type_traits.hpp>
+#include <beast/core/detail/clamp.hpp>
 #include <beast/core/detail/type_traits.hpp>
 #include <boost/assert.hpp>
 #include <boost/endian/buffers.hpp>
@@ -42,6 +43,61 @@ stream<NextLayer>::
 stream(Args&&... args)
     : stream_(std::forward<Args>(args)...)
 {
+    BOOST_ASSERT(rd_.buf.max_size() >=
+        max_control_frame_size);
+}
+
+template<class NextLayer>
+std::size_t
+stream<NextLayer>::
+read_size_hint(
+    std::size_t initial_size) const
+{
+    using beast::detail::clamp;
+    // no permessage-deflate
+    if(! pmd_ || (! rd_.done && ! pmd_->rd_set))
+    {
+        // fresh message
+        if(rd_.done)
+            return initial_size;
+
+        if(rd_.fh.fin)
+            return clamp(rd_.remain);
+    }
+    return (std::max)(
+        initial_size, clamp(rd_.remain));
+}
+
+template<class NextLayer>
+template<class DynamicBuffer, class>
+std::size_t
+stream<NextLayer>::
+read_size_hint(
+    DynamicBuffer& buffer) const
+{
+    static_assert(is_dynamic_buffer<DynamicBuffer>::value,
+        "DynamicBuffer requirements not met");
+    using beast::detail::clamp;
+    // no permessage-deflate
+    if(! pmd_ || (! rd_.done && ! pmd_->rd_set))
+    {
+        // fresh message
+        if(rd_.done)
+            return (std::min)(
+                buffer.max_size(),
+                (std::max)(+tcp_frame_size,
+                    buffer.capacity() - buffer.size()));
+
+        if(rd_.fh.fin)
+        {
+            BOOST_ASSERT(rd_.remain != 0);
+            return (std::min)(
+                buffer.max_size(), clamp(rd_.remain));
+        }
+    }
+    return (std::min)(buffer.max_size(), (std::max)(
+        (std::max)(+tcp_frame_size, clamp(rd_.remain)),
+            buffer.capacity() - buffer.size()));
 }
 
 template<class NextLayer>
@@ -78,10 +134,13 @@ open(role_type role)
     // VFALCO TODO analyze and remove dupe code in reset()
     role_ = role;
     failed_ = false;
+    rd_.remain = 0;
     rd_.cont = false;
+    rd_.done = true;
+    rd_.buf.consume(rd_.buf.size());
     rd_close_ = false;
     wr_close_ = false;
-    wr_block_ = nullptr;    // should be nullptr on close anyway
+    wr_block_.reset();
     ping_data_ = nullptr;   // should be nullptr on close anyway
 
     wr_.cont = false;
@@ -121,7 +180,6 @@ void
 stream<NextLayer>::
 close()
 {
-    rd_.buf.reset();
     wr_.buf.reset();
     pmd_.reset();
 }
@@ -132,33 +190,18 @@ stream<NextLayer>::
 reset()
 {
     failed_ = false;
+    rd_.remain = 0;
     rd_.cont = false;
+    rd_.done = true;
+    rd_.buf.consume(rd_.buf.size());
     rd_close_ = false;
     wr_close_ = false;
     wr_.cont = false;
-    wr_block_ = nullptr;    // should be nullptr on close anyway
+    wr_block_.reset();
     ping_data_ = nullptr;   // should be nullptr on close anyway
 
     stream_.buffer().consume(
         stream_.buffer().size());
-}
-
-// Called before each read frame
-template<class NextLayer>
-void
-stream<NextLayer>::
-rd_begin()
-{
-    // Maintain the read buffer
-    if(pmd_)
-    {
-        if(! rd_.buf || rd_.buf_size != rd_buf_size_)
-        {
-            rd_.buf_size = rd_buf_size_;
-            rd_.buf = boost::make_unique_noinit<
-                std::uint8_t[]>(rd_.buf_size);
-        }
-    }
 }
 
 // Called before each write frame
@@ -189,6 +232,194 @@ wr_begin()
 }
 
 //------------------------------------------------------------------------------
+
+// Attempt to read a complete frame header.
+// Returns `false` if more bytes are needed
+template<class NextLayer>
+template<class DynamicBuffer>
+bool
+stream<NextLayer>::
+parse_fh(
+    detail::frame_header& fh,
+    DynamicBuffer& b,
+    close_code& code)
+{
+    using boost::asio::buffer;
+    using boost::asio::buffer_copy;
+    using boost::asio::buffer_size;
+    auto const err =
+        [&](close_code cv)
+        {
+            code = cv;
+            return false;
+        };
+    if(buffer_size(b.data()) < 2)
+    {
+        code = close_code::none;
+        return false;
+    }
+    consuming_buffers<typename
+        DynamicBuffer::const_buffers_type> cb{
+            b.data()};
+    {
+        std::uint8_t tmp[2];
+        cb.consume(buffer_copy(buffer(tmp), cb));
+        std::size_t need;
+        fh.len = tmp[1] & 0x7f;
+        switch(fh.len)
+        {
+            case 126: need = 2; break;
+            case 127: need = 8; break;
+            default:
+                need = 0;
+        }
+        fh.mask = (tmp[1] & 0x80) != 0;
+        if(fh.mask)
+            need += 4;
+        if(buffer_size(cb) < need)
+        {
+            code = close_code::none;
+            return false;
+        }
+        fh.op   = static_cast<
+            detail::opcode>(tmp[0] & 0x0f);
+        fh.fin  = (tmp[0] & 0x80) != 0;
+        fh.rsv1 = (tmp[0] & 0x40) != 0;
+        fh.rsv2 = (tmp[0] & 0x20) != 0;
+        fh.rsv3 = (tmp[0] & 0x10) != 0;
+    }
+    switch(fh.op)
+    {
+    case detail::opcode::binary:
+    case detail::opcode::text:
+        if(rd_.cont)
+        {
+            // new data frame when continuation expected
+            return err(close_code::protocol_error);
+        }
+        if((fh.rsv1 && ! pmd_) ||
+            fh.rsv2 || fh.rsv3)
+        {
+            // reserved bits not cleared
+            return err(close_code::protocol_error);
+        }
+        if(pmd_)
+            pmd_->rd_set = fh.rsv1;
+        break;
+
+    case detail::opcode::cont:
+        if(! rd_.cont)
+        {
+            // continuation without an active message
+            return err(close_code::protocol_error);
+        }
+        if(fh.rsv1 || fh.rsv2 || fh.rsv3)
+        {
+            // reserved bits not cleared
+            return err(close_code::protocol_error);
+        }
+        break;
+
+    default:
+        if(detail::is_reserved(fh.op))
+        {
+            // reserved opcode
+            return err(close_code::protocol_error);
+        }
+        if(! fh.fin)
+        {
+            // fragmented control message
+            return err(close_code::protocol_error);
+        }
+        if(fh.len > 125)
+        {
+            // invalid length for control message
+            return err(close_code::protocol_error);
+        }
+        if(fh.rsv1 || fh.rsv2 || fh.rsv3)
+        {
+            // reserved bits not cleared
+            return err(close_code::protocol_error);
+        }
+        break;
+    }
+    // unmasked frame from client
+    if(role_ == role_type::server && ! fh.mask)
+        return err(close_code::protocol_error);
+    // masked frame from server
+    if(role_ == role_type::client && fh.mask)
+        return err(close_code::protocol_error);
+    if(detail::is_control(fh.op) &&
+        buffer_size(cb) < fh.len)
+    {
+        // Make the entire control frame payload
+        // get read in before we return `true`
+        return false;
+    }
+    switch(fh.len)
+    {
+    case 126:
+    {
+        std::uint8_t tmp[2];
+        BOOST_ASSERT(buffer_size(cb) >= sizeof(tmp));
+        cb.consume(buffer_copy(buffer(tmp), cb));
+        fh.len = detail::big_uint16_to_native(&tmp[0]);
+        // length not canonical
+        if(fh.len < 126)
+            return err(close_code::protocol_error);
+        break;
+    }
+    case 127:
+    {
+        std::uint8_t tmp[8];
+        BOOST_ASSERT(buffer_size(cb) >= sizeof(tmp));
+        cb.consume(buffer_copy(buffer(tmp), cb));
+        fh.len = detail::big_uint64_to_native(&tmp[0]);
+        // length not canonical
+        if(fh.len < 65536)
+            return err(close_code::protocol_error);
+        break;
+    }
+    }
+    if(fh.mask)
+    {
+        std::uint8_t tmp[4];
+        BOOST_ASSERT(buffer_size(cb) >= sizeof(tmp));
+        cb.consume(buffer_copy(buffer(tmp), cb));
+        fh.key = detail::little_uint32_to_native(&tmp[0]);
+        detail::prepare_key(rd_.key, fh.key);
+    }
+    else
+    {
+        // initialize this otherwise operator== breaks
+        fh.key = 0;
+    }
+    if(! detail::is_control(fh.op))
+    {
+        if(fh.op != detail::opcode::cont)
+        {
+            rd_.size = 0;
+            rd_.op = fh.op;
+        }
+        else
+        {
+            if(rd_.size > (std::numeric_limits<
+                    std::uint64_t>::max)() - fh.len)
+                return err(close_code::too_big);
+        }
+        if(! pmd_ || ! pmd_->rd_set)
+        {
+            if(rd_msg_max_ && beast::detail::sum_exceeds(
+                rd_.size, fh.len, rd_msg_max_))
+                return err(close_code::too_big);
+        }
+        rd_.cont = ! fh.fin;
+        rd_.remain = fh.len;
+    }
+    b.consume(b.size() - buffer_size(cb));
+    code = close_code::none;
+    return true;
+}
 
 // Read fixed frame header from buffer
 // Requires at least 2 bytes
@@ -357,7 +588,7 @@ read_fh2(detail::frame_header& fh,
         // initialize this otherwise operator== breaks
         fh.key = 0;
     }
-    if(! is_control(fh.op))
+    if(! detail::is_control(fh.op))
     {
         if(fh.op != detail::opcode::cont)
         {

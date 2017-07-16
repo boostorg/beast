@@ -28,8 +28,6 @@
 namespace beast {
 namespace websocket {
 
-//------------------------------------------------------------------------------
-
 // Respond to an upgrade HTTP request
 template<class NextLayer>
 template<class Handler>
