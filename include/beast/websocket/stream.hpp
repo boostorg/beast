@@ -21,6 +21,7 @@
 #include <beast/core/async_result.hpp>
 #include <beast/core/buffered_read_stream.hpp>
 #include <beast/core/flat_buffer.hpp>
+#include <beast/core/static_buffer.hpp>
 #include <beast/core/string.hpp>
 #include <beast/core/detail/type_traits.hpp>
 #include <beast/http/empty_body.hpp>
@@ -29,7 +30,6 @@
 #include <beast/http/detail/type_traits.hpp>
 #include <beast/zlib/deflate_stream.hpp>
 #include <beast/zlib/inflate_stream.hpp>
-#include <boost/asio.hpp>
 #include <algorithm>
 #include <cstdint>
 #include <functional>
@@ -117,7 +117,29 @@ class stream
     friend class stream_test;
     friend class frame_test;
 
+    /*  The read buffer has to be at least as large
+        as the largest possible control frame including
+        the frame header.
+    */
+    static std::size_t constexpr max_control_frame_size = 2 + 8 + 4 + 125;
+    static std::size_t constexpr tcp_frame_size = 1536;
+
     struct op {};
+
+    // tokens are used to order reads and writes
+    class token
+    {
+        unsigned char id_ = 1;
+        explicit token(unsigned char id) : id_(id) {}
+    public:
+        token() = default;
+        token(token const&) = default;
+        operator bool() const { return id_ != 0; }
+        bool operator==(token const& t) { return id_ == t.id_; }
+        bool operator!=(token const& t) { return id_ != t.id_; }
+        token unique() { token t{id_++}; if(id_ == 0) ++id_; return t; }
+        void reset() { id_ = 0; }
+    };
 
     using control_cb_type =
         std::function<void(frame_type, string_view)>;
@@ -136,26 +158,24 @@ class stream
     //
     struct rd_t
     {
+        detail::frame_header fh;        // current frame header
+        detail::prepared_key key;       // current stateful mask key
+        std::uint64_t size;             // total size of current message so far
+        std::uint64_t remain;           // message frame bytes left in current frame
+        detail::frame_streambuf fb;     // to write control frames
+        detail::utf8_checker utf8;      // to validate utf8
+
+        // A small, circular buffer to read frame headers.
+        // This improves performance by avoiding small reads.
+        static_buffer<+tcp_frame_size> buf;
+
         // opcode of current message being read
         detail::opcode op;
 
         // `true` if the next frame is a continuation.
         bool cont;
 
-        // Checks that test messages are valid utf8
-        detail::utf8_checker utf8;
-
-        // Size of the current message so far.
-        std::uint64_t size;
-
-        // Size of the read buffer.
-        // This gets set to the read buffer size option at the
-        // beginning of sending a message, so that the option can be
-        // changed mid-send without affecting the current message.
-        std::size_t buf_size;
-
-        // The read buffer. Used for compression and masking.
-        std::unique_ptr<std::uint8_t[]> buf;
+        bool done;                      // set when a message is done
     };
 
     // State information for the message being sent
@@ -216,7 +236,7 @@ class stream
 
     bool rd_close_;                         // read close frame
     bool wr_close_;                         // sent close frame
-    op* wr_block_;                          // op currenly writing
+    token wr_block_;                        // op currenly writing
 
     ping_data* ping_data_;                  // where to put the payload
     detail::pausation rd_op_;               // paused read op
@@ -236,6 +256,8 @@ class stream
 
     // Offer for clients, negotiated result for servers
     detail::pmd_offer pmd_config_;
+
+    token t_;
 
 public:
     /// The type of the next layer.
@@ -289,6 +311,8 @@ public:
     template<class... Args>
     explicit
     stream(Args&&... args);
+
+    //--------------------------------------------------------------------------
 
     /** Return the `io_service` associated with the stream
 
@@ -360,6 +384,105 @@ public:
     {
         return stream_.lowest_layer();
     }
+
+    //--------------------------------------------------------------------------
+    //
+    // Observers
+    //
+    //--------------------------------------------------------------------------
+
+    /** Returns `true` if the latest message data indicates binary.
+
+        This function informs the caller of whether the last
+        received message frame represents a message with the
+        binary opcode.
+
+        If there is no last message frame, the return value is
+        undefined.
+    */
+    bool
+    got_binary() const
+    {
+        return rd_.op == detail::opcode::binary;
+    }
+
+    /** Returns `true` if the latest message data indicates text.
+
+        This function informs the caller of whether the last
+        received message frame represents a message with the
+        text opcode.
+
+        If there is no last message frame, the return value is
+        undefined.
+    */
+    bool
+    got_text() const
+    {
+        return ! got_binary();
+    }
+
+    /// Returns `true` if the last completed read finished the current message.
+    bool
+    is_message_done() const
+    {
+        return rd_.done;
+    }
+
+    /** Returns the close reason received from the peer.
+
+        This is only valid after a read completes with error::closed.
+    */
+    close_reason const&
+    reason() const
+    {
+        return cr_;
+    }
+
+    /** Returns a suggested maximum buffer size for the next call to read.
+
+        This function returns a reasonable upper limit on the number
+        of bytes for the size of the buffer passed in the next call
+        to read. The number is determined by the state of the current
+        frame and whether or not the permessage-deflate extension is
+        enabled.
+
+        @param initial_size A size representing the caller's desired
+        buffer size for when there is no information which may be used
+        to calculate a more specific value. For example, when reading
+        the first frame header of a message.
+    */
+    std::size_t
+    read_size_hint(
+        std::size_t initial_size = +tcp_frame_size) const;
+
+    /** Returns a suggested maximum buffer size for the next call to read.
+
+        This function returns a reasonable upper limit on the number
+        of bytes for the size of the buffer passed in the next call
+        to read. The number is determined by the state of the current
+        frame and whether or not the permessage-deflate extension is
+        enabled.
+
+        @param buffer The buffer which will be used for reading. The
+        implementation will query the buffer to obtain the optimum
+        size of a subsequent call to `buffer.prepare` based on the
+        state of the current frame, if any.
+    */
+    template<class DynamicBuffer
+#if ! BEAST_DOXYGEN
+        , class = typename std::enable_if<
+            ! std::is_integral<DynamicBuffer>::value>::type
+#endif
+    >
+    std::size_t
+    read_size_hint(
+        DynamicBuffer& buffer) const;
+
+    //--------------------------------------------------------------------------
+    //
+    // Settings
+    //
+    //--------------------------------------------------------------------------
 
     /// Set the permessage-deflate extension options
     void
@@ -445,9 +568,9 @@ public:
         of the following functions:
 
         @li @ref beast::websocket::stream::read
-        @li @ref beast::websocket::stream::read_frame
+        @li @ref beast::websocket::stream::read_some
         @li @ref beast::websocket::stream::async_read
-        @li @ref beast::websocket::stream::async_read_frame
+        @li @ref beast::websocket::stream::async_read_some
 
         Unlike completion handlers, the callback will be invoked
         for each control frame during a call to any synchronous
@@ -482,44 +605,6 @@ public:
         std::function<void(frame_type, string_view)> cb)
     {
         ctrl_cb_ = std::move(cb);
-    }
-
-    /** Set the read buffer size option.
-
-        Sets the size of the read buffer used by the implementation to
-        receive frames. The read buffer is needed when permessage-deflate
-        is used.
-
-        Lowering the size of the buffer can decrease the memory requirements
-        for each connection, while increasing the size of the buffer can reduce
-        the number of calls made to the next layer to read data.
-
-        The default setting is 4096. The minimum value is 8.
-
-        @param amount The size of the read buffer.
-
-        @throws std::invalid_argument If the buffer size is less than 8.
-
-        @par Example
-        Setting the read buffer size.
-        @code
-            ws.read_buffer_size(16 * 1024);
-        @endcode
-    */
-    void
-    read_buffer_size(std::size_t amount)
-    {
-        if(amount < 8)
-            BOOST_THROW_EXCEPTION(std::invalid_argument{
-                "read buffer size underflow"});
-        rd_buf_size_ = amount;
-    }
-
-    /// Returns the read buffer size setting.
-    std::size_t
-    read_buffer_size() const
-    {
-        return rd_buf_size_;
     }
 
     /** Set the maximum incoming message size option.
@@ -627,45 +712,11 @@ public:
         return wr_opcode_ == detail::opcode::text;
     }
 
-    /** Returns the close reason received from the peer.
-
-        This is only valid after a read completes with error::closed.
-    */
-    close_reason const&
-    reason() const
-    {
-        return cr_;
-    }
-
-    /** Returns `true` if the latest message data indicates binary.
-
-        This function informs the caller of whether the last
-        received message frame represents a message with the
-        binary opcode.
-
-        If there is no last message frame, the return value is
-        undefined.
-    */
-    bool
-    got_binary()
-    {
-        return rd_.op == detail::opcode::binary;
-    }
-
-    /** Returns `true` if the latest message data indicates text.
-
-        This function informs the caller of whether the last
-        received message frame represents a message with the
-        text opcode.
-
-        If there is no last message frame, the return value is
-        undefined.
-    */
-    bool
-    got_text()
-    {
-        return ! got_binary();
-    }
+    //--------------------------------------------------------------------------
+    //
+    // Handshaking
+    //
+    //--------------------------------------------------------------------------
 
     /** Read and respond to a WebSocket HTTP Upgrade request.
 
@@ -2480,6 +2531,12 @@ public:
         RequestDecorator const& decorator,
         HandshakeHandler&& handler);
 
+    //--------------------------------------------------------------------------
+    //
+    // Control Frames
+    //
+    //--------------------------------------------------------------------------
+
     /** Send a WebSocket close frame.
 
         This function is used to synchronously send a close frame on
@@ -2553,7 +2610,7 @@ public:
         next layer's `async_write_some` functions, and is known as a
         <em>composed operation</em>. The program must ensure that the
         stream performs no other write operations (such as @ref async_ping,
-        @ref stream::async_write, @ref stream::async_write_frame, or
+        @ref stream::async_write, @ref stream::async_write_some, or
         @ref stream::async_close) until this operation completes.
 
         If the close reason specifies a close code other than
@@ -2769,6 +2826,75 @@ public:
 #endif
     async_pong(ping_data const& payload, WriteHandler&& handler);
 
+    //--------------------------------------------------------------------------
+    //
+    // Reading
+    //
+    //--------------------------------------------------------------------------
+
+    /** Start an asynchronous operation to read a message frame from the stream.
+
+        This function is used to asynchronously read a single message
+        frame from the websocket. The function call always returns
+        immediately. The asynchronous operation will continue until
+        one of the following conditions is true:
+
+        @li A complete frame is received.
+
+        @li An error occurs on the stream.
+
+        This operation is implemented in terms of one or more calls to the
+        next layer's `async_read_some` and `async_write_some` functions,
+        and is known as a <em>composed operation</em>. The program must
+        ensure that the stream performs no other reads until this operation
+        completes.
+
+        During reads, the implementation handles control frames as
+        follows:
+
+        @li The @ref control_callback is invoked when a ping frame
+            or pong frame is received.
+
+        @li A pong frame is sent when a ping frame is received.
+
+        @li The WebSocket close procedure is started if a close frame
+            is received. In this case, the operation will eventually
+            complete with the error set to @ref error::closed.
+
+        Because of the need to handle control frames, read operations
+        can cause writes to take place. These writes are managed
+        transparently; callers can still have one active asynchronous
+        read and asynchronous write operation pending simultaneously
+        (a user initiated call to @ref async_close counts as a write).
+
+        @param buffer A dynamic buffer to hold the message data after
+        any masking or decompression has been applied. This object must
+        remain valid until the handler is called.
+
+        @param handler The handler to be called when the read operation
+        completes. Copies will be made of the handler as required. The
+        function signature of the handler must be:
+        @code
+        void handler(
+            error_code const& ec,   // Result of operation
+            bool fin                // `true` if this is the last frame
+        );
+        @endcode
+        Regardless of whether the asynchronous operation completes
+        immediately or not, the handler will not be invoked from within
+        this function. Invocation of the handler will be performed in a
+        manner equivalent to using boost::asio::io_service::post().
+    */
+    template<class DynamicBuffer, class ReadHandler>
+#if BEAST_DOXYGEN
+    void_or_deduced
+#else
+    async_return_type<ReadHandler, void(error_code, bool)>
+#endif
+    async_read_frame(DynamicBuffer& buffer, ReadHandler&& handler);
+
+    //--------------------------------------------------------------------------
+
     /** Read a message from the stream.
 
         This function is used to synchronously read a message from
@@ -2897,7 +3023,7 @@ public:
         function signature of the handler must be:
         @code
         void handler(
-            error_code const& ec     // Result of operation
+            error_code const& ec;   // Result of operation
         );
         @endcode
         Regardless of whether the asynchronous operation completes
@@ -2914,24 +3040,30 @@ public:
 #endif
     async_read(DynamicBuffer& buffer, ReadHandler&& handler);
 
-    /** Read a message frame from the stream.
+    //--------------------------------------------------------------------------
 
-        This function is used to synchronously read a single message
-        frame from the stream. The call blocks until one of the following
+    /** Read some message data from the stream.
+
+        This function is used to synchronously read some message
+        data from the stream. The call blocks until one of the following
         is true:
 
-        @li A complete frame is received.
+        @li One or more message octets are placed into the provided buffers.
+
+        @li A final message frame is received.
+
+        @li A close frame is received and processed.
 
         @li An error occurs on the stream.
 
-        This call is implemented in terms of one or more calls to the
-        stream's `read_some` and `write_some` operations.
+        This function is implemented in terms of one or more calls to the
+        stream's `read_some` operation.
 
         During reads, the implementation handles control frames as
         follows:
 
-        @li The @ref control_callback is invoked when a ping frame
-            or pong frame is received.
+        @li The @ref control_callback is invoked when any control
+        frame is received.
 
         @li A pong frame is sent when a ping frame is received.
 
@@ -2939,35 +3071,44 @@ public:
             is received. In this case, the operation will eventually
             complete with the error set to @ref error::closed.
 
-        @param buffer A dynamic buffer to hold the message data after
-        any masking or decompression has been applied.
+        @param buffer A dynamic buffer for holding the result
 
-        @return `true` if this is the last frame of the message.
+        @param limit An upper limit on the number of bytes this
+        function will write. If this value is zero, then a reasonable
+        size will be chosen automatically.
 
         @throws system_error Thrown on failure.
+
+        @return The number of bytes written to the buffers
     */
     template<class DynamicBuffer>
-    bool
-    read_frame(DynamicBuffer& buffer);
+    std::size_t
+    read_some(
+        DynamicBuffer& buffer,
+        std::size_t limit);
 
-    /** Read a message frame from the stream.
+    /** Read some message data from the stream.
 
-        This function is used to synchronously read a single message
-        frame from the stream. The call blocks until one of the following
+        This function is used to synchronously read some message
+        data from the stream. The call blocks until one of the following
         is true:
 
-        @li A complete frame is received.
+        @li One or more message octets are placed into the provided buffers.
+
+        @li A final message frame is received.
+
+        @li A close frame is received and processed.
 
         @li An error occurs on the stream.
 
-        This call is implemented in terms of one or more calls to the
-        stream's `read_some` and `write_some` operations.
+        This function is implemented in terms of one or more calls to the
+        stream's `read_some` operation.
 
         During reads, the implementation handles control frames as
         follows:
 
-        @li The @ref control_callback is invoked when a ping frame
-            or pong frame is received.
+        @li The @ref control_callback is invoked when any control
+        frame is received.
 
         @li A pong frame is sent when a ping frame is received.
 
@@ -2975,39 +3116,54 @@ public:
             is received. In this case, the operation will eventually
             complete with the error set to @ref error::closed.
 
-        @param buffer A dynamic buffer to hold the message data after
-        any masking or decompression has been applied.
+        @param buffer A dynamic buffer for holding the result
+
+        @param limit An upper limit on the number of bytes this
+        function will write. If this value is zero, then a reasonable
+        size will be chosen automatically.
 
         @param ec Set to indicate what error occurred, if any.
 
-        @return `true` if this is the last frame of the message.
+        @return The number of bytes written to the buffer
     */
     template<class DynamicBuffer>
-    bool
-    read_frame(DynamicBuffer& buffer, error_code& ec);
+    std::size_t
+    read_some(
+        DynamicBuffer& buffer,
+        std::size_t limit,
+        error_code& ec);
 
-    /** Start an asynchronous operation to read a message frame from the stream.
+    /** Start an asynchronous operation to read some message data from the stream.
 
-        This function is used to asynchronously read a single message
-        frame from the websocket. The function call always returns
-        immediately. The asynchronous operation will continue until
-        one of the following conditions is true:
+        This function is used to asynchronously read some message
+        data from the stream. The function call always returns immediately.
+        The asynchronous operation will continue until one of the following
+        is true:
 
-        @li A complete frame is received.
+        @li One or more message octets are placed into the provided buffers.
+
+        @li A final message frame is received.
+
+        @li A close frame is received and processed.
 
         @li An error occurs on the stream.
 
         This operation is implemented in terms of one or more calls to the
-        next layer's `async_read_some` and `async_write_some` functions,
-        and is known as a <em>composed operation</em>. The program must
-        ensure that the stream performs no other reads until this operation
-        completes.
+        next layer's `async_read_some` function, and is known as a
+        <em>composed operation</em>. The program must ensure that the
+        stream performs no other reads until this operation completes.
+
+        Upon a success, the input area of the stream buffer will
+        hold the received message payload bytes (which may be zero
+        in length). The functions @ref got_binary and @ref got_text
+        may be used to query the stream and determine the type
+        of the last received message.
 
         During reads, the implementation handles control frames as
         follows:
 
-        @li The @ref control_callback is invoked when a ping frame
-            or pong frame is received.
+        @li The @ref control_callback is invoked when any control
+        frame is received.
 
         @li A pong frame is sent when a ping frame is received.
 
@@ -3021,31 +3177,216 @@ public:
         read and asynchronous write operation pending simultaneously
         (a user initiated call to @ref async_close counts as a write).
 
-        @param buffer A dynamic buffer to hold the message data after
-        any masking or decompression has been applied. This object must
-        remain valid until the handler is called.
+        @param buffer A dynamic buffer for holding the result
 
         @param handler The handler to be called when the read operation
         completes. Copies will be made of the handler as required. The
         function signature of the handler must be:
         @code
         void handler(
-            error_code const& ec,   // Result of operation
-            bool fin                // `true` if this is the last frame
+            error_code const& ec,           // Result of operation
+            std::size_t bytes_transferred   // The number of bytes written to the buffer
         );
         @endcode
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
-        manner equivalent to using boost::asio::io_service::post().
+        manner equivalent to using `boost::asio::io_service::post`.
     */
     template<class DynamicBuffer, class ReadHandler>
 #if BEAST_DOXYGEN
     void_or_deduced
 #else
-    async_return_type<ReadHandler, void(error_code, bool)>
+    async_return_type<
+        ReadHandler, void(error_code, std::size_t)>
 #endif
-    async_read_frame(DynamicBuffer& buffer, ReadHandler&& handler);
+    async_read_some(
+        DynamicBuffer& buffer,
+        std::size_t limit,
+        ReadHandler&& handler);
+
+    //--------------------------------------------------------------------------
+
+    /** Read some message data from the stream.
+
+        This function is used to synchronously read some message
+        data from the stream. The call blocks until one of the following
+        is true:
+
+        @li One or more message octets are placed into the provided buffers.
+
+        @li A final message frame is received.
+
+        @li A close frame is received and processed.
+
+        @li An error occurs on the stream.
+
+        This function is implemented in terms of one or more calls to the
+        stream's `read_some` operation.
+
+        During reads, the implementation handles control frames as
+        follows:
+
+        @li The @ref control_callback is invoked when any control
+        frame is received.
+
+        @li A pong frame is sent when a ping frame is received.
+
+        @li The WebSocket close procedure is started if a close frame
+            is received. In this case, the operation will eventually
+            complete with the error set to @ref error::closed.
+
+        @param buffers A mutable buffer to hold the message data after
+        any masking or decompression has been applied.
+        @param buffers The buffers into which message data will be
+        placed after any masking or decompresison has been applied.
+        The implementation will make copies of this object as needed,
+        but ownership of the underlying memory is not transferred.
+        The caller is responsible for ensuring that the memory
+        locations pointed to by the buffers remains valid until the
+        completion handler is called.
+
+        @throws system_error Thrown on failure.
+
+        @return The number of bytes written to the buffers
+    */
+    template<class MutableBufferSequence>
+    std::size_t
+    read_some(
+        MutableBufferSequence const& buffers);
+
+    /** Read some message data from the stream.
+
+        This function is used to synchronously read some message
+        data from the stream. The call blocks until one of the
+        following is true:
+
+        @li One or more message octets are placed into the provided buffers.
+
+        @li A final message frame is received.
+
+        @li A close frame is received and processed.
+
+        @li An error occurs on the stream.
+
+        This operation is implemented in terms of one or more calls to the
+        stream's `read_some` function.
+
+        During reads, the implementation handles control frames as
+        follows:
+
+        @li The @ref control_callback is invoked when any control
+        frame is received.
+
+        @li A pong frame is sent when a ping frame is received.
+
+        @li The WebSocket close procedure is started if a close frame
+            is received. In this case, the operation will eventually
+            complete with the error set to @ref error::closed.
+
+        @param buffers A mutable buffer to hold the message data after
+        any masking or decompression has been applied.
+        @param buffers The buffers into which message data will be
+        placed after any masking or decompresison has been applied.
+        The implementation will make copies of this object as needed,
+        but ownership of the underlying memory is not transferred.
+        The caller is responsible for ensuring that the memory
+        locations pointed to by the buffers remains valid until the
+        completion handler is called.
+
+        @param ec Set to indicate what error occurred, if any.
+
+        @return The number of bytes written to the buffers
+    */
+    template<class MutableBufferSequence>
+    std::size_t
+    read_some(
+        MutableBufferSequence const& buffers,
+        error_code& ec);
+
+    /** Start an asynchronous operation to read some message data from the stream.
+
+        This function is used to asynchronously read some message
+        data from the stream. The function call always returns immediately.
+        The asynchronous operation will continue until one of the following
+        is true:
+
+        @li One or more message octets are placed into the provided buffers.
+
+        @li A final message frame is received.
+
+        @li A close frame is received and processed.
+
+        @li An error occurs on the stream.
+
+        This operation is implemented in terms of one or more calls to the
+        next layer's `async_read_some` function, and is known as a
+        <em>composed operation</em>. The program must ensure that the
+        stream performs no other reads until this operation completes.
+
+        Upon a success, the input area of the stream buffer will
+        hold the received message payload bytes (which may be zero
+        in length). The functions @ref got_binary and @ref got_text
+        may be used to query the stream and determine the type
+        of the last received message.
+
+        During reads, the implementation handles control frames as
+        follows:
+
+        @li The @ref control_callback is invoked when any control
+        frame is received.
+
+        @li A pong frame is sent when a ping frame is received.
+
+        @li The WebSocket close procedure is started if a close frame
+            is received. In this case, the operation will eventually
+            complete with the error set to @ref error::closed.
+
+        Because of the need to handle control frames, read operations
+        can cause writes to take place. These writes are managed
+        transparently; callers can still have one active asynchronous
+        read and asynchronous write operation pending simultaneously
+        (a user initiated call to @ref async_close counts as a write).
+
+        @param buffers A mutable buffer to hold the message data after
+        any masking or decompression has been applied.
+        @param buffers The buffers into which message data will be
+        placed after any masking or decompresison has been applied.
+        The implementation will make copies of this object as needed,
+        but ownership of the underlying memory is not transferred.
+        The caller is responsible for ensuring that the memory
+        locations pointed to by the buffers remains valid until the
+        completion handler is called.
+
+        @param handler The handler to be called when the read operation
+        completes. Copies will be made of the handler as required. The
+        function signature of the handler must be:
+        @code
+        void handler(
+            error_code const& ec,           // Result of operation
+            std::size_t bytes_transferred   // The number of bytes written to buffers
+        );
+        @endcode
+        Regardless of whether the asynchronous operation completes
+        immediately or not, the handler will not be invoked from within
+        this function. Invocation of the handler will be performed in a
+        manner equivalent to using `boost::asio::io_service::post`.
+    */
+    template<class MutableBufferSequence, class ReadHandler>
+#if BEAST_DOXYGEN
+    void_or_deduced
+#else
+    async_return_type<ReadHandler, void(error_code, std::size_t)>
+#endif
+    async_read_some(
+        MutableBufferSequence const& buffers,
+        ReadHandler&& handler);
+
+    //--------------------------------------------------------------------------
+    //
+    // Writing
+    //
+    //--------------------------------------------------------------------------
 
     /** Write a message to the stream.
 
@@ -3076,7 +3417,7 @@ public:
         @throws system_error Thrown on failure.
 
         @note This function always sends an entire message. To
-        send a message in fragments, use @ref write_frame.
+        send a message in fragments, use @ref write_some.
     */
     template<class ConstBufferSequence>
     void
@@ -3113,7 +3454,7 @@ public:
         @throws system_error Thrown on failure.
 
         @note This function always sends an entire message. To
-        send a message in fragments, use @ref write_frame.
+        send a message in fragments, use @ref write_some.
     */
     template<class ConstBufferSequence>
     void
@@ -3134,7 +3475,7 @@ public:
         to the next layer's `async_write_some` functions, and is known
         as a <em>composed operation</em>. The program must ensure that
         the stream performs no other write operations (such as
-        stream::async_write, stream::async_write_frame, or
+        stream::async_write, stream::async_write_some, or
         stream::async_close).
 
         The current setting of the @ref binary option controls
@@ -3203,7 +3544,7 @@ public:
     */
     template<class ConstBufferSequence>
     void
-    write_frame(bool fin, ConstBufferSequence const& buffers);
+    write_some(bool fin, ConstBufferSequence const& buffers);
 
     /** Write partial message data on the stream.
 
@@ -3235,7 +3576,7 @@ public:
     */
     template<class ConstBufferSequence>
     void
-    write_frame(bool fin,
+    write_some(bool fin,
         ConstBufferSequence const& buffers, error_code& ec);
 
     /** Start an asynchronous operation to send a message frame on the stream.
@@ -3254,7 +3595,7 @@ public:
         as a <em>composed operation</em>. The actual payload sent
         may be transformed as per the WebSocket protocol settings. The
         program must ensure that the stream performs no other write
-        operations (such as stream::async_write, stream::async_write_frame,
+        operations (such as stream::async_write, stream::async_write_some,
         or stream::async_close).
 
         If this is the beginning of a new message, the message opcode
@@ -3286,24 +3627,28 @@ public:
     async_return_type<
         WriteHandler, void(error_code)>
 #endif
-    async_write_frame(bool fin,
+    async_write_some(bool fin,
         ConstBufferSequence const& buffers, WriteHandler&& handler);
 
 private:
-    template<class Decorator,
-        class Handler>          class accept_op;
-    template<class Handler>     class close_op;
-    template<class Handler>     class handshake_op;
-    template<class Handler>     class ping_op;
-    template<class DynamicBuffer,
-        class Handler>          class read_op;
-    template<class DynamicBuffer,
-        class Handler>          class read_frame_op;
-    template<class Handler>     class response_op;
-    template<class Buffers,
-        class Handler>          class write_frame_op;
-    template<class Buffers,
-        class Handler>          class write_op;
+    enum class fail_how
+    {
+        code        = 1, // send close code, teardown, finish with error::failed
+        close       = 2, // send frame in fb, teardown, finish with error::closed
+        teardown    = 3  // teardown, finish with error::failed
+    };
+
+    template<class, class>  class accept_op;
+    template<class>         class close_op;
+    template<class>         class fail_op;
+    template<class>         class handshake_op;
+    template<class>         class ping_op;
+    template<class>         class read_fh_op;
+    template<class, class>  class read_some_op;
+    template<class, class>  class read_op;
+    template<class>         class response_op;
+    template<class, class>  class write_some_op;
+    template<class, class>  class write_op;
 
     static void default_decorate_req(request_type&) {}
     static void default_decorate_res(response_type&) {}
@@ -3311,8 +3656,12 @@ private:
     void open(role_type role);
     void close();
     void reset();
-    void rd_begin();
     void wr_begin();
+
+    template<class DynamicBuffer>
+    bool
+    parse_fh(detail::frame_header& fh,
+        DynamicBuffer& b, close_code& code);
 
     template<class DynamicBuffer>
     std::size_t
@@ -3376,6 +3725,7 @@ private:
 
 #include <beast/websocket/impl/accept.ipp>
 #include <beast/websocket/impl/close.ipp>
+#include <beast/websocket/impl/fail.ipp>
 #include <beast/websocket/impl/handshake.ipp>
 #include <beast/websocket/impl/ping.ipp>
 #include <beast/websocket/impl/read.ipp>

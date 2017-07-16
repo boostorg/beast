@@ -35,10 +35,12 @@ class stream<NextLayer>::ping_op
         stream<NextLayer>& ws;
         detail::frame_streambuf fb;
         int state = 0;
+        token tok;
 
         data(Handler&, stream<NextLayer>& ws_,
                 detail::opcode op_, ping_data const& payload)
             : ws(ws_)
+            , tok(ws.t_.unique())
         {
             using boost::asio::buffer;
             using boost::asio::buffer_copy;
@@ -115,7 +117,7 @@ operator()(error_code ec, std::size_t)
     auto& d = *d_;
     if(ec)
     {
-        BOOST_ASSERT(d.ws.wr_block_ == &d);
+        BOOST_ASSERT(d.ws.wr_block_ == d.tok);
         d.ws.failed_ = true;
         goto upcall;
     }
@@ -129,7 +131,7 @@ operator()(error_code ec, std::size_t)
             d.ws.ping_op_.emplace(std::move(*this));
             return;
         }
-        d.ws.wr_block_ = &d;
+        d.ws.wr_block_ = d.tok;
         if(d.ws.failed_ || d.ws.wr_close_)
         {
             // call handler
@@ -140,7 +142,7 @@ operator()(error_code ec, std::size_t)
 
     do_write:
         // send ping frame
-        BOOST_ASSERT(d.ws.wr_block_ == &d);
+        BOOST_ASSERT(d.ws.wr_block_ == d.tok);
         d.state = 3;
         boost::asio::async_write(d.ws.stream_,
             d.fb.data(), std::move(*this));
@@ -148,7 +150,7 @@ operator()(error_code ec, std::size_t)
 
     case 1:
         BOOST_ASSERT(! d.ws.wr_block_);
-        d.ws.wr_block_ = &d;
+        d.ws.wr_block_ = d.tok;
         d.state = 2;
         // The current context is safe but might not be
         // the same as the one for this operation (since
@@ -160,7 +162,7 @@ operator()(error_code ec, std::size_t)
         return;
 
     case 2:
-        BOOST_ASSERT(d.ws.wr_block_ == &d);
+        BOOST_ASSERT(d.ws.wr_block_ == d.tok);
         if(d.ws.failed_ || d.ws.wr_close_)
         {
             // call handler
@@ -173,8 +175,8 @@ operator()(error_code ec, std::size_t)
         break;
     }
 upcall:
-    BOOST_ASSERT(d.ws.wr_block_ == &d);
-    d.ws.wr_block_ = nullptr;
+    BOOST_ASSERT(d.ws.wr_block_ == d.tok);
+    d.ws.wr_block_.reset();
     d.ws.close_op_.maybe_invoke() ||
         d.ws.rd_op_.maybe_invoke() ||
         d.ws.wr_op_.maybe_invoke();

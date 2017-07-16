@@ -6,6 +6,19 @@ Version 84:
 * bind_handler allows placeholders
 * Add consuming_buffers::get
 
+WebSocket:
+
+* WebSocket read optimization
+
+API Changes:
+
+* websocket::stream::read_buffer_size is removed
+
+Actions Required:
+
+* Remove calls websocket::stream::read_buffer_size
+* Use read_some and write_some instead of read_frame and write_frame
+
 --------------------------------------------------------------------------------
 
 Version 83:

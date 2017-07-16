@@ -37,6 +37,7 @@ public:
         check("beast.websocket", error::closed);
         check("beast.websocket", error::failed);
         check("beast.websocket", error::handshake_failed);
+        check("beast.websocket", error::buffer_overflow);
     }
 };
 

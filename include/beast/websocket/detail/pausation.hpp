@@ -82,6 +82,60 @@ class pausation
         void operator()();
     };
 
+    template<class Op>
+    class saved_op
+    {
+        Op* op_ = nullptr;
+
+    public:
+        ~saved_op()
+        {
+            using boost::asio::asio_handler_deallocate;
+            if(op_)
+            {
+                auto h = std::move(op_->handler());
+                op_->~Op();
+                asio_handler_deallocate(op_,
+                    sizeof(*op_), std::addressof(h));
+            }
+        }
+
+        saved_op(saved_op&& other)
+            : op_(other.op_)
+        {
+            other.op_ = nullptr;
+        }
+
+        saved_op& operator=(saved_op&& other)
+        {
+            BOOST_ASSERT(! op_);
+            op_ = other.op_;
+            other.op_ = 0;
+            return *this;
+        }
+
+        explicit
+        saved_op(Op&& op)
+        {
+            using boost::asio::asio_handler_allocate;
+            new(asio_handler_allocate(sizeof(Op),
+                std::addressof(op.handler()))) Op{
+                    std::move(op)};
+        }
+
+        void
+        operator()()
+        {
+            BOOST_ASSERT(op_);
+            Op op{std::move(*op_)};
+            using boost::asio::asio_handler_deallocate;
+            asio_handler_deallocate(op_,
+                sizeof(*op_), std::addressof(op_->handler()));
+            op_ = nullptr;
+            op();
+        }
+    };
+
     using buf_type = char[sizeof(holder<exemplar>)];
 
     base* base_ = nullptr;
@@ -125,6 +179,10 @@ public:
     void
     emplace(F&& f);
 
+    template<class F>
+    void
+    save(F&& f);
+
     bool
     maybe_invoke()
     {
@@ -148,6 +206,13 @@ pausation::emplace(F&& f)
         "buffer too small");
     BOOST_ASSERT(! base_);
     base_ = ::new(buf_) type{std::forward<F>(f)};
+}
+
+template<class F>
+void
+pausation::save(F&& f)
+{
+    emplace(saved_op<F>{std::move(f)});
 }
 
 } // detail

@@ -328,7 +328,7 @@ without bringing it all into memory.
         [```
             template<class ConstBufferSequence>
             void
-            write_frame(bool fin,
+            write_some(bool fin,
                 ConstBufferSequence const& buffers);
         ```]
         [

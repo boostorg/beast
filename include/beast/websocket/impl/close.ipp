@@ -35,11 +35,13 @@ class stream<NextLayer>::close_op
         close_reason cr;
         detail::frame_streambuf fb;
         int state = 0;
+        token tok;
 
         data(Handler&, stream<NextLayer>& ws_,
                 close_reason const& cr_)
             : ws(ws_)
             , cr(cr_)
+            , tok(ws.t_.unique())
         {
             ws.template write_close<
                 flat_static_buffer_base>(fb, cr);
@@ -114,7 +116,7 @@ operator()(error_code ec, std::size_t)
     auto& d = *d_;
     if(ec)
     {
-        BOOST_ASSERT(d.ws.wr_block_ == &d);
+        BOOST_ASSERT(d.ws.wr_block_ == d.tok);
         d.ws.failed_ = true;
         goto upcall;
     }
@@ -128,7 +130,7 @@ operator()(error_code ec, std::size_t)
             d.ws.close_op_.emplace(std::move(*this));
             return;
         }
-        d.ws.wr_block_ = &d;
+        d.ws.wr_block_ = d.tok;
         if(d.ws.failed_ || d.ws.wr_close_)
         {
             // call handler
@@ -140,7 +142,7 @@ operator()(error_code ec, std::size_t)
 
     do_write:
         // send close frame
-        BOOST_ASSERT(d.ws.wr_block_ == &d);
+        BOOST_ASSERT(d.ws.wr_block_ == d.tok);
         d.state = 3;
         d.ws.wr_close_ = true;
         boost::asio::async_write(d.ws.stream_,
@@ -149,7 +151,7 @@ operator()(error_code ec, std::size_t)
 
     case 1:
         BOOST_ASSERT(! d.ws.wr_block_);
-        d.ws.wr_block_ = &d;
+        d.ws.wr_block_ = d.tok;
         d.state = 2;
         // The current context is safe but might not be
         // the same as the one for this operation (since
@@ -161,7 +163,7 @@ operator()(error_code ec, std::size_t)
         return;
 
     case 2:
-        BOOST_ASSERT(d.ws.wr_block_ == &d);
+        BOOST_ASSERT(d.ws.wr_block_ == d.tok);
         if(d.ws.failed_ || d.ws.wr_close_)
         {
             // call handler
@@ -174,30 +176,15 @@ operator()(error_code ec, std::size_t)
         break;
     }
 upcall:
-    BOOST_ASSERT(d.ws.wr_block_ == &d);
-    d.ws.wr_block_ = nullptr;
+    BOOST_ASSERT(d.ws.wr_block_ == d.tok);
+    d.ws.wr_block_.reset();
     d.ws.rd_op_.maybe_invoke() ||
         d.ws.ping_op_.maybe_invoke() ||
         d.ws.wr_op_.maybe_invoke();
     d_.invoke(ec);
 }
 
-template<class NextLayer>
-template<class CloseHandler>
-async_return_type<
-    CloseHandler, void(error_code)>
-stream<NextLayer>::
-async_close(close_reason const& cr, CloseHandler&& handler)
-{
-    static_assert(is_async_stream<next_layer_type>::value,
-        "AsyncStream requirements not met");
-    async_completion<CloseHandler,
-        void(error_code)> init{handler};
-    close_op<handler_type<
-        CloseHandler, void(error_code)>>{
-            init.completion_handler, *this, cr}({});
-    return init.result.get();
-}
+//------------------------------------------------------------------------------
 
 template<class NextLayer>
 void
@@ -219,9 +206,12 @@ close(close_reason const& cr, error_code& ec)
 {
     static_assert(is_sync_stream<next_layer_type>::value,
         "SyncStream requirements not met");
-    BOOST_ASSERT(! wr_close_);
+    // If rd_close_ is set then we already sent a close
+    BOOST_ASSERT(! rd_close_);
     if(wr_close_)
     {
+        // Can't call close twice, abort operation
+        BOOST_ASSERT(! wr_close_);
         ec = boost::asio::error::operation_aborted;
         return;
     }
@@ -230,9 +220,26 @@ close(close_reason const& cr, error_code& ec)
     write_close<flat_static_buffer_base>(fb, cr);
     boost::asio::write(stream_, fb.data(), ec);
     failed_ = !!ec;
+    if(failed_)
+        return;
 }
 
-//------------------------------------------------------------------------------
+template<class NextLayer>
+template<class CloseHandler>
+async_return_type<
+    CloseHandler, void(error_code)>
+stream<NextLayer>::
+async_close(close_reason const& cr, CloseHandler&& handler)
+{
+    static_assert(is_async_stream<next_layer_type>::value,
+        "AsyncStream requirements not met");
+    async_completion<CloseHandler,
+        void(error_code)> init{handler};
+    close_op<handler_type<
+        CloseHandler, void(error_code)>>{
+            init.completion_handler, *this, cr}({});
+    return init.result.get();
+}
 
 } // websocket
 } // beast
