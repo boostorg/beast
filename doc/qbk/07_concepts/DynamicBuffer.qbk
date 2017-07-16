@@ -31,65 +31,65 @@ implementation strategies:
   size of the character sequence. This is the implementation approach
   currently offered by __multi_buffer__.
 
-In this table:
+[heading Associated Types]
 
-* `X` denotes a dynamic buffer class.
-* `a` denotes a value of type `X`.
-* `c` denotes a (possibly const) value of type `X`.
+* [link beast.ref.beast__is_dynamic_buffer `is_dynamic_buffer`]
+* __ConstBufferSequence__
+* __MutableBufferSequence__
+
+[heading Requirements]
+
+* `D` denotes a dynamic buffer class.
+* `a` denotes a value of type `D`.
+* `c` denotes a (possibly const) value of type `D`.
 * `n` denotes a value of type `std::size_t`.
 * `T` denotes a type meeting the requirements for __ConstBufferSequence__.
 * `U` denotes a type meeting the requirements for __MutableBufferSequence__.
 
-[table DynamicBuffer requirements
-[[expression] [type] [semantics, pre/post-conditions]]
+[table Valid expressions
+[[Expression] [Type] [Semantics, Pre/Post-conditions]]
 [
-    [`X::const_buffers_type`]
+    [`D::const_buffers_type`]
     [`T`]
     [
         This type represents the memory associated with the input sequence.
     ]
-]
-[
-    [`X::mutable_buffers_type`]
+][
+    [`D::mutable_buffers_type`]
     [`U`]
     [
         This type represents the memory associated with the output sequence.
     ]
-]
-[
+][
     [`c.size()`]
     [`std::size_t`]
     [
         Returns the size, in bytes, of the input sequence.
     ]
-]
-[
+][
     [`c.max_size()`]
     [`std::size_t`]
     [
         Returns the permitted maximum of the sum of the sizes of the input
         sequence and output sequence.
     ]
-]
-[
+][
     [`c.capacity()`]
     [`std::size_t`]
     [
         Returns the maximum sum of the sizes of the input sequence and output
         sequence that the dynamic buffer can hold without requiring reallocation.
     ]
-]
-[
+][
     [`c.data()`]
-    [`X::const_buffers_type`]
+    [`D::const_buffers_type`]
     [
         Returns a constant buffer sequence u that represents the memory
         associated with the input sequence, and where `buffer_size(u) == size()`.
     ]
-]
-[
+][
     [`a.prepare(n)`]
-    [`X::mutable_buffers_type`]
+    [`D::mutable_buffers_type`]
     [
         Returns a mutable buffer sequence u representing the output sequence,
         and where `buffer_size(u) == n`. The dynamic buffer reallocates memory
@@ -98,8 +98,7 @@ In this table:
 
         Throws: `length_error` if `size() + n` exceeds `max_size()`.
     ]
-]
-[
+][
     [`a.commit(n)`]
     [ ]
     [
@@ -110,8 +109,7 @@ In this table:
         mutable buffer sequences previously obtained using `data()` or
         `prepare()` are invalidated.
     ]
-]
-[
+][
     [`a.consume(n)`]
     [ ]
     [
@@ -120,8 +118,7 @@ In this table:
         is removed. All constant or mutable buffer sequences previously
         obtained using `data()` or `prepare()` are invalidated.
     ]
-]
-]
+]]
 
 [heading Models]
 
@@ -131,6 +128,8 @@ In this table:
 * [link beast.ref.beast__flat_buffer `flat_buffer`]
 * [link beast.ref.beast__flat_static_buffer `flat_static_buffer`]
 * [link beast.ref.beast__flat_static_buffer_base `flat_static_buffer_base`]
+* [link beast.ref.beast__static_buffer `static_buffer`]
+* [link beast.ref.beast__static_buffer_base `static_buffer_base`]
 * [link beast.ref.beast__multi_buffer `multi_buffer`]
 
 [endsect]

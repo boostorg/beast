@@ -60,6 +60,103 @@ namespace http {
     there was one.  If an error is set, the value is propagated to
     the caller of the parser.
 
+    @par Derived Class Requirements
+    @code
+        template<bool isRequest>
+        class derived
+            : public basic_parser<isRequest, derived<isRequest>>
+        {
+        private:
+            // The friend declaration is needed,
+            // otherwise the callbacks must be made public.
+            friend class basic_parser<isRequest, derived>;
+
+            /// Called after receiving the request-line (isRequest == true).
+            void
+            on_request_impl(
+                verb method,                // The method verb, verb::unknown if no match
+                string_view method_str,     // The method as a string
+                string_view target,         // The request-target
+                int version,                // The HTTP-version
+                error_code& ec);            // The error returned to the caller, if any
+
+            /// Called after receiving the start-line (isRequest == false).
+            void
+            on_response_impl(
+                int code,                   // The status-code
+                string_view reason,         // The obsolete reason-phrase
+                int version,                // The HTTP-version
+                error_code& ec);            // The error returned to the caller, if any
+
+            /// Called after receiving a header field.
+            void
+            on_field_impl(
+                field f,                    // The known-field enumeration constant
+                string_view name,           // The field name string.
+                string_view value,          // The field value
+                error_code& ec);            // The error returned to the caller, if any
+
+            /// Called after the complete header is received.
+            void
+            on_header_impl(
+                error_code& ec);            // The error returned to the caller, if any
+
+            /// Called just before processing the body, if a body exists.
+            void
+            on_body_init_impl(
+                boost::optional<
+                    std::uint64_t> const&
+                        content_length,     // Content length if known, else `boost::none`
+                error_code& ec);            // The error returned to the caller, if any
+
+            /// Called for each piece of the body, if a body exists.
+            //!
+            //! This is used when there is no chunked transfer coding.
+            //!
+            //! The function returns the number of bytes consumed from the
+            //! input buffer. Any input octets not consumed will be will be
+            //! presented on subsequent calls.
+            //!
+            std::size_t
+            on_body_impl(
+                string_view s,              // A portion of the body
+                error_code& ec);            // The error returned to the caller, if any
+
+            /// Called for each chunk header.
+            void
+            on_chunk_header_impl(
+                std::uint64_t size,         // The size of the upcoming chunk,
+                                            // or zero for the last chunk
+                string_view extension,      // The chunk extensions (may be empty)
+                error_code& ec);            // The error returned to the caller, if any
+
+            /// Called to deliver the chunk body.
+            //!
+            //! This is used when there is a chunked transfer coding. The
+            //! implementation will automatically remove the encoding before
+            //! calling this function.
+            //!
+            //! The function returns the number of bytes consumed from the
+            //! input buffer. Any input octets not consumed will be will be
+            //! presented on subsequent calls.
+            //!
+            std::size_t
+            on_chunk_body_impl(
+                std::uint64_t remain,       // The number of bytes remaining in the chunk,
+                                            // including what is being passed here.
+                                            // or zero for the last chunk
+                string_view body,           // The next piece of the chunk body
+                error_code& ec);            // The error returned to the caller, if any
+
+            /// Called when the complete message is parsed.
+            void
+            on_finish_impl(error_code& ec);
+
+        public:
+            derived() = default;
+        };
+    @endcode
+
     @tparam isRequest A `bool` indicating whether the parser will be
     presented with request or response message.
 

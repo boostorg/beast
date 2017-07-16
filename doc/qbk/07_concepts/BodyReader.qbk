@@ -20,44 +20,39 @@ intended to obtain buffers for these scenarios:
 * Body data generated dynamically from other threads.
 * Body data computed algorithmically.
 
-In this table:
-
-* `X` denotes a type meeting the requirements of [*BodyReader].
-
-* `B` denotes a __Body__ where
-      `std::is_same<X, B::reader>::value == true`.
-
-* `a` denotes a value of type `X`.
-
-* `m` denotes a possibly const value of type `message&` where
-      `std::is_same<decltype(m.body), Body::value_type>:value == true`.
-
-* `ec` is a value of type [link beast.ref.beast__error_code `error_code&`].
-
-* `R<T>` is the type `boost::optional<std::pair<T, bool>>`.
-
 [heading Associated Types]
 
+* [link beast.ref.beast__http__is_body_reader `is_body_reader`]
 * __Body__
 
-* [link beast.ref.beast__http__is_body_reader `is_body_reader`]
+[heading Requirements]
 
-[heading BodyReader requirements]
-[table Valid Expressions
+In this table:
+
+* `R` denotes a type meeting the requirements of [*BodyReader].
+* `B` denotes a __Body__ where
+      `std::is_same<R, B::reader>::value == true`.
+* `a` denotes a value of type `R`.
+* `m` denotes a possibly const value of type `message&` where
+      `std::is_same<decltype(m.body), Body::value_type>:value == true`.
+* `ec` is a value of type [link beast.ref.beast__error_code `error_code&`].
+* `R<T>` is the type `boost::optional<std::pair<T, bool>>`.
+
+[table Valid expressions
 [[Expression] [Type] [Semantics, Pre/Post-conditions]]
 [
-    [`X::const_buffers_type`]
+    [`R::const_buffers_type`]
     []
     [
         A type which meets the requirements of __ConstBufferSequence__.
-        This is the type of buffer returned by `X::get`.
+        This is the type of buffer returned by `R::get`.
     ]
 ][
-    [`X(m);`]
+    [`R(m);`]
     []
     [
         Constructible from `m`. The lifetime of `m` is guaranteed
-        to end no earlier than after the `X` is destroyed.
+        to end no earlier than after the `R` is destroyed.
         The reader shall not access the contents of `m` before the
         first call to `init`, permitting lazy construction of the
         message.
@@ -65,11 +60,11 @@ In this table:
         The constructor may optionally require that `m` is const, which
         has these consequences:
 
-        * If `X` requires that `m` is a const reference, then serializers
+        * If `R` requires that `m` is a const reference, then serializers
         constructed for messages with this body type will also require a
         const reference to a message, otherwise:
 
-        * If `X` requires that `m` is a non-const reference, then serializers
+        * If `R` requires that `m` is a non-const reference, then serializers
         constructed for messages with this body type will aso require
         a non-const reference to a message.
     ]
@@ -85,7 +80,7 @@ In this table:
     ]
 ][
     [`a.get(ec)`]
-    [`R<X::const_buffers_type>`]
+    [`R<R::const_buffers_type>`]
     [
         Called one or more times after `init` succeeds. This function
         returns `boost::none` if all buffers representing the body have
@@ -100,8 +95,7 @@ In this table:
         The function will ensure that `!ec` is `true` if there was
         no error or set to the appropriate error code if there was one. 
     ]
-]
-]
+]]
 
 [heading Exemplar]
 
@@ -112,6 +106,9 @@ In this table:
 * [link beast.ref.beast__http__basic_dynamic_body.reader `basic_dynamic_body::reader`]
 * [link beast.ref.beast__http__basic_file_body__reader `basic_file_body::reader`]
 * [link beast.ref.beast__http__basic_string_body.reader `basic_string_body::reader`]
+* [link beast.ref.beast__http__buffer_body.reader `buffer_body::reader`]
 * [link beast.ref.beast__http__empty_body.reader `empty_body::reader`]
+* [link beast.ref.beast__http__span_body.reader `span_body::reader`]
+* [link beast.ref.beast__http__vector_body.reader `vector_body::reader`]
 
 [endsect]
