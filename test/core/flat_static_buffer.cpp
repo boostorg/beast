@@ -225,10 +225,10 @@ public:
     void run() override
     {
         testBuffer();
-        //testStaticBuffer();
+        testStaticBuffer();
     }
 };
 
 BEAST_DEFINE_TESTSUITE(flat_static_buffer,core,beast);
 
-} // beastp
+} // beast
