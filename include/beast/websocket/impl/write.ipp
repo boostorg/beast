@@ -401,20 +401,21 @@ loop:
         }
         d.fh.fin = ! more;
         d.fh.len = n;
-        detail::fh_streambuf fh_buf;
-        detail::write<flat_static_buffer_base>(fh_buf, d.fh);
+        detail::write<
+            flat_static_buffer_base>(d.fh_buf, d.fh);
         d.ws.wr_.cont = ! d.fin;
         // Send frame
         d.step = more ?
             do_deflate + 1 : do_deflate + 2;
         boost::asio::async_write(d.ws.stream_,
-            buffer_cat(fh_buf.data(), b),
+            buffer_cat(d.fh_buf.data(), b),
                 std::move(*this));
         return;
     }
 
     case do_deflate + 1:
         BOOST_ASSERT(d.ws.wr_block_ == &d);
+        d.fh_buf.consume(d.fh_buf.size());
         d.ws.wr_block_ = nullptr;
         d.fh.op = detail::opcode::cont;
         d.fh.rsv1 = false;
