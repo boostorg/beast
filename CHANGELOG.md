@@ -10,6 +10,15 @@ WebSocket
 * Add wstest compression option
 * Fix buffer lifetime in websocket write
 
+API Changes:
+
+* Add static_buffer 
+
+Actions Required:
+
+* Callers who depend on static_buffer returning sequences of
+  exactly length one should switch to flat_static_buffer.
+
 --------------------------------------------------------------------------------
 
 Version 82:
