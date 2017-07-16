@@ -89,6 +89,17 @@ of scenarios:
     by a constexpr template parameter. The storage for the sequences are
     kept in the class; the implementation does not perform heap allocations.
 ]]
+[[
+    [link beast.ref.beast__static_buffer `static_buffer`]
+    [link beast.ref.beast__static_buffer_base `static_buffer_base`]
+][
+    Provides the facilities of a circular dynamic buffer. subject to an
+    upper limit placed on the total size of the input and output areas
+    defined by a constexpr template parameter.
+    The implementation never moves memory during buffer operations.
+    The storage for the sequences are kept in the class; the implementation
+    does not perform heap allocations.
+]]
 ]
 
 Network applications frequently need to manipulate buffer sequences. To

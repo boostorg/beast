@@ -39,6 +39,7 @@ add_executable (core-tests
     span.cpp
     static_string.cpp
     string.cpp
+    static_buffer.cpp
     string_param.cpp
     type_traits.cpp
     base64.cpp

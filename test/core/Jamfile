@@ -31,6 +31,7 @@ unit-test core-tests :
     ostream.cpp
     read_size.cpp
     span.cpp
+    static_buffer.cpp
     static_string.cpp
     string.cpp
     string_param.cpp

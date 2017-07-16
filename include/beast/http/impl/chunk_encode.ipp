@@ -265,7 +265,7 @@ public:
     pointer
     operator->()
     {
-        return &(*this);
+        return &(**this);
     }
 
     const_iterator&
