@@ -3,6 +3,11 @@ Version 83:
 * Add flat_static_buffer::mutable_data
 * Add buffer_front
 
+WebSocket
+
+* Add wstest compression option
+* Fix buffer lifetime in websocket write
+
 --------------------------------------------------------------------------------
 
 Version 82:
