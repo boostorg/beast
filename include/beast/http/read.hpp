@@ -56,13 +56,15 @@ namespace http {
 
     @param parser The parser to use.
 
+    @return The number of bytes consumed by the parser.
+
     @throws system_error Thrown on failure.
 */
 template<
     class SyncReadStream,
     class DynamicBuffer,
     bool isRequest, class Derived>
-void
+std::size_t
 read_some(
     SyncReadStream& stream,
     DynamicBuffer& buffer,
@@ -112,12 +114,14 @@ read_some(
     @param parser The parser to use.
 
     @param ec Set to the error, if any occurred.
+
+    @return The number of bytes consumed by the parser.
 */
 template<
     class SyncReadStream,
     class DynamicBuffer,
     bool isRequest, class Derived>
-void
+std::size_t
 read_some(
     SyncReadStream& stream,
     DynamicBuffer& buffer,
@@ -172,7 +176,8 @@ read_some(
     completes. Copies will be made of the handler as required.
     The equivalent function signature of the handler must be:
     @code void handler(
-        error_code const& error     // result of operation
+        error_code const& error,    // result of operation
+        std::size_t bytes_used      // the number of bytes consumed by the parser
     ); @endcode
     Regardless of whether the asynchronous operation completes
     immediately or not, the handler will not be invoked from within
@@ -193,7 +198,7 @@ template<
     void_or_deduced
 #else
 async_return_type<
-    ReadHandler, void(error_code)>
+    ReadHandler, void(error_code, std::size_t)>
 #endif
 async_read_some(
     AsyncReadStream& stream,

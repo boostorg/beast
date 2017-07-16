@@ -41,6 +41,7 @@ class read_some_op
     basic_parser<isRequest, Derived>& p_;
     boost::optional<typename
         DynamicBuffer::mutable_buffers_type> mb_;
+    std::size_t used_ = 0;
     Handler h_;
 
 public:
@@ -136,10 +137,14 @@ operator()(error_code ec, std::size_t bytes_transferred)
         b_.commit(bytes_transferred);
 
     do_parse:
-        b_.consume(p_.put(b_.data(), ec));
+    {
+        auto const used = p_.put(b_.data(), ec);
+        used_ += used;
+        b_.consume(used);
         if(! ec || ec != http::error::need_more)
             goto do_upcall;
         ec.assign(0, ec.category());
+    }
 
     do_read:
         try
@@ -165,7 +170,7 @@ operator()(error_code ec, std::size_t bytes_transferred)
         break;
     }
 upcall:
-    h_(ec);
+    h_(ec, used_);
 }
 
 //------------------------------------------------------------------------------
@@ -219,7 +224,8 @@ public:
     }
 
     void
-    operator()(error_code ec);
+    operator()(
+        error_code ec, std::size_t bytes_used = 0);
 
     friend
     void* asio_handler_allocate(
@@ -264,7 +270,7 @@ template<class Stream, class DynamicBuffer,
 void
 read_op<Stream, DynamicBuffer,
     isRequest, Derived, Condition, Handler>::
-operator()(error_code ec)
+operator()(error_code ec, std::size_t)
 {
     switch(state_)
     {
@@ -343,7 +349,8 @@ public:
     }
 
     void
-    operator()(error_code ec);
+    operator()(
+        error_code ec, std::size_t bytes_used = 0);
 
     friend
     void* asio_handler_allocate(
@@ -388,7 +395,7 @@ template<class Stream, class DynamicBuffer,
 void
 read_msg_op<Stream, DynamicBuffer,
     isRequest, Body, Allocator, Handler>::
-operator()(error_code ec)
+operator()(error_code ec, std::size_t)
 {
     auto& d = *d_;
     switch(d.state)
@@ -424,7 +431,7 @@ template<
     class SyncReadStream,
     class DynamicBuffer,
     bool isRequest, class Derived>
-void
+std::size_t
 read_some(
     SyncReadStream& stream,
     DynamicBuffer& buffer,
@@ -436,16 +443,18 @@ read_some(
         "DynamicBuffer requirements not met");
     BOOST_ASSERT(! parser.is_done());
     error_code ec;
-    read_some(stream, buffer, parser, ec);
+    auto const bytes_used = read_some(
+        stream, buffer, parser, ec);
     if(ec)
         BOOST_THROW_EXCEPTION(system_error{ec});
+    return bytes_used;
 }
 
 template<
     class SyncReadStream,
     class DynamicBuffer,
     bool isRequest, class Derived>
-void
+std::size_t
 read_some(
     SyncReadStream& stream,
     DynamicBuffer& buffer,
@@ -457,16 +466,21 @@ read_some(
     static_assert(is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
     BOOST_ASSERT(! parser.is_done());
+    std::size_t bytes_used = 0;
     if(buffer.size() == 0)
         goto do_read;
     for(;;)
     {
         // invoke parser
-        buffer.consume(parser.put(buffer.data(), ec));
-        if(! ec)
-            break;
-        if(ec != http::error::need_more)
-            break;
+        {
+            auto const used = parser.put(buffer.data(), ec);
+            bytes_used += used;
+            buffer.consume(used);
+            if(! ec)
+                break;
+            if(ec != http::error::need_more)
+                break;
+        }
     do_read:
         boost::optional<typename
             DynamicBuffer::mutable_buffers_type> b;
@@ -478,7 +492,7 @@ read_some(
         catch(std::length_error const&)
         {
             ec = error::buffer_overflow;
-            return;
+            return bytes_used;
         }
         auto const bytes_transferred =
             stream.read_some(*b, ec);
@@ -501,6 +515,7 @@ read_some(
             break;
         buffer.commit(bytes_transferred);
     }
+    return bytes_used;
 }
 
 template<
@@ -509,7 +524,7 @@ template<
     bool isRequest, class Derived,
     class ReadHandler>
 async_return_type<
-    ReadHandler, void(error_code)>
+    ReadHandler, void(error_code, std::size_t)>
 async_read_some(
     AsyncReadStream& stream,
     DynamicBuffer& buffer,
