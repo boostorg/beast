@@ -5,6 +5,7 @@ Version 83:
 * Add wstest compression option
 * Turn some flat_static_buffer_tests on
 * Documentation work
+* read_some, async_read_some return bytes used
 
 WebSocket
 
