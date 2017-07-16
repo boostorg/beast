@@ -156,11 +156,11 @@ public:
         {
             using boost::asio::buffer_size;
             using boost::asio::buffer_copy;
-            auto const n = buffer_size(buffers);
-            auto const len = body_.size();
+            auto const extra = buffer_size(buffers);
+            auto const size = body_.size();
             try
             {
-                body_.resize(len + n);
+                body_.resize(size + extra);
             }
             catch(std::exception const&)
             {
@@ -168,8 +168,16 @@ public:
                 return 0;
             }
             ec.assign(0, ec.category());
-            return buffer_copy(boost::asio::buffer(
-                &body_[0] + len, n), buffers);
+            CharT* dest = &body_[size];
+            for(boost::asio::const_buffer b : buffers)
+            {
+                using boost::asio::buffer_cast;
+                auto const len = boost::asio::buffer_size(b);
+                Traits::copy(
+                    dest, buffer_cast<CharT const*>(b), len);
+                dest += len;
+            }
+            return extra;
         }
 
         void

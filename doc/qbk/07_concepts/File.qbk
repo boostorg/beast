@@ -11,6 +11,13 @@ The [*File] concept abstracts access to files in the underlying file system.
 To support other platform interfaces, users may author their own [*File]
 types which meet these requirements.
 
+[heading Associated Types]
+
+* [link beast.ref.beast__file_mode `file_mode`]
+* [link beast.ref.beast__is_file `is_file`]
+
+[heading Requirements]
+
 In this table:
 
 * `F` is a [*File] type
@@ -24,13 +31,8 @@ In this table:
 * `c` is any possibly-const pointer to memory
 * `ec` is a reference of type [link beast.ref.beast__error_code `error_code`]
 
-[heading Associated Types]
-
-* [link beast.ref.beast__file_mode `file_mode`]
-* [link beast.ref.beast__is_file `is_file`]
-
-[heading File Requirements]
-[table Valid Expressions
+[table Valid expressions
+[[Expression] [Type] [Semantics, Pre/Post-conditions]]
 [[Operation] [Return Type] [Semantics, Pre/Post-conditions]]
 [
     [`F()`]
@@ -168,6 +170,8 @@ In this table:
 
 [heading Models]
 
+* [link beast.ref.beast__file_posix `file_posix`]
 * [link beast.ref.beast__file_stdio `file_stdio`]
+* [link beast.ref.beast__file_win32 `file_win32`]
 
 [endsect]

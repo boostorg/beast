@@ -181,19 +181,16 @@
             <member><link linkend="beast.ref.beast__buffers_adapter">buffers_adapter</link></member>
             <member><link linkend="beast.ref.beast__consuming_buffers">consuming_buffers</link></member>
             <member><link linkend="beast.ref.beast__drain_buffer">drain_buffer</link></member>
-            <member><link linkend="beast.ref.beast__error_category">error_category</link></member>
-            <member><link linkend="beast.ref.beast__error_code">error_code</link></member>
-            <member><link linkend="beast.ref.beast__error_condition">error_condition</link></member>
             <member><link linkend="beast.ref.beast__file">file</link></member>
             <member><link linkend="beast.ref.beast__file_mode">file_mode</link></member>
             <member><link linkend="beast.ref.beast__file_posix">file_posix</link></member>
             <member><link linkend="beast.ref.beast__file_stdio">file_stdio</link></member>
+            <member><link linkend="beast.ref.beast__file_win32">file_win32</link></member>
           </simplelist>
         </entry>
         <entry valign="top">
           <bridgehead renderas="sect3">&nbsp;</bridgehead>
           <simplelist type="vert" columns="1">
-            <member><link linkend="beast.ref.beast__file_win32">file_win32</link></member>
             <member><link linkend="beast.ref.beast__flat_buffer">flat_buffer</link></member>
             <member><link linkend="beast.ref.beast__flat_static_buffer">flat_static_buffer</link></member>
             <member><link linkend="beast.ref.beast__flat_static_buffer_base">flat_static_buffer_base</link></member>
@@ -209,7 +206,6 @@
             <member><link linkend="beast.ref.beast__static_string">static_string</link></member>
             <member><link linkend="beast.ref.beast__string_param">string_param</link></member>
             <member><link linkend="beast.ref.beast__string_view">string_view</link></member>
-            <member><link linkend="beast.ref.beast__system_error">system_error</link></member>
           </simplelist>
         </entry>
         <entry valign="top">
@@ -225,12 +221,10 @@
             <member><link linkend="beast.ref.beast__ostream">ostream</link></member>
             <member><link linkend="beast.ref.beast__read_size">read_size</link></member>
             <member><link linkend="beast.ref.beast__read_size_or_throw">read_size_or_throw</link></member>
-            <member><link linkend="beast.ref.beast__system_category">system_category</link></member>
             <member><link linkend="beast.ref.beast__to_static_string">to_static_string</link></member>
           </simplelist>
           <bridgehead renderas="sect3">Constants</bridgehead>
           <simplelist type="vert" columns="1">
-            <member><link linkend="beast.ref.beast__errc">errc</link></member>
             <member><link linkend="beast.ref.beast__file_mode">file_mode</link></member>
           </simplelist>
         </entry>
@@ -253,6 +247,15 @@
           </simplelist>
         </entry>
         <entry valign="top">
+          <bridgehead renderas="sect3">Aliases</bridgehead>
+          <simplelist type="vert" columns="1">
+            <member><link linkend="beast.ref.beast__errc">errc</link></member>
+            <member><link linkend="beast.ref.beast__error_category">error_category</link></member>
+            <member><link linkend="beast.ref.beast__error_code">error_code</link></member>
+            <member><link linkend="beast.ref.beast__error_condition">error_condition</link></member>
+            <member><link linkend="beast.ref.beast__system_category">system_category</link></member>
+            <member><link linkend="beast.ref.beast__system_error">system_error</link></member>
+          </simplelist>
           <bridgehead renderas="sect3">Concepts</bridgehead>
           <simplelist type="vert" columns="1">
             <member><link linkend="beast.concepts.streams.AsyncStream">AsyncStream</link></member>
@@ -284,6 +287,7 @@
       </row>
     </tbody>
   </tgroup>
+<!--
   <tgroup cols="1">
     <colspec colname="a"/>
     <thead>
@@ -304,4 +308,5 @@
       </row>
     </tbody>
   </tgroup>
+-->
 </informaltable>

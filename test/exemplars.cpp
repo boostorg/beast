@@ -27,15 +27,15 @@ struct Body
     struct value_type;
 
     /// The algorithm used for extracting buffers
-    using reader = BodyReader;
+    class reader;
 
     /// The algorithm used for inserting buffers
-    using writer = BodyWriter;
+    class writer;
 
     /// Returns the body's payload size
     static
     std::uint64_t
-    size(value_type const& v);
+    size(value_type const& body);
 };
 
 static_assert(is_body<Body>::value, "");

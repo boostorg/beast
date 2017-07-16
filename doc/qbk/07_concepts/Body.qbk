@@ -11,17 +11,24 @@ A [*Body] type is supplied as a template argument to the __message__ class. It
 controls both the type of the data member of the resulting message object, and
 the algorithms used during parsing and serialization.
 
+[heading Associated Types]
+
+* [link beast.ref.beast__http__is_body `is_body`]
+* __BodyReader__
+* __BodyWriter__
+
+[heading Requirements]
+
 In this table:
 
-* `X` is a type meeting the requirements of [*Body].
-
-* `m` is a value of type `message<b, X, F>` where `b` is a `bool` value
+* `B` is a type meeting the requirements of [*Body].
+* `m` is a value of type `message<b, B, F>` where `b` is a `bool` value
   and `F` is a type meeting the requirements of [*Fields].
 
-[table Body requirements
-[[expression] [type] [semantics, pre/post-conditions]]
+[table Valid expressions
+[[Expression] [Type] [Semantics, Pre/Post-conditions]]
 [
-    [`X::value_type`]
+    [`B::value_type`]
     []
     [
         The type of the `message::body` member.
@@ -29,7 +36,7 @@ In this table:
         will be not movable or not copyable.
     ]
 ][
-    [`X::writer`]
+    [`B::writer`]
     []
     [
         If present, indicates that the body can hold a message body
@@ -39,7 +46,7 @@ In this table:
         are placed.
     ]
 ][
-    [`X::reader`]
+    [`B::reader`]
     []
     [
         If present, indicates that the body is serializable. The type
@@ -48,11 +55,16 @@ In this table:
         the message body for serialization.
     ]
 ][
-    [`X::size(X::value_type v)`]
+    [
+    ```
+    B::size(
+      B::value_type body)
+    ```
+    ]
     [`std::uint64_t`]
     [
         This static member function is optional. It returns the payload
-        size of `v` not including any chunked transfer encoding. The
+        size of `body` not including any chunked transfer encoding. The
         function shall not exit via an exception.
 
         When this function is present:
@@ -80,15 +92,7 @@ In this table:
         will erase the Content-Length field, and add "chunked" as the last
         encoding in the Transfer-Encoding field if it is not already present.
     ]
-][
-    [`is_body<X>`]
-    [`std::true_type`]
-    [
-        An alias for `std::true_type` for `X`, otherwise an alias
-        for `std::false_type`.
-    ]
-]
-]
+]]
 
 [heading Exemplar]
 
@@ -97,9 +101,11 @@ In this table:
 [heading Models]
 
 * [link beast.ref.beast__http__basic_dynamic_body `basic_dynamic_body`]
+* [link beast.ref.beast__http__basic_file_body `basic_file_body`]
+* [link beast.ref.beast__http__basic_string_body `basic_string_body`]
 * [link beast.ref.beast__http__buffer_body `buffer_body`]
-* [link beast.ref.beast__http__dynamic_body `dynamic_body`]
 * [link beast.ref.beast__http__empty_body `empty_body`]
-* [link beast.ref.beast__http__string_body `string_body`]
+* [link beast.ref.beast__http__span_body `span_body`]
+* [link beast.ref.beast__http__vector_body `vector_body`]
 
 [endsect]

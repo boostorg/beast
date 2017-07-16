@@ -257,6 +257,9 @@ public:
 
     /** Returns the value for a field, or throws an exception.
 
+        If more than one field with the specified name exists, the
+        first field defined by insertion order is returned.
+
         @param name The name of the field.
 
         @return The field value.
@@ -267,6 +270,9 @@ public:
     at(field name) const;
 
     /** Returns the value for a field, or throws an exception.
+
+        If more than one field with the specified name exists, the
+        first field defined by insertion order is returned.
 
         @param name The name of the field.
 

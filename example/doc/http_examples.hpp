@@ -873,6 +873,7 @@ template<bool isRequest>
 class custom_parser
     : public basic_parser<isRequest, custom_parser<isRequest>>
 {
+private:
     // The friend declaration is needed,
     // otherwise the callbacks must be made public.
     friend class basic_parser<isRequest, custom_parser>;
@@ -915,14 +916,14 @@ class custom_parser
                 content_length,     // Content length if known, else `boost::none`
         error_code& ec);            // The error returned to the caller, if any
 
-    /** Called for each piece of the body, if a body exists.
-
-        This is used when there is no chunked transfer coding.
-
-        The function returns the number of bytes consumed from the
-        input buffer. Any input octets not consumed will be will be
-        presented on subsequent calls.
-    */
+    /// Called for each piece of the body, if a body exists.
+    //!
+    //! This is used when there is no chunked transfer coding.
+    //!
+    //! The function returns the number of bytes consumed from the
+    //! input buffer. Any input octets not consumed will be will be
+    //! presented on subsequent calls.
+    //!
     std::size_t
     on_body_impl(
         string_view s,              // A portion of the body
@@ -936,16 +937,16 @@ class custom_parser
         string_view extension,      // The chunk extensions (may be empty)
         error_code& ec);            // The error returned to the caller, if any
 
-    /** Called to deliver the chunk body.
-
-        This is used when there is a chunked transfer coding. The
-        implementation will automatically remove the encoding before
-        calling this function.
-
-        The function returns the number of bytes consumed from the
-        input buffer. Any input octets not consumed will be will be
-        presented on subsequent calls.
-    */
+    /// Called to deliver the chunk body.
+    //!
+    //! This is used when there is a chunked transfer coding. The
+    //! implementation will automatically remove the encoding before
+    //! calling this function.
+    //!
+    //! The function returns the number of bytes consumed from the
+    //! input buffer. Any input octets not consumed will be will be
+    //! presented on subsequent calls.
+    //!
     std::size_t
     on_chunk_body_impl(
         std::uint64_t remain,       // The number of bytes remaining in the chunk,

@@ -4,6 +4,7 @@ Version 83:
 * Add buffer_front
 * Add wstest compression option
 * Turn some flat_static_buffer_tests on
+* Documentation work
 
 WebSocket
 

@@ -15,28 +15,20 @@ be serialized.
 
 [heading Associated Types]
 
-* __FieldsReader__
-
 * [link beast.ref.beast__http__is_fields `is_fields`]
+* __FieldsReader__
 
 [heading Requirements]
 
 In this table:
 
 * `F` denotes a type that meets the requirements of [*Fields].
-
 * `R` denotes a type meeting the requirements of __FieldsReader__.
-
 * `a` denotes a value of type `F`.
-
 * `c` denotes a (possibly const) value of type `F`.
-
 * `b` is a value of type `bool`
-
 * `n` is a value of type `boost::optional<std::uint64_t>`.
-
 * `s` is a value of type [link beast.ref.beast__string_view `string_view`].
-
 * `v` is a value of type `unsigned int` representing the HTTP-version.
 
 [table Valid expressions
