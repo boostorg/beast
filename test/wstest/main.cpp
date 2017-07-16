@@ -21,6 +21,8 @@
 #include <memory>
 #include <mutex>
 #include <random>
+#include <thread>
+#include <vector>
 
 namespace asio = boost::asio;
 namespace ip = boost::asio::ip;
@@ -94,6 +96,7 @@ public:
         asio::io_service& ios,
         tcp::endpoint const& ep,
         std::size_t messages,
+        bool deflate,
         report& rep,
         test_buffer const& tb)
         : log_(log)
@@ -105,9 +108,11 @@ public:
         , strand_(ios)
     {
         ws::permessage_deflate pmd;
-        pmd.client_enable = false;
+        pmd.client_enable = deflate;
         ws_.set_option(pmd);
         ws_.binary(true);
+        ws_.auto_fragment(false);
+        ws_.write_buffer_size(64 * 1024);
     }
 
     ~connection()
@@ -275,11 +280,11 @@ main(int argc, char** argv)
     try
     {
         // Check command line arguments.
-        if(argc != 6)
+        if(argc != 8)
         {
             std::cerr <<
                 "Usage: " << argv[0] <<
-                " <address> <port> <trials> <messages> <workers>";
+                " <address> <port> <trials> <messages> <workers> <threads> <compression:0|1>";
             return EXIT_FAILURE;
         }
 
@@ -288,6 +293,8 @@ main(int argc, char** argv)
         auto const trials  = static_cast<std::size_t>(std::atoi(argv[3]));
         auto const messages= static_cast<std::size_t>(std::atoi(argv[4]));
         auto const workers = static_cast<std::size_t>(std::atoi(argv[5]));
+        auto const threads = static_cast<std::size_t>(std::atoi(argv[6]));
+        auto const deflate = static_cast<bool>(std::atoi(argv[7]));
         auto const work = (messages + workers - 1) / workers;
         test_buffer tb;
         for(auto i = trials; i; --i)
@@ -302,13 +309,22 @@ main(int argc, char** argv)
                     ios,
                     tcp::endpoint{address, port},
                     work,
+                    deflate,
                     rep,
                     tb);
                 sp->run();
             }
-            timer t;
+            timer clock;
+            std::vector<std::thread> tv;
+            if(threads > 1)
+            {
+                tv.reserve(threads);
+                tv.emplace_back([&ios]{ ios.run(); });
+            }
             ios.run();
-            auto const elapsed = t.elapsed();
+            for(auto& t : tv)
+                t.join();
+            auto const elapsed = clock.elapsed();
             dout <<
                 throughput(elapsed, rep.bytes()) << " bytes/s in " <<
                 (std::chrono::duration_cast<

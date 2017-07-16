@@ -2,6 +2,7 @@ Version 83:
 
 * Add flat_static_buffer::mutable_data
 * Add buffer_front
+* Add wstest compression option
 
 WebSocket
 
