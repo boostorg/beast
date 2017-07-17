@@ -22,9 +22,11 @@ public:
 
     class timer
     {
+    public:
         using clock_type =
             std::chrono::system_clock;
 
+    private:
         clock_type::time_point when_;
 
     public:
