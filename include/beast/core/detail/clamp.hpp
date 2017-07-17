@@ -8,8 +8,9 @@
 #ifndef BEAST_CORE_DETAIL_CLAMP_HPP
 #define BEAST_CORE_DETAIL_CLAMP_HPP
 
-#include <limits>
 #include <cstdlib>
+#include <limits>
+#include <type_traits>
 
 namespace beast {
 namespace detail {
@@ -32,6 +33,20 @@ clamp(UInt x, std::size_t limit)
     if(x >= limit)
         return limit;
     return static_cast<std::size_t>(x);
+}
+
+// return `true` if x + y > z, which are unsigned
+template<
+    class U1, class U2, class U3>
+constexpr
+bool
+sum_exceeds(U1 x, U2 y, U3 z)
+{
+    static_assert(
+        std::is_unsigned<U1>::value &&
+        std::is_unsigned<U2>::value &&
+        std::is_unsigned<U3>::value, "");
+    return y > z || x > z - y;
 }
 
 } // detail
