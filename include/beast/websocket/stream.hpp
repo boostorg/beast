@@ -627,6 +627,14 @@ public:
         return wr_opcode_ == detail::opcode::text;
     }
 
+
+    /// Returns `true` if either the server or the client sent a close frame.
+    bool 
+    closed() const
+    {
+        return wr_close_ || rd_close_;
+    }
+
     /** Returns the close reason received from the peer.
 
         This is only valid after a read completes with error::closed.

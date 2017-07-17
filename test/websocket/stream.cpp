@@ -1225,28 +1225,36 @@ public:
         {
             // payload length 1
             con c(ep, ios_);
+            BEAST_EXPECT(c.ws.closed() == false);
             boost::asio::write(c.ws.next_layer(),
                 cbuf(0x88, 0x81, 0xff, 0xff, 0xff, 0xff, 0x00));
+            BEAST_EXPECT(c.ws.closed() == true);
         }
         {
             // invalid close code 1005
             con c(ep, ios_);
+            BEAST_EXPECT(c.ws.closed() == false);
             boost::asio::write(c.ws.next_layer(),
                 cbuf(0x88, 0x82, 0xff, 0xff, 0xff, 0xff, 0xfc, 0x12));
+            BEAST_EXPECT(c.ws.closed() == true);
         }
         {
             // invalid utf8
             con c(ep, ios_);
+            BEAST_EXPECT(c.ws.closed() == false);
             boost::asio::write(c.ws.next_layer(),
                 cbuf(0x88, 0x86, 0xff, 0xff, 0xff, 0xff, 0xfc, 0x15,
                     0x0f, 0xd7, 0x73, 0x43));
+            BEAST_EXPECT(c.ws.closed() == true);
         }
         {
             // good utf8
             con c(ep, ios_);
+            BEAST_EXPECT(c.ws.closed() == false);
             boost::asio::write(c.ws.next_layer(),
                 cbuf(0x88, 0x86, 0xff, 0xff, 0xff, 0xff, 0xfc, 0x15,
                     'u', 't', 'f', '8'));
+            BEAST_EXPECT(c.ws.closed() == true);
         }
     }
 
@@ -1406,6 +1414,7 @@ public:
                 ++count;
                 BEAST_EXPECTS(ec == error::closed,
                     ec.message());
+                BEAST_EXPECT(ws.closed() == true);
                 // Pings after a close are aborted
                 ws.async_ping("",
                     [&](error_code ec)
@@ -1414,6 +1423,7 @@ public:
                         BEAST_EXPECTS(ec == boost::asio::
                             error::operation_aborted,
                                 ec.message());
+                        BEAST_EXPECT(ws.closed() == true);
                     });
             });
         if(! BEAST_EXPECT(run_until(ios, 100,
@@ -1428,6 +1438,7 @@ public:
                 BEAST_EXPECTS(ec == boost::asio::
                     error::operation_aborted,
                         ec.message());
+                        BEAST_EXPECT(ws.closed() == true);
                 // Subsequent calls to close are aborted
                 ws.async_close({},
                     [&](error_code ec)
@@ -1436,6 +1447,7 @@ public:
                         BEAST_EXPECTS(ec == boost::asio::
                             error::operation_aborted,
                                 ec.message());
+                        BEAST_EXPECT(ws.closed() == true);
                     });
             });
         static std::size_t constexpr limit = 100;
