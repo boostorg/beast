@@ -6,6 +6,7 @@ Version 83:
 * Turn some flat_static_buffer_tests on
 * Documentation work
 * read_some, async_read_some return bytes used
+* Fix private timer::clock_type
 
 WebSocket
 
