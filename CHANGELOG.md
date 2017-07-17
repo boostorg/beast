@@ -1,6 +1,7 @@
 Version 84:
 
 * Tidy up buffer_front
+* static_buffer::consume improvement
 
 --------------------------------------------------------------------------------
 

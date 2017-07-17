@@ -260,9 +260,19 @@ void
 static_buffer_base::
 consume(std::size_t size)
 {
-    size = (std::min)(size, in_size_);
-    in_off_ = (in_off_ + size) % capacity_;
-    in_size_ -= size;
+    if(size < in_size_)
+    {
+        in_off_ = (in_off_ + size) % capacity_;
+        in_size_ -= size;
+    }
+    else
+    {
+        // rewind the offset, so the next call to prepare
+        // can have a longer continguous segment. this helps
+        // algorithms optimized for larger buffesr.
+        in_off_ = 0;
+        in_size_ = 0;
+    }
 }
 
 inline
