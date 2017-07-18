@@ -436,9 +436,8 @@ basic_multi_buffer(std::size_t limit)
 template<class Allocator>
 basic_multi_buffer<Allocator>::
 basic_multi_buffer(Allocator const& alloc)
-    : detail::empty_base_optimization<
-        allocator_type>(alloc)
-    , out_(list_.end())
+    : out_(list_.end())
+    , alloc_(alloc)
 {
 }
 
@@ -446,23 +445,21 @@ template<class Allocator>
 basic_multi_buffer<Allocator>::
 basic_multi_buffer(std::size_t limit,
         Allocator const& alloc)
-    : detail::empty_base_optimization<
-        allocator_type>(alloc)
-    , max_(limit)
+    : max_(limit)
     , out_(list_.end())
+    , alloc_(alloc)
 {
 }
 
 template<class Allocator>
 basic_multi_buffer<Allocator>::
 basic_multi_buffer(basic_multi_buffer&& other)
-    : detail::empty_base_optimization<allocator_type>(
-        std::move(other.member()))
-    , max_(other.max_)
+    : max_(other.max_)
     , in_size_(other.in_size_)
     , in_pos_(other.in_pos_)
     , out_pos_(other.out_pos_)
     , out_end_(other.out_end_)
+    , alloc_(std::move(other.alloc_))
 {
     auto const at_end =
         other.out_ == other.list_.end();
@@ -479,10 +476,10 @@ template<class Allocator>
 basic_multi_buffer<Allocator>::
 basic_multi_buffer(basic_multi_buffer&& other,
         Allocator const& alloc)
-    : detail::empty_base_optimization<allocator_type>(alloc)
-    , max_(other.max_)
+    : max_(other.max_)
+    , alloc_(alloc)
 {
-    if(this->member() != other.member())
+    if(alloc_ != other.alloc_)
     {
         out_ = list_.end();
         copy_from(other);
@@ -509,10 +506,11 @@ basic_multi_buffer(basic_multi_buffer&& other,
 template<class Allocator>
 basic_multi_buffer<Allocator>::
 basic_multi_buffer(basic_multi_buffer const& other)
-    : detail::empty_base_optimization<allocator_type>(
-        alloc_traits::select_on_container_copy_construction(other.member()))
-    , max_(other.max_)
+    : max_(other.max_)
     , out_(list_.end())
+    , alloc_(alloc_traits::
+        select_on_container_copy_construction(
+            other.alloc_))
 {
     copy_from(other);
 }
@@ -521,9 +519,9 @@ template<class Allocator>
 basic_multi_buffer<Allocator>::
 basic_multi_buffer(basic_multi_buffer const& other,
         Allocator const& alloc)
-    : detail::empty_base_optimization<allocator_type>(alloc)
-    , max_(other.max_)
+    : max_(other.max_)
     , out_(list_.end())
+    , alloc_(alloc)
 {
     copy_from(other);
 }
@@ -544,9 +542,9 @@ basic_multi_buffer<Allocator>::
 basic_multi_buffer(
     basic_multi_buffer<OtherAlloc> const& other,
         allocator_type const& alloc)
-    : detail::empty_base_optimization<allocator_type>(alloc)
-    , max_(other.max_)
+    : max_(other.max_)
     , out_(list_.end())
+    , alloc_(alloc)
 {
     copy_from(other);
 }
@@ -695,9 +693,9 @@ prepare(size_type n) ->
                     512,
                     n}));
         auto& e = *reinterpret_cast<element*>(static_cast<
-            void*>(alloc_traits::allocate(this->member(),
+            void*>(alloc_traits::allocate(alloc_,
                 sizeof(element) + size)));
-        alloc_traits::construct(this->member(), &e, size);
+        alloc_traits::construct(alloc_, &e, size);
         list_.push_back(e);
         if(out_ == list_.end())
             out_ = list_.iterator_to(e);
@@ -828,8 +826,8 @@ basic_multi_buffer<Allocator>::
 delete_element(element& e)
 {
     auto const len = sizeof(e) + e.size();
-    alloc_traits::destroy(this->member(), &e);
-    alloc_traits::deallocate(this->member(),
+    alloc_traits::destroy(alloc_, &e);
+    alloc_traits::deallocate(alloc_,
         reinterpret_cast<char*>(&e), len);
 }
 
@@ -878,7 +876,7 @@ void
 basic_multi_buffer<Allocator>::
 move_assign(basic_multi_buffer& other, std::false_type)
 {
-    if(this->member() != other.member())
+    if(alloc_ != other.alloc_)
     {
         copy_from(other);
         other.reset();
@@ -895,7 +893,7 @@ void
 basic_multi_buffer<Allocator>::
 move_assign(basic_multi_buffer& other, std::true_type)
 {
-    this->member() = std::move(other.member());
+    alloc_ = std::move(alloc_);
     auto const at_end =
         other.out_ == other.list_.end();
     list_ = std::move(other.list_);
@@ -934,7 +932,7 @@ copy_assign(
 {
     reset();
     max_ = other.max_;
-    this->member() = other.member();
+    alloc_ = other.alloc_;
     copy_from(other);
 }
 
@@ -959,7 +957,7 @@ swap(basic_multi_buffer& other, std::true_type)
         out_ == list_.end();
     auto const at_end1 =
         other.out_ == other.list_.end();
-    swap(this->member(), other.member());
+    swap(alloc_, other.alloc_);
     swap(list_, other.list_);
     swap(out_, other.out_);
     if(at_end1)
@@ -978,7 +976,7 @@ void
 basic_multi_buffer<Allocator>::
 swap(basic_multi_buffer& other, std::false_type)
 {
-    BOOST_ASSERT(this->member() == other.member());
+    BOOST_ASSERT(alloc_ == other.alloc_);
     using std::swap;
     auto const at_end0 =
         out_ == list_.end();
