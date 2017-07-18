@@ -9,7 +9,6 @@
 #define BEAST_MULTI_BUFFER_HPP
 
 #include <beast/config.hpp>
-#include <beast/core/detail/empty_base_optimization.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/intrusive/list.hpp>
 #include <iterator>
@@ -32,11 +31,6 @@ namespace beast {
 */
 template<class Allocator>
 class basic_multi_buffer
-#if ! BEAST_DOXYGEN
-    : private detail::empty_base_optimization<
-        typename std::allocator_traits<Allocator>::
-            template rebind_alloc<char>>
-#endif
 {
 public:
 #if BEAST_DOXYGEN
@@ -57,29 +51,30 @@ private:
     using alloc_traits = std::allocator_traits<allocator_type>;
     using list_type = typename boost::intrusive::make_list<element,
         boost::intrusive::constant_time_size<true>>::type;
-    using iterator = typename list_type::iterator;
-    using const_iterator = typename list_type::const_iterator;
+    using iter = typename list_type::iterator;
+    using const_iter = typename list_type::const_iterator;
 
     using size_type = typename std::allocator_traits<Allocator>::size_type;
     using const_buffer = boost::asio::const_buffer;
     using mutable_buffer = boost::asio::mutable_buffer;
 
     static_assert(std::is_base_of<std::bidirectional_iterator_tag,
-        typename std::iterator_traits<iterator>::iterator_category>::value,
+        typename std::iterator_traits<iter>::iterator_category>::value,
             "BidirectionalIterator requirements not met");
 
     static_assert(std::is_base_of<std::bidirectional_iterator_tag,
-        typename std::iterator_traits<const_iterator>::iterator_category>::value,
+        typename std::iterator_traits<const_iter>::iterator_category>::value,
             "BidirectionalIterator requirements not met");
 
     std::size_t max_ =
         (std::numeric_limits<std::size_t>::max)();
     list_type list_;        // list of allocated buffers
-    iterator out_;          // element that contains out_pos_
+    iter out_;              // element that contains out_pos_
     size_type in_size_ = 0; // size of the input sequence
     size_type in_pos_ = 0;  // input offset in list_.front()
     size_type out_pos_ = 0; // output offset in *out_
     size_type out_end_ = 0; // output end offset in list_.back()
+    allocator_type alloc_;  // the allocator
 
 public:
 #if BEAST_DOXYGEN
@@ -217,7 +212,7 @@ public:
     allocator_type
     get_allocator() const
     {
-        return this->member();
+        return alloc_;
     }
 
     /// Returns the size of the input sequence.
