@@ -18,11 +18,14 @@ namespace beast {
 
 /** Bind parameters to a completion handler, creating a new handler.
 
-    This function creates a new handler which, when invoked with no
-    parameters, calls the original handler with the list of bound
-    arguments. The passed handler and arguments are forwarded into
-    the returned handler, which provides the same `io_service`
-    execution guarantees as the original handler.
+    This function creates a new handler which, when invoked, calls
+    the original handler with the list of bound arguments. Any
+    parameters passed in the invocation will be subtituted for
+    placeholders present in the list of bound arguments. Parameters
+    which are not matched to placeholders are silently discarded.
+    The passed handler and arguments are forwarded into the returned
+    handler, which provides the same `io_service` execution guarantees
+    as the original handler.
 
     Unlike `boost::asio::io_service::wrap`, the returned handler can
     be used in a subsequent call to `boost::asio::io_service::post`
@@ -57,9 +60,11 @@ detail::bound_handler<
 #endif
 bind_handler(Handler&& handler, Args&&... args)
 {
+#if 0
     static_assert(is_completion_handler<
         Handler, void(Args...)>::value,
             "Handler requirements not met");
+#endif
     return detail::bound_handler<typename std::decay<
         Handler>::type, Args...>(std::forward<
             Handler>(handler), std::forward<Args>(args)...);

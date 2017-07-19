@@ -10,17 +10,20 @@
 
 #include <beast/core/detail/type_traits.hpp>
 #include <beast/unit_test/suite.hpp>
-#include <functional>
+#include <string>
 
 namespace beast {
 
 class bind_handler_test : public unit_test::suite
 {
 public:
+    template<class... Args>
     struct handler
     {
         void
-        operator()() const;
+        operator()(Args const&...) const
+        {
+        }
     };
 
 #if 0
@@ -28,7 +31,7 @@ public:
     void
     failStdBind()
     {
-        std::bind(bind_handler(handler{}));
+        std::bind(bind_handler(handler<>{}));
     }
 #endif
 
@@ -37,14 +40,27 @@ public:
     {
         BEAST_EXPECT(v == 42);
     }
+    
+    void
+    testPlaceholders()
+    {
+        namespace ph = std::placeholders;
+        
+        bind_handler(handler<>{})();
+        bind_handler(handler<int>{}, 1)();
+        bind_handler(handler<int, std::string>{}, 1, "hello")();
+        bind_handler(handler<int>{}, ph::_1)(1);
+        bind_handler(handler<int, std::string>{}, ph::_1, ph::_2)(1, "hello");
+    }
 
-    void run()
+    void
+    run() override
     {
         auto f = bind_handler(std::bind(
             &bind_handler_test::callback, this,
                 std::placeholders::_1), 42);
         f();
-        pass();
+        testPlaceholders();
     }
 };
 

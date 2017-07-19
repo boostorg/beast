@@ -3,6 +3,7 @@ Version 84:
 * Tidy up buffer_front
 * static_buffer::consume improvement
 * multi_buffer is type-check friendly
+* bind_handler allows placeholders
 
 --------------------------------------------------------------------------------
 
