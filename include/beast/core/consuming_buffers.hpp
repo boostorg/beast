@@ -112,8 +112,15 @@ public:
     /// Assignment
     consuming_buffers& operator=(consuming_buffers&&);
 
-    /// Assignmen
+    /// Assignment
     consuming_buffers& operator=(consuming_buffers const&);
+
+    /// Returns the underlying buffers, without modification
+    BufferSequence const&
+    get() const
+    {
+        return bs_;
+    }
 
     /// Get a bidirectional iterator to the first element.
     const_iterator
