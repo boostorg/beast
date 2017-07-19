@@ -1,3 +1,9 @@
+Version 84:
+
+* Tidy up buffer_front
+
+--------------------------------------------------------------------------------
+
 Version 83:
 
 * Add flat_static_buffer::mutable_data

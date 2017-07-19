@@ -225,7 +225,7 @@ buffer_front(BufferSequence const& buffers)
 {
     auto const first = buffers.begin();
     if(first == buffers.end())
-        return {nullptr, 0};
+        return {};
     return *first;
 }
 
