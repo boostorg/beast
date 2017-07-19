@@ -12,6 +12,8 @@
 #include <boost/asio/handler_alloc_hook.hpp>
 #include <boost/asio/handler_continuation_hook.hpp>
 #include <boost/asio/handler_invoke_hook.hpp>
+#include <boost/core/ignore_unused.hpp>
+#include <functional>
 #include <utility>
 
 namespace beast {
@@ -32,15 +34,71 @@ private:
     Handler h_;
     args_type args_;
 
-    template<class Tuple, std::size_t... S>
-    static void invoke(Handler& h, Tuple& args,
+    template<class Arg, class Vals>
+    static
+    typename std::enable_if<
+        std::is_placeholder<typename
+            std::decay<Arg>::type>::value == 0,
+    Arg&&>::type
+    extract(Arg&& arg, Vals& vals)
+    {
+        return arg;
+    }
+
+    template<class Arg, class Vals>
+    static
+    typename std::enable_if<
+        std::is_placeholder<typename
+            std::decay<Arg>::type>::value != 0,
+    typename std::tuple_element<
+        std::is_placeholder<
+            typename std::decay<Arg>::type>::value - 1,
+    Vals>::type&&>::type
+    extract(Arg&&, Vals&& vals)
+    {
+        return std::get<std::is_placeholder<
+            typename std::decay<Arg>::type>::value - 1>(
+                std::forward<Vals>(vals));
+    }
+
+    template<
+        class ArgsTuple,
+        std::size_t... S>
+    static
+    void
+    invoke(
+        Handler& h,
+        ArgsTuple& args,
+        std::tuple<>&&,
         index_sequence<S...>)
     {
+        boost::ignore_unused(args);
         h(std::get<S>(args)...);
+    }
+
+    template<
+        class ArgsTuple,
+        class ValsTuple,
+        std::size_t... S>
+    static
+    void
+    invoke(
+        Handler& h,
+        ArgsTuple& args,
+        ValsTuple&& vals,
+        index_sequence<S...>)
+    {
+        boost::ignore_unused(args);
+        boost::ignore_unused(vals);
+        h(extract(std::get<S>(args),
+            std::forward<ValsTuple>(vals))...);
     }
 
 public:
     using result_type = void;
+
+    bound_handler(bound_handler&&) = default;
+    bound_handler(bound_handler const&) = default;
 
     template<class DeducedHandler>
     explicit
@@ -51,17 +109,23 @@ public:
     {
     }
 
+    template<class... Values>
     void
-    operator()()
+    operator()(Values&&... values)
     {
         invoke(h_, args_,
+            std::forward_as_tuple(
+                std::forward<Values>(values)...),
             index_sequence_for<Args...>());
     }
 
+    template<class... Values>
     void
-    operator()() const
+    operator()(Values&&... values) const
     {
         invoke(h_, args_,
+            std::forward_as_tuple(
+                std::forward<Values>(values)...),
             index_sequence_for<Args...>());
     }
 
@@ -106,8 +170,6 @@ public:
 
 } // detail
 } // beast
-
-#include <functional>
 
 namespace std {
 template<class Handler, class... Args>
