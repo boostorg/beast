@@ -4,11 +4,13 @@
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
+// Official repository: https://github.com/boostorg/beast
+//
 
 #include "../common/helpers.hpp"
 
-#include <beast/core.hpp>
-#include <beast/websocket.hpp>
+#include <boost/beast/core.hpp>
+#include <boost/beast/websocket.hpp>
 #include <boost/asio.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/optional.hpp>
@@ -20,10 +22,10 @@
 #include <string>
 #include <thread>
 
-namespace http = beast::http;           // from <beast/http.hpp>
-namespace websocket = beast::websocket; // from <beast/websocket.hpp>
-namespace ip = boost::asio::ip;         // from <boost/asio.hpp>
-using tcp = boost::asio::ip::tcp;       // from <boost/asio.hpp>
+namespace http = boost::beast::http;            // from <boost/beast/http.hpp>
+namespace websocket = boost::beast::websocket;  // from <boost/beast/websocket.hpp>
+namespace ip = boost::asio::ip;                 // from <boost/asio.hpp>
+using tcp = boost::asio::ip::tcp;               // from <boost/asio.hpp>
 
 //------------------------------------------------------------------------------
 //
@@ -38,7 +40,7 @@ using tcp = boost::asio::ip::tcp;       // from <boost/asio.hpp>
 */
 class server
 {
-    using error_code = beast::error_code;       // Saves typing
+    using error_code = boost::beast::error_code;       // Saves typing
     using clock_type =
         std::chrono::steady_clock;              // For the timer
     using stream_type =
@@ -63,8 +65,8 @@ class server
         boost::asio::basic_waitable_timer<
             clock_type> timer_;                 // Needed for timeouts
         boost::asio::io_service::strand strand_;// Needed when threads > 1
-        beast::multi_buffer buffer_;            // Stores the current message
-        beast::drain_buffer drain_;             // Helps discard data on close
+        boost::beast::multi_buffer buffer_;            // Stores the current message
+        boost::beast::drain_buffer drain_;             // Helps discard data on close
         std::size_t id_;                        // A small unique id
 
     public:
@@ -395,7 +397,7 @@ int main(int argc, char* argv[])
     s.on_new_stream(set_stream_options{pmd});
 
     // Open the listening port
-    beast::error_code ec;
+    boost::beast::error_code ec;
     s.open(tcp::endpoint{address, port}, ec);
     if(ec)
     {

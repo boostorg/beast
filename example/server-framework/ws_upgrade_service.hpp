@@ -4,14 +4,16 @@
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
+// Official repository: https://github.com/boostorg/beast
+//
 
-#ifndef BEAST_EXAMPLE_SERVER_WS_UPGRADE_SERVICE_HPP
-#define BEAST_EXAMPLE_SERVER_WS_UPGRADE_SERVICE_HPP
+#ifndef BOOST_BEAST_EXAMPLE_SERVER_WS_UPGRADE_SERVICE_HPP
+#define BOOST_BEAST_EXAMPLE_SERVER_WS_UPGRADE_SERVICE_HPP
 
 #include "framework.hpp"
 
-#include <beast/http/message.hpp>
-#include <beast/websocket/rfc6455.hpp>
+#include <boost/beast/http/message.hpp>
+#include <boost/beast/websocket/rfc6455.hpp>
 #include <memory>
 
 namespace framework {
@@ -73,13 +75,13 @@ public:
     respond(
         Stream&& stream,
         endpoint_type const& ep,
-        beast::http::request<Body>&& req,
+        boost::beast::http::request<Body>&& req,
         Send const&) const
     {
         // If its not an upgrade request, return `false`
         // to indicate that we are not handling it.
         //
-        if(! beast::websocket::is_upgrade(req))
+        if(! boost::beast::websocket::is_upgrade(req))
             return false;
 
         // Its an ugprade request, so transfer ownership

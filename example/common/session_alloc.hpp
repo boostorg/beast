@@ -4,9 +4,11 @@
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
+// Official repository: https://github.com/boostorg/beast
+//
 
-#ifndef BEAST_EXAMPLE_COMMON_SESSION_ALLOC_HPP
-#define BEAST_EXAMPLE_COMMON_SESSION_ALLOC_HPP
+#ifndef BOOST_BEAST_EXAMPLE_COMMON_SESSION_ALLOC_HPP
+#define BOOST_BEAST_EXAMPLE_COMMON_SESSION_ALLOC_HPP
 
 #include <boost/asio/handler_alloc_hook.hpp>
 #include <boost/asio/handler_continuation_hook.hpp>
@@ -18,7 +20,7 @@
 #include <utility>
 
 #if 1
-#include "extras/beast/unit_test/dstream.hpp"
+#include "extras/boost/beast/unit_test/dstream.hpp"
 #endif
 
 template<class Context>

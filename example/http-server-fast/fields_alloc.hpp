@@ -4,9 +4,11 @@
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
+// Official repository: https://github.com/boostorg/beast
+//
 
-#ifndef BEAST_EXAMPLE_FIELDS_ALLOC_HPP
-#define BEAST_EXAMPLE_FIELDS_ALLOC_HPP
+#ifndef BOOST_BEAST_EXAMPLE_FIELDS_ALLOC_HPP
+#define BOOST_BEAST_EXAMPLE_FIELDS_ALLOC_HPP
 
 #include <boost/throw_exception.hpp>
 #include <cstdlib>

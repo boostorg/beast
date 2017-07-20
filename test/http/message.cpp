@@ -4,17 +4,20 @@
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
+// Official repository: https://github.com/boostorg/beast
+//
 
 // Test that header file is self-contained.
-#include <beast/http/message.hpp>
+#include <boost/beast/http/message.hpp>
 
-#include <beast/http/empty_body.hpp>
-#include <beast/http/string_body.hpp>
-#include <beast/http/fields.hpp>
-#include <beast/http/string_body.hpp>
-#include <beast/unit_test/suite.hpp>
+#include <boost/beast/http/empty_body.hpp>
+#include <boost/beast/http/string_body.hpp>
+#include <boost/beast/http/fields.hpp>
+#include <boost/beast/http/string_body.hpp>
+#include <boost/beast/unit_test/suite.hpp>
 #include <type_traits>
 
+namespace boost {
 namespace beast {
 namespace http {
 
@@ -123,26 +126,26 @@ public:
         {
             Arg1 arg1;
             request<one_arg_body>{verb::get, "/", 11, std::move(arg1)};
-            BEAST_EXPECT(arg1.moved);
+            BOOST_BEAST_EXPECT(arg1.moved);
         }
 
         {
             header<true> h;
             h.set(field::user_agent, "test");
-            BEAST_EXPECT(h[field::user_agent] == "test");
+            BOOST_BEAST_EXPECT(h[field::user_agent] == "test");
             request<default_body> m{std::move(h)};
-            BEAST_EXPECT(m[field::user_agent] == "test");
-            BEAST_EXPECT(h.count(field::user_agent) == 0);
+            BOOST_BEAST_EXPECT(m[field::user_agent] == "test");
+            BOOST_BEAST_EXPECT(h.count(field::user_agent) == 0);
         }
         {
             request<empty_body> h{verb::get, "/", 10};
             h.set(field::user_agent, "test");
             request<one_arg_body> m{std::move(h.base()), Arg1{}};
-            BEAST_EXPECT(m["User-Agent"] == "test");
-            BEAST_EXPECT(h.count(http::field::user_agent) == 0);
-            BEAST_EXPECT(m.method() == verb::get);
-            BEAST_EXPECT(m.target() == "/");
-            BEAST_EXPECT(m.version == 10);
+            BOOST_BEAST_EXPECT(m["User-Agent"] == "test");
+            BOOST_BEAST_EXPECT(h.count(http::field::user_agent) == 0);
+            BOOST_BEAST_EXPECT(m.method() == verb::get);
+            BOOST_BEAST_EXPECT(m.target() == "/");
+            BOOST_BEAST_EXPECT(m.version == 10);
         }
 
         // swap
@@ -154,14 +157,14 @@ public:
         m2.method_string("G");
         m2.body = "2";
         swap(m1, m2);
-        BEAST_EXPECT(m1.method_string() == "G");
-        BEAST_EXPECT(m2.method_string().empty());
-        BEAST_EXPECT(m1.target().empty());
-        BEAST_EXPECT(m2.target() == "u");
-        BEAST_EXPECT(m1.body == "2");
-        BEAST_EXPECT(m2.body == "1");
-        BEAST_EXPECT(! m1.count("h"));
-        BEAST_EXPECT(m2.count("h"));
+        BOOST_BEAST_EXPECT(m1.method_string() == "G");
+        BOOST_BEAST_EXPECT(m2.method_string().empty());
+        BOOST_BEAST_EXPECT(m1.target().empty());
+        BOOST_BEAST_EXPECT(m2.target() == "u");
+        BOOST_BEAST_EXPECT(m1.body == "2");
+        BOOST_BEAST_EXPECT(m2.body == "1");
+        BOOST_BEAST_EXPECT(! m1.count("h"));
+        BOOST_BEAST_EXPECT(m2.count("h"));
     }
 
     struct MoveFields : fields
@@ -209,57 +212,57 @@ public:
     {
         {
             request<empty_body> req;
-            BEAST_EXPECT(req.version == 11);
-            BEAST_EXPECT(req.method() == verb::unknown);
-            BEAST_EXPECT(req.target() == "");
+            BOOST_BEAST_EXPECT(req.version == 11);
+            BOOST_BEAST_EXPECT(req.method() == verb::unknown);
+            BOOST_BEAST_EXPECT(req.target() == "");
         }
         {
             request<empty_body> req{verb::get, "/", 11};
-            BEAST_EXPECT(req.version == 11);
-            BEAST_EXPECT(req.method() == verb::get);
-            BEAST_EXPECT(req.target() == "/");
+            BOOST_BEAST_EXPECT(req.version == 11);
+            BOOST_BEAST_EXPECT(req.method() == verb::get);
+            BOOST_BEAST_EXPECT(req.target() == "/");
         }
         {
             request<string_body> req{verb::get, "/", 11, "Hello"};
-            BEAST_EXPECT(req.version == 11);
-            BEAST_EXPECT(req.method() == verb::get);
-            BEAST_EXPECT(req.target() == "/");
-            BEAST_EXPECT(req.body == "Hello");
+            BOOST_BEAST_EXPECT(req.version == 11);
+            BOOST_BEAST_EXPECT(req.method() == verb::get);
+            BOOST_BEAST_EXPECT(req.target() == "/");
+            BOOST_BEAST_EXPECT(req.body == "Hello");
         }
         {
             request<string_body, test_fields> req{
                 verb::get, "/", 11, "Hello", token{}};
-            BEAST_EXPECT(req.version == 11);
-            BEAST_EXPECT(req.method() == verb::get);
-            BEAST_EXPECT(req.target() == "/");
-            BEAST_EXPECT(req.body == "Hello");
+            BOOST_BEAST_EXPECT(req.version == 11);
+            BOOST_BEAST_EXPECT(req.method() == verb::get);
+            BOOST_BEAST_EXPECT(req.target() == "/");
+            BOOST_BEAST_EXPECT(req.body == "Hello");
         }
         {
             response<string_body> res;
-            BEAST_EXPECT(res.version == 11);
-            BEAST_EXPECT(res.result() == status::ok);
-            BEAST_EXPECT(res.reason() == "OK");
+            BOOST_BEAST_EXPECT(res.version == 11);
+            BOOST_BEAST_EXPECT(res.result() == status::ok);
+            BOOST_BEAST_EXPECT(res.reason() == "OK");
         }
         {
             response<string_body> res{status::bad_request, 10};
-            BEAST_EXPECT(res.version == 10);
-            BEAST_EXPECT(res.result() == status::bad_request);
-            BEAST_EXPECT(res.reason() == "Bad Request");
+            BOOST_BEAST_EXPECT(res.version == 10);
+            BOOST_BEAST_EXPECT(res.result() == status::bad_request);
+            BOOST_BEAST_EXPECT(res.reason() == "Bad Request");
         }
         {
             response<string_body> res{status::bad_request, 10, "Hello"};
-            BEAST_EXPECT(res.version == 10);
-            BEAST_EXPECT(res.result() == status::bad_request);
-            BEAST_EXPECT(res.reason() == "Bad Request");
-            BEAST_EXPECT(res.body == "Hello");
+            BOOST_BEAST_EXPECT(res.version == 10);
+            BOOST_BEAST_EXPECT(res.result() == status::bad_request);
+            BOOST_BEAST_EXPECT(res.reason() == "Bad Request");
+            BOOST_BEAST_EXPECT(res.body == "Hello");
         }
         {
             response<string_body, test_fields> res{
                 status::bad_request, 10, "Hello", token{}};
-            BEAST_EXPECT(res.version == 10);
-            BEAST_EXPECT(res.result() == status::bad_request);
-            BEAST_EXPECT(res.reason() == "Bad Request");
-            BEAST_EXPECT(res.body == "Hello");
+            BOOST_BEAST_EXPECT(res.version == 10);
+            BOOST_BEAST_EXPECT(res.result() == status::bad_request);
+            BOOST_BEAST_EXPECT(res.reason() == "Bad Request");
+            BOOST_BEAST_EXPECT(res.body == "Hello");
         }
     }
 
@@ -276,18 +279,18 @@ public:
         m2.body = "2";
         m2.version = 11;
         swap(m1, m2);
-        BEAST_EXPECT(m1.result() == status::not_found);
-        BEAST_EXPECT(m1.result_int() == 404);
-        BEAST_EXPECT(m2.result() == status::ok);
-        BEAST_EXPECT(m2.result_int() == 200);
-        BEAST_EXPECT(m1.reason() == "Not Found");
-        BEAST_EXPECT(m2.reason() == "OK");
-        BEAST_EXPECT(m1.version == 11);
-        BEAST_EXPECT(m2.version == 10);
-        BEAST_EXPECT(m1.body == "2");
-        BEAST_EXPECT(m2.body == "1");
-        BEAST_EXPECT(! m1.count("h"));
-        BEAST_EXPECT(m2.count("h"));
+        BOOST_BEAST_EXPECT(m1.result() == status::not_found);
+        BOOST_BEAST_EXPECT(m1.result_int() == 404);
+        BOOST_BEAST_EXPECT(m2.result() == status::ok);
+        BOOST_BEAST_EXPECT(m2.result_int() == 200);
+        BOOST_BEAST_EXPECT(m1.reason() == "Not Found");
+        BOOST_BEAST_EXPECT(m2.reason() == "OK");
+        BOOST_BEAST_EXPECT(m1.version == 11);
+        BOOST_BEAST_EXPECT(m2.version == 10);
+        BOOST_BEAST_EXPECT(m1.body == "2");
+        BOOST_BEAST_EXPECT(m2.body == "1");
+        BOOST_BEAST_EXPECT(! m1.count("h"));
+        BOOST_BEAST_EXPECT(m2.count("h"));
     }
 
     void
@@ -311,15 +314,15 @@ public:
             [&](verb v)
             {
                 h.method(v);
-                BEAST_EXPECT(h.method() == v);
-                BEAST_EXPECT(h.method_string() == to_string(v));
+                BOOST_BEAST_EXPECT(h.method() == v);
+                BOOST_BEAST_EXPECT(h.method_string() == to_string(v));
             };
         auto const scheck =
             [&](string_view s)
             {
                 h.method_string(s);
-                BEAST_EXPECT(h.method() == string_to_verb(s));
-                BEAST_EXPECT(h.method_string() == s);
+                BOOST_BEAST_EXPECT(h.method() == string_to_verb(s));
+                BOOST_BEAST_EXPECT(h.method_string() == s);
             };
         vcheck(verb::get);
         vcheck(verb::head);
@@ -333,14 +336,14 @@ public:
     {
         header<false> h;
         h.result(200);
-        BEAST_EXPECT(h.result_int() == 200);
-        BEAST_EXPECT(h.result() == status::ok);
+        BOOST_BEAST_EXPECT(h.result_int() == 200);
+        BOOST_BEAST_EXPECT(h.result() == status::ok);
         h.result(status::switching_protocols);
-        BEAST_EXPECT(h.result_int() == 101);
-        BEAST_EXPECT(h.result() == status::switching_protocols);
+        BOOST_BEAST_EXPECT(h.result_int() == 101);
+        BOOST_BEAST_EXPECT(h.result() == status::switching_protocols);
         h.result(1);
-        BEAST_EXPECT(h.result_int() == 1);
-        BEAST_EXPECT(h.result() == status::unknown);
+        BOOST_BEAST_EXPECT(h.result_int() == 1);
+        BOOST_BEAST_EXPECT(h.result() == status::unknown);
     }
 
     void
@@ -348,13 +351,13 @@ public:
     {
         header<false> h;
         h.result(status::ok);
-        BEAST_EXPECT(h.reason() == "OK");
+        BOOST_BEAST_EXPECT(h.reason() == "OK");
         h.reason("Pepe");
-        BEAST_EXPECT(h.reason() == "Pepe");
+        BOOST_BEAST_EXPECT(h.reason() == "Pepe");
         h.result(status::not_found);
-        BEAST_EXPECT(h.reason() == "Pepe");
+        BOOST_BEAST_EXPECT(h.reason() == "Pepe");
         h.reason({});
-        BEAST_EXPECT(h.reason() == "Not Found");
+        BOOST_BEAST_EXPECT(h.reason() == "Not Found");
     }
 
     void
@@ -370,7 +373,8 @@ public:
     }
 };
 
-BEAST_DEFINE_TESTSUITE(message,http,beast);
+BOOST_BEAST_DEFINE_TESTSUITE(message,http,beast);
 
 } // http
 } // beast
+} // boost

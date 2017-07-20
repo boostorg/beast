@@ -4,17 +4,19 @@
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
+// Official repository: https://github.com/boostorg/beast
+//
 
 //[snippet_core_1a
 
-#include <beast/core.hpp>
+#include <boost/beast/core.hpp>
 #include <boost/asio.hpp>
 #include <iostream>
 #include <thread>
 
 //]
 
-using namespace beast;
+using namespace boost::beast;
 
 namespace doc_core_snippets {
 
@@ -23,7 +25,7 @@ void fxx()
 
 //[snippet_core_1b
 //
-using namespace beast;
+using namespace boost::beast;
 
 boost::asio::io_service ios;
 boost::asio::io_service::work work{ios};

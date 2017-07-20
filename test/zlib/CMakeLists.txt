@@ -1,7 +1,14 @@
-# Part of Beast
+#
+# Copyright (c) 2013-2017 Vinnie Falco (vinnie dot falco at gmail dot com)
+#
+# Distributed under the Boost Software License, Version 1.0. (See accompanying
+# file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+#
+# Official repository: https://github.com/boostorg/beast
+#
 
-GroupSources(extras/beast extras)
-GroupSources(include/beast beast)
+GroupSources(extras/boost/beast extras)
+GroupSources(include/boost/beast beast)
 
 GroupSources(test/zlib "/")
 
@@ -33,10 +40,11 @@ if (MSVC)
 endif()
 
 add_executable (zlib-tests
-    ${BEAST_INCLUDES}
+    ${BOOST_BEAST_INCLUDES}
     ${EXTRAS_INCLUDES}
     ${ZLIB_SOURCES}
-    ../../extras/beast/unit_test/main.cpp
+    Jamfile
+    ../../extras/boost/beast/unit_test/main.cpp
     ztest.hpp
     deflate_stream.cpp
     error.cpp

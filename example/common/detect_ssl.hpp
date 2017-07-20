@@ -4,9 +4,11 @@
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
+// Official repository: https://github.com/boostorg/beast
+//
 
-#ifndef BEAST_EXAMPLE_COMMON_DETECT_SSL_HPP
-#define BEAST_EXAMPLE_COMMON_DETECT_SSL_HPP
+#ifndef BOOST_BEAST_EXAMPLE_COMMON_DETECT_SSL_HPP
+#define BOOST_BEAST_EXAMPLE_COMMON_DETECT_SSL_HPP
 
 #include <boost/assert.hpp>
 #include <boost/config.hpp>
@@ -19,7 +21,7 @@
 
 //[example_core_detect_ssl_1
 
-#include <beast.hpp>
+#include <boost/beast.hpp>
 #include <boost/logic/tribool.hpp>
 
 /** Return `true` if a buffer contains a TLS/SSL client handshake.
@@ -50,7 +52,7 @@ is_ssl_handshake(ConstBufferSequence const& buffers);
 
 //]
 
-using namespace beast;
+using namespace boost::beast;
 
 //[example_core_detect_ssl_2
 
@@ -263,8 +265,8 @@ async_detect_ssl(
     // uses the result and handler specializations associated with
     // the completion token to help customize the return value.
     //
-    beast::async_completion<
-        CompletionToken, void(beast::error_code, boost::tribool)> init{token};
+    boost::beast::async_completion<
+        CompletionToken, void(boost::beast::error_code, boost::tribool)> init{token};
 
     // Create the composed operation and launch it. This is a constructor
     // call followed by invocation of operator(). We use handler_type
@@ -275,7 +277,7 @@ async_detect_ssl(
     detect_ssl_op<AsyncReadStream, DynamicBuffer, handler_type<
         CompletionToken, void(error_code, boost::tribool)>>{
             stream, buffer, init.completion_handler}(
-                beast::error_code{}, 0);
+                boost::beast::error_code{}, 0);
 
     // This hook lets the caller see a return value when appropriate.
     // For example this might return std::future<error_code, boost::tribool> if
@@ -381,7 +383,7 @@ public:
     // Our main entry point. This will get called as our
     // intermediate operations complete. Definition below.
     //
-    void operator()(beast::error_code ec, std::size_t bytes_transferred);
+    void operator()(boost::beast::error_code ec, std::size_t bytes_transferred);
 };
 
 //]
@@ -398,7 +400,7 @@ template<
     class Handler>
 void
 detect_ssl_op<AsyncStream, DynamicBuffer, Handler>::
-operator()(beast::error_code ec, std::size_t bytes_transferred)
+operator()(boost::beast::error_code ec, std::size_t bytes_transferred)
 {
     // Execute the state machine
     switch(step_)

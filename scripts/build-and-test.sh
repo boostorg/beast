@@ -2,6 +2,11 @@
 # We use set -e to bail on first non zero exit code of any processes launched
 # and -x to exit upon any unbound variable. -x will output command lines used
 # (with variable expansion)
+
+BIN_DIR="$BOOST_ROOT/bin.v2/libs/beast/test"
+LIB_DIR="$BOOST_ROOT/libs/beast"
+INC_DIR="$BOOST_ROOT/boost/beast"
+
 set -eux
 
 # brew install bash (4) to get this working on OSX!
@@ -50,7 +55,7 @@ elif [[ $(uname -s) == "Linux" ]]; then
   #fi
 fi
 
-echo "using toolset: $CC"
+echo "using toolset: $TOOLSET"
 echo "using variant: $VARIANT"
 echo "using address-model: $ADDRESS_MODEL"
 echo "using PATH: $PATH"
@@ -60,37 +65,35 @@ echo "using BOOST_ROOT: $BOOST_ROOT"
 #################################### HELPERS ###################################
 
 function run_tests_with_debugger {
-  for x in bin/**/$VARIANT/**/*-tests; do
-    scripts/run-with-debugger.sh "$x"
+  for x in $BOOST_ROOT/bin.v2/libs/beast/test/**/$VARIANT/**/*-tests; do
+    "$LIB_DIR/scripts/run-with-debugger.sh" "$x"
   done
 }
 
 function run_tests {
-  for x in bin/**/$VARIANT/**/*-tests; do
+  for x in $BOOST_ROOT/bin.v2/libs/beast/test/**/$VARIANT/**/*-tests; do
     $x
   done
 }
 
 function run_tests_with_valgrind {
-  for x in bin/**/$VARIANT/**/*-tests; do
+  for x in $BOOST_ROOT/bin.v2/libs/beast/test/**/$VARIANT/**/*-tests; do
     if [[ $(basename $x) == "bench-tests" ]]; then
       $x
     else
       # TODO --max-stackframe=8388608
       # see: https://travis-ci.org/vinniefalco/Beast/jobs/132486245
-      valgrind --suppressions=./scripts/valgrind.supp --error-exitcode=1 "$x"
+      valgrind --suppressions=$BOOST_ROOT/libs/beast/scripts/valgrind.supp --error-exitcode=1 "$x"
     fi
   done
 }
 
-function build_beast {
-  $BOOST_ROOT/bjam toolset=$CC \
-               variant=$VARIANT \
-               address-model=$ADDRESS_MODEL \
-               -j${num_jobs}
+function build_bjam {
+  bjam libs/beast/test toolset=$TOOLSET variant=$VARIANT address-model=$ADDRESS_MODEL -j${num_jobs}
+  bjam libs/beast/example toolset=$TOOLSET variant=$VARIANT address-model=$ADDRESS_MODEL -j${num_jobs}
 }
 
-function build_beast_cmake {
+function build_cmake {
     mkdir -p build
     pushd build > /dev/null
     cmake -DVARIANT=${VARIANT} ..
@@ -128,47 +131,56 @@ function run_autobahn_test_suite {
 ##################################### BUILD ####################################
 
 if [[ ${BUILD_SYSTEM:-} == cmake ]]; then
-    build_beast_cmake
+    build_cmake
 else
-    build_beast
+    build_bjam
 fi
 
 ##################################### TESTS ####################################
 
+# for lcov to work effectively, the paths and includes
+# passed to the compiler should not contain "." or "..".
+
+# (this runs in $BOOST_ROOT)
 if [[ $VARIANT == "coverage" ]]; then
-  find . -name "*.gcda" | xargs rm -f
-  rm *.info -f
+  # Remove old files from a previous retry
+  find "$BOOST_ROOT" -name "*.gcda" | xargs rm -f
+  rm -f "$BOOST_ROOT/*.info"
+
   # Create baseline coverage data file
-  lcov --no-external -c -i -d . -o baseline.info > /dev/null
+  lcov --no-external -c -i -d "$BOOST_ROOT" -o baseline.info > /dev/null
 
   # Perform test
   if [[ $MAIN_BRANCH == "1" && "$DO_VALGRIND" = true ]]; then
     run_tests_with_valgrind
-    # skip slow autobahn tests
-    #run_autobahn_test_suite
+    #run_autobahn_test_suite # skip slow autobahn tests
   else
     echo "skipping autobahn/valgrind tests for feature branch build"
     run_tests
   fi
 
-  # Create test coverage data file
-  lcov --no-external -c -d . -o testrun.info > /dev/null
-
-  # Combine baseline and test coverage data
+  # Create test coverage data file, combine with the
+  # baseline result and filter out things we don't want.
+  #
+  #lcov --no-external -c -d "$BIN_DIR" -d "$LIB_DIR"  -o testrun.info > /dev/null
+  lcov --no-external -c -d "$BOOST_ROOT"  -o testrun.info > /dev/null
   lcov -a baseline.info -a testrun.info -o lcov-all.info > /dev/null
+  lcov -e "lcov-all.info" "$INC_DIR/*" -o lcov.info > /dev/null
 
-  # Extract only include/beast, and don\'t report on examples/test
-  lcov -e "lcov-all.info" "$PWD/include/beast/*" -o lcov.info > /dev/null
+  # Upload to codecov
+  ~/.local/bin/codecov -X gcov -f lcov.info
 
-  ~/.local/bin/codecov -X gcov
+  # Upload to coveralls
   #cat lcov.info | node_modules/.bin/coveralls
 
   # Clean up these stragglers so BOOST_ROOT cache is clean
-  find $BOOST_ROOT/bin.v2 -name "*.gcda" | xargs rm -f
+  find "$BOOST_ROOT" -name "*.gcda" | xargs rm -f
+
 else
   if [[ $MAIN_BRANCH == "1" && "$DO_VALGRIND" = true ]]; then
     run_tests_with_valgrind
   else
     run_tests_with_debugger
   fi
+
 fi

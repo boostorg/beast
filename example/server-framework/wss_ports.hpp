@@ -4,9 +4,11 @@
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
+// Official repository: https://github.com/boostorg/beast
+//
 
-#ifndef BEAST_EXAMPLE_SERVER_WSS_PORTS_HPP
-#define BEAST_EXAMPLE_SERVER_WSS_PORTS_HPP
+#ifndef BOOST_BEAST_EXAMPLE_SERVER_WSS_PORTS_HPP
+#define BOOST_BEAST_EXAMPLE_SERVER_WSS_PORTS_HPP
 
 #include "ws_sync_port.hpp"
 #include "ws_async_port.hpp"
@@ -36,7 +38,7 @@ class sync_wss_con
     // The stream should be created before the base class so
     // use the "base from member" idiom.
     //
-    , public base_from_member<beast::websocket::stream<ssl_stream<socket_type>>>
+    , public base_from_member<boost::beast::websocket::stream<ssl_stream<socket_type>>>
 
     // Constructs last, destroys first
     //
@@ -53,7 +55,7 @@ public:
         socket_type&& sock,
         boost::asio::ssl::context& ctx,
         Args&&... args)
-        : base_from_member<beast::websocket::stream<ssl_stream<socket_type>>>(std::move(sock), ctx)
+        : base_from_member<boost::beast::websocket::stream<ssl_stream<socket_type>>>(std::move(sock), ctx)
         , sync_ws_con_base<sync_wss_con>(std::forward<Args>(args)...)
     {
     }
@@ -64,7 +66,7 @@ public:
     sync_wss_con(
         ssl_stream<socket_type>&& stream,
         Args&&... args)
-        : base_from_member<beast::websocket::stream<ssl_stream<socket_type>>>(std::move(stream))
+        : base_from_member<boost::beast::websocket::stream<ssl_stream<socket_type>>>(std::move(stream))
         , sync_ws_con_base<sync_wss_con>(std::forward<Args>(args)...)
     {
     }
@@ -76,7 +78,7 @@ public:
     // class to work with different return types for `stream()` such
     // as a `boost::asio::ip::tcp::socket&` or a `boost::asio::ssl::stream&`
     //
-    beast::websocket::stream<ssl_stream<socket_type>>&
+    boost::beast::websocket::stream<ssl_stream<socket_type>>&
     stream()
     {
         return this->member;
@@ -116,7 +118,7 @@ class async_wss_con
     // The stream should be created before the base class so
     // use the "base from member" idiom.
     //
-    , public base_from_member<beast::websocket::stream<ssl_stream<socket_type>>>
+    , public base_from_member<boost::beast::websocket::stream<ssl_stream<socket_type>>>
 
     // Constructs last, destroys first
     //
@@ -132,7 +134,7 @@ public:
         socket_type&& sock,
         boost::asio::ssl::context& ctx,
         Args&&... args)
-        : base_from_member<beast::websocket::stream<ssl_stream<socket_type>>>(std::move(sock), ctx)
+        : base_from_member<boost::beast::websocket::stream<ssl_stream<socket_type>>>(std::move(sock), ctx)
         , async_ws_con_base<async_wss_con>(std::forward<Args>(args)...)
     {
     }
@@ -143,7 +145,7 @@ public:
     async_wss_con(
         ssl_stream<socket_type>&& stream,
         Args&&... args)
-        : base_from_member<beast::websocket::stream<ssl_stream<socket_type>>>(std::move(stream))
+        : base_from_member<boost::beast::websocket::stream<ssl_stream<socket_type>>>(std::move(stream))
         , async_ws_con_base<async_wss_con>(std::forward<Args>(args)...)
     {
     }
@@ -155,7 +157,7 @@ public:
     // class to work with different return types for `stream()` such
     // as a `boost::asio::ip::tcp::socket&` or a `boost::asio::ssl::stream&`
     //
-    beast::websocket::stream<ssl_stream<socket_type>>&
+    boost::beast::websocket::stream<ssl_stream<socket_type>>&
     stream()
     {
         return this->member;
@@ -211,10 +213,10 @@ class wss_sync_port
     // The types of the on_new_stream callbacks
     //
     using on_new_stream_cb1 =
-        boost::function<void(beast::websocket::stream<socket_type>&)>;
+        boost::function<void(boost::beast::websocket::stream<socket_type>&)>;
     
     using on_new_stream_cb2 =
-        boost::function<void(beast::websocket::stream<ssl_stream<socket_type>>&)>;
+        boost::function<void(boost::beast::websocket::stream<ssl_stream<socket_type>>&)>;
 
     server& instance_;
     std::ostream& log_;
@@ -237,7 +239,7 @@ public:
         should have this equivalent signature:
         @code
         template<class NextLayer>
-        void callback(beast::websocket::stream<NextLayer>&);
+        void callback(boost::beast::websocket::stream<NextLayer>&);
         @endcode
         In C++14 this can be accomplished with a generic lambda. In
         C++11 it will be necessary to write out a lambda manually,
@@ -297,7 +299,7 @@ public:
     on_upgrade(
         ssl_stream<socket_type>&& stream,
         endpoint_type ep,
-        beast::http::request<Body>&& req)
+        boost::beast::http::request<Body>&& req)
     {
         // Create the connection object and run it,
         // transferring ownership of the ugprade request.
@@ -328,10 +330,10 @@ class wss_async_port
     // The types of the on_new_stream callbacks
     //
     using on_new_stream_cb1 =
-        boost::function<void(beast::websocket::stream<socket_type>&)>;
+        boost::function<void(boost::beast::websocket::stream<socket_type>&)>;
 
     using on_new_stream_cb2 =
-        boost::function<void(beast::websocket::stream<ssl_stream<socket_type>>&)>;
+        boost::function<void(boost::beast::websocket::stream<ssl_stream<socket_type>>&)>;
 
     // Reference to the server instance that made us
     server& instance_;
@@ -361,7 +363,7 @@ public:
         should have this equivalent signature:
         @code
         template<class NextLayer>
-        void callback(beast::websocket::stream<NextLayer>&);
+        void callback(boost::beast::websocket::stream<NextLayer>&);
         @endcode
         In C++14 this can be accomplished with a generic lambda. In
         C++11 it will be necessary to write out a lambda manually,
@@ -421,7 +423,7 @@ public:
     on_upgrade(
         ssl_stream<socket_type>&& stream,
         endpoint_type ep,
-        beast::http::request<Body>&& req)
+        boost::beast::http::request<Body>&& req)
     {
         std::make_shared<async_wss_con>(
             std::move(stream),

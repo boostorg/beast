@@ -4,16 +4,18 @@
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
+// Official repository: https://github.com/boostorg/beast
+//
 
-#ifndef BEAST_HTTP_NODEJS_PARSER_HPP
-#define BEAST_HTTP_NODEJS_PARSER_HPP
+#ifndef BOOST_BEAST_HTTP_NODEJS_PARSER_HPP
+#define BOOST_BEAST_HTTP_NODEJS_PARSER_HPP
 
 #include "nodejs-parser/http_parser.h"
 
-#include <beast/http/message.hpp>
-#include <beast/http/rfc7230.hpp>
-#include <beast/core/error.hpp>
-#include <beast/core/type_traits.hpp>
+#include <boost/beast/http/message.hpp>
+#include <boost/beast/http/rfc7230.hpp>
+#include <boost/beast/core/error.hpp>
+#include <boost/beast/core/type_traits.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/system/error_code.hpp>
 #include <boost/throw_exception.hpp>
@@ -22,6 +24,7 @@
 #include <type_traits>
 #include <utility>
 
+namespace boost {
 namespace beast {
 namespace http {
 
@@ -634,5 +637,6 @@ private:
 
 } // http
 } // beast
+} // boost
 
 #endif

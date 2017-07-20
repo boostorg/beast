@@ -4,13 +4,16 @@
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
+// Official repository: https://github.com/boostorg/beast
+//
 
 // Test that header file is self-contained.
-#include <beast/http/serializer.hpp>
+#include <boost/beast/http/serializer.hpp>
 
-#include <beast/http/string_body.hpp>
-#include <beast/unit_test/suite.hpp>
+#include <boost/beast/http/string_body.hpp>
+#include <boost/beast/unit_test/suite.hpp>
 
+namespace boost {
 namespace beast {
 namespace http {
 
@@ -105,7 +108,7 @@ public:
         for(;;)
         {
             sr.next(ec, visit);
-            BEAST_EXPECT(visit.size <= limit);
+            BOOST_BEAST_EXPECT(visit.size <= limit);
             sr.consume(visit.size);
             if(sr.is_done())
                 break;
@@ -119,7 +122,8 @@ public:
     }
 };
 
-BEAST_DEFINE_TESTSUITE(serializer,http,beast);
+BOOST_BEAST_DEFINE_TESTSUITE(serializer,http,beast);
 
 } // http
 } // beast
+} // boost

@@ -22,9 +22,8 @@ install:
 #  - git checkout boost-1.64.0
   - xcopy /s /e /q %APPVEYOR_BUILD_FOLDER% libs\beast\
   - git submodule update --init tools/build
-  - git submodule update --init libs/config
   - git submodule update --init tools/boostdep
-#  - python tools/boostdep/depinst/depinst.py beast
+  - git submodule update --init libs/config
   - git submodule update --init libs/any
   - git submodule update --init libs/asio
   - git submodule update --init libs/algorithm
@@ -64,7 +63,6 @@ install:
   - git submodule update --init libs/mpl
   - git submodule update --init libs/numeric/conversion
   - git submodule update --init libs/optional
-#  - git submodule update --init libs/phoenix
   - git submodule update --init libs/pool
   - git submodule update --init libs/predef
   - git submodule update --init libs/preprocessor
@@ -77,7 +75,6 @@ install:
   - git submodule update --init libs/regex
   - git submodule update --init libs/serialization
   - git submodule update --init libs/smart_ptr
-#  - git submodule update --init libs/spirit
   - git submodule update --init libs/static_assert
   - git submodule update --init libs/system
   - git submodule update --init libs/thread

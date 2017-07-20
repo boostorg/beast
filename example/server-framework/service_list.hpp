@@ -4,13 +4,15 @@
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
+// Official repository: https://github.com/boostorg/beast
+//
 
-#ifndef BEAST_EXAMPLE_SERVER_SERVICE_LIST_HPP
-#define BEAST_EXAMPLE_SERVER_SERVICE_LIST_HPP
+#ifndef BOOST_BEAST_EXAMPLE_SERVER_SERVICE_LIST_HPP
+#define BOOST_BEAST_EXAMPLE_SERVER_SERVICE_LIST_HPP
 
 #include "framework.hpp"
 
-#include <beast/http/message.hpp>
+#include <boost/beast/http/message.hpp>
 #include <boost/optional.hpp>
 #include <utility>
 
@@ -118,7 +120,7 @@ public:
     respond(
         Stream&& stream,
         endpoint_type const& ep,
-        beast::http::request<Body>&& req,
+        boost::beast::http::request<Body>&& req,
         Send const& send) const
     {
         return try_respond(
@@ -141,7 +143,7 @@ private:
     try_respond(
         Stream&&,
         endpoint_type const&,
-        beast::http::request<Body>&&,
+        boost::beast::http::request<Body>&&,
         Send const&,
         C<sizeof...(Services)> const&) const
     {
@@ -162,7 +164,7 @@ private:
     try_respond(
         Stream&& stream,
         endpoint_type const& ep,
-        beast::http::request<Body>&& req,
+        boost::beast::http::request<Body>&& req,
         Send const& send,
         C<I> const&) const
     {

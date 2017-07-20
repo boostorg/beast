@@ -4,12 +4,14 @@
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
+// Official repository: https://github.com/boostorg/beast
+//
 
 #include "../common/mime_types.hpp"
 
-#include <beast/core.hpp>
-#include <beast/http.hpp>
-#include <beast/version.hpp>
+#include <boost/beast/core.hpp>
+#include <boost/beast/http.hpp>
+#include <boost/beast/version.hpp>
 #include <boost/asio.hpp>
 #include <boost/filesystem.hpp>
 #include <chrono>
@@ -26,19 +28,19 @@
 //
 //------------------------------------------------------------------------------
 
-namespace ip = boost::asio::ip;     // from <boost/asio.hpp>
-using tcp = boost::asio::ip::tcp;   // from <boost/asio.hpp>
-namespace http = beast::http;       // from <beast/http.hpp>
+namespace ip = boost::asio::ip;         // from <boost/asio.hpp>
+using tcp = boost::asio::ip::tcp;       // from <boost/asio.hpp>
+namespace http = boost::beast::http;    // from <boost/beast/http.hpp>
 
 class connection
     : public std::enable_shared_from_this<connection>
 {
     tcp::socket sock_;
-    beast::string_view root_;
+    boost::beast::string_view root_;
 
 public:
     explicit
-    connection(tcp::socket&& sock, beast::string_view root)
+    connection(tcp::socket&& sock, boost::beast::string_view root)
         : sock_(std::move(sock))
         , root_(root)
     {
@@ -57,10 +59,10 @@ public:
 private:
     // Send a client error response
     http::response<http::span_body<char const>>
-    client_error(http::status result, beast::string_view text)
+    client_error(http::status result, boost::beast::string_view text)
     {
         http::response<http::span_body<char const>> res{result, 11};
-        res.set(http::field::server, BEAST_VERSION_STRING);
+        res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
         res.set(http::field::content_type, "text/plain");
         res.set(http::field::connection, "close");
         res.body = text;
@@ -74,7 +76,7 @@ private:
     not_found() const
     {
         http::response<http::string_body> res{http::status::not_found, 11};
-        res.set(http::field::server, BEAST_VERSION_STRING);
+        res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
         res.set(http::field::content_type, "text/html");
         res.set(http::field::connection, "close");
         res.body = "The file was not found";
@@ -85,10 +87,10 @@ private:
     // Return an HTTP Server Error
     //
     http::response<http::string_body>
-    server_error(beast::error_code const& ec) const
+    server_error(boost::beast::error_code const& ec) const
     {
         http::response<http::string_body> res{http::status::internal_server_error, 11};
-        res.set(http::field::server, BEAST_VERSION_STRING);
+        res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
         res.set(http::field::content_type, "text/html");
         res.set(http::field::connection, "close");
         res.body = "Error: " + ec.message();
@@ -98,15 +100,15 @@ private:
 
     // Return a file response to an HTTP GET request
     //
-    http::response<beast::http::file_body>
+    http::response<boost::beast::http::file_body>
     get(boost::filesystem::path const& full_path,
-        beast::error_code& ec) const
+        boost::beast::error_code& ec) const
     {
         http::response<http::file_body> res;
-        res.set(http::field::server, BEAST_VERSION_STRING);
+        res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
         res.set(http::field::content_type, mime_type(full_path));
         res.set(http::field::connection, "close");
-        res.body.open(full_path.string<std::string>().c_str(), beast::file_mode::scan, ec);
+        res.body.open(full_path.string<std::string>().c_str(), boost::beast::file_mode::scan, ec);
         if(ec)
             return res;
         res.set(http::field::content_length, res.body.size());
@@ -116,7 +118,7 @@ private:
     // Handle a request
     template<class Body>
     void
-    do_request(http::request<Body> const& req, beast::error_code& ec)
+    do_request(http::request<Body> const& req, boost::beast::error_code& ec)
     {
         // verb must be get
         if(req.method() != http::verb::get)
@@ -137,10 +139,10 @@ private:
         auto full_path = root_.to_string();
         full_path.append(req.target().data(), req.target().size());
 
-        beast::error_code file_ec;
+        boost::beast::error_code file_ec;
         auto res = get(full_path, file_ec);
 
-        if(file_ec == beast::errc::no_such_file_or_directory)
+        if(file_ec == boost::beast::errc::no_such_file_or_directory)
         {
             http::write(sock_, not_found(), ec);
         }
@@ -160,8 +162,8 @@ private:
     {
         try
         {
-            beast::error_code ec;
-            beast::flat_buffer buffer;
+            boost::beast::error_code ec;
+            boost::beast::flat_buffer buffer;
             for(;;)
             {
                 http::request_parser<http::string_body> parser;
@@ -171,18 +173,18 @@ private:
                 if(ec == http::error::end_of_stream)
                     break;
                 if(ec)
-                    throw beast::system_error{ec};
+                    throw boost::beast::system_error{ec};
                 do_request(parser.get(), ec);
                 if(ec)
                 {
                     if(ec != http::error::end_of_stream)
-                        throw beast::system_error{ec};
+                        throw boost::beast::system_error{ec};
                     break;
                 }
             }
             sock_.shutdown(tcp::socket::shutdown_both, ec);
             if(ec && ec != boost::asio::error::not_connected)
-                throw beast::system_error{ec};
+                throw boost::beast::system_error{ec};
         }
         catch (const std::exception& e)
         {

@@ -4,14 +4,17 @@
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
+// Official repository: https://github.com/boostorg/beast
+//
 
 // Test that header file is self-contained.
-#include <beast/core/handler_ptr.hpp>
+#include <boost/beast/core/handler_ptr.hpp>
 
-#include <beast/unit_test/suite.hpp>
+#include <boost/beast/unit_test/suite.hpp>
 #include <exception>
 #include <utility>
 
+namespace boost {
 namespace beast {
 
 class handler_ptr_test : public beast::unit_test::suite
@@ -70,11 +73,11 @@ public:
         handler_ptr<T, handler> p4{std::move(h)};
         bool b = false;
         p4.invoke(std::ref(b));
-        BEAST_EXPECT(b);
+        BOOST_BEAST_EXPECT(b);
     }
 };
 
-BEAST_DEFINE_TESTSUITE(handler_ptr,core,beast);
+BOOST_BEAST_DEFINE_TESTSUITE(handler_ptr,core,beast);
 
 } // beast
-
+} // boost

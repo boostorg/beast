@@ -4,19 +4,21 @@
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
+// Official repository: https://github.com/boostorg/beast
+//
 
-#include <beast/core.hpp>
+#include <boost/beast/core.hpp>
 #include <boost/asio.hpp>
 #include <boost/config.hpp>
 #include <iostream>
 #include <thread>
 
-using namespace beast;
+using namespace boost::beast;
 
 //[http_snippet_1
 
-#include <beast/http.hpp>
-using namespace beast::http;
+#include <boost/beast/http.hpp>
+using namespace boost::beast::http;
 
 //]
 

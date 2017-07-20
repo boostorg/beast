@@ -4,12 +4,15 @@
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
+// Official repository: https://github.com/boostorg/beast
+//
 
 // Test that header file is self-contained.
-#include <beast/http/verb.hpp>
+#include <boost/beast/http/verb.hpp>
 
-#include <beast/unit_test/suite.hpp>
+#include <boost/beast/unit_test/suite.hpp>
 
+namespace boost {
 namespace beast {
 namespace http {
 
@@ -23,7 +26,7 @@ public:
         auto const good =
             [&](verb v)
             {
-                BEAST_EXPECT(string_to_verb(to_string(v)) == v);
+                BOOST_BEAST_EXPECT(string_to_verb(to_string(v)) == v);
             };
 
         good(verb::unknown);
@@ -66,7 +69,7 @@ public:
             [&](string_view s)
             {
                 auto const v = string_to_verb(s);
-                BEAST_EXPECTS(v == verb::unknown, to_string(v));
+                BOOST_BEAST_EXPECTS(v == verb::unknown, to_string(v));
             };
 
         bad("AC_");
@@ -121,8 +124,8 @@ public:
     }
 };
 
-BEAST_DEFINE_TESTSUITE(verb,http,beast);
+BOOST_BEAST_DEFINE_TESTSUITE(verb,http,beast);
 
 } // http
 } // beast
-
+} // boost

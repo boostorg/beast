@@ -4,14 +4,17 @@
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
+// Official repository: https://github.com/boostorg/beast
+//
 
 // Test that header file is self-contained.
-#include <beast/core/async_result.hpp>
+#include <boost/beast/core/async_result.hpp>
 
-#include <beast/core/error.hpp>
-#include <beast/core/type_traits.hpp>
+#include <boost/beast/core/error.hpp>
+#include <boost/beast/core/type_traits.hpp>
 #include <cstdlib>
 
+namespace boost {
 namespace beast {
 namespace {
 
@@ -36,3 +39,4 @@ static_assert(std::is_constructible<
 
 } // (anon-ns)
 } // beast
+} // boost

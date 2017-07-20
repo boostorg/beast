@@ -4,8 +4,10 @@
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
+// Official repository: https://github.com/boostorg/beast
+//
 
-#include <beast.hpp>
+#include <boost/beast.hpp>
 #include <iostream>
 
 /*  This file contains the functions and classes found in the documentation
@@ -15,7 +17,8 @@
     building a network application.
 */
 
-// The documentation assumes the beast::http namespace
+// The documentation assumes the boost::beast::http namespace
+namespace boost {
 namespace beast {
 namespace http {
 
@@ -1234,3 +1237,4 @@ print_chunked_body(
 
 } // http
 } // beast
+} // boost

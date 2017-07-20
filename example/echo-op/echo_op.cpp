@@ -4,8 +4,10 @@
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
+// Official repository: https://github.com/boostorg/beast
+//
 
-#include <beast/core.hpp>
+#include <boost/beast/core.hpp>
 #include <boost/asio.hpp>
 #include <cstddef>
 #include <iostream>
@@ -21,7 +23,7 @@ auto
 async_echo(AsyncStream& stream, CompletionToken&& token)
 
 //]
-    -> beast::async_return_type<CompletionToken, void(beast::error_code)>;
+    -> boost::beast::async_return_type<CompletionToken, void(boost::beast::error_code)>;
 
 //[example_core_echo_op_2
 
@@ -64,9 +66,9 @@ async_echo(AsyncStream& stream, CompletionToken&& token)
 template<
     class AsyncStream,
     class CompletionToken>
-beast::async_return_type<       /*< The [link beast.ref.beast__async_return_type `async_return_type`] customizes the return value based on the completion token >*/
+boost::beast::async_return_type<       /*< The [link beast.ref.beast__async_return_type `async_return_type`] customizes the return value based on the completion token >*/
     CompletionToken,
-    void(beast::error_code)>    /*< This is the signature for the completion handler >*/
+    void(boost::beast::error_code)>    /*< This is the signature for the completion handler >*/
 async_echo(
     AsyncStream& stream,
     CompletionToken&& token);
@@ -97,7 +99,7 @@ class echo_op
         // re-use of memory allocated by composed operations during
         // a continuation.
         //
-        boost::asio::basic_streambuf<beast::handler_alloc<char, Handler>> buffer;
+        boost::asio::basic_streambuf<boost::beast::handler_alloc<char, Handler>> buffer;
 
         // handler_ptr requires that the first parameter to the
         // contained object constructor is a reference to the
@@ -106,7 +108,7 @@ class echo_op
         explicit state(Handler& handler, AsyncStream& stream_)
             : stream(stream_)
             , buffer((std::numeric_limits<std::size_t>::max)(),
-                beast::handler_alloc<char, Handler>{handler})
+                boost::beast::handler_alloc<char, Handler>{handler})
         {
         }
     };
@@ -123,7 +125,7 @@ class echo_op
     //      asio_handler_allocate
     //      asio_handler_deallocate
     //
-    beast::handler_ptr<state, Handler> p_;
+    boost::beast::handler_ptr<state, Handler> p_;
 
 public:
     // Boost.Asio requires that handlers are CopyConstructible.
@@ -145,7 +147,7 @@ public:
     // The entry point for this handler. This will get called
     // as our intermediate operations complete. Definition below.
     //
-    void operator()(beast::error_code ec, std::size_t bytes_transferred);
+    void operator()(boost::beast::error_code ec, std::size_t bytes_transferred);
 
     // The next four functions are required for our class
     // to meet the requirements for composed operations.
@@ -177,7 +179,7 @@ public:
 //
 template<class AsyncStream, class Handler>
 void echo_op<AsyncStream, Handler>::
-operator()(beast::error_code ec, std::size_t bytes_transferred)
+operator()(boost::beast::error_code ec, std::size_t bytes_transferred)
 {
     // Store a reference to our state. The address of the state won't
     // change, and this solves the problem where dereferencing the
@@ -199,7 +201,7 @@ operator()(beast::error_code ec, std::size_t bytes_transferred)
             // async_read_until could have read past the newline,
             // use buffer_prefix to make sure we only send one line
             return boost::asio::async_write(p.stream,
-                beast::buffer_prefix(bytes_transferred, p.buffer.data()), std::move(*this));
+                boost::beast::buffer_prefix(bytes_transferred, p.buffer.data()), std::move(*this));
 
         case 2:
             p.buffer.consume(bytes_transferred);
@@ -295,20 +297,20 @@ class echo_op;
 // Read a line and echo it back
 //
 template<class AsyncStream, class CompletionToken>
-beast::async_return_type<CompletionToken, void(beast::error_code)>
+boost::beast::async_return_type<CompletionToken, void(boost::beast::error_code)>
 async_echo(AsyncStream& stream, CompletionToken&& token)
 {
     // Make sure stream meets the requirements. We use static_assert
     // to cause a friendly message instead of an error novel.
     //
-    static_assert(beast::is_async_stream<AsyncStream>::value,
+    static_assert(boost::beast::is_async_stream<AsyncStream>::value,
         "AsyncStream requirements not met");
 
     // This helper manages some of the handler's lifetime and
     // uses the result and handler specializations associated with
     // the completion token to help customize the return value.
     //
-    beast::async_completion<CompletionToken, void(beast::error_code)> init{token};
+    boost::beast::async_completion<CompletionToken, void(boost::beast::error_code)> init{token};
 
     // Create the composed operation and launch it. This is a constructor
     // call followed by invocation of operator(). We use handler_type
@@ -316,8 +318,8 @@ async_echo(AsyncStream& stream, CompletionToken&& token)
     // allowing user-defined specializations of the async_result template
     // to be used.
     //
-    echo_op<AsyncStream, beast::handler_type<CompletionToken, void(beast::error_code)>>{
-        stream, init.completion_handler}(beast::error_code{}, 0);
+    echo_op<AsyncStream, boost::beast::handler_type<CompletionToken, void(boost::beast::error_code)>>{
+        stream, init.completion_handler}(boost::beast::error_code{}, 0);
 
     // This hook lets the caller see a return value when appropriate.
     // For example this might return std::future<error_code> if
@@ -346,7 +348,7 @@ int main(int, char** argv)
     acceptor.listen();
     acceptor.accept(sock);
     async_echo(sock,
-        [&](beast::error_code ec)
+        [&](boost::beast::error_code ec)
         {
             if(ec)
                 std::cerr << argv[0] << ": " << ec.message() << std::endl;

@@ -4,13 +4,17 @@
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
+// Official repository: https://github.com/boostorg/beast
+//
 
 // Test that header file is self-contained.
-#include <beast/zlib/deflate_stream.hpp>
+#include <boost/beast/zlib/deflate_stream.hpp>
 
 #include "ztest.hpp"
-#include <beast/unit_test/suite.hpp>
 
+#include <boost/beast/unit_test/suite.hpp>
+
+namespace boost {
 namespace beast {
 namespace zlib {
 
@@ -52,7 +56,7 @@ public:
             -windowBits,
             8,
             strategy);
-        if(! BEAST_EXPECT(result == Z_OK))
+        if(! BOOST_BEAST_EXPECT(result == Z_OK))
             goto err;
         out.resize(deflateBound(&zs,
             static_cast<uLong>(check.size())));
@@ -68,7 +72,7 @@ public:
                 if( result == Z_BUF_ERROR ||
                     result == Z_STREAM_END) // per zlib FAQ
                     goto fin;
-                if(! BEAST_EXPECT(progress))
+                if(! BOOST_BEAST_EXPECT(progress))
                     goto err;
                 progress = false;
             }
@@ -79,7 +83,7 @@ public:
         {
             z_inflator zi;
             auto const s = zi(out);
-            BEAST_EXPECT(s == check);
+            BOOST_BEAST_EXPECT(s == check);
         }
 
     err:
@@ -114,9 +118,9 @@ public:
                 if( ec == error::need_buffers ||
                     ec == error::end_of_stream) // per zlib FAQ
                     goto fin;
-                if(! BEAST_EXPECTS(! ec, ec.message()))
+                if(! BOOST_BEAST_EXPECTS(! ec, ec.message()))
                     goto err;
-                if(! BEAST_EXPECT(progress))
+                if(! BOOST_BEAST_EXPECT(progress))
                     goto err;
                 progress = false;
             }
@@ -127,7 +131,7 @@ public:
         {
             z_inflator zi;
             auto const s = zi(out);
-            BEAST_EXPECT(s == check);
+            BOOST_BEAST_EXPECT(s == check);
         }
 
     err:
@@ -154,7 +158,7 @@ public:
                     -windowBits,
                     8,
                     strategy);
-                if(! BEAST_EXPECT(result == Z_OK))
+                if(! BOOST_BEAST_EXPECT(result == Z_OK))
                     continue;
                 std::string out;
                 out.resize(deflateBound(&zs,
@@ -177,7 +181,7 @@ public:
                     if( result == Z_BUF_ERROR ||
                         result == Z_STREAM_END) // per zlib FAQ
                         goto fin;
-                    if(! BEAST_EXPECT(result == Z_OK))
+                    if(! BOOST_BEAST_EXPECT(result == Z_OK))
                         goto err;
                     if(zs.avail_in == 0 && ! bi)
                     {
@@ -198,7 +202,7 @@ public:
                 {
                     z_inflator zi;
                     auto const s = zi(out);
-                    BEAST_EXPECT(s == check);
+                    BOOST_BEAST_EXPECT(s == check);
                 }
 
             err:
@@ -242,7 +246,7 @@ public:
                     if( ec == error::need_buffers ||
                         ec == error::end_of_stream) // per zlib FAQ
                         goto fin;
-                    if(! BEAST_EXPECTS(! ec, ec.message()))
+                    if(! BOOST_BEAST_EXPECTS(! ec, ec.message()))
                         goto err;
                     if(zs.avail_in == 0 && ! bi)
                     {
@@ -263,7 +267,7 @@ public:
                 {
                     z_inflator zi;
                     auto const s = zi(out);
-                    BEAST_EXPECT(s == check);
+                    BOOST_BEAST_EXPECT(s == check);
                 }
 
             err:
@@ -308,7 +312,7 @@ public:
     {
         doMatrix("1.beast ", "Hello, world!", &self::doDeflate1_beast);
         doMatrix("1.zlib  ", "Hello, world!", &self::doDeflate1_zlib);
-    #if ! BEAST_NO_SLOW_TESTS
+    #if ! BOOST_BEAST_NO_SLOW_TESTS
         doMatrix("2.beast ", "Hello, world!", &self::doDeflate2_beast);
         doMatrix("2.zlib  ", "Hello, world!", &self::doDeflate2_zlib);
         {
@@ -335,7 +339,8 @@ public:
     }
 };
 
-BEAST_DEFINE_TESTSUITE(deflate_stream,core,beast);
+BOOST_BEAST_DEFINE_TESTSUITE(deflate_stream,core,beast);
 
 } // zlib
 } // beast
+} // boost

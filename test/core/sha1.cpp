@@ -4,11 +4,14 @@
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
+// Official repository: https://github.com/boostorg/beast
+//
 
-#include <beast/core/detail/sha1.hpp>
-#include <beast/unit_test/suite.hpp>
+#include <boost/beast/core/detail/sha1.hpp>
+#include <boost/beast/unit_test/suite.hpp>
 #include <array>
 
+namespace boost {
 namespace beast {
 namespace detail {
 
@@ -54,7 +57,7 @@ public:
         init(ctx);
         update(ctx, message.data(), message.size());
         finish(ctx, &result[0]);
-        BEAST_EXPECT(result == digest);
+        BOOST_BEAST_EXPECT(result == digest);
     }
 
     void
@@ -73,8 +76,8 @@ public:
     }
 };
 
-BEAST_DEFINE_TESTSUITE(sha1,core,beast);
+BOOST_BEAST_DEFINE_TESTSUITE(sha1,core,beast);
 
 } // test
 } // beast
-
+} // boost

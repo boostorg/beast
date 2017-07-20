@@ -4,14 +4,16 @@
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
+// Official repository: https://github.com/boostorg/beast
+//
 
-#ifndef BEAST_EXAMPLE_SERVER_WS_SYNC_PORT_HPP
-#define BEAST_EXAMPLE_SERVER_WS_SYNC_PORT_HPP
+#ifndef BOOST_BEAST_EXAMPLE_SERVER_WS_SYNC_PORT_HPP
+#define BOOST_BEAST_EXAMPLE_SERVER_WS_SYNC_PORT_HPP
 
 #include "server.hpp"
 
-#include <beast/core/multi_buffer.hpp>
-#include <beast/websocket.hpp>
+#include <boost/beast/core/multi_buffer.hpp>
+#include <boost/beast/websocket.hpp>
 #include <boost/function.hpp>
 #include <memory>
 #include <ostream>
@@ -60,7 +62,7 @@ public:
     //
     template<class Callback>
     sync_ws_con_base(
-        beast::string_view server_name,
+        boost::beast::string_view server_name,
         std::ostream& log,
         std::size_t id,
         endpoint_type const& ep,
@@ -95,9 +97,9 @@ public:
     //
     template<class Body>
     void
-    run(beast::http::request<Body>&& req)
+    run(boost::beast::http::request<Body>&& req)
     {
-        BOOST_ASSERT(beast::websocket::is_upgrade(req));
+        BOOST_ASSERT(boost::beast::websocket::is_upgrade(req));
 
         // We need to transfer ownership of the request object into
         // the lambda, but there's no C++14 lambda capture
@@ -119,7 +121,7 @@ protected:
         // Don't report the "closed" error since that
         // happens under normal circumstances.
         //
-        if(ec && ec != beast::websocket::error::closed)
+        if(ec && ec != boost::beast::websocket::error::closed)
         {
             log_ <<
                 "[#" << id_ << " " << ep_ << "] " <<
@@ -148,9 +150,9 @@ private:
         // to send back the response.
         //
         impl().stream().accept_ex(
-            [&](beast::websocket::response_type& res)
+            [&](boost::beast::websocket::response_type& res)
             {
-                res.insert(beast::http::field::server, server_name_);
+                res.insert(boost::beast::http::field::server, server_name_);
             },
             ec);
 
@@ -172,7 +174,7 @@ private:
     class lambda
     {
         std::shared_ptr<sync_ws_con_base> self_;
-        beast::http::request<Body> req_;
+        boost::beast::http::request<Body> req_;
         
     public:
         // Constructor
@@ -181,11 +183,11 @@ private:
         //
         lambda(
             std::shared_ptr<sync_ws_con_base> self,
-            beast::http::request<Body>&& req)
+            boost::beast::http::request<Body>&& req)
             : self_(std::move(self))
             , req_(std::move(req))
         {
-            BOOST_ASSERT(beast::websocket::is_upgrade(req_));
+            BOOST_ASSERT(boost::beast::websocket::is_upgrade(req_));
         }
 
         // Invoke the lambda
@@ -193,7 +195,7 @@ private:
         void
         operator()()
         {
-            BOOST_ASSERT(beast::websocket::is_upgrade(req_));
+            BOOST_ASSERT(boost::beast::websocket::is_upgrade(req_));
             error_code ec;
             {
                 // Move the message to the stack so we can get
@@ -207,9 +209,9 @@ private:
                 // it from the network.
                 //
                 self_->impl().stream().accept_ex(req,
-                    [&](beast::websocket::response_type& res)
+                    [&](boost::beast::websocket::response_type& res)
                     {
-                        res.insert(beast::http::field::server, self_->server_name_);
+                        res.insert(boost::beast::http::field::server, self_->server_name_);
                     },
                     ec);
             }
@@ -233,7 +235,7 @@ private:
             // This buffer holds the message. We place a one
             // megabyte limit on the size to prevent abuse.
             //
-            beast::multi_buffer buffer{1024*1024};
+            boost::beast::multi_buffer buffer{1024*1024};
 
             // Read the message
             //
@@ -276,7 +278,7 @@ class sync_ws_con
     // The stream should be created before the base class so
     // use the "base from member" idiom.
     //
-    , public base_from_member<beast::websocket::stream<socket_type>>
+    , public base_from_member<boost::beast::websocket::stream<socket_type>>
 
     // Constructs last, destroys first
     //
@@ -290,7 +292,7 @@ public:
     sync_ws_con(
         socket_type&& sock,
         Args&&... args)
-        : base_from_member<beast::websocket::stream<socket_type>>(std::move(sock))
+        : base_from_member<boost::beast::websocket::stream<socket_type>>(std::move(sock))
         , sync_ws_con_base<sync_ws_con>(std::forward<Args>(args)...)
     {
     }
@@ -302,7 +304,7 @@ public:
     // class to work with different return types for `stream()` such
     // as a `boost::asio::ip::tcp::socket&` or a `boost::asio::ssl::stream&`
     //
-    beast::websocket::stream<socket_type>&
+    boost::beast::websocket::stream<socket_type>&
     stream()
     {
         return this->member;
@@ -337,7 +339,7 @@ class ws_sync_port
     // The type of the on_new_stream callback
     //
     using on_new_stream_cb =
-        boost::function<void(beast::websocket::stream<socket_type>&)>;
+        boost::function<void(boost::beast::websocket::stream<socket_type>&)>;
 
     server& instance_;
     std::ostream& log_;
@@ -356,7 +358,7 @@ public:
         should have this equivalent signature:
         @code
         template<class NextLayer>
-        void callback(beast::websocket::stream<NextLayer>&);
+        void callback(boost::beast::websocket::stream<NextLayer>&);
         @endcode
         In C++14 this can be accomplished with a generic lambda. In
         C++11 it will be necessary to write out a lambda manually,
@@ -412,7 +414,7 @@ public:
     on_upgrade(
         socket_type&& sock,
         endpoint_type ep,
-        beast::http::request<Body>&& req)
+        boost::beast::http::request<Body>&& req)
     {
         // Create the connection object and run it,
         // transferring ownership of the ugprade request.

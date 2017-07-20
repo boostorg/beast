@@ -4,13 +4,15 @@
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
+// Official repository: https://github.com/boostorg/beast
+//
 
 #include <example/common/helpers.hpp>
 #include <example/common/session_alloc.hpp>
 
-#include <beast/core.hpp>
-#include <beast/websocket.hpp>
-#include <beast/unit_test/dstream.hpp>
+#include <boost/beast/core.hpp>
+#include <boost/beast/websocket.hpp>
+#include <boost/beast/unit_test/dstream.hpp>
 #include <boost/asio.hpp>
 #include <boost/lexical_cast.hpp>
 #include <atomic>
@@ -27,9 +29,9 @@
 namespace asio = boost::asio;
 namespace ip = boost::asio::ip;
 using tcp = boost::asio::ip::tcp;
-namespace ws = beast::websocket;
+namespace ws = boost::beast::websocket;
 namespace ph = std::placeholders;
-using error_code = beast::error_code;
+using error_code = boost::beast::error_code;
 
 class test_buffer : public asio::const_buffers_1
 {
@@ -84,7 +86,7 @@ class connection
     report& rep_;
     test_buffer const& tb_;
     asio::io_service::strand strand_;
-    beast::multi_buffer buffer_;
+    boost::beast::multi_buffer buffer_;
     std::mt19937_64 rng_;
     std::size_t count_ = 0;
     std::size_t bytes_ = 0;
@@ -132,7 +134,7 @@ public:
 
 private:
     void
-    fail(beast::string_view what, error_code ec)
+    fail(boost::beast::string_view what, error_code ec)
     {
         if( ec == asio::error::operation_aborted ||
             ec == ws::error::closed)
@@ -168,7 +170,7 @@ private:
         std::geometric_distribution<std::size_t> dist{
             double(4) / boost::asio::buffer_size(tb_)};
         ws_.async_write_some(true,
-            beast::buffer_prefix(dist(rng_), tb_),
+            boost::beast::buffer_prefix(dist(rng_), tb_),
             alloc_.wrap(std::bind(
                 &connection::on_write,
                 shared_from_this(),
@@ -275,7 +277,7 @@ throughput(
 int
 main(int argc, char** argv)
 {
-    beast::unit_test::dstream dout(std::cerr);
+    boost::beast::unit_test::dstream dout(std::cerr);
 
     try
     {

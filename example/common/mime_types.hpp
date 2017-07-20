@@ -4,20 +4,22 @@
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
+// Official repository: https://github.com/boostorg/beast
+//
 
-#ifndef BEAST_EXAMPLE_COMMON_MIME_TYPES_HPP
-#define BEAST_EXAMPLE_COMMON_MIME_TYPES_HPP
+#ifndef BOOST_BEAST_EXAMPLE_COMMON_MIME_TYPES_HPP
+#define BOOST_BEAST_EXAMPLE_COMMON_MIME_TYPES_HPP
 
-#include <beast/core/string.hpp>
+#include <boost/beast/core/string.hpp>
 #include <boost/filesystem/path.hpp>
 
 // Return a reasonable mime type based on the extension of a file.
 //
 template<class = void>
-beast::string_view
+boost::beast::string_view
 mime_type(boost::filesystem::path const& path)
 {
-    using beast::iequals;
+    using boost::beast::iequals;
     auto const ext = path.extension().string();
     if(iequals(ext, ".txt"))  return "text/plain";
     if(iequals(ext, ".htm"))  return "text/html";

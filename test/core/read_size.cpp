@@ -4,17 +4,20 @@
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
+// Official repository: https://github.com/boostorg/beast
+//
 
 // Test that header file is self-contained.
-#include <beast/core/read_size.hpp>
+#include <boost/beast/core/read_size.hpp>
 
-#include <beast/core/drain_buffer.hpp>
-#include <beast/core/flat_buffer.hpp>
-#include <beast/core/multi_buffer.hpp>
-#include <beast/unit_test/suite.hpp>
+#include <boost/beast/core/drain_buffer.hpp>
+#include <boost/beast/core/flat_buffer.hpp>
+#include <boost/beast/core/multi_buffer.hpp>
+#include <boost/beast/unit_test/suite.hpp>
 
 #include <boost/asio/streambuf.hpp>
 
+namespace boost {
 namespace beast {
 
 class read_size_test : public beast::unit_test::suite
@@ -39,6 +42,7 @@ public:
     }
 };
 
-BEAST_DEFINE_TESTSUITE(read_size,core,beast);
+BOOST_BEAST_DEFINE_TESTSUITE(read_size,core,beast);
 
 } // beast
+} // boost

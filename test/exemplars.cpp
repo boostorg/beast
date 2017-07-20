@@ -4,15 +4,18 @@
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
+// Official repository: https://github.com/boostorg/beast
+//
 
-#include <beast/core/error.hpp>
-#include <beast/core/file_base.hpp>
-#include <beast/http/message.hpp>
-#include <beast/http/type_traits.hpp>
+#include <boost/beast/core/error.hpp>
+#include <boost/beast/core/file_base.hpp>
+#include <boost/beast/http/message.hpp>
+#include <boost/beast/http/type_traits.hpp>
 #include <boost/optional.hpp>
 #include <cstdint>
 #include <utility>
 
+namespace boost {
 namespace beast {
 namespace http {
 
@@ -343,3 +346,4 @@ struct File
 
 } // http
 } // beast
+} // boost

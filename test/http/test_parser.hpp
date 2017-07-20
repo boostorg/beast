@@ -4,15 +4,18 @@
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
+// Official repository: https://github.com/boostorg/beast
+//
 
-#ifndef BEAST_HTTP_TEST_PARSER_HPP
-#define BEAST_HTTP_TEST_PARSER_HPP
+#ifndef BOOST_BEAST_HTTP_TEST_PARSER_HPP
+#define BOOST_BEAST_HTTP_TEST_PARSER_HPP
 
-#include <beast/http/basic_parser.hpp>
-#include <beast/test/fail_counter.hpp>
+#include <boost/beast/http/basic_parser.hpp>
+#include <boost/beast/test/fail_counter.hpp>
 #include <string>
 #include <unordered_map>
 
+namespace boost {
 namespace beast {
 namespace http {
 
@@ -171,5 +174,6 @@ public:
 
 } // http
 } // beast
+} // boost
 
 #endif

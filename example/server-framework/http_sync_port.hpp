@@ -4,9 +4,11 @@
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
+// Official repository: https://github.com/boostorg/beast
+//
 
-#ifndef BEAST_EXAMPLE_SERVER_HTTP_SYNC_PORT_HPP
-#define BEAST_EXAMPLE_SERVER_HTTP_SYNC_PORT_HPP
+#ifndef BOOST_BEAST_EXAMPLE_SERVER_HTTP_SYNC_PORT_HPP
+#define BOOST_BEAST_EXAMPLE_SERVER_HTTP_SYNC_PORT_HPP
 
 #include "server.hpp"
 
@@ -16,13 +18,13 @@
 #include "../common/rfc7231.hpp"
 #include "../common/write_msg.hpp"
 
-#include <beast/core/flat_buffer.hpp>
-#include <beast/core/handler_ptr.hpp>
-#include <beast/http/dynamic_body.hpp>
-#include <beast/http/parser.hpp>
-#include <beast/http/read.hpp>
-#include <beast/http/string_body.hpp>
-#include <beast/http/write.hpp>
+#include <boost/beast/core/flat_buffer.hpp>
+#include <boost/beast/core/handler_ptr.hpp>
+#include <boost/beast/http/dynamic_body.hpp>
+#include <boost/beast/http/parser.hpp>
+#include <boost/beast/http/read.hpp>
+#include <boost/beast/http/string_body.hpp>
+#include <boost/beast/http/write.hpp>
 #include <memory>
 #include <utility>
 #include <ostream>
@@ -68,12 +70,12 @@ class sync_http_con_base
     endpoint_type ep_;
 
     // The buffer for performing reads
-    beast::flat_buffer buffer_;
+    boost::beast::flat_buffer buffer_;
 
 public:
     /// Constructor
     sync_http_con_base(
-        beast::string_view server_name,
+        boost::beast::string_view server_name,
         std::ostream& log,
         service_list<Services...> const& services,
         std::size_t id,
@@ -155,10 +157,10 @@ private:
         template<class Body, class Fields>
         void
         operator()(
-            beast::http::response<Body, Fields>&& res) const
+            boost::beast::http::response<Body, Fields>&& res) const
         {
-            beast::http::serializer<false, Body, Fields> sr{res};
-            beast::http::write(self_.impl().stream(), sr, ec_);
+            boost::beast::http::serializer<false, Body, Fields> sr{res};
+            boost::beast::http::write(self_.impl().stream(), sr, ec_);
         }
     };
 
@@ -189,19 +191,19 @@ private:
             // We construct the dynamic body with a 1MB limit
             // to prevent vulnerability to buffer attacks.
             //
-            beast::http::request_parser<beast::http::dynamic_body> parser(
+            boost::beast::http::request_parser<boost::beast::http::dynamic_body> parser(
                 std::piecewise_construct, std::make_tuple(1024* 1024));
 
             // Read the header first
-            beast::http::read_header(impl().stream(), buffer_, parser, ec);
+            boost::beast::http::read_header(impl().stream(), buffer_, parser, ec);
 
             // This happens when the other end closes gracefully
             //
-            if(ec == beast::http::error::end_of_stream)
+            if(ec == boost::beast::http::error::end_of_stream)
             {
                 // Give the derived class a chance to do stuff
                 impl().do_shutdown(ec);
-                if(ec && ec != beast::errc::not_connected)
+                if(ec && ec != boost::beast::errc::not_connected)
                     return fail("shutdown", ec);
                 return;
             }
@@ -228,11 +230,11 @@ private:
                 // should be closed afterwards. For example if
                 // we send a Connection: close.
                 //
-                if(ec == beast::http::error::end_of_stream)
+                if(ec == boost::beast::http::error::end_of_stream)
                 {
                     // Give the derived class a chance to do stuff
                     impl().do_shutdown(ec);
-                    if(ec && ec != beast::errc::not_connected)
+                    if(ec && ec != boost::beast::errc::not_connected)
                         return fail("shutdown", ec);
                     return;
                 }
@@ -245,7 +247,7 @@ private:
 
             // Read the rest of the message, if any.
             //
-            beast::http::read(impl().stream(), buffer_, parser, ec);
+            boost::beast::http::read(impl().stream(), buffer_, parser, ec);
 
             // Shouldn't be getting end_of_stream here;
             // that would mean that we got an incomplete
@@ -272,11 +274,11 @@ private:
                 // should be closed afterwards. For example if
                 // we send a Connection: close.
                 //
-                if(ec == beast::http::error::end_of_stream)
+                if(ec == boost::beast::http::error::end_of_stream)
                 {
                     // Give the derived class a chance to do stuff
                     impl().do_shutdown(ec);
-                    if(ec && ec != beast::errc::not_connected)
+                    if(ec && ec != boost::beast::errc::not_connected)
                         return fail("shutdown", ec);
                     return;
                 }
@@ -293,10 +295,10 @@ private:
                 // should be closed afterwards. For example if
                 // we send a Connection: close.
                 //
-                if(ec == beast::http::error::end_of_stream)
+                if(ec == boost::beast::http::error::end_of_stream)
                 {
                     // Give the derived class a chance to do stuff
-                    if(ec && ec != beast::errc::not_connected)
+                    if(ec && ec != boost::beast::errc::not_connected)
                         return fail("shutdown", ec);
                     return;
                 }

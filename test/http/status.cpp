@@ -4,12 +4,15 @@
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
+// Official repository: https://github.com/boostorg/beast
+//
 
 // Test that header file is self-contained.
-#include <beast/http/status.hpp>
+#include <boost/beast/http/status.hpp>
 
-#include <beast/unit_test/suite.hpp>
+#include <boost/beast/unit_test/suite.hpp>
 
+namespace boost {
 namespace beast {
 namespace http {
 
@@ -22,9 +25,9 @@ public:
     {
         auto const check = [&](status s, int i, status_class sc)
             {
-                BEAST_EXPECT(int_to_status(i) == s);
-                BEAST_EXPECT(to_status_class(i) == sc);
-                BEAST_EXPECT(to_status_class(int_to_status(i)) == sc);
+                BOOST_BEAST_EXPECT(int_to_status(i) == s);
+                BOOST_BEAST_EXPECT(to_status_class(i) == sc);
+                BOOST_BEAST_EXPECT(to_status_class(int_to_status(i)) == sc);
             };
         check(status::continue_                             ,100, status_class::informational);
         check(status::switching_protocols                   ,101, status_class::informational);
@@ -93,13 +96,13 @@ public:
         check(status::network_authentication_required       ,511, status_class::server_error);
         check(status::network_connect_timeout_error         ,599, status_class::server_error);
 
-        BEAST_EXPECT(to_status_class(1) == status_class::unknown);
-        BEAST_EXPECT(to_status_class(status::unknown) == status_class::unknown);
+        BOOST_BEAST_EXPECT(to_status_class(1) == status_class::unknown);
+        BOOST_BEAST_EXPECT(to_status_class(status::unknown) == status_class::unknown);
 
         auto const good =
             [&](status v)
             {
-                BEAST_EXPECT(obsolete_reason(v) != "Unknown Status");
+                BOOST_BEAST_EXPECT(obsolete_reason(v) != "Unknown Status");
             };
         good(status::continue_);
         good(status::switching_protocols);
@@ -169,8 +172,9 @@ public:
     }
 };
 
-BEAST_DEFINE_TESTSUITE(status,http,beast);
+BOOST_BEAST_DEFINE_TESTSUITE(status,http,beast);
 
 } // http
 } // beast
+} // boost
 

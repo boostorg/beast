@@ -4,14 +4,16 @@
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
+// Official repository: https://github.com/boostorg/beast
+//
 
 #include "fields_alloc.hpp"
 
 #include "../common/mime_types.hpp"
 
-#include <beast/core.hpp>
-#include <beast/http.hpp>
-#include <beast/version.hpp>
+#include <boost/beast/core.hpp>
+#include <boost/beast/http.hpp>
+#include <boost/beast/version.hpp>
 #include <boost/asio.hpp>
 #include <boost/filesystem.hpp>
 #include <chrono>
@@ -23,9 +25,9 @@
 #include <memory>
 #include <string>
 
-namespace ip = boost::asio::ip; // from <boost/asio.hpp>
-using tcp = boost::asio::ip::tcp; // from <boost/asio.hpp>
-namespace http = beast::http; // from <beast/http.hpp>
+namespace ip = boost::asio::ip;         // from <boost/asio.hpp>
+using tcp = boost::asio::ip::tcp;       // from <boost/asio.hpp>
+namespace http = boost::beast::http;    // from <boost/beast/http.hpp>
 
 class http_worker
 {
@@ -47,7 +49,7 @@ public:
 
 private:
     using alloc_t = fields_alloc<char>;
-    using request_body_t = http::basic_dynamic_body<beast::flat_static_buffer<1024 * 1024>>;
+    using request_body_t = http::basic_dynamic_body<boost::beast::flat_static_buffer<1024 * 1024>>;
 
     // The acceptor used to listen for incoming connections.
     tcp::acceptor& acceptor_;
@@ -59,7 +61,7 @@ private:
     tcp::socket socket_{acceptor_.get_io_service()};
 
     // The buffer for performing reads
-    beast::flat_static_buffer<8192> buffer_;
+    boost::beast::flat_static_buffer<8192> buffer_;
 
     // The allocator used for the fields in the request and reply.
     alloc_t alloc_{8192};
@@ -86,13 +88,13 @@ private:
     void accept()
     {
         // Clean up any previous connection.
-        beast::error_code ec;
+        boost::beast::error_code ec;
         socket_.close(ec);
         buffer_.consume(buffer_.size());
 
         acceptor_.async_accept(
             socket_,
-            [this](beast::error_code ec)
+            [this](boost::beast::error_code ec)
             {
                 if (ec)
                 {
@@ -131,7 +133,7 @@ private:
             socket_,
             buffer_,
             *parser_,
-            [this](beast::error_code ec)
+            [this](boost::beast::error_code ec)
             {
                 if (ec)
                     accept();
@@ -179,7 +181,7 @@ private:
         http::async_write(
             socket_,
             *string_serializer_,
-            [this](beast::error_code ec)
+            [this](boost::beast::error_code ec)
             {
                 socket_.shutdown(tcp::socket::shutdown_send, ec);
                 string_serializer_.reset();
@@ -188,7 +190,7 @@ private:
             });
     }
 
-    void send_file(beast::string_view target)
+    void send_file(boost::beast::string_view target)
     {
         // Request path must be absolute and not contain "..".
         if (target.empty() || target[0] != '/' || target.find("..") != std::string::npos)
@@ -205,10 +207,10 @@ private:
             target.size());
 
         http::file_body::value_type file;
-        beast::error_code ec;
+        boost::beast::error_code ec;
         file.open(
             full_path.c_str(),
-            beast::file_mode::read,
+            boost::beast::file_mode::read,
             ec);
         if(ec)
         {
@@ -235,7 +237,7 @@ private:
         http::async_write(
             socket_,
             *file_serializer_,
-            [this](beast::error_code ec)
+            [this](boost::beast::error_code ec)
             {
                 socket_.shutdown(tcp::socket::shutdown_send, ec);
                 file_serializer_.reset();
@@ -250,7 +252,7 @@ private:
         if (request_deadline_.expires_at() <= std::chrono::steady_clock::now())
         {
             // Close socket to cancel any outstanding operation.
-            beast::error_code ec;
+            boost::beast::error_code ec;
             socket_.close();
 
             // Sleep indefinitely until we're given a new deadline.
@@ -259,7 +261,7 @@ private:
         }
 
         request_deadline_.async_wait(
-            [this](beast::error_code)
+            [this](boost::beast::error_code)
             {
                 check_deadline();
             });

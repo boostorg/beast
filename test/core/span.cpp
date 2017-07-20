@@ -4,13 +4,16 @@
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
+// Official repository: https://github.com/boostorg/beast
+//
 
 // Test that header file is self-contained.
-#include <beast/core/span.hpp>
+#include <boost/beast/core/span.hpp>
 
-#include <beast/core/string.hpp>
-#include <beast/unit_test/suite.hpp>
+#include <boost/beast/core/string.hpp>
+#include <boost/beast/unit_test/suite.hpp>
 
+namespace boost {
 namespace beast {
 
 class span_test : public beast::unit_test::suite
@@ -39,7 +42,7 @@ public:
     testSpan()
     {
         span<char const> sp{"hello", 5};
-        BEAST_EXPECT(sp.size() == 5);
+        BOOST_BEAST_EXPECT(sp.size() == 5);
         std::string s("world");
         sp = s;
     }
@@ -51,6 +54,7 @@ public:
     }
 };
 
-BEAST_DEFINE_TESTSUITE(span,core,beast);
+BOOST_BEAST_DEFINE_TESTSUITE(span,core,beast);
 
 } // beast
+} // boost

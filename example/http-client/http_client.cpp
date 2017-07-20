@@ -4,31 +4,32 @@
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
+// Official repository: https://github.com/boostorg/beast
 
 //[example_http_client
 
-#include <beast/core.hpp>
-#include <beast/http.hpp>
-#include <beast/version.hpp>
+#include <boost/beast/core.hpp>
+#include <boost/beast/http.hpp>
+#include <boost/beast/version.hpp>
 #include <boost/asio.hpp>
 #include <cstdlib>
 #include <iostream>
 #include <string>
 
-using tcp = boost::asio::ip::tcp; // from <boost/asio.hpp>
-namespace http = beast::http; // from <beast/http.hpp>
+using tcp = boost::asio::ip::tcp;       // from <boost/asio.hpp>
+namespace http = boost::beast::http;    // from <boost/beast/http.hpp>
 
 int main()
 {
     // A helper for reporting errors
     auto const fail =
-        [](std::string what, beast::error_code ec)
+        [](std::string what, boost::beast::error_code ec)
         {
             std::cerr << what << ": " << ec.message() << std::endl;
             return EXIT_FAILURE;
         };
 
-    beast::error_code ec;
+    boost::beast::error_code ec;
 
     // Set up an asio socket
     boost::asio::io_service ios;
@@ -50,7 +51,7 @@ int main()
     http::request<http::string_body> req{http::verb::get, "/", 11};
     req.set(http::field::host, host + ":" +
         std::to_string(sock.remote_endpoint().port()));
-    req.set(http::field::user_agent, BEAST_VERSION_STRING);
+    req.set(http::field::user_agent, BOOST_BEAST_VERSION_STRING);
     req.prepare_payload();
 
     // Write the HTTP request to the remote host
@@ -59,7 +60,7 @@ int main()
         return fail("write", ec);
 
     // This buffer is used for reading and must be persisted
-    beast::flat_buffer b;
+    boost::beast::flat_buffer b;
 
     // Declare a container to hold the response
     http::response<http::dynamic_body> res;
@@ -78,7 +79,7 @@ int main()
     // not_connected happens sometimes
     // so don't bother reporting it.
     //
-    if(ec && ec != beast::errc::not_connected)
+    if(ec && ec != boost::beast::errc::not_connected)
         return fail("shutdown", ec);
 
     // If we get here then the connection is closed gracefully

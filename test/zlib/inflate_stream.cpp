@@ -4,15 +4,19 @@
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
+// Official repository: https://github.com/boostorg/beast
+//
 
 // Test that header file is self-contained.
-#include <beast/zlib/inflate_stream.hpp>
+#include <boost/beast/zlib/inflate_stream.hpp>
 
 #include "ztest.hpp"
-#include <beast/unit_test/suite.hpp>
+
+#include <boost/beast/unit_test/suite.hpp>
 #include <chrono>
 #include <random>
 
+namespace boost {
 namespace beast {
 namespace zlib {
 
@@ -326,7 +330,7 @@ public:
             m("1. zlib ", ZLib {half, half}, check);
         }
 
-    #if ! BEAST_NO_SLOW_TESTS
+    #if ! BOOST_BEAST_NO_SLOW_TESTS
         {
             Matrix m{*this};
             auto const check = corpus1(50000);
@@ -409,7 +413,8 @@ public:
     }
 };
 
-BEAST_DEFINE_TESTSUITE(inflate_stream,core,beast);
+BOOST_BEAST_DEFINE_TESTSUITE(inflate_stream,core,beast);
 
 } // zlib
 } // beast
+} // boost

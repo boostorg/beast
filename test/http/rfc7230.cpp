@@ -4,17 +4,20 @@
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
+// Official repository: https://github.com/boostorg/beast
+//
 
 // Test that header file is self-contained.
-#include <beast/http/rfc7230.hpp>
+#include <boost/beast/http/rfc7230.hpp>
 
-#include <beast/http/detail/rfc7230.hpp>
-#include <beast/unit_test/suite.hpp>
+#include <boost/beast/http/detail/rfc7230.hpp>
+#include <boost/beast/unit_test/suite.hpp>
 #include <string>
 #include <vector>
 
-#include <beast/core/detail/empty_base_optimization.hpp>
+#include <boost/beast/core/detail/empty_base_optimization.hpp>
 
+namespace boost {
 namespace beast {
 namespace http {
 
@@ -60,7 +63,7 @@ public:
             [&](std::string const& s)
             {
                 auto const got = str(param_list{s});
-                BEAST_EXPECTS(got == s, fmt(got));
+                BOOST_BEAST_EXPECTS(got == s, fmt(got));
             };
         auto const cs =
             [&](std::string const& s, std::string const& answer)
@@ -68,13 +71,13 @@ public:
                 ce(answer);
                 auto const got = str(param_list{s});
                 ce(got);
-                BEAST_EXPECTS(got == answer, fmt(got));
+                BOOST_BEAST_EXPECTS(got == answer, fmt(got));
             };
         auto const cq =
             [&](std::string const& s, std::string const& answer)
             {
                 auto const got = str(param_list{s});
-                BEAST_EXPECTS(got == answer, fmt(got));
+                BOOST_BEAST_EXPECTS(got == answer, fmt(got));
             };
 
         ce("");
@@ -119,7 +122,7 @@ public:
             [&](std::string const& s)
             {
                 auto const got = str(ext_list{s});
-                BEAST_EXPECTS(got == s, fmt(got));
+                BOOST_BEAST_EXPECTS(got == s, fmt(got));
             };
         auto const cs =
             [&](std::string const& s, std::string const& good)
@@ -127,13 +130,13 @@ public:
                 ce(good);
                 auto const got = str(ext_list{s});
                 ce(got);
-                BEAST_EXPECTS(got == good, fmt(got));
+                BOOST_BEAST_EXPECTS(got == good, fmt(got));
             };
         auto const cq =
             [&](std::string const& s, std::string const& good)
             {
                 auto const got = str(ext_list{s});
-                BEAST_EXPECTS(got == good, fmt(got));
+                BOOST_BEAST_EXPECTS(got == good, fmt(got));
             };
     /*
         ext-basic_parsed_list    = *( "," OWS ) ext *( OWS "," [ OWS ext ] )
@@ -169,9 +172,9 @@ public:
         cq("ab;x=\" \"", "ab;x= ");
         cq("ab;x=\"\\\"\"", "ab;x=\"");
 
-        BEAST_EXPECT(ext_list{"a,b;i=1,c;j=2;k=3"}.exists("A"));
-        BEAST_EXPECT(ext_list{"a,b;i=1,c;j=2;k=3"}.exists("b"));
-        BEAST_EXPECT(! ext_list{"a,b;i=1,c;j=2;k=3"}.exists("d"));
+        BOOST_BEAST_EXPECT(ext_list{"a,b;i=1,c;j=2;k=3"}.exists("A"));
+        BOOST_BEAST_EXPECT(ext_list{"a,b;i=1,c;j=2;k=3"}.exists("b"));
+        BOOST_BEAST_EXPECT(! ext_list{"a,b;i=1,c;j=2;k=3"}.exists("d"));
 
         // invalid strings
         cs("i j", "i");
@@ -201,7 +204,7 @@ public:
             [&](std::string const& s)
             {
                 auto const got = str(token_list{s});
-                BEAST_EXPECTS(got == s, fmt(got));
+                BOOST_BEAST_EXPECTS(got == s, fmt(got));
             };
         auto const cs =
             [&](std::string const& s, std::string const& good)
@@ -209,7 +212,7 @@ public:
                 ce(good);
                 auto const got = str(token_list{s});
                 ce(got);
-                BEAST_EXPECTS(got == good, fmt(got));
+                BOOST_BEAST_EXPECTS(got == good, fmt(got));
             };
 
         cs("", "");
@@ -230,9 +233,9 @@ public:
         cs("x ,\ty ", "x,y");
         cs("x, y, z", "x,y,z");
 
-        BEAST_EXPECT(token_list{"a,b,c"}.exists("A"));
-        BEAST_EXPECT(token_list{"a,b,c"}.exists("b"));
-        BEAST_EXPECT(! token_list{"a,b,c"}.exists("d"));
+        BOOST_BEAST_EXPECT(token_list{"a,b,c"}.exists("A"));
+        BOOST_BEAST_EXPECT(token_list{"a,b,c"}.exists("b"));
+        BOOST_BEAST_EXPECT(! token_list{"a,b,c"}.exists("d"));
 
         // invalid
         cs("x y", "x");
@@ -256,14 +259,14 @@ public:
     validate(string_view in,
         std::vector<std::string> const& v)
     {
-        BEAST_EXPECT(to_vector<Policy>(in) == v);
+        BOOST_BEAST_EXPECT(to_vector<Policy>(in) == v);
     }
 
     template<class Policy>
     void
     good(string_view in)
     {
-        BEAST_EXPECT(validate_list(
+        BOOST_BEAST_EXPECT(validate_list(
             detail::basic_parsed_list<Policy>{in}));
     }
 
@@ -272,7 +275,7 @@ public:
     good(string_view in,
         std::vector<std::string> const& v)
     {
-        BEAST_EXPECT(validate_list(
+        BOOST_BEAST_EXPECT(validate_list(
             detail::basic_parsed_list<Policy>{in}));
         validate<Policy>(in, v);
     }
@@ -281,7 +284,7 @@ public:
     void
     bad(string_view in)
     {
-        BEAST_EXPECT(! validate_list(
+        BOOST_BEAST_EXPECT(! validate_list(
             detail::basic_parsed_list<Policy>{in}));
     }
 
@@ -351,7 +354,8 @@ public:
     }
 };
 
-BEAST_DEFINE_TESTSUITE(rfc7230,http,beast);
+BOOST_BEAST_DEFINE_TESTSUITE(rfc7230,http,beast);
 
 } // http
 } // beast
+} // boost

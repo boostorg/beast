@@ -4,9 +4,11 @@
 # Distributed under the Boost Software License, Version 1.0. (See accompanying
 # file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 #
+# Official repository: https://github.com/boostorg/beast
+#
 
 unit-test core-tests :
-    ../../extras/beast/unit_test/main.cpp
+    ../../extras/boost/beast/unit_test/main.cpp
     async_result.cpp
     bind_handler.cpp
     buffer_cat.cpp

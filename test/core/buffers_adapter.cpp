@@ -4,19 +4,22 @@
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
+// Official repository: https://github.com/boostorg/beast
+//
 
 // Test that header file is self-contained.
-#include <beast/core/buffers_adapter.hpp>
+#include <boost/beast/core/buffers_adapter.hpp>
 
 #include "buffer_test.hpp"
-#include <beast/core/ostream.hpp>
-#include <beast/core/multi_buffer.hpp>
-#include <beast/unit_test/suite.hpp>
+#include <boost/beast/core/ostream.hpp>
+#include <boost/beast/core/multi_buffer.hpp>
+#include <boost/beast/unit_test/suite.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/asio/streambuf.hpp>
 #include <boost/lexical_cast.hpp>
 #include <iterator>
 
+namespace boost {
 namespace beast {
 
 class buffers_adapter_test : public unit_test::suite
@@ -40,7 +43,7 @@ public:
         using boost::asio::mutable_buffer;
         char buf[12];
         std::string const s = "Hello, world";
-        BEAST_EXPECT(s.size() == sizeof(buf));
+        BOOST_BEAST_EXPECT(s.size() == sizeof(buf));
         for(std::size_t i = 1; i < 4; ++i) {
         for(std::size_t j = 1; j < 4; ++j) {
         for(std::size_t x = 1; x < 4; ++x) {
@@ -57,83 +60,83 @@ public:
                 mutable_buffer{&buf[i], j},
                 mutable_buffer{&buf[i+j], k}}};
             buffers_adapter<decltype(bs)> ba(std::move(bs));
-            BEAST_EXPECT(ba.max_size() == sizeof(buf));
+            BOOST_BEAST_EXPECT(ba.max_size() == sizeof(buf));
             {
                 auto d = ba.prepare(z);
-                BEAST_EXPECT(buffer_size(d) == z);
+                BOOST_BEAST_EXPECT(buffer_size(d) == z);
             }
             {
                 auto d = ba.prepare(0);
-                BEAST_EXPECT(buffer_size(d) == 0);
+                BOOST_BEAST_EXPECT(buffer_size(d) == 0);
             }
             {
                 auto d = ba.prepare(y);
-                BEAST_EXPECT(buffer_size(d) == y);
+                BOOST_BEAST_EXPECT(buffer_size(d) == y);
             }
             {
                 auto d = ba.prepare(x);
-                BEAST_EXPECT(buffer_size(d) == x);
+                BOOST_BEAST_EXPECT(buffer_size(d) == x);
                 ba.commit(buffer_copy(d, buffer(s.data(), x)));
             }
-            BEAST_EXPECT(ba.size() == x);
-            BEAST_EXPECT(ba.max_size() == sizeof(buf) - x);
-            BEAST_EXPECT(buffer_size(ba.data()) == ba.size());
+            BOOST_BEAST_EXPECT(ba.size() == x);
+            BOOST_BEAST_EXPECT(ba.max_size() == sizeof(buf) - x);
+            BOOST_BEAST_EXPECT(buffer_size(ba.data()) == ba.size());
             {
                 auto d = ba.prepare(x);
-                BEAST_EXPECT(buffer_size(d) == x);
+                BOOST_BEAST_EXPECT(buffer_size(d) == x);
             }
             {
                 auto d = ba.prepare(0);
-                BEAST_EXPECT(buffer_size(d) == 0);
+                BOOST_BEAST_EXPECT(buffer_size(d) == 0);
             }
             {
                 auto d = ba.prepare(z);
-                BEAST_EXPECT(buffer_size(d) == z);
+                BOOST_BEAST_EXPECT(buffer_size(d) == z);
             }
             {
                 auto d = ba.prepare(y);
-                BEAST_EXPECT(buffer_size(d) == y);
+                BOOST_BEAST_EXPECT(buffer_size(d) == y);
                 ba.commit(buffer_copy(d, buffer(s.data()+x, y)));
             }
             ba.commit(1);
-            BEAST_EXPECT(ba.size() == x + y);
-            BEAST_EXPECT(ba.max_size() == sizeof(buf) - (x + y));
-            BEAST_EXPECT(buffer_size(ba.data()) == ba.size());
+            BOOST_BEAST_EXPECT(ba.size() == x + y);
+            BOOST_BEAST_EXPECT(ba.max_size() == sizeof(buf) - (x + y));
+            BOOST_BEAST_EXPECT(buffer_size(ba.data()) == ba.size());
             {
                 auto d = ba.prepare(x);
-                BEAST_EXPECT(buffer_size(d) == x);
+                BOOST_BEAST_EXPECT(buffer_size(d) == x);
             }
             {
                 auto d = ba.prepare(y);
-                BEAST_EXPECT(buffer_size(d) == y);
+                BOOST_BEAST_EXPECT(buffer_size(d) == y);
             }
             {
                 auto d = ba.prepare(0);
-                BEAST_EXPECT(buffer_size(d) == 0);
+                BOOST_BEAST_EXPECT(buffer_size(d) == 0);
             }
             {
-                auto d = ba.prepare(z); BEAST_EXPECT(buffer_size(d) == z);
+                auto d = ba.prepare(z); BOOST_BEAST_EXPECT(buffer_size(d) == z);
                 ba.commit(buffer_copy(d, buffer(s.data()+x+y, z)));
             }
             ba.commit(2);
-            BEAST_EXPECT(ba.size() == x + y + z);
-            BEAST_EXPECT(ba.max_size() == 0);
-            BEAST_EXPECT(buffer_size(ba.data()) == ba.size());
-            BEAST_EXPECT(to_string(ba.data()) == s);
+            BOOST_BEAST_EXPECT(ba.size() == x + y + z);
+            BOOST_BEAST_EXPECT(ba.max_size() == 0);
+            BOOST_BEAST_EXPECT(buffer_size(ba.data()) == ba.size());
+            BOOST_BEAST_EXPECT(to_string(ba.data()) == s);
             ba.consume(t);
             {
                 auto d = ba.prepare(0);
-                BEAST_EXPECT(buffer_size(d) == 0);
+                BOOST_BEAST_EXPECT(buffer_size(d) == 0);
             }
-            BEAST_EXPECT(to_string(ba.data()) == s.substr(t, std::string::npos));
+            BOOST_BEAST_EXPECT(to_string(ba.data()) == s.substr(t, std::string::npos));
             ba.consume(u);
-            BEAST_EXPECT(to_string(ba.data()) == s.substr(t + u, std::string::npos));
+            BOOST_BEAST_EXPECT(to_string(ba.data()) == s.substr(t + u, std::string::npos));
             ba.consume(v);
-            BEAST_EXPECT(to_string(ba.data()) == "");
+            BOOST_BEAST_EXPECT(to_string(ba.data()) == "");
             ba.consume(1);
             {
                 auto d = ba.prepare(0);
-                BEAST_EXPECT(buffer_size(d) == 0);
+                BOOST_BEAST_EXPECT(buffer_size(d) == 0);
             }
             try
             {
@@ -155,9 +158,9 @@ public:
             sb_type b;
             buffers_adapter<
                 sb_type::mutable_buffers_type> ba(b.prepare(3));
-            BEAST_EXPECT(buffer_size(ba.prepare(3)) == 3);
+            BOOST_BEAST_EXPECT(buffer_size(ba.prepare(3)) == 3);
             ba.commit(2);
-            BEAST_EXPECT(buffer_size(ba.data()) == 2);
+            BOOST_BEAST_EXPECT(buffer_size(ba.data()) == 2);
         }
         {
             using sb_type = beast::multi_buffer;
@@ -165,13 +168,13 @@ public:
             b.prepare(3);
             buffers_adapter<
                 sb_type::mutable_buffers_type> ba(b.prepare(8));
-            BEAST_EXPECT(buffer_size(ba.prepare(8)) == 8);
+            BOOST_BEAST_EXPECT(buffer_size(ba.prepare(8)) == 8);
             ba.commit(2);
-            BEAST_EXPECT(buffer_size(ba.data()) == 2);
+            BOOST_BEAST_EXPECT(buffer_size(ba.data()) == 2);
             ba.consume(1);
             ba.commit(6);
             ba.consume(2);
-            BEAST_EXPECT(buffer_size(ba.data()) == 5);
+            BOOST_BEAST_EXPECT(buffer_size(ba.data()) == 5);
             ba.consume(5);
         }
     }
@@ -194,6 +197,7 @@ public:
     }
 };
 
-BEAST_DEFINE_TESTSUITE(buffers_adapter,core,beast);
+BOOST_BEAST_DEFINE_TESTSUITE(buffers_adapter,core,beast);
 
 } // beast
+} // boost

@@ -4,18 +4,21 @@
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
+// Official repository: https://github.com/boostorg/beast
+//
 
 // Test that header file is self-contained.
-#include <beast/core/consuming_buffers.hpp>
+#include <boost/beast/core/consuming_buffers.hpp>
 
 #include "buffer_test.hpp"
 
-#include <beast/core/buffer_cat.hpp>
-#include <beast/core/ostream.hpp>
-#include <beast/unit_test/suite.hpp>
+#include <boost/beast/core/buffer_cat.hpp>
+#include <boost/beast/core/ostream.hpp>
+#include <boost/beast/unit_test/suite.hpp>
 #include <boost/asio/buffer.hpp>
 #include <string>
 
+namespace boost {
 namespace beast {
 
 class consuming_buffers_test : public beast::unit_test::suite
@@ -44,10 +47,10 @@ public:
     void
     expect_size(std::size_t n, ConstBufferSequence const& buffers)
     {
-        BEAST_EXPECT(test::size_pre(buffers) == n);
-        BEAST_EXPECT(test::size_post(buffers) == n);
-        BEAST_EXPECT(test::size_rev_pre(buffers) == n);
-        BEAST_EXPECT(test::size_rev_post(buffers) == n);
+        BOOST_BEAST_EXPECT(test::size_pre(buffers) == n);
+        BOOST_BEAST_EXPECT(test::size_post(buffers) == n);
+        BOOST_BEAST_EXPECT(test::size_rev_pre(buffers) == n);
+        BOOST_BEAST_EXPECT(test::size_rev_post(buffers) == n);
     }
 
     void
@@ -72,9 +75,9 @@ public:
         using boost::asio::const_buffer;
         char buf[12];
         std::string const s = "Hello, world";
-        BEAST_EXPECT(s.size() == sizeof(buf));
+        BOOST_BEAST_EXPECT(s.size() == sizeof(buf));
         buffer_copy(buffer(buf), buffer(s));
-        BEAST_EXPECT(to_string(buffer(buf)) == s);
+        BOOST_BEAST_EXPECT(to_string(buffer(buf)) == s);
         for(std::size_t i = 1; i < 4; ++i) {
         for(std::size_t j = 1; j < 4; ++j) {
         for(std::size_t x = 1; x < 4; ++x) {
@@ -87,24 +90,24 @@ public:
                 const_buffer{&buf[i], j},
                 const_buffer{&buf[i+j], k}}};
             consuming_buffers<decltype(bs)> cb(bs);
-            BEAST_EXPECT(to_string(cb) == s);
+            BOOST_BEAST_EXPECT(to_string(cb) == s);
             expect_size(s.size(), cb);
             cb.consume(0);
-            BEAST_EXPECT(eq(cb, consumed_buffers(bs, 0)));
-            BEAST_EXPECT(to_string(cb) == s);
+            BOOST_BEAST_EXPECT(eq(cb, consumed_buffers(bs, 0)));
+            BOOST_BEAST_EXPECT(to_string(cb) == s);
             expect_size(s.size(), cb);
             cb.consume(x);
-            BEAST_EXPECT(to_string(cb) == s.substr(x));
-            BEAST_EXPECT(eq(cb, consumed_buffers(bs, x)));
+            BOOST_BEAST_EXPECT(to_string(cb) == s.substr(x));
+            BOOST_BEAST_EXPECT(eq(cb, consumed_buffers(bs, x)));
             cb.consume(y);
-            BEAST_EXPECT(to_string(cb) == s.substr(x+y));
-            BEAST_EXPECT(eq(cb, consumed_buffers(bs, x+y)));
+            BOOST_BEAST_EXPECT(to_string(cb) == s.substr(x+y));
+            BOOST_BEAST_EXPECT(eq(cb, consumed_buffers(bs, x+y)));
             cb.consume(z);
-            BEAST_EXPECT(to_string(cb) == "");
-            BEAST_EXPECT(eq(cb, consumed_buffers(bs, x+y+z)));
+            BOOST_BEAST_EXPECT(to_string(cb) == "");
+            BOOST_BEAST_EXPECT(eq(cb, consumed_buffers(bs, x+y+z)));
             cb.consume(1);
-            BEAST_EXPECT(to_string(cb) == "");
-            BEAST_EXPECT(eq(cb, consumed_buffers(bs, x+y+z)));
+            BOOST_BEAST_EXPECT(to_string(cb) == "");
+            BOOST_BEAST_EXPECT(eq(cb, consumed_buffers(bs, x+y+z)));
         }
         }}}}
     }
@@ -123,7 +126,7 @@ public:
         };
 
         consuming_buffers<test_buffer> cb;
-        BEAST_EXPECT(to_string(cb) == "\r\n");
+        BOOST_BEAST_EXPECT(to_string(cb) == "\r\n");
     }
 
     void
@@ -136,7 +139,7 @@ public:
                 boost::in_place_init,
                     boost::asio::const_buffers_1("\r", 1),
                     boost::asio::const_buffers_1("\n", 1));
-        BEAST_EXPECT(to_string(cb) == "\r\n");
+        BOOST_BEAST_EXPECT(to_string(cb) == "\r\n");
     }
 
     void
@@ -147,10 +150,10 @@ public:
         using boost::asio::null_buffers;
         consuming_buffers<null_buffers> cb(
             null_buffers{});
-        BEAST_EXPECT(buffer_size(cb) == 0);
+        BOOST_BEAST_EXPECT(buffer_size(cb) == 0);
         consuming_buffers<null_buffers> cb2(
             null_buffers{});
-        BEAST_EXPECT(buffer_copy(cb2, cb) == 0);
+        BOOST_BEAST_EXPECT(buffer_copy(cb2, cb) == 0);
     }
 
     void
@@ -162,7 +165,7 @@ public:
         std::size_t n = 0;
         for(auto it = cb.end(); it != cb.begin(); --it)
             ++n;
-        BEAST_EXPECT(n == 3);
+        BOOST_BEAST_EXPECT(n == 3);
     }
 
     void run() override
@@ -176,6 +179,7 @@ public:
     }
 };
 
-BEAST_DEFINE_TESTSUITE(consuming_buffers,core,beast);
+BOOST_BEAST_DEFINE_TESTSUITE(consuming_buffers,core,beast);
 
 } // beast
+} // boost

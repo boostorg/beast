@@ -4,17 +4,20 @@
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
+// Official repository: https://github.com/boostorg/beast
+//
 
 // Test that header file is self-contained.
-#include <beast/core/buffered_read_stream.hpp>
+#include <boost/beast/core/buffered_read_stream.hpp>
 
-#include <beast/core/multi_buffer.hpp>
-#include <beast/test/fail_stream.hpp>
-#include <beast/test/string_istream.hpp>
-#include <beast/test/yield_to.hpp>
-#include <beast/unit_test/suite.hpp>
+#include <boost/beast/core/multi_buffer.hpp>
+#include <boost/beast/test/fail_stream.hpp>
+#include <boost/beast/test/string_istream.hpp>
+#include <boost/beast/test/yield_to.hpp>
+#include <boost/beast/unit_test/suite.hpp>
 #include <boost/asio.hpp>
 
+namespace boost {
 namespace beast {
 
 class buffered_read_stream_test
@@ -32,8 +35,8 @@ public:
             buffered_read_stream<socket_type, multi_buffer> srs(ios);
             buffered_read_stream<socket_type, multi_buffer> srs2(std::move(srs));
             srs = std::move(srs2);
-            BEAST_EXPECT(&srs.get_io_service() == &ios);
-            BEAST_EXPECT(&srs.get_io_service() == &srs2.get_io_service());
+            BOOST_BEAST_EXPECT(&srs.get_io_service() == &ios);
+            BOOST_BEAST_EXPECT(&srs.get_io_service() == &srs2.get_io_service());
         }
         {
             socket_type sock(ios);
@@ -63,11 +66,11 @@ public:
             boost::asio::read(srs, buffer(&s[0], s.size()), ec);
             if(! ec)
             {
-                BEAST_EXPECT(s == "Hello, world!");
+                BOOST_BEAST_EXPECT(s == "Hello, world!");
                 break;
             }
         }
-        BEAST_EXPECT(n < limit);
+        BOOST_BEAST_EXPECT(n < limit);
 
         for(n = 0; n < limit; ++n)
         {
@@ -82,11 +85,11 @@ public:
             boost::asio::read(srs, buffer(&s[0], s.size()), ec);
             if(! ec)
             {
-                BEAST_EXPECT(s == "Hello, world!");
+                BOOST_BEAST_EXPECT(s == "Hello, world!");
                 break;
             }
         }
-        BEAST_EXPECT(n < limit);
+        BOOST_BEAST_EXPECT(n < limit);
 
         for(n = 0; n < limit; ++n)
         {
@@ -101,11 +104,11 @@ public:
                 srs, buffer(&s[0], s.size()), do_yield[ec]);
             if(! ec)
             {
-                BEAST_EXPECT(s == "Hello, world!");
+                BOOST_BEAST_EXPECT(s == "Hello, world!");
                 break;
             }
         }
-        BEAST_EXPECT(n < limit);
+        BOOST_BEAST_EXPECT(n < limit);
 
         for(n = 0; n < limit; ++n)
         {
@@ -121,11 +124,11 @@ public:
                 srs, buffer(&s[0], s.size()), do_yield[ec]);
             if(! ec)
             {
-                BEAST_EXPECT(s == "Hello, world!");
+                BOOST_BEAST_EXPECT(s == "Hello, world!");
                 break;
             }
         }
-        BEAST_EXPECT(n < limit);
+        BOOST_BEAST_EXPECT(n < limit);
     }
 
     void run() override
@@ -137,7 +140,7 @@ public:
     }
 };
 
-BEAST_DEFINE_TESTSUITE(buffered_read_stream,core,beast);
+BOOST_BEAST_DEFINE_TESTSUITE(buffered_read_stream,core,beast);
 
 } // beast
-
+} // boost

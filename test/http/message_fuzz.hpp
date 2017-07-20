@@ -4,16 +4,19 @@
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
+// Official repository: https://github.com/boostorg/beast
+//
 
-#ifndef BEAST_HTTP_TEST_MESSAGE_FUZZ_HPP
-#define BEAST_HTTP_TEST_MESSAGE_FUZZ_HPP
+#ifndef BOOST_BEAST_HTTP_TEST_MESSAGE_FUZZ_HPP
+#define BOOST_BEAST_HTTP_TEST_MESSAGE_FUZZ_HPP
 
-#include <beast/core/ostream.hpp>
-#include <beast/http/detail/rfc7230.hpp>
+#include <boost/beast/core/ostream.hpp>
+#include <boost/beast/http/detail/rfc7230.hpp>
 #include <cstdint>
 #include <random>
 #include <string>
 
+namespace boost {
 namespace beast {
 namespace http {
 
@@ -600,5 +603,6 @@ chunkExtensionsTest(
 
 } // http
 } // beast
+} // boost
 
 #endif

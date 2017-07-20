@@ -4,12 +4,15 @@
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
+// Official repository: https://github.com/boostorg/beast
+//
 
 // Test that header file is self-contained.
-#include <beast/websocket/detail/mask.hpp>
+#include <boost/beast/websocket/detail/mask.hpp>
 
-#include <beast/unit_test/suite.hpp>
+#include <boost/beast/unit_test/suite.hpp>
 
+namespace boost {
 namespace beast {
 namespace websocket {
 namespace detail {
@@ -43,13 +46,13 @@ public:
     void run() override
     {
         maskgen_t<test_generator> mg;
-        BEAST_EXPECT(mg() != 0);
+        BOOST_BEAST_EXPECT(mg() != 0);
     }
 };
 
-BEAST_DEFINE_TESTSUITE(mask,websocket,beast);
+BOOST_BEAST_DEFINE_TESTSUITE(mask,websocket,beast);
 
 } // detail
 } // websocket
 } // beast
-
+} // boost

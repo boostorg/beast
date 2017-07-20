@@ -4,24 +4,26 @@
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
+// Official repository: https://github.com/boostorg/beast
+//
 
 //[example_websocket_client
 
-#include <beast/core.hpp>
-#include <beast/websocket.hpp>
+#include <boost/beast/core.hpp>
+#include <boost/beast/websocket.hpp>
 #include <boost/asio.hpp>
 #include <cstdlib>
 #include <iostream>
 #include <string>
 
-using tcp = boost::asio::ip::tcp; // from <boost/asio.hpp>
-namespace websocket = beast::websocket; // from <beast/websocket.hpp>
+using tcp = boost::asio::ip::tcp;               // from <boost/asio.hpp>
+namespace websocket = boost::beast::websocket;  // from <boost/beast/websocket.hpp>
 
 int main()
 {
     // A helper for reporting errors
     auto const fail =
-        [](std::string what, beast::error_code ec)
+        [](std::string what, boost::beast::error_code ec)
         {
             std::cerr << what << ": " << ec.message() << std::endl;
             std::cerr.flush();
@@ -60,7 +62,7 @@ int main()
         return fail("write", ec);
 
     // This buffer will hold the incoming message
-    beast::multi_buffer b;
+    boost::beast::multi_buffer b;
 
     // Read the message into our buffer
     ws.read(b, ec);
@@ -73,13 +75,13 @@ int main()
         return fail("close", ec);
 
     // The buffers() function helps print a ConstBufferSequence
-    std::cout << beast::buffers(b.data()) << std::endl;
+    std::cout << boost::beast::buffers(b.data()) << std::endl;
 
     // WebSocket says that to close a connection you have
     // to keep reading messages until you receive a close frame.
     // Beast delivers the close frame as an error from read.
     //
-    beast::drain_buffer drain; // Throws everything away efficiently
+    boost::beast::drain_buffer drain; // Throws everything away efficiently
     for(;;)
     {
         // Keep reading messages...

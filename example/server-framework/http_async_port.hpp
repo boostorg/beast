@@ -4,9 +4,11 @@
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
+// Official repository: https://github.com/boostorg/beast
+//
 
-#ifndef BEAST_EXAMPLE_SERVER_HTTP_ASYNC_PORT_HPP
-#define BEAST_EXAMPLE_SERVER_HTTP_ASYNC_PORT_HPP
+#ifndef BOOST_BEAST_EXAMPLE_SERVER_HTTP_ASYNC_PORT_HPP
+#define BOOST_BEAST_EXAMPLE_SERVER_HTTP_ASYNC_PORT_HPP
 
 #include "server.hpp"
 
@@ -16,12 +18,12 @@
 #include "../common/rfc7231.hpp"
 #include "../common/write_msg.hpp"
 
-#include <beast/core/flat_buffer.hpp>
-#include <beast/http/dynamic_body.hpp>
-#include <beast/http/parser.hpp>
-#include <beast/http/read.hpp>
-#include <beast/http/string_body.hpp>
-#include <beast/http/write.hpp>
+#include <boost/beast/core/flat_buffer.hpp>
+#include <boost/beast/http/dynamic_body.hpp>
+#include <boost/beast/http/parser.hpp>
+#include <boost/beast/http/read.hpp>
+#include <boost/beast/http/string_body.hpp>
+#include <boost/beast/http/write.hpp>
 #include <memory>
 #include <utility>
 #include <ostream>
@@ -57,7 +59,7 @@ class queued_http_write_impl : public queued_http_write
     Stream& stream_;
 
     // The message to send, which we acquire by move or copy
-    beast::http::message<isRequest, Body, Fields> msg_;
+    boost::beast::http::message<isRequest, Body, Fields> msg_;
 
     // The handler to invoke when the send completes.
     Handler handler_;
@@ -70,7 +72,7 @@ public:
     template<class DeducedHandler>
     queued_http_write_impl(
         Stream& stream,
-        beast::http::message<isRequest, Body, Fields>&& msg,
+        boost::beast::http::message<isRequest, Body, Fields>&& msg,
         DeducedHandler&& handler)
         : stream_(stream)
         , msg_(std::move(msg))
@@ -105,7 +107,7 @@ template<
 std::unique_ptr<queued_http_write>
 make_queued_http_write(
     Stream& stream,
-    beast::http::message<isRequest, Body, Fields>&& msg,
+    boost::beast::http::message<isRequest, Body, Fields>&& msg,
     Handler&& handler)
 {
     return std::unique_ptr<queued_http_write>{
@@ -158,10 +160,10 @@ protected:
     endpoint_type ep_;
 
     // The buffer for performing reads
-    beast::flat_buffer buffer_;
+    boost::beast::flat_buffer buffer_;
 
     // The parser for reading the requests
-    boost::optional<beast::http::request_parser<beast::http::dynamic_body>> parser_;
+    boost::optional<boost::beast::http::request_parser<boost::beast::http::dynamic_body>> parser_;
 
     // This is the queue of outgoing messages
     std::vector<std::unique_ptr<queued_http_write>> queue_;
@@ -177,7 +179,7 @@ protected:
 public:
     // Constructor
     async_http_con_base(
-        beast::string_view server_name,
+        boost::beast::string_view server_name,
         std::ostream& log,
         service_list<Services...> const& services,
         std::size_t id,
@@ -267,7 +269,7 @@ protected:
         parser_.emplace(std::piecewise_construct, std::make_tuple(1024 * 1024));
 
         // Read just the header
-        beast::http::async_read_header(
+        boost::beast::http::async_read_header(
             impl().stream(),
             buffer_,
             *parser_,
@@ -299,7 +301,7 @@ protected:
         // sends a message
         template<class Body, class Fields>
         void
-        operator()(beast::http::response<Body, Fields>&& res) const
+        operator()(boost::beast::http::response<Body, Fields>&& res) const
         {
             self_.do_write(std::move(res));
         }
@@ -311,7 +313,7 @@ protected:
     {
         // This happens when the other end closes gracefully
         //
-        if(ec == beast::http::error::end_of_stream)
+        if(ec == boost::beast::http::error::end_of_stream)
         {
             // VFALCO what about the write queue?
             return impl().do_shutdown();
@@ -342,7 +344,7 @@ protected:
 
         // Read the rest of the message, if any.
         //
-        beast::http::async_read(
+        boost::beast::http::async_read(
             impl().stream(),
             buffer_,
             *parser_,
@@ -413,7 +415,7 @@ protected:
     //
     template<class Body, class Fields>
     void
-    do_write(beast::http::response<Body, Fields>&& res)
+    do_write(boost::beast::http::response<Body, Fields>&& res)
     {
         // See if a write is in progress
         if(! writing_)
@@ -459,7 +461,7 @@ protected:
         // should be closed afterwards. For example if
         // we send a Connection: close.
         //
-        if(ec == beast::http::error::end_of_stream)
+        if(ec == boost::beast::http::error::end_of_stream)
             return impl().do_shutdown();
 
         // On failure just log and return
@@ -565,7 +567,7 @@ private:
         // not_connected happens under normal
         // circumstances so don't bother reporting it.
         //
-        if(ec && ec != beast::errc::not_connected)
+        if(ec && ec != boost::beast::errc::not_connected)
             return this->fail("shutdown", ec);
     }
 };

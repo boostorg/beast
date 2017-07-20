@@ -4,21 +4,24 @@
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
+// Official repository: https://github.com/boostorg/beast
+//
 
 #include "nodejs_parser.hpp"
 #include "../http/message_fuzz.hpp"
 
-#include <beast/http.hpp>
-#include <beast/core/consuming_buffers.hpp>
-#include <beast/core/ostream.hpp>
-#include <beast/core/flat_buffer.hpp>
-#include <beast/core/multi_buffer.hpp>
-#include <beast/unit_test/suite.hpp>
+#include <boost/beast/http.hpp>
+#include <boost/beast/core/consuming_buffers.hpp>
+#include <boost/beast/core/ostream.hpp>
+#include <boost/beast/core/flat_buffer.hpp>
+#include <boost/beast/core/multi_buffer.hpp>
+#include <boost/beast/unit_test/suite.hpp>
 #include <boost/lexical_cast.hpp>
 #include <chrono>
 #include <iostream>
 #include <vector>
 
+namespace boost {
 namespace beast {
 namespace http {
 
@@ -53,7 +56,7 @@ public:
         {
             mg.request(v[i]);
             size_ += v[i].size();
-            BEAST_EXPECT(v[i].size() > 0);
+            BOOST_BEAST_EXPECT(v[i].size() > 0);
         }
         return v;
     }
@@ -68,7 +71,7 @@ public:
         {
             mg.response(v[i]);
             size_ += v[i].size();
-            BEAST_EXPECT(v[i].size() > 0);
+            BOOST_BEAST_EXPECT(v[i].size() > 0);
         }
         return v;
     }
@@ -113,7 +116,7 @@ public:
                 Parser p;
                 error_code ec;
                 p.write(b.data(), ec);
-                if(! BEAST_EXPECTS(! ec, ec.message()))
+                if(! BOOST_BEAST_EXPECTS(! ec, ec.message()))
                     log << to_string(b.data()) << std::endl;
             }
     }
@@ -129,7 +132,7 @@ public:
                 p.header_limit((std::numeric_limits<std::uint32_t>::max)());
                 error_code ec;
                 feed(b.data(), p, ec);
-                if(! BEAST_EXPECTS(! ec, ec.message()))
+                if(! BOOST_BEAST_EXPECTS(! ec, ec.message()))
                     log << to_string(b.data()) << std::endl;
             }
     }
@@ -291,8 +294,9 @@ public:
     }
 };
 
-BEAST_DEFINE_TESTSUITE(parser,benchmarks,beast);
+BOOST_BEAST_DEFINE_TESTSUITE(parser,benchmarks,beast);
 
 } // http
 } // beast
+} // boost
 

@@ -4,13 +4,16 @@
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
+// Official repository: https://github.com/boostorg/beast
+//
 
 // Test that header file is self-contained.
-#include <beast/http/error.hpp>
+#include <boost/beast/http/error.hpp>
 
-#include <beast/unit_test/suite.hpp>
+#include <boost/beast/unit_test/suite.hpp>
 #include <memory>
 
+namespace boost {
 namespace beast {
 namespace http {
 
@@ -21,15 +24,15 @@ public:
     check(char const* name, error ev)
     {
         auto const ec = make_error_code(ev);
-        BEAST_EXPECT(std::string(ec.category().name()) == name);
-        BEAST_EXPECT(! ec.message().empty());
-        BEAST_EXPECT(std::addressof(ec.category()) ==
+        BOOST_BEAST_EXPECT(std::string(ec.category().name()) == name);
+        BOOST_BEAST_EXPECT(! ec.message().empty());
+        BOOST_BEAST_EXPECT(std::addressof(ec.category()) ==
             std::addressof(detail::get_http_error_category()));
-        BEAST_EXPECT(detail::get_http_error_category().equivalent(
+        BOOST_BEAST_EXPECT(detail::get_http_error_category().equivalent(
             static_cast<std::underlying_type<error>::type>(ev),
                 ec.category().default_error_condition(
                     static_cast<std::underlying_type<error>::type>(ev))));
-        BEAST_EXPECT(detail::get_http_error_category().equivalent(
+        BOOST_BEAST_EXPECT(detail::get_http_error_category().equivalent(
             ec, static_cast<std::underlying_type<error>::type>(ev)));
     }
 
@@ -62,7 +65,8 @@ public:
     }
 };
 
-BEAST_DEFINE_TESTSUITE(error,http,beast);
+BOOST_BEAST_DEFINE_TESTSUITE(error,http,beast);
 
 } // http
 } // beast
+} // boost

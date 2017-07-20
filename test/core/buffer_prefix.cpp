@@ -4,16 +4,19 @@
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
+// Official repository: https://github.com/boostorg/beast
+//
 
 // Test that header file is self-contained.
-#include <beast/core/buffer_prefix.hpp>
+#include <boost/beast/core/buffer_prefix.hpp>
 
-#include <beast/core/consuming_buffers.hpp>
-#include <beast/core/type_traits.hpp>
-#include <beast/unit_test/suite.hpp>
+#include <boost/beast/core/consuming_buffers.hpp>
+#include <boost/beast/core/type_traits.hpp>
+#include <boost/beast/unit_test/suite.hpp>
 #include <boost/asio/buffer.hpp>
 #include <string>
 
+namespace boost {
 namespace beast {
 
 BOOST_STATIC_ASSERT(
@@ -109,7 +112,7 @@ public:
     {
         using boost::asio::buffer_size;
         std::string s = "Hello, world";
-        BEAST_EXPECT(s.size() == 12);
+        BOOST_BEAST_EXPECT(s.size() == 12);
         for(std::size_t x = 1; x < 4; ++x) {
         for(std::size_t y = 1; y < 4; ++y) {
         std::size_t z = s.size() - (x + y);
@@ -121,14 +124,14 @@ public:
             for(std::size_t i = 0; i <= s.size() + 1; ++i)
             {
                 auto pb = buffer_prefix(i, bs);
-                BEAST_EXPECT(to_string(pb) == s.substr(0, i));
+                BOOST_BEAST_EXPECT(to_string(pb) == s.substr(0, i));
                 auto pb2 = pb;
-                BEAST_EXPECT(to_string(pb2) == to_string(pb));
+                BOOST_BEAST_EXPECT(to_string(pb2) == to_string(pb));
                 pb = buffer_prefix(0, bs);
                 pb2 = pb;
-                BEAST_EXPECT(buffer_size(pb2) == 0);
+                BOOST_BEAST_EXPECT(buffer_size(pb2) == 0);
                 pb2 = buffer_prefix(i, bs);
-                BEAST_EXPECT(to_string(pb2) == s.substr(0, i));
+                BOOST_BEAST_EXPECT(to_string(pb2) == s.substr(0, i));
             }
         }
         }}
@@ -140,22 +143,22 @@ public:
         using boost::asio::buffer_size;
         using boost::asio::null_buffers;
         auto pb0 = buffer_prefix(0, null_buffers{});
-        BEAST_EXPECT(buffer_size(pb0) == 0);
+        BOOST_BEAST_EXPECT(buffer_size(pb0) == 0);
         auto pb1 = buffer_prefix(1, null_buffers{});
-        BEAST_EXPECT(buffer_size(pb1) == 0);
-        BEAST_EXPECT(buffer_copy(pb0, pb1) == 0);
+        BOOST_BEAST_EXPECT(buffer_size(pb1) == 0);
+        BOOST_BEAST_EXPECT(buffer_copy(pb0, pb1) == 0);
 
         using pb_type = decltype(pb0);
         consuming_buffers<pb_type> cb(pb0);
-        BEAST_EXPECT(buffer_size(cb) == 0);
-        BEAST_EXPECT(buffer_copy(cb, pb1) == 0);
+        BOOST_BEAST_EXPECT(buffer_size(cb) == 0);
+        BOOST_BEAST_EXPECT(buffer_copy(cb, pb1) == 0);
         cb.consume(1);
-        BEAST_EXPECT(buffer_size(cb) == 0);
-        BEAST_EXPECT(buffer_copy(cb, pb1) == 0);
+        BOOST_BEAST_EXPECT(buffer_size(cb) == 0);
+        BOOST_BEAST_EXPECT(buffer_copy(cb, pb1) == 0);
 
         auto pbc = buffer_prefix(2, cb);
-        BEAST_EXPECT(buffer_size(pbc) == 0);
-        BEAST_EXPECT(buffer_copy(pbc, cb) == 0);
+        BOOST_BEAST_EXPECT(buffer_size(pbc) == 0);
+        BOOST_BEAST_EXPECT(buffer_copy(pbc, cb) == 0);
     }
 
     void testIterator()
@@ -168,10 +171,10 @@ public:
             const_buffer{&b[1], 1},
             const_buffer{&b[2], 1}}};
         auto pb = buffer_prefix(2, bs);
-        BEAST_EXPECT(bsize1(pb) == 2);
-        BEAST_EXPECT(bsize2(pb) == 2);
-        BEAST_EXPECT(bsize3(pb) == 2);
-        BEAST_EXPECT(bsize4(pb) == 2);
+        BOOST_BEAST_EXPECT(bsize1(pb) == 2);
+        BOOST_BEAST_EXPECT(bsize2(pb) == 2);
+        BOOST_BEAST_EXPECT(bsize3(pb) == 2);
+        BOOST_BEAST_EXPECT(bsize4(pb) == 2);
     }
 
     void run() override
@@ -183,6 +186,7 @@ public:
     }
 };
 
-BEAST_DEFINE_TESTSUITE(buffer_prefix,core,beast);
+BOOST_BEAST_DEFINE_TESTSUITE(buffer_prefix,core,beast);
 
 } // beast
+} // boost

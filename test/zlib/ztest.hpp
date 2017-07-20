@@ -4,11 +4,14 @@
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
+// Official repository: https://github.com/boostorg/beast
+//
 
-#ifndef BEAST_ZTEST_HPP
-#define BEAST_ZTEST_HPP
+#ifndef BOOST_BEAST_ZTEST_HPP
+#define BOOST_BEAST_ZTEST_HPP
 
 #include "zlib-1.2.11/zlib.h"
+
 #include <cstdint>
 #include <random>
 #include <string>

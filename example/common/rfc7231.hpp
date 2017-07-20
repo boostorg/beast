@@ -4,12 +4,14 @@
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
+// Official repository: https://github.com/boostorg/beast
+//
 
-#ifndef BEAST_EXAMPLE_COMMON_RFC7231_HPP
-#define BEAST_EXAMPLE_COMMON_RFC7231_HPP
+#ifndef BOOST_BEAST_EXAMPLE_COMMON_RFC7231_HPP
+#define BOOST_BEAST_EXAMPLE_COMMON_RFC7231_HPP
 
-#include <beast/core/string.hpp>
-#include <beast/http/message.hpp>
+#include <boost/beast/core/string.hpp>
+#include <boost/beast/http/message.hpp>
 
 namespace rfc7231 {
 
@@ -27,11 +29,11 @@ namespace rfc7231 {
 */
 template<class Body, class Allocator>
 bool
-is_expect_100_continue(beast::http::request<
-    Body, beast::http::basic_fields<Allocator>> const& req)
+is_expect_100_continue(boost::beast::http::request<
+    Body, boost::beast::http::basic_fields<Allocator>> const& req)
 {
-    return beast::iequals(
-        req[beast::http::field::expect], "100-continue");
+    return boost::beast::iequals(
+        req[boost::beast::http::field::expect], "100-continue");
 }
 
 } // rfc7231

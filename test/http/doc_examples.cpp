@@ -4,28 +4,31 @@
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
+// Official repository: https://github.com/boostorg/beast
+//
 
 #include "example/doc/http_examples.hpp"
 
-#include <beast/core/flat_buffer.hpp>
-#include <beast/core/read_size.hpp>
-#include <beast/core/ostream.hpp>
-#include <beast/core/detail/clamp.hpp>
-#include <beast/http/chunk_encode.hpp>
-#include <beast/http/parser.hpp>
-#include <beast/http/read.hpp>
-#include <beast/http/write.hpp>
-#include <beast/test/pipe_stream.hpp>
-#include <beast/test/string_istream.hpp>
-#include <beast/test/string_ostream.hpp>
-#include <beast/test/yield_to.hpp>
-#include <beast/unit_test/suite.hpp>
+#include <boost/beast/core/flat_buffer.hpp>
+#include <boost/beast/core/read_size.hpp>
+#include <boost/beast/core/ostream.hpp>
+#include <boost/beast/core/detail/clamp.hpp>
+#include <boost/beast/http/chunk_encode.hpp>
+#include <boost/beast/http/parser.hpp>
+#include <boost/beast/http/read.hpp>
+#include <boost/beast/http/write.hpp>
+#include <boost/beast/test/pipe_stream.hpp>
+#include <boost/beast/test/string_istream.hpp>
+#include <boost/beast/test/string_ostream.hpp>
+#include <boost/beast/test/yield_to.hpp>
+#include <boost/beast/unit_test/suite.hpp>
 #include <sstream>
 #include <array>
 #include <limits>
 #include <list>
 #include <vector>
 
+namespace boost {
 namespace beast {
 namespace http {
 
@@ -71,7 +74,7 @@ public:
                 flat_buffer buffer;
                 receive_expect_100_continue(
                     p.server, buffer, ec);
-                BEAST_EXPECTS(! ec, ec.message());
+                BOOST_BEAST_EXPECTS(! ec, ec.message());
             },
             [&](yield_context)
             {
@@ -87,7 +90,7 @@ public:
                 error_code ec;
                 send_expect_100_continue(
                     p.client, buffer, req, ec);
-                BEAST_EXPECTS(! ec, ec.message());
+                BOOST_BEAST_EXPECTS(! ec, ec.message());
             });
     }
 
@@ -102,8 +105,8 @@ public:
         test::pipe p{ios_};
         error_code ec;
         send_cgi_response(child.server, p.client, ec);
-        BEAST_EXPECTS(! ec, ec.message());
-        BEAST_EXPECT(equal_body<false>(p.server.str(), s));
+        BOOST_BEAST_EXPECTS(! ec, ec.message());
+        BOOST_BEAST_EXPECT(equal_body<false>(p.server.str(), s));
     }
 
     void
@@ -124,7 +127,7 @@ public:
 
         error_code ec;
         write(downstream.client, req);
-        BEAST_EXPECTS(! ec, ec.message());
+        BOOST_BEAST_EXPECTS(! ec, ec.message());
         downstream.client.close();
 
         flat_buffer buffer;
@@ -135,8 +138,8 @@ public:
                 h.erase("Content-Length");
                 h.set("Transfer-Encoding", "chunked");
             });
-        BEAST_EXPECTS(! ec, ec.message());
-        BEAST_EXPECT(equal_body<true>(
+        BOOST_BEAST_EXPECTS(! ec, ec.message());
+        BOOST_BEAST_EXPECT(equal_body<true>(
             upstream.server.str(), req.body));
     }
 
@@ -153,8 +156,8 @@ public:
         flat_buffer buffer;
         response<string_body> res;
         read_istream(is, buffer, res, ec);
-        BEAST_EXPECTS(! ec, ec.message());
-        BEAST_EXPECT(boost::lexical_cast<
+        BOOST_BEAST_EXPECTS(! ec, ec.message());
+        BOOST_BEAST_EXPECT(boost::lexical_cast<
             std::string>(res) == s);
     }
 
@@ -169,8 +172,8 @@ public:
         req.insert(field::user_agent, "test");
         error_code ec;
         write_ostream(os, req, ec);
-        BEAST_EXPECTS(! ec, ec.message());
-        BEAST_EXPECT(boost::lexical_cast<
+        BOOST_BEAST_EXPECTS(! ec, ec.message());
+        BOOST_BEAST_EXPECT(boost::lexical_cast<
             std::string>(req) == os.str());
     }
 
@@ -189,7 +192,7 @@ public:
             custom_parser<true> p;
             p.put(boost::asio::buffer(
                 s.data(), s.size()), ec);
-            BEAST_EXPECTS(! ec, ec.message());
+            BOOST_BEAST_EXPECTS(! ec, ec.message());
         }
         {
             string_view s{
@@ -206,7 +209,7 @@ public:
             custom_parser<false> p;
             p.put(boost::asio::buffer(
                 s.data(), s.size()), ec);
-            BEAST_EXPECTS(! ec, ec.message());
+            BOOST_BEAST_EXPECTS(! ec, ec.message());
         }
     }
 
@@ -220,14 +223,14 @@ public:
                 error_code ec;
                 flat_buffer buffer;
                 do_server_head(p.server, buffer, ec);
-                BEAST_EXPECTS(! ec, ec.message());
+                BOOST_BEAST_EXPECTS(! ec, ec.message());
             },
             [&](yield_context)
             {
                 error_code ec;
                 flat_buffer buffer;
                 auto res = do_head_request(p.client, buffer, "/", ec);
-                BEAST_EXPECTS(! ec, ec.message());
+                BOOST_BEAST_EXPECTS(! ec, ec.message());
             });
     }
 
@@ -263,7 +266,7 @@ public:
         handler h;
         flat_buffer buffer;
         do_form_request(p.server, buffer, h);
-        BEAST_EXPECT(h.body == "Hello, world!");
+        BOOST_BEAST_EXPECT(h.body == "Hello, world!");
     }
 
     //--------------------------------------------------------------------------
@@ -283,8 +286,8 @@ public:
         flat_buffer b;
         std::stringstream ss;
         read_and_print_body<false>(ss, c.server, b, ec);
-        if(BEAST_EXPECTS(! ec, ec.message()))
-            BEAST_EXPECT(ss.str() == s);
+        if(BOOST_BEAST_EXPECTS(! ec, ec.message()))
+            BOOST_BEAST_EXPECT(ss.str() == s);
     }
 
     //--------------------------------------------------------------------------
@@ -339,7 +342,7 @@ public:
                 trailers,
                 std::allocator<double>{}
                     ), ec);
-        BEAST_EXPECT(
+        BOOST_BEAST_EXPECT(
             boost::lexical_cast<std::string>(
                 buffers(p.server.buffer.data())) ==
             "HTTP/1.1 200 OK\r\n"
@@ -391,8 +394,8 @@ public:
         flat_buffer b;
         std::stringstream ss;
         print_chunked_body<false>(ss, c.client, b, ec);
-        BEAST_EXPECTS(! ec, ec.message());
-        BEAST_EXPECT(ss.str() ==
+        BOOST_BEAST_EXPECTS(! ec, ec.message());
+        BOOST_BEAST_EXPECT(ss.str() ==
             "Chunk Body: First\n"
             "Extension: quality = 1.0\n"
             "Chunk Body: Hello, world!\n"
@@ -425,7 +428,8 @@ public:
     }
 };
 
-BEAST_DEFINE_TESTSUITE(doc_examples,http,beast);
+BOOST_BEAST_DEFINE_TESTSUITE(doc_examples,http,beast);
 
 } // http
 } // beast
+} // boost

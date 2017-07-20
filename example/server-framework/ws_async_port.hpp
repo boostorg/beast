@@ -4,14 +4,16 @@
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
+// Official repository: https://github.com/boostorg/beast
+//
 
-#ifndef BEAST_EXAMPLE_SERVER_WS_ASYNC_PORT_HPP
-#define BEAST_EXAMPLE_SERVER_WS_ASYNC_PORT_HPP
+#ifndef BOOST_BEAST_EXAMPLE_SERVER_WS_ASYNC_PORT_HPP
+#define BOOST_BEAST_EXAMPLE_SERVER_WS_ASYNC_PORT_HPP
 
 #include "server.hpp"
 
-#include <beast/core/multi_buffer.hpp>
-#include <beast/websocket/stream.hpp>
+#include <boost/beast/core/multi_buffer.hpp>
+#include <boost/beast/websocket/stream.hpp>
 #include <boost/function.hpp>
 #include <memory>
 #include <ostream>
@@ -47,7 +49,7 @@ class async_ws_con_base
     endpoint_type ep_;
 
     // This is used to hold the message data
-    beast::multi_buffer buffer_;
+    boost::beast::multi_buffer buffer_;
 
 protected:
     // The strand makes sure that our data is
@@ -59,7 +61,7 @@ public:
     // Constructor
     template<class Callback>
     async_ws_con_base(
-        beast::string_view server_name,
+        boost::beast::string_view server_name,
         std::ostream& log,
         std::size_t id,
         endpoint_type const& ep,
@@ -92,16 +94,16 @@ public:
     //
     template<class Body>
     void
-    run(beast::http::request<Body> const& req)
+    run(boost::beast::http::request<Body> const& req)
     {
         // Call the overload of accept() which takes
         // the request by parameter, instead of reading
         // it from the network.
         //
         impl().stream().async_accept_ex(req,
-            [&](beast::websocket::response_type& res)
+            [&](boost::beast::websocket::response_type& res)
             {
-                res.set(beast::http::field::server, server_name_);
+                res.set(boost::beast::http::field::server, server_name_);
             },
             strand_.wrap(std::bind(
                 &async_ws_con_base::on_accept,
@@ -118,9 +120,9 @@ protected:
         // to send back the response.
         //
         impl().stream().async_accept_ex(
-            [&](beast::websocket::response_type& res)
+            [&](boost::beast::websocket::response_type& res)
             {
-                res.set(beast::http::field::server, server_name_);
+                res.set(boost::beast::http::field::server, server_name_);
             },
             strand_.wrap(std::bind(
                 &async_ws_con_base::on_accept,
@@ -133,7 +135,7 @@ protected:
     void
     fail(std::string what, error_code ec)
     {
-        if(ec != beast::websocket::error::closed)
+        if(ec != boost::beast::websocket::error::closed)
             log_ <<
                 "[#" << id_ << " " << ep_ << "] " <<
             what << ": " << ec.message() << std::endl;
@@ -224,7 +226,7 @@ class async_ws_con
     // The stream should be created before the base class so
     // use the "base from member" idiom.
     //
-    , public base_from_member<beast::websocket::stream<socket_type>>
+    , public base_from_member<boost::beast::websocket::stream<socket_type>>
 
     // Constructs last, destroys first
     //
@@ -240,7 +242,7 @@ public:
     async_ws_con(
         socket_type&& sock,
         Args&&... args)
-        : base_from_member<beast::websocket::stream<socket_type>>(std::move(sock))
+        : base_from_member<boost::beast::websocket::stream<socket_type>>(std::move(sock))
         , async_ws_con_base<async_ws_con>(std::forward<Args>(args)...)
     {
     }
@@ -252,7 +254,7 @@ public:
     // class to work with different return types for `stream()` such
     // as a `boost::asio::ip::tcp::socket&` or a `boost::asio::ssl::stream&`
     //
-    beast::websocket::stream<socket_type>&
+    boost::beast::websocket::stream<socket_type>&
     stream()
     {
         return this->member;
@@ -282,7 +284,7 @@ class ws_async_port
     // The type of the on_new_stream callback
     //
     using on_new_stream_cb =
-        boost::function<void(beast::websocket::stream<socket_type>&)>;
+        boost::function<void(boost::beast::websocket::stream<socket_type>&)>;
 
     server& instance_;
     std::ostream& log_;
@@ -301,7 +303,7 @@ public:
         should have this equivalent signature:
         @code
         template<class NextLayer>
-        void callback(beast::websocket::stream<NextLayer>&);
+        void callback(boost::beast::websocket::stream<NextLayer>&);
         @endcode
         In C++14 this can be accomplished with a generic lambda. In
         C++11 it will be necessary to write out a lambda manually,
@@ -357,7 +359,7 @@ public:
     on_upgrade(
         socket_type&& sock,
         endpoint_type ep,
-        beast::http::request<Body>&& req)
+        boost::beast::http::request<Body>&& req)
     {
         std::make_shared<async_ws_con>(
             std::move(sock),

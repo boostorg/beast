@@ -4,22 +4,24 @@
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
+// Official repository: https://github.com/boostorg/beast
+//
 
 #include "urls_large_data.hpp"
 
-#include <beast/core/multi_buffer.hpp>
-#include <beast/http.hpp>
-#include <beast/version.hpp>
+#include <boost/beast/core/multi_buffer.hpp>
+#include <boost/beast/http.hpp>
+#include <boost/beast/version.hpp>
 #include <boost/asio.hpp>
 #include <cstdlib>
 #include <iostream>
 
-using tcp = boost::asio::ip::tcp; // from <boost/asio.hpp>
-namespace http = beast::http; // from <beast/http.hpp>
+using tcp = boost::asio::ip::tcp;       // from <boost/asio.hpp>
+namespace http = boost::beast::http;    // from <boost/beast/http.hpp>
 
 template<class String>
 void
-err(beast::error_code const& ec, String const& what)
+err(boost::beast::error_code const& ec, String const& what)
 {
     std::cerr << what << ": " << ec.message() << std::endl;
 }
@@ -33,7 +35,7 @@ main(int, char const*[])
 {
     // A helper for reporting errors
     auto const fail =
-        [](std::string what, beast::error_code ec)
+        [](std::string what, boost::beast::error_code ec)
         {
             std::cerr << what << ": " << ec.message() << std::endl;
             std::cerr.flush();
@@ -46,7 +48,7 @@ main(int, char const*[])
     // Loop over all the URLs
     for(auto const& host : urls_large_data())
     {
-        beast::error_code ec;
+        boost::beast::error_code ec;
 
         // Look up the domain name
         tcp::resolver r(ios);
@@ -77,7 +79,7 @@ main(int, char const*[])
         // Set up an HTTP GET request
         http::request<http::string_body> req{http::verb::get, "/", 11};
         req.set(http::field::host, host + std::string(":") + std::to_string(ep.port()));
-        req.set(http::field::user_agent, BEAST_VERSION_STRING);
+        req.set(http::field::user_agent, BOOST_BEAST_VERSION_STRING);
 
         // Set the Connection: close field, this way the server will close
         // the connection. This consumes less resources (no TIME_WAIT) because
@@ -95,7 +97,7 @@ main(int, char const*[])
             // "half-close" here to shut down our end.
             //
             sock.shutdown(tcp::socket::shutdown_send, ec);
-            if(ec && ec != beast::errc::not_connected)
+            if(ec && ec != boost::beast::errc::not_connected)
                 return fail("shutdown", ec);
         }
         if(ec)
@@ -105,7 +107,7 @@ main(int, char const*[])
         }
 
         // This buffer is needed for reading
-        beast::multi_buffer b;
+        boost::beast::multi_buffer b;
 
         // The response will go into this object
         http::response<http::string_body> res;
@@ -129,7 +131,7 @@ main(int, char const*[])
         // Now we do the other half of the close,
         // which is to shut down the receiver. 
         sock.shutdown(tcp::socket::shutdown_receive, ec);
-        if(ec && ec != beast::errc::not_connected)
+        if(ec && ec != boost::beast::errc::not_connected)
             return fail("shutdown", ec);
 
         std::cout << res << std::endl;

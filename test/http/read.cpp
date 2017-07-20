@@ -4,26 +4,29 @@
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
+// Official repository: https://github.com/boostorg/beast
+//
 
 // Test that header file is self-contained.
-#include <beast/http/read.hpp>
+#include <boost/beast/http/read.hpp>
 
 #include "test_parser.hpp"
 
-#include <beast/core/ostream.hpp>
-#include <beast/core/flat_static_buffer.hpp>
-#include <beast/http/fields.hpp>
-#include <beast/http/dynamic_body.hpp>
-#include <beast/http/parser.hpp>
-#include <beast/http/string_body.hpp>
-#include <beast/test/fail_stream.hpp>
-#include <beast/test/pipe_stream.hpp>
-#include <beast/test/string_istream.hpp>
-#include <beast/test/yield_to.hpp>
-#include <beast/unit_test/suite.hpp>
+#include <boost/beast/core/ostream.hpp>
+#include <boost/beast/core/flat_static_buffer.hpp>
+#include <boost/beast/http/fields.hpp>
+#include <boost/beast/http/dynamic_body.hpp>
+#include <boost/beast/http/parser.hpp>
+#include <boost/beast/http/string_body.hpp>
+#include <boost/beast/test/fail_stream.hpp>
+#include <boost/beast/test/pipe_stream.hpp>
+#include <boost/beast/test/string_istream.hpp>
+#include <boost/beast/test/yield_to.hpp>
+#include <boost/beast/unit_test/suite.hpp>
 #include <boost/asio/spawn.hpp>
 #include <atomic>
 
+namespace boost {
 namespace beast {
 namespace http {
 
@@ -55,7 +58,7 @@ public:
             if(! ec)
                 break;
         }
-        BEAST_EXPECT(n < limit);
+        BOOST_BEAST_EXPECT(n < limit);
         for(n = 0; n < limit; ++n)
         {
             static std::size_t constexpr pre = 10;
@@ -71,7 +74,7 @@ public:
             if(! ec)
                 break;
         }
-        BEAST_EXPECT(n < limit);
+        BOOST_BEAST_EXPECT(n < limit);
         for(n = 0; n < limit; ++n)
         {
             multi_buffer b;
@@ -86,7 +89,7 @@ public:
             if(! ec)
                 break;
         }
-        BEAST_EXPECT(n < limit);
+        BOOST_BEAST_EXPECT(n < limit);
         for(n = 0; n < limit; ++n)
         {
             static std::size_t constexpr pre = 10;
@@ -102,7 +105,7 @@ public:
             if(! ec)
                 break;
         }
-        BEAST_EXPECT(n < limit);
+        BOOST_BEAST_EXPECT(n < limit);
     }
 
     void testThrow()
@@ -162,7 +165,7 @@ public:
             flat_static_buffer<10> b;
             request<string_body> req;
             read(p.server, b, req, ec);
-            BEAST_EXPECTS(ec == error::buffer_overflow,
+            BOOST_BEAST_EXPECTS(ec == error::buffer_overflow,
                 ec.message());
         }
     }
@@ -254,7 +257,7 @@ public:
             {
             }
         }
-        BEAST_EXPECT(n < limit);
+        BOOST_BEAST_EXPECT(n < limit);
 
         for(n = 0; n < limit; ++n)
         {
@@ -272,7 +275,7 @@ public:
             if(! ec)
                 break;
         }
-        BEAST_EXPECT(n < limit);
+        BOOST_BEAST_EXPECT(n < limit);
 
         for(n = 0; n < limit; ++n)
         {
@@ -290,7 +293,7 @@ public:
             if(! ec)
                 break;
         }
-        BEAST_EXPECT(n < limit);
+        BOOST_BEAST_EXPECT(n < limit);
     }
 
     void
@@ -302,7 +305,7 @@ public:
             request_parser<dynamic_body> p;
             error_code ec;
             read(ss, b, p, ec);
-            BEAST_EXPECT(ec == http::error::end_of_stream);
+            BOOST_BEAST_EXPECT(ec == http::error::end_of_stream);
         }
         {
             multi_buffer b;
@@ -310,7 +313,7 @@ public:
             request_parser<dynamic_body> p;
             error_code ec;
             async_read(ss, b, p, do_yield[ec]);
-            BEAST_EXPECT(ec == http::error::end_of_stream);
+            BOOST_BEAST_EXPECT(ec == http::error::end_of_stream);
         }
     }
 
@@ -334,17 +337,17 @@ public:
             boost::asio::io_service ios;
             test::string_istream is{ios,
                 "GET / HTTP/1.1\r\n\r\n"};
-            BEAST_EXPECT(handler::count() == 0);
+            BOOST_BEAST_EXPECT(handler::count() == 0);
             multi_buffer b;
             request<dynamic_body> m;
             async_read(is, b, m, handler{});
-            BEAST_EXPECT(handler::count() > 0);
+            BOOST_BEAST_EXPECT(handler::count() > 0);
             ios.stop();
-            BEAST_EXPECT(handler::count() > 0);
+            BOOST_BEAST_EXPECT(handler::count() > 0);
             ios.reset();
-            BEAST_EXPECT(handler::count() > 0);
+            BOOST_BEAST_EXPECT(handler::count() > 0);
             ios.run_one();
-            BEAST_EXPECT(handler::count() == 0);
+            BOOST_BEAST_EXPECT(handler::count() == 0);
         }
         {
             // Make sure uninvoked handlers are
@@ -353,13 +356,13 @@ public:
                 boost::asio::io_service ios;
                 test::string_istream is{ios,
                     "GET / HTTP/1.1\r\n\r\n"};
-                BEAST_EXPECT(handler::count() == 0);
+                BOOST_BEAST_EXPECT(handler::count() == 0);
                 multi_buffer b;
                 request<dynamic_body> m;
                 async_read(is, b, m, handler{});
-                BEAST_EXPECT(handler::count() > 0);
+                BOOST_BEAST_EXPECT(handler::count() > 0);
             }
-            BEAST_EXPECT(handler::count() == 0);
+            BOOST_BEAST_EXPECT(handler::count() == 0);
         }
     }
 
@@ -380,7 +383,7 @@ public:
         flat_buffer fb;
         parser<false, dynamic_body> p;
         read(c.server, fb, p, ec);
-        BEAST_EXPECTS(! ec, ec.message());
+        BOOST_BEAST_EXPECTS(! ec, ec.message());
     }
 
     //--------------------------------------------------------------------------
@@ -399,7 +402,7 @@ public:
             ostream(c.server.buffer) << s;
             c.server.read_size(n);
             read(c.server, b, p, ec);
-            if(! BEAST_EXPECTS(! ec, ec.message()))
+            if(! BOOST_BEAST_EXPECTS(! ec, ec.message()))
                 continue;
             pred(p);
         }
@@ -417,7 +420,7 @@ public:
             "0\r\n\r\n"
             ,[&](test_parser<false> const& p)
             {
-                BEAST_EXPECT(p.body == "abcd");
+                BOOST_BEAST_EXPECT(p.body == "abcd");
             });
         readgrind<test_parser<false>>(
             "HTTP/1.1 200 OK\r\n"
@@ -435,7 +438,7 @@ public:
             "\r\n"
             ,[&](test_parser<false> const& p)
             {
-                BEAST_EXPECT(p.body == "*****--");
+                BOOST_BEAST_EXPECT(p.body == "*****--");
             });
     }
 
@@ -458,7 +461,8 @@ public:
     }
 };
 
-BEAST_DEFINE_TESTSUITE(read,http,beast);
+BOOST_BEAST_DEFINE_TESTSUITE(read,http,beast);
 
 } // http
 } // beast
+} // boost

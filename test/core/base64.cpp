@@ -4,12 +4,15 @@
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
+// Official repository: https://github.com/boostorg/beast
+//
 
 // Test that header file is self-contained.
-#include <beast/core/detail/base64.hpp>
+#include <boost/beast/core/detail/base64.hpp>
 
-#include <beast/unit_test/suite.hpp>
+#include <boost/beast/unit_test/suite.hpp>
 
+namespace boost {
 namespace beast {
 namespace detail {
 
@@ -20,8 +23,8 @@ public:
     check (std::string const& in, std::string const& out)
     {
         auto const encoded = base64_encode (in);
-        BEAST_EXPECT(encoded == out);
-        BEAST_EXPECT(base64_decode (encoded) == in);
+        BOOST_BEAST_EXPECT(encoded == out);
+        BOOST_BEAST_EXPECT(base64_decode (encoded) == in);
     }
 
     void
@@ -50,8 +53,8 @@ public:
     }
 };
 
-BEAST_DEFINE_TESTSUITE(base64,core,beast);
+BOOST_BEAST_DEFINE_TESTSUITE(base64,core,beast);
 
 } // detail
 } // beast
-
+} // boost

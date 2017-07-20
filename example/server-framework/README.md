@@ -1,5 +1,5 @@
 <img width="880" height = "80" alt = "Beast"
-    src="https://raw.githubusercontent.com/vinniefalco/Beast/master/doc/images/readme.png">
+    src="https://raw.githubusercontent.com/boostorg/beast/master/doc/images/readme.png">
 
 # HTTP and WebSocket built on Boost.Asio in C++11
 
@@ -67,7 +67,7 @@ ports created in the example program, and the HTTP services contained by
 the HTTP ports:
 
 <img width="880" height = "344" alt = "ServerFramework"
-    src="https://raw.githubusercontent.com/vinniefalco/Beast/master/doc/images/server.png">
+    src="https://raw.githubusercontent.com/boostorg/beast/master/doc/images/server.png">
 
 ## PortHandler Requirements
 ```C++

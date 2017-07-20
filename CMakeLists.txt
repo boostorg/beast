@@ -1,4 +1,11 @@
-# Part of Beast
+#
+# Copyright (c) 2013-2017 Vinnie Falco (vinnie dot falco at gmail dot com)
+#
+# Distributed under the Boost Software License, Version 1.0. (See accompanying
+# file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+#
+# Official repository: https://github.com/boostorg/beast
+#
 
 cmake_minimum_required (VERSION 3.5.2)
 
@@ -53,6 +60,11 @@ endif()
 
 option (Boost_USE_STATIC_LIBS "Use static libraries for boost" ON)
 
+add_definitions (-DBOOST_ASIO_DISABLE_BOOST_ARRAY=1)
+add_definitions (-DBOOST_ASIO_DISABLE_BOOST_BIND=1)
+add_definitions (-DBOOST_ASIO_DISABLE_BOOST_DATE_TIME=1)
+add_definitions (-DBOOST_ASIO_DISABLE_BOOST_REGEX=1)
+
 set(BOOST_COMPONENTS system)
 if (Beast_BUILD_EXAMPLES OR Beast_BUILD_TESTS)
     list(APPEND BOOST_COMPONENTS coroutine context filesystem program_options thread)
@@ -82,10 +94,10 @@ endif()
 find_package(OpenSSL)
 
 if (OPENSSL_FOUND)
-    add_definitions (-DBEAST_USE_OPENSSL=1)
+    add_definitions (-DBOOST_BEAST_USE_OPENSSL=1)
 
 else()
-    add_definitions (-DBEAST_USE_OPENSSL=0)
+    add_definitions (-DBOOST_BEAST_USE_OPENSSL=0)
     message("OpenSSL not found.")
 endif()
 
@@ -116,18 +128,18 @@ endfunction()
 if ("${VARIANT}" STREQUAL "coverage")
     if (MSVC)
     else()
-        set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse4.2 -fprofile-arcs -ftest-coverage")
-        set (CMAKE_BUILD_TYPE RELWITHDEBINFO)
-        set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lgcov")
+        set (CMAKE_BUILD_TYPE DEBUG)
+        set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse4.2 --coverage")
+        set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --coverage")
     endif()
 
 elseif ("${VARIANT}" STREQUAL "ubasan")
     if (MSVC)
     else()
-        set (CMAKE_CXX_FLAGS
-          "${CMAKE_CXX_FLAGS} -DBEAST_NO_SLOW_TESTS=1 -msse4.2 -funsigned-char -fno-omit-frame-pointer -fsanitize=address,undefined -fsanitize-blacklist=${PROJECT_SOURCE_DIR}/scripts/blacklist.supp")
-        set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=address,undefined")
         set (CMAKE_BUILD_TYPE RELWITHDEBINFO)
+        set (CMAKE_CXX_FLAGS
+          "${CMAKE_CXX_FLAGS} -DBOOST_BEAST_NO_SLOW_TESTS=1 -msse4.2 -funsigned-char -fno-omit-frame-pointer -fsanitize=address,undefined -fsanitize-blacklist=${PROJECT_SOURCE_DIR}/scripts/blacklist.supp")
+        set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=address,undefined")
     endif()
 
 elseif ("${VARIANT}" STREQUAL "debug")
@@ -165,9 +177,9 @@ if (OPENSSL_FOUND)
     include_directories (${OPENSSL_INCLUDE_DIR})
 endif()
 
-file(GLOB_RECURSE BEAST_INCLUDES
-    ${PROJECT_SOURCE_DIR}/include/beast/*.hpp
-    ${PROJECT_SOURCE_DIR}/include/beast/*.ipp
+file(GLOB_RECURSE BOOST_BEAST_INCLUDES
+    ${PROJECT_SOURCE_DIR}/include/boost/beast/*.hpp
+    ${PROJECT_SOURCE_DIR}/include/boost/beast/*.ipp
 )
 
 file(GLOB_RECURSE COMMON_INCLUDES
@@ -179,8 +191,8 @@ file(GLOB_RECURSE EXAMPLE_INCLUDES
   )
 
 file(GLOB_RECURSE EXTRAS_INCLUDES
-    ${PROJECT_SOURCE_DIR}/extras/beast/*.hpp
-    ${PROJECT_SOURCE_DIR}/extras/beast/*.ipp
+    ${PROJECT_SOURCE_DIR}/extras/boost/beast/*.hpp
+    ${PROJECT_SOURCE_DIR}/extras/boost/beast/*.ipp
 )
 
 if (Beast_BUILD_TESTS)

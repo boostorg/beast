@@ -4,6 +4,8 @@
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
+// Official repository: https://github.com/boostorg/beast
+//
 
 #include "server.hpp"
 
@@ -12,7 +14,7 @@
 #include "ws_async_port.hpp"
 #include "ws_sync_port.hpp"
 
-#if BEAST_USE_OPENSSL
+#if BOOST_BEAST_USE_OPENSSL
 #include "https_ports.hpp"
 #include "multi_port.hpp"
 #include "wss_ports.hpp"
@@ -58,17 +60,17 @@ sig_wait()
 */
 class set_ws_options
 {
-    beast::websocket::permessage_deflate pmd_;
+    boost::beast::websocket::permessage_deflate pmd_;
 
 public:
-    set_ws_options(beast::websocket::permessage_deflate const& pmd)
+    set_ws_options(boost::beast::websocket::permessage_deflate const& pmd)
         : pmd_(pmd)
     {
     }
 
     template<class NextLayer>
     void
-    operator()(beast::websocket::stream<NextLayer>& ws) const
+    operator()(boost::beast::websocket::stream<NextLayer>& ws) const
     {
         ws.auto_fragment(false);
         ws.set_option(pmd_);
@@ -82,7 +84,7 @@ main(
     char const* av[])
 {
     using namespace framework;
-    using namespace beast::http;
+    using namespace boost::beast::http;
 
     // Helper for reporting failures
     //
@@ -131,7 +133,7 @@ main(
     boost::filesystem::path const root =  vm["root"].as<std::string>();
 
     // These settings will be applied to all new websocket connections
-    beast::websocket::permessage_deflate pmd;
+    boost::beast::websocket::permessage_deflate pmd;
     pmd.client_enable = true;
     pmd.server_enable = true;
     pmd.compLevel = 3;
@@ -263,7 +265,7 @@ main(
     // an installed and configured OpenSSL as part of the build.
     //
 
-#if BEAST_USE_OPENSSL
+#if BOOST_BEAST_USE_OPENSSL
 
     ssl_certificate cert;
 

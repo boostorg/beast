@@ -4,14 +4,17 @@
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
+// Official repository: https://github.com/boostorg/beast
+//
 
 // Test that header file is self-contained.
-#include <beast/core/handler_alloc.hpp>
+#include <boost/beast/core/handler_alloc.hpp>
 
-#include <beast/unit_test/suite.hpp>
+#include <boost/beast/unit_test/suite.hpp>
 #include <list>
 #include <vector>
 
+namespace boost {
 namespace beast {
 
 class handler_alloc_test : public beast::unit_test::suite
@@ -46,9 +49,9 @@ public:
         handler h2;
         handler_alloc<char, handler> a1{h};
         handler_alloc<char, handler> a2{h2};
-        BEAST_EXPECT(a2 == a1);
+        BOOST_BEAST_EXPECT(a2 == a1);
         auto a3 = a1;
-        BEAST_EXPECT(a3 == a1);
+        BOOST_BEAST_EXPECT(a3 == a1);
         {
             std::vector<char,
                 handler_alloc<char, handler>> v(a1);
@@ -58,7 +61,7 @@ public:
     }
 };
 
-BEAST_DEFINE_TESTSUITE(handler_alloc,core,beast);
+BOOST_BEAST_DEFINE_TESTSUITE(handler_alloc,core,beast);
 
 } // beast
-
+} // boost

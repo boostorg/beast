@@ -6,11 +6,13 @@
 //
 
 // Test that header file is self-contained.
-#include <beast/core/detail/varint.hpp>
+#include <boost/beast/core/detail/varint.hpp>
 
-#include <beast/unit_test/suite.hpp>
+#include <boost/beast/unit_test/suite.hpp>
 
+namespace boost {
 namespace beast {
+namespace detail {
 
 class varint_test : public beast::unit_test::suite
 {
@@ -18,9 +20,6 @@ public:
     void
     testVarint()
     {
-        using beast::detail::varint_read;
-        using beast::detail::varint_size;
-        using beast::detail::varint_write;
         std::size_t n0 = 0;
         std::size_t n1 = 1;
         for(;;)
@@ -31,7 +30,7 @@ public:
             varint_write(it, n0);
             it = &buf[0];
             auto n = varint_read(it);
-            BEAST_EXPECT(n == n0);
+            BOOST_BEAST_EXPECT(n == n0);
             n = n0 + n1;
             if(n < n1)
                 break;
@@ -47,6 +46,8 @@ public:
     }
 };
 
-BEAST_DEFINE_TESTSUITE(varint,core,beast);
+BOOST_BEAST_DEFINE_TESTSUITE(varint,core,beast);
 
+} // detail
 } // beast
+} // boost

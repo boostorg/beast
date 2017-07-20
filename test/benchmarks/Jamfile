@@ -4,13 +4,15 @@
 # Distributed under the Boost Software License, Version 1.0. (See accompanying
 # file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 #
+# Official repository: https://github.com/boostorg/beast
+#
 
 unit-test benchmarks :
-    ../../extras/beast/unit_test/main.cpp
+    ../../extras/boost/beast/unit_test/main.cpp
     buffers.cpp
     nodejs_parser.cpp
     parser.cpp
-    utf8_checker.cpp
+    #utf8_checker.cpp # causes unnecessary dependencies
     :
     <variant>coverage:<build>no
     <variant>ubasan:<build>no

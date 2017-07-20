@@ -58,7 +58,7 @@ pip install --user requests==2.13.0
 pip install --user https://github.com/codecov/codecov-python/archive/master.zip
 pip install --user autobahntestsuite
 
-bash scripts/install-boost.sh
+#bash scripts/install-boost.sh
 bash scripts/install-valgrind.sh
 
 # Install lcov

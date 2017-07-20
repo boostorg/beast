@@ -4,8 +4,10 @@
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
+// Official repository: https://github.com/boostorg/beast
+//
 
-#include <beast/core.hpp>
+#include <boost/beast/core.hpp>
 #include <boost/asio.hpp>
 #include <boost/asio/spawn.hpp>
 #include <boost/asio/use_future.hpp>
@@ -15,11 +17,11 @@
 #include <thread>
 
 //[ws_snippet_1
-#include <beast/websocket.hpp>
-using namespace beast::websocket;
+#include <boost/beast/websocket.hpp>
+using namespace boost::beast::websocket;
 //]
 
-using namespace beast;
+using namespace boost::beast;
 
 namespace doc_ws_snippets {
 
@@ -233,10 +235,10 @@ void echo(stream<boost::asio::ip::tcp::socket>& ws,
 
 //------------------------------------------------------------------------------
 
-#if BEAST_USE_OPENSSL
+#if BOOST_BEAST_USE_OPENSSL
 
 //[wss_snippet_1
-#include <beast/websocket/ssl.hpp>
+#include <boost/beast/websocket/ssl.hpp>
 #include <boost/asio/ssl.hpp>
 //]
 

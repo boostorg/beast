@@ -4,13 +4,16 @@
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
+// Official repository: https://github.com/boostorg/beast
+//
 
 // Test that header file is self-contained.
-#include <beast/core/string_param.hpp>
+#include <boost/beast/core/string_param.hpp>
 
-#include <beast/unit_test/suite.hpp>
-#include <beast/core/detail/type_traits.hpp>
+#include <boost/beast/unit_test/suite.hpp>
+#include <boost/beast/core/detail/type_traits.hpp>
 
+namespace boost {
 namespace beast {
 
 class string_param_test : public unit_test::suite
@@ -21,7 +24,7 @@ public:
     void
     check(string_param const& v, string_view s)
     {
-        BEAST_EXPECT(static_cast<string_view>(v) == s);
+        BOOST_BEAST_EXPECT(static_cast<string_view>(v) == s);
     }
 
     class repeater
@@ -74,6 +77,7 @@ public:
     }
 };
 
-BEAST_DEFINE_TESTSUITE(string_param,core,beast);
+BOOST_BEAST_DEFINE_TESTSUITE(string_param,core,beast);
 
 } // beast
+} // boost

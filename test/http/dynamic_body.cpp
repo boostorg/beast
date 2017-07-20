@@ -4,19 +4,22 @@
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
+// Official repository: https://github.com/boostorg/beast
+//
 
 // Test that header file is self-contained.
-#include <beast/http/dynamic_body.hpp>
+#include <boost/beast/http/dynamic_body.hpp>
 
-#include <beast/core/ostream.hpp>
-#include <beast/http/fields.hpp>
-#include <beast/http/parser.hpp>
-#include <beast/http/read.hpp>
-#include <beast/http/write.hpp>
-#include <beast/test/string_istream.hpp>
-#include <beast/unit_test/suite.hpp>
+#include <boost/beast/core/ostream.hpp>
+#include <boost/beast/http/fields.hpp>
+#include <boost/beast/http/parser.hpp>
+#include <boost/beast/http/read.hpp>
+#include <boost/beast/http/write.hpp>
+#include <boost/beast/test/string_istream.hpp>
+#include <boost/beast/unit_test/suite.hpp>
 #include <boost/lexical_cast.hpp>
 
+namespace boost {
 namespace beast {
 namespace http {
 
@@ -39,13 +42,14 @@ public:
         multi_buffer b;
         read(ss, b, p);
         auto const& m = p.get();
-        BEAST_EXPECT(boost::lexical_cast<std::string>(
+        BOOST_BEAST_EXPECT(boost::lexical_cast<std::string>(
             buffers(m.body.data())) == "xyz");
-        BEAST_EXPECT(boost::lexical_cast<std::string>(m) == s);
+        BOOST_BEAST_EXPECT(boost::lexical_cast<std::string>(m) == s);
     }
 };
 
-BEAST_DEFINE_TESTSUITE(dynamic_body,http,beast);
+BOOST_BEAST_DEFINE_TESTSUITE(dynamic_body,http,beast);
 
 } // http
 } // beast
+} // boost

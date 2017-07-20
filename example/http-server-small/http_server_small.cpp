@@ -4,10 +4,12 @@
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
+// Official repository: https://github.com/boostorg/beast
+//
 
-#include <beast/core.hpp>
-#include <beast/http.hpp>
-#include <beast/version.hpp>
+#include <boost/beast/core.hpp>
+#include <boost/beast/http.hpp>
+#include <boost/beast/version.hpp>
 #include <boost/asio.hpp>
 #include <chrono>
 #include <cstdlib>
@@ -16,9 +18,9 @@
 #include <memory>
 #include <string>
 
-namespace ip = boost::asio::ip; // from <boost/asio.hpp>
-using tcp = boost::asio::ip::tcp; // from <boost/asio.hpp>
-namespace http = beast::http; // from <beast/http.hpp>
+namespace ip = boost::asio::ip;         // from <boost/asio.hpp>
+using tcp = boost::asio::ip::tcp;       // from <boost/asio.hpp>
+namespace http = boost::beast::http;    // from <boost/beast/http.hpp>
 
 namespace my_program_state
 {
@@ -57,7 +59,7 @@ private:
     tcp::socket socket_;
 
     // The buffer for performing reads.
-    beast::flat_buffer buffer_{8192};
+    boost::beast::flat_buffer buffer_{8192};
 
     // The request message.
     http::request<http::dynamic_body> request_;
@@ -79,7 +81,7 @@ private:
             socket_,
             buffer_,
             request_,
-            [self](beast::error_code ec)
+            [self](boost::beast::error_code ec)
             {
                 if(!ec)
                     self->process_request();
@@ -106,7 +108,7 @@ private:
             // we do not recognize the request method.
             response_.result(http::status::bad_request);
             response_.set(http::field::content_type, "text/plain");
-            beast::ostream(response_.body)
+            boost::beast::ostream(response_.body)
                 << "Invalid request-method '"
                 << request_.method_string().to_string()
                 << "'";
@@ -123,7 +125,7 @@ private:
         if(request_.target() == "/count")
         {
             response_.set(http::field::content_type, "text/html");
-            beast::ostream(response_.body)
+            boost::beast::ostream(response_.body)
                 << "<html>\n"
                 <<  "<head><title>Request count</title></head>\n"
                 <<  "<body>\n"
@@ -137,7 +139,7 @@ private:
         else if(request_.target() == "/time")
         {
             response_.set(http::field::content_type, "text/html");
-            beast::ostream(response_.body)
+            boost::beast::ostream(response_.body)
                 <<  "<html>\n"
                 <<  "<head><title>Current time</title></head>\n"
                 <<  "<body>\n"
@@ -152,7 +154,7 @@ private:
         {
             response_.result(http::status::not_found);
             response_.set(http::field::content_type, "text/plain");
-            beast::ostream(response_.body) << "File not found\r\n";
+            boost::beast::ostream(response_.body) << "File not found\r\n";
         }
     }
 
@@ -167,7 +169,7 @@ private:
         http::async_write(
             socket_,
             response_,
-            [self](beast::error_code ec)
+            [self](boost::beast::error_code ec)
             {
                 self->socket_.shutdown(tcp::socket::shutdown_send, ec);
                 self->deadline_.cancel();
@@ -181,7 +183,7 @@ private:
         auto self = shared_from_this();
 
         deadline_.async_wait(
-            [self](beast::error_code ec)
+            [self](boost::beast::error_code ec)
             {
                 if(!ec)
                 {
@@ -197,7 +199,7 @@ void
 http_server(tcp::acceptor& acceptor, tcp::socket& socket)
 {
   acceptor.async_accept(socket,
-      [&](beast::error_code ec)
+      [&](boost::beast::error_code ec)
       {
           if(!ec)
               std::make_shared<http_connection>(std::move(socket))->start();

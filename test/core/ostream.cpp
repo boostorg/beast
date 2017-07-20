@@ -4,15 +4,18 @@
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
+// Official repository: https://github.com/boostorg/beast
+//
 
 // Test that header file is self-contained.
-#include <beast/core/ostream.hpp>
+#include <boost/beast/core/ostream.hpp>
 
-#include <beast/core/multi_buffer.hpp>
-#include <beast/unit_test/suite.hpp>
+#include <boost/beast/core/multi_buffer.hpp>
+#include <boost/beast/unit_test/suite.hpp>
 #include <boost/lexical_cast.hpp>
 #include <ostream>
 
+namespace boost {
 namespace beast {
 
 class ostream_test : public beast::unit_test::suite
@@ -26,7 +29,7 @@ public:
             auto os = ostream(b);
             os << "Hello, world!\n";
             os.flush();
-            BEAST_EXPECT(boost::lexical_cast<std::string>(
+            BOOST_BEAST_EXPECT(boost::lexical_cast<std::string>(
                 buffers(b.data())) == "Hello, world!\n");
             auto os2 = std::move(os);
         }
@@ -42,12 +45,13 @@ public:
                 "0123456789abcdef" "0123456789abcdef" "0123456789abcdef" "0123456789abcdef";
             multi_buffer b;
             ostream(b) << s;
-            BEAST_EXPECT(boost::lexical_cast<std::string>(
+            BOOST_BEAST_EXPECT(boost::lexical_cast<std::string>(
                 buffers(b.data())) == s);
         }
     }
 };
 
-BEAST_DEFINE_TESTSUITE(ostream,core,beast);
+BOOST_BEAST_DEFINE_TESTSUITE(ostream,core,beast);
 
 } // beast
+} // boost
