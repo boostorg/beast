@@ -16,17 +16,11 @@
 #include <boost/beast/core/consuming_buffers.hpp>
 #include <boost/beast/core/string.hpp>
 #include <boost/beast/core/type_traits.hpp>
+#include <boost/beast/core/detail/variant.hpp>
 #include <boost/beast/http/message.hpp>
 #include <boost/beast/http/chunk_encode.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/optional.hpp>
-#include <boost/variant.hpp>
-
-#ifndef BOOST_BEAST_NO_BIG_VARIANTS
-# if defined(BOOST_GCC) && BOOST_GCC < 50000 && BOOST_VERSION < 106600
-#  define BOOST_BEAST_NO_BIG_VARIANTS
-# endif
-#endif
 
 namespace boost {
 namespace beast {
@@ -116,7 +110,7 @@ private:
     void frdinit(std::true_type);
     void frdinit(std::false_type);
 
-    template<class T1, class T2, class Visit>
+    template<std::size_t, class Visit>
     void
     do_visit(error_code& ec, Visit& visit);
 
@@ -152,7 +146,6 @@ private:
         chunk_crlf>>;                               // crlf
     using pcb5_t = buffer_prefix_view<cb5_t const&>;
 
-#ifndef BOOST_BEAST_NO_BIG_VARIANTS
     using cb6_t = consuming_buffers<buffer_cat_view<
         detail::chunk_size,                         // chunk-header
         boost::asio::const_buffers_1,               // chunk-size
@@ -175,7 +168,6 @@ private:
         boost::asio::const_buffers_1,               // trailers 
         chunk_crlf>>;                               // crlf
     using pcb7_t = buffer_prefix_view<cb7_t const&>;
-#endif
 
     using cb8_t = consuming_buffers<buffer_cat_view<
         boost::asio::const_buffers_1,               // chunk-final
@@ -186,18 +178,12 @@ private:
     value_type& m_;
     reader rd_;
     boost::optional<typename Fields::reader> frd_;
-    boost::variant<boost::blank,
-        cb1_t, cb2_t, cb3_t, cb4_t, cb5_t
-    #ifndef BOOST_BEAST_NO_BIG_VARIANTS
-        ,cb6_t, cb7_t
-    #endif
-        , cb8_t> v_;
-    boost::variant<boost::blank,
-        pcb1_t, pcb2_t, pcb3_t, pcb4_t, pcb5_t
-    #ifndef BOOST_BEAST_NO_BIG_VARIANTS
-        ,pcb6_t, pcb7_t
-    #endif
-        , pcb8_t> pv_;
+    beast::detail::variant<
+        cb1_t, cb2_t, cb3_t, cb4_t,
+        cb5_t ,cb6_t, cb7_t, cb8_t> v_;
+    beast::detail::variant<
+        pcb1_t, pcb2_t, pcb3_t, pcb4_t,
+        pcb5_t ,pcb6_t, pcb7_t, pcb8_t> pv_;
     std::size_t limit_ =
         (std::numeric_limits<std::size_t>::max)();
     int s_ = do_construct;
@@ -208,6 +194,15 @@ private:
     bool more_;
 
 public:
+    /// Constructor
+    serializer(serializer&&) = default;
+
+    /// Constructor
+    serializer(serializer const&) = default;
+
+    /// Assignment
+    serializer& operator=(serializer const&) = delete;
+
     /** Constructor
 
         The implementation guarantees that the message passed on

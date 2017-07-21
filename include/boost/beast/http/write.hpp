@@ -20,7 +20,6 @@
 #include <boost/beast/core/error.hpp>
 #include <boost/beast/core/async_result.hpp>
 #include <boost/beast/core/string.hpp>
-#include <boost/variant.hpp>
 #include <iosfwd>
 #include <limits>
 #include <memory>

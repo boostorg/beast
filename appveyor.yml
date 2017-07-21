@@ -87,7 +87,6 @@ install:
   - git submodule update --init libs/typeof
   - git submodule update --init libs/unordered
   - git submodule update --init libs/utility
-  - git submodule update --init libs/variant
   - git submodule update --init libs/winapi
   - bootstrap
   - b2 headers

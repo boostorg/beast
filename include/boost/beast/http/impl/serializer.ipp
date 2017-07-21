@@ -41,18 +41,16 @@ frdinit(std::false_type)
 
 template<
     bool isRequest, class Body, class Fields>
-template<class T1, class T2, class Visit>
+template<std::size_t I, class Visit>
 inline
 void
 serializer<isRequest, Body, Fields>::
 do_visit(error_code& ec, Visit& visit)
 {
-    // VFALCO work-around for missing variant::emplace
-    pv_.~variant();
-    new(&pv_) decltype(pv_){
-        T1{limit_, boost::get<T2>(v_)}};
-    visit(ec, beast::detail::make_buffers_ref(
-        boost::get<T1>(pv_)));
+    pv_.template emplace<I>(limit_, v_.template get<I>());
+    visit(ec,
+        beast::detail::make_buffers_ref(
+            pv_.template get<I>()));
 }
 
 //------------------------------------------------------------------------------
@@ -104,23 +102,23 @@ next(error_code& ec, Visit&& visit)
         if(! result)
             goto go_header_only;
         more_ = result->second;
-        v_ = cb2_t{
+        v_.template emplace<2>(
             boost::in_place_init,
             frd_->get(),
-            result->first};
+            result->first);
         s_ = do_header;
         BOOST_BEAST_FALLTHROUGH;
     }
 
     case do_header:
-        do_visit<pcb2_t, cb2_t>(ec, visit);
+        do_visit<2>(ec, visit);
         break;
 
     go_header_only:
-        v_ = cb1_t{frd_->get()};
+        v_.template emplace<1>(frd_->get());
         s_ = do_header_only;
     case do_header_only:
-        do_visit<pcb1_t, cb1_t>(ec, visit);
+        do_visit<1>(ec, visit);
         break;
 
     case do_body:
@@ -135,13 +133,13 @@ next(error_code& ec, Visit&& visit)
         if(! result)
             goto go_complete;
         more_ = result->second;
-        v_ = cb3_t{result->first};
+        v_.template emplace<3>(result->first);
         s_ = do_body + 2;
         BOOST_BEAST_FALLTHROUGH;
     }
 
     case do_body + 2:
-        do_visit<pcb3_t, cb3_t>(ec, visit);
+        do_visit<3>(ec, visit);
         break;
 
     //----------------------------------------------------------------------
@@ -163,11 +161,10 @@ next(error_code& ec, Visit&& visit)
         if(! result)
             goto go_header_only_c;
         more_ = result->second;
-    #ifndef BOOST_BEAST_NO_BIG_VARIANTS
         if(! more_)
         {
             // do it all in one buffer
-            v_ = cb7_t{
+            v_.template emplace<7>(
                 boost::in_place_init,
                 frd_->get(),
                 buffer_size(result->first),
@@ -177,31 +174,30 @@ next(error_code& ec, Visit&& visit)
                 chunk_crlf{},
                 detail::chunk_last(),
                 boost::asio::const_buffers_1{nullptr, 0},
-                chunk_crlf{}};
+                chunk_crlf{});
             goto go_all_c;
         }
-    #endif
-        v_ = cb4_t{
+        v_.template emplace<4>(
             boost::in_place_init,
             frd_->get(),
             buffer_size(result->first),
             boost::asio::const_buffers_1{nullptr, 0},
             chunk_crlf{},
             result->first,
-            chunk_crlf{}};
+            chunk_crlf{});
         s_ = do_header_c;
         BOOST_BEAST_FALLTHROUGH;
     }
 
     case do_header_c:
-        do_visit<pcb4_t, cb4_t>(ec, visit);
+        do_visit<4>(ec, visit);
         break;
 
     go_header_only_c:
-        v_ = cb1_t{frd_->get()};
+        v_.template emplace<1>(frd_->get());
         s_ = do_header_only_c;
     case do_header_only_c:
-        do_visit<pcb1_t, cb1_t>(ec, visit);
+        do_visit<1>(ec, visit);
         break;
 
     case do_body_c:
@@ -216,11 +212,10 @@ next(error_code& ec, Visit&& visit)
         if(! result)
             goto go_final_c;
         more_ = result->second;
-    #ifndef BOOST_BEAST_NO_BIG_VARIANTS
         if(! more_)
         {
             // do it all in one buffer
-            v_ = cb6_t{
+            v_.template emplace<6>(
                 boost::in_place_init,
                 buffer_size(result->first),
                 boost::asio::const_buffers_1{nullptr, 0},
@@ -229,51 +224,48 @@ next(error_code& ec, Visit&& visit)
                 chunk_crlf{},
                 detail::chunk_last(),
                 boost::asio::const_buffers_1{nullptr, 0},
-                chunk_crlf{}};
+                chunk_crlf{});
             goto go_body_final_c;
         }
-    #endif
-        v_ = cb5_t{
+        v_.template emplace<5>(
             boost::in_place_init,
             buffer_size(result->first),
             boost::asio::const_buffers_1{nullptr, 0},
             chunk_crlf{},
             result->first,
-            chunk_crlf{}};
+            chunk_crlf{});
         s_ = do_body_c + 2;
         BOOST_BEAST_FALLTHROUGH;
     }
 
     case do_body_c + 2:
-        do_visit<pcb5_t, cb5_t>(ec, visit);
+        do_visit<5>(ec, visit);
         break;
 
-#ifndef BOOST_BEAST_NO_BIG_VARIANTS
     go_body_final_c:
         s_ = do_body_final_c;
     case do_body_final_c:
-        do_visit<pcb6_t, cb6_t>(ec, visit);
+        do_visit<6>(ec, visit);
         break;
 
     go_all_c:
         s_ = do_all_c;
     case do_all_c:
-        do_visit<pcb7_t, cb7_t>(ec, visit);
+        do_visit<7>(ec, visit);
         break;
-#endif
 
     go_final_c:
     case do_final_c:
-        v_ = cb8_t{
+        v_.template emplace<8>(
             boost::in_place_init,
             detail::chunk_last(),
             boost::asio::const_buffers_1{nullptr, 0},
-            chunk_crlf{}};
+            chunk_crlf{});
         s_ = do_final_c + 1;
         BOOST_BEAST_FALLTHROUGH;
 
     case do_final_c + 1:
-        do_visit<pcb8_t, cb8_t>(ec, visit);
+        do_visit<8>(ec, visit);
         break;
 
     //----------------------------------------------------------------------
@@ -299,23 +291,23 @@ consume(std::size_t n)
     switch(s_)
     {
     case do_header:
-        BOOST_ASSERT(n <= buffer_size(
-            boost::get<cb2_t>(v_)));
-        boost::get<cb2_t>(v_).consume(n);
-        if(buffer_size(boost::get<cb2_t>(v_)) > 0)
+        BOOST_ASSERT(
+            n <= buffer_size(v_.template get<2>()));
+        v_.template get<2>().consume(n);
+        if(buffer_size(v_.template get<2>()) > 0)
             break;
         header_done_ = true;
-        v_ = boost::blank{};
+        v_.reset();
         if(! more_)
             goto go_complete;
         s_ = do_body + 1;
         break;
 
     case do_header_only:
-        BOOST_ASSERT(n <= buffer_size(
-            boost::get<cb1_t>(v_)));
-        boost::get<cb1_t>(v_).consume(n);
-        if(buffer_size(boost::get<cb1_t>(v_)) > 0)
+        BOOST_ASSERT(
+            n <= buffer_size(v_.template get<1>()));
+        v_.template get<1>().consume(n);
+        if(buffer_size(v_.template get<1>()) > 0)
             break;
         frd_ = boost::none;
         header_done_ = true;
@@ -326,12 +318,12 @@ consume(std::size_t n)
 
     case do_body + 2:
     {
-        BOOST_ASSERT(n <= buffer_size(
-            boost::get<cb3_t>(v_)));
-        boost::get<cb3_t>(v_).consume(n);
-        if(buffer_size(boost::get<cb3_t>(v_)) > 0)
+        BOOST_ASSERT(
+            n <= buffer_size(v_.template get<3>()));
+        v_.template get<3>().consume(n);
+        if(buffer_size(v_.template get<3>()) > 0)
             break;
-        v_ = boost::blank{};
+        v_.reset();
         if(! more_)
             goto go_complete;
         s_ = do_body + 1;
@@ -341,13 +333,13 @@ consume(std::size_t n)
     //----------------------------------------------------------------------
 
     case do_header_c:
-        BOOST_ASSERT(n <= buffer_size(
-            boost::get<cb4_t>(v_)));
-        boost::get<cb4_t>(v_).consume(n);
-        if(buffer_size(boost::get<cb4_t>(v_)) > 0)
+        BOOST_ASSERT(
+            n <= buffer_size(v_.template get<4>()));
+        v_.template get<4>().consume(n);
+        if(buffer_size(v_.template get<4>()) > 0)
             break;
         header_done_ = true;
-        v_ = boost::blank{};
+        v_.reset();
         if(more_)
             s_ = do_body_c + 1;
         else
@@ -356,10 +348,10 @@ consume(std::size_t n)
 
     case do_header_only_c:
     {
-        BOOST_ASSERT(n <= buffer_size(
-            boost::get<cb1_t>(v_)));
-        boost::get<cb1_t>(v_).consume(n);
-        if(buffer_size(boost::get<cb1_t>(v_)) > 0)
+        BOOST_ASSERT(
+            n <= buffer_size(v_.template get<1>()));
+        v_.template get<1>().consume(n);
+        if(buffer_size(v_.template get<1>()) > 0)
             break;
         frd_ = boost::none;
         header_done_ = true;
@@ -373,52 +365,49 @@ consume(std::size_t n)
     }
 
     case do_body_c + 2:
-        BOOST_ASSERT(n <= buffer_size(
-            boost::get<cb5_t>(v_)));
-        boost::get<cb5_t>(v_).consume(n);
-        if(buffer_size(boost::get<cb5_t>(v_)) > 0)
+        BOOST_ASSERT(
+            n <= buffer_size(v_.template get<5>()));
+        v_.template get<5>().consume(n);
+        if(buffer_size(v_.template get<5>()) > 0)
             break;
-        v_ = boost::blank{};
+        v_.reset();
         if(more_)
             s_ = do_body_c + 1;
         else
             s_ = do_final_c;
         break;
 
-#ifndef BOOST_BEAST_NO_BIG_VARIANTS
     case do_body_final_c:
     {
-        auto& b = boost::get<cb6_t>(v_);
-        BOOST_ASSERT(n <= buffer_size(b));
-        b.consume(n);
-        if(buffer_size(b) > 0)
+        BOOST_ASSERT(
+            n <= buffer_size(v_.template get<6>()));
+        v_.template get<6>().consume(n);
+        if(buffer_size(v_.template get<6>()) > 0)
             break;
-        v_ = boost::blank{};
+        v_.reset();
         s_ = do_complete;
         break;
     }
 
     case do_all_c:
     {
-        auto& b = boost::get<cb7_t>(v_);
-        BOOST_ASSERT(n <= buffer_size(b));
-        b.consume(n);
-        if(buffer_size(b) > 0)
+        BOOST_ASSERT(
+            n <= buffer_size(v_.template get<7>()));
+        v_.template get<7>().consume(n);
+        if(buffer_size(v_.template get<7>()) > 0)
             break;
         header_done_ = true;
-        v_ = boost::blank{};
+        v_.reset();
         s_ = do_complete;
         break;
     }
-#endif
 
     case do_final_c + 1:
-        BOOST_ASSERT(buffer_size(
-            boost::get<cb8_t>(v_)));
-        boost::get<cb8_t>(v_).consume(n);
-        if(buffer_size(boost::get<cb8_t>(v_)) > 0)
+        BOOST_ASSERT(buffer_size(v_.template get<8>()));
+        v_.template get<8>().consume(n);
+        if(buffer_size(v_.template get<8>()) > 0)
             break;
-        v_ = boost::blank{};
+        v_.reset();
         goto go_complete;
 
     //----------------------------------------------------------------------
