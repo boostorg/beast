@@ -15,7 +15,7 @@
 #include <boost/beast/http/type_traits.hpp>
 #include <boost/beast/test/test_allocator.hpp>
 #include <boost/beast/unit_test/suite.hpp>
-#include <boost/lexical_cast.hpp>
+#include <string>
 
 namespace boost {
 namespace beast {
@@ -37,7 +37,7 @@ public:
     fill(std::size_t n, basic_fields<Allocator>& f)
     {
         for(std::size_t i = 1; i<= n; ++i)
-            f.insert(boost::lexical_cast<std::string>(i), i);
+            f.insert(std::to_string(i), i);
     }
 
     template<class U, class V>

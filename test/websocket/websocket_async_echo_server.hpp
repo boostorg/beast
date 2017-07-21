@@ -13,7 +13,6 @@
 #include <boost/beast/core/multi_buffer.hpp>
 #include <boost/beast/websocket/stream.hpp>
 #include <boost/asio.hpp>
-#include <boost/lexical_cast.hpp>
 #include <boost/optional.hpp>
 #include <atomic>
 #include <functional>
@@ -374,8 +373,8 @@ private:
             if(d.server.log_)
                 if(ec != boost::beast::websocket::error::closed)
                     d.server.fail("[#" + std::to_string(d.id) +
-                        " " + boost::lexical_cast<std::string>(d.ep) +
-                            "] " + what, ec);
+                        " " + d.ep.address().to_string() + ":" +
+                            std::to_string(d.ep.port()) + "] " + what, ec);
         }
     };
 

@@ -16,7 +16,6 @@
 #include <boost/beast/core/flat_buffer.hpp>
 #include <boost/beast/core/multi_buffer.hpp>
 #include <boost/beast/unit_test/suite.hpp>
-#include <boost/lexical_cast.hpp>
 #include <chrono>
 #include <iostream>
 #include <vector>
@@ -42,8 +41,14 @@ public:
     std::string
     to_string(ConstBufferSequence const& bs)
     {
-        return boost::lexical_cast<
-            std::string>(buffers(bs));
+        using boost::asio::buffer_cast;
+        using boost::asio::buffer_size;
+        std::string s;
+        s.reserve(buffer_size(bs));
+        for(boost::asio::const_buffer b : bs)
+            s.append(buffer_cast<char const*>(b),
+                buffer_size(b));
+        return s;
     }
 
     corpus

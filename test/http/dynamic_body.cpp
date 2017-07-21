@@ -17,7 +17,6 @@
 #include <boost/beast/http/write.hpp>
 #include <boost/beast/test/string_istream.hpp>
 #include <boost/beast/unit_test/suite.hpp>
-#include <boost/lexical_cast.hpp>
 
 namespace boost {
 namespace beast {
@@ -28,6 +27,31 @@ class dynamic_body_test : public beast::unit_test::suite
     boost::asio::io_service ios_;
 
 public:
+    template<bool isRequest, class Body, class Fields>
+    static
+    std::string
+    to_string(message<isRequest, Body, Fields> const& m)
+    {
+        std::stringstream ss;
+        ss << m;
+        return ss.str();
+    }
+
+    template<class ConstBufferSequence>
+    static
+    std::string
+    to_string(ConstBufferSequence const& bs)
+    {
+        using boost::asio::buffer_cast;
+        using boost::asio::buffer_size;
+        std::string s;
+        s.reserve(buffer_size(bs));
+        for(boost::asio::const_buffer b : bs)
+            s.append(buffer_cast<char const*>(b),
+                buffer_size(b));
+        return s;
+    }
+
     void
     run() override
     {
@@ -42,9 +66,8 @@ public:
         multi_buffer b;
         read(ss, b, p);
         auto const& m = p.get();
-        BOOST_BEAST_EXPECT(boost::lexical_cast<std::string>(
-            buffers(m.body.data())) == "xyz");
-        BOOST_BEAST_EXPECT(boost::lexical_cast<std::string>(m) == s);
+        BOOST_BEAST_EXPECT(to_string(m.body.data()) == "xyz");
+        BOOST_BEAST_EXPECT(to_string(m) == s);
     }
 };
 

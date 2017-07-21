@@ -17,7 +17,6 @@
 #include <boost/beast/core/string.hpp>
 #include <boost/beast/test/test_allocator.hpp>
 #include <boost/beast/unit_test/suite.hpp>
-#include <boost/lexical_cast.hpp>
 #include <algorithm>
 
 namespace boost {

@@ -258,6 +258,31 @@ public:
         };
     };
 
+    template<bool isRequest, class Body, class Fields>
+    static
+    std::string
+    to_string(message<isRequest, Body, Fields> const& m)
+    {
+        std::stringstream ss;
+        ss << m;
+        return ss.str();
+    }
+
+    template<class ConstBufferSequence>
+    static
+    std::string
+    to_string(ConstBufferSequence const& bs)
+    {
+        using boost::asio::buffer_cast;
+        using boost::asio::buffer_size;
+        std::string s;
+        s.reserve(buffer_size(bs));
+        for(boost::asio::const_buffer b : bs)
+            s.append(buffer_cast<char const*>(b),
+                buffer_size(b));
+        return s;
+    }
+
     template<bool isRequest>
     bool
     equal_body(string_view sv, string_view body)
@@ -574,7 +599,7 @@ public:
         m.version = 11;
         m.set(field::user_agent, "test");
         m.body = "*";
-        BOOST_BEAST_EXPECT(boost::lexical_cast<std::string>(m) ==
+        BOOST_BEAST_EXPECT(to_string(m) ==
             "GET / HTTP/1.1\r\nUser-Agent: test\r\n\r\n*");
     }
 

@@ -12,7 +12,6 @@
 
 #include <boost/beast/core/multi_buffer.hpp>
 #include <boost/beast/unit_test/suite.hpp>
-#include <boost/lexical_cast.hpp>
 #include <ostream>
 
 namespace boost {
@@ -21,6 +20,21 @@ namespace beast {
 class ostream_test : public beast::unit_test::suite
 {
 public:
+    template<class ConstBufferSequence>
+    static
+    std::string
+    to_string(ConstBufferSequence const& bs)
+    {
+        using boost::asio::buffer_cast;
+        using boost::asio::buffer_size;
+        std::string s;
+        s.reserve(buffer_size(bs));
+        for(boost::asio::const_buffer b : bs)
+            s.append(buffer_cast<char const*>(b),
+                buffer_size(b));
+        return s;
+    }
+
     void
     run() override
     {
@@ -29,8 +43,7 @@ public:
             auto os = ostream(b);
             os << "Hello, world!\n";
             os.flush();
-            BOOST_BEAST_EXPECT(boost::lexical_cast<std::string>(
-                buffers(b.data())) == "Hello, world!\n");
+            BOOST_BEAST_EXPECT(to_string(b.data()) == "Hello, world!\n");
             auto os2 = std::move(os);
         }
         {
@@ -45,8 +58,7 @@ public:
                 "0123456789abcdef" "0123456789abcdef" "0123456789abcdef" "0123456789abcdef";
             multi_buffer b;
             ostream(b) << s;
-            BOOST_BEAST_EXPECT(boost::lexical_cast<std::string>(
-                buffers(b.data())) == s);
+            BOOST_BEAST_EXPECT(to_string(b.data()) == s);
         }
     }
 };

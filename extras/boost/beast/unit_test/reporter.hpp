@@ -12,7 +12,6 @@
 
 #include <boost/beast/unit_test/amount.hpp>
 #include <boost/beast/unit_test/recorder.hpp>
-#include <boost/lexical_cast.hpp>
 #include <boost/optional.hpp>
 #include <algorithm>
 #include <chrono>
@@ -218,8 +217,7 @@ reporter<_>::fmtdur(typename clock_type::duration const& d)
     using namespace std::chrono;
     auto const ms = duration_cast<milliseconds>(d);
     if(ms < seconds{1})
-        return boost::lexical_cast<std::string>(
-            ms.count()) + "ms";
+        return std::to_string(ms.count()) + "ms";
     std::stringstream ss;
     ss << std::fixed << std::setprecision(1) <<
        (ms.count()/1000.) << "s";

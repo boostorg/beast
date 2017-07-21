@@ -26,6 +26,7 @@
 #include <array>
 #include <limits>
 #include <list>
+#include <sstream>
 #include <vector>
 
 namespace boost {
@@ -41,6 +42,31 @@ public:
     doc_examples_test()
         : enable_yield_to(2)
     {
+    }
+
+    template<bool isRequest, class Body, class Fields>
+    static
+    std::string
+    to_string(message<isRequest, Body, Fields> const& m)
+    {
+        std::stringstream ss;
+        ss << m;
+        return ss.str();
+    }
+
+    template<class ConstBufferSequence>
+    static
+    std::string
+    to_string(ConstBufferSequence const& bs)
+    {
+        using boost::asio::buffer_cast;
+        using boost::asio::buffer_size;
+        std::string s;
+        s.reserve(buffer_size(bs));
+        for(boost::asio::const_buffer b : bs)
+            s.append(buffer_cast<char const*>(b),
+                buffer_size(b));
+        return s;
     }
 
     template<bool isRequest>
@@ -157,8 +183,7 @@ public:
         response<string_body> res;
         read_istream(is, buffer, res, ec);
         BOOST_BEAST_EXPECTS(! ec, ec.message());
-        BOOST_BEAST_EXPECT(boost::lexical_cast<
-            std::string>(res) == s);
+        BOOST_BEAST_EXPECT(to_string(res) == s);
     }
 
     void
@@ -173,8 +198,7 @@ public:
         error_code ec;
         write_ostream(os, req, ec);
         BOOST_BEAST_EXPECTS(! ec, ec.message());
-        BOOST_BEAST_EXPECT(boost::lexical_cast<
-            std::string>(req) == os.str());
+        BOOST_BEAST_EXPECT(to_string(req) == os.str());
     }
 
     void
@@ -343,8 +367,7 @@ public:
                 std::allocator<double>{}
                     ), ec);
         BOOST_BEAST_EXPECT(
-            boost::lexical_cast<std::string>(
-                buffers(p.server.buffer.data())) ==
+            to_string(p.server.buffer.data()) ==
             "HTTP/1.1 200 OK\r\n"
             "Server: test\r\n"
             "Accept: Expires, Content-MD5\r\n"

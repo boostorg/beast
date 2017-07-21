@@ -14,7 +14,6 @@
 #include <boost/beast/websocket.hpp>
 #include <boost/beast/unit_test/dstream.hpp>
 #include <boost/asio.hpp>
-#include <boost/lexical_cast.hpp>
 #include <atomic>
 #include <chrono>
 #include <cstdlib>
@@ -148,7 +147,7 @@ private:
         if(ec)
             return fail("on_connect", ec);
         ws_.async_handshake(
-            boost::lexical_cast<std::string>(ep_),
+            ep_.address().to_string() + ":" + std::to_string(ep_.port()),
             "/",
             alloc_.wrap(std::bind(
                 &connection::on_handshake,

@@ -12,7 +12,6 @@
 #include <boost/beast/core.hpp>
 #include <boost/beast/websocket.hpp>
 #include <boost/asio.hpp>
-#include <boost/lexical_cast.hpp>
 #include <boost/optional.hpp>
 #include <chrono>
 #include <cstdlib>
