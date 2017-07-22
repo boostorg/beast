@@ -981,14 +981,14 @@ public:
         auto const check =
             [&](error_code const& ev, std::string const& s)
             {
-                for(std::size_t i = 0; i < s.size(); ++i)
+                for(std::size_t i = 1; i < s.size(); ++i)
                 {
                     stream<test::string_istream> ws(ios_,
                         s.substr(i, s.size() - i));
                     try
                     {
-                        ws.accept(boost::asio::buffer(
-                            s.substr(0, i), i));
+                        ws.accept(
+                            boost::asio::buffer(s.data(), i));
                         BEAST_EXPECTS(! ev, ev.message());
                     }
                     catch(system_error const& se)
