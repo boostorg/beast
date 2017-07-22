@@ -850,7 +850,7 @@ async_read(DynamicBuffer& buffer, ReadHandler&& handler)
         DynamicBuffer,
         beast::detail::bound_handler<
             handler_type<ReadHandler, void(error_code)>,
-            decltype(std::placeholders::_1) const&> >{
+            decltype(std::placeholders::_1) &> >{
         beast::bind_handler(
             init.completion_handler,
             std::placeholders::_1),
