@@ -3,6 +3,7 @@ Version 86:
 * Boost prep
 * Remove use of lexical_cast
 * Use custom variant
+* Update README.md
 
 --------------------------------------------------------------------------------
 
