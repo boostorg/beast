@@ -20,7 +20,7 @@ until after the header is available. Then, a body type may be chosen
 depending on the header contents. For example, depending on the verb,
 target path, or target query parameters. To accomplish this, a parser
 is declared to read in the header only, using a trivial body type such as
-[link beast.ref.beast__http__empty_body `empty_body`]. Then, a new parser is constructed
+[link beast.ref.boost__beast__http__empty_body `empty_body`]. Then, a new parser is constructed
 from this existing parser where the body type is conditionally determined
 by information from the header or elsewhere.
 

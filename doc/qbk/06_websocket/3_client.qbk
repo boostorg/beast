@@ -18,8 +18,8 @@ The Upgrade request must include the
 field, and the
 [@https://tools.ietf.org/html/rfc7230#section-5.3 target]
 of the resource to request. The stream member functions
-[link beast.ref.beast__websocket__stream.handshake.overload1 `handshake`] and
-[link beast.ref.beast__websocket__stream.async_handshake.overload1 `async_handshake`]
+[link beast.ref.boost__beast__websocket__stream.handshake.overload1 `handshake`] and
+[link beast.ref.boost__beast__websocket__stream.async_handshake.overload1 `async_handshake`]
 are used to send the request with the required host and target strings.
 
 [ws_snippet_8]
@@ -49,8 +49,8 @@ looks like this:
 [heading Decorators]
 
 If the caller wishes to add or modify fields, the member functions
-[link beast.ref.beast__websocket__stream.handshake_ex `handshake_ex`] and
-[link beast.ref.beast__websocket__stream.async_handshake_ex `async_handshake_ex`]
+[link beast.ref.boost__beast__websocket__stream.handshake_ex `handshake_ex`] and
+[link beast.ref.boost__beast__websocket__stream.async_handshake_ex `async_handshake_ex`]
 are provided which allow an additional function object, called a
 ['decorator], to be passed. The decorator is invoked to modify
 the HTTP Upgrade request as needed. This example sets a subprotocol
@@ -87,7 +87,7 @@ on the received HTTP response message. For example, to check that the
 response to a basic authentication challenge is valid. To achieve this,
 overloads of the handshake member function allow the caller to store the
 received HTTP message in an output reference argument as
-[link beast.ref.beast__websocket__response_type `response_type`]
+[link beast.ref.boost__beast__websocket__response_type `response_type`]
 as follows:
 
 [ws_snippet_10]

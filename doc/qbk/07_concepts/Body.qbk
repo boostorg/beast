@@ -13,7 +13,7 @@ the algorithms used during parsing and serialization.
 
 [heading Associated Types]
 
-* [link beast.ref.beast__http__is_body `is_body`]
+* [link beast.ref.boost__beast__http__is_body `is_body`]
 * __BodyReader__
 * __BodyWriter__
 
@@ -72,11 +72,11 @@ In this table:
         * The function shall not fail
 
         * A call to
-        [link beast.ref.beast__http__message.payload_size `message::payload_size`]
+        [link beast.ref.boost__beast__http__message.payload_size `message::payload_size`]
         will return the same value as `size`.
 
         * A call to
-        [link beast.ref.beast__http__message.prepare_payload `message::prepare_payload`]
+        [link beast.ref.boost__beast__http__message.prepare_payload `message::prepare_payload`]
         will remove "chunked" from the Transfer-Encoding field if it appears
         as the last encoding, and will set the Content-Length field to the
         returned value.
@@ -84,11 +84,11 @@ In this table:
         Otherwise, when the function is omitted:
 
         * A call to
-        [link beast.ref.beast__http__message.payload_size `message::payload_size`]
+        [link beast.ref.boost__beast__http__message.payload_size `message::payload_size`]
         will return `boost::none`.
 
         * A call to
-        [link beast.ref.beast__http__message.prepare_payload `message::prepare_payload`]
+        [link beast.ref.boost__beast__http__message.prepare_payload `message::prepare_payload`]
         will erase the Content-Length field, and add "chunked" as the last
         encoding in the Transfer-Encoding field if it is not already present.
     ]
@@ -100,12 +100,12 @@ In this table:
 
 [heading Models]
 
-* [link beast.ref.beast__http__basic_dynamic_body `basic_dynamic_body`]
-* [link beast.ref.beast__http__basic_file_body `basic_file_body`]
-* [link beast.ref.beast__http__basic_string_body `basic_string_body`]
-* [link beast.ref.beast__http__buffer_body `buffer_body`]
-* [link beast.ref.beast__http__empty_body `empty_body`]
-* [link beast.ref.beast__http__span_body `span_body`]
-* [link beast.ref.beast__http__vector_body `vector_body`]
+* [link beast.ref.boost__beast__http__basic_dynamic_body `basic_dynamic_body`]
+* [link beast.ref.boost__beast__http__basic_file_body `basic_file_body`]
+* [link beast.ref.boost__beast__http__basic_string_body `basic_string_body`]
+* [link beast.ref.boost__beast__http__buffer_body `buffer_body`]
+* [link beast.ref.boost__beast__http__empty_body `empty_body`]
+* [link beast.ref.boost__beast__http__span_body `span_body`]
+* [link beast.ref.boost__beast__http__vector_body `vector_body`]
 
 [endsect]

@@ -22,7 +22,7 @@ representation:
 
 [heading Associated Types]
 
-* [link beast.ref.beast__http__is_body_writer `is_body_writer`]
+* [link beast.ref.boost__beast__http__is_body_writer `is_body_writer`]
 * __Body__
 
 [heading Requirements]
@@ -37,7 +37,7 @@ In this table:
 * `m` denotes a value of type `message&` where
     `std::is_same<decltype(m.body), Body::value_type>::value == true`.
 * `n` is a value of type `boost::optional<std::uint64_t>`.
-* `ec` is a value of type [link beast.ref.beast__error_code `error_code&`].
+* `ec` is a value of type [link beast.ref.boost__beast__error_code `error_code&`].
 
 [table Valid expressions
 [[Expression] [Type] [Semantics, Pre/Post-conditions]]
@@ -106,12 +106,12 @@ In this table:
 
 [heading Models]
 
-* [link beast.ref.beast__http__basic_dynamic_body.writer `basic_dynamic_body::writer`]
-* [link beast.ref.beast__http__basic_file_body__writer `basic_file_body::writer`]
-* [link beast.ref.beast__http__basic_string_body.writer `basic_string_body::writer`]
-* [link beast.ref.beast__http__buffer_body.writer `buffer_body::writer`]
-* [link beast.ref.beast__http__empty_body.writer `empty_body::writer`]
-* [link beast.ref.beast__http__span_body.writer `span_body::writer`]
-* [link beast.ref.beast__http__vector_body.writer `vector_body::writer`]
+* [link beast.ref.boost__beast__http__basic_dynamic_body.writer `basic_dynamic_body::writer`]
+* [link beast.ref.boost__beast__http__basic_file_body__writer `basic_file_body::writer`]
+* [link beast.ref.boost__beast__http__basic_string_body.writer `basic_string_body::writer`]
+* [link beast.ref.boost__beast__http__buffer_body.writer `buffer_body::writer`]
+* [link beast.ref.boost__beast__http__empty_body.writer `empty_body::writer`]
+* [link beast.ref.boost__beast__http__span_body.writer `span_body::writer`]
+* [link beast.ref.boost__beast__http__vector_body.writer `vector_body::writer`]
 
 [endsect]

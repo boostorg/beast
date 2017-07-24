@@ -15,19 +15,19 @@ underlying filesystem:
 [table File Types
 [[Name][Description]]
 [[
-    [link beast.ref.beast__file_stdio `file_stdio`]
+    [link beast.ref.boost__beast__file_stdio `file_stdio`]
 ][
     This implementation of __File__ uses the C++ standard library
     facilities obtained by including `<cstdio>`.
 ]]
 [[
-    [link beast.ref.beast__file_win32 `file_win32`]
+    [link beast.ref.boost__beast__file_win32 `file_win32`]
 ][
     This implements a __File__ for the Win32 API. It provides low level
     access to the native file handle when necessary.
 ]]
 [[
-    [link beast.ref.beast__file_posix `file_posix`]
+    [link beast.ref.boost__beast__file_posix `file_posix`]
 ][
     For POSIX systems, this class provides a suitable implementation
     of __File__ which wraps the native file descriptor and provides

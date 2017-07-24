@@ -27,7 +27,7 @@ In this table:
 * `f` is a value of type `F`.
 * `v` is an `unsigned` value representing the HTTP version.
 * `c` is an `unsigned` representing the HTTP status-code.
-* `m` is a value of type [link beast.ref.beast__http__verb `verb`].
+* `m` is a value of type [link beast.ref.boost__beast__http__verb `verb`].
 
 [table Valid expressions
 [[expression][type][semantics, pre/post-conditions]]
@@ -73,6 +73,6 @@ In this table:
 
 [heading Models]
 
-* [link beast.ref.beast__http__basic_fields.reader `basic_fields::reader`]
+* [link beast.ref.boost__beast__http__basic_fields.reader `basic_fields::reader`]
 
 [endsect]

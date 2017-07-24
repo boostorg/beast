@@ -13,8 +13,8 @@ types which meet these requirements.
 
 [heading Associated Types]
 
-* [link beast.ref.beast__file_mode `file_mode`]
-* [link beast.ref.beast__is_file `is_file`]
+* [link beast.ref.boost__beast__file_mode `file_mode`]
+* [link beast.ref.boost__beast__is_file `is_file`]
 
 [heading Requirements]
 
@@ -24,12 +24,12 @@ In this table:
 * `f` is an instance of `F`
 * `p` is a value of type `char const*` which points to a null
       terminated utf-8 encoded string.
-* `m` is an instance of [link beast.ref.beast__file_mode `file_mode`]
+* `m` is an instance of [link beast.ref.boost__beast__file_mode `file_mode`]
 * `n` is a number of bytes, convertible to `std::size_t`
 * `o` is a byte offset in the file, convertible to `std::uint64_t`
 * `b` is any non-const pointer to memory
 * `c` is any possibly-const pointer to memory
-* `ec` is a reference of type [link beast.ref.beast__error_code `error_code`]
+* `ec` is a reference of type [link beast.ref.boost__beast__error_code `error_code`]
 
 [table Valid expressions
 [[Expression] [Type] [Semantics, Pre/Post-conditions]]
@@ -170,8 +170,8 @@ In this table:
 
 [heading Models]
 
-* [link beast.ref.beast__file_posix `file_posix`]
-* [link beast.ref.beast__file_stdio `file_stdio`]
-* [link beast.ref.beast__file_win32 `file_win32`]
+* [link beast.ref.boost__beast__file_posix `file_posix`]
+* [link beast.ref.boost__beast__file_stdio `file_stdio`]
+* [link beast.ref.boost__beast__file_win32 `file_win32`]
 
 [endsect]

@@ -31,7 +31,7 @@ field value.
 
 The __serializer__ automatically applies the chunked tranfer encoding
 when a message returns `true` from
-[link beast.ref.beast__http__message.chunked.overload1 `message::chunked`].
+[link beast.ref.boost__beast__http__message.chunked.overload1 `message::chunked`].
 The boundaries between chunks emitted by the serializer are implementation
 defined. Chunk extensions and trailers are omitted. Applications which
 need precise control over the chunk boundaries, extensions, and trailers
@@ -45,12 +45,12 @@ extensions, and desired trailers, and use them with these helpers:
 [table Chunking Helpers
 [[Name][Description]]
 [
-    [[link beast.ref.beast__http__chunk_body `chunk_body`]]
+    [[link beast.ref.boost__beast__http__chunk_body `chunk_body`]]
     [
         A buffer sequence representing a complete chunk body.
     ]
 ][
-    [[link beast.ref.beast__http__chunk_crlf `chunk_crlf`]]
+    [[link beast.ref.boost__beast__http__chunk_crlf `chunk_crlf`]]
     [
         A buffer sequence representing the CRLF (`"\r\n"`) delimiter.
         This class is used when the caller desires to emit the
@@ -58,17 +58,17 @@ extensions, and desired trailers, and use them with these helpers:
     ]
 ][
     [
-        [link beast.ref.beast__http__chunk_extensions `chunk_extensions`]
+        [link beast.ref.boost__beast__http__chunk_extensions `chunk_extensions`]
 
 
-        [link beast.ref.beast__http__basic_chunk_extensions `basic_chunk_extensions`]
+        [link beast.ref.boost__beast__http__basic_chunk_extensions `basic_chunk_extensions`]
     ]
     [
         This is a simple, allocating container which lets callers
         easily build up a set of chunk extensions.
     ]
 ][
-    [[link beast.ref.beast__http__chunk_header `chunk_header`]]
+    [[link beast.ref.boost__beast__http__chunk_header `chunk_header`]]
     [
         A buffer sequence representing a hex-encoded chunk size,
         followed by an optional set of chunk extensions, including
@@ -78,7 +78,7 @@ extensions, and desired trailers, and use them with these helpers:
         operations.
     ]
 ][
-    [[link beast.ref.beast__http__chunk_last `chunk_last`]]
+    [[link beast.ref.boost__beast__http__chunk_last `chunk_last`]]
     [
         A buffer sequence representing a last chunk. The last chunk
         indicates the end of the chunked message payload, and may
@@ -86,9 +86,9 @@ extensions, and desired trailers, and use them with these helpers:
     ]
 ][
     [
-        [link beast.ref.beast__http__make_chunk `make_chunk`]
+        [link beast.ref.boost__beast__http__make_chunk `make_chunk`]
 
-        [link beast.ref.beast__http__make_chunk_last `make_chunk_last`]
+        [link beast.ref.boost__beast__http__make_chunk_last `make_chunk_last`]
     ]
     [
         These helper functions are used to construct a chunk
@@ -156,7 +156,7 @@ interface provided by __parser__:
 [table Chunking Parse Callbacks
 [[Name][Description]]
 [
-    [[link beast.ref.beast__http__parser.on_chunk_header `on_chunk_header`]]
+    [[link beast.ref.boost__beast__http__parser.on_chunk_header `on_chunk_header`]]
     [
         Set a callback to be invoked on each chunk header.
 
@@ -166,7 +166,7 @@ interface provided by __parser__:
         octets have been parsed.
 
         The extensions are provided in raw, validated form, use
-        [link beast.ref.beast__http__basic_chunk_extensions.parse `chunk_extensions::parse`]
+        [link beast.ref.boost__beast__http__basic_chunk_extensions.parse `chunk_extensions::parse`]
         to parse the extensions into a structured container for easier access.
         The implementation type-erases the callback without requiring
         a dynamic allocation. For this reason, the callback object is
@@ -182,7 +182,7 @@ interface provided by __parser__:
         ```
     ]
 ][
-    [[link beast.ref.beast__http__parser.on_chunk_body `on_chunk_body`]]
+    [[link beast.ref.boost__beast__http__parser.on_chunk_body `on_chunk_body`]]
     [
         Set a callback to be invoked on chunk body data.
 

@@ -14,7 +14,7 @@ all of the buffers representing the message are known ahead of time:
 [ws_snippet_15]
 
 [important
-    Calls to [link beast.ref.beast__websocket__stream.set_option `set_option`]
+    Calls to [link beast.ref.boost__beast__websocket__stream.set_option `set_option`]
     must be made from the same implicit or explicit strand as that used
     to perform other operations.
 ]

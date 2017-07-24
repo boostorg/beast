@@ -19,17 +19,17 @@ These metafunctions check if types match the buffer concepts:
 [table Buffer Type Checks
 [[Name][Description]]
 [[
-    [link beast.ref.beast__is_dynamic_buffer `is_dynamic_buffer`]
+    [link beast.ref.boost__beast__is_dynamic_buffer `is_dynamic_buffer`]
 ][
     Determine if a type meets the requirements of __DynamicBuffer__.
 ]]
 [[
-    [link beast.ref.beast__is_const_buffer_sequence `is_const_buffer_sequence`]
+    [link beast.ref.boost__beast__is_const_buffer_sequence `is_const_buffer_sequence`]
 ][
     Determine if a type meets the requirements of __ConstBufferSequence__.
 ]]
 [[
-    [link beast.ref.beast__is_mutable_buffer_sequence `is_mutable_buffer_sequence`]
+    [link beast.ref.boost__beast__is_mutable_buffer_sequence `is_mutable_buffer_sequence`]
 ][
     Determine if a type meets the requirements of __MutableBufferSequence__.
 ]]
@@ -41,7 +41,7 @@ of scenarios:
 [table Dynamic Buffer Implementations
 [[Name][Description]]
 [[
-    [link beast.ref.beast__buffers_adapter `buffers_adapter`]
+    [link beast.ref.boost__beast__buffers_adapter `buffers_adapter`]
 ][
     This wrapper adapts any __MutableBufferSequence__ into a
     __DynamicBuffer__ with an upper limit on the total size of the input and
@@ -49,7 +49,7 @@ of scenarios:
     The implementation does not perform heap allocations.
 ]]
 [[
-    [link beast.ref.beast__drain_buffer `drain_buffer`]
+    [link beast.ref.boost__beast__drain_buffer `drain_buffer`]
 ][
     A drain buffer has a small internal buffer and maximum size that
     uses no dynamic allocation. It always has a size of zero, and
@@ -58,8 +58,8 @@ of scenarios:
     efficiently discard the data.
 ]]
 [[
-    [link beast.ref.beast__flat_buffer `flat_buffer`]
-    [link beast.ref.beast__basic_flat_buffer `basic_flat_buffer`]
+    [link beast.ref.boost__beast__flat_buffer `flat_buffer`]
+    [link beast.ref.boost__beast__basic_flat_buffer `basic_flat_buffer`]
 ][
     Guarantees that input and output areas are buffer sequences with
     length one.
@@ -69,8 +69,8 @@ of scenarios:
     [@http://en.cppreference.com/w/cpp/concept/AllocatorAwareContainer [*AllocatorAwareContainer]].
 ]]
 [[
-    [link beast.ref.beast__multi_buffer `multi_buffer`]
-    [link beast.ref.beast__basic_multi_buffer `basic_multi_buffer`]
+    [link beast.ref.boost__beast__multi_buffer `multi_buffer`]
+    [link beast.ref.boost__beast__basic_multi_buffer `basic_multi_buffer`]
 ][
     Uses a sequence of one or more character arrays of varying sizes.
     Additional character array objects are appended to the sequence to
@@ -79,8 +79,8 @@ of scenarios:
     [@http://en.cppreference.com/w/cpp/concept/AllocatorAwareContainer [*AllocatorAwareContainer]].
 ]]
 [[
-    [link beast.ref.beast__flat_static_buffer `flat_static_buffer`]
-    [link beast.ref.beast__flat_static_buffer_base `flat_static_buffer_base`]
+    [link beast.ref.boost__beast__flat_static_buffer `flat_static_buffer`]
+    [link beast.ref.boost__beast__flat_static_buffer_base `flat_static_buffer_base`]
 ][
     Guarantees that input and output areas are buffer sequences with
     length one.
@@ -90,8 +90,8 @@ of scenarios:
     kept in the class; the implementation does not perform heap allocations.
 ]]
 [[
-    [link beast.ref.beast__static_buffer `static_buffer`]
-    [link beast.ref.beast__static_buffer_base `static_buffer_base`]
+    [link beast.ref.boost__beast__static_buffer `static_buffer`]
+    [link beast.ref.boost__beast__static_buffer_base `static_buffer_base`]
 ][
     Provides the facilities of a circular dynamic buffer. subject to an
     upper limit placed on the total size of the input and output areas
@@ -114,7 +114,7 @@ transferred.
 [table Buffer Algorithms and Types
 [[Name][Description]]
 [[
-    [link beast.ref.beast__buffer_cat `buffer_cat`]
+    [link beast.ref.boost__beast__buffer_cat `buffer_cat`]
 ][
     This functions returns a new buffer sequence which, when iterated,
     traverses the sequence which would be formed if all of the input buffer
@@ -123,33 +123,33 @@ transferred.
     expensive system calls.
 ]]
 [[
-    [link beast.ref.beast__buffer_cat_view `buffer_cat_view`]
+    [link beast.ref.boost__beast__buffer_cat_view `buffer_cat_view`]
 ][
     This class represents the buffer sequence formed by concatenating
     two or more buffer sequences. This is type of object returned by
-    [link beast.ref.beast__buffer_cat `buffer_cat`].
+    [link beast.ref.boost__beast__buffer_cat `buffer_cat`].
 ]]
 [[
-    [link beast.ref.beast__buffer_front `buffer_front`]
+    [link beast.ref.boost__beast__buffer_front `buffer_front`]
 ][
     This function returns the first buffer in a buffer sequence,
     or a buffer of size zero if the buffer sequence has no elements.
 ]]
 [[
-    [link beast.ref.beast__buffer_prefix `buffer_prefix`]
+    [link beast.ref.boost__beast__buffer_prefix `buffer_prefix`]
 ][
     This function returns a new buffer or buffer sequence which represents
     a prefix of the original buffers.
 ]]
 [[
-    [link beast.ref.beast__buffer_prefix_view `buffer_prefix_view`]
+    [link beast.ref.boost__beast__buffer_prefix_view `buffer_prefix_view`]
 ][
     This class represents the buffer sequence formed from a prefix of
     an existing buffer sequence. This is the type of buffer returned by
-    [link beast.ref.beast__buffer_prefix.overload3 `buffer_prefix`].
+    [link beast.ref.boost__beast__buffer_prefix.overload3 `buffer_prefix`].
 ]]
 [[
-    [link beast.ref.beast__consuming_buffers `consuming_buffers`]
+    [link beast.ref.boost__beast__consuming_buffers `consuming_buffers`]
 ][
     This class wraps the underlying memory of an existing buffer sequence
     and presents a suffix of the original sequence. The length of the suffix
@@ -164,13 +164,13 @@ output streams.
 [table Buffer Output Streams
 [[Name][Description]]
 [[
-    [link beast.ref.beast__buffers `buffers`]
+    [link beast.ref.boost__beast__buffers `buffers`]
 ][
     This function wraps a __ConstBufferSequence__ so it may be
     used with `operator<<` and `std::ostream`.
 ]]
 [[
-    [link beast.ref.beast__ostream `ostream`]
+    [link beast.ref.boost__beast__ostream `ostream`]
 ][
     This function returns a `std::ostream` which wraps a dynamic buffer.
     Characters sent to the stream using `operator<<` are stored in the

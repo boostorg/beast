@@ -51,10 +51,10 @@ special meaning:
     which is already connected and has handshaked with a remote host.
 ]]
 [[
-    [link beast.ref.beast__websocket__stream [*`ws`]]
+    [link beast.ref.boost__beast__websocket__stream [*`ws`]]
 ][
     A variable of type
-    [link beast.ref.beast__websocket__stream `websocket::stream<boost::asio::ip::tcp::socket>`]
+    [link beast.ref.boost__beast__websocket__stream `websocket::stream<boost::asio::ip::tcp::socket>`]
     which is already connected with a remote host.
 ]]
 ]

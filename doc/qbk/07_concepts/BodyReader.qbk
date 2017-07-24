@@ -22,7 +22,7 @@ intended to obtain buffers for these scenarios:
 
 [heading Associated Types]
 
-* [link beast.ref.beast__http__is_body_reader `is_body_reader`]
+* [link beast.ref.boost__beast__http__is_body_reader `is_body_reader`]
 * __Body__
 
 [heading Requirements]
@@ -35,7 +35,7 @@ In this table:
 * `a` denotes a value of type `R`.
 * `m` denotes a possibly const value of type `message&` where
       `std::is_same<decltype(m.body), Body::value_type>:value == true`.
-* `ec` is a value of type [link beast.ref.beast__error_code `error_code&`].
+* `ec` is a value of type [link beast.ref.boost__beast__error_code `error_code&`].
 * `R<T>` is the type `boost::optional<std::pair<T, bool>>`.
 
 [table Valid expressions
@@ -103,12 +103,12 @@ In this table:
 
 [heading Models]
 
-* [link beast.ref.beast__http__basic_dynamic_body.reader `basic_dynamic_body::reader`]
-* [link beast.ref.beast__http__basic_file_body__reader `basic_file_body::reader`]
-* [link beast.ref.beast__http__basic_string_body.reader `basic_string_body::reader`]
-* [link beast.ref.beast__http__buffer_body.reader `buffer_body::reader`]
-* [link beast.ref.beast__http__empty_body.reader `empty_body::reader`]
-* [link beast.ref.beast__http__span_body.reader `span_body::reader`]
-* [link beast.ref.beast__http__vector_body.reader `vector_body::reader`]
+* [link beast.ref.boost__beast__http__basic_dynamic_body.reader `basic_dynamic_body::reader`]
+* [link beast.ref.boost__beast__http__basic_file_body__reader `basic_file_body::reader`]
+* [link beast.ref.boost__beast__http__basic_string_body.reader `basic_string_body::reader`]
+* [link beast.ref.boost__beast__http__buffer_body.reader `buffer_body::reader`]
+* [link beast.ref.boost__beast__http__empty_body.reader `empty_body::reader`]
+* [link beast.ref.boost__beast__http__span_body.reader `span_body::reader`]
+* [link beast.ref.boost__beast__http__vector_body.reader `vector_body::reader`]
 
 [endsect]

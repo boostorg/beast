@@ -40,7 +40,7 @@ __message__ objects using the __basic_fields__ Fields container.
     ```
 ]]
 [[
-    [link beast.ref.beast__http__request_parser `request_parser`]
+    [link beast.ref.boost__beast__http__request_parser `request_parser`]
 ][
     ```
     /// An HTTP/1 parser for producing a request message.
@@ -49,7 +49,7 @@ __message__ objects using the __basic_fields__ Fields container.
     ```
 ]]
 [[
-    [link beast.ref.beast__http__response_parser `response_parser`]
+    [link beast.ref.boost__beast__http__response_parser `response_parser`]
 ][
     ```
     /// An HTTP/1 parser for producing a response message.
@@ -69,32 +69,32 @@ The stream operations which work on parsers are:
 [table Parser Stream Operations
 [[Name][Description]]
 [[
-    [link beast.ref.beast__http__read.overload1 [*read]]
+    [link beast.ref.boost__beast__http__read.overload1 [*read]]
 ][
     Read everything into a parser from a __SyncWriteStream__.
 ]]
 [[
-    [link beast.ref.beast__http__async_read.overload1 [*async_read]]
+    [link beast.ref.boost__beast__http__async_read.overload1 [*async_read]]
 ][
     Read everything into a parser asynchronously from an __AsyncWriteStream__.
 ]]
 [[
-    [link beast.ref.beast__http__read_header.overload1 [*read_header]]
+    [link beast.ref.boost__beast__http__read_header.overload1 [*read_header]]
 ][
     Read only the header octets into a parser from a __SyncWriteStream__.
 ]]
 [[
-    [link beast.ref.beast__http__async_read_header [*async_read_header]]
+    [link beast.ref.boost__beast__http__async_read_header [*async_read_header]]
 ][
     Read only the header octets into a parser asynchronously from an __AsyncWriteStream__.
 ]]
 [[
-    [link beast.ref.beast__http__read_some.overload1 [*read_some]]
+    [link beast.ref.boost__beast__http__read_some.overload1 [*read_some]]
 ][
     Read some octets into a parser from a __SyncReadStream__.
 ]]
 [[
-    [link beast.ref.beast__http__async_read_some [*async_read_some]]
+    [link beast.ref.boost__beast__http__async_read_some [*async_read_some]]
 ][
     Read some octets into a parser asynchronously from an __AsyncWriteStream__.
 ]]
@@ -112,10 +112,10 @@ suitable.
 The parser contains a message constructed internally. Arguments passed
 to the parser's constructor are forwarded into the message container.
 The caller can access the message inside the parser by calling
-[link beast.ref.beast__http__parser.get `parser::get`].
+[link beast.ref.boost__beast__http__parser.get `parser::get`].
 If the `Fields` and `Body` types are [*MoveConstructible], the caller
 can take ownership of the message by calling
-[link beast.ref.beast__http__parser.release `parser::release`]. In this example
+[link beast.ref.boost__beast__http__parser.release `parser::release`]. In this example
 we read an HTTP response with a string body using a parser, then print
 the response:
 
@@ -126,7 +126,7 @@ the response:
 [section Incremental Read]
 
 This function uses
-[link beast.ref.beast__http__buffer_body `buffer_body`]
+[link beast.ref.boost__beast__http__buffer_body `buffer_body`]
 and parser stream operations to read a message body progressively
 using a small, fixed-size buffer:
 

@@ -26,7 +26,7 @@ frames. If a control callback is registered, the callback is notified of
 the incoming control frame. The implementation will respond to pings
 automatically. The receipt of a close frame initiates the WebSocket
 close procedure, eventually resulting in the error code
-[link beast.ref.beast__websocket__error `error::closed`]
+[link beast.ref.boost__beast__websocket__error `error::closed`]
 being delivered to the caller in a subsequent read operation, assuming
 no other error takes place.
 
@@ -44,13 +44,13 @@ frames.
 Ping, pong, and close messages are control frames which may be sent at
 any time by either peer on an established WebSocket connection. They
 are sent using the functions
-[link beast.ref.beast__websocket__stream.ping `ping`],
-[link beast.ref.beast__websocket__stream.pong `pong`].
+[link beast.ref.boost__beast__websocket__stream.ping `ping`],
+[link beast.ref.boost__beast__websocket__stream.pong `pong`].
 and
-[link beast.ref.beast__websocket__stream.close `close`].
+[link beast.ref.boost__beast__websocket__stream.close `close`].
 To be notified of control frames, callers may register a
 ['control callback] using
-[link beast.ref.beast__websocket__stream.control_callback `control_callback`].
+[link beast.ref.boost__beast__websocket__stream.control_callback `control_callback`].
 The object provided with this option should be callable with the following
 signature:
 
@@ -61,7 +61,7 @@ pongs, and close frames received through either synchronous read functions
 or asynchronous read functions. The type of frame and payload text are
 passed as parameters to the control callback. If the frame is a close
 frame, the close reason may be obtained by calling
-[link beast.ref.beast__websocket__stream.reason `reason`].
+[link beast.ref.boost__beast__websocket__stream.reason `reason`].
 
 Unlike regular completion handlers used in calls to asynchronous initiation
 functions, the control callback only needs to be set once. The callback is
@@ -82,7 +82,7 @@ The WebSocket protocol defines a procedure and control message for initiating
 a close of the session. Handling of close initiated by the remote end of the
 connection is performed automatically. To manually initiate a close, use
 the
-[link beast.ref.beast__websocket__stream.close `close`] function:
+[link beast.ref.boost__beast__websocket__stream.close `close`] function:
 
 [ws_snippet_18]
 
@@ -97,7 +97,7 @@ before it receives and responds to the close frame.
 
 [important
     To receive the
-    [link beast.ref.beast__websocket__error `error::closed`]
+    [link beast.ref.boost__beast__websocket__error `error::closed`]
     error, a read operation is required.
 ]
 

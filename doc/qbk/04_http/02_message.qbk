@@ -27,7 +27,7 @@ messages:
     ```
 ]]
 [[
-    [link beast.ref.beast__http__request `request`]
+    [link beast.ref.boost__beast__http__request `request`]
 ][
     ```
     /// A typical HTTP request
@@ -36,7 +36,7 @@ messages:
     ```
 ]]
 [[
-    [link beast.ref.beast__http__response `response`]
+    [link beast.ref.boost__beast__http__response `response`]
 ][
     ```
     /// A typical HTTP response
@@ -75,7 +75,7 @@ class template __header__ and some aliases to model HTTP/1 and HTTP/2 headers:
     ```
 ]]
 [[
-    [link beast.ref.beast__http__request_header `request_header`]
+    [link beast.ref.boost__beast__http__request_header `request_header`]
 ][
     ```
     /// A typical HTTP request header
@@ -84,7 +84,7 @@ class template __header__ and some aliases to model HTTP/1 and HTTP/2 headers:
     ```
 ]]
 [[
-    [link beast.ref.beast__http__response_header `response_header`]
+    [link beast.ref.boost__beast__http__response_header `response_header`]
 ][
     ```
     /// A typical HTTP response header
@@ -104,12 +104,12 @@ member functions of `Fields`. This diagram shows the inheritance
 relationship between header and message, along with some of the
 notable differences in members in each partial specialization:
 
-[$images/message.png [width 730px] [height 410px]]
+[$beast/images/message.png [width 730px] [height 410px]]
 
 [heading:body Body Types]
 
 Beast defines the __Body__ concept, which determines both the type of
-the [link beast.ref.beast__http__message.body `message::body`] member
+the [link beast.ref.boost__beast__http__message.body `message::body`] member
 (as seen in the diagram above) and may also include algorithms for
 transferring buffers in and out. These algorithms are used during
 parsing and serialization. Users may define their own body types which
@@ -118,26 +118,26 @@ meet the requirements, or use the ones that come with the library:
 [table
 [[Name][Description]]
 [[
-    [link beast.ref.beast__http__buffer_body `buffer_body`]
+    [link beast.ref.boost__beast__http__buffer_body `buffer_body`]
 ][
     A body whose
-    [link beast.ref.beast__http__buffer_body__value_type `value_type`]
+    [link beast.ref.boost__beast__http__buffer_body__value_type `value_type`]
     holds a raw pointer and size to a caller-provided buffer.
     This allows for serialization of body data coming from
     external sources, and incremental parsing of message body
     content using a fixed size buffer.
 ]]
 [[
-    [link beast.ref.beast__http__dynamic_body `dynamic_body`]
+    [link beast.ref.boost__beast__http__dynamic_body `dynamic_body`]
 
-    [link beast.ref.beast__http__basic_dynamic_body `basic_dynamic_body`]
+    [link beast.ref.boost__beast__http__basic_dynamic_body `basic_dynamic_body`]
 ][
     A body whose `value_type` is a __DynamicBuffer__. It inherits
     the insertion complexity of the underlying choice of dynamic buffer.
     Messages with this body type may be serialized and parsed.
 ]]
 [[
-    [link beast.ref.beast__http__empty_body `empty_body`]
+    [link beast.ref.boost__beast__http__empty_body `empty_body`]
 ][
     A special body with an empty `value_type` indicating that the
     message has no body. Messages with this body may be serialized
@@ -145,9 +145,9 @@ meet the requirements, or use the ones that come with the library:
     with this body will generate a unique error.
 ]]
 [[
-    [link beast.ref.beast__http__file_body `file_body`]
+    [link beast.ref.boost__beast__http__file_body `file_body`]
 
-    [link beast.ref.beast__http__basic_file_body `basic_file_body`]
+    [link beast.ref.boost__beast__http__basic_file_body `basic_file_body`]
 ][
     This body is represented by a file opened for either reading or
     writing. Messages with this body may be serialized and parsed.
@@ -155,17 +155,17 @@ meet the requirements, or use the ones that come with the library:
     for streaming and incremental sends and receives.
 ]]
 [[
-    [link beast.ref.beast__http__span_body `span_body`]
+    [link beast.ref.boost__beast__http__span_body `span_body`]
 ][
     A body whose `value_type` is a
-    [link beast.ref.beast__span `span`],
+    [link beast.ref.boost__beast__span `span`],
     a non-owning reference to a single linear buffer of bytes.
     Messages with this body type may be serialized and parsed.
 ]]
 [[
-    [link beast.ref.beast__http__string_body `string_body`]
+    [link beast.ref.boost__beast__http__string_body `string_body`]
 
-    [link beast.ref.beast__http__basic_string_body `basic_string_body`]
+    [link beast.ref.boost__beast__http__basic_string_body `basic_string_body`]
 ][
     A body whose `value_type` is `std::basic_string` or `std::string`.
     Insertion complexity is amortized constant time, while capacity
@@ -173,7 +173,7 @@ meet the requirements, or use the ones that come with the library:
     and parsed. This is the type of body used in the examples.
 ]]
 [[
-    [link beast.ref.beast__http__vector_body `vector_body`]
+    [link beast.ref.boost__beast__http__vector_body `vector_body`]
 ][
     A body whose `value_type` is `std::vector`. Insertion complexity
     is amortized constant time, while capacity grows geometrically.
@@ -204,7 +204,7 @@ request with an empty message body:
 
 In this code we create an HTTP response with a status code indicating success.
 This message has a body with a non-zero length. The function
-[link beast.ref.beast__http__message.prepare_payload `message::prepare_payload`]
+[link beast.ref.boost__beast__http__message.prepare_payload `message::prepare_payload`]
 automatically sets the Content-Length or Transfer-Encoding field
 depending on the content and type of the `body` member. Use of this function
 is optional; these fields may also be set explicitly.
@@ -228,6 +228,6 @@ The implementation will automatically fill in the obsolete
 [@https://tools.ietf.org/html/rfc7230#section-3.1.2 reason-phrase]
 from the status code when serializing a message. Or it may
 be set directly using
-[link beast.ref.beast__http__header.reason.overload2 `header::reason`].
+[link beast.ref.boost__beast__http__header.reason.overload2 `header::reason`].
 
 [endsect]

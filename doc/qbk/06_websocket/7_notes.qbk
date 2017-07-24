@@ -40,7 +40,7 @@ or require threads.
 [heading Thread Safety]
 
 Like a regular __Asio__ socket, a
-[link beast.ref.beast__websocket__stream `stream`]
+[link beast.ref.boost__beast__websocket__stream `stream`]
 is not thread safe. Callers are responsible for synchronizing operations on
 the socket using an implicit or explicit strand, as per the Asio documentation.
 The asynchronous interface supports one active read and one active write

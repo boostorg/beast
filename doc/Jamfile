@@ -5,77 +5,57 @@
 # file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 #
 
-import os ;
-
-local broot = [ os.environ BOOST_ROOT ] ;
-
 project beast/doc ;
+
+import boostbook : boostbook ;
 
 using boostbook ;
 using quickbook ;
 using doxygen ;
 
-import quickbook ;
+#
+# HTML documentation for $(BOOST_ROOT)/doc/html
+#
 
-path-constant out : . ;
-
-install stylesheets
-    :
-        $(broot)/doc/src/boostbook.css
-    :
-        <location>$(out)/html
-    ;
-
-explicit stylesheets ;
-
-install images
-    :
-        [ glob $(broot)/doc/src/images/*.png ]
-        images/beast.png
-        images/message.png
-    :
-        <location>$(out)/html/images
-    ;
-
-explicit images ;
-
-install callouts
-    :
-        [ glob $(broot)/doc/src/images/callouts/*.png ]
-    :
-        <location>$(out)/html/images/callouts
-    ;
-
-explicit callout ;
-
-xml doc
+xml beast_doc
     :
         qbk/00_main.qbk
-    :
-        <location>temp
-        <include>$(broot)/tools/boostbook/dtd
     ;
 
-boostbook boostdoc
+explicit beast_doc ;
+
+install beast_doc_images
     :
-        doc
+        images/message.png
     :
-        <xsl:param>boost.root=$(broot)
-        <xsl:param>boost.image.src=images/beast.png
-        <xsl:param>boost.image.alt="Beast Logo"
-        <xsl:param>boost.image.w=1330
-        <xsl:param>boost.image.h=80
-        <xsl:param>chapter.autolabel=0
+        <location>html/beast/images
+    ;
+
+explicit beast_doc_images ;
+
+boostbook beast
+    :
+        beast_doc
+    :
+        <xsl:param>boost.root=../../../..
+        <xsl:param>root.filename=beast
+        <xsl:param>chapter.autolabel=1
         <xsl:param>chunk.section.depth=8                # Depth to which sections should be chunked
         <xsl:param>chunk.first.sections=1               # Chunk the first top-level section?
         <xsl:param>toc.section.depth=8                  # How deep should recursive sections appear in the TOC?
         <xsl:param>toc.max.depth=8                      # How many levels should be created for each TOC?
         <xsl:param>generate.section.toc.level=8         # Control depth of TOC generation in sections
         <xsl:param>generate.toc="chapter toc,title section nop reference nop"
-        <include>$(broot)/tools/boostbook/dtd
+        <include>../../../tools/boostbook/dtd
     :
-        <location>temp
-        <dependency>images
-        <dependency>stylesheets
+        <dependency>beast_doc_images
     ;
 
+
+alias boostdoc : beast : : : ;
+
+explicit boostdoc ;
+
+alias boostrelease ;
+
+explicit boostrelease ;

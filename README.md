@@ -5,8 +5,8 @@
 
 Branch      | Build         | Coverage       | Documentation
 ------------|---------------|----------------|---------------
-[master](https://github.com/boostorg/beast/tree/master)   | [![Build Status](https://travis-ci.org/boostorg/beast.svg?branch=master)](https://travis-ci.org/boostorg/beast)  [![Build status](https://ci.appveyor.com/api/projects/status/g0llpbvhpjuxjnlw/branch/master?svg=true)](https://ci.appveyor.com/project/vinniefalco/beast/branch/master)   | [![codecov](https://codecov.io/gh/vinniefalco/Beast/branch/master/graph/badge.svg)](https://codecov.io/gh/boostorg/beast/branch/master)   | [![Documentation](https://img.shields.io/badge/documentation-master-brightgreen.svg)](http://vinniefalco.github.io/beast/)
-[develop](https://github.com/boostorg/beast/tree/develop) | [![Build Status](https://travis-ci.org/boostorg/beast.svg?branch=develop)](https://travis-ci.org/boostorg/beast) [![Build status](https://ci.appveyor.com/api/projects/status/g0llpbvhpjuxjnlw/branch/develop?svg=true)](https://ci.appveyor.com/project/vinniefalco/beast/branch/develop) | [![codecov](https://codecov.io/gh/vinniefalco/Beast/branch/develop/graph/badge.svg)](https://codecov.io/gh/boostorg/beast/branch/develop) | [![Documentation](https://img.shields.io/badge/documentation-develop-brightgreen.svg)](http://vinniefalco.github.io/stage/beast/develop)
+[master](https://github.com/boostorg/beast/tree/master)   | [![Build Status](https://travis-ci.org/boostorg/beast.svg?branch=master)](https://travis-ci.org/boostorg/beast)  [![Build status](https://ci.appveyor.com/api/projects/status/g0llpbvhpjuxjnlw/branch/master?svg=true)](https://ci.appveyor.com/project/vinniefalco/beast/branch/master)   | [![codecov](https://codecov.io/gh/vinniefalco/Beast/branch/master/graph/badge.svg)](https://codecov.io/gh/boostorg/beast/branch/master)   | [![Documentation](https://img.shields.io/badge/documentation-master-brightgreen.svg)](http://www.boost.org/doc/libs/master/libs/bind/doc/html/beast.html)
+[develop](https://github.com/boostorg/beast/tree/develop) | [![Build Status](https://travis-ci.org/boostorg/beast.svg?branch=develop)](https://travis-ci.org/boostorg/beast) [![Build status](https://ci.appveyor.com/api/projects/status/g0llpbvhpjuxjnlw/branch/develop?svg=true)](https://ci.appveyor.com/project/vinniefalco/beast/branch/develop) | [![codecov](https://codecov.io/gh/vinniefalco/Beast/branch/develop/graph/badge.svg)](https://codecov.io/gh/boostorg/beast/branch/develop) | [![Documentation](https://img.shields.io/badge/documentation-develop-brightgreen.svg)](http://www.boost.org/doc/libs/develop/libs/bind/doc/html/beast.html)
 
 ## Contents
 
@@ -89,16 +89,15 @@ library to link with. If you use coroutines you'll also need to link
 with the Boost.Coroutine library. Please visit the Boost documentation
 for instructions on how to do this for your particular build system.
 
-For the examples and tests, Beast provides build scripts for Boost.Build (bjam)
-and CMake. It is possible to generate Microsoft Visual Studio or Apple
-Xcode project files using CMake by executing these commands from
+For the examples and tests, Beast provides build scripts for Boost.Build
+(bjam) and CMake (Windows). It is possible to generate Microsoft Visual
+Studio project files using CMake by executing these commands from
 the root of the repository:
 
 ```
 mkdir bin
 cd bin
 cmake ..                                    # for 32-bit Windows builds
-cmake -G Xcode ..                           # for Apple Xcode builds
 
 cd ..
 mkdir bin64
