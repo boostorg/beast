@@ -4,8 +4,8 @@
 DOXYFILE_ENCODING      = UTF-8
 PROJECT_NAME           = "Beast"
 PROJECT_NUMBER         =
-PROJECT_BRIEF          = C++ Library
-PROJECT_LOGO           = images/beast.png
+PROJECT_BRIEF          = C++ Networking Library
+PROJECT_LOGO           =
 OUTPUT_DIRECTORY       =
 CREATE_SUBDIRS         = NO
 ALLOW_UNICODE_NAMES    = NO
@@ -103,11 +103,11 @@ WARN_LOGFILE           =
 # Configuration options related to the input files
 #---------------------------------------------------------------------------
 INPUT = \
-        ../include/boost/beast/ \
-        ../include/boost/beast/core \
-        ../include/boost/beast/http \
-        ../include/boost/beast/websocket \
-        ../include/boost/beast/zlib
+        $(LIB_DIR)/include/boost/beast/ \
+        $(LIB_DIR)/include/boost/beast/core \
+        $(LIB_DIR)/include/boost/beast/http \
+        $(LIB_DIR)/include/boost/beast/websocket \
+        $(LIB_DIR)/include/boost/beast/zlib
 
 INPUT_ENCODING         = UTF-8
 FILE_PATTERNS          =
@@ -253,7 +253,7 @@ MAN_LINKS              = NO
 # Configuration options related to the XML output
 #---------------------------------------------------------------------------
 GENERATE_XML           = YES
-XML_OUTPUT             = temp/
+XML_OUTPUT             = $(XML_OUTPUT)
 XML_PROGRAMLISTING     = YES
 
 #---------------------------------------------------------------------------

@@ -56,10 +56,10 @@ Beast requires:
 
 Supported compilers: msvc-14+, gcc 4.8+, clang 3.6+
 
-Sources are [*header-only]. To link a program using Beast successfully, add the
+Sources are [*header-only].
+To link a program using Beast successfully, add the
 [@http://www.boost.org/libs/system/doc/reference.html Boost.System]
-library to the list of linked libraries. If you use coroutines
-you'll also need the
+library to your build scripts. If you use coroutines you'll also need the
 [@http://www.boost.org/libs/coroutine/doc/html/index.html Boost.Coroutine]
 library. Please visit the
 [@http://www.boost.org/doc/ Boost documentation]

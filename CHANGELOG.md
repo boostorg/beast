@@ -11,6 +11,7 @@ Version 86:
 * Update copyrights
 * Remove spurious declaration
 * Tidy up Jamfile
+* Normalize doc build scripts
 
 --------------------------------------------------------------------------------
 
