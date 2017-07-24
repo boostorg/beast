@@ -4,6 +4,7 @@ Version 86:
 * Remove use of lexical_cast
 * Use custom variant
 * Update README.md
+* Add local-travis.sh
 
 --------------------------------------------------------------------------------
 
