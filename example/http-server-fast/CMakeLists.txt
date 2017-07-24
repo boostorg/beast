@@ -18,9 +18,3 @@ add_executable (http-server-fast
     fields_alloc.hpp
     http_server_fast.cpp
 )
-
-target_link_libraries(http-server-fast
-    Beast
-    ${Boost_FILESYSTEM_LIBRARY}
-    )
-

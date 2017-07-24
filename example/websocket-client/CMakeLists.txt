@@ -8,7 +8,6 @@
 #
 
 GroupSources(include/boost/beast beast)
-
 GroupSources(example/websocket-client "/")
 
 add_executable (websocket-client
@@ -16,5 +15,3 @@ add_executable (websocket-client
     Jamfile
     websocket_client.cpp
 )
-
-target_link_libraries(websocket-client Beast)

@@ -18,7 +18,6 @@ add_executable (http-client-ssl
     http_client_ssl.cpp
 )
 
-target_link_libraries(http-client-ssl
-    Beast
+target_link_libraries (http-client-ssl
     ${OPENSSL_LIBRARIES}
     )

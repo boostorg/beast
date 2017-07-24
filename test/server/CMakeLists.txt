@@ -11,7 +11,6 @@ GroupSources(example/server-framework framework)
 GroupSources(example/common common)
 GroupSources(extras/boost/beast extras)
 GroupSources(include/boost/beast beast)
-
 GroupSources(test/server "/")
 
 add_executable (server-test
@@ -37,12 +36,8 @@ add_executable (server-test
     wss_ports.cpp
 )
 
-target_link_libraries(server-test
-    Beast
-    ${Boost_PROGRAM_OPTIONS_LIBRARY}
-    ${Boost_FILESYSTEM_LIBRARY}
-    )
-
 if (OPENSSL_FOUND)
-    target_link_libraries (server-test ${OPENSSL_LIBRARIES})
+    target_link_libraries (server-test
+        ${OPENSSL_LIBRARIES}
+        )
 endif()

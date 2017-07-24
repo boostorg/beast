@@ -8,7 +8,6 @@
 #
 
 GroupSources(include/boost/beast beast)
-
 GroupSources(example/http-crawl "/")
 
 add_executable (http-crawl
@@ -19,4 +18,3 @@ add_executable (http-crawl
     http_crawl.cpp
 )
 
-target_link_libraries(http-crawl Beast)

@@ -8,7 +8,6 @@
 #
 
 GroupSources(include/boost/beast beast)
-
 GroupSources(example/echo-op "/")
 
 add_executable (echo-op
@@ -16,5 +15,3 @@ add_executable (echo-op
     Jamfile
     echo_op.cpp
 )
-
-target_link_libraries(echo-op Beast)

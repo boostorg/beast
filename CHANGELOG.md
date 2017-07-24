@@ -6,6 +6,7 @@ Version 86:
 * Update README.md
 * Add local-travis.sh
 * Use winapi
+* Update CMakeLists.txt for boost
 
 --------------------------------------------------------------------------------
 

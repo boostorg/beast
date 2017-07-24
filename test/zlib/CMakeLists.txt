@@ -50,9 +50,3 @@ add_executable (zlib-tests
     error.cpp
     inflate_stream.cpp
 )
-
-target_link_libraries(zlib-tests
-    Beast
-    ${Boost_PROGRAM_OPTIONS_LIBRARY}
-    ${Boost_FILESYSTEM_LIBRARY}
-    )

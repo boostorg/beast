@@ -17,9 +17,3 @@ add_executable (http-server-threaded
     Jamfile
     http_server_threaded.cpp
 )
-
-target_link_libraries(http-server-threaded
-    Beast
-    ${Boost_FILESYSTEM_LIBRARY}
-    )
-

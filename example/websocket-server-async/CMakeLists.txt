@@ -17,7 +17,3 @@ add_executable (websocket-server-async
     Jamfile
     websocket_server_async.cpp
 )
-
-target_link_libraries(websocket-server-async
-    Beast
-    )

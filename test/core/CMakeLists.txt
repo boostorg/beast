@@ -10,7 +10,6 @@
 GroupSources(example example)
 GroupSources(extras/boost/beast extras)
 GroupSources(include/boost/beast beast)
-
 GroupSources(test/core "/")
 
 add_executable (core-tests
@@ -55,12 +54,3 @@ add_executable (core-tests
     sha1.cpp
     detail/varint.cpp
 )
-
-target_link_libraries(core-tests
-    Beast
-    ${Boost_PROGRAM_OPTIONS_LIBRARY}
-    ${Boost_FILESYSTEM_LIBRARY}
-    ${Boost_COROUTINE_LIBRARY}
-    ${Boost_THREAD_LIBRARY}
-    ${Boost_CONTEXT_LIBRARY}
-    )

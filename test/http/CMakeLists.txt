@@ -10,7 +10,6 @@
 GroupSources(example example)
 GroupSources(extras/boost/beast extras)
 GroupSources(include/boost/beast beast)
-
 GroupSources(test/http "/")
 
 add_executable (http-tests
@@ -47,12 +46,3 @@ add_executable (http-tests
     verb.cpp
     write.cpp
 )
-
-target_link_libraries(http-tests
-    Beast
-    ${Boost_PROGRAM_OPTIONS_LIBRARY}
-    ${Boost_FILESYSTEM_LIBRARY}
-    ${Boost_COROUTINE_LIBRARY}
-    ${Boost_THREAD_LIBRARY}
-    ${Boost_CONTEXT_LIBRARY}
-    )

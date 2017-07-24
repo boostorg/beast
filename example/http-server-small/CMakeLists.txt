@@ -8,7 +8,6 @@
 #
 
 GroupSources(include/boost/beast beast)
-
 GroupSources(example/http-server-small "/")
 
 add_executable (http-server-small
@@ -16,8 +15,3 @@ add_executable (http-server-small
     Jamfile
     http_server_small.cpp
 )
-
-target_link_libraries(http-server-small
-    Beast
-    )
-

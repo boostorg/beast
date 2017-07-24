@@ -24,13 +24,8 @@ add_executable (common-test
     write_msg.cpp
     main.cpp
 )
-
-target_link_libraries(common-test
-    Beast
-    ${Boost_PROGRAM_OPTIONS_LIBRARY}
-    ${Boost_FILESYSTEM_LIBRARY}
-    )
-
 if (OPENSSL_FOUND)
-    target_link_libraries (common-test ${OPENSSL_LIBRARIES})
+    target_link_libraries (common-test
+        ${OPENSSL_LIBRARIES}
+        )
 endif()

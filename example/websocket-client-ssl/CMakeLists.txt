@@ -8,7 +8,6 @@
 #
 
 GroupSources(include/boost/beast beast)
-
 GroupSources(example/websocket-client-ssl "/")
 
 add_executable (websocket-client-ssl
@@ -18,6 +17,5 @@ add_executable (websocket-client-ssl
 )
 
 target_link_libraries(websocket-client-ssl
-    Beast
     ${OPENSSL_LIBRARIES}
     )

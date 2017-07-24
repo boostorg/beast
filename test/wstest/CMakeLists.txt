@@ -19,7 +19,3 @@ add_executable (wstest
     Jamfile
     main.cpp
     )
-
-target_link_libraries(wstest
-    Beast
-    )

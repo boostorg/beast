@@ -8,7 +8,6 @@
 #
 
 GroupSources(include/boost/beast beast)
-
 GroupSources(example/http-client "/")
 
 add_executable (http-client
@@ -16,5 +15,3 @@ add_executable (http-client
     Jamfile
     http_client.cpp
 )
-
-target_link_libraries(http-client Beast)

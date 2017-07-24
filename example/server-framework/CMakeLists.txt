@@ -8,7 +8,6 @@
 #
 
 GroupSources(include/boost/beast beast)
-
 GroupSources(example/server-framework "/")
 GroupSources(example/common "common")
 
@@ -24,12 +23,8 @@ add_executable (server-framework
     main.cpp
 )
 
-target_link_libraries(
-    server-framework
-    Beast
-    ${Boost_PROGRAM_OPTIONS_LIBRARY}
-    ${Boost_FILESYSTEM_LIBRARY})
-
 if (OPENSSL_FOUND)
-    target_link_libraries(server-framework ${OPENSSL_LIBRARIES})
+    target_link_libraries(server-framework
+        ${OPENSSL_LIBRARIES}
+        )
 endif()

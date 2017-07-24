@@ -9,7 +9,6 @@
 
 GroupSources(extras/boost/beast extras)
 GroupSources(include/boost/beast beast)
-
 GroupSources(test/benchmarks "/")
 GroupSources(test/http "/")
 
@@ -25,9 +24,3 @@ add_executable (benchmarks
     parser.cpp
     utf8_checker.cpp
 )
-
-target_link_libraries(benchmarks
-    Beast
-    ${Boost_PROGRAM_OPTIONS_LIBRARY}
-    ${Boost_FILESYSTEM_LIBRARY}
-    )
