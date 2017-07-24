@@ -2835,69 +2835,6 @@ public:
     //
     //--------------------------------------------------------------------------
 
-    /** Start an asynchronous operation to read a message frame from the stream.
-
-        This function is used to asynchronously read a single message
-        frame from the websocket. The function call always returns
-        immediately. The asynchronous operation will continue until
-        one of the following conditions is true:
-
-        @li A complete frame is received.
-
-        @li An error occurs on the stream.
-
-        This operation is implemented in terms of one or more calls to the
-        next layer's `async_read_some` and `async_write_some` functions,
-        and is known as a <em>composed operation</em>. The program must
-        ensure that the stream performs no other reads until this operation
-        completes.
-
-        During reads, the implementation handles control frames as
-        follows:
-
-        @li The @ref control_callback is invoked when a ping frame
-            or pong frame is received.
-
-        @li A pong frame is sent when a ping frame is received.
-
-        @li The WebSocket close procedure is started if a close frame
-            is received. In this case, the operation will eventually
-            complete with the error set to @ref error::closed.
-
-        Because of the need to handle control frames, read operations
-        can cause writes to take place. These writes are managed
-        transparently; callers can still have one active asynchronous
-        read and asynchronous write operation pending simultaneously
-        (a user initiated call to @ref async_close counts as a write).
-
-        @param buffer A dynamic buffer to hold the message data after
-        any masking or decompression has been applied. This object must
-        remain valid until the handler is called.
-
-        @param handler The handler to be called when the read operation
-        completes. Copies will be made of the handler as required. The
-        function signature of the handler must be:
-        @code
-        void handler(
-            error_code const& ec,   // Result of operation
-            bool fin                // `true` if this is the last frame
-        );
-        @endcode
-        Regardless of whether the asynchronous operation completes
-        immediately or not, the handler will not be invoked from within
-        this function. Invocation of the handler will be performed in a
-        manner equivalent to using boost::asio::io_service::post().
-    */
-    template<class DynamicBuffer, class ReadHandler>
-#if BOOST_BEAST_DOXYGEN
-    void_or_deduced
-#else
-    async_return_type<ReadHandler, void(error_code, bool)>
-#endif
-    async_read_frame(DynamicBuffer& buffer, ReadHandler&& handler);
-
-    //--------------------------------------------------------------------------
-
     /** Read a message from the stream.
 
         This function is used to synchronously read a message from

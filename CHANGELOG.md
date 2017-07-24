@@ -9,6 +9,7 @@ Version 86:
 * Update CMakeLists.txt for boost
 * Update documentation for boost
 * Update copyrights
+* Remove spurious declaration
 
 --------------------------------------------------------------------------------
 
