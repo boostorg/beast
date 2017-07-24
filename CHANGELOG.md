@@ -5,6 +5,7 @@ Version 86:
 * Use custom variant
 * Update README.md
 * Add local-travis.sh
+* Use winapi
 
 --------------------------------------------------------------------------------
 
