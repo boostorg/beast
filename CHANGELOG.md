@@ -10,6 +10,7 @@ Version 86:
 * Update documentation for boost
 * Update copyrights
 * Remove spurious declaration
+* Tidy up Jamfile
 
 --------------------------------------------------------------------------------
 
