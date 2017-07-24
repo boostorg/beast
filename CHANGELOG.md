@@ -8,6 +8,7 @@ Version 86:
 * Use winapi
 * Update CMakeLists.txt for boost
 * Update documentation for boost
+* Update copyrights
 
 --------------------------------------------------------------------------------
 
