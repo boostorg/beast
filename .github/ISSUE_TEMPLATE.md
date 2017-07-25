@@ -1,11 +1,16 @@
 PLEASE DON'T FORGET TO "STAR" THIS REPOSITORY :)
 
+If you rather keep your project secret, feel free
+to email the author at `<vinnie.falco@gmail.com>`; any
+private correspondence is treated as confidential.
+
 When reporting a bug please include the following:
 
 ### Version of Beast
 
-You can find the version number in <beast/version.hpp>
-or using the command "git log -1".
+You can find the version number in the file `<boost/beast/version.hpp>`,
+or by using the command "git log -1" in the local Beast repository
+directory.
 
 ### Steps necessary to reproduce the problem
 

@@ -42,9 +42,9 @@ This library is designed for:
 
 ## Appearances
 
-| <a href="http://cppcast.com/2017/01/vinnie-falco/">CppCast 2017</a> | <a href="https://raw.githubusercontent.com/vinniefalco/Beast/master/doc/images/CppCon2016.pdf">CppCon 2016</a> |
+| <a href="http://cppcast.com/2017/01/vinnie-falco/">CppCast 2017</a> | <a href="https://raw.githubusercontent.com/vinniefalco/BeastAssets/master/CppCon2016.pdf">CppCon 2016</a> |
 | ------------ | ----------- |
-| <a href="http://cppcast.com/2017/01/vinnie-falco/"><img width="180" height="180" alt="Vinnie Falco" src="https://avatars1.githubusercontent.com/u/1503976?v=3&u=76c56d989ef4c09625256662eca2775df78a16ad&s=180"></a> | <a href="https://www.youtube.com/watch?v=uJZgRcvPFwI"><img width="320" height = "180" alt="Beast" src="https://raw.githubusercontent.com/vinniefalco/Beast/master/doc/images/CppCon2016.png"></a> |
+| <a href="http://cppcast.com/2017/01/vinnie-falco/"><img width="180" height="180" alt="Vinnie Falco" src="https://avatars1.githubusercontent.com/u/1503976?v=3&u=76c56d989ef4c09625256662eca2775df78a16ad&s=180"></a> | <a href="https://www.youtube.com/watch?v=uJZgRcvPFwI"><img width="320" height = "180" alt="Beast" src="https://raw.githubusercontent.com/vinniefalco/BeastAssets/master/CppCon2016.png"></a> |
 
 ## Description
 
@@ -55,7 +55,7 @@ without conditions. The first official release of Beast will
 appear in Boost 1.66.0, due in December.
 
 * [Official Site](https://github.com/boostorg/beast)
-* [Documentation](http://vinniefalco.github.io/beast/)
+* [Documentation](http://www.boost.org/doc/libs/master/libs/bind/doc/html/beast.html)
 * [Autobahn.testsuite results](http://vinniefalco.github.io/autobahn/index.html)
 
 ## Requirements
@@ -72,16 +72,15 @@ When using Microsoft Visual C++, Visual Studio 2015 Update 3 or later is require
 
 One of these components is required in order to build the tests and examples:
 
-* CMake 3.7.2 or later
 * Properly configured bjam/b2
+* CMake 3.7.2 or later (Windows only)
 
 ## Building
 
-Beast is header-only. To use it just add the necessary `#include` lines
+Beast is header-only. To use it just add the necessary `#include` line
 to your source files, like this:
 ```C++
-#include <beast/http.hpp>
-#include <beast/websocket.hpp>
+#include <boost/beast.hpp>
 ```
 
 To build your program successfully, you'll need to add the Boost.System
@@ -121,13 +120,12 @@ The files in the repository are laid out thusly:
     test/           Unit tests and benchmarks
 ```
 
-
 ## Usage
 
 These examples are complete, self-contained programs that you can build
 and run yourself (they are in the `example` directory).
 
-http://vinniefalco.github.io/beast/beast/quick_start.html
+http://www.boost.org/doc/libs/master/libs/bind/doc/html/beast/quick_start.html
 
 ## License
 

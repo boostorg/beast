@@ -3,6 +3,7 @@ Version 87:
 * Update appveyor for Boost branch
 * Rename to BEAST_EXPECT
 * variant fixes and tests
+* Update README, add CONTRIBUTING.md and CODE_OF_CONDUCT.md
 
 --------------------------------------------------------------------------------
 
