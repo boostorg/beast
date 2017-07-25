@@ -778,7 +778,7 @@ read_istream(
 
 //[example_http_defer_body
 
-/** Handle a form PUT request, choosing a body type depending on the Content-Type.
+/** Handle a form POST request, choosing a body type depending on the Content-Type.
 
     This reads a request from the input stream. If the method is POST, and
     the Content-Type is "application/x-www-form-urlencoded  " or
@@ -825,7 +825,7 @@ do_form_request(
         // If this is not a form upload then use a string_body
         if( req0.get()[field::content_type] != "application/x-www-form-urlencoded" &&
             req0.get()[field::content_type] != "multipart/form-data")
-            goto do_string_body;
+            goto do_dynamic_body;
 
         // Commit to string_body as the body type.
         // As long as there are no body octets in the parser
@@ -841,7 +841,7 @@ do_form_request(
         break;
     }
 
-    do_string_body:
+    do_dynamic_body:
     default:
     {
         // Commit to dynamic_body as the body type.

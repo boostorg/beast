@@ -13,6 +13,7 @@ Version 86:
 * Tidy up Jamfile
 * Normalize doc build scripts
 * Use configured doxygen and xsltproc
+* Fix Deferred Body Type Example Documentation
 
 --------------------------------------------------------------------------------
 
