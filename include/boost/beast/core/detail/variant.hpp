@@ -32,7 +32,9 @@ template<class... TN>
 class variant
 {
     typename std::aligned_storage<
-        max_sizeof<TN...>()>::type buf_;
+        max_sizeof<TN...>(),
+        max_alignof<TN...>()
+    >::type buf_;
     unsigned char i_ = 0;
 
     template<std::size_t I>
@@ -51,6 +53,14 @@ public:
             destroy(C<0>{});
     }
 
+    // 0 = empty
+    unsigned char
+    index() const
+    {
+        return i_;
+    }
+
+    // moved-from object becomes empty
     variant(variant&& other)
     {
         i_ = other.move(&buf_, C<0>{});
@@ -61,6 +71,7 @@ public:
         i_ = other.copy(&buf_, C<0>{});
     }
 
+    // moved-from object becomes empty
     variant& operator=(variant&& other)
     {
         if(i_ != 0)
@@ -83,7 +94,6 @@ public:
     {
         if(i_ != 0)
             destroy(C<0>{});
-        i_ = 0;
         new(&buf_) type<I-1>(
             std::forward<Args>(args)...);
         i_ = I;
@@ -99,7 +109,7 @@ public:
     }
 
     template<std::size_t I>
-    type<I-1>&
+    type<I-1> const&
     get() const
     {
         BOOST_ASSERT(i_ == I);
@@ -130,6 +140,7 @@ private:
         {
             using T = type<I>;
             get<I+1>().~T();
+            i_ = 0;
             return;
         }
         destroy(C<I+1>{});
@@ -153,7 +164,7 @@ private:
             i_ = 0;
             return I+1;
         }
-        move(C<I+1>{});
+        return move(dest, C<I+1>{});
     }
 
     unsigned char
@@ -173,7 +184,7 @@ private:
             new(dest) T{t};
             return I+1;
         }
-        copy(C<I+1>{});
+        return copy(dest, C<I+1>{});
     }
 };
 

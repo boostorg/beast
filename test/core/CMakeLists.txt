@@ -52,5 +52,6 @@ add_executable (core-tests
     base64.cpp
     empty_base_optimization.cpp
     sha1.cpp
+    detail/variant.cpp
     detail/varint.cpp
 )

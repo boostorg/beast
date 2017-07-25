@@ -82,6 +82,22 @@ max_sizeof()
         max_sizeof<U0>() : max_sizeof<U1, Us...>();
 }
 
+template<class U>
+std::size_t constexpr
+max_alignof()
+{
+    return alignof(U);
+}
+
+template<class U0, class U1, class... Us>
+std::size_t constexpr
+max_alignof()
+{
+    return
+        max_alignof<U0>() > max_alignof<U1, Us...>() ?
+        max_alignof<U0>() : max_alignof<U1, Us...>();
+}
+
 template<unsigned N, class T, class... Tn>
 struct repeat_tuple_impl
 {
