@@ -1,3 +1,9 @@
+Version 87:
+
+* Update appveyor for Boost branch
+
+--------------------------------------------------------------------------------
+
 Version 86:
 
 * Boost prep

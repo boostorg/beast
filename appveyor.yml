@@ -16,11 +16,11 @@ configuration:
   - Release
 
 install:
-  - cd ..
-  - git clone https://github.com/boostorg/boost.git boost
-  - cd boost
-#  - git checkout boost-1.64.0
-  - xcopy /s /e /q %APPVEYOR_BUILD_FOLDER% libs\beast\
+  - SET BOOST_BRANCH=develop
+  - IF "%APPVEYOR_REPO_BRANCH%" == "master" SET BOOST_BRANCH=master
+  - CD ..
+  - git clone -b %BOOST_BRANCH% --depth 1 https://github.com/boostorg/boost.git boost-root
+  - cd boost-root
   - git submodule update --init tools/build
   - git submodule update --init tools/boostdep
   - git submodule update --init libs/config
@@ -88,7 +88,9 @@ install:
   - git submodule update --init libs/unordered
   - git submodule update --init libs/utility
   - git submodule update --init libs/winapi
-  - bootstrap
+  - MKDIR libs\beast
+  - XCOPY /s /e /q %APPVEYOR_BUILD_FOLDER% libs\beast\
+  - CMD /c bootstrap
   - b2 headers
 
 build: off
