@@ -209,7 +209,7 @@ boost::asio::ip::tcp::socket sock{ios};
 //[ws_snippet_20
     multi_buffer buffer;
     ws.async_read(buffer,
-        [](error_code)
+        [](error_code, std::size_t)
         {
             // Do something with the buffer
         });

@@ -16,6 +16,15 @@ Version 86:
 * Fix Deferred Body Type Example Documentation
 * Add library metadata
 
+API Changes:
+
+* websocket read returns the number of bytes inserted
+
+Actions Required:
+
+* Change the signature of completion handlers used with
+  websocket::stream::async_read to void(error_code, std::size_t)
+
 --------------------------------------------------------------------------------
 
 Version 85:

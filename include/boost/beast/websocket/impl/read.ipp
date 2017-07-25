@@ -804,7 +804,7 @@ operator()(
 
 template<class NextLayer>
 template<class DynamicBuffer>
-void
+std::size_t
 stream<NextLayer>::
 read(DynamicBuffer& buffer)
 {
@@ -813,14 +813,15 @@ read(DynamicBuffer& buffer)
     static_assert(beast::is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
     error_code ec;
-    read(buffer, ec);
+    auto const bytes_written = read(buffer, ec);
     if(ec)
         BOOST_THROW_EXCEPTION(system_error{ec});
+    return bytes_written;
 }
 
 template<class NextLayer>
 template<class DynamicBuffer>
-void
+std::size_t
 stream<NextLayer>::
 read(DynamicBuffer& buffer, error_code& ec)
 {
@@ -828,18 +829,20 @@ read(DynamicBuffer& buffer, error_code& ec)
         "SyncStream requirements not met");
     static_assert(beast::is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
+    std::size_t bytes_written = 0;
     do
     {
-        read_some(buffer, 0, ec);
+        bytes_written += read_some(buffer, 0, ec);
         if(ec)
-            return;
+            return bytes_written;
     }
     while(! is_message_done());
+    return bytes_written;
 }
 
 template<class NextLayer>
 template<class DynamicBuffer, class ReadHandler>
-async_return_type<ReadHandler, void(error_code)>
+async_return_type<ReadHandler, void(error_code, std::size_t)>
 stream<NextLayer>::
 async_read(DynamicBuffer& buffer, ReadHandler&& handler)
 {
@@ -848,19 +851,15 @@ async_read(DynamicBuffer& buffer, ReadHandler&& handler)
     static_assert(beast::is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
     async_completion<
-        ReadHandler, void(error_code)> init{handler};
+        ReadHandler, void(error_code, std::size_t)> init{handler};
     read_op<
         DynamicBuffer,
-        beast::detail::bound_handler<
-            handler_type<ReadHandler, void(error_code)>,
-            decltype(std::placeholders::_1) &> >{
-        beast::bind_handler(
+        handler_type<ReadHandler, void(error_code, std::size_t)> >{
             init.completion_handler,
-            std::placeholders::_1),
-        *this,
-        buffer,
-        0,
-        false}();
+            *this,
+            buffer,
+            0,
+            false}();
     return init.result.get();
 }
 

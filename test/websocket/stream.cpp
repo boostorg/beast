@@ -270,7 +270,7 @@ public:
 
         template<
             class NextLayer, class DynamicBuffer>
-        void
+        std::size_t
         read(stream<NextLayer>& ws,
             DynamicBuffer& buffer) const
         {
@@ -506,14 +506,16 @@ public:
 
         template<
             class NextLayer, class DynamicBuffer>
-        void
+        std::size_t
         read(stream<NextLayer>& ws,
             DynamicBuffer& buffer) const
         {
             error_code ec;
-            ws.async_read(buffer, yield_[ec]);
+            auto const bytes_written =
+                ws.async_read(buffer, yield_[ec]);
             if(ec)
                 throw system_error{ec};
+            return bytes_written;
         }
 
         template<
@@ -1342,7 +1344,7 @@ public:
         // Read text message with bad utf8.
         // Causes a close to be sent, blocking writes.
         ws.async_read(db,
-            [&](error_code ec)
+            [&](error_code ec, std::size_t)
             {
                 // Read should fail with protocol error
                 ++count;
@@ -1350,7 +1352,7 @@ public:
                     ec == error::failed, ec.message());
                 // Reads after failure are aborted
                 ws.async_read(db,
-                    [&](error_code ec)
+                    [&](error_code ec, std::size_t)
                     {
                         ++count;
                         BOOST_BEAST_EXPECTS(ec == boost::asio::
@@ -1409,7 +1411,7 @@ public:
         // Read a close frame.
         // Sends a close frame, blocking writes.
         ws.async_read(db,
-            [&](error_code ec)
+            [&](error_code ec, std::size_t)
             {
                 // Read should complete with error::closed
                 ++count;
@@ -1472,7 +1474,7 @@ public:
         multi_buffer db;
         std::size_t count = 0;
         ws.async_read(db,
-            [&](error_code ec)
+            [&](error_code ec, std::size_t)
             {
                 ++count;
                 BOOST_BEAST_EXPECTS(ec == error::closed,
@@ -1521,7 +1523,7 @@ public:
             });
         multi_buffer db;
         ws.async_read(db,
-            [&](error_code ec)
+            [&](error_code ec, std::size_t)
             {
                 BOOST_BEAST_EXPECTS(ec == error::closed, ec.message());
             });

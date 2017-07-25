@@ -2835,43 +2835,46 @@ public:
     //
     //--------------------------------------------------------------------------
 
-    /** Read a message from the stream.
+    /** Read a complete message
 
-        This function is used to synchronously read a message from
-        the stream. The call blocks until one of the following is true:
+        This function is used to synchronously read a message from the stream.
+        The call blocks until one of the following is true:
 
         @li A complete message is received.
 
+        @li A close frame is received. In this case the error indicated by
+            the function will be @ref error::closed.
+
         @li An error occurs on the stream.
 
-        This call is implemented in terms of one or more calls to the
-        stream's `read_some` and `write_some` operations.
+        This operation is implemented in terms of one or more calls to the next
+        layer's `read_some` and `write_some` functions.
 
-        Upon a success, the input area of the stream buffer will
-        hold the received message payload bytes (which may be zero
-        in length). The functions @ref got_binary and @ref got_text
-        may be used to query the stream and determine the type
-        of the last received message.
+        Received message data, if any, is appended to the input area of the buffer.
+        The functions @ref got_binary and @ref got_text may be used to query
+        the stream and determine the type of the last received message.
 
-        During reads, the implementation handles control frames as
-        follows:
+        While this operation is active, the implementation will read incoming
+        control frames and handle them automatically as follows:
 
-        @li A pong frame is sent when a ping frame is received.
+        @li The @ref control_callback will be invoked for each control frame.
 
-        @li The @ref control_callback is invoked when a ping frame
-            or pong frame is received.
+        @li For each received ping frame, a pong frame will be automatically sent.
 
-        @li The WebSocket close procedure is started if a close frame
-            is received. In this case, the operation will eventually
-            complete with the error set to @ref error::closed.
+        @li If a close frame is received, the WebSocket close procedure is
+            performed. In this case, when the function returns, the error
+            @ref error::closed will be indicated.
 
-        @param buffer A dynamic buffer to hold the message data after
-        any masking or decompression has been applied.
+        @return The number of message payload bytes appended to the buffer.
 
-        @throws system_error Thrown on failure.
+        @param buffer A dynamic buffer to hold the message data after any
+        masking or decompression has been applied.
+
+        @throws system_error Thrown to indicate an error. The corresponding
+        error code may be retrieved from the exception object for inspection.
     */
     template<class DynamicBuffer>
-    void
+    std::size_t
     read(DynamicBuffer& buffer);
 
     /** Read a message from the stream.
@@ -2910,10 +2913,10 @@ public:
         @param ec Set to indicate what error occurred, if any.
     */
     template<class DynamicBuffer>
-    void
+    std::size_t
     read(DynamicBuffer& buffer, error_code& ec);
 
-    /** Start an asynchronous operation to read a message from the stream.
+    /** Read a complete message asynchronously
 
         This function is used to asynchronously read a message from
         the stream. The function call always returns immediately. The
@@ -2963,7 +2966,8 @@ public:
         function signature of the handler must be:
         @code
         void handler(
-            error_code const& ec;   // Result of operation
+            error_code const& ec,       // Result of operation
+            std::size_t bytes_
         );
         @endcode
         Regardless of whether the asynchronous operation completes
@@ -2976,9 +2980,12 @@ public:
     void_or_deduced
 #else
     async_return_type<
-        ReadHandler, void(error_code)>
+        ReadHandler,
+        void(error_code, std::size_t)>
 #endif
-    async_read(DynamicBuffer& buffer, ReadHandler&& handler);
+    async_read(
+        DynamicBuffer& buffer,
+        ReadHandler&& handler);
 
     //--------------------------------------------------------------------------
 
