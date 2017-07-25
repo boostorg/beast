@@ -27,8 +27,8 @@ public:
     {
         using boost::asio::buffer_size;
         drain_buffer b;
-        BOOST_BEAST_EXPECT(buffer_size(b.prepare(0)) == 0);
-        BOOST_BEAST_EXPECT(buffer_size(b.prepare(100)) == 100);
+        BEAST_EXPECT(buffer_size(b.prepare(0)) == 0);
+        BEAST_EXPECT(buffer_size(b.prepare(100)) == 100);
         try
         {
             b.prepare(b.max_size() + 1);
@@ -39,13 +39,13 @@ public:
             pass();
         }
         b.prepare(10);
-        BOOST_BEAST_EXPECT(b.size() == 0);
+        BEAST_EXPECT(b.size() == 0);
         b.commit(10);
-        BOOST_BEAST_EXPECT(b.size() == 0);
+        BEAST_EXPECT(b.size() == 0);
         b.consume(10);
-        BOOST_BEAST_EXPECT(b.size() == 0);
+        BEAST_EXPECT(b.size() == 0);
         b.consume(1000);
-        BOOST_BEAST_EXPECT(b.size() == 0);
+        BEAST_EXPECT(b.size() == 0);
     }
 };
 

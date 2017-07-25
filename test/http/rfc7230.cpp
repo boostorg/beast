@@ -63,7 +63,7 @@ public:
             [&](std::string const& s)
             {
                 auto const got = str(param_list{s});
-                BOOST_BEAST_EXPECTS(got == s, fmt(got));
+                BEAST_EXPECTS(got == s, fmt(got));
             };
         auto const cs =
             [&](std::string const& s, std::string const& answer)
@@ -71,13 +71,13 @@ public:
                 ce(answer);
                 auto const got = str(param_list{s});
                 ce(got);
-                BOOST_BEAST_EXPECTS(got == answer, fmt(got));
+                BEAST_EXPECTS(got == answer, fmt(got));
             };
         auto const cq =
             [&](std::string const& s, std::string const& answer)
             {
                 auto const got = str(param_list{s});
-                BOOST_BEAST_EXPECTS(got == answer, fmt(got));
+                BEAST_EXPECTS(got == answer, fmt(got));
             };
 
         ce("");
@@ -122,7 +122,7 @@ public:
             [&](std::string const& s)
             {
                 auto const got = str(ext_list{s});
-                BOOST_BEAST_EXPECTS(got == s, fmt(got));
+                BEAST_EXPECTS(got == s, fmt(got));
             };
         auto const cs =
             [&](std::string const& s, std::string const& good)
@@ -130,13 +130,13 @@ public:
                 ce(good);
                 auto const got = str(ext_list{s});
                 ce(got);
-                BOOST_BEAST_EXPECTS(got == good, fmt(got));
+                BEAST_EXPECTS(got == good, fmt(got));
             };
         auto const cq =
             [&](std::string const& s, std::string const& good)
             {
                 auto const got = str(ext_list{s});
-                BOOST_BEAST_EXPECTS(got == good, fmt(got));
+                BEAST_EXPECTS(got == good, fmt(got));
             };
     /*
         ext-basic_parsed_list    = *( "," OWS ) ext *( OWS "," [ OWS ext ] )
@@ -172,9 +172,9 @@ public:
         cq("ab;x=\" \"", "ab;x= ");
         cq("ab;x=\"\\\"\"", "ab;x=\"");
 
-        BOOST_BEAST_EXPECT(ext_list{"a,b;i=1,c;j=2;k=3"}.exists("A"));
-        BOOST_BEAST_EXPECT(ext_list{"a,b;i=1,c;j=2;k=3"}.exists("b"));
-        BOOST_BEAST_EXPECT(! ext_list{"a,b;i=1,c;j=2;k=3"}.exists("d"));
+        BEAST_EXPECT(ext_list{"a,b;i=1,c;j=2;k=3"}.exists("A"));
+        BEAST_EXPECT(ext_list{"a,b;i=1,c;j=2;k=3"}.exists("b"));
+        BEAST_EXPECT(! ext_list{"a,b;i=1,c;j=2;k=3"}.exists("d"));
 
         // invalid strings
         cs("i j", "i");
@@ -204,7 +204,7 @@ public:
             [&](std::string const& s)
             {
                 auto const got = str(token_list{s});
-                BOOST_BEAST_EXPECTS(got == s, fmt(got));
+                BEAST_EXPECTS(got == s, fmt(got));
             };
         auto const cs =
             [&](std::string const& s, std::string const& good)
@@ -212,7 +212,7 @@ public:
                 ce(good);
                 auto const got = str(token_list{s});
                 ce(got);
-                BOOST_BEAST_EXPECTS(got == good, fmt(got));
+                BEAST_EXPECTS(got == good, fmt(got));
             };
 
         cs("", "");
@@ -233,9 +233,9 @@ public:
         cs("x ,\ty ", "x,y");
         cs("x, y, z", "x,y,z");
 
-        BOOST_BEAST_EXPECT(token_list{"a,b,c"}.exists("A"));
-        BOOST_BEAST_EXPECT(token_list{"a,b,c"}.exists("b"));
-        BOOST_BEAST_EXPECT(! token_list{"a,b,c"}.exists("d"));
+        BEAST_EXPECT(token_list{"a,b,c"}.exists("A"));
+        BEAST_EXPECT(token_list{"a,b,c"}.exists("b"));
+        BEAST_EXPECT(! token_list{"a,b,c"}.exists("d"));
 
         // invalid
         cs("x y", "x");
@@ -259,14 +259,14 @@ public:
     validate(string_view in,
         std::vector<std::string> const& v)
     {
-        BOOST_BEAST_EXPECT(to_vector<Policy>(in) == v);
+        BEAST_EXPECT(to_vector<Policy>(in) == v);
     }
 
     template<class Policy>
     void
     good(string_view in)
     {
-        BOOST_BEAST_EXPECT(validate_list(
+        BEAST_EXPECT(validate_list(
             detail::basic_parsed_list<Policy>{in}));
     }
 
@@ -275,7 +275,7 @@ public:
     good(string_view in,
         std::vector<std::string> const& v)
     {
-        BOOST_BEAST_EXPECT(validate_list(
+        BEAST_EXPECT(validate_list(
             detail::basic_parsed_list<Policy>{in}));
         validate<Policy>(in, v);
     }
@@ -284,7 +284,7 @@ public:
     void
     bad(string_view in)
     {
-        BOOST_BEAST_EXPECT(! validate_list(
+        BEAST_EXPECT(! validate_list(
             detail::basic_parsed_list<Policy>{in}));
     }
 

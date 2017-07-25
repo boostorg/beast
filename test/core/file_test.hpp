@@ -31,93 +31,93 @@ doTestFile(beast::unit_test::suite& test)
     {
         {
             File f1;
-            test.BOOST_BEAST_EXPECT(! f1.is_open());
+            test.BEAST_EXPECT(! f1.is_open());
             f1.open(temp.string<std::string>().c_str(), file_mode::write, ec);
-            test.BOOST_BEAST_EXPECT(! ec);
+            test.BEAST_EXPECT(! ec);
             File f2{std::move(f1)};
-            test.BOOST_BEAST_EXPECT(! f1.is_open());
-            test.BOOST_BEAST_EXPECT(f2.is_open());
+            test.BEAST_EXPECT(! f1.is_open());
+            test.BEAST_EXPECT(f2.is_open());
             File f3;
             f3 = std::move(f2);
-            test.BOOST_BEAST_EXPECT(! f2.is_open());
-            test.BOOST_BEAST_EXPECT(f3.is_open());
+            test.BEAST_EXPECT(! f2.is_open());
+            test.BEAST_EXPECT(f3.is_open());
             f1.close(ec);
-            test.BOOST_BEAST_EXPECT(! ec);
+            test.BEAST_EXPECT(! ec);
             auto const temp2 = boost::filesystem::unique_path();
             f3.open(temp2.string<std::string>().c_str(), file_mode::read, ec);
-            test.BOOST_BEAST_EXPECT(ec);
+            test.BEAST_EXPECT(ec);
             ec.assign(0, ec.category());
         }
         boost::filesystem::remove(temp, ec);
-        test.BOOST_BEAST_EXPECT(! ec);
+        test.BEAST_EXPECT(! ec);
     }
 
     File f;
 
-    test.BOOST_BEAST_EXPECT(! f.is_open());
+    test.BEAST_EXPECT(! f.is_open());
 
     f.size(ec);
-    test.BOOST_BEAST_EXPECT(ec == errc::invalid_argument);
+    test.BEAST_EXPECT(ec == errc::invalid_argument);
     ec.assign(0, ec.category());
 
     f.pos(ec);
-    test.BOOST_BEAST_EXPECT(ec == errc::invalid_argument);
+    test.BEAST_EXPECT(ec == errc::invalid_argument);
     ec.assign(0, ec.category());
 
     f.seek(0, ec);
-    test.BOOST_BEAST_EXPECT(ec == errc::invalid_argument);
+    test.BEAST_EXPECT(ec == errc::invalid_argument);
     ec.assign(0, ec.category());
 
     f.read(nullptr, 0, ec);
-    test.BOOST_BEAST_EXPECT(ec == errc::invalid_argument);
+    test.BEAST_EXPECT(ec == errc::invalid_argument);
     ec.assign(0, ec.category());
 
     f.write(nullptr, 0, ec);
-    test.BOOST_BEAST_EXPECT(ec == errc::invalid_argument);
+    test.BEAST_EXPECT(ec == errc::invalid_argument);
     ec.assign(0, ec.category());
 
     f.open(temp.string<std::string>().c_str(), file_mode::write, ec);
-    test.BOOST_BEAST_EXPECT(! ec);
+    test.BEAST_EXPECT(! ec);
 
     std::string const s = "Hello, world!";
     f.write(s.data(), s.size(), ec);
-    test.BOOST_BEAST_EXPECT(! ec);
+    test.BEAST_EXPECT(! ec);
 
     auto size = f.size(ec);
-    test.BOOST_BEAST_EXPECT(! ec);
-    test.BOOST_BEAST_EXPECT(size == s.size());
+    test.BEAST_EXPECT(! ec);
+    test.BEAST_EXPECT(size == s.size());
 
     auto pos = f.pos(ec);
-    test.BOOST_BEAST_EXPECT(! ec);
-    test.BOOST_BEAST_EXPECT(pos == size);
+    test.BEAST_EXPECT(! ec);
+    test.BEAST_EXPECT(pos == size);
 
     f.close(ec);
-    test.BOOST_BEAST_EXPECT(! ec);
+    test.BEAST_EXPECT(! ec);
 
     f.open(temp.string<std::string>().c_str(), file_mode::read, ec);
-    test.BOOST_BEAST_EXPECT(! ec);
+    test.BEAST_EXPECT(! ec);
 
     std::string buf;
     buf.resize(s.size());
     f.read(&buf[0], buf.size(), ec);
-    test.BOOST_BEAST_EXPECT(! ec);
-    test.BOOST_BEAST_EXPECT(buf == s);
+    test.BEAST_EXPECT(! ec);
+    test.BEAST_EXPECT(buf == s);
 
     f.seek(1, ec);
-    test.BOOST_BEAST_EXPECT(! ec);
+    test.BEAST_EXPECT(! ec);
     buf.resize(3);
     f.read(&buf[0], buf.size(), ec);
-    test.BOOST_BEAST_EXPECT(! ec);
-    test.BOOST_BEAST_EXPECT(buf == "ell");
+    test.BEAST_EXPECT(! ec);
+    test.BEAST_EXPECT(buf == "ell");
 
     pos = f.pos(ec);
-    test.BOOST_BEAST_EXPECT(! ec);
-    test.BOOST_BEAST_EXPECT(pos == 4);
+    test.BEAST_EXPECT(! ec);
+    test.BEAST_EXPECT(pos == 4);
 
     f.close(ec);
-    test.BOOST_BEAST_EXPECT(! ec);
+    test.BEAST_EXPECT(! ec);
     boost::filesystem::remove(temp, ec);
-    test.BOOST_BEAST_EXPECT(! ec);
+    test.BEAST_EXPECT(! ec);
 }
 
 } // beast

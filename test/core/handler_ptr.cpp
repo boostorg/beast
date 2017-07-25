@@ -73,7 +73,7 @@ public:
         handler_ptr<T, handler> p4{std::move(h)};
         bool b = false;
         p4.invoke(std::ref(b));
-        BOOST_BEAST_EXPECT(b);
+        BEAST_EXPECT(b);
     }
 };
 

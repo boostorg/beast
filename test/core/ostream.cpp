@@ -43,7 +43,7 @@ public:
             auto os = ostream(b);
             os << "Hello, world!\n";
             os.flush();
-            BOOST_BEAST_EXPECT(to_string(b.data()) == "Hello, world!\n");
+            BEAST_EXPECT(to_string(b.data()) == "Hello, world!\n");
             auto os2 = std::move(os);
         }
         {
@@ -58,7 +58,7 @@ public:
                 "0123456789abcdef" "0123456789abcdef" "0123456789abcdef" "0123456789abcdef";
             multi_buffer b;
             ostream(b) << s;
-            BOOST_BEAST_EXPECT(to_string(b.data()) == s);
+            BEAST_EXPECT(to_string(b.data()) == s);
         }
     }
 };

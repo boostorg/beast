@@ -27,23 +27,23 @@ struct span_body_test
             using B = span_body<char const>;
             request<B> req;
 
-            BOOST_BEAST_EXPECT(req.body.size() == 0);
-            BOOST_BEAST_EXPECT(B::size(req.body) == 0);
+            BEAST_EXPECT(req.body.size() == 0);
+            BEAST_EXPECT(B::size(req.body) == 0);
 
             req.body = B::value_type("xyz", 3);
-            BOOST_BEAST_EXPECT(req.body.size() == 3);
-            BOOST_BEAST_EXPECT(B::size(req.body) == 3);
+            BEAST_EXPECT(req.body.size() == 3);
+            BEAST_EXPECT(B::size(req.body) == 3);
 
             B::reader r{req};
             error_code ec;
             r.init(ec);
-            BOOST_BEAST_EXPECTS(! ec, ec.message());
+            BEAST_EXPECTS(! ec, ec.message());
             auto const buf = r.get(ec);
-            BOOST_BEAST_EXPECTS(! ec, ec.message());
-            if(! BOOST_BEAST_EXPECT(buf != boost::none))
+            BEAST_EXPECTS(! ec, ec.message());
+            if(! BEAST_EXPECT(buf != boost::none))
                 return;
-            BOOST_BEAST_EXPECT(boost::asio::buffer_size(buf->first) == 3);
-            BOOST_BEAST_EXPECT(! buf->second);
+            BEAST_EXPECT(boost::asio::buffer_size(buf->first) == 3);
+            BEAST_EXPECT(! buf->second);
         }
         {
             char buf[5];
@@ -53,16 +53,16 @@ struct span_body_test
             B::writer w{req};
             error_code ec;
             w.init(boost::none, ec);
-            BOOST_BEAST_EXPECTS(! ec, ec.message());
+            BEAST_EXPECTS(! ec, ec.message());
             w.put(boost::asio::const_buffers_1{
                 "123", 3}, ec);
-            BOOST_BEAST_EXPECTS(! ec, ec.message());
-            BOOST_BEAST_EXPECT(buf[0] == '1');
-            BOOST_BEAST_EXPECT(buf[1] == '2');
-            BOOST_BEAST_EXPECT(buf[2] == '3');
+            BEAST_EXPECTS(! ec, ec.message());
+            BEAST_EXPECT(buf[0] == '1');
+            BEAST_EXPECT(buf[1] == '2');
+            BEAST_EXPECT(buf[2] == '3');
             w.put(boost::asio::const_buffers_1{
                 "456", 3}, ec);
-            BOOST_BEAST_EXPECTS(ec == error::buffer_overflow, ec.message());
+            BEAST_EXPECTS(ec == error::buffer_overflow, ec.message());
         }
     }
 

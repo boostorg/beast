@@ -56,7 +56,7 @@ public:
             -windowBits,
             8,
             strategy);
-        if(! BOOST_BEAST_EXPECT(result == Z_OK))
+        if(! BEAST_EXPECT(result == Z_OK))
             goto err;
         out.resize(deflateBound(&zs,
             static_cast<uLong>(check.size())));
@@ -72,7 +72,7 @@ public:
                 if( result == Z_BUF_ERROR ||
                     result == Z_STREAM_END) // per zlib FAQ
                     goto fin;
-                if(! BOOST_BEAST_EXPECT(progress))
+                if(! BEAST_EXPECT(progress))
                     goto err;
                 progress = false;
             }
@@ -83,7 +83,7 @@ public:
         {
             z_inflator zi;
             auto const s = zi(out);
-            BOOST_BEAST_EXPECT(s == check);
+            BEAST_EXPECT(s == check);
         }
 
     err:
@@ -118,9 +118,9 @@ public:
                 if( ec == error::need_buffers ||
                     ec == error::end_of_stream) // per zlib FAQ
                     goto fin;
-                if(! BOOST_BEAST_EXPECTS(! ec, ec.message()))
+                if(! BEAST_EXPECTS(! ec, ec.message()))
                     goto err;
-                if(! BOOST_BEAST_EXPECT(progress))
+                if(! BEAST_EXPECT(progress))
                     goto err;
                 progress = false;
             }
@@ -131,7 +131,7 @@ public:
         {
             z_inflator zi;
             auto const s = zi(out);
-            BOOST_BEAST_EXPECT(s == check);
+            BEAST_EXPECT(s == check);
         }
 
     err:
@@ -158,7 +158,7 @@ public:
                     -windowBits,
                     8,
                     strategy);
-                if(! BOOST_BEAST_EXPECT(result == Z_OK))
+                if(! BEAST_EXPECT(result == Z_OK))
                     continue;
                 std::string out;
                 out.resize(deflateBound(&zs,
@@ -181,7 +181,7 @@ public:
                     if( result == Z_BUF_ERROR ||
                         result == Z_STREAM_END) // per zlib FAQ
                         goto fin;
-                    if(! BOOST_BEAST_EXPECT(result == Z_OK))
+                    if(! BEAST_EXPECT(result == Z_OK))
                         goto err;
                     if(zs.avail_in == 0 && ! bi)
                     {
@@ -202,7 +202,7 @@ public:
                 {
                     z_inflator zi;
                     auto const s = zi(out);
-                    BOOST_BEAST_EXPECT(s == check);
+                    BEAST_EXPECT(s == check);
                 }
 
             err:
@@ -246,7 +246,7 @@ public:
                     if( ec == error::need_buffers ||
                         ec == error::end_of_stream) // per zlib FAQ
                         goto fin;
-                    if(! BOOST_BEAST_EXPECTS(! ec, ec.message()))
+                    if(! BEAST_EXPECTS(! ec, ec.message()))
                         goto err;
                     if(zs.avail_in == 0 && ! bi)
                     {
@@ -267,7 +267,7 @@ public:
                 {
                     z_inflator zi;
                     auto const s = zi(out);
-                    BOOST_BEAST_EXPECT(s == check);
+                    BEAST_EXPECT(s == check);
                 }
 
             err:

@@ -24,7 +24,7 @@ public:
     void
     check(string_param const& v, string_view s)
     {
-        BOOST_BEAST_EXPECT(static_cast<string_view>(v) == s);
+        BEAST_EXPECT(static_cast<string_view>(v) == s);
     }
 
     class repeater

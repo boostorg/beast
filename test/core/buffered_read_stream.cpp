@@ -35,8 +35,8 @@ public:
             buffered_read_stream<socket_type, multi_buffer> srs(ios);
             buffered_read_stream<socket_type, multi_buffer> srs2(std::move(srs));
             srs = std::move(srs2);
-            BOOST_BEAST_EXPECT(&srs.get_io_service() == &ios);
-            BOOST_BEAST_EXPECT(&srs.get_io_service() == &srs2.get_io_service());
+            BEAST_EXPECT(&srs.get_io_service() == &ios);
+            BEAST_EXPECT(&srs.get_io_service() == &srs2.get_io_service());
         }
         {
             socket_type sock(ios);
@@ -66,11 +66,11 @@ public:
             boost::asio::read(srs, buffer(&s[0], s.size()), ec);
             if(! ec)
             {
-                BOOST_BEAST_EXPECT(s == "Hello, world!");
+                BEAST_EXPECT(s == "Hello, world!");
                 break;
             }
         }
-        BOOST_BEAST_EXPECT(n < limit);
+        BEAST_EXPECT(n < limit);
 
         for(n = 0; n < limit; ++n)
         {
@@ -85,11 +85,11 @@ public:
             boost::asio::read(srs, buffer(&s[0], s.size()), ec);
             if(! ec)
             {
-                BOOST_BEAST_EXPECT(s == "Hello, world!");
+                BEAST_EXPECT(s == "Hello, world!");
                 break;
             }
         }
-        BOOST_BEAST_EXPECT(n < limit);
+        BEAST_EXPECT(n < limit);
 
         for(n = 0; n < limit; ++n)
         {
@@ -104,11 +104,11 @@ public:
                 srs, buffer(&s[0], s.size()), do_yield[ec]);
             if(! ec)
             {
-                BOOST_BEAST_EXPECT(s == "Hello, world!");
+                BEAST_EXPECT(s == "Hello, world!");
                 break;
             }
         }
-        BOOST_BEAST_EXPECT(n < limit);
+        BEAST_EXPECT(n < limit);
 
         for(n = 0; n < limit; ++n)
         {
@@ -124,11 +124,11 @@ public:
                 srs, buffer(&s[0], s.size()), do_yield[ec]);
             if(! ec)
             {
-                BOOST_BEAST_EXPECT(s == "Hello, world!");
+                BEAST_EXPECT(s == "Hello, world!");
                 break;
             }
         }
-        BOOST_BEAST_EXPECT(n < limit);
+        BEAST_EXPECT(n < limit);
     }
 
     void run() override

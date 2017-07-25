@@ -85,8 +85,8 @@ public:
     void
     run()
     {
-        BOOST_BEAST_EXPECT(test_one());
-        BOOST_BEAST_EXPECT(test_two());
+        BEAST_EXPECT(test_one());
+        BEAST_EXPECT(test_two());
         pass();
     }
 };

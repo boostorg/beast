@@ -54,11 +54,11 @@ public:
     check(string_view match, Args&&... args)
     {
         T t{std::forward<Args>(args)...};
-        BOOST_BEAST_EXPECT(to_string(t) == match);
+        BEAST_EXPECT(to_string(t) == match);
         T t2{t};
-        BOOST_BEAST_EXPECT(to_string(t2) == match);
+        BEAST_EXPECT(to_string(t2) == match);
         T t3{std::move(t2)};
-        BOOST_BEAST_EXPECT(to_string(t3) == match);
+        BEAST_EXPECT(to_string(t3) == match);
     }
 
     template<class T, class... Args>
@@ -66,11 +66,11 @@ public:
     check_fwd(string_view match, Args&&... args)
     {
         T t{std::forward<Args>(args)...};
-        BOOST_BEAST_EXPECT(to_string(t) == match);
+        BEAST_EXPECT(to_string(t) == match);
         T t2{t};
-        BOOST_BEAST_EXPECT(to_string(t2) == match);
+        BEAST_EXPECT(to_string(t2) == match);
         T t3{std::move(t2)};
-        BOOST_BEAST_EXPECT(to_string(t3) == match);
+        BEAST_EXPECT(to_string(t3) == match);
     }
 
     using cb_t = boost::asio::const_buffers_1;
@@ -220,20 +220,20 @@ public:
             };
         chunk_extensions ce;
         ce.insert("x");
-        BOOST_BEAST_EXPECT(ce.str() == ";x");
-        BOOST_BEAST_EXPECT(str(ce) == "x,");
+        BEAST_EXPECT(ce.str() == ";x");
+        BEAST_EXPECT(str(ce) == "x,");
         ce.insert("y", "z");
-        BOOST_BEAST_EXPECT(ce.str() == ";x;y=z");
-        BOOST_BEAST_EXPECT(str(ce) == "x,y,z,");
+        BEAST_EXPECT(ce.str() == ";x;y=z");
+        BEAST_EXPECT(str(ce) == "x,y,z,");
         ce.insert("z", R"(")");
-        BOOST_BEAST_EXPECT(ce.str() == R"(;x;y=z;z="\"")");
-        BOOST_BEAST_EXPECT(str(ce)  == R"(x,y,z,z,",)");
+        BEAST_EXPECT(ce.str() == R"(;x;y=z;z="\"")");
+        BEAST_EXPECT(str(ce)  == R"(x,y,z,z,",)");
         ce.insert("p", R"(\)");
-        BOOST_BEAST_EXPECT(ce.str() == R"(;x;y=z;z="\"";p="\\")");
-        BOOST_BEAST_EXPECT(str(ce)  == R"(x,y,z,z,",p,\,)");
+        BEAST_EXPECT(ce.str() == R"(;x;y=z;z="\"";p="\\")");
+        BEAST_EXPECT(str(ce)  == R"(x,y,z,z,",p,\,)");
         ce.insert("q", R"(1"2\)");
-        BOOST_BEAST_EXPECT(ce.str() == R"(;x;y=z;z="\"";p="\\";q="1\"2\\")");
-        BOOST_BEAST_EXPECT(str(ce)  == R"(x,y,z,z,",p,\,q,1"2\,)");
+        BEAST_EXPECT(ce.str() == R"(;x;y=z;z="\"";p="\\";q="1\"2\\")");
+        BEAST_EXPECT(str(ce)  == R"(x,y,z,z,",p,\,q,1"2\,)");
     }
 
     void
@@ -259,7 +259,7 @@ public:
                     }
                     chunk_extensions c2;
                     c2.parse(c1.str(), ec);
-                    if(! BOOST_BEAST_EXPECTS(! ec, ec.message()))
+                    if(! BEAST_EXPECTS(! ec, ec.message()))
                         return;
                     chunk_extensions c3;
                     for(auto const& v : c2)
@@ -267,7 +267,7 @@ public:
                             c3.insert(v.first);
                         else
                             c3.insert(v.first, v.second);
-                    BOOST_BEAST_EXPECTS(c2.str() == c3.str(), c3.str());
+                    BEAST_EXPECTS(c2.str() == c3.str(), c3.str());
                 });
             }
         };
@@ -277,7 +277,7 @@ public:
             error_code ec;
             chunk_extensions ce;
             ce.parse(s, ec);
-            BOOST_BEAST_EXPECTS(! ec, ec.message());
+            BEAST_EXPECTS(! ec, ec.message());
             grind(s);
         };
         auto const bad =
@@ -286,7 +286,7 @@ public:
             error_code ec;
             chunk_extensions ce;
             ce.parse(s, ec);
-            BOOST_BEAST_EXPECT(ec);
+            BEAST_EXPECT(ec);
             grind(s);
         };
         chunkExtensionsTest(good, bad);

@@ -601,20 +601,20 @@ run(runner& r)
     }
 }
 
-#ifndef BOOST_BEAST_EXPECT
+#ifndef BEAST_EXPECT
 /** Check a precondition.
 
     If the condition is false, the file and line number are reported.
 */
-#define BOOST_BEAST_EXPECT(cond) expect(cond, __FILE__, __LINE__)
+#define BEAST_EXPECT(cond) expect(cond, __FILE__, __LINE__)
 #endif
 
-#ifndef BOOST_BEAST_EXPECTS
+#ifndef BEAST_EXPECTS
 /** Check a precondition.
 
     If the condition is false, the file and line number are reported.
 */
-#define BOOST_BEAST_EXPECTS(cond, reason) ((cond) ? (pass(), true) : \
+#define BEAST_EXPECTS(cond, reason) ((cond) ? (pass(), true) : \
         (fail((reason), __FILE__, __LINE__), false))
 #endif
 

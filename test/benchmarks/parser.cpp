@@ -61,7 +61,7 @@ public:
         {
             mg.request(v[i]);
             size_ += v[i].size();
-            BOOST_BEAST_EXPECT(v[i].size() > 0);
+            BEAST_EXPECT(v[i].size() > 0);
         }
         return v;
     }
@@ -76,7 +76,7 @@ public:
         {
             mg.response(v[i]);
             size_ += v[i].size();
-            BOOST_BEAST_EXPECT(v[i].size() > 0);
+            BEAST_EXPECT(v[i].size() > 0);
         }
         return v;
     }
@@ -121,7 +121,7 @@ public:
                 Parser p;
                 error_code ec;
                 p.write(b.data(), ec);
-                if(! BOOST_BEAST_EXPECTS(! ec, ec.message()))
+                if(! BEAST_EXPECTS(! ec, ec.message()))
                     log << to_string(b.data()) << std::endl;
             }
     }
@@ -137,7 +137,7 @@ public:
                 p.header_limit((std::numeric_limits<std::uint32_t>::max)());
                 error_code ec;
                 feed(b.data(), p, ec);
-                if(! BOOST_BEAST_EXPECTS(! ec, ec.message()))
+                if(! BEAST_EXPECTS(! ec, ec.message()))
                     log << to_string(b.data()) << std::endl;
             }
     }

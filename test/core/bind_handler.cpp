@@ -41,7 +41,7 @@ public:
     void
     callback(int v)
     {
-        BOOST_BEAST_EXPECT(v == 42);
+        BEAST_EXPECT(v == 42);
     }
     
     void

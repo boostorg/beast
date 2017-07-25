@@ -25,18 +25,18 @@ public:
     {
         http::header<true> req;
         req.version = 10;
-        BOOST_BEAST_EXPECT(! is_upgrade(req));
+        BEAST_EXPECT(! is_upgrade(req));
         req.version = 11;
         req.method(http::verb::post);
         req.target("/");
-        BOOST_BEAST_EXPECT(! is_upgrade(req));
+        BEAST_EXPECT(! is_upgrade(req));
         req.method(http::verb::get);
         req.insert("Connection", "upgrade");
-        BOOST_BEAST_EXPECT(! is_upgrade(req));
+        BEAST_EXPECT(! is_upgrade(req));
         req.insert("Upgrade", "websocket");
-        BOOST_BEAST_EXPECT(! is_upgrade(req));
+        BEAST_EXPECT(! is_upgrade(req));
         req.insert("Sec-WebSocket-Version", "13");
-        BOOST_BEAST_EXPECT(is_upgrade(req));
+        BEAST_EXPECT(is_upgrade(req));
     }
 
     void

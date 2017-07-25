@@ -25,9 +25,9 @@ public:
     {
         auto const check = [&](status s, int i, status_class sc)
             {
-                BOOST_BEAST_EXPECT(int_to_status(i) == s);
-                BOOST_BEAST_EXPECT(to_status_class(i) == sc);
-                BOOST_BEAST_EXPECT(to_status_class(int_to_status(i)) == sc);
+                BEAST_EXPECT(int_to_status(i) == s);
+                BEAST_EXPECT(to_status_class(i) == sc);
+                BEAST_EXPECT(to_status_class(int_to_status(i)) == sc);
             };
         check(status::continue_                             ,100, status_class::informational);
         check(status::switching_protocols                   ,101, status_class::informational);
@@ -96,13 +96,13 @@ public:
         check(status::network_authentication_required       ,511, status_class::server_error);
         check(status::network_connect_timeout_error         ,599, status_class::server_error);
 
-        BOOST_BEAST_EXPECT(to_status_class(1) == status_class::unknown);
-        BOOST_BEAST_EXPECT(to_status_class(status::unknown) == status_class::unknown);
+        BEAST_EXPECT(to_status_class(1) == status_class::unknown);
+        BEAST_EXPECT(to_status_class(status::unknown) == status_class::unknown);
 
         auto const good =
             [&](status v)
             {
-                BOOST_BEAST_EXPECT(obsolete_reason(v) != "Unknown Status");
+                BEAST_EXPECT(obsolete_reason(v) != "Unknown Status");
             };
         good(status::continue_);
         good(status::switching_protocols);

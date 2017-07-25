@@ -23,15 +23,15 @@ public:
     void check(char const* name, error ev)
     {
         auto const ec = make_error_code(ev);
-        BOOST_BEAST_EXPECT(std::string{ec.category().name()} == name);
-        BOOST_BEAST_EXPECT(! ec.message().empty());
-        BOOST_BEAST_EXPECT(std::addressof(ec.category()) ==
+        BEAST_EXPECT(std::string{ec.category().name()} == name);
+        BEAST_EXPECT(! ec.message().empty());
+        BEAST_EXPECT(std::addressof(ec.category()) ==
             std::addressof(detail::get_error_category()));
-        BOOST_BEAST_EXPECT(detail::get_error_category().equivalent(
+        BEAST_EXPECT(detail::get_error_category().equivalent(
             static_cast<std::underlying_type<error>::type>(ev),
                 ec.category().default_error_condition(
                     static_cast<std::underlying_type<error>::type>(ev))));
-        BOOST_BEAST_EXPECT(detail::get_error_category().equivalent(
+        BEAST_EXPECT(detail::get_error_category().equivalent(
             ec, static_cast<std::underlying_type<error>::type>(ev)));
     }
 

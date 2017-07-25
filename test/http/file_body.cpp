@@ -56,22 +56,22 @@ public:
 
             p.get().body.open(
                 temp.string<std::string>().c_str(), file_mode::write, ec);
-            BOOST_BEAST_EXPECTS(! ec, ec.message());
+            BEAST_EXPECTS(! ec, ec.message());
 
             p.put(boost::asio::buffer(s.data(), s.size()), ec);
-            BOOST_BEAST_EXPECTS(! ec, ec.message());
+            BEAST_EXPECTS(! ec, ec.message());
         }
         {
             File f;
             f.open(temp.string<std::string>().c_str(), file_mode::read, ec);
             auto size = f.size(ec);
-            BOOST_BEAST_EXPECTS(! ec, ec.message());
-            BOOST_BEAST_EXPECT(size == 3);
+            BEAST_EXPECTS(! ec, ec.message());
+            BEAST_EXPECT(size == 3);
             std::string s1;
             s1.resize(3);
             f.read(&s1[0], s1.size(), ec);
-            BOOST_BEAST_EXPECTS(! ec, ec.message());
-            BOOST_BEAST_EXPECTS(s1 == "xyz", s);
+            BEAST_EXPECTS(! ec, ec.message());
+            BEAST_EXPECTS(s1 == "xyz", s);
         }
         {
             lambda visit;
@@ -80,21 +80,21 @@ public:
                 res.set(field::server, "test");
                 res.body.open(temp.string<std::string>().c_str(),
                     file_mode::scan, ec);
-                BOOST_BEAST_EXPECTS(! ec, ec.message());
+                BEAST_EXPECTS(! ec, ec.message());
                 res.prepare_payload();
 
                 serializer<false, basic_file_body<File>, fields> sr{res};
                 sr.next(ec, visit);
-                BOOST_BEAST_EXPECTS(! ec, ec.message());
+                BEAST_EXPECTS(! ec, ec.message());
                 auto const cb = *visit.buffer.data().begin();
                 string_view const s1{
                     boost::asio::buffer_cast<char const*>(cb),
                     boost::asio::buffer_size(cb)};
-                BOOST_BEAST_EXPECTS(s1 == s, s1);
+                BEAST_EXPECTS(s1 == s, s1);
             }
         }
         boost::filesystem::remove(temp, ec);
-        BOOST_BEAST_EXPECTS(! ec, ec.message());
+        BEAST_EXPECTS(! ec, ec.message());
     }
     void
     run() override

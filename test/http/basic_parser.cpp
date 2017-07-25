@@ -55,7 +55,7 @@ public:
         void
         operator()(Parser const& p) const
         {
-            s_.BOOST_BEAST_EXPECT(p.version == version_);
+            s_.BEAST_EXPECT(p.version == version_);
         }
     };
 
@@ -75,7 +75,7 @@ public:
         void
         operator()(Parser const& p) const
         {
-            s_.BOOST_BEAST_EXPECT(p.status == status_);
+            s_.BEAST_EXPECT(p.status == status_);
         }
     };
 
@@ -96,13 +96,13 @@ public:
         operator()(Parser const& p) const
         {
             if(flags_ & parse_flag::chunked)
-                s_.BOOST_BEAST_EXPECT(p.is_chunked());
+                s_.BEAST_EXPECT(p.is_chunked());
             if(flags_ & parse_flag::connection_keep_alive)
-                s_.BOOST_BEAST_EXPECT(p.is_keep_alive());
+                s_.BEAST_EXPECT(p.is_keep_alive());
             if(flags_ & parse_flag::connection_close)
-                s_.BOOST_BEAST_EXPECT(! p.is_keep_alive());
+                s_.BEAST_EXPECT(! p.is_keep_alive());
             if(flags_ & parse_flag::upgrade)
-                s_.BOOST_BEAST_EXPECT(! p.is_upgrade());
+                s_.BEAST_EXPECT(! p.is_upgrade());
         }
     };
 
@@ -122,7 +122,7 @@ public:
         void
         operator()(Parser const& p) const
         {
-            s_.BOOST_BEAST_EXPECT(p.is_keep_alive() == v_);
+            s_.BEAST_EXPECT(p.is_keep_alive() == v_);
         }
     };
 
@@ -144,7 +144,7 @@ public:
         void
         operator()(Parser const& p) const
         {
-            s_.BOOST_BEAST_EXPECT(p.body == body_);
+            s_.BEAST_EXPECT(p.body == body_);
         }
     };
 
@@ -165,24 +165,24 @@ public:
             error_code ec;
             consuming_buffers<ConstBufferSequence> cb{buffers};
             auto n = p.put(buffer_prefix(i, cb), ec);
-            if(! BOOST_BEAST_EXPECTS(! ec ||
+            if(! BEAST_EXPECTS(! ec ||
                     ec == error::need_more, ec.message()))
                 continue;
-            if(! BOOST_BEAST_EXPECT(! p.is_done()))
+            if(! BEAST_EXPECT(! p.is_done()))
                 continue;
             cb.consume(n);
             n = p.put(cb, ec);
-            if(! BOOST_BEAST_EXPECTS(! ec, ec.message()))
+            if(! BEAST_EXPECTS(! ec, ec.message()))
                 continue;
-            if(! BOOST_BEAST_EXPECT(n == boost::asio::buffer_size(cb)))
+            if(! BEAST_EXPECT(n == boost::asio::buffer_size(cb)))
                 continue;
             if(p.need_eof())
             {
                 p.put_eof(ec);
-                if(! BOOST_BEAST_EXPECTS(! ec, ec.message()))
+                if(! BEAST_EXPECTS(! ec, ec.message()))
                     continue;
             }
-            if(! BOOST_BEAST_EXPECT(p.is_done()))
+            if(! BEAST_EXPECT(p.is_done()))
                 continue;
             test(p);
         }
@@ -195,14 +195,14 @@ public:
             cb.consume(i);
             auto n = p.put(buffer_cat(
                 buffer_prefix(i, buffers), cb), ec);
-            if(! BOOST_BEAST_EXPECTS(! ec, ec.message()))
+            if(! BEAST_EXPECTS(! ec, ec.message()))
                 continue;
-            if(! BOOST_BEAST_EXPECT(n == size))
+            if(! BEAST_EXPECT(n == size))
                 continue;
             if(p.need_eof())
             {
                 p.put_eof(ec);
-                if(! BOOST_BEAST_EXPECTS(! ec, ec.message()))
+                if(! BEAST_EXPECTS(! ec, ec.message()))
                     continue;
             }
             test(p);
@@ -249,16 +249,16 @@ public:
                 pass();
                 continue;
             }
-            if(! BOOST_BEAST_EXPECTS(
+            if(! BEAST_EXPECTS(
                 ec == error::need_more, ec.message()))
                 continue;
-            if(! BOOST_BEAST_EXPECT(! p.is_done()))
+            if(! BEAST_EXPECT(! p.is_done()))
                 continue;
             cb.consume(n);
             n = p.put(cb, ec);
             if(! ec)
                 p.put_eof(ec);
-            BOOST_BEAST_EXPECTS(ec == result, ec.message());
+            BEAST_EXPECTS(ec == result, ec.message());
         }
         for(std::size_t i = 1; i < msg.size() - 1; ++i)
         {
@@ -271,7 +271,7 @@ public:
                     msg.data() + i, msg.size() - i}), ec);
             if(! ec)
                 p.put_eof(ec);
-            BOOST_BEAST_EXPECTS(ec == result, ec.message());
+            BEAST_EXPECTS(ec == result, ec.message());
         }
     }
 
@@ -328,7 +328,7 @@ public:
                 parsegrind<parser<true, string_body>>(m,
                     [&](parser<true, string_body> const& p)
                     {
-                        BOOST_BEAST_EXPECT(p.get()["f"] == value);
+                        BEAST_EXPECT(p.get()["f"] == value);
                     });
             };
         check("x",                      "x");
@@ -369,12 +369,12 @@ public:
             "*",
             [&](test_parser<true> const& p)
             {
-                BOOST_BEAST_EXPECT(p.got_on_begin     == 1);
-                BOOST_BEAST_EXPECT(p.got_on_field     == 2);
-                BOOST_BEAST_EXPECT(p.got_on_header    == 1);
-                BOOST_BEAST_EXPECT(p.got_on_body      == 1);
-                BOOST_BEAST_EXPECT(p.got_on_chunk     == 0);
-                BOOST_BEAST_EXPECT(p.got_on_complete  == 1);
+                BEAST_EXPECT(p.got_on_begin     == 1);
+                BEAST_EXPECT(p.got_on_field     == 2);
+                BEAST_EXPECT(p.got_on_header    == 1);
+                BEAST_EXPECT(p.got_on_body      == 1);
+                BEAST_EXPECT(p.got_on_chunk     == 0);
+                BEAST_EXPECT(p.got_on_complete  == 1);
             });
         parsegrind<test_parser<false>>(
             "HTTP/1.1 200 OK\r\n"
@@ -384,12 +384,12 @@ public:
             "*",
             [&](test_parser<false> const& p)
             {
-                BOOST_BEAST_EXPECT(p.got_on_begin     == 1);
-                BOOST_BEAST_EXPECT(p.got_on_field     == 2);
-                BOOST_BEAST_EXPECT(p.got_on_header    == 1);
-                BOOST_BEAST_EXPECT(p.got_on_body      == 1);
-                BOOST_BEAST_EXPECT(p.got_on_chunk     == 0);
-                BOOST_BEAST_EXPECT(p.got_on_complete  == 1);
+                BEAST_EXPECT(p.got_on_begin     == 1);
+                BEAST_EXPECT(p.got_on_field     == 2);
+                BEAST_EXPECT(p.got_on_header    == 1);
+                BEAST_EXPECT(p.got_on_body      == 1);
+                BEAST_EXPECT(p.got_on_chunk     == 0);
+                BEAST_EXPECT(p.got_on_complete  == 1);
             });
         parsegrind<test_parser<false>>(
             "HTTP/1.1 200 OK\r\n"
@@ -400,12 +400,12 @@ public:
             "0\r\n\r\n",
             [&](test_parser<false> const& p)
             {
-                BOOST_BEAST_EXPECT(p.got_on_begin     == 1);
-                BOOST_BEAST_EXPECT(p.got_on_field     == 2);
-                BOOST_BEAST_EXPECT(p.got_on_header    == 1);
-                BOOST_BEAST_EXPECT(p.got_on_body      == 1);
-                BOOST_BEAST_EXPECT(p.got_on_chunk     == 2);
-                BOOST_BEAST_EXPECT(p.got_on_complete  == 1);
+                BEAST_EXPECT(p.got_on_begin     == 1);
+                BEAST_EXPECT(p.got_on_field     == 2);
+                BEAST_EXPECT(p.got_on_header    == 1);
+                BEAST_EXPECT(p.got_on_body      == 1);
+                BEAST_EXPECT(p.got_on_chunk     == 2);
+                BEAST_EXPECT(p.got_on_complete  == 1);
             });
         parsegrind<test_parser<false>>(
             "HTTP/1.1 200 OK\r\n"
@@ -416,12 +416,12 @@ public:
             "0\r\n\r\n",
             [&](test_parser<false> const& p)
             {
-                BOOST_BEAST_EXPECT(p.got_on_begin     == 1);
-                BOOST_BEAST_EXPECT(p.got_on_field     == 2);
-                BOOST_BEAST_EXPECT(p.got_on_header    == 1);
-                BOOST_BEAST_EXPECT(p.got_on_body      == 1);
-                BOOST_BEAST_EXPECT(p.got_on_chunk     == 2);
-                BOOST_BEAST_EXPECT(p.got_on_complete  == 1);
+                BEAST_EXPECT(p.got_on_begin     == 1);
+                BEAST_EXPECT(p.got_on_field     == 2);
+                BEAST_EXPECT(p.got_on_header    == 1);
+                BEAST_EXPECT(p.got_on_body      == 1);
+                BEAST_EXPECT(p.got_on_chunk     == 2);
+                BEAST_EXPECT(p.got_on_complete  == 1);
             });
     }
 
@@ -673,8 +673,8 @@ public:
                 parsegrind<P>(c(s),
                     [&](P const& p)
                     {
-                        BOOST_BEAST_EXPECT(p.content_length());
-                        BOOST_BEAST_EXPECT(p.content_length() && *p.content_length() == v);
+                        BEAST_EXPECT(p.content_length());
+                        BEAST_EXPECT(p.content_length() && *p.content_length() == v);
                     }, true);
             };
 
@@ -784,7 +784,7 @@ public:
             "\r\n",
             [&](P const& p)
             {
-                BOOST_BEAST_EXPECT(p.is_upgrade());
+                BEAST_EXPECT(p.is_upgrade());
             });
     }
 
@@ -808,17 +808,17 @@ public:
             "\r\n",
             [&](test_parser<true> const& p)
             {
-                BOOST_BEAST_EXPECT(p.fields.size() == 10);
-                BOOST_BEAST_EXPECT(p.fields.at("a") == "0");
-                BOOST_BEAST_EXPECT(p.fields.at("b") == "1");
-                BOOST_BEAST_EXPECT(p.fields.at("c") == "2");
-                BOOST_BEAST_EXPECT(p.fields.at("d") == "3");
-                BOOST_BEAST_EXPECT(p.fields.at("e") == "4");
-                BOOST_BEAST_EXPECT(p.fields.at("f") == "5");
-                BOOST_BEAST_EXPECT(p.fields.at("g") == "6");
-                BOOST_BEAST_EXPECT(p.fields.at("h") == "7");
-                BOOST_BEAST_EXPECT(p.fields.at("i") == "8");
-                BOOST_BEAST_EXPECT(p.fields.at("j") == "9");
+                BEAST_EXPECT(p.fields.size() == 10);
+                BEAST_EXPECT(p.fields.at("a") == "0");
+                BEAST_EXPECT(p.fields.at("b") == "1");
+                BEAST_EXPECT(p.fields.at("c") == "2");
+                BEAST_EXPECT(p.fields.at("d") == "3");
+                BEAST_EXPECT(p.fields.at("e") == "4");
+                BEAST_EXPECT(p.fields.at("f") == "5");
+                BEAST_EXPECT(p.fields.at("g") == "6");
+                BEAST_EXPECT(p.fields.at("h") == "7");
+                BEAST_EXPECT(p.fields.at("i") == "8");
+                BEAST_EXPECT(p.fields.at("j") == "9");
             });
     }
 
@@ -837,7 +837,7 @@ public:
             p.header_limit(10);
             p.eager(true);
             p.put(b.data(), ec);
-            BOOST_BEAST_EXPECTS(ec == error::header_limit, ec.message());
+            BEAST_EXPECTS(ec == error::header_limit, ec.message());
         }
         {
             multi_buffer b;
@@ -851,7 +851,7 @@ public:
             p.body_limit(1);
             p.eager(true);
             p.put(b.data(), ec);
-            BOOST_BEAST_EXPECTS(ec == error::body_limit, ec.message());
+            BEAST_EXPECTS(ec == error::body_limit, ec.message());
         }
         {
             multi_buffer b;
@@ -864,7 +864,7 @@ public:
             p.body_limit(1);
             p.eager(true);
             p.put(b.data(), ec);
-            BOOST_BEAST_EXPECTS(ec == error::body_limit, ec.message());
+            BEAST_EXPECTS(ec == error::body_limit, ec.message());
         }
         {
             multi_buffer b;
@@ -880,7 +880,7 @@ public:
             p.body_limit(1);
             p.eager(true);
             p.put(b.data(), ec);
-            BOOST_BEAST_EXPECTS(ec == error::body_limit, ec.message());
+            BEAST_EXPECTS(ec == error::body_limit, ec.message());
         }
     }
 
@@ -914,7 +914,7 @@ public:
             "0\r\n\r\n"
             ,[&](test_parser<false> const& p)
             {
-                BOOST_BEAST_EXPECT(p.body == "abcd");
+                BEAST_EXPECT(p.body == "abcd");
             });
         parsegrind<test_parser<false>>(
             "HTTP/1.1 200 OK\r\n"
@@ -932,7 +932,7 @@ public:
             "\r\n"
             ,[&](test_parser<false> const& p)
             {
-                BOOST_BEAST_EXPECT(p.body == "*****--");
+                BEAST_EXPECT(p.body == "*****--");
             });
 
         parsegrind<test_parser<true>>(
@@ -965,8 +965,8 @@ public:
                 "GET / HTTP/1.0\r\n"
                 "\r\n"
                 ), p, ec);
-            BOOST_BEAST_EXPECTS(! ec, ec.message());
-            BOOST_BEAST_EXPECT(p.is_done());
+            BEAST_EXPECTS(! ec, ec.message());
+            BEAST_EXPECT(p.is_done());
         }
         {
             error_code ec;
@@ -975,8 +975,8 @@ public:
                 "GET / HTTP/1.1\r\n"
                 "\r\n"
                 ), p, ec);
-            BOOST_BEAST_EXPECTS(! ec, ec.message());
-            BOOST_BEAST_EXPECT(p.is_done());
+            BEAST_EXPECTS(! ec, ec.message());
+            BEAST_EXPECT(p.is_done());
         }
 
         // response without Content-Length or
@@ -988,9 +988,9 @@ public:
                 "HTTP/1.0 200 OK\r\n"
                 "\r\n"
                 ), p, ec);
-            BOOST_BEAST_EXPECTS(! ec, ec.message());
-            BOOST_BEAST_EXPECT(! p.is_done());
-            BOOST_BEAST_EXPECT(p.need_eof());
+            BEAST_EXPECTS(! ec, ec.message());
+            BEAST_EXPECT(! p.is_done());
+            BEAST_EXPECT(p.need_eof());
         }
 
         // 304 "Not Modified" response does not require eof
@@ -1001,8 +1001,8 @@ public:
                 "HTTP/1.0 304 Not Modified\r\n"
                 "\r\n"
                 ), p, ec);
-            BOOST_BEAST_EXPECTS(! ec, ec.message());
-            BOOST_BEAST_EXPECT(p.is_done());
+            BEAST_EXPECTS(! ec, ec.message());
+            BEAST_EXPECT(p.is_done());
         }
 
         // Chunked response does not require eof
@@ -1014,13 +1014,13 @@ public:
                 "Transfer-Encoding: chunked\r\n"
                 "\r\n"
                 ), p, ec);
-            BOOST_BEAST_EXPECTS(! ec, ec.message());
-            BOOST_BEAST_EXPECT(! p.is_done());
+            BEAST_EXPECTS(! ec, ec.message());
+            BEAST_EXPECT(! p.is_done());
             feed(buf(
                 "0\r\n\r\n"
                 ), p, ec);
-            BOOST_BEAST_EXPECTS(! ec, ec.message());
-            BOOST_BEAST_EXPECT(p.is_done());
+            BEAST_EXPECTS(! ec, ec.message());
+            BEAST_EXPECT(p.is_done());
         }
 
         // restart: 1.0 assumes Connection: close
@@ -1031,8 +1031,8 @@ public:
                 "GET / HTTP/1.0\r\n"
                 "\r\n"
                 ), p, ec);
-            BOOST_BEAST_EXPECTS(! ec, ec.message());
-            BOOST_BEAST_EXPECT(p.is_done());
+            BEAST_EXPECTS(! ec, ec.message());
+            BEAST_EXPECT(p.is_done());
         }
 
         // restart: 1.1 assumes Connection: keep-alive
@@ -1043,8 +1043,8 @@ public:
                 "GET / HTTP/1.1\r\n"
                 "\r\n"
                 ), p, ec);
-            BOOST_BEAST_EXPECTS(! ec, ec.message());
-            BOOST_BEAST_EXPECT(p.is_done());
+            BEAST_EXPECTS(! ec, ec.message());
+            BEAST_EXPECT(p.is_done());
         }
 
         failgrind<test_parser<true>>(
@@ -1082,9 +1082,9 @@ public:
             "die!";
         p.put(boost::asio::buffer(
             s.data(), s.size()), ec);
-        if(! BOOST_BEAST_EXPECTS(! ec, ec.message()))
+        if(! BEAST_EXPECTS(! ec, ec.message()))
             return;
-        BOOST_BEAST_EXPECT(p.is_done());
+        BEAST_EXPECT(p.is_done());
     }
 
     // https://github.com/vinniefalco/Beast/issues/496
@@ -1102,7 +1102,7 @@ public:
             "0\r\n\r\n"
             ,[&](P const& p)
             {
-                BOOST_BEAST_EXPECT(p.body == "abcd");
+                BEAST_EXPECT(p.body == "abcd");
             });
     }
 
@@ -1140,7 +1140,7 @@ public:
             p.eager(true);
             p.put(boost::asio::const_buffers_1{
                 msg.data(), msg.size()}, ec);
-            BOOST_BEAST_EXPECTS(! ec, ec.message());
+            BEAST_EXPECTS(! ec, ec.message());
             grind(msg);
         };
         auto const bad =
@@ -1157,7 +1157,7 @@ public:
             p.eager(true);
             p.put(boost::asio::const_buffers_1{
                 msg.data(), msg.size()}, ec);
-            BOOST_BEAST_EXPECT(ec);
+            BEAST_EXPECT(ec);
             grind(msg);
         };
         chunkExtensionsTest(good, bad);
@@ -1192,7 +1192,7 @@ public:
         error_code ec;
         test_parser<true> p;
         feed(boost::asio::buffer(buf, sizeof(buf)), p, ec);
-        BOOST_BEAST_EXPECT(ec);
+        BEAST_EXPECT(ec);
     }
 
     //--------------------------------------------------------------------------

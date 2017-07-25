@@ -22,7 +22,7 @@ class clamp_test : public beast::unit_test::suite
 public:
     void testClamp()
     {
-        BOOST_BEAST_EXPECT(clamp(
+        BEAST_EXPECT(clamp(
             (std::numeric_limits<std::uint64_t>::max)()) ==
                 (std::numeric_limits<std::size_t>::max)());
     }

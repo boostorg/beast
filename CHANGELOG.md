@@ -1,6 +1,7 @@
 Version 87:
 
 * Update appveyor for Boost branch
+* Rename to BEAST_EXPECT
 
 --------------------------------------------------------------------------------
 

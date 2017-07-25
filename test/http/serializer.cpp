@@ -108,7 +108,7 @@ public:
         for(;;)
         {
             sr.next(ec, visit);
-            BOOST_BEAST_EXPECT(visit.size <= limit);
+            BEAST_EXPECT(visit.size <= limit);
             sr.consume(visit.size);
             if(sr.is_done())
                 break;

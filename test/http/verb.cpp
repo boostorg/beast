@@ -26,7 +26,7 @@ public:
         auto const good =
             [&](verb v)
             {
-                BOOST_BEAST_EXPECT(string_to_verb(to_string(v)) == v);
+                BEAST_EXPECT(string_to_verb(to_string(v)) == v);
             };
 
         good(verb::unknown);
@@ -69,7 +69,7 @@ public:
             [&](string_view s)
             {
                 auto const v = string_to_verb(s);
-                BOOST_BEAST_EXPECTS(v == verb::unknown, to_string(v));
+                BEAST_EXPECTS(v == verb::unknown, to_string(v));
             };
 
         bad("AC_");

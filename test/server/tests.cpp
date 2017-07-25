@@ -78,7 +78,7 @@ public:
         req.set(beast::http::field::connection, "close");
         
         beast::http::write(stream, req, ec);
-        if(! BOOST_BEAST_EXPECTS(
+        if(! BEAST_EXPECTS(
             ec == beast::http::error::end_of_stream,
                 ec.message()))
             return;
@@ -86,7 +86,7 @@ public:
         beast::flat_buffer b;
         beast::http::response<beast::http::string_body> res;
         beast::http::read(stream, b, res, ec);
-        if(! BOOST_BEAST_EXPECTS(! ec, ec.message()))
+        if(! BEAST_EXPECTS(! ec, ec.message()))
             return;
     }
 
@@ -95,17 +95,17 @@ public:
     doHello(stream<NextLayer>& ws, error_code& ec)
     {
         ws.handshake("localhost", "/", ec);
-        if(! BOOST_BEAST_EXPECTS(! ec, ec.message()))
+        if(! BEAST_EXPECTS(! ec, ec.message()))
             return;
         ws.write(boost::asio::buffer(std::string("Hello, world!")), ec);
-        if(! BOOST_BEAST_EXPECTS(! ec, ec.message()))
+        if(! BEAST_EXPECTS(! ec, ec.message()))
             return;
         beast::multi_buffer b;
         ws.read(b, ec);
-        if(! BOOST_BEAST_EXPECTS(! ec, ec.message()))
+        if(! BEAST_EXPECTS(! ec, ec.message()))
             return;
         ws.close(beast::websocket::close_code::normal, ec);
-        if(! BOOST_BEAST_EXPECTS(! ec, ec.message()))
+        if(! BEAST_EXPECTS(! ec, ec.message()))
             return;
         // VFALCO Verify the buffer's contents
         drain_buffer drain; 
@@ -114,7 +114,7 @@ public:
             ws.read(drain, ec);
             if(ec == beast::websocket::error::closed)
                 break;
-            if(! BOOST_BEAST_EXPECTS(! ec, ec.message()))
+            if(! BEAST_EXPECTS(! ec, ec.message()))
                 return;
         }
     }
@@ -125,7 +125,7 @@ public:
         error_code ec;
         boost::asio::ip::tcp::socket con{ios_};
         con.connect(ep, ec);
-        if(! BOOST_BEAST_EXPECTS(! ec, ec.message()))
+        if(! BEAST_EXPECTS(! ec, ec.message()))
             return;
         doOptions(con, ec);
     }
@@ -136,7 +136,7 @@ public:
         error_code ec;
         stream<boost::asio::ip::tcp::socket> ws{ios_};
         ws.next_layer().connect(ep, ec);
-        if(! BOOST_BEAST_EXPECTS(! ec, ec.message()))
+        if(! BEAST_EXPECTS(! ec, ec.message()))
             return;
         doHello(ws, ec);
     }
@@ -154,7 +154,7 @@ public:
                 address_type::from_string("127.0.0.1"), port_num};
             auto const wsp = instance.make_port<ws_sync_port>(
                 ec, ep1, instance, log, get_ws_options());
-            if(! BOOST_BEAST_EXPECTS(! ec, ec.message()))
+            if(! BEAST_EXPECTS(! ec, ec.message()))
                 return;
             auto const ep2 = endpoint_type{
                 address_type::from_string("127.0.0.1"),
@@ -162,10 +162,10 @@ public:
             auto const sp = instance.make_port<
                 http_sync_port<ws_upgrade_service<ws_sync_port>>>(
                     ec, ep2, instance, log);
-            if(! BOOST_BEAST_EXPECTS(! ec, ec.message()))
+            if(! BEAST_EXPECTS(! ec, ec.message()))
                 return;
             sp->template init<0>(ec, *wsp);
-            if(! BOOST_BEAST_EXPECTS(! ec, ec.message()))
+            if(! BEAST_EXPECTS(! ec, ec.message()))
                 return;
 
             wsClient(ep1);
@@ -182,7 +182,7 @@ public:
                 address_type::from_string("127.0.0.1"), port_num};
             auto const wsp = instance.make_port<ws_async_port>(
                 ec, ep1, instance, log, get_ws_options());
-            if(! BOOST_BEAST_EXPECTS(! ec, ec.message()))
+            if(! BEAST_EXPECTS(! ec, ec.message()))
                 return;
             auto const ep2 = endpoint_type{
                 address_type::from_string("127.0.0.1"),
@@ -190,10 +190,10 @@ public:
             auto const sp = instance.make_port<
                 http_async_port<ws_upgrade_service<ws_async_port>>>(
                     ec, ep2, instance, log);
-            if(! BOOST_BEAST_EXPECTS(! ec, ec.message()))
+            if(! BEAST_EXPECTS(! ec, ec.message()))
                 return;
             sp->template init<0>(ec, *wsp);
-            if(! BOOST_BEAST_EXPECTS(! ec, ec.message()))
+            if(! BEAST_EXPECTS(! ec, ec.message()))
                 return;
 
             wsClient(ep1);
@@ -215,11 +215,11 @@ public:
         error_code ec;
         boost::asio::ssl::stream<boost::asio::ip::tcp::socket> con{ios_, ctx};
         con.next_layer().connect(ep, ec);
-        if(! BOOST_BEAST_EXPECTS(! ec, ec.message()))
+        if(! BEAST_EXPECTS(! ec, ec.message()))
             return;
         con.handshake(
             boost::asio::ssl::stream_base::client, ec);
-        if(! BOOST_BEAST_EXPECTS(! ec, ec.message()))
+        if(! BEAST_EXPECTS(! ec, ec.message()))
             return;
         doOptions(con, ec);
         if(ec)
@@ -228,7 +228,7 @@ public:
         // VFALCO No idea why we get eof in the normal case
         if(ec == boost::asio::error::eof)
             ec.assign(0, ec.category());
-        if(! BOOST_BEAST_EXPECTS(! ec, ec.message()))
+        if(! BEAST_EXPECTS(! ec, ec.message()))
             return;
     }
 
@@ -239,11 +239,11 @@ public:
         error_code ec;
         stream<boost::asio::ssl::stream<boost::asio::ip::tcp::socket>> wss{ios_, ctx};
         wss.next_layer().next_layer().connect(ep, ec);
-        if(! BOOST_BEAST_EXPECTS(! ec, ec.message()))
+        if(! BEAST_EXPECTS(! ec, ec.message()))
             return;
         wss.next_layer().handshake(
             boost::asio::ssl::stream_base::client, ec);
-        if(! BOOST_BEAST_EXPECTS(! ec, ec.message()))
+        if(! BEAST_EXPECTS(! ec, ec.message()))
             return;
         doHello(wss, ec);
     }
@@ -263,7 +263,7 @@ public:
                 address_type::from_string("127.0.0.1"), port_num};
             auto const wsp = instance.make_port<wss_sync_port>(
                 ec, ep1, instance, log, cert.get(), get_ws_options());
-            if(! BOOST_BEAST_EXPECTS(! ec, ec.message()))
+            if(! BEAST_EXPECTS(! ec, ec.message()))
                 return;
             auto const ep2 = endpoint_type{
                 address_type::from_string("127.0.0.1"),
@@ -271,10 +271,10 @@ public:
             auto const sp = instance.make_port<
                 https_sync_port<ws_upgrade_service<wss_sync_port>>>(
                     ec, ep2, instance, log, cert.get());
-            if(! BOOST_BEAST_EXPECTS(! ec, ec.message()))
+            if(! BEAST_EXPECTS(! ec, ec.message()))
                 return;
             sp->template init<0>(ec, *wsp);
-            if(! BOOST_BEAST_EXPECTS(! ec, ec.message()))
+            if(! BEAST_EXPECTS(! ec, ec.message()))
                 return;
 
             wssClient(ep1, cert.get());
@@ -291,7 +291,7 @@ public:
                 address_type::from_string("127.0.0.1"), port_num};
             auto const wsp = instance.make_port<wss_async_port>(
                 ec, ep1, instance, log, cert.get(), get_ws_options());
-            if(! BOOST_BEAST_EXPECTS(! ec, ec.message()))
+            if(! BEAST_EXPECTS(! ec, ec.message()))
                 return;
             auto const ep2 = endpoint_type{
                 address_type::from_string("127.0.0.1"),
@@ -299,10 +299,10 @@ public:
             auto const sp = instance.make_port<
                 https_async_port<ws_upgrade_service<wss_async_port>>>(
                     ec, ep2, instance, log, cert.get());
-            if(! BOOST_BEAST_EXPECTS(! ec, ec.message()))
+            if(! BEAST_EXPECTS(! ec, ec.message()))
                 return;
             sp->template init<0>(ec, *wsp);
-            if(! BOOST_BEAST_EXPECTS(! ec, ec.message()))
+            if(! BEAST_EXPECTS(! ec, ec.message()))
                 return;
 
             wssClient(ep1, cert.get());

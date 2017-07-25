@@ -30,7 +30,7 @@ public:
             varint_write(it, n0);
             it = &buf[0];
             auto n = varint_read(it);
-            BOOST_BEAST_EXPECT(n == n0);
+            BEAST_EXPECT(n == n0);
             n = n0 + n1;
             if(n < n1)
                 break;

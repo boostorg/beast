@@ -25,8 +25,8 @@ public:
         auto const match =
             [&](field f, string_view s)
             {
-                BOOST_BEAST_EXPECT(iequals(to_string(f), s));
-                BOOST_BEAST_EXPECT(string_to_field(s) == f);
+                BEAST_EXPECT(iequals(to_string(f), s));
+                BEAST_EXPECT(string_to_field(s) == f);
             };
 
         match(field::accept, "accept");
@@ -389,7 +389,7 @@ public:
         auto const unknown =
             [&](string_view s)
             {
-                BOOST_BEAST_EXPECT(string_to_field(s) == field::unknown);
+                BEAST_EXPECT(string_to_field(s) == field::unknown);
             };
         unknown("");
         unknown("x");
