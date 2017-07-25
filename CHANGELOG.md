@@ -12,6 +12,7 @@ Version 86:
 * Remove spurious declaration
 * Tidy up Jamfile
 * Normalize doc build scripts
+* Use configured doxygen and xsltproc
 
 --------------------------------------------------------------------------------
 

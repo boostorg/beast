@@ -11,6 +11,9 @@ import os ;
 import path ;
 import boostbook ;
 import quickbook ;
+import xsltproc ;
+import doxygen ;
+import modules ;
 
 #-------------------------------------------------------------------------------
 #
@@ -20,6 +23,18 @@ import quickbook ;
 #
 
 local sources = [ path.glob-tree ../include/boost/beast : *.hpp *.ipp : detail impl ] ;
+
+# Get the configured paths to doxygen and xsltproc
+
+.doxygen = [ doxygen.name ] ;
+.doxygen ?= doxygen ;
+
+#ECHO Using doxygen from "$(.doxygen)" ;
+
+.xsltproc = [ xsltproc.name ] ;
+.xsltproc ?= xsltproc ;
+
+#ECHO Using xsltproc from "$(.xsltproc)" ;
 
 #-------------------------------------------------------------------------------
 #
@@ -55,33 +70,52 @@ actions make_transform
 # containing the description of the C++ declarations and extracted
 # Javadoc comments.
 #
-make reference.xml
+make index.xml
     :
         ./source.dox
     :
-        @make_xml
+        @make_doxygen_xml
     :
         <dependency>$(sources)
     ;
 
-# Windows is a little different from other platforms
 if [ os.name ] = NT
 {
-    actions make_xml
+    actions make_doxygen_xml
     {
         SET LIB_DIR=$(2:B=:S=..)
         SET XML_OUTPUT=$(1:D)
-        doxygen $(2) && xsltproc $(1:B=combine:S=.xslt) $(1:B=index:S=.xml) > $(1)
+        "$(.doxygen)" $(2)
     }
 }
 else
 {
-    actions make_xml
+    actions make_doxygen_xml
     {
         export LIB_DIR=$(2:B=:S=..)
         export XML_OUTPUT=$(1:D)
-        doxygen $(2) && xsltproc $(1:B=combine:S=.xslt) $(1:B=index:S=.xml) > $(1)
+        "$(.doxygen)" $(2)
     }
+}
+
+make combine.xslt : index.xml : @null_action ;
+
+actions null_action
+{
+    touch -c $(1) ;
+}
+
+make reference.xml
+    :
+        combine.xslt
+        index.xml
+    :
+        @call-xsltproc
+    ;
+
+actions call-xsltproc
+{
+    "$(.xsltproc)" $(2) > $(1)
 }
 
 #-------------------------------------------------------------------------------
@@ -94,13 +128,8 @@ make reference.qbk
         transform.xsl
         reference.xml
     :
-        @make_reference
+        @call-xsltproc
     ;
-
-actions make_reference
-{
-    xsltproc $(2) > $(1)
-}
 
 # We have to make a copy of reference.qbk and put it
 # in a place where the static .qbk files can find it
