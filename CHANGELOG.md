@@ -5,6 +5,10 @@ Version 91:
 * source.dox is path-independent
 * Tidy up namespace qualifiers
 
+WebSocket:
+
+* Tidy up websocket javadocs
+
 --------------------------------------------------------------------------------
 
 Version 90:

@@ -2835,9 +2835,10 @@ public:
     //
     //--------------------------------------------------------------------------
 
-    /** Read a complete message
+    /** Read a message
 
-        This function is used to synchronously read a message from the stream.
+        This function is used to synchronously read a complete
+        message from the stream.
         The call blocks until one of the following is true:
 
         @li A complete message is received.
@@ -2850,16 +2851,17 @@ public:
         This operation is implemented in terms of one or more calls to the next
         layer's `read_some` and `write_some` functions.
 
-        Received message data, if any, is appended to the input area of the buffer.
-        The functions @ref got_binary and @ref got_text may be used to query
-        the stream and determine the type of the last received message.
+        Received message data, if any, is appended to the input area of the
+        buffer. The functions @ref got_binary and @ref got_text may be used
+        to query the stream and determine the type of the last received message.
 
         While this operation is active, the implementation will read incoming
         control frames and handle them automatically as follows:
 
         @li The @ref control_callback will be invoked for each control frame.
 
-        @li For each received ping frame, a pong frame will be automatically sent.
+        @li For each received ping frame, a pong frame will be
+            automatically sent.
 
         @li If a close frame is received, the WebSocket close procedure is
             performed. In this case, when the function returns, the error
@@ -2877,38 +2879,42 @@ public:
     std::size_t
     read(DynamicBuffer& buffer);
 
-    /** Read a message from the stream.
+    /** Read a message
 
-        This function is used to synchronously read a message from
-        the stream. The call blocks until one of the following is true:
+        This function is used to synchronously read a complete
+        message from the stream.
+        The call blocks until one of the following is true:
 
         @li A complete message is received.
 
+        @li A close frame is received. In this case the error indicated by
+            the function will be @ref error::closed.
+
         @li An error occurs on the stream.
 
-        This call is implemented in terms of one or more calls to the
-        stream's `read_some` and `write_some` operations.
+        This operation is implemented in terms of one or more calls to the next
+        layer's `read_some` and `write_some` functions.
 
-        Upon a success, the input area of the stream buffer will
-        hold the received message payload bytes (which may be zero
-        in length). The functions @ref got_binary and @ref got_text
-        may be used to query the stream and determine the type
-        of the last received message.
+        Received message data, if any, is appended to the input area of the
+        buffer. The functions @ref got_binary and @ref got_text may be used
+        to query the stream and determine the type of the last received message.
 
-        During reads, the implementation handles control frames as
-        follows:
+        While this operation is active, the implementation will read incoming
+        control frames and handle them automatically as follows:
 
-        @li The @ref control_callback is invoked when a ping frame
-            or pong frame is received.
+        @li The @ref control_callback will be invoked for each control frame.
 
-        @li A pong frame is sent when a ping frame is received.
+        @li For each received ping frame, a pong frame will be
+            automatically sent.
 
-        @li The WebSocket close procedure is started if a close frame
-            is received. In this case, the operation will eventually
-            complete with the error set to @ref error::closed.
+        @li If a close frame is received, the WebSocket close procedure is
+            performed. In this case, when the function returns, the error
+            @ref error::closed will be indicated.
 
-        @param buffer A dynamic buffer to hold the message data after
-        any masking or decompression has been applied.
+        @return The number of message payload bytes appended to the buffer.
+
+        @param buffer A dynamic buffer to hold the message data after any
+        masking or decompression has been applied.
 
         @param ec Set to indicate what error occurred, if any.
     */
@@ -2916,14 +2922,18 @@ public:
     std::size_t
     read(DynamicBuffer& buffer, error_code& ec);
 
-    /** Read a complete message asynchronously
+    /** Read a message asynchronously
 
-        This function is used to asynchronously read a message from
-        the stream. The function call always returns immediately. The
-        asynchronous operation will continue until one of the following
-        is true:
+        This function is used to asynchronously read a complete
+        message from the stream.
+        The function call always returns immediately.
+        The asynchronous operation will continue until one of the
+        following is true:
 
         @li A complete message is received.
+
+        @li A close frame is received. In this case the error indicated by
+            the function will be @ref error::closed.
 
         @li An error occurs on the stream.
 
@@ -2933,26 +2943,24 @@ public:
         ensure that the stream performs no other reads until this operation
         completes.
 
-        Upon a success, the input area of the stream buffer will
-        hold the received message payload bytes (which may be zero
-        in length). The functions @ref got_binary and @ref got_text
-        may be used to query the stream and determine the type
-        of the last received message.
+        Received message data, if any, is appended to the input area of the
+        buffer. The functions @ref got_binary and @ref got_text may be used
+        to query the stream and determine the type of the last received message.
 
-        During reads, the implementation handles control frames as
-        follows:
+        While this operation is active, the implementation will read incoming
+        control frames and handle them automatically as follows:
 
-        @li The @ref control_callback is invoked when a ping frame
-            or pong frame is received.
+        @li The @ref control_callback will be invoked for each control frame.
 
-        @li A pong frame is sent when a ping frame is received.
+        @li For each received ping frame, a pong frame will be
+            automatically sent.
 
-        @li The WebSocket close procedure is started if a close frame
-            is received. In this case, the operation will eventually
-            complete with the error set to @ref error::closed.
+        @li If a close frame is received, the WebSocket close procedure is
+            performed. In this case, when the function returns, the error
+            @ref error::closed will be indicated.
 
-        Because of the need to handle control frames, read operations
-        can cause writes to take place. These writes are managed
+        Because of the need to handle control frames, asynchronous read
+        operations can cause writes to take place. These writes are managed
         transparently; callers can still have one active asynchronous
         read and asynchronous write operation pending simultaneously
         (a user initiated call to @ref async_close counts as a write).
@@ -2963,11 +2971,11 @@ public:
 
         @param handler The handler to be called when the read operation
         completes. Copies will be made of the handler as required. The
-        function signature of the handler must be:
+        equivalent function signature of the handler must be:
         @code
         void handler(
             error_code const& ec,       // Result of operation
-            std::size_t bytes_
+            std::size_t bytes_written   // Number of bytes appended to buffer
         );
         @endcode
         Regardless of whether the asynchronous operation completes
@@ -2989,44 +2997,51 @@ public:
 
     //--------------------------------------------------------------------------
 
-    /** Read some message data from the stream.
+    /** Read part of a message
 
-        This function is used to synchronously read some message
-        data from the stream. The call blocks until one of the following
-        is true:
+        This function is used to synchronously read some
+        message data from the stream.
+        The call blocks until one of the following is true:
 
-        @li One or more message octets are placed into the provided buffers.
+        @li Some or all of the message is received.
 
-        @li A final message frame is received.
-
-        @li A close frame is received and processed.
+        @li A close frame is received. In this case the error indicated by
+            the function will be @ref error::closed.
 
         @li An error occurs on the stream.
 
-        This function is implemented in terms of one or more calls to the
-        stream's `read_some` operation.
+        This operation is implemented in terms of one or more calls to the next
+        layer's `read_some` and `write_some` functions.
 
-        During reads, the implementation handles control frames as
-        follows:
+        Received message data, if any, is appended to the input area of the
+        buffer. The functions @ref got_binary and @ref got_text may be used
+        to query the stream and determine the type of the last received message.
+        The function @ref is_message_done may be called to determine if the
+        message received by the last read operation is complete.
 
-        @li The @ref control_callback is invoked when any control
-        frame is received.
+        While this operation is active, the implementation will read incoming
+        control frames and handle them automatically as follows:
 
-        @li A pong frame is sent when a ping frame is received.
+        @li The @ref control_callback will be invoked for each control frame.
 
-        @li The WebSocket close procedure is started if a close frame
-            is received. In this case, the operation will eventually
-            complete with the error set to @ref error::closed.
+        @li For each received ping frame, a pong frame will be
+            automatically sent.
 
-        @param buffer A dynamic buffer for holding the result
+        @li If a close frame is received, the WebSocket close procedure is
+            performed. In this case, when the function returns, the error
+            @ref error::closed will be indicated.
 
-        @param limit An upper limit on the number of bytes this
-        function will write. If this value is zero, then a reasonable
+        @return The number of message payload bytes appended to the buffer.
+
+        @param buffer A dynamic buffer to hold the message data after any
+        masking or decompression has been applied.
+
+        @param limit An upper limit on the number of bytes this function
+        will append into the buffer. If this value is zero, then a reasonable
         size will be chosen automatically.
 
-        @throws system_error Thrown on failure.
-
-        @return The number of bytes written to the buffers
+        @throws system_error Thrown to indicate an error. The corresponding
+        error code may be retrieved from the exception object for inspection.
     */
     template<class DynamicBuffer>
     std::size_t
@@ -3034,44 +3049,50 @@ public:
         DynamicBuffer& buffer,
         std::size_t limit);
 
-    /** Read some message data from the stream.
+    /** Read part of a message
 
-        This function is used to synchronously read some message
-        data from the stream. The call blocks until one of the following
-        is true:
+        This function is used to synchronously read some
+        message data from the stream.
+        The call blocks until one of the following is true:
 
-        @li One or more message octets are placed into the provided buffers.
+        @li Some or all of the message is received.
 
-        @li A final message frame is received.
-
-        @li A close frame is received and processed.
+        @li A close frame is received. In this case the error indicated by
+            the function will be @ref error::closed.
 
         @li An error occurs on the stream.
 
-        This function is implemented in terms of one or more calls to the
-        stream's `read_some` operation.
+        This operation is implemented in terms of one or more calls to the next
+        layer's `read_some` and `write_some` functions.
 
-        During reads, the implementation handles control frames as
-        follows:
+        Received message data, if any, is appended to the input area of the
+        buffer. The functions @ref got_binary and @ref got_text may be used
+        to query the stream and determine the type of the last received message.
+        The function @ref is_message_done may be called to determine if the
+        message received by the last read operation is complete.
 
-        @li The @ref control_callback is invoked when any control
-        frame is received.
+        While this operation is active, the implementation will read incoming
+        control frames and handle them automatically as follows:
 
-        @li A pong frame is sent when a ping frame is received.
+        @li The @ref control_callback will be invoked for each control frame.
 
-        @li The WebSocket close procedure is started if a close frame
-            is received. In this case, the operation will eventually
-            complete with the error set to @ref error::closed.
+        @li For each received ping frame, a pong frame will be
+            automatically sent.
 
-        @param buffer A dynamic buffer for holding the result
+        @li If a close frame is received, the WebSocket close procedure is
+            performed. In this case, when the function returns, the error
+            @ref error::closed will be indicated.
 
-        @param limit An upper limit on the number of bytes this
-        function will write. If this value is zero, then a reasonable
+        @return The number of message payload bytes appended to the buffer.
+
+        @param buffer A dynamic buffer to hold the message data after any
+        masking or decompression has been applied.
+
+        @param limit An upper limit on the number of bytes this function
+        will append into the buffer. If this value is zero, then a reasonable
         size will be chosen automatically.
 
         @param ec Set to indicate what error occurred, if any.
-
-        @return The number of bytes written to the buffer
     */
     template<class DynamicBuffer>
     std::size_t
@@ -3080,59 +3101,66 @@ public:
         std::size_t limit,
         error_code& ec);
 
-    /** Start an asynchronous operation to read some message data from the stream.
+    /** Read part of a message asynchronously
 
-        This function is used to asynchronously read some message
-        data from the stream. The function call always returns immediately.
-        The asynchronous operation will continue until one of the following
-        is true:
+        This function is used to asynchronously read part of a
+        message from the stream.
+        The function call always returns immediately.
+        The asynchronous operation will continue until one of the
+        following is true:
 
-        @li One or more message octets are placed into the provided buffers.
+        @li Some or all of the message is received.
 
-        @li A final message frame is received.
-
-        @li A close frame is received and processed.
+        @li A close frame is received. In this case the error indicated by
+            the function will be @ref error::closed.
 
         @li An error occurs on the stream.
 
         This operation is implemented in terms of one or more calls to the
-        next layer's `async_read_some` function, and is known as a
-        <em>composed operation</em>. The program must ensure that the
-        stream performs no other reads until this operation completes.
+        next layer's `async_read_some` and `async_write_some` functions,
+        and is known as a <em>composed operation</em>. The program must
+        ensure that the stream performs no other reads until this operation
+        completes.
 
-        Upon a success, the input area of the stream buffer will
-        hold the received message payload bytes (which may be zero
-        in length). The functions @ref got_binary and @ref got_text
-        may be used to query the stream and determine the type
-        of the last received message.
+        Received message data, if any, is appended to the input area of the
+        buffer. The functions @ref got_binary and @ref got_text may be used
+        to query the stream and determine the type of the last received message.
+        The function @ref is_message_done may be called to determine if the
+        message received by the last read operation is complete.
 
-        During reads, the implementation handles control frames as
-        follows:
+        While this operation is active, the implementation will read incoming
+        control frames and handle them automatically as follows:
 
-        @li The @ref control_callback is invoked when any control
-        frame is received.
+        @li The @ref control_callback will be invoked for each control frame.
 
-        @li A pong frame is sent when a ping frame is received.
+        @li For each received ping frame, a pong frame will be
+            automatically sent.
 
-        @li The WebSocket close procedure is started if a close frame
-            is received. In this case, the operation will eventually
-            complete with the error set to @ref error::closed.
+        @li If a close frame is received, the WebSocket close procedure is
+            performed. In this case, when the function returns, the error
+            @ref error::closed will be indicated.
 
-        Because of the need to handle control frames, read operations
-        can cause writes to take place. These writes are managed
+        Because of the need to handle control frames, asynchronous read
+        operations can cause writes to take place. These writes are managed
         transparently; callers can still have one active asynchronous
         read and asynchronous write operation pending simultaneously
         (a user initiated call to @ref async_close counts as a write).
 
-        @param buffer A dynamic buffer for holding the result
+        @param buffer A dynamic buffer to hold the message data after
+        any masking or decompression has been applied. This object must
+        remain valid until the handler is called.
+
+        @param limit An upper limit on the number of bytes this function
+        will append into the buffer. If this value is zero, then a reasonable
+        size will be chosen automatically.
 
         @param handler The handler to be called when the read operation
         completes. Copies will be made of the handler as required. The
-        function signature of the handler must be:
+        equivalent function signature of the handler must be:
         @code
         void handler(
-            error_code const& ec,           // Result of operation
-            std::size_t bytes_transferred   // The number of bytes written to the buffer
+            error_code const& ec,       // Result of operation
+            std::size_t bytes_written   // Number of bytes appended to buffer
         );
         @endcode
         Regardless of whether the asynchronous operation completes
@@ -3154,96 +3182,95 @@ public:
 
     //--------------------------------------------------------------------------
 
-    /** Read some message data from the stream.
+    /** Read part of a message
 
-        This function is used to synchronously read some message
-        data from the stream. The call blocks until one of the following
-        is true:
+        This function is used to synchronously read some
+        message data from the stream.
+        The call blocks until one of the following is true:
 
-        @li One or more message octets are placed into the provided buffers.
+        @li Some or all of the message is received.
 
-        @li A final message frame is received.
-
-        @li A close frame is received and processed.
+        @li A close frame is received. In this case the error indicated by
+            the function will be @ref error::closed.
 
         @li An error occurs on the stream.
 
-        This function is implemented in terms of one or more calls to the
-        stream's `read_some` operation.
+        This operation is implemented in terms of one or more calls to the next
+        layer's `read_some` and `write_some` functions.
 
-        During reads, the implementation handles control frames as
-        follows:
+        Received message data, if any, is written to the buffer sequence.
+        The functions @ref got_binary and @ref got_text may be used
+        to query the stream and determine the type of the last received message.
+        The function @ref is_message_done may be called to determine if the
+        message received by the last read operation is complete.
 
-        @li The @ref control_callback is invoked when any control
-        frame is received.
+        While this operation is active, the implementation will read incoming
+        control frames and handle them automatically as follows:
 
-        @li A pong frame is sent when a ping frame is received.
+        @li The @ref control_callback will be invoked for each control frame.
 
-        @li The WebSocket close procedure is started if a close frame
-            is received. In this case, the operation will eventually
-            complete with the error set to @ref error::closed.
+        @li For each received ping frame, a pong frame will be
+            automatically sent.
 
-        @param buffers A mutable buffer to hold the message data after
-        any masking or decompression has been applied.
-        @param buffers The buffers into which message data will be
-        placed after any masking or decompresison has been applied.
-        The implementation will make copies of this object as needed,
-        but ownership of the underlying memory is not transferred.
-        The caller is responsible for ensuring that the memory
-        locations pointed to by the buffers remains valid until the
-        completion handler is called.
+        @li If a close frame is received, the WebSocket close procedure is
+            performed. In this case, when the function returns, the error
+            @ref error::closed will be indicated.
 
-        @throws system_error Thrown on failure.
+        @return The number of message payload bytes written to the
+        buffer sequence.
 
-        @return The number of bytes written to the buffers
+        @param buffers A buffer sequence to hold the message data after any
+        masking or decompression has been applied.
+
+        @throws system_error Thrown to indicate an error. The corresponding
+        error code may be retrieved from the exception object for inspection.
     */
     template<class MutableBufferSequence>
     std::size_t
     read_some(
         MutableBufferSequence const& buffers);
 
-    /** Read some message data from the stream.
+    /** Read part of a message
 
-        This function is used to synchronously read some message
-        data from the stream. The call blocks until one of the
-        following is true:
+        This function is used to synchronously read some
+        message data from the stream.
+        The call blocks until one of the following is true:
 
-        @li One or more message octets are placed into the provided buffers.
+        @li Some or all of the message is received.
 
-        @li A final message frame is received.
-
-        @li A close frame is received and processed.
+        @li A close frame is received. In this case the error indicated by
+            the function will be @ref error::closed.
 
         @li An error occurs on the stream.
 
-        This operation is implemented in terms of one or more calls to the
-        stream's `read_some` function.
+        This operation is implemented in terms of one or more calls to the next
+        layer's `read_some` and `write_some` functions.
 
-        During reads, the implementation handles control frames as
-        follows:
+        Received message data, if any, is written to the buffer sequence.
+        The functions @ref got_binary and @ref got_text may be used
+        to query the stream and determine the type of the last received message.
+        The function @ref is_message_done may be called to determine if the
+        message received by the last read operation is complete.
 
-        @li The @ref control_callback is invoked when any control
-        frame is received.
+        While this operation is active, the implementation will read incoming
+        control frames and handle them automatically as follows:
 
-        @li A pong frame is sent when a ping frame is received.
+        @li The @ref control_callback will be invoked for each control frame.
 
-        @li The WebSocket close procedure is started if a close frame
-            is received. In this case, the operation will eventually
-            complete with the error set to @ref error::closed.
+        @li For each received ping frame, a pong frame will be
+            automatically sent.
 
-        @param buffers A mutable buffer to hold the message data after
-        any masking or decompression has been applied.
-        @param buffers The buffers into which message data will be
-        placed after any masking or decompresison has been applied.
-        The implementation will make copies of this object as needed,
-        but ownership of the underlying memory is not transferred.
-        The caller is responsible for ensuring that the memory
-        locations pointed to by the buffers remains valid until the
-        completion handler is called.
+        @li If a close frame is received, the WebSocket close procedure is
+            performed. In this case, when the function returns, the error
+            @ref error::closed will be indicated.
+
+        @return The number of message payload bytes written to the
+        buffer sequence.
+
+        @param buffers A buffer sequence to hold the message data after any
+        masking or decompression has been applied.
 
         @param ec Set to indicate what error occurred, if any.
-
-        @return The number of bytes written to the buffers
     */
     template<class MutableBufferSequence>
     std::size_t
@@ -3251,67 +3278,66 @@ public:
         MutableBufferSequence const& buffers,
         error_code& ec);
 
-    /** Start an asynchronous operation to read some message data from the stream.
+    /** Read part of a message asynchronously
 
-        This function is used to asynchronously read some message
-        data from the stream. The function call always returns immediately.
-        The asynchronous operation will continue until one of the following
-        is true:
+        This function is used to asynchronously read part of a
+        message from the stream.
+        The function call always returns immediately.
+        The asynchronous operation will continue until one of the
+        following is true:
 
-        @li One or more message octets are placed into the provided buffers.
+        @li Some or all of the message is received.
 
-        @li A final message frame is received.
-
-        @li A close frame is received and processed.
+        @li A close frame is received. In this case the error indicated by
+            the function will be @ref error::closed.
 
         @li An error occurs on the stream.
 
         This operation is implemented in terms of one or more calls to the
-        next layer's `async_read_some` function, and is known as a
-        <em>composed operation</em>. The program must ensure that the
-        stream performs no other reads until this operation completes.
+        next layer's `async_read_some` and `async_write_some` functions,
+        and is known as a <em>composed operation</em>. The program must
+        ensure that the stream performs no other reads until this operation
+        completes.
 
-        Upon a success, the input area of the stream buffer will
-        hold the received message payload bytes (which may be zero
-        in length). The functions @ref got_binary and @ref got_text
-        may be used to query the stream and determine the type
-        of the last received message.
+        Received message data, if any, is written to the buffer sequence.
+        The functions @ref got_binary and @ref got_text may be used
+        to query the stream and determine the type of the last received message.
+        The function @ref is_message_done may be called to determine if the
+        message received by the last read operation is complete.
 
-        During reads, the implementation handles control frames as
-        follows:
+        While this operation is active, the implementation will read incoming
+        control frames and handle them automatically as follows:
 
-        @li The @ref control_callback is invoked when any control
-        frame is received.
+        @li The @ref control_callback will be invoked for each control frame.
 
-        @li A pong frame is sent when a ping frame is received.
+        @li For each received ping frame, a pong frame will be
+            automatically sent.
 
-        @li The WebSocket close procedure is started if a close frame
-            is received. In this case, the operation will eventually
-            complete with the error set to @ref error::closed.
+        @li If a close frame is received, the WebSocket close procedure is
+            performed. In this case, when the function returns, the error
+            @ref error::closed will be indicated.
 
-        Because of the need to handle control frames, read operations
-        can cause writes to take place. These writes are managed
+        Because of the need to handle control frames, asynchronous read
+        operations can cause writes to take place. These writes are managed
         transparently; callers can still have one active asynchronous
         read and asynchronous write operation pending simultaneously
         (a user initiated call to @ref async_close counts as a write).
 
-        @param buffers A mutable buffer to hold the message data after
-        any masking or decompression has been applied.
-        @param buffers The buffers into which message data will be
-        placed after any masking or decompresison has been applied.
+        @param buffers The buffer sequence into which message data will
+        be placed after any masking or decompresison has been applied.
         The implementation will make copies of this object as needed,
         but ownership of the underlying memory is not transferred.
         The caller is responsible for ensuring that the memory
-        locations pointed to by the buffers remains valid until the
-        completion handler is called.
+        locations pointed to by the buffer sequence remains valid
+        until the completion handler is called.
 
         @param handler The handler to be called when the read operation
         completes. Copies will be made of the handler as required. The
-        function signature of the handler must be:
+        equivalent function signature of the handler must be:
         @code
         void handler(
-            error_code const& ec,           // Result of operation
-            std::size_t bytes_transferred   // The number of bytes written to buffers
+            error_code const& ec,       // Result of operation
+            std::size_t bytes_written   // Number of bytes written to the buffer sequence
         );
         @endcode
         Regardless of whether the asynchronous operation completes
