@@ -14,6 +14,7 @@ Version 86:
 * Normalize doc build scripts
 * Use configured doxygen and xsltproc
 * Fix Deferred Body Type Example Documentation
+* Add library metadata
 
 --------------------------------------------------------------------------------
 
