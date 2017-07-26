@@ -14,7 +14,6 @@
 #include <boost/beast/unit_test/reporter.hpp>
 #include <boost/beast/unit_test/suite.hpp>
 #include <boost/config.hpp>
-#include <boost/program_options.hpp>
 #include <cstdlib>
 #include <iostream>
 #include <vector>
@@ -29,59 +28,15 @@
 # endif
 #endif
 
-namespace boost {
-namespace beast {
-namespace unit_test {
-
-static
-std::string
-prefix(suite_info const& s)
-{
-    if(s.manual())
-        return "|M| ";
-    return "    ";
-}
-
-static
-void
-print(std::ostream& os, suite_list const& c)
-{
-    std::size_t manual = 0;
-    for(auto const& s : c)
-    {
-        os << prefix(s) << s.full_name() << '\n';
-        if(s.manual())
-            ++manual;
-    }
-    os <<
-        amount(c.size(), "suite") << " total, " <<
-        amount(manual, "manual suite") <<
-        '\n'
-        ;
-}
-
-// Print the list of suites
-// Used with the --print command line option
-static
-void
-print(std::ostream& os)
-{
-    os << "------------------------------------------\n";
-    print(os, global_suites());
-    os << "------------------------------------------" <<
-        std::endl;
-}
-
-} // unit_test
-} // beast
-} // boost
-
 // Simple main used to produce stand
 // alone executables that run unit tests.
 int main(int ac, char const* av[])
 {
     using namespace std;
     using namespace boost::beast::unit_test;
+
+    dstream log(std::cerr);
+    std::unitbuf(log);
 
 #if BOOST_MSVC
     {
@@ -91,44 +46,42 @@ int main(int ac, char const* av[])
     }
 #endif
 
-    namespace po = boost::program_options;
-    po::options_description desc("Options");
-    desc.add_options()
-       ("help,h",  "Produce a help message")
-       ("print,p", "Print the list of available test suites")
-       ("suites,s", po::value<string>(), "suites to run")
-        ;
-
-    po::positional_options_description p;
-    po::variables_map vm;
-    po::store(po::parse_command_line(ac, av, desc), vm);
-    po::notify(vm);
-
-    dstream log(std::cerr);
-    std::unitbuf(log);
-
-    if(vm.count("help"))
+    if(ac == 2)
     {
-        log << desc << std::endl;
+        std::string const s{av[1]};
+        if(s == "-h" || s == "--help")
+        {
+            log <<
+                "Usage:\n"
+                "  " << av[0] << ": { <suite-name>... }" <<
+                std::endl;
+            return EXIT_SUCCESS;
+        }
     }
-    else if(vm.count("print"))
+
+    reporter r(log);
+    bool failed;
+    if(ac > 1)
     {
-        print(log);
+        std::vector<selector> v;
+        v.reserve(ac - 1);
+        for(int i = 1; i < ac; ++i)
+            v.emplace_back(selector::automatch, av[i]);
+        auto pred =
+            [&v](suite_info const& si) mutable
+            {
+                for(auto& p : v)
+                    if(p(si))
+                        return true;
+                return false;
+            };
+        failed = r.run_each_if(global_suites(), pred);
     }
     else
     {
-        std::string suites;
-        if(vm.count("suites") > 0)
-            suites = vm["suites"].as<string>();
-        reporter r(log);
-        bool failed;
-        if(! suites.empty())
-            failed = r.run_each_if(global_suites(),
-                match_auto(suites));
-        else
-            failed = r.run_each(global_suites());
-        if(failed)
-            return EXIT_FAILURE;
-        return EXIT_SUCCESS;
+        failed = r.run_each(global_suites());
     }
+    if(failed)
+        return EXIT_FAILURE;
+    return EXIT_SUCCESS;
 }

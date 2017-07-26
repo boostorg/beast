@@ -25,7 +25,6 @@
 #include "ws_upgrade_service.hpp"
 
 #include <boost/asio/signal_set.hpp>
-#include <boost/program_options.hpp>
 
 #include <iostream>
 
@@ -101,36 +100,19 @@ main(
             return EXIT_FAILURE;
         };
 
-    namespace po = boost::program_options;
-    po::options_description desc("Options");
+    // Check command line arguments.
+    if(ac != 5)
+    {
+        std::cerr <<
+            "Usage: " << av[0] <<
+            " <address> <port> <threads> <root-directory>";
+        return EXIT_FAILURE;
+    }
 
-    desc.add_options()
-        ("root,r",      po::value<std::string>()->default_value("."),
-                        "Set the root directory for serving files")
-        ("port,p",      po::value<std::uint16_t>()->default_value(1000),
-                        "Set the base port number for the server")
-        ("ip",          po::value<std::string>()->default_value("0.0.0.0"),
-                        "Set the IP address to bind to, \"0.0.0.0\" for all")
-        ("threads,n",   po::value<std::size_t>()->default_value(4),
-                        "Set the number of threads to use")
-        ;
-    po::variables_map vm;
-    po::store(po::parse_command_line(ac, av, desc), vm);
-
-    // Get the IP address from the options
-    std::string const ip = vm["ip"].as<std::string>();
-    
-    // Get the port number from the options
-    std::uint16_t const port = vm["port"].as<std::uint16_t>();
-
-    // Build an endpoint from the address and port
-    address_type const addr{address_type::from_string(ip)};
-
-    // Get the number of threads from the command line
-    std::size_t const threads = vm["threads"].as<std::size_t>();
-
-    // Get the root path from the command line
-    boost::filesystem::path const root =  vm["root"].as<std::string>();
+    auto const addr    = boost::asio::ip::address::from_string(av[1]);
+    auto const port    = static_cast<unsigned short>(std::atoi(av[2]));
+    auto const threads = static_cast<std::size_t>(std::atoi(av[3]));
+    auto const root    = std::string(av[4]);
 
     // These settings will be applied to all new websocket connections
     boost::beast::websocket::permessage_deflate pmd;

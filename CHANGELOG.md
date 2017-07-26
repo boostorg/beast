@@ -6,6 +6,7 @@ Version 87:
 * Update README, add CONTRIBUTING.md and CODE_OF_CONDUCT.md
 * Update doc links in README.md
 * Refactor tests Jamfile
+* Don't use program_options
 
 --------------------------------------------------------------------------------
 
