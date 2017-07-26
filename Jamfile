@@ -13,6 +13,8 @@ import boost ;
 import modules ;
 import testing ;
 
+#import ../config/checks/config : requires ;
+
 boost.use-project ;
 
 if [ os.name ] = SOLARIS
@@ -64,14 +66,17 @@ variant ubasan
     <linkflags>"-fsanitize=address,undefined"
   ;
 
+#local REQ = [ requires cxx11_variadic_templates cxx11_template_aliases cxx11_decltype cxx11_hdr_type_traits cxx11_hdr_tuple ] ;
+
 project beast
   : requirements
+    #$(REQ)
     <implicit-dependency>/boost//headers
     <include>.
     <include>./extras
     #<use>/boost//headers
     <library>/boost/system//boost_system
-    <library>/boost/coroutine//boost_coroutine
+    <library>/boost/coroutine//boost_coroutine/<define>BOOST_COROUTINES_NO_DEPRECATION_WARNING=1
     <library>/boost/filesystem//boost_filesystem
     <library>/boost/program_options//boost_program_options
     <define>BOOST_ALL_NO_LIB=1
@@ -84,20 +89,12 @@ project beast
     <define>BOOST_ASIO_DISABLE_BOOST_DATE_TIME=1
     <define>BOOST_ASIO_DISABLE_BOOST_REGEX=1
     <toolset>gcc:<cxxflags>-std=c++11
-    <toolset>gcc:<cxxflags>-Wno-unused-parameter
-    <toolset>gcc:<cxxflags>-Wno-unused-variable # Temporary until we can figure out -isystem
     <toolset>clang:<cxxflags>-std=c++11
-    <toolset>clang:<cxxflags>-Wno-unused-parameter
-    <toolset>clang:<cxxflags>-Wno-unused-variable # Temporary until we can figure out -isystem
     <toolset>clang:<cxxflags>-Wrange-loop-analysis
     <toolset>msvc:<define>_SCL_SECURE_NO_WARNINGS=1
     <toolset>msvc:<define>_CRT_SECURE_NO_WARNINGS=1
     <toolset>msvc:<cxxflags>"/permissive- /bigobj"
     <toolset>msvc:<variant>release:<cxxflags>"/Ob2 /Oi /Ot"
-    <os>LINUX:<define>_XOPEN_SOURCE=600
-    <os>LINUX:<define>_GNU_SOURCE=1
-    <os>SOLARIS:<define>_XOPEN_SOURCE=500
-    <os>SOLARIS:<define>__EXTENSIONS__
     <os>SOLARIS:<library>socket
     <os>SOLARIS:<library>nsl
     <os>NT:<define>_WIN32_WINNT=0x0601
@@ -107,5 +104,4 @@ project beast
     <os>NT,<toolset>gcc:<library>mswsock
     <os>NT,<toolset>gcc-cygwin:<define>__USE_W32_SOCKETS
   : usage-requirements
-  :
   ;

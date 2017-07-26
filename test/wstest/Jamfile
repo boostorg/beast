@@ -7,6 +7,9 @@
 # Official repository: https://github.com/boostorg/beast
 #
 
-exe wstest :
+alias wstest :
     main.cpp
     ;
+explicit wstest ;
+
+alias run-tests : [ compile main.cpp ] : : : <variant>coverage:<build>no <variant>ubasan:<build>no ;

@@ -65,19 +65,19 @@ echo "using BOOST_ROOT: $BOOST_ROOT"
 #################################### HELPERS ###################################
 
 function run_tests_with_debugger {
-  for x in $BOOST_ROOT/bin.v2/libs/beast/test/**/$VARIANT/**/*-tests; do
+  for x in $BOOST_ROOT/bin.v2/libs/beast/test/**/$VARIANT/**/build-fat; do
     "$LIB_DIR/scripts/run-with-debugger.sh" "$x"
   done
 }
 
 function run_tests {
-  for x in $BOOST_ROOT/bin.v2/libs/beast/test/**/$VARIANT/**/*-tests; do
+  for x in $BOOST_ROOT/bin.v2/libs/beast/test/**/$VARIANT/**/build-fat; do
     $x
   done
 }
 
 function run_tests_with_valgrind {
-  for x in $BOOST_ROOT/bin.v2/libs/beast/test/**/$VARIANT/**/*-tests; do
+  for x in $BOOST_ROOT/bin.v2/libs/beast/test/**/$VARIANT/**/build-fat; do
     if [[ $(basename $x) == "bench-tests" ]]; then
       $x
     else
@@ -89,8 +89,13 @@ function run_tests_with_valgrind {
 }
 
 function build_bjam {
-  bjam libs/beast/test toolset=$TOOLSET variant=$VARIANT address-model=$ADDRESS_MODEL -j${num_jobs}
-  bjam libs/beast/example toolset=$TOOLSET variant=$VARIANT address-model=$ADDRESS_MODEL -j${num_jobs}
+  if [[ $VARIANT == "coverage" ]]; then
+    bjam libs/beast/test//build-fat toolset=$TOOLSET variant=$VARIANT address-model=$ADDRESS_MODEL -j${num_jobs}
+
+  else
+    bjam libs/beast/test//build-fat toolset=$TOOLSET variant=$VARIANT address-model=$ADDRESS_MODEL -j${num_jobs}
+    bjam libs/beast/example toolset=$TOOLSET variant=$VARIANT address-model=$ADDRESS_MODEL -j${num_jobs}
+  fi
 }
 
 function build_cmake {
@@ -151,13 +156,13 @@ if [[ $VARIANT == "coverage" ]]; then
   lcov --no-external -c -i -d "$BOOST_ROOT" -o baseline.info > /dev/null
 
   # Perform test
-  if [[ $MAIN_BRANCH == "1" && "$DO_VALGRIND" = true ]]; then
-    run_tests_with_valgrind
-    #run_autobahn_test_suite # skip slow autobahn tests
-  else
-    echo "skipping autobahn/valgrind tests for feature branch build"
+  #if [[ $MAIN_BRANCH == "1" && "$DO_VALGRIND" = true ]]; then
+  #  run_tests_with_valgrind
+  #  #run_autobahn_test_suite # skip slow autobahn tests
+  #else
+  #  echo "skipping autobahn/valgrind tests for feature branch build"
     run_tests
-  fi
+  #fi
 
   # Create test coverage data file, combine with the
   # baseline result and filter out things we don't want.

@@ -7,8 +7,7 @@
 # Official repository: https://github.com/boostorg/beast
 #
 
-unit-test websocket-tests :
-    ../../extras/boost/beast/unit_test/main.cpp
+local SOURCES =
     doc_snippets.cpp
     error.cpp
     option.cpp
@@ -19,3 +18,12 @@ unit-test websocket-tests :
     mask.cpp
     utf8_checker.cpp
     ;
+
+local RUN_TESTS ; for local f in $(SOURCES)  { RUN_TESTS += [ run $(f) $(TEST_MAIN) ] ; }
+alias run-tests : $(RUN_TESTS) ;
+
+unit-test run-fat : $(TEST_MAIN) $(SOURCES) ;
+explicit run-fat ;
+
+exe build-fat : $(TEST_MAIN) $(SOURCES) ;
+explicit build-fat ;
