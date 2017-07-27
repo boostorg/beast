@@ -6,6 +6,7 @@ Version 91:
 * Tidy up namespace qualifiers
 * Tidy up MSVC CMakeLists.txt
 * Optimize buffered_read_stream
+* constexpr in derived buffers
 
 WebSocket:
 

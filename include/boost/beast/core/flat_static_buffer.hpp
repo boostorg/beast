@@ -235,6 +235,20 @@ public:
     {
         return *this;
     }
+
+    /// Return the maximum sum of the input and output sequence sizes.
+    std::size_t constexpr
+    max_size() const
+    {
+        return N;
+    }
+
+    /// Return the maximum sum of input and output sizes that can be held without an allocation.
+    std::size_t constexpr
+    capacity() const
+    {
+        return N;
+    }
 };
 
 } // beast
