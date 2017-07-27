@@ -13,6 +13,7 @@
 #include <boost/beast/core/bind_handler.hpp>
 #include <boost/beast/core/error.hpp>
 #include <boost/beast/core/handler_ptr.hpp>
+#include <boost/beast/core/read_size.hpp>
 #include <boost/beast/core/type_traits.hpp>
 #include <boost/beast/core/detail/config.hpp>
 #include <boost/asio/handler_alloc_hook.hpp>
@@ -96,7 +97,7 @@ read_some_op<MutableBufferSequence, Handler>::operator()(
     switch(step_)
     {
     case 0:
-        if(s_.sb_.size() == 0)
+        if(s_.buffer_.size() == 0)
         {
             if(s_.capacity_ == 0)
             {
@@ -109,8 +110,9 @@ read_some_op<MutableBufferSequence, Handler>::operator()(
             // read
             step_ = 2;
             return s_.next_layer_.async_read_some(
-                s_.sb_.prepare(s_.capacity_),
-                    std::move(*this));
+                s_.buffer_.prepare(read_size(
+                    s_.buffer_, s_.capacity_)),
+                        std::move(*this));
 
         }
         step_ = 3;
@@ -123,13 +125,13 @@ read_some_op<MutableBufferSequence, Handler>::operator()(
         break;
 
     case 2:
-        s_.sb_.commit(bytes_transferred);
+        s_.buffer_.commit(bytes_transferred);
         BOOST_BEAST_FALLTHROUGH;
 
     case 3:
         bytes_transferred =
-            boost::asio::buffer_copy(b_, s_.sb_.data());
-        s_.sb_.consume(bytes_transferred);
+            boost::asio::buffer_copy(b_, s_.buffer_.data());
+        s_.buffer_.consume(bytes_transferred);
         break;
     }
     h_(ec, bytes_transferred);
@@ -198,12 +200,13 @@ read_some(MutableBufferSequence const& buffers,
             "MutableBufferSequence requirements not met");
     using boost::asio::buffer_size;
     using boost::asio::buffer_copy;
-    if(sb_.size() == 0)
+    if(buffer_.size() == 0)
     {
         if(capacity_ == 0)
             return next_layer_.read_some(buffers, ec);
-        sb_.commit(next_layer_.read_some(
-            sb_.prepare(capacity_), ec));
+        buffer_.commit(next_layer_.read_some(
+            buffer_.prepare(read_size(buffer_,
+                capacity_)), ec));
         if(ec)
             return 0;
     }
@@ -212,8 +215,8 @@ read_some(MutableBufferSequence const& buffers,
         ec.assign(0, ec.category());
     }
     auto bytes_transferred =
-        buffer_copy(buffers, sb_.data());
-    sb_.consume(bytes_transferred);
+        buffer_copy(buffers, buffer_.data());
+    buffer_.consume(bytes_transferred);
     return bytes_transferred;
 }
 
@@ -230,6 +233,9 @@ async_read_some(MutableBufferSequence const& buffers,
     static_assert(is_mutable_buffer_sequence<
         MutableBufferSequence>::value,
             "MutableBufferSequence requirements not met");
+    if(buffer_.size() == 0 && capacity_ == 0)
+        return next_layer_.async_read_some(buffers,
+            std::forward<ReadHandler>(handler));
     async_completion<ReadHandler,
         void(error_code, std::size_t)> init{handler};
     read_some_op<MutableBufferSequence, handler_type<

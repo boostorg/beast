@@ -97,7 +97,7 @@ class buffered_read_stream
     template<class Buffers, class Handler>
     class read_some_op;
 
-    DynamicBuffer sb_;
+    DynamicBuffer buffer_;
     std::size_t capacity_ = 0;
     Stream next_layer_;
 
@@ -180,14 +180,14 @@ public:
     DynamicBuffer&
     buffer()
     {
-        return sb_;
+        return buffer_;
     }
 
     /// Access the internal buffer
     DynamicBuffer const&
     buffer() const
     {
-        return sb_;
+        return buffer_;
     }
 
     /** Set the maximum buffer size.
