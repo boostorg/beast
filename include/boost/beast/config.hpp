@@ -25,11 +25,25 @@
 	14.0 (2015 Update 3)    1900    	190024210
 */
 
-#ifdef BOOST_MSVC
-#if BOOST_MSVC_FULL_VER < 190024210
-static_assert(false,
-	"This library requires Visual Studio 2015 Update 3 or later");
-#endif
+#if defined(BOOST_MSVC)
+# if BOOST_MSVC_FULL_VER < 190024210
+   static_assert(false, "Beast requires C++11: Visual Studio 2015 Update 3 or later needed");
+# endif
+
+#elif defined(BOOST_GCC)
+# if(BOOST_GCC < 40801)
+    static_assert(false, "Beast requires C++11: gcc version 4.8 or later needed");
+# endif
+
+#else
+# if \
+    defined(BOOST_NO_CXX11_DECLTYPE) || \
+    defined(BOOST_NO_CXX11_HDR_TUPLE) || \
+    defined(BOOST_NO_CXX11_TEMPLATE_ALIASES) || \
+    defined(BOOST_NO_CXX11_VARIADIC_TEMPLATES)
+    static_assert(false, "Beast requires C++11: a conforming compiler is needed");
+# endif
+
 #endif
 
 #endif

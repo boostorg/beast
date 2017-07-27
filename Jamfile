@@ -13,7 +13,7 @@ import boost ;
 import modules ;
 import testing ;
 
-#import ../config/checks/config : requires ;
+import ../config/checks/config : requires ;
 
 boost.use-project ;
 
@@ -66,7 +66,8 @@ variant ubasan
     <linkflags>"-fsanitize=address,undefined"
   ;
 
-#local REQ = [ requires cxx11_variadic_templates cxx11_template_aliases cxx11_decltype cxx11_hdr_type_traits cxx11_hdr_tuple ] ;
+#cxx11_hdr_type_traits
+local REQ = [ requires cxx11_variadic_templates cxx11_template_aliases cxx11_decltype cxx11_hdr_tuple ] ;
 
 project beast
   : requirements
