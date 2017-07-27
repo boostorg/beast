@@ -10,6 +10,7 @@ Version 91:
 WebSocket:
 
 * Tidy up websocket javadocs
+* Refactor accept, handshake ops
 
 --------------------------------------------------------------------------------
 

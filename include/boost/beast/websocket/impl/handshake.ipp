@@ -391,6 +391,38 @@ handshake_ex(response_type& res,
 
 //------------------------------------------------------------------------------
 
+template<class NextLayer>
+template<class RequestDecorator>
+void
+stream<NextLayer>::
+do_handshake(
+    response_type* res_p,
+    string_view host,
+    string_view target,
+    RequestDecorator const& decorator,
+    error_code& ec)
+{
+    response_type res;
+    reset();
+    detail::sec_ws_key_type key;
+    {
+        auto const req = build_request(
+            key, host, target, decorator);
+        pmd_read(pmd_config_, req);
+        http::write(stream_, req, ec);
+    }
+    if(ec)
+        return;
+    http::read(next_layer(), stream_.buffer(), res, ec);
+    if(ec)
+        return;
+    do_response(res, key, ec);
+    if(res_p)
+        *res_p = std::move(res);
+}
+
+//------------------------------------------------------------------------------
+
 } // websocket
 } // beast
 } // boost
