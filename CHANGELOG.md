@@ -1,3 +1,9 @@
+Version 91:
+
+* Adjust redirect html
+
+--------------------------------------------------------------------------------
+
 Version 90:
 
 * Fix websocket read of zero length message
