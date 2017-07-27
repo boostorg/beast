@@ -1,3 +1,9 @@
+Version 89:
+
+* Fix CONTRIBUTING.md links
+
+--------------------------------------------------------------------------------
+
 Version 88:
 
 * Update doc links in README.md

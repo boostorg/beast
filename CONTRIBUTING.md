@@ -11,7 +11,7 @@ to give Beast a star! Your stars create generate additional visibility,
 which leads to more users, more bug reports, more fixes, more testing,
 more features, and a better product!
 
-<a href="https://github.com/boostorg/beast/blob/master/CONTRIBUTING.md),">
+<a href="https://github.com/boostorg/beast/blob/master/CONTRIBUTING.md">
 <img width="400" height = "150" alt = "Please Star the Repository"
     src="https://raw.githubusercontent.com/vinniefalco/BeastAssets/master/StarTheRepo.png">
 </a>
