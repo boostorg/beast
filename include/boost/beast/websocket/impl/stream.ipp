@@ -141,6 +141,7 @@ open(role_type role)
     rd_.cont = false;
     rd_.done = true;
     rd_.buf.consume(rd_.buf.size());
+    rd_.fh.fin = false;
     rd_close_ = false;
     wr_close_ = false;
     wr_block_.reset();
@@ -197,6 +198,7 @@ reset()
     rd_.cont = false;
     rd_.done = true;
     rd_.buf.consume(rd_.buf.size());
+    rd_.fh.fin = false;
     rd_close_ = false;
     wr_close_ = false;
     wr_.cont = false;

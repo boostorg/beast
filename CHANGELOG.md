@@ -1,3 +1,15 @@
+Version 88:
+
+* Update doc links in README.md
+* Refactor tests Jamfile
+* Don't use program_options
+
+WebSocket:
+
+* Fix uninitialized frame done
+
+--------------------------------------------------------------------------------
+
 Version 87:
 
 * Update appveyor for Boost branch
