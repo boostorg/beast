@@ -70,22 +70,22 @@ public:
     void
     doOptions(Stream& stream, error_code& ec)
     {
-        beast::http::request<beast::http::empty_body> req;
+        http::request<http::empty_body> req;
         req.version = 11;
-        req.method(beast::http::verb::options);
+        req.method(http::verb::options);
         req.target("*");
-        req.set(beast::http::field::user_agent, "test");
-        req.set(beast::http::field::connection, "close");
+        req.set(http::field::user_agent, "test");
+        req.set(http::field::connection, "close");
         
-        beast::http::write(stream, req, ec);
+        http::write(stream, req, ec);
         if(! BEAST_EXPECTS(
-            ec == beast::http::error::end_of_stream,
+            ec == http::error::end_of_stream,
                 ec.message()))
             return;
 
         beast::flat_buffer b;
-        beast::http::response<beast::http::string_body> res;
-        beast::http::read(stream, b, res, ec);
+        http::response<http::string_body> res;
+        http::read(stream, b, res, ec);
         if(! BEAST_EXPECTS(! ec, ec.message()))
             return;
     }

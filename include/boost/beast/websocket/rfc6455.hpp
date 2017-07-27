@@ -38,12 +38,12 @@ namespace websocket {
     @code
     void handle_connection(boost::asio::ip::tcp::socket& sock)
     {
-        beast::flat_buffer buffer;
-        beast::http::request<beast::http::string_body> req;
-        beast::http::read(sock, buffer, req);
-        if(beast::websocket::is_upgrade(req))
+        boost::beast::flat_buffer buffer;
+        boost::beast::http::request<boost::beast::http::string_body> req;
+        boost::beast::http::read(sock, buffer, req);
+        if(boost::beast::websocket::is_upgrade(req))
         {
-            beast::websocket::stream<decltype(sock)> ws{std::move(sock)};
+            boost::beast::websocket::stream<decltype(sock)> ws{std::move(sock)};
             ws.accept(req);
         }
     }

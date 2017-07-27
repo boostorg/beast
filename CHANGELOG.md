@@ -3,6 +3,7 @@ Version 91:
 * Adjust redirect html
 * Don't build pre-C++11
 * source.dox is path-independent
+* Tidy up namespace qualifiers
 
 --------------------------------------------------------------------------------
 

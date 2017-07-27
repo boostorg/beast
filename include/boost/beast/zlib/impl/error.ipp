@@ -41,6 +41,7 @@
 #include <type_traits>
 
 namespace boost {
+
 namespace system {
 template<>
 struct is_error_code_enum<beast::zlib::error>
@@ -48,9 +49,7 @@ struct is_error_code_enum<beast::zlib::error>
     static bool const value = true;
 };
 } // system
-} // boost
 
-namespace boost {
 namespace beast {
 namespace zlib {
 namespace detail {

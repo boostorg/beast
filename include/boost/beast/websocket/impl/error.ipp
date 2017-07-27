@@ -11,6 +11,7 @@
 #define BOOST_BEAST_WEBSOCKET_IMPL_ERROR_IPP
 
 namespace boost {
+
 namespace system {
 template<>
 struct is_error_code_enum<beast::websocket::error>
@@ -18,9 +19,7 @@ struct is_error_code_enum<beast::websocket::error>
     static bool const value = true;
 };
 } // system
-} // boost
 
-namespace boost {
 namespace beast {
 namespace websocket {
 namespace detail {

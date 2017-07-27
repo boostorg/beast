@@ -13,6 +13,7 @@
 #include <type_traits>
 
 namespace boost {
+
 namespace system {
 template<>
 struct is_error_code_enum<beast::http::error>
@@ -20,9 +21,7 @@ struct is_error_code_enum<beast::http::error>
     static bool const value = true;
 };
 } // system
-} // boost
 
-namespace boost {
 namespace beast {
 namespace http {
 namespace detail {
