@@ -119,11 +119,11 @@ operator()(Buffers const& buffers)
     auto& d = *d_;
     error_code ec;
     boost::optional<typename
-        flat_buffer::mutable_buffers_type> mb;
+        static_buffer_base::mutable_buffers_type> mb;
     auto const len = buffer_size(buffers);
     try
     {
-        mb.emplace(d.ws.stream_.buffer().prepare(len));
+        mb.emplace(d.ws.rd_.buf.prepare(len));
     }
     catch(std::length_error const&)
     {
@@ -132,7 +132,7 @@ operator()(Buffers const& buffers)
         return d.ws.get_io_service().post(
             bind_handler(std::move(*this), ec));
     }
-    d.ws.stream_.buffer().commit(
+    d.ws.rd_.buf.commit(
         buffer_copy(*mb, buffers));
     (*this)(ec);
 }
@@ -263,11 +263,11 @@ operator()(Buffers const& buffers)
     auto& d = *d_;
     error_code ec;
     boost::optional<typename
-        flat_buffer::mutable_buffers_type> mb;
+        static_buffer_base::mutable_buffers_type> mb;
     auto const len = buffer_size(buffers);
     try
     {
-        mb.emplace(d.ws.stream_.buffer().prepare(len));
+        mb.emplace(d.ws.rd_.buf.prepare(len));
     }
     catch(std::length_error const&)
     {
@@ -276,7 +276,7 @@ operator()(Buffers const& buffers)
         return d.ws.get_io_service().post(
             bind_handler(std::move(*this), ec));
     }
-    d.ws.stream_.buffer().commit(
+    d.ws.rd_.buf.commit(
         buffer_copy(*mb, buffers));
     (*this)(ec);
 }
@@ -294,7 +294,7 @@ operator()(error_code ec)
     case 0:
         d.step = 1;
         return http::async_read(
-            d.ws.next_layer(), d.ws.stream_.buffer(),
+            d.ws.next_layer(), d.ws.rd_.buf,
                 d.p, std::move(*this));
     
     case 1:
@@ -437,8 +437,8 @@ accept(ConstBufferSequence const& buffers, error_code& ec)
     reset();
     using boost::asio::buffer_copy;
     using boost::asio::buffer_size;
-    stream_.buffer().commit(buffer_copy(
-        stream_.buffer().prepare(
+    rd_.buf.commit(buffer_copy(
+        rd_.buf.prepare(
             buffer_size(buffers)), buffers));
     do_accept(&default_decorate_res, ec);
 }
@@ -463,8 +463,8 @@ accept_ex(ConstBufferSequence const& buffers,
     reset();
     using boost::asio::buffer_copy;
     using boost::asio::buffer_size;
-    stream_.buffer().commit(buffer_copy(
-        stream_.buffer().prepare(
+    rd_.buf.commit(buffer_copy(
+        rd_.buf.prepare(
             buffer_size(buffers)), buffers));
     do_accept(decorator, ec);
 }
@@ -597,8 +597,8 @@ accept(http::request<Body,
     reset();
     using boost::asio::buffer_copy;
     using boost::asio::buffer_size;
-    stream_.buffer().commit(buffer_copy(
-        stream_.buffer().prepare(
+    rd_.buf.commit(buffer_copy(
+        rd_.buf.prepare(
             buffer_size(buffers)), buffers));
     do_accept(req, &default_decorate_res, ec);
 }
@@ -625,8 +625,8 @@ accept_ex(http::request<Body,
     reset();
     using boost::asio::buffer_copy;
     using boost::asio::buffer_size;
-    stream_.buffer().commit(buffer_copy(
-        stream_.buffer().prepare(
+    rd_.buf.commit(buffer_copy(
+        rd_.buf.prepare(
             buffer_size(buffers)), buffers));
     do_accept(req, decorator, ec);
 }
@@ -878,7 +878,7 @@ do_accept(
 {
     http::request_parser<http::empty_body> p;
     http::read(next_layer(),
-        stream_.buffer(), p, ec);
+        rd_.buf, p, ec);
     if(ec)
         return;
     do_accept(p.get(), decorator, ec);

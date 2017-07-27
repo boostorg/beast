@@ -140,7 +140,8 @@ open(role_type role)
     rd_.remain = 0;
     rd_.cont = false;
     rd_.done = true;
-    rd_.buf.consume(rd_.buf.size());
+    // Can't clear this because accept uses it
+    //rd_.buf.consume(rd_.buf.size());
     rd_.fh.fin = false;
     rd_close_ = false;
     wr_close_ = false;
@@ -204,9 +205,6 @@ reset()
     wr_.cont = false;
     wr_block_.reset();
     ping_data_ = nullptr;   // should be nullptr on close anyway
-
-    stream_.buffer().consume(
-        stream_.buffer().size());
 }
 
 // Called before each write frame

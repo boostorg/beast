@@ -11,6 +11,7 @@ WebSocket:
 
 * Tidy up websocket javadocs
 * Refactor accept, handshake ops
+* Use read buffer instead of buffered stream
 
 --------------------------------------------------------------------------------
 

@@ -148,7 +148,7 @@ operator()(error_code ec, bool again)
             // read http response
             d.state = 2;
             http::async_read(d.ws.next_layer(),
-                d.ws.stream_.buffer(), d.res,
+                d.ws.rd_.buf, d.res,
                     std::move(*this));
             return;
 
@@ -413,15 +413,13 @@ do_handshake(
     }
     if(ec)
         return;
-    http::read(next_layer(), stream_.buffer(), res, ec);
+    http::read(next_layer(), rd_.buf, res, ec);
     if(ec)
         return;
     do_response(res, key, ec);
     if(res_p)
         *res_p = std::move(res);
 }
-
-//------------------------------------------------------------------------------
 
 } // websocket
 } // beast
