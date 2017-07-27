@@ -4,6 +4,7 @@ Version 91:
 * Don't build pre-C++11
 * source.dox is path-independent
 * Tidy up namespace qualifiers
+* Tidy up MSVC CMakeLists.txt
 
 WebSocket:
 

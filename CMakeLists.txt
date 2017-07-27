@@ -22,10 +22,17 @@ if (MSVC)
     add_definitions (-D_SCL_SECURE_NO_WARNINGS=1)
     add_definitions (-D_CRT_SECURE_NO_WARNINGS=1)
 
+    add_compile_options(
+        /bigobj       # large object file format
+        /permissive-  # strict C++
+        #/wd4503      # decorated name length exceeded, name was truncated
+        /W4           # enable all warnings
+        /MP           # Multi-processor compilation
+        )
+
     set (Boost_USE_STATIC_LIBS ON)
     set (Boost_USE_STATIC_RUNTIME ON)
 
-    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP /W4 /bigobj /permissive-")
     set (CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd")
     set (CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /Ob2 /Oi /Ot /GL /MT")
     set (CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} /Oi /Ot /MT")
