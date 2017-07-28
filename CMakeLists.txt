@@ -21,6 +21,7 @@ if (MSVC)
     add_definitions (-D_WIN32_WINNT=0x0601)
     add_definitions (-D_SCL_SECURE_NO_WARNINGS=1)
     add_definitions (-D_CRT_SECURE_NO_WARNINGS=1)
+    add_definitions (-DBOOST_ASIO_NO_DEPRECATED=1)
 
     add_compile_options(
         /bigobj       # large object file format

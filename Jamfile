@@ -88,6 +88,7 @@ project beast
     <define>BOOST_ASIO_DISABLE_BOOST_BIND=1
     <define>BOOST_ASIO_DISABLE_BOOST_DATE_TIME=1
     <define>BOOST_ASIO_DISABLE_BOOST_REGEX=1
+    <define>BOOST_ASIO_NO_DEPRECATED=1
     <toolset>gcc:<cxxflags>-std=c++11
     <toolset>clang:<cxxflags>-std=c++11
     <toolset>clang:<cxxflags>-Wrange-loop-analysis

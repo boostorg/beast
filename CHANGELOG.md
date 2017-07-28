@@ -7,6 +7,7 @@ Version 91:
 * Tidy up MSVC CMakeLists.txt
 * Optimize buffered_read_stream
 * constexpr in derived buffers
+* Set BOOST_ASIO_NO_DEPRECATED
 
 WebSocket:
 
