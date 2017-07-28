@@ -8,8 +8,8 @@
 #
 
 alias wstest :
-    main.cpp
+    wstest.cpp
     ;
 explicit wstest ;
 
-alias run-tests : [ compile main.cpp ] : : : <variant>coverage:<build>no <variant>ubasan:<build>no ;
+alias run-tests : [ compile wstest.cpp ] : : : <variant>coverage:<build>no <variant>ubasan:<build>no ;

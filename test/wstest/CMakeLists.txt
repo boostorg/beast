@@ -17,5 +17,5 @@ add_executable (wstest
     ${COMMON_INCLUDES}
     ${EXTRAS_INCLUDES}
     Jamfile
-    main.cpp
+    wstest.cpp
     )
