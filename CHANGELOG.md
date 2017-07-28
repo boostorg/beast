@@ -2,6 +2,7 @@ Version 90:
 
 * Fix websocket read of zero length message
 * Fix typo in equal_range
+* Output to integrated documentation
 
 --------------------------------------------------------------------------------
 

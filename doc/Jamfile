@@ -182,17 +182,14 @@ boostbook beast
         <dependency>images
     ;
 
-
 #-------------------------------------------------------------------------------
 #
 # These are used to inform the build system of the
 # means to build the integrated and stand-alone docs.
 #
 
-alias boostdoc : beast : : : ;
-
+alias boostdoc : beast_doc ;
 explicit boostdoc ;
 
 alias boostrelease ;
-
 explicit boostrelease ;
