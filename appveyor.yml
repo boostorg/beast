@@ -81,6 +81,7 @@ install:
   - git submodule update --init libs/type_index
   - git submodule update --init libs/typeof
   - git submodule update --init libs/unordered
+  - rm -rf libs\beast
   - MKDIR libs\beast
   - XCOPY /s /e /q %APPVEYOR_BUILD_FOLDER% libs\beast\
   - CMD /c bootstrap

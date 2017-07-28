@@ -11,6 +11,7 @@ Version 91:
 * Use Asio array optimization in static_buffer_base
 * Rename wstest source file
 * Use fopen_s on Windows
+* Fix Appveyor script
 
 WebSocket:
 
