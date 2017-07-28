@@ -20,6 +20,16 @@ WebSocket:
 * Refactor accept, handshake ops
 * Use read buffer instead of buffered stream
 
+API Changes
+
+* control frame callbacks are non-const references
+
+Actions Required:
+
+* Modify calls to set the control frame callback, to
+  pass non-const reference instances, and manage the
+  lifetime of the instance.
+
 --------------------------------------------------------------------------------
 
 Version 90:

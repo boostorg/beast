@@ -1675,50 +1675,56 @@ public:
                 bool once;
 
                 // send ping and message
-                once = false;
-                ws.control_callback(
-                    [&](frame_type kind, string_view s)
-                    {
-                        BEAST_EXPECT(kind == frame_type::pong);
-                        BEAST_EXPECT(! once);
-                        once = true;
-                        BEAST_EXPECT(s == "");
-                    });
-                c.ping(ws, "");
-                ws.binary(true);
-                c.write(ws, sbuf("Hello"));
                 {
-                    // receive echoed message
-                    multi_buffer db;
-                    c.read(ws, db);
-                    BEAST_EXPECT(once);
-                    BEAST_EXPECT(ws.got_binary());
-                    BEAST_EXPECT(to_string(db.data()) == "Hello");
+                    once = false;
+                    auto cb =
+                        [&](frame_type kind, string_view s)
+                        {
+                            BEAST_EXPECT(kind == frame_type::pong);
+                            BEAST_EXPECT(! once);
+                            once = true;
+                            BEAST_EXPECT(s == "");
+                        };
+                    ws.control_callback(cb);
+                    c.ping(ws, "");
+                    ws.binary(true);
+                    c.write(ws, sbuf("Hello"));
+                    {
+                        // receive echoed message
+                        multi_buffer db;
+                        c.read(ws, db);
+                        BEAST_EXPECT(once);
+                        BEAST_EXPECT(ws.got_binary());
+                        BEAST_EXPECT(to_string(db.data()) == "Hello");
+                    }
+                    ws.control_callback();
                 }
-                ws.control_callback({});
 
                 // send ping and fragmented message
-                once = false;
-                ws.control_callback(
-                    [&](frame_type kind, string_view s)
-                    {
-                        BEAST_EXPECT(kind == frame_type::pong);
-                        BEAST_EXPECT(! once);
-                        once = true;
-                        BEAST_EXPECT(s == "payload");
-                    });
-                ws.ping("payload");
-                c.write_some(ws, false, sbuf("Hello, "));
-                c.write_some(ws, false, sbuf(""));
-                c.write_some(ws, true, sbuf("World!"));
                 {
-                    // receive echoed message
-                    multi_buffer db;
-                    c.read(ws, db);
-                    BEAST_EXPECT(once);
-                    BEAST_EXPECT(to_string(db.data()) == "Hello, World!");
+                    once = false;
+                    auto cb =
+                        [&](frame_type kind, string_view s)
+                        {
+                            BEAST_EXPECT(kind == frame_type::pong);
+                            BEAST_EXPECT(! once);
+                            once = true;
+                            BEAST_EXPECT(s == "payload");
+                        };
+                    ws.control_callback(cb);
+                    ws.ping("payload");
+                    c.write_some(ws, false, sbuf("Hello, "));
+                    c.write_some(ws, false, sbuf(""));
+                    c.write_some(ws, true, sbuf("World!"));
+                    {
+                        // receive echoed message
+                        multi_buffer db;
+                        c.read(ws, db);
+                        BEAST_EXPECT(once);
+                        BEAST_EXPECT(to_string(db.data()) == "Hello, World!");
+                    }
+                    ws.control_callback();
                 }
-                ws.control_callback({});
 
                 // send pong
                 c.pong(ws, "");

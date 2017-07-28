@@ -561,7 +561,7 @@ public:
         return wr_opcode_ == detail::opcode::binary;
     }
 
-    /** Set the control frame callback.
+    /** Set a callback to be invoked on each incoming control frame.
 
         Sets the callback to be invoked whenever a ping, pong,
         or close control frame is received during a call to one
@@ -577,7 +577,11 @@ public:
         or asynchronous read function. The operation is passive,
         with no associated error code, and triggered by reads.
 
-        The signature of the callback must be:
+        For close frames, the close reason code may be obtained by
+        calling the function @ref reason.
+
+        @param cb The function object to call, which must be
+        invocable with this equivalent signature:
         @code
         void
         callback(
@@ -585,10 +589,9 @@ public:
             string_view payload    // The payload in the frame
         );
         @endcode
-
-        For close frames, the close reason code may be obtained by
-        calling the function @ref reason.
-
+        The implementation type-erases the callback without requiring
+        a dynamic allocation. For this reason, the callback object is
+        passed by a non-constant reference.
         If the read operation which receives the control frame is
         an asynchronous operation, the callback will be invoked using
         the same method as that used to invoke the final handler.
@@ -597,14 +600,26 @@ public:
         of a close frame. The implementation does this automatically.
         Attempting to send a close frame after a close frame is
         received will result in undefined behavior.
+    */
+    template<class Callback>
+    void
+    control_callback(Callback& cb)
+    {
+        // Callback may not be constant, caller is responsible for
+        // managing the lifetime of the callback. Copies are not made.
+        BOOST_STATIC_ASSERT(! std::is_const<Callback>::value);
 
-        @param cb The callback to set.
+        ctrl_cb_ = std::ref(cb);
+    }
+
+    /** Reset the control frame callback.
+
+        This function removes any previously set control frame callback.
     */
     void
-    control_callback(
-        std::function<void(frame_type, string_view)> cb)
+    control_callback()
     {
-        ctrl_cb_ = std::move(cb);
+        ctrl_cb_ = {};
     }
 
     /** Set the maximum incoming message size option.
