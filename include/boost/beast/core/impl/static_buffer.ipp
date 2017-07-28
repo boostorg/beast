@@ -21,195 +21,6 @@
 namespace boost {
 namespace beast {
 
-template<bool isInput, class T>
-class static_buffer_base::buffers_type
-{
-public:
-    using value_type = T;
-    class const_iterator
-    {
-        friend class buffers_type;
-
-        static_buffer_base const* b_ = nullptr;
-        int seg_ = 0;
-
-        const_iterator(bool at_end,
-            static_buffer_base const& b)
-            : b_(&b)
-        {
-            if(! at_end)
-            {
-                seg_ = 0;
-            }
-            else
-            {
-                set_end(std::integral_constant<bool, isInput>{});
-            }
-        }
-
-        void
-        set_end(std::true_type)
-        {
-            if(b_->in_off_ + b_->in_size_ <= b_->capacity_)
-                seg_ = 1;
-            else
-                seg_ = 2;
-        }
-
-        void
-        set_end(std::false_type)
-        {
-            if(((b_->in_off_ + b_->in_size_) % b_->capacity_)
-                    + b_->out_size_ <= b_->capacity_)
-                seg_ = 1;
-            else
-                seg_ = 2;
-        }
-
-        T
-        dereference(std::true_type) const
-        {
-            switch(seg_)
-            {
-            case 0:
-                return {
-                    b_->begin_ + b_->in_off_,
-                    (std::min)(
-                        b_->in_size_,
-                        b_->capacity_ - b_->in_off_)};
-            default:
-            case 1:
-                return {
-                    b_->begin_,
-                    b_->in_size_ - (
-                        b_->capacity_ - b_->in_off_)};
-            }
-        }
-
-        T
-        dereference(std::false_type) const
-        {
-            switch(seg_)
-            {
-            case 0:
-            {
-                auto const out_off =
-                    (b_->in_off_ + b_->in_size_)
-                        % b_->capacity_;
-                return {
-                    b_->begin_ + out_off,
-                    (std::min)(
-                        b_->out_size_,
-                        b_->capacity_ - out_off)};
-            }
-            default:
-            case 1:
-            {
-                auto const out_off =
-                    (b_->in_off_ + b_->in_size_)
-                        % b_->capacity_;
-                return {
-                    b_->begin_,
-                    b_->out_size_ - (
-                        b_->capacity_ - out_off)};
-                break;
-            }
-            }
-        }
-
-    public:
-        using value_type = T;
-        using pointer = value_type const*;
-        using reference = value_type const&;
-        using difference_type = std::ptrdiff_t;
-        using iterator_category =
-            std::bidirectional_iterator_tag;
-
-        const_iterator() = default;
-        const_iterator(const_iterator const& other) = default;
-        const_iterator& operator=(const_iterator const& other) = default;
-
-        bool
-        operator==(const_iterator const& other) const
-        {
-            return b_ == other.b_ && seg_ == other.seg_;
-        }
-
-        bool
-        operator!=(const_iterator const& other) const
-        {
-            return !(*this == other);
-        }
-
-        value_type
-        operator*() const
-        {
-            return dereference(
-                std::integral_constant<bool, isInput>{});
-        }
-
-        pointer
-        operator->() = delete;
-
-        const_iterator&
-        operator++()
-        {
-            ++seg_;
-            return *this;
-        }
-
-        const_iterator
-        operator++(int)
-        {
-            auto temp = *this;
-            ++(*this);
-            return temp;
-        }
-
-        const_iterator&
-        operator--()
-        {
-            --seg_;
-            return *this;
-        }
-
-        const_iterator
-        operator--(int)
-        {
-            auto temp = *this;
-            --(*this);
-            return temp;
-        }
-    };
-
-    buffers_type() = delete;
-    buffers_type(buffers_type const&) = default;
-    buffers_type& operator=(buffers_type const&) = delete;
-
-    const_iterator
-    begin() const
-    {
-        return const_iterator{false, b_};
-    }
-
-    const_iterator
-    end() const
-    {
-        return const_iterator{true, b_};
-    }
-
-private:
-    friend class static_buffer_base;
-
-    static_buffer_base const& b_;
-
-    explicit
-    buffers_type(static_buffer_base const& b)
-        : b_(b)
-    {
-    }
-};
-
 inline
 static_buffer_base::
 static_buffer_base(void* p, std::size_t size)
@@ -224,7 +35,14 @@ static_buffer_base::
 data() const ->
     const_buffers_type
 {
-    return const_buffers_type{*this};
+    using boost::asio::const_buffer;
+    if(in_off_ + in_size_ <= capacity_)
+        return {
+            const_buffer{ begin_ + in_off_, in_size_ },
+            const_buffer{ begin_, 0 } };
+    return {
+        const_buffer{ begin_ + in_off_, capacity_ - in_off_ },
+        const_buffer{ begin_, in_size_ - (capacity_ - in_off_) } };
 }
 
 inline
@@ -233,7 +51,14 @@ static_buffer_base::
 mutable_data() ->
     mutable_data_type
 {
-    return mutable_data_type{*this};
+    using boost::asio::mutable_buffer;
+    if(in_off_ + in_size_ <= capacity_)
+        return {
+            mutable_buffer{ begin_ + in_off_, in_size_ },
+            mutable_buffer{ begin_, 0 } };
+    return {
+        mutable_buffer{ begin_ + in_off_, capacity_ - in_off_ },
+        mutable_buffer{ begin_, in_size_ - (capacity_ - in_off_) } };
 }
 
 inline
@@ -242,11 +67,19 @@ static_buffer_base::
 prepare(std::size_t size) ->
     mutable_buffers_type
 {
+    using boost::asio::mutable_buffer;
     if(size > capacity_ - in_size_)
         BOOST_THROW_EXCEPTION(std::length_error{
             "buffer overflow"});
     out_size_ = size;
-    return mutable_buffers_type{*this};
+    auto const out_off = (in_off_ + in_size_) % capacity_;
+    if(out_off + out_size_ <= capacity_ )
+        return {
+            mutable_buffer{ begin_ + out_off, out_size_ },
+            mutable_buffer{ begin_, 0 } };
+    return {
+        mutable_buffer{ begin_ + out_off, capacity_ - out_off },
+        mutable_buffer{ begin_, out_size_ - (capacity_ - out_off) } };
 }
 
 inline

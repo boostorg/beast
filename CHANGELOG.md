@@ -8,6 +8,7 @@ Version 91:
 * Optimize buffered_read_stream
 * constexpr in derived buffers
 * Set BOOST_ASIO_NO_DEPRECATED
+* Use Asio array optimization in static_buffer_base
 
 WebSocket:
 

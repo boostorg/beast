@@ -13,6 +13,7 @@
 #include <boost/beast/config.hpp>
 #include <boost/asio/buffer.hpp>
 #include <algorithm>
+#include <array>
 #include <cstddef>
 #include <cstring>
 
@@ -45,36 +46,21 @@ class static_buffer_base
     std::size_t out_size_ = 0;
     std::size_t capacity_;
 
-    template<bool, class T>
-    class buffers_type;
-
     static_buffer_base(static_buffer_base const& other) = delete;
     static_buffer_base& operator=(static_buffer_base const&) = delete;
 
 public:
     /// The type used to represent the input sequence as a list of buffers.
-#if BOOST_BEAST_DOXYGEN
-    using const_buffers_type = implementation_defined;
-#else
     using const_buffers_type =
-        buffers_type<true, boost::asio::const_buffer>;
-#endif
+        std::array<boost::asio::const_buffer, 2>;
 
     /// The type used to represent the mutable input sequence as a list of buffers.
-#if BOOST_BEAST_DOXYGEN
-    using mutable_data_type = implementation_defined;
-#else
     using mutable_data_type =
-        buffers_type<true, boost::asio::mutable_buffer>;
-#endif
+        std::array<boost::asio::mutable_buffer, 2>;
 
     /// The type used to represent the output sequence as a list of buffers.
-#if BOOST_BEAST_DOXYGEN
-    using mutable_buffers_type = implementation_defined;
-#else
     using mutable_buffers_type =
-        buffers_type<false, boost::asio::mutable_buffer>;
-#endif
+        std::array<boost::asio::mutable_buffer, 2>;
 
     /** Constructor
 
