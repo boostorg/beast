@@ -1638,6 +1638,16 @@ public:
                 }
                 c.handshake(ws, "localhost", "/");
 
+                // send empty message
+                ws.text(true);
+                c.write(ws, boost::asio::null_buffers{});
+                {
+                    // receive echoed message
+                    multi_buffer db;
+                    c.read(ws, db);
+                    BEAST_EXPECT(ws.got_text());
+                    BEAST_EXPECT(db.size() == 0);
+                }
                 // send message
                 ws.auto_fragment(false);
                 ws.binary(false);

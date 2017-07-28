@@ -1,3 +1,9 @@
+Version 90:
+
+* Fix websocket read of zero length message
+
+--------------------------------------------------------------------------------
+
 Version 89:
 
 * Fix CONTRIBUTING.md links
