@@ -9,9 +9,16 @@
 
 #include <boost/beast/websocket/detail/utf8_checker.hpp>
 #include <boost/beast/unit_test/suite.hpp>
-#include <boost/locale.hpp>
 #include <chrono>
 #include <random>
+
+#ifndef BEAST_USE_BOOST_LOCALE_BENCHMARK
+#define BEAST_USE_BOOST_LOCALE_BENCHMARK 0
+#endif
+
+#if BEAST_USE_BOOST_LOCALE_BENCHMARK
+#include <boost/locale.hpp>
+#endif
 
 namespace boost {
 namespace beast {
@@ -80,6 +87,14 @@ public:
     }
 
     void
+    checkBeast(std::string const& s)
+    {
+        beast::websocket::detail::check_utf8(
+            s.data(), s.size());
+    }
+
+#if BEAST_USE_BOOST_LOCALE_BENCHMARK
+    void
     checkLocale(std::string const& s)
     {
         using namespace boost::locale;
@@ -92,13 +107,7 @@ public:
                 break;
         }
     }
-
-    void
-    checkBeast(std::string const& s)
-    {
-        beast::websocket::detail::check_utf8(
-            s.data(), s.size());
-    }
+#endif
 
     template<class F>
     typename timer::clock_type::duration
@@ -124,6 +133,7 @@ public:
             });
             log << "beast:  " << throughput(elapsed, s.size()) << " char/s" << std::endl;
         }
+    #if BEAST_USE_BOOST_LOCALE_BENCHMARK
         for(int i = 0; i < 5; ++ i)
         {
             auto const elapsed = test([&]{
@@ -135,6 +145,7 @@ public:
             });
             log << "locale: " << throughput(elapsed, s.size()) << " char/s" << std::endl;
         }
+    #endif
         pass();
     }
 };

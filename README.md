@@ -110,14 +110,16 @@ The files in the repository are laid out thusly:
 
 ```
 ./
+    bench/          Benchmarking programs
     bin/            Create this to hold executables and project files
     bin64/          Create this to hold 64-bit Windows executables and project files
     doc/            Source code and scripts for the documentation
-    include/        Add this to your compiler includes
-        beast/
+    include/        Where the header files live
     extras/         Additional APIs, may change
     example/        Self contained example programs
-    test/           Unit tests and benchmarks
+    meta/           Metadata for Boost integration
+    scripts/        Small scripts used with CI systems
+    test/           Unit tests
 ```
 
 ## Usage

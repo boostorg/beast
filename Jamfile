@@ -19,36 +19,36 @@ boost.use-project ;
 
 if [ os.name ] = SOLARIS
 {
-  lib socket ;
-  lib nsl ;
+    lib socket ;
+    lib nsl ;
 }
 else if [ os.name ] = NT
 {
-  lib ws2_32 ;
-  lib mswsock ;
+    lib ws2_32 ;
+    lib mswsock ;
 }
 else if [ os.name ] = HPUX
 {
-  lib ipv6 ;
+    lib ipv6 ;
 }
 else if [ os.name ] = QNXNTO
 {
-  lib socket ;
+    lib socket ;
 }
 else if [ os.name ] = HAIKU
 {
-  lib network ;
+    lib network ;
 }
 
 if [ os.name ] = NT
 {
-  lib ssl : : <name>ssleay32 ;
-  lib crypto : : <name>libeay32 ;
+    lib ssl : : <name>ssleay32 ;
+    lib crypto : : <name>libeay32 ;
 }
 else
 {
-  lib ssl ;
-  lib crypto ;
+    lib ssl ;
+    lib crypto ;
 }
 
 variant coverage :
@@ -59,15 +59,17 @@ variant coverage :
     ;
 
 variant ubasan
-  :
+    :
     release
-  :
+    :
     <cxxflags>"-msse4.2 -funsigned-char -fno-omit-frame-pointer -fsanitize=address,undefined -fsanitize-blacklist=libs/beast/scripts/blacklist.supp"
     <linkflags>"-fsanitize=address,undefined"
-  ;
+    ;
 
 #cxx11_hdr_type_traits
 local REQ = [ requires cxx11_variadic_templates cxx11_template_aliases cxx11_decltype cxx11_hdr_tuple ] ;
+
+path-constant TEST_MAIN : extras/boost/beast/unit_test/main.cpp ;
 
 project beast
   : requirements
@@ -79,6 +81,7 @@ project beast
     <library>/boost/system//boost_system
     <library>/boost/coroutine//boost_coroutine/<define>BOOST_COROUTINES_NO_DEPRECATION_WARNING=1
     <library>/boost/filesystem//boost_filesystem
+    <link>static
     <define>BOOST_ALL_NO_LIB=1
     <define>BOOST_COROUTINES_NO_DEPRECATION_WARNING=1
     <threading>multi

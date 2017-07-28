@@ -7,20 +7,15 @@
 # Official repository: https://github.com/boostorg/beast
 #
 
-GroupSources(extras/boost/beast extras)
 GroupSources(include/boost/beast beast)
-GroupSources(test/benchmarks "/")
-GroupSources(test/http "/")
+GroupSources(example/common common)
+GroupSources(extras/boost/beast extras)
+GroupSources(bench/wstest "/")
 
-add_executable (benchmarks
+add_executable (wstest
     ${BOOST_BEAST_INCLUDES}
+    ${COMMON_INCLUDES}
     ${EXTRAS_INCLUDES}
     Jamfile
-    ../../extras/boost/beast/unit_test/main.cpp
-    ../http/message_fuzz.hpp
-    nodejs_parser.hpp
-    buffers.cpp
-    nodejs_parser.cpp
-    parser.cpp
-    utf8_checker.cpp
-)
+    wstest.cpp
+    )

@@ -7,15 +7,6 @@
 # Official repository: https://github.com/boostorg/beast
 #
 
-GroupSources(include/boost/beast beast)
-GroupSources(example/common common)
-GroupSources(extras/boost/beast extras)
-GroupSources(test/wstest "/")
-
-add_executable (wstest
-    ${BOOST_BEAST_INCLUDES}
-    ${COMMON_INCLUDES}
-    ${EXTRAS_INCLUDES}
-    Jamfile
+exe wstest :
     wstest.cpp
-    )
+    ;

@@ -9,8 +9,6 @@
 
 import os ;
 
-path-constant TEST_MAIN : ../extras/boost/beast/unit_test/main.cpp ;
-
 compile config.cpp :    <variant>coverage:<build>no <variant>ubasan:<build>no ;
 compile core.cpp :      <variant>coverage:<build>no <variant>ubasan:<build>no ;
 compile exemplars.cpp : <variant>coverage:<build>no <variant>ubasan:<build>no ;
@@ -20,36 +18,30 @@ compile websocket.cpp : <variant>coverage:<build>no <variant>ubasan:<build>no ;
 compile zlib.cpp :      <variant>coverage:<build>no <variant>ubasan:<build>no ;
 
 alias run-tests :
-    #benchmarks//run-tests  # not necessary
     common//run-tests
     core//run-tests
     http//run-tests
     server//run-tests
     websocket//run-tests
-    wstest//run-tests
     zlib//run-tests
     ;
 
 alias run-fat :
-    benchmarks//run-fat
     common//run-fat
     core//run-fat
     http//run-fat
     server//run-fat
     websocket//run-fat
-    #wstest//run-fat        # not available
     zlib//run-fat
     ;
 explicit run-fat ;
 
 alias build-fat :
-    benchmarks//build-fat
     common//build-fat
     core//build-fat
     http//build-fat
     server//build-fat
     websocket//build-fat
-    #wstest//build-fat        # not available
     zlib//build-fat
     ;
 explicit build-fat ;

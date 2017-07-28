@@ -13,6 +13,7 @@ Version 91:
 * Use fopen_s on Windows
 * Fix Appveyor script
 * Update project metadata
+* Move benchmarks to bench/
 
 WebSocket:
 

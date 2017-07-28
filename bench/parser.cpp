@@ -8,7 +8,7 @@
 //
 
 #include "nodejs_parser.hpp"
-#include "../http/message_fuzz.hpp"
+#include "test/http/message_fuzz.hpp"
 
 #include <boost/beast/http.hpp>
 #include <boost/beast/core/consuming_buffers.hpp>
