@@ -96,12 +96,22 @@ open(char const* path, file_mode mode, error_code& ec)
     case file_mode::append_new:         s = "abx"; break;
     case file_mode::append_existing:    s = "ab"; break;
     }
+#if BOOST_MSVC
+    auto const ev = fopen_s(&f_, path, s);
+    if(ev)
+    {
+        f_ = nullptr;
+        ec.assign(ev, generic_category());
+        return;
+    }
+#else
     f_ = std::fopen(path, s);
     if(! f_)
     {
         ec.assign(errno, generic_category());
         return;
     }
+#endif
     ec.assign(0, ec.category());
 }
 

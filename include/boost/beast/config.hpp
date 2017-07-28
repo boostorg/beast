@@ -10,9 +10,8 @@
 #ifndef BOOST_BEAST_CONFIG_HPP
 #define BOOST_BEAST_CONFIG_HPP
 
-#include <boost/config.hpp>
-
 // Available to every header
+#include <boost/config.hpp>
 #include <boost/core/ignore_unused.hpp>
 #include <boost/static_assert.hpp>
 

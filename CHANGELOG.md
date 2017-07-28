@@ -10,6 +10,7 @@ Version 91:
 * Set BOOST_ASIO_NO_DEPRECATED
 * Use Asio array optimization in static_buffer_base
 * Rename wstest source file
+* Use fopen_s on Windows
 
 WebSocket:
 
