@@ -5,6 +5,9 @@
         "Vinnie Falco"
     ],
     "description": "Portable HTTP, WebSocket, and network operations using only C++11 and Boost.Asio",
+    "std": [
+        "C++11"
+    ],
     "category": [
         "Concurrent",
         "IO"

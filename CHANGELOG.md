@@ -12,6 +12,7 @@ Version 91:
 * Rename wstest source file
 * Use fopen_s on Windows
 * Fix Appveyor script
+* Update project metadata
 
 WebSocket:
 
