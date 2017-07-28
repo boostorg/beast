@@ -723,11 +723,13 @@ basic_fields<Allocator>::
 equal_range(string_view name) const ->
     std::pair<const_iterator, const_iterator>
 {
-    auto const result =
+    auto result =
         set_.equal_range(name, key_compare{});
+    if(result.first == result.second)
+        return {list_.end(), list_.end()};
     return {
-        list_.iterator_to(result->first),
-        list_.iterator_to(result->second)};
+        list_.iterator_to(*result.first),
+        ++list_.iterator_to(*(--result.second))};
 }
 
 //------------------------------------------------------------------------------

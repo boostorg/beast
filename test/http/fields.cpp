@@ -403,6 +403,23 @@ public:
             BEAST_EXPECT(f.count("dd") == 1);
             BEAST_EXPECT(f["dd"] == "-");
         }
+
+        // equal_range
+        {
+            fields f;
+            f.insert("E", 1);
+            f.insert("B", 2);
+            f.insert("D", 3);
+            f.insert("B", 4);
+            f.insert("C", 5);
+            f.insert("B", 6);
+            f.insert("A", 7);
+            auto const rng = f.equal_range("B");
+            BEAST_EXPECT(std::distance(rng.first, rng.second) == 3);
+            BEAST_EXPECT(std::next(rng.first, 0)->value() == "2");
+            BEAST_EXPECT(std::next(rng.first, 1)->value() == "4");
+            BEAST_EXPECT(std::next(rng.first, 2)->value() == "6");
+        }
     }
 
     struct sized_body
