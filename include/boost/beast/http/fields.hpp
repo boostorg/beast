@@ -85,6 +85,12 @@ public:
         field f_;
 
     public:
+        /// Constructor (deleted)
+        value_type(value_type const&) = delete;
+
+        /// Assignment (deleted)
+        value_type& operator=(value_type const&) = delete;
+
         /// Returns the field enum, which can be @ref field::unknown
         field
         name() const;

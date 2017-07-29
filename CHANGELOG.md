@@ -1,6 +1,7 @@
 Version 92:
 
 * Fix typo in test/CMakeLists.txt
+* basic_fields::value_type is not copyable
 
 --------------------------------------------------------------------------------
 
