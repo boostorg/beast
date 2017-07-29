@@ -197,21 +197,13 @@ public:
         friend
         void
         teardown(websocket::teardown_tag,
-            stream&, boost::system::error_code& ec)
-        {
-            ec.assign(0, ec.category());
-        }
+            stream& s, boost::system::error_code& ec);
 
         template<class TeardownHandler>
         friend
         void
         async_teardown(websocket::teardown_tag,
-            stream& s, TeardownHandler&& handler)
-        {
-            s.get_io_service().post(
-                bind_handler(std::move(handler),
-                    error_code{}));
-        }
+            stream& s, TeardownHandler&& handler);
     };
 
     /** Constructor.
@@ -225,18 +217,6 @@ public:
     {
     }
 
-    /** Constructor.
-
-        The client and server endpoints will different `io_service` objects.
-    */
-    explicit
-    pipe(boost::asio::io_service& ios1,
-            boost::asio::io_service& ios2)
-        : client(s_[0], s_[1], ios1)
-        , server(s_[1], s_[0], ios2)
-    {
-    }
-
     /// Represents the client endpoint
     stream client;
 
@@ -245,6 +225,38 @@ public:
 };
 
 //------------------------------------------------------------------------------
+
+inline
+void
+teardown(websocket::teardown_tag,
+    pipe::stream& s, boost::system::error_code& ec)
+{
+    if(s.fc_)
+    {
+        if(s.fc_->fail(ec))
+            return;
+    }
+    else
+    {
+        s.close();
+        ec.assign(0, ec.category());
+    }
+}
+
+template<class TeardownHandler>
+inline
+void
+async_teardown(websocket::teardown_tag,
+    pipe::stream& s, TeardownHandler&& handler)
+{
+    error_code ec;
+    if(s.fc_ && s.fc_->fail(ec))
+        return s.get_io_service().post(
+            bind_handler(std::move(handler), ec));
+    close();
+    s.get_io_service().post(
+        bind_handler(std::move(handler), ec));
+}
 
 template<class Handler, class Buffers>
 class pipe::stream::read_op_impl :
@@ -324,11 +336,14 @@ pipe::stream::
 close()
 {
     std::lock_guard<std::mutex> lock{out_.m};
-    out_.eof = true;
-    if(out_.op)
-        out_.op.get()->operator()();
-    else
-        out_.cv.notify_all();
+    if(! out_.eof)
+    {
+        out_.eof = true;
+        if(out_.op)
+            out_.op.get()->operator()();
+        else
+            out_.cv.notify_all();
+    }
 }
 
 
