@@ -62,7 +62,7 @@ variant ubasan
     :
     release
     :
-    <cxxflags>"-msse4.2 -funsigned-char -fno-omit-frame-pointer -fsanitize=address,undefined -fsanitize-blacklist=libs/beast/scripts/blacklist.supp"
+    <cxxflags>"-msse4.2 -funsigned-char -fno-omit-frame-pointer -fsanitize=address,undefined -fsanitize-blacklist=libs/beast/build/blacklist.supp"
     <linkflags>"-fsanitize=address,undefined"
     ;
 

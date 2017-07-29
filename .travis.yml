@@ -1,11 +1,15 @@
-sudo: false
-language: cpp
+#
+# Copyright (c) 2013-2017 Vinnie Falco (vinnie dot falco at gmail dot com)
+#
+# Distributed under the Boost Software License, Version 1.0. (See accompanying
+# file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+#
+# Official repository: https://github.com/boostorg/beast
+#
 
-env:
-  global:
-    - LLVM_VERSION=3.8.0
-    - LCOV_ROOT=$HOME/lcov
-    - VALGRIND_ROOT=$HOME/valgrind-install
+sudo: false
+
+language: cpp
 
 addons:
   apt:
@@ -21,20 +25,17 @@ addons:
 
 matrix:
   include:
-    # gcc coverage
-    - compiler: gcc
+    # GCC 6.0, Debug + Coverage
+    - os: linux
+      compiler: g++-6
       env:
+        - VARIANT=coverage
         - TOOLSET=gcc
         - COMPILER=g++-6
         - CXXSTD=c++11
-        - GCC_VER=6
-        - VARIANT=coverage
-        - ADDRESS_MODEL=64
-        - DO_VALGRIND=false
       addons:
         apt:
           packages:
-            - gcc-6
             - g++-6
             - lcov
             - libssl-dev
@@ -42,39 +43,18 @@ matrix:
           sources:
             - *base_sources
 
-    # older GCC, release
-    - compiler: gcc
+    # GCC 5.0, Release + Valgrind
+    - os: linux
+      compiler: g++-5
       env:
-        - TOOLSET=gcc
-        - COMPILER=g++-4.8
-        - CXXSTD=c++11
-        - GCC_VER=4.8
+        - DO_VALGRIND=true
         - VARIANT=release
-        - DO_VALGRIND=false
-        - ADDRESS_MODEL=64
-      addons:
-        apt:
-          packages:
-            - gcc-4.8
-            - g++-4.8
-            - *base_packages
-          sources:
-            - *base_sources
-
-    # later GCC
-    - compiler: gcc
-      env:
         - TOOLSET=gcc
         - COMPILER=g++-5
         - CXXSTD=c++11
-        - GCC_VER=5
-        - VARIANT=release
-        - DO_VALGRIND=true
-        - ADDRESS_MODEL=64
       addons:
         apt:
           packages:
-            - gcc-5
             - g++-5
             - libssl-dev
             - valgrind
@@ -82,31 +62,56 @@ matrix:
           sources:
             - *base_sources
 
-    # clang ubsan+asan
-    - compiler: clang
+    # Clang 3.8, UBasan
+    - os: linux
+      compiler: clang++-3.8
       env:
-        - TOOLSET=clang
-        - COMPILER=clang++
-        - CXXSTD=c++11
-        - GCC_VER=5
         - VARIANT=ubasan
-        - CLANG_VER=3.8
-        - DO_VALGRIND=false
-        - ADDRESS_MODEL=64
+        - TOOLSET=clang
+        - COMPILER=clang++-3.8
+        - CXXSTD=c++11
         - UBSAN_OPTIONS='print_stacktrace=1'
         - PATH=$PWD/llvm-$LLVM_VERSION/bin:$PATH
       addons:
         apt:
           packages:
-            - gcc-5
-            - g++-5
+            - clang-3.8
             - libssl-dev
+            - *base_packages
+          sources:
+            - llvm-toolchain-precise-3.8
+            - *base_sources
+
+    # GCC 4.8, Release
+    - os: linux
+      compiler: g++-4.8
+      env:
+        - VARIANT=release
+        - TOOLSET=gcc
+        - COMPILER=g++-4.8
+        - CXXSTD=c++11
+      addons:
+        apt:
+          packages:
+            - g++-4.8
             - *base_packages
           sources:
             - *base_sources
 
+    # OSX Clang, C++14, Debug
+    - os: osx
+      compiler: clang++
+      env:
+        - VARIANT=debug
+        - TOOLSET=clang
+        - COMPILER=clang++
+        - CXXSTD=c++14
+
+    # OSX
+
 before_install: &base_before_install
-  - scripts/install-dependencies.sh
+  #- build/install-dependencies.sh
+  - pip install --user https://github.com/codecov/codecov-python/archive/master.zip
 
 install:
   - export BOOST_BRANCH=develop && [ "$TRAVIS_BRANCH" == "master" ] && BOOST_BRANCH=master || true
@@ -181,7 +186,10 @@ install:
   - ./bootstrap.sh
 
 script:
-  - travis_retry libs/beast/scripts/build-and-test.sh
+  - |-
+    echo "using $TOOLSET : : $COMPILER : <cxxflags>-std=$CXXSTD ;" > ~/user-config.jam
+  - cd ../boost-root
+  - travis_retry libs/beast/build/build-and-test.sh
 
 after_script:
   - cat nohup.out || echo "nohup.out already deleted"

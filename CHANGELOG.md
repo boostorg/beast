@@ -1,3 +1,10 @@
+Version 95:
+
+* Tidy up Travis build scripts
+* Move scripts to build/
+
+--------------------------------------------------------------------------------
+
 Version 94:
 
 * Use off-site Quick Start link temporarily

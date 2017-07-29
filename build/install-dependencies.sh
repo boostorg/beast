@@ -38,26 +38,10 @@ fi
 if [ -x $HOME/bin/clang ]; then
     $HOME/bin/clang -v
 fi
+
 # Avoid `spurious errors` caused by ~/.npm permission issues
 # Does it already exist? Who owns? What permissions?
 ls -lah ~/.npm || mkdir ~/.npm
+
 # Make sure we own it
 chown -Rc $USER ~/.npm
-# We use this so we can filter the subtrees from our coverage report
-pip install --user requests==2.13.0
-pip install --user https://github.com/codecov/codecov-python/archive/master.zip
-pip install --user autobahntestsuite
-
-# Install lcov
-# Download the archive
-#wget http://downloads.sourceforge.net/ltp/lcov-1.12.tar.gz
-# Extract to ~/lcov-1.12
-#tar xfvz lcov-1.12.tar.gz -C $HOME
-# Set install path
-#mkdir -p $LCOV_ROOT
-#cd $HOME/lcov-1.12 && make install PREFIX=$LCOV_ROOT
-
-# Install coveralls reporter
-#cd $HERE
-#mkdir -p node_modules
-#npm install coveralls
