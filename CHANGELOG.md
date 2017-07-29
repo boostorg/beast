@@ -15,6 +15,7 @@ Version 91:
 * Update project metadata
 * Move benchmarks to bench/
 * Fix doc title
+* Build stand-alone doc
 
 WebSocket:
 

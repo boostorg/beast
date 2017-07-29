@@ -140,14 +140,6 @@ install qbk : reference.qbk ;
 #
 # Produce the Boost.Book XML from the QuickBook
 #
-xml beast_doc
-    :
-        qbk/00_main.qbk
-    :
-        <dependency>qbk
-    ;
-
-explicit beast_doc ;
 
 install images
     :
@@ -157,6 +149,16 @@ install images
     ;
 
 explicit images ;
+
+xml beast_doc
+    :
+        qbk/00_main.qbk
+    :
+        <dependency>images
+        <dependency>qbk
+    ;
+
+explicit beast_doc ;
 
 #-------------------------------------------------------------------------------
 #
@@ -191,5 +193,5 @@ boostbook beast
 alias boostdoc : beast_doc ;
 explicit boostdoc ;
 
-alias boostrelease ;
+alias boostrelease : beast ;
 explicit boostrelease ;
