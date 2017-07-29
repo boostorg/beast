@@ -4,11 +4,6 @@ language: cpp
 env:
   global:
     - LLVM_VERSION=3.8.0
-    # Maintenance note: to move to a new version
-    # of boost, update both BOOST_ROOT and BOOST_URL.
-    # Note that for simplicity, BOOST_ROOT's final
-    # namepart must match the folder name internal
-    # to boost's .tar.gz.
     - LCOV_ROOT=$HOME/lcov
     - VALGRIND_ROOT=$HOME/valgrind-install
 
@@ -23,11 +18,6 @@ addons:
       - binutils-gold
       # Provides a backtrace if the unittests crash
       - gdb
-      # Needed for installing valgrind
-      - subversion
-      - automake
-      - autotools-dev
-      - libc6-dbg
 
 matrix:
   include:
@@ -41,13 +31,12 @@ matrix:
         - VARIANT=coverage
         - ADDRESS_MODEL=64
         - DO_VALGRIND=false
-        #- BUILD_SYSTEM=cmake
-        - PATH=$PWD/cmake/bin:$PATH
       addons:
         apt:
           packages:
             - gcc-6
             - g++-6
+            - lcov
             - libssl-dev
             - *base_packages
           sources:
@@ -82,14 +71,13 @@ matrix:
         - VARIANT=release
         - DO_VALGRIND=true
         - ADDRESS_MODEL=64
-        #- BUILD_SYSTEM=cmake
-        - PATH=$PWD/cmake/bin:$PATH
       addons:
         apt:
           packages:
             - gcc-5
             - g++-5
             - libssl-dev
+            - valgrind
             - *base_packages
           sources:
             - *base_sources
@@ -106,8 +94,6 @@ matrix:
         - DO_VALGRIND=false
         - ADDRESS_MODEL=64
         - UBSAN_OPTIONS='print_stacktrace=1'
-        #- BUILD_SYSTEM=cmake
-        - PATH=$PWD/cmake/bin:$PATH
         - PATH=$PWD/llvm-$LLVM_VERSION/bin:$PATH
       addons:
         apt:
@@ -118,12 +104,6 @@ matrix:
             - *base_packages
           sources:
             - *base_sources
-
-cache:
-  directories:
-  - $VALGRIND_ROOT
-  - llvm-$LLVM_VERSION
-  - cmake
 
 before_install: &base_before_install
   - scripts/install-dependencies.sh

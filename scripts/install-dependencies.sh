@@ -28,16 +28,6 @@ if [[ -n ${CLANG_VER:-} ]]; then
     export LLVM_CONFIG="llvm-${LLVM_VERSION}/bin/llvm-config";
 fi
 
-# There are cases where the directory exists, but the exe is not available.
-# Use this workaround for now.
-if [[ ! -x cmake/bin/cmake && -d cmake ]]; then
-    rm -fr cmake
-fi
-if [[ ! -d cmake && ${BUILD_SYSTEM:-} == cmake ]]; then
-  CMAKE_URL="http://www.cmake.org/files/v3.8/cmake-3.8.0-Linux-x86_64.tar.gz"
-  mkdir cmake && wget --no-check-certificate -O - ${CMAKE_URL} | tar --strip-components=1 -xz -C cmake
-fi
-
 # NOTE, changed from PWD -> HOME
 export PATH=$HOME/bin:$PATH
 
@@ -58,17 +48,14 @@ pip install --user requests==2.13.0
 pip install --user https://github.com/codecov/codecov-python/archive/master.zip
 pip install --user autobahntestsuite
 
-#bash scripts/install-boost.sh
-bash scripts/install-valgrind.sh
-
 # Install lcov
 # Download the archive
-wget http://downloads.sourceforge.net/ltp/lcov-1.12.tar.gz
+#wget http://downloads.sourceforge.net/ltp/lcov-1.12.tar.gz
 # Extract to ~/lcov-1.12
-tar xfvz lcov-1.12.tar.gz -C $HOME
+#tar xfvz lcov-1.12.tar.gz -C $HOME
 # Set install path
-mkdir -p $LCOV_ROOT
-cd $HOME/lcov-1.12 && make install PREFIX=$LCOV_ROOT
+#mkdir -p $LCOV_ROOT
+#cd $HOME/lcov-1.12 && make install PREFIX=$LCOV_ROOT
 
 # Install coveralls reporter
 #cd $HERE
