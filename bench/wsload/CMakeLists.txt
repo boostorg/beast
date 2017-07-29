@@ -7,16 +7,15 @@
 # Official repository: https://github.com/boostorg/beast
 #
 
-alias run-tests :
-    beast//run-tests
-    doc//run-tests
-    example//run-tests
-    ;
+GroupSources(include/boost/beast beast)
+GroupSources(example/common common)
+GroupSources(extras/boost/beast extras)
+GroupSources(bench/wsload "/")
 
-alias fat-tests :
-    beast//fat-tests
-    doc//fat-tests
-    example//fat-tests
-    ;
-
-explicit fat-tests ;
+add_executable (bench-wsload
+    ${BOOST_BEAST_INCLUDES}
+    ${COMMON_INCLUDES}
+    ${EXTRAS_INCLUDES}
+    Jamfile
+    wsload.cpp
+    )

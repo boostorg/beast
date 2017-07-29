@@ -7,16 +7,14 @@
 # Official repository: https://github.com/boostorg/beast
 #
 
-alias run-tests :
-    beast//run-tests
-    doc//run-tests
-    example//run-tests
-    ;
+GroupSources(extras/boost/beast extras)
+GroupSources(include/boost/beast beast)
+GroupSources(bench/buffers "/")
 
-alias fat-tests :
-    beast//fat-tests
-    doc//fat-tests
-    example//fat-tests
-    ;
-
-explicit fat-tests ;
+add_executable (bench-buffers
+    ${BOOST_BEAST_INCLUDES}
+    ${EXTRAS_INCLUDES}
+    ${TEST_MAIN}
+    Jamfile
+    bench_buffers.cpp
+)

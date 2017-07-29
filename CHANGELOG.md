@@ -1,3 +1,9 @@
+Version 92:
+
+* Refactor test build scripts
+
+--------------------------------------------------------------------------------
+
 Version 91:
 
 * Adjust redirect html

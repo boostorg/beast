@@ -7,16 +7,6 @@
 # Official repository: https://github.com/boostorg/beast
 #
 
-alias run-tests :
-    beast//run-tests
-    doc//run-tests
-    example//run-tests
+exe wsload :
+    wsload.cpp
     ;
-
-alias fat-tests :
-    beast//fat-tests
-    doc//fat-tests
-    example//fat-tests
-    ;
-
-explicit fat-tests ;

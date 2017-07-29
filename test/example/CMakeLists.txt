@@ -7,16 +7,5 @@
 # Official repository: https://github.com/boostorg/beast
 #
 
-alias run-tests :
-    beast//run-tests
-    doc//run-tests
-    example//run-tests
-    ;
-
-alias fat-tests :
-    beast//fat-tests
-    doc//fat-tests
-    example//fat-tests
-    ;
-
-explicit fat-tests ;
+add_subdirectory (common)
+add_subdirectory (server)

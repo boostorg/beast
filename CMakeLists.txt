@@ -172,23 +172,25 @@ if (OPENSSL_FOUND)
     include_directories (${OPENSSL_INCLUDE_DIR})
 endif()
 
-file(GLOB_RECURSE BOOST_BEAST_INCLUDES
+file (GLOB_RECURSE BOOST_BEAST_INCLUDES
     ${PROJECT_SOURCE_DIR}/include/boost/beast/*.hpp
     ${PROJECT_SOURCE_DIR}/include/boost/beast/*.ipp
 )
 
-file(GLOB_RECURSE COMMON_INCLUDES
+file (GLOB_RECURSE COMMON_INCLUDES
     ${PROJECT_SOURCE_DIR}/example/common/*.hpp
   )
 
-file(GLOB_RECURSE EXAMPLE_INCLUDES
+file (GLOB_RECURSE EXAMPLE_INCLUDES
     ${PROJECT_SOURCE_DIR}/example/*.hpp
   )
 
-file(GLOB_RECURSE EXTRAS_INCLUDES
+file (GLOB_RECURSE EXTRAS_INCLUDES
     ${PROJECT_SOURCE_DIR}/extras/boost/beast/*.hpp
     ${PROJECT_SOURCE_DIR}/extras/boost/beast/*.ipp
 )
+
+set (TEST_MAIN ${PROJECT_SOURCE_DIR}/extras/boost/beast/unit_test/main.cpp)
 
 if (Beast_BUILD_BENCH)
     add_subdirectory (bench)

@@ -7,16 +7,24 @@
 # Official repository: https://github.com/boostorg/beast
 #
 
-alias run-tests :
-    beast//run-tests
-    doc//run-tests
-    example//run-tests
+local SOURCES =
+    detect_ssl.cpp
+    mime_types.cpp
+    rfc7231.cpp
+    session_alloc.cpp
+    ssl_stream.cpp
+    write_msg.cpp
     ;
 
-alias fat-tests :
-    beast//fat-tests
-    doc//fat-tests
-    example//fat-tests
-    ;
+local RUN_TESTS ;
 
-explicit fat-tests ;
+for local f in $(SOURCES)
+{
+    RUN_TESTS += [ compile $(f) ] ;
+}
+
+alias run-tests : $(RUN_TESTS) ;
+
+alias build-fat : run-tests ;
+
+explicit build-fat ;
