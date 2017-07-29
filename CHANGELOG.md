@@ -17,6 +17,7 @@ Version 91:
 * Fix doc title
 * Build stand-alone doc
 * Update doc copyrights
+* Refactor test build scripts
 
 WebSocket:
 

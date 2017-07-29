@@ -6,17 +6,3 @@
 #
 # Official repository: https://github.com/boostorg/beast
 #
-
-local SOURCES =
-    buffers.cpp
-    utf8_checker.cpp # causes unnecessary dependencies
-    ;
-
-local BUILD_BENCH ; for local f in $(SOURCES)  { BUILD_BENCH += [ exe $(f:B)-bench : $(f) $(TEST_MAIN) ] ; }
-alias build-bench : $(BUILD_BENCH) ;
-
-exe parser-bench :
-    nodejs_parser.cpp
-    parser.cpp
-    $(TEST_MAIN)
-    ;

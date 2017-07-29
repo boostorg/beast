@@ -8,15 +8,10 @@
 #
 
 alias run-tests :
-    beast//run-tests
-    doc//run-tests
-    example//run-tests
+    common//run-tests
+    server//run-tests
     ;
 
-alias fat-tests :
-    beast//fat-tests
-    doc//fat-tests
-    example//fat-tests
-    ;
+alias fat-tests ;
 
 explicit fat-tests ;

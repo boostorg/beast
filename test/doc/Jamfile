@@ -8,15 +8,17 @@
 #
 
 alias run-tests :
-    beast//run-tests
-    doc//run-tests
-    example//run-tests
+    [ compile core_snippets.cpp ]
+    [ compile http_snippets.cpp ]
+    [ compile websocket_snippets.cpp ]
+    [ run core_examples.cpp $(TEST_MAIN) ]
+    [ run http_examples.cpp $(TEST_MAIN) ]
     ;
 
-alias fat-tests :
-    beast//fat-tests
-    doc//fat-tests
-    example//fat-tests
+exe fat-tests :
+    $(TEST_MAIN)
+    core_examples.cpp
+    http_examples.cpp
     ;
 
 explicit fat-tests ;

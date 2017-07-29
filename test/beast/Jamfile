@@ -8,15 +8,23 @@
 #
 
 alias run-tests :
-    beast//run-tests
-    doc//run-tests
-    example//run-tests
+    [ compile config.cpp ]
+    [ compile core.cpp ]
+    [ compile http.cpp ]
+    [ compile version.cpp ]
+    [ compile websocket.cpp ]
+    [ compile zlib.cpp ]
+    core//run-tests
+    http//run-tests
+    websocket//run-tests
+    zlib//run-tests
     ;
 
 alias fat-tests :
-    beast//fat-tests
-    doc//fat-tests
-    example//fat-tests
+    core//fat-tests
+    http//fat-tests
+    websocket//fat-tests
+    zlib//fat-tests
     ;
 
 explicit fat-tests ;

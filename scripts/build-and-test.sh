@@ -65,19 +65,19 @@ echo "using BOOST_ROOT: $BOOST_ROOT"
 #################################### HELPERS ###################################
 
 function run_tests_with_debugger {
-  for x in $BOOST_ROOT/bin.v2/libs/beast/test/**/$VARIANT/**/build-fat; do
+  for x in $BOOST_ROOT/bin.v2/libs/beast/test/**/$VARIANT/**/fat-tests; do
     "$LIB_DIR/scripts/run-with-debugger.sh" "$x"
   done
 }
 
 function run_tests {
-  for x in $BOOST_ROOT/bin.v2/libs/beast/test/**/$VARIANT/**/build-fat; do
+  for x in $BOOST_ROOT/bin.v2/libs/beast/test/**/$VARIANT/**/fat-tests; do
     $x
   done
 }
 
 function run_tests_with_valgrind {
-  for x in $BOOST_ROOT/bin.v2/libs/beast/test/**/$VARIANT/**/build-fat; do
+  for x in $BOOST_ROOT/bin.v2/libs/beast/test/**/$VARIANT/**/fat-tests; do
     if [[ $(basename $x) == "bench-tests" ]]; then
       $x
     else
@@ -90,10 +90,11 @@ function run_tests_with_valgrind {
 
 function build_bjam {
   if [[ $VARIANT == "coverage" ]]; then
-    bjam libs/beast/test//build-fat toolset=$TOOLSET variant=$VARIANT address-model=$ADDRESS_MODEL -j${num_jobs}
+    bjam libs/beast/test//fat-tests toolset=$TOOLSET variant=$VARIANT address-model=$ADDRESS_MODEL -j${num_jobs}
 
   else
-    bjam libs/beast/test//build-fat toolset=$TOOLSET variant=$VARIANT address-model=$ADDRESS_MODEL -j${num_jobs}
+    bjam libs/beast/test//fat-tests toolset=$TOOLSET variant=$VARIANT address-model=$ADDRESS_MODEL -j${num_jobs}
+    bjam libs/beast/bench   toolset=$TOOLSET variant=$VARIANT address-model=$ADDRESS_MODEL -j${num_jobs}
     bjam libs/beast/example toolset=$TOOLSET variant=$VARIANT address-model=$ADDRESS_MODEL -j${num_jobs}
   fi
 }
