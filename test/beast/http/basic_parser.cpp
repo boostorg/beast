@@ -1056,7 +1056,7 @@ public:
 
     //--------------------------------------------------------------------------
 
-    // https://github.com/vinniefalco/Beast/issues/430
+    // https://github.com/boostorg/beast/issues/430
     void
     testIssue430()
     {
@@ -1069,7 +1069,7 @@ public:
             "0\r\n\r\n");
     }
 
-    // https://github.com/vinniefalco/Beast/issues/452
+    // https://github.com/boostorg/beast/issues/452
     void
     testIssue452()
     {
@@ -1087,7 +1087,7 @@ public:
         BEAST_EXPECT(p.is_done());
     }
 
-    // https://github.com/vinniefalco/Beast/issues/496
+    // https://github.com/boostorg/beast/issues/496
     void
     testIssue496()
     {

@@ -366,7 +366,7 @@ public:
         }
     }
 
-    // https://github.com/vinniefalco/Beast/issues/430
+    // https://github.com/boostorg/beast/issues/430
     void
     testRegression430()
     {

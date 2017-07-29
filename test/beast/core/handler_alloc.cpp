@@ -28,7 +28,7 @@ public:
         }
     };
 
-    // https://github.com/vinniefalco/Beast/issues/432
+    // https://github.com/boostorg/beast/issues/432
     void
     testRegression432()
     {

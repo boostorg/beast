@@ -61,7 +61,7 @@ class handler_ptr
         // without exposing ourselves to race conditions
         // and all sorts of ugliness.
         // See:
-        //  https://github.com/vinniefalco/Beast/issues/215
+        //  https://github.com/boostorg/beast/issues/215
         Handler handler;
 
         template<class DeducedHandler, class... Args>

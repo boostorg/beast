@@ -1021,7 +1021,7 @@ doParams(z_params& zs, int level, Strategy strategy, error_code& ec)
 
 // VFALCO boost::optional param is a workaround for
 //        gcc "maybe uninitialized" warning
-//        https://github.com/vinniefalco/Beast/issues/532
+//        https://github.com/boostorg/beast/issues/532
 //
 template<class>
 void

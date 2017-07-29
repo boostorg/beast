@@ -1534,7 +1534,7 @@ public:
 #endif
 
     /*
-        https://github.com/vinniefalco/Beast/issues/300
+        https://github.com/boostorg/beast/issues/300
 
         Write a message as two individual frames
     */
