@@ -1106,6 +1106,24 @@ public:
             });
     }
 
+    // https://github.com/boostorg/beast/issues/692
+    void
+    testIssue692()
+    {
+        error_code ec;
+        test_parser<false> p;
+        p.eager(true);
+        string_view s =
+            "HTTP/1.1 101 Switching Protocols\r\n"
+            "Content-Length: 2147483648\r\n"
+            "\r\n";
+        p.put(boost::asio::buffer(
+            s.data(), s.size()), ec);
+        if(! BEAST_EXPECTS(! ec, ec.message()))
+            return;
+        BEAST_EXPECT(p.is_done());
+    }
+
     //--------------------------------------------------------------------------
 
     void
@@ -1216,6 +1234,7 @@ public:
         testIssue430();
         testIssue452();
         testIssue496();
+        testIssue692();
         testFuzz();
         testRegression1();
     }

@@ -532,6 +532,11 @@ finish_header(error_code& ec, std::true_type)
     }
     else if(f_ & flagContentLength)
     {
+        if(len_ > body_limit_)
+        {
+            ec = error::body_limit;
+            return;
+        }
         if(len_ > 0)
         {
             f_ |= flagHasBody;
@@ -578,12 +583,20 @@ finish_header(error_code& ec, std::false_type)
         status_ == 204 ||        // No Content
         status_ == 304)          // Not Modified
     {
+        // VFALCO Content-Length may be present, but we
+        //        treat the message as not having a body.
+        //        https://github.com/boostorg/beast/issues/692
         state_ = state::complete;
         return;
     }
 
     if(f_ & flagContentLength)
     {
+        if(len_ > body_limit_)
+        {
+            ec = error::body_limit;
+            return;
+        }
         if(len_ > 0)
         {
             f_ |= flagHasBody;
@@ -873,12 +886,6 @@ do_field(field f,
             value.begin(), value.end(), v))
         {
             ec = error::bad_content_length;
-            return;
-        }
-
-        if(v > body_limit_)
-        {
-            ec = error::body_limit;
             return;
         }
 
