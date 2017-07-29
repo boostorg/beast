@@ -1,3 +1,9 @@
+Version 93:
+
+* Unset BOOST_COROUTINES_NO_DEPRECATION_WARNING
+
+--------------------------------------------------------------------------------
+
 Version 92:
 
 * Fix typo in test/CMakeLists.txt

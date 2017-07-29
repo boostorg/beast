@@ -79,7 +79,7 @@ project beast
     <include>./extras
     #<use>/boost//headers
     <library>/boost/system//boost_system
-    <library>/boost/coroutine//boost_coroutine/<define>BOOST_COROUTINES_NO_DEPRECATION_WARNING=1
+    <library>/boost/coroutine//boost_coroutine
     <library>/boost/filesystem//boost_filesystem
     <link>static
     <define>BOOST_ALL_NO_LIB=1
