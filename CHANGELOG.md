@@ -4,6 +4,7 @@ Version 92:
 * basic_fields::value_type is not copyable
 * Update repository links in source comments
 * Ignore Content-Length in some cases
+* Tidy up doc snippet paths
 
 --------------------------------------------------------------------------------
 

@@ -89,10 +89,10 @@
 
 [import ../../include/boost/beast/http/basic_file_body.hpp]
 
-[import ../../test/exemplars.cpp]
-[import ../../test/core/doc_snippets.cpp]
-[import ../../test/http/doc_snippets.cpp]
-[import ../../test/websocket/doc_snippets.cpp]
+[import ../../test/doc/exemplars.cpp]
+[import ../../test/doc/core_snippets.cpp]
+[import ../../test/doc/http_snippets.cpp]
+[import ../../test/doc/websocket_snippets.cpp]
 
 [include 01_intro.qbk]
 [include 02_examples.qbk]
