@@ -16,6 +16,7 @@ Version 91:
 * Move benchmarks to bench/
 * Fix doc title
 * Build stand-alone doc
+* Update doc copyrights
 
 WebSocket:
 
