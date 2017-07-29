@@ -1,3 +1,9 @@
+Version 92:
+
+* Fix typo in test/CMakeLists.txt
+
+--------------------------------------------------------------------------------
+
 Version 91:
 
 * Adjust redirect html

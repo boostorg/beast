@@ -14,5 +14,3 @@ endif()
 add_subdirectory (beast)
 add_subdirectory (doc)
 add_subdirectory (example)
-
-alias fat-tests : ;
