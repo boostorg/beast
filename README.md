@@ -55,7 +55,7 @@ without conditions. The first official release of Beast will
 appear in Boost 1.66.0, due in December.
 
 * [Official Site](https://github.com/boostorg/beast)
-* [Documentation](http://www.boost.org/doc/libs/master/libs/bind/doc/html/beast.html)
+* [Documentation](http://vinniefalco.github.io/beast/index.html)
 * [Autobahn.testsuite results](http://vinniefalco.github.io/autobahn/index.html)
 
 ## Requirements

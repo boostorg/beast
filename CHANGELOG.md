@@ -5,6 +5,7 @@ Version 92:
 * Update repository links in source comments
 * Ignore Content-Length in some cases
 * Tidy up doc snippet paths
+* Use off-site doc link
 
 --------------------------------------------------------------------------------
 
