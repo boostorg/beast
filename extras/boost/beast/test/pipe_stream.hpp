@@ -296,8 +296,8 @@ read_op_impl<Handler, Buffers>::operator()()
                 s_.in_.b.consume(bytes_transferred);
                 auto& s = s_;
                 Handler h{std::move(h_)};
-                lock.unlock();
                 s.in_.op.reset(nullptr);
+                lock.unlock();
                 ++s.nread;
                 s.ios_.post(bind_handler(std::move(h),
                     error_code{}, bytes_transferred));
@@ -307,8 +307,8 @@ read_op_impl<Handler, Buffers>::operator()()
                 BOOST_ASSERT(s_.in_.eof);
                 auto& s = s_;
                 Handler h{std::move(h_)};
-                lock.unlock();
                 s.in_.op.reset(nullptr);
+                lock.unlock();
                 ++s.nread;
                 s.ios_.post(bind_handler(std::move(h),
                     boost::asio::error::eof, 0));
@@ -477,11 +477,11 @@ write_some(
     auto const bytes_transferred =
         buffer_copy(out_.b.prepare(n), buffers);
     out_.b.commit(bytes_transferred);
-    lock.unlock();
     if(out_.op)
         out_.op.get()->operator()();
     else
         out_.cv.notify_all();
+    lock.unlock();
     ++nwrite;
     ec.assign(0, ec.category());
     return bytes_transferred;
@@ -515,11 +515,11 @@ async_write_some(ConstBufferSequence const& buffers,
     auto const bytes_transferred =
         buffer_copy(out_.b.prepare(n), buffers);
     out_.b.commit(bytes_transferred);
-    lock.unlock();
     if(out_.op)
         out_.op.get()->operator()();
     else
         out_.cv.notify_all();
+    lock.unlock();
     ++nwrite;
     ios_.post(bind_handler(init.completion_handler,
         error_code{}, bytes_transferred));

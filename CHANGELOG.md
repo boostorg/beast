@@ -2,6 +2,7 @@ Version 95:
 
 * Tidy up Travis build scripts
 * Move scripts to build/
+* Fix race in test::pipe
 
 --------------------------------------------------------------------------------
 
