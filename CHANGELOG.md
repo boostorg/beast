@@ -14,6 +14,7 @@ Version 91:
 * Fix Appveyor script
 * Update project metadata
 * Move benchmarks to bench/
+* Fix doc title
 
 WebSocket:
 

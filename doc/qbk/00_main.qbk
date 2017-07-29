@@ -5,7 +5,8 @@
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 ]
 
-[library Beast
+[library Boost.Beast
+    [id beast]
     [quickbook 1.6]
     [copyright 2016 - 2017 Vinnie Falco]
     [purpose Networking Protocol Library]
