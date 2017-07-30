@@ -1839,6 +1839,12 @@ public:
     }
 
     void
+    testPipe()
+    {
+        //test::stream 
+    }
+
+    void
     run() override
     {
         BOOST_STATIC_ASSERT(std::is_constructible<

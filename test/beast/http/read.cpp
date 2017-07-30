@@ -20,6 +20,7 @@
 #include <boost/beast/http/string_body.hpp>
 #include <boost/beast/test/fail_stream.hpp>
 #include <boost/beast/test/pipe_stream.hpp>
+#include <boost/beast/test/stream.hpp>
 #include <boost/beast/test/string_istream.hpp>
 #include <boost/beast/test/yield_to.hpp>
 #include <boost/beast/unit_test/suite.hpp>
@@ -113,9 +114,10 @@ public:
         try
         {
             multi_buffer b;
-            test::string_istream ss(ios_, "GET / X");
+            test::stream c{ios_, "GET / X"};
+            c.remote().close();
             request_parser<dynamic_body> p;
-            read(ss, b, p);
+            read(c, b, p);
             fail();
         }
         catch(std::exception const&)
@@ -128,8 +130,8 @@ public:
     testBufferOverflow()
     {
         {
-            test::pipe p{ios_};
-            ostream(p.server.buffer) <<
+            test::stream c{ios_};
+            ostream(c.buffer()) <<
                 "GET / HTTP/1.1\r\n"
                 "Host: localhost\r\n"
                 "User-Agent: test\r\n"
@@ -142,7 +144,7 @@ public:
             request<string_body> req;
             try
             {
-                read(p.server, b, req);
+                read(c, b, req);
                 pass();
             }
             catch(std::exception const& e)
@@ -151,8 +153,8 @@ public:
             }
         }
         {
-            test::pipe p{ios_};
-            ostream(p.server.buffer) <<
+            test::stream c{ios_};
+            ostream(c.buffer()) <<
                 "GET / HTTP/1.1\r\n"
                 "Host: localhost\r\n"
                 "User-Agent: test\r\n"
@@ -164,7 +166,7 @@ public:
             error_code ec = test::error::fail_error;
             flat_static_buffer<10> b;
             request<string_body> req;
-            read(p.server, b, req, ec);
+            read(c, b, req, ec);
             BEAST_EXPECTS(ec == error::buffer_overflow,
                 ec.message());
         }
@@ -239,18 +241,19 @@ public:
 
         for(n = 0; n < limit; ++n)
         {
-            test::fail_stream<test::string_istream> fs(n, ios_,
+            test::fail_counter fc{n};
+            test::stream c{ios_, fc,
                 "GET / HTTP/1.1\r\n"
                 "Host: localhost\r\n"
                 "User-Agent: test\r\n"
                 "Content-Length: 0\r\n"
                 "\r\n"
-            );
+            };
             request<dynamic_body> m;
             try
             {
                 multi_buffer b;
-                read(fs, b, m);
+                read(c, b, m);
                 break;
             }
             catch(std::exception const&)
@@ -279,17 +282,18 @@ public:
 
         for(n = 0; n < limit; ++n)
         {
-            test::fail_stream<test::string_istream> fs(n, ios_,
+            test::fail_counter fc{n};
+            test::stream c{ios_, fc,
                 "GET / HTTP/1.1\r\n"
                 "Host: localhost\r\n"
                 "User-Agent: test\r\n"
                 "Content-Length: 0\r\n"
                 "\r\n"
-            );
+            };
             request<dynamic_body> m;
             error_code ec = test::error::fail_error;
             multi_buffer b;
-            async_read(fs, b, m, do_yield[ec]);
+            async_read(c, b, m, do_yield[ec]);
             if(! ec)
                 break;
         }

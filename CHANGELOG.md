@@ -4,6 +4,7 @@ Version 95:
 * Move scripts to build/
 * Fix race in test::pipe
 * close on test::pipe teardown
+* Add test::stream
 
 --------------------------------------------------------------------------------
 

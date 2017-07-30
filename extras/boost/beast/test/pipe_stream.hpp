@@ -109,12 +109,13 @@ public:
         stream(stream&&) = default;
 
         /// Set the fail counter on the object
+#if 0
         void
         fail(fail_counter& fc)
         {
             fc_ = &fc;
         }
-
+#endif
         /// Return the `io_service` associated with the object
         boost::asio::io_service&
         get_io_service()
@@ -253,7 +254,7 @@ async_teardown(websocket::teardown_tag,
     if(s.fc_ && s.fc_->fail(ec))
         return s.get_io_service().post(
             bind_handler(std::move(handler), ec));
-    close();
+    s.close();
     s.get_io_service().post(
         bind_handler(std::move(handler), ec));
 }
