@@ -127,7 +127,7 @@ The files in the repository are laid out thusly:
 These examples are complete, self-contained programs that you can build
 and run yourself (they are in the `example` directory).
 
-http://www.boost.org/doc/libs/master/libs/bind/doc/html/beast/quick_start.html
+http://vinniefalco.github.io/beast/beast/quick_start.html
 
 ## License
 

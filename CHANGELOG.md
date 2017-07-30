@@ -1,3 +1,9 @@
+Version 94:
+
+* Use off-site Quick Start link temporarily
+
+--------------------------------------------------------------------------------
+
 Version 93:
 
 * Unset BOOST_COROUTINES_NO_DEPRECATION_WARNING
