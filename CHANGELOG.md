@@ -5,6 +5,7 @@ Version 95:
 * Fix race in test::pipe
 * close on test::pipe teardown
 * Add test::stream
+* Tidy up static_buffer braced init
 
 --------------------------------------------------------------------------------
 
