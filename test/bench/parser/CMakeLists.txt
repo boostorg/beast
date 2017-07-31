@@ -7,15 +7,18 @@
 # Official repository: https://github.com/boostorg/beast
 #
 
-GroupSources(include/boost/beast beast)
-GroupSources(example/common common)
 GroupSources(extras/boost/beast extras)
-GroupSources(bench/wsload "/")
+GroupSources(include/boost/beast beast)
+GroupSources(test/beast/http "/")
+GroupSources(test/bench/parser "/")
 
-add_executable (bench-wsload
+add_executable (bench-parser
     ${BOOST_BEAST_INCLUDES}
-    ${COMMON_INCLUDES}
     ${EXTRAS_INCLUDES}
+    ${TEST_MAIN}
     Jamfile
-    wsload.cpp
-    )
+    ${PROJECT_SOURCE_DIR}/test/beast/http/message_fuzz.hpp
+    nodejs_parser.hpp
+    nodejs_parser.cpp
+    bench_parser.cpp
+)

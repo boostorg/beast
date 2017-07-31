@@ -109,7 +109,6 @@ function build_bjam ()
   else
     bjam \
       libs/beast/test//fat-tests \
-      libs/beast/bench \
       libs/beast/example \
       toolset=$TOOLSET \
       variant=$VARIANT \

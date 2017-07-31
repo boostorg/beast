@@ -7,8 +7,13 @@
 # Official repository: https://github.com/boostorg/beast
 #
 
-exe bench-parser :
+exe bench-utf8-checker :
     $(TEST_MAIN)
-    nodejs_parser.cpp
-    bench_parser.cpp
+    bench_utf8_checker.cpp
+    ;
+
+explicit bench-utf8-checker ;
+
+alias run-tests :
+    [ compile bench_utf8_checker.cpp ]
     ;

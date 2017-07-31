@@ -7,14 +7,15 @@
 # Official repository: https://github.com/boostorg/beast
 #
 
-GroupSources(extras/boost/beast extras)
 GroupSources(include/boost/beast beast)
-GroupSources(bench/utf8_checker "/")
+GroupSources(example/common common)
+GroupSources(extras/boost/beast extras)
+GroupSources(test/bench/wsload "/")
 
-add_executable (bench-utf8-checker
+add_executable (bench-wsload
     ${BOOST_BEAST_INCLUDES}
+    ${COMMON_INCLUDES}
     ${EXTRAS_INCLUDES}
-    ${TEST_MAIN}
     Jamfile
-    bench_utf8_checker.cpp
-)
+    wsload_main.cpp
+    )

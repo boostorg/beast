@@ -9,7 +9,7 @@
 
 GroupSources(extras/boost/beast extras)
 GroupSources(include/boost/beast beast)
-GroupSources(bench/buffers "/")
+GroupSources(test/bench/buffers "/")
 
 add_executable (bench-buffers
     ${BOOST_BEAST_INCLUDES}

@@ -9,16 +9,12 @@
 
 GroupSources(extras/boost/beast extras)
 GroupSources(include/boost/beast beast)
-GroupSources(test/beast/http "/")
-GroupSources(bench/parser "/")
+GroupSources(test/bench/utf8_checker "/")
 
-add_executable (bench-parser
+add_executable (bench-utf8-checker
     ${BOOST_BEAST_INCLUDES}
     ${EXTRAS_INCLUDES}
     ${TEST_MAIN}
     Jamfile
-    ${PROJECT_SOURCE_DIR}/test/beast/http/message_fuzz.hpp
-    nodejs_parser.hpp
-    nodejs_parser.cpp
-    bench_parser.cpp
+    bench_utf8_checker.cpp
 )

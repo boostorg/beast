@@ -7,7 +7,13 @@
 # Official repository: https://github.com/boostorg/beast
 #
 
-exe bench-utf8-checker :
+exe bench-buffers :
     $(TEST_MAIN)
-    bench_utf8_checker.cpp
+    bench_buffers.cpp
+    ;
+
+explicit bench-buffers ;
+
+alias run-tests :
+    [ compile bench_buffers.cpp ]
     ;

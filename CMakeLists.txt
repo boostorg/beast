@@ -12,7 +12,6 @@ cmake_minimum_required (VERSION 3.5.2)
 project (Beast VERSION 95)
 
 set_property (GLOBAL PROPERTY USE_FOLDERS ON)
-option (Beast_BUILD_BENCH "Build bench" ON)
 option (Beast_BUILD_EXAMPLES "Build examples" ON)
 option (Beast_BUILD_TESTS "Build tests" ON)
 
@@ -191,10 +190,6 @@ file (GLOB_RECURSE EXTRAS_INCLUDES
 )
 
 set (TEST_MAIN ${PROJECT_SOURCE_DIR}/extras/boost/beast/unit_test/main.cpp)
-
-if (Beast_BUILD_BENCH)
-    add_subdirectory (bench)
-endif()
 
 if (Beast_BUILD_EXAMPLES AND
     (NOT "${VARIANT}" STREQUAL "coverage") AND

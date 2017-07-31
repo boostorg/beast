@@ -9,6 +9,7 @@
 
 alias run-tests :
     beast//run-tests
+    bench//run-tests
     doc//run-tests
     example//run-tests
     ;

@@ -6,3 +6,14 @@
 #
 # Official repository: https://github.com/boostorg/beast
 #
+
+exe wsload :
+    $(TEST_MAIN)
+    wsload_main.cpp
+    ;
+
+explicit wsload ;
+
+alias run-tests :
+    [ compile wsload_main.cpp ]
+    ;

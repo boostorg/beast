@@ -1,3 +1,9 @@
+Version 96:
+
+* Move bench/ to test/
+
+--------------------------------------------------------------------------------
+
 Version 95:
 
 * Tidy up Travis build scripts

@@ -7,6 +7,9 @@
 # Official repository: https://github.com/boostorg/beast
 #
 
-exe wsload :
-    wsload.cpp
+alias run-tests :
+    buffers//run-tests
+    parser//run-tests
+    wsload//run-tests
+    utf8_checker//run-tests
     ;

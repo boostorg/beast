@@ -110,7 +110,6 @@ The files in the repository are laid out thusly:
 
 ```
 ./
-    bench/          Benchmarking programs
     bin/            Create this to hold executables and project files
     bin64/          Create this to hold 64-bit Windows executables and project files
     doc/            Source code and scripts for the documentation
