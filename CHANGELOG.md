@@ -6,6 +6,7 @@ Version 95:
 * close on test::pipe teardown
 * Add test::stream
 * Tidy up static_buffer braced init
+* Fix html redirect
 
 --------------------------------------------------------------------------------
 
