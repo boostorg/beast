@@ -5,6 +5,7 @@ Version 96:
 * Use <valgrind> property
 * Rename wsload compile target
 * Fix library.json
+* Update boostorg links
 
 --------------------------------------------------------------------------------
 
