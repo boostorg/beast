@@ -4,6 +4,7 @@ Version 96:
 * Move extras/ to test/
 * Use <valgrind> property
 * Rename wsload compile target
+* Fix library.json
 
 --------------------------------------------------------------------------------
 
