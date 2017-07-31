@@ -578,7 +578,7 @@ private:
 
     This type meets the requirements of @b PortHandler. It supports
     variable list of HTTP services in its template parameter list,
-    and provides a synchronous connection implementation to service
+    and provides an asynchronous connection implementation to service
 */
 template<class... Services>
 class http_async_port
