@@ -61,7 +61,7 @@ variant coverage :
 variant valgrind :
     release
     :
-    <define>BOOST_USE_VALGRIND=1
+    <valgrind>on # Boost.Context uses this property
     ;
 
 variant ubasan
