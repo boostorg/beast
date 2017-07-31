@@ -19,10 +19,6 @@
 #include <cstddef>
 #include <utility>
 
-#if 1
-#include "extras/boost/beast/unit_test/dstream.hpp"
-#endif
-
 template<class Context>
 class session_alloc_base
 {
@@ -396,16 +392,6 @@ session_alloc_base<Context>::
 pool_t::
 alloc(std::size_t n)
 {
-#if 0
-beast::unit_test::dstream dout{std::cout};
-dout <<
-"n=" << n << ", "
-"list_.size()=" << list_.size() << ", "
-"used=" << (list_.empty() ? 0 : list_.back().used()) << ", "
-"size_=" << size_ << ", "
-"high_=" << high_ <<
-std::endl;
-#endif
     if(list_.empty() && size_ < high_)
     {
         if(buf_)

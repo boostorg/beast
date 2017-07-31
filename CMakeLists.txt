@@ -163,9 +163,8 @@ endif()
 # Tests and examples
 #
 
-include_directories (.)
-include_directories (extras)
 include_directories (include)
+include_directories (.)
 
 if (OPENSSL_FOUND)
     include_directories (${OPENSSL_INCLUDE_DIR})
@@ -183,13 +182,6 @@ file (GLOB_RECURSE COMMON_INCLUDES
 file (GLOB_RECURSE EXAMPLE_INCLUDES
     ${PROJECT_SOURCE_DIR}/example/*.hpp
   )
-
-file (GLOB_RECURSE EXTRAS_INCLUDES
-    ${PROJECT_SOURCE_DIR}/extras/boost/beast/*.hpp
-    ${PROJECT_SOURCE_DIR}/extras/boost/beast/*.ipp
-)
-
-set (TEST_MAIN ${PROJECT_SOURCE_DIR}/extras/boost/beast/unit_test/main.cpp)
 
 if (Beast_BUILD_EXAMPLES AND
     (NOT "${VARIANT}" STREQUAL "coverage") AND

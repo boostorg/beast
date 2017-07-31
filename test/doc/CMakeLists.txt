@@ -8,7 +8,7 @@
 #
 
 GroupSources(example example)
-GroupSources(extras/boost/beast extras)
+GroupSources(test/extras/include/boost/beast extras)
 GroupSources(include/boost/beast beast)
 GroupSources(test/doc "/")
 

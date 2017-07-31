@@ -9,7 +9,7 @@
 
 GroupSources(include/boost/beast beast)
 GroupSources(example/common common)
-GroupSources(extras/boost/beast extras)
+GroupSources(test/extras/include/boost/beast extras)
 GroupSources(test/bench/wsload "/")
 
 add_executable (bench-wsload

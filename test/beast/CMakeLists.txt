@@ -8,7 +8,7 @@
 #
 
 GroupSources(include/boost/beast beast)
-GroupSources(extras/boost/beast extras)
+GroupSources(test/extras/include/boost/beast extras)
 GroupSources(test/beast "/")
 
 add_executable (tests-beast

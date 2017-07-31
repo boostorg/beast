@@ -7,7 +7,7 @@
 # Official repository: https://github.com/boostorg/beast
 #
 
-GroupSources(extras/boost/beast extras)
+GroupSources(test/extras/include/boost/beast extras)
 GroupSources(include/boost/beast beast)
 GroupSources(test/bench/utf8_checker "/")
 

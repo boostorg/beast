@@ -75,14 +75,14 @@ variant ubasan
 #cxx11_hdr_type_traits
 local REQ = [ requires cxx11_variadic_templates cxx11_template_aliases cxx11_decltype cxx11_hdr_tuple ] ;
 
-path-constant TEST_MAIN : extras/boost/beast/unit_test/main.cpp ;
+path-constant TEST_MAIN : test/extras/include/boost/beast/unit_test/main.cpp ;
 
 project beast
   : requirements
     #$(REQ)
     <implicit-dependency>/boost//headers
     <include>.
-    <include>./extras
+    <include>./test/extras/include
     #<use>/boost//headers
     <library>/boost/system//boost_system
     <library>/boost/coroutine//boost_coroutine
