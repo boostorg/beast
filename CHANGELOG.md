@@ -7,6 +7,7 @@ Version 95:
 * Add test::stream
 * Tidy up static_buffer braced init
 * Fix html redirect
+* Add valgrind variant, fix false positives
 
 --------------------------------------------------------------------------------
 

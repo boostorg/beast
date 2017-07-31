@@ -58,6 +58,12 @@ variant coverage :
     <linkflags>"--coverage"
     ;
 
+variant valgrind :
+    release
+    :
+    <define>BOOST_USE_VALGRIND=1
+    ;
+
 variant ubasan
     :
     release

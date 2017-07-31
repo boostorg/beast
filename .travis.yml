@@ -43,12 +43,11 @@ matrix:
           sources:
             - *base_sources
 
-    # GCC 5.0, Release + Valgrind
+    # GCC 5.0, Valgrind
     - os: linux
       compiler: g++-5
       env:
-        - DO_VALGRIND=true
-        - VARIANT=release
+        - VARIANT=valgrind
         - TOOLSET=gcc
         - COMPILER=g++-5
         - CXXSTD=c++11

@@ -119,8 +119,6 @@ function build_bjam ()
 
 build_bjam
 
-DO_VALGRIND=${DO_VALGRIND:-false}
-
 if [[ $VARIANT == "coverage" ]]; then
   # for lcov to work effectively, the paths and includes
   # passed to the compiler should not contain "." or "..".
@@ -137,7 +135,7 @@ if [[ $VARIANT == "coverage" ]]; then
   ~/.local/bin/codecov -X gcov -f lcov.info
   find "$BOOST_ROOT" -name "*.gcda" | xargs rm -f
 
-elif [[ "$DO_VALGRIND" = true ]]; then
+elif [[ $VARIANT == "valgrind" ]]; then
   run_tests_with_valgrind "$BIN_DIR" fat-tests
 
 else
