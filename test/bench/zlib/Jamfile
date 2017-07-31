@@ -7,8 +7,9 @@
 # Official repository: https://github.com/boostorg/beast
 #
 
-add_subdirectory (buffers)
-add_subdirectory (parser)
-add_subdirectory (utf8_checker)
-add_subdirectory (wsload)
-add_subdirectory (zlib)
+exe bench-zlib :
+    $(ZLIB_SOURCES)
+    $(TEST_MAIN)
+    deflate_stream.cpp
+    inflate_stream.cpp
+    ;

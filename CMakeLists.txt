@@ -112,22 +112,22 @@ endif()
 #
 #-------------------------------------------------------------------------------
 
-function(DoGroupSources curdir rootdir folder)
+function (DoGroupSources curdir rootdir folder)
     file (GLOB children RELATIVE ${PROJECT_SOURCE_DIR}/${curdir} ${PROJECT_SOURCE_DIR}/${curdir}/*)
     foreach (child ${children})
         if (IS_DIRECTORY ${PROJECT_SOURCE_DIR}/${curdir}/${child})
-            DoGroupSources(${curdir}/${child} ${rootdir} ${folder})
+            DoGroupSources (${curdir}/${child} ${rootdir} ${folder})
         elseif (${child} STREQUAL "CMakeLists.txt")
             source_group("" FILES ${PROJECT_SOURCE_DIR}/${curdir}/${child})
         else()
-            string(REGEX REPLACE ^${rootdir} ${folder} groupname ${curdir})
-            string(REPLACE "/" "\\" groupname ${groupname})
-            source_group(${groupname} FILES ${PROJECT_SOURCE_DIR}/${curdir}/${child})
+            string (REGEX REPLACE ^${rootdir} ${folder} groupname ${curdir})
+            string (REPLACE "/" "\\" groupname ${groupname})
+            source_group (${groupname} FILES ${PROJECT_SOURCE_DIR}/${curdir}/${child})
         endif()
     endforeach()
 endfunction()
 
-function(GroupSources curdir folder)
+function (GroupSources curdir folder)
     DoGroupSources (${curdir} ${curdir} ${folder})
 endfunction()
 

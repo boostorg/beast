@@ -10,20 +10,19 @@
 GroupSources(include/boost/beast beast)
 GroupSources(test/extras/include/boost/beast extras)
 GroupSources(test/extern/zlib-1.2.11 zlib)
-GroupSources(test/beast/zlib "/")
+GroupSources(test/bench/zlib "/")
 
 if (MSVC)
     set_source_files_properties (${ZLIB_SOURCES} PROPERTIES COMPILE_FLAGS "/wd4127 /wd4131 /wd4244")
 endif()
 
-add_executable (tests-beast-zlib
+add_executable (bench-zlib
     ${BOOST_BEAST_INCLUDES}
     ${EXTRAS_INCLUDES}
     ${ZLIB_SOURCES}
     ${TEST_MAIN}
     Jamfile
     ztest.hpp
-    error.cpp
     deflate_stream.cpp
     inflate_stream.cpp
 )

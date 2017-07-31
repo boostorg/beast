@@ -7,6 +7,25 @@
 # Official repository: https://github.com/boostorg/beast
 #
 
+project test
+    : requirements
+    <include>./extern
+    ;
+
+path-constant ZLIB_SOURCES :
+    extern/zlib-1.2.11/adler32.c
+    extern/zlib-1.2.11/compress.c
+    extern/zlib-1.2.11/crc32.c
+    extern/zlib-1.2.11/deflate.c
+    extern/zlib-1.2.11/infback.c
+    extern/zlib-1.2.11/inffast.c
+    extern/zlib-1.2.11/inflate.c
+    extern/zlib-1.2.11/inftrees.c
+    extern/zlib-1.2.11/trees.c
+    extern/zlib-1.2.11/uncompr.c
+    extern/zlib-1.2.11/zutil.c
+    ;
+
 alias run-tests :
     beast//run-tests
     bench//run-tests

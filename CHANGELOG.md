@@ -6,6 +6,7 @@ Version 96:
 * Rename wsload compile target
 * Fix library.json
 * Update boostorg links
+* Add bench-zlib
 
 --------------------------------------------------------------------------------
 

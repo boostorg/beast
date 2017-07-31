@@ -7,20 +7,6 @@
 # Official repository: https://github.com/boostorg/beast
 #
 
-local ZLIB_SOURCES =
-    zlib-1.2.11/adler32.c
-    zlib-1.2.11/compress.c
-    zlib-1.2.11/crc32.c
-    zlib-1.2.11/deflate.c
-    zlib-1.2.11/infback.c
-    zlib-1.2.11/inffast.c
-    zlib-1.2.11/inflate.c
-    zlib-1.2.11/inftrees.c
-    zlib-1.2.11/trees.c
-    zlib-1.2.11/uncompr.c
-    zlib-1.2.11/zutil.c
-    ;
-
 local SOURCES =
     error.cpp
     deflate_stream.cpp
