@@ -3,6 +3,7 @@ Version 96:
 * Move bench/ to test/
 * Move extras/ to test/
 * Use <valgrind> property
+* Rename wsload compile target
 
 --------------------------------------------------------------------------------
 

@@ -17,5 +17,5 @@ add_executable (bench-wsload
     ${COMMON_INCLUDES}
     ${EXTRAS_INCLUDES}
     Jamfile
-    wsload_main.cpp
+    wsload.cpp
     )

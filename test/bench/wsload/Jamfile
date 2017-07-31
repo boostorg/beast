@@ -9,11 +9,11 @@
 
 exe wsload :
     $(TEST_MAIN)
-    wsload_main.cpp
+    wsload.cpp
     ;
 
 explicit wsload ;
 
 alias run-tests :
-    [ compile wsload_main.cpp ]
+    [ compile wsload.cpp : : wsload-compile ]
     ;
