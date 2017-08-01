@@ -7,6 +7,7 @@ Version 96:
 * Fix library.json
 * Update boostorg links
 * Add bench-zlib
+* Faster zlib tests
 
 --------------------------------------------------------------------------------
 

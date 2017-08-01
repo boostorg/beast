@@ -10,9 +10,14 @@
 // Test that header file is self-contained.
 #include <boost/beast/zlib/deflate_stream.hpp>
 
-#include "ztest.hpp"
-
+#include <boost/beast/core/string.hpp>
 #include <boost/beast/unit_test/suite.hpp>
+#include <cstdint>
+#include <random>
+
+#include "zlib-1.2.11/zlib.h"
+
+#include "ztest.hpp"
 
 namespace boost {
 namespace beast {
@@ -21,6 +26,127 @@ namespace zlib {
 class deflate_stream_test : public beast::unit_test::suite
 {
 public:
+    // Lots of repeats, limited char range
+    static
+    std::string
+    corpus1(std::size_t n)
+    {
+        static std::string const alphabet{
+            "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+        };
+        std::string s;
+        s.reserve(n + 5);
+        std::mt19937 g;
+        std::uniform_int_distribution<std::size_t> d0{
+            0, alphabet.size() - 1};
+        std::uniform_int_distribution<std::size_t> d1{
+            1, 5};
+        while(s.size() < n)
+        {
+            auto const rep = d1(g);
+            auto const ch = alphabet[d0(g)];
+            s.insert(s.end(), rep, ch);
+        }
+        s.resize(n);
+        return s;
+    }
+
+    // Random data
+    static
+    std::string
+    corpus2(std::size_t n)
+    {
+        std::string s;
+        s.reserve(n);
+        std::mt19937 g;
+        std::uniform_int_distribution<std::uint32_t> d0{0, 255};
+        while(n--)
+            s.push_back(static_cast<char>(d0(g)));
+        return s;
+    }
+
+    static
+    std::string
+    compress(
+        string_view const& in,
+        int level,                  // 0=none, 1..9, -1=default
+        int windowBits,             // 9..15
+        int memLevel)               // 1..9 (8=default)
+    {
+        int const strategy = Z_DEFAULT_STRATEGY;
+        int result;
+        z_stream zs;
+        memset(&zs, 0, sizeof(zs));
+        result = deflateInit2(
+            &zs,
+            level,
+            Z_DEFLATED,
+            -windowBits,
+            memLevel,
+            strategy);
+        if(result != Z_OK)
+            throw std::logic_error{"deflateInit2 failed"};
+        zs.next_in = (Bytef*)in.data();
+        zs.avail_in = static_cast<uInt>(in.size());
+        std::string out;
+        out.resize(deflateBound(&zs,
+            static_cast<uLong>(in.size())));
+        zs.next_in = (Bytef*)in.data();
+        zs.avail_in = static_cast<uInt>(in.size());
+        zs.next_out = (Bytef*)&out[0];
+        zs.avail_out = static_cast<uInt>(out.size());
+        result = deflate(&zs, Z_FULL_FLUSH);
+        if(result != Z_OK)
+            throw std::logic_error("deflate failed");
+        out.resize(zs.total_out);
+        deflateEnd(&zs);
+        return out;
+    }
+
+    static
+    std::string
+    decompress(string_view const& in)
+    {
+        int result;
+        std::string out;
+        z_stream zs;
+        memset(&zs, 0, sizeof(zs));
+        result = inflateInit2(&zs, -15);
+        try
+        {
+            zs.next_in = (Bytef*)in.data();
+            zs.avail_in = static_cast<uInt>(in.size());
+            for(;;)
+            {
+                out.resize(zs.total_out + 1024);
+                zs.next_out = (Bytef*)&out[zs.total_out];
+                zs.avail_out = static_cast<uInt>(
+                    out.size() - zs.total_out);
+                result = inflate(&zs, Z_SYNC_FLUSH);
+                if( result == Z_NEED_DICT ||
+                    result == Z_DATA_ERROR ||
+                    result == Z_MEM_ERROR)
+                {
+                    throw std::logic_error("inflate failed");
+                }
+                if(zs.avail_out > 0)
+                    break;
+                if(result == Z_STREAM_END)
+                    break;
+            }
+            out.resize(zs.total_out);
+            inflateEnd(&zs);
+        }
+        catch(...)
+        {
+            inflateEnd(&zs);
+            throw;
+        }
+        return out;
+    }
+
+    //--------------------------------------------------------------------------
+
     using self = deflate_stream_test;
     typedef void(self::*pmf_t)(
         int level, int windowBits, int strategy,
@@ -39,55 +165,6 @@ public:
         case 3: return Strategy::rle;
         case 4: return Strategy::fixed;
         }
-    }
-
-    void
-    doDeflate1_zlib(
-        int level, int windowBits, int strategy,
-            std::string const& check)
-    {
-        int result;
-        std::string out;
-        ::z_stream zs;
-        std::memset(&zs, 0, sizeof(zs));
-        result = deflateInit2(&zs,
-            level,
-            Z_DEFLATED,
-            -windowBits,
-            8,
-            strategy);
-        if(! BEAST_EXPECT(result == Z_OK))
-            goto err;
-        out.resize(deflateBound(&zs,
-            static_cast<uLong>(check.size())));
-        zs.next_in = (Bytef*)check.data();
-        zs.avail_in = static_cast<uInt>(check.size());
-        zs.next_out = (Bytef*)out.data();
-        zs.avail_out = static_cast<uInt>(out.size());
-        {
-            bool progress = true;
-            for(;;)
-            {
-                result = deflate(&zs, Z_FULL_FLUSH);
-                if( result == Z_BUF_ERROR ||
-                    result == Z_STREAM_END) // per zlib FAQ
-                    goto fin;
-                if(! BEAST_EXPECT(progress))
-                    goto err;
-                progress = false;
-            }
-        }
-
-    fin:
-        out.resize(zs.total_out);
-        {
-            z_inflator zi;
-            auto const s = zi(out);
-            BEAST_EXPECT(s == check);
-        }
-
-    err:
-        deflateEnd(&zs);
     }
 
     void
@@ -128,88 +205,13 @@ public:
 
     fin:
         out.resize(zs.total_out);
-        {
-            z_inflator zi;
-            auto const s = zi(out);
-            BEAST_EXPECT(s == check);
-        }
+        BEAST_EXPECT(decompress(out) == check);
 
     err:
         ;
     }
 
     //--------------------------------------------------------------------------
-
-    void
-    doDeflate2_zlib(
-        int level, int windowBits, int strategy,
-            std::string const& check)
-    {
-        for(std::size_t i = 1; i < check.size(); ++i)
-        {
-            for(std::size_t j = 1;; ++j)
-            {
-                int result;
-                ::z_stream zs;
-                std::memset(&zs, 0, sizeof(zs));
-                result = deflateInit2(&zs,
-                    level,
-                    Z_DEFLATED,
-                    -windowBits,
-                    8,
-                    strategy);
-                if(! BEAST_EXPECT(result == Z_OK))
-                    continue;
-                std::string out;
-                out.resize(deflateBound(&zs,
-                    static_cast<uLong>(check.size())));
-                if(j >= out.size())
-                {
-                    deflateEnd(&zs);
-                    break;
-                }
-                zs.next_in = (Bytef*)check.data();
-                zs.avail_in = static_cast<uInt>(i);
-                zs.next_out = (Bytef*)out.data();
-                zs.avail_out = static_cast<uInt>(j);
-                bool bi = false;
-                bool bo = false;
-                for(;;)
-                {
-                    int flush = bi ? Z_FULL_FLUSH : Z_NO_FLUSH;
-                    result = deflate(&zs, flush);
-                    if( result == Z_BUF_ERROR ||
-                        result == Z_STREAM_END) // per zlib FAQ
-                        goto fin;
-                    if(! BEAST_EXPECT(result == Z_OK))
-                        goto err;
-                    if(zs.avail_in == 0 && ! bi)
-                    {
-                        bi = true;
-                        zs.avail_in =
-                            static_cast<uInt>(check.size() - i);
-                    }
-                    if(zs.avail_out == 0 && ! bo)
-                    {
-                        bo = true;
-                        zs.avail_out =
-                            static_cast<uInt>(out.size() - j);
-                    }
-                }
-
-            fin:
-                out.resize(zs.total_out);
-                {
-                    z_inflator zi;
-                    auto const s = zi(out);
-                    BEAST_EXPECT(s == check);
-                }
-
-            err:
-                deflateEnd(&zs);
-            }
-        }
-    }
 
     void
     doDeflate2_beast(
@@ -264,11 +266,7 @@ public:
 
             fin:
                 out.resize(zs.total_out);
-                {
-                    z_inflator zi;
-                    auto const s = zi(out);
-                    BEAST_EXPECT(s == check);
-                }
+                BEAST_EXPECT(decompress(out) == check);
 
             err:
                 ;
@@ -279,12 +277,8 @@ public:
     //--------------------------------------------------------------------------
 
     void
-    doMatrix(std::string const& label,
-        std::string const& check, pmf_t pmf)
+    doMatrix(std::string const& check, pmf_t pmf)
     {
-        using namespace std::chrono;
-        using clock_type = steady_clock;
-        auto const when = clock_type::now();
         for(int level = 0; level <= 9; ++level)
         {
             for(int windowBits = 8; windowBits <= 9; ++windowBits)
@@ -299,33 +293,15 @@ public:
                 }
             }
         }
-        auto const elapsed = clock_type::now() - when;
-        log <<
-            label << ": " <<
-            duration_cast<
-                milliseconds>(elapsed).count() << "ms\n";
-        log.flush();
     }
 
     void
     testDeflate()
     {
-        doMatrix("1.beast ", "Hello, world!", &self::doDeflate1_beast);
-        doMatrix("1.zlib  ", "Hello, world!", &self::doDeflate1_zlib);
-    #if ! BOOST_BEAST_NO_SLOW_TESTS
-        doMatrix("2.beast ", "Hello, world!", &self::doDeflate2_beast);
-        doMatrix("2.zlib  ", "Hello, world!", &self::doDeflate2_zlib);
-        {
-            auto const s = corpus1(56);
-            doMatrix("3.beast ", s, &self::doDeflate2_beast);
-            doMatrix("3.zlib  ", s, &self::doDeflate2_zlib);
-        }
-        {
-            auto const s = corpus1(512 * 1024);
-            doMatrix("4.beast ", s, &self::doDeflate1_beast);
-            doMatrix("4.zlib  ", s, &self::doDeflate1_zlib);
-        }
-    #endif
+        doMatrix("Hello, world!", &self::doDeflate1_beast);
+        doMatrix("Hello, world!", &self::doDeflate2_beast);
+        doMatrix(corpus1(56), &self::doDeflate2_beast);
+        doMatrix(corpus1(1024), &self::doDeflate1_beast);
     }
 
     void

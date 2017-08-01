@@ -10,11 +10,12 @@
 // Test that header file is self-contained.
 #include <boost/beast/zlib/inflate_stream.hpp>
 
-#include "ztest.hpp"
-
+#include <boost/beast/core/string.hpp>
 #include <boost/beast/unit_test/suite.hpp>
 #include <chrono>
 #include <random>
+
+#include "ztest.hpp"
 
 namespace boost {
 namespace beast {
@@ -23,6 +24,83 @@ namespace zlib {
 class inflate_stream_test : public beast::unit_test::suite
 {
 public:
+    // Lots of repeats, limited char range
+    static
+    std::string
+    corpus1(std::size_t n)
+    {
+        static std::string const alphabet{
+            "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+        };
+        std::string s;
+        s.reserve(n + 5);
+        std::mt19937 g;
+        std::uniform_int_distribution<std::size_t> d0{
+            0, alphabet.size() - 1};
+        std::uniform_int_distribution<std::size_t> d1{
+            1, 5};
+        while(s.size() < n)
+        {
+            auto const rep = d1(g);
+            auto const ch = alphabet[d0(g)];
+            s.insert(s.end(), rep, ch);
+        }
+        s.resize(n);
+        return s;
+    }
+
+    // Random data
+    static
+    std::string
+    corpus2(std::size_t n)
+    {
+        std::string s;
+        s.reserve(n);
+        std::mt19937 g;
+        std::uniform_int_distribution<std::uint32_t> d0{0, 255};
+        while(n--)
+            s.push_back(static_cast<char>(d0(g)));
+        return s;
+    }
+
+    static
+    std::string
+    compress(
+        string_view const& in,
+        int level,                  // 0=none, 1..9, -1=default
+        int windowBits,             // 9..15
+        int memLevel,               // 1..9 (8=default)
+        int strategy)               // e.g. Z_DEFAULT_STRATEGY
+    {
+        int result;
+        z_stream zs;
+        memset(&zs, 0, sizeof(zs));
+        result = deflateInit2(
+            &zs,
+            level,
+            Z_DEFLATED,
+            -windowBits,
+            memLevel,
+            strategy);
+        if(result != Z_OK)
+            throw std::logic_error{"deflateInit2 failed"};
+        zs.next_in = (Bytef*)in.data();
+        zs.avail_in = static_cast<uInt>(in.size());
+        std::string out;
+        out.resize(deflateBound(&zs,
+            static_cast<uLong>(in.size())));
+        zs.next_in = (Bytef*)in.data();
+        zs.avail_in = static_cast<uInt>(in.size());
+        zs.next_out = (Bytef*)&out[0];
+        zs.avail_out = static_cast<uInt>(out.size());
+        result = deflate(&zs, Z_FULL_FLUSH);
+        if(result != Z_OK)
+            throw std::logic_error("deflate failed");
+        out.resize(zs.total_out);
+        deflateEnd(&zs);
+        return out;
+    }
+
     //--------------------------------------------------------------------------
 
     enum Split
@@ -120,100 +198,6 @@ public:
         }
     };
 
-    class ZLib
-    {
-        Split in_;
-        Split check_;
-        int flush_;
-
-    public:
-        ZLib(Split in, Split check, int flush = Z_SYNC_FLUSH)
-            : in_(in)
-            , check_(check)
-            , flush_(flush)
-        {
-        }
-
-        void
-        operator()(
-            int window,
-            std::string const& in,
-            std::string const& check,
-            unit_test::suite& suite) const
-        {
-            auto const f =
-            [&](std::size_t i, std::size_t j)
-            {
-                int result;
-                std::string out(check.size(), 0);
-                ::z_stream zs;
-                memset(&zs, 0, sizeof(zs));
-                result = inflateInit2(&zs, -window);
-                if(result != Z_OK)
-                {
-                    suite.fail("! Z_OK", __FILE__, __LINE__);
-                    return;
-                }
-                zs.next_in = (Bytef*)in.data();
-                zs.next_out = (Bytef*)out.data();
-                zs.avail_in = static_cast<uInt>(i);
-                zs.avail_out = static_cast<uInt>(j);
-                bool bi = ! (i < in.size());
-                bool bo = ! (j < check.size());
-                for(;;)
-                {
-                    result = inflate(&zs, flush_);
-                    if( result == Z_BUF_ERROR ||
-                        result == Z_STREAM_END) // per zlib FAQ
-                    {
-                        out.resize(zs.total_out);
-                        suite.expect(out == check, __FILE__, __LINE__);
-                        break;
-                    }
-                    if(result != Z_OK)
-                    {
-                        suite.fail("! Z_OK", __FILE__, __LINE__);
-                        break;
-                    }
-                    if(zs.avail_in == 0 && ! bi)
-                    {
-                        bi = true;
-                        zs.avail_in = static_cast<uInt>(in.size() - i);
-                    }
-                    if(zs.avail_out == 0 && ! bo)
-                    {
-                        bo = true;
-                        zs.avail_out = static_cast<uInt>(check.size() - j);
-                    }
-                }
-                inflateEnd(&zs);
-            };
-
-            std::size_t i0, i1;
-            std::size_t j0, j1;
-
-            switch(in_)
-            {
-            default:
-            case once: i0 = in.size();     i1 = i0;         break;
-            case half: i0 = in.size() / 2; i1 = i0;         break;
-            case full: i0 = 1;             i1 = in.size();  break;
-            }
-
-            switch(check_)
-            {
-            default:
-            case once: j0 = check.size();     j1 = j0;              break;
-            case half: j0 = check.size() / 2; j1 = j0;              break;
-            case full: j0 = 1;                j1 = check.size();    break;
-            }
-
-            for(std::size_t i = i0; i <= i1; ++i)
-                for(std::size_t j = j0; j <= j1; ++j)
-                    f(i, j);
-        }
-    };
-
     class Matrix
     {
         unit_test::suite& suite_;
@@ -277,14 +261,9 @@ public:
         template<class F>
         void
         operator()(
-            std::string label,
             F const& f,
             std::string const& check) const
         {
-            using namespace std::chrono;
-            using clock_type = steady_clock;
-            auto const when = clock_type::now();
-
             for(auto level = level_[0];
                 level <= level_[1]; ++level)
             {
@@ -293,22 +272,13 @@ public:
                 {
                     for(auto strategy = strategy_[0];
                         strategy <= strategy_[1]; ++strategy)
-                    {
-                        z_deflator zd;
-                        zd.level(level);
-                        zd.windowBits(window);
-                        zd.strategy(strategy);
-                        auto const in = zd(check);
-                        f(window, in, check, suite_);
-                    }
+                        f(
+                            window,
+                            compress(check, level, window, 4, strategy),
+                            check,
+                            suite_);
                 }
             }
-            auto const elapsed = clock_type::now() - when;
-            suite_.log <<
-                label << ": " <<
-                duration_cast<
-                    milliseconds>(elapsed).count() << "ms\n";
-            suite_.log.flush();
         }
     };
 
@@ -326,67 +296,57 @@ public:
                 "         \"remoteCloseCode\": 1000,\n"
                 "         \"reportfile\": \"autobahnpython_0_6_0_case_1_1_1.json\"\n"
                 ;
-            m("1. beast", Beast{half, half}, check);
-            m("1. zlib ", ZLib {half, half}, check);
+            m(Beast{half, half}, check);
         }
 
-    #if ! BOOST_BEAST_NO_SLOW_TESTS
         {
             Matrix m{*this};
-            auto const check = corpus1(50000);
-            m("2. beast", Beast{half, half}, check);
-            m("2. zlib ", ZLib {half, half}, check);
+            auto const check = corpus1(5000);
+            m(Beast{half, half}, check);
         }
         {
             Matrix m{*this};
-            auto const check = corpus2(50000);
-            m("3. beast", Beast{half, half}, check);
-            m("3. zlib ", ZLib {half, half}, check);
+            auto const check = corpus2(5000);
+            m(Beast{half, half}, check);
         }
         {
             Matrix m{*this};
-            auto const check = corpus1(10000);
+            auto const check = corpus1(1000);
             m.level(6);
             m.window(9);
             m.strategy(Z_DEFAULT_STRATEGY);
-            m("4. beast", Beast{once, full}, check);
-            m("4. zlib ", ZLib {once, full}, check);
+            m(Beast{once, full}, check);
         }
         {
             Matrix m{*this};
-            auto const check = corpus2(10000);
+            auto const check = corpus2(1000);
             m.level(6);
             m.window(9);
             m.strategy(Z_DEFAULT_STRATEGY);
-            m("5. beast", Beast{once, full}, check);
-            m("5. zlib ", ZLib {once, full}, check);
+            m(Beast{once, full}, check);
         }
         {
             Matrix m{*this};
             m.level(6);
             m.window(9);
             auto const check = corpus1(200);
-            m("6. beast", Beast{full, full}, check);
-            m("6. zlib ", ZLib {full, full}, check);
+            m(Beast{full, full}, check);
         }
         {
             Matrix m{*this};
             m.level(6);
             m.window(9);
             auto const check = corpus2(500);
-            m("7. beast", Beast{full, full}, check);
-            m("7. zlib ", ZLib {full, full}, check);
+            m(Beast{full, full}, check);
         }
         {
             Matrix m{*this};
-            auto const check = corpus2(10000);
+            auto const check = corpus2(1000);
             m.level(6);
             m.window(9);
             m.strategy(Z_DEFAULT_STRATEGY);
-            m("8. beast", Beast{full, once, Flush::block}, check);
-            m("8. zlib ", ZLib {full, once, Z_BLOCK}, check);
+            m(Beast{full, once, Flush::block}, check);
         }
-    #endif
 
         // VFALCO Fails, but I'm unsure of what the correct
         //        behavior of Z_TREES/Flush::trees is.
@@ -397,8 +357,7 @@ public:
             m.level(6);
             m.window(9);
             m.strategy(Z_DEFAULT_STRATEGY);
-            m("9. beast", Beast{full, once, Flush::trees}, check);
-            m("9. zlib ", ZLib {full, once, Z_TREES}, check);
+            m(Beast{full, once, Flush::trees}, check);
         }
 #endif
     }
