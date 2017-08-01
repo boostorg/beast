@@ -3,6 +3,7 @@ Version 98:
 * basic_fields::key_compare is noexcept
 * Fix bench-zlib cmake
 * Use unique names Jam projects
+* Trim utf8 checker test
 
 --------------------------------------------------------------------------------
 
