@@ -1,3 +1,15 @@
+Version 98:
+
+* basic_fields::key_compare is noexcept
+
+--------------------------------------------------------------------------------
+
+Version 97:
+
+* Update redirect
+
+--------------------------------------------------------------------------------
+
 Version 96:
 
 * Move bench/ to test/
@@ -9,7 +21,6 @@ Version 96:
 * Add bench-zlib
 * Faster zlib tests
 * Less compression on websocket test
-* Update redirect
 
 --------------------------------------------------------------------------------
 

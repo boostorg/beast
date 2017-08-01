@@ -113,7 +113,9 @@ public:
         /// Returns `true` if lhs is less than rhs using a strict ordering
         template<class String>
         bool
-        operator()(String const& lhs, value_type const& rhs) const
+        operator()(
+            String const& lhs,
+            value_type const& rhs) const noexcept
         {
             if(lhs.size() < rhs.name_string().size())
                 return true;
@@ -125,7 +127,9 @@ public:
         /// Returns `true` if lhs is less than rhs using a strict ordering
         template<class String>
         bool
-        operator()(value_type const& lhs, String const& rhs) const
+        operator()(
+            value_type const& lhs,
+            String const& rhs) const noexcept
         {
             if(lhs.name_string().size() < rhs.size())
                 return true;
@@ -136,7 +140,9 @@ public:
 
         /// Returns `true` if lhs is less than rhs using a strict ordering
         bool
-        operator()(value_type const& lhs, value_type const& rhs) const
+        operator()(
+            value_type const& lhs,
+            value_type const& rhs) const noexcept
         {
             if(lhs.name_string().size() < rhs.name_string().size())
                 return true;
