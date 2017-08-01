@@ -3,6 +3,7 @@ Version 100:
 * Fix doc convenience includes
 * Fix doc includes
 * Remove unused test header
+* Rename test macros
 
 --------------------------------------------------------------------------------
 

@@ -202,7 +202,7 @@ public:
     }
 };
 
-BOOST_BEAST_DEFINE_TESTSUITE(buffers_adapter,core,beast);
+BEAST_DEFINE_TESTSUITE(buffers_adapter,core,beast);
 
 } // beast
 } // boost

@@ -46,7 +46,7 @@ public:
     }
 };
 
-BOOST_BEAST_DEFINE_TESTSUITE(rfc6455,websocket,beast);
+BEAST_DEFINE_TESTSUITE(rfc6455,websocket,beast);
 
 } // websocket
 } // beast

@@ -341,7 +341,7 @@ public:
     }
 };
 
-BOOST_BEAST_DEFINE_TESTSUITE(parser,http,beast);
+BEAST_DEFINE_TESTSUITE(parser,http,beast);
 
 } // http
 } // beast

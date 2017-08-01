@@ -122,7 +122,7 @@ public:
     }
 };
 
-BOOST_BEAST_DEFINE_TESTSUITE(serializer,http,beast);
+BEAST_DEFINE_TESTSUITE(serializer,http,beast);
 
 } // http
 } // beast

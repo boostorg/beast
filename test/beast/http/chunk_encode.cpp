@@ -304,7 +304,7 @@ public:
     }
 };
 
-BOOST_BEAST_DEFINE_TESTSUITE(chunk_encode,http,beast);
+BEAST_DEFINE_TESTSUITE(chunk_encode,http,beast);
 
 } // http
 } // beast

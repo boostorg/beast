@@ -446,7 +446,7 @@ public:
     }
 };
 
-BOOST_BEAST_DEFINE_TESTSUITE(variant,core,beast);
+BEAST_DEFINE_TESTSUITE(variant,core,beast);
 
 } // detail
 } // beast

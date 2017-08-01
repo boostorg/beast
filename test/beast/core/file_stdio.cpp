@@ -31,7 +31,7 @@ public:
     }
 };
 
-BOOST_BEAST_DEFINE_TESTSUITE(file_stdio,core,beast);
+BEAST_DEFINE_TESTSUITE(file_stdio,core,beast);
 
 } // beast
 } // boost

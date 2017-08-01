@@ -354,7 +354,7 @@ public:
     }
 };
 
-BOOST_BEAST_DEFINE_TESTSUITE(rfc7230,http,beast);
+BEAST_DEFINE_TESTSUITE(rfc7230,http,beast);
 
 } // http
 } // beast

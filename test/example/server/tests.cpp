@@ -324,7 +324,7 @@ public:
     }
 };
 
-BOOST_BEAST_DEFINE_TESTSUITE(server,websocket,beast);
+BEAST_DEFINE_TESTSUITE(server,websocket,beast);
 
 } // websocket
 } // beast

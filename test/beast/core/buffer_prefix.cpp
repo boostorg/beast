@@ -186,7 +186,7 @@ public:
     }
 };
 
-BOOST_BEAST_DEFINE_TESTSUITE(buffer_prefix,core,beast);
+BEAST_DEFINE_TESTSUITE(buffer_prefix,core,beast);
 
 } // beast
 } // boost

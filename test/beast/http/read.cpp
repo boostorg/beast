@@ -465,7 +465,7 @@ public:
     }
 };
 
-BOOST_BEAST_DEFINE_TESTSUITE(read,http,beast);
+BEAST_DEFINE_TESTSUITE(read,http,beast);
 
 } // http
 } // beast

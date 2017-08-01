@@ -373,7 +373,7 @@ public:
     }
 };
 
-BOOST_BEAST_DEFINE_TESTSUITE(message,http,beast);
+BEAST_DEFINE_TESTSUITE(message,http,beast);
 
 } // http
 } // beast

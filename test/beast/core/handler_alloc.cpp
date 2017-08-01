@@ -61,7 +61,7 @@ public:
     }
 };
 
-BOOST_BEAST_DEFINE_TESTSUITE(handler_alloc,core,beast);
+BEAST_DEFINE_TESTSUITE(handler_alloc,core,beast);
 
 } // beast
 } // boost

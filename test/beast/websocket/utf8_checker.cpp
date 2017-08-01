@@ -390,7 +390,7 @@ public:
 };
 
 #if defined(NDEBUG) && ! BOOST_BEAST_NO_SLOW_TESTS
-BOOST_BEAST_DEFINE_TESTSUITE(utf8_checker,websocket,beast);
+BEAST_DEFINE_TESTSUITE(utf8_checker,websocket,beast);
 #endif
 
 } // detail

@@ -124,7 +124,7 @@ public:
     }
 };
 
-BOOST_BEAST_DEFINE_TESTSUITE(verb,http,beast);
+BEAST_DEFINE_TESTSUITE(verb,http,beast);
 
 } // http
 } // beast

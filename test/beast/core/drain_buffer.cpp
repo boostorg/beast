@@ -49,7 +49,7 @@ public:
     }
 };
 
-BOOST_BEAST_DEFINE_TESTSUITE(drain_buffer,core,beast);
+BEAST_DEFINE_TESTSUITE(drain_buffer,core,beast);
 
 } // beast
 } // boost

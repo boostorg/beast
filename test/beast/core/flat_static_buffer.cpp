@@ -232,7 +232,7 @@ public:
     }
 };
 
-BOOST_BEAST_DEFINE_TESTSUITE(flat_static_buffer,core,beast);
+BEAST_DEFINE_TESTSUITE(flat_static_buffer,core,beast);
 
 } // beast
 } // boost

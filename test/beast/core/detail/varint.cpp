@@ -46,7 +46,7 @@ public:
     }
 };
 
-BOOST_BEAST_DEFINE_TESTSUITE(varint,core,beast);
+BEAST_DEFINE_TESTSUITE(varint,core,beast);
 
 } // detail
 } // beast

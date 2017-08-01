@@ -264,7 +264,7 @@ public:
     }
 };
 
-BOOST_BEAST_DEFINE_TESTSUITE(buffer_cat,core,beast);
+BEAST_DEFINE_TESTSUITE(buffer_cat,core,beast);
 
 } // beast
 } // boost

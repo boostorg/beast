@@ -219,7 +219,7 @@ public:
     }
 };
 
-BOOST_BEAST_DEFINE_TESTSUITE(buffered_read_stream,core,beast);
+BEAST_DEFINE_TESTSUITE(buffered_read_stream,core,beast);
 
 } // beast
 } // boost

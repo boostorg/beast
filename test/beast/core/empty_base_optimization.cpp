@@ -91,7 +91,7 @@ public:
     }
 };
 
-BOOST_BEAST_DEFINE_TESTSUITE(empty_base_optimization,core,beast);
+BEAST_DEFINE_TESTSUITE(empty_base_optimization,core,beast);
 
 } // detail
 } // beast

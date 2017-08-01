@@ -402,7 +402,7 @@ public:
     }
 };
 
-BOOST_BEAST_DEFINE_TESTSUITE(field,http,beast);
+BEAST_DEFINE_TESTSUITE(field,http,beast);
 
 } // http
 } // beast

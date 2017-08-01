@@ -626,7 +626,7 @@ run(runner& r)
 
 // detail:
 // This inserts the suite with the given manual flag
-#define BOOST_BEAST_DEFINE_TESTSUITE_INSERT(Class,Module,Library,manual) \
+#define BEAST_DEFINE_TESTSUITE_INSERT(Class,Module,Library,manual) \
     static beast::unit_test::detail::insert_suite <Class##_test>   \
         Library ## Module ## Class ## _test_instance(             \
             #Class, #Module, #Library, manual)
@@ -638,15 +638,15 @@ run(runner& r)
 // If this is already defined, don't redefine it. This allows
 // programs to provide custom behavior for testsuite definitions
 //
-#ifndef BOOST_BEAST_DEFINE_TESTSUITE
+#ifndef BEAST_DEFINE_TESTSUITE
 
 /** Enables insertion of test suites into the global container.
     The default is to insert all test suite definitions into the global
-    container. If BOOST_BEAST_DEFINE_TESTSUITE is user defined, this macro
+    container. If BEAST_DEFINE_TESTSUITE is user defined, this macro
     has no effect.
 */
-#ifndef BOOST_BEAST_NO_UNIT_TEST_INLINE
-#define BOOST_BEAST_NO_UNIT_TEST_INLINE 0
+#ifndef BEAST_NO_UNIT_TEST_INLINE
+#define BEAST_NO_UNIT_TEST_INLINE 0
 #endif
 
 /** Define a unit test suite.
@@ -671,15 +671,15 @@ run(runner& r)
     The macro invocation must appear in the same namespace as the test class.
 */
 
-#if BOOST_BEAST_NO_UNIT_TEST_INLINE
-#define BOOST_BEAST_DEFINE_TESTSUITE(Class,Module,Library)
+#if BEAST_NO_UNIT_TEST_INLINE
+#define BEAST_DEFINE_TESTSUITE(Class,Module,Library)
 
 #else
 #include <boost/beast/unit_test/global_suites.hpp>
-#define BOOST_BEAST_DEFINE_TESTSUITE(Class,Module,Library) \
-        BOOST_BEAST_DEFINE_TESTSUITE_INSERT(Class,Module,Library,false)
-#define BOOST_BEAST_DEFINE_TESTSUITE_MANUAL(Class,Module,Library) \
-        BOOST_BEAST_DEFINE_TESTSUITE_INSERT(Class,Module,Library,true)
+#define BEAST_DEFINE_TESTSUITE(Class,Module,Library) \
+        BEAST_DEFINE_TESTSUITE_INSERT(Class,Module,Library,false)
+#define BEAST_DEFINE_TESTSUITE_MANUAL(Class,Module,Library) \
+        BEAST_DEFINE_TESTSUITE_INSERT(Class,Module,Library,true)
 
 #endif
 

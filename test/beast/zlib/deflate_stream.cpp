@@ -313,7 +313,7 @@ public:
     }
 };
 
-BOOST_BEAST_DEFINE_TESTSUITE(deflate_stream,core,beast);
+BEAST_DEFINE_TESTSUITE(deflate_stream,core,beast);
 
 } // zlib
 } // beast

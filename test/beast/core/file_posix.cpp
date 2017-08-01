@@ -33,7 +33,7 @@ public:
     }
 };
 
-BOOST_BEAST_DEFINE_TESTSUITE(file_posix,core,beast);
+BEAST_DEFINE_TESTSUITE(file_posix,core,beast);
 
 } // beast
 } // boost

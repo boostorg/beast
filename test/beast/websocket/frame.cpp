@@ -249,7 +249,7 @@ public:
     }
 };
 
-BOOST_BEAST_DEFINE_TESTSUITE(frame,websocket,beast);
+BEAST_DEFINE_TESTSUITE(frame,websocket,beast);
 
 } // detail
 } // websocket

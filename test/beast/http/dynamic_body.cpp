@@ -71,7 +71,7 @@ public:
     }
 };
 
-BOOST_BEAST_DEFINE_TESTSUITE(dynamic_body,http,beast);
+BEAST_DEFINE_TESTSUITE(dynamic_body,http,beast);
 
 } // http
 } // beast
