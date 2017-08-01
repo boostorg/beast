@@ -77,7 +77,7 @@ local REQ = [ requires cxx11_variadic_templates cxx11_template_aliases cxx11_dec
 
 path-constant TEST_MAIN : test/extras/include/boost/beast/unit_test/main.cpp ;
 
-project beast
+project /boost/beast
   : requirements
     #$(REQ)
     <implicit-dependency>/boost//headers
