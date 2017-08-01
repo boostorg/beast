@@ -9,6 +9,7 @@ Version 96:
 * Add bench-zlib
 * Faster zlib tests
 * Less compression on websocket test
+* Update redirect
 
 --------------------------------------------------------------------------------
 
