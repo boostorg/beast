@@ -22,7 +22,6 @@ add_executable (bench-zlib
     ${ZLIB_SOURCES}
     ${TEST_MAIN}
     Jamfile
-    ztest.hpp
     deflate_stream.cpp
     inflate_stream.cpp
 )
