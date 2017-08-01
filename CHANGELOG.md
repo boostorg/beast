@@ -1,3 +1,9 @@
+Version 99:
+
+* Log the value of LIB_DIR for doc builds (debug)
+
+--------------------------------------------------------------------------------
+
 Version 98:
 
 * basic_fields::key_compare is noexcept
