@@ -22,7 +22,6 @@ add_executable (tests-beast-zlib
     ${ZLIB_SOURCES}
     ${TEST_MAIN}
     Jamfile
-    ztest.hpp
     error.cpp
     deflate_stream.cpp
     inflate_stream.cpp

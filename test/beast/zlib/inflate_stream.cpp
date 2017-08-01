@@ -15,7 +15,7 @@
 #include <chrono>
 #include <random>
 
-#include "ztest.hpp"
+#include "zlib-1.2.11/zlib.h"
 
 namespace boost {
 namespace beast {

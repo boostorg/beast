@@ -17,8 +17,6 @@
 
 #include "zlib-1.2.11/zlib.h"
 
-#include "ztest.hpp"
-
 namespace boost {
 namespace beast {
 namespace zlib {
