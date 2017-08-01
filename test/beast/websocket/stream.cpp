@@ -1945,19 +1945,21 @@ public:
         pmd.server_enable = false;
         doClientTests(pmd);
 
-    #if ! BOOST_BEAST_NO_SLOW_TESTS
         pmd.client_enable = true;
         pmd.server_enable = true;
         pmd.client_max_window_bits = 10;
         pmd.client_no_context_takeover = false;
+        pmd.compLevel = 1;
+        pmd.memLevel = 1;
         doClientTests(pmd);
 
         pmd.client_enable = true;
         pmd.server_enable = true;
         pmd.client_max_window_bits = 10;
         pmd.client_no_context_takeover = true;
+        pmd.compLevel = 1;
+        pmd.memLevel = 1;
         doClientTests(pmd);
-    #endif
     }
 };
 

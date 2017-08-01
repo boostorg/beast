@@ -8,6 +8,7 @@ Version 96:
 * Update boostorg links
 * Add bench-zlib
 * Faster zlib tests
+* Less compression on websocket test
 
 --------------------------------------------------------------------------------
 
