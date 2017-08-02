@@ -10,6 +10,7 @@ Version 100:
 WebSocket:
 
 * Remove obsolete frame tests
+* Refactor fail/clode code
 
 --------------------------------------------------------------------------------
 

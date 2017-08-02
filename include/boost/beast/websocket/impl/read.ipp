@@ -139,11 +139,9 @@ operator()(
         if(! ws_.parse_fh(ws_.rd_.fh, ws_.rd_.buf, code))
         {
             if(code != close_code::none)
-            {
                 // _Fail the WebSocket Connection_
-                return fail_op<Handler>{
-                    std::move(h_), ws_, code}();
-            }
+                return ws_.do_async_fail(
+                    code, error::failed, std::move(h_));
             step_ = do_loop + 1;
             return ws_.stream_.async_read_some(
                 ws_.rd_.buf.prepare(read_size(
@@ -202,19 +200,17 @@ operator()(
                 if(code != close_code::none)
                 {
                     // _Fail the WebSocket Connection_
-                    return fail_op<Handler>{
-                        std::move(h_), ws_, code}();
+                    return ws_.do_async_fail(
+                        code, error::failed, std::move(h_));
                 }
                 ws_.rd_.buf.consume(len);
                 if(ws_.ctrl_cb_)
                     ws_.ctrl_cb_(frame_type::close,
                         ws_.cr_.reason);
                 if(ws_.wr_close_)
-                {
                     // _Close the WebSocket Connection_
-                    return fail_op<Handler>{
-                        std::move(h_), ws_, fail_how::close}();
-                }
+                    return ws_.do_async_fail(close_code::none,
+                        error::closed, std::move(h_));
                 auto cr = ws_.cr_;
                 if(cr.code == close_code::none)
                     cr.code = close_code::normal;
@@ -224,8 +220,11 @@ operator()(
                     flat_static_buffer_base>(
                         ws_.rd_.fb, cr);
                 // _Start the WebSocket Closing Handshake_
-                return fail_op<Handler>{
-                    std::move(h_), ws_, fail_how::close}();
+                return ws_.do_async_fail(
+                    cr.code == close_code::none ?
+                        close_code::normal :
+                        static_cast<close_code>(cr.code),
+                    error::closed, std::move(h_));
             }
         }
         if(ws_.rd_.fh.len == 0 && ! ws_.rd_.fh.fin)
@@ -485,11 +484,9 @@ operator()(
                 if(! ws_.rd_.utf8.write(mb) ||
                     (ws_.rd_.remain == 0 && ws_.rd_.fh.fin &&
                         ! ws_.rd_.utf8.finish()))
-                {
                     // _Fail the WebSocket Connection_
-                    return fail_op<Handler>{std::move(h_),
-                        ws_, close_code::bad_payload}({}, 0);
-                }
+                    return ws_.do_async_fail(close_code::bad_payload,
+                        error::failed, std::move(h_));
             }
             bytes_written_ += bytes_transferred;
             ws_.rd_.size += bytes_transferred;
@@ -520,11 +517,9 @@ operator()(
             if(! ws_.rd_.utf8.write(mb) ||
                 (ws_.rd_.remain == 0 && ws_.rd_.fh.fin &&
                     ! ws_.rd_.utf8.finish()))
-            {
                 // _Fail the WebSocket Connection_
-                return fail_op<Handler>{std::move(h_),
-                    ws_, close_code::bad_payload}();
-            }
+                return ws_.do_async_fail(close_code::bad_payload,
+                    error::failed, std::move(h_));
         }
         bytes_written_ += bytes_transferred;
         ws_.rd_.size += bytes_transferred;
@@ -614,11 +609,9 @@ operator()(
                 break;
             if(ws_.rd_msg_max_ && beast::detail::sum_exceeds(
                 ws_.rd_.size, zs.total_out, ws_.rd_msg_max_))
-            {
                 // _Fail the WebSocket Connection_
-                return fail_op<Handler>{std::move(h_),
-                    ws_, close_code::too_big}();
-            }
+                return ws_.do_async_fail(close_code::too_big,
+                    error::failed, std::move(h_));
             cb_.consume(zs.total_out);
             ws_.rd_.size += zs.total_out;
             ws_.rd_.remain -= zs.total_in;
@@ -632,11 +625,9 @@ operator()(
                 buffer_prefix(bytes_written_, cb_.get())) || (
                     ws_.rd_.remain == 0 && ws_.rd_.fh.fin &&
                         ! ws_.rd_.utf8.finish()))
-            {
                 // _Fail the WebSocket Connection_
-                return fail_op<Handler>{std::move(h_),
-                    ws_, close_code::bad_payload}();
-            }
+                return ws_.do_async_fail(close_code::bad_payload,
+                    error::failed, std::move(h_));
         }
         break;
     }

@@ -3791,6 +3791,10 @@ private:
         http::basic_fields<Allocator>> const& req,
             Decorator const& decorator);
 
+    void
+    on_response(response_type const& resp,
+        detail::sec_ws_key_type const& key, error_code& ec);
+
     template<class Decorator>
     void
     do_accept(Decorator const& decorator,
@@ -3811,8 +3815,17 @@ private:
                 error_code& ec);
 
     void
-    do_response(response_type const& resp,
-        detail::sec_ws_key_type const& key, error_code& ec);
+    do_fail(
+        close_code code,
+        error_code ev,
+        error_code& ec);
+
+    template<class Handler>
+    void
+    do_async_fail(
+        close_code code,
+        error_code ev,
+        Handler&& handler);
 };
 
 } // websocket

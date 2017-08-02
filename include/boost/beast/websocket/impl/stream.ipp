@@ -631,7 +631,7 @@ build_response(http::request<Body,
 template<class NextLayer>
 void
 stream<NextLayer>::
-do_response(response_type const& res,
+on_response(response_type const& res,
     detail::sec_ws_key_type const& key, error_code& ec)
 {
     bool const success = [&]()

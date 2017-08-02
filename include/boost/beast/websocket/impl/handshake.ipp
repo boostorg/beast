@@ -155,7 +155,7 @@ operator()(error_code ec, bool again)
         // got response
         case 2:
         {
-            d.ws.do_response(d.res, d.key, ec);
+            d.ws.on_response(d.res, d.key, ec);
             // call handler
             d.state = 99;
             break;
@@ -416,7 +416,7 @@ do_handshake(
     http::read(next_layer(), rd_.buf, res, ec);
     if(ec)
         return;
-    do_response(res, key, ec);
+    on_response(res, key, ec);
     if(res_p)
         *res_p = std::move(res);
 }

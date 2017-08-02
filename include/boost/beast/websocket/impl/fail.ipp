@@ -39,7 +39,8 @@ class stream<NextLayer>::fail_op
     stream<NextLayer>& ws_;
     int step_ = 0;
     bool dispatched_ = false;
-    fail_how how_;
+    close_code code_;
+    error_code ev_;
     token tok_;
 
 public:
@@ -51,27 +52,12 @@ public:
     fail_op(
         DeducedHandler&& h,
         stream<NextLayer>& ws,
-        close_code code)
+        close_code code,
+        error_code ev)
         : h_(std::forward<DeducedHandler>(h))
         , ws_(ws)
-        , how_(fail_how::code)
-        , tok_(ws_.t_.unique())
-    {
-        ws_.rd_.fb.consume(ws_.rd_.fb.size());
-        ws_.template write_close<
-            flat_static_buffer_base>(
-                ws_.rd_.fb, code);
-    }
-
-    // maybe send frame in fb, then teardown
-    template<class DeducedHandler>
-    fail_op(
-        DeducedHandler&& h,
-        stream<NextLayer>& ws,
-        fail_how how)
-        : h_(std::forward<DeducedHandler>(h))
-        , ws_(ws)
-        , how_(how)
+        , code_(code)
+        , ev_(ev)
         , tok_(ws_.t_.unique())
     {
     }
@@ -168,12 +154,16 @@ operator()(error_code ec, std::size_t)
             ec = boost::asio::error::operation_aborted;
             break;
         }
-        if(how_ == fail_how::teardown)
+        if(code_ == close_code::none)
             goto go_teardown;
         if(ws_.wr_close_)
             goto go_teardown;
         // send close frame
         step_ = do_teardown;
+        ws_.rd_.fb.consume(ws_.rd_.fb.size());
+        ws_.template write_close<
+            flat_static_buffer_base>(
+                ws_.rd_.fb, code_);
         ws_.wr_close_ = true;
         return boost::asio::async_write(
             ws_.stream_, ws_.rd_.fb.data(),
@@ -192,13 +182,12 @@ operator()(error_code ec, std::size_t)
         BOOST_ASSERT(ws_.wr_block_ == tok_);
         step_ = do_teardown + 1;
         websocket_helpers::call_async_teardown(
-            ws_.next_layer(), std::move(*this));
+            ws_.stream_, std::move(*this));
         return;
 
     case do_teardown + 1:
         BOOST_ASSERT(ws_.wr_block_ == tok_);
         dispatched_ = true;
-        ws_.failed_ = true;
         ws_.wr_block_.reset();
         if(ec == boost::asio::error::eof)
         {
@@ -207,15 +196,8 @@ operator()(error_code ec, std::size_t)
             ec.assign(0, ec.category());
         }
         if(! ec)
-        {
-            switch(how_)
-            {
-            default:
-            case fail_how::code:
-            case fail_how::teardown:    ec = error::failed; break;
-            case fail_how::close:       ec = error::closed; break;
-            }
-        }
+            ec = ev_;
+        ws_.failed_ = true;
         break;
     }
     // upcall
@@ -228,6 +210,61 @@ operator()(error_code ec, std::size_t)
             bind_handler(std::move(h_), ec, 0));
     else
         h_(ec, 0);
+}
+
+//------------------------------------------------------------------------------
+
+/*  _Fail the WebSocket Connection_
+*/
+template<class NextLayer>
+void
+stream<NextLayer>::
+do_fail(
+    close_code code,            // if set, send a close frame first
+    error_code ev,              // error code to use upon success
+    error_code& ec)             // set to the error, else set to ev
+{
+    BOOST_ASSERT(ev);
+    if(code != close_code::none && ! wr_close_)
+    {
+        wr_close_ = true;
+        detail::frame_streambuf fb;
+        write_close<flat_static_buffer_base>(fb, code);
+        boost::asio::write(stream_, fb.data(), ec);
+        failed_ = !!ec;
+        if(failed_)
+            return;
+    }
+    websocket_helpers::call_teardown(stream_, ec);
+    if(ec == boost::asio::error::eof)
+    {
+        // Rationale:
+        // http://stackoverflow.com/questions/25587403/boost-asio-ssl-async-shutdown-always-finishes-with-an-error
+        ec.assign(0, ec.category());
+    }
+    failed_ = !!ec;
+    if(failed_)
+        return;
+    ec = ev;
+    failed_ = true;
+}
+
+/*  _Fail the WebSocket Connection_
+*/
+template<class NextLayer>
+template<class Handler>
+void
+stream<NextLayer>::
+do_async_fail(
+    close_code code,            // if set, send a close frame first
+    error_code ev,              // error code to use upon success
+    Handler&& handler)
+{
+    fail_op<typename std::decay<Handler>::type>{
+        std::forward<Handler>(handler),
+        *this,
+        code,
+        ev}();
 }
 
 } // websocket
