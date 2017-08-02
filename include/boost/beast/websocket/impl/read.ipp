@@ -995,7 +995,10 @@ loop:
         while(! parse_fh(rd_.fh, rd_.buf, code))
         {
             if(code != close_code::none)
-                goto do_close;
+            {
+                do_fail(code, error::failed, ec);
+                return bytes_written;
+            }
             auto const bytes_transferred =
                 stream_.read_some(
                     rd_.buf.prepare(read_size(
@@ -1056,26 +1059,25 @@ loop:
                 rd_close_ = true;
                 detail::read_close(cr_, cb, code);
                 if(code != close_code::none)
-                    goto do_close;
+                {
+                    do_fail(code, error::failed, ec);
+                    return bytes_written;
+                }
                 rd_.buf.consume(len);
                 if(ctrl_cb_)
                     ctrl_cb_(frame_type::close, cr_.reason);
                 if(! wr_close_)
                 {
-                    auto cr = cr_;
-                    if(cr.code == close_code::none)
-                        cr.code = close_code::normal;
-                    cr.reason = "";
-                    detail::frame_streambuf fb;
-                    wr_close_ = true;
-                    write_close<
-                        flat_static_buffer_base>(fb, cr);
-                    boost::asio::write(stream_, fb.data(), ec);
-                    failed_ = !!ec;
-                    if(failed_)
-                        return bytes_written;
+                    do_fail(
+                        cr_.code == close_code::none ?
+                            close_code::normal :
+                            static_cast<close_code>(cr_.code),
+                        error::closed,
+                        ec);
+                    return bytes_written;
                 }
-                goto do_close;
+                do_fail(close_code::none, error::closed, ec);
+                return bytes_written;
             }
         }
         if(rd_.fh.len == 0 && ! rd_.fh.fin)
@@ -1127,8 +1129,11 @@ loop:
                         (rd_.remain == 0 && rd_.fh.fin &&
                             ! rd_.utf8.finish()))
                     {
-                        code = close_code::bad_payload;
-                        goto do_close;
+                        do_fail(
+                            close_code::bad_payload,
+                            error::failed,
+                            ec);
+                        return bytes_written;
                     }
                 }
                 bytes_written += bytes_transferred;
@@ -1158,8 +1163,11 @@ loop:
                         (rd_.remain == 0 && rd_.fh.fin &&
                             ! rd_.utf8.finish()))
                     {
-                        code = close_code::bad_payload;
-                        goto do_close;
+                        do_fail(
+                            close_code::bad_payload,
+                            error::failed,
+                            ec);
+                        return bytes_written;
                     }
                 }
                 bytes_written += bytes_transferred;
@@ -1264,8 +1272,11 @@ loop:
                 if(rd_msg_max_ && beast::detail::sum_exceeds(
                     rd_.size, zs.total_out, rd_msg_max_))
                 {
-                    code = close_code::too_big;
-                    goto do_close;
+                    do_fail(
+                        close_code::too_big,
+                        error::failed,
+                        ec);
+                    return bytes_written;
                 }
                 cb.consume(zs.total_out);
                 rd_.size += zs.total_out;
@@ -1281,53 +1292,15 @@ loop:
                         rd_.remain == 0 && rd_.fh.fin &&
                             ! rd_.utf8.finish()))
                 {
-                    code = close_code::bad_payload;
-                    goto do_close;
+                    do_fail(
+                        close_code::bad_payload,
+                        error::failed,
+                        ec);
+                    return bytes_written;
                 }
             }
         }
     }
-    return bytes_written;
-do_close:
-    if(code != close_code::none)
-    {
-        // Fail the connection (per rfc6455)
-        if(! wr_close_)
-        {
-            wr_close_ = true;
-            detail::frame_streambuf fb;
-            write_close<flat_static_buffer_base>(fb, code);
-            boost::asio::write(stream_, fb.data(), ec);
-            failed_ = !!ec;
-            if(failed_)
-                return bytes_written;
-        }
-        websocket_helpers::call_teardown(next_layer(), ec);
-        if(ec == boost::asio::error::eof)
-        {
-            // Rationale:
-            // http://stackoverflow.com/questions/25587403/boost-asio-ssl-async-shutdown-always-finishes-with-an-error
-            ec.assign(0, ec.category());
-        }
-        failed_ = !!ec;
-        if(failed_)
-            return bytes_written;
-        ec = error::failed;
-        failed_ = true;
-        return bytes_written;
-    }
-    if(! ec)
-    {
-        websocket_helpers::call_teardown(next_layer(), ec);
-        if(ec == boost::asio::error::eof)
-        {
-            // (See above)
-            ec.assign(0, ec.category());
-        }
-    }
-    if(! ec)
-        ec = error::closed;
-    failed_ = !!ec;
     return bytes_written;
 }
 
