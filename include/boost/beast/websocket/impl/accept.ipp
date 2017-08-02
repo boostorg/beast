@@ -299,6 +299,8 @@ operator()(error_code ec)
     
     case 1:
     {
+        if(ec == http::error::end_of_stream)
+            ec = error::closed;
         if(ec)
             break;
         // Arguments from our step must be
@@ -877,8 +879,9 @@ do_accept(
     error_code& ec)
 {
     http::request_parser<http::empty_body> p;
-    http::read(next_layer(),
-        rd_.buf, p, ec);
+    http::read(next_layer(), rd_.buf, p, ec);
+    if(ec == http::error::end_of_stream)
+        ec = error::closed;
     if(ec)
         return;
     do_accept(p.get(), decorator, ec);
