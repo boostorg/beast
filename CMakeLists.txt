@@ -61,6 +61,10 @@ else()
     endif ()
 endif()
 
+# Must come before Boost includes, otherwise the
+# IDE sees the wrong file due to boost/ symlinks.
+include_directories (include)
+
 #-------------------------------------------------------------------------------
 #
 # Boost
@@ -163,7 +167,6 @@ endif()
 # Tests and examples
 #
 
-include_directories (include)
 include_directories (.)
 
 if (OPENSSL_FOUND)

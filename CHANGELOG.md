@@ -5,6 +5,7 @@ Version 100:
 * Remove unused test header
 * Rename test macros
 * Reorder define test macro params
+* vcxproj workaround for include symlinks
 
 WebSocket:
 
