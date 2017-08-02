@@ -42,7 +42,7 @@ public:
     }
 };
 
-BEAST_DEFINE_TESTSUITE(read_size,core,beast);
+BEAST_DEFINE_TESTSUITE(beast,core,read_size);
 
 } // beast
 } // boost

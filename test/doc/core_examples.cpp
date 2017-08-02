@@ -81,7 +81,7 @@ public:
     }
 };
 
-BEAST_DEFINE_TESTSUITE(examples,core,beast);
+BEAST_DEFINE_TESTSUITE(beast,core,examples);
 
 } // beast
 } // boost

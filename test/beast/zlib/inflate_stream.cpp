@@ -372,7 +372,7 @@ public:
     }
 };
 
-BEAST_DEFINE_TESTSUITE(inflate_stream,core,beast);
+BEAST_DEFINE_TESTSUITE(beast,zlib,inflate_stream);
 
 } // zlib
 } // beast

@@ -238,7 +238,7 @@ public:
     }
 };
 
-BEAST_DEFINE_TESTSUITE(inflate_stream,zlib,beast);
+BEAST_DEFINE_TESTSUITE(beast,zlib,inflate_stream);
 
 } // zlib
 } // beast

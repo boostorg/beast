@@ -54,7 +54,7 @@ public:
     }
 };
 
-BEAST_DEFINE_TESTSUITE(span,core,beast);
+BEAST_DEFINE_TESTSUITE(beast,core,span);
 
 } // beast
 } // boost

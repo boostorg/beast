@@ -50,7 +50,7 @@ public:
     }
 };
 
-BEAST_DEFINE_TESTSUITE(mask,websocket,beast);
+BEAST_DEFINE_TESTSUITE(beast,websocket,mask);
 
 } // detail
 } // websocket

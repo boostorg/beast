@@ -349,7 +349,7 @@ public:
     }
 };
 
-BEAST_DEFINE_TESTSUITE(flat_buffer,core,beast);
+BEAST_DEFINE_TESTSUITE(beast,core,flat_buffer);
 
 } // beast
 } // boost

@@ -53,7 +53,7 @@ public:
     }
 };
 
-BEAST_DEFINE_TESTSUITE(base64,core,beast);
+BEAST_DEFINE_TESTSUITE(beast,core,base64);
 
 } // detail
 } // beast

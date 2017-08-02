@@ -1997,7 +1997,7 @@ public:
     }
 };
 
-BEAST_DEFINE_TESTSUITE(stream,websocket,beast);
+BEAST_DEFINE_TESTSUITE(beast,websocket,stream);
 
 } // websocket
 } // beast

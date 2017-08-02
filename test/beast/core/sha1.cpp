@@ -76,7 +76,7 @@ public:
     }
 };
 
-BEAST_DEFINE_TESTSUITE(sha1,core,beast);
+BEAST_DEFINE_TESTSUITE(beast,core,sha1);
 
 } // test
 } // beast

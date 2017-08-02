@@ -300,7 +300,7 @@ public:
     }
 };
 
-BEAST_DEFINE_TESTSUITE(parser,benchmarks,beast);
+BEAST_DEFINE_TESTSUITE(beast,benchmarks,parser);
 
 } // http
 } // beast

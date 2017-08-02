@@ -590,7 +590,7 @@ public:
     }
 };
 
-BEAST_DEFINE_TESTSUITE(multi_buffer,core,beast);
+BEAST_DEFINE_TESTSUITE(beast,core,multi_buffer);
 
 } // beast
 } // boost

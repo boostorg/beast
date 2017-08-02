@@ -860,7 +860,7 @@ public:
     }
 };
 
-BEAST_DEFINE_TESTSUITE(write,http,beast);
+BEAST_DEFINE_TESTSUITE(beast,http,write);
 
 } // http
 } // beast

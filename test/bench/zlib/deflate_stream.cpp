@@ -193,7 +193,7 @@ public:
     }
 };
 
-BEAST_DEFINE_TESTSUITE(deflate_stream,zlib,beast);
+BEAST_DEFINE_TESTSUITE(beast,zlib,deflate_stream);
 
 } // zlib
 } // beast

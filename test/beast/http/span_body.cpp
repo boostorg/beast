@@ -73,7 +73,7 @@ struct span_body_test
     }
 };
 
-BEAST_DEFINE_TESTSUITE(span_body,http,beast);
+BEAST_DEFINE_TESTSUITE(beast,http,span_body);
 
 } // http
 } // beast

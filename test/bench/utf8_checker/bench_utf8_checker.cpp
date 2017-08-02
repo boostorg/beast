@@ -150,7 +150,7 @@ public:
     }
 };
 
-BEAST_DEFINE_TESTSUITE(utf8_checker,benchmarks,beast);
+BEAST_DEFINE_TESTSUITE(beast,benchmarks,utf8_checker);
 
 } // beast
 } // boost

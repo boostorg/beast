@@ -451,7 +451,7 @@ public:
     }
 };
 
-BEAST_DEFINE_TESTSUITE(examples,http,beast);
+BEAST_DEFINE_TESTSUITE(beast,http,examples);
 
 } // http
 } // beast

@@ -58,7 +58,7 @@ public:
     }
 };
 
-BEAST_DEFINE_TESTSUITE(error,zlib,beast);
+BEAST_DEFINE_TESTSUITE(beast,zlib,error);
 
 } // zlib
 } // beast

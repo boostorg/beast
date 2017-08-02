@@ -1240,7 +1240,7 @@ public:
     }
 };
 
-BEAST_DEFINE_TESTSUITE(basic_parser,http,beast);
+BEAST_DEFINE_TESTSUITE(beast,http,basic_parser);
 
 } // http
 } // beast

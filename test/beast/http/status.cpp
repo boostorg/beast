@@ -172,7 +172,7 @@ public:
     }
 };
 
-BEAST_DEFINE_TESTSUITE(status,http,beast);
+BEAST_DEFINE_TESTSUITE(beast,http,status);
 
 } // http
 } // beast

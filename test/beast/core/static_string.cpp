@@ -1474,7 +1474,7 @@ public:
     }
 };
 
-BEAST_DEFINE_TESTSUITE(static_string,core,beast);
+BEAST_DEFINE_TESTSUITE(beast,core,static_string);
 
 } // beast
 } // boost

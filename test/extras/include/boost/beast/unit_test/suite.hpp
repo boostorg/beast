@@ -626,7 +626,7 @@ run(runner& r)
 
 // detail:
 // This inserts the suite with the given manual flag
-#define BEAST_DEFINE_TESTSUITE_INSERT(Class,Module,Library,manual) \
+#define BEAST_DEFINE_TESTSUITE_INSERT(Library,Module,Class,manual) \
     static beast::unit_test::detail::insert_suite <Class##_test>   \
         Library ## Module ## Class ## _test_instance(             \
             #Class, #Module, #Library, manual)
@@ -651,9 +651,9 @@ run(runner& r)
 
 /** Define a unit test suite.
 
-    Class     The type representing the class being tested.
-    Module    Identifies the module.
     Library   Identifies the library.
+    Module    Identifies the module.
+    Class     The type representing the class being tested.
 
     The declaration for the class implementing the test should be the same
     as Class ## _test. For example, if Class is aged_ordered_container, the
@@ -676,10 +676,10 @@ run(runner& r)
 
 #else
 #include <boost/beast/unit_test/global_suites.hpp>
-#define BEAST_DEFINE_TESTSUITE(Class,Module,Library) \
-        BEAST_DEFINE_TESTSUITE_INSERT(Class,Module,Library,false)
-#define BEAST_DEFINE_TESTSUITE_MANUAL(Class,Module,Library) \
-        BEAST_DEFINE_TESTSUITE_INSERT(Class,Module,Library,true)
+#define BEAST_DEFINE_TESTSUITE(Library,Module,Class) \
+        BEAST_DEFINE_TESTSUITE_INSERT(Library,Module,Class,false)
+#define BEAST_DEFINE_TESTSUITE_MANUAL(Library,Module,Class) \
+        BEAST_DEFINE_TESTSUITE_INSERT(Library,Module,Class,true)
 
 #endif
 

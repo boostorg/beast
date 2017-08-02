@@ -44,7 +44,7 @@ public:
     }
 };
 
-BEAST_DEFINE_TESTSUITE(error,websocket,beast);
+BEAST_DEFINE_TESTSUITE(beast,websocket,error);
 
 } // websocket
 } // beast

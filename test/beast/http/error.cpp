@@ -65,7 +65,7 @@ public:
     }
 };
 
-BEAST_DEFINE_TESTSUITE(error,http,beast);
+BEAST_DEFINE_TESTSUITE(beast,http,error);
 
 } // http
 } // beast

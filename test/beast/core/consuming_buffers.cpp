@@ -179,7 +179,7 @@ public:
     }
 };
 
-BEAST_DEFINE_TESTSUITE(consuming_buffers,core,beast);
+BEAST_DEFINE_TESTSUITE(beast,core,consuming_buffers);
 
 } // beast
 } // boost

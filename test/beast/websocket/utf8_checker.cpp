@@ -389,9 +389,7 @@ public:
     }
 };
 
-#if defined(NDEBUG) && ! BOOST_BEAST_NO_SLOW_TESTS
-BEAST_DEFINE_TESTSUITE(utf8_checker,websocket,beast);
-#endif
+BEAST_DEFINE_TESTSUITE(beast,websocket,utf8_checker);
 
 } // detail
 } // websocket

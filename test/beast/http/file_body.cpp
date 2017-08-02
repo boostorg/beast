@@ -109,7 +109,7 @@ public:
     }
 };
 
-BEAST_DEFINE_TESTSUITE(file_body,http,beast);
+BEAST_DEFINE_TESTSUITE(beast,http,file_body);
 
 } // http
 } // beast
