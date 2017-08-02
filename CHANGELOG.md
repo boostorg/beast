@@ -6,6 +6,10 @@ Version 100:
 * Rename test macros
 * Reorder define test macro params
 
+WebSocket:
+
+* Remove obsolete frame tests
+
 --------------------------------------------------------------------------------
 
 Version 99:

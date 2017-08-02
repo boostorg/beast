@@ -3769,16 +3769,6 @@ private:
         DynamicBuffer& b, close_code& code);
 
     template<class DynamicBuffer>
-    std::size_t
-    read_fh1(detail::frame_header& fh,
-        DynamicBuffer& db, close_code& code);
-
-    template<class DynamicBuffer>
-    void
-    read_fh2(detail::frame_header& fh,
-        DynamicBuffer& db, close_code& code);
-
-    template<class DynamicBuffer>
     void
     write_close(DynamicBuffer& db, close_reason const& rc);
 
