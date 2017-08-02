@@ -446,10 +446,10 @@ public:
         frame and whether or not the permessage-deflate extension is
         enabled.
 
-        @param initial_size A size representing the caller's desired
-        buffer size for when there is no information which may be used
-        to calculate a more specific value. For example, when reading
-        the first frame header of a message.
+        @param initial_size A non-zero size representing the caller's
+        desired buffer size for when there is no information which may
+        be used to calculate a more specific value. For example, when
+        reading the first frame header of a message.
     */
     std::size_t
     read_size_hint(
@@ -3816,14 +3816,14 @@ private:
 
     void
     do_fail(
-        close_code code,
+        std::uint16_t code,
         error_code ev,
         error_code& ec);
 
     template<class Handler>
     void
     do_async_fail(
-        close_code code,
+        std::uint16_t code,
         error_code ev,
         Handler&& handler);
 };

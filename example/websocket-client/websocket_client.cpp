@@ -69,32 +69,13 @@ int main()
     if(ec)
         return fail("read", ec);
 
-    // Send a "close" frame to the other end, this is a websocket thing
+    // Close the WebSocket connection
     ws.close(websocket::close_code::normal, ec);
     if(ec)
         return fail("close", ec);
 
     // The buffers() function helps print a ConstBufferSequence
     std::cout << boost::beast::buffers(b.data()) << std::endl;
-
-    // WebSocket says that to close a connection you have
-    // to keep reading messages until you receive a close frame.
-    // Beast delivers the close frame as an error from read.
-    //
-    boost::beast::drain_buffer drain; // Throws everything away efficiently
-    for(;;)
-    {
-        // Keep reading messages...
-        ws.read(drain, ec);
-
-        // ...until we get the special error code
-        if(ec == websocket::error::closed)
-            break;
-
-        // Some other error occurred, report it and exit.
-        if(ec)
-            return fail("close", ec);
-    }
 
     // If we get here the connection was cleanly closed
     return EXIT_SUCCESS;

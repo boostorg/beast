@@ -50,14 +50,23 @@ class stream_impl
     template<class Handler, class Buffers>
     class read_op_impl;
 
+    enum class status
+    {
+        ok,
+        eof,
+        reset
+    };
+
     struct state
     {
+        friend class stream;
+
         std::mutex m;
         buffer_type b;
         std::condition_variable cv;
         std::unique_ptr<read_op> op;
         boost::asio::io_service& ios;
-        bool eof = false;
+        status code = status::ok;
         fail_counter* fc = nullptr;
         std::size_t nread = 0;
         std::size_t nwrite = 0;
@@ -75,7 +84,24 @@ class stream_impl
         {
         }
 
-        friend class stream;
+        ~state()
+        {
+            BOOST_ASSERT(! op);
+        }
+
+        void
+        on_write()
+        {
+            if(op)
+            {
+                std::unique_ptr<read_op> op_ = std::move(op);
+                op_->operator()();
+            }
+            else
+            {
+                cv.notify_all();
+            }
+        }
     };
 
     state s0_;
@@ -86,52 +112,57 @@ public:
         boost::asio::io_service& ios,
         fail_counter* fc)
         : s0_(ios, fc)
-        , s1_(ios, fc)
+        , s1_(ios, nullptr)
     {
+    }
+
+    ~stream_impl()
+    {
+        BOOST_ASSERT(! s0_.op);
+        BOOST_ASSERT(! s1_.op);
     }
 };
 
 template<class Handler, class Buffers>
 class stream_impl::read_op_impl : public stream_impl::read_op
 {
-    state& s_;
-    Buffers b_;
-    Handler h_;
-
-public:
-    read_op_impl(state& s,
-            Buffers const& b, Handler&& h)
-        : s_(s)
-        , b_(b)
-        , h_(std::move(h))
+    class lambda
     {
-    }
+        state& s_;
+        Buffers b_;
+        Handler h_;
 
-    read_op_impl(state& s,
-            Buffers const& b, Handler const& h)
-        : s_(s)
-        , b_(b)
-        , h_(h)
-    {
-    }
+    public:
+        lambda(lambda&&) = default;
+        lambda(lambda const&) = default;
 
-    void
-    operator()() override;
-};
-
-template<class Handler, class Buffers>
-void
-stream_impl::
-read_op_impl<Handler, Buffers>::
-operator()()
-{
-    using boost::asio::buffer_copy;
-    using boost::asio::buffer_size;
-    s_.ios.post(
-        [&]()
+        lambda(state& s, Buffers const& b, Handler&& h)
+            : s_(s)
+            , b_(b)
+            , h_(std::move(h))
         {
-            BOOST_ASSERT(s_.op);
+        }
+
+        lambda(state& s, Buffers const& b, Handler const& h)
+            : s_(s)
+            , b_(b)
+            , h_(h)
+        {
+        }
+
+        void
+        post()
+        {
+            s_.ios.post(std::move(*this));
+        }
+
+        void
+        operator()()
+        {
+            using boost::asio::buffer_copy;
+            using boost::asio::buffer_size;
             std::unique_lock<std::mutex> lock{s_.m};
+            BOOST_ASSERT(! s_.op);
             if(s_.b.size() > 0)
             {
                 auto const bytes_transferred = buffer_copy(
@@ -139,7 +170,6 @@ operator()()
                 s_.b.consume(bytes_transferred);
                 auto& s = s_;
                 Handler h{std::move(h_)};
-                s.op.reset(nullptr);
                 lock.unlock();
                 ++s.nread;
                 s.ios.post(bind_handler(std::move(h),
@@ -147,17 +177,40 @@ operator()()
             }
             else
             {
-                BOOST_ASSERT(s_.eof);
+                BOOST_ASSERT(s_.code != status::ok);
                 auto& s = s_;
                 Handler h{std::move(h_)};
-                s.op.reset(nullptr);
                 lock.unlock();
                 ++s.nread;
-                s.ios.post(bind_handler(std::move(h),
-                    boost::asio::error::eof, 0));
+                error_code ec;
+                if(s.code == status::eof)
+                    ec = boost::asio::error::eof;
+                else if(s.code == status::reset)
+                    ec = boost::asio::error::connection_reset;
+                s.ios.post(bind_handler(std::move(h), ec, 0));
             }
-        });
-}
+        }
+    };
+
+    lambda fn_;
+
+public:
+    read_op_impl(state& s, Buffers const& b, Handler&& h)
+        : fn_(s, b, std::move(h))
+    {
+    }
+
+    read_op_impl(state& s, Buffers const& b, Handler const& h)
+        : fn_(s, b, h)
+    {
+    }
+
+    void
+    operator()() override
+    {
+        fn_.post();
+    }
+};
 
 } // detail
 
@@ -175,6 +228,8 @@ operator()()
 */
 class stream
 {
+    using status = detail::stream_impl::status;
+
     std::shared_ptr<detail::stream_impl> impl_;
     detail::stream_impl::state& in_;
     detail::stream_impl::state& out_;
@@ -191,9 +246,29 @@ class stream
 public:
     using buffer_type = flat_buffer;
 
-    ~stream() = default;
-    stream(stream&&) = default;
     stream& operator=(stream const&) = delete;
+
+    /// Destructor
+    ~stream()
+    {
+        if(! impl_)
+            return;
+        BOOST_ASSERT(! in_.op);
+        std::unique_lock<std::mutex> lock{out_.m};
+        if(out_.code == status::ok)
+        {
+            out_.code = status::reset;
+            out_.on_write();
+        }
+        lock.unlock();
+    }
+
+    stream(stream&& other)
+        : impl_(std::move(other.impl_))
+        , in_(other.in_)
+        , out_(other.out_)
+    {
+    }
 
     /// Constructor
     explicit
@@ -298,15 +373,17 @@ public:
             buffer_size(*in_.b.data().begin())};
     }
 
-    /// Clear the buffer holding the input data
-    /*
+    /// Appends a string to the pending input data
     void
-    clear()
+    str(string_view s)
     {
-        in_.b.consume((std::numeric_limits<
-            std::size_t>::max)());
+        using boost::asio::buffer;
+        using boost::asio::buffer_copy;
+        std::unique_lock<std::mutex> lock{in_.m};
+        in_.b.commit(buffer_copy(
+            in_.b.prepare(s.size()),
+            buffer(s.data(), s.size())));
     }
-    */
 
     /// Return the number of reads
     std::size_t
@@ -409,7 +486,9 @@ read_some(MutableBufferSequence const& buffers,
     in_.cv.wait(lock,
         [&]()
         {
-            return in_.b.size() > 0 || in_.eof;
+            return
+                in_.b.size() > 0 ||
+                in_.code != status::ok;
         });
     std::size_t bytes_transferred;
     if(in_.b.size() > 0)
@@ -421,9 +500,12 @@ read_some(MutableBufferSequence const& buffers,
     }
     else
     {
-        BOOST_ASSERT(in_.eof);
+        BOOST_ASSERT(in_.code != status::ok);
         bytes_transferred = 0;
-        ec = boost::asio::error::eof;
+        if(in_.code == status::eof)
+            ec = boost::asio::error::eof;
+        else if(in_.code == status::reset)
+            ec = boost::asio::error::connection_reset;
     }
     ++in_.nread;
     return bytes_transferred;
@@ -433,7 +515,8 @@ template<class MutableBufferSequence, class ReadHandler>
 async_return_type<
     ReadHandler, void(error_code, std::size_t)>
 stream::
-async_read_some(MutableBufferSequence const& buffers,
+async_read_some(
+    MutableBufferSequence const& buffers,
     ReadHandler&& handler)
 {
     static_assert(is_mutable_buffer_sequence<
@@ -454,14 +537,7 @@ async_read_some(MutableBufferSequence const& buffers,
     }
     {
         std::unique_lock<std::mutex> lock{in_.m};
-        if(in_.eof)
-        {
-            lock.unlock();
-            ++in_.nread;
-            in_.ios.post(bind_handler(init.completion_handler,
-                boost::asio::error::eof, 0));
-        }
-        else if(buffer_size(buffers) == 0 ||
+        if(buffer_size(buffers) == 0 ||
             buffer_size(in_.b.data()) > 0)
         {
             auto const bytes_transferred = buffer_copy(
@@ -471,6 +547,18 @@ async_read_some(MutableBufferSequence const& buffers,
             ++in_.nread;
             in_.ios.post(bind_handler(init.completion_handler,
                 error_code{}, bytes_transferred));
+        }
+        else if(in_.code != status::ok)
+        {
+            lock.unlock();
+            ++in_.nread;
+            error_code ec;
+            if(in_.code == status::eof)
+                ec = boost::asio::error::eof;
+            else if(in_.code == status::reset)
+                ec = boost::asio::error::connection_reset;
+            in_.ios.post(bind_handler(
+                init.completion_handler, ec, 0));
         }
         else
         {
@@ -492,7 +580,7 @@ write_some(ConstBufferSequence const& buffers)
     static_assert(is_const_buffer_sequence<
             ConstBufferSequence>::value,
         "ConstBufferSequence requirements not met");
-    BOOST_ASSERT(! out_.eof);
+    BOOST_ASSERT(out_.code == status::ok);
     error_code ec;
     auto const bytes_transferred =
         write_some(buffers, ec);
@@ -512,7 +600,7 @@ write_some(
         "ConstBufferSequence requirements not met");
     using boost::asio::buffer_copy;
     using boost::asio::buffer_size;
-    BOOST_ASSERT(! out_.eof);
+    BOOST_ASSERT(out_.code == status::ok);
     if(in_.fc && in_.fc->fail(ec))
         return 0;
     auto const n = (std::min)(
@@ -521,10 +609,7 @@ write_some(
     auto const bytes_transferred =
         buffer_copy(out_.b.prepare(n), buffers);
     out_.b.commit(bytes_transferred);
-    if(out_.op)
-        out_.op.get()->operator()();
-    else
-        out_.cv.notify_all();
+    out_.on_write();
     lock.unlock();
     ++out_.nwrite;
     ec.assign(0, ec.category());
@@ -543,7 +628,7 @@ async_write_some(ConstBufferSequence const& buffers,
         "ConstBufferSequence requirements not met");
     using boost::asio::buffer_copy;
     using boost::asio::buffer_size;
-    BOOST_ASSERT(! out_.eof);
+    BOOST_ASSERT(out_.code == status::ok);
     async_completion<WriteHandler,
         void(error_code, std::size_t)> init{handler};
     if(in_.fc)
@@ -559,10 +644,7 @@ async_write_some(ConstBufferSequence const& buffers,
     auto const bytes_transferred =
         buffer_copy(out_.b.prepare(n), buffers);
     out_.b.commit(bytes_transferred);
-    if(out_.op)
-        out_.op.get()->operator()();
-    else
-        out_.cv.notify_all();
+    out_.on_write();
     lock.unlock();
     ++out_.nwrite;
     in_.ios.post(bind_handler(init.completion_handler,
@@ -607,14 +689,12 @@ void
 stream::
 close()
 {
+    BOOST_ASSERT(! in_.op);
     std::lock_guard<std::mutex> lock{out_.m};
-    if(! out_.eof)
+    if(out_.code == status::ok)
     {
-        out_.eof = true;
-        if(out_.op)
-            out_.op.get()->operator()();
-        else
-            out_.cv.notify_all();
+        out_.code = status::eof;
+        out_.on_write();
     }
 }
 

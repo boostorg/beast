@@ -16,6 +16,16 @@ WebSocket:
 * eof on accept returns error::closed
 * Fix stream::read_size_hint calculation
 
+API Changes:
+
+* Calls to stream::close and stream::async_close will
+  automatically perform the required read operations
+
+Actions Required:
+
+* Remove calling code which drains the connection after
+  calling stream::close or stream::async_close
+
 --------------------------------------------------------------------------------
 
 Version 99:

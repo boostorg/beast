@@ -216,27 +216,7 @@ private:
     {
         if(ec)
             return fail("on_close", ec);
-        do_drain();
     }
-
-    void
-    do_drain()
-    {
-        ws_.async_read(buffer_,
-            alloc_.wrap(std::bind(
-                &connection::on_drain,
-                shared_from_this(),
-                ph::_1)));
-    }
-
-    void
-    on_drain(error_code ec)
-    {
-        if(ec)
-            return fail("on_drain", ec);
-        do_drain();
-    }
-
 };
 
 class timer

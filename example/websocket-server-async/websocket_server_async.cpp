@@ -64,8 +64,7 @@ class server
         boost::asio::basic_waitable_timer<
             clock_type> timer_;                 // Needed for timeouts
         boost::asio::io_service::strand strand_;// Needed when threads > 1
-        boost::beast::multi_buffer buffer_;            // Stores the current message
-        boost::beast::drain_buffer drain_;             // Helps discard data on close
+        boost::beast::multi_buffer buffer_;     // Stores the current message
         std::size_t id_;                        // A small unique id
 
     public:

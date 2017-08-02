@@ -70,6 +70,7 @@ variant ubasan
     :
     <cxxflags>"-msse4.2 -funsigned-char -fno-omit-frame-pointer -fsanitize=address,undefined -fsanitize-blacklist=libs/beast/build/blacklist.supp"
     <linkflags>"-fsanitize=address,undefined"
+    <define>BOOST_USE_ASAN=1
     ;
 
 #cxx11_hdr_type_traits

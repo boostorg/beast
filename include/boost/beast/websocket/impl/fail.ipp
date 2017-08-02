@@ -39,7 +39,7 @@ class stream<NextLayer>::fail_op
     stream<NextLayer>& ws_;
     int step_ = 0;
     bool dispatched_ = false;
-    close_code code_;
+    std::uint16_t code_;
     error_code ev_;
     token tok_;
 
@@ -47,12 +47,11 @@ public:
     fail_op(fail_op&&) = default;
     fail_op(fail_op const&) = default;
 
-    // send close code, then teardown
     template<class DeducedHandler>
     fail_op(
         DeducedHandler&& h,
         stream<NextLayer>& ws,
-        close_code code,
+        std::uint16_t code,
         error_code ev)
         : h_(std::forward<DeducedHandler>(h))
         , ws_(ws)
@@ -220,7 +219,7 @@ template<class NextLayer>
 void
 stream<NextLayer>::
 do_fail(
-    close_code code,            // if set, send a close frame first
+    std::uint16_t code,         // if set, send a close frame first
     error_code ev,              // error code to use upon success
     error_code& ec)             // set to the error, else set to ev
 {
@@ -256,7 +255,7 @@ template<class Handler>
 void
 stream<NextLayer>::
 do_async_fail(
-    close_code code,            // if set, send a close frame first
+    std::uint16_t code,         // if set, send a close frame first
     error_code ev,              // error code to use upon success
     Handler&& handler)
 {

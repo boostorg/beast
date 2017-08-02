@@ -196,34 +196,27 @@ operator()(
             {
                 BOOST_ASSERT(! ws_.rd_close_);
                 ws_.rd_close_ = true;
-                detail::read_close(ws_.cr_, cb, code);
+                close_reason cr;
+                detail::read_close(cr, cb, code);
                 if(code != close_code::none)
                 {
                     // _Fail the WebSocket Connection_
                     return ws_.do_async_fail(
                         code, error::failed, std::move(h_));
                 }
+                ws_.cr_ = cr;
                 ws_.rd_.buf.consume(len);
                 if(ws_.ctrl_cb_)
                     ws_.ctrl_cb_(frame_type::close,
                         ws_.cr_.reason);
-                if(ws_.wr_close_)
-                    // _Close the WebSocket Connection_
-                    return ws_.do_async_fail(close_code::none,
+                if(! ws_.wr_close_)
+                    // _Start the WebSocket Closing Handshake_
+                    return ws_.do_async_fail(
+                        cr.code == close_code::none ?
+                            close_code::normal : cr.code,
                         error::closed, std::move(h_));
-                auto cr = ws_.cr_;
-                if(cr.code == close_code::none)
-                    cr.code = close_code::normal;
-                cr.reason = "";
-                ws_.rd_.fb.consume(ws_.rd_.fb.size());
-                ws_.template write_close<
-                    flat_static_buffer_base>(
-                        ws_.rd_.fb, cr);
-                // _Start the WebSocket Closing Handshake_
-                return ws_.do_async_fail(
-                    cr.code == close_code::none ?
-                        close_code::normal :
-                        static_cast<close_code>(cr.code),
+                // _Close the WebSocket Connection_
+                return ws_.do_async_fail(close_code::none,
                     error::closed, std::move(h_));
             }
         }
@@ -434,11 +427,11 @@ operator()(
         goto go_maybe_fill;
 
     case do_maybe_fill:
+        dispatched_ = true;
         if(ec)
             break;
         if(ws_.rd_.done)
             break;
-        dispatched_ = true;
 
     go_maybe_fill:
         if(ws_.pmd_ && ws_.pmd_->rd_set)
@@ -760,8 +753,9 @@ operator()(
     do_read:
         using buffers_type = typename
             DynamicBuffer::mutable_buffers_type;
+auto const rsh = ws_.read_size_hint(b_);
         auto const size = clamp(
-            ws_.read_size_hint(b_), limit_);
+            rsh, limit_);
         boost::optional<buffers_type> mb;
         try
         {
@@ -996,6 +990,7 @@ loop:
         {
             if(code != close_code::none)
             {
+                // _Fail the WebSocket Connection_
                 do_fail(code, error::failed, ec);
                 return bytes_written;
             }
@@ -1057,25 +1052,28 @@ loop:
             {
                 BOOST_ASSERT(! rd_close_);
                 rd_close_ = true;
-                detail::read_close(cr_, cb, code);
+                close_reason cr;
+                detail::read_close(cr, cb, code);
                 if(code != close_code::none)
                 {
+                    // _Fail the WebSocket Connection_
                     do_fail(code, error::failed, ec);
                     return bytes_written;
                 }
+                cr_ = cr;
                 rd_.buf.consume(len);
                 if(ctrl_cb_)
                     ctrl_cb_(frame_type::close, cr_.reason);
                 if(! wr_close_)
                 {
+                    // _Start the WebSocket Closing Handshake_
                     do_fail(
-                        cr_.code == close_code::none ?
-                            close_code::normal :
-                            static_cast<close_code>(cr_.code),
-                        error::closed,
-                        ec);
+                        cr.code == close_code::none ?
+                            close_code::normal : cr.code,
+                        error::closed, ec);
                     return bytes_written;
                 }
+                // _Close the WebSocket Connection_
                 do_fail(close_code::none, error::closed, ec);
                 return bytes_written;
             }
@@ -1129,6 +1127,7 @@ loop:
                         (rd_.remain == 0 && rd_.fh.fin &&
                             ! rd_.utf8.finish()))
                     {
+                        // _Fail the WebSocket Connection_
                         do_fail(
                             close_code::bad_payload,
                             error::failed,
@@ -1163,6 +1162,7 @@ loop:
                         (rd_.remain == 0 && rd_.fh.fin &&
                             ! rd_.utf8.finish()))
                     {
+                        // _Fail the WebSocket Connection_
                         do_fail(
                             close_code::bad_payload,
                             error::failed,
@@ -1292,6 +1292,7 @@ loop:
                         rd_.remain == 0 && rd_.fh.fin &&
                             ! rd_.utf8.finish()))
                 {
+                    // _Fail the WebSocket Connection_
                     do_fail(
                         close_code::bad_payload,
                         error::failed,

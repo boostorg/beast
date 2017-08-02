@@ -209,6 +209,7 @@ close(close_reason const& cr, error_code& ec)
 {
     static_assert(is_sync_stream<next_layer_type>::value,
         "SyncStream requirements not met");
+    using beast::detail::clamp;
     // If rd_close_ is set then we already sent a close
     BOOST_ASSERT(! rd_close_);
     if(wr_close_)
@@ -219,12 +220,82 @@ close(close_reason const& cr, error_code& ec)
         return;
     }
     wr_close_ = true;
-    detail::frame_streambuf fb;
-    write_close<flat_static_buffer_base>(fb, cr);
-    boost::asio::write(stream_, fb.data(), ec);
+    {
+        detail::frame_streambuf fb;
+        write_close<flat_static_buffer_base>(fb, cr);
+        boost::asio::write(stream_, fb.data(), ec);
+    }
     failed_ = !!ec;
     if(failed_)
         return;
+    // Drain the connection
+    close_code code{};
+    if(rd_.remain > 0)
+        goto read_payload;
+    for(;;)
+    {
+        // Read frame header
+        while(! parse_fh(rd_.fh, rd_.buf, code))
+        {
+            if(code != close_code::none)
+                return do_fail(close_code::none,
+                    error::failed, ec);
+            auto const bytes_transferred =
+                stream_.read_some(
+                    rd_.buf.prepare(read_size(rd_.buf,
+                        rd_.buf.max_size())), ec);
+            failed_ = !!ec;
+            if(failed_)
+                return;
+            rd_.buf.commit(bytes_transferred);
+        }
+        if(detail::is_control(rd_.fh.op))
+        {
+            // Process control frame
+            if(rd_.fh.op == detail::opcode::close)
+            {
+                BOOST_ASSERT(! rd_close_);
+                rd_close_ = true;
+                auto const mb = buffer_prefix(
+                    clamp(rd_.fh.len),
+                    rd_.buf.mutable_data());
+                if(rd_.fh.len > 0 && rd_.fh.mask)
+                    detail::mask_inplace(mb, rd_.key);
+                detail::read_close(cr_, mb, code);
+                if(code != close_code::none)
+                    // Protocol error
+                    return do_fail(close_code::none,
+                        error::failed, ec);
+                rd_.buf.consume(clamp(rd_.fh.len));
+                break;
+            }
+            rd_.buf.consume(clamp(rd_.fh.len));
+        }
+        else
+        {
+        read_payload:
+            while(rd_.buf.size() < rd_.remain)
+            {
+                rd_.remain -= rd_.buf.size();
+                rd_.buf.consume(rd_.buf.size());
+                auto const bytes_transferred =
+                    stream_.read_some(
+                        rd_.buf.prepare(read_size(rd_.buf,
+                            rd_.buf.max_size())), ec);
+                failed_ = !!ec;
+                if(failed_)
+                    return;
+                rd_.buf.commit(bytes_transferred);
+            }
+            BOOST_ASSERT(rd_.buf.size() >= rd_.remain);
+            rd_.buf.consume(clamp(rd_.remain));
+            rd_.remain = 0;
+        }
+    }
+    // _Close the WebSocket Connection_
+    do_fail(close_code::none, error::closed, ec);
+    if(ec == error::closed)
+        ec.assign(0, ec.category());
 }
 
 template<class NextLayer>

@@ -57,39 +57,68 @@ read_size_hint(
     std::size_t initial_size) const
 {
     using beast::detail::clamp;
-    // no permessage-deflate
+    std::size_t result;
+    BOOST_ASSERT(initial_size > 0);
     if(! pmd_ || (! rd_.done && ! pmd_->rd_set))
     {
-        // fresh message
-        if(rd_.done)
-            return initial_size;
+        // current message is uncompressed
 
-        if(rd_.fh.fin)
-            return clamp(rd_.remain);
+        if(rd_.done)
+        {
+            // first message frame
+            result = initial_size;
+            goto done;
+        }
+        else if(rd_.fh.fin)
+        {
+            // last message frame
+            BOOST_ASSERT(rd_.remain > 0);
+            result = clamp(rd_.remain);
+            goto done;
+        }
     }
-    return (std::max)(
+    result = (std::max)(
         initial_size, clamp(rd_.remain));
+done:
+    BOOST_ASSERT(result != 0);
+    return result;
 }
 
 template<class NextLayer>
 template<class DynamicBuffer, class>
 std::size_t
 stream<NextLayer>::
-read_size_hint(
-    DynamicBuffer& buffer) const
+read_size_hint(DynamicBuffer& buffer) const
 {
     static_assert(is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
+#if 1
+    auto const initial_size = (std::min)(
+        +tcp_frame_size,
+        buffer.max_size() - buffer.size());
+    if(initial_size == 0)
+        return 1; // buffer is full
+    return read_size_hint(initial_size);
+
+#else
     using beast::detail::clamp;
-    // no permessage-deflate
+    std::size_t result;
     if(! pmd_ || (! rd_.done && ! pmd_->rd_set))
     {
-        // fresh message
+        // current message is uncompressed
+
         if(rd_.done)
-            return (std::min)(
+        {
+            // first message frame
+            auto const n = (std::min)(
                 buffer.max_size(),
-                (std::max)(+tcp_frame_size,
+                (std::max)(
+                    +tcp_frame_size,
                     buffer.capacity() - buffer.size()));
+            if(n > 0)
+                return n;
+            return 1;
+        }
 
         if(rd_.fh.fin)
         {
@@ -104,6 +133,10 @@ read_size_hint(
             +tcp_frame_size,
             clamp(rd_.remain)),
             buffer.capacity() - buffer.size()));
+done:
+    BOOST_ASSERT(result != 0);
+    return result;
+#endif
 }
 
 template<class NextLayer>
