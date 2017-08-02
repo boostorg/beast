@@ -85,7 +85,6 @@ if [ os.name ] = NT
     {
         SET LIB_DIR=$(2:B=:S=..)
         SET XML_OUTPUT=$(1:D)
-        echo "LIB_DIR=$(LIB_DIR)" > $(LIB_DIR)/doc/html/lib_dir.txt
         "$(.doxygen)" $(2)
     }
 }
@@ -95,6 +94,7 @@ else
     {
         export LIB_DIR=$(2:B=:S=..)
         export XML_OUTPUT=$(1:D)
+        echo "LIB_DIR=$(LIB_DIR)" > $(LIB_DIR)/doc/html/lib_dir.txt
         "$(.doxygen)" $(2)
     }
 }
