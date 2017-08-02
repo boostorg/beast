@@ -2,6 +2,7 @@ Version 99:
 
 * Log the value of LIB_DIR for doc builds (debug)
 * Use correct handler signature in fail_op
+* Fix doc typo
 
 --------------------------------------------------------------------------------
 
