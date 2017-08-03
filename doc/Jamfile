@@ -100,6 +100,7 @@ else
     actions make_doxygen_xml
     {
         export LIB_DIR=$(LIB_DIR)
+        echo "LIB_DIR=$LIB_DIR" > "$LIB_DIR/doc/html/lib_dir.txt"
         export XML_OUTPUT=$(1:D)
         "$(.doxygen)" $(2)
     }
