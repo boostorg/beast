@@ -13,6 +13,7 @@ WebSocket:
 * Refactor fail/clode code
 * Call do_fail from read_some
 * eof on accept returns error::closed
+* Fix stream::read_size_hint calculation
 
 --------------------------------------------------------------------------------
 

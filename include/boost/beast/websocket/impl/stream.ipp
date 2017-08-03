@@ -98,8 +98,11 @@ read_size_hint(
                 buffer.max_size(), clamp(rd_.remain));
         }
     }
-    return (std::min)(buffer.max_size(), (std::max)(
-        (std::max)(+tcp_frame_size, clamp(rd_.remain)),
+    return (std::min)(
+        buffer.max_size() - buffer.size(),
+        (std::max)((std::max)(
+            +tcp_frame_size,
+            clamp(rd_.remain)),
             buffer.capacity() - buffer.size()));
 }
 
