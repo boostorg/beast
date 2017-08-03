@@ -1,3 +1,9 @@
+Version 100:
+
+* Fix doc convenience includes
+
+--------------------------------------------------------------------------------
+
 Version 99:
 
 * Log the value of LIB_DIR for doc builds (debug)
