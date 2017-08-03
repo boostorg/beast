@@ -94,6 +94,29 @@ BOOST_STATIC_ASSERT(std::is_same<get_lowest_layer<F4<F2>>::type, F2>::value);
 BOOST_STATIC_ASSERT(std::is_same<get_lowest_layer<F4<F3<F1>>>::type, F1>::value);
 BOOST_STATIC_ASSERT(std::is_same<get_lowest_layer<F4<F3<F2>>>::type, F2>::value);
 
+//
+// min_all, max_all
+//
+
+BOOST_STATIC_ASSERT(std::is_same<std::size_t,
+    widest_unsigned<unsigned short, std::size_t>::type>::value);
+BOOST_STATIC_ASSERT(std::is_same<std::uint64_t,
+    widest_unsigned<unsigned short, std::uint32_t, std::uint64_t>::type>::value);
+BOOST_STATIC_ASSERT(! std::is_same<std::uint64_t,
+    widest_unsigned<unsigned short, std::uint32_t>::type>::value);
+BOOST_STATIC_ASSERT(std::is_same<unsigned short,
+    unwidest_unsigned<unsigned short, std::size_t>::type>::value);
+BOOST_STATIC_ASSERT(std::is_same<unsigned short,
+    unwidest_unsigned<unsigned short, std::uint32_t, std::uint64_t>::type>::value);
+BOOST_STATIC_ASSERT(! std::is_same<std::uint32_t,
+    unwidest_unsigned<unsigned short, std::uint32_t>::type>::value);
+BOOST_STATIC_ASSERT(max_all(1u) == 1);
+BOOST_STATIC_ASSERT(max_all(1u, 2u) == 2);
+BOOST_STATIC_ASSERT(max_all(1u, 2u, static_cast<std::uint64_t>(3)) == 3);
+BOOST_STATIC_ASSERT(min_all(1u) == 1);
+BOOST_STATIC_ASSERT(min_all(1u, 2u) == 1);
+BOOST_STATIC_ASSERT(min_all(1u, 2u, static_cast<std::uint64_t>(3)) == 1);
+
 } // (anonymous)
 
 } // detail

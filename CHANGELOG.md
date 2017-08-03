@@ -6,6 +6,7 @@ Version 100:
 * Rename test macros
 * Reorder define test macro params
 * vcxproj workaround for include symlinks
+* Add variadic min/max
 
 WebSocket:
 
