@@ -25,8 +25,9 @@
 [template mdash[] '''&mdash; ''']
 [template indexterm1[term1] '''<indexterm><primary>'''[term1]'''</primary></indexterm>''']
 [template indexterm2[term1 term2] '''<indexterm><primary>'''[term1]'''</primary><secondary>'''[term2]'''</secondary></indexterm>''']
-[template repo_file[path] '''<ulink url="https://github.com/boostorg/beast/blob/master/'''[path]'''">'''[path]'''</ulink>''']
-[template include_file[path][^<'''<ulink url="https://github.com/boostorg/beast/blob/master/include/'''[path]'''">'''[path]'''</ulink>'''>]]
+
+[template repo_file[path] '''<ulink url="../../'''[path]'''">'''[path]'''</ulink>''']
+[template include_file[path][^<'''<ulink url="../../../../'''[path]'''">'''[path]'''</ulink>'''>]]
 
 [def __N3747__                  [@http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3747.pdf [*N3747]]]
 [def __N4588__                  [@http://cplusplus.github.io/networking-ts/draft.pdf [*N4588]]]
