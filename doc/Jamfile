@@ -81,8 +81,9 @@ make index.xml
 
 rule make_doxygen_xml ( targets * : sources * : properties * )
 {
-    LIB_DIR on $(targets) = [ path.parent [ path.root
-        [ on $(sources[1]) return $(SEARCH) ] [ path.pwd ] ] ] ;
+    LIB_DIR on $(targets) =
+        [ path.native [ path.parent [ path.root
+        [ on $(sources[1]) return $(SEARCH) ] [ path.pwd ] ] ] ] ;
 }
 
 if [ os.name ] = NT
