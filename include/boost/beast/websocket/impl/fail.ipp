@@ -225,9 +225,9 @@ operator()(error_code ec, std::size_t)
         ws_.wr_op_.maybe_invoke();
     if(! dispatched_)
         ws_.stream_.get_io_service().post(
-            bind_handler(std::move(h_), ec));
+            bind_handler(std::move(h_), ec, 0));
     else
-        h_(ec);
+        h_(ec, 0);
 }
 
 } // websocket

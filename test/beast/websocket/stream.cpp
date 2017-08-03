@@ -278,6 +278,15 @@ public:
         }
 
         template<
+            class NextLayer, class MutableBufferSequence>
+        std::size_t
+        read_some(stream<NextLayer>& ws,
+            MutableBufferSequence const& buffers) const
+        {
+            return ws.read_some(buffers);
+        }
+
+        template<
             class NextLayer, class ConstBufferSequence>
         void
         write(stream<NextLayer>& ws,
@@ -513,6 +522,20 @@ public:
             error_code ec;
             auto const bytes_written =
                 ws.async_read(buffer, yield_[ec]);
+            if(ec)
+                throw system_error{ec};
+            return bytes_written;
+        }
+
+        template<
+            class NextLayer, class MutableBufferSequence>
+        std::size_t
+        read_some(stream<NextLayer>& ws,
+            MutableBufferSequence const& buffers) const
+        {
+            error_code ec;
+            auto const bytes_written =
+                ws.async_read_some(buffers, yield_[ec]);
             if(ec)
                 throw system_error{ec};
             return bytes_written;
@@ -1673,6 +1696,17 @@ public:
                 restart(error::closed);
 
                 bool once;
+
+                // read_some
+                {
+                    c.write(ws, sbuf("Hello"));
+                    char buf[10];
+                    auto const bytes_written =
+                        c.read_some(ws, buffer(buf, sizeof(buf)));
+                    BEAST_EXPECT(bytes_written == 5);
+                    buf[5] = 0;
+                    BEAST_EXPECT(string_view(buf) == "Hello");
+                }
 
                 // send ping and message
                 {
