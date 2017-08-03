@@ -79,11 +79,17 @@ make index.xml
         <dependency>$(sources)
     ;
 
+rule make_doxygen_xml ( targets * : sources * : properties * )
+{
+    LIB_DIR on $(targets) = [ path.parent [ path.root
+        [ on $(sources[1]) return $(SEARCH) ] [ path.pwd ] ] ] ;
+}
+
 if [ os.name ] = NT
 {
     actions make_doxygen_xml
     {
-        SET LIB_DIR=$(2:B=:S=..)
+        SET LIB_DIR=$(LIB_DIR)
         SET XML_OUTPUT=$(1:D)
         "$(.doxygen)" $(2)
     }
@@ -92,9 +98,8 @@ else
 {
     actions make_doxygen_xml
     {
-        export LIB_DIR=$(2:B=:S=..)
+        export LIB_DIR=$(LIB_DIR)
         export XML_OUTPUT=$(1:D)
-        echo "LIB_DIR=$LIB_DIR" > "$LIB_DIR/doc/html/lib_dir.txt"
         "$(.doxygen)" $(2)
     }
 }
