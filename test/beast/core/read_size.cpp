@@ -10,7 +10,6 @@
 // Test that header file is self-contained.
 #include <boost/beast/core/read_size.hpp>
 
-#include <boost/beast/core/drain_buffer.hpp>
 #include <boost/beast/core/flat_buffer.hpp>
 #include <boost/beast/core/flat_static_buffer.hpp>
 #include <boost/beast/core/multi_buffer.hpp>
@@ -37,7 +36,6 @@ public:
     void
     run() override
     {
-        check<drain_buffer>();
         check<flat_buffer>();
         check<flat_static_buffer<1024>>();
         check<multi_buffer>();

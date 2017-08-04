@@ -20,7 +20,6 @@
 # include "example/server-framework/wss_ports.hpp"
 #endif
 
-#include <boost/beast/core/drain_buffer.hpp>
 #include <boost/beast/websocket.hpp>
 #include <boost/beast/test/yield_to.hpp>
 #include <boost/beast/unit_test/suite.hpp>
@@ -107,16 +106,6 @@ public:
         ws.close(beast::websocket::close_code::normal, ec);
         if(! BEAST_EXPECTS(! ec, ec.message()))
             return;
-        // VFALCO Verify the buffer's contents
-        drain_buffer drain; 
-        for(;;)
-        {
-            ws.read(drain, ec);
-            if(ec == beast::websocket::error::closed)
-                break;
-            if(! BEAST_EXPECTS(! ec, ec.message()))
-                return;
-        }
     }
 
     void

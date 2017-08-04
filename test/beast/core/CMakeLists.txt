@@ -26,7 +26,6 @@ add_executable (tests-beast-core
     buffers_adapter.cpp
     clamp.cpp
     consuming_buffers.cpp
-    drain_buffer.cpp
     error.cpp
     file.cpp
     file_posix.cpp

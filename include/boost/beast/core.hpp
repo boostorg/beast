@@ -19,7 +19,6 @@
 #include <boost/beast/core/buffered_read_stream.hpp>
 #include <boost/beast/core/buffers_adapter.hpp>
 #include <boost/beast/core/consuming_buffers.hpp>
-#include <boost/beast/core/drain_buffer.hpp>
 #include <boost/beast/core/error.hpp>
 #include <boost/beast/core/file.hpp>
 #include <boost/beast/core/file_base.hpp>

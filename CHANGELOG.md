@@ -21,10 +21,16 @@ API Changes:
 * Calls to stream::close and stream::async_close will
   automatically perform the required read operations
 
+* drain_buffer is removed
+
 Actions Required:
 
 * Remove calling code which drains the connection after
   calling stream::close or stream::async_close
+
+* Replace code which uses drain_buffer. For websocket::stream,
+  it is no longer necessary to manually drain the connection
+  after closing.
 
 --------------------------------------------------------------------------------
 
