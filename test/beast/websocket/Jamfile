@@ -15,6 +15,7 @@ local SOURCES =
     teardown.cpp
     frame.cpp
     mask.cpp
+    role.cpp
     utf8_checker.cpp
     ;
 

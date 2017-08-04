@@ -10,8 +10,7 @@
 #ifndef BOOST_BEAST_WEBSOCKET_IMPL_TEARDOWN_IPP
 #define BOOST_BEAST_WEBSOCKET_IMPL_TEARDOWN_IPP
 
-#include <boost/beast/core/async_result.hpp>
-#include <boost/beast/core/handler_ptr.hpp>
+#include <boost/beast/core/bind_handler.hpp>
 #include <boost/beast/core/type_traits.hpp>
 #include <boost/asio/handler_alloc_hook.hpp>
 #include <boost/asio/handler_continuation_hook.hpp>
@@ -30,35 +29,30 @@ class teardown_tcp_op
     using socket_type =
         boost::asio::ip::tcp::socket;
 
-    struct data
-    {
-        bool cont;
-        socket_type& socket;
-        char buf[2048];
-        int state = 0;
-
-        data(Handler& handler, socket_type& socket_)
-            : socket(socket_)
-        {
-            using boost::asio::asio_handler_is_continuation;
-            cont = asio_handler_is_continuation(std::addressof(handler));
-        }
-    };
-
-    handler_ptr<data, Handler> d_;
+    Handler h_;
+    socket_type& s_;
+    role_type role_;
+    int step_ = 0;
 
 public:
+    teardown_tcp_op(teardown_tcp_op&& other) = default;
+    teardown_tcp_op(teardown_tcp_op const& other) = default;
+
     template<class DeducedHandler>
     teardown_tcp_op(
         DeducedHandler&& h,
-            socket_type& socket)
-        : d_(std::forward<DeducedHandler>(h), socket)
+        socket_type& s,
+        role_type role)
+        : h_(std::forward<DeducedHandler>(h))
+        , s_(s)
+        , role_(role)
     {
-        (*this)(error_code{}, 0, false);
     }
 
     void
-    operator()(error_code ec, std::size_t, bool again = true);
+    operator()(
+        error_code ec = {},
+        std::size_t bytes_transferred = 0);
 
     friend
     void* asio_handler_allocate(std::size_t size,
@@ -66,7 +60,7 @@ public:
     {
         using boost::asio::asio_handler_allocate;
         return asio_handler_allocate(
-            size, std::addressof(op->d_.handler()));
+            size, std::addressof(op->h_));
     }
 
     friend
@@ -75,13 +69,15 @@ public:
     {
         using boost::asio::asio_handler_deallocate;
         asio_handler_deallocate(
-            p, size, std::addressof(op->d_.handler()));
+            p, size, std::addressof(op->h_));
     }
 
     friend
     bool asio_handler_is_continuation(teardown_tcp_op* op)
     {
-        return op->d_->cont;
+        using boost::asio::asio_handler_is_continuation;
+        return op->step_ >= 3 ||
+            asio_handler_is_continuation(std::addressof(op->h_));
     }
 
     template<class Function>
@@ -91,40 +87,58 @@ public:
     {
         using boost::asio::asio_handler_invoke;
         asio_handler_invoke(
-            f, std::addressof(op->d_.handler()));
+            f, std::addressof(op->h_));
     }
 };
 
 template<class Handler>
 void
 teardown_tcp_op<Handler>::
-operator()(error_code ec, std::size_t, bool again)
+operator()(error_code ec, std::size_t)
 {
     using boost::asio::buffer;
-    auto& d = *d_;
-    d.cont = d.cont || again;
-    while(! ec)
+    using tcp = boost::asio::ip::tcp;
+    switch(step_)
     {
-        switch(d.state)
+    case 0:
+        s_.non_blocking(true, ec);
+        if(ec)
         {
-        case 0:
-            d.state = 1;
-            d.socket.shutdown(
-                boost::asio::ip::tcp::socket::shutdown_send, ec);
-            break;
-
-        case 1:
-            d.socket.async_read_some(
-                buffer(d.buf), std::move(*this));
-            return;
+            step_ = 1;
+            return s_.get_io_service().post(
+                bind_handler(std::move(*this), ec, 0));
         }
+        step_ = 2;
+        if(role_ == role_type::server)
+            s_.shutdown(tcp::socket::shutdown_send, ec);
+        goto do_read;
+
+    case 1:
+        break;
+
+    case 2:
+        step_ = 3;
+
+    case 3:
+        if(ec != boost::asio::error::would_block)
+            break;
+        {
+            char buf[2048];
+            s_.read_some(
+                boost::asio::buffer(buf), ec);
+            if(ec)
+                break;
+        }
+
+    do_read:
+        return s_.async_read_some(
+            boost::asio::null_buffers{},
+                std::move(*this));
     }
-    if(ec == boost::asio::error::eof)
-    {
-        d.socket.close(ec);
-        ec = error_code{};
-    }
-    d_.invoke(ec);
+    if(role_ == role_type::client)
+        s_.shutdown(tcp::socket::shutdown_send, ec);
+    s_.close(ec);
+    h_(ec);
 }
 
 } // detail
@@ -133,13 +147,15 @@ operator()(error_code ec, std::size_t, bool again)
 
 inline
 void
-teardown(teardown_tag,
+teardown(
+    role_type role,
     boost::asio::ip::tcp::socket& socket,
-        error_code& ec)
+    error_code& ec)
 {
     using boost::asio::buffer;
-    socket.shutdown(
-        boost::asio::ip::tcp::socket::shutdown_send, ec);
+    if(role == role_type::server)
+        socket.shutdown(
+            boost::asio::ip::tcp::socket::shutdown_send, ec);
     while(! ec)
     {
         char buf[8192];
@@ -148,24 +164,27 @@ teardown(teardown_tag,
         if(! n)
             break;
     }
-    if(ec == boost::asio::error::eof)
-        ec = error_code{};
+    if(role == role_type::client)
+        socket.shutdown(
+            boost::asio::ip::tcp::socket::shutdown_send, ec);
     socket.close(ec);
 }
 
 template<class TeardownHandler>
 inline
 void
-async_teardown(teardown_tag,
+async_teardown(
+    role_type role,
     boost::asio::ip::tcp::socket& socket,
-        TeardownHandler&& handler)
+    TeardownHandler&& handler)
 {
     static_assert(beast::is_completion_handler<
         TeardownHandler, void(error_code)>::value,
             "TeardownHandler requirements not met");
     detail::teardown_tcp_op<typename std::decay<
         TeardownHandler>::type>{std::forward<
-            TeardownHandler>(handler), socket};
+            TeardownHandler>(handler), socket,
+                role}();
 }
 
 } // websocket

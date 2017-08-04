@@ -28,15 +28,18 @@ namespace websocket {
     `boost::asio::ssl::stream`, callers are responsible for
     providing a suitable overload of this function.
 
+    @param role The role of the local endpoint
+
     @param stream The stream to tear down.
 
     @param ec Set to the error if any occurred.
 */
 template<class SyncStream>
 void
-teardown(teardown_tag,
+teardown(
+    role_type role,
     boost::asio::ssl::stream<SyncStream>& stream,
-        error_code& ec);
+    error_code& ec);
 
 /** Start tearing down a `boost::asio::ssl::stream`.
 
@@ -47,6 +50,8 @@ teardown(teardown_tag,
     `boost::asio::ip::tcp::socket` or any `boost::asio::ssl::stream`,
     callers are responsible for providing a suitable overload
     of this function.
+
+    @param role The role of the local endpoint
 
     @param stream The stream to tear down.
 
@@ -65,9 +70,10 @@ teardown(teardown_tag,
 template<class AsyncStream, class TeardownHandler>
 inline
 void
-async_teardown(teardown_tag,
+async_teardown(
+    role_type role,
     boost::asio::ssl::stream<AsyncStream>& stream,
-        TeardownHandler&& handler);
+    TeardownHandler&& handler);
 
 } // websocket
 } // beast

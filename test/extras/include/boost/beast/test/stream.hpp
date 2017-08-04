@@ -440,13 +440,13 @@ public:
 
     friend
     void
-    teardown(websocket::teardown_tag,
+    teardown(websocket::role_type,
         stream& s, boost::system::error_code& ec);
 
     template<class TeardownHandler>
     friend
     void
-    async_teardown(websocket::teardown_tag,
+    async_teardown(websocket::role_type role,
         stream& s, TeardownHandler&& handler);
 };
 
@@ -654,7 +654,7 @@ async_write_some(ConstBufferSequence const& buffers,
 
 inline
 void
-teardown(websocket::teardown_tag,
+teardown(websocket::role_type,
     stream& s, boost::system::error_code& ec)
 {
     if(s.in_.fc)
@@ -672,7 +672,7 @@ teardown(websocket::teardown_tag,
 template<class TeardownHandler>
 inline
 void
-async_teardown(websocket::teardown_tag,
+async_teardown(websocket::role_type,
     stream& s, TeardownHandler&& handler)
 {
     error_code ec;

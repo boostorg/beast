@@ -147,6 +147,7 @@
             <member><link linkend="beast.ref.boost__beast__websocket__close_code">close_code</link></member>
             <member><link linkend="beast.ref.boost__beast__websocket__error">error</link></member>
             <member><link linkend="beast.ref.boost__beast__websocket__frame_type">frame_type</link></member>
+            <member><link linkend="beast.ref.boost__beast__websocket__role_type">role_type</link></member>
           </simplelist>
         </entry>
       </row>

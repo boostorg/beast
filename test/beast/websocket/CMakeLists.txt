@@ -21,6 +21,7 @@ add_executable (tests-beast-websocket
     error.cpp
     option.cpp
     rfc6455.cpp
+    role.cpp
     stream.cpp
     teardown.cpp
     frame.cpp

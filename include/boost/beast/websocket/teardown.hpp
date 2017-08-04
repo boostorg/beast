@@ -11,22 +11,14 @@
 #define BOOST_BEAST_WEBSOCKET_TEARDOWN_HPP
 
 #include <boost/beast/config.hpp>
-#include <boost/beast/websocket/error.hpp>
+#include <boost/beast/core/error.hpp>
+#include <boost/beast/websocket/role.hpp>
 #include <boost/asio/ip/tcp.hpp>
 #include <type_traits>
 
 namespace boost {
 namespace beast {
 namespace websocket {
-
-/** Tag type used to find @ref beast::websocket::teardown and @ref beast::websocket::async_teardown overloads
-
-    Overloads of @ref beast::websocket::teardown and
-    @ref beast::websocket::async_teardown for user defined types
-    must take a value of type @ref teardown_tag in the first
-    argument in order to be found by the implementation.
-*/
-struct teardown_tag {};
 
 /** Tear down a connection.
 
@@ -37,13 +29,18 @@ struct teardown_tag {};
     `boost::asio::ssl::stream`, callers are responsible for
     providing a suitable overload of this function.
 
+    @param role The role of the local endpoint
+
     @param socket The socket to tear down.
 
     @param ec Set to the error if any occurred.
 */
 template<class Socket>
 void
-teardown(teardown_tag, Socket& socket, error_code& ec)
+teardown(
+    role_type role,
+    Socket& socket,
+    error_code& ec)
 {
 /*
     If you are trying to use OpenSSL and this goes off, you need to
@@ -51,7 +48,7 @@ teardown(teardown_tag, Socket& socket, error_code& ec)
 
     If you are creating an instance of beast::websocket::stream with your
     own user defined type, you must provide an overload of teardown with
-    the corresponding signature (including the teardown_tag).
+    the corresponding signature (including the role_type).
 */
     static_assert(sizeof(Socket)==-1,
         "Unknown Socket type in teardown.");
@@ -66,6 +63,8 @@ teardown(teardown_tag, Socket& socket, error_code& ec)
     `boost::asio::ip::tcp::socket` or any `boost::asio::ssl::stream`,
     callers are responsible for providing a suitable overload
     of this function.
+
+    @param role The role of the local endpoint
 
     @param socket The socket to tear down.
 
@@ -82,9 +81,14 @@ teardown(teardown_tag, Socket& socket, error_code& ec)
     manner equivalent to using boost::asio::io_service::post().
 
 */
-template<class Socket, class TeardownHandler>
+template<
+    class Socket,
+    class TeardownHandler>
 void
-async_teardown(teardown_tag, Socket& socket, TeardownHandler&& handler)
+async_teardown(
+    role_type role,
+    Socket& socket,
+    TeardownHandler&& handler)
 {
 /*
     If you are trying to use OpenSSL and this goes off, you need to
@@ -92,43 +96,13 @@ async_teardown(teardown_tag, Socket& socket, TeardownHandler&& handler)
 
     If you are creating an instance of beast::websocket::stream with your
     own user defined type, you must provide an overload of teardown with
-    the corresponding signature (including the teardown_tag).
+    the corresponding signature (including the role_type).
 */
     static_assert(sizeof(Socket)==-1,
         "Unknown Socket type in async_teardown.");
 }
 
 } // websocket
-
-//------------------------------------------------------------------------------
-
-namespace websocket_helpers {
-
-// Calls to teardown and async_teardown must be made from
-// a namespace that does not contain any overloads of these
-// functions. The websocket_helpers namespace is defined here
-// for that purpose.
-
-template<class Socket>
-inline
-void
-call_teardown(Socket& socket, error_code& ec)
-{
-    using websocket::teardown;
-    teardown(websocket::teardown_tag{}, socket, ec);
-}
-
-template<class Socket, class TeardownHandler>
-inline
-void
-call_async_teardown(Socket& socket, TeardownHandler&& handler)
-{
-    using websocket::async_teardown;
-    async_teardown(websocket::teardown_tag{}, socket,
-        std::forward<TeardownHandler>(handler));
-}
-
-} // websocket_helpers
 
 //------------------------------------------------------------------------------
 
@@ -143,13 +117,17 @@ namespace websocket {
     `boost::asio::ssl::stream`, callers are responsible for
     providing a suitable overload of this function.
 
+    @param role The role of the local endpoint
+
     @param socket The socket to tear down.
 
     @param ec Set to the error if any occurred.
 */
 void
-teardown(teardown_tag,
-    boost::asio::ip::tcp::socket& socket, error_code& ec);
+teardown(
+    role_type role,
+    boost::asio::ip::tcp::socket& socket,
+    error_code& ec);
 
 /** Start tearing down a `boost::asio::ip::tcp::socket`.
 
@@ -160,6 +138,8 @@ teardown(teardown_tag,
     `boost::asio::ip::tcp::socket` or any `boost::asio::ssl::stream`,
     callers are responsible for providing a suitable overload
     of this function.
+
+    @param role The role of the local endpoint
 
     @param socket The socket to tear down.
 
@@ -178,8 +158,10 @@ teardown(teardown_tag,
 */
 template<class TeardownHandler>
 void
-async_teardown(teardown_tag,
-    boost::asio::ip::tcp::socket& socket, TeardownHandler&& handler);
+async_teardown(
+    role_type role,
+    boost::asio::ip::tcp::socket& socket,
+    TeardownHandler&& handler);
 
 } // websocket
 } // beast

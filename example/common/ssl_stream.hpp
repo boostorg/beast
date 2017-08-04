@@ -294,14 +294,14 @@ public:
     template<class SyncStream>
     friend
     void
-    teardown(boost::beast::websocket::teardown_tag,
+    teardown(boost::beast::websocket::role_type,
         ssl_stream<SyncStream>& stream,
             boost::system::error_code& ec);
 
     template<class AsyncStream, class TeardownHandler>
     friend
     void
-    async_teardown(boost::beast::websocket::teardown_tag,
+    async_teardown(boost::beast::websocket::role_type,
         ssl_stream<AsyncStream>& stream, TeardownHandler&& handler);
 };
 
@@ -312,24 +312,27 @@ public:
 template<class SyncStream>
 inline
 void
-teardown(boost::beast::websocket::teardown_tag,
+teardown(
+    boost::beast::websocket::role_type role,
     ssl_stream<SyncStream>& stream,
-        boost::system::error_code& ec)
+    boost::system::error_code& ec)
 {
     // Just forward it to the wrapped ssl::stream
     using boost::beast::websocket::teardown;
-    teardown(boost::beast::websocket::teardown_tag{}, *stream.p_, ec);
+    teardown(role, *stream.p_, ec);
 }
 
 template<class AsyncStream, class TeardownHandler>
 inline
 void
-async_teardown(boost::beast::websocket::teardown_tag,
-    ssl_stream<AsyncStream>& stream, TeardownHandler&& handler)
+async_teardown(
+    boost::beast::websocket::role_type role,
+    ssl_stream<AsyncStream>& stream,
+    TeardownHandler&& handler)
 {
     // Just forward it to the wrapped ssl::stream
     using boost::beast::websocket::async_teardown;
-    async_teardown(boost::beast::websocket::teardown_tag{},
+    async_teardown(role,
         *stream.p_, std::forward<TeardownHandler>(handler));
 }
 

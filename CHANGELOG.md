@@ -23,6 +23,8 @@ API Changes:
 
 * drain_buffer is removed
 
+* role_type replaces teardown_tag
+
 Actions Required:
 
 * Remove calling code which drains the connection after
@@ -31,6 +33,12 @@ Actions Required:
 * Replace code which uses drain_buffer. For websocket::stream,
   it is no longer necessary to manually drain the connection
   after closing.
+
+* Modify signatures of teardown and async_teardown to use
+  role_type instead of teardown_tag
+
+* Change calls to teardown and async_teardown to pass the
+  correct role_type, client or server, depending on context.
 
 --------------------------------------------------------------------------------
 

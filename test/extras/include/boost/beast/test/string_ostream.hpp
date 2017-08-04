@@ -126,7 +126,7 @@ public:
 
     friend
     void
-    teardown(websocket::teardown_tag,
+    teardown(websocket::role_type,
         string_ostream&,
             boost::system::error_code& ec)
     {
@@ -136,7 +136,7 @@ public:
     template<class TeardownHandler>
     friend
     void
-    async_teardown(websocket::teardown_tag,
+    async_teardown(websocket::role_type,
         string_ostream& stream,
             TeardownHandler&& handler)
     {

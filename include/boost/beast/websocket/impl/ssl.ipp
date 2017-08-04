@@ -33,20 +33,25 @@ Behavior of ssl::stream regarding close_
 
 template<class AsyncStream>
 void
-teardown(teardown_tag,
+teardown(
+    role_type,
     boost::asio::ssl::stream<AsyncStream>& stream,
-        error_code& ec)
+    error_code& ec)
 {
     stream.shutdown(ec);
 }
 
-template<class AsyncStream, class TeardownHandler>
+template<
+    class AsyncStream,
+    class TeardownHandler>
 void
-async_teardown(teardown_tag,
+async_teardown(
+    role_type,
     boost::asio::ssl::stream<AsyncStream>& stream,
-        TeardownHandler&& handler)
+    TeardownHandler&& handler)
 {
-    stream.async_shutdown(std::forward<TeardownHandler>(handler));
+    stream.async_shutdown(
+        std::forward<TeardownHandler>(handler));
 }
 
 } // websocket

@@ -180,7 +180,8 @@ operator()(error_code ec, std::size_t)
     go_teardown:
         BOOST_ASSERT(ws_.wr_block_ == tok_);
         step_ = do_teardown + 1;
-        websocket_helpers::call_async_teardown(
+        using beast::websocket::async_teardown;
+        async_teardown(ws_.role_,
             ws_.stream_, std::move(*this));
         return;
 
@@ -234,7 +235,8 @@ do_fail(
         if(failed_)
             return;
     }
-    websocket_helpers::call_teardown(stream_, ec);
+    using beast::websocket::teardown;
+    teardown(role_, stream_, ec);
     if(ec == boost::asio::error::eof)
     {
         // Rationale:

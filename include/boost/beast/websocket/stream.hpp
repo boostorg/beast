@@ -13,6 +13,7 @@
 #include <boost/beast/config.hpp>
 #include <boost/beast/websocket/error.hpp>
 #include <boost/beast/websocket/option.hpp>
+#include <boost/beast/websocket/role.hpp>
 #include <boost/beast/websocket/rfc6455.hpp>
 #include <boost/beast/websocket/detail/frame.hpp>
 #include <boost/beast/websocket/detail/hybi13.hpp>
@@ -144,16 +145,6 @@ class stream
 
     using control_cb_type =
         std::function<void(frame_type, string_view)>;
-
-    /// Identifies the role of a WebSockets stream.
-    enum class role_type
-    {
-        /// Stream is operating as a client.
-        client,
-
-        /// Stream is operating as a server.
-        server
-    };
 
     // State information for the message being received
     //
