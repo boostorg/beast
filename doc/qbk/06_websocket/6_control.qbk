@@ -80,22 +80,26 @@ a stream read operation must be active.
 
 [heading Close Frames]
 
-The WebSocket protocol defines a procedure and control message for initiating
-a close of the session. Handling of close initiated by the remote end of the
-connection is performed automatically. To manually initiate a close, use
-the
-[link beast.ref.boost__beast__websocket__stream.close `close`] function:
+The WebSocket protocol defines a procedure and control message for
+initiating a close of the session. In this procedure, a host requests
+the close by sending a
+[@https://tools.ietf.org/html/rfc6455#section-5.5.1 ['close frame]].
+To request a close use a close function such as
+[link beast.ref.boost__beast__websocket__stream.close.overload2 `close`] or
+[link beast.ref.boost__beast__websocket__stream.async_close `async_close`]:
 
 [ws_snippet_18]
 
-When the remote peer initiates a close by sending a close frame, Beast
-will handle it for you by causing the next read to return `error::closed`.
-When this error code is delivered, it indicates to the application that
-the WebSocket connection has been closed cleanly, and that the TCP/IP
-connection has been closed. After initiating a close, it is necessary to
-continue reading messages until receiving the error `error::closed`. This
-is because the remote peer may still be sending message and control frames
-before it receives and responds to the close frame.
+The close function will send a close frame, read and discard incoming
+message data until receiving a close frame, and then shut down the
+underlying connection before returning.
+
+When a close frame is received by during a read operation, the implementation
+will automatically respond with a close frame and then shut down the
+underlying connection before returning. In this case, the read operation
+will complete with the code
+[link beast.ref.boost__beast__websocket__error `error::closed`].
+This indicates to the caller that the connection has been closed cleanly.
 
 [important
     To receive the
@@ -105,10 +109,10 @@ before it receives and responds to the close frame.
 
 [heading Auto-fragment]
 
-To ensure timely delivery of control frames, large messages can be broken up
-into smaller sized frames. The automatic fragment option turns on this
-feature, and the write buffer size option determines the maximum size of
-the fragments:
+To ensure timely delivery of control frames, large outgoing messages can
+be broken up into smaller sized frames. The automatic fragment option
+turns on this feature, and the write buffer size option determines the
+maximum size of the fragments:
 
 [ws_snippet_19]
 

@@ -232,6 +232,68 @@ void echo(stream<boost::asio::ip::tcp::socket>& ws,
 //]
 #endif
 
+//[ws_snippet_22
+
+struct custom_stream
+{
+    friend
+    void
+    teardown(
+        role_type role,
+        custom_stream& stream,
+        error_code& ec);
+
+    template<class TeardownHandler>
+    friend
+    void
+    async_teardown(
+        role_type role,
+        custom_stream& stream,
+        TeardownHandler&& handler);
+};
+
+//]
+
+//[ws_snippet_23
+
+template<class NextLayer>
+struct custom_wrapper
+{
+    NextLayer next_layer;
+
+    template<class... Args>
+    explicit
+    custom_wrapper(Args&&... args)
+        : next_layer(std::forward<Args>(args)...)
+    {
+    }
+
+    friend
+    void
+    teardown(
+        role_type role,
+        custom_stream& stream,
+        error_code& ec)
+    {
+        using boost::beast::websocket::teardown;
+        teardown(role, stream.next_layer, ec);
+    }
+
+    template<class TeardownHandler>
+    friend
+    void
+    async_teardown(
+        role_type role,
+        custom_stream& stream,
+        TeardownHandler&& handler)
+    {
+        using boost::beast::websocket::async_teardown;
+        async_teardown(role, stream.next_layer, std::forward<TeardownHandler>(handler));
+    }
+};
+
+//]
+
 } // doc_ws_snippets
 
 //------------------------------------------------------------------------------

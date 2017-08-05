@@ -13,9 +13,11 @@ A
 [link beast.ref.boost__beast__websocket__stream `stream`]
 automatically handles receiving and processing the HTTP response to the
 handshake request. The call to handshake is successful if a HTTP response
-is received with the 101 "Switching Protocols" status code. On failure,
-an error is returned or an exception is thrown. Depending on the keep alive
-setting, the connection may remain open for a subsequent handshake attempt.
+is received with the
+[@https://tools.ietf.org/html/rfc6455#section-4.2.2 ['101 Switching Protocols]]
+status code. On failure, an error is returned or an exception is thrown.
+Depending on the keep alive setting, the connection may remain open for
+a subsequent handshake attempt.
 
 Performing a handshake for an incoming websocket upgrade request operates
 similarly. If the handshake fails, an error is returned or exception thrown:
@@ -36,8 +38,10 @@ typically look like this:
     Server: Beast/40
     ```
 ][
-    The Sec-WebSocket-Accept field value is generated from the
-    request in a fashion specified by the WebSocket protocol.
+    The
+    [@https://tools.ietf.org/html/rfc6455#section-11.3.3 ['Sec-WebSocket-Accept]]
+    field value is generated from the request in a fashion specified by
+    the WebSocket protocol.
 ]]]
 
 [heading Decorators]
@@ -114,5 +118,14 @@ specified dynamic buffer as an octet sequence in the buffer's output
 area, and later uses those octets to attempt an HTTP WebSocket Upgrade:
 
 [ws_snippet_14]
+
+The implementation uses a fixed-size storage area to hold buffers passed
+using these functions. If an application is reaching the limit of the
+internal buffer size, then the websocket stream may be instantiated with
+the next layer type of
+[link beast.ref.boost__beast__buffered_read_stream `buffered_read_stream`]
+to wrap the underlying stream. The buffered handshake data may be first
+placed into the buffered read stream, which uses a dynamically sized
+buffer.
 
 [endsect]

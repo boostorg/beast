@@ -35,6 +35,7 @@ Boost.Asio with a consistent asynchronous model using a modern C++ approach.
 [include 06_websocket/4_server.qbk]
 [include 06_websocket/5_messages.qbk]
 [include 06_websocket/6_control.qbk]
-[include 06_websocket/7_notes.qbk]
+[include 06_websocket/7_teardown.qbk]
+[include 06_websocket/8_notes.qbk]
 
 [endsect]
