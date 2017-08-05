@@ -7,7 +7,14 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
-#include <example/common/helpers.hpp>
+//------------------------------------------------------------------------------
+//
+// wsload
+//
+//  Measure the performance of a WebSocket server
+//
+//------------------------------------------------------------------------------
+
 #include <example/common/session_alloc.hpp>
 
 #include <boost/beast/core.hpp>
@@ -75,6 +82,12 @@ public:
     }
 };
 
+void
+fail(boost::system::error_code ec, char const* what)
+{
+    std::cerr << what << ": " << ec.message() << "\n";
+}
+
 class connection
     : public std::enable_shared_from_this<connection>
 {
@@ -133,19 +146,11 @@ public:
 
 private:
     void
-    fail(boost::beast::string_view what, error_code ec)
-    {
-        if( ec == asio::error::operation_aborted ||
-            ec == ws::error::closed)
-            return;
-        print(log_, "[", ep_, "] ", what, ": ", ec.message());
-    }
-
-    void
     on_connect(error_code ec)
     {
         if(ec)
-            return fail("on_connect", ec);
+            return fail(ec, "on_connect");
+
         ws_.async_handshake(
             ep_.address().to_string() + ":" + std::to_string(ep_.port()),
             "/",
@@ -159,7 +164,8 @@ private:
     on_handshake(error_code ec)
     {
         if(ec)
-            return fail("on_connect", ec);
+            return fail(ec, "handshake");
+
         do_write();
     }
 
@@ -180,9 +186,11 @@ private:
     on_write(error_code ec)
     {
         if(ec)
-            return fail("on_read", ec);
+            return fail(ec, "write");
+
         if(messages_--)
             return do_read();
+
         ws_.async_close({},
             alloc_.wrap(std::bind(
                 &connection::on_close,
@@ -204,7 +212,8 @@ private:
     on_read(error_code ec)
     {
         if(ec)
-            return fail("on_read", ec);
+            return fail(ec, "read");
+
         ++count_;
         bytes_ += buffer_.size();
         buffer_.consume(buffer_.size());
@@ -215,7 +224,7 @@ private:
     on_close(error_code ec)
     {
         if(ec)
-            return fail("on_close", ec);
+            return fail(ec, "close");
     }
 };
 
@@ -264,8 +273,7 @@ main(int argc, char** argv)
         if(argc != 8)
         {
             std::cerr <<
-                "Usage: " << argv[0] <<
-                " <address> <port> <trials> <messages> <workers> <threads> <compression:0|1>";
+                "Usage: bench-wsload <address> <port> <trials> <messages> <workers> <threads> <compression:0|1>";
             return EXIT_FAILURE;
         }
 
@@ -316,7 +324,7 @@ main(int argc, char** argv)
     }
     catch(std::exception const& e)
     {
-        std::cerr << "Exception: " << e.what() << std::endl;
+        std::cerr << "Error: " << e.what() << std::endl;
         return EXIT_FAILURE;
     }
 

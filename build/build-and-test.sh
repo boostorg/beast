@@ -97,7 +97,9 @@ INC_DIR="$BOOST_ROOT/boost/beast"
 
 function build_bjam ()
 {
-  if [[ $VARIANT == "coverage" ]]; then
+  if [[ $VARIANT == "coverage" ]] || \
+     [[ $VARIANT == "valgrind" ]] || \
+     [[ $VARIANT == "ubasan" ]]; then
     bjam \
       libs/beast/test/beast/core//fat-tests \
       libs/beast/test/beast/http//fat-tests \

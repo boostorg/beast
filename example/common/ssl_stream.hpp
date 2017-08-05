@@ -61,11 +61,13 @@ public:
     /// The type of the lowest layer.
     using lowest_layer_type = typename stream_type::lowest_layer_type;
 
-    ssl_stream(boost::asio::ip::tcp::socket&& sock, boost::asio::ssl::context& ctx)
-        : p_(new stream_type{sock.get_io_service(), ctx})
+    ssl_stream(
+        boost::asio::ip::tcp::socket socket,
+        boost::asio::ssl::context& ctx)
+        : p_(new stream_type{socket.get_io_service(), ctx})
         , ctx_(&ctx)
     {
-        p_->next_layer() = std::move(sock);
+        p_->next_layer() = std::move(socket);
     }
 
     ssl_stream(ssl_stream&& other)

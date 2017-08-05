@@ -1,3 +1,9 @@
+Version 101:
+
+* Refactor all examples
+
+--------------------------------------------------------------------------------
+
 Version 100:
 
 * Fix doc convenience includes

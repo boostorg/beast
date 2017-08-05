@@ -21,7 +21,7 @@
 
 //[example_core_detect_ssl_1
 
-#include <boost/beast.hpp>
+#include <boost/beast/core.hpp>
 #include <boost/logic/tribool.hpp>
 
 /** Return `true` if a buffer contains a TLS/SSL client handshake.
@@ -52,8 +52,6 @@ is_ssl_handshake(ConstBufferSequence const& buffers);
 
 //]
 
-using namespace boost::beast;
-
 //[example_core_detect_ssl_2
 
 template<
@@ -63,7 +61,7 @@ is_ssl_handshake(
     ConstBufferSequence const& buffers)
 {
     // Make sure buffers meets the requirements
-    static_assert(is_const_buffer_sequence<ConstBufferSequence>::value,
+    static_assert(boost::beast::is_const_buffer_sequence<ConstBufferSequence>::value,
         "ConstBufferSequence requirements not met");
 
     // We need at least one byte to really do anything
@@ -130,12 +128,14 @@ boost::tribool
 detect_ssl(
     SyncReadStream& stream,
     DynamicBuffer& buffer,
-    error_code& ec)
+    boost::beast::error_code& ec)
 {
+    namespace beast = boost::beast;
+
     // Make sure arguments meet the requirements
-    static_assert(is_sync_read_stream<SyncReadStream>::value,
+    static_assert(beast::is_sync_read_stream<SyncReadStream>::value,
         "SyncReadStream requirements not met");
-    static_assert(is_dynamic_buffer<DynamicBuffer>::value,
+    static_assert(beast::is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
 
     // Loop until an error occurs or we get a definitive answer
@@ -148,15 +148,17 @@ detect_ssl(
         // If we got an answer, return it
         if(! boost::indeterminate(result))
         {
-            ec = {}; // indicate no error
+            // This is a fast way to indicate success
+            // without retrieving the default category.
+            ec.assign(0, ec.category());
             return result;
         }
 
         // The algorithm should never need more than 4 bytes
         BOOST_ASSERT(buffer.size() < 4);
 
-        // Create up to 4 bytes of space in the buffer's output area.
-        auto const mutable_buffer = buffer.prepare(4 - buffer.size());
+        // Prepare the buffer's output area.
+        auto const mutable_buffer = buffer.prepare(beast::read_size(buffer, 1536));
 
         // Try to fill our buffer by reading from the stream
         std::size_t const bytes_transferred = stream.read_some(mutable_buffer, ec);
@@ -223,9 +225,9 @@ template<
     class AsyncReadStream,
     class DynamicBuffer,
     class CompletionToken>
-async_return_type< /*< The [link beast.ref.boost__beast__async_return_type `async_return_type`] customizes the return value based on the completion token >*/
+boost::beast::async_return_type< /*< The [link beast.ref.boost__beast__async_return_type `async_return_type`] customizes the return value based on the completion token >*/
     CompletionToken,
-    void(error_code, boost::tribool)> /*< This is the signature for the completion handler >*/
+    void(boost::beast::error_code, boost::tribool)> /*< This is the signature for the completion handler >*/
 async_detect_ssl(
     AsyncReadStream& stream,
     DynamicBuffer& buffer,
@@ -247,26 +249,28 @@ template<
     class AsyncReadStream,
     class DynamicBuffer,
     class CompletionToken>
-async_return_type<
+boost::beast::async_return_type<
     CompletionToken,
-    void(error_code, boost::tribool)>
+    void(boost::beast::error_code, boost::tribool)>
 async_detect_ssl(
     AsyncReadStream& stream,
     DynamicBuffer& buffer,
     CompletionToken&& token)
 {
+    namespace beast = boost::beast;
+
     // Make sure arguments meet the requirements
-    static_assert(is_async_read_stream<AsyncReadStream>::value,
+    static_assert(beast::is_async_read_stream<AsyncReadStream>::value,
         "SyncReadStream requirements not met");
-    static_assert(is_dynamic_buffer<DynamicBuffer>::value,
+    static_assert(beast::is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
 
     // This helper manages some of the handler's lifetime and
     // uses the result and handler specializations associated with
     // the completion token to help customize the return value.
     //
-    boost::beast::async_completion<
-        CompletionToken, void(boost::beast::error_code, boost::tribool)> init{token};
+    beast::async_completion<
+        CompletionToken, void(beast::error_code, boost::tribool)> init{token};
 
     // Create the composed operation and launch it. This is a constructor
     // call followed by invocation of operator(). We use handler_type
@@ -274,10 +278,10 @@ async_detect_ssl(
     // allowing user defined specializations of the async result template
     // to take effect.
     //
-    detect_ssl_op<AsyncReadStream, DynamicBuffer, handler_type<
-        CompletionToken, void(error_code, boost::tribool)>>{
+    detect_ssl_op<AsyncReadStream, DynamicBuffer, beast::handler_type<
+        CompletionToken, void(beast::error_code, boost::tribool)>>{
             stream, buffer, init.completion_handler}(
-                boost::beast::error_code{}, 0);
+                beast::error_code{}, 0);
 
     // This hook lets the caller see a return value when appropriate.
     // For example this might return std::future<error_code, boost::tribool> if
@@ -322,8 +326,10 @@ public:
     // The constructor just keeps references the callers varaibles.
     //
     template<class DeducedHandler>
-    detect_ssl_op(AsyncReadStream& stream,
-            DynamicBuffer& buffer, DeducedHandler&& handler)
+    detect_ssl_op(
+        AsyncReadStream& stream,
+        DynamicBuffer& buffer,
+        DeducedHandler&& handler)
         : stream_(stream)
         , buffer_(buffer)
         , handler_(std::forward<DeducedHandler>(handler))
@@ -402,6 +408,8 @@ void
 detect_ssl_op<AsyncStream, DynamicBuffer, Handler>::
 operator()(boost::beast::error_code ec, std::size_t bytes_transferred)
 {
+    namespace beast = boost::beast;
+
     // Execute the state machine
     switch(step_)
     {
@@ -422,7 +430,7 @@ operator()(boost::beast::error_code ec, std::size_t bytes_transferred)
             // original handler.
             step_ = 1;
             return stream_.get_io_service().post(
-                bind_handler(std::move(*this), ec, 0));
+                beast::bind_handler(std::move(*this), ec, 0));
         }
 
         // The algorithm should never need more than 4 bytes
@@ -432,7 +440,7 @@ operator()(boost::beast::error_code ec, std::size_t bytes_transferred)
 
     do_read:
         // We need more bytes, but no more than four total.
-        return stream_.async_read_some(buffer_.prepare(4 - buffer_.size()), std::move(*this));
+        return stream_.async_read_some(buffer_.prepare(beast::read_size(buffer_, 1536)), std::move(*this));
 
     case 1:
         // Call the handler

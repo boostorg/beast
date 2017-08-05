@@ -9,7 +9,6 @@
 
 alias run-tests :
     common//run-tests
-    server//run-tests
     ;
 
 alias fat-tests ;

@@ -65,13 +65,8 @@ public:
     {
     }
 
-    void operator()()
-    {
-        (*this)({});
-    }
-
     void
-    operator()(error_code ec,
+    operator()(error_code ec = {},
         std::size_t bytes_transferred = 0);
 
     friend

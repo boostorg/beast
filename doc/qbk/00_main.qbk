@@ -85,8 +85,8 @@
 [import ../../example/common/detect_ssl.hpp]
 [import ../../example/doc/http_examples.hpp]
 [import ../../example/echo-op/echo_op.cpp]
-[import ../../example/http-client/http_client.cpp]
-[import ../../example/websocket-client/websocket_client.cpp]
+[import ../../example/http/client/sync/http_client_sync.cpp]
+[import ../../example/websocket/client/sync/websocket_client_sync.cpp]
 
 [import ../../include/boost/beast/http/basic_file_body.hpp]
 

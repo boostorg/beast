@@ -17,8 +17,8 @@ add_executable (tests-example-common
     ${COMMON_INCLUDES}
     Jamfile
     detect_ssl.cpp
-    mime_types.cpp
-    rfc7231.cpp
+    root_certificates.cpp
+    server_certificate.cpp
     session_alloc.cpp
     ssl_stream.cpp
     write_msg.cpp
