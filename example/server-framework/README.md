@@ -1,5 +1,5 @@
 <img width="880" height = "80" alt = "Beast"
-    src="https://raw.githubusercontent.com/boostorg/beast/master/doc/images/readme.png">
+    src="https://raw.githubusercontent.com/boostorg/beast/master/doc/images/readme2.png">
 
 # HTTP and WebSocket built on Boost.Asio in C++11
 
