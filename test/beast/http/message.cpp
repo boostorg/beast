@@ -28,7 +28,11 @@ public:
     {
         bool moved = false;
 
-        Arg1() = default;
+        Arg1(Arg1 const&) = default;
+
+        Arg1()
+        {
+        }
 
         Arg1(Arg1&& other)
         {

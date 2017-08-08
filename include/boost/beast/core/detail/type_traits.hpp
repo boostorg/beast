@@ -232,7 +232,11 @@ constexpr
 typename unwidest_unsigned<U0, U1, UN...>::type
 min_all(U0 u0, U1 u1, UN... un)
 {
-    return u0 < u1? min_all(u0, un...) : min_all(u1, un...);
+    using type =
+        typename unwidest_unsigned<U0, U1, UN...>::type;
+    return u0 < u1 ?
+        static_cast<type>(min_all(u0, un...)) :
+        static_cast<type>(min_all(u1, un...));
 }
 
 template<class U>

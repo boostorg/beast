@@ -38,11 +38,11 @@ data() const ->
     using boost::asio::const_buffer;
     if(in_off_ + in_size_ <= capacity_)
         return {{
-            const_buffer{begin_ + in_off_, in_size_},
-            const_buffer{begin_, 0}}};
+            {const_buffer{begin_ + in_off_, in_size_}},
+            {const_buffer{begin_, 0}}}};
     return {{
-        const_buffer{begin_ + in_off_, capacity_ - in_off_},
-        const_buffer{begin_, in_size_ - (capacity_ - in_off_)}}};
+        {const_buffer{begin_ + in_off_, capacity_ - in_off_}},
+        {const_buffer{begin_, in_size_ - (capacity_ - in_off_)}}}};
 }
 
 inline
@@ -54,11 +54,11 @@ mutable_data() ->
     using boost::asio::mutable_buffer;
     if(in_off_ + in_size_ <= capacity_)
         return {{
-            mutable_buffer{begin_ + in_off_, in_size_},
-            mutable_buffer{begin_, 0}}};
+            {mutable_buffer{begin_ + in_off_, in_size_}},
+            {mutable_buffer{begin_, 0}}}};
     return {{
-        mutable_buffer{begin_ + in_off_, capacity_ - in_off_},
-        mutable_buffer{begin_, in_size_ - (capacity_ - in_off_)}}};
+        {mutable_buffer{begin_ + in_off_, capacity_ - in_off_}},
+        {mutable_buffer{begin_, in_size_ - (capacity_ - in_off_)}}}};
 }
 
 inline
@@ -75,11 +75,11 @@ prepare(std::size_t size) ->
     auto const out_off = (in_off_ + in_size_) % capacity_;
     if(out_off + out_size_ <= capacity_ )
         return {{
-            mutable_buffer{begin_ + out_off, out_size_},
-            mutable_buffer{begin_, 0}}};
+            {mutable_buffer{begin_ + out_off, out_size_}},
+            {mutable_buffer{begin_, 0}}}};
     return {{
-        mutable_buffer{begin_ + out_off, capacity_ - out_off},
-        mutable_buffer{begin_, out_size_ - (capacity_ - out_off)}}};
+        {mutable_buffer{begin_ + out_off, capacity_ - out_off}},
+        {mutable_buffer{begin_, out_size_ - (capacity_ - out_off)}}}};
 }
 
 inline
