@@ -13,6 +13,7 @@
 #include <boost/beast/config.hpp>
 #include <boost/beast/core/string_param.hpp>
 #include <boost/beast/core/string.hpp>
+#include <boost/beast/core/detail/allocator.hpp>
 #include <boost/beast/http/field.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/intrusive/list.hpp>
@@ -259,9 +260,7 @@ public:
     allocator_type
     get_allocator() const
     {
-        return typename std::allocator_traits<
-            Allocator>::template rebind_alloc<
-                value_type>(alloc_);
+        return alloc_;
     }
 
     //--------------------------------------------------------------------------
@@ -675,15 +674,15 @@ private:
     template<class OtherAlloc>
     friend class basic_fields;
 
-    using alloc_type = typename
-        std::allocator_traits<Allocator>::
+    using base_alloc_type = typename
+        beast::detail::allocator_traits<Allocator>::
             template rebind_alloc<value_type>;
 
     using alloc_traits =
-        std::allocator_traits<alloc_type>;
+        beast::detail::allocator_traits<base_alloc_type>;
 
-    using size_type =
-        typename std::allocator_traits<Allocator>::size_type;
+    using size_type = typename
+        beast::detail::allocator_traits<Allocator>::size_type;
 
     value_type&
     new_element(field name,
@@ -730,7 +729,7 @@ private:
     void
     swap(basic_fields& other, std::false_type);
 
-    alloc_type alloc_;
+    base_alloc_type alloc_;
     set_t set_;
     list_t list_;
     string_view method_;

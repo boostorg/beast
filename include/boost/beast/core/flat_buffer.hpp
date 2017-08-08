@@ -11,6 +11,7 @@
 #define BOOST_BEAST_FLAT_BUFFER_HPP
 
 #include <boost/beast/config.hpp>
+#include <boost/beast/core/detail/allocator.hpp>
 #include <boost/beast/core/detail/empty_base_optimization.hpp>
 #include <boost/asio/buffer.hpp>
 #include <limits>
@@ -44,21 +45,10 @@ template<class Allocator>
 class basic_flat_buffer
 #if ! BOOST_BEAST_DOXYGEN
     : private detail::empty_base_optimization<
-        typename std::allocator_traits<Allocator>::
+        typename detail::allocator_traits<Allocator>::
             template rebind_alloc<char>>
 #endif
 {
-public:
-#if BOOST_BEAST_DOXYGEN
-    /// The type of allocator used.
-    using allocator_type = Allocator;
-#else
-    using allocator_type = typename
-        std::allocator_traits<Allocator>::
-            template rebind_alloc<char>;
-#endif
-
-private:
     enum
     {
         min_size = 512
@@ -67,8 +57,12 @@ private:
     template<class OtherAlloc>
     friend class basic_flat_buffer;
 
+    using base_alloc_type = typename
+        detail::allocator_traits<Allocator>::
+            template rebind_alloc<char>;
+
     using alloc_traits =
-        std::allocator_traits<allocator_type>;
+        detail::allocator_traits<base_alloc_type>;
 
     static
     inline
@@ -86,6 +80,9 @@ private:
     std::size_t max_;
 
 public:
+    /// The type of allocator used.
+    using allocator_type = Allocator;
+
     /// The type used to represent the input sequence as a list of buffers.
     using const_buffers_type = boost::asio::const_buffers_1;
 

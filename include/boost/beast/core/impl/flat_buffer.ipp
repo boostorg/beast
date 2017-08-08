@@ -58,7 +58,7 @@ basic_flat_buffer(std::size_t limit)
 template<class Allocator>
 basic_flat_buffer<Allocator>::
 basic_flat_buffer(Allocator const& alloc)
-    : detail::empty_base_optimization<allocator_type>(alloc)
+    : detail::empty_base_optimization<base_alloc_type>(alloc)
     , begin_(nullptr)
     , in_(nullptr)
     , out_(nullptr)
@@ -71,7 +71,7 @@ basic_flat_buffer(Allocator const& alloc)
 template<class Allocator>
 basic_flat_buffer<Allocator>::
 basic_flat_buffer(std::size_t limit, Allocator const& alloc)
-    : detail::empty_base_optimization<allocator_type>(alloc)
+    : detail::empty_base_optimization<base_alloc_type>(alloc)
     , begin_(nullptr)
     , in_(nullptr)
     , out_(nullptr)
@@ -84,7 +84,7 @@ basic_flat_buffer(std::size_t limit, Allocator const& alloc)
 template<class Allocator>
 basic_flat_buffer<Allocator>::
 basic_flat_buffer(basic_flat_buffer&& other)
-    : detail::empty_base_optimization<allocator_type>(
+    : detail::empty_base_optimization<base_alloc_type>(
         std::move(other.member()))
     , begin_(other.begin_)
     , in_(other.in_)
@@ -104,7 +104,7 @@ template<class Allocator>
 basic_flat_buffer<Allocator>::
 basic_flat_buffer(basic_flat_buffer&& other,
         Allocator const& alloc)
-    : detail::empty_base_optimization<allocator_type>(alloc)
+    : detail::empty_base_optimization<base_alloc_type>(alloc)
 {
     if(this->member() != other.member())
     {
@@ -136,7 +136,7 @@ basic_flat_buffer(basic_flat_buffer&& other,
 template<class Allocator>
 basic_flat_buffer<Allocator>::
 basic_flat_buffer(basic_flat_buffer const& other)
-    : detail::empty_base_optimization<allocator_type>(
+    : detail::empty_base_optimization<base_alloc_type>(
         alloc_traits::select_on_container_copy_construction(
             other.member()))
     , begin_(nullptr)
@@ -153,7 +153,7 @@ template<class Allocator>
 basic_flat_buffer<Allocator>::
 basic_flat_buffer(basic_flat_buffer const& other,
         Allocator const& alloc)
-    : detail::empty_base_optimization<allocator_type>(alloc)
+    : detail::empty_base_optimization<base_alloc_type>(alloc)
     , begin_(nullptr)
     , in_(nullptr)
     , out_(nullptr)
@@ -184,7 +184,7 @@ template<class OtherAlloc>
 basic_flat_buffer<Allocator>::
 basic_flat_buffer(basic_flat_buffer<OtherAlloc> const& other,
         Allocator const& alloc)
-    : detail::empty_base_optimization<allocator_type>(alloc)
+    : detail::empty_base_optimization<base_alloc_type>(alloc)
     , begin_(nullptr)
     , in_(nullptr)
     , out_(nullptr)
@@ -202,8 +202,8 @@ operator=(basic_flat_buffer&& other) ->
     basic_flat_buffer&
 {
     if(this != &other)
-        move_assign(other,
-            typename alloc_traits::propagate_on_container_move_assignment{});
+        move_assign(other, std::integral_constant<bool,
+            alloc_traits::propagate_on_container_move_assignment::value>{});
     return *this;
 }
 
@@ -214,8 +214,8 @@ operator=(basic_flat_buffer const& other) ->
     basic_flat_buffer&
 {
     if(this != &other)
-        copy_assign(other,
-            typename alloc_traits::propagate_on_container_copy_assignment{});
+        copy_assign(other, std::integral_constant<bool,
+            alloc_traits::propagate_on_container_copy_assignment::value>{});
     return *this;
 }
 

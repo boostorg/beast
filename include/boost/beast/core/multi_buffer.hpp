@@ -11,6 +11,8 @@
 #define BOOST_BEAST_MULTI_BUFFER_HPP
 
 #include <boost/beast/config.hpp>
+#include <boost/beast/core/detail/allocator.hpp>
+#include <boost/beast/core/detail/empty_base_optimization.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/intrusive/list.hpp>
 #include <iterator>
@@ -34,30 +36,28 @@ namespace beast {
 */
 template<class Allocator>
 class basic_multi_buffer
-{
-public:
-#if BOOST_BEAST_DOXYGEN
-    /// The type of allocator used.
-    using allocator_type = Allocator;
-#else
-    using allocator_type = typename
-        std::allocator_traits<Allocator>::
-            template rebind_alloc<char>;
+#if ! BOOST_BEAST_DOXYGEN
+    : private detail::empty_base_optimization<
+        typename detail::allocator_traits<Allocator>::
+            template rebind_alloc<char>>
 #endif
+{
+    using base_alloc_type = typename
+        detail::allocator_traits<Allocator>::
+            template rebind_alloc<char>;
 
-private:
     // Storage for the list of buffers representing the input
     // and output sequences. The allocation for each element
     // contains `element` followed by raw storage bytes.
     class element;
 
-    using alloc_traits = std::allocator_traits<allocator_type>;
+    using alloc_traits = detail::allocator_traits<base_alloc_type>;
     using list_type = typename boost::intrusive::make_list<element,
         boost::intrusive::constant_time_size<true>>::type;
     using iter = typename list_type::iterator;
     using const_iter = typename list_type::const_iterator;
 
-    using size_type = typename std::allocator_traits<Allocator>::size_type;
+    using size_type = typename alloc_traits::size_type;
     using const_buffer = boost::asio::const_buffer;
     using mutable_buffer = boost::asio::mutable_buffer;
 
@@ -77,9 +77,11 @@ private:
     size_type in_pos_ = 0;  // input offset in list_.front()
     size_type out_pos_ = 0; // output offset in *out_
     size_type out_end_ = 0; // output end offset in list_.back()
-    allocator_type alloc_;  // the allocator
 
 public:
+    /// The type of allocator used.
+    using allocator_type = Allocator;
+
 #if BOOST_BEAST_DOXYGEN
     /// The type used to represent the input sequence as a list of buffers.
     using const_buffers_type = implementation_defined;
@@ -215,7 +217,7 @@ public:
     allocator_type
     get_allocator() const
     {
-        return alloc_;
+        return this->member();
     }
 
     /// Returns the size of the input sequence.
@@ -273,9 +275,6 @@ public:
 private:
     template<class OtherAlloc>
     friend class basic_multi_buffer;
-
-    void
-    delete_element(element& e);
 
     void
     delete_list();

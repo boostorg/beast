@@ -432,8 +432,8 @@ operator=(basic_fields&& other) ->
 {
     if(this == &other)
         return *this;
-    move_assign(other, typename alloc_traits::
-        propagate_on_container_move_assignment{});
+    move_assign(other, std::integral_constant<bool,
+        alloc_traits:: propagate_on_container_move_assignment::value>{});
     return *this;
 }
 
@@ -443,8 +443,8 @@ basic_fields<Allocator>::
 operator=(basic_fields const& other) ->
     basic_fields&
 {
-    copy_assign(other, typename alloc_traits::
-        propagate_on_container_copy_assignment{});
+    copy_assign(other, std::integral_constant<bool,
+        alloc_traits::propagate_on_container_copy_assignment::value>{});
     return *this;
 }
 
@@ -645,8 +645,8 @@ void
 basic_fields<Allocator>::
 swap(basic_fields<Allocator>& other)
 {
-    swap(other, typename alloc_traits::
-        propagate_on_container_swap{});
+    swap(other, std::integral_constant<bool,
+        alloc_traits::propagate_on_container_swap::value>{});
 }
 
 template<class Allocator>
@@ -1009,7 +1009,7 @@ set_chunked_impl(bool value)
             std::string s;
         #else
             using rebind_type =
-                typename std::allocator_traits<
+                typename beast::detail::allocator_traits<
                     Allocator>::template rebind_alloc<char>;
             std::basic_string<
                 char,
@@ -1046,7 +1046,7 @@ set_chunked_impl(bool value)
         std::string s;
     #else
         using rebind_type =
-            typename std::allocator_traits<
+            typename beast::detail::allocator_traits<
                 Allocator>::template rebind_alloc<char>;
         std::basic_string<
             char,
@@ -1103,7 +1103,7 @@ set_keep_alive_impl(
         std::string s;
     #else
         using rebind_type =
-            typename std::allocator_traits<
+            typename beast::detail::allocator_traits<
                 Allocator>::template rebind_alloc<char>;
         std::basic_string<
             char,
@@ -1199,7 +1199,7 @@ realloc_string(string_view& dest, string_view s)
 {
     if(dest.empty() && s.empty())
         return;
-    auto a = typename std::allocator_traits<
+    auto a = typename beast::detail::allocator_traits<
         Allocator>::template rebind_alloc<
             char>(alloc_);
     if(! dest.empty())
@@ -1227,7 +1227,7 @@ realloc_target(
     // the reader class.
     if(dest.empty() && s.empty())
         return;
-    auto a = typename std::allocator_traits<
+    auto a = typename beast::detail::allocator_traits<
         Allocator>::template rebind_alloc<
             char>(alloc_);
     if(! dest.empty())

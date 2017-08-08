@@ -1,6 +1,7 @@
 Version 103:
 
 * Boost test matrix fixes
+* Tidy up allocator usage
 
 --------------------------------------------------------------------------------
 
