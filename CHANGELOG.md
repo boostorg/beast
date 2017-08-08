@@ -1,3 +1,9 @@
+Version 102:
+
+* Section headings in examples
+
+--------------------------------------------------------------------------------
+
 Version 101:
 
 * Refactor all examples

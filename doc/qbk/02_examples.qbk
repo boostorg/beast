@@ -48,7 +48,7 @@ in the [repo_file example] directory.
 
 [template example_src[path name] '''<ulink url="../../'''[path]'''">'''[name]'''</ulink>''']
 
-[heading Clients]
+[section Clients]
 
 These HTTP clients submit a GET request to a server specified on the command
 line, and prints the resulting response. The crawl client asynchronously
@@ -95,7 +95,11 @@ before disconnecting.
         [[example_src example/websocket/client/coro-ssl/websocket_client_coro_ssl.cpp websocket_client_coro_ssl.cpp]]
 ]]
 
-[heading Servers]
+[endsect]
+
+
+
+[section Servers]
 
 These HTTP servers deliver files from a root directory specified on the
 command line.
@@ -159,7 +163,11 @@ session open until the client disconnects.
         []
 ]]
 
-[heading Advanced Servers]
+[endsect]
+
+
+
+[section Servers (Advanced)]
 
 These servers offer both HTTP and WebSocket services on the same port,
 and illustrate the implementation of advanced features.
@@ -183,7 +191,11 @@ and illustrate the implementation of advanced features.
         [[example_src example/advanced/server-flex/advanced_server_flex.cpp advanced_server_flex.cpp]]
 ]]
 
-[heading Common Files]
+[endsect]
+
+
+
+[section Common Files]
 
 Some of the examples use one or more shared header files, they are
 listed here along with a description of their use:
@@ -232,6 +244,8 @@ listed here along with a description of their use:
         objects, as well as for implementing HTTP pipelining.
     ]
 ]]
+
+[endsect]
 
 
 
