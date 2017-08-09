@@ -2,6 +2,7 @@ Version 104:
 
 * Remove unused include
 * Use #error in config.hpp
+* Only set -std=c++11 on Travis
 
 --------------------------------------------------------------------------------
 

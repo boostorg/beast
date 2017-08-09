@@ -100,7 +100,8 @@ function build_bjam ()
   if [[ $VARIANT == "coverage" ]] || \
      [[ $VARIANT == "valgrind" ]] || \
      [[ $VARIANT == "ubasan" ]]; then
-    bjam \
+    b2 \
+      cxxflags=-std=c++11 \
       libs/beast/test/beast/core//fat-tests \
       libs/beast/test/beast/http//fat-tests \
       libs/beast/test/beast/websocket//fat-tests \
@@ -109,7 +110,8 @@ function build_bjam ()
       variant=$VARIANT \
       -j${JOBS}
   else
-    bjam \
+    b2 \
+      cxxflags=-std=c++11 \
       libs/beast/test//fat-tests \
       libs/beast/example \
       toolset=$TOOLSET \
