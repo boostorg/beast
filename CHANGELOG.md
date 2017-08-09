@@ -1,6 +1,7 @@
 Version 104:
 
 * Remove unused include
+* Use #error in config.hpp
 
 --------------------------------------------------------------------------------
 
