@@ -99,8 +99,6 @@ project /boost/beast
     <define>BOOST_ASIO_DISABLE_BOOST_DATE_TIME=1
     <define>BOOST_ASIO_DISABLE_BOOST_REGEX=1
     <define>BOOST_ASIO_NO_DEPRECATED=1
-    <toolset>gcc:<cxxflags>-std=c++11
-    <toolset>clang:<cxxflags>-std=c++11
     <toolset>msvc:<define>_SCL_SECURE_NO_WARNINGS=1
     <toolset>msvc:<define>_CRT_SECURE_NO_WARNINGS=1
     <toolset>msvc:<cxxflags>"/permissive- /bigobj"
