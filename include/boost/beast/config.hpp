@@ -26,12 +26,12 @@
 
 #if defined(BOOST_MSVC)
 # if BOOST_MSVC_FULL_VER < 190024210
-   static_assert(false, "Beast requires C++11: Visual Studio 2015 Update 3 or later needed");
+#  error Beast requires C++11: Visual Studio 2015 Update 3 or later needed
 # endif
 
 #elif defined(BOOST_GCC)
 # if(BOOST_GCC < 40801)
-    static_assert(false, "Beast requires C++11: gcc version 4.8 or later needed");
+#  error Beast requires C++11: gcc version 4.8 or later needed
 # endif
 
 #else
@@ -40,7 +40,7 @@
     defined(BOOST_NO_CXX11_HDR_TUPLE) || \
     defined(BOOST_NO_CXX11_TEMPLATE_ALIASES) || \
     defined(BOOST_NO_CXX11_VARIADIC_TEMPLATES)
-    static_assert(false, "Beast requires C++11: a conforming compiler is needed");
+#  error Beast requires C++11: a conforming compiler is needed
 # endif
 
 #endif
