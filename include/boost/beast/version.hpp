@@ -20,7 +20,7 @@
     This is a simple integer that is incremented by one every
     time a set of code changes is merged to the develop branch.
 */
-#define BOOST_BEAST_VERSION 102
+#define BOOST_BEAST_VERSION 103
 
 #define BOOST_BEAST_VERSION_STRING "Boost.Beast/" BOOST_STRINGIZE(BOOST_BEAST_VERSION)
 
