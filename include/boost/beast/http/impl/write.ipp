@@ -13,7 +13,6 @@
 #include <boost/beast/http/type_traits.hpp>
 #include <boost/beast/core/bind_handler.hpp>
 #include <boost/beast/core/ostream.hpp>
-#include <boost/beast/core/handler_alloc.hpp>
 #include <boost/beast/core/handler_ptr.hpp>
 #include <boost/beast/core/type_traits.hpp>
 #include <boost/beast/core/detail/config.hpp>
