@@ -196,7 +196,7 @@ handle_request(
         return send(std::move(res));
     }
 
-    // Respond to HEAD request
+    // Respond to GET request
     http::response<http::file_body> res{
         std::piecewise_construct,
         std::make_tuple(std::move(body)),
@@ -564,7 +564,6 @@ class http_session
             virtual void operator()() = 0;
         };
 
-        bool busy_ = false;     // true if a write is in progress
         http_session& self_;
         std::vector<std::unique_ptr<work>> items_;
 
@@ -581,7 +580,7 @@ class http_session
         bool
         is_full() const
         {
-            return items_.size() + (busy_ ? 1 : 0) >= limit;
+            return items_.size() >= limit;
         }
 
         // Called when a message finishes sending
@@ -589,18 +588,12 @@ class http_session
         bool
         on_write()
         {
-            BOOST_ASSERT(busy_);
-            auto const do_read = items_.size() + (busy_ ? 1 : 0) >= limit;
+            BOOST_ASSERT(! items_.empty());
+            auto const was_full = is_full();
+            items_.erase(items_.begin());
             if(! items_.empty())
-            {
-                (*items_.back())();
-                items_.erase(items_.begin());
-            }
-            else
-            {
-                busy_ = false;
-            }
-            return do_read;
+                (*items_.front())();
+            return was_full;
         }
 
         // Called by the HTTP handler to send a response.
@@ -608,24 +601,6 @@ class http_session
         void
         operator()(http::message<isRequest, Body, Fields>&& msg)
         {
-            // See if a write is in progress
-            if(! busy_)
-            {
-                // No write in progress so start one
-                busy_ = true;
-
-                // This function takes ownership of the message by moving
-                // it into a temporary buffer, otherwise we would have
-                // to manage the lifetime of the message and serializer.
-                return async_write_msg(
-                    self_.derived().stream(),
-                    std::move(msg),
-                    self_.strand_.wrap(std::bind(
-                        &http_session::on_write,
-                        self_.derived().shared_from_this(),
-                        std::placeholders::_1)));
-            }
-
             // This holds a work item
             struct work_impl : work
             {
@@ -643,9 +618,9 @@ class http_session
                 void
                 operator()()
                 {
-                    async_write_msg(
+                    http::async_write(
                         self_.derived().stream(),
-                        std::move(msg_),
+                        msg_,
                         self_.strand_.wrap(std::bind(
                             &http_session::on_write,
                             self_.derived().shared_from_this(),
@@ -653,9 +628,12 @@ class http_session
                 }
             };
 
-            // A write is in progress, so allocate storage to
-            // save this work item so we can invoke it later.
+            // Allocate and store the work
             items_.emplace_back(new work_impl(self_, std::move(msg)));
+
+            // If there was no previous work, start this one
+            if(items_.size() == 1)
+                (*items_.front())();
         }
     };
 

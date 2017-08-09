@@ -16,7 +16,6 @@ add_executable (advanced-server-flex
     ${PROJECT_SOURCE_DIR}/example/common/detect_ssl.hpp
     ${PROJECT_SOURCE_DIR}/example/common/server_certificate.hpp
     ${PROJECT_SOURCE_DIR}/example/common/ssl_stream.hpp
-    ${PROJECT_SOURCE_DIR}/example/common/write_msg.hpp
     Jamfile
     advanced_server_flex.cpp
 )

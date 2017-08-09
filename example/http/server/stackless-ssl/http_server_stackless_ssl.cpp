@@ -192,7 +192,7 @@ handle_request(
         return send(std::move(res));
     }
 
-    // Respond to HEAD request
+    // Respond to GET request
     http::response<http::file_body> res{
         std::piecewise_construct,
         std::make_tuple(std::move(body)),

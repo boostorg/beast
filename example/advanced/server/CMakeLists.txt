@@ -8,12 +8,10 @@
 #
 
 GroupSources(include/boost/beast beast)
-GroupSources(example/common common)
 GroupSources(example/advanced/server "/")
 
 add_executable (advanced-server
     ${BOOST_BEAST_INCLUDES}
-    ${PROJECT_SOURCE_DIR}/example/common/write_msg.hpp
     Jamfile
     advanced_server.cpp
 )
