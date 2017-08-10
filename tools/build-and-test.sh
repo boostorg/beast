@@ -60,7 +60,7 @@ function valgrind_run ()
   valgrind \
     --track-origins=yes \
     --max-stackframe=16000000 \
-    --suppressions=$BOOST_ROOT/libs/beast/build/valgrind.supp \
+    --suppressions=$BOOST_ROOT/libs/beast/tools/valgrind.supp \
     --error-exitcode=1 \
     $@
 }

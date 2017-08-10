@@ -109,7 +109,6 @@ matrix:
     # OSX
 
 before_install: &base_before_install
-  #- build/install-dependencies.sh
   - pip install --user https://github.com/codecov/codecov-python/archive/master.zip
 
 install:
@@ -188,7 +187,7 @@ script:
   - |-
     echo "using $TOOLSET : : $COMPILER : <cxxflags>-std=$CXXSTD ;" > ~/user-config.jam
   - cd ../boost-root
-  - travis_retry libs/beast/build/build-and-test.sh
+  - travis_retry libs/beast/tools/build-and-test.sh
 
 after_script:
   - cat nohup.out || echo "nohup.out already deleted"

@@ -5,6 +5,7 @@ Version 104:
 * Only set -std=c++11 on Travis
 * Only set /permissive- on Appveyor
 * Tidy up some test warnings
+* tools/ renamed from build/
 
 --------------------------------------------------------------------------------
 
