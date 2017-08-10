@@ -101,7 +101,7 @@ project /boost/beast
     <define>BOOST_ASIO_NO_DEPRECATED=1
     <toolset>msvc:<define>_SCL_SECURE_NO_WARNINGS=1
     <toolset>msvc:<define>_CRT_SECURE_NO_WARNINGS=1
-    <toolset>msvc:<cxxflags>"/permissive- /bigobj"
+    <toolset>msvc:<cxxflags>"/bigobj"
     <toolset>msvc:<variant>release:<cxxflags>"/Ob2 /Oi /Ot"
     <os>SOLARIS:<library>socket
     <os>SOLARIS:<library>nsl
