@@ -91,7 +91,6 @@ fail(boost::system::error_code ec, char const* what)
 class connection
     : public std::enable_shared_from_this<connection>
 {
-    std::ostream& log_;
     ws::stream<tcp::socket> ws_;
     tcp::endpoint ep_;
     std::size_t messages_;
@@ -106,15 +105,13 @@ class connection
 
 public:
     connection(
-        std::ostream& log,
         asio::io_service& ios,
         tcp::endpoint const& ep,
         std::size_t messages,
         bool deflate,
         report& rep,
         test_buffer const& tb)
-        : log_(log)
-        , ws_(ios)
+        : ws_(ios)
         , ep_(ep)
         , messages_(messages)
         , rep_(rep)
@@ -286,7 +283,7 @@ main(int argc, char** argv)
         auto const deflate = static_cast<bool>(std::atoi(argv[7]));
         auto const work = (messages + workers - 1) / workers;
         test_buffer tb;
-        for(auto i = trials; i; --i)
+        for(auto i = trials; i != 0; --i)
         {
             report rep;
             boost::asio::io_service ios{1};
@@ -294,7 +291,6 @@ main(int argc, char** argv)
             {
                 auto sp =
                 std::make_shared<connection>(
-                    dout,
                     ios,
                     tcp::endpoint{address, port},
                     work,

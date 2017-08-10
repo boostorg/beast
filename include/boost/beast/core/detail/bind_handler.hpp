@@ -45,6 +45,7 @@ private:
     Arg&&>::type
     extract(Arg&& arg, Vals& vals)
     {
+        boost::ignore_unused(vals);
         return arg;
     }
 

@@ -90,7 +90,7 @@ public:
     }
 
     friend
-    bool asio_handler_is_continuation(response_op* op)
+    bool asio_handler_is_continuation(response_op*)
     {
         // VFALCO This will go away in Net-TS
         return false;

@@ -42,6 +42,7 @@ teardown(
     Socket& socket,
     error_code& ec)
 {
+    boost::ignore_unused(role, socket, ec);
 /*
     If you are trying to use OpenSSL and this goes off, you need to
     add an include for <boost/beast/websocket/ssl.hpp>.
@@ -90,6 +91,7 @@ async_teardown(
     Socket& socket,
     TeardownHandler&& handler)
 {
+    boost::ignore_unused(role, socket, handler);
 /*
     If you are trying to use OpenSSL and this goes off, you need to
     add an include for <boost/beast/websocket/ssl.hpp>.
