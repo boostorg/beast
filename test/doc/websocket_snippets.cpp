@@ -234,23 +234,20 @@ void echo(stream<boost::asio::ip::tcp::socket>& ws,
 
 //[ws_snippet_22
 
-struct custom_stream
-{
-    friend
-    void
-    teardown(
-        role_type role,
-        custom_stream& stream,
-        error_code& ec);
+struct custom_stream;
 
-    template<class TeardownHandler>
-    friend
-    void
-    async_teardown(
-        role_type role,
-        custom_stream& stream,
-        TeardownHandler&& handler);
-};
+void
+teardown(
+    role_type role,
+    custom_stream& stream,
+    error_code& ec);
+
+template<class TeardownHandler>
+void
+async_teardown(
+    role_type role,
+    custom_stream& stream,
+    TeardownHandler&& handler);
 
 //]
 
@@ -272,7 +269,7 @@ struct custom_wrapper
     void
     teardown(
         role_type role,
-        custom_stream& stream,
+        custom_wrapper& stream,
         error_code& ec)
     {
         using boost::beast::websocket::teardown;
@@ -284,7 +281,7 @@ struct custom_wrapper
     void
     async_teardown(
         role_type role,
-        custom_stream& stream,
+        custom_wrapper& stream,
         TeardownHandler&& handler)
     {
         using boost::beast::websocket::async_teardown;

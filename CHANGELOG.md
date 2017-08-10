@@ -1,3 +1,9 @@
+Version 105:
+
+* Fix compile error in websocket snippet
+
+--------------------------------------------------------------------------------
+
 Version 104:
 
 * Remove unused include
