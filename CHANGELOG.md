@@ -7,6 +7,10 @@ Version 104:
 * Tidy up some test warnings
 * tools/ renamed from build/
 
+WebSocket:
+
+* Fix pausation::save
+
 --------------------------------------------------------------------------------
 
 Version 103:

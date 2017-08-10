@@ -121,7 +121,7 @@ class pausation
         saved_op(Op&& op)
         {
             using boost::asio::asio_handler_allocate;
-            new(asio_handler_allocate(sizeof(Op),
+            op_ = new(asio_handler_allocate(sizeof(Op),
                 std::addressof(op.handler()))) Op{
                     std::move(op)};
         }
