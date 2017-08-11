@@ -1,6 +1,7 @@
 Version 105:
 
 * Fix compile error in websocket snippet
+* Tidy up Jamfile and tests
 
 --------------------------------------------------------------------------------
 

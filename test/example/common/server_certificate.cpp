@@ -7,6 +7,9 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
+#if BOOST_BEAST_USE_OPENSSL
+
 // Test that header file is self-contained.
 #include "example/common/server_certificate.hpp"
 
+#endif

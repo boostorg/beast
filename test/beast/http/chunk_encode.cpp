@@ -65,11 +65,11 @@ public:
     void
     check_fwd(string_view match, Args&&... args)
     {
-        T t{std::forward<Args>(args)...};
+        T t(std::forward<Args>(args)...);
         BEAST_EXPECT(to_string(t) == match);
-        T t2{t};
+        T t2(t);
         BEAST_EXPECT(to_string(t2) == match);
-        T t3{std::move(t2)};
+        T t3(std::move(t2));
         BEAST_EXPECT(to_string(t3) == match);
     }
 
