@@ -3,6 +3,10 @@ Version 106:
 * Dynamic buffer input areas are mutable
 * Add flat_static_buffer::reset
 
+WebSocket:
+
+* websocket test improvements
+
 --------------------------------------------------------------------------------
 
 Version 105:

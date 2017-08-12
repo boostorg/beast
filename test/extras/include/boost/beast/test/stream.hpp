@@ -116,6 +116,14 @@ public:
     {
     }
 
+    stream_impl(
+        boost::asio::io_service& ios0,
+        boost::asio::io_service& ios1)
+        : s0_(ios0, nullptr)
+        , s1_(ios1, nullptr)
+    {
+    }
+
     ~stream_impl()
     {
         BOOST_ASSERT(! s0_.op);
@@ -276,6 +284,18 @@ public:
         boost::asio::io_service& ios)
         : impl_(std::make_shared<
             detail::stream_impl>(ios, nullptr))
+        , in_(impl_->s0_)
+        , out_(impl_->s1_)
+    {
+    }
+
+    /// Constructor
+    explicit
+    stream(
+        boost::asio::io_service& ios0,
+        boost::asio::io_service& ios1)
+        : impl_(std::make_shared<
+            detail::stream_impl>(ios0, ios1))
         , in_(impl_->s0_)
         , out_(impl_->s1_)
     {
@@ -478,11 +498,11 @@ read_some(MutableBufferSequence const& buffers,
         "MutableBufferSequence requirements not met");
     using boost::asio::buffer_copy;
     using boost::asio::buffer_size;
-    BOOST_ASSERT(! in_.op);
     BOOST_ASSERT(buffer_size(buffers) > 0);
     if(in_.fc && in_.fc->fail(ec))
         return 0;
     std::unique_lock<std::mutex> lock{in_.m};
+    BOOST_ASSERT(! in_.op);
     in_.cv.wait(lock,
         [&]()
         {
@@ -524,7 +544,6 @@ async_read_some(
         "MutableBufferSequence requirements not met");
     using boost::asio::buffer_copy;
     using boost::asio::buffer_size;
-    BOOST_ASSERT(! in_.op);
     BOOST_ASSERT(buffer_size(buffers) > 0);
     async_completion<ReadHandler,
         void(error_code, std::size_t)> init{handler};
@@ -537,6 +556,7 @@ async_read_some(
     }
     {
         std::unique_lock<std::mutex> lock{in_.m};
+        BOOST_ASSERT(! in_.op);
         if(buffer_size(buffers) == 0 ||
             buffer_size(in_.b.data()) > 0)
         {

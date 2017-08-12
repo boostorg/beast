@@ -10,7 +10,6 @@
 // Test that header file is self-contained.
 #include <boost/beast/websocket/stream.hpp>
 
-#include "websocket_async_echo_server.hpp"
 #include "websocket_sync_echo_server.hpp"
 
 #include <boost/beast/core/ostream.hpp>
@@ -183,7 +182,9 @@ public:
     void
     doTestLoop(Test const& f)
     {
-        static std::size_t constexpr limit = 200;
+        // This number has to be high for the
+        // test that writes the large buffer.
+        static std::size_t constexpr limit = 1000;
         std::size_t n;
         for(n = 0; n <= limit; ++n)
         {
@@ -231,6 +232,42 @@ public:
             w.handshake(ws, "localhost", "/");
             f(ws);
         });
+#if 0
+        // Lowering the read_size takes a disproportionate
+        // amount of time for the gains in coverage .
+        doTestLoop(
+        [&](test::stream& ts)
+        {
+            ws_stream_type ws{ts};
+            ts.read_size(45);
+            ws.set_option(pmd);
+            launch(ts.remote());
+            w.handshake(ws, "localhost", "/");
+            f(ws);
+        });
+#endif
+    }
+
+    template<class Wrap>
+    void
+    doCloseTest(
+        Wrap const& w,
+        ws_stream_type& ws,
+        close_code code)
+    {
+        try
+        {
+            multi_buffer b;
+            w.read(ws, b);
+            fail("", __FILE__, __LINE__);
+        }
+        catch(system_error const& se)
+        {
+            if(se.code() != error::closed)
+                throw;
+            BEAST_EXPECT(
+                ws.reason().code == code);
+        }
     }
 
     template<class Wrap>
@@ -238,8 +275,7 @@ public:
     doFailTest(
         Wrap const& w,
         ws_stream_type& ws,
-        error_code ev,
-        close_code code)
+        error_code ev)
     {
         try
         {
@@ -251,8 +287,6 @@ public:
         {
             if(se.code() != ev)
                 throw;
-            BEAST_EXPECT(
-                ws.reason().code == code);
         }
     }
 
@@ -1233,15 +1267,29 @@ public:
         auto const check =
             [&](error_code const& ev, std::string const& s)
             {
-                for(std::size_t i = 1; i < s.size(); ++i)
+                for(int i = 0; i < 3; ++i)
                 {
+                    std::size_t n;
+                    switch(i)
+                    {
+                    default:
+                    case 0:
+                        n = 1;
+                        break;
+                    case 1:
+                        n = s.size() / 2;
+                        break;
+                    case 2:
+                        n = s.size() - 1;
+                        break;
+                    }
                     stream<test::stream> ws{ios_};
                     ws.next_layer().str(
-                        s.substr(i, s.size() - i));
+                        s.substr(n, s.size() - n));
                     try
                     {
                         ws.accept(
-                            boost::asio::buffer(s.data(), i));
+                            boost::asio::buffer(s.data(), n));
                         BEAST_EXPECTS(! ev, ev.message());
                     }
                     catch(system_error const& se)
@@ -1438,11 +1486,11 @@ public:
                 ws.write(boost::asio::buffer(v), ec);
                 if(! BEAST_EXPECTS(! ec, ec.message()))
                     break;
-                multi_buffer db;
-                ws.read(db, ec);
+                multi_buffer b;
+                ws.read(b, ec);
                 if(! BEAST_EXPECTS(! ec, ec.message()))
                     break;
-                BEAST_EXPECT(to_string(db.data()) ==
+                BEAST_EXPECT(to_string(b.data()) ==
                     std::string(v.data(), v.size()));
                 v.push_back(n+1);
             }
@@ -1463,11 +1511,11 @@ public:
                 ws.async_write(boost::asio::buffer(v), do_yield[ec]);
                 if(! BEAST_EXPECTS(! ec, ec.message()))
                     break;
-                multi_buffer db;
-                ws.async_read(db, do_yield[ec]);
+                multi_buffer b;
+                ws.async_read(b, do_yield[ec]);
                 if(! BEAST_EXPECTS(! ec, ec.message()))
                     break;
-                BEAST_EXPECT(to_string(db.data()) ==
+                BEAST_EXPECT(to_string(b.data()) ==
                     std::string(v.data(), v.size()));
                 v.push_back(n+1);
             }
@@ -1511,142 +1559,76 @@ public:
 #endif    
     }
 
-#if 0
-    void testPausation1(endpoint_type const& ep)
+    void
+    testPausation1()
     {
-        boost::asio::io_service ios;
-        stream<socket_type> ws(ios);
-        ws.next_layer().connect(ep);
-        ws.handshake("localhost", "/");
-
-        // Make remote send a ping frame
-        ws.binary(false);
-        ws.write(buffer_cat(sbuf("PING"), sbuf("ping")));
-
-        std::size_t count = 0;
-
-        // Write a text message
-        ++count;
-        ws.async_write(sbuf("Hello"),
-            [&](error_code ec)
-            {
-                --count;
-            });
-
-        // Read
-        multi_buffer db;
-        ++count;
-        ws.async_read(db,
-            [&](error_code ec)
-            {
-                --count;
-            });
-        // Run until the read_op writes a close frame.
-        while(! ws.wr_block_)
-            ios.run_one();
-        // Write a text message, leaving
-        // the write_op suspended as pausation.
-        ws.async_write(sbuf("Hello"),
-            [&](error_code ec)
-            {
-                ++count;
-                // Send is canceled because close received.
-                BEAST_EXPECT(ec == boost::asio::
-                    error::operation_aborted,
-                        ec.message());
-                // Writes after close are aborted.
-                ws.async_write(sbuf("World"),
-                    [&](error_code ec)
-                    {
-                        ++count;
-                        BEAST_EXPECT(ec == boost::asio::
-                            error::operation_aborted,
-                                ec.message());
-                    });
-            });
-        // Run until all completions are delivered.
-        static std::size_t constexpr limit = 100;
-        std::size_t n;
-        for(n = 0; n < limit; ++n)
+        for(int i = 0; i < 2; ++i)
         {
-            if(count >= 4)
-                break;
-            ios.run_one();
-        }
-        BEAST_EXPECT(n < limit);
-        ios.run();
-    }
-#endif
+            boost::asio::io_service ios;
+            stream<test::stream> ws{ios, ios_};
+            if(i == 0)
+                launchEchoServer(ws.next_layer().remote());
+            else
+                launchEchoServerAsync(ws.next_layer().remote());
+            ws.handshake("localhost", "/");
 
-    void testPausation2(endpoint_type const& ep)
-    {
-        boost::asio::io_service ios;
-        stream<socket_type> ws(ios);
-        ws.next_layer().connect(ep);
-        ws.handshake("localhost", "/");
-
-        // Make remote send a text message with bad utf8.
-        ws.binary(true);
-        ws.write(buffer_cat(sbuf("TEXT"),
-            cbuf(0x03, 0xea, 0xf0, 0x28, 0x8c, 0xbc)));
-        multi_buffer db;
-        std::size_t count = 0;
-        // Read text message with bad utf8.
-        // Causes a close to be sent, blocking writes.
-        ws.async_read(db,
-            [&](error_code ec, std::size_t)
-            {
-                // Read should fail with protocol error
-                ++count;
-                BEAST_EXPECTS(
-                    ec == error::failed, ec.message());
-                // Reads after failure are aborted
-                ws.async_read(db,
-                    [&](error_code ec, std::size_t)
-                    {
-                        ++count;
-                        BEAST_EXPECTS(ec == boost::asio::
-                            error::operation_aborted,
-                                ec.message());
-                    });
-            });
-        // Run until the read_op writes a close frame.
-        while(! ws.wr_block_)
-            ios.run_one();
-        // Write a text message, leaving
-        // the write_op suspended as a pausation.
-        ws.async_write(sbuf("Hello"),
-            [&](error_code ec)
-            {
-                ++count;
-                // Send is canceled because close received.
-                BEAST_EXPECTS(ec == boost::asio::
-                    error::operation_aborted,
-                        ec.message());
-                // Writes after close are aborted.
-                ws.async_write(sbuf("World"),
-                    [&](error_code ec)
-                    {
-                        ++count;
-                        BEAST_EXPECTS(ec == boost::asio::
-                            error::operation_aborted,
-                                ec.message());
-                    });
-            });
-        // Run until all completions are delivered.
-        static std::size_t constexpr limit = 100;
-        std::size_t n;
-        for(n = 0; n < limit; ++n)
-        {
-            if(count >= 4)
-                break;
-            ios.run_one();
+            // Make remote send a text message with bad utf8.
+            ws.binary(true);
+            put(ws.next_layer().buffer(), cbuf(
+                0x03, 0xea, 0xf0, 0x28, 0x8c, 0xbc));
+            multi_buffer b;
+            std::size_t count = 0;
+            // Read text message with bad utf8.
+            // Causes a close to be sent, blocking writes.
+            ws.async_read(b,
+                [&](error_code ec, std::size_t)
+                {
+                    // Read should fail with protocol error
+                    ++count;
+                    BEAST_EXPECTS(
+                        ec == error::failed, ec.message());
+                    // Reads after failure are aborted
+                    ws.async_read(b,
+                        [&](error_code ec, std::size_t)
+                        {
+                            ++count;
+                            BEAST_EXPECTS(ec == boost::asio::
+                                error::operation_aborted,
+                                    ec.message());
+                        });
+                });
+            // Run until the read_op writes a close frame.
+            while(! ws.wr_block_)
+                ios.run_one();
+            // Write a text message, leaving
+            // the write_op suspended as a pausation.
+            ws.async_write(sbuf("Hello"),
+                [&](error_code ec)
+                {
+                    ++count;
+                    // Send is canceled because close received.
+                    BEAST_EXPECTS(ec == boost::asio::
+                        error::operation_aborted,
+                            ec.message());
+                    // Writes after close are aborted.
+                    ws.async_write(sbuf("World"),
+                        [&](error_code ec)
+                        {
+                            ++count;
+                            BEAST_EXPECTS(ec == boost::asio::
+                                error::operation_aborted,
+                                    ec.message());
+                        });
+                });
+            // Run until all completions are delivered.
+            while(! ios.stopped())
+                ios.run_one();
+            BEAST_EXPECT(count == 4);
         }
-        BEAST_EXPECT(n < limit);
-        ios.run();
     }
 
-    void testPausation3(endpoint_type const& ep)
+    void
+    testPausation2(endpoint_type const& ep)
     {
         boost::asio::io_service ios;
         stream<socket_type> ws(ios);
@@ -1656,11 +1638,11 @@ public:
         // Cause close to be received
         ws.binary(true);
         ws.write(sbuf("CLOSE"));
-        multi_buffer db;
+        multi_buffer b;
         std::size_t count = 0;
         // Read a close frame.
         // Sends a close frame, blocking writes.
-        ws.async_read(db,
+        ws.async_read(b,
             [&](error_code ec, std::size_t)
             {
                 // Read should complete with error::closed
@@ -1711,7 +1693,8 @@ public:
         ios.run();
     }
 
-    void testPausation4(endpoint_type const& ep)
+    void
+    testPausation3(endpoint_type const& ep)
     {
         boost::asio::io_service ios;
         stream<socket_type> ws(ios);
@@ -1721,9 +1704,9 @@ public:
         // Cause close to be received
         ws.binary(true);
         ws.write(sbuf("CLOSE"));
-        multi_buffer db;
+        multi_buffer b;
         std::size_t count = 0;
-        ws.async_read(db,
+        ws.async_read(b,
             [&](error_code ec, std::size_t)
             {
                 ++count;
@@ -1753,90 +1736,64 @@ public:
         ios.run();
     }
 
-#if 0
-    void testPausation5(endpoint_type const& ep)
-    {
-        boost::asio::io_service ios;
-        stream<socket_type> ws(ios);
-        ws.next_layer().connect(ep);
-        ws.handshake("localhost", "/");
-
-        ws.async_write(sbuf("CLOSE"),
-            [&](error_code ec)
-            {
-                BEAST_EXPECT(! ec);
-                ws.async_write(sbuf("PING"),
-                    [&](error_code ec)
-                    {
-                        BEAST_EXPECT(! ec);
-                    });
-            });
-        multi_buffer db;
-        ws.async_read(db,
-            [&](error_code ec, std::size_t)
-            {
-                BEAST_EXPECTS(ec == error::closed, ec.message());
-            });
-        if(! BEAST_EXPECT(run_until(ios, 100,
-                [&]{ return ios.stopped(); })))
-            return;
-    }
-#endif
-
     /*
         https://github.com/boostorg/beast/issues/300
 
         Write a message as two individual frames
     */
     void
-    testWriteFrames(endpoint_type const& ep)
+    testWriteFrames()
     {
-        error_code ec;
-        socket_type sock{ios_};
-        sock.connect(ep, ec);
-        if(! BEAST_EXPECTS(! ec, ec.message()))
-            return;
-        stream<socket_type&> ws{sock};
-        ws.handshake("localhost", "/", ec);
-        if(! BEAST_EXPECTS(! ec, ec.message()))
-            return;
-        ws.write_some(false, sbuf("u"));
-        ws.write_some(true, sbuf("v"));
-        multi_buffer b;
-        ws.read(b, ec);
-        if(! BEAST_EXPECTS(! ec, ec.message()))
-            return;
+        for(int i = 0; i < 2; ++i)
+        {
+            error_code ec;
+            stream<test::stream> ws{ios_};
+            if(i == 0)
+                launchEchoServer(ws.next_layer().remote());
+            else
+                launchEchoServerAsync(ws.next_layer().remote());
+            ws.handshake("localhost", "/", ec);
+            if(! BEAST_EXPECTS(! ec, ec.message()))
+                return;
+            ws.write_some(false, sbuf("u"));
+            ws.write_some(true, sbuf("v"));
+            multi_buffer b;
+            ws.read(b, ec);
+            BEAST_EXPECTS(! ec, ec.message());
+        }
     }
 
     void
-    testAsyncWriteFrame(endpoint_type const& ep)
+    testAsyncWriteFrame()
     {
-        for(;;)
+        for(int i = 0; i < 2; ++i)
         {
-            boost::asio::io_service ios;
-            error_code ec;
-            socket_type sock(ios);
-            sock.connect(ep, ec);
-            if(! BEAST_EXPECTS(! ec, ec.message()))
+            for(;;)
+            {
+                error_code ec;
+                boost::asio::io_service ios;
+                stream<test::stream> ws{ios, ios_};
+                if(i == 0)
+                    launchEchoServer(ws.next_layer().remote());
+                else
+                    launchEchoServerAsync(ws.next_layer().remote());
+                ws.handshake("localhost", "/", ec);
+                if(! BEAST_EXPECTS(! ec, ec.message()))
+                    break;
+                ws.async_write_some(false,
+                    boost::asio::null_buffers{},
+                    [&](error_code)
+                    {
+                        fail();
+                    });
+                if(! BEAST_EXPECTS(! ec, ec.message()))
+                    break;
+                //
+                // Destruction of the io_service will cause destruction
+                // of the write_some_op without invoking the final handler.
+                //
                 break;
-            stream<socket_type&> ws(sock);
-            ws.handshake("localhost", "/", ec);
-            if(! BEAST_EXPECTS(! ec, ec.message()))
-                break;
-            ws.async_write_some(false,
-                boost::asio::null_buffers{},
-                [&](error_code)
-                {
-                    fail();
-                });
-            ws.next_layer().cancel(ec);
-            if(! BEAST_EXPECTS(! ec, ec.message()))
-                break;
-            //
-            // Destruction of the io_service will cause destruction
-            // of the write_some_op without invoking the final handler.
-            //
-            break;
+            }
         }
     }
 
@@ -1881,9 +1838,11 @@ public:
             char buf[10];
             auto const bytes_written =
                 c.read_some(ws, buffer(buf, sizeof(buf)));
-            BEAST_EXPECT(bytes_written == 5);
-            buf[5] = 0;
-            BEAST_EXPECT(string_view(buf) == "Hello");
+            BEAST_EXPECT(bytes_written > 0);
+            buf[bytes_written] = 0;
+            BEAST_EXPECT(
+                string_view(buf).substr(0, bytes_written) ==
+                string_view("Hello").substr(0, bytes_written));
         });
 
         // close, no payload
@@ -1978,8 +1937,7 @@ public:
         {
             c.write_raw(ws, cbuf(
                 0x80, 0x80, 0xff, 0xff, 0xff, 0xff));
-            doFailTest(c, ws,
-                error::closed, close_code::protocol_error);
+            doCloseTest(c, ws, close_code::protocol_error);
         });
 
         // invalid fixed frame header
@@ -1987,8 +1945,7 @@ public:
         {
             c.write_raw(ws, cbuf(
                 0x8f, 0x80, 0xff, 0xff, 0xff, 0xff));
-            doFailTest(c, ws,
-                error::closed, close_code::protocol_error);
+            doCloseTest(c, ws, close_code::protocol_error);
         });
 
         if(! pmd.client_enable)
@@ -1999,8 +1956,7 @@ public:
                 c.write_some(ws, false, boost::asio::null_buffers{});
                 c.write_raw(ws, cbuf(
                     0x81, 0x80, 0xff, 0xff, 0xff, 0xff));
-                doFailTest(c, ws,
-                    error::closed, close_code::protocol_error);
+                doCloseTest(c, ws, close_code::protocol_error);
             });
 
             // message size above 2^64
@@ -2010,8 +1966,7 @@ public:
                 c.write_raw(ws, cbuf(
                     0x80, 0xff, 0xff, 0xff, 0xff, 0xff,
                     0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff));
-                doFailTest(c, ws,
-                    error::closed, close_code::too_big);
+                doCloseTest(c, ws, close_code::too_big);
             });
 
             /*
@@ -2021,8 +1976,7 @@ public:
                 // VFALCO This was never implemented correctly
                 ws.read_message_max(1);
                 c.write(ws, cbuf(0x81, 0x02, '*', '*'));
-                doFailTest(c, ws,
-                    error::closed, close_code::too_big);
+                doCloseTest(c, ws, close_code::too_big);
             });
             */
         }
@@ -2062,8 +2016,7 @@ public:
             };
             ws.control_callback(cb);
             c.write(ws, sbuf("Hello"));
-            doFailTest(c, ws,
-                error::closed, close_code::none);
+            doCloseTest(c, ws, close_code::none);
         });
 
         // receive bad utf8
@@ -2071,8 +2024,7 @@ public:
         {
             put(ws.next_layer().buffer(), cbuf(
                 0x81, 0x06, 0x03, 0xea, 0xf0, 0x28, 0x8c, 0xbc));
-            doFailTest(c, ws,
-                error::failed, close_code::none);
+            doFailTest(c, ws, error::failed);
         });
 
         // receive bad close
@@ -2080,8 +2032,7 @@ public:
         {
             put(ws.next_layer().buffer(), cbuf(
                 0x88, 0x02, 0x03, 0xed));
-            doFailTest(c, ws,
-                error::failed, close_code::none);
+            doFailTest(c, ws, error::failed);
         });
     }
 
@@ -2111,43 +2062,34 @@ public:
         log << "sizeof(websocket::stream) == " <<
             sizeof(websocket::stream<boost::asio::ip::tcp::socket&>) << std::endl;
 
+        permessage_deflate pmd;
+        pmd.client_enable = false;
+        pmd.server_enable = false;
+
         testOptions();
         testAccept();
         testHandshake();
         testBadHandshakes();
         testBadResponses();
         testClose();
+        testPausation1();
+        testWriteFrames();
+        testAsyncWriteFrame();
 
-        permessage_deflate pmd;
-        pmd.client_enable = false;
-        pmd.server_enable = false;
-
-        auto const any = endpoint_type{
-            address_type::from_string("127.0.0.1"), 0};
-
+        // Legacy tests use actual TCP/IP sockets
+        // VFALCO: Rewrite to use test::stream and
+        //         remote <boost/asio/ip/tcp.hpp>
         {
+            auto const any = endpoint_type{
+                address_type::from_string("127.0.0.1"), 0};
             error_code ec;
             ::websocket::sync_echo_server server{nullptr};
             server.set_option(pmd);
             server.open(any, ec);
             BEAST_EXPECTS(! ec, ec.message());
             auto const ep = server.local_endpoint();
-            //testPausation1(ep);
             testPausation2(ep);
             testPausation3(ep);
-            testPausation4(ep);
-            //testPausation5(ep);
-            testWriteFrames(ep);
-            testAsyncWriteFrame(ep);
-        }
-
-        {
-            error_code ec;
-            ::websocket::async_echo_server server{nullptr, 4};
-            server.open(any, ec);
-            BEAST_EXPECTS(! ec, ec.message());
-            auto const ep = server.local_endpoint();
-            testAsyncWriteFrame(ep);
         }
 
         auto const doClientTests =
@@ -2158,7 +2100,23 @@ public:
                     {
                         launchEchoServer(std::move(stream));
                     });
-
+#if 0
+                // This causes false positives on ASAN
+                testStream(SyncClient{}, pmd,
+                    [&](test::stream stream)
+                    {
+                        launchEchoServerAsync(std::move(stream));
+                    });
+#endif
+                yield_to(
+                    [&](yield_context yield)
+                    {
+                        testStream(AsyncClient{yield}, pmd,
+                            [&](test::stream stream)
+                            {
+                                launchEchoServer(std::move(stream));
+                            });
+                    });
                 yield_to(
                     [&](yield_context yield)
                     {
