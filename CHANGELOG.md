@@ -6,6 +6,7 @@ Version 106:
 WebSocket:
 
 * websocket test improvements
+* Remove obsolete write_op
 
 --------------------------------------------------------------------------------
 
