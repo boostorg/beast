@@ -11,6 +11,7 @@ WebSocket:
 * Refactor ping_op
 * Refactor fail_op
 * Refactor read_op
+* Refactor close_op
 
 --------------------------------------------------------------------------------
 
