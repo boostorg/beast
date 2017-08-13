@@ -8,6 +8,7 @@ WebSocket:
 * websocket test improvements
 * Remove obsolete write_op
 * Refactor write_op
+* Refactor ping_op
 
 --------------------------------------------------------------------------------
 

@@ -154,7 +154,7 @@ class stream
         detail::prepared_key key;       // current stateful mask key
         std::uint64_t size;             // total size of current message so far
         std::uint64_t remain;           // message frame bytes left in current frame
-        detail::frame_streambuf fb;     // to write control frames
+        detail::frame_streambuf fb;     // to write control frames (during reads)
         detail::utf8_checker utf8;      // to validate utf8
 
         // A small, circular buffer to read frame headers.

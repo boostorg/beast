@@ -11,6 +11,7 @@
 #define BOOST_BEAST_WEBSOCKET_DETAIL_PAUSATION_HPP
 
 #include <boost/beast/core/handler_ptr.hpp>
+#include <boost/asio/coroutine.hpp>
 #include <boost/assert.hpp>
 #include <array>
 #include <memory>
@@ -68,7 +69,7 @@ class pausation
         }
     };
 
-    struct exemplar
+    struct exemplar : boost::asio::coroutine
     {
         struct H
         {

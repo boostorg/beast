@@ -15,6 +15,7 @@
 #include <boost/beast/core/type_traits.hpp>
 #include <boost/beast/core/detail/config.hpp>
 #include <boost/beast/websocket/detail/frame.hpp>
+#include <boost/asio/coroutine.hpp>
 #include <boost/asio/handler_alloc_hook.hpp>
 #include <boost/asio/handler_continuation_hook.hpp>
 #include <boost/asio/handler_invoke_hook.hpp>
@@ -25,53 +26,56 @@ namespace boost {
 namespace beast {
 namespace websocket {
 
-//------------------------------------------------------------------------------
-
-// write a ping frame
-//
+/*
+    This composed operation handles sending ping and pong frames.
+    It only sends the frames it does not make attempts to read
+    any frame data.
+*/
 template<class NextLayer>
 template<class Handler>
 class stream<NextLayer>::ping_op
+    : public boost::asio::coroutine
 {
-    struct data : op
+    struct state
     {
         stream<NextLayer>& ws;
         detail::frame_streambuf fb;
-        int state = 0;
         token tok;
 
-        data(Handler&, stream<NextLayer>& ws_,
-                detail::opcode op_, ping_data const& payload)
+        state(
+            Handler&,
+            stream<NextLayer>& ws_,
+            detail::opcode op,
+            ping_data const& payload)
             : ws(ws_)
             , tok(ws.t_.unique())
         {
-            using boost::asio::buffer;
-            using boost::asio::buffer_copy;
+            // Serialize the control frame
             ws.template write_ping<
-                flat_static_buffer_base>(fb, op_, payload);
+                flat_static_buffer_base>(
+                    fb, op, payload);
         }
     };
 
-    handler_ptr<data, Handler> d_;
+    handler_ptr<state, Handler> d_;
 
 public:
     ping_op(ping_op&&) = default;
     ping_op(ping_op const&) = default;
 
-    template<class DeducedHandler, class... Args>
-    ping_op(DeducedHandler&& h,
-            stream<NextLayer>& ws, Args&&... args)
+    template<class DeducedHandler>
+    ping_op(
+        DeducedHandler&& h,
+        stream<NextLayer>& ws,
+        detail::opcode op,
+        ping_data const& payload)
         : d_(std::forward<DeducedHandler>(h),
-            ws, std::forward<Args>(args)...)
+            ws, op, payload)
     {
     }
 
-    void operator()()
-    {
-        (*this)({});
-    }
-
-    void operator()(error_code ec,
+    void operator()(
+        error_code ec = {},
         std::size_t bytes_transferred = 0);
 
     friend
@@ -118,109 +122,66 @@ ping_op<Handler>::
 operator()(error_code ec, std::size_t)
 {
     auto& d = *d_;
-    if(ec)
+    BOOST_ASIO_CORO_REENTER(*this)
     {
-        BOOST_ASSERT(d.ws.wr_block_ == d.tok);
-        d.ws.failed_ = true;
-        goto upcall;
-    }
-    switch(d.state)
-    {
-    case 0:
-        if(d.ws.wr_block_)
+        // Maybe suspend
+        if(! d.ws.wr_block_)
         {
-            // suspend
-            d.state = 1;
-            d.ws.ping_op_.emplace(std::move(*this));
-            return;
+            // Acquire the write block
+            d.ws.wr_block_ = d.tok;
+
+            // Make sure the stream is open
+            if(d.ws.failed_)
+            {
+                BOOST_ASIO_CORO_YIELD
+                d.ws.get_io_service().post(
+                    bind_handler(std::move(*this),
+                        boost::asio::error::operation_aborted));
+                goto upcall;
+            }
         }
-        d.ws.wr_block_ = d.tok;
-        if(d.ws.failed_ || d.ws.wr_close_)
+        else
         {
-            // call handler
-            return d.ws.get_io_service().post(
-                bind_handler(std::move(*this),
-                    boost::asio::error::operation_aborted));
+            // Suspend
+            BOOST_ASSERT(d.ws.wr_block_ != d.tok);
+            BOOST_ASIO_CORO_YIELD
+            d.ws.ping_op_.emplace(std::move(*this));
+
+            // Acquire the write block
+            BOOST_ASSERT(! d.ws.wr_block_);
+            d.ws.wr_block_ = d.tok;
+
+            // Resume
+            BOOST_ASIO_CORO_YIELD
+            d.ws.get_io_service().post(std::move(*this));
+            BOOST_ASSERT(d.ws.wr_block_ == d.tok);
+
+            // Make sure the stream is open
+            if(d.ws.failed_)
+            {
+                ec = boost::asio::error::operation_aborted;
+                goto upcall;
+            }
         }
 
-    do_write:
-        // send ping frame
-        BOOST_ASSERT(d.ws.wr_block_ == d.tok);
-        d.state = 3;
+        // Send ping frame
+        BOOST_ASIO_CORO_YIELD
         boost::asio::async_write(d.ws.stream_,
             d.fb.data(), std::move(*this));
-        return;
+        if(ec)
+            d.ws.failed_ = true;
 
-    case 1:
-        BOOST_ASSERT(! d.ws.wr_block_);
-        d.ws.wr_block_ = d.tok;
-        d.state = 2;
-        // The current context is safe but might not be
-        // the same as the one for this operation (since
-        // we are being called from a write operation).
-        // Call post to make sure we are invoked the same
-        // way as the final handler for this operation.
-        d.ws.get_io_service().post(
-            bind_handler(std::move(*this), ec));
-        return;
-
-    case 2:
+    upcall:
         BOOST_ASSERT(d.ws.wr_block_ == d.tok);
-        if(d.ws.failed_ || d.ws.wr_close_)
-        {
-            // call handler
-            ec = boost::asio::error::operation_aborted;
-            goto upcall;
-        }
-        goto do_write;
-
-    case 3:
-        break;
+        d.ws.wr_block_.reset();
+        d.ws.close_op_.maybe_invoke() ||
+            d.ws.rd_op_.maybe_invoke() ||
+            d.ws.wr_op_.maybe_invoke();
+        d_.invoke(ec);
     }
-upcall:
-    BOOST_ASSERT(d.ws.wr_block_ == d.tok);
-    d.ws.wr_block_.reset();
-    d.ws.close_op_.maybe_invoke() ||
-        d.ws.rd_op_.maybe_invoke() ||
-        d.ws.wr_op_.maybe_invoke();
-    d_.invoke(ec);
 }
 
-template<class NextLayer>
-template<class WriteHandler>
-async_return_type<
-    WriteHandler, void(error_code)>
-stream<NextLayer>::
-async_ping(ping_data const& payload, WriteHandler&& handler)
-{
-    static_assert(is_async_stream<next_layer_type>::value,
-        "AsyncStream requirements requirements not met");
-    async_completion<WriteHandler,
-        void(error_code)> init{handler};
-    ping_op<handler_type<
-        WriteHandler, void(error_code)>>{
-            init.completion_handler, *this,
-                detail::opcode::ping, payload}({});
-    return init.result.get();
-}
-
-template<class NextLayer>
-template<class WriteHandler>
-async_return_type<
-    WriteHandler, void(error_code)>
-stream<NextLayer>::
-async_pong(ping_data const& payload, WriteHandler&& handler)
-{
-    static_assert(is_async_stream<next_layer_type>::value,
-        "AsyncStream requirements requirements not met");
-    async_completion<WriteHandler,
-        void(error_code)> init{handler};
-    ping_op<handler_type<
-        WriteHandler, void(error_code)>>{
-            init.completion_handler, *this,
-                detail::opcode::pong, payload}({});
-    return init.result.get();
-}
+//------------------------------------------------------------------------------
 
 template<class NextLayer>
 void
@@ -238,10 +199,16 @@ void
 stream<NextLayer>::
 ping(ping_data const& payload, error_code& ec)
 {
-    detail::frame_streambuf db;
+    // Make sure the stream is open
+    if(failed_)
+    {
+        ec = boost::asio::error::operation_aborted;
+        return;
+    }
+    detail::frame_streambuf fb;
     write_ping<flat_static_buffer_base>(
-        db, detail::opcode::ping, payload);
-    boost::asio::write(stream_, db.data(), ec);
+        fb, detail::opcode::ping, payload);
+    boost::asio::write(stream_, fb.data(), ec);
 }
 
 template<class NextLayer>
@@ -260,13 +227,53 @@ void
 stream<NextLayer>::
 pong(ping_data const& payload, error_code& ec)
 {
-    detail::frame_streambuf db;
+    // Make sure the stream is open
+    if(failed_)
+    {
+        ec = boost::asio::error::operation_aborted;
+        return;
+    }
+    detail::frame_streambuf fb;
     write_ping<flat_static_buffer_base>(
-        db, detail::opcode::pong, payload);
-    boost::asio::write(stream_, db.data(), ec);
+        fb, detail::opcode::pong, payload);
+    boost::asio::write(stream_, fb.data(), ec);
 }
 
-//------------------------------------------------------------------------------
+template<class NextLayer>
+template<class WriteHandler>
+async_return_type<
+    WriteHandler, void(error_code)>
+stream<NextLayer>::
+async_ping(ping_data const& payload, WriteHandler&& handler)
+{
+    static_assert(is_async_stream<next_layer_type>::value,
+        "AsyncStream requirements requirements not met");
+    async_completion<WriteHandler,
+        void(error_code)> init{handler};
+    ping_op<handler_type<
+        WriteHandler, void(error_code)>>{
+            init.completion_handler, *this,
+                detail::opcode::ping, payload}();
+    return init.result.get();
+}
+
+template<class NextLayer>
+template<class WriteHandler>
+async_return_type<
+    WriteHandler, void(error_code)>
+stream<NextLayer>::
+async_pong(ping_data const& payload, WriteHandler&& handler)
+{
+    static_assert(is_async_stream<next_layer_type>::value,
+        "AsyncStream requirements requirements not met");
+    async_completion<WriteHandler,
+        void(error_code)> init{handler};
+    ping_op<handler_type<
+        WriteHandler, void(error_code)>>{
+            init.completion_handler, *this,
+                detail::opcode::pong, payload}();
+    return init.result.get();
+}
 
 } // websocket
 } // beast

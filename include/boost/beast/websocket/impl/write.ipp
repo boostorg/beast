@@ -522,8 +522,8 @@ operator()(error_code ec,
     //--------------------------------------------------------------------------
 
     upcall:
-        if(ws_.wr_block_ == tok_)
-            ws_.wr_block_.reset();
+        BOOST_ASSERT(ws_.wr_block_ == tok_);
+        ws_.wr_block_.reset();
         ws_.close_op_.maybe_invoke() ||
             ws_.rd_op_.maybe_invoke() ||
             ws_.ping_op_.maybe_invoke();
