@@ -16,7 +16,7 @@ Branch      | Linux/OSX | Windows | Coverage | Documentation | Matrix
 - [Requirements](#requirements)
 - [Building](#building)
 - [Usage](#usage)
-- [Licence](#licence)
+- [License](#license)
 - [Contact](#contact)
 - [Contributing](#Contributing)
 
