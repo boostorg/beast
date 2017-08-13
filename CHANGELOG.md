@@ -9,6 +9,7 @@ WebSocket:
 * Remove obsolete write_op
 * Refactor write_op
 * Refactor ping_op
+* Refactor fail_op
 
 --------------------------------------------------------------------------------
 
