@@ -200,6 +200,8 @@ class stream
         // The buffer is allocated or reallocated at the beginning of
         // sending a message.
         std::unique_ptr<std::uint8_t[]> buf;
+
+        detail::fh_streambuf fb;
     };
 
     // State information for the permessage-deflate extension
