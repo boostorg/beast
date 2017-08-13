@@ -10,6 +10,7 @@ WebSocket:
 * Refactor write_op
 * Refactor ping_op
 * Refactor fail_op
+* Refactor read_op
 
 --------------------------------------------------------------------------------
 

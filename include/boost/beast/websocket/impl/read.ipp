@@ -976,6 +976,12 @@ read_some(
     using boost::asio::buffer;
     using boost::asio::buffer_cast;
     using boost::asio::buffer_size;
+    // Make sure the stream is open
+    if(failed_)
+    {
+        ec = boost::asio::error::operation_aborted;
+        return 0;
+    }
     close_code code{};
     std::size_t bytes_written = 0;
 loop:
