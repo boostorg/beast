@@ -560,6 +560,7 @@ operator()(
     upcall:
         BOOST_ASSERT(ws_.rd_block_ == tok_);
         ws_.rd_block_.reset();
+        ws_.r_close_op_.maybe_invoke();
         ws_.close_op_.maybe_invoke() ||
             ws_.ping_op_.maybe_invoke() ||
             ws_.wr_op_.maybe_invoke();
