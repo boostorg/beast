@@ -53,27 +53,6 @@ data() const ->
 inline
 auto
 static_buffer_base::
-mutable_data() ->
-    mutable_data_type
-{
-    using boost::asio::mutable_buffer;
-    mutable_data_type result;
-    if(in_off_ + in_size_ <= capacity_)
-    {
-        result[0] = mutable_buffer{begin_ + in_off_, in_size_};
-        result[1] = mutable_buffer{begin_, 0};
-    }
-    else
-    {
-        result[0] = mutable_buffer{begin_ + in_off_, capacity_ - in_off_};
-        result[1] = mutable_buffer{begin_, in_size_ - (capacity_ - in_off_)};
-    }
-    return result;
-}
-
-inline
-auto
-static_buffer_base::
 prepare(std::size_t size) ->
     mutable_buffers_type
 {

@@ -105,7 +105,6 @@ public:
                 ba.commit(buffer_copy(d, buffer(s.data()+x+y, z)));
             }
             ba.commit(2);
-            BEAST_EXPECT(buffer_size(ba.data()) == buffer_size(ba.mutable_data()));
             BEAST_EXPECT(ba.size() == x + y + z);
             BEAST_EXPECT(buffer_size(ba.data()) == ba.size());
             BEAST_EXPECT(to_string(ba.data()) == s);

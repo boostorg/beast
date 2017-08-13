@@ -177,11 +177,13 @@ open(role_type role)
     rd_.cont = false;
     rd_.done = true;
     // Can't clear this because accept uses it
-    //rd_.buf.consume(rd_.buf.size());
+    //rd_.buf.reset();
     rd_.fh.fin = false;
     rd_close_ = false;
     wr_close_ = false;
     wr_block_.reset();
+    rd_block_.reset();
+    cr_.code = close_code::none;
     ping_data_ = nullptr;   // should be nullptr on close anyway
 
     wr_.cont = false;
@@ -240,6 +242,8 @@ reset()
     wr_close_ = false;
     wr_.cont = false;
     wr_block_.reset();
+    rd_block_.reset();
+    cr_.code = close_code::none;
     ping_data_ = nullptr;   // should be nullptr on close anyway
 }
 

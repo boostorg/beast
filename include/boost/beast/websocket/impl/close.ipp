@@ -251,7 +251,7 @@ close(close_reason const& cr, error_code& ec)
                 rd_close_ = true;
                 auto const mb = buffer_prefix(
                     clamp(rd_.fh.len),
-                    rd_.buf.mutable_data());
+                    rd_.buf.data());
                 if(rd_.fh.len > 0 && rd_.fh.mask)
                     detail::mask_inplace(mb, rd_.key);
                 detail::read_close(cr_, mb, code);

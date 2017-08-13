@@ -36,15 +36,6 @@ data() const ->
 }
 
 inline
-auto
-flat_static_buffer_base::
-mutable_data() ->
-    mutable_data_type
-{
-    return {in_, dist(in_, out_)};
-}
-
-inline
 void
 flat_static_buffer_base::
 reset()

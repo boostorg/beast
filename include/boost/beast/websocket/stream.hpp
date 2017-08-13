@@ -230,12 +230,15 @@ class stream
     bool rd_close_;                         // read close frame
     bool wr_close_;                         // sent close frame
     token wr_block_;                        // op currenly writing
+    token rd_block_;                        // op currenly reading
 
     ping_data* ping_data_;                  // where to put the payload
     detail::pausation rd_op_;               // paused read op
     detail::pausation wr_op_;               // paused write op
     detail::pausation ping_op_;             // paused ping op
     detail::pausation close_op_;            // paused close op
+    detail::pausation r_rd_op_;             // paused read op (read)
+    detail::pausation r_close_op_;          // paused close op (read)
     close_reason cr_;                       // set from received close frame
     rd_t rd_;                               // read state
     wr_t wr_;                               // write state

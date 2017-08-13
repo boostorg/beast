@@ -54,10 +54,6 @@ public:
     using const_buffers_type =
         std::array<boost::asio::mutable_buffer, 2>;
 
-    /// The type used to represent the mutable input sequence as a list of buffers.
-    using mutable_data_type =
-        std::array<boost::asio::mutable_buffer, 2>;
-
     /// The type used to represent the output sequence as a list of buffers.
     using mutable_buffers_type =
         std::array<boost::asio::mutable_buffer, 2>;
@@ -97,11 +93,6 @@ public:
     */
     const_buffers_type
     data() const;
-
-    /** Get a list of mutable buffers that represent the input sequence.
-    */
-    mutable_data_type
-    mutable_data();
 
     /** Get a list of buffers that represent the output sequence, with the given size.
 

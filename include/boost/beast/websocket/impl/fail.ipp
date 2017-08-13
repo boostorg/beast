@@ -202,10 +202,7 @@ operator()(error_code ec, std::size_t)
     upcall:
         BOOST_ASSERT(d.ws.wr_block_ == d.tok);
         d.ws.wr_block_.reset();
-        d.ws.close_op_.maybe_invoke() ||
-            d.ws.ping_op_.maybe_invoke() ||
-            d.ws.wr_op_.maybe_invoke();
-        d_.invoke(ec, 0);
+        d_.invoke(ec);
     }
 }
 
