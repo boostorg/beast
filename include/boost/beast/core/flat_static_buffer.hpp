@@ -114,6 +114,10 @@ public:
     mutable_data_type
     mutable_data();
 
+    /// Set the input and output sequences to size 0
+    void
+    reset();
+
     /** Get a list of buffers that represent the output sequence, with the given size.
 
         @throws std::length_error if the size would exceed the limit
@@ -147,10 +151,10 @@ protected:
     /** Constructor
 
         The buffer will be in an undefined state. It is necessary
-        for the derived class to call @ref reset in order to
-        initialize the object.
+        for the derived class to call @ref reset with a pointer
+        and size in order to initialize the object.
     */
-    flat_static_buffer_base();
+    flat_static_buffer_base() = default;
 
     /** Reset the pointed-to buffer.
 
@@ -174,6 +178,10 @@ private:
     {
         return static_cast<std::size_t>(last - first);
     }
+
+    template<class = void>
+    void
+    reset_impl();
 
     template<class = void>
     void

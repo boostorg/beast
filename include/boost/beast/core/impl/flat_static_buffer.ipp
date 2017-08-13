@@ -45,6 +45,14 @@ mutable_data() ->
 }
 
 inline
+void
+flat_static_buffer_base::
+reset()
+{
+    reset_impl();
+}
+
+inline
 auto
 flat_static_buffer_base::
 prepare(std::size_t n) ->
@@ -59,6 +67,16 @@ flat_static_buffer_base::
 reset(void* p, std::size_t n)
 {
     reset_impl(p, n);
+}
+
+template<class>
+void
+flat_static_buffer_base::
+reset_impl()
+{
+    in_ = begin_;
+    out_ = begin_;
+    last_ = begin_;
 }
 
 template<class>
