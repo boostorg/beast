@@ -15,6 +15,7 @@ WebSocket:
 * Refactor read_op + fail_op
 * Websocket close will automatically drain
 * Autobahn|Testsuite fixes
+* Tidy up utf8_checker and tests
 
 --------------------------------------------------------------------------------
 

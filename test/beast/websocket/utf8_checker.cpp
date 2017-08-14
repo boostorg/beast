@@ -42,14 +42,12 @@ public:
         BEAST_EXPECT(utf8.finish());
 
         // Invalid range 128-193
-        for(auto it = std::next(buf.begin(), 128);
-            it != std::next(buf.begin(), 194); ++it)
-                BEAST_EXPECT(! utf8.write(&(*it), 1));
+        for(unsigned char c = 128; c < 194; ++c)
+            BEAST_EXPECT(! utf8.write(&c, 1));
 
         // Invalid range 245-255
-        for(auto it = std::next(buf.begin(), 245);
-            it != buf.end(); ++it)
-                BEAST_EXPECT(! utf8.write(&(*it), 1));
+        for(unsigned char c = 245; c; ++c)
+            BEAST_EXPECT(! utf8.write(&c, 1));
 
         // Invalid sequence
         std::fill(buf.begin(), buf.end(), '\xff');
@@ -79,6 +77,7 @@ public:
                 // Second byte invalid range 0-127
                 buf[1] = static_cast<std::uint8_t>(j);
                 BEAST_EXPECT(! utf8.write(buf, 2));
+                utf8.reset();
             }
 
             for(auto j = 192; j <= 255; ++j)
@@ -86,6 +85,7 @@ public:
                 // Second byte invalid range 192-255
                 buf[1] = static_cast<std::uint8_t>(j);
                 BEAST_EXPECT(! utf8.write(buf, 2));
+                utf8.reset();
             }
 
             // Segmented sequence second byte invalid
@@ -134,6 +134,7 @@ public:
                             // Second byte invalid range 0-127 or 0-159
                             buf[1] = static_cast<std::uint8_t>(l);
                             BEAST_EXPECT(! utf8.write(buf, 3));
+                            utf8.reset();
                             if (l > 127)
                             {
                                 // Segmented sequence second byte invalid
@@ -149,7 +150,8 @@ public:
                         {
                             // Second byte invalid range 160-255 or 192-255
                             buf[1] = static_cast<std::uint8_t>(l);
-                            BEAST_EXPECT(!utf8.write(buf, 3));
+                            BEAST_EXPECT(! utf8.write(buf, 3));
+                            utf8.reset();
                             if (l > 159)
                             {
                                 // Segmented sequence second byte invalid
@@ -166,6 +168,7 @@ public:
                     // Third byte invalid range 0-127
                     buf[2] = static_cast<std::uint8_t>(k);
                     BEAST_EXPECT(! utf8.write(buf, 3));
+                    utf8.reset();
                 }
 
                 for(auto k = 192; k <= 255; ++k)
@@ -173,6 +176,7 @@ public:
                     // Third byte invalid range 192-255
                     buf[2] = static_cast<std::uint8_t>(k);
                     BEAST_EXPECT(! utf8.write(buf, 3));
+                    utf8.reset();
                 }
 
                 // Segmented sequence third byte invalid
@@ -186,6 +190,7 @@ public:
                 // Second byte invalid range 0-127 or 0-159
                 buf[1] = static_cast<std::uint8_t>(j);
                 BEAST_EXPECT(! utf8.write(buf, 3));
+                utf8.reset();
             }
 
             for(auto j = e + 1; j <= 255; ++j)
@@ -193,6 +198,7 @@ public:
                 // Second byte invalid range 160-255 or 192-255
                 buf[1] = static_cast<std::uint8_t>(j);
                 BEAST_EXPECT(! utf8.write(buf, 3));
+                utf8.reset();
             }
 
             // Segmented sequence second byte invalid
@@ -251,6 +257,7 @@ public:
                             {
                                 buf[1] = static_cast<std::uint8_t>(r);
                                 BEAST_EXPECT(! utf8.write(buf, 4));
+                                utf8.reset();
                                 if (r > 127)
                                 {
                                     // Segmented sequence second byte invalid
@@ -267,6 +274,7 @@ public:
                             {
                                 buf[1] = static_cast<std::uint8_t>(r);
                                 BEAST_EXPECT(! utf8.write(buf, 4));
+                                utf8.reset();
                                 // Segmented sequence second byte invalid
                                 BEAST_EXPECT(! utf8.write(buf, 2));
                                 utf8.reset();
@@ -280,6 +288,7 @@ public:
                     {
                         buf[3] = static_cast<std::uint8_t>(r);
                         BEAST_EXPECT(! utf8.write(buf, 4));
+                        utf8.reset();
                     }
 
                     // Segmented sequence fourth byte invalid
@@ -293,6 +302,7 @@ public:
                 {
                     buf[2] = static_cast<std::uint8_t>(r);
                     BEAST_EXPECT(! utf8.write(buf, 4));
+                    utf8.reset();
                 }
 
                 // Segmented sequence third byte invalid
@@ -306,6 +316,7 @@ public:
             {
                 buf[1] = static_cast<std::uint8_t>(r);
                 BEAST_EXPECT(! utf8.write(buf, 4));
+                utf8.reset();
             }
 
             // Second byte invalid range 144-255 or 192-255
@@ -313,6 +324,7 @@ public:
             {
                 buf[1] = static_cast<std::uint8_t>(r);
                 BEAST_EXPECT(! utf8.write(buf, 4));
+                utf8.reset();
             }
 
             // Segmented sequence second byte invalid
@@ -326,6 +338,7 @@ public:
         {
             buf[0] = static_cast<std::uint8_t>(r);
             BEAST_EXPECT(! utf8.write(buf, 4));
+            utf8.reset();
         }
     }
 

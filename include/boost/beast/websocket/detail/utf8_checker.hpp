@@ -30,9 +30,9 @@ namespace detail {
 template<class = void>
 class utf8_checker_t
 {
-    std::size_t need_ = 0;
-    std::uint8_t* p_ = have_;
-    std::uint8_t have_[4];
+    std::size_t need_ = 0;  // chars we need to finish the code point
+    std::uint8_t* p_ = cp_; // current position in temp buffer
+    std::uint8_t cp_[4];    // a temp buffer for the code point
 
 public:
     /** Prepare to process text as valid utf8
@@ -67,7 +67,7 @@ utf8_checker_t<_>::
 reset()
 {
     need_ = 0;
-    p_ = have_;
+    p_ = cp_;
 }
 
 template<class _>
@@ -105,21 +105,21 @@ write(std::uint8_t const* in, std::size_t size)
     auto const valid =
         [](std::uint8_t const*& p)
         {
-            if (p[0] < 128)
+            if(p[0] < 128)
             {
                 ++p;
                 return true;
             }
-            if ((p[0] & 0x60) == 0x40)
+            if((p[0] & 0x60) == 0x40)
             {
-                if ((p[1] & 0xc0) != 0x80)
+                if((p[1] & 0xc0) != 0x80)
                     return false;
                 p += 2;
                 return true;
             }
-            if ((p[0] & 0xf0) == 0xe0)
+            if((p[0] & 0xf0) == 0xe0)
             {
-                if ((p[1] & 0xc0) != 0x80 ||
+                if((p[1] & 0xc0) != 0x80 ||
                     (p[2] & 0xc0) != 0x80 ||
                     (p[0] == 224 && p[1] < 160) ||
                     (p[0] == 237 && p[1] > 159))
@@ -127,9 +127,9 @@ write(std::uint8_t const* in, std::size_t size)
                 p += 3;
                 return true;
             }
-            if ((p[0] & 0xf8) == 0xf0)
+            if((p[0] & 0xf8) == 0xf0)
             {
-                if (p[0] > 244 ||
+                if(p[0] > 244 ||
                     (p[1] & 0xc0) != 0x80 ||
                     (p[2] & 0xc0) != 0x80 ||
                     (p[3] & 0xc0) != 0x80 ||
@@ -144,26 +144,26 @@ write(std::uint8_t const* in, std::size_t size)
     auto const valid_have =
         [&]()
         {
-            if ((have_[0] & 0x60) == 0x40)
-                return have_[0] <= 223;
-            if ((have_[0] & 0xf0) == 0xe0)
+            if((cp_[0] & 0x60) == 0x40)
+                return cp_[0] <= 223;
+            if((cp_[0] & 0xf0) == 0xe0)
             {
-                if (p_ - have_ > 1 &&
-                    ((have_[1] & 0xc0) != 0x80 ||
-                    (have_[0] == 224 && have_[1] < 160) ||
-                    (have_[0] == 237 && have_[1] > 159)))
+                if(p_ - cp_ > 1 &&
+                    ((cp_[1] & 0xc0) != 0x80 ||
+                    (cp_[0] == 224 && cp_[1] < 160) ||
+                    (cp_[0] == 237 && cp_[1] > 159)))
                         return false;
                 return true;
             }
-            if ((have_[0] & 0xf8) == 0xf0)
+            if((cp_[0] & 0xf8) == 0xf0)
             {
-                auto const n = p_ - have_;
-                if (n > 2 && (have_[2] & 0xc0) != 0x80)
+                auto const n = p_ - cp_;
+                if(n > 2 && (cp_[2] & 0xc0) != 0x80)
                     return false;
-                if (n > 1 &&
-                    ((have_[1] & 0xc0) != 0x80 ||
-                    (have_[0] == 240 && have_[1] < 144) ||
-                    (have_[0] == 244 && have_[1] > 143)))
+                if(n > 1 &&
+                    ((cp_[1] & 0xc0) != 0x80 ||
+                    (cp_[0] == 240 && cp_[1] < 144) ||
+                    (cp_[0] == 244 && cp_[1] > 143)))
                         return false;
             }
             return true;
@@ -171,51 +171,69 @@ write(std::uint8_t const* in, std::size_t size)
     auto const needed =
         [](std::uint8_t const v)
         {
-            if (v < 128)
+            if(v < 128)
                 return 1;
-            if (v < 194)
+            if(v < 194)
                 return 0;
-            if (v < 224)
+            if(v < 224)
                 return 2;
-            if (v < 240)
+            if(v < 240)
                 return 3;
-            if (v < 245)
+            if(v < 245)
                 return 4;
             return 0;
         };
 
     auto const end = in + size;
-    if (need_ > 0)
+
+    // Finish up any incomplete code point
+    if(need_ > 0)
     {
+        // Calculate what we have
         auto n = (std::min)(size, need_);
         size -= n;
         need_ -= n;
+
+        // Add characters to the code point
         while(n--)
             *p_++ = *in++;
+        BOOST_ASSERT(p_ <= cp_ + 5);
+
+        // Still incomplete?
         if(need_ > 0)
         {
+            // Incomplete code point
             BOOST_ASSERT(in == end);
+
+            // Do partial validation on the incomplete
+            // code point, this is called "Fail fast"
+            // in Autobahn|Testsuite parlance.
             return valid_have();
         }
-        std::uint8_t const* p = &have_[0];
-        if (! valid(p))
+
+        // Complete code point, validate it
+        std::uint8_t const* p = &cp_[0];
+        if(! valid(p))
             return false;
-        p_ = have_;
+        p_ = cp_;
     }
 
     if(size <= sizeof(std::size_t))
         goto slow;
 
-    // align in to sizeof(std::size_t) boundary
+    // Align `in` to sizeof(std::size_t) boundary
     {
         auto const in0 = in;
         auto last = reinterpret_cast<std::uint8_t const*>(
             ((reinterpret_cast<std::uintptr_t>(in) + sizeof(std::size_t) - 1) /
                 sizeof(std::size_t)) * sizeof(std::size_t));
+
+        // Check one character at a time for low-ASCII
         while(in < last)
         {
             if(*in & 0x80)
             {
+                // Not low-ASCII so switch to slow loop
                 size = size - (in - in0);
                 goto slow;
             }
@@ -224,7 +242,7 @@ write(std::uint8_t const* in, std::size_t size)
         size = size - (in - in0);
     }
 
-    // fast loop
+    // Fast loop: Process 4 or 8 low-ASCII characters at a time
     {
         auto const in0 = in;
         auto last = in + size - 7;
@@ -246,6 +264,7 @@ write(std::uint8_t const* in, std::size_t size)
             }
             in += sizeof(std::size_t);
         }
+        // There's at least one more full code point left
         last += 4;
         while(in < last)
             if(! valid(in))
@@ -253,8 +272,8 @@ write(std::uint8_t const* in, std::size_t size)
         goto tail;
     }
 
-    // slow loop: one code point at a time
 slow:
+    // Slow loop: Full validation on one code point at a time
     {
         auto last = in + size - 3;
         while(in < last)
@@ -263,24 +282,45 @@ slow:
     }
 
 tail:
+    // Handle the remaining bytes. The last
+    // characters could split a code point so
+    // we save the partial code point for later.
+    //
+    // On entry to the loop, `in` points to the
+    // beginning of a code point.
+    //
     for(;;)
     {
+        // Number of chars left
         auto n = end - in;
         if(! n)
             break;
+
+        // Chars we need to finish this code point
         auto const need = needed(*in);
-        if (need == 0)
+        if(need == 0)
             return false;
         if(need <= n)
         {
+            // Check a whole code point
             if(! valid(in))
                 return false;
         }
         else
         {
+            // Calculate how many chars we need
+            // to finish this partial code point
             need_ = need - n;
+
+            // Save the partial code point
             while(n--)
                 *p_++ = *in++;
+            BOOST_ASSERT(in == end);
+            BOOST_ASSERT(p_ <= cp_ + 5);
+
+            // Do partial validation on the incomplete
+            // code point, this is called "Fail fast"
+            // in Autobahn|Testsuite parlance.
             return valid_have();
         }
     }
