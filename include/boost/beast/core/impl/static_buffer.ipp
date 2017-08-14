@@ -35,14 +35,19 @@ static_buffer_base::
 data() const ->
     const_buffers_type
 {
-    using boost::asio::const_buffer;
+    using boost::asio::mutable_buffer;
+    const_buffers_type result;
     if(in_off_ + in_size_ <= capacity_)
-        return {{
-            {const_buffer{begin_ + in_off_, in_size_}},
-            {const_buffer{begin_, 0}}}};
-    return {{
-        {const_buffer{begin_ + in_off_, capacity_ - in_off_}},
-        {const_buffer{begin_, in_size_ - (capacity_ - in_off_)}}}};
+    {
+        result[0] = mutable_buffer{begin_ + in_off_, in_size_};
+        result[1] = mutable_buffer{begin_, 0};
+    }
+    else
+    {
+        result[0] = mutable_buffer{begin_ + in_off_, capacity_ - in_off_};
+        result[1] = mutable_buffer{begin_, in_size_ - (capacity_ - in_off_)};
+    }
+    return result;
 }
 
 inline
@@ -52,13 +57,18 @@ mutable_data() ->
     mutable_data_type
 {
     using boost::asio::mutable_buffer;
+    mutable_data_type result;
     if(in_off_ + in_size_ <= capacity_)
-        return {{
-            {mutable_buffer{begin_ + in_off_, in_size_}},
-            {mutable_buffer{begin_, 0}}}};
-    return {{
-        {mutable_buffer{begin_ + in_off_, capacity_ - in_off_}},
-        {mutable_buffer{begin_, in_size_ - (capacity_ - in_off_)}}}};
+    {
+        result[0] = mutable_buffer{begin_ + in_off_, in_size_};
+        result[1] = mutable_buffer{begin_, 0};
+    }
+    else
+    {
+        result[0] = mutable_buffer{begin_ + in_off_, capacity_ - in_off_};
+        result[1] = mutable_buffer{begin_, in_size_ - (capacity_ - in_off_)};
+    }
+    return result;
 }
 
 inline
@@ -73,13 +83,18 @@ prepare(std::size_t size) ->
             "buffer overflow"});
     out_size_ = size;
     auto const out_off = (in_off_ + in_size_) % capacity_;
+    mutable_buffers_type result;
     if(out_off + out_size_ <= capacity_ )
-        return {{
-            {mutable_buffer{begin_ + out_off, out_size_}},
-            {mutable_buffer{begin_, 0}}}};
-    return {{
-        {mutable_buffer{begin_ + out_off, capacity_ - out_off}},
-        {mutable_buffer{begin_, out_size_ - (capacity_ - out_off)}}}};
+    {
+        result[0] = mutable_buffer{begin_ + out_off, out_size_};
+        result[1] = mutable_buffer{begin_, 0};
+    }
+    else
+    {
+        result[0] = mutable_buffer{begin_ + out_off, capacity_ - out_off};
+        result[1] = mutable_buffer{begin_, out_size_ - (capacity_ - out_off)};
+    }
+    return result;
 }
 
 inline

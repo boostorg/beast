@@ -17,7 +17,6 @@
 #include <cstring>
 #include <iterator>
 #include <stdexcept>
-#include <type_traits>
 
 namespace boost {
 namespace beast {
@@ -29,7 +28,7 @@ class buffers_adapter<MutableBufferSequence>::
     buffers_adapter const* ba_;
 
 public:
-    using value_type = boost::asio::const_buffer;
+    using value_type = boost::asio::mutable_buffer;
 
     class const_iterator;
 

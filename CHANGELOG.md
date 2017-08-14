@@ -1,3 +1,9 @@
+Version 106:
+
+* Dynamic buffer input areas are mutable
+
+--------------------------------------------------------------------------------
+
 Version 105:
 
 * Fix compile error in websocket snippet
