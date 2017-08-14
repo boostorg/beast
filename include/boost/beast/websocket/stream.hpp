@@ -3766,11 +3766,11 @@ private:
 
     template<class DynamicBuffer>
     void
-    write_close(DynamicBuffer& db, close_reason const& rc);
+    write_close(DynamicBuffer& b, close_reason const& rc);
 
     template<class DynamicBuffer>
     void
-    write_ping(DynamicBuffer& db,
+    write_ping(DynamicBuffer& b,
         detail::opcode op, ping_data const& data);
 
     template<class Decorator>

@@ -210,17 +210,21 @@ operator()(
                             ws_.rd_.key);
             if(detail::is_control(ws_.rd_.fh.op))
             {
+                // Clear this otherwise the next
+                // frame will be considered final.
+                ws_.rd_.fh.fin = false;
+
                 // Handle ping frame
                 if(ws_.rd_.fh.op == detail::opcode::ping)
                 {
                     {
-                        auto const cb = buffer_prefix(
+                        auto const b = buffer_prefix(
                             clamp(ws_.rd_.fh.len),
                                 ws_.rd_.buf.data());
-                        auto const len = buffer_size(cb);
+                        auto const len = buffer_size(b);
                         BOOST_ASSERT(len == ws_.rd_.fh.len);
                         ping_data payload;
-                        detail::read_ping(payload, cb);
+                        detail::read_ping(payload, b);
                         ws_.rd_.buf.consume(len);
                         // Ignore ping when closing
                         if(ws_.wr_close_)
@@ -356,11 +360,9 @@ operator()(
                 // get fewer bytes at the cost of one I/O.
                 BOOST_ASIO_CORO_YIELD
                 ws_.stream_.async_read_some(
-                    ws_.rd_.buf.prepare(
-                        read_size(
-                            ws_.rd_.buf,
-                            ws_.rd_.buf.max_size())),
-                    std::move(*this));
+                    ws_.rd_.buf.prepare(read_size(
+                        ws_.rd_.buf, ws_.rd_.buf.max_size())),
+                            std::move(*this));
                 dispatched_ = true;
                 ws_.failed_ = !!ec;
                 if(ws_.failed_)
@@ -954,15 +956,20 @@ loop:
         if(detail::is_control(rd_.fh.op))
         {
             // Get control frame payload
-            auto const cb = buffer_prefix(
+            auto const b = buffer_prefix(
                 clamp(rd_.fh.len), rd_.buf.data());
-            auto const len = buffer_size(cb);
+            auto const len = buffer_size(b);
             BOOST_ASSERT(len == rd_.fh.len);
-            // Process control frame
+
+            // Clear this otherwise the next
+            // frame will be considered final.
+            rd_.fh.fin = false;
+
+            // Handle ping frame
             if(rd_.fh.op == detail::opcode::ping)
             {
                 ping_data payload;
-                detail::read_ping(payload, cb);
+                detail::read_ping(payload, b);
                 rd_.buf.consume(len);
                 if(wr_close_)
                 {
@@ -980,21 +987,23 @@ loop:
                     return bytes_written;
                 goto loop;
             }
-            else if(rd_.fh.op == detail::opcode::pong)
+            // Handle pong frame
+            if(rd_.fh.op == detail::opcode::pong)
             {
                 ping_data payload;
-                detail::read_ping(payload, cb);
+                detail::read_ping(payload, b);
                 rd_.buf.consume(len);
                 if(ctrl_cb_)
                     ctrl_cb_(frame_type::pong, payload);
                 goto loop;
             }
+            // Handle close frame
             BOOST_ASSERT(rd_.fh.op == detail::opcode::close);
             {
                 BOOST_ASSERT(! rd_close_);
                 rd_close_ = true;
                 close_reason cr;
-                detail::read_close(cr, cb, code);
+                detail::read_close(cr, b, code);
                 if(code != close_code::none)
                 {
                     // _Fail the WebSocket Connection_
@@ -1040,18 +1049,16 @@ loop:
             {
                 // Fill the read buffer first, otherwise we
                 // get fewer bytes at the cost of one I/O.
-                auto const mb = rd_.buf.prepare(
-                    read_size(rd_.buf, rd_.buf.max_size()));
-                auto const bytes_transferred =
-                    stream_.read_some(mb, ec);
+                rd_.buf.commit(stream_.read_some(
+                    rd_.buf.prepare(read_size(rd_.buf,
+                        rd_.buf.max_size())), ec));
                 failed_ = !!ec;
                 if(failed_)
                     return bytes_written;
                 if(rd_.fh.mask)
-                    detail::mask_inplace(buffer_prefix(
-                        clamp(rd_.remain), mb), rd_.key);
-                // VFALCO Do this before masking  for symmetry with the async version
-                rd_.buf.commit(bytes_transferred);
+                    detail::mask_inplace(
+                        buffer_prefix(clamp(rd_.remain),
+                            rd_.buf.data()), rd_.key);
             }
             if(rd_.buf.size() > 0)
             {

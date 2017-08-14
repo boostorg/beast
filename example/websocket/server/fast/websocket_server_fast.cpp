@@ -104,7 +104,6 @@ do_sync_session(tcp::socket& socket)
             break;
         if(ec)
             return fail(ec, "read");
-
         ws.text(ws.got_text());
         ws.write(buffer.data(), ec);
         if(ec)

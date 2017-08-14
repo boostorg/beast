@@ -14,6 +14,7 @@ WebSocket:
 * Refactor close_op
 * Refactor read_op + fail_op
 * Websocket close will automatically drain
+* Autobahn|Testsuite fixes
 
 --------------------------------------------------------------------------------
 

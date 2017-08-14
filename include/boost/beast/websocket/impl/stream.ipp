@@ -304,10 +304,10 @@ parse_fh(
     consuming_buffers<typename
         DynamicBuffer::const_buffers_type> cb{
             b.data()};
+    std::size_t need;
     {
         std::uint8_t tmp[2];
         cb.consume(buffer_copy(buffer(tmp), cb));
-        std::size_t need;
         fh.len = tmp[1] & 0x7f;
         switch(fh.len)
         {
@@ -393,7 +393,7 @@ parse_fh(
     if(role_ == role_type::client && fh.mask)
         return err(close_code::protocol_error);
     if(detail::is_control(fh.op) &&
-        buffer_size(cb) < fh.len)
+        buffer_size(cb) < need + fh.len)
     {
         // Make the entire control frame payload
         // get read in before we return `true`
@@ -489,24 +489,24 @@ write_close(DynamicBuffer& db, close_reason const& cr)
         if(fh.mask)
             detail::prepare_key(key, fh.key);
         {
-            std::uint8_t b[2];
-            ::new(&b[0]) big_uint16_buf_t{
+            std::uint8_t tmp[2];
+            ::new(&tmp[0]) big_uint16_buf_t{
                 (std::uint16_t)cr.code};
-            auto d = db.prepare(2);
-            boost::asio::buffer_copy(d,
-                boost::asio::buffer(b));
+            auto mb = db.prepare(2);
+            boost::asio::buffer_copy(mb,
+                boost::asio::buffer(tmp));
             if(fh.mask)
-                detail::mask_inplace(d, key);
+                detail::mask_inplace(mb, key);
             db.commit(2);
         }
         if(! cr.reason.empty())
         {
-            auto d = db.prepare(cr.reason.size());
-            boost::asio::buffer_copy(d,
+            auto mb = db.prepare(cr.reason.size());
+            boost::asio::buffer_copy(mb,
                 boost::asio::const_buffer(
                     cr.reason.data(), cr.reason.size()));
             if(fh.mask)
-                detail::mask_inplace(d, key);
+                detail::mask_inplace(mb, key);
             db.commit(cr.reason.size());
         }
     }
@@ -535,12 +535,12 @@ write_ping(DynamicBuffer& db,
     detail::prepared_key key;
     if(fh.mask)
         detail::prepare_key(key, fh.key);
-    auto d = db.prepare(data.size());
-    boost::asio::buffer_copy(d,
+    auto mb = db.prepare(data.size());
+    boost::asio::buffer_copy(mb,
         boost::asio::const_buffers_1(
             data.data(), data.size()));
     if(fh.mask)
-        detail::mask_inplace(d, key);
+        detail::mask_inplace(mb, key);
     db.commit(data.size());
 }
 
