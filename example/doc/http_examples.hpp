@@ -411,11 +411,18 @@ do_head_request(
         return {};
 
     // Create a parser to read the response.
-    // Responses to HEAD requests MUST NOT include
-    // a body, so we use the `empty_body` type and
-    // only attempt to read the header.
-    parser<false, empty_body> p;
-    read_header(stream, buffer, p, ec);
+    // We use the `empty_body` type since
+    // a response to a HEAD request MUST NOT
+    // include a body.
+    response_parser<empty_body> p;
+
+    // Inform the parser that there will be no body.
+    p.skip(true);
+
+    // Read the message. Even though fields like
+    // Content-Length or Transfer-Encoding may be
+    // set, the message will not contain a body.
+    read(stream, buffer, p, ec);
     if(ec)
         return {};
 

@@ -385,7 +385,7 @@ public:
           "0\r\n\r\n";
         error_code ec;
         flat_buffer fb;
-        parser<false, dynamic_body> p;
+        response_parser<dynamic_body> p;
         read(c.server, fb, p, ec);
         BEAST_EXPECTS(! ec, ec.message());
     }

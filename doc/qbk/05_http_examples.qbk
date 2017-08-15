@@ -78,7 +78,11 @@ The
 [@https://tools.ietf.org/html/rfc7231#section-4.3.2 HEAD request]
 method indicates to the server that the client wishes to receive the
 entire header that would be delivered if the method was GET, except
-that the body is omitted.
+that the body is omitted. When a client wishes to receive the response
+to a HEAD request, it is necessary to inform the parser not to expect
+a body. This is done by calling
+[link beast.ref.boost__beast__http__basic_parser.skip `basic_parser::skip`]
+with the value `true`, as shown in this example:
 
 [example_http_do_head_request]
 

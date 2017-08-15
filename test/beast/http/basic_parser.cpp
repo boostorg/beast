@@ -325,8 +325,8 @@ public:
                     "GET / HTTP/1.1\r\n"
                     "f: " + s + "\r\n"
                     "\r\n";
-                parsegrind<parser<true, string_body>>(m,
-                    [&](parser<true, string_body> const& p)
+                parsegrind<request_parser<string_body>>(m,
+                    [&](request_parser<string_body> const& p)
                     {
                         BEAST_EXPECT(p.get()["f"] == value);
                     });

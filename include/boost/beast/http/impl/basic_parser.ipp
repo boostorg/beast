@@ -587,10 +587,8 @@ finish_header(error_code& ec, std::false_type)
         //        treat the message as not having a body.
         //        https://github.com/boostorg/beast/issues/692
         state_ = state::complete;
-        return;
     }
-
-    if(f_ & flagContentLength)
+    else if(f_ & flagContentLength)
     {
         if(len_ > body_limit_)
         {

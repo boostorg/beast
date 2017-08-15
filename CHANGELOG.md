@@ -3,6 +3,10 @@ Version 106:
 * Dynamic buffer input areas are mutable
 * Add flat_static_buffer::reset
 
+HTTP:
+
+* Fix for basic_parser::skip(true) and docs
+
 WebSocket:
 
 * websocket test improvements
