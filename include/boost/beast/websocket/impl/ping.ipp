@@ -39,7 +39,7 @@ class stream<NextLayer>::ping_op
     struct state
     {
         stream<NextLayer>& ws;
-        detail::frame_streambuf fb;
+        detail::frame_buffer fb;
         token tok;
 
         state(
@@ -205,7 +205,7 @@ ping(ping_data const& payload, error_code& ec)
         ec = boost::asio::error::operation_aborted;
         return;
     }
-    detail::frame_streambuf fb;
+    detail::frame_buffer fb;
     write_ping<flat_static_buffer_base>(
         fb, detail::opcode::ping, payload);
     boost::asio::write(stream_, fb.data(), ec);
@@ -233,7 +233,7 @@ pong(ping_data const& payload, error_code& ec)
         ec = boost::asio::error::operation_aborted;
         return;
     }
-    detail::frame_streambuf fb;
+    detail::frame_buffer fb;
     write_ping<flat_static_buffer_base>(
         fb, detail::opcode::pong, payload);
     boost::asio::write(stream_, fb.data(), ec);

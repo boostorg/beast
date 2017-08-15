@@ -44,7 +44,7 @@ class stream<NextLayer>::close_op
     {
         stream<NextLayer>& ws;
         token tok;
-        detail::frame_streambuf fb;
+        detail::frame_buffer fb;
 
         state(
             Handler&,
@@ -356,7 +356,7 @@ close(close_reason const& cr, error_code& ec)
     BOOST_ASSERT(! wr_close_);
     wr_close_ = true;
     {
-        detail::frame_streambuf fb;
+        detail::frame_buffer fb;
         write_close<flat_static_buffer_base>(fb, cr);
         boost::asio::write(stream_, fb.data(), ec);
     }

@@ -621,8 +621,9 @@ write_some(bool fin,
             }
             fh.fin = ! more;
             fh.len = n;
-            detail::fh_streambuf fh_buf;
-            detail::write<flat_static_buffer_base>(fh_buf, fh);
+            detail::fh_buffer fh_buf;
+            detail::write<
+                flat_static_buffer_base>(fh_buf, fh);
             wr_.cont = ! fin;
             boost::asio::write(stream_,
                 buffer_cat(fh_buf.data(), b), ec);
@@ -649,8 +650,9 @@ write_some(bool fin,
             // no mask, no autofrag
             fh.fin = fin;
             fh.len = remain;
-            detail::fh_streambuf fh_buf;
-            detail::write<flat_static_buffer_base>(fh_buf, fh);
+            detail::fh_buffer fh_buf;
+            detail::write<
+                flat_static_buffer_base>(fh_buf, fh);
             wr_.cont = ! fin;
             boost::asio::write(stream_,
                 buffer_cat(fh_buf.data(), buffers), ec);
@@ -670,8 +672,9 @@ write_some(bool fin,
                 remain -= n;
                 fh.len = n;
                 fh.fin = fin ? remain == 0 : false;
-                detail::fh_streambuf fh_buf;
-                detail::write<flat_static_buffer_base>(fh_buf, fh);
+                detail::fh_buffer fh_buf;
+                detail::write<
+                    flat_static_buffer_base>(fh_buf, fh);
                 wr_.cont = ! fin;
                 boost::asio::write(stream_,
                     buffer_cat(fh_buf.data(),
@@ -695,8 +698,9 @@ write_some(bool fin,
         fh.key = maskgen_();
         detail::prepared_key key;
         detail::prepare_key(key, fh.key);
-        detail::fh_streambuf fh_buf;
-        detail::write<flat_static_buffer_base>(fh_buf, fh);
+        detail::fh_buffer fh_buf;
+        detail::write<
+            flat_static_buffer_base>(fh_buf, fh);
         consuming_buffers<
             ConstBufferSequence> cb{buffers};
         {
@@ -746,8 +750,9 @@ write_some(bool fin,
             remain -= n;
             fh.fin = fin ? remain == 0 : false;
             wr_.cont = ! fh.fin;
-            detail::fh_streambuf fh_buf;
-            detail::write<flat_static_buffer_base>(fh_buf, fh);
+            detail::fh_buffer fh_buf;
+            detail::write<
+                flat_static_buffer_base>(fh_buf, fh);
             boost::asio::write(stream_,
                 buffer_cat(fh_buf.data(), b), ec);
             failed_ = !!ec;

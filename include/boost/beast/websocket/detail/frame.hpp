@@ -110,11 +110,11 @@ struct frame_header
 };
 
 // holds the largest possible frame header
-using fh_streambuf =
+using fh_buffer =
     flat_static_buffer<14>;
 
 // holds the largest possible control frame
-using frame_streambuf =
+using frame_buffer =
     flat_static_buffer< 2 + 8 + 4 + 125 >;
 
 inline

@@ -42,7 +42,7 @@ class stream<NextLayer>::fail_op
     struct state
     {
         stream<NextLayer>& ws;
-        detail::frame_streambuf fb;
+        detail::frame_buffer fb;
         std::uint16_t code;
         error_code ev;
         token tok;
@@ -222,8 +222,9 @@ do_fail(
     if(code != close_code::none && ! wr_close_)
     {
         wr_close_ = true;
-        detail::frame_streambuf fb;
-        write_close<flat_static_buffer_base>(fb, code);
+        detail::frame_buffer fb;
+        write_close<
+            flat_static_buffer_base>(fb, code);
         boost::asio::write(stream_, fb.data(), ec);
         failed_ = !!ec;
         if(failed_)

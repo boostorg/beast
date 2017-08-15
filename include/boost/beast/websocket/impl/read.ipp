@@ -978,7 +978,7 @@ loop:
                 }
                 if(ctrl_cb_)
                     ctrl_cb_(frame_type::ping, payload);
-                detail::frame_streambuf fb;
+                detail::frame_buffer fb;
                 write_ping<flat_static_buffer_base>(fb,
                     detail::opcode::pong, payload);
                 boost::asio::write(stream_, fb.data(), ec);

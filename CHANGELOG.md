@@ -4,6 +4,7 @@ WebSocket
 
 * Fix done state for WebSocket reads
 * Fix utf8 check for compressed frames
+* Rename frame and header buffer types
 
 --------------------------------------------------------------------------------
 

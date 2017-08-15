@@ -154,7 +154,7 @@ class stream
         detail::prepared_key key;       // current stateful mask key
         std::uint64_t size;             // total size of current message so far
         std::uint64_t remain;           // message frame bytes left in current frame
-        detail::frame_streambuf fb;     // to write control frames (during reads)
+        detail::frame_buffer fb;        // to write control frames (during reads)
         detail::utf8_checker utf8;      // to validate utf8
 
         // A small, circular buffer to read frame headers.
@@ -201,7 +201,7 @@ class stream
         // sending a message.
         std::unique_ptr<std::uint8_t[]> buf;
 
-        detail::fh_streambuf fb;
+        detail::fh_buffer fb;
     };
 
     // State information for the permessage-deflate extension
