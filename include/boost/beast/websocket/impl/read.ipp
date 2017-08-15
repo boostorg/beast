@@ -543,8 +543,7 @@ operator()(
                 // check utf8
                 if(! ws_.rd_.utf8.write(
                     buffer_prefix(bytes_written_, cb_.get())) || (
-                        ws_.rd_.remain == 0 && ws_.rd_.fh.fin &&
-                            ! ws_.rd_.utf8.finish()))
+                        ws_.rd_.done && ! ws_.rd_.utf8.finish()))
                 {
                     // _Fail the WebSocket Connection_
                     code = close_code::bad_payload;
@@ -1241,8 +1240,7 @@ loop:
             // check utf8
             if(! rd_.utf8.write(
                 buffer_prefix(bytes_written, buffers)) || (
-                    rd_.remain == 0 && rd_.fh.fin &&
-                        ! rd_.utf8.finish()))
+                    rd_.done && ! rd_.utf8.finish()))
             {
                 // _Fail the WebSocket Connection_
                 do_fail(

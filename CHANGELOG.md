@@ -3,6 +3,7 @@ Version 107:
 WebSocket
 
 * Fix done state for WebSocket reads
+* Fix utf8 check for compressed frames
 
 --------------------------------------------------------------------------------
 
