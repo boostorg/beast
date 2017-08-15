@@ -1,3 +1,11 @@
+Version 107:
+
+WebSocket
+
+* Fix done state for WebSocket reads
+
+--------------------------------------------------------------------------------
+
 Version 106:
 
 * Dynamic buffer input areas are mutable
