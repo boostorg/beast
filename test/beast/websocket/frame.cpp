@@ -10,7 +10,6 @@
 #include <boost/beast/websocket/stream.hpp>
 #include <boost/beast/websocket/detail/frame.hpp>
 #include <boost/beast/unit_test/suite.hpp>
-#include <boost/beast/test/pipe_stream.hpp>
 #include <boost/beast/test/yield_to.hpp>
 #include <initializer_list>
 #include <climits>

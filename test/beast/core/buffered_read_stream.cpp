@@ -11,8 +11,7 @@
 #include <boost/beast/core/buffered_read_stream.hpp>
 
 #include <boost/beast/core/multi_buffer.hpp>
-#include <boost/beast/test/fail_stream.hpp>
-#include <boost/beast/test/string_istream.hpp>
+#include <boost/beast/test/stream.hpp>
 #include <boost/beast/test/yield_to.hpp>
 #include <boost/beast/unit_test/suite.hpp>
 #include <boost/asio/buffer.hpp>
@@ -32,35 +31,32 @@ class buffered_read_stream_test
 public:
     void testSpecialMembers()
     {
-        using socket_type = boost::asio::ip::tcp::socket;
         boost::asio::io_service ios;
         {
-            buffered_read_stream<socket_type, multi_buffer> srs(ios);
-            buffered_read_stream<socket_type, multi_buffer> srs2(std::move(srs));
+            buffered_read_stream<test::stream, multi_buffer> srs(ios);
+            buffered_read_stream<test::stream, multi_buffer> srs2(std::move(srs));
             srs = std::move(srs2);
             BEAST_EXPECT(&srs.get_io_service() == &ios);
             BEAST_EXPECT(&srs.get_io_service() == &srs2.get_io_service());
         }
         {
-            socket_type sock(ios);
-            buffered_read_stream<socket_type&, multi_buffer> srs(sock);
-            buffered_read_stream<socket_type&, multi_buffer> srs2(std::move(srs));
+            test::stream ts{ios};
+            buffered_read_stream<test::stream&, multi_buffer> srs(ts);
         }
     }
 
     struct loop : std::enable_shared_from_this<loop>
     {
-        using stream_type = test::fail_stream<
-            test::string_istream>;
         static std::size_t constexpr limit = 100;
         std::string s_;
         std::size_t n_ = 0;
         std::size_t cap_;
         unit_test::suite& suite_;
         boost::asio::io_service& ios_;
-        boost::optional<stream_type> fs_;
+        boost::optional<test::stream> ts_;
+        boost::optional<test::fail_counter> fc_;
         boost::optional<buffered_read_stream<
-            stream_type&, multi_buffer>> brs_;
+            test::stream&, multi_buffer>> brs_;
 
         loop(
             unit_test::suite& suite,
@@ -101,8 +97,9 @@ public:
             using boost::asio::buffer;
             using boost::asio::buffer_copy;
             s_.resize(13);
-            fs_.emplace(n_, ios_, ", world!");
-            brs_.emplace(*fs_);
+            fc_.emplace(n_);
+            ts_.emplace(ios_, *fc_, ", world!");
+            brs_.emplace(*ts_);
             brs_->buffer().commit(buffer_copy(
                 brs_->buffer().prepare(5), buffer("Hello", 5)));
             boost::asio::async_read(*brs_,
@@ -133,10 +130,10 @@ public:
 
         for(n = 0; n < limit; ++n)
         {
-            test::fail_stream<
-                test::string_istream> fs(n, ios_, ", world!");
+            test::fail_counter fc{n};
+            test::stream ts(ios_, fc, ", world!");
             buffered_read_stream<
-                decltype(fs)&, multi_buffer> srs(fs);
+                test::stream&, multi_buffer> srs(ts);
             srs.buffer().commit(buffer_copy(
                 srs.buffer().prepare(5), buffer("Hello", 5)));
             error_code ec = test::error::fail_error;
@@ -151,10 +148,10 @@ public:
 
         for(n = 0; n < limit; ++n)
         {
-            test::fail_stream<
-                test::string_istream> fs(n, ios_, ", world!");
+            test::fail_counter fc{n};
+            test::stream ts(ios_, fc, ", world!");
             buffered_read_stream<
-                decltype(fs)&, multi_buffer> srs(fs);
+                test::stream&, multi_buffer> srs(ts);
             srs.capacity(3);
             srs.buffer().commit(buffer_copy(
                 srs.buffer().prepare(5), buffer("Hello", 5)));
@@ -170,10 +167,10 @@ public:
 
         for(n = 0; n < limit; ++n)
         {
-            test::fail_stream<
-                test::string_istream> fs(n, ios_, ", world!");
+            test::fail_counter fc{n};
+            test::stream ts(ios_, fc, ", world!");
             buffered_read_stream<
-                decltype(fs)&, multi_buffer> srs(fs);
+                test::stream&, multi_buffer> srs(ts);
             srs.buffer().commit(buffer_copy(
                 srs.buffer().prepare(5), buffer("Hello", 5)));
             error_code ec = test::error::fail_error;
@@ -189,10 +186,10 @@ public:
 
         for(n = 0; n < limit; ++n)
         {
-            test::fail_stream<
-                test::string_istream> fs(n, ios_, ", world!");
+            test::fail_counter fc{n};
+            test::stream ts(ios_, fc, ", world!");
             buffered_read_stream<
-                decltype(fs)&, multi_buffer> srs(fs);
+                test::stream&, multi_buffer> srs(ts);
             srs.capacity(3);
             srs.buffer().commit(buffer_copy(
                 srs.buffer().prepare(5), buffer("Hello", 5)));

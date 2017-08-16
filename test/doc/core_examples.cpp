@@ -11,7 +11,7 @@
 
 #include <boost/beast/core/flat_buffer.hpp>
 #include <boost/beast/core/ostream.hpp>
-#include <boost/beast/test/pipe_stream.hpp>
+#include <boost/beast/test/stream.hpp>
 #include <boost/beast/test/yield_to.hpp>
 #include <boost/beast/unit_test/suite.hpp>
 
@@ -50,24 +50,23 @@ public:
     testRead()
     {
         {
-            test::pipe p{ios_};
-            ostream(p.server.buffer) <<
-                "\x16***";
+            test::stream ts(ios_,
+                "\x16***");
             error_code ec;
             flat_buffer b;
-            auto const result = detect_ssl(p.server, b, ec);
+            auto const result = detect_ssl(ts, b, ec);
             BEAST_EXPECTS(! ec, ec.message());
             BEAST_EXPECT(result);
         }
         yield_to(
             [&](yield_context yield)
             {
-                test::pipe p{ios_};
-                ostream(p.server.buffer) <<
-                    "\x16***";
+                test::stream ts(ios_,
+                    "\x16***");
                 error_code ec;
                 flat_buffer b;
-                auto const result = async_detect_ssl(p.server, b, yield[ec]);
+                auto const result =
+                    async_detect_ssl(ts, b, yield[ec]);
                 BEAST_EXPECTS(! ec, ec.message());
                 BEAST_EXPECT(result);
             });

@@ -18,10 +18,7 @@
 #include <boost/beast/http/string_body.hpp>
 #include <boost/beast/core/error.hpp>
 #include <boost/beast/core/multi_buffer.hpp>
-#include <boost/beast/test/fail_stream.hpp>
-#include <boost/beast/test/pipe_stream.hpp>
-#include <boost/beast/test/string_istream.hpp>
-#include <boost/beast/test/string_ostream.hpp>
+#include <boost/beast/test/stream.hpp>
 #include <boost/beast/test/yield_to.hpp>
 #include <boost/beast/unit_test/suite.hpp>
 #include <boost/asio/error.hpp>
@@ -287,13 +284,13 @@ public:
     bool
     equal_body(string_view sv, string_view body)
     {
-        test::string_istream si{
-            get_io_service(), sv.to_string()};
+        test::stream ts{ios_, sv};
         message<isRequest, string_body, fields> m;
         multi_buffer b;
+        ts.remote().close();
         try
         {
-            read(si, b, m);
+            read(ts, b, m);
             return m.body == body;
         }
         catch(std::exception const& e)
@@ -307,12 +304,12 @@ public:
     std::string
     str(message<isRequest, Body, Fields> const& m)
     {
-        test::string_ostream ss(ios_);
+        test::stream ts(ios_);
         error_code ec;
-        write(ss, m, ec);
+        write(ts, m, ec);
         if(ec && ec != error::end_of_stream)
             BOOST_THROW_EXCEPTION(system_error{ec});
-        return ss.str;
+        return ts.remote().str().to_string();
     }
 
     void
@@ -326,10 +323,10 @@ public:
             m.set(field::content_length, "5");
             m.body = "*****";
             error_code ec;
-            test::string_ostream ss{ios_};
-            async_write(ss, m, do_yield[ec]);
+            test::stream ts{ios_};
+            async_write(ts, m, do_yield[ec]);
             if(BEAST_EXPECTS(ec == error::end_of_stream, ec.message()))
-                BEAST_EXPECT(ss.str ==
+                BEAST_EXPECT(ts.remote().str() ==
                     "HTTP/1.0 200 OK\r\n"
                     "Server: test\r\n"
                     "Content-Length: 5\r\n"
@@ -344,10 +341,10 @@ public:
             m.set(field::transfer_encoding, "chunked");
             m.body = "*****";
             error_code ec;
-            test::string_ostream ss(ios_);
-            async_write(ss, m, do_yield[ec]);
+            test::stream ts{ios_};
+            async_write(ts, m, do_yield[ec]);
             if(BEAST_EXPECTS(! ec, ec.message()))
-                BEAST_EXPECT(ss.str ==
+                BEAST_EXPECT(ts.remote().str() ==
                     "HTTP/1.1 200 OK\r\n"
                     "Server: test\r\n"
                     "Transfer-Encoding: chunked\r\n"
@@ -367,8 +364,7 @@ public:
         for(n = 0; n < limit; ++n)
         {
             test::fail_counter fc(n);
-            test::fail_stream<
-                test::string_ostream> fs(fc, ios_);
+            test::stream ts(ios_, fc);
             request<fail_body> m(verb::get, "/", 10, fc);
             m.set(field::user_agent, "test");
             m.set(field::connection, "keep-alive");
@@ -376,8 +372,8 @@ public:
             m.body = "*****";
             try
             {
-                write(fs, m);
-                BEAST_EXPECT(fs.next_layer().str ==
+                write(ts, m);
+                BEAST_EXPECT(ts.remote().str() ==
                     "GET / HTTP/1.0\r\n"
                     "User-Agent: test\r\n"
                     "Connection: keep-alive\r\n"
@@ -397,17 +393,16 @@ public:
         for(n = 0; n < limit; ++n)
         {
             test::fail_counter fc(n);
-            test::fail_stream<
-                test::string_ostream> fs(fc, ios_);
+            test::stream ts(ios_, fc);
             request<fail_body> m{verb::get, "/", 10, fc};
             m.set(field::user_agent, "test");
             m.set(field::transfer_encoding, "chunked");
             m.body = "*****";
             error_code ec = test::error::fail_error;
-            write(fs, m, ec);
+            write(ts, m, ec);
             if(ec == error::end_of_stream)
             {
-                BEAST_EXPECT(fs.next_layer().str ==
+                BEAST_EXPECT(ts.remote().str() ==
                     "GET / HTTP/1.0\r\n"
                     "User-Agent: test\r\n"
                     "Transfer-Encoding: chunked\r\n"
@@ -427,17 +422,16 @@ public:
         for(n = 0; n < limit; ++n)
         {
             test::fail_counter fc(n);
-            test::fail_stream<
-                test::string_ostream> fs(fc, ios_);
+            test::stream ts(ios_, fc);
             request<fail_body> m{verb::get, "/", 10, fc};
             m.set(field::user_agent, "test");
             m.set(field::transfer_encoding, "chunked");
             m.body = "*****";
             error_code ec = test::error::fail_error;
-            async_write(fs, m, do_yield[ec]);
+            async_write(ts, m, do_yield[ec]);
             if(ec == error::end_of_stream)
             {
-                BEAST_EXPECT(fs.next_layer().str ==
+                BEAST_EXPECT(ts.remote().str() ==
                     "GET / HTTP/1.0\r\n"
                     "User-Agent: test\r\n"
                     "Transfer-Encoding: chunked\r\n"
@@ -457,18 +451,17 @@ public:
         for(n = 0; n < limit; ++n)
         {
             test::fail_counter fc(n);
-            test::fail_stream<
-                test::string_ostream> fs(fc, ios_);
+            test::stream ts(ios_, fc);
             request<fail_body> m{verb::get, "/", 10, fc};
             m.set(field::user_agent, "test");
             m.set(field::connection, "keep-alive");
             m.set(field::content_length, "5");
             m.body = "*****";
             error_code ec = test::error::fail_error;
-            write(fs, m, ec);
+            write(ts, m, ec);
             if(! ec)
             {
-                BEAST_EXPECT(fs.next_layer().str ==
+                BEAST_EXPECT(ts.remote().str() ==
                     "GET / HTTP/1.0\r\n"
                     "User-Agent: test\r\n"
                     "Connection: keep-alive\r\n"
@@ -484,18 +477,17 @@ public:
         for(n = 0; n < limit; ++n)
         {
             test::fail_counter fc(n);
-            test::fail_stream<
-                test::string_ostream> fs(fc, ios_);
+            test::stream ts(ios_, fc);
             request<fail_body> m{verb::get, "/", 10, fc};
             m.set(field::user_agent, "test");
             m.set(field::connection, "keep-alive");
             m.set(field::content_length, "5");
             m.body = "*****";
             error_code ec = test::error::fail_error;
-            async_write(fs, m, do_yield[ec]);
+            async_write(ts, m, do_yield[ec]);
             if(! ec)
             {
-                BEAST_EXPECT(fs.next_layer().str ==
+                BEAST_EXPECT(ts.remote().str() ==
                     "GET / HTTP/1.0\r\n"
                     "User-Agent: test\r\n"
                     "Connection: keep-alive\r\n"
@@ -538,11 +530,11 @@ public:
             m.set(field::user_agent, "test");
             m.body = "*";
             m.prepare_payload();
-            test::string_ostream ss(ios_);
+            test::stream ts(ios_);
             error_code ec;
-            write(ss, m, ec);
+            write(ts, m, ec);
             BEAST_EXPECT(ec == error::end_of_stream);
-            BEAST_EXPECT(ss.str ==
+            BEAST_EXPECT(ts.remote().str() ==
                 "GET / HTTP/1.0\r\n"
                 "User-Agent: test\r\n"
                 "\r\n"
@@ -575,10 +567,10 @@ public:
             m.set(field::user_agent, "test");
             m.body = "*";
             m.prepare_payload();
-            test::string_ostream ss(ios_);
+            test::stream ts(ios_);
             error_code ec;
-            write(ss, m, ec);
-            BEAST_EXPECT(ss.str ==
+            write(ts, m, ec);
+            BEAST_EXPECT(ts.remote().str() ==
                 "GET / HTTP/1.1\r\n"
                 "User-Agent: test\r\n"
                 "Transfer-Encoding: chunked\r\n"
@@ -621,7 +613,7 @@ public:
             // Make sure handlers are not destroyed
             // after calling io_service::stop
             boost::asio::io_service ios;
-            test::string_ostream os{ios};
+            test::stream ts{ios};
             BEAST_EXPECT(handler::count() == 0);
             request<string_body> m;
             m.method(verb::get);
@@ -629,7 +621,7 @@ public:
             m.target("/");
             m.set("Content-Length", 5);
             m.body = "*****";
-            async_write(os, m, handler{});
+            async_write(ts, m, handler{});
             BEAST_EXPECT(handler::count() > 0);
             ios.stop();
             BEAST_EXPECT(handler::count() > 0);
@@ -643,7 +635,7 @@ public:
             // destroyed when calling ~io_service
             {
                 boost::asio::io_service ios;
-                test::string_ostream is{ios};
+                test::stream ts{ios};
                 BEAST_EXPECT(handler::count() == 0);
                 request<string_body> m;
                 m.method(verb::get);
@@ -651,7 +643,7 @@ public:
                 m.target("/");
                 m.set("Content-Length", 5);
                 m.body = "*****";
-                async_write(is, m, handler{});
+                async_write(ts, m, handler{});
                 BEAST_EXPECT(handler::count() > 0);
             }
             BEAST_EXPECT(handler::count() == 0);
@@ -670,11 +662,9 @@ public:
         serializer<isRequest, Body, Fields> sr{m};
         for(;;)
         {
-            stream.nwrite = 0;
             write_some(stream, sr, ec);
             if(ec)
                 return;
-            BEAST_EXPECT(stream.nwrite <= 1);
             if(sr.is_done())
                 break;
         }
@@ -693,11 +683,9 @@ public:
         serializer<isRequest, Body, Fields> sr{m};
         for(;;)
         {
-            stream.nwrite = 0;
             async_write_some(stream, sr, yield[ec]);
             if(ec)
                 return;
-            BEAST_EXPECT(stream.nwrite <= 1);
             if(sr.is_done())
                 break;
         }
@@ -707,8 +695,9 @@ public:
     void
     testWriteStream(boost::asio::yield_context yield)
     {
-        test::pipe p{ios_};
-        p.client.write_size(3);
+        test::stream ts{ios_};
+        auto tr = ts.remote();
+        ts.write_size(3);
 
         response<Body> m0;
         m0.version = 11;
@@ -726,20 +715,20 @@ public:
             {
                 auto m = m0;
                 error_code ec;
-                do_write(p.client, m, ec);
-                BEAST_EXPECT(p.server.str() == result);
+                do_write(ts, m, ec);
+                BEAST_EXPECT(tr.str() == result);
                 BEAST_EXPECT(equal_body<false>(
-                    p.server.str(), m.body.s));
-                p.server.clear();
+                    tr.str(), m.body.s));
+                tr.clear();
             }
             {
                 auto m = m0;
                 error_code ec;
-                do_async_write(p.client, m, ec, yield);
-                BEAST_EXPECT(p.server.str() == result);
+                do_async_write(ts, m, ec, yield);
+                BEAST_EXPECT(tr.str() == result);
                 BEAST_EXPECT(equal_body<false>(
-                    p.server.str(), m.body.s));
-                p.server.clear();
+                    tr.str(), m.body.s));
+                tr.clear();
             }
             {
                 auto m = m0;
@@ -748,12 +737,12 @@ public:
                 sr.split(true);
                 for(;;)
                 {
-                    write_some(p.client, sr);
+                    write_some(ts, sr);
                     if(sr.is_header_done())
                         break;
                 }
                 BEAST_EXPECT(! m.body.read);
-                p.server.clear();
+                tr.clear();
             }
             {
                 auto m = m0;
@@ -762,12 +751,12 @@ public:
                 sr.split(true);
                 for(;;)
                 {
-                    async_write_some(p.client, sr, yield);
+                    async_write_some(ts, sr, yield);
                     if(sr.is_header_done())
                         break;
                 }
                 BEAST_EXPECT(! m.body.read);
-                p.server.clear();
+                tr.clear();
             }
         }
         {
@@ -775,33 +764,18 @@ public:
             {
                 auto m = m0;
                 error_code ec;
-                do_write(p.client, m, ec);
+                do_write(ts, m, ec);
                 BEAST_EXPECT(equal_body<false>(
-                    p.server.str(), m.body.s));
-                p.server.clear();
+                    tr.str(), m.body.s));
+                tr.clear();
             }
             {
                 auto m = m0;
                 error_code ec;
-                do_async_write(p.client, m, ec, yield);
+                do_async_write(ts, m, ec, yield);
                 BEAST_EXPECT(equal_body<false>(
-                    p.server.str(), m.body.s));
-                p.server.clear();
-            }
-            {
-                auto m = m0;
-                error_code ec;
-                test::string_ostream so{get_io_service(), 3};
-                response_serializer<Body, fields> sr{m};
-                sr.split(true);
-                for(;;)
-                {
-                    write_some(p.client, sr);
-                    if(sr.is_header_done())
-                        break;
-                }
-                BEAST_EXPECT(! m.body.read);
-                p.server.clear();
+                    tr.str(), m.body.s));
+                tr.clear();
             }
             {
                 auto m = m0;
@@ -810,12 +784,26 @@ public:
                 sr.split(true);
                 for(;;)
                 {
-                    async_write_some(p.client, sr, yield);
+                    write_some(ts, sr);
                     if(sr.is_header_done())
                         break;
                 }
                 BEAST_EXPECT(! m.body.read);
-                p.server.clear();
+                tr.clear();
+            }
+            {
+                auto m = m0;
+                error_code ec;
+                response_serializer<Body, fields> sr{m};
+                sr.split(true);
+                for(;;)
+                {
+                    async_write_some(ts, sr, yield);
+                    if(sr.is_header_done())
+                        break;
+                }
+                BEAST_EXPECT(! m.body.read);
+                tr.clear();
             }
         }
     }
@@ -824,12 +812,12 @@ public:
     testIssue655()
     {
         boost::asio::io_service ios;
-        test::pipe c{ios};
+        test::stream ts{ios};
 
         response<empty_body> res;
         res.chunked(true);
         response_serializer<empty_body> sr{res};
-        async_write_header(c.client, sr,
+        async_write_header(ts, sr,
             [&](const error_code&)
             {
             });

@@ -15,7 +15,7 @@
 #include <boost/beast/http/parser.hpp>
 #include <boost/beast/http/read.hpp>
 #include <boost/beast/http/write.hpp>
-#include <boost/beast/test/string_istream.hpp>
+#include <boost/beast/test/stream.hpp>
 #include <boost/beast/unit_test/suite.hpp>
 
 namespace boost {
@@ -61,10 +61,10 @@ public:
             "Content-Length: 3\r\n"
             "\r\n"
             "xyz";
-        test::string_istream ss(ios_, s);
+        test::stream ts(ios_, s);
         response_parser<dynamic_body> p;
         multi_buffer b;
-        read(ss, b, p);
+        read(ts, b, p);
         auto const& m = p.get();
         BEAST_EXPECT(to_string(m.body.data()) == "xyz");
         BEAST_EXPECT(to_string(m) == s);

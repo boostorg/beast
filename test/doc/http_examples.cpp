@@ -17,9 +17,7 @@
 #include <boost/beast/http/parser.hpp>
 #include <boost/beast/http/read.hpp>
 #include <boost/beast/http/write.hpp>
-#include <boost/beast/test/pipe_stream.hpp>
-#include <boost/beast/test/string_istream.hpp>
-#include <boost/beast/test/string_ostream.hpp>
+#include <boost/beast/test/stream.hpp>
 #include <boost/beast/test/yield_to.hpp>
 #include <boost/beast/unit_test/suite.hpp>
 #include <sstream>
@@ -38,7 +36,7 @@ class examples_test
     , public beast::test::enable_yield_to
 {
 public:
-    // two threads, for some examples using a pipe
+    // two threads, for some examples
     examples_test()
         : enable_yield_to(2)
     {
@@ -73,13 +71,13 @@ public:
     bool
     equal_body(string_view sv, string_view body)
     {
-        test::string_istream si{
-            get_io_service(), sv.to_string()};
+        test::stream ts{ios_, sv};
         message<isRequest, string_body, fields> m;
         multi_buffer b;
+        ts.remote().close();
         try
         {
-            read(si, b, m);
+            read(ts, b, m);
             return m.body == body;
         }
         catch(std::exception const& e)
@@ -92,14 +90,15 @@ public:
     void
     doExpect100Continue()
     {
-        test::pipe p{ios_};
+        test::stream ts{ios_};
+        auto tr = ts.remote();
         yield_to(
             [&](yield_context)
             {
                 error_code ec;
                 flat_buffer buffer;
                 receive_expect_100_continue(
-                    p.server, buffer, ec);
+                    tr, buffer, ec);
                 BEAST_EXPECTS(! ec, ec.message());
             },
             [&](yield_context)
@@ -115,7 +114,7 @@ public:
 
                 error_code ec;
                 send_expect_100_continue(
-                    p.client, buffer, req, ec);
+                    ts, buffer, req, ec);
                 BEAST_EXPECTS(! ec, ec.message());
             });
     }
@@ -124,15 +123,14 @@ public:
     doCgiResponse()
     {
         std::string const s = "Hello, world!";
-        test::pipe child{ios_};
-        child.server.read_size(3);
-        ostream(child.server.buffer) << s;
-        child.client.close();
-        test::pipe p{ios_};
+        test::stream t0{ios_, s};
+        t0.read_size(3);
+        t0.remote().close();
+        test::stream t1{ios_};
         error_code ec;
-        send_cgi_response(child.server, p.client, ec);
+        send_cgi_response(t0, t1, ec);
         BEAST_EXPECTS(! ec, ec.message());
-        BEAST_EXPECT(equal_body<false>(p.server.str(), s));
+        BEAST_EXPECT(equal_body<false>(t1.remote().str(), s));
     }
 
     void
@@ -146,18 +144,19 @@ public:
         req.body = "Hello, world!";
         req.prepare_payload();
 
-        test::pipe downstream{ios_};
-        downstream.server.read_size(3);
-        test::pipe upstream{ios_};
-        upstream.client.write_size(3);
+        test::stream ds{ios_};
+        auto dsr = ds.remote();
+        dsr.read_size(3);
+        test::stream us{ios_};
+        us.write_size(3);
 
         error_code ec;
-        write(downstream.client, req);
+        write(ds, req);
         BEAST_EXPECTS(! ec, ec.message());
-        downstream.client.close();
+        ds.close();
 
         flat_buffer buffer;
-        relay<true>(upstream.client, downstream.server, buffer, ec,
+        relay<true>(us, dsr, buffer, ec,
             [&](header<true, fields>& h, error_code& ev)
             {
                 ev = {};
@@ -166,7 +165,7 @@ public:
             });
         BEAST_EXPECTS(! ec, ec.message());
         BEAST_EXPECT(equal_body<true>(
-            upstream.server.str(), req.body));
+            us.remote().str(), req.body));
     }
 
     void
@@ -240,20 +239,21 @@ public:
     void
     doHEAD()
     {
-        test::pipe p{ios_};
+        test::stream ts{ios_};
+        auto tr = ts.remote();
         yield_to(
             [&](yield_context)
             {
                 error_code ec;
                 flat_buffer buffer;
-                do_server_head(p.server, buffer, ec);
+                do_server_head(tr, buffer, ec);
                 BEAST_EXPECTS(! ec, ec.message());
             },
             [&](yield_context)
             {
                 error_code ec;
                 flat_buffer buffer;
-                auto res = do_head_request(p.client, buffer, "/", ec);
+                auto res = do_head_request(ts, buffer, "/", ec);
                 BEAST_EXPECTS(! ec, ec.message());
             });
     }
@@ -278,18 +278,17 @@ public:
     void
     doDeferredBody()
     {
-        test::pipe p{ios_};
-        ostream(p.server.buffer) <<
+        test::stream ts(ios_,
             "POST / HTTP/1.1\r\n"
             "User-Agent: test\r\n"
             "Content-Type: multipart/form-data\r\n"
             "Content-Length: 13\r\n"
             "\r\n"
-            "Hello, world!";
+            "Hello, world!");
 
         handler h;
         flat_buffer buffer;
-        do_form_request(p.server, buffer, h);
+        do_form_request(ts, buffer, h);
         BEAST_EXPECT(h.body == "Hello, world!");
     }
 
@@ -298,9 +297,9 @@ public:
     void
     doIncrementalRead()
     {
-        test::pipe c{ios_};
+        test::stream ts{ios_};
         std::string s(2048, '*');
-        ostream(c.server.buffer) <<
+        ostream(ts.buffer()) <<
             "HTTP/1.1 200 OK\r\n"
             "Content-Length: 2048\r\n"
             "Server: test\r\n"
@@ -309,7 +308,7 @@ public:
         error_code ec;
         flat_buffer b;
         std::stringstream ss;
-        read_and_print_body<false>(ss, c.server, b, ec);
+        read_and_print_body<false>(ss, ts, b, ec);
         if(BEAST_EXPECTS(! ec, ec.message()))
             BEAST_EXPECT(ss.str() == s);
     }
@@ -325,7 +324,7 @@ public:
                 return boost::asio::const_buffers_1{
                     s.data(), s.size()};
             };
-        test::pipe p{ios_};
+        test::stream ts{ios_};
         
         response<empty_body> res{status::ok, 11};
         res.set(field::server, "test");
@@ -334,26 +333,26 @@ public:
 
         error_code ec;
         response_serializer<empty_body> sr{res};
-        write_header(p.client, sr, ec);
+        write_header(ts, sr, ec);
 
         chunk_extensions exts;
 
-        boost::asio::write(p.client,
+        boost::asio::write(ts,
             make_chunk(buf("First")), ec);
 
         exts.insert("quality", "1.0");
-        boost::asio::write(p.client,
+        boost::asio::write(ts,
             make_chunk(buf("Hello, world!"), exts), ec);
 
         exts.clear();
         exts.insert("file", "abc.txt");
         exts.insert("quality", "0.7");
-        boost::asio::write(p.client,
+        boost::asio::write(ts,
             make_chunk(buf("The Next Chunk"), std::move(exts)), ec);
 
         exts.clear();
         exts.insert("last");
-        boost::asio::write(p.client,
+        boost::asio::write(ts,
             make_chunk(buf("Last one"), std::move(exts),
                 std::allocator<double>{}), ec);
 
@@ -361,13 +360,13 @@ public:
         trailers.set(field::expires, "never");
         trailers.set(field::content_md5, "f4a5c16584f03d90");
 
-        boost::asio::write(p.client,
+        boost::asio::write(ts,
             make_chunk_last(
                 trailers,
                 std::allocator<double>{}
                     ), ec);
         BEAST_EXPECT(
-            to_string(p.server.buffer.data()) ==
+            to_string(ts.remote().buffer().data()) ==
             "HTTP/1.1 200 OK\r\n"
             "Server: test\r\n"
             "Accept: Expires, Content-MD5\r\n"
@@ -392,8 +391,7 @@ public:
     void
     doExplicitChunkParse()
     {
-        test::pipe c{ios_};
-        ostream(c.client.buffer) <<
+        test::stream ts(ios_,
             "HTTP/1.1 200 OK\r\n"
             "Server: test\r\n"
             "Trailer: Expires, Content-MD5\r\n"
@@ -410,13 +408,13 @@ public:
             "0\r\n"
             "Expires: never\r\n"
             "Content-MD5: f4a5c16584f03d90\r\n"
-            "\r\n";
+            "\r\n");
 
 
         error_code ec;
         flat_buffer b;
         std::stringstream ss;
-        print_chunked_body<false>(ss, c.client, b, ec);
+        print_chunked_body<false>(ss, ts, b, ec);
         BEAST_EXPECTS(! ec, ec.message());
         BEAST_EXPECT(ss.str() ==
             "Chunk Body: First\n"
@@ -429,7 +427,6 @@ public:
             "Chunk Body: Last one\n"
             "Expires: never\n"
             "Content-MD5: f4a5c16584f03d90\n");
-
     }
 
     //--------------------------------------------------------------------------

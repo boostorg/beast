@@ -1,5 +1,7 @@
 Version 107:
 
+* Use test::stream
+
 WebSocket
 
 * Fix done state for WebSocket reads

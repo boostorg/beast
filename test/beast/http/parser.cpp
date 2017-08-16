@@ -13,8 +13,6 @@
 #include "test_parser.hpp"
 
 #include <boost/beast/unit_test/suite.hpp>
-#include <boost/beast/test/string_istream.hpp>
-#include <boost/beast/test/string_ostream.hpp>
 #include <boost/beast/test/yield_to.hpp>
 #include <boost/beast/core/consuming_buffers.hpp>
 #include <boost/beast/core/flat_buffer.hpp>

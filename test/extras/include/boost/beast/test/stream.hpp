@@ -239,38 +239,40 @@ class stream
     using status = detail::stream_impl::status;
 
     std::shared_ptr<detail::stream_impl> impl_;
-    detail::stream_impl::state& in_;
-    detail::stream_impl::state& out_;
+    detail::stream_impl::state* in_;
+    detail::stream_impl::state* out_;
 
     explicit
     stream(std::shared_ptr<
             detail::stream_impl> const& impl)
         : impl_(impl)
-        , in_(impl_->s1_)
-        , out_(impl_->s0_)
+        , in_(&impl_->s1_)
+        , out_(&impl_->s0_)
     {
     }
 
 public:
     using buffer_type = flat_buffer;
 
-    stream& operator=(stream const&) = delete;
+    /// Assignment
+    stream& operator=(stream&&) = default;
 
     /// Destructor
     ~stream()
     {
         if(! impl_)
             return;
-        BOOST_ASSERT(! in_.op);
-        std::unique_lock<std::mutex> lock{out_.m};
-        if(out_.code == status::ok)
+        BOOST_ASSERT(! in_->op);
+        std::unique_lock<std::mutex> lock{out_->m};
+        if(out_->code == status::ok)
         {
-            out_.code = status::reset;
-            out_.on_write();
+            out_->code = status::reset;
+            out_->on_write();
         }
         lock.unlock();
     }
 
+    /// Constructor
     stream(stream&& other)
         : impl_(std::move(other.impl_))
         , in_(other.in_)
@@ -284,8 +286,8 @@ public:
         boost::asio::io_service& ios)
         : impl_(std::make_shared<
             detail::stream_impl>(ios, nullptr))
-        , in_(impl_->s0_)
-        , out_(impl_->s1_)
+        , in_(&impl_->s0_)
+        , out_(&impl_->s1_)
     {
     }
 
@@ -296,8 +298,8 @@ public:
         boost::asio::io_service& ios1)
         : impl_(std::make_shared<
             detail::stream_impl>(ios0, ios1))
-        , in_(impl_->s0_)
-        , out_(impl_->s1_)
+        , in_(&impl_->s0_)
+        , out_(&impl_->s1_)
     {
     }
 
@@ -308,8 +310,8 @@ public:
         fail_counter& fc)
         : impl_(std::make_shared<
             detail::stream_impl>(ios, &fc))
-        , in_(impl_->s0_)
-        , out_(impl_->s1_)
+        , in_(&impl_->s0_)
+        , out_(&impl_->s1_)
     {
     }
 
@@ -319,13 +321,13 @@ public:
         string_view s)
         : impl_(std::make_shared<
             detail::stream_impl>(ios, nullptr))
-        , in_(impl_->s0_)
-        , out_(impl_->s1_)
+        , in_(&impl_->s0_)
+        , out_(&impl_->s1_)
     {
         using boost::asio::buffer;
         using boost::asio::buffer_copy;
-        in_.b.commit(buffer_copy(
-            in_.b.prepare(s.size()),
+        in_->b.commit(buffer_copy(
+            in_->b.prepare(s.size()),
             buffer(s.data(), s.size())));
     }
 
@@ -336,13 +338,13 @@ public:
         string_view s)
         : impl_(std::make_shared<
             detail::stream_impl>(ios, &fc))
-        , in_(impl_->s0_)
-        , out_(impl_->s1_)
+        , in_(&impl_->s0_)
+        , out_(&impl_->s1_)
     {
         using boost::asio::buffer;
         using boost::asio::buffer_copy;
-        in_.b.commit(buffer_copy(
-            in_.b.prepare(s.size()),
+        in_->b.commit(buffer_copy(
+            in_->b.prepare(s.size()),
             buffer(s.data(), s.size())));
     }
 
@@ -350,7 +352,7 @@ public:
     stream
     remote()
     {
-        BOOST_ASSERT(&in_ == &impl_->s0_);
+        BOOST_ASSERT(in_ == &impl_->s0_);
         return stream{impl_};
     }
 
@@ -358,28 +360,28 @@ public:
     boost::asio::io_service&
     get_io_service()
     {
-        return in_.ios;
+        return in_->ios;
     }
 
     /// Set the maximum number of bytes returned by read_some
     void
     read_size(std::size_t n)
     {
-        in_.read_max = n;
+        in_->read_max = n;
     }
 
     /// Set the maximum number of bytes returned by write_some
     void
     write_size(std::size_t n)
     {
-        out_.write_max = n;
+        out_->write_max = n;
     }
 
     /// Direct input buffer access
     buffer_type&
     buffer()
     {
-        return in_.b;
+        return in_->b;
     }
 
     /// Returns a string view representing the pending input data
@@ -389,8 +391,8 @@ public:
         using boost::asio::buffer_cast;
         using boost::asio::buffer_size;
         return {
-            buffer_cast<char const*>(*in_.b.data().begin()),
-            buffer_size(*in_.b.data().begin())};
+            buffer_cast<char const*>(*in_->b.data().begin()),
+            buffer_size(*in_->b.data().begin())};
     }
 
     /// Appends a string to the pending input data
@@ -399,24 +401,32 @@ public:
     {
         using boost::asio::buffer;
         using boost::asio::buffer_copy;
-        std::unique_lock<std::mutex> lock{in_.m};
-        in_.b.commit(buffer_copy(
-            in_.b.prepare(s.size()),
+        std::lock_guard<std::mutex> lock{in_->m};
+        in_->b.commit(buffer_copy(
+            in_->b.prepare(s.size()),
             buffer(s.data(), s.size())));
+    }
+
+    /// Clear the pending input area
+    void
+    clear()
+    {
+        std::lock_guard<std::mutex> lock{in_->m};
+        in_->b.consume(in_->b.size());
     }
 
     /// Return the number of reads
     std::size_t
     nread() const
     {
-        return in_.nread;
+        return in_->nread;
     }
 
     /// Return the number of writes
     std::size_t
     nwrite() const
     {
-        return out_.nwrite;
+        return out_->nwrite;
     }
 
     /** Close the stream.
@@ -499,35 +509,35 @@ read_some(MutableBufferSequence const& buffers,
     using boost::asio::buffer_copy;
     using boost::asio::buffer_size;
     BOOST_ASSERT(buffer_size(buffers) > 0);
-    if(in_.fc && in_.fc->fail(ec))
+    if(in_->fc && in_->fc->fail(ec))
         return 0;
-    std::unique_lock<std::mutex> lock{in_.m};
-    BOOST_ASSERT(! in_.op);
-    in_.cv.wait(lock,
+    std::unique_lock<std::mutex> lock{in_->m};
+    BOOST_ASSERT(! in_->op);
+    in_->cv.wait(lock,
         [&]()
         {
             return
-                in_.b.size() > 0 ||
-                in_.code != status::ok;
+                in_->b.size() > 0 ||
+                in_->code != status::ok;
         });
     std::size_t bytes_transferred;
-    if(in_.b.size() > 0)
+    if(in_->b.size() > 0)
     {   
         ec.assign(0, ec.category());
         bytes_transferred = buffer_copy(
-            buffers, in_.b.data(), in_.read_max);
-        in_.b.consume(bytes_transferred);
+            buffers, in_->b.data(), in_->read_max);
+        in_->b.consume(bytes_transferred);
     }
     else
     {
-        BOOST_ASSERT(in_.code != status::ok);
+        BOOST_ASSERT(in_->code != status::ok);
         bytes_transferred = 0;
-        if(in_.code == status::eof)
+        if(in_->code == status::eof)
             ec = boost::asio::error::eof;
-        else if(in_.code == status::reset)
+        else if(in_->code == status::reset)
             ec = boost::asio::error::connection_reset;
     }
-    ++in_.nread;
+    ++in_->nread;
     return bytes_transferred;
 }
 
@@ -547,45 +557,45 @@ async_read_some(
     BOOST_ASSERT(buffer_size(buffers) > 0);
     async_completion<ReadHandler,
         void(error_code, std::size_t)> init{handler};
-    if(in_.fc)
+    if(in_->fc)
     {
         error_code ec;
-        if(in_.fc->fail(ec))
-            return in_.ios.post(bind_handler(
+        if(in_->fc->fail(ec))
+            return in_->ios.post(bind_handler(
                 init.completion_handler, ec, 0));
     }
     {
-        std::unique_lock<std::mutex> lock{in_.m};
-        BOOST_ASSERT(! in_.op);
+        std::unique_lock<std::mutex> lock{in_->m};
+        BOOST_ASSERT(! in_->op);
         if(buffer_size(buffers) == 0 ||
-            buffer_size(in_.b.data()) > 0)
+            buffer_size(in_->b.data()) > 0)
         {
             auto const bytes_transferred = buffer_copy(
-                buffers, in_.b.data(), in_.read_max);
-            in_.b.consume(bytes_transferred);
+                buffers, in_->b.data(), in_->read_max);
+            in_->b.consume(bytes_transferred);
             lock.unlock();
-            ++in_.nread;
-            in_.ios.post(bind_handler(init.completion_handler,
+            ++in_->nread;
+            in_->ios.post(bind_handler(init.completion_handler,
                 error_code{}, bytes_transferred));
         }
-        else if(in_.code != status::ok)
+        else if(in_->code != status::ok)
         {
             lock.unlock();
-            ++in_.nread;
+            ++in_->nread;
             error_code ec;
-            if(in_.code == status::eof)
+            if(in_->code == status::eof)
                 ec = boost::asio::error::eof;
-            else if(in_.code == status::reset)
+            else if(in_->code == status::reset)
                 ec = boost::asio::error::connection_reset;
-            in_.ios.post(bind_handler(
+            in_->ios.post(bind_handler(
                 init.completion_handler, ec, 0));
         }
         else
         {
-            in_.op.reset(new
+            in_->op.reset(new
                 detail::stream_impl::read_op_impl<handler_type<
                     ReadHandler, void(error_code, std::size_t)>,
-                        MutableBufferSequence>{in_, buffers,
+                        MutableBufferSequence>{*in_, buffers,
                             init.completion_handler});
         }
     }
@@ -600,7 +610,7 @@ write_some(ConstBufferSequence const& buffers)
     static_assert(is_const_buffer_sequence<
             ConstBufferSequence>::value,
         "ConstBufferSequence requirements not met");
-    BOOST_ASSERT(out_.code == status::ok);
+    BOOST_ASSERT(out_->code == status::ok);
     error_code ec;
     auto const bytes_transferred =
         write_some(buffers, ec);
@@ -620,18 +630,18 @@ write_some(
         "ConstBufferSequence requirements not met");
     using boost::asio::buffer_copy;
     using boost::asio::buffer_size;
-    BOOST_ASSERT(out_.code == status::ok);
-    if(in_.fc && in_.fc->fail(ec))
+    BOOST_ASSERT(out_->code == status::ok);
+    if(in_->fc && in_->fc->fail(ec))
         return 0;
     auto const n = (std::min)(
-        buffer_size(buffers), out_.write_max);
-    std::unique_lock<std::mutex> lock{out_.m};
+        buffer_size(buffers), out_->write_max);
+    std::unique_lock<std::mutex> lock{out_->m};
     auto const bytes_transferred =
-        buffer_copy(out_.b.prepare(n), buffers);
-    out_.b.commit(bytes_transferred);
-    out_.on_write();
+        buffer_copy(out_->b.prepare(n), buffers);
+    out_->b.commit(bytes_transferred);
+    out_->on_write();
     lock.unlock();
-    ++out_.nwrite;
+    ++out_->nwrite;
     ec.assign(0, ec.category());
     return bytes_transferred;
 }
@@ -648,26 +658,26 @@ async_write_some(ConstBufferSequence const& buffers,
         "ConstBufferSequence requirements not met");
     using boost::asio::buffer_copy;
     using boost::asio::buffer_size;
-    BOOST_ASSERT(out_.code == status::ok);
+    BOOST_ASSERT(out_->code == status::ok);
     async_completion<WriteHandler,
         void(error_code, std::size_t)> init{handler};
-    if(in_.fc)
+    if(in_->fc)
     {
         error_code ec;
-        if(in_.fc->fail(ec))
-            return in_.ios.post(bind_handler(
+        if(in_->fc->fail(ec))
+            return in_->ios.post(bind_handler(
                 init.completion_handler, ec, 0));
     }
     auto const n =
-        (std::min)(buffer_size(buffers), out_.write_max);
-    std::unique_lock<std::mutex> lock{out_.m};
+        (std::min)(buffer_size(buffers), out_->write_max);
+    std::unique_lock<std::mutex> lock{out_->m};
     auto const bytes_transferred =
-        buffer_copy(out_.b.prepare(n), buffers);
-    out_.b.commit(bytes_transferred);
-    out_.on_write();
+        buffer_copy(out_->b.prepare(n), buffers);
+    out_->b.commit(bytes_transferred);
+    out_->on_write();
     lock.unlock();
-    ++out_.nwrite;
-    in_.ios.post(bind_handler(init.completion_handler,
+    ++out_->nwrite;
+    in_->ios.post(bind_handler(init.completion_handler,
         error_code{}, bytes_transferred));
     return init.result.get();
 }
@@ -677,9 +687,9 @@ void
 teardown(websocket::role_type,
     stream& s, boost::system::error_code& ec)
 {
-    if(s.in_.fc)
+    if(s.in_->fc)
     {
-        if(s.in_.fc->fail(ec))
+        if(s.in_->fc->fail(ec))
             return;
     }
     else
@@ -696,7 +706,7 @@ async_teardown(websocket::role_type,
     stream& s, TeardownHandler&& handler)
 {
     error_code ec;
-    if(s.in_.fc && s.in_.fc->fail(ec))
+    if(s.in_->fc && s.in_->fc->fail(ec))
         return s.get_io_service().post(
             bind_handler(std::move(handler), ec));
     s.close();
@@ -709,12 +719,12 @@ void
 stream::
 close()
 {
-    BOOST_ASSERT(! in_.op);
-    std::lock_guard<std::mutex> lock{out_.m};
-    if(out_.code == status::ok)
+    BOOST_ASSERT(! in_->op);
+    std::lock_guard<std::mutex> lock{out_->m};
+    if(out_->code == status::ok)
     {
-        out_.code = status::eof;
-        out_.on_write();
+        out_->code = status::eof;
+        out_->on_write();
     }
 }
 

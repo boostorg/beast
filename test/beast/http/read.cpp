@@ -18,10 +18,7 @@
 #include <boost/beast/http/dynamic_body.hpp>
 #include <boost/beast/http/parser.hpp>
 #include <boost/beast/http/string_body.hpp>
-#include <boost/beast/test/fail_stream.hpp>
-#include <boost/beast/test/pipe_stream.hpp>
 #include <boost/beast/test/stream.hpp>
-#include <boost/beast/test/string_istream.hpp>
 #include <boost/beast/test/yield_to.hpp>
 #include <boost/beast/unit_test/suite.hpp>
 #include <boost/asio/spawn.hpp>
@@ -51,11 +48,11 @@ public:
             b.commit(buffer_copy(
                 b.prepare(len), buffer(s, len)));
             test::fail_counter fc(n);
-            test::fail_stream<
-                test::string_istream> fs{fc, ios_, ""};
+            test::stream ts{ios_, fc};
             test_parser<isRequest> p(fc);
             error_code ec = test::error::fail_error;
-            read(fs, b, p, ec);
+            ts.remote().close();
+            read(ts, b, p, ec);
             if(! ec)
                 break;
         }
@@ -67,11 +64,12 @@ public:
             b.commit(buffer_copy(
                 b.prepare(pre), buffer(s, pre)));
             test::fail_counter fc(n);
-            test::fail_stream<test::string_istream> fs{
-                fc, ios_, std::string{s + pre, len - pre}};
+            test::stream ts{ios_, fc,
+                std::string(s + pre, len - pre)};
             test_parser<isRequest> p(fc);
             error_code ec = test::error::fail_error;
-            read(fs, b, p, ec);
+            ts.remote().close();
+            read(ts, b, p, ec);
             if(! ec)
                 break;
         }
@@ -82,11 +80,11 @@ public:
             b.commit(buffer_copy(
                 b.prepare(len), buffer(s, len)));
             test::fail_counter fc(n);
-            test::fail_stream<
-                test::string_istream> fs{fc, ios_, ""};
+            test::stream ts{ios_, fc};
             test_parser<isRequest> p(fc);
             error_code ec = test::error::fail_error;
-            async_read(fs, b, p, do_yield[ec]);
+            ts.remote().close();
+            async_read(ts, b, p, do_yield[ec]);
             if(! ec)
                 break;
         }
@@ -98,11 +96,12 @@ public:
             b.commit(buffer_copy(
                 b.prepare(pre), buffer(s, pre)));
             test::fail_counter fc(n);
-            test::fail_stream<test::string_istream> fs{
-                fc, ios_, std::string{s + pre, len - pre}};
+            test::stream ts(ios_, fc,
+                std::string{s + pre, len - pre});
             test_parser<isRequest> p(fc);
             error_code ec = test::error::fail_error;
-            async_read(fs, b, p, do_yield[ec]);
+            ts.remote().close();
+            async_read(ts, b, p, do_yield[ec]);
             if(! ec)
                 break;
         }
@@ -226,10 +225,8 @@ public:
             ,
             nullptr
         };
-
         for(std::size_t i = 0; req[i]; ++i)
             failMatrix<true>(req[i], do_yield);
-
         for(std::size_t i = 0; res[i]; ++i)
             failMatrix<false>(res[i], do_yield);
     }
@@ -264,17 +261,18 @@ public:
 
         for(n = 0; n < limit; ++n)
         {
-            test::fail_stream<test::string_istream> fs(n, ios_,
+            test::fail_counter fc{n};
+            test::stream ts{ios_, fc,
                 "GET / HTTP/1.1\r\n"
                 "Host: localhost\r\n"
                 "User-Agent: test\r\n"
                 "Content-Length: 0\r\n"
                 "\r\n"
-            );
+            };
             request<dynamic_body> m;
             error_code ec = test::error::fail_error;
             multi_buffer b;
-            read(fs, b, m, ec);
+            read(ts, b, m, ec);
             if(! ec)
                 break;
         }
@@ -305,18 +303,20 @@ public:
     {
         {
             multi_buffer b;
-            test::string_istream ss(ios_, "");
+            test::stream ts{ios_};
             request_parser<dynamic_body> p;
             error_code ec;
-            read(ss, b, p, ec);
+            ts.remote().close();
+            read(ts, b, p, ec);
             BEAST_EXPECT(ec == http::error::end_of_stream);
         }
         {
             multi_buffer b;
-            test::string_istream ss(ios_, "");
+            test::stream ts{ios_};
             request_parser<dynamic_body> p;
             error_code ec;
-            async_read(ss, b, p, do_yield[ec]);
+            ts.remote().close();
+            async_read(ts, b, p, do_yield[ec]);
             BEAST_EXPECT(ec == http::error::end_of_stream);
         }
     }
@@ -339,12 +339,12 @@ public:
             // Make sure handlers are not destroyed
             // after calling io_service::stop
             boost::asio::io_service ios;
-            test::string_istream is{ios,
+            test::stream ts{ios,
                 "GET / HTTP/1.1\r\n\r\n"};
             BEAST_EXPECT(handler::count() == 0);
             multi_buffer b;
             request<dynamic_body> m;
-            async_read(is, b, m, handler{});
+            async_read(ts, b, m, handler{});
             BEAST_EXPECT(handler::count() > 0);
             ios.stop();
             BEAST_EXPECT(handler::count() > 0);
@@ -358,12 +358,12 @@ public:
             // destroyed when calling ~io_service
             {
                 boost::asio::io_service ios;
-                test::string_istream is{ios,
+                test::stream ts{ios,
                     "GET / HTTP/1.1\r\n\r\n"};
                 BEAST_EXPECT(handler::count() == 0);
                 multi_buffer b;
                 request<dynamic_body> m;
-                async_read(is, b, m, handler{});
+                async_read(ts, b, m, handler{});
                 BEAST_EXPECT(handler::count() > 0);
             }
             BEAST_EXPECT(handler::count() == 0);
@@ -374,9 +374,9 @@ public:
     void
     testRegression430()
     {
-        test::pipe c{ios_};
-        c.server.read_size(1);
-        ostream(c.server.buffer) <<
+        test::stream ts{ios_};
+        ts.read_size(1);
+        ostream(ts.buffer()) <<
           "HTTP/1.1 200 OK\r\n"
           "Transfer-Encoding: chunked\r\n"
           "Content-Type: application/octet-stream\r\n"
@@ -386,7 +386,7 @@ public:
         error_code ec;
         flat_buffer fb;
         response_parser<dynamic_body> p;
-        read(c.server, fb, p, ec);
+        read(ts, fb, p, ec);
         BEAST_EXPECTS(! ec, ec.message());
     }
 
@@ -402,10 +402,10 @@ public:
             Parser p;
             error_code ec = test::error::fail_error;
             flat_buffer b;
-            test::pipe c{ios_};
-            ostream(c.server.buffer) << s;
-            c.server.read_size(n);
-            read(c.server, b, p, ec);
+            test::stream ts{ios_};
+            ostream(ts.buffer()) << s;
+            ts.read_size(n);
+            read(ts, b, p, ec);
             if(! BEAST_EXPECTS(! ec, ec.message()))
                 continue;
             pred(p);
@@ -452,12 +452,18 @@ public:
         testThrow();
         testBufferOverflow();
 
-        yield_to([&](yield_context yield){
-            testFailures(yield); });
-        yield_to([&](yield_context yield){
-            testRead(yield); });
-        yield_to([&](yield_context yield){
-            testEof(yield); });
+        yield_to([&](yield_context yield)
+        {
+            testFailures(yield);
+        });
+        yield_to([&](yield_context yield)
+        {
+            testRead(yield);
+        });
+        yield_to([&](yield_context yield)
+        {
+            testEof(yield);
+        });
 
         testIoService();
         testRegression430();
