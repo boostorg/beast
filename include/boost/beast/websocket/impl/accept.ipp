@@ -19,6 +19,7 @@
 #include <boost/beast/core/buffer_prefix.hpp>
 #include <boost/beast/core/handler_ptr.hpp>
 #include <boost/beast/core/detail/type_traits.hpp>
+#include <boost/asio/coroutine.hpp>
 #include <boost/asio/handler_alloc_hook.hpp>
 #include <boost/asio/handler_continuation_hook.hpp>
 #include <boost/asio/handler_invoke_hook.hpp>
@@ -35,12 +36,12 @@ namespace websocket {
 template<class NextLayer>
 template<class Handler>
 class stream<NextLayer>::response_op
+    : public boost::asio::coroutine
 {
     struct data
     {
         stream<NextLayer>& ws;
         response_type res;
-        int step = 0;
 
         template<class Body, class Allocator, class Decorator>
         data(Handler&, stream<NextLayer>& ws_, http::request<
@@ -66,10 +67,7 @@ public:
     {
     }
 
-    template<class Buffers>
-    void operator()(Buffers const& buffers);
-
-    void operator()(error_code ec);
+    void operator()(error_code ec = {});
 
     friend
     void* asio_handler_allocate(
@@ -90,10 +88,11 @@ public:
     }
 
     friend
-    bool asio_handler_is_continuation(response_op*)
+    bool asio_handler_is_continuation(response_op* op)
     {
-        // VFALCO This will go away in Net-TS
-        return false;
+        using boost::asio::asio_handler_is_continuation;
+        return asio_handler_is_continuation(
+            std::addressof(op->d_.handler()));
     }
 
     template<class Function>
@@ -108,55 +107,19 @@ public:
 
 template<class NextLayer>
 template<class Handler>
-template<class Buffers>
-void
-stream<NextLayer>::
-response_op<Handler>::
-operator()(Buffers const& buffers)
-{
-    using boost::asio::buffer_copy;
-    using boost::asio::buffer_size;
-    auto& d = *d_;
-    error_code ec;
-    boost::optional<typename
-        static_buffer_base::mutable_buffers_type> mb;
-    auto const len = buffer_size(buffers);
-    try
-    {
-        mb.emplace(d.ws.rd_.buf.prepare(len));
-    }
-    catch(std::length_error const&)
-    {
-        d.step = 2;
-        ec = error::buffer_overflow;
-        return d.ws.get_io_service().post(
-            bind_handler(std::move(*this), ec));
-    }
-    d.ws.rd_.buf.commit(
-        buffer_copy(*mb, buffers));
-    (*this)(ec);
-}
-
-template<class NextLayer>
-template<class Handler>
 void
 stream<NextLayer>::
 response_op<Handler>::
 operator()(error_code ec)
 {
     auto& d = *d_;
-    switch(d.step)
+    BOOST_ASIO_CORO_REENTER(*this)
     {
-    case 0:
-        // send response
-        d.step = 1;
+        // Send response
+        BOOST_ASIO_CORO_YIELD
         http::async_write(d.ws.next_layer(),
             d.res, std::move(*this));
-        return;
-
-    // sent response
-    case 1:
-        if(d.res.result() !=
+        if(! ec && d.res.result() !=
                 http::status::switching_protocols)
             ec = error::handshake_failed;
         if(! ec)
@@ -164,13 +127,8 @@ operator()(error_code ec)
             pmd_read(d.ws.pmd_config_, d.res);
             d.ws.open(role_type::server);
         }
-        break;
-
-    // call handler
-    case 2:
-        break;
+        d_.invoke(ec);
     }
-    d_.invoke(ec);
 }
 
 //------------------------------------------------------------------------------
@@ -180,13 +138,13 @@ operator()(error_code ec)
 template<class NextLayer>
 template<class Decorator, class Handler>
 class stream<NextLayer>::accept_op
+    : public boost::asio::coroutine
 {
     struct data
     {
         stream<NextLayer>& ws;
         Decorator decorator;
         http::request_parser<http::empty_body> p;
-        int step = 0;
         data(Handler&, stream<NextLayer>& ws_,
                 Decorator const& decorator_)
             : ws(ws_)
@@ -210,9 +168,9 @@ public:
     }
 
     template<class Buffers>
-    void operator()(Buffers const& buffers);
+    void run(Buffers const& buffers);
 
-    void operator()(error_code ec);
+    void operator()(error_code ec = {});
 
     friend
     void* asio_handler_allocate(
@@ -256,7 +214,7 @@ template<class Buffers>
 void
 stream<NextLayer>::
 accept_op<Decorator, Handler>::
-operator()(Buffers const& buffers)
+run(Buffers const& buffers)
 {
     using boost::asio::buffer_copy;
     using boost::asio::buffer_size;
@@ -271,10 +229,8 @@ operator()(Buffers const& buffers)
     }
     catch(std::length_error const&)
     {
-        d.step = 2;
         ec = error::buffer_overflow;
-        return d.ws.get_io_service().post(
-            bind_handler(std::move(*this), ec));
+        return (*this)(ec);
     }
     d.ws.rd_.buf.commit(
         buffer_copy(*mb, buffers));
@@ -289,40 +245,45 @@ accept_op<Decorator, Handler>::
 operator()(error_code ec)
 {
     auto& d = *d_;
-    switch(d.step)
+    BOOST_ASIO_CORO_REENTER(*this)
     {
-    case 0:
-        d.step = 1;
-        return http::async_read(
-            d.ws.next_layer(), d.ws.rd_.buf,
-                d.p, std::move(*this));
-    
-    case 1:
-    {
-        if(ec == http::error::end_of_stream)
-            ec = error::closed;
         if(ec)
-            break;
-        // Arguments from our step must be
-        // moved to the stack before releasing
-        // the handler.
-        auto& ws = d.ws;
-        auto const req = d.p.release();
-        auto const decorator = d.decorator;
-    #if 1
-        return response_op<Handler>{
-            d_.release_handler(),
-                ws, req, decorator}(ec);
-    #else
-        // VFALCO This *should* work but breaks
-        //        coroutine invariants in the unit test.
-        //        Also it calls reset() when it shouldn't.
-        return ws.async_accept_ex(
-            req, decorator, d_.release_handler());
-    #endif
+        {
+            BOOST_ASIO_CORO_YIELD
+            d.ws.get_io_service().post(
+                bind_handler(std::move(*this), ec));
+        }
+        else
+        {
+            BOOST_ASIO_CORO_YIELD
+            http::async_read(
+                d.ws.next_layer(), d.ws.rd_.buf,
+                    d.p, std::move(*this));
+            if(ec == http::error::end_of_stream)
+                ec = error::closed;
+            if(! ec)
+            {
+                // Arguments from our step must be
+                // moved to the stack before releasing
+                // the handler.
+                auto& ws = d.ws;
+                auto const req = d.p.release();
+                auto const decorator = d.decorator;
+            #if 1
+                return response_op<Handler>{
+                    d_.release_handler(),
+                        ws, req, decorator}(ec);
+            #else
+                // VFALCO This *should* work but breaks
+                //        coroutine invariants in the unit test.
+                //        Also it calls reset() when it shouldn't.
+                return ws.async_accept_ex(
+                    req, decorator, d_.release_handler());
+            #endif
+            }
+        }
+        d_.invoke(ec);
     }
-    }
-    d_.invoke(ec);
 }
 
 //------------------------------------------------------------------------------
@@ -403,11 +364,13 @@ accept(ConstBufferSequence const& buffers)
 
 template<class NextLayer>
 template<
-    class ConstBufferSequence, class ResponseDecorator>
+    class ConstBufferSequence,
+    class ResponseDecorator>
 typename std::enable_if<! http::detail::is_header<
     ConstBufferSequence>::value>::type
 stream<NextLayer>::
-accept_ex(ConstBufferSequence const& buffers,
+accept_ex(
+    ConstBufferSequence const& buffers,
     ResponseDecorator const &decorator)
 {
     static_assert(is_sync_stream<next_layer_type>::value,
@@ -429,30 +392,45 @@ template<class ConstBufferSequence>
 typename std::enable_if<! http::detail::is_header<
     ConstBufferSequence>::value>::type
 stream<NextLayer>::
-accept(ConstBufferSequence const& buffers, error_code& ec)
+accept(
+    ConstBufferSequence const& buffers, error_code& ec)
 {
     static_assert(is_sync_stream<next_layer_type>::value,
         "SyncStream requirements not met");
     static_assert(is_const_buffer_sequence<
         ConstBufferSequence>::value,
             "ConstBufferSequence requirements not met");
-    reset();
     using boost::asio::buffer_copy;
     using boost::asio::buffer_size;
-    rd_.buf.commit(buffer_copy(
-        rd_.buf.prepare(
-            buffer_size(buffers)), buffers));
+    reset();
+    boost::optional<typename
+        static_buffer_base::mutable_buffers_type> mb;
+    try
+    {
+        mb.emplace(rd_.buf.prepare(
+            buffer_size(buffers)));
+    }
+    catch(std::length_error const&)
+    {
+        ec = error::buffer_overflow;
+        return;
+    }
+    rd_.buf.commit(
+        buffer_copy(*mb, buffers));
     do_accept(&default_decorate_res, ec);
 }
 
 template<class NextLayer>
 template<
-    class ConstBufferSequence, class ResponseDecorator>
+    class ConstBufferSequence,
+    class ResponseDecorator>
 typename std::enable_if<! http::detail::is_header<
     ConstBufferSequence>::value>::type
 stream<NextLayer>::
-accept_ex(ConstBufferSequence const& buffers,
-    ResponseDecorator const& decorator, error_code& ec)
+accept_ex(
+    ConstBufferSequence const& buffers,
+    ResponseDecorator const& decorator,
+    error_code& ec)
 {
     static_assert(is_sync_stream<next_layer_type>::value,
         "SyncStream requirements not met");
@@ -462,12 +440,22 @@ accept_ex(ConstBufferSequence const& buffers,
     static_assert(is_const_buffer_sequence<
         ConstBufferSequence>::value,
             "ConstBufferSequence requirements not met");
-    reset();
     using boost::asio::buffer_copy;
     using boost::asio::buffer_size;
-    rd_.buf.commit(buffer_copy(
-        rd_.buf.prepare(
-            buffer_size(buffers)), buffers));
+    reset();
+    boost::optional<typename
+        static_buffer_base::mutable_buffers_type> mb;
+    try
+    {
+        mb.emplace(rd_.buf.prepare(
+            buffer_size(buffers)));
+    }
+    catch(std::length_error const&)
+    {
+        ec = error::buffer_overflow;
+        return;
+    }
+    rd_.buf.commit(buffer_copy(*mb, buffers));
     do_accept(decorator, ec);
 }
 
@@ -475,8 +463,9 @@ template<class NextLayer>
 template<class Body, class Allocator>
 void
 stream<NextLayer>::
-accept(http::request<Body,
-    http::basic_fields<Allocator>> const& req)
+accept(
+    http::request<Body,
+        http::basic_fields<Allocator>> const& req)
 {
     static_assert(is_sync_stream<next_layer_type>::value,
         "SyncStream requirements not met");
@@ -487,12 +476,14 @@ accept(http::request<Body,
 }
 
 template<class NextLayer>
-template<class Body,
-    class Allocator, class ResponseDecorator>
+template<
+    class Body, class Allocator,
+    class ResponseDecorator>
 void
 stream<NextLayer>::
-accept_ex(http::request<Body,
-    http::basic_fields<Allocator>> const& req,
+accept_ex(
+    http::request<Body,
+        http::basic_fields<Allocator>> const& req,
     ResponseDecorator const& decorator)
 {
     static_assert(is_sync_stream<next_layer_type>::value,
@@ -510,9 +501,10 @@ template<class NextLayer>
 template<class Body, class Allocator>
 void
 stream<NextLayer>::
-accept(http::request<Body,
-    http::basic_fields<Allocator>> const& req,
-        error_code& ec)
+accept(
+    http::request<Body,
+        http::basic_fields<Allocator>> const& req,
+    error_code& ec)
 {
     static_assert(is_sync_stream<next_layer_type>::value,
         "SyncStream requirements not met");
@@ -521,13 +513,16 @@ accept(http::request<Body,
 }
 
 template<class NextLayer>
-template<class Body, class Allocator,
+template<
+    class Body, class Allocator,
     class ResponseDecorator>
 void
 stream<NextLayer>::
-accept_ex(http::request<Body,
-    http::basic_fields<Allocator>> const& req,
-        ResponseDecorator const& decorator, error_code& ec)
+accept_ex(
+    http::request<Body,
+        http::basic_fields<Allocator>> const& req,
+    ResponseDecorator const& decorator,
+    error_code& ec)
 {
     static_assert(is_sync_stream<next_layer_type>::value,
         "SyncStream requirements not met");
@@ -535,101 +530,6 @@ accept_ex(http::request<Body,
         ResponseDecorator>::value,
             "ResponseDecorator requirements not met");
     reset();
-    do_accept(req, decorator, ec);
-}
-
-template<class NextLayer>
-template<class Body, class Allocator,
-    class ConstBufferSequence>
-void
-stream<NextLayer>::
-accept(http::request<Body,
-    http::basic_fields<Allocator>> const& req,
-        ConstBufferSequence const& buffers)
-{
-    static_assert(is_sync_stream<next_layer_type>::value,
-        "SyncStream requirements not met");
-    static_assert(is_const_buffer_sequence<
-        ConstBufferSequence>::value,
-            "ConstBufferSequence requirements not met");
-    error_code ec;
-    accept(req, buffers, ec);
-    if(ec)
-        BOOST_THROW_EXCEPTION(system_error{ec});
-}
-
-template<class NextLayer>
-template<class Body, class Allocator,
-    class ConstBufferSequence, class ResponseDecorator>
-void
-stream<NextLayer>::
-accept_ex(http::request<Body,
-    http::basic_fields<Allocator>> const& req,
-        ConstBufferSequence const& buffers,
-            ResponseDecorator const& decorator)
-{
-    static_assert(is_sync_stream<next_layer_type>::value,
-        "SyncStream requirements not met");
-    static_assert(is_const_buffer_sequence<
-        ConstBufferSequence>::value,
-            "ConstBufferSequence requirements not met");
-    static_assert(detail::is_ResponseDecorator<
-        ResponseDecorator>::value,
-            "ResponseDecorator requirements not met");
-    error_code ec;
-    accept_ex(req, buffers, decorator, ec);
-    if(ec)
-        BOOST_THROW_EXCEPTION(system_error{ec});
-}
-
-template<class NextLayer>
-template<class Body, class Allocator,
-    class ConstBufferSequence>
-void
-stream<NextLayer>::
-accept(http::request<Body,
-    http::basic_fields<Allocator>> const& req,
-        ConstBufferSequence const& buffers, error_code& ec)
-{
-    static_assert(is_sync_stream<next_layer_type>::value,
-        "SyncStream requirements not met");
-    static_assert(is_const_buffer_sequence<
-        ConstBufferSequence>::value,
-            "ConstBufferSequence requirements not met");
-    reset();
-    using boost::asio::buffer_copy;
-    using boost::asio::buffer_size;
-    rd_.buf.commit(buffer_copy(
-        rd_.buf.prepare(
-            buffer_size(buffers)), buffers));
-    do_accept(req, &default_decorate_res, ec);
-}
-
-template<class NextLayer>
-template<class Body, class Allocator,
-    class ConstBufferSequence, class ResponseDecorator>
-void
-stream<NextLayer>::
-accept_ex(http::request<Body,
-    http::basic_fields<Allocator>> const& req,
-        ConstBufferSequence const& buffers,
-            ResponseDecorator const& decorator,
-                error_code& ec)
-{
-    static_assert(is_sync_stream<next_layer_type>::value,
-        "SyncStream requirements not met");
-    static_assert(is_const_buffer_sequence<
-        ConstBufferSequence>::value,
-            "ConstBufferSequence requirements not met");
-    static_assert(detail::is_ResponseDecorator<
-        ResponseDecorator>::value,
-            "ResponseDecorator requirements not met");
-    reset();
-    using boost::asio::buffer_copy;
-    using boost::asio::buffer_size;
-    rd_.buf.commit(buffer_copy(
-        rd_.buf.prepare(
-            buffer_size(buffers)), buffers));
     do_accept(req, decorator, ec);
 }
 
@@ -709,7 +609,7 @@ async_accept(
         handler_type<AcceptHandler, void(error_code)>>{
             init.completion_handler,
             *this,
-            &default_decorate_res}(buffers);
+            &default_decorate_res}.run(buffers);
     return init.result.get();
 }
 
@@ -743,7 +643,7 @@ async_accept_ex(
         handler_type<AcceptHandler, void(error_code)>>{
             init.completion_handler,
             *this,
-            decorator}(buffers);
+            decorator}.run(buffers);
     return init.result.get();
 }
 
@@ -768,7 +668,7 @@ async_accept(
             init.completion_handler,
             *this,
             req,
-            &default_decorate_res}({});
+            &default_decorate_res}();
     return init.result.get();
 }
 
@@ -798,73 +698,7 @@ async_accept_ex(
             init.completion_handler,
             *this,
             req,
-            decorator}({});
-    return init.result.get();
-}
-
-template<class NextLayer>
-template<
-    class Body, class Allocator,
-    class ConstBufferSequence,
-    class AcceptHandler>
-async_return_type<AcceptHandler, void(error_code)>
-stream<NextLayer>::
-async_accept(
-    http::request<Body, http::basic_fields<Allocator>> const& req,
-    ConstBufferSequence const& buffers,
-    AcceptHandler&& handler)
-{
-    static_assert(is_async_stream<next_layer_type>::value,
-        "AsyncStream requirements requirements not met");
-    static_assert(is_const_buffer_sequence<
-        ConstBufferSequence>::value,
-            "ConstBufferSequence requirements not met");
-    async_completion<AcceptHandler,
-        void(error_code)> init{handler};
-    reset();
-    using boost::asio::asio_handler_is_continuation;
-    response_op<
-        handler_type<AcceptHandler, void(error_code)>>{
-            init.completion_handler,
-            *this,
-            req,
-            &default_decorate_res}(buffers);
-    return init.result.get();
-}
-
-template<class NextLayer>
-template<
-    class Body, class Allocator,
-    class ConstBufferSequence,
-    class ResponseDecorator,
-    class AcceptHandler>
-async_return_type<
-    AcceptHandler, void(error_code)>
-stream<NextLayer>::
-async_accept_ex(http::request<Body,
-    http::basic_fields<Allocator>> const& req,
-        ConstBufferSequence const& buffers,
-            ResponseDecorator const& decorator,
-                AcceptHandler&& handler)
-{
-    static_assert(is_async_stream<next_layer_type>::value,
-        "AsyncStream requirements requirements not met");
-    static_assert(is_const_buffer_sequence<
-        ConstBufferSequence>::value,
-            "ConstBufferSequence requirements not met");
-    static_assert(detail::is_ResponseDecorator<
-        ResponseDecorator>::value,
-            "ResponseDecorator requirements not met");
-    async_completion<AcceptHandler,
-        void(error_code)> init{handler};
-    reset();
-    using boost::asio::asio_handler_is_continuation;
-    response_op<
-        handler_type<AcceptHandler, void(error_code)>>{
-            init.completion_handler,
-            *this,
-            req,
-            decorator}(buffers);
+            decorator}();
     return init.result.get();
 }
 

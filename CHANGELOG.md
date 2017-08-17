@@ -4,6 +4,16 @@ WebSocket:
 
 * Fix async_read_some handler signature
 
+API Changes:
+
+* websocket accept refactoring
+
+Actions Required:
+
+* Do not call websocket accept overloads which take
+  both a message and a buffer sequence, as it is
+  illegal per rfc6455.
+
 --------------------------------------------------------------------------------
 
 Version 108:
