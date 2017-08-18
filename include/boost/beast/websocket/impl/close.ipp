@@ -43,8 +43,9 @@ class stream<NextLayer>::close_op
     struct state
     {
         stream<NextLayer>& ws;
-        token tok;
         detail::frame_buffer fb;
+        error_code ev;
+        token tok;
 
         state(
             Handler&,
@@ -201,7 +202,7 @@ operator()(error_code ec, std::size_t bytes_transferred)
             // Suspend
             BOOST_ASSERT(d.ws.rd_block_ != d.tok);
             BOOST_ASIO_CORO_YIELD
-            d.ws.rd_op_.emplace(std::move(*this));
+            d.ws.r_close_op_.emplace(std::move(*this));
 
             // Acquire the read block
             BOOST_ASSERT(! d.ws.rd_block_);
@@ -230,7 +231,10 @@ operator()(error_code ec, std::size_t bytes_transferred)
                 d.ws.rd_.fh, d.ws.rd_.buf, code))
             {
                 if(code != close_code::none)
-                    break;
+                {
+                    d.ev = error::failed;
+                    goto teardown;
+                }
                 BOOST_ASIO_CORO_YIELD
                 d.ws.stream_.async_read_some(
                     d.ws.rd_.buf.prepare(read_size(d.ws.rd_.buf,
@@ -259,10 +263,11 @@ operator()(error_code ec, std::size_t bytes_transferred)
                     if(code != close_code::none)
                     {
                         // Protocol error
-                        goto upcall;
+                        d.ev = error::failed;
+                        goto teardown;
                     }
                     d.ws.rd_.buf.consume(clamp(d.ws.rd_.fh.len));
-                    break;
+                    goto teardown;
                 }
                 d.ws.rd_.buf.consume(clamp(d.ws.rd_.fh.len));
             }
@@ -305,6 +310,8 @@ operator()(error_code ec, std::size_t bytes_transferred)
             // http://stackoverflow.com/questions/25587403/boost-asio-ssl-async-shutdown-always-finishes-with-an-error
             ec.assign(0, ec.category());
         }
+        if(! ec)
+            ec = d.ev;
         d.ws.failed_ = true;
 
     upcall:

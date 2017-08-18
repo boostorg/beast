@@ -154,6 +154,7 @@ public:
             log << "echoServer: " << e.what() << std::endl;
         }
     }
+
     void
     launchEchoServer(test::stream stream)
     {
@@ -381,6 +382,8 @@ public:
         return false;
     }
 
+    //--------------------------------------------------------------------------
+
     struct SyncClient
     {
         template<class NextLayer>
@@ -520,6 +523,16 @@ public:
         }
 
         template<
+            class NextLayer, class DynamicBuffer>
+        std::size_t
+        read_some(stream<NextLayer>& ws,
+            std::size_t limit,
+            DynamicBuffer& buffer) const
+        {
+            return ws.read_some(buffer, limit);
+        }
+
+        template<
             class NextLayer, class MutableBufferSequence>
         std::size_t
         read_some(stream<NextLayer>& ws,
@@ -556,6 +569,8 @@ public:
                 ws.next_layer(), buffers);
         }
     };
+
+    //--------------------------------------------------------------------------
 
     class AsyncClient
     {
@@ -758,6 +773,21 @@ public:
         }
 
         template<
+            class NextLayer, class DynamicBuffer>
+        std::size_t
+        read_some(stream<NextLayer>& ws,
+            std::size_t limit,
+            DynamicBuffer& buffer) const
+        {
+            error_code ec;
+            auto const bytes_written =
+                ws.async_read_some(buffer, limit, yield_[ec]);
+            if(ec)
+                throw system_error{ec};
+            return bytes_written;
+        }
+
+        template<
             class NextLayer, class MutableBufferSequence>
         std::size_t
         read_some(stream<NextLayer>& ws,
@@ -808,6 +838,8 @@ public:
                 throw system_error{ec};
         }
     };
+
+    //--------------------------------------------------------------------------
 
     void
     testOptions()
@@ -1241,6 +1273,246 @@ public:
 
     //--------------------------------------------------------------------------
 
+    template<class Wrap>
+    void
+    doTestClose(Wrap const& w)
+    {
+        permessage_deflate pmd;
+        pmd.client_enable = false;
+        pmd.server_enable = false;
+
+        auto const launch =
+        [&](test::stream stream)
+        {
+            launchEchoServerAsync(std::move(stream));
+        };
+
+        // normal close
+        doTest(w, pmd, launch,
+        [&](ws_stream_type& ws)
+        {
+            w.close(ws, {});
+        });
+
+        // double close
+        {
+            stream<test::stream> ws{ios_};
+            launch(ws.next_layer().remote());
+            w.handshake(ws, "localhost", "/");
+            w.close(ws, {});
+            try
+            {
+                w.close(ws, {});
+                fail("", __FILE__, __LINE__);
+            }
+            catch(system_error const& se)
+            {
+                BEAST_EXPECTS(
+                    se.code() == boost::asio::error::operation_aborted,
+                    se.code().message());
+            }
+        }
+
+        // drain a message after close
+        doTest(w, pmd, launch,
+        [&](ws_stream_type& ws)
+        {
+            ws.next_layer().str("\x81\x01\x2a");
+            w.close(ws, {});
+        });
+
+        // drain a big message after close
+        {
+            std::string s;
+            s = "\x81\x7e\x10\x01";
+            s.append(4097, '*');
+            doTest(w, pmd, launch,
+            [&](ws_stream_type& ws)
+            {
+                ws.next_layer().str(s);
+                w.close(ws, {});
+            });
+        }
+
+        // drain a ping after close
+        doTest(w, pmd, launch,
+        [&](ws_stream_type& ws)
+        {
+            ws.next_layer().str("\x89\x01*");
+            w.close(ws, {});
+        });
+
+        // drain invalid message frame after close
+        {
+            stream<test::stream> ws{ios_};
+            launch(ws.next_layer().remote());
+            w.handshake(ws, "localhost", "/");
+            ws.next_layer().str("\x81\x81\xff\xff\xff\xff*");
+            try
+            {
+                w.close(ws, {});
+                fail("", __FILE__, __LINE__);
+            }
+            catch(system_error const& se)
+            {
+                BEAST_EXPECTS(
+                    se.code() == error::failed,
+                    se.code().message());
+            }
+        }
+
+        // drain invalid close frame after close
+        {
+            stream<test::stream> ws{ios_};
+            launch(ws.next_layer().remote());
+            w.handshake(ws, "localhost", "/");
+            ws.next_layer().str("\x88\x01*");
+            try
+            {
+                w.close(ws, {});
+                fail("", __FILE__, __LINE__);
+            }
+            catch(system_error const& se)
+            {
+                BEAST_EXPECTS(
+                    se.code() == error::failed,
+                    se.code().message());
+            }
+        }
+
+        // close with incomplete read message
+        doTest(w, pmd, launch,
+        [&](ws_stream_type& ws)
+        {
+            ws.next_layer().str("\x81\x02**");
+            static_buffer<1> b;
+            w.read_some(ws, 1, b);
+            w.close(ws, {});
+        });
+    }
+
+    void
+    doTestCloseAsync()
+    {
+        auto const launch =
+        [&](test::stream stream)
+        {
+            launchEchoServer(std::move(stream));
+            //launchEchoServerAsync(std::move(stream));
+        };
+
+        // suspend on write
+        {
+            error_code ec;
+            boost::asio::io_service ios;
+            stream<test::stream> ws{ios, ios_};
+            launch(ws.next_layer().remote());
+            ws.handshake("localhost", "/", ec);
+            BEAST_EXPECTS(! ec, ec.message());
+            std::size_t count = 0;
+            ws.async_ping("",
+                [&](error_code ec)
+                {
+                    ++count;
+                    BEAST_EXPECTS(! ec, ec.message());
+                });
+            BEAST_EXPECT(ws.wr_block_);
+            ws.async_close({},
+                [&](error_code ec)
+                {
+                    ++count;
+                    BEAST_EXPECTS(! ec, ec.message());
+                });
+            ios.run();
+            BEAST_EXPECT(count == 2);
+        }
+
+        // suspend on read
+        {
+            error_code ec;
+            boost::asio::io_service ios;
+            stream<test::stream> ws{ios, ios_};
+            launch(ws.next_layer().remote());
+            ws.handshake("localhost", "/", ec);
+            BEAST_EXPECTS(! ec, ec.message());
+            flat_buffer b;
+            std::size_t count = 0;
+            ws.async_read(b,
+                [&](error_code ec, std::size_t)
+                {
+                    ++count;
+                    BEAST_EXPECTS(
+                        ec == error::closed, ec.message());
+                });
+            BEAST_EXPECT(ws.rd_block_);
+            ws.async_close({},
+                [&](error_code ec)
+                {
+                    ++count;
+                    BEAST_EXPECTS(
+                        ec == boost::asio::error::operation_aborted,
+                        ec.message());
+                });
+            BEAST_EXPECT(ws.wr_close_);
+            ios.run();
+            BEAST_EXPECT(count == 2);
+        }
+    }
+
+    void
+    testClose()
+    {
+        doTestClose(SyncClient{});
+
+        yield_to([&](yield_context yield)
+        {
+            doTestClose(AsyncClient{yield});
+        });
+
+        doTestCloseAsync();
+    }
+
+    //--------------------------------------------------------------------------
+    
+    void
+    testRead()
+    {
+        // Read close frames
+        {
+            auto const check =
+            [&](error_code ev, string_view s)
+            {
+                test::stream ts{ios_};
+                stream<test::stream&> ws{ts};
+                launchEchoServerAsync(ts.remote());
+                ws.handshake("localhost", "/");
+                ts.str(s);
+                static_buffer<1> b;
+                error_code ec;
+                ws.read(b, ec);
+                BEAST_EXPECTS(ec == ev, ec.message());
+            };
+
+            // payload length 1
+            check(error::failed,
+                "\x88\x01\x01");
+
+            // invalid close code 1005
+            check(error::failed,
+                "\x88\x02\x03\xed");
+
+            // invalid utf8
+            check(error::failed,
+                "\x88\x06\xfc\x15\x0f\xd7\x73\x43");
+
+            // good utf8
+            check(error::closed,
+                "\x88\x06\xfc\x15utf8");
+        }
+    }
+
+    //--------------------------------------------------------------------------
+
     template<class Client, class Launch>
     void
     doTestHandshake(Client const& c, Launch const& launch)
@@ -1587,43 +1859,6 @@ public:
                 v.push_back(n+1);
             }
         }
-    }
-
-    void
-    testClose()
-    {
-        auto const check =
-        [&](error_code ev, string_view s)
-        {
-            test::stream ts{ios_};
-            stream<test::stream&> ws{ts};
-            launchEchoServerAsync(ts.remote());
-            ws.handshake("localhost", "/");
-            ts.str(s);
-            static_buffer<1> b;
-            error_code ec;
-            ws.read(b, ec);
-            BEAST_EXPECTS(ec == ev, ec.message());
-        };
-
-        // payload length 1
-        check(error::failed,
-            "\x88\x81\xff\xff\xff\xff\x00");
-
-        // invalid close code 1005
-        check(error::failed,
-            "\x88\x82\xff\xff\xff\xff\xfc\x12");
-
-        // invalid utf8
-        check(error::failed,
-            "\x88\x86\xff\xff\xff\xff\xfc\x15\x0f\xd7\x73\x43");
-
-        // VFALCO No idea why this fails
-        // good utf8
-#if 0
-        check({},
-            "\x88\x86\xff\xff\xff\xff\xfc\x15utf8");
-#endif    
     }
 
     void
@@ -2130,6 +2365,8 @@ public:
             sizeof(websocket::stream<test::stream&>) << std::endl;
 
         testAccept();
+        testClose();
+        testRead();
 
         permessage_deflate pmd;
         pmd.client_enable = false;

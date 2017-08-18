@@ -128,46 +128,47 @@ operator()(error_code ec, std::size_t)
     BOOST_ASIO_CORO_REENTER(*this)
     {
         // Maybe suspend
-        if(! d.ws.wr_block_)
-        {
-            // Acquire the write block
-            d.ws.wr_block_ = d.tok;
-
-            // Make sure the stream is open
-            if(d.ws.failed_)
-            {
-                BOOST_ASIO_CORO_YIELD
-                d.ws.get_io_service().post(
-                    bind_handler(std::move(*this),
-                        boost::asio::error::operation_aborted));
-                goto upcall;
-            }
-        }
-        else
-        {
-            // Suspend
-            BOOST_ASSERT(d.ws.wr_block_ != d.tok);
-            BOOST_ASIO_CORO_YIELD
-            d.ws.rd_op_.emplace(std::move(*this)); // VFALCO emplace to rd_op_
-
-            // Acquire the write block
-            BOOST_ASSERT(! d.ws.wr_block_);
-            d.ws.wr_block_ = d.tok;
-
-            // Resume
-            BOOST_ASIO_CORO_YIELD
-            d.ws.get_io_service().post(std::move(*this));
-            BOOST_ASSERT(d.ws.wr_block_ == d.tok);
-
-            // Make sure the stream is open
-            if(d.ws.failed_)
-            {
-                ec = boost::asio::error::operation_aborted;
-                goto upcall;
-            }
-        }
         if(d.code != close_code::none && ! d.ws.wr_close_)
         {
+            if(! d.ws.wr_block_)
+            {
+                // Acquire the write block
+                d.ws.wr_block_ = d.tok;
+
+                // Make sure the stream is open
+                if(d.ws.failed_)
+                {
+                    BOOST_ASIO_CORO_YIELD
+                    d.ws.get_io_service().post(
+                        bind_handler(std::move(*this),
+                            boost::asio::error::operation_aborted));
+                    goto upcall;
+                }
+            }
+            else
+            {
+                // Suspend
+                BOOST_ASSERT(d.ws.wr_block_ != d.tok);
+                BOOST_ASIO_CORO_YIELD
+                d.ws.rd_op_.emplace(std::move(*this)); // VFALCO emplace to rd_op_
+
+                // Acquire the write block
+                BOOST_ASSERT(! d.ws.wr_block_);
+                d.ws.wr_block_ = d.tok;
+
+                // Resume
+                BOOST_ASIO_CORO_YIELD
+                d.ws.get_io_service().post(std::move(*this));
+                BOOST_ASSERT(d.ws.wr_block_ == d.tok);
+
+                // Make sure the stream is open
+                if(d.ws.failed_)
+                {
+                    ec = boost::asio::error::operation_aborted;
+                    goto upcall;
+                }
+            }
+
             // Serialize close frame
             d.ws.template write_close<
                 flat_static_buffer_base>(
@@ -184,12 +185,12 @@ operator()(error_code ec, std::size_t)
                 goto upcall;
         }
         // Teardown
-        BOOST_ASSERT(d.ws.wr_block_ == d.tok);
+        //BOOST_ASSERT(d.ws.wr_block_ == d.tok);
         using beast::websocket::async_teardown;
         BOOST_ASIO_CORO_YIELD
         async_teardown(d.ws.role_,
             d.ws.stream_, std::move(*this));
-        BOOST_ASSERT(d.ws.wr_block_ == d.tok);
+        //BOOST_ASSERT(d.ws.wr_block_ == d.tok);
         if(ec == boost::asio::error::eof)
         {
             // Rationale:
@@ -200,8 +201,8 @@ operator()(error_code ec, std::size_t)
             ec = d.ev;
         d.ws.failed_ = true;
     upcall:
-        BOOST_ASSERT(d.ws.wr_block_ == d.tok);
-        d.ws.wr_block_.reset();
+        if(d.ws.wr_block_ == d.tok)
+            d.ws.wr_block_.reset();
         d_.invoke(ec);
     }
 }

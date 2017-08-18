@@ -20,6 +20,7 @@
 #include <boost/asio/buffer.hpp>
 #include <boost/asio/io_service.hpp>
 #include <boost/assert.hpp>
+#include <boost/optional.hpp>
 #include <boost/throw_exception.hpp>
 #include <condition_variable>
 #include <limits>
@@ -139,6 +140,8 @@ class stream_impl::read_op_impl : public stream_impl::read_op
         state& s_;
         Buffers b_;
         Handler h_;
+        boost::optional<
+            boost::asio::io_service::work> work_;
 
     public:
         lambda(lambda&&) = default;
@@ -148,6 +151,7 @@ class stream_impl::read_op_impl : public stream_impl::read_op
             : s_(s)
             , b_(b)
             , h_(std::move(h))
+            , work_(s_.ios)
         {
         }
 
@@ -155,6 +159,7 @@ class stream_impl::read_op_impl : public stream_impl::read_op
             : s_(s)
             , b_(b)
             , h_(h)
+            , work_(s_.ios)
         {
         }
 
@@ -162,6 +167,7 @@ class stream_impl::read_op_impl : public stream_impl::read_op
         post()
         {
             s_.ios.post(std::move(*this));
+            work_ = boost::none;
         }
 
         void
@@ -262,7 +268,6 @@ public:
     {
         if(! impl_)
             return;
-        BOOST_ASSERT(! in_->op);
         std::unique_lock<std::mutex> lock{out_->m};
         if(out_->code == status::ok)
         {

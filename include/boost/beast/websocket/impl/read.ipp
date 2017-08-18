@@ -49,9 +49,10 @@ class stream<NextLayer>::read_some_op
     stream<NextLayer>& ws_;
     consuming_buffers<MutableBufferSequence> cb_;
     std::size_t bytes_written_ = 0;
+    error_code ev_;
     token tok_;
-    bool did_read_ = false;
     bool dispatched_ = false;
+    bool did_read_ = false;
 
 public:
     read_some_op(read_some_op&&) = default;
@@ -553,11 +554,13 @@ operator()(
             }
             goto upcall;
         }
+
     close:
         // Maybe send close frame, then teardown
         BOOST_ASIO_CORO_YIELD
         ws_.do_async_fail(code, ec, std::move(*this));
-        BOOST_ASSERT(! ws_.wr_block_);
+        //BOOST_ASSERT(! ws_.wr_block_);
+        goto upcall;
 
     upcall:
         BOOST_ASSERT(ws_.rd_block_ == tok_);

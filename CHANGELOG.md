@@ -3,6 +3,7 @@ Version 109:
 WebSocket:
 
 * Fix async_read_some handler signature
+* websocket close fixes and tests
 
 API Changes:
 
