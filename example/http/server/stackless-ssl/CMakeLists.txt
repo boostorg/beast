@@ -14,7 +14,6 @@ GroupSources(example/http/server/stackless-ssl "/")
 add_executable (http-server-stackless-ssl
     ${BOOST_BEAST_INCLUDES}
     ${PROJECT_SOURCE_DIR}/example/common/server_certificate.hpp
-    ${PROJECT_SOURCE_DIR}/example/common/write_msg.hpp
     Jamfile
     http_server_stackless_ssl.cpp
 )

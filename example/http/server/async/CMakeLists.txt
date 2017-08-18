@@ -8,12 +8,10 @@
 #
 
 GroupSources(include/boost/beast beast)
-GroupSources(example/common common)
 GroupSources(example/http/server/async "/")
 
 add_executable (http-server-async
     ${BOOST_BEAST_INCLUDES}
-    ${PROJECT_SOURCE_DIR}/example/common/write_msg.hpp
     Jamfile
     http_server_async.cpp
 )

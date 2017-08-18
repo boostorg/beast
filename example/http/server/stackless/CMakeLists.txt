@@ -8,12 +8,10 @@
 #
 
 GroupSources(include/boost/beast beast)
-GroupSources(example/common common)
 GroupSources(example/http/server/stackless "/")
 
 add_executable (http-server-stackless
     ${BOOST_BEAST_INCLUDES}
-    ${PROJECT_SOURCE_DIR}/example/common/write_msg.hpp
     Jamfile
     http_server_stackless.cpp
 )

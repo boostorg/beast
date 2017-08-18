@@ -235,14 +235,6 @@ listed here along with a description of their use:
         which supports construction from a moved-froms ocket and is also
         itself move constructible.
     ]
-][
-    [[repo_file example/common/write_msg.hpp]]
-    [
-        The function `async_write_msg` takes ownership of an HTTP message
-        using the move constructor, and sends it asynchronously. It is
-        used as a convenience for managing the lifetime of temporary
-        objects, as well as for implementing HTTP pipelining.
-    ]
 ]]
 
 [endsect]

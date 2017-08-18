@@ -14,7 +14,6 @@ GroupSources(example/http/server/async-ssl "/")
 add_executable (http-server-async-ssl
     ${BOOST_BEAST_INCLUDES}
     ${PROJECT_SOURCE_DIR}/example/common/server_certificate.hpp
-    ${PROJECT_SOURCE_DIR}/example/common/write_msg.hpp
     Jamfile
     http_server_async_ssl.cpp
 )

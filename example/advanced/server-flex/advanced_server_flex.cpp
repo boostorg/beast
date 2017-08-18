@@ -16,7 +16,6 @@
 #include "example/common/detect_ssl.hpp"
 #include "example/common/server_certificate.hpp"
 #include "example/common/ssl_stream.hpp"
-#include "example/common/write_msg.hpp"
 
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>

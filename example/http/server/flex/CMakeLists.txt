@@ -15,7 +15,6 @@ add_executable (http-server-flex
     ${BOOST_BEAST_INCLUDES}
     ${PROJECT_SOURCE_DIR}/example/common/detect_ssl.hpp
     ${PROJECT_SOURCE_DIR}/example/common/server_certificate.hpp
-    ${PROJECT_SOURCE_DIR}/example/common/write_msg.hpp
     Jamfile
     http_server_flex.cpp
 )

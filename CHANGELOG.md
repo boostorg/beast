@@ -1,6 +1,7 @@
 Version 108:
 
 * Fix argument parsing in HTTP examples
+* Don't use async_write_msg in examples
 
 --------------------------------------------------------------------------------
 

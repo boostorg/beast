@@ -13,8 +13,6 @@
 //
 //------------------------------------------------------------------------------
 
-#include "example/common/write_msg.hpp"
-
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
 #include <boost/beast/version.hpp>
@@ -220,6 +218,7 @@ class session
     struct send_lambda
     {
         session& self_;
+        std::shared_ptr<void> res_;
 
         explicit
         send_lambda(session& self)
@@ -231,12 +230,20 @@ class session
         void
         operator()(http::message<isRequest, Body, Fields>&& msg) const
         {
-            // This function takes ownership of the message by moving
-            // it into a temporary buffer, otherwise we would have
-            // to manage the lifetime of the message and serializer.
-            async_write_msg(
+            // The lifetime of the message has to extend
+            // for the duration of the async operation so
+            // we use a shared_ptr to manage it.
+            auto sp = std::make_shared<
+                http::message<isRequest, Body, Fields>>(std::move(msg));
+
+            // Store a type-erased version of the shared
+            // pointer in the class to keep it alive.
+            self_.res_ = sp;
+
+            // Write the response
+            http::async_write(
                 self_.socket_,
-                std::move(msg),
+                *sp,
                 self_.strand_.wrap(std::bind(
                     &session::loop,
                     self_.shared_from_this(),
@@ -249,6 +256,7 @@ class session
     boost::beast::flat_buffer buffer_;
     std::string const& doc_root_;
     http::request<http::string_body> req_;
+    std::shared_ptr<void> res_;
     send_lambda lambda_;
 
 public:
@@ -303,6 +311,9 @@ public:
                 }
                 if(ec)
                     return fail(ec, "write");
+
+                // We're done with the response so delete it
+                res_ = nullptr;
             }
 
             // Send a TCP shutdown
