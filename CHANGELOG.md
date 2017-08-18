@@ -1,3 +1,11 @@
+Version 109:
+
+WebSocket:
+
+* Fix async_read_some handler signature
+
+--------------------------------------------------------------------------------
+
 Version 108:
 
 * Fix argument parsing in HTTP examples

@@ -121,12 +121,12 @@ boost::asio::ip::tcp::socket sock{ios};
         // Construct the stream, transferring ownership of the socket
         stream<boost::asio::ip::tcp::socket> ws{std::move(sock)};
 
-        // Accept the request from our message. Clients SHOULD NOT
-        // begin sending WebSocket frames until the server has
-        // provided a response, but just in case they did, we pass
-        // any leftovers in the buffer to the accept function.
-        //
-        ws.accept(req, buffer.data());
+        // Clients SHOULD NOT begin sending WebSocket
+        // frames until the server has provided a response.
+        BOOST_ASSERT(buffer.size() == 0);
+
+        // Accept the upgrade request
+        ws.accept(req);
     }
     else
     {

@@ -861,8 +861,8 @@ async_read_some(
         "AsyncStream requirements requirements not met");
     static_assert(is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
-    async_completion<
-        ReadHandler, void(error_code)> init{handler};
+    async_completion<ReadHandler,
+        void(error_code, std::size_t)> init{handler};
     read_op<
         DynamicBuffer,
         handler_type<ReadHandler,
