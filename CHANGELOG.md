@@ -1,3 +1,9 @@
+Version 108:
+
+* Fix argument parsing in HTTP examples
+
+--------------------------------------------------------------------------------
+
 Version 107:
 
 * Use test::stream

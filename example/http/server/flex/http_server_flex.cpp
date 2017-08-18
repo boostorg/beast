@@ -624,7 +624,7 @@ int main(int argc, char* argv[])
     auto const address = boost::asio::ip::address::from_string(argv[1]);
     auto const port = static_cast<unsigned short>(std::atoi(argv[2]));
     std::string const doc_root = argv[3];
-    auto const threads = std::max<std::size_t>(1, std::atoi(argv[3]));
+    auto const threads = std::max<std::size_t>(1, std::atoi(argv[4]));
 
     // The io_service is required for all I/O
     boost::asio::io_service ios{threads};
