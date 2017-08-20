@@ -5,6 +5,7 @@ WebSocket:
 * Fix async_read_some handler signature
 * websocket close fixes and tests
 * websocket handshake uses coroutine
+* websocket ping tests
 
 API Changes:
 

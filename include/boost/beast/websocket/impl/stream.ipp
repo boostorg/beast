@@ -45,6 +45,7 @@ template<class... Args>
 stream<NextLayer>::
 stream(Args&&... args)
     : stream_(std::forward<Args>(args)...)
+    , t_(1)
 {
     BOOST_ASSERT(rd_.buf.max_size() >=
         max_control_frame_size);

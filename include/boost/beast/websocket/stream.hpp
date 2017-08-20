@@ -131,11 +131,11 @@ class stream
     // tokens are used to order reads and writes
     class token
     {
-        unsigned char id_ = 1;
-        explicit token(unsigned char id) : id_(id) {}
+        unsigned char id_ = 0;
     public:
         token() = default;
         token(token const&) = default;
+        explicit token(unsigned char id) : id_(id) {}
         operator bool() const { return id_ != 0; }
         bool operator==(token const& t) { return id_ == t.id_; }
         bool operator!=(token const& t) { return id_ != t.id_; }
@@ -225,7 +225,7 @@ class stream
         detail::opcode::text;               // outgoing message type
     control_cb_type ctrl_cb_;               // control callback
     role_type role_;                        // server or client
-    bool failed_;                           // the connection failed
+    bool failed_ = true;                    // the connection failed
 
     bool rd_close_;                         // read close frame
     bool wr_close_;                         // sent close frame

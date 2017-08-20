@@ -861,6 +861,10 @@ public:
     }
 
     //--------------------------------------------------------------------------
+    //
+    // Accept
+    //
+    //--------------------------------------------------------------------------
 
     template<class Client>
     void
@@ -1269,8 +1273,139 @@ public:
         {
             doTestAccept(AsyncClient{yield});
         });
+
+        //
+        // Bad requests
+        //
+
+        auto const check =
+        [&](error_code const& ev, std::string const& s)
+        {
+            for(int i = 0; i < 3; ++i)
+            {
+                std::size_t n;
+                switch(i)
+                {
+                default:
+                case 0:
+                    n = 1;
+                    break;
+                case 1:
+                    n = s.size() / 2;
+                    break;
+                case 2:
+                    n = s.size() - 1;
+                    break;
+                }
+                stream<test::stream> ws{ios_};
+                ws.next_layer().str(
+                    s.substr(n, s.size() - n));
+                try
+                {
+                    ws.accept(
+                        boost::asio::buffer(s.data(), n));
+                    BEAST_EXPECTS(! ev, ev.message());
+                }
+                catch(system_error const& se)
+                {
+                    BEAST_EXPECTS(se.code() == ev, se.what());
+                }
+            }
+        };
+
+        // wrong version
+        check(http::error::end_of_stream,
+            "GET / HTTP/1.0\r\n"
+            "Host: localhost:80\r\n"
+            "Upgrade: WebSocket\r\n"
+            "Connection: keep-alive,upgrade\r\n"
+            "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n"
+            "Sec-WebSocket-Version: 13\r\n"
+            "\r\n"
+        );
+        // wrong method
+        check(error::handshake_failed,
+            "POST / HTTP/1.1\r\n"
+            "Host: localhost:80\r\n"
+            "Upgrade: WebSocket\r\n"
+            "Connection: keep-alive,upgrade\r\n"
+            "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n"
+            "Sec-WebSocket-Version: 13\r\n"
+            "\r\n"
+        );
+        // missing Host
+        check(error::handshake_failed,
+            "GET / HTTP/1.1\r\n"
+            "Upgrade: WebSocket\r\n"
+            "Connection: keep-alive,upgrade\r\n"
+            "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n"
+            "Sec-WebSocket-Version: 13\r\n"
+            "\r\n"
+        );
+        // missing Sec-WebSocket-Key
+        check(error::handshake_failed,
+            "GET / HTTP/1.1\r\n"
+            "Host: localhost:80\r\n"
+            "Upgrade: WebSocket\r\n"
+            "Connection: keep-alive,upgrade\r\n"
+            "Sec-WebSocket-Version: 13\r\n"
+            "\r\n"
+        );
+        // missing Sec-WebSocket-Version
+        check(error::handshake_failed,
+            "GET / HTTP/1.1\r\n"
+            "Host: localhost:80\r\n"
+            "Upgrade: WebSocket\r\n"
+            "Connection: keep-alive,upgrade\r\n"
+            "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n"
+            "\r\n"
+        );
+        // wrong Sec-WebSocket-Version
+        check(error::handshake_failed,
+            "GET / HTTP/1.1\r\n"
+            "Host: localhost:80\r\n"
+            "Upgrade: WebSocket\r\n"
+            "Connection: keep-alive,upgrade\r\n"
+            "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n"
+            "Sec-WebSocket-Version: 1\r\n"
+            "\r\n"
+        );
+        // missing upgrade token
+        check(error::handshake_failed,
+            "GET / HTTP/1.1\r\n"
+            "Host: localhost:80\r\n"
+            "Upgrade: HTTP/2\r\n"
+            "Connection: upgrade\r\n"
+            "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n"
+            "Sec-WebSocket-Version: 13\r\n"
+            "\r\n"
+        );
+        // missing connection token
+        check(error::handshake_failed,
+            "GET / HTTP/1.1\r\n"
+            "Host: localhost:80\r\n"
+            "Upgrade: WebSocket\r\n"
+            "Connection: keep-alive\r\n"
+            "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n"
+            "Sec-WebSocket-Version: 13\r\n"
+            "\r\n"
+        );
+        // valid request
+        check({},
+            "GET / HTTP/1.1\r\n"
+            "Host: localhost:80\r\n"
+            "Upgrade: WebSocket\r\n"
+            "Connection: upgrade\r\n"
+            "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n"
+            "Sec-WebSocket-Version: 13\r\n"
+            "\r\n"
+        );
     }
 
+    //--------------------------------------------------------------------------
+    //
+    // Close
+    //
     //--------------------------------------------------------------------------
 
     template<class Wrap>
@@ -1392,8 +1527,15 @@ public:
     }
 
     void
-    doTestCloseAsync()
+    testClose()
     {
+        doTestClose(SyncClient{});
+
+        yield_to([&](yield_context yield)
+        {
+            doTestClose(AsyncClient{yield});
+        });
+
         auto const launch =
         [&](test::stream stream)
         {
@@ -1456,58 +1598,6 @@ public:
             BEAST_EXPECT(ws.wr_close_);
             ios.run();
             BEAST_EXPECT(count == 2);
-        }
-    }
-
-    void
-    testClose()
-    {
-        doTestClose(SyncClient{});
-
-        yield_to([&](yield_context yield)
-        {
-            doTestClose(AsyncClient{yield});
-        });
-
-        doTestCloseAsync();
-    }
-
-    //--------------------------------------------------------------------------
-    
-    void
-    testRead()
-    {
-        // Read close frames
-        {
-            auto const check =
-            [&](error_code ev, string_view s)
-            {
-                test::stream ts{ios_};
-                stream<test::stream&> ws{ts};
-                launchEchoServerAsync(ts.remote());
-                ws.handshake("localhost", "/");
-                ts.str(s);
-                static_buffer<1> b;
-                error_code ec;
-                ws.read(b, ec);
-                BEAST_EXPECTS(ec == ev, ec.message());
-            };
-
-            // payload length 1
-            check(error::failed,
-                "\x88\x01\x01");
-
-            // invalid close code 1005
-            check(error::failed,
-                "\x88\x02\x03\xed");
-
-            // invalid utf8
-            check(error::failed,
-                "\x88\x06\xfc\x15\x0f\xd7\x73\x43");
-
-            // good utf8
-            check(error::closed,
-                "\x88\x06\xfc\x15utf8");
         }
     }
 
@@ -1597,153 +1687,23 @@ public:
                 launchEchoServerAsync(std::move(stream));
             });
         });
-    }
 
-    //--------------------------------------------------------------------------
-
-    void testBadHandshakes()
-    {
         auto const check =
-            [&](error_code const& ev, std::string const& s)
+        [&](std::string const& s)
+        {
+            stream<test::stream> ws{ios_};
+            ws.next_layer().str(s);
+            ws.next_layer().remote().close();
+            try
             {
-                for(int i = 0; i < 3; ++i)
-                {
-                    std::size_t n;
-                    switch(i)
-                    {
-                    default:
-                    case 0:
-                        n = 1;
-                        break;
-                    case 1:
-                        n = s.size() / 2;
-                        break;
-                    case 2:
-                        n = s.size() - 1;
-                        break;
-                    }
-                    stream<test::stream> ws{ios_};
-                    ws.next_layer().str(
-                        s.substr(n, s.size() - n));
-                    try
-                    {
-                        ws.accept(
-                            boost::asio::buffer(s.data(), n));
-                        BEAST_EXPECTS(! ev, ev.message());
-                    }
-                    catch(system_error const& se)
-                    {
-                        BEAST_EXPECTS(se.code() == ev, se.what());
-                    }
-                }
-            };
-        // wrong version
-        check(http::error::end_of_stream,
-            "GET / HTTP/1.0\r\n"
-            "Host: localhost:80\r\n"
-            "Upgrade: WebSocket\r\n"
-            "Connection: keep-alive,upgrade\r\n"
-            "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n"
-            "Sec-WebSocket-Version: 13\r\n"
-            "\r\n"
-        );
-        // wrong method
-        check(error::handshake_failed,
-            "POST / HTTP/1.1\r\n"
-            "Host: localhost:80\r\n"
-            "Upgrade: WebSocket\r\n"
-            "Connection: keep-alive,upgrade\r\n"
-            "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n"
-            "Sec-WebSocket-Version: 13\r\n"
-            "\r\n"
-        );
-        // missing Host
-        check(error::handshake_failed,
-            "GET / HTTP/1.1\r\n"
-            "Upgrade: WebSocket\r\n"
-            "Connection: keep-alive,upgrade\r\n"
-            "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n"
-            "Sec-WebSocket-Version: 13\r\n"
-            "\r\n"
-        );
-        // missing Sec-WebSocket-Key
-        check(error::handshake_failed,
-            "GET / HTTP/1.1\r\n"
-            "Host: localhost:80\r\n"
-            "Upgrade: WebSocket\r\n"
-            "Connection: keep-alive,upgrade\r\n"
-            "Sec-WebSocket-Version: 13\r\n"
-            "\r\n"
-        );
-        // missing Sec-WebSocket-Version
-        check(error::handshake_failed,
-            "GET / HTTP/1.1\r\n"
-            "Host: localhost:80\r\n"
-            "Upgrade: WebSocket\r\n"
-            "Connection: keep-alive,upgrade\r\n"
-            "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n"
-            "\r\n"
-        );
-        // wrong Sec-WebSocket-Version
-        check(error::handshake_failed,
-            "GET / HTTP/1.1\r\n"
-            "Host: localhost:80\r\n"
-            "Upgrade: WebSocket\r\n"
-            "Connection: keep-alive,upgrade\r\n"
-            "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n"
-            "Sec-WebSocket-Version: 1\r\n"
-            "\r\n"
-        );
-        // missing upgrade token
-        check(error::handshake_failed,
-            "GET / HTTP/1.1\r\n"
-            "Host: localhost:80\r\n"
-            "Upgrade: HTTP/2\r\n"
-            "Connection: upgrade\r\n"
-            "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n"
-            "Sec-WebSocket-Version: 13\r\n"
-            "\r\n"
-        );
-        // missing connection token
-        check(error::handshake_failed,
-            "GET / HTTP/1.1\r\n"
-            "Host: localhost:80\r\n"
-            "Upgrade: WebSocket\r\n"
-            "Connection: keep-alive\r\n"
-            "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n"
-            "Sec-WebSocket-Version: 13\r\n"
-            "\r\n"
-        );
-        // valid request
-        check({},
-            "GET / HTTP/1.1\r\n"
-            "Host: localhost:80\r\n"
-            "Upgrade: WebSocket\r\n"
-            "Connection: upgrade\r\n"
-            "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n"
-            "Sec-WebSocket-Version: 13\r\n"
-            "\r\n"
-        );
-    }
-
-    void testBadResponses()
-    {
-        auto const check =
-            [&](std::string const& s)
+                ws.handshake("localhost:80", "/");
+                fail();
+            }
+            catch(system_error const& se)
             {
-                stream<test::stream> ws{ios_};
-                ws.next_layer().str(s);
-                ws.next_layer().remote().close();
-                try
-                {
-                    ws.handshake("localhost:80", "/");
-                    fail();
-                }
-                catch(system_error const& se)
-                {
-                    BEAST_EXPECT(se.code() == error::handshake_failed);
-                }
-            };
+                BEAST_EXPECT(se.code() == error::handshake_failed);
+            }
+        };
         // wrong HTTP version
         check(
             "HTTP/1.0 101 Switching Protocols\r\n"
@@ -1804,6 +1764,180 @@ public:
             "\r\n"
         );
     }
+
+    //--------------------------------------------------------------------------
+    //
+    // Ping
+    //
+    //--------------------------------------------------------------------------
+
+    template<class Wrap>
+    void
+    doTestPing(Wrap const& w)
+    {
+        auto const launch =
+        [&](test::stream stream)
+        {
+            launchEchoServer(std::move(stream));
+            //launchEchoServerAsync(std::move(stream));
+        };
+
+        permessage_deflate pmd;
+        pmd.client_enable = false;
+        pmd.server_enable = false;
+
+        // ping
+        doTest(w, pmd, launch, [&](ws_stream_type& ws)
+        {
+            w.ping(ws, {});
+        });
+
+        // pong
+        doTest(w, pmd, launch, [&](ws_stream_type& ws)
+        {
+            w.pong(ws, {});
+        });
+    }
+
+    void
+    testPing()
+    {
+        doTestPing(SyncClient{});
+
+        yield_to([&](yield_context yield)
+        {
+            doTestPing(AsyncClient{yield});
+        });
+
+        auto const launch =
+        [&](test::stream stream)
+        {
+            launchEchoServer(std::move(stream));
+            //launchEchoServerAsync(std::move(stream));
+        };
+
+        // ping, already closed
+        {
+            stream<test::stream> ws{ios_};
+            error_code ec;
+            ws.ping({}, ec);
+            BEAST_EXPECTS(
+                ec == boost::asio::error::operation_aborted,
+                ec.message());
+        }
+
+        // async_ping, already closed
+        {
+            boost::asio::io_service ios;
+            stream<test::stream> ws{ios};
+            ws.async_ping({},
+                [&](error_code ec)
+                {
+                    BEAST_EXPECTS(
+                        ec == boost::asio::error::operation_aborted,
+                        ec.message());
+                });
+            ios.run();
+        }
+
+        // pong, already closed
+        {
+            stream<test::stream> ws{ios_};
+            error_code ec;
+            ws.pong({}, ec);
+            BEAST_EXPECTS(
+                ec == boost::asio::error::operation_aborted,
+                ec.message());
+        }
+
+        // async_pong, already closed
+        {
+            boost::asio::io_service ios;
+            stream<test::stream> ws{ios};
+            ws.async_pong({},
+                [&](error_code ec)
+                {
+                    BEAST_EXPECTS(
+                        ec == boost::asio::error::operation_aborted,
+                        ec.message());
+                });
+            ios.run();
+        }
+
+        // suspend on write
+        {
+            error_code ec;
+            boost::asio::io_service ios;
+            stream<test::stream> ws{ios, ios_};
+            launch(ws.next_layer().remote());
+            ws.handshake("localhost", "/", ec);
+            BEAST_EXPECTS(! ec, ec.message());
+            std::size_t count = 0;
+            ws.async_write(sbuf("*"),
+                [&](error_code ec)
+                {
+                    ++count;
+                    BEAST_EXPECTS(! ec, ec.message());
+                });
+            BEAST_EXPECT(ws.wr_block_);
+            ws.async_ping("",
+                [&](error_code ec)
+                {
+                    ++count;
+                    BEAST_EXPECTS(
+                        ec == boost::asio::error::operation_aborted,
+                        ec.message());
+                });
+            ws.async_close({}, [&](error_code){});
+            ios.run();
+            BEAST_EXPECT(count == 2);
+        }
+    }
+
+    //--------------------------------------------------------------------------
+    //
+    // Read
+    //
+    //--------------------------------------------------------------------------
+
+    void
+    testRead()
+    {
+        // Read close frames
+        {
+            auto const check =
+            [&](error_code ev, string_view s)
+            {
+                test::stream ts{ios_};
+                stream<test::stream&> ws{ts};
+                launchEchoServerAsync(ts.remote());
+                ws.handshake("localhost", "/");
+                ts.str(s);
+                static_buffer<1> b;
+                error_code ec;
+                ws.read(b, ec);
+                BEAST_EXPECTS(ec == ev, ec.message());
+            };
+
+            // payload length 1
+            check(error::failed,
+                "\x88\x01\x01");
+
+            // invalid close code 1005
+            check(error::failed,
+                "\x88\x02\x03\xed");
+
+            // invalid utf8
+            check(error::failed,
+                "\x88\x06\xfc\x15\x0f\xd7\x73\x43");
+
+            // good utf8
+            check(error::closed,
+                "\x88\x06\xfc\x15utf8");
+        }
+    }
+
+    //--------------------------------------------------------------------------
 
     void
     testMask(endpoint_type const& ep,
@@ -2366,6 +2500,8 @@ public:
 
         testAccept();
         testClose();
+        testHandshake();
+        testPing();
         testRead();
 
         permessage_deflate pmd;
@@ -2373,10 +2509,6 @@ public:
         pmd.server_enable = false;
 
         testOptions();
-        testHandshake();
-        testBadHandshakes();
-        testBadResponses();
-        testClose();
         testPausation1();
         testWriteFrames();
         testAsyncWriteFrame();
