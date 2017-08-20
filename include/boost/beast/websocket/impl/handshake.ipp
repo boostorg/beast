@@ -17,6 +17,7 @@
 #include <boost/beast/http/write.hpp>
 #include <boost/beast/core/handler_ptr.hpp>
 #include <boost/beast/core/type_traits.hpp>
+#include <boost/asio/coroutine.hpp>
 #include <boost/asio/handler_alloc_hook.hpp>
 #include <boost/asio/handler_continuation_hook.hpp>
 #include <boost/asio/handler_invoke_hook.hpp>
@@ -35,19 +36,18 @@ namespace websocket {
 template<class NextLayer>
 template<class Handler>
 class stream<NextLayer>::handshake_op
+    : public boost::asio::coroutine
 {
     struct data
     {
-        bool cont;
         stream<NextLayer>& ws;
         response_type* res_p;
         detail::sec_ws_key_type key;
         http::request<http::empty_body> req;
         response_type res;
-        int state = 0;
 
         template<class Decorator>
-        data(Handler& handler, stream<NextLayer>& ws_,
+        data(Handler&, stream<NextLayer>& ws_,
             response_type* res_p_,
                 string_view host,
                     string_view target,
@@ -57,8 +57,6 @@ class stream<NextLayer>::handshake_op
             , req(ws.build_request(key,
                 host, target, decorator))
         {
-            using boost::asio::asio_handler_is_continuation;
-            cont = asio_handler_is_continuation(std::addressof(handler));
             ws.reset();
         }
     };
@@ -75,11 +73,10 @@ public:
         : d_(std::forward<DeducedHandler>(h),
             ws, std::forward<Args>(args)...)
     {
-        (*this)(error_code{}, false);
     }
 
     void
-    operator()(error_code ec, bool again = true);
+    operator()(error_code ec = {});
 
     friend
     void* asio_handler_allocate(
@@ -102,7 +99,9 @@ public:
     friend
     bool asio_handler_is_continuation(handshake_op* op)
     {
-        return op->d_->cont;
+        using boost::asio::asio_handler_is_continuation;
+        return asio_handler_is_continuation(
+            std::addressof(op->d_.handler()));
     }
 
     template<class Function>
@@ -119,52 +118,38 @@ template<class NextLayer>
 template<class Handler>
 void
 stream<NextLayer>::handshake_op<Handler>::
-operator()(error_code ec, bool again)
+operator()(error_code ec)
 {
     auto& d = *d_;
-    d.cont = d.cont || again;
-    while(! ec && d.state != 99)
+    BOOST_ASIO_CORO_REENTER(*this)
     {
-        switch(d.state)
-        {
-        case 0:
-        {
-            // send http upgrade
-            d.state = 1;
-            // VFALCO Do we need the ability to move
-            //        a message on the async_write?
-            //
-            pmd_read(d.ws.pmd_config_, d.req);
-            http::async_write(d.ws.stream_,
-                d.req, std::move(*this));
-            // TODO We don't need d.req now. Figure
-            // out a way to make it a parameter instead
-            // of a state variable to reduce footprint.
-            return;
-        }
+        // Send HTTP Upgrade
+        pmd_read(d.ws.pmd_config_, d.req);
+        BOOST_ASIO_CORO_YIELD
+        http::async_write(d.ws.stream_,
+            d.req, std::move(*this));
+        if(ec)
+            goto upcall;
 
-        // sent upgrade
-        case 1:
-            // read http response
-            d.state = 2;
-            http::async_read(d.ws.next_layer(),
-                d.ws.rd_.buf, d.res,
-                    std::move(*this));
-            return;
+        // VFALCO We could pre-serialize the request to
+        //        a single buffer, send that instead,
+        //        and delete the buffer here. The buffer
+        //        could be a variable block at the end
+        //        of handler_ptr's allocation.
 
-        // got response
-        case 2:
-        {
-            d.ws.on_response(d.res, d.key, ec);
-            // call handler
-            d.state = 99;
-            break;
-        }
-        }
+        // Read HTTP response
+        BOOST_ASIO_CORO_YIELD
+        http::async_read(d.ws.next_layer(),
+            d.ws.rd_.buf, d.res,
+                std::move(*this));
+        if(ec)
+            goto upcall;
+        d.ws.on_response(d.res, d.key, ec);
+        if(d.res_p)
+            swap(d.res, *d.res_p);
+    upcall:
+        d_.invoke(ec);
     }
-    if(d.res_p)
-        swap(d.res, *d.res_p);
-    d_.invoke(ec);
 }
 
 template<class NextLayer>
@@ -183,7 +168,7 @@ async_handshake(string_view host,
     handshake_op<handler_type<
         HandshakeHandler, void(error_code)>>{
             init.completion_handler, *this, nullptr, host,
-                target, &default_decorate_req};
+                target, &default_decorate_req}();
     return init.result.get();
 }
 
@@ -204,7 +189,7 @@ async_handshake(response_type& res,
     handshake_op<handler_type<
         HandshakeHandler, void(error_code)>>{
             init.completion_handler, *this, &res, host,
-                target, &default_decorate_req};
+                target, &default_decorate_req}();
     return init.result.get();
 }
 
@@ -228,7 +213,7 @@ async_handshake_ex(string_view host,
     handshake_op<handler_type<
         HandshakeHandler, void(error_code)>>{
             init.completion_handler, *this, nullptr, host,
-                target, decorator};
+                target, decorator}();
     return init.result.get();
 }
 
@@ -253,7 +238,7 @@ async_handshake_ex(response_type& res,
     handshake_op<handler_type<
         HandshakeHandler, void(error_code)>>{
             init.completion_handler, *this, &res, host,
-                target, decorator};
+                target, decorator}();
     return init.result.get();
 }
 
