@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2016-2017 Vinnie Falco (vinnie dot falco at gmail dot com)
+// Copyright (w) 2016-2017 Vinnie Falco (vinnie dot falco at gmail dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -10,14 +10,11 @@
 // Test that header file is self-contained.
 #include <boost/beast/websocket/stream.hpp>
 
-#include "websocket_sync_echo_server.hpp"
-
 #include <boost/beast/core/ostream.hpp>
 #include <boost/beast/core/multi_buffer.hpp>
 #include <boost/beast/test/stream.hpp>
 #include <boost/beast/test/yield_to.hpp>
 #include <boost/beast/unit_test/suite.hpp>
-#include <boost/optional.hpp>
 #include <memory>
 #include <mutex>
 #include <condition_variable>
@@ -36,37 +33,114 @@ public:
     using address_type = boost::asio::ip::address;
     using socket_type = boost::asio::ip::tcp::socket;
 
+    using ws_type =
+        websocket::stream<test::stream&>;
+
     //--------------------------------------------------------------------------
 
-    class asyncEchoServer
-        : public std::enable_shared_from_this<asyncEchoServer>
+    class echo_server
     {
         std::ostream& log_;
-        websocket::stream<test::stream> ws_;
-        boost::asio::io_service::strand strand_;
+        boost::asio::io_service ios_;
         static_buffer<2001> buffer_;
+        test::stream ts_;
+        std::thread t_;
+        websocket::stream<test::stream&> ws_;
 
     public:
-        asyncEchoServer(
+        explicit
+        echo_server(
             std::ostream& log,
-            test::stream stream)
+            bool async = false)
             : log_(log)
-            , ws_(std::move(stream))
-            , strand_(ws_.get_io_service())
+            , ts_(ios_)
+            , ws_(ts_)
+        {
+            if(async)
+            {
+                do_async();
+            }
+            else
+            {
+                t_ = std::thread{std::bind(
+                    &echo_server::do_sync,
+                        this, std::ref(ts_))};
+            }
+        }
+
+        ~echo_server()
+        {
+            t_.join();
+        }
+
+        test::stream&
+        stream()
+        {
+            return ts_;
+        }
+
+        void
+        async_close()
+        {
+            ios_.post(
+            [&]
+            {
+                ws_.async_close({},
+                    std::bind(
+                        &echo_server::on_close,
+                        this,
+                        std::placeholders::_1));
+            });
+        }
+
+    private:
+        void
+        do_sync(test::stream& stream)
+        {
+            try
+            {
+                websocket::stream<test::stream&> ws{stream};
+                permessage_deflate pmd;
+                pmd.client_enable = true;
+                pmd.server_enable = true;
+                ws.set_option(pmd);
+                ws.accept();
+                for(;;)
+                {
+                    static_buffer<2001> buffer;
+                    ws.read(buffer);
+                    ws.text(ws.got_text());
+                    ws.write(buffer.data());
+                }
+            }
+            catch(system_error const& se)
+            {
+                if( se.code() != error::closed &&
+                    se.code() != error::failed &&
+                    se.code() != boost::asio::error::eof)
+                    log_ << "echo_server: " << se.code().message() << std::endl;
+            }
+            catch(std::exception const& e)
+            {
+                log_ << "echo_server: " << e.what() << std::endl;
+            }
+        }
+
+        void
+        do_async()
         {
             permessage_deflate pmd;
             pmd.client_enable = true;
             pmd.server_enable = true;
             ws_.set_option(pmd);
-        }
-
-        void
-        run()
-        {
-            ws_.async_accept(strand_.wrap(std::bind(
-                &asyncEchoServer::on_accept,
-                shared_from_this(),
-                std::placeholders::_1)));
+            ws_.async_accept(std::bind(
+                &echo_server::on_accept,
+                this,
+                std::placeholders::_1));
+            t_ = std::thread{[&]
+            {
+                ios_.run();
+            }};
         }
 
         void
@@ -81,11 +155,10 @@ public:
         do_read()
         {
             ws_.async_read(buffer_,
-                strand_.wrap(std::bind(
-                    &asyncEchoServer::on_read,
-                    shared_from_this(),
-                    std::placeholders::_1)));
-
+                std::bind(
+                    &echo_server::on_read,
+                    this,
+                    std::placeholders::_1));
         }
 
         void
@@ -95,10 +168,10 @@ public:
                 return fail(ec);
             ws_.text(ws_.got_text());
             ws_.async_write(buffer_.data(),
-                strand_.wrap(std::bind(
-                    &asyncEchoServer::on_write,
-                    this->shared_from_this(),
-                    std::placeholders::_1)));
+                std::bind(
+                    &echo_server::on_write,
+                    this,
+                    std::placeholders::_1));
         }
 
         void
@@ -111,70 +184,26 @@ public:
         }
 
         void
+        on_close(error_code ec)
+        {
+            if(ec)
+                return fail(ec);
+        }
+
+        void
         fail(error_code ec)
         {
             if( ec != error::closed &&
                 ec != error::failed &&
                 ec != boost::asio::error::eof)
                 log_ <<
-                    "asyncEchoServer: " <<
+                    "echo_server: " <<
                     ec.message() <<
                     std::endl;
         }
     };
 
-    void
-    echoServer(test::stream& stream)
-    {
-        try
-        {
-            websocket::stream<test::stream&> ws{stream};
-            permessage_deflate pmd;
-            pmd.client_enable = true;
-            pmd.server_enable = true;
-            ws.set_option(pmd);
-            ws.accept();
-            for(;;)
-            {
-                static_buffer<2001> buffer;
-                ws.read(buffer);
-                ws.text(ws.got_text());
-                ws.write(buffer.data());
-            }
-        }
-        catch(system_error const& se)
-        {
-            if( se.code() != error::closed &&
-                se.code() != error::failed &&
-                se.code() != boost::asio::error::eof)
-                log << "echoServer: " << se.code().message() << std::endl;
-        }
-        catch(std::exception const& e)
-        {
-            log << "echoServer: " << e.what() << std::endl;
-        }
-    }
-
-    void
-    launchEchoServer(test::stream stream)
-    {
-        std::thread{std::bind(
-            &stream_test::echoServer,
-            this,
-            std::move(stream))}.detach();
-    }
-
-    void
-    launchEchoServerAsync(test::stream stream)
-    {
-        std::make_shared<asyncEchoServer>(
-            log, std::move(stream))->run();
-    }
-
     //--------------------------------------------------------------------------
-
-    using ws_stream_type =
-        websocket::stream<test::stream&>;
 
     template<class Test>
     void
@@ -183,74 +212,98 @@ public:
         // This number has to be high for the
         // test that writes the large buffer.
         static std::size_t constexpr limit = 1000;
-        std::size_t n;
-        for(n = 0; n <= limit; ++n)
-        {
-            test::fail_counter fc{n};
-            test::stream ts{ios_, fc};
-            try
-            {
-                f(ts);
 
-                // Made it through
-                ts.close();
-                break;
-            }
-            catch(system_error const& se)
+        for(int i = 0; i < 2; ++i)
+        {
+            std::size_t n;
+            for(n = 0; n <= limit; ++n)
             {
-                BEAST_EXPECTS(
-                    se.code() == test::error::fail_error,
-                    se.code().message());
+                test::fail_counter fc{n};
+                test::stream ts{ios_, fc};
+                try
+                {
+                    f(ts);
+                    ts.close();
+                    break;
+                }
+                catch(system_error const& se)
+                {
+                    BEAST_EXPECTS(
+                        se.code() == test::error::fail_error,
+                        se.code().message());
+                }
+                catch(std::exception const& e)
+                {
+                    fail(e.what(), __FILE__, __LINE__);
+                }
                 ts.close();
+                continue;
             }
-            catch(std::exception const& e)
-            {
-                fail(e.what(), __FILE__, __LINE__);
-                ts.close();
-            }
-            continue;
+            BEAST_EXPECT(n < limit);
         }
-        BEAST_EXPECT(n < limit);
     }
-    
-    template<class Wrap, class Launch, class Test>
+
+    template<class Test>
     void
     doTest(
-        Wrap const& w,
         permessage_deflate const& pmd,
-        Launch const& launch,
         Test const& f)
     {
-        doTestLoop(
-        [&](test::stream& ts)
+        // This number has to be high for the
+        // test that writes the large buffer.
+        static std::size_t constexpr limit = 1000;
+
+        for(int i = 0; i < 2; ++i)
         {
-            ws_stream_type ws{ts};
-            ws.set_option(pmd);
-            launch(ts.remote());
-            w.handshake(ws, "localhost", "/");
-            f(ws);
-        });
-#if 0
-        // Lowering the read_size takes a disproportionate
-        // amount of time for the gains in coverage .
-        doTestLoop(
-        [&](test::stream& ts)
-        {
-            ws_stream_type ws{ts};
-            ts.read_size(45);
-            ws.set_option(pmd);
-            launch(ts.remote());
-            w.handshake(ws, "localhost", "/");
-            f(ws);
-        });
-#endif
+            std::size_t n;
+            for(n = 0; n <= limit; ++n)
+            {
+                test::fail_counter fc{n};
+                test::stream ts{ios_, fc};
+                ws_type ws{ts};
+                ws.set_option(pmd);
+
+                echo_server es{log, i == 1};;
+                error_code ec;
+                ws.next_layer().connect(es.stream());
+                ws.handshake("localhost", "/", ec);
+                if(ec)
+                {
+                    ts.close();
+                    if( ! BEAST_EXPECTS(
+                            ec == test::error::fail_error,
+                            ec.message()))
+                        BOOST_THROW_EXCEPTION(system_error{ec});
+                    continue;
+                }
+                try
+                {
+                    f(ws);
+                    ts.close();
+                    break;
+                }
+                catch(system_error const& se)
+                {
+                    BEAST_EXPECTS(
+                        se.code() == test::error::fail_error,
+                        se.code().message());
+                }
+                catch(std::exception const& e)
+                {
+                    fail(e.what(), __FILE__, __LINE__);
+                }
+                ts.close();
+                continue;
+            }
+            BEAST_EXPECT(n < limit);
+        }
     }
 
     template<class Wrap>
     void
     doCloseTest(
         Wrap const& w,
-        ws_stream_type& ws,
+        ws_type& ws,
         close_code code)
     {
         try
@@ -272,7 +325,7 @@ public:
     void
     doFailTest(
         Wrap const& w,
-        ws_stream_type& ws,
+        ws_type& ws,
         error_code ev)
     {
         try
@@ -866,9 +919,9 @@ public:
     //
     //--------------------------------------------------------------------------
 
-    template<class Client>
+    template<class Wrap>
     void
-    doTestAccept(Client const& c)
+    doTestAccept(Wrap const& w)
     {
         class res_decorator
         {
@@ -901,7 +954,8 @@ public:
         doTestLoop([&](test::stream& ts)
         {
             stream<test::stream&> ws{ts};
-            ts.str(
+            auto tr = connect(ws.next_layer());
+            ts.append(
                 "GET / HTTP/1.1\r\n"
                 "Host: localhost\r\n"
                 "Upgrade: websocket\r\n"
@@ -910,7 +964,7 @@ public:
                 "Sec-WebSocket-Version: 13\r\n"
                 "\r\n");
             ts.read_size(20);
-            c.accept(ws);
+            w.accept(ws);
             // VFALCO validate contents of ws.next_layer().str?
         });
 
@@ -925,10 +979,11 @@ public:
                 "Sec-WebSocket-Version: 13\r\n"
                 + big +
                 "\r\n"};
+            auto tr = connect(ws.next_layer());
             error_code ec = test::error::fail_error;
             try
             {
-                c.accept(ws);
+                w.accept(ws);
                 fail("", __FILE__, __LINE__);
             }
             catch(system_error const& se)
@@ -944,7 +999,8 @@ public:
         doTestLoop([&](test::stream& ts)
         {
             stream<test::stream&> ws{ts};
-            ts.str(
+            auto tr = connect(ws.next_layer());
+            ts.append(
                 "GET / HTTP/1.1\r\n"
                 "Host: localhost\r\n"
                 "Upgrade: websocket\r\n"
@@ -954,7 +1010,7 @@ public:
                 "\r\n");
             ts.read_size(20);
             bool called = false;
-            c.accept_ex(ws, res_decorator{called});
+            w.accept_ex(ws, res_decorator{called});
             BEAST_EXPECT(called);
         });
 
@@ -969,10 +1025,11 @@ public:
                 "Sec-WebSocket-Version: 13\r\n"
                 + big +
                 "\r\n"};
+            auto tr = connect(ws.next_layer());
             try
             {
                 bool called = false;
-                c.accept_ex(ws, res_decorator{called});
+                w.accept_ex(ws, res_decorator{called});
                 fail("", __FILE__, __LINE__);
             }
             catch(system_error const& se)
@@ -988,7 +1045,8 @@ public:
         doTestLoop([&](test::stream& ts)
         {
             stream<test::stream&> ws{ts};
-            c.accept(ws, sbuf(
+            auto tr = connect(ws.next_layer());
+            w.accept(ws, sbuf(
                 "GET / HTTP/1.1\r\n"
                 "Host: localhost\r\n"
                 "Upgrade: websocket\r\n"
@@ -1002,9 +1060,10 @@ public:
         // request in buffers, oversize
         {
             stream<test::stream> ws{ios_};
+            auto tr = connect(ws.next_layer());
             try
             {
-                c.accept(ws, boost::asio::buffer(
+                w.accept(ws, boost::asio::buffer(
                     "GET / HTTP/1.1\r\n"
                     "Host: localhost\r\n"
                     "Upgrade: websocket\r\n"
@@ -1028,8 +1087,9 @@ public:
         doTestLoop([&](test::stream& ts)
         {
             stream<test::stream&> ws{ts};
+            auto tr = connect(ws.next_layer());
             bool called = false;
-            c.accept_ex(ws, sbuf(
+            w.accept_ex(ws, sbuf(
                 "GET / HTTP/1.1\r\n"
                 "Host: localhost\r\n"
                 "Upgrade: websocket\r\n"
@@ -1044,10 +1104,11 @@ public:
         // request in buffers, decorator, oversized
         {
             stream<test::stream> ws{ios_};
+            auto tr = connect(ws.next_layer());
             try
             {
                 bool called = false;
-                c.accept_ex(ws, boost::asio::buffer(
+                w.accept_ex(ws, boost::asio::buffer(
                     "GET / HTTP/1.1\r\n"
                     "Host: localhost\r\n"
                     "Upgrade: websocket\r\n"
@@ -1071,13 +1132,14 @@ public:
         doTestLoop([&](test::stream& ts)
         {
             stream<test::stream&> ws{ts};
-            ts.str(
+            auto tr = connect(ws.next_layer());
+            ts.append(
                 "Connection: upgrade\r\n"
                 "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n"
                 "Sec-WebSocket-Version: 13\r\n"
                 "\r\n");
             ts.read_size(16);
-            c.accept(ws, sbuf(
+            w.accept(ws, sbuf(
                 "GET / HTTP/1.1\r\n"
                 "Host: localhost\r\n"
                 "Upgrade: websocket\r\n"
@@ -1093,9 +1155,10 @@ public:
                 "Sec-WebSocket-Version: 13\r\n"
                 + big +
                 "\r\n"};
+            auto tr = connect(ws.next_layer());
             try
             {
-                c.accept(ws, sbuf(
+                w.accept(ws, sbuf(
                     "GET / HTTP/1.1\r\n"
                     "Host: localhost\r\n"
                     "Upgrade: websocket\r\n"
@@ -1114,14 +1177,15 @@ public:
         doTestLoop([&](test::stream& ts)
         {
             stream<test::stream&> ws{ts};
-            ts.str(
+            auto tr = connect(ws.next_layer());
+            ts.append(
                 "Connection: upgrade\r\n"
                 "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n"
                 "Sec-WebSocket-Version: 13\r\n"
                 "\r\n");
             ts.read_size(16);
             bool called = false;
-            c.accept_ex(ws, sbuf(
+            w.accept_ex(ws, sbuf(
                 "GET / HTTP/1.1\r\n"
                 "Host: localhost\r\n"
                 "Upgrade: websocket\r\n"),
@@ -1137,10 +1201,11 @@ public:
                 "Sec-WebSocket-Version: 13\r\n"
                 + big +
                 "\r\n"};
+            auto tr = connect(ws.next_layer());
             try
             {
                 bool called = false;
-                c.accept_ex(ws, sbuf(
+                w.accept_ex(ws, sbuf(
                     "GET / HTTP/1.1\r\n"
                     "Host: localhost\r\n"
                     "Upgrade: websocket\r\n"),
@@ -1159,6 +1224,7 @@ public:
         doTestLoop([&](test::stream& ts)
         {
             stream<test::stream&> ws{ts};
+            auto tr = connect(ws.next_layer());
             request_type req;
             req.method(http::verb::get);
             req.target("/");
@@ -1168,13 +1234,14 @@ public:
             req.insert(http::field::connection, "upgrade");
             req.insert(http::field::sec_websocket_key, "dGhlIHNhbXBsZSBub25jZQ==");
             req.insert(http::field::sec_websocket_version, "13");
-            c.accept(ws, req);
+            w.accept(ws, req);
         });
 
         // request in message, decorator
         doTestLoop([&](test::stream& ts)
         {
             stream<test::stream&> ws{ts};
+            auto tr = connect(ws.next_layer());
             request_type req;
             req.method(http::verb::get);
             req.target("/");
@@ -1185,7 +1252,7 @@ public:
             req.insert(http::field::sec_websocket_key, "dGhlIHNhbXBsZSBub25jZQ==");
             req.insert(http::field::sec_websocket_version, "13");
             bool called = false;
-            c.accept_ex(ws, req,
+            w.accept_ex(ws, req,
                 res_decorator{called});
             BEAST_EXPECT(called);
         });
@@ -1194,6 +1261,7 @@ public:
         doTestLoop([&](test::stream& ts)
         {
             stream<test::stream&> ws{ts};
+            auto tr = connect(ws.next_layer());
             request_type req;
             req.method(http::verb::get);
             req.target("/");
@@ -1203,12 +1271,12 @@ public:
             req.insert(http::field::connection, "upgrade");
             req.insert(http::field::sec_websocket_key, "dGhlIHNhbXBsZSBub25jZQ==");
             req.insert(http::field::sec_websocket_version, "13");
-            ts.str("\x88\x82\xff\xff\xff\xff\xfc\x17");
-            c.accept(ws, req);
+            ts.append("\x88\x82\xff\xff\xff\xff\xfc\x17");
+            w.accept(ws, req);
             try
             {
                 static_buffer<1> b;
-                c.read(ws, b);
+                w.read(ws, b);
                 fail("success", __FILE__, __LINE__);
             }
             catch(system_error const& e)
@@ -1222,7 +1290,8 @@ public:
         doTestLoop([&](test::stream& ts)
         {
             stream<test::stream&> ws{ts};
-            ts.str(
+            auto tr = connect(ws.next_layer());
+            ts.append(
                 "GET / HTTP/1.1\r\n"
                 "Host: localhost\r\n"
                 "Upgrade: websocket\r\n"
@@ -1232,7 +1301,7 @@ public:
             ts.read_size(20);
             try
             {
-                c.accept(ws);
+                w.accept(ws);
                 fail("success", __FILE__, __LINE__);
             }
             catch(system_error const& e)
@@ -1248,10 +1317,11 @@ public:
         // Closed by client
         {
             stream<test::stream> ws{ios_};
-            ws.next_layer().remote().close();
+            auto tr = connect(ws.next_layer());
+            tr.close();
             try
             {
-                c.accept(ws);
+                w.accept(ws);
                 fail("success", __FILE__, __LINE__);
             }
             catch(system_error const& e)
@@ -1298,7 +1368,8 @@ public:
                     break;
                 }
                 stream<test::stream> ws{ios_};
-                ws.next_layer().str(
+                auto tr = connect(ws.next_layer());
+                ws.next_layer().append(
                     s.substr(n, s.size() - n));
                 try
                 {
@@ -1416,23 +1487,17 @@ public:
         pmd.client_enable = false;
         pmd.server_enable = false;
 
-        auto const launch =
-        [&](test::stream stream)
-        {
-            launchEchoServerAsync(std::move(stream));
-        };
-
         // normal close
-        doTest(w, pmd, launch,
-        [&](ws_stream_type& ws)
+        doTest(pmd, [&](ws_type& ws)
         {
             w.close(ws, {});
         });
 
         // double close
         {
+            echo_server es{log};
             stream<test::stream> ws{ios_};
-            launch(ws.next_layer().remote());
+            ws.next_layer().connect(es.stream());
             w.handshake(ws, "localhost", "/");
             w.close(ws, {});
             try
@@ -1449,10 +1514,9 @@ public:
         }
 
         // drain a message after close
-        doTest(w, pmd, launch,
-        [&](ws_stream_type& ws)
+        doTest(pmd, [&](ws_type& ws)
         {
-            ws.next_layer().str("\x81\x01\x2a");
+            ws.next_layer().append("\x81\x01\x2a");
             w.close(ws, {});
         });
 
@@ -1461,28 +1525,27 @@ public:
             std::string s;
             s = "\x81\x7e\x10\x01";
             s.append(4097, '*');
-            doTest(w, pmd, launch,
-            [&](ws_stream_type& ws)
+            doTest(pmd, [&](ws_type& ws)
             {
-                ws.next_layer().str(s);
+                ws.next_layer().append(s);
                 w.close(ws, {});
             });
         }
 
         // drain a ping after close
-        doTest(w, pmd, launch,
-        [&](ws_stream_type& ws)
+        doTest(pmd, [&](ws_type& ws)
         {
-            ws.next_layer().str("\x89\x01*");
+            ws.next_layer().append("\x89\x01*");
             w.close(ws, {});
         });
 
         // drain invalid message frame after close
         {
+            echo_server es{log};
             stream<test::stream> ws{ios_};
-            launch(ws.next_layer().remote());
+            ws.next_layer().connect(es.stream());
             w.handshake(ws, "localhost", "/");
-            ws.next_layer().str("\x81\x81\xff\xff\xff\xff*");
+            ws.next_layer().append("\x81\x81\xff\xff\xff\xff*");
             try
             {
                 w.close(ws, {});
@@ -1498,10 +1561,11 @@ public:
 
         // drain invalid close frame after close
         {
+            echo_server es{log};
             stream<test::stream> ws{ios_};
-            launch(ws.next_layer().remote());
+            ws.next_layer().connect(es.stream());
             w.handshake(ws, "localhost", "/");
-            ws.next_layer().str("\x88\x01*");
+            ws.next_layer().append("\x88\x01*");
             try
             {
                 w.close(ws, {});
@@ -1516,10 +1580,9 @@ public:
         }
 
         // close with incomplete read message
-        doTest(w, pmd, launch,
-        [&](ws_stream_type& ws)
+        doTest(pmd, [&](ws_type& ws)
         {
-            ws.next_layer().str("\x81\x02**");
+            ws.next_layer().append("\x81\x02**");
             static_buffer<1> b;
             w.read_some(ws, 1, b);
             w.close(ws, {});
@@ -1536,19 +1599,13 @@ public:
             doTestClose(AsyncClient{yield});
         });
 
-        auto const launch =
-        [&](test::stream stream)
-        {
-            launchEchoServer(std::move(stream));
-            //launchEchoServerAsync(std::move(stream));
-        };
-
         // suspend on write
         {
+            echo_server es{log};
             error_code ec;
             boost::asio::io_service ios;
-            stream<test::stream> ws{ios, ios_};
-            launch(ws.next_layer().remote());
+            stream<test::stream> ws{ios};
+            ws.next_layer().connect(es.stream());
             ws.handshake("localhost", "/", ec);
             BEAST_EXPECTS(! ec, ec.message());
             std::size_t count = 0;
@@ -1571,10 +1628,11 @@ public:
 
         // suspend on read
         {
+            echo_server es{log};
             error_code ec;
             boost::asio::io_service ios;
-            stream<test::stream> ws{ios, ios_};
-            launch(ws.next_layer().remote());
+            stream<test::stream> ws{ios};
+            ws.next_layer().connect(es.stream());
             ws.handshake("localhost", "/", ec);
             BEAST_EXPECTS(! ec, ec.message());
             flat_buffer b;
@@ -1603,9 +1661,9 @@ public:
 
     //--------------------------------------------------------------------------
 
-    template<class Client, class Launch>
+    template<class Wrap>
     void
-    doTestHandshake(Client const& c, Launch const& launch)
+    doTestHandshake(Wrap const& w)
     {
         class req_decorator
         {
@@ -1630,70 +1688,103 @@ public:
         // handshake
         doTestLoop([&](test::stream& ts)
         {
-            ws_stream_type ws{ts};
-            launch(ts.remote());
-            c.handshake(ws, "localhost", "/");
+            echo_server es{log};
+            ws_type ws{ts};
+            ws.next_layer().connect(es.stream());
+            try
+            {
+                w.handshake(ws, "localhost", "/");
+            }
+            catch(...)
+            {
+                ts.close();
+                throw;
+            }
+            ts.close();
         });
 
         // handshake, response
         doTestLoop([&](test::stream& ts)
         {
-            ws_stream_type ws{ts};
-            launch(ts.remote());
+            echo_server es{log};
+            ws_type ws{ts};
+            ws.next_layer().connect(es.stream());
             response_type res;
-            c.handshake(ws, res, "localhost", "/");
-            // VFALCO validate res?
+            try
+            {
+                w.handshake(ws, res, "localhost", "/");
+                // VFALCO validate res?
+            }
+            catch(...)
+            {
+                ts.close();
+                throw;
+            }
+            ts.close();
         });
 
         // handshake, decorator
         doTestLoop([&](test::stream& ts)
         {
-            ws_stream_type ws{ts};
-            launch(ts.remote());
+            echo_server es{log};
+            ws_type ws{ts};
+            ws.next_layer().connect(es.stream());
             bool called = false;
-            c.handshake_ex(ws, "localhost", "/",
-                req_decorator{called});
-            BEAST_EXPECT(called);
+            try
+            {
+                w.handshake_ex(ws, "localhost", "/",
+                    req_decorator{called});
+                BEAST_EXPECT(called);
+            }
+            catch(...)
+            {
+                ts.close();
+                throw;
+            }
+            ts.close();
         });
 
         // handshake, response, decorator
         doTestLoop([&](test::stream& ts)
         {
-            ws_stream_type ws{ts};
-            launch(ts.remote());
+            echo_server es{log};
+            ws_type ws{ts};
+            ws.next_layer().connect(es.stream());
             bool called = false;
             response_type res;
-            c.handshake_ex(ws, res, "localhost", "/",
-                req_decorator{called});
-            // VFALCO validate res?
-            BEAST_EXPECT(called);
+            try
+            {
+                w.handshake_ex(ws, res, "localhost", "/",
+                    req_decorator{called});
+                // VFALCO validate res?
+                BEAST_EXPECT(called);
+            }
+            catch(...)
+            {
+                ts.close();
+                throw;
+            }
+            ts.close();
         });
     }
 
     void
     testHandshake()
     {
-        doTestHandshake(SyncClient{},
-        [&](test::stream stream)
-        {
-            launchEchoServer(std::move(stream));
-        });
+        doTestHandshake(SyncClient{});
 
         yield_to([&](yield_context yield)
         {
-            doTestHandshake(AsyncClient{yield},
-            [&](test::stream stream)
-            {
-                launchEchoServerAsync(std::move(stream));
-            });
+            doTestHandshake(AsyncClient{yield});
         });
 
         auto const check =
         [&](std::string const& s)
         {
             stream<test::stream> ws{ios_};
-            ws.next_layer().str(s);
-            ws.next_layer().remote().close();
+            auto tr = connect(ws.next_layer());
+            ws.next_layer().append(s);
+            tr.close();
             try
             {
                 ws.handshake("localhost:80", "/");
@@ -1775,25 +1866,18 @@ public:
     void
     doTestPing(Wrap const& w)
     {
-        auto const launch =
-        [&](test::stream stream)
-        {
-            launchEchoServer(std::move(stream));
-            //launchEchoServerAsync(std::move(stream));
-        };
-
         permessage_deflate pmd;
         pmd.client_enable = false;
         pmd.server_enable = false;
 
         // ping
-        doTest(w, pmd, launch, [&](ws_stream_type& ws)
+        doTest(pmd, [&](ws_type& ws)
         {
             w.ping(ws, {});
         });
 
         // pong
-        doTest(w, pmd, launch, [&](ws_stream_type& ws)
+        doTest(pmd, [&](ws_type& ws)
         {
             w.pong(ws, {});
         });
@@ -1808,13 +1892,6 @@ public:
         {
             doTestPing(AsyncClient{yield});
         });
-
-        auto const launch =
-        [&](test::stream stream)
-        {
-            launchEchoServer(std::move(stream));
-            //launchEchoServerAsync(std::move(stream));
-        };
 
         // ping, already closed
         {
@@ -1866,10 +1943,11 @@ public:
 
         // suspend on write
         {
+            echo_server es{log};
             error_code ec;
             boost::asio::io_service ios;
-            stream<test::stream> ws{ios, ios_};
-            launch(ws.next_layer().remote());
+            stream<test::stream> ws{ios};
+            ws.next_layer().connect(es.stream());
             ws.handshake("localhost", "/", ec);
             BEAST_EXPECTS(! ec, ec.message());
             std::size_t count = 0;
@@ -1908,15 +1986,16 @@ public:
             auto const check =
             [&](error_code ev, string_view s)
             {
-                test::stream ts{ios_};
-                stream<test::stream&> ws{ts};
-                launchEchoServerAsync(ts.remote());
+                echo_server es{log};
+                stream<test::stream> ws{ios_};
+                ws.next_layer().connect(es.stream());
                 ws.handshake("localhost", "/");
-                ts.str(s);
+                ws.next_layer().append(s);
                 static_buffer<1> b;
                 error_code ec;
                 ws.read(b, ec);
                 BEAST_EXPECTS(ec == ev, ec.message());
+                ws.next_layer().close();
             };
 
             // payload length 1
@@ -1998,14 +2077,12 @@ public:
     void
     testPausation1()
     {
-        for(int i = 0; i < 2; ++i)
+        for(int i = 0; i < 2; ++i )
         {
+            echo_server es{log, i==1};
             boost::asio::io_service ios;
-            stream<test::stream> ws{ios, ios_};
-            if(i == 0)
-                launchEchoServer(ws.next_layer().remote());
-            else
-                launchEchoServerAsync(ws.next_layer().remote());
+            stream<test::stream> ws{ios};
+            ws.next_layer().connect(es.stream());
             ws.handshake("localhost", "/");
 
             // Make remote send a text message with bad utf8.
@@ -2064,16 +2141,17 @@ public:
     }
 
     void
-    testPausation2(endpoint_type const& ep)
+    testPausation2()
     {
+        echo_server es{log, true};
         boost::asio::io_service ios;
-        stream<socket_type> ws(ios);
-        ws.next_layer().connect(ep);
+        stream<test::stream> ws{ios};
+        ws.next_layer().connect(es.stream());
         ws.handshake("localhost", "/");
 
         // Cause close to be received
-        ws.binary(true);
-        ws.write(sbuf("CLOSE"));
+        es.async_close();
+            
         multi_buffer b;
         std::size_t count = 0;
         // Read a close frame.
@@ -2130,16 +2208,17 @@ public:
     }
 
     void
-    testPausation3(endpoint_type const& ep)
+    testPausation3()
     {
+        echo_server es{log, true};
         boost::asio::io_service ios;
-        stream<socket_type> ws(ios);
-        ws.next_layer().connect(ep);
+        stream<test::stream> ws{ios};
+        ws.next_layer().connect(es.stream());
         ws.handshake("localhost", "/");
 
         // Cause close to be received
-        ws.binary(true);
-        ws.write(sbuf("CLOSE"));
+        es.async_close();
+
         multi_buffer b;
         std::size_t count = 0;
         ws.async_read(b,
@@ -2180,14 +2259,14 @@ public:
     void
     testWriteFrames()
     {
-        for(int i = 0; i < 2; ++i)
+        for(int i = 0; i < 2; ++i )
         {
+            echo_server es{log, i==1};
+            boost::asio::io_service ios;
+            stream<test::stream> ws{ios};
+            ws.next_layer().connect(es.stream());
+
             error_code ec;
-            stream<test::stream> ws{ios_};
-            if(i == 0)
-                launchEchoServer(ws.next_layer().remote());
-            else
-                launchEchoServerAsync(ws.next_layer().remote());
             ws.handshake("localhost", "/", ec);
             if(! BEAST_EXPECTS(! ec, ec.message()))
                 return;
@@ -2206,13 +2285,12 @@ public:
         {
             for(;;)
             {
-                error_code ec;
+                echo_server es{log, i==1};
                 boost::asio::io_service ios;
-                stream<test::stream> ws{ios, ios_};
-                if(i == 0)
-                    launchEchoServer(ws.next_layer().remote());
-                else
-                    launchEchoServerAsync(ws.next_layer().remote());
+                stream<test::stream> ws{ios};
+                ws.next_layer().connect(es.stream());
+
+                error_code ec;
                 ws.handshake("localhost", "/", ec);
                 if(! BEAST_EXPECTS(! ec, ec.message()))
                     break;
@@ -2235,45 +2313,43 @@ public:
 
     //--------------------------------------------------------------------------
 
-    template<class Wrap, class Launch>
+    template<class Wrap>
     void
-    testStream(
-        Wrap const& c,
-        permessage_deflate const& pmd,
-        Launch const& launch)
+    testStream(Wrap const& w,
+        permessage_deflate const& pmd)
     {
         using boost::asio::buffer;
 
         // send empty message
-        doTest(c, pmd, launch, [&](ws_stream_type& ws)
+        doTest(pmd, [&](ws_type& ws)
         {
             ws.text(true);
-            c.write(ws, boost::asio::null_buffers{});
+            w.write(ws, boost::asio::null_buffers{});
             multi_buffer b;
-            c.read(ws, b);
+            w.read(ws, b);
             BEAST_EXPECT(ws.got_text());
             BEAST_EXPECT(b.size() == 0);
         });
 
         // send message
-        doTest(c, pmd, launch, [&](ws_stream_type& ws)
+        doTest(pmd, [&](ws_type& ws)
         {
             ws.auto_fragment(false);
             ws.binary(false);
-            c.write(ws, sbuf("Hello"));
+            w.write(ws, sbuf("Hello"));
             multi_buffer b;
-            c.read(ws, b);
+            w.read(ws, b);
             BEAST_EXPECT(ws.got_text());
             BEAST_EXPECT(to_string(b.data()) == "Hello");
         });
 
         // read_some
-        doTest(c, pmd, launch, [&](ws_stream_type& ws)
+        doTest(pmd, [&](ws_type& ws)
         {
-            c.write(ws, sbuf("Hello"));
+            w.write(ws, sbuf("Hello"));
             char buf[10];
             auto const bytes_written =
-                c.read_some(ws, buffer(buf, sizeof(buf)));
+                w.read_some(ws, buffer(buf, sizeof(buf)));
             BEAST_EXPECT(bytes_written > 0);
             buf[bytes_written] = 0;
             BEAST_EXPECT(
@@ -2282,19 +2358,19 @@ public:
         });
 
         // close, no payload
-        doTest(c, pmd, launch, [&](ws_stream_type& ws)
+        doTest(pmd, [&](ws_type& ws)
         {
-            c.close(ws, {});
+            w.close(ws, {});
         });
 
         // close with code
-        doTest(c, pmd, launch, [&](ws_stream_type& ws)
+        doTest(pmd, [&](ws_type& ws)
         {
-            c.close(ws, close_code::going_away);
+            w.close(ws, close_code::going_away);
         });
 
         // send ping and message
-        doTest(c, pmd, launch, [&](ws_stream_type& ws)
+        doTest(pmd, [&](ws_type& ws)
         {
             bool once = false;
             auto cb =
@@ -2306,18 +2382,18 @@ public:
                     BEAST_EXPECT(s == "");
                 };
             ws.control_callback(cb);
-            c.ping(ws, "");
+            w.ping(ws, "");
             ws.binary(true);
-            c.write(ws, sbuf("Hello"));
+            w.write(ws, sbuf("Hello"));
             multi_buffer b;
-            c.read(ws, b);
+            w.read(ws, b);
             BEAST_EXPECT(once);
             BEAST_EXPECT(ws.got_binary());
             BEAST_EXPECT(to_string(b.data()) == "Hello");
         });
 
         // send ping and fragmented message
-        doTest(c, pmd, launch, [&](ws_stream_type& ws)
+        doTest(pmd, [&](ws_type& ws)
         {
             bool once = false;
             auto cb =
@@ -2330,95 +2406,95 @@ public:
                 };
             ws.control_callback(cb);
             ws.ping("payload");
-            c.write_some(ws, false, sbuf("Hello, "));
-            c.write_some(ws, false, sbuf(""));
-            c.write_some(ws, true, sbuf("World!"));
+            w.write_some(ws, false, sbuf("Hello, "));
+            w.write_some(ws, false, sbuf(""));
+            w.write_some(ws, true, sbuf("World!"));
             multi_buffer b;
-            c.read(ws, b);
+            w.read(ws, b);
             BEAST_EXPECT(once);
             BEAST_EXPECT(to_string(b.data()) == "Hello, World!");
             ws.control_callback();
         });
 
         // send pong
-        doTest(c, pmd, launch, [&](ws_stream_type& ws)
+        doTest(pmd, [&](ws_type& ws)
         {
-            c.pong(ws, "");
+            w.pong(ws, "");
         });
 
         // send auto fragmented message
-        doTest(c, pmd, launch, [&](ws_stream_type& ws)
+        doTest(pmd, [&](ws_type& ws)
         {
             ws.auto_fragment(true);
             ws.write_buffer_size(8);
-            c.write(ws, sbuf("Now is the time for all good men"));
+            w.write(ws, sbuf("Now is the time for all good men"));
             multi_buffer b;
-            c.read(ws, b);
+            w.read(ws, b);
             BEAST_EXPECT(to_string(b.data()) == "Now is the time for all good men");
         });
 
         // send message with write buffer limit
-        doTest(c, pmd, launch, [&](ws_stream_type& ws)
+        doTest(pmd, [&](ws_type& ws)
         {
             std::string s(2000, '*');
             ws.write_buffer_size(1200);
-            c.write(ws, buffer(s.data(), s.size()));
+            w.write(ws, buffer(s.data(), s.size()));
             multi_buffer b;
-            c.read(ws, b);
+            w.read(ws, b);
             BEAST_EXPECT(to_string(b.data()) == s);
         });
 
         // unexpected cont
-        doTest(c, pmd, launch, [&](ws_stream_type& ws)
+        doTest(pmd, [&](ws_type& ws)
         {
-            c.write_raw(ws, cbuf(
+            w.write_raw(ws, cbuf(
                 0x80, 0x80, 0xff, 0xff, 0xff, 0xff));
-            doCloseTest(c, ws, close_code::protocol_error);
+            doCloseTest(w, ws, close_code::protocol_error);
         });
 
         // invalid fixed frame header
-        doTest(c, pmd, launch, [&](ws_stream_type& ws)
+        doTest(pmd, [&](ws_type& ws)
         {
-            c.write_raw(ws, cbuf(
+            w.write_raw(ws, cbuf(
                 0x8f, 0x80, 0xff, 0xff, 0xff, 0xff));
-            doCloseTest(c, ws, close_code::protocol_error);
+            doCloseTest(w, ws, close_code::protocol_error);
         });
 
         if(! pmd.client_enable)
         {
             // expected cont
-            doTest(c, pmd, launch, [&](ws_stream_type& ws)
+            doTest(pmd, [&](ws_type& ws)
             {
-                c.write_some(ws, false, boost::asio::null_buffers{});
-                c.write_raw(ws, cbuf(
+                w.write_some(ws, false, boost::asio::null_buffers{});
+                w.write_raw(ws, cbuf(
                     0x81, 0x80, 0xff, 0xff, 0xff, 0xff));
-                doCloseTest(c, ws, close_code::protocol_error);
+                doCloseTest(w, ws, close_code::protocol_error);
             });
 
             // message size above 2^64
-            doTest(c, pmd, launch, [&](ws_stream_type& ws)
+            doTest(pmd, [&](ws_type& ws)
             {
-                c.write_some(ws, false, cbuf(0x00));
-                c.write_raw(ws, cbuf(
+                w.write_some(ws, false, cbuf(0x00));
+                w.write_raw(ws, cbuf(
                     0x80, 0xff, 0xff, 0xff, 0xff, 0xff,
                     0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff));
-                doCloseTest(c, ws, close_code::too_big);
+                doCloseTest(w, ws, close_code::too_big);
             });
 
             /*
             // message size exceeds max
-            doTest(c, pmd, launch, [&](ws_stream_type& ws)
+            doTest(pmd, [&](ws_type& ws)
             {
                 // VFALCO This was never implemented correctly
                 ws.read_message_max(1);
-                c.write(ws, cbuf(0x81, 0x02, '*', '*'));
-                doCloseTest(c, ws, close_code::too_big);
+                w.write(ws, cbuf(0x81, 0x02, '*', '*'));
+                doCloseTest(w, ws, close_code::too_big);
             });
             */
         }
 
         // receive ping
-        doTest(c, pmd, launch, [&](ws_stream_type& ws)
+        doTest(pmd, [&](ws_type& ws)
         {
             put(ws.next_layer().buffer(), cbuf(
                 0x89, 0x00));
@@ -2430,16 +2506,16 @@ public:
                 invoked = true;
             };
             ws.control_callback(cb);
-            c.write(ws, sbuf("Hello"));
+            w.write(ws, sbuf("Hello"));
             multi_buffer b;
-            c.read(ws, b);
+            w.read(ws, b);
             BEAST_EXPECT(invoked);
             BEAST_EXPECT(ws.got_text());
             BEAST_EXPECT(to_string(b.data()) == "Hello");
         });
 
         // receive ping
-        doTest(c, pmd, launch, [&](ws_stream_type& ws)
+        doTest(pmd, [&](ws_type& ws)
         {
             put(ws.next_layer().buffer(), cbuf(
                 0x88, 0x00));
@@ -2451,24 +2527,24 @@ public:
                 invoked = true;
             };
             ws.control_callback(cb);
-            c.write(ws, sbuf("Hello"));
-            doCloseTest(c, ws, close_code::none);
+            w.write(ws, sbuf("Hello"));
+            doCloseTest(w, ws, close_code::none);
         });
 
         // receive bad utf8
-        doTest(c, pmd, launch, [&](ws_stream_type& ws)
+        doTest(pmd, [&](ws_type& ws)
         {
             put(ws.next_layer().buffer(), cbuf(
                 0x81, 0x06, 0x03, 0xea, 0xf0, 0x28, 0x8c, 0xbc));
-            doFailTest(c, ws, error::failed);
+            doFailTest(w, ws, error::failed);
         });
 
         // receive bad close
-        doTest(c, pmd, launch, [&](ws_stream_type& ws)
+        doTest(pmd, [&](ws_type& ws)
         {
             put(ws.next_layer().buffer(), cbuf(
                 0x88, 0x02, 0x03, 0xed));
-            doFailTest(c, ws, error::failed);
+            doFailTest(w, ws, error::failed);
         });
     }
 
@@ -2510,58 +2586,20 @@ public:
 
         testOptions();
         testPausation1();
+        testPausation2();
+        testPausation3();
         testWriteFrames();
         testAsyncWriteFrame();
-
-        // Legacy tests use actual TCP/IP sockets
-        // VFALCO: Rewrite to use test::stream and
-        //         remote <boost/asio/ip/tcp.hpp>
-        {
-            auto const any = endpoint_type{
-                address_type::from_string("127.0.0.1"), 0};
-            error_code ec;
-            ::websocket::sync_echo_server server{nullptr};
-            server.set_option(pmd);
-            server.open(any, ec);
-            BEAST_EXPECTS(! ec, ec.message());
-            auto const ep = server.local_endpoint();
-            testPausation2(ep);
-            testPausation3(ep);
-        }
 
         auto const doClientTests =
             [this](permessage_deflate const& pmd)
             {
-                testStream(SyncClient{}, pmd,
-                    [&](test::stream stream)
-                    {
-                        launchEchoServer(std::move(stream));
-                    });
-#if 0
-                // This causes false positives on ASAN
-                testStream(SyncClient{}, pmd,
-                    [&](test::stream stream)
-                    {
-                        launchEchoServerAsync(std::move(stream));
-                    });
-#endif
+                testStream(SyncClient{}, pmd);
+
                 yield_to(
                     [&](yield_context yield)
                     {
-                        testStream(AsyncClient{yield}, pmd,
-                            [&](test::stream stream)
-                            {
-                                launchEchoServer(std::move(stream));
-                            });
-                    });
-                yield_to(
-                    [&](yield_context yield)
-                    {
-                        testStream(AsyncClient{yield}, pmd,
-                            [&](test::stream stream)
-                            {
-                                launchEchoServerAsync(std::move(stream));
-                            });
+                        testStream(AsyncClient{yield}, pmd);
                     });
             };
 

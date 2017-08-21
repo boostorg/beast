@@ -284,10 +284,11 @@ public:
     bool
     equal_body(string_view sv, string_view body)
     {
-        test::stream ts{ios_, sv};
+        test::stream ts{ios_, sv}, tr{ios_};
+        ts.connect(tr);
         message<isRequest, string_body, fields> m;
         multi_buffer b;
-        ts.remote().close();
+        ts.close_remote();
         try
         {
             read(ts, b, m);
@@ -304,12 +305,13 @@ public:
     std::string
     str(message<isRequest, Body, Fields> const& m)
     {
-        test::stream ts(ios_);
+        test::stream ts{ios_}, tr{ios_};
+        ts.connect(tr);
         error_code ec;
         write(ts, m, ec);
         if(ec && ec != error::end_of_stream)
             BOOST_THROW_EXCEPTION(system_error{ec});
-        return ts.remote().str().to_string();
+        return tr.str().to_string();
     }
 
     void
@@ -323,10 +325,11 @@ public:
             m.set(field::content_length, "5");
             m.body = "*****";
             error_code ec;
-            test::stream ts{ios_};
+            test::stream ts{ios_}, tr{ios_};
+            ts.connect(tr);
             async_write(ts, m, do_yield[ec]);
             if(BEAST_EXPECTS(ec == error::end_of_stream, ec.message()))
-                BEAST_EXPECT(ts.remote().str() ==
+                BEAST_EXPECT(tr.str() ==
                     "HTTP/1.0 200 OK\r\n"
                     "Server: test\r\n"
                     "Content-Length: 5\r\n"
@@ -341,10 +344,11 @@ public:
             m.set(field::transfer_encoding, "chunked");
             m.body = "*****";
             error_code ec;
-            test::stream ts{ios_};
+            test::stream ts{ios_}, tr{ios_};
+            ts.connect(tr);
             async_write(ts, m, do_yield[ec]);
             if(BEAST_EXPECTS(! ec, ec.message()))
-                BEAST_EXPECT(ts.remote().str() ==
+                BEAST_EXPECT(tr.str() ==
                     "HTTP/1.1 200 OK\r\n"
                     "Server: test\r\n"
                     "Transfer-Encoding: chunked\r\n"
@@ -364,7 +368,8 @@ public:
         for(n = 0; n < limit; ++n)
         {
             test::fail_counter fc(n);
-            test::stream ts(ios_, fc);
+            test::stream ts{ios_, fc}, tr{ios_};
+            ts.connect(tr);
             request<fail_body> m(verb::get, "/", 10, fc);
             m.set(field::user_agent, "test");
             m.set(field::connection, "keep-alive");
@@ -373,7 +378,7 @@ public:
             try
             {
                 write(ts, m);
-                BEAST_EXPECT(ts.remote().str() ==
+                BEAST_EXPECT(tr.str() ==
                     "GET / HTTP/1.0\r\n"
                     "User-Agent: test\r\n"
                     "Connection: keep-alive\r\n"
@@ -393,7 +398,8 @@ public:
         for(n = 0; n < limit; ++n)
         {
             test::fail_counter fc(n);
-            test::stream ts(ios_, fc);
+            test::stream ts{ios_, fc}, tr{ios_};
+            ts.connect(tr);
             request<fail_body> m{verb::get, "/", 10, fc};
             m.set(field::user_agent, "test");
             m.set(field::transfer_encoding, "chunked");
@@ -402,7 +408,7 @@ public:
             write(ts, m, ec);
             if(ec == error::end_of_stream)
             {
-                BEAST_EXPECT(ts.remote().str() ==
+                BEAST_EXPECT(tr.str() ==
                     "GET / HTTP/1.0\r\n"
                     "User-Agent: test\r\n"
                     "Transfer-Encoding: chunked\r\n"
@@ -422,7 +428,8 @@ public:
         for(n = 0; n < limit; ++n)
         {
             test::fail_counter fc(n);
-            test::stream ts(ios_, fc);
+            test::stream ts{ios_, fc}, tr{ios_};
+            ts.connect(tr);
             request<fail_body> m{verb::get, "/", 10, fc};
             m.set(field::user_agent, "test");
             m.set(field::transfer_encoding, "chunked");
@@ -431,7 +438,7 @@ public:
             async_write(ts, m, do_yield[ec]);
             if(ec == error::end_of_stream)
             {
-                BEAST_EXPECT(ts.remote().str() ==
+                BEAST_EXPECT(tr.str() ==
                     "GET / HTTP/1.0\r\n"
                     "User-Agent: test\r\n"
                     "Transfer-Encoding: chunked\r\n"
@@ -451,7 +458,8 @@ public:
         for(n = 0; n < limit; ++n)
         {
             test::fail_counter fc(n);
-            test::stream ts(ios_, fc);
+            test::stream ts{ios_, fc}, tr{ios_};
+            ts.connect(tr);
             request<fail_body> m{verb::get, "/", 10, fc};
             m.set(field::user_agent, "test");
             m.set(field::connection, "keep-alive");
@@ -461,7 +469,7 @@ public:
             write(ts, m, ec);
             if(! ec)
             {
-                BEAST_EXPECT(ts.remote().str() ==
+                BEAST_EXPECT(tr.str() ==
                     "GET / HTTP/1.0\r\n"
                     "User-Agent: test\r\n"
                     "Connection: keep-alive\r\n"
@@ -477,7 +485,8 @@ public:
         for(n = 0; n < limit; ++n)
         {
             test::fail_counter fc(n);
-            test::stream ts(ios_, fc);
+            test::stream ts{ios_, fc}, tr{ios_};
+            ts.connect(tr);
             request<fail_body> m{verb::get, "/", 10, fc};
             m.set(field::user_agent, "test");
             m.set(field::connection, "keep-alive");
@@ -487,7 +496,7 @@ public:
             async_write(ts, m, do_yield[ec]);
             if(! ec)
             {
-                BEAST_EXPECT(ts.remote().str() ==
+                BEAST_EXPECT(tr.str() ==
                     "GET / HTTP/1.0\r\n"
                     "User-Agent: test\r\n"
                     "Connection: keep-alive\r\n"
@@ -530,11 +539,12 @@ public:
             m.set(field::user_agent, "test");
             m.body = "*";
             m.prepare_payload();
-            test::stream ts(ios_);
+            test::stream ts{ios_}, tr{ios_};
+            ts.connect(tr);
             error_code ec;
             write(ts, m, ec);
             BEAST_EXPECT(ec == error::end_of_stream);
-            BEAST_EXPECT(ts.remote().str() ==
+            BEAST_EXPECT(tr.str() ==
                 "GET / HTTP/1.0\r\n"
                 "User-Agent: test\r\n"
                 "\r\n"
@@ -567,10 +577,11 @@ public:
             m.set(field::user_agent, "test");
             m.body = "*";
             m.prepare_payload();
-            test::stream ts(ios_);
+            test::stream ts{ios_}, tr{ios_};
+            ts.connect(tr);
             error_code ec;
             write(ts, m, ec);
-            BEAST_EXPECT(ts.remote().str() ==
+            BEAST_EXPECT(tr.str() ==
                 "GET / HTTP/1.1\r\n"
                 "User-Agent: test\r\n"
                 "Transfer-Encoding: chunked\r\n"
@@ -635,7 +646,8 @@ public:
             // destroyed when calling ~io_service
             {
                 boost::asio::io_service ios;
-                test::stream ts{ios};
+                test::stream ts{ios}, tr{ios};
+                ts.connect(tr);
                 BEAST_EXPECT(handler::count() == 0);
                 request<string_body> m;
                 m.method(verb::get);
@@ -695,8 +707,8 @@ public:
     void
     testWriteStream(boost::asio::yield_context yield)
     {
-        test::stream ts{ios_};
-        auto tr = ts.remote();
+        test::stream ts{ios_}, tr{ios_};
+        ts.connect(tr);
         ts.write_size(3);
 
         response<Body> m0;
@@ -812,8 +824,8 @@ public:
     testIssue655()
     {
         boost::asio::io_service ios;
-        test::stream ts{ios};
-
+        test::stream ts{ios}, tr{ios};
+        ts.connect(tr);
         response<empty_body> res;
         res.chunked(true);
         response_serializer<empty_body> sr{res};
@@ -821,11 +833,11 @@ public:
             [&](const error_code&)
             {
             });
-
         ios.run();
     }
 
-    void run() override
+    void
+    run() override
     {
         testIssue655();
         yield_to(

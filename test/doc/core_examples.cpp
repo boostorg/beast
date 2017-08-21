@@ -50,8 +50,7 @@ public:
     testRead()
     {
         {
-            test::stream ts(ios_,
-                "\x16***");
+            test::stream ts{ios_, "\x16***"};
             error_code ec;
             flat_buffer b;
             auto const result = detect_ssl(ts, b, ec);
@@ -61,8 +60,7 @@ public:
         yield_to(
             [&](yield_context yield)
             {
-                test::stream ts(ios_,
-                    "\x16***");
+                test::stream ts{ios_, "\x16***"};
                 error_code ec;
                 flat_buffer b;
                 auto const result =

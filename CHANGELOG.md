@@ -1,5 +1,7 @@
 Version 109:
 
+* refactor test::stream
+
 WebSocket:
 
 * Fix async_read_some handler signature

@@ -74,7 +74,7 @@ public:
         test::stream ts{ios_, sv};
         message<isRequest, string_body, fields> m;
         multi_buffer b;
-        ts.remote().close();
+        ts.close_remote();
         try
         {
             read(ts, b, m);
@@ -90,8 +90,8 @@ public:
     void
     doExpect100Continue()
     {
-        test::stream ts{ios_};
-        auto tr = ts.remote();
+        test::stream ts{ios_}, tr{ios_};
+        ts.connect(tr);
         yield_to(
             [&](yield_context)
             {
@@ -125,12 +125,13 @@ public:
         std::string const s = "Hello, world!";
         test::stream t0{ios_, s};
         t0.read_size(3);
-        t0.remote().close();
-        test::stream t1{ios_};
+        t0.close_remote();
+        test::stream t1{ios_}, t1r{ios_};
+        t1.connect(t1r);
         error_code ec;
         send_cgi_response(t0, t1, ec);
         BEAST_EXPECTS(! ec, ec.message());
-        BEAST_EXPECT(equal_body<false>(t1.remote().str(), s));
+        BEAST_EXPECT(equal_body<false>(t1r.str(), s));
     }
 
     void
@@ -144,10 +145,11 @@ public:
         req.body = "Hello, world!";
         req.prepare_payload();
 
-        test::stream ds{ios_};
-        auto dsr = ds.remote();
+        test::stream ds{ios_}, dsr{ios_};
+        ds.connect(dsr);
         dsr.read_size(3);
-        test::stream us{ios_};
+        test::stream us{ios_}, usr{ios_};
+        us.connect(usr);
         us.write_size(3);
 
         error_code ec;
@@ -165,7 +167,7 @@ public:
             });
         BEAST_EXPECTS(! ec, ec.message());
         BEAST_EXPECT(equal_body<true>(
-            us.remote().str(), req.body));
+            usr.str(), req.body));
     }
 
     void
@@ -239,8 +241,8 @@ public:
     void
     doHEAD()
     {
-        test::stream ts{ios_};
-        auto tr = ts.remote();
+        test::stream ts{ios_}, tr{ios_};
+        ts.connect(tr);
         yield_to(
             [&](yield_context)
             {
@@ -324,7 +326,8 @@ public:
                 return boost::asio::const_buffers_1{
                     s.data(), s.size()};
             };
-        test::stream ts{ios_};
+        test::stream ts{ios_}, tr{ios_};
+        ts.connect(tr);
         
         response<empty_body> res{status::ok, 11};
         res.set(field::server, "test");
@@ -366,7 +369,7 @@ public:
                 std::allocator<double>{}
                     ), ec);
         BEAST_EXPECT(
-            to_string(ts.remote().buffer().data()) ==
+            to_string(tr.buffer().data()) ==
             "HTTP/1.1 200 OK\r\n"
             "Server: test\r\n"
             "Accept: Expires, Content-MD5\r\n"

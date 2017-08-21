@@ -51,7 +51,7 @@ public:
             test::stream ts{ios_, fc};
             test_parser<isRequest> p(fc);
             error_code ec = test::error::fail_error;
-            ts.remote().close();
+            ts.close_remote();
             read(ts, b, p, ec);
             if(! ec)
                 break;
@@ -68,7 +68,7 @@ public:
                 std::string(s + pre, len - pre)};
             test_parser<isRequest> p(fc);
             error_code ec = test::error::fail_error;
-            ts.remote().close();
+            ts.close_remote();
             read(ts, b, p, ec);
             if(! ec)
                 break;
@@ -83,7 +83,7 @@ public:
             test::stream ts{ios_, fc};
             test_parser<isRequest> p(fc);
             error_code ec = test::error::fail_error;
-            ts.remote().close();
+            ts.close_remote();
             async_read(ts, b, p, do_yield[ec]);
             if(! ec)
                 break;
@@ -100,7 +100,7 @@ public:
                 std::string{s + pre, len - pre});
             test_parser<isRequest> p(fc);
             error_code ec = test::error::fail_error;
-            ts.remote().close();
+            ts.close_remote();
             async_read(ts, b, p, do_yield[ec]);
             if(! ec)
                 break;
@@ -114,7 +114,7 @@ public:
         {
             multi_buffer b;
             test::stream c{ios_, "GET / X"};
-            c.remote().close();
+            c.close_remote();
             request_parser<dynamic_body> p;
             read(c, b, p);
             fail();
@@ -306,7 +306,7 @@ public:
             test::stream ts{ios_};
             request_parser<dynamic_body> p;
             error_code ec;
-            ts.remote().close();
+            ts.close_remote();
             read(ts, b, p, ec);
             BEAST_EXPECT(ec == http::error::end_of_stream);
         }
@@ -315,7 +315,7 @@ public:
             test::stream ts{ios_};
             request_parser<dynamic_body> p;
             error_code ec;
-            ts.remote().close();
+            ts.close_remote();
             async_read(ts, b, p, do_yield[ec]);
             BEAST_EXPECT(ec == http::error::end_of_stream);
         }
