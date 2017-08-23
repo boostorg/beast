@@ -320,6 +320,7 @@ operator()(error_code ec, std::size_t bytes_transferred)
         if(d.ws.rd_block_)
         {
             BOOST_ASSERT(d.ws.rd_block_ = d.tok);
+            d.ws.rd_block_.reset();
             d.ws.r_rd_op_.maybe_invoke();
         }
         d.ws.rd_op_.maybe_invoke() ||
