@@ -17,6 +17,12 @@ underlying filesystem:
 [table File Types
 [[Name][Description]]
 [[
+    [link beast.ref.boost__beast__file `file`]
+][
+    `file` is a type alias to one of the following implementations,
+    depending on what is available on the target platform.
+]]
+[[
     [link beast.ref.boost__beast__file_stdio `file_stdio`]
 ][
     This implementation of __File__ uses the C++ standard library
