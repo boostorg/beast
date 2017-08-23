@@ -9,6 +9,7 @@ WebSocket:
 * websocket handshake uses coroutine
 * websocket ping tests
 * Fix websocket close_op resume state
+* websocket write tests
 
 API Changes:
 

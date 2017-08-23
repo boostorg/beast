@@ -93,51 +93,12 @@ read_size_hint(DynamicBuffer& buffer) const
 {
     static_assert(is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
-#if 1
     auto const initial_size = (std::min)(
         +tcp_frame_size,
         buffer.max_size() - buffer.size());
     if(initial_size == 0)
         return 1; // buffer is full
     return read_size_hint(initial_size);
-
-#else
-    using beast::detail::clamp;
-    std::size_t result;
-    if(! pmd_ || (! rd_.done && ! pmd_->rd_set))
-    {
-        // current message is uncompressed
-
-        if(rd_.done)
-        {
-            // first message frame
-            auto const n = (std::min)(
-                buffer.max_size(),
-                (std::max)(
-                    +tcp_frame_size,
-                    buffer.capacity() - buffer.size()));
-            if(n > 0)
-                return n;
-            return 1;
-        }
-
-        if(rd_.fh.fin)
-        {
-            BOOST_ASSERT(rd_.remain != 0);
-            return (std::min)(
-                buffer.max_size(), clamp(rd_.remain));
-        }
-    }
-    return (std::min)(
-        buffer.max_size() - buffer.size(),
-        (std::max)((std::max)(
-            +tcp_frame_size,
-            clamp(rd_.remain)),
-            buffer.capacity() - buffer.size()));
-done:
-    BOOST_ASSERT(result != 0);
-    return result;
-#endif
 }
 
 template<class NextLayer>
