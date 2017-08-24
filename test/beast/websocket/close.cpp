@@ -27,10 +27,16 @@ public:
         pmd.client_enable = false;
         pmd.server_enable = false;
 
-        // normal close
+        // close
         doTest(pmd, [&](ws_type& ws)
         {
             w.close(ws, {});
+        });
+
+        // close with code
+        doTest(pmd, [&](ws_type& ws)
+        {
+            w.close(ws, close_code::going_away);
         });
 
         // double close

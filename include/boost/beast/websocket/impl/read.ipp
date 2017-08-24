@@ -351,8 +351,7 @@ operator()(
         }
         if(! ws_.pmd_ || ! ws_.pmd_->rd_set)
         {
-            // Check for empty final frame
-            if(ws_.rd_.remain > 0 || ! ws_.rd_.fh.fin)
+            if(ws_.rd_.remain > 0)
             {
                 if(ws_.rd_.buf.size() == 0 && ws_.rd_.buf.max_size() >
                     (std::min)(clamp(ws_.rd_.remain),
@@ -589,13 +588,13 @@ template<
     class DynamicBuffer,
     class Handler>
 class stream<NextLayer>::read_op
+    : public boost::asio::coroutine
 {
     Handler h_;
     stream<NextLayer>& ws_;
     DynamicBuffer& b_;
     std::size_t limit_;
     std::size_t bytes_written_ = 0;
-    int step_ = 0;
     bool some_;
 
 public:
@@ -644,8 +643,8 @@ public:
     bool asio_handler_is_continuation(read_op* op)
     {
         using boost::asio::asio_handler_is_continuation;
-        return op->step_ >= 2 ||
-            asio_handler_is_continuation(std::addressof(op->h_));
+        return asio_handler_is_continuation(
+            std::addressof(op->h_));
     }
 
     template<class Function>
@@ -668,54 +667,41 @@ operator()(
     std::size_t bytes_transferred)
 {
     using beast::detail::clamp;
-    switch(ec ? 3 : step_)
+    using buffers_type = typename
+        DynamicBuffer::mutable_buffers_type;
+    boost::optional<buffers_type> mb;
+    BOOST_ASIO_CORO_REENTER(*this)
     {
-    case 0:
-    {
-        if(ws_.failed_)
+        do
         {
-            // Reads after failure are aborted
-            ec = boost::asio::error::operation_aborted;
-            break;
+            try
+            {
+                mb.emplace(b_.prepare(clamp(
+                    ws_.read_size_hint(b_), limit_)));
+            }
+            catch(std::length_error const&)
+            {
+                ec = error::buffer_overflow;
+            }
+            if(ec)
+            {
+                BOOST_ASIO_CORO_YIELD
+                ws_.get_io_service().post(
+                    bind_handler(std::move(*this),
+                        error::buffer_overflow, 0));
+                break;
+            }
+            BOOST_ASIO_CORO_YIELD
+            read_some_op<buffers_type, read_op>{
+                std::move(*this), ws_, *mb}();
+            if(ec)
+                break;
+            b_.commit(bytes_transferred);
+            bytes_written_ += bytes_transferred;
         }
-        step_ = 1;
-    do_read:
-        using buffers_type = typename
-            DynamicBuffer::mutable_buffers_type;
-        auto const size = clamp(
-            ws_.read_size_hint(b_), limit_);
-        boost::optional<buffers_type> mb;
-        try
-        {
-            mb.emplace(b_.prepare(size));
-        }
-        catch(std::length_error const&)
-        {
-            ec = error::buffer_overflow;
-            break;
-        }
-        return read_some_op<buffers_type, read_op>{
-            std::move(*this), ws_, *mb}();
-    }
-
-    case 1:
-    case 2:
-        b_.commit(bytes_transferred);
-        bytes_written_ += bytes_transferred;
-        if(some_ || ws_.is_message_done())
-            break;
-        step_ = 2;
-        goto do_read;
-
-    case 3:
-        break;
-    }
-    if(step_ == 0)
-        return ws_.get_io_service().post(
-            bind_handler(std::move(h_),
-                ec, bytes_written_));
-    else
+        while(! some_ && ! ws_.is_message_done());
         h_(ec, bytes_written_);
+    }
 }
 
 //------------------------------------------------------------------------------
@@ -747,12 +733,6 @@ read(DynamicBuffer& buffer, error_code& ec)
         "SyncStream requirements not met");
     static_assert(beast::is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
-    // Make sure the stream is open
-    if(failed_)
-    {
-        ec = boost::asio::error::operation_aborted;
-        return 0;
-    }
     std::size_t bytes_written = 0;
     do
     {
@@ -822,12 +802,6 @@ read_some(
         "SyncStream requirements not met");
     static_assert(is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
-    // Make sure the stream is open
-    if(failed_)
-    {
-        ec = boost::asio::error::operation_aborted;
-        return 0;
-    }
     using beast::detail::clamp;
     if(! limit)
         limit = (std::numeric_limits<std::size_t>::max)();
@@ -1017,17 +991,12 @@ loop:
                 rd_.buf.consume(len);
                 if(ctrl_cb_)
                     ctrl_cb_(frame_type::close, cr_.reason);
-                if(! wr_close_)
-                {
-                    // _Start the WebSocket Closing Handshake_
-                    do_fail(
-                        cr.code == close_code::none ?
-                            close_code::normal : cr.code,
-                        error::closed, ec);
-                    return bytes_written;
-                }
-                // _Close the WebSocket Connection_
-                do_fail(close_code::none, error::closed, ec);
+                BOOST_ASSERT(! wr_close_);
+                // _Start the WebSocket Closing Handshake_
+                do_fail(
+                    cr.code == close_code::none ?
+                        close_code::normal : cr.code,
+                    error::closed, ec);
                 return bytes_written;
             }
         }
@@ -1044,8 +1013,7 @@ loop:
     }
     if(! pmd_ || ! pmd_->rd_set)
     {
-        // Check for empty final frame
-        if(rd_.remain > 0 || ! rd_.fh.fin)
+        if(rd_.remain > 0)
         {
             if(rd_.buf.size() == 0 && rd_.buf.max_size() >
                 (std::min)(clamp(rd_.remain),
@@ -1116,10 +1084,8 @@ loop:
                             ! rd_.utf8.finish()))
                     {
                         // _Fail the WebSocket Connection_
-                        do_fail(
-                            close_code::bad_payload,
-                            error::failed,
-                            ec);
+                        do_fail(close_code::bad_payload,
+                            error::failed, ec);
                         return bytes_written;
                     }
                 }
@@ -1226,10 +1192,8 @@ loop:
             if(rd_msg_max_ && beast::detail::sum_exceeds(
                 rd_.size, zs.total_out, rd_msg_max_))
             {
-                do_fail(
-                    close_code::too_big,
-                    error::failed,
-                    ec);
+                do_fail(close_code::too_big,
+                    error::failed, ec);
                 return bytes_written;
             }
             cb.consume(zs.total_out);
@@ -1246,10 +1210,8 @@ loop:
                     rd_.done && ! rd_.utf8.finish()))
             {
                 // _Fail the WebSocket Connection_
-                do_fail(
-                    close_code::bad_payload,
-                    error::failed,
-                    ec);
+                do_fail(close_code::bad_payload,
+                    error::failed, ec);
                 return bytes_written;
             }
         }

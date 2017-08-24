@@ -47,102 +47,6 @@ public:
     {
         using boost::asio::buffer;
 
-        // send empty message
-        doTest(pmd, [&](ws_type& ws)
-        {
-            ws.text(true);
-            w.write(ws, boost::asio::null_buffers{});
-            multi_buffer b;
-            w.read(ws, b);
-            BEAST_EXPECT(ws.got_text());
-            BEAST_EXPECT(b.size() == 0);
-        });
-
-        // send message
-        doTest(pmd, [&](ws_type& ws)
-        {
-            ws.auto_fragment(false);
-            ws.binary(false);
-            w.write(ws, sbuf("Hello"));
-            multi_buffer b;
-            w.read(ws, b);
-            BEAST_EXPECT(ws.got_text());
-            BEAST_EXPECT(to_string(b.data()) == "Hello");
-        });
-
-        // read_some
-        doTest(pmd, [&](ws_type& ws)
-        {
-            w.write(ws, sbuf("Hello"));
-            char buf[10];
-            auto const bytes_written =
-                w.read_some(ws, buffer(buf, sizeof(buf)));
-            BEAST_EXPECT(bytes_written > 0);
-            buf[bytes_written] = 0;
-            BEAST_EXPECT(
-                string_view(buf).substr(0, bytes_written) ==
-                string_view("Hello").substr(0, bytes_written));
-        });
-
-        // close, no payload
-        doTest(pmd, [&](ws_type& ws)
-        {
-            w.close(ws, {});
-        });
-
-        // close with code
-        doTest(pmd, [&](ws_type& ws)
-        {
-            w.close(ws, close_code::going_away);
-        });
-
-        // send ping and message
-        doTest(pmd, [&](ws_type& ws)
-        {
-            bool once = false;
-            auto cb =
-                [&](frame_type kind, string_view s)
-                {
-                    BEAST_EXPECT(kind == frame_type::pong);
-                    BEAST_EXPECT(! once);
-                    once = true;
-                    BEAST_EXPECT(s == "");
-                };
-            ws.control_callback(cb);
-            w.ping(ws, "");
-            ws.binary(true);
-            w.write(ws, sbuf("Hello"));
-            multi_buffer b;
-            w.read(ws, b);
-            BEAST_EXPECT(once);
-            BEAST_EXPECT(ws.got_binary());
-            BEAST_EXPECT(to_string(b.data()) == "Hello");
-        });
-
-        // send ping and fragmented message
-        doTest(pmd, [&](ws_type& ws)
-        {
-            bool once = false;
-            auto cb =
-                [&](frame_type kind, string_view s)
-                {
-                    BEAST_EXPECT(kind == frame_type::pong);
-                    BEAST_EXPECT(! once);
-                    once = true;
-                    BEAST_EXPECT(s == "payload");
-                };
-            ws.control_callback(cb);
-            ws.ping("payload");
-            w.write_some(ws, false, sbuf("Hello, "));
-            w.write_some(ws, false, sbuf(""));
-            w.write_some(ws, true, sbuf("World!"));
-            multi_buffer b;
-            w.read(ws, b);
-            BEAST_EXPECT(once);
-            BEAST_EXPECT(to_string(b.data()) == "Hello, World!");
-            ws.control_callback();
-        });
-
         // send pong
         doTest(pmd, [&](ws_type& ws)
         {
@@ -169,109 +73,6 @@ public:
             multi_buffer b;
             w.read(ws, b);
             BEAST_EXPECT(to_string(b.data()) == s);
-        });
-
-        // unexpected cont
-        doTest(pmd, [&](ws_type& ws)
-        {
-            w.write_raw(ws, cbuf(
-                0x80, 0x80, 0xff, 0xff, 0xff, 0xff));
-            doCloseTest(w, ws, close_code::protocol_error);
-        });
-
-        // invalid fixed frame header
-        doTest(pmd, [&](ws_type& ws)
-        {
-            w.write_raw(ws, cbuf(
-                0x8f, 0x80, 0xff, 0xff, 0xff, 0xff));
-            doCloseTest(w, ws, close_code::protocol_error);
-        });
-
-        if(! pmd.client_enable)
-        {
-            // expected cont
-            doTest(pmd, [&](ws_type& ws)
-            {
-                w.write_some(ws, false, boost::asio::null_buffers{});
-                w.write_raw(ws, cbuf(
-                    0x81, 0x80, 0xff, 0xff, 0xff, 0xff));
-                doCloseTest(w, ws, close_code::protocol_error);
-            });
-
-            // message size above 2^64
-            doTest(pmd, [&](ws_type& ws)
-            {
-                w.write_some(ws, false, cbuf(0x00));
-                w.write_raw(ws, cbuf(
-                    0x80, 0xff, 0xff, 0xff, 0xff, 0xff,
-                    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff));
-                doCloseTest(w, ws, close_code::too_big);
-            });
-
-            /*
-            // message size exceeds max
-            doTest(pmd, [&](ws_type& ws)
-            {
-                // VFALCO This was never implemented correctly
-                ws.read_message_max(1);
-                w.write(ws, cbuf(0x81, 0x02, '*', '*'));
-                doCloseTest(w, ws, close_code::too_big);
-            });
-            */
-        }
-
-        // receive ping
-        doTest(pmd, [&](ws_type& ws)
-        {
-            put(ws.next_layer().buffer(), cbuf(
-                0x89, 0x00));
-            bool invoked = false;
-            auto cb = [&](frame_type kind, string_view)
-            {
-                BEAST_EXPECT(! invoked);
-                BEAST_EXPECT(kind == frame_type::ping);
-                invoked = true;
-            };
-            ws.control_callback(cb);
-            w.write(ws, sbuf("Hello"));
-            multi_buffer b;
-            w.read(ws, b);
-            BEAST_EXPECT(invoked);
-            BEAST_EXPECT(ws.got_text());
-            BEAST_EXPECT(to_string(b.data()) == "Hello");
-        });
-
-        // receive ping
-        doTest(pmd, [&](ws_type& ws)
-        {
-            put(ws.next_layer().buffer(), cbuf(
-                0x88, 0x00));
-            bool invoked = false;
-            auto cb = [&](frame_type kind, string_view)
-            {
-                BEAST_EXPECT(! invoked);
-                BEAST_EXPECT(kind == frame_type::close);
-                invoked = true;
-            };
-            ws.control_callback(cb);
-            w.write(ws, sbuf("Hello"));
-            doCloseTest(w, ws, close_code::none);
-        });
-
-        // receive bad utf8
-        doTest(pmd, [&](ws_type& ws)
-        {
-            put(ws.next_layer().buffer(), cbuf(
-                0x81, 0x06, 0x03, 0xea, 0xf0, 0x28, 0x8c, 0xbc));
-            doFailTest(w, ws, error::failed);
-        });
-
-        // receive bad close
-        doTest(pmd, [&](ws_type& ws)
-        {
-            put(ws.next_layer().buffer(), cbuf(
-                0x88, 0x02, 0x03, 0xed));
-            doFailTest(w, ws, error::failed);
         });
     }
 
@@ -303,6 +104,7 @@ public:
 
         testOptions();
 
+#if 0
         auto const testStream =
             [this](permessage_deflate const& pmd)
             {
@@ -336,6 +138,7 @@ public:
         pmd.compLevel = 1;
         pmd.memLevel = 1;
         testStream(pmd);
+#endif
     }
 };
 

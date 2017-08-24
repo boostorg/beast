@@ -70,8 +70,9 @@ public:
             , ws_(ts_)
         {
             permessage_deflate pmd;
-            pmd.client_enable = true;
             pmd.server_enable = true;
+            pmd.server_max_window_bits = 9;
+            pmd.compLevel = 1;
             ws_.set_option(pmd);
 
             switch(k)
@@ -237,48 +238,6 @@ public:
     #endif
         }
     };
-
-    template<class Wrap>
-    void
-    doCloseTest(
-        Wrap const& w,
-        ws_type& ws,
-        close_code code)
-    {
-        try
-        {
-            multi_buffer b;
-            w.read(ws, b);
-            fail("", __FILE__, __LINE__);
-        }
-        catch(system_error const& se)
-        {
-            if(se.code() != error::closed)
-                throw;
-            BEAST_EXPECT(
-                ws.reason().code == code);
-        }
-    }
-
-    template<class Wrap>
-    void
-    doFailTest(
-        Wrap const& w,
-        ws_type& ws,
-        error_code ev)
-    {
-        try
-        {
-            multi_buffer b;
-            w.read(ws, b);
-            fail("", __FILE__, __LINE__);
-        }
-        catch(system_error const& se)
-        {
-            if(se.code() != ev)
-                throw;
-        }
-    }
 
     template<class Test>
     void

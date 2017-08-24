@@ -37,10 +37,10 @@ public:
 
     void run() override
     {
-        check("beast.websocket", error::closed);
-        check("beast.websocket", error::failed);
-        check("beast.websocket", error::handshake_failed);
-        check("beast.websocket", error::buffer_overflow);
+        check("boost.beast.websocket", error::closed);
+        check("boost.beast.websocket", error::failed);
+        check("boost.beast.websocket", error::handshake_failed);
+        check("boost.beast.websocket", error::buffer_overflow);
     }
 };
 

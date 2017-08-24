@@ -11,6 +11,7 @@ WebSocket:
 * Fix websocket close_op resume state
 * websocket write tests
 * split up websocket tests
+* websocket read tests
 
 API Changes:
 

@@ -30,7 +30,7 @@ public:
     const char*
     name() const noexcept override
     {
-        return "beast.websocket";
+        return "boost.beast.websocket";
     }
 
     std::string
@@ -38,13 +38,11 @@ public:
     {
         switch(static_cast<error>(ev))
         {
-        case error::closed: return "WebSocket connection closed normally";
-        case error::failed: return "WebSocket connection failed due to a protocol violation";
-        case error::handshake_failed: return "WebSocket Upgrade handshake failed";
-        case error::buffer_overflow: return "buffer overflow";
-
         default:
-            return "beast.websocket error";
+        case error::failed: return "WebSocket connection failed due to a protocol violation";
+        case error::closed: return "WebSocket connection closed normally";
+        case error::handshake_failed: return "WebSocket upgrade handshake failed";
+        case error::buffer_overflow: return "WebSocket dynamic buffer overflow";
         }
     }
 

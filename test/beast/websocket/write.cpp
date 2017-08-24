@@ -23,9 +23,35 @@ public:
     void
     doTestWrite(Wrap const& w)
     {
+        using boost::asio::buffer;
+
         permessage_deflate pmd;
         pmd.client_enable = false;
         pmd.server_enable = false;
+
+        // message
+        doTest(pmd, [&](ws_type& ws)
+        {
+            ws.auto_fragment(false);
+            ws.binary(false);
+            std::string const s = "Hello, world!";
+            w.write(ws, buffer(s));
+            multi_buffer b;
+            w.read(ws, b);
+            BEAST_EXPECT(ws.got_text());
+            BEAST_EXPECT(to_string(b.data()) == s);
+        });
+
+        // empty message
+        doTest(pmd, [&](ws_type& ws)
+        {
+            ws.text(true);
+            w.write(ws, boost::asio::null_buffers{});
+            multi_buffer b;
+            w.read(ws, b);
+            BEAST_EXPECT(ws.got_text());
+            BEAST_EXPECT(b.size() == 0);
+        });
 
         // continuation
         doTest(pmd, [&](ws_type& ws)
@@ -34,8 +60,8 @@ public:
             std::size_t const chop = 3;
             BOOST_ASSERT(chop < s.size());
             w.write_some(ws, false,
-                boost::asio::buffer(s.data(), chop));
-            w.write_some(ws, true, boost::asio::buffer(
+                buffer(s.data(), chop));
+            w.write_some(ws, true, buffer(
                 s.data() + chop, s.size() - chop));
             flat_buffer b;
             w.read(ws, b);
@@ -47,7 +73,7 @@ public:
         {
             ws.auto_fragment(false);
             std::string const s = "Hello";
-            w.write(ws, boost::asio::buffer(s));
+            w.write(ws, buffer(s));
             flat_buffer b;
             w.read(ws, b);
             BEAST_EXPECT(to_string(b.data()) == s);
@@ -59,7 +85,7 @@ public:
             ws.auto_fragment(false);
             ws.write_buffer_size(16);
             std::string const s(32, '*');
-            w.write(ws, boost::asio::buffer(s));
+            w.write(ws, buffer(s));
             flat_buffer b;
             w.read(ws, b);
             BEAST_EXPECT(to_string(b.data()) == s);
@@ -70,7 +96,7 @@ public:
         {
             ws.auto_fragment(true);
             std::string const s(16384, '*');
-            w.write(ws, boost::asio::buffer(s));
+            w.write(ws, buffer(s));
             flat_buffer b;
             w.read(ws, b);
             BEAST_EXPECT(to_string(b.data()) == s);
@@ -88,7 +114,7 @@ public:
                 w.accept(ws);
                 ws.auto_fragment(false);
                 std::string const s = "Hello";
-                w.write(ws, boost::asio::buffer(s));
+                w.write(ws, buffer(s));
                 flat_buffer b;
                 w.read(ws, b);
                 BEAST_EXPECT(to_string(b.data()) == s);
@@ -114,7 +140,7 @@ public:
                 w.accept(ws);
                 ws.auto_fragment(true);
                 std::string const s(16384, '*');
-                w.write(ws, boost::asio::buffer(s));
+                w.write(ws, buffer(s));
                 flat_buffer b;
                 w.read(ws, b);
                 BEAST_EXPECT(to_string(b.data()) == s);
@@ -130,13 +156,14 @@ public:
 
         pmd.client_enable = true;
         pmd.server_enable = true;
+        pmd.compLevel = 1;
 
         // deflate
         doTest(pmd, [&](ws_type& ws)
         {
             auto const& s = random_string();
             ws.binary(true);
-            w.write(ws, boost::asio::buffer(s));
+            w.write(ws, buffer(s));
             flat_buffer b;
             w.read(ws, b);
             BEAST_EXPECT(to_string(b.data()) == s);
@@ -151,8 +178,8 @@ public:
             // This call should produce no
             // output due to compression latency.
             w.write_some(ws, false,
-                boost::asio::buffer(s.data(), chop));
-            w.write_some(ws, true, boost::asio::buffer(
+                buffer(s.data(), chop));
+            w.write_some(ws, true, buffer(
                 s.data() + chop, s.size() - chop));
             flat_buffer b;
             w.read(ws, b);
@@ -165,7 +192,7 @@ public:
         {
             auto const& s = random_string();
             ws.binary(true);
-            w.write(ws, boost::asio::buffer(s));
+            w.write(ws, buffer(s));
             flat_buffer b;
             w.read(ws, b);
             BEAST_EXPECT(to_string(b.data()) == s);
@@ -175,6 +202,8 @@ public:
     void
     testWrite()
     {
+        using boost::asio::buffer;
+
         doTestWrite(SyncClient{});
 
         yield_to([&](yield_context yield)
@@ -249,7 +278,7 @@ public:
             std::size_t count = 0;
             std::string const s(16384, '*');
             ws.auto_fragment(true);
-            ws.async_write(boost::asio::buffer(s),
+            ws.async_write(buffer(s),
                 [&](error_code ec)
                 {
                     ++count;
@@ -295,7 +324,7 @@ public:
             std::size_t count = 0;
             std::string const s(16384, '*');
             ws.auto_fragment(true);
-            ws.async_write(boost::asio::buffer(s),
+            ws.async_write(buffer(s),
                 [&](error_code ec)
                 {
                     ++count;
@@ -338,6 +367,7 @@ public:
             {
                 permessage_deflate pmd;
                 pmd.client_enable = true;
+                pmd.compLevel = 1;
                 ws.set_option(pmd);
             }
             ws.next_layer().connect(es.stream());
@@ -346,7 +376,7 @@ public:
             std::size_t count = 0;
             auto const& s = random_string();
             ws.binary(true);
-            ws.async_write(boost::asio::buffer(s),
+            ws.async_write(buffer(s),
                 [&](error_code ec)
                 {
                     ++count;
