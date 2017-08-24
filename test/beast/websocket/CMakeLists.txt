@@ -16,10 +16,14 @@ add_executable (tests-beast-websocket
     ${EXTRAS_INCLUDES}
     ${TEST_MAIN}
     Jamfile
-    websocket_async_echo_server.hpp
-    websocket_sync_echo_server.hpp
+    test.hpp
+    accept.cpp
+    close.cpp
     error.cpp
+    handshake.cpp
     option.cpp
+    ping.cpp
+    read.cpp
     rfc6455.cpp
     role.cpp
     stream.cpp
@@ -27,4 +31,5 @@ add_executable (tests-beast-websocket
     frame.cpp
     mask.cpp
     utf8_checker.cpp
+    write.cpp
 )

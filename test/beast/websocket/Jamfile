@@ -8,8 +8,13 @@
 #
 
 local SOURCES =
+    accept.cpp
+    close.cpp
     error.cpp
+    handshake.cpp
     option.cpp
+    ping.cpp
+    read.cpp
     rfc6455.cpp
     stream.cpp
     teardown.cpp
@@ -17,6 +22,7 @@ local SOURCES =
     mask.cpp
     role.cpp
     utf8_checker.cpp
+    write.cpp
     ;
 
 local RUN_TESTS ;
