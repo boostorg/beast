@@ -16,7 +16,7 @@ namespace boost {
 namespace beast {
 namespace websocket {
 
-class stream_close_test : public websocket_test_suite
+class close_test : public websocket_test_suite
 {
 public:
     template<class Wrap>
@@ -39,7 +39,7 @@ public:
             w.close(ws, close_code::going_away);
         });
 
-        // double close
+        // already closed
         {
             echo_server es{log};
             stream<test::stream> ws{ios_};
@@ -257,7 +257,7 @@ public:
     }
 };
 
-BEAST_DEFINE_TESTSUITE(beast,websocket,stream_close);
+BEAST_DEFINE_TESTSUITE(beast,websocket,close);
 
 } // websocket
 } // beast

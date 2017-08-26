@@ -886,18 +886,18 @@ read_some(
     static_assert(is_mutable_buffer_sequence<
             MutableBufferSequence>::value,
         "MutableBufferSequence requirements not met");
-    // Make sure the stream is open
-    if(failed_)
-    {
-        ec = boost::asio::error::operation_aborted;
-        return 0;
-    }
     using beast::detail::clamp;
     using boost::asio::buffer;
     using boost::asio::buffer_cast;
     using boost::asio::buffer_size;
     close_code code{};
     std::size_t bytes_written = 0;
+    // Make sure the stream is open
+    if(failed_)
+    {
+        ec = boost::asio::error::operation_aborted;
+        return 0;
+    }
 loop:
     // See if we need to read a frame header. This
     // condition is structured to give the decompressor

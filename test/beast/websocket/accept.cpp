@@ -16,7 +16,7 @@ namespace boost {
 namespace beast {
 namespace websocket {
 
-class stream_accept_test : public websocket_test_suite
+class accept_test : public websocket_test_suite
 {
 public:
     template<class Wrap>
@@ -579,7 +579,7 @@ public:
     }
 };
 
-BEAST_DEFINE_TESTSUITE(beast,websocket,stream_accept);
+BEAST_DEFINE_TESTSUITE(beast,websocket,accept);
 
 } // websocket
 } // beast

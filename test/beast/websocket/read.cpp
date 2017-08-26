@@ -16,7 +16,7 @@ namespace boost {
 namespace beast {
 namespace websocket {
 
-class stream_read_test : public websocket_test_suite
+class read_test : public websocket_test_suite
 {
 public:
     template<class Wrap>
@@ -70,6 +70,27 @@ public:
         permessage_deflate pmd;
         pmd.client_enable = false;
         pmd.server_enable = false;
+
+        // already closed
+        {
+            echo_server es{log};
+            stream<test::stream> ws{ios_};
+            ws.next_layer().connect(es.stream());
+            ws.handshake("localhost", "/");
+            ws.close({});
+            try
+            {
+                multi_buffer b;
+                w.read(ws, b);
+                fail("", __FILE__, __LINE__);
+            }
+            catch(system_error const& se)
+            {
+                BEAST_EXPECTS(
+                    se.code() == boost::asio::error::operation_aborted,
+                    se.code().message());
+            }
+        }
 
         // empty, fragmented message
         doTest(pmd, [&](ws_type& ws)
@@ -589,7 +610,7 @@ public:
     }
 };
 
-BEAST_DEFINE_TESTSUITE(beast,websocket,stream_read);
+BEAST_DEFINE_TESTSUITE(beast,websocket,read);
 
 } // websocket
 } // beast

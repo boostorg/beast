@@ -16,7 +16,7 @@ namespace boost {
 namespace beast {
 namespace websocket {
 
-class stream_write_test : public websocket_test_suite
+class write_test : public websocket_test_suite
 {
 public:
     template<class Wrap>
@@ -28,6 +28,26 @@ public:
         permessage_deflate pmd;
         pmd.client_enable = false;
         pmd.server_enable = false;
+
+        // already closed
+        {
+            echo_server es{log};
+            stream<test::stream> ws{ios_};
+            ws.next_layer().connect(es.stream());
+            ws.handshake("localhost", "/");
+            ws.close({});
+            try
+            {
+                w.write(ws, sbuf(""));
+                fail("", __FILE__, __LINE__);
+            }
+            catch(system_error const& se)
+            {
+                BEAST_EXPECTS(
+                    se.code() == boost::asio::error::operation_aborted,
+                    se.code().message());
+            }
+        }
 
         // message
         doTest(pmd, [&](ws_type& ws)
@@ -210,30 +230,6 @@ public:
         {
             doTestWrite(AsyncClient{yield});
         });
-
-        // already closed
-        {
-            stream<test::stream> ws{ios_};
-            error_code ec;
-            ws.write(sbuf(""), ec);
-            BEAST_EXPECTS(
-                ec == boost::asio::error::operation_aborted,
-                ec.message());
-        }
-
-        // async, already closed
-        {
-            boost::asio::io_service ios;
-            stream<test::stream> ws{ios};
-            ws.async_write(sbuf(""),
-                [&](error_code ec)
-                {
-                    BEAST_EXPECTS(
-                        ec == boost::asio::error::operation_aborted,
-                        ec.message());
-                });
-            ios.run();
-        }
 
         // suspend on write
         {
@@ -550,7 +546,7 @@ public:
     }
 };
 
-BEAST_DEFINE_TESTSUITE(beast,websocket,stream_write);
+BEAST_DEFINE_TESTSUITE(beast,websocket,write);
 
 } // websocket
 } // beast

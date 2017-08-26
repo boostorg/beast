@@ -16,7 +16,7 @@ namespace boost {
 namespace beast {
 namespace websocket {
 
-class stream_ping_test : public websocket_test_suite
+class ping_test : public websocket_test_suite
 {
 public:
     template<class Wrap>
@@ -38,6 +38,46 @@ public:
         {
             w.pong(ws, {});
         });
+
+        // ping, already closed
+        {
+            echo_server es{log};
+            stream<test::stream> ws{ios_};
+            ws.next_layer().connect(es.stream());
+            ws.handshake("localhost", "/");
+            ws.close({});
+            try
+            {
+                w.ping(ws, {});
+                fail("", __FILE__, __LINE__);
+            }
+            catch(system_error const& se)
+            {
+                BEAST_EXPECTS(
+                    se.code() == boost::asio::error::operation_aborted,
+                    se.code().message());
+            }
+        }
+
+        // pong, already closed
+        {
+            echo_server es{log};
+            stream<test::stream> ws{ios_};
+            ws.next_layer().connect(es.stream());
+            ws.handshake("localhost", "/");
+            ws.close({});
+            try
+            {
+                w.pong(ws, {});
+                fail("", __FILE__, __LINE__);
+            }
+            catch(system_error const& se)
+            {
+                BEAST_EXPECTS(
+                    se.code() == boost::asio::error::operation_aborted,
+                    se.code().message());
+            }
+        }
     }
 
     void
@@ -49,54 +89,6 @@ public:
         {
             doTestPing(AsyncClient{yield});
         });
-
-        // ping, already closed
-        {
-            stream<test::stream> ws{ios_};
-            error_code ec;
-            ws.ping({}, ec);
-            BEAST_EXPECTS(
-                ec == boost::asio::error::operation_aborted,
-                ec.message());
-        }
-
-        // async_ping, already closed
-        {
-            boost::asio::io_service ios;
-            stream<test::stream> ws{ios};
-            ws.async_ping({},
-                [&](error_code ec)
-                {
-                    BEAST_EXPECTS(
-                        ec == boost::asio::error::operation_aborted,
-                        ec.message());
-                });
-            ios.run();
-        }
-
-        // pong, already closed
-        {
-            stream<test::stream> ws{ios_};
-            error_code ec;
-            ws.pong({}, ec);
-            BEAST_EXPECTS(
-                ec == boost::asio::error::operation_aborted,
-                ec.message());
-        }
-
-        // async_pong, already closed
-        {
-            boost::asio::io_service ios;
-            stream<test::stream> ws{ios};
-            ws.async_pong({},
-                [&](error_code ec)
-                {
-                    BEAST_EXPECTS(
-                        ec == boost::asio::error::operation_aborted,
-                        ec.message());
-                });
-            ios.run();
-        }
 
         // suspend on write
         {
@@ -204,7 +196,7 @@ public:
     }
 };
 
-BEAST_DEFINE_TESTSUITE(beast,websocket,stream_ping);
+BEAST_DEFINE_TESTSUITE(beast,websocket,ping);
 
 } // websocket
 } // beast

@@ -115,12 +115,12 @@ enum class frame_type
 template<class NextLayer>
 class stream
 {
+    friend class close_test;
     friend class frame_test;
+    friend class ping_test;
+    friend class read_test;
     friend class stream_test;
-    friend class stream_close_test;
-    friend class stream_ping_test;
-    friend class stream_read_test;
-    friend class stream_write_test;
+    friend class write_test;
 
     /*  The read buffer has to be at least as large
         as the largest possible control frame including
