@@ -55,7 +55,7 @@ class stream<NextLayer>::fail_op
             : ws(ws_)
             , code(code_)
             , ev(ev_)
-            , tok(ws.t_.unique())
+            , tok(ws.tok_.unique())
         {
         }
     };
@@ -150,7 +150,7 @@ operator()(error_code ec, std::size_t)
                 // Suspend
                 BOOST_ASSERT(d.ws.wr_block_ != d.tok);
                 BOOST_ASIO_CORO_YIELD
-                d.ws.rd_op_.emplace(std::move(*this)); // VFALCO emplace to rd_op_
+                d.ws.paused_rd_.emplace(std::move(*this)); // VFALCO emplace to paused_rd_
 
                 // Acquire the write block
                 BOOST_ASSERT(! d.ws.wr_block_);

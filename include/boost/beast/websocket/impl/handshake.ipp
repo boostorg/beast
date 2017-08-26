@@ -140,7 +140,7 @@ operator()(error_code ec)
         // Read HTTP response
         BOOST_ASIO_CORO_YIELD
         http::async_read(d.ws.next_layer(),
-            d.ws.rd_.buf, d.res,
+            d.ws.rd_buf_, d.res,
                 std::move(*this));
         if(ec)
             goto upcall;
@@ -398,7 +398,7 @@ do_handshake(
     }
     if(ec)
         return;
-    http::read(next_layer(), rd_.buf, res, ec);
+    http::read(next_layer(), rd_buf_, res, ec);
     if(ec)
         return;
     on_response(res, key, ec);

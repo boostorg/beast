@@ -66,7 +66,7 @@ public:
         : h_(std::forward<DeducedHandler>(h))
         , ws_(ws)
         , cb_(bs)
-        , tok_(ws_.t_.unique())
+        , tok_(ws_.tok_.unique())
     {
     }
 
@@ -154,7 +154,7 @@ operator()(
             // Suspend
             BOOST_ASSERT(ws_.rd_block_ != tok_);
             BOOST_ASIO_CORO_YIELD
-            ws_.r_rd_op_.save(std::move(*this));
+            ws_.paused_r_rd_.save(std::move(*this));
 
             // Acquire the read block
             BOOST_ASSERT(! ws_.rd_block_);
@@ -178,12 +178,12 @@ operator()(
         // condition is structured to give the decompressor
         // a chance to emit the final empty deflate block
         //
-        if(ws_.rd_.remain == 0 &&
-            (! ws_.rd_.fh.fin || ws_.rd_.done))
+        if(ws_.rd_remain_ == 0 &&
+            (! ws_.rd_fh_.fin || ws_.rd_done_))
         {
             // Read frame header
             while(! ws_.parse_fh(
-                ws_.rd_.fh, ws_.rd_.buf, code))
+                ws_.rd_fh_, ws_.rd_buf_, code))
             {
                 if(code != close_code::none)
                 {
@@ -193,48 +193,48 @@ operator()(
                 }
                 BOOST_ASIO_CORO_YIELD
                 ws_.stream_.async_read_some(
-                    ws_.rd_.buf.prepare(read_size(
-                        ws_.rd_.buf, ws_.rd_.buf.max_size())),
+                    ws_.rd_buf_.prepare(read_size(
+                        ws_.rd_buf_, ws_.rd_buf_.max_size())),
                             std::move(*this));
                 dispatched_ = true;
                 ws_.open_ = ! ec;
                 if(! ws_.open_)
                     goto upcall;
-                ws_.rd_.buf.commit(bytes_transferred);
+                ws_.rd_buf_.commit(bytes_transferred);
             }
             // Immediately apply the mask to the portion
             // of the buffer holding payload data.
-            if(ws_.rd_.fh.len > 0 && ws_.rd_.fh.mask)
+            if(ws_.rd_fh_.len > 0 && ws_.rd_fh_.mask)
                 detail::mask_inplace(buffer_prefix(
-                    clamp(ws_.rd_.fh.len),
-                        ws_.rd_.buf.data()),
-                            ws_.rd_.key);
-            if(detail::is_control(ws_.rd_.fh.op))
+                    clamp(ws_.rd_fh_.len),
+                        ws_.rd_buf_.data()),
+                            ws_.rd_key_);
+            if(detail::is_control(ws_.rd_fh_.op))
             {
                 // Clear this otherwise the next
                 // frame will be considered final.
-                ws_.rd_.fh.fin = false;
+                ws_.rd_fh_.fin = false;
 
                 // Handle ping frame
-                if(ws_.rd_.fh.op == detail::opcode::ping)
+                if(ws_.rd_fh_.op == detail::opcode::ping)
                 {
                     {
                         auto const b = buffer_prefix(
-                            clamp(ws_.rd_.fh.len),
-                                ws_.rd_.buf.data());
+                            clamp(ws_.rd_fh_.len),
+                                ws_.rd_buf_.data());
                         auto const len = buffer_size(b);
-                        BOOST_ASSERT(len == ws_.rd_.fh.len);
+                        BOOST_ASSERT(len == ws_.rd_fh_.len);
                         ping_data payload;
                         detail::read_ping(payload, b);
-                        ws_.rd_.buf.consume(len);
+                        ws_.rd_buf_.consume(len);
                         // Ignore ping when closing
                         if(ws_.wr_close_)
                             goto loop;
                         if(ws_.ctrl_cb_)
                             ws_.ctrl_cb_(frame_type::ping, payload);
-                        ws_.rd_.fb.reset();
+                        ws_.rd_fb_.reset();
                         ws_.template write_ping<
-                            flat_static_buffer_base>(ws_.rd_.fb,
+                            flat_static_buffer_base>(ws_.rd_fb_,
                                 detail::opcode::pong, payload);
                     }
                     // Maybe suspend
@@ -248,7 +248,7 @@ operator()(
                         // Suspend
                         BOOST_ASSERT(ws_.wr_block_ != tok_);
                         BOOST_ASIO_CORO_YIELD
-                        ws_.rd_op_.save(std::move(*this));
+                        ws_.paused_rd_.save(std::move(*this));
 
                         // Acquire the write block
                         BOOST_ASSERT(! ws_.wr_block_);
@@ -280,7 +280,7 @@ operator()(
                     BOOST_ASSERT(ws_.wr_block_ == tok_);
                     BOOST_ASIO_CORO_YIELD
                     boost::asio::async_write(ws_.stream_,
-                        ws_.rd_.fb.data(), std::move(*this));
+                        ws_.rd_fb_.data(), std::move(*this));
                     BOOST_ASSERT(ws_.wr_block_ == tok_);
                     dispatched_ = true;
                     ws_.wr_block_.reset();
@@ -290,28 +290,28 @@ operator()(
                     goto loop;
                 }
                 // Handle pong frame
-                if(ws_.rd_.fh.op == detail::opcode::pong)
+                if(ws_.rd_fh_.op == detail::opcode::pong)
                 {
                     auto const cb = buffer_prefix(clamp(
-                        ws_.rd_.fh.len), ws_.rd_.buf.data());
+                        ws_.rd_fh_.len), ws_.rd_buf_.data());
                     auto const len = buffer_size(cb);
-                    BOOST_ASSERT(len == ws_.rd_.fh.len);
+                    BOOST_ASSERT(len == ws_.rd_fh_.len);
                     code = close_code::none;
                     ping_data payload;
                     detail::read_ping(payload, cb);
-                    ws_.rd_.buf.consume(len);
+                    ws_.rd_buf_.consume(len);
                     // Ignore pong when closing
                     if(! ws_.wr_close_ && ws_.ctrl_cb_)
                         ws_.ctrl_cb_(frame_type::pong, payload);
                     goto loop;
                 }
                 // Handle close frame
-                BOOST_ASSERT(ws_.rd_.fh.op == detail::opcode::close);
+                BOOST_ASSERT(ws_.rd_fh_.op == detail::opcode::close);
                 {
                     auto const cb = buffer_prefix(clamp(
-                        ws_.rd_.fh.len), ws_.rd_.buf.data());
+                        ws_.rd_fh_.len), ws_.rd_buf_.data());
                     auto const len = buffer_size(cb);
-                    BOOST_ASSERT(len == ws_.rd_.fh.len);
+                    BOOST_ASSERT(len == ws_.rd_fh_.len);
                     BOOST_ASSERT(! ws_.rd_close_);
                     ws_.rd_close_ = true;
                     close_reason cr;
@@ -323,7 +323,7 @@ operator()(
                         goto close;
                     }
                     ws_.cr_ = cr;
-                    ws_.rd_.buf.consume(len);
+                    ws_.rd_buf_.consume(len);
                     if(ws_.ctrl_cb_)
                         ws_.ctrl_cb_(frame_type::close,
                             ws_.cr_.reason);
@@ -342,52 +342,52 @@ operator()(
                     goto close;
                 }
             }
-            if(ws_.rd_.fh.len == 0 && ! ws_.rd_.fh.fin)
+            if(ws_.rd_fh_.len == 0 && ! ws_.rd_fh_.fin)
             {
                 // Empty non-final frame
                 goto loop;
             }
-            ws_.rd_.done = false;
+            ws_.rd_done_ = false;
         }
         if(! ws_.pmd_ || ! ws_.pmd_->rd_set)
         {
-            if(ws_.rd_.remain > 0)
+            if(ws_.rd_remain_ > 0)
             {
-                if(ws_.rd_.buf.size() == 0 && ws_.rd_.buf.max_size() >
-                    (std::min)(clamp(ws_.rd_.remain),
+                if(ws_.rd_buf_.size() == 0 && ws_.rd_buf_.max_size() >
+                    (std::min)(clamp(ws_.rd_remain_),
                         buffer_size(cb_)))
                 {
                     // Fill the read buffer first, otherwise we
                     // get fewer bytes at the cost of one I/O.
                     BOOST_ASIO_CORO_YIELD
                     ws_.stream_.async_read_some(
-                        ws_.rd_.buf.prepare(read_size(
-                            ws_.rd_.buf, ws_.rd_.buf.max_size())),
+                        ws_.rd_buf_.prepare(read_size(
+                            ws_.rd_buf_, ws_.rd_buf_.max_size())),
                                 std::move(*this));
                     dispatched_ = true;
                     ws_.open_ = ! ec;
                     if(! ws_.open_)
                         goto upcall;
-                    ws_.rd_.buf.commit(bytes_transferred);
-                    if(ws_.rd_.fh.mask)
+                    ws_.rd_buf_.commit(bytes_transferred);
+                    if(ws_.rd_fh_.mask)
                         detail::mask_inplace(buffer_prefix(clamp(
-                            ws_.rd_.remain), ws_.rd_.buf.data()),
-                                ws_.rd_.key);
+                            ws_.rd_remain_), ws_.rd_buf_.data()),
+                                ws_.rd_key_);
                 }
-                if(ws_.rd_.buf.size() > 0)
+                if(ws_.rd_buf_.size() > 0)
                 {
                     // Copy from the read buffer.
                     // The mask was already applied.
                     bytes_transferred = buffer_copy(cb_,
-                        ws_.rd_.buf.data(), clamp(ws_.rd_.remain));
+                        ws_.rd_buf_.data(), clamp(ws_.rd_remain_));
                     auto const mb = buffer_prefix(
                         bytes_transferred, cb_);
-                    ws_.rd_.remain -= bytes_transferred;
-                    if(ws_.rd_.op == detail::opcode::text)
+                    ws_.rd_remain_ -= bytes_transferred;
+                    if(ws_.rd_op_ == detail::opcode::text)
                     {
-                        if(! ws_.rd_.utf8.write(mb) ||
-                            (ws_.rd_.remain == 0 && ws_.rd_.fh.fin &&
-                                ! ws_.rd_.utf8.finish()))
+                        if(! ws_.rd_utf8_.write(mb) ||
+                            (ws_.rd_remain_ == 0 && ws_.rd_fh_.fin &&
+                                ! ws_.rd_utf8_.finish()))
                         {
                             // _Fail the WebSocket Connection_
                             code = close_code::bad_payload;
@@ -396,17 +396,17 @@ operator()(
                         }
                     }
                     bytes_written_ += bytes_transferred;
-                    ws_.rd_.size += bytes_transferred;
-                    ws_.rd_.buf.consume(bytes_transferred);
+                    ws_.rd_size_ += bytes_transferred;
+                    ws_.rd_buf_.consume(bytes_transferred);
                 }
                 else
                 {
                     // Read into caller's buffer
-                    BOOST_ASSERT(ws_.rd_.remain > 0);
+                    BOOST_ASSERT(ws_.rd_remain_ > 0);
                     BOOST_ASSERT(buffer_size(cb_) > 0);
                     BOOST_ASIO_CORO_YIELD
                     ws_.stream_.async_read_some(buffer_prefix(
-                        clamp(ws_.rd_.remain), cb_), std::move(*this));
+                        clamp(ws_.rd_remain_), cb_), std::move(*this));
                     dispatched_ = true;
                     ws_.open_ = ! ec;
                     if(! ws_.open_)
@@ -414,14 +414,14 @@ operator()(
                     BOOST_ASSERT(bytes_transferred > 0);
                     auto const mb = buffer_prefix(
                         bytes_transferred, cb_);
-                    ws_.rd_.remain -= bytes_transferred;
-                    if(ws_.rd_.fh.mask)
-                        detail::mask_inplace(mb, ws_.rd_.key);
-                    if(ws_.rd_.op == detail::opcode::text)
+                    ws_.rd_remain_ -= bytes_transferred;
+                    if(ws_.rd_fh_.mask)
+                        detail::mask_inplace(mb, ws_.rd_key_);
+                    if(ws_.rd_op_ == detail::opcode::text)
                     {
-                        if(! ws_.rd_.utf8.write(mb) ||
-                            (ws_.rd_.remain == 0 && ws_.rd_.fh.fin &&
-                                ! ws_.rd_.utf8.finish()))
+                        if(! ws_.rd_utf8_.write(mb) ||
+                            (ws_.rd_remain_ == 0 && ws_.rd_fh_.fin &&
+                                ! ws_.rd_utf8_.finish()))
                         {
                             // _Fail the WebSocket Connection_
                             code = close_code::bad_payload;
@@ -430,38 +430,38 @@ operator()(
                         }
                     }
                     bytes_written_ += bytes_transferred;
-                    ws_.rd_.size += bytes_transferred;
+                    ws_.rd_size_ += bytes_transferred;
                 }
             }
-            ws_.rd_.done = ws_.rd_.remain == 0 && ws_.rd_.fh.fin;
+            ws_.rd_done_ = ws_.rd_remain_ == 0 && ws_.rd_fh_.fin;
             goto upcall;
         }
         else
         {
             // Read compressed message frame payload:
-            // inflate even if rd_.fh.len == 0, otherwise we
+            // inflate even if rd_fh_.len == 0, otherwise we
             // never emit the end-of-stream deflate block.
             while(buffer_size(cb_) > 0)
             {
-                if( ws_.rd_.remain > 0 &&
-                    ws_.rd_.buf.size() == 0 &&
+                if( ws_.rd_remain_ > 0 &&
+                    ws_.rd_buf_.size() == 0 &&
                     ! did_read_)
                 {
                     // read new
                     BOOST_ASIO_CORO_YIELD
                     ws_.stream_.async_read_some(
-                        ws_.rd_.buf.prepare(read_size(
-                            ws_.rd_.buf, ws_.rd_.buf.max_size())),
+                        ws_.rd_buf_.prepare(read_size(
+                            ws_.rd_buf_, ws_.rd_buf_.max_size())),
                                 std::move(*this));
                     ws_.open_ = ! ec;
                     if(! ws_.open_)
                         goto upcall;
                     BOOST_ASSERT(bytes_transferred > 0);
-                    ws_.rd_.buf.commit(bytes_transferred);
-                    if(ws_.rd_.fh.mask)
+                    ws_.rd_buf_.commit(bytes_transferred);
+                    if(ws_.rd_fh_.mask)
                         detail::mask_inplace(
-                            buffer_prefix(clamp(ws_.rd_.remain),
-                                ws_.rd_.buf.data()), ws_.rd_.key);
+                            buffer_prefix(clamp(ws_.rd_remain_),
+                                ws_.rd_buf_.data()), ws_.rd_key_);
                     did_read_ = true;
                 }
                 zlib::z_params zs;
@@ -471,14 +471,14 @@ operator()(
                     zs.avail_out = buffer_size(out);
                     BOOST_ASSERT(zs.avail_out > 0);
                 }
-                if(ws_.rd_.remain > 0)
+                if(ws_.rd_remain_ > 0)
                 {
-                    if(ws_.rd_.buf.size() > 0)
+                    if(ws_.rd_buf_.size() > 0)
                     {
                         // use what's there
                         auto const in = buffer_prefix(
-                            clamp(ws_.rd_.remain), buffer_front(
-                                ws_.rd_.buf.data()));
+                            clamp(ws_.rd_remain_), buffer_front(
+                                ws_.rd_buf_.data()));
                         zs.avail_in = buffer_size(in);
                         zs.next_in = buffer_cast<void const*>(in);
                     }
@@ -487,7 +487,7 @@ operator()(
                         break;
                     }
                 }
-                else if(ws_.rd_.fh.fin)
+                else if(ws_.rd_fh_.fin)
                 {
                     // append the empty block codes
                     static std::uint8_t constexpr
@@ -504,7 +504,7 @@ operator()(
                     // https://github.com/madler/zlib/issues/280
                     BOOST_ASSERT(zs.total_out == 0);
                     cb_.consume(zs.total_out);
-                    ws_.rd_.size += zs.total_out;
+                    ws_.rd_size_ += zs.total_out;
                     bytes_written_ += zs.total_out;
                     if(
                         (ws_.role_ == role_type::client &&
@@ -512,7 +512,7 @@ operator()(
                         (ws_.role_ == role_type::server &&
                             ws_.pmd_config_.client_no_context_takeover))
                         ws_.pmd_->zi.reset();
-                    ws_.rd_.done = true;
+                    ws_.rd_done_ = true;
                     break;
                 }
                 else
@@ -525,7 +525,7 @@ operator()(
                 if(! ws_.open_)
                     break;
                 if(ws_.rd_msg_max_ && beast::detail::sum_exceeds(
-                    ws_.rd_.size, zs.total_out, ws_.rd_msg_max_))
+                    ws_.rd_size_, zs.total_out, ws_.rd_msg_max_))
                 {
                     // _Fail the WebSocket Connection_
                     code = close_code::too_big;
@@ -533,17 +533,17 @@ operator()(
                     goto close;
                 }
                 cb_.consume(zs.total_out);
-                ws_.rd_.size += zs.total_out;
-                ws_.rd_.remain -= zs.total_in;
-                ws_.rd_.buf.consume(zs.total_in);
+                ws_.rd_size_ += zs.total_out;
+                ws_.rd_remain_ -= zs.total_in;
+                ws_.rd_buf_.consume(zs.total_in);
                 bytes_written_ += zs.total_out;
             }
-            if(ws_.rd_.op == detail::opcode::text)
+            if(ws_.rd_op_ == detail::opcode::text)
             {
                 // check utf8
-                if(! ws_.rd_.utf8.write(
+                if(! ws_.rd_utf8_.write(
                     buffer_prefix(bytes_written_, cb_.get())) || (
-                        ws_.rd_.done && ! ws_.rd_.utf8.finish()))
+                        ws_.rd_done_ && ! ws_.rd_utf8_.finish()))
                 {
                     // _Fail the WebSocket Connection_
                     code = close_code::bad_payload;
@@ -564,10 +564,10 @@ operator()(
     upcall:
         BOOST_ASSERT(ws_.rd_block_ == tok_);
         ws_.rd_block_.reset();
-        ws_.r_close_op_.maybe_invoke();
-        ws_.close_op_.maybe_invoke() ||
-            ws_.ping_op_.maybe_invoke() ||
-            ws_.wr_op_.maybe_invoke();
+        ws_.paused_r_close_.maybe_invoke();
+        ws_.paused_close_.maybe_invoke() ||
+            ws_.paused_ping_.maybe_invoke() ||
+            ws_.paused_wr_.maybe_invoke();
         if(! dispatched_)
         {
             ws_.stream_.get_io_service().post(
@@ -903,10 +903,10 @@ loop:
     // condition is structured to give the decompressor
     // a chance to emit the final empty deflate block
     //
-    if(rd_.remain == 0 && (! rd_.fh.fin || rd_.done))
+    if(rd_remain_ == 0 && (! rd_fh_.fin || rd_done_))
     {
         // Read frame header
-        while(! parse_fh(rd_.fh, rd_.buf, code))
+        while(! parse_fh(rd_fh_, rd_buf_, code))
         {
             if(code != close_code::none)
             {
@@ -916,38 +916,38 @@ loop:
             }
             auto const bytes_transferred =
                 stream_.read_some(
-                    rd_.buf.prepare(read_size(
-                        rd_.buf, rd_.buf.max_size())),
+                    rd_buf_.prepare(read_size(
+                        rd_buf_, rd_buf_.max_size())),
                     ec);
             open_ = ! ec;
             if(! open_)
                 return bytes_written;
-            rd_.buf.commit(bytes_transferred);
+            rd_buf_.commit(bytes_transferred);
         }
         // Immediately apply the mask to the portion
         // of the buffer holding payload data.
-        if(rd_.fh.len > 0 && rd_.fh.mask)
+        if(rd_fh_.len > 0 && rd_fh_.mask)
             detail::mask_inplace(buffer_prefix(
-                clamp(rd_.fh.len), rd_.buf.data()),
-                    rd_.key);
-        if(detail::is_control(rd_.fh.op))
+                clamp(rd_fh_.len), rd_buf_.data()),
+                    rd_key_);
+        if(detail::is_control(rd_fh_.op))
         {
             // Get control frame payload
             auto const b = buffer_prefix(
-                clamp(rd_.fh.len), rd_.buf.data());
+                clamp(rd_fh_.len), rd_buf_.data());
             auto const len = buffer_size(b);
-            BOOST_ASSERT(len == rd_.fh.len);
+            BOOST_ASSERT(len == rd_fh_.len);
 
             // Clear this otherwise the next
             // frame will be considered final.
-            rd_.fh.fin = false;
+            rd_fh_.fin = false;
 
             // Handle ping frame
-            if(rd_.fh.op == detail::opcode::ping)
+            if(rd_fh_.op == detail::opcode::ping)
             {
                 ping_data payload;
                 detail::read_ping(payload, b);
-                rd_.buf.consume(len);
+                rd_buf_.consume(len);
                 if(wr_close_)
                 {
                     // Ignore ping when closing
@@ -965,17 +965,17 @@ loop:
                 goto loop;
             }
             // Handle pong frame
-            if(rd_.fh.op == detail::opcode::pong)
+            if(rd_fh_.op == detail::opcode::pong)
             {
                 ping_data payload;
                 detail::read_ping(payload, b);
-                rd_.buf.consume(len);
+                rd_buf_.consume(len);
                 if(ctrl_cb_)
                     ctrl_cb_(frame_type::pong, payload);
                 goto loop;
             }
             // Handle close frame
-            BOOST_ASSERT(rd_.fh.op == detail::opcode::close);
+            BOOST_ASSERT(rd_fh_.op == detail::opcode::close);
             {
                 BOOST_ASSERT(! rd_close_);
                 rd_close_ = true;
@@ -988,7 +988,7 @@ loop:
                     return bytes_written;
                 }
                 cr_ = cr;
-                rd_.buf.consume(len);
+                rd_buf_.consume(len);
                 if(ctrl_cb_)
                     ctrl_cb_(frame_type::close, cr_.reason);
                 BOOST_ASSERT(! wr_close_);
@@ -1000,12 +1000,12 @@ loop:
                 return bytes_written;
             }
         }
-        if(rd_.fh.len == 0 && ! rd_.fh.fin)
+        if(rd_fh_.len == 0 && ! rd_fh_.fin)
         {
             // Empty non-final frame
             goto loop;
         }
-        rd_.done = false;
+        rd_done_ = false;
     }
     else
     {
@@ -1013,40 +1013,40 @@ loop:
     }
     if(! pmd_ || ! pmd_->rd_set)
     {
-        if(rd_.remain > 0)
+        if(rd_remain_ > 0)
         {
-            if(rd_.buf.size() == 0 && rd_.buf.max_size() >
-                (std::min)(clamp(rd_.remain),
+            if(rd_buf_.size() == 0 && rd_buf_.max_size() >
+                (std::min)(clamp(rd_remain_),
                     buffer_size(buffers)))
             {
                 // Fill the read buffer first, otherwise we
                 // get fewer bytes at the cost of one I/O.
-                rd_.buf.commit(stream_.read_some(
-                    rd_.buf.prepare(read_size(rd_.buf,
-                        rd_.buf.max_size())), ec));
+                rd_buf_.commit(stream_.read_some(
+                    rd_buf_.prepare(read_size(rd_buf_,
+                        rd_buf_.max_size())), ec));
                 open_ = ! ec;
                 if(! open_)
                     return bytes_written;
-                if(rd_.fh.mask)
+                if(rd_fh_.mask)
                     detail::mask_inplace(
-                        buffer_prefix(clamp(rd_.remain),
-                            rd_.buf.data()), rd_.key);
+                        buffer_prefix(clamp(rd_remain_),
+                            rd_buf_.data()), rd_key_);
             }
-            if(rd_.buf.size() > 0)
+            if(rd_buf_.size() > 0)
             {
                 // Copy from the read buffer.
                 // The mask was already applied.
                 auto const bytes_transferred =
-                    buffer_copy(buffers, rd_.buf.data(),
-                        clamp(rd_.remain));
+                    buffer_copy(buffers, rd_buf_.data(),
+                        clamp(rd_remain_));
                 auto const mb = buffer_prefix(
                     bytes_transferred, buffers);
-                rd_.remain -= bytes_transferred;
-                if(rd_.op == detail::opcode::text)
+                rd_remain_ -= bytes_transferred;
+                if(rd_op_ == detail::opcode::text)
                 {
-                    if(! rd_.utf8.write(mb) ||
-                        (rd_.remain == 0 && rd_.fh.fin &&
-                            ! rd_.utf8.finish()))
+                    if(! rd_utf8_.write(mb) ||
+                        (rd_remain_ == 0 && rd_fh_.fin &&
+                            ! rd_utf8_.finish()))
                     {
                         // _Fail the WebSocket Connection_
                         do_fail(
@@ -1057,31 +1057,31 @@ loop:
                     }
                 }
                 bytes_written += bytes_transferred;
-                rd_.size += bytes_transferred;
-                rd_.buf.consume(bytes_transferred);
+                rd_size_ += bytes_transferred;
+                rd_buf_.consume(bytes_transferred);
             }
             else
             {
                 // Read into caller's buffer
-                BOOST_ASSERT(rd_.remain > 0);
+                BOOST_ASSERT(rd_remain_ > 0);
                 BOOST_ASSERT(buffer_size(buffers) > 0);
                 auto const bytes_transferred =
                     stream_.read_some(buffer_prefix(
-                        clamp(rd_.remain), buffers), ec);
+                        clamp(rd_remain_), buffers), ec);
                 open_ = ! ec;
                 if(! open_)
                     return bytes_written;
                 BOOST_ASSERT(bytes_transferred > 0);
                 auto const mb = buffer_prefix(
                     bytes_transferred, buffers);
-                rd_.remain -= bytes_transferred;
-                if(rd_.fh.mask)
-                    detail::mask_inplace(mb, rd_.key);
-                if(rd_.op == detail::opcode::text)
+                rd_remain_ -= bytes_transferred;
+                if(rd_fh_.mask)
+                    detail::mask_inplace(mb, rd_key_);
+                if(rd_op_ == detail::opcode::text)
                 {
-                    if(! rd_.utf8.write(mb) ||
-                        (rd_.remain == 0 && rd_.fh.fin &&
-                            ! rd_.utf8.finish()))
+                    if(! rd_utf8_.write(mb) ||
+                        (rd_remain_ == 0 && rd_fh_.fin &&
+                            ! rd_utf8_.finish()))
                     {
                         // _Fail the WebSocket Connection_
                         do_fail(close_code::bad_payload,
@@ -1090,15 +1090,15 @@ loop:
                     }
                 }
                 bytes_written += bytes_transferred;
-                rd_.size += bytes_transferred;
+                rd_size_ += bytes_transferred;
             }
         }
-        rd_.done = rd_.remain == 0 && rd_.fh.fin;
+        rd_done_ = rd_remain_ == 0 && rd_fh_.fin;
     }
     else
     {
         // Read compressed message frame payload:
-        // inflate even if rd_.fh.len == 0, otherwise we
+        // inflate even if rd_fh_.len == 0, otherwise we
         // never emit the end-of-stream deflate block.
         //
         bool did_read = false;
@@ -1112,14 +1112,14 @@ loop:
                 zs.avail_out = buffer_size(out);
                 BOOST_ASSERT(zs.avail_out > 0);
             }
-            if(rd_.remain > 0)
+            if(rd_remain_ > 0)
             {
-                if(rd_.buf.size() > 0)
+                if(rd_buf_.size() > 0)
                 {
                     // use what's there
                     auto const in = buffer_prefix(
-                        clamp(rd_.remain), buffer_front(
-                            rd_.buf.data()));
+                        clamp(rd_remain_), buffer_front(
+                            rd_buf_.data()));
                     zs.avail_in = buffer_size(in);
                     zs.next_in = buffer_cast<void const*>(in);
                 }
@@ -1128,21 +1128,21 @@ loop:
                     // read new
                     auto const bytes_transferred =
                         stream_.read_some(
-                            rd_.buf.prepare(read_size(
-                                rd_.buf, rd_.buf.max_size())),
+                            rd_buf_.prepare(read_size(
+                                rd_buf_, rd_buf_.max_size())),
                             ec);
                     open_ = ! ec;
                     if(! open_)
                         return bytes_written;
                     BOOST_ASSERT(bytes_transferred > 0);
-                    rd_.buf.commit(bytes_transferred);
-                    if(rd_.fh.mask)
+                    rd_buf_.commit(bytes_transferred);
+                    if(rd_fh_.mask)
                         detail::mask_inplace(
-                            buffer_prefix(clamp(rd_.remain),
-                                rd_.buf.data()), rd_.key);
+                            buffer_prefix(clamp(rd_remain_),
+                                rd_buf_.data()), rd_key_);
                     auto const in = buffer_prefix(
-                        clamp(rd_.remain), buffer_front(
-                            rd_.buf.data()));
+                        clamp(rd_remain_), buffer_front(
+                            rd_buf_.data()));
                     zs.avail_in = buffer_size(in);
                     zs.next_in = buffer_cast<void const*>(in);
                     did_read = true;
@@ -1152,7 +1152,7 @@ loop:
                     break;
                 }
             }
-            else if(rd_.fh.fin)
+            else if(rd_fh_.fin)
             {
                 // append the empty block codes
                 static std::uint8_t constexpr
@@ -1169,7 +1169,7 @@ loop:
                 // https://github.com/madler/zlib/issues/280
                 BOOST_ASSERT(zs.total_out == 0);
                 cb.consume(zs.total_out);
-                rd_.size += zs.total_out;
+                rd_size_ += zs.total_out;
                 bytes_written += zs.total_out;
                 if(
                     (role_ == role_type::client &&
@@ -1177,7 +1177,7 @@ loop:
                     (role_ == role_type::server &&
                         pmd_config_.client_no_context_takeover))
                     pmd_->zi.reset();
-                rd_.done = true;
+                rd_done_ = true;
                 break;
             }
             else
@@ -1190,24 +1190,24 @@ loop:
             if(! open_)
                 return bytes_written;
             if(rd_msg_max_ && beast::detail::sum_exceeds(
-                rd_.size, zs.total_out, rd_msg_max_))
+                rd_size_, zs.total_out, rd_msg_max_))
             {
                 do_fail(close_code::too_big,
                     error::failed, ec);
                 return bytes_written;
             }
             cb.consume(zs.total_out);
-            rd_.size += zs.total_out;
-            rd_.remain -= zs.total_in;
-            rd_.buf.consume(zs.total_in);
+            rd_size_ += zs.total_out;
+            rd_remain_ -= zs.total_in;
+            rd_buf_.consume(zs.total_in);
             bytes_written += zs.total_out;
         }
-        if(rd_.op == detail::opcode::text)
+        if(rd_op_ == detail::opcode::text)
         {
             // check utf8
-            if(! rd_.utf8.write(
+            if(! rd_utf8_.write(
                 buffer_prefix(bytes_written, buffers)) || (
-                    rd_.done && ! rd_.utf8.finish()))
+                    rd_done_ && ! rd_utf8_.finish()))
             {
                 // _Fail the WebSocket Connection_
                 do_fail(close_code::bad_payload,

@@ -146,67 +146,6 @@ class stream
         void reset() { id_ = 0; }
     };
 
-    using control_cb_type =
-        std::function<void(frame_type, string_view)>;
-
-    // State information for the message being received
-    //
-    struct rd_t
-    {
-        detail::frame_header fh;        // current frame header
-        detail::prepared_key key;       // current stateful mask key
-        std::uint64_t size;             // total size of current message so far
-        std::uint64_t remain;           // message frame bytes left in current frame
-        detail::frame_buffer fb;        // to write control frames (during reads)
-        detail::utf8_checker utf8;      // to validate utf8
-
-        // A small, circular buffer to read frame headers.
-        // This improves performance by avoiding small reads.
-        static_buffer<+tcp_frame_size> buf;
-
-        // opcode of current message being read
-        detail::opcode op;
-
-        // `true` if the next frame is a continuation.
-        bool cont;
-
-        bool done;                      // set when a message is done
-    };
-
-    // State information for the message being sent
-    //
-    struct wr_t
-    {
-        // `true` if next frame is a continuation,
-        // `false` if next frame starts a new message
-        bool cont;
-
-        // `true` if this message should be auto-fragmented
-        // This gets set to the auto-fragment option at the beginning
-        // of sending a message, so that the option can be changed
-        // mid-send without affecting the current message.
-        bool autofrag;
-
-        // `true` if this message should be compressed.
-        // This gets set to the compress option at the beginning of
-        // of sending a message, so that the option can be changed
-        // mid-send without affecting the current message.
-        bool compress;
-
-        // Size of the write buffer.
-        // This gets set to the write buffer size option at the
-        // beginning of sending a message, so that the option can be
-        // changed mid-send without affecting the current message.
-        std::size_t buf_size;
-
-        // The write buffer. Used for compression and masking.
-        // The buffer is allocated or reallocated at the beginning of
-        // sending a message.
-        std::unique_ptr<std::uint8_t[]> buf;
-
-        detail::fh_buffer fb;
-    };
-
     // State information for the permessage-deflate extension
     struct pmd_t
     {
@@ -217,46 +156,61 @@ class stream
         zlib::inflate_stream zi;
     };
 
-    NextLayer stream_;                      // the wrapped stream
-    detail::maskgen maskgen_;               // source of mask keys
-    std::size_t rd_msg_max_ =
-        16 * 1024 * 1024;                   // max message size
-    bool wr_autofrag_ = true;               // auto fragment
-    std::size_t wr_buf_size_ = 4096;        // write buffer size
-    std::size_t rd_buf_size_ = 4096;        // read buffer size
-    detail::opcode wr_opcode_ =
-        detail::opcode::text;               // outgoing message type
-    control_cb_type ctrl_cb_;               // control callback
-    role_type role_;                        // server or client
-    bool open_ = false;                     // `true` if established
+    using control_cb_type =
+        std::function<void(frame_type, string_view)>;
 
-    bool rd_close_;                         // read close frame
-    bool wr_close_;                         // sent close frame
-    token wr_block_;                        // op currenly writing
-    token rd_block_;                        // op currenly reading
+    NextLayer               stream_;        // the wrapped stream
+    close_reason            cr_;            // set from received close frame
+    control_cb_type         ctrl_cb_;       // control callback
 
-    ping_data* ping_data_;                  // where to put the payload
-    detail::pausation rd_op_;               // paused read op
-    detail::pausation wr_op_;               // paused write op
-    detail::pausation ping_op_;             // paused ping op
-    detail::pausation close_op_;            // paused close op
-    detail::pausation r_rd_op_;             // paused read op (read)
-    detail::pausation r_close_op_;          // paused close op (read)
-    close_reason cr_;                       // set from received close frame
-    rd_t rd_;                               // read state
-    wr_t wr_;                               // write state
+    std::size_t             rd_msg_max_     // max message size
+                                = 16 * 1024 * 1024;
+    std::uint64_t           rd_size_;       // total size of current message so far
+    std::uint64_t           rd_remain_;     // message frame bytes left in current frame
+    detail::frame_header    rd_fh_;         // current frame header
+    detail::prepared_key    rd_key_;        // current stateful mask key
+    detail::frame_buffer    rd_fb_;         // to write control frames (during reads)
+    detail::utf8_checker    rd_utf8_;       // to validate utf8
+    static_buffer<
+        +tcp_frame_size>    rd_buf_;        // buffer for reads
+    detail::opcode          rd_op_;         // current message binary or text
+    bool                    rd_cont_;       // `true` if the next frame is a continuation
+    bool                    rd_done_;       // set when a message is done
+    bool                    rd_close_;      // did we read a close frame?
+    token                   rd_block_;      // op currenly reading
 
-    // If not engaged, then permessage-deflate is not
-    // enabled for the currently active session.
-    std::unique_ptr<pmd_t> pmd_;
+    token                   tok_;           // used to order asynchronous ops
+    role_type               role_;          // server or client
+    bool                    open_           // `true` if connected
+                                = false;
 
-    // Local options for permessage-deflate
-    permessage_deflate pmd_opts_;
+    token                   wr_block_;      // op currenly writing
+    bool                    wr_close_;      // did we write a close frame?
+    bool                    wr_cont_;       // next write is a continuation
+    bool                    wr_frag_;       // autofrag the current message
+    bool                    wr_frag_opt_    // autofrag option setting
+                                = true;
+    bool                    wr_compress_;   // compress current message
+    detail::opcode          wr_opcode_      // message type
+                                = detail::opcode::text;
+    std::unique_ptr<
+        std::uint8_t[]>     wr_buf_;        // write buffer
+    std::size_t             wr_buf_size_;   // write buffer size (current message)
+    std::size_t             wr_buf_opt_     // write buffer size option setting
+                                = 4096;
+    detail::fh_buffer       wr_fb_;         // header buffer used for writes
+    detail::maskgen         wr_gen_;        // source of mask keys
 
-    // Offer for clients, negotiated result for servers
-    detail::pmd_offer pmd_config_;
+    detail::pausation       paused_rd_;     // paused read op
+    detail::pausation       paused_wr_;     // paused write op
+    detail::pausation       paused_ping_;   // paused ping op
+    detail::pausation       paused_close_;  // paused close op
+    detail::pausation       paused_r_rd_;   // paused read op (read)
+    detail::pausation       paused_r_close_;// paused close op (read)
 
-    token t_;
+    std::unique_ptr<pmd_t>  pmd_;           // pmd settings or nullptr
+    permessage_deflate      pmd_opts_;      // local pmd options
+    detail::pmd_offer       pmd_config_;    // offer (client) or negotiation (server)
 
 public:
     /// The type of the next layer.
@@ -402,7 +356,7 @@ public:
     bool
     got_binary() const
     {
-        return rd_.op == detail::opcode::binary;
+        return rd_op_ == detail::opcode::binary;
     }
 
     /** Returns `true` if the latest message data indicates text.
@@ -424,7 +378,7 @@ public:
     bool
     is_message_done() const
     {
-        return rd_.done;
+        return rd_done_;
     }
 
     /** Returns the close reason received from the peer.
@@ -516,14 +470,14 @@ public:
     void
     auto_fragment(bool value)
     {
-        wr_autofrag_ = value;
+        wr_frag_opt_ = value;
     }
 
     /// Returns `true` if the automatic fragmentation option is set.
     bool
     auto_fragment() const
     {
-        return wr_autofrag_;
+        return wr_frag_opt_;
     }
 
     /** Set the binary message option.
@@ -682,14 +636,14 @@ public:
         if(amount < 8)
             BOOST_THROW_EXCEPTION(std::invalid_argument{
                 "write buffer size underflow"});
-        wr_buf_size_ = amount;
+        wr_buf_opt_ = amount;
     };
 
     /// Returns the size of the write buffer.
     std::size_t
     write_buffer_size() const
     {
-        return wr_buf_size_;
+        return wr_buf_opt_;
     }
 
     /** Set the text message option.
@@ -3412,7 +3366,7 @@ private:
     void open(role_type role);
     void close();
     void reset();
-    void wr_begin();
+    void begin_msg();
 
     template<class DynamicBuffer>
     bool

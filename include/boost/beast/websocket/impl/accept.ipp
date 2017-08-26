@@ -225,14 +225,14 @@ run(Buffers const& buffers)
     auto const len = buffer_size(buffers);
     try
     {
-        mb.emplace(d.ws.rd_.buf.prepare(len));
+        mb.emplace(d.ws.rd_buf_.prepare(len));
     }
     catch(std::length_error const&)
     {
         ec = error::buffer_overflow;
         return (*this)(ec);
     }
-    d.ws.rd_.buf.commit(
+    d.ws.rd_buf_.commit(
         buffer_copy(*mb, buffers));
     (*this)(ec);
 }
@@ -257,7 +257,7 @@ operator()(error_code ec)
         {
             BOOST_ASIO_CORO_YIELD
             http::async_read(
-                d.ws.next_layer(), d.ws.rd_.buf,
+                d.ws.next_layer(), d.ws.rd_buf_,
                     d.p, std::move(*this));
             if(ec == http::error::end_of_stream)
                 ec = error::closed;
@@ -407,7 +407,7 @@ accept(
         static_buffer_base::mutable_buffers_type> mb;
     try
     {
-        mb.emplace(rd_.buf.prepare(
+        mb.emplace(rd_buf_.prepare(
             buffer_size(buffers)));
     }
     catch(std::length_error const&)
@@ -415,7 +415,7 @@ accept(
         ec = error::buffer_overflow;
         return;
     }
-    rd_.buf.commit(
+    rd_buf_.commit(
         buffer_copy(*mb, buffers));
     do_accept(&default_decorate_res, ec);
 }
@@ -447,7 +447,7 @@ accept_ex(
         static_buffer_base::mutable_buffers_type> mb;
     try
     {
-        mb.emplace(rd_.buf.prepare(
+        mb.emplace(rd_buf_.prepare(
             buffer_size(buffers)));
     }
     catch(std::length_error const&)
@@ -455,7 +455,7 @@ accept_ex(
         ec = error::buffer_overflow;
         return;
     }
-    rd_.buf.commit(buffer_copy(*mb, buffers));
+    rd_buf_.commit(buffer_copy(*mb, buffers));
     do_accept(decorator, ec);
 }
 
@@ -713,7 +713,7 @@ do_accept(
     error_code& ec)
 {
     http::request_parser<http::empty_body> p;
-    http::read(next_layer(), rd_.buf, p, ec);
+    http::read(next_layer(), rd_buf_, p, ec);
     if(ec == http::error::end_of_stream)
         ec = error::closed;
     if(ec)
