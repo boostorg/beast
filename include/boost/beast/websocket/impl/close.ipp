@@ -134,7 +134,7 @@ operator()(error_code ec, std::size_t bytes_transferred)
             d.ws.wr_block_ = d.tok;
 
             // Make sure the stream is open
-            if(d.ws.failed_)
+            if(! d.ws.open_)
             {
                 BOOST_ASIO_CORO_YIELD
                 d.ws.get_io_service().post(
@@ -160,7 +160,7 @@ operator()(error_code ec, std::size_t bytes_transferred)
             BOOST_ASSERT(d.ws.wr_block_ == d.tok);
 
             // Make sure the stream is open
-            if(d.ws.failed_)
+            if(! d.ws.open_)
             {
                 ec = boost::asio::error::operation_aborted;
                 goto upcall;
@@ -175,7 +175,7 @@ operator()(error_code ec, std::size_t bytes_transferred)
             d.fb.data(), std::move(*this));
         if(ec)
         {
-            d.ws.failed_ = true;
+            d.ws.open_ = false;
             goto upcall;
         }
 
@@ -214,7 +214,7 @@ operator()(error_code ec, std::size_t bytes_transferred)
             BOOST_ASSERT(d.ws.rd_block_ == d.tok);
 
             // Handle the stream closing while suspended
-            if(d.ws.failed_)
+            if(! d.ws.open_)
             {
                 ec = boost::asio::error::operation_aborted;
                 goto upcall;
@@ -242,7 +242,7 @@ operator()(error_code ec, std::size_t bytes_transferred)
                             std::move(*this));
                 if(ec)
                 {
-                    d.ws.failed_ = true;
+                    d.ws.open_ = false;
                     goto upcall;
                 }
                 d.ws.rd_.buf.commit(bytes_transferred);
@@ -285,7 +285,7 @@ operator()(error_code ec, std::size_t bytes_transferred)
                                 std::move(*this));
                     if(ec)
                     {
-                        d.ws.failed_ = true;
+                        d.ws.open_ = false;
                         goto upcall;
                     }
                     d.ws.rd_.buf.commit(bytes_transferred);
@@ -312,7 +312,7 @@ operator()(error_code ec, std::size_t bytes_transferred)
         }
         if(! ec)
             ec = d.ev;
-        d.ws.failed_ = true;
+        d.ws.open_ = false;
 
     upcall:
         BOOST_ASSERT(d.ws.wr_block_ == d.tok);
@@ -354,7 +354,7 @@ close(close_reason const& cr, error_code& ec)
         "SyncStream requirements not met");
     using beast::detail::clamp;
     // Make sure the stream is open
-    if(failed_)
+    if(! open_)
     {
         ec = boost::asio::error::operation_aborted;
         return;
@@ -368,8 +368,8 @@ close(close_reason const& cr, error_code& ec)
         write_close<flat_static_buffer_base>(fb, cr);
         boost::asio::write(stream_, fb.data(), ec);
     }
-    failed_ = !!ec;
-    if(failed_)
+    open_ = ! ec;
+    if(! open_)
         return;
     // Drain the connection
     close_code code{};
@@ -387,8 +387,8 @@ close(close_reason const& cr, error_code& ec)
                 stream_.read_some(
                     rd_.buf.prepare(read_size(rd_.buf,
                         rd_.buf.max_size())), ec);
-            failed_ = !!ec;
-            if(failed_)
+            open_ = ! ec;
+            if(! open_)
                 return;
             rd_.buf.commit(bytes_transferred);
         }
@@ -425,8 +425,8 @@ close(close_reason const& cr, error_code& ec)
                     stream_.read_some(
                         rd_.buf.prepare(read_size(rd_.buf,
                             rd_.buf.max_size())), ec);
-                failed_ = !!ec;
-                if(failed_)
+                open_ = ! ec;
+                if(! open_)
                     return;
                 rd_.buf.commit(bytes_transferred);
             }

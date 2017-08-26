@@ -140,7 +140,7 @@ operator()(
             ws_.rd_block_ = tok_;
 
             // Make sure the stream is open
-            if(ws_.failed_)
+            if(! ws_.open_)
             {
                 BOOST_ASIO_CORO_YIELD
                 ws_.get_io_service().post(
@@ -167,7 +167,7 @@ operator()(
             dispatched_ = true;
 
             // Handle the stream closing while suspended
-            if(ws_.failed_)
+            if(! ws_.open_)
             {
                 ec = boost::asio::error::operation_aborted;
                 goto upcall;
@@ -197,8 +197,8 @@ operator()(
                         ws_.rd_.buf, ws_.rd_.buf.max_size())),
                             std::move(*this));
                 dispatched_ = true;
-                ws_.failed_ = !!ec;
-                if(ws_.failed_)
+                ws_.open_ = ! ec;
+                if(! ws_.open_)
                     goto upcall;
                 ws_.rd_.buf.commit(bytes_transferred);
             }
@@ -261,7 +261,7 @@ operator()(
                         dispatched_ = true;
 
                         // Make sure the stream is open
-                        if(ws_.failed_)
+                        if(! ws_.open_)
                         {
                             ws_.wr_block_.reset();
                             ec = boost::asio::error::operation_aborted;
@@ -284,8 +284,8 @@ operator()(
                     BOOST_ASSERT(ws_.wr_block_ == tok_);
                     dispatched_ = true;
                     ws_.wr_block_.reset();
-                    ws_.failed_ = !!ec;
-                    if(ws_.failed_)
+                    ws_.open_ = ! ec;
+                    if(! ws_.open_)
                         goto upcall;
                     goto loop;
                 }
@@ -365,8 +365,8 @@ operator()(
                             ws_.rd_.buf, ws_.rd_.buf.max_size())),
                                 std::move(*this));
                     dispatched_ = true;
-                    ws_.failed_ = !!ec;
-                    if(ws_.failed_)
+                    ws_.open_ = ! ec;
+                    if(! ws_.open_)
                         goto upcall;
                     ws_.rd_.buf.commit(bytes_transferred);
                     if(ws_.rd_.fh.mask)
@@ -408,8 +408,8 @@ operator()(
                     ws_.stream_.async_read_some(buffer_prefix(
                         clamp(ws_.rd_.remain), cb_), std::move(*this));
                     dispatched_ = true;
-                    ws_.failed_ = !!ec;
-                    if(ws_.failed_)
+                    ws_.open_ = ! ec;
+                    if(! ws_.open_)
                         goto upcall;
                     BOOST_ASSERT(bytes_transferred > 0);
                     auto const mb = buffer_prefix(
@@ -453,8 +453,8 @@ operator()(
                         ws_.rd_.buf.prepare(read_size(
                             ws_.rd_.buf, ws_.rd_.buf.max_size())),
                                 std::move(*this));
-                    ws_.failed_ = !!ec;
-                    if(ws_.failed_)
+                    ws_.open_ = ! ec;
+                    if(! ws_.open_)
                         goto upcall;
                     BOOST_ASSERT(bytes_transferred > 0);
                     ws_.rd_.buf.commit(bytes_transferred);
@@ -497,8 +497,8 @@ operator()(
                     zs.avail_in = sizeof(empty_block);
                     ws_.pmd_->zi.write(zs, zlib::Flush::sync, ec);
                     BOOST_ASSERT(! ec);
-                    ws_.failed_ = !!ec;
-                    if(ws_.failed_)
+                    ws_.open_ = ! ec;
+                    if(! ws_.open_)
                         break;
                     // VFALCO See:
                     // https://github.com/madler/zlib/issues/280
@@ -521,8 +521,8 @@ operator()(
                 }
                 ws_.pmd_->zi.write(zs, zlib::Flush::sync, ec);
                 BOOST_ASSERT(ec != zlib::error::end_of_stream);
-                ws_.failed_ = !!ec;
-                if(ws_.failed_)
+                ws_.open_ = ! ec;
+                if(! ws_.open_)
                     break;
                 if(ws_.rd_msg_max_ && beast::detail::sum_exceeds(
                     ws_.rd_.size, zs.total_out, ws_.rd_msg_max_))
@@ -893,7 +893,7 @@ read_some(
     close_code code{};
     std::size_t bytes_written = 0;
     // Make sure the stream is open
-    if(failed_)
+    if(! open_)
     {
         ec = boost::asio::error::operation_aborted;
         return 0;
@@ -919,8 +919,8 @@ loop:
                     rd_.buf.prepare(read_size(
                         rd_.buf, rd_.buf.max_size())),
                     ec);
-            failed_ = !!ec;
-            if(failed_)
+            open_ = ! ec;
+            if(! open_)
                 return bytes_written;
             rd_.buf.commit(bytes_transferred);
         }
@@ -959,8 +959,8 @@ loop:
                 write_ping<flat_static_buffer_base>(fb,
                     detail::opcode::pong, payload);
                 boost::asio::write(stream_, fb.data(), ec);
-                failed_ = !!ec;
-                if(failed_)
+                open_ = ! ec;
+                if(! open_)
                     return bytes_written;
                 goto loop;
             }
@@ -1024,8 +1024,8 @@ loop:
                 rd_.buf.commit(stream_.read_some(
                     rd_.buf.prepare(read_size(rd_.buf,
                         rd_.buf.max_size())), ec));
-                failed_ = !!ec;
-                if(failed_)
+                open_ = ! ec;
+                if(! open_)
                     return bytes_written;
                 if(rd_.fh.mask)
                     detail::mask_inplace(
@@ -1068,8 +1068,8 @@ loop:
                 auto const bytes_transferred =
                     stream_.read_some(buffer_prefix(
                         clamp(rd_.remain), buffers), ec);
-                failed_ = !!ec;
-                if(failed_)
+                open_ = ! ec;
+                if(! open_)
                     return bytes_written;
                 BOOST_ASSERT(bytes_transferred > 0);
                 auto const mb = buffer_prefix(
@@ -1131,8 +1131,8 @@ loop:
                             rd_.buf.prepare(read_size(
                                 rd_.buf, rd_.buf.max_size())),
                             ec);
-                    failed_ = !!ec;
-                    if(failed_)
+                    open_ = ! ec;
+                    if(! open_)
                         return bytes_written;
                     BOOST_ASSERT(bytes_transferred > 0);
                     rd_.buf.commit(bytes_transferred);
@@ -1162,8 +1162,8 @@ loop:
                 zs.avail_in = sizeof(empty_block);
                 pmd_->zi.write(zs, zlib::Flush::sync, ec);
                 BOOST_ASSERT(! ec);
-                failed_ = !!ec;
-                if(failed_)
+                open_ = ! ec;
+                if(! open_)
                     return bytes_written;
                 // VFALCO See:
                 // https://github.com/madler/zlib/issues/280
@@ -1186,8 +1186,8 @@ loop:
             }
             pmd_->zi.write(zs, zlib::Flush::sync, ec);
             BOOST_ASSERT(ec != zlib::error::end_of_stream);
-            failed_ = !!ec;
-            if(failed_)
+            open_ = ! ec;
+            if(! open_)
                 return bytes_written;
             if(rd_msg_max_ && beast::detail::sum_exceeds(
                 rd_.size, zs.total_out, rd_msg_max_))

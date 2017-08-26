@@ -134,7 +134,7 @@ open(role_type role)
 {
     // VFALCO TODO analyze and remove dupe code in reset()
     role_ = role;
-    failed_ = false;
+    open_ = true;
     rd_.remain = 0;
     rd_.cont = false;
     rd_.done = true;
@@ -194,7 +194,8 @@ void
 stream<NextLayer>::
 reset()
 {
-    failed_ = false;
+    BOOST_ASSERT(! open_);
+    open_ = false; // VFALCO is this needed?
     rd_.remain = 0;
     rd_.cont = false;
     rd_.done = true;

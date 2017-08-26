@@ -1,3 +1,9 @@
+Version 110:
+
+* Refactor stream open state variable
+
+--------------------------------------------------------------------------------
+
 Version 109:
 
 * refactor test::stream

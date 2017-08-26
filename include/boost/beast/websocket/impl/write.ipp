@@ -211,7 +211,7 @@ operator()(error_code ec,
             ws_.wr_block_ = tok_;
 
             // Make sure the stream is open
-            if(ws_.failed_)
+            if(! ws_.open_)
             {
                 BOOST_ASIO_CORO_YIELD
                 ws_.get_io_service().post(
@@ -237,7 +237,7 @@ operator()(error_code ec,
             BOOST_ASSERT(ws_.wr_block_ == tok_);
 
             // Make sure the stream is open
-            if(ws_.failed_)
+            if(! ws_.open_)
             {
                 ec = boost::asio::error::operation_aborted;
                 goto upcall;
@@ -262,7 +262,7 @@ operator()(error_code ec,
                     std::move(*this));
             BOOST_ASSERT(ws_.wr_block_ == tok_);
             if(ec)
-                ws_.failed_ = true;
+                ws_.open_ = false;
             goto upcall;
         }
 
@@ -290,7 +290,7 @@ operator()(error_code ec,
                 BOOST_ASSERT(ws_.wr_block_ == tok_);
                 if(ec)
                 {
-                    ws_.failed_ = true;
+                    ws_.open_ = false;
                     goto upcall;
                 }
                 if(remain_ == 0)
@@ -343,7 +343,7 @@ operator()(error_code ec,
             BOOST_ASSERT(ws_.wr_block_ == tok_);
             if(ec)
             {
-                ws_.failed_ = true;
+                ws_.open_ = false;
                 goto upcall;
             }
             while(remain_ > 0)
@@ -364,7 +364,7 @@ operator()(error_code ec,
                 BOOST_ASSERT(ws_.wr_block_ == tok_);
                 if(ec)
                 {
-                    ws_.failed_ = true;
+                    ws_.open_ = false;
                     goto upcall;
                 }
             }
@@ -401,7 +401,7 @@ operator()(error_code ec,
                 BOOST_ASSERT(ws_.wr_block_ == tok_);
                 if(ec)
                 {
-                    ws_.failed_ = true;
+                    ws_.open_ = false;
                     goto upcall;
                 }
                 if(remain_ == 0)
@@ -435,8 +435,8 @@ operator()(error_code ec,
                     ws_.wr_.buf_size);
                 more_ = detail::deflate(
                     ws_.pmd_->zo, b, cb_, fin_, ec);
-                ws_.failed_ = !!ec;
-                if(ws_.failed_)
+                ws_.open_ = ! ec;
+                if(! ws_.open_)
                 {
                     // Always dispatching is easiest
                     BOOST_ASIO_CORO_YIELD
@@ -484,7 +484,7 @@ operator()(error_code ec,
                 BOOST_ASSERT(ws_.wr_block_ == tok_);
                 if(ec)
                 {
-                    ws_.failed_ = true;
+                    ws_.open_ = false;
                     goto upcall;
                 }
                 if(more_)
@@ -567,7 +567,7 @@ write_some(bool fin,
     using boost::asio::buffer_copy;
     using boost::asio::buffer_size;
     // Make sure the stream is open
-    if(failed_)
+    if(! open_)
     {
         ec = boost::asio::error::operation_aborted;
         return;
@@ -598,8 +598,8 @@ write_some(bool fin,
                 wr_.buf.get(), wr_.buf_size);
             auto const more = detail::deflate(
                 pmd_->zo, b, cb, fin, ec);
-            failed_ = !!ec;
-            if(failed_)
+            open_ = ! ec;
+            if(! open_)
                 return;
             auto const n = buffer_size(b);
             if(n == 0)
@@ -627,8 +627,8 @@ write_some(bool fin,
             wr_.cont = ! fin;
             boost::asio::write(stream_,
                 buffer_cat(fh_buf.data(), b), ec);
-            failed_ = !!ec;
-            if(failed_)
+            open_ = ! ec;
+            if(! open_)
                 return;
             if(! more)
                 break;
@@ -656,8 +656,8 @@ write_some(bool fin,
             wr_.cont = ! fin;
             boost::asio::write(stream_,
                 buffer_cat(fh_buf.data(), buffers), ec);
-            failed_ = !!ec;
-            if(failed_)
+            open_ = ! ec;
+            if(! open_)
                 return;
         }
         else
@@ -679,8 +679,8 @@ write_some(bool fin,
                 boost::asio::write(stream_,
                     buffer_cat(fh_buf.data(),
                         buffer_prefix(n, cb)), ec);
-                failed_ = !!ec;
-                if(failed_)
+                open_ = ! ec;
+                if(! open_)
                     return;
                 if(remain == 0)
                     break;
@@ -713,8 +713,8 @@ write_some(bool fin,
             wr_.cont = ! fin;
             boost::asio::write(stream_,
                 buffer_cat(fh_buf.data(), b), ec);
-            failed_ = !!ec;
-            if(failed_)
+            open_ = ! ec;
+            if(! open_)
                 return;
         }
         while(remain > 0)
@@ -726,8 +726,8 @@ write_some(bool fin,
             remain -= n;
             detail::mask_inplace(b, key);
             boost::asio::write(stream_, b, ec);
-            failed_ = !!ec;
-            if(failed_)
+            open_ = ! ec;
+            if(! open_)
                 return;
         }
         return;
@@ -755,8 +755,8 @@ write_some(bool fin,
                 flat_static_buffer_base>(fh_buf, fh);
             boost::asio::write(stream_,
                 buffer_cat(fh_buf.data(), b), ec);
-            failed_ = !!ec;
-            if(failed_)
+            open_ = ! ec;
+            if(! open_)
                 return;
             if(remain == 0)
                 break;

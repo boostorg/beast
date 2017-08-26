@@ -136,7 +136,7 @@ operator()(error_code ec, std::size_t)
                 d.ws.wr_block_ = d.tok;
 
                 // Make sure the stream is open
-                if(d.ws.failed_)
+                if(! d.ws.open_)
                 {
                     BOOST_ASIO_CORO_YIELD
                     d.ws.get_io_service().post(
@@ -162,7 +162,7 @@ operator()(error_code ec, std::size_t)
                 BOOST_ASSERT(d.ws.wr_block_ == d.tok);
 
                 // Make sure the stream is open
-                if(d.ws.failed_)
+                if(! d.ws.open_)
                 {
                     ec = boost::asio::error::operation_aborted;
                     goto upcall;
@@ -180,8 +180,8 @@ operator()(error_code ec, std::size_t)
                 d.ws.stream_, d.fb.data(),
                     std::move(*this));
             BOOST_ASSERT(d.ws.wr_block_ == d.tok);
-            d.ws.failed_ = !!ec;
-            if(d.ws.failed_)
+            d.ws.open_ = ! ec;
+            if(! d.ws.open_)
                 goto upcall;
         }
         // Teardown
@@ -199,7 +199,7 @@ operator()(error_code ec, std::size_t)
         }
         if(! ec)
             ec = d.ev;
-        d.ws.failed_ = true;
+        d.ws.open_ = false;
     upcall:
         if(d.ws.wr_block_ == d.tok)
             d.ws.wr_block_.reset();
@@ -227,8 +227,8 @@ do_fail(
         write_close<
             flat_static_buffer_base>(fb, code);
         boost::asio::write(stream_, fb.data(), ec);
-        failed_ = !!ec;
-        if(failed_)
+        open_ = ! ec;
+        if(! open_)
             return;
     }
     using beast::websocket::teardown;
@@ -239,11 +239,11 @@ do_fail(
         // http://stackoverflow.com/questions/25587403/boost-asio-ssl-async-shutdown-always-finishes-with-an-error
         ec.assign(0, ec.category());
     }
-    failed_ = !!ec;
-    if(failed_)
+    open_ = ! ec;
+    if(! open_)
         return;
     ec = ev;
-    failed_ = true;
+    open_ = false;
 }
 
 /*  _Fail the WebSocket Connection_

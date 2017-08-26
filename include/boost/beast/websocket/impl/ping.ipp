@@ -131,7 +131,7 @@ operator()(error_code ec, std::size_t)
             d.ws.wr_block_ = d.tok;
 
             // Make sure the stream is open
-            if(d.ws.failed_)
+            if(! d.ws.open_)
             {
                 BOOST_ASIO_CORO_YIELD
                 d.ws.get_io_service().post(
@@ -157,7 +157,7 @@ operator()(error_code ec, std::size_t)
             BOOST_ASSERT(d.ws.wr_block_ == d.tok);
 
             // Make sure the stream is open
-            if(d.ws.failed_)
+            if(! d.ws.open_)
             {
                 ec = boost::asio::error::operation_aborted;
                 goto upcall;
@@ -169,7 +169,7 @@ operator()(error_code ec, std::size_t)
         boost::asio::async_write(d.ws.stream_,
             d.fb.data(), std::move(*this));
         if(ec)
-            d.ws.failed_ = true;
+            d.ws.open_ = false;
 
     upcall:
         BOOST_ASSERT(d.ws.wr_block_ == d.tok);
@@ -200,7 +200,7 @@ stream<NextLayer>::
 ping(ping_data const& payload, error_code& ec)
 {
     // Make sure the stream is open
-    if(failed_)
+    if(! open_)
     {
         ec = boost::asio::error::operation_aborted;
         return;
@@ -228,7 +228,7 @@ stream<NextLayer>::
 pong(ping_data const& payload, error_code& ec)
 {
     // Make sure the stream is open
-    if(failed_)
+    if(! open_)
     {
         ec = boost::asio::error::operation_aborted;
         return;

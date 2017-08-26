@@ -228,7 +228,7 @@ class stream
         detail::opcode::text;               // outgoing message type
     control_cb_type ctrl_cb_;               // control callback
     role_type role_;                        // server or client
-    bool failed_ = true;                    // the connection failed
+    bool open_ = false;                     // `true` if established
 
     bool rd_close_;                         // read close frame
     bool wr_close_;                         // sent close frame
