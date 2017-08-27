@@ -2,6 +2,7 @@ Version 110:
 
 * Refactor stream open state variable
 * Refactor websocket stream members
+* Refactor websocket stream: fixes and tests
 
 --------------------------------------------------------------------------------
 

@@ -49,6 +49,7 @@ class stream<NextLayer>::write_some_op
     int how_;
     bool fin_;
     bool more_;
+    bool cont_;
 
 public:
     write_some_op(write_some_op&&) = default;
@@ -75,16 +76,9 @@ public:
     }
 
     void operator()(
-        error_code ec,
-        std::size_t bytes_transferred,
-        bool)
-    {
-        (*this)(ec, bytes_transferred);
-    }
-
-    void operator()(
         error_code ec = {},
-        std::size_t bytes_transferred = 0);
+        std::size_t bytes_transferred = 0,
+        bool cont = true);
 
     friend
     void* asio_handler_allocate(
@@ -108,7 +102,7 @@ public:
     bool asio_handler_is_continuation(write_some_op* op)
     {
         using boost::asio::asio_handler_is_continuation;
-        return asio_handler_is_continuation(
+        return op->cont_ || asio_handler_is_continuation(
             std::addressof(op->h_));
     }
 
@@ -127,8 +121,10 @@ template<class Buffers, class Handler>
 void
 stream<NextLayer>::
 write_some_op<Buffers, Handler>::
-operator()(error_code ec,
-    std::size_t bytes_transferred)
+operator()(
+    error_code ec,
+    std::size_t bytes_transferred,
+    bool cont)
 {
     using beast::detail::clamp;
     using boost::asio::buffer;
@@ -145,7 +141,7 @@ operator()(error_code ec,
     };
     std::size_t n;
     boost::asio::mutable_buffer b;
-
+    cont_ = cont;
     BOOST_ASIO_CORO_REENTER(*this)
     {
         // Set up the outgoing frame header
@@ -203,7 +199,6 @@ operator()(error_code ec,
             }
         }
 
-    do_maybe_suspend:
         // Maybe suspend
         if(! ws_.wr_block_)
         {
@@ -211,17 +206,12 @@ operator()(error_code ec,
             ws_.wr_block_ = tok_;
 
             // Make sure the stream is open
-            if(! ws_.open_)
-            {
-                BOOST_ASIO_CORO_YIELD
-                ws_.get_io_service().post(
-                    bind_handler(std::move(*this),
-                        boost::asio::error::operation_aborted));
+            if(ws_.check_fail(ec))
                 goto upcall;
-            }
         }
         else
         {
+        do_suspend:
             // Suspend
             BOOST_ASSERT(ws_.wr_block_ != tok_);
             BOOST_ASIO_CORO_YIELD
@@ -237,11 +227,8 @@ operator()(error_code ec,
             BOOST_ASSERT(ws_.wr_block_ == tok_);
 
             // Make sure the stream is open
-            if(! ws_.open_)
-            {
-                ec = boost::asio::error::operation_aborted;
+            if(ws_.check_fail(ec))
                 goto upcall;
-            }
         }
 
         //------------------------------------------------------------------
@@ -261,8 +248,8 @@ operator()(error_code ec,
                 buffer_cat(ws_.wr_fb_.data(), cb_),
                     std::move(*this));
             BOOST_ASSERT(ws_.wr_block_ == tok_);
-            if(ec)
-                ws_.open_ = false;
+            if(ws_.check_fail(ec))
+                goto upcall;
             goto upcall;
         }
 
@@ -288,13 +275,10 @@ operator()(error_code ec,
                             clamp(fh_.len), cb_)),
                                 std::move(*this));
                 BOOST_ASSERT(ws_.wr_block_ == tok_);
-                if(ec)
-                {
-                    ws_.open_ = false;
+                if(ws_.check_fail(ec))
                     goto upcall;
-                }
                 if(remain_ == 0)
-                    goto upcall;
+                    break;
                 cb_.consume(
                     bytes_transferred - ws_.wr_fb_.size());
                 fh_.op = detail::opcode::cont;
@@ -305,13 +289,12 @@ operator()(error_code ec,
                     ws_.paused_rd_.maybe_invoke() ||
                     ws_.paused_ping_.maybe_invoke())
                 {
-                    BOOST_ASIO_CORO_YIELD
-                    ws_.get_io_service().post(
-                        std::move(*this));
-                    goto do_maybe_suspend;
+                    BOOST_ASSERT(ws_.wr_block_);
+                    goto do_suspend;
                 }
                 ws_.wr_block_ = tok_;
             }
+            goto upcall;
         }
 
         //------------------------------------------------------------------
@@ -341,11 +324,8 @@ operator()(error_code ec,
                     buffer(ws_.wr_buf_.get(), n)),
                         std::move(*this));
             BOOST_ASSERT(ws_.wr_block_ == tok_);
-            if(ec)
-            {
-                ws_.open_ = false;
+            if(ws_.check_fail(ec))
                 goto upcall;
-            }
             while(remain_ > 0)
             {
                 cb_.consume(ws_.wr_buf_size_);
@@ -362,11 +342,8 @@ operator()(error_code ec,
                     buffer(ws_.wr_buf_.get(), n),
                         std::move(*this));
                 BOOST_ASSERT(ws_.wr_block_ == tok_);
-                if(ec)
-                {
-                    ws_.open_ = false;
+                if(ws_.check_fail(ec))
                     goto upcall;
-                }
             }
             goto upcall;
         }
@@ -399,13 +376,10 @@ operator()(error_code ec,
                         buffer(ws_.wr_buf_.get(), n)),
                             std::move(*this));
                 BOOST_ASSERT(ws_.wr_block_ == tok_);
-                if(ec)
-                {
-                    ws_.open_ = false;
+                if(ws_.check_fail(ec))
                     goto upcall;
-                }
                 if(remain_ == 0)
-                    goto upcall;
+                    break;
                 cb_.consume(
                     bytes_transferred - ws_.wr_fb_.size());
                 fh_.op = detail::opcode::cont;
@@ -416,13 +390,12 @@ operator()(error_code ec,
                     ws_.paused_rd_.maybe_invoke() ||
                     ws_.paused_ping_.maybe_invoke())
                 {
-                    BOOST_ASIO_CORO_YIELD
-                    ws_.get_io_service().post(
-                        std::move(*this));
-                    goto do_maybe_suspend;
+                    BOOST_ASSERT(ws_.wr_block_);
+                    goto do_suspend;
                 }
                 ws_.wr_block_ = tok_;
             }
+            goto upcall;
         }
 
         //------------------------------------------------------------------
@@ -435,15 +408,8 @@ operator()(error_code ec,
                     ws_.wr_buf_size_);
                 more_ = detail::deflate(
                     ws_.pmd_->zo, b, cb_, fin_, ec);
-                ws_.open_ = ! ec;
-                if(! ws_.open_)
-                {
-                    // Always dispatching is easiest
-                    BOOST_ASIO_CORO_YIELD
-                    ws_.get_io_service().post(
-                        bind_handler(std::move(*this), ec));
+                if(ws_.check_fail(ec))
                     goto upcall;
-                }
                 n = buffer_size(b);
                 if(n == 0)
                 {
@@ -452,14 +418,6 @@ operator()(error_code ec,
                     // latency.
                     BOOST_ASSERT(! fin_);
                     BOOST_ASSERT(buffer_size(cb_) == 0);
-
-                    // We can skip the dispatch if the
-                    // asynchronous initiation function is
-                    // not on call stack but its hard to
-                    // figure out so be safe and dispatch.
-                    BOOST_ASIO_CORO_YIELD
-                    ws_.get_io_service().post(
-                        std::move(*this));
                     goto upcall;
                 }
                 if(fh_.mask)
@@ -482,11 +440,8 @@ operator()(error_code ec,
                     buffer_cat(ws_.wr_fb_.data(),
                         mutable_buffers_1{b}), std::move(*this));
                 BOOST_ASSERT(ws_.wr_block_ == tok_);
-                if(ec)
-                {
-                    ws_.open_ = false;
+                if(ws_.check_fail(ec))
                     goto upcall;
-                }
                 if(more_)
                 {
                     fh_.op = detail::opcode::cont;
@@ -498,10 +453,8 @@ operator()(error_code ec,
                         ws_.paused_rd_.maybe_invoke() ||
                         ws_.paused_ping_.maybe_invoke())
                     {
-                        BOOST_ASIO_CORO_YIELD
-                        ws_.get_io_service().post(
-                            std::move(*this));
-                        goto do_maybe_suspend;
+                        BOOST_ASSERT(ws_.wr_block_);
+                        goto do_suspend;
                     }
                     ws_.wr_block_ = tok_;
                 }
@@ -527,6 +480,9 @@ operator()(error_code ec,
         ws_.paused_close_.maybe_invoke() ||
             ws_.paused_rd_.maybe_invoke() ||
             ws_.paused_ping_.maybe_invoke();
+        if(! cont_)
+            return ws_.stream_.get_io_service().post(
+                bind_handler(h_, ec));
         h_(ec);
     }
 }
@@ -566,12 +522,10 @@ write_some(bool fin,
     using boost::asio::buffer;
     using boost::asio::buffer_copy;
     using boost::asio::buffer_size;
+    ec.assign(0, ec.category());
     // Make sure the stream is open
-    if(! open_)
-    {
-        ec = boost::asio::error::operation_aborted;
+    if(check_fail(ec))
         return;
-    }
     detail::frame_header fh;
     if(! wr_cont_)
     {
@@ -627,8 +581,7 @@ write_some(bool fin,
             wr_cont_ = ! fin;
             boost::asio::write(stream_,
                 buffer_cat(fh_buf.data(), b), ec);
-            open_ = ! ec;
-            if(! open_)
+            if(check_fail(ec))
                 return;
             if(! more)
                 break;
@@ -641,9 +594,8 @@ write_some(bool fin,
             (role_ == role_type::server &&
                 pmd_config_.server_no_context_takeover)))
             pmd_->zo.reset();
-        return;
     }
-    if(! fh.mask)
+    else if(! fh.mask)
     {
         if(! wr_frag_)
         {
@@ -656,8 +608,7 @@ write_some(bool fin,
             wr_cont_ = ! fin;
             boost::asio::write(stream_,
                 buffer_cat(fh_buf.data(), buffers), ec);
-            open_ = ! ec;
-            if(! open_)
+            if(check_fail(ec))
                 return;
         }
         else
@@ -679,8 +630,7 @@ write_some(bool fin,
                 boost::asio::write(stream_,
                     buffer_cat(fh_buf.data(),
                         buffer_prefix(n, cb)), ec);
-                open_ = ! ec;
-                if(! open_)
+                if(check_fail(ec))
                     return;
                 if(remain == 0)
                     break;
@@ -688,9 +638,8 @@ write_some(bool fin,
                 cb.consume(n);
             }
         }
-        return;
     }
-    if(! wr_frag_)
+    else if(! wr_frag_)
     {
         // mask, no autofrag
         fh.fin = fin;
@@ -713,8 +662,7 @@ write_some(bool fin,
             wr_cont_ = ! fin;
             boost::asio::write(stream_,
                 buffer_cat(fh_buf.data(), b), ec);
-            open_ = ! ec;
-            if(! open_)
+            if(check_fail(ec))
                 return;
         }
         while(remain > 0)
@@ -726,12 +674,11 @@ write_some(bool fin,
             remain -= n;
             detail::mask_inplace(b, key);
             boost::asio::write(stream_, b, ec);
-            open_ = ! ec;
-            if(! open_)
+            if(check_fail(ec))
                 return;
         }
-        return;
     }
+    else
     {
         // mask, autofrag
         BOOST_ASSERT(wr_buf_size_ != 0);
@@ -755,15 +702,13 @@ write_some(bool fin,
                 flat_static_buffer_base>(fh_buf, fh);
             boost::asio::write(stream_,
                 buffer_cat(fh_buf.data(), b), ec);
-            open_ = ! ec;
-            if(! open_)
+            if(check_fail(ec))
                 return;
             if(remain == 0)
                 break;
             fh.op = detail::opcode::cont;
             cb.consume(n);
         }
-        return;
     }
 }
 
@@ -784,7 +729,7 @@ async_write_some(bool fin,
         void(error_code)> init{handler};
     write_some_op<ConstBufferSequence, handler_type<
         WriteHandler, void(error_code)>>{init.completion_handler,
-            *this, fin, bs}();
+            *this, fin, bs}({}, 0, false);
     return init.result.get();
 }
 
@@ -838,7 +783,7 @@ async_write(
         void(error_code)> init{handler};
     write_some_op<ConstBufferSequence, handler_type<
         WriteHandler, void(error_code)>>{init.completion_handler,
-            *this, true, bs}();
+            *this, true, bs}({}, 0, false);
     return init.result.get();
 }
 

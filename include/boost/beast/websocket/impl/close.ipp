@@ -22,11 +22,11 @@
 #include <boost/throw_exception.hpp>
 #include <memory>
 
+#include <iostream>
+
 namespace boost {
 namespace beast {
 namespace websocket {
-
-//------------------------------------------------------------------------------
 
 /*  Close the WebSocket Connection
 
@@ -46,6 +46,7 @@ class stream<NextLayer>::close_op
         detail::frame_buffer fb;
         error_code ev;
         token tok;
+        bool cont;
 
         state(
             Handler&,
@@ -78,7 +79,8 @@ public:
     void
     operator()(
         error_code ec = {},
-        std::size_t bytes_transferred = 0);
+        std::size_t bytes_transferred = 0,
+        bool cont = true);
 
     friend
     void* asio_handler_allocate(
@@ -102,7 +104,7 @@ public:
     bool asio_handler_is_continuation(close_op* op)
     {
         using boost::asio::asio_handler_is_continuation;
-        return asio_handler_is_continuation(
+        return op->d_->cont || asio_handler_is_continuation(
             std::addressof(op->d_.handler()));
     }
 
@@ -120,11 +122,15 @@ template<class NextLayer>
 template<class Handler>
 void
 stream<NextLayer>::close_op<Handler>::
-operator()(error_code ec, std::size_t bytes_transferred)
+operator()(
+    error_code ec,
+    std::size_t bytes_transferred,
+    bool cont)
 {
     using beast::detail::clamp;
     auto& d = *d_;
     close_code code{};
+    d.cont = cont;
     BOOST_ASIO_CORO_REENTER(*this)
     {
         // Maybe suspend
@@ -134,14 +140,8 @@ operator()(error_code ec, std::size_t bytes_transferred)
             d.ws.wr_block_ = d.tok;
 
             // Make sure the stream is open
-            if(! d.ws.open_)
-            {
-                BOOST_ASIO_CORO_YIELD
-                d.ws.get_io_service().post(
-                    bind_handler(std::move(*this),
-                        boost::asio::error::operation_aborted));
+            if(d.ws.check_fail(ec))
                 goto upcall;
-            }
         }
         else
         {
@@ -160,24 +160,20 @@ operator()(error_code ec, std::size_t bytes_transferred)
             BOOST_ASSERT(d.ws.wr_block_ == d.tok);
 
             // Make sure the stream is open
-            if(! d.ws.open_)
-            {
-                ec = boost::asio::error::operation_aborted;
+            if(d.ws.check_fail(ec))
                 goto upcall;
-            }
         }
 
-        // Send close frame
+        // Can't call close twice
         BOOST_ASSERT(! d.ws.wr_close_);
+
+        // Send close frame
         d.ws.wr_close_ = true;
         BOOST_ASIO_CORO_YIELD
         boost::asio::async_write(d.ws.stream_,
             d.fb.data(), std::move(*this));
-        if(ec)
-        {
-            d.ws.open_ = false;
+        if(d.ws.check_fail(ec))
             goto upcall;
-        }
 
         if(d.ws.rd_close_)
         {
@@ -187,6 +183,7 @@ operator()(error_code ec, std::size_t bytes_transferred)
             goto teardown;
         }
 
+        // Maybe suspend
         if(! d.ws.rd_block_)
         {
             // Acquire the read block
@@ -194,11 +191,6 @@ operator()(error_code ec, std::size_t bytes_transferred)
         }
         else
         {
-            // The read_op is currently running so it will see
-            // the close frame and call teardown. We will suspend
-            // to cause async_read to return error::closed, before
-            // we return error::success.
-
             // Suspend
             BOOST_ASSERT(d.ws.rd_block_ != d.tok);
             BOOST_ASIO_CORO_YIELD
@@ -213,12 +205,11 @@ operator()(error_code ec, std::size_t bytes_transferred)
             d.ws.get_io_service().post(std::move(*this));
             BOOST_ASSERT(d.ws.rd_block_ == d.tok);
 
-            // Handle the stream closing while suspended
-            if(! d.ws.open_)
-            {
-                ec = boost::asio::error::operation_aborted;
+            // Make sure the stream is open
+            if(d.ws.check_fail(ec))
                 goto upcall;
-            }
+
+            BOOST_ASSERT(! d.ws.rd_close_);
         }
 
         // Drain
@@ -240,11 +231,8 @@ operator()(error_code ec, std::size_t bytes_transferred)
                     d.ws.rd_buf_.prepare(read_size(d.ws.rd_buf_,
                         d.ws.rd_buf_.max_size())),
                             std::move(*this));
-                if(ec)
-                {
-                    d.ws.open_ = false;
+                if(d.ws.check_fail(ec))
                     goto upcall;
-                }
                 d.ws.rd_buf_.commit(bytes_transferred);
             }
             if(detail::is_control(d.ws.rd_fh_.op))
@@ -283,11 +271,8 @@ operator()(error_code ec, std::size_t bytes_transferred)
                         d.ws.rd_buf_.prepare(read_size(d.ws.rd_buf_,
                             d.ws.rd_buf_.max_size())),
                                 std::move(*this));
-                    if(ec)
-                    {
-                        d.ws.open_ = false;
+                    if(d.ws.check_fail(ec))
                         goto upcall;
-                    }
                     d.ws.rd_buf_.commit(bytes_transferred);
                 }
                 BOOST_ASSERT(d.ws.rd_buf_.size() >= d.ws.rd_remain_);
@@ -304,6 +289,7 @@ operator()(error_code ec, std::size_t bytes_transferred)
         async_teardown(d.ws.role_,
             d.ws.stream_, std::move(*this));
         BOOST_ASSERT(d.ws.wr_block_ == d.tok);
+        BOOST_ASSERT(d.ws.open_);
         if(ec == boost::asio::error::eof)
         {
             // Rationale:
@@ -317,15 +303,20 @@ operator()(error_code ec, std::size_t bytes_transferred)
     upcall:
         BOOST_ASSERT(d.ws.wr_block_ == d.tok);
         d.ws.wr_block_.reset();
-        if(d.ws.rd_block_)
+        if(d.ws.rd_block_ == d.tok)
         {
-            BOOST_ASSERT(d.ws.rd_block_ = d.tok);
             d.ws.rd_block_.reset();
             d.ws.paused_r_rd_.maybe_invoke();
         }
         d.ws.paused_rd_.maybe_invoke() ||
             d.ws.paused_ping_.maybe_invoke() ||
             d.ws.paused_wr_.maybe_invoke();
+        if(! d.cont)
+        {
+            auto& ws = d.ws;
+            return ws.stream_.get_io_service().post(
+                bind_handler(d_.release_handler(), ec));
+        }
         d_.invoke(ec);
     }
 }
@@ -353,12 +344,10 @@ close(close_reason const& cr, error_code& ec)
     static_assert(is_sync_stream<next_layer_type>::value,
         "SyncStream requirements not met");
     using beast::detail::clamp;
+    ec.assign(0, ec.category());
     // Make sure the stream is open
-    if(! open_)
-    {
-        ec = boost::asio::error::operation_aborted;
+    if(check_fail(ec))
         return;
-    }
     // If rd_close_ is set then we already sent a close
     BOOST_ASSERT(! rd_close_);
     BOOST_ASSERT(! wr_close_);
@@ -368,8 +357,7 @@ close(close_reason const& cr, error_code& ec)
         write_close<flat_static_buffer_base>(fb, cr);
         boost::asio::write(stream_, fb.data(), ec);
     }
-    open_ = ! ec;
-    if(! open_)
+    if(check_fail(ec))
         return;
     // Drain the connection
     close_code code{};
@@ -387,8 +375,7 @@ close(close_reason const& cr, error_code& ec)
                 stream_.read_some(
                     rd_buf_.prepare(read_size(rd_buf_,
                         rd_buf_.max_size())), ec);
-            open_ = ! ec;
-            if(! open_)
+            if(check_fail(ec))
                 return;
             rd_buf_.commit(bytes_transferred);
         }
@@ -406,9 +393,11 @@ close(close_reason const& cr, error_code& ec)
                     detail::mask_inplace(mb, rd_key_);
                 detail::read_close(cr_, mb, code);
                 if(code != close_code::none)
+                {
                     // Protocol error
                     return do_fail(close_code::none,
                         error::failed, ec);
+                }
                 rd_buf_.consume(clamp(rd_fh_.len));
                 break;
             }
@@ -454,7 +443,8 @@ async_close(close_reason const& cr, CloseHandler&& handler)
         void(error_code)> init{handler};
     close_op<handler_type<
         CloseHandler, void(error_code)>>{
-            init.completion_handler, *this, cr}({});
+            init.completion_handler, *this, cr}(
+                {}, 0, false);
     return init.result.get();
 }
 

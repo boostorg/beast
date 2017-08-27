@@ -51,7 +51,7 @@ public:
         }();
 
         // request in stream
-        doTestLoop([&](test::stream& ts)
+        doStreamLoop([&](test::stream& ts)
         {
             stream<test::stream&> ws{ts};
             auto tr = connect(ws.next_layer());
@@ -95,7 +95,7 @@ public:
         }
 
         // request in stream, decorator
-        doTestLoop([&](test::stream& ts)
+        doStreamLoop([&](test::stream& ts)
         {
             stream<test::stream&> ws{ts};
             auto tr = connect(ws.next_layer());
@@ -141,7 +141,7 @@ public:
         }
 
         // request in buffers
-        doTestLoop([&](test::stream& ts)
+        doStreamLoop([&](test::stream& ts)
         {
             stream<test::stream&> ws{ts};
             auto tr = connect(ws.next_layer());
@@ -183,7 +183,7 @@ public:
         }
 
         // request in buffers, decorator
-        doTestLoop([&](test::stream& ts)
+        doStreamLoop([&](test::stream& ts)
         {
             stream<test::stream&> ws{ts};
             auto tr = connect(ws.next_layer());
@@ -228,7 +228,7 @@ public:
         }
 
         // request in buffers and stream
-        doTestLoop([&](test::stream& ts)
+        doStreamLoop([&](test::stream& ts)
         {
             stream<test::stream&> ws{ts};
             auto tr = connect(ws.next_layer());
@@ -273,7 +273,7 @@ public:
         }
 
         // request in buffers and stream, decorator
-        doTestLoop([&](test::stream& ts)
+        doStreamLoop([&](test::stream& ts)
         {
             stream<test::stream&> ws{ts};
             auto tr = connect(ws.next_layer());
@@ -320,7 +320,7 @@ public:
         }
 
         // request in message
-        doTestLoop([&](test::stream& ts)
+        doStreamLoop([&](test::stream& ts)
         {
             stream<test::stream&> ws{ts};
             auto tr = connect(ws.next_layer());
@@ -337,7 +337,7 @@ public:
         });
 
         // request in message, decorator
-        doTestLoop([&](test::stream& ts)
+        doStreamLoop([&](test::stream& ts)
         {
             stream<test::stream&> ws{ts};
             auto tr = connect(ws.next_layer());
@@ -357,7 +357,7 @@ public:
         });
 
         // request in message, close frame in stream
-        doTestLoop([&](test::stream& ts)
+        doStreamLoop([&](test::stream& ts)
         {
             stream<test::stream&> ws{ts};
             auto tr = connect(ws.next_layer());
@@ -386,7 +386,7 @@ public:
         });
 
         // failed handshake (missing Sec-WebSocket-Key)
-        doTestLoop([&](test::stream& ts)
+        doStreamLoop([&](test::stream& ts)
         {
             stream<test::stream&> ws{ts};
             auto tr = connect(ws.next_layer());

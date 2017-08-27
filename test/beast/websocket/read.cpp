@@ -568,38 +568,83 @@ public:
             check(error::closed,
                 "\x88\x06\xfc\x15utf8");
         }
+    }
+
+    void
+    testReadSuspend()
+    {
+        using boost::asio::buffer;
 
         // suspend on write
+        doFailLoop([&](test::fail_counter& fc)
         {
             echo_server es{log};
-            error_code ec;
             boost::asio::io_service ios;
-            stream<test::stream> ws{ios};
+            stream<test::stream> ws{ios, fc};
             ws.next_layer().connect(es.stream());
-            ws.handshake("localhost", "/", ec);
-            BEAST_EXPECTS(! ec, ec.message());
+            ws.handshake("localhost", "/");
             // insert a ping
             ws.next_layer().append(string_view(
                 "\x89\x00", 2));
             std::size_t count = 0;
-            multi_buffer b;
             std::string const s = "Hello, world";
+            multi_buffer b;
             ws.async_read(b,
                 [&](error_code ec, std::size_t)
                 {
                     ++count;
-                    BEAST_EXPECTS(! ec, ec.message());
+                    if(ec)
+                        BOOST_THROW_EXCEPTION(
+                            system_error{ec});
                     BEAST_EXPECT(to_string(b.data()) == s);
                 });
+            BEAST_EXPECT(ws.rd_block_);
             ws.async_write(buffer(s),
                 [&](error_code ec)
                 {
                     ++count;
-                    BEAST_EXPECTS(! ec, ec.message());
+                    if(ec)
+                        BOOST_THROW_EXCEPTION(
+                            system_error{ec});
                 });
             BEAST_EXPECT(ws.wr_block_);
             ios.run();
             BEAST_EXPECT(count == 2);
+        });
+    }
+
+    void
+    testContHook()
+    {
+        {
+            struct handler
+            {
+                void operator()(error_code, std::size_t) {}
+            };
+        
+            char buf[32];
+            stream<test::stream> ws{ios_};
+            stream<test::stream>::read_some_op<
+                boost::asio::mutable_buffers_1,
+                    handler> op{handler{}, ws,
+                        boost::asio::mutable_buffers_1{
+                            buf, sizeof(buf)}};
+            using boost::asio::asio_handler_is_continuation;
+            asio_handler_is_continuation(&op);
+        }
+        {
+            struct handler
+            {
+                void operator()(error_code, std::size_t) {}
+            };
+        
+            multi_buffer b;
+            stream<test::stream> ws{ios_};
+            stream<test::stream>::read_op<
+                multi_buffer, handler> op{
+                    handler{}, ws, b, 32, true};
+            using boost::asio::asio_handler_is_continuation;
+            asio_handler_is_continuation(&op);
         }
     }
 
@@ -607,6 +652,8 @@ public:
     run() override
     {
         testRead();
+        testReadSuspend();
+        testContHook();
     }
 };
 

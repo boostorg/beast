@@ -31,6 +31,7 @@
 #include <boost/beast/http/detail/type_traits.hpp>
 #include <boost/beast/zlib/deflate_stream.hpp>
 #include <boost/beast/zlib/inflate_stream.hpp>
+#include <boost/asio/error.hpp>
 #include <algorithm>
 #include <cstdint>
 #include <functional>
@@ -150,7 +151,7 @@ class stream
     struct pmd_t
     {
         // `true` if current read message is compressed
-        bool rd_set;
+        bool rd_set = false;
 
         zlib::deflate_stream zo;
         zlib::inflate_stream zi;
@@ -165,37 +166,50 @@ class stream
 
     std::size_t             rd_msg_max_     // max message size
                                 = 16 * 1024 * 1024;
-    std::uint64_t           rd_size_;       // total size of current message so far
-    std::uint64_t           rd_remain_;     // message frame bytes left in current frame
+    std::uint64_t           rd_size_        // total size of current message so far
+                                = 0;
+    std::uint64_t           rd_remain_      // message frame bytes left in current frame
+                                = 0;
     detail::frame_header    rd_fh_;         // current frame header
-    detail::prepared_key    rd_key_;        // current stateful mask key
+    detail::prepared_key    rd_key_         // current stateful mask key
+                                = 0;
     detail::frame_buffer    rd_fb_;         // to write control frames (during reads)
     detail::utf8_checker    rd_utf8_;       // to validate utf8
     static_buffer<
         +tcp_frame_size>    rd_buf_;        // buffer for reads
-    detail::opcode          rd_op_;         // current message binary or text
-    bool                    rd_cont_;       // `true` if the next frame is a continuation
-    bool                    rd_done_;       // set when a message is done
-    bool                    rd_close_;      // did we read a close frame?
+    detail::opcode          rd_op_          // current message binary or text
+                                = detail::opcode::text;
+    bool                    rd_cont_        // `true` if the next frame is a continuation
+                                = false;
+    bool                    rd_done_        // set when a message is done
+                                = true;
+    bool                    rd_close_       // did we read a close frame?
+                                = false;
     token                   rd_block_;      // op currenly reading
 
     token                   tok_;           // used to order asynchronous ops
-    role_type               role_;          // server or client
+    role_type               role_           // server or client
+                                = role_type::client;
     bool                    open_           // `true` if connected
                                 = false;
 
     token                   wr_block_;      // op currenly writing
-    bool                    wr_close_;      // did we write a close frame?
-    bool                    wr_cont_;       // next write is a continuation
-    bool                    wr_frag_;       // autofrag the current message
+    bool                    wr_close_       // did we write a close frame?
+                                = false;
+    bool                    wr_cont_        // next write is a continuation
+                                = false;
+    bool                    wr_frag_        // autofrag the current message
+                                = false;
     bool                    wr_frag_opt_    // autofrag option setting
                                 = true;
-    bool                    wr_compress_;   // compress current message
+    bool                    wr_compress_    // compress current message
+                                = false;
     detail::opcode          wr_opcode_      // message type
                                 = detail::opcode::text;
     std::unique_ptr<
         std::uint8_t[]>     wr_buf_;        // write buffer
-    std::size_t             wr_buf_size_;   // write buffer size (current message)
+    std::size_t             wr_buf_size_    // write buffer size (current message)
+                                = 0;
     std::size_t             wr_buf_opt_     // write buffer size option setting
                                 = 4096;
     detail::fh_buffer       wr_fb_;         // header buffer used for writes
@@ -343,6 +357,17 @@ public:
     // Observers
     //
     //--------------------------------------------------------------------------
+
+    /** Returns `true` if the stream is open.
+
+        The stream is open after a successful handshake, and when
+        no error has occurred.
+    */
+    bool
+    is_open() const
+    {
+        return open_;
+    }
 
     /** Returns `true` if the latest message data indicates binary.
 
@@ -3368,6 +3393,22 @@ private:
     void reset();
     void begin_msg();
 
+    bool
+    check_fail(error_code& ec)
+    {
+        if(! open_)
+        {
+            ec = boost::asio::error::operation_aborted;
+            return true;
+        }
+        if(ec)
+        {
+            open_ = false;
+            return true;
+        }
+        return false;
+    }
+
     template<class DynamicBuffer>
     bool
     parse_fh(detail::frame_header& fh,
@@ -3424,13 +3465,6 @@ private:
         std::uint16_t code,
         error_code ev,
         error_code& ec);
-
-    template<class Handler>
-    void
-    do_async_fail(
-        std::uint16_t code,
-        error_code ev,
-        Handler&& handler);
 };
 
 } // websocket
@@ -3439,7 +3473,6 @@ private:
 
 #include <boost/beast/websocket/impl/accept.ipp>
 #include <boost/beast/websocket/impl/close.ipp>
-#include <boost/beast/websocket/impl/fail.ipp>
 #include <boost/beast/websocket/impl/handshake.ipp>
 #include <boost/beast/websocket/impl/ping.ipp>
 #include <boost/beast/websocket/impl/read.ipp>

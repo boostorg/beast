@@ -44,7 +44,7 @@ public:
         };
 
         // handshake
-        doTestLoop([&](test::stream& ts)
+        doStreamLoop([&](test::stream& ts)
         {
             echo_server es{log};
             ws_type ws{ts};
@@ -62,7 +62,7 @@ public:
         });
 
         // handshake, response
-        doTestLoop([&](test::stream& ts)
+        doStreamLoop([&](test::stream& ts)
         {
             echo_server es{log};
             ws_type ws{ts};
@@ -82,7 +82,7 @@ public:
         });
 
         // handshake, decorator
-        doTestLoop([&](test::stream& ts)
+        doStreamLoop([&](test::stream& ts)
         {
             echo_server es{log};
             ws_type ws{ts};
@@ -103,7 +103,7 @@ public:
         });
 
         // handshake, response, decorator
-        doTestLoop([&](test::stream& ts)
+        doStreamLoop([&](test::stream& ts)
         {
             echo_server es{log};
             ws_type ws{ts};

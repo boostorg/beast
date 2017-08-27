@@ -131,12 +131,11 @@ operator()(error_code ec, std::size_t)
             d.ws.wr_block_ = d.tok;
 
             // Make sure the stream is open
-            if(! d.ws.open_)
+            if(d.ws.check_fail(ec))
             {
                 BOOST_ASIO_CORO_YIELD
                 d.ws.get_io_service().post(
-                    bind_handler(std::move(*this),
-                        boost::asio::error::operation_aborted));
+                    bind_handler(std::move(*this), ec));
                 goto upcall;
             }
         }
@@ -157,19 +156,16 @@ operator()(error_code ec, std::size_t)
             BOOST_ASSERT(d.ws.wr_block_ == d.tok);
 
             // Make sure the stream is open
-            if(! d.ws.open_)
-            {
-                ec = boost::asio::error::operation_aborted;
+            if(d.ws.check_fail(ec))
                 goto upcall;
-            }
         }
 
         // Send ping frame
         BOOST_ASIO_CORO_YIELD
         boost::asio::async_write(d.ws.stream_,
             d.fb.data(), std::move(*this));
-        if(ec)
-            d.ws.open_ = false;
+        if(d.ws.check_fail(ec))
+            goto upcall;
 
     upcall:
         BOOST_ASSERT(d.ws.wr_block_ == d.tok);
@@ -199,16 +195,16 @@ void
 stream<NextLayer>::
 ping(ping_data const& payload, error_code& ec)
 {
+    ec.assign(0, ec.category());
     // Make sure the stream is open
-    if(! open_)
-    {
-        ec = boost::asio::error::operation_aborted;
+    if(check_fail(ec))
         return;
-    }
     detail::frame_buffer fb;
     write_ping<flat_static_buffer_base>(
         fb, detail::opcode::ping, payload);
     boost::asio::write(stream_, fb.data(), ec);
+    if(check_fail(ec))
+        return;
 }
 
 template<class NextLayer>
@@ -227,16 +223,16 @@ void
 stream<NextLayer>::
 pong(ping_data const& payload, error_code& ec)
 {
+    ec.assign(0, ec.category());
     // Make sure the stream is open
-    if(! open_)
-    {
-        ec = boost::asio::error::operation_aborted;
+    if(check_fail(ec))
         return;
-    }
     detail::frame_buffer fb;
     write_ping<flat_static_buffer_base>(
         fb, detail::opcode::pong, payload);
     boost::asio::write(stream_, fb.data(), ec);
+    if(check_fail(ec))
+        return;
 }
 
 template<class NextLayer>

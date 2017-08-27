@@ -11,16 +11,16 @@ local SOURCES =
     accept.cpp
     close.cpp
     error.cpp
+    frame.cpp
     handshake.cpp
+    mask.cpp
     option.cpp
     ping.cpp
     read.cpp
     rfc6455.cpp
+    role.cpp
     stream.cpp
     teardown.cpp
-    frame.cpp
-    mask.cpp
-    role.cpp
     utf8_checker.cpp
     write.cpp
     ;

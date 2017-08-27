@@ -440,9 +440,15 @@ write_close(DynamicBuffer& db, close_reason const& cr)
     fh.rsv3 = false;
     fh.len = cr.code == close_code::none ?
         0 : 2 + cr.reason.size();
-    fh.mask = role_ == role_type::client;
-    if(fh.mask)
+    if(role_ == role_type::client)
+    {
+        fh.mask = true;
         fh.key = wr_gen_();
+    }
+    else
+    {
+        fh.mask = false;
+    }
     detail::write(db, fh);
     if(cr.code != close_code::none)
     {
@@ -668,7 +674,41 @@ on_response(response_type const& res,
     open(role_type::client);
 }
 
-//------------------------------------------------------------------------------
+// _Fail the WebSocket Connection_
+template<class NextLayer>
+void
+stream<NextLayer>::
+do_fail(
+    std::uint16_t code,         // if set, send a close frame first
+    error_code ev,              // error code to use upon success
+    error_code& ec)             // set to the error, else set to ev
+{
+    BOOST_ASSERT(ev);
+    if(code != close_code::none && ! wr_close_)
+    {
+        wr_close_ = true;
+        detail::frame_buffer fb;
+        write_close<
+            flat_static_buffer_base>(fb, code);
+        boost::asio::write(stream_, fb.data(), ec);
+        open_ = ! ec;
+        if(! open_)
+            return;
+    }
+    using beast::websocket::teardown;
+    teardown(role_, stream_, ec);
+    if(ec == boost::asio::error::eof)
+    {
+        // Rationale:
+        // http://stackoverflow.com/questions/25587403/boost-asio-ssl-async-shutdown-always-finishes-with-an-error
+        ec.assign(0, ec.category());
+    }
+    open_ = ! ec;
+    if(! open_)
+        return;
+    ec = ev;
+    open_ = false;
+}
 
 } // websocket
 } // beast

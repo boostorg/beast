@@ -58,6 +58,7 @@ public:
         test::stream ts_;
         std::thread t_;
         websocket::stream<test::stream&> ws_;
+        bool close_ = false;
 
     public:
         explicit
@@ -120,11 +121,18 @@ public:
             ios_.post(
             [&]
             {
-                ws_.async_close({},
-                    std::bind(
-                        &echo_server::on_close,
-                        this,
-                        std::placeholders::_1));
+                if(ws_.is_open())
+                {
+                    ws_.async_close({},
+                        std::bind(
+                            &echo_server::on_close,
+                            this,
+                            std::placeholders::_1));
+                }
+                else
+                {
+                    close_ = true;
+                }
             });
         }
 
@@ -173,6 +181,7 @@ public:
         {
             if(ec)
                 return fail(ec);
+
             do_read();
         }
 
@@ -181,6 +190,16 @@ public:
         {
             if(ec)
                 return fail(ec);
+
+            if(close_)
+            {
+                return ws_.async_close({},
+                    std::bind(
+                        &echo_server::on_close,
+                        this,
+                        std::placeholders::_1));
+            }
+
             do_read();
         }
 
@@ -241,21 +260,16 @@ public:
 
     template<class Test>
     void
-    doTestLoop(Test const& f)
+    doFailLoop(
+        Test const& f, std::size_t limit = 200)
     {
-        // This number has to be high for the
-        // test that writes the large buffer.
-        static std::size_t constexpr limit = 1000;
-
         std::size_t n;
         for(n = 0; n <= limit; ++n)
         {
             test::fail_counter fc{n};
-            test::stream ts{ios_, fc};
             try
             {
-                f(ts);
-                ts.close();
+                f(fc);
                 break;
             }
             catch(system_error const& se)
@@ -264,14 +278,26 @@ public:
                     se.code() == test::error::fail_error,
                     se.code().message());
             }
-            catch(std::exception const& e)
-            {
-                fail(e.what(), __FILE__, __LINE__);
-            }
-            ts.close();
-            continue;
         }
         BEAST_EXPECT(n < limit);
+    }
+
+    template<class Test>
+    void
+    doStreamLoop(Test const& f)
+    {
+        // This number has to be high for the
+        // test that writes the large buffer.
+        static std::size_t constexpr limit = 1000;
+
+        doFailLoop(
+            [&](test::fail_counter& fc)
+            {
+                test::stream ts{ios_, fc};
+                f(ts);
+                ts.close();
+            }
+            , limit);
     }
 
     template<class Test>
@@ -420,6 +446,14 @@ public:
             ios.run_one();
         }
         return false;
+    }
+
+    template<class Pred>
+    bool
+    run_until(
+        boost::asio::io_service& ios, Pred&& pred)
+    {
+        return run_until(ios, 100, pred);
     }
 
     inline

@@ -20,7 +20,9 @@ add_executable (tests-beast-websocket
     accept.cpp
     close.cpp
     error.cpp
+    frame.cpp
     handshake.cpp
+    mask.cpp
     option.cpp
     ping.cpp
     read.cpp
@@ -28,8 +30,6 @@ add_executable (tests-beast-websocket
     role.cpp
     stream.cpp
     teardown.cpp
-    frame.cpp
-    mask.cpp
     utf8_checker.cpp
     write.cpp
 )
