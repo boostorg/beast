@@ -112,6 +112,8 @@ class stream
 
 public:
     using buffer_type = flat_buffer;
+    /// The type of the lowest layer.
+    using lowest_layer_type = stream;
 
     /// Destructor
     ~stream()
@@ -273,6 +275,34 @@ public:
     nwrite() const
     {
         return in_->nwrite;
+    }
+
+    /** Get a reference to the lowest layer
+
+        This function returns a reference to the lowest layer
+        in a stack of stream layers, with this being the lowest layer.
+
+        @return A reference to the lowest layer (*this).
+        Ownership is not transferred to the caller.
+    */
+    stream&
+    lowest_layer() 
+    {
+        return *this;
+    }
+
+    /** Get a reference to the lowest layer
+
+        This function returns a reference to the lowest layer
+        in a stack of stream layers, with this being the lowest layer.
+
+        @return A reference to the lowest layer (*this).
+        Ownership is not transferred to the caller.
+    */
+    const stream&
+    lowest_layer() const
+    {
+        return *this;
     }
 
     /** Close the stream.
