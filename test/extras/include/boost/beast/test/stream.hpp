@@ -113,6 +113,9 @@ class stream
 public:
     using buffer_type = flat_buffer;
 
+    /// The type of the lowest layer.
+    using lowest_layer_type = stream;
+
     /// Destructor
     ~stream()
     {
@@ -207,6 +210,34 @@ public:
     get_io_service()
     {
         return in_->ios;
+    }
+
+    /** Get a reference to the lowest layer
+
+        This function returns a reference to the lowest layer
+        in a stack of stream layers.
+
+        @return A reference to the lowest layer in the stack of
+        stream layers.
+    */
+    lowest_layer_type&
+    lowest_layer()
+    {
+        return *this;
+    }
+
+    /** Get a reference to the lowest layer
+
+        This function returns a reference to the lowest layer
+        in a stack of stream layers.
+
+        @return A reference to the lowest layer in the stack of
+        stream layers. Ownership is not transferred to the caller.
+    */
+    lowest_layer_type const&
+    lowest_layer() const
+    {
+        return *this;
     }
 
     /// Set the maximum number of bytes returned by read_some
