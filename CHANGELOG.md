@@ -4,6 +4,7 @@ Version 110:
 * Refactor websocket stream members
 * Refactor websocket stream: fixes and tests
 * Add test::stream::lowest_layer
+* Fix invalid iterator in test reporter
 
 --------------------------------------------------------------------------------
 

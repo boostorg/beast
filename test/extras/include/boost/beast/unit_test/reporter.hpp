@@ -170,13 +170,9 @@ results::add(suite_results const& r)
             });
         if(iter != top.end())
         {
-            if(top.size() == max_top)
-                top.resize(top.size() - 1);
             top.emplace(iter, r.name, elapsed);
-        }
-        else if(top.size() < max_top)
-        {
-            top.emplace_back(r.name, elapsed);
+            if(top.size() > max_top)
+                top.resize(max_top);
         }
     }
 }
