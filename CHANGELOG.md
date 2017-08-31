@@ -1,3 +1,11 @@
+Version 111:
+
+WebSocket:
+
+* Fix utf8 check split code point at buffer end
+
+--------------------------------------------------------------------------------
+
 Version 110:
 
 * Refactor stream open state variable

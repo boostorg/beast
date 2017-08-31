@@ -173,13 +173,13 @@ write(std::uint8_t const* in, std::size_t size)
         {
             if(v < 128)
                 return 1;
-            if(v < 194)
+            if(v < 192)
                 return 0;
             if(v < 224)
                 return 2;
             if(v < 240)
                 return 3;
-            if(v < 245)
+            if(v < 248)
                 return 4;
             return 0;
         };

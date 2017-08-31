@@ -26,32 +26,51 @@ public:
     void
     testOneByteSequence()
     {
-        utf8_checker utf8;
-        std::array<std::uint8_t, 256> buf =
-            ([]()
-            {
-                std::array<std::uint8_t, 256> values;
-                std::uint8_t i = 0;
-                for(auto& c : values)
-                    c = i++;
-                return values;
-            })();
+        // valid single-char code points
+        for(unsigned char c = 0; c < 128; ++c)
+        {
+            utf8_checker utf8;
+            BEAST_EXPECT(utf8.write(&c, 1));
+            BEAST_EXPECT(utf8.finish());
+        }
 
-        // Valid range 0-127
-        BEAST_EXPECT(utf8.write(buf.data(), 128));
-        BEAST_EXPECT(utf8.finish());
-
-        // Invalid range 128-193
-        for(unsigned char c = 128; c < 194; ++c)
+        // invalid lead bytes
+        for(unsigned char c = 128; c < 192; ++c)
+        {
+            utf8_checker utf8;
             BEAST_EXPECT(! utf8.write(&c, 1));
+        }
 
-        // Invalid range 245-255
-        for(unsigned char c = 245; c; ++c)
+        // two byte sequences
+        for(unsigned char c = 192; c < 224; ++c)
+        {
+            utf8_checker utf8;
+            BEAST_EXPECT(utf8.write(&c, 1));
+            BEAST_EXPECT(! utf8.finish());
+        }
+
+        // three byte sequences
+        for(unsigned char c = 224; c < 240; ++c)
+        {
+            utf8_checker utf8;
+            BEAST_EXPECT(utf8.write(&c, 1));
+            BEAST_EXPECT(! utf8.finish());
+        }
+
+        // four byte sequences
+        for(unsigned char c = 240; c < 248; ++c)
+        {
+            utf8_checker utf8;
+            BEAST_EXPECT(utf8.write(&c, 1));
+            BEAST_EXPECT(! utf8.finish());
+        }
+
+        // invalid lead bytes
+        for(unsigned char c = 248; c; ++c)
+        {
+            utf8_checker utf8;
             BEAST_EXPECT(! utf8.write(&c, 1));
-
-        // Invalid sequence
-        std::fill(buf.begin(), buf.end(), '\xff');
-        BEAST_EXPECT(! utf8.write(&buf.front(), buf.size()));
+        }
     }
 
     void
@@ -392,13 +411,56 @@ public:
         }
     }
 
-    void run() override
+    void
+    testBranches()
+    {
+        // switch to slow loop from alignment loop
+        {
+            char buf[32];
+            for(unsigned i = 0; i < sizeof(buf); i += 2)
+            {
+                buf[i  ] = '\xc0';
+                buf[i+1] = '\x80';
+            }
+            auto p = reinterpret_cast<char const*>(sizeof(std::size_t) * (
+                (std::uintptr_t(buf) + sizeof(std::size_t) - 1) /
+                    sizeof(std::size_t))) + 2;
+            utf8_checker utf8;
+            BEAST_EXPECT(utf8.write(
+                reinterpret_cast<std::uint8_t const*>(p),
+                    sizeof(buf)-(p-buf)));
+            BEAST_EXPECT(utf8.finish());
+        }
+
+        // invalid code point in the last dword of a fast run
+        {
+            char buf[20];
+            auto p = reinterpret_cast<char*>(sizeof(std::size_t) * (
+                (std::uintptr_t(buf) + sizeof(std::size_t) - 1) /
+                    sizeof(std::size_t)));
+            BOOST_ASSERT(p + 12 <= buf + sizeof(buf));
+            auto const in = p;
+            *p++ = '*'; *p++ = '*'; *p++ = '*'; *p++ = '*';
+            *p++ = '*'; *p++ = '*'; *p++ = '*'; *p++ = '*';
+            p[0] = '\x80'; // invalid
+            p[1] = '*';
+            p[2] = '*';
+            p[3] = '*';
+            utf8_checker utf8;
+            BEAST_EXPECT(! utf8.write(reinterpret_cast<
+                std::uint8_t const*>(in), 12));
+        }
+    }
+
+    void
+    run() override
     {
         testOneByteSequence();
         testTwoByteSequence();
         testThreeByteSequence();
         testFourByteSequence();
         testWithStreamBuffer();
+        testBranches();
     }
 };
 
