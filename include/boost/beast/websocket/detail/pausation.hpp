@@ -32,9 +32,9 @@ class pausation
     struct base
     {
         base() = default;
-        base(base &&) = default;
+        base(base &&) = delete;
+        base(base const&) = delete;
         virtual ~base() = default;
-        virtual base* move(void* p) = 0;
         virtual void operator()() = 0;
     };
 
@@ -50,12 +50,6 @@ class pausation
         holder(U&& u)
             : f(std::forward<U>(u))
         {
-        }
-
-        base*
-        move(void* p) override
-        {
-            return ::new(p) holder(std::move(*this));
         }
 
         void
@@ -97,10 +91,10 @@ class pausation
             using boost::asio::asio_handler_deallocate;
             if(op_)
             {
-                auto h = std::move(op_->handler());
+                Op op(std::move(*op_));
                 op_->~Op();
                 asio_handler_deallocate(op_,
-                    sizeof(*op_), std::addressof(h));
+                    sizeof(*op_), std::addressof(op.handler()));
             }
         }
 
@@ -146,36 +140,26 @@ class pausation
     alignas(holder<exemplar>) buf_type buf_;
 
 public:
+    pausation() = default;
+    pausation(pausation const&) = delete;
+    pausation& operator=(pausation const&) = delete;
+
     ~pausation()
     {
         if(base_)
             base_->~base();
     }
 
-    pausation() = default;
-
     pausation(pausation&& other)
     {
-        if(other.base_)
-        {
-            base_ = other.base_->move(buf_);
-            other.base_ = nullptr;
-        }
+        BOOST_ASSERT(! other.base_);
     }
 
     pausation&
     operator=(pausation&& other)
     {
-        // Engaged pausations must be invoked before
-        // assignment otherwise the io_service
-        // completion invariants are broken.
         BOOST_ASSERT(! base_);
-
-        if(other.base_)
-        {
-            base_ = other.base_->move(buf_);
-            other.base_ = nullptr;
-        }
+        BOOST_ASSERT(! other.base_);
         return *this;
     }
 
