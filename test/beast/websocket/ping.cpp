@@ -89,40 +89,10 @@ public:
         {
             doTestPing(AsyncClient{yield});
         });
-
-        // suspend on write
-        {
-            echo_server es{log};
-            error_code ec;
-            boost::asio::io_service ios;
-            stream<test::stream> ws{ios};
-            ws.next_layer().connect(es.stream());
-            ws.handshake("localhost", "/", ec);
-            BEAST_EXPECTS(! ec, ec.message());
-            std::size_t count = 0;
-            ws.async_write(sbuf("*"),
-                [&](error_code ec)
-                {
-                    ++count;
-                    BEAST_EXPECTS(! ec, ec.message());
-                });
-            BEAST_EXPECT(ws.wr_block_);
-            ws.async_ping("",
-                [&](error_code ec)
-                {
-                    ++count;
-                    BEAST_EXPECTS(
-                        ec == boost::asio::error::operation_aborted,
-                        ec.message());
-                });
-            ws.async_close({}, [&](error_code){});
-            ios.run();
-            BEAST_EXPECT(count == 2);
-        }
     }
 
     void
-    testPingSuspend()
+    testSuspend()
     {
         // suspend on write
         doFailLoop([&](test::fail_counter& fc)
@@ -352,6 +322,45 @@ public:
             BEAST_EXPECT(count == 2);
         });
 
+        // don't ping on close
+        doFailLoop([&](test::fail_counter& fc)
+        {
+            echo_server es{log};
+            error_code ec;
+            boost::asio::io_service ios;
+            stream<test::stream> ws{ios, fc};
+            ws.next_layer().connect(es.stream());
+            ws.handshake("localhost", "/");
+            std::size_t count = 0;
+            ws.async_write(sbuf("*"),
+                [&](error_code ec)
+                {
+                    ++count;
+                    if(ec)
+                        BOOST_THROW_EXCEPTION(
+                            system_error{ec});
+                });
+            BEAST_EXPECT(ws.wr_block_);
+            ws.async_ping("",
+                [&](error_code ec)
+                {
+                    ++count;
+                    if(ec != boost::asio::error::operation_aborted)
+                        BOOST_THROW_EXCEPTION(
+                            system_error{ec});
+                });
+            ws.async_close({},
+                [&](error_code)
+                {
+                    ++count;
+                    if(ec)
+                        BOOST_THROW_EXCEPTION(
+                            system_error{ec});
+                });
+            ios.run();
+            BEAST_EXPECT(count == 3);
+        });
+
         {
             echo_server es{log, kind::async};
             boost::asio::io_service ios;
@@ -437,7 +446,7 @@ public:
     run() override
     {
         testPing();
-        testPingSuspend();
+        testSuspend();
         testContHook();
     }
 };

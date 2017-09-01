@@ -49,7 +49,7 @@ class stream<NextLayer>::write_some_op
     int how_;
     bool fin_;
     bool more_;
-    bool cont_;
+    bool cont_ = false;
 
 public:
     write_some_op(write_some_op&&) = default;
@@ -206,7 +206,7 @@ operator()(
             ws_.wr_block_ = tok_;
 
             // Make sure the stream is open
-            if(ws_.check_fail(ec))
+            if(! ws_.check_open(ec))
                 goto upcall;
         }
         else
@@ -227,7 +227,7 @@ operator()(
             BOOST_ASSERT(ws_.wr_block_ == tok_);
 
             // Make sure the stream is open
-            if(ws_.check_fail(ec))
+            if(! ws_.check_open(ec))
                 goto upcall;
         }
 
@@ -242,13 +242,11 @@ operator()(
                 ws_.wr_fb_, fh_);
             ws_.wr_cont_ = ! fin_;
             // Send frame
-            BOOST_ASSERT(ws_.wr_block_ == tok_);
             BOOST_ASIO_CORO_YIELD
             boost::asio::async_write(ws_.stream_,
                 buffer_cat(ws_.wr_fb_.data(), cb_),
                     std::move(*this));
-            BOOST_ASSERT(ws_.wr_block_ == tok_);
-            if(ws_.check_fail(ec))
+            if(! ws_.check_ok(ec))
                 goto upcall;
             goto upcall;
         }
@@ -267,15 +265,13 @@ operator()(
                     ws_.wr_fb_, fh_);
                 ws_.wr_cont_ = ! fin_;
                 // Send frame
-                BOOST_ASSERT(ws_.wr_block_ == tok_);
                 BOOST_ASIO_CORO_YIELD
                 boost::asio::async_write(
                     ws_.stream_, buffer_cat(
                         ws_.wr_fb_.data(), buffer_prefix(
                             clamp(fh_.len), cb_)),
                                 std::move(*this));
-                BOOST_ASSERT(ws_.wr_block_ == tok_);
-                if(ws_.check_fail(ec))
+                if(! ws_.check_ok(ec))
                     goto upcall;
                 if(remain_ == 0)
                     break;
@@ -317,14 +313,12 @@ operator()(
             remain_ -= n;
             ws_.wr_cont_ = ! fin_;
             // Send frame header and partial payload
-            BOOST_ASSERT(ws_.wr_block_ == tok_);
             BOOST_ASIO_CORO_YIELD
             boost::asio::async_write(
                 ws_.stream_, buffer_cat(ws_.wr_fb_.data(),
                     buffer(ws_.wr_buf_.get(), n)),
                         std::move(*this));
-            BOOST_ASSERT(ws_.wr_block_ == tok_);
-            if(ws_.check_fail(ec))
+            if(! ws_.check_ok(ec))
                 goto upcall;
             while(remain_ > 0)
             {
@@ -336,13 +330,11 @@ operator()(
                     ws_.wr_buf_.get(), n), key_);
                 remain_ -= n;
                 // Send partial payload
-                BOOST_ASSERT(ws_.wr_block_ == tok_);
                 BOOST_ASIO_CORO_YIELD
                 boost::asio::async_write(ws_.stream_,
                     buffer(ws_.wr_buf_.get(), n),
                         std::move(*this));
-                BOOST_ASSERT(ws_.wr_block_ == tok_);
-                if(ws_.check_fail(ec))
+                if(! ws_.check_ok(ec))
                     goto upcall;
             }
             goto upcall;
@@ -369,14 +361,12 @@ operator()(
                     ws_.wr_fb_, fh_);
                 ws_.wr_cont_ = ! fin_;
                 // Send frame
-                BOOST_ASSERT(ws_.wr_block_ == tok_);
                 BOOST_ASIO_CORO_YIELD
                 boost::asio::async_write(ws_.stream_,
                     buffer_cat(ws_.wr_fb_.data(),
                         buffer(ws_.wr_buf_.get(), n)),
                             std::move(*this));
-                BOOST_ASSERT(ws_.wr_block_ == tok_);
-                if(ws_.check_fail(ec))
+                if(! ws_.check_ok(ec))
                     goto upcall;
                 if(remain_ == 0)
                     break;
@@ -408,7 +398,7 @@ operator()(
                     ws_.wr_buf_size_);
                 more_ = detail::deflate(
                     ws_.pmd_->zo, b, cb_, fin_, ec);
-                if(ws_.check_fail(ec))
+                if(! ws_.check_ok(ec))
                     goto upcall;
                 n = buffer_size(b);
                 if(n == 0)
@@ -434,13 +424,11 @@ operator()(
                     flat_static_buffer_base>(ws_.wr_fb_, fh_);
                 ws_.wr_cont_ = ! fin_;
                 // Send frame
-                BOOST_ASSERT(ws_.wr_block_ == tok_);
                 BOOST_ASIO_CORO_YIELD
                 boost::asio::async_write(ws_.stream_,
                     buffer_cat(ws_.wr_fb_.data(),
                         mutable_buffers_1{b}), std::move(*this));
-                BOOST_ASSERT(ws_.wr_block_ == tok_);
-                if(ws_.check_fail(ec))
+                if(! ws_.check_ok(ec))
                     goto upcall;
                 if(more_)
                 {
@@ -460,7 +448,6 @@ operator()(
                 }
                 else
                 {
-                    BOOST_ASSERT(ws_.wr_block_ == tok_);
                     if(fh_.fin && (
                         (ws_.role_ == role_type::client &&
                             ws_.pmd_config_.client_no_context_takeover) ||
@@ -524,7 +511,7 @@ write_some(bool fin,
     using boost::asio::buffer_size;
     ec.assign(0, ec.category());
     // Make sure the stream is open
-    if(check_fail(ec))
+    if(! check_open(ec))
         return;
     detail::frame_header fh;
     if(! wr_cont_)
@@ -552,8 +539,7 @@ write_some(bool fin,
                 wr_buf_.get(), wr_buf_size_);
             auto const more = detail::deflate(
                 pmd_->zo, b, cb, fin, ec);
-            open_ = ! ec;
-            if(! open_)
+            if(! check_ok(ec))
                 return;
             auto const n = buffer_size(b);
             if(n == 0)
@@ -581,7 +567,7 @@ write_some(bool fin,
             wr_cont_ = ! fin;
             boost::asio::write(stream_,
                 buffer_cat(fh_buf.data(), b), ec);
-            if(check_fail(ec))
+            if(! check_ok(ec))
                 return;
             if(! more)
                 break;
@@ -608,7 +594,7 @@ write_some(bool fin,
             wr_cont_ = ! fin;
             boost::asio::write(stream_,
                 buffer_cat(fh_buf.data(), buffers), ec);
-            if(check_fail(ec))
+            if(! check_ok(ec))
                 return;
         }
         else
@@ -630,7 +616,7 @@ write_some(bool fin,
                 boost::asio::write(stream_,
                     buffer_cat(fh_buf.data(),
                         buffer_prefix(n, cb)), ec);
-                if(check_fail(ec))
+                if(! check_ok(ec))
                     return;
                 if(remain == 0)
                     break;
@@ -662,7 +648,7 @@ write_some(bool fin,
             wr_cont_ = ! fin;
             boost::asio::write(stream_,
                 buffer_cat(fh_buf.data(), b), ec);
-            if(check_fail(ec))
+            if(! check_ok(ec))
                 return;
         }
         while(remain > 0)
@@ -674,7 +660,7 @@ write_some(bool fin,
             remain -= n;
             detail::mask_inplace(b, key);
             boost::asio::write(stream_, b, ec);
-            if(check_fail(ec))
+            if(! check_ok(ec))
                 return;
         }
     }
@@ -702,7 +688,7 @@ write_some(bool fin,
                 flat_static_buffer_base>(fh_buf, fh);
             boost::asio::write(stream_,
                 buffer_cat(fh_buf.data(), b), ec);
-            if(check_fail(ec))
+            if(! check_ok(ec))
                 return;
             if(remain == 0)
                 break;

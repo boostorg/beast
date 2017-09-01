@@ -12,6 +12,8 @@
 
 #include "test.hpp"
 
+#include <boost/asio/write.hpp>
+
 namespace boost {
 namespace beast {
 namespace websocket {
@@ -104,7 +106,7 @@ public:
         });
 
         // two part message
-        // this triggers "fill the read buffer first"
+        // triggers "fill the read buffer first"
         doTest(pmd, [&](ws_type& ws)
         {
             w.write_raw(ws, sbuf(
@@ -202,6 +204,58 @@ public:
             BEAST_EXPECT(to_string(b.data()) == "Hello, World!");
         });
 
+        // masked message, big
+        doStreamLoop([&](test::stream& ts)
+        {
+            echo_server es{log, kind::async_client};
+            ws_type ws{ts};
+            ws.next_layer().connect(es.stream());
+            ws.set_option(pmd);
+            es.async_handshake();
+            try
+            {
+                w.accept(ws);
+                std::string const s(2000, '*');
+                ws.auto_fragment(false);
+                ws.binary(false);
+                w.write(ws, buffer(s));
+                multi_buffer b;
+                w.read(ws, b);
+                BEAST_EXPECT(ws.got_text());
+                BEAST_EXPECT(to_string(b.data()) == s);
+                ws.next_layer().close();
+            }
+            catch(...)
+            {
+                ts.close();
+                throw;
+            }
+        });
+
+        // close
+        doFailLoop([&](test::fail_counter& fc)
+        {
+            echo_server es{log, kind::async};
+            boost::asio::io_service ios;
+            stream<test::stream> ws{ios, fc};
+            ws.next_layer().connect(es.stream());
+            ws.handshake("localhost", "/");
+            // Cause close to be received
+            es.async_close();
+            std::size_t count = 0;
+            multi_buffer b;
+            ws.async_read(b,
+                [&](error_code ec, std::size_t)
+                {
+                    ++count;
+                    if(ec != error::closed)
+                        BOOST_THROW_EXCEPTION(
+                            system_error{ec});
+                });
+            ios.run();
+            BEAST_EXPECT(count == 1);
+        });
+
         // already closed
         doTest(pmd, [&](ws_type& ws)
         {
@@ -249,21 +303,12 @@ public:
             doReadTest(w, ws, close_code::protocol_error);
         });
 
-        // receive bad close
+        // bad close
         doTest(pmd, [&](ws_type& ws)
         {
             put(ws.next_layer().buffer(), cbuf(
                 0x88, 0x02, 0x03, 0xed));
             doFailTest(w, ws, error::failed);
-        });
-
-        // expected cont
-        doTest(pmd, [&](ws_type& ws)
-        {
-            w.write_some(ws, false, boost::asio::null_buffers{});
-            w.write_raw(ws, cbuf(
-                0x81, 0x80, 0xff, 0xff, 0xff, 0xff));
-            doReadTest(w, ws, close_code::protocol_error);
         });
 
         // message size above 2^64
@@ -282,14 +327,6 @@ public:
             ws.read_message_max(1);
             w.write(ws, sbuf("**"));
             doFailTest(w, ws, error::failed);
-        });
-
-        // unexpected cont
-        doTest(pmd, [&](ws_type& ws)
-        {
-            w.write_raw(ws, cbuf(
-                0x80, 0x80, 0xff, 0xff, 0xff, 0xff));
-            doReadTest(w, ws, close_code::protocol_error);
         });
 
         // bad utf8
@@ -313,10 +350,23 @@ public:
         doTest(pmd, [&](ws_type& ws)
         {
             std::string const s =
-                random_string() +
-                "Hello, world!" "\xc0";
-            w.write(ws, buffer(s));
-            doReadTest(w, ws, close_code::bad_payload);
+                "\x81\x7e\x0f\xa1" +
+                std::string(4000, '*') + "\xc0";
+            ws.next_layer().append(s);
+            multi_buffer b;
+            try
+            {
+                do
+                {
+                    b.commit(w.read_some(ws, b.prepare(4000)));
+                }
+                while(! ws.is_message_done());
+            }
+            catch(system_error const& se)
+            {
+                if(se.code() != error::failed)
+                    throw;
+            }
         });
 
         // close frames
@@ -439,6 +489,34 @@ public:
             w.read(ws, b);
             BEAST_EXPECT(ws.got_text());
             BEAST_EXPECT(to_string(b.data()) == s);
+        });
+
+        // masked message
+        doStreamLoop([&](test::stream& ts)
+        {
+            echo_server es{log, kind::async_client};
+            ws_type ws{ts};
+            ws.next_layer().connect(es.stream());
+            ws.set_option(pmd);
+            es.async_handshake();
+            try
+            {
+                w.accept(ws);
+                std::string const s = "Hello, world!";
+                ws.auto_fragment(false);
+                ws.binary(false);
+                w.write(ws, buffer(s));
+                multi_buffer b;
+                w.read(ws, b);
+                BEAST_EXPECT(ws.got_text());
+                BEAST_EXPECT(to_string(b.data()) == s);
+                ws.next_layer().close();
+            }
+            catch(...)
+            {
+                ts.close();
+                throw;
+            }
         });
 
         // empty message
@@ -571,11 +649,77 @@ public:
     }
 
     void
-    testReadSuspend()
+    testSuspend()
     {
         using boost::asio::buffer;
+#if 1
+        // suspend on read block
+        doFailLoop([&](test::fail_counter& fc)
+        {
+            echo_server es{log};
+            boost::asio::io_service ios;
+            stream<test::stream> ws{ios, fc};
+            ws.next_layer().connect(es.stream());
+            ws.handshake("localhost", "/");
+            std::size_t count = 0;
+            ws.async_close({},
+                [&](error_code ec)
+                {
+                    if(ec)
+                        BOOST_THROW_EXCEPTION(
+                            system_error{ec});
+                    BEAST_EXPECT(++count == 1);
+                });
+            while(! ws.rd_block_)
+                ios.run_one();
+            multi_buffer b;
+            ws.async_read(b,
+                [&](error_code ec, std::size_t)
+                {
+                    if(ec != boost::asio::error::operation_aborted)
+                        BOOST_THROW_EXCEPTION(
+                            system_error{ec});
+                    BEAST_EXPECT(++count == 2);
+                });
+            ios.run();
+            BEAST_EXPECT(count == 2);
+        });
+#endif
 
-        // suspend on write
+        // suspend on release read block
+        doFailLoop([&](test::fail_counter& fc)
+        {
+//log << "fc.count()==" << fc.count() << std::endl;
+            echo_server es{log};
+            boost::asio::io_service ios;
+            stream<test::stream> ws{ios, fc};
+            ws.next_layer().connect(es.stream());
+            ws.handshake("localhost", "/");
+            std::size_t count = 0;
+            multi_buffer b;
+            ws.async_read(b,
+                [&](error_code ec, std::size_t)
+                {
+                    if(ec != boost::asio::error::operation_aborted)
+                        BOOST_THROW_EXCEPTION(
+                            system_error{ec});
+                    BEAST_EXPECT(++count == 2);
+                });
+            BOOST_ASSERT(ws.rd_block_);
+            ws.async_close({},
+                [&](error_code ec)
+                {
+                    if(ec)
+                        BOOST_THROW_EXCEPTION(
+                            system_error{ec});
+                    BEAST_EXPECT(++count == 1);
+                });
+            ios.run();
+            BEAST_EXPECT(count == 2);
+        });
+
+#if 1
+        // suspend on write pong
         doFailLoop([&](test::fail_counter& fc)
         {
             echo_server es{log};
@@ -592,25 +736,238 @@ public:
             ws.async_read(b,
                 [&](error_code ec, std::size_t)
                 {
-                    ++count;
                     if(ec)
                         BOOST_THROW_EXCEPTION(
                             system_error{ec});
                     BEAST_EXPECT(to_string(b.data()) == s);
+                    ++count;
                 });
             BEAST_EXPECT(ws.rd_block_);
             ws.async_write(buffer(s),
                 [&](error_code ec)
                 {
-                    ++count;
                     if(ec)
                         BOOST_THROW_EXCEPTION(
                             system_error{ec});
+                    ++count;
                 });
             BEAST_EXPECT(ws.wr_block_);
             ios.run();
             BEAST_EXPECT(count == 2);
         });
+
+        // Ignore ping when closing
+        doFailLoop([&](test::fail_counter& fc)
+        {
+            echo_server es{log};
+            boost::asio::io_service ios;
+            stream<test::stream> ws{ios, fc};
+            ws.next_layer().connect(es.stream());
+            ws.handshake("localhost", "/");
+            std::size_t count = 0;
+            // insert fragmented message with
+            // a ping in between the frames.
+            ws.next_layer().append(string_view(
+                "\x01\x01*"
+                "\x89\x00"
+                "\x80\x01*", 8));
+            multi_buffer b;
+            ws.async_read(b,
+                [&](error_code ec, std::size_t)
+                {
+                    if(ec)
+                        BOOST_THROW_EXCEPTION(
+                            system_error{ec});
+                    BEAST_EXPECT(to_string(b.data()) == "**");
+                    BEAST_EXPECT(++count == 1);
+                    b.consume(b.size());
+                    ws.async_read(b,
+                        [&](error_code ec, std::size_t)
+                        {
+                            if(ec != boost::asio::error::operation_aborted)
+                                BOOST_THROW_EXCEPTION(
+                                    system_error{ec});
+                            BEAST_EXPECT(++count == 3);
+                        });
+                });
+            BEAST_EXPECT(ws.rd_block_);
+            ws.async_close({},
+                [&](error_code ec)
+                {
+                    if(ec)
+                        BOOST_THROW_EXCEPTION(
+                            system_error{ec});
+                    BEAST_EXPECT(++count == 2);
+                });
+            BEAST_EXPECT(ws.wr_block_);
+            ios.run();
+            BEAST_EXPECT(count == 3);
+        });
+
+        // See if we are already closing
+        doFailLoop([&](test::fail_counter& fc)
+        {
+            echo_server es{log};
+            boost::asio::io_service ios;
+            stream<test::stream> ws{ios, fc};
+            ws.next_layer().connect(es.stream());
+            ws.handshake("localhost", "/");
+            std::size_t count = 0;
+            // insert fragmented message with
+            // a close in between the frames.
+            ws.next_layer().append(string_view(
+                "\x01\x01*"
+                "\x88\x00"
+                "\x80\x01*", 8));
+            multi_buffer b;
+            ws.async_read(b,
+                [&](error_code ec, std::size_t)
+                {
+                    if(ec != boost::asio::error::operation_aborted)
+                        BOOST_THROW_EXCEPTION(
+                            system_error{ec});
+                    BEAST_EXPECT(++count == 2);
+                });
+            BEAST_EXPECT(ws.rd_block_);
+            ws.async_close({},
+                [&](error_code ec)
+                {
+                    if(ec)
+                        BOOST_THROW_EXCEPTION(
+                            system_error{ec});
+                    BEAST_EXPECT(++count == 1);
+                });
+            BEAST_EXPECT(ws.wr_block_);
+            ios.run();
+            BEAST_EXPECT(count == 2);
+        });
+#endif
+    }
+
+    void
+    testParseFrame()
+    {
+        auto const bad =
+            [&](string_view s)
+            {
+                echo_server es{log};
+                boost::asio::io_service ios;
+                stream<test::stream> ws{ios};
+                ws.next_layer().connect(es.stream());
+                ws.handshake("localhost", "/");
+                ws.next_layer().append(s);
+                error_code ec;
+                multi_buffer b;
+                ws.read(b, ec);
+                BEAST_EXPECT(ec);
+            };
+        
+        // chopped frame header
+        {
+            echo_server es{log};
+            boost::asio::io_service ios;
+            stream<test::stream> ws{ios};
+            ws.next_layer().connect(es.stream());
+            ws.handshake("localhost", "/");
+            ws.next_layer().append(
+                "\x81\x7e\x01");
+            std::size_t count = 0;
+            std::string const s(257, '*');
+            error_code ec;
+            multi_buffer b;
+            ws.async_read(b,
+                [&](error_code ec, std::size_t)
+                {
+                    ++count;
+                    BEAST_EXPECTS(! ec, ec.message());
+                    BEAST_EXPECT(to_string(b.data()) == s);
+                });
+            ios.run_one();
+            es.stream().write_some(
+                boost::asio::buffer("\x01" + s));
+            ios.run();
+            BEAST_EXPECT(count == 1);
+        }
+
+        // new data frame when continuation expected
+        bad("\x01\x01*" "\x81\x01*");
+
+        // reserved bits not cleared
+        bad("\xb1\x01*");
+        bad("\xc1\x01*");
+        bad("\xd1\x01*");
+
+        // continuation without an active message
+        bad("\x80\x01*");
+
+        // reserved bits not cleared (cont)
+        bad("\x01\x01*" "\xb0\x01*");
+        bad("\x01\x01*" "\xc0\x01*");
+        bad("\x01\x01*" "\xd0\x01*");
+
+        // reserved opcode
+        bad("\x83\x01*");
+
+        // fragmented control message
+        bad("\x09\x01*");
+
+        // invalid length for control message
+        bad("\x89\x7e\x01\x01");
+
+        // reserved bits not cleared (control)
+        bad("\xb9\x01*");
+        bad("\xc9\x01*");
+        bad("\xd9\x01*");
+
+        // unmasked frame from client
+        {
+            echo_server es{log, kind::async_client};
+            boost::asio::io_service ios;
+            stream<test::stream> ws{ios};
+            ws.next_layer().connect(es.stream());
+            es.async_handshake();
+            ws.accept();
+            ws.next_layer().append(
+                "\x81\x01*");
+            error_code ec;
+            multi_buffer b;
+            ws.read(b, ec);
+            BEAST_EXPECT(ec);
+        }
+
+        // masked frame from server
+        bad("\x81\x80\xff\xff\xff\xff");
+
+        // chopped control frame payload
+        {
+            echo_server es{log};
+            boost::asio::io_service ios;
+            stream<test::stream> ws{ios};
+            ws.next_layer().connect(es.stream());
+            ws.handshake("localhost", "/");
+            ws.next_layer().append(
+                "\x89\x02*");
+            std::size_t count = 0;
+            error_code ec;
+            multi_buffer b;
+            ws.async_read(b,
+                [&](error_code ec, std::size_t)
+                {
+                    ++count;
+                    BEAST_EXPECTS(! ec, ec.message());
+                    BEAST_EXPECT(to_string(b.data()) == "**");
+                });
+            ios.run_one();
+            es.stream().write_some(
+                boost::asio::buffer(
+                    "*" "\x81\x02**"));
+            ios.run();
+            BEAST_EXPECT(count == 1);
+        }
+
+        // length not canonical
+        bad(string_view("\x81\x7e\x00\x7d", 4));
+        bad(string_view("\x81\x7f\x00\x00\x00\x00\x00\x00\xff\xff", 10));
     }
 
     void
@@ -631,6 +988,7 @@ public:
                             buf, sizeof(buf)}};
             using boost::asio::asio_handler_is_continuation;
             asio_handler_is_continuation(&op);
+            pass();
         }
         {
             struct handler
@@ -645,6 +1003,7 @@ public:
                     handler{}, ws, b, 32, true};
             using boost::asio::asio_handler_is_continuation;
             asio_handler_is_continuation(&op);
+            pass();
         }
     }
 
@@ -652,7 +1011,8 @@ public:
     run() override
     {
         testRead();
-        testReadSuspend();
+        testSuspend();
+        testParseFrame();
         testContHook();
     }
 };

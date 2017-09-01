@@ -22,8 +22,6 @@
 #include <boost/throw_exception.hpp>
 #include <memory>
 
-#include <iostream>
-
 namespace boost {
 namespace beast {
 namespace websocket {
@@ -46,7 +44,7 @@ class stream<NextLayer>::close_op
         detail::frame_buffer fb;
         error_code ev;
         token tok;
-        bool cont;
+        bool cont = false;
 
         state(
             Handler&,
@@ -121,7 +119,8 @@ public:
 template<class NextLayer>
 template<class Handler>
 void
-stream<NextLayer>::close_op<Handler>::
+stream<NextLayer>::
+close_op<Handler>::
 operator()(
     error_code ec,
     std::size_t bytes_transferred,
@@ -140,7 +139,7 @@ operator()(
             d.ws.wr_block_ = d.tok;
 
             // Make sure the stream is open
-            if(d.ws.check_fail(ec))
+            if(! d.ws.check_open(ec))
                 goto upcall;
         }
         else
@@ -160,29 +159,33 @@ operator()(
             BOOST_ASSERT(d.ws.wr_block_ == d.tok);
 
             // Make sure the stream is open
-            if(d.ws.check_fail(ec))
+            if(! d.ws.check_open(ec))
                 goto upcall;
         }
 
         // Can't call close twice
         BOOST_ASSERT(! d.ws.wr_close_);
 
+        // Change status to closing
+        BOOST_ASSERT(d.ws.status_ == status::open);
+        d.ws.status_ = status::closing;
+
         // Send close frame
         d.ws.wr_close_ = true;
         BOOST_ASIO_CORO_YIELD
         boost::asio::async_write(d.ws.stream_,
             d.fb.data(), std::move(*this));
-        if(d.ws.check_fail(ec))
+        if(! d.ws.check_ok(ec))
             goto upcall;
 
         if(d.ws.rd_close_)
         {
             // This happens when the read_op gets a close frame
-            // at the same time we are sending the close frame. The
-            // read_op will be suspended on the write block.
+            // at the same time close_op is sending the close frame.
+            // The read_op will be suspended on the write block.
             goto teardown;
         }
-
+        
         // Maybe suspend
         if(! d.ws.rd_block_)
         {
@@ -206,7 +209,9 @@ operator()(
             BOOST_ASSERT(d.ws.rd_block_ == d.tok);
 
             // Make sure the stream is open
-            if(d.ws.check_fail(ec))
+            BOOST_ASSERT(d.ws.status_ != status::open);
+            BOOST_ASSERT(d.ws.status_ != status::closed);
+            if( d.ws.status_ == status::failed)
                 goto upcall;
 
             BOOST_ASSERT(! d.ws.rd_close_);
@@ -231,7 +236,7 @@ operator()(
                     d.ws.rd_buf_.prepare(read_size(d.ws.rd_buf_,
                         d.ws.rd_buf_.max_size())),
                             std::move(*this));
-                if(d.ws.check_fail(ec))
+                if(! d.ws.check_ok(ec))
                     goto upcall;
                 d.ws.rd_buf_.commit(bytes_transferred);
             }
@@ -271,7 +276,7 @@ operator()(
                         d.ws.rd_buf_.prepare(read_size(d.ws.rd_buf_,
                             d.ws.rd_buf_.max_size())),
                                 std::move(*this));
-                    if(d.ws.check_fail(ec))
+                    if(! d.ws.check_ok(ec))
                         goto upcall;
                     d.ws.rd_buf_.commit(bytes_transferred);
                 }
@@ -289,7 +294,6 @@ operator()(
         async_teardown(d.ws.role_,
             d.ws.stream_, std::move(*this));
         BOOST_ASSERT(d.ws.wr_block_ == d.tok);
-        BOOST_ASSERT(d.ws.open_);
         if(ec == boost::asio::error::eof)
         {
             // Rationale:
@@ -298,7 +302,11 @@ operator()(
         }
         if(! ec)
             ec = d.ev;
-        d.ws.open_ = false;
+        if(ec)
+            d.ws.status_ = status::failed;
+        else
+            d.ws.status_ = status::closed;
+        d.ws.close();
 
     upcall:
         BOOST_ASSERT(d.ws.wr_block_ == d.tok);
@@ -346,7 +354,7 @@ close(close_reason const& cr, error_code& ec)
     using beast::detail::clamp;
     ec.assign(0, ec.category());
     // Make sure the stream is open
-    if(check_fail(ec))
+    if(! check_open(ec))
         return;
     // If rd_close_ is set then we already sent a close
     BOOST_ASSERT(! rd_close_);
@@ -357,8 +365,9 @@ close(close_reason const& cr, error_code& ec)
         write_close<flat_static_buffer_base>(fb, cr);
         boost::asio::write(stream_, fb.data(), ec);
     }
-    if(check_fail(ec))
+    if(! check_ok(ec))
         return;
+    status_ = status::closing;
     // Drain the connection
     close_code code{};
     if(rd_remain_ > 0)
@@ -375,7 +384,7 @@ close(close_reason const& cr, error_code& ec)
                 stream_.read_some(
                     rd_buf_.prepare(read_size(rd_buf_,
                         rd_buf_.max_size())), ec);
-            if(check_fail(ec))
+            if(! check_ok(ec))
                 return;
             rd_buf_.commit(bytes_transferred);
         }
@@ -414,8 +423,7 @@ close(close_reason const& cr, error_code& ec)
                     stream_.read_some(
                         rd_buf_.prepare(read_size(rd_buf_,
                             rd_buf_.max_size())), ec);
-                open_ = ! ec;
-                if(! open_)
+                if(! check_ok(ec))
                     return;
                 rd_buf_.commit(bytes_transferred);
             }

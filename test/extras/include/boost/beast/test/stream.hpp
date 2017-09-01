@@ -78,6 +78,11 @@ class stream
         std::size_t write_max =
             (std::numeric_limits<std::size_t>::max)();
 
+        ~state()
+        {
+            BOOST_ASSERT(! op);
+        }
+
         explicit
         state(
             boost::asio::io_service& ios_,
@@ -85,11 +90,6 @@ class stream
             : ios(ios_)
             , fc(fc_)
         {
-        }
-
-        ~state()
-        {
-            BOOST_ASSERT(! op);
         }
 
         void
@@ -119,6 +119,10 @@ public:
     /// Destructor
     ~stream()
     {
+        {
+            std::unique_lock<std::mutex> lock{in_->m};
+            in_->op.reset();
+        }
         auto out = out_.lock();
         if(out)
         {
@@ -612,16 +616,17 @@ teardown(
     stream& s,
     boost::system::error_code& ec)
 {
-    if(s.in_->fc)
-    {
-        if(s.in_->fc->fail(ec))
-            return;
-    }
+    if( s.in_->fc &&
+        s.in_->fc->fail(ec))
+        return;
+
+    s.close();
+
+    if( s.in_->fc &&
+        s.in_->fc->fail(ec))
+        ec = boost::asio::error::eof;
     else
-    {
-        s.close();
         ec.assign(0, ec.category());
-    }
 }
 
 template<class TeardownHandler>
@@ -633,10 +638,17 @@ async_teardown(
     TeardownHandler&& handler)
 {
     error_code ec;
-    if(s.in_->fc && s.in_->fc->fail(ec))
+    if( s.in_->fc &&
+        s.in_->fc->fail(ec))
         return s.get_io_service().post(
             bind_handler(std::move(handler), ec));
     s.close();
+    if( s.in_->fc &&
+        s.in_->fc->fail(ec))
+        ec = boost::asio::error::eof;
+    else
+        ec.assign(0, ec.category());
+
     s.get_io_service().post(
         bind_handler(std::move(handler), ec));
 }

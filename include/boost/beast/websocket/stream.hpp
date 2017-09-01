@@ -132,6 +132,9 @@ class stream
 
     struct op {};
 
+    using control_cb_type =
+        std::function<void(frame_type, string_view)>;
+
     // tokens are used to order reads and writes
     class token
     {
@@ -157,8 +160,13 @@ class stream
         zlib::inflate_stream zi;
     };
 
-    using control_cb_type =
-        std::function<void(frame_type, string_view)>;
+    enum class status
+    {
+        open,
+        closing,
+        closed,
+        failed
+    };
 
     NextLayer               stream_;        // the wrapped stream
     close_reason            cr_;            // set from received close frame
@@ -190,8 +198,8 @@ class stream
     token                   tok_;           // used to order asynchronous ops
     role_type               role_           // server or client
                                 = role_type::client;
-    bool                    open_           // `true` if connected
-                                = false;
+    status                  status_
+                                = status::closed;
 
     token                   wr_block_;      // op currenly writing
     bool                    wr_close_       // did we write a close frame?
@@ -366,7 +374,7 @@ public:
     bool
     is_open() const
     {
-        return open_;
+        return status_ == status::open;
     }
 
     /** Returns `true` if the latest message data indicates binary.
@@ -3394,19 +3402,27 @@ private:
     void begin_msg();
 
     bool
-    check_fail(error_code& ec)
+    check_open(error_code& ec)
     {
-        if(! open_)
+        if(status_ != status::open)
         {
             ec = boost::asio::error::operation_aborted;
-            return true;
+            return false;
         }
+        ec.assign(0, ec.category());
+        return true;
+    }
+
+    bool
+    check_ok(error_code& ec)
+    {
         if(ec)
         {
-            open_ = false;
-            return true;
+            if(status_ != status::closed)
+                status_ = status::failed;
+            return false;
         }
-        return false;
+        return true;
     }
 
     template<class DynamicBuffer>

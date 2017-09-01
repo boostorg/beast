@@ -7,12 +7,8 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
-#include <boost/beast/websocket/stream.hpp>
 #include <boost/beast/websocket/detail/frame.hpp>
 #include <boost/beast/unit_test/suite.hpp>
-#include <boost/beast/test/yield_to.hpp>
-#include <initializer_list>
-#include <climits>
 
 namespace boost {
 namespace beast {
@@ -21,7 +17,6 @@ namespace detail {
 
 class frame_test
     : public beast::unit_test::suite
-    , public test::enable_yield_to
 {
 public:
     void testCloseCodes()
@@ -47,7 +42,7 @@ public:
         test_fh()
         {
             op = detail::opcode::text;
-            fin = false;
+            fin =  true;
             mask = false;
             rsv1 = false;
             rsv2 = false;
@@ -57,8 +52,20 @@ public:
         }
     };
 
+    void
+    testWriteFrame()
+    {
+        test_fh fh;
+        fh.rsv2 = true;
+        fh.rsv3 = true;
+        fh.len = 65536;
+        frame_buffer fb;
+        write(fb, fh);
+    }
+
     void run() override
     {
+        testWriteFrame();
         testCloseCodes();
     }
 };

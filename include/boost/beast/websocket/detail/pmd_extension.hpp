@@ -57,14 +57,17 @@ parse_bits(string_view s)
         return -1;
     if(s[0] < '1' || s[0] > '9')
         return -1;
-    int i = 0;
+    unsigned i = 0;
     for(auto c : s)
     {
         if(c < '0' || c > '9')
             return -1;
+        auto const i0 = i;
         i = 10 * i + (c - '0');
+        if(i < i0)
+            return -1;
     }
-    return i;
+    return static_cast<int>(i);
 }
 
 // Parse permessage-deflate request fields
@@ -353,43 +356,6 @@ pmd_normalize(pmd_offer& offer)
 }
 
 //--------------------------------------------------------------------
-
-// Decompress into a DynamicBuffer
-//
-template<class InflateStream, class DynamicBuffer>
-void
-inflate(
-    InflateStream& zi,
-    DynamicBuffer& buffer,
-    boost::asio::const_buffer const& in,
-    error_code& ec)
-{
-    using boost::asio::buffer_cast;
-    using boost::asio::buffer_size;
-    zlib::z_params zs;
-    zs.avail_in = buffer_size(in);
-    zs.next_in = buffer_cast<void const*>(in);
-    for(;;)
-    {
-        // VFALCO we could be smarter about the size
-        auto const bs = buffer.prepare(
-            read_size_or_throw(buffer, 65536));
-        auto const out = *bs.begin();
-        zs.avail_out = buffer_size(out);
-        zs.next_out = buffer_cast<void*>(out);
-        zi.write(zs, zlib::Flush::sync, ec);
-        buffer.commit(zs.total_out);
-        zs.total_out = 0;
-        if( ec == zlib::error::need_buffers ||
-            ec == zlib::error::end_of_stream)
-        {
-            ec.assign(0, ec.category());
-            break;
-        }
-        if(ec)
-            return;
-    }
-}
 
 // Compress a buffer sequence
 // Returns: `true` if more calls are needed

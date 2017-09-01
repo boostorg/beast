@@ -187,6 +187,12 @@ public:
     void
     save(F&& f);
 
+    explicit
+    operator bool() const
+    {
+        return base_ != nullptr;
+    }
+
     bool
     maybe_invoke()
     {

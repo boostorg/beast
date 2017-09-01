@@ -264,7 +264,7 @@ public:
         Test const& f, std::size_t limit = 200)
     {
         std::size_t n;
-        for(n = 0; n <= limit; ++n)
+        for(n = 0; n < limit; ++n)
         {
             test::fail_counter fc{n};
             try
@@ -288,7 +288,7 @@ public:
     {
         // This number has to be high for the
         // test that writes the large buffer.
-        static std::size_t constexpr limit = 1000;
+        static std::size_t constexpr limit = 200;
 
         doFailLoop(
             [&](test::fail_counter& fc)
@@ -308,12 +308,12 @@ public:
     {
         // This number has to be high for the
         // test that writes the large buffer.
-        static std::size_t constexpr limit = 1000;
+        static std::size_t constexpr limit = 200;
 
         for(int i = 0; i < 2; ++i)
         {
             std::size_t n;
-            for(n = 0; n <= limit; ++n)
+            for(n = 0; n < limit; ++n)
             {
                 test::fail_counter fc{n};
                 test::stream ts{ios_, fc};

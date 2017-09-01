@@ -34,8 +34,6 @@ public:
         req.insert("Connection", "upgrade");
         BEAST_EXPECT(! is_upgrade(req));
         req.insert("Upgrade", "websocket");
-        BEAST_EXPECT(! is_upgrade(req));
-        req.insert("Sec-WebSocket-Version", "13");
         BEAST_EXPECT(is_upgrade(req));
     }
 

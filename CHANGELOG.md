@@ -3,6 +3,7 @@ Version 111:
 WebSocket:
 
 * Fix utf8 check split code point at buffer end
+* Refactor stream operations and tests plus coverage
 
 --------------------------------------------------------------------------------
 

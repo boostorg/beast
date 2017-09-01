@@ -22,7 +22,7 @@ public:
     void
     testOptions()
     {
-        stream<test::stream> ws(ios_);
+        stream<test::stream> ws{ios_};
         ws.auto_fragment(true);
         ws.write_buffer_size(2048);
         ws.binary(false);
@@ -36,47 +36,70 @@ public:
         {
             pass();
         }
+
+        auto const bad =
+        [&](permessage_deflate const& pmd)
+        {
+            stream<test::stream> ws{ios_};
+            try
+            {
+                ws.set_option(pmd);
+                fail("", __FILE__, __LINE__);
+            }
+            catch(std::exception const&)
+            {
+                pass();
+            }
+        };
+
+        {
+            permessage_deflate pmd;
+            pmd.server_max_window_bits = 16;
+            bad(pmd);
+        }
+
+        {
+            permessage_deflate pmd;
+            pmd.server_max_window_bits = 8;
+            bad(pmd);
+        }
+
+        {
+            permessage_deflate pmd;
+            pmd.client_max_window_bits = 16;
+            bad(pmd);
+        }
+
+        {
+            permessage_deflate pmd;
+            pmd.client_max_window_bits = 8;
+            bad(pmd);
+        }
+
+        {
+            permessage_deflate pmd;
+            pmd.compLevel = -1;
+            bad(pmd);
+        }
+
+        {
+            permessage_deflate pmd;
+            pmd.compLevel = 10;
+            bad(pmd);
+        }
+
+        {
+            permessage_deflate pmd;
+            pmd.memLevel = 0;
+            bad(pmd);
+        }
+
+        {
+            permessage_deflate pmd;
+            pmd.memLevel = 10;
+            bad(pmd);
+        }
     }
-
-    //--------------------------------------------------------------------------
-
-    template<class Wrap>
-    void
-    doTestStream(Wrap const& w,
-        permessage_deflate const& pmd)
-    {
-        using boost::asio::buffer;
-
-        // send pong
-        doTest(pmd, [&](ws_type& ws)
-        {
-            w.pong(ws, "");
-        });
-
-        // send auto fragmented message
-        doTest(pmd, [&](ws_type& ws)
-        {
-            ws.auto_fragment(true);
-            ws.write_buffer_size(8);
-            w.write(ws, sbuf("Now is the time for all good men"));
-            multi_buffer b;
-            w.read(ws, b);
-            BEAST_EXPECT(to_string(b.data()) == "Now is the time for all good men");
-        });
-
-        // send message with write buffer limit
-        doTest(pmd, [&](ws_type& ws)
-        {
-            std::string s(2000, '*');
-            ws.write_buffer_size(1200);
-            w.write(ws, buffer(s.data(), s.size()));
-            multi_buffer b;
-            w.read(ws, b);
-            BEAST_EXPECT(to_string(b.data()) == s);
-        });
-    }
-
-    //--------------------------------------------------------------------------
 
     void
     run() override
@@ -103,42 +126,6 @@ public:
             sizeof(websocket::stream<test::stream&>) << std::endl;
 
         testOptions();
-
-#if 0
-        auto const testStream =
-            [this](permessage_deflate const& pmd)
-            {
-                doTestStream(SyncClient{}, pmd);
-
-                yield_to(
-                    [&](yield_context yield)
-                    {
-                        doTestStream(AsyncClient{yield}, pmd);
-                    });
-            };
-
-        permessage_deflate pmd;
-
-        pmd.client_enable = false;
-        pmd.server_enable = false;
-        testStream(pmd);
-
-        pmd.client_enable = true;
-        pmd.server_enable = true;
-        pmd.client_max_window_bits = 10;
-        pmd.client_no_context_takeover = false;
-        pmd.compLevel = 1;
-        pmd.memLevel = 1;
-        testStream(pmd);
-
-        pmd.client_enable = true;
-        pmd.server_enable = true;
-        pmd.client_max_window_bits = 10;
-        pmd.client_no_context_takeover = true;
-        pmd.compLevel = 1;
-        pmd.memLevel = 1;
-        testStream(pmd);
-#endif
     }
 };
 

@@ -560,6 +560,35 @@ public:
             "Sec-WebSocket-Version: 13\r\n"
             "\r\n"
         );
+        // oversize key
+        check(error::handshake_failed,
+            "GET / HTTP/1.1\r\n"
+            "Host: localhost:80\r\n"
+            "Upgrade: WebSocket\r\n"
+            "Connection: upgrade\r\n"
+            "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQdGhlIHNhbXBsZSBub25jZQ==\r\n"
+            "Sec-WebSocket-Version: 13\r\n"
+            "\r\n"
+        );
+        // bad version
+        check(error::handshake_failed,
+            "GET / HTTP/1.1\r\n"
+            "Host: localhost:80\r\n"
+            "Upgrade: WebSocket\r\n"
+            "Connection: upgrade\r\n"
+            "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n"
+            "Sec-WebSocket-Version: 12\r\n"
+            "\r\n"
+        );
+        // missing version
+        check(error::handshake_failed,
+            "GET / HTTP/1.1\r\n"
+            "Host: localhost:80\r\n"
+            "Upgrade: WebSocket\r\n"
+            "Connection: upgrade\r\n"
+            "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n"
+            "\r\n"
+        );
         // valid request
         check({},
             "GET / HTTP/1.1\r\n"

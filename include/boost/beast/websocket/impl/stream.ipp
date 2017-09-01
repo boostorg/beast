@@ -134,7 +134,7 @@ open(role_type role)
 {
     // VFALCO TODO analyze and remove dupe code in reset()
     role_ = role;
-    open_ = true;
+    status_ = status::open;
     rd_remain_ = 0;
     rd_cont_ = false;
     rd_done_ = true;
@@ -193,8 +193,7 @@ void
 stream<NextLayer>::
 reset()
 {
-    BOOST_ASSERT(! open_);
-    open_ = false; // VFALCO is this needed?
+    BOOST_ASSERT(status_ != status::open);
     rd_remain_ = 0;
     rd_cont_ = false;
     rd_done_ = true;
@@ -593,8 +592,6 @@ build_response(http::request<Body,
         return err("Missing Host");
     if(! req.count(http::field::sec_websocket_key))
         return err("Missing Sec-WebSocket-Key");
-    if(! http::token_list{req[http::field::upgrade]}.exists("websocket"))
-        return err("Missing websocket Upgrade token");
     auto const key = req[http::field::sec_websocket_key];
     if(key.size() > detail::sec_ws_key_type::max_size_n)
         return err("Invalid Sec-WebSocket-Key");
@@ -684,6 +681,7 @@ do_fail(
     error_code& ec)             // set to the error, else set to ev
 {
     BOOST_ASSERT(ev);
+    status_ = status::closing;
     if(code != close_code::none && ! wr_close_)
     {
         wr_close_ = true;
@@ -691,8 +689,7 @@ do_fail(
         write_close<
             flat_static_buffer_base>(fb, code);
         boost::asio::write(stream_, fb.data(), ec);
-        open_ = ! ec;
-        if(! open_)
+        if(! check_ok(ec))
             return;
     }
     using beast::websocket::teardown;
@@ -703,11 +700,13 @@ do_fail(
         // http://stackoverflow.com/questions/25587403/boost-asio-ssl-async-shutdown-always-finishes-with-an-error
         ec.assign(0, ec.category());
     }
-    open_ = ! ec;
-    if(! open_)
-        return;
-    ec = ev;
-    open_ = false;
+    if(! ec)
+        ec = ev;
+    if(ec && ec != error::closed)
+        status_ = status::failed;
+    else
+        status_ = status::closed;
+    close();
 }
 
 } // websocket

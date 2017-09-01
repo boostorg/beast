@@ -114,6 +114,7 @@ struct fail_error_code : error_code
 class fail_counter
 {
     std::size_t n_;
+    std::size_t i_ = 0;
     error_code ec_;
 
 public:
@@ -131,13 +132,20 @@ public:
     {
     }
 
+    /// Returns the fail index
+    std::size_t
+    count() const
+    {
+        return n_;
+    }
+
     /// Throw an exception on the Nth failure
     void
     fail()
     {
-        if(n_ > 0)
-            --n_;
-        if(! n_)
+        if(i_ < n_)
+            ++i_;
+        if(i_ == n_)
             BOOST_THROW_EXCEPTION(system_error{ec_});
     }
 
@@ -145,9 +153,9 @@ public:
     bool
     fail(error_code& ec)
     {
-        if(n_ > 0)
-            --n_;
-        if(! n_)
+        if(i_ < n_)
+            ++i_;
+        if(i_ == n_)
         {
             ec = ec_;
             return true;

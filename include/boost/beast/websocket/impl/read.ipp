@@ -53,7 +53,7 @@ class stream<NextLayer>::read_some_op
     token tok_;
     close_code code_;
     bool did_read_ = false;
-    bool cont_;
+    bool cont_ = false;
 
 public:
     read_some_op(read_some_op&&) = default;
@@ -138,14 +138,19 @@ operator()(
     BOOST_ASIO_CORO_REENTER(*this)
     {
         // Maybe suspend
+    do_maybe_suspend:
         if(! ws_.rd_block_)
         {
             // Acquire the read block
             ws_.rd_block_ = tok_;
 
-            // Make sure the stream is open
-            if(ws_.check_fail(ec))
+            // Make sure the stream is not closed
+            if( ws_.status_ == status::closed ||
+                ws_.status_ == status::failed)
+            {
+                ec = boost::asio::error::operation_aborted;
                 goto upcall;
+            }
         }
         else
         {
@@ -164,10 +169,18 @@ operator()(
             ws_.get_io_service().post(std::move(*this));
             BOOST_ASSERT(ws_.rd_block_ == tok_);
 
-            // Make sure the stream is open
-            if(ws_.check_fail(ec))
-                goto upcall;
+            // The only way to get read blocked is if
+            // a `close_op` wrote a close frame
+            BOOST_ASSERT(ws_.wr_close_);
+            BOOST_ASSERT(ws_.status_ != status::open);
+            ec = boost::asio::error::operation_aborted;
+            goto upcall;
         }
+
+        // if status_ == status::closing, we want to suspend
+        // the read operation until the close completes,
+        // then finish the read with operation_aborted.
+
     loop:
         BOOST_ASSERT(ws_.rd_block_ == tok_);
         // See if we need to read a frame header. This
@@ -195,19 +208,21 @@ operator()(
                         ws_.rd_buf_, ws_.rd_buf_.max_size())),
                             std::move(*this));
                 BOOST_ASSERT(ws_.rd_block_ == tok_);
-                if(ws_.check_fail(ec))
+                if(! ws_.check_ok(ec))
                     goto upcall;
                 ws_.rd_buf_.commit(bytes_transferred);
 
-                // Allow a close operation to
-                // drain the connection if necessary.
+                // Allow a close operation
+                // to acquire the read block
                 BOOST_ASSERT(ws_.rd_block_ == tok_);
                 ws_.rd_block_.reset();
                 if( ws_.paused_r_close_.maybe_invoke())
                 {
+                    // Suspend
                     BOOST_ASSERT(ws_.rd_block_);
                     goto do_suspend;
                 }
+                // Acquire read block
                 ws_.rd_block_ = tok_;
             }
             // Immediately apply the mask to the portion
@@ -236,7 +251,7 @@ operator()(
                         detail::read_ping(payload, b);
                         ws_.rd_buf_.consume(len);
                         // Ignore ping when closing
-                        if(ws_.wr_close_)
+                        if(ws_.status_ == status::closing)
                             goto loop;
                         if(ws_.ctrl_cb_)
                             ws_.ctrl_cb_(frame_type::ping, payload);
@@ -245,6 +260,15 @@ operator()(
                             flat_static_buffer_base>(ws_.rd_fb_,
                                 detail::opcode::pong, payload);
                     }
+
+                    //BOOST_ASSERT(! ws_.paused_r_close_);
+
+                    // Allow a close operation
+                    // to acquire the read block
+                    BOOST_ASSERT(ws_.rd_block_ == tok_);
+                    ws_.rd_block_.reset();
+                    ws_.paused_r_close_.maybe_invoke();
+
                     // Maybe suspend
                     if(! ws_.wr_block_)
                     {
@@ -268,18 +292,8 @@ operator()(
                         BOOST_ASSERT(ws_.wr_block_ == tok_);
 
                         // Make sure the stream is open
-                        if(ws_.check_fail(ec))
+                        if(! ws_.check_open(ec))
                             goto upcall;
-
-                        // Ignore ping when closing
-                        if(ws_.wr_close_)
-                        {
-                            ws_.wr_block_.reset();
-                            ws_.paused_close_.maybe_invoke() ||
-                                ws_.paused_ping_.maybe_invoke() ||
-                                ws_.paused_wr_.maybe_invoke();
-                            goto loop;
-                        }
                     }
 
                     // Send pong
@@ -288,13 +302,13 @@ operator()(
                     boost::asio::async_write(ws_.stream_,
                         ws_.rd_fb_.data(), std::move(*this));
                     BOOST_ASSERT(ws_.wr_block_ == tok_);
-                    if(ws_.check_fail(ec))
+                    if(! ws_.check_ok(ec))
                         goto upcall;
                     ws_.wr_block_.reset();
                     ws_.paused_close_.maybe_invoke() ||
                         ws_.paused_ping_.maybe_invoke() ||
                         ws_.paused_wr_.maybe_invoke();
-                    goto loop;
+                    goto do_maybe_suspend;
                 }
                 // Handle pong frame
                 if(ws_.rd_fh_.op == detail::opcode::pong)
@@ -335,17 +349,19 @@ operator()(
                     if(ws_.ctrl_cb_)
                         ws_.ctrl_cb_(frame_type::close,
                             ws_.cr_.reason);
-                    if(! ws_.wr_close_)
+                    // See if we are already closing
+                    if(ws_.status_ == status::closing)
                     {
-                        // _Start the WebSocket Closing Handshake_
-                        code_ = cr.code == close_code::none ?
-                            close_code::normal :
-                            static_cast<close_code>(cr.code);
+                        // _Close the WebSocket Connection_
+                        BOOST_ASSERT(ws_.wr_close_);
+                        code_ = close_code::none;
                         ev_ = error::closed;
                         goto close;
                     }
-                    // _Close the WebSocket Connection_
-                    code_ = close_code::none;
+                    // _Start the WebSocket Closing Handshake_
+                    code_ = cr.code == close_code::none ?
+                        close_code::normal :
+                        static_cast<close_code>(cr.code);
                     ev_ = error::closed;
                     goto close;
                 }
@@ -372,7 +388,7 @@ operator()(
                         ws_.rd_buf_.prepare(read_size(
                             ws_.rd_buf_, ws_.rd_buf_.max_size())),
                                 std::move(*this));
-                    if(ws_.check_fail(ec))
+                    if(! ws_.check_ok(ec))
                         goto upcall;
                     ws_.rd_buf_.commit(bytes_transferred);
                     if(ws_.rd_fh_.mask)
@@ -413,7 +429,7 @@ operator()(
                     BOOST_ASIO_CORO_YIELD
                     ws_.stream_.async_read_some(buffer_prefix(
                         clamp(ws_.rd_remain_), cb_), std::move(*this));
-                    if(ws_.check_fail(ec))
+                    if(! ws_.check_ok(ec))
                         goto upcall;
                     BOOST_ASSERT(bytes_transferred > 0);
                     auto const mb = buffer_prefix(
@@ -456,7 +472,7 @@ operator()(
                         ws_.rd_buf_.prepare(read_size(
                             ws_.rd_buf_, ws_.rd_buf_.max_size())),
                                 std::move(*this));
-                    if(ws_.check_fail(ec))
+                    if(! ws_.check_ok(ec))
                         goto upcall;
                     BOOST_ASSERT(bytes_transferred > 0);
                     ws_.rd_buf_.commit(bytes_transferred);
@@ -498,8 +514,7 @@ operator()(
                     zs.next_in = empty_block;
                     zs.avail_in = sizeof(empty_block);
                     ws_.pmd_->zi.write(zs, zlib::Flush::sync, ec);
-                    if(ws_.check_fail(ec))
-                        goto upcall;
+                    BOOST_ASSERT(! ec);
                     // VFALCO See:
                     // https://github.com/madler/zlib/issues/280
                     BOOST_ASSERT(zs.total_out == 0);
@@ -521,7 +536,7 @@ operator()(
                 }
                 ws_.pmd_->zi.write(zs, zlib::Flush::sync, ec);
                 BOOST_ASSERT(ec != zlib::error::end_of_stream);
-                if(ws_.check_fail(ec))
+                if(! ws_.check_ok(ec))
                     goto upcall;
                 if(ws_.rd_msg_max_ && beast::detail::sum_exceeds(
                     ws_.rd_size_, zs.total_out, ws_.rd_msg_max_))
@@ -560,7 +575,7 @@ operator()(
             ws_.wr_block_ = tok_;
 
             // Make sure the stream is open
-            BOOST_ASSERT(ws_.open_);
+            BOOST_ASSERT(ws_.status_ == status::open);
         }
         else
         {
@@ -579,9 +594,12 @@ operator()(
             BOOST_ASSERT(ws_.wr_block_ == tok_);
 
             // Make sure the stream is open
-            if(ws_.check_fail(ec))
+            if(! ws_.check_open(ec))
                 goto upcall;
         }
+
+        // Set the status
+        ws_.status_ = status::closing;
 
         if(! ws_.wr_close_)
         {
@@ -600,9 +618,7 @@ operator()(
                 ws_.stream_, ws_.rd_fb_.data(),
                     std::move(*this));
             BOOST_ASSERT(ws_.wr_block_ == tok_);
-
-            // Make sure the stream is open
-            if(ws_.check_fail(ec))
+            if(! ws_.check_ok(ec))
                 goto upcall;
         }
 
@@ -621,11 +637,15 @@ operator()(
         }
         if(! ec)
             ec = ev_;
-        ws_.open_ = false;
+        if(ec && ec != error::closed)
+            ws_.status_ = status::failed;
+        else
+            ws_.status_ = status::closed;
+        ws_.close();
 
     upcall:
-        BOOST_ASSERT(ws_.rd_block_ == tok_);
-        ws_.rd_block_.reset();
+        if(ws_.rd_block_ == tok_)
+            ws_.rd_block_.reset();
         ws_.paused_r_close_.maybe_invoke();
         if(ws_.wr_block_ == tok_)
         {
@@ -755,7 +775,7 @@ operator()(
             BOOST_ASIO_CORO_YIELD
             read_some_op<buffers_type, read_op>{
                 std::move(*this), ws_, *mb}(
-                    {}, 0, true);
+                    {}, 0, false);
             if(ec)
                 break;
             b_.commit(bytes_transferred);
@@ -956,7 +976,7 @@ read_some(
     std::size_t bytes_written = 0;
     ec.assign(0, ec.category());
     // Make sure the stream is open
-    if(check_fail(ec))
+    if(! check_open(ec))
         return 0;
 loop:
     // See if we need to read a frame header. This
@@ -979,7 +999,7 @@ loop:
                     rd_buf_.prepare(read_size(
                         rd_buf_, rd_buf_.max_size())),
                     ec);
-            if(check_fail(ec))
+            if(! check_ok(ec))
                 return bytes_written;
             rd_buf_.commit(bytes_transferred);
         }
@@ -1018,7 +1038,7 @@ loop:
                 write_ping<flat_static_buffer_base>(fb,
                     detail::opcode::pong, payload);
                 boost::asio::write(stream_, fb.data(), ec);
-                if(check_fail(ec))
+                if(! check_ok(ec))
                     return bytes_written;
                 goto loop;
             }
@@ -1082,7 +1102,7 @@ loop:
                 rd_buf_.commit(stream_.read_some(
                     rd_buf_.prepare(read_size(rd_buf_,
                         rd_buf_.max_size())), ec));
-                if(check_fail(ec))
+                if(! check_ok(ec))
                     return bytes_written;
                 if(rd_fh_.mask)
                     detail::mask_inplace(
@@ -1125,7 +1145,7 @@ loop:
                 auto const bytes_transferred =
                     stream_.read_some(buffer_prefix(
                         clamp(rd_remain_), buffers), ec);
-                if(check_fail(ec))
+                if(! check_ok(ec))
                     return bytes_written;
                 BOOST_ASSERT(bytes_transferred > 0);
                 auto const mb = buffer_prefix(
@@ -1187,7 +1207,7 @@ loop:
                             rd_buf_.prepare(read_size(
                                 rd_buf_, rd_buf_.max_size())),
                             ec);
-                    if(check_fail(ec))
+                    if(! check_ok(ec))
                         return bytes_written;
                     BOOST_ASSERT(bytes_transferred > 0);
                     rd_buf_.commit(bytes_transferred);
@@ -1217,8 +1237,6 @@ loop:
                 zs.avail_in = sizeof(empty_block);
                 pmd_->zi.write(zs, zlib::Flush::sync, ec);
                 BOOST_ASSERT(! ec);
-                if(check_fail(ec))
-                    return bytes_written;
                 // VFALCO See:
                 // https://github.com/madler/zlib/issues/280
                 BOOST_ASSERT(zs.total_out == 0);
@@ -1240,7 +1258,7 @@ loop:
             }
             pmd_->zi.write(zs, zlib::Flush::sync, ec);
             BOOST_ASSERT(ec != zlib::error::end_of_stream);
-            if(check_fail(ec))
+            if(! check_ok(ec))
                 return bytes_written;
             if(rd_msg_max_ && beast::detail::sum_exceeds(
                 rd_size_, zs.total_out, rd_msg_max_))

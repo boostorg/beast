@@ -73,6 +73,20 @@ public:
             BEAST_EXPECT(b.size() == 0);
         });
 
+        // fragmented message
+        doTest(pmd, [&](ws_type& ws)
+        {
+            ws.auto_fragment(false);
+            ws.binary(false);
+            std::string const s = "Hello, world!";
+            w.write_some(ws, false, buffer(s.data(), 5));
+            w.write_some(ws, true, buffer(s.data() + 5, s.size() - 5));
+            multi_buffer b;
+            w.read(ws, b);
+            BEAST_EXPECT(ws.got_text());
+            BEAST_EXPECT(to_string(b.data()) == s);
+        });
+
         // continuation
         doTest(pmd, [&](ws_type& ws)
         {
