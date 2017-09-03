@@ -367,6 +367,7 @@ deflate(
     boost::asio::mutable_buffer& out,
     consuming_buffers<ConstBufferSequence>& cb,
     bool fin,
+    std::size_t& total_in,
     error_code& ec)
 {
     using boost::asio::buffer;
@@ -401,6 +402,7 @@ deflate(
         }
         BOOST_ASSERT(zs.avail_in == 0);
     }
+    total_in = zs.total_in;
     cb.consume(zs.total_in);
     if(zs.avail_out > 0 && fin)
     {

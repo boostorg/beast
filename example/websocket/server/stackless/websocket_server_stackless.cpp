@@ -61,13 +61,16 @@ public:
     void
     run()
     {
-        loop();
+        loop({}, 0);
     }
 
 #include <boost/asio/yield.hpp>
     void
-    loop(boost::system::error_code ec = {})
+    loop(
+        boost::system::error_code ec,
+        std::size_t bytes_transferred)
     {
+        boost::ignore_unused(bytes_transferred);
         reenter(*this)
         {
             // Accept the websocket handshake
@@ -75,7 +78,8 @@ public:
                 strand_.wrap(std::bind(
                     &session::loop,
                     shared_from_this(),
-                    std::placeholders::_1)));
+                    std::placeholders::_1,
+                    0)));
             if(ec)
                 return fail(ec, "accept");
 
@@ -87,7 +91,8 @@ public:
                     strand_.wrap(std::bind(
                         &session::loop,
                         shared_from_this(),
-                        std::placeholders::_1)));
+                        std::placeholders::_1,
+                        std::placeholders::_2)));
                 if(ec == websocket::error::closed)
                 {
                     // This indicates that the session was closed
@@ -103,7 +108,8 @@ public:
                     strand_.wrap(std::bind(
                         &session::loop,
                         shared_from_this(),
-                        std::placeholders::_1)));
+                        std::placeholders::_1,
+                        std::placeholders::_2)));
                 if(ec)
                     return fail(ec, "write");
 

@@ -226,7 +226,7 @@ void echo(stream<boost::asio::ip::tcp::socket>& ws,
     multi_buffer& buffer, boost::asio::yield_context yield)
 {
     ws.async_read(buffer, yield);
-    std::future<void> fut =
+    std::future<std::size_t> fut =
         ws.async_write(buffer.data(), boost::asio::use_future);
 }
 //]

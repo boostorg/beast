@@ -636,29 +636,29 @@ public:
 
         template<
             class NextLayer, class ConstBufferSequence>
-        void
+        std::size_t
         write(stream<NextLayer>& ws,
             ConstBufferSequence const& buffers) const
         {
-            ws.write(buffers);
+            return ws.write(buffers);
         }
 
         template<
             class NextLayer, class ConstBufferSequence>
-        void
+        std::size_t
         write_some(stream<NextLayer>& ws, bool fin,
             ConstBufferSequence const& buffers) const
         {
-            ws.write_some(fin, buffers);
+            return ws.write_some(fin, buffers);
         }
 
         template<
             class NextLayer, class ConstBufferSequence>
-        void
+        std::size_t
         write_raw(stream<NextLayer>& ws,
             ConstBufferSequence const& buffers) const
         {
-            boost::asio::write(
+            return boost::asio::write(
                 ws.next_layer(), buffers);
         }
     };
@@ -896,39 +896,45 @@ public:
 
         template<
             class NextLayer, class ConstBufferSequence>
-        void
+        std::size_t
         write(stream<NextLayer>& ws,
             ConstBufferSequence const& buffers) const
         {
             error_code ec;
-            ws.async_write(buffers, yield_[ec]);
+            auto const bytes_transferred =
+                ws.async_write(buffers, yield_[ec]);
             if(ec)
                 throw system_error{ec};
+            return bytes_transferred;
         }
 
         template<
             class NextLayer, class ConstBufferSequence>
-        void
+        std::size_t
         write_some(stream<NextLayer>& ws, bool fin,
             ConstBufferSequence const& buffers) const
         {
             error_code ec;
-            ws.async_write_some(fin, buffers, yield_[ec]);
+            auto const bytes_transferred =
+                ws.async_write_some(fin, buffers, yield_[ec]);
             if(ec)
                 throw system_error{ec};
+            return bytes_transferred;
         }
 
         template<
             class NextLayer, class ConstBufferSequence>
-        void
+        std::size_t
         write_raw(stream<NextLayer>& ws,
             ConstBufferSequence const& buffers) const
         {
             error_code ec;
-            boost::asio::async_write(
-                ws.next_layer(), buffers, yield_[ec]);
+            auto const bytes_transferred =
+                boost::asio::async_write(
+                    ws.next_layer(), buffers, yield_[ec]);
             if(ec)
                 throw system_error{ec};
+            return bytes_transferred;
         }
     };
 };

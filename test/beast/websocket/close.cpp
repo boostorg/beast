@@ -212,12 +212,13 @@ public:
             ws.handshake("localhost", "/");
             std::size_t count = 0;
             ws.async_write(sbuf("*"),
-                [&](error_code ec)
+                [&](error_code ec, std::size_t n)
                 {
                     ++count;
                     if(ec)
                         BOOST_THROW_EXCEPTION(
                             system_error{ec});
+                    BEAST_EXPECT(n == 1);
                 });
             BEAST_EXPECT(ws.wr_block_);
             BEAST_EXPECT(count == 0);
@@ -371,11 +372,12 @@ public:
             std::size_t count = 0;
             std::string const s = "Hello, world!";
             ws.async_write(buffer(s),
-                [&](error_code ec)
+                [&](error_code ec, std::size_t n)
                 {
                     if(ec)
                         BOOST_THROW_EXCEPTION(
                             system_error{ec});
+                    BEAST_EXPECT(n == s.size());
                     BEAST_EXPECT(++count == 1);
                 });
             multi_buffer b;
@@ -415,11 +417,12 @@ public:
             multi_buffer b;
             std::string const s = "Hello, world!";
             ws.async_write(buffer(s),
-                [&](error_code ec)
+                [&](error_code ec, std::size_t n)
                 {
                     if(ec)
                         BOOST_THROW_EXCEPTION(
                             system_error{ec});
+                    BEAST_EXPECT(n == s.size());
                     BEAST_EXPECT(++count == 1);
                 });
             ws.async_read(b,
@@ -474,7 +477,7 @@ public:
                     ++count;
                 });
             ws.async_write(buffer(s),
-                [&](error_code ec)
+                [&](error_code ec, std::size_t)
                 {
                     if(ec != boost::asio::error::operation_aborted)
                         BOOST_THROW_EXCEPTION(
@@ -519,11 +522,12 @@ public:
                     ++count;
                 });
             ws.async_write(buffer(s),
-                [&](error_code ec)
+                [&](error_code ec, std::size_t n)
                 {
                     if(ec)
                         BOOST_THROW_EXCEPTION(
                             system_error{ec});
+                    BEAST_EXPECT(n == s.size());
                     BEAST_EXPECT(++count == 1);
                 });
             ws.async_ping({},
@@ -578,7 +582,7 @@ public:
                     ++count;
                 });
             ws.async_write(buffer(s),
-                [&](error_code ec)
+                [&](error_code ec, std::size_t)
                 {
                     if(ec != boost::asio::error::operation_aborted)
                         BOOST_THROW_EXCEPTION(

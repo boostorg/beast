@@ -85,12 +85,17 @@ public:
             strand_.wrap(std::bind(
                 &session::on_read,
                 shared_from_this(),
-                std::placeholders::_1)));
+                std::placeholders::_1,
+                std::placeholders::_2)));
     }
 
     void
-    on_read(boost::system::error_code ec)
+    on_read(
+        boost::system::error_code ec,
+        std::size_t bytes_transferred)
     {
+        boost::ignore_unused(bytes_transferred);
+
         // This indicates that the session was closed
         if(ec == websocket::error::closed)
             return;
@@ -105,12 +110,17 @@ public:
             strand_.wrap(std::bind(
                 &session::on_write,
                 shared_from_this(),
-                std::placeholders::_1)));
+                std::placeholders::_1,
+                std::placeholders::_2)));
     }
 
     void
-    on_write(boost::system::error_code ec)
+    on_write(
+        boost::system::error_code ec,
+        std::size_t bytes_transferred)
     {
+        boost::ignore_unused(bytes_transferred);
+
         if(ec)
             return fail(ec, "write");
 

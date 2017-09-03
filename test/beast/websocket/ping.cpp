@@ -104,12 +104,13 @@ public:
             ws.handshake("localhost", "/");
             std::size_t count = 0;
             ws.async_write(sbuf("Hello, world"),
-                [&](error_code ec)
+                [&](error_code ec, std::size_t n)
                 {
                     ++count;
                     if(ec)
                         BOOST_THROW_EXCEPTION(
                             system_error{ec});
+                    BEAST_EXPECT(n == 12);
                 });
             BEAST_EXPECT(ws.wr_block_);
             BEAST_EXPECT(count == 0);
@@ -333,12 +334,13 @@ public:
             ws.handshake("localhost", "/");
             std::size_t count = 0;
             ws.async_write(sbuf("*"),
-                [&](error_code ec)
+                [&](error_code ec, std::size_t n)
                 {
                     ++count;
                     if(ec)
                         BOOST_THROW_EXCEPTION(
                             system_error{ec});
+                    BEAST_EXPECT(n == 1);
                 });
             BEAST_EXPECT(ws.wr_block_);
             ws.async_ping("",

@@ -271,12 +271,13 @@ public:
             BEAST_EXPECT(ws.wr_block_);
             BEAST_EXPECT(count == 0);
             ws.async_write(sbuf("*"),
-                [&](error_code ec)
+                [&](error_code ec, std::size_t n)
                 {
                     ++count;
                     if(ec)
                         BOOST_THROW_EXCEPTION(
                             system_error{ec});
+                    BEAST_EXPECT(n == 1);
                 });
             BEAST_EXPECT(count == 0);
             ios.run();
@@ -303,7 +304,7 @@ public:
             BEAST_EXPECT(ws.wr_block_);
             BEAST_EXPECT(count == 0);
             ws.async_write(sbuf("*"),
-                [&](error_code ec)
+                [&](error_code ec, std::size_t)
                 {
                     ++count;
                     if(ec != boost::asio::error::operation_aborted)
@@ -344,12 +345,13 @@ public:
             }
             BEAST_EXPECT(count == 0);
             ws.async_write(sbuf("*"),
-                [&](error_code ec)
+                [&](error_code ec, std::size_t n)
                 {
                     ++count;
                     if(ec)
                         BOOST_THROW_EXCEPTION(
                             system_error{ec});
+                    BEAST_EXPECT(n == 1);
                 });
             BEAST_EXPECT(count == 0);
             ios.run();
@@ -369,12 +371,13 @@ public:
             std::string const s(16384, '*');
             ws.auto_fragment(false);
             ws.async_write(buffer(s),
-                [&](error_code ec)
+                [&](error_code ec, std::size_t n)
                 {
                     ++count;
                     if(ec)
                         BOOST_THROW_EXCEPTION(
                             system_error{ec});
+                    BEAST_EXPECT(n == 16384);
                 });
             BEAST_EXPECT(ws.wr_block_);
             ws.async_ping("",
@@ -402,12 +405,13 @@ public:
             std::string const s(16384, '*');
             ws.auto_fragment(true);
             ws.async_write(buffer(s),
-                [&](error_code ec)
+                [&](error_code ec, std::size_t n)
                 {
                     ++count;
                     if(ec)
                         BOOST_THROW_EXCEPTION(
                             system_error{ec});
+                    BEAST_EXPECT(n == 16384);
                 });
             BEAST_EXPECT(ws.wr_block_);
             ws.async_ping("",
@@ -435,12 +439,13 @@ public:
             std::string const s(16384, '*');
             ws.auto_fragment(false);
             ws.async_write(buffer(s),
-                [&](error_code ec)
+                [&](error_code ec, std::size_t n)
                 {
                     ++count;
                     if(ec)
                         BOOST_THROW_EXCEPTION(
                             system_error{ec});
+                    BEAST_EXPECT(n == 16384);
                 });
             BEAST_EXPECT(ws.wr_block_);
             ws.async_ping("",
@@ -467,12 +472,13 @@ public:
             std::string const s(16384, '*');
             ws.auto_fragment(true);
             ws.async_write(buffer(s),
-                [&](error_code ec)
+                [&](error_code ec, std::size_t n)
                 {
                     ++count;
                     if(ec)
                         BOOST_THROW_EXCEPTION(
                             system_error{ec});
+                    BEAST_EXPECT(n == 16384);
                 });
             BEAST_EXPECT(ws.wr_block_);
             ws.async_ping("",
@@ -504,12 +510,13 @@ public:
             auto const& s = random_string();
             ws.binary(true);
             ws.async_write(buffer(s),
-                [&](error_code ec)
+                [&](error_code ec, std::size_t n)
                 {
                     ++count;
                     if(ec)
                         BOOST_THROW_EXCEPTION(
                             system_error{ec});
+                    BEAST_EXPECT(n == s.size());
                 });
             BEAST_EXPECT(ws.wr_block_);
             ws.async_ping("",
@@ -543,7 +550,7 @@ public:
                     break;
                 ws.async_write_some(false,
                     boost::asio::null_buffers{},
-                    [&](error_code)
+                    [&](error_code, std::size_t)
                     {
                         fail();
                     });

@@ -744,11 +744,12 @@ public:
                 });
             BEAST_EXPECT(ws.rd_block_);
             ws.async_write(buffer(s),
-                [&](error_code ec)
+                [&](error_code ec, std::size_t n)
                 {
                     if(ec)
                         BOOST_THROW_EXCEPTION(
                             system_error{ec});
+                    BEAST_EXPECT(n == s.size());
                     ++count;
                 });
             BEAST_EXPECT(ws.wr_block_);

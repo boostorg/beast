@@ -310,12 +310,17 @@ public:
             strand_.wrap(std::bind(
                 &websocket_session::on_read,
                 derived().shared_from_this(),
-                std::placeholders::_1)));
+                std::placeholders::_1,
+                std::placeholders::_2)));
     }
 
     void
-    on_read(boost::system::error_code ec)
+    on_read(
+        boost::system::error_code ec,
+        std::size_t bytes_transferred)
     {
+        boost::ignore_unused(bytes_transferred);
+
         // Happens when the timer closes the socket
         if(ec == boost::asio::error::operation_aborted)
             return;
@@ -334,12 +339,17 @@ public:
             strand_.wrap(std::bind(
                 &websocket_session::on_write,
                 derived().shared_from_this(),
-                std::placeholders::_1)));
+                std::placeholders::_1,
+                std::placeholders::_2)));
     }
 
     void
-    on_write(boost::system::error_code ec)
+    on_write(
+        boost::system::error_code ec,
+        std::size_t bytes_transferred)
     {
+        boost::ignore_unused(bytes_transferred);
+
         // Happens when the timer closes the socket
         if(ec == boost::asio::error::operation_aborted)
             return;

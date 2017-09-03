@@ -3157,13 +3157,17 @@ public:
         the memory locations pointed to by buffers remains valid
         until the completion handler is called.
 
+        @return The number of bytes written from the buffers.
+        If an error occurred, this will be less than the sum
+        of the buffer sizes.
+
         @throws system_error Thrown on failure.
 
         @note This function always sends an entire message. To
         send a message in fragments, use @ref write_some.
     */
     template<class ConstBufferSequence>
-    void
+    std::size_t
     write(ConstBufferSequence const& buffers);
 
     /** Write a message to the stream.
@@ -3192,6 +3196,10 @@ public:
         the memory locations pointed to by buffers remains valid
         until the completion handler is called.
 
+        @return The number of bytes written from the buffers.
+        If an error occurred, this will be less than the sum
+        of the buffer sizes.
+
         @param ec Set to indicate what error occurred, if any.
 
         @throws system_error Thrown on failure.
@@ -3200,7 +3208,7 @@ public:
         send a message in fragments, use @ref write_some.
     */
     template<class ConstBufferSequence>
-    void
+    std::size_t
     write(ConstBufferSequence const& buffers, error_code& ec);
 
     /** Start an asynchronous operation to write a message to the stream.
@@ -3239,7 +3247,11 @@ public:
         function signature of the handler must be:
         @code
         void handler(
-            error_code const& ec     // Result of operation
+            error_code const& ec,           // Result of operation
+            std::size_t bytes_transferred   // Number of bytes written from the
+                                            // buffers. If an error occurred,
+                                            // this will be less than the sum
+                                            // of the buffer sizes.
         );
         @endcode
         Regardless of whether the asynchronous operation completes
@@ -3247,14 +3259,18 @@ public:
         this function. Invocation of the handler will be performed in a
         manner equivalent to using `boost::asio::io_service::post`.
     */
-    template<class ConstBufferSequence, class WriteHandler>
+    template<
+        class ConstBufferSequence,
+        class WriteHandler>
 #if BOOST_BEAST_DOXYGEN
     void_or_deduced
 #else
     async_return_type<
-        WriteHandler, void(error_code)>
+        WriteHandler,
+        void(error_code, std::size_t)>
 #endif
-    async_write(ConstBufferSequence const& buffers,
+    async_write(
+        ConstBufferSequence const& buffers,
         WriteHandler&& handler);
 
     /** Write partial message data on the stream.
@@ -3277,16 +3293,18 @@ public:
         the @ref binary option. The actual payload sent may be
         transformed as per the WebSocket protocol settings.
 
-        @param fin `true` if this is the last frame in the message.
+        @param fin `true` if this is the last part of the message.
 
         @param buffers The input buffer sequence holding the data to write.
 
-        @return The number of bytes consumed in the input buffers.
+        @return The number of bytes written from the buffers.
+        If an error occurred, this will be less than the sum
+        of the buffer sizes.
 
         @throws system_error Thrown on failure.
     */
     template<class ConstBufferSequence>
-    void
+    std::size_t
     write_some(bool fin, ConstBufferSequence const& buffers);
 
     /** Write partial message data on the stream.
@@ -3309,16 +3327,18 @@ public:
         the @ref binary option. The actual payload sent may be
         transformed as per the WebSocket protocol settings.
 
-        @param fin `true` if this is the last frame in the message.
+        @param fin `true` if this is the last part of the message.
 
-        @param buffers The input buffer sequence holding the data to write.
+        @return The number of bytes written from the buffers.
+        If an error occurred, this will be less than the sum
+        of the buffer sizes.
 
         @param ec Set to indicate what error occurred, if any.
 
         @return The number of bytes consumed in the input buffers.
     */
     template<class ConstBufferSequence>
-    void
+    std::size_t
     write_some(bool fin,
         ConstBufferSequence const& buffers, error_code& ec);
 
@@ -3346,8 +3366,7 @@ public:
         the @ref binary option. The actual payload sent may be
         transformed as per the WebSocket protocol settings.
 
-        @param fin A bool indicating whether or not the frame is the
-        last frame in the corresponding WebSockets message.
+        @param fin `true` if this is the last part of the message.
 
         @param buffers A object meeting the requirements of
         ConstBufferSequence which holds the payload data before any
@@ -3360,27 +3379,24 @@ public:
         Copies will be made of the handler as required. The equivalent
         function signature of the handler must be:
         @code void handler(
-            error_code const& ec    // Result of operation
+            error_code const& ec,           // Result of operation
+            std::size_t bytes_transferred   // Number of bytes written from the
+                                            // buffers. If an error occurred,
+                                            // this will be less than the sum
+                                            // of the buffer sizes.
         ); @endcode
     */
     template<class ConstBufferSequence, class WriteHandler>
 #if BOOST_BEAST_DOXYGEN
     void_or_deduced
 #else
-    async_return_type<
-        WriteHandler, void(error_code)>
+    async_return_type<WriteHandler,
+        void(error_code, std::size_t)>
 #endif
     async_write_some(bool fin,
         ConstBufferSequence const& buffers, WriteHandler&& handler);
 
 private:
-    enum class fail_how
-    {
-        code        = 1, // send close code, teardown, finish with error::failed
-        close       = 2, // send frame in fb, teardown, finish with error::closed
-        teardown    = 3  // teardown, finish with error::failed
-    };
-
     template<class, class>  class accept_op;
     template<class>         class close_op;
     template<class>         class fail_op;
