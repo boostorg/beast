@@ -67,7 +67,9 @@ public:
     {
     }
 
-    void operator()(error_code ec = {});
+    void operator()(
+        error_code ec = {},
+        std::size_t bytes_transferred = 0);
 
     friend
     void* asio_handler_allocate(
@@ -110,7 +112,9 @@ template<class Handler>
 void
 stream<NextLayer>::
 response_op<Handler>::
-operator()(error_code ec)
+operator()(
+    error_code ec,
+    std::size_t)
 {
     auto& d = *d_;
     BOOST_ASIO_CORO_REENTER(*this)
@@ -170,7 +174,9 @@ public:
     template<class Buffers>
     void run(Buffers const& buffers);
 
-    void operator()(error_code ec = {});
+    void operator()(
+        error_code ec = {},
+        std::size_t bytes_used = 0);
 
     friend
     void* asio_handler_allocate(
@@ -242,7 +248,7 @@ template<class Decorator, class Handler>
 void
 stream<NextLayer>::
 accept_op<Decorator, Handler>::
-operator()(error_code ec)
+operator()(error_code ec, std::size_t)
 {
     auto& d = *d_;
     BOOST_ASIO_CORO_REENTER(*this)

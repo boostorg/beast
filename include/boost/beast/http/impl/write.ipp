@@ -81,7 +81,8 @@ public:
     operator()();
 
     void
-    operator()(error_code ec,
+    operator()(
+        error_code ec,
         std::size_t bytes_transferred);
 
     friend
@@ -167,7 +168,7 @@ operator()(
             if(! sr_.keep_alive())
                 ec = error::end_of_stream;
     }
-    h_(ec);
+    h_(ec, bytes_transferred);
 }
 
 //------------------------------------------------------------------------------
@@ -206,6 +207,7 @@ class write_op
     int state_ = 0;
     Stream& s_;
     serializer<isRequest, Body, Fields>& sr_;
+    std::size_t bytes_transferred_ = 0;
     Handler h_;
 
 public:
@@ -222,7 +224,9 @@ public:
     }
 
     void
-    operator()(error_code ec);
+    operator()(
+        error_code ec = {},
+        std::size_t bytes_transferred = 0);
 
     friend
     void* asio_handler_allocate(
@@ -267,7 +271,8 @@ template<
 void
 write_op<Stream, Handler, Predicate,
     isRequest, Body, Fields>::
-operator()(error_code ec)
+operator()(
+    error_code ec, std::size_t bytes_transferred)
 {
     if(ec)
         goto upcall;
@@ -279,7 +284,7 @@ operator()(error_code ec)
         {
             state_ = 1;
             return s_.get_io_service().post(
-                bind_handler(std::move(*this), ec));
+                bind_handler(std::move(*this), ec, 0));
         }
         state_ = 2;
         return beast::http::async_write_some(
@@ -295,6 +300,7 @@ operator()(error_code ec)
 
     case 3:
     {
+        bytes_transferred_ += bytes_transferred;
         if(Predicate{}(sr_))
             goto upcall;
         return beast::http::async_write_some(
@@ -302,7 +308,7 @@ operator()(error_code ec)
     }
     }
 upcall:
-    h_(ec);
+    h_(ec, bytes_transferred_);
 }
 
 //------------------------------------------------------------------------------
@@ -341,7 +347,8 @@ public:
     operator()();
 
     void
-    operator()(error_code ec);
+    operator()(
+        error_code ec, std::size_t bytes_transferred);
 
     friend
     void* asio_handler_allocate(
@@ -395,9 +402,9 @@ template<class Stream, class Handler,
 void
 write_msg_op<
     Stream, Handler, isRequest, Body, Fields>::
-operator()(error_code ec)
+operator()(error_code ec, std::size_t bytes_transferred)
 {
-    d_.invoke(ec);
+    d_.invoke(ec, bytes_transferred);
 }
 
 //------------------------------------------------------------------------------
@@ -454,16 +461,10 @@ public:
     }
 };
 
-} // detail
-
-//------------------------------------------------------------------------------
-
-namespace detail {
-
 template<
     class SyncWriteStream,
     bool isRequest, class Body, class Fields>
-void
+std::size_t
 write_some(
     SyncWriteStream& stream,
     serializer<isRequest, Body, Fields>& sr,
@@ -474,45 +475,53 @@ write_some(
         write_some_lambda<SyncWriteStream> f{stream};
         sr.next(ec, f);
         if(ec)
-            return;
+            return f.bytes_transferred;
         if(f.invoked)
             sr.consume(f.bytes_transferred);
         if(sr.is_done())
             if(! sr.keep_alive())
                 ec = error::end_of_stream;
-        return;
+        return f.bytes_transferred;
     }
     if(! sr.keep_alive())
         ec = error::end_of_stream;
     else
         ec.assign(0, ec.category());
+    return 0;
 }
 
 template<
     class AsyncWriteStream,
     bool isRequest, class Body, class Fields,
     class WriteHandler>
-async_return_type<WriteHandler, void(error_code)>
+async_return_type<
+    WriteHandler,
+    void(error_code, std::size_t)>
 async_write_some(
     AsyncWriteStream& stream,
     serializer<isRequest, Body, Fields>& sr,
     WriteHandler&& handler)
 {
-    async_completion<WriteHandler,
-        void(error_code)> init{handler};
-    detail::write_some_op<AsyncWriteStream,
-        handler_type<WriteHandler, void(error_code)>,
-            isRequest, Body, Fields>{
-                init.completion_handler, stream, sr}();
+    async_completion<
+        WriteHandler,
+        void(error_code, std::size_t)> init{handler};
+    detail::write_some_op<
+        AsyncWriteStream,
+        handler_type<WriteHandler,
+            void(error_code, std::size_t)>,
+        isRequest, Body, Fields>{
+            init.completion_handler, stream, sr}();
     return init.result.get();
 }
 
 } // detail
 
+//------------------------------------------------------------------------------
+
 template<
     class SyncWriteStream,
     bool isRequest, class Body, class Fields>
-void
+std::size_t
 write_some(
     SyncWriteStream& stream,
     serializer<isRequest, Body, Fields>& sr)
@@ -524,15 +533,17 @@ write_some(
     static_assert(is_body_reader<Body>::value,
         "BodyReader requirements not met");
     error_code ec;
-    write_some(stream, sr, ec);
+    auto const bytes_transferred =
+        write_some(stream, sr, ec);
     if(ec)
         BOOST_THROW_EXCEPTION(system_error{ec});
+    return bytes_transferred;
 }
 
 template<
     class SyncWriteStream,
     bool isRequest, class Body, class Fields>
-void
+std::size_t
 write_some(
     SyncWriteStream& stream,
     serializer<isRequest, Body, Fields>& sr,
@@ -544,14 +555,16 @@ write_some(
         "Body requirements not met");
     static_assert(is_body_reader<Body>::value,
         "BodyReader requirements not met");
-    detail::write_some(stream, sr, ec);
+    return detail::write_some(stream, sr, ec);
 }
 
 template<
     class AsyncWriteStream,
     bool isRequest, class Body, class Fields,
     class WriteHandler>
-async_return_type<WriteHandler, void(error_code)>
+async_return_type<
+    WriteHandler,
+    void(error_code, std::size_t)>
 async_write_some(
     AsyncWriteStream& stream,
     serializer<isRequest, Body, Fields>& sr,
@@ -573,7 +586,7 @@ async_write_some(
 template<
     class SyncWriteStream,
     bool isRequest, class Body, class Fields>
-void
+std::size_t
 write_header(SyncWriteStream& stream,
     serializer<isRequest, Body, Fields>& sr)
 {
@@ -584,15 +597,17 @@ write_header(SyncWriteStream& stream,
     static_assert(is_body_reader<Body>::value,
         "BodyReader requirements not met");
     error_code ec;
-    write_header(stream, sr, ec);
+    auto const bytes_transferred =
+        write_header(stream, sr, ec);
     if(ec)
         BOOST_THROW_EXCEPTION(system_error{ec});
+    return bytes_transferred;
 }
 
 template<
     class SyncWriteStream,
     bool isRequest, class Body, class Fields>
-void
+std::size_t
 write_header(
     SyncWriteStream& stream,
     serializer<isRequest, Body, Fields>& sr,
@@ -605,14 +620,16 @@ write_header(
     static_assert(is_body_reader<Body>::value,
         "BodyReader requirements not met");
     sr.split(true);
+    std::size_t bytes_transferred = 0;
     if(! sr.is_header_done())
     {
         detail::write_lambda<SyncWriteStream> f{stream};
         do
         {
             sr.next(ec, f);
+            bytes_transferred += f.bytes_transferred;
             if(ec)
-                return;
+                return bytes_transferred;
             BOOST_ASSERT(f.invoked);
             sr.consume(f.bytes_transferred);
         }
@@ -622,13 +639,16 @@ write_header(
     {
         ec.assign(0, ec.category());
     }
+    return bytes_transferred;
 }
 
 template<
     class AsyncWriteStream,
     bool isRequest, class Body, class Fields,
     class WriteHandler>
-async_return_type<WriteHandler, void(error_code)>
+async_return_type<
+    WriteHandler,
+    void(error_code, std::size_t)>
 async_write_header(
     AsyncWriteStream& stream,
     serializer<isRequest, Body, Fields>& sr,
@@ -642,14 +662,16 @@ async_write_header(
     static_assert(is_body_reader<Body>::value,
         "BodyReader requirements not met");
     sr.split(true);
-    async_completion<WriteHandler,
-        void(error_code)> init{handler};
-    detail::write_op<AsyncWriteStream, handler_type<
-        WriteHandler, void(error_code)>,
-            detail::serializer_is_header_done,
-                isRequest, Body, Fields>{
-                    init.completion_handler, stream, sr}(
-                        error_code{});
+    async_completion<
+        WriteHandler,
+        void(error_code, std::size_t)> init{handler};
+    detail::write_op<
+        AsyncWriteStream,
+        handler_type<WriteHandler,
+            void(error_code, std::size_t)>,
+        detail::serializer_is_header_done,
+        isRequest, Body, Fields>{
+        init.completion_handler, stream, sr}();
     return init.result.get();
 }
 
@@ -658,7 +680,7 @@ async_write_header(
 template<
     class SyncWriteStream,
     bool isRequest, class Body, class Fields>
-void
+std::size_t
 write(
     SyncWriteStream& stream,
     serializer<isRequest, Body, Fields>& sr)
@@ -666,15 +688,17 @@ write(
     static_assert(is_sync_write_stream<SyncWriteStream>::value,
         "SyncWriteStream requirements not met");
     error_code ec;
-    write(stream, sr, ec);
+    auto const bytes_transferred =
+        write(stream, sr, ec);
     if(ec)
         BOOST_THROW_EXCEPTION(system_error{ec});
+    return bytes_transferred;
 }
 
 template<
     class SyncWriteStream,
     bool isRequest, class Body, class Fields>
-void
+std::size_t
 write(
     SyncWriteStream& stream,
     serializer<isRequest, Body, Fields>& sr,
@@ -682,22 +706,27 @@ write(
 {
     static_assert(is_sync_write_stream<SyncWriteStream>::value,
         "SyncWriteStream requirements not met");
+    std::size_t bytes_transferred = 0;
     sr.split(false);
     for(;;)
     {
-        write_some(stream, sr, ec);
+        bytes_transferred +=
+            write_some(stream, sr, ec);
         if(ec)
-            return;
+            return bytes_transferred;
         if(sr.is_done())
             break;
     }
+    return bytes_transferred;
 }
 
 template<
     class AsyncWriteStream,
     bool isRequest, class Body, class Fields,
     class WriteHandler>
-async_return_type<WriteHandler, void(error_code)>
+async_return_type<
+    WriteHandler,
+    void(error_code, std::size_t)>
 async_write(
     AsyncWriteStream& stream,
     serializer<isRequest, Body, Fields>& sr,
@@ -711,12 +740,16 @@ async_write(
     static_assert(is_body_reader<Body>::value,
         "BodyReader requirements not met");
     sr.split(false);
-    async_completion<WriteHandler,
-        void(error_code)> init{handler};
-    detail::write_op<AsyncWriteStream, handler_type<
-        WriteHandler, void(error_code)>,
-        detail::serializer_is_done, isRequest, Body, Fields>{
-            init.completion_handler, stream, sr}(error_code{});
+    async_completion<
+        WriteHandler,
+        void(error_code, std::size_t)> init{handler};
+    detail::write_op<
+        AsyncWriteStream,
+        handler_type<WriteHandler,
+            void(error_code, std::size_t)>,
+        detail::serializer_is_done,
+        isRequest, Body, Fields>{
+            init.completion_handler, stream, sr}();
     return init.result.get();
 }
 
@@ -725,7 +758,7 @@ async_write(
 template<
     class SyncWriteStream,
     bool isRequest, class Body, class Fields>
-void
+std::size_t
 write(
     SyncWriteStream& stream,
     message<isRequest, Body, Fields> const& msg)
@@ -737,15 +770,17 @@ write(
     static_assert(is_body_reader<Body>::value,
         "BodyReader requirements not met");
     error_code ec;
-    write(stream, msg, ec);
+    auto const bytes_transferred =
+        write(stream, msg, ec);
     if(ec)
         BOOST_THROW_EXCEPTION(system_error{ec});
+    return bytes_transferred;
 }
 
 template<
     class SyncWriteStream,
     bool isRequest, class Body, class Fields>
-void
+std::size_t
 write(
     SyncWriteStream& stream,
     message<isRequest, Body, Fields> const& msg,
@@ -758,7 +793,7 @@ write(
     static_assert(is_body_reader<Body>::value,
         "BodyReader requirements not met");
     serializer<isRequest, Body, Fields> sr{msg};
-    write(stream, sr, ec);
+    return write(stream, sr, ec);
 }
 
 template<
@@ -766,7 +801,8 @@ template<
     bool isRequest, class Body, class Fields,
     class WriteHandler>
 async_return_type<
-    WriteHandler, void(error_code)>
+    WriteHandler,
+    void(error_code, std::size_t)>
 async_write(
     AsyncWriteStream& stream,
     message<isRequest, Body, Fields>& msg,
@@ -779,12 +815,15 @@ async_write(
         "Body requirements not met");
     static_assert(is_body_reader<Body>::value,
         "BodyReader requirements not met");
-    async_completion<WriteHandler,
-        void(error_code)> init{handler};
-    detail::write_msg_op<AsyncWriteStream, handler_type<
-        WriteHandler, void(error_code)>, isRequest,
-        Body, Fields>{init.completion_handler,
-            stream, msg}();
+    async_completion<
+        WriteHandler,
+        void(error_code, std::size_t)> init{handler};
+    detail::write_msg_op<
+        AsyncWriteStream,
+        handler_type<WriteHandler,
+            void(error_code, std::size_t)>,
+        isRequest, Body, Fields>{
+            init.completion_handler, stream, msg}();
     return init.result.get();
 }
 

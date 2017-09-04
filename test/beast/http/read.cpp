@@ -329,7 +329,7 @@ public:
         handler() { ++count(); }
         ~handler() { --count(); }
         handler(handler const&) { ++count(); }
-        void operator()(error_code const&) const {}
+        void operator()(error_code const&, std::size_t) const {}
     };
 
     void

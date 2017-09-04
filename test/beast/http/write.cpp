@@ -614,7 +614,7 @@ public:
         handler() { ++count(); }
         ~handler() { --count(); }
         handler(handler const&) { ++count(); }
-        void operator()(error_code const&) const {}
+        void operator()(error_code const&, std::size_t) const {}
     };
 
     void
@@ -830,7 +830,7 @@ public:
         res.chunked(true);
         response_serializer<empty_body> sr{res};
         async_write_header(ts, sr,
-            [&](const error_code&)
+            [&](error_code const&, std::size_t)
             {
             });
         ios.run();

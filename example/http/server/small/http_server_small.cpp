@@ -87,8 +87,10 @@ private:
             socket_,
             buffer_,
             request_,
-            [self](boost::beast::error_code ec)
+            [self](boost::beast::error_code ec,
+                std::size_t bytes_transferred)
             {
+                boost::ignore_unused(bytes_transferred);
                 if(!ec)
                     self->process_request();
             });
@@ -175,7 +177,7 @@ private:
         http::async_write(
             socket_,
             response_,
-            [self](boost::beast::error_code ec)
+            [self](boost::beast::error_code ec, std::size_t)
             {
                 self->socket_.shutdown(tcp::socket::shutdown_send, ec);
                 self->deadline_.cancel();

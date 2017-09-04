@@ -83,8 +83,9 @@ void fxx() {
     flat_buffer buffer;
     response<string_body> res;
     async_read(sock, buffer, res,
-        [&](error_code ec)
+        [&](error_code ec, std::size_t bytes_transferred)
         {
+            boost::ignore_unused(bytes_transferred);
             std::cerr << ec.message() << std::endl;
         });
 
@@ -124,8 +125,9 @@ void fxx() {
 
 //[http_snippet_8
     async_write(sock, res,
-        [&](error_code)
+        [&](error_code ec, std::size_t bytes_transferred)
         {
+            boost::ignore_unused(bytes_transferred);
             if(ec)
                 std::cerr << ec.message() << std::endl;
         });

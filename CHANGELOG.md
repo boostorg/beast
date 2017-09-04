@@ -6,10 +6,15 @@ API Changes:
 
 * WebSocket writes return the bytes transferred
 
+* HTTP reads and writes return bytes transferred
+
 Actions Required:
 
 * Modify websocket write completion handlers to receive
   the extra std::size_t bytes_transferred parameter.
+
+* Modify HTTP read and/or write completion handlers to
+  receive the extra std::size_t bytes_transferred parameter.
 
 --------------------------------------------------------------------------------
 

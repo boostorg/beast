@@ -72,8 +72,11 @@ Messages may also be read asynchronously. When performing asynchronous
 stream read operations the stream, buffer, and message variables must
 remain valid until the operation has completed. Beast asynchronous
 initiation functions use Asio's completion handler model. This call
-reads a message asynchronously and report the error code upon
-completion:
+reads a message asynchronously and reports the error code upon
+completion. The handler is called with the error, set to any that
+occurs, and the number of bytes parsed. This number may be used to
+measure the relative amount of work performed, or it may be ignored
+as this example shows.
 
 [http_snippet_5]
 
@@ -105,5 +108,10 @@ the number of octets received prior to the server closing the connection:
 The asynchronous version could be used instead:
 
 [http_snippet_8]
+
+The completion handler is called with the number of bytes written to the
+stream, which includes protocol specific data such as the delimiters in
+the header and line endings. The number may be used to measure the amount
+of data transferred, or it may be ignored as in the example.
 
 [endsect]

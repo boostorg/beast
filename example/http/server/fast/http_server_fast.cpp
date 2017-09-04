@@ -172,7 +172,7 @@ private:
             socket_,
             buffer_,
             *parser_,
-            [this](boost::beast::error_code ec)
+            [this](boost::beast::error_code ec, std::size_t)
             {
                 if (ec)
                     accept();
@@ -220,7 +220,7 @@ private:
         http::async_write(
             socket_,
             *string_serializer_,
-            [this](boost::beast::error_code ec)
+            [this](boost::beast::error_code ec, std::size_t)
             {
                 socket_.shutdown(tcp::socket::shutdown_send, ec);
                 string_serializer_.reset();
@@ -276,7 +276,7 @@ private:
         http::async_write(
             socket_,
             *file_serializer_,
-            [this](boost::beast::error_code ec)
+            [this](boost::beast::error_code ec, std::size_t)
             {
                 socket_.shutdown(tcp::socket::shutdown_send, ec);
                 file_serializer_.reset();

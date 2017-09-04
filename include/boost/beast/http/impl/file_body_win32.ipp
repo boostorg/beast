@@ -58,7 +58,7 @@ struct basic_file_body<file_win32>
         template<
             class Protocol, bool isRequest, class Fields>
         friend
-        void
+        std::size_t
         write_some(
             boost::asio::basic_stream_socket<Protocol>& sock,
             serializer<isRequest,
@@ -107,7 +107,7 @@ struct basic_file_body<file_win32>
         template<
             class Protocol, bool isRequest, class Fields>
         friend
-        void
+        std::size_t
         write_some(
             boost::asio::basic_stream_socket<Protocol>& sock,
             serializer<isRequest,
@@ -340,8 +340,9 @@ class write_some_win32_op
     boost::asio::basic_stream_socket<Protocol>& sock_;
     serializer<isRequest,
         basic_file_body<file_win32>, Fields>& sr_;
-    bool header_ = false;
+    std::size_t bytes_transferred_ = 0;
     Handler h_;
+    bool header_ = false;
 
 public:
     write_some_win32_op(write_some_win32_op&&) = default;
@@ -363,7 +364,8 @@ public:
     operator()();
 
     void
-    operator()(error_code ec,
+    operator()(
+        error_code ec,
         std::size_t bytes_transferred = 0);
 
     friend
@@ -445,7 +447,8 @@ operator()()
     if(! bSuccess && dwError !=
         boost::detail::winapi::ERROR_IO_PENDING_)
     {
-        // completed immediately
+        // VFALCO This needs review, is 0 the right number?
+        // completed immediately (with error?)
         overlapped.complete(error_code{static_cast<int>(
             boost::detail::winapi::GetLastError()),
                 system_category()}, 0);
@@ -460,8 +463,10 @@ template<
 void
 write_some_win32_op<
     Protocol, Handler, isRequest, Fields>::
-operator()(error_code ec, std::size_t bytes_transferred)
+operator()(
+    error_code ec, std::size_t bytes_transferred)
 {
+    bytes_transferred_ += bytes_transferred;
     if(! ec)
     {
         if(header_)
@@ -481,7 +486,7 @@ operator()(error_code ec, std::size_t bytes_transferred)
                 ec = error::end_of_stream;
         }
     }
-    h_(ec);
+    h_(ec, bytes_transferred_);
 }
 
 #endif
@@ -491,7 +496,7 @@ operator()(error_code ec, std::size_t bytes_transferred)
 //------------------------------------------------------------------------------
 
 template<class Protocol, bool isRequest, class Fields>
-void
+std::size_t
 write_some(
     boost::asio::basic_stream_socket<Protocol>& sock,
     serializer<isRequest,
@@ -501,22 +506,24 @@ write_some(
     if(! sr.is_header_done())
     {
         sr.split(true);
-        detail::write_some(sock, sr, ec);
+        auto const bytes_transferred =
+            detail::write_some(sock, sr, ec);
         if(ec)
-            return;
-        return;
+            return bytes_transferred;
+        return bytes_transferred;
     }
     if(sr.chunked())
     {
-        detail::write_some(sock, sr, ec);
+        auto const bytes_transferred =
+            detail::write_some(sock, sr, ec);
         if(ec)
-            return;
-        return;
+            return bytes_transferred;
+        return bytes_transferred;
     }
     auto& r = sr.reader_impl();
     r.body_.file_.seek(r.pos_, ec);
     if(ec)
-        return;
+        return 0;
     boost::detail::winapi::DWORD_ const nNumberOfBytesToWrite =
         std::min<boost::detail::winapi::DWORD_>(
             beast::detail::clamp(std::min<std::uint64_t>(
@@ -535,7 +542,7 @@ write_some(
         ec.assign(static_cast<int>(
             boost::detail::winapi::GetLastError()),
                 system_category());
-        return;
+        return 0;
     }
     r.pos_ += nNumberOfBytesToWrite;
     BOOST_ASSERT(r.pos_ <= r.body_.last_);
@@ -551,6 +558,7 @@ write_some(
         if(! sr.keep_alive())
             ec = error::end_of_stream;
     }
+    return nNumberOfBytesToWrite;
 }
 
 #if BOOST_ASIO_HAS_WINDOWS_OVERLAPPED_PTR
@@ -559,7 +567,9 @@ template<
     class Protocol,
     bool isRequest, class Fields,
     class WriteHandler>
-async_return_type<WriteHandler, void(error_code)>
+async_return_type<
+    WriteHandler,
+    void(error_code, std::size_t)>
 async_write_some(
     boost::asio::basic_stream_socket<Protocol>& sock,
     serializer<isRequest,
@@ -568,8 +578,11 @@ async_write_some(
 {
     async_completion<WriteHandler,
         void(error_code)> init{handler};
-    detail::write_some_win32_op<Protocol, handler_type<
-        WriteHandler, void(error_code)>, isRequest, Fields>{
+    detail::write_some_win32_op<
+        Protocol,
+        handler_type<WriteHandler,
+            void(error_code, std::size_t)>,
+        isRequest, Fields>{
             init.completion_handler, sock, sr}();
     return init.result.get();
 }

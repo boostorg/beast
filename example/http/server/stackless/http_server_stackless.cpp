@@ -247,7 +247,8 @@ class session
                 self_.strand_.wrap(std::bind(
                     &session::loop,
                     self_.shared_from_this(),
-                    std::placeholders::_1)));
+                    std::placeholders::_1,
+                    std::placeholders::_2)));
         }
     };
 
@@ -276,13 +277,16 @@ public:
     void
     run()
     {
-        loop();
+        loop({}, 0);
     }
 
 #include <boost/asio/yield.hpp>
     void
-    loop(boost::system::error_code ec = {})
+    loop(
+        boost::system::error_code ec,
+        std::size_t bytes_transferred)
     {
+        boost::ignore_unused(bytes_transferred);
         reenter(*this)
         {
             for(;;)
@@ -292,7 +296,8 @@ public:
                     strand_.wrap(std::bind(
                         &session::loop,
                         shared_from_this(),
-                        std::placeholders::_1)));
+                        std::placeholders::_1,
+                        std::placeholders::_2)));
                 if(ec == http::error::end_of_stream)
                 {
                     // The remote host closed the connection

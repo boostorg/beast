@@ -76,7 +76,9 @@ public:
     }
 
     void
-    operator()(error_code ec = {});
+    operator()(
+        error_code ec = {},
+        std::size_t bytes_used = 0);
 
     friend
     void* asio_handler_allocate(
@@ -118,7 +120,7 @@ template<class NextLayer>
 template<class Handler>
 void
 stream<NextLayer>::handshake_op<Handler>::
-operator()(error_code ec)
+operator()(error_code ec, std::size_t)
 {
     auto& d = *d_;
     BOOST_ASIO_CORO_REENTER(*this)

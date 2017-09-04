@@ -247,7 +247,8 @@ class session : public std::enable_shared_from_this<session>
                 self_.strand_.wrap(std::bind(
                     &session::on_write,
                     self_.shared_from_this(),
-                    std::placeholders::_1)));
+                    std::placeholders::_1,
+                    std::placeholders::_2)));
         }
     };
 
@@ -305,12 +306,17 @@ public:
             strand_.wrap(std::bind(
                 &session::on_read,
                 shared_from_this(),
-                std::placeholders::_1)));
+                std::placeholders::_1,
+                std::placeholders::_2)));
     }
 
     void
-    on_read(boost::system::error_code ec)
+    on_read(
+        boost::system::error_code ec,
+        std::size_t bytes_transferred)
     {
+        boost::ignore_unused(bytes_transferred);
+
         // This means they closed the connection
         if(ec == http::error::end_of_stream)
             return do_close();
@@ -323,8 +329,12 @@ public:
     }
 
     void
-    on_write(boost::system::error_code ec)
+    on_write(
+        boost::system::error_code ec,
+        std::size_t bytes_transferred)
     {
+        boost::ignore_unused(bytes_transferred);
+
         if(ec == http::error::end_of_stream)
         {
             // This means we should close the connection, usually because

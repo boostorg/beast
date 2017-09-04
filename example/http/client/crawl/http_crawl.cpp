@@ -297,12 +297,17 @@ public:
             strand_.wrap(std::bind(
                 &worker::on_write,
                 shared_from_this(),
-                std::placeholders::_1)));
+                std::placeholders::_1,
+                std::placeholders::_2)));
     }
 
     void
-    on_write(boost::system::error_code ec)
+    on_write(
+        boost::system::error_code ec,
+        std::size_t bytes_transferred)
     {
+        boost::ignore_unused(bytes_transferred);
+
         if(ec)
         {
             report_.aggregate(
@@ -324,12 +329,17 @@ public:
             strand_.wrap(std::bind(
                 &worker::on_read,
                 shared_from_this(),
-                std::placeholders::_1)));
+                std::placeholders::_1,
+                std::placeholders::_2)));
     }
 
     void
-    on_read(boost::system::error_code ec)
+    on_read(
+        boost::system::error_code ec,
+        std::size_t bytes_transferred)
     {
+        boost::ignore_unused(bytes_transferred);
+
         if(ec)
         {
             report_.aggregate(
