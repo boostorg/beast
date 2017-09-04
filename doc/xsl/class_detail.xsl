@@ -36,6 +36,9 @@
     <xsl:when test="declname = 'MutableBufferSequence' or type = 'class MutableBufferSequence'">
       <xsl:text>class __MutableBufferSequence__</xsl:text>
     </xsl:when>
+    <xsl:when test="declname = 'ReadHandler' or type = 'class ReadHandler'">
+      <xsl:text>class __ReadHandler__</xsl:text>
+    </xsl:when>
     <xsl:when test="declname = 'Stream' or type = 'class Stream'">
       <xsl:text>class ``[link beast.concepts.streams.Stream [*Stream]]``</xsl:text>
     </xsl:when>
@@ -47,5 +50,8 @@
     </xsl:when>
     <xsl:when test="declname = 'SyncWriteStream' or type = 'class SyncWriteStream'">
       <xsl:text>class __SyncWriteStream__</xsl:text>
+    </xsl:when>
+    <xsl:when test="declname = 'WriteHandler' or type = 'class WriteHandler'">
+      <xsl:text>class __WriteHandler__</xsl:text>
     </xsl:when>
 <!-- CLASS_DETAIL_TEMPLATE END -->

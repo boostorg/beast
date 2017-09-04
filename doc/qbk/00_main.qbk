@@ -52,8 +52,10 @@
 [def __ConstBufferSequence__    [@http://www.boost.org/doc/html/boost_asio/reference/ConstBufferSequence.html [*ConstBufferSequence]]]
 [def __Handler__                [@http://www.boost.org/doc/html/boost_asio/reference/Handler.html [*Handler]]]
 [def __MutableBufferSequence__  [@http://www.boost.org/doc/html/boost_asio/reference/MutableBufferSequence.html [*MutableBufferSequence]]]
+[def __ReadHandler__            [@http://www.boost.org/doc/html/boost_asio/reference/ReadHandler.html [*ReadHandler]]]
 [def __SyncReadStream__         [@http://www.boost.org/doc/html/boost_asio/reference/SyncReadStream.html [*SyncReadStream]]]
 [def __SyncWriteStream__        [@http://www.boost.org/doc/html/boost_asio/reference/SyncWriteStream.html [*SyncWriteStream]]]
+[def __WriteHandler__           [@http://www.boost.org/doc/html/boost_asio/reference/WriteHandler.html [*WriteHandler]]]
 
 [def __async_initfn__           [@http://www.boost.org/doc/html/boost_asio/reference/asynchronous_operations.html initiating function]]
 
