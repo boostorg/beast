@@ -1,5 +1,7 @@
 Version 112:
 
+* Update websocket notes
+
 API Changes:
 
 * WebSocket writes return the bytes transferred

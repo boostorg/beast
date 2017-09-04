@@ -45,13 +45,28 @@ Like a regular __Asio__ socket, a
 [link beast.ref.boost__beast__websocket__stream `stream`]
 is not thread safe. Callers are responsible for synchronizing operations on
 the socket using an implicit or explicit strand, as per the Asio documentation.
-The asynchronous interface supports one active read and one active write
-simultaneously. Undefined behavior results if two or more reads or two or
-more writes are attempted concurrently. Caller initiated WebSocket ping, pong,
-and close operations each count as an active write.
+The asynchronous interface supports one of each of the following operations
+to be active at the same time:
 
-The implementation uses composed asynchronous operations internally; a high
-level read can cause both reads and writes to take place on the underlying
-stream. This behavior is transparent to callers.
+* [link beast.ref.boost__beast__websocket__stream.async_read `async_read`] or [link beast.ref.boost__beast__websocket__stream.async_read_some `async_read_some`]
+* [link beast.ref.boost__beast__websocket__stream.async_write `async_write`] or [link beast.ref.boost__beast__websocket__stream.async_write_some `async_write_some`]
+* [link beast.ref.boost__beast__websocket__stream.async_ping `async_ping`] or [link beast.ref.boost__beast__websocket__stream.async_pong `async_pong`]
+* [link beast.ref.boost__beast__websocket__stream.async_close `async_close`]
+
+For example, the following code is malformed, because the program is
+attempting to perform two simultaneous reads:
+
+[ws_snippet_24]
+
+However, this code is well-formed:
+
+[ws_snippet_25]
+
+The implementation uses composed asynchronous operations internally;
+although some individiual operations can perform both reads and writes,
+this behavior is coordinated internally to make sure the underlying stream
+is operated in a safe fashion. This allows an asynchronous read operation
+to respond to a received ping frame even while a user-initiated call to
+asynchronous write is active.
 
 [endsect]

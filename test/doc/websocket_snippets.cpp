@@ -215,6 +215,25 @@ boost::asio::ip::tcp::socket sock{ios};
             // Do something with the buffer
         });
 //]
+
+{
+    multi_buffer b;
+//[ws_snippet_24
+    ws.async_read(b, [](error_code, std::size_t){});
+    ws.async_read(b, [](error_code, std::size_t){});
+//]
+}
+
+{
+    multi_buffer b;
+//[ws_snippet_25
+    ws.async_read(b, [](error_code, std::size_t){});
+    ws.async_write(b.data(), [](error_code, std::size_t){});
+    ws.async_ping({}, [](error_code){});
+    ws.async_close({}, [](error_code){});
+//]
+}
+
 }
 
 } // fxx()
