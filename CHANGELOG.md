@@ -1,6 +1,7 @@
 Version 113:
 
 * Fix handler signature in async_read_header
+* Remove field_range copy constructor
 
 --------------------------------------------------------------------------------
 
