@@ -13,7 +13,6 @@ local SOURCES =
     server_certificate.cpp
     session_alloc.cpp
     ssl_stream.cpp
-    write_msg.cpp
     ;
 
 local RUN_TESTS ;

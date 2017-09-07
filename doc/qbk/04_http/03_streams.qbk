@@ -83,9 +83,9 @@ as this example shows.
 If a read stream algorithm cannot complete its operation without exceeding
 the maximum specified size of the dynamic buffer provided, the error
 [link beast.ref.boost__beast__http__error `buffer_overflow`]
-is returned. This may be used to impose a limit on the maximum size of an
-HTTP message header for protection from buffer overflow attacks. The
-following code will print the error message:
+is returned. This is one technique which may be used to impose a limit on
+the maximum size of an HTTP message header for protection from buffer
+overflow attacks. The following code will print the error message:
 
 [http_snippet_6]
 

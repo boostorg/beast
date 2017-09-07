@@ -10,9 +10,7 @@
 #ifndef BOOST_BEAST_IMPL_HANDLER_PTR_HPP
 #define BOOST_BEAST_IMPL_HANDLER_PTR_HPP
 
-#include <boost/asio/handler_alloc_hook.hpp>
-#include <boost/asio/handler_continuation_hook.hpp>
-#include <boost/asio/handler_invoke_hook.hpp>
+#include <boost/asio/associated_allocator.hpp>
 #include <boost/assert.hpp>
 #include <memory>
 
@@ -27,10 +25,11 @@ P(DeducedHandler&& h, Args&&... args)
     : n(1)
     , handler(std::forward<DeducedHandler>(h))
 {
-    using boost::asio::asio_handler_allocate;
-    t = reinterpret_cast<T*>(
-        asio_handler_allocate(
-            sizeof(T), std::addressof(handler)));
+    typename std::allocator_traits<
+        boost::asio::associated_allocator_t<Handler>>::
+            template rebind_alloc<T> alloc{
+                boost::asio::get_associated_allocator(handler)};
+    t = std::allocator_traits<decltype(alloc)>::allocate(alloc, 1);
     try
     {
         t = new(t) T{handler,
@@ -38,9 +37,8 @@ P(DeducedHandler&& h, Args&&... args)
     }
     catch(...)
     {
-        using boost::asio::asio_handler_deallocate;
-        asio_handler_deallocate(
-            t, sizeof(T), std::addressof(handler));
+        std::allocator_traits<
+            decltype(alloc)>::deallocate(alloc, t, 1);
         throw;
     }
 }
@@ -56,9 +54,13 @@ handler_ptr<T, Handler>::
     if(p_->t)
     {
         p_->t->~T();
-        using boost::asio::asio_handler_deallocate;
-        asio_handler_deallocate(
-            p_->t, sizeof(T), std::addressof(p_->handler));
+        typename std::allocator_traits<
+            boost::asio::associated_allocator_t<Handler>>::
+                template rebind_alloc<T> alloc{
+                    boost::asio::get_associated_allocator(
+                        p_->handler)};
+        std::allocator_traits<
+            decltype(alloc)>::deallocate(alloc, p_->t, 1);
     }
     delete p_;
 }
@@ -108,9 +110,13 @@ release_handler() ->
     BOOST_ASSERT(p_);
     BOOST_ASSERT(p_->t);
     p_->t->~T();
-    using boost::asio::asio_handler_deallocate;
-    asio_handler_deallocate(
-        p_->t, sizeof(T), std::addressof(p_->handler));
+    typename std::allocator_traits<
+        boost::asio::associated_allocator_t<Handler>>::
+            template rebind_alloc<T> alloc{
+                boost::asio::get_associated_allocator(
+                    p_->handler)};
+    std::allocator_traits<
+        decltype(alloc)>::deallocate(alloc, p_->t, 1);
     p_->t = nullptr;
     return std::move(p_->handler);
 }
@@ -124,9 +130,13 @@ invoke(Args&&... args)
     BOOST_ASSERT(p_);
     BOOST_ASSERT(p_->t);
     p_->t->~T();
-    using boost::asio::asio_handler_deallocate;
-    asio_handler_deallocate(
-        p_->t, sizeof(T), std::addressof(p_->handler));
+    typename std::allocator_traits<
+        boost::asio::associated_allocator_t<Handler>>::
+            template rebind_alloc<T> alloc{
+                boost::asio::get_associated_allocator(
+                    p_->handler)};
+    std::allocator_traits<
+        decltype(alloc)>::deallocate(alloc, p_->t, 1);
     p_->t = nullptr;
     p_->handler(std::forward<Args>(args)...);
 }

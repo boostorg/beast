@@ -20,10 +20,10 @@
 #include <boost/beast/core/detail/clamp.hpp>
 #include <boost/beast/core/detail/config.hpp>
 #include <boost/beast/websocket/detail/frame.hpp>
+#include <boost/asio/associated_allocator.hpp>
+#include <boost/asio/associated_executor.hpp>
 #include <boost/asio/coroutine.hpp>
-#include <boost/asio/handler_alloc_hook.hpp>
 #include <boost/asio/handler_continuation_hook.hpp>
-#include <boost/asio/handler_invoke_hook.hpp>
 #include <boost/assert.hpp>
 #include <boost/config.hpp>
 #include <boost/throw_exception.hpp>
@@ -71,6 +71,24 @@ public:
     {
     }
 
+    using allocator_type =
+        boost::asio::associated_allocator_t<Handler>;
+
+    allocator_type
+    get_allocator() const noexcept
+    {
+        return boost::asio::get_associated_allocator(h_);
+    }
+
+    using executor_type = boost::asio::associated_executor_t<
+        Handler, decltype(ws_.get_executor())>;
+
+    executor_type get_executor() const noexcept
+    {
+        return boost::asio::get_associated_executor(
+            h_, ws_.get_executor());
+    }
+
     Handler&
     handler()
     {
@@ -83,38 +101,11 @@ public:
         bool cont = true);
 
     friend
-    void* asio_handler_allocate(
-        std::size_t size, write_some_op* op)
-    {
-        using boost::asio::asio_handler_allocate;
-        return asio_handler_allocate(
-            size, std::addressof(op->h_));
-    }
-
-    friend
-    void asio_handler_deallocate(
-        void* p, std::size_t size, write_some_op* op)
-    {
-        using boost::asio::asio_handler_deallocate;
-        asio_handler_deallocate(
-            p, size, std::addressof(op->h_));
-    }
-
-    friend
     bool asio_handler_is_continuation(write_some_op* op)
     {
         using boost::asio::asio_handler_is_continuation;
         return op->cont_ || asio_handler_is_continuation(
             std::addressof(op->h_));
-    }
-
-    template<class Function>
-    friend
-    void asio_handler_invoke(Function&& f, write_some_op* op)
-    {
-        using boost::asio::asio_handler_invoke;
-        asio_handler_invoke(
-            f, std::addressof(op->h_));
     }
 };
 
@@ -132,7 +123,7 @@ operator()(
     using boost::asio::buffer;
     using boost::asio::buffer_copy;
     using boost::asio::buffer_size;
-    using boost::asio::mutable_buffers_1;
+    using boost::asio::mutable_buffer;
     enum
     {
         do_nomask_nofrag,
@@ -225,7 +216,8 @@ operator()(
 
             // Resume
             BOOST_ASIO_CORO_YIELD
-            ws_.get_io_service().post(std::move(*this));
+            boost::asio::post(
+                ws_.get_executor(), std::move(*this));
             BOOST_ASSERT(ws_.wr_block_ == tok_);
 
             // Make sure the stream is open
@@ -435,8 +427,8 @@ operator()(
                 // Send frame
                 BOOST_ASIO_CORO_YIELD
                 boost::asio::async_write(ws_.stream_,
-                    buffers_cat(ws_.wr_fb_.data(),
-                        mutable_buffers_1{b}), std::move(*this));
+                    buffers_cat(ws_.wr_fb_.data(), b),
+                        std::move(*this));
                 if(! ws_.check_ok(ec))
                     goto upcall;
                 bytes_transferred_ += in_;
@@ -478,7 +470,8 @@ operator()(
             ws_.paused_rd_.maybe_invoke() ||
             ws_.paused_ping_.maybe_invoke();
         if(! cont_)
-            return ws_.stream_.get_io_service().post(
+            return boost::asio::post(
+                ws_.stream_.get_executor(),
                 bind_handler(h_, ec, bytes_transferred_));
         h_(ec, bytes_transferred_);
     }
@@ -494,7 +487,7 @@ write_some(bool fin, ConstBufferSequence const& buffers)
 {
     static_assert(is_sync_stream<next_layer_type>::value,
         "SyncStream requirements not met");
-    static_assert(beast::is_const_buffer_sequence<
+    static_assert(boost::asio::is_const_buffer_sequence<
         ConstBufferSequence>::value,
             "ConstBufferSequence requirements not met");
     error_code ec;
@@ -514,7 +507,7 @@ write_some(bool fin,
 {
     static_assert(is_sync_stream<next_layer_type>::value,
         "SyncStream requirements not met");
-    static_assert(beast::is_const_buffer_sequence<
+    static_assert(boost::asio::is_const_buffer_sequence<
         ConstBufferSequence>::value,
             "ConstBufferSequence requirements not met");
     using beast::detail::clamp;
@@ -720,21 +713,21 @@ write_some(bool fin,
 
 template<class NextLayer>
 template<class ConstBufferSequence, class WriteHandler>
-async_return_type<
-    WriteHandler, void(error_code, std::size_t)>
+BOOST_ASIO_INITFN_RESULT_TYPE(
+    WriteHandler, void(error_code, std::size_t))
 stream<NextLayer>::
 async_write_some(bool fin,
     ConstBufferSequence const& bs, WriteHandler&& handler)
 {
     static_assert(is_async_stream<next_layer_type>::value,
         "AsyncStream requirements not met");
-    static_assert(beast::is_const_buffer_sequence<
+    static_assert(boost::asio::is_const_buffer_sequence<
         ConstBufferSequence>::value,
             "ConstBufferSequence requirements not met");
-    async_completion<WriteHandler,
+    boost::asio::async_completion<WriteHandler,
         void(error_code, std::size_t)> init{handler};
-    write_some_op<ConstBufferSequence, handler_type<
-        WriteHandler, void(error_code, std::size_t)>>{
+    write_some_op<ConstBufferSequence, BOOST_ASIO_HANDLER_TYPE(
+        WriteHandler, void(error_code, std::size_t))>{
             init.completion_handler, *this, fin, bs}(
                 {}, 0, false);
     return init.result.get();
@@ -750,7 +743,7 @@ write(ConstBufferSequence const& buffers)
 {
     static_assert(is_sync_stream<next_layer_type>::value,
         "SyncStream requirements not met");
-    static_assert(beast::is_const_buffer_sequence<
+    static_assert(boost::asio::is_const_buffer_sequence<
         ConstBufferSequence>::value,
             "ConstBufferSequence requirements not met");
     error_code ec;
@@ -768,7 +761,7 @@ write(ConstBufferSequence const& buffers, error_code& ec)
 {
     static_assert(is_sync_stream<next_layer_type>::value,
         "SyncStream requirements not met");
-    static_assert(beast::is_const_buffer_sequence<
+    static_assert(boost::asio::is_const_buffer_sequence<
         ConstBufferSequence>::value,
             "ConstBufferSequence requirements not met");
     return write_some(true, buffers, ec);
@@ -776,21 +769,21 @@ write(ConstBufferSequence const& buffers, error_code& ec)
 
 template<class NextLayer>
 template<class ConstBufferSequence, class WriteHandler>
-async_return_type<
-    WriteHandler, void(error_code, std::size_t)>
+BOOST_ASIO_INITFN_RESULT_TYPE(
+    WriteHandler, void(error_code, std::size_t))
 stream<NextLayer>::
 async_write(
     ConstBufferSequence const& bs, WriteHandler&& handler)
 {
     static_assert(is_async_stream<next_layer_type>::value,
         "AsyncStream requirements not met");
-    static_assert(beast::is_const_buffer_sequence<
+    static_assert(boost::asio::is_const_buffer_sequence<
         ConstBufferSequence>::value,
             "ConstBufferSequence requirements not met");
-    async_completion<WriteHandler,
+    boost::asio::async_completion<WriteHandler,
         void(error_code, std::size_t)> init{handler};
-    write_some_op<ConstBufferSequence, handler_type<
-        WriteHandler, void(error_code, std::size_t)>>{
+    write_some_op<ConstBufferSequence, BOOST_ASIO_HANDLER_TYPE(
+        WriteHandler, void(error_code, std::size_t))>{
             init.completion_handler, *this, true, bs}(
                 {}, 0, false);
     return init.result.get();

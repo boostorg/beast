@@ -25,17 +25,15 @@ namespace test {
 
 template<class ConstBufferSequence>
 typename std::enable_if<
-    is_const_buffer_sequence<ConstBufferSequence>::value,
+    boost::asio::is_const_buffer_sequence<ConstBufferSequence>::value,
 std::string>::type
 to_string(ConstBufferSequence const& bs)
 {
-    using boost::asio::buffer_cast;
-    using boost::asio::buffer_size;
     std::string s;
     s.reserve(buffer_size(bs));
-    for(boost::asio::const_buffer b : bs)
-        s.append(buffer_cast<char const*>(b),
-            buffer_size(b));
+    for(auto b : beast::detail::buffers_range(bs))
+        s.append(reinterpret_cast<char const*>(b.data()),
+            b.size());
     return s;
 }
 
@@ -50,7 +48,7 @@ write_buffer(DynamicBuffer& b, string_view s)
 
 template<class ConstBufferSequence>
 typename std::enable_if<
-    is_const_buffer_sequence<ConstBufferSequence>::value,
+    boost::asio::is_const_buffer_sequence<ConstBufferSequence>::value,
         std::size_t>::type
 buffer_count(ConstBufferSequence const& buffers)
 {
@@ -59,7 +57,7 @@ buffer_count(ConstBufferSequence const& buffers)
 
 template<class ConstBufferSequence>
 typename std::enable_if<
-    is_const_buffer_sequence<ConstBufferSequence>::value,
+    boost::asio::is_const_buffer_sequence<ConstBufferSequence>::value,
         std::size_t>::type
 size_pre(ConstBufferSequence const& buffers)
 {
@@ -78,7 +76,7 @@ size_pre(ConstBufferSequence const& buffers)
 
 template<class ConstBufferSequence>
 typename std::enable_if<
-    is_const_buffer_sequence<ConstBufferSequence>::value,
+    boost::asio::is_const_buffer_sequence<ConstBufferSequence>::value,
         std::size_t>::type
 size_post(ConstBufferSequence const& buffers)
 {
@@ -90,7 +88,7 @@ size_post(ConstBufferSequence const& buffers)
 
 template<class ConstBufferSequence>
 typename std::enable_if<
-    is_const_buffer_sequence<ConstBufferSequence>::value,
+    boost::asio::is_const_buffer_sequence<ConstBufferSequence>::value,
         std::size_t>::type
 size_rev_pre(ConstBufferSequence const& buffers)
 {
@@ -102,7 +100,7 @@ size_rev_pre(ConstBufferSequence const& buffers)
 
 template<class ConstBufferSequence>
 typename std::enable_if<
-    is_const_buffer_sequence<ConstBufferSequence>::value,
+    boost::asio::is_const_buffer_sequence<ConstBufferSequence>::value,
         std::size_t>::type
 size_rev_post(ConstBufferSequence const& buffers)
 {

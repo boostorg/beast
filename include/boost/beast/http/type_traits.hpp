@@ -88,7 +88,7 @@ struct is_body_reader<T, beast::detail::void_t<
             typename T::reader::const_buffers_type, bool>>&>() =
             std::declval<typename T::reader>().get(std::declval<error_code&>()),
         (void)0)>> : std::integral_constant<bool,
-    is_const_buffer_sequence<
+    boost::asio::is_const_buffer_sequence<
         typename T::reader::const_buffers_type>::value &&
     std::is_constructible<typename T::reader,
         message<true, T, detail::fields_model>&>::value &&
@@ -131,7 +131,7 @@ struct is_body_writer<T, beast::detail::void_t<decltype(
         std::declval<error_code&>()),
     std::declval<std::size_t&>() =
         std::declval<typename T::writer&>().put(
-            std::declval<boost::asio::const_buffers_1>(),
+            std::declval<boost::asio::const_buffer>(),
             std::declval<error_code&>()),
     std::declval<typename T::writer&>().finish(
         std::declval<error_code&>()),

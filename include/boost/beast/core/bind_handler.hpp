@@ -27,12 +27,12 @@ namespace beast {
     placeholders present in the list of bound arguments. Parameters
     which are not matched to placeholders are silently discarded.
     The passed handler and arguments are forwarded into the returned
-    handler, which provides the same `io_service` execution guarantees
+    handler, which provides the same `io_context` execution guarantees
     as the original handler.
 
-    Unlike `boost::asio::io_service::wrap`, the returned handler can
-    be used in a subsequent call to `boost::asio::io_service::post`
-    instead of `boost::asio::io_service::dispatch`, to ensure that
+    Unlike `boost::asio::io_context::wrap`, the returned handler can
+    be used in a subsequent call to `boost::asio::io_context::post`
+    instead of `boost::asio::io_context::dispatch`, to ensure that
     the handler will not be invoked immediately by the calling
     function.
 
@@ -43,7 +43,8 @@ namespace beast {
     void
     signal_aborted(AsyncReadStream& stream, ReadHandler&& handler)
     {
-        stream.get_io_service().post(
+        boost::asio::post(
+            stream.get_executor(),
             bind_handler(std::forward<ReadHandler>(handler),
                 boost::asio::error::operation_aborted, 0));
     }

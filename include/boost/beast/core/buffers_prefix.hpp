@@ -34,8 +34,8 @@ class buffers_prefix_view
     using buffers_type = typename
         std::decay<BufferSequence>::type;
 
-    using iter_type =
-        typename buffers_type::const_iterator;
+    using iter_type = typename
+        detail::buffer_sequence_iterator<buffers_type>::type;
 
     BufferSequence bs_;
     std::size_t size_;
@@ -141,10 +141,8 @@ boost::asio::const_buffer
 buffers_prefix(std::size_t size,
     boost::asio::const_buffer buffer)
 {
-    using boost::asio::buffer_cast;
-    using boost::asio::buffer_size;
-    return { buffer_cast<void const*>(buffer),
-        (std::min)(size, buffer_size(buffer)) };
+    return {buffer.data(),
+        (std::min)(size, buffer.size())};
 }
 
 /** Returns a prefix of a mutable buffer.
@@ -166,10 +164,8 @@ boost::asio::mutable_buffer
 buffers_prefix(std::size_t size,
     boost::asio::mutable_buffer buffer)
 {
-    using boost::asio::buffer_cast;
-    using boost::asio::buffer_size;
-    return {buffer_cast<void*>(buffer),
-        (std::min)(size, buffer_size(buffer))};
+    return {buffer.data(),
+        (std::min)(size, buffer.size())};
 }
 
 /** Returns a prefix of a buffer sequence.
@@ -203,8 +199,8 @@ typename std::enable_if<
 buffers_prefix(std::size_t size, BufferSequence const& buffers)
 {
     static_assert(
-        is_const_buffer_sequence<BufferSequence>::value ||
-        is_mutable_buffer_sequence<BufferSequence>::value,
+        boost::asio::is_const_buffer_sequence<BufferSequence>::value ||
+        boost::asio::is_mutable_buffer_sequence<BufferSequence>::value,
             "BufferSequence requirements not met");
     return buffers_prefix_view<BufferSequence>(size, buffers);
 }
@@ -221,13 +217,14 @@ buffers_prefix(std::size_t size, BufferSequence const& buffers)
 */
 template<class BufferSequence>
 typename std::conditional<
-    is_mutable_buffer_sequence<BufferSequence>::value,
+    boost::asio::is_mutable_buffer_sequence<BufferSequence>::value,
     boost::asio::mutable_buffer,
     boost::asio::const_buffer>::type
 buffers_front(BufferSequence const& buffers)
 {
-    auto const first = buffers.begin();
-    if(first == buffers.end())
+    auto const first =
+        boost::asio::buffer_sequence_begin(buffers);
+    if(first == boost::asio::buffer_sequence_end(buffers))
         return {};
     return *first;
 }

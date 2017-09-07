@@ -22,6 +22,5 @@ add_executable (tests-example-common
     server_certificate.cpp
     session_alloc.cpp
     ssl_stream.cpp
-    write_msg.cpp
     main.cpp
 )

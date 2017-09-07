@@ -515,7 +515,7 @@ public:
 
 #if ! BOOST_BEAST_DOXYGEN
     std::size_t
-    put(boost::asio::const_buffers_1 const& buffer,
+    put(boost::asio::const_buffer const& buffer,
         error_code& ec);
 #endif
 

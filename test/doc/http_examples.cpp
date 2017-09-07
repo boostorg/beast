@@ -13,6 +13,7 @@
 #include <boost/beast/core/read_size.hpp>
 #include <boost/beast/core/ostream.hpp>
 #include <boost/beast/core/detail/clamp.hpp>
+#include <boost/beast/core/detail/type_traits.hpp>
 #include <boost/beast/http/chunk_encode.hpp>
 #include <boost/beast/http/parser.hpp>
 #include <boost/beast/http/read.hpp>
@@ -57,13 +58,11 @@ public:
     std::string
     to_string(ConstBufferSequence const& bs)
     {
-        using boost::asio::buffer_cast;
-        using boost::asio::buffer_size;
         std::string s;
         s.reserve(buffer_size(bs));
-        for(boost::asio::const_buffer b : bs)
-            s.append(buffer_cast<char const*>(b),
-                buffer_size(b));
+        for(auto b : beast::detail::buffers_range(bs))
+            s.append(reinterpret_cast<
+                char const*>(b.data()), b.size());
         return s;
     }
 
@@ -71,7 +70,7 @@ public:
     bool
     equal_body(string_view sv, string_view body)
     {
-        test::stream ts{ios_, sv};
+        test::stream ts{ioc_, sv};
         message<isRequest, string_body, fields> m;
         multi_buffer b;
         ts.close_remote();
@@ -90,7 +89,7 @@ public:
     void
     doExpect100Continue()
     {
-        test::stream ts{ios_}, tr{ios_};
+        test::stream ts{ioc_}, tr{ioc_};
         ts.connect(tr);
         yield_to(
             [&](yield_context)
@@ -123,10 +122,10 @@ public:
     doCgiResponse()
     {
         std::string const s = "Hello, world!";
-        test::stream t0{ios_, s};
+        test::stream t0{ioc_, s};
         t0.read_size(3);
         t0.close_remote();
-        test::stream t1{ios_}, t1r{ios_};
+        test::stream t1{ioc_}, t1r{ioc_};
         t1.connect(t1r);
         error_code ec;
         send_cgi_response(t0, t1, ec);
@@ -145,10 +144,10 @@ public:
         req.body() = "Hello, world!";
         req.prepare_payload();
 
-        test::stream ds{ios_}, dsr{ios_};
+        test::stream ds{ioc_}, dsr{ioc_};
         ds.connect(dsr);
         dsr.read_size(3);
-        test::stream us{ios_}, usr{ios_};
+        test::stream us{ioc_}, usr{ioc_};
         us.connect(usr);
         us.write_size(3);
 
@@ -241,7 +240,7 @@ public:
     void
     doHEAD()
     {
-        test::stream ts{ios_}, tr{ios_};
+        test::stream ts{ioc_}, tr{ioc_};
         ts.connect(tr);
         yield_to(
             [&](yield_context)
@@ -280,7 +279,7 @@ public:
     void
     doDeferredBody()
     {
-        test::stream ts(ios_,
+        test::stream ts(ioc_,
             "POST / HTTP/1.1\r\n"
             "User-Agent: test\r\n"
             "Content-Type: multipart/form-data\r\n"
@@ -299,7 +298,7 @@ public:
     void
     doIncrementalRead()
     {
-        test::stream ts{ios_};
+        test::stream ts{ioc_};
         std::string s(2048, '*');
         ostream(ts.buffer()) <<
             "HTTP/1.1 200 OK\r\n"
@@ -323,10 +322,10 @@ public:
         auto const buf =
             [](string_view s)
             {
-                return boost::asio::const_buffers_1{
+                return boost::asio::const_buffer{
                     s.data(), s.size()};
             };
-        test::stream ts{ios_}, tr{ios_};
+        test::stream ts{ioc_}, tr{ioc_};
         ts.connect(tr);
         
         response<empty_body> res{status::ok, 11};
@@ -394,7 +393,7 @@ public:
     void
     doExplicitChunkParse()
     {
-        test::stream ts(ios_,
+        test::stream ts(ioc_,
             "HTTP/1.1 200 OK\r\n"
             "Server: test\r\n"
             "Trailer: Expires, Content-MD5\r\n"

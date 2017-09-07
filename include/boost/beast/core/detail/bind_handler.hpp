@@ -11,9 +11,9 @@
 #define BOOST_BEAST_DETAIL_BIND_HANDLER_HPP
 
 #include <boost/beast/core/detail/integer_sequence.hpp>
-#include <boost/asio/handler_alloc_hook.hpp>
+#include <boost/asio/associated_allocator.hpp>
+#include <boost/asio/associated_executor.hpp>
 #include <boost/asio/handler_continuation_hook.hpp>
-#include <boost/asio/handler_invoke_hook.hpp>
 #include <boost/core/ignore_unused.hpp>
 #include <functional>
 #include <utility>
@@ -24,13 +24,17 @@ namespace detail {
 
 /*  Nullary handler that calls Handler with bound arguments.
 
-    The bound handler provides the same io_service execution
+    The bound handler provides the same io_context execution
     guarantees as the original handler.
 */
 template<class Handler, class... Args>
 class bound_handler
 {
-private:
+    // Can't friend partial specializations,
+    // so we just friend the whole thing.
+    template<class T, class Executor>
+    friend struct boost::asio::associated_executor;
+
     using args_type = std::tuple<
         typename std::decay<Args>::type...>;
 
@@ -101,6 +105,9 @@ private:
 public:
     using result_type = void;
 
+    using allocator_type =
+        boost::asio::associated_allocator_t<Handler>;
+
     bound_handler(bound_handler&&) = default;
     bound_handler(bound_handler const&) = default;
 
@@ -111,6 +118,20 @@ public:
         : h_(std::forward<DeducedHandler>(handler))
         , args_(std::forward<Args>(args)...)
     {
+    }
+
+    allocator_type
+    get_allocator() const noexcept
+    {
+        return boost::asio::get_associated_allocator(h_);
+    }
+
+    friend
+    bool
+    asio_handler_is_continuation(bound_handler* h)
+    {
+        using boost::asio::asio_handler_is_continuation;
+        return asio_handler_is_continuation(std::addressof(h->h_));
     }
 
     template<class... Values>
@@ -132,48 +153,30 @@ public:
                 std::forward<Values>(values)...),
             index_sequence_for<Args...>());
     }
-
-    friend
-    void*
-    asio_handler_allocate(
-        std::size_t size, bound_handler* h)
-    {
-        using boost::asio::asio_handler_allocate;
-        return asio_handler_allocate(
-            size, std::addressof(h->h_));
-    }
-
-    friend
-    void
-    asio_handler_deallocate(
-        void* p, std::size_t size, bound_handler* h)
-    {
-        using boost::asio::asio_handler_deallocate;
-        asio_handler_deallocate(
-            p, size, std::addressof(h->h_));
-    }
-
-    friend
-    bool
-    asio_handler_is_continuation(bound_handler* h)
-    {
-        using boost::asio::asio_handler_is_continuation;
-        return asio_handler_is_continuation(std::addressof(h->h_));
-    }
-
-    template<class F>
-    friend
-    void
-    asio_handler_invoke(F&& f, bound_handler* h)
-    {
-        using boost::asio::asio_handler_invoke;
-        asio_handler_invoke(
-            f, std::addressof(h->h_));
-    }
 };
 
 } // detail
 } // beast
+
+namespace asio {
+template<class Handler, class... Args, class Executor>
+struct associated_executor<
+    beast::detail::bound_handler<Handler, Args...>, Executor>
+{
+    using type = typename
+        associated_executor<Handler, Executor>::type;
+
+    static
+    type
+    get(beast::detail::bound_handler<Handler, Args...> const& h,
+        Executor const& ex = Executor()) noexcept
+    {
+        return associated_executor<
+            Handler, Executor>::get(h.h_, ex);
+    }
+};
+} // asio
+
 } // boost
 
 namespace std {

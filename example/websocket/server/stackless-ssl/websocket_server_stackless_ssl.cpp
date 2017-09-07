@@ -18,6 +18,7 @@
 #include <boost/beast/core.hpp>
 #include <boost/beast/websocket.hpp>
 #include <boost/beast/websocket/ssl.hpp>
+#include <boost/asio/bind_executor.hpp>
 #include <boost/asio/coroutine.hpp>
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/ssl/stream.hpp>
@@ -51,7 +52,8 @@ class session
 {
     tcp::socket socket_;
     websocket::stream<ssl::stream<tcp::socket&>> ws_;
-    boost::asio::io_service::strand strand_;
+    boost::asio::strand<
+        boost::asio::io_context::executor_type> strand_;
     boost::beast::multi_buffer buffer_;
 
 public:
@@ -59,7 +61,7 @@ public:
     session(tcp::socket socket, ssl::context& ctx)
         : socket_(std::move(socket))
         , ws_(socket_, ctx)
-        , strand_(ws_.get_io_service())
+        , strand_(ws_.get_executor())
     {
     }
 
@@ -83,21 +85,25 @@ public:
             // Perform the SSL handshake
             yield ws_.next_layer().async_handshake(
                 ssl::stream_base::server,
-                strand_.wrap(std::bind(
-                    &session::loop,
-                    shared_from_this(),
-                    std::placeholders::_1,
-                    0)));
+                boost::asio::bind_executor(
+                    strand_,
+                    std::bind(
+                        &session::loop,
+                        shared_from_this(),
+                        std::placeholders::_1,
+                        0)));
             if(ec)
                 return fail(ec, "handshake");
 
             // Accept the websocket handshake
             yield ws_.async_accept(
-                strand_.wrap(std::bind(
-                    &session::loop,
-                    shared_from_this(),
-                    std::placeholders::_1,
-                    0)));
+                boost::asio::bind_executor(
+                    strand_,
+                    std::bind(
+                        &session::loop,
+                        shared_from_this(),
+                        std::placeholders::_1,
+                        0)));
             if(ec)
                 return fail(ec, "accept");
 
@@ -106,11 +112,13 @@ public:
                 // Read a message into our buffer
                 yield ws_.async_read(
                     buffer_,
-                    strand_.wrap(std::bind(
-                        &session::loop,
-                        shared_from_this(),
-                        std::placeholders::_1,
-                        std::placeholders::_2)));
+                    boost::asio::bind_executor(
+                        strand_,
+                        std::bind(
+                            &session::loop,
+                            shared_from_this(),
+                            std::placeholders::_1,
+                            std::placeholders::_2)));
                 if(ec == websocket::error::closed)
                 {
                     // This indicates that the session was closed
@@ -123,11 +131,13 @@ public:
                 ws_.text(ws_.got_text());
                 yield ws_.async_write(
                     buffer_.data(),
-                    strand_.wrap(std::bind(
-                        &session::loop,
-                        shared_from_this(),
-                        std::placeholders::_1,
-                        std::placeholders::_2)));
+                    boost::asio::bind_executor(
+                        strand_,
+                        std::bind(
+                            &session::loop,
+                            shared_from_this(),
+                            std::placeholders::_1,
+                            std::placeholders::_2)));
                 if(ec)
                     return fail(ec, "write");
 
@@ -152,12 +162,12 @@ class listener
 
 public:
     listener(
-        boost::asio::io_service& ios,
+        boost::asio::io_context& ioc,
         ssl::context& ctx,
         tcp::endpoint endpoint)
         : ctx_(ctx)
-        , acceptor_(ios)
-        , socket_(ios)
+        , acceptor_(ioc)
+        , socket_(ioc)
     {
         boost::system::error_code ec;
 
@@ -179,7 +189,7 @@ public:
 
         // Start listening for connections
         acceptor_.listen(
-            boost::asio::socket_base::max_connections, ec);
+            boost::asio::socket_base::max_listen_connections, ec);
         if(ec)
         {
             fail(ec, "listen");
@@ -238,12 +248,12 @@ int main(int argc, char* argv[])
             "    websocket-server-async-ssl 0.0.0.0 8080 1\n";
         return EXIT_FAILURE;
     }
-    auto const address = boost::asio::ip::address::from_string(argv[1]);
+    auto const address = boost::asio::ip::make_address(argv[1]);
     auto const port = static_cast<unsigned short>(std::atoi(argv[2]));
-    auto const threads = std::max<std::size_t>(1, std::atoi(argv[3]));
+    auto const threads = std::max<int>(1, std::atoi(argv[3]));
 
-    // The io_service is required for all I/O
-    boost::asio::io_service ios{threads};
+    // The io_context is required for all I/O
+    boost::asio::io_context ioc{threads};
     
     // The SSL context is required, and holds certificates
     ssl::context ctx{ssl::context::sslv23};
@@ -252,18 +262,18 @@ int main(int argc, char* argv[])
     load_server_certificate(ctx);
 
     // Create and launch a listening port
-    std::make_shared<listener>(ios, ctx, tcp::endpoint{address, port})->run();
+    std::make_shared<listener>(ioc, ctx, tcp::endpoint{address, port})->run();
 
     // Run the I/O service on the requested number of threads
     std::vector<std::thread> v;
     v.reserve(threads - 1);
     for(auto i = threads - 1; i > 0; --i)
         v.emplace_back(
-        [&ios]
+        [&ioc]
         {
-            ios.run();
+            ioc.run();
         });
-    ios.run();
+    ioc.run();
 
     return EXIT_SUCCESS;
 }

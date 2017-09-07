@@ -260,10 +260,10 @@ struct header<false, Fields> : Fields
 };
 ```
 
-The start-line data members are replaced traditional accessors using
-non-owning references to string buffers. The method is stored using
-a simple integer instead of the entire string, for the case where
-the method is recognized from the set of known verb strings.
+The start-line data members are replaced by traditional accessors
+using non-owning references to string buffers. The method is stored
+using a simple integer instead of the entire string, for the case
+where the method is recognized from the set of known verb strings.
 
 Now we add a requirement to the fields type: management of the
 corresponding string is delegated to the [*Fields] container, which can

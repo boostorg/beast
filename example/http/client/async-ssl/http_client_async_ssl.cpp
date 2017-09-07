@@ -50,11 +50,11 @@ class session : public std::enable_shared_from_this<session>
     http::response<http::string_body> res_;
 
 public:
-    // Resolver and stream require an io_service
+    // Resolver and stream require an io_context
     explicit
-    session(boost::asio::io_service& ios, ssl::context& ctx)
-        : resolver_(ios)
-        , stream_(ios, ctx)
+    session(boost::asio::io_context& ioc, ssl::context& ctx)
+        : resolver_(ioc)
+        , stream_(ioc, ctx)
     {
     }
 
@@ -73,7 +73,9 @@ public:
         req_.set(http::field::user_agent, BOOST_BEAST_VERSION_STRING);
 
         // Look up the domain name
-        resolver_.async_resolve({host, port},
+        resolver_.async_resolve(
+            host,
+            port,
             std::bind(
                 &session::on_resolve,
                 shared_from_this(),
@@ -84,7 +86,7 @@ public:
     void
     on_resolve(
         boost::system::error_code ec,
-        tcp::resolver::iterator result)
+        tcp::resolver::results_type results)
     {
         if(ec)
             return fail(ec, "resolve");
@@ -92,7 +94,8 @@ public:
         // Make the connection on the IP address we get from a lookup
         boost::asio::async_connect(
             stream_.next_layer(),
-            result,
+            results.begin(),
+            results.end(),
             std::bind(
                 &session::on_connect,
                 shared_from_this(),
@@ -202,8 +205,8 @@ int main(int argc, char** argv)
     auto const port = argv[2];
     auto const target = argv[3];
 
-    // The io_service is required for all I/O
-    boost::asio::io_service ios;
+    // The io_context is required for all I/O
+    boost::asio::io_context ioc;
 
     // The SSL context is required, and holds certificates
     ssl::context ctx{ssl::context::sslv23_client};
@@ -212,11 +215,11 @@ int main(int argc, char** argv)
     load_root_certificates(ctx);
 
     // Launch the asynchronous operation
-    std::make_shared<session>(ios, ctx)->run(host, port, target);
+    std::make_shared<session>(ioc, ctx)->run(host, port, target);
 
     // Run the I/O service. The call will return when
     // the get operation is complete.
-    ios.run();
+    ioc.run();
 
     return EXIT_SUCCESS;
 }

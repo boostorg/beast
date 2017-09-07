@@ -62,7 +62,8 @@ send_expect_100_continue(
     static_assert(is_sync_stream<SyncStream>::value,
         "SyncStream requirements not met");
 
-    static_assert(is_dynamic_buffer<DynamicBuffer>::value,
+    static_assert(
+        boost::asio::is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
 
     // Insert or replace the Expect field
@@ -123,7 +124,8 @@ receive_expect_100_continue(
     static_assert(is_sync_stream<SyncStream>::value,
         "SyncStream requirements not met");
 
-    static_assert(is_dynamic_buffer<DynamicBuffer>::value,
+    static_assert(
+        boost::asio::is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
 
     // Declare a parser for a request with a string body
@@ -193,9 +195,6 @@ send_cgi_response(
 
     static_assert(is_sync_write_stream<SyncWriteStream>::value,
         "SyncWriteStream requirements not met");
-
-    using boost::asio::buffer_cast;
-    using boost::asio::buffer_size;
 
     // Set up the response. We use the buffer_body type,
     // allowing serialization to use manually provided buffers.
@@ -293,7 +292,8 @@ void do_server_head(
 {
     static_assert(is_sync_stream<SyncStream>::value,
         "SyncStream requirements not met");
-    static_assert(is_dynamic_buffer<DynamicBuffer>::value,
+    static_assert(
+        boost::asio::is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirments not met");
 
     // We deliver this payload for all GET requests
@@ -386,7 +386,8 @@ do_head_request(
     // Do some type checking to be a good citizen
     static_assert(is_sync_stream<SyncStream>::value,
         "SyncStream requirements not met");
-    static_assert(is_dynamic_buffer<DynamicBuffer>::value,
+    static_assert(
+        boost::asio::is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirments not met");
 
     // The interfaces we are using are low level and do not
@@ -589,10 +590,6 @@ public:
     void
     operator()(error_code& ec, ConstBufferSequence const& buffers) const
     {
-        // These asio functions are needed to access a buffer's contents
-        using boost::asio::buffer_cast;
-        using boost::asio::buffer_size;
-
         // Error codes must be cleared on success
         ec = {};
 
@@ -600,15 +597,16 @@ public:
         std::size_t bytes_transferred = 0;
 
         // Loop over the buffer sequence
-        for(auto it = buffers.begin(); it != buffers.end(); ++ it)
+        for(auto it = boost::asio::buffer_sequence_begin(buffers);
+            it != boost::asio::buffer_sequence_end(buffers); ++it)
         {
             // This is the next buffer in the sequence
             boost::asio::const_buffer const buffer = *it;
 
             // Write it to the std::ostream
             os_.write(
-                buffer_cast<char const*>(buffer),
-                buffer_size(buffer));
+                reinterpret_cast<char const*>(buffer.data()),
+                buffer.size());
 
             // If the std::ostream fails, convert it to an error code
             if(os_.fail())
@@ -714,13 +712,12 @@ read_istream(
         if(is.rdbuf()->in_avail() > 0)
         {
             // Get a mutable buffer sequence for writing
-            auto const mb = buffer.prepare(
+            auto const b = buffer.prepare(
                 static_cast<std::size_t>(is.rdbuf()->in_avail()));
 
             // Now get everything we can from the istream
             buffer.commit(static_cast<std::size_t>(is.readsome(
-                boost::asio::buffer_cast<char*>(mb),
-                boost::asio::buffer_size(mb))));
+                reinterpret_cast<char*>(b.data()), b.size())));
         }
         else if(buffer.size() == 0)
         {
@@ -729,12 +726,10 @@ read_istream(
             if(! is.eof())
             {
                 // Get a mutable buffer sequence for writing
-                auto const mb = buffer.prepare(1024);
+                auto const b = buffer.prepare(1024);
 
                 // Try to get more from the istream. This might block.
-                is.read(
-                    boost::asio::buffer_cast<char*>(mb),
-                    boost::asio::buffer_size(mb));
+                is.read(reinterpret_cast<char*>(b.data()), b.size());
 
                 // If an error occurs on the istream then return it to the caller.
                 if(is.fail() && ! is.eof())

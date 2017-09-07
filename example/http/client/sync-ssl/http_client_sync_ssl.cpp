@@ -47,8 +47,8 @@ int main(int argc, char** argv)
         auto const port = argv[2];
         auto const target = argv[3];
 
-        // The io_service is required for all I/O
-        boost::asio::io_service ios;
+        // The io_context is required for all I/O
+        boost::asio::io_context ioc;
 
         // The SSL context is required, and holds certificates
         ssl::context ctx{ssl::context::sslv23_client};
@@ -57,14 +57,14 @@ int main(int argc, char** argv)
         load_root_certificates(ctx);
 
         // These objects perform our I/O
-        tcp::resolver resolver{ios};
-        ssl::stream<tcp::socket> stream{ios, ctx};
+        tcp::resolver resolver{ioc};
+        ssl::stream<tcp::socket> stream{ioc, ctx};
 
         // Look up the domain name
-        auto const lookup = resolver.resolve({host, port});
+        auto const results = resolver.resolve(host, port);
 
         // Make the connection on the IP address we get from a lookup
-        boost::asio::connect(stream.next_layer(), lookup);
+        boost::asio::connect(stream.next_layer(), results.begin(), results.end());
 
         // Perform the SSL handshake
         stream.handshake(ssl::stream_base::client);

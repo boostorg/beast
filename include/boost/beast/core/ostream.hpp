@@ -49,7 +49,7 @@ detail::buffers_helper<ConstBufferSequence>
 #endif
 buffers(ConstBufferSequence const& b)
 {
-    static_assert(is_const_buffer_sequence<
+    static_assert(boost::asio::is_const_buffer_sequence<
         ConstBufferSequence>::value,
             "ConstBufferSequence requirements not met");
     return detail::buffers_helper<
@@ -90,7 +90,8 @@ detail::ostream_helper<
 #endif
 ostream(DynamicBuffer& buffer)
 {
-    static_assert(is_dynamic_buffer<DynamicBuffer>::value,
+    static_assert(
+        boost::asio::is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
     return detail::ostream_helper<
         DynamicBuffer, char, std::char_traits<char>,

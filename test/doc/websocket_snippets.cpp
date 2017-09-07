@@ -27,15 +27,15 @@ namespace doc_ws_snippets {
 
 void fxx() {
 
-boost::asio::io_service ios;
-boost::asio::io_service::work work{ios};
-std::thread t{[&](){ ios.run(); }};
+boost::asio::io_context ioc;
+auto work = boost::asio::make_work_guard(ioc);
+std::thread t{[&](){ ioc.run(); }};
 error_code ec;
-boost::asio::ip::tcp::socket sock{ios};
+boost::asio::ip::tcp::socket sock{ioc};
 
 {
 //[ws_snippet_2
-    stream<boost::asio::ip::tcp::socket> ws{ios};
+    stream<boost::asio::ip::tcp::socket> ws{ioc};
 //]
 }
 
@@ -58,22 +58,23 @@ boost::asio::ip::tcp::socket sock{ios};
 {
 //[ws_snippet_6
     std::string const host = "mywebapp.com";
-    boost::asio::ip::tcp::resolver r{ios};
-    stream<boost::asio::ip::tcp::socket> ws{ios};
-    boost::asio::connect(ws.next_layer(), r.resolve({host, "ws"}));
+    boost::asio::ip::tcp::resolver r{ioc};
+    stream<boost::asio::ip::tcp::socket> ws{ioc};
+    auto const results = r.resolve(host, "ws");
+    boost::asio::connect(ws.next_layer(), results.begin(), results.end());
 //]
 }
 
 {
 //[ws_snippet_7
-    boost::asio::ip::tcp::acceptor acceptor{ios};
-    stream<boost::asio::ip::tcp::socket> ws{acceptor.get_io_service()};
+    boost::asio::ip::tcp::acceptor acceptor{ioc};
+    stream<boost::asio::ip::tcp::socket> ws{acceptor.get_executor().context()};
     acceptor.accept(ws.next_layer());
 //]
 }
 
 {
-    stream<boost::asio::ip::tcp::socket> ws{ios};
+    stream<boost::asio::ip::tcp::socket> ws{ioc};
 //[ws_snippet_8
     ws.handshake("localhost", "/");
 //]
@@ -137,7 +138,7 @@ boost::asio::ip::tcp::socket sock{ios};
 }
 
 {
-    stream<boost::asio::ip::tcp::socket> ws{ios};
+    stream<boost::asio::ip::tcp::socket> ws{ioc};
 //[ws_snippet_14
     // Read into our buffer until we reach the end of the HTTP request.
     // No parsing takes place here, we are just accumulating data.
@@ -149,7 +150,7 @@ boost::asio::ip::tcp::socket sock{ios};
 //]
 }
 {
-    stream<boost::asio::ip::tcp::socket> ws{ios};
+    stream<boost::asio::ip::tcp::socket> ws{ioc};
 //[ws_snippet_15
     multi_buffer buffer;
     ws.read(buffer);
@@ -161,7 +162,7 @@ boost::asio::ip::tcp::socket sock{ios};
 }
 
 {
-    stream<boost::asio::ip::tcp::socket> ws{ios};
+    stream<boost::asio::ip::tcp::socket> ws{ioc};
 //[ws_snippet_16
     multi_buffer buffer;
     for(;;)
@@ -187,7 +188,7 @@ boost::asio::ip::tcp::socket sock{ios};
 }
 
 {
-    stream<boost::asio::ip::tcp::socket> ws{ios};
+    stream<boost::asio::ip::tcp::socket> ws{ioc};
 //[ws_snippet_17
     auto cb =
         [](frame_type kind, string_view payload)
@@ -325,16 +326,16 @@ namespace doc_wss_snippets {
 
 void fxx() {
 
-boost::asio::io_service ios;
-boost::asio::io_service::work work{ios};
-std::thread t{[&](){ ios.run(); }};
+boost::asio::io_context ioc;
+auto work = boost::asio::make_work_guard(ioc);
+std::thread t{[&](){ ioc.run(); }};
 error_code ec;
-boost::asio::ip::tcp::socket sock{ios};
+boost::asio::ip::tcp::socket sock{ioc};
 
 {
 //[wss_snippet_2
     boost::asio::ssl::context ctx{boost::asio::ssl::context::sslv23};
-    stream<boost::asio::ssl::stream<boost::asio::ip::tcp::socket>> wss{ios, ctx};
+    stream<boost::asio::ssl::stream<boost::asio::ip::tcp::socket>> wss{ioc, ctx};
 //]
 }
 
@@ -342,7 +343,7 @@ boost::asio::ip::tcp::socket sock{ios};
 //[wss_snippet_3
     boost::asio::ip::tcp::endpoint ep;
     boost::asio::ssl::context ctx{boost::asio::ssl::context::sslv23};
-    stream<boost::asio::ssl::stream<boost::asio::ip::tcp::socket>> ws{ios, ctx};
+    stream<boost::asio::ssl::stream<boost::asio::ip::tcp::socket>> ws{ioc, ctx};
 
     // connect the underlying TCP/IP socket
     ws.next_layer().next_layer().connect(ep);

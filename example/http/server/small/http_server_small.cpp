@@ -75,7 +75,7 @@ private:
 
     // The timer for putting a deadline on connection processing.
     boost::asio::basic_waitable_timer<std::chrono::steady_clock> deadline_{
-        socket_.get_io_service(), std::chrono::seconds(60)};
+        socket_.get_executor().context(), std::chrono::seconds(60)};
 
     // Asynchronously receive a complete request message.
     void
@@ -231,16 +231,16 @@ main(int argc, char* argv[])
             return EXIT_FAILURE;
         }
 
-        auto address = ip::address::from_string(argv[1]);
+        auto const address = boost::asio::ip::make_address(argv[1]);
         unsigned short port = static_cast<unsigned short>(std::atoi(argv[2]));
 
-        boost::asio::io_service ios{1};
+        boost::asio::io_context ioc{1};
 
-        tcp::acceptor acceptor{ios, {address, port}};
-        tcp::socket socket{ios};
+        tcp::acceptor acceptor{ioc, {address, port}};
+        tcp::socket socket{ioc};
         http_server(acceptor, socket);
 
-        ios.run();
+        ioc.run();
     }
     catch(std::exception const& e)
     {

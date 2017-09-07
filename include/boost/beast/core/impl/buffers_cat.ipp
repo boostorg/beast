@@ -30,7 +30,7 @@ class buffers_cat_view<Bn...>::const_iterator
     std::size_t n_;
     std::tuple<Bn...> const* bn_;
     std::array<char, detail::max_sizeof<
-        typename Bn::const_iterator...>()> buf_;
+        typename detail::buffer_sequence_iterator<Bn>::type...>()> buf_;
 
     friend class buffers_cat_view<Bn...>;
 
@@ -38,8 +38,8 @@ class buffers_cat_view<Bn...>::const_iterator
     using C = std::integral_constant<std::size_t, I>;
 
     template<std::size_t I>
-    using iter_t = typename std::tuple_element<
-        I, std::tuple<Bn...>>::type::const_iterator;
+    using iter_t = typename detail::buffer_sequence_iterator<
+        typename std::tuple_element<I, std::tuple<Bn...>>::type>::type;
 
     template<std::size_t I>
     iter_t<I>&
@@ -123,7 +123,8 @@ private:
         {
             n_ = I;
             new(&buf_[0]) iter_t<I>{
-                std::get<I>(*bn_).begin()};
+                boost::asio::buffer_sequence_begin(
+                std::get<I>(*bn_))};
             return;
         }
         construct(C<I+1>{});
@@ -138,7 +139,8 @@ private:
         {
             n_ = I;
             new(&buf_[0]) iter_t<I>{
-                std::get<I>(*bn_).end()};
+                boost::asio::buffer_sequence_end(
+                std::get<I>(*bn_))};
             return;
         }
         BOOST_THROW_EXCEPTION(std::logic_error{
@@ -154,7 +156,8 @@ private:
         {
             n_ = I;
             new(&buf_[0]) iter_t<I>{
-                std::get<I>(*bn_).end()};
+                boost::asio::buffer_sequence_end(
+                    std::get<I>(*bn_))};
             return;
         }
         rconstruct(C<I-1>{});
@@ -268,7 +271,8 @@ private:
         if(n_ == I)
         {
             if(++iter<I>() !=
-                    std::get<I>(*bn_).end())
+                boost::asio::buffer_sequence_end(
+                    std::get<I>(*bn_)))
                 return;
             using Iter = iter_t<I>;
             iter<I>().~Iter();
@@ -292,7 +296,9 @@ private:
     {
         if(n_ == I)
         {
-            if(iter<I>() != std::get<I>(*bn_).begin())
+            if(iter<I>() !=
+                boost::asio::buffer_sequence_begin(
+                    std::get<I>(*bn_)))
             {
                 --iter<I>();
                 return;
@@ -309,7 +315,9 @@ private:
     decrement(C<0> const&)
     {
         auto constexpr I = 0;
-        if(iter<I>() != std::get<I>(*bn_).begin())
+        if(iter<I>() !=
+            boost::asio::buffer_sequence_begin(
+                std::get<I>(*bn_)))
         {
             --iter<I>();
             return;

@@ -44,7 +44,7 @@ public:
 
         public:
             using const_buffers_type =
-                boost::asio::const_buffers_1;
+                boost::asio::const_buffer;
 
             template<bool isRequest, class Allocator>
             explicit
@@ -89,7 +89,7 @@ public:
 
         public:
             using const_buffers_type =
-                boost::asio::const_buffers_1;
+                boost::asio::const_buffer;
 
             template<bool isRequest, class Fields>
             explicit
@@ -226,7 +226,7 @@ public:
 
         public:
             using const_buffers_type =
-                boost::asio::const_buffers_1;
+                boost::asio::const_buffer;
 
             template<bool isRequest, class Allocator>
             explicit
@@ -270,13 +270,11 @@ public:
     std::string
     to_string(ConstBufferSequence const& bs)
     {
-        using boost::asio::buffer_cast;
-        using boost::asio::buffer_size;
         std::string s;
         s.reserve(buffer_size(bs));
-        for(boost::asio::const_buffer b : bs)
-            s.append(buffer_cast<char const*>(b),
-                buffer_size(b));
+        for(auto b : beast::detail::buffers_range(bs))
+            s.append(reinterpret_cast<char const*>(b),
+                b.size());
         return s;
     }
 
@@ -284,7 +282,7 @@ public:
     bool
     equal_body(string_view sv, string_view body)
     {
-        test::stream ts{ios_, sv}, tr{ios_};
+        test::stream ts{ioc_, sv}, tr{ioc_};
         ts.connect(tr);
         message<isRequest, string_body, fields> m;
         multi_buffer b;
@@ -305,7 +303,7 @@ public:
     std::string
     str(message<isRequest, Body, Fields> const& m)
     {
-        test::stream ts{ios_}, tr{ios_};
+        test::stream ts{ioc_}, tr{ioc_};
         ts.connect(tr);
         error_code ec;
         write(ts, m, ec);
@@ -325,7 +323,7 @@ public:
             m.set(field::content_length, "5");
             m.body() = "*****";
             error_code ec;
-            test::stream ts{ios_}, tr{ios_};
+            test::stream ts{ioc_}, tr{ioc_};
             ts.connect(tr);
             async_write(ts, m, do_yield[ec]);
             BEAST_EXPECT(! m.keep_alive());
@@ -345,7 +343,7 @@ public:
             m.set(field::transfer_encoding, "chunked");
             m.body() = "*****";
             error_code ec;
-            test::stream ts{ios_}, tr{ios_};
+            test::stream ts{ioc_}, tr{ioc_};
             ts.connect(tr);
             async_write(ts, m, do_yield[ec]);
             if(BEAST_EXPECTS(! ec, ec.message()))
@@ -369,7 +367,7 @@ public:
         for(n = 0; n < limit; ++n)
         {
             test::fail_counter fc(n);
-            test::stream ts{ios_, fc}, tr{ios_};
+            test::stream ts{ioc_, fc}, tr{ioc_};
             ts.connect(tr);
             request<fail_body> m(verb::get, "/", 10, fc);
             m.set(field::user_agent, "test");
@@ -399,7 +397,7 @@ public:
         for(n = 0; n < limit; ++n)
         {
             test::fail_counter fc(n);
-            test::stream ts{ios_, fc}, tr{ios_};
+            test::stream ts{ioc_, fc}, tr{ioc_};
             ts.connect(tr);
             request<fail_body> m{verb::get, "/", 10, fc};
             m.set(field::user_agent, "test");
@@ -430,7 +428,7 @@ public:
         for(n = 0; n < limit; ++n)
         {
             test::fail_counter fc(n);
-            test::stream ts{ios_, fc}, tr{ios_};
+            test::stream ts{ioc_, fc}, tr{ioc_};
             ts.connect(tr);
             request<fail_body> m{verb::get, "/", 10, fc};
             m.set(field::user_agent, "test");
@@ -461,7 +459,7 @@ public:
         for(n = 0; n < limit; ++n)
         {
             test::fail_counter fc(n);
-            test::stream ts{ios_, fc}, tr{ios_};
+            test::stream ts{ioc_, fc}, tr{ioc_};
             ts.connect(tr);
             request<fail_body> m{verb::get, "/", 10, fc};
             m.set(field::user_agent, "test");
@@ -488,7 +486,7 @@ public:
         for(n = 0; n < limit; ++n)
         {
             test::fail_counter fc(n);
-            test::stream ts{ios_, fc}, tr{ios_};
+            test::stream ts{ioc_, fc}, tr{ioc_};
             ts.connect(tr);
             request<fail_body> m{verb::get, "/", 10, fc};
             m.set(field::user_agent, "test");
@@ -542,7 +540,7 @@ public:
             m.set(field::user_agent, "test");
             m.body() = "*";
             m.prepare_payload();
-            test::stream ts{ios_}, tr{ios_};
+            test::stream ts{ioc_}, tr{ioc_};
             ts.connect(tr);
             error_code ec;
             write(ts, m, ec);
@@ -581,7 +579,7 @@ public:
             m.set(field::user_agent, "test");
             m.body() = "*";
             m.prepare_payload();
-            test::stream ts{ios_}, tr{ios_};
+            test::stream ts{ioc_}, tr{ioc_};
             ts.connect(tr);
             error_code ec;
             write(ts, m, ec);
@@ -648,9 +646,9 @@ public:
     {
         {
             // Make sure handlers are not destroyed
-            // after calling io_service::stop
-            boost::asio::io_service ios;
-            test::stream ts{ios};
+            // after calling io_context::stop
+            boost::asio::io_context ioc;
+            test::stream ts{ioc};
             BEAST_EXPECT(handler::count() == 0);
             request<string_body> m;
             m.method(verb::get);
@@ -660,19 +658,19 @@ public:
             m.body() = "*****";
             async_write(ts, m, handler{});
             BEAST_EXPECT(handler::count() > 0);
-            ios.stop();
+            ioc.stop();
             BEAST_EXPECT(handler::count() > 0);
-            ios.reset();
+            ioc.restart();
             BEAST_EXPECT(handler::count() > 0);
-            ios.run_one();
+            ioc.run_one();
             BEAST_EXPECT(handler::count() == 0);
         }
         {
             // Make sure uninvoked handlers are
-            // destroyed when calling ~io_service
+            // destroyed when calling ~io_context
             {
-                boost::asio::io_service ios;
-                test::stream ts{ios}, tr{ios};
+                boost::asio::io_context ioc;
+                test::stream ts{ioc}, tr{ioc};
                 ts.connect(tr);
                 BEAST_EXPECT(handler::count() == 0);
                 request<string_body> m;
@@ -733,7 +731,7 @@ public:
     void
     testWriteStream(boost::asio::yield_context yield)
     {
-        test::stream ts{ios_}, tr{ios_};
+        test::stream ts{ioc_}, tr{ioc_};
         ts.connect(tr);
         ts.write_size(3);
 
@@ -849,8 +847,8 @@ public:
     void
     testIssue655()
     {
-        boost::asio::io_service ios;
-        test::stream ts{ios}, tr{ios};
+        boost::asio::io_context ioc;
+        test::stream ts{ioc}, tr{ioc};
         ts.connect(tr);
         response<empty_body> res;
         res.chunked(true);
@@ -859,7 +857,7 @@ public:
             [&](error_code const&, std::size_t)
             {
             });
-        ios.run();
+        ioc.run();
     }
 
     void

@@ -218,26 +218,23 @@ public:
     void run() override
     {
         using boost::asio::const_buffer;
-        using boost::asio::const_buffers_1;
+        using boost::asio::const_buffer;
         using boost::asio::mutable_buffer;
-        using boost::asio::mutable_buffers_1;
         struct user_defined : mutable_buffer
         {
         };
 
         // Check is_all_const_buffer_sequence
         BOOST_STATIC_ASSERT(
-            detail::is_all_const_buffer_sequence<const_buffers_1>::value);
+            detail::is_all_const_buffer_sequence<const_buffer>::value);
         BOOST_STATIC_ASSERT(
-            detail::is_all_const_buffer_sequence<const_buffers_1, const_buffers_1>::value);
+            detail::is_all_const_buffer_sequence<const_buffer, const_buffer>::value);
         BOOST_STATIC_ASSERT(
-            detail::is_all_const_buffer_sequence<mutable_buffers_1>::value);
+            detail::is_all_const_buffer_sequence<mutable_buffer, mutable_buffer>::value);
         BOOST_STATIC_ASSERT(
-            detail::is_all_const_buffer_sequence<mutable_buffers_1, mutable_buffers_1>::value);
+            detail::is_all_const_buffer_sequence<const_buffer, mutable_buffer>::value);
         BOOST_STATIC_ASSERT(
-            detail::is_all_const_buffer_sequence<const_buffers_1, mutable_buffers_1>::value);
-        BOOST_STATIC_ASSERT(
-            ! detail::is_all_const_buffer_sequence<const_buffers_1, mutable_buffers_1, int>::value);
+            ! detail::is_all_const_buffer_sequence<const_buffer, mutable_buffer, int>::value);
 
         // Ensure that concatenating mutable buffer
         // sequences results in a mutable buffer sequence

@@ -10,7 +10,7 @@
 #ifndef BOOST_BEAST_TEST_YIELD_TO_HPP
 #define BOOST_BEAST_TEST_YIELD_TO_HPP
 
-#include <boost/asio/io_service.hpp>
+#include <boost/asio/io_context.hpp>
 #include <boost/asio/spawn.hpp>
 #include <boost/optional.hpp>
 #include <condition_variable>
@@ -32,10 +32,12 @@ namespace test {
 class enable_yield_to
 {
 protected:
-    boost::asio::io_service ios_;
+    boost::asio::io_context ioc_;
 
 private:
-    boost::optional<boost::asio::io_service::work> work_;
+    boost::optional<
+        boost::asio::executor_work_guard<
+            boost::asio::io_context::executor_type>> work_;
     std::vector<std::thread> threads_;
     std::mutex m_;
     std::condition_variable cv_;
@@ -48,12 +50,12 @@ public:
 
     explicit
     enable_yield_to(std::size_t concurrency = 1)
-        : work_(ios_)
+        : work_(ioc_.get_executor())
     {
         threads_.reserve(concurrency);
         while(concurrency--)
             threads_.emplace_back(
-                [&]{ ios_.run(); });
+                [&]{ ioc_.run(); });
     }
 
     ~enable_yield_to()
@@ -63,11 +65,11 @@ public:
             t.join();
     }
 
-    /// Return the `io_service` associated with the object
-    boost::asio::io_service&
+    /// Return the `io_context` associated with the object
+    boost::asio::io_context&
     get_io_service()
     {
-        return ios_;
+        return ioc_;
     }
 
     /** Run one or more functions, each in a coroutine.
@@ -119,7 +121,7 @@ void
 enable_yield_to::
 spawn(F0&& f, FN&&... fn)
 {
-    boost::asio::spawn(ios_,
+    boost::asio::spawn(ioc_,
         [&](yield_context yield)
         {
             f(yield);

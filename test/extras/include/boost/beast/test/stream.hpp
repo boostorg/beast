@@ -10,15 +10,17 @@
 #ifndef BOOST_BEAST_TEST_STREAM_HPP
 #define BOOST_BEAST_TEST_STREAM_HPP
 
-#include <boost/beast/core/async_result.hpp>
 #include <boost/beast/core/bind_handler.hpp>
+#include <boost/beast/core/buffers_prefix.hpp>
 #include <boost/beast/core/flat_buffer.hpp>
 #include <boost/beast/core/string.hpp>
 #include <boost/beast/core/type_traits.hpp>
 #include <boost/beast/websocket/teardown.hpp>
 #include <boost/beast/test/fail_counter.hpp>
+#include <boost/asio/async_result.hpp>
 #include <boost/asio/buffer.hpp>
-#include <boost/asio/io_service.hpp>
+#include <boost/asio/io_context.hpp>
+#include <boost/asio/post.hpp>
 #include <boost/assert.hpp>
 #include <boost/optional.hpp>
 #include <boost/throw_exception.hpp>
@@ -68,7 +70,7 @@ class stream
         flat_buffer b;
         std::condition_variable cv;
         std::unique_ptr<read_op> op;
-        boost::asio::io_service& ios;
+        boost::asio::io_context& ioc;
         status code = status::ok;
         fail_counter* fc = nullptr;
         std::size_t nread = 0;
@@ -85,9 +87,9 @@ class stream
 
         explicit
         state(
-            boost::asio::io_service& ios_,
+            boost::asio::io_context& ioc_,
             fail_counter* fc_)
-            : ios(ios_)
+            : ioc(ioc_)
             , fc(fc_)
         {
         }
@@ -139,7 +141,7 @@ public:
     stream(stream&& other)
     {
         auto in = std::make_shared<state>(
-            other.in_->ios, other.in_->fc);
+            other.in_->ioc, other.in_->fc);
         in_ = std::move(other.in_);
         out_ = std::move(other.out_);
         other.in_ = in;
@@ -150,7 +152,7 @@ public:
     operator=(stream&& other)
     {
         auto in = std::make_shared<state>(
-            other.in_->ios, other.in_->fc);
+            other.in_->ioc, other.in_->fc);
         in_ = std::move(other.in_);
         out_ = std::move(other.out_);
         other.in_ = in;
@@ -159,24 +161,24 @@ public:
 
     /// Constructor
     explicit
-    stream(boost::asio::io_service& ios)
-        : in_(std::make_shared<state>(ios, nullptr))
+    stream(boost::asio::io_context& ioc)
+        : in_(std::make_shared<state>(ioc, nullptr))
     {
     }
 
     /// Constructor
     stream(
-        boost::asio::io_service& ios,
+        boost::asio::io_context& ioc,
         fail_counter& fc)
-        : in_(std::make_shared<state>(ios, &fc))
+        : in_(std::make_shared<state>(ioc, &fc))
     {
     }
 
     /// Constructor
     stream(
-        boost::asio::io_service& ios,
+        boost::asio::io_context& ioc,
         string_view s)
-        : in_(std::make_shared<state>(ios, nullptr))
+        : in_(std::make_shared<state>(ioc, nullptr))
     {
         using boost::asio::buffer;
         using boost::asio::buffer_copy;
@@ -187,10 +189,10 @@ public:
 
     /// Constructor
     stream(
-        boost::asio::io_service& ios,
+        boost::asio::io_context& ioc,
         fail_counter& fc,
         string_view s)
-        : in_(std::make_shared<state>(ios, &fc))
+        : in_(std::make_shared<state>(ioc, &fc))
     {
         using boost::asio::buffer;
         using boost::asio::buffer_copy;
@@ -209,12 +211,16 @@ public:
         remote.out_ = in_;
     }
 
-    /// Return the `io_service` associated with the stream
-    boost::asio::io_service&
-    get_io_service()
+    /// The type of the executor associated with the object.
+    using executor_type =
+        boost::asio::io_context::executor_type;
+
+    /// Return the executor associated with the object.
+    boost::asio::io_context::executor_type
+    get_executor() noexcept
     {
-        return in_->ios;
-    }
+        return in_->ioc.get_executor();
+    };
 
     /** Get a reference to the lowest layer
 
@@ -269,11 +275,11 @@ public:
     string_view
     str() const
     {
-        using boost::asio::buffer_cast;
-        using boost::asio::buffer_size;
-        return {
-            buffer_cast<char const*>(*in_->b.data().begin()),
-            buffer_size(*in_->b.data().begin())};
+        auto const bs = in_->b.data();
+        if(boost::asio::buffer_size(bs) == 0)
+            return {};
+        auto const b = buffers_front(bs);
+        return {reinterpret_cast<char const*>(b.data()), b.size()};
     }
 
     /// Appends a string to the pending input data
@@ -336,8 +342,8 @@ public:
         error_code& ec);
 
     template<class MutableBufferSequence, class ReadHandler>
-    async_return_type<
-        ReadHandler, void(error_code, std::size_t)>
+    BOOST_ASIO_INITFN_RESULT_TYPE(
+        ReadHandler, void(error_code, std::size_t))
     async_read_some(MutableBufferSequence const& buffers,
         ReadHandler&& handler);
 
@@ -351,8 +357,8 @@ public:
         ConstBufferSequence const& buffers, error_code&);
 
     template<class ConstBufferSequence, class WriteHandler>
-    async_return_type<
-        WriteHandler, void(error_code, std::size_t)>
+    BOOST_ASIO_INITFN_RESULT_TYPE(
+        WriteHandler, void(error_code, std::size_t))
     async_write_some(ConstBufferSequence const& buffers,
         WriteHandler&& handler);
 
@@ -405,7 +411,7 @@ std::size_t
 stream::
 read_some(MutableBufferSequence const& buffers)
 {
-    static_assert(is_mutable_buffer_sequence<
+    static_assert(boost::asio::is_mutable_buffer_sequence<
             MutableBufferSequence>::value,
         "MutableBufferSequence requirements not met");
     error_code ec;
@@ -421,7 +427,7 @@ stream::
 read_some(MutableBufferSequence const& buffers,
     error_code& ec)
 {
-    static_assert(is_mutable_buffer_sequence<
+    static_assert(boost::asio::is_mutable_buffer_sequence<
             MutableBufferSequence>::value,
         "MutableBufferSequence requirements not met");
     using boost::asio::buffer_copy;
@@ -460,27 +466,31 @@ read_some(MutableBufferSequence const& buffers,
 }
 
 template<class MutableBufferSequence, class ReadHandler>
-async_return_type<
-    ReadHandler, void(error_code, std::size_t)>
+BOOST_ASIO_INITFN_RESULT_TYPE(
+    ReadHandler, void(error_code, std::size_t))
 stream::
 async_read_some(
     MutableBufferSequence const& buffers,
     ReadHandler&& handler)
 {
-    static_assert(is_mutable_buffer_sequence<
+    static_assert(boost::asio::is_mutable_buffer_sequence<
             MutableBufferSequence>::value,
         "MutableBufferSequence requirements not met");
     using boost::asio::buffer_copy;
     using boost::asio::buffer_size;
     BOOST_ASSERT(buffer_size(buffers) > 0);
-    async_completion<ReadHandler,
+    boost::asio::async_completion<ReadHandler,
         void(error_code, std::size_t)> init{handler};
     if(in_->fc)
     {
         error_code ec;
         if(in_->fc->fail(ec))
-            return in_->ios.post(bind_handler(
-                init.completion_handler, ec, 0));
+            return boost::asio::post(
+                in_->ioc.get_executor(),
+                bind_handler(
+                    init.completion_handler,
+                    ec,
+                    0));
     }
     {
         std::unique_lock<std::mutex> lock{in_->m};
@@ -493,8 +503,12 @@ async_read_some(
             in_->b.consume(bytes_transferred);
             lock.unlock();
             ++in_->nread;
-            in_->ios.post(bind_handler(init.completion_handler,
-                error_code{}, bytes_transferred));
+            boost::asio::post(
+                in_->ioc.get_executor(),
+                bind_handler(
+                    init.completion_handler,
+                    error_code{},
+                    bytes_transferred));
         }
         else if(in_->code != status::ok)
         {
@@ -505,15 +519,19 @@ async_read_some(
                 ec = boost::asio::error::eof;
             else if(in_->code == status::reset)
                 ec = boost::asio::error::connection_reset;
-            in_->ios.post(bind_handler(
-                init.completion_handler, ec, 0));
+            boost::asio::post(
+                in_->ioc.get_executor(),
+                bind_handler(
+                    init.completion_handler,
+                    ec,
+                    0));
         }
         else
         {
-            in_->op.reset(new read_op_impl<handler_type<
-                    ReadHandler, void(error_code, std::size_t)>,
-                        MutableBufferSequence>{*in_, buffers,
-                            init.completion_handler});
+            in_->op.reset(new read_op_impl<BOOST_ASIO_HANDLER_TYPE(
+                ReadHandler, void(error_code, std::size_t)),
+                    MutableBufferSequence>{*in_, buffers,
+                        init.completion_handler});
         }
     }
     return init.result.get();
@@ -524,7 +542,7 @@ std::size_t
 stream::
 write_some(ConstBufferSequence const& buffers)
 {
-    static_assert(is_const_buffer_sequence<
+    static_assert(boost::asio::is_const_buffer_sequence<
             ConstBufferSequence>::value,
         "ConstBufferSequence requirements not met");
     error_code ec;
@@ -541,7 +559,7 @@ stream::
 write_some(
     ConstBufferSequence const& buffers, error_code& ec)
 {
-    static_assert(is_const_buffer_sequence<
+    static_assert(boost::asio::is_const_buffer_sequence<
             ConstBufferSequence>::value,
         "ConstBufferSequence requirements not met");
     using boost::asio::buffer_copy;
@@ -569,31 +587,38 @@ write_some(
 }
 
 template<class ConstBufferSequence, class WriteHandler>
-async_return_type<
-    WriteHandler, void(error_code, std::size_t)>
+BOOST_ASIO_INITFN_RESULT_TYPE(
+    WriteHandler, void(error_code, std::size_t))
 stream::
 async_write_some(ConstBufferSequence const& buffers,
     WriteHandler&& handler)
 {
-    static_assert(is_const_buffer_sequence<
+    static_assert(boost::asio::is_const_buffer_sequence<
             ConstBufferSequence>::value,
         "ConstBufferSequence requirements not met");
     using boost::asio::buffer_copy;
     using boost::asio::buffer_size;
-    async_completion<WriteHandler,
+    boost::asio::async_completion<WriteHandler,
         void(error_code, std::size_t)> init{handler};
     auto out = out_.lock();
     if(! out)
-        return in_->ios.post(
-            bind_handler(init.completion_handler,
-                boost::asio::error::connection_reset, 0));
+        return boost::asio::post(
+            in_->ioc.get_executor(),
+            bind_handler(
+                init.completion_handler,
+                boost::asio::error::connection_reset,
+                0));
     BOOST_ASSERT(out->code == status::ok);
     if(in_->fc)
     {
         error_code ec;
         if(in_->fc->fail(ec))
-            return in_->ios.post(bind_handler(
-                init.completion_handler, ec, 0));
+            return boost::asio::post(
+                in_->ioc.get_executor(),
+                bind_handler(
+                    init.completion_handler,
+                    ec,
+                    0));
     }
     auto const n =
         (std::min)(buffer_size(buffers), in_->write_max);
@@ -604,8 +629,12 @@ async_write_some(ConstBufferSequence const& buffers,
     out->on_write();
     lock.unlock();
     ++in_->nwrite;
-    in_->ios.post(bind_handler(init.completion_handler,
-        error_code{}, bytes_transferred));
+    boost::asio::post(
+        in_->ioc.get_executor(),
+        bind_handler(
+            init.completion_handler,
+            error_code{},
+            bytes_transferred));
     return init.result.get();
 }
 
@@ -640,7 +669,8 @@ async_teardown(
     error_code ec;
     if( s.in_->fc &&
         s.in_->fc->fail(ec))
-        return s.get_io_service().post(
+        return boost::asio::post(
+            s.get_executor(),
             bind_handler(std::move(handler), ec));
     s.close();
     if( s.in_->fc &&
@@ -649,7 +679,8 @@ async_teardown(
     else
         ec.assign(0, ec.category());
 
-    s.get_io_service().post(
+    boost::asio::post(
+        s.get_executor(),
         bind_handler(std::move(handler), ec));
 }
 
@@ -664,7 +695,8 @@ class stream::read_op_impl : public stream::read_op
         Buffers b_;
         Handler h_;
         boost::optional<
-            boost::asio::io_service::work> work_;
+            boost::asio::executor_work_guard<
+                boost::asio::io_context::executor_type>> work_;
 
     public:
         lambda(lambda&&) = default;
@@ -674,7 +706,7 @@ class stream::read_op_impl : public stream::read_op
             : s_(s)
             , b_(b)
             , h_(std::move(h))
-            , work_(s_.ios)
+            , work_(s_.ioc.get_executor())
         {
         }
 
@@ -682,14 +714,16 @@ class stream::read_op_impl : public stream::read_op
             : s_(s)
             , b_(b)
             , h_(h)
-            , work_(s_.ios)
+            , work_(s_.ioc.get_executor())
         {
         }
 
         void
         post()
         {
-            s_.ios.post(std::move(*this));
+            boost::asio::post(
+                s_.ioc.get_executor(),
+                std::move(*this));
             work_ = boost::none;
         }
 
@@ -709,8 +743,12 @@ class stream::read_op_impl : public stream::read_op
                 Handler h{std::move(h_)};
                 lock.unlock();
                 ++s.nread;
-                s.ios.post(bind_handler(std::move(h),
-                    error_code{}, bytes_transferred));
+                boost::asio::post(
+                    s.ioc.get_executor(),
+                    bind_handler(
+                        std::move(h),
+                        error_code{},
+                        bytes_transferred));
             }
             else
             {
@@ -724,7 +762,9 @@ class stream::read_op_impl : public stream::read_op
                     ec = boost::asio::error::eof;
                 else if(s.code == status::reset)
                     ec = boost::asio::error::connection_reset;
-                s.ios.post(bind_handler(std::move(h), ec, 0));
+                boost::asio::post(
+                    s.ioc.get_executor(),
+                    bind_handler(std::move(h), ec, 0));
             }
         }
     };
@@ -754,7 +794,7 @@ inline
 stream
 connect(stream& to)
 {
-    stream from{to.get_io_service()};
+    stream from{to.get_executor().context()};
     from.connect(to);
     return from;
 }

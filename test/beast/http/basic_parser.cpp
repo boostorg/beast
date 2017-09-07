@@ -152,7 +152,7 @@ public:
 
     template<class Parser, class ConstBufferSequence, class Test>
     typename std::enable_if<
-        is_const_buffer_sequence<ConstBufferSequence>::value>::type
+        boost::asio::is_const_buffer_sequence<ConstBufferSequence>::value>::type
     parsegrind(ConstBufferSequence const& buffers,
         Test const& test, bool skip = false)
     {
@@ -213,13 +213,13 @@ public:
     void
     parsegrind(string_view msg, Test const& test, bool skip = false)
     {
-        parsegrind<Parser>(boost::asio::const_buffers_1{
+        parsegrind<Parser>(boost::asio::const_buffer{
             msg.data(), msg.size()}, test, skip);
     }
 
     template<class Parser, class ConstBufferSequence>
     typename std::enable_if<
-        is_const_buffer_sequence<ConstBufferSequence>::value>::type
+        boost::asio::is_const_buffer_sequence<ConstBufferSequence>::value>::type
     parsegrind(ConstBufferSequence const& buffers)
     {
         parsegrind<Parser>(buffers, [](Parser const&){});
@@ -241,7 +241,7 @@ public:
             Parser p;
             p.eager(true);
             error_code ec;
-            buffers_suffix<boost::asio::const_buffers_1> cb{
+            buffers_suffix<boost::asio::const_buffer> cb{
                 boost::in_place_init, msg.data(), msg.size()};
             auto n = p.put(buffers_prefix(i, cb), ec);
             if(ec == result)
@@ -266,8 +266,8 @@ public:
             p.eager(true);
             error_code ec;
             p.put(buffers_cat(
-                boost::asio::const_buffers_1{msg.data(), i},
-                boost::asio::const_buffers_1{
+                boost::asio::const_buffer{msg.data(), i},
+                boost::asio::const_buffer{
                     msg.data() + i, msg.size() - i}), ec);
             if(! ec)
                 p.put_eof(ec);
@@ -887,7 +887,7 @@ public:
     //--------------------------------------------------------------------------
 
     static
-    boost::asio::const_buffers_1
+    boost::asio::const_buffer
     buf(string_view s)
     {
         return {s.data(), s.size()};
@@ -1140,7 +1140,7 @@ public:
                 error_code ec;
                 test_parser<false> p;
                 p.eager(true);
-                p.put(boost::asio::const_buffers_1{
+                p.put(boost::asio::const_buffer{
                     s.data(), s.size()}, ec);
             });
         };
@@ -1156,7 +1156,7 @@ public:
             error_code ec;
             test_parser<false> p;
             p.eager(true);
-            p.put(boost::asio::const_buffers_1{
+            p.put(boost::asio::const_buffer{
                 msg.data(), msg.size()}, ec);
             BEAST_EXPECTS(! ec, ec.message());
             grind(msg);
@@ -1173,7 +1173,7 @@ public:
             error_code ec;
             test_parser<false> p;
             p.eager(true);
-            p.put(boost::asio::const_buffers_1{
+            p.put(boost::asio::const_buffer{
                 msg.data(), msg.size()}, ec);
             BEAST_EXPECT(ec);
             grind(msg);

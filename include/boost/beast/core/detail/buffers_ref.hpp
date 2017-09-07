@@ -11,6 +11,7 @@
 #define BOOST_BEAST_DETAIL_BUFFERS_REF_HPP
 
 #include <boost/beast/core/type_traits.hpp>
+#include <iterator>
 
 namespace boost {
 namespace beast {
@@ -23,11 +24,11 @@ class buffers_ref
     BufferSequence const* buffers_;
 
 public:
-    using value_type =
-        typename BufferSequence::value_type;
+    using const_iterator = typename
+        buffer_sequence_iterator<BufferSequence>::type;
 
-    using const_iterator =
-        typename BufferSequence::const_iterator;
+    using value_type = typename std::iterator_traits<
+        const_iterator>::value_type;
 
     buffers_ref(buffers_ref const&) = default;
     buffers_ref& operator=(buffers_ref const&) = default;
@@ -41,13 +42,13 @@ public:
     const_iterator
     begin() const
     {
-        return buffers_->begin();
+        return boost::asio::buffer_sequence_begin(*buffers_);
     }
 
     const_iterator
     end() const
     {
-        return buffers_->end();
+        return boost::asio::buffer_sequence_end(*buffers_);
     }
 };
 

@@ -42,10 +42,10 @@ public:
     {
         std::string s;
         s.reserve(boost::asio::buffer_size(buffers));
-        for(boost::asio::const_buffer buffer : buffers)
+        for(boost::asio::const_buffer b : beast::detail::buffers_range(buffers))
             s.append(
-                boost::asio::buffer_cast<char const*>(buffer),
-                boost::asio::buffer_size(buffer));
+                reinterpret_cast<char const*>(b.data()),
+                b.size());
         return s;
     }
 
@@ -73,7 +73,7 @@ public:
         BEAST_EXPECT(to_string(t3) == match);
     }
 
-    using cb_t = boost::asio::const_buffers_1;
+    using cb_t = boost::asio::const_buffer;
 
     static
     cb_t

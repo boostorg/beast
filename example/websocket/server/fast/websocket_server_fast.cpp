@@ -30,6 +30,7 @@
 #include <boost/beast/http.hpp>
 #include <boost/beast/version.hpp>
 #include <boost/beast/websocket.hpp>
+#include <boost/asio/bind_executor.hpp>
 #include <boost/asio/spawn.hpp>
 #include <boost/asio/strand.hpp>
 #include <boost/asio/ip/tcp.hpp>
@@ -113,14 +114,14 @@ do_sync_session(tcp::socket& socket)
 
 void
 do_sync_listen(
-    boost::asio::io_service& ios,
+    boost::asio::io_context& ioc,
     tcp::endpoint endpoint)
 {
     boost::system::error_code ec;
-    tcp::acceptor acceptor{ios, endpoint};
+    tcp::acceptor acceptor{ioc, endpoint};
     for(;;)
     {
-        tcp::socket socket{ios};
+        tcp::socket socket{ioc};
 
         acceptor.accept(socket, ec);
         if(ec)
@@ -138,7 +139,8 @@ do_sync_listen(
 class async_session : public std::enable_shared_from_this<async_session>
 {
     websocket::stream<tcp::socket> ws_;
-    boost::asio::io_service::strand strand_;
+    boost::asio::strand<
+        boost::asio::io_context::executor_type> strand_;
     boost::beast::multi_buffer buffer_;
 
 public:
@@ -146,7 +148,7 @@ public:
     explicit
     async_session(tcp::socket socket)
         : ws_(std::move(socket))
-        , strand_(ws_.get_io_service())
+        , strand_(ws_.get_executor())
     {
         setup_stream(ws_);
     }
@@ -162,10 +164,12 @@ public:
                 res.set(http::field::server,
                     "Boost.Beast.async/" + std::to_string(BOOST_BEAST_VERSION));
             },
-            strand_.wrap(std::bind(
-                &async_session::on_accept,
-                shared_from_this(),
-                std::placeholders::_1)));
+            boost::asio::bind_executor(
+                strand_,
+                std::bind(
+                    &async_session::on_accept,
+                    shared_from_this(),
+                    std::placeholders::_1)));
     }
 
     void
@@ -184,11 +188,13 @@ public:
         // Read a message into our buffer
         ws_.async_read(
             buffer_,
-            strand_.wrap(std::bind(
-                &async_session::on_read,
-                shared_from_this(),
-                std::placeholders::_1,
-                std::placeholders::_2)));
+            boost::asio::bind_executor(
+                strand_,
+                std::bind(
+                    &async_session::on_read,
+                    shared_from_this(),
+                    std::placeholders::_1,
+                    std::placeholders::_2)));
     }
 
     void
@@ -209,11 +215,13 @@ public:
         ws_.text(ws_.got_text());
         ws_.async_write(
             buffer_.data(),
-            strand_.wrap(std::bind(
-                &async_session::on_write,
-                shared_from_this(),
-                std::placeholders::_1,
-                std::placeholders::_2)));
+            boost::asio::bind_executor(
+                strand_,
+                std::bind(
+                    &async_session::on_write,
+                    shared_from_this(),
+                    std::placeholders::_1,
+                    std::placeholders::_2)));
     }
 
     void
@@ -237,17 +245,18 @@ public:
 // Accepts incoming connections and launches the sessions
 class async_listener : public std::enable_shared_from_this<async_listener>
 {
-    boost::asio::io_service::strand strand_;
+    boost::asio::strand<
+        boost::asio::io_context::executor_type> strand_;
     tcp::acceptor acceptor_;
     tcp::socket socket_;
 
 public:
     async_listener(
-        boost::asio::io_service& ios,
+        boost::asio::io_context& ioc,
         tcp::endpoint endpoint)
-        : strand_(ios)
-        , acceptor_(ios)
-        , socket_(ios)
+        : strand_(ioc.get_executor())
+        , acceptor_(ioc)
+        , socket_(ioc)
     {
         boost::system::error_code ec;
 
@@ -269,7 +278,7 @@ public:
 
         // Start listening for connections
         acceptor_.listen(
-            boost::asio::socket_base::max_connections, ec);
+            boost::asio::socket_base::max_listen_connections, ec);
         if(ec)
         {
             fail(ec, "listen");
@@ -291,10 +300,12 @@ public:
     {
         acceptor_.async_accept(
             socket_,
-            strand_.wrap(std::bind(
-                &async_listener::on_accept,
-                shared_from_this(),
-                std::placeholders::_1)));
+            boost::asio::bind_executor(
+                strand_,
+                std::bind(
+                    &async_listener::on_accept,
+                    shared_from_this(),
+                    std::placeholders::_1)));
     }
 
     void
@@ -354,13 +365,13 @@ do_coro_session(tcp::socket& socket, boost::asio::yield_context yield)
 
 void
 do_coro_listen(
-    boost::asio::io_service& ios,
+    boost::asio::io_context& ioc,
     tcp::endpoint endpoint,
     boost::asio::yield_context yield)
 {
     boost::system::error_code ec;
 
-    tcp::acceptor acceptor(ios);
+    tcp::acceptor acceptor(ioc);
     acceptor.open(endpoint.protocol(), ec);
     if(ec)
         return fail(ec, "open");
@@ -369,13 +380,13 @@ do_coro_listen(
     if(ec)
         return fail(ec, "bind");
 
-    acceptor.listen(boost::asio::socket_base::max_connections, ec);
+    acceptor.listen(boost::asio::socket_base::max_listen_connections, ec);
     if(ec)
         return fail(ec, "listen");
 
     for(;;)
     {
-        tcp::socket socket(ios);
+        tcp::socket socket(ioc);
 
         acceptor.async_accept(socket, yield[ec]);
         if(ec)
@@ -385,7 +396,7 @@ do_coro_listen(
         }
 
         boost::asio::spawn(
-            acceptor.get_io_service(),
+            acceptor.get_executor().context(),
             std::bind(
                 &do_coro_session,
                 std::move(socket),
@@ -410,17 +421,17 @@ int main(int argc, char* argv[])
             "    starting-port+2 for coroutine.\n";
         return EXIT_FAILURE;
     }
-    auto const address = boost::asio::ip::address::from_string(argv[1]);
+    auto const address = boost::asio::ip::make_address(argv[1]);
     auto const port = static_cast<unsigned short>(std::atoi(argv[2]));
-    auto const threads = std::max<std::size_t>(1, std::atoi(argv[3]));
+    auto const threads = std::max<int>(1, std::atoi(argv[3]));
 
-    // The io_service is required for all I/O
-    boost::asio::io_service ios{threads};
+    // The io_context is required for all I/O
+    boost::asio::io_context ioc{threads};
 
     // Create sync port
     std::thread(std::bind(
         &do_sync_listen,
-        std::ref(ios),
+        std::ref(ioc),
         tcp::endpoint{
             address,
             static_cast<unsigned short>(port + 0u)}
@@ -428,16 +439,16 @@ int main(int argc, char* argv[])
 
     // Create async port
     std::make_shared<async_listener>(
-        ios,
+        ioc,
         tcp::endpoint{
             address,
             static_cast<unsigned short>(port + 1u)})->run();
 
     // Create coro port
-    boost::asio::spawn(ios,
+    boost::asio::spawn(ioc,
         std::bind(
             &do_coro_listen,
-            std::ref(ios),
+            std::ref(ioc),
             tcp::endpoint{
                 address,
                 static_cast<unsigned short>(port + 2u)},
@@ -448,11 +459,11 @@ int main(int argc, char* argv[])
     v.reserve(threads - 1);
     for(auto i = threads - 1; i > 0; --i)
         v.emplace_back(
-        [&ios]
+        [&ioc]
         {
-            ios.run();
+            ioc.run();
         });
-    ios.run();
+    ioc.run();
 
     return EXIT_SUCCESS;
 }

@@ -37,7 +37,7 @@ public:
         parser<isRequest, string_body>;
 
     static
-    boost::asio::const_buffers_1
+    boost::asio::const_buffer
     buf(string_view s)
     {
         return {s.data(), s.size()};

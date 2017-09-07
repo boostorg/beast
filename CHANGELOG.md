@@ -1,3 +1,21 @@
+Version 125:
+
+API Changes:
+
+* Update for Net-TS Asio
+
+Actions Required:
+
+* Use BOOST_ASIO_HANDLER_TYPE instead of handler_type
+* Use BOOST_ASIO_INITFN_RESULT_TYPE instead of async_result
+* Use boost::asio::async_completion
+* Use boost::asio::is_dynamic_buffer
+* Use boost::asio::is_const_buffer_sequence
+* Use boost::asio::is_mutable_buffer_sequence
+* boost::asio::associated_allocator_t replaces handler_alloc
+
+--------------------------------------------------------------------------------
+
 Version 124:
 
 * Fix for a test matrix compiler

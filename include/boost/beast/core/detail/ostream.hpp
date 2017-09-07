@@ -10,8 +10,10 @@
 #ifndef BOOST_BEAST_DETAIL_OSTREAM_HPP
 #define BOOST_BEAST_DETAIL_OSTREAM_HPP
 
-#include <boost/asio/buffer.hpp>
+#include <boost/beast/core/buffers_prefix.hpp>
 #include <boost/beast/core/read_size.hpp>
+#include <boost/beast/core/detail/type_traits.hpp>
+#include <boost/asio/buffer.hpp>
 #include <memory>
 #include <iosfwd>
 #include <streambuf>
@@ -46,11 +48,10 @@ std::ostream&
 operator<<(std::ostream& os,
     buffers_helper<Buffers> const& v)
 {
-    using boost::asio::buffer_cast;
-    using boost::asio::buffer_size;
-    for(boost::asio::const_buffer b : v.b_)
-        os.write(buffer_cast<char const*>(b),
-            buffer_size(b));
+    for(auto b : buffers_range(v.b_))
+        os.write(
+            reinterpret_cast<char const*>(b.data()),
+            b.size());
     return os;
 }
 
@@ -130,14 +131,12 @@ private:
     void
     prepare()
     {
-        using boost::asio::buffer_cast;
-        using boost::asio::buffer_size;
-        auto mbs = buf_.prepare(
+        auto bs = buf_.prepare(
             read_size_or_throw(buf_, max_size));
-        auto const mb = *mbs.begin();
-        auto const p = buffer_cast<CharT*>(mb);
+        auto const b = buffers_front(bs);
+        auto const p = reinterpret_cast<CharT*>(b.data());
         this->setp(p,
-            p + buffer_size(mb) / sizeof(CharT) - 1);
+            p + b.size() / sizeof(CharT) - 1);
     }
 
     void
@@ -211,14 +210,12 @@ private:
     void
     prepare()
     {
-        using boost::asio::buffer_cast;
-        using boost::asio::buffer_size;
-        auto mbs = buf_.prepare(
+        auto bs = buf_.prepare(
             read_size_or_throw(buf_, max_size));
-        auto const mb = *mbs.begin();
-        auto const p = buffer_cast<CharT*>(mb);
+        auto const b = buffers_front(bs);
+        auto const p = reinterpret_cast<CharT*>(b.data());
         this->setp(p,
-            p + buffer_size(mb) / sizeof(CharT) - 1);
+            p + b.size() / sizeof(CharT) - 1);
     }
 
     void

@@ -86,13 +86,12 @@ bool
 utf8_checker_t<_>::
 write(ConstBufferSequence const& bs)
 {
-    static_assert(is_const_buffer_sequence<ConstBufferSequence>::value,
+    static_assert(boost::asio::is_const_buffer_sequence<ConstBufferSequence>::value,
         "ConstBufferSequence requirements not met");
-    using boost::asio::buffer_cast;
-    using boost::asio::buffer_size;
-    for(boost::asio::const_buffer b : bs)
-        if(! write(buffer_cast<std::uint8_t const*>(b),
-                buffer_size(b)))
+    for(auto b : beast::detail::buffers_range(bs))
+        if(! write(reinterpret_cast<
+            std::uint8_t const*>(b.data()),
+                b.size()))
             return false;
     return true;
 }

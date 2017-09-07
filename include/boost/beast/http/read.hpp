@@ -11,10 +11,10 @@
 #define BOOST_BEAST_HTTP_READ_HPP
 
 #include <boost/beast/core/detail/config.hpp>
-#include <boost/beast/core/async_result.hpp>
 #include <boost/beast/core/error.hpp>
 #include <boost/beast/http/basic_parser.hpp>
 #include <boost/beast/http/message.hpp>
+#include <boost/asio/async_result.hpp>
 
 namespace boost {
 namespace beast {
@@ -185,7 +185,7 @@ read_some(
     Regardless of whether the asynchronous operation completes
     immediately or not, the handler will not be invoked from within
     this function. Invocation of the handler will be performed in a
-    manner equivalent to using `boost::asio::io_service::post`.
+    manner equivalent to using `boost::asio::io_context::post`.
 
     The completion handler will receive as a parameter the number
     of octets processed from the dynamic buffer. The octets should
@@ -197,12 +197,8 @@ template<
     class DynamicBuffer,
     bool isRequest, class Derived,
     class ReadHandler>
-#if BOOST_BEAST_DOXYGEN
-    void_or_deduced
-#else
-async_return_type<
-    ReadHandler, void(error_code, std::size_t)>
-#endif
+BOOST_ASIO_INITFN_RESULT_TYPE(
+    ReadHandler, void(error_code, std::size_t))
 async_read_some(
     AsyncReadStream& stream,
     DynamicBuffer& buffer,
@@ -375,7 +371,7 @@ read_header(
     Regardless of whether the asynchronous operation completes
     immediately or not, the handler will not be invoked from within
     this function. Invocation of the handler will be performed in a
-    manner equivalent to using `boost::asio::io_service::post`.
+    manner equivalent to using `boost::asio::io_context::post`.
 
     @note The implementation will call @ref basic_parser::eager
     with the value `false` on the parser passed in.
@@ -385,12 +381,8 @@ template<
     class DynamicBuffer,
     bool isRequest, class Derived,
     class ReadHandler>
-#if BOOST_BEAST_DOXYGEN
-    void_or_deduced
-#else
-async_return_type<
-    ReadHandler, void(error_code, std::size_t)>
-#endif
+BOOST_ASIO_INITFN_RESULT_TYPE(
+    ReadHandler, void(error_code, std::size_t))
 async_read_header(
     AsyncReadStream& stream,
     DynamicBuffer& buffer,
@@ -563,7 +555,7 @@ read(
     Regardless of whether the asynchronous operation completes
     immediately or not, the handler will not be invoked from within
     this function. Invocation of the handler will be performed in a
-    manner equivalent to using `boost::asio::io_service::post`.
+    manner equivalent to using `boost::asio::io_context::post`.
 
     @note The implementation will call @ref basic_parser::eager
     with the value `true` on the parser passed in.
@@ -573,13 +565,8 @@ template<
     class DynamicBuffer,
     bool isRequest, class Derived,
     class ReadHandler>
-#if BOOST_BEAST_DOXYGEN
-    void_or_deduced
-#else
-async_return_type<
-    ReadHandler,
-    void(error_code, std::size_t)>
-#endif
+BOOST_ASIO_INITFN_RESULT_TYPE(
+    ReadHandler, void(error_code, std::size_t))
 async_read(
     AsyncReadStream& stream,
     DynamicBuffer& buffer,
@@ -754,20 +741,15 @@ read(
     Regardless of whether the asynchronous operation completes
     immediately or not, the handler will not be invoked from within
     this function. Invocation of the handler will be performed in a
-    manner equivalent to using `boost::asio::io_service::post`.
+    manner equivalent to using `boost::asio::io_context::post`.
 */
 template<
     class AsyncReadStream,
     class DynamicBuffer,
     bool isRequest, class Body, class Allocator,
     class ReadHandler>
-#if BOOST_BEAST_DOXYGEN
-    void_or_deduced
-#else
-async_return_type<
-    ReadHandler,
-    void(error_code, std::size_t)>
-#endif
+BOOST_ASIO_INITFN_RESULT_TYPE(
+    ReadHandler, void(error_code, std::size_t))
 async_read(
     AsyncReadStream& stream,
     DynamicBuffer& buffer,

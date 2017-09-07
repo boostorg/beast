@@ -27,12 +27,12 @@ void fxx()
 //
 using namespace boost::beast;
 
-boost::asio::io_service ios;
-boost::asio::io_service::work work{ios};
-std::thread t{[&](){ ios.run(); }};
+boost::asio::io_context ioc;
+auto work = boost::asio::make_work_guard(ioc);
+std::thread t{[&](){ ioc.run(); }};
 
 error_code ec;
-boost::asio::ip::tcp::socket sock{ios};
+boost::asio::ip::tcp::socket sock{ioc};
 
 //]
 
@@ -40,9 +40,10 @@ boost::asio::ip::tcp::socket sock{ios};
 //[snippet_core_2
 
 char const* const host = "www.example.com";
-boost::asio::ip::tcp::resolver r{ios};
-boost::asio::ip::tcp::socket stream{ios};
-boost::asio::connect(stream, r.resolve({host, "http"}));
+boost::asio::ip::tcp::resolver r{ioc};
+boost::asio::ip::tcp::socket stream{ioc};
+auto const results = r.resolve(host, "http");
+boost::asio::connect(stream, results.begin(), results.end());
 
 // At this point `stream` is a connected to a remote
 // host and may be used to perform stream operations.
@@ -59,7 +60,7 @@ void write_string(SyncWriteStream& stream, string_view s)
 {
     static_assert(is_sync_write_stream<SyncWriteStream>::value,
         "SyncWriteStream requirements not met");
-    boost::asio::write(stream, boost::asio::const_buffers_1(s.data(), s.size()));
+    boost::asio::write(stream, boost::asio::const_buffer(s.data(), s.size()));
 }
 
 //]

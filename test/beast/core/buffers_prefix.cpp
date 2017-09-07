@@ -25,18 +25,14 @@ BOOST_STATIC_ASSERT(
             std::declval<boost::asio::const_buffer>()))>::value);
 
 BOOST_STATIC_ASSERT(
-    is_const_buffer_sequence<decltype(
+    boost::asio::is_const_buffer_sequence<decltype(
         buffers_prefix(0,
-            std::declval<boost::asio::const_buffers_1>()))>::value);
+            std::declval<boost::asio::const_buffer>()))>::value);
 
 BOOST_STATIC_ASSERT(
     std::is_same<boost::asio::mutable_buffer, decltype(
         buffers_prefix(0,
             std::declval<boost::asio::mutable_buffer>()))>::value);
-BOOST_STATIC_ASSERT(
-    is_mutable_buffer_sequence<decltype(
-        buffers_prefix(0,
-            std::declval<boost::asio::mutable_buffers_1>()))>::value);
 
 class buffers_prefix_test : public beast::unit_test::suite
 {
@@ -97,13 +93,11 @@ public:
     std::string
     to_string(ConstBufferSequence const& bs)
     {
-        using boost::asio::buffer_cast;
-        using boost::asio::buffer_size;
         std::string s;
         s.reserve(buffer_size(bs));
-        for(boost::asio::const_buffer b : bs)
-            s.append(buffer_cast<char const*>(b),
-                buffer_size(b));
+        for(auto b : beast::detail::buffers_range(bs))
+            s.append(reinterpret_cast<char const*>(b.data()),
+                b.size());
         return s;
     }
 

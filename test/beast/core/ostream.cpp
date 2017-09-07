@@ -25,13 +25,11 @@ public:
     std::string
     to_string(ConstBufferSequence const& bs)
     {
-        using boost::asio::buffer_cast;
-        using boost::asio::buffer_size;
         std::string s;
         s.reserve(buffer_size(bs));
-        for(boost::asio::const_buffer b : bs)
-            s.append(buffer_cast<char const*>(b),
-                buffer_size(b));
+        for(auto b : beast::detail::buffers_range(bs))
+            s.append(reinterpret_cast<
+                char const*>(b.data()), b.size());
         return s;
     }
 

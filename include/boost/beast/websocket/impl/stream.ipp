@@ -91,7 +91,8 @@ std::size_t
 stream<NextLayer>::
 read_size_hint(DynamicBuffer& buffer) const
 {
-    static_assert(is_dynamic_buffer<DynamicBuffer>::value,
+    static_assert(
+        boost::asio::is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
     auto const initial_size = (std::min)(
         +tcp_frame_size,
@@ -503,7 +504,7 @@ write_ping(DynamicBuffer& db,
         detail::prepare_key(key, fh.key);
     auto mb = db.prepare(data.size());
     boost::asio::buffer_copy(mb,
-        boost::asio::const_buffers_1(
+        boost::asio::const_buffer(
             data.data(), data.size()));
     if(fh.mask)
         detail::mask_inplace(mb, key);

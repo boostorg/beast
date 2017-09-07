@@ -19,7 +19,6 @@ add_executable (tests-beast-core
     Jamfile
     buffer_test.hpp
     file_test.hpp
-    async_result.cpp
     bind_handler.cpp
     buffered_read_stream.cpp
     buffers_adapter.cpp
@@ -34,7 +33,6 @@ add_executable (tests-beast-core
     file_win32.cpp
     flat_buffer.cpp
     flat_static_buffer.cpp
-    handler_alloc.cpp
     handler_ptr.cpp
     multi_buffer.cpp
     ostream.cpp

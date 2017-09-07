@@ -93,7 +93,7 @@ do_session(
 // Accepts incoming connections and launches the sessions
 void
 do_listen(
-    boost::asio::io_service& ios,
+    boost::asio::io_context& ioc,
     ssl::context& ctx,
     tcp::endpoint endpoint,
     boost::asio::yield_context yield)
@@ -101,7 +101,7 @@ do_listen(
     boost::system::error_code ec;
 
     // Open the acceptor
-    tcp::acceptor acceptor(ios);
+    tcp::acceptor acceptor(ioc);
     acceptor.open(endpoint.protocol(), ec);
     if(ec)
         return fail(ec, "open");
@@ -112,19 +112,19 @@ do_listen(
         return fail(ec, "bind");
 
     // Start listening for connections
-    acceptor.listen(boost::asio::socket_base::max_connections, ec);
+    acceptor.listen(boost::asio::socket_base::max_listen_connections, ec);
     if(ec)
         return fail(ec, "listen");
 
     for(;;)
     {
-        tcp::socket socket(ios);
+        tcp::socket socket(ioc);
         acceptor.async_accept(socket, yield[ec]);
         if(ec)
             fail(ec, "accept");
         else
             boost::asio::spawn(
-                acceptor.get_io_service(),
+                acceptor.get_executor().context(),
                 std::bind(
                     &do_session,
                     std::move(socket),
@@ -144,12 +144,12 @@ int main(int argc, char* argv[])
             "    websocket-server-coro-ssl 0.0.0.0 8080 1\n";
         return EXIT_FAILURE;
     }
-    auto const address = boost::asio::ip::address::from_string(argv[1]);
+    auto const address = boost::asio::ip::make_address(argv[1]);
     auto const port = static_cast<unsigned short>(std::atoi(argv[2]));
-    auto const threads = std::max<std::size_t>(1, std::atoi(argv[3]));
+    auto const threads = std::max<int>(1, std::atoi(argv[3]));
 
-    // The io_service is required for all I/O
-    boost::asio::io_service ios{threads};
+    // The io_context is required for all I/O
+    boost::asio::io_context ioc{threads};
 
     // The SSL context is required, and holds certificates
     ssl::context ctx{ssl::context::sslv23};
@@ -158,10 +158,10 @@ int main(int argc, char* argv[])
     load_server_certificate(ctx);
 
     // Spawn a listening port
-    boost::asio::spawn(ios,
+    boost::asio::spawn(ioc,
         std::bind(
             &do_listen,
-            std::ref(ios),
+            std::ref(ioc),
             std::ref(ctx),
             tcp::endpoint{address, port},
             std::placeholders::_1));
@@ -171,11 +171,11 @@ int main(int argc, char* argv[])
     v.reserve(threads - 1);
     for(auto i = threads - 1; i > 0; --i)
         v.emplace_back(
-        [&ios]
+        [&ioc]
         {
-            ios.run();
+            ioc.run();
         });
-    ios.run();
+    ioc.run();
 
     return EXIT_SUCCESS;
 }

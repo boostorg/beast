@@ -70,7 +70,7 @@ public:
 
         // request in stream, oversized
         {
-            stream<test::stream> ws{ios_,
+            stream<test::stream> ws{ioc_,
                 "GET / HTTP/1.1\r\n"
                 "Host: localhost\r\n"
                 "Upgrade: websocket\r\n"
@@ -115,7 +115,7 @@ public:
 
         // request in stream, decorator, oversized
         {
-            stream<test::stream> ws{ios_,
+            stream<test::stream> ws{ioc_,
                 "GET / HTTP/1.1\r\n"
                 "Host: localhost\r\n"
                 "Upgrade: websocket\r\n"
@@ -158,7 +158,7 @@ public:
 
         // request in buffers, oversize
         {
-            stream<test::stream> ws{ios_};
+            stream<test::stream> ws{ioc_};
             auto tr = connect(ws.next_layer());
             try
             {
@@ -202,7 +202,7 @@ public:
 
         // request in buffers, decorator, oversized
         {
-            stream<test::stream> ws{ios_};
+            stream<test::stream> ws{ioc_};
             auto tr = connect(ws.next_layer());
             try
             {
@@ -248,7 +248,7 @@ public:
 
         // request in buffers and stream, oversized
         {
-            stream<test::stream> ws{ios_,
+            stream<test::stream> ws{ioc_,
                 "Connection: upgrade\r\n"
                 "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n"
                 "Sec-WebSocket-Version: 13\r\n"
@@ -294,7 +294,7 @@ public:
 
         // request in buffers and stream, decorator, oversize
         {
-            stream<test::stream> ws{ios_,
+            stream<test::stream> ws{ioc_,
                 "Connection: upgrade\r\n"
                 "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n"
                 "Sec-WebSocket-Version: 13\r\n"
@@ -415,7 +415,7 @@ public:
 
         // Closed by client
         {
-            stream<test::stream> ws{ios_};
+            stream<test::stream> ws{ioc_};
             auto tr = connect(ws.next_layer());
             tr.close();
             try
@@ -466,7 +466,7 @@ public:
                     n = s.size() - 1;
                     break;
                 }
-                stream<test::stream> ws{ios_};
+                stream<test::stream> ws{ioc_};
                 auto tr = connect(ws.next_layer());
                 ws.next_layer().append(
                     s.substr(n, s.size() - n));

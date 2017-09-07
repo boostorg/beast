@@ -10,6 +10,7 @@
 // Test that header file is self-contained.
 #include <boost/beast/http/file_body.hpp>
 
+#include <boost/beast/core/buffers_prefix.hpp>
 #include <boost/beast/core/file_stdio.hpp>
 #include <boost/beast/core/flat_buffer.hpp>
 #include <boost/beast/http/parser.hpp>
@@ -86,10 +87,10 @@ public:
                 serializer<false, basic_file_body<File>, fields> sr{res};
                 sr.next(ec, visit);
                 BEAST_EXPECTS(! ec, ec.message());
-                auto const cb = *visit.buffer.data().begin();
+                auto const b = buffers_front(visit.buffer.data());
                 string_view const s1{
-                    boost::asio::buffer_cast<char const*>(cb),
-                    boost::asio::buffer_size(cb)};
+                    reinterpret_cast<char const*>(b.data()),
+                    b.size()};
                 BEAST_EXPECTS(s1 == s, s1);
             }
         }

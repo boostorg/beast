@@ -50,7 +50,7 @@ public:
         // already closed
         {
             echo_server es{log};
-            stream<test::stream> ws{ios_};
+            stream<test::stream> ws{ioc_};
             ws.next_layer().connect(es.stream());
             w.handshake(ws, "localhost", "/");
             w.close(ws, {});
@@ -96,7 +96,7 @@ public:
         // drain invalid message frame after close
         {
             echo_server es{log};
-            stream<test::stream> ws{ios_};
+            stream<test::stream> ws{ioc_};
             ws.next_layer().connect(es.stream());
             w.handshake(ws, "localhost", "/");
             ws.next_layer().append("\x81\x81\xff\xff\xff\xff*");
@@ -116,7 +116,7 @@ public:
         // drain invalid close frame after close
         {
             echo_server es{log};
-            stream<test::stream> ws{ios_};
+            stream<test::stream> ws{ioc_};
             ws.next_layer().connect(es.stream());
             w.handshake(ws, "localhost", "/");
             ws.next_layer().append("\x88\x01*");
@@ -136,7 +136,7 @@ public:
         // drain masked close frame
         {
             echo_server es{log, kind::async_client};
-            stream<test::stream> ws{ios_};
+            stream<test::stream> ws{ioc_};
             ws.next_layer().connect(es.stream());
             ws.set_option(pmd);
             es.async_handshake();
@@ -174,8 +174,8 @@ public:
         doFailLoop([&](test::fail_counter& fc)
         {
             echo_server es{log};
-            boost::asio::io_service ios;
-            stream<test::stream> ws{ios, fc};
+            boost::asio::io_context ioc;
+            stream<test::stream> ws{ioc, fc};
             ws.next_layer().connect(es.stream());
             ws.handshake("localhost", "/");
             std::size_t count = 0;
@@ -198,7 +198,7 @@ public:
                             system_error{ec});
                 });
             BEAST_EXPECT(count == 0);
-            ios.run();
+            ioc.run();
             BEAST_EXPECT(count == 2);
         });
 
@@ -206,8 +206,8 @@ public:
         doFailLoop([&](test::fail_counter& fc)
         {
             echo_server es{log};
-            boost::asio::io_service ios;
-            stream<test::stream> ws{ios, fc};
+            boost::asio::io_context ioc;
+            stream<test::stream> ws{ioc, fc};
             ws.next_layer().connect(es.stream());
             ws.handshake("localhost", "/");
             std::size_t count = 0;
@@ -231,7 +231,7 @@ public:
                             system_error{ec});
                 });
             BEAST_EXPECT(count == 0);
-            ios.run();
+            ioc.run();
             BEAST_EXPECT(count == 2);
         });
 
@@ -239,8 +239,8 @@ public:
         doFailLoop([&](test::fail_counter& fc)
         {
             echo_server es{log};
-            boost::asio::io_service ios;
-            stream<test::stream> ws{ios, fc};
+            boost::asio::io_context ioc;
+            stream<test::stream> ws{ioc, fc};
             ws.next_layer().connect(es.stream());
             ws.handshake("localhost", "/");
             // add a ping and message to the input
@@ -258,8 +258,8 @@ public:
                 });
             while(! ws.wr_block_)
             {
-                ios.run_one();
-                if(! BEAST_EXPECT(! ios.stopped()))
+                ioc.run_one();
+                if(! BEAST_EXPECT(! ioc.stopped()))
                     break;
             }
             BEAST_EXPECT(count == 0);
@@ -272,7 +272,7 @@ public:
                             system_error{ec});
                 });
             BEAST_EXPECT(count == 0);
-            ios.run();
+            ioc.run();
             BEAST_EXPECT(count == 2);
         });
 
@@ -280,8 +280,8 @@ public:
         doFailLoop([&](test::fail_counter& fc)
         {
             echo_server es{log};
-            boost::asio::io_service ios;
-            stream<test::stream> ws{ios, fc};
+            boost::asio::io_context ioc;
+            stream<test::stream> ws{ioc, fc};
             ws.next_layer().connect(es.stream());
             ws.handshake("localhost", "/");
             // add an invalid frame to the input
@@ -299,8 +299,8 @@ public:
                 });
             while(! ws.wr_block_)
             {
-                ios.run_one();
-                if(! BEAST_EXPECT(! ios.stopped()))
+                ioc.run_one();
+                if(! BEAST_EXPECT(! ioc.stopped()))
                     break;
             }
             BEAST_EXPECT(count == 0);
@@ -313,7 +313,7 @@ public:
                     BEAST_EXPECT(++count == 2);
                 });
             BEAST_EXPECT(count == 0);
-            ios.run();
+            ioc.run();
             BEAST_EXPECT(count == 2);
         });
 
@@ -321,8 +321,8 @@ public:
         doFailLoop([&](test::fail_counter& fc)
         {
             echo_server es{log};
-            boost::asio::io_service ios;
-            stream<test::stream> ws{ios, fc};
+            boost::asio::io_context ioc;
+            stream<test::stream> ws{ioc, fc};
             ws.next_layer().connect(es.stream());
             ws.handshake("localhost", "/");
             // add a close frame to the input
@@ -340,8 +340,8 @@ public:
                 });
             while(! ws.wr_block_)
             {
-                ios.run_one();
-                if(! BEAST_EXPECT(! ios.stopped()))
+                ioc.run_one();
+                if(! BEAST_EXPECT(! ioc.stopped()))
                     break;
             }
             BEAST_EXPECT(count == 0);
@@ -354,7 +354,7 @@ public:
                     BEAST_EXPECT(++count == 2);
                 });
             BEAST_EXPECT(count == 0);
-            ios.run();
+            ioc.run();
             BEAST_EXPECT(count == 2);
         });
 
@@ -362,8 +362,8 @@ public:
         doFailLoop([&](test::fail_counter& fc)
         {
             echo_server es{log};
-            boost::asio::io_service ios;
-            stream<test::stream> ws{ios, fc};
+            boost::asio::io_context ioc;
+            stream<test::stream> ws{ioc, fc};
             ws.next_layer().connect(es.stream());
             ws.handshake("localhost", "/");
             // add a close frame to the input
@@ -398,7 +398,7 @@ public:
                     BEAST_EXPECT(++count == 2);
                 });
             BEAST_EXPECT(count == 0);
-            ios.run();
+            ioc.run();
             BEAST_EXPECT(count == 3);
         });
 
@@ -406,8 +406,8 @@ public:
         doFailLoop([&](test::fail_counter& fc)
         {
             echo_server es{log};
-            boost::asio::io_service ios;
-            stream<test::stream> ws{ios, fc};
+            boost::asio::io_context ioc;
+            stream<test::stream> ws{ioc, fc};
             ws.next_layer().connect(es.stream());
             ws.handshake("localhost", "/");
             // add a ping frame to the input
@@ -445,7 +445,7 @@ public:
             BEAST_EXPECT(ws.is_open());
             BEAST_EXPECT(ws.wr_block_);
             BEAST_EXPECT(count == 0);
-            ios.run();
+            ioc.run();
             BEAST_EXPECT(count == 3);
         });
 
@@ -453,8 +453,8 @@ public:
         doFailLoop([&](test::fail_counter& fc)
         {
             echo_server es{log};
-            boost::asio::io_service ios;
-            stream<test::stream> ws{ios, fc};
+            boost::asio::io_context ioc;
+            stream<test::stream> ws{ioc, fc};
             ws.next_layer().connect(es.stream());
             ws.handshake("localhost", "/");
             std::size_t count = 0;
@@ -493,7 +493,7 @@ public:
                     ++count;
                 });
             BEAST_EXPECT(count == 0);
-            ios.run();
+            ioc.run();
             BEAST_EXPECT(count == 4);
         });
 
@@ -501,8 +501,8 @@ public:
         doFailLoop([&](test::fail_counter& fc)
         {
             echo_server es{log};
-            boost::asio::io_service ios;
-            stream<test::stream> ws{ios, fc};
+            boost::asio::io_context ioc;
+            stream<test::stream> ws{ioc, fc};
             ws.next_layer().connect(es.stream());
             ws.handshake("localhost", "/");
             std::size_t count = 0;
@@ -554,7 +554,7 @@ public:
                     BEAST_EXPECT(count == 2 || count == 3);
                 });
             BEAST_EXPECT(count == 0);
-            ios.run();
+            ioc.run();
             BEAST_EXPECT(count == 4);
         });
 
@@ -562,8 +562,8 @@ public:
         doFailLoop([&](test::fail_counter& fc)
         {
             echo_server es{log};
-            boost::asio::io_service ios;
-            stream<test::stream> ws{ios, fc};
+            boost::asio::io_context ioc;
+            stream<test::stream> ws{ioc, fc};
             ws.next_layer().connect(es.stream());
             ws.handshake("localhost", "/");
             std::size_t count = 0;
@@ -602,7 +602,7 @@ public:
                     BEAST_EXPECT(++count == 2);
                 });
             BEAST_EXPECT(count == 0);
-            ios.run();
+            ioc.run();
             BEAST_EXPECT(count == 4);
         });
     }
@@ -615,7 +615,7 @@ public:
             void operator()(error_code) {}
         };
 
-        stream<test::stream> ws{ios_};
+        stream<test::stream> ws{ioc_};
         stream<test::stream>::close_op<handler> op{
             handler{}, ws, {}};
         using boost::asio::asio_handler_is_continuation;

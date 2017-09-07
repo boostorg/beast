@@ -11,12 +11,12 @@
 #define BOOST_BEAST_BUFFERED_READ_STREAM_HPP
 
 #include <boost/beast/core/detail/config.hpp>
-#include <boost/beast/core/async_result.hpp>
 #include <boost/beast/core/error.hpp>
 #include <boost/beast/core/multi_buffer.hpp>
 #include <boost/beast/core/type_traits.hpp>
+#include <boost/asio/async_result.hpp>
 #include <boost/asio/buffer.hpp>
-#include <boost/asio/io_service.hpp>
+#include <boost/asio/io_context.hpp>
 #include <cstdint>
 #include <utility>
 
@@ -91,7 +91,8 @@ namespace beast {
 template<class Stream, class DynamicBuffer>
 class buffered_read_stream
 {
-    static_assert(is_dynamic_buffer<DynamicBuffer>::value,
+    static_assert(
+        boost::asio::is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
 
     template<class Buffers, class Handler>
@@ -163,11 +164,29 @@ public:
         return next_layer_.lowest_layer();
     }
 
-    /// Get the io_service associated with the object.
-    boost::asio::io_service&
-    get_io_service()
+    /** Get the executor associated with the object.
+    
+        This function may be used to obtain the executor object that the stream
+        uses to dispatch handlers for asynchronous operations.
+
+        @return A copy of the executor that stream will use to dispatch handlers.
+
+        @note This function participates in overload resolution only if
+        `NextLayer` has a member function named `get_executor`.
+    */
+#if BOOST_BEAST_DOXYGEN
+    implementation_defined
+#else
+    template<
+        class T = next_layer_type,
+        class = typename std::enable_if<
+            has_get_executor<next_layer_type>::value>::type>
+    auto
+#endif
+    get_executor() noexcept ->
+        decltype(std::declval<T&>().get_executor())
     {
-        return next_layer_.get_io_service();
+        return next_layer_.get_executor();
     }
 
     /** Access the internal buffer.
@@ -265,14 +284,11 @@ public:
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
-        manner equivalent to using `boost::asio::io_service::post`.
+        manner equivalent to using `boost::asio::io_context::post`.
     */
     template<class MutableBufferSequence, class ReadHandler>
-#if BOOST_BEAST_DOXYGEN
-    void_or_deduced
-#else
-    async_return_type<ReadHandler, void(error_code)>
-#endif
+    BOOST_ASIO_INITFN_RESULT_TYPE(
+        ReadHandler, void(error_code))
     async_read_some(MutableBufferSequence const& buffers,
         ReadHandler&& handler);
 
@@ -340,14 +356,11 @@ public:
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
-        manner equivalent to using `boost::asio::io_service::post`.
+        manner equivalent to using `boost::asio::io_context::post`.
     */
     template<class ConstBufferSequence, class WriteHandler>
-#if BOOST_BEAST_DOXYGEN
-    void_or_deduced
-#else
-    async_return_type<WriteHandler, void(error_code)>
-#endif
+    BOOST_ASIO_INITFN_RESULT_TYPE(
+        WriteHandler, void(error_code))
     async_write_some(ConstBufferSequence const& buffers,
         WriteHandler&& handler);
 };

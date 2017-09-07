@@ -10,12 +10,14 @@
 #ifndef BEAST_TEST_WEBSOCKET_TEST_HPP
 #define BEAST_TEST_WEBSOCKET_TEST_HPP
 
+#include <boost/beast/core/buffers_prefix.hpp>
 #include <boost/beast/core/ostream.hpp>
 #include <boost/beast/core/multi_buffer.hpp>
 #include <boost/beast/websocket/stream.hpp>
 #include <boost/beast/test/stream.hpp>
 #include <boost/beast/test/yield_to.hpp>
 #include <boost/beast/unit_test/suite.hpp>
+#include <boost/asio/io_context.hpp>
 #include <boost/asio/spawn.hpp>
 #include <boost/optional.hpp>
 #include <array>
@@ -51,9 +53,10 @@ public:
         };
 
         std::ostream& log_;
-        boost::asio::io_service ios_;
+        boost::asio::io_context ioc_;
         boost::optional<
-            boost::asio::io_service::work> work_;
+            boost::asio::executor_work_guard<
+                boost::asio::io_context::executor_type>> work_;
         static_buffer<buf_size> buffer_;
         test::stream ts_;
         std::thread t_;
@@ -66,8 +69,8 @@ public:
             std::ostream& log,
             kind k = kind::sync)
             : log_(log)
-            , work_(ios_)
-            , ts_(ios_)
+            , work_(ioc_.get_executor())
+            , ts_(ioc_)
             , ws_(ts_)
         {
             permessage_deflate pmd;
@@ -83,12 +86,12 @@ public:
                 break;
 
             case kind::async:
-                t_ = std::thread{[&]{ ios_.run(); }};
+                t_ = std::thread{[&]{ ioc_.run(); }};
                 do_accept();
                 break;
 
             case kind::async_client:
-                t_ = std::thread{[&]{ ios_.run(); }};
+                t_ = std::thread{[&]{ ioc_.run(); }};
                 break;
             }
         }
@@ -118,7 +121,7 @@ public:
         void
         async_close()
         {
-            ios_.post(
+            boost::asio::post(ioc_,
             [&]
             {
                 if(ws_.is_open())
@@ -293,7 +296,7 @@ public:
         doFailLoop(
             [&](test::fail_counter& fc)
             {
-                test::stream ts{ios_, fc};
+                test::stream ts{ioc_, fc};
                 f(ts);
                 ts.close();
             }
@@ -316,7 +319,7 @@ public:
             for(n = 0; n < limit; ++n)
             {
                 test::fail_counter fc{n};
-                test::stream ts{ios_, fc};
+                test::stream ts{ioc_, fc};
                 ws_type ws{ts};
                 ws.set_option(pmd);
 
@@ -363,13 +366,12 @@ public:
     std::string
     to_string(ConstBufferSequence const& bs)
     {
-        using boost::asio::buffer_cast;
-        using boost::asio::buffer_size;
         std::string s;
         s.reserve(buffer_size(bs));
-        for(boost::asio::const_buffer b : bs)
-            s.append(buffer_cast<char const*>(b),
-                buffer_size(b));
+        for(auto b : beast::detail::buffers_range(bs))
+            s.append(
+                reinterpret_cast<char const*>(b.data()),
+                b.size());
         return s;
     }
 
@@ -413,10 +415,10 @@ public:
 
     template<std::size_t N>
     static
-    boost::asio::const_buffers_1
+    boost::asio::const_buffer
     sbuf(const char (&s)[N])
     {
-        return boost::asio::const_buffers_1(&s[0], N-1);
+        return boost::asio::const_buffer(&s[0], N-1);
     }
 
     template<
@@ -436,14 +438,14 @@ public:
 
     template<class Pred>
     bool
-    run_until(boost::asio::io_service& ios,
+    run_until(boost::asio::io_context& ioc,
         std::size_t limit, Pred&& pred)
     {
         for(std::size_t i = 0; i < limit; ++i)
         {
             if(pred())
                 return true;
-            ios.run_one();
+            ioc.run_one();
         }
         return false;
     }
@@ -451,9 +453,9 @@ public:
     template<class Pred>
     bool
     run_until(
-        boost::asio::io_service& ios, Pred&& pred)
+        boost::asio::io_context& ioc, Pred&& pred)
     {
-        return run_until(ios, 100, pred);
+        return run_until(ioc, 100, pred);
     }
 
     inline

@@ -52,9 +52,6 @@ public:
     /// Structure for use with deprecated impl_type.
     using impl_struct = typename stream_type::impl_struct;
 
-    /// (Deprecated: Use native_handle_type.) The underlying implementation type.
-    using impl_type = typename stream_type::impl_type;
-
     /// The type of the next layer.
     using next_layer_type = typename stream_type::next_layer_type;
 
@@ -64,14 +61,16 @@ public:
     ssl_stream(
         boost::asio::ip::tcp::socket socket,
         boost::asio::ssl::context& ctx)
-        : p_(new stream_type{socket.get_io_service(), ctx})
+        : p_(new stream_type{
+            socket.get_executor().context(), ctx})
         , ctx_(&ctx)
     {
         p_->next_layer() = std::move(socket);
     }
 
     ssl_stream(ssl_stream&& other)
-        : p_(new stream_type(other.get_io_service(), *other.ctx_))
+        : p_(new stream_type(
+            other.get_executor().context(), *other.ctx_))
         , ctx_(other.ctx_)
     {
         using std::swap;
@@ -80,8 +79,8 @@ public:
 
     ssl_stream& operator=(ssl_stream&& other)
     {
-        std::unique_ptr<stream_type> p(
-            new stream_type{other.get_io_service(), other.ctx_});
+        std::unique_ptr<stream_type> p(new stream_type{
+            other.get_executor().context(), other.ctx_});
         using std::swap;
         swap(p_, p);
         swap(p_, other.p_);
@@ -89,22 +88,16 @@ public:
         return *this;
     }
 
-    boost::asio::io_service&
-    get_io_service()
+    decltype(p_->get_executor())
+    get_executor() noexcept
     {
-        return p_->get_io_service();
+        return p_->get_executor();
     }
 
     native_handle_type
     native_handle()
     {
         return p_->native_handle();
-    }
-
-    impl_type
-    impl()
-    {
-        return p_->impl();
     }
 
     next_layer_type const&

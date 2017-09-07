@@ -264,17 +264,15 @@ std::size_t
 nodejs_basic_parser<Derived>::write(
     ConstBufferSequence const& buffers, error_code& ec)
 {
-    static_assert(beast::is_const_buffer_sequence<
+    static_assert(boost::asio::is_const_buffer_sequence<
         ConstBufferSequence>::value,
             "ConstBufferSequence requirements not met");
-    using boost::asio::buffer_cast;
-    using boost::asio::buffer_size;
     std::size_t bytes_used = 0;
-    for(boost::asio::const_buffer buffer : buffers)
+    for(auto buffer : beast::detail::buffers_range(buffers))
     {
         auto const n = write(
-            buffer_cast<void const*>(buffer),
-                buffer_size(buffer), ec);
+            reinterpret_cast<void const*>(buffer.data()),
+                buffer.size(), ec);
         if(ec)
             return 0;
         bytes_used += n;

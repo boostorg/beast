@@ -503,10 +503,14 @@ public:
             auto const len = rand(500);
             ostream(db) <<
                 "Content-Length: " << len << "\r\n\r\n";
-            for(boost::asio::mutable_buffer b : db.prepare(len))
+            auto mb = db.prepare(len);
+            for(auto it = boost::asio::buffer_sequence_begin(mb);
+                it != boost::asio::buffer_sequence_end(mb);
+                ++it)
             {
-                auto p = boost::asio::buffer_cast<char*>(b);
-                auto n = boost::asio::buffer_size(b);
+                boost::asio::mutable_buffer b = *it;
+                auto p = reinterpret_cast<char*>(b.data());
+                auto n = b.size();
                 while(n--)
                     *p++ = static_cast<char>(32 + rand(26+26+10+6));
             }
@@ -523,10 +527,14 @@ public:
                 len -= n;
                 ostream(db) <<
                     to_hex(n) << "\r\n";
-                for(boost::asio::mutable_buffer b : db.prepare(n))
+                auto mb = db.prepare(n);
+                for(auto it = boost::asio::buffer_sequence_begin(mb);
+                    it != boost::asio::buffer_sequence_end(mb);
+                    ++it)
                 {
-                    auto p = boost::asio::buffer_cast<char*>(b);
-                    auto m = boost::asio::buffer_size(b);
+                    boost::asio::mutable_buffer b = *it;
+                    auto p = reinterpret_cast<char*>(b.data());
+                    auto m = b.size();
                     while(m--)
                         *p++ = static_cast<char>(32 + rand(26+26+10+6));
                 }

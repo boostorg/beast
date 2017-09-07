@@ -122,10 +122,8 @@ mask_inplace_fast(
     boost::asio::mutable_buffer const& b,
         std::uint32_t& key)
 {
-    using boost::asio::buffer_cast;
-    using boost::asio::buffer_size;
-    auto n = buffer_size(b);
-    auto p = buffer_cast<std::uint8_t*>(b);
+    auto n = b.size();
+    auto p = reinterpret_cast<std::uint8_t*>(b.data());
     if(n >= sizeof(key))
     {
         // Bring p to 4-byte alignment
@@ -177,10 +175,8 @@ mask_inplace_fast(
     boost::asio::mutable_buffer const& b,
         std::uint64_t& key)
 {
-    using boost::asio::buffer_cast;
-    using boost::asio::buffer_size;
-    auto n = buffer_size(b);
-    auto p = buffer_cast<std::uint8_t*>(b);
+    auto n = b.size();
+    auto p = reinterpret_cast<std::uint8_t*>(b.data());
     if(n >= sizeof(key))
     {
         // Bring p to 8-byte alignment

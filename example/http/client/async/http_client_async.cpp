@@ -46,11 +46,11 @@ class session : public std::enable_shared_from_this<session>
     http::response<http::string_body> res_;
 
 public:
-    // Resolver and socket require an io_service
+    // Resolver and socket require an io_context
     explicit
-    session(boost::asio::io_service& ios)
-        : resolver_(ios)
-        , socket_(ios)
+    session(boost::asio::io_context& ioc)
+        : resolver_(ioc)
+        , socket_(ioc)
     {
     }
 
@@ -69,7 +69,9 @@ public:
         req_.set(http::field::user_agent, BOOST_BEAST_VERSION_STRING);
 
         // Look up the domain name
-        resolver_.async_resolve({host, port},
+        resolver_.async_resolve(
+            host,
+            port,
             std::bind(
                 &session::on_resolve,
                 shared_from_this(),
@@ -80,13 +82,16 @@ public:
     void
     on_resolve(
         boost::system::error_code ec,
-        tcp::resolver::iterator result)
+        tcp::resolver::results_type results)
     {
         if(ec)
             return fail(ec, "resolve");
 
         // Make the connection on the IP address we get from a lookup
-        boost::asio::async_connect(socket_, result,
+        boost::asio::async_connect(
+            socket_,
+            results.begin(),
+            results.end(),
             std::bind(
                 &session::on_connect,
                 shared_from_this(),
@@ -168,15 +173,15 @@ int main(int argc, char** argv)
     auto const port = argv[2];
     auto const target = argv[3];
 
-    // The io_service is required for all I/O
-    boost::asio::io_service ios;
+    // The io_context is required for all I/O
+    boost::asio::io_context ioc;
 
     // Launch the asynchronous operation
-    std::make_shared<session>(ios)->run(host, port, target);
+    std::make_shared<session>(ioc)->run(host, port, target);
 
     // Run the I/O service. The call will return when
     // the get operation is complete.
-    ios.run();
+    ioc.run();
 
     return EXIT_SUCCESS;
 }

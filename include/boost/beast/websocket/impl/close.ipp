@@ -15,10 +15,11 @@
 #include <boost/beast/core/flat_static_buffer.hpp>
 #include <boost/beast/core/type_traits.hpp>
 #include <boost/beast/core/detail/config.hpp>
+#include <boost/asio/associated_allocator.hpp>
+#include <boost/asio/associated_executor.hpp>
 #include <boost/asio/coroutine.hpp>
-#include <boost/asio/handler_alloc_hook.hpp>
 #include <boost/asio/handler_continuation_hook.hpp>
-#include <boost/asio/handler_invoke_hook.hpp>
+#include <boost/asio/post.hpp>
 #include <boost/throw_exception.hpp>
 #include <memory>
 
@@ -74,6 +75,24 @@ public:
     {
     }
 
+    using allocator_type =
+        boost::asio::associated_allocator_t<Handler>;
+
+    allocator_type
+    get_allocator() const noexcept
+    {
+        return boost::asio::get_associated_allocator(d_.handler());
+    }
+
+    using executor_type = boost::asio::associated_executor_t<
+        Handler, decltype(d_->ws.get_executor())>;
+
+    executor_type get_executor() const noexcept
+    {
+        return boost::asio::get_associated_executor(
+            d_.handler(), d_->ws.get_executor());
+    }
+
     void
     operator()(
         error_code ec = {},
@@ -81,38 +100,11 @@ public:
         bool cont = true);
 
     friend
-    void* asio_handler_allocate(
-        std::size_t size, close_op* op)
-    {
-        using boost::asio::asio_handler_allocate;
-        return asio_handler_allocate(
-            size, std::addressof(op->d_.handler()));
-    }
-
-    friend
-    void asio_handler_deallocate(
-        void* p, std::size_t size, close_op* op)
-    {
-        using boost::asio::asio_handler_deallocate;
-        asio_handler_deallocate(
-            p, size, std::addressof(op->d_.handler()));
-    }
-
-    friend
     bool asio_handler_is_continuation(close_op* op)
     {
         using boost::asio::asio_handler_is_continuation;
         return op->d_->cont || asio_handler_is_continuation(
             std::addressof(op->d_.handler()));
-    }
-
-    template<class Function>
-    friend
-    void asio_handler_invoke(Function&& f, close_op* op)
-    {
-        using boost::asio::asio_handler_invoke;
-        asio_handler_invoke(
-            f, std::addressof(op->d_.handler()));
     }
 };
 
@@ -155,7 +147,8 @@ operator()(
 
             // Resume
             BOOST_ASIO_CORO_YIELD
-            d.ws.get_io_service().post(std::move(*this));
+            boost::asio::post(
+                d.ws.get_executor(), std::move(*this));
             BOOST_ASSERT(d.ws.wr_block_ == d.tok);
 
             // Make sure the stream is open
@@ -205,7 +198,8 @@ operator()(
 
             // Resume
             BOOST_ASIO_CORO_YIELD
-            d.ws.get_io_service().post(std::move(*this));
+            boost::asio::post(
+                d.ws.get_executor(), std::move(*this));
             BOOST_ASSERT(d.ws.rd_block_ == d.tok);
 
             // Make sure the stream is open
@@ -322,7 +316,8 @@ operator()(
         if(! d.cont)
         {
             auto& ws = d.ws;
-            return ws.stream_.get_io_service().post(
+            return boost::asio::post(
+                ws.stream_.get_executor(),
                 bind_handler(d_.release_handler(), ec));
         }
         d_.invoke(ec);
@@ -440,17 +435,17 @@ close(close_reason const& cr, error_code& ec)
 
 template<class NextLayer>
 template<class CloseHandler>
-async_return_type<
-    CloseHandler, void(error_code)>
+BOOST_ASIO_INITFN_RESULT_TYPE(
+    CloseHandler, void(error_code))
 stream<NextLayer>::
 async_close(close_reason const& cr, CloseHandler&& handler)
 {
     static_assert(is_async_stream<next_layer_type>::value,
         "AsyncStream requirements not met");
-    async_completion<CloseHandler,
+    boost::asio::async_completion<CloseHandler,
         void(error_code)> init{handler};
-    close_op<handler_type<
-        CloseHandler, void(error_code)>>{
+    close_op<BOOST_ASIO_HANDLER_TYPE(
+        CloseHandler, void(error_code))>{
             init.completion_handler, *this, cr}(
                 {}, 0, false);
     return init.result.get();

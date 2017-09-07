@@ -230,7 +230,7 @@ public:
     void
     testFourByteSequence()
     {
-        using boost::asio::const_buffers_1;
+        using boost::asio::const_buffer;
         utf8_checker utf8;
         std::uint8_t buf[4];
         for(auto i = 240; i <= 244; ++i)
@@ -364,7 +364,6 @@ public:
     void
     testWithStreamBuffer()
     {
-        using namespace boost::asio;
         {
             // Valid UTF8 encoded text
             std::vector<std::vector<std::uint8_t>> const data{{
@@ -395,13 +394,14 @@ public:
                 static std::size_t constexpr size = 3;
                 std::size_t n = s.size();
                 buffers_suffix<
-                    boost::asio::const_buffers_1> cb{
-                        boost::asio::const_buffers_1(s.data(), n)};
+                    boost::asio::const_buffer> cb{
+                        boost::asio::const_buffer(s.data(), n)};
                 multi_buffer b;
                 while(n)
                 {
                     auto const amount = (std::min)(n, size);
-                    b.commit(buffer_copy(b.prepare(amount), cb));
+                    b.commit(boost::asio::buffer_copy(
+                        b.prepare(amount), cb));
                     cb.consume(amount);
                     n -= amount;
                 }

@@ -233,10 +233,10 @@ read_ping(ping_data& data, Buffers const& bs)
 {
     using boost::asio::buffer_copy;
     using boost::asio::buffer_size;
-    using boost::asio::mutable_buffers_1;
+    using boost::asio::mutable_buffer;
     BOOST_ASSERT(buffer_size(bs) <= data.max_size());
     data.resize(buffer_size(bs));
-    buffer_copy(mutable_buffers_1{
+    buffer_copy(mutable_buffer{
         data.data(), data.size()}, bs);
 }
 

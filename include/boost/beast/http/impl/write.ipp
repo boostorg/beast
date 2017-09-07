@@ -16,9 +16,10 @@
 #include <boost/beast/core/handler_ptr.hpp>
 #include <boost/beast/core/type_traits.hpp>
 #include <boost/beast/core/detail/config.hpp>
-#include <boost/asio/handler_alloc_hook.hpp>
+#include <boost/asio/associated_allocator.hpp>
+#include <boost/asio/associated_executor.hpp>
 #include <boost/asio/handler_continuation_hook.hpp>
-#include <boost/asio/handler_invoke_hook.hpp>
+#include <boost/asio/post.hpp>
 #include <boost/asio/write.hpp>
 #include <boost/optional.hpp>
 #include <boost/throw_exception.hpp>
@@ -77,6 +78,24 @@ public:
     {
     }
 
+    using allocator_type =
+        boost::asio::associated_allocator_t<Handler>;
+
+    allocator_type
+    get_allocator() const noexcept
+    {
+        return boost::asio::get_associated_allocator(h_);
+    }
+
+    using executor_type = boost::asio::associated_executor_t<
+        Handler, decltype(s_.get_executor())>;
+
+    executor_type get_executor() const noexcept
+    {
+        return boost::asio::get_associated_executor(
+            h_, s_.get_executor());
+    }
+
     void
     operator()();
 
@@ -86,37 +105,11 @@ public:
         std::size_t bytes_transferred);
 
     friend
-    void* asio_handler_allocate(
-        std::size_t size, write_some_op* op)
-    {
-        using boost::asio::asio_handler_allocate;
-        return asio_handler_allocate(
-            size, std::addressof(op->h_));
-    }
-
-    friend
-    void asio_handler_deallocate(
-        void* p, std::size_t size, write_some_op* op)
-    {
-        using boost::asio::asio_handler_deallocate;
-        asio_handler_deallocate(
-            p, size, std::addressof(op->h_));
-    }
-
-    friend
     bool asio_handler_is_continuation(write_some_op* op)
     {
         using boost::asio::asio_handler_is_continuation;
         return asio_handler_is_continuation(
             std::addressof(op->h_));
-    }
-
-    template<class Function>
-    friend
-    void asio_handler_invoke(Function&& f, write_some_op* op)
-    {
-        using boost::asio::asio_handler_invoke;
-        asio_handler_invoke(f, std::addressof(op->h_));
     }
 };
 
@@ -136,7 +129,8 @@ operator()()
         if(ec)
         {
             BOOST_ASSERT(! f.invoked);
-            return s_.get_io_service().post(
+            return boost::asio::post(
+                s_.get_executor(),
                 bind_handler(std::move(*this), ec, 0));
         }
         if(f.invoked)
@@ -148,7 +142,8 @@ operator()()
         // What else could it be?
         BOOST_ASSERT(sr_.is_done());
     }
-    return s_.get_io_service().post(
+    return boost::asio::post(
+        s_.get_executor(),
         bind_handler(std::move(*this), ec, 0));
 }
 
@@ -218,28 +213,28 @@ public:
     {
     }
 
+    using allocator_type =
+        boost::asio::associated_allocator_t<Handler>;
+
+    allocator_type
+    get_allocator() const noexcept
+    {
+        return boost::asio::get_associated_allocator(h_);
+    }
+
+    using executor_type = boost::asio::associated_executor_t<
+        Handler, decltype(s_.get_executor())>;
+
+    executor_type get_executor() const noexcept
+    {
+        return boost::asio::get_associated_executor(
+            h_, s_.get_executor());
+    }
+
     void
     operator()(
         error_code ec = {},
         std::size_t bytes_transferred = 0);
-
-    friend
-    void* asio_handler_allocate(
-        std::size_t size, write_op* op)
-    {
-        using boost::asio::asio_handler_allocate;
-        return asio_handler_allocate(
-            size, std::addressof(op->h_));
-    }
-
-    friend
-    void asio_handler_deallocate(
-        void* p, std::size_t size, write_op* op)
-    {
-        using boost::asio::asio_handler_deallocate;
-        asio_handler_deallocate(
-            p, size, std::addressof(op->h_));
-    }
 
     friend
     bool asio_handler_is_continuation(write_op* op)
@@ -248,15 +243,6 @@ public:
         return op->state_ >= 3 ||
             asio_handler_is_continuation(
                 std::addressof(op->h_));
-    }
-
-    template<class Function>
-    friend
-    void asio_handler_invoke(Function&& f, write_op* op)
-    {
-        using boost::asio::asio_handler_invoke;
-        asio_handler_invoke(
-            f, std::addressof(op->h_));
     }
 };
 
@@ -278,7 +264,8 @@ operator()(
         if(Predicate{}(sr_))
         {
             state_ = 1;
-            return s_.get_io_service().post(
+            return boost::asio::post(
+                s_.get_executor(),
                 bind_handler(std::move(*this), ec, 0));
         }
         state_ = 2;
@@ -338,6 +325,24 @@ public:
     {
     }
 
+    using allocator_type =
+        boost::asio::associated_allocator_t<Handler>;
+
+    allocator_type
+    get_allocator() const noexcept
+    {
+        return boost::asio::get_associated_allocator(d_.handler());
+    }
+
+    using executor_type = boost::asio::associated_executor_t<
+        Handler, decltype(d_->s.get_executor())>;
+
+    executor_type get_executor() const noexcept
+    {
+        return boost::asio::get_associated_executor(
+            d_.handler(), d_->s.get_executor());
+    }
+
     void
     operator()();
 
@@ -346,38 +351,11 @@ public:
         error_code ec, std::size_t bytes_transferred);
 
     friend
-    void* asio_handler_allocate(
-        std::size_t size, write_msg_op* op)
-    {
-        using boost::asio::asio_handler_allocate;
-        return asio_handler_allocate(
-            size, std::addressof(op->d_.handler()));
-    }
-
-    friend
-    void asio_handler_deallocate(
-        void* p, std::size_t size, write_msg_op* op)
-    {
-        using boost::asio::asio_handler_deallocate;
-        asio_handler_deallocate(
-            p, size, std::addressof(op->d_.handler()));
-    }
-
-    friend
     bool asio_handler_is_continuation(write_msg_op* op)
     {
         using boost::asio::asio_handler_is_continuation;
         return asio_handler_is_continuation(
             std::addressof(op->d_.handler()));
-    }
-
-    template<class Function>
-    friend
-    void asio_handler_invoke(Function&& f, write_msg_op* op)
-    {
-        using boost::asio::asio_handler_invoke;
-        asio_handler_invoke(
-            f, std::addressof(op->d_.handler()));
     }
 };
 
@@ -483,21 +461,20 @@ template<
     class AsyncWriteStream,
     bool isRequest, class Body, class Fields,
     class WriteHandler>
-async_return_type<
-    WriteHandler,
-    void(error_code, std::size_t)>
+BOOST_ASIO_INITFN_RESULT_TYPE(
+    WriteHandler, void(error_code, std::size_t))
 async_write_some(
     AsyncWriteStream& stream,
     serializer<isRequest, Body, Fields>& sr,
     WriteHandler&& handler)
 {
-    async_completion<
+    boost::asio::async_completion<
         WriteHandler,
         void(error_code, std::size_t)> init{handler};
     detail::write_some_op<
         AsyncWriteStream,
-        handler_type<WriteHandler,
-            void(error_code, std::size_t)>,
+        BOOST_ASIO_HANDLER_TYPE(WriteHandler,
+            void(error_code, std::size_t)),
         isRequest, Body, Fields>{
             init.completion_handler, stream, sr}();
     return init.result.get();
@@ -551,9 +528,8 @@ template<
     class AsyncWriteStream,
     bool isRequest, class Body, class Fields,
     class WriteHandler>
-async_return_type<
-    WriteHandler,
-    void(error_code, std::size_t)>
+BOOST_ASIO_INITFN_RESULT_TYPE(
+    WriteHandler, void(error_code, std::size_t))
 async_write_some(
     AsyncWriteStream& stream,
     serializer<isRequest, Body, Fields>& sr,
@@ -635,9 +611,8 @@ template<
     class AsyncWriteStream,
     bool isRequest, class Body, class Fields,
     class WriteHandler>
-async_return_type<
-    WriteHandler,
-    void(error_code, std::size_t)>
+BOOST_ASIO_INITFN_RESULT_TYPE(
+    WriteHandler, void(error_code, std::size_t))
 async_write_header(
     AsyncWriteStream& stream,
     serializer<isRequest, Body, Fields>& sr,
@@ -651,13 +626,13 @@ async_write_header(
     static_assert(is_body_reader<Body>::value,
         "BodyReader requirements not met");
     sr.split(true);
-    async_completion<
+    boost::asio::async_completion<
         WriteHandler,
         void(error_code, std::size_t)> init{handler};
     detail::write_op<
         AsyncWriteStream,
-        handler_type<WriteHandler,
-            void(error_code, std::size_t)>,
+        BOOST_ASIO_HANDLER_TYPE(WriteHandler,
+            void(error_code, std::size_t)),
         detail::serializer_is_header_done,
         isRequest, Body, Fields>{
         init.completion_handler, stream, sr}();
@@ -713,9 +688,8 @@ template<
     class AsyncWriteStream,
     bool isRequest, class Body, class Fields,
     class WriteHandler>
-async_return_type<
-    WriteHandler,
-    void(error_code, std::size_t)>
+BOOST_ASIO_INITFN_RESULT_TYPE(
+    WriteHandler, void(error_code, std::size_t))
 async_write(
     AsyncWriteStream& stream,
     serializer<isRequest, Body, Fields>& sr,
@@ -729,13 +703,13 @@ async_write(
     static_assert(is_body_reader<Body>::value,
         "BodyReader requirements not met");
     sr.split(false);
-    async_completion<
+    boost::asio::async_completion<
         WriteHandler,
         void(error_code, std::size_t)> init{handler};
     detail::write_op<
         AsyncWriteStream,
-        handler_type<WriteHandler,
-            void(error_code, std::size_t)>,
+        BOOST_ASIO_HANDLER_TYPE(WriteHandler,
+            void(error_code, std::size_t)),
         detail::serializer_is_done,
         isRequest, Body, Fields>{
             init.completion_handler, stream, sr}();
@@ -789,9 +763,8 @@ template<
     class AsyncWriteStream,
     bool isRequest, class Body, class Fields,
     class WriteHandler>
-async_return_type<
-    WriteHandler,
-    void(error_code, std::size_t)>
+BOOST_ASIO_INITFN_RESULT_TYPE(
+    WriteHandler, void(error_code, std::size_t))
 async_write(
     AsyncWriteStream& stream,
     message<isRequest, Body, Fields>& msg,
@@ -804,13 +777,13 @@ async_write(
         "Body requirements not met");
     static_assert(is_body_reader<Body>::value,
         "BodyReader requirements not met");
-    async_completion<
+    boost::asio::async_completion<
         WriteHandler,
         void(error_code, std::size_t)> init{handler};
     detail::write_msg_op<
         AsyncWriteStream,
-        handler_type<WriteHandler,
-            void(error_code, std::size_t)>,
+        BOOST_ASIO_HANDLER_TYPE(WriteHandler,
+            void(error_code, std::size_t)),
         isRequest, Body, Fields>{
             init.completion_handler, stream, msg}();
     return init.result.get();
@@ -843,17 +816,13 @@ public:
         if(os_.fail())
             return;
         std::size_t bytes_transferred = 0;
-        using boost::asio::buffer_cast;
-        using boost::asio::buffer_size;
-        for(auto it = buffers.begin();
-            it != buffers.end(); ++it)
+        for(auto b : buffers_range(buffers))
         {
-            boost::asio::const_buffer b = *it;
-            auto const n = buffer_size(b);
-            os_.write(buffer_cast<char const*>(b), n);
+            os_.write(reinterpret_cast<char const*>(
+                b.data()), b.size());
             if(os_.fail())
                 return;
-            bytes_transferred += n;
+            bytes_transferred += b.size();
         }
         sr_.consume(bytes_transferred);
     }

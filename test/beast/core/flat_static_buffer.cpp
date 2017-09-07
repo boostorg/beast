@@ -20,9 +20,8 @@
 namespace boost {
 namespace beast {
 
-static_assert(
-    is_dynamic_buffer<flat_static_buffer_base>::value,
-    "DynamicBuffer requirements not met");
+BOOST_STATIC_ASSERT(
+    boost::asio::is_dynamic_buffer<flat_static_buffer_base>::value);
 
 class flat_static_buffer_test : public beast::unit_test::suite
 {
@@ -32,7 +31,6 @@ public:
     {
         using namespace test;
         using boost::asio::buffer;
-        using boost::asio::buffer_cast;
         using boost::asio::buffer_size;
         char buf[12];
         std::string const s = "Hello, world";

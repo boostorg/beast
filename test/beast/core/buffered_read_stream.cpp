@@ -31,16 +31,17 @@ class buffered_read_stream_test
 public:
     void testSpecialMembers()
     {
-        boost::asio::io_service ios;
+        boost::asio::io_context ioc;
         {
-            buffered_read_stream<test::stream, multi_buffer> srs(ios);
+            buffered_read_stream<test::stream, multi_buffer> srs(ioc);
             buffered_read_stream<test::stream, multi_buffer> srs2(std::move(srs));
             srs = std::move(srs2);
-            BEAST_EXPECT(&srs.get_io_service() == &ios);
-            BEAST_EXPECT(&srs.get_io_service() == &srs2.get_io_service());
+            BEAST_EXPECT(&srs.get_executor().context() == &ioc);
+            BEAST_EXPECT(
+                &srs.get_executor().context() == &srs2.get_executor().context());
         }
         {
-            test::stream ts{ios};
+            test::stream ts{ioc};
             buffered_read_stream<test::stream&, multi_buffer> srs(ts);
         }
     }
@@ -52,7 +53,7 @@ public:
         std::size_t n_ = 0;
         std::size_t cap_;
         unit_test::suite& suite_;
-        boost::asio::io_service& ios_;
+        boost::asio::io_context& ioc_;
         boost::optional<test::stream> ts_;
         boost::optional<test::fail_counter> fc_;
         boost::optional<buffered_read_stream<
@@ -60,11 +61,11 @@ public:
 
         loop(
             unit_test::suite& suite,
-            boost::asio::io_service& ios,
+            boost::asio::io_context& ioc,
             std::size_t cap)
             : cap_(cap)
             , suite_(suite)
-            , ios_(ios)
+            , ioc_(ioc)
         {
         }
 
@@ -98,7 +99,7 @@ public:
             using boost::asio::buffer_copy;
             s_.resize(13);
             fc_.emplace(n_);
-            ts_.emplace(ios_, *fc_, ", world!");
+            ts_.emplace(ioc_, *fc_, ", world!");
             brs_.emplace(*ts_);
             brs_->buffer().commit(buffer_copy(
                 brs_->buffer().prepare(5), buffer("Hello", 5)));
@@ -115,8 +116,8 @@ public:
     void
     testAsyncLoop()
     {
-        std::make_shared<loop>(*this, ios_, 0)->run();
-        std::make_shared<loop>(*this, ios_, 3)->run();
+        std::make_shared<loop>(*this, ioc_, 0)->run();
+        std::make_shared<loop>(*this, ioc_, 3)->run();
     }
 
     void testRead(yield_context do_yield)
@@ -131,7 +132,7 @@ public:
         for(n = 0; n < limit; ++n)
         {
             test::fail_counter fc{n};
-            test::stream ts(ios_, fc, ", world!");
+            test::stream ts(ioc_, fc, ", world!");
             buffered_read_stream<
                 test::stream&, multi_buffer> srs(ts);
             srs.buffer().commit(buffer_copy(
@@ -149,7 +150,7 @@ public:
         for(n = 0; n < limit; ++n)
         {
             test::fail_counter fc{n};
-            test::stream ts(ios_, fc, ", world!");
+            test::stream ts(ioc_, fc, ", world!");
             buffered_read_stream<
                 test::stream&, multi_buffer> srs(ts);
             srs.capacity(3);
@@ -168,7 +169,7 @@ public:
         for(n = 0; n < limit; ++n)
         {
             test::fail_counter fc{n};
-            test::stream ts(ios_, fc, ", world!");
+            test::stream ts(ioc_, fc, ", world!");
             buffered_read_stream<
                 test::stream&, multi_buffer> srs(ts);
             srs.buffer().commit(buffer_copy(
@@ -187,7 +188,7 @@ public:
         for(n = 0; n < limit; ++n)
         {
             test::fail_counter fc{n};
-            test::stream ts(ios_, fc, ", world!");
+            test::stream ts(ioc_, fc, ", world!");
             buffered_read_stream<
                 test::stream&, multi_buffer> srs(ts);
             srs.capacity(3);

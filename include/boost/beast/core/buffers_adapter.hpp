@@ -35,10 +35,12 @@ namespace beast {
 template<class MutableBufferSequence>
 class buffers_adapter
 {
-    static_assert(is_mutable_buffer_sequence<MutableBufferSequence>::value,
+    static_assert(boost::asio::is_mutable_buffer_sequence<MutableBufferSequence>::value,
         "MutableBufferSequence requirements not met");
 
-    using iter_type = typename MutableBufferSequence::const_iterator;
+    using iter_type = typename
+        detail::buffer_sequence_iterator<
+            MutableBufferSequence>::type;
 
     MutableBufferSequence bs_;
     iter_type begin_;

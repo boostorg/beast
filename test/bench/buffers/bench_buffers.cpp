@@ -67,15 +67,13 @@ public:
     fill(MutableBufferSequence const& buffers)
     {
         std::size_t n = 0;
-        using boost::asio::buffer_cast;
-        using boost::asio::buffer_size;
-        for(boost::asio::mutable_buffer buffer : buffers)
+        for(auto b : beast::detail::buffers_range(buffers))
         {
             std::fill(
-                buffer_cast<char*>(buffer),
-                buffer_cast<char*>(buffer) +
-                    buffer_size(buffer), '\0');
-            n += buffer_size(buffer);
+                reinterpret_cast<char*>(b.data()),
+                reinterpret_cast<char*>(b.data()) +
+                    b.size(), '\0');
+            n += b.size();
         }
         return n;
     }

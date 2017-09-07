@@ -17,10 +17,10 @@
 #include <boost/beast/http/write.hpp>
 #include <boost/beast/core/handler_ptr.hpp>
 #include <boost/beast/core/type_traits.hpp>
+#include <boost/asio/associated_allocator.hpp>
+#include <boost/asio/associated_executor.hpp>
 #include <boost/asio/coroutine.hpp>
-#include <boost/asio/handler_alloc_hook.hpp>
 #include <boost/asio/handler_continuation_hook.hpp>
-#include <boost/asio/handler_invoke_hook.hpp>
 #include <boost/assert.hpp>
 #include <boost/throw_exception.hpp>
 #include <memory>
@@ -75,28 +75,28 @@ public:
     {
     }
 
+    using allocator_type =
+        boost::asio::associated_allocator_t<Handler>;
+
+    allocator_type
+    get_allocator() const noexcept
+    {
+        return boost::asio::get_associated_allocator(d_.handler());
+    }
+
+    using executor_type = boost::asio::associated_executor_t<
+        Handler, decltype(d_->ws.get_executor())>;
+
+    executor_type get_executor() const noexcept
+    {
+        return boost::asio::get_associated_executor(
+            d_.handler(), d_->ws.get_executor());
+    }
+
     void
     operator()(
         error_code ec = {},
         std::size_t bytes_used = 0);
-
-    friend
-    void* asio_handler_allocate(
-        std::size_t size, handshake_op* op)
-    {
-        using boost::asio::asio_handler_allocate;
-        return asio_handler_allocate(
-            size, std::addressof(op->d_.handler()));
-    }
-
-    friend
-    void asio_handler_deallocate(
-        void* p, std::size_t size, handshake_op* op)
-    {
-        using boost::asio::asio_handler_deallocate;
-        asio_handler_deallocate(
-            p, size, std::addressof(op->d_.handler()));
-    }
 
     friend
     bool asio_handler_is_continuation(handshake_op* op)
@@ -104,15 +104,6 @@ public:
         using boost::asio::asio_handler_is_continuation;
         return asio_handler_is_continuation(
             std::addressof(op->d_.handler()));
-    }
-
-    template<class Function>
-    friend
-    void asio_handler_invoke(Function&& f, handshake_op* op)
-    {
-        using boost::asio::asio_handler_invoke;
-        asio_handler_invoke(
-            f, std::addressof(op->d_.handler()));
     }
 };
 
@@ -156,8 +147,8 @@ operator()(error_code ec, std::size_t)
 
 template<class NextLayer>
 template<class HandshakeHandler>
-async_return_type<
-    HandshakeHandler, void(error_code)>
+BOOST_ASIO_INITFN_RESULT_TYPE(
+    HandshakeHandler, void(error_code))
 stream<NextLayer>::
 async_handshake(string_view host,
     string_view target,
@@ -165,10 +156,10 @@ async_handshake(string_view host,
 {
     static_assert(is_async_stream<next_layer_type>::value,
         "AsyncStream requirements not met");
-    async_completion<HandshakeHandler,
+    boost::asio::async_completion<HandshakeHandler,
         void(error_code)> init{handler};
-    handshake_op<handler_type<
-        HandshakeHandler, void(error_code)>>{
+    handshake_op<BOOST_ASIO_HANDLER_TYPE(
+        HandshakeHandler, void(error_code))>{
             init.completion_handler, *this, nullptr, host,
                 target, &default_decorate_req}();
     return init.result.get();
@@ -176,8 +167,8 @@ async_handshake(string_view host,
 
 template<class NextLayer>
 template<class HandshakeHandler>
-async_return_type<
-    HandshakeHandler, void(error_code)>
+BOOST_ASIO_INITFN_RESULT_TYPE(
+    HandshakeHandler, void(error_code))
 stream<NextLayer>::
 async_handshake(response_type& res,
     string_view host,
@@ -186,10 +177,10 @@ async_handshake(response_type& res,
 {
     static_assert(is_async_stream<next_layer_type>::value,
         "AsyncStream requirements not met");
-    async_completion<HandshakeHandler,
+    boost::asio::async_completion<HandshakeHandler,
         void(error_code)> init{handler};
-    handshake_op<handler_type<
-        HandshakeHandler, void(error_code)>>{
+    handshake_op<BOOST_ASIO_HANDLER_TYPE(
+        HandshakeHandler, void(error_code))>{
             init.completion_handler, *this, &res, host,
                 target, &default_decorate_req}();
     return init.result.get();
@@ -197,8 +188,8 @@ async_handshake(response_type& res,
 
 template<class NextLayer>
 template<class RequestDecorator, class HandshakeHandler>
-async_return_type<
-    HandshakeHandler, void(error_code)>
+BOOST_ASIO_INITFN_RESULT_TYPE(
+    HandshakeHandler, void(error_code))
 stream<NextLayer>::
 async_handshake_ex(string_view host,
     string_view target,
@@ -210,10 +201,10 @@ async_handshake_ex(string_view host,
     static_assert(detail::is_RequestDecorator<
             RequestDecorator>::value,
         "RequestDecorator requirements not met");
-    async_completion<HandshakeHandler,
+    boost::asio::async_completion<HandshakeHandler,
         void(error_code)> init{handler};
-    handshake_op<handler_type<
-        HandshakeHandler, void(error_code)>>{
+    handshake_op<BOOST_ASIO_HANDLER_TYPE(
+        HandshakeHandler, void(error_code))>{
             init.completion_handler, *this, nullptr, host,
                 target, decorator}();
     return init.result.get();
@@ -221,8 +212,8 @@ async_handshake_ex(string_view host,
 
 template<class NextLayer>
 template<class RequestDecorator, class HandshakeHandler>
-async_return_type<
-    HandshakeHandler, void(error_code)>
+BOOST_ASIO_INITFN_RESULT_TYPE(
+    HandshakeHandler, void(error_code))
 stream<NextLayer>::
 async_handshake_ex(response_type& res,
     string_view host,
@@ -235,10 +226,10 @@ async_handshake_ex(response_type& res,
     static_assert(detail::is_RequestDecorator<
             RequestDecorator>::value,
         "RequestDecorator requirements not met");
-    async_completion<HandshakeHandler,
+    boost::asio::async_completion<HandshakeHandler,
         void(error_code)> init{handler};
-    handshake_op<handler_type<
-        HandshakeHandler, void(error_code)>>{
+    handshake_op<BOOST_ASIO_HANDLER_TYPE(
+        HandshakeHandler, void(error_code))>{
             init.completion_handler, *this, &res, host,
                 target, decorator}();
     return init.result.get();

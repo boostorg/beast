@@ -53,7 +53,7 @@ struct BodyReader
 {
 public:
     /// The type of buffer returned by `get`.
-    using const_buffers_type = boost::asio::const_buffers_1;
+    using const_buffers_type = boost::asio::const_buffer;
 
     /** Construct the reader.
 

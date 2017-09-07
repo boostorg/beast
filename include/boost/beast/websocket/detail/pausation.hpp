@@ -11,6 +11,7 @@
 #define BOOST_BEAST_WEBSOCKET_DETAIL_PAUSATION_HPP
 
 #include <boost/beast/core/handler_ptr.hpp>
+#include <boost/asio/associated_allocator.hpp>
 #include <boost/asio/coroutine.hpp>
 #include <boost/assert.hpp>
 #include <array>
@@ -88,13 +89,16 @@ class pausation
     public:
         ~saved_op()
         {
-            using boost::asio::asio_handler_deallocate;
             if(op_)
             {
                 Op op(std::move(*op_));
                 op_->~Op();
-                asio_handler_deallocate(op_,
-                    sizeof(*op_), std::addressof(op.handler()));
+                typename std::allocator_traits<
+                    boost::asio::associated_allocator_t<Op>>::
+                        template rebind_alloc<Op> alloc{
+                            boost::asio::get_associated_allocator(op)};
+                std::allocator_traits<
+                    decltype(alloc)>::deallocate(alloc, op_, 1);
             }
         }
 
@@ -115,10 +119,13 @@ class pausation
         explicit
         saved_op(Op&& op)
         {
-            using boost::asio::asio_handler_allocate;
-            op_ = new(asio_handler_allocate(sizeof(Op),
-                std::addressof(op.handler()))) Op{
-                    std::move(op)};
+            typename std::allocator_traits<
+                boost::asio::associated_allocator_t<Op>>::
+                    template rebind_alloc<Op> alloc{
+                        boost::asio::get_associated_allocator(op)};
+            auto const p = std::allocator_traits<
+                decltype(alloc)>::allocate(alloc, 1);
+            op_ = new(p) Op{std::move(op)};
         }
 
         void
@@ -126,9 +133,12 @@ class pausation
         {
             BOOST_ASSERT(op_);
             Op op{std::move(*op_)};
-            using boost::asio::asio_handler_deallocate;
-            asio_handler_deallocate(op_,
-                sizeof(*op_), std::addressof(op_->handler()));
+            typename std::allocator_traits<
+                boost::asio::associated_allocator_t<Op>>::
+                    template rebind_alloc<Op> alloc{
+                        boost::asio::get_associated_allocator(op)};
+            std::allocator_traits<
+                decltype(alloc)>::deallocate(alloc, op_, 1);
             op_ = nullptr;
             op();
         }

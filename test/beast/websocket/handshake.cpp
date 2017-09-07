@@ -139,7 +139,7 @@ public:
         auto const check =
         [&](std::string const& s)
         {
-            stream<test::stream> ws{ios_};
+            stream<test::stream> ws{ioc_};
             auto tr = connect(ws.next_layer());
             ws.next_layer().append(s);
             tr.close();

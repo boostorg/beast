@@ -298,19 +298,19 @@ int main(int argc, char* argv[])
                 "    http-server-sync 0.0.0.0 8080 .\n";
             return EXIT_FAILURE;
         }
-        auto const address = boost::asio::ip::address::from_string(argv[1]);
+        auto const address = boost::asio::ip::make_address(argv[1]);
         auto const port = static_cast<unsigned short>(std::atoi(argv[2]));
         std::string const doc_root = argv[3];
 
-        // The io_service is required for all I/O
-        boost::asio::io_service ios{1};
+        // The io_context is required for all I/O
+        boost::asio::io_context ioc{1};
 
         // The acceptor receives incoming connections
-        tcp::acceptor acceptor{ios, {address, port}};
+        tcp::acceptor acceptor{ioc, {address, port}};
         for(;;)
         {
             // This will receive the new connection
-            tcp::socket socket{ios};
+            tcp::socket socket{ioc};
 
             // Block until we get a connection
             acceptor.accept(socket);

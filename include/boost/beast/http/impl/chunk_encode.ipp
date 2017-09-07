@@ -24,7 +24,7 @@ chunk_header::
 chunk_header(std::size_t size)
     : view_(
         size,
-        boost::asio::const_buffers_1{nullptr, 0},
+        boost::asio::const_buffer{nullptr, 0},
         chunk_crlf{})
 {
     BOOST_ASSERT(size > 0);
@@ -37,7 +37,7 @@ chunk_header(
     string_view extensions)
     : view_(
         size,
-        boost::asio::const_buffers_1{
+        boost::asio::const_buffer{
             extensions.data(), extensions.size()},
         chunk_crlf{})
 {
@@ -90,7 +90,7 @@ chunk_body<ConstBufferSequence>::
 chunk_body(ConstBufferSequence const& buffers)
     : view_(
         boost::asio::buffer_size(buffers),
-        boost::asio::const_buffers_1{nullptr, 0},
+        boost::asio::const_buffer{nullptr, 0},
         chunk_crlf{},
         buffers,
         chunk_crlf{})
@@ -104,7 +104,7 @@ chunk_body(
     string_view extensions)
     : view_(
         boost::asio::buffer_size(buffers),
-        boost::asio::const_buffers_1{
+        boost::asio::const_buffer{
             extensions.data(), extensions.size()},
         chunk_crlf{},
         buffers,

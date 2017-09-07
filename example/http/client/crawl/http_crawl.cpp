@@ -18,10 +18,11 @@
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
 #include <boost/beast/version.hpp>
+#include <boost/asio/bind_executor.hpp>
 #include <boost/asio/connect.hpp>
 #include <boost/asio/ip/tcp.hpp>
+#include <boost/asio/post.hpp>
 #include <boost/asio/strand.hpp>
-#include <boost/optional.hpp>
 #include <atomic>
 #include <chrono>
 #include <cstdlib>
@@ -43,16 +44,17 @@ namespace chrono = std::chrono;         // from <chrono>
 // This structure aggregates statistics on all the sites
 class crawl_report
 {
-    boost::asio::io_service& ios_;
-    boost::asio::io_service::strand strand_;
+    boost::asio::io_context& ioc_;
+    boost::asio::strand<
+        boost::asio::io_context::executor_type> strand_;
     std::atomic<std::size_t> index_;
     std::vector<char const*> const& hosts_;
     std::size_t count_ = 0;
 
 public:
-    crawl_report(boost::asio::io_service& ios)
-        : ios_(ios)
-        , strand_(ios_)
+    crawl_report(boost::asio::io_context& ioc)
+        : ioc_(ioc)
+        , strand_(ioc_.get_executor())
         , index_(0)
         , hosts_(urls_large_data())
     {
@@ -64,18 +66,19 @@ public:
     void
     aggregate(F const& f)
     {
-        ios_.post(strand_.wrap(
-        [&, f]
-        {
-            f(*this);
-            if(count_ % 100 == 0)
+        boost::asio::post(
+            strand_,
+            [&, f]
             {
-                std::cerr <<
-                    "Progress: " << count_ << " of " << hosts_.size() << "\n";
-                //std::cerr << *this;
-            }
-            ++count_;
-        }));
+                f(*this);
+                if(count_ % 100 == 0)
+                {
+                    std::cerr <<
+                        "Progress: " << count_ << " of " << hosts_.size() << "\n";
+                    //std::cerr << *this;
+                }
+                ++count_;
+            });
     }
 
     // Returns the next host to check
@@ -148,7 +151,8 @@ class worker : public std::enable_shared_from_this<worker>
     tcp::resolver resolver_;
     tcp::socket socket_;
     boost::asio::steady_timer timer_;
-    boost::asio::io_service::strand strand_;
+    boost::asio::strand<
+        boost::asio::io_context::executor_type> strand_;
     boost::beast::flat_buffer buffer_; // (Must persist between reads)
     http::request<http::empty_body> req_;
     http::response<http::string_body> res_;
@@ -156,16 +160,16 @@ class worker : public std::enable_shared_from_this<worker>
 public:
     worker(worker&&) = default;
 
-    // Resolver and socket require an io_service
+    // Resolver and socket require an io_context
     worker(
         crawl_report& report,
-        boost::asio::io_service& ios)
+        boost::asio::io_context& ioc)
         : report_(report)
-        , resolver_(ios)
-        , socket_(ios)
-        , timer_(ios,
+        , resolver_(ioc)
+        , socket_(ioc)
+        , timer_(ioc,
             (chrono::steady_clock::time_point::max)())
-        , strand_(ios)
+        , strand_(ioc.get_executor())
     {
         // Set up the common fields of the request
         req_.version(11);
@@ -200,7 +204,7 @@ public:
         }
 
         // Verify that the timer really expired since the deadline may have moved.
-        if(timer_.expires_at() <= chrono::steady_clock::now())
+        if(timer_.expiry() <= chrono::steady_clock::now())
         {
             socket_.shutdown(tcp::socket::shutdown_both, ec);
             socket_.close(ec);
@@ -209,10 +213,12 @@ public:
 
         // Wait on the timer
         timer_.async_wait(
-            strand_.wrap(std::bind(
-                &worker::on_timer,
-                shared_from_this(),
-                std::placeholders::_1)));
+            boost::asio::bind_executor(
+                strand_,
+                std::bind(
+                    &worker::on_timer,
+                    shared_from_this(),
+                    std::placeholders::_1)));
     }
 
     void
@@ -224,8 +230,7 @@ public:
         // nullptr means no more work
         if(! host)
         {
-            boost::system::error_code ec;
-            timer_.cancel(ec);
+            timer_.cancel_one();
             return;
         }
 
@@ -233,23 +238,26 @@ public:
         req_.set(http::field::host, host);
 
         // Set the timer
-        timer_.expires_from_now(chrono::seconds(timeout));
+        timer_.expires_after(chrono::seconds(timeout));
 
         // Set up an HTTP GET request message
         // Look up the domain name
         resolver_.async_resolve(
-            tcp::resolver::query{host, "http"},
-            strand_.wrap(std::bind(
-                &worker::on_resolve,
-                shared_from_this(),
-                std::placeholders::_1,
-                std::placeholders::_2)));
+            host,
+            "http",
+            boost::asio::bind_executor(
+                strand_,
+                std::bind(
+                    &worker::on_resolve,
+                    shared_from_this(),
+                    std::placeholders::_1,
+                    std::placeholders::_2)));
     }
 
     void
     on_resolve(
         boost::system::error_code ec,
-        tcp::resolver::iterator result)
+        tcp::resolver::results_type results)
     {
         if(ec)
         {
@@ -262,16 +270,19 @@ public:
         }
 
         // Set the timer
-        timer_.expires_from_now(chrono::seconds(timeout));
+        timer_.expires_after(chrono::seconds(timeout));
 
         // Make the connection on the IP address we get from a lookup
         boost::asio::async_connect(
             socket_,
-            result,
-            strand_.wrap(std::bind(
-                &worker::on_connect,
-                shared_from_this(),
-                std::placeholders::_1)));
+            results.begin(),
+            results.end(),
+            boost::asio::bind_executor(
+                strand_,
+                std::bind(
+                    &worker::on_connect,
+                    shared_from_this(),
+                    std::placeholders::_1)));
     }
 
     void
@@ -288,17 +299,19 @@ public:
         }
 
         // Set the timer
-        timer_.expires_from_now(chrono::seconds(timeout));
+        timer_.expires_after(chrono::seconds(timeout));
 
         // Send the HTTP request to the remote host
         http::async_write(
             socket_,
             req_,
-            strand_.wrap(std::bind(
-                &worker::on_write,
-                shared_from_this(),
-                std::placeholders::_1,
-                std::placeholders::_2)));
+            boost::asio::bind_executor(
+                strand_,
+                std::bind(
+                    &worker::on_write,
+                    shared_from_this(),
+                    std::placeholders::_1,
+                    std::placeholders::_2)));
     }
 
     void
@@ -319,18 +332,20 @@ public:
         }
         
         // Set the timer
-        timer_.expires_from_now(chrono::seconds(timeout));
+        timer_.expires_after(chrono::seconds(timeout));
 
         // Receive the HTTP response
         http::async_read(
             socket_,
             buffer_,
             res_,
-            strand_.wrap(std::bind(
-                &worker::on_read,
-                shared_from_this(),
-                std::placeholders::_1,
-                std::placeholders::_2)));
+            boost::asio::bind_executor(
+                strand_,
+                std::bind(
+                    &worker::on_read,
+                    shared_from_this(),
+                    std::placeholders::_1,
+                    std::placeholders::_2)));
     }
 
     void
@@ -400,41 +415,41 @@ int main(int argc, char* argv[])
             "    http-crawl 100 1\n";
         return EXIT_FAILURE;
     }
-    auto const threads = std::max<std::size_t>(1, std::atoi(argv[1]));
+    auto const threads = std::max<int>(1, std::atoi(argv[1]));
 
-    // The io_service is required for all I/O
-    boost::asio::io_service ios{1};
+    // The io_context is required for all I/O
+    boost::asio::io_context ioc{1};
 
-    // The work keeps io_service::run from returning
-    boost::optional<boost::asio::io_service::work> work{ios};
+    // The work keeps io_context::run from returning
+    auto work = boost::asio::make_work_guard(ioc);
 
     // The report holds the aggregated statistics
-    crawl_report report{ios};
+    crawl_report report{ioc};
 
     timer t;
 
     // Create and launch the worker threads.
     std::vector<std::thread> workers;
     workers.reserve(threads + 1);
-    for(std::size_t i = 0; i < threads; ++i)
+    for(int i = 0; i < threads; ++i)
         workers.emplace_back(
         [&report]
         {
-            // We use a separate io_service for each worker because
+            // We use a separate io_context for each worker because
             // the asio resolver simulates asynchronous operation using
-            // a dedicated worker thread per io_service, and we want to
+            // a dedicated worker thread per io_context, and we want to
             // do a lot of name resolutions in parallel.
-            boost::asio::io_service ios{1};
-            std::make_shared<worker>(report, ios)->run();
-            ios.run();
+            boost::asio::io_context ioc{1};
+            std::make_shared<worker>(report, ioc)->run();
+            ioc.run();
         });
 
-    // Add another thread to run the main io_service which
+    // Add another thread to run the main io_context which
     // is used to aggregate the statistics
     workers.emplace_back(
-    [&ios]
+    [&ioc]
     {
-        ios.run();
+        ioc.run();
     });
 
     // Now block until all threads exit
@@ -442,11 +457,10 @@ int main(int argc, char* argv[])
     {
         auto& thread = workers[i];
 
-        // If this is the last thread, destroy the
+        // If this is the last thread, reset the
         // work object so that it can return from run.
-        //if(&thread == &workers.back())
         if(i == workers.size() - 1)
-            work = boost::none;
+            work.reset();
 
         // Wait for the thread to exit
         thread.join();

@@ -143,9 +143,9 @@ public:
     };
 
     using view_type = buffers_cat_view<
-        boost::asio::const_buffers_1,
-        boost::asio::const_buffers_1,
-        boost::asio::const_buffers_1,
+        boost::asio::const_buffer,
+        boost::asio::const_buffer,
+        boost::asio::const_buffer,
         field_range,
         chunk_crlf>;
 
@@ -178,9 +178,9 @@ reader(basic_fields const& f)
     : f_(f)
 {
     view_.emplace(
-        boost::asio::const_buffers_1{nullptr, 0},
-        boost::asio::const_buffers_1{nullptr, 0},
-        boost::asio::const_buffers_1{nullptr, 0},
+        boost::asio::const_buffer{nullptr, 0},
+        boost::asio::const_buffer{nullptr, 0},
+        boost::asio::const_buffer{nullptr, 0},
         field_range(f_.list_.begin(), f_.list_.end()),
         chunk_crlf());
 }
@@ -218,11 +218,11 @@ reader(basic_fields const& f,
     buf_[10]= '\n';
 
     view_.emplace(
-        boost::asio::const_buffers_1{sv.data(), sv.size()},
-        boost::asio::const_buffers_1{
+        boost::asio::const_buffer{sv.data(), sv.size()},
+        boost::asio::const_buffer{
             f_.target_or_reason_.data(),
             f_.target_or_reason_.size()},
-        boost::asio::const_buffers_1{buf_, 11},
+        boost::asio::const_buffer{buf_, 11},
         field_range(f_.list_.begin(), f_.list_.end()),
         chunk_crlf());
 }
@@ -260,9 +260,9 @@ reader(basic_fields const& f,
         sv = obsolete_reason(static_cast<status>(code));
 
     view_.emplace(
-        boost::asio::const_buffers_1{buf_, 13},
-        boost::asio::const_buffers_1{sv.data(), sv.size()},
-        boost::asio::const_buffers_1{"\r\n", 2},
+        boost::asio::const_buffer{buf_, 13},
+        boost::asio::const_buffer{sv.data(), sv.size()},
+        boost::asio::const_buffer{"\r\n", 2},
         field_range(f_.list_.begin(), f_.list_.end()),
         chunk_crlf{});
 }

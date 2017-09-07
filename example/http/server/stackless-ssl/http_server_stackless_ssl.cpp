@@ -18,6 +18,7 @@
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
 #include <boost/beast/version.hpp>
+#include <boost/asio/bind_executor.hpp>
 #include <boost/asio/coroutine.hpp>
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/ssl/stream.hpp>
@@ -247,18 +248,21 @@ class session
             http::async_write(
                 self_.socket_,
                 *sp,
-                self_.strand_.wrap(std::bind(
-                    &session::loop,
-                    self_.shared_from_this(),
-                    std::placeholders::_1,
-                    std::placeholders::_2,
-                    ! sp->keep_alive())));
+                boost::asio::bind_executor(
+                    self_.strand_,
+                    std::bind(
+                        &session::loop,
+                        self_.shared_from_this(),
+                        std::placeholders::_1,
+                        std::placeholders::_2,
+                        ! sp->keep_alive())));
         }
     };
 
     tcp::socket socket_;
     ssl::stream<tcp::socket&> stream_;
-    boost::asio::io_service::strand strand_;
+    boost::asio::strand<
+        boost::asio::io_context::executor_type> strand_;
     boost::beast::flat_buffer buffer_;
     std::string const& doc_root_;
     http::request<http::string_body> req_;
@@ -274,7 +278,7 @@ public:
         std::string const& doc_root)
         : socket_(std::move(socket))
         , stream_(socket_, ctx)
-        , strand_(socket_.get_io_service())
+        , strand_(socket_.get_executor())
         , doc_root_(doc_root)
         , lambda_(*this)
     {
@@ -300,12 +304,14 @@ public:
             // Perform the SSL handshake
             yield stream_.async_handshake(
                 ssl::stream_base::server,
-                strand_.wrap(std::bind(
-                    &session::loop,
-                    shared_from_this(),
-                    std::placeholders::_1,
-                    0,
-                    false)));
+                boost::asio::bind_executor(
+                    strand_,
+                    std::bind(
+                        &session::loop,
+                        shared_from_this(),
+                        std::placeholders::_1,
+                        0,
+                        false)));
             if(ec)
                 return fail(ec, "handshake");
 
@@ -313,12 +319,14 @@ public:
             {
                 // Read a request
                 yield http::async_read(stream_, buffer_, req_,
-                    strand_.wrap(std::bind(
-                        &session::loop,
-                        shared_from_this(),
-                        std::placeholders::_1,
-                        std::placeholders::_2,
-                        false)));
+                    boost::asio::bind_executor(
+                        strand_,
+                        std::bind(
+                            &session::loop,
+                            shared_from_this(),
+                            std::placeholders::_1,
+                            std::placeholders::_2,
+                            false)));
                 if(ec == http::error::end_of_stream)
                 {
                     // The remote host closed the connection
@@ -344,12 +352,14 @@ public:
 
             // Perform the SSL shutdown
             yield stream_.async_shutdown(
-                strand_.wrap(std::bind(
-                    &session::loop,
-                    shared_from_this(),
-                    std::placeholders::_1,
-                    0,
-                    false)));
+                boost::asio::bind_executor(
+                    strand_,
+                    std::bind(
+                        &session::loop,
+                        shared_from_this(),
+                        std::placeholders::_1,
+                        0,
+                        false)));
             if(ec)
                 return fail(ec, "shutdown");
 
@@ -373,13 +383,13 @@ class listener
 
 public:
     listener(
-        boost::asio::io_service& ios,
+        boost::asio::io_context& ioc,
         ssl::context& ctx,
         tcp::endpoint endpoint,
         std::string const& doc_root)
         : ctx_(ctx)
-        , acceptor_(ios)
-        , socket_(ios)
+        , acceptor_(ioc)
+        , socket_(ioc)
         , doc_root_(doc_root)
     {
         boost::system::error_code ec;
@@ -402,7 +412,7 @@ public:
 
         // Start listening for connections
         acceptor_.listen(
-            boost::asio::socket_base::max_connections, ec);
+            boost::asio::socket_base::max_listen_connections, ec);
         if(ec)
         {
             fail(ec, "listen");
@@ -464,13 +474,13 @@ int main(int argc, char* argv[])
             "    http-server-stackless-ssl 0.0.0.0 8080 . 1\n";
         return EXIT_FAILURE;
     }
-    auto const address = boost::asio::ip::address::from_string(argv[1]);
+    auto const address = boost::asio::ip::make_address(argv[1]);
     auto const port = static_cast<unsigned short>(std::atoi(argv[2]));
     std::string const doc_root = argv[3];
-    auto const threads = std::max<std::size_t>(1, std::atoi(argv[4]));
+    auto const threads = std::max<int>(1, std::atoi(argv[4]));
 
-    // The io_service is required for all I/O
-    boost::asio::io_service ios{threads};
+    // The io_context is required for all I/O
+    boost::asio::io_context ioc{threads};
 
     // The SSL context is required, and holds certificates
     ssl::context ctx{ssl::context::sslv23};
@@ -480,7 +490,7 @@ int main(int argc, char* argv[])
 
     // Create and launch a listening port
     std::make_shared<listener>(
-        ios,
+        ioc,
         ctx,
         tcp::endpoint{address, port},
         doc_root)->run();
@@ -490,11 +500,11 @@ int main(int argc, char* argv[])
     v.reserve(threads - 1);
     for(auto i = threads - 1; i > 0; --i)
         v.emplace_back(
-        [&ios]
+        [&ioc]
         {
-            ios.run();
+            ioc.run();
         });
-    ios.run();
+    ioc.run();
 
     return EXIT_SUCCESS;
 }

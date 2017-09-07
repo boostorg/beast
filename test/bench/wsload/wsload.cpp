@@ -39,18 +39,36 @@ namespace ws = boost::beast::websocket;
 namespace ph = std::placeholders;
 using error_code = boost::beast::error_code;
 
-class test_buffer : public asio::const_buffers_1
+class test_buffer
 {
     char data_[4096];
+    boost::asio::const_buffer b_;
 
 public:
+    using const_iterator =
+        boost::asio::const_buffer const*;
+
+    using value_type = boost::asio::const_buffer;
+
     test_buffer()
-        : asio::const_buffers_1(data_, sizeof(data_))
+        : b_(data_, sizeof(data_))
     {
         std::mt19937_64 rng;
         std::uniform_int_distribution<unsigned short> dist;
         for(auto& c : data_)
             c = static_cast<unsigned char>(dist(rng));
+    }
+
+    const_iterator
+    begin() const
+    {
+        return &b_;
+    }
+
+    const_iterator
+    end() const
+    {
+        return begin() + 1;
     }
 };
 
@@ -96,7 +114,8 @@ class connection
     std::size_t messages_;
     report& rep_;
     test_buffer const& tb_;
-    asio::io_service::strand strand_;
+    asio::strand<
+        asio::io_context::executor_type> strand_;
     boost::beast::multi_buffer buffer_;
     std::mt19937_64 rng_;
     std::size_t count_ = 0;
@@ -105,18 +124,18 @@ class connection
 
 public:
     connection(
-        asio::io_service& ios,
+        asio::io_context& ioc,
         tcp::endpoint const& ep,
         std::size_t messages,
         bool deflate,
         report& rep,
         test_buffer const& tb)
-        : ws_(ios)
+        : ws_(ioc)
         , ep_(ep)
         , messages_(messages)
         , rep_(rep)
         , tb_(tb)
-        , strand_(ios)
+        , strand_(ioc.get_executor())
     {
         ws::permessage_deflate pmd;
         pmd.client_enable = deflate;
@@ -274,7 +293,7 @@ main(int argc, char** argv)
             return EXIT_FAILURE;
         }
 
-        auto const address = ip::address::from_string(argv[1]);
+        auto const address = boost::asio::ip::make_address(argv[1]);
         auto const port    = static_cast<unsigned short>(std::atoi(argv[2]));
         auto const trials  = static_cast<std::size_t>(std::atoi(argv[3]));
         auto const messages= static_cast<std::size_t>(std::atoi(argv[4]));
@@ -286,12 +305,12 @@ main(int argc, char** argv)
         for(auto i = trials; i != 0; --i)
         {
             report rep;
-            boost::asio::io_service ios{1};
+            boost::asio::io_context ioc{1};
             for(auto j = workers; j; --j)
             {
                 auto sp =
                 std::make_shared<connection>(
-                    ios,
+                    ioc,
                     tcp::endpoint{address, port},
                     work,
                     deflate,
@@ -304,9 +323,9 @@ main(int argc, char** argv)
             if(threads > 1)
             {
                 tv.reserve(threads);
-                tv.emplace_back([&ios]{ ios.run(); });
+                tv.emplace_back([&ioc]{ ioc.run(); });
             }
-            ios.run();
+            ioc.run();
             for(auto& t : tv)
                 t.join();
             auto const elapsed = clock.elapsed();

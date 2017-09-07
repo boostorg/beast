@@ -67,10 +67,9 @@ checks helps provide more concise errors during compilation:
     Returns `T::lowest_layer_type` if it exists, else returns `T`.
 ]]
 [[
-    [link beast.ref.boost__beast__has_get_io_service `has_get_io_service`]
+    [link beast.ref.boost__beast__has_get_executor `has_get_executor`]
 ][
-    Determine if the `get_io_service` member function is present,
-    and returns an __io_service__.
+    Determine if the `get_executor` member function is present.
 ]]
 [[
     [link beast.ref.boost__beast__is_async_read_stream `is_async_read_stream`]

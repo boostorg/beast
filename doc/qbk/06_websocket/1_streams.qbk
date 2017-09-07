@@ -19,7 +19,7 @@ are performed, or both. Any arguments supplied during construction of
 the stream wrapper are passed to next layer's constructor.
 
 Here we declare a websocket stream over a TCP/IP socket with ownership
-of the socket. The `io_service` argument is forwarded to the wrapped
+of the socket. The `io_context` argument is forwarded to the wrapped
 socket's constructor:
 
 [ws_snippet_2]
@@ -27,7 +27,7 @@ socket's constructor:
 [heading Using SSL]
 
 To use WebSockets over SSL, use an instance of the `boost::asio::ssl::stream`
-class template as the template type for the stream. The required `io_service`
+class template as the template type for the stream. The required `io_context`
 and `ssl::context` arguments are forwarded to the wrapped stream's constructor:
 
 [wss_snippet_1]

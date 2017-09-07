@@ -58,10 +58,10 @@ public:
     {
         char buf[12];
         buffers_suffix<
-            boost::asio::const_buffers_1> cb1{
+            boost::asio::const_buffer> cb1{
                 boost::in_place_init, buf, sizeof(buf)};
         buffers_suffix<
-            boost::asio::const_buffers_1> cb2{
+            boost::asio::const_buffer> cb2{
                 boost::in_place_init, nullptr, 0};
         cb2 = cb1;
         cb1 = std::move(cb2);
@@ -116,11 +116,11 @@ public:
     testDefaultCtor()
     {
         using namespace test;
-        class test_buffer : public boost::asio::const_buffers_1
+        class test_buffer : public boost::asio::const_buffer
         {
         public:
             test_buffer()
-                : boost::asio::const_buffers_1("\r\n", 2)
+                : boost::asio::const_buffer("\r\n", 2)
             {
             }
         };
@@ -134,11 +134,11 @@ public:
     {
         using namespace test;
         buffers_suffix<buffers_cat_view<
-            boost::asio::const_buffers_1,
-            boost::asio::const_buffers_1>> cb(
+            boost::asio::const_buffer,
+            boost::asio::const_buffer>> cb(
                 boost::in_place_init,
-                    boost::asio::const_buffers_1("\r", 1),
-                    boost::asio::const_buffers_1("\n", 1));
+                    boost::asio::const_buffer("\r", 1),
+                    boost::asio::const_buffer("\n", 1));
         BEAST_EXPECT(to_string(cb) == "\r\n");
     }
 

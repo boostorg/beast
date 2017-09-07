@@ -27,10 +27,8 @@ boost::asio::const_buffer
 buffers_prefix(std::size_t size,
     boost::asio::const_buffer buffer)
 {
-    using boost::asio::buffer_cast;
-    using boost::asio::buffer_size;
-    return {buffer_cast<void const*>(buffer),
-        (std::min)(size, buffer_size(buffer))};
+    return {buffer.data(),
+        (std::min)(size, buffer.size())};
 }
 
 inline
@@ -38,10 +36,8 @@ boost::asio::mutable_buffer
 buffers_prefix(std::size_t size,
     boost::asio::mutable_buffer buffer)
 {
-    using boost::asio::buffer_cast;
-    using boost::asio::buffer_size;
-    return {buffer_cast<void*>(buffer),
-        (std::min)(size, buffer_size(buffer))};
+    return {buffer.data(),
+        (std::min)(size, buffer.size())};
 }
 
 } // detail
@@ -138,7 +134,7 @@ private:
             std::false_type)
         : b_(&b)
         , remain_(b_->size_)
-        , it_(b_->bs_.begin())
+        , it_(boost::asio::buffer_sequence_begin(b_->bs_))
     {
     }
 };
@@ -149,7 +145,7 @@ buffers_prefix_view<BufferSequence>::
 setup(std::size_t size)
 {
     size_ = 0;
-    end_ = bs_.begin();
+    end_ = boost::asio::buffer_sequence_begin(bs_);
     auto const last = bs_.end();
     while(end_ != last)
     {
@@ -170,7 +166,8 @@ buffers_prefix_view<BufferSequence>::
 buffers_prefix_view(buffers_prefix_view&& other)
     : buffers_prefix_view(std::move(other),
         std::distance<iter_type>(
-            other.bs_.begin(), other.end_))
+            boost::asio::buffer_sequence_begin(other.bs_),
+            other.end_))
 {
 }
 
@@ -179,7 +176,8 @@ buffers_prefix_view<BufferSequence>::
 buffers_prefix_view(buffers_prefix_view const& other)
     : buffers_prefix_view(other,
         std::distance<iter_type>(
-            other.bs_.begin(), other.end_))
+            boost::asio::buffer_sequence_begin(other.bs_),
+                other.end_))
 {
 }
 
@@ -190,10 +188,13 @@ operator=(buffers_prefix_view&& other) ->
     buffers_prefix_view&
 {
     auto const dist = std::distance<iter_type>(
-        other.bs_.begin(), other.end_);
+        boost::asio::buffer_sequence_begin(other.bs_),
+        other.end_);
     bs_ = std::move(other.bs_);
     size_ = other.size_;
-    end_ = std::next(bs_.begin(), dist);
+    end_ = std::next(
+        boost::asio::buffer_sequence_begin(bs_),
+            dist);
     return *this;
 }
 
@@ -204,10 +205,13 @@ operator=(buffers_prefix_view const& other) ->
     buffers_prefix_view&
 {
     auto const dist = std::distance<iter_type>(
-        other.bs_.begin(), other.end_);
+        boost::asio::buffer_sequence_begin(other.bs_),
+        other.end_);
     bs_ = other.bs_;
     size_ = other.size_;
-    end_ = std::next(bs_.begin(), dist);
+    end_ = std::next(
+        boost::asio::buffer_sequence_begin(bs_),
+            dist);
     return *this;
 }
 

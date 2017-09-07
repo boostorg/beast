@@ -22,7 +22,7 @@ public:
     void
     testOptions()
     {
-        stream<test::stream> ws{ios_};
+        stream<test::stream> ws{ioc_};
         ws.auto_fragment(true);
         ws.write_buffer_size(2048);
         ws.binary(false);
@@ -40,7 +40,7 @@ public:
         auto const bad =
         [&](permessage_deflate const& pmd)
         {
-            stream<test::stream> ws{ios_};
+            stream<test::stream> ws{ioc_};
             try
             {
                 ws.set_option(pmd);
@@ -105,7 +105,7 @@ public:
     run() override
     {
         BOOST_STATIC_ASSERT(std::is_constructible<
-            stream<test::stream>, boost::asio::io_service&>::value);
+            stream<test::stream>, boost::asio::io_context&>::value);
 
         BOOST_STATIC_ASSERT(std::is_move_constructible<
             stream<test::stream>>::value);

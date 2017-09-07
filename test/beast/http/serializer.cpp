@@ -27,7 +27,7 @@ public:
         struct reader
         {
             using const_buffers_type =
-                boost::asio::const_buffers_1;
+                boost::asio::const_buffer;
 
             template<bool isRequest, class Fields>
             reader(message<isRequest, const_body, Fields> const&);
@@ -47,7 +47,7 @@ public:
         struct reader
         {
             using const_buffers_type =
-                boost::asio::const_buffers_1;
+                boost::asio::const_buffer;
 
             template<bool isRequest, class Fields>
             reader(message<isRequest, mutable_body, Fields>&);

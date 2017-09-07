@@ -21,14 +21,14 @@ inline
 void
 sig_wait()
 {
-    boost::asio::io_service ios;
+    boost::asio::io_context ioc;
     boost::asio::signal_set signals(
-        ios, SIGINT, SIGTERM);
+        ioc, SIGINT, SIGTERM);
     signals.async_wait(
         [&](boost::system::error_code const&, int)
         {
         });
-    ios.run();
+    ioc.run();
 }
 
 } // test

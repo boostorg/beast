@@ -24,7 +24,7 @@ namespace http {
 
 class dynamic_body_test : public beast::unit_test::suite
 {
-    boost::asio::io_service ios_;
+    boost::asio::io_context ioc_;
 
 public:
     template<bool isRequest, class Body, class Fields>
@@ -42,13 +42,11 @@ public:
     std::string
     to_string(ConstBufferSequence const& bs)
     {
-        using boost::asio::buffer_cast;
-        using boost::asio::buffer_size;
         std::string s;
-        s.reserve(buffer_size(bs));
-        for(boost::asio::const_buffer b : bs)
-            s.append(buffer_cast<char const*>(b),
-                buffer_size(b));
+        s.reserve(boost::asio::buffer_size(bs));
+        for(auto b : beast::detail::buffers_range(bs))
+            s.append(reinterpret_cast<char const*>(b.data()),
+                b.size());
         return s;
     }
 
@@ -61,7 +59,7 @@ public:
             "Content-Length: 3\r\n"
             "\r\n"
             "xyz";
-        test::stream ts(ios_, s);
+        test::stream ts(ioc_, s);
         response_parser<dynamic_body> p;
         multi_buffer b;
         read(ts, b, p);

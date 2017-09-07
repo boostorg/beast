@@ -38,7 +38,7 @@
 
 [def __asio_handler_invoke__    [@http://www.boost.org/doc/html/boost_asio/reference/asio_handler_invoke.html `asio_handler_invoke`]]
 [def __asio_handler_allocate__  [@http://www.boost.org/doc/html/boost_asio/reference/asio_handler_allocate.html `asio_handler_allocate`]]
-[def __io_service__             [@http://www.boost.org/doc/html/boost_asio/reference/io_service.html `io_service`]]
+[def __io_context__             [@http://www.boost.org/doc/html/boost_asio/reference/io_context.html `io_context`]]
 [def __socket__                 [@http://www.boost.org/doc/html/boost_asio/reference/ip__tcp/socket.html `boost::asio::ip::tcp::socket`]]
 [def __ssl_stream__             [@http://www.boost.org/doc/html/boost_asio/reference/ssl__stream.html `boost::asio::ssl::stream`]]
 [def __streambuf__              [@http://www.boost.org/doc/html/boost_asio/reference/streambuf.html `boost::asio::streambuf`]]

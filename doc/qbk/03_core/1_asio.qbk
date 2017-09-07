@@ -30,12 +30,12 @@ special meaning:
 [table Global Variables
 [[Name][Description]]
 [[
-    [@http://www.boost.org/doc/html/boost_asio/reference/io_service.html [*`ios`]]
+    [@http://www.boost.org/doc/html/boost_asio/reference/io_context.html [*`ioc`]]
 ][
     A variable of type
-    [@http://www.boost.org/doc/html/boost_asio/reference/io_service.html `boost::asio::io_service`]
-    which is running on one separate thread, and upon which a
-    [@http://www.boost.org/doc/html/boost_asio/reference/io_service__work.html `boost::asio::io_service::work`]
+    [@http://www.boost.org/doc/html/boost_asio/reference/io_context.html `boost::asio::io_context`]
+    which is running on one separate thread, and upon which an
+    [@http://www.boost.org/doc/html/boost_asio/reference/executor_work.html `boost::asio::executor_work`]
     object has been constructed.
 ]]
 [[

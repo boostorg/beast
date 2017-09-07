@@ -90,11 +90,10 @@ public:
     reference
     operator*() const
     {
-        using boost::asio::buffer_cast;
-        using boost::asio::buffer_size;
-        return value_type{buffer_cast<void const*>(*it_),
-            (ba_->out_ == ba_->bs_.end() ||
-                it_ != ba_->out_) ? buffer_size(*it_) : ba_->out_pos_} +
+        value_type const b = *it_;
+        return value_type{b.data(),
+            (ba_->out_ == boost::asio::buffer_sequence_end(ba_->bs_) ||
+                it_ != ba_->out_) ? b.size() : ba_->out_pos_} +
                     (it_ == ba_->begin_ ? ba_->in_pos_ : 0);
     }
 
@@ -233,11 +232,10 @@ public:
     reference
     operator*() const
     {
-        using boost::asio::buffer_cast;
-        using boost::asio::buffer_size;
-        return value_type{buffer_cast<void*>(*it_),
+        value_type const b = *it_;
+        return value_type{b.data(),
             it_ == std::prev(ba_->end_) ?
-                ba_->out_end_ : buffer_size(*it_)} +
+                ba_->out_end_ : b.size()} +
                     (it_ == ba_->out_ ? ba_->out_pos_ : 0);
     }
 
@@ -288,7 +286,9 @@ private:
 template<class MutableBufferSequence>
 inline
 auto
-buffers_adapter<MutableBufferSequence>::mutable_buffers_type::begin() const ->
+buffers_adapter<MutableBufferSequence>::
+mutable_buffers_type::
+begin() const ->
     const_iterator
 {
     return const_iterator{*ba_, ba_->out_};
@@ -297,7 +297,9 @@ buffers_adapter<MutableBufferSequence>::mutable_buffers_type::begin() const ->
 template<class MutableBufferSequence>
 inline
 auto
-buffers_adapter<MutableBufferSequence>::mutable_buffers_type::end() const ->
+buffers_adapter<MutableBufferSequence>::
+mutable_buffers_type::
+end() const ->
     const_iterator
 {
     return const_iterator{*ba_, ba_->end_};
@@ -309,9 +311,9 @@ template<class MutableBufferSequence>
 buffers_adapter<MutableBufferSequence>::buffers_adapter(
         buffers_adapter&& other)
     : buffers_adapter(std::move(other),
-        std::distance<iter_type>(other.bs_.begin(), other.begin_),
-        std::distance<iter_type>(other.bs_.begin(), other.out_),
-        std::distance<iter_type>(other.bs_.begin(), other.end_))
+        std::distance<iter_type>(boost::asio::buffer_sequence_begin(other.bs_), other.begin_),
+        std::distance<iter_type>(boost::asio::buffer_sequence_begin(other.bs_), other.out_),
+        std::distance<iter_type>(boost::asio::buffer_sequence_begin(other.bs_), other.end_))
 {
 }
 
@@ -319,9 +321,9 @@ template<class MutableBufferSequence>
 buffers_adapter<MutableBufferSequence>::buffers_adapter(
         buffers_adapter const& other)
     : buffers_adapter(other,
-        std::distance<iter_type>(other.bs_.begin(), other.begin_),
-        std::distance<iter_type>(other.bs_.begin(), other.out_),
-        std::distance<iter_type>(other.bs_.begin(), other.end_))
+        std::distance<iter_type>(boost::asio::buffer_sequence_begin(other.bs_), other.begin_),
+        std::distance<iter_type>(boost::asio::buffer_sequence_begin(other.bs_), other.out_),
+        std::distance<iter_type>(boost::asio::buffer_sequence_begin(other.bs_), other.end_))
 {
 }
 
@@ -331,15 +333,18 @@ buffers_adapter<MutableBufferSequence>::operator=(
     buffers_adapter&& other) -> buffers_adapter&
 {
     auto const nbegin = std::distance<iter_type>(
-        other.bs_.begin(), other.begin_);
+        boost::asio::buffer_sequence_begin(other.bs_),
+            other.begin_);
     auto const nout = std::distance<iter_type>(
-        other.bs_.begin(), other.out_);
+        boost::asio::buffer_sequence_begin(other.bs_),
+            other.out_);
     auto const nend = std::distance<iter_type>(
-        other.bs_.begin(), other.end_);
+        boost::asio::buffer_sequence_begin(other.bs_),
+            other.end_);
     bs_ = std::move(other.bs_);
-    begin_ = std::next(bs_.begin(), nbegin);
-    out_ = std::next(bs_.begin(), nout);
-    end_ = std::next(bs_.begin(), nend);
+    begin_ = std::next(boost::asio::buffer_sequence_begin(bs_), nbegin);
+    out_ =   std::next(boost::asio::buffer_sequence_begin(bs_), nout);
+    end_ =   std::next(boost::asio::buffer_sequence_begin(bs_), nend);
     max_size_ = other.max_size_;
     in_pos_ = other.in_pos_;
     in_size_ = other.in_size_;
@@ -354,15 +359,18 @@ buffers_adapter<MutableBufferSequence>::operator=(
     buffers_adapter const& other) -> buffers_adapter&
 {
     auto const nbegin = std::distance<iter_type>(
-        other.bs_.begin(), other.begin_);
+        boost::asio::buffer_sequence_begin(other.bs_),
+            other.begin_);
     auto const nout = std::distance<iter_type>(
-        other.bs_.begin(), other.out_);
+        boost::asio::buffer_sequence_begin(other.bs_),
+            other.out_);
     auto const nend = std::distance<iter_type>(
-        other.bs_.begin(), other.end_);
+        boost::asio::buffer_sequence_begin(other.bs_),
+            other.end_);
     bs_ = other.bs_;
-    begin_ = std::next(bs_.begin(), nbegin);
-    out_ = std::next(bs_.begin(), nout);
-    end_ = std::next(bs_.begin(), nend);
+    begin_ = std::next(boost::asio::buffer_sequence_begin(bs_), nbegin);
+    out_ =   std::next(boost::asio::buffer_sequence_begin(bs_), nout);
+    end_ =   std::next(boost::asio::buffer_sequence_begin(bs_), nend);
     max_size_ = other.max_size_;
     in_pos_ = other.in_pos_;
     in_size_ = other.in_size_;
@@ -375,9 +383,9 @@ template<class MutableBufferSequence>
 buffers_adapter<MutableBufferSequence>::buffers_adapter(
     MutableBufferSequence const& bs)
     : bs_(bs)
-    , begin_(bs_.begin())
-    , out_(bs_.begin())
-    , end_(bs_.begin())
+    , begin_(boost::asio::buffer_sequence_begin(bs_))
+    , out_  (boost::asio::buffer_sequence_begin(bs_))
+    , end_  (boost::asio::buffer_sequence_begin(bs_))
     , max_size_(boost::asio::buffer_size(bs_))
 {
 }
@@ -389,13 +397,14 @@ buffers_adapter<MutableBufferSequence>::prepare(std::size_t n) ->
 {
     using boost::asio::buffer_size;
     end_ = out_;
-    if(end_ != bs_.end())
+    if(end_ != boost::asio::buffer_sequence_end(bs_))
     {
         auto size = buffer_size(*end_) - out_pos_;
         if(n > size)
         {
             n -= size;
-            while(++end_ != bs_.end())
+            while(++end_ !=
+                boost::asio::buffer_sequence_end(bs_))
             {
                 size = buffer_size(*end_);
                 if(n < size)

@@ -26,7 +26,8 @@
 namespace boost {
 namespace beast {
 
-BOOST_STATIC_ASSERT(is_dynamic_buffer<multi_buffer>::value);
+BOOST_STATIC_ASSERT(
+    boost::asio::is_dynamic_buffer<multi_buffer>::value);
 
 class multi_buffer_test : public beast::unit_test::suite
 {

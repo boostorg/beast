@@ -75,7 +75,7 @@ public:
 
     public:
         using const_buffers_type =
-            boost::asio::const_buffers_1;
+            boost::asio::const_buffer;
 
         template<bool isRequest, class Fields>
         explicit

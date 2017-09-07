@@ -12,15 +12,15 @@
 
 #if BOOST_BEAST_USE_WIN32_FILE
 
-#include <boost/beast/core/async_result.hpp>
 #include <boost/beast/core/bind_handler.hpp>
 #include <boost/beast/core/type_traits.hpp>
 #include <boost/beast/core/detail/clamp.hpp>
 #include <boost/beast/http/serializer.hpp>
+#include <boost/asio/associated_allocator.hpp>
+#include <boost/asio/associated_executor.hpp>
+#include <boost/asio/async_result.hpp>
 #include <boost/asio/basic_stream_socket.hpp>
-#include <boost/asio/handler_alloc_hook.hpp>
 #include <boost/asio/handler_continuation_hook.hpp>
-#include <boost/asio/handler_invoke_hook.hpp>
 #include <boost/asio/windows/overlapped_ptr.hpp>
 #include <boost/make_unique.hpp>
 #include <boost/smart_ptr/make_shared_array.hpp>
@@ -120,7 +120,7 @@ struct basic_file_body<file_win32>
 
     public:
         using const_buffers_type =
-            boost::asio::const_buffers_1;
+            boost::asio::const_buffer;
 
         template<bool isRequest, class Fields>
         reader(message<isRequest,
@@ -189,12 +189,10 @@ struct basic_file_body<file_win32>
             error_code& ec)
         {
             std::size_t nwritten = 0;
-            for(boost::asio::const_buffer buffer : buffers)
+            for(auto buffer : beast::detail::buffers_range(buffers))
             {
                 nwritten += body_.file_.write(
-                    boost::asio::buffer_cast<void const*>(buffer),
-                    boost::asio::buffer_size(buffer),
-                    ec);
+                    buffer.data(), buffer.size(), ec);
                 if(ec)
                     return nwritten;
             }
@@ -360,6 +358,24 @@ public:
     {
     }
 
+    using allocator_type =
+        boost::asio::associated_allocator_t<Handler>;
+
+    allocator_type
+    get_allocator() const noexcept
+    {
+        return boost::asio::get_associated_allocator(h_);
+    }
+
+    using executor_type = boost::asio::associated_executor_t<
+        Handler, decltype(sock_.get_executor())>;
+
+    executor_type get_executor() const noexcept
+    {
+        return boost::asio::get_associated_executor(
+            h_, sock_.get_executor());
+    }
+
     void
     operator()();
 
@@ -369,38 +385,11 @@ public:
         std::size_t bytes_transferred = 0);
 
     friend
-    void* asio_handler_allocate(
-        std::size_t size, write_some_win32_op* op)
-    {
-        using boost::asio::asio_handler_allocate;
-        return asio_handler_allocate(
-            size, std::addressof(op->h_));
-    }
-
-    friend
-    void asio_handler_deallocate(
-        void* p, std::size_t size, write_some_win32_op* op)
-    {
-        using boost::asio::asio_handler_deallocate;
-        asio_handler_deallocate(
-            p, size, std::addressof(op->h_));
-    }
-
-    friend
     bool asio_handler_is_continuation(write_some_win32_op* op)
     {
         using boost::asio::asio_handler_is_continuation;
         return asio_handler_is_continuation(
             std::addressof(op->h_));
-    }
-
-    template<class Function>
-    friend
-    void asio_handler_invoke(Function&& f, write_some_win32_op* op)
-    {
-        using boost::asio::asio_handler_invoke;
-        asio_handler_invoke(
-            f, std::addressof(op->h_));
     }
 };
 
@@ -431,7 +420,7 @@ operator()()
                 r.body_.last_ - r.pos_, sr_.limit())),
             2147483646);
     boost::asio::windows::overlapped_ptr overlapped{
-        sock_.get_io_service(), *this};
+        sock_.get_executor().context(), *this};
     auto& ov = *overlapped.get();
     ov.Offset = lowPart(r.pos_);
     ov.OffsetHigh = highPart(r.pos_);
@@ -567,21 +556,20 @@ template<
     class Protocol,
     bool isRequest, class Fields,
     class WriteHandler>
-async_return_type<
-    WriteHandler,
-    void(error_code, std::size_t)>
+BOOST_ASIO_INITFN_RESULT_TYPE(
+    WriteHandler, void(error_code, std::size_t))
 async_write_some(
     boost::asio::basic_stream_socket<Protocol>& sock,
     serializer<isRequest,
         basic_file_body<file_win32>, Fields>& sr,
     WriteHandler&& handler)
 {
-    async_completion<WriteHandler,
+    boost::asio::async_completion<WriteHandler,
         void(error_code)> init{handler};
     detail::write_some_win32_op<
         Protocol,
-        handler_type<WriteHandler,
-            void(error_code, std::size_t)>,
+        BOOST_ASIO_HANDLER_TYPE(WriteHandler,
+            void(error_code, std::size_t)),
         isRequest, Fields>{
             init.completion_handler, sock, sr}();
     return init.result.get();

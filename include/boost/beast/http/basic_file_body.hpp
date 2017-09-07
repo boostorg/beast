@@ -143,7 +143,13 @@ public:
 
     /** Set the open file
 
-        This function is used to set the open 
+        This function is used to set the open file. Any previously
+        set file will be closed.
+
+        @param file The file to set. The file must be open or else
+        an error occurs
+
+        @param ec Set to the error, if any occurred
     */
     void
     reset(File&& file, error_code& ec);
@@ -229,7 +235,7 @@ public:
     // The type of buffer sequence returned by `get`.
     //
     using const_buffers_type =
-        boost::asio::const_buffers_1;
+        boost::asio::const_buffer;
 
     // Constructor.
     //
@@ -485,13 +491,13 @@ put(ConstBufferSequence const& buffers, error_code& ec)
 
     // Loop over all the buffers in the sequence,
     // and write each one to the file.
-    for(boost::asio::const_buffer buffer : buffers)
+    for(auto it = boost::asio::buffer_sequence_begin(buffers);
+        it != boost::asio::buffer_sequence_end(buffers); ++it)
     {
         // Write this buffer to the file
+        boost::asio::const_buffer buffer = *it;
         nwritten += body_.file_.write(
-            boost::asio::buffer_cast<void const*>(buffer),
-            boost::asio::buffer_size(buffer),
-            ec);
+            buffer.data(), buffer.size(), ec);
         if(ec)
             return nwritten;
     }

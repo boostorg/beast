@@ -97,7 +97,7 @@ private:
     std::string doc_root_;
 
     // The socket for the currently connected client.
-    tcp::socket socket_{acceptor_.get_io_service()};
+    tcp::socket socket_{acceptor_.get_executor().context()};
 
     // The buffer for performing reads
     boost::beast::flat_static_buffer<8192> buffer_;
@@ -110,7 +110,7 @@ private:
 
     // The timer putting a time limit on requests.
     boost::asio::basic_waitable_timer<std::chrono::steady_clock> request_deadline_{
-        acceptor_.get_io_service(), (std::chrono::steady_clock::time_point::max)()};
+        acceptor_.get_executor().context(), (std::chrono::steady_clock::time_point::max)()};
 
     // The string-based response message.
     boost::optional<http::response<http::string_body, http::basic_fields<alloc_t>>> string_response_;
@@ -142,7 +142,7 @@ private:
                 else
                 {
                     // Request must be fully processed within 60 seconds.
-                    request_deadline_.expires_from_now(
+                    request_deadline_.expires_after(
                         std::chrono::seconds(60));
 
                     read_request();
@@ -288,7 +288,7 @@ private:
     void check_deadline()
     {
         // The deadline may have moved, so check it has really passed.
-        if (request_deadline_.expires_at() <= std::chrono::steady_clock::now())
+        if (request_deadline_.expiry() <= std::chrono::steady_clock::now())
         {
             // Close socket to cancel any outstanding operation.
             boost::beast::error_code ec;
@@ -322,14 +322,14 @@ int main(int argc, char* argv[])
             return EXIT_FAILURE;
         }
 
-        auto address = ip::address::from_string(argv[1]);
+        auto const address = boost::asio::ip::make_address(argv[1]);
         unsigned short port = static_cast<unsigned short>(std::atoi(argv[2]));
         std::string doc_root = argv[3];
         int num_workers = std::atoi(argv[4]);
         bool spin = (std::strcmp(argv[5], "spin") == 0);
 
-        boost::asio::io_service ios{1};
-        tcp::acceptor acceptor{ios, {address, port}};
+        boost::asio::io_context ioc{1};
+        tcp::acceptor acceptor{ioc, {address, port}};
 
         std::list<http_worker> workers;
         for (int i = 0; i < num_workers; ++i)
@@ -339,9 +339,9 @@ int main(int argc, char* argv[])
         }
 
         if (spin)
-          for (;;) ios.poll();
+          for (;;) ioc.poll();
         else
-          ios.run();
+          ioc.run();
     }
     catch (const std::exception& e)
     {

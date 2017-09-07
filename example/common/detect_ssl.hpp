@@ -61,7 +61,8 @@ is_ssl_handshake(
     ConstBufferSequence const& buffers)
 {
     // Make sure buffers meets the requirements
-    static_assert(boost::beast::is_const_buffer_sequence<ConstBufferSequence>::value,
+    static_assert(
+        boost::asio::is_const_buffer_sequence<ConstBufferSequence>::value,
         "ConstBufferSequence requirements not met");
 
     // We need at least one byte to really do anything
@@ -135,7 +136,8 @@ detect_ssl(
     // Make sure arguments meet the requirements
     static_assert(beast::is_sync_read_stream<SyncReadStream>::value,
         "SyncReadStream requirements not met");
-    static_assert(beast::is_dynamic_buffer<DynamicBuffer>::value,
+    static_assert(
+        boost::asio::is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
 
     // Loop until an error occurs or we get a definitive answer
@@ -219,15 +221,15 @@ detect_ssl(
     Regardless of whether the asynchronous operation completes
     immediately or not, the handler will not be invoked from within
     this function. Invocation of the handler will be performed in a
-    manner equivalent to using `boost::asio::io_service::post`.
+    manner equivalent to using `boost::asio::io_context::post`.
 */
 template<
     class AsyncReadStream,
     class DynamicBuffer,
     class CompletionToken>
-boost::beast::async_return_type< /*< The [link beast.ref.boost__beast__async_return_type `async_return_type`] customizes the return value based on the completion token >*/
+BOOST_ASIO_INITFN_RESULT_TYPE(                      /*< `BOOST_ASIO_INITFN_RESULT_TYPE` customizes the return value based on the completion token >*/
     CompletionToken,
-    void(boost::beast::error_code, boost::tribool)> /*< This is the signature for the completion handler >*/
+    void(boost::beast::error_code, boost::tribool)) /*< This is the signature for the completion handler >*/
 async_detect_ssl(
     AsyncReadStream& stream,
     DynamicBuffer& buffer,
@@ -249,9 +251,9 @@ template<
     class AsyncReadStream,
     class DynamicBuffer,
     class CompletionToken>
-boost::beast::async_return_type<
+BOOST_ASIO_INITFN_RESULT_TYPE(
     CompletionToken,
-    void(boost::beast::error_code, boost::tribool)>
+    void(boost::beast::error_code, boost::tribool))
 async_detect_ssl(
     AsyncReadStream& stream,
     DynamicBuffer& buffer,
@@ -262,26 +264,29 @@ async_detect_ssl(
     // Make sure arguments meet the requirements
     static_assert(beast::is_async_read_stream<AsyncReadStream>::value,
         "SyncReadStream requirements not met");
-    static_assert(beast::is_dynamic_buffer<DynamicBuffer>::value,
+    static_assert(
+        boost::asio::is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
 
     // This helper manages some of the handler's lifetime and
     // uses the result and handler specializations associated with
     // the completion token to help customize the return value.
     //
-    beast::async_completion<
+    boost::asio::async_completion<
         CompletionToken, void(beast::error_code, boost::tribool)> init{token};
 
     // Create the composed operation and launch it. This is a constructor
-    // call followed by invocation of operator(). We use handler_type
+    // call followed by invocation of operator(). We use BOOST_ASIO_HANDLER_TYPE
     // to convert the completion token into the correct handler type,
     // allowing user defined specializations of the async result template
     // to take effect.
     //
-    detect_ssl_op<AsyncReadStream, DynamicBuffer, beast::handler_type<
-        CompletionToken, void(beast::error_code, boost::tribool)>>{
-            stream, buffer, init.completion_handler}(
-                beast::error_code{}, 0);
+    detect_ssl_op<
+        AsyncReadStream,
+        DynamicBuffer,
+        BOOST_ASIO_HANDLER_TYPE(
+            CompletionToken, void(beast::error_code, boost::tribool))>{
+                stream, buffer, init.completion_handler}(beast::error_code{}, 0);
 
     // This hook lets the caller see a return value when appropriate.
     // For example this might return std::future<error_code, boost::tribool> if
@@ -336,6 +341,35 @@ public:
     {
     }
 
+    // Associated allocator support. This is Asio's system for
+    // allowing the final completion handler to customize the
+    // memory allocation strategy used for composed operation
+    // states. A composed operation needs to use the same allocator
+    // as the final handler. These declarations achieve that.
+
+    using allocator_type =
+        boost::asio::associated_allocator_t<Handler>;
+
+    allocator_type
+    get_allocator() const noexcept
+    {
+        return boost::asio::get_associated_allocator(handler_);
+    }
+
+    // Executor hook. This is Asio's system for customizing the
+    // manner in which asynchronous completion handlers are invoked.
+    // A composed operation needs to use the same executor to invoke
+    // intermediate completion handlers as that used to invoke the
+    // final handler.
+
+    using executor_type = boost::asio::associated_executor_t<
+        Handler, decltype(stream_.get_executor())>;
+
+    executor_type get_executor() const noexcept
+    {
+        return boost::asio::get_associated_executor(handler_, stream_.get_executor());
+    }
+
     // Determines if the next asynchronous operation represents a
     // continuation of the asynchronous flow of control associated
     // with the final handler. If we are past step two, it means
@@ -356,34 +390,6 @@ public:
         // otherwise an unwanted overload of operator& may be called instead.
         return op->step_ > 2 ||
             asio_handler_is_continuation(std::addressof(op->handler_));
-    }
-
-    // Handler hook forwarding. These free functions invoke the hooks
-    // associated with the final completion handler. In effect, they
-    // make the Asio implementation treat our composed operation the
-    // same way it would treat the final completion handler for the
-    // purpose of memory allocation and invocation.
-    //
-    // Our implementation just passes through the call to the hook
-    // associated with the final handler.
-
-    friend void* asio_handler_allocate(std::size_t size, detect_ssl_op* op)
-    {
-        using boost::asio::asio_handler_allocate;
-        return asio_handler_allocate(size, std::addressof(op->handler_));
-    }
-
-    friend void asio_handler_deallocate(void* p, std::size_t size, detect_ssl_op* op)
-    {
-        using boost::asio::asio_handler_deallocate;
-        return asio_handler_deallocate(p, size, std::addressof(op->handler_));
-    }
-
-    template<class Function>
-    friend void asio_handler_invoke(Function&& f, detect_ssl_op* op)
-    {
-        using boost::asio::asio_handler_invoke;
-        return asio_handler_invoke(f, std::addressof(op->handler_));
     }
 
     // Our main entry point. This will get called as our
@@ -424,12 +430,13 @@ operator()(boost::beast::error_code ec, std::size_t bytes_transferred)
             // We need to invoke the handler, but the guarantee
             // is that the handler will not be called before the
             // call to async_detect_ssl returns, so we must post
-            // the operation to the io_service. The helper function
+            // the operation to the executor. The helper function
             // `bind_handler` lets us bind arguments in a safe way
             // that preserves the type customization hooks of the
             // original handler.
             step_ = 1;
-            return stream_.get_io_service().post(
+            return boost::asio::post(
+                stream_.get_executor(),
                 beast::bind_handler(std::move(*this), ec, 0));
         }
 

@@ -18,8 +18,8 @@
 #include <boost/beast/http/serializer.hpp>
 #include <boost/beast/http/detail/chunk_encode.hpp>
 #include <boost/beast/core/error.hpp>
-#include <boost/beast/core/async_result.hpp>
 #include <boost/beast/core/string.hpp>
+#include <boost/asio/async_result.hpp>
 #include <iosfwd>
 #include <limits>
 #include <memory>
@@ -158,7 +158,7 @@ write_some(
     Regardless of whether the asynchronous operation completes
     immediately or not, the handler will not be invoked from within
     this function. Invocation of the handler will be performed in a
-    manner equivalent to using `boost::asio::io_service::post`.
+    manner equivalent to using `boost::asio::io_context::post`.
 
     @see @ref serializer
 */
@@ -166,13 +166,8 @@ template<
     class AsyncWriteStream,
     bool isRequest, class Body, class Fields,
     class WriteHandler>
-#if BOOST_BEAST_DOXYGEN
-    void_or_deduced
-#else
-async_return_type<
-    WriteHandler,
-    void(error_code, std::size_t)>
-#endif
+BOOST_ASIO_INITFN_RESULT_TYPE(
+    WriteHandler, void(error_code, std::size_t))
 async_write_some(
     AsyncWriteStream& stream,
     serializer<isRequest, Body, Fields>& sr,
@@ -284,7 +279,7 @@ write_header(
     Regardless of whether the asynchronous operation completes
     immediately or not, the handler will not be invoked from within
     this function. Invocation of the handler will be performed in a
-    manner equivalent to using `boost::asio::io_service::post`.
+    manner equivalent to using `boost::asio::io_context::post`.
 
     @note The implementation will call @ref serializer::split with
     the value `true` on the serializer passed in.
@@ -295,13 +290,8 @@ template<
     class AsyncWriteStream,
     bool isRequest, class Body, class Fields,
     class WriteHandler>
-#if BOOST_BEAST_DOXYGEN
-    void_or_deduced
-#else
-async_return_type<
-    WriteHandler,
-    void(error_code, std::size_t)>
-#endif
+BOOST_ASIO_INITFN_RESULT_TYPE(
+    WriteHandler, void(error_code, std::size_t))
 async_write_header(
     AsyncWriteStream& stream,
     serializer<isRequest, Body, Fields>& sr,
@@ -407,7 +397,7 @@ write(
     Regardless of whether the asynchronous operation completes
     immediately or not, the handler will not be invoked from within
     this function. Invocation of the handler will be performed in a
-    manner equivalent to using `boost::asio::io_service::post`.
+    manner equivalent to using `boost::asio::io_context::post`.
 
     @see @ref serializer
 */
@@ -415,13 +405,8 @@ template<
     class AsyncWriteStream,
     bool isRequest, class Body, class Fields,
     class WriteHandler>
-#if BOOST_BEAST_DOXYGEN
-    void_or_deduced
-#else
-async_return_type<
-    WriteHandler,
-    void(error_code, std::size_t)>
-#endif
+BOOST_ASIO_INITFN_RESULT_TYPE(
+    WriteHandler, void(error_code, std::size_t))
 async_write(
     AsyncWriteStream& stream,
     serializer<isRequest, Body, Fields>& sr,
@@ -527,7 +512,7 @@ write(
     Regardless of whether the asynchronous operation completes
     immediately or not, the handler will not be invoked from within
     this function. Invocation of the handler will be performed in a
-    manner equivalent to using `boost::asio::io_service::post`.
+    manner equivalent to using `boost::asio::io_context::post`.
 
     @see @ref message
 */
@@ -535,9 +520,8 @@ template<
     class AsyncWriteStream,
     bool isRequest, class Body, class Fields,
     class WriteHandler>
-async_return_type<
-    WriteHandler,
-    void(error_code, std::size_t)>
+BOOST_ASIO_INITFN_RESULT_TYPE(
+    WriteHandler, void(error_code, std::size_t))
 async_write(
     AsyncWriteStream& stream,
     message<isRequest, Body, Fields>& msg,

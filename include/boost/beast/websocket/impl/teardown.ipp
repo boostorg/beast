@@ -12,9 +12,10 @@
 
 #include <boost/beast/core/bind_handler.hpp>
 #include <boost/beast/core/type_traits.hpp>
-#include <boost/asio/handler_alloc_hook.hpp>
+#include <boost/asio/associated_allocator.hpp>
+#include <boost/asio/associated_executor.hpp>
 #include <boost/asio/handler_continuation_hook.hpp>
-#include <boost/asio/handler_invoke_hook.hpp>
+#include <boost/asio/post.hpp>
 #include <memory>
 
 namespace boost {
@@ -49,28 +50,28 @@ public:
     {
     }
 
+    using allocator_type =
+        boost::asio::associated_allocator_t<Handler>;
+
+    allocator_type
+    get_allocator() const noexcept
+    {
+        return boost::asio::get_associated_allocator(h_);
+    }
+
+    using executor_type = boost::asio::associated_executor_t<
+        Handler, decltype(s_.get_executor())>;
+
+    executor_type get_executor() const noexcept
+    {
+        return boost::asio::get_associated_executor(
+            h_, s_.get_executor());
+    }
+
     void
     operator()(
         error_code ec = {},
         std::size_t bytes_transferred = 0);
-
-    friend
-    void* asio_handler_allocate(std::size_t size,
-        teardown_tcp_op* op)
-    {
-        using boost::asio::asio_handler_allocate;
-        return asio_handler_allocate(
-            size, std::addressof(op->h_));
-    }
-
-    friend
-    void asio_handler_deallocate(void* p,
-        std::size_t size, teardown_tcp_op* op)
-    {
-        using boost::asio::asio_handler_deallocate;
-        asio_handler_deallocate(
-            p, size, std::addressof(op->h_));
-    }
 
     friend
     bool asio_handler_is_continuation(teardown_tcp_op* op)
@@ -78,16 +79,6 @@ public:
         using boost::asio::asio_handler_is_continuation;
         return op->step_ >= 3 ||
             asio_handler_is_continuation(std::addressof(op->h_));
-    }
-
-    template<class Function>
-    friend
-    void asio_handler_invoke(Function&& f,
-        teardown_tcp_op* op)
-    {
-        using boost::asio::asio_handler_invoke;
-        asio_handler_invoke(
-            f, std::addressof(op->h_));
     }
 };
 
@@ -105,7 +96,8 @@ operator()(error_code ec, std::size_t)
         if(ec)
         {
             step_ = 1;
-            return s_.get_io_service().post(
+            return boost::asio::post(
+                s_.get_executor(),
                 bind_handler(std::move(*this), ec, 0));
         }
         step_ = 2;

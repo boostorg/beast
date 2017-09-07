@@ -26,20 +26,20 @@ namespace doc_http_snippets {
 
 //[http_snippet_17
 // This function returns the buffer containing the next chunk body
-boost::asio::const_buffers_1 get_next_chunk_body();
+boost::asio::const_buffer get_next_chunk_body();
 //]
 
-boost::asio::const_buffers_1 get_next_chunk_body()
+boost::asio::const_buffer get_next_chunk_body()
 {
     return {nullptr, 0};
 }
 
 void fxx() {
 
-    boost::asio::io_service ios;
-    boost::asio::io_service::work work{ios};
-    std::thread t{[&](){ ios.run(); }};
-    boost::asio::ip::tcp::socket sock{ios};
+    boost::asio::io_context ioc;
+    auto work = boost::asio::make_work_guard(ioc);
+    std::thread t{[&](){ ioc.run(); }};
+    boost::asio::ip::tcp::socket sock{ioc};
 
 {
 //[http_snippet_2
@@ -270,7 +270,7 @@ void fxx() {
         "Content-MD5: f4a5c16584f03d90\r\n"
         "Expires: never\r\n"
         "\r\n";
-    boost::asio::write(sock, make_chunk_last(boost::asio::const_buffers_1{ext.data(), ext.size()}));
+    boost::asio::write(sock, make_chunk_last(boost::asio::const_buffer{ext.data(), ext.size()}));
 //]
 }
 

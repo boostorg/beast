@@ -371,33 +371,31 @@ deflate(
     error_code& ec)
 {
     using boost::asio::buffer;
-    using boost::asio::buffer_cast;
-    using boost::asio::buffer_size;
-    BOOST_ASSERT(buffer_size(out) >= 6);
+    BOOST_ASSERT(out.size() >= 6);
     zlib::z_params zs;
     zs.avail_in = 0;
     zs.next_in = nullptr;
-    zs.avail_out = buffer_size(out);
-    zs.next_out = buffer_cast<void*>(out);
-    for(boost::asio::const_buffer in : cb)
+    zs.avail_out = out.size();
+    zs.next_out = out.data();
+    for(auto in : beast::detail::buffers_range(cb))
     {
-        zs.avail_in = buffer_size(in);
+        zs.avail_in = in.size();
         if(zs.avail_in == 0)
             continue;
-        zs.next_in = buffer_cast<void const*>(in);
+        zs.next_in = in.data();
         zo.write(zs, zlib::Flush::none, ec);
         if(ec)
         {
             if(ec != zlib::error::need_buffers)
                 return false;
             BOOST_ASSERT(zs.avail_out == 0);
-            BOOST_ASSERT(zs.total_out == buffer_size(out));
+            BOOST_ASSERT(zs.total_out == out.size());
             ec.assign(0, ec.category());
             break;
         }
         if(zs.avail_out == 0)
         {
-            BOOST_ASSERT(zs.total_out == buffer_size(out));
+            BOOST_ASSERT(zs.total_out == out.size());
             break;
         }
         BOOST_ASSERT(zs.avail_in == 0);
@@ -406,7 +404,7 @@ deflate(
     cb.consume(zs.total_in);
     if(zs.avail_out > 0 && fin)
     {
-        auto const remain = buffer_size(cb);
+        auto const remain = boost::asio::buffer_size(cb);
         if(remain == 0)
         {
             // Inspired by Mark Adler
@@ -426,15 +424,13 @@ deflate(
                 BOOST_ASSERT(! ec);
                 // remove flush marker
                 zs.total_out -= 4;
-                out = buffer(
-                    buffer_cast<void*>(out), zs.total_out);
+                out = buffer(out.data(), zs.total_out);
                 return false;
             }
         }
     }
     ec.assign(0, ec.category());
-    out = buffer(
-        buffer_cast<void*>(out), zs.total_out);
+    out = buffer(out.data(), zs.total_out);
     return true;
 }
 

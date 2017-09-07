@@ -21,6 +21,7 @@
 #include <boost/beast/http.hpp>
 #include <boost/beast/websocket.hpp>
 #include <boost/beast/version.hpp>
+#include <boost/asio/bind_executor.hpp>
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/ssl/stream.hpp>
 #include <boost/asio/strand.hpp>
@@ -235,15 +236,16 @@ class websocket_session
     boost::beast::multi_buffer buffer_;
 
 protected:
-    boost::asio::io_service::strand strand_;
+    boost::asio::strand<
+        boost::asio::io_context::executor_type> strand_;
     boost::asio::steady_timer timer_;
 
 public:
     // Construct the session
     explicit
-    websocket_session(boost::asio::io_service& ios)
-        : strand_(ios)
-        , timer_(ios,
+    websocket_session(boost::asio::io_context& ioc)
+        : strand_(ioc.get_executor())
+        , timer_(ioc,
             (std::chrono::steady_clock::time_point::max)())
     {
     }
@@ -254,15 +256,17 @@ public:
     do_accept(http::request<Body, http::basic_fields<Allocator>> req)
     {
         // Set the timer
-        timer_.expires_from_now(std::chrono::seconds(15));
+        timer_.expires_after(std::chrono::seconds(15));
 
         // Accept the websocket handshake
         derived().ws().async_accept(
             req,
-            strand_.wrap(std::bind(
-                &websocket_session::on_accept,
-                derived().shared_from_this(),
-                std::placeholders::_1)));
+            boost::asio::bind_executor(
+                strand_,
+                std::bind(
+                    &websocket_session::on_accept,
+                    derived().shared_from_this(),
+                    std::placeholders::_1)));
     }
 
     // Called when the timer expires.
@@ -273,15 +277,17 @@ public:
             return fail(ec, "timer");
 
         // Verify that the timer really expired since the deadline may have moved.
-        if(timer_.expires_at() <= std::chrono::steady_clock::now())
+        if(timer_.expiry() <= std::chrono::steady_clock::now())
             derived().do_timeout();
 
         // Wait on the timer
         timer_.async_wait(
-            strand_.wrap(std::bind(
-                &websocket_session::on_timer,
-                derived().shared_from_this(),
-                std::placeholders::_1)));
+            boost::asio::bind_executor(
+                strand_,
+                std::bind(
+                    &websocket_session::on_timer,
+                    derived().shared_from_this(),
+                    std::placeholders::_1)));
     }
 
     void
@@ -302,16 +308,18 @@ public:
     do_read()
     {
         // Set the timer
-        timer_.expires_from_now(std::chrono::seconds(15));
+        timer_.expires_after(std::chrono::seconds(15));
 
         // Read a message into our buffer
         derived().ws().async_read(
             buffer_,
-            strand_.wrap(std::bind(
-                &websocket_session::on_read,
-                derived().shared_from_this(),
-                std::placeholders::_1,
-                std::placeholders::_2)));
+            boost::asio::bind_executor(
+                strand_,
+                std::bind(
+                    &websocket_session::on_read,
+                    derived().shared_from_this(),
+                    std::placeholders::_1,
+                    std::placeholders::_2)));
     }
 
     void
@@ -336,11 +344,13 @@ public:
         derived().ws().text(derived().ws().got_text());
         derived().ws().async_write(
             buffer_.data(),
-            strand_.wrap(std::bind(
-                &websocket_session::on_write,
-                derived().shared_from_this(),
-                std::placeholders::_1,
-                std::placeholders::_2)));
+            boost::asio::bind_executor(
+                strand_,
+                std::bind(
+                    &websocket_session::on_write,
+                    derived().shared_from_this(),
+                    std::placeholders::_1,
+                    std::placeholders::_2)));
     }
 
     void
@@ -378,7 +388,7 @@ public:
     explicit
     plain_websocket_session(tcp::socket socket)
         : websocket_session<plain_websocket_session>(
-            socket.get_io_service())
+            socket.get_executor().context())
         , ws_(std::move(socket))
     {
     }
@@ -412,15 +422,17 @@ public:
         close_ = true;
 
         // Set the timer
-        timer_.expires_from_now(std::chrono::seconds(15));
+        timer_.expires_after(std::chrono::seconds(15));
 
         // Close the WebSocket Connection
         ws_.async_close(
             websocket::close_code::normal,
-            strand_.wrap(std::bind(
-                &plain_websocket_session::on_close,
-                shared_from_this(),
-                std::placeholders::_1)));
+            boost::asio::bind_executor(
+                strand_,
+                std::bind(
+                    &plain_websocket_session::on_close,
+                    shared_from_this(),
+                    std::placeholders::_1)));
     }
 
     void
@@ -443,7 +455,8 @@ class ssl_websocket_session
     , public std::enable_shared_from_this<ssl_websocket_session>
 {
     websocket::stream<ssl_stream<tcp::socket>> ws_;
-    boost::asio::io_service::strand strand_;
+    boost::asio::strand<
+        boost::asio::io_context::executor_type> strand_;
     bool eof_ = false;
 
 public:
@@ -451,9 +464,9 @@ public:
     explicit
     ssl_websocket_session(ssl_stream<tcp::socket> stream)
         : websocket_session<ssl_websocket_session>(
-            stream.get_io_service())
+            stream.get_executor().context())
         , ws_(std::move(stream))
-        , strand_(ws_.get_io_service())
+        , strand_(ws_.get_executor())
     {
     }
 
@@ -483,14 +496,16 @@ public:
         eof_ = true;
 
         // Set the timer
-        timer_.expires_from_now(std::chrono::seconds(15));
+        timer_.expires_after(std::chrono::seconds(15));
 
         // Perform the SSL shutdown
         ws_.next_layer().async_shutdown(
-            strand_.wrap(std::bind(
-                &ssl_websocket_session::on_shutdown,
-                shared_from_this(),
-                std::placeholders::_1)));
+            boost::asio::bind_executor(
+                strand_,
+                std::bind(
+                    &ssl_websocket_session::on_shutdown,
+                    shared_from_this(),
+                    std::placeholders::_1)));
     }
 
     void
@@ -630,10 +645,12 @@ class http_session
                     http::async_write(
                         self_.derived().stream(),
                         msg_,
-                        self_.strand_.wrap(std::bind(
-                            &http_session::on_write,
-                            self_.derived().shared_from_this(),
-                            std::placeholders::_1)));
+                        boost::asio::bind_executor(
+                            self_.strand_,
+                            std::bind(
+                                &http_session::on_write,
+                                self_.derived().shared_from_this(),
+                                std::placeholders::_1)));
                 }
             };
 
@@ -652,20 +669,21 @@ class http_session
 
 protected:
     boost::asio::steady_timer timer_;
-    boost::asio::io_service::strand strand_;
+    boost::asio::strand<
+        boost::asio::io_context::executor_type> strand_;
     boost::beast::flat_buffer buffer_;
 
 public:
     // Construct the session
     http_session(
-        boost::asio::io_service& ios,
+        boost::asio::io_context& ioc,
         boost::beast::flat_buffer buffer,
         std::string const& doc_root)
         : doc_root_(doc_root)
         , queue_(*this)
-        , timer_(ios,
+        , timer_(ioc,
             (std::chrono::steady_clock::time_point::max)())
-        , strand_(ios)
+        , strand_(ioc.get_executor())
         , buffer_(std::move(buffer))
     {
     }
@@ -674,17 +692,19 @@ public:
     do_read()
     {
         // Set the timer
-        timer_.expires_from_now(std::chrono::seconds(15));
+        timer_.expires_after(std::chrono::seconds(15));
 
         // Read a request
         http::async_read(
             derived().stream(),
             buffer_,
             req_,
-            strand_.wrap(std::bind(
-                &http_session::on_read,
-                derived().shared_from_this(),
-                std::placeholders::_1)));
+            boost::asio::bind_executor(
+                strand_,
+                std::bind(
+                    &http_session::on_read,
+                    derived().shared_from_this(),
+                    std::placeholders::_1)));
     }
 
     // Called when the timer expires.
@@ -695,15 +715,17 @@ public:
             return fail(ec, "timer");
 
         // Verify that the timer really expired since the deadline may have moved.
-        if(timer_.expires_at() <= std::chrono::steady_clock::now())
+        if(timer_.expiry() <= std::chrono::steady_clock::now())
             return derived().do_timeout();
 
         // Wait on the timer
         timer_.async_wait(
-            strand_.wrap(std::bind(
-                &http_session::on_timer,
-                derived().shared_from_this(),
-                std::placeholders::_1)));
+            boost::asio::bind_executor(
+                strand_,
+                std::bind(
+                    &http_session::on_timer,
+                    derived().shared_from_this(),
+                    std::placeholders::_1)));
     }
 
     void
@@ -769,7 +791,8 @@ class plain_http_session
     , public std::enable_shared_from_this<plain_http_session>
 {
     tcp::socket socket_;
-    boost::asio::io_service::strand strand_;
+    boost::asio::strand<
+        boost::asio::io_context::executor_type> strand_;
 
 public:
     // Create the http_session
@@ -778,11 +801,11 @@ public:
         boost::beast::flat_buffer buffer,
         std::string const& doc_root)
         : http_session<plain_http_session>(
-            socket.get_io_service(),
+            socket.get_executor().context(),
             std::move(buffer),
             doc_root)
         , socket_(std::move(socket))
-        , strand_(socket_.get_io_service())
+        , strand_(socket_.get_executor())
     {
     }
 
@@ -838,7 +861,8 @@ class ssl_http_session
     , public std::enable_shared_from_this<ssl_http_session>
 {
     ssl_stream<tcp::socket> stream_;
-    boost::asio::io_service::strand strand_;
+    boost::asio::strand<
+        boost::asio::io_context::executor_type> strand_;
     bool eof_ = false;
 
 public:
@@ -849,11 +873,11 @@ public:
         boost::beast::flat_buffer buffer,
         std::string const& doc_root)
         : http_session<ssl_http_session>(
-            socket.get_io_service(),
+            socket.get_executor().context(),
             std::move(buffer),
             doc_root)
         , stream_(std::move(socket), ctx)
-        , strand_(stream_.get_io_service())
+        , strand_(stream_.get_executor())
     {
     }
 
@@ -880,18 +904,20 @@ public:
         on_timer({});
 
         // Set the timer
-        timer_.expires_from_now(std::chrono::seconds(15));
+        timer_.expires_after(std::chrono::seconds(15));
 
         // Perform the SSL handshake
         // Note, this is the buffered version of the handshake.
         stream_.async_handshake(
             ssl::stream_base::server,
             buffer_.data(),
-            strand_.wrap(std::bind(
-                &ssl_http_session::on_handshake,
-                shared_from_this(),
-                std::placeholders::_1,
-                std::placeholders::_2)));
+            boost::asio::bind_executor(
+                strand_,
+                std::bind(
+                    &ssl_http_session::on_handshake,
+                    shared_from_this(),
+                    std::placeholders::_1,
+                    std::placeholders::_2)));
     }
     void
     on_handshake(
@@ -917,14 +943,16 @@ public:
         eof_ = true;
 
         // Set the timer
-        timer_.expires_from_now(std::chrono::seconds(15));
+        timer_.expires_after(std::chrono::seconds(15));
 
         // Perform the SSL shutdown
         stream_.async_shutdown(
-            strand_.wrap(std::bind(
-                &ssl_http_session::on_shutdown,
-                shared_from_this(),
-                std::placeholders::_1)));
+            boost::asio::bind_executor(
+                strand_,
+                std::bind(
+                    &ssl_http_session::on_shutdown,
+                    shared_from_this(),
+                    std::placeholders::_1)));
     }
 
     void
@@ -962,7 +990,8 @@ class detect_session : public std::enable_shared_from_this<detect_session>
 {
     tcp::socket socket_;
     ssl::context& ctx_;
-    boost::asio::io_service::strand strand_;
+    boost::asio::strand<
+        boost::asio::io_context::executor_type> strand_;
     std::string const& doc_root_;
     boost::beast::flat_buffer buffer_;
 
@@ -974,7 +1003,7 @@ public:
         std::string const& doc_root)
         : socket_(std::move(socket))
         , ctx_(ctx)
-        , strand_(socket_.get_io_service())
+        , strand_(socket_.get_executor())
         , doc_root_(doc_root)
     {
     }
@@ -986,11 +1015,13 @@ public:
         async_detect_ssl(
             socket_,
             buffer_,
-            strand_.wrap(std::bind(
-                &detect_session::on_detect,
-                shared_from_this(),
-                std::placeholders::_1,
-                std::placeholders::_2)));
+            boost::asio::bind_executor(
+                strand_,
+                std::bind(
+                    &detect_session::on_detect,
+                    shared_from_this(),
+                    std::placeholders::_1,
+                    std::placeholders::_2)));
 
     }
 
@@ -1029,13 +1060,13 @@ class listener : public std::enable_shared_from_this<listener>
 
 public:
     listener(
-        boost::asio::io_service& ios,
+        boost::asio::io_context& ioc,
         ssl::context& ctx,
         tcp::endpoint endpoint,
         std::string const& doc_root)
         : ctx_(ctx)
-        , acceptor_(ios)
-        , socket_(ios)
+        , acceptor_(ioc)
+        , socket_(ioc)
         , doc_root_(doc_root)
     {
         boost::system::error_code ec;
@@ -1058,7 +1089,7 @@ public:
 
         // Start listening for connections
         acceptor_.listen(
-            boost::asio::socket_base::max_connections, ec);
+            boost::asio::socket_base::max_listen_connections, ec);
         if(ec)
         {
             fail(ec, "listen");
@@ -1120,13 +1151,13 @@ int main(int argc, char* argv[])
             "    advanced-server-flex 0.0.0.0 8080 . 1\n";
         return EXIT_FAILURE;
     }
-    auto const address = boost::asio::ip::address::from_string(argv[1]);
+    auto const address = boost::asio::ip::make_address(argv[1]);
     auto const port = static_cast<unsigned short>(std::atoi(argv[2]));
     std::string const doc_root = argv[3];
-    auto const threads = std::max<std::size_t>(1, std::atoi(argv[4]));
+    auto const threads = std::max<int>(1, std::atoi(argv[4]));
 
-    // The io_service is required for all I/O
-    boost::asio::io_service ios{threads};
+    // The io_context is required for all I/O
+    boost::asio::io_context ioc{threads};
 
     // The SSL context is required, and holds certificates
     ssl::context ctx{ssl::context::sslv23};
@@ -1136,7 +1167,7 @@ int main(int argc, char* argv[])
 
     // Create and launch a listening port
     std::make_shared<listener>(
-        ios,
+        ioc,
         ctx,
         tcp::endpoint{address, port},
         doc_root)->run();
@@ -1146,11 +1177,11 @@ int main(int argc, char* argv[])
     v.reserve(threads - 1);
     for(auto i = threads - 1; i > 0; --i)
         v.emplace_back(
-        [&ios]
+        [&ioc]
         {
-            ios.run();
+            ioc.run();
         });
-    ios.run();
+    ioc.run();
 
     return EXIT_SUCCESS;
 }

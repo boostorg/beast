@@ -106,7 +106,7 @@ class chunk_header
 {
     using view_type = buffers_cat_view<
         detail::chunk_size,             // chunk-size
-        boost::asio::const_buffers_1,   // chunk-extensions
+        boost::asio::const_buffer,   // chunk-extensions
         chunk_crlf>;                    // CRLF
 
     std::shared_ptr<
@@ -285,7 +285,7 @@ class chunk_body
 {
     using view_type = buffers_cat_view<
         detail::chunk_size,             // chunk-size
-        boost::asio::const_buffers_1,   // chunk-extensions
+        boost::asio::const_buffer,   // chunk-extensions
         chunk_crlf,                     // CRLF
         ConstBufferSequence,            // chunk-body
         chunk_crlf>;                    // CRLF
@@ -459,7 +459,7 @@ class chunk_last
 {
     static_assert(
         is_fields<Trailer>::value ||
-        is_const_buffer_sequence<Trailer>::value,
+        boost::asio::is_const_buffer_sequence<Trailer>::value,
         "Trailer requirements not met");
 
     using buffers_type = typename

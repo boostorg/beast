@@ -166,12 +166,12 @@ next(error_code& ec, Visit&& visit)
                 boost::in_place_init,
                 frd_->get(),
                 buffer_size(result->first),
-                boost::asio::const_buffers_1{nullptr, 0},
+                boost::asio::const_buffer{nullptr, 0},
                 chunk_crlf{},
                 result->first,
                 chunk_crlf{},
                 detail::chunk_last(),
-                boost::asio::const_buffers_1{nullptr, 0},
+                boost::asio::const_buffer{nullptr, 0},
                 chunk_crlf{});
             goto go_all_c;
         }
@@ -179,7 +179,7 @@ next(error_code& ec, Visit&& visit)
             boost::in_place_init,
             frd_->get(),
             buffer_size(result->first),
-            boost::asio::const_buffers_1{nullptr, 0},
+            boost::asio::const_buffer{nullptr, 0},
             chunk_crlf{},
             result->first,
             chunk_crlf{});
@@ -216,19 +216,19 @@ next(error_code& ec, Visit&& visit)
             v_.template emplace<6>(
                 boost::in_place_init,
                 buffer_size(result->first),
-                boost::asio::const_buffers_1{nullptr, 0},
+                boost::asio::const_buffer{nullptr, 0},
                 chunk_crlf{},
                 result->first,
                 chunk_crlf{},
                 detail::chunk_last(),
-                boost::asio::const_buffers_1{nullptr, 0},
+                boost::asio::const_buffer{nullptr, 0},
                 chunk_crlf{});
             goto go_body_final_c;
         }
         v_.template emplace<5>(
             boost::in_place_init,
             buffer_size(result->first),
-            boost::asio::const_buffers_1{nullptr, 0},
+            boost::asio::const_buffer{nullptr, 0},
             chunk_crlf{},
             result->first,
             chunk_crlf{});
@@ -257,7 +257,7 @@ next(error_code& ec, Visit&& visit)
         v_.template emplace<8>(
             boost::in_place_init,
             detail::chunk_last(),
-            boost::asio::const_buffers_1{nullptr, 0},
+            boost::asio::const_buffer{nullptr, 0},
             chunk_crlf{});
         s_ = do_final_c + 1;
         BOOST_BEAST_FALLTHROUGH;

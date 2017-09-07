@@ -122,7 +122,7 @@ through the __asio_handler_invoke__ mechanism.
 
 The only requirement in Beast is that calls to asynchronous initiation
 functions are made from the same implicit or explicit strand. For
-example, if the `io_service` associated with a `beast::websocket::stream`
+example, if the `io_context` associated with a `beast::websocket::stream`
 is single threaded, this counts as an implicit strand and no performance
 costs associated with mutexes are incurred.
 

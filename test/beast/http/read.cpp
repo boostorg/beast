@@ -48,7 +48,7 @@ public:
             b.commit(buffer_copy(
                 b.prepare(len), buffer(s, len)));
             test::fail_counter fc(n);
-            test::stream ts{ios_, fc};
+            test::stream ts{ioc_, fc};
             test_parser<isRequest> p(fc);
             error_code ec = test::error::fail_error;
             ts.close_remote();
@@ -64,7 +64,7 @@ public:
             b.commit(buffer_copy(
                 b.prepare(pre), buffer(s, pre)));
             test::fail_counter fc(n);
-            test::stream ts{ios_, fc,
+            test::stream ts{ioc_, fc,
                 std::string(s + pre, len - pre)};
             test_parser<isRequest> p(fc);
             error_code ec = test::error::fail_error;
@@ -80,7 +80,7 @@ public:
             b.commit(buffer_copy(
                 b.prepare(len), buffer(s, len)));
             test::fail_counter fc(n);
-            test::stream ts{ios_, fc};
+            test::stream ts{ioc_, fc};
             test_parser<isRequest> p(fc);
             error_code ec = test::error::fail_error;
             ts.close_remote();
@@ -95,7 +95,7 @@ public:
             b.commit(buffer_copy(
                 b.prepare(len), buffer(s, len)));
             test::fail_counter fc(n);
-            test::stream ts{ios_, fc};
+            test::stream ts{ioc_, fc};
             test_parser<isRequest> p(fc);
             error_code ec = test::error::fail_error;
             ts.close_remote();
@@ -111,7 +111,7 @@ public:
             b.commit(buffer_copy(
                 b.prepare(pre), buffer(s, pre)));
             test::fail_counter fc(n);
-            test::stream ts(ios_, fc,
+            test::stream ts(ioc_, fc,
                 std::string{s + pre, len - pre});
             test_parser<isRequest> p(fc);
             error_code ec = test::error::fail_error;
@@ -128,7 +128,7 @@ public:
         try
         {
             multi_buffer b;
-            test::stream c{ios_, "GET / X"};
+            test::stream c{ioc_, "GET / X"};
             c.close_remote();
             request_parser<dynamic_body> p;
             read(c, b, p);
@@ -144,7 +144,7 @@ public:
     testBufferOverflow()
     {
         {
-            test::stream c{ios_};
+            test::stream c{ioc_};
             ostream(c.buffer()) <<
                 "GET / HTTP/1.1\r\n"
                 "Host: localhost\r\n"
@@ -167,7 +167,7 @@ public:
             }
         }
         {
-            test::stream c{ios_};
+            test::stream c{ioc_};
             ostream(c.buffer()) <<
                 "GET / HTTP/1.1\r\n"
                 "Host: localhost\r\n"
@@ -254,7 +254,7 @@ public:
         for(n = 0; n < limit; ++n)
         {
             test::fail_counter fc{n};
-            test::stream c{ios_, fc,
+            test::stream c{ioc_, fc,
                 "GET / HTTP/1.1\r\n"
                 "Host: localhost\r\n"
                 "User-Agent: test\r\n"
@@ -277,7 +277,7 @@ public:
         for(n = 0; n < limit; ++n)
         {
             test::fail_counter fc{n};
-            test::stream ts{ios_, fc,
+            test::stream ts{ioc_, fc,
                 "GET / HTTP/1.1\r\n"
                 "Host: localhost\r\n"
                 "User-Agent: test\r\n"
@@ -296,7 +296,7 @@ public:
         for(n = 0; n < limit; ++n)
         {
             test::fail_counter fc{n};
-            test::stream c{ios_, fc,
+            test::stream c{ioc_, fc,
                 "GET / HTTP/1.1\r\n"
                 "Host: localhost\r\n"
                 "User-Agent: test\r\n"
@@ -318,7 +318,7 @@ public:
     {
         {
             multi_buffer b;
-            test::stream ts{ios_};
+            test::stream ts{ioc_};
             request_parser<dynamic_body> p;
             error_code ec;
             ts.close_remote();
@@ -327,7 +327,7 @@ public:
         }
         {
             multi_buffer b;
-            test::stream ts{ios_};
+            test::stream ts{ioc_};
             request_parser<dynamic_body> p;
             error_code ec;
             ts.close_remote();
@@ -352,28 +352,28 @@ public:
     {
         {
             // Make sure handlers are not destroyed
-            // after calling io_service::stop
-            boost::asio::io_service ios;
-            test::stream ts{ios,
+            // after calling io_context::stop
+            boost::asio::io_context ioc;
+            test::stream ts{ioc,
                 "GET / HTTP/1.1\r\n\r\n"};
             BEAST_EXPECT(handler::count() == 0);
             multi_buffer b;
             request<dynamic_body> m;
             async_read(ts, b, m, handler{});
             BEAST_EXPECT(handler::count() > 0);
-            ios.stop();
+            ioc.stop();
             BEAST_EXPECT(handler::count() > 0);
-            ios.reset();
+            ioc.restart();
             BEAST_EXPECT(handler::count() > 0);
-            ios.run_one();
+            ioc.run_one();
             BEAST_EXPECT(handler::count() == 0);
         }
         {
             // Make sure uninvoked handlers are
-            // destroyed when calling ~io_service
+            // destroyed when calling ~io_context
             {
-                boost::asio::io_service ios;
-                test::stream ts{ios,
+                boost::asio::io_context ioc;
+                test::stream ts{ioc,
                     "GET / HTTP/1.1\r\n\r\n"};
                 BEAST_EXPECT(handler::count() == 0);
                 multi_buffer b;
@@ -389,7 +389,7 @@ public:
     void
     testRegression430()
     {
-        test::stream ts{ios_};
+        test::stream ts{ioc_};
         ts.read_size(1);
         ostream(ts.buffer()) <<
           "HTTP/1.1 200 OK\r\n"
@@ -417,7 +417,7 @@ public:
             Parser p;
             error_code ec = test::error::fail_error;
             flat_buffer b;
-            test::stream ts{ios_};
+            test::stream ts{ioc_};
             ostream(ts.buffer()) << s;
             ts.read_size(n);
             read(ts, b, p, ec);

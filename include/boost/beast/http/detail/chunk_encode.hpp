@@ -25,7 +25,7 @@ namespace detail {
 struct chunk_extensions
 {
     virtual ~chunk_extensions() = default;
-    virtual boost::asio::const_buffers_1 str() = 0;
+    virtual boost::asio::const_buffer str() = 0;
 };
     
 template<class ChunkExtensions>
@@ -43,7 +43,7 @@ struct chunk_extensions_impl : chunk_extensions
     {
     }
 
-    boost::asio::const_buffers_1
+    boost::asio::const_buffer
     str() override
     {
         auto const s = ext_.str();
@@ -151,7 +151,7 @@ prepare(std::size_t n)
 
 /// Returns a buffer sequence holding a CRLF for chunk encoding
 inline
-boost::asio::const_buffers_1
+boost::asio::const_buffer
 chunk_crlf()
 {
     return {"\r\n", 2};
@@ -159,7 +159,7 @@ chunk_crlf()
 
 /// Returns a buffer sequence holding a final chunk header
 inline
-boost::asio::const_buffers_1
+boost::asio::const_buffer
 chunk_last()
 {
     return {"0\r\n", 3};

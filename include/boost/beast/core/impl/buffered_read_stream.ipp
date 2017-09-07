@@ -16,9 +16,10 @@
 #include <boost/beast/core/read_size.hpp>
 #include <boost/beast/core/type_traits.hpp>
 #include <boost/beast/core/detail/config.hpp>
-#include <boost/asio/handler_alloc_hook.hpp>
+#include <boost/asio/associated_allocator.hpp>
+#include <boost/asio/associated_executor.hpp>
 #include <boost/asio/handler_continuation_hook.hpp>
-#include <boost/asio/handler_invoke_hook.hpp>
+#include <boost/asio/post.hpp>
 #include <boost/throw_exception.hpp>
 
 namespace boost {
@@ -48,27 +49,27 @@ public:
     {
     }
 
+    using allocator_type =
+        boost::asio::associated_allocator_t<Handler>;
+
+    allocator_type
+    get_allocator() const noexcept
+    {
+        return boost::asio::get_associated_allocator(h_);
+    }
+
+    using executor_type = boost::asio::associated_executor_t<
+        Handler, decltype(s_.get_executor())>;
+
+    executor_type get_executor() const noexcept
+    {
+        return boost::asio::get_associated_executor(
+            h_, s_.get_executor());
+    }
+
     void
     operator()(error_code const& ec,
         std::size_t bytes_transferred);
-
-    friend
-    void* asio_handler_allocate(
-        std::size_t size, read_some_op* op)
-    {
-        using boost::asio::asio_handler_allocate;
-        return asio_handler_allocate(
-            size, std::addressof(op->h_));
-    }
-
-    friend
-    void asio_handler_deallocate(
-        void* p, std::size_t size, read_some_op* op)
-    {
-        using boost::asio::asio_handler_deallocate;
-        asio_handler_deallocate(
-            p, size, std::addressof(op->h_));
-    }
 
     friend
     bool asio_handler_is_continuation(read_some_op* op)
@@ -76,14 +77,6 @@ public:
         using boost::asio::asio_handler_is_continuation;
         return asio_handler_is_continuation(
             std::addressof(op->h_));
-    }
-
-    template<class Function>
-    friend
-    void asio_handler_invoke(Function&& f, read_some_op* op)
-    {
-        using boost::asio::asio_handler_invoke;
-        asio_handler_invoke(f, std::addressof(op->h_));
     }
 };
 
@@ -116,9 +109,9 @@ read_some_op<MutableBufferSequence, Handler>::operator()(
 
         }
         step_ = 3;
-        s_.get_io_service().post(
+        return boost::asio::post(
+            s_.get_executor(),
             bind_handler(std::move(*this), ec, 0));
-        return;
 
     case 1:
         // upcall
@@ -153,11 +146,11 @@ auto
 buffered_read_stream<Stream, DynamicBuffer>::
 async_write_some(ConstBufferSequence const& buffers,
         WriteHandler&& handler) ->
-    async_return_type<WriteHandler, void(error_code)>
+    BOOST_ASIO_INITFN_RESULT_TYPE(WriteHandler, void(error_code))
 {
     static_assert(is_async_write_stream<next_layer_type>::value,
         "AsyncWriteStream requirements not met");
-    static_assert(is_const_buffer_sequence<
+    static_assert(boost::asio::is_const_buffer_sequence<
         ConstBufferSequence>::value,
             "ConstBufferSequence requirements not met");
     static_assert(is_completion_handler<WriteHandler,
@@ -176,7 +169,7 @@ read_some(
 {
     static_assert(is_sync_read_stream<next_layer_type>::value,
         "SyncReadStream requirements not met");
-    static_assert(is_mutable_buffer_sequence<
+    static_assert(boost::asio::is_mutable_buffer_sequence<
         MutableBufferSequence>::value,
             "MutableBufferSequence requirements not met");
     error_code ec;
@@ -195,7 +188,7 @@ read_some(MutableBufferSequence const& buffers,
 {
     static_assert(is_sync_read_stream<next_layer_type>::value,
         "SyncReadStream requirements not met");
-    static_assert(is_mutable_buffer_sequence<
+    static_assert(boost::asio::is_mutable_buffer_sequence<
         MutableBufferSequence>::value,
             "MutableBufferSequence requirements not met");
     using boost::asio::buffer_size;
@@ -226,20 +219,20 @@ auto
 buffered_read_stream<Stream, DynamicBuffer>::
 async_read_some(MutableBufferSequence const& buffers,
         ReadHandler&& handler) ->
-    async_return_type<ReadHandler, void(error_code)>
+    BOOST_ASIO_INITFN_RESULT_TYPE(ReadHandler, void(error_code))
 {
     static_assert(is_async_read_stream<next_layer_type>::value,
-        "Stream requirements not met");
-    static_assert(is_mutable_buffer_sequence<
+        "AsyncReadStream requirements not met");
+    static_assert(boost::asio::is_mutable_buffer_sequence<
         MutableBufferSequence>::value,
             "MutableBufferSequence requirements not met");
     if(buffer_.size() == 0 && capacity_ == 0)
         return next_layer_.async_read_some(buffers,
             std::forward<ReadHandler>(handler));
-    async_completion<ReadHandler,
+    boost::asio::async_completion<ReadHandler,
         void(error_code, std::size_t)> init{handler};
-    read_some_op<MutableBufferSequence, handler_type<
-        ReadHandler, void(error_code, std::size_t)>>{
+    read_some_op<MutableBufferSequence, BOOST_ASIO_HANDLER_TYPE(
+        ReadHandler, void(error_code, std::size_t))>{
             init.completion_handler, *this, buffers}(
                 error_code{}, 0);
     return init.result.get();

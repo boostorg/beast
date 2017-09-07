@@ -80,7 +80,7 @@ public:
 
     public:
         using const_buffers_type =
-            boost::asio::const_buffers_1;
+            boost::asio::const_buffer;
 
         template<bool isRequest, class Fields>
         explicit
@@ -172,13 +172,11 @@ public:
             }
             ec.assign(0, ec.category());
             CharT* dest = &body_[size];
-            for(boost::asio::const_buffer b : buffers)
+            for(auto b : beast::detail::buffers_range(buffers))
             {
-                using boost::asio::buffer_cast;
-                auto const len = boost::asio::buffer_size(b);
-                Traits::copy(
-                    dest, buffer_cast<CharT const*>(b), len);
-                dest += len;
+                Traits::copy(dest, reinterpret_cast<
+                    CharT const*>(b.data()), b.size());
+                dest += b.size();
             }
             return extra;
         }

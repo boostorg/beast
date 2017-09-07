@@ -12,11 +12,11 @@
 
 #include <boost/beast/core/detail/config.hpp>
 #include <boost/beast/core/detail/in_place_init.hpp>
+#include <boost/beast/core/detail/type_traits.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/optional.hpp>
 #include <cstdint>
 #include <iterator>
-#include <type_traits>
 #include <utility>
 
 namespace boost {
@@ -57,8 +57,8 @@ class buffers_suffix
     using buffers_type =
         typename std::decay<BufferSequence>::type;
 
-    using iter_type =
-        typename buffers_type::const_iterator;
+    using iter_type = typename
+        detail::buffer_sequence_iterator<buffers_type>::type;
 
     BufferSequence bs_;
     iter_type begin_;
@@ -67,7 +67,9 @@ class buffers_suffix
     template<class Deduced>
     buffers_suffix(Deduced&& other, std::size_t dist)
         : bs_(std::forward<Deduced>(other).bs_)
-        , begin_(std::next(bs_.begin(), dist))
+        , begin_(std::next(
+            boost::asio::buffer_sequence_begin(bs_),
+                dist))
         , skip_(other.skip_)
     {
     }

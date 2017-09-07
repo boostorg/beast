@@ -174,9 +174,6 @@
         <entry valign="top">
           <bridgehead renderas="sect3">Classes</bridgehead>
           <simplelist type="vert" columns="1">
-            <member><link linkend="beast.ref.boost__beast__async_completion">async_completion</link></member>
-            <member><link linkend="beast.ref.boost__beast__async_result">async_result</link></member>
-            <member><link linkend="beast.ref.boost__beast__async_return_type">async_return_type</link></member>
             <member><link linkend="beast.ref.boost__beast__basic_flat_buffer">basic_flat_buffer</link></member>
             <member><link linkend="beast.ref.boost__beast__basic_multi_buffer">basic_multi_buffer</link></member>
             <member><link linkend="beast.ref.boost__beast__buffered_read_stream">buffered_read_stream</link></member>
@@ -197,9 +194,7 @@
             <member><link linkend="beast.ref.boost__beast__flat_buffer">flat_buffer</link></member>
             <member><link linkend="beast.ref.boost__beast__flat_static_buffer">flat_static_buffer</link></member>
             <member><link linkend="beast.ref.boost__beast__flat_static_buffer_base">flat_static_buffer_base</link></member>
-            <member><link linkend="beast.ref.boost__beast__handler_alloc">handler_alloc</link></member>
             <member><link linkend="beast.ref.boost__beast__handler_ptr">handler_ptr</link></member>
-            <member><link linkend="beast.ref.boost__beast__handler_type">handler_type</link></member>
             <member><link linkend="beast.ref.boost__beast__iequal">iequal</link></member>
             <member><link linkend="beast.ref.boost__beast__iless">iless</link></member>
             <member><link linkend="beast.ref.boost__beast__multi_buffer">multi_buffer</link></member>
@@ -236,15 +231,12 @@
           <bridgehead renderas="sect3">Type Traits</bridgehead>
           <simplelist type="vert" columns="1">
             <member><link linkend="beast.ref.boost__beast__get_lowest_layer">get_lowest_layer</link></member>
-            <member><link linkend="beast.ref.boost__beast__has_get_io_service">has_get_io_service</link></member>
+            <member><link linkend="beast.ref.boost__beast__has_get_executor">has_get_executor</link></member>
             <member><link linkend="beast.ref.boost__beast__is_async_read_stream">is_async_read_stream</link></member>
             <member><link linkend="beast.ref.boost__beast__is_async_write_stream">is_async_write_stream</link></member>
             <member><link linkend="beast.ref.boost__beast__is_async_stream">is_async_stream</link></member>
             <member><link linkend="beast.ref.boost__beast__is_completion_handler">is_completion_handler</link></member>
-            <member><link linkend="beast.ref.boost__beast__is_const_buffer_sequence">is_const_buffer_sequence</link></member>
-            <member><link linkend="beast.ref.boost__beast__is_dynamic_buffer">is_dynamic_buffer</link></member>
             <member><link linkend="beast.ref.boost__beast__is_file">is_file</link></member>
-            <member><link linkend="beast.ref.boost__beast__is_mutable_buffer_sequence">is_mutable_buffer_sequence</link></member>
             <member><link linkend="beast.ref.boost__beast__is_sync_read_stream">is_sync_read_stream</link></member>
             <member><link linkend="beast.ref.boost__beast__is_sync_stream">is_sync_stream</link></member>
             <member><link linkend="beast.ref.boost__beast__is_sync_write_stream">is_sync_write_stream</link></member>

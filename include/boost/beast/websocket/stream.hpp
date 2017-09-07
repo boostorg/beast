@@ -21,7 +21,6 @@
 #include <boost/beast/websocket/detail/pausation.hpp>
 #include <boost/beast/websocket/detail/pmd_extension.hpp>
 #include <boost/beast/websocket/detail/utf8_checker.hpp>
-#include <boost/beast/core/async_result.hpp>
 #include <boost/beast/core/static_buffer.hpp>
 #include <boost/beast/core/string.hpp>
 #include <boost/beast/core/detail/type_traits.hpp>
@@ -31,12 +30,15 @@
 #include <boost/beast/http/detail/type_traits.hpp>
 #include <boost/beast/zlib/deflate_stream.hpp>
 #include <boost/beast/zlib/inflate_stream.hpp>
+#include <boost/asio/async_result.hpp>
 #include <boost/asio/error.hpp>
 #include <algorithm>
 #include <cstdint>
 #include <functional>
 #include <limits>
 #include <type_traits>
+
+#include <boost/asio/io_context.hpp> // DEPRECATED
 
 namespace boost {
 namespace beast {
@@ -91,11 +93,11 @@ enum class frame_type
     you would write:
 
     @code
-    websocket::stream<ip::tcp::socket> ws{io_service};
+    websocket::stream<ip::tcp::socket> ws{io_context};
     @endcode
     Alternatively, you can write:
     @code
-    ip::tcp::socket sock{io_service};
+    ip::tcp::socket sock{io_context};
     websocket::stream<ip::tcp::socket&> ws{sock};
     @endcode
 
@@ -289,19 +291,29 @@ public:
 
     //--------------------------------------------------------------------------
 
-    /** Return the `io_service` associated with the stream
+    /** Get the executor associated with the object.
+    
+        This function may be used to obtain the executor object that the stream
+        uses to dispatch handlers for asynchronous operations.
 
-        This function may be used to obtain the `io_service` object
-        that the stream uses to dispatch handlers for asynchronous
-        operations.
+        @return A copy of the executor that stream will use to dispatch handlers.
 
-        @return A reference to the io_service object that the stream
-        will use to dispatch handlers. 
+        @note This function participates in overload resolution only if
+        `NextLayer` has a member function named `get_executor`.
     */
-    boost::asio::io_service&
-    get_io_service()
+#if BOOST_BEAST_DOXYGEN
+    implementation_defined
+#else
+    template<
+        class T = next_layer_type,
+        class = typename std::enable_if<
+            has_get_executor<next_layer_type>::value>::type>
+    auto
+#endif
+    get_executor() noexcept ->
+        decltype(std::declval<T&>().get_executor())
     {
-        return stream_.get_io_service();
+        return stream_.get_executor();
     }
 
     /** Get a reference to the next layer
@@ -746,7 +758,7 @@ public:
 
         @par Example
         @code
-        websocket::stream<ip::tcp::socket> ws{io_service};
+        websocket::stream<ip::tcp::socket> ws{io_context};
         ...
         try
         {
@@ -793,7 +805,7 @@ public:
 
         @par Example
         @code
-        websocket::stream<ip::tcp::socket> ws{io_service};
+        websocket::stream<ip::tcp::socket> ws{io_context};
         ...
         try
         {
@@ -848,7 +860,7 @@ public:
 
         @par Example
         @code
-        websocket::stream<ip::tcp::socket> ws{io_service};
+        websocket::stream<ip::tcp::socket> ws{io_context};
         ...
         try
         {
@@ -910,7 +922,7 @@ public:
 
         @par Example
         @code
-        websocket::stream<ip::tcp::socket> ws{io_service};
+        websocket::stream<ip::tcp::socket> ws{io_context};
         ...
         try
         {
@@ -962,7 +974,7 @@ public:
 
         @par Example
         @code
-        websocket::stream<ip::tcp::socket> ws{io_service};
+        websocket::stream<ip::tcp::socket> ws{io_context};
         ...
         error_code ec;
         ws.handshake(host, target, ec);
@@ -1008,7 +1020,7 @@ public:
 
         @par Example
         @code
-        websocket::stream<ip::tcp::socket> ws{io_service};
+        websocket::stream<ip::tcp::socket> ws{io_context};
         ...
         error_code ec;
         response_type res;
@@ -1062,7 +1074,7 @@ public:
 
         @par Example
         @code
-        websocket::stream<ip::tcp::socket> ws{io_service};
+        websocket::stream<ip::tcp::socket> ws{io_context};
         ...
         error_code ec;
         ws.handshake("localhost", "/",
@@ -1124,7 +1136,7 @@ public:
 
         @par Example
         @code
-        websocket::stream<ip::tcp::socket> ws{io_service};
+        websocket::stream<ip::tcp::socket> ws{io_context};
         ...
         error_code ec;
         response_type res;
@@ -1187,15 +1199,11 @@ public:
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
-        manner equivalent to using `boost::asio::io_service::post`.
+        manner equivalent to using `boost::asio::io_context::post`.
     */
     template<class HandshakeHandler>
-#if BOOST_BEAST_DOXYGEN
-    void_or_deduced
-#else
-    async_return_type<
-        HandshakeHandler, void(error_code)>
-#endif
+    BOOST_ASIO_INITFN_RESULT_TYPE(
+        HandshakeHandler, void(error_code))
     async_handshake(
         string_view host,
         string_view target,
@@ -1243,15 +1251,11 @@ public:
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
-        manner equivalent to using `boost::asio::io_service::post`.
+        manner equivalent to using `boost::asio::io_context::post`.
     */
     template<class HandshakeHandler>
-#if BOOST_BEAST_DOXYGEN
-    void_or_deduced
-#else
-    async_return_type<
-        HandshakeHandler, void(error_code)>
-#endif
+    BOOST_ASIO_INITFN_RESULT_TYPE(
+        HandshakeHandler, void(error_code))
     async_handshake(
         response_type& res,
         string_view host,
@@ -1305,15 +1309,11 @@ public:
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
-        manner equivalent to using `boost::asio::io_service::post`.
+        manner equivalent to using `boost::asio::io_context::post`.
     */
     template<class RequestDecorator, class HandshakeHandler>
-#if BOOST_BEAST_DOXYGEN
-    void_or_deduced
-#else
-    async_return_type<
-        HandshakeHandler, void(error_code)>
-#endif
+    BOOST_ASIO_INITFN_RESULT_TYPE(
+        HandshakeHandler, void(error_code))
     async_handshake_ex(
         string_view host,
         string_view target,
@@ -1371,15 +1371,11 @@ public:
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
-        manner equivalent to using `boost::asio::io_service::post`.
+        manner equivalent to using `boost::asio::io_context::post`.
     */
     template<class RequestDecorator, class HandshakeHandler>
-#if BOOST_BEAST_DOXYGEN
-    void_or_deduced
-#else
-    async_return_type<
-        HandshakeHandler, void(error_code)>
-#endif
+    BOOST_ASIO_INITFN_RESULT_TYPE(
+        HandshakeHandler, void(error_code))
     async_handshake_ex(
         response_type& res,
         string_view host,
@@ -1950,15 +1946,11 @@ public:
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
-        manner equivalent to using `boost::asio::io_service::post`.
+        manner equivalent to using `boost::asio::io_context::post`.
     */
     template<class AcceptHandler>
-#if BOOST_BEAST_DOXYGEN
-    void_or_deduced
-#else
-    async_return_type<
-        AcceptHandler, void(error_code)>
-#endif
+    BOOST_ASIO_INITFN_RESULT_TYPE(
+        AcceptHandler, void(error_code))
     async_accept(AcceptHandler&& handler);
 
     /** Start reading and responding to a WebSocket HTTP Upgrade request.
@@ -2015,17 +2007,13 @@ public:
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
-        manner equivalent to using `boost::asio::io_service::post`.
+        manner equivalent to using `boost::asio::io_context::post`.
     */
     template<
         class ResponseDecorator,
         class AcceptHandler>
-#if BOOST_BEAST_DOXYGEN
-    void_or_deduced
-#else
-    async_return_type<
-        AcceptHandler, void(error_code)>
-#endif
+    BOOST_ASIO_INITFN_RESULT_TYPE(
+        AcceptHandler, void(error_code))
     async_accept_ex(
         ResponseDecorator const& decorator,
         AcceptHandler&& handler);
@@ -2082,7 +2070,7 @@ public:
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
-        manner equivalent to using `boost::asio::io_service::post`.
+        manner equivalent to using `boost::asio::io_context::post`.
     */
     template<
         class ConstBufferSequence,
@@ -2092,7 +2080,8 @@ public:
 #else
     typename std::enable_if<
         ! http::detail::is_header<ConstBufferSequence>::value,
-        async_return_type<AcceptHandler, void(error_code)>>::type
+        BOOST_ASIO_INITFN_RESULT_TYPE(
+            AcceptHandler, void(error_code))>::type
 #endif
     async_accept(
         ConstBufferSequence const& buffers,
@@ -2159,7 +2148,7 @@ public:
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
-        manner equivalent to using `boost::asio::io_service::post`.
+        manner equivalent to using `boost::asio::io_context::post`.
     */
     template<
         class ConstBufferSequence,
@@ -2170,7 +2159,8 @@ public:
 #else
     typename std::enable_if<
         ! http::detail::is_header<ConstBufferSequence>::value,
-        async_return_type<AcceptHandler, void(error_code)>>::type
+        BOOST_ASIO_INITFN_RESULT_TYPE(
+            AcceptHandler, void(error_code))>::type
 #endif
     async_accept_ex(
         ConstBufferSequence const& buffers,
@@ -2219,17 +2209,13 @@ public:
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
-        manner equivalent to using `boost::asio::io_service::post`.
+        manner equivalent to using `boost::asio::io_context::post`.
     */
     template<
         class Body, class Allocator,
         class AcceptHandler>
-#if BOOST_BEAST_DOXYGEN
-    void_or_deduced
-#else
-    async_return_type<
-        AcceptHandler, void(error_code)>
-#endif
+    BOOST_ASIO_INITFN_RESULT_TYPE(
+        AcceptHandler, void(error_code))
     async_accept(
         http::request<Body,
             http::basic_fields<Allocator>> const& req,
@@ -2286,18 +2272,14 @@ public:
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
-        manner equivalent to using `boost::asio::io_service::post`.
+        manner equivalent to using `boost::asio::io_context::post`.
     */
     template<
         class Body, class Allocator,
         class ResponseDecorator,
         class AcceptHandler>
-#if BOOST_BEAST_DOXYGEN
-    void_or_deduced
-#else
-    async_return_type<
-        AcceptHandler, void(error_code)>
-#endif
+    BOOST_ASIO_INITFN_RESULT_TYPE(
+        AcceptHandler, void(error_code))
     async_accept_ex(
         http::request<Body,
             http::basic_fields<Allocator>> const& req,
@@ -2409,15 +2391,11 @@ public:
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
-        manner equivalent to using `boost::asio::io_service::post`.
+        manner equivalent to using `boost::asio::io_context::post`.
     */
     template<class CloseHandler>
-#if BOOST_BEAST_DOXYGEN
-    void_or_deduced
-#else
-    async_return_type<
-        CloseHandler, void(error_code)>
-#endif
+    BOOST_ASIO_INITFN_RESULT_TYPE(
+        CloseHandler, void(error_code))
     async_close(close_reason const& cr, CloseHandler&& handler);
 
     /** Send a WebSocket ping frame.
@@ -2491,15 +2469,11 @@ public:
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
-        manner equivalent to using `boost::asio::io_service::post`.
+        manner equivalent to using `boost::asio::io_context::post`.
     */
     template<class WriteHandler>
-#if BOOST_BEAST_DOXYGEN
-    void_or_deduced
-#else
-    async_return_type<
-        WriteHandler, void(error_code)>
-#endif
+    BOOST_ASIO_INITFN_RESULT_TYPE(
+        WriteHandler, void(error_code))
     async_ping(ping_data const& payload, WriteHandler&& handler);
 
     /** Send a WebSocket pong frame.
@@ -2588,15 +2562,11 @@ public:
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
-        manner equivalent to using `boost::asio::io_service::post`.
+        manner equivalent to using `boost::asio::io_context::post`.
     */
     template<class WriteHandler>
-#if BOOST_BEAST_DOXYGEN
-    void_or_deduced
-#else
-    async_return_type<
-        WriteHandler, void(error_code)>
-#endif
+    BOOST_ASIO_INITFN_RESULT_TYPE(
+        WriteHandler, void(error_code))
     async_pong(ping_data const& payload, WriteHandler&& handler);
 
     //--------------------------------------------------------------------------
@@ -2751,16 +2721,11 @@ public:
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
-        manner equivalent to using `boost::asio::io_service::post`.
+        manner equivalent to using `boost::asio::io_context::post`.
     */
     template<class DynamicBuffer, class ReadHandler>
-#if BOOST_BEAST_DOXYGEN
-    void_or_deduced
-#else
-    async_return_type<
-        ReadHandler,
-        void(error_code, std::size_t)>
-#endif
+    BOOST_ASIO_INITFN_RESULT_TYPE(
+        ReadHandler, void(error_code, std::size_t))
     async_read(
         DynamicBuffer& buffer,
         ReadHandler&& handler);
@@ -2936,15 +2901,11 @@ public:
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
-        manner equivalent to using `boost::asio::io_service::post`.
+        manner equivalent to using `boost::asio::io_context::post`.
     */
     template<class DynamicBuffer, class ReadHandler>
-#if BOOST_BEAST_DOXYGEN
-    void_or_deduced
-#else
-    async_return_type<
-        ReadHandler, void(error_code, std::size_t)>
-#endif
+    BOOST_ASIO_INITFN_RESULT_TYPE(
+        ReadHandler, void(error_code, std::size_t))
     async_read_some(
         DynamicBuffer& buffer,
         std::size_t limit,
@@ -3113,14 +3074,11 @@ public:
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
-        manner equivalent to using `boost::asio::io_service::post`.
+        manner equivalent to using `boost::asio::io_context::post`.
     */
     template<class MutableBufferSequence, class ReadHandler>
-#if BOOST_BEAST_DOXYGEN
-    void_or_deduced
-#else
-    async_return_type<ReadHandler, void(error_code, std::size_t)>
-#endif
+    BOOST_ASIO_INITFN_RESULT_TYPE(
+        ReadHandler, void(error_code, std::size_t))
     async_read_some(
         MutableBufferSequence const& buffers,
         ReadHandler&& handler);
@@ -3257,18 +3215,13 @@ public:
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
-        manner equivalent to using `boost::asio::io_service::post`.
+        manner equivalent to using `boost::asio::io_context::post`.
     */
     template<
         class ConstBufferSequence,
         class WriteHandler>
-#if BOOST_BEAST_DOXYGEN
-    void_or_deduced
-#else
-    async_return_type<
-        WriteHandler,
-        void(error_code, std::size_t)>
-#endif
+    BOOST_ASIO_INITFN_RESULT_TYPE(
+        WriteHandler, void(error_code, std::size_t))
     async_write(
         ConstBufferSequence const& buffers,
         WriteHandler&& handler);
@@ -3389,12 +3342,8 @@ public:
         ); @endcode
     */
     template<class ConstBufferSequence, class WriteHandler>
-#if BOOST_BEAST_DOXYGEN
-    void_or_deduced
-#else
-    async_return_type<WriteHandler,
-        void(error_code, std::size_t)>
-#endif
+    BOOST_ASIO_INITFN_RESULT_TYPE(
+        WriteHandler, void(error_code, std::size_t))
     async_write_some(bool fin,
         ConstBufferSequence const& buffers, WriteHandler&& handler);
 

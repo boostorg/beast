@@ -44,18 +44,18 @@ int main(int argc, char** argv)
         auto const port = argv[2];
         auto const text = argv[3];
 
-        // The io_service is required for all I/O
-        boost::asio::io_service ios;
+        // The io_context is required for all I/O
+        boost::asio::io_context ioc;
 
         // These objects perform our I/O
-        tcp::resolver resolver{ios};
-        websocket::stream<tcp::socket> ws{ios};
+        tcp::resolver resolver{ioc};
+        websocket::stream<tcp::socket> ws{ioc};
 
         // Look up the domain name
-        auto const lookup = resolver.resolve({host, port});
+        auto const results = resolver.resolve(host, port);
 
         // Make the connection on the IP address we get from a lookup
-        boost::asio::connect(ws.next_layer(), lookup);
+        boost::asio::connect(ws.next_layer(), results.begin(), results.end());
 
         // Perform the websocket handshake
         ws.handshake(host, "/");

@@ -31,7 +31,7 @@ field value.
 
 [heading Serializing Chunks]
 
-The __serializer__ automatically applies the chunked tranfer encoding
+The __serializer__ automatically applies the chunked transfer encoding
 when a message returns `true` from
 [link beast.ref.boost__beast__http__message.chunked.overload1 `message::chunked`].
 The boundaries between chunks emitted by the serializer are implementation

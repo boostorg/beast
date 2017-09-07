@@ -12,7 +12,6 @@
 
 #include <boost/beast/core/detail/config.hpp>
 
-#include <boost/beast/core/async_result.hpp>
 #include <boost/beast/core/bind_handler.hpp>
 #include <boost/beast/core/buffered_read_stream.hpp>
 #include <boost/beast/core/buffers_adapter.hpp>
@@ -28,7 +27,6 @@
 #include <boost/beast/core/file_win32.hpp>
 #include <boost/beast/core/flat_buffer.hpp>
 #include <boost/beast/core/flat_static_buffer.hpp>
-#include <boost/beast/core/handler_alloc.hpp>
 #include <boost/beast/core/handler_ptr.hpp>
 #include <boost/beast/core/multi_buffer.hpp>
 #include <boost/beast/core/ostream.hpp>

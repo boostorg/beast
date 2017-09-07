@@ -190,7 +190,7 @@ In this table:
         [
             If `(v < 11 && b)`, then all "close" tokens present in the
             value are removed, and the "keep-alive" token is added to
-            the valueif it is not already present.
+            the value if it is not already present.
         ][
             If `(v < 11 && ! b)`, then all "close" and "keep-alive"
             tokens present in the value are removed.

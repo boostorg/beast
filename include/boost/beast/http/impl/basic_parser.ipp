@@ -103,14 +103,13 @@ basic_parser<isRequest, Derived>::
 put(ConstBufferSequence const& buffers,
     error_code& ec)
 {
-    static_assert(is_const_buffer_sequence<
+    static_assert(boost::asio::is_const_buffer_sequence<
         ConstBufferSequence>::value,
             "ConstBufferSequence requirements not met");
-    using boost::asio::buffer_cast;
     using boost::asio::buffer_copy;
     using boost::asio::buffer_size;
-    auto const p = buffers.begin();
-    auto const last = buffers.end();
+    auto const p = boost::asio::buffer_sequence_begin(buffers);
+    auto const last = boost::asio::buffer_sequence_end(buffers);
     if(p == last)
     {
         ec.assign(0, ec.category());
@@ -119,10 +118,7 @@ put(ConstBufferSequence const& buffers,
     if(std::next(p) == last)
     {
         // single buffer
-        auto const b = *p;
-        return put(boost::asio::const_buffers_1{
-            buffer_cast<char const*>(b),
-            buffer_size(b)}, ec);
+        return put(boost::asio::const_buffer(*p), ec);
     }
     auto const size = buffer_size(buffers);
     if(size <= max_stack_buffer)
@@ -136,21 +132,21 @@ put(ConstBufferSequence const& buffers,
     // flatten
     buffer_copy(boost::asio::buffer(
         buf_.get(), buf_len_), buffers);
-    return put(boost::asio::const_buffers_1{
+    return put(boost::asio::const_buffer{
         buf_.get(), buf_len_}, ec);
 }
 
 template<bool isRequest, class Derived>
 std::size_t
 basic_parser<isRequest, Derived>::
-put(boost::asio::const_buffers_1 const& buffer,
+put(boost::asio::const_buffer const& buffer,
     error_code& ec)
 {
     BOOST_ASSERT(state_ != state::complete);
     using boost::asio::buffer_size;
-    auto p = boost::asio::buffer_cast<
-        char const*>(*buffer.begin());
-    auto n = buffer_size(*buffer.begin());
+    auto p = reinterpret_cast<
+        char const*>(buffer.data());
+    auto n = buffer.size();
     auto const p0 = p;
     auto const p1 = p0 + n;
     ec.assign(0, ec.category());
@@ -324,7 +320,7 @@ put_from_stack(std::size_t size,
     using boost::asio::buffer;
     using boost::asio::buffer_copy;
     buffer_copy(buffer(buf, sizeof(buf)), buffers);
-    return put(boost::asio::const_buffers_1{
+    return put(boost::asio::const_buffer{
         buf, size}, ec);
 }
 

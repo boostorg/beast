@@ -12,37 +12,11 @@
 
 #include <boost/beast/core/error.hpp>
 #include <boost/asio/buffer.hpp>
-#include <boost/asio/io_service.hpp>
 #include <iterator>
 #include <tuple>
 #include <type_traits>
 #include <string>
 #include <utility>
-
-// A few workarounds to keep things working
-
-namespace boost {
-namespace asio {
-
-// for has_get_io_service
-class io_service;
-
-// for is_dynamic_buffer
-template<class Allocator>
-class basic_streambuf;
-
-namespace detail {
-
-// for is_buffer_sequence
-template<class Buffer, class Buffers>
-class consuming_buffers;
-
-} // detail
-
-} // asio
-} // boost
-
-//------------------------------------------------------------------------------
 
 namespace boost {
 namespace beast {
@@ -281,57 +255,17 @@ using ConstBufferSequence =
 using MutableBufferSequence =
     BufferSequence<boost::asio::mutable_buffer>;
 
-template<class T, class B, class = void>
-struct is_buffer_sequence : std::false_type {};
-
-template<class T, class B>
-struct is_buffer_sequence<T, B, void_t<decltype(
-    std::declval<typename T::value_type>(),
-    std::declval<typename T::const_iterator&>() =
-        std::declval<T const&>().begin(),
-    std::declval<typename T::const_iterator&>() =
-        std::declval<T const&>().end(),
-        (void)0)>> : std::integral_constant<bool,
-    std::is_convertible<typename T::value_type, B>::value &&
-#if 0
-    std::is_base_of<std::bidirectional_iterator_tag,
-        typename std::iterator_traits<
-            typename T::const_iterator>::iterator_category>::value
-#else
-    // workaround:
-    // boost::asio::detail::consuming_buffers::const_iterator
-    // is not bidirectional
-    std::is_base_of<std::forward_iterator_tag,
-        typename std::iterator_traits<
-            typename T::const_iterator>::iterator_category>::value
-#endif
-        >
-{
-};
-
-#if 0
-// workaround:
-// boost::asio::detail::consuming_buffers::const_iterator
-// is not bidirectional
-template<class Buffer, class Buffers, class B>
-struct is_buffer_sequence<
-    boost::asio::detail::consuming_buffers<Buffer, Buffers>>
-        : std::true_type
-{
-};     
-#endif
-
 template<class B1, class... Bn>
 struct is_all_const_buffer_sequence
     : std::integral_constant<bool,
-        is_buffer_sequence<B1, boost::asio::const_buffer>::value &&
+        boost::asio::is_const_buffer_sequence<B1>::value &&
         is_all_const_buffer_sequence<Bn...>::value>
 {
 };
 
-template<class B1>
-struct is_all_const_buffer_sequence<B1>
-    : is_buffer_sequence<B1, boost::asio::const_buffer>
+template<class B>
+struct is_all_const_buffer_sequence<B>
+    : boost::asio::is_const_buffer_sequence<B>
 {
 };
 
@@ -346,6 +280,14 @@ struct common_buffers_type
                         boost::asio::const_buffer>::type;
 };
 
+template<class B>
+struct buffer_sequence_iterator
+{
+    using type = decltype(
+        boost::asio::buffer_sequence_begin(
+            std::declval<B const&>()));
+};
+
 // Types that meet the requirements,
 // for use with std::declval only.
 struct StreamHandler
@@ -355,6 +297,54 @@ struct StreamHandler
 };
 using ReadHandler = StreamHandler;
 using WriteHandler = StreamHandler;
+
+template<class Buffers>
+class buffers_range_adapter
+{
+    Buffers const& b_;
+
+public:
+    using value_type = typename std::conditional<
+        std::is_convertible<typename std::iterator_traits<
+            typename buffer_sequence_iterator<Buffers>::type>::value_type,
+                boost::asio::const_buffer>::value,
+        boost::asio::const_buffer,
+        boost::asio::mutable_buffer>::type;
+
+    /* VFALCO This isn't right, because range-for will pick up the iterator's
+              value_type which might not be const_buffer or mutable_buffer. We
+              need to declare our own iterator wrapper that converts the underlying
+              iterator's value_type to const_buffer or mutable_buffer so that
+              range-for sees one of those types.
+    */
+    using const_iterator = typename
+        buffer_sequence_iterator<Buffers>::type;
+
+    explicit
+    buffers_range_adapter(Buffers const& b)
+        : b_(b)
+    {
+    }
+
+    const_iterator
+    begin() const noexcept
+    {
+        return boost::asio::buffer_sequence_begin(b_);
+    }
+
+    const_iterator
+    end() const noexcept
+    {
+        return boost::asio::buffer_sequence_end(b_);
+    }
+};
+
+template<class Buffers>
+buffers_range_adapter<Buffers>
+buffers_range(Buffers const& buffers)
+{
+    return buffers_range_adapter<Buffers>{buffers};
+}
 
 } // detail
 } // beast

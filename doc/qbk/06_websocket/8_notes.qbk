@@ -31,9 +31,12 @@ handlers, stackful or stackless coroutines, and even futures:
 
 [ws_snippet_21]
 
-[heading The io_service]
+The example programs that come with the library demonstrate the usage of
+websocket stream operations with all asynchronous varieties.
 
-The creation and operation of the __io_service__ associated with the
+[heading The io_context]
+
+The creation and operation of the __io_context__ associated with the
 underlying stream is left to the callers, permitting any implementation
 strategy including one that does not require threads for environments
 where threads are unavailable. Beast WebSocket itself does not use
@@ -45,8 +48,8 @@ Like a regular __Asio__ socket, a
 [link beast.ref.boost__beast__websocket__stream `stream`]
 is not thread safe. Callers are responsible for synchronizing operations on
 the socket using an implicit or explicit strand, as per the Asio documentation.
-The asynchronous interface supports one of each of the following operations
-to be active at the same time:
+The websocket stream asynchronous interface supports one of each of the
+following operations to be active at the same time:
 
 * [link beast.ref.boost__beast__websocket__stream.async_read `async_read`] or [link beast.ref.boost__beast__websocket__stream.async_read_some `async_read_some`]
 * [link beast.ref.boost__beast__websocket__stream.async_write `async_write`] or [link beast.ref.boost__beast__websocket__stream.async_write_some `async_write_some`]

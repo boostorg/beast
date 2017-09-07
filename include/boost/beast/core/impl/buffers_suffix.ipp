@@ -25,8 +25,8 @@ class buffers_suffix<Buffers>::const_iterator
 {
     friend class buffers_suffix<Buffers>;
 
-    using iter_type =
-        typename Buffers::const_iterator;
+    using iter_type = typename
+        detail::buffer_sequence_iterator<Buffers>::type;
 
     iter_type it_;
     buffers_suffix const* b_ = nullptr;
@@ -117,7 +117,7 @@ private:
 template<class Buffers>
 buffers_suffix<Buffers>::
 buffers_suffix()
-    : begin_(bs_.begin())
+    : begin_(boost::asio::buffer_sequence_begin(bs_))
 {
 }
 
@@ -126,7 +126,8 @@ buffers_suffix<Buffers>::
 buffers_suffix(buffers_suffix&& other)
     : buffers_suffix(std::move(other),
         std::distance<iter_type>(
-            other.bs_.begin(), other.begin_))
+            boost::asio::buffer_sequence_begin(
+                other.bs_), other.begin_))
 {
 }
 
@@ -135,7 +136,8 @@ buffers_suffix<Buffers>::
 buffers_suffix(buffers_suffix const& other)
     : buffers_suffix(other,
         std::distance<iter_type>(
-            other.bs_.begin(), other.begin_))
+            boost::asio::buffer_sequence_begin(
+                other.bs_), other.begin_))
 {
 }
 
@@ -143,11 +145,11 @@ template<class Buffers>
 buffers_suffix<Buffers>::
 buffers_suffix(Buffers const& bs)
     : bs_(bs)
-    , begin_(bs_.begin())
+    , begin_(boost::asio::buffer_sequence_begin(bs_))
 {
     static_assert(
-        is_const_buffer_sequence<Buffers>::value||
-        is_mutable_buffer_sequence<Buffers>::value,
+        boost::asio::is_const_buffer_sequence<Buffers>::value||
+        boost::asio::is_mutable_buffer_sequence<Buffers>::value,
             "BufferSequence requirements not met");
 }
 
@@ -156,7 +158,7 @@ template<class... Args>
 buffers_suffix<Buffers>::
 buffers_suffix(boost::in_place_init_t, Args&&... args)
     : bs_(std::forward<Args>(args)...)
-    , begin_(bs_.begin())
+    , begin_(boost::asio::buffer_sequence_begin(bs_))
 {
     static_assert(sizeof...(Args) > 0,
         "Missing constructor arguments");
@@ -172,9 +174,12 @@ operator=(buffers_suffix&& other) ->
     buffers_suffix&
 {
     auto const dist = std::distance<iter_type>(
-        other.bs_.begin(), other.begin_);
+        boost::asio::buffer_sequence_begin(other.bs_),
+            other.begin_);
     bs_ = std::move(other.bs_);
-    begin_ = std::next(bs_.begin(), dist);
+    begin_ = std::next(
+        boost::asio::buffer_sequence_begin(bs_),
+            dist);
     skip_ = other.skip_;
     return *this;
 }
@@ -186,9 +191,11 @@ operator=(buffers_suffix const& other) ->
     buffers_suffix&
 {
     auto const dist = std::distance<iter_type>(
-        other.bs_.begin(), other.begin_);
+        boost::asio::buffer_sequence_begin(other.bs_),
+            other.begin_);
     bs_ = other.bs_;
-    begin_ = std::next(bs_.begin(), dist);
+    begin_ = std::next(
+        boost::asio::buffer_sequence_begin(bs_), dist);
     skip_ = other.skip_;
     return *this;
 }
@@ -210,7 +217,8 @@ buffers_suffix<Buffers>::
 end() const ->
     const_iterator
 {
-    return const_iterator{*this, bs_.end()};
+    return const_iterator{*this,
+        boost::asio::buffer_sequence_end(bs_)};
 }
 
 template<class Buffers>
@@ -219,7 +227,9 @@ buffers_suffix<Buffers>::
 consume(std::size_t amount)
 {
     using boost::asio::buffer_size;
-    for(;amount > 0 && begin_ != bs_.end(); ++begin_)
+    auto const end =
+        boost::asio::buffer_sequence_end(bs_);
+    for(;amount > 0 && begin_ != end; ++begin_)
     {
         auto const len =
             buffer_size(*begin_) - skip_;

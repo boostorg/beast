@@ -132,7 +132,7 @@ private:
     using cb4_t = buffers_suffix<buffers_cat_view<
         typename Fields::reader::const_buffers_type,// header
         detail::chunk_size,                         // chunk-size
-        boost::asio::const_buffers_1,               // chunk-ext
+        boost::asio::const_buffer,               // chunk-ext
         chunk_crlf,                                 // crlf
         typename reader::const_buffers_type,        // body
         chunk_crlf>>;                               // crlf
@@ -140,7 +140,7 @@ private:
 
     using cb5_t = buffers_suffix<buffers_cat_view<
         detail::chunk_size,                         // chunk-header
-        boost::asio::const_buffers_1,               // chunk-ext
+        boost::asio::const_buffer,               // chunk-ext
         chunk_crlf,                                 // crlf
         typename reader::const_buffers_type,        // body
         chunk_crlf>>;                               // crlf
@@ -148,30 +148,30 @@ private:
 
     using cb6_t = buffers_suffix<buffers_cat_view<
         detail::chunk_size,                         // chunk-header
-        boost::asio::const_buffers_1,               // chunk-size
+        boost::asio::const_buffer,               // chunk-size
         chunk_crlf,                                 // crlf
         typename reader::const_buffers_type,        // body
         chunk_crlf,                                 // crlf
-        boost::asio::const_buffers_1,               // chunk-final
-        boost::asio::const_buffers_1,               // trailers 
+        boost::asio::const_buffer,               // chunk-final
+        boost::asio::const_buffer,               // trailers 
         chunk_crlf>>;                               // crlf
     using pcb6_t = buffers_prefix_view<cb6_t const&>;
 
     using cb7_t = buffers_suffix<buffers_cat_view<
         typename Fields::reader::const_buffers_type,// header
         detail::chunk_size,                         // chunk-size
-        boost::asio::const_buffers_1,               // chunk-ext
+        boost::asio::const_buffer,               // chunk-ext
         chunk_crlf,                                 // crlf
         typename reader::const_buffers_type,        // body
         chunk_crlf,                                 // crlf
-        boost::asio::const_buffers_1,               // chunk-final
-        boost::asio::const_buffers_1,               // trailers 
+        boost::asio::const_buffer,               // chunk-final
+        boost::asio::const_buffer,               // trailers 
         chunk_crlf>>;                               // crlf
     using pcb7_t = buffers_prefix_view<cb7_t const&>;
 
     using cb8_t = buffers_suffix<buffers_cat_view<
-        boost::asio::const_buffers_1,               // chunk-final
-        boost::asio::const_buffers_1,               // trailers 
+        boost::asio::const_buffer,               // chunk-final
+        boost::asio::const_buffer,               // trailers 
         chunk_crlf>>;                               // crlf
     using pcb8_t = buffers_prefix_view<cb8_t const&>;
 

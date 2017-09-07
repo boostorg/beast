@@ -84,10 +84,10 @@ public:
     using allocator_type = Allocator;
 
     /// The type used to represent the input sequence as a list of buffers.
-    using const_buffers_type = boost::asio::mutable_buffers_1;
+    using const_buffers_type = boost::asio::mutable_buffer;
 
     /// The type used to represent the output sequence as a list of buffers.
-    using mutable_buffers_type = boost::asio::mutable_buffers_1;
+    using mutable_buffers_type = boost::asio::mutable_buffer;
 
     /// Destructor
     ~basic_flat_buffer();

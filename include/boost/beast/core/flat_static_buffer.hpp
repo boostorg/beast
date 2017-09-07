@@ -52,13 +52,13 @@ public:
 
         This buffer sequence is guaranteed to have length 1.
     */
-    using const_buffers_type = boost::asio::mutable_buffers_1;
+    using const_buffers_type = boost::asio::mutable_buffer;
 
     /** The type used to represent the output sequence as a list of buffers.
 
         This buffer sequence is guaranteed to have length 1.
     */
-    using mutable_buffers_type = boost::asio::mutable_buffers_1;
+    using mutable_buffers_type = boost::asio::mutable_buffer;
 
     /** Constructor
 
