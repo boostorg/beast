@@ -639,7 +639,7 @@ async_read_header(
         "DynamicBuffer requirements not met");
     parser.eager(false);
     async_completion<ReadHandler,
-        void(error_code)> init{handler};
+        void(error_code, std::size_t)> init{handler};
     detail::read_op<AsyncReadStream, DynamicBuffer,
         isRequest, Derived, detail::parser_is_header_done,
             handler_type<ReadHandler, void(error_code, std::size_t)>>{

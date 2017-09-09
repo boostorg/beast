@@ -91,6 +91,21 @@ public:
         BEAST_EXPECT(n < limit);
         for(n = 0; n < limit; ++n)
         {
+            multi_buffer b;
+            b.commit(buffer_copy(
+                b.prepare(len), buffer(s, len)));
+            test::fail_counter fc(n);
+            test::stream ts{ios_, fc};
+            test_parser<isRequest> p(fc);
+            error_code ec = test::error::fail_error;
+            ts.close_remote();
+            async_read_header(ts, b, p, do_yield[ec]);
+            if(! ec)
+                break;
+        }
+        BEAST_EXPECT(n < limit);
+        for(n = 0; n < limit; ++n)
+        {
             static std::size_t constexpr pre = 10;
             multi_buffer b;
             b.commit(buffer_copy(

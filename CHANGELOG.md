@@ -1,3 +1,9 @@
+Version 113:
+
+* Fix handler signature in async_read_header
+
+--------------------------------------------------------------------------------
+
 Version 112:
 
 * Update websocket notes
