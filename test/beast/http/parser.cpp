@@ -131,7 +131,7 @@ public:
                 BEAST_EXPECT(! p.is_chunked());
                 BEAST_EXPECT(p.need_eof());
                 BEAST_EXPECT(p.content_length() == boost::none);
-                BEAST_EXPECT(m.version == 10);
+                BEAST_EXPECT(m.version() == 10);
                 BEAST_EXPECT(m.result() == status::ok);
                 BEAST_EXPECT(m.reason() == "OK");
                 BEAST_EXPECT(m["Server"] == "test");
@@ -158,7 +158,7 @@ public:
                 BEAST_EXPECT(! p.need_eof());
                 BEAST_EXPECT(p.is_chunked());
                 BEAST_EXPECT(p.content_length() == boost::none);
-                BEAST_EXPECT(m.version == 11);
+                BEAST_EXPECT(m.version() == 11);
                 BEAST_EXPECT(m.result() == status::ok);
                 BEAST_EXPECT(m.reason() == "OK");
                 BEAST_EXPECT(m["Server"] == "test");
@@ -189,7 +189,7 @@ public:
                 auto const& m = p.get();
                 BEAST_EXPECT(m.method() == verb::get);
                 BEAST_EXPECT(m.target() == "/");
-                BEAST_EXPECT(m.version == 11);
+                BEAST_EXPECT(m.version() == 11);
                 BEAST_EXPECT(! p.need_eof());
                 BEAST_EXPECT(! p.is_chunked());
                 BEAST_EXPECT(p.content_length() == boost::none);
@@ -226,7 +226,7 @@ public:
             BEAST_EXPECT(! p.need_eof());
             BEAST_EXPECT(m.method() == verb::get);
             BEAST_EXPECT(m.target() == "/");
-            BEAST_EXPECT(m.version == 11);
+            BEAST_EXPECT(m.version() == 11);
             BEAST_EXPECT(m["User-Agent"] == "test");
             BEAST_EXPECT(m.body() == "*");
         }

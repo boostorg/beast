@@ -319,7 +319,7 @@ public:
     {
         {
             response<string_body> m;
-            m.version = 10;
+            m.version(10);
             m.result(status::ok);
             m.set(field::server, "test");
             m.set(field::content_length, "5");
@@ -338,7 +338,7 @@ public:
         }
         {
             response<string_body> m;
-            m.version = 11;
+            m.version(11);
             m.result(status::ok);
             m.set(field::server, "test");
             m.set(field::transfer_encoding, "chunked");
@@ -518,7 +518,7 @@ public:
             request<string_body> m;
             m.method(verb::get);
             m.target("/");
-            m.version = 10;
+            m.version(10);
             m.set(field::user_agent, "test");
             m.body() = "*";
             m.prepare_payload();
@@ -535,7 +535,7 @@ public:
             request<unsized_body> m;
             m.method(verb::get);
             m.target("/");
-            m.version = 10;
+            m.version(10);
             m.set(field::user_agent, "test");
             m.body() = "*";
             m.prepare_payload();
@@ -556,7 +556,7 @@ public:
             request<string_body> m;
             m.method(verb::get);
             m.target("/");
-            m.version = 11;
+            m.version(11);
             m.set(field::user_agent, "test");
             m.body() = "*";
             m.prepare_payload();
@@ -573,7 +573,7 @@ public:
             request<unsized_body> m;
             m.method(verb::get);
             m.target("/");
-            m.version = 11;
+            m.version(11);
             m.set(field::user_agent, "test");
             m.body() = "*";
             m.prepare_payload();
@@ -599,7 +599,7 @@ public:
         request<string_body> m;
         m.method(verb::get);
         m.target("/");
-        m.version = 11;
+        m.version(11);
         m.set(field::user_agent, "test");
         m.body() = "*";
         BEAST_EXPECT(to_string(m) ==
@@ -628,7 +628,7 @@ public:
             BEAST_EXPECT(handler::count() == 0);
             request<string_body> m;
             m.method(verb::get);
-            m.version = 11;
+            m.version(11);
             m.target("/");
             m.set("Content-Length", 5);
             m.body() = "*****";
@@ -651,7 +651,7 @@ public:
                 BEAST_EXPECT(handler::count() == 0);
                 request<string_body> m;
                 m.method(verb::get);
-                m.version = 11;
+                m.version(11);
                 m.target("/");
                 m.set("Content-Length", 5);
                 m.body() = "*****";
@@ -712,7 +712,7 @@ public:
         ts.write_size(3);
 
         response<Body> m0;
-        m0.version = 11;
+        m0.version(11);
         m0.result(status::ok);
         m0.reason("OK");
         m0.set(field::server, "test");

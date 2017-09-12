@@ -149,7 +149,7 @@ public:
             BEAST_EXPECT(h.count(http::field::user_agent) == 0);
             BEAST_EXPECT(m.method() == verb::get);
             BEAST_EXPECT(m.target() == "/");
-            BEAST_EXPECT(m.version == 10);
+            BEAST_EXPECT(m.version() == 10);
         }
 
         // swap
@@ -216,19 +216,19 @@ public:
     {
         {
             request<empty_body> req;
-            BEAST_EXPECT(req.version == 11);
+            BEAST_EXPECT(req.version() == 11);
             BEAST_EXPECT(req.method() == verb::unknown);
             BEAST_EXPECT(req.target() == "");
         }
         {
             request<empty_body> req{verb::get, "/", 11};
-            BEAST_EXPECT(req.version == 11);
+            BEAST_EXPECT(req.version() == 11);
             BEAST_EXPECT(req.method() == verb::get);
             BEAST_EXPECT(req.target() == "/");
         }
         {
             request<string_body> req{verb::get, "/", 11, "Hello"};
-            BEAST_EXPECT(req.version == 11);
+            BEAST_EXPECT(req.version() == 11);
             BEAST_EXPECT(req.method() == verb::get);
             BEAST_EXPECT(req.target() == "/");
             BEAST_EXPECT(req.body() == "Hello");
@@ -236,26 +236,26 @@ public:
         {
             request<string_body, test_fields> req{
                 verb::get, "/", 11, "Hello", token{}};
-            BEAST_EXPECT(req.version == 11);
+            BEAST_EXPECT(req.version() == 11);
             BEAST_EXPECT(req.method() == verb::get);
             BEAST_EXPECT(req.target() == "/");
             BEAST_EXPECT(req.body() == "Hello");
         }
         {
             response<string_body> res;
-            BEAST_EXPECT(res.version == 11);
+            BEAST_EXPECT(res.version() == 11);
             BEAST_EXPECT(res.result() == status::ok);
             BEAST_EXPECT(res.reason() == "OK");
         }
         {
             response<string_body> res{status::bad_request, 10};
-            BEAST_EXPECT(res.version == 10);
+            BEAST_EXPECT(res.version() == 10);
             BEAST_EXPECT(res.result() == status::bad_request);
             BEAST_EXPECT(res.reason() == "Bad Request");
         }
         {
             response<string_body> res{status::bad_request, 10, "Hello"};
-            BEAST_EXPECT(res.version == 10);
+            BEAST_EXPECT(res.version() == 10);
             BEAST_EXPECT(res.result() == status::bad_request);
             BEAST_EXPECT(res.reason() == "Bad Request");
             BEAST_EXPECT(res.body() == "Hello");
@@ -263,7 +263,7 @@ public:
         {
             response<string_body, test_fields> res{
                 status::bad_request, 10, "Hello", token{}};
-            BEAST_EXPECT(res.version == 10);
+            BEAST_EXPECT(res.version() == 10);
             BEAST_EXPECT(res.result() == status::bad_request);
             BEAST_EXPECT(res.reason() == "Bad Request");
             BEAST_EXPECT(res.body() == "Hello");
@@ -276,12 +276,12 @@ public:
         response<string_body> m1;
         response<string_body> m2;
         m1.result(status::ok);
-        m1.version = 10;
+        m1.version(10);
         m1.body() = "1";
         m1.insert("h", "v");
         m2.result(status::not_found);
         m2.body() = "2";
-        m2.version = 11;
+        m2.version(11);
         swap(m1, m2);
         BEAST_EXPECT(m1.result() == status::not_found);
         BEAST_EXPECT(m1.result_int() == 404);
@@ -289,8 +289,8 @@ public:
         BEAST_EXPECT(m2.result_int() == 200);
         BEAST_EXPECT(m1.reason() == "Not Found");
         BEAST_EXPECT(m2.reason() == "OK");
-        BEAST_EXPECT(m1.version == 11);
-        BEAST_EXPECT(m2.version == 10);
+        BEAST_EXPECT(m1.version() == 11);
+        BEAST_EXPECT(m2.version() == 10);
         BEAST_EXPECT(m1.body() == "2");
         BEAST_EXPECT(m2.body() == "1");
         BEAST_EXPECT(! m1.count("h"));

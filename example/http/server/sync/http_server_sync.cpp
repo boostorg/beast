@@ -109,7 +109,7 @@ handle_request(
     auto const bad_request =
     [&req](boost::beast::string_view why)
     {
-        http::response<http::string_body> res{http::status::bad_request, req.version};
+        http::response<http::string_body> res{http::status::bad_request, req.version()};
         res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
         res.set(http::field::content_type, "text/html");
         res.keep_alive(req.keep_alive());
@@ -122,7 +122,7 @@ handle_request(
     auto const not_found =
     [&req](boost::beast::string_view target)
     {
-        http::response<http::string_body> res{http::status::not_found, req.version};
+        http::response<http::string_body> res{http::status::not_found, req.version()};
         res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
         res.set(http::field::content_type, "text/html");
         res.keep_alive(req.keep_alive());
@@ -135,7 +135,7 @@ handle_request(
     auto const server_error =
     [&req](boost::beast::string_view what)
     {
-        http::response<http::string_body> res{http::status::internal_server_error, req.version};
+        http::response<http::string_body> res{http::status::internal_server_error, req.version()};
         res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
         res.set(http::field::content_type, "text/html");
         res.keep_alive(req.keep_alive());
@@ -176,7 +176,7 @@ handle_request(
     // Respond to HEAD request
     if(req.method() == http::verb::head)
     {
-        http::response<http::empty_body> res{http::status::ok, req.version};
+        http::response<http::empty_body> res{http::status::ok, req.version()};
         res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
         res.set(http::field::content_type, mime_type(path));
         res.content_length(body.size());
@@ -188,7 +188,7 @@ handle_request(
     http::response<http::file_body> res{
         std::piecewise_construct,
         std::make_tuple(std::move(body)),
-        std::make_tuple(http::status::ok, req.version)};
+        std::make_tuple(http::status::ok, req.version())};
     res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
     res.set(http::field::content_type, mime_type(path));
     res.content_length(body.size());

@@ -18,6 +18,7 @@
 #include <boost/beast/core/string.hpp>
 #include <boost/beast/core/detail/empty_base_optimization.hpp>
 #include <boost/beast/core/detail/integer_sequence.hpp>
+#include <boost/assert.hpp>
 #include <boost/optional.hpp>
 #include <boost/throw_exception.hpp>
 #include <memory>
@@ -69,7 +70,22 @@ struct header<true, Fields> : Fields
     /// The type representing the fields.
     using fields_type = Fields;
 
-    /** The HTTP-version.
+    /// COnstructor
+    header() = default;
+
+    /// Constructor
+    header(header&&) = default;
+
+    /// Constructor
+    header(header const&) = default;
+
+    /// Assignment
+    header& operator=(header&&) = default;
+
+    /// Assignment
+    header& operator=(header const&) = default;
+
+    /** Return the HTTP-version.
 
         This holds both the major and minor version numbers,
         using these formulas:
@@ -80,22 +96,29 @@ struct header<true, Fields> : Fields
 
         Newly constructed headers will use HTTP/1.1 by default.
     */
-    unsigned version = 11;
+    unsigned version() const noexcept
+    {
+        return version_;
+    }
 
-    /// Default constructor
-    header() = default;
+    /** Set the HTTP-version.
 
-    /// Move constructor
-    header(header&&) = default;
+        This holds both the major and minor version numbers,
+        using these formulas:
+        @code
+            unsigned major = version / 10;
+            unsigned minor = version % 10;
+        @endcode
 
-    /// Copy constructor
-    header(header const&) = default;
+        Newly constructed headers will use HTTP/1.1 by default.
 
-    /// Move assignment
-    header& operator=(header&&) = default;
-
-    /// Copy assignment
-    header& operator=(header const&) = default;
+        @param value The version number to use
+    */
+    void version(unsigned value) noexcept
+    {
+        BOOST_ASSERT(value > 0 && value < 100);
+        version_ = value;
+    }
 
     /** Return the request-method verb.
 
@@ -206,15 +229,16 @@ private:
     header(
         verb method,
         string_view target_,
-        unsigned version_,
+        unsigned version_value,
         FieldsArgs&&... fields_args)
         : Fields(std::forward<FieldsArgs>(fields_args)...)
-        , version(version_)
         , method_(method)
     {
+        version(version_value);
         target(target_);
     }
 
+    unsigned version_ = 11;
     verb method_ = verb::unknown;
 };
 
@@ -234,33 +258,19 @@ struct header<false, Fields> : Fields
     /// The type representing the fields.
     using fields_type = Fields;
 
-    /** The HTTP version.
-
-        This holds both the major and minor version numbers,
-        using these formulas:
-        @code
-            unsigned major = version / 10;
-            unsigned minor = version % 10;
-        @endcode
-
-        Newly constructed headers will use HTTP/1.1 by default
-        unless otherwise specified.
-    */
-    unsigned version = 11;
-
-    /// Default constructor.
+    /// Constructor.
     header() = default;
 
-    /// Move constructor
+    /// Constructor
     header(header&&) = default;
 
-    /// Copy constructor
+    /// Constructor
     header(header const&) = default;
 
-    /// Move assignment
+    /// Assignment
     header& operator=(header&&) = default;
 
-    /// Copy assignment
+    /// Assignment
     header& operator=(header const&) = default;
 
     /** Constructor
@@ -282,6 +292,41 @@ struct header<false, Fields> : Fields
         >::type>
     explicit
     header(Arg1&& arg1, ArgN&&... argn);
+
+    /** Return the HTTP-version.
+
+        This holds both the major and minor version numbers,
+        using these formulas:
+        @code
+            unsigned major = version / 10;
+            unsigned minor = version % 10;
+        @endcode
+
+        Newly constructed headers will use HTTP/1.1 by default.
+    */
+    unsigned version() const noexcept
+    {
+        return version_;
+    }
+
+    /** Set the HTTP-version.
+
+        This holds both the major and minor version numbers,
+        using these formulas:
+        @code
+            unsigned major = version / 10;
+            unsigned minor = version % 10;
+        @endcode
+
+        Newly constructed headers will use HTTP/1.1 by default.
+
+        @param value The version number to use
+    */
+    void version(unsigned value) noexcept
+    {
+        BOOST_ASSERT(value > 0 && value < 100);
+        version_ = value;
+    }
 #endif
 
     /** The response status-code result.
@@ -372,14 +417,15 @@ private:
     template<class... FieldsArgs>
     header(
         status result,
-        unsigned version_,
+        unsigned version_value,
         FieldsArgs&&... fields_args)
         : Fields(std::forward<FieldsArgs>(fields_args)...)
-        , version(version_)
         , result_(result)
     {
+        version(version_value);
     }
 
+    unsigned version_ = 11;
     status result_ = status::ok;
 #endif
 };
@@ -703,7 +749,7 @@ struct message
     bool
     keep_alive() const
     {
-        return this->get_keep_alive_impl(this->version);
+        return this->get_keep_alive_impl(this->version());
     }
 
     /** Set the keep-alive message semantic option
@@ -719,7 +765,7 @@ struct message
     void
     keep_alive(bool value)
     {
-        this->set_keep_alive_impl(this->version, value);
+        this->set_keep_alive_impl(this->version(), value);
     }
 
     /** Returns the payload size of the body in octets if possible.

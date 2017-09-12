@@ -3,11 +3,15 @@ Version 116:
 API Changes:
 
 * message::body is a member function
+* message::version is a member function
 
 Actions Required:
 
 * Call member function message::body instead of accessing
   the data member at call sites.
+
+* Call member function message::version instead of accessing
+  the version member at call sites.
 
 --------------------------------------------------------------------------------
 

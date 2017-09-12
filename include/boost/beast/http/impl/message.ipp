@@ -100,7 +100,7 @@ swap(
     swap(
         static_cast<Fields&>(h1),
         static_cast<Fields&>(h2));
-    swap(h1.version, h2.version);
+    swap(h1.version_, h2.version_);
     swap(h1.method_, h2.method_);
 }
 
@@ -114,18 +114,6 @@ header(Arg1&& arg1, ArgN&&... argn)
         std::forward<ArgN>(argn)...)
 {
 }
-
-#if 0
-template<class Fields>
-template<class... Args>
-header<false, Fields>::
-header(status result, unsigned version_, Args&&... args)
-    : Fields(std::forward<Args>(args)...)
-    , version(version_)
-    , result_(result)
-{
-}
-#endif
 
 template<class Fields>
 inline
@@ -198,7 +186,7 @@ swap(
     swap(
         static_cast<Fields&>(h1),
         static_cast<Fields&>(h2));
-    swap(h1.version, h2.version);
+    swap(h1.version_, h2.version_);
     swap(h1.result_, h2.result_);
 }
 
@@ -378,7 +366,7 @@ prepare_payload(std::true_type)
             this->chunked(false);
         }
     }
-    else if(this->version >= 11)
+    else if(this->version() >= 11)
     {
         this->chunked(true);
     }

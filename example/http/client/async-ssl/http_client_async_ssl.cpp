@@ -66,7 +66,7 @@ public:
         char const* target)
     {
         // Set up an HTTP GET request message
-        req_.version = 11;
+        req_.version(11);
         req_.method(http::verb::get);
         req_.target(target);
         req_.set(http::field::host, host);

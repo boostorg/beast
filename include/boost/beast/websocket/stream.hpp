@@ -3329,11 +3329,13 @@ public:
 
         @param fin `true` if this is the last part of the message.
 
+        @param buffers The input buffer sequence holding the data to write.
+
+        @param ec Set to indicate what error occurred, if any.
+
         @return The number of bytes written from the buffers.
         If an error occurred, this will be less than the sum
         of the buffer sizes.
-
-        @param ec Set to indicate what error occurred, if any.
 
         @return The number of bytes consumed in the input buffers.
     */

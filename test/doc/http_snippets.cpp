@@ -45,7 +45,7 @@ void fxx() {
 //[http_snippet_2
 
     request<empty_body> req;
-    req.version = 11;   // HTTP/1.1
+    req.version(11);   // HTTP/1.1
     req.method(verb::get);
     req.target("/index.htm");
     req.set(field::accept, "text/html");
@@ -58,7 +58,7 @@ void fxx() {
 //[http_snippet_3
 
     response<string_body> res;
-    res.version = 11;   // HTTP/1.1
+    res.version(11);   // HTTP/1.1
     res.result(status::ok);
     res.set(field::server, "Beast");
     res.body() = "Hello, world!";
@@ -112,7 +112,7 @@ void fxx() {
 //[http_snippet_7
 
     response<string_body> res;
-    res.version = 11;
+    res.version(11);
     res.result(status::ok);
     res.set(field::server, "Beast");
     res.body() = "Hello, world!";

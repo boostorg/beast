@@ -324,7 +324,7 @@ private:
         {
             ec = error::bad_alloc;
         }
-        m_.version = version;
+        m_.version(version);
     }
 
     void
@@ -335,7 +335,7 @@ private:
         error_code& ec)
     {
         m_.result(code);
-        m_.version = version;
+        m_.version(version);
         try
         {
             m_.reason(reason);

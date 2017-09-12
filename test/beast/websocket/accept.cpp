@@ -327,7 +327,7 @@ public:
             request_type req;
             req.method(http::verb::get);
             req.target("/");
-            req.version = 11;
+            req.version(11);
             req.insert(http::field::host, "localhost");
             req.insert(http::field::upgrade, "websocket");
             req.insert(http::field::connection, "upgrade");
@@ -344,7 +344,7 @@ public:
             request_type req;
             req.method(http::verb::get);
             req.target("/");
-            req.version = 11;
+            req.version(11);
             req.insert(http::field::host, "localhost");
             req.insert(http::field::upgrade, "websocket");
             req.insert(http::field::connection, "upgrade");
@@ -364,7 +364,7 @@ public:
             request_type req;
             req.method(http::verb::get);
             req.target("/");
-            req.version = 11;
+            req.version(11);
             req.insert(http::field::host, "localhost");
             req.insert(http::field::upgrade, "websocket");
             req.insert(http::field::connection, "upgrade");

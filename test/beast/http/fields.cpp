@@ -445,7 +445,7 @@ public:
         // GET, empty
         {
             request<empty_body> req;
-            req.version = 11;
+            req.version(11);
             req.method(verb::get);
 
             req.prepare_payload();
@@ -473,7 +473,7 @@ public:
         // GET, sized
         {
             request<sized_body> req;
-            req.version = 11;
+            req.version(11);
             req.method(verb::get);
             req.body() = 50;
 
@@ -496,7 +496,7 @@ public:
         // PUT, empty
         {
             request<empty_body> req;
-            req.version = 11;
+            req.version(11);
             req.method(verb::put);
 
             req.prepare_payload();
@@ -513,7 +513,7 @@ public:
         // PUT, sized
         {
             request<sized_body> req;
-            req.version = 11;
+            req.version(11);
             req.method(verb::put);
             req.body() = 50;
 
@@ -531,7 +531,7 @@ public:
         // POST, unsized
         {
             request<unsized_body> req;
-            req.version = 11;
+            req.version(11);
             req.method(verb::post);
 
             req.prepare_payload();
@@ -547,7 +547,7 @@ public:
         // POST, unsized HTTP/1.0
         {
             request<unsized_body> req;
-            req.version = 10;
+            req.version(10);
             req.method(verb::post);
 
             req.prepare_payload();
@@ -563,7 +563,7 @@ public:
         // OK, empty
         {
             response<empty_body> res;
-            res.version = 11;
+            res.version(11);
 
             res.prepare_payload();
             BEAST_EXPECT(res[field::content_length] == "0");
@@ -579,7 +579,7 @@ public:
         // OK, sized
         {
             response<sized_body> res;
-            res.version = 11;
+            res.version(11);
             res.body() = 50;
 
             res.prepare_payload();
@@ -596,7 +596,7 @@ public:
         // OK, unsized
         {
             response<unsized_body> res;
-            res.version = 11;
+            res.version(11);
 
             res.prepare_payload();
             BEAST_EXPECT(res.count(field::content_length) == 0);
@@ -621,7 +621,7 @@ public:
         std::string const big(4096 + 1, 'a');
 
         // HTTP/1.0
-        res.version = 10;
+        res.version(10);
         res.erase(field::connection);
 
         keep_alive(false);
@@ -695,7 +695,7 @@ public:
         test10(big);
 
         // HTTP/1.1
-        res.version = 11;
+        res.version(11);
 
         res.erase(field::connection);
         keep_alive(true);

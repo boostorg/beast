@@ -27,7 +27,7 @@ void
 serializer<isRequest, Body, Fields>::
 frdinit(std::true_type)
 {
-    frd_.emplace(m_, m_.version, m_.method());
+    frd_.emplace(m_, m_.version(), m_.method());
 }
 
 template<
@@ -36,7 +36,7 @@ void
 serializer<isRequest, Body, Fields>::
 frdinit(std::false_type)
 {
-    frd_.emplace(m_, m_.version, m_.result_int());
+    frd_.emplace(m_, m_.version(), m_.result_int());
 }
 
 template<

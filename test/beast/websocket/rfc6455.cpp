@@ -24,9 +24,9 @@ public:
     test_is_upgrade()
     {
         http::header<true> req;
-        req.version = 10;
+        req.version(10);
         BEAST_EXPECT(! is_upgrade(req));
-        req.version = 11;
+        req.version(11);
         req.method(http::verb::post);
         req.target("/");
         BEAST_EXPECT(! is_upgrade(req));

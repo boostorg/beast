@@ -105,7 +105,7 @@ public:
             {
                 flat_buffer buffer;
                 request<string_body> req;
-                req.version = 11;
+                req.version(11);
                 req.method_string("POST");
                 req.target("/");
                 req.insert(field::user_agent, "test");
@@ -138,7 +138,7 @@ public:
     doRelay()
     {
         request<string_body> req;
-        req.version = 11;
+        req.version(11);
         req.method_string("POST");
         req.target("/");
         req.insert(field::user_agent, "test");
@@ -192,7 +192,7 @@ public:
     {
         std::ostringstream os;
         request<string_body> req;
-        req.version = 11;
+        req.version(11);
         req.method(verb::get);
         req.target("/");
         req.insert(field::user_agent, "test");

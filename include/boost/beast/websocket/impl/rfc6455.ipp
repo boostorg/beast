@@ -22,7 +22,7 @@ bool
 is_upgrade(http::header<true,
     http::basic_fields<Allocator>> const& req)
 {
-    if(req.version < 11)
+    if(req.version() < 11)
         return false;
     if(req.method() != http::verb::get)
         return false;

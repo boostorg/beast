@@ -139,7 +139,7 @@ receive_expect_100_continue(
     {
         // send 100 response
         response<empty_body> res;
-        res.version = 11;
+        res.version(11);
         res.result(status::continue_);
         res.set(field::server, "test");
         write(stream, res, ec);
@@ -202,7 +202,7 @@ send_cgi_response(
     response<buffer_body> res;
 
     res.result(status::ok);
-    res.version = 11;
+    res.version(11);
     res.set(field::server, "Beast");
     res.set(field::transfer_encoding, "chunked");
 
@@ -307,7 +307,7 @@ void do_server_head(
 
     // Set up the response, starting with the common fields
     response<string_body> res;
-    res.version = 11;
+    res.version(11);
     res.set(field::server, "test");
 
     // Now handle request-specific fields
@@ -396,7 +396,7 @@ do_head_request(
 
     // Build the HEAD request for the target
     request<empty_body> req;
-    req.version = 11;
+    req.version(11);
     req.method(verb::head);
     req.target(target);
     req.set(field::user_agent, "test");

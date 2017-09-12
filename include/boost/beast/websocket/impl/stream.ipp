@@ -523,7 +523,7 @@ build_request(detail::sec_ws_key_type& key,
 {
     request_type req;
     req.target(target);
-    req.version = 11;
+    req.version(11);
     req.method(http::verb::get);
     req.set(http::field::host, host);
     req.set(http::field::upgrade, "websocket");
@@ -575,14 +575,14 @@ build_response(http::request<Body,
         [&](std::string const& text)
         {
             response_type res;
-            res.version = req.version;
+            res.version(req.version());
             res.result(http::status::bad_request);
             res.body() = text;
             res.prepare_payload();
             decorate(res);
             return res;
         };
-    if(req.version < 11)
+    if(req.version() < 11)
         return err("HTTP version 1.1 required");
     if(req.method() != http::verb::get)
         return err("Wrong method");
@@ -604,7 +604,7 @@ build_response(http::request<Body,
         {
             response_type res;
             res.result(http::status::upgrade_required);
-            res.version = req.version;
+            res.version(req.version());
             res.set(http::field::sec_websocket_version, "13");
             res.prepare_payload();
             decorate(res);
@@ -620,7 +620,7 @@ build_response(http::request<Body,
         pmd_negotiate(res, unused, offer, pmd_opts_);
     }
     res.result(http::status::switching_protocols);
-    res.version = req.version;
+    res.version(req.version());
     res.set(http::field::upgrade, "websocket");
     res.set(http::field::connection, "upgrade");
     {
@@ -640,7 +640,7 @@ on_response(response_type const& res,
 {
     bool const success = [&]()
     {
-        if(res.version < 11)
+        if(res.version() < 11)
             return false;
         if(res.result() != http::status::switching_protocols)
             return false;

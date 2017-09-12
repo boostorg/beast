@@ -168,7 +168,7 @@ public:
         , strand_(ios)
     {
         // Set up the common fields of the request
-        req_.version = 11;
+        req_.version(11);
         req_.method(http::verb::get);
         req_.target("/");
         req_.set(http::field::user_agent, BOOST_BEAST_VERSION_STRING);
