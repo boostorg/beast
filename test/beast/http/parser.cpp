@@ -135,7 +135,7 @@ public:
                 BEAST_EXPECT(m.result() == status::ok);
                 BEAST_EXPECT(m.reason() == "OK");
                 BEAST_EXPECT(m["Server"] == "test");
-                BEAST_EXPECT(m.body == "Hello, world!");
+                BEAST_EXPECT(m.body() == "Hello, world!");
             }
         );
         doMatrix<false>(
@@ -165,7 +165,7 @@ public:
                 BEAST_EXPECT(m["Transfer-Encoding"] == "chunked");
                 BEAST_EXPECT(m["Expires"] == "never");
                 BEAST_EXPECT(m["MD5-Fingerprint"] == "-");
-                BEAST_EXPECT(m.body == "*****--");
+                BEAST_EXPECT(m.body() == "*****--");
             }
         );
         doMatrix<false>(
@@ -177,7 +177,7 @@ public:
             [&](parser_type<false> const& p)
             {
                 auto const& m = p.get();
-                BEAST_EXPECT(m.body == "*****");
+                BEAST_EXPECT(m.body() == "*****");
             }
         );
         doMatrix<true>(
@@ -228,7 +228,7 @@ public:
             BEAST_EXPECT(m.target() == "/");
             BEAST_EXPECT(m.version == 11);
             BEAST_EXPECT(m["User-Agent"] == "test");
-            BEAST_EXPECT(m.body == "*");
+            BEAST_EXPECT(m.body() == "*");
         }
         {
             // test partial parsing of final chunk
@@ -247,7 +247,7 @@ public:
             b.consume(used);
             BEAST_EXPECT(! ec);
             BEAST_EXPECT(! p.is_done());
-            BEAST_EXPECT(p.get().body == "*");
+            BEAST_EXPECT(p.get().body() == "*");
             ostream(b) <<
                 "\r\n"
                 "0;d;e=3;f=\"4\"\r\n"

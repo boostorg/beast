@@ -116,7 +116,7 @@ private:
             // we do not recognize the request method.
             response_.result(http::status::bad_request);
             response_.set(http::field::content_type, "text/plain");
-            boost::beast::ostream(response_.body)
+            boost::beast::ostream(response_.body())
                 << "Invalid request-method '"
                 << request_.method_string().to_string()
                 << "'";
@@ -133,7 +133,7 @@ private:
         if(request_.target() == "/count")
         {
             response_.set(http::field::content_type, "text/html");
-            boost::beast::ostream(response_.body)
+            boost::beast::ostream(response_.body())
                 << "<html>\n"
                 <<  "<head><title>Request count</title></head>\n"
                 <<  "<body>\n"
@@ -147,7 +147,7 @@ private:
         else if(request_.target() == "/time")
         {
             response_.set(http::field::content_type, "text/html");
-            boost::beast::ostream(response_.body)
+            boost::beast::ostream(response_.body())
                 <<  "<html>\n"
                 <<  "<head><title>Current time</title></head>\n"
                 <<  "<body>\n"
@@ -162,7 +162,7 @@ private:
         {
             response_.result(http::status::not_found);
             response_.set(http::field::content_type, "text/plain");
-            boost::beast::ostream(response_.body) << "File not found\r\n";
+            boost::beast::ostream(response_.body()) << "File not found\r\n";
         }
     }
 
@@ -172,7 +172,7 @@ private:
     {
         auto self = shared_from_this();
 
-        response_.set(http::field::content_length, response_.body.size());
+        response_.set(http::field::content_length, response_.body().size());
 
         http::async_write(
             socket_,

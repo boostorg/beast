@@ -86,7 +86,7 @@ public:
         explicit
         reader(message<isRequest,
                 basic_string_body, Fields> const& msg)
-            : body_(msg.body)
+            : body_(msg.body())
         {
         }
 
@@ -122,7 +122,7 @@ public:
         explicit
         writer(message<isRequest,
                 basic_string_body, Fields>& m)
-            : body_(m.body)
+            : body_(m.body())
         {
         }
 

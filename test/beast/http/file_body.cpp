@@ -54,7 +54,7 @@ public:
             response_parser<basic_file_body<File>> p;
             p.eager(true);
 
-            p.get().body.open(
+            p.get().body().open(
                 temp.string<std::string>().c_str(), file_mode::write, ec);
             BEAST_EXPECTS(! ec, ec.message());
 
@@ -78,7 +78,7 @@ public:
             {
                 response<basic_file_body<File>> res{status::ok, 11};
                 res.set(field::server, "test");
-                res.body.open(temp.string<std::string>().c_str(),
+                res.body().open(temp.string<std::string>().c_str(),
                     file_mode::scan, ec);
                 BEAST_EXPECTS(! ec, ec.message());
                 res.prepare_payload();

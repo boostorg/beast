@@ -50,7 +50,7 @@ public:
             explicit
             reader(message<isRequest,
                     unsized_body, Allocator> const& msg)
-                : body_(msg.body)
+                : body_(msg.body())
             {
             }
 
@@ -95,7 +95,7 @@ public:
             explicit
             reader(message<isRequest,
                     test_body, Fields> const& msg)
-                : body_(msg.body)
+                : body_(msg.body())
             {
             }
 
@@ -232,7 +232,7 @@ public:
             explicit
             reader(message<isRequest,
                     fail_body, Allocator> const& msg)
-                : body_(msg.body)
+                : body_(msg.body())
             {
             }
 
@@ -292,7 +292,7 @@ public:
         try
         {
             read(ts, b, m);
-            return m.body == body;
+            return m.body() == body;
         }
         catch(std::exception const& e)
         {
@@ -323,7 +323,7 @@ public:
             m.result(status::ok);
             m.set(field::server, "test");
             m.set(field::content_length, "5");
-            m.body = "*****";
+            m.body() = "*****";
             error_code ec;
             test::stream ts{ios_}, tr{ios_};
             ts.connect(tr);
@@ -342,7 +342,7 @@ public:
             m.result(status::ok);
             m.set(field::server, "test");
             m.set(field::transfer_encoding, "chunked");
-            m.body = "*****";
+            m.body() = "*****";
             error_code ec;
             test::stream ts{ios_}, tr{ios_};
             ts.connect(tr);
@@ -374,7 +374,7 @@ public:
             m.set(field::user_agent, "test");
             m.set(field::connection, "keep-alive");
             m.set(field::content_length, "5");
-            m.body = "*****";
+            m.body() = "*****";
             try
             {
                 write(ts, m);
@@ -403,7 +403,7 @@ public:
             request<fail_body> m{verb::get, "/", 10, fc};
             m.set(field::user_agent, "test");
             m.set(field::transfer_encoding, "chunked");
-            m.body = "*****";
+            m.body() = "*****";
             error_code ec = test::error::fail_error;
             write(ts, m, ec);
             if(ec == error::end_of_stream)
@@ -433,7 +433,7 @@ public:
             request<fail_body> m{verb::get, "/", 10, fc};
             m.set(field::user_agent, "test");
             m.set(field::transfer_encoding, "chunked");
-            m.body = "*****";
+            m.body() = "*****";
             error_code ec = test::error::fail_error;
             async_write(ts, m, do_yield[ec]);
             if(ec == error::end_of_stream)
@@ -464,7 +464,7 @@ public:
             m.set(field::user_agent, "test");
             m.set(field::connection, "keep-alive");
             m.set(field::content_length, "5");
-            m.body = "*****";
+            m.body() = "*****";
             error_code ec = test::error::fail_error;
             write(ts, m, ec);
             if(! ec)
@@ -491,7 +491,7 @@ public:
             m.set(field::user_agent, "test");
             m.set(field::connection, "keep-alive");
             m.set(field::content_length, "5");
-            m.body = "*****";
+            m.body() = "*****";
             error_code ec = test::error::fail_error;
             async_write(ts, m, do_yield[ec]);
             if(! ec)
@@ -520,7 +520,7 @@ public:
             m.target("/");
             m.version = 10;
             m.set(field::user_agent, "test");
-            m.body = "*";
+            m.body() = "*";
             m.prepare_payload();
             BEAST_EXPECT(str(m) ==
                 "GET / HTTP/1.0\r\n"
@@ -537,7 +537,7 @@ public:
             m.target("/");
             m.version = 10;
             m.set(field::user_agent, "test");
-            m.body = "*";
+            m.body() = "*";
             m.prepare_payload();
             test::stream ts{ios_}, tr{ios_};
             ts.connect(tr);
@@ -558,7 +558,7 @@ public:
             m.target("/");
             m.version = 11;
             m.set(field::user_agent, "test");
-            m.body = "*";
+            m.body() = "*";
             m.prepare_payload();
             BEAST_EXPECT(str(m) ==
                 "GET / HTTP/1.1\r\n"
@@ -575,7 +575,7 @@ public:
             m.target("/");
             m.version = 11;
             m.set(field::user_agent, "test");
-            m.body = "*";
+            m.body() = "*";
             m.prepare_payload();
             test::stream ts{ios_}, tr{ios_};
             ts.connect(tr);
@@ -601,7 +601,7 @@ public:
         m.target("/");
         m.version = 11;
         m.set(field::user_agent, "test");
-        m.body = "*";
+        m.body() = "*";
         BEAST_EXPECT(to_string(m) ==
             "GET / HTTP/1.1\r\nUser-Agent: test\r\n\r\n*");
     }
@@ -631,7 +631,7 @@ public:
             m.version = 11;
             m.target("/");
             m.set("Content-Length", 5);
-            m.body = "*****";
+            m.body() = "*****";
             async_write(ts, m, handler{});
             BEAST_EXPECT(handler::count() > 0);
             ios.stop();
@@ -654,7 +654,7 @@ public:
                 m.version = 11;
                 m.target("/");
                 m.set("Content-Length", 5);
-                m.body = "*****";
+                m.body() = "*****";
                 async_write(ts, m, handler{});
                 BEAST_EXPECT(handler::count() > 0);
             }
@@ -716,7 +716,7 @@ public:
         m0.result(status::ok);
         m0.reason("OK");
         m0.set(field::server, "test");
-        m0.body.s = "Hello, world!\n";
+        m0.body().s = "Hello, world!\n";
 
         {
             std::string const result =
@@ -730,7 +730,7 @@ public:
                 do_write(ts, m, ec);
                 BEAST_EXPECT(tr.str() == result);
                 BEAST_EXPECT(equal_body<false>(
-                    tr.str(), m.body.s));
+                    tr.str(), m.body().s));
                 tr.clear();
             }
             {
@@ -739,7 +739,7 @@ public:
                 do_async_write(ts, m, ec, yield);
                 BEAST_EXPECT(tr.str() == result);
                 BEAST_EXPECT(equal_body<false>(
-                    tr.str(), m.body.s));
+                    tr.str(), m.body().s));
                 tr.clear();
             }
             {
@@ -753,7 +753,7 @@ public:
                     if(sr.is_header_done())
                         break;
                 }
-                BEAST_EXPECT(! m.body.read);
+                BEAST_EXPECT(! m.body().read);
                 tr.clear();
             }
             {
@@ -767,7 +767,7 @@ public:
                     if(sr.is_header_done())
                         break;
                 }
-                BEAST_EXPECT(! m.body.read);
+                BEAST_EXPECT(! m.body().read);
                 tr.clear();
             }
         }
@@ -778,7 +778,7 @@ public:
                 error_code ec;
                 do_write(ts, m, ec);
                 BEAST_EXPECT(equal_body<false>(
-                    tr.str(), m.body.s));
+                    tr.str(), m.body().s));
                 tr.clear();
             }
             {
@@ -786,7 +786,7 @@ public:
                 error_code ec;
                 do_async_write(ts, m, ec, yield);
                 BEAST_EXPECT(equal_body<false>(
-                    tr.str(), m.body.s));
+                    tr.str(), m.body().s));
                 tr.clear();
             }
             {
@@ -800,7 +800,7 @@ public:
                     if(sr.is_header_done())
                         break;
                 }
-                BEAST_EXPECT(! m.body.read);
+                BEAST_EXPECT(! m.body().read);
                 tr.clear();
             }
             {
@@ -814,7 +814,7 @@ public:
                     if(sr.is_header_done())
                         break;
                 }
-                BEAST_EXPECT(! m.body.read);
+                BEAST_EXPECT(! m.body().read);
                 tr.clear();
             }
         }

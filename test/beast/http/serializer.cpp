@@ -102,7 +102,7 @@ public:
         lambda visit;
         error_code ec;
         response<string_body> res;
-        res.body.append(1000, '*');
+        res.body().append(1000, '*');
         serializer<false, string_body> sr{res};
         sr.limit(limit);
         for(;;)

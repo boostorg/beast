@@ -1,3 +1,16 @@
+Version 116:
+
+API Changes:
+
+* message::body is a member function
+
+Actions Required:
+
+* Call member function message::body instead of accessing
+  the data member at call sites.
+
+--------------------------------------------------------------------------------
+
 Version 115:
 
 * Update README.md master doc link

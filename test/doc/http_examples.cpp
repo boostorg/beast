@@ -78,7 +78,7 @@ public:
         try
         {
             read(ts, b, m);
-            return m.body == body;
+            return m.body() == body;
         }
         catch(std::exception const& e)
         {
@@ -109,7 +109,7 @@ public:
                 req.method_string("POST");
                 req.target("/");
                 req.insert(field::user_agent, "test");
-                req.body = "Hello, world!";
+                req.body() = "Hello, world!";
                 req.prepare_payload();
 
                 error_code ec;
@@ -142,7 +142,7 @@ public:
         req.method_string("POST");
         req.target("/");
         req.insert(field::user_agent, "test");
-        req.body = "Hello, world!";
+        req.body() = "Hello, world!";
         req.prepare_payload();
 
         test::stream ds{ios_}, dsr{ios_};
@@ -167,7 +167,7 @@ public:
             });
         BEAST_EXPECTS(! ec, ec.message());
         BEAST_EXPECT(equal_body<true>(
-            usr.str(), req.body));
+            usr.str(), req.body()));
     }
 
     void
@@ -273,7 +273,7 @@ public:
         void
         operator()(request<string_body>&& req)
         {
-            body = req.body;
+            body = req.body();
         }
     };
 

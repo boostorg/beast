@@ -125,7 +125,7 @@ struct basic_file_body<file_win32>
         template<bool isRequest, class Fields>
         reader(message<isRequest,
                 basic_file_body<file_win32>, Fields>& m)
-            : body_(m.body)
+            : body_(m.body())
         {
         }
 
@@ -168,7 +168,7 @@ struct basic_file_body<file_win32>
         template<bool isRequest, class Fields>
         explicit
         writer(message<isRequest, basic_file_body, Fields>& m)
-            : body_(m.body)
+            : body_(m.body())
         {
         }
 
@@ -437,7 +437,7 @@ operator()()
     ov.OffsetHigh = highPart(r.pos_);
     auto const bSuccess = ::TransmitFile(
         sock_.native_handle(),
-        sr_.get().body.file_.native_handle(),
+        sr_.get().body().file_.native_handle(),
         nNumberOfBytesToWrite,
         0,
         overlapped.get(),

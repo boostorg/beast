@@ -212,7 +212,7 @@ private:
         string_response_->set(http::field::server, "Beast");
         string_response_->set(http::field::connection, "close");
         string_response_->set(http::field::content_type, "text/plain");
-        string_response_->body = error;
+        string_response_->body() = error;
         string_response_->prepare_payload();
 
         string_serializer_.emplace(*string_response_);
@@ -268,7 +268,7 @@ private:
         file_response_->set(http::field::server, "Beast");
         file_response_->set(http::field::connection, "close");
         file_response_->set(http::field::content_type, mime_type(target.to_string()));
-        file_response_->body = std::move(file);
+        file_response_->body() = std::move(file);
         file_response_->prepare_payload();
 
         file_serializer_.emplace(*file_response_);

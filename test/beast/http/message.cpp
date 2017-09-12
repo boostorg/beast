@@ -156,17 +156,17 @@ public:
         request<string_body> m1;
         request<string_body> m2;
         m1.target("u");
-        m1.body = "1";
+        m1.body() = "1";
         m1.insert("h", "v");
         m2.method_string("G");
-        m2.body = "2";
+        m2.body() = "2";
         swap(m1, m2);
         BEAST_EXPECT(m1.method_string() == "G");
         BEAST_EXPECT(m2.method_string().empty());
         BEAST_EXPECT(m1.target().empty());
         BEAST_EXPECT(m2.target() == "u");
-        BEAST_EXPECT(m1.body == "2");
-        BEAST_EXPECT(m2.body == "1");
+        BEAST_EXPECT(m1.body() == "2");
+        BEAST_EXPECT(m2.body() == "1");
         BEAST_EXPECT(! m1.count("h"));
         BEAST_EXPECT(m2.count("h"));
     }
@@ -231,7 +231,7 @@ public:
             BEAST_EXPECT(req.version == 11);
             BEAST_EXPECT(req.method() == verb::get);
             BEAST_EXPECT(req.target() == "/");
-            BEAST_EXPECT(req.body == "Hello");
+            BEAST_EXPECT(req.body() == "Hello");
         }
         {
             request<string_body, test_fields> req{
@@ -239,7 +239,7 @@ public:
             BEAST_EXPECT(req.version == 11);
             BEAST_EXPECT(req.method() == verb::get);
             BEAST_EXPECT(req.target() == "/");
-            BEAST_EXPECT(req.body == "Hello");
+            BEAST_EXPECT(req.body() == "Hello");
         }
         {
             response<string_body> res;
@@ -258,7 +258,7 @@ public:
             BEAST_EXPECT(res.version == 10);
             BEAST_EXPECT(res.result() == status::bad_request);
             BEAST_EXPECT(res.reason() == "Bad Request");
-            BEAST_EXPECT(res.body == "Hello");
+            BEAST_EXPECT(res.body() == "Hello");
         }
         {
             response<string_body, test_fields> res{
@@ -266,7 +266,7 @@ public:
             BEAST_EXPECT(res.version == 10);
             BEAST_EXPECT(res.result() == status::bad_request);
             BEAST_EXPECT(res.reason() == "Bad Request");
-            BEAST_EXPECT(res.body == "Hello");
+            BEAST_EXPECT(res.body() == "Hello");
         }
     }
 
@@ -277,10 +277,10 @@ public:
         response<string_body> m2;
         m1.result(status::ok);
         m1.version = 10;
-        m1.body = "1";
+        m1.body() = "1";
         m1.insert("h", "v");
         m2.result(status::not_found);
-        m2.body = "2";
+        m2.body() = "2";
         m2.version = 11;
         swap(m1, m2);
         BEAST_EXPECT(m1.result() == status::not_found);
@@ -291,8 +291,8 @@ public:
         BEAST_EXPECT(m2.reason() == "OK");
         BEAST_EXPECT(m1.version == 11);
         BEAST_EXPECT(m2.version == 10);
-        BEAST_EXPECT(m1.body == "2");
-        BEAST_EXPECT(m2.body == "1");
+        BEAST_EXPECT(m1.body() == "2");
+        BEAST_EXPECT(m2.body() == "1");
         BEAST_EXPECT(! m1.count("h"));
         BEAST_EXPECT(m2.count("h"));
     }

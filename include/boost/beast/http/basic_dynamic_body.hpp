@@ -74,7 +74,7 @@ struct basic_dynamic_body
         explicit
         reader(message<isRequest,
                 basic_dynamic_body, Fields> const& m)
-            : body_(m.body)
+            : body_(m.body())
         {
         }
 
@@ -109,7 +109,7 @@ struct basic_dynamic_body
         explicit
         writer(message<isRequest,
                 basic_dynamic_body, Fields>& msg)
-            : body_(msg.body)
+            : body_(msg.body())
         {
         }
 

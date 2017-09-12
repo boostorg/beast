@@ -66,7 +66,7 @@ public:
         multi_buffer b;
         read(ts, b, p);
         auto const& m = p.get();
-        BEAST_EXPECT(to_string(m.body.data()) == "xyz");
+        BEAST_EXPECT(to_string(m.body().data()) == "xyz");
         BEAST_EXPECT(to_string(m) == s);
     }
 };

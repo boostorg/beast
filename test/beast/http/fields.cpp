@@ -475,7 +475,7 @@ public:
             request<sized_body> req;
             req.version = 11;
             req.method(verb::get);
-            req.body = 50;
+            req.body() = 50;
 
             req.prepare_payload();
             BEAST_EXPECT(req[field::content_length] == "50");
@@ -515,7 +515,7 @@ public:
             request<sized_body> req;
             req.version = 11;
             req.method(verb::put);
-            req.body = 50;
+            req.body() = 50;
 
             req.prepare_payload();
             BEAST_EXPECT(req[field::content_length] == "50");
@@ -580,7 +580,7 @@ public:
         {
             response<sized_body> res;
             res.version = 11;
-            res.body = 50;
+            res.body() = 50;
 
             res.prepare_payload();
             BEAST_EXPECT(res[field::content_length] == "50");

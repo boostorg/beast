@@ -577,7 +577,7 @@ build_response(http::request<Body,
             response_type res;
             res.version = req.version;
             res.result(http::status::bad_request);
-            res.body = text;
+            res.body() = text;
             res.prepare_payload();
             decorate(res);
             return res;

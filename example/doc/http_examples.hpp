@@ -210,8 +210,8 @@ send_cgi_response(
     // that it might be coming later. Otherwise the
     // serializer::is_done would return true right after
     // sending the header.
-    res.body.data = nullptr;
-    res.body.more = true;
+    res.body().data = nullptr;
+    res.body().more = true;
 
     // Create the serializer.
     response_serializer<buffer_body, fields> sr{res};
@@ -235,10 +235,10 @@ send_cgi_response(
             ec = {};
 
             // `nullptr` indicates there is no buffer
-            res.body.data = nullptr;
+            res.body().data = nullptr;
 
             // `false` means no more data is coming
-            res.body.more = false;
+            res.body().more = false;
         }
         else
         {
@@ -248,9 +248,9 @@ send_cgi_response(
             // Point to our buffer with the bytes that
             // we received, and indicate that there may
             // be some more data coming
-            res.body.data = buffer;
-            res.body.size = bytes_transferred;
-            res.body.more = true;
+            res.body().data = buffer;
+            res.body().size = bytes_transferred;
+            res.body().more = true;
         }
             
         // Write everything in the body buffer
@@ -328,7 +328,7 @@ void do_server_head(
             // We deliver the same payload for GET requests
             // regardless of the target. A real server might
             // deliver a file based on the target.
-            res.body = payload;
+            res.body() = payload;
         }
         break;
     }
@@ -339,7 +339,7 @@ void do_server_head(
         // we do not recognize the request method.
         res.result(status::bad_request);
         res.set(field::content_type, "text/plain");
-        res.body = "Invalid request-method '" + req.method_string().to_string() + "'";
+        res.body() = "Invalid request-method '" + req.method_string().to_string() + "'";
         res.prepare_payload();
         break;
     }
@@ -520,8 +520,8 @@ relay(
         if(! p.is_done())
         {
             // Set up the body for writing into our small buffer
-            p.get().body.data = buf;
-            p.get().body.size = sizeof(buf);
+            p.get().body().data = buf;
+            p.get().body().size = sizeof(buf);
 
             // Read as much as we can
             read(input, buffer, p, ec);
@@ -534,14 +534,14 @@ relay(
 
             // Set up the body for reading.
             // This is how much was parsed:
-            p.get().body.size = sizeof(buf) - p.get().body.size;
-            p.get().body.data = buf;
-            p.get().body.more = ! p.is_done();
+            p.get().body().size = sizeof(buf) - p.get().body().size;
+            p.get().body().data = buf;
+            p.get().body().more = ! p.is_done();
         }
         else
         {
-            p.get().body.data = nullptr;
-            p.get().body.size = 0;
+            p.get().body().data = nullptr;
+            p.get().body().size = 0;
         }
 
         // Write everything in the buffer (which might be empty)
@@ -1095,14 +1095,14 @@ read_and_print_body(
     while(! p.is_done())
     {
         char buf[512];
-        p.get().body.data = buf;
-        p.get().body.size = sizeof(buf);
+        p.get().body().data = buf;
+        p.get().body().size = sizeof(buf);
         read(stream, buffer, p, ec);
         if(ec == error::need_buffer)
             ec.assign(0, ec.category());
         if(ec)
             return;
-        os.write(buf, sizeof(buf) - p.get().body.size);
+        os.write(buf, sizeof(buf) - p.get().body().size);
     }
 }
 

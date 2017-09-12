@@ -111,7 +111,7 @@ struct buffer_body
         explicit
         reader(message<isRequest,
                 buffer_body, Fields> const& msg)
-            : body_(msg.body)
+            : body_(msg.body())
         {
         }
 
@@ -169,7 +169,7 @@ struct buffer_body
         template<bool isRequest, class Fields>
         explicit
         writer(message<isRequest, buffer_body, Fields>& m)
-            : body_(m.body)
+            : body_(m.body())
         {
         }
 

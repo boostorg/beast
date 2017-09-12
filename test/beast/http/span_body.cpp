@@ -27,12 +27,12 @@ struct span_body_test
             using B = span_body<char const>;
             request<B> req;
 
-            BEAST_EXPECT(req.body.size() == 0);
-            BEAST_EXPECT(B::size(req.body) == 0);
+            BEAST_EXPECT(req.body().size() == 0);
+            BEAST_EXPECT(B::size(req.body()) == 0);
 
-            req.body = B::value_type("xyz", 3);
-            BEAST_EXPECT(req.body.size() == 3);
-            BEAST_EXPECT(B::size(req.body) == 3);
+            req.body() = B::value_type("xyz", 3);
+            BEAST_EXPECT(req.body().size() == 3);
+            BEAST_EXPECT(B::size(req.body()) == 3);
 
             B::reader r{req};
             error_code ec;
@@ -49,7 +49,7 @@ struct span_body_test
             char buf[5];
             using B = span_body<char>;
             request<B> req;
-            req.body = span<char>{buf, sizeof(buf)};
+            req.body() = span<char>{buf, sizeof(buf)};
             B::writer w{req};
             error_code ec;
             w.init(boost::none, ec);

@@ -209,7 +209,9 @@ template<class... BodyArgs>
 message<isRequest, Body, Fields>::
 message(header_type&& h, BodyArgs&&... body_args)
     : header_type(std::move(h))
-    , body(std::forward<BodyArgs>(body_args)...)
+    , beast::detail::empty_base_optimization<
+        typename Body::value_type>(
+            std::forward<BodyArgs>(body_args)...)
 {
 }
 
@@ -218,7 +220,9 @@ template<class... BodyArgs>
 message<isRequest, Body, Fields>::
 message(header_type const& h, BodyArgs&&... body_args)
     : header_type(h)
-    , body(std::forward<BodyArgs>(body_args)...)
+    , beast::detail::empty_base_optimization<
+        typename Body::value_type>(
+            std::forward<BodyArgs>(body_args)...)
 {
 }
 
@@ -236,7 +240,9 @@ message<isRequest, Body, Fields>::
 message(verb method, string_view target,
         Version version, BodyArg&& body_arg)
     : header_type(method, target, version)
-    , body(std::forward<BodyArg>(body_arg))
+    , beast::detail::empty_base_optimization<
+        typename Body::value_type>(
+            std::forward<BodyArg>(body_arg))
 {
 }
 
@@ -249,7 +255,9 @@ message(
     FieldsArg&& fields_arg)
     : header_type(method, target, version,
         std::forward<FieldsArg>(fields_arg))
-    , body(std::forward<BodyArg>(body_arg))
+    , beast::detail::empty_base_optimization<
+        typename Body::value_type>(
+            std::forward<BodyArg>(body_arg))
 {
 }
 
@@ -267,7 +275,9 @@ message<isRequest, Body, Fields>::
 message(status result, Version version,
     BodyArg&& body_arg)
     : header_type(result, version)
-    , body(std::forward<BodyArg>(body_arg))
+    , beast::detail::empty_base_optimization<
+        typename Body::value_type>(
+            std::forward<BodyArg>(body_arg))
 {
 }
 
@@ -278,7 +288,9 @@ message(status result, Version version,
     BodyArg&& body_arg, FieldsArg&& fields_arg)
     : header_type(result, version,
         std::forward<FieldsArg>(fields_arg))
-    , body(std::forward<BodyArg>(body_arg))
+    , beast::detail::empty_base_optimization<
+        typename Body::value_type>(
+            std::forward<BodyArg>(body_arg))
 {
 }
 
@@ -409,7 +421,7 @@ swap(
     swap(
         static_cast<header<isRequest, Fields>&>(m1),
         static_cast<header<isRequest, Fields>&>(m2));
-    swap(m1.body, m2.body);
+    swap(m1.body(), m2.body());
 }
 
 } // http

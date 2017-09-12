@@ -120,7 +120,7 @@ handle_request(
         res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
         res.set(http::field::content_type, "text/html");
         res.keep_alive(req.keep_alive());
-        res.body = why.to_string();
+        res.body() = why.to_string();
         res.prepare_payload();
         return res;
     };
@@ -133,7 +133,7 @@ handle_request(
         res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
         res.set(http::field::content_type, "text/html");
         res.keep_alive(req.keep_alive());
-        res.body = "The resource '" + target.to_string() + "' was not found.";
+        res.body() = "The resource '" + target.to_string() + "' was not found.";
         res.prepare_payload();
         return res;
     };
@@ -146,7 +146,7 @@ handle_request(
         res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
         res.set(http::field::content_type, "text/html");
         res.keep_alive(req.keep_alive());
-        res.body = "An error occurred: '" + what.to_string() + "'";
+        res.body() = "An error occurred: '" + what.to_string() + "'";
         res.prepare_payload();
         return res;
     };

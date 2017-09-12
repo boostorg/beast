@@ -61,7 +61,7 @@ void fxx() {
     res.version = 11;   // HTTP/1.1
     res.result(status::ok);
     res.set(field::server, "Beast");
-    res.body = "Hello, world!";
+    res.body() = "Hello, world!";
     res.prepare_payload();
 
 //]
@@ -115,7 +115,7 @@ void fxx() {
     res.version = 11;
     res.result(status::ok);
     res.set(field::server, "Beast");
-    res.body = "Hello, world!";
+    res.body() = "Hello, world!";
 
     error_code ec;
     write(sock, res, ec);

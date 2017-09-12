@@ -291,7 +291,7 @@ template<bool isRequest, class Fields>
 basic_file_body<File>::
 reader::
 reader(message<isRequest, basic_file_body, Fields>& m)
-    : body_(m.body)
+    : body_(m.body())
 {
     // The file must already be open
     BOOST_ASSERT(body_.file_.is_open());
@@ -442,7 +442,7 @@ template<bool isRequest, class Fields>
 basic_file_body<File>::
 writer::
 writer(message<isRequest, basic_file_body, Fields>& m)
-    : body_(m.body)
+    : body_(m.body())
 {
 }
 

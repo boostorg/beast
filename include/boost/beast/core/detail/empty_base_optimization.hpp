@@ -19,31 +19,32 @@ namespace beast {
 namespace detail {
 
 template<class T>
-struct empty_base_optimization_decide
+struct is_empty_base_optimization_derived
     : std::integral_constant<bool,
         std::is_empty<T>::value &&
         ! boost::is_final<T>::value>
 {
 };
 
-template<
-    class T,
-    int UniqueID = 0,
-    bool ShouldDeriveFrom =
-        empty_base_optimization_decide<T>::value
->
+template<class T, int UniqueID = 0,
+    bool isDerived =
+        is_empty_base_optimization_derived<T>::value>
 class empty_base_optimization : private T
 {
 public:
     empty_base_optimization() = default;
+    empty_base_optimization(empty_base_optimization&&) = default;
+    empty_base_optimization(empty_base_optimization const&) = default;
+    empty_base_optimization& operator=(empty_base_optimization&&) = default;
+    empty_base_optimization& operator=(empty_base_optimization const&) = default;
 
-    empty_base_optimization(T const& t)
-        : T (t)
-    {}
-
-    empty_base_optimization(T&& t)
-        : T (std::move (t))
-    {}
+    template<class Arg1, class... ArgN>
+    explicit
+    empty_base_optimization(Arg1&& arg1, ArgN&&... argn)
+        : T(std::forward<Arg1>(arg1),
+            std::forward<ArgN>(argn)...)
+    {
+    }
 
     T& member() noexcept
     {
@@ -64,29 +65,32 @@ template<
 >
 class empty_base_optimization <T, UniqueID, false>
 {
+    T t_;
+
 public:
     empty_base_optimization() = default;
+    empty_base_optimization(empty_base_optimization&&) = default;
+    empty_base_optimization(empty_base_optimization const&) = default;
+    empty_base_optimization& operator=(empty_base_optimization&&) = default;
+    empty_base_optimization& operator=(empty_base_optimization const&) = default;
 
-    empty_base_optimization(T const& t)
-        : m_t (t)
-    {}
-
-    empty_base_optimization(T&& t)
-        : m_t (std::move (t))
-    {}
+    template<class Arg1, class... ArgN>
+    explicit
+    empty_base_optimization(Arg1&& arg1, ArgN&&... argn)
+        : t_(std::forward<Arg1>(arg1),
+            std::forward<ArgN>(argn)...)
+    {
+    }
 
     T& member() noexcept
     {
-        return m_t;
+        return t_;
     }
 
     T const& member() const noexcept
     {
-        return m_t;
+        return t_;
     }
-
-private:
-    T m_t;
 };
 
 } // detail
