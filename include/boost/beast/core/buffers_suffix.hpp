@@ -118,13 +118,6 @@ public:
     /// Assignment
     buffers_suffix& operator=(buffers_suffix const&);
 
-    /// Returns the underlying buffers, without modification
-    BufferSequence const&
-    get() const
-    {
-        return bs_;
-    }
-
     /// Get a bidirectional iterator to the first element.
     const_iterator
     begin() const;

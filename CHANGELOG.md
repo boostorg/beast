@@ -8,6 +8,7 @@ API Changes:
 * buffers_front replaces buffer_front
 * buffers_cat replaces buffer_cat
 * buffers_cat_view replaces buffer_cat_view
+* Remove buffers_suffix::get
 
 Actions Required:
 
@@ -17,6 +18,7 @@ Actions Required:
 * Use buffers_front instead of buffer_front
 * Use buffers_cat instead of buffer_cat
 * Use buffers_cat_view instead of buffer_cat_view
+* Avoid calling buffers_suffix::get
 
 --------------------------------------------------------------------------------
 

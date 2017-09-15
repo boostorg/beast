@@ -47,6 +47,7 @@ class stream<NextLayer>::read_some_op
 {
     Handler h_;
     stream<NextLayer>& ws_;
+    MutableBufferSequence bs_;
     buffers_suffix<MutableBufferSequence> cb_;
     std::size_t bytes_written_ = 0;
     error_code ev_;
@@ -66,6 +67,7 @@ public:
         MutableBufferSequence const& bs)
         : h_(std::forward<DeducedHandler>(h))
         , ws_(ws)
+        , bs_(bs)
         , cb_(bs)
         , tok_(ws_.tok_.unique())
         , code_(close_code::none)
@@ -556,7 +558,7 @@ operator()(
             {
                 // check utf8
                 if(! ws_.rd_utf8_.write(
-                    buffers_prefix(bytes_written_, cb_.get())) || (
+                    buffers_prefix(bytes_written_, bs_)) || (
                         ws_.rd_done_ && ! ws_.rd_utf8_.finish()))
                 {
                     // _Fail the WebSocket Connection_
