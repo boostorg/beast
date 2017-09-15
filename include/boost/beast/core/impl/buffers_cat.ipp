@@ -7,8 +7,8 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
-#ifndef BOOST_BEAST_IMPL_BUFFER_CAT_IPP
-#define BOOST_BEAST_IMPL_BUFFER_CAT_IPP
+#ifndef BOOST_BEAST_IMPL_BUFFERS_CAT_IPP
+#define BOOST_BEAST_IMPL_BUFFERS_CAT_IPP
 
 #include <boost/beast/core/detail/type_traits.hpp>
 #include <boost/asio/buffer.hpp>
@@ -25,14 +25,14 @@ namespace boost {
 namespace beast {
 
 template<class... Bn>
-class buffer_cat_view<Bn...>::const_iterator
+class buffers_cat_view<Bn...>::const_iterator
 {
     std::size_t n_;
     std::tuple<Bn...> const* bn_;
     std::array<char, detail::max_sizeof<
         typename Bn::const_iterator...>()> buf_;
 
-    friend class buffer_cat_view<Bn...>;
+    friend class buffers_cat_view<Bn...>;
 
     template<std::size_t I>
     using C = std::integral_constant<std::size_t, I>;
@@ -322,14 +322,14 @@ private:
 //------------------------------------------------------------------------------
 
 template<class... Bn>
-buffer_cat_view<Bn...>::
+buffers_cat_view<Bn...>::
 const_iterator::~const_iterator()
 {
     destroy(C<0>{});
 }
 
 template<class... Bn>
-buffer_cat_view<Bn...>::
+buffers_cat_view<Bn...>::
 const_iterator::const_iterator()
     : n_(sizeof...(Bn))
     , bn_(nullptr)
@@ -337,7 +337,7 @@ const_iterator::const_iterator()
 }
 
 template<class... Bn>
-buffer_cat_view<Bn...>::
+buffers_cat_view<Bn...>::
 const_iterator::const_iterator(
     std::tuple<Bn...> const& bn, bool at_end)
     : bn_(&bn)
@@ -349,7 +349,7 @@ const_iterator::const_iterator(
 }
 
 template<class... Bn>
-buffer_cat_view<Bn...>::
+buffers_cat_view<Bn...>::
 const_iterator::const_iterator(const_iterator&& other)
     : n_(other.n_)
     , bn_(other.bn_)
@@ -358,7 +358,7 @@ const_iterator::const_iterator(const_iterator&& other)
 }
 
 template<class... Bn>
-buffer_cat_view<Bn...>::
+buffers_cat_view<Bn...>::
 const_iterator::const_iterator(const_iterator const& other)
     : n_(other.n_)
     , bn_(other.bn_)
@@ -368,7 +368,7 @@ const_iterator::const_iterator(const_iterator const& other)
 
 template<class... Bn>
 auto
-buffer_cat_view<Bn...>::
+buffers_cat_view<Bn...>::
 const_iterator::operator=(const_iterator&& other) ->
     const_iterator&
 {
@@ -384,7 +384,7 @@ const_iterator::operator=(const_iterator&& other) ->
 
 template<class... Bn>
 auto
-buffer_cat_view<Bn...>::
+buffers_cat_view<Bn...>::
 const_iterator::operator=(const_iterator const& other) ->
 const_iterator&
 {
@@ -400,7 +400,7 @@ const_iterator&
 
 template<class... Bn>
 bool
-buffer_cat_view<Bn...>::
+buffers_cat_view<Bn...>::
 const_iterator::operator==(const_iterator const& other) const
 {
     if(bn_ != other.bn_)
@@ -412,7 +412,7 @@ const_iterator::operator==(const_iterator const& other) const
 
 template<class... Bn>
 auto
-buffer_cat_view<Bn...>::
+buffers_cat_view<Bn...>::
 const_iterator::operator*() const ->
     reference
 {
@@ -421,7 +421,7 @@ const_iterator::operator*() const ->
 
 template<class... Bn>
 auto
-buffer_cat_view<Bn...>::
+buffers_cat_view<Bn...>::
 const_iterator::operator++() ->
     const_iterator&
 {
@@ -431,7 +431,7 @@ const_iterator::operator++() ->
 
 template<class... Bn>
 auto
-buffer_cat_view<Bn...>::
+buffers_cat_view<Bn...>::
 const_iterator::operator++(int) ->
     const_iterator
 {
@@ -442,7 +442,7 @@ const_iterator::operator++(int) ->
 
 template<class... Bn>
 auto
-buffer_cat_view<Bn...>::
+buffers_cat_view<Bn...>::
 const_iterator::operator--() ->
     const_iterator&
 {
@@ -452,7 +452,7 @@ const_iterator::operator--() ->
 
 template<class... Bn>
 auto
-buffer_cat_view<Bn...>::
+buffers_cat_view<Bn...>::
 const_iterator::operator--(int) ->
     const_iterator
 {
@@ -464,8 +464,8 @@ const_iterator::operator--(int) ->
 //------------------------------------------------------------------------------
 
 template<class... Bn>
-buffer_cat_view<Bn...>::
-buffer_cat_view(Bn const&... bn)
+buffers_cat_view<Bn...>::
+buffers_cat_view(Bn const&... bn)
     : bn_(bn...)
 {
 }
@@ -474,7 +474,7 @@ buffer_cat_view(Bn const&... bn)
 template<class... Bn>
 inline
 auto
-buffer_cat_view<Bn...>::begin() const ->
+buffers_cat_view<Bn...>::begin() const ->
     const_iterator
 {
     return const_iterator{bn_, false};
@@ -483,7 +483,7 @@ buffer_cat_view<Bn...>::begin() const ->
 template<class... Bn>
 inline
 auto
-buffer_cat_view<Bn...>::end() const ->
+buffers_cat_view<Bn...>::end() const ->
     const_iterator
 {
     return const_iterator{bn_, true};

@@ -13,7 +13,7 @@
 #include "message_fuzz.hpp"
 #include "test_parser.hpp"
 
-#include <boost/beast/core/buffer_cat.hpp>
+#include <boost/beast/core/buffers_cat.hpp>
 #include <boost/beast/core/buffers_prefix.hpp>
 #include <boost/beast/core/buffers_suffix.hpp>
 #include <boost/beast/core/multi_buffer.hpp>
@@ -193,7 +193,7 @@ public:
             error_code ec;
             buffers_suffix<ConstBufferSequence> cb{buffers};
             cb.consume(i);
-            auto n = p.put(buffer_cat(
+            auto n = p.put(buffers_cat(
                 buffers_prefix(i, buffers), cb), ec);
             if(! BEAST_EXPECTS(! ec, ec.message()))
                 continue;
@@ -265,7 +265,7 @@ public:
             Parser p;
             p.eager(true);
             error_code ec;
-            p.put(buffer_cat(
+            p.put(buffers_cat(
                 boost::asio::const_buffers_1{msg.data(), i},
                 boost::asio::const_buffers_1{
                     msg.data() + i, msg.size() - i}), ec);
@@ -948,7 +948,7 @@ public:
             "hello",
             expect_body(*this, "hello"));
 
-        parsegrind<test_parser<true>>(buffer_cat(
+        parsegrind<test_parser<true>>(buffers_cat(
             buf("GET / HTTP/1.1\r\n"
                 "Content-Length: 10\r\n"
                 "\r\n"),

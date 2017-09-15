@@ -7,8 +7,8 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
-#ifndef BOOST_BEAST_BUFFER_CAT_HPP
-#define BOOST_BEAST_BUFFER_CAT_HPP
+#ifndef BOOST_BEAST_BUFFERS_CAT_HPP
+#define BOOST_BEAST_BUFFERS_CAT_HPP
 
 #include <boost/beast/config.hpp>
 #include <boost/beast/core/detail/type_traits.hpp>
@@ -19,10 +19,10 @@ namespace beast {
 
 /** A buffer sequence representing a concatenation of buffer sequences.
 
-    @see @ref buffer_cat
+    @see @ref buffers_cat
 */
 template<class... Buffers>
-class buffer_cat_view
+class buffers_cat_view
 {
     std::tuple<Buffers...> bn_;
 
@@ -44,13 +44,13 @@ public:
     class const_iterator;
 
     /// Constructor
-    buffer_cat_view(buffer_cat_view&&) = default;
+    buffers_cat_view(buffers_cat_view&&) = default;
 
     /// Assignment
-    buffer_cat_view& operator=(buffer_cat_view&&) = default;
+    buffers_cat_view& operator=(buffers_cat_view&&) = default;
 
     /// Assignment
-    buffer_cat_view& operator=(buffer_cat_view const&) = default;
+    buffers_cat_view& operator=(buffers_cat_view const&) = default;
 
     /** Constructor
 
@@ -59,12 +59,12 @@ public:
         of memory is not transferred.
     */
     explicit
-    buffer_cat_view(Buffers const&... buffers);
+    buffers_cat_view(Buffers const&... buffers);
 
     //-----
 
     /// Required for @b BufferSequence
-    buffer_cat_view(buffer_cat_view const&) = default;
+    buffers_cat_view(buffers_cat_view const&) = default;
 
     /// Required for @b BufferSequence
     const_iterator
@@ -92,28 +92,28 @@ public:
     also a @b MutableBufferSequence; otherwise the returned buffer
     sequence will be a @b ConstBufferSequence.
 
-    @see @ref buffer_cat_view
+    @see @ref buffers_cat_view
 */
 #if BOOST_BEAST_DOXYGEN
 template<class... BufferSequence>
-buffer_cat_view<BufferSequence...>
-buffer_cat(BufferSequence const&... buffers)
+buffers_cat_view<BufferSequence...>
+buffers_cat(BufferSequence const&... buffers)
 #else
 template<class B1, class B2, class... Bn>
 inline
-buffer_cat_view<B1, B2, Bn...>
-buffer_cat(B1 const& b1, B2 const& b2, Bn const&... bn)
+buffers_cat_view<B1, B2, Bn...>
+buffers_cat(B1 const& b1, B2 const& b2, Bn const&... bn)
 #endif
 {
     static_assert(
         detail::is_all_const_buffer_sequence<B1, B2, Bn...>::value,
             "BufferSequence requirements not met");
-    return buffer_cat_view<B1, B2, Bn...>{b1, b2, bn...};
+    return buffers_cat_view<B1, B2, Bn...>{b1, b2, bn...};
 }
 
 } // beast
 } // boost
 
-#include <boost/beast/core/impl/buffer_cat.ipp>
+#include <boost/beast/core/impl/buffers_cat.ipp>
 
 #endif

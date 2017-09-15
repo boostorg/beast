@@ -11,7 +11,7 @@
 #define BOOST_BEAST_WEBSOCKET_IMPL_WRITE_IPP
 
 #include <boost/beast/core/bind_handler.hpp>
-#include <boost/beast/core/buffer_cat.hpp>
+#include <boost/beast/core/buffers_cat.hpp>
 #include <boost/beast/core/buffers_prefix.hpp>
 #include <boost/beast/core/buffers_suffix.hpp>
 #include <boost/beast/core/handler_ptr.hpp>
@@ -246,7 +246,7 @@ operator()(
             // Send frame
             BOOST_ASIO_CORO_YIELD
             boost::asio::async_write(ws_.stream_,
-                buffer_cat(ws_.wr_fb_.data(), cb_),
+                buffers_cat(ws_.wr_fb_.data(), cb_),
                     std::move(*this));
             if(! ws_.check_ok(ec))
                 goto upcall;
@@ -271,7 +271,7 @@ operator()(
                 // Send frame
                 BOOST_ASIO_CORO_YIELD
                 boost::asio::async_write(
-                    ws_.stream_, buffer_cat(
+                    ws_.stream_, buffers_cat(
                         ws_.wr_fb_.data(), buffers_prefix(
                             clamp(fh_.len), cb_)),
                                 std::move(*this));
@@ -320,7 +320,7 @@ operator()(
             // Send frame header and partial payload
             BOOST_ASIO_CORO_YIELD
             boost::asio::async_write(
-                ws_.stream_, buffer_cat(ws_.wr_fb_.data(),
+                ws_.stream_, buffers_cat(ws_.wr_fb_.data(),
                     buffer(ws_.wr_buf_.get(), n)),
                         std::move(*this));
             if(! ws_.check_ok(ec))
@@ -371,7 +371,7 @@ operator()(
                 // Send frame
                 BOOST_ASIO_CORO_YIELD
                 boost::asio::async_write(ws_.stream_,
-                    buffer_cat(ws_.wr_fb_.data(),
+                    buffers_cat(ws_.wr_fb_.data(),
                         buffer(ws_.wr_buf_.get(), n)),
                             std::move(*this));
                 if(! ws_.check_ok(ec))
@@ -435,7 +435,7 @@ operator()(
                 // Send frame
                 BOOST_ASIO_CORO_YIELD
                 boost::asio::async_write(ws_.stream_,
-                    buffer_cat(ws_.wr_fb_.data(),
+                    buffers_cat(ws_.wr_fb_.data(),
                         mutable_buffers_1{b}), std::move(*this));
                 if(! ws_.check_ok(ec))
                     goto upcall;
@@ -580,7 +580,7 @@ write_some(bool fin,
                 flat_static_buffer_base>(fh_buf, fh);
             wr_cont_ = ! fin;
             boost::asio::write(stream_,
-                buffer_cat(fh_buf.data(), b), ec);
+                buffers_cat(fh_buf.data(), b), ec);
             if(! check_ok(ec))
                 return bytes_transferred;
             if(! more)
@@ -607,7 +607,7 @@ write_some(bool fin,
                 flat_static_buffer_base>(fh_buf, fh);
             wr_cont_ = ! fin;
             boost::asio::write(stream_,
-                buffer_cat(fh_buf.data(), buffers), ec);
+                buffers_cat(fh_buf.data(), buffers), ec);
             if(! check_ok(ec))
                 return bytes_transferred;
             bytes_transferred += remain;
@@ -629,7 +629,7 @@ write_some(bool fin,
                     flat_static_buffer_base>(fh_buf, fh);
                 wr_cont_ = ! fin;
                 boost::asio::write(stream_,
-                    buffer_cat(fh_buf.data(),
+                    buffers_cat(fh_buf.data(),
                         buffers_prefix(n, cb)), ec);
                 if(! check_ok(ec))
                     return bytes_transferred;
@@ -663,7 +663,7 @@ write_some(bool fin,
             detail::mask_inplace(b, key);
             wr_cont_ = ! fin;
             boost::asio::write(stream_,
-                buffer_cat(fh_buf.data(), b), ec);
+                buffers_cat(fh_buf.data(), b), ec);
             if(! check_ok(ec))
                 return bytes_transferred;
             bytes_transferred += n;
@@ -705,7 +705,7 @@ write_some(bool fin,
             detail::write<
                 flat_static_buffer_base>(fh_buf, fh);
             boost::asio::write(stream_,
-                buffer_cat(fh_buf.data(), b), ec);
+                buffers_cat(fh_buf.data(), b), ec);
             if(! check_ok(ec))
                 return bytes_transferred;
             bytes_transferred += n;

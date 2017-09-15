@@ -11,7 +11,7 @@
 #define BOOST_BEAST_HTTP_SERIALIZER_HPP
 
 #include <boost/beast/config.hpp>
-#include <boost/beast/core/buffer_cat.hpp>
+#include <boost/beast/core/buffers_cat.hpp>
 #include <boost/beast/core/buffers_prefix.hpp>
 #include <boost/beast/core/buffers_suffix.hpp>
 #include <boost/beast/core/string.hpp>
@@ -120,7 +120,7 @@ private:
         Fields::reader::const_buffers_type>;        // header
     using pcb1_t  = buffers_prefix_view<cb1_t const&>;
 
-    using cb2_t = buffers_suffix<buffer_cat_view<
+    using cb2_t = buffers_suffix<buffers_cat_view<
         typename Fields::reader::const_buffers_type,// header
         typename reader::const_buffers_type>>;      // body
     using pcb2_t = buffers_prefix_view<cb2_t const&>;
@@ -129,7 +129,7 @@ private:
         typename reader::const_buffers_type>;       // body
     using pcb3_t = buffers_prefix_view<cb3_t const&>;
 
-    using cb4_t = buffers_suffix<buffer_cat_view<
+    using cb4_t = buffers_suffix<buffers_cat_view<
         typename Fields::reader::const_buffers_type,// header
         detail::chunk_size,                         // chunk-size
         boost::asio::const_buffers_1,               // chunk-ext
@@ -138,7 +138,7 @@ private:
         chunk_crlf>>;                               // crlf
     using pcb4_t = buffers_prefix_view<cb4_t const&>;
 
-    using cb5_t = buffers_suffix<buffer_cat_view<
+    using cb5_t = buffers_suffix<buffers_cat_view<
         detail::chunk_size,                         // chunk-header
         boost::asio::const_buffers_1,               // chunk-ext
         chunk_crlf,                                 // crlf
@@ -146,7 +146,7 @@ private:
         chunk_crlf>>;                               // crlf
     using pcb5_t = buffers_prefix_view<cb5_t const&>;
 
-    using cb6_t = buffers_suffix<buffer_cat_view<
+    using cb6_t = buffers_suffix<buffers_cat_view<
         detail::chunk_size,                         // chunk-header
         boost::asio::const_buffers_1,               // chunk-size
         chunk_crlf,                                 // crlf
@@ -157,7 +157,7 @@ private:
         chunk_crlf>>;                               // crlf
     using pcb6_t = buffers_prefix_view<cb6_t const&>;
 
-    using cb7_t = buffers_suffix<buffer_cat_view<
+    using cb7_t = buffers_suffix<buffers_cat_view<
         typename Fields::reader::const_buffers_type,// header
         detail::chunk_size,                         // chunk-size
         boost::asio::const_buffers_1,               // chunk-ext
@@ -169,7 +169,7 @@ private:
         chunk_crlf>>;                               // crlf
     using pcb7_t = buffers_prefix_view<cb7_t const&>;
 
-    using cb8_t = buffers_suffix<buffer_cat_view<
+    using cb8_t = buffers_suffix<buffers_cat_view<
         boost::asio::const_buffers_1,               // chunk-final
         boost::asio::const_buffers_1,               // trailers 
         chunk_crlf>>;                               // crlf

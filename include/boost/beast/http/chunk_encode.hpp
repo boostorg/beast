@@ -11,7 +11,7 @@
 #define BOOST_BEAST_HTTP_CHUNK_ENCODE_HPP
 
 #include <boost/beast/config.hpp>
-#include <boost/beast/core/buffer_cat.hpp>
+#include <boost/beast/core/buffers_cat.hpp>
 #include <boost/beast/core/string.hpp>
 #include <boost/beast/http/type_traits.hpp>
 #include <boost/beast/http/detail/chunk_encode.hpp>
@@ -104,7 +104,7 @@ struct chunk_crlf
 */
 class chunk_header
 {
-    using view_type = buffer_cat_view<
+    using view_type = buffers_cat_view<
         detail::chunk_size,             // chunk-size
         boost::asio::const_buffers_1,   // chunk-extensions
         chunk_crlf>;                    // CRLF
@@ -283,7 +283,7 @@ public:
 template<class ConstBufferSequence>
 class chunk_body
 {
-    using view_type = buffer_cat_view<
+    using view_type = buffers_cat_view<
         detail::chunk_size,             // chunk-size
         boost::asio::const_buffers_1,   // chunk-extensions
         chunk_crlf,                     // CRLF
@@ -466,7 +466,7 @@ class chunk_last
         detail::buffers_or_fields<Trailer>::type;
 
     using view_type =
-        buffer_cat_view<
+        buffers_cat_view<
             detail::chunk_size0,    // "0\r\n"
             buffers_type>;          // Trailer (includes CRLF)
 

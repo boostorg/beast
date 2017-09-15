@@ -6,6 +6,8 @@ API Changes:
 * buffers_prefix replaces buffer_prefix
 * buffers_prefix_view replaces buffer_prefix_view
 * buffers_front replaces buffer_front
+* buffers_cat replaces buffer_cat
+* buffers_cat_view replaces buffer_cat_view
 
 Actions Required:
 
@@ -13,6 +15,8 @@ Actions Required:
 * Use buffers_prefix instead of buffer_prefix
 * Use buffers_prefix_view instead of buffer_prefix_view
 * Use buffers_front instead of buffer_front
+* Use buffers_cat instead of buffer_cat
+* Use buffers_cat_view instead of buffer_cat_view
 
 --------------------------------------------------------------------------------
 

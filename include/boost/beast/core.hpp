@@ -14,7 +14,7 @@
 
 #include <boost/beast/core/async_result.hpp>
 #include <boost/beast/core/bind_handler.hpp>
-#include <boost/beast/core/buffer_cat.hpp>
+#include <boost/beast/core/buffers_cat.hpp>
 #include <boost/beast/core/buffers_prefix.hpp>
 #include <boost/beast/core/buffered_read_stream.hpp>
 #include <boost/beast/core/buffers_adapter.hpp>

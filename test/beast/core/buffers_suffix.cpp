@@ -12,7 +12,7 @@
 
 #include "buffer_test.hpp"
 
-#include <boost/beast/core/buffer_cat.hpp>
+#include <boost/beast/core/buffers_cat.hpp>
 #include <boost/beast/core/ostream.hpp>
 #include <boost/beast/unit_test/suite.hpp>
 #include <boost/asio/buffer.hpp>
@@ -133,7 +133,7 @@ public:
     testInPlace()
     {
         using namespace test;
-        buffers_suffix<buffer_cat_view<
+        buffers_suffix<buffers_cat_view<
             boost::asio::const_buffers_1,
             boost::asio::const_buffers_1>> cb(
                 boost::in_place_init,

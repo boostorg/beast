@@ -107,7 +107,7 @@ transferred.
 [table Buffer Algorithms and Types
 [[Name][Description]]
 [[
-    [link beast.ref.boost__beast__buffer_cat `buffer_cat`]
+    [link beast.ref.boost__beast__buffers_cat `buffers_cat`]
 ][
     This functions returns a new buffer sequence which, when iterated,
     traverses the sequence which would be formed if all of the input buffer
@@ -116,11 +116,11 @@ transferred.
     expensive system calls.
 ]]
 [[
-    [link beast.ref.boost__beast__buffer_cat_view `buffer_cat_view`]
+    [link beast.ref.boost__beast__buffers_cat_view `buffers_cat_view`]
 ][
     This class represents the buffer sequence formed by concatenating
     two or more buffer sequences. This is type of object returned by
-    [link beast.ref.boost__beast__buffer_cat `buffer_cat`].
+    [link beast.ref.boost__beast__buffers_cat `buffers_cat`].
 ]]
 [[
     [link beast.ref.boost__beast__buffers_front `buffers_front`]

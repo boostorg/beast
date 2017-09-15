@@ -20,9 +20,9 @@ add_executable (tests-beast-core
     file_test.hpp
     async_result.cpp
     bind_handler.cpp
-    buffer_cat.cpp
     buffered_read_stream.cpp
     buffers_adapter.cpp
+    buffers_cat.cpp
     buffers_prefix.cpp
     buffers_suffix.cpp
     error.cpp

@@ -8,7 +8,7 @@
 //
 
 // Test that header file is self-contained.
-#include <boost/beast/core/buffer_cat.hpp>
+#include <boost/beast/core/buffers_cat.hpp>
 
 #include <boost/beast/unit_test/suite.hpp>
 #include <boost/asio/buffer.hpp>
@@ -21,7 +21,7 @@
 namespace boost {
 namespace beast {
 
-class buffer_cat_test : public unit_test::suite
+class buffers_cat_test : public unit_test::suite
 {
 public:
     template<class Iterator>
@@ -100,7 +100,7 @@ public:
         std::list<const_buffer> b5{
             const_buffer{buf+9, 1}};
         std::list<const_buffer> b6;
-        auto bs = buffer_cat(
+        auto bs = buffers_cat(
             b1, b2, b3, b4, b5, b6);
         BEAST_EXPECT(buffer_size(bs) == 10);
         BEAST_EXPECT(bsize1(bs) == 10);
@@ -116,11 +116,11 @@ public:
         auto bs3(std::move(bs));
         {
             boost::asio::streambuf sb1, sb2;
-            BEAST_EXPECT(buffer_size(buffer_cat(
+            BEAST_EXPECT(buffer_size(buffers_cat(
                 sb1.prepare(5), sb2.prepare(7))) == 12);
             sb1.commit(5);
             sb2.commit(7);
-            BEAST_EXPECT(buffer_size(buffer_cat(
+            BEAST_EXPECT(buffer_size(buffers_cat(
                 sb1.data(), sb2.data())) == 12);
         }
         for(auto it = bs.begin(); it != bs.end(); ++it)
@@ -145,7 +145,7 @@ public:
             const_buffer{buf+3, 1},
             const_buffer{buf+4, 2},
             const_buffer{buf+6, 3}}};
-        auto bs = buffer_cat(b1, b2);
+        auto bs = buffers_cat(b1, b2);
         for(int n = 0;
             n <= std::distance(bs.begin(), bs.end()); ++n)
         {
@@ -243,7 +243,7 @@ public:
         // sequences results in a mutable buffer sequence
         BOOST_STATIC_ASSERT(std::is_same<
             mutable_buffer,
-            decltype(buffer_cat(
+            decltype(buffers_cat(
                 std::declval<mutable_buffer>(),
                 std::declval<user_defined>(),
                 std::declval<mutable_buffer>()
@@ -253,7 +253,7 @@ public:
         // sequences results in a const buffer sequence.
         BOOST_STATIC_ASSERT(std::is_same<
             const_buffer,
-            decltype(buffer_cat(
+            decltype(buffers_cat(
                 std::declval<mutable_buffer>(),
                 std::declval<user_defined>(),
                 std::declval<const_buffer>()
@@ -264,7 +264,7 @@ public:
     }
 };
 
-BEAST_DEFINE_TESTSUITE(beast,core,buffer_cat);
+BEAST_DEFINE_TESTSUITE(beast,core,buffers_cat);
 
 } // beast
 } // boost
