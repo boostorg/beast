@@ -13,7 +13,7 @@
 #include <boost/beast/websocket/teardown.hpp>
 #include <boost/beast/core/bind_handler.hpp>
 #include <boost/beast/core/buffer_prefix.hpp>
-#include <boost/beast/core/consuming_buffers.hpp>
+#include <boost/beast/core/buffers_suffix.hpp>
 #include <boost/beast/core/flat_static_buffer.hpp>
 #include <boost/beast/core/type_traits.hpp>
 #include <boost/beast/core/detail/clamp.hpp>
@@ -47,7 +47,7 @@ class stream<NextLayer>::read_some_op
 {
     Handler h_;
     stream<NextLayer>& ws_;
-    consuming_buffers<MutableBufferSequence> cb_;
+    buffers_suffix<MutableBufferSequence> cb_;
     std::size_t bytes_written_ = 0;
     error_code ev_;
     token tok_;
@@ -1178,7 +1178,7 @@ loop:
         // never emit the end-of-stream deflate block.
         //
         bool did_read = false;
-        consuming_buffers<MutableBufferSequence> cb{buffers};
+        buffers_suffix<MutableBufferSequence> cb{buffers};
         while(buffer_size(cb) > 0)
         {
             zlib::z_params zs;

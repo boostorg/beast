@@ -10,7 +10,7 @@
 // Test that header file is self-contained.
 #include <boost/beast/core/buffer_prefix.hpp>
 
-#include <boost/beast/core/consuming_buffers.hpp>
+#include <boost/beast/core/buffers_suffix.hpp>
 #include <boost/beast/core/type_traits.hpp>
 #include <boost/beast/unit_test/suite.hpp>
 #include <boost/asio/buffer.hpp>
@@ -149,7 +149,7 @@ public:
         BEAST_EXPECT(buffer_copy(pb0, pb1) == 0);
 
         using pb_type = decltype(pb0);
-        consuming_buffers<pb_type> cb(pb0);
+        buffers_suffix<pb_type> cb(pb0);
         BEAST_EXPECT(buffer_size(cb) == 0);
         BEAST_EXPECT(buffer_copy(cb, pb1) == 0);
         cb.consume(1);

@@ -14,7 +14,7 @@
 
 #include <boost/beast/unit_test/suite.hpp>
 #include <boost/beast/test/yield_to.hpp>
-#include <boost/beast/core/consuming_buffers.hpp>
+#include <boost/beast/core/buffers_suffix.hpp>
 #include <boost/beast/core/flat_buffer.hpp>
 #include <boost/beast/core/multi_buffer.hpp>
 #include <boost/beast/core/ostream.hpp>
@@ -51,7 +51,7 @@ public:
             error_code& ec)
     {
         using boost::asio::buffer_size;
-        consuming_buffers<ConstBufferSequence> cb{buffers};
+        buffers_suffix<ConstBufferSequence> cb{buffers};
         for(;;)
         {
             auto const used = p.put(cb, ec);

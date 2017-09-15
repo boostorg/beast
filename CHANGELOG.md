@@ -1,3 +1,15 @@
+Version 117:
+
+API Changes:
+
+* buffers_suffix replaces consuming_buffers
+
+Actions Required:
+
+* Use buffers_suffix instead of consuming_buffers
+
+--------------------------------------------------------------------------------
+
 Version 116:
 
 API Changes:

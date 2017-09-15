@@ -12,7 +12,7 @@
 
 #include <boost/beast/config.hpp>
 #include <boost/beast/core/buffer_cat.hpp>
-#include <boost/beast/core/consuming_buffers.hpp>
+#include <boost/beast/core/buffers_suffix.hpp>
 #include <boost/beast/core/multi_buffer.hpp>
 #include <boost/beast/http/message.hpp>
 #include <boost/beast/http/serializer.hpp>

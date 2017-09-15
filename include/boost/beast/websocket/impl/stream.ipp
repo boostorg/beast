@@ -20,7 +20,7 @@
 #include <boost/beast/http/rfc7230.hpp>
 #include <boost/beast/core/buffer_cat.hpp>
 #include <boost/beast/core/buffer_prefix.hpp>
-#include <boost/beast/core/consuming_buffers.hpp>
+#include <boost/beast/core/buffers_suffix.hpp>
 #include <boost/beast/core/flat_static_buffer.hpp>
 #include <boost/beast/core/type_traits.hpp>
 #include <boost/beast/core/detail/clamp.hpp>
@@ -261,7 +261,7 @@ parse_fh(
         code = close_code::none;
         return false;
     }
-    consuming_buffers<typename
+    buffers_suffix<typename
         DynamicBuffer::const_buffers_type> cb{
             b.data()};
     std::size_t need;

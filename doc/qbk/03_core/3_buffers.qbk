@@ -142,7 +142,7 @@ transferred.
     [link beast.ref.boost__beast__buffer_prefix.overload3 `buffer_prefix`].
 ]]
 [[
-    [link beast.ref.boost__beast__consuming_buffers `consuming_buffers`]
+    [link beast.ref.boost__beast__buffers_suffix `buffers_suffix`]
 ][
     This class wraps the underlying memory of an existing buffer sequence
     and presents a suffix of the original sequence. The length of the suffix

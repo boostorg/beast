@@ -12,7 +12,7 @@
 #include "test/beast/http/message_fuzz.hpp"
 
 #include <boost/beast/http.hpp>
-#include <boost/beast/core/consuming_buffers.hpp>
+#include <boost/beast/core/buffers_suffix.hpp>
 #include <boost/beast/core/ostream.hpp>
 #include <boost/beast/core/flat_buffer.hpp>
 #include <boost/beast/core/multi_buffer.hpp>
@@ -91,7 +91,7 @@ public:
             error_code& ec)
     {
         using boost::asio::buffer_size;
-        beast::consuming_buffers<
+        beast::buffers_suffix<
             ConstBufferSequence> cb{buffers};
         std::size_t used = 0;
         for(;;)

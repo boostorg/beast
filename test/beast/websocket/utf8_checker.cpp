@@ -10,7 +10,7 @@
 // Test that header file is self-contained.
 #include <boost/beast/websocket/detail/utf8_checker.hpp>
 
-#include <boost/beast/core/consuming_buffers.hpp>
+#include <boost/beast/core/buffers_suffix.hpp>
 #include <boost/beast/core/multi_buffer.hpp>
 #include <boost/beast/unit_test/suite.hpp>
 #include <array>
@@ -394,7 +394,7 @@ public:
             {
                 static std::size_t constexpr size = 3;
                 std::size_t n = s.size();
-                consuming_buffers<
+                buffers_suffix<
                     boost::asio::const_buffers_1> cb{
                         boost::asio::const_buffers_1(s.data(), n)};
                 multi_buffer b;

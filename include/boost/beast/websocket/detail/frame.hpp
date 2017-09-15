@@ -12,7 +12,7 @@
 
 #include <boost/beast/websocket/rfc6455.hpp>
 #include <boost/beast/websocket/detail/utf8_checker.hpp>
-#include <boost/beast/core/consuming_buffers.hpp>
+#include <boost/beast/core/buffers_suffix.hpp>
 #include <boost/beast/core/flat_static_buffer.hpp>
 #include <boost/beast/core/static_string.hpp>
 #include <boost/asio/buffer.hpp>
@@ -265,7 +265,7 @@ read_close(close_reason& cr,
         code = close_code::protocol_error;
         return;
     }
-    consuming_buffers<Buffers> cb(bs);
+    buffers_suffix<Buffers> cb(bs);
     {
         std::uint8_t b[2];
         buffer_copy(buffer(b), cb);

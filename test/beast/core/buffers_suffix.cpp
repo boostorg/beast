@@ -8,7 +8,7 @@
 //
 
 // Test that header file is self-contained.
-#include <boost/beast/core/consuming_buffers.hpp>
+#include <boost/beast/core/buffers_suffix.hpp>
 
 #include "buffer_test.hpp"
 
@@ -21,15 +21,15 @@
 namespace boost {
 namespace beast {
 
-class consuming_buffers_test : public beast::unit_test::suite
+class buffers_suffix_test : public beast::unit_test::suite
 {
 public:
     template<class BufferSequence>
     static
-    consuming_buffers<BufferSequence>
+    buffers_suffix<BufferSequence>
     consumed_buffers(BufferSequence const& bs, std::size_t n)
     {
-        consuming_buffers<BufferSequence> cb(bs);
+        buffers_suffix<BufferSequence> cb(bs);
         cb.consume(n);
         return cb;
     }
@@ -57,10 +57,10 @@ public:
     testMembers()
     {
         char buf[12];
-        consuming_buffers<
+        buffers_suffix<
             boost::asio::const_buffers_1> cb1{
                 boost::in_place_init, buf, sizeof(buf)};
-        consuming_buffers<
+        buffers_suffix<
             boost::asio::const_buffers_1> cb2{
                 boost::in_place_init, nullptr, 0};
         cb2 = cb1;
@@ -89,7 +89,7 @@ public:
                 const_buffer{&buf[0], i},
                 const_buffer{&buf[i], j},
                 const_buffer{&buf[i+j], k}}};
-            consuming_buffers<decltype(bs)> cb(bs);
+            buffers_suffix<decltype(bs)> cb(bs);
             BEAST_EXPECT(to_string(cb) == s);
             expect_size(s.size(), cb);
             cb.consume(0);
@@ -125,7 +125,7 @@ public:
             }
         };
 
-        consuming_buffers<test_buffer> cb;
+        buffers_suffix<test_buffer> cb;
         BEAST_EXPECT(to_string(cb) == "\r\n");
     }
 
@@ -133,7 +133,7 @@ public:
     testInPlace()
     {
         using namespace test;
-        consuming_buffers<buffer_cat_view<
+        buffers_suffix<buffer_cat_view<
             boost::asio::const_buffers_1,
             boost::asio::const_buffers_1>> cb(
                 boost::in_place_init,
@@ -148,10 +148,10 @@ public:
         using boost::asio::buffer_copy;
         using boost::asio::buffer_size;
         using boost::asio::null_buffers;
-        consuming_buffers<null_buffers> cb(
+        buffers_suffix<null_buffers> cb(
             null_buffers{});
         BEAST_EXPECT(buffer_size(cb) == 0);
-        consuming_buffers<null_buffers> cb2(
+        buffers_suffix<null_buffers> cb2(
             null_buffers{});
         BEAST_EXPECT(buffer_copy(cb2, cb) == 0);
     }
@@ -161,7 +161,7 @@ public:
     {
         using boost::asio::const_buffer;
         std::array<const_buffer, 3> ba;
-        consuming_buffers<decltype(ba)> cb(ba);
+        buffers_suffix<decltype(ba)> cb(ba);
         std::size_t n = 0;
         for(auto it = cb.end(); it != cb.begin(); --it)
             ++n;
@@ -179,7 +179,7 @@ public:
     }
 };
 
-BEAST_DEFINE_TESTSUITE(beast,core,consuming_buffers);
+BEAST_DEFINE_TESTSUITE(beast,core,buffers_suffix);
 
 } // beast
 } // boost

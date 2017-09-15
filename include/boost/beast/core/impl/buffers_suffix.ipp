@@ -7,8 +7,8 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
-#ifndef BOOST_BEAST_IMPL_CONSUMING_BUFFERS_IPP
-#define BOOST_BEAST_IMPL_CONSUMING_BUFFERS_IPP
+#ifndef BOOST_BEAST_IMPL_BUFFERS_SUFFIX_IPP
+#define BOOST_BEAST_IMPL_BUFFERS_SUFFIX_IPP
 
 #include <boost/beast/core/type_traits.hpp>
 #include <algorithm>
@@ -21,15 +21,15 @@ namespace boost {
 namespace beast {
 
 template<class Buffers>
-class consuming_buffers<Buffers>::const_iterator
+class buffers_suffix<Buffers>::const_iterator
 {
-    friend class consuming_buffers<Buffers>;
+    friend class buffers_suffix<Buffers>;
 
     using iter_type =
         typename Buffers::const_iterator;
 
     iter_type it_;
-    consuming_buffers const* b_ = nullptr;
+    buffers_suffix const* b_ = nullptr;
 
 public:
     using value_type = typename std::conditional<
@@ -104,7 +104,7 @@ public:
     }
 
 private:
-    const_iterator(consuming_buffers const& b,
+    const_iterator(buffers_suffix const& b,
             iter_type it)
         : it_(it)
         , b_(&b)
@@ -115,33 +115,33 @@ private:
 //------------------------------------------------------------------------------
 
 template<class Buffers>
-consuming_buffers<Buffers>::
-consuming_buffers()
+buffers_suffix<Buffers>::
+buffers_suffix()
     : begin_(bs_.begin())
 {
 }
 
 template<class Buffers>
-consuming_buffers<Buffers>::
-consuming_buffers(consuming_buffers&& other)
-    : consuming_buffers(std::move(other),
+buffers_suffix<Buffers>::
+buffers_suffix(buffers_suffix&& other)
+    : buffers_suffix(std::move(other),
         std::distance<iter_type>(
             other.bs_.begin(), other.begin_))
 {
 }
 
 template<class Buffers>
-consuming_buffers<Buffers>::
-consuming_buffers(consuming_buffers const& other)
-    : consuming_buffers(other,
+buffers_suffix<Buffers>::
+buffers_suffix(buffers_suffix const& other)
+    : buffers_suffix(other,
         std::distance<iter_type>(
             other.bs_.begin(), other.begin_))
 {
 }
 
 template<class Buffers>
-consuming_buffers<Buffers>::
-consuming_buffers(Buffers const& bs)
+buffers_suffix<Buffers>::
+buffers_suffix(Buffers const& bs)
     : bs_(bs)
     , begin_(bs_.begin())
 {
@@ -153,8 +153,8 @@ consuming_buffers(Buffers const& bs)
 
 template<class Buffers>
 template<class... Args>
-consuming_buffers<Buffers>::
-consuming_buffers(boost::in_place_init_t, Args&&... args)
+buffers_suffix<Buffers>::
+buffers_suffix(boost::in_place_init_t, Args&&... args)
     : bs_(std::forward<Args>(args)...)
     , begin_(bs_.begin())
 {
@@ -167,9 +167,9 @@ consuming_buffers(boost::in_place_init_t, Args&&... args)
 
 template<class Buffers>
 auto
-consuming_buffers<Buffers>::
-operator=(consuming_buffers&& other) ->
-    consuming_buffers&
+buffers_suffix<Buffers>::
+operator=(buffers_suffix&& other) ->
+    buffers_suffix&
 {
     auto const dist = std::distance<iter_type>(
         other.bs_.begin(), other.begin_);
@@ -181,9 +181,9 @@ operator=(consuming_buffers&& other) ->
 
 template<class Buffers>
 auto
-consuming_buffers<Buffers>::
-operator=(consuming_buffers const& other) ->
-    consuming_buffers&
+buffers_suffix<Buffers>::
+operator=(buffers_suffix const& other) ->
+    buffers_suffix&
 {
     auto const dist = std::distance<iter_type>(
         other.bs_.begin(), other.begin_);
@@ -196,7 +196,7 @@ operator=(consuming_buffers const& other) ->
 template<class Buffers>
 inline
 auto
-consuming_buffers<Buffers>::
+buffers_suffix<Buffers>::
 begin() const ->
     const_iterator
 {
@@ -206,7 +206,7 @@ begin() const ->
 template<class Buffers>
 inline
 auto
-consuming_buffers<Buffers>::
+buffers_suffix<Buffers>::
 end() const ->
     const_iterator
 {
@@ -215,7 +215,7 @@ end() const ->
 
 template<class Buffers>
 void
-consuming_buffers<Buffers>::
+buffers_suffix<Buffers>::
 consume(std::size_t amount)
 {
     using boost::asio::buffer_size;

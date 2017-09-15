@@ -24,8 +24,7 @@ add_executable (tests-beast-core
     buffer_prefix.cpp
     buffered_read_stream.cpp
     buffers_adapter.cpp
-    clamp.cpp
-    consuming_buffers.cpp
+    buffers_suffix.cpp
     error.cpp
     file.cpp
     file_posix.cpp
@@ -44,9 +43,10 @@ add_executable (tests-beast-core
     static_buffer.cpp
     string_param.cpp
     type_traits.cpp
-    base64.cpp
-    empty_base_optimization.cpp
-    sha1.cpp
+    detail/base64.cpp
+    detail/clamp.cpp
+    detail/empty_base_optimization.cpp
+    detail/sha1.cpp
     detail/variant.cpp
     detail/varint.cpp
 )

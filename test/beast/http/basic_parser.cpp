@@ -15,7 +15,7 @@
 
 #include <boost/beast/core/buffer_cat.hpp>
 #include <boost/beast/core/buffer_prefix.hpp>
-#include <boost/beast/core/consuming_buffers.hpp>
+#include <boost/beast/core/buffers_suffix.hpp>
 #include <boost/beast/core/multi_buffer.hpp>
 #include <boost/beast/core/ostream.hpp>
 #include <boost/beast/http/parser.hpp>
@@ -163,7 +163,7 @@ public:
             p.eager(true);
             p.skip(skip);
             error_code ec;
-            consuming_buffers<ConstBufferSequence> cb{buffers};
+            buffers_suffix<ConstBufferSequence> cb{buffers};
             auto n = p.put(buffer_prefix(i, cb), ec);
             if(! BEAST_EXPECTS(! ec ||
                     ec == error::need_more, ec.message()))
@@ -191,7 +191,7 @@ public:
             Parser p;
             p.eager(true);
             error_code ec;
-            consuming_buffers<ConstBufferSequence> cb{buffers};
+            buffers_suffix<ConstBufferSequence> cb{buffers};
             cb.consume(i);
             auto n = p.put(buffer_cat(
                 buffer_prefix(i, buffers), cb), ec);
@@ -241,7 +241,7 @@ public:
             Parser p;
             p.eager(true);
             error_code ec;
-            consuming_buffers<boost::asio::const_buffers_1> cb{
+            buffers_suffix<boost::asio::const_buffers_1> cb{
                 boost::in_place_init, msg.data(), msg.size()};
             auto n = p.put(buffer_prefix(i, cb), ec);
             if(ec == result)

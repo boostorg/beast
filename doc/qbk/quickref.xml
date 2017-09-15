@@ -183,7 +183,7 @@
             <member><link linkend="beast.ref.boost__beast__buffer_prefix_view">buffer_prefix_view</link></member>
             <member><link linkend="beast.ref.boost__beast__buffered_read_stream">buffered_read_stream</link></member>
             <member><link linkend="beast.ref.boost__beast__buffers_adapter">buffers_adapter</link></member>
-            <member><link linkend="beast.ref.boost__beast__consuming_buffers">consuming_buffers</link></member>
+            <member><link linkend="beast.ref.boost__beast__buffers_suffix">buffers_suffix</link></member>
             <member><link linkend="beast.ref.boost__beast__file">file</link></member>
             <member><link linkend="beast.ref.boost__beast__file_mode">file_mode</link></member>
             <member><link linkend="beast.ref.boost__beast__file_posix">file_posix</link></member>

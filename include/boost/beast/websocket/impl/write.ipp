@@ -13,7 +13,7 @@
 #include <boost/beast/core/bind_handler.hpp>
 #include <boost/beast/core/buffer_cat.hpp>
 #include <boost/beast/core/buffer_prefix.hpp>
-#include <boost/beast/core/consuming_buffers.hpp>
+#include <boost/beast/core/buffers_suffix.hpp>
 #include <boost/beast/core/handler_ptr.hpp>
 #include <boost/beast/core/flat_static_buffer.hpp>
 #include <boost/beast/core/type_traits.hpp>
@@ -41,7 +41,7 @@ class stream<NextLayer>::write_some_op
 {
     Handler h_;
     stream<NextLayer>& ws_;
-    consuming_buffers<Buffers> cb_;
+    buffers_suffix<Buffers> cb_;
     detail::frame_header fh_;
     detail::prepared_key key_;
     std::size_t bytes_transferred_ = 0;
@@ -544,7 +544,7 @@ write_some(bool fin,
     auto remain = buffer_size(buffers);
     if(wr_compress_)
     {
-        consuming_buffers<
+        buffers_suffix<
             ConstBufferSequence> cb{buffers};
         for(;;)
         {
@@ -616,7 +616,7 @@ write_some(bool fin,
         {
             // no mask, autofrag
             BOOST_ASSERT(wr_buf_size_ != 0);
-            consuming_buffers<
+            buffers_suffix<
                 ConstBufferSequence> cb{buffers};
             for(;;)
             {
@@ -652,7 +652,7 @@ write_some(bool fin,
         detail::fh_buffer fh_buf;
         detail::write<
             flat_static_buffer_base>(fh_buf, fh);
-        consuming_buffers<
+        buffers_suffix<
             ConstBufferSequence> cb{buffers};
         {
             auto const n = clamp(remain, wr_buf_size_);
@@ -686,7 +686,7 @@ write_some(bool fin,
     {
         // mask, autofrag
         BOOST_ASSERT(wr_buf_size_ != 0);
-        consuming_buffers<
+        buffers_suffix<
             ConstBufferSequence> cb{buffers};
         for(;;)
         {

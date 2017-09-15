@@ -168,7 +168,7 @@ boost::asio::ip::tcp::socket sock{ios};
         if(ws.read_some(buffer, 0))
             break;
     ws.binary(ws.got_binary());
-    consuming_buffers<multi_buffer::const_buffers_type> cb{buffer.data()};
+    buffers_suffix<multi_buffer::const_buffers_type> cb{buffer.data()};
     for(;;)
     {
         using boost::asio::buffer_size;
