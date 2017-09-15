@@ -7,8 +7,8 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
-#ifndef BOOST_BEAST_IMPL_BUFFER_PREFIX_IPP
-#define BOOST_BEAST_IMPL_BUFFER_PREFIX_IPP
+#ifndef BOOST_BEAST_IMPL_BUFFERS_PREFIX_IPP
+#define BOOST_BEAST_IMPL_BUFFERS_PREFIX_IPP
 
 #include <algorithm>
 #include <cstdint>
@@ -24,7 +24,7 @@ namespace detail {
 
 inline
 boost::asio::const_buffer
-buffer_prefix(std::size_t size,
+buffers_prefix(std::size_t size,
     boost::asio::const_buffer buffer)
 {
     using boost::asio::buffer_cast;
@@ -35,7 +35,7 @@ buffer_prefix(std::size_t size,
 
 inline
 boost::asio::mutable_buffer
-buffer_prefix(std::size_t size,
+buffers_prefix(std::size_t size,
     boost::asio::mutable_buffer buffer)
 {
     using boost::asio::buffer_cast;
@@ -47,11 +47,11 @@ buffer_prefix(std::size_t size,
 } // detail
 
 template<class BufferSequence>
-class buffer_prefix_view<BufferSequence>::const_iterator
+class buffers_prefix_view<BufferSequence>::const_iterator
 {
-    friend class buffer_prefix_view<BufferSequence>;
+    friend class buffers_prefix_view<BufferSequence>;
 
-    buffer_prefix_view const* b_ = nullptr;
+    buffers_prefix_view const* b_ = nullptr;
     std::size_t remain_;
     iter_type it_;
 
@@ -89,7 +89,7 @@ public:
     reference
     operator*() const
     {
-        return detail::buffer_prefix(remain_, *it_);
+        return detail::buffers_prefix(remain_, *it_);
     }
 
     pointer
@@ -126,7 +126,7 @@ public:
     }
 
 private:
-    const_iterator(buffer_prefix_view const& b,
+    const_iterator(buffers_prefix_view const& b,
             std::true_type)
         : b_(&b)
         , remain_(0)
@@ -134,7 +134,7 @@ private:
     {
     }
 
-    const_iterator(buffer_prefix_view const& b,
+    const_iterator(buffers_prefix_view const& b,
             std::false_type)
         : b_(&b)
         , remain_(b_->size_)
@@ -145,7 +145,7 @@ private:
 
 template<class BufferSequence>
 void
-buffer_prefix_view<BufferSequence>::
+buffers_prefix_view<BufferSequence>::
 setup(std::size_t size)
 {
     size_ = 0;
@@ -166,18 +166,18 @@ setup(std::size_t size)
 }
 
 template<class BufferSequence>
-buffer_prefix_view<BufferSequence>::
-buffer_prefix_view(buffer_prefix_view&& other)
-    : buffer_prefix_view(std::move(other),
+buffers_prefix_view<BufferSequence>::
+buffers_prefix_view(buffers_prefix_view&& other)
+    : buffers_prefix_view(std::move(other),
         std::distance<iter_type>(
             other.bs_.begin(), other.end_))
 {
 }
 
 template<class BufferSequence>
-buffer_prefix_view<BufferSequence>::
-buffer_prefix_view(buffer_prefix_view const& other)
-    : buffer_prefix_view(other,
+buffers_prefix_view<BufferSequence>::
+buffers_prefix_view(buffers_prefix_view const& other)
+    : buffers_prefix_view(other,
         std::distance<iter_type>(
             other.bs_.begin(), other.end_))
 {
@@ -185,9 +185,9 @@ buffer_prefix_view(buffer_prefix_view const& other)
 
 template<class BufferSequence>
 auto
-buffer_prefix_view<BufferSequence>::
-operator=(buffer_prefix_view&& other) ->
-    buffer_prefix_view&
+buffers_prefix_view<BufferSequence>::
+operator=(buffers_prefix_view&& other) ->
+    buffers_prefix_view&
 {
     auto const dist = std::distance<iter_type>(
         other.bs_.begin(), other.end_);
@@ -199,9 +199,9 @@ operator=(buffer_prefix_view&& other) ->
 
 template<class BufferSequence>
 auto
-buffer_prefix_view<BufferSequence>::
-operator=(buffer_prefix_view const& other) ->
-    buffer_prefix_view&
+buffers_prefix_view<BufferSequence>::
+operator=(buffers_prefix_view const& other) ->
+    buffers_prefix_view&
 {
     auto const dist = std::distance<iter_type>(
         other.bs_.begin(), other.end_);
@@ -212,8 +212,8 @@ operator=(buffer_prefix_view const& other) ->
 }
 
 template<class BufferSequence>
-buffer_prefix_view<BufferSequence>::
-buffer_prefix_view(std::size_t size,
+buffers_prefix_view<BufferSequence>::
+buffers_prefix_view(std::size_t size,
         BufferSequence const& bs)
     : bs_(bs)
 {
@@ -222,8 +222,8 @@ buffer_prefix_view(std::size_t size,
 
 template<class BufferSequence>
 template<class... Args>
-buffer_prefix_view<BufferSequence>::
-buffer_prefix_view(std::size_t size,
+buffers_prefix_view<BufferSequence>::
+buffers_prefix_view(std::size_t size,
         boost::in_place_init_t, Args&&... args)
     : bs_(std::forward<Args>(args)...)
 {
@@ -233,7 +233,7 @@ buffer_prefix_view(std::size_t size,
 template<class BufferSequence>
 inline
 auto
-buffer_prefix_view<BufferSequence>::begin() const ->
+buffers_prefix_view<BufferSequence>::begin() const ->
     const_iterator
 {
     return const_iterator{*this, std::false_type{}};
@@ -242,7 +242,7 @@ buffer_prefix_view<BufferSequence>::begin() const ->
 template<class BufferSequence>
 inline
 auto
-buffer_prefix_view<BufferSequence>::end() const ->
+buffers_prefix_view<BufferSequence>::end() const ->
     const_iterator
 {
     return const_iterator{*this, std::true_type{}};

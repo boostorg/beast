@@ -7,8 +7,8 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
-#ifndef BOOST_BEAST_BUFFER_PREFIX_HPP
-#define BOOST_BEAST_BUFFER_PREFIX_HPP
+#ifndef BOOST_BEAST_BUFFERS_PREFIX_HPP
+#define BOOST_BEAST_BUFFERS_PREFIX_HPP
 
 #include <boost/beast/config.hpp>
 #include <boost/beast/core/type_traits.hpp>
@@ -29,7 +29,7 @@ namespace beast {
     @tparam BufferSequence The buffer sequence to adapt.
 */
 template<class BufferSequence>
-class buffer_prefix_view
+class buffers_prefix_view
 {
     using buffers_type = typename
         std::decay<BufferSequence>::type;
@@ -42,7 +42,7 @@ class buffer_prefix_view
     iter_type end_;
 
     template<class Deduced>
-    buffer_prefix_view(
+    buffers_prefix_view(
             Deduced&& other, std::size_t dist)
         : bs_(std::forward<Deduced>(other).bs_)
         , size_(other.size_)
@@ -72,16 +72,16 @@ public:
 #endif
 
     /// Move constructor.
-    buffer_prefix_view(buffer_prefix_view&&);
+    buffers_prefix_view(buffers_prefix_view&&);
 
     /// Copy constructor.
-    buffer_prefix_view(buffer_prefix_view const&);
+    buffers_prefix_view(buffers_prefix_view const&);
 
     /// Move assignment.
-    buffer_prefix_view& operator=(buffer_prefix_view&&);
+    buffers_prefix_view& operator=(buffers_prefix_view&&);
 
     /// Copy assignment.
-    buffer_prefix_view& operator=(buffer_prefix_view const&);
+    buffers_prefix_view& operator=(buffers_prefix_view const&);
 
     /** Construct a buffer sequence prefix.
 
@@ -94,7 +94,7 @@ public:
         the sequence will be made, but ownership of the underlying
         memory is not transferred.
     */
-    buffer_prefix_view(
+    buffers_prefix_view(
         std::size_t size,
         BufferSequence const& buffers);
 
@@ -108,7 +108,7 @@ public:
         @param args Arguments forwarded to the contained buffers constructor.
     */
     template<class... Args>
-    buffer_prefix_view(
+    buffers_prefix_view(
         std::size_t size,
         boost::in_place_init_t,
         Args&&... args);
@@ -138,7 +138,7 @@ public:
 */
 inline
 boost::asio::const_buffer
-buffer_prefix(std::size_t size,
+buffers_prefix(std::size_t size,
     boost::asio::const_buffer buffer)
 {
     using boost::asio::buffer_cast;
@@ -163,7 +163,7 @@ buffer_prefix(std::size_t size,
 */
 inline
 boost::asio::mutable_buffer
-buffer_prefix(std::size_t size,
+buffers_prefix(std::size_t size,
     boost::asio::mutable_buffer buffer)
 {
     using boost::asio::buffer_cast;
@@ -190,7 +190,7 @@ buffer_prefix(std::size_t size,
 */
 template<class BufferSequence>
 #if BOOST_BEAST_DOXYGEN
-buffer_prefix_view<BufferSequence>
+buffers_prefix_view<BufferSequence>
 #else
 inline
 typename std::enable_if<
@@ -198,15 +198,15 @@ typename std::enable_if<
         boost::asio::const_buffer>::value &&
     ! std::is_same<BufferSequence,
         boost::asio::mutable_buffer>::value,
-    buffer_prefix_view<BufferSequence>>::type
+    buffers_prefix_view<BufferSequence>>::type
 #endif
-buffer_prefix(std::size_t size, BufferSequence const& buffers)
+buffers_prefix(std::size_t size, BufferSequence const& buffers)
 {
     static_assert(
         is_const_buffer_sequence<BufferSequence>::value ||
         is_mutable_buffer_sequence<BufferSequence>::value,
             "BufferSequence requirements not met");
-    return buffer_prefix_view<BufferSequence>(size, buffers);
+    return buffers_prefix_view<BufferSequence>(size, buffers);
 }
 
 /** Returns the first buffer in a buffer sequence
@@ -235,6 +235,6 @@ buffer_front(BufferSequence const& buffers)
 } // beast
 } // boost
 
-#include <boost/beast/core/impl/buffer_prefix.ipp>
+#include <boost/beast/core/impl/buffers_prefix.ipp>
 
 #endif

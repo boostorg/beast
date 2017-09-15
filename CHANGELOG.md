@@ -3,10 +3,14 @@ Version 117:
 API Changes:
 
 * buffers_suffix replaces consuming_buffers
+* buffers_prefix replaces buffer_prefix
+* buffers_prefix_view replaces buffer_prefix_view
 
 Actions Required:
 
 * Use buffers_suffix instead of consuming_buffers
+* Use buffers_prefix instead of buffer_prefix
+* Use buffers_prefix_view instead of buffer_prefix_view
 
 --------------------------------------------------------------------------------
 

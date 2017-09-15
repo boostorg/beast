@@ -14,7 +14,7 @@
 #include "test_parser.hpp"
 
 #include <boost/beast/core/buffer_cat.hpp>
-#include <boost/beast/core/buffer_prefix.hpp>
+#include <boost/beast/core/buffers_prefix.hpp>
 #include <boost/beast/core/buffers_suffix.hpp>
 #include <boost/beast/core/multi_buffer.hpp>
 #include <boost/beast/core/ostream.hpp>
@@ -164,7 +164,7 @@ public:
             p.skip(skip);
             error_code ec;
             buffers_suffix<ConstBufferSequence> cb{buffers};
-            auto n = p.put(buffer_prefix(i, cb), ec);
+            auto n = p.put(buffers_prefix(i, cb), ec);
             if(! BEAST_EXPECTS(! ec ||
                     ec == error::need_more, ec.message()))
                 continue;
@@ -194,7 +194,7 @@ public:
             buffers_suffix<ConstBufferSequence> cb{buffers};
             cb.consume(i);
             auto n = p.put(buffer_cat(
-                buffer_prefix(i, buffers), cb), ec);
+                buffers_prefix(i, buffers), cb), ec);
             if(! BEAST_EXPECTS(! ec, ec.message()))
                 continue;
             if(! BEAST_EXPECT(n == size))
@@ -243,7 +243,7 @@ public:
             error_code ec;
             buffers_suffix<boost::asio::const_buffers_1> cb{
                 boost::in_place_init, msg.data(), msg.size()};
-            auto n = p.put(buffer_prefix(i, cb), ec);
+            auto n = p.put(buffers_prefix(i, cb), ec);
             if(ec == result)
             {
                 pass();

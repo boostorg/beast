@@ -174,7 +174,7 @@ boost::asio::ip::tcp::socket sock{ios};
         using boost::asio::buffer_size;
         if(buffer_size(cb) > 512)
         {
-            ws.write_some(false, buffer_prefix(512, cb));
+            ws.write_some(false, buffers_prefix(512, cb));
             cb.consume(512);
         }
         else

@@ -247,7 +247,7 @@ operator()(
                 {
                     BOOST_ASSERT(! d.ws.rd_close_);
                     d.ws.rd_close_ = true;
-                    auto const mb = buffer_prefix(
+                    auto const mb = buffers_prefix(
                         clamp(d.ws.rd_fh_.len),
                         d.ws.rd_buf_.data());
                     if(d.ws.rd_fh_.len > 0 && d.ws.rd_fh_.mask)
@@ -395,7 +395,7 @@ close(close_reason const& cr, error_code& ec)
             {
                 BOOST_ASSERT(! rd_close_);
                 rd_close_ = true;
-                auto const mb = buffer_prefix(
+                auto const mb = buffers_prefix(
                     clamp(rd_fh_.len),
                     rd_buf_.data());
                 if(rd_fh_.len > 0 && rd_fh_.mask)

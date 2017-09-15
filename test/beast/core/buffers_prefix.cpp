@@ -8,7 +8,7 @@
 //
 
 // Test that header file is self-contained.
-#include <boost/beast/core/buffer_prefix.hpp>
+#include <boost/beast/core/buffers_prefix.hpp>
 
 #include <boost/beast/core/buffers_suffix.hpp>
 #include <boost/beast/core/type_traits.hpp>
@@ -21,24 +21,24 @@ namespace beast {
 
 BOOST_STATIC_ASSERT(
     std::is_same<boost::asio::const_buffer, decltype(
-        buffer_prefix(0,
+        buffers_prefix(0,
             std::declval<boost::asio::const_buffer>()))>::value);
 
 BOOST_STATIC_ASSERT(
     is_const_buffer_sequence<decltype(
-        buffer_prefix(0,
+        buffers_prefix(0,
             std::declval<boost::asio::const_buffers_1>()))>::value);
 
 BOOST_STATIC_ASSERT(
     std::is_same<boost::asio::mutable_buffer, decltype(
-        buffer_prefix(0,
+        buffers_prefix(0,
             std::declval<boost::asio::mutable_buffer>()))>::value);
 BOOST_STATIC_ASSERT(
     is_mutable_buffer_sequence<decltype(
-        buffer_prefix(0,
+        buffers_prefix(0,
             std::declval<boost::asio::mutable_buffers_1>()))>::value);
 
-class buffer_prefix_test : public beast::unit_test::suite
+class buffers_prefix_test : public beast::unit_test::suite
 {
 public:
     template<class ConstBufferSequence>
@@ -123,14 +123,14 @@ public:
                 BufferType{&s[x+y], z}}};
             for(std::size_t i = 0; i <= s.size() + 1; ++i)
             {
-                auto pb = buffer_prefix(i, bs);
+                auto pb = buffers_prefix(i, bs);
                 BEAST_EXPECT(to_string(pb) == s.substr(0, i));
                 auto pb2 = pb;
                 BEAST_EXPECT(to_string(pb2) == to_string(pb));
-                pb = buffer_prefix(0, bs);
+                pb = buffers_prefix(0, bs);
                 pb2 = pb;
                 BEAST_EXPECT(buffer_size(pb2) == 0);
-                pb2 = buffer_prefix(i, bs);
+                pb2 = buffers_prefix(i, bs);
                 BEAST_EXPECT(to_string(pb2) == s.substr(0, i));
             }
         }
@@ -142,9 +142,9 @@ public:
         using boost::asio::buffer_copy;
         using boost::asio::buffer_size;
         using boost::asio::null_buffers;
-        auto pb0 = buffer_prefix(0, null_buffers{});
+        auto pb0 = buffers_prefix(0, null_buffers{});
         BEAST_EXPECT(buffer_size(pb0) == 0);
-        auto pb1 = buffer_prefix(1, null_buffers{});
+        auto pb1 = buffers_prefix(1, null_buffers{});
         BEAST_EXPECT(buffer_size(pb1) == 0);
         BEAST_EXPECT(buffer_copy(pb0, pb1) == 0);
 
@@ -156,7 +156,7 @@ public:
         BEAST_EXPECT(buffer_size(cb) == 0);
         BEAST_EXPECT(buffer_copy(cb, pb1) == 0);
 
-        auto pbc = buffer_prefix(2, cb);
+        auto pbc = buffers_prefix(2, cb);
         BEAST_EXPECT(buffer_size(pbc) == 0);
         BEAST_EXPECT(buffer_copy(pbc, cb) == 0);
     }
@@ -170,7 +170,7 @@ public:
             const_buffer{&b[0], 1},
             const_buffer{&b[1], 1},
             const_buffer{&b[2], 1}}};
-        auto pb = buffer_prefix(2, bs);
+        auto pb = buffers_prefix(2, bs);
         BEAST_EXPECT(bsize1(pb) == 2);
         BEAST_EXPECT(bsize2(pb) == 2);
         BEAST_EXPECT(bsize3(pb) == 2);
@@ -186,7 +186,7 @@ public:
     }
 };
 
-BEAST_DEFINE_TESTSUITE(beast,core,buffer_prefix);
+BEAST_DEFINE_TESTSUITE(beast,core,buffers_prefix);
 
 } // beast
 } // boost

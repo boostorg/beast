@@ -129,17 +129,17 @@ transferred.
     or a buffer of size zero if the buffer sequence has no elements.
 ]]
 [[
-    [link beast.ref.boost__beast__buffer_prefix `buffer_prefix`]
+    [link beast.ref.boost__beast__buffers_prefix `buffers_prefix`]
 ][
     This function returns a new buffer or buffer sequence which represents
     a prefix of the original buffers.
 ]]
 [[
-    [link beast.ref.boost__beast__buffer_prefix_view `buffer_prefix_view`]
+    [link beast.ref.boost__beast__buffers_prefix_view `buffers_prefix_view`]
 ][
     This class represents the buffer sequence formed from a prefix of
     an existing buffer sequence. This is the type of buffer returned by
-    [link beast.ref.boost__beast__buffer_prefix.overload3 `buffer_prefix`].
+    [link beast.ref.boost__beast__buffers_prefix.overload3 `buffers_prefix`].
 ]]
 [[
     [link beast.ref.boost__beast__buffers_suffix `buffers_suffix`]

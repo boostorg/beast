@@ -16,7 +16,7 @@
 #include <boost/beast/http/read.hpp>
 #include <boost/beast/http/string_body.hpp>
 #include <boost/beast/http/write.hpp>
-#include <boost/beast/core/buffer_prefix.hpp>
+#include <boost/beast/core/buffers_prefix.hpp>
 #include <boost/beast/core/handler_ptr.hpp>
 #include <boost/beast/core/detail/type_traits.hpp>
 #include <boost/asio/coroutine.hpp>

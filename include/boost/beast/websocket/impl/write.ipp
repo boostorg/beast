@@ -12,7 +12,7 @@
 
 #include <boost/beast/core/bind_handler.hpp>
 #include <boost/beast/core/buffer_cat.hpp>
-#include <boost/beast/core/buffer_prefix.hpp>
+#include <boost/beast/core/buffers_prefix.hpp>
 #include <boost/beast/core/buffers_suffix.hpp>
 #include <boost/beast/core/handler_ptr.hpp>
 #include <boost/beast/core/flat_static_buffer.hpp>
@@ -272,7 +272,7 @@ operator()(
                 BOOST_ASIO_CORO_YIELD
                 boost::asio::async_write(
                     ws_.stream_, buffer_cat(
-                        ws_.wr_fb_.data(), buffer_prefix(
+                        ws_.wr_fb_.data(), buffers_prefix(
                             clamp(fh_.len), cb_)),
                                 std::move(*this));
                 if(! ws_.check_ok(ec))
@@ -630,7 +630,7 @@ write_some(bool fin,
                 wr_cont_ = ! fin;
                 boost::asio::write(stream_,
                     buffer_cat(fh_buf.data(),
-                        buffer_prefix(n, cb)), ec);
+                        buffers_prefix(n, cb)), ec);
                 if(! check_ok(ec))
                     return bytes_transferred;
                 bytes_transferred += n;

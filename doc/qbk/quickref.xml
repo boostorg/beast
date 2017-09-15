@@ -180,9 +180,9 @@
             <member><link linkend="beast.ref.boost__beast__basic_flat_buffer">basic_flat_buffer</link></member>
             <member><link linkend="beast.ref.boost__beast__basic_multi_buffer">basic_multi_buffer</link></member>
             <member><link linkend="beast.ref.boost__beast__buffer_cat_view">buffer_cat_view</link></member>
-            <member><link linkend="beast.ref.boost__beast__buffer_prefix_view">buffer_prefix_view</link></member>
             <member><link linkend="beast.ref.boost__beast__buffered_read_stream">buffered_read_stream</link></member>
             <member><link linkend="beast.ref.boost__beast__buffers_adapter">buffers_adapter</link></member>
+            <member><link linkend="beast.ref.boost__beast__buffers_prefix_view">buffers_prefix_view</link></member>
             <member><link linkend="beast.ref.boost__beast__buffers_suffix">buffers_suffix</link></member>
             <member><link linkend="beast.ref.boost__beast__file">file</link></member>
             <member><link linkend="beast.ref.boost__beast__file_mode">file_mode</link></member>
@@ -217,8 +217,8 @@
             <member><link linkend="beast.ref.boost__beast__bind_handler">bind_handler</link></member>
             <member><link linkend="beast.ref.boost__beast__buffer_cat">buffer_cat</link></member>
             <member><link linkend="beast.ref.boost__beast__buffer_front">buffer_front</link></member>
-            <member><link linkend="beast.ref.boost__beast__buffer_prefix">buffer_prefix</link></member>
             <member><link linkend="beast.ref.boost__beast__buffers">buffers</link></member>
+            <member><link linkend="beast.ref.boost__beast__buffers_prefix">buffers_prefix</link></member>
             <member><link linkend="beast.ref.boost__beast__generic_category">generic_category</link></member>
             <member><link linkend="beast.ref.boost__beast__iequals">iequals</link></member>
             <member><link linkend="beast.ref.boost__beast__ostream">ostream</link></member>

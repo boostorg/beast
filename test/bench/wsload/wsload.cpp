@@ -172,7 +172,7 @@ private:
         std::geometric_distribution<std::size_t> dist{
             double(4) / boost::asio::buffer_size(tb_)};
         ws_.async_write_some(true,
-            boost::beast::buffer_prefix(dist(rng_), tb_),
+            boost::beast::buffers_prefix(dist(rng_), tb_),
             alloc_.wrap(std::bind(
                 &connection::on_write,
                 shared_from_this(),

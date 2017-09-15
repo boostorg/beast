@@ -199,9 +199,9 @@ operator()(boost::beast::error_code ec, std::size_t bytes_transferred)
             // write everything back
             p.step = 2;
             // async_read_until could have read past the newline,
-            // use buffer_prefix to make sure we only send one line
+            // use buffers_prefix to make sure we only send one line
             return boost::asio::async_write(p.stream,
-                boost::beast::buffer_prefix(bytes_transferred, p.buffer.data()), std::move(*this));
+                boost::beast::buffers_prefix(bytes_transferred, p.buffer.data()), std::move(*this));
 
         case 2:
             p.buffer.consume(bytes_transferred);
