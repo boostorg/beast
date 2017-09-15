@@ -1,5 +1,7 @@
 Version 117:
 
+* Add buffers_to_string
+
 API Changes:
 
 * buffers_suffix replaces consuming_buffers

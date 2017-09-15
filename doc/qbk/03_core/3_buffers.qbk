@@ -149,6 +149,12 @@ transferred.
     may be progressively shortened. This lets callers work with sequential
     increments of a buffer sequence.
 ]]
+[[
+    [link beast.ref.boost__beast__buffers_to_string `buffers_to_string`]
+][
+    This function converts a buffer sequence to a `std::string`. It can
+    be used for diagnostic purposes and tests.
+]]
 ]
 
 These two functions facilitate buffer interoperability with standard

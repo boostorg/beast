@@ -14,11 +14,12 @@
 
 #include <boost/beast/core/async_result.hpp>
 #include <boost/beast/core/bind_handler.hpp>
-#include <boost/beast/core/buffers_cat.hpp>
-#include <boost/beast/core/buffers_prefix.hpp>
 #include <boost/beast/core/buffered_read_stream.hpp>
 #include <boost/beast/core/buffers_adapter.hpp>
+#include <boost/beast/core/buffers_cat.hpp>
+#include <boost/beast/core/buffers_prefix.hpp>
 #include <boost/beast/core/buffers_suffix.hpp>
+#include <boost/beast/core/buffers_to_string.hpp>
 #include <boost/beast/core/error.hpp>
 #include <boost/beast/core/file.hpp>
 #include <boost/beast/core/file_base.hpp>
@@ -26,13 +27,14 @@
 #include <boost/beast/core/file_stdio.hpp>
 #include <boost/beast/core/file_win32.hpp>
 #include <boost/beast/core/flat_buffer.hpp>
+#include <boost/beast/core/flat_static_buffer.hpp>
 #include <boost/beast/core/handler_alloc.hpp>
 #include <boost/beast/core/handler_ptr.hpp>
 #include <boost/beast/core/multi_buffer.hpp>
 #include <boost/beast/core/ostream.hpp>
 #include <boost/beast/core/read_size.hpp>
 #include <boost/beast/core/span.hpp>
-#include <boost/beast/core/flat_static_buffer.hpp>
+#include <boost/beast/core/static_buffer.hpp>
 #include <boost/beast/core/static_string.hpp>
 #include <boost/beast/core/string.hpp>
 #include <boost/beast/core/string_param.hpp>

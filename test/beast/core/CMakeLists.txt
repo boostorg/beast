@@ -25,6 +25,7 @@ add_executable (tests-beast-core
     buffers_cat.cpp
     buffers_prefix.cpp
     buffers_suffix.cpp
+    buffers_to_string.cpp
     error.cpp
     file.cpp
     file_posix.cpp

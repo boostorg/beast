@@ -35,6 +35,21 @@ namespace beast {
     is still responsible for managing its lifetime.
 
     @tparam BufferSequence The buffer sequence to wrap.
+
+    @par Example
+
+    This function writes the entire contents of a buffer sequence
+    to the specified stream.
+
+    @code
+    template<class SyncWriteStream, class ConstBufferSequence>
+    void send(SyncWriteStream& stream, ConstBufferSequence const& buffers)
+    {
+        buffers_suffix<ConstBufferSequence> bs{buffers};
+        while(boost::asio::buffer_size(bs) > 0)
+            bs.consume(stream.write_some(bs));
+    }
+    @endcode
 */
 template<class BufferSequence>
 class buffers_suffix
