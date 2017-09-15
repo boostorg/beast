@@ -484,7 +484,7 @@ operator()(
                 }
                 zlib::z_params zs;
                 {
-                    auto const out = buffer_front(cb_);
+                    auto const out = buffers_front(cb_);
                     zs.next_out = buffer_cast<void*>(out);
                     zs.avail_out = buffer_size(out);
                     BOOST_ASSERT(zs.avail_out > 0);
@@ -495,7 +495,7 @@ operator()(
                     {
                         // use what's there
                         auto const in = buffers_prefix(
-                            clamp(ws_.rd_remain_), buffer_front(
+                            clamp(ws_.rd_remain_), buffers_front(
                                 ws_.rd_buf_.data()));
                         zs.avail_in = buffer_size(in);
                         zs.next_in = buffer_cast<void const*>(in);
@@ -1183,7 +1183,7 @@ loop:
         {
             zlib::z_params zs;
             {
-                auto const out = buffer_front(cb);
+                auto const out = buffers_front(cb);
                 zs.next_out = buffer_cast<void*>(out);
                 zs.avail_out = buffer_size(out);
                 BOOST_ASSERT(zs.avail_out > 0);
@@ -1194,7 +1194,7 @@ loop:
                 {
                     // use what's there
                     auto const in = buffers_prefix(
-                        clamp(rd_remain_), buffer_front(
+                        clamp(rd_remain_), buffers_front(
                             rd_buf_.data()));
                     zs.avail_in = buffer_size(in);
                     zs.next_in = buffer_cast<void const*>(in);
@@ -1216,7 +1216,7 @@ loop:
                             buffers_prefix(clamp(rd_remain_),
                                 rd_buf_.data()), rd_key_);
                     auto const in = buffers_prefix(
-                        clamp(rd_remain_), buffer_front(
+                        clamp(rd_remain_), buffers_front(
                             rd_buf_.data()));
                     zs.avail_in = buffer_size(in);
                     zs.next_in = buffer_cast<void const*>(in);

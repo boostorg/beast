@@ -224,7 +224,7 @@ typename std::conditional<
     is_mutable_buffer_sequence<BufferSequence>::value,
     boost::asio::mutable_buffer,
     boost::asio::const_buffer>::type
-buffer_front(BufferSequence const& buffers)
+buffers_front(BufferSequence const& buffers)
 {
     auto const first = buffers.begin();
     if(first == buffers.end())

@@ -216,8 +216,8 @@
           <simplelist type="vert" columns="1">
             <member><link linkend="beast.ref.boost__beast__bind_handler">bind_handler</link></member>
             <member><link linkend="beast.ref.boost__beast__buffer_cat">buffer_cat</link></member>
-            <member><link linkend="beast.ref.boost__beast__buffer_front">buffer_front</link></member>
             <member><link linkend="beast.ref.boost__beast__buffers">buffers</link></member>
+            <member><link linkend="beast.ref.boost__beast__buffers_front">buffers_front</link></member>
             <member><link linkend="beast.ref.boost__beast__buffers_prefix">buffers_prefix</link></member>
             <member><link linkend="beast.ref.boost__beast__generic_category">generic_category</link></member>
             <member><link linkend="beast.ref.boost__beast__iequals">iequals</link></member>
