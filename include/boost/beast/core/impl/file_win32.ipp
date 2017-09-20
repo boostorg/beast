@@ -121,6 +121,7 @@ open(char const* path, file_mode mode, error_code& ec)
         h_ = boost::detail::winapi::INVALID_HANDLE_VALUE_;
     }
     boost::detail::winapi::DWORD_ desired_access = 0;
+    boost::detail::winapi::DWORD_ share_mode = 0;
     boost::detail::winapi::DWORD_ creation_disposition = 0;
     boost::detail::winapi::DWORD_ flags_and_attributes = 0;
 /*
@@ -139,6 +140,8 @@ open(char const* path, file_mode mode, error_code& ec)
     case file_mode::read:
         desired_access = boost::detail::winapi::GENERIC_READ_;
 
+        share_mode = boost::detail::winapi::FILE_SHARE_READ_;
+
         creation_disposition = boost::detail::winapi::OPEN_EXISTING_;
 
         flags_and_attributes = 0x10000000; // FILE_FLAG_RANDOM_ACCESS
@@ -146,6 +149,8 @@ open(char const* path, file_mode mode, error_code& ec)
 
     case file_mode::scan:           
         desired_access = boost::detail::winapi::GENERIC_READ_;
+
+        share_mode = boost::detail::winapi::FILE_SHARE_READ_;
 
         creation_disposition = boost::detail::winapi::OPEN_EXISTING_;
 
@@ -209,7 +214,7 @@ open(char const* path, file_mode mode, error_code& ec)
     h_ = ::CreateFileA(
         path,
         desired_access,
-        0,
+        share_mode,
         NULL,
         creation_disposition,
         flags_and_attributes,
