@@ -1,5 +1,7 @@
 Version 118:
 
+* file_win32 opens for read-only in shared mode
+
 HTTP:
 
 * Fix writing header into std::ostream

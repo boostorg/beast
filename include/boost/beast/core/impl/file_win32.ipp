@@ -120,9 +120,10 @@ open(char const* path, file_mode mode, error_code& ec)
         boost::detail::winapi::CloseHandle(h_);
         h_ = boost::detail::winapi::INVALID_HANDLE_VALUE_;
     }
-    boost::detail::winapi::DWORD_ dw1 = 0;
-    boost::detail::winapi::DWORD_ dw2 = 0;
-    boost::detail::winapi::DWORD_ dw3 = 0;
+    boost::detail::winapi::DWORD_ share_mode = 0;
+    boost::detail::winapi::DWORD_ desired_access = 0;
+    boost::detail::winapi::DWORD_ creation_disposition = 0;
+    boost::detail::winapi::DWORD_ flags_and_attributes = 0;
 /*
                              |                    When the file...
     This argument:           |             Exists            Does not exist
@@ -137,66 +138,69 @@ open(char const* path, file_mode mode, error_code& ec)
     {
     default:
     case file_mode::read:
-        dw1 = boost::detail::winapi::GENERIC_READ_;
-        dw2 = boost::detail::winapi::OPEN_EXISTING_;
-        dw3 = 0x10000000; // FILE_FLAG_RANDOM_ACCESS
+        desired_access = boost::detail::winapi::GENERIC_READ_;
+        share_mode = boost::detail::winapi::FILE_SHARE_READ_;
+        creation_disposition = boost::detail::winapi::OPEN_EXISTING_;
+        flags_and_attributes = 0x10000000; // FILE_FLAG_RANDOM_ACCESS
         break;
 
     case file_mode::scan:           
-        dw1 = boost::detail::winapi::GENERIC_READ_;
-        dw2 = boost::detail::winapi::OPEN_EXISTING_;
-        dw3 = 0x08000000; // FILE_FLAG_SEQUENTIAL_SCAN
+        desired_access = boost::detail::winapi::GENERIC_READ_;
+        share_mode = boost::detail::winapi::FILE_SHARE_READ_;
+        creation_disposition = boost::detail::winapi::OPEN_EXISTING_;
+        flags_and_attributes = 0x08000000; // FILE_FLAG_SEQUENTIAL_SCAN
         break;
 
     case file_mode::write:          
-        dw1 = boost::detail::winapi::GENERIC_READ_ |
-              boost::detail::winapi::GENERIC_WRITE_;
-        dw2 = boost::detail::winapi::CREATE_ALWAYS_;
-        dw3 = 0x10000000; // FILE_FLAG_RANDOM_ACCESS
+        desired_access = boost::detail::winapi::GENERIC_READ_ |
+                         boost::detail::winapi::GENERIC_WRITE_;
+        creation_disposition = boost::detail::winapi::CREATE_ALWAYS_;
+        flags_and_attributes = 0x10000000; // FILE_FLAG_RANDOM_ACCESS
         break;
 
     case file_mode::write_new:      
-        dw1 = boost::detail::winapi::GENERIC_READ_ |
-              boost::detail::winapi::GENERIC_WRITE_;
-        dw2 = boost::detail::winapi::CREATE_NEW_;
-        dw3 = 0x10000000; // FILE_FLAG_RANDOM_ACCESS
+        desired_access = boost::detail::winapi::GENERIC_READ_ |
+                         boost::detail::winapi::GENERIC_WRITE_;
+        creation_disposition = boost::detail::winapi::CREATE_NEW_;
+        flags_and_attributes = 0x10000000; // FILE_FLAG_RANDOM_ACCESS
         break;
 
     case file_mode::write_existing: 
-        dw1 = boost::detail::winapi::GENERIC_READ_ |
-              boost::detail::winapi::GENERIC_WRITE_;
-        dw2 = boost::detail::winapi::OPEN_EXISTING_;
-        dw3 = 0x10000000; // FILE_FLAG_RANDOM_ACCESS
+        desired_access = boost::detail::winapi::GENERIC_READ_ |
+                         boost::detail::winapi::GENERIC_WRITE_;
+        creation_disposition = boost::detail::winapi::OPEN_EXISTING_;
+        flags_and_attributes = 0x10000000; // FILE_FLAG_RANDOM_ACCESS
         break;
 
     case file_mode::append:         
-        dw1 = boost::detail::winapi::GENERIC_READ_ |
-              boost::detail::winapi::GENERIC_WRITE_;
-        dw2 = boost::detail::winapi::CREATE_ALWAYS_;
-        dw3 = 0x08000000; // FILE_FLAG_SEQUENTIAL_SCAN
+        desired_access = boost::detail::winapi::GENERIC_READ_ |
+                         boost::detail::winapi::GENERIC_WRITE_;
+
+        creation_disposition = boost::detail::winapi::CREATE_ALWAYS_;
+        flags_and_attributes = 0x08000000; // FILE_FLAG_SEQUENTIAL_SCAN
         break;
 
     case file_mode::append_new:     
-        dw1 = boost::detail::winapi::GENERIC_READ_ |
-              boost::detail::winapi::GENERIC_WRITE_;
-        dw2 = boost::detail::winapi::CREATE_NEW_;
-        dw3 = 0x08000000; // FILE_FLAG_SEQUENTIAL_SCAN
+        desired_access = boost::detail::winapi::GENERIC_READ_ |
+                         boost::detail::winapi::GENERIC_WRITE_;
+        creation_disposition = boost::detail::winapi::CREATE_NEW_;
+        flags_and_attributes = 0x08000000; // FILE_FLAG_SEQUENTIAL_SCAN
         break;
 
     case file_mode::append_existing:
-        dw1 = boost::detail::winapi::GENERIC_READ_ |
-              boost::detail::winapi::GENERIC_WRITE_;
-        dw2 = boost::detail::winapi::OPEN_EXISTING_;
-        dw3 = 0x08000000; // FILE_FLAG_SEQUENTIAL_SCAN
+        desired_access = boost::detail::winapi::GENERIC_READ_ |
+                         boost::detail::winapi::GENERIC_WRITE_;
+        creation_disposition = boost::detail::winapi::OPEN_EXISTING_;
+        flags_and_attributes = 0x08000000; // FILE_FLAG_SEQUENTIAL_SCAN
         break;
     }
     h_ = ::CreateFileA(
         path,
-        dw1,
-        0,
+        desired_access,
+        share_mode,
         NULL,
-        dw2,
-        dw3,
+        creation_disposition,
+        flags_and_attributes,
         NULL);
     if(h_ == boost::detail::winapi::INVALID_HANDLE_VALUE_)
         ec.assign(boost::detail::winapi::GetLastError(),
