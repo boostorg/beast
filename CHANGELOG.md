@@ -1,3 +1,11 @@
+Version 118:
+
+HTTP:
+
+* Fix writing header into std::ostream
+
+--------------------------------------------------------------------------------
+
 Version 117:
 
 * Add buffers_to_string

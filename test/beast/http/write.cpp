@@ -596,14 +596,36 @@ public:
     void test_std_ostream()
     {
         // Conversion to std::string via operator<<
-        request<string_body> m;
-        m.method(verb::get);
-        m.target("/");
-        m.version(11);
-        m.set(field::user_agent, "test");
-        m.body() = "*";
-        BEAST_EXPECT(to_string(m) ==
-            "GET / HTTP/1.1\r\nUser-Agent: test\r\n\r\n*");
+        {
+            request<string_body> m;
+            m.method(verb::get);
+            m.target("/");
+            m.version(11);
+            m.set(field::user_agent, "test");
+            m.body() = "*";
+            BEAST_EXPECT(to_string(m) ==
+                "GET / HTTP/1.1\r\nUser-Agent: test\r\n\r\n*");
+        }
+
+        // Output to std::ostream
+        {
+            request<string_body> m{verb::get, "/", 11};
+            std::stringstream ss;
+            ss << m;
+            BEAST_EXPECT(ss.str() ==
+                "GET / HTTP/1.1\r\n"
+                "\r\n");
+        }
+
+        // Output header to std::ostream
+        {
+            request<string_body> m{verb::get, "/", 11};
+            std::stringstream ss;
+            ss << m.base();
+            BEAST_EXPECT(ss.str() ==
+                "GET / HTTP/1.1\r\n"
+                "\r\n");
+        }
     }
 
     // Ensure completion handlers are not leaked
