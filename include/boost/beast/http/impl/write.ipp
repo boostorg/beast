@@ -878,7 +878,7 @@ operator<<(std::ostream& os,
     header<true, Fields> const& h)
 {
     typename Fields::reader fr{
-        h, h.version, h.method()};
+        h, h.version(), h.method()};
     return os << buffers(fr.get());
 }
 
@@ -888,7 +888,7 @@ operator<<(std::ostream& os,
     header<false, Fields> const& h)
 {
     typename Fields::reader fr{
-        h, h.version, h.result_int()};
+        h, h.version(), h.result_int()};
     return os << buffers(fr.get());
 }
 
