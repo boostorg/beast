@@ -1,6 +1,7 @@
 Version 118:
 
 * file_win32 opens for read-only in shared mode
+* Remove unused strands in server examples
 
 HTTP:
 

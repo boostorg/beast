@@ -137,7 +137,6 @@ public:
 // Accepts incoming connections and launches the sessions
 class listener : public std::enable_shared_from_this<listener>
 {
-    boost::asio::io_service::strand strand_;
     tcp::acceptor acceptor_;
     tcp::socket socket_;
 
@@ -145,8 +144,7 @@ public:
     listener(
         boost::asio::io_service& ios,
         tcp::endpoint endpoint)
-        : strand_(ios)
-        , acceptor_(ios)
+        : acceptor_(ios)
         , socket_(ios)
     {
         boost::system::error_code ec;
@@ -191,10 +189,10 @@ public:
     {
         acceptor_.async_accept(
             socket_,
-            strand_.wrap(std::bind(
+            std::bind(
                 &listener::on_accept,
                 shared_from_this(),
-                std::placeholders::_1)));
+                std::placeholders::_1));
     }
 
     void

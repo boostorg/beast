@@ -362,7 +362,6 @@ class listener
     , public std::enable_shared_from_this<listener>
 {
     ssl::context& ctx_;
-    boost::asio::io_service::strand strand_;
     tcp::acceptor acceptor_;
     tcp::socket socket_;
     std::string const& doc_root_;
@@ -374,7 +373,6 @@ public:
         tcp::endpoint endpoint,
         std::string const& doc_root)
         : ctx_(ctx)
-        , strand_(ios)
         , acceptor_(ios)
         , socket_(ios)
         , doc_root_(doc_root)

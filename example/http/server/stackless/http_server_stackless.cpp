@@ -337,7 +337,6 @@ class listener
     : public boost::asio::coroutine
     , public std::enable_shared_from_this<listener>
 {
-    boost::asio::io_service::strand strand_;
     tcp::acceptor acceptor_;
     tcp::socket socket_;
     std::string const& doc_root_;
@@ -347,8 +346,7 @@ public:
         boost::asio::io_service& ios,
         tcp::endpoint endpoint,
         std::string const& doc_root)
-        : strand_(ios)
-        , acceptor_(ios)
+        : acceptor_(ios)
         , socket_(ios)
         , doc_root_(doc_root)
     {

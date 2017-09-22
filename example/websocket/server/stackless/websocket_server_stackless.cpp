@@ -128,7 +128,6 @@ class listener
     : public boost::asio::coroutine
     , public std::enable_shared_from_this<listener>
 {
-    boost::asio::io_service::strand strand_;
     tcp::acceptor acceptor_;
     tcp::socket socket_;
 
@@ -136,8 +135,7 @@ public:
     listener(
         boost::asio::io_service& ios,
         tcp::endpoint endpoint)
-        : strand_(ios)
-        , acceptor_(ios)
+        : acceptor_(ios)
         , socket_(ios)
     {
         boost::system::error_code ec;
