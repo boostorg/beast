@@ -88,22 +88,31 @@ library to link with. If you use coroutines you'll also need to link
 with the Boost.Coroutine library. Please visit the Boost documentation
 for instructions on how to do this for your particular build system.
 
-For the examples and tests, Beast provides build scripts for Boost.Build
-(bjam) and CMake (Windows). It is possible to generate Microsoft Visual
-Studio project files using CMake by executing these commands from
-the root of the repository:
+To build the documentation, examples, tests, and benchmarks it is
+necessary to first obtain the boost "superproject" along with all
+of the boost libraries. Instructions for doing so may be found on
+the [Boost Wiki](https://github.com/boostorg/boost/wiki/Getting-Started).
+These commamnds will build the programs and documentation that come
+with Beast (omit the cxxflags parameter when building using MSVC):
 
 ```
+cd boost   # The directory containing the boost superproject and libraries
+b2 libs/beast/test cxxflags="-std=c++11"    # bjam must be in your $PATH
+b2 libs/beast/example cxxflags="-std=c++11"
+b2 libs/beast/doc
+```
+
+On Windows platforms only, CMake may be used to generate a Visual Studio
+solution and a set of Visual Studio project files using these commands:
+
+```
+cd boost   # The directory containing the boost superproject and libraries
+cd libs/beast
 mkdir bin
 cd bin
-cmake ..                                    # for 32-bit Windows builds
-
-cd ..
-mkdir bin64
-cd bin64
-cmake -G"Visual Studio 14 2015 Win64" ..    # for 64-bit Windows builds (VS2015)
+cmake ..                                    # for 32-bit Windows builds, or
+cmake -G"Visual Studio 14 2015 Win64" ..    # for 64-bit Windows builds (VS2015), or
 cmake -G"Visual Studio 15 2017 Win64" ..    # for 64-bit Windows builds (VS2017)
-
 ```
 
 The files in the repository are laid out thusly:
