@@ -3,6 +3,7 @@ Version 118:
 * file_win32 opens for read-only in shared mode
 * Remove unused strands in server examples
 * Update build instructions
+* Doc root is at index.html
 
 HTTP:
 

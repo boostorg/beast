@@ -178,7 +178,6 @@ boostbook beast
         beast_doc
     :
         <xsl:param>boost.root=../../../..
-        <xsl:param>root.filename=beast
         <xsl:param>chapter.autolabel=1
         <xsl:param>chunk.section.depth=8                # Depth to which sections should be chunked
         <xsl:param>chunk.first.sections=1               # Chunk the first top-level section?
