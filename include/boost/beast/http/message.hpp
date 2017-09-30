@@ -70,7 +70,7 @@ struct header<true, Fields> : Fields
     /// The type representing the fields.
     using fields_type = Fields;
 
-    /// COnstructor
+    /// Constructor
     header() = default;
 
     /// Constructor
