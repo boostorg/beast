@@ -1,3 +1,9 @@
+Version 119:
+
+* Tidy up doc badge links
+
+--------------------------------------------------------------------------------
+
 Version 118:
 
 * file_win32 opens for read-only in shared mode
