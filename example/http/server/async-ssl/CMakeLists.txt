@@ -7,17 +7,20 @@
 # Official repository: https://github.com/boostorg/beast
 #
 
-GroupSources(include/boost/beast beast)
-GroupSources(example/common common)
-GroupSources(example/http/server/async-ssl "/")
+if (OPENSSL_FOUND)
+    GroupSources(include/boost/beast beast)
+    GroupSources(example/common common)
+    GroupSources(example/http/server/async-ssl "/")
 
-add_executable (http-server-async-ssl
-    ${BOOST_BEAST_INCLUDES}
-    ${PROJECT_SOURCE_DIR}/example/common/server_certificate.hpp
-    Jamfile
-    http_server_async_ssl.cpp
-)
-
-target_link_libraries (http-server-async-ssl
-    ${OPENSSL_LIBRARIES}
+    add_executable (http-server-async-ssl
+        ${BOOST_BEAST_INCLUDES}
+        ${PROJECT_SOURCE_DIR}/example/common/server_certificate.hpp
+        Jamfile
+        http_server_async_ssl.cpp
     )
+
+    target_link_libraries (http-server-async-ssl
+        ${OPENSSL_LIBRARIES}
+        )
+
+endif()

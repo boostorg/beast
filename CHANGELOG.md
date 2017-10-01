@@ -1,6 +1,7 @@
 Version 120:
 
 * Fix spurious strand_ in advanced_server_flex
+* OpenSSL targets are optional (CMake)
 
 --------------------------------------------------------------------------------
 

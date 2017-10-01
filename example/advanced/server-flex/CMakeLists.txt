@@ -7,19 +7,22 @@
 # Official repository: https://github.com/boostorg/beast
 #
 
-GroupSources(include/boost/beast beast)
-GroupSources(example/common common)
-GroupSources(example/advanced/server-flex "/")
+if (OPENSSL_FOUND)
+    GroupSources(include/boost/beast beast)
+    GroupSources(example/common common)
+    GroupSources(example/advanced/server-flex "/")
 
-add_executable (advanced-server-flex
-    ${BOOST_BEAST_INCLUDES}
-    ${PROJECT_SOURCE_DIR}/example/common/detect_ssl.hpp
-    ${PROJECT_SOURCE_DIR}/example/common/server_certificate.hpp
-    ${PROJECT_SOURCE_DIR}/example/common/ssl_stream.hpp
-    Jamfile
-    advanced_server_flex.cpp
-)
-
-target_link_libraries (advanced-server-flex
-    ${OPENSSL_LIBRARIES}
+    add_executable (advanced-server-flex
+        ${BOOST_BEAST_INCLUDES}
+        ${PROJECT_SOURCE_DIR}/example/common/detect_ssl.hpp
+        ${PROJECT_SOURCE_DIR}/example/common/server_certificate.hpp
+        ${PROJECT_SOURCE_DIR}/example/common/ssl_stream.hpp
+        Jamfile
+        advanced_server_flex.cpp
     )
+
+    target_link_libraries (advanced-server-flex
+        ${OPENSSL_LIBRARIES}
+        )
+
+endif()

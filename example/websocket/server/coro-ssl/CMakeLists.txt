@@ -7,17 +7,20 @@
 # Official repository: https://github.com/boostorg/beast
 #
 
-GroupSources(include/boost/beast beast)
-GroupSources(example/common common)
-GroupSources(example/websocket/server/coro-ssl "/")
+if (OPENSSL_FOUND)
+    GroupSources(include/boost/beast beast)
+    GroupSources(example/common common)
+    GroupSources(example/websocket/server/coro-ssl "/")
 
-add_executable (websocket-server-coro-ssl
-    ${BOOST_BEAST_INCLUDES}
-    ${PROJECT_SOURCE_DIR}/example/common/server_certificate.hpp
-    Jamfile
-    websocket_server_coro_ssl.cpp
-)
-
-target_link_libraries (websocket-server-coro-ssl
-    ${OPENSSL_LIBRARIES}
+    add_executable (websocket-server-coro-ssl
+        ${BOOST_BEAST_INCLUDES}
+        ${PROJECT_SOURCE_DIR}/example/common/server_certificate.hpp
+        Jamfile
+        websocket_server_coro_ssl.cpp
     )
+
+    target_link_libraries (websocket-server-coro-ssl
+        ${OPENSSL_LIBRARIES}
+        )
+
+endif()
