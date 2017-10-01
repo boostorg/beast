@@ -1034,7 +1034,6 @@ public:
         tcp::endpoint endpoint,
         std::string const& doc_root)
         : ctx_(ctx)
-        , strand_(ios)
         , acceptor_(ios)
         , socket_(ios)
         , doc_root_(doc_root)

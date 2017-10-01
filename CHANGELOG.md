@@ -1,3 +1,9 @@
+Version 120:
+
+* Fix spurious strand_ in advanced_server_flex
+
+--------------------------------------------------------------------------------
+
 Version 119:
 
 * Tidy up doc badge links
