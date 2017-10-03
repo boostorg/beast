@@ -1009,12 +1009,34 @@ public:
     }
 
     void
+    testIssue802()
+    {
+        for(std::size_t i = 0; i < 100; ++i)
+        {
+            echo_server es{log, kind::async};
+            boost::asio::io_service ios;
+            stream<test::stream> ws{ios};
+            ws.next_layer().connect(es.stream());
+            ws.handshake("localhost", "/");
+            // too-big message frame indicates payload of 2^64-1
+            boost::asio::write(ws.next_layer(), sbuf(
+                "\x81\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff"));
+            multi_buffer b;
+            error_code ec;
+            ws.read(b, ec);
+            BEAST_EXPECT(ec == error::closed);
+            BEAST_EXPECT(ws.reason().code == 1009);
+        }
+    }
+
+    void
     run() override
     {
         testRead();
         testSuspend();
         testParseFrame();
         testContHook();
+        testIssue802();
     }
 };
 
