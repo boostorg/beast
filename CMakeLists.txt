@@ -9,7 +9,7 @@
 
 cmake_minimum_required (VERSION 3.5.2)
 
-project (Beast VERSION 120)
+project (Beast VERSION 121)
 
 set_property (GLOBAL PROPERTY USE_FOLDERS ON)
 option (Beast_BUILD_EXAMPLES "Build examples" ON)
