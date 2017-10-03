@@ -1,6 +1,7 @@
 Version 121:
 
 * Add test for issue 802
+* Fix enum and non-enum in conditional exp. warning
 
 --------------------------------------------------------------------------------
 
