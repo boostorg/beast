@@ -1075,7 +1075,8 @@ loop:
                 // _Start the WebSocket Closing Handshake_
                 do_fail(
                     cr.code == close_code::none ?
-                        close_code::normal : cr.code,
+                        close_code::normal : 
+                        static_cast<close_code>(cr.code),
                     error::closed, ec);
                 return bytes_written;
             }
