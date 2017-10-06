@@ -1030,6 +1030,21 @@ public:
     }
 
     void
+    testIssue807()
+    {
+        echo_server es{log};
+        boost::asio::io_service ios;
+        stream<test::stream> ws{ios};
+        ws.next_layer().connect(es.stream());
+        ws.handshake("localhost", "/");
+        ws.write(sbuf("Hello, world!"));
+        char buf[4];
+        boost::asio::mutable_buffers_1 cb{buf, 0};
+        auto const n = ws.read_some(cb);
+        BEAST_EXPECT(n == 0);
+    }
+
+    void
     run() override
     {
         testRead();
@@ -1037,6 +1052,7 @@ public:
         testParseFrame();
         testContHook();
         testIssue802();
+        testIssue807();
     }
 };
 
