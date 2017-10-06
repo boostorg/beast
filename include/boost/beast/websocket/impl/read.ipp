@@ -428,6 +428,8 @@ operator()(
                     // Read into caller's buffer
                     BOOST_ASSERT(ws_.rd_remain_ > 0);
                     BOOST_ASSERT(buffer_size(cb_) > 0);
+                    BOOST_ASSERT(buffer_size(buffers_prefix(
+                        clamp(ws_.rd_remain_), cb_)) > 0);
                     BOOST_ASIO_CORO_YIELD
                     ws_.stream_.async_read_some(buffers_prefix(
                         clamp(ws_.rd_remain_), cb_), std::move(*this));
@@ -1145,6 +1147,8 @@ loop:
                 // Read into caller's buffer
                 BOOST_ASSERT(rd_remain_ > 0);
                 BOOST_ASSERT(buffer_size(buffers) > 0);
+                BOOST_ASSERT(buffer_size(buffers_prefix(
+                    clamp(rd_remain_), buffers)) > 0);
                 auto const bytes_transferred =
                     stream_.read_some(buffers_prefix(
                         clamp(rd_remain_), buffers), ec);
