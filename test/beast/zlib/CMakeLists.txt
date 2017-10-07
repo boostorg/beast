@@ -25,4 +25,5 @@ add_executable (tests-beast-zlib
     error.cpp
     deflate_stream.cpp
     inflate_stream.cpp
+    zlib.cpp
 )

@@ -158,10 +158,10 @@ protected:
     static std::uint8_t constexpr DYN_TREES    = 2;
 
     // Maximum value for memLevel in deflateInit2
-    static std::uint8_t constexpr MAX_MEM_LEVEL = 9;
+    static std::uint8_t constexpr max_mem_level = 9;
 
     // Default memLevel
-    static std::uint8_t constexpr DEF_MEM_LEVEL = MAX_MEM_LEVEL;
+    static std::uint8_t constexpr DEF_MEM_LEVEL = max_mem_level;
 
     /*  Note: the deflate() code requires max_lazy >= minMatch and max_chain >= 4
         For deflate_fast() (levels <= 3) good is ignored and lazy has a different
@@ -896,7 +896,7 @@ doReset(
     int memLevel,
     Strategy strategy)
 {
-    if(level == Z_DEFAULT_COMPRESSION)
+    if(level == default_size)
         level = 6;
 
     // VFALCO What do we do about this?
@@ -912,7 +912,7 @@ doReset(
         BOOST_THROW_EXCEPTION(std::invalid_argument{
             "invalid windowBits"});
 
-    if(memLevel < 1 || memLevel > MAX_MEM_LEVEL)
+    if(memLevel < 1 || memLevel > max_mem_level)
         BOOST_THROW_EXCEPTION(std::invalid_argument{
             "invalid memLevel"});
 
@@ -991,7 +991,7 @@ doParams(z_params& zs, int level, Strategy strategy, error_code& ec)
 {
     compress_func func;
 
-    if(level == Z_DEFAULT_COMPRESSION)
+    if(level == default_size)
         level = 6;
     if(level < 0 || level > 9)
     {
@@ -1914,20 +1914,20 @@ detect_data_type()
     // Check for non-textual ("black-listed") bytes.
     for(n = 0; n <= 31; n++, black_mask >>= 1)
         if((black_mask & 1) && (dyn_ltree_[n].fc != 0))
-            return Z_BINARY;
+            return binary;
 
     // Check for textual ("white-listed") bytes. */
     if(dyn_ltree_[9].fc != 0 || dyn_ltree_[10].fc != 0
             || dyn_ltree_[13].fc != 0)
-        return Z_TEXT;
+        return text;
     for(n = 32; n < literals; n++)
         if(dyn_ltree_[n].fc != 0)
-            return Z_TEXT;
+            return text;
 
     /* There are no "black-listed" or "white-listed" bytes:
      * this stream either is empty or has tolerated ("gray-listed") bytes only.
      */
-    return Z_BINARY;
+    return binary;
 }
 
 /*  Flush the bit buffer and align the output on a byte boundary
@@ -2099,7 +2099,7 @@ tr_flush_block(
     if(level_ > 0)
     {
         // Check if the file is binary or text
-        if(zs.data_type == Z_UNKNOWN)
+        if(zs.data_type == unknown)
             zs.data_type = detect_data_type();
 
         // Construct the literal and distance trees
