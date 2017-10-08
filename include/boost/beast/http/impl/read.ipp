@@ -44,7 +44,7 @@ prepare_or_error(DynamicBuffer& buffer, error_code& ec)
         ec.assign(0, ec.category());
         return {buffer.prepare(read_size_or_throw(buffer, 65536))};
     }
-    catch(const std::length_error& error)
+    catch(const std::length_error&)
     {
         ec = error::buffer_overflow;
         return {};
@@ -115,12 +115,6 @@ public:
         asio_handler_invoke(
             f, std::addressof(op->h_));
     }
-
-    void do_upcall(error_code ec) const
-    {
-        s_.get_io_service().post(
-            bind_handler(std::move(*this), ec, 0));
-    }
 };
 
 template<class Stream, class DynamicBuffer,
@@ -132,8 +126,6 @@ operator()(
     error_code ec,
     std::size_t bytes_transferred)
 {
-    // Temporary variables, not to be used across yields.
-    // They have to be declared here due to initialization & yield issues.
     size_t consumed = 0;
     boost::optional<typename
         DynamicBuffer::mutable_buffers_type> mb;
@@ -149,18 +141,23 @@ operator()(
             {
                 ec.assign(0, ec.category());
             }
-            BOOST_ASIO_CORO_YIELD do_upcall(ec);
+            BOOST_ASIO_CORO_YIELD
+                s_.get_io_service().post(
+                    bind_handler(std::move(*this), ec, 0));
         }
-        while (!ec && total_bytes_consumed_ == 0)
+        while (total_bytes_consumed_ == 0 && !ec)
         {
             mb = prepare_or_error(b_, ec);
             if (ec)
             {
-                BOOST_ASIO_CORO_YIELD do_upcall(ec);
+                BOOST_ASIO_CORO_YIELD
+                    s_.get_io_service().post(
+                        bind_handler(std::move(*this), ec, 0));
                 break;
             }
 
-            BOOST_ASIO_CORO_YIELD s_.async_read_some(*mb, std::move(*this));
+            BOOST_ASIO_CORO_YIELD
+                s_.async_read_some(*mb, std::move(*this));
             BOOST_ASSERT(ec != asio::error::eof || bytes_transferred == 0);
             if (ec == asio::error::eof)
             {
@@ -170,25 +167,17 @@ operator()(
                     BOOST_ASSERT(ec || p_.is_done());
                 }
                 else
-                {
                     ec = error::end_of_stream;
-                }
                 break;
             }
             if (ec)
-            {
-                // No need to call do_upcall() - we're already being executed
-                // within the io_service's context.
                 break;
-            }
             b_.commit(bytes_transferred);
             consumed = p_.put(b_.data(), ec);
             total_bytes_consumed_ += consumed;
             b_.consume(consumed);
             if (ec == http::error::need_more)
-            {
                 ec.assign(0, ec.category());
-            }
         }
         h_(ec, total_bytes_consumed_);
     }
@@ -300,17 +289,19 @@ operator()(
     {
         if (Condition{}(p_))
         {
-            BOOST_ASIO_CORO_YIELD s_.get_io_service().post(
-                bind_handler(std::move(*this), ec));
-            h_(ec, bytes_transferred_);
-            BOOST_ASIO_CORO_YIELD break;
+            BOOST_ASIO_CORO_YIELD
+                s_.get_io_service().post(
+                    bind_handler(std::move(*this), ec));
+            goto upcall;
         }
         do
         {
-            BOOST_ASIO_CORO_YIELD async_read_some(
-                s_, b_, p_, std::move(*this));
+            BOOST_ASIO_CORO_YIELD
+                async_read_some(
+                    s_, b_, p_, std::move(*this));
             bytes_transferred_ += bytes_transferred;
         } while (!Condition{}(p_) && !ec);
+upcall:
         h_(ec, bytes_transferred_);
     }
 }
@@ -417,23 +408,23 @@ operator()(
     {
         while (!d.p.is_done())
         {
-            BOOST_ASIO_CORO_YIELD async_read_some(
-                d.s, d.b, d.p, std::move(*this));
+            BOOST_ASIO_CORO_YIELD
+                async_read_some(
+                    d.s, d.b, d.p, std::move(*this));
             if (ec)
-            {
-                break;
-            }
+                goto upcall;
             d.bytes_transferred += bytes_transferred;
 
         }
+        goto upcall;
     }
-    if (d.is_complete())
-    {
-        // Can't call the handler within the coroutine body
-        // because the data struct would be destroyed before
-        // we left the coroutine, causing use-after-free.
-        d_.invoke(ec, bytes_transferred);
-    }
+    return;
+
+upcall:
+    // Can't call the handler within the coroutine body
+    // because the data struct would be destroyed before
+    // we left the coroutine, causing use-after-free.
+    d_.invoke(ec, bytes_transferred);
 }
 
 } // detail
