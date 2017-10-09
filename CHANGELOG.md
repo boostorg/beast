@@ -3,6 +3,7 @@ Version 122:
 * Add test for issue 807
 * assert on empty buffer in websocket read
 * Fix zlib symbol conflicts
+* CMake 3.5.1 is required
 
 --------------------------------------------------------------------------------
 

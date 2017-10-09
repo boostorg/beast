@@ -73,7 +73,7 @@ When using Microsoft Visual C++, Visual Studio 2015 Update 3 or later is require
 One of these components is required in order to build the tests and examples:
 
 * Properly configured bjam/b2
-* CMake 3.7.2 or later (Windows only)
+* CMake 3.5.1 or later (Windows only)
 
 ## Building
 
