@@ -10,7 +10,7 @@
 #ifndef BOOST_BEAST_WEBSOCKET_OPTION_HPP
 #define BOOST_BEAST_WEBSOCKET_OPTION_HPP
 
-#include <boost/beast/config.hpp>
+#include <boost/beast/core/detail/config.hpp>
 #include <boost/beast/websocket/rfc6455.hpp>
 #include <boost/beast/core/detail/type_traits.hpp>
 #include <boost/throw_exception.hpp>

@@ -10,7 +10,7 @@
 #ifndef BOOST_BEAST_BIND_HANDLER_HPP
 #define BOOST_BEAST_BIND_HANDLER_HPP
 
-#include <boost/beast/config.hpp>
+#include <boost/beast/core/detail/config.hpp>
 #include <boost/beast/core/type_traits.hpp>
 #include <boost/beast/core/detail/bind_handler.hpp>
 #include <type_traits>

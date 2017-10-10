@@ -10,7 +10,7 @@
 #ifndef BOOST_BEAST_BUFFERS_TO_STRING_HPP
 #define BOOST_BEAST_BUFFERS_TO_STRING_HPP
 
-#include <boost/beast/config.hpp>
+#include <boost/beast/core/detail/config.hpp>
 #include <boost/asio/buffer.hpp>
 #include <string>
 

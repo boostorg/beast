@@ -10,7 +10,7 @@
 #ifndef BOOST_BEAST_ZLIB_DEFLATE_STREAM_HPP
 #define BOOST_BEAST_ZLIB_DEFLATE_STREAM_HPP
 
-#include <boost/beast/config.hpp>
+#include <boost/beast/core/detail/config.hpp>
 #include <boost/beast/zlib/error.hpp>
 #include <boost/beast/zlib/zlib.hpp>
 #include <boost/beast/zlib/detail/deflate_stream.hpp>

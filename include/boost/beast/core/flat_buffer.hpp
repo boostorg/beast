@@ -10,7 +10,7 @@
 #ifndef BOOST_BEAST_FLAT_BUFFER_HPP
 #define BOOST_BEAST_FLAT_BUFFER_HPP
 
-#include <boost/beast/config.hpp>
+#include <boost/beast/core/detail/config.hpp>
 #include <boost/beast/core/detail/allocator.hpp>
 #include <boost/beast/core/detail/empty_base_optimization.hpp>
 #include <boost/asio/buffer.hpp>

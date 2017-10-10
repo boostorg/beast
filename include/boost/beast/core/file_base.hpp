@@ -10,7 +10,7 @@
 #ifndef BOOST_BEAST_CORE_FILE_BASE_HPP
 #define BOOST_BEAST_CORE_FILE_BASE_HPP
 
-#include <boost/beast/config.hpp>
+#include <boost/beast/core/detail/config.hpp>
 #include <boost/beast/core/string.hpp>
 
 namespace boost {

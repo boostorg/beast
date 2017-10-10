@@ -10,7 +10,7 @@
 #ifndef BOOST_BEAST_VERSION_HPP
 #define BOOST_BEAST_VERSION_HPP
 
-#include <boost/beast/config.hpp>
+#include <boost/beast/core/detail/config.hpp>
 #include <boost/config.hpp>
 
 /** @def BOOST_BEAST_API_VERSION 

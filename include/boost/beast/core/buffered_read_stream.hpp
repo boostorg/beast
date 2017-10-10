@@ -10,7 +10,7 @@
 #ifndef BOOST_BEAST_BUFFERED_READ_STREAM_HPP
 #define BOOST_BEAST_BUFFERED_READ_STREAM_HPP
 
-#include <boost/beast/config.hpp>
+#include <boost/beast/core/detail/config.hpp>
 #include <boost/beast/core/async_result.hpp>
 #include <boost/beast/core/error.hpp>
 #include <boost/beast/core/multi_buffer.hpp>

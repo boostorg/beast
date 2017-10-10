@@ -10,7 +10,7 @@
 #ifndef BOOST_BEAST_HTTP_RFC7230_HPP
 #define BOOST_BEAST_HTTP_RFC7230_HPP
 
-#include <boost/beast/config.hpp>
+#include <boost/beast/core/detail/config.hpp>
 #include <boost/beast/http/detail/rfc7230.hpp>
 #include <boost/beast/http/detail/basic_parsed_list.hpp>
 

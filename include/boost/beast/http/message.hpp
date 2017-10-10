@@ -10,7 +10,7 @@
 #ifndef BOOST_BEAST_HTTP_MESSAGE_HPP
 #define BOOST_BEAST_HTTP_MESSAGE_HPP
 
-#include <boost/beast/config.hpp>
+#include <boost/beast/core/detail/config.hpp>
 #include <boost/beast/http/fields.hpp>
 #include <boost/beast/http/verb.hpp>
 #include <boost/beast/http/status.hpp>

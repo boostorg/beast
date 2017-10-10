@@ -10,7 +10,7 @@
 #ifndef BOOST_BEAST_HTTP_BASIC_FILE_BODY_HPP
 #define BOOST_BEAST_HTTP_BASIC_FILE_BODY_HPP
 
-#include <boost/beast/config.hpp>
+#include <boost/beast/core/detail/config.hpp>
 #include <boost/beast/core/error.hpp>
 #include <boost/beast/core/file_base.hpp>
 #include <boost/beast/core/type_traits.hpp>

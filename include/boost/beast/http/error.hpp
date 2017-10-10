@@ -10,7 +10,7 @@
 #ifndef BOOST_BEAST_HTTP_ERROR_HPP
 #define BOOST_BEAST_HTTP_ERROR_HPP
 
-#include <boost/beast/config.hpp>
+#include <boost/beast/core/detail/config.hpp>
 #include <boost/beast/core/error.hpp>
 
 namespace boost {

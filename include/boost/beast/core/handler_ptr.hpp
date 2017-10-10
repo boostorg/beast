@@ -10,7 +10,7 @@
 #ifndef BOOST_BEAST_HANDLER_PTR_HPP
 #define BOOST_BEAST_HANDLER_PTR_HPP
 
-#include <boost/beast/config.hpp>
+#include <boost/beast/core/detail/config.hpp>
 #include <boost/beast/core/detail/type_traits.hpp>
 #include <atomic>
 #include <cstdint>

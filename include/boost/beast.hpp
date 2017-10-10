@@ -10,7 +10,7 @@
 #ifndef BOOST_BEAST_HPP
 #define BOOST_BEAST_HPP
 
-#include <boost/beast/config.hpp> // must come first
+#include <boost/beast/core/detail/config.hpp> // must come first
 
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>

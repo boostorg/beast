@@ -10,7 +10,7 @@
 #ifndef BOOST_BEAST_TYPE_TRAITS_HPP
 #define BOOST_BEAST_TYPE_TRAITS_HPP
 
-#include <boost/beast/config.hpp>
+#include <boost/beast/core/detail/config.hpp>
 #include <boost/beast/core/file_base.hpp>
 #include <boost/beast/core/detail/type_traits.hpp>
 #include <boost/asio/buffer.hpp>

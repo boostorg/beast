@@ -8,7 +8,6 @@
 #
 
 alias run-tests :
-    [ compile config.cpp ]
     [ compile core.cpp ]
     [ compile http.cpp ]
     [ compile version.cpp ]

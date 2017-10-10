@@ -10,7 +10,7 @@
 #ifndef BOOST_BEAST_HTTP_CHUNK_ENCODE_HPP
 #define BOOST_BEAST_HTTP_CHUNK_ENCODE_HPP
 
-#include <boost/beast/config.hpp>
+#include <boost/beast/core/detail/config.hpp>
 #include <boost/beast/core/buffers_cat.hpp>
 #include <boost/beast/core/string.hpp>
 #include <boost/beast/http/type_traits.hpp>

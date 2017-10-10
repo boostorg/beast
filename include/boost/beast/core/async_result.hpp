@@ -10,7 +10,7 @@
 #ifndef BOOST_BEAST_ASYNC_COMPLETION_HPP
 #define BOOST_BEAST_ASYNC_COMPLETION_HPP
 
-#include <boost/beast/config.hpp>
+#include <boost/beast/core/detail/config.hpp>
 #include <boost/beast/core/type_traits.hpp>
 #include <boost/asio/async_result.hpp>
 #include <boost/asio/handler_type.hpp>

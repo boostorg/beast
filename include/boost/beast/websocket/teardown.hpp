@@ -10,7 +10,7 @@
 #ifndef BOOST_BEAST_WEBSOCKET_TEARDOWN_HPP
 #define BOOST_BEAST_WEBSOCKET_TEARDOWN_HPP
 
-#include <boost/beast/config.hpp>
+#include <boost/beast/core/detail/config.hpp>
 #include <boost/beast/core/error.hpp>
 #include <boost/beast/websocket/role.hpp>
 #include <boost/asio/ip/tcp.hpp>

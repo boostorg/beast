@@ -10,7 +10,7 @@
 #ifndef BOOST_BEAST_HTTP_HPP
 #define BOOST_BEAST_HTTP_HPP
 
-#include <boost/beast/config.hpp>
+#include <boost/beast/core/detail/config.hpp>
 
 #include <boost/beast/http/basic_dynamic_body.hpp>
 #include <boost/beast/http/basic_parser.hpp>

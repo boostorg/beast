@@ -10,7 +10,7 @@
 #ifndef BOOST_BEAST_HTTP_VERB_HPP
 #define BOOST_BEAST_HTTP_VERB_HPP
 
-#include <boost/beast/config.hpp>
+#include <boost/beast/core/detail/config.hpp>
 #include <boost/beast/core/string.hpp>
 #include <iosfwd>
 

@@ -10,7 +10,7 @@
 #ifndef BOOST_BEAST_WEBSOCKET_ROLE_HPP
 #define BOOST_BEAST_WEBSOCKET_ROLE_HPP
 
-#include <boost/beast/config.hpp>
+#include <boost/beast/core/detail/config.hpp>
 
 namespace boost {
 namespace beast {

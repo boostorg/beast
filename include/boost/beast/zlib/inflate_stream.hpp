@@ -10,7 +10,7 @@
 #ifndef BOOST_BEAST_ZLIB_INFLATE_STREAM_HPP
 #define BOOST_BEAST_ZLIB_INFLATE_STREAM_HPP
 
-#include <boost/beast/config.hpp>
+#include <boost/beast/core/detail/config.hpp>
 #include <boost/beast/zlib/detail/inflate_stream.hpp>
 
 // This is a derivative work based on Zlib, copyright below:

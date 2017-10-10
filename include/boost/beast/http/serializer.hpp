@@ -10,7 +10,7 @@
 #ifndef BOOST_BEAST_HTTP_SERIALIZER_HPP
 #define BOOST_BEAST_HTTP_SERIALIZER_HPP
 
-#include <boost/beast/config.hpp>
+#include <boost/beast/core/detail/config.hpp>
 #include <boost/beast/core/buffers_cat.hpp>
 #include <boost/beast/core/buffers_prefix.hpp>
 #include <boost/beast/core/buffers_suffix.hpp>

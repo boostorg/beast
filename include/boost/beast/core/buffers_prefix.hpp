@@ -10,7 +10,7 @@
 #ifndef BOOST_BEAST_BUFFERS_PREFIX_HPP
 #define BOOST_BEAST_BUFFERS_PREFIX_HPP
 
-#include <boost/beast/config.hpp>
+#include <boost/beast/core/detail/config.hpp>
 #include <boost/beast/core/type_traits.hpp>
 #include <boost/beast/core/detail/in_place_init.hpp>
 #include <boost/asio/buffer.hpp>

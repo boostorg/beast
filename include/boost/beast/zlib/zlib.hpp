@@ -10,7 +10,7 @@
 #ifndef BOOST_BEAST_ZLIB_ZLIB_HPP
 #define BOOST_BEAST_ZLIB_ZLIB_HPP
 
-#include <boost/beast/config.hpp>
+#include <boost/beast/core/detail/config.hpp>
 #include <cstdint>
 #include <cstdlib>
 

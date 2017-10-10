@@ -10,7 +10,7 @@
 #ifndef BOOST_BEAST_WEBSOCKET_RFC6455_HPP
 #define BOOST_BEAST_WEBSOCKET_RFC6455_HPP
 
-#include <boost/beast/config.hpp>
+#include <boost/beast/core/detail/config.hpp>
 #include <boost/beast/core/static_string.hpp>
 #include <boost/beast/core/string.hpp>
 #include <boost/beast/http/message.hpp>

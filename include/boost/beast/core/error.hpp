@@ -10,7 +10,7 @@
 #ifndef BOOST_BEAST_ERROR_HPP
 #define BOOST_BEAST_ERROR_HPP
 
-#include <boost/beast/config.hpp>
+#include <boost/beast/core/detail/config.hpp>
 #include <boost/system/error_code.hpp>
 #include <boost/system/system_error.hpp>
 

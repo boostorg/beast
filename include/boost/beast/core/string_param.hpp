@@ -10,7 +10,7 @@
 #ifndef BOOST_BEAST_STRING_PARAM_HPP
 #define BOOST_BEAST_STRING_PARAM_HPP
 
-#include <boost/beast/config.hpp>
+#include <boost/beast/core/detail/config.hpp>
 #include <boost/beast/core/string.hpp>
 #include <boost/beast/core/static_string.hpp>
 #include <boost/beast/core/detail/static_ostream.hpp>

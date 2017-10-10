@@ -16,7 +16,6 @@ add_executable (tests-beast
     ${EXTRAS_INCLUDES}
     ${TEST_MAIN}
     Jamfile
-    config.cpp
     core.cpp
     http.cpp
     version.cpp

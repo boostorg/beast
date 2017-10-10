@@ -10,7 +10,7 @@
 #ifndef BOOST_BEAST_CORE_FILE_HPP
 #define BOOST_BEAST_CORE_FILE_HPP
 
-#include <boost/beast/config.hpp>
+#include <boost/beast/core/detail/config.hpp>
 #include <boost/beast/core/file_base.hpp>
 #include <boost/beast/core/file_posix.hpp>
 #include <boost/beast/core/file_stdio.hpp>

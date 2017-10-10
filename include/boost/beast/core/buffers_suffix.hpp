@@ -10,7 +10,7 @@
 #ifndef BOOST_BEAST_BUFFERS_SUFFIX_HPP
 #define BOOST_BEAST_BUFFERS_SUFFIX_HPP
 
-#include <boost/beast/config.hpp>
+#include <boost/beast/core/detail/config.hpp>
 #include <boost/beast/core/detail/in_place_init.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/optional.hpp>

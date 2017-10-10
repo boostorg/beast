@@ -10,7 +10,7 @@
 #ifndef BOOST_BEAST_HANDLER_ALLOC_HPP
 #define BOOST_BEAST_HANDLER_ALLOC_HPP
 
-#include <boost/beast/config.hpp>
+#include <boost/beast/core/detail/config.hpp>
 #include <boost/asio/handler_alloc_hook.hpp>
 #include <boost/config.hpp>
 #include <cstddef>

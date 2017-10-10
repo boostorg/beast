@@ -10,7 +10,7 @@
 #ifndef BOOST_BEAST_WEBSOCKET_SSL_HPP
 #define BOOST_BEAST_WEBSOCKET_SSL_HPP
 
-#include <boost/beast/config.hpp>
+#include <boost/beast/core/detail/config.hpp>
 #include <boost/beast/websocket/teardown.hpp>
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/ssl/stream.hpp>
