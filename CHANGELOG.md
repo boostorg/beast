@@ -5,6 +5,7 @@ Version 122:
 * Fix zlib symbol conflicts
 * CMake 3.5.1 is required
 * config.hpp is not a public header
+* Add missing case in error test
 
 --------------------------------------------------------------------------------
 
