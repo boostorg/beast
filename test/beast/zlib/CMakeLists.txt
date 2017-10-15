@@ -9,6 +9,7 @@
 
 GroupSources(include/boost/beast beast)
 GroupSources(test/extras/include/boost/beast extras)
+GroupSources(subtree/unit_test/include/boost/beast extras)
 GroupSources(test/extern/zlib-1.2.11 zlib)
 GroupSources(test/beast/zlib "/")
 

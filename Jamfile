@@ -67,13 +67,14 @@ variant ubasan
     <define>BOOST_USE_ASAN=1
   ;
 
-path-constant TEST_MAIN : test/extras/include/boost/beast/unit_test/main.cpp ;
+path-constant TEST_MAIN : subtree/unit_test/include/boost/beast/unit_test/main.cpp ;
 
 project /boost/beast
   : requirements
     <implicit-dependency>/boost//headers
     <include>.
     <include>./test/extras/include
+    <include>./subtree/unit_test/include
     <library>/boost/system//boost_system
     <library>/boost/coroutine//boost_coroutine
     <library>/boost/filesystem//boost_filesystem
