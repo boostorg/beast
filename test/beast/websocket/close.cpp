@@ -520,6 +520,9 @@ public:
                     if(! ec)
                         BEAST_EXPECT(to_string(b.data()) == s);
                     ++count;
+                    if(count == 4)
+                        BEAST_EXPECT(
+                            ec == boost::asio::error::operation_aborted);
                 });
             ws.async_write(buffer(s),
                 [&](error_code ec, std::size_t n)
@@ -547,7 +550,8 @@ public:
                     if(ec)
                         BOOST_THROW_EXCEPTION(
                             system_error{ec});
-                    BEAST_EXPECT(++count == 2);
+                    ++count;
+                    BEAST_EXPECT(count == 2 || count == 3);
                 });
             BEAST_EXPECT(count == 0);
             ios.run();
