@@ -373,17 +373,19 @@ public:
     //
     //--------------------------------------------------------------------------
 
-private:
-    // VFALCO But this leaves behind the method, target, and reason!
     /** Remove all fields from the container
 
         All references, pointers, or iterators referring to contained
         elements are invalidated. All past-the-end iterators are also
         invalidated.
+
+        @par Postconditions:
+        @code
+            std::distance(this->begin(), this->end()) == 0
+        @encode
     */
     void
     clear();
-public:
 
     /** Insert a field.
 

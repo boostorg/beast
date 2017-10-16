@@ -21,6 +21,7 @@
 #include <boost/beast/http/read.hpp>
 #include <boost/beast/http/string_body.hpp>
 #include <boost/system/system_error.hpp>
+#include <algorithm>
 
 namespace boost {
 namespace beast {
@@ -330,12 +331,26 @@ public:
     }
 
     void
+    testIssue818()
+    {
+        // Make sure that the parser clears pre-existing fields
+        request<string_body> m;
+        m.set(field::accept, "html/text");
+        BEAST_EXPECT(std::distance(m.begin(), m.end()) == 1);
+        request_parser<string_body> p{std::move(m)};
+        BEAST_EXPECT(std::distance(m.begin(), m.end()) == 0);
+        auto& m1 = p.get();
+        BEAST_EXPECT(std::distance(m1.begin(), m1.end()) == 0);
+    }
+
+    void
     run() override
     {
         testParse();
         testNeedMore<flat_buffer>();
         testNeedMore<multi_buffer>();
         testGotSome();
+        testIssue818();
     }
 };
 

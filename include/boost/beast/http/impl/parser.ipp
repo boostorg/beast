@@ -32,6 +32,7 @@ parser(Arg1&& arg1, ArgN&&... argn)
         std::forward<ArgN>(argn)...)
     , wr_(m_)
 {
+    m_.clear();
 }
 
 template<bool isRequest, class Body, class Allocator>
