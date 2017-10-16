@@ -2,6 +2,7 @@ Version 123:
 
 * Use unit-test subtree
 * Fix spurious race in websocket close test
+* Check compiler feature in Jamfile
 
 --------------------------------------------------------------------------------
 
