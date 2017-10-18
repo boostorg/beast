@@ -13,6 +13,7 @@
 #include <boost/beast/core/error.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/asio/io_service.hpp>
+#include <boost/optional.hpp>
 #include <iterator>
 #include <tuple>
 #include <type_traits>
@@ -355,6 +356,26 @@ struct StreamHandler
 };
 using ReadHandler = StreamHandler;
 using WriteHandler = StreamHandler;
+
+template<typename ErrorEnum, typename DynamicBuffer>
+optional<typename DynamicBuffer::mutable_buffers_type>
+prepare_or_error(DynamicBuffer& buffer, error_code& ec)
+{
+    static_assert(system::is_error_code_enum<ErrorEnum>::value,
+                  "ErrorEnum must be an error code.");
+    optional<typename DynamicBuffer::mutable_buffers_type> ret;
+    try
+    {
+
+        ret = {buffer.prepare(read_size_or_throw(buffer, 65536))};
+        ec.assign(0, ec.category());
+    }
+    catch(const std::length_error&)
+    {
+        ec = ErrorEnum::buffer_overflow;
+    }
+    return ret;
+}
 
 } // detail
 } // beast
