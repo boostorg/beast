@@ -100,8 +100,8 @@ private:
     void
     process_request()
     {
-        response_.version(11);
-        response_.set(http::field::connection, "close");
+        response_.version(request_.version());
+        response_.keep_alive(false);
 
         switch(request_.method())
         {

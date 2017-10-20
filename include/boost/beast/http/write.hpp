@@ -440,9 +440,7 @@ async_write(
 
     This operation is implemented in terms of one or more calls to the stream's
     `write_some` function. The algorithm will use a temporary @ref serializer
-    with an empty chunk decorator to produce buffers. If the semantics of the
-    message indicate that the connection should be closed after the message is
-    sent, the error delivered by this function will be @ref error::end_of_stream
+    with an empty chunk decorator to produce buffers.
 
     @param stream The stream to which the data is to be written.
     The type must support the @b SyncWriteStream concept.
@@ -474,9 +472,7 @@ write(
 
     This operation is implemented in terms of one or more calls to the stream's
     `write_some` function. The algorithm will use a temporary @ref serializer
-    with an empty chunk decorator to produce buffers. If the semantics of the
-    message indicate that the connection should be closed after the message is
-    sent, the error delivered by this function will be @ref error::end_of_stream
+    with an empty chunk decorator to produce buffers.
 
     @param stream The stream to which the data is to be written.
     The type must support the @b SyncWriteStream concept.
@@ -512,10 +508,7 @@ write(
     `async_write_some` function, and is known as a <em>composed operation</em>.
     The program must ensure that the stream performs no other write operations
     until this operation completes. The algorithm will use a temporary
-    @ref serializer with an empty chunk decorator to produce buffers. If
-    the semantics of the message indicate that the connection should be
-    closed after the message is sent, the error delivered by this function
-    will be @ref error::end_of_stream
+    @ref serializer with an empty chunk decorator to produce buffers.
 
     @param stream The stream to which the data is to be written.
     The type must support the @b AsyncWriteStream concept.

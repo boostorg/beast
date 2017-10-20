@@ -328,7 +328,8 @@ public:
             test::stream ts{ios_}, tr{ios_};
             ts.connect(tr);
             async_write(ts, m, do_yield[ec]);
-            if(BEAST_EXPECTS(ec == error::end_of_stream, ec.message()))
+            BEAST_EXPECT(! m.keep_alive());
+            if(BEAST_EXPECTS(! ec, ec.message()))
                 BEAST_EXPECT(tr.str() ==
                     "HTTP/1.0 200 OK\r\n"
                     "Server: test\r\n"
@@ -406,8 +407,9 @@ public:
             m.body() = "*****";
             error_code ec = test::error::fail_error;
             write(ts, m, ec);
-            if(ec == error::end_of_stream)
+            if(! ec)
             {
+                BEAST_EXPECT(! m.keep_alive());
                 BEAST_EXPECT(tr.str() ==
                     "GET / HTTP/1.0\r\n"
                     "User-Agent: test\r\n"
@@ -436,8 +438,9 @@ public:
             m.body() = "*****";
             error_code ec = test::error::fail_error;
             async_write(ts, m, do_yield[ec]);
-            if(ec == error::end_of_stream)
+            if(! ec)
             {
+                BEAST_EXPECT(! m.keep_alive());
                 BEAST_EXPECT(tr.str() ==
                     "GET / HTTP/1.0\r\n"
                     "User-Agent: test\r\n"
@@ -543,7 +546,8 @@ public:
             ts.connect(tr);
             error_code ec;
             write(ts, m, ec);
-            BEAST_EXPECT(ec == error::end_of_stream);
+            BEAST_EXPECT(! m.keep_alive());
+            BEAST_EXPECTS(! ec, ec.message());
             BEAST_EXPECT(tr.str() ==
                 "GET / HTTP/1.0\r\n"
                 "User-Agent: test\r\n"

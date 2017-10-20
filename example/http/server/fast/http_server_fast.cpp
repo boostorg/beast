@@ -209,8 +209,8 @@ private:
             std::make_tuple(alloc_));
 
         string_response_->result(status);
+        string_response_->keep_alive(false);
         string_response_->set(http::field::server, "Beast");
-        string_response_->set(http::field::connection, "close");
         string_response_->set(http::field::content_type, "text/plain");
         string_response_->body() = error;
         string_response_->prepare_payload();
@@ -265,8 +265,8 @@ private:
             std::make_tuple(alloc_));
 
         file_response_->result(http::status::ok);
+        file_response_->keep_alive(false);
         file_response_->set(http::field::server, "Beast");
-        file_response_->set(http::field::connection, "close");
         file_response_->set(http::field::content_type, mime_type(target.to_string()));
         file_response_->body() = std::move(file);
         file_response_->prepare_payload();

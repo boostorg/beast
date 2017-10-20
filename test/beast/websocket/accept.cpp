@@ -484,7 +484,7 @@ public:
         };
 
         // wrong version
-        check(http::error::end_of_stream,
+        check(error::handshake_failed,
             "GET / HTTP/1.0\r\n"
             "Host: localhost:80\r\n"
             "Upgrade: WebSocket\r\n"

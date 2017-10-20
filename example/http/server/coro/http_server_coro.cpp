@@ -212,15 +212,18 @@ template<class Stream>
 struct send_lambda
 {
     Stream& stream_;
+    bool& close_;
     boost::system::error_code& ec_;
     boost::asio::yield_context yield_;
 
     explicit
     send_lambda(
         Stream& stream,
+        bool& close,
         boost::system::error_code& ec,
         boost::asio::yield_context yield)
         : stream_(stream)
+        , close_(close)
         , ec_(ec)
         , yield_(yield)
     {
@@ -230,6 +233,9 @@ struct send_lambda
     void
     operator()(http::message<isRequest, Body, Fields>&& msg) const
     {
+        // Determine if we should close the connection after
+        close_ = ! msg.keep_alive();
+
         // We need the serializer here because the serializer requires
         // a non-const file_body, and the message oriented version of
         // http::write only works with const messages.
@@ -245,13 +251,14 @@ do_session(
     std::string const& doc_root,
     boost::asio::yield_context yield)
 {
+    bool close = false;
     boost::system::error_code ec;
 
     // This buffer is required to persist across reads
     boost::beast::flat_buffer buffer;
 
     // This lambda is used to send messages
-    send_lambda<tcp::socket> lambda{socket, ec, yield};
+    send_lambda<tcp::socket> lambda{socket, close, ec, yield};
 
     for(;;)
     {
@@ -265,14 +272,14 @@ do_session(
 
         // Send the response
         handle_request(doc_root, std::move(req), lambda);
-        if(ec == http::error::end_of_stream)
+        if(ec)
+            return fail(ec, "write");
+        if(close)
         {
             // This means we should close the connection, usually because
             // the response indicated the "Connection: close" semantic.
             break;
         }
-        if(ec)
-            return fail(ec, "write");
     }
 
     // Send a TCP shutdown

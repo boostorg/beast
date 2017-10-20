@@ -1,3 +1,16 @@
+Version 124:
+
+API Changes:
+
+* http write returns success on connection close
+
+Actions Required:
+
+* Add code to servers to close the connection after successfully
+  writing a message where `message::keep_alive()` would return `false`.
+
+--------------------------------------------------------------------------------
+
 Version 123:
 
 * Use unit-test subtree

@@ -251,7 +251,8 @@ class session
                     &session::loop,
                     self_.shared_from_this(),
                     std::placeholders::_1,
-                    std::placeholders::_2)));
+                    std::placeholders::_2,
+                    ! sp->keep_alive())));
         }
     };
 
@@ -283,14 +284,15 @@ public:
     void
     run()
     {
-        loop({}, 0);
+        loop({}, 0, false);
     }
 
 #include <boost/asio/yield.hpp>
     void
     loop(
         boost::system::error_code ec,
-        std::size_t bytes_transferred)
+        std::size_t bytes_transferred,
+        bool close)
     {
         boost::ignore_unused(bytes_transferred);
         reenter(*this)
@@ -302,7 +304,8 @@ public:
                     &session::loop,
                     shared_from_this(),
                     std::placeholders::_1,
-                    0)));
+                    0,
+                    false)));
             if(ec)
                 return fail(ec, "handshake");
 
@@ -314,7 +317,8 @@ public:
                         &session::loop,
                         shared_from_this(),
                         std::placeholders::_1,
-                        std::placeholders::_2)));
+                        std::placeholders::_2,
+                        false)));
                 if(ec == http::error::end_of_stream)
                 {
                     // The remote host closed the connection
@@ -325,14 +329,14 @@ public:
 
                 // Send the response
                 yield handle_request(doc_root_, std::move(req_), lambda_);
-                if(ec == http::error::end_of_stream)
+                if(ec)
+                    return fail(ec, "write");
+                if(close)
                 {
                     // This means we should close the connection, usually because
                     // the response indicated the "Connection: close" semantic.
                     break;
                 }
-                if(ec)
-                    return fail(ec, "write");
 
                 // We're done with the response so delete it
                 res_ = nullptr;
@@ -344,7 +348,8 @@ public:
                     &session::loop,
                     shared_from_this(),
                     std::placeholders::_1,
-                    0)));
+                    0,
+                    false)));
             if(ec)
                 return fail(ec, "shutdown");
 

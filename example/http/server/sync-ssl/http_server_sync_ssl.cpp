@@ -213,13 +213,16 @@ template<class Stream>
 struct send_lambda
 {
     Stream& stream_;
+    bool& close_;
     boost::system::error_code& ec_;
 
     explicit
     send_lambda(
         Stream& stream,
+        bool& close,
         boost::system::error_code& ec)
         : stream_(stream)
+        , close_(close)
         , ec_(ec)
     {
     }
@@ -228,6 +231,9 @@ struct send_lambda
     void
     operator()(http::message<isRequest, Body, Fields>&& msg) const
     {
+        // Determine if we should close the connection after
+        close_ = ! msg.keep_alive();
+
         // We need the serializer here because the serializer requires
         // a non-const file_body, and the message oriented version of
         // http::write only works with const messages.
@@ -243,6 +249,7 @@ do_session(
     ssl::context& ctx,
     std::string const& doc_root)
 {
+    bool close = false;
     boost::system::error_code ec;
 
     // Construct the stream around the socket
@@ -257,7 +264,7 @@ do_session(
     boost::beast::flat_buffer buffer;
 
     // This lambda is used to send messages
-    send_lambda<ssl::stream<tcp::socket&>> lambda{stream, ec};
+    send_lambda<ssl::stream<tcp::socket&>> lambda{stream, close, ec};
 
     for(;;)
     {
@@ -271,14 +278,14 @@ do_session(
 
         // Send the response
         handle_request(doc_root, std::move(req), lambda);
-        if(ec == http::error::end_of_stream)
+        if(ec)
+            return fail(ec, "write");
+        if(close)
         {
             // This means we should close the connection, usually because
             // the response indicated the "Connection: close" semantic.
             break;
         }
-        if(ec)
-            return fail(ec, "write");
     }
 
     // Perform the SSL shutdown

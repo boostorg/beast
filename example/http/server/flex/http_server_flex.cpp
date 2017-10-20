@@ -259,7 +259,8 @@ class session
                     &session::on_write,
                     self_.derived().shared_from_this(),
                     std::placeholders::_1,
-                    std::placeholders::_2)));
+                    std::placeholders::_2,
+                    ! sp->keep_alive())));
         }
     };
 
@@ -322,19 +323,20 @@ public:
     void
     on_write(
         boost::system::error_code ec,
-        std::size_t bytes_transferred)
+        std::size_t bytes_transferred,
+        bool close)
     {
         boost::ignore_unused(bytes_transferred);
 
-        if(ec == http::error::end_of_stream)
+        if(ec)
+            return fail(ec, "write");
+
+        if(close)
         {
             // This means we should close the connection, usually because
             // the response indicated the "Connection: close" semantic.
             return derived().do_eof();
         }
-
-        if(ec)
-            return fail(ec, "write");
 
         // We're done with the response so delete it
         res_ = nullptr;

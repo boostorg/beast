@@ -162,12 +162,7 @@ operator()(
     error_code ec, std::size_t bytes_transferred)
 {
     if(! ec)
-    {
         sr_.consume(bytes_transferred);
-        if(sr_.is_done())
-            if(! sr_.keep_alive())
-                ec = error::end_of_stream;
-    }
     h_(ec, bytes_transferred);
 }
 
@@ -478,15 +473,9 @@ write_some(
             return f.bytes_transferred;
         if(f.invoked)
             sr.consume(f.bytes_transferred);
-        if(sr.is_done())
-            if(! sr.keep_alive())
-                ec = error::end_of_stream;
         return f.bytes_transferred;
     }
-    if(! sr.keep_alive())
-        ec = error::end_of_stream;
-    else
-        ec.assign(0, ec.category());
+    ec.assign(0, ec.category());
     return 0;
 }
 
@@ -909,8 +898,6 @@ operator<<(std::ostream& os,
         sr.next(ec, f);
         if(os.fail())
             break;
-        if(ec == error::end_of_stream)
-            ec.assign(0, ec.category());
         if(ec)
         {
             os.setstate(std::ios::failbit);
