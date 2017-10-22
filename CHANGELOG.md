@@ -1,6 +1,7 @@
 Version 124:
 
 * Fix for a test matrix compiler
+* Fix basic_fields javadoc
 
 API Changes:
 

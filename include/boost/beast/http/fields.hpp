@@ -382,7 +382,7 @@ public:
         @par Postconditions:
         @code
             std::distance(this->begin(), this->end()) == 0
-        @encode
+        @endcode
     */
     void
     clear();
