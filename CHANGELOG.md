@@ -1,5 +1,7 @@
 Version 124:
 
+* Fix for a test matrix compiler
+
 API Changes:
 
 * http write returns success on connection close

@@ -39,7 +39,7 @@ public:
             void
             operator()(response_type&) const
             {
-                b_ = true;
+                this->b_ = true;
             }
         };
 
