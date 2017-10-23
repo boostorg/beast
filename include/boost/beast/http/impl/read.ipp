@@ -18,6 +18,7 @@
 #include <boost/beast/core/handler_ptr.hpp>
 #include <boost/beast/core/read_size.hpp>
 #include <boost/beast/core/type_traits.hpp>
+#include <boost/beast/core/coroutine.hpp>
 #include <boost/asio/handler_alloc_hook.hpp>
 #include <boost/asio/handler_continuation_hook.hpp>
 #include <boost/asio/handler_invoke_hook.hpp>
@@ -34,17 +35,30 @@ namespace detail {
 
 //------------------------------------------------------------------------------
 
+template<typename DynamicBuffer>
+boost::optional<typename DynamicBuffer::mutable_buffers_type>
+prepare_or_error(DynamicBuffer& buffer, error_code& ec)
+{
+    try
+    {
+        ec.assign(0, ec.category());
+        return {buffer.prepare(read_size_or_throw(buffer, 65536))};
+    }
+    catch(const std::length_error&)
+    {
+        ec = error::buffer_overflow;
+        return {};
+    }
+}
+
 template<class Stream, class DynamicBuffer,
     bool isRequest, class Derived, class Handler>
-class read_some_op
+class read_some_op : asio::coroutine
 {
-    int state_ = 0;
     Stream& s_;
     DynamicBuffer& b_;
     basic_parser<isRequest, Derived>& p_;
-    boost::optional<typename
-        DynamicBuffer::mutable_buffers_type> mb_;
-    std::size_t bytes_transferred_ = 0;
+    std::size_t total_bytes_consumed_ = 0;
     Handler h_;
 
 public:
@@ -88,7 +102,7 @@ public:
     bool asio_handler_is_continuation(read_some_op* op)
     {
         using boost::asio::asio_handler_is_continuation;
-        return op->state_ >= 2 ? true :
+        return is_continuation(*op) ||
             asio_handler_is_continuation(
                 std::addressof(op->h_));
     }
@@ -112,72 +126,61 @@ operator()(
     error_code ec,
     std::size_t bytes_transferred)
 {
-    switch(state_)
-    {
-    case 0:
-        state_ = 1;
-        if(b_.size() == 0)
-            goto do_read;
-        goto do_parse;
+    size_t consumed = 0;
+    boost::optional<typename
+        DynamicBuffer::mutable_buffers_type> mb;
 
-    case 1:
-        state_ = 2;
-    case 2:
-        if(ec == boost::asio::error::eof)
+    BOOST_ASIO_CORO_REENTER(*this)
+    {
+        if (b_.size() > 0)
         {
-            BOOST_ASSERT(bytes_transferred == 0);
-            if(p_.got_some())
+            consumed = p_.put(b_.data(), ec);
+            total_bytes_consumed_ += consumed;
+            b_.consume(consumed);
+            if (ec == http::error::need_more)
             {
-                // caller sees EOF on next read
                 ec.assign(0, ec.category());
-                p_.put_eof(ec);
-                if(ec)
-                    goto upcall;
-                BOOST_ASSERT(p_.is_done());
-                goto upcall;
             }
-            ec = error::end_of_stream;
-            goto upcall;
+            BOOST_ASIO_CORO_YIELD
+                s_.get_io_service().post(
+                    bind_handler(std::move(*this), ec, 0));
         }
-        if(ec)
-            goto upcall;
-        b_.commit(bytes_transferred);
-
-    do_parse:
-    {
-        auto const used = p_.put(b_.data(), ec);
-        bytes_transferred_ += used;
-        b_.consume(used);
-        if(! ec || ec != http::error::need_more)
-            goto do_upcall;
-        ec.assign(0, ec.category());
-    }
-
-    do_read:
-        try
+        while (total_bytes_consumed_ == 0 && !ec)
         {
-            mb_.emplace(b_.prepare(
-                read_size_or_throw(b_, 65536)));
-        }
-        catch(std::length_error const&)
-        {
-            ec = error::buffer_overflow;
-            goto do_upcall;
-        }
-        return s_.async_read_some(*mb_, std::move(*this));
+            mb = prepare_or_error(b_, ec);
+            if (ec)
+            {
+                BOOST_ASIO_CORO_YIELD
+                    s_.get_io_service().post(
+                        bind_handler(std::move(*this), ec, 0));
+                break;
+            }
 
-    do_upcall:
-        if(state_ >= 2)
-            goto upcall;
-        state_ = 3;
-        return s_.get_io_service().post(
-            bind_handler(std::move(*this), ec, 0));
-
-    case 3:
-        break;
+            BOOST_ASIO_CORO_YIELD
+                s_.async_read_some(*mb, std::move(*this));
+            BOOST_ASSERT(ec != asio::error::eof || bytes_transferred == 0);
+            if (ec == asio::error::eof)
+            {
+                if (p_.got_some())
+                {
+                    p_.put_eof(ec);
+                    BOOST_ASSERT(ec || p_.is_done());
+                }
+                else
+                    ec = error::end_of_stream;
+                break;
+            }
+            if (ec)
+                break;
+            b_.commit(bytes_transferred);
+            consumed = p_.put(b_.data(), ec);
+            total_bytes_consumed_ += consumed;
+            b_.consume(consumed);
+            if (ec == http::error::need_more)
+                ec.assign(0, ec.category());
+        }
+        h_(ec, total_bytes_consumed_);
     }
-upcall:
-    h_(ec, bytes_transferred_);
 }
 
 //------------------------------------------------------------------------------
@@ -207,9 +210,8 @@ struct parser_is_header_done
 template<class Stream, class DynamicBuffer,
     bool isRequest, class Derived, class Condition,
         class Handler>
-class read_op
+class read_op : asio::coroutine
 {
-    int state_ = 0;
     Stream& s_;
     DynamicBuffer& b_;
     basic_parser<isRequest, Derived>& p_;
@@ -258,7 +260,7 @@ public:
     bool asio_handler_is_continuation(read_op* op)
     {
         using boost::asio::asio_handler_is_continuation;
-        return op->state_ >= 3 ? true :
+        return is_continuation(*op) ||
             asio_handler_is_continuation(
                 std::addressof(op->h_));
     }
@@ -283,36 +285,25 @@ operator()(
     error_code ec,
     std::size_t bytes_transferred)
 {
-    switch(state_)
+    BOOST_ASIO_CORO_REENTER(*this)
     {
-    case 0:
-        if(Condition{}(p_))
+        if (Condition{}(p_))
         {
-            state_ = 1;
-            return s_.get_io_service().post(
-                bind_handler(std::move(*this), ec));
+            BOOST_ASIO_CORO_YIELD
+                s_.get_io_service().post(
+                    bind_handler(std::move(*this), ec));
+            goto upcall;
         }
-        state_ = 2;
-
-    do_read:
-        return async_read_some(
-            s_, b_, p_, std::move(*this));
-
-    case 1:
-        goto upcall;
-
-    case 2:
-    case 3:
-        if(ec)
-            goto upcall;
-        bytes_transferred_ += bytes_transferred;
-        if(Condition{}(p_))
-            goto upcall;
-        state_ = 3;
-        goto do_read;
-    }
+        do
+        {
+            BOOST_ASIO_CORO_YIELD
+                async_read_some(
+                    s_, b_, p_, std::move(*this));
+            bytes_transferred_ += bytes_transferred;
+        } while (!Condition{}(p_) && !ec);
 upcall:
-    h_(ec, bytes_transferred_);
+        h_(ec, bytes_transferred_);
+    }
 }
 
 //------------------------------------------------------------------------------
@@ -328,9 +319,8 @@ class read_msg_op
     using message_type =
         typename parser_type::value_type;
 
-    struct data
+    struct data : boost::asio::coroutine
     {
-        int state = 0;
         Stream& s;
         DynamicBuffer& b;
         message_type& m;
@@ -388,7 +378,7 @@ public:
     bool asio_handler_is_continuation(read_msg_op* op)
     {
         using boost::asio::asio_handler_is_continuation;
-        return op->d_->state >= 2 ? true :
+        return is_continuation(*op->d_) ||
             asio_handler_is_continuation(
                 std::addressof(op->d_.handler()));
     }
@@ -414,31 +404,26 @@ operator()(
     std::size_t bytes_transferred)
 {
     auto& d = *d_;
-    switch(d.state)
+    BOOST_ASIO_CORO_REENTER(d)
     {
-    case 0:
-        d.state = 1;
-
-    do_read:
-        return async_read_some(
-            d.s, d.b, d.p, std::move(*this));
-
-    case 1:
-    case 2:
-        if(ec)
-            goto upcall;
-        d.bytes_transferred +=
-            bytes_transferred;
-        if(d.p.is_done())
+        while (!d.p.is_done())
         {
-            d.m = d.p.release();
-            goto upcall;
+            BOOST_ASIO_CORO_YIELD
+                async_read_some(
+                    d.s, d.b, d.p, std::move(*this));
+            if (ec)
+                goto upcall;
+            d.bytes_transferred += bytes_transferred;
+
         }
-        d.state = 2;
-        goto do_read;
+        goto upcall;
     }
+    return;
+
 upcall:
-    bytes_transferred = d.bytes_transferred;
+    // Can't call the handler within the coroutine body
+    // because the data struct would be destroyed before
+    // we left the coroutine, causing use-after-free.
     d_.invoke(ec, bytes_transferred);
 }
 
