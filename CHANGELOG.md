@@ -5,6 +5,7 @@ Version 126:
 * Update stream write documentation for end of stream changes
 * Tidy up unused variable warnings
 * Don't return end_of_stream on win32 file body writes
+* Fix doc typo
 
 --------------------------------------------------------------------------------
 
