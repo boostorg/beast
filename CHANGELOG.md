@@ -2,6 +2,14 @@ Version 128:
 
 * Update doc links
 
+API Changes:
+
+* Remove serializer::keep_alive
+
+Actions Required:
+
+* Call message::keep_alive instead of serializer::keep_alive
+
 --------------------------------------------------------------------------------
 
 Version 127:

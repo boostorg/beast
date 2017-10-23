@@ -31,12 +31,9 @@ namespace http {
     An object of this type is used to serialize a complete
     HTTP message into a sequence of octets. To use this class,
     construct an instance with the message to be serialized.
-
     The implementation will automatically perform chunk encoding
     if the contents of the message indicate that chunk encoding
-    is required. If the semantics of the message indicate that
-    the connection should be closed after the message is sent, the
-    function @ref keep_alive will return `false`.
+    is required.
 
     Chunked output produced by the serializer never contains chunk
     extensions or trailers, and the location of chunk boundaries
@@ -190,7 +187,6 @@ private:
     bool split_ = false;
     bool header_done_ = false;
     bool chunked_;
-    bool keep_alive_;
     bool more_;
 
 public:
@@ -305,30 +301,6 @@ public:
     chunked()
     {
         return chunked_;
-    }
-
-    /** Return `true` if Connection: keep-alive semantic is indicated.
-
-        This function returns `true` if the semantics of the
-        message indicate that the connection should be kept open
-        after the serialized message has been transmitted. The
-        value depends on the HTTP version of the message,
-        the tokens in the Connection header, and the metadata
-        describing the payload body.
-
-        Depending on the payload body, the end of the message may
-        be indicated by connection closuire. In order for the
-        recipient (if any) to receive a complete message, the
-        underlying stream or network connection must be closed
-        when this function returns `false`.
-
-        This function may only be called if @ref is_header_done
-        would return `true`.
-    */
-    bool
-    keep_alive()
-    {
-        return keep_alive_;
     }
 
     /** Returns the next set of buffers in the serialization.
