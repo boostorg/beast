@@ -116,11 +116,10 @@ void fxx() {
     res.result(status::ok);
     res.set(field::server, "Beast");
     res.body() = "Hello, world!";
+    res.prepare_payload();
 
     error_code ec;
     write(sock, res, ec);
-    if(ec == error::end_of_stream)
-        sock.close();
 //]
 
 //[http_snippet_8
