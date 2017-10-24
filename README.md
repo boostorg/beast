@@ -48,11 +48,9 @@ This library is designed for:
 
 ## Description
 
-This software is currently in beta: interfaces may change.
-For recent changes see the [CHANGELOG](CHANGELOG.md).
-As of July 20th, this library has been ACCEPTED into Boost
-without conditions. The first official release of Beast will
-appear in Boost 1.66.0, due in December.
+This software is in its first official release. Interfaces
+may change in response to user feedback. For recent changes
+see the [CHANGELOG](CHANGELOG.md).
 
 * [Official Site](https://github.com/boostorg/beast)
 * [Documentation](http://www.boost.org/doc/libs/develop/libs/beast/)
