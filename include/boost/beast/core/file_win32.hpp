@@ -24,8 +24,8 @@
 
 #include <boost/beast/core/error.hpp>
 #include <boost/beast/core/file_base.hpp>
-#include <boost/detail/winapi/basic_types.hpp>
-#include <boost/detail/winapi/handles.hpp>
+#include <boost/winapi/basic_types.hpp>
+#include <boost/winapi/handles.hpp>
 #include <cstdio>
 #include <cstdint>
 
@@ -38,8 +38,8 @@ namespace beast {
 */
 class file_win32
 {
-    boost::detail::winapi::HANDLE_ h_ =
-        boost::detail::winapi::INVALID_HANDLE_VALUE_;
+    boost::winapi::HANDLE_ h_ =
+        boost::winapi::INVALID_HANDLE_VALUE_;
 
 public:
     /** The type of the underlying file handle.
@@ -49,7 +49,7 @@ public:
 #if BOOST_BEAST_DOXYGEN
     using native_handle_type = HANDLE;
 #else
-    using native_handle_type = boost::detail::winapi::HANDLE_;
+    using native_handle_type = boost::winapi::HANDLE_;
 #endif
 
     /** Destructor
@@ -96,7 +96,7 @@ public:
     bool
     is_open() const
     {
-        return h_ != boost::detail::winapi::INVALID_HANDLE_VALUE_;
+        return h_ != boost::winapi::INVALID_HANDLE_VALUE_;
     }
 
     /** Close the file if open

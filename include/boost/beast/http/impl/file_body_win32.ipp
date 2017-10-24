@@ -24,7 +24,7 @@
 #include <boost/asio/windows/overlapped_ptr.hpp>
 #include <boost/make_unique.hpp>
 #include <boost/smart_ptr/make_shared_array.hpp>
-#include <boost/detail/winapi/basic_types.hpp>
+#include <boost/winapi/basic_types.hpp>
 #include <algorithm>
 #include <cstring>
 
@@ -279,27 +279,27 @@ namespace detail {
 
 template<class Unsigned>
 inline
-boost::detail::winapi::DWORD_
+boost::winapi::DWORD_
 lowPart(Unsigned n)
 {
     return static_cast<
-        boost::detail::winapi::DWORD_>(
+        boost::winapi::DWORD_>(
             n & 0xffffffff);
 }
 
 template<class Unsigned>
 inline
-boost::detail::winapi::DWORD_
+boost::winapi::DWORD_
 highPart(Unsigned n, std::true_type)
 {
     return static_cast<
-        boost::detail::winapi::DWORD_>(
+        boost::winapi::DWORD_>(
             (n>>32)&0xffffffff);
 }
 
 template<class Unsigned>
 inline
-boost::detail::winapi::DWORD_
+boost::winapi::DWORD_
 highPart(Unsigned, std::false_type)
 {
     return 0;
@@ -307,7 +307,7 @@ highPart(Unsigned, std::false_type)
 
 template<class Unsigned>
 inline
-boost::detail::winapi::DWORD_
+boost::winapi::DWORD_
 highPart(Unsigned n)
 {
     return highPart(n, std::integral_constant<
@@ -416,8 +416,8 @@ operator()()
             sock_, sr_, std::move(*this));
     }
     auto& r = sr_.reader_impl();
-    boost::detail::winapi::DWORD_ const nNumberOfBytesToWrite =
-        std::min<boost::detail::winapi::DWORD_>(
+    boost::winapi::DWORD_ const nNumberOfBytesToWrite =
+        std::min<boost::winapi::DWORD_>(
             beast::detail::clamp(std::min<std::uint64_t>(
                 r.body_.last_ - r.pos_, sr_.limit())),
             2147483646);
@@ -436,12 +436,12 @@ operator()()
         0);
     auto const dwError = ::GetLastError();
     if(! bSuccess && dwError !=
-        boost::detail::winapi::ERROR_IO_PENDING_)
+        boost::winapi::ERROR_IO_PENDING_)
     {
         // VFALCO This needs review, is 0 the right number?
         // completed immediately (with error?)
         overlapped.complete(error_code{static_cast<int>(
-            boost::detail::winapi::GetLastError()),
+            boost::winapi::GetLastError()),
                 system_category()}, 0);
         return;
     }
@@ -513,8 +513,8 @@ write_some(
     r.body_.file_.seek(r.pos_, ec);
     if(ec)
         return 0;
-    boost::detail::winapi::DWORD_ const nNumberOfBytesToWrite =
-        std::min<boost::detail::winapi::DWORD_>(
+    boost::winapi::DWORD_ const nNumberOfBytesToWrite =
+        std::min<boost::winapi::DWORD_>(
             beast::detail::clamp(std::min<std::uint64_t>(
                 r.body_.last_ - r.pos_, sr.limit())),
             2147483646);
@@ -529,7 +529,7 @@ write_some(
     if(! bSuccess)
     {
         ec.assign(static_cast<int>(
-            boost::detail::winapi::GetLastError()),
+            boost::winapi::GetLastError()),
                 system_category());
         return 0;
     }

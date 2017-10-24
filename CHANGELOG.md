@@ -9,6 +9,7 @@ Version 126:
 * Fix shadowing in session_alloc
 * Fix executor type compilation
 * Add Travis tests with the default compilers
+* Update Boost.WinAPI usage to the new location and namespace.
 
 --------------------------------------------------------------------------------
 
