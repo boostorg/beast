@@ -222,57 +222,17 @@ dealloc(void* pv, std::size_t n)
 
 //------------------------------------------------------------------------------
 
+namespace detail {
+template<class Handler>
+class session_alloc_wrapper;
+} // detail
+
 template<class T>
 class session_alloc
     : private detail::session_alloc_base<void>
 {
     template<class U>
     friend class session_alloc;
-
-    template<class Handler>
-    class wrapped_handler
-    {
-        // Can't friend partial specializations,
-        // so we just friend the whole thing.
-        template<class U, class Executor>
-        friend struct boost::asio::associated_executor;
-
-        Handler h_;
-        session_alloc<char> alloc_;
-
-    public:
-        wrapped_handler(wrapped_handler&&) = default;
-        wrapped_handler(wrapped_handler const&) = default;
-
-        template<class DeducedHandler>
-        wrapped_handler(
-            DeducedHandler&& h,
-            session_alloc const& alloc)
-            : h_(std::forward<DeducedHandler>(h))
-            , alloc_(alloc)
-        {
-        }
-
-        using allocator_type = session_alloc<char>;
-
-        allocator_type
-        get_allocator() const noexcept;
-
-        template<class... Args>
-        void
-        operator()(Args&&... args) const
-        {
-            h_(std::forward<Args>(args)...);
-        }
-
-        friend
-        bool
-        asio_handler_is_continuation(wrapped_handler* w)
-        {
-            using boost::asio::asio_handler_is_continuation;
-            return asio_handler_is_continuation(std::addressof(w->h_));
-        }
-    };
 
     using pool_t = typename
         detail::session_alloc_base<void>::pool_t;
@@ -319,7 +279,7 @@ public:
     }
 
     template<class Handler>
-    wrapped_handler<typename std::decay<Handler>::type>
+    detail::session_alloc_wrapper<typename std::decay<Handler>::type>
     wrap(Handler&& handler);
 
     value_type*
@@ -387,16 +347,63 @@ protected:
 
 //------------------------------------------------------------------------------
 
-template<class T>
+namespace detail {
+
+template<class Handler>
+class session_alloc_wrapper
+{
+    // Can't friend partial specializations,
+    // so we just friend the whole thing.
+    template<class U, class Executor>
+    friend struct boost::asio::associated_executor;
+
+    Handler h_;
+    session_alloc<char> alloc_;
+
+public:
+    session_alloc_wrapper(session_alloc_wrapper&&) = default;
+    session_alloc_wrapper(session_alloc_wrapper const&) = default;
+
+    template<class DeducedHandler>
+    session_alloc_wrapper(
+        DeducedHandler&& h,
+        session_alloc<char> const& alloc)
+        : h_(std::forward<DeducedHandler>(h))
+        , alloc_(alloc)
+    {
+    }
+
+    using allocator_type = session_alloc<char>;
+
+    allocator_type
+    get_allocator() const noexcept;
+
+    template<class... Args>
+    void
+    operator()(Args&&... args) const
+    {
+        h_(std::forward<Args>(args)...);
+    }
+
+    friend
+    bool
+    asio_handler_is_continuation(session_alloc_wrapper* w)
+    {
+        using boost::asio::asio_handler_is_continuation;
+        return asio_handler_is_continuation(std::addressof(w->h_));
+    }
+};
+
 template<class Handler>
 auto
-session_alloc<T>::
-wrapped_handler<Handler>::
+session_alloc_wrapper<Handler>::
 get_allocator() const noexcept ->
     allocator_type
 {
     return alloc_;
 }
+
+} // detail
 
 //------------------------------------------------------------------------------
 
@@ -405,31 +412,34 @@ template<class Handler>
 auto
 session_alloc<T>::
 wrap(Handler&& handler) ->
-    wrapped_handler<typename std::decay<Handler>::type>
+    detail::session_alloc_wrapper<typename std::decay<Handler>::type>
 {
-    return wrapped_handler<
+    return detail::session_alloc_wrapper<
         typename std::decay<Handler>::type>(
             std::forward<Handler>(handler), *this);
 }
 
+//------------------------------------------------------------------------------
+
 namespace boost {
 namespace asio {
-template<class T, class Handler, class Executor>
+template<class Handler, class Executor>
 struct associated_executor<
-    session_alloc<T>::wrapped_handler<Handler>, Executor>
+    ::detail::session_alloc_wrapper<Handler>, Executor>
 {
     using type = typename
         associated_executor<Handler, Executor>::type;
 
     static
     type
-    get(session_alloc<T>::wrapped_handler<Handler> const& h,
+    get(::detail::session_alloc_wrapper<Handler> const& h,
         Executor const& ex = Executor()) noexcept
     {
         return associated_executor<
             Handler, Executor>::get(h.h_, ex);
     }
 };
+
 } // asio
 } // boost
 

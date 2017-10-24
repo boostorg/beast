@@ -245,6 +245,9 @@ public:
     using lowest_layer_type =
         typename get_lowest_layer<next_layer_type>::type;
 
+    /// The type of the executor associated with the object.
+    using executor_type = typename next_layer_type::executor_type;
+
     /** Destructor
 
         Destroys the stream and all associated resources.
@@ -293,25 +296,13 @@ public:
 
     /** Get the executor associated with the object.
     
-        This function may be used to obtain the executor object that the stream
-        uses to dispatch handlers for asynchronous operations.
+        This function may be used to obtain the executor object that the
+        stream uses to dispatch handlers for asynchronous operations.
 
         @return A copy of the executor that stream will use to dispatch handlers.
-
-        @note This function participates in overload resolution only if
-        `NextLayer` has a member function named `get_executor`.
     */
-#if BOOST_BEAST_DOXYGEN
-    implementation_defined
-#else
-    template<
-        class T = next_layer_type,
-        class = typename std::enable_if<
-            has_get_executor<next_layer_type>::value>::type>
-    auto
-#endif
-    get_executor() noexcept ->
-        decltype(std::declval<T&>().get_executor())
+    executor_type
+    get_executor() noexcept
     {
         return stream_.get_executor();
     }

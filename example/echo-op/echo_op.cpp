@@ -164,7 +164,7 @@ public:
     // final handler.
 
     using executor_type = boost::asio::associated_executor_t<
-        Handler, decltype(p_->stream.get_executor())>;
+        Handler, decltype(std::declval<AsyncStream&>().get_executor())>;
 
     executor_type get_executor() const noexcept
     {

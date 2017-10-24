@@ -85,9 +85,10 @@ public:
     }
 
     using executor_type = boost::asio::associated_executor_t<
-        Handler, decltype(ws_.get_executor())>;
+        Handler, decltype(std::declval<stream<NextLayer>&>().get_executor())>;
 
-    executor_type get_executor() const noexcept
+    executor_type
+    get_executor() const noexcept
     {
         return boost::asio::get_associated_executor(
             h_, ws_.get_executor());
@@ -707,9 +708,10 @@ public:
     }
 
     using executor_type = boost::asio::associated_executor_t<
-        Handler, decltype(ws_.get_executor())>;
+        Handler, decltype(std::declval<stream<NextLayer>&>().get_executor())>;
 
-    executor_type get_executor() const noexcept
+    executor_type
+    get_executor() const noexcept
     {
         return boost::asio::get_associated_executor(
             h_, ws_.get_executor());

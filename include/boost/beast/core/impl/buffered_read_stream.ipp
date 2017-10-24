@@ -58,10 +58,12 @@ public:
         return boost::asio::get_associated_allocator(h_);
     }
 
-    using executor_type = boost::asio::associated_executor_t<
-        Handler, decltype(s_.get_executor())>;
+    using executor_type =
+        boost::asio::associated_executor_t<Handler, decltype(
+            std::declval<buffered_read_stream&>().get_executor())>;
 
-    executor_type get_executor() const noexcept
+    executor_type
+    get_executor() const noexcept
     {
         return boost::asio::get_associated_executor(
             h_, s_.get_executor());

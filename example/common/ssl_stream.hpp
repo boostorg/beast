@@ -58,6 +58,9 @@ public:
     /// The type of the lowest layer.
     using lowest_layer_type = typename stream_type::lowest_layer_type;
 
+    /// The type of the executor associated with the object.
+    using executor_type = typename stream_type::executor_type;
+
     ssl_stream(
         boost::asio::ip::tcp::socket socket,
         boost::asio::ssl::context& ctx)
@@ -88,7 +91,7 @@ public:
         return *this;
     }
 
-    decltype(p_->get_executor())
+    executor_type
     get_executor() noexcept
     {
         return p_->get_executor();

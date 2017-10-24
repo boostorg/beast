@@ -299,7 +299,7 @@ main(int argc, char** argv)
         auto const messages= static_cast<std::size_t>(std::atoi(argv[4]));
         auto const workers = static_cast<std::size_t>(std::atoi(argv[5]));
         auto const threads = static_cast<std::size_t>(std::atoi(argv[6]));
-        auto const deflate = static_cast<bool>(std::atoi(argv[7]));
+        auto const deflate = std::atoi(argv[7]) != 0;
         auto const work = (messages + workers - 1) / workers;
         test_buffer tb;
         for(auto i = trials; i != 0; --i)

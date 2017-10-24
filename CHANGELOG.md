@@ -7,6 +7,7 @@ Version 126:
 * Don't return end_of_stream on win32 file body writes
 * Fix doc typo
 * Fix shadowing in session_alloc
+* Fix executor type compilation
 
 --------------------------------------------------------------------------------
 
