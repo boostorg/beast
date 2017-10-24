@@ -35,22 +35,6 @@ namespace detail {
 
 //------------------------------------------------------------------------------
 
-template<typename DynamicBuffer>
-boost::optional<typename DynamicBuffer::mutable_buffers_type>
-prepare_or_error(DynamicBuffer& buffer, error_code& ec)
-{
-    try
-    {
-        ec.assign(0, ec.category());
-        return {buffer.prepare(read_size_or_throw(buffer, 65536))};
-    }
-    catch(const std::length_error&)
-    {
-        ec = error::buffer_overflow;
-        return {};
-    }
-}
-
 template<class Stream, class DynamicBuffer,
     bool isRequest, class Derived, class Handler>
 class read_some_op : asio::coroutine
@@ -102,7 +86,7 @@ public:
     bool asio_handler_is_continuation(read_some_op* op)
     {
         using boost::asio::asio_handler_is_continuation;
-        return is_continuation(*op) ||
+        return is_suspended(*op) ||
             asio_handler_is_continuation(
                 std::addressof(op->h_));
     }
@@ -260,7 +244,7 @@ public:
     bool asio_handler_is_continuation(read_op* op)
     {
         using boost::asio::asio_handler_is_continuation;
-        return is_continuation(*op) ||
+        return is_suspended(*op) ||
             asio_handler_is_continuation(
                 std::addressof(op->h_));
     }
@@ -378,7 +362,7 @@ public:
     bool asio_handler_is_continuation(read_msg_op* op)
     {
         using boost::asio::asio_handler_is_continuation;
-        return is_continuation(*op->d_) ||
+        return d_->is_suspended() ||
             asio_handler_is_continuation(
                 std::addressof(op->d_.handler()));
     }
