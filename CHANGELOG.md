@@ -8,6 +8,7 @@ Version 126:
 * Fix doc typo
 * Fix shadowing in session_alloc
 * Fix executor type compilation
+* Add Travis tests with the default compilers
 
 --------------------------------------------------------------------------------
 

@@ -25,6 +25,16 @@ addons:
 
 matrix:
   include:
+    # Default g++
+    - os: linux
+      compiler: g++
+      script: b2 -j3 libs/beast/test toolset=gcc cxxstd=11
+
+    # Default clang++
+    - os: linux
+      compiler: clang++
+      script: b2 -j3 libs/beast/test toolset=clang cxxstd=11
+
     # GCC 6.0, Debug + Coverage
     - os: linux
       compiler: g++-6
