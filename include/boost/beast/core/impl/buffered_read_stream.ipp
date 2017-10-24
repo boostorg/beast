@@ -144,11 +144,12 @@ buffered_read_stream(Args&&... args)
 
 template<class Stream, class DynamicBuffer>
 template<class ConstBufferSequence, class WriteHandler>
-auto
+BOOST_ASIO_INITFN_RESULT_TYPE(
+    WriteHandler, void(error_code, std::size_t))
 buffered_read_stream<Stream, DynamicBuffer>::
-async_write_some(ConstBufferSequence const& buffers,
-        WriteHandler&& handler) ->
-    BOOST_ASIO_INITFN_RESULT_TYPE(WriteHandler, void(error_code))
+async_write_some(
+    ConstBufferSequence const& buffers,
+    WriteHandler&& handler)
 {
     static_assert(is_async_write_stream<next_layer_type>::value,
         "AsyncWriteStream requirements not met");
@@ -217,11 +218,12 @@ read_some(MutableBufferSequence const& buffers,
 
 template<class Stream, class DynamicBuffer>
 template<class MutableBufferSequence, class ReadHandler>
-auto
+BOOST_ASIO_INITFN_RESULT_TYPE(
+    ReadHandler, void(error_code, std::size_t))
 buffered_read_stream<Stream, DynamicBuffer>::
-async_read_some(MutableBufferSequence const& buffers,
-        ReadHandler&& handler) ->
-    BOOST_ASIO_INITFN_RESULT_TYPE(ReadHandler, void(error_code))
+async_read_some(
+    MutableBufferSequence const& buffers,
+    ReadHandler&& handler)
 {
     static_assert(is_async_read_stream<next_layer_type>::value,
         "AsyncReadStream requirements not met");

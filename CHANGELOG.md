@@ -10,6 +10,7 @@ Version 126:
 * Fix executor type compilation
 * Add Travis tests with the default compilers
 * Update Boost.WinAPI usage to the new location and namespace.
+* Fix buffered_read_stream async_read_some signature
 
 --------------------------------------------------------------------------------
 
