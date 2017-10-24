@@ -42,9 +42,9 @@ This library is designed for:
 
 ## Appearances
 
-| <a href="http://cppcast.com/2017/01/vinnie-falco/">CppCast 2017</a> | <a href="https://raw.githubusercontent.com/vinniefalco/BeastAssets/master/CppCon2016.pdf">CppCon 2016</a> |
-| ------------ | ----------- |
-| <a href="http://cppcast.com/2017/01/vinnie-falco/"><img width="180" height="180" alt="Vinnie Falco" src="https://avatars1.githubusercontent.com/u/1503976?v=3&u=76c56d989ef4c09625256662eca2775df78a16ad&s=180"></a> | <a href="https://www.youtube.com/watch?v=uJZgRcvPFwI"><img width="320" height = "180" alt="Beast" src="https://raw.githubusercontent.com/vinniefalco/BeastAssets/master/CppCon2016.png"></a> |
+| <a href="https://raw.githubusercontent.com/vinniefalco/CppCon2017/master/Make%20Classes%20Great%20Again%20-%20Vinnie%20Falco%20-%20CppCon%202017.pdf">CppCon 2017</a> | <a href="http://cppcast.com/2017/01/vinnie-falco/">CppCast 2017</a> | <a href="https://raw.githubusercontent.com/vinniefalco/BeastAssets/master/CppCon2016.pdf">CppCon 2016</a> |
+| ------------ | ------------ | ----------- |
+| <a href="https://www.youtube.com/watch?v=WsUnnYEKPnI"><img width="320" height = "180" alt="Beast" src="https://raw.githubusercontent.com/vinniefalco/CppCon2017/master/CppCon2017.png"></a> | <a href="http://cppcast.com/2017/01/vinnie-falco/"><img width="180" height="180" alt="Vinnie Falco" src="https://avatars1.githubusercontent.com/u/1503976?v=3&u=76c56d989ef4c09625256662eca2775df78a16ad&s=180"></a> | <a href="https://www.youtube.com/watch?v=uJZgRcvPFwI"><img width="320" height = "180" alt="Beast" src="https://raw.githubusercontent.com/vinniefalco/BeastAssets/master/CppCon2016.png"></a> |
 
 ## Description
 

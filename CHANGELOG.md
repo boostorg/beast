@@ -1,3 +1,9 @@
+Version 126:
+
+* Add CppCon2017 presentation link
+
+--------------------------------------------------------------------------------
+
 Version 125:
 
 API Changes:
