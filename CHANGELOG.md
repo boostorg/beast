@@ -3,6 +3,7 @@ Version 126:
 * Add CppCon2017 presentation link
 * Update README.md
 * Update stream write documentation for end of stream changes
+* Tidy up unused variable warnings
 
 --------------------------------------------------------------------------------
 

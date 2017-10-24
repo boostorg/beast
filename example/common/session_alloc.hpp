@@ -202,6 +202,7 @@ session_alloc_base<Context>::
 pool_t::
 dealloc(void* pv, std::size_t n)
 {
+    boost::ignore_unused(n);
     auto& e = *(reinterpret_cast<element*>(pv) - 1);
     BOOST_ASSERT(e.size() == n);
     if( (e.end() > buf_ + size_) ||

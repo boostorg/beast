@@ -162,12 +162,14 @@ public:
 
     pausation(pausation&& other)
     {
+        boost::ignore_unused(other);
         BOOST_ASSERT(! other.base_);
     }
 
     pausation&
     operator=(pausation&& other)
     {
+        boost::ignore_unused(other);
         BOOST_ASSERT(! base_);
         BOOST_ASSERT(! other.base_);
         return *this;
