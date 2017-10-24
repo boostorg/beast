@@ -14,6 +14,7 @@
 #include <boost/asio/associated_executor.hpp>
 #include <boost/asio/handler_continuation_hook.hpp>
 #include <boost/assert.hpp>
+#include <boost/core/ignore_unused.hpp>
 #include <boost/intrusive/list.hpp>
 #include <algorithm>
 #include <cstddef>
@@ -233,7 +234,7 @@ class session_alloc
     {
         // Can't friend partial specializations,
         // so we just friend the whole thing.
-        template<class T, class Executor>
+        template<class U, class Executor>
         friend struct boost::asio::associated_executor;
 
         Handler h_;

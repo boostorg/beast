@@ -6,6 +6,7 @@ Version 126:
 * Tidy up unused variable warnings
 * Don't return end_of_stream on win32 file body writes
 * Fix doc typo
+* Fix shadowing in session_alloc
 
 --------------------------------------------------------------------------------
 
