@@ -1,3 +1,11 @@
+Version 127:
+
+* Add BOOST_BEAST_NO_POSIX_FADVISE
+* Version command line option for HTTP client examples
+* More Jamfile compiler requirements for tests
+
+--------------------------------------------------------------------------------
+
 Version 126:
 
 * Add CppCon2017 presentation link
