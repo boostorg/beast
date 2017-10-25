@@ -77,8 +77,7 @@ next(error_code& ec, Visit&& visit)
     {
         frdinit(std::integral_constant<bool,
             isRequest>{});
-        chunked_ = m_.chunked();
-        if(chunked_)
+        if(m_.chunked())
             goto go_init_c;
         s_ = do_init;
         BOOST_BEAST_FALLTHROUGH;

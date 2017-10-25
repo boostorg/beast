@@ -5,10 +5,12 @@ Version 128:
 API Changes:
 
 * Remove serializer::keep_alive
+* Remove serializer::chunked
 
 Actions Required:
 
 * Call message::keep_alive instead of serializer::keep_alive
+* Call serializer::get::chunked instead of serializer::chunked
 
 --------------------------------------------------------------------------------
 

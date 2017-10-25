@@ -410,7 +410,7 @@ operator()()
         return detail::async_write_some(
             sock_, sr_, std::move(*this));
     }
-    if(sr_.chunked())
+    if(sr_.get().chunked())
     {
         return detail::async_write_some(
             sock_, sr_, std::move(*this));
@@ -501,7 +501,7 @@ write_some(
             return bytes_transferred;
         return bytes_transferred;
     }
-    if(sr.chunked())
+    if(sr.get().chunked())
     {
         auto const bytes_transferred =
             detail::write_some(sock, sr, ec);

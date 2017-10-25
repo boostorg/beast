@@ -186,7 +186,6 @@ private:
     int s_ = do_construct;
     bool split_ = false;
     bool header_done_ = false;
-    bool chunked_;
     bool more_;
 
 public:
@@ -290,17 +289,6 @@ public:
     is_done()
     {
         return s_ == do_complete;
-    }
-
-    /** Return `true` if the serializer will apply chunk-encoding.
-
-        This function may only be called if @ref is_header_done
-        would return `true`.
-    */
-    bool
-    chunked()
-    {
-        return chunked_;
     }
 
     /** Returns the next set of buffers in the serialization.
