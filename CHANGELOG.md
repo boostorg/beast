@@ -1,3 +1,9 @@
+Version 127:
+
+* Add BOOST_BEAST_NO_POSIX_FADVISE
+
+--------------------------------------------------------------------------------
+
 Version 126:
 
 * Add CppCon2017 presentation link

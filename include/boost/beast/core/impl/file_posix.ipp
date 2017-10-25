@@ -10,6 +10,20 @@
 #ifndef BOOST_BEAST_CORE_IMPL_FILE_POSIX_IPP
 #define BOOST_BEAST_CORE_IMPL_FILE_POSIX_IPP
 
+#if ! defined(BOOST_BEAST_NO_POSIX_FADVISE)
+# if defined(__APPLE__) || (defined(ANDROID) && (__ANDROID_API__ < 21))
+#  define BOOST_BEAST_NO_POSIX_FADVISE
+# endif
+#endif
+
+#if ! defined(BOOST_BEAST_USE_POSIX_FADVISE)
+# if ! defined(BOOST_BEAST_NO_POSIX_FADVISE)
+#  define BOOST_BEAST_USE_POSIX_FADVISE 1
+# else
+#  define BOOST_BEAST_USE_POSIX_FADVISE 0
+# endif
+#endif
+
 #include <limits>
 #include <fcntl.h>
 #include <sys/types.h>
@@ -117,7 +131,7 @@ open(char const* path, file_mode mode, error_code& ec)
         fd_ = -1;
     }
     int f = 0;
-#ifndef __APPLE__
+#if BOOST_BEAST_USE_POSIX_FADVISE
     int advise = 0;
 #endif
     switch(mode)
@@ -125,55 +139,55 @@ open(char const* path, file_mode mode, error_code& ec)
     default:
     case file_mode::read:
         f = O_RDONLY;
-    #ifndef __APPLE__
+    #if BOOST_BEAST_USE_POSIX_FADVISE
         advise = POSIX_FADV_RANDOM;
     #endif
         break;
     case file_mode::scan:
         f = O_RDONLY;
-    #ifndef __APPLE__
+    #if BOOST_BEAST_USE_POSIX_FADVISE
         advise = POSIX_FADV_SEQUENTIAL;
     #endif
         break;
 
     case file_mode::write:
         f = O_RDWR | O_CREAT | O_TRUNC;
-    #ifndef __APPLE__
+    #if BOOST_BEAST_USE_POSIX_FADVISE
         advise = POSIX_FADV_RANDOM;
     #endif
         break;
 
     case file_mode::write_new:      
         f = O_RDWR | O_CREAT | O_EXCL;
-    #ifndef __APPLE__
+    #if BOOST_BEAST_USE_POSIX_FADVISE
         advise = POSIX_FADV_RANDOM;
     #endif
         break;
 
     case file_mode::write_existing: 
         f = O_RDWR | O_EXCL;
-    #ifndef __APPLE__
+    #if BOOST_BEAST_USE_POSIX_FADVISE
         advise = POSIX_FADV_RANDOM;
     #endif
         break;
 
     case file_mode::append:         
         f = O_RDWR | O_CREAT | O_TRUNC;
-    #ifndef __APPLE__
+    #if BOOST_BEAST_USE_POSIX_FADVISE
         advise = POSIX_FADV_SEQUENTIAL;
     #endif
         break;
 
     case file_mode::append_new:     
         f = O_RDWR | O_CREAT | O_EXCL;
-    #ifndef __APPLE__
+    #if BOOST_BEAST_USE_POSIX_FADVISE
         advise = POSIX_FADV_SEQUENTIAL;
     #endif
         break;
 
     case file_mode::append_existing:
         f = O_RDWR | O_EXCL;
-    #ifndef __APPLE__
+    #if BOOST_BEAST_USE_POSIX_FADVISE
         advise = POSIX_FADV_SEQUENTIAL;
     #endif
         break;
@@ -190,7 +204,7 @@ open(char const* path, file_mode mode, error_code& ec)
             return;
         }
     }
-#ifndef __APPLE__
+#if BOOST_BEAST_USE_POSIX_FADVISE
     if(::posix_fadvise(fd_, 0, 0, advise))
     {
         auto const ev = errno;
