@@ -2,6 +2,7 @@ Version 127:
 
 * Add BOOST_BEAST_NO_POSIX_FADVISE
 * Version command line option for HTTP client examples
+* More Jamfile compiler requirements for tests
 
 --------------------------------------------------------------------------------
 
