@@ -63,10 +63,11 @@ public:
     run(
         char const* host,
         char const* port,
-        char const* target)
+        char const* target,
+        int version)
     {
         // Set up an HTTP GET request message
-        req_.version(11);
+        req_.version(version);
         req_.method(http::verb::get);
         req_.target(target);
         req_.set(http::field::host, host);
@@ -193,17 +194,19 @@ public:
 int main(int argc, char** argv)
 {
     // Check command line arguments.
-    if(argc != 4)
+    if(argc != 4 && argc != 5)
     {
         std::cerr <<
-            "Usage: http-client-async-ssl <host> <port> <target>\n" <<
+            "Usage: http-client-async-ssl <host> <port> <target> [<HTTP version: 1.0 or 1.1(default)>]\n" <<
             "Example:\n" <<
-            "    http-client-async-ssl www.example.com 443 /\n";
+            "    http-client-async-ssl www.example.com 443 /\n" <<
+            "    http-client-async-ssl www.example.com 443 / 1.0\n";
         return EXIT_FAILURE;
     }
     auto const host = argv[1];
     auto const port = argv[2];
     auto const target = argv[3];
+    int version = argc == 5 && !std::strcmp("1.0", argv[4]) ? 10 : 11;
 
     // The io_context is required for all I/O
     boost::asio::io_context ioc;
@@ -215,7 +218,7 @@ int main(int argc, char** argv)
     load_root_certificates(ctx);
 
     // Launch the asynchronous operation
-    std::make_shared<session>(ioc, ctx)->run(host, port, target);
+    std::make_shared<session>(ioc, ctx)->run(host, port, target, version);
 
     // Run the I/O service. The call will return when
     // the get operation is complete.
