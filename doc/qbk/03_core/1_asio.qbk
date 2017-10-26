@@ -30,26 +30,23 @@ special meaning:
 [table Global Variables
 [[Name][Description]]
 [[
-    [@http://www.boost.org/doc/html/boost_asio/reference/io_context.html [*`ioc`]]
+    [@boost:/doc/html/boost_asio/reference/io_context.html [*`ioc`]]
 ][
-    A variable of type
-    [@http://www.boost.org/doc/html/boost_asio/reference/io_context.html `boost::asio::io_context`]
-    which is running on one separate thread, and upon which an
-    [@http://www.boost.org/doc/html/boost_asio/reference/executor_work.html `boost::asio::executor_work`]
-    object has been constructed.
+    A variable of type __io_context__ which is running on one separate thread,
+    and upon which an __executor_work_guard__ object has been constructed.
 ]]
 [[
-    [@http://www.boost.org/doc/html/boost_asio/reference/ip__tcp/socket.html [*`sock`]]
+    [@boost:/doc/html/boost_asio/reference/ip__tcp/socket.html [*`sock`]]
 ][
     A variable of type
-    [@http://www.boost.org/doc/html/boost_asio/reference/ip__tcp/socket.html `boost::asio::ip::tcp::socket`]
+    [@boost:/doc/html/boost_asio/reference/ip__tcp/socket.html `boost::asio::ip::tcp::socket`]
     which has already been connected to a remote host.
 ]]
 [[
-    [@http://www.boost.org/doc/html/boost_asio/reference/ssl__stream.html [*`ssl_sock`]]
+    [@boost:/doc/html/boost_asio/reference/ssl__stream.html [*`ssl_sock`]]
 ][
     A variable of type
-    [@http://www.boost.org/doc/html/boost_asio/reference/ssl__stream.html `boost::asio::ssl::stream<boost::asio::ip::tcp::socket>`]
+    [@boost:/doc/html/boost_asio/reference/ssl__stream.html `boost::asio::ssl::stream<boost::asio::ip::tcp::socket>`]
     which is already connected and has handshaked with a remote host.
 ]]
 [[

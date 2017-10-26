@@ -120,28 +120,28 @@ declaration and definition of the "handler hooks". There are four hooks:
 [table Handler Hooks
 [[Name][Description]]
 [[
-    [@http://www.boost.org/doc/html/boost_asio/reference/asio_handler_invoke.html `asio_handler_invoke`]
+    [@boost:/doc/html/boost_asio/reference/asio_handler_invoke.html `asio_handler_invoke`]
 ][
     Default invoke function for handlers. This hooking function ensures
     that the invoked method used for the final handler is accessible at
     each intermediate step.
 ]]
 [[
-    [@http://www.boost.org/doc/html/boost_asio/reference/asio_handler_allocate.html `asio_handler_allocate`]
+    [@boost:/doc/html/boost_asio/reference/asio_handler_allocate.html `asio_handler_allocate`]
 ][
     Default allocation function for handlers. Implement `asio_handler_allocate`
     and `asio_handler_deallocate` for your own handlers to provide custom
     allocation for temporary objects.
 ]]
 [[
-    [@http://www.boost.org/doc/html/boost_asio/reference/asio_handler_deallocate.html `asio_handler_deallocate`]
+    [@boost:/doc/html/boost_asio/reference/asio_handler_deallocate.html `asio_handler_deallocate`]
 ][
     Default deallocation function for handlers. Implement `asio_handler_allocate`
     and `asio_handler_deallocate` for your own handlers to provide custom
     allocation for temporary objects.
 ]]
 [[
-    [@http://www.boost.org/doc/html/boost_asio/reference/asio_handler_is_continuation.html `asio_handler_is_continuation`]
+    [@boost:/doc/html/boost_asio/reference/asio_handler_is_continuation.html `asio_handler_is_continuation`]
 ][
     Default continuation function for handlers. Implement
     `asio_handler_is_continuation` for your own handlers to indicate when
@@ -185,7 +185,7 @@ composed operations:
 
 * For operations which complete immediately (i.e. without calling an
   intermediate initiating function), forgetting to use
-  [@http://www.boost.org/doc/html/boost_asio/reference/post.html `boost::asio::post`]
+  [@boost:/doc/html/boost_asio/reference/post.html `boost::asio::post`]
   to invoke the final handler. This breaks the following initiating
   function guarantee: ['Regardless of whether the asynchronous operation
   completes immediately or not, the handler will not be invoked from

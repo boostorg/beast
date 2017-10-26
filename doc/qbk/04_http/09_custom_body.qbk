@@ -73,7 +73,7 @@ something that is not a container for body octets, such as a
 [@http://www.boost.org/libs/filesystem/doc/reference.html#class-path `boost::filesystem::path`].
 Or, a more structured container may be chosen. This declares a body's
 value type as a JSON tree structure produced from a
-[@http://www.boost.org/doc/html/property_tree/parsers.html#property_tree.parsers.json_parser `json_parser`]:
+[@boost:/doc/html/property_tree/parsers.html#property_tree.parsers.json_parser `json_parser`]:
 ```
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>

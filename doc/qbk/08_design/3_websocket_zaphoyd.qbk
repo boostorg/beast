@@ -281,9 +281,7 @@ notified when messages or frames have completed sending.
 
 Beast doesn't allocate or make copies of buffers when sending data. The
 caller's buffers are sent in-place. You can use any object meeting the
-requirements of
-[@http://www.boost.org/doc/html/boost_asio/reference/ConstBufferSequence.html ConstBufferSequence],
-permitting efficient scatter-gather I/O.
+requirements of __ConstBufferSequence, permitting efficient scatter-gather I/O.
 
 The [*ConstBufferSequence] interface allows callers to send data from
 memory-mapped regions (not possible in websocketpp). Callers can also
