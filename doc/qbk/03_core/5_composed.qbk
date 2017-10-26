@@ -45,9 +45,8 @@ composed operations:
     invoked with no arguments invokes the original completion handler with a
     list of bound arguments. The invocation is made from the same implicit
     or explicit strand as that which would be used to invoke the original
-    handler. This is accomplished by using the correct overload of
-    `asio_handler_invoke` associated with the original completion handler.
-
+    handler. This works because the returned call wrapper uses the same
+    associated executor and associated allocator as the bound handler.
 ]]
 [[
     [link beast.ref.boost__beast__handler_ptr `handler_ptr`]
@@ -115,54 +114,15 @@ this echo operation:
 
 This is the most important element of writing a composed operation, and
 the part which is often neglected or implemented incorrectly. It is the
-declaration and definition of the "handler hooks". There are four hooks:
-
-[table Handler Hooks
-[[Name][Description]]
-[[
-    [@boost:/doc/html/boost_asio/reference/asio_handler_invoke.html `asio_handler_invoke`]
-][
-    Default invoke function for handlers. This hooking function ensures
-    that the invoked method used for the final handler is accessible at
-    each intermediate step.
-]]
-[[
-    [@boost:/doc/html/boost_asio/reference/asio_handler_allocate.html `asio_handler_allocate`]
-][
-    Default allocation function for handlers. Implement `asio_handler_allocate`
-    and `asio_handler_deallocate` for your own handlers to provide custom
-    allocation for temporary objects.
-]]
-[[
-    [@boost:/doc/html/boost_asio/reference/asio_handler_deallocate.html `asio_handler_deallocate`]
-][
-    Default deallocation function for handlers. Implement `asio_handler_allocate`
-    and `asio_handler_deallocate` for your own handlers to provide custom
-    allocation for temporary objects.
-]]
-[[
-    [@boost:/doc/html/boost_asio/reference/asio_handler_is_continuation.html `asio_handler_is_continuation`]
-][
-    Default continuation function for handlers. Implement
-    `asio_handler_is_continuation` for your own handlers to indicate when
-    a handler represents a continuation.
-]]
-]
+forwarding of the final handler's associated allocator and associated
+executor to the composed operation.
 
 Our composed operation stores the final handler and performs its own
 intermediate asynchronous operations. To ensure that I/O objects, in this
-case the stream, are accessed safely it is important to use the same method
-to invoke intermediate handlers as that used to invoke the final handler.
-Similarly, for the memory allocation hooks our composed operation should use
-the same hooks as those used by the final handler. And finally for the
-`asio_is_continuation` hook, we want to return `true` for any intermediate
-asynchronous operations we perform after the first one, since those represent
-continuations. For the first asynchronous operation we perform, the hook should
-return `true` only if the final handler also represents a continuation. Our
-implementation of the hooks will forward the call to the corresponding
-overloads of the final handler:
-
-[example_core_echo_op_6]
+case the stream, are accessed safely it is important to use the same
+executor to invoke intermediate handlers as that used to invoke the final
+handler. Similarly, for memory allocations our composed operation should
+use the allocator associated with the final handler.
 
 There are some common mistakes that should be avoided when writing
 composed operations:
@@ -180,20 +140,17 @@ composed operations:
   composed operation. This will cause undefined behavior. For example,
   if someone  calls the initiating function with a strand-wrapped
   function object, and there is more than thread running on the
-  `io_context`, the underlying stream may be accessed in a fashion
+  __io_context__, the underlying stream may be accessed in a fashion
   that violates safety guarantees.
 
 * For operations which complete immediately (i.e. without calling an
-  intermediate initiating function), forgetting to use
-  [@boost:/doc/html/boost_asio/reference/post.html `boost::asio::post`]
-  to invoke the final handler. This breaks the following initiating
+  intermediate initiating function), forgetting to use __post__ to
+  invoke the final handler. This breaks the following initiating
   function guarantee: ['Regardless of whether the asynchronous operation
   completes immediately or not, the handler will not be invoked from
   within this function. Invocation of the handler will be performed
-  in a manner equivalent to using `boost::asio::post`].
-  The function
-  [link beast.ref.boost__beast__bind_handler `bind_handler`]
-  is provided for this purpose.
+  in a manner equivalent to using __post__]. The function
+  __bind_handler__ is provided for this purpose.
 
 A complete, runnable version of this example may be found in the examples
 directory.

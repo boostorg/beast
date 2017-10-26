@@ -27,8 +27,9 @@ This library is designed for:
 
 * [*Basis for Further Abstraction.] Components are well-suited for building upon.
 
-Beast is not an HTTP client or HTTP server, but it can be used to build
-those things.
+This library is not a client or server, but it can be used to build those
+things. Many examples are provided, including clients and servers, which may
+be used as a starting point for writing your own program.
 
 [heading Motivation]
 
@@ -60,11 +61,11 @@ Supported compilers: msvc-14+, gcc 4.8+, clang 3.6+
 
 Sources are [*header-only].
 To link a program using Beast successfully, add the
-[@http://www.boost.org/libs/system/doc/reference.html Boost.System]
+[@boost:/libs/system/index.html Boost.System]
 library to your build scripts. If you use coroutines you'll also need the
-[@http://www.boost.org/libs/coroutine/doc/html/index.html Boost.Coroutine]
+[@boost:/libs/coroutine/index.html Boost.Coroutine]
 library. Please visit the
-[@http://www.boost.org/doc/ Boost documentation]
+[@boost:/more/getting_started.html Boost documentation]
 for instructions on how to do this for your particular build system.
 
 [heading Credits]
@@ -102,7 +103,9 @@ for tirelessly answering questions on
 
 [section WebSocket]
 
-The Autobahn|Testsuite provides a fully automated test suite to
+The
+[@https://github.com/crossbario/autobahn-testsuite Autobahn WebSockets Testsuite]
+provides a fully automated test suite to
 verify client and server implementations of The WebSocket Protocol
 for specification conformance and implementation robustness.
 The test suite will check an implementation by doing basic
@@ -114,15 +117,13 @@ contains over 500 test cases.
 [@https://vinniefalco.github.io/boost/beast/reports/autobahn/index.html Autobahn|Testsuite WebSocket Results]
 
 [warning
-    Version 0.7.6 of
-    [@https://github.com/crossbario/autobahn-testsuite Autobahn WebSockets Testsuite]
-    contains a
+    Version 0.7.6 of Autobahn|Testsuite contains a
     [@https://github.com/crossbario/autobahn-testsuite/issues/77 known defect]
-    which causes false positives for the following test cases:
+    which causes false positive failures in Beast for the following test cases:
     { 12.4.5, 12.4.6, 12.4.8, 12.4.9, 12.4.10, 12.4.11, 12.4.13,
       12.4.14, 12.4.15, 12.4.16, 12.4.17, 12.4.18 }
+    When this issue is resolved in the test suite, the reports will be updated.
 ]
-
 
 [endsect]
 

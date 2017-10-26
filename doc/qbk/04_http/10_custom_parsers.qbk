@@ -11,13 +11,14 @@
 
 While the parsers included in the library will handle a broad number of
 use-cases, the __basic_parser__ interface can be subclassed to implement
-custom parsing strategies: the basic parser processes the incoming octets
-into elements according to the HTTP/1 protocol specification, while the
-derived class decides what to do with those elements. In particular, users
-who create exotic containers for [*Fields] may need to also create their
-own parser. Custom parsers will work with all of the stream read operations
-that work on parsers, as those algorithms use only the basic parser
-interface. Some use cases for implementing custom parsers are:
+custom strategies for storing parsed results: the basic parser processes
+the incoming octets into elements according to the HTTP/1 protocol
+specification, while the derived class decides what to do with those
+elements. In particular, users who create exotic containers for [*Fields]
+may need to also create their own parser. Custom parsers will work with
+all of the stream read operations that work on parsers, as those algorithms
+use only the basic parser interface. Some use cases for implementing custom
+parsers are:
 
 * Inspect incoming header fields and keep or discard them.
 
@@ -25,8 +26,8 @@ interface. Some use cases for implementing custom parsers are:
 
 * Store header data in a user-defined __Fields__ type.
 
-The basic parser uses the Curiously Recurring Template Pattern
-([@https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern CRTP]).
+The basic parser uses the
+[@https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern Curiously Recurring Template Pattern].
 To declare your user defined parser, derive it from __basic_parser__.
 The interface to the parser is event-driven. Member functions of the derived
 class (termed "callbacks" in this context) are invoked with parsed elements

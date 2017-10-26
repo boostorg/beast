@@ -14,15 +14,13 @@ at once, such as:
 
 * Send the header first, and the body later.
 
-* Set chunk extensions or trailers using a chunk decorator.
-
 * Send a message incrementally: bounded work in each I/O cycle.
 
 * Use a series of caller-provided buffers to represent the body.
 
 These tasks may be performed by using the serializer stream interfaces.
-To use these interfaces, first construct a suitable object with
-the message to be sent:
+To use these interfaces, first construct an appropriate serializer
+from the message to be sent:
 
 [table Serializer
 [[Name][Description]]

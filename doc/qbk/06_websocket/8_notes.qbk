@@ -65,9 +65,9 @@ However, this code is well-formed:
 
 [ws_snippet_25]
 
-The implementation uses composed asynchronous operations internally;
-although some individiual operations can perform both reads and writes,
-this behavior is coordinated internally to make sure the underlying stream
+The implementation uses composed asynchronous operations; although
+some individiual operations can perform both reads and writes, this
+behavior is coordinated internally to make sure the underlying stream
 is operated in a safe fashion. This allows an asynchronous read operation
 to respond to a received ping frame even while a user-initiated call to
 asynchronous write is active.

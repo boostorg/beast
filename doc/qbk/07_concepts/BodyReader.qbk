@@ -9,7 +9,9 @@
 
 [section:BodyReader BodyReader]
 
-A [*BodyReader] provides an online algorithm to obtain a sequence of zero
+A [*BodyReader] provides an
+[@https://en.wikipedia.org/wiki/Online_algorithm online algorithm]
+to obtain a sequence of zero
 or more buffers from a body during serialization. The implementation creates
 an instance of this type when needed, and calls into it one or more times to
 retrieve buffers holding body octets. The interface of [*BodyReader] is

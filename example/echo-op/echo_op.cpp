@@ -145,7 +145,7 @@ public:
     // Associated allocator support. This is Asio's system for
     // allowing the final completion handler to customize the
     // memory allocation strategy used for composed operation
-    // states. A composed operation needs to use the same allocator
+    // states. A composed operation should use the same allocator
     // as the final handler. These declarations achieve that.
 
     using allocator_type =
@@ -171,11 +171,6 @@ public:
         return boost::asio::get_associated_executor(
             p_.handler(), p_->stream.get_executor());
     }
-
-    // (DEPRECATED)
-    template<class AsyncStream_, class Handler_>
-    friend bool  asio_handler_is_continuation(
-        echo_op<AsyncStream_, Handler_>* op);
 
     // The entry point for this handler. This will get called
     // as our intermediate operations complete. Definition below.
@@ -233,33 +228,6 @@ operator()(boost::beast::error_code ec, std::size_t bytes_transferred)
     //
     p_.invoke(ec);
     return;
-}
-
-//]
-
-//[example_core_echo_op_6
-
-// Determines if the next asynchronous operation represents a
-// continuation of the asynchronous flow of control associated
-// with the final handler. If we are past step one, it means
-// we have performed an asynchronous operation therefore any
-// subsequent operation would represent a continuation.
-// Otherwise, we propagate the handler's associated value of
-// is_continuation. Getting this right means the implementation
-// may schedule the invokation of the invoked functions more
-// efficiently.
-//
-template<class AsyncStream, class Handler>
-bool asio_handler_is_continuation(echo_op<AsyncStream, Handler>* op)
-{
-    // This next call is structured to permit argument
-    // dependent lookup to take effect.
-    using boost::asio::asio_handler_is_continuation;
-
-    // Always use std::addressof to pass the pointer to the handler,
-    // otherwise an unwanted overload of operator& may be called instead.
-    return op->p_->step > 1 ||
-        asio_handler_is_continuation(std::addressof(op->p_.handler()));
 }
 
 //]

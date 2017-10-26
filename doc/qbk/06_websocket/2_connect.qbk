@@ -28,7 +28,8 @@ the TCP/IP socket:
 [wss_snippet_3]
 
 [note
-    Examples use synchronous interfaces for clarity of exposition.
+    Examples use synchronous interfaces for clarity of exposition;
+    signatures for asynchronous operations are also provided.
 ]
 
 [endsect]

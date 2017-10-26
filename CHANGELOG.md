@@ -1,6 +1,7 @@
 Version 129:
 
 * Add autobahn test report to doc
+* Documentation tidying
 
 --------------------------------------------------------------------------------
 

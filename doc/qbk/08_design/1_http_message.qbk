@@ -5,9 +5,27 @@
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
     Official repository: https://github.com/boostorg/beast
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/WsUnnYEKPnI?rel=0" frameborder="0" allowfullscreen></iframe>
 ]
 
 [section HTTP Message Container]
+
+The following video presentation was delivered at
+[@https://cppcon.org/ CppCon]
+in 2017. The presentation provides a simplified explanation of the design
+process for the HTTP message container used in Beast. The slides and code
+used are available in the
+[@https://github.com/vinniefalco/CppCon2017 GitHub repository].
+
+[block'''
+<mediaobject>
+  <videoobject>
+    <videodata fileref="https://www.youtube.com/embed/WsUnnYEKPnI?rel=0"
+        align="center" contentwidth="560" contentdepth="315"/>
+  </videoobject>
+</mediaobject>
+''']
 
 In this section we describe the problem of modeling HTTP messages and explain
 how the library arrived at its solution, with a discussion of the benefits

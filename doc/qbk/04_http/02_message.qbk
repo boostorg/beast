@@ -57,8 +57,8 @@ inspection of fields. As per __rfc7230__, a non-case-sensitive comparison
 is used for field names. User defined types for fields are possible.
 The `Body` type determines the type of the container used to represent the
 body as well as the algorithms for transferring buffers to and from the
-the container. The library comes with a collection of common body types.
-As with fields, user defined body types are possible.
+container. The library comes with a collection of common body types. As
+with fields, user defined body types are possible.
 
 Sometimes it is desired to only work with a header. Beast provides a single
 class template __header__ and some aliases to model HTTP/1 and HTTP/2 headers:

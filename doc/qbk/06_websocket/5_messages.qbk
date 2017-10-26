@@ -9,8 +9,8 @@
 
 [section Send and Receive Messages]
 
-Interfaces for transacting messages are structured into a couple of
-layers. The highest layer provides ease of use, while lower layers provide
+Interfaces for transacting messages are structured into layers. The
+highest layer provides ease of use, while lower layers provide
 additional control and flexibility. The layers are arranged thusly:
 
 [table
@@ -75,7 +75,7 @@ message ahead of time:
 * Sending a message that does not fit in memory at once.
 * Providing incremental results as they become available.
 
-For these cases, the frame oriented interface may be used. This
+For these cases, the partial data oriented interface may be used. This
 example reads and echoes a complete message using this interface:
 
 [ws_snippet_16]

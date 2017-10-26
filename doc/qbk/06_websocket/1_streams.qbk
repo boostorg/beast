@@ -26,9 +26,10 @@ socket's constructor:
 
 [heading Using SSL]
 
-To use WebSockets over SSL, use an instance of the `boost::asio::ssl::stream`
-class template as the template type for the stream. The required `io_context`
-and `ssl::context` arguments are forwarded to the wrapped stream's constructor:
+To use WebSockets over SSL, use an instance of the __ssl_stream__
+class template as the template type for the stream. The required
+__io_context__ and __ssl_context__ arguments are forwarded to the
+wrapped stream's constructor:
 
 [wss_snippet_1]
 [wss_snippet_2]

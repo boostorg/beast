@@ -24,8 +24,8 @@ the algorithms used during parsing and serialization.
 In this table:
 
 * `B` is a type meeting the requirements of [*Body].
-* `m` is a value of type `message<b, B, F>` where `b` is a `bool` value
-  and `F` is a type meeting the requirements of [*Fields].
+* `m` is a value of type `message<b,B,F>` where `b` is a `bool` value
+  and `F` is a type meeting the requirements of __Fields__.
 
 [table Valid expressions
 [[Expression] [Type] [Semantics, Pre/Post-conditions]]
@@ -66,8 +66,8 @@ In this table:
     [`std::uint64_t`]
     [
         This static member function is optional. It returns the payload
-        size of `body` not including any chunked transfer encoding. The
-        function shall not exit via an exception.
+        size of `body` in bytes not including any chunked transfer encoding.
+        The function shall not exit via an exception.
 
         When this function is present:
 

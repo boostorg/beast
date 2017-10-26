@@ -12,13 +12,13 @@
 
 These complete programs are intended to quickly impress upon readers
 the flavor of the library. Source code and build scripts for them are
-located in the example/ directory.
+located in the [source_file example] directory.
 
 [section HTTP Client]
 
 Use HTTP to make a GET request to a website and print the response:
 
-File: [repo_file example/http/client/sync/http_client_sync.cpp]
+File: [source_file example/http/client/sync/http_client_sync.cpp]
 
 [example_http_client]
 
@@ -28,7 +28,7 @@ File: [repo_file example/http/client/sync/http_client_sync.cpp]
 
 Establish a WebSocket connection, send a message and receive the reply:
 
-File: [repo_file example/websocket/client/sync/websocket_client_sync.cpp]
+File: [source_file example/websocket/client/sync/websocket_client_sync.cpp]
 
 [example_websocket_client]
 
@@ -42,7 +42,7 @@ File: [repo_file example/websocket/client/sync/websocket_client_sync.cpp]
 [block'''<?dbhtml stop-chunking?>''']
 
 Source code and build scripts for these programs are located
-in the [repo_file example] directory.
+in the [source_file example] directory.
 
 
 
@@ -203,7 +203,7 @@ listed here along with a description of their use:
 [table
 [[Source File] [Description]]
 [
-    [[repo_file example/common/detect_ssl.hpp]]
+    [[source_file example/common/detect_ssl.hpp]]
     [
         This contains the detect SSL algorithm including the
         synchronous and asynchronous initiating functions, described
@@ -211,7 +211,7 @@ listed here along with a description of their use:
         support both plain and SSL sessions on the same port.
     ]
 ][
-    [[repo_file example/common/root_certificates.hpp]]
+    [[source_file example/common/root_certificates.hpp]]
     [
         This contains the root SSL certificates used in the SSL client
         examples. These certificates are used to verify the signatures
@@ -221,7 +221,7 @@ listed here along with a description of their use:
         possible server.
     ]
 ][
-    [[repo_file example/common/server_certificate.hpp]]
+    [[source_file example/common/server_certificate.hpp]]
     [
         This file contains a self-signed SSL certificate used by the
         SSL server examples. It has not been validated by a Certificate
@@ -229,10 +229,10 @@ listed here along with a description of their use:
         a browser may generate security warnings.
     ]
 ][
-    [[repo_file example/common/ssl_stream.hpp]]
+    [[source_file example/common/ssl_stream.hpp]]
     [
-        The `ssl_stream` is a replacement for `boost::asio::ssl::stream`
-        which supports construction from a moved-froms ocket and is also
+        The `ssl_stream` is a replacement for __ssl_stream__ which
+        supports construction from a moved-froms ocket and is also
         itself move constructible.
     ]
 ]]
@@ -247,7 +247,7 @@ Here are all of the example functions and classes presented
 throughout the documentation, they can be included and used
 in your program without modification
 
-* [repo_file example/doc/http_examples.hpp]
+* [source_file example/doc/http_examples.hpp]
 
 [endsect]
 
@@ -261,7 +261,7 @@ operation implementation. This is a complete, runnable version of
 the example described in
 [link beast.using_io.writing_composed_operations.echo Writing Composed Operations: Echo].
 
-* [repo_file example/echo-op/echo_op.cpp]
+* [source_file example/echo-op/echo_op.cpp]
 
 [endsect]
 

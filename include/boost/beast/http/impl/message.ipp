@@ -403,7 +403,7 @@ prepare_payload(std::false_type)
         this->result() == status::not_modified))
     {
         if(! n || *n > 0)
-            // The response body MUST BE empty for this case
+            // The response body MUST be empty for this case
             BOOST_THROW_EXCEPTION(std::invalid_argument{
                 "invalid response body"});
     }
