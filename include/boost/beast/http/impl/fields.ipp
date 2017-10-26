@@ -939,6 +939,14 @@ get_keep_alive_impl(unsigned version) const
 }
 
 template<class Allocator>
+bool
+basic_fields<Allocator>::
+has_content_length_impl() const
+{
+    return count(field::content_length) > 0;
+}
+
+template<class Allocator>
 inline
 void
 basic_fields<Allocator>::

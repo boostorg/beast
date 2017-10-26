@@ -224,6 +224,11 @@ protected:
     bool
     get_keep_alive_impl(unsigned version) const;
 
+    /** Returns `true` if the Content-Length field is present.
+    */
+    bool
+    has_content_length_impl() const;
+
     /** Set or clear the method string.
 
         @note Only called for requests.

@@ -203,6 +203,7 @@ public:
         string_view get_reason_impl() const { return {}; }
         bool get_chunked_impl() const { return false; }
         bool get_keep_alive_impl(unsigned) const { return true; }
+        bool has_content_length_impl() const { return false; }
         void set_method_impl(string_view) {}
         void set_target_impl(string_view s) { target = s.to_string(); }
         void set_reason_impl(string_view) {}
@@ -240,6 +241,7 @@ public:
             BEAST_EXPECT(req.method() == verb::get);
             BEAST_EXPECT(req.target() == "/");
             BEAST_EXPECT(req.body() == "Hello");
+            BEAST_EXPECT(! req.has_content_length());
         }
         {
             response<string_body> res;
@@ -267,6 +269,7 @@ public:
             BEAST_EXPECT(res.result() == status::bad_request);
             BEAST_EXPECT(res.reason() == "Bad Request");
             BEAST_EXPECT(res.body() == "Hello");
+            BEAST_EXPECT(! res.has_content_length());
         }
     }
 

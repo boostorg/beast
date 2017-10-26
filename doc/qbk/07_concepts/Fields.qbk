@@ -102,6 +102,14 @@ In this table:
         ]]
     ]
 ][
+    [`c.has_content_length()`]
+    [`bool`]
+    [
+        Returns `true` if the
+        [@https://tools.ietf.org/html/rfc7230#section-3.3.2 [*Content-Length]]
+        field is present.
+    ]
+][
     [`a.set_method_impl(s)`]
     []
     [
@@ -137,7 +145,7 @@ In this table:
     [
         Adjusts the
         [@https://tools.ietf.org/html/rfc7230#section-3.3.1 [*Transfer-Encoding]]
-        field as follows:
+        field value as follows:
 
         [itemized_list
         [
@@ -153,6 +161,9 @@ In this table:
             empty, the Transfer-Encoding field shall not appear when
             the associated __FieldsReader__ serializes the fields.
         ]]
+
+        If the result of adjusting the field value produces an empty
+        string, the field is removed from the container.
     ]
 
 ][
@@ -161,7 +172,7 @@ In this table:
     [
         Adjusts the
         [@https://tools.ietf.org/html/rfc7230#section-3.3.2 [*Content-Length]]
-        field as follows:
+        field value as follows:
 
         [itemized_list
         [
@@ -203,6 +214,9 @@ In this table:
             in the value are removed, and the "close" token is added to
             the value if it is not already present.
         ]]
+
+        If the result of adjusting the field value produces an empty
+        string, the field is removed from the container.
     ]
 
 ]]

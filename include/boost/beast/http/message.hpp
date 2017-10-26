@@ -723,6 +723,18 @@ struct message
     void
     chunked(bool value);
 
+    /** Returns `true` if the Content-Length field is present.
+
+        This function inspects the fields and returns `true` if
+        the Content-Length field is present. The properties of the
+        body are not checked, this only looks for the field.
+    */
+    bool
+    has_content_length() const
+    {
+        return this->has_content_length_impl();
+    }
+
     /** Set or clear the Content-Length field
 
         This function adjusts the Content-Length field as follows:

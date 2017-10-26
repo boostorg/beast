@@ -6,11 +6,14 @@ API Changes:
 
 * Remove serializer::keep_alive
 * Remove serializer::chunked
+* Add has_content_length_impl to Fields
+* Add message::has_content_length
 
 Actions Required:
 
 * Call message::keep_alive instead of serializer::keep_alive
 * Call serializer::get::chunked instead of serializer::chunked
+* Implement has_content_length_impl for user-defined Fields
 
 --------------------------------------------------------------------------------
 
