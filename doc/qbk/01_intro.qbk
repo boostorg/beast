@@ -96,3 +96,34 @@ for tirelessly answering questions on
 [@https://cpplang.slack.com/ Cpplang-Slack].
 
 [endsect]
+
+[section Reports]
+[block'''<?dbhtml stop-chunking?>''']
+
+[section WebSocket]
+
+The Autobahn|Testsuite provides a fully automated test suite to
+verify client and server implementations of The WebSocket Protocol
+for specification conformance and implementation robustness.
+The test suite will check an implementation by doing basic
+WebSocket conversations, extensive protocol compliance
+verification and performance and limits testing.
+Autobahn|Testsuite is used across the industry and
+contains over 500 test cases.
+
+[@https://vinniefalco.github.io/boost/beast/reports/autobahn/index.html Autobahn|Testsuite WebSocket Results]
+
+[warning
+    Version 0.7.6 of
+    [@https://github.com/crossbario/autobahn-testsuite Autobahn WebSockets Testsuite]
+    contains a
+    [@https://github.com/crossbario/autobahn-testsuite/issues/77 known defect]
+    which causes false positives for the following test cases:
+    { 12.4.5, 12.4.6, 12.4.8, 12.4.9, 12.4.10, 12.4.11, 12.4.13,
+      12.4.14, 12.4.15, 12.4.16, 12.4.17, 12.4.18 }
+]
+
+
+[endsect]
+
+[endsect]
