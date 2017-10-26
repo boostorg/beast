@@ -12,6 +12,7 @@ WebSocket:
 
 * Fix utf8 validation for autobahn
 * Temporarily disable utf8 validation tests
+* Tidy up fast websocket server host names
 
 API Changes:
 

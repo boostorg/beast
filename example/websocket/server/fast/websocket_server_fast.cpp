@@ -90,7 +90,7 @@ do_sync_session(tcp::socket& socket)
         [](websocket::response_type& res)
         {
             res.set(http::field::server,
-                "Boost.Beast.sync/" + std::to_string(BOOST_BEAST_VERSION));
+                "Boost.Beast/" + std::to_string(BOOST_BEAST_VERSION) + "-Sync");
         },
         ec);
     if(ec)
@@ -162,7 +162,7 @@ public:
             [](websocket::response_type& res)
             {
                 res.set(http::field::server,
-                    "Boost.Beast.async/" + std::to_string(BOOST_BEAST_VERSION));
+                    "Boost.Beast/" + std::to_string(BOOST_BEAST_VERSION) + "-Async");
             },
             boost::asio::bind_executor(
                 strand_,
@@ -340,7 +340,7 @@ do_coro_session(tcp::socket& socket, boost::asio::yield_context yield)
         [&](websocket::response_type& res)
         {
             res.set(http::field::server,
-                "Boost.Beast.coro/" + std::to_string(BOOST_BEAST_VERSION));
+                "Boost.Beast/" + std::to_string(BOOST_BEAST_VERSION) + "-Coro");
         },
         yield[ec]);
     if(ec)
