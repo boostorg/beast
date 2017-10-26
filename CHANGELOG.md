@@ -11,6 +11,7 @@ HTTP:
 WebSocket:
 
 * Fix utf8 validation for autobahn
+* Temporarily disable utf8 validation tests
 
 API Changes:
 
