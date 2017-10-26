@@ -1,6 +1,7 @@
 Version 128:
 
 * Update doc links
+* Add explicit-failures-markup.xml
 
 HTTP:
 
