@@ -319,7 +319,7 @@ public:
         @ref is_header_done would return `true`.
     */
     bool
-    is_upgrade() const
+    upgrade() const
     {
         return (f_ & flagConnectionUpgrade) != 0;
     }
@@ -330,18 +330,21 @@ public:
         @ref is_header_done would return `true`.
     */
     bool
-    is_chunked() const
+    chunked() const
     {
         return (f_ & flagChunked) != 0;
     }
 
     /** Returns `true` if the message has keep-alive connection semantics.
 
+        This function always returns `false` if @ref need_eof would return
+        `false`.
+
         @note The return value is undefined unless
         @ref is_header_done would return `true`.
     */
     bool
-    is_keep_alive() const;
+    keep_alive() const;
 
     /** Returns the optional value of Content-Length if known.
 

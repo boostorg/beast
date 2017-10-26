@@ -96,13 +96,13 @@ public:
         operator()(Parser const& p) const
         {
             if(flags_ & parse_flag::chunked)
-                s_.BEAST_EXPECT(p.is_chunked());
+                s_.BEAST_EXPECT(p.chunked());
             if(flags_ & parse_flag::connection_keep_alive)
-                s_.BEAST_EXPECT(p.is_keep_alive());
+                s_.BEAST_EXPECT(p.keep_alive());
             if(flags_ & parse_flag::connection_close)
-                s_.BEAST_EXPECT(! p.is_keep_alive());
+                s_.BEAST_EXPECT(! p.keep_alive());
             if(flags_ & parse_flag::upgrade)
-                s_.BEAST_EXPECT(! p.is_upgrade());
+                s_.BEAST_EXPECT(! p.upgrade());
         }
     };
 
@@ -122,7 +122,7 @@ public:
         void
         operator()(Parser const& p) const
         {
-            s_.BEAST_EXPECT(p.is_keep_alive() == v_);
+            s_.BEAST_EXPECT(p.keep_alive() == v_);
         }
     };
 
@@ -784,7 +784,7 @@ public:
             "\r\n",
             [&](P const& p)
             {
-                BEAST_EXPECT(p.is_upgrade());
+                BEAST_EXPECT(p.upgrade());
             });
     }
 

@@ -57,7 +57,7 @@ basic_parser(basic_parser<
 template<bool isRequest, class Derived>
 bool
 basic_parser<isRequest, Derived>::
-is_keep_alive() const
+keep_alive() const
 {
     BOOST_ASSERT(is_header_done());
     if(f_ & flagHTTP11)

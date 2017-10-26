@@ -8,12 +8,14 @@ API Changes:
 * Remove serializer::chunked
 * Add has_content_length_impl to Fields
 * Add message::has_content_length
+* Rename some basic_parser observers
 
 Actions Required:
 
 * Call message::keep_alive instead of serializer::keep_alive
 * Call serializer::get::chunked instead of serializer::chunked
 * Implement has_content_length_impl for user-defined Fields
+* Remove the "is_" prefix from call sites invoking certain basic_parser members
 
 --------------------------------------------------------------------------------
 

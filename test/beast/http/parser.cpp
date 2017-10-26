@@ -129,7 +129,7 @@ public:
             [&](parser_type<false> const& p)
             {
                 auto const& m = p.get();
-                BEAST_EXPECT(! p.is_chunked());
+                BEAST_EXPECT(! p.chunked());
                 BEAST_EXPECT(p.need_eof());
                 BEAST_EXPECT(p.content_length() == boost::none);
                 BEAST_EXPECT(m.version() == 10);
@@ -157,7 +157,7 @@ public:
             {
                 auto const& m = p.get();
                 BEAST_EXPECT(! p.need_eof());
-                BEAST_EXPECT(p.is_chunked());
+                BEAST_EXPECT(p.chunked());
                 BEAST_EXPECT(p.content_length() == boost::none);
                 BEAST_EXPECT(m.version() == 11);
                 BEAST_EXPECT(m.result() == status::ok);
@@ -192,7 +192,7 @@ public:
                 BEAST_EXPECT(m.target() == "/");
                 BEAST_EXPECT(m.version() == 11);
                 BEAST_EXPECT(! p.need_eof());
-                BEAST_EXPECT(! p.is_chunked());
+                BEAST_EXPECT(! p.chunked());
                 BEAST_EXPECT(p.content_length() == boost::none);
             }
         );
