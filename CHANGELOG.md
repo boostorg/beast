@@ -5,6 +5,7 @@ Version 128:
 HTTP:
 
 * Add message::need_eof
+* Use message::need_eof in example servers
 
 API Changes:
 

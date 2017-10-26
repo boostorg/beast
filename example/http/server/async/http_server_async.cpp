@@ -248,7 +248,7 @@ class session : public std::enable_shared_from_this<session>
                         self_.shared_from_this(),
                         std::placeholders::_1,
                         std::placeholders::_2,
-                        ! sp->keep_alive())));
+                        sp->need_eof())));
         }
     };
 

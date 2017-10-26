@@ -447,7 +447,8 @@ class http_session : public std::enable_shared_from_this<http_session>
                             std::bind(
                                 &http_session::on_write,
                                 self_.shared_from_this(),
-                                std::placeholders::_1)));
+                                std::placeholders::_1,
+                                msg_.need_eof())));
                 }
             };
 
@@ -570,21 +571,21 @@ public:
     }
 
     void
-    on_write(boost::system::error_code ec)
+    on_write(boost::system::error_code ec, bool close)
     {
         // Happens when the timer closes the socket
         if(ec == boost::asio::error::operation_aborted)
             return;
 
-        if(ec == http::error::end_of_stream)
+        if(ec)
+            return fail(ec, "write");
+
+        if(close)
         {
             // This means we should close the connection, usually because
             // the response indicated the "Connection: close" semantic.
             return do_close();
         }
-
-        if(ec)
-            return fail(ec, "write");
 
         // Inform the queue that a write completed
         if(queue_.on_write())

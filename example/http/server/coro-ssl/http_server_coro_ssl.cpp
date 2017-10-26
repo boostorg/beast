@@ -238,7 +238,7 @@ struct send_lambda
     operator()(http::message<isRequest, Body, Fields>&& msg) const
     {
         // Determine if we should close the connection after
-        close_ = ! msg.keep_alive();
+        close_ = msg.need_eof();
 
         // We need the serializer here because the serializer requires
         // a non-const file_body, and the message oriented version of
