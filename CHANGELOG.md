@@ -6,6 +6,7 @@ HTTP:
 
 * Add message::need_eof
 * Use message::need_eof in example servers
+* Use synchronous writes in chunk output example
 
 API Changes:
 

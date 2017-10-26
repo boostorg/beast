@@ -180,34 +180,18 @@ void fxx() {
     // Write the next chunk with the chunk extensions
     // The implementation will make a copy of the extensions object,
     // so the caller does not need to manage lifetime issues.
-    boost::asio::async_write(sock, make_chunk(get_next_chunk_body(), ext),
-        [](error_code ec, std::size_t)
-        {
-            if(ec)
-                std::cout << "Error: " << ec.message() << std::endl;
-        });
+    boost::asio::write(sock, make_chunk(get_next_chunk_body(), ext));
 
     // Write the next chunk with the chunk extensions
     // The implementation will make a copy of the extensions object, storing the copy
     // using the custom allocator, so the caller does not need to manage lifetime issues.
-    boost::asio::async_write(sock,
-        make_chunk(get_next_chunk_body(), ext, std::allocator<char>{}),
-        [](error_code ec, std::size_t)
-        {
-            if(ec)
-                std::cout << "Error: " << ec.message() << std::endl;
-        });
+    boost::asio::write(sock, make_chunk(get_next_chunk_body(), ext, std::allocator<char>{}));
 
     // Write the next chunk with the chunk extensions
     // The implementation allocates memory using the default allocator and takes ownership
     // of the extensions object, so the caller does not need to manage lifetime issues.
     // Note: ext is moved
-    boost::asio::async_write(sock, make_chunk(get_next_chunk_body(), std::move(ext)),
-        [](error_code ec, std::size_t)
-        {
-            if(ec)
-                std::cout << "Error: " << ec.message() << std::endl;
-        });
+    boost::asio::write(sock, make_chunk(get_next_chunk_body(), std::move(ext)));
 //]
 }
 
