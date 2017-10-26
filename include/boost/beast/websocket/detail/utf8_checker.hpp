@@ -109,63 +109,62 @@ write(std::uint8_t const* in, std::size_t size)
                 ++p;
                 return true;
             }
-            if((p[0] & 0x60) == 0x40)
+            if((p[0] & 0xe0) == 0xc0)
             {
-                if((p[1] & 0xc0) != 0x80)
+                if( (p[1] & 0xc0) != 0x80 ||
+                    (p[0] & 0xfe) == 0xc0)  // overlong
                     return false;
                 p += 2;
                 return true;
             }
             if((p[0] & 0xf0) == 0xe0)
             {
-                if((p[1] & 0xc0) != 0x80 ||
-                    (p[2] & 0xc0) != 0x80 ||
-                    (p[0] == 224 && p[1] < 160) ||
-                    (p[0] == 237 && p[1] > 159))
-                        return false;
+                if(    (p[1] & 0xc0) != 0x80
+                    || (p[2] & 0xc0) != 0x80
+                    || (p[0] == 0xe0 && (p[1] & 0xe0) == 0x80) // overlong
+                    || (p[0] == 0xed && (p[1] & 0xe0) == 0xa0) // surrogate
+                    //|| (p[0] == 0xef && p[1] == 0xbf && (p[2] & 0xfe) == 0xbe) // U+FFFE or U+FFFF
+                    )
+                    return false;
                 p += 3;
                 return true;
             }
             if((p[0] & 0xf8) == 0xf0)
             {
-                if(p[0] > 244 ||
-                    (p[1] & 0xc0) != 0x80 ||
-                    (p[2] & 0xc0) != 0x80 ||
-                    (p[3] & 0xc0) != 0x80 ||
-                    (p[0] == 240 && p[1] < 144) ||
-                    (p[0] == 244 && p[1] > 143))
-                        return false;
+                if(    (p[1] & 0xc0) != 0x80
+                    || (p[2] & 0xc0) != 0x80
+                    || (p[3] & 0xc0) != 0x80
+                    || (p[0] == 0xf0 && (p[1] & 0xf0) == 0x80) // overlong
+                    || (p[0] == 0xf4 && p[1] > 0x8f) || p[0] > 0xf4 // > U+10FFFF
+                    )
+                    return false;
                 p += 4;
                 return true;
             }
             return false;
         };
-    auto const valid_have =
+    auto const fail_fast =
         [&]()
         {
-            if((cp_[0] & 0x60) == 0x40)
-                return cp_[0] <= 223;
-            if((cp_[0] & 0xf0) == 0xe0)
+            auto const n = p_ - cp_;
+            switch(n)
             {
-                if(p_ - cp_ > 1 &&
-                    ((cp_[1] & 0xc0) != 0x80 ||
-                    (cp_[0] == 224 && cp_[1] < 160) ||
-                    (cp_[0] == 237 && cp_[1] > 159)))
-                        return false;
-                return true;
+            default:
+                BOOST_ASSERT(false);
+                BOOST_BEAST_FALLTHROUGH;
+            case 1:
+                cp_[1] = 0x81;
+                BOOST_BEAST_FALLTHROUGH;
+            case 2:
+                cp_[2] = 0x81;
+                BOOST_BEAST_FALLTHROUGH;
+            case 3:
+                cp_[3] = 0x81;
+                BOOST_BEAST_FALLTHROUGH;
+                break;
             }
-            if((cp_[0] & 0xf8) == 0xf0)
-            {
-                auto const n = p_ - cp_;
-                if(n > 2 && (cp_[2] & 0xc0) != 0x80)
-                    return false;
-                if(n > 1 &&
-                    ((cp_[1] & 0xc0) != 0x80 ||
-                    (cp_[0] == 240 && cp_[1] < 144) ||
-                    (cp_[0] == 244 && cp_[1] > 143)))
-                        return false;
-            }
-            return true;
+            std::uint8_t const* p = cp_;
+            return ! valid(p);
         };
     auto const needed =
         [](std::uint8_t const v)
@@ -207,7 +206,7 @@ write(std::uint8_t const* in, std::size_t size)
             // Do partial validation on the incomplete
             // code point, this is called "Fail fast"
             // in Autobahn|Testsuite parlance.
-            return valid_have();
+            return ! fail_fast();
         }
 
         // Complete code point, validate it
@@ -320,7 +319,7 @@ tail:
             // Do partial validation on the incomplete
             // code point, this is called "Fail fast"
             // in Autobahn|Testsuite parlance.
-            return valid_have();
+            return ! fail_fast();
         }
     }
     return true;

@@ -8,6 +8,10 @@ HTTP:
 * Use message::need_eof in example servers
 * Use synchronous writes in chunk output example
 
+WebSocket:
+
+* Fix utf8 validation for autobahn
+
 API Changes:
 
 * Remove serializer::keep_alive
