@@ -2,6 +2,10 @@ Version 128:
 
 * Update doc links
 
+HTTP:
+
+* Add message::need_eof
+
 API Changes:
 
 * Remove serializer::keep_alive

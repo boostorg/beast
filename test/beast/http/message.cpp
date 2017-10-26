@@ -368,6 +368,111 @@ public:
     }
 
     void
+    testNeedEof()
+    {
+        {
+            request<empty_body> m;
+            
+            m.version(10);
+            m.keep_alive(false);
+            BEAST_EXPECT(m.need_eof());
+            m.keep_alive(true);
+            BEAST_EXPECT(! m.need_eof());
+
+            m.version(11);
+            m.keep_alive(false);
+            BEAST_EXPECT(m.need_eof());
+            m.keep_alive(true);
+            BEAST_EXPECT(! m.need_eof());
+        }
+
+        {
+            response<empty_body> m;
+            m.result(status::ok);
+
+            m.version(10);
+            m.keep_alive(false);
+            BEAST_EXPECT(! m.has_content_length());
+            BEAST_EXPECT(! m.chunked());
+            m.result(status::no_content);
+            BEAST_EXPECT(m.need_eof());
+            m.result(status::not_modified);
+            BEAST_EXPECT(m.need_eof());
+            m.result(status::continue_);
+            BEAST_EXPECT(m.need_eof());
+            m.result(status::switching_protocols);
+            BEAST_EXPECT(m.need_eof());
+            m.result(status::ok);
+            BEAST_EXPECT(m.need_eof());
+
+            m.version(10);
+            m.keep_alive(true);
+            BEAST_EXPECT(! m.has_content_length());
+            BEAST_EXPECT(! m.chunked());
+            m.result(status::no_content);
+            BEAST_EXPECT(! m.need_eof());
+            m.result(status::not_modified);
+            BEAST_EXPECT(! m.need_eof());
+            m.result(status::continue_);
+            BEAST_EXPECT(! m.need_eof());
+            m.result(status::switching_protocols);
+            BEAST_EXPECT(! m.need_eof());
+            m.result(status::ok);
+            BEAST_EXPECT(m.need_eof());
+            m.set(field::content_length, "1");
+            BEAST_EXPECT(! m.need_eof());
+        }
+
+        {
+            response<empty_body> m;
+            m.result(status::ok);
+
+            m.version(11);
+            m.keep_alive(false);
+            BEAST_EXPECT(! m.has_content_length());
+            BEAST_EXPECT(! m.chunked());
+            m.result(status::no_content);
+            BEAST_EXPECT(m.need_eof());
+            m.result(status::not_modified);
+            BEAST_EXPECT(m.need_eof());
+            m.result(status::continue_);
+            BEAST_EXPECT(m.need_eof());
+            m.result(status::switching_protocols);
+            BEAST_EXPECT(m.need_eof());
+            m.result(status::ok);
+            BEAST_EXPECT(m.need_eof());
+            m.chunked(true);
+            BEAST_EXPECT(m.need_eof());
+            m.content_length(1);
+            BEAST_EXPECT(m.need_eof());
+        }
+
+        {
+            response<empty_body> m;
+            m.result(status::ok);
+
+            m.version(11);
+            m.keep_alive(true);
+            BEAST_EXPECT(! m.has_content_length());
+            BEAST_EXPECT(! m.chunked());
+            m.result(status::no_content);
+            BEAST_EXPECT(! m.need_eof());
+            m.result(status::not_modified);
+            BEAST_EXPECT(! m.need_eof());
+            m.result(status::continue_);
+            BEAST_EXPECT(! m.need_eof());
+            m.result(status::switching_protocols);
+            BEAST_EXPECT(! m.need_eof());
+            m.result(status::ok);
+            BEAST_EXPECT(m.need_eof());
+            m.chunked(true);
+            BEAST_EXPECT(! m.need_eof());
+            m.content_length(1);
+            BEAST_EXPECT(! m.need_eof());
+        }
+    }
+
+    void
     run() override
     {
         testMessage();
@@ -377,6 +482,7 @@ public:
         testMethod();
         testStatus();
         testReason();
+        testNeedEof();
     }
 };
 

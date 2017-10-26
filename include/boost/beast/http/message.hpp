@@ -780,6 +780,34 @@ struct message
         this->set_keep_alive_impl(this->version(), value);
     }
 
+    /** Returns `true` if the message semantics require an end of file.
+
+        For HTTP requests, this function returns the logical
+        NOT of a call to @ref keep_alive.
+
+        For HTTP responses, this function returns the logical NOT
+        of a call to @ref keep_alive if any of the following are true:
+
+        @li @ref has_content_length would return `true`
+
+        @li @ref chunked would return `true`
+
+        @li @ref result returns @ref status::no_content
+        
+        @li @ref result returns @ref status::not_modified
+
+        @li @ref result returns any informational status class (100 to 199)
+
+        Otherwise, the function returns `true`.
+
+        @see https://tools.ietf.org/html/rfc7230#section-3.3
+    */
+    bool
+    need_eof() const
+    {
+        return need_eof(typename header_type::is_request{});
+    }
+
     /** Returns the payload size of the body in octets if possible.
 
         This function invokes the @b Body algorithm to measure
@@ -877,6 +905,15 @@ private:
         boost::ignore_unused(body_args);
         boost::ignore_unused(fields_args);
     }
+
+    bool
+    need_eof(std::true_type) const
+    {
+        return ! keep_alive();
+    }
+
+    bool
+    need_eof(std::false_type) const;
 
     boost::optional<std::uint64_t>
     payload_size(std::true_type) const

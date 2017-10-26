@@ -344,6 +344,22 @@ payload_size() const
 }
 
 template<bool isRequest, class Body, class Fields>
+bool
+message<isRequest, Body, Fields>::
+need_eof(std::false_type) const
+{
+    // VFALCO Do we need a way to let the caller say "the body is intentionally skipped"?
+    if( this->result() == status::no_content ||
+        this->result() == status::not_modified ||
+        to_status_class(this->result()) ==
+            status_class::informational ||
+        has_content_length() ||
+        chunked())
+        return ! keep_alive();
+    return true;
+}
+
+template<bool isRequest, class Body, class Fields>
 void
 message<isRequest, Body, Fields>::
 prepare_payload(std::true_type)
