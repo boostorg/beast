@@ -382,7 +382,7 @@ prepare_payload(std::true_type)
             this->chunked(false);
         }
     }
-    else if(this->version() >= 11)
+    else if(this->version() == 11)
     {
         this->chunked(true);
     }
@@ -398,19 +398,21 @@ message<isRequest, Body, Fields>::
 prepare_payload(std::false_type)
 {
     auto const n = payload_size();
-    if((status_class(this->result()) == status_class::informational ||
+    if( (! n || *n > 0) && (
+        (status_class(this->result()) == status_class::informational ||
         this->result() == status::no_content ||
-        this->result() == status::not_modified))
+        this->result() == status::not_modified)))
     {
-        if(! n || *n > 0)
-            // The response body MUST be empty for this case
-            BOOST_THROW_EXCEPTION(std::invalid_argument{
-                "invalid response body"});
+        // The response body MUST be empty for this case
+        BOOST_THROW_EXCEPTION(std::invalid_argument{
+            "invalid response body"});
     }
     if(n)
         this->content_length(n);
-    else
+    else if(this->version() == 11)
         this->chunked(true);
+    else
+        this->chunked(false);
 }
 
 //------------------------------------------------------------------------------

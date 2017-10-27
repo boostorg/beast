@@ -2,6 +2,7 @@ Version 129:
 
 * Add autobahn test report to doc
 * Documentation tidying
+* Fix prepare_payload: chunked is HTTP/1.1
 
 --------------------------------------------------------------------------------
 
