@@ -1,6 +1,7 @@
 Version 130:
 
 * Tidy up fallthrough warning
+* Remove cxx11_sfinae_expr build requirement from tests
 
 --------------------------------------------------------------------------------
 

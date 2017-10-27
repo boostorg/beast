@@ -16,7 +16,7 @@ project /boost/beast/test
         cxx11_constexpr
         cxx11_decltype
         cxx11_hdr_tuple
-        cxx11_sfinae_expr
+#        cxx11_sfinae_expr # Every MSVC fails this
         cxx11_template_aliases
         cxx11_variadic_templates
     ]
