@@ -1,3 +1,9 @@
+Version 130:
+
+* Tidy up fallthrough warning
+
+--------------------------------------------------------------------------------
+
 Version 129:
 
 * Add autobahn test report to doc

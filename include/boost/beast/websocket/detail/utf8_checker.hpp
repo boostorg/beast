@@ -160,7 +160,6 @@ write(std::uint8_t const* in, std::size_t size)
                 BOOST_BEAST_FALLTHROUGH;
             case 3:
                 cp_[3] = 0x81;
-                BOOST_BEAST_FALLTHROUGH;
                 break;
             }
             std::uint8_t const* p = cp_;

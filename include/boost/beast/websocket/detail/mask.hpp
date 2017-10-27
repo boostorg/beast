@@ -10,6 +10,7 @@
 #ifndef BOOST_BEAST_WEBSOCKET_DETAIL_MASK_HPP
 #define BOOST_BEAST_WEBSOCKET_DETAIL_MASK_HPP
 
+#include <boost/beast/core/detail/config.hpp>
 #include <boost/asio/buffer.hpp>
 #include <array>
 #include <climits>
@@ -131,15 +132,15 @@ mask_inplace_fast(
             std::uintptr_t>(p) & (sizeof(key)-1);
         switch(i)
         {
-        case 1: p[2] ^= static_cast<std::uint8_t>(key >> 16);
-        case 2: p[1] ^= static_cast<std::uint8_t>(key >> 8);
+        case 1: p[2] ^= static_cast<std::uint8_t>(key >> 16); BOOST_BEAST_FALLTHROUGH;
+        case 2: p[1] ^= static_cast<std::uint8_t>(key >> 8);  BOOST_BEAST_FALLTHROUGH;
         case 3: p[0] ^= static_cast<std::uint8_t>(key);
         {
-            auto const d = static_cast<
-                unsigned>(sizeof(key) - i);
+            auto const d = static_cast<unsigned>(sizeof(key) - i);
             key = ror(key, 8*d);
             n -= d;
             p += d;
+            BOOST_BEAST_FALLTHROUGH;
         }
         default:
             break;
@@ -158,10 +159,11 @@ mask_inplace_fast(
     n &= sizeof(key)-1;
     switch(n)
     {
-    case 3: p[2] ^= static_cast<std::uint8_t>(key >> 16);
-    case 2: p[1] ^= static_cast<std::uint8_t>(key >> 8);
+    case 3: p[2] ^= static_cast<std::uint8_t>(key >> 16); BOOST_BEAST_FALLTHROUGH;
+    case 2: p[1] ^= static_cast<std::uint8_t>(key >> 8);  BOOST_BEAST_FALLTHROUGH;
     case 1: p[0] ^= static_cast<std::uint8_t>(key);
         key = ror(key, static_cast<unsigned>(8*n));
+        BOOST_BEAST_FALLTHROUGH;
     default:
         break;
     }

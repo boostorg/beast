@@ -113,6 +113,7 @@ next(error_code& ec, Visit&& visit)
     go_header_only:
         v_.template emplace<1>(frd_->get());
         s_ = do_header_only;
+        BOOST_BEAST_FALLTHROUGH;
     case do_header_only:
         do_visit<1>(ec, visit);
         break;
@@ -140,8 +141,9 @@ next(error_code& ec, Visit&& visit)
 
     //----------------------------------------------------------------------
 
-         go_init_c:
-    s_ = do_init_c;
+        go_init_c:
+        s_ = do_init_c;
+        BOOST_BEAST_FALLTHROUGH;
     case do_init_c:
     {
         rd_.init(ec);
@@ -240,12 +242,14 @@ next(error_code& ec, Visit&& visit)
 
     go_body_final_c:
         s_ = do_body_final_c;
+        BOOST_BEAST_FALLTHROUGH;
     case do_body_final_c:
         do_visit<6>(ec, visit);
         break;
 
     go_all_c:
         s_ = do_all_c;
+        BOOST_BEAST_FALLTHROUGH;
     case do_all_c:
         do_visit<7>(ec, visit);
         break;
