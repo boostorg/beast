@@ -111,12 +111,14 @@ function build_bjam ()
       -j${JOBS}
   else
     b2 \
-      cxxflags=-std=c++11 \
+      cxxflags="-std=c++11 -flto" \
       libs/beast/test//fat-tests \
       libs/beast/example \
       toolset=$TOOLSET \
       variant=$VARIANT \
+      linkflags=-flto \
       -j${JOBS}
+    ./libs/beast/tools/check-sizes.sh
   fi
 }
 
