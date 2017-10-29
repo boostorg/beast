@@ -1,3 +1,9 @@
+Version 131:
+
+* basic_fields returns const values
+
+--------------------------------------------------------------------------------
+
 Version 130:
 
 * Tidy up fallthrough warning
