@@ -57,6 +57,13 @@ do_session(
     tcp::resolver resolver{ioc};
     ssl::stream<tcp::socket> stream{ioc, ctx};
 
+    // Set SNI Hostname (many hosts need this to handshake successfully)
+    if(! SSL_set_tlsext_host_name(stream.native_handle(), host.c_str()))
+    {
+        std::cerr << "could not set host name tls extension\n";
+        return;
+    }
+
     // Look up the domain name
     auto const results = resolver.async_resolve(host, port, yield[ec]);
     if(ec)
