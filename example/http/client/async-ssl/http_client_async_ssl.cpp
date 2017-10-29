@@ -66,6 +66,13 @@ public:
         char const* target,
         int version)
     {
+        // Set SNI Hostname (many hosts need this to handshake successfully)
+        if(! SSL_set_tlsext_host_name(stream_.native_handle(), host))
+        {
+            std::cerr << "could not set host name tls extension\n";
+            return;
+        }
+
         // Set up an HTTP GET request message
         req_.version(version);
         req_.method(http::verb::get);

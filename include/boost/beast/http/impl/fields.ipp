@@ -291,7 +291,7 @@ value_type(field name,
 
 template<class Allocator>
 inline
-field
+field const
 basic_fields<Allocator>::
 value_type::
 name() const
@@ -301,7 +301,7 @@ name() const
 
 template<class Allocator>
 inline
-string_view
+string_view const
 basic_fields<Allocator>::
 value_type::
 name_string() const
@@ -313,7 +313,7 @@ name_string() const
 
 template<class Allocator>
 inline
-string_view
+string_view const
 basic_fields<Allocator>::
 value_type::
 value() const
@@ -465,7 +465,7 @@ operator=(basic_fields<OtherAlloc> const& other) ->
 //------------------------------------------------------------------------------
 
 template<class Allocator>
-string_view
+string_view const
 basic_fields<Allocator>::
 at(field name) const
 {
@@ -478,7 +478,7 @@ at(field name) const
 }
 
 template<class Allocator>
-string_view
+string_view const
 basic_fields<Allocator>::
 at(string_view name) const
 {
@@ -490,7 +490,7 @@ at(string_view name) const
 }
 
 template<class Allocator>
-string_view
+string_view const
 basic_fields<Allocator>::
 operator[](field name) const
 {
@@ -502,7 +502,7 @@ operator[](field name) const
 }
 
 template<class Allocator>
-string_view
+string_view const
 basic_fields<Allocator>::
 operator[](string_view name) const
 {
