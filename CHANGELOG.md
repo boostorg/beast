@@ -1,6 +1,7 @@
 Version 131:
 
 * basic_fields returns const values
+* Set SNI hostname in example SSL clients
 
 --------------------------------------------------------------------------------
 

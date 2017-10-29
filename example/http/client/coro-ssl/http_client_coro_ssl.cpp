@@ -21,6 +21,7 @@
 #include <boost/asio/connect.hpp>
 #include <boost/asio/spawn.hpp>
 #include <boost/asio/ip/tcp.hpp>
+#include <boost/asio/ssl/error.hpp>
 #include <boost/asio/ssl/stream.hpp>
 #include <cstdlib>
 #include <functional>
@@ -56,6 +57,14 @@ do_session(
     // These objects perform our I/O
     tcp::resolver resolver{ioc};
     ssl::stream<tcp::socket> stream{ioc, ctx};
+
+    // Set SNI Hostname (many hosts need this to handshake successfully)
+    if(! SSL_set_tlsext_host_name(stream.native_handle(), host.c_str()))
+    {
+        ec.assign(static_cast<int>(::ERR_get_error()), boost::asio::error::get_ssl_category());
+        std::cerr << ec.message() << "\n";
+        return;
+    }
 
     // Look up the domain name
     auto const results = resolver.async_resolve(host, port, yield[ec]);

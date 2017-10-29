@@ -20,6 +20,7 @@
 #include <boost/beast/version.hpp>
 #include <boost/asio/connect.hpp>
 #include <boost/asio/ip/tcp.hpp>
+#include <boost/asio/ssl/error.hpp>
 #include <boost/asio/ssl/stream.hpp>
 #include <cstdlib>
 #include <iostream>
@@ -61,6 +62,13 @@ int main(int argc, char** argv)
         // These objects perform our I/O
         tcp::resolver resolver{ioc};
         ssl::stream<tcp::socket> stream{ioc, ctx};
+
+        // Set SNI Hostname (many hosts need this to handshake successfully)
+        if(! SSL_set_tlsext_host_name(stream.native_handle(), host))
+        {
+            boost::system::error_code ec{static_cast<int>(::ERR_get_error()), boost::asio::error::get_ssl_category()};
+            throw boost::system::system_error{ec};
+        }
 
         // Look up the domain name
         auto const results = resolver.resolve(host, port);

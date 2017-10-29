@@ -20,6 +20,7 @@
 #include <boost/beast/version.hpp>
 #include <boost/asio/connect.hpp>
 #include <boost/asio/ip/tcp.hpp>
+#include <boost/asio/ssl/error.hpp>
 #include <boost/asio/ssl/stream.hpp>
 #include <cstdlib>
 #include <functional>
@@ -66,6 +67,14 @@ public:
         char const* target,
         int version)
     {
+        // Set SNI Hostname (many hosts need this to handshake successfully)
+        if(! SSL_set_tlsext_host_name(stream_.native_handle(), host))
+        {
+            boost::system::error_code ec{static_cast<int>(::ERR_get_error()), boost::asio::error::get_ssl_category()};
+            std::cerr << ec.message() << "\n";
+            return;
+        }
+
         // Set up an HTTP GET request message
         req_.version(version);
         req_.method(http::verb::get);
