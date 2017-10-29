@@ -93,15 +93,15 @@ public:
         value_type& operator=(value_type const&) = delete;
 
         /// Returns the field enum, which can be @ref field::unknown
-        field
+        field const
         name() const;
 
         /// Returns the field name as a string
-        string_view
+        string_view const
         name_string() const;
 
         /// Returns the value of the field
-        string_view
+        string_view const
         value() const;
     };
 
@@ -280,7 +280,7 @@ public:
 
         @throws std::out_of_range if the field is not found.
     */
-    string_view
+    string_view const
     at(field name) const;
 
     /** Returns the value for a field, or throws an exception.
@@ -294,7 +294,7 @@ public:
 
         @throws std::out_of_range if the field is not found.
     */
-    string_view
+    string_view const
     at(string_view name) const;
 
     /** Returns the value for a field, or `""` if it does not exist.
@@ -304,7 +304,7 @@ public:
 
         @param name The name of the field.
     */
-    string_view
+    string_view const
     operator[](field name) const;
 
     /** Returns the value for a case-insensitive matching header, or `""` if it does not exist.
@@ -314,7 +314,7 @@ public:
 
         @param name The name of the field.
     */
-    string_view
+    string_view const
     operator[](string_view name) const;
 
     //--------------------------------------------------------------------------

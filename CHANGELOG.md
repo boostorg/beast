@@ -1,3 +1,10 @@
+Version 131:
+
+* basic_fields returns const values
+* Set SNI hostname in example SSL clients
+
+--------------------------------------------------------------------------------
+
 Version 130:
 
 * Tidy up fallthrough warning

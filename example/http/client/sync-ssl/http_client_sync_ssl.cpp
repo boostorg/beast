@@ -62,6 +62,13 @@ int main(int argc, char** argv)
         tcp::resolver resolver{ioc};
         ssl::stream<tcp::socket> stream{ioc, ctx};
 
+        // Set SNI Hostname (many hosts need this to handshake successfully)
+        if(! SSL_set_tlsext_host_name(stream.native_handle(), host))
+        {
+            std::cerr << "could not set host name tls extension\n";
+            throw std::runtime_error{"SSL_set_tlsext_host_name failed"};
+        }
+
         // Look up the domain name
         auto const results = resolver.resolve(host, port);
 
