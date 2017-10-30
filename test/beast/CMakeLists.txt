@@ -13,8 +13,8 @@ GroupSources(subtree/unit_test/include/boost/beast extras)
 GroupSources(test/beast "/")
 
 add_executable (tests-beast
-    ${BOOST_BEAST_INCLUDES}
-    ${EXTRAS_INCLUDES}
+    ${BOOST_BEAST_FILES}
+    ${EXTRAS_FILES}
     ${TEST_MAIN}
     Jamfile
     core.cpp

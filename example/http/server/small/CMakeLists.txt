@@ -11,7 +11,7 @@ GroupSources(include/boost/beast beast)
 GroupSources(example/http/server/small "/")
 
 add_executable (http-server-small
-    ${BOOST_BEAST_INCLUDES}
+    ${BOOST_BEAST_FILES}
     Jamfile
     http_server_small.cpp
 )

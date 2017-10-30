@@ -13,8 +13,8 @@ GroupSources(include/boost/beast beast)
 GroupSources(test/bench/utf8_checker "/")
 
 add_executable (bench-utf8-checker
-    ${BOOST_BEAST_INCLUDES}
-    ${EXTRAS_INCLUDES}
+    ${BOOST_BEAST_FILES}
+    ${EXTRAS_FILES}
     ${TEST_MAIN}
     Jamfile
     bench_utf8_checker.cpp

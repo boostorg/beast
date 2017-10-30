@@ -11,7 +11,7 @@ GroupSources(include/boost/beast beast)
 GroupSources(example/http/server/coro "/")
 
 add_executable (http-server-coro
-    ${BOOST_BEAST_INCLUDES}
+    ${BOOST_BEAST_FILES}
     Jamfile
     http_server_coro.cpp
 )

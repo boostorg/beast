@@ -11,7 +11,7 @@ GroupSources(include/boost/beast beast)
 GroupSources(example/advanced/server "/")
 
 add_executable (advanced-server
-    ${BOOST_BEAST_INCLUDES}
+    ${BOOST_BEAST_FILES}
     Jamfile
     advanced_server.cpp
 )

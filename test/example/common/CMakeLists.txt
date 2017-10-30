@@ -14,8 +14,8 @@ GroupSources(include/boost/beast beast)
 GroupSources(test/example/common "/")
 
 add_executable (tests-example-common
-    ${BOOST_BEAST_INCLUDES}
-    ${COMMON_INCLUDES}
+    ${BOOST_BEAST_FILES}
+    ${COMMON_FILES}
     Jamfile
     detect_ssl.cpp
     root_certificates.cpp

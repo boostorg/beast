@@ -14,9 +14,9 @@ GroupSources(subtree/unit_test/include/boost/beast extras)
 GroupSources(test/bench/wsload "/")
 
 add_executable (bench-wsload
-    ${BOOST_BEAST_INCLUDES}
-    ${COMMON_INCLUDES}
-    ${EXTRAS_INCLUDES}
+    ${BOOST_BEAST_FILES}
+    ${COMMON_FILES}
+    ${EXTRAS_FILES}
     Jamfile
     wsload.cpp
     )
