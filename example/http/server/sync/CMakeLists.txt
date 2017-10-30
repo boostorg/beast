@@ -15,3 +15,5 @@ add_executable (http-server-sync
     Jamfile
     http_server_sync.cpp
 )
+
+set_property(TARGET http-server-sync PROPERTY FOLDER "example-http-server")

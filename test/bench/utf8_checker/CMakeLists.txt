@@ -19,3 +19,5 @@ add_executable (bench-utf8-checker
     Jamfile
     bench_utf8_checker.cpp
 )
+
+set_property(TARGET bench-utf8-checker PROPERTY FOLDER "tests-bench")

@@ -15,3 +15,5 @@ add_executable (websocket-server-async
     Jamfile
     websocket_server_async.cpp
 )
+
+set_property(TARGET websocket-server-async PROPERTY FOLDER "example-websocket-server")

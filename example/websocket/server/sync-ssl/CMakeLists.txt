@@ -19,6 +19,8 @@ if (OPENSSL_FOUND)
         websocket_server_sync_ssl.cpp
     )
 
+    set_property(TARGET websocket-server-sync-ssl PROPERTY FOLDER "example-websocket-server")
+
     target_link_libraries (websocket-server-sync-ssl
         ${OPENSSL_LIBRARIES}
         )

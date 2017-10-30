@@ -15,3 +15,5 @@ add_executable (http-server-coro
     Jamfile
     http_server_coro.cpp
 )
+
+set_property(TARGET http-server-coro PROPERTY FOLDER "example-http-server")

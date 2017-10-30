@@ -18,3 +18,5 @@ add_executable (http-crawl
     http_crawl.cpp
 )
 
+set_property(TARGET http-crawl PROPERTY FOLDER "example-http-client")
+

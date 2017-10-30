@@ -15,3 +15,5 @@ add_executable (echo-op
     Jamfile
     echo_op.cpp
 )
+
+set_property(TARGET echo-op PROPERTY FOLDER "example")

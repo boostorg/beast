@@ -20,3 +20,5 @@ add_executable (bench-wsload
     Jamfile
     wsload.cpp
     )
+
+set_property(TARGET bench-wsload PROPERTY FOLDER "tests-bench")

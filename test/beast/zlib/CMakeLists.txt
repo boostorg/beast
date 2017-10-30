@@ -28,3 +28,5 @@ add_executable (tests-beast-zlib
     inflate_stream.cpp
     zlib.cpp
 )
+
+set_property(TARGET tests-beast-zlib PROPERTY FOLDER "tests")

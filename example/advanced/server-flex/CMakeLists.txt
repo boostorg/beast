@@ -21,6 +21,8 @@ if (OPENSSL_FOUND)
         advanced_server_flex.cpp
     )
 
+    set_property(TARGET advanced-server-flex PROPERTY FOLDER "example-http-server")
+    
     target_link_libraries (advanced-server-flex
         ${OPENSSL_LIBRARIES}
         )

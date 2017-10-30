@@ -43,3 +43,5 @@ add_executable (tests-beast-http
     verb.cpp
     write.cpp
 )
+
+set_property(TARGET tests-beast-http PROPERTY FOLDER "tests")

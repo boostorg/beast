@@ -15,3 +15,5 @@ add_executable (websocket-client-sync
     Jamfile
     websocket_client_sync.cpp
 )
+
+set_property(TARGET websocket-client-sync PROPERTY FOLDER "example-websocket-client")

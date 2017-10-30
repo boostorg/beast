@@ -50,3 +50,5 @@ add_executable (tests-beast-core
     detail/variant.cpp
     detail/varint.cpp
 )
+
+set_property(TARGET tests-beast-core PROPERTY FOLDER "tests")

@@ -19,6 +19,8 @@ if (OPENSSL_FOUND)
         http_server_stackless_ssl.cpp
     )
 
+    set_property(TARGET http-server-stackless-ssl PROPERTY FOLDER "example-http-server")
+
     target_link_libraries (http-server-stackless-ssl
         ${OPENSSL_LIBRARIES}
         )

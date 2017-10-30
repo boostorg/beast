@@ -26,3 +26,5 @@ add_executable (tests-doc
     websocket_snippets.cpp
     exemplars.cpp
 )
+
+set_property(TARGET tests-doc PROPERTY FOLDER "tests")

@@ -15,3 +15,5 @@ add_executable (advanced-server
     Jamfile
     advanced_server.cpp
 )
+
+set_property(TARGET advanced-server PROPERTY FOLDER "example-http-server")

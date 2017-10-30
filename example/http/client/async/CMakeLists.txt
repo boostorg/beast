@@ -15,3 +15,5 @@ add_executable (http-client-async
     Jamfile
     http_client_async.cpp
 )
+
+set_property(TARGET http-client-async PROPERTY FOLDER "example-http-client")

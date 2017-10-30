@@ -28,3 +28,5 @@ add_subdirectory (core)
 add_subdirectory (http)
 add_subdirectory (websocket)
 add_subdirectory (zlib)
+
+set_property(TARGET tests-beast PROPERTY FOLDER "tests")

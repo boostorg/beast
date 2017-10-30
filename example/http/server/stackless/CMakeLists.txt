@@ -15,3 +15,5 @@ add_executable (http-server-stackless
     Jamfile
     http_server_stackless.cpp
 )
+
+set_property(TARGET http-server-stackless PROPERTY FOLDER "example-http-server")

@@ -34,3 +34,5 @@ add_executable (tests-beast-websocket
     utf8_checker.cpp
     write.cpp
 )
+
+set_property(TARGET tests-beast-websocket PROPERTY FOLDER "tests")

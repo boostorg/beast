@@ -18,3 +18,5 @@ add_executable (http-server-fast
     fields_alloc.hpp
     http_server_fast.cpp
 )
+
+set_property(TARGET http-server-fast PROPERTY FOLDER "example-http-server")

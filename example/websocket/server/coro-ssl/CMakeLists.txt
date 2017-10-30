@@ -19,6 +19,8 @@ if (OPENSSL_FOUND)
         websocket_server_coro_ssl.cpp
     )
 
+    set_property(TARGET websocket-server-coro-ssl PROPERTY FOLDER "example-websocket-server")
+
     target_link_libraries (websocket-server-coro-ssl
         ${OPENSSL_LIBRARIES}
         )
