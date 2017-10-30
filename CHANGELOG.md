@@ -1,3 +1,9 @@
+Version 132:
+
+* Tidy up project folders in CMakeLists.txt
+
+--------------------------------------------------------------------------------
+
 Version 131:
 
 * basic_fields returns const values

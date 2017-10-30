@@ -26,3 +26,5 @@ add_executable (bench-zlib
     deflate_stream.cpp
     inflate_stream.cpp
 )
+
+set_property(TARGET bench-zlib PROPERTY FOLDER "tests-bench")

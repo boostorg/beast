@@ -19,6 +19,8 @@ if (OPENSSL_FOUND)
         http_server_async_ssl.cpp
     )
 
+    set_property(TARGET http-server-async-ssl PROPERTY FOLDER "example-http-server")
+
     target_link_libraries (http-server-async-ssl
         ${OPENSSL_LIBRARIES}
         )

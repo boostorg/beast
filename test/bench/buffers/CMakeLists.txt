@@ -19,3 +19,5 @@ add_executable (bench-buffers
     Jamfile
     bench_buffers.cpp
 )
+
+set_property(TARGET bench-buffers PROPERTY FOLDER "tests-bench")

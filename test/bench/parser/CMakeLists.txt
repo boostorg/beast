@@ -23,3 +23,5 @@ add_executable (bench-parser
     nodejs_parser.cpp
     bench_parser.cpp
 )
+
+set_property(TARGET bench-parser PROPERTY FOLDER "tests-bench")

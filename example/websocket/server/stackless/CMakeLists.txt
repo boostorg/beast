@@ -15,3 +15,5 @@ add_executable (websocket-server-stackless
     Jamfile
     websocket_server_stackless.cpp
 )
+
+set_property(TARGET websocket-server-stackless PROPERTY FOLDER "example-websocket-server")

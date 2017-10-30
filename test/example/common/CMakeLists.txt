@@ -24,3 +24,5 @@ add_executable (tests-example-common
     ssl_stream.cpp
     main.cpp
 )
+
+set_property(TARGET tests-example-common PROPERTY FOLDER "tests")

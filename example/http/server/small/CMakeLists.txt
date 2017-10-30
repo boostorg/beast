@@ -15,3 +15,5 @@ add_executable (http-server-small
     Jamfile
     http_server_small.cpp
 )
+
+set_property(TARGET http-server-small PROPERTY FOLDER "example-http-server")

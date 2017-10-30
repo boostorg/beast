@@ -14,4 +14,6 @@ add_executable (http-client-coro
     ${BOOST_BEAST_INCLUDES}
     Jamfile
     http_client_coro.cpp
-)
+    )
+
+set_property(TARGET http-client-coro PROPERTY FOLDER "example-http-client")

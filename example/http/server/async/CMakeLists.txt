@@ -15,3 +15,5 @@ add_executable (http-server-async
     Jamfile
     http_server_async.cpp
 )
+
+set_property(TARGET http-server-async PROPERTY FOLDER "example-http-server")

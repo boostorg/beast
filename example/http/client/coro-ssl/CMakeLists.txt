@@ -19,6 +19,8 @@ if (OPENSSL_FOUND)
         http_client_coro_ssl.cpp
     )
 
+    set_property(TARGET http-client-coro-ssl PROPERTY FOLDER "example-http-client")
+
     target_link_libraries (http-client-coro-ssl
         ${OPENSSL_LIBRARIES}
         )

@@ -15,3 +15,5 @@ add_executable (websocket-client-coro
     Jamfile
     websocket_client_coro.cpp
 )
+
+set_property(TARGET websocket-client-coro PROPERTY FOLDER "example-websocket-client")

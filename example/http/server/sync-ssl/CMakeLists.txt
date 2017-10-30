@@ -18,6 +18,9 @@ if (OPENSSL_FOUND)
         Jamfile
         http_server_sync_ssl.cpp
     )
+
+    set_property(TARGET http-server-sync-ssl PROPERTY FOLDER "example-http-server")
+    
     target_link_libraries (http-server-sync-ssl
         ${OPENSSL_LIBRARIES}
         )

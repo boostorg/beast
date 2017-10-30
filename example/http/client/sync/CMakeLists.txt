@@ -15,3 +15,5 @@ add_executable (http-client-sync
     Jamfile
     http_client_sync.cpp
 )
+
+set_property(TARGET http-client-sync PROPERTY FOLDER "example-http-client")

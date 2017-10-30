@@ -15,3 +15,5 @@ add_executable (websocket-client-async
     Jamfile
     websocket_client_async.cpp
 )
+
+set_property(TARGET websocket-client-async PROPERTY FOLDER "example-websocket-client")

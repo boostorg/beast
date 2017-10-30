@@ -15,3 +15,5 @@ add_executable (websocket-server-fast
     Jamfile
     websocket_server_fast.cpp
 )
+
+set_property(TARGET websocket-server-fast PROPERTY FOLDER "example-websocket-server")
