@@ -13,9 +13,11 @@ GroupSources(include/boost/beast beast)
 GroupSources(test/bench/buffers "/")
 
 add_executable (bench-buffers
-    ${BOOST_BEAST_INCLUDES}
-    ${EXTRAS_INCLUDES}
+    ${BOOST_BEAST_FILES}
+    ${EXTRAS_FILES}
     ${TEST_MAIN}
     Jamfile
     bench_buffers.cpp
 )
+
+set_property(TARGET bench-buffers PROPERTY FOLDER "tests-bench")

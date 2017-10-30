@@ -11,10 +11,12 @@ GroupSources(include/boost/beast beast)
 GroupSources(example/http/client/crawl "/")
 
 add_executable (http-crawl
-    ${BOOST_BEAST_INCLUDES}
+    ${BOOST_BEAST_FILES}
     Jamfile
     urls_large_data.hpp
     urls_large_data.cpp
     http_crawl.cpp
 )
+
+set_property(TARGET http-crawl PROPERTY FOLDER "example-http-client")
 

@@ -13,8 +13,8 @@ GroupSources(include/boost/beast beast)
 GroupSources(test/beast/core "/")
 
 add_executable (tests-beast-core
-    ${BOOST_BEAST_INCLUDES}
-    ${EXTRAS_INCLUDES}
+    ${BOOST_BEAST_FILES}
+    ${EXTRAS_FILES}
     ${TEST_MAIN}
     Jamfile
     buffer_test.hpp
@@ -50,3 +50,5 @@ add_executable (tests-beast-core
     detail/variant.cpp
     detail/varint.cpp
 )
+
+set_property(TARGET tests-beast-core PROPERTY FOLDER "tests")

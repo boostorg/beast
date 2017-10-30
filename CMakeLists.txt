@@ -9,7 +9,7 @@
 
 cmake_minimum_required (VERSION 3.5.1)
 
-project (Beast VERSION 130)
+project (Beast VERSION 132)
 
 set_property (GLOBAL PROPERTY USE_FOLDERS ON)
 option (Beast_BUILD_EXAMPLES "Build examples" ON)
@@ -173,17 +173,13 @@ if (OPENSSL_FOUND)
     include_directories (${OPENSSL_INCLUDE_DIR})
 endif()
 
-file (GLOB_RECURSE BOOST_BEAST_INCLUDES
+file (GLOB_RECURSE BOOST_BEAST_FILES
     ${PROJECT_SOURCE_DIR}/include/boost/beast/*.hpp
     ${PROJECT_SOURCE_DIR}/include/boost/beast/*.ipp
 )
 
-file (GLOB_RECURSE COMMON_INCLUDES
+file (GLOB_RECURSE COMMON_FILES
     ${PROJECT_SOURCE_DIR}/example/common/*.hpp
-  )
-
-file (GLOB_RECURSE EXAMPLE_INCLUDES
-    ${PROJECT_SOURCE_DIR}/example/*.hpp
   )
 
 if (Beast_BUILD_EXAMPLES AND

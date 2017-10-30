@@ -18,11 +18,13 @@ if (MSVC)
 endif()
 
 add_executable (bench-zlib
-    ${BOOST_BEAST_INCLUDES}
-    ${EXTRAS_INCLUDES}
+    ${BOOST_BEAST_FILES}
+    ${EXTRAS_FILES}
     ${ZLIB_SOURCES}
     ${TEST_MAIN}
     Jamfile
     deflate_stream.cpp
     inflate_stream.cpp
 )
+
+set_property(TARGET bench-zlib PROPERTY FOLDER "tests-bench")

@@ -13,11 +13,13 @@ if (OPENSSL_FOUND)
     GroupSources(example/http/client/async-ssl "/")
 
     add_executable (http-client-async-ssl
-        ${BOOST_BEAST_INCLUDES}
+        ${BOOST_BEAST_FILES}
         ${PROJECT_SOURCE_DIR}/example/common/root_certificates.hpp
         Jamfile
         http_client_async_ssl.cpp
     )
+
+    set_property(TARGET http-client-async-ssl PROPERTY FOLDER "example-http-client")
 
     target_link_libraries (http-client-async-ssl
         ${OPENSSL_LIBRARIES}

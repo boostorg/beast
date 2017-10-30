@@ -18,8 +18,8 @@ if (MSVC)
 endif()
 
 add_executable (tests-beast-zlib
-    ${BOOST_BEAST_INCLUDES}
-    ${EXTRAS_INCLUDES}
+    ${BOOST_BEAST_FILES}
+    ${EXTRAS_FILES}
     ${ZLIB_SOURCES}
     ${TEST_MAIN}
     Jamfile
@@ -28,3 +28,5 @@ add_executable (tests-beast-zlib
     inflate_stream.cpp
     zlib.cpp
 )
+
+set_property(TARGET tests-beast-zlib PROPERTY FOLDER "tests")

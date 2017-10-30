@@ -13,11 +13,13 @@ if (OPENSSL_FOUND)
     GroupSources(example/http/client/sync-ssl "/")
 
     add_executable (http-client-sync-ssl
-        ${BOOST_BEAST_INCLUDES}
+        ${BOOST_BEAST_FILES}
         ${PROJECT_SOURCE_DIR}/example/common/root_certificates.hpp
         Jamfile
         http_client_sync_ssl.cpp
     )
+
+    set_property(TARGET http-client-sync-ssl PROPERTY FOLDER "example-http-client")
 
     target_link_libraries (http-client-sync-ssl
         ${OPENSSL_LIBRARIES}

@@ -1,3 +1,17 @@
+Version 132:
+
+* Tidy up project folders in CMakeLists.txt
+* Rename Cmake variables for clarity
+
+--------------------------------------------------------------------------------
+
+Version 131:
+
+* basic_fields returns const values
+* Set SNI hostname in example SSL clients
+
+--------------------------------------------------------------------------------
+
 Version 130:
 
 * Tidy up fallthrough warning

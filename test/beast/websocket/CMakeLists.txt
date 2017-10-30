@@ -13,8 +13,8 @@ GroupSources(include/boost/beast beast)
 GroupSources(test/beast/websocket "/")
 
 add_executable (tests-beast-websocket
-    ${BOOST_BEAST_INCLUDES}
-    ${EXTRAS_INCLUDES}
+    ${BOOST_BEAST_FILES}
+    ${EXTRAS_FILES}
     ${TEST_MAIN}
     Jamfile
     test.hpp
@@ -34,3 +34,5 @@ add_executable (tests-beast-websocket
     utf8_checker.cpp
     write.cpp
 )
+
+set_property(TARGET tests-beast-websocket PROPERTY FOLDER "tests")

@@ -11,7 +11,9 @@ GroupSources(include/boost/beast beast)
 GroupSources(example/http/server/async "/")
 
 add_executable (http-server-async
-    ${BOOST_BEAST_INCLUDES}
+    ${BOOST_BEAST_FILES}
     Jamfile
     http_server_async.cpp
 )
+
+set_property(TARGET http-server-async PROPERTY FOLDER "example-http-server")

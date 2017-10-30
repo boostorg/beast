@@ -13,11 +13,13 @@ if (OPENSSL_FOUND)
     GroupSources(example/websocket/server/async-ssl "/")
 
     add_executable (websocket-server-async-ssl
-        ${BOOST_BEAST_INCLUDES}
+        ${BOOST_BEAST_FILES}
         ${PROJECT_SOURCE_DIR}/example/common/server_certificate.hpp
         Jamfile
         websocket_server_async_ssl.cpp
     )
+
+    set_property(TARGET websocket-server-async-ssl PROPERTY FOLDER "example-websocket-server")
 
     target_link_libraries (websocket-server-async-ssl
         ${OPENSSL_LIBRARIES}

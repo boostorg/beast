@@ -11,7 +11,9 @@ GroupSources(include/boost/beast beast)
 GroupSources(example/websocket/client/async "/")
 
 add_executable (websocket-client-async
-    ${BOOST_BEAST_INCLUDES}
+    ${BOOST_BEAST_FILES}
     Jamfile
     websocket_client_async.cpp
 )
+
+set_property(TARGET websocket-client-async PROPERTY FOLDER "example-websocket-client")

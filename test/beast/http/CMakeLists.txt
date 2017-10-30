@@ -13,8 +13,8 @@ GroupSources(include/boost/beast beast)
 GroupSources(test/beast/http "/")
 
 add_executable (tests-beast-http
-    ${BOOST_BEAST_INCLUDES}
-    ${EXTRAS_INCLUDES}
+    ${BOOST_BEAST_FILES}
+    ${EXTRAS_FILES}
     ${TEST_MAIN}
     Jamfile
     message_fuzz.hpp
@@ -43,3 +43,5 @@ add_executable (tests-beast-http
     verb.cpp
     write.cpp
 )
+
+set_property(TARGET tests-beast-http PROPERTY FOLDER "tests")

@@ -12,9 +12,11 @@ GroupSources(example/common common)
 GroupSources(example/http/server/fast "/")
 
 add_executable (http-server-fast
-    ${BOOST_BEAST_INCLUDES}
-    ${COMMON_INCLUDES}
+    ${BOOST_BEAST_FILES}
+    ${COMMON_FILES}
     Jamfile
     fields_alloc.hpp
     http_server_fast.cpp
 )
+
+set_property(TARGET http-server-fast PROPERTY FOLDER "example-http-server")

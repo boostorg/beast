@@ -11,7 +11,9 @@ GroupSources(include/boost/beast beast)
 GroupSources(example/websocket/server/coro "/")
 
 add_executable (websocket-server-coro
-    ${BOOST_BEAST_INCLUDES}
+    ${BOOST_BEAST_FILES}
     Jamfile
     websocket_server_coro.cpp
 )
+
+set_property(TARGET websocket-server-coro PROPERTY FOLDER "example-websocket-server")

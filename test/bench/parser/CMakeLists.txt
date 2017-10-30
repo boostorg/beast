@@ -14,8 +14,8 @@ GroupSources(test/beast/http "/")
 GroupSources(test/bench/parser "/")
 
 add_executable (bench-parser
-    ${BOOST_BEAST_INCLUDES}
-    ${EXTRAS_INCLUDES}
+    ${BOOST_BEAST_FILES}
+    ${EXTRAS_FILES}
     ${TEST_MAIN}
     Jamfile
     ${PROJECT_SOURCE_DIR}/test/beast/http/message_fuzz.hpp
@@ -23,3 +23,5 @@ add_executable (bench-parser
     nodejs_parser.cpp
     bench_parser.cpp
 )
+
+set_property(TARGET bench-parser PROPERTY FOLDER "tests-bench")

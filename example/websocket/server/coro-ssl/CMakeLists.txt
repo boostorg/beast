@@ -13,11 +13,13 @@ if (OPENSSL_FOUND)
     GroupSources(example/websocket/server/coro-ssl "/")
 
     add_executable (websocket-server-coro-ssl
-        ${BOOST_BEAST_INCLUDES}
+        ${BOOST_BEAST_FILES}
         ${PROJECT_SOURCE_DIR}/example/common/server_certificate.hpp
         Jamfile
         websocket_server_coro_ssl.cpp
     )
+
+    set_property(TARGET websocket-server-coro-ssl PROPERTY FOLDER "example-websocket-server")
 
     target_link_libraries (websocket-server-coro-ssl
         ${OPENSSL_LIBRARIES}

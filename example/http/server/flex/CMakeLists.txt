@@ -13,12 +13,14 @@ if (OPENSSL_FOUND)
     GroupSources(example/http/server/flex "/")
 
     add_executable (http-server-flex
-        ${BOOST_BEAST_INCLUDES}
+        ${BOOST_BEAST_FILES}
         ${PROJECT_SOURCE_DIR}/example/common/detect_ssl.hpp
         ${PROJECT_SOURCE_DIR}/example/common/server_certificate.hpp
         Jamfile
         http_server_flex.cpp
     )
+
+    set_property(TARGET http-server-flex PROPERTY FOLDER "example-http-server")
 
     target_link_libraries (http-server-flex
         ${OPENSSL_LIBRARIES}
