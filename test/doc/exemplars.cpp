@@ -272,7 +272,7 @@ static_assert(is_fields<Fields>::value,
 //]
 
 struct Fields_FieldsReader {
-    using F = Fields_FieldsReader;
+    using Fields = Fields_FieldsReader;
 //[concept_FieldsReader
 
 struct FieldsReader
@@ -281,14 +281,10 @@ struct FieldsReader
     struct const_buffers_type;
 
     // Constructor for requests
-    FieldsReader(F const& f, unsigned version, verb method);
+    FieldsReader(Fields const& f, unsigned version, verb method);
 
     // Constructor for responses
-    FieldsReader(F const& f, unsigned version, unsigned status);
-
-    // Returns `true` if keep-alive is indicated
-    bool
-    keep_alive();
+    FieldsReader(Fields const& f, unsigned version, unsigned status);
 
     // Returns the serialized header buffers
     const_buffers_type

@@ -41,7 +41,7 @@ In this table:
         This is the type of buffer returned by `R::get`.
     ]
 ][
-    [`R(f,v,m)`]
+    [`R{f,v,m}`]
     []
     [
         The implementation calls this constructor to indicate
@@ -50,7 +50,7 @@ In this table:
         to end no earlier than after the `R` is destroyed.
     ]
 ][
-    [`R(f,v,c)`]
+    [`R{f,v,c}`]
     []
     [
         The implementation calls this constructor to indicate
