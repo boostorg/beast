@@ -2,6 +2,7 @@ Version 132:
 
 * Tidy up project folders in CMakeLists.txt
 * Rename Cmake variables for clarity
+* Add ref-qualified overloads for message::body
 
 --------------------------------------------------------------------------------
 

@@ -849,7 +849,7 @@ struct message
 #else
     detail::value_type_t<Body>&
 #endif
-    body() noexcept
+    body()& noexcept
     {
         return this->member();
     }
@@ -860,9 +860,31 @@ struct message
 #else
     detail::value_type_t<Body> const&
 #endif
-    body() const noexcept
+    body() const& noexcept
     {
         return this->member();
+    }
+
+    /// Returns the body
+#if BOOST_BEAST_DOXYGEN || ! defined(BOOST_MSVC)
+    typename body_type::value_type&&
+#else
+    detail::value_type_t<Body>&&
+#endif
+    body()&& noexcept
+    {
+        return std::move(this->member());
+    }
+
+    /// Returns the body
+#if BOOST_BEAST_DOXYGEN || ! defined(BOOST_MSVC)
+    typename body_type::value_type const&&
+#else
+    detail::value_type_t<Body> const&&
+#endif
+    body() const&& noexcept
+    {
+        return std::move(this->member());
     }
 
 private:

@@ -106,7 +106,7 @@ member functions of `Fields`. This diagram shows the inheritance
 relationship between header and message, along with some of the
 notable differences in members in each partial specialization:
 
-[$beast/images/message.png [width 730px] [height 410px]]
+[$beast/images/message.png [width 730px] [height 459px]]
 
 [heading:body Body Types]
 

@@ -274,6 +274,34 @@ public:
     }
 
     void
+    testBody()
+    {
+        {
+            auto f = [](empty_body::value_type&){};
+            request<empty_body> m;
+            f(m.body());
+        }
+        {
+            auto f = [](empty_body::value_type const&){};
+            request<empty_body> const m;
+            f(m.body());
+            f(std::move(m.body()));
+        }
+        {
+            auto f = [](empty_body::value_type&&){};
+            request<empty_body> m;
+            f(std::move(m).body());
+            f(std::move(m.body()));
+        }
+        {
+            auto f = [](empty_body::value_type const&&){};
+            request<empty_body> const m;
+            f(std::move(m).body());
+            f(std::move(m.body()));
+        }
+    }
+
+    void
     testSwap()
     {
         response<string_body> m1;
@@ -477,6 +505,7 @@ public:
     {
         testMessage();
         testMessageCtors();
+        testBody();
         testSwap();
         testSpecialMembers();
         testMethod();
