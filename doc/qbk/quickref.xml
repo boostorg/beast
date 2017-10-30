@@ -121,7 +121,7 @@
             <member><link linkend="beast.concepts.BodyReader">BodyReader</link></member>
             <member><link linkend="beast.concepts.BodyWriter">BodyWriter</link></member>
             <member><link linkend="beast.concepts.Fields">Fields</link></member>
-            <member><link linkend="beast.concepts.FieldsReader">FieldsReader</link></member>
+            <member><link linkend="beast.concepts.FieldsWriter">FieldsWriter</link></member>
           </simplelist>
         </entry>
         <entry valign="top">

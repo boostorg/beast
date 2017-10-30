@@ -51,6 +51,8 @@ struct is_parser<parser<isRequest, Body, Fields>> : std::true_type {};
 
 struct fields_model
 {
+    struct writer;
+    
     string_view method() const;
     string_view reason() const;
     string_view target() const;

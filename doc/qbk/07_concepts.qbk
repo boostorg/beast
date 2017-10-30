@@ -17,7 +17,7 @@ This section describes all of the concepts defined by the library.
 [include 07_concepts/BufferSequence.qbk]
 [include 07_concepts/DynamicBuffer.qbk]
 [include 07_concepts/Fields.qbk]
-[include 07_concepts/FieldsReader.qbk]
+[include 07_concepts/FieldsWriter.qbk]
 [include 07_concepts/File.qbk]
 [include 07_concepts/Streams.qbk]
 

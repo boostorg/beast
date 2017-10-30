@@ -245,7 +245,7 @@ template<class T,
 struct buffers_or_fields
 {
     using type = typename
-        T::reader::const_buffers_type;
+        T::writer::const_buffers_type;
 };
 
 template<class T>

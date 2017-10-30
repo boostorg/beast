@@ -155,9 +155,9 @@ public:
 
     /// The algorithm used to serialize the header
 #if BOOST_BEAST_DOXYGEN
-    using reader = implementation_defined;
+    using writer = implementation_defined;
 #else
-    class reader;
+    class writer;
 #endif
 
 private:

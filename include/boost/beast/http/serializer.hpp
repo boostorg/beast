@@ -114,11 +114,11 @@ private:
     using reader = typename Body::reader;
 
     using cb1_t = buffers_suffix<typename
-        Fields::reader::const_buffers_type>;        // header
+        Fields::writer::const_buffers_type>;        // header
     using pcb1_t  = buffers_prefix_view<cb1_t const&>;
 
     using cb2_t = buffers_suffix<buffers_cat_view<
-        typename Fields::reader::const_buffers_type,// header
+        typename Fields::writer::const_buffers_type,// header
         typename reader::const_buffers_type>>;      // body
     using pcb2_t = buffers_prefix_view<cb2_t const&>;
 
@@ -127,7 +127,7 @@ private:
     using pcb3_t = buffers_prefix_view<cb3_t const&>;
 
     using cb4_t = buffers_suffix<buffers_cat_view<
-        typename Fields::reader::const_buffers_type,// header
+        typename Fields::writer::const_buffers_type,// header
         detail::chunk_size,                         // chunk-size
         boost::asio::const_buffer,               // chunk-ext
         chunk_crlf,                                 // crlf
@@ -155,7 +155,7 @@ private:
     using pcb6_t = buffers_prefix_view<cb6_t const&>;
 
     using cb7_t = buffers_suffix<buffers_cat_view<
-        typename Fields::reader::const_buffers_type,// header
+        typename Fields::writer::const_buffers_type,// header
         detail::chunk_size,                         // chunk-size
         boost::asio::const_buffer,               // chunk-ext
         chunk_crlf,                                 // crlf
@@ -174,7 +174,7 @@ private:
 
     value_type& m_;
     reader rd_;
-    boost::optional<typename Fields::reader> frd_;
+    boost::optional<typename Fields::writer> frd_;
     beast::detail::variant<
         cb1_t, cb2_t, cb3_t, cb4_t,
         cb5_t ,cb6_t, cb7_t, cb8_t> v_;

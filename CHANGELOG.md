@@ -5,6 +5,14 @@ Version 132:
 * Add ref-qualified overloads for message::body
 * Tidy up FieldsReader doc
 
+API Changes:
+
+* Fields::writer replaces Fields::reader
+
+Actions Required:
+
+* Rename reader to writer for user defined Fields
+
 --------------------------------------------------------------------------------
 
 Version 131:

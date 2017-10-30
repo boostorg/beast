@@ -34,7 +34,7 @@ namespace beast {
 namespace http {
 
 template<class Allocator>
-class basic_fields<Allocator>::reader
+class basic_fields<Allocator>::writer
 {
 public:
     using iter_type = typename list_t::const_iterator;
@@ -157,13 +157,13 @@ public:
     using const_buffers_type =
         beast::detail::buffers_ref<view_type>;
 
-    reader(basic_fields const& f,
+    writer(basic_fields const& f,
         unsigned version, verb v);
 
-    reader(basic_fields const& f,
+    writer(basic_fields const& f,
         unsigned version, unsigned code);
 
-    reader(basic_fields const& f);
+    writer(basic_fields const& f);
 
     const_buffers_type
     get() const
@@ -173,8 +173,8 @@ public:
 };
 
 template<class Allocator>
-basic_fields<Allocator>::reader::
-reader(basic_fields const& f)
+basic_fields<Allocator>::writer::
+writer(basic_fields const& f)
     : f_(f)
 {
     view_.emplace(
@@ -186,8 +186,8 @@ reader(basic_fields const& f)
 }
 
 template<class Allocator>
-basic_fields<Allocator>::reader::
-reader(basic_fields const& f,
+basic_fields<Allocator>::writer::
+writer(basic_fields const& f,
         unsigned version, verb v)
     : f_(f)
 {
@@ -228,8 +228,8 @@ reader(basic_fields const& f,
 }
 
 template<class Allocator>
-basic_fields<Allocator>::reader::
-reader(basic_fields const& f,
+basic_fields<Allocator>::writer::
+writer(basic_fields const& f,
         unsigned version, unsigned code)
     : f_(f)
 {
@@ -1230,7 +1230,7 @@ realloc_target(
 {
     // The target string are stored with an
     // extra space at the beginning to help
-    // the reader class.
+    // the writer class.
     if(dest.empty() && s.empty())
         return;
     auto a = typename beast::detail::allocator_traits<

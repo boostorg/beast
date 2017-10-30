@@ -159,7 +159,7 @@ prepare(Trailer const& trailer, Allocator const& allocator) ->
     buffers_type
 {
     auto sp = std::allocate_shared<typename
-        Trailer::reader>(allocator, trailer);
+        Trailer::writer>(allocator, trailer);
     sp_ = sp;
     return sp->get();
 }
@@ -171,7 +171,7 @@ prepare(Trailer const& trailer, std::true_type) ->
     buffers_type
 {
     auto sp = std::make_shared<
-        typename Trailer::reader>(trailer);
+        typename Trailer::writer>(trailer);
     sp_ = sp;
     return sp->get();
 }

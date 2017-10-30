@@ -70,7 +70,7 @@
 [def __BodyWriter__             [link beast.concepts.BodyWriter [*BodyWriter]]]
 [def __DynamicBuffer__          [link beast.concepts.DynamicBuffer [*DynamicBuffer]]]
 [def __Fields__                 [link beast.concepts.Fields [*Fields]]]
-[def __FieldsReader__           [link beast.concepts.FieldsReader [*FieldsReader]]]
+[def __FieldsWriter__           [link beast.concepts.FieldsWriter [*FieldsWriter]]]
 [def __File__                   [link beast.concepts.File [*File]]]
 [def __Stream__                 [link beast.concepts.streams [*Stream]]]
 [def __SyncStream__             [link beast.concepts.streams.SyncStream [*SyncStream]]]

@@ -190,7 +190,8 @@ static_assert(is_body_writer<Body_BodyWriter>::value, "");
 class Fields
 {
 public:
-    struct reader;
+    /// Constructed as needed when fields are serialized
+    struct writer;
 
 protected:
     /** Returns the request-method string.
@@ -271,20 +272,20 @@ static_assert(is_fields<Fields>::value,
 
 //]
 
-struct Fields_FieldsReader {
-    using Fields = Fields_FieldsReader;
-//[concept_FieldsReader
+struct Fields_FieldsWriter {
+    using Fields = Fields_FieldsWriter;
+//[concept_FieldsWriter
 
-struct FieldsReader
+struct FieldsWriter
 {
     // The type of buffers returned by `get`
     struct const_buffers_type;
 
     // Constructor for requests
-    FieldsReader(Fields const& f, unsigned version, verb method);
+    FieldsWriter(Fields const& f, unsigned version, verb method);
 
     // Constructor for responses
-    FieldsReader(Fields const& f, unsigned version, unsigned status);
+    FieldsWriter(Fields const& f, unsigned version, unsigned status);
 
     // Returns the serialized header buffers
     const_buffers_type
