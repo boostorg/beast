@@ -11,7 +11,7 @@ GroupSources(include/boost/beast beast)
 GroupSources(example/websocket/server/stackless "/")
 
 add_executable (websocket-server-stackless
-    ${BOOST_BEAST_INCLUDES}
+    ${BOOST_BEAST_FILES}
     Jamfile
     websocket_server_stackless.cpp
 )

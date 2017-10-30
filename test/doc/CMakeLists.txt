@@ -14,9 +14,8 @@ GroupSources(include/boost/beast beast)
 GroupSources(test/doc "/")
 
 add_executable (tests-doc
-    ${BOOST_BEAST_INCLUDES}
-    ${EXAMPLE_INCLUDES}
-    ${EXTRAS_INCLUDES}
+    ${BOOST_BEAST_FILES}
+    ${EXTRAS_FILES}
     ${TEST_MAIN}
     Jamfile
     core_examples.cpp

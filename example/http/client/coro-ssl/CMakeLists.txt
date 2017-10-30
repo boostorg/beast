@@ -13,7 +13,7 @@ if (OPENSSL_FOUND)
     GroupSources(example/http/client/coro-ssl "/")
 
     add_executable (http-client-coro-ssl
-        ${BOOST_BEAST_INCLUDES}
+        ${BOOST_BEAST_FILES}
         ${PROJECT_SOURCE_DIR}/example/common/root_certificates.hpp
         Jamfile
         http_client_coro_ssl.cpp

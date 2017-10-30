@@ -11,7 +11,7 @@ GroupSources(include/boost/beast beast)
 GroupSources(example/echo-op "/")
 
 add_executable (echo-op
-    ${BOOST_BEAST_INCLUDES}
+    ${BOOST_BEAST_FILES}
     Jamfile
     echo_op.cpp
 )

@@ -11,7 +11,7 @@ GroupSources(include/boost/beast beast)
 GroupSources(example/http/server/sync "/")
 
 add_executable (http-server-sync
-    ${BOOST_BEAST_INCLUDES}
+    ${BOOST_BEAST_FILES}
     Jamfile
     http_server_sync.cpp
 )
