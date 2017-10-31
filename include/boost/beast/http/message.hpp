@@ -856,17 +856,6 @@ struct message
 
     /// Returns the body
 #if BOOST_BEAST_DOXYGEN || ! defined(BOOST_MSVC)
-    typename body_type::value_type const&
-#else
-    detail::value_type_t<Body> const&
-#endif
-    body() const& noexcept
-    {
-        return this->member();
-    }
-
-    /// Returns the body
-#if BOOST_BEAST_DOXYGEN || ! defined(BOOST_MSVC)
     typename body_type::value_type&&
 #else
     detail::value_type_t<Body>&&
@@ -878,13 +867,13 @@ struct message
 
     /// Returns the body
 #if BOOST_BEAST_DOXYGEN || ! defined(BOOST_MSVC)
-    typename body_type::value_type const&&
+    typename body_type::value_type const&
 #else
-    detail::value_type_t<Body> const&&
+    detail::value_type_t<Body> const&
 #endif
-    body() const&& noexcept
+    body() const& noexcept
     {
-        return std::move(this->member());
+        return this->member();
     }
 
 private:
