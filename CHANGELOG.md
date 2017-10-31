@@ -1,3 +1,9 @@
+Version 133:
+
+* Remove const&& overload of message::body
+
+--------------------------------------------------------------------------------
+
 Version 132:
 
 * Tidy up project folders in CMakeLists.txt

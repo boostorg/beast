@@ -283,7 +283,7 @@ public:
         }
         {
             auto f = [](empty_body::value_type const&){};
-            request<empty_body> const m;
+            request<empty_body> const m{};
             f(m.body());
             f(std::move(m.body()));
         }
@@ -295,8 +295,7 @@ public:
         }
         {
             auto f = [](empty_body::value_type const&&){};
-            request<empty_body> const m;
-            f(std::move(m).body());
+            request<empty_body> const m{};
             f(std::move(m.body()));
         }
     }
