@@ -51,10 +51,10 @@ struct basic_file_body
     /// The type of File this body uses
     using file_type = File;
 
-    // Algorithm for retrieving buffers when serializing.
+    // Algorithm for storing buffers when parsing.
     class reader;
 
-    // Algorithm for storing buffers when parsing.
+    // Algorithm for retrieving buffers when serializing.
     class writer;
 
     // The type of the @ref message::body member.
@@ -225,7 +225,7 @@ size(value_type const& body)
     to extract the buffers representing the body.
 */
 template<class File>
-class basic_file_body<File>::reader
+class basic_file_body<File>::writer
 {
     value_type& body_;      // The body we are reading from
     std::uint64_t remain_;  // The number of unread bytes
@@ -239,8 +239,8 @@ public:
 
     // Constructor.
     //
-    // `m` holds the message we are sending, which will
-    // always have the `file_body` as the body type.
+    // `m` holds the message we are serializing, which will
+    // always have the `basic_file_body` as the body type.
     //
     // Note that the message is passed by non-const reference.
     // This is intentional, because reading from the file
@@ -248,7 +248,7 @@ public:
     // operation logically not-const (although it is bitwise
     // const).
     //
-    // The BodyReader concept allows the reader to choose
+    // The BodyWriter concept allows the writer to choose
     // whether to take the message by const reference or
     // non-const reference. Depending on the choice, a
     // serializer constructed using that body type will
@@ -262,13 +262,13 @@ public:
     // a time.
     //
     template<bool isRequest, class Fields>
-    reader(message<
+    writer(message<
         isRequest, basic_file_body, Fields>& m);
 
     // Initializer
     //
     // This is called before the body is serialized and
-    // gives the reader a chance to do something that might
+    // gives the writer a chance to do something that might
     // need to return an error code.
     //
     void
@@ -295,8 +295,8 @@ public:
 template<class File>
 template<bool isRequest, class Fields>
 basic_file_body<File>::
-reader::
-reader(message<isRequest, basic_file_body, Fields>& m)
+writer::
+writer(message<isRequest, basic_file_body, Fields>& m)
     : body_(m.body())
 {
     // The file must already be open
@@ -310,7 +310,7 @@ reader(message<isRequest, basic_file_body, Fields>& m)
 template<class File>
 void
 basic_file_body<File>::
-reader::
+writer::
 init(error_code& ec)
 {
     // The error_code specification requires that we
@@ -329,7 +329,7 @@ init(error_code& ec)
 template<class File>
 auto
 basic_file_body<File>::
-reader::
+writer::
 get(error_code& ec) ->
     boost::optional<std::pair<const_buffers_type, bool>>
 {
@@ -389,7 +389,7 @@ get(error_code& ec) ->
     to store incoming buffers representing the body.
 */
 template<class File>
-class basic_file_body<File>::writer
+class basic_file_body<File>::reader
 {
     value_type& body_;  // The body we are writing to
 
@@ -399,17 +399,17 @@ public:
     // This is called after the header is parsed and
     // indicates that a non-zero sized body may be present.
     // `m` holds the message we are receiving, which will
-    // always have the `file_body` as the body type.
+    // always have the `basic_file_body` as the body type.
     //
     template<bool isRequest, class Fields>
     explicit
-    writer(
+    reader(
         message<isRequest, basic_file_body, Fields>& m);
 
     // Initializer
     //
     // This is called before the body is parsed and
-    // gives the writer a chance to do something that might
+    // gives the reader a chance to do something that might
     // need to return an error code. It informs us of
     // the payload size (`content_length`) which we can
     // optionally use for optimization.
@@ -440,14 +440,14 @@ public:
 
 //[example_http_file_body_6
 
-// We don't do much in the writer constructor since the
+// We don't do much in the reader constructor since the
 // file is already open.
 //
 template<class File>
 template<bool isRequest, class Fields>
 basic_file_body<File>::
-writer::
-writer(message<isRequest, basic_file_body, Fields>& m)
+reader::
+reader(message<isRequest, basic_file_body, Fields>& m)
     : body_(m.body())
 {
 }
@@ -455,7 +455,7 @@ writer(message<isRequest, basic_file_body, Fields>& m)
 template<class File>
 void
 basic_file_body<File>::
-writer::
+reader::
 init(
     boost::optional<std::uint64_t> const& content_length,
     error_code& ec)
@@ -482,7 +482,7 @@ template<class File>
 template<class ConstBufferSequence>
 std::size_t
 basic_file_body<File>::
-writer::
+reader::
 put(ConstBufferSequence const& buffers, error_code& ec)
 {
     // This function must return the total number of
@@ -513,7 +513,7 @@ put(ConstBufferSequence const& buffers, error_code& ec)
 template<class File>
 void
 basic_file_body<File>::
-writer::
+reader::
 finish(error_code& ec)
 {
     // This has to be cleared before returning, to

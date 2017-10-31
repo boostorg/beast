@@ -57,7 +57,7 @@ using is_body = detail::has_value_type<T>;
 
     @li `T` has a nested type named `reader`
 
-    @li The nested type meets the requirements of @b BodyReader.
+    @li The nested type meets the requirements of @b BodyWriter.
 
     @tparam T The body type to test.
 
@@ -66,54 +66,8 @@ using is_body = detail::has_value_type<T>;
     template<bool isRequest, class Body, class Fields>
     void check_can_serialize(message<isRequest, Body, Fields> const&)
     {
-        static_assert(is_body_reader<Body>::value,
-            "Cannot serialize Body, no reader");
-    }
-    @endcode
-*/
-#if BOOST_BEAST_DOXYGEN
-template<class T>
-struct is_body_reader : std::integral_constant<bool, ...> {};
-#else
-template<class T, class = void>
-struct is_body_reader : std::false_type {};
-
-template<class T>
-struct is_body_reader<T, beast::detail::void_t<
-    typename T::reader,
-    typename T::reader::const_buffers_type,
-        decltype(
-    std::declval<typename T::reader&>().init(std::declval<error_code&>()),
-    std::declval<boost::optional<std::pair<
-            typename T::reader::const_buffers_type, bool>>&>() =
-            std::declval<typename T::reader>().get(std::declval<error_code&>()),
-        (void)0)>> : std::integral_constant<bool,
-    boost::asio::is_const_buffer_sequence<
-        typename T::reader::const_buffers_type>::value &&
-    std::is_constructible<typename T::reader,
-        message<true, T, detail::fields_model>&>::value &&
-    std::is_constructible<typename T::reader,
-        message<false, T, detail::fields_model>&>::value
-    > {};
-#endif
-
-/** Determine if a @b Body type has a writer.
-
-    This metafunction is equivalent to `std::true_type` if:
-
-    @li `T` has a nested type named `writer`
-
-    @li The nested type meets the requirements of @b BodyWriter.
-
-    @tparam T The body type to test.
-
-    @par Example
-    @code
-    template<bool isRequest, class Body, class Fields>
-    void check_can_parse(message<isRequest, Body, Fields>&)
-    {
         static_assert(is_body_writer<Body>::value,
-            "Cannot parse Body, no writer");
+            "Cannot serialize Body, no reader");
     }
     @endcode
 */
@@ -125,20 +79,66 @@ template<class T, class = void>
 struct is_body_writer : std::false_type {};
 
 template<class T>
-struct is_body_writer<T, beast::detail::void_t<decltype(
-    std::declval<typename T::writer&>().init(
+struct is_body_writer<T, beast::detail::void_t<
+    typename T::writer,
+    typename T::writer::const_buffers_type,
+        decltype(
+    std::declval<typename T::writer&>().init(std::declval<error_code&>()),
+    std::declval<boost::optional<std::pair<
+            typename T::writer::const_buffers_type, bool>>&>() =
+            std::declval<typename T::writer>().get(std::declval<error_code&>()),
+        (void)0)>> : std::integral_constant<bool,
+    boost::asio::is_const_buffer_sequence<
+        typename T::writer::const_buffers_type>::value &&
+    std::is_constructible<typename T::writer,
+        message<true, T, detail::fields_model>&>::value &&
+    std::is_constructible<typename T::writer,
+        message<false, T, detail::fields_model>&>::value
+    > {};
+#endif
+
+/** Determine if a @b Body type has a reader.
+
+    This metafunction is equivalent to `std::true_type` if:
+
+    @li `T` has a nested type named `reader`
+
+    @li The nested type meets the requirements of @b BodyReader.
+
+    @tparam T The body type to test.
+
+    @par Example
+    @code
+    template<bool isRequest, class Body, class Fields>
+    void check_can_parse(message<isRequest, Body, Fields>&)
+    {
+        static_assert(is_body_reader<Body>::value,
+            "Cannot parse Body, no reader");
+    }
+    @endcode
+*/
+#if BOOST_BEAST_DOXYGEN
+template<class T>
+struct is_body_reader : std::integral_constant<bool, ...> {};
+#else
+template<class T, class = void>
+struct is_body_reader : std::false_type {};
+
+template<class T>
+struct is_body_reader<T, beast::detail::void_t<decltype(
+    std::declval<typename T::reader&>().init(
         boost::optional<std::uint64_t>(),
         std::declval<error_code&>()),
     std::declval<std::size_t&>() =
-        std::declval<typename T::writer&>().put(
+        std::declval<typename T::reader&>().put(
             std::declval<boost::asio::const_buffer>(),
             std::declval<error_code&>()),
-    std::declval<typename T::writer&>().finish(
+    std::declval<typename T::reader&>().finish(
         std::declval<error_code&>()),
     (void)0)>> : std::integral_constant<bool,
-        std::is_constructible<typename T::writer,
+        std::is_constructible<typename T::reader,
             message<true, T, detail::fields_model>&>::value &&
-        std::is_constructible<typename T::writer,
+        std::is_constructible<typename T::reader,
             message<false, T, detail::fields_model>&>::value
             >
 {

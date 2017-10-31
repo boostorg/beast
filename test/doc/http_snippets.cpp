@@ -299,7 +299,7 @@ void fxx() {
     the @b SyncWriteStream concept.
 
     @param m The message to send. The Body type must support
-    the @b BodyReader concept.
+    the @b BodyWriter concept.
 */
 template<
     class SyncWriteStream,
@@ -312,8 +312,8 @@ send(
     // Check the template types
     static_assert(is_sync_write_stream<SyncWriteStream>::value,
         "SyncWriteStream requirements not met");
-    static_assert(is_body_reader<Body>::value,
-        "BodyReader requirements not met");
+    static_assert(is_body_writer<Body>::value,
+        "BodyWriter requirements not met");
 
     // Create the instance of serializer for the message
     serializer<isRequest, Body, Fields> sr{m};

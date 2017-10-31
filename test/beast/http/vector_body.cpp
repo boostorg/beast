@@ -15,8 +15,8 @@ namespace beast {
 namespace http {
 
 BOOST_STATIC_ASSERT(is_body<vector_body<char>>::value);
-BOOST_STATIC_ASSERT(is_body_reader<vector_body<char>>::value);
 BOOST_STATIC_ASSERT(is_body_writer<vector_body<char>>::value);
+BOOST_STATIC_ASSERT(is_body_reader<vector_body<char>>::value);
 
 } // http
 } // beast

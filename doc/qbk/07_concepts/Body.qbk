@@ -33,26 +33,25 @@ In this table:
     [`B::value_type`]
     []
     [
-        The type of the `message::body` member.
+        The return type of the `message::body` member function.
         If this is not movable or not copyable, the containing message
         will be not movable or not copyable.
-    ]
-][
-    [`B::writer`]
-    []
-    [
-        If present, indicates that the body can hold a message body
-        parsing result. The type must meet the requirements of
-        __BodyWriter__. The implementation constructs an object of
-        this type to obtain buffers into which parsed body octets
-        are placed.
     ]
 ][
     [`B::reader`]
     []
     [
-        If present, indicates that the body is serializable. The type
+        If present, indicates that the body can be parsed. The type
         must meet the requirements of __BodyReader__. The implementation
+        constructs an object of this type to obtain buffers into which
+        parsed body octets are placed.
+    ]
+][
+    [`B::writer`]
+    []
+    [
+        If present, indicates that the body is serializable. The type
+        must meet the requirements of __BodyWriter__. The implementation
         constructs an object of this type to obtain buffers representing
         the message body for serialization.
     ]
@@ -67,7 +66,8 @@ In this table:
     [
         This static member function is optional. It returns the payload
         size of `body` in bytes not including any chunked transfer encoding.
-        The function shall not exit via an exception.
+        The return value may be zero, to indicate that the message is known
+        to have no payload. The function shall not exit via an exception.
 
         When this function is present:
 

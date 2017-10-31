@@ -52,7 +52,7 @@ struct empty_body
         return 0;
     }
 
-    /** The algorithm for serializing the body
+    /** The algorithm for parsing the body
 
         Meets the requirements of @b BodyReader.
     */
@@ -61,43 +61,9 @@ struct empty_body
 #else
     struct reader
     {
-        using const_buffers_type =
-            boost::asio::null_buffers;
-
         template<bool isRequest, class Fields>
         explicit
-        reader(message<isRequest,
-            empty_body, Fields> const&)
-        {
-        }
-
-        void
-        init(error_code& ec)
-        {
-            ec.assign(0, ec.category());
-        }
-
-        boost::optional<std::pair<const_buffers_type, bool>>
-        get(error_code& ec)
-        {
-            ec.assign(0, ec.category());
-            return boost::none;
-        }
-    };
-#endif
-
-    /** The algorithm for parsing the body
-
-        Meets the requirements of @b BodyReader.
-    */
-#if BOOST_BEAST_DOXYGEN
-    using writer = implementation_defined;
-#else
-    struct writer
-    {
-        template<bool isRequest, class Fields>
-        explicit
-        writer(message<isRequest, empty_body, Fields>&)
+        reader(message<isRequest, empty_body, Fields>&)
         {
         }
 
@@ -120,6 +86,40 @@ struct empty_body
         finish(error_code& ec)
         {
             ec.assign(0, ec.category());
+        }
+    };
+#endif
+
+    /** The algorithm for serializing the body
+
+        Meets the requirements of @b BodyWriter.
+    */
+#if BOOST_BEAST_DOXYGEN
+    using writer = implementation_defined;
+#else
+    struct writer
+    {
+        using const_buffers_type =
+            boost::asio::null_buffers;
+
+        template<bool isRequest, class Fields>
+        explicit
+        writer(message<isRequest,
+            empty_body, Fields> const&)
+        {
+        }
+
+        void
+        init(error_code& ec)
+        {
+            ec.assign(0, ec.category());
+        }
+
+        boost::optional<std::pair<const_buffers_type, bool>>
+        get(error_code& ec)
+        {
+            ec.assign(0, ec.category());
+            return boost::none;
         }
     };
 #endif

@@ -19,8 +19,8 @@ namespace boost {
 namespace beast {
 namespace http {
 
-class BodyReader;
 class BodyWriter;
+class BodyReader;
 
 //[concept_Body
 
@@ -29,10 +29,10 @@ struct Body
     // The type of message::body when used
     struct value_type;
 
-    /// The algorithm used for extracting buffers
+    /// The algorithm used during parsing
     class reader;
 
-    /// The algorithm used for inserting buffers
+    /// The algorithm used during serialization
     class writer;
 
     /// Returns the body's payload size
@@ -45,27 +45,27 @@ static_assert(is_body<Body>::value, "");
 
 //]
 
-struct Body_BodyReader {
+struct Body_BodyWriter {
     struct value_type{};
-//[concept_BodyReader
+//[concept_BodyWriter
 
-struct BodyReader
+struct BodyWriter
 {
 public:
     /// The type of buffer returned by `get`.
     using const_buffers_type = boost::asio::const_buffer;
 
-    /** Construct the reader.
+    /** Construct the writer.
 
-        @param msg The message whose body is to be retrieved.
+        @param msg The message whose body is to be serialized.
 
         @param ec Set to the error, if any occurred.
     */
     template<bool isRequest, class Body, class Fields>
     explicit
-    BodyReader(message<isRequest, Body, Fields> const& msg);
+    BodyWriter(message<isRequest, Body, Fields> const& msg);
 
-    /** Initialize the reader
+    /** Initialize the writer.
 
         This is called after construction and before the first
         call to `get`. The message is valid and complete upon
@@ -109,26 +109,26 @@ public:
 };
 
 //]
-    using reader = BodyReader;
+    using writer = BodyWriter;
 };
 
-static_assert(is_body_reader<Body_BodyReader>::value, "");
+static_assert(is_body_writer<Body_BodyWriter>::value, "");
 
-struct Body_BodyWriter {
+struct Body_BodyReader {
     struct value_type{};
-//[concept_BodyWriter
+//[concept_BodyReader
 
-struct BodyWriter
+struct BodyReader
 {
-    /** Construct the writer.
+    /** Construct the reader.
 
-        @param msg The message whose body is to be stored.
+        @param msg The message whose body is to be parsed.
     */
     template<bool isRequest, class Body, class Fields>
     explicit
-    BodyWriter(message<isRequest, Body, Fields>& msg);
+    BodyReader(message<isRequest, Body, Fields>& msg);
 
-    /** Initialize the writer
+    /** Initialize the reader.
 
         This is called after construction and before the first
         call to `put`. The message is valid and complete upon
@@ -180,10 +180,10 @@ struct BodyWriter
 };
 
 //]
-    using writer = BodyWriter;
+    using reader = BodyReader;
 };
 
-static_assert(is_body_writer<Body_BodyWriter>::value, "");
+static_assert(is_body_reader<Body_BodyReader>::value, "");
 
 //[concept_Fields
 

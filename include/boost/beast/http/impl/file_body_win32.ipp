@@ -42,15 +42,15 @@ struct basic_file_body<file_win32>
 {
     using file_type = file_win32;
 
-    class reader;
     class writer;
+    class reader;
 
     //--------------------------------------------------------------------------
 
     class value_type
     {
-        friend class reader;
         friend class writer;
+        friend class reader;
         friend struct basic_file_body<file_win32>;
 
         template<class, class, bool, class>
@@ -100,7 +100,7 @@ struct basic_file_body<file_win32>
 
     //--------------------------------------------------------------------------
 
-    class reader
+    class writer
     {
         template<class, class, bool, class>
         friend class detail::write_some_win32_op;
@@ -123,7 +123,7 @@ struct basic_file_body<file_win32>
             boost::asio::const_buffer;
 
         template<bool isRequest, class Fields>
-        reader(message<isRequest,
+        writer(message<isRequest,
                 basic_file_body<file_win32>, Fields>& m)
             : body_(m.body())
         {
@@ -160,14 +160,14 @@ struct basic_file_body<file_win32>
 
     //--------------------------------------------------------------------------
 
-    class writer
+    class reader
     {
         value_type& body_;
 
     public:
         template<bool isRequest, class Fields>
         explicit
-        writer(message<isRequest, basic_file_body, Fields>& m)
+        reader(message<isRequest, basic_file_body, Fields>& m)
             : body_(m.body())
         {
         }

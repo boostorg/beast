@@ -111,8 +111,8 @@
           <bridgehead renderas="sect3">Type Traits</bridgehead>
           <simplelist type="vert" columns="1">
            <member><link linkend="beast.ref.boost__beast__http__is_body">is_body</link></member>
-           <member><link linkend="beast.ref.boost__beast__http__is_body_writer">is_body_writer</link></member>
            <member><link linkend="beast.ref.boost__beast__http__is_body_reader">is_body_reader</link></member>
+           <member><link linkend="beast.ref.boost__beast__http__is_body_writer">is_body_writer</link></member>
            <member><link linkend="beast.ref.boost__beast__http__is_fields">is_fields</link></member>
           </simplelist>
           <bridgehead renderas="sect3">Concepts</bridgehead>

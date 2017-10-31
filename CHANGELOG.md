@@ -8,10 +8,13 @@ Version 132:
 API Changes:
 
 * Fields::writer replaces Fields::reader
+* BodyReader and BodyWriter names are swapped
 
 Actions Required:
 
 * Rename reader to writer for user defined Fields
+* Swap the reader and writer names for user defined Body types
+* Swap use of is_body_reader and is_body_writer
 
 --------------------------------------------------------------------------------
 

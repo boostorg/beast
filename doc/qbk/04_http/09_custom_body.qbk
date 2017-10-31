@@ -17,10 +17,10 @@ shows the customization points available to user-defined body types:
 /// Defines a Body type
 struct body
 {
-    /// This determines the type of the `message::body` member
+    /// This determines the return type of the `message::body` member function
     using value_type = ...;
 
-    /// An optional function, returns the body's payload size
+    /// An optional function, returns the body's payload size (which may be zero)
     static
     std::uint64_t
     size(value_type const& v);
@@ -48,17 +48,17 @@ The meaning of the nested types is as follows
     [`reader`]
     [
         An optional nested type meeting the requirements of __BodyReader__,
-        which provides the algorithm for converting the body representation
-        to a forward range of buffer sequences.
-        If present this body type may be used with a __serializer__.
+        which provides the algorithm for storing a forward range of buffer
+        sequences in the body representation.
+        If present, this body type may be used with a __parser__.
     ]
 ][
     [`writer`]
     [
         An optional nested type meeting the requirements of __BodyWriter__,
-        which provides the algorithm for storing a forward range of buffer
-        sequences in the body representation.
-        If present, this body type may be used with a __parser__.
+        which provides the algorithm for converting the body representation
+        to a forward range of buffer sequences.
+        If present this body type may be used with a __serializer__.
     ]
 ]
 ]
@@ -67,7 +67,7 @@ The meaning of the nested types is as follows
 
 The `value_type` nested type allows the body to define the declaration of
 the body type as it appears in the message. This can be any type. For
-example, a body's value type may specify `std::vector<char>` or even
+example, a body's value type may specify `std::vector<char>` or 
 `std::list<std::string>`. A custom body may even set the value type to
 something that is not a container for body octets, such as a
 [@boost:/libs/filesystem/doc/reference.html#class-path `boost::filesystem::path`].
@@ -82,20 +82,14 @@ struct Body
 {
     using value_type = boost::property_tree::ptree;
 
-    class reader;
-
+    class reader
     class writer;
-
-    // Optional member
-    static
-    std::uint64_t
-    size(value_type const&);
 };
 ```
 
 As long as a suitable reader or writer is available to provide the
 algorithm for transferring buffers in and out of the value type,
-those bodies may be serialized or parsed.
+those bodies may be parsed or serialized.
 
 
 
@@ -105,7 +99,9 @@ Use of the flexible __Body__ concept customization point enables authors to
 preserve the self-contained nature of the __message__ object while allowing
 domain specific behaviors. Common operations for HTTP servers include sending
 responses which deliver file contents, and allowing for file uploads. In this
-example we build the `basic_file_body` type which supports both reading and
+example we build the
+[link beast.ref.boost__beast__http__basic_file_body `basic_file_body`]
+type which supports both reading and
 writing to a file on the file system. The interface is a class templated
 on the type of file used to access the file system, which must meet the
 requirements of __File__.
@@ -124,7 +120,7 @@ file is removed from the file system in between calls.
 
 [example_http_file_body_2]
 
-Our implementation of __BodyReader__ will contain a small buffer
+Our implementation of __BodyWriter__ will contain a small buffer
 from which the file contents are read. The buffer is provided to
 the implementation on each call until everything has been read in.
 
@@ -135,13 +131,13 @@ And here are the definitions for the functions we have declared:
 [example_http_file_body_4]
 
 Files can be read now, and the next step is to allow writing to files
-by implementing the __BodyWriter__. The style is similar to the reader,
+by implementing the __BodyReader__. The style is similar to the writer,
 except that buffers are incoming instead of outgoing. Here's the
 declaration:
 
 [example_http_file_body_5]
 
-Finally, here is the implementation of the writer member functions:
+Finally, here is the implementation of the reader member functions:
 
 [example_http_file_body_6]
 

@@ -38,7 +38,7 @@ public:
     {
         using value_type = std::string;
 
-        class reader
+        class writer
         {
             value_type const& body_;
 
@@ -48,7 +48,7 @@ public:
 
             template<bool isRequest, class Allocator>
             explicit
-            reader(message<isRequest,
+            writer(message<isRequest,
                     unsized_body, Allocator> const& msg)
                 : body_(msg.body())
             {
@@ -82,7 +82,7 @@ public:
             bool mutable read = false;
         };
 
-        class reader
+        class writer
         {
             int step_ = 0;
             value_type const& body_;
@@ -93,7 +93,7 @@ public:
 
             template<bool isRequest, class Fields>
             explicit
-            reader(message<isRequest,
+            writer(message<isRequest,
                     test_body, Fields> const& msg)
                 : body_(msg.body())
             {
@@ -195,11 +195,11 @@ public:
 
     struct fail_body
     {
-        class reader;
+        class writer;
 
         class value_type
         {
-            friend class reader;
+            friend class writer;
 
             std::string s_;
             test::fail_counter& fc_;
@@ -219,7 +219,7 @@ public:
             }
         };
 
-        class reader
+        class writer
         {
             std::size_t n_ = 0;
             value_type const& body_;
@@ -230,7 +230,7 @@ public:
 
             template<bool isRequest, class Allocator>
             explicit
-            reader(message<isRequest,
+            writer(message<isRequest,
                     fail_body, Allocator> const& msg)
                 : body_(msg.body())
             {

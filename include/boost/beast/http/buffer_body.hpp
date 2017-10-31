@@ -91,7 +91,7 @@ struct buffer_body
         bool more = true;
     };
 
-    /** The algorithm for serializing the body
+    /** The algorithm for parsing the body
 
         Meets the requirements of @b BodyReader.
     */
@@ -99,6 +99,64 @@ struct buffer_body
     using reader = implementation_defined;
 #else
     class reader
+    {
+        value_type& body_;
+
+    public:
+        template<bool isRequest, class Fields>
+        explicit
+        reader(message<isRequest, buffer_body, Fields>& m)
+            : body_(m.body())
+        {
+        }
+
+        void
+        init(boost::optional<std::uint64_t> const&, error_code& ec)
+        {
+            ec.assign(0, ec.category());
+        }
+
+        template<class ConstBufferSequence>
+        std::size_t
+        put(ConstBufferSequence const& buffers,
+            error_code& ec)
+        {
+            using boost::asio::buffer_size;
+            using boost::asio::buffer_copy;
+            if(! body_.data)
+            {
+                ec = error::need_buffer;
+                return 0;
+            }
+            auto const bytes_transferred =
+                buffer_copy(boost::asio::buffer(
+                    body_.data, body_.size), buffers);
+            body_.data = reinterpret_cast<char*>(
+                body_.data) + bytes_transferred;
+            body_.size -= bytes_transferred;
+            if(bytes_transferred == buffer_size(buffers))
+                ec.assign(0, ec.category());
+            else
+                ec = error::need_buffer;
+            return bytes_transferred;
+        }
+
+        void
+        finish(error_code& ec)
+        {
+            ec.assign(0, ec.category());
+        }
+    };
+#endif
+
+    /** The algorithm for serializing the body
+
+        Meets the requirements of @b BodyWriter.
+    */
+#if BOOST_BEAST_DOXYGEN
+    using writer = implementation_defined;
+#else
+    class writer
     {
         bool toggle_ = false;
         value_type const& body_;
@@ -109,7 +167,7 @@ struct buffer_body
 
         template<bool isRequest, class Fields>
         explicit
-        reader(message<isRequest,
+        writer(message<isRequest,
                 buffer_body, Fields> const& msg)
             : body_(msg.body())
         {
@@ -150,64 +208,6 @@ struct buffer_body
             else
                 ec.assign(0, ec.category());
             return boost::none;
-        }
-    };
-#endif
-
-    /** The algorithm for parsing the body
-
-        Meets the requirements of @b BodyReader.
-    */
-#if BOOST_BEAST_DOXYGEN
-    using writer = implementation_defined;
-#else
-    class writer
-    {
-        value_type& body_;
-
-    public:
-        template<bool isRequest, class Fields>
-        explicit
-        writer(message<isRequest, buffer_body, Fields>& m)
-            : body_(m.body())
-        {
-        }
-
-        void
-        init(boost::optional<std::uint64_t> const&, error_code& ec)
-        {
-            ec.assign(0, ec.category());
-        }
-
-        template<class ConstBufferSequence>
-        std::size_t
-        put(ConstBufferSequence const& buffers,
-            error_code& ec)
-        {
-            using boost::asio::buffer_size;
-            using boost::asio::buffer_copy;
-            if(! body_.data)
-            {
-                ec = error::need_buffer;
-                return 0;
-            }
-            auto const bytes_transferred =
-                buffer_copy(boost::asio::buffer(
-                    body_.data, body_.size), buffers);
-            body_.data = reinterpret_cast<char*>(
-                body_.data) + bytes_transferred;
-            body_.size -= bytes_transferred;
-            if(bytes_transferred == buffer_size(buffers))
-                ec.assign(0, ec.category());
-            else
-                ec = error::need_buffer;
-            return bytes_transferred;
-        }
-
-        void
-        finish(error_code& ec)
-        {
-            ec.assign(0, ec.category());
         }
     };
 #endif

@@ -60,22 +60,22 @@ public:
     static_assert(is_body<Body>::value,
         "Body requirements not met");
 
-    static_assert(is_body_reader<Body>::value,
-        "BodyReader requirements not met");
+    static_assert(is_body_writer<Body>::value,
+        "BodyWriter requirements not met");
 
     /** The type of message this serializer uses
 
         This may be const or non-const depending on the
-        implementation of the corresponding @b BodyReader.
+        implementation of the corresponding @b BodyWriter.
     */
 #if BOOST_BEAST_DOXYGEN
     using value_type = implementation_defined;
 #else
     using value_type =
         typename std::conditional<
-            std::is_constructible<typename Body::reader,
+            std::is_constructible<typename Body::writer,
                 message<isRequest, Body, Fields>&>::value &&
-            ! std::is_constructible<typename Body::reader,
+            ! std::is_constructible<typename Body::writer,
                 message<isRequest, Body, Fields> const&>::value,
             message<isRequest, Body, Fields>,
             message<isRequest, Body, Fields> const>::type;
@@ -111,7 +111,7 @@ private:
     void
     do_visit(error_code& ec, Visit& visit);
 
-    using reader = typename Body::reader;
+    using writer = typename Body::writer;
 
     using cb1_t = buffers_suffix<typename
         Fields::writer::const_buffers_type>;        // header
@@ -119,11 +119,11 @@ private:
 
     using cb2_t = buffers_suffix<buffers_cat_view<
         typename Fields::writer::const_buffers_type,// header
-        typename reader::const_buffers_type>>;      // body
+        typename writer::const_buffers_type>>;      // body
     using pcb2_t = buffers_prefix_view<cb2_t const&>;
 
     using cb3_t = buffers_suffix<
-        typename reader::const_buffers_type>;       // body
+        typename writer::const_buffers_type>;       // body
     using pcb3_t = buffers_prefix_view<cb3_t const&>;
 
     using cb4_t = buffers_suffix<buffers_cat_view<
@@ -131,7 +131,7 @@ private:
         detail::chunk_size,                         // chunk-size
         boost::asio::const_buffer,               // chunk-ext
         chunk_crlf,                                 // crlf
-        typename reader::const_buffers_type,        // body
+        typename writer::const_buffers_type,        // body
         chunk_crlf>>;                               // crlf
     using pcb4_t = buffers_prefix_view<cb4_t const&>;
 
@@ -139,7 +139,7 @@ private:
         detail::chunk_size,                         // chunk-header
         boost::asio::const_buffer,               // chunk-ext
         chunk_crlf,                                 // crlf
-        typename reader::const_buffers_type,        // body
+        typename writer::const_buffers_type,        // body
         chunk_crlf>>;                               // crlf
     using pcb5_t = buffers_prefix_view<cb5_t const&>;
 
@@ -147,7 +147,7 @@ private:
         detail::chunk_size,                         // chunk-header
         boost::asio::const_buffer,               // chunk-size
         chunk_crlf,                                 // crlf
-        typename reader::const_buffers_type,        // body
+        typename writer::const_buffers_type,        // body
         chunk_crlf,                                 // crlf
         boost::asio::const_buffer,               // chunk-final
         boost::asio::const_buffer,               // trailers 
@@ -159,7 +159,7 @@ private:
         detail::chunk_size,                         // chunk-size
         boost::asio::const_buffer,               // chunk-ext
         chunk_crlf,                                 // crlf
-        typename reader::const_buffers_type,        // body
+        typename writer::const_buffers_type,        // body
         chunk_crlf,                                 // crlf
         boost::asio::const_buffer,               // chunk-final
         boost::asio::const_buffer,               // trailers 
@@ -173,7 +173,7 @@ private:
     using pcb8_t = buffers_prefix_view<cb8_t const&>;
 
     value_type& m_;
-    reader rd_;
+    writer rd_;
     boost::optional<typename Fields::writer> frd_;
     beast::detail::variant<
         cb1_t, cb2_t, cb3_t, cb4_t,
@@ -210,7 +210,7 @@ public:
         the type of Body used, this may or may not be a `const` reference.
 
         @note This function participates in overload resolution only if
-        Body::reader is constructible from a `const` message reference.
+        Body::writer is constructible from a `const` message reference.
     */
     explicit
     serializer(value_type& msg);
@@ -336,17 +336,17 @@ public:
     void
     consume(std::size_t n);
 
-    /** Provides low-level access to the associated @b BodyReader
+    /** Provides low-level access to the associated @b BodyWriter
 
-        This function provides access to the instance of the reader
+        This function provides access to the instance of the writer
         associated with the body and created by the serializer
         upon construction. The behavior of accessing this object
-        is defined by the specification of the particular reader
+        is defined by the specification of the particular writer
         and its associated body.
 
-        @return A reference to the reader.
+        @return A reference to the writer.
     */
-    reader&
+    writer&
     reader_impl()
     {
         return rd_;

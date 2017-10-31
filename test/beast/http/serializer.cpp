@@ -24,13 +24,13 @@ public:
     {
         struct value_type{};
 
-        struct reader
+        struct writer
         {
             using const_buffers_type =
                 boost::asio::const_buffer;
 
             template<bool isRequest, class Fields>
-            reader(message<isRequest, const_body, Fields> const&);
+            writer(message<isRequest, const_body, Fields> const&);
 
             void
             init(error_code& ec);
@@ -44,13 +44,13 @@ public:
     {
         struct value_type{};
 
-        struct reader
+        struct writer
         {
             using const_buffers_type =
                 boost::asio::const_buffer;
 
             template<bool isRequest, class Fields>
-            reader(message<isRequest, mutable_body, Fields>&);
+            writer(message<isRequest, mutable_body, Fields>&);
 
             void
             init(error_code& ec);

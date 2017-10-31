@@ -56,7 +56,7 @@ struct basic_dynamic_body
         return v.size();
     }
 
-    /** The algorithm for serializing the body
+    /** The algorithm for parsing the body
 
         Meets the requirements of @b BodyReader.
     */
@@ -65,50 +65,12 @@ struct basic_dynamic_body
 #else
     class reader
     {
-        DynamicBuffer const& body_;
-
-    public:
-        using const_buffers_type =
-            typename DynamicBuffer::const_buffers_type;
-
-        template<bool isRequest, class Fields>
-        explicit
-        reader(message<isRequest,
-                basic_dynamic_body, Fields> const& m)
-            : body_(m.body())
-        {
-        }
-
-        void
-        init(error_code& ec)
-        {
-            ec.assign(0, ec.category());
-        }
-
-        boost::optional<std::pair<const_buffers_type, bool>>
-        get(error_code& ec)
-        {
-            ec.assign(0, ec.category());
-            return {{body_.data(), false}};
-        }
-    };
-#endif
-
-    /** The algorithm for parsing the body
-
-        Meets the requirements of @b BodyReader.
-    */
-#if BOOST_BEAST_DOXYGEN
-    using writer = implementation_defined;
-#else
-    class writer
-    {
         value_type& body_;
 
     public:
         template<bool isRequest, class Fields>
         explicit
-        writer(message<isRequest,
+        reader(message<isRequest,
                 basic_dynamic_body, Fields>& msg)
             : body_(msg.body())
         {
@@ -157,6 +119,44 @@ struct basic_dynamic_body
         finish(error_code& ec)
         {
             ec.assign(0, ec.category());
+        }
+    };
+#endif
+
+    /** The algorithm for serializing the body
+
+        Meets the requirements of @b BodyWriter.
+    */
+#if BOOST_BEAST_DOXYGEN
+    using writer = implementation_defined;
+#else
+    class writer
+    {
+        DynamicBuffer const& body_;
+
+    public:
+        using const_buffers_type =
+            typename DynamicBuffer::const_buffers_type;
+
+        template<bool isRequest, class Fields>
+        explicit
+        writer(message<isRequest,
+                basic_dynamic_body, Fields> const& m)
+            : body_(m.body())
+        {
+        }
+
+        void
+        init(error_code& ec)
+        {
+            ec.assign(0, ec.category());
+        }
+
+        boost::optional<std::pair<const_buffers_type, bool>>
+        get(error_code& ec)
+        {
+            ec.assign(0, ec.category());
+            return {{body_.data(), false}};
         }
     };
 #endif

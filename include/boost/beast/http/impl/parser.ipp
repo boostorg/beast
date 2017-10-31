@@ -44,7 +44,7 @@ parser(parser<isRequest, OtherBody, Allocator>&& other,
     , m_(other.release(), std::forward<Args>(args)...)
     , wr_(m_)
 {
-    if(other.wr_inited_)
+    if(other.rd_inited_)
         BOOST_THROW_EXCEPTION(std::invalid_argument{
             "moved-from parser has a body"});
 }

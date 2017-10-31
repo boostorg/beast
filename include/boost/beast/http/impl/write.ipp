@@ -499,8 +499,8 @@ write_some(
         "SyncWriteStream requirements not met");
     static_assert(is_body<Body>::value,
         "Body requirements not met");
-    static_assert(is_body_reader<Body>::value,
-        "BodyReader requirements not met");
+    static_assert(is_body_writer<Body>::value,
+        "BodyWriter requirements not met");
     error_code ec;
     auto const bytes_transferred =
         write_some(stream, sr, ec);
@@ -522,8 +522,8 @@ write_some(
         "SyncWriteStream requirements not met");
     static_assert(is_body<Body>::value,
         "Body requirements not met");
-    static_assert(is_body_reader<Body>::value,
-        "BodyReader requirements not met");
+    static_assert(is_body_writer<Body>::value,
+        "BodyWriter requirements not met");
     return detail::write_some(stream, sr, ec);
 }
 
@@ -543,8 +543,8 @@ async_write_some(
         "AsyncWriteStream requirements not met");
     static_assert(is_body<Body>::value,
         "Body requirements not met");
-    static_assert(is_body_reader<Body>::value,
-        "BodyReader requirements not met");
+    static_assert(is_body_writer<Body>::value,
+        "BodyWriter requirements not met");
     return detail::async_write_some(stream, sr,
         std::forward<WriteHandler>(handler));
 }
@@ -562,8 +562,8 @@ write_header(SyncWriteStream& stream,
         "SyncWriteStream requirements not met");
     static_assert(is_body<Body>::value,
         "Body requirements not met");
-    static_assert(is_body_reader<Body>::value,
-        "BodyReader requirements not met");
+    static_assert(is_body_writer<Body>::value,
+        "BodyWriter requirements not met");
     error_code ec;
     auto const bytes_transferred =
         write_header(stream, sr, ec);
@@ -585,8 +585,8 @@ write_header(
         "SyncWriteStream requirements not met");
     static_assert(is_body<Body>::value,
         "Body requirements not met");
-    static_assert(is_body_reader<Body>::value,
-        "BodyReader requirements not met");
+    static_assert(is_body_writer<Body>::value,
+        "BodyWriter requirements not met");
     sr.split(true);
     std::size_t bytes_transferred = 0;
     if(! sr.is_header_done())
@@ -626,8 +626,8 @@ async_write_header(
         "AsyncWriteStream requirements not met");
     static_assert(is_body<Body>::value,
         "Body requirements not met");
-    static_assert(is_body_reader<Body>::value,
-        "BodyReader requirements not met");
+    static_assert(is_body_writer<Body>::value,
+        "BodyWriter requirements not met");
     sr.split(true);
     boost::asio::async_completion<
         WriteHandler,
@@ -703,8 +703,8 @@ async_write(
         "AsyncWriteStream requirements not met");
     static_assert(is_body<Body>::value,
         "Body requirements not met");
-    static_assert(is_body_reader<Body>::value,
-        "BodyReader requirements not met");
+    static_assert(is_body_writer<Body>::value,
+        "BodyWriter requirements not met");
     sr.split(false);
     boost::asio::async_completion<
         WriteHandler,
@@ -733,8 +733,8 @@ write(
         "SyncWriteStream requirements not met");
     static_assert(is_body<Body>::value,
         "Body requirements not met");
-    static_assert(is_body_reader<Body>::value,
-        "BodyReader requirements not met");
+    static_assert(is_body_writer<Body>::value,
+        "BodyWriter requirements not met");
     error_code ec;
     auto const bytes_transferred =
         write(stream, msg, ec);
@@ -756,8 +756,8 @@ write(
         "SyncWriteStream requirements not met");
     static_assert(is_body<Body>::value,
         "Body requirements not met");
-    static_assert(is_body_reader<Body>::value,
-        "BodyReader requirements not met");
+    static_assert(is_body_writer<Body>::value,
+        "BodyWriter requirements not met");
     serializer<isRequest, Body, Fields> sr{msg};
     return write(stream, sr, ec);
 }
@@ -778,8 +778,8 @@ async_write(
         "AsyncWriteStream requirements not met");
     static_assert(is_body<Body>::value,
         "Body requirements not met");
-    static_assert(is_body_reader<Body>::value,
-        "BodyReader requirements not met");
+    static_assert(is_body_writer<Body>::value,
+        "BodyWriter requirements not met");
     boost::asio::async_completion<
         WriteHandler,
         void(error_code, std::size_t)> init{handler};
@@ -860,8 +860,8 @@ operator<<(std::ostream& os,
 {
     static_assert(is_body<Body>::value,
         "Body requirements not met");
-    static_assert(is_body_reader<Body>::value,
-        "BodyReader requirements not met");
+    static_assert(is_body_writer<Body>::value,
+        "BodyWriter requirements not met");
     serializer<isRequest, Body, Fields> sr{msg};
     error_code ec;
     detail::write_ostream_lambda<decltype(sr)> f{os, sr};

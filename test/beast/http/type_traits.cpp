@@ -17,11 +17,11 @@ namespace boost {
 namespace beast {
 namespace http {
 
-BOOST_STATIC_ASSERT(! is_body_reader<int>::value);
+BOOST_STATIC_ASSERT(! is_body_writer<int>::value);
 
-BOOST_STATIC_ASSERT(is_body_reader<empty_body>::value);
+BOOST_STATIC_ASSERT(is_body_writer<empty_body>::value);
 
-BOOST_STATIC_ASSERT(! is_body_writer<std::string>::value);
+BOOST_STATIC_ASSERT(! is_body_reader<std::string>::value);
 
 namespace {
 

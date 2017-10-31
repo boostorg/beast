@@ -53,8 +53,8 @@ class parser
     static_assert(is_body<Body>::value,
         "Body requirements not met");
 
-    static_assert(is_body_writer<Body>::value,
-        "BodyWriter requirements not met");
+    static_assert(is_body_reader<Body>::value,
+        "BodyReader requirements not met");
 
     template<bool, class, class>
     friend class parser;
@@ -63,8 +63,8 @@ class parser
         parser<isRequest, Body, Allocator>>;
 
     message<isRequest, Body, basic_fields<Allocator>> m_;
-    typename Body::writer wr_;
-    bool wr_inited_ = false;
+    typename Body::reader wr_;
+    bool rd_inited_ = false;
 
     std::function<void(
         std::uint64_t,
@@ -127,7 +127,7 @@ public:
         This constructs a new parser by move constructing the
         header from another parser with a different body type. The
         constructed-from parser must not have any parsed body octets or
-        initialized @b BodyWriter, otherwise an exception is generated.
+        initialized @b BodyReader, otherwise an exception is generated.
 
         @par Example
         @code
@@ -148,7 +148,7 @@ public:
         constructor.
 
         @throws std::invalid_argument Thrown when the constructed-from
-        parser has already initialized a body writer.
+        parser has already initialized a body reader.
 
         @note This function participates in overload resolution only
         if the other parser uses a different body type.
@@ -247,7 +247,7 @@ public:
         BOOST_STATIC_ASSERT(! std::is_const<Callback>::value);
 
         // Can't set the callback after receiving any chunk data!
-        BOOST_ASSERT(! wr_inited_);
+        BOOST_ASSERT(! rd_inited_);
 
         cb_h_ = std::ref(cb);
     }
@@ -295,7 +295,7 @@ public:
         BOOST_STATIC_ASSERT(! std::is_const<Callback>::value);
 
         // Can't set the callback after receiving any chunk data!
-        BOOST_ASSERT(! wr_inited_);
+        BOOST_ASSERT(! rd_inited_);
 
         cb_b_ = std::ref(cb);
     }
@@ -377,7 +377,7 @@ private:
         error_code& ec)
     {
         wr_.init(content_length, ec);
-        wr_inited_ = true;
+        rd_inited_ = true;
     }
 
     std::size_t

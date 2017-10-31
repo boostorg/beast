@@ -738,8 +738,8 @@ read(
         "DynamicBuffer requirements not met");
     static_assert(is_body<Body>::value,
         "Body requirements not met");
-    static_assert(is_body_writer<Body>::value,
-        "BodyWriter requirements not met");
+    static_assert(is_body_reader<Body>::value,
+        "BodyReader requirements not met");
     error_code ec;
     auto const bytes_transferred =
         read(stream, buffer, msg, ec);
@@ -766,8 +766,8 @@ read(
         "DynamicBuffer requirements not met");
     static_assert(is_body<Body>::value,
         "Body requirements not met");
-    static_assert(is_body_writer<Body>::value,
-        "BodyWriter requirements not met");
+    static_assert(is_body_reader<Body>::value,
+        "BodyReader requirements not met");
     parser<isRequest, Body, Allocator> p{std::move(msg)};
     p.eager(true);
     auto const bytes_transferred =
@@ -798,8 +798,8 @@ async_read(
         "DynamicBuffer requirements not met");
     static_assert(is_body<Body>::value,
         "Body requirements not met");
-    static_assert(is_body_writer<Body>::value,
-        "BodyWriter requirements not met");
+    static_assert(is_body_reader<Body>::value,
+        "BodyReader requirements not met");
     boost::asio::async_completion<
         ReadHandler,
         void(error_code, std::size_t)> init{handler};
