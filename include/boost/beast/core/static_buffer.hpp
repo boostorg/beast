@@ -128,7 +128,7 @@ protected:
         for the derived class to call @ref reset in order to
         initialize the object.
     */
-    static_buffer_base();
+    static_buffer_base() = default;
 
     /** Reset the pointed-to buffer.
 

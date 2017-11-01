@@ -1,3 +1,9 @@
+Version 134:
+
+* Add static_buffer_base default constructor definition
+
+--------------------------------------------------------------------------------
+
 Version 133:
 
 * Remove const&& overload of message::body
