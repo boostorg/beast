@@ -655,9 +655,9 @@ int main(int argc, char* argv[])
     if (argc != 5)
     {
         std::cerr <<
-            "Usage: http-server-sync <address> <port> <doc_root> <threads>\n" <<
+            "Usage: http-server-flex <address> <port> <doc_root> <threads>\n" <<
             "Example:\n" <<
-            "    http-server-sync 0.0.0.0 8080 .\n";
+            "    http-server-flex 0.0.0.0 8080 .\n";
         return EXIT_FAILURE;
     }
     auto const address = boost::asio::ip::make_address(argv[1]);
