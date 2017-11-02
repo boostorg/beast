@@ -1,3 +1,9 @@
+Version 136:
+
+* Tidy up message doc image
+
+--------------------------------------------------------------------------------
+
 Version 135:
 
 * Fix typo in example server help text
