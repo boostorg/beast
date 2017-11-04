@@ -44,7 +44,7 @@ In this table:
 [table Valid expressions
 [[Expression] [Type] [Semantics, Pre/Post-conditions]]
 [
-    [`R(m);`]
+    [`R{m};`]
     []
     [
         Constructible from `m`. The lifetime of `m` is guaranteed to

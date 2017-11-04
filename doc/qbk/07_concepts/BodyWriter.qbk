@@ -52,7 +52,7 @@ In this table:
         This is the type of buffer returned by `W::get`.
     ]
 ][
-    [`W(m);`]
+    [`W{m};`]
     []
     [
         Constructible from `m`. The lifetime of `m` is guaranteed
