@@ -59,6 +59,16 @@ In this table:
         to end no earlier than after the `W` is destroyed.
     ]
 ][
+    [`W{f}`]
+    []
+    [
+        The implementation calls this constructor to indicate
+        that the fields being serialized form part of a chunked
+        encoding final-chunk trailer. The lifetime of `f` is
+        guaranteed to end no earlier than after the `W` is
+        destroyed.
+    ]
+][
     [`a.get()`]
     [`W::const_buffers_type`]
     [

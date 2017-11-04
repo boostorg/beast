@@ -16,6 +16,7 @@
 #include <algorithm>
 #include <array>
 #include <cstddef>
+#include <memory>
 
 namespace boost {
 namespace beast {
@@ -67,45 +68,43 @@ struct is_chunk_extensions<T, beast::detail::void_t<decltype(
 */
 class chunk_size
 {
-public:
-    // Storage for the longest hex string we might need
-    class value_type
+    template<class OutIter>
+    static
+    OutIter
+    to_hex(OutIter last, std::size_t n)
     {
-        friend class chunk_size;
-
-        // First byte holds the length
-        char buf_[1 + 2 * sizeof(std::size_t)];
-
-        template<class = void>
-        void
-        prepare(std::size_t n);
-
-        template<class OutIter>
-        static
-        OutIter
-        to_hex(OutIter last, std::size_t n)
+        if(n == 0)
         {
-            if(n == 0)
-            {
-                *--last = '0';
-                return last;
-            }
-            while(n)
-            {
-                *--last = "0123456789abcdef"[n&0xf];
-                n>>=4;
-            }
+            *--last = '0';
             return last;
         }
-    public:
-        operator
-        boost::asio::const_buffer() const
+        while(n)
         {
-            return {
-                buf_ + sizeof(buf_) - buf_[0],
-                static_cast<unsigned>(buf_[0])};
+            *--last = "0123456789abcdef"[n&0xf];
+            n>>=4;
+        }
+        return last;
+    }
+
+    struct sequence
+    {
+        boost::asio::const_buffer b;
+        char data[1 + 2 * sizeof(std::size_t)];
+
+        explicit
+        sequence(std::size_t n)
+        {
+            char* it0 = data + sizeof(data);
+            auto it = to_hex(it0, n);
+            b = {it,
+                static_cast<std::size_t>(it0 - it)};
         }
     };
+
+    std::shared_ptr<sequence> sp_;
+
+public:
+    using value_type = boost::asio::const_buffer;
 
     using const_iterator = value_type const*;
 
@@ -116,14 +115,14 @@ public:
         @param n The number of octets in this chunk.
     */
     chunk_size(std::size_t n)
+        : sp_(std::make_shared<sequence>(n))
     {
-        value_.prepare(n);
     }
 
     const_iterator
     begin() const
     {
-        return &value_;
+        return &sp_->b;
     }
 
     const_iterator
@@ -131,21 +130,7 @@ public:
     {
         return begin() + 1;
     }
-
-private:
-    value_type value_;
 };
-
-template<class>
-void
-chunk_size::
-value_type::
-prepare(std::size_t n)
-{
-    auto const last = &buf_[sizeof(buf_)];
-    auto it = to_hex(last, n);
-    buf_[0] = static_cast<char>(last - it);
-}
 
 //------------------------------------------------------------------------------
 

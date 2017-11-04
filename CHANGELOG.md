@@ -1,3 +1,35 @@
+Version 137:
+
+* ConstBufferSequence mandates pointer equivalence
+* Add FieldsWriter constructor requirement
+* Tidy up some documented constructor syntax
+
+--------------------------------------------------------------------------------
+
+Version 136:
+
+* Tidy up message doc image
+
+--------------------------------------------------------------------------------
+
+Version 135:
+
+* Fix typo in example server help text
+
+--------------------------------------------------------------------------------
+
+Version 134:
+
+* Add static_buffer_base default constructor definition
+
+--------------------------------------------------------------------------------
+
+Version 133:
+
+* Remove const&& overload of message::body
+
+--------------------------------------------------------------------------------
+
 Version 132:
 
 * Tidy up project folders in CMakeLists.txt
