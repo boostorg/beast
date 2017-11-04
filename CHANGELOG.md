@@ -1,3 +1,9 @@
+Version 137:
+
+* ConstBufferSequence mandates pointer equivalence
+
+--------------------------------------------------------------------------------
+
 Version 136:
 
 * Tidy up message doc image
