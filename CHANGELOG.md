@@ -1,6 +1,7 @@
 Version 137:
 
 * ConstBufferSequence mandates pointer equivalence
+* Add FieldsWriter constructor requirement
 
 --------------------------------------------------------------------------------
 
