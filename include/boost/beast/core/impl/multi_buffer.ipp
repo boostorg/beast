@@ -700,9 +700,9 @@ prepare(size_type n) ->
         {
             static auto const growth_factor = 2.0f;
             auto const size =
-                std::min<std::size_t>(
+                (std::min<std::size_t>)(
                     max_ - total,
-                    std::max<std::size_t>({
+                    (std::max<std::size_t>)({
                         static_cast<std::size_t>(
                             in_size_ * growth_factor - in_size_),
                         512,

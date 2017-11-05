@@ -45,9 +45,9 @@ read_size(DynamicBuffer& buffer,
     auto const size = buffer.size();
     auto const limit = buffer.max_size() - size;
     BOOST_ASSERT(size <= buffer.max_size());
-    return std::min<std::size_t>(
-        std::max<std::size_t>(512, buffer.capacity() - size),
-        std::min<std::size_t>(max_size, limit));
+    return (std::min<std::size_t>)(
+        (std::max<std::size_t>)(512, buffer.capacity() - size),
+        (std::min<std::size_t>)(max_size, limit));
 }
 
 } // detail

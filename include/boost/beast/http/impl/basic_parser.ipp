@@ -167,7 +167,7 @@ loop:
         maybe_need_more(p, n, ec);
         if(ec)
             goto done;
-        parse_start_line(p, p + std::min<std::size_t>(
+        parse_start_line(p, p + (std::min<std::size_t>)(
             header_limit_, n), ec, is_request{});
         if(ec)
         {
@@ -198,7 +198,7 @@ loop:
         maybe_need_more(p, n, ec);
         if(ec)
             goto done;
-        parse_fields(p, p + std::min<std::size_t>(
+        parse_fields(p, p + (std::min<std::size_t>)(
             header_limit_, n), ec);
         if(ec)
         {

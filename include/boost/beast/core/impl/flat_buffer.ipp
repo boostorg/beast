@@ -263,9 +263,9 @@ prepare(std::size_t n) ->
         BOOST_THROW_EXCEPTION(std::length_error{
             "basic_flat_buffer overflow"});
     // allocate a new buffer
-    auto const new_size = std::min<std::size_t>(
+    auto const new_size = (std::min<std::size_t>)(
         max_,
-        std::max<std::size_t>(2 * len, len + n));
+        (std::max<std::size_t>)(2 * len, len + n));
     auto const p = alloc_traits::allocate(
         this->member(), new_size);
     if(begin_)

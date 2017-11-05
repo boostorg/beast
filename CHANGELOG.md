@@ -1,3 +1,9 @@
+Version 139:
+
+* Revisit boost library min/max guidance
+
+--------------------------------------------------------------------------------
+
 Version 138:
 
 * Tidy up some documentation
