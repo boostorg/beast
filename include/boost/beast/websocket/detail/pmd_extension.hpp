@@ -277,7 +277,7 @@ pmd_negotiate(
         s += "; client_no_context_takeover";
 
     if(offer.server_max_window_bits != 0)
-        config.server_max_window_bits = std::min(
+        config.server_max_window_bits = (std::min)(
             offer.server_max_window_bits,
                 o.server_max_window_bits);
     else
@@ -326,7 +326,7 @@ pmd_negotiate(
 
     default:
         // extension parameter has value in [8..15]
-        config.client_max_window_bits = std::min(
+        config.client_max_window_bits = (std::min)(
             o.client_max_window_bits,
                 offer.client_max_window_bits);
         s += "; client_max_window_bits=";

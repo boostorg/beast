@@ -124,7 +124,7 @@ public:
     void
     commit(std::size_t n)
     {
-        out_ += std::min<std::size_t>(n, last_ - out_);
+        out_ += (std::min<std::size_t>)(n, last_ - out_);
     }
 
     /// Remove bytes from the input sequence.

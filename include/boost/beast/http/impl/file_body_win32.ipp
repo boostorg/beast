@@ -417,8 +417,8 @@ operator()()
     }
     auto& r = sr_.reader_impl();
     boost::winapi::DWORD_ const nNumberOfBytesToWrite =
-        std::min<boost::winapi::DWORD_>(
-            beast::detail::clamp(std::min<std::uint64_t>(
+        (std::min<boost::winapi::DWORD_>)(
+            beast::detail::clamp((std::min<std::uint64_t>)(
                 r.body_.last_ - r.pos_, sr_.limit())),
             2147483646);
     boost::asio::windows::overlapped_ptr overlapped{
@@ -514,8 +514,8 @@ write_some(
     if(ec)
         return 0;
     boost::winapi::DWORD_ const nNumberOfBytesToWrite =
-        std::min<boost::winapi::DWORD_>(
-            beast::detail::clamp(std::min<std::uint64_t>(
+        (std::min<boost::winapi::DWORD_>)(
+            beast::detail::clamp((std::min<std::uint64_t>)(
                 r.body_.last_ - r.pos_, sr.limit())),
             2147483646);
     auto const bSuccess = ::TransmitFile(
