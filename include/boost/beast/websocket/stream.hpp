@@ -86,6 +86,8 @@ enum class frame_type
     @par Thread Safety
     @e Distinct @e objects: Safe.@n
     @e Shared @e objects: Unsafe.
+    The application must also ensure that all asynchronous
+    operations are performed within the same implicit or explicit strand.
 
     @par Example
 

@@ -130,7 +130,7 @@ write_some(
 
     This operation is implemented in terms of zero or more calls to the stream's
     `async_write_some` function, and is known as a <em>composed operation</em>.
-    The program must ensure that the stream performs no other write operations
+    The program must ensure that the stream performs no other writes
     until this operation completes.
 
     The amount of data actually transferred is controlled by the behavior
@@ -259,7 +259,7 @@ write_header(
 
     This operation is implemented in terms of zero or more calls to the stream's
     `async_write_some` function, and is known as a <em>composed operation</em>.
-    The program must ensure that the stream performs no other write operations
+    The program must ensure that the stream performs no other writes
     until this operation completes.
 
     @param stream The stream to which the data is to be written.
@@ -377,7 +377,7 @@ write(
 
     This operation is implemented in terms of zero or more calls to the stream's
     `async_write_some` function, and is known as a <em>composed operation</em>.
-    The program must ensure that the stream performs no other write operations
+    The program must ensure that the stream performs no other writes
     until this operation completes.
 
     @param stream The stream to which the data is to be written.
@@ -491,7 +491,7 @@ write(
 
     This operation is implemented in terms of zero or more calls to the stream's
     `async_write_some` function, and is known as a <em>composed operation</em>.
-    The program must ensure that the stream performs no other write operations
+    The program must ensure that the stream performs no other writes
     until this operation completes. The algorithm will use a temporary
     @ref serializer with an empty chunk decorator to produce buffers.
 

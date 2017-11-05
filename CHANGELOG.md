@@ -1,3 +1,9 @@
+Version 138:
+
+* Tidy up some documentation
+
+--------------------------------------------------------------------------------
+
 Version 137:
 
 * ConstBufferSequence mandates pointer equivalence

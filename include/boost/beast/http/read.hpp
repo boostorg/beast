@@ -146,7 +146,7 @@ read_some(
     This operation is implemented in terms of zero or more calls to
     the next layer's `async_read_some` function, and is known as a
     <em>composed operation</em>. The program must ensure that the
-    stream performs no other operations until this operation completes.
+    stream performs no other reads until this operation completes.
     The implementation may read additional octets that lie past the
     end of the object being parsed. This additional data is stored
     in the stream buffer, which may be used in subsequent calls.
@@ -332,7 +332,7 @@ read_header(
     This operation is implemented in terms of one or more calls to
     the stream's `async_read_some` function, and is known as a
     <em>composed operation</em>. The program must ensure that the
-    stream performs no other operations until this operation completes.
+    stream performs no other reads until this operation completes.
     The implementation may read additional octets that lie past the
     end of the message being read. This additional data is stored
     in the dynamic buffer, which must be retained for subsequent reads.
@@ -516,7 +516,7 @@ read(
     This operation is implemented in terms of one or more calls to
     the stream's `async_read_some` function, and is known as a
     <em>composed operation</em>. The program must ensure that the
-    stream performs no other operations until this operation completes.
+    stream performs no other reads until this operation completes.
     The implementation may read additional octets that lie past the
     end of the message being read. This additional data is stored
     in the dynamic buffer, which must be retained for subsequent reads.
@@ -698,7 +698,7 @@ read(
     This operation is implemented in terms of one or more calls to
     the stream's `async_read_some` function, and is known as a
     <em>composed operation</em>. The program must ensure that the
-    stream performs no other operations until this operation completes.
+    stream performs no other reads until this operation completes.
     The implementation may read additional octets that lie past the
     end of the message being read. This additional data is stored
     in the dynamic buffer, which must be retained for subsequent reads.
