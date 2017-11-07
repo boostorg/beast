@@ -203,7 +203,7 @@ class basic_parser
     static unsigned constexpr flagUpgrade               = 1<< 12;
     static unsigned constexpr flagFinalChunk            = 1<< 13;
 
-    static
+    constexpr static
     std::uint64_t
     default_body_limit(std::true_type)
     {
@@ -211,7 +211,7 @@ class basic_parser
         return 1 * 1024 * 1024; // 1MB
     }
 
-    static
+    constexpr static
     std::uint64_t
     default_body_limit(std::false_type)
     {
@@ -219,17 +219,18 @@ class basic_parser
         return 8 * 1024 * 1024; // 8MB
     }
 
-    std::uint64_t body_limit_;      // max payload body
-    std::uint64_t len_;             // size of chunk or body
-    std::unique_ptr<char[]> buf_;   // temp storage
-    std::size_t buf_len_ = 0;       // size of buf_
-    std::size_t skip_ = 0;          // resume search here
+    std::uint64_t body_limit_ =
+        default_body_limit(is_request{}); // max payload body
+    std::uint64_t len_ = 0;               // size of chunk or body
+    std::unique_ptr<char[]> buf_;         // temp storage
+    std::size_t buf_len_ = 0;             // size of buf_
+    std::size_t skip_ = 0;                // resume search here
     std::uint32_t
-        header_limit_ = 8192;       // max header size
-    unsigned short status_;         // response status
-    state state_ =                  // initial state
+        header_limit_ = 8192;             // max header size
+    unsigned short status_ = 0;           // response status
+    state state_ =                        // initial state
         state::nothing_yet;
-    unsigned f_ = 0;                // flags
+    unsigned f_ = 0;                      // flags
 
 public:
     /// `true` if this parser parses requests, `false` for responses.
@@ -237,16 +238,22 @@ public:
         std::integral_constant<bool, isRequest>;
 
     /// Destructor
-    ~basic_parser();
+    ~basic_parser() = default;
 
-    /// Constructor
+    /// Copy constructor
     basic_parser(basic_parser const&) = delete;
 
-    /// Constructor
+    /// Move constructor
+    basic_parser(basic_parser &&) = default;
+
+    /// Move assignment
+    basic_parser& operator=(basic_parser &&) = default;
+
+    /// Copy assignment
     basic_parser& operator=(basic_parser const&) = delete;
 
-    /// Constructor
-    basic_parser();
+    /// Default constructor
+    basic_parser() = default;
 
     /** Move constructor
 
@@ -263,7 +270,7 @@ public:
         resolution would be ambiguous.
     */
     basic_parser&
-    base()
+    base() noexcept
     {
         return *this;
     }
@@ -275,14 +282,14 @@ public:
         resolution would be ambiguous.
     */
     basic_parser const&
-    base() const
+    base() const noexcept
     {
         return *this;
     }
 
     /// Returns `true` if the parser has received at least one byte of input.
     bool
-    got_some() const
+    got_some() const noexcept
     {
         return state_ != state::nothing_yet;
     }
@@ -300,7 +307,7 @@ public:
         and the entire body was parsed.
     */
     bool
-    is_done() const
+    is_done() const noexcept
     {
         return state_ == state::complete;
     }
@@ -308,7 +315,7 @@ public:
     /** Returns `true` if a the parser has produced the full header.
     */
     bool
-    is_header_done() const
+    is_header_done() const noexcept
     {
         return state_ > state::fields;
     }
@@ -319,7 +326,7 @@ public:
         @ref is_header_done would return `true`.
     */
     bool
-    upgrade() const
+    upgrade() const noexcept
     {
         return (f_ & flagConnectionUpgrade) != 0;
     }
@@ -330,7 +337,7 @@ public:
         @ref is_header_done would return `true`.
     */
     bool
-    chunked() const
+    chunked() const noexcept
     {
         return (f_ & flagChunked) != 0;
     }
@@ -344,7 +351,7 @@ public:
         @ref is_header_done would return `true`.
     */
     bool
-    keep_alive() const;
+    keep_alive() const noexcept;
 
     /** Returns the optional value of Content-Length if known.
 
@@ -352,7 +359,7 @@ public:
         @ref is_header_done would return `true`.
     */
     boost::optional<std::uint64_t>
-    content_length() const;
+    content_length() const noexcept;
 
     /** Returns `true` if the message semantics require an end of file.
 
@@ -363,7 +370,7 @@ public:
         data from the input.
     */
     bool
-    need_eof() const
+    need_eof() const noexcept
     {
         return (f_ & flagNeedEOF) != 0;
     }
@@ -400,7 +407,7 @@ public:
         @param v The payload body limit to set
     */
     void
-    body_limit(std::uint64_t v)
+    body_limit(std::uint64_t v) noexcept
     {
         body_limit_ = v;
     }
@@ -418,14 +425,14 @@ public:
         results in undefined behavior.
     */
     void
-    header_limit(std::uint32_t v)
+    header_limit(std::uint32_t v) noexcept
     {
         header_limit_ = v;
     }
 
     /// Returns `true` if the eager parse option is set.
     bool
-    eager() const
+    eager() const noexcept
     {
         return (f_ & flagEager) != 0;
     }
@@ -447,7 +454,7 @@ public:
         @param v `true` to set the eager parse option or `false` to disable it.
     */
     void
-    eager(bool v)
+    eager(bool v) noexcept
     {
         if(v)
             f_ |= flagEager;
@@ -457,7 +464,7 @@ public:
 
     /// Returns `true` if the skip parse option is set.
     bool
-    skip()
+    skip() const noexcept
     {
         return (f_ & flagSkipBody) != 0;
     }
@@ -478,7 +485,7 @@ public:
         @note This function must called before any bytes are processed.
     */
     void
-    skip(bool v);
+    skip(bool v) noexcept;
 
     /** Write a buffer sequence to the parser.
 
@@ -544,7 +551,7 @@ public:
 private:
     inline
     Derived&
-    impl()
+    impl() noexcept
     {
         return *static_cast<Derived*>(this);
     }

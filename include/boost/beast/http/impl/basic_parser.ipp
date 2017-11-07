@@ -26,20 +26,6 @@ namespace beast {
 namespace http {
 
 template<bool isRequest, class Derived>
-basic_parser<isRequest, Derived>::
-~basic_parser()
-{
-}
-
-template<bool isRequest, class Derived>
-basic_parser<isRequest, Derived>::
-basic_parser()
-    : body_limit_(
-        default_body_limit(is_request{}))
-{
-}
-
-template<bool isRequest, class Derived>
 template<class OtherDerived>
 basic_parser<isRequest, Derived>::
 basic_parser(basic_parser<
@@ -49,6 +35,8 @@ basic_parser(basic_parser<
     , buf_(std::move(other.buf_))
     , buf_len_(other.buf_len_)
     , skip_(other.skip_)
+    , header_limit_(other.header_limit_)
+    , status_(other.status_)
     , state_(other.state_)
     , f_(other.f_)
 {
@@ -57,7 +45,7 @@ basic_parser(basic_parser<
 template<bool isRequest, class Derived>
 bool
 basic_parser<isRequest, Derived>::
-keep_alive() const
+keep_alive() const noexcept
 {
     BOOST_ASSERT(is_header_done());
     if(f_ & flagHTTP11)
@@ -76,7 +64,7 @@ keep_alive() const
 template<bool isRequest, class Derived>
 boost::optional<std::uint64_t>
 basic_parser<isRequest, Derived>::
-content_length() const
+content_length() const noexcept
 {
     BOOST_ASSERT(is_header_done());
     if(! (f_ & flagContentLength))
@@ -87,7 +75,7 @@ content_length() const
 template<bool isRequest, class Derived>
 void
 basic_parser<isRequest, Derived>::
-skip(bool v)
+skip(bool v) noexcept
 {
     BOOST_ASSERT(! got_some());
     if(v)
