@@ -1,6 +1,7 @@
 Version 140:
 
 * Fix some integer warnings in 64-bit builds
+* Fix utf8_checker test failures
 
 --------------------------------------------------------------------------------
 

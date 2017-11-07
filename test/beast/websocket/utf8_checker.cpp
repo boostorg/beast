@@ -46,27 +46,45 @@ public:
         {
             // fail fast
             utf8_checker u;
-            BEAST_EXPECT(! u.write(&c, 1));
+            if (c < 194)
+                BEAST_EXPECT(! u.write(&c, 1));
+            else
+            {
+                BEAST_EXPECT(u.write(&c, 1));
+                BEAST_EXPECT(! u.finish());
+            }
         }
 
         // three byte sequences
         for(unsigned char c = 224; c < 240; ++c)
         {
+            // fail fast
             utf8_checker u;
-            BEAST_EXPECT(u.write(&c, 1));
-            BEAST_EXPECT(! u.finish());
+            if (c == 224)
+                BEAST_EXPECT(! u.write(&c, 1));
+            else
+            {
+                BEAST_EXPECT(u.write(&c, 1));
+                BEAST_EXPECT(! u.finish());
+            }
         }
 
         // four byte sequences
-        for(unsigned char c = 240; c < 248; ++c)
+        for(unsigned char c = 240; c < 245; ++c)
         {
+            // fail fast
             utf8_checker u;
-            BEAST_EXPECT(u.write(&c, 1));
-            BEAST_EXPECT(! u.finish());
+            if (c == 240)
+                BEAST_EXPECT(! u.write(&c, 1));
+            else
+            {
+                BEAST_EXPECT(u.write(&c, 1));
+                BEAST_EXPECT(! u.finish());
+            }
         }
 
         // invalid lead bytes
-        for(unsigned char c = 248; c; ++c)
+        for(unsigned char c = 245; c; ++c)
         {
             utf8_checker u;
             BEAST_EXPECT(! u.write(&c, 1));
@@ -84,30 +102,30 @@ public:
 
         utf8_checker u;
         std::uint8_t buf[2];
-        for(auto i = 194; i <= 223; ++i)
+        // First byte valid range 194-223
+        for(auto i : {194, 223})
         {
-            // First byte valid range 194-223
             buf[0] = static_cast<std::uint8_t>(i);
 
-            for(auto j = 128; j <= 191; ++j)
+            // Second byte valid range 128-191
+            for(auto j : {128, 191})
             {
-                // Second byte valid range 128-191
                 buf[1] = static_cast<std::uint8_t>(j);
                 BEAST_EXPECT(u.write(buf, 2));
                 BEAST_EXPECT(u.finish());
             }
 
-            for(auto j = 0; j <= 127; ++j)
+            // Second byte invalid range 0-127
+            for(auto j : {0, 127})
             {
-                // Second byte invalid range 0-127
                 buf[1] = static_cast<std::uint8_t>(j);
                 BEAST_EXPECT(! u.write(buf, 2));
                 u.reset();
             }
 
-            for(auto j = 192; j <= 255; ++j)
+            // Second byte invalid range 192-255
+            for(auto j : {192, 255})
             {
-                // Second byte invalid range 192-255
                 buf[1] = static_cast<std::uint8_t>(j);
                 BEAST_EXPECT(! u.write(buf, 2));
                 u.reset();
@@ -125,37 +143,37 @@ public:
     {
         {
             utf8_checker u;
-            BEAST_EXPECT(u.write(boost::asio::buffer("\xef\xbf\xbe", 3)));
-            BEAST_EXPECT(u.finish());
-        }
-        {
-            utf8_checker u;
             BEAST_EXPECT(u.write(boost::asio::buffer("\xef\xbf\xbf", 3)));
             BEAST_EXPECT(u.finish());
         }
         utf8_checker u;
         std::uint8_t buf[3];
-        for(auto i = 224; i <= 239; ++i)
+        // First byte valid range 224-239
+        for(auto i : {224, 239})
         {
-            // First byte valid range 224-239
             buf[0] = static_cast<std::uint8_t>(i);
 
+            // Second byte valid range 128-191 or 160-191 or 128-159
             std::int32_t const b = (i == 224 ? 160 : 128);
             std::int32_t const e = (i == 237 ? 159 : 191);
-            for(auto j = b; j <= e; ++j)
+            for(auto j : {b, e})
             {
-                // Second byte valid range 128-191 or 160-191 or 128-159
                 buf[1] = static_cast<std::uint8_t>(j);
 
-                for(auto k = 128; k <= 191; ++k)
+                // Third byte valid range 128-191
+                for(auto k : {128, 191})
                 {
-                    // Third byte valid range 128-191
                     buf[2] = static_cast<std::uint8_t>(k);
                     BEAST_EXPECT(u.write(buf, 3));
                     BEAST_EXPECT(u.finish());
                     // Segmented sequence
-                    BEAST_EXPECT(u.write(buf, 1));
-                    BEAST_EXPECT(u.write(&buf[1], 2));
+                    if (i == 224)
+                        BEAST_EXPECT(! u.write(buf, 1));
+                    else
+                    {
+                        BEAST_EXPECT(u.write(buf, 1));
+                        BEAST_EXPECT(u.write(&buf[1], 2));
+                    }
                     u.reset();
                     // Segmented sequence
                     BEAST_EXPECT(u.write(buf, 2));
@@ -164,51 +182,66 @@ public:
 
                     if (i == 224)
                     {
-                        for(auto l = 0; l < b; ++l)
+                        // Second byte invalid range 0-159
+                        for (auto l : {0, 159})
                         {
-                            // Second byte invalid range 0-127 or 0-159
                             buf[1] = static_cast<std::uint8_t>(l);
                             BEAST_EXPECT(! u.write(buf, 3));
                             u.reset();
-                            if (l > 127)
-                            {
-                                // Segmented sequence second byte invalid
-                                BEAST_EXPECT(! u.write(buf, 2));
-                                u.reset();
-                            }
+                            // Segmented sequence second byte invalid
+                            BEAST_EXPECT(!u.write(buf, 2));
+                            u.reset();
+                        }
+                        // Second byte invalid range 192-255
+                        for(auto l : {192, 255})
+                        {
+                            buf[1] = static_cast<std::uint8_t>(l);
+                            BEAST_EXPECT(! u.write(buf, 3));
+                            u.reset();
+                            // Segmented sequence second byte invalid
+                            BEAST_EXPECT(!u.write(buf, 2));
+                            u.reset();
                         }
                         buf[1] = static_cast<std::uint8_t>(j);
                     }
                     else if (i == 237)
                     {
-                        for(auto l = e + 1; l <= 255; ++l)
+                        // Second byte invalid range 0-127
+                        for(auto l : {0, 127})
                         {
-                            // Second byte invalid range 160-255 or 192-255
                             buf[1] = static_cast<std::uint8_t>(l);
                             BEAST_EXPECT(! u.write(buf, 3));
                             u.reset();
-                            if (l > 159)
-                            {
-                                // Segmented sequence second byte invalid
-                                BEAST_EXPECT(! u.write(buf, 2));
-                                u.reset();
-                            }
+                            // Segmented sequence second byte invalid
+                            BEAST_EXPECT(!u.write(buf, 2));
+                            u.reset();
+                        }
+
+                        // Second byte invalid range 160-255
+                        for(auto l : {160, 255})
+                        {
+                            buf[1] = static_cast<std::uint8_t>(l);
+                            BEAST_EXPECT(! u.write(buf, 3));
+                            u.reset();
+                            // Segmented sequence second byte invalid
+                            BEAST_EXPECT(! u.write(buf, 2));
+                            u.reset();
                         }
                         buf[1] = static_cast<std::uint8_t>(j);
                     }
                 }
 
-                for(auto k = 0; k <= 127; ++k)
+                // Third byte invalid range 0-127
+                for(auto k : {0, 127})
                 {
-                    // Third byte invalid range 0-127
                     buf[2] = static_cast<std::uint8_t>(k);
                     BEAST_EXPECT(! u.write(buf, 3));
                     u.reset();
                 }
 
-                for(auto k = 192; k <= 255; ++k)
+                // Third byte invalid range 192-255
+                for(auto k : {192, 255})
                 {
-                    // Third byte invalid range 192-255
                     buf[2] = static_cast<std::uint8_t>(k);
                     BEAST_EXPECT(! u.write(buf, 3));
                     u.reset();
@@ -220,25 +253,30 @@ public:
                 u.reset();
             }
 
-            for(auto j = 0; j < b; ++j)
+            // Second byte invalid range 0-127 or 0-159
+            for(auto j : {0, b - 1})
             {
-                // Second byte invalid range 0-127 or 0-159
                 buf[1] = static_cast<std::uint8_t>(j);
                 BEAST_EXPECT(! u.write(buf, 3));
                 u.reset();
             }
 
-            for(auto j = e + 1; j <= 255; ++j)
+            // Second byte invalid range 160-255 or 192-255
+            for(auto j : {e + 1, 255})
             {
-                // Second byte invalid range 160-255 or 192-255
                 buf[1] = static_cast<std::uint8_t>(j);
                 BEAST_EXPECT(! u.write(buf, 3));
                 u.reset();
             }
 
             // Segmented sequence second byte invalid
-            BEAST_EXPECT(u.write(buf, 1));
-            BEAST_EXPECT(! u.write(&buf[1], 1));
+            if (i == 224)
+                BEAST_EXPECT(! u.write(buf, 1));
+            else
+            {
+                BEAST_EXPECT(u.write(buf, 1));
+                BEAST_EXPECT(!u.write(&buf[1], 1));
+            }
             u.reset();
         }
     }
@@ -249,23 +287,23 @@ public:
         using boost::asio::const_buffer;
         utf8_checker u;
         std::uint8_t buf[4];
-        for(auto i = 240; i <= 244; ++i)
+        // First byte valid range 240-244
+        for(auto i : {240, 244})
         {
-            // First byte valid range 240-244
             buf[0] = static_cast<std::uint8_t>(i);
 
             std::int32_t const b = (i == 240 ? 144 : 128);
             std::int32_t const e = (i == 244 ? 143 : 191);
             for(auto j = b; j <= e; ++j)
             {
-                // Second byte valid range 144-191 or 128-191 or 128-143
                 buf[1] = static_cast<std::uint8_t>(j);
 
-                for(auto k = 128; k <= 191; ++k)
+                // Second byte valid range 144-191 or 128-191 or 128-143
+                for(auto k : {128, 191})
                 {
-                    // Third byte valid range 128-191
                     buf[2] = static_cast<std::uint8_t>(k);
 
+                    // Third byte valid range 128-191
                     for(auto n : {128, 191})
                     {
                         // Fourth byte valid range 128-191
@@ -273,8 +311,13 @@ public:
                         BEAST_EXPECT(u.write(buf, 4));
                         BEAST_EXPECT(u.finish());
                         // Segmented sequence
-                        BEAST_EXPECT(u.write(buf, 1));
-                        BEAST_EXPECT(u.write(&buf[1], 3));
+                        if (i == 240)
+                            BEAST_EXPECT(! u.write(buf, 1));
+                        else
+                        {
+                            BEAST_EXPECT(u.write(buf, 1));
+                            BEAST_EXPECT(u.write(&buf[1], 3));
+                        }
                         u.reset();
                         // Segmented sequence
                         BEAST_EXPECT(u.write(buf, 2));
@@ -287,25 +330,43 @@ public:
 
                         if (i == 240)
                         {
-                            // Second byte invalid range 0-127 or 0-143
-                            for(auto r : {0, b - 1})
+                            // Second byte invalid range 0-143
+                            for(auto r : {0, 143})
                             {
                                 buf[1] = static_cast<std::uint8_t>(r);
                                 BEAST_EXPECT(! u.write(buf, 4));
                                 u.reset();
-                                if (r > 127)
-                                {
-                                    // Segmented sequence second byte invalid
-                                    BEAST_EXPECT(! u.write(buf, 2));
-                                    u.reset();
-                                }
+                                // Segmented sequence second byte invalid
+                                BEAST_EXPECT(! u.write(buf, 2));
+                                u.reset();
+                            }
+
+                            // Second byte invalid range 192-255
+                            for(auto r : {192, 255})
+                            {
+                                buf[1] = static_cast<std::uint8_t>(r);
+                                BEAST_EXPECT(! u.write(buf, 4));
+                                u.reset();
+                                // Segmented sequence second byte invalid
+                                BEAST_EXPECT(!u.write(buf, 2));
+                                u.reset();
                             }
                             buf[1] = static_cast<std::uint8_t>(j);
                         }
                         else if (i == 244)
                         {
-                            // Second byte invalid range 144-255 or 192-255
-                            for(auto r : {e + 1, 255})
+                            // Second byte invalid range 0-127
+                            for(auto r : {0, 127})
+                            {
+                                buf[1] = static_cast<std::uint8_t>(r);
+                                BEAST_EXPECT(! u.write(buf, 4));
+                                u.reset();
+                                // Segmented sequence second byte invalid
+                                BEAST_EXPECT(! u.write(buf, 2));
+                                u.reset();
+                            }
+                            // Second byte invalid range 144-255
+                            for(auto r : {144, 255})
                             {
                                 buf[1] = static_cast<std::uint8_t>(r);
                                 BEAST_EXPECT(! u.write(buf, 4));
@@ -363,8 +424,13 @@ public:
             }
 
             // Segmented sequence second byte invalid
-            BEAST_EXPECT(u.write(buf, 1));
-            BEAST_EXPECT(!  u.write(&buf[1], 1));
+            if (i == 240)
+                BEAST_EXPECT(! u.write(buf, 1));
+            else
+            {
+                BEAST_EXPECT(u.write(buf, 1));
+                BEAST_EXPECT(! u.write(&buf[1], 1));
+            }
             u.reset();
         }
 
@@ -435,7 +501,7 @@ public:
             char buf[32];
             for(unsigned i = 0; i < sizeof(buf); i += 2)
             {
-                buf[i  ] = '\xc0';
+                buf[i  ] = '\xc2';
                 buf[i+1] = '\x80';
             }
             auto p = reinterpret_cast<char const*>(sizeof(std::size_t) * (
@@ -480,7 +546,7 @@ public:
     }
 };
 
-//BEAST_DEFINE_TESTSUITE(beast,websocket,utf8_checker);
+BEAST_DEFINE_TESTSUITE(beast,websocket,utf8_checker);
 
 } // detail
 } // websocket
