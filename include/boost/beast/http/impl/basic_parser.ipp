@@ -26,20 +26,6 @@ namespace beast {
 namespace http {
 
 template<bool isRequest, class Derived>
-basic_parser<isRequest, Derived>::
-~basic_parser()
-{
-}
-
-template<bool isRequest, class Derived>
-basic_parser<isRequest, Derived>::
-basic_parser()
-    : body_limit_(
-        default_body_limit(is_request{}))
-{
-}
-
-template<bool isRequest, class Derived>
 template<class OtherDerived>
 basic_parser<isRequest, Derived>::
 basic_parser(basic_parser<
@@ -49,6 +35,8 @@ basic_parser(basic_parser<
     , buf_(std::move(other.buf_))
     , buf_len_(other.buf_len_)
     , skip_(other.skip_)
+    , header_limit_(other.header_limit_)
+    , status_(other.status_)
     , state_(other.state_)
     , f_(other.f_)
 {

@@ -203,7 +203,7 @@ class basic_parser
     static unsigned constexpr flagUpgrade               = 1<< 12;
     static unsigned constexpr flagFinalChunk            = 1<< 13;
 
-    static
+    static constexpr
     std::uint64_t
     default_body_limit(std::true_type)
     {
@@ -211,7 +211,7 @@ class basic_parser
         return 1 * 1024 * 1024; // 1MB
     }
 
-    static
+    static constexpr
     std::uint64_t
     default_body_limit(std::false_type)
     {
@@ -219,17 +219,16 @@ class basic_parser
         return 8 * 1024 * 1024; // 8MB
     }
 
-    std::uint64_t body_limit_;      // max payload body
-    std::uint64_t len_;             // size of chunk or body
-    std::unique_ptr<char[]> buf_;   // temp storage
-    std::size_t buf_len_ = 0;       // size of buf_
-    std::size_t skip_ = 0;          // resume search here
-    std::uint32_t
-        header_limit_ = 8192;       // max header size
-    unsigned short status_;         // response status
-    state state_ =                  // initial state
-        state::nothing_yet;
-    unsigned f_ = 0;                // flags
+    std::uint64_t body_limit_ =
+        default_body_limit(is_request{});   // max payload body
+    std::uint64_t len_ = 0;                 // size of chunk or body
+    std::unique_ptr<char[]> buf_;           // temp storage
+    std::size_t buf_len_ = 0;               // size of buf_
+    std::size_t skip_ = 0;                  // resume search here
+    std::uint32_t header_limit_ = 8192;     // max header size
+    unsigned short status_ = 0;             // response status
+    state state_ = state::nothing_yet;      // initial state
+    unsigned f_ = 0;                        // flags
 
 public:
     /// `true` if this parser parses requests, `false` for responses.
@@ -237,16 +236,22 @@ public:
         std::integral_constant<bool, isRequest>;
 
     /// Destructor
-    ~basic_parser();
+    ~basic_parser() = default;
 
-    /// Constructor
+    /// Copy constructor
     basic_parser(basic_parser const&) = delete;
 
-    /// Constructor
+    /// Move constructor
+    basic_parser(basic_parser &&) = default;
+
+    /// Move assignment
+    basic_parser& operator=(basic_parser &&) = default;
+
+    /// Copy assignment
     basic_parser& operator=(basic_parser const&) = delete;
 
-    /// Constructor
-    basic_parser();
+    /// Default constructor
+    basic_parser() = default;
 
     /** Move constructor
 
@@ -457,7 +462,7 @@ public:
 
     /// Returns `true` if the skip parse option is set.
     bool
-    skip()
+    skip() const
     {
         return (f_ & flagSkipBody) != 0;
     }
