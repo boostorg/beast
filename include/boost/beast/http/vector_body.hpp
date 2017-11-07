@@ -88,8 +88,7 @@ public:
         {
             if(length)
             {
-                if(*length > (
-                    std::numeric_limits<std::size_t>::max)())
+                if(static_cast<std::size_t>(*length) != *length)
                 {
                     ec = error::buffer_overflow;
                     return;

@@ -1,3 +1,9 @@
+Version 140:
+
+* Fix some integer warnings in 64-bit builds
+
+--------------------------------------------------------------------------------
+
 Version 139:
 
 * Revisit boost library min/max guidance

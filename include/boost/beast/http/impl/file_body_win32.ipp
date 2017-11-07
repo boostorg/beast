@@ -417,10 +417,10 @@ operator()()
     }
     auto& r = sr_.reader_impl();
     boost::winapi::DWORD_ const nNumberOfBytesToWrite =
-        (std::min<boost::winapi::DWORD_>)(
-            beast::detail::clamp((std::min<std::uint64_t>)(
-                r.body_.last_ - r.pos_, sr_.limit())),
-            2147483646);
+        static_cast<boost::winapi::DWORD_>(
+        (std::min<std::uint64_t>)(
+            (std::min<std::uint64_t>)(r.body_.last_ - r.pos_, sr_.limit()),
+            (std::numeric_limits<boost::winapi::DWORD_>::max)()));
     boost::asio::windows::overlapped_ptr overlapped{
         sock_.get_executor().context(), *this};
     auto& ov = *overlapped.get();
@@ -514,10 +514,10 @@ write_some(
     if(ec)
         return 0;
     boost::winapi::DWORD_ const nNumberOfBytesToWrite =
-        (std::min<boost::winapi::DWORD_>)(
-            beast::detail::clamp((std::min<std::uint64_t>)(
-                r.body_.last_ - r.pos_, sr.limit())),
-            2147483646);
+        static_cast<boost::winapi::DWORD_>(
+        (std::min<std::uint64_t>)(
+            (std::min<std::uint64_t>)(r.body_.last_ - r.pos_, sr.limit()),
+            (std::numeric_limits<boost::winapi::DWORD_>::max)()));
     auto const bSuccess = ::TransmitFile(
         sock.native_handle(),
         r.body_.file_.native_handle(),
