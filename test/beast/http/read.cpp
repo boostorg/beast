@@ -311,6 +311,25 @@ public:
                 break;
         }
         BEAST_EXPECT(n < limit);
+
+        for(n = 0; n < limit; ++n)
+        {
+            test::fail_counter fc{n};
+            test::stream c{ioc_, fc,
+                "GET / HTTP/1.1\r\n"
+                "Host: localhost\r\n"
+                "User-Agent: test\r\n"
+                "Content-Length: 0\r\n"
+                "\r\n"
+            };
+            request_parser<dynamic_body> m;
+            error_code ec = test::error::fail_error;
+            multi_buffer b;
+            async_read_some(c, b, m, do_yield[ec]);
+            if(! ec)
+                break;
+        }
+        BEAST_EXPECT(n < limit);
     }
 
     void
