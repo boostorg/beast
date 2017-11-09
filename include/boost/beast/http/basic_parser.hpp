@@ -230,6 +230,26 @@ class basic_parser
     state state_ = state::nothing_yet;      // initial state
     unsigned f_ = 0;                        // flags
 
+protected:
+    /// Default constructor
+    basic_parser() = default;
+
+    /// Move constructor
+    basic_parser(basic_parser &&) = default;
+
+    /// Move assignment
+    basic_parser& operator=(basic_parser &&) = default;
+
+    /** Move constructor
+
+        @note
+
+        After the move, the only valid operation on the
+        moved-from object is destruction.
+    */
+    template<class OtherDerived>
+    basic_parser(basic_parser<isRequest, OtherDerived>&&);
+
 public:
     /// `true` if this parser parses requests, `false` for responses.
     using is_request =
@@ -241,25 +261,8 @@ public:
     /// Copy constructor
     basic_parser(basic_parser const&) = delete;
 
-    /// Move constructor
-    basic_parser(basic_parser &&) = default;
-
-    /// Move assignment
-    basic_parser& operator=(basic_parser &&) = default;
-
     /// Copy assignment
     basic_parser& operator=(basic_parser const&) = delete;
-
-    /// Default constructor
-    basic_parser() = default;
-
-    /** Move constructor
-
-        After the move, the only valid operation on the
-        moved-from object is destruction.
-    */
-    template<class OtherDerived>
-    basic_parser(basic_parser<isRequest, OtherDerived>&&);
 
     /** Returns a reference to this object as a @ref basic_parser.
 

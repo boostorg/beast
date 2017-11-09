@@ -4,6 +4,7 @@ Version 140:
 * Fix utf8_checker test failures
 * Fix signature for async_read_some, and tests
 * Tidy up basic_parser
+* Some basic_fields special members are protected
 
 --------------------------------------------------------------------------------
 
