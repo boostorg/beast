@@ -46,10 +46,10 @@ public:
             using const_buffers_type =
                 boost::asio::const_buffer;
 
-            template<bool isRequest, class Allocator>
+            template<bool isRequest, class Fields>
             explicit
             writer(message<isRequest,
-                    unsized_body, Allocator> const& msg)
+                    unsized_body, Fields> const& msg)
                 : body_(msg.body())
             {
             }
@@ -228,10 +228,10 @@ public:
             using const_buffers_type =
                 boost::asio::const_buffer;
 
-            template<bool isRequest, class Allocator>
+            template<bool isRequest, class Fields>
             explicit
             writer(message<isRequest,
-                    fail_body, Allocator> const& msg)
+                    fail_body, Fields> const& msg)
                 : body_(msg.body())
             {
             }

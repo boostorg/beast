@@ -1,6 +1,7 @@
 Version 142:
 
 * Warn about upcoming API changes to certain concepts
+* Fix name typo in http write test
 
 --------------------------------------------------------------------------------
 
