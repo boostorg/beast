@@ -29,6 +29,11 @@ representation:
 
 [heading Requirements]
 
+[warning
+    These requirements may undergo non-backward compatible
+    changes in subsequent versions.
+]
+
 In this table:
 
 * `R` denotes a type meeting the requirements of [*BodyReader].

@@ -20,6 +20,11 @@ calls into it once to retrieve the buffers.
 
 [heading Requirements]
 
+[warning
+    These requirements may undergo non-backward compatible
+    changes in subsequent versions.
+]
+
 In this table:
 
 * `W` denotes a type that meets the requirements of [*FieldsWriter].

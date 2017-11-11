@@ -1,3 +1,9 @@
+Version 142:
+
+* Warn about upcoming API changes to certain concepts
+
+--------------------------------------------------------------------------------
+
 Version 141:
 
 * Tidy up some documentation

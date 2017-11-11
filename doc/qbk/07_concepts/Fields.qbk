@@ -22,6 +22,11 @@ be serialized.
 
 [heading Requirements]
 
+[warning
+    These requirements may undergo non-backward compatible
+    changes in subsequent versions.
+]
+
 In this table:
 
 * `F` denotes a type that meets the requirements of [*Fields].
