@@ -58,8 +58,6 @@ public:
     /** Construct the writer.
 
         @param msg The message whose body is to be serialized.
-
-        @param ec Set to the error, if any occurred.
     */
     template<bool isRequest, class Body, class Fields>
     explicit

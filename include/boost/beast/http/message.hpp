@@ -171,12 +171,23 @@ struct header<true, Fields> : Fields
 
     /** Returns the request-target string.
 
+        The request target string returned is the same string which
+        was received from the network or stored. In particular, it will
+        contain url-encoded characters and should follow the syntax
+        rules for URIs used with HTTP.
+
         @note This function is only available when `isRequest == true`.
     */
     string_view
     target() const;
 
     /** Set the request-target string.
+
+        It is the caller's responsibility to ensure that the request
+        target string follows the syntax rules for URIs used with
+        HTTP. In particular, reserved or special characters must be
+        url-encoded. The implementation does not perform syntax checking
+        on the passed string.
 
         @param s A string representing the request-target.
 

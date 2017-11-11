@@ -1,3 +1,9 @@
+Version 141:
+
+* Tidy up some documentation
+
+--------------------------------------------------------------------------------
+
 Version 140:
 
 * Fix some integer warnings in 64-bit builds
