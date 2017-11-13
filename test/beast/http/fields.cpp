@@ -48,7 +48,7 @@ public:
             ::operator delete(p);
         }
 
-        template <class U>
+        template<class U>
         friend
         bool
         operator==(test_allocator<T> const&, test_allocator<U> const&) noexcept

@@ -7,6 +7,8 @@
 # Official repository: https://github.com/boostorg/beast
 #
 
+add_definitions (-DBOOST_BEAST_ALLOW_DEPRECATED)
+
 GroupSources(include/boost/beast beast)
 GroupSources(test/extras/include/boost/beast extras)
 GroupSources(subtree/unit_test/include/boost/beast extras)

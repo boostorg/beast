@@ -36,6 +36,42 @@ public:
     using parser_type =
         parser<isRequest, string_body>;
 
+    struct deprecated_body
+    {
+        using value_type = std::string;
+
+        class reader
+        {
+        public:
+            template<bool isRequest, class Fields>
+            explicit
+            reader(message<isRequest, deprecated_body, Fields>&)
+            {
+            }
+
+            void
+            init(boost::optional<std::uint64_t> const&, error_code& ec)
+            {
+                ec = {};
+            }
+
+            template<class ConstBufferSequence>
+            std::size_t
+            put(ConstBufferSequence const& buffers, error_code& ec)
+            {
+                ec = {};
+                return boost::asio::buffer_size(buffers);
+            }
+
+            void
+            finish(error_code& ec)
+            {
+                ec = {};
+            }
+        };
+    };
+
+
     static
     boost::asio::const_buffer
     buf(string_view s)
@@ -343,6 +379,12 @@ public:
         BEAST_EXPECT(std::distance(m1.begin(), m1.end()) == 0);
     }
 
+    void testBodyReaderCtor()
+    {
+        request_parser<deprecated_body> p;
+        boost::ignore_unused(p);
+    }
+
     void
     run() override
     {
@@ -351,6 +393,7 @@ public:
         testNeedMore<multi_buffer>();
         testGotSome();
         testIssue818();
+        testBodyReaderCtor();
     }
 };
 

@@ -123,9 +123,8 @@ struct basic_file_body<file_win32>
             boost::asio::const_buffer;
 
         template<bool isRequest, class Fields>
-        writer(message<isRequest,
-                basic_file_body<file_win32>, Fields>& m)
-            : body_(m.body())
+        writer(header<isRequest, Fields>&, value_type& b)
+            : body_(b)
         {
         }
 
@@ -167,8 +166,8 @@ struct basic_file_body<file_win32>
     public:
         template<bool isRequest, class Fields>
         explicit
-        reader(message<isRequest, basic_file_body, Fields>& m)
-            : body_(m.body())
+        reader(header<isRequest, Fields>&, value_type& b)
+            : body_(b)
         {
         }
 

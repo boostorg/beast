@@ -57,11 +57,12 @@ public:
 
     /** Construct the writer.
 
-        @param msg The message whose body is to be serialized.
+        @param h The header for the message being serialized
+
+        @param body The body being serialized
     */
-    template<bool isRequest, class Body, class Fields>
-    explicit
-    BodyWriter(message<isRequest, Body, Fields> const& msg);
+    template<bool isRequest, class Fields>
+    BodyWriter(header<isRequest, Fields> const& h, value_type const& body);
 
     /** Initialize the writer.
 
@@ -120,11 +121,12 @@ struct BodyReader
 {
     /** Construct the reader.
 
-        @param msg The message whose body is to be parsed.
+        @param h The header for the message being parsed
+
+        @param body The body to store the parsed results into
     */
-    template<bool isRequest, class Body, class Fields>
-    explicit
-    BodyReader(message<isRequest, Body, Fields>& msg);
+    template<bool isRequest, class Fields>
+    BodyReader(header<isRequest, Fields>& h, value_type& body);
 
     /** Initialize the reader.
 

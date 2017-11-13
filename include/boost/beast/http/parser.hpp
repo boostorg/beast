@@ -303,6 +303,39 @@ public:
 private:
     friend class basic_parser<isRequest, parser>;
 
+    parser(std::true_type);
+    parser(std::false_type);
+
+    template<class OtherBody, class... Args,
+        class = typename std::enable_if<
+            ! std::is_same<Body, OtherBody>::value>::type>
+    parser(
+        std::true_type,
+        parser<isRequest, OtherBody, Allocator>&& parser,
+        Args&&... args);
+
+    template<class OtherBody, class... Args,
+        class = typename std::enable_if<
+            ! std::is_same<Body, OtherBody>::value>::type>
+    parser(
+        std::false_type,
+        parser<isRequest, OtherBody, Allocator>&& parser,
+        Args&&... args);
+
+    template<class Arg1, class... ArgN,
+        class = typename std::enable_if<
+            ! detail::is_parser<typename
+                std::decay<Arg1>::type>::value>::type>
+    explicit
+    parser(Arg1&& arg1, std::true_type, ArgN&&... argn);
+
+    template<class Arg1, class... ArgN,
+        class = typename std::enable_if<
+            ! detail::is_parser<typename
+                std::decay<Arg1>::type>::value>::type>
+    explicit
+    parser(Arg1&& arg1, std::false_type, ArgN&&... argn);
+
     void
     on_request_impl(
         verb method,

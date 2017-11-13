@@ -76,9 +76,8 @@ public:
     public:
         template<bool isRequest, class Fields>
         explicit
-        reader(message<isRequest,
-                vector_body, Fields>& m)
-            : body_(m.body())
+        reader(header<isRequest, Fields>&, value_type& b)
+            : body_(b)
         {
         }
 
@@ -155,9 +154,8 @@ public:
 
         template<bool isRequest, class Fields>
         explicit
-        writer(message<isRequest,
-                vector_body, Fields> const& msg)
-            : body_(msg.body())
+        writer(header<isRequest, Fields> const&, value_type const& b)
+            : body_(b)
         {
         }
 
