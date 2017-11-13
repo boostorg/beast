@@ -1,3 +1,9 @@
+Version 143:
+
+* Fix autobahn report link
+
+--------------------------------------------------------------------------------
+
 Version 142:
 
 * Warn about upcoming API changes to certain concepts

@@ -53,8 +53,8 @@ may change in response to user feedback. For recent changes
 see the [CHANGELOG](CHANGELOG.md).
 
 * [Official Site](https://github.com/boostorg/beast)
-* [Documentation](http://www.boost.org/doc/libs/develop/libs/beast/)
-* [Autobahn.testsuite results](http://vinniefalco.github.io/autobahn/index.html)
+* [Documentation](http://www.boost.org/doc/libs/master/libs/beast/) (master branch)
+* [Autobahn|Testsuite WebSocket Results](https://vinniefalco.github.io/boost/beast/reports/autobahn/index.html)
 
 ## Requirements
 

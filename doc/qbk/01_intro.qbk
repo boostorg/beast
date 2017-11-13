@@ -114,7 +114,7 @@ verification and performance and limits testing.
 Autobahn|Testsuite is used across the industry and
 contains over 500 test cases.
 
-[@https://vinniefalco.github.io/boost/beast/reports/autobahn/index.html Autobahn|Testsuite WebSocket Results]
+[@https://vinniefalco.github.io/boost/beast/reports/autobahn/index.html [*Autobahn|Testsuite WebSocket Results]]
 
 [warning
     Version 0.7.6 of Autobahn|Testsuite contains a
