@@ -62,7 +62,7 @@ public:
 
     static_assert(is_body_writer<Body>::value,
         "BodyWriter requirements not met");
-
+    using body_value_type = typename Body::value_type;
     /** The type of message this serializer uses
 
         This may be const or non-const depending on the
@@ -73,10 +73,16 @@ public:
 #else
     using value_type =
         typename std::conditional<
-            std::is_constructible<typename Body::writer,
+            (std::is_constructible<typename Body::writer,
+                header<isRequest, Fields>&, body_value_type&>::value &&
+            ! std::is_constructible<typename Body::writer,
+                header<isRequest, Fields> const&,
+                    body_value_type const&>::value) ||
+            /* Deprecated BodyWriter Concept (v1.66) */
+            (std::is_constructible<typename Body::writer,
                 message<isRequest, Body, Fields>&>::value &&
             ! std::is_constructible<typename Body::writer,
-                message<isRequest, Body, Fields> const&>::value,
+                message<isRequest, Body, Fields> const&>::value),
             message<isRequest, Body, Fields>,
             message<isRequest, Body, Fields> const>::type;
 #endif
@@ -188,6 +194,8 @@ private:
     bool header_done_ = false;
     bool more_;
 
+    serializer(value_type& msg, std::true_type);
+    serializer(value_type& msg, std::false_type);
 public:
     /// Constructor
     serializer(serializer&&) = default;
