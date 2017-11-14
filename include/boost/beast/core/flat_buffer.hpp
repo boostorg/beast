@@ -84,7 +84,7 @@ public:
     using allocator_type = Allocator;
 
     /// The type used to represent the input sequence as a list of buffers.
-    using const_buffers_type = boost::asio::mutable_buffer;
+    using const_buffers_type = boost::asio::const_buffer;
 
     /// The type used to represent the output sequence as a list of buffers.
     using mutable_buffers_type = boost::asio::mutable_buffer;
@@ -242,7 +242,14 @@ public:
         return dist(begin_, end_);
     }
 
-    /// Get a list of buffers that represent the input sequence.
+    /// Get a list of mutable buffers that represent the input sequence.
+    mutable_buffers_type
+    data()
+    {
+        return {in_, dist(in_, out_)};
+    }
+
+    /// Get a list of const buffers that represent the input sequence.
     const_buffers_type
     data() const
     {
