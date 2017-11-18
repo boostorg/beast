@@ -441,7 +441,7 @@ template<
     class SyncWriteStream,
     bool isRequest, class Body, class Fields>
 std::size_t
-write_some(
+write_some_impl(
     SyncWriteStream& stream,
     serializer<isRequest, Body, Fields>& sr,
     error_code& ec)
@@ -466,7 +466,7 @@ template<
     class WriteHandler>
 BOOST_ASIO_INITFN_RESULT_TYPE(
     WriteHandler, void(error_code, std::size_t))
-async_write_some(
+async_write_some_impl(
     AsyncWriteStream& stream,
     serializer<isRequest, Body, Fields>& sr,
     WriteHandler&& handler)
@@ -524,7 +524,7 @@ write_some(
         "Body requirements not met");
     static_assert(is_body_writer<Body>::value,
         "BodyWriter requirements not met");
-    return detail::write_some(stream, sr, ec);
+    return detail::write_some_impl(stream, sr, ec);
 }
 
 template<
@@ -545,7 +545,7 @@ async_write_some(
         "Body requirements not met");
     static_assert(is_body_writer<Body>::value,
         "BodyWriter requirements not met");
-    return detail::async_write_some(stream, sr,
+    return detail::async_write_some_impl(stream, sr,
         std::forward<WriteHandler>(handler));
 }
 

@@ -407,12 +407,12 @@ operator()()
     {
         header_ = true;
         sr_.split(true);
-        return detail::async_write_some(
+        return detail::async_write_some_impl(
             sock_, sr_, std::move(*this));
     }
     if(sr_.get().chunked())
     {
-        return detail::async_write_some(
+        return detail::async_write_some_impl(
             sock_, sr_, std::move(*this));
     }
     auto& r = sr_.reader_impl();
@@ -496,7 +496,7 @@ write_some(
     {
         sr.split(true);
         auto const bytes_transferred =
-            detail::write_some(sock, sr, ec);
+            detail::write_some_impl(sock, sr, ec);
         if(ec)
             return bytes_transferred;
         return bytes_transferred;
@@ -504,7 +504,7 @@ write_some(
     if(sr.get().chunked())
     {
         auto const bytes_transferred =
-            detail::write_some(sock, sr, ec);
+            detail::write_some_impl(sock, sr, ec);
         if(ec)
             return bytes_transferred;
         return bytes_transferred;

@@ -1,3 +1,9 @@
+Version 145:
+
+* Rename some detail functions
+
+--------------------------------------------------------------------------------
+
 Version 144:
 
 * Fix websocket permessage-deflate negotiation
