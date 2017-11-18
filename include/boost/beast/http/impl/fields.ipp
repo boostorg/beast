@@ -350,14 +350,15 @@ basic_fields<Allocator>::
 template<class Allocator>
 basic_fields<Allocator>::
 basic_fields(Allocator const& alloc)
-    : alloc_(alloc)
+    : beast::detail::empty_base_optimization<Allocator>(alloc)
 {
 }
 
 template<class Allocator>
 basic_fields<Allocator>::
 basic_fields(basic_fields&& other)
-    : alloc_(std::move(other.alloc_))
+    : beast::detail::empty_base_optimization<Allocator>(
+        std::move(other.member()))
     , set_(std::move(other.set_))
     , list_(std::move(other.list_))
     , method_(other.method_)
@@ -370,9 +371,9 @@ basic_fields(basic_fields&& other)
 template<class Allocator>
 basic_fields<Allocator>::
 basic_fields(basic_fields&& other, Allocator const& alloc)
-    : alloc_(alloc)
+    : beast::detail::empty_base_optimization<Allocator>(alloc)
 {
-    if(alloc_ != other.alloc_)
+    if(this->member() != other.member())
     {
         copy_all(other);
         other.clear_all();
@@ -389,8 +390,8 @@ basic_fields(basic_fields&& other, Allocator const& alloc)
 template<class Allocator>
 basic_fields<Allocator>::
 basic_fields(basic_fields const& other)
-    : alloc_(alloc_traits::
-        select_on_container_copy_construction(other.alloc_))
+    : beast::detail::empty_base_optimization<Allocator>(alloc_traits::
+        select_on_container_copy_construction(other.member()))
 {
     copy_all(other);
 }
@@ -399,7 +400,7 @@ template<class Allocator>
 basic_fields<Allocator>::
 basic_fields(basic_fields const& other,
         Allocator const& alloc)
-    : alloc_(alloc)
+    : beast::detail::empty_base_optimization<Allocator>(alloc)
 {
     copy_all(other);
 }
@@ -417,7 +418,7 @@ template<class OtherAlloc>
 basic_fields<Allocator>::
 basic_fields(basic_fields<OtherAlloc> const& other,
         Allocator const& alloc)
-    : alloc_(alloc)
+    : beast::detail::empty_base_optimization<Allocator>(alloc)
 {
     copy_all(other);
 }
@@ -1014,13 +1015,13 @@ set_chunked_impl(bool value)
             // Workaround for https://gcc.gnu.org/bugzilla/show_bug.cgi?id=56437
             std::string s;
         #else
-            using rebind_type =
+            using A =
                 typename beast::detail::allocator_traits<
                     Allocator>::template rebind_alloc<char>;
             std::basic_string<
                 char,
                 std::char_traits<char>,
-                rebind_type> s{rebind_type{alloc_}};
+                A> s{A{this->member()}};
         #endif
             s.reserve(it->value().size() + 9);
             s.append(it->value().data(), it->value().size());
@@ -1051,13 +1052,13 @@ set_chunked_impl(bool value)
         // Workaround for https://gcc.gnu.org/bugzilla/show_bug.cgi?id=56437
         std::string s;
     #else
-        using rebind_type =
+        using A =
             typename beast::detail::allocator_traits<
                 Allocator>::template rebind_alloc<char>;
         std::basic_string<
             char,
             std::char_traits<char>,
-            rebind_type> s{rebind_type{alloc_}};
+            A> s{A{this->member()}};
     #endif
         s.reserve(it->value().size());
         detail::filter_token_list_last(s, it->value(),
@@ -1108,13 +1109,13 @@ set_keep_alive_impl(
         // Workaround for https://gcc.gnu.org/bugzilla/show_bug.cgi?id=56437
         std::string s;
     #else
-        using rebind_type =
+        using A =
             typename beast::detail::allocator_traits<
                 Allocator>::template rebind_alloc<char>;
         std::basic_string<
             char,
             std::char_traits<char>,
-            rebind_type> s{rebind_type{alloc_}};
+            A> s{A{this->member()}};
     #endif
         s.reserve(value.size());
         detail::keep_alive_impl(
@@ -1148,13 +1149,14 @@ new_element(field name,
         static_cast<off_t>(sname.size() + 2);
     std::uint16_t const len =
         static_cast<off_t>(value.size());
-    auto const p = alloc_traits::allocate(alloc_,
-        1 + (off + len + 2 + sizeof(value_type) - 1) /
-            sizeof(value_type));
+    auto a = rebind_type{this->member()};
+    auto const p = alloc_traits::allocate(a,
+        (sizeof(value_type) + off + len + 2 + sizeof(align_type) - 1) /
+            sizeof(align_type));
     // VFALCO allocator can't call the constructor because its private
-    //alloc_traits::construct(alloc_, p, name, sname, value);
+    //alloc_traits::construct(a, p, name, sname, value);
     new(p) value_type{name, sname, value};
-    return *p;
+    return *reinterpret_cast<value_type*>(p);
 }
 
 template<class Allocator>
@@ -1162,10 +1164,14 @@ void
 basic_fields<Allocator>::
 delete_element(value_type& e)
 {
-    auto const n = 1 + (e.off_ + e.len_ + 2 +
-        sizeof(value_type) - 1) / sizeof(value_type);
-    alloc_traits::destroy(alloc_, &e);
-    alloc_traits::deallocate(alloc_, &e, n);
+    auto a = rebind_type{this->member()};
+    auto const n =
+        (sizeof(value_type) + e.off_ + e.len_ + 2 + sizeof(align_type) - 1) /
+            sizeof(align_type);
+    //alloc_traits::destroy(a, &e);
+    e.~value_type();
+    alloc_traits::deallocate(a,
+        reinterpret_cast<align_type*>(&e), n);
 }
 
 template<class Allocator>
@@ -1207,7 +1213,7 @@ realloc_string(string_view& dest, string_view s)
         return;
     auto a = typename beast::detail::allocator_traits<
         Allocator>::template rebind_alloc<
-            char>(alloc_);
+            char>(this->member());
     if(! dest.empty())
     {
         a.deallocate(const_cast<char*>(
@@ -1235,7 +1241,7 @@ realloc_target(
         return;
     auto a = typename beast::detail::allocator_traits<
         Allocator>::template rebind_alloc<
-            char>(alloc_);
+            char>(this->member());
     if(! dest.empty())
     {
         a.deallocate(const_cast<char*>(
@@ -1298,7 +1304,7 @@ move_assign(basic_fields& other, std::true_type)
     target_or_reason_ = other.target_or_reason_;
     other.method_.clear();
     other.target_or_reason_.clear();
-    alloc_ = other.alloc_;
+    this->member() = other.member();
 }
 
 template<class Allocator>
@@ -1308,7 +1314,7 @@ basic_fields<Allocator>::
 move_assign(basic_fields& other, std::false_type)
 {
     clear_all();
-    if(alloc_ != other.alloc_)
+    if(this->member() != other.member())
     {
         copy_all(other);
         other.clear_all();
@@ -1331,7 +1337,7 @@ basic_fields<Allocator>::
 copy_assign(basic_fields const& other, std::true_type)
 {
     clear_all();
-    alloc_ = other.alloc_;
+    this->member() = other.member();
     copy_all(other);
 }
 
@@ -1352,7 +1358,7 @@ basic_fields<Allocator>::
 swap(basic_fields& other, std::true_type)
 {
     using std::swap;
-    swap(alloc_, other.alloc_);
+    swap(this->member(), other.member());
     swap(set_, other.set_);
     swap(list_, other.list_);
     swap(method_, other.method_);
@@ -1365,7 +1371,7 @@ void
 basic_fields<Allocator>::
 swap(basic_fields& other, std::false_type)
 {
-    BOOST_ASSERT(alloc_ == other.alloc_);
+    BOOST_ASSERT(this->member() == other.member());
     using std::swap;
     swap(set_, other.set_);
     swap(list_, other.list_);

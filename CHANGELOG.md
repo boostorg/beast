@@ -1,6 +1,7 @@
 Version 145:
 
 * Rename some detail functions
+* Refactor basic_fields allocator internals
 
 --------------------------------------------------------------------------------
 

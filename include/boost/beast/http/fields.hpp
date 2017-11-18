@@ -14,6 +14,7 @@
 #include <boost/beast/core/string_param.hpp>
 #include <boost/beast/core/string.hpp>
 #include <boost/beast/core/detail/allocator.hpp>
+#include <boost/beast/core/detail/empty_base_optimization.hpp>
 #include <boost/beast/http/field.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/intrusive/list.hpp>
@@ -51,6 +52,9 @@ namespace http {
 */
 template<class Allocator>
 class basic_fields
+#ifndef BOOST_BEAST_DOXYGEN
+    : private beast::detail::empty_base_optimization<Allocator>
+#endif
 {
     friend class fields_test; // for `header`
 
@@ -260,7 +264,7 @@ public:
     allocator_type
     get_allocator() const
     {
-        return alloc_;
+        return this->member();
     }
 
     //--------------------------------------------------------------------------
@@ -681,12 +685,15 @@ private:
     template<class OtherAlloc>
     friend class basic_fields;
 
-    using base_alloc_type = typename
+    using align_type = typename
+        boost::type_with_alignment<alignof(value_type)>::type;
+
+    using rebind_type = typename
         beast::detail::allocator_traits<Allocator>::
-            template rebind_alloc<value_type>;
+            template rebind_alloc<align_type>;
 
     using alloc_traits =
-        beast::detail::allocator_traits<base_alloc_type>;
+        beast::detail::allocator_traits<rebind_type>;
 
     using size_type = typename
         beast::detail::allocator_traits<Allocator>::size_type;
@@ -736,7 +743,6 @@ private:
     void
     swap(basic_fields& other, std::false_type);
 
-    base_alloc_type alloc_;
     set_t set_;
     list_t list_;
     string_view method_;
