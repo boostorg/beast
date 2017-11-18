@@ -188,6 +188,19 @@ private:
                             boost::intrusive::constant_time_size<true>,
                                 boost::intrusive::compare<key_compare>>::type;
 
+    using align_type = typename
+        boost::type_with_alignment<alignof(value_type)>::type;
+
+    using rebind_type = typename
+        beast::detail::allocator_traits<Allocator>::
+            template rebind_alloc<align_type>;
+
+    using alloc_traits =
+        beast::detail::allocator_traits<rebind_type>;
+
+    using size_type = typename
+        beast::detail::allocator_traits<Allocator>::size_type;
+
 
 public:
     /// Destructor
@@ -201,14 +214,14 @@ public:
         @param alloc The allocator to use.
     */
     explicit
-    basic_fields(Allocator const& alloc);
+    basic_fields(Allocator const& alloc) noexcept;
 
     /** Move constructor.
 
         The state of the moved-from object is
         as if constructed using the same allocator.
     */
-    basic_fields(basic_fields&&);
+    basic_fields(basic_fields&&) noexcept;
 
     /** Move constructor.
 
@@ -245,7 +258,8 @@ public:
         The state of the moved-from object is
         as if constructed using the same allocator.
     */
-    basic_fields& operator=(basic_fields&&);
+    basic_fields& operator=(basic_fields&&) noexcept(
+        alloc_traits::propagate_on_container_move_assignment::value);
 
     /// Copy assignment.
     basic_fields& operator=(basic_fields const&);
@@ -689,19 +703,6 @@ protected:
 private:
     template<class OtherAlloc>
     friend class basic_fields;
-
-    using align_type = typename
-        boost::type_with_alignment<alignof(value_type)>::type;
-
-    using rebind_type = typename
-        beast::detail::allocator_traits<Allocator>::
-            template rebind_alloc<align_type>;
-
-    using alloc_traits =
-        beast::detail::allocator_traits<rebind_type>;
-
-    using size_type = typename
-        beast::detail::allocator_traits<Allocator>::size_type;
 
     value_type&
     new_element(field name,

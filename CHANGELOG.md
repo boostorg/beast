@@ -3,6 +3,10 @@ Version 147:
 * Don't use boost::string_ref
 * Use iterator wrapper in detail::buffers_range
 
+HTTP:
+
+* Tidy up basic_fields exception specifiers
+
 WebSocket:
 
 * control callback is copied or moved
