@@ -349,14 +349,14 @@ basic_fields<Allocator>::
 
 template<class Allocator>
 basic_fields<Allocator>::
-basic_fields(Allocator const& alloc)
+basic_fields(Allocator const& alloc) noexcept
     : beast::detail::empty_base_optimization<Allocator>(alloc)
 {
 }
 
 template<class Allocator>
 basic_fields<Allocator>::
-basic_fields(basic_fields&& other)
+basic_fields(basic_fields&& other) noexcept
     : beast::detail::empty_base_optimization<Allocator>(
         std::move(other.member()))
     , set_(std::move(other.set_))
@@ -426,9 +426,12 @@ basic_fields(basic_fields<OtherAlloc> const& other,
 template<class Allocator>
 auto
 basic_fields<Allocator>::
-operator=(basic_fields&& other) ->
-    basic_fields&
+operator=(basic_fields&& other) noexcept(
+    alloc_traits::propagate_on_container_move_assignment::value)
+      -> basic_fields&
 {
+    static_assert(is_nothrow_move_assignable<Allocator>::value,
+        "Allocator must be noexcept assignable.");
     if(this == &other)
         return *this;
     move_assign(other, std::integral_constant<bool,

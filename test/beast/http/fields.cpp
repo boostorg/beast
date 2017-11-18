@@ -21,11 +21,64 @@ namespace boost {
 namespace beast {
 namespace http {
 
-BOOST_STATIC_ASSERT(is_fields<fields>::value);
-
 class fields_test : public beast::unit_test::suite
 {
 public:
+    template <class T>
+    class test_allocator
+    {
+    public:
+        using value_type = T;
+
+        test_allocator() noexcept(false) {}
+
+        template <typename  U, typename = typename std::enable_if<!std::is_same<test_allocator, U>::value>::type>
+        test_allocator(test_allocator<U> const&) noexcept {}
+
+        value_type*
+        allocate(std::size_t n)
+        {
+            return static_cast<value_type*>(::operator new (n*sizeof(value_type)));
+        }
+
+        void
+        deallocate(value_type* p, std::size_t) noexcept
+        {
+            ::operator delete(p);
+        }
+
+        template <class U>
+        friend
+        bool
+        operator==(test_allocator<T> const&, test_allocator<U> const&) noexcept
+        {
+            return true;
+        }
+
+        template <class U>
+        friend
+        bool
+        operator!=(test_allocator<T> const& x, test_allocator<U> const& y) noexcept
+        {
+            return !(x == y);
+        }
+    };
+
+    using test_fields = basic_fields<test_allocator<char>>;
+
+    BOOST_STATIC_ASSERT(is_fields<fields>::value);
+    BOOST_STATIC_ASSERT(is_fields<test_fields>::value);
+
+    // std::allocator is noexcept movable, fields should satisfy
+    // these constraints as well.
+    BOOST_STATIC_ASSERT(std::is_nothrow_move_constructible<fields>::value);
+    BOOST_STATIC_ASSERT(std::is_nothrow_move_assignable<fields>::value);
+
+    // Check if basic_fields respects throw-constructibility and
+    // propagate_on_container_move_assignment of the allocator.
+    BOOST_STATIC_ASSERT(std::is_nothrow_move_constructible<test_fields>::value);
+    BOOST_STATIC_ASSERT(!std::is_nothrow_move_assignable<test_fields>::value);
+
     template<class Allocator>
     using fa_t = basic_fields<Allocator>;
 
