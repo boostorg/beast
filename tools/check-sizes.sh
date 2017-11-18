@@ -6,7 +6,7 @@
     && mkdir build \
     && cd build \
     && cmake .. \
-    && make -j${JOBS}) || exit $?
+    && make) || exit $?
 
 BLOATY=bloaty/build/bloaty
 
