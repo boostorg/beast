@@ -57,7 +57,7 @@ boost::asio::ip::tcp::socket sock{ioc};
 
 {
 //[ws_snippet_6
-    std::string const host = "mywebapp.com";
+    std::string const host = "example.com";
     boost::asio::ip::tcp::resolver r{ioc};
     stream<boost::asio::ip::tcp::socket> ws{ioc};
     auto const results = r.resolve(host, "ws");
@@ -307,6 +307,16 @@ struct custom_wrapper
         async_teardown(role, stream.next_layer, std::forward<TeardownHandler>(handler));
     }
 };
+
+//]
+
+//[ws_snippet_26
+
+// A WebSocket stream
+template<
+    class NextLayer,
+    bool deflateSupported = true>
+class stream;
 
 //]
 

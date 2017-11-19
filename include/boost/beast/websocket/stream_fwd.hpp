@@ -17,7 +17,8 @@ namespace beast {
 namespace websocket {
 
 template<
-    class NextLayer>
+    class NextLayer,
+    bool deflateSupported = true>
 class stream;
 
 } // websocket

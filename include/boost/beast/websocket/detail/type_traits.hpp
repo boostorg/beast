@@ -19,12 +19,12 @@ namespace websocket {
 namespace detail {
 
 template<class F>
-using is_RequestDecorator =
+using is_request_decorator =
     typename beast::detail::is_invocable<F,
         void(request_type&)>::type;
 
 template<class F>
-using is_ResponseDecorator =
+using is_response_decorator =
     typename beast::detail::is_invocable<F,
         void(response_type&)>::type;
 

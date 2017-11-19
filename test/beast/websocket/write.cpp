@@ -19,7 +19,7 @@ namespace websocket {
 class write_test : public websocket_test_suite
 {
 public:
-    template<class Wrap>
+    template<bool deflateSupported, class Wrap>
     void
     doTestWrite(Wrap const& w)
     {
@@ -50,7 +50,8 @@ public:
         }
 
         // message
-        doTest(pmd, [&](ws_type& ws)
+        doTest<deflateSupported>(pmd,
+        [&](ws_type_t<deflateSupported>& ws)
         {
             ws.auto_fragment(false);
             ws.binary(false);
@@ -63,7 +64,8 @@ public:
         });
 
         // empty message
-        doTest(pmd, [&](ws_type& ws)
+        doTest<deflateSupported>(pmd,
+        [&](ws_type_t<deflateSupported>& ws)
         {
             ws.text(true);
             w.write(ws, boost::asio::const_buffer{});
@@ -74,7 +76,8 @@ public:
         });
 
         // fragmented message
-        doTest(pmd, [&](ws_type& ws)
+        doTest<deflateSupported>(pmd,
+        [&](ws_type_t<deflateSupported>& ws)
         {
             ws.auto_fragment(false);
             ws.binary(false);
@@ -88,7 +91,8 @@ public:
         });
 
         // continuation
-        doTest(pmd, [&](ws_type& ws)
+        doTest<deflateSupported>(pmd,
+        [&](ws_type_t<deflateSupported>& ws)
         {
             std::string const s = "Hello";
             std::size_t const chop = 3;
@@ -103,7 +107,8 @@ public:
         });
 
         // mask
-        doTest(pmd, [&](ws_type& ws)
+        doTest<deflateSupported>(pmd,
+        [&](ws_type_t<deflateSupported>& ws)
         {
             ws.auto_fragment(false);
             std::string const s = "Hello";
@@ -114,7 +119,8 @@ public:
         });
 
         // mask (large)
-        doTest(pmd, [&](ws_type& ws)
+        doTest<deflateSupported>(pmd,
+        [&](ws_type_t<deflateSupported>& ws)
         {
             ws.auto_fragment(false);
             ws.write_buffer_size(16);
@@ -126,7 +132,8 @@ public:
         });
 
         // mask, autofrag
-        doTest(pmd, [&](ws_type& ws)
+        doTest<deflateSupported>(pmd,
+        [&](ws_type_t<deflateSupported>& ws)
         {
             ws.auto_fragment(true);
             std::string const s(16384, '*');
@@ -140,7 +147,7 @@ public:
         doStreamLoop([&](test::stream& ts)
         {
             echo_server es{log, kind::async_client};
-            ws_type ws{ts};
+            ws_type_t<deflateSupported> ws{ts};
             ws.next_layer().connect(es.stream());
             try
             {
@@ -166,7 +173,7 @@ public:
         doStreamLoop([&](test::stream& ts)
         {
             echo_server es{log, kind::async_client};
-            ws_type ws{ts};
+            ws_type_t<deflateSupported> ws{ts};
             ws.next_layer().connect(es.stream());
             try
             {
@@ -187,7 +194,15 @@ public:
             }
             ts.close();
         });
+    }
 
+    template<class Wrap>
+    void
+    doTestWriteDeflate(Wrap const& w)
+    {
+        using boost::asio::buffer;
+
+        permessage_deflate pmd;
         pmd.client_enable = true;
         pmd.server_enable = true;
         pmd.compLevel = 1;
@@ -238,11 +253,15 @@ public:
     {
         using boost::asio::buffer;
 
-        doTestWrite(SyncClient{});
+        doTestWrite<false>(SyncClient{});
+        doTestWrite<true>(SyncClient{});
+        doTestWriteDeflate(SyncClient{});
 
         yield_to([&](yield_context yield)
         {
-            doTestWrite(AsyncClient{yield});
+            doTestWrite<false>(AsyncClient{yield});
+            doTestWrite<true>(AsyncClient{yield});
+            doTestWriteDeflate(AsyncClient{yield});
         });
     }
 

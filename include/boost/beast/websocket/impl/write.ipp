@@ -33,13 +33,113 @@ namespace boost {
 namespace beast {
 namespace websocket {
 
-template<class NextLayer>
+namespace detail {
+
+// Compress a buffer sequence
+// Returns: `true` if more calls are needed
+//
+template<>
+template<class ConstBufferSequence>
+bool
+stream_base<true>::
+deflate(
+    boost::asio::mutable_buffer& out,
+    buffers_suffix<ConstBufferSequence>& cb,
+    bool fin,
+    std::size_t& total_in,
+    error_code& ec)
+{
+    using boost::asio::buffer;
+    BOOST_ASSERT(out.size() >= 6);
+    auto& zo = this->pmd_->zo;
+    zlib::z_params zs;
+    zs.avail_in = 0;
+    zs.next_in = nullptr;
+    zs.avail_out = out.size();
+    zs.next_out = out.data();
+    for(auto in : beast::detail::buffers_range(cb))
+    {
+        zs.avail_in = in.size();
+        if(zs.avail_in == 0)
+            continue;
+        zs.next_in = in.data();
+        zo.write(zs, zlib::Flush::none, ec);
+        if(ec)
+        {
+            if(ec != zlib::error::need_buffers)
+                return false;
+            BOOST_ASSERT(zs.avail_out == 0);
+            BOOST_ASSERT(zs.total_out == out.size());
+            ec.assign(0, ec.category());
+            break;
+        }
+        if(zs.avail_out == 0)
+        {
+            BOOST_ASSERT(zs.total_out == out.size());
+            break;
+        }
+        BOOST_ASSERT(zs.avail_in == 0);
+    }
+    total_in = zs.total_in;
+    cb.consume(zs.total_in);
+    if(zs.avail_out > 0 && fin)
+    {
+        auto const remain = boost::asio::buffer_size(cb);
+        if(remain == 0)
+        {
+            // Inspired by Mark Adler
+            // https://github.com/madler/zlib/issues/149
+            //
+            // VFALCO We could do this flush twice depending
+            //        on how much space is in the output.
+            zo.write(zs, zlib::Flush::block, ec);
+            BOOST_ASSERT(! ec || ec == zlib::error::need_buffers);
+            if(ec == zlib::error::need_buffers)
+                ec.assign(0, ec.category());
+            if(ec)
+                return false;
+            if(zs.avail_out >= 6)
+            {
+                zo.write(zs, zlib::Flush::full, ec);
+                BOOST_ASSERT(! ec);
+                // remove flush marker
+                zs.total_out -= 4;
+                out = buffer(out.data(), zs.total_out);
+                return false;
+            }
+        }
+    }
+    ec.assign(0, ec.category());
+    out = buffer(out.data(), zs.total_out);
+    return true;
+}
+
+template<>
+inline
+void
+stream_base<true>::
+do_context_takeover_write(role_type role)
+{
+    if((role == role_type::client &&
+        this->pmd_config_.client_no_context_takeover) ||
+       (role == role_type::server &&
+        this->pmd_config_.server_no_context_takeover))
+    {
+        this->pmd_->zo.reset();
+    }
+}
+
+} // detail
+
+//------------------------------------------------------------------------------
+
+template<class NextLayer, bool deflateSupported>
 template<class Buffers, class Handler>
-class stream<NextLayer>::write_some_op
+class stream<NextLayer, deflateSupported>::write_some_op
     : public boost::asio::coroutine
 {
     Handler h_;
-    stream<NextLayer>& ws_;
+    stream<NextLayer, deflateSupported>& ws_;
     buffers_suffix<Buffers> cb_;
     detail::frame_header fh_;
     detail::prepared_key key_;
@@ -59,7 +159,7 @@ public:
     template<class DeducedHandler>
     write_some_op(
         DeducedHandler&& h,
-        stream<NextLayer>& ws,
+        stream<NextLayer, deflateSupported>& ws,
         bool fin,
         Buffers const& bs)
         : h_(std::forward<DeducedHandler>(h))
@@ -80,7 +180,7 @@ public:
     }
 
     using executor_type = boost::asio::associated_executor_t<
-        Handler, decltype(std::declval<stream<NextLayer>&>().get_executor())>;
+        Handler, decltype(std::declval<stream<NextLayer, deflateSupported>&>().get_executor())>;
 
     executor_type
     get_executor() const noexcept
@@ -109,10 +209,10 @@ public:
     }
 };
 
-template<class NextLayer>
+template<class NextLayer, bool deflateSupported>
 template<class Buffers, class Handler>
 void
-stream<NextLayer>::
+stream<NextLayer, deflateSupported>::
 write_some_op<Buffers, Handler>::
 operator()(
     error_code ec,
@@ -397,8 +497,7 @@ operator()(
             {
                 b = buffer(ws_.wr_buf_.get(),
                     ws_.wr_buf_size_);
-                more_ = detail::deflate(ws_.pmd_->zo,
-                    b, cb_, fin_, in_, ec);
+                more_ = ws_.deflate(b, cb_, fin_, in_, ec);
                 if(! ws_.check_ok(ec))
                     goto upcall;
                 n = buffer_size(b);
@@ -450,12 +549,8 @@ operator()(
                 }
                 else
                 {
-                    if(fh_.fin && (
-                        (ws_.role_ == role_type::client &&
-                            ws_.pmd_config_.client_no_context_takeover) ||
-                        (ws_.role_ == role_type::server &&
-                            ws_.pmd_config_.server_no_context_takeover)))
-                        ws_.pmd_->zo.reset();
+                    if(fh_.fin)
+                        ws_.do_context_takeover_write(ws_.role_);
                     goto upcall;
                 }
             }
@@ -479,10 +574,10 @@ operator()(
 
 //------------------------------------------------------------------------------
 
-template<class NextLayer>
+template<class NextLayer, bool deflateSupported>
 template<class ConstBufferSequence>
 std::size_t
-stream<NextLayer>::
+stream<NextLayer, deflateSupported>::
 write_some(bool fin, ConstBufferSequence const& buffers)
 {
     static_assert(is_sync_stream<next_layer_type>::value,
@@ -498,10 +593,10 @@ write_some(bool fin, ConstBufferSequence const& buffers)
     return bytes_transferred;
 }
 
-template<class NextLayer>
+template<class NextLayer, bool deflateSupported>
 template<class ConstBufferSequence>
 std::size_t
-stream<NextLayer>::
+stream<NextLayer, deflateSupported>::
 write_some(bool fin,
     ConstBufferSequence const& buffers, error_code& ec)
 {
@@ -543,9 +638,8 @@ write_some(bool fin,
         {
             auto b = buffer(
                 wr_buf_.get(), wr_buf_size_);
-            auto const more = detail::deflate(
-                pmd_->zo, b, cb, fin,
-                    bytes_transferred, ec);
+            auto const more = this->deflate(
+                b, cb, fin, bytes_transferred, ec);
             if(! check_ok(ec))
                 return bytes_transferred;
             auto const n = buffer_size(b);
@@ -581,12 +675,8 @@ write_some(bool fin,
             fh.op = detail::opcode::cont;
             fh.rsv1 = false;
         }
-        if(fh.fin && (
-            (role_ == role_type::client &&
-                pmd_config_.client_no_context_takeover) ||
-            (role_ == role_type::server &&
-                pmd_config_.server_no_context_takeover)))
-            pmd_->zo.reset();
+        if(fh.fin)
+            this->do_context_takeover_write(role_);
     }
     else if(! fh.mask)
     {
@@ -711,11 +801,11 @@ write_some(bool fin,
     return bytes_transferred;
 }
 
-template<class NextLayer>
+template<class NextLayer, bool deflateSupported>
 template<class ConstBufferSequence, class WriteHandler>
 BOOST_ASIO_INITFN_RESULT_TYPE(
     WriteHandler, void(error_code, std::size_t))
-stream<NextLayer>::
+stream<NextLayer, deflateSupported>::
 async_write_some(bool fin,
     ConstBufferSequence const& bs, WriteHandler&& handler)
 {
@@ -735,10 +825,10 @@ async_write_some(bool fin,
 
 //------------------------------------------------------------------------------
 
-template<class NextLayer>
+template<class NextLayer, bool deflateSupported>
 template<class ConstBufferSequence>
 std::size_t
-stream<NextLayer>::
+stream<NextLayer, deflateSupported>::
 write(ConstBufferSequence const& buffers)
 {
     static_assert(is_sync_stream<next_layer_type>::value,
@@ -753,10 +843,10 @@ write(ConstBufferSequence const& buffers)
     return bytes_transferred;
 }
 
-template<class NextLayer>
+template<class NextLayer, bool deflateSupported>
 template<class ConstBufferSequence>
 std::size_t
-stream<NextLayer>::
+stream<NextLayer, deflateSupported>::
 write(ConstBufferSequence const& buffers, error_code& ec)
 {
     static_assert(is_sync_stream<next_layer_type>::value,
@@ -767,11 +857,11 @@ write(ConstBufferSequence const& buffers, error_code& ec)
     return write_some(true, buffers, ec);
 }
 
-template<class NextLayer>
+template<class NextLayer, bool deflateSupported>
 template<class ConstBufferSequence, class WriteHandler>
 BOOST_ASIO_INITFN_RESULT_TYPE(
     WriteHandler, void(error_code, std::size_t))
-stream<NextLayer>::
+stream<NextLayer, deflateSupported>::
 async_write(
     ConstBufferSequence const& bs, WriteHandler&& handler)
 {

@@ -35,19 +35,52 @@ namespace boost {
 namespace beast {
 namespace websocket {
 
+namespace detail {
+
+template<>
+inline
+void
+stream_base<true>::
+inflate(
+    zlib::z_params& zs,
+    zlib::Flush flush,
+    error_code& ec)
+{
+    this->pmd_->zi.write(zs, flush, ec);
+}
+
+template<>
+inline
+void
+stream_base<true>::
+do_context_takeover_read(role_type role)
+{
+    if((role == role_type::client &&
+            pmd_config_.server_no_context_takeover) ||
+       (role == role_type::server &&
+            pmd_config_.client_no_context_takeover))
+    {
+        pmd_->zi.reset();
+    }
+}
+
+} // detail
+
+//------------------------------------------------------------------------------
+
 /*  Read some message frame data.
 
     Also reads and handles control frames.
 */
-template<class NextLayer>
+template<class NextLayer, bool deflateSupported>
 template<
     class MutableBufferSequence,
     class Handler>
-class stream<NextLayer>::read_some_op
+class stream<NextLayer, deflateSupported>::read_some_op
     : public boost::asio::coroutine
 {
     Handler h_;
-    stream<NextLayer>& ws_;
+    stream<NextLayer, deflateSupported>& ws_;
     MutableBufferSequence bs_;
     buffers_suffix<MutableBufferSequence> cb_;
     std::size_t bytes_written_ = 0;
@@ -64,7 +97,7 @@ public:
     template<class DeducedHandler>
     read_some_op(
         DeducedHandler&& h,
-        stream<NextLayer>& ws,
+        stream<NextLayer, deflateSupported>& ws,
         MutableBufferSequence const& bs)
         : h_(std::forward<DeducedHandler>(h))
         , ws_(ws)
@@ -85,7 +118,7 @@ public:
     }
 
     using executor_type = boost::asio::associated_executor_t<
-        Handler, decltype(std::declval<stream<NextLayer>&>().get_executor())>;
+        Handler, decltype(std::declval<stream<NextLayer, deflateSupported>&>().get_executor())>;
 
     executor_type
     get_executor() const noexcept
@@ -114,10 +147,10 @@ public:
     }
 };
 
-template<class NextLayer>
+template<class NextLayer, bool deflateSupported>
 template<class MutableBufferSequence, class Handler>
 void
-stream<NextLayer>::
+stream<NextLayer, deflateSupported>::
 read_some_op<MutableBufferSequence, Handler>::
 operator()(
     error_code ec,
@@ -404,7 +437,7 @@ operator()(
             }
             ws_.rd_done_ = false;
         }
-        if(! ws_.pmd_ || ! ws_.pmd_->rd_set)
+        if(! ws_.rd_deflated())
         {
             if(ws_.rd_remain_ > 0)
             {
@@ -546,7 +579,7 @@ operator()(
                             0x00, 0x00, 0xff, 0xff };
                     zs.next_in = empty_block;
                     zs.avail_in = sizeof(empty_block);
-                    ws_.pmd_->zi.write(zs, zlib::Flush::sync, ec);
+                    ws_.inflate(zs, zlib::Flush::sync, ec);
                     if(! ec)
                     {
                         // https://github.com/madler/zlib/issues/280
@@ -555,12 +588,7 @@ operator()(
                     }
                     if(! ws_.check_ok(ec))
                         goto upcall;
-                    if(
-                        (ws_.role_ == role_type::client &&
-                            ws_.pmd_config_.server_no_context_takeover) ||
-                        (ws_.role_ == role_type::server &&
-                            ws_.pmd_config_.client_no_context_takeover))
-                        ws_.pmd_->zi.reset();
+                    ws_.do_context_takeover_read(ws_.role_);
                     ws_.rd_done_ = true;
                     break;
                 }
@@ -568,7 +596,7 @@ operator()(
                 {
                     break;
                 }
-                ws_.pmd_->zi.write(zs, zlib::Flush::sync, ec);
+                ws_.inflate(zs, zlib::Flush::sync, ec);
                 if(! ws_.check_ok(ec))
                     goto upcall;
                 if(ws_.rd_msg_max_ && beast::detail::sum_exceeds(
@@ -699,15 +727,15 @@ operator()(
 
 //------------------------------------------------------------------------------
 
-template<class NextLayer>
+template<class NextLayer, bool deflateSupported>
 template<
     class DynamicBuffer,
     class Handler>
-class stream<NextLayer>::read_op
+class stream<NextLayer, deflateSupported>::read_op
     : public boost::asio::coroutine
 {
     Handler h_;
-    stream<NextLayer>& ws_;
+    stream<NextLayer, deflateSupported>& ws_;
     DynamicBuffer& b_;
     std::size_t limit_;
     std::size_t bytes_written_ = 0;
@@ -723,7 +751,7 @@ public:
     template<class DeducedHandler>
     read_op(
         DeducedHandler&& h,
-        stream<NextLayer>& ws,
+        stream<NextLayer, deflateSupported>& ws,
         DynamicBuffer& b,
         std::size_t limit,
         bool some)
@@ -743,7 +771,7 @@ public:
     }
 
     using executor_type = boost::asio::associated_executor_t<
-        Handler, decltype(std::declval<stream<NextLayer>&>().get_executor())>;
+        Handler, decltype(std::declval<stream<NextLayer, deflateSupported>&>().get_executor())>;
 
     executor_type
     get_executor() const noexcept
@@ -765,10 +793,10 @@ public:
     }
 };
 
-template<class NextLayer>
+template<class NextLayer, bool deflateSupported>
 template<class DynamicBuffer, class Handler>
 void
-stream<NextLayer>::
+stream<NextLayer, deflateSupported>::
 read_op<DynamicBuffer, Handler>::
 operator()(
     error_code ec,
@@ -816,10 +844,10 @@ operator()(
 
 //------------------------------------------------------------------------------
 
-template<class NextLayer>
+template<class NextLayer, bool deflateSupported>
 template<class DynamicBuffer>
 std::size_t
-stream<NextLayer>::
+stream<NextLayer, deflateSupported>::
 read(DynamicBuffer& buffer)
 {
     static_assert(is_sync_stream<next_layer_type>::value,
@@ -834,10 +862,10 @@ read(DynamicBuffer& buffer)
     return bytes_written;
 }
 
-template<class NextLayer>
+template<class NextLayer, bool deflateSupported>
 template<class DynamicBuffer>
 std::size_t
-stream<NextLayer>::
+stream<NextLayer, deflateSupported>::
 read(DynamicBuffer& buffer, error_code& ec)
 {
     static_assert(is_sync_stream<next_layer_type>::value,
@@ -856,11 +884,11 @@ read(DynamicBuffer& buffer, error_code& ec)
     return bytes_written;
 }
 
-template<class NextLayer>
+template<class NextLayer, bool deflateSupported>
 template<class DynamicBuffer, class ReadHandler>
 BOOST_ASIO_INITFN_RESULT_TYPE(
     ReadHandler, void(error_code, std::size_t))
-stream<NextLayer>::
+stream<NextLayer, deflateSupported>::
 async_read(DynamicBuffer& buffer, ReadHandler&& handler)
 {
     static_assert(is_async_stream<next_layer_type>::value,
@@ -884,10 +912,10 @@ async_read(DynamicBuffer& buffer, ReadHandler&& handler)
 
 //------------------------------------------------------------------------------
 
-template<class NextLayer>
+template<class NextLayer, bool deflateSupported>
 template<class DynamicBuffer>
 std::size_t
-stream<NextLayer>::
+stream<NextLayer, deflateSupported>::
 read_some(
     DynamicBuffer& buffer,
     std::size_t limit)
@@ -905,10 +933,10 @@ read_some(
     return bytes_written;
 }
 
-template<class NextLayer>
+template<class NextLayer, bool deflateSupported>
 template<class DynamicBuffer>
 std::size_t
-stream<NextLayer>::
+stream<NextLayer, deflateSupported>::
 read_some(
     DynamicBuffer& buffer,
     std::size_t limit,
@@ -941,11 +969,11 @@ read_some(
     return bytes_written;
 }
 
-template<class NextLayer>
+template<class NextLayer, bool deflateSupported>
 template<class DynamicBuffer, class ReadHandler>
 BOOST_ASIO_INITFN_RESULT_TYPE(
     ReadHandler, void(error_code, std::size_t))
-stream<NextLayer>::
+stream<NextLayer, deflateSupported>::
 async_read_some(
     DynamicBuffer& buffer,
     std::size_t limit,
@@ -972,10 +1000,10 @@ async_read_some(
 
 //------------------------------------------------------------------------------
 
-template<class NextLayer>
+template<class NextLayer, bool deflateSupported>
 template<class MutableBufferSequence>
 std::size_t
-stream<NextLayer>::
+stream<NextLayer, deflateSupported>::
 read_some(
     MutableBufferSequence const& buffers)
 {
@@ -991,10 +1019,10 @@ read_some(
     return bytes_written;
 }
 
-template<class NextLayer>
+template<class NextLayer, bool deflateSupported>
 template<class MutableBufferSequence>
 std::size_t
-stream<NextLayer>::
+stream<NextLayer, deflateSupported>::
 read_some(
     MutableBufferSequence const& buffers,
     error_code& ec)
@@ -1125,7 +1153,7 @@ loop:
     {
         ec.assign(0, ec.category());
     }
-    if(! pmd_ || ! pmd_->rd_set)
+    if(! this->rd_deflated())
     {
         if(rd_remain_ > 0)
         {
@@ -1273,7 +1301,7 @@ loop:
                         0x00, 0x00, 0xff, 0xff };
                 zs.next_in = empty_block;
                 zs.avail_in = sizeof(empty_block);
-                pmd_->zi.write(zs, zlib::Flush::sync, ec);
+                this->inflate(zs, zlib::Flush::sync, ec);
                 if(! ec)
                 {
                     // https://github.com/madler/zlib/issues/280
@@ -1282,12 +1310,7 @@ loop:
                 }
                 if(! check_ok(ec))
                     return bytes_written;
-                if(
-                    (role_ == role_type::client &&
-                        pmd_config_.server_no_context_takeover) ||
-                    (role_ == role_type::server &&
-                        pmd_config_.client_no_context_takeover))
-                    pmd_->zi.reset();
+                this->do_context_takeover_read(role_);
                 rd_done_ = true;
                 break;
             }
@@ -1295,7 +1318,7 @@ loop:
             {
                 break;
             }
-            pmd_->zi.write(zs, zlib::Flush::sync, ec);
+            this->inflate(zs, zlib::Flush::sync, ec);
             if(! check_ok(ec))
                 return bytes_written;
             if(rd_msg_max_ && beast::detail::sum_exceeds(
@@ -1328,11 +1351,11 @@ loop:
     return bytes_written;
 }
 
-template<class NextLayer>
+template<class NextLayer, bool deflateSupported>
 template<class MutableBufferSequence, class ReadHandler>
 BOOST_ASIO_INITFN_RESULT_TYPE(
     ReadHandler, void(error_code, std::size_t))
-stream<NextLayer>::
+stream<NextLayer, deflateSupported>::
 async_read_some(
     MutableBufferSequence const& buffers,
     ReadHandler&& handler)

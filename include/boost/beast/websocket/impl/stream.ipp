@@ -40,9 +40,9 @@ namespace boost {
 namespace beast {
 namespace websocket {
 
-template<class NextLayer>
+template<class NextLayer, bool deflateSupported>
 template<class... Args>
-stream<NextLayer>::
+stream<NextLayer, deflateSupported>::
 stream(Args&&... args)
     : stream_(std::forward<Args>(args)...)
     , tok_(1)
@@ -51,16 +51,221 @@ stream(Args&&... args)
         max_control_frame_size);
 }
 
-template<class NextLayer>
+template<class NextLayer, bool deflateSupported>
+template<class DynamicBuffer, class>
 std::size_t
-stream<NextLayer>::
+stream<NextLayer, deflateSupported>::
+read_size_hint(DynamicBuffer& buffer) const
+{
+    static_assert(
+        boost::asio::is_dynamic_buffer<DynamicBuffer>::value,
+        "DynamicBuffer requirements not met");
+    auto const initial_size = (std::min)(
+        +tcp_frame_size,
+        buffer.max_size() - buffer.size());
+    if(initial_size == 0)
+        return 1; // buffer is full
+    return read_size_hint(initial_size);
+}
+
+//------------------------------------------------------------------------------
+
+template<class NextLayer, bool deflateSupported>
+void
+stream<NextLayer, deflateSupported>::
+set_option(permessage_deflate const& o, std::true_type)
+{
+    if( o.server_max_window_bits > 15 ||
+        o.server_max_window_bits < 9)
+        BOOST_THROW_EXCEPTION(std::invalid_argument{
+            "invalid server_max_window_bits"});
+    if( o.client_max_window_bits > 15 ||
+        o.client_max_window_bits < 9)
+        BOOST_THROW_EXCEPTION(std::invalid_argument{
+            "invalid client_max_window_bits"});
+    if( o.compLevel < 0 ||
+        o.compLevel > 9)
+        BOOST_THROW_EXCEPTION(std::invalid_argument{
+            "invalid compLevel"});
+    if( o.memLevel < 1 ||
+        o.memLevel > 9)
+        BOOST_THROW_EXCEPTION(std::invalid_argument{
+            "invalid memLevel"});
+    this->pmd_opts_ = o;
+}
+
+template<class NextLayer, bool deflateSupported>
+void
+stream<NextLayer, deflateSupported>::
+set_option(permessage_deflate const& o, std::false_type)
+{
+    if(o.client_enable || o.server_enable)
+    {
+        // Can't enable permessage-deflate
+        // when deflateSupported == false.
+        //
+        BOOST_THROW_EXCEPTION(std::invalid_argument{
+            "deflateSupported == false"});
+        }
+}
+
+template<class NextLayer, bool deflateSupported>
+void
+stream<NextLayer, deflateSupported>::
+open(role_type role)
+{
+    // VFALCO TODO analyze and remove dupe code in reset()
+    role_ = role;
+    status_ = status::open;
+    rd_remain_ = 0;
+    rd_cont_ = false;
+    rd_done_ = true;
+    // Can't clear this because accept uses it
+    //rd_buf_.reset();
+    rd_fh_.fin = false;
+    rd_close_ = false;
+    wr_close_ = false;
+    wr_block_.reset();
+    rd_block_.reset();
+    cr_.code = close_code::none;
+
+    wr_cont_ = false;
+    wr_buf_size_ = 0;
+
+    open_pmd(is_deflate_supported{});
+}
+
+template<class NextLayer, bool deflateSupported>
+inline
+void
+stream<NextLayer, deflateSupported>::
+open_pmd(std::true_type)
+{
+    if(((role_ == role_type::client &&
+            this->pmd_opts_.client_enable) ||
+        (role_ == role_type::server &&
+            this->pmd_opts_.server_enable)) &&
+        this->pmd_config_.accept)
+    {
+        pmd_normalize(this->pmd_config_);
+        this->pmd_.reset(new typename
+            detail::stream_base<deflateSupported>::pmd_type);
+        if(role_ == role_type::client)
+        {
+            this->pmd_->zi.reset(
+                this->pmd_config_.server_max_window_bits);
+            this->pmd_->zo.reset(
+                this->pmd_opts_.compLevel,
+                this->pmd_config_.client_max_window_bits,
+                this->pmd_opts_.memLevel,
+                zlib::Strategy::normal);
+        }
+        else
+        {
+            this->pmd_->zi.reset(
+                this->pmd_config_.client_max_window_bits);
+            this->pmd_->zo.reset(
+                this->pmd_opts_.compLevel,
+                this->pmd_config_.server_max_window_bits,
+                this->pmd_opts_.memLevel,
+                zlib::Strategy::normal);
+        }
+    }
+}
+
+template<class NextLayer, bool deflateSupported>
+void
+stream<NextLayer, deflateSupported>::
+close()
+{
+    wr_buf_.reset();
+    close_pmd(is_deflate_supported{});
+}
+
+template<class NextLayer, bool deflateSupported>
+void
+stream<NextLayer, deflateSupported>::
+reset()
+{
+    BOOST_ASSERT(status_ != status::open);
+    rd_remain_ = 0;
+    rd_cont_ = false;
+    rd_done_ = true;
+    rd_buf_.consume(rd_buf_.size());
+    rd_fh_.fin = false;
+    rd_close_ = false;
+    wr_close_ = false;
+    wr_cont_ = false;
+    wr_block_.reset();
+    rd_block_.reset();
+    cr_.code = close_code::none;
+}
+
+// Called before each write frame
+template<class NextLayer, bool deflateSupported>
+inline
+void
+stream<NextLayer, deflateSupported>::
+begin_msg(std::true_type)
+{
+    wr_frag_ = wr_frag_opt_;
+    wr_compress_ = static_cast<bool>(this->pmd_);
+
+    // Maintain the write buffer
+    if( wr_compress_ ||
+        role_ == role_type::client)
+    {
+        if(! wr_buf_ || wr_buf_size_ != wr_buf_opt_)
+        {
+            wr_buf_size_ = wr_buf_opt_;
+            wr_buf_ = boost::make_unique_noinit<
+                std::uint8_t[]>(wr_buf_size_);
+        }
+    }
+    else
+    {
+        wr_buf_size_ = wr_buf_opt_;
+        wr_buf_.reset();
+    }
+}
+
+// Called before each write frame
+template<class NextLayer, bool deflateSupported>
+inline
+void
+stream<NextLayer, deflateSupported>::
+begin_msg(std::false_type)
+{
+    wr_frag_ = wr_frag_opt_;
+
+    // Maintain the write buffer
+    if(role_ == role_type::client)
+    {
+        if(! wr_buf_ || wr_buf_size_ != wr_buf_opt_)
+        {
+            wr_buf_size_ = wr_buf_opt_;
+            wr_buf_ = boost::make_unique_noinit<
+                std::uint8_t[]>(wr_buf_size_);
+        }
+    }
+    else
+    {
+        wr_buf_size_ = wr_buf_opt_;
+        wr_buf_.reset();
+    }
+}
+
+template<class NextLayer, bool deflateSupported>
+std::size_t
+stream<NextLayer, deflateSupported>::
 read_size_hint(
-    std::size_t initial_size) const
+    std::size_t initial_size,
+    std::true_type) const
 {
     using beast::detail::clamp;
     std::size_t result;
     BOOST_ASSERT(initial_size > 0);
-    if(! pmd_ || (! rd_done_ && ! pmd_->rd_set))
+    if(! this->pmd_ || (! rd_done_ && ! this->pmd_->rd_set))
     {
         // current message is uncompressed
 
@@ -85,164 +290,45 @@ done:
     return result;
 }
 
-template<class NextLayer>
-template<class DynamicBuffer, class>
+template<class NextLayer, bool deflateSupported>
 std::size_t
-stream<NextLayer>::
-read_size_hint(DynamicBuffer& buffer) const
+stream<NextLayer, deflateSupported>::
+read_size_hint(
+    std::size_t initial_size,
+    std::false_type) const
 {
-    static_assert(
-        boost::asio::is_dynamic_buffer<DynamicBuffer>::value,
-        "DynamicBuffer requirements not met");
-    auto const initial_size = (std::min)(
-        +tcp_frame_size,
-        buffer.max_size() - buffer.size());
-    if(initial_size == 0)
-        return 1; // buffer is full
-    return read_size_hint(initial_size);
-}
-
-template<class NextLayer>
-void
-stream<NextLayer>::
-set_option(permessage_deflate const& o)
-{
-    if( o.server_max_window_bits > 15 ||
-        o.server_max_window_bits < 9)
-        BOOST_THROW_EXCEPTION(std::invalid_argument{
-            "invalid server_max_window_bits"});
-    if( o.client_max_window_bits > 15 ||
-        o.client_max_window_bits < 9)
-        BOOST_THROW_EXCEPTION(std::invalid_argument{
-            "invalid client_max_window_bits"});
-    if( o.compLevel < 0 ||
-        o.compLevel > 9)
-        BOOST_THROW_EXCEPTION(std::invalid_argument{
-            "invalid compLevel"});
-    if( o.memLevel < 1 ||
-        o.memLevel > 9)
-        BOOST_THROW_EXCEPTION(std::invalid_argument{
-            "invalid memLevel"});
-    pmd_opts_ = o;
-}
-
-//------------------------------------------------------------------------------
-
-template<class NextLayer>
-void
-stream<NextLayer>::
-open(role_type role)
-{
-    // VFALCO TODO analyze and remove dupe code in reset()
-    role_ = role;
-    status_ = status::open;
-    rd_remain_ = 0;
-    rd_cont_ = false;
-    rd_done_ = true;
-    // Can't clear this because accept uses it
-    //rd_buf_.reset();
-    rd_fh_.fin = false;
-    rd_close_ = false;
-    wr_close_ = false;
-    wr_block_.reset();
-    rd_block_.reset();
-    cr_.code = close_code::none;
-
-    wr_cont_ = false;
-    wr_buf_size_ = 0;
-
-    if(((role_ == role_type::client && pmd_opts_.client_enable) ||
-        (role_ == role_type::server && pmd_opts_.server_enable)) &&
-            pmd_config_.accept)
+    using beast::detail::clamp;
+    std::size_t result;
+    BOOST_ASSERT(initial_size > 0);
+    // compression is not supported
+    if(rd_done_)
     {
-        pmd_normalize(pmd_config_);
-        pmd_.reset(new pmd_t);
-        if(role_ == role_type::client)
-        {
-            pmd_->zi.reset(
-                pmd_config_.server_max_window_bits);
-            pmd_->zo.reset(
-                pmd_opts_.compLevel,
-                pmd_config_.client_max_window_bits,
-                pmd_opts_.memLevel,
-                zlib::Strategy::normal);
-        }
-        else
-        {
-            pmd_->zi.reset(
-                pmd_config_.client_max_window_bits);
-            pmd_->zo.reset(
-                pmd_opts_.compLevel,
-                pmd_config_.server_max_window_bits,
-                pmd_opts_.memLevel,
-                zlib::Strategy::normal);
-        }
+        // first message frame
+        result = initial_size;
     }
-}
-
-template<class NextLayer>
-void
-stream<NextLayer>::
-close()
-{
-    wr_buf_.reset();
-    pmd_.reset();
-}
-
-template<class NextLayer>
-void
-stream<NextLayer>::
-reset()
-{
-    BOOST_ASSERT(status_ != status::open);
-    rd_remain_ = 0;
-    rd_cont_ = false;
-    rd_done_ = true;
-    rd_buf_.consume(rd_buf_.size());
-    rd_fh_.fin = false;
-    rd_close_ = false;
-    wr_close_ = false;
-    wr_cont_ = false;
-    wr_block_.reset();
-    rd_block_.reset();
-    cr_.code = close_code::none;
-}
-
-// Called before each write frame
-template<class NextLayer>
-void
-stream<NextLayer>::
-begin_msg()
-{
-    wr_frag_ = wr_frag_opt_;
-    wr_compress_ = static_cast<bool>(pmd_);
-
-    // Maintain the write buffer
-    if( wr_compress_ ||
-        role_ == role_type::client)
+    else if(rd_fh_.fin)
     {
-        if(! wr_buf_ || wr_buf_size_ != wr_buf_opt_)
-        {
-            wr_buf_size_ = wr_buf_opt_;
-            wr_buf_ = boost::make_unique_noinit<
-                std::uint8_t[]>(wr_buf_size_);
-        }
+        // last message frame
+        BOOST_ASSERT(rd_remain_ > 0);
+        result = clamp(rd_remain_);
     }
     else
     {
-        wr_buf_size_ = wr_buf_opt_;
-        wr_buf_.reset();
+        result = (std::max)(
+            initial_size, clamp(rd_remain_));
     }
+    BOOST_ASSERT(result != 0);
+    return result;
 }
 
 //------------------------------------------------------------------------------
 
 // Attempt to read a complete frame header.
 // Returns `false` if more bytes are needed
-template<class NextLayer>
+template<class NextLayer, bool deflateSupported>
 template<class DynamicBuffer>
 bool
-stream<NextLayer>::
+stream<NextLayer, deflateSupported>::
 parse_fh(
     detail::frame_header& fh,
     DynamicBuffer& b,
@@ -301,14 +387,12 @@ parse_fh(
             // new data frame when continuation expected
             return err(close_code::protocol_error);
         }
-        if((fh.rsv1 && ! pmd_) ||
-            fh.rsv2 || fh.rsv3)
+        if(fh.rsv2 || fh.rsv3 ||
+            ! this->rd_deflated(fh.rsv1))
         {
             // reserved bits not cleared
             return err(close_code::protocol_error);
         }
-        if(pmd_)
-            pmd_->rd_set = fh.rsv1;
         break;
 
     case detail::opcode::cont:
@@ -411,7 +495,7 @@ parse_fh(
                     std::uint64_t>::max)() - fh.len)
                 return err(close_code::too_big);
         }
-        if(! pmd_ || ! pmd_->rd_set)
+        if(! this->rd_deflated())
         {
             if(rd_msg_max_ && beast::detail::sum_exceeds(
                 rd_size_, fh.len, rd_msg_max_))
@@ -425,10 +509,10 @@ parse_fh(
     return true;
 }
 
-template<class NextLayer>
+template<class NextLayer, bool deflateSupported>
 template<class DynamicBuffer>
 void
-stream<NextLayer>::
+stream<NextLayer, deflateSupported>::
 write_close(DynamicBuffer& db, close_reason const& cr)
 {
     using namespace boost::endian;
@@ -479,10 +563,10 @@ write_close(DynamicBuffer& db, close_reason const& cr)
     }
 }
 
-template<class NextLayer>
+template<class NextLayer, bool deflateSupported>
 template<class DynamicBuffer>
 void
-stream<NextLayer>::
+stream<NextLayer, deflateSupported>::
 write_ping(DynamicBuffer& db,
     detail::opcode code, ping_data const& data)
 {
@@ -513,14 +597,13 @@ write_ping(DynamicBuffer& db,
 
 //------------------------------------------------------------------------------
 
-template<class NextLayer>
+template<class NextLayer, bool deflateSupported>
 template<class Decorator>
 request_type
-stream<NextLayer>::
+stream<NextLayer, deflateSupported>::
 build_request(detail::sec_ws_key_type& key,
-    string_view host,
-        string_view target,
-            Decorator const& decorator)
+    string_view host, string_view target,
+        Decorator const& decorator)
 {
     request_type req;
     req.target(target);
@@ -532,20 +615,7 @@ build_request(detail::sec_ws_key_type& key,
     detail::make_sec_ws_key(key, wr_gen_);
     req.set(http::field::sec_websocket_key, key);
     req.set(http::field::sec_websocket_version, "13");
-    if(pmd_opts_.client_enable)
-    {
-        detail::pmd_offer config;
-        config.accept = true;
-        config.server_max_window_bits =
-            pmd_opts_.server_max_window_bits;
-        config.client_max_window_bits =
-            pmd_opts_.client_max_window_bits;
-        config.server_no_context_takeover =
-            pmd_opts_.server_no_context_takeover;
-        config.client_no_context_takeover =
-            pmd_opts_.client_no_context_takeover;
-        detail::pmd_write(req, config);
-    }
+    build_request_pmd(req, is_deflate_supported{});
     decorator(req);
     if(! req.count(http::field::user_agent))
         req.set(http::field::user_agent,
@@ -553,13 +623,36 @@ build_request(detail::sec_ws_key_type& key,
     return req;
 }
 
-template<class NextLayer>
+template<class NextLayer, bool deflateSupported>
+inline
+void
+stream<NextLayer, deflateSupported>::
+build_request_pmd(request_type& req, std::true_type)
+{
+    if(this->pmd_opts_.client_enable)
+    {
+        detail::pmd_offer config;
+        config.accept = true;
+        config.server_max_window_bits =
+            this->pmd_opts_.server_max_window_bits;
+        config.client_max_window_bits =
+            this->pmd_opts_.client_max_window_bits;
+        config.server_no_context_takeover =
+            this->pmd_opts_.server_no_context_takeover;
+        config.client_no_context_takeover =
+            this->pmd_opts_.client_no_context_takeover;
+        detail::pmd_write(req, config);
+    }
+}
+
+template<class NextLayer, bool deflateSupported>
 template<class Body, class Allocator, class Decorator>
 response_type
-stream<NextLayer>::
-build_response(http::request<Body,
-    http::basic_fields<Allocator>> const& req,
-        Decorator const& decorator)
+stream<NextLayer, deflateSupported>::
+build_response(
+    http::request<Body,
+        http::basic_fields<Allocator>> const& req,
+    Decorator const& decorator)
 {
     auto const decorate =
         [&decorator](response_type& res)
@@ -614,12 +707,7 @@ build_response(http::request<Body,
     }
 
     response_type res;
-    {
-        detail::pmd_offer offer;
-        detail::pmd_offer unused;
-        pmd_read(offer, req);
-        pmd_negotiate(res, unused, offer, pmd_opts_);
-    }
+    build_response_pmd(res, req, is_deflate_supported{});
     res.result(http::status::switching_protocols);
     res.version(req.version());
     res.set(http::field::upgrade, "websocket");
@@ -633,11 +721,31 @@ build_response(http::request<Body,
     return res;
 }
 
-template<class NextLayer>
+template<class NextLayer, bool deflateSupported>
+template<class Body, class Allocator>
+inline
 void
-stream<NextLayer>::
-on_response(response_type const& res,
-    detail::sec_ws_key_type const& key, error_code& ec)
+stream<NextLayer, deflateSupported>::
+build_response_pmd(
+    response_type& res,
+    http::request<Body,
+        http::basic_fields<Allocator>> const& req,
+    std::true_type)
+{
+    detail::pmd_offer offer;
+    detail::pmd_offer unused;
+    pmd_read(offer, req);
+    pmd_negotiate(res, unused, offer, this->pmd_opts_);
+}
+
+// Called when the WebSocket Upgrade response is received
+template<class NextLayer, bool deflateSupported>
+void
+stream<NextLayer, deflateSupported>::
+on_response(
+    response_type const& res,
+    detail::sec_ws_key_type const& key,
+    error_code& ec)
 {
     bool const success = [&]()
     {
@@ -664,18 +772,29 @@ on_response(response_type const& res,
         return;
     }
     ec.assign(0, ec.category());
+    on_response_pmd(res, is_deflate_supported{});
+    open(role_type::client);
+}
+
+template<class NextLayer, bool deflateSupported>
+inline
+void
+stream<NextLayer, deflateSupported>::
+on_response_pmd(
+    response_type const& res,
+    std::true_type)
+{
     detail::pmd_offer offer;
     pmd_read(offer, res);
     // VFALCO see if offer satisfies pmd_config_,
     //        return an error if not.
-    pmd_config_ = offer; // overwrite for now
-    open(role_type::client);
+    this->pmd_config_ = offer; // overwrite for now
 }
 
 // _Fail the WebSocket Connection_
-template<class NextLayer>
+template<class NextLayer, bool deflateSupported>
 void
-stream<NextLayer>::
+stream<NextLayer, deflateSupported>::
 do_fail(
     std::uint16_t code,         // if set, send a close frame first
     error_code ev,              // error code to use upon success

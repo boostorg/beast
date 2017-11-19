@@ -32,20 +32,20 @@ namespace websocket {
     It only sends the frames it does not make attempts to read
     any frame data.
 */
-template<class NextLayer>
+template<class NextLayer, bool deflateSupported>
 template<class Handler>
-class stream<NextLayer>::ping_op
+class stream<NextLayer, deflateSupported>::ping_op
     : public boost::asio::coroutine
 {
     struct state
     {
-        stream<NextLayer>& ws;
+        stream<NextLayer, deflateSupported>& ws;
         detail::frame_buffer fb;
         token tok;
 
         state(
             Handler const&,
-            stream<NextLayer>& ws_,
+            stream<NextLayer, deflateSupported>& ws_,
             detail::opcode op,
             ping_data const& payload)
             : ws(ws_)
@@ -67,7 +67,7 @@ public:
     template<class DeducedHandler>
     ping_op(
         DeducedHandler&& h,
-        stream<NextLayer>& ws,
+        stream<NextLayer, deflateSupported>& ws,
         detail::opcode op,
         ping_data const& payload)
         : d_(std::forward<DeducedHandler>(h),
@@ -85,7 +85,7 @@ public:
     }
 
     using executor_type = boost::asio::associated_executor_t<
-        Handler, decltype(std::declval<stream<NextLayer>&>().get_executor())>;
+        Handler, decltype(std::declval<stream<NextLayer, deflateSupported>&>().get_executor())>;
 
     executor_type
     get_executor() const noexcept
@@ -107,10 +107,10 @@ public:
     }
 };
 
-template<class NextLayer>
+template<class NextLayer, bool deflateSupported>
 template<class Handler>
 void
-stream<NextLayer>::
+stream<NextLayer, deflateSupported>::
 ping_op<Handler>::
 operator()(error_code ec, std::size_t)
 {
@@ -174,9 +174,9 @@ operator()(error_code ec, std::size_t)
 
 //------------------------------------------------------------------------------
 
-template<class NextLayer>
+template<class NextLayer, bool deflateSupported>
 void
-stream<NextLayer>::
+stream<NextLayer, deflateSupported>::
 ping(ping_data const& payload)
 {
     error_code ec;
@@ -185,9 +185,9 @@ ping(ping_data const& payload)
         BOOST_THROW_EXCEPTION(system_error{ec});
 }
 
-template<class NextLayer>
+template<class NextLayer, bool deflateSupported>
 void
-stream<NextLayer>::
+stream<NextLayer, deflateSupported>::
 ping(ping_data const& payload, error_code& ec)
 {
     // Make sure the stream is open
@@ -201,9 +201,9 @@ ping(ping_data const& payload, error_code& ec)
         return;
 }
 
-template<class NextLayer>
+template<class NextLayer, bool deflateSupported>
 void
-stream<NextLayer>::
+stream<NextLayer, deflateSupported>::
 pong(ping_data const& payload)
 {
     error_code ec;
@@ -212,9 +212,9 @@ pong(ping_data const& payload)
         BOOST_THROW_EXCEPTION(system_error{ec});
 }
 
-template<class NextLayer>
+template<class NextLayer, bool deflateSupported>
 void
-stream<NextLayer>::
+stream<NextLayer, deflateSupported>::
 pong(ping_data const& payload, error_code& ec)
 {
     // Make sure the stream is open
@@ -228,11 +228,11 @@ pong(ping_data const& payload, error_code& ec)
         return;
 }
 
-template<class NextLayer>
+template<class NextLayer, bool deflateSupported>
 template<class WriteHandler>
 BOOST_ASIO_INITFN_RESULT_TYPE(
     WriteHandler, void(error_code))
-stream<NextLayer>::
+stream<NextLayer, deflateSupported>::
 async_ping(ping_data const& payload, WriteHandler&& handler)
 {
     static_assert(is_async_stream<next_layer_type>::value,
@@ -246,11 +246,11 @@ async_ping(ping_data const& payload, WriteHandler&& handler)
     return init.result.get();
 }
 
-template<class NextLayer>
+template<class NextLayer, bool deflateSupported>
 template<class WriteHandler>
 BOOST_ASIO_INITFN_RESULT_TYPE(
     WriteHandler, void(error_code))
-stream<NextLayer>::
+stream<NextLayer, deflateSupported>::
 async_pong(ping_data const& payload, WriteHandler&& handler)
 {
     static_assert(is_async_stream<next_layer_type>::value,

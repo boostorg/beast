@@ -34,14 +34,14 @@ namespace websocket {
     frame. Finally it invokes the teardown operation to shut down the
     underlying connection.
 */
-template<class NextLayer>
+template<class NextLayer, bool deflateSupported>
 template<class Handler>
-class stream<NextLayer>::close_op
+class stream<NextLayer, deflateSupported>::close_op
     : public boost::asio::coroutine
 {
     struct state
     {
-        stream<NextLayer>& ws;
+        stream<NextLayer, deflateSupported>& ws;
         detail::frame_buffer fb;
         error_code ev;
         token tok;
@@ -49,7 +49,7 @@ class stream<NextLayer>::close_op
 
         state(
             Handler const&,
-            stream<NextLayer>& ws_,
+            stream<NextLayer, deflateSupported>& ws_,
             close_reason const& cr)
             : ws(ws_)
             , tok(ws.tok_.unique())
@@ -69,7 +69,7 @@ public:
     template<class DeducedHandler>
     close_op(
         DeducedHandler&& h,
-        stream<NextLayer>& ws,
+        stream<NextLayer, deflateSupported>& ws,
         close_reason const& cr)
         : d_(std::forward<DeducedHandler>(h), ws, cr)
     {
@@ -85,7 +85,7 @@ public:
     }
 
     using executor_type = boost::asio::associated_executor_t<
-        Handler, decltype(std::declval<stream<NextLayer>&>().get_executor())>;
+        Handler, decltype(std::declval<stream<NextLayer, deflateSupported>&>().get_executor())>;
 
     executor_type
     get_executor() const noexcept
@@ -109,10 +109,10 @@ public:
     }
 };
 
-template<class NextLayer>
+template<class NextLayer, bool deflateSupported>
 template<class Handler>
 void
-stream<NextLayer>::
+stream<NextLayer, deflateSupported>::
 close_op<Handler>::
 operator()(
     error_code ec,
@@ -327,9 +327,9 @@ operator()(
 
 //------------------------------------------------------------------------------
 
-template<class NextLayer>
+template<class NextLayer, bool deflateSupported>
 void
-stream<NextLayer>::
+stream<NextLayer, deflateSupported>::
 close(close_reason const& cr)
 {
     static_assert(is_sync_stream<next_layer_type>::value,
@@ -340,9 +340,9 @@ close(close_reason const& cr)
         BOOST_THROW_EXCEPTION(system_error{ec});
 }
 
-template<class NextLayer>
+template<class NextLayer, bool deflateSupported>
 void
-stream<NextLayer>::
+stream<NextLayer, deflateSupported>::
 close(close_reason const& cr, error_code& ec)
 {
     static_assert(is_sync_stream<next_layer_type>::value,
@@ -434,11 +434,11 @@ close(close_reason const& cr, error_code& ec)
         ec.assign(0, ec.category());
 }
 
-template<class NextLayer>
+template<class NextLayer, bool deflateSupported>
 template<class CloseHandler>
 BOOST_ASIO_INITFN_RESULT_TYPE(
     CloseHandler, void(error_code))
-stream<NextLayer>::
+stream<NextLayer, deflateSupported>::
 async_close(close_reason const& cr, CloseHandler&& handler)
 {
     static_assert(is_async_stream<next_layer_type>::value,

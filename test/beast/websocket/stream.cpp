@@ -122,6 +122,8 @@ public:
         BOOST_STATIC_ASSERT(! std::is_move_assignable<
             stream<test::stream&>>::value);
 
+        log << "sizeof(websocket::stream_base<true>) == " <<
+            sizeof(websocket::detail::stream_base<true>) << std::endl;
         log << "sizeof(websocket::stream) == " <<
             sizeof(websocket::stream<test::stream&>) << std::endl;
 

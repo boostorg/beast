@@ -19,6 +19,7 @@
 #include <boost/beast/http/rfc7230.hpp>
 #include <boost/asio/buffer.hpp>
 #include <utility>
+#include <type_traits>
 
 namespace boost {
 namespace beast {
@@ -353,85 +354,6 @@ pmd_normalize(pmd_offer& offer)
             offer.client_max_window_bits == -1)
             offer.client_max_window_bits = 15;
     }
-}
-
-//--------------------------------------------------------------------
-
-// Compress a buffer sequence
-// Returns: `true` if more calls are needed
-//
-template<class DeflateStream, class ConstBufferSequence>
-bool
-deflate(
-    DeflateStream& zo,
-    boost::asio::mutable_buffer& out,
-    buffers_suffix<ConstBufferSequence>& cb,
-    bool fin,
-    std::size_t& total_in,
-    error_code& ec)
-{
-    using boost::asio::buffer;
-    BOOST_ASSERT(out.size() >= 6);
-    zlib::z_params zs;
-    zs.avail_in = 0;
-    zs.next_in = nullptr;
-    zs.avail_out = out.size();
-    zs.next_out = out.data();
-    for(auto in : beast::detail::buffers_range(cb))
-    {
-        zs.avail_in = in.size();
-        if(zs.avail_in == 0)
-            continue;
-        zs.next_in = in.data();
-        zo.write(zs, zlib::Flush::none, ec);
-        if(ec)
-        {
-            if(ec != zlib::error::need_buffers)
-                return false;
-            BOOST_ASSERT(zs.avail_out == 0);
-            BOOST_ASSERT(zs.total_out == out.size());
-            ec.assign(0, ec.category());
-            break;
-        }
-        if(zs.avail_out == 0)
-        {
-            BOOST_ASSERT(zs.total_out == out.size());
-            break;
-        }
-        BOOST_ASSERT(zs.avail_in == 0);
-    }
-    total_in = zs.total_in;
-    cb.consume(zs.total_in);
-    if(zs.avail_out > 0 && fin)
-    {
-        auto const remain = boost::asio::buffer_size(cb);
-        if(remain == 0)
-        {
-            // Inspired by Mark Adler
-            // https://github.com/madler/zlib/issues/149
-            //
-            // VFALCO We could do this flush twice depending
-            //        on how much space is in the output.
-            zo.write(zs, zlib::Flush::block, ec);
-            BOOST_ASSERT(! ec || ec == zlib::error::need_buffers);
-            if(ec == zlib::error::need_buffers)
-                ec.assign(0, ec.category());
-            if(ec)
-                return false;
-            if(zs.avail_out >= 6)
-            {
-                zo.write(zs, zlib::Flush::full, ec);
-                BOOST_ASSERT(! ec);
-                // remove flush marker
-                zs.total_out -= 4;
-                out = buffer(out.data(), zs.total_out);
-                return false;
-            }
-        }
-    }
-    ec.assign(0, ec.category());
-    out = buffer(out.data(), zs.total_out);
-    return true;
 }
 
 } // detail

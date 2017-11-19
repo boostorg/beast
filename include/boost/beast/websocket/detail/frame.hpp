@@ -75,7 +75,7 @@ native_to_little_uint32(std::uint32_t v, void* buf)
     p[3] = (v >> 24) & 0xff;
 }
 
-/** WebSocket frame header opcodes. */
+// frame header opcodes
 enum class opcode : std::uint8_t
 {
     cont    = 0,
@@ -110,8 +110,7 @@ struct frame_header
 };
 
 // holds the largest possible frame header
-using fh_buffer =
-    flat_static_buffer<14>;
+using fh_buffer = flat_static_buffer<14>;
 
 // holds the largest possible control frame
 using frame_buffer =

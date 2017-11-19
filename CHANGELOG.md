@@ -1,3 +1,5 @@
+--------------------------------------------------------------------------------
+
 Version 151:
 
 * Sanitizer failures are errors
@@ -13,6 +15,7 @@ WebSocket:
 API Changes:
 
 * http::parser is not MoveConstructible
+* permessage-deflate is a compile-time feature
 
 --------------------------------------------------------------------------------
 

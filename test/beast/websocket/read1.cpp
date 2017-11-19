@@ -23,11 +23,11 @@ namespace websocket {
 class read1_test : public websocket_test_suite
 {
 public:
-    template<class Wrap>
+    template<class Wrap, bool deflateSupported>
     void
     doReadTest(
         Wrap const& w,
-        ws_type& ws,
+        ws_type_t<deflateSupported>& ws,
         close_code code)
     {
         try
@@ -45,11 +45,11 @@ public:
         }
     }
 
-    template<class Wrap>
+    template<class Wrap, bool deflateSupported>
     void
     doFailTest(
         Wrap const& w,
-        ws_type& ws,
+        ws_type_t<deflateSupported>& ws,
         error_code ev)
     {
         try
@@ -65,7 +65,7 @@ public:
         }
     }
 
-    template<class Wrap>
+    template<bool deflateSupported = true, class Wrap>
     void
     doTestRead(Wrap const& w)
     {
@@ -78,7 +78,7 @@ public:
         // already closed
         {
             echo_server es{log};
-            stream<test::stream> ws{ioc_};
+            stream<test::stream, deflateSupported> ws{ioc_};
             ws.next_layer().connect(es.stream());
             ws.handshake("localhost", "/");
             ws.close({});
@@ -97,7 +97,8 @@ public:
         }
 
         // empty, fragmented message
-        doTest(pmd, [&](ws_type& ws)
+        doTest<deflateSupported>(pmd,
+        [&](ws_type_t<deflateSupported>& ws)
         {
             ws.next_layer().append(
                 string_view(
@@ -109,7 +110,8 @@ public:
 
         // two part message
         // triggers "fill the read buffer first"
-        doTest(pmd, [&](ws_type& ws)
+        doTest<deflateSupported>(pmd,
+        [&](ws_type_t<deflateSupported>& ws)
         {
             w.write_raw(ws, sbuf(
                 "\x01\x81\xff\xff\xff\xff"));
@@ -123,7 +125,8 @@ public:
         });
 
         // ping
-        doTest(pmd, [&](ws_type& ws)
+        doTest<deflateSupported>(pmd,
+        [&](ws_type_t<deflateSupported>& ws)
         {
             put(ws.next_layer().buffer(), cbuf(
                 0x89, 0x00));
@@ -144,7 +147,8 @@ public:
         });
 
         // ping
-        doTest(pmd, [&](ws_type& ws)
+        doTest<deflateSupported>(pmd,
+        [&](ws_type_t<deflateSupported>& ws)
         {
             put(ws.next_layer().buffer(), cbuf(
                 0x88, 0x00));
@@ -161,7 +165,8 @@ public:
         });
 
         // ping then message
-        doTest(pmd, [&](ws_type& ws)
+        doTest<deflateSupported>(pmd,
+        [&](ws_type_t<deflateSupported>& ws)
         {
             bool once = false;
             ws.control_callback(
@@ -183,7 +188,8 @@ public:
         });
 
         // ping then fragmented message
-        doTest(pmd, [&](ws_type& ws)
+        doTest<deflateSupported>(pmd,
+        [&](ws_type_t<deflateSupported>& ws)
         {
             bool once = false;
             ws.control_callback(
@@ -208,7 +214,7 @@ public:
         doStreamLoop([&](test::stream& ts)
         {
             echo_server es{log, kind::async_client};
-            ws_type ws{ts};
+            ws_type_t<deflateSupported> ws{ts};
             ws.next_layer().connect(es.stream());
             ws.set_option(pmd);
             es.async_handshake();
@@ -237,7 +243,7 @@ public:
         {
             echo_server es{log, kind::async};
             boost::asio::io_context ioc;
-            stream<test::stream> ws{ioc, fc};
+            stream<test::stream, deflateSupported> ws{ioc, fc};
             ws.next_layer().connect(es.stream());
             ws.handshake("localhost", "/");
             // Cause close to be received
@@ -257,7 +263,8 @@ public:
         });
 
         // already closed
-        doTest(pmd, [&](ws_type& ws)
+        doTest<deflateSupported>(pmd,
+        [&](ws_type_t<deflateSupported>& ws)
         {
             w.close(ws, {});
             multi_buffer b;
@@ -266,7 +273,8 @@ public:
         });
 
         // buffer overflow
-        doTest(pmd, [&](ws_type& ws)
+        doTest<deflateSupported>(pmd,
+        [&](ws_type_t<deflateSupported>& ws)
         {
             std::string const s = "Hello, world!";
             ws.auto_fragment(false);
@@ -286,7 +294,8 @@ public:
         });
 
         // bad utf8, big
-        doTest(pmd, [&](ws_type& ws)
+        doTest<deflateSupported>(pmd,
+        [&](ws_type_t<deflateSupported>& ws)
         {
             auto const s = std::string(2000, '*') +
                 random_string();
@@ -296,7 +305,8 @@ public:
         });
 
         // invalid fixed frame header
-        doTest(pmd, [&](ws_type& ws)
+        doTest<deflateSupported>(pmd,
+        [&](ws_type_t<deflateSupported>& ws)
         {
             w.write_raw(ws, cbuf(
                 0x8f, 0x80, 0xff, 0xff, 0xff, 0xff));
@@ -304,7 +314,8 @@ public:
         });
 
         // bad close
-        doTest(pmd, [&](ws_type& ws)
+        doTest<deflateSupported>(pmd,
+        [&](ws_type_t<deflateSupported>& ws)
         {
             put(ws.next_layer().buffer(), cbuf(
                 0x88, 0x02, 0x03, 0xed));
@@ -312,7 +323,8 @@ public:
         });
 
         // message size above 2^64
-        doTest(pmd, [&](ws_type& ws)
+        doTest<deflateSupported>(pmd,
+        [&](ws_type_t<deflateSupported>& ws)
         {
             w.write_some(ws, false, sbuf("*"));
             w.write_raw(ws, cbuf(
@@ -322,7 +334,8 @@ public:
         });
 
         // message size exceeds max
-        doTest(pmd, [&](ws_type& ws)
+        doTest<deflateSupported>(pmd,
+        [&](ws_type_t<deflateSupported>& ws)
         {
             ws.read_message_max(1);
             w.write(ws, sbuf("**"));
@@ -330,7 +343,8 @@ public:
         });
 
         // bad utf8
-        doTest(pmd, [&](ws_type& ws)
+        doTest<deflateSupported>(pmd,
+        [&](ws_type_t<deflateSupported>& ws)
         {
             put(ws.next_layer().buffer(), cbuf(
                 0x81, 0x06, 0x03, 0xea, 0xf0, 0x28, 0x8c, 0xbc));
@@ -338,7 +352,8 @@ public:
         });
 
         // incomplete utf8
-        doTest(pmd, [&](ws_type& ws)
+        doTest<deflateSupported>(pmd,
+        [&](ws_type_t<deflateSupported>& ws)
         {
             std::string const s =
                 "Hello, world!" "\xc0";
@@ -347,7 +362,8 @@ public:
         });
 
         // incomplete utf8, big
-        doTest(pmd, [&](ws_type& ws)
+        doTest<deflateSupported>(pmd,
+        [&](ws_type_t<deflateSupported>& ws)
         {
             std::string const s =
                 "\x81\x7e\x0f\xa1" +
@@ -375,7 +391,7 @@ public:
             [&](error_code ev, string_view s)
             {
                 echo_server es{log};
-                stream<test::stream> ws{ioc_};
+                stream<test::stream, deflateSupported> ws{ioc_};
                 ws.next_layer().connect(es.stream());
                 w.handshake(ws, "localhost", "/");
                 ws.next_layer().append(s);
@@ -410,11 +426,15 @@ public:
             check(error::closed,
                 "\x88\x06\xfc\x15utf8");
         }
+    }
 
-        //
-        // permessage-deflate
-        //
+    template<class Wrap>
+    void
+    doTestReadDeflate(Wrap const& w)
+    {
+        using boost::asio::buffer;
 
+        permessage_deflate pmd;
         pmd.client_enable = true;
         pmd.server_enable = true;
         pmd.client_max_window_bits = 9;
@@ -422,7 +442,8 @@ public:
         pmd.compLevel = 1;
 
         // message size limit
-        doTest(pmd, [&](ws_type& ws)
+        doTest<true>(pmd,
+        [&](ws_type_t<true>& ws)
         {
             std::string const s = std::string(128, '*');
             w.write(ws, buffer(s));
@@ -431,7 +452,8 @@ public:
         });
 
         // invalid inflate block
-        doTest(pmd, [&](ws_type& ws)
+        doTest<true>(pmd,
+        [&](ws_type_t<true>& ws)
         {
             auto const& s = random_string();
             ws.binary(true);
@@ -458,7 +480,8 @@ public:
 
         // no_context_takeover
         pmd.server_no_context_takeover = true;
-        doTest(pmd, [&](ws_type& ws)
+        doTest<true>(pmd,
+        [&](ws_type_t<true>& ws)
         {
             auto const& s = random_string();
             ws.binary(true);
@@ -587,10 +610,14 @@ public:
     {
         using boost::asio::buffer;
 
-        doTestRead(SyncClient{});
+        doTestRead<false>(SyncClient{});
+        doTestRead<true>(SyncClient{});
+        doTestReadDeflate(SyncClient{});
         yield_to([&](yield_context yield)
         {
-            doTestRead(AsyncClient{yield});
+            doTestRead<false>(AsyncClient{yield});
+            doTestRead<true>(AsyncClient{yield});
+            doTestReadDeflate(AsyncClient{yield});
         });
 
         permessage_deflate pmd;
