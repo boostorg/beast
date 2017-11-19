@@ -746,7 +746,7 @@ do_accept(
         //             teardown if Connection: close.
         return;
     }
-    pmd_read(pmd_config_, req);
+    pmd_read(pmd_config_, res);
     open(role_type::server);
 }
 

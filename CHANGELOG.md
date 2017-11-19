@@ -1,3 +1,9 @@
+Version 144:
+
+* Fix websocket permessage-deflate negotiation
+
+--------------------------------------------------------------------------------
+
 Version 143:
 
 * Fix autobahn report link
