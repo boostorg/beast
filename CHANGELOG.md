@@ -5,6 +5,7 @@ Version 145:
 * Refactor HTTP async read composed operations
 * null_buffers is deprecated
 * Version 124 works with Boost 1.65.1 and earlier
+* basic_fields does not support fancy pointers
 
 --------------------------------------------------------------------------------
 

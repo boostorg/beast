@@ -56,6 +56,11 @@ class basic_fields
     : private beast::detail::empty_base_optimization<Allocator>
 #endif
 {
+    // Fancy pointers are not supported
+    static_assert(std::is_pointer<typename
+        std::allocator_traits<Allocator>::pointer>::value,
+        "Allocator must use regular pointers");
+
     friend class fields_test; // for `header`
 
     static std::size_t constexpr max_static_buffer = 4096;
