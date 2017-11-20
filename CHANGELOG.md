@@ -4,6 +4,7 @@ Version 145:
 * Refactor basic_fields allocator internals
 * Refactor HTTP async read composed operations
 * null_buffers is deprecated
+* Version 124 works with Boost 1.65.1 and earlier
 
 --------------------------------------------------------------------------------
 

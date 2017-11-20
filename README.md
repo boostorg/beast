@@ -8,6 +8,20 @@ Branch      | Linux/OSX | Windows | Coverage | Documentation | Matrix
 [master](https://github.com/boostorg/beast/tree/master)   | [![Build Status](https://travis-ci.org/boostorg/beast.svg?branch=master)](https://travis-ci.org/boostorg/beast)  | [![Build status](https://ci.appveyor.com/api/projects/status/g0llpbvhpjuxjnlw/branch/master?svg=true)](https://ci.appveyor.com/project/vinniefalco/beast/branch/master)   | [![codecov](https://codecov.io/gh/boostorg/Beast/branch/master/graph/badge.svg)](https://codecov.io/gh/boostorg/beast/branch/master)   | [![Documentation](https://img.shields.io/badge/documentation-master-brightgreen.svg)](http://www.boost.org/doc/libs/master/libs/beast/doc/html/index.html)  | [![Matrix](https://img.shields.io/badge/matrix-master-brightgreen.svg)](http://www.boost.org/development/tests/master/developer/beast.html)
 [develop](https://github.com/boostorg/beast/tree/develop) | [![Build Status](https://travis-ci.org/boostorg/beast.svg?branch=develop)](https://travis-ci.org/boostorg/beast) | [![Build status](https://ci.appveyor.com/api/projects/status/g0llpbvhpjuxjnlw/branch/develop?svg=true)](https://ci.appveyor.com/project/vinniefalco/beast/branch/develop) | [![codecov](https://codecov.io/gh/boostorg/Beast/branch/develop/graph/badge.svg)](https://codecov.io/gh/boostorg/beast/branch/develop) | [![Documentation](https://img.shields.io/badge/documentation-develop-brightgreen.svg)](http://www.boost.org/doc/libs/develop/libs/beast/index.html) | [![Matrix](https://img.shields.io/badge/matrix-develop-brightgreen.svg)](http://www.boost.org/development/tests/develop/developer/beast.html)
 
+# Important Notice About Versions
+
+The version of Beast at the tip of the **master** and **develop** branches
+requires the latest version of Boost.Asio. Specifically it requires the
+developmental version of Boost.Asio located at the **master** branch of
+the Boost.Asio repository.
+
+The latest Beast cannot be compiled against Boost 1.65.1 and earlier. To
+use Boost 1.65.1 and earlier with Beast it is necessary to use Beast
+version 124, which is available here: https://github.com/boostorg/beast/tree/v124
+
+This situation is temporary until Boost 1.66.0 is released, where Beast and
+Asio will work correctly with each other within the monolithic Boost release.
+
 ## Contents
 
 - [Introduction](#introduction)
