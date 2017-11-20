@@ -131,14 +131,14 @@ public:
         }}
     }
 
-    void testNullBuffers()
+    void testEmptyBuffers()
     {
         using boost::asio::buffer_copy;
         using boost::asio::buffer_size;
-        using boost::asio::null_buffers;
-        auto pb0 = buffers_prefix(0, null_buffers{});
+        using boost::asio::mutable_buffer;
+        auto pb0 = buffers_prefix(0, mutable_buffer{});
         BEAST_EXPECT(buffer_size(pb0) == 0);
-        auto pb1 = buffers_prefix(1, null_buffers{});
+        auto pb1 = buffers_prefix(1, mutable_buffer{});
         BEAST_EXPECT(buffer_size(pb1) == 0);
         BEAST_EXPECT(buffer_copy(pb0, pb1) == 0);
 
@@ -175,7 +175,7 @@ public:
     {
         testMatrix<boost::asio::const_buffer>();
         testMatrix<boost::asio::mutable_buffer>();
-        testNullBuffers();
+        testEmptyBuffers();
         testIterator();
     }
 };

@@ -66,7 +66,7 @@ public:
         doTest(pmd, [&](ws_type& ws)
         {
             ws.text(true);
-            w.write(ws, boost::asio::null_buffers{});
+            w.write(ws, boost::asio::const_buffer{});
             multi_buffer b;
             w.read(ws, b);
             BEAST_EXPECT(ws.got_text());
@@ -549,7 +549,7 @@ public:
                 if(! BEAST_EXPECTS(! ec, ec.message()))
                     break;
                 ws.async_write_some(false,
-                    boost::asio::null_buffers{},
+                    boost::asio::const_buffer{},
                     [&](error_code, std::size_t)
                     {
                         fail();

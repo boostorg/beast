@@ -124,8 +124,8 @@ operator()(error_code ec, std::size_t)
         }
 
     do_read:
-        return s_.async_read_some(
-            boost::asio::null_buffers{},
+        return s_.async_wait(
+            boost::asio::ip::tcp::socket::wait_read,
                 std::move(*this));
     }
     if(role_ == role_type::client)

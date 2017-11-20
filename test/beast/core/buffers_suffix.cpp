@@ -143,16 +143,16 @@ public:
     }
 
     void
-    testNullBuffers()
+    testEmptyBuffers()
     {
         using boost::asio::buffer_copy;
         using boost::asio::buffer_size;
-        using boost::asio::null_buffers;
-        buffers_suffix<null_buffers> cb(
-            null_buffers{});
+        using boost::asio::mutable_buffer;
+        buffers_suffix<mutable_buffer> cb(
+            mutable_buffer{});
         BEAST_EXPECT(buffer_size(cb) == 0);
-        buffers_suffix<null_buffers> cb2(
-            null_buffers{});
+        buffers_suffix<mutable_buffer> cb2(
+            mutable_buffer{});
         BEAST_EXPECT(buffer_copy(cb2, cb) == 0);
     }
 
@@ -174,7 +174,7 @@ public:
         testMatrix();
         testDefaultCtor();
         testInPlace();
-        testNullBuffers();
+        testEmptyBuffers();
         testIterator();
     }
 };
