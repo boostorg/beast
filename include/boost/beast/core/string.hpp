@@ -55,9 +55,8 @@ inline
 char
 ascii_tolower(char c)
 {
-    if(c >= 'A' && c <= 'Z')
-        c += 'a' - 'A';
-    return c;
+    return ((static_cast<unsigned>(c) - 65U) < 26) ?
+        c + 'a' - 'A' : c;
 }
 
 template<class = void>
@@ -77,17 +76,18 @@ iequals(
         a = *p1++;
         b = *p2++;
         if(a != b)
-            goto slow;
-    }
-    return true;
-
-    while(n--)
-    {
-    slow:
-        if(ascii_tolower(a) != ascii_tolower(b))
-            return false;
-        a = *p1++;
-        b = *p2++;
+        {
+            // slow loop
+            do
+            {
+                if(ascii_tolower(a) != ascii_tolower(b))
+                    return false;
+                a = *p1++;
+                b = *p2++;
+            }
+            while(n--);
+            return true;
+        }
     }
     return true;
 }
