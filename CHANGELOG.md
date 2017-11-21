@@ -1,3 +1,9 @@
+Version 146:
+
+* Fix some typos
+
+--------------------------------------------------------------------------------
+
 Version 145:
 
 * Rename some detail functions
