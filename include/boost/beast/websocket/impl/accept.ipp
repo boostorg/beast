@@ -537,7 +537,7 @@ async_accept(
     AcceptHandler&& handler)
 {
     static_assert(is_async_stream<next_layer_type>::value,
-        "AsyncStream requirements requirements not met");
+        "AsyncStream requirements not met");
     boost::asio::async_completion<AcceptHandler,
         void(error_code)> init{handler};
     reset();
@@ -563,7 +563,7 @@ async_accept_ex(
     AcceptHandler&& handler)
 {
     static_assert(is_async_stream<next_layer_type>::value,
-        "AsyncStream requirements requirements not met");
+        "AsyncStream requirements not met");
     static_assert(detail::is_ResponseDecorator<
         ResponseDecorator>::value,
             "ResponseDecorator requirements not met");
@@ -594,7 +594,7 @@ async_accept(
     AcceptHandler&& handler)
 {
     static_assert(is_async_stream<next_layer_type>::value,
-        "AsyncStream requirements requirements not met");
+        "AsyncStream requirements not met");
     static_assert(boost::asio::is_const_buffer_sequence<
         ConstBufferSequence>::value,
             "ConstBufferSequence requirements not met");
@@ -627,7 +627,7 @@ async_accept_ex(
     AcceptHandler&& handler)
 {
     static_assert(is_async_stream<next_layer_type>::value,
-        "AsyncStream requirements requirements not met");
+        "AsyncStream requirements not met");
     static_assert(boost::asio::is_const_buffer_sequence<
         ConstBufferSequence>::value,
             "ConstBufferSequence requirements not met");
@@ -659,7 +659,7 @@ async_accept(
     AcceptHandler&& handler)
 {
     static_assert(is_async_stream<next_layer_type>::value,
-        "AsyncStream requirements requirements not met");
+        "AsyncStream requirements not met");
     boost::asio::async_completion<AcceptHandler,
         void(error_code)> init{handler};
     reset();
@@ -688,7 +688,7 @@ async_accept_ex(
     AcceptHandler&& handler)
 {
     static_assert(is_async_stream<next_layer_type>::value,
-        "AsyncStream requirements requirements not met");
+        "AsyncStream requirements not met");
     static_assert(detail::is_ResponseDecorator<
         ResponseDecorator>::value,
             "ResponseDecorator requirements not met");
