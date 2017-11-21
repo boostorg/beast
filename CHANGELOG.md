@@ -3,6 +3,10 @@ Version 146:
 * Fix some typos
 * Faster ascii_tolower
 
+API Changes:
+
+* Remove unintended public members of handler_ptr
+
 --------------------------------------------------------------------------------
 
 Version 145:

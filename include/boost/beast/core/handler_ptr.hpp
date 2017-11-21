@@ -41,6 +41,10 @@ namespace beast {
     associated with the final handler is used to create the managed
     object.
 
+    @par Thread Safety
+    @e Distinct @e objects: Safe.@n
+    @e Shared @e objects: Unsafe.
+
     @note The reference count is stored using a 16 bit unsigned
     integer. Making more than 2^16 copies of one object results
     in undefined behavior.
@@ -145,22 +149,12 @@ public:
         return p_->handler;
     }
 
-    /// Returns `true` if `*this` owns an object.
-    explicit
-    operator bool() const
-    {
-        return p_ && p_->t;
-    }
-
     /** Returns a pointer to the owned object.
-
-        If `*this` owns an object, a pointer to the
-        object is returned, else `nullptr` is returned.
     */
     T*
     get() const
     {
-        return p_ ? p_->t : nullptr;
+        return p_->t;
     }
 
     /// Return a reference to the owned object.
@@ -179,7 +173,13 @@ public:
 
     /** Release ownership of the handler
 
-        If `*this` owns an object, it is first destroyed.
+        Requires: `*this` owns an object
+
+        Before this function returns,
+        the owned object is destroyed, satisfying the
+        deallocation-before-invocation Asio guarantee. All
+        instances of @ref handler_ptr which refer to the
+        same owned object will be reset, including this instance.
 
         @return The released handler.
     */
