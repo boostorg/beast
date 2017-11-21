@@ -236,7 +236,7 @@ stream<NextLayer>::
 async_ping(ping_data const& payload, WriteHandler&& handler)
 {
     static_assert(is_async_stream<next_layer_type>::value,
-        "AsyncStream requirements requirements not met");
+        "AsyncStream requirements not met");
     boost::asio::async_completion<WriteHandler,
         void(error_code)> init{handler};
     ping_op<BOOST_ASIO_HANDLER_TYPE(
@@ -254,7 +254,7 @@ stream<NextLayer>::
 async_pong(ping_data const& payload, WriteHandler&& handler)
 {
     static_assert(is_async_stream<next_layer_type>::value,
-        "AsyncStream requirements requirements not met");
+        "AsyncStream requirements not met");
     boost::asio::async_completion<WriteHandler,
         void(error_code)> init{handler};
     ping_op<BOOST_ASIO_HANDLER_TYPE(

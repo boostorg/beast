@@ -829,7 +829,7 @@ stream<NextLayer>::
 async_read(DynamicBuffer& buffer, ReadHandler&& handler)
 {
     static_assert(is_async_stream<next_layer_type>::value,
-        "AsyncStream requirements requirements not met");
+        "AsyncStream requirements not met");
     static_assert(
         boost::asio::is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
@@ -917,7 +917,7 @@ async_read_some(
     ReadHandler&& handler)
 {
     static_assert(is_async_stream<next_layer_type>::value,
-        "AsyncStream requirements requirements not met");
+        "AsyncStream requirements not met");
     static_assert(
         boost::asio::is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
@@ -1303,7 +1303,7 @@ async_read_some(
     ReadHandler&& handler)
 {
     static_assert(is_async_stream<next_layer_type>::value,
-        "AsyncStream requirements requirements not met");
+        "AsyncStream requirements not met");
     static_assert(boost::asio::is_mutable_buffer_sequence<
             MutableBufferSequence>::value,
         "MutableBufferSequence requirements not met");
