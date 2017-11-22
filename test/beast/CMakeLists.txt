@@ -24,6 +24,12 @@ add_executable (tests-beast
     zlib.cpp
 )
 
+target_link_libraries(tests-beast
+    Boost::system
+    Threads::Threads
+)
+
+
 add_subdirectory (core)
 add_subdirectory (http)
 add_subdirectory (websocket)

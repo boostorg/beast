@@ -16,4 +16,9 @@ add_executable (http-client-sync
     http_client_sync.cpp
 )
 
+target_link_libraries(http-client-sync
+    Boost::system
+    Threads::Threads
+)
+
 set_property(TARGET http-client-sync PROPERTY FOLDER "example-http-client")

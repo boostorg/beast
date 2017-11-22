@@ -27,4 +27,8 @@ add_executable (bench-zlib
     inflate_stream.cpp
 )
 
+target_link_libraries(bench-zlib
+    Boost::system
+)
+
 set_property(TARGET bench-zlib PROPERTY FOLDER "tests-bench")

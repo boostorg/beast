@@ -16,4 +16,10 @@ add_executable (websocket-server-fast
     websocket_server_fast.cpp
 )
 
+target_link_libraries(websocket-server-fast
+    Boost::system
+    Boost::coroutine
+    Threads::Threads
+)
+
 set_property(TARGET websocket-server-fast PROPERTY FOLDER "example-websocket-server")

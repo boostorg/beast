@@ -35,4 +35,10 @@ add_executable (tests-beast-websocket
     write.cpp
 )
 
+target_link_libraries(tests-beast-websocket
+  Boost::system
+  Boost::coroutine
+  Threads::Threads
+)
+
 set_property(TARGET tests-beast-websocket PROPERTY FOLDER "tests")

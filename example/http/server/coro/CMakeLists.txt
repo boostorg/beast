@@ -16,4 +16,10 @@ add_executable (http-server-coro
     http_server_coro.cpp
 )
 
+target_link_libraries(http-server-coro
+    Boost::system
+    Boost::coroutine
+    Threads::Threads
+)
+
 set_property(TARGET http-server-coro PROPERTY FOLDER "example-http-server")

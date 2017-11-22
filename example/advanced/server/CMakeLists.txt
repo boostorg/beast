@@ -16,4 +16,9 @@ add_executable (advanced-server
     advanced_server.cpp
 )
 
+target_link_libraries(advanced-server
+    Boost::system
+    Threads::Threads
+)
+
 set_property(TARGET advanced-server PROPERTY FOLDER "example-advanced-server")

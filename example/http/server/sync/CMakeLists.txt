@@ -16,4 +16,9 @@ add_executable (http-server-sync
     http_server_sync.cpp
 )
 
+target_link_libraries(http-server-sync
+    Boost::system
+    Threads::Threads
+)
+
 set_property(TARGET http-server-sync PROPERTY FOLDER "example-http-server")

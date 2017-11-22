@@ -16,4 +16,9 @@ add_executable (websocket-client-async
     websocket_client_async.cpp
 )
 
+target_link_libraries(websocket-client-async
+    Boost::system
+    Threads::Threads
+)
+
 set_property(TARGET websocket-client-async PROPERTY FOLDER "example-websocket-client")

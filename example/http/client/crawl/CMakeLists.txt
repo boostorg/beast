@@ -18,5 +18,10 @@ add_executable (http-crawl
     http_crawl.cpp
 )
 
+target_link_libraries(http-crawl
+    Boost::system
+    Threads::Threads
+)
+
 set_property(TARGET http-crawl PROPERTY FOLDER "example-http-client")
 

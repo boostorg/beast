@@ -16,4 +16,9 @@ add_executable (echo-op
     echo_op.cpp
 )
 
+target_link_libraries(echo-op
+    Boost::system
+    Threads::Threads
+)
+
 set_property(TARGET echo-op PROPERTY FOLDER "example")

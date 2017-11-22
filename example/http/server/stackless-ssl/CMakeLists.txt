@@ -19,6 +19,11 @@ if (OPENSSL_FOUND)
         http_server_stackless_ssl.cpp
     )
 
+    target_link_libraries(http-server-stackless-ssl
+        Boost::system
+        Threads::Threads
+    )
+
     set_property(TARGET http-server-stackless-ssl PROPERTY FOLDER "example-http-server")
 
     target_link_libraries (http-server-stackless-ssl

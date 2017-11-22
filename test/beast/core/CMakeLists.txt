@@ -51,4 +51,11 @@ add_executable (tests-beast-core
     detail/varint.cpp
 )
 
+target_link_libraries(tests-beast-core
+    Boost::system
+    Boost::coroutine
+    Boost::filesystem
+    Threads::Threads
+)
+
 set_property(TARGET tests-beast-core PROPERTY FOLDER "tests")

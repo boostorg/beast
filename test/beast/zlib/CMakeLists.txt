@@ -29,4 +29,8 @@ add_executable (tests-beast-zlib
     zlib.cpp
 )
 
+target_link_libraries(tests-beast-zlib
+    Boost::system
+)
+
 set_property(TARGET tests-beast-zlib PROPERTY FOLDER "tests")

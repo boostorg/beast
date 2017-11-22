@@ -23,6 +23,8 @@ if (OPENSSL_FOUND)
 
     target_link_libraries (websocket-server-stackless-ssl
         ${OPENSSL_LIBRARIES}
+	Boost::system
+	Threads::Threads
         )
 
 endif()

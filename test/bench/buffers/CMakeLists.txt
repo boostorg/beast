@@ -20,4 +20,8 @@ add_executable (bench-buffers
     bench_buffers.cpp
 )
 
+target_link_libraries(bench-buffers
+    Boost::system
+)
+
 set_property(TARGET bench-buffers PROPERTY FOLDER "tests-bench")

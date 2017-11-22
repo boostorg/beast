@@ -19,6 +19,11 @@ if (OPENSSL_FOUND)
         websocket_client_async_ssl.cpp
     )
 
+    target_link_libraries(websocket-client-async-ssl
+        Boost::system
+        Threads::Threads
+    )
+
     set_property(TARGET websocket-client-async-ssl PROPERTY FOLDER "example-websocket-client")
 
     target_link_libraries (websocket-client-async-ssl

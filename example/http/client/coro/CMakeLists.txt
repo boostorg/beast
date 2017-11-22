@@ -16,4 +16,10 @@ add_executable (http-client-coro
     http_client_coro.cpp
     )
 
+target_link_libraries(http-client-coro
+    Boost::system
+    Boost::coroutine
+    Threads::Threads
+)
+
 set_property(TARGET http-client-coro PROPERTY FOLDER "example-http-client")
