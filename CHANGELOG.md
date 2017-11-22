@@ -2,6 +2,7 @@ Version 146:
 
 * Fix some typos
 * Faster ascii_tolower
+* Documentation tidying
 
 API Changes:
 
