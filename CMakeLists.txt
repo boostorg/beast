@@ -11,8 +11,6 @@ cmake_minimum_required (VERSION 3.5.1)
 
 project (Beast VERSION 145)
 
-set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/cmake_module ${CMAKE_MODULE_PATH}) # use a custom FindBoost.cmake
-
 set_property (GLOBAL PROPERTY USE_FOLDERS ON)
 option (Beast_BUILD_EXAMPLES "Build examples" ON)
 option (Beast_BUILD_TESTS "Build tests" ON)
@@ -77,6 +75,12 @@ include_directories (include)
 
 find_package(Boost COMPONENTS system coroutine filesystem)
 
+if (NOT _Boost_IMPORTED_TARGETS)
+  message("===========> Cannot find Boost_COMPONENT_DEPENDENCIES for your new boost version, when using the default ${CMAKE_ROOT}/Modules/FindBoost.cmake")
+  message("===========> Therefore using a new tweaked FindBoost.cmake, found here: ${CMAKE_CURRENT_LIST_DIR}/cmake_module/FindBoost.cmake")
+  set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/cmake_module ${CMAKE_MODULE_PATH}) # use a custom tweaked FindBoost.cmake
+  find_package(Boost COMPONENTS system coroutine filesystem)
+endif()
 #get_filename_component (BOOST_ROOT ../../ ABSOLUTE)
 
 # VFALCO I want static but "b2 stage" builds a minimal set which excludes static
