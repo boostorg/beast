@@ -27,10 +27,11 @@ namespace beast {
 template<class... Bn>
 class buffers_cat_view<Bn...>::const_iterator
 {
+    static_assert(sizeof...(Bn) > 0,  "Must have at least 1 buffer sequence.");
     std::size_t n_;
     std::tuple<Bn...> const* bn_;
-    std::array<char, detail::max_sizeof<
-        typename detail::buffer_sequence_iterator<Bn>::type...>()> buf_;
+    typename std::aligned_union<1, typename detail::buffer_sequence_iterator<
+        Bn>::type...>::type buf_;
 
     friend class buffers_cat_view<Bn...>;
 
@@ -45,19 +46,20 @@ class buffers_cat_view<Bn...>::const_iterator
     iter_t<I>&
     iter()
     {
+        BOOST_ASSERT(n_ ==  I);
         // type-pun
         return *reinterpret_cast<
-            iter_t<I>*>(static_cast<void*>(buf_.data()));
+            iter_t<I>*>(&buf_);
     }
 
     template<std::size_t I>
     iter_t<I> const&
     iter() const
     {
+        BOOST_ASSERT(n_ ==  I);
         // type-pun
         return *reinterpret_cast<
-            iter_t<I> const*>(static_cast<
-                void const*>(buf_.data()));
+            iter_t<I> const*>(&buf_);
     }
 
 public:
@@ -122,7 +124,7 @@ private:
             std::get<I>(*bn_)) != 0)
         {
             n_ = I;
-            new(&buf_[0]) iter_t<I>{
+            new(&buf_) iter_t<I>{
                 boost::asio::buffer_sequence_begin(
                 std::get<I>(*bn_))};
             return;
@@ -138,7 +140,7 @@ private:
             std::get<I>(*bn_)) != 0)
         {
             n_ = I;
-            new(&buf_[0]) iter_t<I>{
+            new(&buf_) iter_t<I>{
                 boost::asio::buffer_sequence_end(
                 std::get<I>(*bn_))};
             return;
@@ -155,7 +157,7 @@ private:
             std::get<I>(*bn_)) != 0)
         {
             n_ = I;
-            new(&buf_[0]) iter_t<I>{
+            new(&buf_) iter_t<I>{
                 boost::asio::buffer_sequence_end(
                     std::get<I>(*bn_))};
             return;
@@ -195,7 +197,7 @@ private:
     {
         if(n_ == I)
         {
-            new(&buf_[0]) iter_t<I>{
+            new(&buf_) iter_t<I>{
                 std::move(other.iter<I>())};
             return;
         }
@@ -215,7 +217,7 @@ private:
     {
         if(n_ == I)
         {
-            new(&buf_[0]) iter_t<I>{
+            new(&buf_) iter_t<I>{
                 other.iter<I>()};
             return;
         }
@@ -303,9 +305,9 @@ private:
                 --iter<I>();
                 return;
             }
-            --n_;
             using Iter = iter_t<I>;
             iter<I>().~Iter();
+            --n_;
             rconstruct(C<I-1>{});
         }
         decrement(C<I-1>{});
