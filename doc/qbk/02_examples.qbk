@@ -232,7 +232,7 @@ listed here along with a description of their use:
     [[source_file example/common/ssl_stream.hpp]]
     [
         The `ssl_stream` is a replacement for __ssl_stream__ which
-        supports construction from a moved-froms ocket and is also
+        supports construction from a moved-from socket and is also
         itself move constructible.
     ]
 ]]
