@@ -346,6 +346,12 @@ buffers_range(Buffers const& buffers)
     return buffers_range_adapter<Buffers>{buffers};
 }
 
+template<typename... Ts>
+using aligned_union_t = typename std::aligned_storage<
+        max_sizeof<Ts...>(),
+        max_alignof<Ts...>()
+    >::type;
+
 } // detail
 } // beast
 } // boost
