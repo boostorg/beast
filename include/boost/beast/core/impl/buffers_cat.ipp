@@ -30,8 +30,8 @@ class buffers_cat_view<Bn...>::const_iterator
     static_assert(sizeof...(Bn) > 0,  "Must have at least 1 buffer sequence.");
     std::size_t n_;
     std::tuple<Bn...> const* bn_;
-    typename std::aligned_union<1, typename detail::buffer_sequence_iterator<
-        Bn>::type...>::type buf_;
+    detail::aligned_union_t<typename detail::buffer_sequence_iterator<
+        Bn>::type...> buf_;
 
     friend class buffers_cat_view<Bn...>;
 
