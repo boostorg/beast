@@ -22,25 +22,8 @@ namespace boost {
 namespace beast {
 namespace detail {
 
-//
-// utilities
-//
-
-template<class... Ts>
-struct make_void
-{
-    using type = void;
-};
-
-template<class... Ts>
-using void_t = typename make_void<Ts...>::type;
-
-template<class T>
-inline
-void
-accept_rv(T){}
-
 template<class U>
+inline
 std::size_t constexpr
 max_sizeof()
 {
@@ -48,6 +31,7 @@ max_sizeof()
 }
 
 template<class U0, class U1, class... Us>
+inline
 std::size_t constexpr
 max_sizeof()
 {
@@ -57,6 +41,7 @@ max_sizeof()
 }
 
 template<class U>
+inline
 std::size_t constexpr
 max_alignof()
 {
@@ -71,6 +56,36 @@ max_alignof()
         max_alignof<U0>() > max_alignof<U1, Us...>() ?
         max_alignof<U0>() : max_alignof<U1, Us...>();
 }
+
+// (since C++17)
+template<class... Ts> struct make_void { using type = void; };
+template<class... Ts> using void_t = typename make_void<Ts...>::type;
+
+// (since C++11) missing from g++4.8
+template<std::size_t Len, class... Ts>
+struct aligned_union
+{
+    static
+    std::size_t constexpr alignment_value =
+        max_alignof<Ts...>();
+
+    using type = typename std::aligned_storage<
+        (Len > max_sizeof<Ts...>()) ? Len : (max_sizeof<Ts...>()),
+            alignment_value>::type;
+};
+
+template<std::size_t Len, class... Ts>
+using aligned_union_t =
+    typename aligned_union<Len, Ts...>::type;
+
+//------------------------------------------------------------------------------
+
+template<class T>
+inline
+void
+accept_rv(T){}
+
+//------------------------------------------------------------------------------
 
 template<unsigned N, class T, class... Tn>
 struct repeat_tuple_impl
@@ -97,6 +112,8 @@ struct repeat_tuple<0, T>
 {
     using type = std::tuple<>;
 };
+
+//------------------------------------------------------------------------------
 
 template<class R, class C, class ...A>
 auto
@@ -132,6 +149,8 @@ struct is_invocable<C, R(A...)>
 };
 /** @} */
 
+//------------------------------------------------------------------------------
+
 // for span
 template<class T, class E, class = void>
 struct is_contiguous_container: std::false_type {};
@@ -153,6 +172,8 @@ struct is_contiguous_container<T, E, void_t<
         >::value
     >::type>>: std::true_type
 {};
+
+//------------------------------------------------------------------------------
 
 template<class...>
 struct unwidest_unsigned;

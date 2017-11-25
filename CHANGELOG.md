@@ -4,6 +4,7 @@ Version 146:
 * Faster ascii_tolower
 * Documentation tidying
 * Fix typo in examples documentation
+* Add detail::aligned_union and tidy up
 
 API Changes:
 

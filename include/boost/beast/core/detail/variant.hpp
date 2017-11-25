@@ -31,10 +31,7 @@ namespace detail {
 template<class... TN>
 class variant
 {
-    typename std::aligned_storage<
-        max_sizeof<TN...>(),
-        max_alignof<TN...>()
-    >::type buf_;
+    detail::aligned_union_t<1, TN...> buf_;
     unsigned char i_ = 0;
 
     template<std::size_t I>
