@@ -11,9 +11,9 @@
 #define BOOST_BEAST_IMPL_BUFFERS_CAT_IPP
 
 #include <boost/beast/core/detail/type_traits.hpp>
+#include <boost/beast/core/detail/variant.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/throw_exception.hpp>
-#include <array>
 #include <cstdint>
 #include <iterator>
 #include <new>
@@ -27,38 +27,28 @@ namespace beast {
 template<class... Bn>
 class buffers_cat_view<Bn...>::const_iterator
 {
-    std::size_t n_;
-    std::tuple<Bn...> const* bn_;
-    std::array<char, detail::max_sizeof<
-        typename detail::buffer_sequence_iterator<Bn>::type...>()> buf_;
+    // VFALCO The logic to skip empty sequences fails
+    //        if there is just one buffer in the list.
+    static_assert(sizeof...(Bn) >= 2,
+        "A minimum of two sequences are required");
+
+    struct past_end
+    {
+        operator bool() const noexcept
+        {
+            return true;
+        }
+    };
+
+    std::tuple<Bn...> const* bn_ = nullptr;
+    detail::variant<typename
+        detail::buffer_sequence_iterator<Bn>::type...,
+            past_end> it_;
 
     friend class buffers_cat_view<Bn...>;
 
     template<std::size_t I>
     using C = std::integral_constant<std::size_t, I>;
-
-    template<std::size_t I>
-    using iter_t = typename detail::buffer_sequence_iterator<
-        typename std::tuple_element<I, std::tuple<Bn...>>::type>::type;
-
-    template<std::size_t I>
-    iter_t<I>&
-    iter()
-    {
-        // type-pun
-        return *reinterpret_cast<
-            iter_t<I>*>(static_cast<void*>(buf_.data()));
-    }
-
-    template<std::size_t I>
-    iter_t<I> const&
-    iter() const
-    {
-        // type-pun
-        return *reinterpret_cast<
-            iter_t<I> const*>(static_cast<
-                void const*>(buf_.data()));
-    }
 
 public:
     using value_type = typename
@@ -69,12 +59,11 @@ public:
     using iterator_category =
         std::bidirectional_iterator_tag;
 
-    ~const_iterator();
-    const_iterator();
-    const_iterator(const_iterator&& other);
-    const_iterator(const_iterator const& other);
-    const_iterator& operator=(const_iterator&& other);
-    const_iterator& operator=(const_iterator const& other);
+    const_iterator() = default;
+    const_iterator(const_iterator&& other) = default;
+    const_iterator(const_iterator const& other) = default;
+    const_iterator& operator=(const_iterator&& other) = default;
+    const_iterator& operator=(const_iterator const& other) = default;
 
     bool
     operator==(const_iterator const& other) const;
@@ -97,22 +86,17 @@ public:
     const_iterator
     operator++(int);
 
+    // deprecated
     const_iterator&
     operator--();
 
+    // deprecated
     const_iterator
     operator--(int);
 
 private:
     const_iterator(
         std::tuple<Bn...> const& bn, bool at_end);
-
-    void
-    construct(C<sizeof...(Bn)> const&)
-    {
-        auto constexpr I = sizeof...(Bn);
-        n_ = I;
-    }
 
     template<std::size_t I>
     void
@@ -121,122 +105,85 @@ private:
         if(boost::asio::buffer_size(
             std::get<I>(*bn_)) != 0)
         {
-            n_ = I;
-            new(&buf_[0]) iter_t<I>{
+            it_.template emplace<I+1>(
                 boost::asio::buffer_sequence_begin(
-                std::get<I>(*bn_))};
+                    std::get<I>(*bn_)));
             return;
         }
         construct(C<I+1>{});
     }
 
     void
-    rconstruct(C<0> const&)
+    construct(C<sizeof...(Bn)-1> const&)
+    {
+        auto constexpr I = sizeof...(Bn)-1;
+        it_.template emplace<I+1>(
+            boost::asio::buffer_sequence_begin(
+                std::get<I>(*bn_)));
+    }
+
+    void
+    construct(C<sizeof...(Bn)> const&)
+    {
+        // end
+        auto constexpr I = sizeof...(Bn);
+        it_.template emplace<I+1>();
+    }
+
+    template<std::size_t I>
+    void
+    next(C<I> const&)
+    {
+        if(boost::asio::buffer_size(
+            std::get<I>(*bn_)) != 0)
+        {
+            it_.template emplace<I+1>(
+                boost::asio::buffer_sequence_begin(
+                    std::get<I>(*bn_)));
+            return;
+        }
+        next(C<I+1>{});
+    }
+
+    void
+    next(C<sizeof...(Bn)> const&)
+    {
+        // end
+        auto constexpr I = sizeof...(Bn);
+        it_.template emplace<I+1>();
+    }
+
+    template<std::size_t I>
+    void
+    prev(C<I> const&)
+    {
+        if(boost::asio::buffer_size(
+            std::get<I>(*bn_)) != 0)
+        {
+            it_.template emplace<I+1>(
+                boost::asio::buffer_sequence_end(
+                    std::get<I>(*bn_)));
+            return;
+        }
+        prev(C<I-1>{});
+    }
+
+    void
+    prev(C<0> const&)
     {
         auto constexpr I = 0;
-        if(boost::asio::buffer_size(
-            std::get<I>(*bn_)) != 0)
-        {
-            n_ = I;
-            new(&buf_[0]) iter_t<I>{
-                boost::asio::buffer_sequence_end(
-                std::get<I>(*bn_))};
-            return;
-        }
-        BOOST_THROW_EXCEPTION(std::logic_error{
-            "invalid iterator"});
+        it_.template emplace<I+1>(
+            boost::asio::buffer_sequence_end(
+                std::get<I>(*bn_)));
     }
 
     template<std::size_t I>
-    void
-    rconstruct(C<I> const&)
+    reference
+    dereference(C<I> const&) const
     {
-        if(boost::asio::buffer_size(
-            std::get<I>(*bn_)) != 0)
-        {
-            n_ = I;
-            new(&buf_[0]) iter_t<I>{
-                boost::asio::buffer_sequence_end(
-                    std::get<I>(*bn_))};
-            return;
-        }
-        rconstruct(C<I-1>{});
-    }
-
-    void
-    destroy(C<sizeof...(Bn)> const&)
-    {
-        return;
-    }
-
-    template<std::size_t I>
-    void
-    destroy(C<I> const&)
-    {
-        if(n_ == I)
-        {
-            using Iter = iter_t<I>;
-            iter<I>().~Iter();
-            return;
-        }
-        destroy(C<I+1>{});
-    }
-
-    void
-    move(const_iterator&&,
-        C<sizeof...(Bn)> const&)
-    {
-    }
-
-    template<std::size_t I>
-    void
-    move(const_iterator&& other,
-        C<I> const&)
-    {
-        if(n_ == I)
-        {
-            new(&buf_[0]) iter_t<I>{
-                std::move(other.iter<I>())};
-            return;
-        }
-        move(std::move(other), C<I+1>{});
-    }
-
-    void
-    copy(const_iterator const&,
-        C<sizeof...(Bn)> const&)
-    {
-    }
-
-    template<std::size_t I>
-    void
-    copy(const_iterator const& other,
-        C<I> const&)
-    {
-        if(n_ == I)
-        {
-            new(&buf_[0]) iter_t<I>{
-                other.iter<I>()};
-            return;
-        }
-        copy(other, C<I+1>{});
-    }
-
-    bool
-    equal(const_iterator const&,
-        C<sizeof...(Bn)> const&) const
-    {
-        return true;
-    }
-
-    template<std::size_t I>
-    bool
-    equal(const_iterator const& other,
-        C<I> const&) const
-    {
-        if(n_ == I)
-            return iter<I>() == other.iter<I>();
-        return equal(other, C<I+1>{});
+        if(it_.index() == I+1)
+            return *it_.template get<I+1>();
+        return dereference(C<I+1>{});
     }
 
     [[noreturn]]
@@ -248,12 +195,18 @@ private:
     }
 
     template<std::size_t I>
-    reference
-    dereference(C<I> const&) const
+    void
+    increment(C<I> const&)
     {
-        if(n_ == I)
-            return *iter<I>();
-        return dereference(C<I+1>{});
+        if(it_.index() == I+1)
+        {
+            if(++it_.template get<I+1>() !=
+                boost::asio::buffer_sequence_end(
+                    std::get<I>(*bn_)))
+                return;
+            return next(C<I+1>{});
+        }
+        increment(C<I+1>{});
     }
 
     [[noreturn]]
@@ -264,29 +217,12 @@ private:
             "invalid iterator"});
     }
 
-    template<std::size_t I>
-    void
-    increment(C<I> const&)
-    {
-        if(n_ == I)
-        {
-            if(++iter<I>() !=
-                boost::asio::buffer_sequence_end(
-                    std::get<I>(*bn_)))
-                return;
-            using Iter = iter_t<I>;
-            iter<I>().~Iter();
-            return construct(C<I+1>{});
-        }
-        increment(C<I+1>{});
-    }
-
     void
     decrement(C<sizeof...(Bn)> const&)
     {
         auto constexpr I = sizeof...(Bn);
-        if(n_ == I)
-            rconstruct(C<I-1>{});
+        if(it_.index() == I+1)
+            prev(C<I-1>{});
         decrement(C<I-1>{});
     }
 
@@ -294,19 +230,16 @@ private:
     void
     decrement(C<I> const&)
     {
-        if(n_ == I)
+        if(it_.index() == I+1)
         {
-            if(iter<I>() !=
+            if(it_.template get<I+1>() !=
                 boost::asio::buffer_sequence_begin(
                     std::get<I>(*bn_)))
             {
-                --iter<I>();
+                --it_.template get<I+1>();
                 return;
             }
-            --n_;
-            using Iter = iter_t<I>;
-            iter<I>().~Iter();
-            rconstruct(C<I-1>{});
+            prev(C<I-1>{});
         }
         decrement(C<I-1>{});
     }
@@ -315,11 +248,11 @@ private:
     decrement(C<0> const&)
     {
         auto constexpr I = 0;
-        if(iter<I>() !=
+        if(it_.template get<I+1>() !=
             boost::asio::buffer_sequence_begin(
                 std::get<I>(*bn_)))
         {
-            --iter<I>();
+            --it_.template get<I+1>();
             return;
         }
         BOOST_THROW_EXCEPTION(std::logic_error{
@@ -331,97 +264,33 @@ private:
 
 template<class... Bn>
 buffers_cat_view<Bn...>::
-const_iterator::~const_iterator()
-{
-    destroy(C<0>{});
-}
-
-template<class... Bn>
-buffers_cat_view<Bn...>::
-const_iterator::const_iterator()
-    : n_(sizeof...(Bn))
-    , bn_(nullptr)
-{
-}
-
-template<class... Bn>
-buffers_cat_view<Bn...>::
-const_iterator::const_iterator(
+const_iterator::
+const_iterator(
     std::tuple<Bn...> const& bn, bool at_end)
     : bn_(&bn)
 {
-    if(at_end)
-        n_ = sizeof...(Bn);
-    else
+    if(! at_end)
         construct(C<0>{});
-}
-
-template<class... Bn>
-buffers_cat_view<Bn...>::
-const_iterator::const_iterator(const_iterator&& other)
-    : n_(other.n_)
-    , bn_(other.bn_)
-{
-    move(std::move(other), C<0>{});
-}
-
-template<class... Bn>
-buffers_cat_view<Bn...>::
-const_iterator::const_iterator(const_iterator const& other)
-    : n_(other.n_)
-    , bn_(other.bn_)
-{
-    copy(other, C<0>{});
-}
-
-template<class... Bn>
-auto
-buffers_cat_view<Bn...>::
-const_iterator::operator=(const_iterator&& other) ->
-    const_iterator&
-{
-    if(&other == this)
-        return *this;
-    destroy(C<0>{});
-    n_ = other.n_;
-    bn_ = other.bn_;
-    // VFALCO What about exceptions?
-    move(std::move(other), C<0>{});
-    return *this;
-}
-
-template<class... Bn>
-auto
-buffers_cat_view<Bn...>::
-const_iterator::operator=(const_iterator const& other) ->
-const_iterator&
-{
-    if(&other == this)
-        return *this;
-    destroy(C<0>{});
-    n_ = other.n_;
-    bn_ = other.bn_;
-    // VFALCO What about exceptions?
-    copy(other, C<0>{});
-    return *this;
+    else
+        construct(C<sizeof...(Bn)>{});
 }
 
 template<class... Bn>
 bool
 buffers_cat_view<Bn...>::
-const_iterator::operator==(const_iterator const& other) const
+const_iterator::
+operator==(const_iterator const& other) const
 {
     if(bn_ != other.bn_)
         return false;
-    if(n_ != other.n_)
-        return false;
-    return equal(other, C<0>{});
+    return it_ == other.it_;
 }
 
 template<class... Bn>
 auto
 buffers_cat_view<Bn...>::
-const_iterator::operator*() const ->
+const_iterator::
+operator*() const ->
     reference
 {
     return dereference(C<0>{});
@@ -430,7 +299,8 @@ const_iterator::operator*() const ->
 template<class... Bn>
 auto
 buffers_cat_view<Bn...>::
-const_iterator::operator++() ->
+const_iterator::
+operator++() ->
     const_iterator&
 {
     increment(C<0>{});
@@ -440,7 +310,8 @@ const_iterator::operator++() ->
 template<class... Bn>
 auto
 buffers_cat_view<Bn...>::
-const_iterator::operator++(int) ->
+const_iterator::
+operator++(int) ->
     const_iterator
 {
     auto temp = *this;
@@ -451,7 +322,8 @@ const_iterator::operator++(int) ->
 template<class... Bn>
 auto
 buffers_cat_view<Bn...>::
-const_iterator::operator--() ->
+const_iterator::
+operator--() ->
     const_iterator&
 {
     decrement(C<sizeof...(Bn)>{});
@@ -461,7 +333,8 @@ const_iterator::operator--() ->
 template<class... Bn>
 auto
 buffers_cat_view<Bn...>::
-const_iterator::operator--(int) ->
+const_iterator::
+operator--(int) ->
     const_iterator
 {
     auto temp = *this;

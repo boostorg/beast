@@ -5,6 +5,7 @@ Version 146:
 * Documentation tidying
 * Fix typo in examples documentation
 * Add detail::aligned_union and tidy up
+* Use variant in buffers_cat_view
 
 API Changes:
 
