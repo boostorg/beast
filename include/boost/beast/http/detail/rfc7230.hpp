@@ -352,8 +352,8 @@ increment()
         {
             it = first;
         };
-    v.first.clear();
-    v.second.clear();
+    v.first = string_view();
+    v.second = string_view();
     detail::skip_ows(it, last);
     first = it;
     if(it == last)

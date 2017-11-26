@@ -364,8 +364,8 @@ basic_fields(basic_fields&& other)
     , method_(other.method_)
     , target_or_reason_(other.target_or_reason_)
 {
-    other.method_.clear();
-    other.target_or_reason_.clear();
+    other.method_ = string_view();
+    other.target_or_reason_ = string_view();
 }
 
 template<class Allocator>
@@ -1218,7 +1218,7 @@ realloc_string(string_view& dest, string_view s)
     {
         a.deallocate(const_cast<char*>(
             dest.data()), dest.size());
-        dest.clear();
+        dest = string_view();
     }
     if(! s.empty())
     {
@@ -1246,7 +1246,7 @@ realloc_target(
     {
         a.deallocate(const_cast<char*>(
             dest.data()), dest.size());
-        dest.clear();
+        dest = string_view();
     }
     if(! s.empty())
     {
@@ -1302,8 +1302,8 @@ move_assign(basic_fields& other, std::true_type)
     list_ = std::move(other.list_);
     method_ = other.method_;
     target_or_reason_ = other.target_or_reason_;
-    other.method_.clear();
-    other.target_or_reason_.clear();
+    other.method_ = string_view();
+    other.target_or_reason_ = string_view();
     this->member() = other.member();
 }
 
@@ -1325,8 +1325,8 @@ move_assign(basic_fields& other, std::false_type)
         list_ = std::move(other.list_);
         method_ = other.method_;
         target_or_reason_ = other.target_or_reason_;
-        other.method_.clear();
-        other.target_or_reason_.clear();
+        other.method_ = string_view();
+        other.target_or_reason_ = string_view();
     }
 }
 
