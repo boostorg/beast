@@ -320,29 +320,99 @@ using ReadHandler = StreamHandler;
 using WriteHandler = StreamHandler;
 
 template<class Buffers>
-class buffers_range_adapter
+class buffers_range_adaptor
 {
     Buffers const& b_;
 
 public:
     using value_type = typename std::conditional<
-        std::is_convertible<typename std::iterator_traits<
-            typename buffer_sequence_iterator<Buffers>::type>::value_type,
-                boost::asio::const_buffer>::value,
-        boost::asio::const_buffer,
-        boost::asio::mutable_buffer>::type;
+        std::is_convertible<
+            typename std::iterator_traits<
+                typename buffer_sequence_iterator<
+                    Buffers>::type>::value_type,
+                boost::asio::mutable_buffer>::value,
+            boost::asio::mutable_buffer,
+            boost::asio::const_buffer>::type;
 
-    /* VFALCO This isn't right, because range-for will pick up the iterator's
-              value_type which might not be const_buffer or mutable_buffer. We
-              need to declare our own iterator wrapper that converts the underlying
-              iterator's value_type to const_buffer or mutable_buffer so that
-              range-for sees one of those types.
-    */
-    using const_iterator = typename
-        buffer_sequence_iterator<Buffers>::type;
+    class const_iterator
+    {
+        friend class buffers_range_adaptor;
+
+        using iter_type = typename
+            buffer_sequence_iterator<Buffers>::type;
+
+        iter_type it_;
+
+        const_iterator(iter_type const& it)
+            : it_(it)
+        {
+        }
+
+    public:
+        using value_type = typename
+            buffers_range_adaptor::value_type;
+        using pointer = value_type const*;
+        using reference = value_type;
+        using difference_type = std::ptrdiff_t;
+        using iterator_category =
+            std::bidirectional_iterator_tag;
+        
+        bool
+        operator==(const_iterator const& other) const
+        {
+            return it_ == other.it_;
+        }
+
+        bool
+        operator!=(const_iterator const& other) const
+        {
+            return ! (*this == other);
+        }
+
+        reference
+        operator*() const
+        {
+            return *it_;
+        }
+
+        pointer
+        operator->() const = delete;
+
+        const_iterator&
+        operator++()
+        {
+            ++it_;
+            return *this;
+        }
+
+        const_iterator
+        operator++(int)
+        {
+            auto temp = *this;
+            ++(*this);
+            return temp;
+        }
+
+        // deprecated
+        const_iterator&
+        operator--()
+        {
+            --it_;
+            return *this;
+        }
+
+        // deprecated
+        const_iterator
+        operator--(int)
+        {
+            auto temp = *this;
+            --(*this);
+            return temp;
+        }
+    };
 
     explicit
-    buffers_range_adapter(Buffers const& b)
+    buffers_range_adaptor(Buffers const& b)
         : b_(b)
     {
     }
@@ -361,10 +431,10 @@ public:
 };
 
 template<class Buffers>
-buffers_range_adapter<Buffers>
+buffers_range_adaptor<Buffers>
 buffers_range(Buffers const& buffers)
 {
-    return buffers_range_adapter<Buffers>{buffers};
+    return buffers_range_adaptor<Buffers>{buffers};
 }
 
 } // detail
