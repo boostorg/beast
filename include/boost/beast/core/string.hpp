@@ -20,9 +20,6 @@
 # endif
 #endif
 
-#include <boost/beast/core/detail/config.hpp>
-#include <boost/version.hpp>
-
 #if BOOST_ASIO_NO_STRING_VIEW
 #include <boost/utility/string_view.hpp>
 #endif
