@@ -126,13 +126,13 @@ public:
             put(ws.next_layer().buffer(), cbuf(
                 0x89, 0x00));
             bool invoked = false;
-            auto cb = [&](frame_type kind, string_view)
-            {
-                BEAST_EXPECT(! invoked);
-                BEAST_EXPECT(kind == frame_type::ping);
-                invoked = true;
-            };
-            ws.control_callback(cb);
+            ws.control_callback(
+                [&](frame_type kind, string_view)
+                {
+                    BEAST_EXPECT(! invoked);
+                    BEAST_EXPECT(kind == frame_type::ping);
+                    invoked = true;
+                });
             w.write(ws, sbuf("Hello"));
             multi_buffer b;
             w.read(ws, b);
@@ -147,13 +147,13 @@ public:
             put(ws.next_layer().buffer(), cbuf(
                 0x88, 0x00));
             bool invoked = false;
-            auto cb = [&](frame_type kind, string_view)
-            {
-                BEAST_EXPECT(! invoked);
-                BEAST_EXPECT(kind == frame_type::close);
-                invoked = true;
-            };
-            ws.control_callback(cb);
+            ws.control_callback(
+                [&](frame_type kind, string_view)
+                {
+                    BEAST_EXPECT(! invoked);
+                    BEAST_EXPECT(kind == frame_type::close);
+                    invoked = true;
+                });
             w.write(ws, sbuf("Hello"));
             doReadTest(w, ws, close_code::none);
         });
@@ -162,15 +162,14 @@ public:
         doTest(pmd, [&](ws_type& ws)
         {
             bool once = false;
-            auto cb =
+            ws.control_callback(
                 [&](frame_type kind, string_view s)
                 {
                     BEAST_EXPECT(kind == frame_type::pong);
                     BEAST_EXPECT(! once);
                     once = true;
                     BEAST_EXPECT(s == "");
-                };
-            ws.control_callback(cb);
+                });
             w.ping(ws, "");
             ws.binary(true);
             w.write(ws, sbuf("Hello"));
@@ -185,15 +184,14 @@ public:
         doTest(pmd, [&](ws_type& ws)
         {
             bool once = false;
-            auto cb =
+            ws.control_callback(
                 [&](frame_type kind, string_view s)
                 {
                     BEAST_EXPECT(kind == frame_type::pong);
                     BEAST_EXPECT(! once);
                     once = true;
                     BEAST_EXPECT(s == "payload");
-                };
-            ws.control_callback(cb);
+                });
             ws.ping("payload");
             w.write_some(ws, false, sbuf("Hello, "));
             w.write_some(ws, false, sbuf(""));

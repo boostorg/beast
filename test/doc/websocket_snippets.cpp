@@ -190,13 +190,12 @@ boost::asio::ip::tcp::socket sock{ioc};
 {
     stream<boost::asio::ip::tcp::socket> ws{ioc};
 //[ws_snippet_17
-    auto cb =
+    ws.control_callback(
         [](frame_type kind, string_view payload)
         {
             // Do something with the payload
             boost::ignore_unused(kind, payload);
-        };
-    ws.control_callback(cb);
+        });
 //]
 
 //[ws_snippet_18

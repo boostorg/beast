@@ -580,9 +580,9 @@ public:
             string_view payload    // The payload in the frame
         );
         @endcode
-        The implementation type-erases the callback without requiring
-        a dynamic allocation. For this reason, the callback object is
-        passed by a non-constant reference.
+        The implementation type-erases the callback which may require
+        a dynamic allocation. To prevent the possiblity of a dynamic
+        allocation, use `std::ref` to wrap the callback.
         If the read operation which receives the control frame is
         an asynchronous operation, the callback will be invoked using
         the same method as that used to invoke the final handler.
@@ -592,15 +592,10 @@ public:
         Attempting to send a close frame after a close frame is
         received will result in undefined behavior.
     */
-    template<class Callback>
     void
-    control_callback(Callback& cb)
+    control_callback(std::function<void(frame_type, string_view)> cb)
     {
-        // Callback may not be constant, caller is responsible for
-        // managing the lifetime of the callback. Copies are not made.
-        BOOST_STATIC_ASSERT(! std::is_const<Callback>::value);
-
-        ctrl_cb_ = std::ref(cb);
+        ctrl_cb_ = std::move(cb);
     }
 
     /** Reset the control frame callback.
