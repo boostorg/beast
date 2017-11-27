@@ -14,9 +14,9 @@
 
 #ifndef BOOST_ASIO_NO_STRING_VIEW
 # if defined(BOOST_ASIO_HAS_STD_STRING_VIEW)
-#  define BOOST_ASIO_HAS_STRING_VIEW 0
+#  define BOOST_ASIO_NO_STRING_VIEW 0
 # else
-#  define BOOST_ASIO_HAS_STRING_VIEW 1
+#  define BOOST_ASIO_NO_STRING_VIEW 1
 # endif
 #endif
 
