@@ -6,6 +6,7 @@ Version 147:
 WebSocket:
 
 * control callback is copied or moved
+* Send idle pings in advanced servers
 
 --------------------------------------------------------------------------------
 
