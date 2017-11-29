@@ -1,3 +1,9 @@
+Version 148:
+
+* built-in r-value return values can't be assigned
+
+--------------------------------------------------------------------------------
+
 Version 147:
 
 * Don't use boost::string_ref

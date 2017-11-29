@@ -291,7 +291,7 @@ value_type(field name,
 
 template<class Allocator>
 inline
-field const
+field
 basic_fields<Allocator>::
 value_type::
 name() const
