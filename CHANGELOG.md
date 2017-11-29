@@ -1,5 +1,6 @@
 Version 147:
 
+* Tidy up basic_fields exception specifiers
 * Don't use boost::string_ref
 * Use iterator wrapper in detail::buffers_range
 
