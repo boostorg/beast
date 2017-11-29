@@ -1,3 +1,9 @@
+Version 149:
+
+* built-in r-value return values can't be assigned
+
+--------------------------------------------------------------------------------
+
 Version 148:
 
 * Install codecov on codecov CI targets only

@@ -102,7 +102,7 @@ public:
         value_type& operator=(value_type const&) = delete;
 
         /// Returns the field enum, which can be @ref field::unknown
-        field const
+        field
         name() const;
 
         /// Returns the field name as a string
