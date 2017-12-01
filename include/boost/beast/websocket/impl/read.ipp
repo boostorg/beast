@@ -512,7 +512,8 @@ operator()(
                     zs.next_in = empty_block;
                     zs.avail_in = sizeof(empty_block);
                     ws_.pmd_->zi.write(zs, zlib::Flush::sync, ec);
-                    BOOST_ASSERT(! ec);
+                    if(! ws_.check_ok(ec))
+                        goto upcall;
                     // VFALCO See:
                     // https://github.com/madler/zlib/issues/280
                     BOOST_ASSERT(zs.total_out == 0);
@@ -1239,7 +1240,8 @@ loop:
                 zs.next_in = empty_block;
                 zs.avail_in = sizeof(empty_block);
                 pmd_->zi.write(zs, zlib::Flush::sync, ec);
-                BOOST_ASSERT(! ec);
+                if(! check_ok(ec))
+                    return bytes_written;
                 // VFALCO See:
                 // https://github.com/madler/zlib/issues/280
                 BOOST_ASSERT(zs.total_out == 0);
