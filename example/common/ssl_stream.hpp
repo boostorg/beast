@@ -35,11 +35,6 @@ template<class NextLayer>
 class ssl_stream
     : public boost::asio::ssl::stream_base
 {
-    // only works for boost::asio::ip::tcp::socket
-    // for now because of the move limitations
-    static_assert(std::is_same<NextLayer, boost::asio::ip::tcp::socket>::value,
-        "NextLayer requirements not met");
-
     using stream_type = boost::asio::ssl::stream<NextLayer>;
 
     std::unique_ptr<stream_type> p_;
@@ -61,32 +56,25 @@ public:
     /// The type of the executor associated with the object.
     using executor_type = typename stream_type::executor_type;
 
+    template<class Arg>
     ssl_stream(
-        boost::asio::ip::tcp::socket socket,
+        Arg&& arg,
         boost::asio::ssl::context& ctx)
         : p_(new stream_type{
-            socket.get_executor().context(), ctx})
+            std::forward<Arg>(arg), ctx})
         , ctx_(&ctx)
     {
-        p_->next_layer() = std::move(socket);
     }
 
     ssl_stream(ssl_stream&& other)
-        : p_(new stream_type(
-            other.get_executor().context(), *other.ctx_))
+        : p_(std::move(other.p_))
         , ctx_(other.ctx_)
     {
-        using std::swap;
-        swap(p_, other.p_);
     }
 
     ssl_stream& operator=(ssl_stream&& other)
     {
-        std::unique_ptr<stream_type> p(new stream_type{
-            other.get_executor().context(), other.ctx_});
-        using std::swap;
-        swap(p_, p);
-        swap(p_, other.p_);
+        p_ = std::move(other.p_);
         ctx_ = other.ctx_;
         return *this;
     }

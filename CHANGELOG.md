@@ -1,6 +1,7 @@
 Version 148:
 
 * built-in r-value return values can't be assigned
+* Tidy up ssl_stream special members
 
 --------------------------------------------------------------------------------
 
