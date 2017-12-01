@@ -3,6 +3,7 @@
 Version 148:
 
 * Install codecov on codecov CI targets only
+* Update reports for hybrid assessment
 
 --------------------------------------------------------------------------------
 
