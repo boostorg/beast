@@ -512,13 +512,14 @@ operator()(
                     zs.next_in = empty_block;
                     zs.avail_in = sizeof(empty_block);
                     ws_.pmd_->zi.write(zs, zlib::Flush::sync, ec);
-                    BOOST_ASSERT(! ec);
-                    // VFALCO See:
-                    // https://github.com/madler/zlib/issues/280
-                    BOOST_ASSERT(zs.total_out == 0);
-                    cb_.consume(zs.total_out);
-                    ws_.rd_size_ += zs.total_out;
-                    bytes_written_ += zs.total_out;
+                    if(! ec)
+                    {
+                        // https://github.com/madler/zlib/issues/280
+                        if(zs.total_out > 0)
+                            ec = error::partial_deflate_block;
+                    }
+                    if(! ws_.check_ok(ec))
+                        goto upcall;
                     if(
                         (ws_.role_ == role_type::client &&
                             ws_.pmd_config_.server_no_context_takeover) ||
@@ -533,7 +534,6 @@ operator()(
                     break;
                 }
                 ws_.pmd_->zi.write(zs, zlib::Flush::sync, ec);
-                BOOST_ASSERT(ec != zlib::error::end_of_stream);
                 if(! ws_.check_ok(ec))
                     goto upcall;
                 if(ws_.rd_msg_max_ && beast::detail::sum_exceeds(
@@ -1239,13 +1239,14 @@ loop:
                 zs.next_in = empty_block;
                 zs.avail_in = sizeof(empty_block);
                 pmd_->zi.write(zs, zlib::Flush::sync, ec);
-                BOOST_ASSERT(! ec);
-                // VFALCO See:
-                // https://github.com/madler/zlib/issues/280
-                BOOST_ASSERT(zs.total_out == 0);
-                cb.consume(zs.total_out);
-                rd_size_ += zs.total_out;
-                bytes_written += zs.total_out;
+                if(! ec)
+                {
+                    // https://github.com/madler/zlib/issues/280
+                    if(zs.total_out > 0)
+                        ec = error::partial_deflate_block;
+                }
+                if(! check_ok(ec))
+                    return bytes_written;
                 if(
                     (role_ == role_type::client &&
                         pmd_config_.server_no_context_takeover) ||
@@ -1260,7 +1261,6 @@ loop:
                 break;
             }
             pmd_->zi.write(zs, zlib::Flush::sync, ec);
-            BOOST_ASSERT(ec != zlib::error::end_of_stream);
             if(! check_ok(ec))
                 return bytes_written;
             if(rd_msg_max_ && beast::detail::sum_exceeds(
