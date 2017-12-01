@@ -1,3 +1,9 @@
+Version 144-hf1:
+
+* Update reports for hybrid assessment
+
+--------------------------------------------------------------------------------
+
 Version 144:
 
 * Fix websocket permessage-deflate negotiation
