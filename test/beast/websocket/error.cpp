@@ -41,6 +41,7 @@ public:
         check("boost.beast.websocket", error::failed);
         check("boost.beast.websocket", error::handshake_failed);
         check("boost.beast.websocket", error::buffer_overflow);
+        check("boost.beast.websocket", error::partial_deflate_block);
     }
 };
 
