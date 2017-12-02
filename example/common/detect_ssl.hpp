@@ -353,7 +353,7 @@ public:
     allocator_type
     get_allocator() const noexcept
     {
-        return boost::asio::get_associated_allocator(handler_);
+        return (boost::asio::get_associated_allocator)(handler_);
     }
 
     // Executor hook. This is Asio's system for customizing the
@@ -367,7 +367,7 @@ public:
 
     executor_type get_executor() const noexcept
     {
-        return boost::asio::get_associated_executor(handler_, stream_.get_executor());
+        return (boost::asio::get_associated_executor)(handler_, stream_.get_executor());
     }
 
     // Determines if the next asynchronous operation represents a

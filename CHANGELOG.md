@@ -11,6 +11,7 @@ Version 148:
 * Update reports for hybrid assessment
 * Handle invalid deflate frames
 * Fix CMakeLists.txt variable
+* Protect calls from macros
 
 --------------------------------------------------------------------------------
 
