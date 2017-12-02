@@ -24,7 +24,7 @@ namespace http {
 class fields_test : public beast::unit_test::suite
 {
 public:
-    template <class T>
+    template<class T>
     class test_allocator
     {
     public:
@@ -32,7 +32,8 @@ public:
 
         test_allocator() noexcept(false) {}
 
-        template <typename  U, typename = typename std::enable_if<!std::is_same<test_allocator, U>::value>::type>
+        template<class U, class = typename
+            std::enable_if<!std::is_same<test_allocator, U>::value>::type>
         test_allocator(test_allocator<U> const&) noexcept {}
 
         value_type*
@@ -55,7 +56,7 @@ public:
             return true;
         }
 
-        template <class U>
+        template<class U>
         friend
         bool
         operator!=(test_allocator<T> const& x, test_allocator<U> const& y) noexcept

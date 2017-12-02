@@ -58,7 +58,7 @@ class stream<NextLayer>::response_op
 
 public:
     response_op(response_op&&) = default;
-    response_op(response_op const&) = default;
+    response_op(response_op const&) = delete;
 
     template<class DeducedHandler, class... Args>
     response_op(DeducedHandler&& h,
@@ -154,7 +154,7 @@ class stream<NextLayer>::accept_op
 
 public:
     accept_op(accept_op&&) = default;
-    accept_op(accept_op const&) = default;
+    accept_op(accept_op const&) = delete;
 
     template<class DeducedHandler, class... Args>
     accept_op(DeducedHandler&& h,
@@ -545,7 +545,7 @@ async_accept(
         decltype(&default_decorate_res),
         BOOST_ASIO_HANDLER_TYPE(
             AcceptHandler, void(error_code))>{
-                init.completion_handler,
+                std::move(init.completion_handler),
                 *this,
                 &default_decorate_res}({});
     return init.result.get();
@@ -574,7 +574,7 @@ async_accept_ex(
         ResponseDecorator,
         BOOST_ASIO_HANDLER_TYPE(
             AcceptHandler, void(error_code))>{
-                init.completion_handler,
+                std::move(init.completion_handler),
                 *this,
                 decorator}({});
     return init.result.get();
@@ -605,7 +605,7 @@ async_accept(
         decltype(&default_decorate_res),
         BOOST_ASIO_HANDLER_TYPE(
             AcceptHandler, void(error_code))>{
-                init.completion_handler,
+                std::move(init.completion_handler),
                 *this,
                 &default_decorate_res}.run(buffers);
     return init.result.get();
@@ -641,7 +641,7 @@ async_accept_ex(
         ResponseDecorator,
         BOOST_ASIO_HANDLER_TYPE(
             AcceptHandler, void(error_code))>{
-                init.completion_handler,
+                std::move(init.completion_handler),
                 *this,
                 decorator}.run(buffers);
     return init.result.get();
@@ -667,7 +667,7 @@ async_accept(
     response_op<
         BOOST_ASIO_HANDLER_TYPE(
             AcceptHandler, void(error_code))>{
-                init.completion_handler,
+                std::move(init.completion_handler),
                 *this,
                 req,
                 &default_decorate_res}();
@@ -699,7 +699,7 @@ async_accept_ex(
     response_op<
         BOOST_ASIO_HANDLER_TYPE(
             AcceptHandler, void(error_code))>{
-                init.completion_handler,
+                std::move(init.completion_handler),
                 *this,
                 req,
                 decorator}();

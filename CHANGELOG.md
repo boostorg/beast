@@ -5,6 +5,7 @@ Version 149:
 * Fix CMakeLists.txt variable
 * Protect calls from macros
 * pausation always allocates
+* Don't copy completion handlers
 
 --------------------------------------------------------------------------------
 

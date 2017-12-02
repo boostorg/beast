@@ -65,7 +65,7 @@ class stream<NextLayer>::handshake_op
 
 public:
     handshake_op(handshake_op&&) = default;
-    handshake_op(handshake_op const&) = default;
+    handshake_op(handshake_op const&) = delete;
 
     template<class DeducedHandler, class... Args>
     handshake_op(DeducedHandler&& h,
@@ -161,7 +161,7 @@ async_handshake(string_view host,
         void(error_code)> init{handler};
     handshake_op<BOOST_ASIO_HANDLER_TYPE(
         HandshakeHandler, void(error_code))>{
-            init.completion_handler, *this, nullptr, host,
+            std::move(init.completion_handler), *this, nullptr, host,
                 target, &default_decorate_req}();
     return init.result.get();
 }
@@ -182,7 +182,7 @@ async_handshake(response_type& res,
         void(error_code)> init{handler};
     handshake_op<BOOST_ASIO_HANDLER_TYPE(
         HandshakeHandler, void(error_code))>{
-            init.completion_handler, *this, &res, host,
+            std::move(init.completion_handler), *this, &res, host,
                 target, &default_decorate_req}();
     return init.result.get();
 }
@@ -206,7 +206,7 @@ async_handshake_ex(string_view host,
         void(error_code)> init{handler};
     handshake_op<BOOST_ASIO_HANDLER_TYPE(
         HandshakeHandler, void(error_code))>{
-            init.completion_handler, *this, nullptr, host,
+            std::move(init.completion_handler), *this, nullptr, host,
                 target, decorator}();
     return init.result.get();
 }
@@ -231,7 +231,7 @@ async_handshake_ex(response_type& res,
         void(error_code)> init{handler};
     handshake_op<BOOST_ASIO_HANDLER_TYPE(
         HandshakeHandler, void(error_code))>{
-            init.completion_handler, *this, &res, host,
+            std::move(init.completion_handler), *this, &res, host,
                 target, decorator}();
     return init.result.get();
 }

@@ -64,7 +64,7 @@ class stream<NextLayer>::close_op
 
 public:
     close_op(close_op&&) = default;
-    close_op(close_op const&) = default;
+    close_op(close_op const&) = delete;
 
     template<class DeducedHandler>
     close_op(
@@ -447,7 +447,7 @@ async_close(close_reason const& cr, CloseHandler&& handler)
         void(error_code)> init{handler};
     close_op<BOOST_ASIO_HANDLER_TYPE(
         CloseHandler, void(error_code))>{
-            init.completion_handler, *this, cr}(
+            std::move(init.completion_handler), *this, cr}(
                 {}, 0, false);
     return init.result.get();
 }
