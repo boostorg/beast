@@ -344,7 +344,7 @@ class write_some_win32_op
 
 public:
     write_some_win32_op(write_some_win32_op&&) = default;
-    write_some_win32_op(write_some_win32_op const&) = default;
+    write_some_win32_op(write_some_win32_op const&) = delete;
 
     template<class DeducedHandler>
     write_some_win32_op(
@@ -422,7 +422,10 @@ operator()()
             (std::min<std::uint64_t>)(r.body_.last_ - r.pos_, sr_.limit()),
             (std::numeric_limits<boost::winapi::DWORD_>::max)()));
     boost::asio::windows::overlapped_ptr overlapped{
-        sock_.get_executor().context(), *this};
+        sock_.get_executor().context(), std::move(*this)};
+    // Note that we have moved *this, so we cannot access
+    // the handler since it is now moved-from. We can still
+    // access simple things like references and built-in types.
     auto& ov = *overlapped.get();
     ov.Offset = lowPart(r.pos_);
     ov.OffsetHigh = highPart(r.pos_);
@@ -569,7 +572,7 @@ async_write_some(
         BOOST_ASIO_HANDLER_TYPE(WriteHandler,
             void(error_code, std::size_t)),
         isRequest, Fields>{
-            init.completion_handler, sock, sr}();
+            std::move(init.completion_handler), sock, sr}();
     return init.result.get();
 }
 

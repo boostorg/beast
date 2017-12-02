@@ -109,7 +109,7 @@ public:
         boost::asio::associated_allocator_t<Handler>;
 
     bound_handler(bound_handler&&) = default;
-    bound_handler(bound_handler const&) = default;
+    bound_handler(bound_handler const&) = delete;
 
     template<class DeducedHandler>
     explicit

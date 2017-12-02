@@ -8,6 +8,7 @@ Version 148:
 * Protect calls from macros
 * Install codecov on codecov CI targets only
 * pausation always allocates
+* Don't copy completion handlers
 
 --------------------------------------------------------------------------------
 

@@ -37,7 +37,7 @@ class buffered_read_stream<
 
 public:
     read_some_op(read_some_op&&) = default;
-    read_some_op(read_some_op const&) = default;
+    read_some_op(read_some_op const&) = delete;
 
     template<class DeducedHandler, class... Args>
     read_some_op(DeducedHandler&& h,
@@ -237,7 +237,7 @@ async_read_some(
         void(error_code, std::size_t)> init{handler};
     read_some_op<MutableBufferSequence, BOOST_ASIO_HANDLER_TYPE(
         ReadHandler, void(error_code, std::size_t))>{
-            init.completion_handler, *this, buffers}(
+            std::move(init.completion_handler), *this, buffers}(
                 error_code{}, 0);
     return init.result.get();
 }

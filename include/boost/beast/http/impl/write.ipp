@@ -67,7 +67,7 @@ class write_some_op
 
 public:
     write_some_op(write_some_op&&) = default;
-    write_some_op(write_some_op const&) = default;
+    write_some_op(write_some_op const&) = delete;
 
     template<class DeducedHandler>
     write_some_op(DeducedHandler&& h, Stream& s,
@@ -203,7 +203,7 @@ class write_op
 
 public:
     write_op(write_op&&) = default;
-    write_op(write_op const&) = default;
+    write_op(write_op const&) = delete;
 
     template<class DeducedHandler>
     write_op(DeducedHandler&& h, Stream& s,
@@ -318,7 +318,7 @@ class write_msg_op
 
 public:
     write_msg_op(write_msg_op&&) = default;
-    write_msg_op(write_msg_op const&) = default;
+    write_msg_op(write_msg_op const&) = delete;
 
     template<class DeducedHandler, class... Args>
     write_msg_op(DeducedHandler&& h, Stream& s, Args&&... args)
@@ -479,7 +479,7 @@ async_write_some_impl(
         BOOST_ASIO_HANDLER_TYPE(WriteHandler,
             void(error_code, std::size_t)),
         isRequest, Body, Fields>{
-            init.completion_handler, stream, sr}();
+            std::move(init.completion_handler), stream, sr}();
     return init.result.get();
 }
 
@@ -638,7 +638,7 @@ async_write_header(
             void(error_code, std::size_t)),
         detail::serializer_is_header_done,
         isRequest, Body, Fields>{
-        init.completion_handler, stream, sr}();
+        std::move(init.completion_handler), stream, sr}();
     return init.result.get();
 }
 
@@ -715,7 +715,7 @@ async_write(
             void(error_code, std::size_t)),
         detail::serializer_is_done,
         isRequest, Body, Fields>{
-            init.completion_handler, stream, sr}();
+            std::move(init.completion_handler), stream, sr}();
     return init.result.get();
 }
 
@@ -788,7 +788,7 @@ async_write(
         BOOST_ASIO_HANDLER_TYPE(WriteHandler,
             void(error_code, std::size_t)),
         isRequest, Body, Fields>{
-            init.completion_handler, stream, msg}();
+            std::move(init.completion_handler), stream, msg}();
     return init.result.get();
 }
 
