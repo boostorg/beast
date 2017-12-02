@@ -152,7 +152,7 @@ operator()(
             // Suspend
             BOOST_ASSERT(ws_.rd_block_ != tok_);
             BOOST_ASIO_CORO_YIELD
-            ws_.paused_r_rd_.save(std::move(*this));
+            ws_.paused_r_rd_.emplace(std::move(*this));
 
             // Acquire the read block
             BOOST_ASSERT(! ws_.rd_block_);
@@ -275,7 +275,7 @@ operator()(
                         // Suspend
                         BOOST_ASSERT(ws_.wr_block_ != tok_);
                         BOOST_ASIO_CORO_YIELD
-                        ws_.paused_rd_.save(std::move(*this));
+                        ws_.paused_rd_.emplace(std::move(*this));
 
                         // Acquire the write block
                         BOOST_ASSERT(! ws_.wr_block_);
@@ -580,7 +580,7 @@ operator()(
             // Suspend
             BOOST_ASSERT(ws_.wr_block_ != tok_);
             BOOST_ASIO_CORO_YIELD
-            ws_.paused_rd_.save(std::move(*this));
+            ws_.paused_rd_.emplace(std::move(*this));
 
             // Acquire the write block
             BOOST_ASSERT(! ws_.wr_block_);

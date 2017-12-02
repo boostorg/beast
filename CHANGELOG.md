@@ -2,6 +2,9 @@ Version 149:
 
 * built-in r-value return values can't be assigned
 * Tidy up ssl_stream special members
+* Fix CMakeLists.txt variable
+* Protect calls from macros
+* pausation always allocates
 
 --------------------------------------------------------------------------------
 
@@ -10,8 +13,6 @@ Version 148:
 * Install codecov on codecov CI targets only
 * Update reports for hybrid assessment
 * Handle invalid deflate frames
-* Fix CMakeLists.txt variable
-* Protect calls from macros
 
 --------------------------------------------------------------------------------
 
