@@ -4,6 +4,7 @@ Version 148:
 * Tidy up ssl_stream special members
 * Update reports for hybrid assessment
 * Handle invalid deflate frames
+* Fix CMakeLists.txt variable
 
 --------------------------------------------------------------------------------
 
