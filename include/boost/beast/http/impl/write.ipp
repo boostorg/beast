@@ -84,7 +84,7 @@ public:
     allocator_type
     get_allocator() const noexcept
     {
-        return boost::asio::get_associated_allocator(h_);
+        return (boost::asio::get_associated_allocator)(h_);
     }
 
     using executor_type = boost::asio::associated_executor_t<
@@ -93,7 +93,7 @@ public:
     executor_type
     get_executor() const noexcept
     {
-        return boost::asio::get_associated_executor(
+        return (boost::asio::get_associated_executor)(
             h_, s_.get_executor());
     }
 
@@ -220,7 +220,7 @@ public:
     allocator_type
     get_allocator() const noexcept
     {
-        return boost::asio::get_associated_allocator(h_);
+        return (boost::asio::get_associated_allocator)(h_);
     }
 
     using executor_type = boost::asio::associated_executor_t<
@@ -229,7 +229,7 @@ public:
     executor_type
     get_executor() const noexcept
     {
-        return boost::asio::get_associated_executor(
+        return (boost::asio::get_associated_executor)(
             h_, s_.get_executor());
     }
 
@@ -333,7 +333,7 @@ public:
     allocator_type
     get_allocator() const noexcept
     {
-        return boost::asio::get_associated_allocator(d_.handler());
+        return (boost::asio::get_associated_allocator)(d_.handler());
     }
 
     using executor_type = boost::asio::associated_executor_t<
@@ -342,7 +342,7 @@ public:
     executor_type
     get_executor() const noexcept
     {
-        return boost::asio::get_associated_executor(
+        return (boost::asio::get_associated_executor)(
             d_.handler(), d_->s.get_executor());
     }
 
