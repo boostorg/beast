@@ -10,6 +10,7 @@ Version 148:
 * Install codecov on codecov CI targets only
 * Update reports for hybrid assessment
 * Handle invalid deflate frames
+* Fix CMakeLists.txt variable
 
 --------------------------------------------------------------------------------
 
