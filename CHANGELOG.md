@@ -6,6 +6,7 @@ Version 148:
 * Handle invalid deflate frames
 * Fix CMakeLists.txt variable
 * Protect calls from macros
+* Install codecov on codecov CI targets only
 
 --------------------------------------------------------------------------------
 
