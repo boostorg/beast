@@ -123,7 +123,7 @@ public:
     allocator_type
     get_allocator() const noexcept
     {
-        return boost::asio::get_associated_allocator(h_);
+        return (boost::asio::get_associated_allocator)(h_);
     }
 
     friend

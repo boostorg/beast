@@ -1042,6 +1042,94 @@ public:
         BEAST_EXPECT(n == 0);
     }
 
+    /*  Bishop Fox Hybrid Assessment issue 1
+
+        Happens with permessage-deflate enabled
+    */
+    void
+    testIssueBF1()
+    {
+        permessage_deflate pmd;
+        pmd.client_enable = true;
+        pmd.server_enable = true;
+
+        // read
+#if 0
+        {
+            echo_server es{log};
+            boost::asio::io_context ioc;
+            stream<test::stream> ws{ioc};
+            ws.set_option(pmd);
+            ws.next_layer().connect(es.stream());
+            ws.handshake("localhost", "/");
+            // invalid 1-byte deflate block in frame
+            boost::asio::write(ws.next_layer(), sbuf(
+                "\xc1\x81\x3a\xa1\x74\x3b\x49"));
+        }
+#endif
+        {
+            boost::asio::io_context ioc;
+            stream<test::stream> wsc{ioc};
+            stream<test::stream> wss{ioc};
+            wsc.set_option(pmd);
+            wss.set_option(pmd);
+            wsc.next_layer().connect(wss.next_layer());
+            wsc.async_handshake(
+                "localhost", "/", [&](error_code){});
+            wss.async_accept([&](error_code){});
+            ioc.run();
+            ioc.restart();
+            BEAST_EXPECT(wsc.is_open());
+            BEAST_EXPECT(wss.is_open());
+            // invalid 1-byte deflate block in frame
+            boost::asio::write(wsc.next_layer(), sbuf(
+                "\xc1\x81\x3a\xa1\x74\x3b\x49"));
+            error_code ec;
+            multi_buffer b;
+            wss.read(b, ec);
+            BEAST_EXPECTS(ec == zlib::error::end_of_stream, ec.message());
+        }
+
+        // async read
+#if 0
+        {
+            echo_server es{log, kind::async};
+            boost::asio::io_context ioc;
+            stream<test::stream> ws{ioc};
+            ws.set_option(pmd);
+            ws.next_layer().connect(es.stream());
+            ws.handshake("localhost", "/");
+            // invalid 1-byte deflate block in frame
+            boost::asio::write(ws.next_layer(), sbuf(
+                "\xc1\x81\x3a\xa1\x74\x3b\x49"));
+        }
+#endif
+        {
+            boost::asio::io_context ioc;
+            stream<test::stream> wsc{ioc};
+            stream<test::stream> wss{ioc};
+            wsc.set_option(pmd);
+            wss.set_option(pmd);
+            wsc.next_layer().connect(wss.next_layer());
+            wsc.async_handshake(
+                "localhost", "/", [&](error_code){});
+            wss.async_accept([&](error_code){});
+            ioc.run();
+            ioc.restart();
+            BEAST_EXPECT(wsc.is_open());
+            BEAST_EXPECT(wss.is_open());
+            // invalid 1-byte deflate block in frame
+            boost::asio::write(wsc.next_layer(), sbuf(
+                "\xc1\x81\x3a\xa1\x74\x3b\x49"));
+            error_code ec;
+            multi_buffer b;
+            wss.async_read(b,
+                [&](error_code ec_, std::size_t){ ec =ec_; });
+            ioc.run();
+            BEAST_EXPECTS(ec == zlib::error::end_of_stream, ec.message());
+        }
+    }
+
     void
     run() override
     {
@@ -1051,6 +1139,7 @@ public:
         testContHook();
         testIssue802();
         testIssue807();
+        testIssueBF1();
     }
 };
 

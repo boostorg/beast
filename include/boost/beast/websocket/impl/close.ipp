@@ -64,7 +64,7 @@ class stream<NextLayer>::close_op
 
 public:
     close_op(close_op&&) = default;
-    close_op(close_op const&) = default;
+    close_op(close_op const&) = delete;
 
     template<class DeducedHandler>
     close_op(
@@ -81,7 +81,7 @@ public:
     allocator_type
     get_allocator() const noexcept
     {
-        return boost::asio::get_associated_allocator(d_.handler());
+        return (boost::asio::get_associated_allocator)(d_.handler());
     }
 
     using executor_type = boost::asio::associated_executor_t<
@@ -90,7 +90,7 @@ public:
     executor_type
     get_executor() const noexcept
     {
-        return boost::asio::get_associated_executor(
+        return (boost::asio::get_associated_executor)(
             d_.handler(), d_->ws.get_executor());
     }
 
@@ -447,7 +447,7 @@ async_close(close_reason const& cr, CloseHandler&& handler)
         void(error_code)> init{handler};
     close_op<BOOST_ASIO_HANDLER_TYPE(
         CloseHandler, void(error_code))>{
-            init.completion_handler, *this, cr}(
+            std::move(init.completion_handler), *this, cr}(
                 {}, 0, false);
     return init.result.get();
 }

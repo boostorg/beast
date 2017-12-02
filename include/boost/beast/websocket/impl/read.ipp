@@ -59,7 +59,7 @@ class stream<NextLayer>::read_some_op
 
 public:
     read_some_op(read_some_op&&) = default;
-    read_some_op(read_some_op const&) = default;
+    read_some_op(read_some_op const&) = delete;
 
     template<class DeducedHandler>
     read_some_op(
@@ -81,7 +81,7 @@ public:
     allocator_type
     get_allocator() const noexcept
     {
-        return boost::asio::get_associated_allocator(h_);
+        return (boost::asio::get_associated_allocator)(h_);
     }
 
     using executor_type = boost::asio::associated_executor_t<
@@ -90,7 +90,7 @@ public:
     executor_type
     get_executor() const noexcept
     {
-        return boost::asio::get_associated_executor(
+        return (boost::asio::get_associated_executor)(
             h_, ws_.get_executor());
     }
 
@@ -152,7 +152,7 @@ operator()(
             // Suspend
             BOOST_ASSERT(ws_.rd_block_ != tok_);
             BOOST_ASIO_CORO_YIELD
-            ws_.paused_r_rd_.save(std::move(*this));
+            ws_.paused_r_rd_.emplace(std::move(*this));
 
             // Acquire the read block
             BOOST_ASSERT(! ws_.rd_block_);
@@ -275,7 +275,7 @@ operator()(
                         // Suspend
                         BOOST_ASSERT(ws_.wr_block_ != tok_);
                         BOOST_ASIO_CORO_YIELD
-                        ws_.paused_rd_.save(std::move(*this));
+                        ws_.paused_rd_.emplace(std::move(*this));
 
                         // Acquire the write block
                         BOOST_ASSERT(! ws_.wr_block_);
@@ -512,7 +512,8 @@ operator()(
                     zs.next_in = empty_block;
                     zs.avail_in = sizeof(empty_block);
                     ws_.pmd_->zi.write(zs, zlib::Flush::sync, ec);
-                    BOOST_ASSERT(! ec);
+                    if(! ws_.check_ok(ec))
+                        goto upcall;
                     // VFALCO See:
                     // https://github.com/madler/zlib/issues/280
                     BOOST_ASSERT(zs.total_out == 0);
@@ -580,7 +581,7 @@ operator()(
             // Suspend
             BOOST_ASSERT(ws_.wr_block_ != tok_);
             BOOST_ASIO_CORO_YIELD
-            ws_.paused_rd_.save(std::move(*this));
+            ws_.paused_rd_.emplace(std::move(*this));
 
             // Acquire the write block
             BOOST_ASSERT(! ws_.wr_block_);
@@ -683,7 +684,7 @@ public:
         boost::asio::associated_allocator_t<Handler>;
 
     read_op(read_op&&) = default;
-    read_op(read_op const&) = default;
+    read_op(read_op const&) = delete;
 
     template<class DeducedHandler>
     read_op(
@@ -704,7 +705,7 @@ public:
     allocator_type
     get_allocator() const noexcept
     {
-        return boost::asio::get_associated_allocator(h_);
+        return (boost::asio::get_associated_allocator)(h_);
     }
 
     using executor_type = boost::asio::associated_executor_t<
@@ -713,7 +714,7 @@ public:
     executor_type
     get_executor() const noexcept
     {
-        return boost::asio::get_associated_executor(
+        return (boost::asio::get_associated_executor)(
             h_, ws_.get_executor());
     }
 
@@ -839,7 +840,7 @@ async_read(DynamicBuffer& buffer, ReadHandler&& handler)
         DynamicBuffer,
         BOOST_ASIO_HANDLER_TYPE(
             ReadHandler, void(error_code, std::size_t))>{
-                init.completion_handler,
+                std::move(init.completion_handler),
                 *this,
                 buffer,
                 0,
@@ -927,7 +928,7 @@ async_read_some(
         DynamicBuffer,
         BOOST_ASIO_HANDLER_TYPE(
             ReadHandler, void(error_code, std::size_t))>{
-                init.completion_handler,
+                std::move(init.completion_handler),
                 *this,
                 buffer,
                 limit,
@@ -1239,7 +1240,8 @@ loop:
                 zs.next_in = empty_block;
                 zs.avail_in = sizeof(empty_block);
                 pmd_->zi.write(zs, zlib::Flush::sync, ec);
-                BOOST_ASSERT(! ec);
+                if(! check_ok(ec))
+                    return bytes_written;
                 // VFALCO See:
                 // https://github.com/madler/zlib/issues/280
                 BOOST_ASSERT(zs.total_out == 0);
@@ -1311,7 +1313,7 @@ async_read_some(
         void(error_code, std::size_t)> init{handler};
     read_some_op<MutableBufferSequence, BOOST_ASIO_HANDLER_TYPE(
         ReadHandler, void(error_code, std::size_t))>{
-            init.completion_handler,*this, buffers}(
+            std::move(init.completion_handler), *this, buffers}(
                 {}, 0, false);
     return init.result.get();
 }

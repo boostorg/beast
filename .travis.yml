@@ -43,6 +43,8 @@ matrix:
         - TOOLSET=gcc
         - COMPILER=g++-6
         - CXXSTD=c++11
+      before_install:
+        - pip install --user https://github.com/codecov/codecov-python/archive/master.zip
       addons:
         apt:
           packages:
@@ -117,9 +119,6 @@ matrix:
         - CXXSTD=c++14
 
     # OSX
-
-before_install: &base_before_install
-  - pip install --user https://github.com/codecov/codecov-python/archive/master.zip
 
 install:
   - export BOOST_BRANCH=develop && [ "$TRAVIS_BRANCH" == "master" ] && BOOST_BRANCH=master || true

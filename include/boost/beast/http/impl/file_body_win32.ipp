@@ -344,7 +344,8 @@ class write_some_win32_op
 
 public:
     write_some_win32_op(write_some_win32_op&&) = default;
-    write_some_win32_op(write_some_win32_op const&) = default;
+    write_some_win32_op(write_some_win32_op const&) = delete;
+    write_some_win32_op& operator=(write_some_win32_op const&) = delete;
 
     template<class DeducedHandler>
     write_some_win32_op(
@@ -364,7 +365,7 @@ public:
     allocator_type
     get_allocator() const noexcept
     {
-        return boost::asio::get_associated_allocator(h_);
+        return (boost::asio::get_associated_allocator)(h_);
     }
 
     using executor_type =
@@ -374,7 +375,7 @@ public:
     executor_type
     get_executor() const noexcept
     {
-        return boost::asio::get_associated_executor(
+        return (boost::asio::get_associated_executor)(
             h_, sock_.get_executor());
     }
 
@@ -569,7 +570,7 @@ async_write_some(
         BOOST_ASIO_HANDLER_TYPE(WriteHandler,
             void(error_code, std::size_t)),
         isRequest, Fields>{
-            init.completion_handler, sock, sr}();
+            std::move(init.completion_handler), sock, sr}();
     return init.result.get();
 }
 
