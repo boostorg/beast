@@ -2,6 +2,7 @@ Version 144-hf1:
 
 * Update reports for hybrid assessment
 * Handle invalid deflate frames
+* Install codecov on codecov CI targets only
 
 --------------------------------------------------------------------------------
 
