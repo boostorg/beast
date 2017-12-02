@@ -6,6 +6,7 @@ Version 149:
 * Protect calls from macros
 * pausation always allocates
 * Don't copy completion handlers
+* handler_ptr is move-only
 
 --------------------------------------------------------------------------------
 

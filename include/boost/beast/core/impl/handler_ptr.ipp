@@ -18,87 +18,63 @@ namespace boost {
 namespace beast {
 
 template<class T, class Handler>
-template<class DeducedHandler, class... Args>
-inline
-handler_ptr<T, Handler>::P::
-P(DeducedHandler&& h, Args&&... args)
-    : n(1)
-    , handler(std::forward<DeducedHandler>(h))
+void
+handler_ptr<T, Handler>::
+clear()
 {
-    typename std::allocator_traits<
-        boost::asio::associated_allocator_t<Handler>>::
-            template rebind_alloc<T> alloc{
-                boost::asio::get_associated_allocator(handler)};
-    t = std::allocator_traits<decltype(alloc)>::allocate(alloc, 1);
-    try
-    {
-        t = new(t) T{handler,
-            std::forward<Args>(args)...};
-    }
-    catch(...)
-    {
-        std::allocator_traits<
-            decltype(alloc)>::deallocate(alloc, t, 1);
-        throw;
-    }
+    typename beast::detail::allocator_traits<
+        boost::asio::associated_allocator_t<
+            Handler>>::template rebind_alloc<T> alloc{
+                boost::asio::get_associated_allocator(h_)};
+    beast::detail::allocator_traits<
+        decltype(alloc)>::destroy(alloc, t_);
+    beast::detail::allocator_traits<
+        decltype(alloc)>::deallocate(alloc, t_, 1);
+    t_ = nullptr;
 }
 
 template<class T, class Handler>
 handler_ptr<T, Handler>::
 ~handler_ptr()
 {
-    if(! p_)
-        return;
-    if(--p_->n)
-        return;
-    if(p_->t)
-    {
-        p_->t->~T();
-        typename std::allocator_traits<
-            boost::asio::associated_allocator_t<Handler>>::
-                template rebind_alloc<T> alloc{
-                    boost::asio::get_associated_allocator(
-                        p_->handler)};
-        std::allocator_traits<
-            decltype(alloc)>::deallocate(alloc, p_->t, 1);
-    }
-    delete p_;
+    if(t_)
+        clear();
 }
 
 template<class T, class Handler>
 handler_ptr<T, Handler>::
 handler_ptr(handler_ptr&& other)
-    : p_(other.p_)
+    : t_(other.t_)
+    , h_(std::move(other.h_))
 {
-    other.p_ = nullptr;
+    other.t_ = nullptr;
 }
 
 template<class T, class Handler>
+template<class DeducedHandler, class... Args>
 handler_ptr<T, Handler>::
-handler_ptr(handler_ptr const& other)
-    : p_(other.p_)
+handler_ptr(DeducedHandler&& handler, Args&&... args)
+    : t_([&]
+        {
+            BOOST_STATIC_ASSERT(! std::is_array<T>::value);
+            typename beast::detail::allocator_traits<
+                boost::asio::associated_allocator_t<
+                    Handler>>::template rebind_alloc<T> alloc{
+                        boost::asio::get_associated_allocator(handler)};
+            using A = decltype(alloc);
+            auto const d =
+                [&alloc](T* p)
+                {
+                    beast::detail::allocator_traits<A>::deallocate(alloc, p, 1);
+                };
+            std::unique_ptr<T, decltype(d)> p{
+                beast::detail::allocator_traits<A>::allocate(alloc, 1), d};
+            beast::detail::allocator_traits<A>::construct(
+                alloc, p.get(), handler, std::forward<Args>(args)...);
+            return p.release();
+        }())
+    , h_(std::forward<DeducedHandler>(handler))
 {
-    if(p_)
-        ++p_->n;
-}
-
-template<class T, class Handler>
-template<class... Args>
-handler_ptr<T, Handler>::
-handler_ptr(Handler&& handler, Args&&... args)
-    : p_(new P{std::move(handler),
-        std::forward<Args>(args)...})
-{
-    BOOST_STATIC_ASSERT(! std::is_array<T>::value);
-}
-
-template<class T, class Handler>
-template<class... Args>
-handler_ptr<T, Handler>::
-handler_ptr(Handler const& handler, Args&&... args)
-    : p_(new P{handler, std::forward<Args>(args)...})
-{
-    BOOST_STATIC_ASSERT(! std::is_array<T>::value);
 }
 
 template<class T, class Handler>
@@ -107,18 +83,9 @@ handler_ptr<T, Handler>::
 release_handler() ->
     handler_type
 {
-    BOOST_ASSERT(p_);
-    BOOST_ASSERT(p_->t);
-    p_->t->~T();
-    typename std::allocator_traits<
-        boost::asio::associated_allocator_t<Handler>>::
-            template rebind_alloc<T> alloc{
-                boost::asio::get_associated_allocator(
-                    p_->handler)};
-    std::allocator_traits<
-        decltype(alloc)>::deallocate(alloc, p_->t, 1);
-    p_->t = nullptr;
-    return std::move(p_->handler);
+    BOOST_ASSERT(t_);
+    clear();
+    return std::move(h_);
 }
 
 template<class T, class Handler>
@@ -127,18 +94,9 @@ void
 handler_ptr<T, Handler>::
 invoke(Args&&... args)
 {
-    BOOST_ASSERT(p_);
-    BOOST_ASSERT(p_->t);
-    p_->t->~T();
-    typename std::allocator_traits<
-        boost::asio::associated_allocator_t<Handler>>::
-            template rebind_alloc<T> alloc{
-                boost::asio::get_associated_allocator(
-                    p_->handler)};
-    std::allocator_traits<
-        decltype(alloc)>::deallocate(alloc, p_->t, 1);
-    p_->t = nullptr;
-    p_->handler(std::forward<Args>(args)...);
+    BOOST_ASSERT(t_);
+    clear();
+    h_(std::forward<Args>(args)...);
 }
 
 } // beast
