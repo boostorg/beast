@@ -59,7 +59,7 @@ class stream<NextLayer>::read_some_op
 
 public:
     read_some_op(read_some_op&&) = default;
-    read_some_op(read_some_op const&) = default;
+    read_some_op(read_some_op const&) = delete;
 
     template<class DeducedHandler>
     read_some_op(
@@ -684,7 +684,7 @@ public:
         boost::asio::associated_allocator_t<Handler>;
 
     read_op(read_op&&) = default;
-    read_op(read_op const&) = default;
+    read_op(read_op const&) = delete;
 
     template<class DeducedHandler>
     read_op(
@@ -840,7 +840,7 @@ async_read(DynamicBuffer& buffer, ReadHandler&& handler)
         DynamicBuffer,
         BOOST_ASIO_HANDLER_TYPE(
             ReadHandler, void(error_code, std::size_t))>{
-                init.completion_handler,
+                std::move(init.completion_handler),
                 *this,
                 buffer,
                 0,
@@ -928,7 +928,7 @@ async_read_some(
         DynamicBuffer,
         BOOST_ASIO_HANDLER_TYPE(
             ReadHandler, void(error_code, std::size_t))>{
-                init.completion_handler,
+                std::move(init.completion_handler),
                 *this,
                 buffer,
                 limit,
@@ -1313,7 +1313,7 @@ async_read_some(
         void(error_code, std::size_t)> init{handler};
     read_some_op<MutableBufferSequence, BOOST_ASIO_HANDLER_TYPE(
         ReadHandler, void(error_code, std::size_t))>{
-            init.completion_handler,*this, buffers}(
+            std::move(init.completion_handler), *this, buffers}(
                 {}, 0, false);
     return init.result.get();
 }

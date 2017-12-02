@@ -52,7 +52,7 @@ template<class T, class Signature>
 using is_completion_handler = std::integral_constant<bool, ...>;
 #else
 using is_completion_handler = std::integral_constant<bool,
-    std::is_copy_constructible<typename std::decay<T>::type>::value &&
+    std::is_move_constructible<typename std::decay<T>::type>::value &&
     detail::is_invocable<T, Signature>::value>;
 #endif
 
