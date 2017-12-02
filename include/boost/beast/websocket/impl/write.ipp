@@ -208,7 +208,7 @@ operator()(
             // Suspend
             BOOST_ASSERT(ws_.wr_block_ != tok_);
             BOOST_ASIO_CORO_YIELD
-            ws_.paused_wr_.save(std::move(*this));
+            ws_.paused_wr_.emplace(std::move(*this));
 
             // Acquire the write block
             BOOST_ASSERT(! ws_.wr_block_);

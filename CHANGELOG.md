@@ -7,6 +7,7 @@ Version 148:
 * Fix CMakeLists.txt variable
 * Protect calls from macros
 * Install codecov on codecov CI targets only
+* pausation always allocates
 
 --------------------------------------------------------------------------------
 
