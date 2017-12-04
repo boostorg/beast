@@ -1,5 +1,3 @@
---------------------------------------------------------------------------------
-
 Version 148:
 
 * Install codecov on codecov CI targets only
@@ -47,6 +45,14 @@ Version 145:
 * null_buffers is deprecated
 * Version 124 works with Boost 1.65.1 and earlier
 * basic_fields does not support fancy pointers
+
+--------------------------------------------------------------------------------
+
+Version 144-hf1:
+
+* Update reports for hybrid assessment
+* Handle invalid deflate frames
+* Install codecov on codecov CI targets only
 
 --------------------------------------------------------------------------------
 
