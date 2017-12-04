@@ -62,7 +62,7 @@ class stream<NextLayer>::ping_op
 
 public:
     ping_op(ping_op&&) = default;
-    ping_op(ping_op const&) = default;
+    ping_op(ping_op const&) = delete;
 
     template<class DeducedHandler>
     ping_op(
@@ -81,7 +81,7 @@ public:
     allocator_type
     get_allocator() const noexcept
     {
-        return boost::asio::get_associated_allocator(d_.handler());
+        return (boost::asio::get_associated_allocator)(d_.handler());
     }
 
     using executor_type = boost::asio::associated_executor_t<
@@ -90,7 +90,7 @@ public:
     executor_type
     get_executor() const noexcept
     {
-        return boost::asio::get_associated_executor(
+        return (boost::asio::get_associated_executor)(
             d_.handler(), d_->ws.get_executor());
     }
 
@@ -241,7 +241,7 @@ async_ping(ping_data const& payload, WriteHandler&& handler)
         void(error_code)> init{handler};
     ping_op<BOOST_ASIO_HANDLER_TYPE(
         WriteHandler, void(error_code))>{
-            init.completion_handler, *this,
+            std::move(init.completion_handler), *this,
                 detail::opcode::ping, payload}();
     return init.result.get();
 }
@@ -259,7 +259,7 @@ async_pong(ping_data const& payload, WriteHandler&& handler)
         void(error_code)> init{handler};
     ping_op<BOOST_ASIO_HANDLER_TYPE(
         WriteHandler, void(error_code))>{
-            init.completion_handler, *this,
+            std::move(init.completion_handler), *this,
                 detail::opcode::pong, payload}();
     return init.result.get();
 }

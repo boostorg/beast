@@ -43,6 +43,7 @@ public:
         case error::closed: return "WebSocket connection closed normally";
         case error::handshake_failed: return "WebSocket upgrade handshake failed";
         case error::buffer_overflow: return "WebSocket dynamic buffer overflow";
+        case error::partial_deflate_block: return "WebSocket partial deflate block";
         }
     }
 

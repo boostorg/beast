@@ -50,7 +50,7 @@ class read_some_op
 
 public:
     read_some_op(read_some_op&&) = default;
-    read_some_op(read_some_op const&) = default;
+    read_some_op(read_some_op const&) = delete;
 
     template<class DeducedHandler>
     read_some_op(DeducedHandler&& h, Stream& s,
@@ -68,7 +68,7 @@ public:
     allocator_type
     get_allocator() const noexcept
     {
-        return boost::asio::get_associated_allocator(h_);
+        return (boost::asio::get_associated_allocator)(h_);
     }
 
     using executor_type = boost::asio::associated_executor_t<
@@ -77,7 +77,7 @@ public:
     executor_type
     get_executor() const noexcept
     {
-        return boost::asio::get_associated_executor(
+        return (boost::asio::get_associated_executor)(
             h_, s_.get_executor());
     }
 
@@ -208,7 +208,7 @@ class read_op
 
 public:
     read_op(read_op&&) = default;
-    read_op(read_op const&) = default;
+    read_op(read_op const&) = delete;
 
     template<class DeducedHandler>
     read_op(DeducedHandler&& h, Stream& s,
@@ -227,7 +227,7 @@ public:
     allocator_type
     get_allocator() const noexcept
     {
-        return boost::asio::get_associated_allocator(h_);
+        return (boost::asio::get_associated_allocator)(h_);
     }
 
     using executor_type = boost::asio::associated_executor_t<
@@ -236,7 +236,7 @@ public:
     executor_type
     get_executor() const noexcept
     {
-        return boost::asio::get_associated_executor(
+        return (boost::asio::get_associated_executor)(
             h_, s_.get_executor());
     }
 
@@ -331,7 +331,7 @@ class read_msg_op
 
 public:
     read_msg_op(read_msg_op&&) = default;
-    read_msg_op(read_msg_op const&) = default;
+    read_msg_op(read_msg_op const&) = delete;
 
     template<class DeducedHandler, class... Args>
     read_msg_op(DeducedHandler&& h, Stream& s, Args&&... args)
@@ -346,7 +346,7 @@ public:
     allocator_type
     get_allocator() const noexcept
     {
-        return boost::asio::get_associated_allocator(d_.handler());
+        return (boost::asio::get_associated_allocator)(d_.handler());
     }
 
     using executor_type = boost::asio::associated_executor_t<
@@ -355,7 +355,7 @@ public:
     executor_type
     get_executor() const noexcept
     {
-        return boost::asio::get_associated_executor(
+        return (boost::asio::get_associated_executor)(
             d_.handler(), d_->s.get_executor());
     }
 
@@ -531,7 +531,7 @@ async_read_some(
     detail::read_some_op<AsyncReadStream,
         DynamicBuffer, isRequest, Derived, BOOST_ASIO_HANDLER_TYPE(
             ReadHandler, void(error_code, std::size_t))>{
-                init.completion_handler, stream, buffer, parser}(
+                std::move(init.completion_handler), stream, buffer, parser}(
                     {}, 0, false);
     return init.result.get();
 }
@@ -619,8 +619,8 @@ async_read_header(
     detail::read_op<AsyncReadStream, DynamicBuffer,
         isRequest, Derived, detail::parser_is_header_done,
             BOOST_ASIO_HANDLER_TYPE(ReadHandler, void(error_code, std::size_t))>{
-                init.completion_handler, stream, buffer, parser}(
-                    {}, 0, false);
+                std::move(init.completion_handler), stream,
+                buffer, parser}({}, 0, false);
     return init.result.get();
 }
 
@@ -708,7 +708,7 @@ async_read(
     detail::read_op<AsyncReadStream, DynamicBuffer,
         isRequest, Derived, detail::parser_is_done,
             BOOST_ASIO_HANDLER_TYPE(ReadHandler, void(error_code, std::size_t))>{
-                init.completion_handler, stream, buffer, parser}(
+                std::move(init.completion_handler), stream, buffer, parser}(
                     {}, 0, false);
     return init.result.get();
 }
@@ -803,7 +803,7 @@ async_read(
         isRequest, Body, Allocator,
         BOOST_ASIO_HANDLER_TYPE(
             ReadHandler, void(error_code, std::size_t))>{
-                init.completion_handler, stream, buffer, msg}(
+                std::move(init.completion_handler), stream, buffer, msg}(
                     {}, 0, false);
     return init.result.get();
 }

@@ -109,7 +109,7 @@ public:
         boost::asio::associated_allocator_t<Handler>;
 
     bound_handler(bound_handler&&) = default;
-    bound_handler(bound_handler const&) = default;
+    bound_handler(bound_handler const&) = delete;
 
     template<class DeducedHandler>
     explicit
@@ -123,7 +123,7 @@ public:
     allocator_type
     get_allocator() const noexcept
     {
-        return boost::asio::get_associated_allocator(h_);
+        return (boost::asio::get_associated_allocator)(h_);
     }
 
     friend

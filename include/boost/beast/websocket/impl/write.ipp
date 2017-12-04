@@ -54,7 +54,7 @@ class stream<NextLayer>::write_some_op
 
 public:
     write_some_op(write_some_op&&) = default;
-    write_some_op(write_some_op const&) = default;
+    write_some_op(write_some_op const&) = delete;
 
     template<class DeducedHandler>
     write_some_op(
@@ -76,7 +76,7 @@ public:
     allocator_type
     get_allocator() const noexcept
     {
-        return boost::asio::get_associated_allocator(h_);
+        return (boost::asio::get_associated_allocator)(h_);
     }
 
     using executor_type = boost::asio::associated_executor_t<
@@ -85,7 +85,7 @@ public:
     executor_type
     get_executor() const noexcept
     {
-        return boost::asio::get_associated_executor(
+        return (boost::asio::get_associated_executor)(
             h_, ws_.get_executor());
     }
 
@@ -208,7 +208,7 @@ operator()(
             // Suspend
             BOOST_ASSERT(ws_.wr_block_ != tok_);
             BOOST_ASIO_CORO_YIELD
-            ws_.paused_wr_.save(std::move(*this));
+            ws_.paused_wr_.emplace(std::move(*this));
 
             // Acquire the write block
             BOOST_ASSERT(! ws_.wr_block_);
@@ -728,7 +728,7 @@ async_write_some(bool fin,
         void(error_code, std::size_t)> init{handler};
     write_some_op<ConstBufferSequence, BOOST_ASIO_HANDLER_TYPE(
         WriteHandler, void(error_code, std::size_t))>{
-            init.completion_handler, *this, fin, bs}(
+            std::move(init.completion_handler), *this, fin, bs}(
                 {}, 0, false);
     return init.result.get();
 }
@@ -784,7 +784,7 @@ async_write(
         void(error_code, std::size_t)> init{handler};
     write_some_op<ConstBufferSequence, BOOST_ASIO_HANDLER_TYPE(
         WriteHandler, void(error_code, std::size_t))>{
-            init.completion_handler, *this, true, bs}(
+            std::move(init.completion_handler), *this, true, bs}(
                 {}, 0, false);
     return init.result.get();
 }

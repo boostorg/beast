@@ -1,3 +1,17 @@
+Version 148:
+
+* built-in r-value return values can't be assigned
+* Tidy up ssl_stream special members
+* Update reports for hybrid assessment
+* Handle invalid deflate frames
+* Fix CMakeLists.txt variable
+* Protect calls from macros
+* Install codecov on codecov CI targets only
+* pausation always allocates
+* Don't copy completion handlers
+
+--------------------------------------------------------------------------------
+
 Version 147:
 
 * Don't use boost::string_ref

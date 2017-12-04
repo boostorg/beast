@@ -12,6 +12,7 @@
 
 #include <boost/beast/unit_test/suite.hpp>
 #include <exception>
+#include <memory>
 #include <utility>
 
 namespace boost {
@@ -22,8 +23,7 @@ class handler_ptr_test : public beast::unit_test::suite
 public:
     struct handler
     {
-        handler() = default;
-        handler(handler const&) = default;
+        std::unique_ptr<int> ptr;
 
         void
         operator()(bool& b) const
@@ -54,12 +54,10 @@ public:
     void
     run() override
     {
-        handler h;
-        handler_ptr<T, handler> p1{h};
-        handler_ptr<T, handler> p2{p1};
+        handler_ptr<T, handler> p1{handler{}};
         try
         {
-            handler_ptr<U, handler> p3{h};
+            handler_ptr<U, handler> p2{handler{}};
             fail();
         }
         catch(std::exception const&)
@@ -70,9 +68,9 @@ public:
         {
             fail();
         }
-        handler_ptr<T, handler> p4{std::move(h)};
+        handler_ptr<T, handler> p3{handler{}};
         bool b = false;
-        p4.invoke(std::ref(b));
+        p3.invoke(std::ref(b));
         BEAST_EXPECT(b);
     }
 };
