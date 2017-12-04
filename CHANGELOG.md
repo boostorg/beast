@@ -8,6 +8,16 @@ Version 149:
 * Don't copy completion handlers
 * handler_ptr is move-only
 
+API Changes:
+
+* handler_ptr gives the strong exception guarantee
+
+Actions Required:
+
+* Change the constructor signature for state objects
+  used with handler_ptr to receive a const reference to
+  the handler.
+
 --------------------------------------------------------------------------------
 
 Version 148:

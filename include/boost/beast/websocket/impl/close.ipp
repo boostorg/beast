@@ -48,7 +48,7 @@ class stream<NextLayer>::close_op
         bool cont = false;
 
         state(
-            Handler&,
+            Handler const&,
             stream<NextLayer>& ws_,
             close_reason const& cr)
             : ws(ws_)

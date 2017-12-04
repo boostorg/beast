@@ -49,8 +49,10 @@ namespace beast {
 template<class T, class Handler>
 class handler_ptr
 {
+    using handler_storage_t = typename detail::aligned_union<1, Handler>::type;
+
     T* t_ = nullptr;
-    Handler h_;
+    handler_storage_t h_;
 
     void clear();
 
@@ -100,8 +102,11 @@ public:
         following equivalent signature:
 
         @code
-            T::T(Handler&, Args&&...)
+            T::T(Handler const&, Args&&...)
         @endcode
+
+        @par Exception Safety
+        Strong guarantee.
 
         @param handler The handler to associate with the owned
         object. The argument will be moved if it is an xvalue.
@@ -116,14 +121,14 @@ public:
     handler_type const&
     handler() const
     {
-        return h_;
+        return *reinterpret_cast<Handler const*>(&h_);
     }
 
     /// Returns a reference to the handler
     handler_type&
     handler()
     {
-        return h_;
+        return *reinterpret_cast<Handler*>(&h_);
     }
 
     /** Returns a pointer to the owned object.

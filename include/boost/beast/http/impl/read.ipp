@@ -316,7 +316,7 @@ class read_msg_op
         std::size_t bytes_transferred = 0;
         bool cont = false;
 
-        data(Handler&, Stream& s_,
+        data(Handler const&, Stream& s_,
                 DynamicBuffer& b_, message_type& m_)
             : s(s_)
             , b(b_)

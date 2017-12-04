@@ -306,7 +306,7 @@ class write_msg_op
         Stream& s;
         serializer<isRequest, Body, Fields> sr;
 
-        data(Handler&, Stream& s_, message<
+        data(Handler const&, Stream& s_, message<
                 isRequest, Body, Fields>& m_)
             : s(s_)
             , sr(m_)

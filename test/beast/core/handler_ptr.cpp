@@ -34,7 +34,8 @@ public:
 
     struct T
     {
-        T(handler&)
+        explicit
+        T(handler const&)
         {
         }
 
@@ -45,7 +46,8 @@ public:
 
     struct U
     {
-        U(handler&)
+        explicit
+        U(handler const&)
         {
             throw std::exception{};
         }

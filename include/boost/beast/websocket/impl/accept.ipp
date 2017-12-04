@@ -45,7 +45,7 @@ class stream<NextLayer>::response_op
         response_type res;
 
         template<class Body, class Allocator, class Decorator>
-        data(Handler&, stream<NextLayer>& ws_, http::request<
+        data(Handler const&, stream<NextLayer>& ws_, http::request<
             Body, http::basic_fields<Allocator>> const& req,
                 Decorator const& decorator)
             : ws(ws_)
@@ -142,7 +142,7 @@ class stream<NextLayer>::accept_op
         stream<NextLayer>& ws;
         Decorator decorator;
         http::request_parser<http::empty_body> p;
-        data(Handler&, stream<NextLayer>& ws_,
+        data(Handler const&, stream<NextLayer>& ws_,
                 Decorator const& decorator_)
             : ws(ws_)
             , decorator(decorator_)

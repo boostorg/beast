@@ -47,7 +47,7 @@ class stream<NextLayer>::handshake_op
         response_type res;
 
         template<class Decorator>
-        data(Handler&, stream<NextLayer>& ws_,
+        data(Handler const&, stream<NextLayer>& ws_,
             response_type* res_p_,
                 string_view host,
                     string_view target,

@@ -44,7 +44,7 @@ class stream<NextLayer>::ping_op
         token tok;
 
         state(
-            Handler&,
+            Handler const&,
             stream<NextLayer>& ws_,
             detail::opcode op,
             ping_data const& payload)
