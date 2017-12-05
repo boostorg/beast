@@ -294,7 +294,7 @@ public:
 
             std::int32_t const b = (i == 240 ? 144 : 128);
             std::int32_t const e = (i == 244 ? 143 : 191);
-            for(auto j = b; j <= e; ++j)
+            for(auto j : {b, e})
             {
                 buf[1] = static_cast<std::uint8_t>(j);
 

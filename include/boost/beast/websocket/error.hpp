@@ -30,7 +30,10 @@ enum class error
     handshake_failed,
 
     /// buffer overflow
-    buffer_overflow
+    buffer_overflow,
+
+    /// partial deflate block
+    partial_deflate_block
 };
 
 } // websocket
