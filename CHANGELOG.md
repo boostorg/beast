@@ -7,6 +7,7 @@ Version 149:
 * pausation always allocates
 * Don't copy completion handlers
 * handler_ptr is move-only
+* Fix Travis memory utilization
 
 API Changes:
 

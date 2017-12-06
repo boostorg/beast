@@ -123,7 +123,8 @@ class stream
     friend class close_test;
     friend class frame_test;
     friend class ping_test;
-    friend class read_test;
+    friend class read1_test;
+    friend class read2_test;
     friend class stream_test;
     friend class write_test;
 
