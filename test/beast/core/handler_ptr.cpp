@@ -21,6 +21,18 @@ namespace beast {
 class handler_ptr_test : public beast::unit_test::suite
 {
 public:
+    struct throwing_handler
+    {
+        throwing_handler() = default;
+
+        throwing_handler(throwing_handler&&)
+        {
+            throw std::bad_alloc{};
+        }
+
+        void operator()() const;
+    };
+
     struct handler
     {
         std::unique_ptr<int> ptr;
@@ -53,6 +65,14 @@ public:
         }
     };
 
+    struct V
+    {
+        explicit
+        V(throwing_handler const&) noexcept
+        {
+        }
+    };
+
     void
     run() override
     {
@@ -74,6 +94,15 @@ public:
         bool b = false;
         p3.invoke(std::ref(b));
         BEAST_EXPECT(b);
+
+        try
+        {
+            throwing_handler th;
+            handler_ptr<V, throwing_handler> p4{std::move(th)};
+        }
+        catch (std::bad_alloc const&)
+        {
+        }
     }
 };
 
