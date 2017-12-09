@@ -1,3 +1,9 @@
+Version 150:
+
+* handler_ptr tests
+
+--------------------------------------------------------------------------------
+
 Version 149:
 
 * built-in r-value return values can't be assigned

@@ -24,9 +24,7 @@ public:
     struct handler
     {
         std::unique_ptr<int> ptr;
-
-        void
-        operator()(bool& b) const
+        void operator()(bool& b) const
         {
             b = true;
         }
@@ -34,8 +32,7 @@ public:
 
     struct T
     {
-        explicit
-        T(handler const&)
+        explicit T(handler const&)
         {
         }
 
@@ -44,18 +41,16 @@ public:
         }
     };
 
-    struct U
-    {
-        explicit
-        U(handler const&)
-        {
-            throw std::exception{};
-        }
-    };
-
     void
-    run() override
+    testCtorExcept()
     {
+        struct U
+        {
+            explicit U(handler const&)
+            {
+                throw std::exception{};
+            }
+        };
         handler_ptr<T, handler> p1{handler{}};
         try
         {
@@ -68,12 +63,55 @@ public:
         }
         catch(...)
         {
-            fail();
+            fail("", __FILE__, __LINE__);
         }
-        handler_ptr<T, handler> p3{handler{}};
+    }
+
+    void
+    testMoveExcept()
+    {
+        struct throwing_handler
+        {
+            throwing_handler() = default;
+            throwing_handler(throwing_handler&&)
+            {
+                throw std::bad_alloc{};
+            }
+            void operator()() const
+            {
+            }
+        };
+        struct T
+        {
+            explicit T(throwing_handler const&) noexcept {}
+        };
+        try
+        {
+            throwing_handler h;
+            handler_ptr<T, throwing_handler> p{std::move(h)};
+            fail("", __FILE__, __LINE__);
+        }
+        catch (std::bad_alloc const&)
+        {
+            pass();
+        }
+    }
+
+    void
+    testInvoke()
+    {
+        handler_ptr<T, handler> p{handler{}};
         bool b = false;
-        p3.invoke(std::ref(b));
+        p.invoke(std::ref(b));
         BEAST_EXPECT(b);
+    }
+
+    void
+    run() override
+    {
+        testCtorExcept();
+        testMoveExcept();
+        testInvoke();
     }
 };
 
