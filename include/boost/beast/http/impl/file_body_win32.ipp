@@ -67,8 +67,6 @@ struct basic_file_body<file_win32>
 
         file_win32 file_;
         std::uint64_t size_ = 0;    // cached file size
-        std::uint64_t first_;       // starting offset of the range
-        std::uint64_t last_;        // ending offset of the range
 
     public:
         ~value_type() = default;
@@ -133,14 +131,14 @@ struct basic_file_body<file_win32>
         init(error_code&)
         {
             BOOST_ASSERT(body_.file_.is_open());
-            pos_ = body_.first_;
+            pos_ = 0;
         }
 
         boost::optional<std::pair<const_buffers_type, bool>>
         get(error_code& ec)
         {
             std::size_t const n = (std::min)(sizeof(buf_),
-                beast::detail::clamp(body_.last_ - pos_));
+                beast::detail::clamp(body_.size_ - pos_));
             if(n == 0)
             {
                 ec.assign(0, ec.category());
@@ -154,7 +152,7 @@ struct basic_file_body<file_win32>
             ec.assign(0, ec.category());
             return {{
                 {buf_, nread},          // buffer to return.
-                pos_ < body_.last_}};   // `true` if there are more buffers.
+                pos_ < body_.size_}};   // `true` if there are more buffers.
         }
     };
 
@@ -244,8 +242,6 @@ open(char const* path, file_mode mode, error_code& ec)
         close();
         return;
     }
-    first_ = 0;
-    last_ = size_;
 }
 
 inline
@@ -268,8 +264,6 @@ reset(file_win32&& file, error_code& ec)
             close();
             return;
         }
-        first_ = 0;
-        last_ = size_;
     }
 }
 
@@ -419,7 +413,7 @@ operator()()
     boost::winapi::DWORD_ const nNumberOfBytesToWrite =
         static_cast<boost::winapi::DWORD_>(
         (std::min<std::uint64_t>)(
-            (std::min<std::uint64_t>)(r.body_.last_ - r.pos_, sr_.limit()),
+            (std::min<std::uint64_t>)(r.body_.size_ - r.pos_, sr_.limit()),
             (std::numeric_limits<boost::winapi::DWORD_>::max)()));
     boost::asio::windows::overlapped_ptr overlapped{
         sock_.get_executor().context(), *this};
@@ -467,8 +461,8 @@ operator()(
         }
         auto& r = sr_.reader_impl();
         r.pos_ += bytes_transferred;
-        BOOST_ASSERT(r.pos_ <= r.body_.last_);
-        if(r.pos_ >= r.body_.last_)
+        BOOST_ASSERT(r.pos_ <= r.body_.size_);
+        if(r.pos_ >= r.body_.size_)
         {
             sr_.next(ec, null_lambda{});
             BOOST_ASSERT(! ec);
@@ -516,7 +510,7 @@ write_some(
     boost::winapi::DWORD_ const nNumberOfBytesToWrite =
         static_cast<boost::winapi::DWORD_>(
         (std::min<std::uint64_t>)(
-            (std::min<std::uint64_t>)(r.body_.last_ - r.pos_, sr.limit()),
+            (std::min<std::uint64_t>)(r.body_.size_ - r.pos_, sr.limit()),
             (std::numeric_limits<boost::winapi::DWORD_>::max)()));
     auto const bSuccess = ::TransmitFile(
         sock.native_handle(),
@@ -534,8 +528,8 @@ write_some(
         return 0;
     }
     r.pos_ += nNumberOfBytesToWrite;
-    BOOST_ASSERT(r.pos_ <= r.body_.last_);
-    if(r.pos_ < r.body_.last_)
+    BOOST_ASSERT(r.pos_ <= r.body_.size_);
+    if(r.pos_ < r.body_.size_)
     {
         ec.assign(0, ec.category());
     }
