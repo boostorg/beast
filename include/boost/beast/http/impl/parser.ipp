@@ -20,7 +20,7 @@ namespace http {
 template<bool isRequest, class Body, class Allocator>
 parser<isRequest, Body, Allocator>::
 parser()
-    : wr_(m_)
+    : rd_(m_)
 {
 }
 
@@ -30,7 +30,7 @@ parser<isRequest, Body, Allocator>::
 parser(Arg1&& arg1, ArgN&&... argn)
     : m_(std::forward<Arg1>(arg1),
         std::forward<ArgN>(argn)...)
-    , wr_(m_)
+    , rd_(m_)
 {
     m_.clear();
 }
@@ -42,7 +42,7 @@ parser(parser<isRequest, OtherBody, Allocator>&& other,
         Args&&... args)
     : base_type(std::move(other))
     , m_(other.release(), std::forward<Args>(args)...)
-    , wr_(m_)
+    , rd_(m_)
 {
     if(other.rd_inited_)
         BOOST_THROW_EXCEPTION(std::invalid_argument{

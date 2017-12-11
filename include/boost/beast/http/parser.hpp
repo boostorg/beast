@@ -63,7 +63,7 @@ class parser
         parser<isRequest, Body, Allocator>>;
 
     message<isRequest, Body, basic_fields<Allocator>> m_;
-    typename Body::reader wr_;
+    typename Body::reader rd_;
     bool rd_inited_ = false;
 
     std::function<void(
@@ -376,7 +376,7 @@ private:
         boost::optional<std::uint64_t> const& content_length,
         error_code& ec)
     {
-        wr_.init(content_length, ec);
+        rd_.init(content_length, ec);
         rd_inited_ = true;
     }
 
@@ -385,7 +385,7 @@ private:
         string_view body,
         error_code& ec)
     {
-        return wr_.put(boost::asio::buffer(
+        return rd_.put(boost::asio::buffer(
             body.data(), body.size()), ec);
     }
 
@@ -408,14 +408,14 @@ private:
     {
         if(cb_b_)
             return cb_b_(remain, body, ec);
-        return wr_.put(boost::asio::buffer(
+        return rd_.put(boost::asio::buffer(
             body.data(), body.size()), ec);
     }
 
     void
     on_finish_impl(error_code& ec)
     {
-        wr_.finish(ec);
+        rd_.finish(ec);
     }
 };
 

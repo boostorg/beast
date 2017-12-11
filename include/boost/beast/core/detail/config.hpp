@@ -54,4 +54,7 @@
 # define BOOST_BEAST_FALLTHROUGH __attribute__((fallthrough))
 #endif
 
+#define BOOST_BEAST_DEPRECATION_STRING \
+    "This is a deprecated interface, #define BOOST_BEAST_ALLOW_DEPRECATED to allow it"
+
 #endif
