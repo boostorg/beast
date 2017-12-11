@@ -104,8 +104,8 @@ private:
         do_complete         = 120
     };
 
-    void frdinit(std::true_type);
-    void frdinit(std::false_type);
+    void fwrinit(std::true_type);
+    void fwrinit(std::false_type);
 
     template<std::size_t, class Visit>
     void
@@ -173,8 +173,8 @@ private:
     using pcb8_t = buffers_prefix_view<cb8_t const&>;
 
     value_type& m_;
-    writer rd_;
-    boost::optional<typename Fields::writer> frd_;
+    writer wr_;
+    boost::optional<typename Fields::writer> fwr_;
     beast::detail::variant<
         cb1_t, cb2_t, cb3_t, cb4_t,
         cb5_t ,cb6_t, cb7_t, cb8_t> v_;
@@ -336,7 +336,7 @@ public:
     void
     consume(std::size_t n);
 
-    /** Provides low-level access to the associated @b BodyWriter
+    /** Provides low-level access to the associated @b BodyWriter (DEPRECATED)
 
         This function provides access to the instance of the writer
         associated with the body and created by the serializer
@@ -349,7 +349,27 @@ public:
     writer&
     reader_impl()
     {
-        return rd_;
+    #if ! BOOST_BEAST_ALLOW_DEPRECATED
+        BOOST_STATIC_ASSERT_MSG(sizeof(Body) == 0,
+            BOOST_BEAST_DEPRECATION_STRING);
+    #endif
+        return wr_;
+    }
+
+    /** Provides low-level access to the associated @b BodyWriter
+
+        This function provides access to the instance of the writer
+        associated with the body and created by the serializer
+        upon construction. The behavior of accessing this object
+        is defined by the specification of the particular writer
+        and its associated body.
+
+        @return A reference to the writer.
+    */
+    writer&
+    writer_impl()
+    {
+        return wr_;
     }
 };
 

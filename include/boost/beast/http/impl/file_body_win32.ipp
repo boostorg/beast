@@ -415,11 +415,11 @@ operator()()
         return detail::async_write_some_impl(
             sock_, sr_, std::move(*this));
     }
-    auto& r = sr_.reader_impl();
+    auto& w = sr_.writer_impl();
     boost::winapi::DWORD_ const nNumberOfBytesToWrite =
         static_cast<boost::winapi::DWORD_>(
         (std::min<std::uint64_t>)(
-            (std::min<std::uint64_t>)(r.body_.last_ - r.pos_, sr_.limit()),
+            (std::min<std::uint64_t>)(w.body_.last_ - w.pos_, sr_.limit()),
             (std::numeric_limits<boost::winapi::DWORD_>::max)()));
     boost::asio::windows::overlapped_ptr overlapped{
         sock_.get_executor().context(), std::move(*this)};
@@ -427,8 +427,8 @@ operator()()
     // the handler since it is now moved-from. We can still
     // access simple things like references and built-in types.
     auto& ov = *overlapped.get();
-    ov.Offset = lowPart(r.pos_);
-    ov.OffsetHigh = highPart(r.pos_);
+    ov.Offset = lowPart(w.pos_);
+    ov.OffsetHigh = highPart(w.pos_);
     auto const bSuccess = ::TransmitFile(
         sock_.native_handle(),
         sr_.get().body().file_.native_handle(),
@@ -468,10 +468,10 @@ operator()(
             header_ = false;
             return (*this)();
         }
-        auto& r = sr_.reader_impl();
-        r.pos_ += bytes_transferred;
-        BOOST_ASSERT(r.pos_ <= r.body_.last_);
-        if(r.pos_ >= r.body_.last_)
+        auto& w = sr_.writer_impl();
+        w.pos_ += bytes_transferred;
+        BOOST_ASSERT(w.pos_ <= w.body_.last_);
+        if(w.pos_ >= w.body_.last_)
         {
             sr_.next(ec, null_lambda{});
             BOOST_ASSERT(! ec);
@@ -512,18 +512,18 @@ write_some(
             return bytes_transferred;
         return bytes_transferred;
     }
-    auto& r = sr.reader_impl();
-    r.body_.file_.seek(r.pos_, ec);
+    auto& w = sr.writer_impl();
+    w.body_.file_.seek(w.pos_, ec);
     if(ec)
         return 0;
     boost::winapi::DWORD_ const nNumberOfBytesToWrite =
         static_cast<boost::winapi::DWORD_>(
         (std::min<std::uint64_t>)(
-            (std::min<std::uint64_t>)(r.body_.last_ - r.pos_, sr.limit()),
+            (std::min<std::uint64_t>)(w.body_.last_ - w.pos_, sr.limit()),
             (std::numeric_limits<boost::winapi::DWORD_>::max)()));
     auto const bSuccess = ::TransmitFile(
         sock.native_handle(),
-        r.body_.file_.native_handle(),
+        w.body_.file_.native_handle(),
         nNumberOfBytesToWrite,
         0,
         nullptr,
@@ -536,9 +536,9 @@ write_some(
                 system_category());
         return 0;
     }
-    r.pos_ += nNumberOfBytesToWrite;
-    BOOST_ASSERT(r.pos_ <= r.body_.last_);
-    if(r.pos_ < r.body_.last_)
+    w.pos_ += nNumberOfBytesToWrite;
+    BOOST_ASSERT(w.pos_ <= w.body_.last_);
+    if(w.pos_ < w.body_.last_)
     {
         ec.assign(0, ec.category());
     }
