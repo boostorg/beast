@@ -41,27 +41,25 @@ In this table:
       `std::is_same<R, B::reader>::value == true`.
 * `a` denotes a value of type `R`.
 * `b` is an object whose type meets the requirements of __ConstBufferSequence__
-* `m` denotes a value of type `message&` where
-    `std::is_same<decltype(m.body), Body::value_type>::value == true`.
+* `h` denotes a value of type `header<isRequest, Fields>&`.
+* `v` denotes a value of type `Body::value_type&`.
 * `n` is a value of type `boost::optional<std::uint64_t>`.
 * `ec` is a value of type [link beast.ref.boost__beast__error_code `error_code&`].
 
 [table Valid expressions
 [[Expression] [Type] [Semantics, Pre/Post-conditions]]
 [
-    [`R{m};`]
+    [`R{h, v};`]
     []
     [
-        Constructible from `m`. The lifetime of `m` is guaranteed to
+        Constructible from `h` and `v`. The lifetime of `h` and `v`
+        is guaranteed to
         end no earlier than after the `R` is destroyed. The constructor
-        will be called after a complete header is stored in `m`, and
+        will be called after a complete header is stored in `h`, and
         before parsing body octets for messages indicating that a body
-        is present The reader shall not access the contents of `m` before
-        the first call to `init`, permitting lazy construction of the
+        is present The reader shall not access the contents of `h` or `v`
+        before the first call to `init`, permitting lazy construction of the
         message.
-
-        The function will ensure that `!ec` is `true` if there was
-        no error or set to the appropriate error code if there was one. 
     ]
 ][
     [`a.init(n, ec)`]

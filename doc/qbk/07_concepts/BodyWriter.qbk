@@ -42,8 +42,8 @@ In this table:
 * `B` denotes a __Body__ where
       `std::is_same<W, B::writer>::value == true`.
 * `a` denotes a value of type `W`.
-* `m` denotes a possibly const value of type `message&` where
-      `std::is_same<decltype(m.body), Body::value_type>:value == true`.
+* `h` denotes a const value of type `header<isRequest, Fields> const&`.
+* `v` denotes a possibly const value of type `Body::value_type&`.
 * `ec` is a value of type [link beast.ref.boost__beast__error_code `error_code&`].
 * `W<T>` is the type `boost::optional<std::pair<T, bool>>`.
 
@@ -57,23 +57,24 @@ In this table:
         This is the type of buffer returned by `W::get`.
     ]
 ][
-    [`W{m};`]
+    [`W{h, v};`]
     []
     [
-        Constructible from `m`. The lifetime of `m` is guaranteed
+        Constructible from `h` and `v`. The lifetime of both `h` and `v`
+        is guaranteed
         to end no earlier than after the `W` is destroyed.
-        The writer shall not access the contents of `m` before the
-        first call to `init`, permitting lazy construction of the
+        The writer shall not access the contents of either `h` or `v`
+        before the first call to `init`, permitting lazy construction of the
         message.
 
-        The constructor may optionally require that `m` is const, which
+        The constructor may optionally require that `v` is const, which
         has these consequences:
 
-        * If `W` requires that `m` is a const reference, then serializers
+        * If `W` requires that `v` is a const reference, then serializers
         constructed for messages with this body type will also require a
         const reference to a message, otherwise:
 
-        * If `W` requires that `m` is a non-const reference, then serializers
+        * If `W` requires that `v` is a non-const reference, then serializers
         constructed for messages with this body type will aso require
         a non-const reference to a message.
     ]
