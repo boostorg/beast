@@ -21,6 +21,7 @@ project /boost/beast/test
         cxx11_variadic_templates
     ]
     <include>./extern
+    <define>BOOST_BEAST_ALLOW_DEPRECATED
     ;
 
 path-constant ZLIB_SOURCES :

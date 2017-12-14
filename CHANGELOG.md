@@ -1,3 +1,17 @@
+Version 150:
+
+* handler_ptr tests
+
+API Changes:
+
+* serializer::reader_impl is deprecated
+
+Actions Required:
+
+* Call serializer::writer_impl instead of reader_impl
+
+--------------------------------------------------------------------------------
+
 Version 149:
 
 * built-in r-value return values can't be assigned

@@ -25,18 +25,18 @@ template<
     bool isRequest, class Body, class Fields>
 void
 serializer<isRequest, Body, Fields>::
-frdinit(std::true_type)
+fwrinit(std::true_type)
 {
-    frd_.emplace(m_, m_.version(), m_.method());
+    fwr_.emplace(m_, m_.version(), m_.method());
 }
 
 template<
     bool isRequest, class Body, class Fields>
 void
 serializer<isRequest, Body, Fields>::
-frdinit(std::false_type)
+fwrinit(std::false_type)
 {
-    frd_.emplace(m_, m_.version(), m_.result_int());
+    fwr_.emplace(m_, m_.version(), m_.result_int());
 }
 
 template<
@@ -57,9 +57,31 @@ do_visit(error_code& ec, Visit& visit)
 template<
     bool isRequest, class Body, class Fields>
 serializer<isRequest, Body, Fields>::
-serializer(value_type& m)
+serializer(value_type& m, std::true_type)
     : m_(m)
-    , rd_(m_)
+    , wr_(m_)
+{
+#ifndef BOOST_BEAST_ALLOW_DEPRECATED
+    /* Deprecated BodyWriter Concept (v1.66) */
+    static_assert(sizeof(Body) == 0,
+        BOOST_BEAST_DEPRECATION_STRING);
+#endif // BOOST_BEAST_ALLOW_DEPRECATED
+}
+
+template<
+    bool isRequest, class Body, class Fields>
+serializer<isRequest, Body, Fields>::
+serializer(value_type& m, std::false_type)
+    : m_(m)
+    , wr_(m_.base(), m_.body())
+{
+}
+
+template<
+    bool isRequest, class Body, class Fields>
+serializer<isRequest, Body, Fields>::
+serializer(value_type& m)
+    : serializer(m, detail::has_deprecated_body_writer<Body>{})
 {
 }
 
@@ -75,7 +97,7 @@ next(error_code& ec, Visit&& visit)
     {
     case do_construct:
     {
-        frdinit(std::integral_constant<bool,
+        fwrinit(std::integral_constant<bool,
             isRequest>{});
         if(m_.chunked())
             goto go_init_c;
@@ -85,12 +107,12 @@ next(error_code& ec, Visit&& visit)
 
     case do_init:
     {
-        rd_.init(ec);
+        wr_.init(ec);
         if(ec)
             return;
         if(split_)
             goto go_header_only;
-        auto result = rd_.get(ec);
+        auto result = wr_.get(ec);
         if(ec == error::need_more)
             goto go_header_only;
         if(ec)
@@ -100,7 +122,7 @@ next(error_code& ec, Visit&& visit)
         more_ = result->second;
         v_.template emplace<2>(
             boost::in_place_init,
-            frd_->get(),
+            fwr_->get(),
             result->first);
         s_ = do_header;
         BOOST_BEAST_FALLTHROUGH;
@@ -111,7 +133,7 @@ next(error_code& ec, Visit&& visit)
         break;
 
     go_header_only:
-        v_.template emplace<1>(frd_->get());
+        v_.template emplace<1>(fwr_->get());
         s_ = do_header_only;
         BOOST_BEAST_FALLTHROUGH;
     case do_header_only:
@@ -124,7 +146,7 @@ next(error_code& ec, Visit&& visit)
 
     case do_body + 1:
     {
-        auto result = rd_.get(ec);
+        auto result = wr_.get(ec);
         if(ec)
             return;
         if(! result)
@@ -146,12 +168,12 @@ next(error_code& ec, Visit&& visit)
         BOOST_BEAST_FALLTHROUGH;
     case do_init_c:
     {
-        rd_.init(ec);
+        wr_.init(ec);
         if(ec)
             return;
         if(split_)
             goto go_header_only_c;
-        auto result = rd_.get(ec);
+        auto result = wr_.get(ec);
         if(ec == error::need_more)
             goto go_header_only_c;
         if(ec)
@@ -164,7 +186,7 @@ next(error_code& ec, Visit&& visit)
             // do it all in one buffer
             v_.template emplace<7>(
                 boost::in_place_init,
-                frd_->get(),
+                fwr_->get(),
                 buffer_size(result->first),
                 boost::asio::const_buffer{nullptr, 0},
                 chunk_crlf{},
@@ -177,7 +199,7 @@ next(error_code& ec, Visit&& visit)
         }
         v_.template emplace<4>(
             boost::in_place_init,
-            frd_->get(),
+            fwr_->get(),
             buffer_size(result->first),
             boost::asio::const_buffer{nullptr, 0},
             chunk_crlf{},
@@ -192,7 +214,7 @@ next(error_code& ec, Visit&& visit)
         break;
 
     go_header_only_c:
-        v_.template emplace<1>(frd_->get());
+        v_.template emplace<1>(fwr_->get());
         s_ = do_header_only_c;
     case do_header_only_c:
         do_visit<1>(ec, visit);
@@ -204,7 +226,7 @@ next(error_code& ec, Visit&& visit)
 
     case do_body_c + 1:
     {
-        auto result = rd_.get(ec);
+        auto result = wr_.get(ec);
         if(ec)
             return;
         if(! result)
@@ -309,7 +331,7 @@ consume(std::size_t n)
         v_.template get<1>().consume(n);
         if(buffer_size(v_.template get<1>()) > 0)
             break;
-        frd_ = boost::none;
+        fwr_ = boost::none;
         header_done_ = true;
         if(! split_)
             goto go_complete;
@@ -353,7 +375,7 @@ consume(std::size_t n)
         v_.template get<1>().consume(n);
         if(buffer_size(v_.template get<1>()) > 0)
             break;
-        frd_ = boost::none;
+        fwr_ = boost::none;
         header_done_ = true;
         if(! split_)
         {

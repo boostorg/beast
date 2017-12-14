@@ -105,8 +105,8 @@ struct buffer_body
     public:
         template<bool isRequest, class Fields>
         explicit
-        reader(message<isRequest, buffer_body, Fields>& m)
-            : body_(m.body())
+        reader(header<isRequest, Fields>&, value_type& b)
+            : body_(b)
         {
         }
 
@@ -167,9 +167,8 @@ struct buffer_body
 
         template<bool isRequest, class Fields>
         explicit
-        writer(message<isRequest,
-                buffer_body, Fields> const& msg)
-            : body_(msg.body())
+        writer(header<isRequest, Fields> const&, value_type const& b)
+            : body_(b)
         {
         }
 

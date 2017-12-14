@@ -48,9 +48,8 @@ public:
 
             template<bool isRequest, class Fields>
             explicit
-            writer(message<isRequest,
-                    unsized_body, Fields> const& msg)
-                : body_(msg.body())
+            writer(header<isRequest, Fields> const&, value_type const& b)
+                : body_(b)
             {
             }
 
@@ -93,9 +92,8 @@ public:
 
             template<bool isRequest, class Fields>
             explicit
-            writer(message<isRequest,
-                    test_body, Fields> const& msg)
-                : body_(msg.body())
+            writer(header<isRequest, Fields> const&, value_type const& b)
+                : body_(b)
             {
             }
 
@@ -230,9 +228,8 @@ public:
 
             template<bool isRequest, class Fields>
             explicit
-            writer(message<isRequest,
-                    fail_body, Fields> const& msg)
-                : body_(msg.body())
+            writer(header<isRequest, Fields> const&, value_type const& b)
+                : body_(b)
             {
             }
 
