@@ -1,6 +1,7 @@
 Version 150:
 
 * handler_ptr tests
+* Documentation
 
 API Changes:
 

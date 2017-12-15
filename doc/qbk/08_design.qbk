@@ -27,7 +27,7 @@ flaws exhibited by other libraries:
   managing flow control, to the user.
 
 Beast uses the __DynamicBuffer__ concept presented in the Networking TS
-(__N4588__), and relies heavily on the __ConstBufferSequence__ and
+(__NetTS__), and relies heavily on the __ConstBufferSequence__ and
 __MutableBufferSequence__ concepts for passing buffers to functions.
 The authors have found the dynamic buffer and buffer sequence interfaces to
 be optimal for interacting with Asio, and for other tasks such as incremental

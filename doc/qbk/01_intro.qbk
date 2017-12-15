@@ -8,6 +8,7 @@
 ]
 
 [section Introduction]
+[block'''<?dbhtml stop-chunking?>''']
 
 Beast is a C++ header-only library serving as a foundation for writing
 interoperable networking libraries by providing [*low-level HTTP/1,
@@ -43,7 +44,9 @@ to enable client side programs (often written in JavaScript) to
 communicate interactively. C++ benefits greatly from having a
 standardized implementation of these protocols.
 
-[heading Requirements]
+
+
+[section Requirements]
 
 [important
     This library is for programmers familiar with __Asio__. Users who
@@ -68,6 +71,23 @@ library. Please visit the
 [@boost:/more/getting_started.html Boost documentation]
 for instructions on how to do this for your particular build system.
 
+[endsect]
+
+
+
+[section Reporting Bugs]
+
+To report bugs or get help using Beast, GitHub issues are preferred.
+Please visit
+[@https://github.com/boostorg/beast/issues https://github.com/boostorg/beast/issues]
+to ask a question, report a defect, or request a feature. If you
+prefer to keep your issue or question confidential please email the author at
+[@mailto:vinnie.falco%40gmail.com vinnie.falco@gmail.com].
+
+[endsect]
+
+
+
 [heading Credits]
 
 Boost.Asio is the inspiration behind which all of the interfaces and
@@ -75,7 +95,9 @@ implementation strategies are built. Some parts of the documentation are
 written to closely resemble the wording and presentation of Boost.Asio
 documentation. Credit goes to
 [@https://github.com/chriskohlhoff Christopher Kohlhoff]
-for his wonderful Asio library and the ideas in __N4588__ which power Beast.
+for his wonderful Asio library and the ideas in
+[@http://cplusplus.github.io/networking-ts/draft.pdf [*C++ Extensions for Networking]]
+which power Beast.
 
 Beast would not be possible without the support of
 [@https://www.ripple.com Ripple]
@@ -96,7 +118,13 @@ and
 for tirelessly answering questions on
 [@https://cpplang.slack.com/ Cpplang-Slack].
 
+Thanks to
+[@https://github.com/djarek Damian Jarek]
+for his generous participation and source code contributions.
+
 [endsect]
+
+
 
 [section Reports]
 [block'''<?dbhtml stop-chunking?>''']

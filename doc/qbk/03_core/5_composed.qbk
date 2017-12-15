@@ -19,7 +19,7 @@ special tokens __use_future__ and __yield_context__ for using futures
 and coroutines respectively. This system of customizing the return value
 and method of completion notification is known as the
 ['Extensible Asynchronous Model] described in __N3747__, and a built in
-to __N4588__. Here is an example of an initiating function which reads a
+to __NetTS__. Here is an example of an initiating function which reads a
 line from the stream and echoes it back. This function is developed
 further in the next section:
 

@@ -30,7 +30,7 @@
 [template include_file[path][^<'''<ulink url="../../../../'''[path]'''">'''[path]'''</ulink>'''>]]
 
 [def __N3747__                  [@http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3747.pdf [*N3747]]]
-[def __N4588__                  [@http://cplusplus.github.io/networking-ts/draft.pdf [*N4588]]]
+[def __NetTS__                  [@http://cplusplus.github.io/networking-ts/draft.pdf [*Networking.TS]]]
 [def __rfc6455__                [@https://tools.ietf.org/html/rfc6455 rfc6455]]
 [def __rfc7230__                [@https://tools.ietf.org/html/rfc7230 rfc7230]]
 

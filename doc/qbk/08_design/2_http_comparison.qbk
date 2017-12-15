@@ -107,7 +107,7 @@ holds the header fields. We note some problems with the container declaration:
   range destroys information conveyed by the __ConstBufferSequence__
   and __MutableBufferSequence__ used in dynamic buffers. The consequence
   is that cpp-netlib implementations will be less efficient than an
-  equivalent __N4588__ conforming implementation.
+  equivalent __NetTS__ conforming implementation.
 
 * The library uses specializations of `string<Tag>` to change the type
   of string used everywhere, including the body, field name and value
@@ -217,7 +217,7 @@ struct is_message<basic_message<Headers, Body>>: public std::true_type {};
   destroys information conveyed by the __ConstBufferSequence__ and
   __MutableBufferSequence__ used in dynamic buffers. The consequence is
   that Boost.HTTP implementations will be less efficient when dealing
-  with body containers than an equivalent __N4588__ conforming
+  with body containers than an equivalent __NetTS__ conforming
   implementation.
 
 * The [*Body] customization point constrains user defined types to
