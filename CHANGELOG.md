@@ -1,3 +1,9 @@
+Version 151:
+
+* Sanitizer failures are errors
+
+--------------------------------------------------------------------------------
+
 Version 150:
 
 * handler_ptr tests
