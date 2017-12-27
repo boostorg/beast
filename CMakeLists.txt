@@ -58,6 +58,11 @@ else()
     if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wrange-loop-analysis")
     endif ()
+    if (WIN32)
+        # -mbig-obj is the gas equivalent of /bigobj for MSVC
+        # -O2 to work around string table size issues: https://stackoverflow.com/a/29479701/166389
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wa,-mbig-obj -O2")
+    endif ()
 endif()
 
 # Must come before Boost includes, otherwise the
