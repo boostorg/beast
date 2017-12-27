@@ -2,6 +2,10 @@ Version 151:
 
 * Sanitizer failures are errors
 
+WebSocket:
+
+* Control callback is invoked on the execution context
+
 --------------------------------------------------------------------------------
 
 Version 150:

@@ -236,6 +236,17 @@ operator()(
                 // Handle ping frame
                 if(ws_.rd_fh_.op == detail::opcode::ping)
                 {
+                    if(ws_.ctrl_cb_)
+                    {
+                        if(! cont_)
+                        {
+                            BOOST_ASIO_CORO_YIELD
+                            boost::asio::post(
+                                ws_.get_executor(),
+                                    std::move(*this));
+                            BOOST_ASSERT(cont_);
+                        }
+                    }
                     {
                         auto const b = buffers_prefix(
                             clamp(ws_.rd_fh_.len),
@@ -249,7 +260,8 @@ operator()(
                         if(ws_.status_ == status::closing)
                             goto loop;
                         if(ws_.ctrl_cb_)
-                            ws_.ctrl_cb_(frame_type::ping, payload);
+                            ws_.ctrl_cb_(
+                                frame_type::ping, payload);
                         ws_.rd_fb_.reset();
                         ws_.template write_ping<
                             flat_static_buffer_base>(ws_.rd_fb_,
@@ -309,6 +321,18 @@ operator()(
                 // Handle pong frame
                 if(ws_.rd_fh_.op == detail::opcode::pong)
                 {
+                    // Ignore pong when closing
+                    if(! ws_.wr_close_ && ws_.ctrl_cb_)
+                    {
+                        if(! cont_)
+                        {
+                            BOOST_ASIO_CORO_YIELD
+                            boost::asio::post(
+                                ws_.get_executor(),
+                                    std::move(*this));
+                            BOOST_ASSERT(cont_);
+                        }
+                    }
                     auto const cb = buffers_prefix(clamp(
                         ws_.rd_fh_.len), ws_.rd_buf_.data());
                     auto const len = buffer_size(cb);
@@ -325,6 +349,17 @@ operator()(
                 // Handle close frame
                 BOOST_ASSERT(ws_.rd_fh_.op == detail::opcode::close);
                 {
+                    if(ws_.ctrl_cb_)
+                    {
+                        if(! cont_)
+                        {
+                            BOOST_ASIO_CORO_YIELD
+                            boost::asio::post(
+                                ws_.get_executor(),
+                                    std::move(*this));
+                            BOOST_ASSERT(cont_);
+                        }
+                    }
                     auto const cb = buffers_prefix(clamp(
                         ws_.rd_fh_.len), ws_.rd_buf_.data());
                     auto const len = buffer_size(cb);

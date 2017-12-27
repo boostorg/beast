@@ -59,6 +59,50 @@ public:
         BEAST_EXPECT(n == 0);
     }
 
+    /*
+        When the internal read buffer contains a control frame and
+        stream::async_read_some is called, it is possible for the control
+        callback to be invoked on the caller's stack instead of through
+        the executor associated with the final completion handler.
+    */
+    void
+    testIssue954()
+    {
+        echo_server es{log};
+        boost::asio::io_context ioc;
+        stream<test::stream> ws{ioc};
+        ws.next_layer().connect(es.stream());
+        ws.handshake("localhost", "/");
+        // message followed by ping
+        ws.next_layer().append({
+            "\x81\x00"
+            "\x89\x00",
+            4});
+        bool called_cb = false;
+        bool called_handler = false;
+        ws.control_callback(
+            [&called_cb](frame_type, string_view)
+            {
+                called_cb = true;
+            });
+        multi_buffer b;
+        ws.async_read(b,
+            [&](error_code, std::size_t)
+            {
+                called_handler = true;
+            });
+        BEAST_EXPECT(! called_cb);
+        BEAST_EXPECT(! called_handler);
+        ioc.run();
+        BEAST_EXPECT(! called_cb);
+        BEAST_EXPECT(called_handler);
+        ws.async_read(b,
+            [&](error_code, std::size_t)
+            {
+            });
+        BEAST_EXPECT(! called_cb);
+    }
+
     /*  Bishop Fox Hybrid Assessment issue 1
 
         Happens with permessage-deflate enabled and a
@@ -242,6 +286,7 @@ public:
     {
         testIssue802();
         testIssue807();
+        testIssue954();
         testIssueBF1();
         testIssueBF2();
     }
