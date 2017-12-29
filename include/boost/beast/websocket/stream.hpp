@@ -15,6 +15,7 @@
 #include <boost/beast/websocket/option.hpp>
 #include <boost/beast/websocket/role.hpp>
 #include <boost/beast/websocket/rfc6455.hpp>
+#include <boost/beast/websocket/stream_fwd.hpp>
 #include <boost/beast/websocket/detail/frame.hpp>
 #include <boost/beast/websocket/detail/hybi13.hpp>
 #include <boost/beast/websocket/detail/mask.hpp>

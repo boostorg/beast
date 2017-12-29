@@ -7,16 +7,21 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
-#ifndef BOOST_BEAST_WEBSOCKET_HPP
-#define BOOST_BEAST_WEBSOCKET_HPP
+#ifndef BOOST_BEAST_WEBSOCKET_STREAM_FWD_HPP
+#define BOOST_BEAST_WEBSOCKET_STREAM_FWD_HPP
 
 #include <boost/beast/core/detail/config.hpp>
 
-#include <boost/beast/websocket/error.hpp>
-#include <boost/beast/websocket/option.hpp>
-#include <boost/beast/websocket/rfc6455.hpp>
-#include <boost/beast/websocket/stream.hpp>
-#include <boost/beast/websocket/stream_fwd.hpp>
-#include <boost/beast/websocket/teardown.hpp>
+namespace boost {
+namespace beast {
+namespace websocket {
+
+template<
+    class NextLayer>
+class stream;
+
+} // websocket
+} // beast
+} // boost
 
 #endif
