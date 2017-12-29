@@ -39,15 +39,9 @@
 #include <limits>
 #include <type_traits>
 
-#include <boost/asio/io_context.hpp> // DEPRECATED
-
 namespace boost {
 namespace beast {
 namespace websocket {
-
-namespace detail {
-class frame_test;
-}
 
 /// The type of object holding HTTP Upgrade requests
 using request_type = http::request<http::empty_body>;
@@ -71,6 +65,10 @@ enum class frame_type
     /// A pong frame was received
     pong
 };
+
+namespace detail {
+class frame_test;
+} // detail
 
 //--------------------------------------------------------------------
 

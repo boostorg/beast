@@ -6,6 +6,7 @@ WebSocket:
 
 * Control callback is invoked on the execution context
 * Add stream_fwd.hpp
+* Remove unnecessary include
 
 --------------------------------------------------------------------------------
 
