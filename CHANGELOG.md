@@ -8,6 +8,10 @@ WebSocket:
 * Add stream_fwd.hpp
 * Remove unnecessary include
 
+API Changes:
+
+* http::parser is not MoveConstructible
+
 --------------------------------------------------------------------------------
 
 Version 150:

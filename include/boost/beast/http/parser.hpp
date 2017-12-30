@@ -84,21 +84,17 @@ public:
     /// Destructor
     ~parser() = default;
 
-    /// Constructor
-    parser();
-
-    /// Constructor
+    /// Constructor (disallowed)
     parser(parser const&) = delete;
 
-    /// Assignment
+    /// Assignment (disallowed)
     parser& operator=(parser const&) = delete;
 
-    /** Constructor
+    /// Constructor (disallowed)
+    parser(parser&& other) = delete;
 
-        After the move, the only valid operation
-        on the moved-from object is destruction.
-    */
-    parser(parser&& other) = default;
+    /// Constructor
+    parser();
 
     /** Constructor
 
