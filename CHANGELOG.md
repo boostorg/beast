@@ -2,6 +2,7 @@ Version 151:
 
 * Sanitizer failures are errors
 * Depend on container_hash
+* Fix high-ASCII in source file
 
 WebSocket:
 
