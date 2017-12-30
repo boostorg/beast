@@ -153,6 +153,7 @@ install:
   - git submodule update --init libs/chrono
   - git submodule update --init libs/concept_check
   - git submodule update --init libs/container
+  - git submodule update --init libs/container_hash
   - git submodule update --init libs/context
   - git submodule update --init libs/conversion
   - git submodule update --init libs/coroutine

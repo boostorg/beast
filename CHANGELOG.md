@@ -1,6 +1,7 @@
 Version 151:
 
 * Sanitizer failures are errors
+* Depend on container_hash
 
 WebSocket:
 
