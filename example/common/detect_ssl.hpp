@@ -22,6 +22,7 @@
 //[example_core_detect_ssl_1
 
 #include <boost/beast/core.hpp>
+#include <boost/asio/coroutine.hpp>
 #include <boost/logic/tribool.hpp>
 
 /** Return `true` if a buffer contains a TLS/SSL client handshake.
@@ -302,21 +303,20 @@ async_detect_ssl(
 
 //[example_core_detect_ssl_6
 
-// Read from a stream to invoke is_tls_handshake asynchronously
+// Read from a stream to invoke is_tls_handshake asynchronously.
+// This will be implemented using Asio's "stackless coroutines"
+// which are based on macros forming a switch statement. The
+// operation is derived from `coroutine` for this reason.
 //
 template<
     class AsyncReadStream,
     class DynamicBuffer,
     class Handler>
-class detect_ssl_op
+class detect_ssl_op : public boost::asio::coroutine
 {
     // This composed operation has trivial state,
     // so it is just kept inside the class and can
     // be cheaply copied as needed by the implementation.
-
-    // Indicates what step in the operation's state
-    // machine to perform next, starting from zero.
-    int step_ = 0;
 
     AsyncReadStream& stream_;
     DynamicBuffer& buffer_;
@@ -370,28 +370,6 @@ public:
         return (boost::asio::get_associated_executor)(handler_, stream_.get_executor());
     }
 
-    // Determines if the next asynchronous operation represents a
-    // continuation of the asynchronous flow of control associated
-    // with the final handler. If we are past step two, it means
-    // we have performed an asynchronous operation therefore any
-    // subsequent operation would represent a continuation.
-    // Otherwise, we propagate the handler's associated value of
-    // is_continuation. Getting this right means the implementation
-    // may schedule the invokation of the invoked functions more
-    // efficiently.
-    //
-    friend bool asio_handler_is_continuation(detect_ssl_op* op)
-    {
-        // This next call is structured to permit argument
-        // dependent lookup to take effect.
-        using boost::asio::asio_handler_is_continuation;
-
-        // Always use std::addressof to pass the pointer to the handler,
-        // otherwise an unwanted overload of operator& may be called instead.
-        return op->step_ > 2 ||
-            asio_handler_is_continuation(std::addressof(op->handler_));
-    }
-
     // Our main entry point. This will get called as our
     // intermediate operations complete. Definition below.
     //
@@ -416,15 +394,14 @@ operator()(boost::beast::error_code ec, std::size_t bytes_transferred)
 {
     namespace beast = boost::beast;
 
-    // Execute the state machine
-    switch(step_)
+    // This introduces the scope of the stackless coroutine
+    BOOST_ASIO_CORO_REENTER(*this)
     {
-    // Initial state
-    case 0:
-        // See if we can detect the handshake
+        // There could already be data in the buffer
+        // so we do this first, before reading from the stream.
         result_ = is_ssl_handshake(buffer_.data());
 
-        // If there's a result, call the handler
+        // If we got an answer, return it
         if(! boost::indeterminate(result_))
         {
             // We need to invoke the handler, but the guarantee
@@ -434,63 +411,51 @@ operator()(boost::beast::error_code ec, std::size_t bytes_transferred)
             // `bind_handler` lets us bind arguments in a safe way
             // that preserves the type customization hooks of the
             // original handler.
-            step_ = 1;
-            return boost::asio::post(
+            BOOST_ASIO_CORO_YIELD
+            boost::asio::post(
                 stream_.get_executor(),
                 beast::bind_handler(std::move(*this), ec, 0));
         }
-
-        // The algorithm should never need more than 4 bytes
-        BOOST_ASSERT(buffer_.size() < 4);
-
-        step_ = 2;
-
-    do_read:
-        // We need more bytes, but no more than four total.
-        return stream_.async_read_some(buffer_.prepare(beast::read_size(buffer_, 1536)), std::move(*this));
-
-    case 1:
-        // Call the handler
-        break;
-
-    case 2:
-        // Set this so that asio_handler_is_continuation knows that
-        // the next asynchronous operation represents a continuation
-        // of the initial asynchronous operation.
-        step_ = 3;
-        BOOST_FALLTHROUGH;
-
-    case 3:
-        if(ec)
+        else
         {
-            // Deliver the error to the handler
-            result_ = false;
+            // Loop until an error occurs or we get a definitive answer
+            for(;;)
+            {
+                // The algorithm should never need more than 4 bytes
+                BOOST_ASSERT(buffer_.size() < 4);
 
-            // We don't need bind_handler here because we were invoked
-            // as a result of an intermediate asynchronous operation.
-            break;
+                BOOST_ASIO_CORO_YIELD
+                {
+                    // Prepare the buffer's output area.
+                    auto const mutable_buffer = buffer_.prepare(beast::read_size(buffer_, 1536));
+
+                    // Try to fill our buffer by reading from the stream
+                    stream_.async_read_some(mutable_buffer, std::move(*this));
+                }
+
+                // Check for an error
+                if(ec)
+                    break;
+
+                // Commit what we read into the buffer's input area.
+                buffer_.commit(bytes_transferred);
+
+                // See if we can detect the handshake
+                result_ = is_ssl_handshake(buffer_.data());
+
+                // If it is detected, call the handler
+                if(! boost::indeterminate(result_))
+                {
+                    // We don't need bind_handler here because we were invoked
+                    // as a result of an intermediate asynchronous operation.
+                    break;
+                }
+            }
         }
 
-        // Commit the bytes that we read
-        buffer_.commit(bytes_transferred);
-
-        // See if we can detect the handshake
-        result_ = is_ssl_handshake(buffer_.data());
-
-        // If it is detected, call the handler
-        if(! boost::indeterminate(result_))
-        {
-            // We don't need bind_handler here because we were invoked
-            // as a result of an intermediate asynchronous operation.
-            break;
-        }
-
-        // Read some more
-        goto do_read;
+        // Invoke the final handler.
+        handler_(ec, result_);
     }
-
-    // Invoke the final handler.
-    handler_(ec, result_);
 }
 
 //]

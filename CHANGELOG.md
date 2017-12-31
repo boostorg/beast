@@ -1,5 +1,7 @@
 Version 152:
 
+* Refactor detect_ssl_op
+
 WebSocket:
 
 * Redistribute the read tests in the translation units
