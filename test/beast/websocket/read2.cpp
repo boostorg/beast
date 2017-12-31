@@ -14,8 +14,6 @@
 
 #include <boost/asio/write.hpp>
 
-#include <boost/beast/core/buffers_to_string.hpp>
-
 namespace boost {
 namespace beast {
 namespace websocket {
@@ -23,6 +21,366 @@ namespace websocket {
 class read2_test : public websocket_test_suite
 {
 public:
+    void
+    testSuspend()
+    {
+        using boost::asio::buffer;
+#if 1
+        // suspend on read block
+        doFailLoop([&](test::fail_counter& fc)
+        {
+            echo_server es{log};
+            boost::asio::io_context ioc;
+            stream<test::stream> ws{ioc, fc};
+            ws.next_layer().connect(es.stream());
+            ws.handshake("localhost", "/");
+            std::size_t count = 0;
+            ws.async_close({},
+                [&](error_code ec)
+                {
+                    if(ec)
+                        BOOST_THROW_EXCEPTION(
+                            system_error{ec});
+                    BEAST_EXPECT(++count == 1);
+                });
+            while(! ws.rd_block_)
+                ioc.run_one();
+            multi_buffer b;
+            ws.async_read(b,
+                [&](error_code ec, std::size_t)
+                {
+                    if(ec != boost::asio::error::operation_aborted)
+                        BOOST_THROW_EXCEPTION(
+                            system_error{ec});
+                    BEAST_EXPECT(++count == 2);
+                });
+            ioc.run();
+            BEAST_EXPECT(count == 2);
+        });
+#endif
+
+        // suspend on release read block
+        doFailLoop([&](test::fail_counter& fc)
+        {
+//log << "fc.count()==" << fc.count() << std::endl;
+            echo_server es{log};
+            boost::asio::io_context ioc;
+            stream<test::stream> ws{ioc, fc};
+            ws.next_layer().connect(es.stream());
+            ws.handshake("localhost", "/");
+            std::size_t count = 0;
+            multi_buffer b;
+            ws.async_read(b,
+                [&](error_code ec, std::size_t)
+                {
+                    if(ec != boost::asio::error::operation_aborted)
+                        BOOST_THROW_EXCEPTION(
+                            system_error{ec});
+                    BEAST_EXPECT(++count == 2);
+                });
+            BOOST_ASSERT(ws.rd_block_);
+            ws.async_close({},
+                [&](error_code ec)
+                {
+                    if(ec)
+                        BOOST_THROW_EXCEPTION(
+                            system_error{ec});
+                    BEAST_EXPECT(++count == 1);
+                });
+            ioc.run();
+            BEAST_EXPECT(count == 2);
+        });
+
+#if 1
+        // suspend on write pong
+        doFailLoop([&](test::fail_counter& fc)
+        {
+            echo_server es{log};
+            boost::asio::io_context ioc;
+            stream<test::stream> ws{ioc, fc};
+            ws.next_layer().connect(es.stream());
+            ws.handshake("localhost", "/");
+            // insert a ping
+            ws.next_layer().append(string_view(
+                "\x89\x00", 2));
+            std::size_t count = 0;
+            std::string const s = "Hello, world";
+            multi_buffer b;
+            ws.async_read(b,
+                [&](error_code ec, std::size_t)
+                {
+                    if(ec)
+                        BOOST_THROW_EXCEPTION(
+                            system_error{ec});
+                    BEAST_EXPECT(to_string(b.data()) == s);
+                    ++count;
+                });
+            BEAST_EXPECT(ws.rd_block_);
+            ws.async_write(buffer(s),
+                [&](error_code ec, std::size_t n)
+                {
+                    if(ec)
+                        BOOST_THROW_EXCEPTION(
+                            system_error{ec});
+                    BEAST_EXPECT(n == s.size());
+                    ++count;
+                });
+            BEAST_EXPECT(ws.wr_block_);
+            ioc.run();
+            BEAST_EXPECT(count == 2);
+        });
+
+        // Ignore ping when closing
+        doFailLoop([&](test::fail_counter& fc)
+        {
+            echo_server es{log};
+            boost::asio::io_context ioc;
+            stream<test::stream> ws{ioc, fc};
+            ws.next_layer().connect(es.stream());
+            ws.handshake("localhost", "/");
+            std::size_t count = 0;
+            // insert fragmented message with
+            // a ping in between the frames.
+            ws.next_layer().append(string_view(
+                "\x01\x01*"
+                "\x89\x00"
+                "\x80\x01*", 8));
+            multi_buffer b;
+            ws.async_read(b,
+                [&](error_code ec, std::size_t)
+                {
+                    if(ec)
+                        BOOST_THROW_EXCEPTION(
+                            system_error{ec});
+                    BEAST_EXPECT(to_string(b.data()) == "**");
+                    BEAST_EXPECT(++count == 1);
+                    b.consume(b.size());
+                    ws.async_read(b,
+                        [&](error_code ec, std::size_t)
+                        {
+                            if(ec != boost::asio::error::operation_aborted)
+                                BOOST_THROW_EXCEPTION(
+                                    system_error{ec});
+                            BEAST_EXPECT(++count == 3);
+                        });
+                });
+            BEAST_EXPECT(ws.rd_block_);
+            ws.async_close({},
+                [&](error_code ec)
+                {
+                    if(ec)
+                        BOOST_THROW_EXCEPTION(
+                            system_error{ec});
+                    BEAST_EXPECT(++count == 2);
+                });
+            BEAST_EXPECT(ws.wr_block_);
+            ioc.run();
+            BEAST_EXPECT(count == 3);
+        });
+
+        // See if we are already closing
+        doFailLoop([&](test::fail_counter& fc)
+        {
+            echo_server es{log};
+            boost::asio::io_context ioc;
+            stream<test::stream> ws{ioc, fc};
+            ws.next_layer().connect(es.stream());
+            ws.handshake("localhost", "/");
+            std::size_t count = 0;
+            // insert fragmented message with
+            // a close in between the frames.
+            ws.next_layer().append(string_view(
+                "\x01\x01*"
+                "\x88\x00"
+                "\x80\x01*", 8));
+            multi_buffer b;
+            ws.async_read(b,
+                [&](error_code ec, std::size_t)
+                {
+                    if(ec != boost::asio::error::operation_aborted)
+                        BOOST_THROW_EXCEPTION(
+                            system_error{ec});
+                    BEAST_EXPECT(++count == 2);
+                });
+            BEAST_EXPECT(ws.rd_block_);
+            ws.async_close({},
+                [&](error_code ec)
+                {
+                    if(ec)
+                        BOOST_THROW_EXCEPTION(
+                            system_error{ec});
+                    BEAST_EXPECT(++count == 1);
+                });
+            BEAST_EXPECT(ws.wr_block_);
+            ioc.run();
+            BEAST_EXPECT(count == 2);
+        });
+#endif
+    }
+
+    void
+    testParseFrame()
+    {
+        auto const bad =
+            [&](string_view s)
+            {
+                echo_server es{log};
+                boost::asio::io_context ioc;
+                stream<test::stream> ws{ioc};
+                ws.next_layer().connect(es.stream());
+                ws.handshake("localhost", "/");
+                ws.next_layer().append(s);
+                error_code ec;
+                multi_buffer b;
+                ws.read(b, ec);
+                BEAST_EXPECT(ec);
+            };
+        
+        // chopped frame header
+        {
+            echo_server es{log};
+            boost::asio::io_context ioc;
+            stream<test::stream> ws{ioc};
+            ws.next_layer().connect(es.stream());
+            ws.handshake("localhost", "/");
+            ws.next_layer().append(
+                "\x81\x7e\x01");
+            std::size_t count = 0;
+            std::string const s(257, '*');
+            error_code ec;
+            multi_buffer b;
+            ws.async_read(b,
+                [&](error_code ec, std::size_t)
+                {
+                    ++count;
+                    BEAST_EXPECTS(! ec, ec.message());
+                    BEAST_EXPECT(to_string(b.data()) == s);
+                });
+            ioc.run_one();
+            es.stream().write_some(
+                boost::asio::buffer("\x01" + s));
+            ioc.run();
+            BEAST_EXPECT(count == 1);
+        }
+
+        // new data frame when continuation expected
+        bad("\x01\x01*" "\x81\x01*");
+
+        // reserved bits not cleared
+        bad("\xb1\x01*");
+        bad("\xc1\x01*");
+        bad("\xd1\x01*");
+
+        // continuation without an active message
+        bad("\x80\x01*");
+
+        // reserved bits not cleared (cont)
+        bad("\x01\x01*" "\xb0\x01*");
+        bad("\x01\x01*" "\xc0\x01*");
+        bad("\x01\x01*" "\xd0\x01*");
+
+        // reserved opcode
+        bad("\x83\x01*");
+
+        // fragmented control message
+        bad("\x09\x01*");
+
+        // invalid length for control message
+        bad("\x89\x7e\x01\x01");
+
+        // reserved bits not cleared (control)
+        bad("\xb9\x01*");
+        bad("\xc9\x01*");
+        bad("\xd9\x01*");
+
+        // unmasked frame from client
+        {
+            echo_server es{log, kind::async_client};
+            boost::asio::io_context ioc;
+            stream<test::stream> ws{ioc};
+            ws.next_layer().connect(es.stream());
+            es.async_handshake();
+            ws.accept();
+            ws.next_layer().append(
+                "\x81\x01*");
+            error_code ec;
+            multi_buffer b;
+            ws.read(b, ec);
+            BEAST_EXPECT(ec);
+        }
+
+        // masked frame from server
+        bad("\x81\x80\xff\xff\xff\xff");
+
+        // chopped control frame payload
+        {
+            echo_server es{log};
+            boost::asio::io_context ioc;
+            stream<test::stream> ws{ioc};
+            ws.next_layer().connect(es.stream());
+            ws.handshake("localhost", "/");
+            ws.next_layer().append(
+                "\x89\x02*");
+            std::size_t count = 0;
+            error_code ec;
+            multi_buffer b;
+            ws.async_read(b,
+                [&](error_code ec, std::size_t)
+                {
+                    ++count;
+                    BEAST_EXPECTS(! ec, ec.message());
+                    BEAST_EXPECT(to_string(b.data()) == "**");
+                });
+            ioc.run_one();
+            es.stream().write_some(
+                boost::asio::buffer(
+                    "*" "\x81\x02**"));
+            ioc.run();
+            BEAST_EXPECT(count == 1);
+        }
+
+        // length not canonical
+        bad(string_view("\x81\x7e\x00\x7d", 4));
+        bad(string_view("\x81\x7f\x00\x00\x00\x00\x00\x00\xff\xff", 10));
+    }
+
+    void
+    testContHook()
+    {
+        {
+            struct handler
+            {
+                void operator()(error_code, std::size_t) {}
+            };
+        
+            char buf[32];
+            stream<test::stream> ws{ioc_};
+            stream<test::stream>::read_some_op<
+                boost::asio::mutable_buffer,
+                    handler> op{handler{}, ws,
+                        boost::asio::mutable_buffer{
+                            buf, sizeof(buf)}};
+            using boost::asio::asio_handler_is_continuation;
+            asio_handler_is_continuation(&op);
+            pass();
+        }
+        {
+            struct handler
+            {
+                void operator()(error_code, std::size_t) {}
+            };
+        
+            multi_buffer b;
+            stream<test::stream> ws{ioc_};
+            stream<test::stream>::read_op<
+                multi_buffer, handler> op{
+                    handler{}, ws, b, 32, true};
+            using boost::asio::asio_handler_is_continuation;
+            asio_handler_is_continuation(&op);
+            pass();
+        }
+    }
+
     void
     testIssue802()
     {
@@ -284,6 +642,8 @@ public:
     void
     run() override
     {
+        testParseFrame();
+        testContHook();
         testIssue802();
         testIssue807();
         testIssue954();

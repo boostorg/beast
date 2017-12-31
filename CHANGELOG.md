@@ -1,3 +1,9 @@
+Version 152:
+
+WebSocket:
+
+* Redistribute the read tests in the translation units
+
 --------------------------------------------------------------------------------
 
 Version 151:
