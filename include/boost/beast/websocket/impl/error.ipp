@@ -18,9 +18,9 @@ namespace detail {
 template<class>
 string_view
 error_codes::
-get_message(error ev) const
+message(error e) const
 {
-    switch(ev)
+    switch(e)
     {
     default:
     case error::failed: return "WebSocket connection failed due to a protocol violation";
@@ -30,6 +30,42 @@ get_message(error ev) const
     case error::partial_deflate_block: return "WebSocket partial deflate block";
     }
 }
+
+template<class>
+string_view
+error_conditions::
+message(condition c) const
+{
+    switch(c)
+    {
+    default:
+    case condition::handshake_failed: return "WebSocket upgrade handshake failed";
+    }
+}
+
+template<class>
+bool 
+error_conditions::
+equivalent(
+    error_code const& ec,
+    condition c) const noexcept
+{
+    if(ec.category() == error_code{error{}}.category())
+    {
+        switch(c)
+        {
+        case condition::handshake_failed:
+            switch(static_cast<error>(ec.value()))
+            {
+            case error::handshake_failed:
+                return true;
+            }
+            return false;
+        }
+    }
+    return false;
+}
+
 
 } // detail
 } // websocket

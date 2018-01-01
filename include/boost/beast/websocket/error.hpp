@@ -37,6 +37,18 @@ enum class error
     partial_deflate_block
 };
 
+/// Error conditions corresponding to sets of error codes.
+enum class condition
+{
+    /** Handshake failed
+
+        This condition indicates that the WebSocket handshake failed. If
+        the corresponding HTTP response indicates the keep-alive behavior,
+        then the handshake may be reattempted.
+    */
+    handshake_failed = 1,
+ };
+
 } // websocket
 } // beast
 } // boost

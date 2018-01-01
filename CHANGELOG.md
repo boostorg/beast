@@ -6,6 +6,7 @@ WebSocket:
 
 * Redistribute the read tests in the translation units
 * Refactor error headers
+* Add WebSocket error conditions
 
 --------------------------------------------------------------------------------
 
