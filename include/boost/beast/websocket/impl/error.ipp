@@ -11,84 +11,27 @@
 #define BOOST_BEAST_WEBSOCKET_IMPL_ERROR_IPP
 
 namespace boost {
-
-namespace system {
-template<>
-struct is_error_code_enum<beast::websocket::error>
-{
-    static bool const value = true;
-};
-} // system
-
 namespace beast {
 namespace websocket {
 namespace detail {
 
-class websocket_error_category : public error_category
+template<class>
+string_view
+error_codes::
+get_message(error ev) const
 {
-public:
-    const char*
-    name() const noexcept override
+    switch(ev)
     {
-        return "boost.beast.websocket";
+    default:
+    case error::failed: return "WebSocket connection failed due to a protocol violation";
+    case error::closed: return "WebSocket connection closed normally";
+    case error::handshake_failed: return "WebSocket upgrade handshake failed";
+    case error::buffer_overflow: return "WebSocket dynamic buffer overflow";
+    case error::partial_deflate_block: return "WebSocket partial deflate block";
     }
-
-    std::string
-    message(int ev) const override
-    {
-        switch(static_cast<error>(ev))
-        {
-        default:
-        case error::failed: return "WebSocket connection failed due to a protocol violation";
-        case error::closed: return "WebSocket connection closed normally";
-        case error::handshake_failed: return "WebSocket upgrade handshake failed";
-        case error::buffer_overflow: return "WebSocket dynamic buffer overflow";
-        case error::partial_deflate_block: return "WebSocket partial deflate block";
-        }
-    }
-
-    error_condition
-    default_error_condition(int ev) const noexcept override
-    {
-        return error_condition(ev, *this);
-    }
-
-    bool
-    equivalent(int ev,
-        error_condition const& condition
-            ) const noexcept override
-    {
-        return condition.value() == ev &&
-            &condition.category() == this;
-    }
-
-    bool
-    equivalent(error_code const& error, int ev) const noexcept override
-    {
-        return error.value() == ev &&
-            &error.category() == this;
-    }
-};
-
-inline
-error_category const&
-get_error_category()
-{
-    static detail::websocket_error_category const cat{};
-    return cat;
 }
 
 } // detail
-
-inline
-error_code
-make_error_code(error e)
-{
-    return error_code(
-        static_cast<std::underlying_type<error>::type>(e),
-            detail::get_error_category());
-}
-
 } // websocket
 } // beast
 } // boost

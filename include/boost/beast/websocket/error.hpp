@@ -10,6 +10,7 @@
 #ifndef BOOST_BEAST_WEBSOCKET_ERROR_HPP
 #define BOOST_BEAST_WEBSOCKET_ERROR_HPP
 
+#include <boost/beast/websocket/detail/error.hpp>
 #include <boost/beast/core/detail/config.hpp>
 #include <boost/beast/core/error.hpp>
 
