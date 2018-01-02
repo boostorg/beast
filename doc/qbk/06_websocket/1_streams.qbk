@@ -18,8 +18,8 @@ An instance of the stream wraps an existing network transport object
 or other type of octet oriented stream. The wrapped object is called
 the "next layer" and must meet the requirements of __SyncStream__ if
 synchronous operations are performed, __AsyncStream__ if asynchronous
-operations are performed, or both. Any arguments supplied during
-construction of the stream wrapper are passed to next layer's constructor.
+operations are performed, or both. Any arguments supplied to the
+constructor of the stream wrapper are forwarded to next layer's constructor.
 
 The value of `deflateSupported` determines if the stream will support
 (but not require) the permessage-deflate extension

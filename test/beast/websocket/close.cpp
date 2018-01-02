@@ -108,7 +108,7 @@ public:
             catch(system_error const& se)
             {
                 BEAST_EXPECTS(
-                    se.code() == error::failed,
+                    se.code() == error::bad_masked_frame,
                     se.code().message());
             }
         }
@@ -128,7 +128,7 @@ public:
             catch(system_error const& se)
             {
                 BEAST_EXPECTS(
-                    se.code() == error::failed,
+                    se.code() == error::bad_close_size,
                     se.code().message());
             }
         }
@@ -292,7 +292,7 @@ public:
             ws.async_read(b,
                 [&](error_code ec, std::size_t)
                 {
-                    if(ec != error::failed)
+                    if(ec != error::bad_control_fragment)
                         BOOST_THROW_EXCEPTION(
                             system_error{ec});
                     BEAST_EXPECT(++count == 1);

@@ -8,6 +8,20 @@ WebSocket:
 * Refactor error headers
 * Add WebSocket error conditions
 
+API Changes:
+
+* Refactor WebSocket errors (API Change):
+
+Actions Required:
+
+* Code which explicitly compares error_code values against the
+  constant `websocket::error::handshake_failed` should compare
+  against `websocket::condition::handshake_failed` instead.
+
+* Code which explicitly compares error_code values against the
+  constant `websocket::error::failed` should compare
+  against `websocket::condition::protocol_violation` instead.
+
 --------------------------------------------------------------------------------
 
 Version 151:

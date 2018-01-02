@@ -406,7 +406,7 @@ public:
             catch(system_error const& e)
             {
                 if( e.code() !=
-                        websocket::error::handshake_failed &&
+                        websocket::error::no_sec_key &&
                     e.code() !=
                         boost::asio::error::eof)
                     throw;
@@ -483,8 +483,8 @@ public:
             }
         };
 
-        // wrong version
-        check(error::handshake_failed,
+        // bad version
+        check(error::bad_http_version,
             "GET / HTTP/1.0\r\n"
             "Host: localhost:80\r\n"
             "Upgrade: WebSocket\r\n"
@@ -493,8 +493,8 @@ public:
             "Sec-WebSocket-Version: 13\r\n"
             "\r\n"
         );
-        // wrong method
-        check(error::handshake_failed,
+        // bad method
+        check(error::bad_method,
             "POST / HTTP/1.1\r\n"
             "Host: localhost:80\r\n"
             "Upgrade: WebSocket\r\n"
@@ -503,8 +503,8 @@ public:
             "Sec-WebSocket-Version: 13\r\n"
             "\r\n"
         );
-        // missing Host
-        check(error::handshake_failed,
+        // no Host
+        check(error::no_host,
             "GET / HTTP/1.1\r\n"
             "Upgrade: WebSocket\r\n"
             "Connection: keep-alive,upgrade\r\n"
@@ -512,46 +512,17 @@ public:
             "Sec-WebSocket-Version: 13\r\n"
             "\r\n"
         );
-        // missing Sec-WebSocket-Key
-        check(error::handshake_failed,
+        // no Connection
+        check(error::no_connection,
             "GET / HTTP/1.1\r\n"
             "Host: localhost:80\r\n"
             "Upgrade: WebSocket\r\n"
-            "Connection: keep-alive,upgrade\r\n"
-            "Sec-WebSocket-Version: 13\r\n"
-            "\r\n"
-        );
-        // missing Sec-WebSocket-Version
-        check(error::handshake_failed,
-            "GET / HTTP/1.1\r\n"
-            "Host: localhost:80\r\n"
-            "Upgrade: WebSocket\r\n"
-            "Connection: keep-alive,upgrade\r\n"
-            "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n"
-            "\r\n"
-        );
-        // wrong Sec-WebSocket-Version
-        check(error::handshake_failed,
-            "GET / HTTP/1.1\r\n"
-            "Host: localhost:80\r\n"
-            "Upgrade: WebSocket\r\n"
-            "Connection: keep-alive,upgrade\r\n"
-            "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n"
-            "Sec-WebSocket-Version: 1\r\n"
-            "\r\n"
-        );
-        // missing upgrade token
-        check(error::handshake_failed,
-            "GET / HTTP/1.1\r\n"
-            "Host: localhost:80\r\n"
-            "Upgrade: HTTP/2\r\n"
-            "Connection: upgrade\r\n"
             "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n"
             "Sec-WebSocket-Version: 13\r\n"
             "\r\n"
         );
-        // missing connection token
-        check(error::handshake_failed,
+        // no Connection upgrade
+        check(error::no_connection_upgrade,
             "GET / HTTP/1.1\r\n"
             "Host: localhost:80\r\n"
             "Upgrade: WebSocket\r\n"
@@ -560,8 +531,36 @@ public:
             "Sec-WebSocket-Version: 13\r\n"
             "\r\n"
         );
-        // oversize key
-        check(error::handshake_failed,
+        // no Upgrade
+        check(error::no_upgrade,
+            "GET / HTTP/1.1\r\n"
+            "Host: localhost:80\r\n"
+            "Connection: upgrade\r\n"
+            "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n"
+            "Sec-WebSocket-Version: 13\r\n"
+            "\r\n"
+        );
+        // no Upgrade websocket
+        check(error::no_upgrade_websocket,
+            "GET / HTTP/1.1\r\n"
+            "Host: localhost:80\r\n"
+            "Upgrade: HTTP/2\r\n"
+            "Connection: upgrade\r\n"
+            "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n"
+            "Sec-WebSocket-Version: 13\r\n"
+            "\r\n"
+        );
+        // no Sec-WebSocket-Key
+        check(error::no_sec_key,
+            "GET / HTTP/1.1\r\n"
+            "Host: localhost:80\r\n"
+            "Upgrade: WebSocket\r\n"
+            "Connection: keep-alive,upgrade\r\n"
+            "Sec-WebSocket-Version: 13\r\n"
+            "\r\n"
+        );
+        // bad Sec-WebSocket-Key
+        check(error::bad_sec_key,
             "GET / HTTP/1.1\r\n"
             "Host: localhost:80\r\n"
             "Upgrade: WebSocket\r\n"
@@ -570,23 +569,33 @@ public:
             "Sec-WebSocket-Version: 13\r\n"
             "\r\n"
         );
-        // bad version
-        check(error::handshake_failed,
+        // no Sec-WebSocket-Version
+        check(error::no_sec_version,
+            "GET / HTTP/1.1\r\n"
+            "Host: localhost:80\r\n"
+            "Upgrade: WebSocket\r\n"
+            "Connection: keep-alive,upgrade\r\n"
+            "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n"
+            "\r\n"
+        );
+        // bad Sec-WebSocket-Version
+        check(error::bad_sec_version,
+            "GET / HTTP/1.1\r\n"
+            "Host: localhost:80\r\n"
+            "Upgrade: WebSocket\r\n"
+            "Connection: keep-alive,upgrade\r\n"
+            "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n"
+            "Sec-WebSocket-Version: 1\r\n"
+            "\r\n"
+        );
+        // bad Sec-WebSocket-Version
+        check(error::bad_sec_version,
             "GET / HTTP/1.1\r\n"
             "Host: localhost:80\r\n"
             "Upgrade: WebSocket\r\n"
             "Connection: upgrade\r\n"
             "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n"
             "Sec-WebSocket-Version: 12\r\n"
-            "\r\n"
-        );
-        // missing version
-        check(error::handshake_failed,
-            "GET / HTTP/1.1\r\n"
-            "Host: localhost:80\r\n"
-            "Upgrade: WebSocket\r\n"
-            "Connection: upgrade\r\n"
-            "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n"
             "\r\n"
         );
         // valid request

@@ -317,7 +317,7 @@ public:
         {
             put(ws.next_layer().buffer(), cbuf(
                 0x88, 0x02, 0x03, 0xed));
-            doFailTest(w, ws, error::failed);
+            doFailTest(w, ws, error::bad_close_code);
         });
 
         // message size above 2^64
@@ -337,7 +337,7 @@ public:
         {
             ws.read_message_max(1);
             w.write(ws, sbuf("**"));
-            doFailTest(w, ws, error::failed);
+            doFailTest(w, ws, error::message_too_big);
         });
 
         // bad utf8
@@ -346,7 +346,7 @@ public:
         {
             put(ws.next_layer().buffer(), cbuf(
                 0x81, 0x06, 0x03, 0xea, 0xf0, 0x28, 0x8c, 0xbc));
-            doFailTest(w, ws, error::failed);
+            doFailTest(w, ws, error::bad_frame_payload);
         });
 
         // incomplete utf8
@@ -378,7 +378,7 @@ public:
             }
             catch(system_error const& se)
             {
-                if(se.code() != error::failed)
+                if(se.code() != error::bad_frame_payload)
                     throw;
             }
         });
@@ -409,15 +409,15 @@ public:
             };
 
             // payload length 1
-            check(error::failed,
+            check(error::bad_close_size,
                 "\x88\x01\x01");
 
             // invalid close code 1005
-            check(error::failed,
+            check(error::bad_close_code,
                 "\x88\x02\x03\xed");
 
             // invalid utf8
-            check(error::failed,
+            check(error::bad_close_payload,
                 "\x88\x06\xfc\x15\x0f\xd7\x73\x43");
 
             // good utf8
@@ -446,7 +446,7 @@ public:
             std::string const s = std::string(128, '*');
             w.write(ws, buffer(s));
             ws.read_message_max(32);
-            doFailTest(w, ws, error::failed);
+            doFailTest(w, ws, error::message_too_big);
         });
 
         // invalid inflate block
@@ -656,15 +656,15 @@ public:
             };
 
             // payload length 1
-            check(error::failed,
+            check(error::bad_close_size,
                 "\x88\x01\x01");
 
             // invalid close code 1005
-            check(error::failed,
+            check(error::bad_close_code,
                 "\x88\x02\x03\xed");
 
             // invalid utf8
-            check(error::failed,
+            check(error::bad_close_payload,
                 "\x88\x06\xfc\x15\x0f\xd7\x73\x43");
 
             // good utf8

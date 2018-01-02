@@ -41,79 +41,34 @@ namespace detail {
 
 class error_codes : public error_category
 {
-    template<class = void>
-    string_view
-    message(error e) const;
-
 public:
     const char*
-    name() const noexcept override
-    {
-        return "boost.beast.websocket";
-    }
+    name() const noexcept override;
 
     std::string
-    message(int ev) const override
-    {
-        return message(
-            static_cast<error>(ev)).to_string();
-    }
+    message(int ev) const override;
+
+    error_condition
+    default_error_condition(int ev) const noexcept override;
 };
 
 class error_conditions : public error_category
 {
-    template<class = void>
-    string_view
-    message(condition c) const;
-
-    template<class = void>
-    bool
-    equivalent(error_code const& ec,
-        condition c) const noexcept;
-
 public:
     const char*
-    name() const noexcept override
-    {
-        return "boost.beast.websocket";
-    }
+    name() const noexcept override;
 
     std::string
-    message(int cv) const override
-    {
-        return message(
-            static_cast<condition>(cv)).to_string();
-    }
-
-    bool 
-    equivalent(
-        error_code const& ec,
-        int cv) const noexcept
-    {
-        return equivalent(ec,
-            static_cast<condition>(cv));
-    }
+    message(int cv) const override;
 };
 
 } // detail
 
-inline
 error_code
-make_error_code(error e)
-{
-    static detail::error_codes const cat{};
-    return error_code{static_cast<
-        std::underlying_type<error>::type>(e), cat};
-}
+make_error_code(error e);
 
-inline
 error_condition
-make_error_condition(condition c)
-{
-    static detail::error_conditions const cat{};
-    return error_condition{static_cast<
-        std::underlying_type<condition>::type>(c), cat};
-}
+make_error_condition(condition c);
 
 } // websocket
 } // beast

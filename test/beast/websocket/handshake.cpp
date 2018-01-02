@@ -137,7 +137,7 @@ public:
         });
 
         auto const check =
-        [&](std::string const& s)
+        [&](error e, std::string const& s)
         {
             stream<test::stream> ws{ioc_};
             auto tr = connect(ws.next_layer());
@@ -150,11 +150,11 @@ public:
             }
             catch(system_error const& se)
             {
-                BEAST_EXPECT(se.code() == error::handshake_failed);
+                BEAST_EXPECTS(se.code() == e, se.what());
             }
         };
-        // wrong HTTP version
-        check(
+        // bad HTTP version
+        check(error::bad_http_version,
             "HTTP/1.0 101 Switching Protocols\r\n"
             "Server: beast\r\n"
             "Upgrade: WebSocket\r\n"
@@ -163,28 +163,17 @@ public:
             "Sec-WebSocket-Version: 13\r\n"
             "\r\n"
         );
-        // wrong status
-        check(
-            "HTTP/1.1 200 OK\r\n"
-            "Server: beast\r\n"
-            "Upgrade: WebSocket\r\n"
-            "Connection: upgrade\r\n"
-            "Sec-WebSocket-Accept: s3pPLMBiTxaQ9kYGzzhZRbK+xOo=\r\n"
-            "Sec-WebSocket-Version: 13\r\n"
-            "\r\n"
-        );
-        // missing upgrade token
-        check(
+        // no Connection
+        check(error::no_connection,
             "HTTP/1.1 101 Switching Protocols\r\n"
             "Server: beast\r\n"
-            "Upgrade: HTTP/2\r\n"
-            "Connection: upgrade\r\n"
+            "Upgrade: WebSocket\r\n"
             "Sec-WebSocket-Accept: s3pPLMBiTxaQ9kYGzzhZRbK+xOo=\r\n"
             "Sec-WebSocket-Version: 13\r\n"
             "\r\n"
         );
-        // missing connection token
-        check(
+        // no Connection upgrade
+        check(error::no_connection_upgrade,
             "HTTP/1.1 101 Switching Protocols\r\n"
             "Server: beast\r\n"
             "Upgrade: WebSocket\r\n"
@@ -193,8 +182,27 @@ public:
             "Sec-WebSocket-Version: 13\r\n"
             "\r\n"
         );
-        // missing accept key
-        check(
+        // no Upgrade
+        check(error::no_upgrade,
+            "HTTP/1.1 101 Switching Protocols\r\n"
+            "Server: beast\r\n"
+            "Connection: upgrade\r\n"
+            "Sec-WebSocket-Accept: s3pPLMBiTxaQ9kYGzzhZRbK+xOo=\r\n"
+            "Sec-WebSocket-Version: 13\r\n"
+            "\r\n"
+        );
+        // no Upgrade websocket
+        check(error::no_upgrade_websocket,
+            "HTTP/1.1 101 Switching Protocols\r\n"
+            "Server: beast\r\n"
+            "Upgrade: HTTP/2\r\n"
+            "Connection: upgrade\r\n"
+            "Sec-WebSocket-Accept: s3pPLMBiTxaQ9kYGzzhZRbK+xOo=\r\n"
+            "Sec-WebSocket-Version: 13\r\n"
+            "\r\n"
+        );
+        // no Sec-WebSocket-Accept
+        check(error::no_sec_accept,
             "HTTP/1.1 101 Switching Protocols\r\n"
             "Server: beast\r\n"
             "Upgrade: WebSocket\r\n"
@@ -202,13 +210,23 @@ public:
             "Sec-WebSocket-Version: 13\r\n"
             "\r\n"
         );
-        // wrong accept key
-        check(
+        // bad Sec-WebSocket-Accept
+        check(error::bad_sec_accept,
             "HTTP/1.1 101 Switching Protocols\r\n"
             "Server: beast\r\n"
             "Upgrade: WebSocket\r\n"
             "Connection: upgrade\r\n"
             "Sec-WebSocket-Accept: *\r\n"
+            "Sec-WebSocket-Version: 13\r\n"
+            "\r\n"
+        );
+        // declined
+        check(error::upgrade_declined,
+            "HTTP/1.1 200 OK\r\n"
+            "Server: beast\r\n"
+            "Upgrade: WebSocket\r\n"
+            "Connection: upgrade\r\n"
+            "Sec-WebSocket-Accept: s3pPLMBiTxaQ9kYGzzhZRbK+xOo=\r\n"
             "Sec-WebSocket-Version: 13\r\n"
             "\r\n"
         );

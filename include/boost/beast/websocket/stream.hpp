@@ -3446,8 +3446,10 @@ private:
 
     template<class DynamicBuffer>
     bool
-    parse_fh(detail::frame_header& fh,
-        DynamicBuffer& b, close_code& code);
+    parse_fh(
+        detail::frame_header& fh,
+        DynamicBuffer& b,
+        error_code& ec);
 
     template<class DynamicBuffer>
     void
@@ -3483,7 +3485,8 @@ private:
     build_response(
         http::request<Body,
             http::basic_fields<Allocator>> const& req,
-        Decorator const& decorator);
+        Decorator const& decorator,
+        error_code& ec);
 
     template<class Body, class Allocator>
     void

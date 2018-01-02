@@ -218,7 +218,7 @@ public:
                 [&](error_code ec, std::size_t)
                 {
                     ++count;
-                    if(ec != error::failed)
+                    if(ec != error::bad_control_fragment)
                         BOOST_THROW_EXCEPTION(
                             system_error{ec});
                 });

@@ -26,9 +26,9 @@ is_upgrade(http::header<true,
         return false;
     if(req.method() != http::verb::get)
         return false;
-    if(! http::token_list{req["Connection"]}.exists("upgrade"))
+    if(! http::token_list{req[http::field::connection]}.exists("upgrade"))
         return false;
-    if(! http::token_list{req["Upgrade"]}.exists("websocket"))
+    if(! http::token_list{req[http::field::upgrade]}.exists("websocket"))
         return false;
     return true;
 }

@@ -121,7 +121,6 @@ operator()(
 {
     using beast::detail::clamp;
     auto& d = *d_;
-    close_code code{};
     d.cont = cont;
     BOOST_ASIO_CORO_REENTER(*this)
     {
@@ -219,13 +218,10 @@ operator()(
         {
             // Read frame header
             while(! d.ws.parse_fh(
-                d.ws.rd_fh_, d.ws.rd_buf_, code))
+                d.ws.rd_fh_, d.ws.rd_buf_, d.ev))
             {
-                if(code != close_code::none)
-                {
-                    d.ev = error::failed;
+                if(d.ev)
                     goto teardown;
-                }
                 BOOST_ASIO_CORO_YIELD
                 d.ws.stream_.async_read_some(
                     d.ws.rd_buf_.prepare(read_size(d.ws.rd_buf_,
@@ -247,13 +243,9 @@ operator()(
                         d.ws.rd_buf_.data());
                     if(d.ws.rd_fh_.len > 0 && d.ws.rd_fh_.mask)
                         detail::mask_inplace(mb, d.ws.rd_key_);
-                    detail::read_close(d.ws.cr_, mb, code);
-                    if(code != close_code::none)
-                    {
-                        // Protocol error
-                        d.ev = error::failed;
+                    detail::read_close(d.ws.cr_, mb, d.ev);
+                    if(d.ev)
                         goto teardown;
-                    }
                     d.ws.rd_buf_.consume(clamp(d.ws.rd_fh_.len));
                     goto teardown;
                 }
@@ -364,18 +356,18 @@ close(close_reason const& cr, error_code& ec)
     if(! check_ok(ec))
         return;
     status_ = status::closing;
+    error_code result;
     // Drain the connection
-    close_code code{};
     if(rd_remain_ > 0)
         goto read_payload;
     for(;;)
     {
         // Read frame header
-        while(! parse_fh(rd_fh_, rd_buf_, code))
+        while(! parse_fh(rd_fh_, rd_buf_, result))
         {
-            if(code != close_code::none)
-                return do_fail(close_code::none,
-                    error::failed, ec);
+            if(result)
+                return do_fail(
+                    close_code::none, result, ec);
             auto const bytes_transferred =
                 stream_.read_some(
                     rd_buf_.prepare(read_size(rd_buf_,
@@ -396,12 +388,12 @@ close(close_reason const& cr, error_code& ec)
                     rd_buf_.data());
                 if(rd_fh_.len > 0 && rd_fh_.mask)
                     detail::mask_inplace(mb, rd_key_);
-                detail::read_close(cr_, mb, code);
-                if(code != close_code::none)
+                detail::read_close(cr_, mb, result);
+                if(result)
                 {
-                    // Protocol error
-                    return do_fail(close_code::none,
-                        error::failed, ec);
+                    // Protocol violation
+                    return do_fail(
+                        close_code::none, result, ec);
                 }
                 rd_buf_.consume(clamp(rd_fh_.len));
                 break;

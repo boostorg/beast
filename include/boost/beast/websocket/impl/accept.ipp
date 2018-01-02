@@ -42,6 +42,7 @@ class stream<NextLayer, deflateSupported>::response_op
     struct data
     {
         stream<NextLayer, deflateSupported>& ws;
+        error_code result;
         response_type res;
 
         template<class Body, class Allocator, class Decorator>
@@ -52,7 +53,7 @@ class stream<NextLayer, deflateSupported>::response_op
                 http::basic_fields<Allocator>> const& req,
             Decorator const& decorator)
             : ws(ws_)
-            , res(ws_.build_response(req, decorator))
+            , res(ws_.build_response(req, decorator, result))
         {
         }
     };
@@ -120,9 +121,8 @@ operator()(
         BOOST_ASIO_CORO_YIELD
         http::async_write(d.ws.next_layer(),
             d.res, std::move(*this));
-        if(! ec && d.res.result() !=
-                http::status::switching_protocols)
-            ec = error::handshake_failed;
+        if(! ec)
+            ec = d.result;
         if(! ec)
         {
             d.ws.do_pmd_config(d.res, is_deflate_supported{});
@@ -742,13 +742,14 @@ do_accept(
     Decorator const& decorator,
     error_code& ec)
 {
-    auto const res = build_response(req, decorator);
+    error_code result;
+    auto const res = build_response(req, decorator, result);
     http::write(stream_, res, ec);
     if(ec)
         return;
-    if(res.result() != http::status::switching_protocols)
+    ec = result;
+    if(ec)
     {
-        ec = error::handshake_failed;
         // VFALCO TODO Respect keep alive setting, perform
         //             teardown if Connection: close.
         return;

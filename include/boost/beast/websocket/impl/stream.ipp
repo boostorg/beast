@@ -332,20 +332,15 @@ stream<NextLayer, deflateSupported>::
 parse_fh(
     detail::frame_header& fh,
     DynamicBuffer& b,
-    close_code& code)
+    error_code& ec)
 {
     using boost::asio::buffer;
     using boost::asio::buffer_copy;
     using boost::asio::buffer_size;
-    auto const err =
-        [&](close_code cv)
-        {
-            code = cv;
-            return false;
-        };
     if(buffer_size(b.data()) < 2)
     {
-        code = close_code::none;
+        // need more bytes
+        ec.assign(0, ec.category());
         return false;
     }
     buffers_suffix<typename
@@ -368,7 +363,8 @@ parse_fh(
             need += 4;
         if(buffer_size(cb) < need)
         {
-            code = close_code::none;
+            // need more bytes
+            ec.assign(0, ec.category());
             return false;
         }
         fh.op   = static_cast<
@@ -385,13 +381,15 @@ parse_fh(
         if(rd_cont_)
         {
             // new data frame when continuation expected
-            return err(close_code::protocol_error);
+            ec = error::bad_data_frame;
+            return false;
         }
         if(fh.rsv2 || fh.rsv3 ||
             ! this->rd_deflated(fh.rsv1))
         {
             // reserved bits not cleared
-            return err(close_code::protocol_error);
+            ec = error::bad_reserved_bits;
+            return false;
         }
         break;
 
@@ -399,12 +397,14 @@ parse_fh(
         if(! rd_cont_)
         {
             // continuation without an active message
-            return err(close_code::protocol_error);
+            ec = error::bad_continuation;
+            return false;
         }
         if(fh.rsv1 || fh.rsv2 || fh.rsv3)
         {
             // reserved bits not cleared
-            return err(close_code::protocol_error);
+            ec = error::bad_reserved_bits;
+            return false;
         }
         break;
 
@@ -412,31 +412,41 @@ parse_fh(
         if(detail::is_reserved(fh.op))
         {
             // reserved opcode
-            return err(close_code::protocol_error);
+            ec = error::bad_opcode;
+            return false;
         }
         if(! fh.fin)
         {
             // fragmented control message
-            return err(close_code::protocol_error);
+            ec = error::bad_control_fragment;
+            return false;
         }
         if(fh.len > 125)
         {
             // invalid length for control message
-            return err(close_code::protocol_error);
+            ec = error::bad_control_size;
+            return false;
         }
         if(fh.rsv1 || fh.rsv2 || fh.rsv3)
         {
             // reserved bits not cleared
-            return err(close_code::protocol_error);
+            ec = error::bad_reserved_bits;
+            return false;
         }
         break;
     }
-    // unmasked frame from client
     if(role_ == role_type::server && ! fh.mask)
-        return err(close_code::protocol_error);
-    // masked frame from server
+    {
+        // unmasked frame from client
+        ec = error::bad_unmasked_frame;
+        return false;
+    }
     if(role_ == role_type::client && fh.mask)
-        return err(close_code::protocol_error);
+    {
+        // masked frame from server
+        ec = error::bad_masked_frame;
+        return false;
+    }
     if(detail::is_control(fh.op) &&
         buffer_size(cb) < need + fh.len)
     {
@@ -452,9 +462,12 @@ parse_fh(
         BOOST_ASSERT(buffer_size(cb) >= sizeof(tmp));
         cb.consume(buffer_copy(buffer(tmp), cb));
         fh.len = detail::big_uint16_to_native(&tmp[0]);
-        // length not canonical
         if(fh.len < 126)
-            return err(close_code::protocol_error);
+        {
+            // length not canonical
+            ec = error::bad_size;
+            return false;
+        }
         break;
     }
     case 127:
@@ -463,9 +476,12 @@ parse_fh(
         BOOST_ASSERT(buffer_size(cb) >= sizeof(tmp));
         cb.consume(buffer_copy(buffer(tmp), cb));
         fh.len = detail::big_uint64_to_native(&tmp[0]);
-        // length not canonical
         if(fh.len < 65536)
-            return err(close_code::protocol_error);
+        {
+            // length not canonical
+            ec = error::bad_size;
+            return false;
+        }
         break;
     }
     }
@@ -493,19 +509,27 @@ parse_fh(
         {
             if(rd_size_ > (std::numeric_limits<
                     std::uint64_t>::max)() - fh.len)
-                return err(close_code::too_big);
+            {
+                // message size exceeds configured limit
+                ec = error::message_too_big;
+                return false;
+            }
         }
         if(! this->rd_deflated())
         {
             if(rd_msg_max_ && beast::detail::sum_exceeds(
                 rd_size_, fh.len, rd_msg_max_))
-                return err(close_code::too_big);
+            {
+                // message size exceeds configured limit
+                ec = error::message_too_big;
+                return false;
+            }
         }
         rd_cont_ = ! fh.fin;
         rd_remain_ = fh.len;
     }
     b.consume(b.size() - buffer_size(cb));
-    code = close_code::none;
+    ec.assign(0, ec.category());
     return true;
 }
 
@@ -652,7 +676,8 @@ stream<NextLayer, deflateSupported>::
 build_response(
     http::request<Body,
         http::basic_fields<Allocator>> const& req,
-    Decorator const& decorator)
+    Decorator const& decorator,
+    error_code& result)
 {
     auto const decorate =
         [&decorator](response_type& res)
@@ -666,40 +691,58 @@ build_response(
             }
         };
     auto err =
-        [&](std::string const& text)
+        [&](error e)
         {
+            result = e;
             response_type res;
             res.version(req.version());
             res.result(http::status::bad_request);
-            res.body() = text;
+            res.body() = result.message();
             res.prepare_payload();
             decorate(res);
             return res;
         };
-    if(req.version() < 11)
-        return err("HTTP version 1.1 required");
+    if(req.version() != 11)
+        return err(error::bad_http_version);
     if(req.method() != http::verb::get)
-        return err("Wrong method");
-    if(! is_upgrade(req))
-        return err("Expected Upgrade request");
+        return err(error::bad_method);
     if(! req.count(http::field::host))
-        return err("Missing Host");
-    if(! req.count(http::field::sec_websocket_key))
-        return err("Missing Sec-WebSocket-Key");
-    auto const key = req[http::field::sec_websocket_key];
-    if(key.size() > detail::sec_ws_key_type::max_size_n)
-        return err("Invalid Sec-WebSocket-Key");
+        return err(error::no_host);
     {
-        auto const version =
-            req[http::field::sec_websocket_version];
-        if(version.empty())
-            return err("Missing Sec-WebSocket-Version");
-        if(version != "13")
+        auto const it = req.find(http::field::connection);
+        if(it == req.end())
+            return err(error::no_connection);
+        if(! http::token_list{it->value()}.exists("upgrade"))
+            return err(error::no_connection_upgrade);
+    }
+    {
+        auto const it = req.find(http::field::upgrade);
+        if(it == req.end())
+            return err(error::no_upgrade);
+        if(! http::token_list{it->value()}.exists("websocket"))
+            return err(error::no_upgrade_websocket);
+    }
+    string_view key;
+    {
+        auto const it = req.find(http::field::sec_websocket_key);
+        if(it == req.end())
+            return err(error::no_sec_key);
+        key = it->value();
+        if(key.size() > detail::sec_ws_key_type::max_size_n)
+            return err(error::bad_sec_key);
+    }
+    {
+        auto const it = req.find(http::field::sec_websocket_version);
+        if(it == req.end())
+            return err(error::no_sec_version);
+        if(it->value() != "13")
         {
             response_type res;
             res.result(http::status::upgrade_required);
             res.version(req.version());
             res.set(http::field::sec_websocket_version, "13");
+            result = error::bad_sec_version;
+            res.body() = result.message();
             res.prepare_payload();
             decorate(res);
             return res;
@@ -707,7 +750,6 @@ build_response(
     }
 
     response_type res;
-    build_response_pmd(res, req, is_deflate_supported{});
     res.result(http::status::switching_protocols);
     res.version(req.version());
     res.set(http::field::upgrade, "websocket");
@@ -717,7 +759,9 @@ build_response(
         detail::make_sec_ws_accept(acc, key);
         res.set(http::field::sec_websocket_accept, acc);
     }
+    build_response_pmd(res, req, is_deflate_supported{});
     decorate(res);
+    result = {};
     return res;
 }
 
@@ -747,30 +791,39 @@ on_response(
     detail::sec_ws_key_type const& key,
     error_code& ec)
 {
-    bool const success = [&]()
+    auto const err =
+        [&](error e)
+        {
+            ec = e;
+        };
+    if(res.result() != http::status::switching_protocols)
+        return err(error::upgrade_declined);
+    if(res.version() != 11)
+        return err(error::bad_http_version);
     {
-        if(res.version() < 11)
-            return false;
-        if(res.result() != http::status::switching_protocols)
-            return false;
-        if(! http::token_list{res[http::field::connection]}.exists("upgrade"))
-            return false;
-        if(! http::token_list{res[http::field::upgrade]}.exists("websocket"))
-            return false;
-        if(res.count(http::field::sec_websocket_accept) != 1)
-            return false;
+        auto const it = res.find(http::field::connection);
+        if(it == res.end())
+            return err(error::no_connection);
+        if(! http::token_list{it->value()}.exists("upgrade"))
+            return err(error::no_connection_upgrade);
+    }
+    {
+        auto const it = res.find(http::field::upgrade);
+        if(it == res.end())
+            return err(error::no_upgrade);
+        if(! http::token_list{it->value()}.exists("websocket"))
+            return err(error::no_upgrade_websocket);
+    }
+    {
+        auto const it = res.find(http::field::sec_websocket_accept);
+        if(it == res.end())
+            return err(error::no_sec_accept);
         detail::sec_ws_accept_type acc;
         detail::make_sec_ws_accept(acc, key);
-        if(acc.compare(
-                res[http::field::sec_websocket_accept]) != 0)
-            return false;
-        return true;
-    }();
-    if(! success)
-    {
-        ec = error::handshake_failed;
-        return;
+        if(acc.compare(it->value()) != 0)
+            return err(error::bad_sec_accept);
     }
+
     ec.assign(0, ec.category());
     on_response_pmd(res, is_deflate_supported{});
     open(role_type::client);
