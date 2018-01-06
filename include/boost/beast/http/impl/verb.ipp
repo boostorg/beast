@@ -159,7 +159,7 @@ string_to_verb(string_view v)
                 return verb::connect;
             if(eq(v, "PY"))
                 return verb::copy;
-            BOOST_BEAST_FALLTHROUGH;
+            BOOST_FALLTHROUGH;
 
         default:
             break;
@@ -220,7 +220,7 @@ string_to_verb(string_view v)
         case 'O':
             if(eq(v, "VE"))
                 return verb::move;
-            BOOST_BEAST_FALLTHROUGH;
+            BOOST_FALLTHROUGH;
 
         default:
             break;
@@ -264,7 +264,7 @@ string_to_verb(string_view v)
                 return verb::purge;
             if(eq(v, "T"))
                 return verb::put;
-            BOOST_BEAST_FALLTHROUGH;
+            BOOST_FALLTHROUGH;
 
         default:
             break;

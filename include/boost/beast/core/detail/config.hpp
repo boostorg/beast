@@ -48,12 +48,6 @@
 
 #endif
 
-#if BOOST_VERSION >= 106500 || ! defined(BOOST_GCC) || BOOST_GCC < 70000
-# define BOOST_BEAST_FALLTHROUGH BOOST_FALLTHROUGH
-#else
-# define BOOST_BEAST_FALLTHROUGH __attribute__((fallthrough))
-#endif
-
 #define BOOST_BEAST_DEPRECATION_STRING \
     "This is a deprecated interface, #define BOOST_BEAST_ALLOW_DEPRECATED to allow it"
 

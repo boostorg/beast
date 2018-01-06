@@ -148,7 +148,7 @@ loop:
             return 0;
         }
         state_ = state::start_line;
-        BOOST_BEAST_FALLTHROUGH;
+        BOOST_FALLTHROUGH;
 
     case state::start_line:
     {
@@ -179,7 +179,7 @@ loop:
             ec = error::need_more;
             goto done;
         }
-        BOOST_BEAST_FALLTHROUGH;
+        BOOST_FALLTHROUGH;
     }
 
     case state::fields:
@@ -212,7 +212,7 @@ loop:
         if(ec)
             goto done;
         state_ = state::body;
-        BOOST_BEAST_FALLTHROUGH;
+        BOOST_FALLTHROUGH;
 
     case state::body:
         BOOST_ASSERT(! skip_);
@@ -227,7 +227,7 @@ loop:
         if(ec)
             goto done;
         state_ = state::body_to_eof;
-        BOOST_BEAST_FALLTHROUGH;
+        BOOST_FALLTHROUGH;
 
     case state::body_to_eof:
         BOOST_ASSERT(! skip_);
@@ -241,7 +241,7 @@ loop:
         if(ec)
             goto done;
         state_ = state::chunk_header;
-        BOOST_BEAST_FALLTHROUGH;
+        BOOST_FALLTHROUGH;
 
     case state::chunk_header:
         parse_chunk_header(p, n, ec);

@@ -380,12 +380,12 @@ doWrite(z_params& zs, Flush flush, error_code& ec)
             mode_ = COPY_;
             if(flush == Flush::trees)
                 return done();
-            BOOST_BEAST_FALLTHROUGH;
+            BOOST_FALLTHROUGH;
         }
 
         case COPY_:
             mode_ = COPY;
-            BOOST_BEAST_FALLTHROUGH;
+            BOOST_FALLTHROUGH;
 
         case COPY:
         {
@@ -419,7 +419,7 @@ doWrite(z_params& zs, Flush flush, error_code& ec)
                 return err(error::too_many_symbols);
             have_ = 0;
             mode_ = LENLENS;
-            BOOST_BEAST_FALLTHROUGH;
+            BOOST_FALLTHROUGH;
 
         case LENLENS:
         {
@@ -447,7 +447,7 @@ doWrite(z_params& zs, Flush flush, error_code& ec)
             }
             have_ = 0;
             mode_ = CODELENS;
-            BOOST_BEAST_FALLTHROUGH;
+            BOOST_FALLTHROUGH;
         }
 
         case CODELENS:
@@ -536,12 +536,12 @@ doWrite(z_params& zs, Flush flush, error_code& ec)
             mode_ = LEN_;
             if(flush == Flush::trees)
                 return done();
-            BOOST_BEAST_FALLTHROUGH;
+            BOOST_FALLTHROUGH;
         }
 
         case LEN_:
             mode_ = LEN;
-            BOOST_BEAST_FALLTHROUGH;
+            BOOST_FALLTHROUGH;
 
         case LEN:
         {
@@ -594,7 +594,7 @@ doWrite(z_params& zs, Flush flush, error_code& ec)
                 return err(error::invalid_literal_length);
             extra_ = cp->op & 15;
             mode_ = LENEXT;
-            BOOST_BEAST_FALLTHROUGH;
+            BOOST_FALLTHROUGH;
         }
 
         case LENEXT:
@@ -609,7 +609,7 @@ doWrite(z_params& zs, Flush flush, error_code& ec)
             }
             was_ = length_;
             mode_ = DIST;
-            BOOST_BEAST_FALLTHROUGH;
+            BOOST_FALLTHROUGH;
 
         case DIST:
         {
@@ -638,7 +638,7 @@ doWrite(z_params& zs, Flush flush, error_code& ec)
             offset_ = cp->val;
             extra_ = cp->op & 15;
             mode_ = DISTEXT;
-            BOOST_BEAST_FALLTHROUGH;
+            BOOST_FALLTHROUGH;
         }
 
         case DISTEXT:
@@ -656,7 +656,7 @@ doWrite(z_params& zs, Flush flush, error_code& ec)
                 return err(error::invalid_distance);
 #endif
             mode_ = MATCH;
-            BOOST_BEAST_FALLTHROUGH;
+            BOOST_FALLTHROUGH;
 
         case MATCH:
         {
@@ -701,7 +701,7 @@ doWrite(z_params& zs, Flush flush, error_code& ec)
 
         case CHECK:
             mode_ = DONE;
-            BOOST_BEAST_FALLTHROUGH;
+            BOOST_FALLTHROUGH;
 
         case DONE:
             ec = error::end_of_stream;

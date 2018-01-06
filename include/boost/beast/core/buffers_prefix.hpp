@@ -12,8 +12,8 @@
 
 #include <boost/beast/core/detail/config.hpp>
 #include <boost/beast/core/type_traits.hpp>
-#include <boost/beast/core/detail/in_place_init.hpp>
 #include <boost/asio/buffer.hpp>
+#include <boost/optional/optional.hpp>
 #include <cstdint>
 #include <type_traits>
 

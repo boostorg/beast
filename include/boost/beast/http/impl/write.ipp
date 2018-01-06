@@ -280,7 +280,7 @@ operator()(
 
     case 2:
         state_ = 3;
-        BOOST_BEAST_FALLTHROUGH;
+        BOOST_FALLTHROUGH;
 
     case 3:
     {

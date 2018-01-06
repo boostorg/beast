@@ -11,7 +11,6 @@
 #define BOOST_BEAST_BUFFERS_SUFFIX_HPP
 
 #include <boost/beast/core/detail/config.hpp>
-#include <boost/beast/core/detail/in_place_init.hpp>
 #include <boost/beast/core/detail/type_traits.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/optional.hpp>

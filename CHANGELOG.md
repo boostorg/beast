@@ -1,3 +1,9 @@
+Version 153:
+
+* Remove BOOST_VERSION checks
+
+--------------------------------------------------------------------------------
+
 Version 152:
 
 * Refactor detect_ssl_op

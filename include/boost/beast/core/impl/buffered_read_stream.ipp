@@ -121,7 +121,7 @@ read_some_op<MutableBufferSequence, Handler>::operator()(
 
     case 2:
         s_.buffer_.commit(bytes_transferred);
-        BOOST_BEAST_FALLTHROUGH;
+        BOOST_FALLTHROUGH;
 
     case 3:
         bytes_transferred =

@@ -151,13 +151,13 @@ write(std::uint8_t const* in, std::size_t size)
             {
             default:
                 BOOST_ASSERT(false);
-                BOOST_BEAST_FALLTHROUGH;
+                BOOST_FALLTHROUGH;
             case 1:
                 cp_[1] = 0x81;
-                BOOST_BEAST_FALLTHROUGH;
+                BOOST_FALLTHROUGH;
             case 2:
                 cp_[2] = 0x81;
-                BOOST_BEAST_FALLTHROUGH;
+                BOOST_FALLTHROUGH;
             case 3:
                 cp_[3] = 0x81;
                 break;

@@ -102,7 +102,7 @@ next(error_code& ec, Visit&& visit)
         if(m_.chunked())
             goto go_init_c;
         s_ = do_init;
-        BOOST_BEAST_FALLTHROUGH;
+        BOOST_FALLTHROUGH;
     }
 
     case do_init:
@@ -125,7 +125,7 @@ next(error_code& ec, Visit&& visit)
             fwr_->get(),
             result->first);
         s_ = do_header;
-        BOOST_BEAST_FALLTHROUGH;
+        BOOST_FALLTHROUGH;
     }
 
     case do_header:
@@ -135,14 +135,14 @@ next(error_code& ec, Visit&& visit)
     go_header_only:
         v_.template emplace<1>(fwr_->get());
         s_ = do_header_only;
-        BOOST_BEAST_FALLTHROUGH;
+        BOOST_FALLTHROUGH;
     case do_header_only:
         do_visit<1>(ec, visit);
         break;
 
     case do_body:
         s_ = do_body + 1;
-        BOOST_BEAST_FALLTHROUGH;
+        BOOST_FALLTHROUGH;
 
     case do_body + 1:
     {
@@ -154,7 +154,7 @@ next(error_code& ec, Visit&& visit)
         more_ = result->second;
         v_.template emplace<3>(result->first);
         s_ = do_body + 2;
-        BOOST_BEAST_FALLTHROUGH;
+        BOOST_FALLTHROUGH;
     }
 
     case do_body + 2:
@@ -165,7 +165,7 @@ next(error_code& ec, Visit&& visit)
 
         go_init_c:
         s_ = do_init_c;
-        BOOST_BEAST_FALLTHROUGH;
+        BOOST_FALLTHROUGH;
     case do_init_c:
     {
         wr_.init(ec);
@@ -206,7 +206,7 @@ next(error_code& ec, Visit&& visit)
             result->first,
             chunk_crlf{});
         s_ = do_header_c;
-        BOOST_BEAST_FALLTHROUGH;
+        BOOST_FALLTHROUGH;
     }
 
     case do_header_c:
@@ -222,7 +222,7 @@ next(error_code& ec, Visit&& visit)
 
     case do_body_c:
         s_ = do_body_c + 1;
-        BOOST_BEAST_FALLTHROUGH;
+        BOOST_FALLTHROUGH;
 
     case do_body_c + 1:
     {
@@ -255,7 +255,7 @@ next(error_code& ec, Visit&& visit)
             result->first,
             chunk_crlf{});
         s_ = do_body_c + 2;
-        BOOST_BEAST_FALLTHROUGH;
+        BOOST_FALLTHROUGH;
     }
 
     case do_body_c + 2:
@@ -264,14 +264,14 @@ next(error_code& ec, Visit&& visit)
 
     go_body_final_c:
         s_ = do_body_final_c;
-        BOOST_BEAST_FALLTHROUGH;
+        BOOST_FALLTHROUGH;
     case do_body_final_c:
         do_visit<6>(ec, visit);
         break;
 
     go_all_c:
         s_ = do_all_c;
-        BOOST_BEAST_FALLTHROUGH;
+        BOOST_FALLTHROUGH;
     case do_all_c:
         do_visit<7>(ec, visit);
         break;
@@ -284,7 +284,7 @@ next(error_code& ec, Visit&& visit)
             boost::asio::const_buffer{nullptr, 0},
             chunk_crlf{});
         s_ = do_final_c + 1;
-        BOOST_BEAST_FALLTHROUGH;
+        BOOST_FALLTHROUGH;
 
     case do_final_c + 1:
         do_visit<8>(ec, visit);
