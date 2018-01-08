@@ -25,6 +25,7 @@
 #include <boost/make_unique.hpp>
 #include <boost/smart_ptr/make_shared_array.hpp>
 #include <boost/winapi/basic_types.hpp>
+#include <boost/winapi/get_last_error.hpp>
 #include <algorithm>
 #include <cstring>
 
@@ -436,14 +437,13 @@ operator()()
         overlapped.get(),
         nullptr,
         0);
-    auto const dwError = ::GetLastError();
+    auto const dwError = boost::winapi::GetLastError();
     if(! bSuccess && dwError !=
         boost::winapi::ERROR_IO_PENDING_)
     {
         // VFALCO This needs review, is 0 the right number?
         // completed immediately (with error?)
-        overlapped.complete(error_code{static_cast<int>(
-            boost::winapi::GetLastError()),
+        overlapped.complete(error_code{static_cast<int>(dwError),
                 system_category()}, 0);
         return;
     }
