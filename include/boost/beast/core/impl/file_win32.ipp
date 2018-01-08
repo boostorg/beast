@@ -300,9 +300,9 @@ read(void* buffer, std::size_t n, error_code& ec)
         boost::winapi::DWORD_ bytesRead;
         if(! ::ReadFile(h_, buffer, amount, &bytesRead, 0))
         {
-            auto const dwError = ::GetLastError();
+            auto const dwError = boost::winapi::GetLastError();
             if(dwError != boost::winapi::ERROR_HANDLE_EOF_)
-                ec.assign(::GetLastError(), system_category());
+                ec.assign(dwError, system_category());
             else
                 ec.assign(0, ec.category());
             return nread;
@@ -341,9 +341,9 @@ write(void const* buffer, std::size_t n, error_code& ec)
         boost::winapi::DWORD_ bytesWritten;
         if(! ::WriteFile(h_, buffer, amount, &bytesWritten, 0))
         {
-            auto const dwError = ::GetLastError();
+            auto const dwError = boost::winapi::GetLastError();
             if(dwError != boost::winapi::ERROR_HANDLE_EOF_)
-                ec.assign(::GetLastError(), system_category());
+                ec.assign(dwError, system_category());
             else
                 ec.assign(0, ec.category());
             return nwritten;
