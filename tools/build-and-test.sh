@@ -142,6 +142,7 @@ elif [[ $VARIANT == "valgrind" ]]; then
   run_tests_with_valgrind "$BIN_DIR" fat-tests
 
 else
-  run_tests_with_debugger "$BIN_DIR" fat-tests
+  #run_tests_with_debugger "$BIN_DIR" fat-tests
+  run_tests "$BIN_DIR" fat-tests
 
 fi

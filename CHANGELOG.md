@@ -1,6 +1,7 @@
 Version 152:
 
 * Refactor detect_ssl_op
+* Disable gdb on Travis for Meltdown
 
 WebSocket:
 
