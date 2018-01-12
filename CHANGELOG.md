@@ -3,6 +3,7 @@ Version 153:
 * Remove BOOST_VERSION checks
 * Use make_error_code for setting an error_code from errc
 * Use boost::winapi::GetLastError() consistently 
+* Update README.md for branches
 
 --------------------------------------------------------------------------------
 
