@@ -609,11 +609,11 @@ basic_fields<Allocator>::
 erase(const_iterator pos) ->
     const_iterator
 {
-    auto next = pos.iter();
+    auto next = pos;
     auto& e = *next++;
     set_.erase(e);
-    list_.erase(e);
-    delete_element(e);
+    list_.erase(pos);
+    delete_element(const_cast<value_type&>(e));
     return next;
 }
 
