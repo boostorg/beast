@@ -5,6 +5,7 @@ Version 153:
 * Use boost::winapi::GetLastError() consistently 
 * Update README.md for branches
 * Avoid string_view::clear
+* Fix iterator version of basic_fields::erase
 
 --------------------------------------------------------------------------------
 

@@ -388,6 +388,20 @@ public:
         BEAST_EXPECT(size(f) == 2);
     }
 
+    void testIteratorErase()
+    {
+        f_t f;
+        f.insert("a", "x");
+        f.insert("b", "y");
+        f.insert("c", "z");
+        BEAST_EXPECT(size(f) == 3);
+        f_t::const_iterator i = std::next(f.begin());
+        f.erase(i);
+        BEAST_EXPECT(size(f) == 2);
+        BEAST_EXPECT(std::next(f.begin(), 0)->name_string() == "a");
+        BEAST_EXPECT(std::next(f.begin(), 1)->name_string() == "c");
+    }
+
     void
     testContainer()
     {
@@ -980,6 +994,7 @@ public:
         testHeaders();
         testRFC2616();
         testErase();
+        testIteratorErase();
         testContainer();
         testPreparePayload();
 
