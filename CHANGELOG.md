@@ -6,6 +6,7 @@ Version 153:
 * Update README.md for branches
 * Avoid string_view::clear
 * Fix iterator version of basic_fields::erase
+* Fix use-after-move in example request handlers
 
 --------------------------------------------------------------------------------
 
