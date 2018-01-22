@@ -4,6 +4,7 @@ Version 153:
 * Use make_error_code for setting an error_code from errc
 * Use boost::winapi::GetLastError() consistently 
 * Update README.md for branches
+* Avoid string_view::clear
 
 --------------------------------------------------------------------------------
 
