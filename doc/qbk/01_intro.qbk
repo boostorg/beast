@@ -152,6 +152,15 @@ manual exploitation and review of these issues to validate the findings.
 
 [@https://vinniefalco.github.io/BeastAssets/Beast%20-%20Hybrid%20Application%20Assessment%202017%20-%20Assessment%20Report%20-%2020171114.pdf [*Beast - Hybrid Application Assessment 2017]]
 
+[block'''
+<mediaobject>
+  <videoobject>
+    <videodata fileref="https://www.youtube.com/embed/4TtyYbGDAj0?rel=0"
+        align="center" contentwidth="560" contentdepth="315"/>
+  </videoobject>
+</mediaobject>
+''']
+
 [endsect]
 
 [section WebSocket (Autobahn|Testsuite)]
