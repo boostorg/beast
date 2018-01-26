@@ -23,18 +23,18 @@ namespace beast {
 
     This function creates a new handler which, when invoked, calls
     the original handler with the list of bound arguments. Any
-    parameters passed in the invocation will be subtituted for
+    parameters passed in the invocation will be substituted for
     placeholders present in the list of bound arguments. Parameters
     which are not matched to placeholders are silently discarded.
+
     The passed handler and arguments are forwarded into the returned
-    handler, which provides the same `io_context` execution guarantees
-    as the original handler.
+    handler, which inherits the associated allocator and associated
+    executor of the original handler.
 
     Unlike `boost::asio::io_context::wrap`, the returned handler can
-    be used in a subsequent call to `boost::asio::io_context::post`
-    instead of `boost::asio::io_context::dispatch`, to ensure that
-    the handler will not be invoked immediately by the calling
-    function.
+    be used in a subsequent call to `boost::asio::post` instead of
+    `boost::asio::dispatch`, to ensure that the handler will not be
+    invoked immediately by the calling function.
 
     Example:
 
@@ -52,8 +52,10 @@ namespace beast {
 
     @param handler The handler to wrap.
 
-    @param args A list of arguments to bind to the handler. The
-    arguments are forwarded into the returned object.
+    @param args A list of arguments to bind to the handler.
+    The arguments are forwarded into the returned object. These
+    arguments may include placeholders, which will operate in
+    a fashion identical to a call to `std::bind`.
 */
 template<class Handler, class... Args>
 #if BOOST_BEAST_DOXYGEN
@@ -65,6 +67,7 @@ detail::bound_handler<
 bind_handler(Handler&& handler, Args&&... args)
 {
 #if 0
+    // Can't do this because of placeholders
     static_assert(is_completion_handler<
         Handler, void(Args...)>::value,
             "Handler requirements not met");

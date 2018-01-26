@@ -1,6 +1,7 @@
 Version 154:
 
 * Type check completion handlers
+* bind_handler doc update
 
 --------------------------------------------------------------------------------
 
