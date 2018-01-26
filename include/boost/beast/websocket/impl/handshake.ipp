@@ -160,8 +160,8 @@ async_handshake(string_view host,
 {
     static_assert(is_async_stream<next_layer_type>::value,
         "AsyncStream requirements not met");
-    boost::asio::async_completion<HandshakeHandler,
-        void(error_code)> init{handler};
+    BOOST_BEAST_HANDLER_INIT(
+        HandshakeHandler, void(error_code));
     handshake_op<BOOST_ASIO_HANDLER_TYPE(
         HandshakeHandler, void(error_code))>{
             std::move(init.completion_handler), *this, nullptr, host,
@@ -181,8 +181,8 @@ async_handshake(response_type& res,
 {
     static_assert(is_async_stream<next_layer_type>::value,
         "AsyncStream requirements not met");
-    boost::asio::async_completion<HandshakeHandler,
-        void(error_code)> init{handler};
+    BOOST_BEAST_HANDLER_INIT(
+        HandshakeHandler, void(error_code));
     handshake_op<BOOST_ASIO_HANDLER_TYPE(
         HandshakeHandler, void(error_code))>{
             std::move(init.completion_handler), *this, &res, host,
@@ -205,8 +205,8 @@ async_handshake_ex(string_view host,
     static_assert(detail::is_request_decorator<
             RequestDecorator>::value,
         "RequestDecorator requirements not met");
-    boost::asio::async_completion<HandshakeHandler,
-        void(error_code)> init{handler};
+    BOOST_BEAST_HANDLER_INIT(
+        HandshakeHandler, void(error_code));
     handshake_op<BOOST_ASIO_HANDLER_TYPE(
         HandshakeHandler, void(error_code))>{
             std::move(init.completion_handler), *this, nullptr, host,
@@ -230,8 +230,8 @@ async_handshake_ex(response_type& res,
     static_assert(detail::is_request_decorator<
             RequestDecorator>::value,
         "RequestDecorator requirements not met");
-    boost::asio::async_completion<HandshakeHandler,
-        void(error_code)> init{handler};
+    BOOST_BEAST_HANDLER_INIT(
+        HandshakeHandler, void(error_code));
     handshake_op<BOOST_ASIO_HANDLER_TYPE(
         HandshakeHandler, void(error_code))>{
             std::move(init.completion_handler), *this, &res, host,

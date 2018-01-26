@@ -1,3 +1,9 @@
+Version 154:
+
+* Type check completion handlers
+
+--------------------------------------------------------------------------------
+
 Version 153:
 
 * Remove BOOST_VERSION checks

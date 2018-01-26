@@ -544,8 +544,8 @@ async_accept(
 {
     static_assert(is_async_stream<next_layer_type>::value,
         "AsyncStream requirements not met");
-    boost::asio::async_completion<AcceptHandler,
-        void(error_code)> init{handler};
+    BOOST_BEAST_HANDLER_INIT(
+        AcceptHandler, void(error_code));
     reset();
     accept_op<
         decltype(&default_decorate_res),
@@ -573,8 +573,8 @@ async_accept_ex(
     static_assert(detail::is_response_decorator<
         ResponseDecorator>::value,
             "ResponseDecorator requirements not met");
-    boost::asio::async_completion<AcceptHandler,
-        void(error_code)> init{handler};
+    BOOST_BEAST_HANDLER_INIT(
+        AcceptHandler, void(error_code));
     reset();
     accept_op<
         ResponseDecorator,
@@ -604,8 +604,8 @@ async_accept(
     static_assert(boost::asio::is_const_buffer_sequence<
         ConstBufferSequence>::value,
             "ConstBufferSequence requirements not met");
-    boost::asio::async_completion<AcceptHandler,
-        void(error_code)> init{handler};
+    BOOST_BEAST_HANDLER_INIT(
+        AcceptHandler, void(error_code));
     reset();
     accept_op<
         decltype(&default_decorate_res),
@@ -640,8 +640,8 @@ async_accept_ex(
     static_assert(detail::is_response_decorator<
         ResponseDecorator>::value,
             "ResponseDecorator requirements not met");
-    boost::asio::async_completion<AcceptHandler,
-        void(error_code)> init{handler};
+    BOOST_BEAST_HANDLER_INIT(
+        AcceptHandler, void(error_code));
     reset();
     accept_op<
         ResponseDecorator,
@@ -666,8 +666,8 @@ async_accept(
 {
     static_assert(is_async_stream<next_layer_type>::value,
         "AsyncStream requirements not met");
-    boost::asio::async_completion<AcceptHandler,
-        void(error_code)> init{handler};
+    BOOST_BEAST_HANDLER_INIT(
+        AcceptHandler, void(error_code));
     reset();
     using boost::asio::asio_handler_is_continuation;
     response_op<
@@ -698,8 +698,8 @@ async_accept_ex(
     static_assert(detail::is_response_decorator<
         ResponseDecorator>::value,
             "ResponseDecorator requirements not met");
-    boost::asio::async_completion<AcceptHandler,
-        void(error_code)> init{handler};
+    BOOST_BEAST_HANDLER_INIT(
+        AcceptHandler, void(error_code));
     reset();
     using boost::asio::asio_handler_is_continuation;
     response_op<

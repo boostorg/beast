@@ -564,8 +564,8 @@ async_write_some(
         basic_file_body<file_win32>, Fields>& sr,
     WriteHandler&& handler)
 {
-    boost::asio::async_completion<WriteHandler,
-        void(error_code)> init{handler};
+    BOOST_BEAST_HANDLER_INIT(
+        WriteHandler, void(error_code, std::size_t));
     detail::write_some_win32_op<
         Protocol,
         BOOST_ASIO_HANDLER_TYPE(WriteHandler,

@@ -233,8 +233,8 @@ async_read_some(
     if(buffer_.size() == 0 && capacity_ == 0)
         return next_layer_.async_read_some(buffers,
             std::forward<ReadHandler>(handler));
-    boost::asio::async_completion<ReadHandler,
-        void(error_code, std::size_t)> init{handler};
+    BOOST_BEAST_HANDLER_INIT(
+        ReadHandler, void(error_code, std::size_t));
     read_some_op<MutableBufferSequence, BOOST_ASIO_HANDLER_TYPE(
         ReadHandler, void(error_code, std::size_t))>{
             std::move(init.completion_handler), *this, buffers}(

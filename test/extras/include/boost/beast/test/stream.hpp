@@ -479,8 +479,8 @@ async_read_some(
     using boost::asio::buffer_copy;
     using boost::asio::buffer_size;
     BOOST_ASSERT(buffer_size(buffers) > 0);
-    boost::asio::async_completion<ReadHandler,
-        void(error_code, std::size_t)> init{handler};
+    BOOST_BEAST_HANDLER_INIT(
+        ReadHandler, void(error_code, std::size_t));
     if(in_->fc)
     {
         error_code ec;
@@ -598,8 +598,8 @@ async_write_some(ConstBufferSequence const& buffers,
         "ConstBufferSequence requirements not met");
     using boost::asio::buffer_copy;
     using boost::asio::buffer_size;
-    boost::asio::async_completion<WriteHandler,
-        void(error_code, std::size_t)> init{handler};
+    BOOST_BEAST_HANDLER_INIT(
+        WriteHandler, void(error_code, std::size_t));
     auto out = out_.lock();
     if(! out)
         return boost::asio::post(

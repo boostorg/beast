@@ -895,8 +895,8 @@ async_read(DynamicBuffer& buffer, ReadHandler&& handler)
     static_assert(
         boost::asio::is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
-    boost::asio::async_completion<
-        ReadHandler, void(error_code, std::size_t)> init{handler};
+    BOOST_BEAST_HANDLER_INIT(
+        ReadHandler, void(error_code, std::size_t));
     read_op<
         DynamicBuffer,
         BOOST_ASIO_HANDLER_TYPE(
@@ -983,8 +983,8 @@ async_read_some(
     static_assert(
         boost::asio::is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
-    boost::asio::async_completion<ReadHandler,
-        void(error_code, std::size_t)> init{handler};
+    BOOST_BEAST_HANDLER_INIT(
+        ReadHandler, void(error_code, std::size_t));
     read_op<
         DynamicBuffer,
         BOOST_ASIO_HANDLER_TYPE(
@@ -1368,8 +1368,8 @@ async_read_some(
     static_assert(boost::asio::is_mutable_buffer_sequence<
             MutableBufferSequence>::value,
         "MutableBufferSequence requirements not met");
-    boost::asio::async_completion<ReadHandler,
-        void(error_code, std::size_t)> init{handler};
+    BOOST_BEAST_HANDLER_INIT(
+        ReadHandler, void(error_code, std::size_t));
     read_some_op<MutableBufferSequence, BOOST_ASIO_HANDLER_TYPE(
         ReadHandler, void(error_code, std::size_t))>{
             std::move(init.completion_handler), *this, buffers}(

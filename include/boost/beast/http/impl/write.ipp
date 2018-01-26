@@ -471,9 +471,8 @@ async_write_some_impl(
     serializer<isRequest, Body, Fields>& sr,
     WriteHandler&& handler)
 {
-    boost::asio::async_completion<
-        WriteHandler,
-        void(error_code, std::size_t)> init{handler};
+    BOOST_BEAST_HANDLER_INIT(
+        WriteHandler, void(error_code, std::size_t));
     detail::write_some_op<
         AsyncWriteStream,
         BOOST_ASIO_HANDLER_TYPE(WriteHandler,
@@ -629,9 +628,8 @@ async_write_header(
     static_assert(is_body_writer<Body>::value,
         "BodyWriter requirements not met");
     sr.split(true);
-    boost::asio::async_completion<
-        WriteHandler,
-        void(error_code, std::size_t)> init{handler};
+    BOOST_BEAST_HANDLER_INIT(
+        WriteHandler, void(error_code, std::size_t));
     detail::write_op<
         AsyncWriteStream,
         BOOST_ASIO_HANDLER_TYPE(WriteHandler,
@@ -706,9 +704,8 @@ async_write(
     static_assert(is_body_writer<Body>::value,
         "BodyWriter requirements not met");
     sr.split(false);
-    boost::asio::async_completion<
-        WriteHandler,
-        void(error_code, std::size_t)> init{handler};
+    BOOST_BEAST_HANDLER_INIT(
+        WriteHandler, void(error_code, std::size_t));
     detail::write_op<
         AsyncWriteStream,
         BOOST_ASIO_HANDLER_TYPE(WriteHandler,
@@ -780,9 +777,8 @@ async_write(
         "Body requirements not met");
     static_assert(is_body_writer<Body>::value,
         "BodyWriter requirements not met");
-    boost::asio::async_completion<
-        WriteHandler,
-        void(error_code, std::size_t)> init{handler};
+    BOOST_BEAST_HANDLER_INIT(
+        WriteHandler, void(error_code, std::size_t));
     detail::write_msg_op<
         AsyncWriteStream,
         BOOST_ASIO_HANDLER_TYPE(WriteHandler,

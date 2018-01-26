@@ -435,8 +435,8 @@ async_close(close_reason const& cr, CloseHandler&& handler)
 {
     static_assert(is_async_stream<next_layer_type>::value,
         "AsyncStream requirements not met");
-    boost::asio::async_completion<CloseHandler,
-        void(error_code)> init{handler};
+    BOOST_BEAST_HANDLER_INIT(
+        CloseHandler, void(error_code));
     close_op<BOOST_ASIO_HANDLER_TYPE(
         CloseHandler, void(error_code))>{
             std::move(init.completion_handler), *this, cr}(

@@ -526,8 +526,8 @@ async_read_some(
         boost::asio::is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
     BOOST_ASSERT(! parser.is_done());
-    boost::asio::async_completion<ReadHandler,
-        void(error_code, std::size_t)> init{handler};
+    BOOST_BEAST_HANDLER_INIT(
+        ReadHandler, void(error_code, std::size_t));
     detail::read_some_op<AsyncReadStream,
         DynamicBuffer, isRequest, Derived, BOOST_ASIO_HANDLER_TYPE(
             ReadHandler, void(error_code, std::size_t))>{
@@ -614,8 +614,8 @@ async_read_header(
         boost::asio::is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
     parser.eager(false);
-    boost::asio::async_completion<ReadHandler,
-        void(error_code, std::size_t)> init{handler};
+    BOOST_BEAST_HANDLER_INIT(
+        ReadHandler, void(error_code, std::size_t));
     detail::read_op<AsyncReadStream, DynamicBuffer,
         isRequest, Derived, detail::parser_is_header_done,
             BOOST_ASIO_HANDLER_TYPE(ReadHandler, void(error_code, std::size_t))>{
@@ -702,9 +702,8 @@ async_read(
         boost::asio::is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
     parser.eager(true);
-    boost::asio::async_completion<
-        ReadHandler,
-        void(error_code, std::size_t)> init{handler};
+    BOOST_BEAST_HANDLER_INIT(
+        ReadHandler, void(error_code, std::size_t));
     detail::read_op<AsyncReadStream, DynamicBuffer,
         isRequest, Derived, detail::parser_is_done,
             BOOST_ASIO_HANDLER_TYPE(ReadHandler, void(error_code, std::size_t))>{
@@ -794,9 +793,8 @@ async_read(
         "Body requirements not met");
     static_assert(is_body_reader<Body>::value,
         "BodyReader requirements not met");
-    boost::asio::async_completion<
-        ReadHandler,
-        void(error_code, std::size_t)> init{handler};
+    BOOST_BEAST_HANDLER_INIT(
+        ReadHandler, void(error_code, std::size_t));
     detail::read_msg_op<
         AsyncReadStream,
         DynamicBuffer,

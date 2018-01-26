@@ -814,8 +814,8 @@ async_write_some(bool fin,
     static_assert(boost::asio::is_const_buffer_sequence<
         ConstBufferSequence>::value,
             "ConstBufferSequence requirements not met");
-    boost::asio::async_completion<WriteHandler,
-        void(error_code, std::size_t)> init{handler};
+    BOOST_BEAST_HANDLER_INIT(
+        WriteHandler, void(error_code, std::size_t));
     write_some_op<ConstBufferSequence, BOOST_ASIO_HANDLER_TYPE(
         WriteHandler, void(error_code, std::size_t))>{
             std::move(init.completion_handler), *this, fin, bs}(
@@ -870,8 +870,8 @@ async_write(
     static_assert(boost::asio::is_const_buffer_sequence<
         ConstBufferSequence>::value,
             "ConstBufferSequence requirements not met");
-    boost::asio::async_completion<WriteHandler,
-        void(error_code, std::size_t)> init{handler};
+    BOOST_BEAST_HANDLER_INIT(
+        WriteHandler, void(error_code, std::size_t));
     write_some_op<ConstBufferSequence, BOOST_ASIO_HANDLER_TYPE(
         WriteHandler, void(error_code, std::size_t))>{
             std::move(init.completion_handler), *this, true, bs}(

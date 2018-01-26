@@ -437,6 +437,18 @@ buffers_range(Buffers const& buffers)
     return buffers_range_adaptor<Buffers>{buffers};
 }
 
+/*  If this static assert goes off, it means that the completion
+    handler you provided to an asynchronous initiating function did
+    not have the right signature. Check the parameter types for your
+    completion handler and make sure they match the list of types
+    expected by the initiating function,
+*/
+#define BOOST_BEAST_HANDLER_INIT(type, sig) \
+    static_assert(is_completion_handler< \
+    BOOST_ASIO_HANDLER_TYPE(type, sig), sig>::value, \
+    "CompletionHandler signature requirements not met"); \
+    boost::asio::async_completion<type, sig> init{handler}
+
 } // detail
 } // beast
 } // boost
