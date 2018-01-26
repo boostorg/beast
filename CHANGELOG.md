@@ -2,6 +2,7 @@ Version 154:
 
 * Type check completion handlers
 * bind_handler doc update
+* bind_handler works with boost placeholders
 
 --------------------------------------------------------------------------------
 
