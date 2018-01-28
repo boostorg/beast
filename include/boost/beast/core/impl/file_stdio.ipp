@@ -105,6 +105,10 @@ open(char const* path, file_mode mode, error_code& ec)
         return;
     }
 #else
+    #if (__cplusplus <= 201402L)
+        // supported by std::fopen since c++17
+        BOOST_ASSERT(mode != file_mode::write_new);
+    #endif
     f_ = std::fopen(path, s);
     if(! f_)
     {
