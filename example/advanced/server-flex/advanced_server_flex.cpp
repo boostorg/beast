@@ -745,7 +745,15 @@ class http_session
             };
 
             // Allocate and store the work
-            items_.emplace_back(new work_impl(self_, std::move(msg)));
+#ifdef __cpp_lib_make_unique
+            // C++14
+            items_.push_back(
+                std::make_unique<work_impl>(self_, std::move(msg)));
+#else
+            // C++11
+            items_.push_back(nullptr); // might throw
+            items_.back().reset(new work_impl(self_, std::move(msg)));
+#endif
 
             // If there was no previous work, start this one
             if(items_.size() == 1)
