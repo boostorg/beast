@@ -26,6 +26,7 @@
 #include <boost/asio/ssl/stream.hpp>
 #include <boost/asio/strand.hpp>
 #include <boost/asio/steady_timer.hpp>
+#include <boost/make_unique.hpp>
 #include <boost/config.hpp>
 #include <algorithm>
 #include <cstdlib>
@@ -745,7 +746,8 @@ class http_session
             };
 
             // Allocate and store the work
-            items_.emplace_back(new work_impl(self_, std::move(msg)));
+            items_.push_back(
+                boost::make_unique<work_impl>(self_, std::move(msg)));
 
             // If there was no previous work, start this one
             if(items_.size() == 1)
