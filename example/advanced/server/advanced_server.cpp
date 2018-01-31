@@ -21,6 +21,7 @@
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/strand.hpp>
 #include <boost/asio/steady_timer.hpp>
+#include <boost/make_unique.hpp>
 #include <boost/config.hpp>
 #include <algorithm>
 #include <cstdlib>
@@ -539,15 +540,8 @@ class http_session : public std::enable_shared_from_this<http_session>
             };
 
             // Allocate and store the work
-#ifdef __cpp_lib_make_unique
-            // C++14
             items_.push_back(
-                std::make_unique<work_impl>(self_, std::move(msg)));
-#else
-            // C++11
-            items_.push_back(nullptr); // might throw
-            items_.back().reset(new work_impl(self_, std::move(msg)));
-#endif
+                boost::make_unique<work_impl>(self_, std::move(msg)));
 
             // If there was no previous work, start this one
             if(items_.size() == 1)
