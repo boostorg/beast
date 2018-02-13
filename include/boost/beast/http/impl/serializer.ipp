@@ -216,6 +216,8 @@ next(error_code& ec, Visit&& visit)
     go_header_only_c:
         v_.template emplace<1>(fwr_->get());
         s_ = do_header_only_c;
+        BOOST_FALLTHROUGH;
+
     case do_header_only_c:
         do_visit<1>(ec, visit);
         break;
