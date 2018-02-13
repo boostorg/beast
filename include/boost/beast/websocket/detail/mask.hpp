@@ -186,12 +186,12 @@ mask_inplace_fast(
             std::uintptr_t>(p) & (sizeof(key)-1);
         switch(i)
         {
-        case 1: p[6] ^= static_cast<std::uint8_t>(key >> 48);
-        case 2: p[5] ^= static_cast<std::uint8_t>(key >> 40);
-        case 3: p[4] ^= static_cast<std::uint8_t>(key >> 32);
-        case 4: p[3] ^= static_cast<std::uint8_t>(key >> 24);
-        case 5: p[2] ^= static_cast<std::uint8_t>(key >> 16);
-        case 6: p[1] ^= static_cast<std::uint8_t>(key >> 8);
+        case 1: p[6] ^= static_cast<std::uint8_t>(key >> 48); BOOST_FALLTHROUGH;
+        case 2: p[5] ^= static_cast<std::uint8_t>(key >> 40); BOOST_FALLTHROUGH;
+        case 3: p[4] ^= static_cast<std::uint8_t>(key >> 32); BOOST_FALLTHROUGH;
+        case 4: p[3] ^= static_cast<std::uint8_t>(key >> 24); BOOST_FALLTHROUGH;
+        case 5: p[2] ^= static_cast<std::uint8_t>(key >> 16); BOOST_FALLTHROUGH;
+        case 6: p[1] ^= static_cast<std::uint8_t>(key >> 8);  BOOST_FALLTHROUGH;
         case 7: p[0] ^= static_cast<std::uint8_t>(key);
         {
             auto const d = static_cast<
@@ -199,6 +199,7 @@ mask_inplace_fast(
             key = ror(key, 8*d);
             n -= d;
             p += d;
+            BOOST_FALLTHROUGH;
         }
         default:
             break;
@@ -217,14 +218,15 @@ mask_inplace_fast(
     n &= sizeof(key)-1;
     switch(n)
     {
-    case 7: p[6] ^= static_cast<std::uint8_t>(key >> 48);
-    case 6: p[5] ^= static_cast<std::uint8_t>(key >> 40);
-    case 5: p[4] ^= static_cast<std::uint8_t>(key >> 32);
-    case 4: p[3] ^= static_cast<std::uint8_t>(key >> 24);
-    case 3: p[2] ^= static_cast<std::uint8_t>(key >> 16);
-    case 2: p[1] ^= static_cast<std::uint8_t>(key >> 8);
+    case 7: p[6] ^= static_cast<std::uint8_t>(key >> 48); BOOST_FALLTHROUGH;
+    case 6: p[5] ^= static_cast<std::uint8_t>(key >> 40); BOOST_FALLTHROUGH;
+    case 5: p[4] ^= static_cast<std::uint8_t>(key >> 32); BOOST_FALLTHROUGH;
+    case 4: p[3] ^= static_cast<std::uint8_t>(key >> 24); BOOST_FALLTHROUGH;
+    case 3: p[2] ^= static_cast<std::uint8_t>(key >> 16); BOOST_FALLTHROUGH;
+    case 2: p[1] ^= static_cast<std::uint8_t>(key >> 8);  BOOST_FALLTHROUGH;
     case 1: p[0] ^= static_cast<std::uint8_t>(key);
         key = ror(key, static_cast<unsigned>(8*n));
+        BOOST_FALLTHROUGH;
     default:
         break;
     }

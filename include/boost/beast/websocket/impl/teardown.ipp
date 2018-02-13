@@ -110,7 +110,7 @@ operator()(error_code ec, std::size_t)
         break;
 
     case 2:
-        step_ = 3;
+        step_ = 3; BOOST_FALLTHROUGH;
 
     case 3:
         if(ec != boost::asio::error::would_block)
