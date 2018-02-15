@@ -146,7 +146,6 @@ class stream<NextLayer, deflateSupported>::write_some_op
     std::size_t bytes_transferred_ = 0;
     std::size_t remain_;
     std::size_t in_;
-    token tok_;
     int how_;
     bool fin_;
     bool more_;
@@ -165,7 +164,6 @@ public:
         : h_(std::forward<DeducedHandler>(h))
         , ws_(ws)
         , cb_(bs)
-        , tok_(ws_.tok_.unique())
         , fin_(fin)
     {
     }
@@ -293,11 +291,8 @@ operator()(
         }
 
         // Maybe suspend
-        if(! ws_.wr_block_)
+        if(ws_.wr_block_.try_lock(this))
         {
-            // Acquire the write block
-            ws_.wr_block_ = tok_;
-
             // Make sure the stream is open
             if(! ws_.check_open(ec))
                 goto upcall;
@@ -306,19 +301,17 @@ operator()(
         {
         do_suspend:
             // Suspend
-            BOOST_ASSERT(ws_.wr_block_ != tok_);
             BOOST_ASIO_CORO_YIELD
             ws_.paused_wr_.emplace(std::move(*this));
 
             // Acquire the write block
-            BOOST_ASSERT(! ws_.wr_block_);
-            ws_.wr_block_ = tok_;
+            ws_.wr_block_.lock(this);
 
             // Resume
             BOOST_ASIO_CORO_YIELD
             boost::asio::post(
                 ws_.get_executor(), std::move(*this));
-            BOOST_ASSERT(ws_.wr_block_ == tok_);
+            BOOST_ASSERT(ws_.wr_block_.is_locked(this));
 
             // Make sure the stream is open
             if(! ws_.check_open(ec))
@@ -377,15 +370,15 @@ operator()(
                 fh_.op = detail::opcode::cont;
                 // Allow outgoing control frames to
                 // be sent in between message frames
-                ws_.wr_block_.reset();
+                ws_.wr_block_.unlock(this);
                 if( ws_.paused_close_.maybe_invoke() ||
                     ws_.paused_rd_.maybe_invoke() ||
                     ws_.paused_ping_.maybe_invoke())
                 {
-                    BOOST_ASSERT(ws_.wr_block_);
+                    BOOST_ASSERT(ws_.wr_block_.is_locked());
                     goto do_suspend;
                 }
-                ws_.wr_block_ = tok_;
+                ws_.wr_block_.lock(this);
             }
             goto upcall;
         }
@@ -476,15 +469,15 @@ operator()(
                 fh_.op = detail::opcode::cont;
                 // Allow outgoing control frames to
                 // be sent in between message frames:
-                ws_.wr_block_.reset();
+                ws_.wr_block_.unlock(this);
                 if( ws_.paused_close_.maybe_invoke() ||
                     ws_.paused_rd_.maybe_invoke() ||
                     ws_.paused_ping_.maybe_invoke())
                 {
-                    BOOST_ASSERT(ws_.wr_block_);
+                    BOOST_ASSERT(ws_.wr_block_.is_locked());
                     goto do_suspend;
                 }
-                ws_.wr_block_ = tok_;
+                ws_.wr_block_.lock(this);
             }
             goto upcall;
         }
@@ -537,15 +530,15 @@ operator()(
                     fh_.rsv1 = false;
                     // Allow outgoing control frames to
                     // be sent in between message frames:
-                    ws_.wr_block_.reset();
+                    ws_.wr_block_.unlock(this);
                     if( ws_.paused_close_.maybe_invoke() ||
                         ws_.paused_rd_.maybe_invoke() ||
                         ws_.paused_ping_.maybe_invoke())
                     {
-                        BOOST_ASSERT(ws_.wr_block_);
+                        BOOST_ASSERT(ws_.wr_block_.is_locked());
                         goto do_suspend;
                     }
-                    ws_.wr_block_ = tok_;
+                    ws_.wr_block_.lock(this);
                 }
                 else
                 {
@@ -559,8 +552,7 @@ operator()(
     //--------------------------------------------------------------------------
 
     upcall:
-        BOOST_ASSERT(ws_.wr_block_ == tok_);
-        ws_.wr_block_.reset();
+        ws_.wr_block_.unlock(this);
         ws_.paused_close_.maybe_invoke() ||
             ws_.paused_rd_.maybe_invoke() ||
             ws_.paused_ping_.maybe_invoke();

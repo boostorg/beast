@@ -147,21 +147,6 @@ class stream
     using control_cb_type =
         std::function<void(frame_type, string_view)>;
 
-    // tokens are used to order reads and writes
-    class token
-    {
-        unsigned char id_ = 0;
-    public:
-        token() = default;
-        token(token const&) = default;
-        explicit token(unsigned char id) : id_(id) {}
-        operator bool() const { return id_ != 0; }
-        bool operator==(token const& t) { return id_ == t.id_; }
-        bool operator!=(token const& t) { return id_ != t.id_; }
-        token unique() { token t{id_++}; if(id_ == 0) ++id_; return t; }
-        void reset() { id_ = 0; }
-    };
-
     enum class status
     {
         open,
@@ -195,15 +180,14 @@ class stream
                                 = true;
     bool                    rd_close_       // did we read a close frame?
                                 = false;
-    token                   rd_block_;      // op currenly reading
+    detail::type_mutex      rd_block_;      // op currenly reading
 
-    token                   tok_;           // used to order asynchronous ops
     role_type               role_           // server or client
                                 = role_type::client;
     status                  status_
                                 = status::closed;
 
-    token                   wr_block_;      // op currenly writing
+    detail::type_mutex      wr_block_;      // op currenly writing
     bool                    wr_close_       // did we write a close frame?
                                 = false;
     bool                    wr_cont_        // next write is a continuation

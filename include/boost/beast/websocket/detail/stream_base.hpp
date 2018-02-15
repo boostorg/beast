@@ -17,6 +17,7 @@
 #include <boost/beast/core/buffers_suffix.hpp>
 #include <boost/beast/core/error.hpp>
 #include <boost/asio/buffer.hpp>
+#include <boost/type_index.hpp>
 #include <cstdint>
 #include <memory>
 
@@ -24,6 +25,86 @@ namespace boost {
 namespace beast {
 namespace websocket {
 namespace detail {
+
+// used to order reads and writes
+class type_mutex
+{
+    boost::typeindex::type_index ti_ = typeid(type_mutex);
+
+public:
+    type_mutex() = default;
+    type_mutex(type_mutex const&) = delete;
+    type_mutex& operator=(type_mutex const&) = delete;
+
+    type_mutex(type_mutex&& other) noexcept
+        : ti_(other.ti_)
+    {
+        other.ti_ = boost::typeindex::type_id<void>();
+    }
+
+    type_mutex& operator=(type_mutex&& other) noexcept
+    {
+        ti_ = other.ti_;
+        other.ti_ = boost::typeindex::type_id<void>();
+        return *this;
+    }
+
+    // VFALCO I'm not too happy that this function is needed
+    void reset()
+    {
+        ti_ = typeid(void);
+    }
+
+    bool is_locked() const
+    {
+        return ti_ != boost::typeindex::type_id<void>();
+    }
+
+    template<class T>
+    bool is_locked(T const*) const
+    {
+        return ti_ == boost::typeindex::type_id<T>();
+    }
+
+    template<class T>
+    void lock(T const*)
+    {
+        BOOST_ASSERT(ti_ == boost::typeindex::type_id<void>());
+        ti_ = typeid(T);
+    }
+
+    template<class T>
+    void unlock(T const*)
+    {
+        BOOST_ASSERT(ti_ == boost::typeindex::type_id<T>());
+        ti_ = typeid(void);
+    }
+
+    template<class T>
+    bool try_lock(T const*)
+    {
+        // If this assert goes off it means you are attempting to
+        // simultaneously initiate more than one of same asynchronous
+        // operation, which is not allowed. For example, you must wait
+        // for an async_read to complete before performing another
+        // async_read.
+        //
+        BOOST_ASSERT(ti_ != boost::typeindex::type_id<T>());
+        if(ti_ != boost::typeindex::type_id<void>())
+            return false;
+        ti_ = typeid(T);
+        return true;
+    }
+
+    template<class T>
+    bool try_unlock(T const*)
+    {
+        if(ti_ != boost::typeindex::type_id<T>())
+            return false;
+        ti_ = boost::typeindex::type_id<void>();
+        return true;
+    }
+};
 
 template<bool deflateSupported>
 struct stream_base

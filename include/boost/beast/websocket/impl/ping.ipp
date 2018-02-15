@@ -41,7 +41,6 @@ class stream<NextLayer, deflateSupported>::ping_op
     {
         stream<NextLayer, deflateSupported>& ws;
         detail::frame_buffer fb;
-        token tok;
 
         state(
             Handler const&,
@@ -49,7 +48,6 @@ class stream<NextLayer, deflateSupported>::ping_op
             detail::opcode op,
             ping_data const& payload)
             : ws(ws_)
-            , tok(ws.tok_.unique())
         {
             // Serialize the control frame
             ws.template write_ping<
@@ -118,11 +116,8 @@ operator()(error_code ec, std::size_t)
     BOOST_ASIO_CORO_REENTER(*this)
     {
         // Maybe suspend
-        if(! d.ws.wr_block_)
+        if(d.ws.wr_block_.try_lock(this))
         {
-            // Acquire the write block
-            d.ws.wr_block_ = d.tok;
-
             // Make sure the stream is open
             if(! d.ws.check_open(ec))
             {
@@ -136,19 +131,17 @@ operator()(error_code ec, std::size_t)
         else
         {
             // Suspend
-            BOOST_ASSERT(d.ws.wr_block_ != d.tok);
             BOOST_ASIO_CORO_YIELD
             d.ws.paused_ping_.emplace(std::move(*this));
 
             // Acquire the write block
-            BOOST_ASSERT(! d.ws.wr_block_);
-            d.ws.wr_block_ = d.tok;
+            d.ws.wr_block_.lock(this);
 
             // Resume
             BOOST_ASIO_CORO_YIELD
             boost::asio::post(
                 d.ws.get_executor(), std::move(*this));
-            BOOST_ASSERT(d.ws.wr_block_ == d.tok);
+            BOOST_ASSERT(d.ws.wr_block_.is_locked(this));
 
             // Make sure the stream is open
             if(! d.ws.check_open(ec))
@@ -163,8 +156,7 @@ operator()(error_code ec, std::size_t)
             goto upcall;
 
     upcall:
-        BOOST_ASSERT(d.ws.wr_block_ == d.tok);
-        d.ws.wr_block_.reset();
+        d.ws.wr_block_.unlock(this);
         d.ws.paused_close_.maybe_invoke() ||
             d.ws.paused_rd_.maybe_invoke() ||
             d.ws.paused_wr_.maybe_invoke();

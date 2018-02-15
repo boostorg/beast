@@ -45,7 +45,6 @@ template<class... Args>
 stream<NextLayer, deflateSupported>::
 stream(Args&&... args)
     : stream_(std::forward<Args>(args)...)
-    , tok_(1)
 {
     BOOST_ASSERT(rd_buf_.max_size() >=
         max_control_frame_size);
@@ -125,6 +124,9 @@ open(role_type role)
     rd_fh_.fin = false;
     rd_close_ = false;
     wr_close_ = false;
+    // These should not be necessary, because all completion
+    // handlers must be allowed to execute otherwise the
+    // stream exhibits undefined behavior.
     wr_block_.reset();
     rd_block_.reset();
     cr_.code = close_code::none;
@@ -196,6 +198,9 @@ reset()
     rd_close_ = false;
     wr_close_ = false;
     wr_cont_ = false;
+    // These should not be necessary, because all completion
+    // handlers must be allowed to execute otherwise the
+    // stream exhibits undefined behavior.
     wr_block_.reset();
     rd_block_.reset();
     cr_.code = close_code::none;

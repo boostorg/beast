@@ -85,7 +85,6 @@ class stream<NextLayer, deflateSupported>::read_some_op
     buffers_suffix<MutableBufferSequence> cb_;
     std::size_t bytes_written_ = 0;
     error_code result_;
-    token tok_;
     close_code code_;
     bool did_read_ = false;
     bool cont_ = false;
@@ -103,7 +102,6 @@ public:
         , ws_(ws)
         , bs_(bs)
         , cb_(bs)
-        , tok_(ws_.tok_.unique())
         , code_(close_code::none)
     {
     }
@@ -165,11 +163,8 @@ operator()(
     {
         // Maybe suspend
     do_maybe_suspend:
-        if(! ws_.rd_block_)
+        if(ws_.rd_block_.try_lock(this))
         {
-            // Acquire the read block
-            ws_.rd_block_ = tok_;
-
             // Make sure the stream is not closed
             if( ws_.status_ == status::closed ||
                 ws_.status_ == status::failed)
@@ -182,19 +177,17 @@ operator()(
         {
         do_suspend:
             // Suspend
-            BOOST_ASSERT(ws_.rd_block_ != tok_);
             BOOST_ASIO_CORO_YIELD
             ws_.paused_r_rd_.emplace(std::move(*this));
 
             // Acquire the read block
-            BOOST_ASSERT(! ws_.rd_block_);
-            ws_.rd_block_ = tok_;
+            ws_.rd_block_.lock(this);
 
             // Resume
             BOOST_ASIO_CORO_YIELD
             boost::asio::post(
                 ws_.get_executor(), std::move(*this));
-            BOOST_ASSERT(ws_.rd_block_ == tok_);
+            BOOST_ASSERT(ws_.rd_block_.is_locked(this));
 
             // The only way to get read blocked is if
             // a `close_op` wrote a close frame
@@ -209,7 +202,7 @@ operator()(
         // then finish the read with operation_aborted.
 
     loop:
-        BOOST_ASSERT(ws_.rd_block_ == tok_);
+        BOOST_ASSERT(ws_.rd_block_.is_locked(this));
         // See if we need to read a frame header. This
         // condition is structured to give the decompressor
         // a chance to emit the final empty deflate block
@@ -230,29 +223,28 @@ operator()(
                         code_ = close_code::protocol_error;
                     goto close;
                 }
-                BOOST_ASSERT(ws_.rd_block_ == tok_);
+                BOOST_ASSERT(ws_.rd_block_.is_locked(this));
                 BOOST_ASIO_CORO_YIELD
                 ws_.stream_.async_read_some(
                     ws_.rd_buf_.prepare(read_size(
                         ws_.rd_buf_, ws_.rd_buf_.max_size())),
                             std::move(*this));
-                BOOST_ASSERT(ws_.rd_block_ == tok_);
+                BOOST_ASSERT(ws_.rd_block_.is_locked(this));
                 if(! ws_.check_ok(ec))
                     goto upcall;
                 ws_.rd_buf_.commit(bytes_transferred);
 
                 // Allow a close operation
                 // to acquire the read block
-                BOOST_ASSERT(ws_.rd_block_ == tok_);
-                ws_.rd_block_.reset();
+                ws_.rd_block_.unlock(this);
                 if( ws_.paused_r_close_.maybe_invoke())
                 {
                     // Suspend
-                    BOOST_ASSERT(ws_.rd_block_);
+                    BOOST_ASSERT(ws_.rd_block_.is_locked());
                     goto do_suspend;
                 }
                 // Acquire read block
-                ws_.rd_block_ = tok_;
+                ws_.rd_block_.lock(this);
             }
             // Immediately apply the mask to the portion
             // of the buffer holding payload data.
@@ -302,36 +294,26 @@ operator()(
                                 detail::opcode::pong, payload);
                     }
 
-                    //BOOST_ASSERT(! ws_.paused_r_close_);
-
                     // Allow a close operation
                     // to acquire the read block
-                    BOOST_ASSERT(ws_.rd_block_ == tok_);
-                    ws_.rd_block_.reset();
+                    ws_.rd_block_.unlock(this);
                     ws_.paused_r_close_.maybe_invoke();
 
                     // Maybe suspend
-                    if(! ws_.wr_block_)
-                    {
-                        // Acquire the write block
-                        ws_.wr_block_ = tok_;
-                    }
-                    else
+                    if(! ws_.wr_block_.try_lock(this))
                     {
                         // Suspend
-                        BOOST_ASSERT(ws_.wr_block_ != tok_);
                         BOOST_ASIO_CORO_YIELD
                         ws_.paused_rd_.emplace(std::move(*this));
 
                         // Acquire the write block
-                        BOOST_ASSERT(! ws_.wr_block_);
-                        ws_.wr_block_ = tok_;
+                        ws_.wr_block_.lock(this);
 
                         // Resume
                         BOOST_ASIO_CORO_YIELD
                         boost::asio::post(
                             ws_.get_executor(), std::move(*this));
-                        BOOST_ASSERT(ws_.wr_block_ == tok_);
+                        BOOST_ASSERT(ws_.wr_block_.is_locked(this));
 
                         // Make sure the stream is open
                         if(! ws_.check_open(ec))
@@ -339,14 +321,14 @@ operator()(
                     }
 
                     // Send pong
-                    BOOST_ASSERT(ws_.wr_block_ == tok_);
+                    BOOST_ASSERT(ws_.wr_block_.is_locked(this));
                     BOOST_ASIO_CORO_YIELD
                     boost::asio::async_write(ws_.stream_,
                         ws_.rd_fb_.data(), std::move(*this));
-                    BOOST_ASSERT(ws_.wr_block_ == tok_);
+                    BOOST_ASSERT(ws_.wr_block_.is_locked(this));
                     if(! ws_.check_ok(ec))
                         goto upcall;
-                    ws_.wr_block_.reset();
+                    ws_.wr_block_.unlock(this);
                     ws_.paused_close_.maybe_invoke() ||
                         ws_.paused_ping_.maybe_invoke() ||
                         ws_.paused_wr_.maybe_invoke();
@@ -629,30 +611,25 @@ operator()(
         goto upcall;
 
     close:
-        if(! ws_.wr_block_)
+        if(ws_.wr_block_.try_lock(this))
         {
-            // Acquire the write block
-            ws_.wr_block_ = tok_;
-
             // Make sure the stream is open
             BOOST_ASSERT(ws_.status_ == status::open);
         }
         else
         {
             // Suspend
-            BOOST_ASSERT(ws_.wr_block_ != tok_);
             BOOST_ASIO_CORO_YIELD
             ws_.paused_rd_.emplace(std::move(*this));
 
             // Acquire the write block
-            BOOST_ASSERT(! ws_.wr_block_);
-            ws_.wr_block_ = tok_;
+            ws_.wr_block_.lock(this);
 
             // Resume
             BOOST_ASIO_CORO_YIELD
             boost::asio::post(
                 ws_.get_executor(), std::move(*this));
-            BOOST_ASSERT(ws_.wr_block_ == tok_);
+            BOOST_ASSERT(ws_.wr_block_.is_locked(this));
 
             // Make sure the stream is open
             if(! ws_.check_open(ec))
@@ -673,23 +650,23 @@ operator()(
                     ws_.rd_fb_, code_);
 
             // Send close frame
-            BOOST_ASSERT(ws_.wr_block_ == tok_);
+            BOOST_ASSERT(ws_.wr_block_.is_locked(this));
             BOOST_ASIO_CORO_YIELD
             boost::asio::async_write(
                 ws_.stream_, ws_.rd_fb_.data(),
                     std::move(*this));
-            BOOST_ASSERT(ws_.wr_block_ == tok_);
+            BOOST_ASSERT(ws_.wr_block_.is_locked(this));
             if(! ws_.check_ok(ec))
                 goto upcall;
         }
 
         // Teardown
         using beast::websocket::async_teardown;
-        BOOST_ASSERT(ws_.wr_block_ == tok_);
+        BOOST_ASSERT(ws_.wr_block_.is_locked(this));
         BOOST_ASIO_CORO_YIELD
         async_teardown(ws_.role_,
             ws_.stream_, std::move(*this));
-        BOOST_ASSERT(ws_.wr_block_ == tok_);
+        BOOST_ASSERT(ws_.wr_block_.is_locked(this));
         if(ec == boost::asio::error::eof)
         {
             // Rationale:
@@ -705,16 +682,12 @@ operator()(
         ws_.close();
 
     upcall:
-        if(ws_.rd_block_ == tok_)
-            ws_.rd_block_.reset();
+        ws_.rd_block_.try_unlock(this);
         ws_.paused_r_close_.maybe_invoke();
-        if(ws_.wr_block_ == tok_)
-        {
-            ws_.wr_block_.reset();
+        if(ws_.wr_block_.try_unlock(this))
             ws_.paused_close_.maybe_invoke() ||
                 ws_.paused_ping_.maybe_invoke() ||
                 ws_.paused_wr_.maybe_invoke();
-        }
         if(! cont_)
             return boost::asio::post(
                 ws_.stream_.get_executor(),

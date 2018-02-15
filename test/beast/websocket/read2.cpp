@@ -43,7 +43,7 @@ public:
                             system_error{ec});
                     BEAST_EXPECT(++count == 1);
                 });
-            while(! ws.rd_block_)
+            while(! ws.rd_block_.is_locked())
                 ioc.run_one();
             multi_buffer b;
             ws.async_read(b,
@@ -78,7 +78,7 @@ public:
                             system_error{ec});
                     BEAST_EXPECT(++count == 2);
                 });
-            BOOST_ASSERT(ws.rd_block_);
+            BOOST_ASSERT(ws.rd_block_.is_locked());
             ws.async_close({},
                 [&](error_code ec)
                 {
@@ -115,7 +115,7 @@ public:
                     BEAST_EXPECT(to_string(b.data()) == s);
                     ++count;
                 });
-            BEAST_EXPECT(ws.rd_block_);
+            BEAST_EXPECT(ws.rd_block_.is_locked());
             ws.async_write(buffer(s),
                 [&](error_code ec, std::size_t n)
                 {
@@ -125,7 +125,7 @@ public:
                     BEAST_EXPECT(n == s.size());
                     ++count;
                 });
-            BEAST_EXPECT(ws.wr_block_);
+            BEAST_EXPECT(ws.wr_block_.is_locked());
             ioc.run();
             BEAST_EXPECT(count == 2);
         });
@@ -164,7 +164,7 @@ public:
                             BEAST_EXPECT(++count == 3);
                         });
                 });
-            BEAST_EXPECT(ws.rd_block_);
+            BEAST_EXPECT(ws.rd_block_.is_locked());
             ws.async_close({},
                 [&](error_code ec)
                 {
@@ -173,7 +173,7 @@ public:
                             system_error{ec});
                     BEAST_EXPECT(++count == 2);
                 });
-            BEAST_EXPECT(ws.wr_block_);
+            BEAST_EXPECT(ws.wr_block_.is_locked());
             ioc.run();
             BEAST_EXPECT(count == 3);
         });
@@ -202,7 +202,7 @@ public:
                             system_error{ec});
                     BEAST_EXPECT(++count == 2);
                 });
-            BEAST_EXPECT(ws.rd_block_);
+            BEAST_EXPECT(ws.rd_block_.is_locked());
             ws.async_close({},
                 [&](error_code ec)
                 {
@@ -211,7 +211,7 @@ public:
                             system_error{ec});
                     BEAST_EXPECT(++count == 1);
                 });
-            BEAST_EXPECT(ws.wr_block_);
+            BEAST_EXPECT(ws.wr_block_.is_locked());
             ioc.run();
             BEAST_EXPECT(count == 2);
         });
