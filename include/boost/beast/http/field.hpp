@@ -38,6 +38,7 @@ enum class field : unsigned short
     access_control_allow_headers,
     access_control_allow_methods,
     access_control_allow_origin,
+    access_control_expose_headers,
     access_control_max_age,
     access_control_request_headers,
     access_control_request_method,

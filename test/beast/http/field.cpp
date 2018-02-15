@@ -50,6 +50,7 @@ public:
         match(field::access_control_allow_headers, "Access-Control-Allow-Headers");
         match(field::access_control_allow_methods, "Access-Control-Allow-Methods");
         match(field::access_control_allow_origin, "Access-Control-Allow-Origin");
+        match(field::access_control_expose_headers, "Access-Control-Expose-Headers");
         match(field::access_control_max_age, "Access-Control-Max-Age");
         match(field::access_control_request_headers, "Access-Control-Request-Headers");
         match(field::access_control_request_method, "Access-Control-Request-Method");
