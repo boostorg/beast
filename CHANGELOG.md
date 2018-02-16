@@ -3,6 +3,7 @@ Version 155:
 * Fix memory leak in advanced server examples
 * Fix soft-mutex assert in websocket stream
 * Fix fallthrough warnings
+* Tidy up bind_handler doc
 
 --------------------------------------------------------------------------------
 

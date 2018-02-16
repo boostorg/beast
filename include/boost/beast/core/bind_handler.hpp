@@ -28,8 +28,8 @@ namespace beast {
     which are not matched to placeholders are silently discarded.
 
     The passed handler and arguments are forwarded into the returned
-    handler, which inherits the associated allocator and associated
-    executor of the original handler.
+    handler, whose associated allocator and associated executor will
+    will be the same as those of the original handler.
 
     Unlike `boost::asio::io_context::wrap`, the returned handler can
     be used in a subsequent call to `boost::asio::post` instead of
