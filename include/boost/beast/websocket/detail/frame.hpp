@@ -217,7 +217,7 @@ write(DynamicBuffer& db, frame_header const& fh)
     }
     if(fh.mask)
     {
-        native_to_little_uint32(fh.key, &b[n]);
+        ::new(&b[n]) native_uint32_buf_t{fh.key};
         n += 4;
     }
     db.commit(buffer_copy(
@@ -272,7 +272,7 @@ read_close(
     {
         std::uint8_t b[2];
         buffer_copy(buffer(b), cb);
-        cr.code = big_uint16_to_native(&b[0]);
+        cr.code = (::new(&b[0]) big_uint16_buf_t())->value();
         cb.consume(2);
         n -= 2;
         if(! is_valid_close_code(cr.code))
