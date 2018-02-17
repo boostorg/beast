@@ -1,6 +1,7 @@
 Version 156:
 
 * Don't use typeid
+* Add release notes to documentation
 
 --------------------------------------------------------------------------------
 
