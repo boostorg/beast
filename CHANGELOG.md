@@ -2,6 +2,7 @@ Version 156:
 
 * Don't use typeid
 * Add release notes to documentation
+* Fix stale link for void-or-deduced
 
 --------------------------------------------------------------------------------
 
