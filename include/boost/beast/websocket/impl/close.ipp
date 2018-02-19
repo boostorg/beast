@@ -61,6 +61,8 @@ class stream<NextLayer, deflateSupported>::close_op
     handler_ptr<state, Handler> d_;
 
 public:
+    static constexpr int id = 4; // for soft_mutex
+
     close_op(close_op&&) = default;
     close_op(close_op const&) = delete;
 

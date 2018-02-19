@@ -180,14 +180,14 @@ class stream
                                 = true;
     bool                    rd_close_       // did we read a close frame?
                                 = false;
-    detail::type_mutex      rd_block_;      // op currenly reading
+    detail::soft_mutex      rd_block_;      // op currently reading
 
     role_type               role_           // server or client
                                 = role_type::client;
     status                  status_
                                 = status::closed;
 
-    detail::type_mutex      wr_block_;      // op currenly writing
+    detail::soft_mutex      wr_block_;      // op currently writing
     bool                    wr_close_       // did we write a close frame?
                                 = false;
     bool                    wr_cont_        // next write is a continuation
@@ -3331,10 +3331,8 @@ public:
 private:
     template<class, class>  class accept_op;
     template<class>         class close_op;
-    template<class>         class fail_op;
     template<class>         class handshake_op;
     template<class>         class ping_op;
-    template<class>         class read_fh_op;
     template<class, class>  class read_some_op;
     template<class, class>  class read_op;
     template<class>         class response_op;

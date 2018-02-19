@@ -1,3 +1,9 @@
+Version 156:
+
+* Don't use typeid
+
+--------------------------------------------------------------------------------
+
 Version 155:
 
 * Fix memory leak in advanced server examples

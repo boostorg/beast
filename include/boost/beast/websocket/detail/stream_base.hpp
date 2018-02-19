@@ -17,7 +17,6 @@
 #include <boost/beast/core/buffers_suffix.hpp>
 #include <boost/beast/core/error.hpp>
 #include <boost/asio/buffer.hpp>
-#include <boost/type_index.hpp>
 #include <cstdint>
 #include <memory>
 
@@ -27,57 +26,57 @@ namespace websocket {
 namespace detail {
 
 // used to order reads and writes
-class type_mutex
+class soft_mutex
 {
-    boost::typeindex::type_index ti_ = typeid(type_mutex);
+    int id_ = 0;
 
 public:
-    type_mutex() = default;
-    type_mutex(type_mutex const&) = delete;
-    type_mutex& operator=(type_mutex const&) = delete;
+    soft_mutex() = default;
+    soft_mutex(soft_mutex const&) = delete;
+    soft_mutex& operator=(soft_mutex const&) = delete;
 
-    type_mutex(type_mutex&& other) noexcept
-        : ti_(other.ti_)
+    soft_mutex(soft_mutex&& other) noexcept
+        : id_(other.id_)
     {
-        other.ti_ = boost::typeindex::type_id<void>();
+        other.id_ = 0;
     }
 
-    type_mutex& operator=(type_mutex&& other) noexcept
+    soft_mutex& operator=(soft_mutex&& other) noexcept
     {
-        ti_ = other.ti_;
-        other.ti_ = boost::typeindex::type_id<void>();
+        id_ = other.id_;
+        other.id_ = 0;
         return *this;
     }
 
     // VFALCO I'm not too happy that this function is needed
     void reset()
     {
-        ti_ = typeid(void);
+        id_ = 0;
     }
 
     bool is_locked() const
     {
-        return ti_ != boost::typeindex::type_id<void>();
+        return id_ != 0;
     }
 
     template<class T>
     bool is_locked(T const*) const
     {
-        return ti_ == boost::typeindex::type_id<T>();
+        return id_ == T::id;
     }
 
     template<class T>
     void lock(T const*)
     {
-        BOOST_ASSERT(ti_ == boost::typeindex::type_id<void>());
-        ti_ = typeid(T);
+        BOOST_ASSERT(id_ == 0);
+        id_ = T::id;
     }
 
     template<class T>
     void unlock(T const*)
     {
-        BOOST_ASSERT(ti_ == boost::typeindex::type_id<T>());
-        ti_ = typeid(void);
+        BOOST_ASSERT(id_ == T::id);
+        id_ = 0;
     }
 
     template<class T>
@@ -89,19 +88,19 @@ public:
         // for an async_read to complete before performing another
         // async_read.
         //
-        BOOST_ASSERT(ti_ != boost::typeindex::type_id<T>());
-        if(ti_ != boost::typeindex::type_id<void>())
+        BOOST_ASSERT(id_ != T::id);
+        if(id_ != 0)
             return false;
-        ti_ = typeid(T);
+        id_ = T::id;
         return true;
     }
 
     template<class T>
     bool try_unlock(T const*)
     {
-        if(ti_ != boost::typeindex::type_id<T>())
+        if(id_ != T::id)
             return false;
-        ti_ = boost::typeindex::type_id<void>();
+        id_ = 0;
         return true;
     }
 };

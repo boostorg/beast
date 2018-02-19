@@ -90,6 +90,8 @@ class stream<NextLayer, deflateSupported>::read_some_op
     bool cont_ = false;
 
 public:
+    static constexpr int id = 1; // for soft_mutex
+
     read_some_op(read_some_op&&) = default;
     read_some_op(read_some_op const&) = delete;
 

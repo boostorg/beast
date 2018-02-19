@@ -152,6 +152,8 @@ class stream<NextLayer, deflateSupported>::write_some_op
     bool cont_ = false;
 
 public:
+    static constexpr int id = 2; // for soft_mutex
+
     write_some_op(write_some_op&&) = default;
     write_some_op(write_some_op const&) = delete;
 

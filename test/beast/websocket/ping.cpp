@@ -384,15 +384,6 @@ public:
                     ++count;
                     BEAST_EXPECTS(ec == error::closed,
                         ec.message());
-                    // Pings after a close are aborted
-                    ws.async_ping("",
-                        [&](error_code ec)
-                        {
-                            ++count;
-                            BEAST_EXPECTS(ec == boost::asio::
-                                error::operation_aborted,
-                                    ec.message());
-                        });
                 });
             if(! BEAST_EXPECT(run_until(ioc, 100,
                     [&]{ return ws.wr_close_; })))
@@ -420,7 +411,7 @@ public:
             std::size_t n;
             for(n = 0; n < limit; ++n)
             {
-                if(count >= 4)
+                if(count >= 3)
                     break;
                 ioc.run_one();
             }

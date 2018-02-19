@@ -59,6 +59,8 @@ class stream<NextLayer, deflateSupported>::ping_op
     handler_ptr<state, Handler> d_;
 
 public:
+    static constexpr int id = 3; // for soft_mutex
+
     ping_op(ping_op&&) = default;
     ping_op(ping_op const&) = delete;
 
