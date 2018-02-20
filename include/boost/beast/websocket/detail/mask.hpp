@@ -107,12 +107,45 @@ inline
 typename std::enable_if<std::is_integral<T>::value, T>::type
 ror(T t, unsigned n = 1)
 {
-    auto constexpr bits =
-        static_cast<unsigned>(
-            sizeof(T) * CHAR_BIT);
-    n &= bits-1;
-    return static_cast<T>((t << (bits - n)) | (
+  const T mask = (CHAR_BIT*sizeof(t) - 1);
+  n &= mask;
+  return static_cast<T>((t << ( (-n)&mask )) | (
         static_cast<typename std::make_unsigned<T>::type>(t) >> n));
+}
+
+template<class T>
+inline
+typename std::enable_if<std::is_integral<T>::value, T>::type
+rol(T t, unsigned n = 1)
+{
+  const T mask = (CHAR_BIT*sizeof(t) - 1);
+  n &= mask;
+  return static_cast<T>((t >> ( (-n)&mask )) | (
+        static_cast<typename std::make_unsigned<T>::type>(t) << n));
+}
+
+template<class T>
+inline
+typename std::enable_if<std::is_integral<T>::value, T>::type
+rotate_key(T t, unsigned n_uint8_t)
+{
+#   ifdef BOOST_BIG_ENDIAN
+    return rol(t, n_uint8_t * CHAR_BIT);
+#   else
+    return ror(t, n_uint8_t * CHAR_BIT);
+#   endif
+}
+
+template<class T>
+inline
+typename std::enable_if<std::is_integral<T>::value, T>::type
+byte_at(T t, unsigned n)
+{
+#   ifdef BOOST_BIG_ENDIAN
+    return static_cast<std::uint8_t>(n >> (CHAR_BIT * (sizeof(T) - n - 1)));
+#   else
+    return static_cast<std::uint8_t>(n >> (CHAR_BIT * n));
+#   endif
 }
 
 // 32-bit optimized
@@ -132,12 +165,12 @@ mask_inplace_fast(
             std::uintptr_t>(p) & (sizeof(key)-1);
         switch(i)
         {
-        case 1: p[2] ^= static_cast<std::uint8_t>(key >> 16); BOOST_FALLTHROUGH;
-        case 2: p[1] ^= static_cast<std::uint8_t>(key >> 8);  BOOST_FALLTHROUGH;
-        case 3: p[0] ^= static_cast<std::uint8_t>(key);
+        case 1: p[2] ^= byte_at(key, 2); BOOST_FALLTHROUGH;
+        case 2: p[1] ^= byte_at(key, 1); BOOST_FALLTHROUGH;
+        case 3: p[0] ^= byte_at(key, 0);
         {
             auto const d = static_cast<unsigned>(sizeof(key) - i);
-            key = ror(key, 8*d);
+            key = rotate_key(key, d);
             n -= d;
             p += d;
             BOOST_FALLTHROUGH;
@@ -159,10 +192,10 @@ mask_inplace_fast(
     n &= sizeof(key)-1;
     switch(n)
     {
-    case 3: p[2] ^= static_cast<std::uint8_t>(key >> 16); BOOST_FALLTHROUGH;
-    case 2: p[1] ^= static_cast<std::uint8_t>(key >> 8);  BOOST_FALLTHROUGH;
-    case 1: p[0] ^= static_cast<std::uint8_t>(key);
-        key = ror(key, static_cast<unsigned>(8*n));
+    case 3: p[2] ^= byte_at(key, 2); BOOST_FALLTHROUGH;
+    case 2: p[1] ^= byte_at(key, 1); BOOST_FALLTHROUGH;
+    case 1: p[0] ^= byte_at(key, 0);
+        key = rotate_key(key, static_cast<unsigned>(n));
         BOOST_FALLTHROUGH;
     default:
         break;
@@ -186,17 +219,17 @@ mask_inplace_fast(
             std::uintptr_t>(p) & (sizeof(key)-1);
         switch(i)
         {
-        case 1: p[6] ^= static_cast<std::uint8_t>(key >> 48); BOOST_FALLTHROUGH;
-        case 2: p[5] ^= static_cast<std::uint8_t>(key >> 40); BOOST_FALLTHROUGH;
-        case 3: p[4] ^= static_cast<std::uint8_t>(key >> 32); BOOST_FALLTHROUGH;
-        case 4: p[3] ^= static_cast<std::uint8_t>(key >> 24); BOOST_FALLTHROUGH;
-        case 5: p[2] ^= static_cast<std::uint8_t>(key >> 16); BOOST_FALLTHROUGH;
-        case 6: p[1] ^= static_cast<std::uint8_t>(key >> 8);  BOOST_FALLTHROUGH;
-        case 7: p[0] ^= static_cast<std::uint8_t>(key);
+        case 1: p[6] ^= byte_at(key, 6); BOOST_FALLTHROUGH;
+        case 2: p[5] ^= byte_at(key, 5); BOOST_FALLTHROUGH;
+        case 3: p[4] ^= byte_at(key, 4); BOOST_FALLTHROUGH;
+        case 4: p[3] ^= byte_at(key, 3); BOOST_FALLTHROUGH;
+        case 5: p[2] ^= byte_at(key, 2); BOOST_FALLTHROUGH;
+        case 6: p[1] ^= byte_at(key, 1); BOOST_FALLTHROUGH;
+        case 7: p[0] ^= byte_at(key, 0);
         {
             auto const d = static_cast<
                 unsigned>(sizeof(key) - i);
-            key = ror(key, 8*d);
+            key = rotate_key(key, d);
             n -= d;
             p += d;
             BOOST_FALLTHROUGH;
@@ -218,14 +251,14 @@ mask_inplace_fast(
     n &= sizeof(key)-1;
     switch(n)
     {
-    case 7: p[6] ^= static_cast<std::uint8_t>(key >> 48); BOOST_FALLTHROUGH;
-    case 6: p[5] ^= static_cast<std::uint8_t>(key >> 40); BOOST_FALLTHROUGH;
-    case 5: p[4] ^= static_cast<std::uint8_t>(key >> 32); BOOST_FALLTHROUGH;
-    case 4: p[3] ^= static_cast<std::uint8_t>(key >> 24); BOOST_FALLTHROUGH;
-    case 3: p[2] ^= static_cast<std::uint8_t>(key >> 16); BOOST_FALLTHROUGH;
-    case 2: p[1] ^= static_cast<std::uint8_t>(key >> 8);  BOOST_FALLTHROUGH;
-    case 1: p[0] ^= static_cast<std::uint8_t>(key);
-        key = ror(key, static_cast<unsigned>(8*n));
+    case 7: p[6] ^= byte_at(key, 6); BOOST_FALLTHROUGH;
+    case 6: p[5] ^= byte_at(key, 5); BOOST_FALLTHROUGH;
+    case 5: p[4] ^= byte_at(key, 4); BOOST_FALLTHROUGH;
+    case 4: p[3] ^= byte_at(key, 3); BOOST_FALLTHROUGH;
+    case 3: p[2] ^= byte_at(key, 2); BOOST_FALLTHROUGH;
+    case 2: p[1] ^= byte_at(key, 1); BOOST_FALLTHROUGH;
+    case 1: p[0] ^= byte_at(key, 0);
+        key = rotate_key(key, static_cast<unsigned>(n));
         BOOST_FALLTHROUGH;
     default:
         break;
