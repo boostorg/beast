@@ -115,120 +115,29 @@ ror(T t, unsigned n = 1)
         static_cast<typename std::make_unsigned<T>::type>(t) >> n));
 }
 
-// 32-bit optimized
-//
-template<class = void>
+template<class = void, class T>
 void
 mask_inplace_fast(
     boost::asio::mutable_buffer const& b,
-        std::uint32_t& key)
+        T& key)
 {
     auto n = b.size();
     auto p = reinterpret_cast<std::uint8_t*>(b.data());
-    if(n >= sizeof(key))
+    auto pkey = reinterpret_cast<std::uint8_t*>(&key);
+
+    size_t ikey = 0;
+    for (size_t i = 0; i < n; i++)
     {
-        // Bring p to 4-byte alignment
-        auto const i = reinterpret_cast<
-            std::uintptr_t>(p) & (sizeof(key)-1);
-        switch(i)
-        {
-        case 1: p[2] ^= static_cast<std::uint8_t>(key >> 16); BOOST_FALLTHROUGH;
-        case 2: p[1] ^= static_cast<std::uint8_t>(key >> 8);  BOOST_FALLTHROUGH;
-        case 3: p[0] ^= static_cast<std::uint8_t>(key);
-        {
-            auto const d = static_cast<unsigned>(sizeof(key) - i);
-            key = ror(key, 8*d);
-            n -= d;
-            p += d;
-            BOOST_FALLTHROUGH;
-        }
-        default:
-            break;
-        }
+        p[i] ^= pkey[ikey++];
+        ikey %= sizeof(key);
     }
 
-    // Mask 4 bytes at a time
-    for(auto i = n / sizeof(key); i; --i)
+    auto oldkey = key;
+    auto poldkey = reinterpret_cast<std::uint8_t*>(&oldkey);
+    for (size_t i = 0; i < sizeof(key); i++)
     {
-        *reinterpret_cast<
-            std::uint32_t*>(p) ^= key;
-        p += sizeof(key);
-    }
-
-    // Leftovers
-    n &= sizeof(key)-1;
-    switch(n)
-    {
-    case 3: p[2] ^= static_cast<std::uint8_t>(key >> 16); BOOST_FALLTHROUGH;
-    case 2: p[1] ^= static_cast<std::uint8_t>(key >> 8);  BOOST_FALLTHROUGH;
-    case 1: p[0] ^= static_cast<std::uint8_t>(key);
-        key = ror(key, static_cast<unsigned>(8*n));
-        BOOST_FALLTHROUGH;
-    default:
-        break;
-    }
-}
-
-// 64-bit optimized
-//
-template<class = void>
-void
-mask_inplace_fast(
-    boost::asio::mutable_buffer const& b,
-        std::uint64_t& key)
-{
-    auto n = b.size();
-    auto p = reinterpret_cast<std::uint8_t*>(b.data());
-    if(n >= sizeof(key))
-    {
-        // Bring p to 8-byte alignment
-        auto const i = reinterpret_cast<
-            std::uintptr_t>(p) & (sizeof(key)-1);
-        switch(i)
-        {
-        case 1: p[6] ^= static_cast<std::uint8_t>(key >> 48); BOOST_FALLTHROUGH;
-        case 2: p[5] ^= static_cast<std::uint8_t>(key >> 40); BOOST_FALLTHROUGH;
-        case 3: p[4] ^= static_cast<std::uint8_t>(key >> 32); BOOST_FALLTHROUGH;
-        case 4: p[3] ^= static_cast<std::uint8_t>(key >> 24); BOOST_FALLTHROUGH;
-        case 5: p[2] ^= static_cast<std::uint8_t>(key >> 16); BOOST_FALLTHROUGH;
-        case 6: p[1] ^= static_cast<std::uint8_t>(key >> 8);  BOOST_FALLTHROUGH;
-        case 7: p[0] ^= static_cast<std::uint8_t>(key);
-        {
-            auto const d = static_cast<
-                unsigned>(sizeof(key) - i);
-            key = ror(key, 8*d);
-            n -= d;
-            p += d;
-            BOOST_FALLTHROUGH;
-        }
-        default:
-            break;
-        }
-    }
-
-    // Mask 8 bytes at a time
-    for(auto i = n / sizeof(key); i; --i)
-    {
-        *reinterpret_cast<
-            std::uint64_t*>(p) ^= key;
-        p += sizeof(key);
-    }
-
-    // Leftovers
-    n &= sizeof(key)-1;
-    switch(n)
-    {
-    case 7: p[6] ^= static_cast<std::uint8_t>(key >> 48); BOOST_FALLTHROUGH;
-    case 6: p[5] ^= static_cast<std::uint8_t>(key >> 40); BOOST_FALLTHROUGH;
-    case 5: p[4] ^= static_cast<std::uint8_t>(key >> 32); BOOST_FALLTHROUGH;
-    case 4: p[3] ^= static_cast<std::uint8_t>(key >> 24); BOOST_FALLTHROUGH;
-    case 3: p[2] ^= static_cast<std::uint8_t>(key >> 16); BOOST_FALLTHROUGH;
-    case 2: p[1] ^= static_cast<std::uint8_t>(key >> 8);  BOOST_FALLTHROUGH;
-    case 1: p[0] ^= static_cast<std::uint8_t>(key);
-        key = ror(key, static_cast<unsigned>(8*n));
-        BOOST_FALLTHROUGH;
-    default:
-        break;
+        pkey[i] = poldkey[ikey++];
+        ikey %= sizeof(key);
     }
 }
 
