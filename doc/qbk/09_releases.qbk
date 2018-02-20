@@ -105,6 +105,8 @@ to update to the latest Boost release.
 
 * [issue 1024] Fix teardown for TIME_WAIT
 
+* [issue 1030] Fix big-endian websocket masking
+
 [*API Changes]
 
 * Remove unintended public members of

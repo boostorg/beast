@@ -11,6 +11,7 @@
 #define BOOST_BEAST_WEBSOCKET_DETAIL_MASK_HPP
 
 #include <boost/beast/core/detail/config.hpp>
+#include <boost/beast/core/detail/type_traits.hpp>
 #include <boost/asio/buffer.hpp>
 #include <array>
 #include <climits>
@@ -83,181 +84,59 @@ using maskgen = maskgen_t<std::minstd_rand>;
 
 //------------------------------------------------------------------------------
 
-using prepared_key =
-    std::conditional<sizeof(void*) == 8,
-        std::uint64_t, std::uint32_t>::type;
+using prepared_key = std::array<unsigned char, 4>;
 
 inline
 void
-prepare_key(std::uint32_t& prepared, std::uint32_t key)
+prepare_key(prepared_key& prepared, std::uint32_t key)
 {
-    prepared = key;
+    prepared[0] = (key >>  0) & 0xff;
+    prepared[1] = (key >>  8) & 0xff;
+    prepared[2] = (key >> 16) & 0xff;
+    prepared[3] = (key >> 24) & 0xff;
 }
 
-inline
+template<std::size_t N>
 void
-prepare_key(std::uint64_t& prepared, std::uint32_t key)
+rol(std::array<unsigned char, N>& v, unsigned n)
 {
-    prepared =
-        (static_cast<std::uint64_t>(key) << 32) | key;
+    auto v0 = v;
+    for(std::size_t i = 0; i < v.size(); ++i )
+        v[i] = v0[(i + n) % v.size()];
 }
 
-template<class T>
-inline
-typename std::enable_if<std::is_integral<T>::value, T>::type
-ror(T t, unsigned n = 1)
-{
-    auto constexpr bits =
-        static_cast<unsigned>(
-            sizeof(T) * CHAR_BIT);
-    n &= bits-1;
-    return static_cast<T>((t << (bits - n)) | (
-        static_cast<typename std::make_unsigned<T>::type>(t) >> n));
-}
-
-// 32-bit optimized
+// Apply mask in place
 //
-template<class = void>
+inline
 void
-mask_inplace_fast(
-    boost::asio::mutable_buffer const& b,
-        std::uint32_t& key)
+mask_inplace(boost::asio::mutable_buffer& b, prepared_key& key)
 {
     auto n = b.size();
-    auto p = reinterpret_cast<std::uint8_t*>(b.data());
-    if(n >= sizeof(key))
+    auto mask = key; // avoid aliasing
+    auto p = reinterpret_cast<unsigned char*>(b.data());
+    while(n >= 4)
     {
-        // Bring p to 4-byte alignment
-        auto const i = reinterpret_cast<
-            std::uintptr_t>(p) & (sizeof(key)-1);
-        switch(i)
-        {
-        case 1: p[2] ^= static_cast<std::uint8_t>(key >> 16); BOOST_FALLTHROUGH;
-        case 2: p[1] ^= static_cast<std::uint8_t>(key >> 8);  BOOST_FALLTHROUGH;
-        case 3: p[0] ^= static_cast<std::uint8_t>(key);
-        {
-            auto const d = static_cast<unsigned>(sizeof(key) - i);
-            key = ror(key, 8*d);
-            n -= d;
-            p += d;
-            BOOST_FALLTHROUGH;
-        }
-        default:
-            break;
-        }
+        for(int i = 0; i < 4; ++i)
+            p[i] ^= mask[i];
+        p += 4;
+        n -= 4;
     }
-
-    // Mask 4 bytes at a time
-    for(auto i = n / sizeof(key); i; --i)
+    if(n > 0)
     {
-        *reinterpret_cast<
-            std::uint32_t*>(p) ^= key;
-        p += sizeof(key);
+        for(std::size_t i = 0; i < n; ++i)
+            p[i] ^= mask[i];
+        rol(key, 4 - n);
     }
-
-    // Leftovers
-    n &= sizeof(key)-1;
-    switch(n)
-    {
-    case 3: p[2] ^= static_cast<std::uint8_t>(key >> 16); BOOST_FALLTHROUGH;
-    case 2: p[1] ^= static_cast<std::uint8_t>(key >> 8);  BOOST_FALLTHROUGH;
-    case 1: p[0] ^= static_cast<std::uint8_t>(key);
-        key = ror(key, static_cast<unsigned>(8*n));
-        BOOST_FALLTHROUGH;
-    default:
-        break;
-    }
-}
-
-// 64-bit optimized
-//
-template<class = void>
-void
-mask_inplace_fast(
-    boost::asio::mutable_buffer const& b,
-        std::uint64_t& key)
-{
-    auto n = b.size();
-    auto p = reinterpret_cast<std::uint8_t*>(b.data());
-    if(n >= sizeof(key))
-    {
-        // Bring p to 8-byte alignment
-        auto const i = reinterpret_cast<
-            std::uintptr_t>(p) & (sizeof(key)-1);
-        switch(i)
-        {
-        case 1: p[6] ^= static_cast<std::uint8_t>(key >> 48); BOOST_FALLTHROUGH;
-        case 2: p[5] ^= static_cast<std::uint8_t>(key >> 40); BOOST_FALLTHROUGH;
-        case 3: p[4] ^= static_cast<std::uint8_t>(key >> 32); BOOST_FALLTHROUGH;
-        case 4: p[3] ^= static_cast<std::uint8_t>(key >> 24); BOOST_FALLTHROUGH;
-        case 5: p[2] ^= static_cast<std::uint8_t>(key >> 16); BOOST_FALLTHROUGH;
-        case 6: p[1] ^= static_cast<std::uint8_t>(key >> 8);  BOOST_FALLTHROUGH;
-        case 7: p[0] ^= static_cast<std::uint8_t>(key);
-        {
-            auto const d = static_cast<
-                unsigned>(sizeof(key) - i);
-            key = ror(key, 8*d);
-            n -= d;
-            p += d;
-            BOOST_FALLTHROUGH;
-        }
-        default:
-            break;
-        }
-    }
-
-    // Mask 8 bytes at a time
-    for(auto i = n / sizeof(key); i; --i)
-    {
-        *reinterpret_cast<
-            std::uint64_t*>(p) ^= key;
-        p += sizeof(key);
-    }
-
-    // Leftovers
-    n &= sizeof(key)-1;
-    switch(n)
-    {
-    case 7: p[6] ^= static_cast<std::uint8_t>(key >> 48); BOOST_FALLTHROUGH;
-    case 6: p[5] ^= static_cast<std::uint8_t>(key >> 40); BOOST_FALLTHROUGH;
-    case 5: p[4] ^= static_cast<std::uint8_t>(key >> 32); BOOST_FALLTHROUGH;
-    case 4: p[3] ^= static_cast<std::uint8_t>(key >> 24); BOOST_FALLTHROUGH;
-    case 3: p[2] ^= static_cast<std::uint8_t>(key >> 16); BOOST_FALLTHROUGH;
-    case 2: p[1] ^= static_cast<std::uint8_t>(key >> 8);  BOOST_FALLTHROUGH;
-    case 1: p[0] ^= static_cast<std::uint8_t>(key);
-        key = ror(key, static_cast<unsigned>(8*n));
-        BOOST_FALLTHROUGH;
-    default:
-        break;
-    }
-}
-
-inline
-void
-mask_inplace(
-    boost::asio::mutable_buffer const& b,
-        std::uint32_t& key)
-{
-    mask_inplace_fast(b, key);
-}
-
-inline
-void
-mask_inplace(
-    boost::asio::mutable_buffer const& b,
-        std::uint64_t& key)
-{
-    mask_inplace_fast(b, key);
 }
 
 // Apply mask in place
 //
 template<class MutableBuffers, class KeyType>
 void
-mask_inplace(
-    MutableBuffers const& bs, KeyType& key)
+mask_inplace(MutableBuffers const& bs, KeyType& key)
 {
-    for(boost::asio::mutable_buffer b : bs)
+    for(boost::asio::mutable_buffer b :
+            beast::detail::buffers_range(bs))
         mask_inplace(b, key);
 }
 

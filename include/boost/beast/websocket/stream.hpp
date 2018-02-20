@@ -166,8 +166,7 @@ class stream
     std::uint64_t           rd_remain_      // message frame bytes left in current frame
                                 = 0;
     detail::frame_header    rd_fh_;         // current frame header
-    detail::prepared_key    rd_key_         // current stateful mask key
-                                = 0;
+    detail::prepared_key    rd_key_;        // current stateful mask key
     detail::frame_buffer    rd_fb_;         // to write control frames (during reads)
     detail::utf8_checker    rd_utf8_;       // to validate utf8
     static_buffer<
