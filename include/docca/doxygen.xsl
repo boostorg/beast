@@ -10,6 +10,8 @@
   file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 -->
 
+<!-- CONFIG_TEMPLATE -->
+
 <xsl:output method="text"/>
 <xsl:strip-space elements="*"/>
 <xsl:preserve-space elements="para"/>
@@ -180,7 +182,7 @@
         <xsl:text>``['implementation-defined]``</xsl:text>
       </xsl:when>
       <xsl:when test="$type='void_or_deduced'">
-        <xsl:text>``[@http://www.boost.org/doc/libs/1_60_0/doc/html/boost_asio/reference/asynchronous_operations.html#boost_asio.reference.asynchronous_operations.return_type_of_an_initiating_function ['void-or-deduced]]``</xsl:text>
+        <xsl:text>``__void_or_deduced__``</xsl:text>
       </xsl:when>
       <xsl:otherwise>
         <xsl:value-of select="$type"/>
