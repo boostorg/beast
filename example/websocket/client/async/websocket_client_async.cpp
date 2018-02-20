@@ -199,7 +199,7 @@ int main(int argc, char** argv)
     std::make_shared<session>(ioc)->run(host, port, text);
 
     // Run the I/O service. The call will return when
-    // the get operation is complete.
+    // the socket is closed.
     ioc.run();
 
     return EXIT_SUCCESS;

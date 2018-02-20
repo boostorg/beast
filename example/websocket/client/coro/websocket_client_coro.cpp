@@ -119,7 +119,7 @@ int main(int argc, char** argv)
         std::placeholders::_1));
 
     // Run the I/O service. The call will return when
-    // the get operation is complete.
+    // the socket is closed.
     ioc.run();
 
     return EXIT_SUCCESS;

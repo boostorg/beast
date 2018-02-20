@@ -14,6 +14,7 @@
 #include <boost/beast/core/type_traits.hpp>
 #include <boost/asio/associated_allocator.hpp>
 #include <boost/asio/associated_executor.hpp>
+#include <boost/asio/coroutine.hpp>
 #include <boost/asio/handler_continuation_hook.hpp>
 #include <boost/asio/post.hpp>
 #include <memory>
@@ -25,7 +26,7 @@ namespace websocket {
 namespace detail {
 
 template<class Handler>
-class teardown_tcp_op
+class teardown_tcp_op : public boost::asio::coroutine
 {
     using socket_type =
         boost::asio::ip::tcp::socket;
@@ -33,7 +34,7 @@ class teardown_tcp_op
     Handler h_;
     socket_type& s_;
     role_type role_;
-    int step_ = 0;
+    bool nb_;
 
 public:
     teardown_tcp_op(teardown_tcp_op&& other) = default;
@@ -73,65 +74,72 @@ public:
     operator()(
         error_code ec = {},
         std::size_t bytes_transferred = 0);
-
-    friend
-    bool asio_handler_is_continuation(teardown_tcp_op* op)
-    {
-        using boost::asio::asio_handler_is_continuation;
-        return op->step_ >= 3 ||
-            asio_handler_is_continuation(std::addressof(op->h_));
-    }
 };
 
 template<class Handler>
 void
 teardown_tcp_op<Handler>::
-operator()(error_code ec, std::size_t)
+operator()(error_code ec, std::size_t bytes_transferred)
 {
     using boost::asio::buffer;
     using tcp = boost::asio::ip::tcp;
-    switch(step_)
+    BOOST_ASIO_CORO_REENTER(*this)
     {
-    case 0:
+        nb_ = s_.non_blocking();
         s_.non_blocking(true, ec);
+        if(! ec)
+        {
+            if(role_ == role_type::server)
+                s_.shutdown(tcp::socket::shutdown_send, ec);
+        }
         if(ec)
         {
-            step_ = 1;
-            return boost::asio::post(
+            BOOST_ASIO_CORO_YIELD
+            boost::asio::post(
                 s_.get_executor(),
                 bind_handler(std::move(*this), ec, 0));
+            goto upcall;
         }
-        step_ = 2;
-        if(role_ == role_type::server)
-            s_.shutdown(tcp::socket::shutdown_send, ec);
-        goto do_read;
-
-    case 1:
-        break;
-
-    case 2:
-        step_ = 3; BOOST_FALLTHROUGH;
-
-    case 3:
-        if(ec != boost::asio::error::would_block)
-            break;
+        for(;;)
         {
-            char buf[2048];
-            s_.read_some(
-                boost::asio::buffer(buf), ec);
+            {
+                char buf[2048];
+                s_.read_some(
+                    boost::asio::buffer(buf), ec);
+            }
+            if(ec == boost::asio::error::would_block)
+            {
+                BOOST_ASIO_CORO_YIELD
+                s_.async_wait(
+                    boost::asio::ip::tcp::socket::wait_read,
+                        std::move(*this));
+                continue;
+            }
             if(ec)
+            {
+                if(ec != boost::asio::error::eof)
+                    goto upcall;
+                ec = {};
                 break;
+            }
+            if(bytes_transferred == 0)
+            {
+                // happens sometimes
+                break;
+            }
         }
-
-    do_read:
-        return s_.async_wait(
-            boost::asio::ip::tcp::socket::wait_read,
-                std::move(*this));
+        if(role_ == role_type::client)
+            s_.shutdown(tcp::socket::shutdown_send, ec);
+        if(ec)
+            goto upcall;
+        s_.close(ec);
+    upcall:
+        {
+            error_code ignored;
+            s_.non_blocking(nb_, ignored);
+        }
+        h_(ec);
     }
-    if(role_ == role_type::client)
-        s_.shutdown(tcp::socket::shutdown_send, ec);
-    s_.close(ec);
-    h_(ec);
 }
 
 } // detail
@@ -149,17 +157,31 @@ teardown(
     if(role == role_type::server)
         socket.shutdown(
             boost::asio::ip::tcp::socket::shutdown_send, ec);
-    while(! ec)
+    if(ec)
+        return;
+    for(;;)
     {
-        char buf[8192];
-        auto const n = socket.read_some(
-            buffer(buf), ec);
-        if(! n)
+        char buf[2048];
+        auto const bytes_transferred =
+            socket.read_some(buffer(buf), ec);
+        if(ec)
+        {
+            if(ec != boost::asio::error::eof)
+                return;
+            ec = {};
             break;
+        }
+        if(bytes_transferred == 0)
+        {
+            // happens sometimes
+            break;
+        }
     }
     if(role == role_type::client)
         socket.shutdown(
             boost::asio::ip::tcp::socket::shutdown_send, ec);
+    if(ec)
+        return;
     socket.close(ec);
 }
 

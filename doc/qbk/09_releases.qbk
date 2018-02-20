@@ -103,9 +103,11 @@ to update to the latest Boost release.
 
 * [issue 1019] Fix fallthrough warnings
 
+* [issue 1024] Fix teardown for TIME_WAIT
+
 [*API Changes]
 
-* [issue 1029] Remove unintended public members of
+* Remove unintended public members of
   [link beast.ref.boost__beast__handler_ptr `handler_ptr`].
   Actions required: don't call non-public members.
 
@@ -115,7 +117,7 @@ to update to the latest Boost release.
   to manage state can only be moved, not copied.
 
 * [link beast.ref.boost__beast__handler_ptr `handler_ptr`]
-  gives the strong exception guarantee. The signature
+  gives the strong exception guarantee. The constructor signature
   for managed objects constructed by `handler_ptr` now receives a
   `const` reference to the handler. Actions required: Change the
   constructor signature for state objects used with `handler_ptr`
