@@ -167,6 +167,15 @@ struct get_lowest_layer<T, detail::void_t<
 };
 #endif
 
+/**
+ * Convenience type alias for
+ * @code
+ * typename get_lowest_layer<T>::type
+ * @endcode
+ */
+template<class T>
+using get_lowest_layer_t = typename get_lowest_layer<T>::type;
+
 /** Determine if `T` meets the requirements of @b AsyncReadStream.
 
     Metafunctions are used to perform compile time checking of template
