@@ -325,6 +325,11 @@ do_listen(
     if(ec)
         return fail(ec, "open");
 
+    // Allow address reuse
+    acceptor.set_option(boost::asio::socket_base::reuse_address(true));
+    if(ec)
+        return fail(ec, "set_option");
+
     // Bind to the server address
     acceptor.bind(endpoint, ec);
     if(ec)

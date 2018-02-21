@@ -268,6 +268,14 @@ public:
             return;
         }
 
+        // Allow address reuse
+        acceptor_.set_option(boost::asio::socket_base::reuse_address(true));
+        if(ec)
+        {
+            fail(ec, "set_option");
+            return;
+        }
+
         // Bind to the server address
         acceptor_.bind(endpoint, ec);
         if(ec)
@@ -375,6 +383,10 @@ do_coro_listen(
     acceptor.open(endpoint.protocol(), ec);
     if(ec)
         return fail(ec, "open");
+
+    acceptor.set_option(boost::asio::socket_base::reuse_address(true));
+    if(ec)
+        return fail(ec, "set_option");
 
     acceptor.bind(endpoint, ec);
     if(ec)

@@ -73,6 +73,7 @@ to update to the latest Boost release.
 * [link beast.ref.boost__beast__bind_handler `bind_handler`]
   works with boost placeholders
 
+* Examples set `reuse_address(true)`
 
 [*Fixes]
 

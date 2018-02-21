@@ -2,6 +2,7 @@ Version 158:
 
 * Tidy up end_of_stream javadoc
 * Tidy up websocket docs
+* Examples set reuse_address(true)
 
 --------------------------------------------------------------------------------
 
