@@ -31,11 +31,6 @@ namespace beast {
     handler, whose associated allocator and associated executor will
     will be the same as those of the original handler.
 
-    Unlike `boost::asio::io_context::wrap`, the returned handler can
-    be used in a subsequent call to `boost::asio::post` instead of
-    `boost::asio::dispatch`, to ensure that the handler will not be
-    invoked immediately by the calling function.
-
     Example:
 
     @code

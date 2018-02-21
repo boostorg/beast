@@ -5,6 +5,7 @@ Version 158:
 * Examples set reuse_address(true)
 * Advanced servers support clean shutdown via SIGINT or SIGTERM
 * DynamicBuffer input areas are not mutable
+* Tidy up some documentation
 
 --------------------------------------------------------------------------------
 
