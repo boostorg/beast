@@ -7,6 +7,16 @@ Version 158:
 * DynamicBuffer input areas are not mutable
 * Tidy up some documentation
 
+API Changes:
+
+* get_lowest_layer is a type alias
+
+Actions required:
+
+* Replace instances of `typename get_lowest_layer<T>::type`
+  with `get_lowest_layer<T>`.
+
+
 --------------------------------------------------------------------------------
 
 Version 157:

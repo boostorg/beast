@@ -255,6 +255,21 @@ max_all(U0 u0, U1 u1, UN... un)
 
 //------------------------------------------------------------------------------
 
+template<class T, class = void>
+struct get_lowest_layer_helper
+{
+    using type = T;
+};
+
+template<class T>
+struct get_lowest_layer_helper<T,
+    void_t<typename T::lowest_layer_type>>
+{
+    using type = typename T::lowest_layer_type;
+};
+
+//------------------------------------------------------------------------------
+
 //
 // buffer concepts
 //

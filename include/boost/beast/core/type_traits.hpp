@@ -122,10 +122,10 @@ struct has_get_executor<T, beast::detail::void_t<decltype(
     (void)0)>> : std::true_type {};
 #endif
 
-/** Returns `T::lowest_layer_type` if it exists, else `T`
+/** Alias for `T::lowest_layer_type` if it exists, else `T`
 
-    This will contain a nested `type` equal to `T::lowest_layer_type`
-    if it exists, else `type` will be equal to `T`.
+    This will be a type alias for `T::lowest_layer_type`
+    if it exists, else it will be an alias for `T`.
 
     @par Example
 
@@ -136,7 +136,7 @@ struct has_get_executor<T, beast::detail::void_t<decltype(
     struct stream_wrapper
     {
         using next_layer_type = typename std::remove_reference<Stream>::type;
-        using lowest_layer_type = typename get_lowest_layer<stream_type>::type;
+        using lowest_layer_type = get_lowest_layer<stream_type>;
     };
     @endcode
 
@@ -146,25 +146,15 @@ struct has_get_executor<T, beast::detail::void_t<decltype(
     /// Alias for `std::true_type` if `T` wraps another stream
     template<class T>
     using is_stream_wrapper : std::integral_constant<bool,
-        ! std::is_same<T, typename get_lowest_layer<T>::type>::value> {};
+        ! std::is_same<T, get_lowest_layer<T>>::value> {};
     @endcode
 */
 #if BOOST_BEAST_DOXYGEN
 template<class T>
 struct get_lowest_layer;
 #else
-template<class T, class = void>
-struct get_lowest_layer
-{
-    using type = T;
-};
-
 template<class T>
-struct get_lowest_layer<T, detail::void_t<
-    typename T::lowest_layer_type>>
-{
-    using type = typename T::lowest_layer_type;
-};
+using get_lowest_layer = typename detail::get_lowest_layer_helper<T>::type;
 #endif
 
 /** Determine if `T` meets the requirements of @b AsyncReadStream.

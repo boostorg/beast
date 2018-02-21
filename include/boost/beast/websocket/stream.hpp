@@ -225,8 +225,7 @@ public:
         typename std::remove_reference<NextLayer>::type;
 
     /// The type of the lowest layer.
-    using lowest_layer_type =
-        typename get_lowest_layer<next_layer_type>::type;
+    using lowest_layer_type = get_lowest_layer<next_layer_type>;
 
     /// The type of the executor associated with the object.
     using executor_type = typename next_layer_type::executor_type;
