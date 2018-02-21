@@ -78,4 +78,8 @@ accessed by calling
     operations are being performed may result in undefined behavior.
 ]
 
+[heading Non-Blocking Mode]
+
+Please note that websocket streams do not support non-blocking modes.
+
 [endsect]

@@ -152,11 +152,24 @@ boost::asio::ip::tcp::socket sock{ioc};
 {
     stream<boost::asio::ip::tcp::socket> ws{ioc};
 //[ws_snippet_15
+    // This DynamicBuffer will hold the received message
     multi_buffer buffer;
+
+    // Read a complete message into the buffer's input area
     ws.read(buffer);
 
+    // Set text mode if the received message was also text,
+    // otherwise binary mode will be set.
     ws.text(ws.got_text());
+
+    // Echo the received message back to the peer. If the received
+    // message was in text mode, the echoed message will also be
+    // in text mode, otherwise it will be in binary mode.
     ws.write(buffer.data());
+
+    // Discard all of the bytes stored in the dynamic buffer,
+    // otherwise the next call to read will append to the existing
+    // data instead of building a fresh message.
     buffer.consume(buffer.size());
 //]
 }
@@ -164,26 +177,56 @@ boost::asio::ip::tcp::socket sock{ioc};
 {
     stream<boost::asio::ip::tcp::socket> ws{ioc};
 //[ws_snippet_16
+    // This DynamicBuffer will hold the received message
     multi_buffer buffer;
-    for(;;)
-        if(ws.read_some(buffer, 0))
-            break;
+
+    // Read the next message in pieces
+    do
+    {
+        // Append up to 512 bytes of the message into the buffer
+        ws.read_some(buffer, 512);
+    }
+    while(! ws.is_message_done());
+
+    // At this point we have a complete message in the buffer, now echo it
+
+    // The echoed message will be sent in binary mode if the received
+    // message was in binary mode, otherwise we will send in text mode.
     ws.binary(ws.got_binary());
+
+    // This buffer adapter allows us to iterate through buffer in pieces
     buffers_suffix<multi_buffer::const_buffers_type> cb{buffer.data()};
+
+    // Echo the received message in pieces.
+    // This will cause the message to be broken up into multiple frames.
     for(;;)
     {
         using boost::asio::buffer_size;
         if(buffer_size(cb) > 512)
         {
+            // There are more than 512 bytes left to send, just
+            // send the next 512 bytes. The value `false` informs
+            // the stream that the message is not complete.
             ws.write_some(false, buffers_prefix(512, cb));
+
+            // This efficiently discards data from the adapter by
+            // simply ignoring it, but does not actually affect the
+            // underlying dynamic buffer.
             cb.consume(512);
         }
         else
         {
+            // Only 512 bytes or less remain, so write the whole
+            // thing and inform the stream that this piece represents
+            // the end of the message by passing `true`.
             ws.write_some(true, cb);
             break;
         }
     }
+
+    // Discard all of the bytes stored in the dynamic buffer,
+    // otherwise the next call to read will append to the existing
+    // data instead of building a fresh message.
 //]
 }
 
