@@ -156,7 +156,9 @@ to update to the latest Boost release.
 * [link beast.ref.boost__beast__websocket__stream.control_callback `websocket::stream::control_callback`]
   now copies or moves the function object.
 
-
+* ([issue 1014]) DynamicBuffer input areas are not mutable.
+  Actions required: do not attempt to write to input areas of dynamic
+  buffers.
 
 
 

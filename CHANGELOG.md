@@ -4,6 +4,7 @@ Version 158:
 * Tidy up websocket docs
 * Examples set reuse_address(true)
 * Advanced servers support clean shutdown via SIGINT or SIGTERM
+* DynamicBuffer input areas are not mutable
 
 --------------------------------------------------------------------------------
 

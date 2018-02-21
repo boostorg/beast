@@ -132,7 +132,7 @@ class basic_multi_buffer<Allocator>::const_buffers_type
     const_buffers_type(basic_multi_buffer const& b);
 
 public:
-    using value_type = boost::asio::mutable_buffer;
+    using value_type = boost::asio::const_buffer;
 
     class const_iterator;
 

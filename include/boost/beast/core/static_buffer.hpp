@@ -52,7 +52,7 @@ class static_buffer_base
 public:
     /// The type used to represent the input sequence as a list of buffers.
     using const_buffers_type =
-        std::array<boost::asio::mutable_buffer, 2>;
+        std::array<boost::asio::const_buffer, 2>;
 
     /// The type used to represent the output sequence as a list of buffers.
     using mutable_buffers_type =
@@ -93,6 +93,11 @@ public:
     */
     const_buffers_type
     data() const;
+
+    /** Get a mutable list of buffers that represent the input sequence.
+    */
+    mutable_buffers_type
+    mutable_data();
 
     /** Get a list of buffers that represent the output sequence, with the given size.
 

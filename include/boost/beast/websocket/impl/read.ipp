@@ -253,7 +253,7 @@ operator()(
             if(ws_.rd_fh_.len > 0 && ws_.rd_fh_.mask)
                 detail::mask_inplace(buffers_prefix(
                     clamp(ws_.rd_fh_.len),
-                        ws_.rd_buf_.data()),
+                        ws_.rd_buf_.mutable_data()),
                             ws_.rd_key_);
             if(detail::is_control(ws_.rd_fh_.op))
             {
@@ -440,7 +440,7 @@ operator()(
                     ws_.rd_buf_.commit(bytes_transferred);
                     if(ws_.rd_fh_.mask)
                         detail::mask_inplace(buffers_prefix(clamp(
-                            ws_.rd_remain_), ws_.rd_buf_.data()),
+                            ws_.rd_remain_), ws_.rd_buf_.mutable_data()),
                                 ws_.rd_key_);
                 }
                 if(ws_.rd_buf_.size() > 0)
@@ -528,7 +528,7 @@ operator()(
                     if(ws_.rd_fh_.mask)
                         detail::mask_inplace(
                             buffers_prefix(clamp(ws_.rd_remain_),
-                                ws_.rd_buf_.data()), ws_.rd_key_);
+                                ws_.rd_buf_.mutable_data()), ws_.rd_key_);
                     did_read_ = true;
                 }
                 zlib::z_params zs;
@@ -1049,7 +1049,7 @@ loop:
         // of the buffer holding payload data.
         if(rd_fh_.len > 0 && rd_fh_.mask)
             detail::mask_inplace(buffers_prefix(
-                clamp(rd_fh_.len), rd_buf_.data()),
+                clamp(rd_fh_.len), rd_buf_.mutable_data()),
                     rd_key_);
         if(detail::is_control(rd_fh_.op))
         {
@@ -1151,7 +1151,7 @@ loop:
                 if(rd_fh_.mask)
                     detail::mask_inplace(
                         buffers_prefix(clamp(rd_remain_),
-                            rd_buf_.data()), rd_key_);
+                            rd_buf_.mutable_data()), rd_key_);
             }
             if(rd_buf_.size() > 0)
             {
@@ -1258,7 +1258,7 @@ loop:
                     if(rd_fh_.mask)
                         detail::mask_inplace(
                             buffers_prefix(clamp(rd_remain_),
-                                rd_buf_.data()), rd_key_);
+                                rd_buf_.mutable_data()), rd_key_);
                     auto const in = buffers_prefix(
                         clamp(rd_remain_), buffers_front(
                             rd_buf_.data()));
