@@ -22,15 +22,10 @@ enum class error
 {
     /** The end of the stream was reached.
 
-        This error is returned under the following conditions:
-
-        @li When attempting to read HTTP data from a stream and the stream
-        read returns the error `boost::asio::error::eof` before any new octets
-        have been received.
-
-        @li When sending a complete HTTP message at once and the semantics of
-        the message are that the connection should be closed to indicate the
-        end of the message.
+        This error is returned when attempting to read HTTP data,
+        and the stream returns the error `boost::asio::error::eof`
+        before any octets corresponding to a new HTTP message have
+        been received.
     */
     end_of_stream = 1,
 

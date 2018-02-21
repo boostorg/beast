@@ -1,3 +1,9 @@
+Version 158:
+
+* Tidy up end_of_stream javadoc
+
+--------------------------------------------------------------------------------
+
 Version 157:
 
 * Fix teardown for TIME_WAIT
