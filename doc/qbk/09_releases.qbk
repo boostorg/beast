@@ -20,9 +20,9 @@ to update to the latest Boost release.
 
 * Move-only completion handlers are supported throughout the library
 
-* [issue 899] Advanced server examples support idle websocket pings and timeouts
+* ([issue 899]) Advanced server examples support idle websocket pings and timeouts
 
-* [issue 849] WebSocket permessage-deflate support is now a compile-time
+* ([issue 849]) WebSocket permessage-deflate support is now a compile-time
   feature.  This adds an additional `bool` template parameter to
   [link beast.ref.boost__beast__websocket__stream `websocket::stream`]
   When `deflateSupported` is `true`, the stream will be capable of
@@ -34,7 +34,7 @@ to update to the latest Boost release.
   will be excluded from function instantiations. Programs which set
   `deflateSupported` to `false` when instantiating streams will be smaller.
 
-* [issue 949] WebSocket error codes are revised. New
+* ([issue 949]) WebSocket error codes are revised. New
   [link beast.ref.boost__beast__websocket__error error codes]
   are added for more fine-grained failure outcomes. Messages for error
   codes are more verbose to help pinpoint the problem. Error codes are
@@ -56,11 +56,11 @@ to update to the latest Boost release.
 
 [*Improvements]
 
-* [issue 857]
+* ([issue 857])
   [link beast.ref.boost__beast__http__basic_fields `http::basic_fields`]
   uses less storage
 
-* [issue 894]
+* ([issue 894])
   [link beast.ref.boost__beast__http__basic_fields `http::basic_fields`]
   exception specifiers are provided
 
@@ -68,45 +68,47 @@ to update to the latest Boost release.
 
 * Add [include_file boost/beast/websocket/stream_fwd.hpp]
 
-* [issue 955] The asynchronous SSL detector example uses a stackless coroutine
+* ([issue 955]) The asynchronous SSL detector example uses a stackless coroutine
 
 * [link beast.ref.boost__beast__bind_handler `bind_handler`]
   works with boost placeholders
 
 * Examples set `reuse_address(true)`
 
+* ([issue 1026]) Advanced servers support clean shutdown via SIGINT or SIGTERM
+
 [*Fixes]
 
 * Fix "warning: ‘const’ type qualifier on return type has no effect"
 
-* [issue 916] Tidy up `ssl_stream` special members in
+* ([issue 916]) Tidy up `ssl_stream` special members in
   [source_file example/common/ssl_stream.hpp]
 
-* [issue 918] Calls to `<algorithm>` are protected from macros
+* ([issue 918]) Calls to `<algorithm>` are protected from macros
 
-* [issue 954] The control callback is invoked on the proper executor
+* ([issue 954]) The control callback is invoked on the proper executor
 
-* [issue 994] Fix iterator version of
+* ([issue 994]) Fix iterator version of
   [link beast.ref.boost__beast__http__basic_fields.erase.overload1 `http::basic_fields::erase`]
 
-* [issue 992] Fix use-after-move in example request handlers
+* ([issue 992]) Fix use-after-move in example request handlers
 
-* [issue 988] Type check completion handlers
+* ([issue 988]) Type check completion handlers
 
-* [issue 985] Tidy up
+* ([issue 985]) Tidy up
   [link beast.ref.boost__beast__bind_handler `bind_handler`]
   doc
 
 * Fix memory leak in advanced server examples
 
-* [issue 1000] Fix soft-mutex assert in websocket stream.
+* ([issue 1000]) Fix soft-mutex assert in websocket stream.
   This resolves the assert `"ws_.wr_block_ == tok_"`.
 
-* [issue 1019] Fix fallthrough warnings
+* ([issue 1019]) Fix fallthrough warnings
 
-* [issue 1024] Fix teardown for TIME_WAIT
+* ([issue 1024]) Fix teardown for TIME_WAIT
 
-* [issue 1030] Fix big-endian websocket masking
+* ([issue 1030]) Fix big-endian websocket masking
 
 [*API Changes]
 
@@ -126,19 +128,19 @@ to update to the latest Boost release.
   constructor signature for state objects used with `handler_ptr`
   to receive a `const` reference to the handler.
 
-* [issue 896]
+* ([issue 896])
   [link beast.ref.boost__beast__http__basic_fields `http::basic_fields`]
   does not support fancy pointers
 
 * [link beast.ref.boost__beast__http__parser `http::parser`]
   is no longer [*MoveConstructible]
 
-* [issue 930] `http::serializer::reader_impl` is deprecated and will
+* ([issue 930]) `http::serializer::reader_impl` is deprecated and will
   be removed in the next release. Actions required: Call
   [link beast.ref.boost__beast__http__serializer.writer_impl `http::serializer::writer_impl`]
   instead of `serializer::reader_impl`.
 
-* [issue 884] The __BodyReader__ and __BodyWriter__ concept constructor
+* ([issue 884]) The __BodyReader__ and __BodyWriter__ concept constructor
   requirements have changed. They now require the header and body
   elements to be passed as distinct
   [link beast.ref.boost__beast__http__header `http::header`]

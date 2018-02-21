@@ -28,7 +28,7 @@
 
 [template source_file[path] '''<ulink url="../../'''[path]'''">'''[path]'''</ulink>''']
 [template include_file[path][^<'''<ulink url="../../../../'''[path]'''">'''[path]'''</ulink>'''>]]
-[template issue[n] '''(<ulink url="https://github.com/boostorg/beast/issues/'''[n]'''">#'''[n]'''</ulink>)''']
+[template issue[n] '''<ulink url="https://github.com/boostorg/beast/issues/'''[n]'''">#'''[n]'''</ulink>''']
 
 [def __N3747__                  [@http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3747.pdf [*N3747]]]
 [def __NetTS__                  [@http://cplusplus.github.io/networking-ts/draft.pdf [*Networking.TS]]]

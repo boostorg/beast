@@ -180,7 +180,9 @@ and illustrate the implementation of advanced features.
             [HTTP pipelining]
             [Asynchronous timeouts]
             [Dual protocols: HTTP and WebSocket]
-            [WebSocket use idle ping for timeout]]]
+            [WebSocket use idle ping for timeout]
+            [Clean exit via SIGINT (CTRL+C) or SIGTERM (kill)]
+        ]]
         [[example_src example/advanced/server/advanced_server.cpp advanced_server.cpp]]
 ][
         [Advanced, flex (plain + SSL)]
@@ -189,7 +191,9 @@ and illustrate the implementation of advanced features.
             [Asynchronous timeouts]
             [Dual protocols: HTTP and WebSocket]
             [WebSocket use idle ping for timeout]
-            [Flexible ports: plain and SSL on the same port]]]
+            [Flexible ports: plain and SSL on the same port]
+            [Clean exit via SIGINT (CTRL+C) or SIGTERM (kill)]
+        ]]
         [[example_src example/advanced/server-flex/advanced_server_flex.cpp advanced_server_flex.cpp]]
 ]]
 
