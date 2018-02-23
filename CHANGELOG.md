@@ -1,3 +1,9 @@
+Version 159:
+
+* Fix typo in release notes
+
+--------------------------------------------------------------------------------
+
 Version 158:
 
 * Tidy up end_of_stream javadoc
@@ -15,7 +21,6 @@ Actions required:
 
 * Replace instances of `typename get_lowest_layer<T>::type`
   with `get_lowest_layer<T>`.
-
 
 --------------------------------------------------------------------------------
 
