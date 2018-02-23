@@ -160,7 +160,7 @@ to update to the latest Boost release.
   Actions required: do not attempt to write to input areas of dynamic
   buffers.
 
-* ([\issue 941]) `get_lowest_layer` is now a type alias.
+* ([issue 941]) `get_lowest_layer` is now a type alias.
   Actions required: Replace instances of `typename get_lowest_layer<T>::type`
   with `get_lowest_layer<T>`.
 
