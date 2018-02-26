@@ -272,8 +272,10 @@ writer(basic_fields const& f,
 template<class Allocator>
 basic_fields<Allocator>::
 value_type::
-value_type(field name,
-        string_view sname, string_view value)
+value_type(
+    field name,
+    string_view sname,
+    string_view value)
     : off_(static_cast<off_t>(sname.size() + 2))
     , len_(static_cast<off_t>(value.size()))
     , f_(name)
@@ -285,8 +287,8 @@ value_type(field name,
     p[off_-1] = ' ';
     p[off_ + len_] = '\r';
     p[off_ + len_ + 1] = '\n';
-    std::memcpy(p, sname.data(), sname.size());
-    std::memcpy(p + off_, value.data(), value.size());
+    sname.copy(p, sname.size());
+    value.copy(p + off_, value.size());
 }
 
 template<class Allocator>
@@ -1226,7 +1228,7 @@ realloc_string(string_view& dest, string_view s)
     if(! s.empty())
     {
         auto const p = a.allocate(s.size());
-        std::memcpy(p, s.data(), s.size());
+        s.copy(p, s.size());
         dest = {p, s.size()};
     }
 }
@@ -1255,7 +1257,7 @@ realloc_target(
     {
         auto const p = a.allocate(1 + s.size());
         p[0] = ' ';
-        std::memcpy(p + 1, s.data(), s.size());
+        s.copy(p + 1, s.size());
         dest = {p, 1 + s.size()};
     }
 }

@@ -1,6 +1,7 @@
 Version 159:
 
 * Fix typo in release notes
+* Safe treatment of zero-length string arguments in basic_fields
 
 --------------------------------------------------------------------------------
 

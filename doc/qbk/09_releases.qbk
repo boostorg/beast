@@ -110,6 +110,8 @@ to update to the latest Boost release.
 
 * ([issue 1030]) Fix big-endian websocket masking
 
+* Safe treatment of zero-length string arguments in basic_fields
+
 [*API Changes]
 
 * Remove unintended public members of
