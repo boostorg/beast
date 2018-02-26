@@ -77,6 +77,8 @@ to update to the latest Boost release.
 
 * ([issue 1026]) Advanced servers support clean shutdown via SIGINT or SIGTERM
 
+* Some basic_fields operations now give the strong exception guarantee
+
 [*Fixes]
 
 * Fix "warning: ‘const’ type qualifier on return type has no effect"
