@@ -1,6 +1,7 @@
 Version 160
 
 * Safe treatment of zero-length string arguments in basic_fields
+* Some basic_fields operations now give the strong exception guarantee
 
 --------------------------------------------------------------------------------
 
