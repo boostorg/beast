@@ -77,6 +77,8 @@ to update to the latest Boost release.
 
 * ([issue 1026]) Advanced servers support clean shutdown via SIGINT or SIGTERM
 
+* Some basic_fields operations now give the strong exception guarantee
+
 [*Fixes]
 
 * Fix "warning: ‘const’ type qualifier on return type has no effect"
@@ -109,6 +111,8 @@ to update to the latest Boost release.
 * ([issue 1024]) Fix teardown for TIME_WAIT
 
 * ([issue 1030]) Fix big-endian websocket masking
+
+* Safe treatment of zero-length string arguments in basic_fields
 
 [*API Changes]
 
@@ -160,7 +164,7 @@ to update to the latest Boost release.
   Actions required: do not attempt to write to input areas of dynamic
   buffers.
 
-* ([\issue 941]) `get_lowest_layer` is now a type alias.
+* ([issue 941]) `get_lowest_layer` is now a type alias.
   Actions required: Replace instances of `typename get_lowest_layer<T>::type`
   with `get_lowest_layer<T>`.
 

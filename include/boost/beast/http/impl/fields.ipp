@@ -272,8 +272,10 @@ writer(basic_fields const& f,
 template<class Allocator>
 basic_fields<Allocator>::
 value_type::
-value_type(field name,
-        string_view sname, string_view value)
+value_type(
+    field name,
+    string_view sname,
+    string_view value)
     : off_(static_cast<off_t>(sname.size() + 2))
     , len_(static_cast<off_t>(value.size()))
     , f_(name)
@@ -285,8 +287,8 @@ value_type(field name,
     p[off_-1] = ' ';
     p[off_ + len_] = '\r';
     p[off_ + len_ + 1] = '\n';
-    std::memcpy(p, sname.data(), sname.size());
-    std::memcpy(p + off_, value.data(), value.size());
+    sname.copy(p, sname.size());
+    value.copy(p + off_, value.size());
 }
 
 template<class Allocator>
@@ -1217,18 +1219,19 @@ realloc_string(string_view& dest, string_view s)
     auto a = typename beast::detail::allocator_traits<
         Allocator>::template rebind_alloc<
             char>(this->member());
-    if(! dest.empty())
-    {
-        a.deallocate(const_cast<char*>(
-            dest.data()), dest.size());
-        dest = {};
-    }
+    char* p = nullptr;
     if(! s.empty())
     {
-        auto const p = a.allocate(s.size());
-        std::memcpy(p, s.data(), s.size());
-        dest = {p, s.size()};
+        p = a.allocate(s.size());
+        s.copy(p, s.size());
     }
+    if(! dest.empty())
+        a.deallocate(const_cast<char*>(
+            dest.data()), dest.size());
+    if(p)
+        dest = {p, s.size()};
+    else
+        dest = {};
 }
 
 template<class Allocator>
@@ -1245,19 +1248,20 @@ realloc_target(
     auto a = typename beast::detail::allocator_traits<
         Allocator>::template rebind_alloc<
             char>(this->member());
-    if(! dest.empty())
-    {
-        a.deallocate(const_cast<char*>(
-            dest.data()), dest.size());
-        dest = {};
-    }
+    char* p = nullptr;
     if(! s.empty())
     {
-        auto const p = a.allocate(1 + s.size());
+        p = a.allocate(1 + s.size());
         p[0] = ' ';
-        std::memcpy(p + 1, s.data(), s.size());
-        dest = {p, 1 + s.size()};
+        s.copy(p + 1, s.size());
     }
+    if(! dest.empty())
+        a.deallocate(const_cast<char*>(
+            dest.data()), dest.size());
+    if(p)
+        dest = {p, 1 + s.size()};
+    else
+        dest = {};
 }
 
 template<class Allocator>

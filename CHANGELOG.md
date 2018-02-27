@@ -1,3 +1,16 @@
+Version 160
+
+* Safe treatment of zero-length string arguments in basic_fields
+* Some basic_fields operations now give the strong exception guarantee
+
+--------------------------------------------------------------------------------
+
+Version 159:
+
+* Fix release notes typo
+
+--------------------------------------------------------------------------------
+
 Version 158:
 
 * Tidy up end_of_stream javadoc
@@ -15,7 +28,6 @@ Actions required:
 
 * Replace instances of `typename get_lowest_layer<T>::type`
   with `get_lowest_layer<T>`.
-
 
 --------------------------------------------------------------------------------
 
