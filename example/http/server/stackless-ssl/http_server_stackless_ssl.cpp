@@ -320,6 +320,10 @@ public:
 
             for(;;)
             {
+                // Make the request empty before reading,
+                // otherwise the operation behavior is undefined.
+                req_ = {};
+
                 // Read a request
                 yield http::async_read(stream_, buffer_, req_,
                     boost::asio::bind_executor(

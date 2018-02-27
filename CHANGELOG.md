@@ -1,3 +1,9 @@
+Version 160:
+
+* Examples clear the HTTP message before reading
+
+--------------------------------------------------------------------------------
+
 Version 159:
 
 * Fix typo in release notes

@@ -114,6 +114,8 @@ to update to the latest Boost release.
 
 * Safe treatment of zero-length string arguments in basic_fields
 
+* ([issue 1043]) Examples clear the HTTP message before reading
+
 [*API Changes]
 
 * Remove unintended public members of
