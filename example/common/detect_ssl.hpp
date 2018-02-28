@@ -210,8 +210,8 @@ detect_ssl(
     @param buffer The dynamic buffer to use. This type must meet the
     requirements of @b DynamicBuffer.
 
-    @param handler The handler to be called when the request
-    completes. Copies will be made of the handler as required.
+    @param handler Invoked when the operation completes.
+    The handler may be moved or copied as needed.
     The equivalent function signature of the handler must be:
     @code
     void handler(

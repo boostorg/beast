@@ -1169,9 +1169,9 @@ public:
         required by the HTTP protocol. Copies of this parameter may
         be made as needed.
 
-        @param handler The handler to be called when the request completes.
-        Copies will be made of the handler as required. The equivalent
-        function signature of the handler must be:
+        @param handler Invoked when the operation completes.
+        The handler may be moved or copied as needed.
+        The equivalent function signature of the handler must be:
         @code void handler(
             error_code const& ec    // Result of operation
         ); @endcode
@@ -1221,9 +1221,9 @@ public:
         required by the HTTP protocol. Copies of this parameter may
         be made as needed.
 
-        @param handler The handler to be called when the request completes.
-        Copies will be made of the handler as required. The equivalent
-        function signature of the handler must be:
+        @param handler Invoked when the operation completes.
+        The handler may be moved or copied as needed.
+        The equivalent function signature of the handler must be:
         @code void handler(
             error_code const& ec     // Result of operation
         ); @endcode
@@ -1279,9 +1279,9 @@ public:
             request_type& req
         ); @endcode
 
-        @param handler The handler to be called when the request completes.
-        Copies will be made of the handler as required. The equivalent
-        function signature of the handler must be:
+        @param handler Invoked when the operation completes.
+        The handler may be moved or copied as needed.
+        The equivalent function signature of the handler must be:
         @code void handler(
             error_code const& ec     // Result of operation
         ); @endcode
@@ -1341,9 +1341,9 @@ public:
             request_type& req
         ); @endcode
 
-        @param handler The handler to be called when the request completes.
-        Copies will be made of the handler as required. The equivalent
-        function signature of the handler must be:
+        @param handler Invoked when the operation completes.
+        The handler may be moved or copied as needed.
+        The equivalent function signature of the handler must be:
         @code void handler(
             error_code const& ec     // Result of operation
         ); @endcode
@@ -1916,9 +1916,9 @@ public:
         @ref http::read or @ref http::async_read, then call @ref accept
         or @ref async_accept with the request.
 
-        @param handler The handler to be called when the request
-        completes. Copies will be made of the handler as required. The
-        equivalent function signature of the handler must be:
+        @param handler Invoked when the operation completes.
+        The handler may be moved or copied as needed.
+        The equivalent function signature of the handler must be:
         @code void handler(
             error_code const& ec    // Result of operation
         ); @endcode
@@ -1977,9 +1977,9 @@ public:
             response_type& res
         ); @endcode
 
-        @param handler The handler to be called when the request
-        completes. Copies will be made of the handler as required. The
-        equivalent function signature of the handler must be:
+        @param handler Invoked when the operation completes.
+        The handler may be moved or copied as needed.
+        The equivalent function signature of the handler must be:
         @code void handler(
             error_code const& ec    // Result of operation
         ); @endcode
@@ -2040,9 +2040,9 @@ public:
         then to received WebSocket frames. The implementation will
         copy the caller provided data before the function returns.
 
-        @param handler The handler to be called when the request
-        completes. Copies will be made of the handler as required. The
-        equivalent function signature of the handler must be:
+        @param handler Invoked when the operation completes.
+        The handler may be moved or copied as needed.
+        The equivalent function signature of the handler must be:
         @code void handler(
             error_code const& ec    // Result of operation
         ); @endcode
@@ -2118,9 +2118,9 @@ public:
             response_type& res
         ); @endcode
 
-        @param handler The handler to be called when the request
-        completes. Copies will be made of the handler as required. The
-        equivalent function signature of the handler must be:
+        @param handler Invoked when the operation completes.
+        The handler may be moved or copied as needed.
+        The equivalent function signature of the handler must be:
         @code void handler(
             error_code const& ec    // Result of operation
         ); @endcode
@@ -2179,9 +2179,9 @@ public:
         Ownership is not transferred, the implementation will not access
         this object from other threads.
 
-        @param handler The handler to be called when the request
-        completes. Copies will be made of the handler as required. The
-        equivalent function signature of the handler must be:
+        @param handler Invoked when the operation completes.
+        The handler may be moved or copied as needed.
+        The equivalent function signature of the handler must be:
         @code void handler(
             error_code const& ec    // Result of operation
         ); @endcode
@@ -2242,9 +2242,9 @@ public:
             response_type& res
         ); @endcode
 
-        @param handler The handler to be called when the request
-        completes. Copies will be made of the handler as required. The
-        equivalent function signature of the handler must be:
+        @param handler Invoked when the operation completes.
+        The handler may be moved or copied as needed.
+        The equivalent function signature of the handler must be:
         @code void handler(
             error_code const& ec    // Result of operation
         ); @endcode
@@ -2359,9 +2359,9 @@ public:
 
         @param cr The reason for the close.
 
-        @param handler The handler to be called when the close operation
-        completes. Copies will be made of the handler as required. The
-        function signature of the handler must be:
+        @param handler Invoked when the operation completes.
+        The handler may be moved or copied as needed.
+        The function signature of the handler must be:
         @code
         void handler(
             error_code const& ec     // Result of operation
@@ -2437,9 +2437,9 @@ public:
 
         @param payload The payload of the ping message, which may be empty.
 
-        @param handler The handler to be called when the read operation
-        completes. Copies will be made of the handler as required. The
-        function signature of the handler must be:
+        @param handler Invoked when the operation completes.
+        The handler may be moved or copied as needed.
+        The function signature of the handler must be:
         @code
         void handler(
             error_code const& ec     // Result of operation
@@ -2530,9 +2530,9 @@ public:
 
         @param payload The payload of the pong message, which may be empty.
 
-        @param handler The handler to be called when the read operation
-        completes. Copies will be made of the handler as required. The
-        function signature of the handler must be:
+        @param handler Invoked when the operation completes.
+        The handler may be moved or copied as needed.
+        The function signature of the handler must be:
         @code
         void handler(
             error_code const& ec     // Result of operation
@@ -2688,9 +2688,9 @@ public:
         any masking or decompression has been applied. This object must
         remain valid until the handler is called.
 
-        @param handler The handler to be called when the read operation
-        completes. Copies will be made of the handler as required. The
-        equivalent function signature of the handler must be:
+        @param handler Invoked when the operation completes.
+        The handler may be moved or copied as needed.
+        The equivalent function signature of the handler must be:
         @code
         void handler(
             error_code const& ec,       // Result of operation
@@ -2868,9 +2868,9 @@ public:
         will append into the buffer. If this value is zero, then a reasonable
         size will be chosen automatically.
 
-        @param handler The handler to be called when the read operation
-        completes. Copies will be made of the handler as required. The
-        equivalent function signature of the handler must be:
+        @param handler Invoked when the operation completes.
+        The handler may be moved or copied as needed.
+        The equivalent function signature of the handler must be:
         @code
         void handler(
             error_code const& ec,       // Result of operation
@@ -3041,9 +3041,9 @@ public:
         locations pointed to by the buffer sequence remains valid
         until the completion handler is called.
 
-        @param handler The handler to be called when the read operation
-        completes. Copies will be made of the handler as required. The
-        equivalent function signature of the handler must be:
+        @param handler Invoked when the operation completes.
+        The handler may be moved or copied as needed.
+        The equivalent function signature of the handler must be:
         @code
         void handler(
             error_code const& ec,       // Result of operation
@@ -3179,9 +3179,9 @@ public:
         the memory locations pointed to by buffers remains valid
         until the completion handler is called.
 
-        @param handler The handler to be called when the write operation
-        completes. Copies will be made of the handler as required. The
-        function signature of the handler must be:
+        @param handler Invoked when the operation completes.
+        The handler may be moved or copied as needed.
+        The function signature of the handler must be:
         @code
         void handler(
             error_code const& ec,           // Result of operation
@@ -3309,9 +3309,9 @@ public:
         the caller, which must guarantee that they remain valid until
         the handler is called.
 
-        @param handler The handler to be called when the write completes.
-        Copies will be made of the handler as required. The equivalent
-        function signature of the handler must be:
+        @param handler Invoked when the operation completes.
+        The handler may be moved or copied as needed.
+        The equivalent function signature of the handler must be:
         @code void handler(
             error_code const& ec,           // Result of operation
             std::size_t bytes_transferred   // Number of bytes written from the

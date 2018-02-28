@@ -55,9 +55,9 @@ teardown(
 
     @param stream The stream to tear down.
 
-    @param handler The handler to be called when the request completes.
-    Copies will be made of the handler as required. The equivalent
-    function signature of the handler must be:
+    @param handler Invoked when the operation completes.
+    The handler may be moved or copied as needed.
+    The equivalent function signature of the handler must be:
     @code void handler(
         error_code const& error // result of operation
     ); @endcode
