@@ -623,11 +623,20 @@ public:
     }
 
     void
+    testMoveOnly()
+    {
+        boost::asio::io_context ioc;
+        stream<test::stream> ws{ioc};
+        ws.async_close({}, move_only_handler{});
+    }
+
+    void
     run() override
     {
         testClose();
         testSuspend();
         testContHook();
+        testMoveOnly();
     }
 };
 

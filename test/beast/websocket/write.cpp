@@ -632,6 +632,16 @@ public:
     }
 
     void
+    testMoveOnly()
+    {
+        boost::asio::io_context ioc;
+        stream<test::stream> ws{ioc};
+        ws.async_write_some(
+            true, boost::asio::const_buffer{},
+            move_only_handler{});
+    }
+
+    void
     run() override
     {
         testWrite();
@@ -639,6 +649,7 @@ public:
         testAsyncWriteFrame();
         testIssue300();
         testContHook();
+        testMoveOnly();
     }
 };
 

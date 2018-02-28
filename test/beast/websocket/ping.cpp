@@ -436,11 +436,20 @@ public:
     }
 
     void
+    testMoveOnly()
+    {
+        boost::asio::io_context ioc;
+        stream<test::stream> ws{ioc};
+        ws.async_ping({}, move_only_handler{});
+    }
+
+    void
     run() override
     {
         testPing();
         testSuspend();
         testContHook();
+        testMoveOnly();
     }
 };
 

@@ -1,6 +1,7 @@
 Version 161:
 
 * Don't copy the handler in write_some_op
+* Add move-only handler tests
 
 --------------------------------------------------------------------------------
 

@@ -640,6 +640,16 @@ public:
     }
 
     void
+    testMoveOnly()
+    {
+        boost::asio::io_context ioc;
+        stream<test::stream> ws{ioc};
+        ws.async_read_some(
+            boost::asio::mutable_buffer{},
+            move_only_handler{});
+    }
+
+    void
     run() override
     {
         testParseFrame();
@@ -649,6 +659,7 @@ public:
         testIssue954();
         testIssueBF1();
         testIssueBF2();
+        testMoveOnly();
     }
 };
 

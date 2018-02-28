@@ -611,9 +611,18 @@ public:
     }
 
     void
+    testMoveOnly()
+    {
+        boost::asio::io_context ioc;
+        stream<test::stream> ws{ioc};
+        ws.async_accept(move_only_handler{});
+    }
+
+    void
     run() override
     {
         testAccept();
+        testMoveOnly();
     }
 };
 

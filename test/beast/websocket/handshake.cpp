@@ -485,12 +485,21 @@ public:
     }
 
     void
+    testMoveOnly()
+    {
+        boost::asio::io_context ioc;
+        stream<test::stream> ws{ioc};
+        ws.async_handshake("", "", move_only_handler{});
+    }
+
+    void
     run() override
     {
         testHandshake();
         testExtRead();
         testExtWrite();
         testExtNegotiate();
+        testMoveOnly();
     }
 };
 

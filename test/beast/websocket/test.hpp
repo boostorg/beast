@@ -42,6 +42,19 @@ public:
     using ws_type =
         websocket::stream<test::stream&>;
 
+    struct move_only_handler
+    {
+        move_only_handler() = default;
+        move_only_handler(move_only_handler&&) = default;
+        move_only_handler(move_only_handler const&) = delete;
+
+        template<class... Args>
+        void
+        operator()(Args&&...) const
+        {
+        }
+    };
+
     enum class kind
     {
         sync,

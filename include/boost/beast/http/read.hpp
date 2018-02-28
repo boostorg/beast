@@ -731,8 +731,8 @@ read(
     The object must remain valid at least until the
     handler is called; ownership is not transferred.
 
-    @param handler The handler to be called when the operation
-    completes. Copies will be made of the handler as required.
+    @param handler Invoked when the operation completes.
+    The handler may be moved or copied as needed.
     The equivalent function signature of the handler must be:
     @code void handler(
         error_code const& error,        // result of operation,
