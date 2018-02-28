@@ -1,3 +1,9 @@
+Version 161:
+
+* Don't copy the handler in write_some_op
+
+--------------------------------------------------------------------------------
+
 Version 160:
 
 * Examples clear the HTTP message before reading

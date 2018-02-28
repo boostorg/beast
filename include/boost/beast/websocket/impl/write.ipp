@@ -561,7 +561,7 @@ operator()(
         if(! cont_)
             return boost::asio::post(
                 ws_.stream_.get_executor(),
-                bind_handler(h_, ec, bytes_transferred_));
+                bind_handler(std::move(h_), ec, bytes_transferred_));
         h_(ec, bytes_transferred_);
     }
 }
