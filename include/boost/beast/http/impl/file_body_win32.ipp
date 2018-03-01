@@ -21,6 +21,7 @@
 #include <boost/asio/async_result.hpp>
 #include <boost/asio/basic_stream_socket.hpp>
 #include <boost/asio/handler_continuation_hook.hpp>
+#include <boost/asio/handler_invoke_hook.hpp>
 #include <boost/asio/windows/overlapped_ptr.hpp>
 #include <boost/make_unique.hpp>
 #include <boost/smart_ptr/make_shared_array.hpp>
@@ -392,6 +393,14 @@ public:
         using boost::asio::asio_handler_is_continuation;
         return asio_handler_is_continuation(
             std::addressof(op->h_));
+    }
+
+    template<class Function>
+    friend
+    void asio_handler_invoke(Function&& f, write_some_win32_op* op)
+    {
+        using boost::asio::asio_handler_invoke;
+        asio_handler_invoke(f, std::addressof(op->h_));
     }
 };
 

@@ -16,6 +16,7 @@
 #include <boost/asio/associated_executor.hpp>
 #include <boost/asio/coroutine.hpp>
 #include <boost/asio/handler_continuation_hook.hpp>
+#include <boost/asio/handler_invoke_hook.hpp>
 #include <boost/asio/post.hpp>
 #include <memory>
 
@@ -74,6 +75,22 @@ public:
     operator()(
         error_code ec = {},
         std::size_t bytes_transferred = 0);
+
+    friend
+    bool asio_handler_is_continuation(teardown_tcp_op* op)
+    {
+        using boost::asio::asio_handler_is_continuation;
+        return asio_handler_is_continuation(
+            std::addressof(op->h_));
+    }
+
+    template<class Function>
+    friend
+    void asio_handler_invoke(Function&& f, teardown_tcp_op* op)
+    {
+        using boost::asio::asio_handler_invoke;
+        asio_handler_invoke(f, std::addressof(op->h_));
+    }
 };
 
 template<class Handler>

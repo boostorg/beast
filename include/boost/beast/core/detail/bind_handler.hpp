@@ -14,6 +14,7 @@
 #include <boost/asio/associated_allocator.hpp>
 #include <boost/asio/associated_executor.hpp>
 #include <boost/asio/handler_continuation_hook.hpp>
+#include <boost/asio/handler_invoke_hook.hpp>
 #include <boost/core/ignore_unused.hpp>
 #include <boost/is_placeholder.hpp>
 #include <functional>
@@ -151,6 +152,14 @@ public:
     {
         using boost::asio::asio_handler_is_continuation;
         return asio_handler_is_continuation(std::addressof(h->h_));
+    }
+
+    template<class Function>
+    friend
+    void asio_handler_invoke(Function&& f, bound_handler* h)
+    {
+        using boost::asio::asio_handler_invoke;
+        asio_handler_invoke(f, std::addressof(h->h_));
     }
 
     template<class... Values>

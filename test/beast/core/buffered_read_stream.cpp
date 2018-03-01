@@ -15,8 +15,10 @@
 #include <boost/beast/test/yield_to.hpp>
 #include <boost/beast/unit_test/suite.hpp>
 #include <boost/asio/buffer.hpp>
+#include <boost/asio/io_service.hpp>
 #include <boost/asio/read.hpp>
 #include <boost/asio/spawn.hpp>
+#include <boost/asio/strand.hpp>
 #include <boost/optional.hpp>
 
 namespace boost {
@@ -206,6 +208,30 @@ public:
         BEAST_EXPECT(n < limit);
     }
 
+    struct copyable_handler
+    {
+        template<class... Args>
+        void
+        operator()(Args&&...) const
+        {
+        }
+    };
+
+    void
+    testAsioHandlerInvoke()
+    {
+        // make sure things compile, also can set a
+        // breakpoint in asio_handler_invoke to make sure
+        // it is instantiated.
+        boost::asio::io_context ioc;
+        boost::asio::io_service::strand s{ioc};
+        test::stream ts{ioc};
+        buffered_read_stream<
+            test::stream&, multi_buffer> brs(ts);
+        brs.async_read_some(boost::asio::mutable_buffer{},
+            s.wrap(copyable_handler{}));
+    }
+
     void run() override
     {
         testSpecialMembers();
@@ -214,6 +240,7 @@ public:
             testRead(yield);});
 
         testAsyncLoop();
+        testAsioHandlerInvoke();
     }
 };
 

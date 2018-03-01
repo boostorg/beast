@@ -11,7 +11,10 @@
 #include <boost/beast/core/bind_handler.hpp>
 
 #include <boost/beast/core/detail/type_traits.hpp>
+#include <boost/beast/test/stream.hpp>
 #include <boost/beast/unit_test/suite.hpp>
+#include <boost/asio/io_service.hpp>
+#include <boost/asio/strand.hpp>
 #include <string>
 
 namespace boost {
@@ -56,6 +59,28 @@ public:
         bind_handler(handler<int, std::string>{}, ph::_1, ph::_2)(1, "hello");
     }
 
+    struct copyable_handler
+    {
+        template<class... Args>
+        void
+        operator()(Args&&...) const
+        {
+        }
+    };
+
+    void
+    testAsioHandlerInvoke()
+    {
+        // make sure things compile, also can set a
+        // breakpoint in asio_handler_invoke to make sure
+        // it is instantiated.
+        boost::asio::io_context ioc;
+        boost::asio::io_service::strand s{ioc};
+        test::stream ts{ioc};
+        boost::asio::post(ioc.get_executor(),
+            s.wrap(copyable_handler{}));
+    }
+
     void
     run() override
     {
@@ -64,6 +89,7 @@ public:
                 std::placeholders::_1), 42);
         f();
         testPlaceholders();
+        testAsioHandlerInvoke();
     }
 };
 

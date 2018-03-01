@@ -19,6 +19,7 @@
 #include <boost/asio/associated_allocator.hpp>
 #include <boost/asio/associated_executor.hpp>
 #include <boost/asio/handler_continuation_hook.hpp>
+#include <boost/asio/handler_invoke_hook.hpp>
 #include <boost/asio/post.hpp>
 #include <boost/throw_exception.hpp>
 
@@ -79,6 +80,14 @@ public:
         using boost::asio::asio_handler_is_continuation;
         return asio_handler_is_continuation(
             std::addressof(op->h_));
+    }
+
+    template<class Function>
+    friend
+    void asio_handler_invoke(Function&& f, read_some_op* op)
+    {
+        using boost::asio::asio_handler_invoke;
+        asio_handler_invoke(f, std::addressof(op->h_));
     }
 };
 

@@ -432,9 +432,13 @@ read_some(MutableBufferSequence const& buffers,
         "MutableBufferSequence requirements not met");
     using boost::asio::buffer_copy;
     using boost::asio::buffer_size;
-    BOOST_ASSERT(buffer_size(buffers) > 0);
     if(in_->fc && in_->fc->fail(ec))
         return 0;
+    if(buffer_size(buffers) == 0)
+    {
+        ec.clear();
+        return 0;
+    }
     std::unique_lock<std::mutex> lock{in_->m};
     BOOST_ASSERT(! in_->op);
     in_->cv.wait(lock,
@@ -478,7 +482,6 @@ async_read_some(
         "MutableBufferSequence requirements not met");
     using boost::asio::buffer_copy;
     using boost::asio::buffer_size;
-    BOOST_ASSERT(buffer_size(buffers) > 0);
     BOOST_BEAST_HANDLER_INIT(
         ReadHandler, void(error_code, std::size_t));
     if(in_->fc)

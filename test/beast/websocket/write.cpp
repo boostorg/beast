@@ -10,6 +10,9 @@
 // Test that header file is self-contained.
 #include <boost/beast/websocket/stream.hpp>
 
+#include <boost/asio/io_service.hpp>
+#include <boost/asio/strand.hpp>
+
 #include "test.hpp"
 
 namespace boost {
@@ -639,6 +642,31 @@ public:
         ws.async_write_some(
             true, boost::asio::const_buffer{},
             move_only_handler{});
+    }
+
+    struct copyable_handler
+    {
+        template<class... Args>
+        void
+        operator()(Args&&...) const
+        {
+        }
+    };
+
+    void
+    testAsioHandlerInvoke()
+    {
+        // make sure things compile, also can set a
+        // breakpoint in asio_handler_invoke to make sure
+        // it is instantiated.
+        {
+            boost::asio::io_context ioc;
+            boost::asio::io_service::strand s{ioc};
+            stream<test::stream> ws{ioc};
+            flat_buffer b;
+            ws.async_write(boost::asio::const_buffer{},
+                s.wrap(copyable_handler{}));
+        }
     }
 
     void

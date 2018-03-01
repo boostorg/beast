@@ -74,7 +74,9 @@ get_filename_component (BOOST_ROOT ../../ ABSOLUTE)
 # VFALCO I want static but "b2 stage" builds a minimal set which excludes static
 add_definitions (-DBOOST_ALL_STATIC_LINK=1)
 
-add_definitions (-DBOOST_ASIO_NO_DEPRECATED=1)
+# Some of the tests use deprecated APIs
+#add_definitions (-DBOOST_ASIO_NO_DEPRECATED=1)
+
 add_definitions (-DBOOST_ASIO_DISABLE_BOOST_ARRAY=1)
 add_definitions (-DBOOST_ASIO_DISABLE_BOOST_BIND=1)
 add_definitions (-DBOOST_ASIO_DISABLE_BOOST_DATE_TIME=1)

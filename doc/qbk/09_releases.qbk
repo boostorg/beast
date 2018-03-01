@@ -116,6 +116,8 @@ to update to the latest Boost release.
 
 * ([issue 1043]) Examples clear the HTTP message before reading
 
+* ([issue 1012]) Add asio_handler_invoke overloads for stream algorithms
+
 [*API Changes]
 
 * Remove unintended public members of

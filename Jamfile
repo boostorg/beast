@@ -86,7 +86,7 @@ project /boost/beast
     <define>BOOST_ASIO_DISABLE_BOOST_BIND=1
     <define>BOOST_ASIO_DISABLE_BOOST_DATE_TIME=1
     <define>BOOST_ASIO_DISABLE_BOOST_REGEX=1
-    <define>BOOST_ASIO_NO_DEPRECATED=1
+    #<define>BOOST_ASIO_NO_DEPRECATED=1 # some tests use deprecated strand
     <define>BOOST_COROUTINES_NO_DEPRECATION_WARNING=1
     <toolset>msvc:<cxxflags>"/bigobj"
     <toolset>msvc:<define>_SCL_SECURE_NO_WARNINGS=1

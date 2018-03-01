@@ -12,6 +12,9 @@
 
 #include "test.hpp"
 
+#include <boost/asio/io_service.hpp>
+#include <boost/asio/strand.hpp>
+
 namespace boost {
 namespace beast {
 namespace websocket {
@@ -492,6 +495,27 @@ public:
         ws.async_handshake("", "", move_only_handler{});
     }
 
+    struct copyable_handler
+    {
+        template<class... Args>
+        void
+        operator()(Args&&...) const
+        {
+        }
+    };
+
+    void
+    testAsioHandlerInvoke()
+    {
+        // make sure things compile, also can set a
+        // breakpoint in asio_handler_invoke to make sure
+        // it is instantiated.
+        boost::asio::io_context ioc;
+        boost::asio::io_service::strand s{ioc};
+        stream<test::stream> ws{ioc};
+        ws.async_handshake("localhost", "/", s.wrap(copyable_handler{}));
+    }
+
     void
     run() override
     {
@@ -500,6 +524,7 @@ public:
         testExtWrite();
         testExtNegotiate();
         testMoveOnly();
+        testAsioHandlerInvoke();
     }
 };
 

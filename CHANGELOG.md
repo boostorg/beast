@@ -1,3 +1,9 @@
+Version 162:
+
+* Add asio_handler_invoke overloads for stream algorithms
+
+--------------------------------------------------------------------------------
+
 Version 161:
 
 * Don't copy the handler in write_some_op
