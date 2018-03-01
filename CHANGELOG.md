@@ -1,6 +1,7 @@
 Version 162:
 
 * Add asio_handler_invoke overloads for stream algorithms
+* Improve websocket::stream::control_callback javadoc
 
 --------------------------------------------------------------------------------
 

@@ -578,10 +578,14 @@ public:
         an asynchronous operation, the callback will be invoked using
         the same method as that used to invoke the final handler.
 
-        @note It is not necessary to send a close frame upon receipt
-        of a close frame. The implementation does this automatically.
-        Attempting to send a close frame after a close frame is
-        received will result in undefined behavior.
+        @note Incoming ping and close frames are automatically
+        handled. Pings are responded to with pongs, and a close frame
+        is responded to with a close frame leading to the closure of
+        the stream. It is not necessary to manually send pings, pongs,
+        or close frames from inside the control callback.
+        Attempting to manually send a close frame from inside the
+        control callback after receiving a close frame will result
+        in undefined behavior.
     */
     void
     control_callback(std::function<void(frame_type, string_view)> cb)
