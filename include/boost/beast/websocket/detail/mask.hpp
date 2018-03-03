@@ -98,7 +98,7 @@ prepare_key(prepared_key& prepared, std::uint32_t key)
 
 template<std::size_t N>
 void
-rol(std::array<unsigned char, N>& v, unsigned n)
+rol(std::array<unsigned char, N>& v, std::size_t n)
 {
     auto v0 = v;
     for(std::size_t i = 0; i < v.size(); ++i )

@@ -1,6 +1,7 @@
 Version 163:
 
 * Tidy up calls to post()
+* Fix narrowing warnings
 
 --------------------------------------------------------------------------------
 
