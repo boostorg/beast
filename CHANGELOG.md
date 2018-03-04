@@ -1,3 +1,9 @@
+Version 163:
+
+* Tidy up calls to post()
+
+--------------------------------------------------------------------------------
+
 Version 162:
 
 * Add asio_handler_invoke overloads for stream algorithms
