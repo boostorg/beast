@@ -125,7 +125,7 @@ mask_inplace(boost::asio::mutable_buffer& b, prepared_key& key)
     {
         for(std::size_t i = 0; i < n; ++i)
             p[i] ^= mask[i];
-        rol(key, 4 - n);
+        rol(key, static_cast<unsigned>(4 - n));
     }
 }
 
