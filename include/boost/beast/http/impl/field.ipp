@@ -26,7 +26,7 @@ namespace detail {
 struct field_table
 {
     using array_type =
-        std::array<string_view, 352>;
+        std::array<string_view, 353>;
 
     struct hash
     {
@@ -104,6 +104,7 @@ struct field_table
             "Access-Control-Allow-Headers",
             "Access-Control-Allow-Methods",
             "Access-Control-Allow-Origin",
+            "Access-Control-Expose-Headers",
             "Access-Control-Max-Age",
             "Access-Control-Request-Headers",
             "Access-Control-Request-Method",
