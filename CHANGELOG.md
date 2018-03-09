@@ -1,3 +1,9 @@
+Version 164:
+
+* Fix masking on continuation frames
+
+--------------------------------------------------------------------------------
+
 Version 163:
 
 * Tidy up calls to post()
