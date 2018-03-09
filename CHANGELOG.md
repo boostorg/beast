@@ -1,6 +1,7 @@
 Version 164:
 
 * Fix masking on continuation frames
+* Add Access-Control-Expose-Headers field constant
 
 --------------------------------------------------------------------------------
 
