@@ -111,14 +111,16 @@ with the Boost.Coroutine library. Please visit the Boost documentation
 for instructions on how to do this for your particular build system.
 
 To build the documentation, examples, tests, and benchmarks it is
-necessary to first obtain the boost "superproject" along with all
-of the boost libraries. Instructions for doing so may be found on
+necessary to first obtain the Boost "superproject" along with sources of
+all of the Boost libraries, then run the `b2` command to build the Boost
+libraries.
+Instructions for doing so may be found on
 the [Boost Wiki](https://github.com/boostorg/boost/wiki/Getting-Started).
 These commamnds will build the programs and documentation that come
 with Beast (omit the cxxflags parameter when building using MSVC):
 
 ```
-cd boost   # The directory containing the boost superproject and libraries
+cd boost   # The directory containing the Boost superproject and libraries
 b2 libs/beast/test cxxflags="-std=c++11"    # bjam must be in your $PATH
 b2 libs/beast/example cxxflags="-std=c++11"
 b2 libs/beast/doc
@@ -128,7 +130,7 @@ On Windows platforms only, CMake may be used to generate a Visual Studio
 solution and a set of Visual Studio project files using these commands:
 
 ```
-cd boost   # The directory containing the boost superproject and libraries
+cd boost   # The directory containing the Boost superproject and libraries
 cd libs/beast
 mkdir bin
 cd bin
