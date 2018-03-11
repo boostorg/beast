@@ -1,6 +1,7 @@
 Version 165:
 
 * Fix BOOST_NO_CXX11_ALLOCATOR check
+* Tidy up a warning
 
 --------------------------------------------------------------------------------
 
