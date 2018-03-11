@@ -1,3 +1,9 @@
+Version 165:
+
+* Fix BOOST_NO_CXX11_ALLOCATOR check
+
+--------------------------------------------------------------------------------
+
 Version 164:
 
 * Fix masking on continuation frames

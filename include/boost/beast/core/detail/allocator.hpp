@@ -11,7 +11,7 @@
 #define BOOST_BEAST_DETAIL_ALLOCATOR_HPP
 
 #include <boost/config.hpp>
-#if BOOST_NO_CXX11_ALLOCATOR
+#ifdef BOOST_NO_CXX11_ALLOCATOR
 #include <boost/container/allocator_traits.hpp>
 #else
 #include <memory>
@@ -25,7 +25,7 @@ namespace detail {
 // implementations which falsely claim C++11
 // compatibility.
 
-#if BOOST_NO_CXX11_ALLOCATOR
+#ifdef BOOST_NO_CXX11_ALLOCATOR
 template<class Alloc>
 using allocator_traits = boost::container::allocator_traits<Alloc>;
 
