@@ -12,6 +12,7 @@
 
 #include <boost/beast/core/error.hpp>
 #include <boost/asio/buffer.hpp>
+#include <boost/type_traits.hpp>
 #include <iterator>
 #include <tuple>
 #include <type_traits>
@@ -309,7 +310,7 @@ template<class... Bn>
 struct common_buffers_type
 {
     using type = typename std::conditional<
-        std::is_convertible<std::tuple<Bn...>,
+        boost::is_convertible<std::tuple<Bn...>,
             typename repeat_tuple<sizeof...(Bn),
                 boost::asio::mutable_buffer>::type>::value,
                     boost::asio::mutable_buffer,
@@ -341,7 +342,7 @@ class buffers_range_adaptor
 
 public:
     using value_type = typename std::conditional<
-        std::is_convertible<
+        boost::is_convertible<
             typename std::iterator_traits<
                 typename buffer_sequence_iterator<
                     Buffers>::type>::value_type,

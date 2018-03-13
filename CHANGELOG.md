@@ -1,3 +1,9 @@
+Version 166:
+
+* Use boost::is_convertible as a workaround
+
+--------------------------------------------------------------------------------
+
 Version 165:
 
 * Fix BOOST_NO_CXX11_ALLOCATOR check

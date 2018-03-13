@@ -11,6 +11,7 @@
 #define BOOST_BEAST_IMPL_BUFFERS_SUFFIX_IPP
 
 #include <boost/beast/core/type_traits.hpp>
+#include <boost/type_traits.hpp>
 #include <algorithm>
 #include <cstdint>
 #include <iterator>
@@ -33,7 +34,7 @@ class buffers_suffix<Buffers>::const_iterator
 
 public:
     using value_type = typename std::conditional<
-        std::is_convertible<typename
+        boost::is_convertible<typename
             std::iterator_traits<iter_type>::value_type,
                 boost::asio::mutable_buffer>::value,
                     boost::asio::mutable_buffer,
