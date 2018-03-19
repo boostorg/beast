@@ -95,8 +95,41 @@ load_root_certificates(ssl::context& ctx, boost::system::error_code& ec)
         "-----END CERTIFICATE-----\n"
         ;
 
-    ctx.add_certificate_authority(
-        boost::asio::buffer(cert.data(), cert.size()), ec);
+    // Currently, boost::asio::ssl::context::add_certificate_authority() is
+    // broken: it only processes a single certificate from a bundle.
+    // A PR has been submitted to fix that
+    //   https://github.com/chriskohlhoff/asio/pull/294
+    // but it's unclear when the fix makes it into Boost ASIO...
+    // For now, the code below replaces the call to 
+    //ctx.add_certificate_authority(boost::asio::const_buffer(cert.data(), cert.size()), ec);
+    auto ca = boost::asio::const_buffer(cert.data(), cert.size());
+    ::ERR_clear_error();
+    BIO* bio = ::BIO_new_mem_buf(const_cast<void*>(ca.data()), static_cast<int>(ca.size()));
+    if (bio && bio->ptr)
+    {
+      if (X509_STORE* store = ::SSL_CTX_get_cert_store(m_ctx.native_handle()))
+      {
+        while (true) {
+          std::unique_ptr<X509, void(*)(X509*)> cert = {
+            ::PEM_read_bio_X509(bio, nullptr, nullptr, nullptr),
+            ::X509_free
+          };
+          if (cert == nullptr) {
+            break;
+          }
+          if (::X509_STORE_add_cert(store, cert.get()) != 1) {
+            ec = boost::system::error_code(
+              static_cast<int>(::ERR_get_error()),
+              boost::asio::error::get_ssl_category());
+            break;
+          }
+        }
+      }
+    }
+    if (bio) {
+      ::BIO_free(bio);
+    }
+
     if(ec)
         return;
 }
