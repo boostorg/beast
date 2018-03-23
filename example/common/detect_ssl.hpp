@@ -413,6 +413,7 @@ operator()(boost::beast::error_code ec, std::size_t bytes_transferred)
             // original handler.
             BOOST_ASIO_CORO_YIELD
             boost::asio::post(
+                stream_.get_executor(),
                 beast::bind_handler(std::move(*this), ec, 0));
         }
         else

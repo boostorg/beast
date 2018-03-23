@@ -135,6 +135,7 @@ operator()(error_code ec, std::size_t)
             {
                 BOOST_ASIO_CORO_YIELD
                 boost::asio::post(
+                    d.ws.get_executor(),
                     bind_handler(std::move(*this), ec));
                 goto upcall;
             }
@@ -150,7 +151,8 @@ operator()(error_code ec, std::size_t)
 
             // Resume
             BOOST_ASIO_CORO_YIELD
-            boost::asio::post(std::move(*this));
+            boost::asio::post(
+                d.ws.get_executor(), std::move(*this));
             BOOST_ASSERT(d.ws.wr_block_.is_locked(this));
 
             // Make sure the stream is open

@@ -196,7 +196,8 @@ operator()(
 
             // Resume
             BOOST_ASIO_CORO_YIELD
-            boost::asio::post(std::move(*this));
+            boost::asio::post(
+                ws_.get_executor(), std::move(*this));
             BOOST_ASSERT(ws_.rd_block_.is_locked(this));
 
             // The only way to get read blocked is if
@@ -277,7 +278,9 @@ operator()(
                         if(! cont_)
                         {
                             BOOST_ASIO_CORO_YIELD
-                            boost::asio::post(std::move(*this));
+                            boost::asio::post(
+                                ws_.get_executor(),
+                                    std::move(*this));
                             BOOST_ASSERT(cont_);
                         }
                     }
@@ -319,7 +322,8 @@ operator()(
 
                         // Resume
                         BOOST_ASIO_CORO_YIELD
-                        boost::asio::post(std::move(*this));
+                        boost::asio::post(
+                            ws_.get_executor(), std::move(*this));
                         BOOST_ASSERT(ws_.wr_block_.is_locked(this));
 
                         // Make sure the stream is open
@@ -350,7 +354,9 @@ operator()(
                         if(! cont_)
                         {
                             BOOST_ASIO_CORO_YIELD
-                            boost::asio::post(std::move(*this));
+                            boost::asio::post(
+                                ws_.get_executor(),
+                                    std::move(*this));
                             BOOST_ASSERT(cont_);
                         }
                     }
@@ -374,7 +380,9 @@ operator()(
                         if(! cont_)
                         {
                             BOOST_ASIO_CORO_YIELD
-                            boost::asio::post(std::move(*this));
+                            boost::asio::post(
+                                ws_.get_executor(),
+                                    std::move(*this));
                             BOOST_ASSERT(cont_);
                         }
                     }
@@ -630,7 +638,8 @@ operator()(
 
             // Resume
             BOOST_ASIO_CORO_YIELD
-            boost::asio::post(std::move(*this));
+            boost::asio::post(
+                ws_.get_executor(), std::move(*this));
             BOOST_ASSERT(ws_.wr_block_.is_locked(this));
 
             // Make sure the stream is open
@@ -691,11 +700,10 @@ operator()(
                 ws_.paused_ping_.maybe_invoke() ||
                 ws_.paused_wr_.maybe_invoke();
         if(! cont_)
-        {
-            BOOST_ASIO_CORO_YIELD
-            boost::asio::post(
-                bind_handler(std::move(*this), ec));
-        }
+            return boost::asio::post(
+                ws_.stream_.get_executor(),
+                bind_handler(std::move(h_),
+                    ec, bytes_written_));
         h_(ec, bytes_written_);
     }
 }
@@ -806,8 +814,9 @@ operator()(
             {
                 BOOST_ASIO_CORO_YIELD
                 boost::asio::post(
+                    ws_.get_executor(),
                     bind_handler(std::move(*this),
-                        error::buffer_overflow));
+                        error::buffer_overflow, 0));
                 break;
             }
             BOOST_ASIO_CORO_YIELD

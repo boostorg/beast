@@ -170,11 +170,10 @@ operator()(
 
     upcall:
         if(! cont_)
-        {
-            BOOST_ASIO_CORO_YIELD
-            boost::asio::post(
-                bind_handler(std::move(*this), ec));
-        }
+            return boost::asio::post(
+                s_.get_executor(),
+                bind_handler(std::move(h_),
+                    ec, bytes_transferred_));
         h_(ec, bytes_transferred_);
     }
 }
@@ -291,7 +290,7 @@ operator()(
         if(Condition{}(p_))
         {
             BOOST_ASIO_CORO_YIELD
-            boost::asio::post(
+            boost::asio::post(s_.get_executor(),
                 bind_handler(std::move(*this), ec));
             goto upcall;
         }

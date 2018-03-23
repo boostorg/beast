@@ -1,3 +1,9 @@
+Version 167:
+
+* Revert: Tidy up calls to post()
+
+--------------------------------------------------------------------------------
+
 Version 166:
 
 * Use boost::is_convertible as a workaround
