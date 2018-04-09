@@ -21,6 +21,7 @@
 #include <boost/asio/associated_allocator.hpp>
 #include <boost/asio/associated_executor.hpp>
 #include <boost/asio/coroutine.hpp>
+#include <boost/asio/executor_work_guard.hpp>
 #include <boost/asio/handler_continuation_hook.hpp>
 #include <boost/asio/handler_invoke_hook.hpp>
 #include <boost/asio/post.hpp>
@@ -43,6 +44,8 @@ class read_some_op
     : public boost::asio::coroutine
 {
     Stream& s_;
+    boost::asio::executor_work_guard<decltype(
+        std::declval<Stream&>().get_executor())> wg_;
     DynamicBuffer& b_;
     basic_parser<isRequest, Derived>& p_;
     std::size_t bytes_transferred_ = 0;
@@ -57,6 +60,7 @@ public:
     read_some_op(DeducedHandler&& h, Stream& s,
         DynamicBuffer& b, basic_parser<isRequest, Derived>& p)
         : s_(s)
+        , wg_(s_.get_executor())
         , b_(b)
         , p_(p)
         , h_(std::forward<DeducedHandler>(h))
@@ -170,10 +174,13 @@ operator()(
 
     upcall:
         if(! cont_)
-            return boost::asio::post(
+        {
+            BOOST_ASIO_CORO_YIELD
+            boost::asio::post(
                 s_.get_executor(),
-                bind_handler(std::move(h_),
+                bind_handler(std::move(*this),
                     ec, bytes_transferred_));
+        }
         h_(ec, bytes_transferred_);
     }
 }
@@ -209,6 +216,8 @@ class read_op
     : public boost::asio::coroutine
 {
     Stream& s_;
+    boost::asio::executor_work_guard<decltype(
+        std::declval<Stream&>().get_executor())> wg_;
     DynamicBuffer& b_;
     basic_parser<isRequest, Derived>& p_;
     std::size_t bytes_transferred_ = 0;
@@ -224,6 +233,7 @@ public:
         DynamicBuffer& b, basic_parser<isRequest,
             Derived>& p)
         : s_(s)
+        , wg_(s_.get_executor())
         , b_(b)
         , p_(p)
         , h_(std::forward<DeducedHandler>(h))
@@ -327,6 +337,8 @@ class read_msg_op
     struct data
     {
         Stream& s;
+        boost::asio::executor_work_guard<decltype(
+            std::declval<Stream&>().get_executor())> wg;
         DynamicBuffer& b;
         message_type& m;
         parser_type p;
@@ -336,6 +348,7 @@ class read_msg_op
         data(Handler const&, Stream& s_,
                 DynamicBuffer& b_, message_type& m_)
             : s(s_)
+            , wg(s.get_executor())
             , b(b_)
             , m(m_)
             , p(std::move(m))
@@ -432,7 +445,10 @@ operator()(
         }
     upcall:
         bytes_transferred = d.bytes_transferred;
-        d_.invoke(ec, bytes_transferred);
+        {
+            auto wg = std::move(d.wg);
+            d_.invoke(ec, bytes_transferred);
+        }
     }
 }
 

@@ -1,3 +1,9 @@
+Version 168:
+
+* Use executor_work_guard in composed operations
+
+--------------------------------------------------------------------------------
+
 Version 167:
 
 * Revert: Tidy up calls to post()

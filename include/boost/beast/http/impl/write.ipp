@@ -18,6 +18,7 @@
 #include <boost/beast/core/detail/config.hpp>
 #include <boost/asio/associated_allocator.hpp>
 #include <boost/asio/associated_executor.hpp>
+#include <boost/asio/executor_work_guard.hpp>
 #include <boost/asio/handler_continuation_hook.hpp>
 #include <boost/asio/handler_invoke_hook.hpp>
 #include <boost/asio/post.hpp>
@@ -38,6 +39,8 @@ template<
 class write_some_op
 {
     Stream& s_;
+    boost::asio::executor_work_guard<decltype(
+        std::declval<Stream&>().get_executor())> wg_;
     serializer<isRequest,Body, Fields>& sr_;
     Handler h_;
 
@@ -74,6 +77,7 @@ public:
     write_some_op(DeducedHandler&& h, Stream& s,
             serializer<isRequest, Body, Fields>& sr)
         : s_(s)
+        , wg_(s_.get_executor())
         , sr_(sr)
         , h_(std::forward<DeducedHandler>(h))
     {
@@ -204,11 +208,13 @@ template<
     bool isRequest, class Body, class Fields>
 class write_op
 {
-    int state_ = 0;
     Stream& s_;
+    boost::asio::executor_work_guard<decltype(
+        std::declval<Stream&>().get_executor())> wg_;
     serializer<isRequest, Body, Fields>& sr_;
     std::size_t bytes_transferred_ = 0;
     Handler h_;
+    int state_ = 0;
 
 public:
     write_op(write_op&&) = default;
@@ -218,6 +224,7 @@ public:
     write_op(DeducedHandler&& h, Stream& s,
             serializer<isRequest, Body, Fields>& sr)
         : s_(s)
+        , wg_(s_.get_executor())
         , sr_(sr)
         , h_(std::forward<DeducedHandler>(h))
     {
@@ -321,11 +328,14 @@ class write_msg_op
     struct data
     {
         Stream& s;
+        boost::asio::executor_work_guard<decltype(
+            std::declval<Stream&>().get_executor())> wg;
         serializer<isRequest, Body, Fields> sr;
 
         data(Handler const&, Stream& s_, message<
                 isRequest, Body, Fields>& m_)
             : s(s_)
+            , wg(s.get_executor())
             , sr(m_)
         {
         }
@@ -405,6 +415,7 @@ write_msg_op<
     Stream, Handler, isRequest, Body, Fields>::
 operator()(error_code ec, std::size_t bytes_transferred)
 {
+    auto wg = std::move(d_->wg);
     d_.invoke(ec, bytes_transferred);
 }
 

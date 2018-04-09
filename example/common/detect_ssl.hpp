@@ -23,6 +23,7 @@
 
 #include <boost/beast/core.hpp>
 #include <boost/asio/coroutine.hpp>
+#include <boost/asio/executor_work_guard.hpp>
 #include <boost/logic/tribool.hpp>
 
 /** Return `true` if a buffer contains a TLS/SSL client handshake.
@@ -319,6 +320,14 @@ class detect_ssl_op : public boost::asio::coroutine
     // be cheaply copied as needed by the implementation.
 
     AsyncReadStream& stream_;
+
+    // Boost.Asio and the Networking TS require an object of
+    // type executor_work_guard<T>, where T is the type of
+    // executor returned by the stream's get_executor function,
+    // to persist for the duration of the asynchronous operation.
+    boost::asio::executor_work_guard<
+        decltype(std::declval<AsyncReadStream&>().get_executor())> work_;
+
     DynamicBuffer& buffer_;
     Handler handler_;
     boost::tribool result_ = false;
@@ -336,6 +345,7 @@ public:
         DynamicBuffer& buffer,
         DeducedHandler&& handler)
         : stream_(stream)
+        , work_(stream.get_executor())
         , buffer_(buffer)
         , handler_(std::forward<DeducedHandler>(handler))
     {

@@ -146,6 +146,9 @@ composed operations:
   __io_context__, the underlying stream may be accessed in a fashion
   that violates safety guarantees.
 
+* Forgetting to create an object of type __executor_work_guard__ with the
+  type of executor returned by the stream's `get_executor` member function.
+
 * For operations which complete immediately (i.e. without calling an
   intermediate initiating function), forgetting to use __post__ to
   invoke the final handler. This breaks the following initiating

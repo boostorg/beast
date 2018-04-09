@@ -22,6 +22,7 @@
 #include <boost/asio/coroutine.hpp>
 #include <boost/asio/associated_allocator.hpp>
 #include <boost/asio/associated_executor.hpp>
+#include <boost/asio/executor_work_guard.hpp>
 #include <boost/asio/handler_continuation_hook.hpp>
 #include <boost/asio/handler_invoke_hook.hpp>
 #include <boost/asio/post.hpp>
@@ -43,6 +44,8 @@ class stream<NextLayer, deflateSupported>::response_op
     struct data
     {
         stream<NextLayer, deflateSupported>& ws;
+        boost::asio::executor_work_guard<decltype(std::declval<
+            stream<NextLayer, deflateSupported>&>().get_executor())> wg;
         error_code result;
         response_type res;
 
@@ -54,6 +57,7 @@ class stream<NextLayer, deflateSupported>::response_op
                 http::basic_fields<Allocator>> const& req,
             Decorator const& decorator)
             : ws(ws_)
+            , wg(ws.get_executor())
             , res(ws_.build_response(req, decorator, result))
         {
         }
@@ -137,7 +141,10 @@ operator()(
             d.ws.do_pmd_config(d.res, is_deflate_supported{});
             d.ws.open(role_type::server);
         }
-        d_.invoke(ec);
+        {
+            auto wg = std::move(d.wg);
+            d_.invoke(ec);
+        }
     }
 }
 
@@ -153,6 +160,8 @@ class stream<NextLayer, deflateSupported>::accept_op
     struct data
     {
         stream<NextLayer, deflateSupported>& ws;
+        boost::asio::executor_work_guard<decltype(std::declval<
+            stream<NextLayer, deflateSupported>&>().get_executor())> wg;
         Decorator decorator;
         http::request_parser<http::empty_body> p;
         data(
@@ -160,6 +169,7 @@ class stream<NextLayer, deflateSupported>::accept_op
             stream<NextLayer, deflateSupported>& ws_,
             Decorator const& decorator_)
             : ws(ws_)
+            , wg(ws.get_executor())
             , decorator(decorator_)
         {
         }
@@ -284,6 +294,7 @@ operator()(error_code ec, std::size_t)
                 auto& ws = d.ws;
                 auto const req = d.p.release();
                 auto const decorator = d.decorator;
+                auto wg = std::move(d.wg);
             #if 1
                 return response_op<Handler>{
                     d_.release_handler(),
@@ -297,7 +308,10 @@ operator()(error_code ec, std::size_t)
             #endif
             }
         }
-        d_.invoke(ec);
+        {
+            auto wg = std::move(d.wg);
+            d_.invoke(ec);
+        }
     }
 }
 

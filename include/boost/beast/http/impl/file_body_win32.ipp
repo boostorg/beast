@@ -20,6 +20,7 @@
 #include <boost/asio/associated_executor.hpp>
 #include <boost/asio/async_result.hpp>
 #include <boost/asio/basic_stream_socket.hpp>
+#include <boost/asio/executor_work_guard.hpp>
 #include <boost/asio/handler_continuation_hook.hpp>
 #include <boost/asio/handler_invoke_hook.hpp>
 #include <boost/asio/windows/overlapped_ptr.hpp>
@@ -337,6 +338,8 @@ template<
 class write_some_win32_op
 {
     boost::asio::basic_stream_socket<Protocol>& sock_;
+    boost::asio::executor_work_guard<decltype(std::declval<
+        boost::asio::basic_stream_socket<Protocol>&>().get_executor())> wg_;
     serializer<isRequest,
         basic_file_body<file_win32>, Fields>& sr_;
     std::size_t bytes_transferred_ = 0;
@@ -354,6 +357,7 @@ public:
         serializer<isRequest,
             basic_file_body<file_win32>,Fields>& sr)
         : sock_(s)
+        , wg_(sock_.get_executor())
         , sr_(sr)
         , h_(std::forward<DeducedHandler>(h))
     {

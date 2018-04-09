@@ -22,6 +22,7 @@
 #include <boost/asio/associated_allocator.hpp>
 #include <boost/asio/associated_executor.hpp>
 #include <boost/asio/coroutine.hpp>
+#include <boost/asio/executor_work_guard.hpp>
 #include <boost/asio/handler_continuation_hook.hpp>
 #include <boost/asio/handler_invoke_hook.hpp>
 #include <boost/assert.hpp>
@@ -141,6 +142,8 @@ class stream<NextLayer, deflateSupported>::write_some_op
 {
     Handler h_;
     stream<NextLayer, deflateSupported>& ws_;
+    boost::asio::executor_work_guard<decltype(std::declval<
+        stream<NextLayer, deflateSupported>&>().get_executor())> wg_;
     buffers_suffix<Buffers> cb_;
     detail::frame_header fh_;
     detail::prepared_key key_;
@@ -166,6 +169,7 @@ public:
         Buffers const& bs)
         : h_(std::forward<DeducedHandler>(h))
         , ws_(ws)
+        , wg_(ws_.get_executor())
         , cb_(bs)
         , fin_(fin)
     {
@@ -569,9 +573,12 @@ operator()(
             ws_.paused_rd_.maybe_invoke() ||
             ws_.paused_ping_.maybe_invoke();
         if(! cont_)
-            return boost::asio::post(
-                ws_.stream_.get_executor(),
-                bind_handler(std::move(h_), ec, bytes_transferred_));
+        {
+            BOOST_ASIO_CORO_YIELD
+            boost::asio::post(
+                ws_.get_executor(),
+                bind_handler(std::move(*this), ec, bytes_transferred_));
+        }
         h_(ec, bytes_transferred_);
     }
 }

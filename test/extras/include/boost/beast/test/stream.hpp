@@ -19,6 +19,7 @@
 #include <boost/beast/test/fail_counter.hpp>
 #include <boost/asio/async_result.hpp>
 #include <boost/asio/buffer.hpp>
+#include <boost/asio/executor_work_guard.hpp>
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/post.hpp>
 #include <boost/assert.hpp>
@@ -697,9 +698,8 @@ class stream::read_op_impl : public stream::read_op
         state& s_;
         Buffers b_;
         Handler h_;
-        boost::optional<
-            boost::asio::executor_work_guard<
-                boost::asio::io_context::executor_type>> work_;
+        boost::asio::executor_work_guard<
+            boost::asio::io_context::executor_type> work_;
 
     public:
         lambda(lambda&&) = default;
@@ -720,7 +720,7 @@ class stream::read_op_impl : public stream::read_op
             boost::asio::post(
                 s_.ioc.get_executor(),
                 std::move(*this));
-            work_ = boost::none;
+            work_.reset();
         }
 
         void

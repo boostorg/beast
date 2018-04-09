@@ -17,6 +17,7 @@
 #include <boost/beast/test/stream.hpp>
 #include <boost/beast/test/yield_to.hpp>
 #include <boost/beast/unit_test/suite.hpp>
+#include <boost/asio/executor_work_guard.hpp>
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/spawn.hpp>
 #include <boost/optional.hpp>
@@ -71,9 +72,8 @@ public:
 
         std::ostream& log_;
         boost::asio::io_context ioc_;
-        boost::optional<
-            boost::asio::executor_work_guard<
-                boost::asio::io_context::executor_type>> work_;
+        boost::asio::executor_work_guard<
+            boost::asio::io_context::executor_type> work_;
         static_buffer<buf_size> buffer_;
         test::stream ts_;
         std::thread t_;
@@ -115,7 +115,7 @@ public:
 
         ~echo_server()
         {
-            work_ = boost::none;
+            work_.reset();
             t_.join();
         }
 
