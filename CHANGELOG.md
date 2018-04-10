@@ -1,6 +1,7 @@
 Version 168:
 
 * Use executor_work_guard in composed operations
+* Revert verb.ipp change which caused spurious warnings
 
 --------------------------------------------------------------------------------
 
@@ -19,7 +20,6 @@ Version 166:
 Version 165:
 
 * Fix BOOST_NO_CXX11_ALLOCATOR check
-* Tidy up a warning
 
 --------------------------------------------------------------------------------
 

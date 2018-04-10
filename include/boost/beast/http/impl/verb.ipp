@@ -72,10 +72,6 @@ verb_to_string(verb v)
     }
 
     BOOST_THROW_EXCEPTION(std::invalid_argument{"unknown verb"});
-
-    // Help some compilers which don't know the next line is
-    // unreachable, otherwise spurious warnings are generated.
-    return "<unknown>";
 }
 
 template<class = void>
