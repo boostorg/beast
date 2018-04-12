@@ -2,6 +2,7 @@ Version 168:
 
 * Use executor_work_guard in composed operations
 * Revert verb.ipp change which caused spurious warnings
+* Fix race in advanced server examples
 
 --------------------------------------------------------------------------------
 

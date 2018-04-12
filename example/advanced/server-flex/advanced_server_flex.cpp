@@ -924,6 +924,15 @@ public:
     void
     run()
     {
+        // Make sure we run on the strand
+        if(! strand_.running_in_this_thread())
+            return boost::asio::post(
+                boost::asio::bind_executor(
+                    strand_,
+                    std::bind(
+                        &plain_http_session::run,
+                        shared_from_this())));
+
         // Run the timer. The timer is operated
         // continuously, this simplifies the code.
         on_timer({});
@@ -996,6 +1005,15 @@ public:
     void
     run()
     {
+        // Make sure we run on the strand
+        if(! strand_.running_in_this_thread())
+            return boost::asio::post(
+                boost::asio::bind_executor(
+                    strand_,
+                    std::bind(
+                        &ssl_http_session::run,
+                        shared_from_this())));
+
         // Run the timer. The timer is operated
         // continuously, this simplifies the code.
         on_timer({});
