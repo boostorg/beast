@@ -1,3 +1,9 @@
+Version 172:
+
+* Tidy up websocket stream javadocs
+
+--------------------------------------------------------------------------------
+
 Version 171:
 
 * Add handler_ptr::has_value

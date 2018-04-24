@@ -509,7 +509,7 @@ public:
         return wr_frag_opt_;
     }
 
-    /** Set the binary message option.
+    /** Set the binary message write option.
 
         This controls whether or not outgoing message opcodes
         are set to binary or text. The setting is only applied
@@ -536,7 +536,7 @@ public:
             detail::opcode::text;
     }
 
-    /// Returns `true` if the binary message option is set.
+    /// Returns `true` if the binary message write option is set.
     bool
     binary() const
     {
@@ -674,7 +674,7 @@ public:
         return wr_buf_opt_;
     }
 
-    /** Set the text message option.
+    /** Set the text message write option.
 
         This controls whether or not outgoing message opcodes
         are set to binary or text. The setting is only applied
@@ -701,7 +701,7 @@ public:
             detail::opcode::binary;
     }
 
-    /// Returns `true` if the text message option is set.
+    /// Returns `true` if the text message write option is set.
     bool
     text() const
     {
