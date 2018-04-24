@@ -41,6 +41,7 @@ namespace beast {
     @endcode
 */
 template<class ConstBufferSequence>
+inline
 std::string
 buffers_to_string(ConstBufferSequence const& buffers)
 {

@@ -76,7 +76,7 @@ public:
                 BEAST_EXPECT(b2.get_allocator()->nmove == 1);
                 BEAST_EXPECT(b1.size() == 0);
                 BEAST_EXPECT(b1.capacity() == 0);
-                BEAST_EXPECT(to_string(b2.data()) == "Hello");
+                BEAST_EXPECT(buffers_to_string(b2.data()) == "Hello");
                 BEAST_EXPECT(b1.max_size() == b2.max_size());
             }
             {
@@ -86,7 +86,7 @@ public:
                 basic_flat_buffer<a_t> b2{std::move(b1), a};
                 BEAST_EXPECT(b1.size() == 0);
                 BEAST_EXPECT(b1.capacity() == 0);
-                BEAST_EXPECT(to_string(b2.data()) == "Hello");
+                BEAST_EXPECT(buffers_to_string(b2.data()) == "Hello");
                 BEAST_EXPECT(b1.max_size() == b2.max_size());
             }
             {
@@ -96,7 +96,7 @@ public:
                 basic_flat_buffer<a_neq_t> b2{std::move(b1), a};
                 BEAST_EXPECT(b1.size() == 0);
                 BEAST_EXPECT(b1.capacity() == 0);
-                BEAST_EXPECT(to_string(b2.data()) == "Hello");
+                BEAST_EXPECT(buffers_to_string(b2.data()) == "Hello");
                 BEAST_EXPECT(b1.max_size() == b2.max_size());
             }
         }
@@ -107,8 +107,8 @@ public:
             ostream(b1) << "Hello";
             basic_flat_buffer<a_t> b2(b1);
             BEAST_EXPECT(b1.get_allocator() == b2.get_allocator());
-            BEAST_EXPECT(to_string(b1.data()) == "Hello");
-            BEAST_EXPECT(to_string(b2.data()) == "Hello");
+            BEAST_EXPECT(buffers_to_string(b1.data()) == "Hello");
+            BEAST_EXPECT(buffers_to_string(b2.data()) == "Hello");
         }
         {
             basic_flat_buffer<a_neq_t> b1;
@@ -116,15 +116,15 @@ public:
             a_neq_t a;
             basic_flat_buffer<a_neq_t> b2(b1, a);
             BEAST_EXPECT(b1.get_allocator() != b2.get_allocator());
-            BEAST_EXPECT(to_string(b1.data()) == "Hello");
-            BEAST_EXPECT(to_string(b2.data()) == "Hello");
+            BEAST_EXPECT(buffers_to_string(b1.data()) == "Hello");
+            BEAST_EXPECT(buffers_to_string(b2.data()) == "Hello");
         }
         {
             basic_flat_buffer<a_t> b1;
             ostream(b1) << "Hello";
             basic_flat_buffer<a_neq_t> b2(b1);
-            BEAST_EXPECT(to_string(b1.data()) == "Hello");
-            BEAST_EXPECT(to_string(b2.data()) == "Hello");
+            BEAST_EXPECT(buffers_to_string(b1.data()) == "Hello");
+            BEAST_EXPECT(buffers_to_string(b2.data()) == "Hello");
         }
         {
             basic_flat_buffer<a_neq_t> b1;
@@ -132,8 +132,8 @@ public:
             a_t a;
             basic_flat_buffer<a_t> b2(b1, a);
             BEAST_EXPECT(b2.get_allocator() == a);
-            BEAST_EXPECT(to_string(b1.data()) == "Hello");
-            BEAST_EXPECT(to_string(b2.data()) == "Hello");
+            BEAST_EXPECT(buffers_to_string(b1.data()) == "Hello");
+            BEAST_EXPECT(buffers_to_string(b2.data()) == "Hello");
         }
 
         // move assignment
@@ -145,7 +145,7 @@ public:
                 b2 = std::move(b1);
                 BEAST_EXPECT(b1.size() == 0);
                 BEAST_EXPECT(b1.capacity() == 0);
-                BEAST_EXPECT(to_string(b2.data()) == "Hello");
+                BEAST_EXPECT(buffers_to_string(b2.data()) == "Hello");
             }
             {
                 using na_t = test::test_allocator<char,
@@ -157,7 +157,7 @@ public:
                 BEAST_EXPECT(b1.get_allocator() == b2.get_allocator());
                 BEAST_EXPECT(b1.size() == 0);
                 BEAST_EXPECT(b1.capacity() == 0);
-                BEAST_EXPECT(to_string(b2.data()) == "Hello");
+                BEAST_EXPECT(buffers_to_string(b2.data()) == "Hello");
             }
             {
                 using na_t = test::test_allocator<char,
@@ -169,7 +169,7 @@ public:
                 BEAST_EXPECT(b1.get_allocator() != b2.get_allocator());
                 BEAST_EXPECT(b1.size() == 0);
                 BEAST_EXPECT(b1.capacity() == 0);
-                BEAST_EXPECT(to_string(b2.data()) == "Hello");
+                BEAST_EXPECT(buffers_to_string(b2.data()) == "Hello");
             }
             {
                 // propagate_on_container_move_assignment : true
@@ -180,7 +180,7 @@ public:
                 basic_flat_buffer<pocma_t> b2;
                 b2 = std::move(b1);
                 BEAST_EXPECT(b1.size() == 0);
-                BEAST_EXPECT(to_string(b2.data()) == "Hello");
+                BEAST_EXPECT(buffers_to_string(b2.data()) == "Hello");
             }
             {
                 // propagate_on_container_move_assignment : false
@@ -191,7 +191,7 @@ public:
                 basic_flat_buffer<pocma_t> b2;
                 b2 = std::move(b1);
                 BEAST_EXPECT(b1.size() == 0);
-                BEAST_EXPECT(to_string(b2.data()) == "Hello");
+                BEAST_EXPECT(buffers_to_string(b2.data()) == "Hello");
             }
         }
 
@@ -202,11 +202,11 @@ public:
                 ostream(b1) << "Hello";
                 flat_buffer b2;
                 b2 = b1;
-                BEAST_EXPECT(to_string(b1.data()) == "Hello");
-                BEAST_EXPECT(to_string(b2.data()) == "Hello");
+                BEAST_EXPECT(buffers_to_string(b1.data()) == "Hello");
+                BEAST_EXPECT(buffers_to_string(b2.data()) == "Hello");
                 basic_flat_buffer<a_t> b3;
                 b3 = b2;
-                BEAST_EXPECT(to_string(b3.data()) == "Hello");
+                BEAST_EXPECT(buffers_to_string(b3.data()) == "Hello");
             }
             {
                 // propagate_on_container_copy_assignment : true
@@ -216,7 +216,7 @@ public:
                 ostream(b1) << "Hello";
                 basic_flat_buffer<pocca_t> b2;
                 b2 = b1;
-                BEAST_EXPECT(to_string(b2.data()) == "Hello");
+                BEAST_EXPECT(buffers_to_string(b2.data()) == "Hello");
             }
             {
                 // propagate_on_container_copy_assignment : false
@@ -226,7 +226,7 @@ public:
                 ostream(b1) << "Hello";
                 basic_flat_buffer<pocca_t> b2;
                 b2 = b1;
-                BEAST_EXPECT(to_string(b2.data()) == "Hello");
+                BEAST_EXPECT(buffers_to_string(b2.data()) == "Hello");
             }
         }
 
@@ -238,19 +238,19 @@ public:
             BEAST_EXPECT(b1.max_size() == 64);
             BEAST_EXPECT(b1.capacity() == 0);
             ostream(b1) << s;
-            BEAST_EXPECT(to_string(b1.data()) == s);
+            BEAST_EXPECT(buffers_to_string(b1.data()) == s);
             {
                 flat_buffer b2{b1};
-                BEAST_EXPECT(to_string(b2.data()) == s);
+                BEAST_EXPECT(buffers_to_string(b2.data()) == s);
                 b2.consume(7);
-                BEAST_EXPECT(to_string(b2.data()) == s.substr(7));
+                BEAST_EXPECT(buffers_to_string(b2.data()) == s.substr(7));
             }
             {
                 flat_buffer b2{64};
                 b2 = b1;
-                BEAST_EXPECT(to_string(b2.data()) == s);
+                BEAST_EXPECT(buffers_to_string(b2.data()) == s);
                 b2.consume(7);
-                BEAST_EXPECT(to_string(b2.data()) == s.substr(7));
+                BEAST_EXPECT(buffers_to_string(b2.data()) == s.substr(7));
             }
         }
 
@@ -260,7 +260,7 @@ public:
             ostream(b) << "12345";
             b.consume(3);
             ostream(b) << "67890123";
-            BEAST_EXPECT(to_string(b.data()) == "4567890123");
+            BEAST_EXPECT(buffers_to_string(b.data()) == "4567890123");
         }
 
         // read_size
@@ -288,7 +288,7 @@ public:
                 BEAST_EXPECT(b1.get_allocator() != b2.get_allocator());
                 BEAST_EXPECT(b1.size() == 0);
                 BEAST_EXPECT(b1.capacity() == 0);
-                BEAST_EXPECT(to_string(b2.data()) == "Hello");
+                BEAST_EXPECT(buffers_to_string(b2.data()) == "Hello");
             }
             {
                 using na_t = test::test_allocator<char,
@@ -304,7 +304,7 @@ public:
                 BEAST_EXPECT(b1.get_allocator() == b2.get_allocator());
                 BEAST_EXPECT(b1.size() == 0);
                 BEAST_EXPECT(b1.capacity() == 0);
-                BEAST_EXPECT(to_string(b2.data()) == "Hello");
+                BEAST_EXPECT(buffers_to_string(b2.data()) == "Hello");
             }
         }
 

@@ -63,7 +63,7 @@ public:
             multi_buffer b;
             w.read(ws, b);
             BEAST_EXPECT(ws.got_text());
-            BEAST_EXPECT(to_string(b.data()) == s);
+            BEAST_EXPECT(buffers_to_string(b.data()) == s);
         });
 
         // empty message
@@ -90,7 +90,7 @@ public:
             multi_buffer b;
             w.read(ws, b);
             BEAST_EXPECT(ws.got_text());
-            BEAST_EXPECT(to_string(b.data()) == s);
+            BEAST_EXPECT(buffers_to_string(b.data()) == s);
         });
 
         // continuation
@@ -106,7 +106,7 @@ public:
                 s.data() + chop, s.size() - chop));
             flat_buffer b;
             w.read(ws, b);
-            BEAST_EXPECT(to_string(b.data()) == s);
+            BEAST_EXPECT(buffers_to_string(b.data()) == s);
         });
 
         // mask
@@ -118,7 +118,7 @@ public:
             w.write(ws, buffer(s));
             flat_buffer b;
             w.read(ws, b);
-            BEAST_EXPECT(to_string(b.data()) == s);
+            BEAST_EXPECT(buffers_to_string(b.data()) == s);
         });
 
         // mask (large)
@@ -131,7 +131,7 @@ public:
             w.write(ws, buffer(s));
             flat_buffer b;
             w.read(ws, b);
-            BEAST_EXPECT(to_string(b.data()) == s);
+            BEAST_EXPECT(buffers_to_string(b.data()) == s);
         });
 
         // mask, autofrag
@@ -143,7 +143,7 @@ public:
             w.write(ws, buffer(s));
             flat_buffer b;
             w.read(ws, b);
-            BEAST_EXPECT(to_string(b.data()) == s);
+            BEAST_EXPECT(buffers_to_string(b.data()) == s);
         });
 
         // nomask
@@ -161,7 +161,7 @@ public:
                 w.write(ws, buffer(s));
                 flat_buffer b;
                 w.read(ws, b);
-                BEAST_EXPECT(to_string(b.data()) == s);
+                BEAST_EXPECT(buffers_to_string(b.data()) == s);
                 w.close(ws, {});
             }
             catch(...)
@@ -187,7 +187,7 @@ public:
                 w.write(ws, buffer(s));
                 flat_buffer b;
                 w.read(ws, b);
-                BEAST_EXPECT(to_string(b.data()) == s);
+                BEAST_EXPECT(buffers_to_string(b.data()) == s);
                 w.close(ws, {});
             }
             catch(...)
@@ -218,7 +218,7 @@ public:
             w.write(ws, buffer(s));
             flat_buffer b;
             w.read(ws, b);
-            BEAST_EXPECT(to_string(b.data()) == s);
+            BEAST_EXPECT(buffers_to_string(b.data()) == s);
         });
 
         // deflate, continuation
@@ -235,7 +235,7 @@ public:
                 s.data() + chop, s.size() - chop));
             flat_buffer b;
             w.read(ws, b);
-            BEAST_EXPECT(to_string(b.data()) == s);
+            BEAST_EXPECT(buffers_to_string(b.data()) == s);
         });
 
         // deflate, no context takeover
@@ -247,7 +247,7 @@ public:
             w.write(ws, buffer(s));
             flat_buffer b;
             w.read(ws, b);
-            BEAST_EXPECT(to_string(b.data()) == s);
+            BEAST_EXPECT(buffers_to_string(b.data()) == s);
         });
     }
 

@@ -11,6 +11,7 @@
 #define BEAST_TEST_WEBSOCKET_TEST_HPP
 
 #include <boost/beast/core/buffers_prefix.hpp>
+#include <boost/beast/core/buffers_to_string.hpp>
 #include <boost/beast/core/ostream.hpp>
 #include <boost/beast/core/multi_buffer.hpp>
 #include <boost/beast/websocket/stream.hpp>
@@ -378,19 +379,6 @@ public:
     }
 
     //--------------------------------------------------------------------------
-
-    template<class ConstBufferSequence>
-    std::string
-    to_string(ConstBufferSequence const& bs)
-    {
-        std::string s;
-        s.reserve(buffer_size(bs));
-        for(auto b : beast::detail::buffers_range(bs))
-            s.append(
-                reinterpret_cast<char const*>(b.data()),
-                b.size());
-        return s;
-    }
 
     template<std::size_t N>
     class cbuf_helper

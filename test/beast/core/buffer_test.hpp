@@ -10,6 +10,7 @@
 #ifndef BOOST_BEAST_TEST_BUFFER_TEST_HPP
 #define BOOST_BEAST_TEST_BUFFER_TEST_HPP
 
+#include <boost/beast/core/buffers_to_string.hpp>
 #include <boost/beast/core/string.hpp>
 #include <boost/beast/core/read_size.hpp>
 #include <boost/beast/core/type_traits.hpp>
@@ -22,20 +23,6 @@
 namespace boost {
 namespace beast {
 namespace test {
-
-template<class ConstBufferSequence>
-typename std::enable_if<
-    boost::asio::is_const_buffer_sequence<ConstBufferSequence>::value,
-std::string>::type
-to_string(ConstBufferSequence const& bs)
-{
-    std::string s;
-    s.reserve(buffer_size(bs));
-    for(auto b : beast::detail::buffers_range(bs))
-        s.append(reinterpret_cast<char const*>(b.data()),
-            b.size());
-    return s;
-}
 
 template<class DynamicBuffer>
 void

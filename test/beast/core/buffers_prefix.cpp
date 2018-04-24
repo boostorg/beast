@@ -11,6 +11,7 @@
 #include <boost/beast/core/buffers_prefix.hpp>
 
 #include <boost/beast/core/buffers_suffix.hpp>
+#include <boost/beast/core/buffers_to_string.hpp>
 #include <boost/beast/core/type_traits.hpp>
 #include <boost/beast/unit_test/suite.hpp>
 #include <boost/asio/buffer.hpp>
@@ -88,19 +89,6 @@ public:
         return n;
     }
 
-    template<class ConstBufferSequence>
-    static
-    std::string
-    to_string(ConstBufferSequence const& bs)
-    {
-        std::string s;
-        s.reserve(buffer_size(bs));
-        for(auto b : beast::detail::buffers_range(bs))
-            s.append(reinterpret_cast<char const*>(b.data()),
-                b.size());
-        return s;
-    }
-
     template<class BufferType>
     void testMatrix()
     {
@@ -118,14 +106,14 @@ public:
             for(std::size_t i = 0; i <= s.size() + 1; ++i)
             {
                 auto pb = buffers_prefix(i, bs);
-                BEAST_EXPECT(to_string(pb) == s.substr(0, i));
+                BEAST_EXPECT(buffers_to_string(pb) == s.substr(0, i));
                 auto pb2 = pb;
-                BEAST_EXPECT(to_string(pb2) == to_string(pb));
+                BEAST_EXPECT(buffers_to_string(pb2) == buffers_to_string(pb));
                 pb = buffers_prefix(0, bs);
                 pb2 = pb;
                 BEAST_EXPECT(buffer_size(pb2) == 0);
                 pb2 = buffers_prefix(i, bs);
-                BEAST_EXPECT(to_string(pb2) == s.substr(0, i));
+                BEAST_EXPECT(buffers_to_string(pb2) == s.substr(0, i));
             }
         }
         }}

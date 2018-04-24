@@ -40,7 +40,7 @@ public:
     eq(Buffers1 const& lhs, Buffers2 const& rhs)
     {
         using namespace test;
-        return to_string(lhs) == to_string(rhs);
+        return buffers_to_string(lhs) == buffers_to_string(rhs);
     }
 
     template<class ConstBufferSequence>
@@ -77,7 +77,7 @@ public:
         std::string const s = "Hello, world";
         BEAST_EXPECT(s.size() == sizeof(buf));
         buffer_copy(buffer(buf), buffer(s));
-        BEAST_EXPECT(to_string(buffer(buf)) == s);
+        BEAST_EXPECT(buffers_to_string(buffer(buf)) == s);
         for(std::size_t i = 1; i < 4; ++i) {
         for(std::size_t j = 1; j < 4; ++j) {
         for(std::size_t x = 1; x < 4; ++x) {
@@ -90,23 +90,23 @@ public:
                 const_buffer{&buf[i], j},
                 const_buffer{&buf[i+j], k}}};
             buffers_suffix<decltype(bs)> cb(bs);
-            BEAST_EXPECT(to_string(cb) == s);
+            BEAST_EXPECT(buffers_to_string(cb) == s);
             expect_size(s.size(), cb);
             cb.consume(0);
             BEAST_EXPECT(eq(cb, consumed_buffers(bs, 0)));
-            BEAST_EXPECT(to_string(cb) == s);
+            BEAST_EXPECT(buffers_to_string(cb) == s);
             expect_size(s.size(), cb);
             cb.consume(x);
-            BEAST_EXPECT(to_string(cb) == s.substr(x));
+            BEAST_EXPECT(buffers_to_string(cb) == s.substr(x));
             BEAST_EXPECT(eq(cb, consumed_buffers(bs, x)));
             cb.consume(y);
-            BEAST_EXPECT(to_string(cb) == s.substr(x+y));
+            BEAST_EXPECT(buffers_to_string(cb) == s.substr(x+y));
             BEAST_EXPECT(eq(cb, consumed_buffers(bs, x+y)));
             cb.consume(z);
-            BEAST_EXPECT(to_string(cb) == "");
+            BEAST_EXPECT(buffers_to_string(cb) == "");
             BEAST_EXPECT(eq(cb, consumed_buffers(bs, x+y+z)));
             cb.consume(1);
-            BEAST_EXPECT(to_string(cb) == "");
+            BEAST_EXPECT(buffers_to_string(cb) == "");
             BEAST_EXPECT(eq(cb, consumed_buffers(bs, x+y+z)));
         }
         }}}}
@@ -126,7 +126,7 @@ public:
         };
 
         buffers_suffix<test_buffer> cb;
-        BEAST_EXPECT(to_string(cb) == "\r\n");
+        BEAST_EXPECT(buffers_to_string(cb) == "\r\n");
     }
 
     void
@@ -139,7 +139,7 @@ public:
                 boost::in_place_init,
                     boost::asio::const_buffer("\r", 1),
                     boost::asio::const_buffer("\n", 1));
-        BEAST_EXPECT(to_string(cb) == "\r\n");
+        BEAST_EXPECT(buffers_to_string(cb) == "\r\n");
     }
 
     void

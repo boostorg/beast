@@ -16,6 +16,7 @@
 #include <boost/beast/http/message.hpp>
 #include <boost/beast/http/read.hpp>
 #include <boost/beast/http/string_body.hpp>
+#include <boost/beast/core/buffers_to_string.hpp>
 #include <boost/beast/core/error.hpp>
 #include <boost/beast/core/multi_buffer.hpp>
 #include <boost/beast/test/stream.hpp>
@@ -262,19 +263,6 @@ public:
         std::stringstream ss;
         ss << m;
         return ss.str();
-    }
-
-    template<class ConstBufferSequence>
-    static
-    std::string
-    to_string(ConstBufferSequence const& bs)
-    {
-        std::string s;
-        s.reserve(buffer_size(bs));
-        for(auto b : beast::detail::buffers_range(bs))
-            s.append(reinterpret_cast<char const*>(b),
-                b.size());
-        return s;
     }
 
     template<bool isRequest>

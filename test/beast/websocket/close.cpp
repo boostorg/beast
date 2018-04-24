@@ -521,7 +521,7 @@ public:
                             system_error{ec});
                     }
                     if(! ec)
-                        BEAST_EXPECT(to_string(b.data()) == s);
+                        BEAST_EXPECT(buffers_to_string(b.data()) == s);
                     ++count;
                     if(count == 4)
                         BEAST_EXPECT(

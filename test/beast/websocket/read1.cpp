@@ -119,7 +119,7 @@ public:
                 "\x80\x81\xff\xff\xff\xff\xd5"));
             multi_buffer b;
             w.read(ws, b);
-            BEAST_EXPECT(to_string(b.data()) == "**");
+            BEAST_EXPECT(buffers_to_string(b.data()) == "**");
         });
 
         // ping
@@ -141,7 +141,7 @@ public:
             w.read(ws, b);
             BEAST_EXPECT(invoked);
             BEAST_EXPECT(ws.got_text());
-            BEAST_EXPECT(to_string(b.data()) == "Hello");
+            BEAST_EXPECT(buffers_to_string(b.data()) == "Hello");
         });
 
         // ping
@@ -182,7 +182,7 @@ public:
             w.read(ws, b);
             BEAST_EXPECT(once);
             BEAST_EXPECT(ws.got_binary());
-            BEAST_EXPECT(to_string(b.data()) == "Hello");
+            BEAST_EXPECT(buffers_to_string(b.data()) == "Hello");
         });
 
         // ping then fragmented message
@@ -205,7 +205,7 @@ public:
             multi_buffer b;
             w.read(ws, b);
             BEAST_EXPECT(once);
-            BEAST_EXPECT(to_string(b.data()) == "Hello, World!");
+            BEAST_EXPECT(buffers_to_string(b.data()) == "Hello, World!");
         });
 
         // masked message, big
@@ -226,7 +226,7 @@ public:
                 multi_buffer b;
                 w.read(ws, b);
                 BEAST_EXPECT(ws.got_text());
-                BEAST_EXPECT(to_string(b.data()) == s);
+                BEAST_EXPECT(buffers_to_string(b.data()) == s);
                 ws.next_layer().close();
             }
             catch(...)
@@ -486,7 +486,7 @@ public:
             w.write(ws, buffer(s));
             multi_buffer b;
             w.read(ws, b);
-            BEAST_EXPECT(to_string(b.data()) == s);
+            BEAST_EXPECT(buffers_to_string(b.data()) == s);
         });
         pmd.client_no_context_takeover = false;
     }
@@ -509,7 +509,7 @@ public:
             multi_buffer b;
             w.read(ws, b);
             BEAST_EXPECT(ws.got_text());
-            BEAST_EXPECT(to_string(b.data()) == s);
+            BEAST_EXPECT(buffers_to_string(b.data()) == s);
         });
 
         // masked message
@@ -530,7 +530,7 @@ public:
                 multi_buffer b;
                 w.read(ws, b);
                 BEAST_EXPECT(ws.got_text());
-                BEAST_EXPECT(to_string(b.data()) == s);
+                BEAST_EXPECT(buffers_to_string(b.data()) == s);
                 ws.next_layer().close();
             }
             catch(...)
@@ -549,7 +549,7 @@ public:
             multi_buffer b;
             w.read(ws, b);
             BEAST_EXPECT(ws.got_text());
-            BEAST_EXPECT(to_string(b.data()) == s);
+            BEAST_EXPECT(buffers_to_string(b.data()) == s);
         });
 
         // partial message
@@ -575,10 +575,10 @@ public:
             auto bytes_written =
                 w.read_some(ws, 3, b);
             BEAST_EXPECT(bytes_written > 0);
-            BEAST_EXPECT(to_string(b.data()) ==
+            BEAST_EXPECT(buffers_to_string(b.data()) ==
                 s.substr(0, b.size()));
             w.read_some(ws, 256, b);
-            BEAST_EXPECT(to_string(b.data()) == s);
+            BEAST_EXPECT(buffers_to_string(b.data()) == s);
         });
 
         // big message
@@ -589,7 +589,7 @@ public:
             w.write(ws, buffer(s));
             multi_buffer b;
             w.read(ws, b);
-            BEAST_EXPECT(to_string(b.data()) == s);
+            BEAST_EXPECT(buffers_to_string(b.data()) == s);
         });
 
         // message, bad utf8

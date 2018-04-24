@@ -1,3 +1,9 @@
+Version 169:
+
+* Use buffers_to_string in tests
+
+--------------------------------------------------------------------------------
+
 Version 168:
 
 * Use executor_work_guard in composed operations

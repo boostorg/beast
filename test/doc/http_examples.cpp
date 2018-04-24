@@ -53,19 +53,6 @@ public:
         return ss.str();
     }
 
-    template<class ConstBufferSequence>
-    static
-    std::string
-    to_string(ConstBufferSequence const& bs)
-    {
-        std::string s;
-        s.reserve(buffer_size(bs));
-        for(auto b : beast::detail::buffers_range(bs))
-            s.append(reinterpret_cast<
-                char const*>(b.data()), b.size());
-        return s;
-    }
-
     template<bool isRequest>
     bool
     equal_body(string_view sv, string_view body)
@@ -368,7 +355,7 @@ public:
                 std::allocator<double>{}
                     ), ec);
         BEAST_EXPECT(
-            to_string(tr.buffer().data()) ==
+            buffers_to_string(tr.buffer().data()) ==
             "HTTP/1.1 200 OK\r\n"
             "Server: test\r\n"
             "Accept: Expires, Content-MD5\r\n"

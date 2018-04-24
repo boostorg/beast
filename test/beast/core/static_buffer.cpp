@@ -105,17 +105,17 @@ public:
             ba.commit(2);
             BEAST_EXPECT(ba.size() == x + y + z);
             BEAST_EXPECT(buffer_size(ba.data()) == ba.size());
-            BEAST_EXPECT(to_string(ba.data()) == s);
+            BEAST_EXPECT(buffers_to_string(ba.data()) == s);
             ba.consume(t);
             {
                 auto d = ba.prepare(0);
                 BEAST_EXPECT(buffer_size(d) == 0);
             }
-            BEAST_EXPECT(to_string(ba.data()) == s.substr(t, std::string::npos));
+            BEAST_EXPECT(buffers_to_string(ba.data()) == s.substr(t, std::string::npos));
             ba.consume(u);
-            BEAST_EXPECT(to_string(ba.data()) == s.substr(t + u, std::string::npos));
+            BEAST_EXPECT(buffers_to_string(ba.data()) == s.substr(t + u, std::string::npos));
             ba.consume(v);
-            BEAST_EXPECT(to_string(ba.data()) == "");
+            BEAST_EXPECT(buffers_to_string(ba.data()) == "");
             ba.consume(1);
             {
                 auto d = ba.prepare(0);
@@ -145,9 +145,9 @@ public:
             char buf[64];
             static_buffer_base b{buf, sizeof(buf)};
             ostream(b) << s;
-            BEAST_EXPECT(to_string(b.data()) == s);
+            BEAST_EXPECT(buffers_to_string(b.data()) == s);
             b.consume(b.size());
-            BEAST_EXPECT(to_string(b.data()) == "");
+            BEAST_EXPECT(buffers_to_string(b.data()) == "");
         }
 
         // static_buffer
@@ -157,19 +157,19 @@ public:
             BEAST_EXPECT(b1.max_size() == 64);
             BEAST_EXPECT(b1.capacity() == 64);
             ostream(b1) << s;
-            BEAST_EXPECT(to_string(b1.data()) == s);
+            BEAST_EXPECT(buffers_to_string(b1.data()) == s);
             {
                 static_buffer<64> b2{b1};
-                BEAST_EXPECT(to_string(b2.data()) == s);
+                BEAST_EXPECT(buffers_to_string(b2.data()) == s);
                 b2.consume(7);
-                BEAST_EXPECT(to_string(b2.data()) == s.substr(7));
+                BEAST_EXPECT(buffers_to_string(b2.data()) == s.substr(7));
             }
             {
                 static_buffer<64> b2;
                 b2 = b1;
-                BEAST_EXPECT(to_string(b2.data()) == s);
+                BEAST_EXPECT(buffers_to_string(b2.data()) == s);
                 b2.consume(7);
-                BEAST_EXPECT(to_string(b2.data()) == s.substr(7));
+                BEAST_EXPECT(buffers_to_string(b2.data()) == s.substr(7));
             }
         }
 
@@ -179,7 +179,7 @@ public:
             write_buffer(b, "12345");
             b.consume(3);
             write_buffer(b, "67890123");
-            BEAST_EXPECT(to_string(b.data()) == "4567890123");
+            BEAST_EXPECT(buffers_to_string(b.data()) == "4567890123");
             try
             {
                 b.prepare(1);

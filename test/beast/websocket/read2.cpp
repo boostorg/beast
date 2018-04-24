@@ -114,7 +114,7 @@ public:
                     if(ec)
                         BOOST_THROW_EXCEPTION(
                             system_error{ec});
-                    BEAST_EXPECT(to_string(b.data()) == s);
+                    BEAST_EXPECT(buffers_to_string(b.data()) == s);
                     ++count;
                 });
             BEAST_EXPECT(ws.rd_block_.is_locked());
@@ -154,7 +154,7 @@ public:
                     if(ec)
                         BOOST_THROW_EXCEPTION(
                             system_error{ec});
-                    BEAST_EXPECT(to_string(b.data()) == "**");
+                    BEAST_EXPECT(buffers_to_string(b.data()) == "**");
                     BEAST_EXPECT(++count == 1);
                     b.consume(b.size());
                     ws.async_read(b,
@@ -256,7 +256,7 @@ public:
                 {
                     ++count;
                     BEAST_EXPECTS(! ec, ec.message());
-                    BEAST_EXPECT(to_string(b.data()) == s);
+                    BEAST_EXPECT(buffers_to_string(b.data()) == s);
                 });
             ioc.run_one();
             es.stream().write_some(
@@ -331,7 +331,7 @@ public:
                 {
                     ++count;
                     BEAST_EXPECTS(! ec, ec.message());
-                    BEAST_EXPECT(to_string(b.data()) == "**");
+                    BEAST_EXPECT(buffers_to_string(b.data()) == "**");
                 });
             ioc.run_one();
             es.stream().write_some(

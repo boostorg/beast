@@ -10,6 +10,7 @@
 // Test that header file is self-contained.
 #include <boost/beast/http/dynamic_body.hpp>
 
+#include <boost/beast/core/buffers_to_string.hpp>
 #include <boost/beast/core/ostream.hpp>
 #include <boost/beast/http/fields.hpp>
 #include <boost/beast/http/parser.hpp>
@@ -37,19 +38,6 @@ public:
         return ss.str();
     }
 
-    template<class ConstBufferSequence>
-    static
-    std::string
-    to_string(ConstBufferSequence const& bs)
-    {
-        std::string s;
-        s.reserve(boost::asio::buffer_size(bs));
-        for(auto b : beast::detail::buffers_range(bs))
-            s.append(reinterpret_cast<char const*>(b.data()),
-                b.size());
-        return s;
-    }
-
     void
     run() override
     {
@@ -64,7 +52,7 @@ public:
         multi_buffer b;
         read(ts, b, p);
         auto const& m = p.get();
-        BEAST_EXPECT(to_string(m.body().data()) == "xyz");
+        BEAST_EXPECT(buffers_to_string(m.body().data()) == "xyz");
         BEAST_EXPECT(to_string(m) == s);
     }
 };
