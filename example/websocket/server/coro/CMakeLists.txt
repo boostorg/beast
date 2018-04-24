@@ -16,4 +16,10 @@ add_executable (websocket-server-coro
     websocket_server_coro.cpp
 )
 
+target_link_libraries(websocket-server-coro
+    Boost::system
+    Boost::coroutine
+    Threads::Threads
+)
+
 set_property(TARGET websocket-server-coro PROPERTY FOLDER "example-websocket-server")

@@ -21,6 +21,11 @@ if (OPENSSL_FOUND)
         advanced_server_flex.cpp
     )
 
+    target_link_libraries(advanced-server-flex
+        Boost::system
+        Threads::Threads
+    )
+
     set_property(TARGET advanced-server-flex PROPERTY FOLDER "example-advanced-server")
     
     target_link_libraries (advanced-server-flex

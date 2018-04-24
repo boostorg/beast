@@ -26,4 +26,10 @@ add_executable (tests-doc
     exemplars.cpp
 )
 
+target_link_libraries(tests-doc
+    Boost::system
+    Boost::coroutine
+    Threads::Threads
+)
+
 set_property(TARGET tests-doc PROPERTY FOLDER "tests")

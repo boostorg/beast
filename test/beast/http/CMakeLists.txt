@@ -44,4 +44,11 @@ add_executable (tests-beast-http
     write.cpp
 )
 
+target_link_libraries(tests-beast-http
+  Boost::system
+  Boost::coroutine
+  Boost::filesystem
+  Threads::Threads
+)
+
 set_property(TARGET tests-beast-http PROPERTY FOLDER "tests")

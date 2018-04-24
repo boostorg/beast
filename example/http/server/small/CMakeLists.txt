@@ -16,4 +16,9 @@ add_executable (http-server-small
     http_server_small.cpp
 )
 
+target_link_libraries(http-server-small
+    Boost::system
+    Threads::Threads
+)
+
 set_property(TARGET http-server-small PROPERTY FOLDER "example-http-server")

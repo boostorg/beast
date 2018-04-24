@@ -25,4 +25,9 @@ add_executable (tests-example-common
     main.cpp
 )
 
+target_link_libraries(tests-example-common
+    Boost::system
+    Threads::Threads
+)
+
 set_property(TARGET tests-example-common PROPERTY FOLDER "tests")

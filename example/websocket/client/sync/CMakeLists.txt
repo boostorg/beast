@@ -16,4 +16,9 @@ add_executable (websocket-client-sync
     websocket_client_sync.cpp
 )
 
+target_link_libraries(websocket-client-sync
+    Boost::system
+    Threads::Threads
+)
+
 set_property(TARGET websocket-client-sync PROPERTY FOLDER "example-websocket-client")

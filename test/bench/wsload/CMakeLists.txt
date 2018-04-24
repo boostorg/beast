@@ -21,4 +21,9 @@ add_executable (bench-wsload
     wsload.cpp
     )
 
+target_link_libraries(bench-wsload
+    Boost::system
+    Threads::Threads
+)
+
 set_property(TARGET bench-wsload PROPERTY FOLDER "tests-bench")

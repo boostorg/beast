@@ -52,8 +52,12 @@ else()
     set (THREADS_PREFER_PTHREAD_FLAG ON)
     find_package (Threads)
 
+    # -std=c++11
+    set(CMAKE_CXX_STANDARD   11)
+    set(CMAKE_CXX_EXTENSIONS OFF)
+
     set( CMAKE_CXX_FLAGS
-      "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wextra -Wpedantic -Wno-unused-parameter")
+      "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic -Wno-unused-parameter")
 
     if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wrange-loop-analysis")
@@ -69,7 +73,15 @@ include_directories (include)
 # Boost
 #
 
-get_filename_component (BOOST_ROOT ../../ ABSOLUTE)
+find_package(Boost COMPONENTS system coroutine filesystem)
+
+if (NOT _Boost_IMPORTED_TARGETS)
+  message("===========> Cannot find Boost_COMPONENT_DEPENDENCIES for your new boost version, when using the default ${CMAKE_ROOT}/Modules/FindBoost.cmake")
+  message("===========> Therefore using a new tweaked FindBoost.cmake, found here: ${CMAKE_CURRENT_LIST_DIR}/cmake_module/FindBoost.cmake")
+  set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/cmake_module ${CMAKE_MODULE_PATH}) # use a custom tweaked FindBoost.cmake
+  find_package(Boost COMPONENTS system coroutine filesystem)
+endif()
+#get_filename_component (BOOST_ROOT ../../ ABSOLUTE)
 
 # VFALCO I want static but "b2 stage" builds a minimal set which excludes static
 add_definitions (-DBOOST_ALL_STATIC_LINK=1)
@@ -83,9 +95,15 @@ add_definitions (-DBOOST_ASIO_DISABLE_BOOST_DATE_TIME=1)
 add_definitions (-DBOOST_ASIO_DISABLE_BOOST_REGEX=1)
 add_definitions (-DBOOST_COROUTINES_NO_DEPRECATION_WARNING=1)
 
-include_directories (${BOOST_ROOT})
+include_directories (${Boost_INCLUDE_DIRS})
+message("Boost_INCLUDE_DIRS == ${Boost_INCLUDE_DIRS}")
 
-link_directories(${BOOST_ROOT}/stage/lib)
+message("Boost_LIBRARIES == ${Boost_LIBRARIES}")
+
+list(GET Boost_LIBRARIES 0 BOOST_LIB_0)
+get_filename_component(BOOST_LINK_DIR ${BOOST_LIB_0} DIRECTORY)
+link_directories(${BOOST_LINK_DIR})
+message("BOOST_LINK_DIR == ${BOOST_LINK_DIR}")
 
 if (MINGW)
     link_libraries(ws2_32 mswsock)

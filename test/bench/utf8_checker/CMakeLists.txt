@@ -20,4 +20,8 @@ add_executable (bench-utf8-checker
     bench_utf8_checker.cpp
 )
 
+target_link_libraries(bench-utf8-checker
+    Boost::system
+)
+
 set_property(TARGET bench-utf8-checker PROPERTY FOLDER "tests-bench")

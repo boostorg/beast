@@ -16,4 +16,9 @@ add_executable (http-client-async
     http_client_async.cpp
 )
 
+target_link_libraries(http-client-async
+    Boost::system
+    Threads::Threads
+)
+
 set_property(TARGET http-client-async PROPERTY FOLDER "example-http-client")

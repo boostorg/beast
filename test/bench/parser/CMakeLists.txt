@@ -24,4 +24,9 @@ add_executable (bench-parser
     bench_parser.cpp
 )
 
+target_link_libraries(bench-parser
+    Boost::system
+    Threads::Threads
+)
+
 set_property(TARGET bench-parser PROPERTY FOLDER "tests-bench")

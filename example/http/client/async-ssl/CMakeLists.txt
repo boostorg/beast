@@ -19,6 +19,11 @@ if (OPENSSL_FOUND)
         http_client_async_ssl.cpp
     )
 
+    target_link_libraries(http-client-async-ssl
+        Boost::system
+        Threads::Threads
+    )
+
     set_property(TARGET http-client-async-ssl PROPERTY FOLDER "example-http-client")
 
     target_link_libraries (http-client-async-ssl

@@ -23,6 +23,9 @@ if (OPENSSL_FOUND)
 
     target_link_libraries (http-client-coro-ssl
         ${OPENSSL_LIBRARIES}
+        Boost::system
+        Boost::coroutine
+        Threads::Threads
         )
 
 endif()
