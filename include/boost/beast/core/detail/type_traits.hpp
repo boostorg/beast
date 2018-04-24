@@ -59,8 +59,10 @@ max_alignof()
 }
 
 // (since C++17)
-template<class... Ts> struct make_void { using type = void; };
-template<class... Ts> using void_t = typename make_void<Ts...>::type;
+template<class... Ts>
+using make_void = boost::make_void<Ts...>;
+template<class... Ts>
+using void_t = boost::void_t<Ts...>;
 
 // (since C++11) missing from g++4.8
 template<std::size_t Len, class... Ts>
