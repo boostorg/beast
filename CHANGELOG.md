@@ -2,6 +2,7 @@ Version 169:
 
 * Use buffers_to_string in tests
 * Use boost::void_t
+* Refactor HTTP write_op implementation
 
 --------------------------------------------------------------------------------
 

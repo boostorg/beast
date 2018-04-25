@@ -18,6 +18,7 @@
 #include <boost/beast/core/detail/config.hpp>
 #include <boost/asio/associated_allocator.hpp>
 #include <boost/asio/associated_executor.hpp>
+#include <boost/asio/coroutine.hpp>
 #include <boost/asio/executor_work_guard.hpp>
 #include <boost/asio/handler_continuation_hook.hpp>
 #include <boost/asio/handler_invoke_hook.hpp>
@@ -206,7 +207,7 @@ struct serializer_is_done
 template<
     class Stream, class Handler, class Predicate,
     bool isRequest, class Body, class Fields>
-class write_op
+class write_op : public boost::asio::coroutine
 {
     Stream& s_;
     boost::asio::executor_work_guard<decltype(
@@ -214,7 +215,7 @@ class write_op
     serializer<isRequest, Body, Fields>& sr_;
     std::size_t bytes_transferred_ = 0;
     Handler h_;
-    int state_ = 0;
+    bool cont_;
 
 public:
     write_op(write_op&&) = default;
@@ -227,6 +228,12 @@ public:
         , wg_(s_.get_executor())
         , sr_(sr)
         , h_(std::forward<DeducedHandler>(h))
+        , cont_([&]
+            {
+                using boost::asio::asio_handler_is_continuation;
+                return asio_handler_is_continuation(
+                    std::addressof(h_));
+            }())
     {
     }
 
@@ -257,10 +264,7 @@ public:
     friend
     bool asio_handler_is_continuation(write_op* op)
     {
-        using boost::asio::asio_handler_is_continuation;
-        return op->state_ >= 3 ||
-            asio_handler_is_continuation(
-                std::addressof(op->h_));
+        return op->cont_;
     }
 
     template<class Function>
@@ -279,44 +283,34 @@ void
 write_op<Stream, Handler, Predicate,
     isRequest, Body, Fields>::
 operator()(
-    error_code ec, std::size_t bytes_transferred)
+    error_code ec,
+    std::size_t bytes_transferred)
 {
-    if(ec)
-        goto upcall;
-    switch(state_)
-    {
-    case 0:
+    BOOST_ASIO_CORO_REENTER(*this)
     {
         if(Predicate{}(sr_))
         {
-            state_ = 1;
-            return boost::asio::post(
+            BOOST_ASIO_CORO_YIELD
+            boost::asio::post(
                 s_.get_executor(),
-                bind_handler(std::move(*this), ec, 0));
-        }
-        state_ = 2;
-        return beast::http::async_write_some(
-            s_, sr_, std::move(*this));
-    }
-
-    case 1:
-        goto upcall;
-
-    case 2:
-        state_ = 3;
-        BOOST_FALLTHROUGH;
-
-    case 3:
-    {
-        bytes_transferred_ += bytes_transferred;
-        if(Predicate{}(sr_))
+                bind_handler(std::move(*this)));
             goto upcall;
-        return beast::http::async_write_some(
-            s_, sr_, std::move(*this));
+        }
+        for(;;)
+        {
+            BOOST_ASIO_CORO_YIELD
+            beast::http::async_write_some(
+                s_, sr_, std::move(*this));
+            bytes_transferred_ += bytes_transferred;
+            if(ec)
+                goto upcall;
+            if(Predicate{}(sr_))
+                break;
+            cont_ = true;
+        }
+    upcall:
+        h_(ec, bytes_transferred_);
     }
-    }
-upcall:
-    h_(ec, bytes_transferred_);
 }
 
 //------------------------------------------------------------------------------
