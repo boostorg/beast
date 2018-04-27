@@ -93,8 +93,8 @@ struct is_body_sized<T, beast::detail::void_t<
     typename T::value_type,
         decltype(
     std::declval<std::uint64_t&>() =
-        T::size(std::declval<typename T::value_type const&>()),
-    (void)0)>> : std::true_type {};
+        T::size(std::declval<typename T::value_type const&>())
+    )>> : std::true_type {};
 
 template<class T>
 struct is_fields_helper : T

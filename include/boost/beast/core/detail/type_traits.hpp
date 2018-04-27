@@ -162,8 +162,7 @@ template<class T, class E>
 struct is_contiguous_container<T, E, void_t<
     decltype(
         std::declval<std::size_t&>() = std::declval<T const&>().size(),
-        std::declval<E*&>() = std::declval<T&>().data(),
-        (void)0),
+        std::declval<E*&>() = std::declval<T&>().data()),
     typename std::enable_if<
         std::is_same<
             typename std::remove_cv<E>::type,
