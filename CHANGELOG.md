@@ -4,6 +4,7 @@ Version 169:
 * Use boost::void_t
 * Refactor HTTP write_op implementation
 * Use fully qualified namespace in BOOST_BEAST_HANDLER_INIT
+* New flat_stream example class
 
 --------------------------------------------------------------------------------
 

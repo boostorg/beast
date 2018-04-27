@@ -16,13 +16,15 @@ GroupSources(test/example/common "/")
 add_executable (tests-example-common
     ${BOOST_BEAST_FILES}
     ${COMMON_FILES}
+    ${EXTRAS_FILES}
+    ${TEST_MAIN}
     Jamfile
     detect_ssl.cpp
+    flat_stream.cpp
     root_certificates.cpp
     server_certificate.cpp
     session_alloc.cpp
     ssl_stream.cpp
-    main.cpp
 )
 
 set_property(TARGET tests-example-common PROPERTY FOLDER "tests")
