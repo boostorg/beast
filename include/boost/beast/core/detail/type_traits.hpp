@@ -461,7 +461,7 @@ buffers_range(Buffers const& buffers)
     expected by the initiating function,
 */
 #define BOOST_BEAST_HANDLER_INIT(type, sig) \
-    static_assert(is_completion_handler< \
+    static_assert(boost::beast::is_completion_handler< \
     BOOST_ASIO_HANDLER_TYPE(type, sig), sig>::value, \
     "CompletionHandler signature requirements not met"); \
     boost::asio::async_completion<type, sig> init{handler}
