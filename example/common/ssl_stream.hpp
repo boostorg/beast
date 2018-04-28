@@ -13,6 +13,8 @@
 // This include is necessary to work with `ssl::stream` and `boost::beast::websocket::stream`
 #include <boost/beast/websocket/ssl.hpp>
 
+#include "flat_stream.hpp"
+
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/ssl/stream.hpp>
 #include <cstddef>
@@ -35,23 +37,25 @@ template<class NextLayer>
 class ssl_stream
     : public boost::asio::ssl::stream_base
 {
-    using stream_type = boost::asio::ssl::stream<NextLayer>;
+    using ssl_stream_type = boost::asio::ssl::stream<NextLayer>;
+    using stream_type = flat_stream<ssl_stream_type>;
 
     std::unique_ptr<stream_type> p_;
     boost::asio::ssl::context* ctx_;
 
 public:
     /// The native handle type of the SSL stream.
-    using native_handle_type = typename stream_type::native_handle_type;
+    using native_handle_type =
+        typename ssl_stream_type::native_handle_type;
 
     /// Structure for use with deprecated impl_type.
-    using impl_struct = typename stream_type::impl_struct;
+    using impl_struct = typename ssl_stream_type::impl_struct;
 
     /// The type of the next layer.
-    using next_layer_type = typename stream_type::next_layer_type;
+    using next_layer_type = typename ssl_stream_type::next_layer_type;
 
     /// The type of the lowest layer.
-    using lowest_layer_type = typename stream_type::lowest_layer_type;
+    using lowest_layer_type = typename ssl_stream_type::lowest_layer_type;
 
     /// The type of the executor associated with the object.
     using executor_type = typename stream_type::executor_type;
@@ -88,19 +92,19 @@ public:
     native_handle_type
     native_handle()
     {
-        return p_->native_handle();
+        return p_->next_layer().native_handle();
     }
 
     next_layer_type const&
     next_layer() const
     {
-        return p_->next_layer();
+        return p_->next_layer().next_layer();
     }
 
     next_layer_type&
     next_layer()
     {
-        return p_->next_layer();
+        return p_->next_layer().next_layer();
     }
 
     lowest_layer_type&
@@ -118,34 +122,34 @@ public:
     void
     set_verify_mode(boost::asio::ssl::verify_mode v)
     {
-        p_->set_verify_mode(v);
+        p_->next_layer().set_verify_mode(v);
     }
 
     boost::system::error_code
     set_verify_mode(boost::asio::ssl::verify_mode v,
         boost::system::error_code& ec)
     {
-        return p_->set_verify_mode(v, ec);
+        return p_->next_layer().set_verify_mode(v, ec);
     }
 
     void
     set_verify_depth(int depth)
     {
-        p_->set_verify_depth(depth);
+        p_->next_layer().set_verify_depth(depth);
     }
 
     boost::system::error_code
     set_verify_depth(
         int depth, boost::system::error_code& ec)
     {
-        return p_->set_verify_depth(depth, ec);
+        return p_->next_layer().set_verify_depth(depth, ec);
     }
 
     template<class VerifyCallback>
     void
     set_verify_callback(VerifyCallback callback)
     {
-        p_->set_verify_callback(callback);
+        p_->next_layer().set_verify_callback(callback);
     }
 
     template<class VerifyCallback>
@@ -153,20 +157,20 @@ public:
     set_verify_callback(VerifyCallback callback,
         boost::system::error_code& ec)
     {
-        return p_->set_verify_callback(callback, ec);
+        return p_->next_layer().set_verify_callback(callback, ec);
     }
 
     void
     handshake(handshake_type type)
     {
-        p_->handshake(type);
+        p_->next_layer().handshake(type);
     }
 
     boost::system::error_code
     handshake(handshake_type type,
         boost::system::error_code& ec)
     {
-        return p_->handshake(type, ec);
+        return p_->next_layer().handshake(type, ec);
     }
 
     template<class ConstBufferSequence>
@@ -174,7 +178,7 @@ public:
     handshake(
         handshake_type type, ConstBufferSequence const& buffers)
     {
-        p_->handshake(type, buffers);
+        p_->next_layer().handshake(type, buffers);
     }
 
     template<class ConstBufferSequence>
@@ -183,7 +187,7 @@ public:
         ConstBufferSequence const& buffers,
             boost::system::error_code& ec)
     {
-        return p_->handshake(type, buffers, ec);
+        return p_->next_layer().handshake(type, buffers, ec);
     }
 
     template<class HandshakeHandler>
@@ -192,7 +196,7 @@ public:
     async_handshake(handshake_type type,
         BOOST_ASIO_MOVE_ARG(HandshakeHandler) handler)
     {
-        return p_->async_handshake(type,
+        return p_->next_layer().async_handshake(type,
             BOOST_ASIO_MOVE_CAST(HandshakeHandler)(handler));
     }
 
@@ -202,20 +206,20 @@ public:
     async_handshake(handshake_type type, ConstBufferSequence const& buffers,
         BOOST_ASIO_MOVE_ARG(BufferedHandshakeHandler) handler)
     {
-        return p_->async_handshake(type, buffers,
+        return p_->next_layer().async_handshake(type, buffers,
             BOOST_ASIO_MOVE_CAST(BufferedHandshakeHandler)(handler));
     }
 
     void
     shutdown()
     {
-        p_->shutdown();
+        p_->next_layer().shutdown();
     }
 
     boost::system::error_code
     shutdown(boost::system::error_code& ec)
     {
-        return p_->shutdown(ec);
+        return p_->next_layer().shutdown(ec);
     }
 
     template<class ShutdownHandler>
@@ -223,7 +227,7 @@ public:
         void (boost::system::error_code))
     async_shutdown(BOOST_ASIO_MOVE_ARG(ShutdownHandler) handler)
     {
-        return p_->async_shutdown(
+        return p_->next_layer().async_shutdown(
             BOOST_ASIO_MOVE_CAST(ShutdownHandler)(handler));
     }
 
@@ -303,7 +307,7 @@ teardown(
     ssl_stream<SyncStream>& stream,
     boost::system::error_code& ec)
 {
-    // Just forward it to the wrapped ssl::stream
+    // Just forward it to the wrapped stream
     using boost::beast::websocket::teardown;
     teardown(role, *stream.p_, ec);
 }
@@ -316,7 +320,7 @@ async_teardown(
     ssl_stream<AsyncStream>& stream,
     TeardownHandler&& handler)
 {
-    // Just forward it to the wrapped ssl::stream
+    // Just forward it to the wrapped stream
     using boost::beast::websocket::async_teardown;
     async_teardown(role,
         *stream.p_, std::forward<TeardownHandler>(handler));

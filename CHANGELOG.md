@@ -5,6 +5,7 @@ Version 169:
 * Refactor HTTP write_op implementation
 * Use fully qualified namespace in BOOST_BEAST_HANDLER_INIT
 * New flat_stream example class
+* Use flat_stream in ssl_stream example code
 
 --------------------------------------------------------------------------------
 
