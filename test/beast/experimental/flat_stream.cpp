@@ -8,7 +8,7 @@
 //
 
 // Test that header file is self-contained.
-#include <example/common/flat_stream.hpp>
+#include <boost/beast/experimental/core/flat_stream.hpp>
 
 #include <boost/beast/test/websocket.hpp>
 #include <boost/beast/test/yield_to.hpp>
@@ -39,7 +39,7 @@ public:
                 for(auto const n : v0)
                     v.emplace_back("", n);
                 auto const result =
-                    ::detail::flat_stream_base::coalesce(v, limit);
+                    boost::beast::detail::flat_stream_base::coalesce(v, limit);
                 BEAST_EXPECT(result.first == count);
                 BEAST_EXPECT(result.second == copy);
                 return result;

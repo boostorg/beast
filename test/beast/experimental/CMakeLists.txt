@@ -7,29 +7,17 @@
 # Official repository: https://github.com/boostorg/beast
 #
 
-add_definitions (-DBOOST_BEAST_ALLOW_DEPRECATED)
-
-GroupSources(include/boost/beast beast)
 GroupSources(test/extras/include/boost/beast extras)
 GroupSources(subtree/unit_test/include/boost/beast extras)
-GroupSources(test/beast "/")
+GroupSources(include/boost/beast beast)
+GroupSources(test/beast/experimental "/")
 
-add_executable (tests-beast
+add_executable (tests-beast-experimental
     ${BOOST_BEAST_FILES}
     ${EXTRAS_FILES}
     ${TEST_MAIN}
     Jamfile
-    core.cpp
-    http.cpp
-    version.cpp
-    websocket.cpp
-    zlib.cpp
+    flat_stream.cpp
 )
 
-add_subdirectory (core)
-add_subdirectory (experimental)
-add_subdirectory (http)
-add_subdirectory (websocket)
-add_subdirectory (zlib)
-
-set_property(TARGET tests-beast PROPERTY FOLDER "tests")
+set_property(TARGET tests-beast-experimental PROPERTY FOLDER "tests")

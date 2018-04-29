@@ -14,6 +14,7 @@ alias run-tests :
     [ compile websocket.cpp ]
     [ compile zlib.cpp ]
     core//run-tests
+    experimental//run-tests
     http//run-tests
     websocket//run-tests
     zlib//run-tests
@@ -21,6 +22,7 @@ alias run-tests :
 
 alias fat-tests :
     core//fat-tests
+    experimental//fat-tests
     http//fat-tests
     websocket//fat-tests
     zlib//fat-tests

@@ -20,7 +20,6 @@ add_executable (tests-example-common
     ${TEST_MAIN}
     Jamfile
     detect_ssl.cpp
-    flat_stream.cpp
     root_certificates.cpp
     server_certificate.cpp
     session_alloc.cpp

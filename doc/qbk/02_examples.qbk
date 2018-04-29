@@ -217,16 +217,6 @@ listed here along with a description of their use:
         support both plain and SSL sessions on the same port.
     ]
 ][
-    [[source_file example/common/flat_stream.hpp]]
-    [
-        This wrapper flattens buffer sequences having length greater than 1
-        and total size below a predefined amount, using a dynamic memory
-        allocation. It is primarily designed to overcome a performance
-        limitation of the current Boost.Asio version of `ssl::stream`, which
-        does not use OpenSSL's scatter/gather interface for its primitive
-        read and write operations.
-    ]
-][
     [[source_file example/common/root_certificates.hpp]]
     [
         This contains the root SSL certificates used in the SSL client
