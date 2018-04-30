@@ -15,12 +15,12 @@
 
 #include "example/common/detect_ssl.hpp"
 #include "example/common/server_certificate.hpp"
-#include "example/common/ssl_stream.hpp"
 
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
 #include <boost/beast/websocket.hpp>
 #include <boost/beast/version.hpp>
+#include <boost/beast/experimental/core/ssl_stream.hpp>
 #include <boost/asio/bind_executor.hpp>
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/signal_set.hpp>
@@ -545,7 +545,7 @@ class ssl_websocket_session
     : public websocket_session<ssl_websocket_session>
     , public std::enable_shared_from_this<ssl_websocket_session>
 {
-    websocket::stream<ssl_stream<tcp::socket>> ws_;
+    websocket::stream<boost::beast::ssl_stream<tcp::socket>> ws_;
     boost::asio::strand<
         boost::asio::io_context::executor_type> strand_;
     bool eof_ = false;
@@ -553,7 +553,7 @@ class ssl_websocket_session
 public:
     // Create the http_session
     explicit
-    ssl_websocket_session(ssl_stream<tcp::socket> stream)
+    ssl_websocket_session(boost::beast::ssl_stream<tcp::socket> stream)
         : websocket_session<ssl_websocket_session>(
             stream.get_executor().context())
         , ws_(std::move(stream))
@@ -562,7 +562,7 @@ public:
     }
 
     // Called by the base class
-    websocket::stream<ssl_stream<tcp::socket>>&
+    websocket::stream<boost::beast::ssl_stream<tcp::socket>>&
     ws()
     {
         return ws_;
@@ -640,7 +640,7 @@ make_websocket_session(
 template<class Body, class Allocator>
 void
 make_websocket_session(
-    ssl_stream<tcp::socket> stream,
+    boost::beast::ssl_stream<tcp::socket> stream,
     http::request<Body, http::basic_fields<Allocator>> req)
 {
     std::make_shared<ssl_websocket_session>(
@@ -966,7 +966,7 @@ class ssl_http_session
     : public http_session<ssl_http_session>
     , public std::enable_shared_from_this<ssl_http_session>
 {
-    ssl_stream<tcp::socket> stream_;
+    boost::beast::ssl_stream<tcp::socket> stream_;
     boost::asio::strand<
         boost::asio::io_context::executor_type> strand_;
     bool eof_ = false;
@@ -988,14 +988,14 @@ public:
     }
 
     // Called by the base class
-    ssl_stream<tcp::socket>&
+    boost::beast::ssl_stream<tcp::socket>&
     stream()
     {
         return stream_;
     }
 
     // Called by the base class
-    ssl_stream<tcp::socket>
+    boost::beast::ssl_stream<tcp::socket>
     release_stream()
     {
         return std::move(stream_);

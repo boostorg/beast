@@ -234,13 +234,6 @@ listed here along with a description of their use:
         Authority ("CA") so connecting to an example HTTP server using
         a browser may generate security warnings.
     ]
-][
-    [[source_file example/common/ssl_stream.hpp]]
-    [
-        The `ssl_stream` is a replacement for __ssl_stream__ which
-        supports construction from a moved-from socket and is also
-        itself move constructible.
-    ]
 ]]
 
 [endsect]

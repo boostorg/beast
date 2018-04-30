@@ -9,6 +9,7 @@
 
 local SOURCES =
     flat_stream.cpp
+    ssl_stream.cpp
     ;
 
 local RUN_TESTS ;

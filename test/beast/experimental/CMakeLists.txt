@@ -18,6 +18,7 @@ add_executable (tests-beast-experimental
     ${TEST_MAIN}
     Jamfile
     flat_stream.cpp
+    ssl_stream.cpp
 )
 
 set_property(TARGET tests-beast-experimental PROPERTY FOLDER "tests")

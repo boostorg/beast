@@ -23,7 +23,6 @@ add_executable (tests-example-common
     root_certificates.cpp
     server_certificate.cpp
     session_alloc.cpp
-    ssl_stream.cpp
 )
 
 set_property(TARGET tests-example-common PROPERTY FOLDER "tests")

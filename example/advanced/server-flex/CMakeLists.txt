@@ -16,7 +16,6 @@ if (OPENSSL_FOUND)
         ${BOOST_BEAST_FILES}
         ${PROJECT_SOURCE_DIR}/example/common/detect_ssl.hpp
         ${PROJECT_SOURCE_DIR}/example/common/server_certificate.hpp
-        ${PROJECT_SOURCE_DIR}/example/common/ssl_stream.hpp
         Jamfile
         advanced_server_flex.cpp
     )

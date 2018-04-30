@@ -299,6 +299,7 @@
           <bridgehead renderas="sect3">Classes</bridgehead>
           <simplelist type="vert" columns="1">
             <member><link linkend="beast.ref.boost__beast__flat_stream">flat_stream</link></member>
+            <member><link linkend="beast.ref.boost__beast__ssl_stream">ssl_stream</link></member>
           </simplelist>
         </entry>
       </row>

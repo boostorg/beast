@@ -10,6 +10,6 @@
 #if BOOST_BEAST_USE_OPENSSL
 
 // Test that header file is self-contained.
-#include "example/common/ssl_stream.hpp"
+#include <boost/beast/experimental/core/ssl_stream.hpp>
 
 #endif

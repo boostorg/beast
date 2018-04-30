@@ -1,6 +1,7 @@
 Version 170:
 
 * Add flat_stream to experimental
+* Add ssl_stream to experimental
 
 --------------------------------------------------------------------------------
 
