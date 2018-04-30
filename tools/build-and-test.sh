@@ -117,6 +117,7 @@ function build_bjam ()
       toolset=$TOOLSET \
       variant=$VARIANT \
       -j${JOBS}
+    ./libs/beast/tools/check-sizes.sh
   fi
 }
 
