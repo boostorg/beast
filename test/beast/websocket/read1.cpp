@@ -237,7 +237,7 @@ public:
         });
 
         // close
-        doFailLoop([&](test::fail_counter& fc)
+        doFailLoop([&](test::fail_count& fc)
         {
             echo_server es{log, kind::async};
             boost::asio::io_context ioc;

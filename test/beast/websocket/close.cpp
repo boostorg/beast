@@ -174,7 +174,7 @@ public:
         using boost::asio::buffer;
 
         // suspend on ping
-        doFailLoop([&](test::fail_counter& fc)
+        doFailLoop([&](test::fail_count& fc)
         {
             echo_server es{log};
             boost::asio::io_context ioc;
@@ -206,7 +206,7 @@ public:
         });
 
         // suspend on write
-        doFailLoop([&](test::fail_counter& fc)
+        doFailLoop([&](test::fail_count& fc)
         {
             echo_server es{log};
             boost::asio::io_context ioc;
@@ -239,7 +239,7 @@ public:
         });
 
         // suspend on read ping + message
-        doFailLoop([&](test::fail_counter& fc)
+        doFailLoop([&](test::fail_count& fc)
         {
             echo_server es{log};
             boost::asio::io_context ioc;
@@ -280,7 +280,7 @@ public:
         });
 
         // suspend on read bad message
-        doFailLoop([&](test::fail_counter& fc)
+        doFailLoop([&](test::fail_count& fc)
         {
             echo_server es{log};
             boost::asio::io_context ioc;
@@ -321,7 +321,7 @@ public:
         });
 
         // suspend on read close #1
-        doFailLoop([&](test::fail_counter& fc)
+        doFailLoop([&](test::fail_count& fc)
         {
             echo_server es{log};
             boost::asio::io_context ioc;
@@ -362,7 +362,7 @@ public:
         });
 
         // teardown on received close
-        doFailLoop([&](test::fail_counter& fc)
+        doFailLoop([&](test::fail_count& fc)
         {
             echo_server es{log};
             boost::asio::io_context ioc;
@@ -406,7 +406,7 @@ public:
         });
 
         // check for deadlock
-        doFailLoop([&](test::fail_counter& fc)
+        doFailLoop([&](test::fail_count& fc)
         {
             echo_server es{log};
             boost::asio::io_context ioc;
@@ -453,7 +453,7 @@ public:
         });
 
         // Four-way: close, read, write, ping
-        doFailLoop([&](test::fail_counter& fc)
+        doFailLoop([&](test::fail_count& fc)
         {
             echo_server es{log};
             boost::asio::io_context ioc;
@@ -501,7 +501,7 @@ public:
         });
 
         // Four-way: read, write, ping, close
-        doFailLoop([&](test::fail_counter& fc)
+        doFailLoop([&](test::fail_count& fc)
         {
             echo_server es{log};
             boost::asio::io_context ioc;
@@ -562,7 +562,7 @@ public:
         });
 
         // Four-way: ping, read, write, close
-        doFailLoop([&](test::fail_counter& fc)
+        doFailLoop([&](test::fail_count& fc)
         {
             echo_server es{log};
             boost::asio::io_context ioc;

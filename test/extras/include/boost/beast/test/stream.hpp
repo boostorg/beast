@@ -16,7 +16,7 @@
 #include <boost/beast/core/string.hpp>
 #include <boost/beast/core/type_traits.hpp>
 #include <boost/beast/websocket/teardown.hpp>
-#include <boost/beast/test/fail_counter.hpp>
+#include <boost/beast/experimental/test/fail_count.hpp>
 #include <boost/asio/async_result.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/asio/executor_work_guard.hpp>
@@ -73,7 +73,7 @@ class stream
         std::unique_ptr<read_op> op;
         boost::asio::io_context& ioc;
         status code = status::ok;
-        fail_counter* fc = nullptr;
+        fail_count* fc = nullptr;
         std::size_t nread = 0;
         std::size_t nwrite = 0;
         std::size_t read_max =
@@ -89,7 +89,7 @@ class stream
         explicit
         state(
             boost::asio::io_context& ioc_,
-            fail_counter* fc_)
+            fail_count* fc_)
             : ioc(ioc_)
             , fc(fc_)
         {
@@ -170,7 +170,7 @@ public:
     /// Constructor
     stream(
         boost::asio::io_context& ioc,
-        fail_counter& fc)
+        fail_count& fc)
         : in_(std::make_shared<state>(ioc, &fc))
     {
     }
@@ -191,7 +191,7 @@ public:
     /// Constructor
     stream(
         boost::asio::io_context& ioc,
-        fail_counter& fc,
+        fail_count& fc,
         string_view s)
         : in_(std::make_shared<state>(ioc, &fc))
     {

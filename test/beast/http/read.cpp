@@ -48,7 +48,7 @@ public:
             multi_buffer b;
             b.commit(buffer_copy(
                 b.prepare(len), buffer(s, len)));
-            test::fail_counter fc(n);
+            test::fail_count fc(n);
             test::stream ts{ioc_, fc};
             test_parser<isRequest> p(fc);
             error_code ec = test::error::test_failure;
@@ -64,7 +64,7 @@ public:
             multi_buffer b;
             b.commit(buffer_copy(
                 b.prepare(pre), buffer(s, pre)));
-            test::fail_counter fc(n);
+            test::fail_count fc(n);
             test::stream ts{ioc_, fc,
                 std::string(s + pre, len - pre)};
             test_parser<isRequest> p(fc);
@@ -80,7 +80,7 @@ public:
             multi_buffer b;
             b.commit(buffer_copy(
                 b.prepare(len), buffer(s, len)));
-            test::fail_counter fc(n);
+            test::fail_count fc(n);
             test::stream ts{ioc_, fc};
             test_parser<isRequest> p(fc);
             error_code ec = test::error::test_failure;
@@ -95,7 +95,7 @@ public:
             multi_buffer b;
             b.commit(buffer_copy(
                 b.prepare(len), buffer(s, len)));
-            test::fail_counter fc(n);
+            test::fail_count fc(n);
             test::stream ts{ioc_, fc};
             test_parser<isRequest> p(fc);
             error_code ec = test::error::test_failure;
@@ -111,7 +111,7 @@ public:
             multi_buffer b;
             b.commit(buffer_copy(
                 b.prepare(pre), buffer(s, pre)));
-            test::fail_counter fc(n);
+            test::fail_count fc(n);
             test::stream ts(ioc_, fc,
                 std::string{s + pre, len - pre});
             test_parser<isRequest> p(fc);
@@ -254,7 +254,7 @@ public:
 
         for(n = 0; n < limit; ++n)
         {
-            test::fail_counter fc{n};
+            test::fail_count fc{n};
             test::stream c{ioc_, fc,
                 "GET / HTTP/1.1\r\n"
                 "Host: localhost\r\n"
@@ -277,7 +277,7 @@ public:
 
         for(n = 0; n < limit; ++n)
         {
-            test::fail_counter fc{n};
+            test::fail_count fc{n};
             test::stream ts{ioc_, fc,
                 "GET / HTTP/1.1\r\n"
                 "Host: localhost\r\n"
@@ -296,7 +296,7 @@ public:
 
         for(n = 0; n < limit; ++n)
         {
-            test::fail_counter fc{n};
+            test::fail_count fc{n};
             test::stream c{ioc_, fc,
                 "GET / HTTP/1.1\r\n"
                 "Host: localhost\r\n"
@@ -315,7 +315,7 @@ public:
 
         for(n = 0; n < limit; ++n)
         {
-            test::fail_counter fc{n};
+            test::fail_count fc{n};
             test::stream c{ioc_, fc,
                 "GET / HTTP/1.1\r\n"
                 "Host: localhost\r\n"

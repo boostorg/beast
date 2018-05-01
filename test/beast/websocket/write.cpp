@@ -274,7 +274,7 @@ public:
         using boost::asio::buffer;
 
         // suspend on ping
-        doFailLoop([&](test::fail_counter& fc)
+        doFailLoop([&](test::fail_count& fc)
         {
             echo_server es{log};
             boost::asio::io_context ioc;
@@ -307,7 +307,7 @@ public:
         });
 
         // suspend on close
-        doFailLoop([&](test::fail_counter& fc)
+        doFailLoop([&](test::fail_count& fc)
         {
             echo_server es{log};
             boost::asio::io_context ioc;
@@ -339,7 +339,7 @@ public:
         });
 
         // suspend on read ping + message
-        doFailLoop([&](test::fail_counter& fc)
+        doFailLoop([&](test::fail_count& fc)
         {
             echo_server es{log};
             boost::asio::io_context ioc;
@@ -381,7 +381,7 @@ public:
         });
 
         // suspend on ping: nomask, nofrag
-        doFailLoop([&](test::fail_counter& fc)
+        doFailLoop([&](test::fail_count& fc)
         {
             echo_server es{log, kind::async_client};
             boost::asio::io_context ioc;
@@ -415,7 +415,7 @@ public:
         });
 
         // suspend on ping: nomask, frag
-        doFailLoop([&](test::fail_counter& fc)
+        doFailLoop([&](test::fail_count& fc)
         {
             echo_server es{log, kind::async_client};
             boost::asio::io_context ioc;
@@ -449,7 +449,7 @@ public:
         });
 
         // suspend on ping: mask, nofrag
-        doFailLoop([&](test::fail_counter& fc)
+        doFailLoop([&](test::fail_count& fc)
         {
             echo_server es{log};
             error_code ec;
@@ -482,7 +482,7 @@ public:
         });
 
         // suspend on ping: mask, frag
-        doFailLoop([&](test::fail_counter& fc)
+        doFailLoop([&](test::fail_count& fc)
         {
             echo_server es{log};
             error_code ec;
@@ -515,7 +515,7 @@ public:
         });
 
         // suspend on ping: deflate
-        doFailLoop([&](test::fail_counter& fc)
+        doFailLoop([&](test::fail_count& fc)
         {
             echo_server es{log, kind::async};
             boost::asio::io_context ioc;

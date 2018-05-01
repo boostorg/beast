@@ -3,6 +3,7 @@ Version 170:
 * Add flat_stream to experimental
 * Add ssl_stream to experimental
 * Add test::error to experimental
+* Add test::fail_count to experimental
 
 --------------------------------------------------------------------------------
 

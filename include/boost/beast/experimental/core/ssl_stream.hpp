@@ -250,7 +250,7 @@ public:
         This function may be used to configure the peer verification mode used by
         the stream. The new mode will override the mode inherited from the context.
         
-        @param v A bitmask of peer verification modes. See @ref verify_mode for
+        @param v A bitmask of peer verification modes. See `verify_mode` for
         available values.
         
         @param ec Set to indicate what error occurred, if any.

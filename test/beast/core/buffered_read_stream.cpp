@@ -57,7 +57,7 @@ public:
         unit_test::suite& suite_;
         boost::asio::io_context& ioc_;
         boost::optional<test::stream> ts_;
-        boost::optional<test::fail_counter> fc_;
+        boost::optional<test::fail_count> fc_;
         boost::optional<buffered_read_stream<
             test::stream&, multi_buffer>> brs_;
 
@@ -133,7 +133,7 @@ public:
 
         for(n = 0; n < limit; ++n)
         {
-            test::fail_counter fc{n};
+            test::fail_count fc{n};
             test::stream ts(ioc_, fc, ", world!");
             buffered_read_stream<
                 test::stream&, multi_buffer> srs(ts);
@@ -151,7 +151,7 @@ public:
 
         for(n = 0; n < limit; ++n)
         {
-            test::fail_counter fc{n};
+            test::fail_count fc{n};
             test::stream ts(ioc_, fc, ", world!");
             buffered_read_stream<
                 test::stream&, multi_buffer> srs(ts);
@@ -170,7 +170,7 @@ public:
 
         for(n = 0; n < limit; ++n)
         {
-            test::fail_counter fc{n};
+            test::fail_count fc{n};
             test::stream ts(ioc_, fc, ", world!");
             buffered_read_stream<
                 test::stream&, multi_buffer> srs(ts);
@@ -189,7 +189,7 @@ public:
 
         for(n = 0; n < limit; ++n)
         {
-            test::fail_counter fc{n};
+            test::fail_count fc{n};
             test::stream ts(ioc_, fc, ", world!");
             buffered_read_stream<
                 test::stream&, multi_buffer> srs(ts);

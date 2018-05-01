@@ -287,7 +287,7 @@ public:
         std::size_t n;
         for(n = 0; n < limit; ++n)
         {
-            test::fail_counter fc{n};
+            test::fail_count fc{n};
             try
             {
                 f(fc);
@@ -312,7 +312,7 @@ public:
         static std::size_t constexpr limit = 200;
 
         doFailLoop(
-            [&](test::fail_counter& fc)
+            [&](test::fail_count& fc)
             {
                 test::stream ts{ioc_, fc};
                 f(ts);
@@ -336,7 +336,7 @@ public:
             std::size_t n;
             for(n = 0; n < limit; ++n)
             {
-                test::fail_counter fc{n};
+                test::fail_count fc{n};
                 test::stream ts{ioc_, fc};
                 ws_type_t<deflateSupported> ws{ts};
                 ws.set_option(pmd);

@@ -284,8 +284,10 @@
       </row>
     </tbody>
   </tgroup>
-  <tgroup cols="1">
+  <tgroup cols="2">
     <colspec colname="a"/>
+    <colspec colname="b"/>
+    <colspec colname="c"/>
     <thead>
       <row>
         <entry valign="center" namest="a" nameend="c">
@@ -300,6 +302,18 @@
           <simplelist type="vert" columns="1">
             <member><link linkend="beast.ref.boost__beast__flat_stream">flat_stream</link></member>
             <member><link linkend="beast.ref.boost__beast__ssl_stream">ssl_stream</link></member>
+            <member><link linkend="beast.ref.boost__beast__test__fail_count">test::fail_count</link></member>
+          </simplelist>
+        </entry>
+        <entry valign="top">
+          <bridgehead renderas="sect3">Functions</bridgehead>
+          <simplelist type="vert" columns="1">
+          </simplelist>
+        </entry>
+        <entry valign="top">
+          <bridgehead renderas="sect3">Constants</bridgehead>
+          <simplelist type="vert" columns="1">
+            <member><link linkend="beast.ref.boost__beast__test__error">test::error</link></member>
           </simplelist>
         </entry>
       </row>

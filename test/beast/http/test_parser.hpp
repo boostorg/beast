@@ -11,7 +11,7 @@
 #define BOOST_BEAST_HTTP_TEST_PARSER_HPP
 
 #include <boost/beast/http/basic_parser.hpp>
-#include <boost/beast/test/fail_counter.hpp>
+#include <boost/beast/experimental/test/fail_count.hpp>
 #include <string>
 #include <unordered_map>
 
@@ -23,7 +23,7 @@ template<bool isRequest>
 class test_parser
     : public basic_parser<isRequest, test_parser<isRequest>>
 {
-    test::fail_counter* fc_ = nullptr;
+    test::fail_count* fc_ = nullptr;
 
 public:
     using mutable_buffers_type =
@@ -48,7 +48,7 @@ public:
     test_parser() = default;
 
     explicit
-    test_parser(test::fail_counter& fc)
+    test_parser(test::fail_count& fc)
         : fc_(&fc)
     {
     }

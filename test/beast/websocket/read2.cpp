@@ -29,7 +29,7 @@ public:
         using boost::asio::buffer;
 #if 1
         // suspend on read block
-        doFailLoop([&](test::fail_counter& fc)
+        doFailLoop([&](test::fail_count& fc)
         {
             echo_server es{log};
             boost::asio::io_context ioc;
@@ -62,7 +62,7 @@ public:
 #endif
 
         // suspend on release read block
-        doFailLoop([&](test::fail_counter& fc)
+        doFailLoop([&](test::fail_count& fc)
         {
 //log << "fc.count()==" << fc.count() << std::endl;
             echo_server es{log};
@@ -95,7 +95,7 @@ public:
 
 #if 1
         // suspend on write pong
-        doFailLoop([&](test::fail_counter& fc)
+        doFailLoop([&](test::fail_count& fc)
         {
             echo_server es{log};
             boost::asio::io_context ioc;
@@ -133,7 +133,7 @@ public:
         });
 
         // Ignore ping when closing
-        doFailLoop([&](test::fail_counter& fc)
+        doFailLoop([&](test::fail_count& fc)
         {
             echo_server es{log};
             boost::asio::io_context ioc;
@@ -181,7 +181,7 @@ public:
         });
 
         // See if we are already closing
-        doFailLoop([&](test::fail_counter& fc)
+        doFailLoop([&](test::fail_count& fc)
         {
             echo_server es{log};
             boost::asio::io_context ioc;

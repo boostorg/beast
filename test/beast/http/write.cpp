@@ -203,11 +203,11 @@ public:
             friend class writer;
 
             std::string s_;
-            test::fail_counter& fc_;
+            test::fail_count& fc_;
 
         public:
             explicit
-            value_type(test::fail_counter& fc)
+            value_type(test::fail_count& fc)
                 : fc_(fc)
             {
             }
@@ -353,7 +353,7 @@ public:
 
         for(n = 0; n < limit; ++n)
         {
-            test::fail_counter fc(n);
+            test::fail_count fc(n);
             test::stream ts{ioc_, fc}, tr{ioc_};
             ts.connect(tr);
             request<fail_body> m(verb::get, "/", 10, fc);
@@ -383,7 +383,7 @@ public:
 
         for(n = 0; n < limit; ++n)
         {
-            test::fail_counter fc(n);
+            test::fail_count fc(n);
             test::stream ts{ioc_, fc}, tr{ioc_};
             ts.connect(tr);
             request<fail_body> m{verb::get, "/", 10, fc};
@@ -414,7 +414,7 @@ public:
 
         for(n = 0; n < limit; ++n)
         {
-            test::fail_counter fc(n);
+            test::fail_count fc(n);
             test::stream ts{ioc_, fc}, tr{ioc_};
             ts.connect(tr);
             request<fail_body> m{verb::get, "/", 10, fc};
@@ -445,7 +445,7 @@ public:
 
         for(n = 0; n < limit; ++n)
         {
-            test::fail_counter fc(n);
+            test::fail_count fc(n);
             test::stream ts{ioc_, fc}, tr{ioc_};
             ts.connect(tr);
             request<fail_body> m{verb::get, "/", 10, fc};
@@ -472,7 +472,7 @@ public:
 
         for(n = 0; n < limit; ++n)
         {
-            test::fail_counter fc(n);
+            test::fail_count fc(n);
             test::stream ts{ioc_, fc}, tr{ioc_};
             ts.connect(tr);
             request<fail_body> m{verb::get, "/", 10, fc};
