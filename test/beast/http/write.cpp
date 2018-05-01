@@ -390,7 +390,7 @@ public:
             m.set(field::user_agent, "test");
             m.set(field::transfer_encoding, "chunked");
             m.body() = "*****";
-            error_code ec = test::error::fail_error;
+            error_code ec = test::error::test_failure;
             write(ts, m, ec);
             if(! ec)
             {
@@ -421,7 +421,7 @@ public:
             m.set(field::user_agent, "test");
             m.set(field::transfer_encoding, "chunked");
             m.body() = "*****";
-            error_code ec = test::error::fail_error;
+            error_code ec = test::error::test_failure;
             async_write(ts, m, do_yield[ec]);
             if(! ec)
             {
@@ -453,7 +453,7 @@ public:
             m.set(field::connection, "keep-alive");
             m.set(field::content_length, "5");
             m.body() = "*****";
-            error_code ec = test::error::fail_error;
+            error_code ec = test::error::test_failure;
             write(ts, m, ec);
             if(! ec)
             {
@@ -480,7 +480,7 @@ public:
             m.set(field::connection, "keep-alive");
             m.set(field::content_length, "5");
             m.body() = "*****";
-            error_code ec = test::error::fail_error;
+            error_code ec = test::error::test_failure;
             async_write(ts, m, do_yield[ec]);
             if(! ec)
             {

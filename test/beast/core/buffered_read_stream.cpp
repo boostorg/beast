@@ -139,7 +139,7 @@ public:
                 test::stream&, multi_buffer> srs(ts);
             srs.buffer().commit(buffer_copy(
                 srs.buffer().prepare(5), buffer("Hello", 5)));
-            error_code ec = test::error::fail_error;
+            error_code ec = test::error::test_failure;
             boost::asio::read(srs, buffer(&s[0], s.size()), ec);
             if(! ec)
             {
@@ -158,7 +158,7 @@ public:
             srs.capacity(3);
             srs.buffer().commit(buffer_copy(
                 srs.buffer().prepare(5), buffer("Hello", 5)));
-            error_code ec = test::error::fail_error;
+            error_code ec = test::error::test_failure;
             boost::asio::read(srs, buffer(&s[0], s.size()), ec);
             if(! ec)
             {
@@ -176,7 +176,7 @@ public:
                 test::stream&, multi_buffer> srs(ts);
             srs.buffer().commit(buffer_copy(
                 srs.buffer().prepare(5), buffer("Hello", 5)));
-            error_code ec = test::error::fail_error;
+            error_code ec = test::error::test_failure;
             boost::asio::async_read(
                 srs, buffer(&s[0], s.size()), do_yield[ec]);
             if(! ec)
@@ -196,7 +196,7 @@ public:
             srs.capacity(3);
             srs.buffer().commit(buffer_copy(
                 srs.buffer().prepare(5), buffer("Hello", 5)));
-            error_code ec = test::error::fail_error;
+            error_code ec = test::error::test_failure;
             boost::asio::async_read(
                 srs, buffer(&s[0], s.size()), do_yield[ec]);
             if(! ec)

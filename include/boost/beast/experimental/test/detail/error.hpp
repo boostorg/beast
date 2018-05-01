@@ -7,8 +7,8 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
-#ifndef BOOST_BEAST_WEBSOCKET_DETAIL_ERROR_HPP
-#define BOOST_BEAST_WEBSOCKET_DETAIL_ERROR_HPP
+#ifndef BOOST_BEAST_TEST_DETAIL_ERROR_HPP
+#define BOOST_BEAST_TEST_DETAIL_ERROR_HPP
 
 #include <boost/beast/core/error.hpp>
 #include <boost/beast/core/string.hpp>
@@ -16,27 +16,22 @@
 namespace boost {
 
 namespace beast {
-namespace websocket {
+namespace test {
 enum class error;
-enum class condition;
-} // websocket
+} // test
 } // beast
 
 namespace system {
 template<>
-struct is_error_code_enum<beast::websocket::error>
+struct is_error_code_enum<beast::test::error>
 {
     static bool const value = true;
 };
-template<>
-struct is_error_condition_enum<beast::websocket::condition>
-{
-    static bool const value = true;
-};
+
 } // system
 
 namespace beast {
-namespace websocket {
+namespace test {
 namespace detail {
 
 class error_codes : public error_category
@@ -52,25 +47,12 @@ public:
     default_error_condition(int ev) const noexcept override;
 };
 
-class error_conditions : public error_category
-{
-public:
-    const char*
-    name() const noexcept override;
-
-    std::string
-    message(int cv) const override;
-};
-
 } // detail
 
 error_code
 make_error_code(error e);
 
-error_condition
-make_error_condition(condition c);
-
-} // websocket
+} // test
 } // beast
 
 } // boost

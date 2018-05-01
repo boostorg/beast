@@ -296,7 +296,7 @@ public:
             catch(system_error const& se)
             {
                 BEAST_EXPECTS(
-                    se.code() == test::error::fail_error,
+                    se.code() == test::error::test_failure,
                     se.code().message());
             }
         }
@@ -350,7 +350,7 @@ public:
                 {
                     ts.close();
                     if( ! BEAST_EXPECTS(
-                            ec == test::error::fail_error,
+                            ec == test::error::test_failure,
                             ec.message()))
                         BOOST_THROW_EXCEPTION(system_error{ec});
                     continue;
@@ -364,7 +364,7 @@ public:
                 catch(system_error const& se)
                 {
                     BEAST_EXPECTS(
-                        se.code() == test::error::fail_error,
+                        se.code() == test::error::test_failure,
                         se.code().message());
                 }
                 catch(std::exception const& e)

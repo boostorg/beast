@@ -11,105 +11,17 @@
 #define BOOST_BEAST_TEST_FAIL_COUNTER_HPP
 
 #include <boost/beast/core/error.hpp>
+#include <boost/beast/experimental/test/error.hpp>
 #include <boost/throw_exception.hpp>
 
 namespace boost {
 namespace beast {
 namespace test {
 
-enum class error
-{
-    fail_error = 1
-};
-
-namespace detail {
-
-class fail_error_category : public boost::system::error_category
-{
-public:
-    const char*
-    name() const noexcept override
-    {
-        return "test";
-    }
-
-    std::string
-    message(int ev) const override
-    {
-        switch(static_cast<error>(ev))
-        {
-        default:
-        case error::fail_error:
-            return "test error";
-        }
-    }
-
-    boost::system::error_condition
-    default_error_condition(int ev) const noexcept override
-    {
-        return boost::system::error_condition{ev, *this};
-    }
-
-    bool
-    equivalent(int ev,
-        boost::system::error_condition const& condition
-            ) const noexcept override
-    {
-        return condition.value() == ev &&
-            &condition.category() == this;
-    }
-
-    bool
-    equivalent(error_code const& error, int ev) const noexcept override
-    {
-        return error.value() == ev &&
-            &error.category() == this;
-    }
-};
-
-inline
-boost::system::error_category const&
-get_error_category()
-{
-    static fail_error_category const cat{};
-    return cat;
-}
-
-} // detail
-
-inline
-error_code
-make_error_code(error ev)
-{
-    return error_code{
-        static_cast<std::underlying_type<error>::type>(ev),
-            detail::get_error_category()};
-}
-
-/** An error code with an error set on default construction
-
-    Default constructed versions of this object will have
-    an error code set right away. This helps tests find code
-    which forgets to clear the error code on success.
-*/
-struct fail_error_code : error_code
-{
-    fail_error_code()
-        : error_code(make_error_code(error::fail_error))
-    {
-    }
-
-    template<class Arg0, class... ArgN>
-    fail_error_code(Arg0&& arg0, ArgN&&... argn)
-        : error_code(arg0, std::forward<ArgN>(argn)...)
-    {
-    }
-};
-
 /** A countdown to simulated failure.
 
     On the Nth operation, the class will fail with the specified
-    error code, or the default error code of @ref error::fail_error.
+    error code, or the default error code of @ref error::test_failure.
 */
 class fail_counter
 {
@@ -126,7 +38,7 @@ public:
     */
     explicit
     fail_counter(std::size_t n,
-            error_code ev = make_error_code(error::fail_error))
+            error_code ev = make_error_code(error::test_failure))
         : n_(n)
         , ec_(ev)
     {
@@ -167,16 +79,6 @@ public:
 
 } // test
 } // beast
-} // boost
-
-namespace boost {
-namespace system {
-template<>
-struct is_error_code_enum<beast::test::error>
-{
-    static bool const value = true;
-};
-} // system
 } // boost
 
 #endif

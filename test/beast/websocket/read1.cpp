@@ -464,7 +464,7 @@ public:
             }
             catch(system_error const& se)
             {
-                if(se.code() == test::error::fail_error)
+                if(se.code() == test::error::test_failure)
                     throw;
                 BEAST_EXPECTS(se.code().category() ==
                     zlib::detail::get_error_category(),
