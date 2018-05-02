@@ -11,7 +11,7 @@
 
 #include <boost/beast/core/flat_buffer.hpp>
 #include <boost/beast/core/ostream.hpp>
-#include <boost/beast/test/stream.hpp>
+#include <boost/beast/experimental/test/stream.hpp>
 #include <boost/beast/test/yield_to.hpp>
 #include <boost/beast/unit_test/suite.hpp>
 

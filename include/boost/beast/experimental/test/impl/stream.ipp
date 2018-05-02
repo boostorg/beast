@@ -7,375 +7,147 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
-#ifndef BOOST_BEAST_TEST_STREAM_HPP
-#define BOOST_BEAST_TEST_STREAM_HPP
+#ifndef BOOST_BEAST_TEST_IMPL_STREAM_IPP
+#define BOOST_BEAST_TEST_IMPL_STREAM_IPP
 
-#include <boost/beast/core/bind_handler.hpp>
 #include <boost/beast/core/buffers_prefix.hpp>
-#include <boost/beast/core/flat_buffer.hpp>
-#include <boost/beast/core/string.hpp>
-#include <boost/beast/core/type_traits.hpp>
-#include <boost/beast/websocket/teardown.hpp>
-#include <boost/beast/experimental/test/fail_count.hpp>
-#include <boost/asio/async_result.hpp>
-#include <boost/asio/buffer.hpp>
-#include <boost/asio/executor_work_guard.hpp>
-#include <boost/asio/io_context.hpp>
-#include <boost/asio/post.hpp>
-#include <boost/assert.hpp>
-#include <boost/optional.hpp>
-#include <boost/throw_exception.hpp>
-#include <condition_variable>
-#include <limits>
-#include <memory>
-#include <mutex>
-#include <utility>
 
 namespace boost {
 namespace beast {
 namespace test {
 
-/** A bidirectional in-memory communication channel
-
-    An instance of this class provides a client and server
-    endpoint that are automatically connected to each other
-    similarly to a connected socket.
-
-    Test pipes are used to facilitate writing unit tests
-    where the behavior of the transport is tightly controlled
-    to help illuminate all code paths (for code coverage)
-*/
-class stream
+inline
+stream::
+~stream()
 {
-    struct read_op
     {
-        virtual ~read_op() = default;
-        virtual void operator()() = 0;
-    };
-
-    template<class Handler, class Buffers>
-    class read_op_impl;
-
-    enum class status
+        std::unique_lock<std::mutex> lock{in_->m};
+        in_->op.reset();
+    }
+    auto out = out_.lock();
+    if(out)
     {
-        ok,
-        eof,
-        reset
-    };
-
-    struct state
-    {
-        friend class stream;
-
-        std::mutex m;
-        flat_buffer b;
-        std::condition_variable cv;
-        std::unique_ptr<read_op> op;
-        boost::asio::io_context& ioc;
-        status code = status::ok;
-        fail_count* fc = nullptr;
-        std::size_t nread = 0;
-        std::size_t nwrite = 0;
-        std::size_t read_max =
-            (std::numeric_limits<std::size_t>::max)();
-        std::size_t write_max =
-            (std::numeric_limits<std::size_t>::max)();
-
-        ~state()
+        std::unique_lock<std::mutex> lock{out->m};
+        if(out->code == status::ok)
         {
-            BOOST_ASSERT(! op);
-        }
-
-        explicit
-        state(
-            boost::asio::io_context& ioc_,
-            fail_count* fc_)
-            : ioc(ioc_)
-            , fc(fc_)
-        {
-        }
-
-        void
-        on_write()
-        {
-            if(op)
-            {
-                std::unique_ptr<read_op> op_ = std::move(op);
-                op_->operator()();
-            }
-            else
-            {
-                cv.notify_all();
-            }
-        }
-    };
-
-    std::shared_ptr<state> in_;
-    std::weak_ptr<state> out_;
-
-public:
-    using buffer_type = flat_buffer;
-
-    /// The type of the lowest layer.
-    using lowest_layer_type = stream;
-
-    /// Destructor
-    ~stream()
-    {
-        {
-            std::unique_lock<std::mutex> lock{in_->m};
-            in_->op.reset();
-        }
-        auto out = out_.lock();
-        if(out)
-        {
-            std::unique_lock<std::mutex> lock{out->m};
-            if(out->code == status::ok)
-            {
-                out->code = status::reset;
-                out->on_write();
-            }
+            out->code = status::reset;
+            out->on_write();
         }
     }
+}
 
-    /// Constructor
-    stream(stream&& other)
-    {
-        auto in = std::make_shared<state>(
-            other.in_->ioc, other.in_->fc);
-        in_ = std::move(other.in_);
-        out_ = std::move(other.out_);
-        other.in_ = in;
-    }
+inline
+stream::
+stream(stream&& other)
+{
+    auto in = std::make_shared<state>(
+        other.in_->ioc, other.in_->fc);
+    in_ = std::move(other.in_);
+    out_ = std::move(other.out_);
+    other.in_ = in;
+}
 
-    /// Assignment
-    stream&
-    operator=(stream&& other)
-    {
-        auto in = std::make_shared<state>(
-            other.in_->ioc, other.in_->fc);
-        in_ = std::move(other.in_);
-        out_ = std::move(other.out_);
-        other.in_ = in;
-        return *this;
-    }
+inline
+stream&
+stream::
+operator=(stream&& other)
+{
+    auto in = std::make_shared<state>(
+        other.in_->ioc, other.in_->fc);
+    in_ = std::move(other.in_);
+    out_ = std::move(other.out_);
+    other.in_ = in;
+    return *this;
+}
 
-    /// Constructor
-    explicit
-    stream(boost::asio::io_context& ioc)
-        : in_(std::make_shared<state>(ioc, nullptr))
-    {
-    }
+inline
+stream::
+stream(boost::asio::io_context& ioc)
+    : in_(std::make_shared<state>(ioc, nullptr))
+{
+}
 
-    /// Constructor
-    stream(
-        boost::asio::io_context& ioc,
-        fail_count& fc)
-        : in_(std::make_shared<state>(ioc, &fc))
-    {
-    }
+inline
+stream::
+stream(
+    boost::asio::io_context& ioc,
+    fail_count& fc)
+    : in_(std::make_shared<state>(ioc, &fc))
+{
+}
 
-    /// Constructor
-    stream(
-        boost::asio::io_context& ioc,
-        string_view s)
-        : in_(std::make_shared<state>(ioc, nullptr))
-    {
-        using boost::asio::buffer;
-        using boost::asio::buffer_copy;
-        in_->b.commit(buffer_copy(
-            in_->b.prepare(s.size()),
-            buffer(s.data(), s.size())));
-    }
+inline
+stream::
+stream(
+    boost::asio::io_context& ioc,
+    string_view s)
+    : in_(std::make_shared<state>(ioc, nullptr))
+{
+    using boost::asio::buffer;
+    using boost::asio::buffer_copy;
+    in_->b.commit(buffer_copy(
+        in_->b.prepare(s.size()),
+        buffer(s.data(), s.size())));
+}
 
-    /// Constructor
-    stream(
-        boost::asio::io_context& ioc,
-        fail_count& fc,
-        string_view s)
-        : in_(std::make_shared<state>(ioc, &fc))
-    {
-        using boost::asio::buffer;
-        using boost::asio::buffer_copy;
-        in_->b.commit(buffer_copy(
-            in_->b.prepare(s.size()),
-            buffer(s.data(), s.size())));
-    }
+inline
+stream::
+stream(
+    boost::asio::io_context& ioc,
+    fail_count& fc,
+    string_view s)
+    : in_(std::make_shared<state>(ioc, &fc))
+{
+    using boost::asio::buffer;
+    using boost::asio::buffer_copy;
+    in_->b.commit(buffer_copy(
+        in_->b.prepare(s.size()),
+        buffer(s.data(), s.size())));
+}
 
-    /// Establish a connection
-    void
-    connect(stream& remote)
-    {
-        BOOST_ASSERT(! out_.lock());
-        BOOST_ASSERT(! remote.out_.lock());
-        out_ = remote.in_;
-        remote.out_ = in_;
-    }
+inline
+void
+stream::
+connect(stream& remote)
+{
+    BOOST_ASSERT(! out_.lock());
+    BOOST_ASSERT(! remote.out_.lock());
+    out_ = remote.in_;
+    remote.out_ = in_;
+}
+inline
+string_view
+stream::
+str() const
+{
+    auto const bs = in_->b.data();
+    if(boost::asio::buffer_size(bs) == 0)
+        return {};
+    auto const b = buffers_front(bs);
+    return {reinterpret_cast<char const*>(b.data()), b.size()};
+}
 
-    /// The type of the executor associated with the object.
-    using executor_type =
-        boost::asio::io_context::executor_type;
+inline
+void
+stream::
+append(string_view s)
+{
+    using boost::asio::buffer;
+    using boost::asio::buffer_copy;
+    std::lock_guard<std::mutex> lock{in_->m};
+    in_->b.commit(buffer_copy(
+        in_->b.prepare(s.size()),
+        buffer(s.data(), s.size())));
+}
 
-    /// Return the executor associated with the object.
-    boost::asio::io_context::executor_type
-    get_executor() noexcept
-    {
-        return in_->ioc.get_executor();
-    };
-
-    /** Get a reference to the lowest layer
-
-        This function returns a reference to the lowest layer
-        in a stack of stream layers.
-
-        @return A reference to the lowest layer in the stack of
-        stream layers.
-    */
-    lowest_layer_type&
-    lowest_layer()
-    {
-        return *this;
-    }
-
-    /** Get a reference to the lowest layer
-
-        This function returns a reference to the lowest layer
-        in a stack of stream layers.
-
-        @return A reference to the lowest layer in the stack of
-        stream layers. Ownership is not transferred to the caller.
-    */
-    lowest_layer_type const&
-    lowest_layer() const
-    {
-        return *this;
-    }
-
-    /// Set the maximum number of bytes returned by read_some
-    void
-    read_size(std::size_t n)
-    {
-        in_->read_max = n;
-    }
-
-    /// Set the maximum number of bytes returned by write_some
-    void
-    write_size(std::size_t n)
-    {
-        in_->write_max = n;
-    }
-
-    /// Direct input buffer access
-    buffer_type&
-    buffer()
-    {
-        return in_->b;
-    }
-
-    /// Returns a string view representing the pending input data
-    string_view
-    str() const
-    {
-        auto const bs = in_->b.data();
-        if(boost::asio::buffer_size(bs) == 0)
-            return {};
-        auto const b = buffers_front(bs);
-        return {reinterpret_cast<char const*>(b.data()), b.size()};
-    }
-
-    /// Appends a string to the pending input data
-    void
-    append(string_view s)
-    {
-        using boost::asio::buffer;
-        using boost::asio::buffer_copy;
-        std::lock_guard<std::mutex> lock{in_->m};
-        in_->b.commit(buffer_copy(
-            in_->b.prepare(s.size()),
-            buffer(s.data(), s.size())));
-    }
-
-    /// Clear the pending input area
-    void
-    clear()
-    {
-        std::lock_guard<std::mutex> lock{in_->m};
-        in_->b.consume(in_->b.size());
-    }
-
-    /// Return the number of reads
-    std::size_t
-    nread() const
-    {
-        return in_->nread;
-    }
-
-    /// Return the number of writes
-    std::size_t
-    nwrite() const
-    {
-        return in_->nwrite;
-    }
-
-    /** Close the stream.
-
-        The other end of the connection will see
-        `error::eof` after reading all the remaining data.
-    */
-    void
-    close();
-
-    /** Close the other end of the stream.
-
-        This end of the connection will see
-        `error::eof` after reading all the remaining data.
-    */
-    void
-    close_remote();
-
-    template<class MutableBufferSequence>
-    std::size_t
-    read_some(MutableBufferSequence const& buffers);
-
-    template<class MutableBufferSequence>
-    std::size_t
-    read_some(MutableBufferSequence const& buffers,
-        error_code& ec);
-
-    template<class MutableBufferSequence, class ReadHandler>
-    BOOST_ASIO_INITFN_RESULT_TYPE(
-        ReadHandler, void(error_code, std::size_t))
-    async_read_some(MutableBufferSequence const& buffers,
-        ReadHandler&& handler);
-
-    template<class ConstBufferSequence>
-    std::size_t
-    write_some(ConstBufferSequence const& buffers);
-
-    template<class ConstBufferSequence>
-    std::size_t
-    write_some(
-        ConstBufferSequence const& buffers, error_code&);
-
-    template<class ConstBufferSequence, class WriteHandler>
-    BOOST_ASIO_INITFN_RESULT_TYPE(
-        WriteHandler, void(error_code, std::size_t))
-    async_write_some(ConstBufferSequence const& buffers,
-        WriteHandler&& handler);
-
-    friend
-    void
-    teardown(websocket::role_type,
-        stream& s, boost::system::error_code& ec);
-
-    template<class TeardownHandler>
-    friend
-    void
-    async_teardown(websocket::role_type role,
-        stream& s, TeardownHandler&& handler);
-};
-
-//------------------------------------------------------------------------------
+inline
+void
+stream::
+clear()
+{
+    std::lock_guard<std::mutex> lock{in_->m};
+    in_->b.consume(in_->b.size());
+}
 
 inline
 void
@@ -532,7 +304,7 @@ async_read_some(
         }
         else
         {
-            in_->op.reset(new read_op_impl<BOOST_ASIO_HANDLER_TYPE(
+            in_->op.reset(new read_op<BOOST_ASIO_HANDLER_TYPE(
                 ReadHandler, void(error_code, std::size_t)),
                     MutableBufferSequence>{*in_, buffers,
                         std::move(init.completion_handler)});
@@ -645,9 +417,9 @@ async_write_some(ConstBufferSequence const& buffers,
 inline
 void
 teardown(
-    websocket::role_type,
-    stream& s,
-    boost::system::error_code& ec)
+websocket::role_type,
+stream& s,
+boost::system::error_code& ec)
 {
     if( s.in_->fc &&
         s.in_->fc->fail(ec))
@@ -666,9 +438,9 @@ template<class TeardownHandler>
 inline
 void
 async_teardown(
-    websocket::role_type,
-    stream& s,
-    TeardownHandler&& handler)
+websocket::role_type,
+stream& s,
+TeardownHandler&& handler)
 {
     error_code ec;
     if( s.in_->fc &&
@@ -691,7 +463,7 @@ async_teardown(
 //------------------------------------------------------------------------------
 
 template<class Handler, class Buffers>
-class stream::read_op_impl : public stream::read_op
+class stream::read_op : public stream::read_op_base
 {
     class lambda
     {
@@ -769,7 +541,7 @@ class stream::read_op_impl : public stream::read_op
 
 public:
     template<class DeducedHandler>
-    read_op_impl(state& s, Buffers const& b, DeducedHandler&& h)
+    read_op(state& s, Buffers const& b, DeducedHandler&& h)
         : fn_(s, b, std::forward<DeducedHandler>(h))
     {
     }
@@ -781,7 +553,6 @@ public:
     }
 };
 
-/// Create and return a connected stream
 inline
 stream
 connect(stream& to)
@@ -791,7 +562,6 @@ connect(stream& to)
     return from;
 }
 
-/// Create and return a connected stream
 template<class Arg1, class... ArgN>
 stream
 connect(stream& to, Arg1&& arg1, ArgN&&... argn)

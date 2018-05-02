@@ -303,6 +303,7 @@
             <member><link linkend="beast.ref.boost__beast__flat_stream">flat_stream</link></member>
             <member><link linkend="beast.ref.boost__beast__ssl_stream">ssl_stream</link></member>
             <member><link linkend="beast.ref.boost__beast__test__fail_count">test::fail_count</link></member>
+            <member><link linkend="beast.ref.boost__beast__test__stream">test::stream</link></member>
           </simplelist>
         </entry>
         <entry valign="top">
