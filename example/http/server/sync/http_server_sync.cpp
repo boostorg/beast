@@ -247,7 +247,7 @@ struct send_lambda
 void
 do_session(
     tcp::socket& socket,
-    std::string const& doc_root)
+    std::shared_ptr<std::string const> const& doc_root)
 {
     bool close = false;
     boost::system::error_code ec;
@@ -269,7 +269,7 @@ do_session(
             return fail(ec, "read");
 
         // Send the response
-        handle_request(doc_root, std::move(req), lambda);
+        handle_request(*doc_root, std::move(req), lambda);
         if(ec)
             return fail(ec, "write");
         if(close)
@@ -303,7 +303,7 @@ int main(int argc, char* argv[])
         }
         auto const address = boost::asio::ip::make_address(argv[1]);
         auto const port = static_cast<unsigned short>(std::atoi(argv[2]));
-        std::string const doc_root = argv[3];
+        auto const doc_root = std::make_shared<std::string>(argv[3]);
 
         // The io_context is required for all I/O
         boost::asio::io_context ioc{1};

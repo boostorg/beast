@@ -259,7 +259,7 @@ class session : public std::enable_shared_from_this<session>
     boost::asio::strand<
         boost::asio::io_context::executor_type> strand_;
     boost::beast::flat_buffer buffer_;
-    std::string const& doc_root_;
+    std::shared_ptr<std::string const> doc_root_;
     http::request<http::string_body> req_;
     std::shared_ptr<void> res_;
     send_lambda lambda_;
@@ -269,7 +269,7 @@ public:
     explicit
     session(
         tcp::socket socket,
-        std::string const& doc_root)
+        std::shared_ptr<std::string const> const& doc_root)
         : socket_(std::move(socket))
         , strand_(socket_.get_executor())
         , doc_root_(doc_root)
@@ -317,7 +317,7 @@ public:
             return fail(ec, "read");
 
         // Send the response
-        handle_request(doc_root_, std::move(req_), lambda_);
+        handle_request(*doc_root_, std::move(req_), lambda_);
     }
 
     void
@@ -363,13 +363,13 @@ class listener : public std::enable_shared_from_this<listener>
 {
     tcp::acceptor acceptor_;
     tcp::socket socket_;
-    std::string const& doc_root_;
+    std::shared_ptr<std::string const> doc_root_;
 
 public:
     listener(
         boost::asio::io_context& ioc,
         tcp::endpoint endpoint,
-        std::string const& doc_root)
+        std::shared_ptr<std::string const> const& doc_root)
         : acceptor_(ioc)
         , socket_(ioc)
         , doc_root_(doc_root)
@@ -465,7 +465,7 @@ int main(int argc, char* argv[])
     }
     auto const address = boost::asio::ip::make_address(argv[1]);
     auto const port = static_cast<unsigned short>(std::atoi(argv[2]));
-    std::string const doc_root = argv[3];
+    auto const doc_root = std::make_shared<std::string>(argv[3]);
     auto const threads = std::max<int>(1, std::atoi(argv[4]));
 
     // The io_context is required for all I/O

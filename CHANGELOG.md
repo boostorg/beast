@@ -5,6 +5,7 @@ Version 170:
 * Add test::error to experimental
 * Add test::fail_count to experimental
 * Add test::stream to experimental
+* Use a shared string for example HTTP server doc roots
 
 --------------------------------------------------------------------------------
 
