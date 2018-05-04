@@ -61,21 +61,22 @@ In this table:
     []
     [
         Constructible from `h` and `v`. The lifetime of `h` and `v`
-        is guaranteed to end no earlier than after the `W` is destroyed.
+        are guaranteed to end no earlier than after the `W` is destroyed.
         The writer shall not access the contents of `h` or `v` before
         the first call to `init`, permitting lazy construction of the
         message.
 
-        The constructor may optionally require that `v` is const, which
-        has these consequences:
+        The constructor may optionally require that `h` and `v` are
+        `const` references, with these consequences:
 
-        * If `W` requires that `v` is a const reference, then serializers
-        constructed for messages with this body type will also require a
-        const reference to a message, otherwise:
+        * If `W` requires that `h` and `v` are const references, then
+        the corresponding serializer constructors for messages with this
+        body type will will accept a const reference to a message,
+        otherwise:
 
-        * If `W` requires that `v` is a non-const reference, then serializers
-        constructed for messages with this body type will aso require
-        a non-const reference to a message.
+        * If `W` requires that `h` and `v` are non-const references,
+        then the corresponding serializer constructors for messages with
+        this body type will require a non-const reference to a message.
     ]
 ][
     [`a.init(ec)`]

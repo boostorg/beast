@@ -6,6 +6,7 @@ Version 170:
 * Add test::fail_count to experimental
 * Add test::stream to experimental
 * Use a shared string for example HTTP server doc roots
+* Remove deprecated serializer::reader_impl()
 
 --------------------------------------------------------------------------------
 

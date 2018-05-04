@@ -344,26 +344,6 @@ public:
     void
     consume(std::size_t n);
 
-    /** Provides low-level access to the associated @b BodyWriter (DEPRECATED)
-
-        This function provides access to the instance of the writer
-        associated with the body and created by the serializer
-        upon construction. The behavior of accessing this object
-        is defined by the specification of the particular writer
-        and its associated body.
-
-        @return A reference to the writer.
-    */
-    writer&
-    reader_impl()
-    {
-    #ifndef BOOST_BEAST_ALLOW_DEPRECATED
-        BOOST_STATIC_ASSERT_MSG(sizeof(Body) == 0,
-            BOOST_BEAST_DEPRECATION_STRING);
-    #endif
-        return wr_;
-    }
-
     /** Provides low-level access to the associated @b BodyWriter
 
         This function provides access to the instance of the writer
