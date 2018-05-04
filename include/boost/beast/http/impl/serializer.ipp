@@ -57,31 +57,9 @@ do_visit(error_code& ec, Visit& visit)
 template<
     bool isRequest, class Body, class Fields>
 serializer<isRequest, Body, Fields>::
-serializer(value_type& m, std::true_type)
-    : m_(m)
-    , wr_(m_)
-{
-#ifndef BOOST_BEAST_ALLOW_DEPRECATED
-    // Deprecated BodyWriter Concept (v1.66)
-    static_assert(sizeof(Body) == 0,
-        BOOST_BEAST_DEPRECATION_STRING);
-#endif
-}
-
-template<
-    bool isRequest, class Body, class Fields>
-serializer<isRequest, Body, Fields>::
-serializer(value_type& m, std::false_type)
+serializer(value_type& m)
     : m_(m)
     , wr_(m_.base(), m_.body())
-{
-}
-
-template<
-    bool isRequest, class Body, class Fields>
-serializer<isRequest, Body, Fields>::
-serializer(value_type& m)
-    : serializer(m, detail::has_deprecated_body_writer<Body>{})
 {
 }
 

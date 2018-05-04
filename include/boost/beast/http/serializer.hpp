@@ -72,17 +72,12 @@ public:
     using value_type = implementation_defined;
 #else
     using value_type = typename std::conditional<
-        (std::is_constructible<typename Body::writer,
+        std::is_constructible<typename Body::writer,
             header<isRequest, Fields>&,
             typename Body::value_type&>::value &&
         ! std::is_constructible<typename Body::writer,
             header<isRequest, Fields> const&,
-            typename Body::value_type const&>::value) ||
-        // Deprecated BodyWriter Concept (v1.66)
-        (std::is_constructible<typename Body::writer,
-            message<isRequest, Body, Fields>&>::value &&
-        ! std::is_constructible<typename Body::writer,
-            message<isRequest, Body, Fields> const&>::value),
+            typename Body::value_type const&>::value,
         message<isRequest, Body, Fields>,
         message<isRequest, Body, Fields> const>::type;
 #endif
@@ -194,8 +189,6 @@ private:
     bool header_done_ = false;
     bool more_;
 
-    serializer(value_type& msg, std::true_type);
-    serializer(value_type& msg, std::false_type);
 public:
     /// Constructor
     serializer(serializer&&) = default;

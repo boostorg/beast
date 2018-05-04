@@ -194,22 +194,6 @@ struct is_fields_helper : T
         t10::value && t11::value && t12::value>;
 };
 
-template<class T>
-using has_deprecated_body_writer =
-    std::integral_constant<bool,
-        std::is_constructible<typename T::writer,
-            message<true, T, detail::fields_model>&>::value &&
-        std::is_constructible<typename T::writer,
-            message<false, T, detail::fields_model>&>::value>;
-
-template<class T>
-using has_deprecated_body_reader =
-    std::integral_constant<bool,
-        std::is_constructible<typename T::reader,
-            message<true, T, detail::fields_model>&>::value &&
-        std::is_constructible<typename T::reader,
-            message<false, T, detail::fields_model>&>::value>;
-
 } // detail
 } // http
 } // beast

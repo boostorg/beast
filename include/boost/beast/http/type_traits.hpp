@@ -95,12 +95,7 @@ struct is_body_writer<T, beast::detail::void_t<
         typename T::value_type&>::value &&
     std::is_constructible<typename T::writer,
         header<false, detail::fields_model>&,
-        typename T::value_type&>::value) ||
-    // Deprecated BodyWriter Concept (v1.66)
-    (std::is_constructible<typename T::writer,
-        message<true, T, detail::fields_model>&>::value &&
-    std::is_constructible<typename T::writer,
-        message<false, T, detail::fields_model>&>::value)
+        typename T::value_type&>::value)
     )
     > {};
 #endif
@@ -149,12 +144,7 @@ struct is_body_reader<T, beast::detail::void_t<decltype(
                 typename T::value_type&>::value &&
         std::is_constructible<typename T::reader,
             header<false,detail::fields_model>&,
-                typename T::value_type&>::value) ||
-        // Deprecated BodyReader Concept (v1.66)
-        (std::is_constructible<typename T::reader,
-            message<true, T, detail::fields_model>&>::value &&
-        std::is_constructible<typename T::reader,
-            message<false, T, detail::fields_model>&>::value)
+                typename T::value_type&>::value)
         >
 {
 };

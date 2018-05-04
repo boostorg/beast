@@ -7,6 +7,7 @@ Version 170:
 * Add test::stream to experimental
 * Use a shared string for example HTTP server doc roots
 * Remove deprecated serializer::reader_impl()
+* Remove deprecated Body reader and writer ctor signatures
 
 --------------------------------------------------------------------------------
 

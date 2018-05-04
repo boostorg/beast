@@ -20,40 +20,6 @@ namespace http {
 class serializer_test : public beast::unit_test::suite
 {
 public:
-    struct deprecated_body
-    {
-        using value_type = std::string;
-
-        class writer
-        {
-        public:
-            using const_buffers_type =
-                boost::asio::const_buffer;
-
-            value_type const& body_;
-
-            template<bool isRequest, class Fields>
-            explicit
-            writer(message<isRequest, deprecated_body, Fields> const& m):
-                body_{m.body()}
-            {
-            }
-
-            void init(error_code& ec)
-            {
-                ec.assign(0,  ec.category());
-            }
-
-            boost::optional<std::pair<const_buffers_type, bool>>
-            get(error_code& ec)
-            {
-                ec.assign(0, ec.category());
-                return {{const_buffers_type{
-                    body_.data(), body_.size()}, false}};
-            }
-        };
-    };
-
     struct const_body
     {
         struct value_type{};
@@ -149,20 +115,10 @@ public:
         }
     }
 
-    void testBodyWriterCtor()
-    {
-        response<deprecated_body> res;
-        request<deprecated_body> req;
-        serializer<false, deprecated_body> sr1{res};
-        serializer<true, deprecated_body> sr2{req};
-        boost::ignore_unused(sr1, sr2);
-    }
-
     void
     run() override
     {
         testWriteLimit();
-        testBodyWriterCtor();
     }
 };
 
