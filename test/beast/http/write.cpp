@@ -50,8 +50,9 @@ public:
                 boost::asio::const_buffer;
 
             template<bool isRequest, class Fields>
-            explicit
-            writer(header<isRequest, Fields> const&, value_type const& b)
+            writer(
+                header<isRequest, Fields> const&,
+                value_type const& b)
                 : body_(b)
             {
             }
@@ -94,8 +95,9 @@ public:
                 boost::asio::const_buffer;
 
             template<bool isRequest, class Fields>
-            explicit
-            writer(header<isRequest, Fields> const&, value_type const& b)
+            writer(
+                header<isRequest, Fields> const&,
+                value_type const& b)
                 : body_(b)
             {
             }
@@ -890,6 +892,107 @@ public:
         }
     }
 
+    struct const_body_writer
+    {
+        struct value_type{};
+            
+        struct writer
+        {
+            using const_buffers_type =
+                boost::asio::const_buffer;
+
+            template<bool isRequest, class Fields>
+            writer(
+                header<isRequest, Fields> const&,
+                value_type const&)
+            {
+            }
+
+            void
+            init(error_code& ec)
+            {
+                ec.assign(0, ec.category());
+            }
+
+            boost::optional<std::pair<const_buffers_type, bool>>
+            get(error_code& ec)
+            {
+                ec.assign(0, ec.category());
+                return {{const_buffers_type{"", 0}, false}};
+            }
+        };
+    };
+
+    struct mutable_body_writer
+    {
+        struct value_type{};
+            
+        struct writer
+        {
+            using const_buffers_type =
+                boost::asio::const_buffer;
+
+            template<bool isRequest, class Fields>
+            writer(
+                header<isRequest, Fields>&,
+                value_type&)
+            {
+            }
+
+            void
+            init(error_code& ec)
+            {
+                ec.assign(0, ec.category());
+            }
+
+            boost::optional<std::pair<const_buffers_type, bool>>
+            get(error_code& ec)
+            {
+                ec.assign(0, ec.category());
+                return {{const_buffers_type{"", 0}, false}};
+            }
+        };
+    };
+
+    void
+    testBodyWriters()
+    {
+        {
+            test::stream s{ioc_};
+            message<true, const_body_writer> m;
+            try
+            {
+                write(s, m);
+            }
+            catch(std::exception const&)
+            {
+            }
+        }
+        {
+            error_code ec;
+            test::stream s{ioc_};
+            message<true, const_body_writer> m;
+            write(s, m, ec);
+        }
+        {
+            test::stream s{ioc_};
+            message<true, mutable_body_writer> m;
+            try
+            {
+                write(s, m);
+            }
+            catch(std::exception const&)
+            {
+            }
+        }
+        {
+            error_code ec;
+            test::stream s{ioc_};
+            message<true, mutable_body_writer> m;
+            write(s, m, ec);
+        }
+    }
+
     void
     run() override
     {
@@ -912,6 +1015,7 @@ public:
                 testWriteStream<test_body< true,  true>>(yield);
             });
         testAsioHandlerInvoke();
+        testBodyWriters();
     }
 };
 

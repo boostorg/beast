@@ -9,6 +9,7 @@ Version 170:
 * Remove deprecated serializer::reader_impl()
 * Remove deprecated Body reader and writer ctor signatures
 * Add is_mutable_body_writer metafunction
+* Add const and non-const overloads for message based http writes
 
 --------------------------------------------------------------------------------
 
