@@ -91,7 +91,7 @@ project /boost/beast
     <toolset>msvc:<cxxflags>"/bigobj"
     <toolset>msvc:<define>_SCL_SECURE_NO_WARNINGS=1
     <toolset>msvc:<define>_CRT_SECURE_NO_WARNINGS=1
-    <toolset>msvc:<variant>release:<cxxflags>"/Ob2 /Oi /Ot"
+    <toolset>msvc,<variant>release:<cxxflags>"/Ob2 /Oi /Ot"
     <os>SOLARIS:<library>socket
     <os>SOLARIS:<library>nsl
     <os>NT:<define>_WIN32_WINNT=0x0601
