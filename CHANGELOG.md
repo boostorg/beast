@@ -8,6 +8,7 @@ Version 170:
 * Use a shared string for example HTTP server doc roots
 * Remove deprecated serializer::reader_impl()
 * Remove deprecated Body reader and writer ctor signatures
+* Add is_mutable_body_writer metafunction
 
 --------------------------------------------------------------------------------
 

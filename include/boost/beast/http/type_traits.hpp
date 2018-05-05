@@ -100,6 +100,43 @@ struct is_body_writer<T, beast::detail::void_t<
     > {};
 #endif
 
+/** Returns true if the writer for a @b Body mutates the body container.
+*/
+#if BOOST_BEAST_DOXYGEN
+template<class T>
+struct is_mutable_body_writer : std::integral_constant<bool, ...> {};
+#else
+template<class T, class = void>
+struct is_mutable_body_writer : std::false_type {};
+
+template<class T>
+struct is_mutable_body_writer<T, beast::detail::void_t<
+    typename T::writer,
+    typename T::writer::const_buffers_type,
+        decltype(
+    std::declval<typename T::writer&>().init(std::declval<error_code&>()),
+    std::declval<boost::optional<std::pair<
+            typename T::writer::const_buffers_type, bool>>&>() =
+            std::declval<typename T::writer>().get(std::declval<error_code&>())
+        )>> : std::integral_constant<bool,
+    boost::asio::is_const_buffer_sequence<
+        typename T::writer::const_buffers_type>::value && ((
+            std::is_constructible<typename T::writer,
+                header<true, detail::fields_model>&,
+                typename T::value_type&>::value &&
+            std::is_constructible<typename T::writer,
+                header<false, detail::fields_model>&,
+                typename T::value_type&>::value &&
+            ! std::is_constructible<typename T::writer,
+                header<true, detail::fields_model> const&,
+                typename T::value_type const&>::value &&
+            ! std::is_constructible<typename T::writer,
+                header<false, detail::fields_model> const&,
+                typename T::value_type const&>::value
+            ))
+    >{};
+#endif
+
 /** Determine if a @b Body type has a reader.
 
     This metafunction is equivalent to `std::true_type` if:
