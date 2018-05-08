@@ -10,6 +10,7 @@ Version 170:
 * Remove deprecated Body reader and writer ctor signatures
 * Add is_mutable_body_writer metafunction
 * Add const and non-const overloads for message based http writes
+* Use the root certificate which matches the fingerprint
 
 --------------------------------------------------------------------------------
 
