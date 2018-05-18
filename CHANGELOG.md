@@ -2,6 +2,7 @@ Version 171:
 
 * Add handler_ptr::has_value
 * Remove spurious assert
+* Fix unused variable warning
 
 --------------------------------------------------------------------------------
 
