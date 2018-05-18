@@ -1,3 +1,9 @@
+Version 171:
+
+* Add handler_ptr::has_value
+
+--------------------------------------------------------------------------------
+
 Version 170:
 
 * Add flat_stream to experimental

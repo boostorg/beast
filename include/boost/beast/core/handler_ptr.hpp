@@ -13,6 +13,7 @@
 #include <boost/beast/core/detail/allocator.hpp>
 #include <boost/beast/core/detail/config.hpp>
 #include <boost/beast/core/detail/type_traits.hpp>
+#include <boost/assert.hpp>
 #include <type_traits>
 #include <utility>
 
@@ -117,32 +118,48 @@ public:
     template<class DeducedHandler, class... Args>
     explicit handler_ptr(DeducedHandler&& handler, Args&&... args);
 
-    /// Returns a const reference to the handler
+    /// Return a reference to the handler
     handler_type const&
     handler() const
     {
         return *reinterpret_cast<Handler const*>(&h_);
     }
 
-    /// Returns a reference to the handler
+    /// Return a reference to the handler
     handler_type&
     handler()
     {
         return *reinterpret_cast<Handler*>(&h_);
     }
 
-    /** Returns a pointer to the owned object.
+    /// Return `true` if `*this` owns an object
+    bool
+    has_value() const noexcept
+    {
+        return t_ != nullptr;
+    }
+
+    /** Return a pointer to the owned object.
+
+        @par Preconditions:
+        `has_value() == true`
     */
     T*
     get() const
     {
+        BOOST_ASSERT(t_);
         return t_;
     }
 
-    /// Return a reference to the owned object.
+    /** Return a reference to the owned object.
+
+        @par Preconditions:
+        `has_value() == true`
+    */
     T&
     operator*() const
     {
+        BOOST_ASSERT(t_);
         return *t_;
     }
 
@@ -153,15 +170,19 @@ public:
         return t_;
     }
 
-    /** Release ownership of the handler
-
-        Requires: `*this` owns an object
+    /** Return ownership of the handler
 
         Before this function returns, the owned object is
         destroyed, satisfying the deallocation-before-invocation
         Asio guarantee.
 
         @return The released handler.
+
+        @par Preconditions:
+        `has_value() == true`
+
+        @par Postconditions:
+        `has_value() == false`
     */
     handler_type
     release_handler();
@@ -172,6 +193,12 @@ public:
         with a forwarded argument list. Before the invocation,
         the owned object is destroyed, satisfying the
         deallocation-before-invocation Asio guarantee.
+
+        @par Preconditions:
+        `has_value() == true`
+
+        @par Postconditions:
+        `has_value() == false`
 
         @note Care must be taken when the arguments are themselves
         stored in the owned object. Such arguments must first be

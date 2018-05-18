@@ -102,7 +102,9 @@ public:
     {
         handler_ptr<T, handler> p{handler{}};
         bool b = false;
+        BEAST_EXPECT(p.has_value());
         p.invoke(std::ref(b));
+        BEAST_EXPECT(! p.has_value());
         BEAST_EXPECT(b);
     }
 
