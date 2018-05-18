@@ -131,6 +131,18 @@ public:
         return *reinterpret_cast<Handler*>(&h_);
     }
 
+    /// Checks whether *this owns an object. Equivalent to get() != nullptr.
+    bool has_handler() const noexcept
+    {
+        return get() != nullptr;
+    }
+
+    /// Checks whether *this owns an object. Equivalent to get() != nullptr.
+    explicit operator bool() const noexcept
+    {
+        return has_handler();
+    }
+
     /** Returns a pointer to the owned object.
     */
     T*
