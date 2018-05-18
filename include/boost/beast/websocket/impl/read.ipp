@@ -626,12 +626,8 @@ operator()(
         goto upcall;
 
     close:
-        if(ws_.wr_block_.try_lock(this))
-        {
-            // Make sure the stream is open
-            BOOST_ASSERT(ws_.status_ == status::open);
-        }
-        else
+        // Try to acquire the write block
+        if(! ws_.wr_block_.try_lock(this))
         {
             // Suspend
             BOOST_ASIO_CORO_YIELD

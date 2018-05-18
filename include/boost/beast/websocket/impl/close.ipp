@@ -138,14 +138,8 @@ operator()(
     d.cont = cont;
     BOOST_ASIO_CORO_REENTER(*this)
     {
-        // Maybe suspend
-        if(d.ws.wr_block_.try_lock(this))
-        {
-            // Make sure the stream is open
-            if(! d.ws.check_open(ec))
-                goto upcall;
-        }
-        else
+        // Attempt to acquire write block
+        if(! d.ws.wr_block_.try_lock(this))
         {
             // Suspend
             BOOST_ASIO_CORO_YIELD
@@ -159,11 +153,11 @@ operator()(
             boost::asio::post(
                 d.ws.get_executor(), std::move(*this));
             BOOST_ASSERT(d.ws.wr_block_.is_locked(this));
-
-            // Make sure the stream is open
-            if(! d.ws.check_open(ec))
-                goto upcall;
         }
+
+        // Make sure the stream is open
+        if(! d.ws.check_open(ec))
+            goto upcall;
 
         // Can't call close twice
         BOOST_ASSERT(! d.ws.wr_close_);
