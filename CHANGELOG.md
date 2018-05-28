@@ -2,6 +2,7 @@ Version 172:
 
 * Tidy up websocket stream javadocs
 * Fix move-only arguments in bind_handler
+* Fix http::parser constructor javadoc
 
 --------------------------------------------------------------------------------
 
