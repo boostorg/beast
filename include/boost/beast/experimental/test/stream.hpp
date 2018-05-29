@@ -472,7 +472,7 @@ public:
     template<class ConstBufferSequence>
     std::size_t
     write_some(
-        ConstBufferSequence const& buffers, error_code&);
+        ConstBufferSequence const& buffers, error_code& ec);
 
     /** Start an asynchronous write.
         
@@ -502,7 +502,7 @@ public:
     async_write_some(ConstBufferSequence const& buffers,
         WriteHandler&& handler);
 
-#ifndef BOOST_BEAST_DOXYGEN
+#if ! BOOST_BEAST_DOXYGEN
     friend
     void
     teardown(
@@ -520,14 +520,27 @@ public:
 #endif
 };
 
-/// Create and return a connected stream
+#if BOOST_BEAST_DOXYGEN
+/** Return a new stream connected to the given stream
+
+    @param to The stream to connect to.
+
+    @param args Optional arguments forwarded to the new stream's constructor.
+
+    @return The new, connected stream.
+*/
+template<class... Args>
+stream
+connect(stream& to, Args&&... args);
+
+#else
 stream
 connect(stream& to);
 
-/// Create and return a connected stream
 template<class Arg1, class... ArgN>
 stream
 connect(stream& to, Arg1&& arg1, ArgN&&... argn);
+#endif
 
 } // test
 } // beast

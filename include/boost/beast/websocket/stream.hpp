@@ -125,7 +125,7 @@ template<
     class NextLayer,
     bool deflateSupported>
 class stream
-#ifndef BOOST_BEAST_DOXYGEN
+#if ! BOOST_BEAST_DOXYGEN
     : private detail::stream_base<deflateSupported>
 #endif
 {

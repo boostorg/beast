@@ -79,7 +79,7 @@ namespace beast {
 */
 template<class NextLayer>
 class flat_stream
-#ifndef BOOST_BEAST_DOXYGEN
+#if ! BOOST_BEAST_DOXYGEN
     : private detail::flat_stream_base
 #endif
 {
