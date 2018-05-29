@@ -103,15 +103,14 @@ in this style:
 [example_core_echo_op_4]
 
 Next is to implement the function call operator. Our strategy is to make our
-composed object meet the requirements of a completion handler by being copyable
-(also movable), and by providing the function call operator with the correct
-signature. Rather than using `std::bind` or `boost::bind`, which destroys
-the type information and therefore breaks the allocation and invocation
-hooks, we will simply pass `std::move(*this)` as the completion handler
-parameter for any operations that we initiate. For the move to work correctly,
-care must be taken to ensure that no access to data members are made after the
-move takes place. Here is the implementation of the function call operator for
-this echo operation:
+composed object meet the requirements of a completion handler by being movable,
+and by providing the function call operator with the correct signature. Rather
+than using `std::bind` or `boost::bind`, which destroys the type information
+and therefore breaks the allocation and invocation hooks, we will simply pass
+`std::move(*this)` as the completion handler parameter for any operations that
+we initiate. For the move to work correctly, care must be taken to ensure that
+no access to data members are made after the move takes place. Here is the
+implementation of the function call operator for this echo operation:
 
 [example_core_echo_op_5]
 

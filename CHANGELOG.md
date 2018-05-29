@@ -4,6 +4,7 @@ Version 172:
 * Fix move-only arguments in bind_handler
 * Fix http::parser constructor javadoc
 * Tidy up test::stream javadocs
+* Tidy up composed operation doc
 
 --------------------------------------------------------------------------------
 
