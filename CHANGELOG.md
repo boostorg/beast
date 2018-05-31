@@ -1,3 +1,9 @@
+Version 173:
+
+* Remove Autobahn testsuite doc note
+
+--------------------------------------------------------------------------------
+
 Version 172:
 
 * Tidy up websocket stream javadocs
