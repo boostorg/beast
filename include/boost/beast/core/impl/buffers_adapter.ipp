@@ -28,7 +28,7 @@ class buffers_adapter<MutableBufferSequence>::
     buffers_adapter const* ba_;
 
 public:
-    using value_type = boost::asio::mutable_buffer;
+    using value_type = boost::asio::const_buffer;
 
     class const_iterator;
 

@@ -1,6 +1,7 @@
 Version 173:
 
 * Remove Autobahn testsuite doc note
+* Fix buffers_adapter iterator value type
 
 --------------------------------------------------------------------------------
 
