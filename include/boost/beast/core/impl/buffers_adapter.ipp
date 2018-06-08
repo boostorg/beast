@@ -447,20 +447,17 @@ buffers_adapter<MutableBufferSequence>::commit(std::size_t n)
         {
             out_pos_ += n;
             in_size_ += n;
-            max_size_ -= n;
             return;
         }
         ++out_;
         n -= avail;
         out_pos_ = 0;
         in_size_ += avail;
-        max_size_ -= avail;
     }
 
     n = (std::min)(n, out_end_ - out_pos_);
     out_pos_ += n;
     in_size_ += n;
-    max_size_ -= n;
     if(out_pos_ == buffer_size(*out_))
     {
         ++out_;

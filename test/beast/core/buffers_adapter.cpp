@@ -68,7 +68,7 @@ public:
                 ba.commit(buffer_copy(d, buffer(s.data(), x)));
             }
             BEAST_EXPECT(ba.size() == x);
-            BEAST_EXPECT(ba.max_size() == sizeof(buf) - x);
+            BEAST_EXPECT(ba.max_size() == sizeof(buf));
             BEAST_EXPECT(buffer_size(ba.data()) == ba.size());
             {
                 auto d = ba.prepare(x);
@@ -89,7 +89,7 @@ public:
             }
             ba.commit(1);
             BEAST_EXPECT(ba.size() == x + y);
-            BEAST_EXPECT(ba.max_size() == sizeof(buf) - (x + y));
+            BEAST_EXPECT(ba.max_size() == sizeof(buf));
             BEAST_EXPECT(buffer_size(ba.data()) == ba.size());
             {
                 auto d = ba.prepare(x);
@@ -109,7 +109,6 @@ public:
             }
             ba.commit(2);
             BEAST_EXPECT(ba.size() == x + y + z);
-            BEAST_EXPECT(ba.max_size() == 0);
             BEAST_EXPECT(buffer_size(ba.data()) == ba.size());
             BEAST_EXPECT(buffers_to_string(ba.data()) == s);
             ba.consume(t);
