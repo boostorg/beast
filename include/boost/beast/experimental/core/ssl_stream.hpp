@@ -10,6 +10,8 @@
 #ifndef BOOST_BEAST_CORE_SSL_STREAM_HPP
 #define BOOST_BEAST_CORE_SSL_STREAM_HPP
 
+#include <boost/beast/core/detail/config.hpp>
+
 // This include is necessary to work with `ssl::stream` and `boost::beast::websocket::stream`
 #include <boost/beast/websocket/ssl.hpp>
 

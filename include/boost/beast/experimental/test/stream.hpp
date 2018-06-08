@@ -73,7 +73,7 @@ namespace test {
     This allows predefined test vectors to be set up for testing
     read algorithms.
 
-    @li The stream may be constructed with a @ref fail count. The
+    @li The stream may be constructed with a fail count. The
     stream will eventually fail with a predefined error after a
     certain number of operations, where the number of operations
     is controlled by the test. When a test loops over a range of
