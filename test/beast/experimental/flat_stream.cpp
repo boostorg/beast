@@ -103,7 +103,7 @@ public:
     }
 };
 
-BEAST_DEFINE_TESTSUITE(beast,example,flat_stream);
+BEAST_DEFINE_TESTSUITE(beast,core,flat_stream);
 
 } // beast
 } // boost

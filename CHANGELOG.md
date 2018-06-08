@@ -5,6 +5,7 @@ Version 173:
 * Fix buffers_adapter max_size
 * Fix buffers_prefix iterator decrement
 * buffers_adapter improvements
+* Add icy_stream Shoutcast stream filter
 
 --------------------------------------------------------------------------------
 
