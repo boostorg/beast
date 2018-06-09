@@ -13,6 +13,7 @@
 #include <boost/beast/core/detail/config.hpp>
 #include <boost/beast/core/type_traits.hpp>
 #include <boost/asio/buffer.hpp>
+#include <boost/optional.hpp>
 #include <type_traits>
 
 namespace boost {
@@ -69,6 +70,9 @@ class buffers_adapter
     }
 
 public:
+    /// The type of the underlying mutable buffer sequence
+    using value_type = MutableBufferSequence;
+
 #if BOOST_BEAST_DOXYGEN
     /// The type used to represent the input sequence as a list of buffers.
     using const_buffers_type = implementation_defined;
@@ -104,6 +108,17 @@ public:
     explicit
     buffers_adapter(MutableBufferSequence const& buffers);
 
+    /** Constructor
+
+        This constructs the buffer adapter in-place from
+        a list of arguments.
+
+        @param args Arguments forwarded to the buffers constructor.
+    */
+    template<class... Args>
+    explicit
+    buffers_adapter(boost::in_place_init_t, Args&&... args);
+
     /// Returns the largest size output sequence possible.
     std::size_t
     max_size() const
@@ -123,6 +138,13 @@ public:
     capacity() const
     {
         return max_size_;
+    }
+
+    /// Returns the original mutable buffer sequence
+    value_type const&
+    value() const
+    {
+        return bs_;
     }
 
     /** Get a list of buffers that represents the output sequence, with the given size.
