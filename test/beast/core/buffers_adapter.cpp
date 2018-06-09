@@ -104,7 +104,8 @@ public:
                 BEAST_EXPECT(buffer_size(d) == 0);
             }
             {
-                auto d = ba.prepare(z); BEAST_EXPECT(buffer_size(d) == z);
+                auto d = ba.prepare(z);
+                BEAST_EXPECT(buffer_size(d) == z);
                 ba.commit(buffer_copy(d, buffer(s.data()+x+y, z)));
             }
             ba.commit(2);
