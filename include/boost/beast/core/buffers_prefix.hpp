@@ -39,6 +39,7 @@ class buffers_prefix_view
 
     BufferSequence bs_;
     std::size_t size_;
+    std::size_t remain_;
     iter_type end_;
 
     template<class Deduced>
@@ -46,6 +47,7 @@ class buffers_prefix_view
             Deduced&& other, std::size_t dist)
         : bs_(std::forward<Deduced>(other).bs_)
         , size_(other.size_)
+        , remain_(other.remain_)
         , end_(std::next(bs_.begin(), dist))
     {
     }

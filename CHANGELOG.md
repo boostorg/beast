@@ -3,6 +3,7 @@ Version 173:
 * Remove Autobahn testsuite doc note
 * Fix buffers_adapter iterator value type
 * Fix buffers_adapter max_size
+* Fix buffers_prefix iterator decrement
 
 --------------------------------------------------------------------------------
 
