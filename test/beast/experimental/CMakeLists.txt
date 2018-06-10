@@ -19,6 +19,7 @@ add_executable (tests-beast-experimental
     Jamfile
     error.cpp
     flat_stream.cpp
+    icy_stream.cpp
     ssl_stream.cpp
     stream.cpp
 )
