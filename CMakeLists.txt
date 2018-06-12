@@ -53,10 +53,15 @@ else()
     find_package (Threads)
 
     set( CMAKE_CXX_FLAGS
-      "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wextra -Wpedantic -Wno-unused-parameter")
+      "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wextra -Wpedantic -Wno-unused-parameter -Wno-implicit-fallthrough")
 
     if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wrange-loop-analysis")
+    endif ()
+    if (WIN32)
+        # -mbig-obj is the gas equivalent of /bigobj for MSVC
+        # -O2 to work around string table size issues: https://stackoverflow.com/a/29479701/166389
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wa,-mbig-obj -O2")
     endif ()
 endif()
 
@@ -68,8 +73,6 @@ include_directories (include)
 #
 # Boost
 #
-
-get_filename_component (BOOST_ROOT ../../ ABSOLUTE)
 
 # VFALCO I want static but "b2 stage" builds a minimal set which excludes static
 add_definitions (-DBOOST_ALL_STATIC_LINK=1)
@@ -83,9 +86,23 @@ add_definitions (-DBOOST_ASIO_DISABLE_BOOST_DATE_TIME=1)
 add_definitions (-DBOOST_ASIO_DISABLE_BOOST_REGEX=1)
 add_definitions (-DBOOST_COROUTINES_NO_DEPRECATION_WARNING=1)
 
-include_directories (${BOOST_ROOT})
+OPTION(FIND_BOOST "Build beast against an existing Boost install, rather than in-tree")
+if (FIND_BOOST)
+  set(Boost_USE_STATIC_LIBS ON)
+  find_package(Boost 1.66.0 REQUIRED COMPONENTS system filesystem coroutine)
+  include_directories(${Boost_INCLUDE_DIRS})
+  link_directories(${Boost_LIBRARY_DIRS})
+  link_libraries(${Boost_COROUTINE_LIBRARY})
+  link_libraries(${Boost_CONTEXT_LIBRARY}) # Needed by coroutine
+  link_libraries(${Boost_FILESYSTEM_LIBRARY})
+  link_libraries(${Boost_SYSTEM_LIBRARY})
+else()
+  get_filename_component (BOOST_ROOT ../../ ABSOLUTE)
 
-link_directories(${BOOST_ROOT}/stage/lib)
+  include_directories (${BOOST_ROOT})
+
+  link_directories(${BOOST_ROOT}/stage/lib)
+endif()
 
 if (MINGW)
     link_libraries(ws2_32 mswsock)
