@@ -29,7 +29,7 @@ In this table:
 
 * `W` denotes a type that meets the requirements of [*FieldsWriter].
 * `F` denotes a __Fields__ where
-      `std::is_same<W, F::reader>::value == true`.
+      `std::is_same<W, F::writer>::value == true`.
 * `a` is a value of type `W`.
 * `f` is a value of type `F`.
 * `v` is an `unsigned` value representing the HTTP version.

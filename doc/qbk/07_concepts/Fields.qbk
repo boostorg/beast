@@ -83,7 +83,7 @@ In this table:
         [
             The Transfer-Encoding field is present in the message.
         ][
-            The last item the value of the field is "chunked".
+            The last item in value of the field is "chunked".
         ]]
     ]
 ][

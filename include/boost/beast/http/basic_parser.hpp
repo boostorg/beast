@@ -264,7 +264,7 @@ public:
     /// Copy assignment
     basic_parser& operator=(basic_parser const&) = delete;
 
-    /** Returns a reference to this object as a @ref basic_parser.
+    /** Returns a reference to this object as a `basic_parser`.
 
         This is used to pass a derived class where a base class is
         expected, to choose a correct function overload when the
@@ -276,7 +276,7 @@ public:
         return *this;
     }
 
-    /** Returns a constant reference to this object as a @ref basic_parser.
+    /** Returns a constant reference to this object as a `basic_parser`.
 
         This is used to pass a derived class where a base class is
         expected, to choose a correct function overload when the

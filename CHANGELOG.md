@@ -1,3 +1,9 @@
+Version 174:
+
+* Fix Fields, FieldsWriter concept docs
+
+--------------------------------------------------------------------------------
+
 Version 173:
 
 * Remove Autobahn testsuite doc note
