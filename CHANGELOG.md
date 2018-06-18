@@ -1,6 +1,7 @@
 Version 174:
 
 * Fix Fields, FieldsWriter concept docs
+* Fix BodyReader constructor requirements doc
 
 --------------------------------------------------------------------------------
 

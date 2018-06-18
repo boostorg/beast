@@ -54,9 +54,6 @@ In this table:
     [
         Constructible from `h` and `v`. The lifetime of `h` and `v`
         is guaranteed to end no earlier than after the `R` is destroyed.
-        The constructor will be called after a complete header is stored
-        in `h`, and before parsing body octets for messages indicating
-        that a body is present.
         The reader shall not access the contents of `h` or `v` before
         the first call to `init`, permitting lazy construction of the
         message.
