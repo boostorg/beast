@@ -62,9 +62,11 @@ class parser
     using base_type = basic_parser<isRequest,
         parser<isRequest, Body, Allocator>>;
 
+    using reader_type = typename Body::reader;
+
     message<isRequest, Body, basic_fields<Allocator>> m_;
-    typename Body::reader rd_;
-    bool rd_inited_ = false;
+    boost::optional<reader_type> rd_;
+
 
     std::function<void(
         std::uint64_t,
@@ -90,15 +92,15 @@ public:
     /// Assignment (disallowed)
     parser& operator=(parser const&) = delete;
 
-    /// Constructor (disallowed)
-    parser(parser&& other) = delete;
+    /// Move Constructor
+    parser(parser&& other) = default;
 
     /// Constructor
-    parser();
+    parser() = default;
 
     /** Constructor
 
-        @param args Optional arguments forwarded to the 
+        @param args Optional arguments forwarded to the
         @ref http::message constructor.
 
         @note This function participates in overload
@@ -203,7 +205,7 @@ public:
     /** Set a callback to be invoked on each chunk header.
 
         The callback will be invoked once for every chunk in the message
-        payload, as well as once for the last chunk. The invocation 
+        payload, as well as once for the last chunk. The invocation
         happens after the chunk header is available but before any body
         octets have been parsed.
 
@@ -243,7 +245,7 @@ public:
         BOOST_STATIC_ASSERT(! std::is_const<Callback>::value);
 
         // Can't set the callback after receiving any chunk data!
-        BOOST_ASSERT(! rd_inited_);
+        BOOST_ASSERT(! rd_);
 
         cb_h_ = std::ref(cb);
     }
@@ -291,7 +293,7 @@ public:
         BOOST_STATIC_ASSERT(! std::is_const<Callback>::value);
 
         // Can't set the callback after receiving any chunk data!
-        BOOST_ASSERT(! rd_inited_);
+        BOOST_ASSERT(! rd_);
 
         cb_b_ = std::ref(cb);
     }
@@ -405,8 +407,8 @@ private:
         boost::optional<std::uint64_t> const& content_length,
         error_code& ec)
     {
-        rd_.init(content_length, ec);
-        rd_inited_ = true;
+        rd_.emplace(m_.base(), m_.body());
+        rd_->init(content_length, ec);
     }
 
     std::size_t
@@ -414,7 +416,7 @@ private:
         string_view body,
         error_code& ec)
     {
-        return rd_.put(boost::asio::buffer(
+        return rd_->put(boost::asio::buffer(
             body.data(), body.size()), ec);
     }
 
@@ -437,14 +439,23 @@ private:
     {
         if(cb_b_)
             return cb_b_(remain, body, ec);
-        return rd_.put(boost::asio::buffer(
+        return rd_->put(boost::asio::buffer(
             body.data(), body.size()), ec);
     }
 
     void
     on_finish_impl(error_code& ec)
     {
-        rd_.finish(ec);
+        // If header is complete, but no body is expected,
+        // the reader might not have been constructed.
+        if (rd_)
+        {
+            rd_->finish(ec);
+        }
+        else
+        {
+            ec.assign(0, ec.category());
+        }
     }
 };
 

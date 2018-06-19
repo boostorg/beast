@@ -18,6 +18,7 @@
 #include <boost/beast/core/flat_buffer.hpp>
 #include <boost/beast/core/multi_buffer.hpp>
 #include <boost/beast/core/ostream.hpp>
+#include <boost/beast/http/empty_body.hpp>
 #include <boost/beast/http/read.hpp>
 #include <boost/beast/http/string_body.hpp>
 #include <boost/system/system_error.hpp>
@@ -225,6 +226,38 @@ public:
             BEAST_EXPECT(p.is_done());
             BEAST_EXPECT(p.is_header_done());
             BEAST_EXPECT(! p.need_eof());
+            BEAST_EXPECT(m.method() == verb::get);
+            BEAST_EXPECT(m.target() == "/");
+            BEAST_EXPECT(m.version() == 11);
+            BEAST_EXPECT(m["User-Agent"] == "test");
+            BEAST_EXPECT(m.body() == "*");
+        }
+        // test eager(false)
+        {
+            error_code ec;
+            parser<true, empty_body> p;
+            p.eager(false);
+            p.put(buf(
+                "GET / HTTP/1.1\r\n"
+                "User-Agent: test\r\n"
+                "Content-Length: 1\r\n"
+                "\r\n"
+                "*")
+                , ec);
+            BEAST_EXPECT(!p.is_done());
+            BEAST_EXPECT(p.is_header_done());
+
+            parser_type<true> p2{std::move(p)};
+            BEAST_EXPECT(!p2.is_done());
+            BEAST_EXPECT(p2.is_header_done());
+
+            p2.put(buf("*"), ec);
+            BEAST_EXPECT(!ec);
+            BEAST_EXPECT(p2.is_done());
+            BEAST_EXPECT(p2.is_header_done());
+            BEAST_EXPECT(!p.need_eof());
+
+            auto const& m = p2.get();
             BEAST_EXPECT(m.method() == verb::get);
             BEAST_EXPECT(m.target() == "/");
             BEAST_EXPECT(m.version() == 11);
