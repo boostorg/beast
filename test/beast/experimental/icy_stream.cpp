@@ -36,9 +36,9 @@ public:
         std::unique_ptr<char[]> p(new char[len]);
         for(std::size_t i = 1; i < len; ++i)
         {
-            std::array<mutable_buffer, 2> mbs{
+            std::array<mutable_buffer, 2> mbs{{
                 mutable_buffer(p.get(), i),
-                mutable_buffer(p.get() + i, len - i)};
+                mutable_buffer(p.get() + i, len - i)}};
             for(std::size_t j = 1; j < in.size(); ++j)
             {
                 for(std::size_t k = 1; k < len; ++k)

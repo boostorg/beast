@@ -1,3 +1,9 @@
+Version 175:
+
+* Fix initialization warning
+
+--------------------------------------------------------------------------------
+
 Version 174:
 
 * Fix Fields, FieldsWriter concept docs
