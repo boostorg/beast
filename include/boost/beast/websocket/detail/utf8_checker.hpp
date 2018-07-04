@@ -194,7 +194,7 @@ write(std::uint8_t const* in, std::size_t size)
         // Add characters to the code point
         while(n--)
             *p_++ = *in++;
-        BOOST_ASSERT(p_ <= cp_ + 5);
+        BOOST_ASSERT(p_ <= cp_ + 4);
 
         // Still incomplete?
         if(need_ > 0)
@@ -313,7 +313,7 @@ tail:
             while(n--)
                 *p_++ = *in++;
             BOOST_ASSERT(in == end);
-            BOOST_ASSERT(p_ <= cp_ + 5);
+            BOOST_ASSERT(p_ <= cp_ + 4);
 
             // Do partial validation on the incomplete
             // code point, this is called "Fail fast"

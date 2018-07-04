@@ -1,6 +1,7 @@
 Version 176:
 
 * Tidy up Quick Reference
+* Fix array end calculation in utf8 assertion
 
 --------------------------------------------------------------------------------
 
