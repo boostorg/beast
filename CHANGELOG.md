@@ -1,3 +1,9 @@
+Version 176:
+
+* Tidy up Quick Reference
+
+--------------------------------------------------------------------------------
+
 Version 175:
 
 * Fix initialization warning
