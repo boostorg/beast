@@ -206,7 +206,6 @@ class stream
     std::size_t             wr_buf_opt_     // write buffer size option setting
                                 = 4096;
     detail::fh_buffer       wr_fb_;         // header buffer used for writes
-    detail::maskgen         wr_gen_;        // source of mask keys
 
     detail::pausation       paused_rd_;     // paused read op
     detail::pausation       paused_wr_;     // paused write op
@@ -631,6 +630,37 @@ public:
     read_message_max() const
     {
         return rd_msg_max_;
+    }
+
+    /** Set whether the PRNG is cryptographically secure
+
+        This controls whether or not the source of pseudo-random
+        numbers used to produce the masks required by the WebSocket
+        protocol are of cryptographic quality. When the setting is
+        `true`, a strong algorithm is used which cannot be guessed
+        by observing outputs. When the setting is `false`, a much
+        faster algorithm is used.
+        Masking is only performed by streams operating in the client
+        mode. For streams operating in the server mode, this setting
+        has no effect.
+        By default, newly constructed streams use a secure PRNG.
+
+        If the WebSocket stream is used with an encrypted SSL or TLS
+        next layer, if it is known to the application that intermediate
+        proxies are not vulnerable to cache poisoning, or if the
+        application is designed such that an attacker cannot send
+        arbitrary inputs to the stream interface, then the faster
+        algorithm may be used.
+
+        For more information please consult the WebSocket protocol RFC.
+
+        @param value `true` if the PRNG algorithm should be
+        cryptographically secure.
+    */
+    void
+    secure_prng(bool value)
+    {
+        this->secure_prng_ = value;
     }
 
     /** Set the write buffer size option.
@@ -3562,6 +3592,36 @@ private:
         error_code ev,
         error_code& ec);
 };
+
+/** Manually provide a one-time seed to initialize the PRNG
+
+    This function invokes the specified seed sequence to produce a seed
+    suitable for use with the pseudo-random number generator used to
+    create masks and perform WebSocket protocol handshakes.
+
+    If a seed is not manually provided, the implementation will
+    perform a one-time seed generation using `std::random_device`. This
+    function may be used when the application runs in an environment
+    where the random device is unreliable or does not provide sufficient
+    entropy.
+
+    @par Preconditions
+
+    This function may not be called after any websocket @ref stream objects
+    have been constructed.
+
+    @param ss A reference to a `std::seed_seq` which will be used to seed
+    the pseudo-random number generator. The seed sequence should have at
+    least 256 bits of entropy.
+
+    @see stream::secure_prng
+*/
+inline
+void
+seed_prng(std::seed_seq& ss)
+{
+    detail::stream_prng::seed(&ss);
+}
 
 } // websocket
 } // beast

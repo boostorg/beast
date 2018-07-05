@@ -24,66 +24,6 @@ namespace beast {
 namespace websocket {
 namespace detail {
 
-// Pseudo-random source of mask keys
-//
-template<class Generator>
-class maskgen_t
-{
-    Generator g_;
-
-public:
-    using result_type =
-        typename Generator::result_type;
-
-    maskgen_t();
-
-    result_type
-    operator()() noexcept;
-
-    void
-    rekey();
-};
-
-template<class Generator>
-maskgen_t<Generator>::maskgen_t()
-{
-    rekey();
-}
-
-template<class Generator>
-auto
-maskgen_t<Generator>::operator()() noexcept ->
-    result_type
-{
-    for(;;)
-        if(auto key = g_())
-            return key;
-}
-
-template<class _>
-void
-maskgen_t<_>::rekey()
-{
-    std::random_device rng;
-#if 0
-    std::array<std::uint32_t, 32> e;
-    for(auto& i : e)
-        i = rng();
-    // VFALCO This constructor causes
-    //        address sanitizer to fail, no idea why.
-    std::seed_seq ss(e.begin(), e.end());
-    g_.seed(ss);
-#else
-    g_.seed(rng());
-#endif
-}
-
-// VFALCO NOTE This generator has 5KB of state!
-//using maskgen = maskgen_t<std::mt19937>;
-using maskgen = maskgen_t<std::minstd_rand>;
-
-//------------------------------------------------------------------------------
-
 using prepared_key = std::array<unsigned char, 4>;
 
 inline

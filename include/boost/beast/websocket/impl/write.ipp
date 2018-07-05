@@ -406,7 +406,7 @@ operator()(
             remain_ = buffer_size(cb_);
             fh_.fin = fin_;
             fh_.len = remain_;
-            fh_.key = ws_.wr_gen_();
+            fh_.key = ws_.create_mask();
             detail::prepare_key(key_, fh_.key);
             ws_.wr_fb_.reset();
             detail::write<flat_static_buffer_base>(
@@ -458,7 +458,7 @@ operator()(
                 n = clamp(remain_, ws_.wr_buf_size_);
                 remain_ -= n;
                 fh_.len = n;
-                fh_.key = ws_.wr_gen_();
+                fh_.key = ws_.create_mask();
                 fh_.fin = fin_ ? remain_ == 0 : false;
                 detail::prepare_key(key_, fh_.key);
                 buffer_copy(buffer(
@@ -521,7 +521,7 @@ operator()(
                 }
                 if(fh_.mask)
                 {
-                    fh_.key = ws_.wr_gen_();
+                    fh_.key = ws_.create_mask();
                     detail::prepared_key key;
                     detail::prepare_key(key, fh_.key);
                     detail::mask_inplace(b, key);
@@ -666,7 +666,7 @@ write_some(bool fin,
             }
             if(fh.mask)
             {
-                fh.key = wr_gen_();
+                fh.key = this->create_mask();
                 detail::prepared_key key;
                 detail::prepare_key(key, fh.key);
                 detail::mask_inplace(b, key);
@@ -740,7 +740,7 @@ write_some(bool fin,
         // mask, no autofrag
         fh.fin = fin;
         fh.len = remain;
-        fh.key = wr_gen_();
+        fh.key = this->create_mask();
         detail::prepared_key key;
         detail::prepare_key(key, fh.key);
         detail::fh_buffer fh_buf;
@@ -784,7 +784,7 @@ write_some(bool fin,
             ConstBufferSequence> cb{buffers};
         for(;;)
         {
-            fh.key = wr_gen_();
+            fh.key = this->create_mask();
             detail::prepared_key key;
             detail::prepare_key(key, fh.key);
             auto const n = clamp(remain, wr_buf_size_);

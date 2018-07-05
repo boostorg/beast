@@ -23,6 +23,7 @@ install:
   - cd boost-root
   - git submodule update --init tools/build
   - git submodule update --init tools/boostdep
+  - git submodule update --init libs/align
   - git submodule update --init libs/asio
   - git submodule update --init libs/assert
   - git submodule update --init libs/config

@@ -23,7 +23,6 @@ add_executable (tests-beast-websocket
     error.cpp
     frame.cpp
     handshake.cpp
-    mask.cpp
     option.cpp
     ping.cpp
     read1.cpp

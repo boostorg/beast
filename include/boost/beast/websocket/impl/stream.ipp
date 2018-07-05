@@ -556,7 +556,7 @@ write_close(DynamicBuffer& db, close_reason const& cr)
     if(role_ == role_type::client)
     {
         fh.mask = true;
-        fh.key = wr_gen_();
+        fh.key = this->create_mask();
     }
     else
     {
@@ -608,7 +608,7 @@ write_ping(DynamicBuffer& db,
     fh.len = data.size();
     fh.mask = role_ == role_type::client;
     if(fh.mask)
-        fh.key = wr_gen_();
+        fh.key = this->create_mask();
     detail::write(db, fh);
     if(data.empty())
         return;
@@ -641,7 +641,7 @@ build_request(detail::sec_ws_key_type& key,
     req.set(http::field::host, host);
     req.set(http::field::upgrade, "websocket");
     req.set(http::field::connection, "upgrade");
-    detail::make_sec_ws_key(key, wr_gen_);
+    detail::make_sec_ws_key(key);
     req.set(http::field::sec_websocket_key, key);
     req.set(http::field::sec_websocket_version, "13");
     build_request_pmd(req, is_deflate_supported{});

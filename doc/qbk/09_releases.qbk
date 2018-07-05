@@ -10,8 +10,11 @@
 [section Release Notes]
 
 This version fixes a missing executor work guard in all composed operations
-used in the implementatio. Users who are experiencing crashes related to
-asynchronous completion handlers are encouraged to upgrade.
+used in the implementation. Users who are experiencing crashes related to
+asynchronous completion handlers are encouraged to upgrade. Also included
+is an improved mechanism for generating random numbers used to mask outgoing
+websocket frames when operating in the client mode. This resolves a
+vulnerability described in the Beast Hybrid Assessment Report from Bishop Fox.
 
 [heading Boost 1.68]
 
@@ -35,13 +38,19 @@ in future versions.
 
 * New [link beast.ref.boost__beast__http__is_mutable_body_writer `http::is_mutable_body_writer`] metafunction
 
+* New [link beast.ref.boost__beast__websocket__seed_prng `websocket::seed_prng`] for manually providing entropy to the PRNG
+
+* New [link beast.ref.boost__beast__websocket__stream.secure_prng `websocket::stream::secure_prng`] to control whether the connection uses a secure PRNG
+
 [*Improvements]
+
+* Generated WebSocket masks use a secure PRNG by default
+
+* Improvements to [link beast.ref.boost__beast__buffers_adapter `buffers_adapter`]
 
 * ([issue 1109]) Use a shared string for example HTTP server doc roots 
 
 * ([issue 1079]) Add [link beast.ref.boost__beast__handler_ptr.has_value `handler_ptr::has_value`]
-
-* Improvements to [link beast.ref.boost__beast__buffers_adapter `buffers_adapter`]
 
 [*Fixes]
 

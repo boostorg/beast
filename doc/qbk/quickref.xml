@@ -137,6 +137,7 @@
           <simplelist type="vert" columns="1">
             <member><link linkend="beast.ref.boost__beast__websocket__async_teardown">async_teardown</link></member>
             <member><link linkend="beast.ref.boost__beast__websocket__is_upgrade">is_upgrade</link></member>
+            <member><link linkend="beast.ref.boost__beast__websocket__seed_prng">seed_prng</link></member>
             <member><link linkend="beast.ref.boost__beast__websocket__teardown">teardown</link></member>
           </simplelist>
           <bridgehead renderas="sect3">Options</bridgehead>

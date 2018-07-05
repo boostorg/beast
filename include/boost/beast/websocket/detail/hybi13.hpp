@@ -14,6 +14,7 @@
 #include <boost/beast/core/string.hpp>
 #include <boost/beast/core/detail/base64.hpp>
 #include <boost/beast/core/detail/sha1.hpp>
+#include <boost/beast/websocket/detail/stream_base.hpp>
 #include <boost/assert.hpp>
 #include <array>
 #include <cstdint>
@@ -31,14 +32,15 @@ using sec_ws_key_type = static_string<
 using sec_ws_accept_type = static_string<
     beast::detail::base64::encoded_size(20)>;
 
-template<class Gen>
+inline
 void
-make_sec_ws_key(sec_ws_key_type& key, Gen& g)
+make_sec_ws_key(sec_ws_key_type& key)
 {
+    auto p = stream_prng::prng();
     char a[16];
     for(int i = 0; i < 16; i += 4)
     {
-        auto const v = g();
+        auto const v = p->secure();
         a[i  ] =  v        & 0xff;
         a[i+1] = (v >>  8) & 0xff;
         a[i+2] = (v >> 16) & 0xff;
