@@ -116,7 +116,7 @@ all of the Boost libraries, then run the `b2` command to build the Boost
 libraries.
 Instructions for doing so may be found on
 the [Boost Wiki](https://github.com/boostorg/boost/wiki/Getting-Started).
-These commamnds will build the programs and documentation that come
+These commands will build the programs and documentation that come
 with Beast (omit the cxxflags parameter when building using MSVC):
 
 ```
