@@ -24,7 +24,7 @@ if (MSVC)
 
     add_compile_options(
         /bigobj       # large object file format
-        #/permissive-  # strict C++
+        /permissive-  # strict C++
         #/wd4503      # decorated name length exceeded, name was truncated
         /W4           # enable all warnings
         /MP           # Multi-processor compilation
