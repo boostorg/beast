@@ -344,6 +344,23 @@ public:
     }
 
     void
+    testIssue1187()
+    {
+        // make sure parser finishes on redirect
+        error_code ec;
+        parser_type<false> p;
+        p.eager(true);
+        p.put(buf(
+            "HTTP/1.1 301 Moved Permanently\r\n"
+            "Location: https://www.ebay.com\r\n"
+            "\r\n\r\n"), ec);
+        BEAST_EXPECTS(! ec, ec.message());
+        BEAST_EXPECT(p.is_header_done());
+        BEAST_EXPECT(! p.is_done());
+        BEAST_EXPECT(p.need_eof());
+    }
+
+    void
     run() override
     {
         testParse();
@@ -351,6 +368,7 @@ public:
         testNeedMore<multi_buffer>();
         testGotSome();
         testIssue818();
+        testIssue1187();
     }
 };
 

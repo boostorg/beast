@@ -1,3 +1,9 @@
+Version 177:
+
+* Add test for issue #1188
+
+--------------------------------------------------------------------------------
+
 Version 176:
 
 * Tidy up Quick Reference
