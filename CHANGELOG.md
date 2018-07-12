@@ -2,6 +2,7 @@ Version 177:
 
 * Add test for issue #1188
 * Set /permissive-
+* Check error in example set_option
 
 --------------------------------------------------------------------------------
 

@@ -107,7 +107,7 @@ do_listen(
         return fail(ec, "open");
 
     // Allow address reuse
-    acceptor.set_option(boost::asio::socket_base::reuse_address(true));
+    acceptor.set_option(boost::asio::socket_base::reuse_address(true), ec);
     if(ec)
         return fail(ec, "set_option");
 

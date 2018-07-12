@@ -269,7 +269,7 @@ public:
         }
 
         // Allow address reuse
-        acceptor_.set_option(boost::asio::socket_base::reuse_address(true));
+        acceptor_.set_option(boost::asio::socket_base::reuse_address(true), ec);
         if(ec)
         {
             fail(ec, "set_option");
@@ -384,7 +384,7 @@ do_coro_listen(
     if(ec)
         return fail(ec, "open");
 
-    acceptor.set_option(boost::asio::socket_base::reuse_address(true));
+    acceptor.set_option(boost::asio::socket_base::reuse_address(true), ec);
     if(ec)
         return fail(ec, "set_option");
 
