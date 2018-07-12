@@ -48,6 +48,8 @@ in future versions.
 
 * Improvements to [link beast.ref.boost__beast__buffers_adapter `buffers_adapter`]
 
+* ([Issue 1188]) Set "/permissive-" for MSVC builds
+
 * ([issue 1109]) Use a shared string for example HTTP server doc roots 
 
 * ([issue 1079]) Add [link beast.ref.boost__beast__handler_ptr.has_value `handler_ptr::has_value`]
@@ -67,6 +69,8 @@ in future versions.
 * ([issue 1121]) Examples use the root certificate which matches the fingerprint
 
 * ([issue 1141]) Tidy up composed operation doc
+
+* ([issue 1186]) Check error in example set_option
 
 * Tidy up websocket stream javadocs
 
