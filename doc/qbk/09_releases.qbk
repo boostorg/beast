@@ -48,7 +48,7 @@ in future versions.
 
 * Improvements to [link beast.ref.boost__beast__buffers_adapter `buffers_adapter`]
 
-* ([Issue 1188]) Set "/permissive-" for MSVC builds
+* ([issue 1188]) Set "/permissive-" for MSVC builds
 
 * ([issue 1109]) Use a shared string for example HTTP server doc roots 
 
