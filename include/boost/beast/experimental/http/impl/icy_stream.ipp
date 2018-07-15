@@ -129,7 +129,7 @@ buffer_shift(MutableBuffers const& out, ConstBuffers const& in)
         if(mb.size() >= cb.size())
         {
             std::memmove(
-                reinterpret_cast<char*>(
+                static_cast<char*>(
                     mb.data()) + mb.size() - cb.size(),
                 cb.data(),
                 cb.size());
@@ -143,7 +143,7 @@ buffer_shift(MutableBuffers const& out, ConstBuffers const& in)
         {
             std::memmove(
                 mb.data(),
-                reinterpret_cast<char const*>(
+                static_cast<char const*>(
                     cb.data()) + cb.size() - mb.size(),
                 mb.size());
             cb = boost::asio::const_buffer{

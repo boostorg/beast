@@ -248,7 +248,7 @@ void
 update(sha1_context& ctx,
     void const* message, std::size_t size) noexcept
 {
-    auto p = reinterpret_cast<
+    auto p = static_cast<
         std::uint8_t const*>(message);
     for(;;)
     {
@@ -298,7 +298,7 @@ finish(sha1_context& ctx, void* digest) noexcept
     for(std::size_t i = 0; i < sha1::DIGEST_BYTES/4; i++)
     {
         std::uint8_t* d =
-            reinterpret_cast<std::uint8_t*>(digest) + 4 * i;
+            static_cast<std::uint8_t*>(digest) + 4 * i;
         d[3] =  ctx.digest[i]        & 0xff;
         d[2] = (ctx.digest[i] >>  8) & 0xff;
         d[1] = (ctx.digest[i] >> 16) & 0xff;

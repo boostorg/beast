@@ -307,7 +307,7 @@ read(void* buffer, std::size_t n, error_code& ec) const
         }
         n -= result;
         nread += result;
-        buffer = reinterpret_cast<char*>(buffer) + result;
+        buffer = static_cast<char*>(buffer) + result;
     }
     return nread;
 }
@@ -338,7 +338,7 @@ write(void const* buffer, std::size_t n, error_code& ec)
         }
         n -= result;
         nwritten += result;
-        buffer = reinterpret_cast<char const*>(buffer) + result;
+        buffer = static_cast<char const*>(buffer) + result;
     }
     return nwritten;
 }

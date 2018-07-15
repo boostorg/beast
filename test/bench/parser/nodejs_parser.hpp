@@ -271,7 +271,7 @@ nodejs_basic_parser<Derived>::write(
     for(auto buffer : beast::detail::buffers_range(buffers))
     {
         auto const n = write(
-            reinterpret_cast<void const*>(buffer.data()),
+            static_cast<void const*>(buffer.data()),
                 buffer.size(), ec);
         if(ec)
             return 0;

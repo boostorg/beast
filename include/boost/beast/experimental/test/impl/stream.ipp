@@ -124,7 +124,7 @@ str() const
     if(boost::asio::buffer_size(bs) == 0)
         return {};
     auto const b = buffers_front(bs);
-    return {reinterpret_cast<char const*>(b.data()), b.size()};
+    return {static_cast<char const*>(b.data()), b.size()};
 }
 
 inline

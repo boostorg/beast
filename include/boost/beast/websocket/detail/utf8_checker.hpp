@@ -89,7 +89,7 @@ write(ConstBufferSequence const& bs)
     static_assert(boost::asio::is_const_buffer_sequence<ConstBufferSequence>::value,
         "ConstBufferSequence requirements not met");
     for(auto b : beast::detail::buffers_range(bs))
-        if(! write(reinterpret_cast<
+        if(! write(static_cast<
             std::uint8_t const*>(b.data()),
                 b.size()))
             return false;

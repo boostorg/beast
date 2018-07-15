@@ -264,11 +264,11 @@ inflate_stream::
 doWrite(z_params& zs, Flush flush, error_code& ec)
 {
     ranges r;
-    r.in.first = reinterpret_cast<
+    r.in.first = static_cast<
         std::uint8_t const*>(zs.next_in);
     r.in.last = r.in.first + zs.avail_in;
     r.in.next = r.in.first;
-    r.out.first = reinterpret_cast<
+    r.out.first = static_cast<
         std::uint8_t*>(zs.next_out);
     r.out.last = r.out.first + zs.avail_out;
     r.out.next = r.out.first;

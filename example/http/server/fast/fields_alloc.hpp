@@ -27,13 +27,13 @@ struct static_pool
     char*
     end()
     {
-        return reinterpret_cast<char*>(this+1) + size_;
+        return reinterpret_cast<char*>(this + 1) + size_;
     }
 
     explicit
     static_pool(std::size_t size)
         : size_(size)
-        , p_(reinterpret_cast<char*>(this+1))
+        , p_(reinterpret_cast<char*>(this + 1))
     {
     }
 
@@ -79,7 +79,7 @@ public:
     {
         if(--count_)
             return;
-        p_ = reinterpret_cast<char*>(this+1);
+        p_ = reinterpret_cast<char*>(this + 1);
     }
 };
 

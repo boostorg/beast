@@ -509,7 +509,7 @@ public:
                 ++it)
             {
                 boost::asio::mutable_buffer b = *it;
-                auto p = reinterpret_cast<char*>(b.data());
+                auto p = static_cast<char*>(b.data());
                 auto n = b.size();
                 while(n--)
                     *p++ = static_cast<char>(32 + rand(26+26+10+6));
@@ -533,7 +533,7 @@ public:
                     ++it)
                 {
                     boost::asio::mutable_buffer b = *it;
-                    auto p = reinterpret_cast<char*>(b.data());
+                    auto p = static_cast<char*>(b.data());
                     auto m = b.size();
                     while(m--)
                         *p++ = static_cast<char>(32 + rand(26+26+10+6));

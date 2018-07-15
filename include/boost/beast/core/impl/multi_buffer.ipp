@@ -117,7 +117,7 @@ public:
     data() const
     {
         return const_cast<char*>(
-            reinterpret_cast<char const*>(this+1));
+            reinterpret_cast<char const*>(this + 1));
     }
 };
 

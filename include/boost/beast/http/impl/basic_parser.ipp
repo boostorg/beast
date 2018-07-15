@@ -132,8 +132,7 @@ put(boost::asio::const_buffer const& buffer,
 {
     BOOST_ASSERT(state_ != state::complete);
     using boost::asio::buffer_size;
-    auto p = reinterpret_cast<
-        char const*>(buffer.data());
+    auto p = static_cast<char const*>(buffer.data());
     auto n = buffer.size();
     auto const p0 = p;
     auto const p1 = p0 + n;

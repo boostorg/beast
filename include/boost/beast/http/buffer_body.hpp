@@ -131,7 +131,7 @@ struct buffer_body
             auto const bytes_transferred =
                 buffer_copy(boost::asio::buffer(
                     body_.data, body_.size), buffers);
-            body_.data = reinterpret_cast<char*>(
+            body_.data = static_cast<char*>(
                 body_.data) + bytes_transferred;
             body_.size -= bytes_transferred;
             if(bytes_transferred == buffer_size(buffers))

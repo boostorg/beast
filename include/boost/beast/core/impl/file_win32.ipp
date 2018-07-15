@@ -311,7 +311,7 @@ read(void* buffer, std::size_t n, error_code& ec)
             return nread;
         n -= bytesRead;
         nread += bytesRead;
-        buffer = reinterpret_cast<char*>(buffer) + bytesRead;
+        buffer = static_cast<char*>(buffer) + bytesRead;
     }
     ec.assign(0, ec.category());
     return nread;
@@ -352,7 +352,7 @@ write(void const* buffer, std::size_t n, error_code& ec)
             return nwritten;
         n -= bytesWritten;
         nwritten += bytesWritten;
-        buffer = reinterpret_cast<char const*>(buffer) + bytesWritten;
+        buffer = static_cast<char const*>(buffer) + bytesWritten;
     }
     ec.assign(0, ec.category());
     return nwritten;

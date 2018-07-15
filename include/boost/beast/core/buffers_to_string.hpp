@@ -49,7 +49,7 @@ buffers_to_string(ConstBufferSequence const& buffers)
     result.reserve(boost::asio::buffer_size(buffers));
     for(boost::asio::const_buffer buffer :
             detail::buffers_range(buffers))
-        result.append(reinterpret_cast<
+        result.append(static_cast<
             char const*>(buffer.data()), buffer.size());
     return result;
 }

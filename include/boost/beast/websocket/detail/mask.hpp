@@ -53,7 +53,7 @@ mask_inplace(boost::asio::mutable_buffer& b, prepared_key& key)
 {
     auto n = b.size();
     auto mask = key; // avoid aliasing
-    auto p = reinterpret_cast<unsigned char*>(b.data());
+    auto p = static_cast<unsigned char*>(b.data());
     while(n >= 4)
     {
         for(int i = 0; i < 4; ++i)

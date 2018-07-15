@@ -24,7 +24,7 @@ namespace beast {
 inline
 static_buffer_base::
 static_buffer_base(void* p, std::size_t size)
-    : begin_(reinterpret_cast<char*>(p))
+    : begin_(static_cast<char*>(p))
     , capacity_(size)
 {
 }
@@ -131,7 +131,7 @@ void
 static_buffer_base::
 reset(void* p, std::size_t size)
 {
-    begin_ = reinterpret_cast<char*>(p);
+    begin_ = static_cast<char*>(p);
     capacity_ = size;
     in_off_ = 0;
     in_size_ = 0;

@@ -133,7 +133,7 @@ public:
             CharT* dest = &body_[size];
             for(auto b : beast::detail::buffers_range(buffers))
             {
-                Traits::copy(dest, reinterpret_cast<
+                Traits::copy(dest, static_cast<
                     CharT const*>(b.data()), b.size());
                 dest += b.size();
             }

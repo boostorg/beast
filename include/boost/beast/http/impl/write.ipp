@@ -937,7 +937,7 @@ public:
         std::size_t bytes_transferred = 0;
         for(auto b : buffers_range(buffers))
         {
-            os_.write(reinterpret_cast<char const*>(
+            os_.write(static_cast<char const*>(
                 b.data()), b.size());
             if(os_.fail())
                 return;
