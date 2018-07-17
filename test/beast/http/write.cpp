@@ -757,7 +757,6 @@ public:
             }
             {
                 auto m = m0;
-                error_code ec;
                 response_serializer<Body, fields> sr{m};
                 sr.split(true);
                 for(;;)
@@ -771,7 +770,6 @@ public:
             }
             {
                 auto m = m0;
-                error_code ec;
                 response_serializer<Body, fields> sr{m};
                 sr.split(true);
                 for(;;)
@@ -804,7 +802,6 @@ public:
             }
             {
                 auto m = m0;
-                error_code ec;
                 response_serializer<Body, fields> sr{m};
                 sr.split(true);
                 for(;;)
@@ -818,7 +815,6 @@ public:
             }
             {
                 auto m = m0;
-                error_code ec;
                 response_serializer<Body, fields> sr{m};
                 sr.split(true);
                 for(;;)
@@ -895,7 +891,7 @@ public:
     struct const_body_writer
     {
         struct value_type{};
-            
+
         struct writer
         {
             using const_buffers_type =
@@ -926,7 +922,7 @@ public:
     struct mutable_body_writer
     {
         struct value_type{};
-            
+
         struct writer
         {
             using const_buffers_type =

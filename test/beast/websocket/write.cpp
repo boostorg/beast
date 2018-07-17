@@ -452,7 +452,6 @@ public:
         doFailLoop([&](test::fail_count& fc)
         {
             echo_server es{log};
-            error_code ec;
             boost::asio::io_context ioc;
             stream<test::stream> ws{ioc, fc};
             ws.next_layer().connect(es.stream());
@@ -485,7 +484,6 @@ public:
         doFailLoop([&](test::fail_count& fc)
         {
             echo_server es{log};
-            error_code ec;
             boost::asio::io_context ioc;
             stream<test::stream> ws{ioc, fc};
             ws.next_layer().connect(es.stream());
@@ -622,7 +620,7 @@ public:
         {
             void operator()(error_code) {}
         };
-        
+
         char buf[32];
         stream<test::stream> ws{ioc_};
         stream<test::stream>::write_some_op<

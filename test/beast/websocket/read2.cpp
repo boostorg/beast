@@ -237,7 +237,7 @@ public:
                 ws.read(b, ec);
                 BEAST_EXPECT(ec);
             };
-        
+
         // chopped frame header
         {
             echo_server es{log};
@@ -249,7 +249,6 @@ public:
                 "\x81\x7e\x01");
             std::size_t count = 0;
             std::string const s(257, '*');
-            error_code ec;
             multi_buffer b;
             ws.async_read(b,
                 [&](error_code ec, std::size_t)
@@ -324,7 +323,6 @@ public:
             ws.next_layer().append(
                 "\x89\x02*");
             std::size_t count = 0;
-            error_code ec;
             multi_buffer b;
             ws.async_read(b,
                 [&](error_code ec, std::size_t)
@@ -354,7 +352,7 @@ public:
             {
                 void operator()(error_code, std::size_t) {}
             };
-        
+
             char buf[32];
             stream<test::stream> ws{ioc_};
             stream<test::stream>::read_some_op<
@@ -371,7 +369,7 @@ public:
             {
                 void operator()(error_code, std::size_t) {}
             };
-        
+
             multi_buffer b;
             stream<test::stream> ws{ioc_};
             stream<test::stream>::read_op<
