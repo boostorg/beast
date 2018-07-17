@@ -394,7 +394,6 @@ public:
                 w.handshake(ws, "localhost", "/");
                 ws.next_layer().append(s);
                 static_buffer<1> b;
-                error_code ec;
                 try
                 {
                     w.read(ws, b);

@@ -2,6 +2,7 @@ Version 179:
 
 * Use the exchange() idiom in move constructors
 * Most members of std::allocate are deprecated in C++17
+* Remove some unused variables
 
 --------------------------------------------------------------------------------
 
