@@ -197,8 +197,13 @@ class icy_stream<NextLayer>::read_op
     : public boost::asio::coroutine
 {
     using alloc_type = typename 
+#if defined(BOOST_NO_CXX11_ALLOCATOR)
         boost::asio::associated_allocator_t<Handler>::template
             rebind<char>::other;
+#else
+        std::allocator_traits<boost::asio::associated_allocator_t<Handler>>
+            ::template rebind_alloc<char>;
+#endif
 
     struct data
     {
