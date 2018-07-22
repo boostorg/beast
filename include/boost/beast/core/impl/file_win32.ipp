@@ -10,6 +10,7 @@
 #ifndef BOOST_BEAST_CORE_IMPL_FILE_WIN32_IPP
 #define BOOST_BEAST_CORE_IMPL_FILE_WIN32_IPP
 
+#include <boost/core/exchange.hpp>
 #include <boost/winapi/access_rights.hpp>
 #include <boost/winapi/error_codes.hpp>
 #include <boost/winapi/file_management.hpp>
@@ -61,9 +62,8 @@ file_win32::
 inline
 file_win32::
 file_win32(file_win32&& other)
-    : h_(other.h_)
+    : h_(boost::exchange(other.h_, boost::winapi::INVALID_HANDLE_VALUE_))
 {
-    other.h_ = boost::winapi::INVALID_HANDLE_VALUE_;
 }
 
 inline

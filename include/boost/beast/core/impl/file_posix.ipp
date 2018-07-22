@@ -24,6 +24,7 @@
 # endif
 #endif
 
+#include <boost/core/exchange.hpp>
 #include <limits>
 #include <fcntl.h>
 #include <sys/types.h>
@@ -65,9 +66,8 @@ file_posix::
 inline
 file_posix::
 file_posix(file_posix&& other)
-    : fd_(other.fd_)
+    : fd_(boost::exchange(other.fd_, -1))
 {
-    other.fd_ = -1;
 }
 
 inline

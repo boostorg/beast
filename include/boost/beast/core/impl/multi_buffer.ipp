@@ -11,6 +11,7 @@
 #define BOOST_BEAST_IMPL_MULTI_BUFFER_IPP
 
 #include <boost/beast/core/detail/type_traits.hpp>
+#include <boost/core/exchange.hpp>
 #include <boost/assert.hpp>
 #include <boost/throw_exception.hpp>
 #include <algorithm>
@@ -462,20 +463,16 @@ basic_multi_buffer(basic_multi_buffer&& other)
     : detail::empty_base_optimization<
         base_alloc_type>(std::move(other.member()))
     , max_(other.max_)
-    , in_size_(other.in_size_)
-    , in_pos_(other.in_pos_)
-    , out_pos_(other.out_pos_)
-    , out_end_(other.out_end_)
+    , in_size_(boost::exchange(other.in_size_, 0))
+    , in_pos_(boost::exchange(other.in_pos_, 0))
+    , out_pos_(boost::exchange(other.out_pos_, 0))
+    , out_end_(boost::exchange(other.out_end_, 0))
 {
     auto const at_end =
         other.out_ == other.list_.end();
     list_ = std::move(other.list_);
     out_ = at_end ? list_.end() : other.out_;
-    other.in_size_ = 0;
     other.out_ = other.list_.end();
-    other.in_pos_ = 0;
-    other.out_pos_ = 0;
-    other.out_end_ = 0;
 }
 
 template<class Allocator>
