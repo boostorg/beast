@@ -18,6 +18,7 @@
 #include <boost/beast/http/rfc7230.hpp>
 #include <boost/beast/http/status.hpp>
 #include <boost/beast/http/chunk_encode.hpp>
+#include <boost/core/exchange.hpp>
 #include <boost/throw_exception.hpp>
 #include <stdexcept>
 #include <string>
@@ -363,11 +364,9 @@ basic_fields(basic_fields&& other) noexcept
         std::move(other.member()))
     , set_(std::move(other.set_))
     , list_(std::move(other.list_))
-    , method_(other.method_)
-    , target_or_reason_(other.target_or_reason_)
+    , method_(boost::exchange(other.method_, {}))
+    , target_or_reason_(boost::exchange(other.target_or_reason_, {}))
 {
-    other.method_ = {};
-    other.target_or_reason_ = {};
 }
 
 template<class Allocator>

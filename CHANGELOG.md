@@ -1,3 +1,9 @@
+Version 179:
+
+* Use the exchange() idiom in move constructors
+
+--------------------------------------------------------------------------------
+
 Version 178:
 
 * Use static_cast instead

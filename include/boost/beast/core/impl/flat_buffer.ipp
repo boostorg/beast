@@ -10,6 +10,7 @@
 #ifndef BOOST_BEAST_IMPL_FLAT_BUFFER_HPP
 #define BOOST_BEAST_IMPL_FLAT_BUFFER_HPP
 
+#include <boost/core/exchange.hpp>
 #include <boost/assert.hpp>
 #include <boost/throw_exception.hpp>
 #include <stdexcept>
@@ -86,18 +87,14 @@ basic_flat_buffer<Allocator>::
 basic_flat_buffer(basic_flat_buffer&& other)
     : detail::empty_base_optimization<base_alloc_type>(
         std::move(other.member()))
-    , begin_(other.begin_)
-    , in_(other.in_)
-    , out_(other.out_)
+    , begin_(boost::exchange(other.begin_, nullptr))
+    , in_(boost::exchange(other.in_, nullptr))
+    , out_(boost::exchange(other.out_, nullptr))
     , last_(out_)
-    , end_(other.end_)
+    , end_(boost::exchange(other.end_, nullptr))
     , max_(other.max_)
 {
-    other.begin_ = nullptr;
-    other.in_ = nullptr;
-    other.out_ = nullptr;
     other.last_ = nullptr;
-    other.end_ = nullptr;
 }
 
 template<class Allocator>

@@ -20,6 +20,7 @@
 #include <boost/beast/core/detail/integer_sequence.hpp>
 #include <boost/align/aligned_alloc.hpp>
 #include <boost/asio/buffer.hpp>
+#include <boost/core/exchange.hpp>
 #include <atomic>
 #include <cstdint>
 #include <memory>
@@ -50,9 +51,8 @@ public:
     soft_mutex& operator=(soft_mutex const&) = delete;
 
     soft_mutex(soft_mutex&& other) noexcept
-        : id_(other.id_)
+        : id_(boost::exchange(other.id_, 0))
     {
-        other.id_ = 0;
     }
 
     soft_mutex& operator=(soft_mutex&& other) noexcept
@@ -156,12 +156,7 @@ struct stream_prng
         }
 
         prng_ref(prng_ref&& other)
-            : p_([&other]
-                {
-                    auto p = other.p_;
-                    other.p_ = nullptr;
-                    return p;
-                }())
+            : p_(boost::exchange(other.p_, nullptr))
         {
         }
 
