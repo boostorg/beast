@@ -249,7 +249,7 @@ class session
 
             // Write the response
             http::async_write(
-                self_.socket_,
+                self_.stream_,
                 *sp,
                 boost::asio::bind_executor(
                     self_.strand_,
