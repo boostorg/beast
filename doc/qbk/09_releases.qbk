@@ -72,6 +72,8 @@ in future versions.
 
 * ([issue 1186]) Check error in example set_option
 
+* ([issue 1210]) Fix http_server_stackless_ssl.cpp example
+
 * Tidy up websocket stream javadocs
 
 * Fix move-only arguments in [link beast.ref.boost__beast__bind_handler `bind_handler`]

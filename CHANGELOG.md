@@ -1,3 +1,9 @@
+Version 180:
+
+* Fix http_server_stackless_ssl.cpp example
+
+--------------------------------------------------------------------------------
+
 Version 179:
 
 * Use the exchange() idiom in move constructors
