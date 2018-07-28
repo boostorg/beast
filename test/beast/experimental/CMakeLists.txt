@@ -22,6 +22,9 @@ add_executable (tests-beast-experimental
     icy_stream.cpp
     ssl_stream.cpp
     stream.cpp
+    timeout_socket.cpp
+    timeout_service.cpp
+    timeout_work_guard.cpp
 )
 
 set_property(TARGET tests-beast-experimental PROPERTY FOLDER "tests")

@@ -302,16 +302,19 @@
         <entry valign="top">
           <bridgehead renderas="sect3">Classes</bridgehead>
           <simplelist type="vert" columns="1">
+            <member><link linkend="beast.ref.boost__beast__basic_timeout_socket">basic_timeout_socket</link></member>
             <member><link linkend="beast.ref.boost__beast__flat_stream">flat_stream</link></member>
             <member><link linkend="beast.ref.boost__beast__ssl_stream">ssl_stream</link></member>
             <member><link linkend="beast.ref.boost__beast__http__icy_stream">http::icy_stream</link></member>
             <member><link linkend="beast.ref.boost__beast__test__fail_count">test::fail_count</link></member>
             <member><link linkend="beast.ref.boost__beast__test__stream">test::stream</link></member>
+            <member><link linkend="beast.ref.boost__beast__timeout_socket">timeout_socket</link></member>
           </simplelist>
         </entry>
         <entry valign="top">
           <bridgehead renderas="sect3">Functions</bridgehead>
           <simplelist type="vert" columns="1">
+            <member><link linkend="beast.ref.boost__beast__set_timeout_service_options">set_timeout_service_options</link></member>
             <member><link linkend="beast.ref.boost__beast__test__connect">test::connect</link></member>
           </simplelist>
         </entry>

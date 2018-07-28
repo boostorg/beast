@@ -27,11 +27,15 @@
 
 * ([issue 1091]) Fix timer on websocket upgrade in examples
 
-* ([issue 1270]) `basic_fields` uses intrusive base hooks
+* ([issue 1270]) [link beast.ref.boost__beast__http__basic_fields `basic_fields`] uses intrusive base hooks
 
 * ([issue 1267]) Fix parsing of out-of-bounds hex values
 
 * Workaround for http-server-fast and libstdc++
+
+[*Experimental]
+
+* Add [link beast.ref.boost__beast__timeout_socket `timeout_socket`]
 
 
 

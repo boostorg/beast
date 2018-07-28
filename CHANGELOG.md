@@ -1,3 +1,9 @@
+Version 187:
+
+* Add experimental timeout_socket
+
+--------------------------------------------------------------------------------
+
 Version 186:
 
 * basic_fields uses intrusive base hooks
