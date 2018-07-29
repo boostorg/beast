@@ -1,3 +1,9 @@
+Version 181:
+
+* Fix parse_dec algorithm
+
+--------------------------------------------------------------------------------
+
 Version 180:
 
 * Fix http_server_stackless_ssl.cpp example

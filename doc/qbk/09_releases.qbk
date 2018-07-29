@@ -74,6 +74,8 @@ in future versions.
 
 * ([issue 1210]) Fix http_server_stackless_ssl.cpp example
 
+* ([issue 1211]) Fix parse_dec algorithm
+
 * Tidy up websocket stream javadocs
 
 * Fix move-only arguments in [link beast.ref.boost__beast__bind_handler `bind_handler`]
