@@ -1213,6 +1213,42 @@ public:
         BEAST_EXPECT(ec);
     }
 
+    void
+    testIssue1211()
+    {
+        using base = detail::basic_parser_base;
+        auto const good =
+            [&](string_view s, std::uint32_t v0)
+            {
+                std::uint32_t v;
+                auto const result =
+                    base::parse_dec(s.begin(), s.end(), v);
+                if(BEAST_EXPECTS(result, s))
+                    BEAST_EXPECTS(v == v0, s);
+            };
+        auto const bad =
+            [&](string_view s)
+            {
+                std::uint32_t v;
+                auto const result =
+                    base::parse_dec(s.begin(), s.end(), v);
+                BEAST_EXPECTS(! result, s);
+            };
+        good("0",           0);
+        good("00",          0);
+        good("001",         1);
+        good("255",         255);
+        good("65535",       65535);
+        good("65536",       65536);
+        good("4294967295",  4294967295);
+        bad ("");
+        bad (" ");
+        bad (" 0");
+        bad ("0 ");
+        bad ("-1");
+        bad ("4294967296");
+    }
+
     //--------------------------------------------------------------------------
 
     void
@@ -1237,6 +1273,7 @@ public:
         testIssue692();
         testFuzz();
         testRegression1();
+        testIssue1211();
     }
 };
 
