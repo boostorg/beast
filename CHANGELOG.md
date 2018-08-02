@@ -1,3 +1,9 @@
+Version 182:
+
+* Silence ubsan false positive
+
+--------------------------------------------------------------------------------
+
 Version 181:
 
 * Fix parse_dec algorithm

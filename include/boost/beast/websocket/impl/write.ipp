@@ -152,7 +152,7 @@ class stream<NextLayer, deflateSupported>::write_some_op
     std::size_t in_;
     int how_;
     bool fin_;
-    bool more_;
+    bool more_ = false; // for ubsan
     bool cont_ = false;
 
 public:

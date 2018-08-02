@@ -76,6 +76,8 @@ in future versions.
 
 * ([issue 1211]) Fix parse_dec algorithm
 
+* ([issue 1214]) Silence ubsan false positive
+
 * Tidy up websocket stream javadocs
 
 * Fix move-only arguments in [link beast.ref.boost__beast__bind_handler `bind_handler`]
