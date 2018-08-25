@@ -197,8 +197,8 @@ template<class... BodyArgs>
 message<isRequest, Body, Fields>::
 message(header_type&& h, BodyArgs&&... body_args)
     : header_type(std::move(h))
-    , beast::detail::empty_base_optimization<
-        typename Body::value_type>(
+    , boost::empty_value<
+        typename Body::value_type>(boost::empty_init_t(),
             std::forward<BodyArgs>(body_args)...)
 {
 }
@@ -208,8 +208,8 @@ template<class... BodyArgs>
 message<isRequest, Body, Fields>::
 message(header_type const& h, BodyArgs&&... body_args)
     : header_type(h)
-    , beast::detail::empty_base_optimization<
-        typename Body::value_type>(
+    , boost::empty_value<
+        typename Body::value_type>(boost::empty_init_t(),
             std::forward<BodyArgs>(body_args)...)
 {
 }
@@ -228,8 +228,8 @@ message<isRequest, Body, Fields>::
 message(verb method, string_view target,
         Version version, BodyArg&& body_arg)
     : header_type(method, target, version)
-    , beast::detail::empty_base_optimization<
-        typename Body::value_type>(
+    , boost::empty_value<
+        typename Body::value_type>(boost::empty_init_t(),
             std::forward<BodyArg>(body_arg))
 {
 }
@@ -243,8 +243,8 @@ message(
     FieldsArg&& fields_arg)
     : header_type(method, target, version,
         std::forward<FieldsArg>(fields_arg))
-    , beast::detail::empty_base_optimization<
-        typename Body::value_type>(
+    , boost::empty_value<
+        typename Body::value_type>(boost::empty_init_t(),
             std::forward<BodyArg>(body_arg))
 {
 }
@@ -263,8 +263,8 @@ message<isRequest, Body, Fields>::
 message(status result, Version version,
     BodyArg&& body_arg)
     : header_type(result, version)
-    , beast::detail::empty_base_optimization<
-        typename Body::value_type>(
+    , boost::empty_value<
+        typename Body::value_type>(boost::empty_init_t(),
             std::forward<BodyArg>(body_arg))
 {
 }
@@ -276,8 +276,8 @@ message(status result, Version version,
     BodyArg&& body_arg, FieldsArg&& fields_arg)
     : header_type(result, version,
         std::forward<FieldsArg>(fields_arg))
-    , beast::detail::empty_base_optimization<
-        typename Body::value_type>(
+    , boost::empty_value<
+        typename Body::value_type>(boost::empty_init_t(),
             std::forward<BodyArg>(body_arg))
 {
 }

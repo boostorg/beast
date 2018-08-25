@@ -11,7 +11,7 @@
 #define BOOST_BEAST_HTTP_DETAIL_BASIC_PARSED_LIST_HPP
 
 #include <boost/beast/core/string.hpp>
-#include <boost/beast/core/detail/empty_base_optimization.hpp>
+#include <boost/core/empty_value.hpp>
 #include <cstddef>
 #include <iterator>
 
@@ -42,8 +42,7 @@ public:
 #endif
 
     class const_iterator
-        : private beast::detail::
-            empty_base_optimization<Policy>
+        : private boost::empty_value<Policy>
     {
         basic_parsed_list const* list_ = nullptr;
         char const* it_ = nullptr;
@@ -120,7 +119,7 @@ public:
         void
         increment()
         {
-            if(! this->member()(
+            if(! this->get()(
                     v_, it_, list_->s_))
             {
                 it_ = nullptr;

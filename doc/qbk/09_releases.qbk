@@ -9,6 +9,8 @@
 
 [section Release Notes]
 
+
+
 [heading Boost 1.69]
 
 [*Fixes]
@@ -16,6 +18,10 @@
 * ([issue 1245]) Fix a rare case of incorrect UTF8 validation
 
 * ([issue 1237]) Verify certificates in client examples
+
+* ([issue 1233]) Use [@boost:/doc/html/core/empty_value.html `boost::empty_value`]
+
+
 
 [heading Boost 1.68]
 
