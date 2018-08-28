@@ -19,7 +19,7 @@ Branch      | Linux/OSX | Windows | Coverage | Documentation | Matrix
 - [Usage](#usage)
 - [License](#license)
 - [Contact](#contact)
-- [Contributing](#Contributing)
+- [Contributing](#contributing-we-need-your-help)
 
 ## Introduction
 
