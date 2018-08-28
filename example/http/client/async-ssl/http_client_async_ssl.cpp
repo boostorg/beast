@@ -225,6 +225,9 @@ int main(int argc, char** argv)
 
     // This holds the root certificate used for verification
     load_root_certificates(ctx);
+    
+    // Verify the remote server's certificate
+    ctx.set_verify_mode(ssl::verify_peer);
 
     // Launch the asynchronous operation
     std::make_shared<session>(ioc, ctx)->run(host, port, target, version);
