@@ -15,6 +15,8 @@
 
 * ([issue 1245]) Fix a rare case of incorrect UTF8 validation
 
+* ([issue 1237]) Verify certificates in client examples
+
 [heading Boost 1.68]
 
 This version fixes a missing executor work guard in all composed operations

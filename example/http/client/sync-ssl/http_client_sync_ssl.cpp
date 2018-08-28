@@ -59,7 +59,10 @@ int main(int argc, char** argv)
         // This holds the root certificate used for verification
         load_root_certificates(ctx);
 
-        // These objects perform our I/O
+        // Verify the remote server's certificate
+        ctx.set_verify_mode(ssl::verify_peer);
+
+            // These objects perform our I/O
         tcp::resolver resolver{ioc};
         ssl::stream<tcp::socket> stream{ioc, ctx};
 

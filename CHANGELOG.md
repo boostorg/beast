@@ -1,6 +1,7 @@
 Version 183:
 
 * Fix a rare case of failed UTF8 validation
+* Verify certificates in client examples
 
 --------------------------------------------------------------------------------
 
