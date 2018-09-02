@@ -811,6 +811,10 @@ public:
         if(ec && ec != boost::asio::error::operation_aborted)
             return fail(ec, "timer");
 
+        // Check if this has been upgraded to Websocket
+        if(timer_.expires_at() == (std::chrono::steady_clock::time_point::min)())
+            return;
+
         // Verify that the timer really expired since the deadline may have moved.
         if(timer_.expiry() <= std::chrono::steady_clock::now())
             return derived().do_timeout();
@@ -842,6 +846,10 @@ public:
         // See if it is a WebSocket Upgrade
         if(websocket::is_upgrade(req_))
         {
+            // Make timer expire immediately, by setting expiry to time_point::min we can detect
+            // the upgrade to websocket in the timer handler
+            timer_.expires_at((std::chrono::steady_clock::time_point::min)());
+
             // Transfer the stream to a new WebSocket session
             return make_websocket_session(
                 derived().release_stream(),
