@@ -16,6 +16,7 @@ local SOURCES =
     timeout_socket.cpp
     timeout_service.cpp
     timeout_work_guard.cpp
+    uri_parser.cpp
     ;
 
 local RUN_TESTS ;

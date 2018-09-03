@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2016-2017 Vinnie Falco (vinnie dot falco at gmail dot com)
+# Copyright (c) 2016-2018 Vinnie Falco (vinnie dot falco at gmail dot com)
 #
 # Distributed under the Boost Software License, Version 1.0. (See accompanying
 # file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -25,6 +25,7 @@ add_executable (tests-beast-experimental
     timeout_socket.cpp
     timeout_service.cpp
     timeout_work_guard.cpp
+    uri_parser.cpp
 )
 
 set_property(TARGET tests-beast-experimental PROPERTY FOLDER "tests")
