@@ -13,6 +13,10 @@
 
 [heading Boost 1.69]
 
+[* New Features]
+
+* ([issue 1133]) Add `BOOST_BEAST_USE_STD_STRING_VIEW`
+
 [*Fixes]
 
 * ([issue 1245]) Fix a rare case of incorrect UTF8 validation
@@ -22,6 +26,7 @@
 * ([issue 1233]) Use [@boost:/doc/html/core/empty_value.html `boost::empty_value`]
 
 * Workaround for http-server-fast and libstdc++
+
 
 
 

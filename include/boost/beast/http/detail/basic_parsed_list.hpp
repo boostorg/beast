@@ -110,7 +110,7 @@ public:
             basic_parsed_list const& list, bool at_end)
             : list_(&list)
             , it_(at_end ? nullptr :
-                list.s_.begin())
+                list.s_.data())
         {
             if(! at_end)
                 increment();

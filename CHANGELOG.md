@@ -2,6 +2,7 @@ Version 184:
 
 * Remove extraneous function
 * Fix some typos
+* Add BOOST_BEAST_USE_STD_STRING_VIEW
 
 --------------------------------------------------------------------------------
 
