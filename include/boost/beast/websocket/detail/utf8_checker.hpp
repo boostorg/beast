@@ -112,7 +112,7 @@ write(std::uint8_t const* in, std::size_t size)
             if((p[0] & 0xe0) == 0xc0)
             {
                 if( (p[1] & 0xc0) != 0x80 ||
-                    (p[0] & 0xfe) == 0xc0)  // overlong
+                    (p[0] & 0x1e) == 0)  // overlong
                     return false;
                 p += 2;
                 return true;
@@ -121,8 +121,8 @@ write(std::uint8_t const* in, std::size_t size)
             {
                 if(    (p[1] & 0xc0) != 0x80
                     || (p[2] & 0xc0) != 0x80
-                    || (p[0] == 0xe0 && (p[1] & 0xe0) == 0x80) // overlong
-                    || (p[0] == 0xed && (p[1] & 0xe0) == 0xa0) // surrogate
+                    || (p[0] == 0xe0 && (p[1] & 0x20) == 0) // overlong
+                    || (p[0] == 0xed && (p[1] & 0x20) == 0x20) // surrogate
                     //|| (p[0] == 0xef && p[1] == 0xbf && (p[2] & 0xfe) == 0xbe) // U+FFFE or U+FFFF
                     )
                     return false;
@@ -131,10 +131,11 @@ write(std::uint8_t const* in, std::size_t size)
             }
             if((p[0] & 0xf8) == 0xf0)
             {
-                if(    (p[1] & 0xc0) != 0x80
+                if(    (p[0] & 0x07) >= 0x05 // invalid F5...FF characters 
+                    || (p[1] & 0xc0) != 0x80
                     || (p[2] & 0xc0) != 0x80
                     || (p[3] & 0xc0) != 0x80
-                    || (p[0] == 0xf0 && (p[1] & 0xf0) == 0x80) // overlong
+                    || (p[0] == 0xf0 && (p[1] & 0x30) == 0) // overlong
                     || (p[0] == 0xf4 && p[1] > 0x8f) || p[0] > 0xf4 // > U+10FFFF
                     )
                     return false;
@@ -146,24 +147,74 @@ write(std::uint8_t const* in, std::size_t size)
     auto const fail_fast =
         [&]()
         {
-            auto const n = p_ - cp_;
-            switch(n)
+            if(cp_[0] < 128)
             {
-            default:
-                BOOST_ASSERT(false);
-                BOOST_FALLTHROUGH;
-            case 1:
-                cp_[1] = 0x81;
-                BOOST_FALLTHROUGH;
-            case 2:
-                cp_[2] = 0x81;
-                BOOST_FALLTHROUGH;
-            case 3:
-                cp_[3] = 0x81;
-                break;
+                return false;
             }
-            std::uint8_t const* p = cp_;
-            return ! valid(p);
+
+            const auto& p = cp_; // alias, only to keep this code similar to valid() above
+            const auto known_only = p_ - cp_;
+            if (known_only == 1) 
+            {
+                if((p[0] & 0xe0) == 0xc0)
+                {
+                    return ((p[0] & 0x1e) == 0);  // overlong
+                }
+                if((p[0] & 0xf0) == 0xe0)
+                {
+                    return false;
+                }
+                if((p[0] & 0xf8) == 0xf0)
+                {
+                    return ((p[0] & 0x07) >= 0x05);  // invalid F5...FF characters
+                }
+            }
+            else if (known_only == 2)
+            {
+                if((p[0] & 0xe0) == 0xc0)
+                {
+                    return ((p[1] & 0xc0) != 0x80 ||
+                            (p[0] & 0x1e) == 0);  // overlong
+                }
+                if((p[0] & 0xf0) == 0xe0)
+                {
+                    return (  (p[1] & 0xc0) != 0x80
+                           || (p[0] == 0xe0 && (p[1] & 0x20) == 0) // overlong
+                           || (p[0] == 0xed && (p[1] & 0x20) == 0x20)); // surrogate
+                }
+                if((p[0] & 0xf8) == 0xf0)
+                {
+                    return (  (p[0] & 0x07) >= 0x05 // invalid F5...FF characters 
+                           || (p[1] & 0xc0) != 0x80
+                           || (p[0] == 0xf0 && (p[1] & 0x30) == 0) // overlong
+                           || (p[0] == 0xf4 && p[1] > 0x8f) || p[0] > 0xf4); // > U+10FFFF
+                }
+            }
+            else if (known_only == 3)
+            {
+                if((p[0] & 0xe0) == 0xc0)
+                {
+                    return (  (p[1] & 0xc0) != 0x80
+                           || (p[0] & 0x1e) == 0);  // overlong
+                }
+                if((p[0] & 0xf0) == 0xe0)
+                {
+                    return (  (p[1] & 0xc0) != 0x80
+                           || (p[2] & 0xc0) != 0x80
+                           || (p[0] == 0xe0 && (p[1] & 0x20) == 0) // overlong
+                           || (p[0] == 0xed && (p[1] & 0x20) == 0x20)); // surrogate
+                           //|| (p[0] == 0xef && p[1] == 0xbf && (p[2] & 0xfe) == 0xbe) // U+FFFE or U+FFFF
+                }
+                if((p[0] & 0xf8) == 0xf0)
+                {
+                    return (  (p[0] & 0x07) >= 0x05 // invalid F5...FF characters 
+                           || (p[1] & 0xc0) != 0x80
+                           || (p[2] & 0xc0) != 0x80
+                           || (p[0] == 0xf0 && (p[1] & 0x30) == 0) // overlong
+                           || (p[0] == 0xf4 && p[1] > 0x8f) || p[0] > 0xf4); // > U+10FFFF
+                }
+            }
+            return true;
         };
     auto const needed =
         [](std::uint8_t const v)

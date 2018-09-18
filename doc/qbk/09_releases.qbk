@@ -9,14 +9,20 @@
 
 [section Release Notes]
 
+[heading Boost 1.69]
+
+[*Fixes]
+
+* ([issue 1245]) Fix a rare case of incorrect UTF8 validation
+
+[heading Boost 1.68]
+
 This version fixes a missing executor work guard in all composed operations
 used in the implementation. Users who are experiencing crashes related to
 asynchronous completion handlers are encouraged to upgrade. Also included
 is an improved mechanism for generating random numbers used to mask outgoing
 websocket frames when operating in the client mode. This resolves a
 vulnerability described in the Beast Hybrid Assessment Report from Bishop Fox.
-
-[heading Boost 1.68]
 
 [*New Features]
 

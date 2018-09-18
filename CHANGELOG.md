@@ -1,3 +1,9 @@
+Version 183:
+
+* Fix a rare case of failed UTF8 validation
+
+--------------------------------------------------------------------------------
+
 Version 182:
 
 * Silence ubsan false positive
