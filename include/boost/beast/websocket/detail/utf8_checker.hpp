@@ -153,13 +153,13 @@ write(std::uint8_t const* in, std::size_t size)
                 BOOST_ASSERT(false);
                 BOOST_FALLTHROUGH;
             case 1:
-                cp_[1] = 0x81;
+                cp_[1] = 0xA0;
                 BOOST_FALLTHROUGH;
             case 2:
-                cp_[2] = 0x81;
+                cp_[2] = 0xA0;
                 BOOST_FALLTHROUGH;
             case 3:
-                cp_[3] = 0x81;
+                cp_[3] = 0xA0;
                 break;
             }
             std::uint8_t const* p = cp_;
