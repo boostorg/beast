@@ -14,9 +14,9 @@
 #include <boost/beast/core/string_param.hpp>
 #include <boost/beast/core/string.hpp>
 #include <boost/beast/core/detail/allocator.hpp>
-#include <boost/beast/core/detail/empty_base_optimization.hpp>
 #include <boost/beast/http/field.hpp>
 #include <boost/asio/buffer.hpp>
+#include <boost/core/empty_value.hpp>
 #include <boost/intrusive/list.hpp>
 #include <boost/intrusive/set.hpp>
 #include <boost/optional.hpp>
@@ -53,7 +53,7 @@ namespace http {
 template<class Allocator>
 class basic_fields
 #if ! BOOST_BEAST_DOXYGEN
-    : private beast::detail::empty_base_optimization<Allocator>
+    : private boost::empty_value<Allocator>
 #endif
 {
     // Fancy pointers are not supported
@@ -283,7 +283,7 @@ public:
     allocator_type
     get_allocator() const
     {
-        return this->member();
+        return this->get();
     }
 
     //--------------------------------------------------------------------------

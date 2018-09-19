@@ -353,15 +353,15 @@ basic_fields<Allocator>::
 template<class Allocator>
 basic_fields<Allocator>::
 basic_fields(Allocator const& alloc) noexcept
-    : beast::detail::empty_base_optimization<Allocator>(alloc)
+    : boost::empty_value<Allocator>(boost::empty_init_t(), alloc)
 {
 }
 
 template<class Allocator>
 basic_fields<Allocator>::
 basic_fields(basic_fields&& other) noexcept
-    : beast::detail::empty_base_optimization<Allocator>(
-        std::move(other.member()))
+    : boost::empty_value<Allocator>(boost::empty_init_t(),
+        std::move(other.get()))
     , set_(std::move(other.set_))
     , list_(std::move(other.list_))
     , method_(boost::exchange(other.method_, {}))
@@ -372,9 +372,9 @@ basic_fields(basic_fields&& other) noexcept
 template<class Allocator>
 basic_fields<Allocator>::
 basic_fields(basic_fields&& other, Allocator const& alloc)
-    : beast::detail::empty_base_optimization<Allocator>(alloc)
+    : boost::empty_value<Allocator>(boost::empty_init_t(), alloc)
 {
-    if(this->member() != other.member())
+    if(this->get() != other.get())
     {
         copy_all(other);
         other.clear_all();
@@ -391,8 +391,8 @@ basic_fields(basic_fields&& other, Allocator const& alloc)
 template<class Allocator>
 basic_fields<Allocator>::
 basic_fields(basic_fields const& other)
-    : beast::detail::empty_base_optimization<Allocator>(alloc_traits::
-        select_on_container_copy_construction(other.member()))
+    : boost::empty_value<Allocator>(boost::empty_init_t(), alloc_traits::
+        select_on_container_copy_construction(other.get()))
 {
     copy_all(other);
 }
@@ -401,7 +401,7 @@ template<class Allocator>
 basic_fields<Allocator>::
 basic_fields(basic_fields const& other,
         Allocator const& alloc)
-    : beast::detail::empty_base_optimization<Allocator>(alloc)
+    : boost::empty_value<Allocator>(boost::empty_init_t(), alloc)
 {
     copy_all(other);
 }
@@ -419,7 +419,7 @@ template<class OtherAlloc>
 basic_fields<Allocator>::
 basic_fields(basic_fields<OtherAlloc> const& other,
         Allocator const& alloc)
-    : beast::detail::empty_base_optimization<Allocator>(alloc)
+    : boost::empty_value<Allocator>(boost::empty_init_t(), alloc)
 {
     copy_all(other);
 }
@@ -1025,7 +1025,7 @@ set_chunked_impl(bool value)
             std::basic_string<
                 char,
                 std::char_traits<char>,
-                A> s{A{this->member()}};
+                A> s{A{this->get()}};
         #endif
             s.reserve(it->value().size() + 9);
             s.append(it->value().data(), it->value().size());
@@ -1062,7 +1062,7 @@ set_chunked_impl(bool value)
         std::basic_string<
             char,
             std::char_traits<char>,
-            A> s{A{this->member()}};
+            A> s{A{this->get()}};
     #endif
         s.reserve(it->value().size());
         detail::filter_token_list_last(s, it->value(),
@@ -1119,7 +1119,7 @@ set_keep_alive_impl(
         std::basic_string<
             char,
             std::char_traits<char>,
-            A> s{A{this->member()}};
+            A> s{A{this->get()}};
     #endif
         s.reserve(value.size());
         detail::keep_alive_impl(
@@ -1153,7 +1153,7 @@ new_element(field name,
         static_cast<off_t>(sname.size() + 2);
     std::uint16_t const len =
         static_cast<off_t>(value.size());
-    auto a = rebind_type{this->member()};
+    auto a = rebind_type{this->get()};
     auto const p = alloc_traits::allocate(a,
         (sizeof(value_type) + off + len + 2 + sizeof(align_type) - 1) /
             sizeof(align_type));
@@ -1168,7 +1168,7 @@ void
 basic_fields<Allocator>::
 delete_element(value_type& e)
 {
-    auto a = rebind_type{this->member()};
+    auto a = rebind_type{this->get()};
     auto const n =
         (sizeof(value_type) + e.off_ + e.len_ + 2 + sizeof(align_type) - 1) /
             sizeof(align_type);
@@ -1217,7 +1217,7 @@ realloc_string(string_view& dest, string_view s)
         return;
     auto a = typename beast::detail::allocator_traits<
         Allocator>::template rebind_alloc<
-            char>(this->member());
+            char>(this->get());
     char* p = nullptr;
     if(! s.empty())
     {
@@ -1246,7 +1246,7 @@ realloc_target(
         return;
     auto a = typename beast::detail::allocator_traits<
         Allocator>::template rebind_alloc<
-            char>(this->member());
+            char>(this->get());
     char* p = nullptr;
     if(! s.empty())
     {
@@ -1310,7 +1310,7 @@ move_assign(basic_fields& other, std::true_type)
     target_or_reason_ = other.target_or_reason_;
     other.method_ = {};
     other.target_or_reason_ = {};
-    this->member() = other.member();
+    this->get() = other.get();
 }
 
 template<class Allocator>
@@ -1320,7 +1320,7 @@ basic_fields<Allocator>::
 move_assign(basic_fields& other, std::false_type)
 {
     clear_all();
-    if(this->member() != other.member())
+    if(this->get() != other.get())
     {
         copy_all(other);
         other.clear_all();
@@ -1343,7 +1343,7 @@ basic_fields<Allocator>::
 copy_assign(basic_fields const& other, std::true_type)
 {
     clear_all();
-    this->member() = other.member();
+    this->get() = other.get();
     copy_all(other);
 }
 
@@ -1364,7 +1364,7 @@ basic_fields<Allocator>::
 swap(basic_fields& other, std::true_type)
 {
     using std::swap;
-    swap(this->member(), other.member());
+    swap(this->get(), other.get());
     swap(set_, other.set_);
     swap(list_, other.list_);
     swap(method_, other.method_);
@@ -1377,7 +1377,7 @@ void
 basic_fields<Allocator>::
 swap(basic_fields& other, std::false_type)
 {
-    BOOST_ASSERT(this->member() == other.member());
+    BOOST_ASSERT(this->get() == other.get());
     using std::swap;
     swap(set_, other.set_);
     swap(list_, other.list_);

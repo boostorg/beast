@@ -15,8 +15,6 @@
 #include <string>
 #include <vector>
 
-#include <boost/beast/core/detail/empty_base_optimization.hpp>
-
 namespace boost {
 namespace beast {
 namespace http {

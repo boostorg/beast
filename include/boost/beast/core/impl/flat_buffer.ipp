@@ -29,7 +29,7 @@ basic_flat_buffer<Allocator>::
 {
     if(begin_)
         alloc_traits::deallocate(
-            this->member(), begin_, dist(begin_, end_));
+            this->get(), begin_, dist(begin_, end_));
 }
 
 template<class Allocator>
@@ -59,7 +59,7 @@ basic_flat_buffer(std::size_t limit)
 template<class Allocator>
 basic_flat_buffer<Allocator>::
 basic_flat_buffer(Allocator const& alloc)
-    : detail::empty_base_optimization<base_alloc_type>(alloc)
+    : boost::empty_value<base_alloc_type>(boost::empty_init_t(), alloc)
     , begin_(nullptr)
     , in_(nullptr)
     , out_(nullptr)
@@ -72,7 +72,7 @@ basic_flat_buffer(Allocator const& alloc)
 template<class Allocator>
 basic_flat_buffer<Allocator>::
 basic_flat_buffer(std::size_t limit, Allocator const& alloc)
-    : detail::empty_base_optimization<base_alloc_type>(alloc)
+    : boost::empty_value<base_alloc_type>(boost::empty_init_t(), alloc)
     , begin_(nullptr)
     , in_(nullptr)
     , out_(nullptr)
@@ -85,8 +85,8 @@ basic_flat_buffer(std::size_t limit, Allocator const& alloc)
 template<class Allocator>
 basic_flat_buffer<Allocator>::
 basic_flat_buffer(basic_flat_buffer&& other)
-    : detail::empty_base_optimization<base_alloc_type>(
-        std::move(other.member()))
+    : boost::empty_value<base_alloc_type>(boost::empty_init_t(),
+        std::move(other.get()))
     , begin_(boost::exchange(other.begin_, nullptr))
     , in_(boost::exchange(other.in_, nullptr))
     , out_(boost::exchange(other.out_, nullptr))
@@ -101,9 +101,9 @@ template<class Allocator>
 basic_flat_buffer<Allocator>::
 basic_flat_buffer(basic_flat_buffer&& other,
         Allocator const& alloc)
-    : detail::empty_base_optimization<base_alloc_type>(alloc)
+    : boost::empty_value<base_alloc_type>(boost::empty_init_t(), alloc)
 {
-    if(this->member() != other.member())
+    if(this->get() != other.get())
     {
         begin_ = nullptr;
         in_ = nullptr;
@@ -133,9 +133,9 @@ basic_flat_buffer(basic_flat_buffer&& other,
 template<class Allocator>
 basic_flat_buffer<Allocator>::
 basic_flat_buffer(basic_flat_buffer const& other)
-    : detail::empty_base_optimization<base_alloc_type>(
+    : boost::empty_value<base_alloc_type>(boost::empty_init_t(),
         alloc_traits::select_on_container_copy_construction(
-            other.member()))
+            other.get()))
     , begin_(nullptr)
     , in_(nullptr)
     , out_(nullptr)
@@ -150,7 +150,7 @@ template<class Allocator>
 basic_flat_buffer<Allocator>::
 basic_flat_buffer(basic_flat_buffer const& other,
         Allocator const& alloc)
-    : detail::empty_base_optimization<base_alloc_type>(alloc)
+    : boost::empty_value<base_alloc_type>(boost::empty_init_t(), alloc)
     , begin_(nullptr)
     , in_(nullptr)
     , out_(nullptr)
@@ -181,7 +181,7 @@ template<class OtherAlloc>
 basic_flat_buffer<Allocator>::
 basic_flat_buffer(basic_flat_buffer<OtherAlloc> const& other,
         Allocator const& alloc)
-    : detail::empty_base_optimization<base_alloc_type>(alloc)
+    : boost::empty_value<base_alloc_type>(boost::empty_init_t(), alloc)
     , begin_(nullptr)
     , in_(nullptr)
     , out_(nullptr)
@@ -264,14 +264,14 @@ prepare(std::size_t n) ->
         max_,
         (std::max<std::size_t>)(2 * len, len + n));
     auto const p = alloc_traits::allocate(
-        this->member(), new_size);
+        this->get(), new_size);
     if(begin_)
     {
         BOOST_ASSERT(p);
         BOOST_ASSERT(in_);
         std::memcpy(p, in_, len);
         alloc_traits::deallocate(
-            this->member(), begin_, capacity());
+            this->get(), begin_, capacity());
     }
     begin_ = p;
     in_ = begin_;
@@ -309,7 +309,7 @@ shrink_to_fit()
         BOOST_ASSERT(begin_);
         BOOST_ASSERT(in_);
         p = alloc_traits::allocate(
-            this->member(), len);
+            this->get(), len);
         std::memcpy(p, in_, len);
     }
     else
@@ -317,7 +317,7 @@ shrink_to_fit()
         p = nullptr;
     }
     alloc_traits::deallocate(
-        this->member(), begin_, dist(begin_, end_));
+        this->get(), begin_, dist(begin_, end_));
     begin_ = p;
     in_ = begin_;
     out_ = begin_ + len;
@@ -358,7 +358,7 @@ basic_flat_buffer<Allocator>::
 move_assign(basic_flat_buffer& other, std::true_type)
 {
     reset();
-    this->member() = std::move(other.member());
+    this->get() = std::move(other.get());
     begin_ = other.begin_;
     in_ = other.in_;
     out_ = other.out_;
@@ -379,7 +379,7 @@ basic_flat_buffer<Allocator>::
 move_assign(basic_flat_buffer& other, std::false_type)
 {
     reset();
-    if(this->member() != other.member())
+    if(this->get() != other.get())
     {
         copy_from(other);
         other.reset();
@@ -398,7 +398,7 @@ copy_assign(basic_flat_buffer const& other, std::true_type)
 {
     reset();
     max_ = other.max_;
-    this->member() = other.member();
+    this->get() = other.get();
     copy_from(other);
 }
 
@@ -430,7 +430,7 @@ basic_flat_buffer<Allocator>::
 swap(basic_flat_buffer& other, std::true_type)
 {
     using std::swap;
-    swap(this->member(), other.member());
+    swap(this->get(), other.get());
     swap(max_, other.max_);
     swap(begin_, other.begin_);
     swap(in_, other.in_);
@@ -446,7 +446,7 @@ void
 basic_flat_buffer<Allocator>::
 swap(basic_flat_buffer& other, std::false_type)
 {
-    BOOST_ASSERT(this->member() == other.member());
+    BOOST_ASSERT(this->get() == other.get());
     using std::swap;
     swap(max_, other.max_);
     swap(begin_, other.begin_);
