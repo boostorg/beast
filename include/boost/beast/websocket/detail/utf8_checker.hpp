@@ -112,7 +112,7 @@ write(std::uint8_t const* in, std::size_t size)
             if((p[0] & 0xe0) == 0xc0)
             {
                 if( (p[1] & 0xc0) != 0x80 ||
-                    (p[0] & 0xfe) == 0xc0)  // overlong
+                    (p[0] & 0x1e) == 0)  // overlong
                     return false;
                 p += 2;
                 return true;
@@ -121,8 +121,8 @@ write(std::uint8_t const* in, std::size_t size)
             {
                 if(    (p[1] & 0xc0) != 0x80
                     || (p[2] & 0xc0) != 0x80
-                    || (p[0] == 0xe0 && (p[1] & 0xe0) == 0x80) // overlong
-                    || (p[0] == 0xed && (p[1] & 0xe0) == 0xa0) // surrogate
+                    || (p[0] == 0xe0 && (p[1] & 0x20) == 0) // overlong
+                    || (p[0] == 0xed && (p[1] & 0x3C) >= 0x3C) // surrogate
                     //|| (p[0] == 0xef && p[1] == 0xbf && (p[2] & 0xfe) == 0xbe) // U+FFFE or U+FFFF
                     )
                     return false;
@@ -134,7 +134,7 @@ write(std::uint8_t const* in, std::size_t size)
                 if(    (p[1] & 0xc0) != 0x80
                     || (p[2] & 0xc0) != 0x80
                     || (p[3] & 0xc0) != 0x80
-                    || (p[0] == 0xf0 && (p[1] & 0xf0) == 0x80) // overlong
+                    || (p[0] == 0xf0 && (p[1] & 0x30) == 0) // overlong
                     || (p[0] == 0xf4 && p[1] > 0x8f) || p[0] > 0xf4 // > U+10FFFF
                     )
                     return false;
@@ -153,7 +153,7 @@ write(std::uint8_t const* in, std::size_t size)
                 BOOST_ASSERT(false);
                 BOOST_FALLTHROUGH;
             case 1:
-                cp_[1] = 0xA0;
+                cp_[1] =((cp_[0] & 0xF8) == 0xF0)? 0x81 : 0xA0;
                 BOOST_FALLTHROUGH;
             case 2:
                 cp_[2] = 0xA0;
