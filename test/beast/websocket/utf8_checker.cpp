@@ -577,12 +577,12 @@ public:
         testBranches();
         AutodeskTests();
         // 6.4.2
-        t.AutobahnTest(std::vector<std::vector<std::uint8_t>>{
+        AutobahnTest(std::vector<std::vector<std::uint8_t>>{
             { 0xCE, 0xBA, 0xE1, 0xBD, 0xB9, 0xCF, 0x83, 0xCE, 0xBC, 0xCE, 0xB5, 0xF4 },
             { 0x90 }, { 0x80, 0x80, 0x65, 0x64, 0x69, 0x74, 0x65, 0x64 } },
             { true, false, false});
         // 6.4.4
-        t.AutobahnTest(std::vector<std::vector<std::uint8_t>>{
+        AutobahnTest(std::vector<std::vector<std::uint8_t>>{
             { 0xCE, 0xBA, 0xE1, 0xBD, 0xB9, 0xCF, 0x83, 0xCE, 0xBC, 0xCE, 0xB5, 0xF4 },
             { 0x90 } },
             { true, false });
