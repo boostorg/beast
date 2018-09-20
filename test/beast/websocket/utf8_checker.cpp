@@ -68,13 +68,8 @@ public:
         {
             // fail fast
             utf8_checker u;
-            if (c == 240)
-                BEAST_EXPECT(! u.write(&c, 1));
-            else
-            {
-                BEAST_EXPECT(u.write(&c, 1));
-                BEAST_EXPECT(! u.finish());
-            }
+            BEAST_EXPECT(u.write(&c, 1));
+            BEAST_EXPECT(! u.finish());
         }
 
         // invalid lead bytes
@@ -310,13 +305,8 @@ public:
                         BEAST_EXPECT(u.write(buf, 4));
                         BEAST_EXPECT(u.finish());
                         // Segmented sequence
-                        if (i == 240)
-                            BEAST_EXPECT(! u.write(buf, 1));
-                        else
-                        {
-                            BEAST_EXPECT(u.write(buf, 1));
-                            BEAST_EXPECT(u.write(&buf[1], 3));
-                        }
+                        BEAST_EXPECT(u.write(buf, 1));
+                        BEAST_EXPECT(u.write(&buf[1], 3));
                         u.reset();
                         // Segmented sequence
                         BEAST_EXPECT(u.write(buf, 2));
@@ -423,13 +413,9 @@ public:
             }
 
             // Segmented sequence second byte invalid
-            if (i == 240)
-                BEAST_EXPECT(! u.write(buf, 1));
-            else
-            {
-                BEAST_EXPECT(u.write(buf, 1));
-                BEAST_EXPECT(! u.write(&buf[1], 1));
-            }
+            BEAST_EXPECT(u.write(buf, 1));
+            BEAST_EXPECT(! u.write(&buf[1], 1));
+
             u.reset();
         }
 
