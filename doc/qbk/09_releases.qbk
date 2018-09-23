@@ -21,6 +21,8 @@
 
 * ([issue 1233]) Use [@boost:/doc/html/core/empty_value.html `boost::empty_value`]
 
+* Workaround for http-server-fast and libstdc++
+
 
 
 [heading Boost 1.68]

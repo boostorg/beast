@@ -7,6 +7,10 @@
 # Official repository: https://github.com/boostorg/beast
 #
 
+# VFALCO _GLIBCXX_USE_CXX11_ABI is to work around
+#        a bug in libg++8 where it attempts to default-construct
+#        the allocator (even when it is not default constructible)
+
 exe http-server-fast :
     http_server_fast.cpp
     :
