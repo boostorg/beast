@@ -248,7 +248,7 @@ template<
     class Handler>
 class detect_ssl_op;
 
-// Here is the implementation of the asynchronous initation function
+// Here is the implementation of the asynchronous initiation function
 template<
     class AsyncReadStream,
     class DynamicBuffer,
@@ -337,7 +337,7 @@ public:
     // The state for this operation is cheap to copy.
     detect_ssl_op(detect_ssl_op const&) = default;
 
-    // The constructor just keeps references the callers varaibles.
+    // The constructor just keeps references the callers variables.
     //
     template<class DeducedHandler>
     detect_ssl_op(

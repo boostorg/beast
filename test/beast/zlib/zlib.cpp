@@ -7,6 +7,6 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
-// Make sure symbols don't confict with ZLib
+// Make sure symbols don't conflict with ZLib
 #include "zlib-1.2.11/zlib.h"
 #include <boost/beast/zlib.hpp>

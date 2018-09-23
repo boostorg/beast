@@ -110,7 +110,7 @@ public:
 
     /** Move bytes from the output sequence to the input sequence.
 
-        @param size The nubmer of bytes to commit. If this is greater
+        @param size The number of bytes to commit. If this is greater
         than the size of the output sequence, the entire output
         sequence is committed.
     */

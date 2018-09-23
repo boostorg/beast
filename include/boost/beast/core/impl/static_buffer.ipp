@@ -119,7 +119,7 @@ consume(std::size_t size)
     else
     {
         // rewind the offset, so the next call to prepare
-        // can have a longer continguous segment. this helps
+        // can have a longer contiguous segment. this helps
         // algorithms optimized for larger buffesr.
         in_off_ = 0;
         in_size_ = 0;
