@@ -93,18 +93,18 @@ matrix:
             - llvm-toolchain-precise-3.8
             - *base_sources
 
-    # GCC 4.8, Release
+    # GCC 8, Release
     - os: linux
-      compiler: g++-4.8
+      compiler: g++-8
       env:
         - VARIANT=release
         - TOOLSET=gcc
-        - COMPILER=g++-4.8
+        - COMPILER=g++-8
         - CXXSTD=c++11
       addons:
         apt:
           packages:
-            - g++-4.8
+            - g++-8
             - *base_packages
           sources:
             - *base_sources
@@ -117,8 +117,6 @@ matrix:
         - TOOLSET=clang
         - COMPILER=clang++
         - CXXSTD=c++14
-
-    # OSX
 
 install:
   - export BOOST_BRANCH=develop && [ "$TRAVIS_BRANCH" == "master" ] && BOOST_BRANCH=master || true
