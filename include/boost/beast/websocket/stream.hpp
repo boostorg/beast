@@ -571,7 +571,7 @@ public:
         );
         @endcode
         The implementation type-erases the callback which may require
-        a dynamic allocation. To prevent the possiblity of a dynamic
+        a dynamic allocation. To prevent the possibility of a dynamic
         allocation, use `std::ref` to wrap the callback.
         If the read operation which receives the control frame is
         an asynchronous operation, the callback will be invoked using

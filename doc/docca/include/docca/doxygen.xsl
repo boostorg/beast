@@ -441,7 +441,7 @@
   </xsl:if>
   <!-- Doxygen injects a <para></para> element around the listitem contents
        so this rule extracts the contents and formats that directly to avoid
-       introducing extra newlines from formating para -->
+       introducing extra newlines from formatting para -->
   <xsl:apply-templates select="para/node()" mode="markup"/>
 </xsl:template>
 

@@ -61,7 +61,7 @@ In this table:
     [`f.close(ec)`]
     []
     [
-        If `f` refers to an open file, thie function attempts to
+        If `f` refers to an open file, this function attempts to
         close the file.
         Regardless of whether an error occurs or not, a subsequent
         call to `f.is_open()` will return `false`.

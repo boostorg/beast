@@ -294,7 +294,7 @@ void do_server_head(
         "SyncStream requirements not met");
     static_assert(
         boost::asio::is_dynamic_buffer<DynamicBuffer>::value,
-        "DynamicBuffer requirments not met");
+        "DynamicBuffer requirements not met");
 
     // We deliver this payload for all GET requests
     static std::string const payload = "Hello, world!";
@@ -388,7 +388,7 @@ do_head_request(
         "SyncStream requirements not met");
     static_assert(
         boost::asio::is_dynamic_buffer<DynamicBuffer>::value,
-        "DynamicBuffer requirments not met");
+        "DynamicBuffer requirements not met");
 
     // The interfaces we are using are low level and do not
     // perform any checking of arguments; so we do it here.
@@ -505,7 +505,7 @@ relay(
     if(ec)
         return;
 
-    // Apply the caller's header tranformation
+    // Apply the caller's header transformation
     transform(p.get(), ec);
     if(ec)
         return;
