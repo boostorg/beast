@@ -127,7 +127,7 @@ string_to_verb(string_view v)
                 ++s;
                 ++p;
                 if(! *s)
-                    return p == sv.end();
+                    return p == (sv.data() + sv.size());
             }
         };
     auto c = v[0];
