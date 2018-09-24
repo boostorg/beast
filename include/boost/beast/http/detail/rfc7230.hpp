@@ -429,11 +429,11 @@ struct opt_token_list_policy
         char const*& it, string_view s) const
     {
         v = {};
-        auto need_comma = it != s.begin();
+        auto need_comma = it != s.data();
         for(;;)
         {
-            detail::skip_ows(it, s.end());
-            if(it == s.end())
+            detail::skip_ows(it, (s.data() + s.size()));
+            if(it == (s.data() + s.size()))
             {
                 it = nullptr;
                 return true;
@@ -447,12 +447,12 @@ struct opt_token_list_policy
                 for(;;)
                 {
                     ++it;
-                    if(it == s.end())
+                    if(it == (s.data() + s.size()))
                         break;
                     if(! detail::is_token_char(*it))
                         break;
                 }
-                v = string_view{&*p0,
+                v = string_view{p0,
                     static_cast<std::size_t>(it - p0)};
                 return true;
             }
