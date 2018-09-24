@@ -24,7 +24,7 @@ namespace http {
 
     This body uses @ref span as a memory-based container for
     holding message payloads. The container represents a
-    non-owning reference to a continguous area of memory.
+    non-owning reference to a contiguous area of memory.
     Messages using this body type may be serialized and
     parsed.
 

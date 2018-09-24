@@ -1310,7 +1310,7 @@ Actions Required:
   take the logical NOT of the return value.
 
 * Modify instances of user-defined BodyReader and BodyWriter
-  types to perfrom two-phase initialization, as per the
+  types to perform two-phase initialization, as per the
   updated documented type requirements.
 
 --------------------------------------------------------------------------------
@@ -2404,7 +2404,7 @@ The message class hierarchy is refactored (breaking change):
 * Fix integer warnings in Windows builds
 * Add 32 and 64 bit Windows build support
 * Update README for build instructions and more
-* Add repository and documention banners
+* Add repository and documentation banners
 
 --------------------------------------------------------------------------------
 

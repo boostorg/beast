@@ -428,7 +428,7 @@ public:
     // This function is called when writing is complete.
     // It is an opportunity to perform any final actions
     // which might fail, in order to return an error code.
-    // Operations that might fail should not be attemped in
+    // Operations that might fail should not be attempted in
     // destructors, since an exception thrown from there
     // would terminate the program.
     //

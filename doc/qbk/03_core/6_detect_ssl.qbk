@@ -12,7 +12,7 @@
 In this example we will build a simple function to detect the presence
 of the SSL handshake given an input buffer sequence. Then we build on
 the example by adding a synchronous stream algorithm. Finally, we 
-implemement an asynchronous detection function using a composed operation.
+implement an asynchronous detection function using a composed operation.
 This SSL detector may be used to allow a server to accept both SSL/TLS and
 unencrypted connections at the same port.
 
