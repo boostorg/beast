@@ -1,3 +1,9 @@
+Version 184:
+
+* Remove extraneous function
+
+--------------------------------------------------------------------------------
+
 Version 183:
 
 * Fix a rare case of failed UTF8 validation

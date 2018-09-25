@@ -24,16 +24,17 @@ public:
     check(char const* name, error ev)
     {
         auto const ec = make_error_code(ev);
+        auto const& cat =
+            make_error_code(static_cast<http::error>(0)).category();
         BEAST_EXPECT(std::string(ec.category().name()) == name);
         BEAST_EXPECT(! ec.message().empty());
-        BEAST_EXPECT(std::addressof(ec.category()) ==
-            std::addressof(detail::get_http_error_category()));
-        BEAST_EXPECT(detail::get_http_error_category().equivalent(
+        BEAST_EXPECT(std::addressof(ec.category()) == std::addressof(cat));
+        BEAST_EXPECT(cat.equivalent(
             static_cast<std::underlying_type<error>::type>(ev),
                 ec.category().default_error_condition(
                     static_cast<std::underlying_type<error>::type>(ev))));
-        BEAST_EXPECT(detail::get_http_error_category().equivalent(
-            ec, static_cast<std::underlying_type<error>::type>(ev)));
+        BEAST_EXPECT(cat.equivalent(ec,
+            static_cast<std::underlying_type<error>::type>(ev)));
     }
 
     void
