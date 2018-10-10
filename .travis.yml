@@ -110,8 +110,8 @@ matrix:
             - *base_sources
 
     # OSX Clang, C++14, Debug
-    - if: branch != master 
-      os: osx
+  # - if: branch != master 
+    - os: osx
       compiler: clang++
       env:
         - VARIANT=debug
