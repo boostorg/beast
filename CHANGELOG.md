@@ -1,6 +1,7 @@
 Version 186:
 
 * basic_fields uses intrusive base hooks
+* Fix parsing of out-of-bounds hex values
 
 --------------------------------------------------------------------------------
 

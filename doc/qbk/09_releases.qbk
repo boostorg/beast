@@ -29,6 +29,8 @@
 
 * ([issue 1270]) `basic_fields` uses intrusive base hooks
 
+* ([issue 1267]) Fix parsing of out-of-bounds hex values
+
 * Workaround for http-server-fast and libstdc++
 
 

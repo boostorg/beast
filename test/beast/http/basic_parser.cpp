@@ -1249,6 +1249,40 @@ public:
         bad ("4294967296");
     }
 
+    void
+    testIssue1267()
+    {
+        using base = detail::basic_parser_base;
+        auto const good =
+            [&](string_view s, std::uint64_t v0)
+            {
+                std::uint64_t v;
+                auto it = s.begin();
+                auto const result =
+                    base::parse_hex(it, v);
+                if(BEAST_EXPECTS(result, s))
+                    BEAST_EXPECTS(v == v0, s);
+            };
+        auto const bad =
+            [&](string_view s)
+            {
+                std::uint64_t v;
+                auto it = s.begin();
+                auto const result =
+                    base::parse_hex(it, v);
+                BEAST_EXPECTS(! result, s);
+            };
+        good("f\r\n",               15);
+        good("ff\r\n",              255);
+        good("ffff\r\n",            65535);
+        good("ffffffffr\n",         4294967295);
+        good("ffffffffffffffff\r\n", 18446744073709551615ULL);
+        bad ("\r\n");
+        bad ("g\r\n");
+        bad ("10000000000000000\r\n");
+        bad ("ffffffffffffffffffffff\r\n");
+    }
+
     //--------------------------------------------------------------------------
 
     void
@@ -1274,6 +1308,7 @@ public:
         testFuzz();
         testRegression1();
         testIssue1211();
+        testIssue1267();
     }
 };
 
