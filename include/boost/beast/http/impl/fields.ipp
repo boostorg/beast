@@ -271,19 +271,38 @@ writer(basic_fields const& f,
 //------------------------------------------------------------------------------
 
 template<class Allocator>
+char*
 basic_fields<Allocator>::
 value_type::
-value_type(
-    field name,
-    string_view sname,
-    string_view value)
+data() const
+{
+    return const_cast<char*>(
+        reinterpret_cast<char const*>(
+            static_cast<element const*>(this) + 1));
+}
+
+template<class Allocator>
+boost::asio::const_buffer
+basic_fields<Allocator>::
+value_type::
+buffer() const
+{
+    return boost::asio::const_buffer{data(),
+        static_cast<std::size_t>(off_) + len_ + 2};
+}
+
+template<class Allocator>
+basic_fields<Allocator>::
+value_type::
+value_type(field name,
+    string_view sname, string_view value)
     : off_(static_cast<off_t>(sname.size() + 2))
     , len_(static_cast<off_t>(value.size()))
     , f_(name)
 {
     //BOOST_ASSERT(name == field::unknown ||
     //    iequals(sname, to_string(name)));
-    char* p = reinterpret_cast<char*>(this + 1);
+    char* p = data();
     p[off_-2] = ':';
     p[off_-1] = ' ';
     p[off_ + len_] = '\r';
@@ -293,7 +312,6 @@ value_type(
 }
 
 template<class Allocator>
-inline
 field
 basic_fields<Allocator>::
 value_type::
@@ -303,39 +321,32 @@ name() const
 }
 
 template<class Allocator>
-inline
 string_view const
 basic_fields<Allocator>::
 value_type::
 name_string() const
 {
-    return {reinterpret_cast<
-        char const*>(this + 1),
-            static_cast<std::size_t>(off_ - 2)};
+    return {data(),
+        static_cast<std::size_t>(off_ - 2)};
 }
 
 template<class Allocator>
-inline
 string_view const
 basic_fields<Allocator>::
 value_type::
 value() const
 {
-    return {reinterpret_cast<
-        char const*>(this + 1) + off_,
-            static_cast<std::size_t>(len_)};
+    return {data() + off_,
+        static_cast<std::size_t>(len_)};
 }
 
 template<class Allocator>
-inline
-boost::asio::const_buffer
 basic_fields<Allocator>::
-value_type::
-buffer() const
+element::
+element(field name,
+    string_view sname, string_view value)
+    : value_type(name, sname, value)
 {
-    return boost::asio::const_buffer{
-        reinterpret_cast<char const*>(this + 1),
-        static_cast<std::size_t>(off_) + len_ + 2};
 }
 
 //------------------------------------------------------------------------------
@@ -614,7 +625,7 @@ erase(const_iterator pos) ->
     auto& e = *next++;
     set_.erase(e);
     list_.erase(pos);
-    delete_element(const_cast<value_type&>(e));
+    delete_element(const_cast<element&>(e));
     return next;
 }
 
@@ -634,7 +645,7 @@ erase(string_view name)
 {
     std::size_t n =0;
     set_.erase_and_dispose(name, key_compare{},
-        [&](value_type* e)
+        [&](element* e)
         {
             ++n;
             list_.erase(list_.iterator_to(*e));
@@ -1138,7 +1149,7 @@ auto
 basic_fields<Allocator>::
 new_element(field name,
     string_view sname, string_view value) ->
-        value_type&
+        element&
 {
     if(sname.size() + 2 >
             (std::numeric_limits<off_t>::max)())
@@ -1155,33 +1166,29 @@ new_element(field name,
         static_cast<off_t>(value.size());
     auto a = rebind_type{this->get()};
     auto const p = alloc_traits::allocate(a,
-        (sizeof(value_type) + off + len + 2 + sizeof(align_type) - 1) /
+        (sizeof(element) + off + len + 2 + sizeof(align_type) - 1) /
             sizeof(align_type));
-    // VFALCO allocator can't call the constructor because its private
-    //alloc_traits::construct(a, p, name, sname, value);
-    new(p) value_type{name, sname, value};
-    return *reinterpret_cast<value_type*>(p);
+    return *(new(p) element(name, sname, value));
 }
 
 template<class Allocator>
 void
 basic_fields<Allocator>::
-delete_element(value_type& e)
+delete_element(element& e)
 {
     auto a = rebind_type{this->get()};
     auto const n =
-        (sizeof(value_type) + e.off_ + e.len_ + 2 + sizeof(align_type) - 1) /
+        (sizeof(element) + e.off_ + e.len_ + 2 + sizeof(align_type) - 1) /
             sizeof(align_type);
-    //alloc_traits::destroy(a, &e);
-    e.~value_type();
-    alloc_traits::deallocate(a,
-        reinterpret_cast<align_type*>(&e), n);
+    e.~element();
+    alloc_traits::deallocate(a, &e, n);
+        //reinterpret_cast<align_type*>(&e), n);
 }
 
 template<class Allocator>
 void
 basic_fields<Allocator>::
-set_element(value_type& e)
+set_element(element& e)
 {
     auto it = set_.lower_bound(
         e.name_string(), key_compare{});

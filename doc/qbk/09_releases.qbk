@@ -27,6 +27,8 @@
 
 * ([issue 1091]) Fix timer on websocket upgrade in examples
 
+* ([issue 1270]) `basic_fields` uses intrusive base hooks
+
 * Workaround for http-server-fast and libstdc++
 
 

@@ -65,6 +65,8 @@ class basic_fields
 
     static std::size_t constexpr max_static_buffer = 4096;
 
+    struct element;
+
     using off_t = std::uint16_t;
 
 public:
@@ -76,23 +78,19 @@ public:
     {
         friend class basic_fields;
 
-        boost::asio::const_buffer
-        buffer() const;
-
-        value_type(field name,
-            string_view sname, string_view value);
-
-        boost::intrusive::list_member_hook<
-            boost::intrusive::link_mode<
-                boost::intrusive::normal_link>>
-                    list_hook_;
-        boost::intrusive::set_member_hook<
-            boost::intrusive::link_mode<
-                boost::intrusive::normal_link>>
-                    set_hook_;
         off_t off_;
         off_t len_;
         field f_;
+
+        char*
+        data() const;
+
+        boost::asio::const_buffer
+        buffer() const;
+
+    protected:
+        value_type(field name,
+            string_view sname, string_view value);
 
     public:
         /// Constructor (deleted)
@@ -118,13 +116,16 @@ public:
 
         The case-comparison operation is defined only for low-ASCII characters.
     */
+#if BOOST_BEAST_DOXYGEN
+    using key_compare = implementation_defined;
+#else
     struct key_compare : beast::iless
+#endif
     {
         /// Returns `true` if lhs is less than rhs using a strict ordering
-        template<class String>
         bool
         operator()(
-            String const& lhs,
+            string_view lhs,
             value_type const& rhs) const noexcept
         {
             if(lhs.size() < rhs.name_string().size())
@@ -135,11 +136,10 @@ public:
         }
 
         /// Returns `true` if lhs is less than rhs using a strict ordering
-        template<class String>
         bool
         operator()(
             value_type const& lhs,
-            String const& rhs) const noexcept
+            string_view rhs) const noexcept
         {
             if(lhs.name_string().size() < rhs.size())
                 return true;
@@ -170,30 +170,36 @@ public:
 #endif
 
 private:
+    struct element
+        : public boost::intrusive::list_base_hook<
+            boost::intrusive::link_mode<
+                boost::intrusive::normal_link>>
+        , public boost::intrusive::set_base_hook<
+            boost::intrusive::link_mode<
+                boost::intrusive::normal_link>>
+        , public value_type
+    {
+        element(field name,
+            string_view sname, string_view value);
+    };
+
     using list_t = typename boost::intrusive::make_list<
-        value_type, boost::intrusive::member_hook<
-            value_type, boost::intrusive::list_member_hook<
-                boost::intrusive::link_mode<
-                    boost::intrusive::normal_link>>,
-                        &value_type::list_hook_>,
-                            boost::intrusive::constant_time_size<
-                                false>>::type;
+        element,
+        boost::intrusive::constant_time_size<false>
+            >::type;
 
     using set_t = typename boost::intrusive::make_multiset<
-        value_type, boost::intrusive::member_hook<value_type,
-            boost::intrusive::set_member_hook<
-                boost::intrusive::link_mode<
-                    boost::intrusive::normal_link>>,
-                        &value_type::set_hook_>,
-                            boost::intrusive::constant_time_size<true>,
-                                boost::intrusive::compare<key_compare>>::type;
+        element,
+        boost::intrusive::constant_time_size<true>,
+        boost::intrusive::compare<key_compare>
+            >::type;
 
     using align_type = typename
-        boost::type_with_alignment<alignof(value_type)>::type;
+        boost::type_with_alignment<alignof(element)>::type;
 
     using rebind_type = typename
         beast::detail::allocator_traits<Allocator>::
-            template rebind_alloc<align_type>;
+            template rebind_alloc<element>;
 
     using alloc_traits =
         beast::detail::allocator_traits<rebind_type>;
@@ -704,15 +710,15 @@ private:
     template<class OtherAlloc>
     friend class basic_fields;
 
-    value_type&
+    element&
     new_element(field name,
         string_view sname, string_view value);
 
     void
-    delete_element(value_type& e);
+    delete_element(element& e);
 
     void
-    set_element(value_type& e);
+    set_element(element& e);
 
     void
     realloc_string(string_view& dest, string_view s);
