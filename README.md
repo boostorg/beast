@@ -117,12 +117,12 @@ libraries.
 Instructions for doing so may be found on
 the [Boost Wiki](https://github.com/boostorg/boost/wiki/Getting-Started).
 These commands will build the programs and documentation that come
-with Beast (omit the cxxflags parameter when building using MSVC):
+with Beast:
 
 ```
 cd boost   # The directory containing the Boost superproject and libraries
-b2 libs/beast/test cxxflags="-std=c++11"    # bjam must be in your $PATH
-b2 libs/beast/example cxxflags="-std=c++11"
+b2 libs/beast/test cxxstd=11    # bjam must be in your $PATH
+b2 libs/beast/example cxxstd=11
 b2 libs/beast/doc
 ```
 
