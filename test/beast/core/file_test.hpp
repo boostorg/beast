@@ -68,11 +68,13 @@ doTestFile(beast::unit_test::suite& test)
     test.BEAST_EXPECT(ec == errc::invalid_argument);
     ec.assign(0, ec.category());
 
-    f.read(nullptr, 0, ec);
+    char tmp[1];
+
+    f.read(tmp, 0, ec);
     test.BEAST_EXPECT(ec == errc::invalid_argument);
     ec.assign(0, ec.category());
 
-    f.write(nullptr, 0, ec);
+    f.write(tmp, 0, ec);
     test.BEAST_EXPECT(ec == errc::invalid_argument);
     ec.assign(0, ec.category());
 

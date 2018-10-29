@@ -1,6 +1,7 @@
 Version 187:
 
 * Add experimental timeout_socket
+* Fix warning in file tests
 
 --------------------------------------------------------------------------------
 
