@@ -69,6 +69,8 @@ class buffers_adapter
     {
     }
 
+    iter_type end_impl() const;
+
 public:
     /// The type of the underlying mutable buffer sequence
     using value_type = MutableBufferSequence;

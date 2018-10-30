@@ -31,6 +31,8 @@
 
 * ([issue 1267]) Fix parsing of out-of-bounds hex values
 
+* ([issue 1263]) Fix uninitialized comparison in buffers iterator
+
 * Workaround for http-server-fast and libstdc++
 
 [*Experimental]

@@ -26,7 +26,7 @@ template<class MutableBufferSequence>
 class buffers_adapter<MutableBufferSequence>::
     const_buffers_type
 {
-    buffers_adapter const* ba_;
+    buffers_adapter const* b_;
 
 public:
     using value_type = boost::asio::const_buffer;
@@ -48,8 +48,8 @@ public:
 private:
     friend class buffers_adapter;
 
-    const_buffers_type(buffers_adapter const& ba)
-        : ba_(&ba)
+    const_buffers_type(buffers_adapter const& b)
+        : b_(&b)
     {
     }
 };
@@ -59,7 +59,7 @@ class buffers_adapter<MutableBufferSequence>::
     const_buffers_type::const_iterator
 {
     iter_type it_;
-    buffers_adapter const* ba_ = nullptr;
+    buffers_adapter const* b_ = nullptr;
 
 public:
     using value_type = boost::asio::const_buffer;
@@ -78,8 +78,20 @@ public:
     bool
     operator==(const_iterator const& other) const
     {
-        return ba_ == other.ba_ &&
-            it_ == other.it_;
+        return
+            (b_ == nullptr) ?
+            (
+                other.b_ == nullptr ||
+                other.it_ == other.b_->end_impl()
+            ):(
+                (other.b_ == nullptr) ?
+                (
+                    it_ == b_->end_impl()
+                ): (
+                    b_ == other.b_ &&
+                    it_ == other.it_
+                )
+            );
     }
 
     bool
@@ -93,9 +105,9 @@ public:
     {
         value_type const b = *it_;
         return value_type{b.data(),
-            (ba_->out_ == boost::asio::buffer_sequence_end(ba_->bs_) ||
-                it_ != ba_->out_) ? b.size() : ba_->out_pos_} +
-                    (it_ == ba_->begin_ ? ba_->in_pos_ : 0);
+            (b_->out_ == boost::asio::buffer_sequence_end(b_->bs_) ||
+                it_ != b_->out_) ? b.size() : b_->out_pos_} +
+                    (it_ == b_->begin_ ? b_->in_pos_ : 0);
     }
 
     pointer
@@ -134,33 +146,30 @@ public:
 private:
     friend class const_buffers_type;
 
-    const_iterator(buffers_adapter const& ba,
+    const_iterator(buffers_adapter const& b,
             iter_type iter)
         : it_(iter)
-        , ba_(&ba)
+        , b_(&b)
     {
     }
 };
 
 template<class MutableBufferSequence>
-inline
 auto
 buffers_adapter<MutableBufferSequence>::
 const_buffers_type::begin() const ->
     const_iterator
 {
-    return const_iterator{*ba_, ba_->begin_};
+    return const_iterator{*b_, b_->begin_};
 }
 
 template<class MutableBufferSequence>
-inline
 auto
 buffers_adapter<MutableBufferSequence>::
 const_buffers_type::end() const ->
     const_iterator
 {
-    return const_iterator{*ba_, ba_->out_ ==
-        ba_->end_ ? ba_->end_ : std::next(ba_->out_)};
+    return const_iterator{*b_, b_->end_impl()};
 }
 
 //------------------------------------------------------------------------------
@@ -169,7 +178,7 @@ template<class MutableBufferSequence>
 class buffers_adapter<MutableBufferSequence>::
 mutable_buffers_type
 {
-    buffers_adapter const* ba_;
+    buffers_adapter const* b_;
 
 public:
     using value_type = boost::asio::mutable_buffer;
@@ -192,8 +201,8 @@ private:
     friend class buffers_adapter;
 
     mutable_buffers_type(
-            buffers_adapter const& ba)
-        : ba_(&ba)
+            buffers_adapter const& b)
+        : b_(&b)
     {
     }
 };
@@ -203,7 +212,7 @@ class buffers_adapter<MutableBufferSequence>::
 mutable_buffers_type::const_iterator
 {
     iter_type it_;
-    buffers_adapter const* ba_ = nullptr;
+    buffers_adapter const* b_ = nullptr;
 
 public:
     using value_type = boost::asio::mutable_buffer;
@@ -222,8 +231,20 @@ public:
     bool
     operator==(const_iterator const& other) const
     {
-        return ba_ == other.ba_ &&
-            it_ == other.it_;
+        return
+            (b_ == nullptr) ?
+            (
+                other.b_ == nullptr ||
+                other.it_ == other.b_->end_
+            ):(
+                (other.b_ == nullptr) ?
+                (
+                    it_ == b_->end_
+                ): (
+                    b_ == other.b_ &&
+                    it_ == other.it_
+                )
+            );
     }
 
     bool
@@ -237,9 +258,9 @@ public:
     {
         value_type const b = *it_;
         return value_type{b.data(),
-            it_ == std::prev(ba_->end_) ?
-                ba_->out_end_ : b.size()} +
-                    (it_ == ba_->out_ ? ba_->out_pos_ : 0);
+            it_ == std::prev(b_->end_) ?
+                b_->out_end_ : b.size()} +
+                    (it_ == b_->out_ ? b_->out_pos_ : 0);
     }
 
     pointer
@@ -278,10 +299,10 @@ public:
 private:
     friend class mutable_buffers_type;
 
-    const_iterator(buffers_adapter const& ba,
+    const_iterator(buffers_adapter const& b,
             iter_type iter)
         : it_(iter)
-        , ba_(&ba)
+        , b_(&b)
     {
     }
 };
@@ -294,7 +315,7 @@ mutable_buffers_type::
 begin() const ->
     const_iterator
 {
-    return const_iterator{*ba_, ba_->out_};
+    return const_iterator{*b_, b_->out_};
 }
 
 template<class MutableBufferSequence>
@@ -305,10 +326,19 @@ mutable_buffers_type::
 end() const ->
     const_iterator
 {
-    return const_iterator{*ba_, ba_->end_};
+    return const_iterator{*b_, b_->end_};
 }
 
 //------------------------------------------------------------------------------
+
+template<class MutableBufferSequence>
+auto
+buffers_adapter<MutableBufferSequence>::
+end_impl() const ->
+    iter_type
+{
+    return out_ == end_ ? end_ : std::next(out_);
+}
 
 template<class MutableBufferSequence>
 buffers_adapter<MutableBufferSequence>::

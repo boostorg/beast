@@ -54,7 +54,20 @@ public:
     bool
     operator==(const_iterator const& other) const
     {
-        return b_ == other.b_ && it_ == other.it_;
+        return
+            (b_ == nullptr) ?
+            (
+                other.b_ == nullptr ||
+                other.it_ == boost::asio::buffer_sequence_end(other.b_->bs_)
+            ):(
+                (other.b_ == nullptr) ?
+                (
+                    it_ == boost::asio::buffer_sequence_end(b_->bs_)
+                ): (
+                    b_ == other.b_ &&
+                    it_ == other.it_
+                )
+            );
     }
 
     bool
