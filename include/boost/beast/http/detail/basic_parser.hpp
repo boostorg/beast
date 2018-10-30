@@ -267,42 +267,37 @@ struct basic_parser_base
                 return p;
             }
             if(BOOST_UNLIKELY(! is_print(*p)))
-                if((BOOST_LIKELY(static_cast<
-                        unsigned char>(*p) < '\040') &&
-                    BOOST_LIKELY(*p != '\011')) ||
-                    BOOST_UNLIKELY(*p == '\177'))
-                    goto found_control;
-        }
-    found_control:
-        if(BOOST_LIKELY(*p == '\r'))
-        {
-            if(++p >= last)
             {
-                ec = error::need_more;
-                return last;
+                if(BOOST_LIKELY(*p == '\r'))
+                {
+                    if(++p >= last)
+                    {
+                        ec = error::need_more;
+                        return last;
+                    }
+                    if(*p++ != '\n')
+                    {
+                        ec = error::bad_line_ending;
+                        return last;
+                    }
+                    token_last = p - 2;
+                    return p;
+                }
+#if 0
+                // VFALCO This allows '\n' by itself
+                //        to terminate a line
+                else if(*p == '\n')
+                {
+                    token_last = p;
+                    ++p;
+                    return p;
+                }
+#endif
             }
-            if(*p++ != '\n')
-            {
-                ec = error::bad_line_ending;
-                return last;
-            }
-            token_last = p - 2;
         }
-    #if 0
-        // VFALCO This allows `\n` by itself
-        //        to terminate a line
-        else if(*p == '\n')
-        {
-            token_last = p;
-            ++p;
-        }
-    #endif
-        else
-        {
-            // invalid character
-            return nullptr;
-        }
-        return p;
+
+        // unexpected case
+        return nullptr;
     }
 
     template<class Iter, class T>
