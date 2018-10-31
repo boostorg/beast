@@ -35,6 +35,8 @@
 
 * Workaround for http-server-fast and libstdc++
 
+* Partial support for `BOOST_NO_EXCEPTIONS`
+
 [*Experimental]
 
 * Add [link beast.ref.boost__beast__timeout_socket `timeout_socket`]

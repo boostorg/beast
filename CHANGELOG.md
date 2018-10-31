@@ -3,6 +3,7 @@ Version 187:
 * Add experimental timeout_socket
 * Fix warning in file tests
 * Fix uninitialized comparison in buffers iterator
+* Partial support for BOOST_NO_EXCEPTIONS
 
 --------------------------------------------------------------------------------
 
