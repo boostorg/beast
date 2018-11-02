@@ -12,6 +12,7 @@ import feature ;
 import boost ;
 import modules ;
 import testing ;
+import ../../config/checks/config : requires ;
 
 boost.use-project ;
 
@@ -69,6 +70,20 @@ variant ubasan
 
 path-constant TEST_MAIN : subtree/unit_test/include/boost/beast/unit_test/main.cpp ;
 
+lib static_asio
+    : test/asio.cpp
+    : requirements
+        [ requires
+            cxx11_constexpr
+            cxx11_decltype
+            cxx11_hdr_tuple
+            cxx11_template_aliases
+            cxx11_variadic_templates
+        ]
+        <define>BOOST_ASIO_SEPARATE_COMPILATION
+        <link>static
+    ;
+
 project /boost/beast
   : requirements
     <implicit-dependency>/boost//headers
@@ -78,6 +93,7 @@ project /boost/beast
     <library>/boost/system//boost_system
     <library>/boost/coroutine//boost_coroutine
     <library>/boost/filesystem//boost_filesystem
+    <library>static_asio
     <threading>multi
     <runtime-link>shared
     <debug-symbols>on

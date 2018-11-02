@@ -22,6 +22,7 @@ project /boost/beast/test
     ]
     <include>./extern
     <define>BOOST_BEAST_ALLOW_DEPRECATED
+    <define>BOOST_ASIO_SEPARATE_COMPILATION
     ;
 
 path-constant ZLIB_SOURCES :
