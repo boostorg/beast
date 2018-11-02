@@ -4,6 +4,7 @@ Version 187:
 * Fix warning in file tests
 * Fix uninitialized comparison in buffers iterator
 * Partial support for BOOST_NO_EXCEPTIONS
+* Fix a spurious gcc warning
 
 --------------------------------------------------------------------------------
 

@@ -34,6 +34,8 @@ class buffers_cat_view<Bn...>::const_iterator
 
     struct past_end
     {
+        char unused = 0; // make g++8 happy
+
         operator bool() const noexcept
         {
             return true;
