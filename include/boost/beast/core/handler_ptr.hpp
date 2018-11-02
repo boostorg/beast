@@ -12,7 +12,6 @@
 
 #include <boost/beast/core/detail/allocator.hpp>
 #include <boost/beast/core/detail/config.hpp>
-#include <boost/beast/core/detail/type_traits.hpp>
 #include <boost/assert.hpp>
 #include <type_traits>
 #include <utility>
@@ -50,10 +49,11 @@ namespace beast {
 template<class T, class Handler>
 class handler_ptr
 {
-    using handler_storage_t = typename detail::aligned_union<1, Handler>::type;
-
     T* t_ = nullptr;
-    handler_storage_t h_;
+    union
+    {
+        Handler h_;
+    };
 
     void clear();
 
@@ -119,14 +119,14 @@ public:
     handler_type const&
     handler() const
     {
-        return *reinterpret_cast<Handler const*>(&h_);
+        return h_;
     }
 
     /// Return a reference to the handler
     handler_type&
     handler()
     {
-        return *reinterpret_cast<Handler*>(&h_);
+        return h_;
     }
 
     /// Return `true` if `*this` owns an object

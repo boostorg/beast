@@ -41,7 +41,7 @@ handler_ptr<T, Handler>::
     if(t_)
     {
         clear();
-        handler().~Handler();
+        h_.~Handler();
     }
 }
 
@@ -52,8 +52,9 @@ handler_ptr(handler_ptr&& other)
 {
     if(other.t_)
     {
-        new(&h_) Handler(std::move(other.handler()));
-        other.handler().~Handler();
+        ::new(static_cast<void*>(std::addressof(h_)))
+            Handler(std::move(other.h_));
+        other.h_.~Handler();
         other.t_ = nullptr;
     }
 }
@@ -82,7 +83,8 @@ handler_ptr(DeducedHandler&& h, Args&&... args)
         static_cast<DeducedHandler const&>(h),
             std::forward<Args>(args)...);
     destroy = true;
-    new(&h_) Handler(std::forward<DeducedHandler>(h));
+    ::new(static_cast<void*>(std::addressof(h_)))
+        Handler(std::forward<DeducedHandler>(h));
     t_ = t.release();
 }
 
@@ -100,8 +102,8 @@ release_handler() ->
     };
     std::unique_ptr<
         Handler, decltype(deleter)> destroyer{
-            &handler(), deleter};
-    return std::move(handler());
+            std::addressof(h_), deleter};
+    return std::move(h_);
 }
 
 template<class T, class Handler>
@@ -119,8 +121,8 @@ invoke(Args&&... args)
     };
     std::unique_ptr<
         Handler, decltype(deleter)> destroyer{
-            &handler(), deleter};
-    handler()(std::forward<Args>(args)...);
+            std::addressof(h_), deleter};
+    h_(std::forward<Args>(args)...);
 }
 
 } // beast
