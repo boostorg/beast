@@ -2,6 +2,7 @@ Version 196:
 
 * Tidy up calls to placement new
 * Remove unused type_traits
+* Simplify handler_ptr
 
 --------------------------------------------------------------------------------
 

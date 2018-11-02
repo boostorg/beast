@@ -41,7 +41,7 @@ handler_ptr<T, Handler>::
     if(t_)
     {
         clear();
-        handler().~Handler();
+        h_.~Handler();
     }
 }
 
@@ -52,8 +52,9 @@ handler_ptr(handler_ptr&& other)
 {
     if(other.t_)
     {
-        new(&h_) Handler(std::move(other.handler()));
-        other.handler().~Handler();
+        ::new(static_cast<void*>(std::addressof(h_)))
+            Handler(std::move(other.h_));
+        other.h_.~Handler();
         other.t_ = nullptr;
     }
 }
@@ -64,25 +65,27 @@ handler_ptr<T, Handler>::
 handler_ptr(DeducedHandler&& h, Args&&... args)
 {
     BOOST_STATIC_ASSERT(! std::is_array<T>::value);
-    typename beast::detail::allocator_traits<
+    using A = typename beast::detail::allocator_traits<
         net::associated_allocator_t<
-            Handler>>::template rebind_alloc<T> alloc{
-                net::get_associated_allocator(h)};
-    using A = decltype(alloc);
+            Handler>>::template rebind_alloc<T>;
+    A alloc{net::get_associated_allocator(h)};
+    using traits =
+        typename beast::detail::allocator_traits<A>;
     bool destroy = false;
     auto deleter = [&alloc, &destroy](T* p)
     {
         if(destroy)
-            beast::detail::allocator_traits<A>::destroy(alloc, p);
-        beast::detail::allocator_traits<A>::deallocate(alloc, p, 1);
+            traits::destroy(alloc, p);
+        traits::deallocate(alloc, p, 1);
     };
     std::unique_ptr<T, decltype(deleter)> t{
-        beast::detail::allocator_traits<A>::allocate(alloc, 1), deleter};
-    beast::detail::allocator_traits<A>::construct(alloc, t.get(),
+        traits::allocate(alloc, 1), deleter};
+    traits::construct(alloc, t.get(),
         static_cast<DeducedHandler const&>(h),
             std::forward<Args>(args)...);
     destroy = true;
-    new(&h_) Handler(std::forward<DeducedHandler>(h));
+    ::new(static_cast<void*>(std::addressof(h_)))
+        Handler(std::forward<DeducedHandler>(h));
     t_ = t.release();
 }
 
@@ -100,8 +103,8 @@ release_handler() ->
     };
     std::unique_ptr<
         Handler, decltype(deleter)> destroyer{
-            &handler(), deleter};
-    return std::move(handler());
+            std::addressof(h_), deleter};
+    return std::move(h_);
 }
 
 template<class T, class Handler>
@@ -119,8 +122,8 @@ invoke(Args&&... args)
     };
     std::unique_ptr<
         Handler, decltype(deleter)> destroyer{
-            &handler(), deleter};
-    handler()(std::forward<Args>(args)...);
+            std::addressof(h_), deleter};
+    h_(std::forward<Args>(args)...);
 }
 
 } // beast
