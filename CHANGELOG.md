@@ -6,6 +6,7 @@ Version 187:
 * Partial support for BOOST_NO_EXCEPTIONS
 * Fix a spurious gcc warning
 * Test for gcc warning bug
+* Add missing include
 
 --------------------------------------------------------------------------------
 
