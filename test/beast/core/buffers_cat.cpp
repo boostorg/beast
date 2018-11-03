@@ -11,6 +11,8 @@
 #include <boost/beast/core/buffers_cat.hpp>
 
 #include <boost/beast/unit_test/suite.hpp>
+#include <boost/beast/core/buffers_prefix.hpp>
+#include <boost/beast/core/buffers_suffix.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/asio/streambuf.hpp>
 #include <iterator>
@@ -215,6 +217,45 @@ public:
         BEAST_EXPECT(it == it2);
     }
 
+    void
+    testGccWarning1()
+    {
+        using boost::beast::buffers_cat;
+        using boost::beast::buffers_suffix;
+        using boost::asio::buffer;
+        using boost::asio::const_buffer;
+   
+        char out[64];
+        std::array<const_buffer, 2> buffers{
+            {buffer("Hello, "), buffer("world!")}};
+        std::size_t i = 3;
+        buffers_suffix<std::array<const_buffer, 2>> cb(buffers);
+        cb.consume(i);
+        boost::asio::buffer_copy(
+            buffer(out),
+            buffers_cat(cb, cb));
+    }
+
+    // VFALCO Some version of g++ incorrectly complain about
+    //        uninitialized values when buffers_cat and
+    //        buffers_prefix are used together.
+    void
+    testGccWarning2()
+    {
+        using boost::asio::buffer;
+        using boost::asio::buffer_copy;
+        using boost::asio::const_buffer;
+
+        char out[64];
+        const_buffer buffers("Hello, world!", 13);
+        std::size_t i = 3;
+        buffers_suffix<const_buffer> cb{buffers};
+        cb.consume(i);
+        buffer_copy(
+            buffer(out),
+            buffers_cat(buffers_prefix(i, buffers), cb));
+    }
+
     void run() override
     {
         using boost::asio::const_buffer;
@@ -258,6 +299,8 @@ public:
 
         testBufferCat();
         testIterators();
+        testGccWarning1();
+        testGccWarning2();
     }
 };
 
