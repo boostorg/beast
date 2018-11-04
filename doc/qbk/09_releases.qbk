@@ -33,6 +33,8 @@
 
 * ([issue 1263]) Fix uninitialized comparison in buffers iterator
 
+* ([issue 1288]) Remove extraneous strand from example
+
 * Workaround for http-server-fast and libstdc++
 
 * Partial support for `BOOST_NO_EXCEPTIONS`

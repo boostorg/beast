@@ -546,8 +546,6 @@ class ssl_websocket_session
     , public std::enable_shared_from_this<ssl_websocket_session>
 {
     websocket::stream<boost::beast::ssl_stream<tcp::socket>> ws_;
-    boost::asio::strand<
-        boost::asio::io_context::executor_type> strand_;
     bool eof_ = false;
 
 public:
@@ -557,7 +555,6 @@ public:
         : websocket_session<ssl_websocket_session>(
             stream.get_executor().context())
         , ws_(std::move(stream))
-        , strand_(ws_.get_executor())
     {
     }
 

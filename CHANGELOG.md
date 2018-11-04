@@ -7,6 +7,7 @@ Version 187:
 * Fix a spurious gcc warning
 * Test for gcc warning bug
 * Add missing include
+* Remove extraneous strand from example
 
 --------------------------------------------------------------------------------
 
