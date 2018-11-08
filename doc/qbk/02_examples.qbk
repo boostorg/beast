@@ -201,6 +201,28 @@ and illustrate the implementation of advanced features.
 
 
 
+[section CppCon 2018]
+
+This talk was given at [@https://cppcon.org CppCon 2018]. In this
+presentation, we develop a multi-user chat server written in C++ using
+Beast WebSocket, which uses a provided chat client written in HTML and
+JavaScript. The source files for this example are located at
+[source_file example/cppcon2018].
+
+
+[block'''
+<mediaobject>
+  <videoobject>
+    <videodata fileref="https://www.youtube.com/embed/7FQwAjELMek"
+        align="center" contentwidth="560" contentdepth="315"/>
+  </videoobject>
+</mediaobject>
+''']
+
+[endsect]
+
+
+
 [section Common Files]
 
 Some of the examples use one or more shared header files, they are

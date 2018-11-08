@@ -1,3 +1,18 @@
+Version 189:
+
+* Add CppCon2018 chat server example and video
+
+--------------------------------------------------------------------------------
+
+Version 188:
+
+* Remove extraneous strand from example
+* Add missing include in http/read.ipp 
+* Test for gcc warning bug
+* Fix a spurious gcc warning
+
+--------------------------------------------------------------------------------
+
 Version 187:
 
 * Add experimental timeout_socket

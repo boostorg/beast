@@ -9,13 +9,26 @@
 
 [section Release Notes]
 
-
-
 [heading Boost 1.69]
+
+[* New Videos]
+
+[block'''
+<mediaobject>
+  <videoobject>
+    <videodata fileref="https://www.youtube.com/embed/7FQwAjELMek"
+        align="center" contentwidth="448" contentdepth="252"/>
+  </videoobject>
+</mediaobject>
+''']
 
 [* New Features]
 
 * ([issue 1133]) Add `BOOST_BEAST_USE_STD_STRING_VIEW`
+
+[* Examples]
+
+* New WebSocket server and browser-based client: [source_file example/cppcon2018]
 
 [*Fixes]
 

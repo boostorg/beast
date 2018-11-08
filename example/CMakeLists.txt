@@ -8,6 +8,7 @@
 #
 
 add_subdirectory (advanced)
+add_subdirectory (cppcon2018)
 add_subdirectory (http)
 add_subdirectory (websocket)
 

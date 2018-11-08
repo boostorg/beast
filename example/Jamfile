@@ -8,6 +8,7 @@
 #
 
 build-project advanced ;
+build-project cppcon2018 ;
 build-project http ;
 build-project websocket ;
 
