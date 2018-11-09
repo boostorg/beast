@@ -1,3 +1,9 @@
+Version 190:
+
+* Add missing includes to convenience headers
+
+--------------------------------------------------------------------------------
+
 Version 189:
 
 * Add CppCon2018 chat server example and video

@@ -13,6 +13,7 @@
 #include <boost/beast/core/detail/config.hpp>
 
 #include <boost/beast/http/basic_dynamic_body.hpp>
+#include <boost/beast/http/basic_file_body.hpp>
 #include <boost/beast/http/basic_parser.hpp>
 #include <boost/beast/http/buffer_body.hpp>
 #include <boost/beast/http/chunk_encode.hpp>
