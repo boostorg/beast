@@ -8,11 +8,11 @@
 //
 
 // Test that header file is self-contained.
-#include <boost/beast/experimental/core/flat_stream.hpp>
+#include <boost/beast/_experimental/core/flat_stream.hpp>
 
 #include <boost/beast/test/websocket.hpp>
 #include <boost/beast/test/yield_to.hpp>
-#include <boost/beast/experimental/unit_test/suite.hpp>
+#include <boost/beast/_experimental/unit_test/suite.hpp>
 #include <initializer_list>
 #include <vector>
 

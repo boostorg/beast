@@ -11,7 +11,7 @@
 #define BOOST_BEAST_TEST_IMPL_FAIL_COUNT_IPP
 
 #include <boost/beast/core/error.hpp>
-#include <boost/beast/experimental/test/error.hpp>
+#include <boost/beast/_experimental/test/error.hpp>
 #include <boost/throw_exception.hpp>
 
 namespace boost {

@@ -11,9 +11,9 @@
 
 #include <boost/beast/core/flat_buffer.hpp>
 #include <boost/beast/core/ostream.hpp>
-#include <boost/beast/experimental/test/stream.hpp>
+#include <boost/beast/_experimental/test/stream.hpp>
 #include <boost/beast/test/yield_to.hpp>
-#include <boost/beast/experimental/unit_test/suite.hpp>
+#include <boost/beast/_experimental/unit_test/suite.hpp>
 
 namespace boost {
 namespace beast {

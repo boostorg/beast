@@ -9,7 +9,7 @@
 
 GroupSources (include/boost/beast beast)
 GroupSources (test/extras/include/boost/beast extras)
-GroupSources (test/beast/experimental "/")
+GroupSources (test/beast/_experimental "/")
 
 add_executable (tests-beast-experimental
     ${BOOST_BEAST_FILES}

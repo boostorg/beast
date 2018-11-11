@@ -15,7 +15,7 @@ file (GLOB_RECURSE EXTRAS_FILES
     ${PROJECT_SOURCE_DIR}/test/extras/include/*.ipp
     )
 
-set (TEST_MAIN ${PROJECT_SOURCE_DIR}/include/boost/beast/experimental/unit_test/main.cpp)
+set (TEST_MAIN ${PROJECT_SOURCE_DIR}/include/boost/beast/_experimental/unit_test/main.cpp)
 
 if (OPENSSL_FOUND)
     link_libraries (${OPENSSL_LIBRARIES})

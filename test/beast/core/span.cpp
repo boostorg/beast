@@ -11,7 +11,7 @@
 #include <boost/beast/core/span.hpp>
 
 #include <boost/beast/core/string.hpp>
-#include <boost/beast/experimental/unit_test/suite.hpp>
+#include <boost/beast/_experimental/unit_test/suite.hpp>
 
 namespace boost {
 namespace beast {

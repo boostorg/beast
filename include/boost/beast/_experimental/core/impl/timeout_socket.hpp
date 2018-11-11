@@ -12,7 +12,7 @@
 
 #include <boost/beast/core/bind_handler.hpp>
 #include <boost/beast/core/type_traits.hpp>
-#include <boost/beast/experimental/core/detail/timeout_work_guard.hpp>
+#include <boost/beast/_experimental/core/detail/timeout_work_guard.hpp>
 #include <boost/asio/executor_work_guard.hpp>
 #include <memory>
 #include <utility>

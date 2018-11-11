@@ -20,7 +20,7 @@
 #include <boost/beast/http.hpp>
 #include <boost/beast/websocket.hpp>
 #include <boost/beast/version.hpp>
-#include <boost/beast/experimental/core/ssl_stream.hpp>
+#include <boost/beast/_experimental/core/ssl_stream.hpp>
 #include <boost/asio/bind_executor.hpp>
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/signal_set.hpp>

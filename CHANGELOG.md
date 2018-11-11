@@ -3,6 +3,7 @@ Version 190:
 * Add missing includes to convenience headers
 * Unit test framework is experimental
 * Add buffers_range
+* Rename experimental directory
 
 --------------------------------------------------------------------------------
 

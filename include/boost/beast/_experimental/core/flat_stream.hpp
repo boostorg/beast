@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2018 Vinnie Falco (vinnie dot falco at gmail dot com)
+// Copyright (c) 2016-2017 Vinnie Falco (vinnie dot falco at gmail dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -7,80 +7,90 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
-#ifndef BOOST_BEAST_HTTP_ICY_STREAM_HPP
-#define BOOST_BEAST_HTTP_ICY_STREAM_HPP
+#ifndef BOOST_BEAST_CORE_FLAT_STREAM_HPP
+#define BOOST_BEAST_CORE_FLAT_STREAM_HPP
 
 #include <boost/beast/core/detail/config.hpp>
 #include <boost/beast/core/error.hpp>
 #include <boost/beast/core/type_traits.hpp>
+#include <boost/beast/_experimental/core/detail/flat_stream.hpp>
 #include <boost/asio/async_result.hpp>
-#include <type_traits>
+#include <cstdlib>
+#include <utility>
 
 namespace boost {
 namespace beast {
-namespace http {
 
-/** Stream wrapper to process Shoutcast HTTP responses
+/** Stream wrapper to improve ssl::stream write performance.
 
-    This wrapper replaces the word "ICY" in the first
-    HTTP response received on the connection, with "HTTP/1.1".
-    This allows the Beast parser to be used with Shoutcast
-    servers, which send a non-standard HTTP message as the
-    response.
-
-    For asynchronous operations, the application must ensure
-    that they are are all performed within the same implicit
-    or explicit strand.
-
-    @par Thread Safety
-    @e Distinct @e objects: Safe.@n
-    @e Shared @e objects: Unsafe.
-    The application must also ensure that all asynchronous
-    operations are performed within the same implicit or explicit strand.
+    This wrapper flattens writes for buffer sequences having length
+    greater than 1 and total size below a predefined amount, using
+    a dynamic memory allocation. It is primarily designed to overcome
+    a performance limitation of the current version of `boost::asio::ssl::stream`,
+    which does not use OpenSSL's scatter/gather interface for its
+    low-level read some and write some operations.
 
     @par Example
 
-    To use the @ref stream template with an `ip::tcp::socket`,
-    you would write:
+    To use the @ref flat_stream template with SSL streams, declare
+    a variable of the correct type. Parameters passed to the constructor
+    will be forwarded to the next layer's constructor:
 
     @code
-    http::icy_stream<ip::tcp::socket> is{io_context};
+        flat_stream<ssl::stream<ip::tcp::socket>> fs{ioc, ctx};
     @endcode
-    Alternatively, you can write:
+    Alternatively you can write
     @code
-    ip::tcp::socket sock{io_context};
-    http::icy_stream<ip::tcp::socket&> is{sock};
+        ssl::stream<ip::tcp::socket> ss{ioc, ctx};
+        flat_stream<ssl::stream<ip::tcp::socket>&> fs{ss};
+    @endcode
+
+    The resulting stream may be passed to any stream algorithms which
+    operate on synchronous or asynchronous read or write streams,
+    examples include:
+    
+    @li `boost::asio::read`, `boost::asio::async_read`
+
+    @li `boost::asio::write`, `boost::asio::async_write`
+
+    @li `boost::asio::read_until`, `boost::asio::async_read_until`
+
+    The stream may also be used as a template parameter in other
+    stream wrappers, such as for websocket:
+    @code
+        websocket::stream<flat_stream<ssl::stream<ip::tcp::socket>>> ws{ioc, ctx};
     @endcode
 
     @tparam NextLayer The type representing the next layer, to which
     data will be read and written during operations. For synchronous
-    operations, the type must support the @b SyncStream concept.
-    For asynchronous operations, the type must support the
-    @b AsyncStream concept.
-
-    @note A stream object must not be moved or destroyed while there
-    are pending asynchronous operations associated with it.
+    operations, the type must support the @b SyncStream concept. For
+    asynchronous operations, the type must support the @b AsyncStream
+    concept. This type will usually be some variation of
+    `boost::asio::ssl::stream`.
 
     @par Concepts
-        @b AsyncStream,
+        @b AsyncStream
         @b SyncStream
+
+    @see
+        @li https://github.com/boostorg/beast/issues/1108
+        @li https://github.com/boostorg/asio/issues/100
+        @li https://stackoverflow.com/questions/38198638/openssl-ssl-write-from-multiple-buffers-ssl-writev
+        @li https://stackoverflow.com/questions/50026167/performance-drop-on-port-from-beast-1-0-0-b66-to-boost-1-67-0-beast
 */
 template<class NextLayer>
-class icy_stream
+class flat_stream
+#if ! BOOST_BEAST_DOXYGEN
+    : private detail::flat_stream_base
+#endif
 {
-    template<class, class> class read_op;
+    // Largest buffer size we will flatten.
+    // 16KB is the upper limit on reasonably sized HTTP messages.
+    static std::size_t constexpr max_size = 16 * 1024;
+
+    template<class, class> class write_op;
 
     NextLayer stream_;
-    bool detect_ = true;
-    unsigned char copy_ = 0;
-    char buf_[8];
-
-    static
-    boost::asio::const_buffer
-    version()
-    {
-        return {"HTTP/1.1", 8};
-    }
 
 public:
     /// The type of the next layer.
@@ -93,17 +103,17 @@ public:
     /// The type of the executor associated with the object.
     using executor_type = typename next_layer_type::executor_type;
 
-    icy_stream(icy_stream&&) = default;
-    icy_stream(icy_stream const&) = default;
-    icy_stream& operator=(icy_stream&&) = default;
-    icy_stream& operator=(icy_stream const&) = default;
+    flat_stream(flat_stream&&) = default;
+    flat_stream(flat_stream const&) = default;
+    flat_stream& operator=(flat_stream&&) = default;
+    flat_stream& operator=(flat_stream const&) = default;
 
     /** Destructor
 
         The treatment of pending operations will be the same as that
         of the next layer.
     */
-    ~icy_stream() = default;
+    ~flat_stream() = default;
 
     /** Constructor
 
@@ -111,7 +121,7 @@ public:
     */
     template<class... Args>
     explicit
-    icy_stream(Args&&... args);
+    flat_stream(Args&&... args);
 
     //--------------------------------------------------------------------------
 
@@ -336,10 +346,9 @@ public:
         WriteHandler&& handler);
 };
 
-} // http
 } // beast
 } // boost
 
-#include <boost/beast/experimental/http/impl/icy_stream.ipp>
+#include <boost/beast/_experimental/core/impl/flat_stream.ipp>
 
 #endif

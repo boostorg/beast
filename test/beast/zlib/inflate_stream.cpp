@@ -11,7 +11,7 @@
 #include <boost/beast/zlib/inflate_stream.hpp>
 
 #include <boost/beast/core/string.hpp>
-#include <boost/beast/experimental/unit_test/suite.hpp>
+#include <boost/beast/_experimental/unit_test/suite.hpp>
 #include <chrono>
 #include <random>
 

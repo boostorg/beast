@@ -8,9 +8,9 @@
 //
 
 // Test that header file is self-contained.
-#include <boost/beast/experimental/core/timeout_service.hpp>
+#include <boost/beast/_experimental/core/timeout_service.hpp>
 
-#include <boost/beast/experimental/unit_test/suite.hpp>
+#include <boost/beast/_experimental/unit_test/suite.hpp>
 
 namespace boost {
 namespace beast {

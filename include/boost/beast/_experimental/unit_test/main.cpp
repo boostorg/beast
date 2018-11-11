@@ -7,12 +7,12 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
-#include <boost/beast/experimental/unit_test/amount.hpp>
-#include <boost/beast/experimental/unit_test/dstream.hpp>
-#include <boost/beast/experimental/unit_test/global_suites.hpp>
-#include <boost/beast/experimental/unit_test/match.hpp>
-#include <boost/beast/experimental/unit_test/reporter.hpp>
-#include <boost/beast/experimental/unit_test/suite.hpp>
+#include <boost/beast/_experimental/unit_test/amount.hpp>
+#include <boost/beast/_experimental/unit_test/dstream.hpp>
+#include <boost/beast/_experimental/unit_test/global_suites.hpp>
+#include <boost/beast/_experimental/unit_test/match.hpp>
+#include <boost/beast/_experimental/unit_test/reporter.hpp>
+#include <boost/beast/_experimental/unit_test/suite.hpp>
 #include <boost/config.hpp>
 #include <cstdlib>
 #include <iostream>

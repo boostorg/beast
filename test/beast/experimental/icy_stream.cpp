@@ -8,13 +8,13 @@
 //
 
 // Test that header file is self-contained.
-#include <boost/beast/experimental/http/icy_stream.hpp>
+#include <boost/beast/_experimental/http/icy_stream.hpp>
 
 #include <boost/beast/core/buffers_adapter.hpp>
 #include <boost/beast/core/buffers_to_string.hpp>
 #include <boost/beast/core/read_size.hpp>
-#include <boost/beast/experimental/test/stream.hpp>
-#include <boost/beast/experimental/unit_test/suite.hpp>
+#include <boost/beast/_experimental/test/stream.hpp>
+#include <boost/beast/_experimental/unit_test/suite.hpp>
 #include <array>
 #include <memory>
 #include <string>

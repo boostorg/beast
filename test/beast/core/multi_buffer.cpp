@@ -16,7 +16,7 @@
 #include <boost/beast/core/string.hpp>
 #include <boost/beast/core/type_traits.hpp>
 #include <boost/beast/test/test_allocator.hpp>
-#include <boost/beast/experimental/unit_test/suite.hpp>
+#include <boost/beast/_experimental/unit_test/suite.hpp>
 #include <boost/asio/buffer.hpp>
 #include <algorithm>
 #include <atomic>

@@ -67,7 +67,7 @@ variant ubasan
     <define>BOOST_USE_ASAN=1
   ;
 
-path-constant TEST_MAIN : include/boost/beast/experimental/unit_test/main.cpp ;
+path-constant TEST_MAIN : include/boost/beast/_experimental/unit_test/main.cpp ;
 
 project /boost/beast
   : requirements

@@ -181,8 +181,8 @@ file (GLOB_RECURSE BOOST_BEAST_FILES
 )
 
 file (GLOB_RECURSE BOOST_BEAST_EXPERIMENTAL_FILES
-    ${PROJECT_SOURCE_DIR}/include/boost/beast/experimental/*.hpp
-    ${PROJECT_SOURCE_DIR}/include/boost/beast/experimental/*.ipp
+    ${PROJECT_SOURCE_DIR}/include/boost/beast/_experimental/*.hpp
+    ${PROJECT_SOURCE_DIR}/include/boost/beast/_experimental/*.ipp
 )
 
 file (GLOB_RECURSE COMMON_FILES

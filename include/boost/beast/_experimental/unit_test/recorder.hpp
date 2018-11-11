@@ -10,8 +10,8 @@
 #ifndef BOOST_BEAST_UNIT_TEST_RECORDER_HPP
 #define BOOST_BEAST_UNIT_TEST_RECORDER_HPP
 
-#include <boost/beast/experimental/unit_test/results.hpp>
-#include <boost/beast/experimental/unit_test/runner.hpp>
+#include <boost/beast/_experimental/unit_test/results.hpp>
+#include <boost/beast/_experimental/unit_test/runner.hpp>
 
 namespace boost {
 namespace beast {

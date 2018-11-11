@@ -11,7 +11,7 @@
 #define BOOST_BEAST_CORE_DETAIL_TIMEOUT_SERVICE_HPP
 
 #include <boost/beast/core/error.hpp>
-#include <boost/beast/experimental/core/detail/service_base.hpp>
+#include <boost/beast/_experimental/core/detail/service_base.hpp>
 #include <boost/assert.hpp>
 #include <boost/core/ignore_unused.hpp>
 #include <boost/asio/bind_executor.hpp>
@@ -119,6 +119,6 @@ private:
 } // beast
 } // boost
 
-#include <boost/beast/experimental/core/detail/impl/timeout_service.ipp>
+#include <boost/beast/_experimental/core/detail/impl/timeout_service.ipp>
 
 #endif

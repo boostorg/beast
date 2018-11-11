@@ -15,7 +15,7 @@
 #include <boost/beast/core/string.hpp>
 #include <boost/beast/core/type_traits.hpp>
 #include <boost/beast/websocket/teardown.hpp>
-#include <boost/beast/experimental/test/fail_count.hpp>
+#include <boost/beast/_experimental/test/fail_count.hpp>
 #include <boost/asio/async_result.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/asio/executor_work_guard.hpp>
@@ -546,6 +546,6 @@ connect(stream& to, Arg1&& arg1, ArgN&&... argn);
 } // beast
 } // boost
 
-#include <boost/beast/experimental/test/impl/stream.ipp>
+#include <boost/beast/_experimental/test/impl/stream.ipp>
 
 #endif

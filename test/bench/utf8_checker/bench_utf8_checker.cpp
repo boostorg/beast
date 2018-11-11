@@ -8,7 +8,7 @@
 //
 
 #include <boost/beast/websocket/detail/utf8_checker.hpp>
-#include <boost/beast/experimental/unit_test/suite.hpp>
+#include <boost/beast/_experimental/unit_test/suite.hpp>
 #include <chrono>
 #include <random>
 

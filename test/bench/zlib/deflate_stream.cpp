@@ -10,8 +10,8 @@
 #include <boost/beast/core/string.hpp>
 #include <boost/beast/zlib/deflate_stream.hpp>
 #include <boost/beast/test/throughput.hpp>
-#include <boost/beast/experimental/unit_test/dstream.hpp>
-#include <boost/beast/experimental/unit_test/suite.hpp>
+#include <boost/beast/_experimental/unit_test/dstream.hpp>
+#include <boost/beast/_experimental/unit_test/suite.hpp>
 #include <iomanip>
 #include <random>
 #include <string>

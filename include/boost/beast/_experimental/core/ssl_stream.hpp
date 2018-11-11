@@ -15,7 +15,7 @@
 // This include is necessary to work with `ssl::stream` and `boost::beast::websocket::stream`
 #include <boost/beast/websocket/ssl.hpp>
 
-#include <boost/beast/experimental/core/flat_stream.hpp>
+#include <boost/beast/_experimental/core/flat_stream.hpp>
 #include <boost/asio/ssl/stream.hpp>
 #include <cstddef>
 #include <memory>

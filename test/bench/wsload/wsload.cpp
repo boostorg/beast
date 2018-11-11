@@ -19,7 +19,7 @@
 
 #include <boost/beast/core.hpp>
 #include <boost/beast/websocket.hpp>
-#include <boost/beast/experimental/unit_test/dstream.hpp>
+#include <boost/beast/_experimental/unit_test/dstream.hpp>
 #include <boost/asio.hpp>
 #include <atomic>
 #include <chrono>

@@ -8,4 +8,4 @@
 //
 
 // Test that header file is self-contained.
-#include <boost/beast/experimental/test/stream.hpp>
+#include <boost/beast/_experimental/test/stream.hpp>

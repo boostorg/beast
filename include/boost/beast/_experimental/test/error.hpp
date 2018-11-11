@@ -11,7 +11,7 @@
 #define BOOST_BEAST_TEST_ERROR_HPP
 
 #include <boost/beast/core/error.hpp>
-#include <boost/beast/experimental/test/detail/error.hpp>
+#include <boost/beast/_experimental/test/detail/error.hpp>
 
 namespace boost {
 namespace beast {
@@ -32,6 +32,6 @@ enum class error
 } // beast
 } // boost
 
-#include <boost/beast/experimental/test/impl/error.ipp>
+#include <boost/beast/_experimental/test/impl/error.ipp>
 
 #endif

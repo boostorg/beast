@@ -19,9 +19,9 @@
 #include <boost/beast/core/buffers_to_string.hpp>
 #include <boost/beast/core/error.hpp>
 #include <boost/beast/core/multi_buffer.hpp>
-#include <boost/beast/experimental/test/stream.hpp>
+#include <boost/beast/_experimental/test/stream.hpp>
 #include <boost/beast/test/yield_to.hpp>
-#include <boost/beast/experimental/unit_test/suite.hpp>
+#include <boost/beast/_experimental/unit_test/suite.hpp>
 #include <boost/asio/error.hpp>
 #include <boost/asio/io_service.hpp>
 #include <boost/asio/strand.hpp>

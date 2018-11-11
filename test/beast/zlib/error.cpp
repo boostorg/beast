@@ -10,7 +10,7 @@
 // Test that header file is self-contained.
 #include <boost/beast/zlib/error.hpp>
 
-#include <boost/beast/experimental/unit_test/suite.hpp>
+#include <boost/beast/_experimental/unit_test/suite.hpp>
 #include <memory>
 
 namespace boost {

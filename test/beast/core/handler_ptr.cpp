@@ -10,7 +10,7 @@
 // Test that header file is self-contained.
 #include <boost/beast/core/handler_ptr.hpp>
 
-#include <boost/beast/experimental/unit_test/suite.hpp>
+#include <boost/beast/_experimental/unit_test/suite.hpp>
 #include <exception>
 #include <memory>
 #include <utility>

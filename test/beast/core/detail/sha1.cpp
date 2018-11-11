@@ -8,7 +8,7 @@
 //
 
 #include <boost/beast/core/detail/sha1.hpp>
-#include <boost/beast/experimental/unit_test/suite.hpp>
+#include <boost/beast/_experimental/unit_test/suite.hpp>
 #include <array>
 
 namespace boost {

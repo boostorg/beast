@@ -11,7 +11,7 @@
 #define BOOST_BEAST_HTTP_TEST_PARSER_HPP
 
 #include <boost/beast/http/basic_parser.hpp>
-#include <boost/beast/experimental/test/fail_count.hpp>
+#include <boost/beast/_experimental/test/fail_count.hpp>
 #include <string>
 #include <unordered_map>
 

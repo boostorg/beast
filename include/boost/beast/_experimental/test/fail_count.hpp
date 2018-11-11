@@ -11,7 +11,7 @@
 #define BOOST_BEAST_TEST_FAIL_COUNT_HPP
 
 #include <boost/beast/core/error.hpp>
-#include <boost/beast/experimental/test/error.hpp>
+#include <boost/beast/_experimental/test/error.hpp>
 #include <boost/throw_exception.hpp>
 
 namespace boost {
@@ -60,6 +60,6 @@ public:
 } // beast
 } // boost
 
-#include <boost/beast/experimental/test/impl/fail_count.ipp>
+#include <boost/beast/_experimental/test/impl/fail_count.ipp>
 
 #endif

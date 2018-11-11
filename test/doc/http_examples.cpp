@@ -18,9 +18,9 @@
 #include <boost/beast/http/parser.hpp>
 #include <boost/beast/http/read.hpp>
 #include <boost/beast/http/write.hpp>
-#include <boost/beast/experimental/test/stream.hpp>
+#include <boost/beast/_experimental/test/stream.hpp>
 #include <boost/beast/test/yield_to.hpp>
-#include <boost/beast/experimental/unit_test/suite.hpp>
+#include <boost/beast/_experimental/unit_test/suite.hpp>
 #include <sstream>
 #include <array>
 #include <limits>
