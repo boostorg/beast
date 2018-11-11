@@ -14,7 +14,7 @@
 #include <boost/beast/core/buffers_to_string.hpp>
 #include <boost/beast/core/read_size.hpp>
 #include <boost/beast/experimental/test/stream.hpp>
-#include <boost/beast/unit_test/suite.hpp>
+#include <boost/beast/experimental/unit_test/suite.hpp>
 #include <array>
 #include <memory>
 #include <string>

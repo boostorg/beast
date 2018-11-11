@@ -13,7 +13,7 @@
 #include <boost/beast/core/multi_buffer.hpp>
 #include <boost/beast/experimental/test/stream.hpp>
 #include <boost/beast/test/yield_to.hpp>
-#include <boost/beast/unit_test/suite.hpp>
+#include <boost/beast/experimental/unit_test/suite.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/asio/io_service.hpp>
 #include <boost/asio/read.hpp>

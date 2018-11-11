@@ -11,7 +11,7 @@
 #include <boost/beast/core/multi_buffer.hpp>
 #include <boost/beast/core/read_size.hpp>
 #include <boost/beast/core/string.hpp>
-#include <boost/beast/unit_test/suite.hpp>
+#include <boost/beast/experimental/unit_test/suite.hpp>
 #include <boost/asio/streambuf.hpp>
 #include <algorithm>
 #include <chrono>

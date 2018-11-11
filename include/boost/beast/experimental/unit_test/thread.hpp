@@ -10,7 +10,7 @@
 #ifndef BOOST_BEAST_UNIT_TEST_THREAD_HPP
 #define BOOST_BEAST_UNIT_TEST_THREAD_HPP
 
-#include <boost/beast/unit_test/suite.hpp>
+#include <boost/beast/experimental/unit_test/suite.hpp>
 #include <functional>
 #include <thread>
 #include <utility>

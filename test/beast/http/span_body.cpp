@@ -11,7 +11,7 @@
 #include <boost/beast/http/span_body.hpp>
 
 #include <boost/beast/http/message.hpp>
-#include <boost/beast/unit_test/suite.hpp>
+#include <boost/beast/experimental/unit_test/suite.hpp>
 
 namespace boost {
 namespace beast {

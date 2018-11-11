@@ -12,7 +12,7 @@
 
 #include "test_parser.hpp"
 
-#include <boost/beast/unit_test/suite.hpp>
+#include <boost/beast/experimental/unit_test/suite.hpp>
 #include <boost/beast/test/yield_to.hpp>
 #include <boost/beast/core/buffers_suffix.hpp>
 #include <boost/beast/core/flat_buffer.hpp>

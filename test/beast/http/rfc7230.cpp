@@ -11,7 +11,7 @@
 #include <boost/beast/http/rfc7230.hpp>
 
 #include <boost/beast/http/detail/rfc7230.hpp>
-#include <boost/beast/unit_test/suite.hpp>
+#include <boost/beast/experimental/unit_test/suite.hpp>
 #include <string>
 #include <vector>
 

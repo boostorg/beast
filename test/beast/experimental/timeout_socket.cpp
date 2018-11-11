@@ -13,7 +13,7 @@
 #include <boost/beast/experimental/core/timeout_service.hpp>
 
 #include <boost/beast/test/yield_to.hpp>
-#include <boost/beast/unit_test/suite.hpp>
+#include <boost/beast/experimental/unit_test/suite.hpp>
 #include <boost/asio/ip/tcp.hpp>
 #include <thread>
 

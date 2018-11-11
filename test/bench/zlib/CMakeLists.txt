@@ -7,11 +7,10 @@
 # Official repository: https://github.com/boostorg/beast
 #
 
-GroupSources(include/boost/beast beast)
-GroupSources(test/extras/include/boost/beast extras)
-GroupSources(subtree/unit_test/include/boost/beast extras)
-GroupSources(test/extern/zlib-1.2.11 zlib)
-GroupSources(test/bench/zlib "/")
+GroupSources (include/boost/beast beast)
+GroupSources (test/extras/include/boost/beast extras)
+GroupSources (test/extern/zlib-1.2.11 zlib)
+GroupSources (test/bench/zlib "/")
 
 if (MSVC)
     set_source_files_properties (${ZLIB_SOURCES} PROPERTIES COMPILE_FLAGS "/wd4127 /wd4131 /wd4244")

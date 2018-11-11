@@ -11,7 +11,7 @@
 #include <boost/beast/http/serializer.hpp>
 
 #include <boost/beast/http/string_body.hpp>
-#include <boost/beast/unit_test/suite.hpp>
+#include <boost/beast/experimental/unit_test/suite.hpp>
 
 namespace boost {
 namespace beast {

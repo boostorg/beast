@@ -9,10 +9,17 @@
 
 add_definitions (-DBOOST_BEAST_ALLOW_DEPRECATED)
 
-GroupSources(include/boost/beast beast)
-GroupSources(test/extras/include/boost/beast extras)
-GroupSources(subtree/unit_test/include/boost/beast extras)
-GroupSources(test/beast "/")
+add_subdirectory (core)
+add_subdirectory (experimental)
+add_subdirectory (http)
+add_subdirectory (websocket)
+add_subdirectory (zlib)
+
+#-------------------------------------------------------------------------------
+
+GroupSources (include/boost/beast beast)
+GroupSources (test/extras/include/boost/beast extras)
+GroupSources (test/beast "/")
 
 add_executable (tests-beast
     ${BOOST_BEAST_FILES}
@@ -25,11 +32,5 @@ add_executable (tests-beast
     websocket.cpp
     zlib.cpp
 )
-
-add_subdirectory (core)
-add_subdirectory (experimental)
-add_subdirectory (http)
-add_subdirectory (websocket)
-add_subdirectory (zlib)
 
 set_property(TARGET tests-beast PROPERTY FOLDER "tests")

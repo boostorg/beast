@@ -14,7 +14,7 @@
 #include <boost/beast/http/string_body.hpp>
 #include <boost/beast/http/fields.hpp>
 #include <boost/beast/http/string_body.hpp>
-#include <boost/beast/unit_test/suite.hpp>
+#include <boost/beast/experimental/unit_test/suite.hpp>
 #include <type_traits>
 
 namespace boost {

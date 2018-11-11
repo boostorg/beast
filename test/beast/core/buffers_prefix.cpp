@@ -13,7 +13,7 @@
 #include <boost/beast/core/buffers_suffix.hpp>
 #include <boost/beast/core/buffers_to_string.hpp>
 #include <boost/beast/core/type_traits.hpp>
-#include <boost/beast/unit_test/suite.hpp>
+#include <boost/beast/experimental/unit_test/suite.hpp>
 #include <boost/asio/buffer.hpp>
 #include <string>
 

@@ -7,11 +7,10 @@
 # Official repository: https://github.com/boostorg/beast
 #
 
-GroupSources(test/extras/include/boost/beast extras)
-GroupSources(subtree/unit_test/include/boost/beast extras)
-GroupSources(include/boost/beast beast)
-GroupSources(test/beast/http "/")
-GroupSources(test/bench/parser "/")
+GroupSources (include/boost/beast beast)
+GroupSources (test/extras/include/boost/beast extras)
+GroupSources (test/beast/http "/")
+GroupSources (test/bench/parser "/")
 
 add_executable (bench-parser
     ${BOOST_BEAST_FILES}

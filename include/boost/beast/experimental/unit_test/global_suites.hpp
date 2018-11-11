@@ -10,7 +10,7 @@
 #ifndef BOOST_BEAST_UNIT_TEST_GLOBAL_SUITES_HPP
 #define BOOST_BEAST_UNIT_TEST_GLOBAL_SUITES_HPP
 
-#include <boost/beast/unit_test/suite_list.hpp>
+#include <boost/beast/experimental/unit_test/suite_list.hpp>
 
 namespace boost {
 namespace beast {

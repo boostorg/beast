@@ -10,8 +10,8 @@
 #ifndef BOOST_BEAST_UNIT_TEST_REPORTER_HPP
 #define BOOST_BEAST_UNIT_TEST_REPORTER_HPP
 
-#include <boost/beast/unit_test/amount.hpp>
-#include <boost/beast/unit_test/recorder.hpp>
+#include <boost/beast/experimental/unit_test/amount.hpp>
+#include <boost/beast/experimental/unit_test/recorder.hpp>
 #include <algorithm>
 #include <chrono>
 #include <functional>

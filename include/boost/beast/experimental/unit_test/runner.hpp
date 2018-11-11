@@ -10,7 +10,7 @@
 #ifndef BOOST_BEAST_UNIT_TEST_RUNNER_H_INCLUDED
 #define BOOST_BEAST_UNIT_TEST_RUNNER_H_INCLUDED
 
-#include <boost/beast/unit_test/suite_info.hpp>
+#include <boost/beast/experimental/unit_test/suite_info.hpp>
 #include <boost/assert.hpp>
 #include <mutex>
 #include <ostream>

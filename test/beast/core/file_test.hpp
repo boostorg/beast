@@ -11,7 +11,7 @@
 #define BOOST_BEAST_TEST_CORE_FILE_TEST_HPP
 
 #include <boost/beast/core/type_traits.hpp>
-#include <boost/beast/unit_test/suite.hpp>
+#include <boost/beast/experimental/unit_test/suite.hpp>
 #include <boost/config.hpp>
 #include <boost/filesystem.hpp>
 #include <string>

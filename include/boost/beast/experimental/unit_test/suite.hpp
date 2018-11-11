@@ -10,7 +10,7 @@
 #ifndef BOOST_BEAST_UNIT_TEST_SUITE_HPP
 #define BOOST_BEAST_UNIT_TEST_SUITE_HPP
 
-#include <boost/beast/unit_test/runner.hpp>
+#include <boost/beast/experimental/unit_test/runner.hpp>
 #include <boost/throw_exception.hpp>
 #include <ostream>
 #include <sstream>
@@ -684,7 +684,7 @@ run(runner& r)
 #define BEAST_DEFINE_TESTSUITE(Class,Module,Library)
 
 #else
-#include <boost/beast/unit_test/global_suites.hpp>
+#include <boost/beast/experimental/unit_test/global_suites.hpp>
 #define BEAST_DEFINE_TESTSUITE(Library,Module,Class) \
         BEAST_DEFINE_TESTSUITE_INSERT(Library,Module,Class,false)
 #define BEAST_DEFINE_TESTSUITE_MANUAL(Library,Module,Class) \

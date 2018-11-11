@@ -11,7 +11,7 @@
 #include <boost/beast/zlib/deflate_stream.hpp>
 
 #include <boost/beast/core/string.hpp>
-#include <boost/beast/unit_test/suite.hpp>
+#include <boost/beast/experimental/unit_test/suite.hpp>
 #include <cstdint>
 #include <random>
 

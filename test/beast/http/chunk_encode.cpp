@@ -16,7 +16,7 @@
 #include <boost/beast/core/static_string.hpp>
 #include <boost/beast/http/fields.hpp>
 #include <boost/beast/test/fuzz.hpp>
-#include <boost/beast/unit_test/suite.hpp>
+#include <boost/beast/experimental/unit_test/suite.hpp>
 #include <boost/optional.hpp>
 #include <random>
 

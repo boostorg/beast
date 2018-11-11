@@ -10,7 +10,7 @@
 #ifndef BOOST_BEAST_UNIT_TEST_MATCH_HPP
 #define BOOST_BEAST_UNIT_TEST_MATCH_HPP
 
-#include <boost/beast/unit_test/suite_info.hpp>
+#include <boost/beast/experimental/unit_test/suite_info.hpp>
 #include <string>
 
 namespace boost {

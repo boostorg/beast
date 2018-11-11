@@ -9,16 +9,13 @@
 
 include_directories (./extern)
 include_directories (./extras/include)
-include_directories (../subtree/unit_test/include)
 
 file (GLOB_RECURSE EXTRAS_FILES
     ${PROJECT_SOURCE_DIR}/test/extras/include/*.hpp
     ${PROJECT_SOURCE_DIR}/test/extras/include/*.ipp
-    ${PROJECT_SOURCE_DIR}/subtree/unit_test/include/*.hpp
-    ${PROJECT_SOURCE_DIR}/subtree/unit_test/include/*.ipp
     )
 
-set (TEST_MAIN ${PROJECT_SOURCE_DIR}/subtree/unit_test/include/boost/beast/unit_test/main.cpp)
+set (TEST_MAIN ${PROJECT_SOURCE_DIR}/include/boost/beast/experimental/unit_test/main.cpp)
 
 if (OPENSSL_FOUND)
     link_libraries (${OPENSSL_LIBRARIES})

@@ -7,11 +7,10 @@
 # Official repository: https://github.com/boostorg/beast
 #
 
-GroupSources(example example)
-GroupSources(test/extras/include/boost/beast extras)
-GroupSources(subtree/unit_test/include/boost/beast extras)
-GroupSources(include/boost/beast beast)
-GroupSources(test/doc "/")
+GroupSources (include/boost/beast beast)
+GroupSources (example example)
+GroupSources (test/extras/include/boost/beast extras)
+GroupSources (test/doc "/")
 
 add_executable (tests-doc
     ${BOOST_BEAST_FILES}

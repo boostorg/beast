@@ -10,8 +10,8 @@
 #ifndef BOOST_BEAST_UNIT_TEST_SUITE_LIST_HPP
 #define BOOST_BEAST_UNIT_TEST_SUITE_LIST_HPP
 
-#include <boost/beast/unit_test/suite_info.hpp>
-#include <boost/beast/unit_test/detail/const_container.hpp>
+#include <boost/beast/experimental/unit_test/suite_info.hpp>
+#include <boost/beast/experimental/unit_test/detail/const_container.hpp>
 #include <boost/assert.hpp>
 #include <typeindex>
 #include <set>

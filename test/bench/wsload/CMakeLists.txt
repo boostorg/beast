@@ -7,11 +7,10 @@
 # Official repository: https://github.com/boostorg/beast
 #
 
-GroupSources(include/boost/beast beast)
-GroupSources(example/common common)
-GroupSources(test/extras/include/boost/beast extras)
-GroupSources(subtree/unit_test/include/boost/beast extras)
-GroupSources(test/bench/wsload "/")
+GroupSources (include/boost/beast beast)
+GroupSources (example/common common)
+GroupSources (test/extras/include/boost/beast extras)
+GroupSources (test/bench/wsload "/")
 
 add_executable (bench-wsload
     ${BOOST_BEAST_FILES}

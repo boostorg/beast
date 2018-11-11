@@ -12,7 +12,7 @@
 
 #include <boost/beast/core/buffers_to_string.hpp>
 #include <boost/beast/core/multi_buffer.hpp>
-#include <boost/beast/unit_test/suite.hpp>
+#include <boost/beast/experimental/unit_test/suite.hpp>
 #include <ostream>
 
 namespace boost {

@@ -7,10 +7,9 @@
 # Official repository: https://github.com/boostorg/beast
 #
 
-GroupSources(test/extras/include/boost/beast extras)
-GroupSources(subtree/unit_test/include/boost/beast extras)
-GroupSources(include/boost/beast beast)
-GroupSources(test/bench/utf8_checker "/")
+GroupSources (include/boost/beast beast)
+GroupSources (test/extras/include/boost/beast extras)
+GroupSources (test/bench/utf8_checker "/")
 
 add_executable (bench-utf8-checker
     ${BOOST_BEAST_FILES}
