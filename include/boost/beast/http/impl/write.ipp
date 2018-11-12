@@ -12,8 +12,9 @@
 
 #include <boost/beast/http/type_traits.hpp>
 #include <boost/beast/core/bind_handler.hpp>
-#include <boost/beast/core/ostream.hpp>
+#include <boost/beast/core/buffers_range.hpp>
 #include <boost/beast/core/handler_ptr.hpp>
+#include <boost/beast/core/ostream.hpp>
 #include <boost/beast/core/type_traits.hpp>
 #include <boost/beast/core/detail/config.hpp>
 #include <boost/asio/associated_allocator.hpp>
@@ -935,7 +936,7 @@ public:
         if(os_.fail())
             return;
         std::size_t bytes_transferred = 0;
-        for(auto b : buffers_range(buffers))
+        for(auto b : beast::buffers_range(std::ref(buffers)))
         {
             os_.write(static_cast<char const*>(
                 b.data()), b.size());

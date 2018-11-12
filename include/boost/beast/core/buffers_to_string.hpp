@@ -11,7 +11,7 @@
 #define BOOST_BEAST_BUFFERS_TO_STRING_HPP
 
 #include <boost/beast/core/detail/config.hpp>
-#include <boost/beast/core/detail/type_traits.hpp>
+#include <boost/beast/core/buffers_range.hpp>
 #include <boost/asio/buffer.hpp>
 #include <string>
 
@@ -41,16 +41,17 @@ namespace beast {
     @endcode
 */
 template<class ConstBufferSequence>
-inline
 std::string
 buffers_to_string(ConstBufferSequence const& buffers)
 {
+    static_assert(
+        boost::asio::is_const_buffer_sequence<ConstBufferSequence>::value,
+        "ConstBufferSequence requirements not met");
     std::string result;
     result.reserve(boost::asio::buffer_size(buffers));
-    for(boost::asio::const_buffer buffer :
-            detail::buffers_range(buffers))
-        result.append(static_cast<
-            char const*>(buffer.data()), buffer.size());
+    for(auto const buffer : buffers_range(std::ref(buffers)))
+        result.append(static_cast<char const*>(
+            buffer.data()), buffer.size());
     return result;
 }
 

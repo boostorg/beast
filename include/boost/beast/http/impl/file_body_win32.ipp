@@ -13,6 +13,7 @@
 #if BOOST_BEAST_USE_WIN32_FILE
 
 #include <boost/beast/core/bind_handler.hpp>
+#include <boost/beast/core/buffers_range.hpp>
 #include <boost/beast/core/type_traits.hpp>
 #include <boost/beast/core/detail/clamp.hpp>
 #include <boost/beast/http/serializer.hpp>
@@ -191,7 +192,7 @@ struct basic_file_body<file_win32>
             error_code& ec)
         {
             std::size_t nwritten = 0;
-            for(auto buffer : beast::detail::buffers_range(buffers))
+            for(auto buffer : beast::buffers_range(std::ref(buffers)))
             {
                 nwritten += body_.file_.write(
                     buffer.data(), buffer.size(), ec);

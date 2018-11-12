@@ -14,6 +14,7 @@
 
 #include <boost/beast/http/message.hpp>
 #include <boost/beast/http/rfc7230.hpp>
+#include <boost/beast/core/buffers_range.hpp>
 #include <boost/beast/core/error.hpp>
 #include <boost/beast/core/type_traits.hpp>
 #include <boost/asio/buffer.hpp>
@@ -268,7 +269,7 @@ nodejs_basic_parser<Derived>::write(
         ConstBufferSequence>::value,
             "ConstBufferSequence requirements not met");
     std::size_t bytes_used = 0;
-    for(auto buffer : beast::detail::buffers_range(buffers))
+    for(auto buffer : beast::buffers_range(std::ref(buffers)))
     {
         auto const n = write(
             static_cast<void const*>(buffer.data()),

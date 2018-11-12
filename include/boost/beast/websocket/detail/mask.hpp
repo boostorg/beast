@@ -11,7 +11,7 @@
 #define BOOST_BEAST_WEBSOCKET_DETAIL_MASK_HPP
 
 #include <boost/beast/core/detail/config.hpp>
-#include <boost/beast/core/detail/type_traits.hpp>
+#include <boost/beast/core/buffers_range.hpp>
 #include <boost/asio/buffer.hpp>
 #include <array>
 #include <climits>
@@ -76,7 +76,7 @@ void
 mask_inplace(MutableBuffers const& bs, KeyType& key)
 {
     for(boost::asio::mutable_buffer b :
-            beast::detail::buffers_range(bs))
+            beast::buffers_range(std::ref(bs)))
         mask_inplace(b, key);
 }
 

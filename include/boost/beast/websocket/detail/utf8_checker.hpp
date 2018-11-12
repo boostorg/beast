@@ -10,7 +10,7 @@
 #ifndef BOOST_BEAST_WEBSOCKET_DETAIL_UTF8_CHECKER_HPP
 #define BOOST_BEAST_WEBSOCKET_DETAIL_UTF8_CHECKER_HPP
 
-#include <boost/beast/core/type_traits.hpp>
+#include <boost/beast/core/buffers_range.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/assert.hpp>
 #include <algorithm>
@@ -88,7 +88,7 @@ write(ConstBufferSequence const& bs)
 {
     static_assert(boost::asio::is_const_buffer_sequence<ConstBufferSequence>::value,
         "ConstBufferSequence requirements not met");
-    for(auto b : beast::detail::buffers_range(bs))
+    for(auto b : beast::buffers_range(std::ref(bs)))
         if(! write(static_cast<
             std::uint8_t const*>(b.data()),
                 b.size()))

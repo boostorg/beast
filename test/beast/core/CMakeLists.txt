@@ -24,6 +24,7 @@ add_executable (tests-beast-core
     buffers_adapter.cpp
     buffers_cat.cpp
     buffers_prefix.cpp
+    buffers_range.cpp
     buffers_suffix.cpp
     buffers_to_string.cpp
     error.cpp

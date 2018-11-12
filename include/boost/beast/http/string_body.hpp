@@ -13,6 +13,7 @@
 #include <boost/beast/core/detail/config.hpp>
 #include <boost/beast/http/error.hpp>
 #include <boost/beast/http/message.hpp>
+#include <boost/beast/core/buffers_range.hpp>
 #include <boost/beast/core/detail/type_traits.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/optional.hpp>
@@ -131,7 +132,7 @@ public:
             }
             ec.assign(0, ec.category());
             CharT* dest = &body_[size];
-            for(auto b : beast::detail::buffers_range(buffers))
+            for(auto b : beast::buffers_range(std::ref(buffers)))
             {
                 Traits::copy(dest, static_cast<
                     CharT const*>(b.data()), b.size());

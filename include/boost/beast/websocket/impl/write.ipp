@@ -13,6 +13,7 @@
 #include <boost/beast/core/bind_handler.hpp>
 #include <boost/beast/core/buffers_cat.hpp>
 #include <boost/beast/core/buffers_prefix.hpp>
+#include <boost/beast/core/buffers_range.hpp>
 #include <boost/beast/core/buffers_suffix.hpp>
 #include <boost/beast/core/flat_static_buffer.hpp>
 #include <boost/beast/core/type_traits.hpp>
@@ -59,7 +60,7 @@ deflate(
     zs.next_in = nullptr;
     zs.avail_out = out.size();
     zs.next_out = out.data();
-    for(auto in : beast::detail::buffers_range(cb))
+    for(auto in : beast::buffers_range(std::ref(cb)))
     {
         zs.avail_in = in.size();
         if(zs.avail_in == 0)

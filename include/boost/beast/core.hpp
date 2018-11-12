@@ -17,6 +17,7 @@
 #include <boost/beast/core/buffers_adapter.hpp>
 #include <boost/beast/core/buffers_cat.hpp>
 #include <boost/beast/core/buffers_prefix.hpp>
+#include <boost/beast/core/buffers_range.hpp>
 #include <boost/beast/core/buffers_suffix.hpp>
 #include <boost/beast/core/buffers_to_string.hpp>
 #include <boost/beast/core/error.hpp>

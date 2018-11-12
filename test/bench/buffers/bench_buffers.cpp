@@ -7,6 +7,7 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
+#include <boost/beast/core/buffers_range.hpp>
 #include <boost/beast/core/flat_buffer.hpp>
 #include <boost/beast/core/multi_buffer.hpp>
 #include <boost/beast/core/read_size.hpp>
@@ -67,7 +68,7 @@ public:
     fill(MutableBufferSequence const& buffers)
     {
         std::size_t n = 0;
-        for(auto b : beast::detail::buffers_range(buffers))
+        for(auto b : beast::buffers_range(std::ref(buffers)))
         {
             std::fill(
                 static_cast<char*>(b.data()),

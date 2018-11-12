@@ -48,7 +48,7 @@ std::ostream&
 operator<<(std::ostream& os,
     buffers_helper<Buffers> const& v)
 {
-    for(auto b : buffers_range(v.b_))
+    for(auto b : buffers_range(std::ref(v.b_)))
         os.write(static_cast<char const*>(b.data()), b.size());
     return os;
 }
