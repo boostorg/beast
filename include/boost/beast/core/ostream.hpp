@@ -43,7 +43,7 @@ namespace beast {
 */
 template<class ConstBufferSequence>
 #if BOOST_BEAST_DOXYGEN
-implementation_defined
+__implementation_defined__
 #else
 detail::buffers_helper<ConstBufferSequence>
 #endif
@@ -82,7 +82,7 @@ buffers(ConstBufferSequence const& b)
 */
 template<class DynamicBuffer>
 #if BOOST_BEAST_DOXYGEN
-implementation_defined
+__implementation_defined__
 #else
 detail::ostream_helper<
     DynamicBuffer, char, std::char_traits<char>,

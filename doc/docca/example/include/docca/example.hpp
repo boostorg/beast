@@ -67,13 +67,19 @@ using t_type = std::vector<T>;
 
     Description
 */
-using vod = void_or_deduced;
+using vod = __deduced__;
+
+/** See below
+
+    Description
+*/
+using sb = __see_below__;
 
 /** Implementation-defined
 
     Description
 */
-using impdef = implementation_defined;
+using impdef = __implementation_defined__;
 
 /** Variable
 

@@ -69,7 +69,7 @@ public:
         implementation of the corresponding @b BodyWriter.
     */
 #if BOOST_BEAST_DOXYGEN
-    using value_type = implementation_defined;
+    using value_type = __implementation_defined__;
 #else
     using value_type = typename std::conditional<
         std::is_constructible<typename Body::writer,

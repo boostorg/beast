@@ -96,7 +96,7 @@ struct buffer_body
         Meets the requirements of @b BodyReader.
     */
 #if BOOST_BEAST_DOXYGEN
-    using reader = implementation_defined;
+    using reader = __implementation_defined__;
 #else
     class reader
     {
@@ -154,7 +154,7 @@ struct buffer_body
         Meets the requirements of @b BodyWriter.
     */
 #if BOOST_BEAST_DOXYGEN
-    using writer = implementation_defined;
+    using writer = __implementation_defined__;
 #else
     class writer
     {

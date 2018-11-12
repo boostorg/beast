@@ -178,11 +178,17 @@
   </xsl:variable>
   <xsl:variable name="cleaned">
     <xsl:choose>
-      <xsl:when test="$type='implementation_defined'">
+      <xsl:when test="$type='__implementation_defined__'">
         <xsl:text>``['implementation-defined]``</xsl:text>
       </xsl:when>
+      <xsl:when test="$type='__see_below__'">
+        <xsl:text>``['see-below]``</xsl:text>
+      </xsl:when>
+      <xsl:when test="$type='__deduced__'">
+        <xsl:text>``__deduced__``</xsl:text>
+      </xsl:when>
       <xsl:when test="$type='void_or_deduced'">
-        <xsl:text>``__void_or_deduced__``</xsl:text>
+        <xsl:text>``__deduced__``</xsl:text>
       </xsl:when>
       <xsl:otherwise>
         <xsl:value-of select="$type"/>

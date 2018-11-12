@@ -36,7 +36,7 @@ public:
 
     /// A constant iterator to a list element.
 #if BOOST_BEAST_DOXYGEN
-    using const_iterator = implementation_defined;
+    using const_iterator = __implementation_defined__;
 #else
     class const_iterator;
 #endif

@@ -66,7 +66,7 @@ public:
 
 #if BOOST_BEAST_DOXYGEN
     /// A bidirectional iterator type that may be used to read elements.
-    using const_iterator = implementation_defined;
+    using const_iterator = __implementation_defined__;
 
 #else
     class const_iterator;

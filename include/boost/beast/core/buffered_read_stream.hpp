@@ -174,7 +174,7 @@ public:
         `NextLayer` has a member function named `get_executor`.
     */
 #if BOOST_BEAST_DOXYGEN
-    implementation_defined
+    __implementation_defined__
 #else
     template<
         class T = next_layer_type,

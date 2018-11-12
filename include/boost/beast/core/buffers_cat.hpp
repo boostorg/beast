@@ -34,7 +34,7 @@ public:
         Otherwise, `value_type` will be `boost::asio::const_buffer`.
     */
 #if BOOST_BEAST_DOXYGEN
-    using value_type = implementation_defined;
+    using value_type = __implementation_defined__;
 #else
     using value_type = typename
         detail::common_buffers_type<Buffers...>::type;

@@ -77,10 +77,10 @@ public:
 
 #if BOOST_BEAST_DOXYGEN
     /// The type used to represent the input sequence as a list of buffers.
-    using const_buffers_type = implementation_defined;
+    using const_buffers_type = __implementation_defined__;
 
     /// The type used to represent the output sequence as a list of buffers.
-    using mutable_buffers_type = implementation_defined;
+    using mutable_buffers_type = __implementation_defined__;
 
 #else
     class const_buffers_type;

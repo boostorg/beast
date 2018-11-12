@@ -117,7 +117,7 @@ public:
         The case-comparison operation is defined only for low-ASCII characters.
     */
 #if BOOST_BEAST_DOXYGEN
-    using key_compare = implementation_defined;
+    using key_compare = __implementation_defined__;
 #else
     struct key_compare : beast::iless
 #endif
@@ -164,7 +164,7 @@ public:
 
     /// The algorithm used to serialize the header
 #if BOOST_BEAST_DOXYGEN
-    using writer = implementation_defined;
+    using writer = __implementation_defined__;
 #else
     class writer;
 #endif
@@ -277,7 +277,7 @@ public:
 public:
     /// A constant iterator to the field sequence.
 #if BOOST_BEAST_DOXYGEN
-    using const_iterator = implementation_defined;
+    using const_iterator = __implementation_defined__;
 #else
     using const_iterator = typename list_t::const_iterator;
 #endif

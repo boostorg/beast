@@ -54,7 +54,7 @@ namespace beast {
 */
 template<class Handler, class... Args>
 #if BOOST_BEAST_DOXYGEN
-implementation_defined
+__implementation_defined__
 #else
 detail::bound_handler<
     typename std::decay<Handler>::type, Args...>

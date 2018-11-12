@@ -46,7 +46,7 @@ struct chunk_crlf
 
     /// Required for @b ConstBufferSequence
 #if BOOST_BEAST_DOXYGEN
-    using value_type = implementation_defined;
+    using value_type = __implementation_defined__;
 #else
     using value_type = detail::chunk_crlf_iter::value_type;
 #endif
@@ -229,14 +229,14 @@ public:
 
     /// Required for @b ConstBufferSequence
 #if BOOST_BEAST_DOXYGEN
-    using value_type = implementation_defined;
+    using value_type = __implementation_defined__;
 #else
     using value_type = typename view_type::value_type;
 #endif
 
     /// Required for @b ConstBufferSequence
 #if BOOST_BEAST_DOXYGEN
-    using const_iterator = implementation_defined;
+    using const_iterator = __implementation_defined__;
 #else
     using const_iterator = typename view_type::const_iterator;
 #endif
@@ -423,14 +423,14 @@ public:
 
     /// Required for @b ConstBufferSequence
 #if BOOST_BEAST_DOXYGEN
-    using value_type = implementation_defined;
+    using value_type = __implementation_defined__;
 #else
     using value_type = typename view_type::value_type;
 #endif
 
     /// Required for @b ConstBufferSequence
 #if BOOST_BEAST_DOXYGEN
-    using const_iterator = implementation_defined;
+    using const_iterator = __implementation_defined__;
 #else
     using const_iterator = typename view_type::const_iterator;
 #endif
@@ -528,7 +528,7 @@ public:
 
     /// Required for @b ConstBufferSequence
 #if BOOST_BEAST_DOXYGEN
-    using value_type = implementation_defined;
+    using value_type = __implementation_defined__;
 #else
     using value_type =
         typename view_type::value_type;
@@ -536,7 +536,7 @@ public:
 
     /// Required for @b ConstBufferSequence
 #if BOOST_BEAST_DOXYGEN
-    using const_iterator = implementation_defined;
+    using const_iterator = __implementation_defined__;
 #else
     using const_iterator =
         typename view_type::const_iterator;

@@ -82,7 +82,7 @@ public:
         `boost::asio::const_buffer`.
     */
 #if BOOST_BEAST_DOXYGEN
-    using value_type = implementation_defined;
+    using value_type = __implementation_defined__;
 #else
     using value_type = typename std::conditional<
         std::is_convertible<typename
@@ -94,7 +94,7 @@ public:
 
 #if BOOST_BEAST_DOXYGEN
     /// A bidirectional iterator type that may be used to read elements.
-    using const_iterator = implementation_defined;
+    using const_iterator = __implementation_defined__;
 
 #else
     class const_iterator;
