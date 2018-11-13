@@ -197,7 +197,7 @@ script:
   - |-
     echo "using $TOOLSET : : $COMPILER : <cxxflags>-std=$CXXSTD ;" > ~/user-config.jam
   - cd ../boost-root
-  - travis_retry libs/beast/tools/build-and-test.sh
+  - libs/beast/tools/retry.sh libs/beast/tools/build-and-test.sh
 
 after_script:
   - cat nohup.out || echo "nohup.out already deleted"
