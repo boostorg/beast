@@ -165,13 +165,9 @@ void
 timeout_service::
 shutdown() noexcept
 {
-    boost::asio::post(
-        boost::asio::bind_executor(
-            strand_,
-            [this]()
-            {
-                timer_.cancel();
-            }));
+    // When shutdown() is called the ExecutionContext must already be in a
+    // stopped state, so it's safe to just cancel() without synchronization.
+    timer_.cancel();
 }
 
 } // detail
