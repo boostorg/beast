@@ -5,6 +5,7 @@ Version 191:
 * Simplify some type traits
 * Use lean_tuple in buffers_cat
 * Use lean_tuple in bind_handler, bind_front_handler
+* Use mp11 in detail::variant
 
 --------------------------------------------------------------------------------
 
