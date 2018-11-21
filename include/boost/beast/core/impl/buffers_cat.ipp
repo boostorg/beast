@@ -10,6 +10,7 @@
 #ifndef BOOST_BEAST_IMPL_BUFFERS_CAT_IPP
 #define BOOST_BEAST_IMPL_BUFFERS_CAT_IPP
 
+#include <boost/beast/core/detail/lean_tuple.hpp>
 #include <boost/beast/core/detail/type_traits.hpp>
 #include <boost/beast/core/detail/variant.hpp>
 #include <boost/asio/buffer.hpp>
@@ -18,7 +19,6 @@
 #include <iterator>
 #include <new>
 #include <stdexcept>
-#include <tuple>
 #include <utility>
 
 namespace boost {
@@ -42,7 +42,7 @@ class buffers_cat_view<Bn...>::const_iterator
         }
     };
 
-    std::tuple<Bn...> const* bn_ = nullptr;
+    detail::lean_tuple<Bn...> const* bn_ = nullptr;
     detail::variant<typename
         detail::buffer_sequence_iterator<Bn>::type...,
             past_end> it_;
@@ -98,18 +98,18 @@ public:
 
 private:
     const_iterator(
-        std::tuple<Bn...> const& bn, bool at_end);
+        detail::lean_tuple<Bn...> const& bn, bool at_end);
 
     template<std::size_t I>
     void
     construct(C<I> const&)
     {
         if(boost::asio::buffer_size(
-            std::get<I>(*bn_)) != 0)
+            detail::get<I>(*bn_)) != 0)
         {
             it_.template emplace<I+1>(
                 boost::asio::buffer_sequence_begin(
-                    std::get<I>(*bn_)));
+                    detail::get<I>(*bn_)));
             return;
         }
         construct(C<I+1>{});
@@ -121,7 +121,7 @@ private:
         auto constexpr I = sizeof...(Bn)-1;
         it_.template emplace<I+1>(
             boost::asio::buffer_sequence_begin(
-                std::get<I>(*bn_)));
+                detail::get<I>(*bn_)));
     }
 
     void
@@ -137,11 +137,11 @@ private:
     next(C<I> const&)
     {
         if(boost::asio::buffer_size(
-            std::get<I>(*bn_)) != 0)
+            detail::get<I>(*bn_)) != 0)
         {
             it_.template emplace<I+1>(
                 boost::asio::buffer_sequence_begin(
-                    std::get<I>(*bn_)));
+                    detail::get<I>(*bn_)));
             return;
         }
         next(C<I+1>{});
@@ -160,11 +160,11 @@ private:
     prev(C<I> const&)
     {
         if(boost::asio::buffer_size(
-            std::get<I>(*bn_)) != 0)
+            detail::get<I>(*bn_)) != 0)
         {
             it_.template emplace<I+1>(
                 boost::asio::buffer_sequence_end(
-                    std::get<I>(*bn_)));
+                    detail::get<I>(*bn_)));
             return;
         }
         prev(C<I-1>{});
@@ -176,7 +176,7 @@ private:
         auto constexpr I = 0;
         it_.template emplace<I+1>(
             boost::asio::buffer_sequence_end(
-                std::get<I>(*bn_)));
+                detail::get<I>(*bn_)));
     }
 
     template<std::size_t I>
@@ -204,7 +204,7 @@ private:
         {
             if(++it_.template get<I+1>() !=
                 boost::asio::buffer_sequence_end(
-                    std::get<I>(*bn_)))
+                    detail::get<I>(*bn_)))
                 return;
             return next(C<I+1>{});
         }
@@ -236,7 +236,7 @@ private:
         {
             if(it_.template get<I+1>() !=
                 boost::asio::buffer_sequence_begin(
-                    std::get<I>(*bn_)))
+                    detail::get<I>(*bn_)))
             {
                 --it_.template get<I+1>();
                 return;
@@ -252,7 +252,7 @@ private:
         auto constexpr I = 0;
         if(it_.template get<I+1>() !=
             boost::asio::buffer_sequence_begin(
-                std::get<I>(*bn_)))
+                detail::get<I>(*bn_)))
         {
             --it_.template get<I+1>();
             return;
@@ -268,7 +268,7 @@ template<class... Bn>
 buffers_cat_view<Bn...>::
 const_iterator::
 const_iterator(
-    std::tuple<Bn...> const& bn, bool at_end)
+    detail::lean_tuple<Bn...> const& bn, bool at_end)
     : bn_(&bn)
 {
     if(! at_end)
