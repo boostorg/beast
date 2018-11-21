@@ -17,7 +17,9 @@ if [[ $TRAVIS_BRANCH == "master" || $TRAVIS_BRANCH == "develop" ]]; then
     MAIN_BRANCH="1"
 fi
 
-if [[ "${TRAVIS}" == "true" ]]; then
+if [[ "${BEAST_RETRY}" == "true" ]]; then
+  JOBS=1
+elif [[ "${TRAVIS}" == "true" ]]; then
   JOBS="2"
 elif [[ $(uname -s) == "Linux" ]]; then
   # Physical cores
