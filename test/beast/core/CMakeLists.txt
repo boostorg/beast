@@ -46,6 +46,7 @@ add_executable (tests-beast-core
     type_traits.cpp
     detail/base64.cpp
     detail/clamp.cpp
+    detail/lean_tuple.cpp
     detail/sha1.cpp
     detail/variant.cpp
     detail/varint.cpp
