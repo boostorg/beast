@@ -110,7 +110,7 @@ matrix:
             - *base_sources
 
     # OSX Clang, C++14, Debug
-  # - if: branch != master 
+  # - if: branch != master
     - os: osx
       compiler: clang++
       env:
@@ -172,6 +172,7 @@ install:
   - git submodule update --init libs/logic
   - git submodule update --init libs/math
   - git submodule update --init libs/move
+  - git submodule update --init libs/mp11
   - git submodule update --init libs/mpl
   - git submodule update --init libs/numeric/conversion
   - git submodule update --init libs/pool
