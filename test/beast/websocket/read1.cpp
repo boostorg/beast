@@ -14,11 +14,19 @@
 
 #include <boost/asio/write.hpp>
 
+#include <boost/config/workaround.hpp>
+#if BOOST_WORKAROUND(BOOST_GCC, < 80200)
+#define BOOST_BEAST_SYMBOL_HIDDEN __attribute__ ((visibility("hidden")))
+#else
+#define BOOST_BEAST_SYMBOL_HIDDEN
+#endif
+
 namespace boost {
 namespace beast {
 namespace websocket {
 
-class read1_test : public websocket_test_suite
+class BOOST_BEAST_SYMBOL_HIDDEN read1_test
+    : public websocket_test_suite
 {
 public:
     template<class Wrap, bool deflateSupported>

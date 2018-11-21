@@ -5,6 +5,7 @@ Version 190:
 * Add buffers_range
 * Rename experimental directory
 * Improve compilation of tests for continuous integration
+* Fix visibility warnings in test
 
 --------------------------------------------------------------------------------
 
