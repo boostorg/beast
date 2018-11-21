@@ -293,7 +293,7 @@ operator()(
             BOOST_ASIO_CORO_YIELD
             boost::asio::post(
                 s_.get_executor(),
-                bind_handler(std::move(*this)));
+                std::move(*this));
             goto upcall;
         }
         for(;;)
@@ -990,7 +990,7 @@ operator<<(std::ostream& os,
         {
             os.setstate(std::ios::failbit);
             break;
-        }   
+        }
     }
     while(! sr.is_done());
     return os;
