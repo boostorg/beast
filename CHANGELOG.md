@@ -4,6 +4,7 @@ Version 190:
 * Unit test framework is experimental
 * Add buffers_range
 * Rename experimental directory
+* Improve compilation of tests for continuous integration
 
 --------------------------------------------------------------------------------
 
