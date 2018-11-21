@@ -1,3 +1,9 @@
+Version 191:
+
+* Add bind_front_handler
+
+--------------------------------------------------------------------------------
+
 Version 190:
 
 * Add missing includes to convenience headers

@@ -32,34 +32,7 @@ public:
         }
     };
 
-#if 0
-    // This function should fail to compile
-    void
-    failStdBind()
-    {
-        std::bind(bind_handler(handler<>{}));
-    }
-#endif
-
-    void
-    callback(int v)
-    {
-        BEAST_EXPECT(v == 42);
-    }
-    
-    void
-    testPlaceholders()
-    {
-        namespace ph = std::placeholders;
-        
-        bind_handler(handler<>{})();
-        bind_handler(handler<int>{}, 1)();
-        bind_handler(handler<int, std::string>{}, 1, "hello")();
-        bind_handler(handler<int>{}, ph::_1)(1);
-        bind_handler(handler<int, std::string>{}, ph::_1, ph::_2)(1, "hello");
-    }
-
-    struct copyable_handler
+    struct copyable
     {
         template<class... Args>
         void
@@ -68,44 +41,154 @@ public:
         }
     };
 
-    void
-    testAsioHandlerInvoke()
-    {
-        // make sure things compile, also can set a
-        // breakpoint in asio_handler_invoke to make sure
-        // it is instantiated.
-        boost::asio::io_context ioc;
-        boost::asio::io_service::strand s{ioc};
-        test::stream ts{ioc};
-        boost::asio::post(ioc.get_executor(),
-            s.wrap(copyable_handler{}));
-    }
-
     struct move_only
     {
         move_only() = default;
         move_only(move_only&&) = default;
         move_only(move_only const&) = delete;
+        void operator()() const{};
     };
 
     void
-    testMoveOnly()
+    callback(int v)
     {
-        bind_handler([](move_only){}, move_only{})();
-        bind_handler([](move_only){}, std::placeholders::_1)(move_only{});
-        bind_handler([](move_only, move_only){}, move_only{}, std::placeholders::_1)(move_only{});
+        BEAST_EXPECT(v == 42);
+    }
+
+#if 0
+    // This function should fail to compile
+    void
+    failStdBind()
+    {
+        std::bind(bind_handler(handler<>{}));
+    }
+    void
+    failStdBindFront()
+    {
+        std::bind(bind_front_handler(handler<>{}));
+    }
+#endif
+    
+    void
+    testBindHandler()
+    {
+        // invocation
+        {
+            auto f = bind_handler(std::bind(
+                &bind_handler_test::callback, this,
+                    std::placeholders::_1), 42);
+            f();
+
+        }
+
+        // placeholders
+        {
+            namespace ph = std::placeholders;
+            bind_handler(handler<>{})();
+            bind_handler(handler<int>{}, 1)();
+            bind_handler(handler<int, std::string>{}, 1, "hello")();
+            bind_handler(handler<int>{}, ph::_1)(1);
+            bind_handler(handler<int, std::string>{}, ph::_1, ph::_2)(1, "hello");
+        }
+
+        // move-only
+        {
+            bind_handler([](move_only){}, move_only{})();
+            bind_handler([](move_only){}, std::placeholders::_1)(move_only{});
+            bind_handler([](move_only, move_only){}, move_only{}, std::placeholders::_1)(move_only{});
+        }
+
+        // asio_handler_invoke
+        {
+            // make sure things compile, also can set a
+            // breakpoint in asio_handler_invoke to make sure
+            // it is instantiated.
+            boost::asio::io_context ioc;
+            boost::asio::strand<
+                boost::asio::io_context::executor_type> s{
+                    ioc.get_executor()};
+            test::stream ts{ioc};
+            boost::asio::post(s,
+                bind_handler(copyable{}, 42));
+        }
+    }
+
+    void
+    testBindFrontHandler()
+    {
+        // invocation
+        {
+            bind_front_handler(
+                std::bind(
+                    &bind_handler_test::callback,
+                    this,
+                    42));
+
+            bind_front_handler(
+                std::bind(
+                    &bind_handler_test::callback,
+                    this,
+                    std::placeholders::_1), 42);
+
+            bind_front_handler(
+                std::bind(
+                    &bind_handler_test::callback,
+                    this,
+                    std::placeholders::_1))(42);
+
+            bind_front_handler(
+                bind_front_handler(
+                    std::bind(
+                        &bind_handler_test::callback,
+                        this,
+                        std::placeholders::_1)),
+                42);
+
+            bind_front_handler(
+                bind_front_handler(
+                    std::bind(
+                        &bind_handler_test::callback,
+                        this,
+                        std::placeholders::_1)))(42);
+        }
+
+        // move-only
+        {
+            bind_front_handler([]{});
+        }
+        
+        // specializations
+        {
+            bind_front_handler(copyable{});
+            bind_front_handler(copyable{}, 1);
+            bind_front_handler(copyable{}, 1, 2);
+            bind_front_handler(copyable{}, 1, 2, 3);
+            bind_front_handler(copyable{}, 1, 2, 3, 4);
+
+            bind_front_handler(copyable{},
+                error_code{}, std::size_t(4));
+        }
+
+        // asio_handler_invoke
+        {
+            // make sure things compile, also can set a
+            // breakpoint in asio_handler_invoke to make sure
+            // it is instantiated.
+            boost::asio::io_context ioc;
+            boost::asio::strand<
+                boost::asio::io_context::executor_type> s{
+                    ioc.get_executor()};
+            test::stream ts{ioc};
+            boost::asio::post(s,
+                bind_front_handler(copyable{}, 42));
+        }
     }
 
     void
     run() override
     {
-        auto f = bind_handler(std::bind(
-            &bind_handler_test::callback, this,
-                std::placeholders::_1), 42);
-        f();
-        testPlaceholders();
-        testAsioHandlerInvoke();
-        testMoveOnly();
+        testBindHandler();
+        testBindFrontHandler();
     }
 };
 

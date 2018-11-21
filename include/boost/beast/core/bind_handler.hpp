@@ -56,7 +56,7 @@ template<class Handler, class... Args>
 #if BOOST_BEAST_DOXYGEN
 __implementation_defined__
 #else
-detail::bound_handler<
+detail::bind_wrapper<
     typename std::decay<Handler>::type, Args...>
 #endif
 bind_handler(Handler&& handler, Args&&... args)
@@ -67,9 +67,55 @@ bind_handler(Handler&& handler, Args&&... args)
         Handler, void(Args...)>::value,
             "Handler requirements not met");
 #endif
-    return detail::bound_handler<typename std::decay<
+    return detail::bind_wrapper<typename std::decay<
         Handler>::type, Args...>(std::forward<
             Handler>(handler), std::forward<Args>(args)...);
+}
+
+/** Bind parameters to a completion handler, creating a new handler.
+
+    This function creates a new handler which, when invoked, calls
+    the original handler with the list of bound arguments. Any
+    parameters passed in the invocation will be forwarded in
+    the parameter list after the bound arguments.
+
+    The passed handler and arguments are forwarded into the returned
+    handler, whose associated allocator and associated executor will
+    will be the same as those of the original handler.
+
+    Example:
+
+    @code
+    template<class AsyncReadStream, class ReadHandler>
+    void
+    signal_aborted(AsyncReadStream& stream, ReadHandler&& handler)
+    {
+        boost::asio::post(
+            stream.get_executor(),
+            bind_front_handler(std::forward<ReadHandler>(handler),
+                boost::asio::error::operation_aborted, 0));
+    }
+    @endcode
+
+    @param handler The handler to wrap.
+
+    @param args A list of arguments to bind to the handler.
+    The arguments are forwarded into the returned object.
+*/
+template<class Handler, class... Args>
+#if BOOST_BEAST_DOXYGEN
+__implementation_defined__
+#else
+auto
+#endif
+bind_front_handler(Handler&& handler, Args&&... args) ->
+    detail::bind_front_wrapper<typename
+        std::decay<Handler>::type, Args...>
+{
+    return detail::bind_front_wrapper<typename
+        std::decay<Handler>::type, Args...>(
+            std::forward<Handler>(handler),
+            std::forward<Args>(args)...);
 }
 
 } // beast
