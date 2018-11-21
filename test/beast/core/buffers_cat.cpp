@@ -224,7 +224,7 @@ public:
         using boost::beast::buffers_suffix;
         using boost::asio::buffer;
         using boost::asio::const_buffer;
-   
+
         char out[64];
         std::array<const_buffer, 2> buffers{
             {buffer("Hello, "), buffer("world!")}};
@@ -283,8 +283,8 @@ public:
             mutable_buffer,
             decltype(buffers_cat(
                 std::declval<mutable_buffer>(),
-                std::declval<user_defined>(),
-                std::declval<mutable_buffer>()
+                std::declval<mutable_buffer>(),
+                std::declval<std::vector<mutable_buffer>>()
                     ))::value_type>::value);
 
         // Ensure that concatenating mixed buffer

@@ -12,6 +12,7 @@
 
 #include <boost/beast/core/error.hpp>
 #include <boost/asio/buffer.hpp>
+#include <boost/mp11/function.hpp>
 #include <boost/type_traits.hpp>
 #include <iterator>
 #include <tuple>
@@ -87,34 +88,6 @@ template<class T>
 inline
 void
 accept_rv(T){}
-
-//------------------------------------------------------------------------------
-
-template<unsigned N, class T, class... Tn>
-struct repeat_tuple_impl
-{
-    using type = typename repeat_tuple_impl<
-        N - 1, T, T, Tn...>::type;
-};
-
-template<class T, class... Tn>
-struct repeat_tuple_impl<0, T, Tn...>
-{
-    using type = std::tuple<T, Tn...>;
-};
-
-template<unsigned N, class T>
-struct repeat_tuple
-{
-    using type =
-        typename repeat_tuple_impl<N-1, T>::type;
-};
-
-template<class T>
-struct repeat_tuple<0, T>
-{
-    using type = std::tuple<>;
-};
 
 //------------------------------------------------------------------------------
 
@@ -307,16 +280,9 @@ struct is_all_const_buffer_sequence<B>
 {
 };
 
-template<class... Bn>
-struct common_buffers_type
-{
-    using type = typename std::conditional<
-        boost::is_convertible<std::tuple<Bn...>,
-            typename repeat_tuple<sizeof...(Bn),
-                boost::asio::mutable_buffer>::type>::value,
-                    boost::asio::mutable_buffer,
-                        boost::asio::const_buffer>::type;
-};
+//
+// Returns the iterator type of a buffer sequence
+//
 
 template<class B>
 struct buffer_sequence_iterator
@@ -324,6 +290,60 @@ struct buffer_sequence_iterator
     using type = decltype(
         boost::asio::buffer_sequence_begin(
             std::declval<B const&>()));
+};
+
+template<>
+struct buffer_sequence_iterator<
+    boost::asio::const_buffer>
+{
+    using type = boost::asio::const_buffer const*;
+};
+
+template<>
+struct buffer_sequence_iterator<
+    boost::asio::mutable_buffer>
+{
+    using type = boost::asio::mutable_buffer const*;
+};
+
+//
+// Returns the value type of the iterator of a buffer sequence
+//
+
+template<class B>
+struct buffer_sequence_value_type
+{
+    using type = typename std::iterator_traits<
+        typename buffer_sequence_iterator<B>::type
+            >::value_type;
+};
+
+template<>
+struct buffer_sequence_value_type<
+    boost::asio::const_buffer const*>
+{
+    using type = boost::asio::const_buffer;
+};
+
+template<>
+struct buffer_sequence_value_type<
+    boost::asio::mutable_buffer const*>
+{
+    using type = boost::asio::mutable_buffer;
+};
+
+//
+
+template<class... Bn>
+struct common_buffers_type
+{
+    using type = typename std::conditional<
+        mp11::mp_and<
+            boost::is_convertible<
+                typename buffer_sequence_value_type<Bn>::type,
+                boost::asio::mutable_buffer>...>::value,
+            boost::asio::mutable_buffer,
+            boost::asio::const_buffer>::type;
 };
 
 // Types that meet the requirements,
