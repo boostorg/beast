@@ -4,6 +4,7 @@ Version 191:
 * Use bind_front_handler
 * Simplify some type traits
 * Use lean_tuple in buffers_cat
+* Use lean_tuple in bind_handler, bind_front_handler
 
 --------------------------------------------------------------------------------
 

@@ -77,7 +77,7 @@ get(lean_tuple_element<I, T>&& te)
 }
 
 template <std::size_t I, class T>
-using tuple_element_t = typename boost::copy_cv<
+using tuple_element = typename boost::copy_cv<
     mp11::mp_at_c<typename remove_cv<T>::type, I>, T>::type;
 
 } // detail

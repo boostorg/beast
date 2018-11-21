@@ -11,7 +11,7 @@
 #define BOOST_BEAST_DETAIL_BIND_HANDLER_HPP
 
 #include <boost/beast/core/error.hpp>
-#include <boost/beast/core/detail/integer_sequence.hpp>
+#include <boost/beast/core/detail/lean_tuple.hpp>
 #include <boost/asio/associated_allocator.hpp>
 #include <boost/asio/associated_executor.hpp>
 #include <boost/asio/handler_continuation_hook.hpp>
@@ -22,6 +22,8 @@
 #include <functional>
 #include <utility>
 
+#include <type_traits>
+
 namespace boost {
 namespace beast {
 namespace detail {
@@ -29,7 +31,7 @@ namespace detail {
 template<class Handler, class... Args>
 class bind_wrapper
 {
-    using args_type = std::tuple<
+    using args_type = detail::lean_tuple<
         typename std::decay<Args>::type...>;
 
     Handler h_;
@@ -59,13 +61,12 @@ class bind_wrapper
     typename std::enable_if<
         std::is_placeholder<typename
             std::decay<Arg>::type>::value != 0,
-        typename std::tuple_element<
-            std::is_placeholder<
-                typename std::decay<Arg>::type>::value - 1,
-        Vals>>::type::type&&
+        tuple_element<std::is_placeholder<
+            typename std::decay<Arg>::type>::value - 1,
+        Vals>>::type&&
     extract(Arg&&, Vals&& vals)
     {
-        return std::get<std::is_placeholder<
+        return detail::get<std::is_placeholder<
             typename std::decay<Arg>::type>::value - 1>(
                 std::forward<Vals>(vals));
     }
@@ -75,13 +76,12 @@ class bind_wrapper
     typename std::enable_if<
         boost::is_placeholder<typename
             std::decay<Arg>::type>::value != 0,
-        typename std::tuple_element<
-            boost::is_placeholder<
-                typename std::decay<Arg>::type>::value - 1,
-        Vals>>::type::type&&
+        tuple_element<boost::is_placeholder<
+            typename std::decay<Arg>::type>::value - 1,
+        Vals>>::type&&
     extract(Arg&&, Vals&& vals)
     {
-        return std::get<boost::is_placeholder<
+        return detail::get<boost::is_placeholder<
             typename std::decay<Arg>::type>::value - 1>(
                 std::forward<Vals>(vals));
     }
@@ -92,13 +92,13 @@ class bind_wrapper
     static
     void
     invoke(
-        Handler& w,
+        Handler& h,
         ArgsTuple& args,
-        std::tuple<>&&,
-        index_sequence<S...>)
+        lean_tuple<>&&,
+        mp11::index_sequence<S...>)
     {
         boost::ignore_unused(args);
-        w(std::get<S>(std::move(args))...);
+        h(detail::get<S>(std::move(args))...);
     }
 
     template<
@@ -108,14 +108,14 @@ class bind_wrapper
     static
     void
     invoke(
-        Handler& w,
+        Handler& h,
         ArgsTuple& args,
         ValsTuple&& vals,
-        index_sequence<S...>)
+        mp11::index_sequence<S...>)
     {
         boost::ignore_unused(args);
         boost::ignore_unused(vals);
-        w(extract(std::get<S>(std::move(args)),
+        h(extract(detail::get<S>(std::move(args)),
             std::forward<ValsTuple>(vals))...);
     }
 
@@ -164,9 +164,9 @@ public:
     operator()(Values&&... values)
     {
         invoke(h_, args_,
-            std::forward_as_tuple(
+            lean_tuple<Values&&...>(
                 std::forward<Values>(values)...),
-            index_sequence_for<Args...>());
+            mp11::index_sequence_for<Args...>());
     }
 
     template<class... Values>
@@ -174,9 +174,9 @@ public:
     operator()(Values&&... values) const
     {
         invoke(h_, args_,
-            std::forward_as_tuple(
+            lean_tuple<Values&&...>(
                 std::forward<Values>(values)...),
-            index_sequence_for<Args...>());
+            mp11::index_sequence_for<Args...>());
     }
 };
 
@@ -367,7 +367,7 @@ template<class Handler,
     class Arg1, class Arg2, class Arg3, class... Args>
 class bind_front_wrapper<Handler, Arg1, Arg2, Arg3, Args...>
 {
-    using args_type = std::tuple<
+    using args_type = lean_tuple<
         typename std::decay<Arg1>::type,
         typename std::decay<Arg2>::type,
         typename std::decay<Arg3>::type,
@@ -384,10 +384,10 @@ class bind_front_wrapper<Handler, Arg1, Arg2, Arg3, Args...>
     template<std::size_t... I, class... Ts>
     void
     invoke(
-        boost::mp11::index_sequence<I...>,
+        mp11::index_sequence<I...>,
         Ts&&... ts)
     {
-        h_( std::get<I>(std::move(args_))...,
+        h_( detail::get<I>(std::move(args_))...,
             std::forward<Ts>(ts)...);
     }
 
@@ -439,7 +439,7 @@ public:
     void operator()(Ts&&... ts)
     {
         invoke(
-            boost::mp11::index_sequence_for<
+            mp11::index_sequence_for<
                 Arg1, Arg2, Arg3, Args...>{},
             std::forward<Ts>(ts)...);
     }
