@@ -58,9 +58,6 @@ class handler_ptr
     void clear();
 
 public:
-    static_assert(std::is_nothrow_destructible<T>::value,
-        "T must be nothrow destructible");
-
     /// The type of element stored
     using element_type = T;
 
