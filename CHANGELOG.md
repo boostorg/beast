@@ -1,6 +1,7 @@
 Version 191:
 
 * Add bind_front_handler
+* Use bind_front_handler
 
 --------------------------------------------------------------------------------
 

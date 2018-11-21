@@ -304,7 +304,7 @@ operator()(
             BOOST_ASIO_CORO_YIELD
             boost::asio::post(
                 d.ws.get_executor(),
-                bind_handler(std::move(*this), ec));
+                bind_front_handler(std::move(*this), ec));
         }
         {
             auto wg = std::move(d.wg);

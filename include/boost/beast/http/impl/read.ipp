@@ -7,8 +7,8 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
-#ifndef BOOST_BEAST_HTTP_IMPL_READ_IPP_HPP
-#define BOOST_BEAST_HTTP_IMPL_READ_IPP_HPP
+#ifndef BOOST_BEAST_HTTP_IMPL_READ_IPP
+#define BOOST_BEAST_HTTP_IMPL_READ_IPP
 
 #include <boost/beast/http/type_traits.hpp>
 #include <boost/beast/http/error.hpp>
@@ -182,7 +182,7 @@ operator()(
             BOOST_ASIO_CORO_YIELD
             boost::asio::post(
                 s_.get_executor(),
-                bind_handler(std::move(*this),
+                bind_front_handler(std::move(*this),
                     ec, bytes_transferred_));
         }
         h_(ec, bytes_transferred_);
@@ -305,7 +305,7 @@ operator()(
         {
             BOOST_ASIO_CORO_YIELD
             boost::asio::post(s_.get_executor(),
-                bind_handler(std::move(*this), ec));
+                bind_front_handler(std::move(*this), ec));
             goto upcall;
         }
         for(;;)
