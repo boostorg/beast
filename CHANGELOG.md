@@ -7,6 +7,7 @@ Version 191:
 * Use lean_tuple in bind_handler, bind_front_handler
 * Use mp11 in detail::variant
 * Fix buffers_cat uninitialized warning
+* Fix static_string uninitialized warning
 
 --------------------------------------------------------------------------------
 

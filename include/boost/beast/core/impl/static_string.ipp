@@ -139,7 +139,9 @@ assign(static_string const& str) ->
     static_string&
 {
     n_ = str.n_;
-    Traits::copy(&s_[0], &str.s_[0], n_ + 1);
+    auto const n = n_ + 1;
+    BOOST_BEAST_ASSUME(n != 0);
+    Traits::copy(&s_[0], &str.s_[0], n);
     return *this;
 }
 

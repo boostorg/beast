@@ -51,4 +51,13 @@
 #define BOOST_BEAST_DEPRECATION_STRING \
     "This is a deprecated interface, #define BOOST_BEAST_ALLOW_DEPRECATED to allow it"
 
+#ifndef BOOST_BEAST_ASSUME
+# ifdef BOOST_GCC
+#  define BOOST_BEAST_ASSUME(cond) \
+    do { if (!(cond)) __builtin_unreachable(); } while (0)
+# else
+#  define BOOST_BEAST_ASSUME(cond) do { } while(0)
+# endif
+#endif
+
 #endif
