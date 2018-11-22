@@ -24,23 +24,38 @@
 namespace boost {
 namespace beast {
 
-template<class... Bn>
-class buffers_cat_view<Bn...>::const_iterator
-{
-    // VFALCO The logic to skip empty sequences fails
-    //        if there is just one buffer in the list.
-    static_assert(sizeof...(Bn) >= 2,
-        "A minimum of two sequences are required");
+namespace detail {
 
+struct buffers_cat_view_iterator_base
+{
     struct past_end
     {
         char unused = 0; // make g++8 happy
+
+        boost::asio::mutable_buffer
+        operator*() const
+        {
+            BOOST_THROW_EXCEPTION(std::logic_error{
+                "invalid iterator"});
+        }
 
         operator bool() const noexcept
         {
             return true;
         }
     };
+};
+
+} // detail
+
+template<class... Bn>
+class buffers_cat_view<Bn...>::const_iterator
+    : private detail::buffers_cat_view_iterator_base
+{
+    // VFALCO The logic to skip empty sequences fails
+    //        if there is just one buffer in the list.
+    static_assert(sizeof...(Bn) >= 2,
+        "A minimum of two sequences are required");
 
     detail::lean_tuple<Bn...> const* bn_ = nullptr;
     detail::variant<typename
@@ -102,38 +117,6 @@ private:
 
     template<std::size_t I>
     void
-    construct(C<I> const&)
-    {
-        if(boost::asio::buffer_size(
-            detail::get<I>(*bn_)) != 0)
-        {
-            it_.template emplace<I+1>(
-                boost::asio::buffer_sequence_begin(
-                    detail::get<I>(*bn_)));
-            return;
-        }
-        construct(C<I+1>{});
-    }
-
-    void
-    construct(C<sizeof...(Bn)-1> const&)
-    {
-        auto constexpr I = sizeof...(Bn)-1;
-        it_.template emplace<I+1>(
-            boost::asio::buffer_sequence_begin(
-                detail::get<I>(*bn_)));
-    }
-
-    void
-    construct(C<sizeof...(Bn)> const&)
-    {
-        // end
-        auto constexpr I = sizeof...(Bn);
-        it_.template emplace<I+1>();
-    }
-
-    template<std::size_t I>
-    void
     next(C<I> const&)
     {
         if(boost::asio::buffer_size(
@@ -179,45 +162,54 @@ private:
                 detail::get<I>(*bn_)));
     }
 
-    template<std::size_t I>
-    reference
-    dereference(C<I> const&) const
+    struct dereference
     {
-        if(it_.index() == I+1)
-            return *it_.template get<I+1>();
-        return dereference(C<I+1>{});
-    }
+        const_iterator const& self;
 
-    [[noreturn]]
-    reference
-    dereference(C<sizeof...(Bn)> const&) const
-    {
-        BOOST_THROW_EXCEPTION(std::logic_error{
-            "invalid iterator"});
-    }
-
-    template<std::size_t I>
-    void
-    increment(C<I> const&)
-    {
-        if(it_.index() == I+1)
+        [[noreturn]]
+        reference
+        operator()(mp11::mp_size_t<0>)
         {
-            if(++it_.template get<I+1>() !=
-                boost::asio::buffer_sequence_end(
-                    detail::get<I>(*bn_)))
-                return;
-            return next(C<I+1>{});
+            BOOST_THROW_EXCEPTION(std::logic_error{
+                "invalid iterator"});
         }
-        increment(C<I+1>{});
-    }
 
-    [[noreturn]]
-    void
-    increment(C<sizeof...(Bn)> const&)
+        template<class I>
+        reference operator()(I)
+        {
+            return *self.it_.template get<I::value>();
+        }
+    };
+
+    struct increment
     {
-        BOOST_THROW_EXCEPTION(std::logic_error{
-            "invalid iterator"});
-    }
+        const_iterator& self;
+
+        [[noreturn]]
+        void
+        operator()(mp11::mp_size_t<0>)
+        {
+            BOOST_THROW_EXCEPTION(std::logic_error{
+                "invalid iterator"});
+        }
+
+        [[noreturn]]
+        void
+        operator()(mp11::mp_size_t<sizeof...(Bn) + 1>)
+        {
+            (*this)(mp11::mp_size_t<0>{});
+        }
+
+        template<std::size_t I>
+        void
+        operator()(mp11::mp_size_t<I>)
+        {
+            auto& it = self.it_.template get<I>();
+            if (++it == boost::asio::buffer_sequence_end(
+                    detail::get<I - 1>(*self.bn_)))
+                self.next(C<I>());
+        }
+    };
 
     void
     decrement(C<sizeof...(Bn)> const&)
@@ -272,9 +264,9 @@ const_iterator(
     : bn_(&bn)
 {
     if(! at_end)
-        construct(C<0>{});
+        next(C<0>{});
     else
-        construct(C<sizeof...(Bn)>{});
+        next(C<sizeof...(Bn)>{});
 }
 
 template<class... Bn>
@@ -306,7 +298,10 @@ const_iterator::
 operator*() const ->
     reference
 {
-    return dereference(C<0>{});
+    return mp11::mp_with_index<
+        sizeof...(Bn) + 2>(
+            it_.index(),
+            dereference{*this});
 }
 
 template<class... Bn>
@@ -316,7 +311,10 @@ const_iterator::
 operator++() ->
     const_iterator&
 {
-    increment(C<0>{});
+    mp11::mp_with_index<
+        sizeof...(Bn) + 2>(
+            it_.index(),
+            increment{*this});
     return *this;
 }
 

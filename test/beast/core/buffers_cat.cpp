@@ -256,6 +256,16 @@ public:
             buffers_cat(buffers_prefix(i, buffers), cb));
     }
 
+    void
+    test_empty_buffer_sequences()
+    {
+        using boost::asio::buffer_size;
+        using boost::asio::const_buffer;
+        std::vector<const_buffer> v1;
+        std::vector<const_buffer> v2;
+        BEAST_EXPECT(buffer_size(buffers_cat(v1, v2)) == 0);
+    }
+
     void run() override
     {
         using boost::asio::const_buffer;
@@ -301,6 +311,7 @@ public:
         testIterators();
         testGccWarning1();
         testGccWarning2();
+        test_empty_buffer_sequences();
     }
 };
 
