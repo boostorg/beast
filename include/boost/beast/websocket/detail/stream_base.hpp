@@ -17,7 +17,6 @@
 #include <boost/beast/core/buffers_suffix.hpp>
 #include <boost/beast/core/error.hpp>
 #include <boost/beast/core/detail/chacha.hpp>
-#include <boost/beast/core/detail/integer_sequence.hpp>
 #include <boost/align/aligned_alloc.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/core/exchange.hpp>

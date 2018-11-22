@@ -16,8 +16,8 @@
 #include <boost/beast/http/status.hpp>
 #include <boost/beast/http/type_traits.hpp>
 #include <boost/beast/core/string.hpp>
-#include <boost/beast/core/detail/integer_sequence.hpp>
 #include <boost/core/empty_value.hpp>
+#include <boost/mp11/integer_sequence.hpp>
 #include <boost/assert.hpp>
 #include <boost/optional.hpp>
 #include <boost/throw_exception.hpp>
@@ -804,7 +804,7 @@ struct message
         @li @ref chunked would return `true`
 
         @li @ref result returns @ref status::no_content
-        
+
         @li @ref result returns @ref status::not_modified
 
         @li @ref result returns any informational status class (100 to 199)
@@ -901,7 +901,7 @@ private:
     message(
         std::piecewise_construct_t,
         std::tuple<BodyArgs...>& body_args,
-        beast::detail::index_sequence<IBodyArgs...>)
+        mp11::index_sequence<IBodyArgs...>)
         : boost::empty_value<
             typename Body::value_type>(boost::empty_init_t(),
                 std::forward<BodyArgs>(
@@ -919,8 +919,8 @@ private:
         std::piecewise_construct_t,
         std::tuple<BodyArgs...>& body_args,
         std::tuple<FieldsArgs...>& fields_args,
-        beast::detail::index_sequence<IBodyArgs...>,
-        beast::detail::index_sequence<IFieldsArgs...>)
+        mp11::index_sequence<IBodyArgs...>,
+        mp11::index_sequence<IFieldsArgs...>)
         : header_type(std::forward<FieldsArgs>(
             std::get<IFieldsArgs>(fields_args))...)
         , boost::empty_value<

@@ -1,3 +1,9 @@
+Version 192:
+
+* Use mp11::integer_sequence
+
+--------------------------------------------------------------------------------
+
 Version 191:
 
 * Add bind_front_handler
