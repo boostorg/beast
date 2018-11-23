@@ -139,7 +139,7 @@ operator()(
             ec = d.result;
         if(! ec)
         {
-            d.ws.do_pmd_config(d.res, is_deflate_supported{});
+            d.ws.do_pmd_config(d.res);
             d.ws.open(role_type::server);
         }
         {
@@ -763,7 +763,7 @@ do_accept(
         //             teardown if Connection: close.
         return;
     }
-    do_pmd_config(res, is_deflate_supported{});
+    this->do_pmd_config(res);
     open(role_type::server);
 }
 

@@ -135,7 +135,7 @@ operator()(error_code ec, std::size_t)
     BOOST_ASIO_CORO_REENTER(*this)
     {
         // Send HTTP Upgrade
-        d.ws.do_pmd_config(d.req, is_deflate_supported{});
+        d.ws.do_pmd_config(d.req);
         BOOST_ASIO_CORO_YIELD
         http::async_write(d.ws.stream_,
             d.req, std::move(*this));
@@ -407,7 +407,7 @@ do_handshake(
     {
         auto const req = build_request(
             key, host, target, decorator);
-        do_pmd_config(req, is_deflate_supported{});
+        this->do_pmd_config(req);
         http::write(stream_, req, ec);
     }
     if(ec)
