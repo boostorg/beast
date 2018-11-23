@@ -22,7 +22,6 @@ namespace doc_core_snippets {
 
 void fxx()
 {
-
 //[snippet_core_1b
 //
 using namespace boost::beast;
@@ -35,8 +34,9 @@ error_code ec;
 boost::asio::ip::tcp::socket sock{ioc};
 
 //]
+    boost::ignore_unused(ec);
 
-{
+    {
 //[snippet_core_2
 
 char const* const host = "www.example.com";
@@ -49,9 +49,11 @@ boost::asio::connect(stream, results.begin(), results.end());
 // host and may be used to perform stream operations.
 
 //]
-}
+    }
 
 } // fxx()
+
+//------------------------------------------------------------------------------
 
 //[snippet_core_3
 

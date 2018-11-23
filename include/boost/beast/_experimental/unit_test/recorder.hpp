@@ -20,15 +20,12 @@ namespace unit_test {
 /** A test runner that stores the results. */
 class recorder : public runner
 {
-private:
     results m_results;
     suite_results m_suite;
     case_results m_case;
 
 public:
     recorder() = default;
-    recorder(recorder const&) = default;
-    recorder& operator=(recorder const&) = default;
 
     /** Returns a report with the results of all completed suites. */
     results const&

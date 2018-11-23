@@ -15,7 +15,7 @@
 #include <boost/beast/test/yield_to.hpp>
 #include <boost/beast/_experimental/unit_test/suite.hpp>
 #include <boost/asio/buffer.hpp>
-#include <boost/asio/io_service.hpp>
+#include <boost/asio/io_context.hpp>
 #include <boost/asio/read.hpp>
 #include <boost/asio/spawn.hpp>
 #include <boost/asio/strand.hpp>
@@ -224,12 +224,15 @@ public:
         // breakpoint in asio_handler_invoke to make sure
         // it is instantiated.
         boost::asio::io_context ioc;
-        boost::asio::io_service::strand s{ioc};
+        boost::asio::strand<
+            boost::asio::io_context::executor_type> s(
+                ioc.get_executor());
         test::stream ts{ioc};
         buffered_read_stream<
             test::stream&, multi_buffer> brs(ts);
         brs.async_read_some(boost::asio::mutable_buffer{},
-            s.wrap(copyable_handler{}));
+            boost::asio::bind_executor(
+                s, copyable_handler{}));
     }
 
     void run() override

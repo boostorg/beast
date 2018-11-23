@@ -32,6 +32,7 @@ auto work = boost::asio::make_work_guard(ioc);
 std::thread t{[&](){ ioc.run(); }};
 error_code ec;
 boost::asio::ip::tcp::socket sock{ioc};
+boost::ignore_unused(ec);
 
 {
 //[ws_snippet_2

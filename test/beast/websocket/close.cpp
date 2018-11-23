@@ -12,7 +12,7 @@
 
 #include "test.hpp"
 
-#include <boost/asio/io_service.hpp>
+#include <boost/asio/io_context.hpp>
 #include <boost/asio/strand.hpp>
 
 namespace boost {
@@ -649,9 +649,12 @@ public:
         // breakpoint in asio_handler_invoke to make sure
         // it is instantiated.
         boost::asio::io_context ioc;
-        boost::asio::io_service::strand s{ioc};
+        boost::asio::strand<
+            boost::asio::io_context::executor_type> s(
+                ioc.get_executor());
         stream<test::stream> ws{ioc};
-        ws.async_close({}, s.wrap(copyable_handler{}));
+        ws.async_close({}, boost::asio::bind_executor(
+            s, copyable_handler{}));
     }
 
     void

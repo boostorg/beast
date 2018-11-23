@@ -88,7 +88,7 @@ public:
                                     ba.commit(n);
                                 });
                             ioc.run();
-                            ioc.reset();
+                            ioc.restart();
                             if(ec)
                                 break;
                         }

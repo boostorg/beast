@@ -809,7 +809,7 @@ public:
             return fail(ec, "timer");
 
         // Check if this has been upgraded to Websocket
-        if(timer_.expires_at() == (std::chrono::steady_clock::time_point::min)())
+        if(timer_.expiry() == (std::chrono::steady_clock::time_point::min)())
             return;
 
         // Verify that the timer really expired since the deadline may have moved.

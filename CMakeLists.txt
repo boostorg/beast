@@ -18,9 +18,13 @@ option (Beast_BUILD_TESTS "Build tests" ON)
 if (MSVC)
     set (CMAKE_VERBOSE_MAKEFILE FALSE)
 
-    add_definitions (-D_WIN32_WINNT=0x0601)
-    add_definitions (-D_SCL_SECURE_NO_WARNINGS=1)
-    add_definitions (-D_CRT_SECURE_NO_WARNINGS=1)
+    add_definitions (
+        -D_WIN32_WINNT=0x0601
+        -D_SCL_SECURE_NO_WARNINGS=1
+        -D_CRT_SECURE_NO_WARNINGS=1
+        -D_SILENCE_CXX17_ALLOCATOR_VOID_DEPRECATION_WARNING
+        -D_SILENCE_CXX17_ADAPTOR_TYPEDEFS_DEPRECATION_WARNING
+    )
 
     add_compile_options(
         /bigobj       # large object file format
@@ -74,9 +78,7 @@ get_filename_component (BOOST_ROOT ../../ ABSOLUTE)
 # VFALCO I want static but "b2 stage" builds a minimal set which excludes static
 add_definitions (-DBOOST_ALL_STATIC_LINK=1)
 
-# Some of the tests use deprecated APIs
-#add_definitions (-DBOOST_ASIO_NO_DEPRECATED=1)
-
+add_definitions (-DBOOST_ASIO_NO_DEPRECATED=1)
 add_definitions (-DBOOST_ASIO_DISABLE_BOOST_ARRAY=1)
 add_definitions (-DBOOST_ASIO_DISABLE_BOOST_BIND=1)
 add_definitions (-DBOOST_ASIO_DISABLE_BOOST_DATE_TIME=1)

@@ -130,8 +130,8 @@ public:
             decltype(bs)::const_iterator copy;
             copy = it;
             BEAST_EXPECT(copy == it);
-            copy = copy;
-            BEAST_EXPECT(copy == it);
+            auto copy2 = copy;
+            BEAST_EXPECT(copy2 == it);
         }
     }
 

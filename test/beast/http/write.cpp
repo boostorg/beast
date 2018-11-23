@@ -23,7 +23,7 @@
 #include <boost/beast/test/yield_to.hpp>
 #include <boost/beast/_experimental/unit_test/suite.hpp>
 #include <boost/asio/error.hpp>
-#include <boost/asio/io_service.hpp>
+#include <boost/asio/io_context.hpp>
 #include <boost/asio/strand.hpp>
 #include <sstream>
 #include <string>
@@ -857,34 +857,43 @@ public:
     void
     testAsioHandlerInvoke()
     {
+        using strand = boost::asio::strand<
+            boost::asio::io_context::executor_type>;
+
         // make sure things compile, also can set a
         // breakpoint in asio_handler_invoke to make sure
         // it is instantiated.
         {
             boost::asio::io_context ioc;
-            boost::asio::io_service::strand s{ioc};
+            strand s{ioc.get_executor()};
             test::stream ts{ioc};
             flat_buffer b;
             request<empty_body> m;
             request_serializer<empty_body, fields> sr{m};
-            async_write_some(ts, sr, s.wrap(copyable_handler{}));
+            async_write_some(ts, sr,
+                boost::asio::bind_executor(
+                    s, copyable_handler{}));
         }
         {
             boost::asio::io_context ioc;
-            boost::asio::io_service::strand s{ioc};
+            strand s{ioc.get_executor()};
             test::stream ts{ioc};
             flat_buffer b;
             request<empty_body> m;
             request_serializer<empty_body, fields> sr{m};
-            async_write(ts, sr, s.wrap(copyable_handler{}));
+            async_write(ts, sr,
+                boost::asio::bind_executor(
+                    s, copyable_handler{}));
         }
         {
             boost::asio::io_context ioc;
-            boost::asio::io_service::strand s{ioc};
+            strand s{ioc.get_executor()};
             test::stream ts{ioc};
             flat_buffer b;
             request<empty_body> m;
-            async_write(ts, m, s.wrap(copyable_handler{}));
+            async_write(ts, m,
+                boost::asio::bind_executor(
+                    s, copyable_handler{}));
         }
     }
 

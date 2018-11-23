@@ -13,7 +13,7 @@
 #include <boost/beast/core/detail/type_traits.hpp>
 #include <boost/beast/_experimental/test/stream.hpp>
 #include <boost/beast/_experimental/unit_test/suite.hpp>
-#include <boost/asio/io_service.hpp>
+#include <boost/asio/io_context.hpp>
 #include <boost/asio/strand.hpp>
 #include <string>
 

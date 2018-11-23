@@ -19,9 +19,9 @@
 #include <boost/beast/http/parser.hpp>
 #include <boost/beast/http/string_body.hpp>
 #include <boost/beast/_experimental/test/stream.hpp>
-#include <boost/beast/test/yield_to.hpp>
 #include <boost/beast/_experimental/unit_test/suite.hpp>
-#include <boost/asio/io_service.hpp>
+#include <boost/beast/test/yield_to.hpp>
+#include <boost/asio/io_context.hpp>
 #include <boost/asio/strand.hpp>
 #include <atomic>
 
@@ -493,32 +493,41 @@ public:
     void
     testAsioHandlerInvoke()
     {
+        using strand = boost::asio::strand<
+            boost::asio::io_context::executor_type>;
+
         // make sure things compile, also can set a
         // breakpoint in asio_handler_invoke to make sure
         // it is instantiated.
         {
             boost::asio::io_context ioc;
-            boost::asio::io_service::strand s{ioc};
+            strand s{ioc.get_executor()};
             test::stream ts{ioc};
             flat_buffer b;
             request_parser<dynamic_body> p;
-            async_read_some(ts, b, p, s.wrap(copyable_handler{}));
+            async_read_some(ts, b, p,
+                boost::asio::bind_executor(
+                    s, copyable_handler{}));
         }
         {
             boost::asio::io_context ioc;
-            boost::asio::io_service::strand s{ioc};
+            strand s{ioc.get_executor()};
             test::stream ts{ioc};
             flat_buffer b;
             request_parser<dynamic_body> p;
-            async_read(ts, b, p, s.wrap(copyable_handler{}));
+            async_read(ts, b, p,
+                boost::asio::bind_executor(
+                    s, copyable_handler{}));
         }
         {
             boost::asio::io_context ioc;
-            boost::asio::io_service::strand s{ioc};
+            strand s{ioc.get_executor()};
             test::stream ts{ioc};
             flat_buffer b;
             request<dynamic_body> m;
-            async_read(ts, b, m, s.wrap(copyable_handler{}));
+            async_read(ts, b, m,
+                boost::asio::bind_executor(
+                    s, copyable_handler{}));
         }
     }
 

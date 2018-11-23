@@ -51,7 +51,7 @@ struct test_allocator_base<T, Equal, Assign, Move, Swap, true>
     static
     test_allocator<T, Equal, Assign, Move, Swap, true>
     select_on_container_copy_construction(test_allocator<
-        T, Equal, Assign, Move, Swap, true> const& a)
+        T, Equal, Assign, Move, Swap, true> const&)
     {
         return test_allocator<T, Equal, Assign, Move, Swap, true>{};
     }

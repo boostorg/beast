@@ -12,7 +12,7 @@
 
 #include "test.hpp"
 
-#include <boost/asio/io_service.hpp>
+#include <boost/asio/io_context.hpp>
 #include <boost/asio/strand.hpp>
 #include <boost/asio/write.hpp>
 
@@ -666,10 +666,13 @@ public:
         // it is instantiated.
         {
             boost::asio::io_context ioc;
-            boost::asio::io_service::strand s{ioc};
+            boost::asio::strand<
+                boost::asio::io_context::executor_type> s(
+                    ioc.get_executor());
             stream<test::stream> ws{ioc};
             flat_buffer b;
-            ws.async_read(b, s.wrap(copyable_handler{}));
+            ws.async_read(b, boost::asio::bind_executor(
+            s, copyable_handler{}));
         }
     }
 

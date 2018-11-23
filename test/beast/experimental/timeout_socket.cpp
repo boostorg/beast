@@ -98,14 +98,12 @@ public:
             : public std::enable_shared_from_this<session>
         {
             boost::asio::ip::tcp::socket socket_;
-            std::ostream& log_;
         
         public:
             session(
                 boost::asio::ip::tcp::socket sock,
-                std::ostream& log)
+                std::ostream&)
                 : socket_(std::move(sock))
-                , log_(log)
             {
             }
 
