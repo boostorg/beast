@@ -8,6 +8,7 @@ Version 191:
 * Use mp11 in detail::variant
 * Fix buffers_cat uninitialized warning
 * Fix static_string uninitialized warning
+* Fix warning in is_ssl_handshake
 
 --------------------------------------------------------------------------------
 

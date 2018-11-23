@@ -67,14 +67,14 @@ is_ssl_handshake(
         boost::asio::is_const_buffer_sequence<ConstBufferSequence>::value,
         "ConstBufferSequence requirements not met");
 
-    // We need at least one byte to really do anything
-    if(boost::asio::buffer_size(buffers) < 1)
-        return boost::indeterminate;
-
     // Extract the first byte, which holds the
     // "message" type for the Handshake protocol.
     unsigned char v;
-    boost::asio::buffer_copy(boost::asio::buffer(&v, 1), buffers);
+    if(boost::asio::buffer_copy(boost::asio::buffer(&v, 1), buffers) < 1)
+    {
+        // We need at least one byte to really do anything
+        return boost::indeterminate;
+    }
 
     // Check that the message type is "SSL Handshake" (rfc2246)
     if(v != 0x16)
