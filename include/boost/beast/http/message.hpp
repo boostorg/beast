@@ -47,16 +47,17 @@ namespace http {
 */
 #if BOOST_BEAST_DOXYGEN
 template<bool isRequest, class Fields = fields>
-struct header : Fields
+class header : public Fields
 
 #else
 template<bool isRequest, class Fields = fields>
-struct header;
+class header;
 
 template<class Fields>
-struct header<true, Fields> : Fields
+class header<true, Fields> : public Fields
 #endif
 {
+public:
     static_assert(is_fields<Fields>::value,
         "Fields requirements not met");
 
@@ -229,7 +230,7 @@ struct header<true, Fields> : Fields
 
 private:
     template<bool, class, class>
-    friend struct message;
+    friend class message;
 
     template<class T>
     friend
@@ -258,8 +259,9 @@ private:
     A `header` includes the start-line and header-fields.
 */
 template<class Fields>
-struct header<false, Fields> : Fields
+class header<false, Fields> : public Fields
 {
+public:
     static_assert(is_fields<Fields>::value,
         "Fields requirements not met");
 
@@ -418,7 +420,7 @@ struct header<false, Fields> : Fields
 private:
 #if ! BOOST_BEAST_DOXYGEN
     template<bool, class, class>
-    friend struct message;
+    friend class message;
 
     template<class T>
     friend
@@ -487,13 +489,14 @@ using value_type_t = typename T::value_type;
     field value pairs.
 */
 template<bool isRequest, class Body, class Fields = fields>
-struct message
-    : header<isRequest, Fields>
+class message
+    : public header<isRequest, Fields>
 #if ! BOOST_BEAST_DOXYGEN
     , boost::empty_value<
         typename Body::value_type>
 #endif
 {
+public:
     /// The base class used to hold the header portion of the message.
     using header_type = header<isRequest, Fields>;
 

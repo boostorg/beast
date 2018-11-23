@@ -19,10 +19,10 @@ namespace beast {
 namespace http {
 
 template<bool isRequest, class Fields>
-struct header;
+class header;
 
 template<bool, class, class>
-struct message;
+class message;
 
 template<bool isRequest,class Body, class Fields>
 class parser;

@@ -25,7 +25,7 @@ namespace beast {
 namespace http {
 
 template<bool, class, class>
-struct message;
+class message;
 
 /** Determine if `T` meets the requirements of @b Body.
 
