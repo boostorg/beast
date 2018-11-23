@@ -1,6 +1,7 @@
 Version 190:
 
 * Fix broken doc link
+* example/cppcon2018 only requires C++11
 
 --------------------------------------------------------------------------------
 
