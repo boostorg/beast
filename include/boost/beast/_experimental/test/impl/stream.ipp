@@ -291,7 +291,6 @@ async_read_some(
         {
             lock.unlock();
             ++in_->nread;
-            error_code ec;
             if(in_->code == status::eof)
                 ec = boost::asio::error::eof;
             else if(in_->code == status::reset)

@@ -26,9 +26,6 @@
 #include <boost/beast/core/static_buffer.hpp>
 #include <boost/beast/core/string.hpp>
 #include <boost/beast/core/detail/type_traits.hpp>
-#include <boost/beast/http/empty_body.hpp>
-#include <boost/beast/http/message.hpp>
-#include <boost/beast/http/string_body.hpp>
 #include <boost/beast/http/detail/type_traits.hpp>
 #include <boost/asio/async_result.hpp>
 #include <boost/asio/error.hpp>
@@ -76,7 +73,7 @@ class frame_test;
     The @ref stream class template provides asynchronous and blocking
     message-oriented functionality necessary for clients and servers
     to utilize the WebSocket protocol.
-    
+
     For asynchronous operations, the application must ensure
     that they are are all performed within the same implicit
     or explicit strand.
@@ -136,7 +133,7 @@ class stream
     friend class read2_test;
     friend class stream_test;
     friend class write_test;
-    
+
     /*  The read buffer has to be at least as large
         as the largest possible control frame including
         the frame header.
@@ -276,7 +273,7 @@ public:
     //--------------------------------------------------------------------------
 
     /** Get the executor associated with the object.
-    
+
         This function may be used to obtain the executor object that the
         stream uses to dispatch handlers for asynchronous operations.
 
@@ -425,8 +422,8 @@ public:
     read_size_hint(
         std::size_t initial_size = +tcp_frame_size) const
     {
-        return read_size_hint(initial_size,
-            is_deflate_supported{});
+        return this->read_size_hint_pmd(
+            initial_size, rd_done_, rd_remain_, rd_fh_);
     }
 
     /** Returns a suggested maximum buffer size for the next call to read.
@@ -466,14 +463,14 @@ public:
     void
     set_option(permessage_deflate const& o)
     {
-        set_option(o, is_deflate_supported{});
+        this->set_option_pmd(o);
     }
 
     /// Get the permessage-deflate extension options
     void
     get_option(permessage_deflate& o)
     {
-        get_option(o, is_deflate_supported{});
+        this->get_option_pmd(o);
     }
 
     /** Set the automatic fragmentation option.
@@ -3374,65 +3371,13 @@ private:
     static void default_decorate_req(request_type&) {}
     static void default_decorate_res(response_type&) {}
 
-    void
-    set_option(permessage_deflate const& o, std::true_type);
-
-    void
-    set_option(permessage_deflate const&, std::false_type);
-
-    void
-    get_option(permessage_deflate& o, std::true_type)
-    {
-        o = this->pmd_opts_;
-    }
-
-    void
-    get_option(permessage_deflate& o, std::false_type)
-    {
-        o = {};
-        o.client_enable = false;
-        o.server_enable = false;
-    }
-
     void open(role_type role);
-
-    void open_pmd(std::true_type);
-
-    void open_pmd(std::false_type)
-    {
-    }
 
     void close();
 
-    void close_pmd(std::true_type)
-    {
-        this->pmd_.reset();
-    }
-
-    void close_pmd(std::false_type)
-    {
-    }
-    
     void reset();
 
-    void begin_msg()
-    {
-        begin_msg(is_deflate_supported{});
-    }
-
-    void begin_msg(std::true_type);
-
-    void begin_msg(std::false_type);
-
-    std::size_t
-    read_size_hint(
-        std::size_t initial_size,
-        std::true_type) const;
-
-    std::size_t
-    read_size_hint(
-        std::size_t initial_size,
-        std::false_type) const;
+    void begin_msg();
 
     bool
     check_open(error_code& ec)
@@ -3485,14 +3430,6 @@ private:
             string_view target,
                 Decorator const& decorator);
 
-    void
-    build_request_pmd(request_type& req, std::true_type);
-
-    void
-    build_request_pmd(request_type&, std::false_type)
-    {
-    }
-
     template<
         class Body, class Allocator, class Decorator>
     response_type
@@ -3502,62 +3439,15 @@ private:
         Decorator const& decorator,
         error_code& ec);
 
-    template<class Body, class Allocator>
-    void
-    build_response_pmd(
-        response_type& res,
-        http::request<Body,
-            http::basic_fields<Allocator>> const& req,
-        std::true_type);
-
-    template<class Body, class Allocator>
-    void
-    build_response_pmd(
-        response_type&,
-        http::request<Body,
-            http::basic_fields<Allocator>> const&,
-        std::false_type)
-    {
-    }
-
     void
     on_response(
         response_type const& res,
         detail::sec_ws_key_type const& key,
         error_code& ec);
 
-    void
-    on_response_pmd(
-        response_type const& res,
-        std::true_type);
-
-    void
-    on_response_pmd(
-        response_type const&,
-        std::false_type)
-    {
-    }
-
     //
     // accept / handshake
     //
-
-    template<class Allocator>
-    void
-    do_pmd_config(
-        http::basic_fields<Allocator> const& h,
-        std::true_type)
-    {
-        pmd_read(this->pmd_config_, h);
-    }
-
-    template<class Allocator>
-    void
-    do_pmd_config(
-        http::basic_fields<Allocator> const&,
-        std::false_type)
-    {
-    }
 
     template<class Decorator>
     void

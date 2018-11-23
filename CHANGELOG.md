@@ -3,6 +3,7 @@ Version 193:
 * Update ssl_stream signatures for networking changes
 * Fix test::stream async_result transformation
 * Tidy up test::stream
+* Enable explicit instantiation of websocket::stream
 
 --------------------------------------------------------------------------------
 
