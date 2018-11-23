@@ -3,6 +3,7 @@ Version 192:
 * Use mp11::integer_sequence
 * Tidy up warnings and deprecated usage
 * http::message is not-a boost::empty_value
+* Fix link in docs
 
 --------------------------------------------------------------------------------
 

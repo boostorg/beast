@@ -104,7 +104,7 @@ set of additional implementations of the dynamic buffer concept:
     Upon construction an optional upper limit to the total size of the
     input and output areas may be set.
     The basic container is an
-    [@http://en.cppreference.com/w/cpp/concept/AllocatorAwareContainer [*AllocatorAwareContainer]].
+    [@https://en.cppreference.com/w/cpp/named_req/AllocatorAwareContainer [*AllocatorAwareContainer]].
 ]]
 [[
     [link beast.ref.boost__beast__multi_buffer `multi_buffer`]
@@ -114,7 +114,7 @@ set of additional implementations of the dynamic buffer concept:
     Additional character array objects are appended to the sequence to
     accommodate changes in the size of the character sequence.
     The basic container is an
-    [@http://en.cppreference.com/w/cpp/concept/AllocatorAwareContainer [*AllocatorAwareContainer]].
+    [@https://en.cppreference.com/w/cpp/named_req/AllocatorAwareContainer [*AllocatorAwareContainer]].
 ]]
 [[
     [link beast.ref.boost__beast__flat_static_buffer `flat_static_buffer`]
