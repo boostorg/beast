@@ -63,10 +63,10 @@ run()
     // Start accepting a connection
     acceptor_.async_accept(
         socket_,
-        [self = shared_from_this()](error_code ec)
-        {
-            self->on_accept(ec);
-        });
+        std::bind(
+            &listener::on_accept,
+            shared_from_this(),
+            std::placeholders::_1));
 }
 
 // Report a failure
@@ -96,8 +96,8 @@ on_accept(error_code ec)
     // Accept another connection
     acceptor_.async_accept(
         socket_,
-        [self = shared_from_this()](error_code ec)
-        {
-            self->on_accept(ec);
-        });
+        std::bind(
+            &listener::on_accept,
+            shared_from_this(),
+            std::placeholders::_1));
 }

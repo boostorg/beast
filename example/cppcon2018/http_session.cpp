@@ -203,11 +203,11 @@ run()
 {
     // Read a request
     http::async_read(socket_, buffer_, req_,
-        [self = shared_from_this()]
-            (error_code ec, std::size_t bytes)
-        {
-            self->on_read(ec, bytes);
-        });
+        std::bind(
+            &http_session::on_read,
+            shared_from_this(),
+            std::placeholders::_1,
+            std::placeholders::_2));
 }
 
 // Report a failure
@@ -341,9 +341,9 @@ on_write(error_code ec, std::size_t, bool close)
 
     // Read another request
     http::async_read(socket_, buffer_, req_,
-        [self = shared_from_this()]
-            (error_code ec, std::size_t bytes)
-        {
-            self->on_read(ec, bytes);
-        });
+        std::bind(
+            &http_session::on_read,
+            shared_from_this(),
+            std::placeholders::_1,
+            std::placeholders::_2));
 }

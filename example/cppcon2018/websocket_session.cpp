@@ -51,11 +51,11 @@ on_accept(error_code ec)
     // Read a message
     ws_.async_read(
         buffer_,
-        [sp = shared_from_this()](
-            error_code ec, std::size_t bytes)
-        {
-            sp->on_read(ec, bytes);
-        });
+        std::bind(
+            &websocket_session::on_read,
+            shared_from_this(),
+            std::placeholders::_1,
+            std::placeholders::_2));
 }
 
 void
@@ -75,11 +75,11 @@ on_read(error_code ec, std::size_t)
     // Read another message
     ws_.async_read(
         buffer_,
-        [sp = shared_from_this()](
-            error_code ec, std::size_t bytes)
-        {
-            sp->on_read(ec, bytes);
-        });
+        std::bind(
+            &websocket_session::on_read,
+            shared_from_this(),
+            std::placeholders::_1,
+            std::placeholders::_2));
 }
 
 void
@@ -96,11 +96,11 @@ send(std::shared_ptr<std::string const> const& ss)
     // We are not currently writing, so send this immediately
     ws_.async_write(
         net::buffer(*queue_.front()),
-        [sp = shared_from_this()](
-            error_code ec, std::size_t bytes)
-        {
-            sp->on_write(ec, bytes);
-        });
+        std::bind(
+            &websocket_session::on_write,
+            shared_from_this(),
+            std::placeholders::_1,
+            std::placeholders::_2));
 }
 
 void
@@ -118,9 +118,9 @@ on_write(error_code ec, std::size_t)
     if(! queue_.empty())
         ws_.async_write(
             net::buffer(*queue_.front()),
-            [sp = shared_from_this()](
-                error_code ec, std::size_t bytes)
-            {
-                sp->on_write(ec, bytes);
-            });
+            std::bind(
+                &websocket_session::on_write,
+                shared_from_this(),
+                std::placeholders::_1,
+                std::placeholders::_2));
 }
