@@ -137,7 +137,10 @@ public:
                 std::make_shared<session>(
                     std::move(socket_), log_)->run();
             acceptor_.async_accept(socket_,
-                [this](error_code ec){ this->on_accept(ec); });
+                [this](error_code ec)
+                {
+                    this->on_accept(ec);
+                });
         }
     };
 

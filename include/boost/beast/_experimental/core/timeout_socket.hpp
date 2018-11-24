@@ -13,9 +13,11 @@
 #include <boost/beast/core/detail/config.hpp>
 #include <boost/beast/core/error.hpp>
 #include <boost/beast/core/type_traits.hpp>
-#include <boost/beast/_experimental/core/detail/timeout_service.hpp>
+#include <boost/beast/_experimental/core/timeout_service.hpp>
+#include <boost/beast/_experimental/core/detail/saved_handler.hpp>
 #include <boost/asio/async_result.hpp>
 #include <boost/asio/basic_stream_socket.hpp>
+#include <boost/asio/connect.hpp>
 #include <boost/asio/executor.hpp>
 #include <chrono>
 
@@ -29,6 +31,11 @@ class tcp;
 
 namespace boost {
 namespace beast {
+
+namespace detail {
+template<class, class, class>
+class connect_op;
+} // detail
 
 /** A socket wrapper which automatically times out on asynchronous reads.
 
@@ -44,22 +51,16 @@ template<
 class basic_timeout_socket
 {
     template<class> class async_op;
-
-    class timer : public detail::timeout_object
-    {
-        basic_timeout_socket& s_;
-
-    public:
-        explicit timer(basic_timeout_socket& s);
-        timer& operator=(timer&& other);
-        void on_timeout() override;
-    };
+    template<class, class, class> friend class detail::connect_op;
 
     Executor ex_; // must come first
-    timer rd_timer_;
-    timer wr_timer_;
+    timeout_handle rd_timer_;
+    timeout_handle wr_timer_;
+    timeout_handle cn_timer_;
     boost::asio::basic_stream_socket<Protocol> sock_;
-    bool expired_ = false;
+    detail::saved_handler rd_op_;
+    detail::saved_handler wr_op_;
+    detail::saved_handler cn_op_;
 
 public:
     /// The type of the next layer.
@@ -73,6 +74,13 @@ public:
 
     /// The type of the executor associated with the object.
     using executor_type = Executor;
+
+    /** Destructor
+
+        The behavior of destruction while asynchronous operations
+        are pending is undefined.
+    */
+    ~basic_timeout_socket();
 
     // VFALCO we only support default-construction
     //        of the contained socket for now.
@@ -227,10 +235,393 @@ public:
         WriteHandler&& handler);
 };
 
+//------------------------------------------------------------------------------
+
 /// A TCP/IP socket wrapper which has a built-in asynchronous timeout
 using timeout_socket = basic_timeout_socket<
     boost::asio::ip::tcp,
     boost::asio::io_context::executor_type>;
+
+/**
+    @defgroup async_connect boost::beast::async_connect
+
+    @brief Asynchronously establishes a socket connection by trying each
+        endpoint in a sequence, and terminating if a timeout occurs.
+*/
+/* @{ */
+/** Asynchronously establishes a socket connection by trying each endpoint in a sequence.
+    
+    This function attempts to connect a socket to one of a sequence of
+    endpoints. It does this by repeated calls to the underlying socket's
+    @c async_connect member function, once for each endpoint in the sequence,
+    until a connection is successfully established or a timeout occurs.
+    
+    @param s The @ref basic_timeout_socket to be connected. If the socket
+    is already open, it will be closed.
+    
+    @param endpoints A sequence of endpoints.
+    
+    @param handler The handler to be called when the connect operation
+    completes. Ownership of the handler may be transferred. The function
+    signature of the handler must be:
+    @code
+    void handler(
+        // Result of operation. if the sequence is empty, set to
+        // boost::asio::error::not_found. Otherwise, contains the
+        // error from the last connection attempt.
+        error_code const& error,
+    
+        // On success, the successfully connected endpoint.
+        // Otherwise, a default-constructed endpoint.
+        typename Protocol::endpoint const& endpoint
+    );
+    @endcode
+
+    Regardless of whether the asynchronous operation completes immediately or
+    not, the handler will not be invoked from within this function. Invocation
+    of the handler will be performed in a manner equivalent to using
+    `boost::asio::io_context::post()`.
+    
+    @par Example
+
+    @code
+    boost::asio::tcp::resolver r(ioc);
+    boost::asio::tcp::resolver::query q("host", "service");
+    timeout_socket s(ioc.get_executor());
+    
+    // ...
+
+    r.async_resolve(q, resolve_handler);
+    
+    // ...
+    
+    void resolve_handler(
+        boost::system::error_code const& ec,
+        tcp::resolver::results_type results)
+    {
+        if (!ec)
+        {
+            async_connect(s, results, connect_handler);
+        }
+    }
+    
+    // ...
+
+    void connect_handler(
+        boost::system::error_code const& ec,
+        tcp::endpoint const& endpoint)
+    {
+        // ...
+    }
+    @endcode
+*/
+template<
+    class Protocol, class Executor,
+    class EndpointSequence,
+    class RangeConnectHandler
+#if ! BOOST_BEAST_DOXYGEN
+    ,class = typename std::enable_if<
+        boost::asio::is_endpoint_sequence<
+            EndpointSequence>::value>::type
+#endif
+>
+BOOST_ASIO_INITFN_RESULT_TYPE(RangeConnectHandler,
+    void (boost::system::error_code, class Protocol::endpoint))
+async_connect(
+    basic_timeout_socket<Protocol, Executor>& s,
+    EndpointSequence const& endpoints,
+    RangeConnectHandler&& handler);
+
+/** Asynchronously establishes a socket connection by trying each endpoint in a sequence.
+    
+    This function attempts to connect a socket to one of a sequence of
+    endpoints. It does this by repeated calls to the underlying socket's
+    @c async_connect member function, once for each endpoint in the sequence,
+    until a connection is successfully established or a timeout occurs.
+    
+    @param s The @ref basic_timeout_socket to be connected. If the socket
+    is already open, it will be closed.
+    
+    @param endpoints A sequence of endpoints.
+    
+    @param connect_condition A function object that is called prior to each
+    connection attempt. The signature of the function object must be:
+
+    @code
+    bool connect_condition(
+        boost::system::error_code const& ec,
+        typename Protocol::endpoint const& next);
+    @endcode
+
+    The @c ec parameter contains the result from the most recent connect
+    operation. Before the first connection attempt, @c ec is always set to
+    indicate success. The @c next parameter is the next endpoint to be tried.
+    The function object should return true if the next endpoint should be tried,
+    and false if it should be skipped.
+
+    @param handler The handler to be called when the connect operation
+    completes. Ownership of the handler may be transferred. The function
+    signature of the handler must be:
+    @code
+    void handler(
+        // Result of operation. if the sequence is empty, set to
+        // boost::asio::error::not_found. Otherwise, contains the
+        // error from the last connection attempt.
+        error_code const& error,
+    
+        // On success, the successfully connected endpoint.
+        // Otherwise, a default-constructed endpoint.
+        typename Protocol::endpoint const& endpoint
+    );
+    @endcode
+
+    Regardless of whether the asynchronous operation completes immediately or
+    not, the handler will not be invoked from within this function. Invocation
+    of the handler will be performed in a manner equivalent to using
+    `boost::asio::io_context::post()`.
+    
+    @par Example
+
+    The following connect condition function object can be used to output
+    information about the individual connection attempts:
+
+    @code
+    struct my_connect_condition
+    {
+        bool operator()(
+            boost::system::error_code const& ec,
+            boost::asio::ip::tcp::endpoint const& next)
+        {
+            if (ec) std::cout << "Error: " << ec.message() << std::endl;
+            std::cout << "Trying: " << next << std::endl;
+            return true;
+      }
+    };
+    @endcode
+
+    It would be used with the @ref boost::beast::async_connect
+    function as follows:
+
+    @code
+    boost::asio::tcp::resolver r(ioc);
+    boost::asio::tcp::resolver::query q("host", "service");
+    timeout_socket s(ioc.get_executor());
+    
+    // ...
+
+    r.async_resolve(q, resolve_handler);
+    
+    // ...
+    
+    void resolve_handler(
+        boost::system::error_code const& ec,
+        tcp::resolver::results_type results)
+    {
+        if (!ec)
+        {
+            async_connect(s, results, my_connect_condition{}, connect_handler);
+        }
+    }
+    
+    // ...
+
+    void connect_handler(
+        boost::system::error_code const& ec,
+        tcp::endpoint const& endpoint)
+    {
+        // ...
+    }
+    @endcode
+*/
+template<
+    class Protocol, class Executor,
+    class EndpointSequence,
+    class ConnectCondition,
+    class RangeConnectHandler
+#if ! BOOST_BEAST_DOXYGEN
+    ,class = typename std::enable_if<
+        boost::asio::is_endpoint_sequence<
+            EndpointSequence>::value>::type
+#endif
+>
+BOOST_ASIO_INITFN_RESULT_TYPE(RangeConnectHandler,
+    void (boost::system::error_code, class Protocol::endpoint))
+async_connect(
+    basic_timeout_socket<Protocol, Executor>& s,
+    EndpointSequence const& endpoints,
+    ConnectCondition connect_condition,
+    RangeConnectHandler&& handler);
+
+/** Asynchronously establishes a socket connection by trying each endpoint in a sequence.
+    
+    This function attempts to connect a socket to one of a sequence of
+    endpoints. It does this by repeated calls to the underlying socket's
+    @c async_connect member function, once for each endpoint in the sequence,
+    until a connection is successfully established or a timeout occurs.
+    
+    @param s The @ref timeout_socket to be connected. If the socket
+    is already open, it will be closed.
+    
+    @param begin An iterator pointing to the start of a sequence of endpoints.
+    
+    @param end An iterator pointing to the end of a sequence of endpoints.
+    
+    @param handler The handler to be called when the connect operation
+    completes. Ownership of the handler may be transferred. The function
+    signature of the handler must be:
+    @code
+    void handler(
+        // Result of operation. if the sequence is empty, set to
+        // boost::asio::error::not_found. Otherwise, contains the
+        // error from the last connection attempt.
+        error_code const& error,
+    
+        // On success, an iterator denoting the successfully
+        // connected endpoint. Otherwise, the end iterator.
+        Iterator iterator
+    );
+    @endcode
+
+    Regardless of whether the asynchronous operation completes immediately or
+    not, the handler will not be invoked from within this function. Invocation
+    of the handler will be performed in a manner equivalent to using
+    `boost::asio::io_context::post()`.
+    
+    @par Example
+
+    @code
+    std::vector<tcp::endpoint> endpoints = ...;
+    timeout_socket s(ioc.get_executor());
+        
+    async_connect(s,
+        endpoints.begin(), endpoints.end(),
+        connect_handler);
+
+    void connect_handler(
+        boost::system::error_code const& ec,
+        std::vector<tcp::endpoint>::iterator)
+    {
+        // ...
+    }
+    @endcode
+*/
+template<
+    class Protocol, class Executor,
+    class Iterator,
+    class IteratorConnectHandler
+#if ! BOOST_BEAST_DOXYGEN
+    ,class = typename std::enable_if<
+        ! boost::asio::is_endpoint_sequence<
+            Iterator>::value>::type
+#endif
+>
+BOOST_ASIO_INITFN_RESULT_TYPE(IteratorConnectHandler,
+    void (boost::system::error_code, Iterator))
+async_connect(
+    basic_timeout_socket<Protocol, Executor>& s,
+    Iterator begin, Iterator end,
+    IteratorConnectHandler&& handler);
+
+/** Asynchronously establishes a socket connection by trying each endpoint in a sequence.
+    
+    This function attempts to connect a socket to one of a sequence of
+    endpoints. It does this by repeated calls to the underlying socket's
+    @c async_connect member function, once for each endpoint in the sequence,
+    until a connection is successfully established or a timeout occurs.
+    
+    @param s The @ref basic_timeout_socket to be connected. If the socket
+    is already open, it will be closed.
+    
+    @param begin An iterator pointing to the start of a sequence of endpoints.
+    
+    @param end An iterator pointing to the end of a sequence of endpoints.
+    
+    @param connect_condition A function object that is called prior to each
+    connection attempt. The signature of the function object must be:
+
+    @code
+    bool connect_condition(
+        boost::system::error_code const& ec,
+        Iterator next);
+    @endcode
+
+    @param handler The handler to be called when the connect operation
+    completes. Ownership of the handler may be transferred. The function
+    signature of the handler must be:
+    @code
+    void handler(
+        // Result of operation. if the sequence is empty, set to
+        // boost::asio::error::not_found. Otherwise, contains the
+        // error from the last connection attempt.
+        error_code const& error,
+    
+        // On success, an iterator denoting the successfully
+        // connected endpoint. Otherwise, the end iterator.
+        Iterator iterator
+    );
+    @endcode
+
+    Regardless of whether the asynchronous operation completes immediately or
+    not, the handler will not be invoked from within this function. Invocation
+    of the handler will be performed in a manner equivalent to using
+    `boost::asio::io_context::post()`.
+    
+    @par Example
+
+    The following connect condition function object can be used to output
+    information about the individual connection attempts:
+
+    @code
+    struct my_connect_condition
+    {
+        bool operator()(
+            boost::system::error_code const& ec,
+            boost::asio::ip::tcp::endpoint const& next)
+        {
+            if (ec) std::cout << "Error: " << ec.message() << std::endl;
+            std::cout << "Trying: " << next << std::endl;
+            return true;
+      }
+    };
+    @endcode
+
+    It would be used with the @ref boost::beast::async_connect
+    function as follows:
+
+    @code
+    std::vector<tcp::endpoint> endpoints = ...;
+    timeout_socket s(ioc.get_executor());
+        
+    async_connect(s, endpoints.begin(), endpoints.end(),
+        my_connect_condition{}, connect_handler);
+
+    void connect_handler(
+        boost::system::error_code const& ec,
+        std::vector<tcp::endpoint>::iterator)
+    {
+        // ...
+    }
+    @endcode
+*/
+template<
+    class Protocol, class Executor,
+    class Iterator,
+    class ConnectCondition,
+    class IteratorConnectHandler
+#if ! BOOST_BEAST_DOXYGEN
+    ,class = typename std::enable_if<
+        ! boost::asio::is_endpoint_sequence<
+            Iterator>::value>::type
+#endif
+>
+BOOST_ASIO_INITFN_RESULT_TYPE(IteratorConnectHandler,
+    void (boost::system::error_code, Iterator))
+async_connect(
+    basic_timeout_socket<Protocol, Executor>& s,
+    Iterator begin, Iterator end,
+    ConnectCondition connect_condition,
+    IteratorConnectHandler&& handler);
+/* @} */
 
 } // beast
 } // boost

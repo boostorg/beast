@@ -7,24 +7,21 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
-#ifndef BOOST_BEAST_CORE_DETAIL_TIMEOUT_WORK_GUARD_HPP
-#define BOOST_BEAST_CORE_DETAIL_TIMEOUT_WORK_GUARD_HPP
+#ifndef BOOST_BEAST_CORE_TIMEOUT_WORK_GUARD_HPP
+#define BOOST_BEAST_CORE_TIMEOUT_WORK_GUARD_HPP
 
-#include <boost/beast/_experimental/core/detail/timeout_service.hpp>
+#include <boost/beast/_experimental/core/timeout_service.hpp>
 #include <boost/assert.hpp>
-#include <boost/core/exchange.hpp>
 
 namespace boost {
 namespace beast {
-namespace detail {
 
 class timeout_work_guard
 {
-    timeout_object* obj_;
+    timeout_handle h_;
 
 public:
     timeout_work_guard(timeout_work_guard const&) = delete;
-    timeout_work_guard& operator=(timeout_work_guard&&) = delete;
     timeout_work_guard& operator=(timeout_work_guard const&) = delete;
 
     ~timeout_work_guard()
@@ -33,40 +30,42 @@ public:
     }
 
     timeout_work_guard(timeout_work_guard&& other)
-        : obj_(boost::exchange(other.obj_, nullptr))
+        : h_(other.h_)
     {
+        other.h_ = nullptr;
     }
 
     explicit
-    timeout_work_guard(timeout_object& obj)
-        : obj_(&obj)
+    timeout_work_guard(timeout_handle h)
+        : h_(h)
     {
-        obj_->service().on_work_started(*obj_);
+        h_.service().on_work_started(h_);
     }
 
     bool
     owns_work() const
     {
-        return obj_ != nullptr;
+        return h_ != nullptr;
     }
 
     void
     reset()
     {
-        if(obj_)
-            obj_->service().on_work_stopped(*obj_);
+        if(h_)
+            h_.service().on_work_stopped(h_);
     }
 
-    void
-    complete()
+    bool
+    try_complete()
     {
-        BOOST_ASSERT(obj_ != nullptr);
-        obj_->service().on_work_complete(*obj_);
-        obj_ = nullptr;
+        BOOST_ASSERT(h_ != nullptr);
+        auto result =
+            h_.service().on_try_work_complete(h_);
+        h_ = nullptr;
+        return result;
     }
 };
 
-} // detail
 } // beast
 } // boost
 

@@ -10,115 +10,124 @@
 #ifndef BOOST_BEAST_CORE_DETAIL_TIMEOUT_SERVICE_HPP
 #define BOOST_BEAST_CORE_DETAIL_TIMEOUT_SERVICE_HPP
 
-#include <boost/beast/core/error.hpp>
 #include <boost/beast/_experimental/core/detail/service_base.hpp>
-#include <boost/assert.hpp>
-#include <boost/core/ignore_unused.hpp>
-#include <boost/asio/bind_executor.hpp>
+#include <boost/beast/_experimental/core/detail/timeout_service_base.hpp>
+#include <boost/beast/core/bind_handler.hpp>
+#include <boost/beast/core/error.hpp>
 #include <boost/asio/executor.hpp>
-#include <boost/asio/io_context.hpp>
+#include <boost/asio/io_context.hpp> // #include <boost/asio/execution_context.hpp>
 #include <boost/asio/post.hpp>
 #include <boost/asio/steady_timer.hpp>
-#include <boost/asio/strand.hpp>
 #include <chrono>
 #include <cstdlib>
+#include <deque>
 #include <mutex>
 #include <utility>
 #include <vector>
 
 namespace boost {
 namespace beast {
+
+class timeout_handle;
+
 namespace detail {
-
-//------------------------------------------------------------------------------
-
-class timeout_service;
-
-class timeout_object
-{
-    friend class timeout_service;
-
-    using list_type = std::vector<timeout_object*>;
-
-    timeout_service& svc_;
-    std::size_t pos_;
-    list_type* list_ = nullptr;
-    char outstanding_work_ = 0;
-
-public:
-    timeout_object() = delete;
-    timeout_object(timeout_object&&) = delete;
-    timeout_object(timeout_object const&) = delete;
-    timeout_object& operator=(timeout_object&&) = delete;
-    timeout_object& operator=(timeout_object const&) = delete;
-
-    // VFALCO should be execution_context
-    explicit
-    timeout_object(boost::asio::io_context& ioc);
-
-    timeout_service&
-    service() const
-    {
-        return svc_;
-    }
-
-    virtual void on_timeout() = 0;
-};
-
-//------------------------------------------------------------------------------
 
 class timeout_service
     : public service_base<timeout_service>
 {
+    template<class Executor, class Handler>
+    struct callback
+    {
+        timeout_handle th;
+        Executor ex;
+        Handler h;
+
+        void
+        operator()()
+        {
+            boost::asio::post(ex, 
+                beast::bind_front_handler(
+                    std::move(*this), 0));
+        }
+
+        void
+        operator()(int)
+        {
+            th.service().on_cancel(th);
+            h();
+        }
+    };
+
 public:
     using key_type = timeout_service;
 
     // VFALCO Should be execution_context
+    BOOST_BEAST_DECL
     explicit
     timeout_service(boost::asio::io_context& ctx);
 
-    void
-    on_work_started(timeout_object& obj);
+    BOOST_BEAST_DECL
+    timeout_handle
+    make_handle();
 
-    void
-    on_work_complete(timeout_object& obj);
+    BOOST_BEAST_DECL
+    void set_option(std::chrono::seconds n);
 
-    void
-    on_work_stopped(timeout_object& obj);
+    // Undefined if work is active
+    template<class Executor, class CancelHandler>
+    void set_callback(
+        timeout_handle h,
+        Executor const& ex,
+        CancelHandler&& handler);
 
-    void
-    set_option(std::chrono::seconds n);
+    BOOST_BEAST_DECL
+    void on_work_started(timeout_handle h);
+
+    BOOST_BEAST_DECL
+    void on_work_stopped(timeout_handle h);
+
+    BOOST_BEAST_DECL
+    bool on_try_work_complete(timeout_handle h);
 
 private:
-    friend class timeout_object;
+    friend class beast::timeout_handle;
 
-    using list_type = std::vector<timeout_object*>;
+    BOOST_BEAST_DECL
+    void destroy(timeout_handle h);
 
-    void insert(timeout_object& obj, list_type& list);
-    void remove(timeout_object& obj);
+    BOOST_BEAST_DECL
+    void insert(thunk& t, thunk::list_type& list);
+
+    BOOST_BEAST_DECL
+    void remove(thunk& t);
+
+    BOOST_BEAST_DECL
     void do_async_wait();
+
+    BOOST_BEAST_DECL
+    void on_cancel(timeout_handle h);
+
+    BOOST_BEAST_DECL
     void on_timer(error_code ec);
 
+    BOOST_BEAST_DECL
     virtual void shutdown() noexcept override;
 
-    boost::asio::strand<
-        boost::asio::io_context::executor_type> strand_;
-
     std::mutex m_;
-    list_type list_[2];
-    list_type* fresh_ = &list_[0];
-    list_type* stale_ = &list_[1];
-    std::size_t count_ = 0;
+    thunk::list_type list_[2];
+    thunk::list_type* fresh_ = &list_[0];
+    thunk::list_type* stale_ = &list_[1];
+    std::deque<thunk> thunks_;
+    std::size_t free_thunk_ = 0;
     boost::asio::steady_timer timer_;
     std::chrono::seconds interval_{30ul};
+    long pending_ = 0;
 };
-
-//------------------------------------------------------------------------------
 
 } // detail
 } // beast
 } // boost
 
-#include <boost/beast/_experimental/core/detail/impl/timeout_service.ipp>
+#include <boost/beast/_experimental/core/detail/impl/timeout_service.hpp>
 
 #endif

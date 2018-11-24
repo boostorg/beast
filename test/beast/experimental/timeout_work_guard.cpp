@@ -8,4 +8,4 @@
 //
 
 // Test that header file is self-contained.
-#include <boost/beast/_experimental/core/detail/timeout_work_guard.hpp>
+#include <boost/beast/_experimental/core/timeout_work_guard.hpp>

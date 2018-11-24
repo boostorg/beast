@@ -60,4 +60,6 @@
 # endif
 #endif
 
+#define BOOST_BEAST_DECL inline
+
 #endif
