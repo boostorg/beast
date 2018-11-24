@@ -14,15 +14,15 @@
 #include <boost/beast/core/flat_buffer.hpp>
 #include <boost/beast/core/string.hpp>
 #include <boost/beast/core/type_traits.hpp>
-#include <boost/beast/websocket/teardown.hpp>
+#include <boost/beast/websocket/role.hpp>
 #include <boost/beast/_experimental/test/fail_count.hpp>
 #include <boost/asio/async_result.hpp>
 #include <boost/asio/buffer.hpp>
+#include <boost/asio/error.hpp>
 #include <boost/asio/executor_work_guard.hpp>
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/post.hpp>
 #include <boost/assert.hpp>
-#include <boost/optional.hpp>
 #include <boost/throw_exception.hpp>
 #include <condition_variable>
 #include <limits>
@@ -366,13 +366,13 @@ public:
         This function is used to read data from the stream. The function call will
         block until one or more bytes of data has been read successfully, or until
         an error occurs.
-        
+
         @param buffers The buffers into which the data will be read.
-        
+
         @returns The number of bytes read.
-        
+
         @throws boost::system::system_error Thrown on failure.
-        
+
         @note The `read_some` operation may not read all of the requested number of
         bytes. Consider using the function `boost::asio::read` if you need to ensure
         that the requested amount of data is read before the blocking operation
@@ -387,13 +387,13 @@ public:
         This function is used to read data from the stream. The function call will
         block until one or more bytes of data has been read successfully, or until
         an error occurs.
-        
+
         @param buffers The buffers into which the data will be read.
-        
+
         @param ec Set to indicate what error occurred, if any.
 
         @returns The number of bytes read.
-                
+
         @note The `read_some` operation may not read all of the requested number of
         bytes. Consider using the function `boost::asio::read` if you need to ensure
         that the requested amount of data is read before the blocking operation
@@ -405,15 +405,15 @@ public:
         error_code& ec);
 
     /** Start an asynchronous read.
-    
+
         This function is used to asynchronously read one or more bytes of data from
         the stream. The function call always returns immediately.
-        
+
         @param buffers The buffers into which the data will be read. Although the
         buffers object may be copied as necessary, ownership of the underlying
         buffers is retained by the caller, which must guarantee that they remain
         valid until the handler is called.
-        
+
         @param handler The handler to be called when the read operation completes.
         Copies will be made of the handler as required. The equivalent function
         signature of the handler must be:
@@ -421,7 +421,7 @@ public:
           const boost::system::error_code& error, // Result of operation.
           std::size_t bytes_transferred           // Number of bytes read.
         ); @endcode
-        
+
         @note The `read_some` operation may not read all of the requested number of
         bytes. Consider using the function `boost::asio::async_read` if you need
         to ensure that the requested amount of data is read before the asynchronous
@@ -434,17 +434,17 @@ public:
         ReadHandler&& handler);
 
     /** Write some data to the stream.
-    
+
         This function is used to write data on the stream. The function call will
         block until one or more bytes of data has been written successfully, or
         until an error occurs.
-        
+
         @param buffers The data to be written.
-        
+
         @returns The number of bytes written.
-        
+
         @throws boost::system::system_error Thrown on failure.
-        
+
         @note The `write_some` operation may not transmit all of the data to the
         peer. Consider using the function `boost::asio::write` if you need to
         ensure that all data is written before the blocking operation completes.
@@ -454,17 +454,17 @@ public:
     write_some(ConstBufferSequence const& buffers);
 
     /** Write some data to the stream.
-    
+
         This function is used to write data on the stream. The function call will
         block until one or more bytes of data has been written successfully, or
         until an error occurs.
-        
+
         @param buffers The data to be written.
-        
+
         @param ec Set to indicate what error occurred, if any.
 
         @returns The number of bytes written.
-                
+
         @note The `write_some` operation may not transmit all of the data to the
         peer. Consider using the function `boost::asio::write` if you need to
         ensure that all data is written before the blocking operation completes.
@@ -475,15 +475,15 @@ public:
         ConstBufferSequence const& buffers, error_code& ec);
 
     /** Start an asynchronous write.
-        
+
         This function is used to asynchronously write one or more bytes of data to
         the stream. The function call always returns immediately.
-        
+
         @param buffers The data to be written to the stream. Although the buffers
         object may be copied as necessary, ownership of the underlying buffers is
         retained by the caller, which must guarantee that they remain valid until
         the handler is called.
-        
+
         @param handler The handler to be called when the write operation completes.
         Copies will be made of the handler as required. The equivalent function
         signature of the handler must be:
@@ -491,7 +491,7 @@ public:
           const boost::system::error_code& error, // Result of operation.
           std::size_t bytes_transferred           // Number of bytes written.
         ); @endcode
-        
+
         @note The `async_write_some` operation may not transmit all of the data to
         the peer. Consider using the function `boost::asio::async_write` if you need
         to ensure that all data is written before the asynchronous operation completes.
