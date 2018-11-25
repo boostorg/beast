@@ -72,7 +72,6 @@ class ssl_stream
     using stream_type = boost::beast::flat_stream<ssl_stream_type>;
 
     std::unique_ptr<stream_type> p_;
-    boost::asio::ssl::context* ctx_;
 
 public:
     /// The native handle type of the SSL stream.
@@ -106,23 +105,7 @@ public:
         boost::asio::ssl::context& ctx)
         : p_(new stream_type{
             std::forward<Arg>(arg), ctx})
-        , ctx_(&ctx)
     {
-    }
-
-    /// Move Constructor
-    ssl_stream(ssl_stream&& other)
-        : p_(std::move(other.p_))
-        , ctx_(other.ctx_)
-    {
-    }
-
-    /// Move Assignment
-    ssl_stream& operator=(ssl_stream&& other)
-    {
-        p_ = std::move(other.p_);
-        ctx_ = other.ctx_;
-        return *this;
     }
 
     /** Get the executor associated with the object.
@@ -476,7 +459,7 @@ public:
     */
     template<class ConstBufferSequence, class BufferedHandshakeHandler>
     BOOST_ASIO_INITFN_RESULT_TYPE(BufferedHandshakeHandler,
-        void (boost::system::error_code, std::size_t))
+        void(boost::system::error_code, std::size_t))
     async_handshake(handshake_type type, ConstBufferSequence const& buffers,
         BOOST_ASIO_MOVE_ARG(BufferedHandshakeHandler) handler)
     {
@@ -524,7 +507,7 @@ public:
     */
     template<class ShutdownHandler>
     BOOST_ASIO_INITFN_RESULT_TYPE(ShutdownHandler,
-        void (boost::system::error_code))
+        void(boost::system::error_code))
     async_shutdown(BOOST_ASIO_MOVE_ARG(ShutdownHandler) handler)
     {
         return p_->next_layer().async_shutdown(
@@ -603,7 +586,7 @@ public:
     */
     template<class ConstBufferSequence, class WriteHandler>
     BOOST_ASIO_INITFN_RESULT_TYPE(WriteHandler,
-        void (boost::system::error_code, std::size_t))
+        void(boost::system::error_code, std::size_t))
     async_write_some(ConstBufferSequence const& buffers,
         BOOST_ASIO_MOVE_ARG(WriteHandler) handler)
     {
