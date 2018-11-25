@@ -259,11 +259,11 @@ public:
         
         @note Calls @c SSL_set_verify.
     */
-    boost::system::error_code
+    void
     set_verify_mode(boost::asio::ssl::verify_mode v,
         boost::system::error_code& ec)
     {
-        return p_->next_layer().set_verify_mode(v, ec);
+        p_->next_layer().set_verify_mode(v, ec);
     }
 
     /** Set the peer verification depth.
@@ -296,11 +296,11 @@ public:
         
         @note Calls @c SSL_set_verify_depth.
     */
-    boost::system::error_code
+    void
     set_verify_depth(
         int depth, boost::system::error_code& ec)
     {
-        return p_->next_layer().set_verify_depth(depth, ec);
+        p_->next_layer().set_verify_depth(depth, ec);
     }
 
     /** Set the callback used to verify peer certificates.
@@ -347,11 +347,11 @@ public:
         @note Calls @c SSL_set_verify.
     */
     template<class VerifyCallback>
-    boost::system::error_code
+    void
     set_verify_callback(VerifyCallback callback,
         boost::system::error_code& ec)
     {
-        return p_->next_layer().set_verify_callback(callback, ec);
+        p_->next_layer().set_verify_callback(callback, ec);
     }
 
     /** Perform SSL handshaking.
@@ -380,11 +380,11 @@ public:
 
         @param ec Set to indicate what error occurred, if any.
     */
-    boost::system::error_code
+    void
     handshake(handshake_type type,
         boost::system::error_code& ec)
     {
-        return p_->next_layer().handshake(type, ec);
+        p_->next_layer().handshake(type, ec);
     }
 
     /** Perform SSL handshaking.
@@ -420,12 +420,12 @@ public:
         @param ec Set to indicate what error occurred, if any.
     */
     template<class ConstBufferSequence>
-    boost::system::error_code
+    void
     handshake(handshake_type type,
         ConstBufferSequence const& buffers,
             boost::system::error_code& ec)
     {
-        return p_->next_layer().handshake(type, buffers, ec);
+        p_->next_layer().handshake(type, buffers, ec);
     }
 
     /** Start an asynchronous SSL handshake.
@@ -504,10 +504,10 @@ public:
 
         @param ec Set to indicate what error occurred, if any.
     */
-    boost::system::error_code
+    void
     shutdown(boost::system::error_code& ec)
     {
-        return p_->next_layer().shutdown(ec);
+        p_->next_layer().shutdown(ec);
     }
 
     /** Asynchronously shut down SSL on the stream.
