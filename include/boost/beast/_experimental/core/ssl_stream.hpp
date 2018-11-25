@@ -72,7 +72,6 @@ class ssl_stream
     using stream_type = boost::beast::flat_stream<ssl_stream_type>;
 
     std::unique_ptr<stream_type> p_;
-    boost::asio::ssl::context* ctx_;
 
 public:
     /// The native handle type of the SSL stream.
@@ -106,14 +105,12 @@ public:
         boost::asio::ssl::context& ctx)
         : p_(new stream_type{
             std::forward<Arg>(arg), ctx})
-        , ctx_(&ctx)
     {
     }
 
     /// Move Constructor
     ssl_stream(ssl_stream&& other)
         : p_(std::move(other.p_))
-        , ctx_(other.ctx_)
     {
     }
 
@@ -121,7 +118,6 @@ public:
     ssl_stream& operator=(ssl_stream&& other)
     {
         p_ = std::move(other.p_);
-        ctx_ = other.ctx_;
         return *this;
     }
 
