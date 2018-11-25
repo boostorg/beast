@@ -147,7 +147,7 @@ operator()()
             BOOST_ASSERT(! f.invoked);
             return boost::asio::post(
                 s_.get_executor(),
-                bind_front_handler(std::move(*this), ec, 0));
+                beast::bind_front_handler(std::move(*this), ec, 0));
         }
         if(f.invoked)
         {
@@ -160,7 +160,7 @@ operator()()
     }
     return boost::asio::post(
         s_.get_executor(),
-        bind_front_handler(std::move(*this), ec, 0));
+        beast::bind_front_handler(std::move(*this), ec, 0));
 }
 
 template<

@@ -118,7 +118,7 @@ operator()(error_code ec, std::size_t bytes_transferred)
             BOOST_ASIO_CORO_YIELD
             boost::asio::post(
                 s_.get_executor(),
-                bind_front_handler(std::move(*this), ec, 0));
+                beast::bind_front_handler(std::move(*this), ec, 0));
             goto upcall;
         }
         for(;;)

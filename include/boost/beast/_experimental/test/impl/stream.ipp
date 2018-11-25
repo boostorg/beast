@@ -223,7 +223,7 @@ read_some(MutableBufferSequence const& buffers,
         });
     std::size_t bytes_transferred;
     if(in_->b.size() > 0)
-    {   
+    {
         ec.assign(0, ec.category());
         bytes_transferred = buffer_copy(
             buffers, in_->b.data(), in_->read_max);
@@ -257,17 +257,18 @@ async_read_some(
     using boost::asio::buffer_size;
     BOOST_BEAST_HANDLER_INIT(
         ReadHandler, void(error_code, std::size_t));
-    if(in_->fc)
+
+    error_code ec;
+    if(in_->fc && in_->fc->fail(ec))
     {
-        error_code ec;
-        if(in_->fc->fail(ec))
-            return boost::asio::post(
-                in_->ioc.get_executor(),
-                bind_front_handler(
-                    std::move(init.completion_handler),
-                    ec,
-                    0));
+        boost::asio::post(
+            in_->ioc.get_executor(),
+            beast::bind_front_handler(
+                std::move(init.completion_handler),
+                ec,
+                0));
     }
+    else
     {
         std::unique_lock<std::mutex> lock{in_->m};
         BOOST_ASSERT(! in_->op);
@@ -281,7 +282,7 @@ async_read_some(
             ++in_->nread;
             boost::asio::post(
                 in_->ioc.get_executor(),
-                bind_front_handler(
+                beast::bind_front_handler(
                     std::move(init.completion_handler),
                     error_code{},
                     bytes_transferred));
@@ -297,7 +298,7 @@ async_read_some(
                 ec = boost::asio::error::connection_reset;
             boost::asio::post(
                 in_->ioc.get_executor(),
-                bind_front_handler(
+                beast::bind_front_handler(
                     std::move(init.completion_handler),
                     ec,
                     0));
@@ -378,39 +379,47 @@ async_write_some(ConstBufferSequence const& buffers,
         WriteHandler, void(error_code, std::size_t));
     auto out = out_.lock();
     if(! out)
-        return boost::asio::post(
+    {
+        boost::asio::post(
             in_->ioc.get_executor(),
-            bind_front_handler(
+            beast::bind_front_handler(
                 std::move(init.completion_handler),
                 boost::asio::error::connection_reset,
                 0));
-    BOOST_ASSERT(out->code == status::ok);
-    if(in_->fc)
+    }
+    else
     {
+        BOOST_ASSERT(out->code == status::ok);
         error_code ec;
-        if(in_->fc->fail(ec))
-            return boost::asio::post(
+        if(in_->fc && in_->fc->fail(ec))
+        {
+            boost::asio::post(
                 in_->ioc.get_executor(),
-                bind_front_handler(
+                beast::bind_front_handler(
                     std::move(init.completion_handler),
                     ec,
                     0));
+        }
+        else
+        {
+            auto const n =
+                (std::min)(buffer_size(buffers), in_->write_max);
+            std::unique_lock<std::mutex> lock{out->m};
+            auto const bytes_transferred =
+                buffer_copy(out->b.prepare(n), buffers);
+            out->b.commit(bytes_transferred);
+            out->on_write();
+            lock.unlock();
+            ++in_->nwrite;
+            boost::asio::post(
+                in_->ioc.get_executor(),
+                beast::bind_front_handler(
+                    std::move(init.completion_handler),
+                    error_code{},
+                    bytes_transferred));
+        }
     }
-    auto const n =
-        (std::min)(buffer_size(buffers), in_->write_max);
-    std::unique_lock<std::mutex> lock{out->m};
-    auto const bytes_transferred =
-        buffer_copy(out->b.prepare(n), buffers);
-    out->b.commit(bytes_transferred);
-    out->on_write();
-    lock.unlock();
-    ++in_->nwrite;
-    boost::asio::post(
-        in_->ioc.get_executor(),
-        bind_front_handler(
-            std::move(init.completion_handler),
-            error_code{},
-            bytes_transferred));
+
     return init.result.get();
 }
 
@@ -447,7 +456,7 @@ TeardownHandler&& handler)
         s.in_->fc->fail(ec))
         return boost::asio::post(
             s.get_executor(),
-            bind_front_handler(std::move(handler), ec));
+            beast::bind_front_handler(std::move(handler), ec));
     s.close();
     if( s.in_->fc &&
         s.in_->fc->fail(ec))
@@ -457,7 +466,7 @@ TeardownHandler&& handler)
 
     boost::asio::post(
         s.get_executor(),
-        bind_front_handler(std::move(handler), ec));
+        beast::bind_front_handler(std::move(handler), ec));
 }
 
 //------------------------------------------------------------------------------
@@ -513,7 +522,7 @@ class stream::read_op : public stream::read_op_base
                 ++s.nread;
                 boost::asio::post(
                     s.ioc.get_executor(),
-                    bind_front_handler(
+                    beast::bind_front_handler(
                         std::move(h),
                         error_code{},
                         bytes_transferred));
@@ -532,7 +541,7 @@ class stream::read_op : public stream::read_op_base
                     ec = boost::asio::error::connection_reset;
                 boost::asio::post(
                     s.ioc.get_executor(),
-                    bind_front_handler(std::move(h), ec, 0));
+                    beast::bind_front_handler(std::move(h), ec, 0));
             }
         }
     };

@@ -182,7 +182,7 @@ operator()(
             BOOST_ASIO_CORO_YIELD
             boost::asio::post(
                 s_.get_executor(),
-                bind_front_handler(std::move(*this),
+                beast::bind_front_handler(std::move(*this),
                     ec, bytes_transferred_));
         }
         h_(ec, bytes_transferred_);
@@ -305,7 +305,7 @@ operator()(
         {
             BOOST_ASIO_CORO_YIELD
             boost::asio::post(s_.get_executor(),
-                bind_front_handler(std::move(*this), ec));
+                beast::bind_front_handler(std::move(*this), ec));
             goto upcall;
         }
         for(;;)

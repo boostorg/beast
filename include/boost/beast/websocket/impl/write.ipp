@@ -578,7 +578,7 @@ operator()(
             BOOST_ASIO_CORO_YIELD
             boost::asio::post(
                 ws_.get_executor(),
-                bind_front_handler(
+                beast::bind_front_handler(
                     std::move(*this),
                     ec, bytes_transferred_));
         }
