@@ -269,7 +269,7 @@ operator()(error_code ec, std::size_t)
             BOOST_ASIO_CORO_YIELD
             boost::asio::post(
                 d.ws.get_executor(),
-                bind_front_handler(std::move(*this), ec));
+                beast::bind_front_handler(std::move(*this), ec));
         }
         else
         {

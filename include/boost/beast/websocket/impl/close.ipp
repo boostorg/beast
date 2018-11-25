@@ -181,7 +181,7 @@ operator()(
             // The read_op will be suspended on the write block.
             goto teardown;
         }
-        
+
         // Maybe suspend
         if(! d.ws.rd_block_.try_lock(this))
         {
@@ -304,7 +304,7 @@ operator()(
             BOOST_ASIO_CORO_YIELD
             boost::asio::post(
                 d.ws.get_executor(),
-                bind_front_handler(std::move(*this), ec));
+                beast::bind_front_handler(std::move(*this), ec));
         }
         {
             auto wg = std::move(d.wg);

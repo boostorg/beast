@@ -63,7 +63,7 @@ public:
     {
         return b_.size();
     }
-    
+
     std::size_t
     max_size() const
     {
@@ -196,7 +196,7 @@ template<class MutableBufferSequence, class Handler>
 class icy_stream<NextLayer>::read_op
     : public boost::asio::coroutine
 {
-    using alloc_type = typename 
+    using alloc_type = typename
 #if defined(BOOST_NO_CXX11_ALLOCATOR)
         boost::asio::associated_allocator_t<Handler>::template
             rebind<char>::other;
@@ -290,7 +290,7 @@ operator()(
         {
             BOOST_ASIO_CORO_YIELD
             boost::asio::post(d.s.get_executor(),
-                bind_handler(std::move(*this), ec, 0));
+                beast::bind_handler(std::move(*this), ec, 0));
             goto upcall;
         }
         if(! d.s.detect_)

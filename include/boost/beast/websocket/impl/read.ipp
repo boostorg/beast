@@ -705,7 +705,7 @@ operator()(
             BOOST_ASIO_CORO_YIELD
             boost::asio::post(
                 ws_.get_executor(),
-                bind_front_handler(std::move(*this),
+                beast::bind_front_handler(std::move(*this),
                     ec, bytes_written_));
         }
         h_(ec, bytes_written_);
@@ -813,7 +813,7 @@ operator()(
                 if(ec)
                     boost::asio::post(
                         ws_.get_executor(),
-                        bind_front_handler(
+                        beast::bind_front_handler(
                             std::move(*this), ec, 0));
                 else
                     read_some_op<typename
@@ -1125,7 +1125,7 @@ loop:
                 // _Start the WebSocket Closing Handshake_
                 do_fail(
                     cr.code == close_code::none ?
-                        close_code::normal : 
+                        close_code::normal :
                         static_cast<close_code>(cr.code),
                     error::closed, ec);
                 return bytes_written;
