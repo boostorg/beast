@@ -1,3 +1,9 @@
+Version 193:
+
+* Update ssl_stream signatures for networking changes
+
+--------------------------------------------------------------------------------
+
 Version 192:
 
 * Use mp11::integer_sequence
