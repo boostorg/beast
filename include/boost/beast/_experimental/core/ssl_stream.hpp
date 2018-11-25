@@ -472,7 +472,7 @@ public:
     */
     template<class ConstBufferSequence, class BufferedHandshakeHandler>
     BOOST_ASIO_INITFN_RESULT_TYPE(BufferedHandshakeHandler,
-        void (boost::system::error_code, std::size_t))
+        void(boost::system::error_code, std::size_t))
     async_handshake(handshake_type type, ConstBufferSequence const& buffers,
         BOOST_ASIO_MOVE_ARG(BufferedHandshakeHandler) handler)
     {
@@ -520,7 +520,7 @@ public:
     */
     template<class ShutdownHandler>
     BOOST_ASIO_INITFN_RESULT_TYPE(ShutdownHandler,
-        void (boost::system::error_code))
+        void(boost::system::error_code))
     async_shutdown(BOOST_ASIO_MOVE_ARG(ShutdownHandler) handler)
     {
         return p_->next_layer().async_shutdown(
@@ -599,7 +599,7 @@ public:
     */
     template<class ConstBufferSequence, class WriteHandler>
     BOOST_ASIO_INITFN_RESULT_TYPE(WriteHandler,
-        void (boost::system::error_code, std::size_t))
+        void(boost::system::error_code, std::size_t))
     async_write_some(ConstBufferSequence const& buffers,
         BOOST_ASIO_MOVE_ARG(WriteHandler) handler)
     {
