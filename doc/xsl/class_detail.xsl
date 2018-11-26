@@ -21,11 +21,20 @@
     <xsl:when test="declname = 'CompletionHandler' or type = 'class CompletionHandler'">
       <xsl:text>class __CompletionHandler__</xsl:text>
     </xsl:when>
+    <xsl:when test="type = 'class ConnectCondition'">
+      <xsl:text>class __ConnectCondition__</xsl:text>
+    </xsl:when>
     <xsl:when test="declname = 'ConstBufferSequence' or type = 'class ConstBufferSequence'">
       <xsl:text>class __ConstBufferSequence__</xsl:text>
     </xsl:when>
     <xsl:when test="declname = 'DynamicBuffer' or type = 'class DynamicBuffer'">
       <xsl:text>class ``[link beast.concepts.DynamicBuffer [*DynamicBuffer]]``</xsl:text>
+    </xsl:when>
+    <xsl:when test="type = 'class EndpointSequence'">
+      <xsl:text>class __EndpointSequence__</xsl:text>
+    </xsl:when>
+    <xsl:when test="type = 'class Executor'">
+      <xsl:text>class __Executor__</xsl:text>
     </xsl:when>
     <xsl:when test="type = 'class Fields' or substring(type, 1, 13) = 'class Fields '">
       <xsl:text>class ``[link beast.concepts.Fields [*Fields]]``</xsl:text>
@@ -33,8 +42,17 @@
     <xsl:when test="declname = 'Handler' or type = 'class Handler'">
       <xsl:text>class __Handler__</xsl:text>
     </xsl:when>
+    <xsl:when test="type = 'class IteratorConnectHandler'">
+      <xsl:text>class __IteratorConnectHandler__</xsl:text>
+    </xsl:when>
     <xsl:when test="declname = 'MutableBufferSequence' or type = 'class MutableBufferSequence'">
       <xsl:text>class __MutableBufferSequence__</xsl:text>
+    </xsl:when>
+    <xsl:when test="type = 'class Protocol'">
+      <xsl:text>class __Protocol__</xsl:text>
+    </xsl:when>
+    <xsl:when test="type = 'class RangeConnectHandler'">
+      <xsl:text>class __RangeConnectHandler__</xsl:text>
     </xsl:when>
     <xsl:when test="declname = 'ReadHandler' or type = 'class ReadHandler'">
       <xsl:text>class __ReadHandler__</xsl:text>
@@ -55,3 +73,24 @@
       <xsl:text>class __WriteHandler__</xsl:text>
     </xsl:when>
 <!-- CLASS_DETAIL_TEMPLATE END -->
+
+
+
+    <xsl:when test="type = 'class Protocol'">
+      <xsl:text>class __Protocol__</xsl:text>
+    </xsl:when>
+    <xsl:when test="type = 'class Executor'">
+      <xsl:text>class __Executor__</xsl:text>
+    </xsl:when>
+    <xsl:when test="type = 'class EndpointSequence'">
+      <xsl:text>class __EndpointSequence__</xsl:text>
+    </xsl:when>
+    <xsl:when test="type = 'class RangeConnectHandler'">
+      <xsl:text>class __RangeConnectHandler__</xsl:text>
+    </xsl:when>
+    <xsl:when test="type = 'class ConnectCondition'">
+      <xsl:text>class __ConnectCondition__</xsl:text>
+    </xsl:when>
+    <xsl:when test="type = 'class IteratorConnectHandler'">
+      <xsl:text>class __IteratorConnectHandler__</xsl:text>
+    </xsl:when>
