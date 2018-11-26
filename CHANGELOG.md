@@ -9,7 +9,6 @@ Version 191:
 * Fix buffers_cat uninitialized warning
 * Fix static_string uninitialized warning
 * Fix warning in is_ssl_handshake
-* example/cppcon2018 only requires C++11
 
 --------------------------------------------------------------------------------
 
@@ -21,6 +20,13 @@ Version 190:
 * Rename experimental directory
 * Improve compilation of tests for continuous integration
 * Fix visibility warnings in test
+
+--------------------------------------------------------------------------------
+
+Version 189-hf1:
+
+* Fix broken doc link
+* example/cppcon2018 only requires C++11
 
 --------------------------------------------------------------------------------
 

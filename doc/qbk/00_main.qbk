@@ -51,7 +51,7 @@
 [def __ssl_stream__             [@boost:/doc/html/boost_asio/reference/ssl__stream.html `boost::asio::ssl::stream`]]
 [def __streambuf__              [@boost:/doc/html/boost_asio/reference/streambuf.html `boost::asio::streambuf`]]
 [def __use_future__             [@boost:/doc/html/boost_asio/reference/use_future_t.html `boost::asio::use_future`]]
-[def __void_or_deduced__        [@boost:/doc/html/boost_asio/reference/asynchronous_operations/automatic_deduction_of_initiating_function_return_type.html ['DEDUCED]]]
+[def __void_or_deduced__        [@boost:/doc/html/boost_asio/reference/asynchronous_operations.html#boost_asio.reference.asynchronous_operations.automatic_deduction_of_initiating_function_return_type ['DEDUCED]]]
 [def __yield_context__          [@boost:/doc/html/boost_asio/reference/yield_context.html `boost::asio::yield_context`]]
 
 [def __AsyncReadStream__        [@boost:/doc/html/boost_asio/reference/AsyncReadStream.html [*AsyncReadStream]]]
