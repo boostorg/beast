@@ -1,3 +1,9 @@
+Version 190:
+
+* Fix broken doc link
+
+--------------------------------------------------------------------------------
+
 Version 189:
 
 * Add CppCon2018 chat server example and video
