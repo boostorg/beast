@@ -18,6 +18,15 @@
 #include <boost/core/ignore_unused.hpp>
 #include <boost/static_assert.hpp>
 
+namespace boost {
+namespace asio
+{
+} // asio
+namespace beast {
+namespace net = boost::asio;
+} // beast
+} // boost
+
 /*
     _MSC_VER and _MSC_FULL_VER by version:
 

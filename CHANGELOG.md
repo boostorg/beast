@@ -1,6 +1,7 @@
 Version 194:
 
 * http::async_read returns the right byte count on error
+* Add net namespace alias
 
 --------------------------------------------------------------------------------
 
