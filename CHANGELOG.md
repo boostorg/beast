@@ -1,3 +1,9 @@
+Version 194:
+
+* http::async_read returns the right byte count on error
+
+--------------------------------------------------------------------------------
+
 Version 193:
 
 * Update ssl_stream signatures for networking changes

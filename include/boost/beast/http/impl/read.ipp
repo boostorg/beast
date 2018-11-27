@@ -313,9 +313,9 @@ operator()(
             BOOST_ASIO_CORO_YIELD
             async_read_some(
                 s_, b_, p_, std::move(*this));
+            bytes_transferred_ += bytes_transferred;
             if(ec)
                 goto upcall;
-            bytes_transferred_ += bytes_transferred;
             if(Condition{}(p_))
                 goto upcall;
         }
