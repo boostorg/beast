@@ -427,6 +427,7 @@ public:
     testIssue954()
     {
         echo_server es{log};
+        multi_buffer b;
         boost::asio::io_context ioc;
         stream<test::stream> ws{ioc};
         ws.next_layer().connect(es.stream());
@@ -443,7 +444,6 @@ public:
             {
                 called_cb = true;
             });
-        multi_buffer b;
         ws.async_read(b,
             [&](error_code, std::size_t)
             {
