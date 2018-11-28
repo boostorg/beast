@@ -108,19 +108,6 @@ public:
     {
     }
 
-    /// Move Constructor
-    ssl_stream(ssl_stream&& other)
-        : p_(std::move(other.p_))
-    {
-    }
-
-    /// Move Assignment
-    ssl_stream& operator=(ssl_stream&& other)
-    {
-        p_ = std::move(other.p_);
-        return *this;
-    }
-
     /** Get the executor associated with the object.
 
         This function may be used to obtain the executor object that the stream
