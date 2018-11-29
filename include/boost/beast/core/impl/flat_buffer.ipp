@@ -18,9 +18,11 @@
 namespace boost {
 namespace beast {
 
-/*  Memory is laid out thusly:
+/*  Layout:
 
-    begin_ ..|.. in_ ..|.. out_ ..|.. last_ ..|.. end_
+      begin_     in_          out_        last_      end_
+        |<------->|<---------->|<---------->|<------->|
+                  |  readable  |  writable  |
 */
 
 template<class Allocator>
@@ -40,7 +42,8 @@ basic_flat_buffer()
     , out_(nullptr)
     , last_(nullptr)
     , end_(nullptr)
-    , max_((std::numeric_limits<std::size_t>::max)())
+    , max_((std::numeric_limits<
+        std::size_t>::max)())
 {
 }
 
@@ -59,20 +62,24 @@ basic_flat_buffer(std::size_t limit)
 template<class Allocator>
 basic_flat_buffer<Allocator>::
 basic_flat_buffer(Allocator const& alloc)
-    : boost::empty_value<base_alloc_type>(boost::empty_init_t(), alloc)
+    : boost::empty_value<base_alloc_type>(
+        boost::empty_init_t(), alloc)
     , begin_(nullptr)
     , in_(nullptr)
     , out_(nullptr)
     , last_(nullptr)
     , end_(nullptr)
-    , max_((std::numeric_limits<std::size_t>::max)())
+    , max_((std::numeric_limits<
+        std::size_t>::max)())
 {
 }
 
 template<class Allocator>
 basic_flat_buffer<Allocator>::
-basic_flat_buffer(std::size_t limit, Allocator const& alloc)
-    : boost::empty_value<base_alloc_type>(boost::empty_init_t(), alloc)
+basic_flat_buffer(
+    std::size_t limit, Allocator const& alloc)
+    : boost::empty_value<base_alloc_type>(
+        boost::empty_init_t(), alloc)
     , begin_(nullptr)
     , in_(nullptr)
     , out_(nullptr)
@@ -85,23 +92,23 @@ basic_flat_buffer(std::size_t limit, Allocator const& alloc)
 template<class Allocator>
 basic_flat_buffer<Allocator>::
 basic_flat_buffer(basic_flat_buffer&& other)
-    : boost::empty_value<base_alloc_type>(boost::empty_init_t(),
-        std::move(other.get()))
+    : boost::empty_value<base_alloc_type>(
+        boost::empty_init_t(), std::move(other.get()))
     , begin_(boost::exchange(other.begin_, nullptr))
     , in_(boost::exchange(other.in_, nullptr))
     , out_(boost::exchange(other.out_, nullptr))
-    , last_(out_)
+    , last_(boost::exchange(other.last_, nullptr))
     , end_(boost::exchange(other.end_, nullptr))
     , max_(other.max_)
 {
-    other.last_ = nullptr;
 }
 
 template<class Allocator>
 basic_flat_buffer<Allocator>::
-basic_flat_buffer(basic_flat_buffer&& other,
-        Allocator const& alloc)
-    : boost::empty_value<base_alloc_type>(boost::empty_init_t(), alloc)
+basic_flat_buffer(
+    basic_flat_buffer&& other, Allocator const& alloc)
+    : boost::empty_value<base_alloc_type>(
+        boost::empty_init_t(), alloc)
 {
     if(this->get() != other.get())
     {
@@ -119,7 +126,7 @@ basic_flat_buffer(basic_flat_buffer&& other,
         begin_ = other.begin_;
         in_ = other.in_;
         out_ = other.out_;
-        last_ = out_;
+        last_ = other.out_; // invalidate
         end_ = other.end_;
         max_ = other.max_;
         other.begin_ = nullptr;
@@ -229,6 +236,36 @@ operator=(basic_flat_buffer<OtherAlloc> const& other) ->
     return *this;
 }
 
+template<class Allocator>
+void
+basic_flat_buffer<Allocator>::
+shrink_to_fit()
+{
+    auto const len = size();
+    if(len == capacity())
+        return;
+    char* p;
+    if(len > 0)
+    {
+        BOOST_ASSERT(begin_);
+        BOOST_ASSERT(in_);
+        p = alloc_traits::allocate(
+            this->get(), len);
+        std::memcpy(p, in_, len);
+    }
+    else
+    {
+        p = nullptr;
+    }
+    alloc_traits::deallocate(
+        this->get(), begin_, this->dist(begin_, end_));
+    begin_ = p;
+    in_ = begin_;
+    out_ = begin_ + len;
+    last_ = out_;
+    end_ = out_;
+}
+
 //------------------------------------------------------------------------------
 
 template<class Allocator>
@@ -284,7 +321,7 @@ prepare(std::size_t n) ->
 template<class Allocator>
 void
 basic_flat_buffer<Allocator>::
-consume(std::size_t n)
+consume(std::size_t n) noexcept
 {
     if(n >= dist(in_, out_))
     {
@@ -295,40 +332,9 @@ consume(std::size_t n)
     in_ += n;
 }
 
-template<class Allocator>
-void
-basic_flat_buffer<Allocator>::
-shrink_to_fit()
-{
-    auto const len = size();
-    if(len == capacity())
-        return;
-    char* p;
-    if(len > 0)
-    {
-        BOOST_ASSERT(begin_);
-        BOOST_ASSERT(in_);
-        p = alloc_traits::allocate(
-            this->get(), len);
-        std::memcpy(p, in_, len);
-    }
-    else
-    {
-        p = nullptr;
-    }
-    alloc_traits::deallocate(
-        this->get(), begin_, dist(begin_, end_));
-    begin_ = p;
-    in_ = begin_;
-    out_ = begin_ + len;
-    last_ = out_;
-    end_ = out_;
-}
-
 //------------------------------------------------------------------------------
 
 template<class Allocator>
-inline
 void
 basic_flat_buffer<Allocator>::
 reset()
@@ -339,20 +345,17 @@ reset()
 
 template<class Allocator>
 template<class DynamicBuffer>
-inline
 void
 basic_flat_buffer<Allocator>::
 copy_from(DynamicBuffer const& buffer)
 {
     if(buffer.size() == 0)
         return;
-    using boost::asio::buffer_copy;
-    commit(buffer_copy(
+    commit(boost::asio::buffer_copy(
         prepare(buffer.size()), buffer.data()));
 }
 
 template<class Allocator>
-inline
 void
 basic_flat_buffer<Allocator>::
 move_assign(basic_flat_buffer& other, std::true_type)
@@ -373,7 +376,6 @@ move_assign(basic_flat_buffer& other, std::true_type)
 }
 
 template<class Allocator>
-inline
 void
 basic_flat_buffer<Allocator>::
 move_assign(basic_flat_buffer& other, std::false_type)
@@ -391,7 +393,6 @@ move_assign(basic_flat_buffer& other, std::false_type)
 }
 
 template<class Allocator>
-inline
 void
 basic_flat_buffer<Allocator>::
 copy_assign(basic_flat_buffer const& other, std::true_type)
@@ -403,7 +404,6 @@ copy_assign(basic_flat_buffer const& other, std::true_type)
 }
 
 template<class Allocator>
-inline
 void
 basic_flat_buffer<Allocator>::
 copy_assign(basic_flat_buffer const& other, std::false_type)
@@ -414,7 +414,6 @@ copy_assign(basic_flat_buffer const& other, std::false_type)
 }
 
 template<class Allocator>
-inline
 void
 basic_flat_buffer<Allocator>::
 swap(basic_flat_buffer& other)
@@ -424,7 +423,6 @@ swap(basic_flat_buffer& other)
 }
 
 template<class Allocator>
-inline
 void
 basic_flat_buffer<Allocator>::
 swap(basic_flat_buffer& other, std::true_type)
@@ -441,7 +439,6 @@ swap(basic_flat_buffer& other, std::true_type)
 }
 
 template<class Allocator>
-inline
 void
 basic_flat_buffer<Allocator>::
 swap(basic_flat_buffer& other, std::false_type)

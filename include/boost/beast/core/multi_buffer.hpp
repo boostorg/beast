@@ -23,14 +23,39 @@
 namespace boost {
 namespace beast {
 
-/** A @b DynamicBuffer that uses multiple buffers internally.
+/** A dynamic buffer providing sequences of variable length.
 
-    The implementation uses a sequence of one or more character arrays
-    of varying sizes. Additional character array objects are appended to
-    the sequence to accommodate changes in the size of the character
-    sequence.
+    A dynamic buffer encapsulates memory storage that may be
+    automatically resized as required, where the memory is
+    divided into two regions: readable bytes followed by
+    writable bytes. These memory regions are internal to
+    the dynamic buffer, but direct access to the elements
+    is provided to permit them to be efficiently used with
+    I/O operations.
 
-    @note Meets the requirements of @b DynamicBuffer.
+    The implementation uses a sequence of one or more byte
+    arrays of varying sizes to represent the readable and
+    writable bytes. Additional byte array objects are
+    appended to the sequence to accommodate changes in the
+    desired size. The behavior and implementation of this
+    container is most similar to `std::deque`.
+
+    Objects of this type meet the requirements of @b DynamicBuffer
+    and have the following additional properties:
+
+    @li The buffer sequence representing the readable bytes
+    returned by @ref data is mutable.
+
+    @li Buffer sequences representing the readable and writable
+    bytes, returned by @ref data and @ref prepare, may have
+    length greater than one.
+
+    @li A configurable maximum buffer size may be set upon
+    construction. Attempts to exceed the buffer size will throw
+    `std::length_error`.
+
+    @li Sequences previously obtained using @ref data remain
+    valid after calls to @ref prepare or @ref commit.
 
     @tparam Allocator The allocator to use for managing memory.
 */
@@ -50,6 +75,9 @@ class basic_multi_buffer
     // and output sequences. The allocation for each element
     // contains `element` followed by raw storage bytes.
     class element;
+
+    template<bool IsMutable>
+    class readable_bytes;
 
     using alloc_traits = detail::allocator_traits<base_alloc_type>;
     using list_type = typename boost::intrusive::make_list<element,
@@ -82,82 +110,103 @@ public:
     /// The type of allocator used.
     using allocator_type = Allocator;
 
-#if BOOST_BEAST_DOXYGEN
-    /// The type used to represent the input sequence as a list of buffers.
-    using const_buffers_type = __implementation_defined__;
-
-    /// The type used to represent the output sequence as a list of buffers.
-    using mutable_buffers_type = __implementation_defined__;
-
-#else
-    class const_buffers_type;
-
-    class mutable_buffers_type;
-
-#endif
-
     /// Destructor
     ~basic_multi_buffer();
 
     /** Constructor
 
-        Upon construction, capacity will be zero.
+        Upon construction, @ref capacity will return zero.
     */
-    basic_multi_buffer();
+    basic_multi_buffer() noexcept(
+        std::is_nothrow_default_constructible<Allocator>::value)
+        :
+        out_(list_.end())
+    {
+    }
 
-    /** Constructor.
+    /** Constructor
+
+        Upon construction, @ref capacity will return zero.
 
         @param limit The setting for @ref max_size.
     */
     explicit
-    basic_multi_buffer(std::size_t limit);
+    basic_multi_buffer(std::size_t limit) noexcept(
+        std::is_nothrow_default_constructible<Allocator>::value)
+        : max_(limit)
+        , out_(list_.end())
+    {
+    }
 
-    /** Constructor.
+    /** Constructor
+
+        Upon construction, @ref capacity will return zero.
 
         @param alloc The allocator to use.
     */
     explicit
-    basic_multi_buffer(Allocator const& alloc);
+    basic_multi_buffer(Allocator const& alloc) noexcept;
 
-    /** Constructor.
+    /** Constructor
+
+        Upon construction, @ref capacity will return zero.
 
         @param limit The setting for @ref max_size.
 
         @param alloc The allocator to use.
     */
     basic_multi_buffer(
-        std::size_t limit, Allocator const& alloc);
+        std::size_t limit, Allocator const& alloc) noexcept;
 
-    /** Move constructor
+    /** Move Constructor
 
-        After the move, `*this` will have an empty output sequence.
+        Constructs the container with the contents of other
+        using move semantics. After the move, other is
+        guaranteed to be empty.
+
+        Buffer sequences previously obtained using @ref data
+        or @ref prepare are not invalidated after the move.
 
         @param other The object to move from. After the move,
-        The object's state will be as if constructed using
-        its current allocator and limit.
+        the moved-from object's state will be as if default
+        constructed using its current allocator and limit.
     */
-    basic_multi_buffer(basic_multi_buffer&& other);
+    basic_multi_buffer(basic_multi_buffer&& other) noexcept;
 
-    /** Move constructor
+    /** Move Constructor
 
-        After the move, `*this` will have an empty output sequence.
+        Using alloc as the allocator for the new container, the
+        contents of other are moved. If `alloc != other.get_allocator()`,
+        this results in a copy. After the move, other is
+        guaranteed to be empty.
+
+        All buffers sequences previously obtained using
+        @ref data or @ref prepare are invalidated.
 
         @param other The object to move from. After the move,
-        The object's state will be as if constructed using
-        its current allocator and limit.
+        the moved-from object's state will be as if default
+        constructed using its current allocator and limit.
 
-        @param alloc The allocator to use.
+        @param alloc The allocator to use for the newly
+        constructed object.
     */
     basic_multi_buffer(basic_multi_buffer&& other,
         Allocator const& alloc);
 
-    /** Copy constructor.
+    /** Copy Constructor
+
+        The newly constructed object will have a copy of the
+        allocator and contents of other, and zero writable bytes.
 
         @param other The object to copy from.
     */
     basic_multi_buffer(basic_multi_buffer const& other);
 
-    /** Copy constructor
+    /** Copy Constructor
+
+        The newly constructed object will have a copy of the
+        specified allocator, a copy of the contents of other,
+        and zero writable bytes.
 
         @param other The object to copy from.
 
@@ -166,7 +215,10 @@ public:
     basic_multi_buffer(basic_multi_buffer const& other,
         Allocator const& alloc);
 
-    /** Copy constructor.
+    /** Copy Constructor
+
+        The newly constructed object will have a copy of the
+        contents of other, and zero writable bytes.
 
         @param other The object to copy from.
     */
@@ -174,7 +226,11 @@ public:
     basic_multi_buffer(basic_multi_buffer<
         OtherAlloc> const& other);
 
-    /** Copy constructor.
+    /** Copy Constructor
+
+        The newly constructed object will have a copy of the
+        specified allocator, a copy of the contents of other,
+        and zero writable bytes.
 
         @param other The object to copy from.
 
@@ -184,20 +240,28 @@ public:
     basic_multi_buffer(basic_multi_buffer<
         OtherAlloc> const& other, allocator_type const& alloc);
 
-    /** Move assignment
+    /** Move Assignment
 
-        After the move, `*this` will have an empty output sequence.
+        Assigns the container with the contents of other
+        using move semantics. After the move, other is
+        guaranteed to be empty. The previous contents of
+        this container are deleted.
+
+        Buffer sequences previously obtained using @ref data
+        or @ref prepare are not invalidated after the move.
 
         @param other The object to move from. After the move,
-        The object's state will be as if constructed using
-        its current allocator and limit.
+        the moved-from object's state will be as if default
+        constructed using its current allocator and limit.
     */
     basic_multi_buffer&
     operator=(basic_multi_buffer&& other);
 
-    /** Copy assignment
+    /** Copy Assignment
 
-        After the copy, `*this` will have an empty output sequence.
+        The assigned object will have a copy of the allocator
+        and contents of other, and zero writable bytes. The
+        previous contents of this container are deleted.
 
         @param other The object to copy from.
     */
@@ -205,7 +269,9 @@ public:
 
     /** Copy assignment
 
-        After the copy, `*this` will have an empty output sequence.
+        The assigned object will have a copy of the contents
+        of other, and zero writable bytes. The previous contents
+        of this container are deleted.
 
         @param other The object to copy from.
     */
@@ -213,102 +279,142 @@ public:
     basic_multi_buffer& operator=(
         basic_multi_buffer<OtherAlloc> const& other);
 
-    /// Returns a copy of the associated allocator.
+    /// Returns a copy of the allocator used.
     allocator_type
     get_allocator() const
     {
         return this->get();
     }
 
-    /// Returns the size of the input sequence.
+    //--------------------------------------------------------------------------
+
+#if BOOST_BEAST_DOXYGEN
+    /// The ConstBufferSequence used to represent the readable bytes.
+    using const_buffers_type = __implementation_defined__;
+
+    /// The MutableBufferSequence used to represent the readable bytes.
+    using mutable_data_type = __implementation_defined__;
+
+    /// The MutableBufferSequence used to represent the writable bytes.
+    using mutable_buffers_type = __implementation_defined__;
+#else
+    using const_buffers_type = readable_bytes<false>;
+    using mutable_data_type = readable_bytes<true>;
+    class mutable_buffers_type;
+#endif
+
+    /// Returns the number of readable bytes.
     size_type
-    size() const
+    size() const noexcept
     {
         return in_size_;
     }
 
-    /// Returns the permitted maximum sum of the sizes of the input and output sequence.
+    /// Return the maximum number of bytes, both readable and writable, that can ever be held.
     size_type
-    max_size() const
+    max_size() const noexcept
     {
         return max_;
     }
 
-    /// Returns the maximum sum of the sizes of the input sequence and output sequence the buffer can hold without requiring reallocation.
+    /// Return the maximum number of bytes, both readable and writable, that can be held without requiring an allocation.
     std::size_t
-    capacity() const;
+    capacity() const noexcept;
 
-    /** Get a list of buffers that represents the input sequence.
-
-        @note These buffers remain valid across subsequent calls to `prepare`.
-    */
+    /// Returns a constant buffer sequence representing the readable bytes
     const_buffers_type
-    data() const;
+    data() const noexcept;
 
-    /** Get a list of buffers that represents the output sequence, with the given size.
+    /// Returns a constant buffer sequence representing the readable bytes
+    const_buffers_type
+    cdata() const noexcept
+    {
+        return data();
+    }
 
-        @note Buffers representing the input sequence acquired prior to
-        this call remain valid.
+    /** Returns a mutable buffer sequence representing the readable bytes.
+
+        @note The sequence may contain zero or more contiguous memory
+        regions.
+    */
+    mutable_data_type
+    data() noexcept;
+
+    /** Returns a mutable buffer sequence representing writable bytes.
+    
+        Returns a mutable buffer sequence representing the writable
+        bytes containing exactly `n` bytes of storage. Memory may be
+        reallocated as needed.
+
+        All buffer sequences previously obtained using @ref prepare are
+        invalidated. Buffer sequences previously obtained using @ref data
+        remain valid.
+
+        @param n The desired number of bytes in the returned buffer
+        sequence.
+
+        @throws std::length_error if `size() + n` exceeds `max_size()`.
     */
     mutable_buffers_type
     prepare(size_type n);
 
-    /** Move bytes from the output sequence to the input sequence.
+    /** Append writable bytes to the readable bytes.
 
-        @note Buffers representing the input sequence acquired prior to
-        this call remain valid.
+        Appends n bytes from the start of the writable bytes to the
+        end of the readable bytes. The remainder of the writable bytes
+        are discarded. If n is greater than the number of writable
+        bytes, all writable bytes are appended to the readable bytes.
+
+        All buffer sequences previously obtained using @ref prepare are
+        invalidated. Buffer sequences previously obtained using @ref data
+        remain valid.
+
+        @param n The number of bytes to append. If this number
+        is greater than the number of writable bytes, all
+        writable bytes are appended.
     */
     void
-    commit(size_type n);
+    commit(size_type n) noexcept;
 
-    /// Remove bytes from the input sequence.
+    /** Remove bytes from beginning of the readable bytes.
+
+        Removes n bytes from the beginning of the readable bytes.
+
+        All buffers sequences previously obtained using
+        @ref data or @ref prepare are invalidated.
+
+        @param n The number of bytes to remove. If this number
+        is greater than the number of readable bytes, all
+        readable bytes are removed.
+    */
     void
-    consume(size_type n);
+    consume(size_type n) noexcept;
 
+    /// Exchange two dynamic buffers
     template<class Alloc>
     friend
     void
     swap(
         basic_multi_buffer<Alloc>& lhs,
-        basic_multi_buffer<Alloc>& rhs);
+        basic_multi_buffer<Alloc>& rhs) noexcept;
 
 private:
     template<class OtherAlloc>
     friend class basic_multi_buffer;
 
-    void
-    delete_list();
-
-    void
-    reset();
+    void reset() noexcept;
+    void delete_list() noexcept;
 
     template<class DynamicBuffer>
-    void
-    copy_from(DynamicBuffer const& other);
-
-    void
-    move_assign(basic_multi_buffer& other, std::false_type);
-
-    void
-    move_assign(basic_multi_buffer& other, std::true_type);
-
-    void
-    copy_assign(basic_multi_buffer const& other, std::false_type);
-
-    void
-    copy_assign(basic_multi_buffer const& other, std::true_type);
-
-    void
-    swap(basic_multi_buffer&);
-
-    void
-    swap(basic_multi_buffer&, std::true_type);
-
-    void
-    swap(basic_multi_buffer&, std::false_type);
-
-    void
-    debug_check() const;
+    void copy_from(DynamicBuffer const& other);
+    void move_assign(basic_multi_buffer& other, std::false_type);
+    void move_assign(basic_multi_buffer& other, std::true_type) noexcept;
+    void copy_assign(basic_multi_buffer const& other, std::false_type);
+    void copy_assign(basic_multi_buffer const& other, std::true_type);
+    void swap(basic_multi_buffer&) noexcept;
+    void swap(basic_multi_buffer&, std::true_type) noexcept;
+    void swap(basic_multi_buffer&, std::false_type) noexcept;
+    void debug_check() const;
 };
 
 /// A typical multi buffer

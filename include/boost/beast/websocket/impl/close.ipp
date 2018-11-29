@@ -236,7 +236,7 @@ operator()(
                     d.ws.rd_close_ = true;
                     auto const mb = buffers_prefix(
                         clamp(d.ws.rd_fh_.len),
-                        d.ws.rd_buf_.mutable_data());
+                        d.ws.rd_buf_.data());
                     if(d.ws.rd_fh_.len > 0 && d.ws.rd_fh_.mask)
                         detail::mask_inplace(mb, d.ws.rd_key_);
                     detail::read_close(d.ws.cr_, mb, d.ev);
@@ -381,7 +381,7 @@ close(close_reason const& cr, error_code& ec)
                 rd_close_ = true;
                 auto const mb = buffers_prefix(
                     clamp(rd_fh_.len),
-                    rd_buf_.mutable_data());
+                    rd_buf_.data());
                 if(rd_fh_.len > 0 && rd_fh_.mask)
                     detail::mask_inplace(mb, rd_key_);
                 detail::read_close(cr_, mb, result);

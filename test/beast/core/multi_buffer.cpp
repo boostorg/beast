@@ -18,20 +18,35 @@
 #include <boost/beast/test/test_allocator.hpp>
 #include <boost/beast/_experimental/unit_test/suite.hpp>
 #include <boost/asio/buffer.hpp>
+#include <boost/asio/buffers_iterator.hpp>
 #include <algorithm>
 #include <atomic>
+#include <cctype>
 #include <memory>
 #include <string>
 
 namespace boost {
 namespace beast {
 
-BOOST_STATIC_ASSERT(
-    boost::asio::is_dynamic_buffer<multi_buffer>::value);
-
 class multi_buffer_test : public beast::unit_test::suite
 {
 public:
+    BOOST_STATIC_ASSERT(
+        boost::asio::is_dynamic_buffer<
+            multi_buffer>::value);
+    BOOST_STATIC_ASSERT(
+        boost::asio::is_const_buffer_sequence<
+            multi_buffer::const_buffers_type>::value);
+    BOOST_STATIC_ASSERT(
+        boost::asio::is_mutable_buffer_sequence<
+            multi_buffer::mutable_data_type>::value);
+    BOOST_STATIC_ASSERT(
+        boost::asio::is_mutable_buffer_sequence<
+            multi_buffer::mutable_buffers_type>::value);
+    BOOST_STATIC_ASSERT(std::is_convertible<
+        multi_buffer::mutable_data_type,
+        multi_buffer::const_buffers_type>::value);
+
     template<class Alloc1, class Alloc2>
     static
     bool
@@ -58,6 +73,38 @@ public:
     self_assign(U& u, V&& v)
     {
         u = std::forward<V>(v);
+    }
+
+    template<class DynamicBuffer>
+    void
+    testMutableData()
+    {
+        DynamicBuffer b;
+        DynamicBuffer const& cb = b;
+        ostream(b) << "Hello";
+        BOOST_STATIC_ASSERT(
+            boost::asio::is_const_buffer_sequence<
+                decltype(cb.data())>::value &&
+            ! boost::asio::is_mutable_buffer_sequence<
+                decltype(cb.data())>::value);
+        BOOST_STATIC_ASSERT(
+            boost::asio::is_const_buffer_sequence<
+                decltype(cb.cdata())>::value &&
+            ! boost::asio::is_mutable_buffer_sequence<
+                decltype(cb.cdata())>::value);
+        BOOST_STATIC_ASSERT(
+            boost::asio::is_mutable_buffer_sequence<
+                decltype(b.data())>::value);
+
+        std::for_each(
+            boost::asio::buffers_iterator<decltype(b.data())>::begin(b.data()),
+            boost::asio::buffers_iterator<decltype(b.data())>::end(b.data()),
+            [](char& c)
+            {
+                c = static_cast<char>(std::toupper(c));
+            });
+        BEAST_EXPECT(buffers_to_string(b.data()) == "HELLO");
+        BEAST_EXPECT(buffers_to_string(b.cdata()) == "HELLO");
     }
 
     void
@@ -588,6 +635,7 @@ public:
         testMatrix2();
         testIterators();
         testMembers();
+        testMutableData<multi_buffer>();
     }
 };
 

@@ -21,71 +21,25 @@
 namespace boost {
 namespace beast {
 
-/*  Memory is laid out thusly:
+/*  Layout:
 
-    begin_ ..|.. in_ ..|.. out_ ..|.. last_ ..|.. end_
+      begin_     in_          out_        last_      end_
+        |<------->|<---------->|<---------->|<------->|
+                  |  readable  |  writable  |
 */
 
-inline
-auto
-flat_static_buffer_base::
-data() const ->
-    const_buffers_type
-{
-    return {in_, dist(in_, out_)};
-}
-
-inline
 void
 flat_static_buffer_base::
-reset()
+clear() noexcept
 {
-    reset_impl();
+    in_ = begin_;
+    out_ = begin_;
+    last_ = begin_;
 }
 
-inline
 auto
 flat_static_buffer_base::
 prepare(std::size_t n) ->
-    mutable_buffers_type
-{
-    return prepare_impl(n);
-}
-
-inline
-void
-flat_static_buffer_base::
-reset(void* p, std::size_t n)
-{
-    reset_impl(p, n);
-}
-
-template<class>
-void
-flat_static_buffer_base::
-reset_impl()
-{
-    in_ = begin_;
-    out_ = begin_;
-    last_ = begin_;
-}
-
-template<class>
-void
-flat_static_buffer_base::
-reset_impl(void* p, std::size_t n)
-{
-    begin_ = static_cast<char*>(p);
-    in_ = begin_;
-    out_ = begin_;
-    last_ = begin_;
-    end_ = begin_ + n;
-}
-
-template<class>
-auto
-flat_static_buffer_base::
-prepare_impl(std::size_t n) ->
     mutable_buffers_type
 {
     if(n <= dist(out_, end_))
@@ -105,10 +59,9 @@ prepare_impl(std::size_t n) ->
     return {out_, n};
 }
 
-template<class>
 void
 flat_static_buffer_base::
-consume_impl(std::size_t n)
+consume(std::size_t n) noexcept
 {
     if(n >= size())
     {
@@ -117,6 +70,17 @@ consume_impl(std::size_t n)
         return;
     }
     in_ += n;
+}
+
+void
+flat_static_buffer_base::
+reset(void* p, std::size_t n) noexcept
+{
+    begin_ = static_cast<char*>(p);
+    in_ = begin_;
+    out_ = begin_;
+    last_ = begin_;
+    end_ = begin_ + n;
 }
 
 //------------------------------------------------------------------------------

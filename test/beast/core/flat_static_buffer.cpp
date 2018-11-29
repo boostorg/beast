@@ -15,17 +15,64 @@
 #include <boost/beast/core/ostream.hpp>
 #include <boost/beast/core/string.hpp>
 #include <boost/beast/_experimental/unit_test/suite.hpp>
+#include <boost/asio/buffers_iterator.hpp>
+#include <algorithm>
+#include <cctype>
 #include <string>
 
 namespace boost {
 namespace beast {
 
-BOOST_STATIC_ASSERT(
-    boost::asio::is_dynamic_buffer<flat_static_buffer_base>::value);
-
 class flat_static_buffer_test : public beast::unit_test::suite
 {
 public:
+    BOOST_STATIC_ASSERT(
+        boost::asio::is_dynamic_buffer<
+            flat_static_buffer_base>::value);
+    BOOST_STATIC_ASSERT(
+        boost::asio::is_const_buffer_sequence<
+            flat_static_buffer_base::const_buffers_type>::value);
+    BOOST_STATIC_ASSERT(
+        boost::asio::is_mutable_buffer_sequence<
+            flat_static_buffer_base::mutable_data_type>::value);
+    BOOST_STATIC_ASSERT(
+        boost::asio::is_mutable_buffer_sequence<
+            flat_static_buffer_base::mutable_buffers_type>::value);
+    BOOST_STATIC_ASSERT(std::is_convertible<
+        flat_static_buffer_base::mutable_data_type,
+        flat_static_buffer_base::const_buffers_type>::value);
+
+    template<class DynamicBuffer>
+    void
+    testMutableData()
+    {
+        DynamicBuffer b;
+        DynamicBuffer const& cb = b;
+        ostream(b) << "Hello";
+        BOOST_STATIC_ASSERT(
+            boost::asio::is_const_buffer_sequence<
+                decltype(cb.data())>::value &&
+            ! boost::asio::is_mutable_buffer_sequence<
+                decltype(cb.data())>::value);
+        BOOST_STATIC_ASSERT(
+            boost::asio::is_const_buffer_sequence<
+                decltype(cb.cdata())>::value &&
+            ! boost::asio::is_mutable_buffer_sequence<
+                decltype(cb.cdata())>::value);
+        BOOST_STATIC_ASSERT(
+            boost::asio::is_mutable_buffer_sequence<
+                decltype(b.data())>::value);
+        std::for_each(
+            boost::asio::buffers_iterator<decltype(b.data())>::begin(b.data()),
+            boost::asio::buffers_iterator<decltype(b.data())>::end(b.data()),
+            [](char& c)
+            {
+                c = static_cast<char>(std::toupper(c));
+            });
+        BEAST_EXPECT(buffers_to_string(b.data()) == "HELLO");
+        BEAST_EXPECT(buffers_to_string(b.cdata()) == "HELLO");
+    }
+
     void
     testStaticBuffer()
     {
@@ -226,6 +273,7 @@ public:
     {
         testBuffer();
         testStaticBuffer();
+        testMutableData<flat_static_buffer<32>>();
     }
 };
 

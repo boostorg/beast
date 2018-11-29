@@ -23,7 +23,7 @@ namespace beast {
 
 inline
 static_buffer_base::
-static_buffer_base(void* p, std::size_t size)
+static_buffer_base(void* p, std::size_t size) noexcept
     : begin_(static_cast<char*>(p))
     , capacity_(size)
 {
@@ -32,7 +32,7 @@ static_buffer_base(void* p, std::size_t size)
 inline
 auto
 static_buffer_base::
-data() const ->
+data() const noexcept ->
     const_buffers_type
 {
     using boost::asio::const_buffer;
@@ -53,11 +53,11 @@ data() const ->
 inline
 auto
 static_buffer_base::
-mutable_data() ->
-    mutable_buffers_type
+data() noexcept ->
+    mutable_data_type
 {
     using boost::asio::mutable_buffer;
-    mutable_buffers_type result;
+    mutable_data_type result;
     if(in_off_ + in_size_ <= capacity_)
     {
         result[0] = mutable_buffer{begin_ + in_off_, in_size_};
@@ -74,14 +74,14 @@ mutable_data() ->
 inline
 auto
 static_buffer_base::
-prepare(std::size_t size) ->
+prepare(std::size_t n) ->
     mutable_buffers_type
 {
     using boost::asio::mutable_buffer;
-    if(size > capacity_ - in_size_)
+    if(n > capacity_ - in_size_)
         BOOST_THROW_EXCEPTION(std::length_error{
             "buffer overflow"});
-    out_size_ = size;
+    out_size_ = n;
     auto const out_off = (in_off_ + in_size_) % capacity_;
     mutable_buffers_type result;
     if(out_off + out_size_ <= capacity_ )
@@ -100,27 +100,27 @@ prepare(std::size_t size) ->
 inline
 void
 static_buffer_base::
-commit(std::size_t size)
+commit(std::size_t n) noexcept
 {
-    in_size_ += (std::min)(size, out_size_);
+    in_size_ += (std::min)(n, out_size_);
     out_size_ = 0;
 }
 
 inline
 void
 static_buffer_base::
-consume(std::size_t size)
+consume(std::size_t n) noexcept
 {
-    if(size < in_size_)
+    if(n < in_size_)
     {
-        in_off_ = (in_off_ + size) % capacity_;
-        in_size_ -= size;
+        in_off_ = (in_off_ + n) % capacity_;
+        in_size_ -= n;
     }
     else
     {
         // rewind the offset, so the next call to prepare
         // can have a longer contiguous segment. this helps
-        // algorithms optimized for larger buffesr.
+        // algorithms optimized for larger buffers.
         in_off_ = 0;
         in_size_ = 0;
     }
@@ -129,10 +129,10 @@ consume(std::size_t size)
 inline
 void
 static_buffer_base::
-reset(void* p, std::size_t size)
+reset(void* p, std::size_t n) noexcept
 {
     begin_ = static_cast<char*>(p);
-    capacity_ = size;
+    capacity_ = n;
     in_off_ = 0;
     in_size_ = 0;
     out_size_ = 0;

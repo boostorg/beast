@@ -18,6 +18,7 @@
 #include <exception>
 #include <sstream>
 #include <string>
+#include <type_traits>
 #include <utility>
 
 namespace boost {
@@ -86,6 +87,7 @@ namespace beast {
           in_pos_                   out_pos_ == 0
                                     out_end_ == 0
 */
+//------------------------------------------------------------------------------
 
 template<class Allocator>
 class basic_multi_buffer<Allocator>::element
@@ -93,105 +95,99 @@ class basic_multi_buffer<Allocator>::element
         boost::intrusive::link_mode<
             boost::intrusive::normal_link>>
 {
-    using size_type =
-        typename detail::allocator_traits<Allocator>::size_type;
+    using size_type = typename
+        detail::allocator_traits<Allocator>::size_type;
 
     size_type const size_;
 
 public:
     element(element const&) = delete;
-    element& operator=(element const&) = delete;
 
     explicit
-    element(size_type n)
+    element(size_type n) noexcept
         : size_(n)
     {
     }
 
     size_type
-    size() const
+    size() const noexcept
     {
         return size_;
     }
 
     char*
-    data() const
+    data() const noexcept
     {
         return const_cast<char*>(
             reinterpret_cast<char const*>(this + 1));
     }
 };
 
+//------------------------------------------------------------------------------
+
 template<class Allocator>
-class basic_multi_buffer<Allocator>::const_buffers_type
+template<bool IsMutable>
+class basic_multi_buffer<Allocator>::readable_bytes
 {
     basic_multi_buffer const* b_;
 
     friend class basic_multi_buffer;
 
     explicit
-    const_buffers_type(basic_multi_buffer const& b);
+    readable_bytes(
+        basic_multi_buffer const& b) noexcept
+        : b_(&b)
+    {
+    }
 
 public:
-    using value_type = boost::asio::const_buffer;
+    using value_type = typename std::conditional<
+        IsMutable,
+        boost::asio::mutable_buffer,
+        boost::asio::const_buffer>::type;
 
     class const_iterator;
 
-    const_buffers_type() = delete;
-    const_buffers_type(const_buffers_type const&) = default;
-    const_buffers_type& operator=(const_buffers_type const&) = default;
+    readable_bytes() = delete;
+    readable_bytes& operator=(readable_bytes const&) = default;
 
-    const_iterator
-    begin() const;
+    template<
+        bool OtherIsMutable,
+        bool ThisIsMutable = IsMutable>
+    readable_bytes(
+        readable_bytes<OtherIsMutable> const& other,
+        typename std::enable_if<
+            ! ThisIsMutable || OtherIsMutable>::type* = 0)
+        : b_(other.b_)
+    {
+    }
 
-    const_iterator
-    end() const;
+    const_iterator begin() const noexcept;
+    const_iterator end() const noexcept;
 
     friend
     std::size_t
-    buffer_size(const_buffers_type const& buffers)
+    buffer_size(readable_bytes const& buffers) noexcept
     {
         return buffers.b_->size();
     }
 };
 
-template<class Allocator>
-class basic_multi_buffer<Allocator>::mutable_buffers_type
-{
-    basic_multi_buffer const* b_;
-
-    friend class basic_multi_buffer;
-
-    explicit
-    mutable_buffers_type(basic_multi_buffer const& b);
-
-public:
-    using value_type = mutable_buffer;
-
-    class const_iterator;
-
-    mutable_buffers_type() = delete;
-    mutable_buffers_type(mutable_buffers_type const&) = default;
-    mutable_buffers_type& operator=(mutable_buffers_type const&) = default;
-
-    const_iterator
-    begin() const;
-
-    const_iterator
-    end() const;
-};
-
 //------------------------------------------------------------------------------
 
 template<class Allocator>
-class basic_multi_buffer<Allocator>::const_buffers_type::const_iterator
+template<bool IsMutable>
+class
+    basic_multi_buffer<Allocator>::
+    readable_bytes<IsMutable>::
+    const_iterator
 {
     basic_multi_buffer const* b_ = nullptr;
     typename list_type::const_iterator it_;
 
 public:
     using value_type =
-        typename const_buffers_type::value_type;
+        typename readable_bytes::value_type;
     using pointer = value_type const*;
     using reference = value_type;
     using difference_type = std::ptrdiff_t;
@@ -204,27 +200,28 @@ public:
     const_iterator& operator=(const_iterator&& other) = default;
     const_iterator& operator=(const_iterator const& other) = default;
 
-    const_iterator(basic_multi_buffer const& b,
-            typename list_type::const_iterator const& it)
+    const_iterator(
+        basic_multi_buffer const& b,
+        typename list_type::const_iterator const& it) noexcept
         : b_(&b)
         , it_(it)
     {
     }
 
     bool
-    operator==(const_iterator const& other) const
+    operator==(const_iterator const& other) const noexcept
     {
         return b_ == other.b_ && it_ == other.it_;
     }
 
     bool
-    operator!=(const_iterator const& other) const
+    operator!=(const_iterator const& other) const noexcept
     {
         return !(*this == other);
     }
 
     reference
-    operator*() const
+    operator*() const noexcept
     {
         auto const& e = *it_;
         return value_type{e.data(),
@@ -237,14 +234,14 @@ public:
     operator->() const = delete;
 
     const_iterator&
-    operator++()
+    operator++() noexcept
     {
         ++it_;
         return *this;
     }
 
     const_iterator
-    operator++(int)
+    operator++(int) noexcept
     {
         auto temp = *this;
         ++(*this);
@@ -252,14 +249,14 @@ public:
     }
 
     const_iterator&
-    operator--()
+    operator--() noexcept
     {
         --it_;
         return *this;
     }
 
     const_iterator
-    operator--(int)
+    operator--(int) noexcept
     {
         auto temp = *this;
         --(*this);
@@ -267,36 +264,34 @@ public:
     }
 };
 
-template<class Allocator>
-basic_multi_buffer<Allocator>::
-const_buffers_type::
-const_buffers_type(
-    basic_multi_buffer const& b)
-    : b_(&b)
-{
-}
+//------------------------------------------------------------------------------
 
 template<class Allocator>
-auto
-basic_multi_buffer<Allocator>::
-const_buffers_type::
-begin() const ->
-    const_iterator
+class basic_multi_buffer<Allocator>::mutable_buffers_type
 {
-    return const_iterator{*b_, b_->list_.begin()};
-}
+    basic_multi_buffer const* b_;
 
-template<class Allocator>
-auto
-basic_multi_buffer<Allocator>::
-const_buffers_type::
-end() const ->
-    const_iterator
-{
-    return const_iterator{*b_, b_->out_ ==
-        b_->list_.end() ? b_->list_.end() :
-            std::next(b_->out_)};
-}
+    friend class basic_multi_buffer;
+
+    explicit
+    mutable_buffers_type(
+        basic_multi_buffer const& b) noexcept
+        : b_(&b)
+    {
+    }
+
+public:
+    using value_type = mutable_buffer;
+
+    class const_iterator;
+
+    mutable_buffers_type() = delete;
+    mutable_buffers_type(mutable_buffers_type const&) = default;
+    mutable_buffers_type& operator=(mutable_buffers_type const&) = default;
+
+    const_iterator begin() const noexcept;
+    const_iterator end() const noexcept;
+};
 
 //------------------------------------------------------------------------------
 
@@ -321,27 +316,28 @@ public:
     const_iterator& operator=(const_iterator&& other) = default;
     const_iterator& operator=(const_iterator const& other) = default;
 
-    const_iterator(basic_multi_buffer const& b,
-            typename list_type::const_iterator const& it)
+    const_iterator(
+        basic_multi_buffer const& b,
+        typename list_type::const_iterator const& it) noexcept
         : b_(&b)
         , it_(it)
     {
     }
 
     bool
-    operator==(const_iterator const& other) const
+    operator==(const_iterator const& other) const noexcept
     {
         return b_ == other.b_ && it_ == other.it_;
     }
 
     bool
-    operator!=(const_iterator const& other) const
+    operator!=(const_iterator const& other) const noexcept
     {
         return !(*this == other);
     }
 
     reference
-    operator*() const
+    operator*() const noexcept
     {
         auto const& e = *it_;
         return value_type{e.data(),
@@ -354,14 +350,14 @@ public:
     operator->() const = delete;
 
     const_iterator&
-    operator++()
+    operator++() noexcept
     {
         ++it_;
         return *this;
     }
 
     const_iterator
-    operator++(int)
+    operator++(int) noexcept
     {
         auto temp = *this;
         ++(*this);
@@ -369,14 +365,14 @@ public:
     }
 
     const_iterator&
-    operator--()
+    operator--() noexcept
     {
         --it_;
         return *this;
     }
 
     const_iterator
-    operator--(int)
+    operator--(int) noexcept
     {
         auto temp = *this;
         --(*this);
@@ -384,20 +380,37 @@ public:
     }
 };
 
+//------------------------------------------------------------------------------
+
 template<class Allocator>
+template<bool IsMutable>
+auto
 basic_multi_buffer<Allocator>::
-mutable_buffers_type::
-mutable_buffers_type(
-    basic_multi_buffer const& b)
-    : b_(&b)
+readable_bytes<IsMutable>::
+begin() const noexcept ->
+    const_iterator
 {
+    return const_iterator{*b_, b_->list_.begin()};
+}
+
+template<class Allocator>
+template<bool IsMutable>
+auto
+basic_multi_buffer<Allocator>::
+readable_bytes<IsMutable>::
+end() const noexcept ->
+    const_iterator
+{
+    return const_iterator{*b_, b_->out_ ==
+        b_->list_.end() ? b_->list_.end() :
+            std::next(b_->out_)};
 }
 
 template<class Allocator>
 auto
 basic_multi_buffer<Allocator>::
 mutable_buffers_type::
-begin() const ->
+begin() const noexcept ->
     const_iterator
 {
     return const_iterator{*b_, b_->out_};
@@ -407,7 +420,7 @@ template<class Allocator>
 auto
 basic_multi_buffer<Allocator>::
 mutable_buffers_type::
-end() const ->
+end() const noexcept ->
     const_iterator
 {
     return const_iterator{*b_, b_->list_.end()};
@@ -424,22 +437,7 @@ basic_multi_buffer<Allocator>::
 
 template<class Allocator>
 basic_multi_buffer<Allocator>::
-basic_multi_buffer()
-    : out_(list_.end())
-{
-}
-
-template<class Allocator>
-basic_multi_buffer<Allocator>::
-basic_multi_buffer(std::size_t limit)
-    : max_(limit)
-    , out_(list_.end())
-{
-}
-
-template<class Allocator>
-basic_multi_buffer<Allocator>::
-basic_multi_buffer(Allocator const& alloc)
+basic_multi_buffer(Allocator const& alloc) noexcept
     : boost::empty_value<
         base_alloc_type>(boost::empty_init_t(), alloc)
     , out_(list_.end())
@@ -449,7 +447,7 @@ basic_multi_buffer(Allocator const& alloc)
 template<class Allocator>
 basic_multi_buffer<Allocator>::
 basic_multi_buffer(std::size_t limit,
-        Allocator const& alloc)
+        Allocator const& alloc) noexcept
     : boost::empty_value<
         base_alloc_type>(boost::empty_init_t(), alloc)
     , max_(limit)
@@ -459,7 +457,7 @@ basic_multi_buffer(std::size_t limit,
 
 template<class Allocator>
 basic_multi_buffer<Allocator>::
-basic_multi_buffer(basic_multi_buffer&& other)
+basic_multi_buffer(basic_multi_buffer&& other) noexcept
     : boost::empty_value<
         base_alloc_type>(boost::empty_init_t(), std::move(other.get()))
     , max_(other.max_)
@@ -598,10 +596,12 @@ operator=(
     return *this;
 }
 
+//------------------------------------------------------------------------------
+
 template<class Allocator>
 std::size_t
 basic_multi_buffer<Allocator>::
-capacity() const
+capacity() const noexcept
 {
     auto pos = out_;
     if(pos == list_.end())
@@ -615,10 +615,19 @@ capacity() const
 template<class Allocator>
 auto
 basic_multi_buffer<Allocator>::
-data() const ->
+data() const noexcept ->
     const_buffers_type
 {
     return const_buffers_type(*this);
+}
+
+template<class Allocator>
+auto
+basic_multi_buffer<Allocator>::
+data() noexcept ->
+    mutable_data_type
+{
+    return mutable_data_type(*this);
 }
 
 template<class Allocator>
@@ -723,7 +732,7 @@ prepare(size_type n) ->
 template<class Allocator>
 void
 basic_multi_buffer<Allocator>::
-commit(size_type n)
+commit(size_type n) noexcept
 {
     if(list_.empty())
         return;
@@ -770,7 +779,7 @@ commit(size_type n)
 template<class Allocator>
 void
 basic_multi_buffer<Allocator>::
-consume(size_type n)
+consume(size_type n) noexcept
 {
     if(list_.empty())
         return;
@@ -836,10 +845,23 @@ consume(size_type n)
 }
 
 template<class Allocator>
-inline
 void
 basic_multi_buffer<Allocator>::
-delete_list()
+reset() noexcept
+{
+    delete_list();
+    list_.clear();
+    out_ = list_.end();
+    in_size_ = 0;
+    in_pos_ = 0;
+    out_pos_ = 0;
+    out_end_ = 0;
+}
+
+template<class Allocator>
+void
+basic_multi_buffer<Allocator>::
+delete_list() noexcept
 {
     for(auto iter = list_.begin(); iter != list_.end();)
     {
@@ -852,23 +874,7 @@ delete_list()
 }
 
 template<class Allocator>
-inline
-void
-basic_multi_buffer<Allocator>::
-reset()
-{
-    delete_list();
-    list_.clear();
-    out_ = list_.end();
-    in_size_ = 0;
-    in_pos_ = 0;
-    out_pos_ = 0;
-    out_end_ = 0;
-}
-
-template<class Allocator>
 template<class DynamicBuffer>
-inline
 void
 basic_multi_buffer<Allocator>::
 copy_from(DynamicBuffer const& buffer)
@@ -881,7 +887,6 @@ copy_from(DynamicBuffer const& buffer)
 }
 
 template<class Allocator>
-inline
 void
 basic_multi_buffer<Allocator>::
 move_assign(basic_multi_buffer& other, std::false_type)
@@ -898,10 +903,9 @@ move_assign(basic_multi_buffer& other, std::false_type)
 }
 
 template<class Allocator>
-inline
 void
 basic_multi_buffer<Allocator>::
-move_assign(basic_multi_buffer& other, std::true_type)
+move_assign(basic_multi_buffer& other, std::true_type) noexcept
 {
     this->get() = std::move(other.get());
     auto const at_end =
@@ -922,7 +926,6 @@ move_assign(basic_multi_buffer& other, std::true_type)
 }
 
 template<class Allocator>
-inline
 void
 basic_multi_buffer<Allocator>::
 copy_assign(
@@ -934,7 +937,6 @@ copy_assign(
 }
 
 template<class Allocator>
-inline
 void
 basic_multi_buffer<Allocator>::
 copy_assign(
@@ -947,20 +949,18 @@ copy_assign(
 }
 
 template<class Allocator>
-inline
 void
 basic_multi_buffer<Allocator>::
-swap(basic_multi_buffer& other)
+swap(basic_multi_buffer& other) noexcept
 {
     swap(other, typename
         alloc_traits::propagate_on_container_swap{});
 }
 
 template<class Allocator>
-inline
 void
 basic_multi_buffer<Allocator>::
-swap(basic_multi_buffer& other, std::true_type)
+swap(basic_multi_buffer& other, std::true_type) noexcept
 {
     using std::swap;
     auto const at_end0 =
@@ -981,10 +981,9 @@ swap(basic_multi_buffer& other, std::true_type)
 }
 
 template<class Allocator>
-inline
 void
 basic_multi_buffer<Allocator>::
-swap(basic_multi_buffer& other, std::false_type)
+swap(basic_multi_buffer& other, std::false_type) noexcept
 {
     BOOST_ASSERT(this->get() == other.get());
     using std::swap;
@@ -1008,7 +1007,7 @@ template<class Allocator>
 void
 swap(
     basic_multi_buffer<Allocator>& lhs,
-    basic_multi_buffer<Allocator>& rhs)
+    basic_multi_buffer<Allocator>& rhs) noexcept
 {
     lhs.swap(rhs);
 }
