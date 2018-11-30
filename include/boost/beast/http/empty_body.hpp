@@ -100,7 +100,7 @@ struct empty_body
     struct writer
     {
         using const_buffers_type =
-            boost::asio::const_buffer;
+            net::const_buffer;
 
         template<bool isRequest, class Fields>
         explicit

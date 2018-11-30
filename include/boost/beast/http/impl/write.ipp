@@ -41,7 +41,7 @@ template<
 class write_some_op
 {
     Stream& s_;
-    boost::asio::executor_work_guard<decltype(
+    net::executor_work_guard<decltype(
         std::declval<Stream&>().get_executor())> wg_;
     serializer<isRequest,Body, Fields>& sr_;
     Handler h_;
@@ -86,21 +86,21 @@ public:
     }
 
     using allocator_type =
-        boost::asio::associated_allocator_t<Handler>;
+        net::associated_allocator_t<Handler>;
 
     allocator_type
     get_allocator() const noexcept
     {
-        return (boost::asio::get_associated_allocator)(h_);
+        return (net::get_associated_allocator)(h_);
     }
 
-    using executor_type = boost::asio::associated_executor_t<
+    using executor_type = net::associated_executor_t<
         Handler, decltype(std::declval<Stream&>().get_executor())>;
 
     executor_type
     get_executor() const noexcept
     {
-        return (boost::asio::get_associated_executor)(
+        return (net::get_associated_executor)(
             h_, s_.get_executor());
     }
 
@@ -115,7 +115,7 @@ public:
     friend
     bool asio_handler_is_continuation(write_some_op* op)
     {
-        using boost::asio::asio_handler_is_continuation;
+        using net::asio_handler_is_continuation;
         return asio_handler_is_continuation(
             std::addressof(op->h_));
     }
@@ -124,7 +124,7 @@ public:
     friend
     void asio_handler_invoke(Function&& f, write_some_op* op)
     {
-        using boost::asio::asio_handler_invoke;
+        using net::asio_handler_invoke;
         asio_handler_invoke(f, std::addressof(op->h_));
     }
 };
@@ -145,7 +145,7 @@ operator()()
         if(ec)
         {
             BOOST_ASSERT(! f.invoked);
-            return boost::asio::post(
+            return net::post(
                 s_.get_executor(),
                 beast::bind_front_handler(std::move(*this), ec, 0));
         }
@@ -158,7 +158,7 @@ operator()()
         // What else could it be?
         BOOST_ASSERT(sr_.is_done());
     }
-    return boost::asio::post(
+    return net::post(
         s_.get_executor(),
         beast::bind_front_handler(std::move(*this), ec, 0));
 }
@@ -208,10 +208,10 @@ struct serializer_is_done
 template<
     class Stream, class Handler, class Predicate,
     bool isRequest, class Body, class Fields>
-class write_op : public boost::asio::coroutine
+class write_op : public net::coroutine
 {
     Stream& s_;
-    boost::asio::executor_work_guard<decltype(
+    net::executor_work_guard<decltype(
         std::declval<Stream&>().get_executor())> wg_;
     serializer<isRequest, Body, Fields>& sr_;
     std::size_t bytes_transferred_ = 0;
@@ -231,7 +231,7 @@ public:
         , h_(std::forward<DeducedHandler>(h))
         , cont_([&]
             {
-                using boost::asio::asio_handler_is_continuation;
+                using net::asio_handler_is_continuation;
                 return asio_handler_is_continuation(
                     std::addressof(h_));
             }())
@@ -239,21 +239,21 @@ public:
     }
 
     using allocator_type =
-        boost::asio::associated_allocator_t<Handler>;
+        net::associated_allocator_t<Handler>;
 
     allocator_type
     get_allocator() const noexcept
     {
-        return (boost::asio::get_associated_allocator)(h_);
+        return (net::get_associated_allocator)(h_);
     }
 
-    using executor_type = boost::asio::associated_executor_t<
+    using executor_type = net::associated_executor_t<
         Handler, decltype(std::declval<Stream&>().get_executor())>;
 
     executor_type
     get_executor() const noexcept
     {
-        return (boost::asio::get_associated_executor)(
+        return (net::get_associated_executor)(
             h_, s_.get_executor());
     }
 
@@ -272,7 +272,7 @@ public:
     friend
     void asio_handler_invoke(Function&& f, write_op* op)
     {
-        using boost::asio::asio_handler_invoke;
+        using net::asio_handler_invoke;
         asio_handler_invoke(f, std::addressof(op->h_));
     }
 };
@@ -292,7 +292,7 @@ operator()(
         if(Predicate{}(sr_))
         {
             BOOST_ASIO_CORO_YIELD
-            boost::asio::post(
+            net::post(
                 s_.get_executor(),
                 std::move(*this));
             goto upcall;
@@ -323,7 +323,7 @@ class write_msg_op
     struct data
     {
         Stream& s;
-        boost::asio::executor_work_guard<decltype(
+        net::executor_work_guard<decltype(
             std::declval<Stream&>().get_executor())> wg;
         serializer<isRequest, Body, Fields> sr;
 
@@ -358,21 +358,21 @@ public:
     }
 
     using allocator_type =
-        boost::asio::associated_allocator_t<Handler>;
+        net::associated_allocator_t<Handler>;
 
     allocator_type
     get_allocator() const noexcept
     {
-        return (boost::asio::get_associated_allocator)(d_.handler());
+        return (net::get_associated_allocator)(d_.handler());
     }
 
-    using executor_type = boost::asio::associated_executor_t<
+    using executor_type = net::associated_executor_t<
         Handler, decltype(std::declval<Stream&>().get_executor())>;
 
     executor_type
     get_executor() const noexcept
     {
-        return (boost::asio::get_associated_executor)(
+        return (net::get_associated_executor)(
             d_.handler(), d_->s.get_executor());
     }
 
@@ -386,7 +386,7 @@ public:
     friend
     bool asio_handler_is_continuation(write_msg_op* op)
     {
-        using boost::asio::asio_handler_is_continuation;
+        using net::asio_handler_is_continuation;
         return asio_handler_is_continuation(
             std::addressof(op->d_.handler()));
     }
@@ -395,7 +395,7 @@ public:
     friend
     void asio_handler_invoke(Function&& f, write_msg_op* op)
     {
-        using boost::asio::asio_handler_invoke;
+        using net::asio_handler_invoke;
         asio_handler_invoke(f, std::addressof(op->d_.handler()));
     }
 };
@@ -471,7 +471,7 @@ public:
         ConstBufferSequence const& buffers)
     {
         invoked = true;
-        bytes_transferred = boost::asio::write(
+        bytes_transferred = net::write(
             stream_, buffers, ec);
     }
 };

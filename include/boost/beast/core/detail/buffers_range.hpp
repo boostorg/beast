@@ -33,9 +33,9 @@ public:
             typename std::iterator_traits<
                 typename detail::buffer_sequence_iterator<
                     BufferSequence>::type>::value_type,
-                boost::asio::mutable_buffer>::value,
-            boost::asio::mutable_buffer,
-            boost::asio::const_buffer>::type;
+                net::mutable_buffer>::value,
+            net::mutable_buffer,
+            net::const_buffer>::type;
 #endif
 
     class const_iterator
@@ -124,13 +124,13 @@ public:
     const_iterator
     begin() const noexcept
     {
-        return boost::asio::buffer_sequence_begin(b_);
+        return net::buffer_sequence_begin(b_);
     }
 
     const_iterator
     end() const noexcept
     {
-        return boost::asio::buffer_sequence_end(b_);
+        return net::buffer_sequence_end(b_);
     }
 };
 

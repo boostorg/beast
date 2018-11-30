@@ -46,7 +46,7 @@ class connect_op;
 */
 template<
     class Protocol,
-    class Executor = boost::asio::executor
+    class Executor = net::executor
 >
 class basic_timeout_socket
 {
@@ -57,14 +57,14 @@ class basic_timeout_socket
     timeout_handle rd_timer_;
     timeout_handle wr_timer_;
     timeout_handle cn_timer_;
-    boost::asio::basic_stream_socket<Protocol> sock_;
+    net::basic_stream_socket<Protocol> sock_;
     detail::saved_handler rd_op_;
     detail::saved_handler wr_op_;
     detail::saved_handler cn_op_;
 
 public:
     /// The type of the next layer.
-    using next_layer_type = boost::asio::basic_stream_socket<Protocol>;
+    using next_layer_type = net::basic_stream_socket<Protocol>;
 
     /// The type of the lowest layer.
     using lowest_layer_type = get_lowest_layer<next_layer_type>;
@@ -93,7 +93,7 @@ public:
         , class = typename std::enable_if<
         std::is_convertible<
             ExecutionContext&,
-            boost::asio::execution_context&>::value &&
+            net::execution_context&>::value &&
         std::is_constructible<
             executor_type,
             typename ExecutionContext::executor_type>::value
@@ -196,7 +196,7 @@ public:
         Regardless of whether the asynchronous operation completes immediately or
         not, the handler will not be invoked from within this function. Invocation
         of the handler will be performed in a manner equivalent to using
-        boost::asio::io_context::post().
+        net::io_context::post().
     */
     template<class MutableBufferSequence, class ReadHandler>
     BOOST_ASIO_INITFN_RESULT_TYPE(ReadHandler,
@@ -225,7 +225,7 @@ public:
         Regardless of whether the asynchronous operation completes immediately or
         not, the handler will not be invoked from within this function. Invocation
         of the handler will be performed in a manner equivalent to using
-        boost::asio::io_context::post().
+        net::io_context::post().
     */
     template<class ConstBufferSequence, class WriteHandler>
     BOOST_ASIO_INITFN_RESULT_TYPE(WriteHandler,
@@ -239,8 +239,8 @@ public:
 
 /// A TCP/IP socket wrapper which has a built-in asynchronous timeout
 using timeout_socket = basic_timeout_socket<
-    boost::asio::ip::tcp,
-    boost::asio::io_context::executor_type>;
+    net::ip::tcp,
+    net::io_context::executor_type>;
 
 /**
     @defgroup async_connect boost::beast::async_connect
@@ -267,7 +267,7 @@ using timeout_socket = basic_timeout_socket<
     @code
     void handler(
         // Result of operation. if the sequence is empty, set to
-        // boost::asio::error::not_found. Otherwise, contains the
+        // net::error::not_found. Otherwise, contains the
         // error from the last connection attempt.
         error_code const& error,
     
@@ -280,13 +280,13 @@ using timeout_socket = basic_timeout_socket<
     Regardless of whether the asynchronous operation completes immediately or
     not, the handler will not be invoked from within this function. Invocation
     of the handler will be performed in a manner equivalent to using
-    `boost::asio::io_context::post()`.
+    `net::io_context::post()`.
     
     @par Example
 
     @code
-    boost::asio::tcp::resolver r(ioc);
-    boost::asio::tcp::resolver::query q("host", "service");
+    net::tcp::resolver r(ioc);
+    net::tcp::resolver::query q("host", "service");
     timeout_socket s(ioc.get_executor());
     
     // ...
@@ -321,7 +321,7 @@ template<
     class RangeConnectHandler
 #if ! BOOST_BEAST_DOXYGEN
     ,class = typename std::enable_if<
-        boost::asio::is_endpoint_sequence<
+        net::is_endpoint_sequence<
             EndpointSequence>::value>::type
 #endif
 >
@@ -365,7 +365,7 @@ async_connect(
     @code
     void handler(
         // Result of operation. if the sequence is empty, set to
-        // boost::asio::error::not_found. Otherwise, contains the
+        // net::error::not_found. Otherwise, contains the
         // error from the last connection attempt.
         error_code const& error,
     
@@ -378,7 +378,7 @@ async_connect(
     Regardless of whether the asynchronous operation completes immediately or
     not, the handler will not be invoked from within this function. Invocation
     of the handler will be performed in a manner equivalent to using
-    `boost::asio::io_context::post()`.
+    `net::io_context::post()`.
     
     @par Example
 
@@ -390,7 +390,7 @@ async_connect(
     {
         bool operator()(
             boost::system::error_code const& ec,
-            boost::asio::ip::tcp::endpoint const& next)
+            net::ip::tcp::endpoint const& next)
         {
             if (ec) std::cout << "Error: " << ec.message() << std::endl;
             std::cout << "Trying: " << next << std::endl;
@@ -403,8 +403,8 @@ async_connect(
     function as follows:
 
     @code
-    boost::asio::tcp::resolver r(ioc);
-    boost::asio::tcp::resolver::query q("host", "service");
+    net::tcp::resolver r(ioc);
+    net::tcp::resolver::query q("host", "service");
     timeout_socket s(ioc.get_executor());
     
     // ...
@@ -440,7 +440,7 @@ template<
     class RangeConnectHandler
 #if ! BOOST_BEAST_DOXYGEN
     ,class = typename std::enable_if<
-        boost::asio::is_endpoint_sequence<
+        net::is_endpoint_sequence<
             EndpointSequence>::value>::type
 #endif
 >
@@ -472,7 +472,7 @@ async_connect(
     @code
     void handler(
         // Result of operation. if the sequence is empty, set to
-        // boost::asio::error::not_found. Otherwise, contains the
+        // net::error::not_found. Otherwise, contains the
         // error from the last connection attempt.
         error_code const& error,
     
@@ -485,7 +485,7 @@ async_connect(
     Regardless of whether the asynchronous operation completes immediately or
     not, the handler will not be invoked from within this function. Invocation
     of the handler will be performed in a manner equivalent to using
-    `boost::asio::io_context::post()`.
+    `net::io_context::post()`.
     
     @par Example
 
@@ -511,7 +511,7 @@ template<
     class IteratorConnectHandler
 #if ! BOOST_BEAST_DOXYGEN
     ,class = typename std::enable_if<
-        ! boost::asio::is_endpoint_sequence<
+        ! net::is_endpoint_sequence<
             Iterator>::value>::type
 #endif
 >
@@ -551,7 +551,7 @@ async_connect(
     @code
     void handler(
         // Result of operation. if the sequence is empty, set to
-        // boost::asio::error::not_found. Otherwise, contains the
+        // net::error::not_found. Otherwise, contains the
         // error from the last connection attempt.
         error_code const& error,
     
@@ -564,7 +564,7 @@ async_connect(
     Regardless of whether the asynchronous operation completes immediately or
     not, the handler will not be invoked from within this function. Invocation
     of the handler will be performed in a manner equivalent to using
-    `boost::asio::io_context::post()`.
+    `net::io_context::post()`.
     
     @par Example
 
@@ -576,7 +576,7 @@ async_connect(
     {
         bool operator()(
             boost::system::error_code const& ec,
-            boost::asio::ip::tcp::endpoint const& next)
+            net::ip::tcp::endpoint const& next)
         {
             if (ec) std::cout << "Error: " << ec.message() << std::endl;
             std::cout << "Trying: " << next << std::endl;
@@ -610,7 +610,7 @@ template<
     class IteratorConnectHandler
 #if ! BOOST_BEAST_DOXYGEN
     ,class = typename std::enable_if<
-        ! boost::asio::is_endpoint_sequence<
+        ! net::is_endpoint_sequence<
             Iterator>::value>::type
 #endif
 >

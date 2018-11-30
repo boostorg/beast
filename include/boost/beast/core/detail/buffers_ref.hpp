@@ -42,13 +42,13 @@ public:
     const_iterator
     begin() const
     {
-        return boost::asio::buffer_sequence_begin(*buffers_);
+        return net::buffer_sequence_begin(*buffers_);
     }
 
     const_iterator
     end() const
     {
-        return boost::asio::buffer_sequence_end(*buffers_);
+        return net::buffer_sequence_end(*buffers_);
     }
 };
 

@@ -44,7 +44,7 @@ public:
     {
         iter_type it_;
 
-        using value_type = boost::asio::const_buffer;
+        using value_type = net::const_buffer;
         using pointer = value_type const*;
         using reference = value_type const;
         using difference_type = std::ptrdiff_t;
@@ -144,9 +144,9 @@ public:
     };
 
     using view_type = buffers_cat_view<
-        boost::asio::const_buffer,
-        boost::asio::const_buffer,
-        boost::asio::const_buffer,
+        net::const_buffer,
+        net::const_buffer,
+        net::const_buffer,
         field_range,
         chunk_crlf>;
 
@@ -179,9 +179,9 @@ writer(basic_fields const& f)
     : f_(f)
 {
     view_.emplace(
-        boost::asio::const_buffer{nullptr, 0},
-        boost::asio::const_buffer{nullptr, 0},
-        boost::asio::const_buffer{nullptr, 0},
+        net::const_buffer{nullptr, 0},
+        net::const_buffer{nullptr, 0},
+        net::const_buffer{nullptr, 0},
         field_range(f_.list_.begin(), f_.list_.end()),
         chunk_crlf());
 }
@@ -219,11 +219,11 @@ writer(basic_fields const& f,
     buf_[10]= '\n';
 
     view_.emplace(
-        boost::asio::const_buffer{sv.data(), sv.size()},
-        boost::asio::const_buffer{
+        net::const_buffer{sv.data(), sv.size()},
+        net::const_buffer{
             f_.target_or_reason_.data(),
             f_.target_or_reason_.size()},
-        boost::asio::const_buffer{buf_, 11},
+        net::const_buffer{buf_, 11},
         field_range(f_.list_.begin(), f_.list_.end()),
         chunk_crlf());
 }
@@ -261,9 +261,9 @@ writer(basic_fields const& f,
         sv = obsolete_reason(static_cast<status>(code));
 
     view_.emplace(
-        boost::asio::const_buffer{buf_, 13},
-        boost::asio::const_buffer{sv.data(), sv.size()},
-        boost::asio::const_buffer{"\r\n", 2},
+        net::const_buffer{buf_, 13},
+        net::const_buffer{sv.data(), sv.size()},
+        net::const_buffer{"\r\n", 2},
         field_range(f_.list_.begin(), f_.list_.end()),
         chunk_crlf{});
 }
@@ -282,12 +282,12 @@ data() const
 }
 
 template<class Allocator>
-boost::asio::const_buffer
+net::const_buffer
 basic_fields<Allocator>::
 value_type::
 buffer() const
 {
-    return boost::asio::const_buffer{data(),
+    return net::const_buffer{data(),
         static_cast<std::size_t>(off_) + len_ + 2};
 }
 

@@ -60,9 +60,9 @@ public:
     using value_type = typename std::conditional<
         std::is_convertible<typename
             std::iterator_traits<iter_type>::value_type,
-                boost::asio::mutable_buffer>::value,
-                    boost::asio::mutable_buffer,
-                        boost::asio::const_buffer>::type;
+                net::mutable_buffer>::value,
+                    net::mutable_buffer,
+                        net::const_buffer>::type;
 
 #if BOOST_BEAST_DOXYGEN
     /// A bidirectional iterator type that may be used to read elements.
@@ -139,9 +139,9 @@ public:
     bytes of the original buffer.
 */
 inline
-boost::asio::const_buffer
+net::const_buffer
 buffers_prefix(std::size_t size,
-    boost::asio::const_buffer buffer)
+    net::const_buffer buffer)
 {
     return {buffer.data(),
         (std::min)(size, buffer.size())};
@@ -162,9 +162,9 @@ buffers_prefix(std::size_t size,
     of the original buffer.
 */
 inline
-boost::asio::mutable_buffer
+net::mutable_buffer
 buffers_prefix(std::size_t size,
-    boost::asio::mutable_buffer buffer)
+    net::mutable_buffer buffer)
 {
     return {buffer.data(),
         (std::min)(size, buffer.size())};
@@ -193,16 +193,16 @@ buffers_prefix_view<BufferSequence>
 inline
 typename std::enable_if<
     ! std::is_same<BufferSequence,
-        boost::asio::const_buffer>::value &&
+        net::const_buffer>::value &&
     ! std::is_same<BufferSequence,
-        boost::asio::mutable_buffer>::value,
+        net::mutable_buffer>::value,
     buffers_prefix_view<BufferSequence>>::type
 #endif
 buffers_prefix(std::size_t size, BufferSequence const& buffers)
 {
     static_assert(
-        boost::asio::is_const_buffer_sequence<BufferSequence>::value ||
-        boost::asio::is_mutable_buffer_sequence<BufferSequence>::value,
+        net::is_const_buffer_sequence<BufferSequence>::value ||
+        net::is_mutable_buffer_sequence<BufferSequence>::value,
             "BufferSequence requirements not met");
     return buffers_prefix_view<BufferSequence>(size, buffers);
 }
@@ -219,14 +219,14 @@ buffers_prefix(std::size_t size, BufferSequence const& buffers)
 */
 template<class BufferSequence>
 typename std::conditional<
-    boost::asio::is_mutable_buffer_sequence<BufferSequence>::value,
-    boost::asio::mutable_buffer,
-    boost::asio::const_buffer>::type
+    net::is_mutable_buffer_sequence<BufferSequence>::value,
+    net::mutable_buffer,
+    net::const_buffer>::type
 buffers_front(BufferSequence const& buffers)
 {
     auto const first =
-        boost::asio::buffer_sequence_begin(buffers);
-    if(first == boost::asio::buffer_sequence_end(buffers))
+        net::buffer_sequence_begin(buffers);
+    if(first == net::buffer_sequence_end(buffers))
         return {};
     return *first;
 }

@@ -28,15 +28,17 @@
 #include <memory>
 #include <string>
 
-using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
+namespace beast = boost::beast;         // from <boost/beast.hpp>
+namespace http = beast::http;           // from <boost/beast/http.hpp>
+namespace net = boost::asio;            // from <boost/asio.hpp>
 namespace ssl = boost::asio::ssl;       // from <boost/asio/ssl.hpp>
-namespace http = boost::beast::http;    // from <boost/beast/http.hpp>
+using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
 
 //------------------------------------------------------------------------------
 
 // Report a failure
 void
-fail(boost::system::error_code ec, char const* what)
+fail(beast::error_code ec, char const* what)
 {
     std::cerr << what << ": " << ec.message() << "\n";
 }
@@ -46,14 +48,14 @@ class session : public std::enable_shared_from_this<session>
 {
     tcp::resolver resolver_;
     ssl::stream<tcp::socket> stream_;
-    boost::beast::flat_buffer buffer_; // (Must persist between reads)
+    beast::flat_buffer buffer_; // (Must persist between reads)
     http::request<http::empty_body> req_;
     http::response<http::string_body> res_;
 
 public:
     // Resolver and stream require an io_context
     explicit
-    session(boost::asio::io_context& ioc, ssl::context& ctx)
+    session(net::io_context& ioc, ssl::context& ctx)
         : resolver_(ioc)
         , stream_(ioc, ctx)
     {
@@ -70,7 +72,7 @@ public:
         // Set SNI Hostname (many hosts need this to handshake successfully)
         if(! SSL_set_tlsext_host_name(stream_.native_handle(), host))
         {
-            boost::system::error_code ec{static_cast<int>(::ERR_get_error()), boost::asio::error::get_ssl_category()};
+            beast::error_code ec{static_cast<int>(::ERR_get_error()), net::error::get_ssl_category()};
             std::cerr << ec.message() << "\n";
             return;
         }
@@ -95,14 +97,14 @@ public:
 
     void
     on_resolve(
-        boost::system::error_code ec,
+        beast::error_code ec,
         tcp::resolver::results_type results)
     {
         if(ec)
             return fail(ec, "resolve");
 
         // Make the connection on the IP address we get from a lookup
-        boost::asio::async_connect(
+        net::async_connect(
             stream_.next_layer(),
             results.begin(),
             results.end(),
@@ -113,7 +115,7 @@ public:
     }
 
     void
-    on_connect(boost::system::error_code ec)
+    on_connect(beast::error_code ec)
     {
         if(ec)
             return fail(ec, "connect");
@@ -128,7 +130,7 @@ public:
     }
 
     void
-    on_handshake(boost::system::error_code ec)
+    on_handshake(beast::error_code ec)
     {
         if(ec)
             return fail(ec, "handshake");
@@ -144,7 +146,7 @@ public:
 
     void
     on_write(
-        boost::system::error_code ec,
+        beast::error_code ec,
         std::size_t bytes_transferred)
     {
         boost::ignore_unused(bytes_transferred);
@@ -163,7 +165,7 @@ public:
 
     void
     on_read(
-        boost::system::error_code ec,
+        beast::error_code ec,
         std::size_t bytes_transferred)
     {
         boost::ignore_unused(bytes_transferred);
@@ -183,9 +185,9 @@ public:
     }
 
     void
-    on_shutdown(boost::system::error_code ec)
+    on_shutdown(beast::error_code ec)
     {
-        if(ec == boost::asio::error::eof)
+        if(ec == net::error::eof)
         {
             // Rationale:
             // http://stackoverflow.com/questions/25587403/boost-asio-ssl-async-shutdown-always-finishes-with-an-error
@@ -218,7 +220,7 @@ int main(int argc, char** argv)
     int version = argc == 5 && !std::strcmp("1.0", argv[4]) ? 10 : 11;
 
     // The io_context is required for all I/O
-    boost::asio::io_context ioc;
+    net::io_context ioc;
 
     // The SSL context is required, and holds certificates
     ssl::context ctx{ssl::context::sslv23_client};

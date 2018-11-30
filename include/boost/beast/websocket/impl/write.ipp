@@ -46,13 +46,13 @@ template<class ConstBufferSequence>
 bool
 stream_base<true>::
 deflate(
-    boost::asio::mutable_buffer& out,
+    net::mutable_buffer& out,
     buffers_suffix<ConstBufferSequence>& cb,
     bool fin,
     std::size_t& total_in,
     error_code& ec)
 {
-    using boost::asio::buffer;
+    using net::buffer;
     BOOST_ASSERT(out.size() >= 6);
     auto& zo = this->pmd_->zo;
     zlib::z_params zs;
@@ -87,7 +87,7 @@ deflate(
     cb.consume(zs.total_in);
     if(zs.avail_out > 0 && fin)
     {
-        auto const remain = boost::asio::buffer_size(cb);
+        auto const remain = net::buffer_size(cb);
         if(remain == 0)
         {
             // Inspired by Mark Adler
@@ -139,11 +139,11 @@ do_context_takeover_write(role_type role)
 template<class NextLayer, bool deflateSupported>
 template<class Buffers, class Handler>
 class stream<NextLayer, deflateSupported>::write_some_op
-    : public boost::asio::coroutine
+    : public net::coroutine
 {
     Handler h_;
     stream<NextLayer, deflateSupported>& ws_;
-    boost::asio::executor_work_guard<decltype(std::declval<
+    net::executor_work_guard<decltype(std::declval<
         stream<NextLayer, deflateSupported>&>().get_executor())> wg_;
     buffers_suffix<Buffers> cb_;
     detail::frame_header fh_;
@@ -177,21 +177,21 @@ public:
     }
 
     using allocator_type =
-        boost::asio::associated_allocator_t<Handler>;
+        net::associated_allocator_t<Handler>;
 
     allocator_type
     get_allocator() const noexcept
     {
-        return (boost::asio::get_associated_allocator)(h_);
+        return (net::get_associated_allocator)(h_);
     }
 
-    using executor_type = boost::asio::associated_executor_t<
+    using executor_type = net::associated_executor_t<
         Handler, decltype(std::declval<stream<NextLayer, deflateSupported>&>().get_executor())>;
 
     executor_type
     get_executor() const noexcept
     {
-        return (boost::asio::get_associated_executor)(
+        return (net::get_associated_executor)(
             h_, ws_.get_executor());
     }
 
@@ -209,7 +209,7 @@ public:
     friend
     bool asio_handler_is_continuation(write_some_op* op)
     {
-        using boost::asio::asio_handler_is_continuation;
+        using net::asio_handler_is_continuation;
         return op->cont_ || asio_handler_is_continuation(
             std::addressof(op->h_));
     }
@@ -218,7 +218,7 @@ public:
     friend
     void asio_handler_invoke(Function&& f, write_some_op* op)
     {
-        using boost::asio::asio_handler_invoke;
+        using net::asio_handler_invoke;
         asio_handler_invoke(
             f, std::addressof(op->h_));
     }
@@ -235,10 +235,10 @@ operator()(
     bool cont)
 {
     using beast::detail::clamp;
-    using boost::asio::buffer;
-    using boost::asio::buffer_copy;
-    using boost::asio::buffer_size;
-    using boost::asio::mutable_buffer;
+    using net::buffer;
+    using net::buffer_copy;
+    using net::buffer_size;
+    using net::mutable_buffer;
     enum
     {
         do_nomask_nofrag,
@@ -248,7 +248,7 @@ operator()(
         do_deflate
     };
     std::size_t n;
-    boost::asio::mutable_buffer b;
+    net::mutable_buffer b;
     cont_ = cont;
     BOOST_ASIO_CORO_REENTER(*this)
     {
@@ -326,7 +326,7 @@ operator()(
 
             // Resume
             BOOST_ASIO_CORO_YIELD
-            boost::asio::post(
+            net::post(
                 ws_.get_executor(), std::move(*this));
             BOOST_ASSERT(ws_.wr_block_.is_locked(this));
 
@@ -347,7 +347,7 @@ operator()(
             ws_.wr_cont_ = ! fin_;
             // Send frame
             BOOST_ASIO_CORO_YIELD
-            boost::asio::async_write(ws_.stream_,
+            net::async_write(ws_.stream_,
                 buffers_cat(ws_.wr_fb_.data(), cb_),
                     std::move(*this));
             if(! ws_.check_ok(ec))
@@ -372,7 +372,7 @@ operator()(
                 ws_.wr_cont_ = ! fin_;
                 // Send frame
                 BOOST_ASIO_CORO_YIELD
-                boost::asio::async_write(
+                net::async_write(
                     ws_.stream_, buffers_cat(
                         ws_.wr_fb_.data(), buffers_prefix(
                             clamp(fh_.len), cb_)),
@@ -421,7 +421,7 @@ operator()(
             ws_.wr_cont_ = ! fin_;
             // Send frame header and partial payload
             BOOST_ASIO_CORO_YIELD
-            boost::asio::async_write(
+            net::async_write(
                 ws_.stream_, buffers_cat(ws_.wr_fb_.data(),
                     buffer(ws_.wr_buf_.get(), n)),
                         std::move(*this));
@@ -440,7 +440,7 @@ operator()(
                 remain_ -= n;
                 // Send partial payload
                 BOOST_ASIO_CORO_YIELD
-                boost::asio::async_write(ws_.stream_,
+                net::async_write(ws_.stream_,
                     buffer(ws_.wr_buf_.get(), n),
                         std::move(*this));
                 if(! ws_.check_ok(ec))
@@ -472,7 +472,7 @@ operator()(
                 ws_.wr_cont_ = ! fin_;
                 // Send frame
                 BOOST_ASIO_CORO_YIELD
-                boost::asio::async_write(ws_.stream_,
+                net::async_write(ws_.stream_,
                     buffers_cat(ws_.wr_fb_.data(),
                         buffer(ws_.wr_buf_.get(), n)),
                             std::move(*this));
@@ -535,7 +535,7 @@ operator()(
                 ws_.wr_cont_ = ! fin_;
                 // Send frame
                 BOOST_ASIO_CORO_YIELD
-                boost::asio::async_write(ws_.stream_,
+                net::async_write(ws_.stream_,
                     buffers_cat(ws_.wr_fb_.data(), b),
                         std::move(*this));
                 if(! ws_.check_ok(ec))
@@ -576,7 +576,7 @@ operator()(
         if(! cont_)
         {
             BOOST_ASIO_CORO_YIELD
-            boost::asio::post(
+            net::post(
                 ws_.get_executor(),
                 beast::bind_front_handler(
                     std::move(*this),
@@ -596,7 +596,7 @@ write_some(bool fin, ConstBufferSequence const& buffers)
 {
     static_assert(is_sync_stream<next_layer_type>::value,
         "SyncStream requirements not met");
-    static_assert(boost::asio::is_const_buffer_sequence<
+    static_assert(net::is_const_buffer_sequence<
         ConstBufferSequence>::value,
             "ConstBufferSequence requirements not met");
     error_code ec;
@@ -616,13 +616,13 @@ write_some(bool fin,
 {
     static_assert(is_sync_stream<next_layer_type>::value,
         "SyncStream requirements not met");
-    static_assert(boost::asio::is_const_buffer_sequence<
+    static_assert(net::is_const_buffer_sequence<
         ConstBufferSequence>::value,
             "ConstBufferSequence requirements not met");
     using beast::detail::clamp;
-    using boost::asio::buffer;
-    using boost::asio::buffer_copy;
-    using boost::asio::buffer_size;
+    using net::buffer;
+    using net::buffer_copy;
+    using net::buffer_size;
     std::size_t bytes_transferred = 0;
     ec.assign(0, ec.category());
     // Make sure the stream is open
@@ -680,7 +680,7 @@ write_some(bool fin,
             detail::write<
                 flat_static_buffer_base>(fh_buf, fh);
             wr_cont_ = ! fin;
-            boost::asio::write(stream_,
+            net::write(stream_,
                 buffers_cat(fh_buf.data(), b), ec);
             if(! check_ok(ec))
                 return bytes_transferred;
@@ -703,7 +703,7 @@ write_some(bool fin,
             detail::write<
                 flat_static_buffer_base>(fh_buf, fh);
             wr_cont_ = ! fin;
-            boost::asio::write(stream_,
+            net::write(stream_,
                 buffers_cat(fh_buf.data(), buffers), ec);
             if(! check_ok(ec))
                 return bytes_transferred;
@@ -725,7 +725,7 @@ write_some(bool fin,
                 detail::write<
                     flat_static_buffer_base>(fh_buf, fh);
                 wr_cont_ = ! fin;
-                boost::asio::write(stream_,
+                net::write(stream_,
                     buffers_cat(fh_buf.data(),
                         buffers_prefix(n, cb)), ec);
                 if(! check_ok(ec))
@@ -759,7 +759,7 @@ write_some(bool fin,
             remain -= n;
             detail::mask_inplace(b, key);
             wr_cont_ = ! fin;
-            boost::asio::write(stream_,
+            net::write(stream_,
                 buffers_cat(fh_buf.data(), b), ec);
             if(! check_ok(ec))
                 return bytes_transferred;
@@ -773,7 +773,7 @@ write_some(bool fin,
             cb.consume(n);
             remain -= n;
             detail::mask_inplace(b, key);
-            boost::asio::write(stream_, b, ec);
+            net::write(stream_, b, ec);
             if(! check_ok(ec))
                 return bytes_transferred;
             bytes_transferred += n;
@@ -801,7 +801,7 @@ write_some(bool fin,
             detail::fh_buffer fh_buf;
             detail::write<
                 flat_static_buffer_base>(fh_buf, fh);
-            boost::asio::write(stream_,
+            net::write(stream_,
                 buffers_cat(fh_buf.data(), b), ec);
             if(! check_ok(ec))
                 return bytes_transferred;
@@ -825,7 +825,7 @@ async_write_some(bool fin,
 {
     static_assert(is_async_stream<next_layer_type>::value,
         "AsyncStream requirements not met");
-    static_assert(boost::asio::is_const_buffer_sequence<
+    static_assert(net::is_const_buffer_sequence<
         ConstBufferSequence>::value,
             "ConstBufferSequence requirements not met");
     BOOST_BEAST_HANDLER_INIT(
@@ -847,7 +847,7 @@ write(ConstBufferSequence const& buffers)
 {
     static_assert(is_sync_stream<next_layer_type>::value,
         "SyncStream requirements not met");
-    static_assert(boost::asio::is_const_buffer_sequence<
+    static_assert(net::is_const_buffer_sequence<
         ConstBufferSequence>::value,
             "ConstBufferSequence requirements not met");
     error_code ec;
@@ -865,7 +865,7 @@ write(ConstBufferSequence const& buffers, error_code& ec)
 {
     static_assert(is_sync_stream<next_layer_type>::value,
         "SyncStream requirements not met");
-    static_assert(boost::asio::is_const_buffer_sequence<
+    static_assert(net::is_const_buffer_sequence<
         ConstBufferSequence>::value,
             "ConstBufferSequence requirements not met");
     return write_some(true, buffers, ec);
@@ -881,7 +881,7 @@ async_write(
 {
     static_assert(is_async_stream<next_layer_type>::value,
         "AsyncStream requirements not met");
-    static_assert(boost::asio::is_const_buffer_sequence<
+    static_assert(net::is_const_buffer_sequence<
         ConstBufferSequence>::value,
             "ConstBufferSequence requirements not met");
     BOOST_BEAST_HANDLER_INIT(

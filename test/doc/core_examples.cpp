@@ -32,18 +32,18 @@ public:
         buf[2] = 0;
         buf[3] = 0;
         BEAST_EXPECT(boost::indeterminate(is_ssl_handshake(
-            boost::asio::buffer(buf, 0))));
+            net::buffer(buf, 0))));
         BEAST_EXPECT(boost::indeterminate(is_ssl_handshake(
-            boost::asio::buffer(buf, 1))));
+            net::buffer(buf, 1))));
         BEAST_EXPECT(boost::indeterminate(is_ssl_handshake(
-            boost::asio::buffer(buf, 2))));
+            net::buffer(buf, 2))));
         BEAST_EXPECT(boost::indeterminate(is_ssl_handshake(
-            boost::asio::buffer(buf, 3))));
+            net::buffer(buf, 3))));
         BEAST_EXPECT(is_ssl_handshake(
-            boost::asio::buffer(buf, 4)));
+            net::buffer(buf, 4)));
         buf[0] = 0;
         BEAST_EXPECT(! is_ssl_handshake(
-            boost::asio::buffer(buf, 1)));
+            net::buffer(buf, 1)));
     }
 
     void

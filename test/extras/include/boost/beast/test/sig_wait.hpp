@@ -21,8 +21,8 @@ inline
 void
 sig_wait()
 {
-    boost::asio::io_context ioc;
-    boost::asio::signal_set signals(
+    net::io_context ioc;
+    net::signal_set signals(
         ioc, SIGINT, SIGTERM);
     signals.async_wait(
         [&](boost::system::error_code const&, int)

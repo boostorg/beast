@@ -95,8 +95,8 @@ public:
         put(ConstBufferSequence const& buffers,
             error_code& ec)
         {
-            using boost::asio::buffer_size;
-            using boost::asio::buffer_copy;
+            using net::buffer_size;
+            using net::buffer_copy;
             auto const n = buffer_size(buffers);
             auto const len = body_.size();
             if(n > len)
@@ -105,7 +105,7 @@ public:
                 return 0;
             }
             ec.assign(0, ec.category());
-            buffer_copy(boost::asio::buffer(
+            buffer_copy(net::buffer(
                 body_.data(), n), buffers);
             body_ = value_type{
                 body_.data() + n, body_.size() - n};
@@ -133,7 +133,7 @@ public:
 
     public:
         using const_buffers_type =
-            boost::asio::const_buffer;
+            net::const_buffer;
 
         template<bool isRequest, class Fields>
         explicit

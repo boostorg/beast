@@ -26,9 +26,11 @@
 #include <iostream>
 #include <string>
 
-using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
-namespace ssl = boost::asio::ssl;       // from <boost/asio/ssl.hpp>
-namespace http = boost::beast::http;    // from <boost/beast/http.hpp>
+namespace beast = boost::beast; // from <boost/beast.hpp>
+namespace http = beast::http;   // from <boost/beast/http.hpp>
+namespace net = boost::asio;    // from <boost/asio.hpp>
+namespace ssl = net::ssl;       // from <boost/asio/ssl.hpp>
+using tcp = net::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
 
 // Performs an HTTP GET and prints the response
 int main(int argc, char** argv)
@@ -51,7 +53,7 @@ int main(int argc, char** argv)
         int version = argc == 5 && !std::strcmp("1.0", argv[4]) ? 10 : 11;
 
         // The io_context is required for all I/O
-        boost::asio::io_context ioc;
+        net::io_context ioc;
 
         // The SSL context is required, and holds certificates
         ssl::context ctx{ssl::context::sslv23_client};
@@ -69,15 +71,15 @@ int main(int argc, char** argv)
         // Set SNI Hostname (many hosts need this to handshake successfully)
         if(! SSL_set_tlsext_host_name(stream.native_handle(), host))
         {
-            boost::system::error_code ec{static_cast<int>(::ERR_get_error()), boost::asio::error::get_ssl_category()};
-            throw boost::system::system_error{ec};
+            beast::error_code ec{static_cast<int>(::ERR_get_error()), net::error::get_ssl_category()};
+            throw beast::system_error{ec};
         }
 
         // Look up the domain name
         auto const results = resolver.resolve(host, port);
 
         // Make the connection on the IP address we get from a lookup
-        boost::asio::connect(stream.next_layer(), results.begin(), results.end());
+        net::connect(stream.next_layer(), results.begin(), results.end());
 
         // Perform the SSL handshake
         stream.handshake(ssl::stream_base::client);
@@ -91,7 +93,7 @@ int main(int argc, char** argv)
         http::write(stream, req);
 
         // This buffer is used for reading and must be persisted
-        boost::beast::flat_buffer buffer;
+        beast::flat_buffer buffer;
 
         // Declare a container to hold the response
         http::response<http::dynamic_body> res;
@@ -103,16 +105,16 @@ int main(int argc, char** argv)
         std::cout << res << std::endl;
 
         // Gracefully close the stream
-        boost::system::error_code ec;
+        beast::error_code ec;
         stream.shutdown(ec);
-        if(ec == boost::asio::error::eof)
+        if(ec == net::error::eof)
         {
             // Rationale:
             // http://stackoverflow.com/questions/25587403/boost-asio-ssl-async-shutdown-always-finishes-with-an-error
             ec.assign(0, ec.category());
         }
         if(ec)
-            throw boost::system::system_error{ec};
+            throw beast::system_error{ec};
 
         // If we get here then the connection is closed gracefully
     }

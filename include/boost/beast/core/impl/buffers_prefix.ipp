@@ -23,18 +23,18 @@ namespace beast {
 namespace detail {
 
 inline
-boost::asio::const_buffer
+net::const_buffer
 buffers_prefix(std::size_t size,
-    boost::asio::const_buffer buffer)
+    net::const_buffer buffer)
 {
     return {buffer.data(),
         (std::min)(size, buffer.size())};
 }
 
 inline
-boost::asio::mutable_buffer
+net::mutable_buffer
 buffers_prefix(std::size_t size,
-    boost::asio::mutable_buffer buffer)
+    net::mutable_buffer buffer)
 {
     return {buffer.data(),
         (std::min)(size, buffer.size())};
@@ -55,9 +55,9 @@ public:
     using value_type = typename std::conditional<
         boost::is_convertible<typename
             std::iterator_traits<iter_type>::value_type,
-                boost::asio::mutable_buffer>::value,
-                    boost::asio::mutable_buffer,
-                        boost::asio::const_buffer>::type;
+                net::mutable_buffer>::value,
+                    net::mutable_buffer,
+                        net::const_buffer>::type;
     using pointer = value_type const*;
     using reference = value_type;
     using difference_type = std::ptrdiff_t;
@@ -107,7 +107,7 @@ public:
     const_iterator&
     operator++()
     {
-        remain_ -= boost::asio::buffer_size(*it_++);
+        remain_ -= net::buffer_size(*it_++);
         return *this;
     }
 
@@ -115,14 +115,14 @@ public:
     operator++(int)
     {
         auto temp = *this;
-        remain_ -= boost::asio::buffer_size(*it_++);
+        remain_ -= net::buffer_size(*it_++);
         return temp;
     }
 
     const_iterator&
     operator--()
     {
-        remain_ += boost::asio::buffer_size(*--it_);
+        remain_ += net::buffer_size(*--it_);
         return *this;
     }
 
@@ -130,7 +130,7 @@ public:
     operator--(int)
     {
         auto temp = *this;
-        remain_ += boost::asio::buffer_size(*--it_);
+        remain_ += net::buffer_size(*--it_);
         return temp;
     }
 
@@ -147,7 +147,7 @@ private:
             std::false_type)
         : b_(&b)
         , remain_(b_->size_)
-        , it_(boost::asio::buffer_sequence_begin(b_->bs_))
+        , it_(net::buffer_sequence_begin(b_->bs_))
     {
     }
 };
@@ -161,12 +161,12 @@ setup(std::size_t size)
 {
     size_ = 0;
     remain_ = 0;
-    end_ = boost::asio::buffer_sequence_begin(bs_);
+    end_ = net::buffer_sequence_begin(bs_);
     auto const last = bs_.end();
     while(end_ != last)
     {
         auto const len =
-            boost::asio::buffer_size(*end_++);
+            net::buffer_size(*end_++);
         if(len >= size)
         {
             size_ += size;
@@ -183,7 +183,7 @@ buffers_prefix_view<BufferSequence>::
 buffers_prefix_view(buffers_prefix_view&& other)
     : buffers_prefix_view(std::move(other),
         std::distance<iter_type>(
-            boost::asio::buffer_sequence_begin(other.bs_),
+            net::buffer_sequence_begin(other.bs_),
             other.end_))
 {
 }
@@ -193,7 +193,7 @@ buffers_prefix_view<BufferSequence>::
 buffers_prefix_view(buffers_prefix_view const& other)
     : buffers_prefix_view(other,
         std::distance<iter_type>(
-            boost::asio::buffer_sequence_begin(other.bs_),
+            net::buffer_sequence_begin(other.bs_),
                 other.end_))
 {
 }
@@ -205,13 +205,13 @@ operator=(buffers_prefix_view&& other) ->
     buffers_prefix_view&
 {
     auto const dist = std::distance<iter_type>(
-        boost::asio::buffer_sequence_begin(other.bs_),
+        net::buffer_sequence_begin(other.bs_),
         other.end_);
     bs_ = std::move(other.bs_);
     size_ = other.size_;
     remain_ = other.remain_;
     end_ = std::next(
-        boost::asio::buffer_sequence_begin(bs_),
+        net::buffer_sequence_begin(bs_),
             dist);
     return *this;
 }
@@ -223,13 +223,13 @@ operator=(buffers_prefix_view const& other) ->
     buffers_prefix_view&
 {
     auto const dist = std::distance<iter_type>(
-        boost::asio::buffer_sequence_begin(other.bs_),
+        net::buffer_sequence_begin(other.bs_),
         other.end_);
     bs_ = other.bs_;
     size_ = other.size_;
     remain_ = other.remain_;
     end_ = std::next(
-        boost::asio::buffer_sequence_begin(bs_),
+        net::buffer_sequence_begin(bs_),
             dist);
     return *this;
 }

@@ -24,22 +24,22 @@ namespace boost {
 namespace beast {
 
 BOOST_STATIC_ASSERT(
-    boost::asio::is_dynamic_buffer<static_buffer_base>::value);
+    net::is_dynamic_buffer<static_buffer_base>::value);
 
 class static_buffer_test : public beast::unit_test::suite
 {
 public:
     BOOST_STATIC_ASSERT(
-        boost::asio::is_dynamic_buffer<
+        net::is_dynamic_buffer<
             static_buffer_base>::value);
     BOOST_STATIC_ASSERT(
-        boost::asio::is_const_buffer_sequence<
+        net::is_const_buffer_sequence<
             static_buffer_base::const_buffers_type>::value);
     BOOST_STATIC_ASSERT(
-        boost::asio::is_mutable_buffer_sequence<
+        net::is_mutable_buffer_sequence<
             static_buffer_base::mutable_data_type>::value);
     BOOST_STATIC_ASSERT(
-        boost::asio::is_mutable_buffer_sequence<
+        net::is_mutable_buffer_sequence<
             static_buffer_base::mutable_buffers_type>::value);
     BOOST_STATIC_ASSERT(std::is_convertible<
         static_buffer_base::mutable_data_type,
@@ -53,21 +53,21 @@ public:
         DynamicBuffer const& cb = b;
         ostream(b) << "Hello";
         BOOST_STATIC_ASSERT(
-            boost::asio::is_const_buffer_sequence<
+            net::is_const_buffer_sequence<
                 decltype(cb.data())>::value &&
-            ! boost::asio::is_mutable_buffer_sequence<
+            ! net::is_mutable_buffer_sequence<
                 decltype(cb.data())>::value);
         BOOST_STATIC_ASSERT(
-            boost::asio::is_const_buffer_sequence<
+            net::is_const_buffer_sequence<
                 decltype(cb.cdata())>::value &&
-            ! boost::asio::is_mutable_buffer_sequence<
+            ! net::is_mutable_buffer_sequence<
                 decltype(cb.cdata())>::value);
         BOOST_STATIC_ASSERT(
-            boost::asio::is_mutable_buffer_sequence<
+            net::is_mutable_buffer_sequence<
                 decltype(b.data())>::value);
         std::for_each(
-            boost::asio::buffers_iterator<decltype(b.data())>::begin(b.data()),
-            boost::asio::buffers_iterator<decltype(b.data())>::end(b.data()),
+            net::buffers_iterator<decltype(b.data())>::begin(b.data()),
+            net::buffers_iterator<decltype(b.data())>::end(b.data()),
             [](char& c)
             {
                 c = static_cast<char>(std::toupper(c));
@@ -80,8 +80,8 @@ public:
     testStaticBuffer()
     {
         using namespace test;
-        using boost::asio::buffer;
-        using boost::asio::buffer_size;
+        using net::buffer;
+        using net::buffer_size;
         char buf[12];
         std::string const s = "Hello, world";
         BEAST_EXPECT(s.size() == sizeof(buf));

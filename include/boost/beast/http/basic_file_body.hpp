@@ -235,7 +235,7 @@ public:
     // The type of buffer sequence returned by `get`.
     //
     using const_buffers_type =
-        boost::asio::const_buffer;
+        net::const_buffer;
 
     // Constructor.
     //
@@ -492,11 +492,11 @@ put(ConstBufferSequence const& buffers, error_code& ec)
 
     // Loop over all the buffers in the sequence,
     // and write each one to the file.
-    for(auto it = boost::asio::buffer_sequence_begin(buffers);
-        it != boost::asio::buffer_sequence_end(buffers); ++it)
+    for(auto it = net::buffer_sequence_begin(buffers);
+        it != net::buffer_sequence_end(buffers); ++it)
     {
         // Write this buffer to the file
-        boost::asio::const_buffer buffer = *it;
+        net::const_buffer buffer = *it;
         nwritten += body_.file_.write(
             buffer.data(), buffer.size(), ec);
         if(ec)

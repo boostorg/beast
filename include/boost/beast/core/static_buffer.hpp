@@ -64,23 +64,23 @@ class static_buffer_base
 
     class mutable_buffer_pair
     {
-        boost::asio::mutable_buffer b_[2];
+        net::mutable_buffer b_[2];
 
         friend class const_buffer_pair;
 
     public:
         using const_iterator =
-            boost::asio::mutable_buffer const*;
+            net::mutable_buffer const*;
 
         // workaround for buffers_iterator bug
         using value_type =
-            boost::asio::mutable_buffer;
+            net::mutable_buffer;
 
         mutable_buffer_pair() = default;
         mutable_buffer_pair(
             mutable_buffer_pair const&) = default;
 
-        boost::asio::mutable_buffer&
+        net::mutable_buffer&
         operator[](int i) noexcept
         {
             BOOST_ASSERT(i >= 0 && i < 2);
@@ -105,15 +105,15 @@ class static_buffer_base
 
     class const_buffer_pair
     {
-        boost::asio::const_buffer b_[2];
+        net::const_buffer b_[2];
 
     public:
         using const_iterator =
-            boost::asio::const_buffer const*;
+            net::const_buffer const*;
 
         // workaround for buffers_iterator bug
         using value_type =
-            boost::asio::const_buffer;
+            net::const_buffer;
 
         const_buffer_pair() = default;
         const_buffer_pair(
@@ -125,7 +125,7 @@ class static_buffer_base
         {
         }
 
-        boost::asio::const_buffer&
+        net::const_buffer&
         operator[](int i) noexcept
         {
             BOOST_ASSERT(i >= 0 && i < 2);

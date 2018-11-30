@@ -103,12 +103,12 @@ public:
             // make sure things compile, also can set a
             // breakpoint in asio_handler_invoke to make sure
             // it is instantiated.
-            boost::asio::io_context ioc;
-            boost::asio::strand<
-                boost::asio::io_context::executor_type> s{
+            net::io_context ioc;
+            net::strand<
+                net::io_context::executor_type> s{
                     ioc.get_executor()};
             test::stream ts{ioc};
-            boost::asio::post(s,
+            net::post(s,
                 bind_handler(copyable{}, 42));
         }
     }
@@ -174,12 +174,12 @@ public:
             // make sure things compile, also can set a
             // breakpoint in asio_handler_invoke to make sure
             // it is instantiated.
-            boost::asio::io_context ioc;
-            boost::asio::strand<
-                boost::asio::io_context::executor_type> s{
+            net::io_context ioc;
+            net::strand<
+                net::io_context::executor_type> s{
                     ioc.get_executor()};
             test::stream ts{ioc};
-            boost::asio::post(s,
+            net::post(s,
                 bind_front_handler(copyable{}, 42));
         }
     }

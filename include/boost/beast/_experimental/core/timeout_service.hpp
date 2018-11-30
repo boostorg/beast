@@ -67,7 +67,7 @@ public:
     // VFALCO should be execution_context
     BOOST_BEAST_DECL
     explicit
-    timeout_handle(boost::asio::io_context& ioc);
+    timeout_handle(net::io_context& ioc);
 
     BOOST_BEAST_DECL
     void
@@ -126,7 +126,7 @@ public:
 BOOST_BEAST_DECL
 void
 set_timeout_service_options(
-    boost::asio::io_context& ctx, // VFALCO should be execution_context
+    net::io_context& ctx, // VFALCO should be execution_context
     std::chrono::seconds interval);
 
 } // beast

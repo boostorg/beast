@@ -37,7 +37,7 @@ namespace http {
     end of the message being read. This additional data is stored
     in the dynamic buffer, which must be retained for subsequent reads.
 
-    If the stream returns the error `boost::asio::error::eof` indicating the
+    If the stream returns the error `net::error::eof` indicating the
     end of file during a read, the error returned from this function will be:
 
     @li @ref error::end_of_stream if no octets were parsed, or
@@ -90,7 +90,7 @@ read_some(
     end of the message being read. This additional data is stored
     in the dynamic buffer, which must be retained for subsequent reads.
 
-    If the stream returns the error `boost::asio::error::eof` indicating the
+    If the stream returns the error `net::error::eof` indicating the
     end of file during a read, the error returned from this function will be:
 
     @li @ref error::end_of_stream if no octets were parsed, or
@@ -151,7 +151,7 @@ read_some(
     end of the object being parsed. This additional data is stored
     in the stream buffer, which may be used in subsequent calls.
 
-    If the stream returns the error `boost::asio::error::eof` indicating the
+    If the stream returns the error `net::error::eof` indicating the
     end of file during a read, the error returned from this function will be:
 
     @li @ref error::end_of_stream if no octets were parsed, or
@@ -185,7 +185,7 @@ read_some(
     Regardless of whether the asynchronous operation completes
     immediately or not, the handler will not be invoked from within
     this function. Invocation of the handler will be performed in a
-    manner equivalent to using `boost::asio::io_context::post`.
+    manner equivalent to using `net::io_context::post`.
 
     The completion handler will receive as a parameter the number
     of octets processed from the dynamic buffer. The octets should
@@ -223,7 +223,7 @@ async_read_some(
     end of the message being read. This additional data is stored
     in the dynamic buffer, which must be retained for subsequent reads.
 
-    If the stream returns the error `boost::asio::error::eof` indicating the
+    If the stream returns the error `net::error::eof` indicating the
     end of file during a read, the error returned from this function will be:
 
     @li @ref error::end_of_stream if no octets were parsed, or
@@ -278,7 +278,7 @@ read_header(
     end of the message being read. This additional data is stored
     in the dynamic buffer, which must be retained for subsequent reads.
 
-    If the stream returns the error `boost::asio::error::eof` indicating the
+    If the stream returns the error `net::error::eof` indicating the
     end of file during a read, the error returned from this function will be:
 
     @li @ref error::end_of_stream if no octets were parsed, or
@@ -337,7 +337,7 @@ read_header(
     end of the message being read. This additional data is stored
     in the dynamic buffer, which must be retained for subsequent reads.
 
-    If the stream returns the error `boost::asio::error::eof` indicating the
+    If the stream returns the error `net::error::eof` indicating the
     end of file during a read, the error returned from this function will be:
 
     @li @ref error::end_of_stream if no octets were parsed, or
@@ -371,7 +371,7 @@ read_header(
     Regardless of whether the asynchronous operation completes
     immediately or not, the handler will not be invoked from within
     this function. Invocation of the handler will be performed in a
-    manner equivalent to using `boost::asio::io_context::post`.
+    manner equivalent to using `net::io_context::post`.
 
     @note The implementation will call @ref basic_parser::eager
     with the value `false` on the parser passed in.
@@ -407,7 +407,7 @@ async_read_header(
     end of the message being read. This additional data is stored
     in the dynamic buffer, which must be retained for subsequent reads.
 
-    If the stream returns the error `boost::asio::error::eof` indicating the
+    If the stream returns the error `net::error::eof` indicating the
     end of file during a read, the error returned from this function will be:
 
     @li @ref error::end_of_stream if no octets were parsed, or
@@ -462,7 +462,7 @@ read(
     end of the message being read. This additional data is stored
     in the dynamic buffer, which must be retained for subsequent reads.
 
-    If the stream returns the error `boost::asio::error::eof` indicating the
+    If the stream returns the error `net::error::eof` indicating the
     end of file during a read, the error returned from this function will be:
 
     @li @ref error::end_of_stream if no octets were parsed, or
@@ -521,7 +521,7 @@ read(
     end of the message being read. This additional data is stored
     in the dynamic buffer, which must be retained for subsequent reads.
 
-    If the stream returns the error `boost::asio::error::eof` indicating the
+    If the stream returns the error `net::error::eof` indicating the
     end of file during a read, the error returned from this function will be:
 
     @li @ref error::end_of_stream if no octets were parsed, or
@@ -555,7 +555,7 @@ read(
     Regardless of whether the asynchronous operation completes
     immediately or not, the handler will not be invoked from within
     this function. Invocation of the handler will be performed in a
-    manner equivalent to using `boost::asio::io_context::post`.
+    manner equivalent to using `net::io_context::post`.
 
     @note The implementation will call @ref basic_parser::eager
     with the value `true` on the parser passed in.
@@ -590,7 +590,7 @@ async_read(
     end of the message being read. This additional data is stored
     in the dynamic buffer, which must be retained for subsequent reads.
 
-    If the stream returns the error `boost::asio::error::eof` indicating the
+    If the stream returns the error `net::error::eof` indicating the
     end of file during a read, the error returned from this function will be:
 
     @li @ref error::end_of_stream if no octets were parsed, or
@@ -644,7 +644,7 @@ read(
     end of the message being read. This additional data is stored
     in the dynamic buffer, which must be retained for subsequent reads.
 
-    If the stream returns the error `boost::asio::error::eof` indicating the
+    If the stream returns the error `net::error::eof` indicating the
     end of file during a read, the error returned from this function will be:
 
     @li @ref error::end_of_stream if no octets were parsed, or
@@ -703,7 +703,7 @@ read(
     end of the message being read. This additional data is stored
     in the dynamic buffer, which must be retained for subsequent reads.
 
-    If the stream returns the error `boost::asio::error::eof` indicating the
+    If the stream returns the error `net::error::eof` indicating the
     end of file during a read, the error returned from this function will be:
 
     @li @ref error::end_of_stream if no octets were parsed, or
@@ -741,7 +741,7 @@ read(
     Regardless of whether the asynchronous operation completes
     immediately or not, the handler will not be invoked from within
     this function. Invocation of the handler will be performed in a
-    manner equivalent to using `boost::asio::io_context::post`.
+    manner equivalent to using `net::io_context::post`.
 */
 template<
     class AsyncReadStream,

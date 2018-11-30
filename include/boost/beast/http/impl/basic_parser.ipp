@@ -91,13 +91,13 @@ basic_parser<isRequest, Derived>::
 put(ConstBufferSequence const& buffers,
     error_code& ec)
 {
-    static_assert(boost::asio::is_const_buffer_sequence<
+    static_assert(net::is_const_buffer_sequence<
         ConstBufferSequence>::value,
             "ConstBufferSequence requirements not met");
-    using boost::asio::buffer_copy;
-    using boost::asio::buffer_size;
-    auto const p = boost::asio::buffer_sequence_begin(buffers);
-    auto const last = boost::asio::buffer_sequence_end(buffers);
+    using net::buffer_copy;
+    using net::buffer_size;
+    auto const p = net::buffer_sequence_begin(buffers);
+    auto const last = net::buffer_sequence_end(buffers);
     if(p == last)
     {
         ec.assign(0, ec.category());
@@ -106,7 +106,7 @@ put(ConstBufferSequence const& buffers,
     if(std::next(p) == last)
     {
         // single buffer
-        return put(boost::asio::const_buffer(*p), ec);
+        return put(net::const_buffer(*p), ec);
     }
     auto const size = buffer_size(buffers);
     if(size <= max_stack_buffer)
@@ -118,20 +118,20 @@ put(ConstBufferSequence const& buffers,
         buf_len_ = size;
     }
     // flatten
-    buffer_copy(boost::asio::buffer(
+    buffer_copy(net::buffer(
         buf_.get(), buf_len_), buffers);
-    return put(boost::asio::const_buffer{
+    return put(net::const_buffer{
         buf_.get(), buf_len_}, ec);
 }
 
 template<bool isRequest, class Derived>
 std::size_t
 basic_parser<isRequest, Derived>::
-put(boost::asio::const_buffer const& buffer,
+put(net::const_buffer const& buffer,
     error_code& ec)
 {
     BOOST_ASSERT(state_ != state::complete);
-    using boost::asio::buffer_size;
+    using net::buffer_size;
     auto p = static_cast<char const*>(buffer.data());
     auto n = buffer.size();
     auto const p0 = p;
@@ -304,10 +304,10 @@ put_from_stack(std::size_t size,
         error_code& ec)
 {
     char buf[max_stack_buffer];
-    using boost::asio::buffer;
-    using boost::asio::buffer_copy;
+    using net::buffer;
+    using net::buffer_copy;
     buffer_copy(buffer(buf, sizeof(buf)), buffers);
-    return put(boost::asio::const_buffer{
+    return put(net::const_buffer{
         buf, size}, ec);
 }
 

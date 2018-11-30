@@ -414,7 +414,7 @@ private:
         string_view body,
         error_code& ec)
     {
-        return rd_.put(boost::asio::buffer(
+        return rd_.put(net::buffer(
             body.data(), body.size()), ec);
     }
 
@@ -437,7 +437,7 @@ private:
     {
         if(cb_b_)
             return cb_b_(remain, body, ec);
-        return rd_.put(boost::asio::buffer(
+        return rd_.put(net::buffer(
             body.data(), body.size()), ec);
     }
 

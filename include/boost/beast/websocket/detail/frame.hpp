@@ -184,8 +184,8 @@ template<class DynamicBuffer>
 void
 write(DynamicBuffer& db, frame_header const& fh)
 {
-    using boost::asio::buffer;
-    using boost::asio::buffer_copy;
+    using net::buffer;
+    using net::buffer_copy;
     using namespace boost::endian;
     std::size_t n;
     std::uint8_t b[14];
@@ -231,9 +231,9 @@ template<class Buffers>
 void
 read_ping(ping_data& data, Buffers const& bs)
 {
-    using boost::asio::buffer_copy;
-    using boost::asio::buffer_size;
-    using boost::asio::mutable_buffer;
+    using net::buffer_copy;
+    using net::buffer_size;
+    using net::mutable_buffer;
     BOOST_ASSERT(buffer_size(bs) <= data.max_size());
     data.resize(buffer_size(bs));
     buffer_copy(mutable_buffer{
@@ -250,9 +250,9 @@ read_close(
     Buffers const& bs,
     error_code& ec)
 {
-    using boost::asio::buffer;
-    using boost::asio::buffer_copy;
-    using boost::asio::buffer_size;
+    using net::buffer;
+    using net::buffer_copy;
+    using net::buffer_size;
     using namespace boost::endian;
     auto n = buffer_size(bs);
     BOOST_ASSERT(n <= 125);

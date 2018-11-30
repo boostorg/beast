@@ -33,8 +33,8 @@ public:
         void
         operator()(error_code&, ConstBufferSequence const& buffers)
         {
-            buffer.commit(boost::asio::buffer_copy(
-                buffer.prepare(boost::asio::buffer_size(buffers)),
+            buffer.commit(net::buffer_copy(
+                buffer.prepare(net::buffer_size(buffers)),
                 buffers));
         }
     };
@@ -59,7 +59,7 @@ public:
                 temp.string<std::string>().c_str(), file_mode::write, ec);
             BEAST_EXPECTS(! ec, ec.message());
 
-            p.put(boost::asio::buffer(s.data(), s.size()), ec);
+            p.put(net::buffer(s.data(), s.size()), ec);
             BEAST_EXPECTS(! ec, ec.message());
         }
         {

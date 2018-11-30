@@ -26,7 +26,7 @@ public:
     void
     doTestWrite(Wrap const& w)
     {
-        using boost::asio::buffer;
+        using net::buffer;
 
         permessage_deflate pmd;
         pmd.client_enable = false;
@@ -47,7 +47,7 @@ public:
             catch(system_error const& se)
             {
                 BEAST_EXPECTS(
-                    se.code() == boost::asio::error::operation_aborted,
+                    se.code() == net::error::operation_aborted,
                     se.code().message());
             }
         }
@@ -71,7 +71,7 @@ public:
         [&](ws_type_t<deflateSupported>& ws)
         {
             ws.text(true);
-            w.write(ws, boost::asio::const_buffer{});
+            w.write(ws, net::const_buffer{});
             multi_buffer b;
             w.read(ws, b);
             BEAST_EXPECT(ws.got_text());
@@ -203,7 +203,7 @@ public:
     void
     doTestWriteDeflate(Wrap const& w)
     {
-        using boost::asio::buffer;
+        using net::buffer;
 
         permessage_deflate pmd;
         pmd.client_enable = true;
@@ -254,7 +254,7 @@ public:
     void
     testWrite()
     {
-        using boost::asio::buffer;
+        using net::buffer;
 
         doTestWrite<false>(SyncClient{});
         doTestWrite<true>(SyncClient{});
@@ -271,13 +271,13 @@ public:
     void
     testWriteSuspend()
     {
-        using boost::asio::buffer;
+        using net::buffer;
 
         // suspend on ping
         doFailLoop([&](test::fail_count& fc)
         {
             echo_server es{log};
-            boost::asio::io_context ioc;
+            net::io_context ioc;
             stream<test::stream> ws{ioc, fc};
             ws.next_layer().connect(es.stream());
             ws.handshake("localhost", "/");
@@ -310,7 +310,7 @@ public:
         doFailLoop([&](test::fail_count& fc)
         {
             echo_server es{log};
-            boost::asio::io_context ioc;
+            net::io_context ioc;
             stream<test::stream> ws{ioc, fc};
             ws.next_layer().connect(es.stream());
             ws.handshake("localhost", "/");
@@ -329,7 +329,7 @@ public:
                 [&](error_code ec, std::size_t)
                 {
                     ++count;
-                    if(ec != boost::asio::error::operation_aborted)
+                    if(ec != net::error::operation_aborted)
                         BOOST_THROW_EXCEPTION(
                             system_error{ec});
                 });
@@ -342,7 +342,7 @@ public:
         doFailLoop([&](test::fail_count& fc)
         {
             echo_server es{log};
-            boost::asio::io_context ioc;
+            net::io_context ioc;
             stream<test::stream> ws{ioc, fc};
             ws.next_layer().connect(es.stream());
             ws.handshake("localhost", "/");
@@ -384,7 +384,7 @@ public:
         doFailLoop([&](test::fail_count& fc)
         {
             echo_server es{log, kind::async_client};
-            boost::asio::io_context ioc;
+            net::io_context ioc;
             stream<test::stream> ws{ioc, fc};
             ws.next_layer().connect(es.stream());
             es.async_handshake();
@@ -418,7 +418,7 @@ public:
         doFailLoop([&](test::fail_count& fc)
         {
             echo_server es{log, kind::async_client};
-            boost::asio::io_context ioc;
+            net::io_context ioc;
             stream<test::stream> ws{ioc, fc};
             ws.next_layer().connect(es.stream());
             es.async_handshake();
@@ -452,7 +452,7 @@ public:
         doFailLoop([&](test::fail_count& fc)
         {
             echo_server es{log};
-            boost::asio::io_context ioc;
+            net::io_context ioc;
             stream<test::stream> ws{ioc, fc};
             ws.next_layer().connect(es.stream());
             ws.handshake("localhost", "/");
@@ -484,7 +484,7 @@ public:
         doFailLoop([&](test::fail_count& fc)
         {
             echo_server es{log};
-            boost::asio::io_context ioc;
+            net::io_context ioc;
             stream<test::stream> ws{ioc, fc};
             ws.next_layer().connect(es.stream());
             ws.handshake("localhost", "/");
@@ -516,7 +516,7 @@ public:
         doFailLoop([&](test::fail_count& fc)
         {
             echo_server es{log, kind::async};
-            boost::asio::io_context ioc;
+            net::io_context ioc;
             stream<test::stream> ws{ioc, fc};
             {
                 permessage_deflate pmd;
@@ -560,7 +560,7 @@ public:
             {
                 echo_server es{log, i==1 ?
                     kind::async : kind::sync};
-                boost::asio::io_context ioc;
+                net::io_context ioc;
                 stream<test::stream> ws{ioc};
                 ws.next_layer().connect(es.stream());
 
@@ -569,7 +569,7 @@ public:
                 if(! BEAST_EXPECTS(! ec, ec.message()))
                     break;
                 ws.async_write_some(false,
-                    boost::asio::const_buffer{},
+                    net::const_buffer{},
                     [&](error_code, std::size_t)
                     {
                         fail();
@@ -597,7 +597,7 @@ public:
         {
             echo_server es{log, i==1 ?
                 kind::async : kind::sync};
-            boost::asio::io_context ioc;
+            net::io_context ioc;
             stream<test::stream> ws{ioc};
             ws.next_layer().connect(es.stream());
 
@@ -624,21 +624,21 @@ public:
         char buf[32];
         stream<test::stream> ws{ioc_};
         stream<test::stream>::write_some_op<
-            boost::asio::const_buffer,
+            net::const_buffer,
                 handler> op{handler{}, ws, true,
-                    boost::asio::const_buffer{
+                    net::const_buffer{
                         buf, sizeof(buf)}};
-        using boost::asio::asio_handler_is_continuation;
+        using net::asio_handler_is_continuation;
         asio_handler_is_continuation(&op);
     }
 
     void
     testMoveOnly()
     {
-        boost::asio::io_context ioc;
+        net::io_context ioc;
         stream<test::stream> ws{ioc};
         ws.async_write_some(
-            true, boost::asio::const_buffer{},
+            true, net::const_buffer{},
             move_only_handler{});
     }
 
@@ -658,14 +658,14 @@ public:
         // breakpoint in asio_handler_invoke to make sure
         // it is instantiated.
         {
-            boost::asio::io_context ioc;
-            boost::asio::strand<
-                boost::asio::io_context::executor_type> s(
+            net::io_context ioc;
+            net::strand<
+                net::io_context::executor_type> s(
                     ioc.get_executor());
             stream<test::stream> ws{ioc};
             flat_buffer b;
-            ws.async_write(boost::asio::const_buffer{},
-                boost::asio::bind_executor(s,
+            ws.async_write(net::const_buffer{},
+                net::bind_executor(s,
                     copyable_handler{}));
         }
     }

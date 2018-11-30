@@ -27,7 +27,7 @@ websocket_session::
 
 void
 websocket_session::
-fail(error_code ec, char const* what)
+fail(beast::error_code ec, char const* what)
 {
     // Don't report these
     if( ec == net::error::operation_aborted ||
@@ -39,7 +39,7 @@ fail(error_code ec, char const* what)
 
 void
 websocket_session::
-on_accept(error_code ec)
+on_accept(beast::error_code ec)
 {
     // Handle the error, if any
     if(ec)
@@ -60,7 +60,7 @@ on_accept(error_code ec)
 
 void
 websocket_session::
-on_read(error_code ec, std::size_t)
+on_read(beast::error_code ec, std::size_t)
 {
     // Handle the error, if any
     if(ec)
@@ -105,7 +105,7 @@ send(std::shared_ptr<std::string const> const& ss)
 
 void
 websocket_session::
-on_write(error_code ec, std::size_t)
+on_write(beast::error_code ec, std::size_t)
 {
     // Handle the error, if any
     if(ec)

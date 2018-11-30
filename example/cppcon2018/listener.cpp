@@ -20,7 +20,7 @@ listener(
     , socket_(ioc)
     , state_(state)
 {
-    error_code ec;
+    beast::error_code ec;
 
     // Open the acceptor
     acceptor_.open(endpoint.protocol(), ec);
@@ -72,7 +72,7 @@ run()
 // Report a failure
 void
 listener::
-fail(error_code ec, char const* what)
+fail(beast::error_code ec, char const* what)
 {
     // Don't report on canceled operations
     if(ec == net::error::operation_aborted)
@@ -83,7 +83,7 @@ fail(error_code ec, char const* what)
 // Handle a connection
 void
 listener::
-on_accept(error_code ec)
+on_accept(beast::error_code ec)
 {
     if(ec)
         return fail(ec, "accept");

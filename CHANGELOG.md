@@ -1,3 +1,9 @@
+Version 195:
+
+* net is a namespace alias for boost::asio
+
+--------------------------------------------------------------------------------
+
 Version 194:
 
 * http::async_read returns the right byte count on error

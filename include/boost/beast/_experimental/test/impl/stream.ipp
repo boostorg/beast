@@ -62,7 +62,7 @@ operator=(stream&& other)
 
 inline
 stream::
-stream(boost::asio::io_context& ioc)
+stream(net::io_context& ioc)
     : in_(std::make_shared<state>(ioc, nullptr))
 {
 }
@@ -70,7 +70,7 @@ stream(boost::asio::io_context& ioc)
 inline
 stream::
 stream(
-    boost::asio::io_context& ioc,
+    net::io_context& ioc,
     fail_count& fc)
     : in_(std::make_shared<state>(ioc, &fc))
 {
@@ -79,12 +79,12 @@ stream(
 inline
 stream::
 stream(
-    boost::asio::io_context& ioc,
+    net::io_context& ioc,
     string_view s)
     : in_(std::make_shared<state>(ioc, nullptr))
 {
-    using boost::asio::buffer;
-    using boost::asio::buffer_copy;
+    using net::buffer;
+    using net::buffer_copy;
     in_->b.commit(buffer_copy(
         in_->b.prepare(s.size()),
         buffer(s.data(), s.size())));
@@ -93,13 +93,13 @@ stream(
 inline
 stream::
 stream(
-    boost::asio::io_context& ioc,
+    net::io_context& ioc,
     fail_count& fc,
     string_view s)
     : in_(std::make_shared<state>(ioc, &fc))
 {
-    using boost::asio::buffer;
-    using boost::asio::buffer_copy;
+    using net::buffer;
+    using net::buffer_copy;
     in_->b.commit(buffer_copy(
         in_->b.prepare(s.size()),
         buffer(s.data(), s.size())));
@@ -121,7 +121,7 @@ stream::
 str() const
 {
     auto const bs = in_->b.data();
-    if(boost::asio::buffer_size(bs) == 0)
+    if(net::buffer_size(bs) == 0)
         return {};
     auto const b = buffers_front(bs);
     return {static_cast<char const*>(b.data()), b.size()};
@@ -132,8 +132,8 @@ void
 stream::
 append(string_view s)
 {
-    using boost::asio::buffer;
-    using boost::asio::buffer_copy;
+    using net::buffer;
+    using net::buffer_copy;
     std::lock_guard<std::mutex> lock{in_->m};
     in_->b.commit(buffer_copy(
         in_->b.prepare(s.size()),
@@ -184,7 +184,7 @@ std::size_t
 stream::
 read_some(MutableBufferSequence const& buffers)
 {
-    static_assert(boost::asio::is_mutable_buffer_sequence<
+    static_assert(net::is_mutable_buffer_sequence<
             MutableBufferSequence>::value,
         "MutableBufferSequence requirements not met");
     error_code ec;
@@ -200,11 +200,11 @@ stream::
 read_some(MutableBufferSequence const& buffers,
     error_code& ec)
 {
-    static_assert(boost::asio::is_mutable_buffer_sequence<
+    static_assert(net::is_mutable_buffer_sequence<
             MutableBufferSequence>::value,
         "MutableBufferSequence requirements not met");
-    using boost::asio::buffer_copy;
-    using boost::asio::buffer_size;
+    using net::buffer_copy;
+    using net::buffer_size;
     if(in_->fc && in_->fc->fail(ec))
         return 0;
     if(buffer_size(buffers) == 0)
@@ -234,9 +234,9 @@ read_some(MutableBufferSequence const& buffers,
         BOOST_ASSERT(in_->code != status::ok);
         bytes_transferred = 0;
         if(in_->code == status::eof)
-            ec = boost::asio::error::eof;
+            ec = net::error::eof;
         else if(in_->code == status::reset)
-            ec = boost::asio::error::connection_reset;
+            ec = net::error::connection_reset;
     }
     ++in_->nread;
     return bytes_transferred;
@@ -250,18 +250,18 @@ async_read_some(
     MutableBufferSequence const& buffers,
     ReadHandler&& handler)
 {
-    static_assert(boost::asio::is_mutable_buffer_sequence<
+    static_assert(net::is_mutable_buffer_sequence<
             MutableBufferSequence>::value,
         "MutableBufferSequence requirements not met");
-    using boost::asio::buffer_copy;
-    using boost::asio::buffer_size;
+    using net::buffer_copy;
+    using net::buffer_size;
     BOOST_BEAST_HANDLER_INIT(
         ReadHandler, void(error_code, std::size_t));
 
     error_code ec;
     if(in_->fc && in_->fc->fail(ec))
     {
-        boost::asio::post(
+        net::post(
             in_->ioc.get_executor(),
             beast::bind_front_handler(
                 std::move(init.completion_handler),
@@ -280,7 +280,7 @@ async_read_some(
             in_->b.consume(bytes_transferred);
             lock.unlock();
             ++in_->nread;
-            boost::asio::post(
+            net::post(
                 in_->ioc.get_executor(),
                 beast::bind_front_handler(
                     std::move(init.completion_handler),
@@ -292,10 +292,10 @@ async_read_some(
             lock.unlock();
             ++in_->nread;
             if(in_->code == status::eof)
-                ec = boost::asio::error::eof;
+                ec = net::error::eof;
             else if(in_->code == status::reset)
-                ec = boost::asio::error::connection_reset;
-            boost::asio::post(
+                ec = net::error::connection_reset;
+            net::post(
                 in_->ioc.get_executor(),
                 beast::bind_front_handler(
                     std::move(init.completion_handler),
@@ -318,7 +318,7 @@ std::size_t
 stream::
 write_some(ConstBufferSequence const& buffers)
 {
-    static_assert(boost::asio::is_const_buffer_sequence<
+    static_assert(net::is_const_buffer_sequence<
             ConstBufferSequence>::value,
         "ConstBufferSequence requirements not met");
     error_code ec;
@@ -335,15 +335,15 @@ stream::
 write_some(
     ConstBufferSequence const& buffers, error_code& ec)
 {
-    static_assert(boost::asio::is_const_buffer_sequence<
+    static_assert(net::is_const_buffer_sequence<
             ConstBufferSequence>::value,
         "ConstBufferSequence requirements not met");
-    using boost::asio::buffer_copy;
-    using boost::asio::buffer_size;
+    using net::buffer_copy;
+    using net::buffer_size;
     auto out = out_.lock();
     if(! out)
     {
-        ec = boost::asio::error::connection_reset;
+        ec = net::error::connection_reset;
         return 0;
     }
     BOOST_ASSERT(out->code == status::ok);
@@ -369,21 +369,21 @@ stream::
 async_write_some(ConstBufferSequence const& buffers,
     WriteHandler&& handler)
 {
-    static_assert(boost::asio::is_const_buffer_sequence<
+    static_assert(net::is_const_buffer_sequence<
             ConstBufferSequence>::value,
         "ConstBufferSequence requirements not met");
-    using boost::asio::buffer_copy;
-    using boost::asio::buffer_size;
+    using net::buffer_copy;
+    using net::buffer_size;
     BOOST_BEAST_HANDLER_INIT(
         WriteHandler, void(error_code, std::size_t));
     auto out = out_.lock();
     if(! out)
     {
-        boost::asio::post(
+        net::post(
             in_->ioc.get_executor(),
             beast::bind_front_handler(
                 std::move(init.completion_handler),
-                boost::asio::error::connection_reset,
+                net::error::connection_reset,
                 0));
     }
     else
@@ -392,7 +392,7 @@ async_write_some(ConstBufferSequence const& buffers,
         error_code ec;
         if(in_->fc && in_->fc->fail(ec))
         {
-            boost::asio::post(
+            net::post(
                 in_->ioc.get_executor(),
                 beast::bind_front_handler(
                     std::move(init.completion_handler),
@@ -410,7 +410,7 @@ async_write_some(ConstBufferSequence const& buffers,
             out->on_write();
             lock.unlock();
             ++in_->nwrite;
-            boost::asio::post(
+            net::post(
                 in_->ioc.get_executor(),
                 beast::bind_front_handler(
                     std::move(init.completion_handler),
@@ -437,7 +437,7 @@ boost::system::error_code& ec)
 
     if( s.in_->fc &&
         s.in_->fc->fail(ec))
-        ec = boost::asio::error::eof;
+        ec = net::error::eof;
     else
         ec.assign(0, ec.category());
 }
@@ -453,17 +453,17 @@ TeardownHandler&& handler)
     error_code ec;
     if( s.in_->fc &&
         s.in_->fc->fail(ec))
-        return boost::asio::post(
+        return net::post(
             s.get_executor(),
             beast::bind_front_handler(std::move(handler), ec));
     s.close();
     if( s.in_->fc &&
         s.in_->fc->fail(ec))
-        ec = boost::asio::error::eof;
+        ec = net::error::eof;
     else
         ec.assign(0, ec.category());
 
-    boost::asio::post(
+    net::post(
         s.get_executor(),
         beast::bind_front_handler(std::move(handler), ec));
 }
@@ -478,8 +478,8 @@ class stream::read_op : public stream::read_op_base
         state& s_;
         Buffers b_;
         Handler h_;
-        boost::asio::executor_work_guard<
-            boost::asio::io_context::executor_type> work_;
+        net::executor_work_guard<
+            net::io_context::executor_type> work_;
 
     public:
         lambda(lambda&&) = default;
@@ -497,7 +497,7 @@ class stream::read_op : public stream::read_op_base
         void
         post()
         {
-            boost::asio::post(
+            net::post(
                 s_.ioc.get_executor(),
                 std::move(*this));
             work_.reset();
@@ -506,8 +506,8 @@ class stream::read_op : public stream::read_op_base
         void
         operator()()
         {
-            using boost::asio::buffer_copy;
-            using boost::asio::buffer_size;
+            using net::buffer_copy;
+            using net::buffer_size;
             std::unique_lock<std::mutex> lock{s_.m};
             BOOST_ASSERT(! s_.op);
             if(s_.b.size() > 0)
@@ -519,7 +519,7 @@ class stream::read_op : public stream::read_op_base
                 Handler h{std::move(h_)};
                 lock.unlock();
                 ++s.nread;
-                boost::asio::post(
+                net::post(
                     s.ioc.get_executor(),
                     beast::bind_front_handler(
                         std::move(h),
@@ -535,10 +535,10 @@ class stream::read_op : public stream::read_op_base
                 ++s.nread;
                 error_code ec;
                 if(s.code == status::eof)
-                    ec = boost::asio::error::eof;
+                    ec = net::error::eof;
                 else if(s.code == status::reset)
-                    ec = boost::asio::error::connection_reset;
-                boost::asio::post(
+                    ec = net::error::connection_reset;
+                net::post(
                     s.ioc.get_executor(),
                     beast::bind_front_handler(std::move(h), ec, 0));
             }

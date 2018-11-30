@@ -27,7 +27,7 @@ class test_parser
 
 public:
     using mutable_buffers_type =
-        boost::asio::mutable_buffer;
+        net::mutable_buffer;
 
     int status = 0;
     int version = 0;

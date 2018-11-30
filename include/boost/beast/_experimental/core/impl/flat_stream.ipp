@@ -25,14 +25,14 @@ namespace beast {
 template<class NextLayer>
 template<class ConstBufferSequence, class Handler>
 class flat_stream<NextLayer>::write_op
-    : public boost::asio::coroutine
+    : public net::coroutine
 {
     using alloc_type = typename 
 #if defined(BOOST_NO_CXX11_ALLOCATOR)
-        boost::asio::associated_allocator_t<Handler>::template
+        net::associated_allocator_t<Handler>::template
             rebind<char>::other;
 #else
-        std::allocator_traits<boost::asio::associated_allocator_t<Handler>>
+        std::allocator_traits<net::associated_allocator_t<Handler>>
             ::template rebind_alloc<char>;
 #endif
 
@@ -68,27 +68,27 @@ public:
         : s_(s)
         , b_(b)
         , p_(nullptr, deleter{
-            (boost::asio::get_associated_allocator)(h)})
+            (net::get_associated_allocator)(h)})
         , h_(std::forward<DeducedHandler>(h))
     {
     }
 
     using allocator_type =
-        boost::asio::associated_allocator_t<Handler>;
+        net::associated_allocator_t<Handler>;
 
     allocator_type
     get_allocator() const noexcept
     {
-        return (boost::asio::get_associated_allocator)(h_);
+        return (net::get_associated_allocator)(h_);
     }
 
-    using executor_type = boost::asio::associated_executor_t<
+    using executor_type = net::associated_executor_t<
         Handler, decltype(std::declval<NextLayer&>().get_executor())>;
 
     executor_type
     get_executor() const noexcept
     {
-        return (boost::asio::get_associated_executor)(
+        return (net::get_associated_executor)(
             h_, s_.get_executor());
     }
 
@@ -100,7 +100,7 @@ public:
     friend
     bool asio_handler_is_continuation(write_op* op)
     {
-        using boost::asio::asio_handler_is_continuation;
+        using net::asio_handler_is_continuation;
         return asio_handler_is_continuation(
                 std::addressof(op->h_));
     }
@@ -109,7 +109,7 @@ public:
     friend
     void asio_handler_invoke(Function&& f, write_op* op)
     {
-        using boost::asio::asio_handler_invoke;
+        using net::asio_handler_invoke;
         asio_handler_invoke(f, std::addressof(op->h_));
     }
 };
@@ -133,12 +133,12 @@ operator()(
                 p_.get_deleter().size = result.first;
                 p_.reset(p_.get_deleter().alloc.allocate(
                     p_.get_deleter().size));
-                boost::asio::buffer_copy(
-                    boost::asio::buffer(
+                net::buffer_copy(
+                    net::buffer(
                         p_.get(), p_.get_deleter().size),
                     b_, result.first);
                 s_.stream_.async_write_some(
-                    boost::asio::buffer(
+                    net::buffer(
                         p_.get(), p_.get_deleter().size),
                             std::move(*this));
             }
@@ -172,7 +172,7 @@ read_some(MutableBufferSequence const& buffers)
 {
     static_assert(boost::beast::is_sync_read_stream<next_layer_type>::value,
         "SyncReadStream requirements not met");
-    static_assert(boost::asio::is_mutable_buffer_sequence<
+    static_assert(net::is_mutable_buffer_sequence<
         MutableBufferSequence>::value,
             "MutableBufferSequence requirements not met");
     error_code ec;
@@ -204,7 +204,7 @@ async_read_some(
 {
     static_assert(boost::beast::is_async_read_stream<next_layer_type>::value,
         "AsyncReadStream requirements not met");
-    static_assert(boost::asio::is_mutable_buffer_sequence<
+    static_assert(net::is_mutable_buffer_sequence<
             MutableBufferSequence >::value,
         "MutableBufferSequence  requirements not met");
     return stream_.async_read_some(
@@ -219,15 +219,15 @@ write_some(ConstBufferSequence const& buffers)
 {
     static_assert(boost::beast::is_sync_write_stream<next_layer_type>::value,
         "SyncWriteStream requirements not met");
-    static_assert(boost::asio::is_const_buffer_sequence<
+    static_assert(net::is_const_buffer_sequence<
         ConstBufferSequence>::value,
             "ConstBufferSequence requirements not met");
     auto const result = coalesce(buffers, coalesce_limit);
     if(result.second)
     {
         std::unique_ptr<char[]> p{new char[result.first]};
-        auto const b = boost::asio::buffer(p.get(), result.first);
-        boost::asio::buffer_copy(b, buffers);
+        auto const b = net::buffer(p.get(), result.first);
+        net::buffer_copy(b, buffers);
         return stream_.write_some(b);
     }
     return stream_.write_some(
@@ -242,15 +242,15 @@ write_some(ConstBufferSequence const& buffers, error_code& ec)
 {
     static_assert(boost::beast::is_sync_write_stream<next_layer_type>::value,
         "SyncWriteStream requirements not met");
-    static_assert(boost::asio::is_const_buffer_sequence<
+    static_assert(net::is_const_buffer_sequence<
         ConstBufferSequence>::value,
             "ConstBufferSequence requirements not met");
     auto const result = coalesce(buffers, coalesce_limit);
     if(result.second)
     {
         std::unique_ptr<char[]> p{new char[result.first]};
-        auto const b = boost::asio::buffer(p.get(), result.first);
-        boost::asio::buffer_copy(b, buffers);
+        auto const b = net::buffer(p.get(), result.first);
+        net::buffer_copy(b, buffers);
         return stream_.write_some(b, ec);
     }
     return stream_.write_some(
@@ -270,7 +270,7 @@ async_write_some(
 {
     static_assert(boost::beast::is_async_write_stream<next_layer_type>::value,
         "AsyncWriteStream requirements not met");
-    static_assert(boost::asio::is_const_buffer_sequence<
+    static_assert(net::is_const_buffer_sequence<
             ConstBufferSequence>::value,
         "ConstBufferSequence requirements not met");
     BOOST_BEAST_HANDLER_INIT(

@@ -85,7 +85,7 @@ public:
         char*
         data() const;
 
-        boost::asio::const_buffer
+        net::const_buffer
         buffer() const;
 
     protected:

@@ -21,7 +21,7 @@ namespace boost {
 namespace beast {
 
 // VFALCO No idea why boost::system::errc::message_size fails
-//        to compile, so we use boost::asio::error::eof instead.
+//        to compile, so we use net::error::eof instead.
 //
 class buffer_test : public beast::unit_test::suite
 {
@@ -35,17 +35,17 @@ public:
         DynamicBuffer b(32);
         detail::dynamic_buffer_prepare(b, 20, ec,
             //boost::system::errc::message_size);
-            boost::asio::error::eof);
+            net::error::eof);
         BEAST_EXPECTS(! ec, ec.message());
         b.commit(20);
         auto const result =
             detail::dynamic_buffer_prepare(b, 20, ec,
             //boost::system::errc::message_size);
-            boost::asio::error::eof);
+            net::error::eof);
         BEAST_EXPECT(result == boost::none);
         BEAST_EXPECTS(
             //ec == boost::system::errc::message_size,
-            ec == boost::asio::error::eof, ec.message());
+            ec == net::error::eof, ec.message());
     #else
         fail("exceptions disabled", __FILE__, __LINE__);
     #endif
@@ -59,17 +59,17 @@ public:
         DynamicBuffer b(32);
         detail::dynamic_buffer_prepare_noexcept(b, 20, ec,
             //boost::system::errc::message_size);
-            boost::asio::error::eof);
+            net::error::eof);
         BEAST_EXPECTS(! ec, ec.message());
         b.commit(20);
         auto const result =
             detail::dynamic_buffer_prepare_noexcept(b, 20, ec,
             //boost::system::errc::message_size);
-            boost::asio::error::eof);
+            net::error::eof);
         BEAST_EXPECT(result == boost::none);
         BEAST_EXPECTS(
             //ec == boost::system::errc::message_size,
-            ec == boost::asio::error::eof, ec.message());
+            ec == net::error::eof, ec.message());
     }
 
     void

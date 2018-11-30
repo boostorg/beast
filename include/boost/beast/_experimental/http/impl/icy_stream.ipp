@@ -103,7 +103,7 @@ public:
 
 template<class DynamicBuffer>
 typename std::enable_if<
-    boost::asio::is_dynamic_buffer<DynamicBuffer>::value,
+    net::is_dynamic_buffer<DynamicBuffer>::value,
     dynamic_buffer_ref<DynamicBuffer>>::type
 ref(DynamicBuffer& b)
 {
@@ -114,16 +114,16 @@ template<class MutableBuffers, class ConstBuffers>
 void
 buffer_shift(MutableBuffers const& out, ConstBuffers const& in)
 {
-    using boost::asio::buffer_size;
-    auto in_pos  = boost::asio::buffer_sequence_end(in);
-    auto out_pos = boost::asio::buffer_sequence_end(out);
-    auto const in_begin  = boost::asio::buffer_sequence_begin(in);
-    auto const out_begin = boost::asio::buffer_sequence_begin(out);
+    using net::buffer_size;
+    auto in_pos  = net::buffer_sequence_end(in);
+    auto out_pos = net::buffer_sequence_end(out);
+    auto const in_begin  = net::buffer_sequence_begin(in);
+    auto const out_begin = net::buffer_sequence_begin(out);
     BOOST_ASSERT(buffer_size(in) == buffer_size(out));
     if(in_pos == in_begin || out_pos == out_begin)
         return;
-    boost::asio::const_buffer cb{*--in_pos};
-    boost::asio::mutable_buffer mb{*--out_pos};
+    net::const_buffer cb{*--in_pos};
+    net::mutable_buffer mb{*--out_pos};
     for(;;)
     {
         if(mb.size() >= cb.size())
@@ -133,7 +133,7 @@ buffer_shift(MutableBuffers const& out, ConstBuffers const& in)
                     mb.data()) + mb.size() - cb.size(),
                 cb.data(),
                 cb.size());
-            mb = boost::asio::mutable_buffer{
+            mb = net::mutable_buffer{
                 mb.data(), mb.size() - cb.size()};
             if(in_pos == in_begin)
                 break;
@@ -146,7 +146,7 @@ buffer_shift(MutableBuffers const& out, ConstBuffers const& in)
                 static_cast<char const*>(
                     cb.data()) + cb.size() - mb.size(),
                 mb.size());
-            cb = boost::asio::const_buffer{
+            cb = net::const_buffer{
                 cb.data(), cb.size() - mb.size()};
             if(out_pos == out_begin)
                 break;
@@ -194,14 +194,14 @@ public:
 template<class NextLayer>
 template<class MutableBufferSequence, class Handler>
 class icy_stream<NextLayer>::read_op
-    : public boost::asio::coroutine
+    : public net::coroutine
 {
     using alloc_type = typename
 #if defined(BOOST_NO_CXX11_ALLOCATOR)
-        boost::asio::associated_allocator_t<Handler>::template
+        net::associated_allocator_t<Handler>::template
             rebind<char>::other;
 #else
-        std::allocator_traits<boost::asio::associated_allocator_t<Handler>>
+        std::allocator_traits<net::associated_allocator_t<Handler>>
             ::template rebind_alloc<char>;
 #endif
 
@@ -237,21 +237,21 @@ public:
     }
 
     using allocator_type =
-        boost::asio::associated_allocator_t<Handler>;
+        net::associated_allocator_t<Handler>;
 
     allocator_type
     get_allocator() const noexcept
     {
-        return (boost::asio::get_associated_allocator)(d_.handler());
+        return (net::get_associated_allocator)(d_.handler());
     }
 
-    using executor_type = boost::asio::associated_executor_t<
+    using executor_type = net::associated_executor_t<
         Handler, decltype(std::declval<NextLayer&>().get_executor())>;
 
     executor_type
     get_executor() const noexcept
     {
-        return (boost::asio::get_associated_executor)(
+        return (net::get_associated_executor)(
             d_.handler(), d_->s.get_executor());
     }
 
@@ -264,7 +264,7 @@ public:
     friend
     void asio_handler_invoke(Function&& f, read_op* op)
     {
-        using boost::asio::asio_handler_invoke;
+        using net::asio_handler_invoke;
         asio_handler_invoke(f, std::addressof(op->d_.handler()));
     }
 };
@@ -278,9 +278,9 @@ operator()(
     error_code ec,
     std::size_t bytes_transferred)
 {
-    using boost::asio::buffer_copy;
-    using boost::asio::buffer_size;
-    using iterator = boost::asio::buffers_iterator<
+    using net::buffer_copy;
+    using net::buffer_size;
+    using iterator = net::buffers_iterator<
         typename detail::dynamic_buffer_ref<
             buffers_adapter<MutableBufferSequence>>::const_buffers_type>;
     auto& d = *d_;
@@ -289,7 +289,7 @@ operator()(
         if(d.b.max_size() == 0)
         {
             BOOST_ASIO_CORO_YIELD
-            boost::asio::post(d.s.get_executor(),
+            net::post(d.s.get_executor(),
                 beast::bind_handler(std::move(*this), ec, 0));
             goto upcall;
         }
@@ -300,7 +300,7 @@ operator()(
                 auto const n = buffer_copy(
                     d.b.prepare(std::min<std::size_t>(
                         d.s.copy_, d.b.max_size())),
-                    boost::asio::buffer(d.s.buf_));
+                    net::buffer(d.s.buf_));
                 d.b.commit(n);
                 d.s.copy_ = static_cast<unsigned char>(
                     d.s.copy_ - n);
@@ -326,9 +326,9 @@ operator()(
         if(d.b.max_size() < 8)
         {
             BOOST_ASIO_CORO_YIELD
-            boost::asio::async_read(
+            net::async_read(
                 d.s.next_layer(),
-                boost::asio::buffer(d.s.buf_, 3),
+                net::buffer(d.s.buf_, 3),
                 std::move(*this));
             if(ec)
                 goto upcall;
@@ -341,7 +341,7 @@ operator()(
             {
                 buffer_copy(
                     d.b.value(),
-                    boost::asio::buffer(d.s.buf_, n));
+                    net::buffer(d.s.buf_, n));
                 if(d.b.max_size() < 3)
                 {
                     d.s.copy_ = static_cast<unsigned char>(
@@ -358,7 +358,7 @@ operator()(
             }
             d.s.copy_ = static_cast<unsigned char>(
                 buffer_copy(
-                    boost::asio::buffer(d.s.buf_),
+                    net::buffer(d.s.buf_),
                     icy_stream::version() + d.b.max_size()));
             bytes_transferred = buffer_copy(
                 d.b.value(),
@@ -367,7 +367,7 @@ operator()(
         }
 
         BOOST_ASIO_CORO_YIELD
-        boost::asio::async_read_until(
+        net::async_read_until(
             d.s.next_layer(),
             detail::ref(d.b),
             detail::match_icy<iterator>(d.match),
@@ -384,8 +384,8 @@ operator()(
                 d.s.copy_ = static_cast<unsigned char>(
                     n + 5 - d.b.max_size());
                 std::copy(
-                    boost::asio::buffers_begin(d.b.value()) + n - d.s.copy_,
-                    boost::asio::buffers_begin(d.b.value()) + n,
+                    net::buffers_begin(d.b.value()) + n - d.s.copy_,
+                    net::buffers_begin(d.b.value()) + n,
                     d.s.buf_);
                 n = d.b.max_size() - 5;
             }
@@ -425,7 +425,7 @@ read_some(MutableBufferSequence const& buffers)
 {
     static_assert(boost::beast::is_sync_read_stream<next_layer_type>::value,
         "SyncReadStream requirements not met");
-    static_assert(boost::asio::is_mutable_buffer_sequence<
+    static_assert(net::is_mutable_buffer_sequence<
         MutableBufferSequence>::value,
             "MutableBufferSequence requirements not met");
     error_code ec;
@@ -443,12 +443,12 @@ read_some(MutableBufferSequence const& buffers, error_code& ec)
 {
     static_assert(boost::beast::is_sync_read_stream<next_layer_type>::value,
         "SyncReadStream requirements not met");
-    static_assert(boost::asio::is_mutable_buffer_sequence<
+    static_assert(net::is_mutable_buffer_sequence<
         MutableBufferSequence>::value,
             "MutableBufferSequence requirements not met");
-    using boost::asio::buffer_copy;
-    using boost::asio::buffer_size;
-    using iterator = boost::asio::buffers_iterator<
+    using net::buffer_copy;
+    using net::buffer_size;
+    using iterator = net::buffers_iterator<
         typename detail::dynamic_buffer_ref<
             buffers_adapter<MutableBufferSequence>>::const_buffers_type>;
     buffers_adapter<MutableBufferSequence> b(buffers);
@@ -464,7 +464,7 @@ read_some(MutableBufferSequence const& buffers, error_code& ec)
             auto const n = buffer_copy(
                 b.prepare(std::min<std::size_t>(
                     copy_, b.max_size())),
-                boost::asio::buffer(buf_));
+                net::buffer(buf_));
             b.commit(n);
             copy_ = static_cast<unsigned char>(
                 copy_ - n);
@@ -483,9 +483,9 @@ read_some(MutableBufferSequence const& buffers, error_code& ec)
     detect_ = false;
     if(b.max_size() < 8)
     {
-        auto n = boost::asio::read(
+        auto n = net::read(
             stream_,
-            boost::asio::buffer(buf_, 3),
+            net::buffer(buf_, 3),
             ec);
         if(ec)
             return 0;
@@ -497,7 +497,7 @@ read_some(MutableBufferSequence const& buffers, error_code& ec)
         {
             buffer_copy(
                 buffers,
-                boost::asio::buffer(buf_, n));
+                net::buffer(buf_, n));
             if(b.max_size() < 3)
             {
                 copy_ = static_cast<unsigned char>(
@@ -512,7 +512,7 @@ read_some(MutableBufferSequence const& buffers, error_code& ec)
         }
         copy_ = static_cast<unsigned char>(
             buffer_copy(
-                boost::asio::buffer(buf_),
+                net::buffer(buf_),
                 version() + b.max_size()));
         return buffer_copy(
             buffers,
@@ -520,7 +520,7 @@ read_some(MutableBufferSequence const& buffers, error_code& ec)
     }
 
     bool match = false;
-    auto n = boost::asio::read_until(
+    auto n = net::read_until(
         stream_,
         detail::ref(b),
         detail::match_icy<iterator>(match),
@@ -535,8 +535,8 @@ read_some(MutableBufferSequence const& buffers, error_code& ec)
         copy_ = static_cast<unsigned char>(
             n + 5 - b.max_size());
         std::copy(
-            boost::asio::buffers_begin(buffers) + n - copy_,
-            boost::asio::buffers_begin(buffers) + n,
+            net::buffers_begin(buffers) + n - copy_,
+            net::buffers_begin(buffers) + n,
             buf_);
         n = b.max_size() - 5;
     }
@@ -565,7 +565,7 @@ async_read_some(
 {
     static_assert(boost::beast::is_async_read_stream<next_layer_type>::value,
         "AsyncReadStream requirements not met");
-    static_assert(boost::asio::is_mutable_buffer_sequence<
+    static_assert(net::is_mutable_buffer_sequence<
             MutableBufferSequence >::value,
         "MutableBufferSequence  requirements not met");
     BOOST_BEAST_HANDLER_INIT(
@@ -587,7 +587,7 @@ write_some(MutableBufferSequence const& buffers)
 {
     static_assert(boost::beast::is_sync_write_stream<next_layer_type>::value,
         "SyncWriteStream requirements not met");
-    static_assert(boost::asio::is_const_buffer_sequence<
+    static_assert(net::is_const_buffer_sequence<
         MutableBufferSequence>::value,
             "MutableBufferSequence requirements not met");
     return stream_.write_some(buffers);
@@ -601,7 +601,7 @@ write_some(MutableBufferSequence const& buffers, error_code& ec)
 {
     static_assert(boost::beast::is_sync_write_stream<next_layer_type>::value,
         "SyncWriteStream requirements not met");
-    static_assert(boost::asio::is_const_buffer_sequence<
+    static_assert(net::is_const_buffer_sequence<
         MutableBufferSequence>::value,
             "MutableBufferSequence requirements not met");
     return stream_.write_some(buffers, ec);
@@ -620,7 +620,7 @@ async_write_some(
 {
     static_assert(boost::beast::is_async_write_stream<next_layer_type>::value,
         "AsyncWriteStream requirements not met");
-    static_assert(boost::asio::is_const_buffer_sequence<
+    static_assert(net::is_const_buffer_sequence<
             MutableBufferSequence>::value,
         "MutableBufferSequence requirements not met");
     return stream_.async_write_some(buffers, std::forward<WriteHandler>(handler));

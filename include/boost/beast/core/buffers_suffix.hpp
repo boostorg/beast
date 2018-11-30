@@ -45,7 +45,7 @@ namespace beast {
     void send(SyncWriteStream& stream, ConstBufferSequence const& buffers)
     {
         buffers_suffix<ConstBufferSequence> bs{buffers};
-        while(boost::asio::buffer_size(bs) > 0)
+        while(net::buffer_size(bs) > 0)
             bs.consume(stream.write_some(bs));
     }
     @endcode
@@ -67,7 +67,7 @@ class buffers_suffix
     buffers_suffix(Deduced&& other, std::size_t dist)
         : bs_(std::forward<Deduced>(other).bs_)
         , begin_(std::next(
-            boost::asio::buffer_sequence_begin(bs_),
+            net::buffer_sequence_begin(bs_),
                 dist))
         , skip_(other.skip_)
     {
@@ -77,9 +77,9 @@ public:
     /** The type for each element in the list of buffers.
 
         If the buffers in the underlying sequence are convertible to
-        `boost::asio::mutable_buffer`, then this type will be
-        `boost::asio::mutable_buffer`, else this type will be
-        `boost::asio::const_buffer`.
+        `net::mutable_buffer`, then this type will be
+        `net::mutable_buffer`, else this type will be
+        `net::const_buffer`.
     */
 #if BOOST_BEAST_DOXYGEN
     using value_type = __implementation_defined__;
@@ -87,9 +87,9 @@ public:
     using value_type = typename std::conditional<
         std::is_convertible<typename
             std::iterator_traits<iter_type>::value_type,
-                boost::asio::mutable_buffer>::value,
-                    boost::asio::mutable_buffer,
-                        boost::asio::const_buffer>::type;
+                net::mutable_buffer>::value,
+                    net::mutable_buffer,
+                        net::const_buffer>::type;
 #endif
 
 #if BOOST_BEAST_DOXYGEN

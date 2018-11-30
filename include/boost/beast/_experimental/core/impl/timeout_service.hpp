@@ -18,9 +18,9 @@ namespace boost {
 namespace beast {
 
 timeout_handle::
-timeout_handle(boost::asio::io_context& ioc)
+timeout_handle(net::io_context& ioc)
     : timeout_handle(
-        boost::asio::use_service<
+        net::use_service<
             detail::timeout_service>(
                 ioc).make_handle())
 {
@@ -50,10 +50,10 @@ set_callback(
 
 void
 set_timeout_service_options(
-    boost::asio::io_context& ioc,
+    net::io_context& ioc,
     std::chrono::seconds interval)
 {
-    boost::asio::use_service<
+    net::use_service<
         detail::timeout_service>(
             ioc).set_option(interval);
 }

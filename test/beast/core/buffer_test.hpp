@@ -28,14 +28,14 @@ template<class DynamicBuffer>
 void
 write_buffer(DynamicBuffer& b, string_view s)
 {
-    b.commit(boost::asio::buffer_copy(
-        b.prepare(s.size()), boost::asio::buffer(
+    b.commit(net::buffer_copy(
+        b.prepare(s.size()), net::buffer(
             s.data(), s.size())));
 }
 
 template<class ConstBufferSequence>
 typename std::enable_if<
-    boost::asio::is_const_buffer_sequence<ConstBufferSequence>::value,
+    net::is_const_buffer_sequence<ConstBufferSequence>::value,
         std::size_t>::type
 buffer_count(ConstBufferSequence const& buffers)
 {
@@ -44,7 +44,7 @@ buffer_count(ConstBufferSequence const& buffers)
 
 template<class ConstBufferSequence>
 typename std::enable_if<
-    boost::asio::is_const_buffer_sequence<ConstBufferSequence>::value,
+    net::is_const_buffer_sequence<ConstBufferSequence>::value,
         std::size_t>::type
 size_pre(ConstBufferSequence const& buffers)
 {
@@ -55,7 +55,7 @@ size_pre(ConstBufferSequence const& buffers)
         typename ConstBufferSequence::const_iterator it1(it0);
         typename ConstBufferSequence::const_iterator it2;
         it2 = it1;
-        n += boost::asio::buffer_size(*it2);
+        n += net::buffer_size(*it2);
         it = std::move(it2);
     }
     return n;
@@ -63,31 +63,31 @@ size_pre(ConstBufferSequence const& buffers)
 
 template<class ConstBufferSequence>
 typename std::enable_if<
-    boost::asio::is_const_buffer_sequence<ConstBufferSequence>::value,
+    net::is_const_buffer_sequence<ConstBufferSequence>::value,
         std::size_t>::type
 size_post(ConstBufferSequence const& buffers)
 {
     std::size_t n = 0;
     for(auto it = buffers.begin(); it != buffers.end(); it++)
-        n += boost::asio::buffer_size(*it);
+        n += net::buffer_size(*it);
     return n;
 }
 
 template<class ConstBufferSequence>
 typename std::enable_if<
-    boost::asio::is_const_buffer_sequence<ConstBufferSequence>::value,
+    net::is_const_buffer_sequence<ConstBufferSequence>::value,
         std::size_t>::type
 size_rev_pre(ConstBufferSequence const& buffers)
 {
     std::size_t n = 0;
     for(auto it = buffers.end(); it != buffers.begin();)
-        n += boost::asio::buffer_size(*--it);
+        n += net::buffer_size(*--it);
     return n;
 }
 
 template<class ConstBufferSequence>
 typename std::enable_if<
-    boost::asio::is_const_buffer_sequence<ConstBufferSequence>::value,
+    net::is_const_buffer_sequence<ConstBufferSequence>::value,
         std::size_t>::type
 size_rev_post(ConstBufferSequence const& buffers)
 {
@@ -95,7 +95,7 @@ size_rev_post(ConstBufferSequence const& buffers)
     for(auto it = buffers.end(); it != buffers.begin();)
     {
         it--;
-        n += boost::asio::buffer_size(*it);
+        n += net::buffer_size(*it);
     }
     return n;
 }

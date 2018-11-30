@@ -27,55 +27,55 @@ namespace doc_ws_snippets {
 
 void fxx() {
 
-boost::asio::io_context ioc;
-auto work = boost::asio::make_work_guard(ioc);
+net::io_context ioc;
+auto work = net::make_work_guard(ioc);
 std::thread t{[&](){ ioc.run(); }};
 error_code ec;
-boost::asio::ip::tcp::socket sock{ioc};
+net::ip::tcp::socket sock{ioc};
 boost::ignore_unused(ec);
 
 {
 //[ws_snippet_2
-    stream<boost::asio::ip::tcp::socket> ws{ioc};
+    stream<net::ip::tcp::socket> ws{ioc};
 //]
 }
 
 {
 //[ws_snippet_3
-    stream<boost::asio::ip::tcp::socket> ws{std::move(sock)};
+    stream<net::ip::tcp::socket> ws{std::move(sock)};
 //]
 }
 
 {
 //[ws_snippet_4
-    stream<boost::asio::ip::tcp::socket&> ws{sock};
+    stream<net::ip::tcp::socket&> ws{sock};
 //]
 
 //[ws_snippet_5
-    ws.next_layer().shutdown(boost::asio::ip::tcp::socket::shutdown_send);
+    ws.next_layer().shutdown(net::ip::tcp::socket::shutdown_send);
 //]
 }
 
 {
 //[ws_snippet_6
     std::string const host = "example.com";
-    boost::asio::ip::tcp::resolver r{ioc};
-    stream<boost::asio::ip::tcp::socket> ws{ioc};
+    net::ip::tcp::resolver r{ioc};
+    stream<net::ip::tcp::socket> ws{ioc};
     auto const results = r.resolve(host, "ws");
-    boost::asio::connect(ws.next_layer(), results.begin(), results.end());
+    net::connect(ws.next_layer(), results.begin(), results.end());
 //]
 }
 
 {
 //[ws_snippet_7
-    boost::asio::ip::tcp::acceptor acceptor{ioc};
-    stream<boost::asio::ip::tcp::socket> ws{acceptor.get_executor().context()};
+    net::ip::tcp::acceptor acceptor{ioc};
+    stream<net::ip::tcp::socket> ws{acceptor.get_executor().context()};
     acceptor.accept(ws.next_layer());
 //]
 }
 
 {
-    stream<boost::asio::ip::tcp::socket> ws{ioc};
+    stream<net::ip::tcp::socket> ws{ioc};
 //[ws_snippet_8
     ws.handshake("localhost", "/");
 //]
@@ -121,7 +121,7 @@ boost::ignore_unused(ec);
     if(websocket::is_upgrade(req))
     {
         // Construct the stream, transferring ownership of the socket
-        stream<boost::asio::ip::tcp::socket> ws{std::move(sock)};
+        stream<net::ip::tcp::socket> ws{std::move(sock)};
 
         // Clients SHOULD NOT begin sending WebSocket
         // frames until the server has provided a response.
@@ -139,19 +139,19 @@ boost::ignore_unused(ec);
 }
 
 {
-    stream<boost::asio::ip::tcp::socket> ws{ioc};
+    stream<net::ip::tcp::socket> ws{ioc};
 //[ws_snippet_14
     // Read into our buffer until we reach the end of the HTTP request.
     // No parsing takes place here, we are just accumulating data.
-    boost::asio::streambuf buffer;
-    boost::asio::read_until(sock, buffer, "\r\n\r\n");
+    net::streambuf buffer;
+    net::read_until(sock, buffer, "\r\n\r\n");
 
     // Now accept the connection, using the buffered data.
     ws.accept(buffer.data());
 //]
 }
 {
-    stream<boost::asio::ip::tcp::socket> ws{ioc};
+    stream<net::ip::tcp::socket> ws{ioc};
 //[ws_snippet_15
     // This DynamicBuffer will hold the received message
     multi_buffer buffer;
@@ -176,7 +176,7 @@ boost::ignore_unused(ec);
 }
 
 {
-    stream<boost::asio::ip::tcp::socket> ws{ioc};
+    stream<net::ip::tcp::socket> ws{ioc};
 //[ws_snippet_16
     // This DynamicBuffer will hold the received message
     multi_buffer buffer;
@@ -202,7 +202,7 @@ boost::ignore_unused(ec);
     // This will cause the message to be broken up into multiple frames.
     for(;;)
     {
-        using boost::asio::buffer_size;
+        using net::buffer_size;
         if(buffer_size(cb) > 512)
         {
             // There are more than 512 bytes left to send, just
@@ -232,7 +232,7 @@ boost::ignore_unused(ec);
 }
 
 {
-    stream<boost::asio::ip::tcp::socket> ws{ioc};
+    stream<net::ip::tcp::socket> ws{ioc};
 //[ws_snippet_17
     ws.control_callback(
         [](frame_type kind, string_view payload)
@@ -285,12 +285,12 @@ boost::ignore_unused(ec);
 // workaround for https://github.com/chriskohlhoff/asio/issues/112
 #ifdef BOOST_MSVC
 //[ws_snippet_21
-void echo(stream<boost::asio::ip::tcp::socket>& ws,
-    multi_buffer& buffer, boost::asio::yield_context yield)
+void echo(stream<net::ip::tcp::socket>& ws,
+    multi_buffer& buffer, net::yield_context yield)
 {
     ws.async_read(buffer, yield);
     std::future<std::size_t> fut =
-        ws.async_write(buffer.data(), boost::asio::use_future);
+        ws.async_write(buffer.data(), net::use_future);
 }
 //]
 #endif
@@ -379,30 +379,30 @@ namespace doc_wss_snippets {
 
 void fxx() {
 
-boost::asio::io_context ioc;
-auto work = boost::asio::make_work_guard(ioc);
+net::io_context ioc;
+auto work = net::make_work_guard(ioc);
 std::thread t{[&](){ ioc.run(); }};
 error_code ec;
-boost::asio::ip::tcp::socket sock{ioc};
+net::ip::tcp::socket sock{ioc};
 
 {
 //[wss_snippet_2
-    boost::asio::ssl::context ctx{boost::asio::ssl::context::sslv23};
-    stream<boost::asio::ssl::stream<boost::asio::ip::tcp::socket>> wss{ioc, ctx};
+    net::ssl::context ctx{net::ssl::context::sslv23};
+    stream<net::ssl::stream<net::ip::tcp::socket>> wss{ioc, ctx};
 //]
 }
 
 {
 //[wss_snippet_3
-    boost::asio::ip::tcp::endpoint ep;
-    boost::asio::ssl::context ctx{boost::asio::ssl::context::sslv23};
-    stream<boost::asio::ssl::stream<boost::asio::ip::tcp::socket>> ws{ioc, ctx};
+    net::ip::tcp::endpoint ep;
+    net::ssl::context ctx{net::ssl::context::sslv23};
+    stream<net::ssl::stream<net::ip::tcp::socket>> ws{ioc, ctx};
 
     // connect the underlying TCP/IP socket
     ws.next_layer().next_layer().connect(ep);
 
     // perform SSL handshake
-    ws.next_layer().handshake(boost::asio::ssl::stream_base::client);
+    ws.next_layer().handshake(net::ssl::stream_base::client);
 
     // perform WebSocket handshake
     ws.handshake("localhost", "/");

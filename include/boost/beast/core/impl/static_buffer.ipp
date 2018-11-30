@@ -35,7 +35,7 @@ static_buffer_base::
 data() const noexcept ->
     const_buffers_type
 {
-    using boost::asio::const_buffer;
+    using net::const_buffer;
     const_buffers_type result;
     if(in_off_ + in_size_ <= capacity_)
     {
@@ -56,7 +56,7 @@ static_buffer_base::
 data() noexcept ->
     mutable_data_type
 {
-    using boost::asio::mutable_buffer;
+    using net::mutable_buffer;
     mutable_data_type result;
     if(in_off_ + in_size_ <= capacity_)
     {
@@ -77,7 +77,7 @@ static_buffer_base::
 prepare(std::size_t n) ->
     mutable_buffers_type
 {
-    using boost::asio::mutable_buffer;
+    using net::mutable_buffer;
     if(n > capacity_ - in_size_)
         BOOST_THROW_EXCEPTION(std::length_error{
             "buffer overflow"});
@@ -145,7 +145,7 @@ static_buffer<N>::
 static_buffer(static_buffer const& other)
     : static_buffer_base(buf_, N)
 {
-    using boost::asio::buffer_copy;
+    using net::buffer_copy;
     this->commit(buffer_copy(
         this->prepare(other.size()), other.data()));
 }
@@ -156,7 +156,7 @@ static_buffer<N>::
 operator=(static_buffer const& other) ->
     static_buffer<N>&
 {
-    using boost::asio::buffer_copy;
+    using net::buffer_copy;
     this->consume(this->size());
     this->commit(buffer_copy(
         this->prepare(other.size()), other.data()));

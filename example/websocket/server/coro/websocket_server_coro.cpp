@@ -26,23 +26,26 @@
 #include <thread>
 #include <vector>
 
-using tcp = boost::asio::ip::tcp;               // from <boost/asio/ip/tcp.hpp>
-namespace websocket = boost::beast::websocket;  // from <boost/beast/websocket.hpp>
+namespace beast = boost::beast;         // from <boost/beast.hpp>
+namespace http = beast::http;           // from <boost/beast/http.hpp>
+namespace websocket = beast::websocket; // from <boost/beast/websocket.hpp>
+namespace net = boost::asio;            // from <boost/asio.hpp>
+using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
 
 //------------------------------------------------------------------------------
 
 // Report a failure
 void
-fail(boost::system::error_code ec, char const* what)
+fail(beast::error_code ec, char const* what)
 {
     std::cerr << what << ": " << ec.message() << "\n";
 }
 
 // Echoes back all received WebSocket messages
 void
-do_session(tcp::socket& socket, boost::asio::yield_context yield)
+do_session(tcp::socket& socket, net::yield_context yield)
 {
-    boost::system::error_code ec;
+    beast::error_code ec;
 
     // Construct the stream by moving in the socket
     websocket::stream<tcp::socket> ws{std::move(socket)};
@@ -55,7 +58,7 @@ do_session(tcp::socket& socket, boost::asio::yield_context yield)
     for(;;)
     {
         // This buffer will hold the incoming message
-        boost::beast::multi_buffer buffer;
+        beast::multi_buffer buffer;
 
         // Read a message
         ws.async_read(buffer, yield[ec]);
@@ -80,11 +83,11 @@ do_session(tcp::socket& socket, boost::asio::yield_context yield)
 // Accepts incoming connections and launches the sessions
 void
 do_listen(
-    boost::asio::io_context& ioc,
+    net::io_context& ioc,
     tcp::endpoint endpoint,
-    boost::asio::yield_context yield)
+    net::yield_context yield)
 {
-    boost::system::error_code ec;
+    beast::error_code ec;
 
     // Open the acceptor
     tcp::acceptor acceptor(ioc);
@@ -93,7 +96,7 @@ do_listen(
         return fail(ec, "open");
 
     // Allow address reuse
-    acceptor.set_option(boost::asio::socket_base::reuse_address(true), ec);
+    acceptor.set_option(net::socket_base::reuse_address(true), ec);
     if(ec)
         return fail(ec, "set_option");
 
@@ -103,7 +106,7 @@ do_listen(
         return fail(ec, "bind");
 
     // Start listening for connections
-    acceptor.listen(boost::asio::socket_base::max_listen_connections, ec);
+    acceptor.listen(net::socket_base::max_listen_connections, ec);
     if(ec)
         return fail(ec, "listen");
 
@@ -114,7 +117,7 @@ do_listen(
         if(ec)
             fail(ec, "accept");
         else
-            boost::asio::spawn(
+            net::spawn(
                 acceptor.get_executor().context(),
                 std::bind(
                     &do_session,
@@ -134,15 +137,15 @@ int main(int argc, char* argv[])
             "    websocket-server-coro 0.0.0.0 8080 1\n";
         return EXIT_FAILURE;
     }
-    auto const address = boost::asio::ip::make_address(argv[1]);
+    auto const address = net::ip::make_address(argv[1]);
     auto const port = static_cast<unsigned short>(std::atoi(argv[2]));
     auto const threads = std::max<int>(1, std::atoi(argv[3]));
 
     // The io_context is required for all I/O
-    boost::asio::io_context ioc{threads};
+    net::io_context ioc{threads};
 
     // Spawn a listening port
-    boost::asio::spawn(ioc,
+    net::spawn(ioc,
         std::bind(
             &do_listen,
             std::ref(ioc),

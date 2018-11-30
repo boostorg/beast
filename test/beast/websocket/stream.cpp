@@ -113,7 +113,7 @@ public:
     run() override
     {
         BOOST_STATIC_ASSERT(std::is_constructible<
-            stream<test::stream>, boost::asio::io_context&>::value);
+            stream<test::stream>, net::io_context&>::value);
 
         BOOST_STATIC_ASSERT(std::is_move_constructible<
             stream<test::stream>>::value);

@@ -32,11 +32,11 @@ public:
     coalesce(BufferSequence const& buffers, std::size_t limit)
     {
         std::pair<std::size_t, bool> result{0, false};
-        auto first = boost::asio::buffer_sequence_begin(buffers);
-        auto last = boost::asio::buffer_sequence_end(buffers);
+        auto first = net::buffer_sequence_begin(buffers);
+        auto last = net::buffer_sequence_end(buffers);
         if(first != last)
         {
-            result.first = boost::asio::buffer_size(*first);
+            result.first = net::buffer_size(*first);
             if(result.first < limit)
             {
                 auto it = first;
@@ -44,7 +44,7 @@ public:
                 while(++it != last)
                 {
                     auto const n =
-                        boost::asio::buffer_size(*it);
+                        net::buffer_size(*it);
                     if(result.first + n > limit)
                         break;
                     result.first += n;

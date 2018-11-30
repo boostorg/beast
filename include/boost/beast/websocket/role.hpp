@@ -28,7 +28,7 @@ namespace websocket {
     performing the close operation.
     
     The default implementation for @ref stream when the next
-    layer type is a `boost::asio::ip::tcp::socket` behaves
+    layer type is a `net::ip::tcp::socket` behaves
     as follows:
 
     @li In the client role, a TCP/IP shutdown is sent after
@@ -37,7 +37,7 @@ namespace websocket {
     @li In the server role, a TCP/IP shutdown is sent before
     reading all remaining data on the connection.
 
-    When the next layer type is a `boost::asio::ssl::stream`,
+    When the next layer type is a `net::ssl::stream`,
     the connection is closed by performing the SSL closing
     handshake corresponding to the role type, client or server.
 

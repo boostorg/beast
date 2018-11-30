@@ -35,7 +35,7 @@ template<class AsyncStream>
 void
 teardown(
     role_type,
-    boost::asio::ssl::stream<AsyncStream>& stream,
+    net::ssl::stream<AsyncStream>& stream,
     error_code& ec)
 {
     stream.shutdown(ec);
@@ -47,7 +47,7 @@ template<
 void
 async_teardown(
     role_type,
-    boost::asio::ssl::stream<AsyncStream>& stream,
+    net::ssl::stream<AsyncStream>& stream,
     TeardownHandler&& handler)
 {
     stream.async_shutdown(

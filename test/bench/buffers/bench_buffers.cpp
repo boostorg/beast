@@ -224,10 +224,10 @@ public:
                 ,[&](){ return do_hints   <flat_buffer>(repeat, count, size); }
                 ,[&](){ return do_random  <flat_buffer>(repeat, count, size); }
             );
-            do_trials("boost::asio::streambuf", trials,
-                 [&](){ return do_prepares<boost::asio::streambuf>(repeat, count, size); }
-                ,[&](){ return do_hints   <boost::asio::streambuf>(repeat, count, size); }
-                ,[&](){ return do_random  <boost::asio::streambuf>(repeat, count, size); }
+            do_trials("net::streambuf", trials,
+                 [&](){ return do_prepares<net::streambuf>(repeat, count, size); }
+                ,[&](){ return do_hints   <net::streambuf>(repeat, count, size); }
+                ,[&](){ return do_random  <net::streambuf>(repeat, count, size); }
             );
             log << std::endl;
         }

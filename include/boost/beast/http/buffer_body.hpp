@@ -121,15 +121,15 @@ struct buffer_body
         put(ConstBufferSequence const& buffers,
             error_code& ec)
         {
-            using boost::asio::buffer_size;
-            using boost::asio::buffer_copy;
+            using net::buffer_size;
+            using net::buffer_copy;
             if(! body_.data)
             {
                 ec = error::need_buffer;
                 return 0;
             }
             auto const bytes_transferred =
-                buffer_copy(boost::asio::buffer(
+                buffer_copy(net::buffer(
                     body_.data, body_.size), buffers);
             body_.data = static_cast<char*>(
                 body_.data) + bytes_transferred;
@@ -163,7 +163,7 @@ struct buffer_body
 
     public:
         using const_buffers_type =
-            boost::asio::const_buffer;
+            net::const_buffer;
 
         template<bool isRequest, class Fields>
         explicit

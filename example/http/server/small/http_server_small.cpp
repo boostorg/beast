@@ -24,9 +24,10 @@
 #include <memory>
 #include <string>
 
-namespace ip = boost::asio::ip;         // from <boost/asio.hpp>
-using tcp = boost::asio::ip::tcp;       // from <boost/asio.hpp>
-namespace http = boost::beast::http;    // from <boost/beast/http.hpp>
+namespace beast = boost::beast;         // from <boost/beast.hpp>
+namespace http = beast::http;           // from <boost/beast/http.hpp>
+namespace net = boost::asio;            // from <boost/asio.hpp>
+using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
 
 namespace my_program_state
 {
@@ -65,7 +66,7 @@ private:
     tcp::socket socket_;
 
     // The buffer for performing reads.
-    boost::beast::flat_buffer buffer_{8192};
+    beast::flat_buffer buffer_{8192};
 
     // The request message.
     http::request<http::dynamic_body> request_;
@@ -74,7 +75,7 @@ private:
     http::response<http::dynamic_body> response_;
 
     // The timer for putting a deadline on connection processing.
-    boost::asio::basic_waitable_timer<std::chrono::steady_clock> deadline_{
+    net::basic_waitable_timer<std::chrono::steady_clock> deadline_{
         socket_.get_executor().context(), std::chrono::seconds(60)};
 
     // Asynchronously receive a complete request message.
@@ -87,7 +88,7 @@ private:
             socket_,
             buffer_,
             request_,
-            [self](boost::beast::error_code ec,
+            [self](beast::error_code ec,
                 std::size_t bytes_transferred)
             {
                 boost::ignore_unused(bytes_transferred);
@@ -116,7 +117,7 @@ private:
             // we do not recognize the request method.
             response_.result(http::status::bad_request);
             response_.set(http::field::content_type, "text/plain");
-            boost::beast::ostream(response_.body())
+            beast::ostream(response_.body())
                 << "Invalid request-method '"
                 << request_.method_string().to_string()
                 << "'";
@@ -133,7 +134,7 @@ private:
         if(request_.target() == "/count")
         {
             response_.set(http::field::content_type, "text/html");
-            boost::beast::ostream(response_.body())
+            beast::ostream(response_.body())
                 << "<html>\n"
                 <<  "<head><title>Request count</title></head>\n"
                 <<  "<body>\n"
@@ -147,7 +148,7 @@ private:
         else if(request_.target() == "/time")
         {
             response_.set(http::field::content_type, "text/html");
-            boost::beast::ostream(response_.body())
+            beast::ostream(response_.body())
                 <<  "<html>\n"
                 <<  "<head><title>Current time</title></head>\n"
                 <<  "<body>\n"
@@ -162,7 +163,7 @@ private:
         {
             response_.result(http::status::not_found);
             response_.set(http::field::content_type, "text/plain");
-            boost::beast::ostream(response_.body()) << "File not found\r\n";
+            beast::ostream(response_.body()) << "File not found\r\n";
         }
     }
 
@@ -177,7 +178,7 @@ private:
         http::async_write(
             socket_,
             response_,
-            [self](boost::beast::error_code ec, std::size_t)
+            [self](beast::error_code ec, std::size_t)
             {
                 self->socket_.shutdown(tcp::socket::shutdown_send, ec);
                 self->deadline_.cancel();
@@ -191,7 +192,7 @@ private:
         auto self = shared_from_this();
 
         deadline_.async_wait(
-            [self](boost::beast::error_code ec)
+            [self](beast::error_code ec)
             {
                 if(!ec)
                 {
@@ -207,7 +208,7 @@ void
 http_server(tcp::acceptor& acceptor, tcp::socket& socket)
 {
   acceptor.async_accept(socket,
-      [&](boost::beast::error_code ec)
+      [&](beast::error_code ec)
       {
           if(!ec)
               std::make_shared<http_connection>(std::move(socket))->start();
@@ -231,10 +232,10 @@ main(int argc, char* argv[])
             return EXIT_FAILURE;
         }
 
-        auto const address = boost::asio::ip::make_address(argv[1]);
+        auto const address = net::ip::make_address(argv[1]);
         unsigned short port = static_cast<unsigned short>(std::atoi(argv[2]));
 
-        boost::asio::io_context ioc{1};
+        net::io_context ioc{1};
 
         tcp::acceptor acceptor{ioc, {address, port}};
         tcp::socket socket{ioc};

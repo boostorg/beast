@@ -281,13 +281,13 @@ public:
     //--------------------------------------------------------------------------
 
     /// The ConstBufferSequence used to represent the readable bytes.
-    using const_buffers_type = boost::asio::const_buffer;
+    using const_buffers_type = net::const_buffer;
 
     /// The MutableBufferSequence used to represent the readable bytes.
-    using mutable_data_type = boost::asio::mutable_buffer;
+    using mutable_data_type = net::mutable_buffer;
 
     /// The MutableBufferSequence used to represent the writable bytes.
-    using mutable_buffers_type = boost::asio::mutable_buffer;
+    using mutable_buffers_type = net::mutable_buffer;
 
     /// Returns the number of readable bytes.
     std::size_t

@@ -26,13 +26,13 @@ public:
     void
     testSuspend()
     {
-        using boost::asio::buffer;
+        using net::buffer;
 #if 1
         // suspend on read block
         doFailLoop([&](test::fail_count& fc)
         {
             echo_server es{log};
-            boost::asio::io_context ioc;
+            net::io_context ioc;
             stream<test::stream> ws{ioc, fc};
             ws.next_layer().connect(es.stream());
             ws.handshake("localhost", "/");
@@ -51,7 +51,7 @@ public:
             ws.async_read(b,
                 [&](error_code ec, std::size_t)
                 {
-                    if(ec != boost::asio::error::operation_aborted)
+                    if(ec != net::error::operation_aborted)
                         BOOST_THROW_EXCEPTION(
                             system_error{ec});
                     BEAST_EXPECT(++count == 2);
@@ -66,7 +66,7 @@ public:
         {
 //log << "fc.count()==" << fc.count() << std::endl;
             echo_server es{log};
-            boost::asio::io_context ioc;
+            net::io_context ioc;
             stream<test::stream> ws{ioc, fc};
             ws.next_layer().connect(es.stream());
             ws.handshake("localhost", "/");
@@ -75,7 +75,7 @@ public:
             ws.async_read(b,
                 [&](error_code ec, std::size_t)
                 {
-                    if(ec != boost::asio::error::operation_aborted)
+                    if(ec != net::error::operation_aborted)
                         BOOST_THROW_EXCEPTION(
                             system_error{ec});
                     BEAST_EXPECT(++count == 2);
@@ -98,7 +98,7 @@ public:
         doFailLoop([&](test::fail_count& fc)
         {
             echo_server es{log};
-            boost::asio::io_context ioc;
+            net::io_context ioc;
             stream<test::stream> ws{ioc, fc};
             ws.next_layer().connect(es.stream());
             ws.handshake("localhost", "/");
@@ -136,7 +136,7 @@ public:
         doFailLoop([&](test::fail_count& fc)
         {
             echo_server es{log};
-            boost::asio::io_context ioc;
+            net::io_context ioc;
             stream<test::stream> ws{ioc, fc};
             ws.next_layer().connect(es.stream());
             ws.handshake("localhost", "/");
@@ -160,7 +160,7 @@ public:
                     ws.async_read(b,
                         [&](error_code ec, std::size_t)
                         {
-                            if(ec != boost::asio::error::operation_aborted)
+                            if(ec != net::error::operation_aborted)
                                 BOOST_THROW_EXCEPTION(
                                     system_error{ec});
                             BEAST_EXPECT(++count == 3);
@@ -184,7 +184,7 @@ public:
         doFailLoop([&](test::fail_count& fc)
         {
             echo_server es{log};
-            boost::asio::io_context ioc;
+            net::io_context ioc;
             stream<test::stream> ws{ioc, fc};
             ws.next_layer().connect(es.stream());
             ws.handshake("localhost", "/");
@@ -199,7 +199,7 @@ public:
             ws.async_read(b,
                 [&](error_code ec, std::size_t)
                 {
-                    if(ec != boost::asio::error::operation_aborted)
+                    if(ec != net::error::operation_aborted)
                         BOOST_THROW_EXCEPTION(
                             system_error{ec});
                     BEAST_EXPECT(++count == 2);
@@ -227,7 +227,7 @@ public:
             [&](string_view s)
             {
                 echo_server es{log};
-                boost::asio::io_context ioc;
+                net::io_context ioc;
                 stream<test::stream> ws{ioc};
                 ws.next_layer().connect(es.stream());
                 ws.handshake("localhost", "/");
@@ -241,7 +241,7 @@ public:
         // chopped frame header
         {
             echo_server es{log};
-            boost::asio::io_context ioc;
+            net::io_context ioc;
             stream<test::stream> ws{ioc};
             ws.next_layer().connect(es.stream());
             ws.handshake("localhost", "/");
@@ -259,7 +259,7 @@ public:
                 });
             ioc.run_one();
             es.stream().write_some(
-                boost::asio::buffer("\x01" + s));
+                net::buffer("\x01" + s));
             ioc.run();
             BEAST_EXPECT(count == 1);
         }
@@ -297,7 +297,7 @@ public:
         // unmasked frame from client
         {
             echo_server es{log, kind::async_client};
-            boost::asio::io_context ioc;
+            net::io_context ioc;
             stream<test::stream> ws{ioc};
             ws.next_layer().connect(es.stream());
             es.async_handshake();
@@ -316,7 +316,7 @@ public:
         // chopped control frame payload
         {
             echo_server es{log};
-            boost::asio::io_context ioc;
+            net::io_context ioc;
             stream<test::stream> ws{ioc};
             ws.next_layer().connect(es.stream());
             ws.handshake("localhost", "/");
@@ -333,7 +333,7 @@ public:
                 });
             ioc.run_one();
             es.stream().write_some(
-                boost::asio::buffer(
+                net::buffer(
                     "*" "\x81\x02**"));
             ioc.run();
             BEAST_EXPECT(count == 1);
@@ -356,11 +356,11 @@ public:
             char buf[32];
             stream<test::stream> ws{ioc_};
             stream<test::stream>::read_some_op<
-                boost::asio::mutable_buffer,
+                net::mutable_buffer,
                     handler> op{handler{}, ws,
-                        boost::asio::mutable_buffer{
+                        net::mutable_buffer{
                             buf, sizeof(buf)}};
-            using boost::asio::asio_handler_is_continuation;
+            using net::asio_handler_is_continuation;
             asio_handler_is_continuation(&op);
             pass();
         }
@@ -375,7 +375,7 @@ public:
             stream<test::stream>::read_op<
                 multi_buffer, handler> op{
                     handler{}, ws, b, 32, true};
-            using boost::asio::asio_handler_is_continuation;
+            using net::asio_handler_is_continuation;
             asio_handler_is_continuation(&op);
             pass();
         }
@@ -387,12 +387,12 @@ public:
         for(std::size_t i = 0; i < 100; ++i)
         {
             echo_server es{log, kind::async};
-            boost::asio::io_context ioc;
+            net::io_context ioc;
             stream<test::stream> ws{ioc};
             ws.next_layer().connect(es.stream());
             ws.handshake("localhost", "/");
             // too-big message frame indicates payload of 2^64-1
-            boost::asio::write(ws.next_layer(), sbuf(
+            net::write(ws.next_layer(), sbuf(
                 "\x81\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff"));
             multi_buffer b;
             error_code ec;
@@ -406,13 +406,13 @@ public:
     testIssue807()
     {
         echo_server es{log};
-        boost::asio::io_context ioc;
+        net::io_context ioc;
         stream<test::stream> ws{ioc};
         ws.next_layer().connect(es.stream());
         ws.handshake("localhost", "/");
         ws.write(sbuf("Hello, world!"));
         char buf[4];
-        boost::asio::mutable_buffer b{buf, 0};
+        net::mutable_buffer b{buf, 0};
         auto const n = ws.read_some(b);
         BEAST_EXPECT(n == 0);
     }
@@ -428,7 +428,7 @@ public:
     {
         echo_server es{log};
         multi_buffer b;
-        boost::asio::io_context ioc;
+        net::io_context ioc;
         stream<test::stream> ws{ioc};
         ws.next_layer().connect(es.stream());
         ws.handshake("localhost", "/");
@@ -478,18 +478,18 @@ public:
 #if 0
         {
             echo_server es{log};
-            boost::asio::io_context ioc;
+            net::io_context ioc;
             stream<test::stream> ws{ioc};
             ws.set_option(pmd);
             ws.next_layer().connect(es.stream());
             ws.handshake("localhost", "/");
             // invalid 1-byte deflate block in frame
-            boost::asio::write(ws.next_layer(), sbuf(
+            net::write(ws.next_layer(), sbuf(
                 "\xc1\x81\x3a\xa1\x74\x3b\x49"));
         }
 #endif
         {
-            boost::asio::io_context ioc;
+            net::io_context ioc;
             stream<test::stream> wsc{ioc};
             stream<test::stream> wss{ioc};
             wsc.set_option(pmd);
@@ -503,7 +503,7 @@ public:
             BEAST_EXPECT(wsc.is_open());
             BEAST_EXPECT(wss.is_open());
             // invalid 1-byte deflate block in frame
-            boost::asio::write(wsc.next_layer(), sbuf(
+            net::write(wsc.next_layer(), sbuf(
                 "\xc1\x81\x3a\xa1\x74\x3b\x49"));
             error_code ec;
             multi_buffer b;
@@ -515,18 +515,18 @@ public:
 #if 0
         {
             echo_server es{log, kind::async};
-            boost::asio::io_context ioc;
+            net::io_context ioc;
             stream<test::stream> ws{ioc};
             ws.set_option(pmd);
             ws.next_layer().connect(es.stream());
             ws.handshake("localhost", "/");
             // invalid 1-byte deflate block in frame
-            boost::asio::write(ws.next_layer(), sbuf(
+            net::write(ws.next_layer(), sbuf(
                 "\xc1\x81\x3a\xa1\x74\x3b\x49"));
         }
 #endif
         {
-            boost::asio::io_context ioc;
+            net::io_context ioc;
             stream<test::stream> wsc{ioc};
             stream<test::stream> wss{ioc};
             wsc.set_option(pmd);
@@ -540,7 +540,7 @@ public:
             BEAST_EXPECT(wsc.is_open());
             BEAST_EXPECT(wss.is_open());
             // invalid 1-byte deflate block in frame
-            boost::asio::write(wsc.next_layer(), sbuf(
+            net::write(wsc.next_layer(), sbuf(
                 "\xc1\x81\x3a\xa1\x74\x3b\x49"));
             error_code ec;
             flat_buffer b;
@@ -566,7 +566,7 @@ public:
 
         // read
         {
-            boost::asio::io_context ioc;
+            net::io_context ioc;
             stream<test::stream> wsc{ioc};
             stream<test::stream> wss{ioc};
             wsc.set_option(pmd);
@@ -580,7 +580,7 @@ public:
             BEAST_EXPECT(wsc.is_open());
             BEAST_EXPECT(wss.is_open());
             // contains a deflate block with BFINAL set
-            boost::asio::write(wsc.next_layer(), sbuf(
+            net::write(wsc.next_layer(), sbuf(
                 "\xc1\xf8\xd1\xe4\xcc\x3e\xda\xe4\xcc\x3e"
                 "\x2b\x1e\x36\xc4\x2b\x1e\x36\xc4\x2b\x1e"
                 "\x36\x3e\x35\xae\x4f\x54\x18\xae\x4f\x7b"
@@ -602,7 +602,7 @@ public:
 
         // async read
         {
-            boost::asio::io_context ioc;
+            net::io_context ioc;
             stream<test::stream> wsc{ioc};
             stream<test::stream> wss{ioc};
             wsc.set_option(pmd);
@@ -616,7 +616,7 @@ public:
             BEAST_EXPECT(wsc.is_open());
             BEAST_EXPECT(wss.is_open());
             // contains a deflate block with BFINAL set
-            boost::asio::write(wsc.next_layer(), sbuf(
+            net::write(wsc.next_layer(), sbuf(
                 "\xc1\xf8\xd1\xe4\xcc\x3e\xda\xe4\xcc\x3e"
                 "\x2b\x1e\x36\xc4\x2b\x1e\x36\xc4\x2b\x1e"
                 "\x36\x3e\x35\xae\x4f\x54\x18\xae\x4f\x7b"
@@ -642,10 +642,10 @@ public:
     void
     testMoveOnly()
     {
-        boost::asio::io_context ioc;
+        net::io_context ioc;
         stream<test::stream> ws{ioc};
         ws.async_read_some(
-            boost::asio::mutable_buffer{},
+            net::mutable_buffer{},
             move_only_handler{});
     }
 
@@ -665,13 +665,13 @@ public:
         // breakpoint in asio_handler_invoke to make sure
         // it is instantiated.
         {
-            boost::asio::io_context ioc;
-            boost::asio::strand<
-                boost::asio::io_context::executor_type> s(
+            net::io_context ioc;
+            net::strand<
+                net::io_context::executor_type> s(
                     ioc.get_executor());
             stream<test::stream> ws{ioc};
             flat_buffer b;
-            ws.async_read(b, boost::asio::bind_executor(
+            ws.async_read(b, net::bind_executor(
             s, copyable_handler{}));
         }
     }

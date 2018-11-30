@@ -15,7 +15,7 @@ namespace beast {
 namespace detail {
 
 timeout_service::
-timeout_service(boost::asio::io_context& ctx)
+timeout_service(net::io_context& ctx)
     : service_base(ctx)
     , thunks_(1) // element [0] reserved for "null"
     , timer_(ctx)
@@ -272,7 +272,7 @@ void
 timeout_service::
 on_timer(error_code ec)
 {
-    if(ec == boost::asio::error::operation_aborted)
+    if(ec == net::error::operation_aborted)
     {
         BOOST_ASSERT(fresh_->empty());
         BOOST_ASSERT(stale_->empty());

@@ -23,7 +23,7 @@ enum class error
     /** The end of the stream was reached.
 
         This error is returned when attempting to read HTTP data,
-        and the stream returns the error `boost::asio::error::eof`
+        and the stream returns the error `net::error::eof`
         before any octets corresponding to a new HTTP message have
         been received.
     */

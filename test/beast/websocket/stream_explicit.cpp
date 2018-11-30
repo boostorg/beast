@@ -9,7 +9,15 @@
 
 // Test that header file is self-contained.
 #include <boost/beast/websocket/stream.hpp>
+
+#include <boost/beast/core/detail/config.hpp>
 #include <boost/asio/ip/tcp.hpp>
 
-template class boost::beast::websocket::stream<boost::asio::ip::tcp::socket, false>;
-template class boost::beast::websocket::stream<boost::asio::ip::tcp::socket, true>;
+namespace boost {
+namespace beast {
+
+template class websocket::stream<net::ip::tcp::socket, false>;
+template class websocket::stream<net::ip::tcp::socket, true>;
+
+} // beast
+} // boost

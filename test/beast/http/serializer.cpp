@@ -27,7 +27,7 @@ public:
         struct writer
         {
             using const_buffers_type =
-                boost::asio::const_buffer;
+                net::const_buffer;
 
             template<bool isRequest, class Fields>
             writer(header<isRequest, Fields> const&, value_type const&);
@@ -47,7 +47,7 @@ public:
         struct writer
         {
             using const_buffers_type =
-                boost::asio::const_buffer;
+                net::const_buffer;
 
             template<bool isRequest, class Fields>
             writer(header<isRequest, Fields>&, value_type&);
@@ -91,7 +91,7 @@ public:
         operator()(error_code&,
             ConstBufferSequence const& buffers)
         {
-            size = boost::asio::buffer_size(buffers);
+            size = net::buffer_size(buffers);
         }
     };
 

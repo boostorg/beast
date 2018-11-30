@@ -28,21 +28,21 @@ public:
     class server
     {
         std::ostream& log_;
-        boost::asio::io_context ioc_;
-        boost::asio::ip::tcp::acceptor acceptor_;
-        boost::asio::ip::tcp::socket socket_;
+        net::io_context ioc_;
+        net::ip::tcp::acceptor acceptor_;
+        net::ip::tcp::socket socket_;
         std::thread t_;
 
         void
         fail(error_code ec, string_view what)
         {
-            if(ec != boost::asio::error::operation_aborted)
+            if(ec != net::error::operation_aborted)
                 log_ << what << ": " << ec.message() << "\n";
         }
 
     public:
         server(
-            boost::asio::ip::tcp::endpoint ep,
+            net::ip::tcp::endpoint ep,
             std::ostream& log)
             : log_(log)
             , ioc_(1)
@@ -59,7 +59,7 @@ public:
             }
 
             acceptor_.set_option(
-                boost::asio::socket_base::reuse_address(true), ec);
+                net::socket_base::reuse_address(true), ec);
             if(ec)
             {
                 fail(ec, "set_option");
@@ -74,7 +74,7 @@ public:
             }
 
             acceptor_.listen(
-                boost::asio::socket_base::max_listen_connections, ec);
+                net::socket_base::max_listen_connections, ec);
             if(ec)
             {
                 fail(ec, "listen");
@@ -97,11 +97,11 @@ public:
         class session
             : public std::enable_shared_from_this<session>
         {
-            boost::asio::ip::tcp::socket socket_;
+            net::ip::tcp::socket socket_;
         
         public:
             session(
-                boost::asio::ip::tcp::socket sock,
+                net::ip::tcp::socket sock,
                 std::ostream&)
                 : socket_(std::move(sock))
             {
@@ -111,7 +111,7 @@ public:
             run()
             {
                 socket_.async_wait(
-                    boost::asio::socket_base::wait_read,
+                    net::socket_base::wait_read,
                     std::bind(
                         &session::on_read,
                         shared_from_this(),
@@ -147,17 +147,17 @@ public:
     void
     testAsync()
     {
-        boost::asio::ip::tcp::endpoint ep(
-            boost::asio::ip::make_address("127.0.0.1"), 8080);
+        net::ip::tcp::endpoint ep(
+            net::ip::make_address("127.0.0.1"), 8080);
         server srv(ep, log);
         {
-            boost::asio::io_context ioc;
+            net::io_context ioc;
             set_timeout_service_options(
                 ioc, std::chrono::seconds(1));
             timeout_socket s(ioc);
             s.next_layer().connect(ep);
             char buf[32];
-            s.async_read_some(boost::asio::buffer(buf),
+            s.async_read_some(net::buffer(buf),
                 [&](error_code ec, std::size_t n)
                 {
                     log << "read_some: " << ec.message() << "\n";

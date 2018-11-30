@@ -526,7 +526,7 @@ public:
 
 #if ! BOOST_BEAST_DOXYGEN
     std::size_t
-    put(boost::asio::const_buffer const& buffer,
+    put(net::const_buffer const& buffer,
         error_code& ec);
 #endif
 
@@ -540,7 +540,7 @@ public:
 
         This is typically called when a read from the
         underlying stream object sets the error code to
-        `boost::asio::error::eof`.
+        `net::error::eof`.
 
         @note Only valid after parsing a complete header.
 

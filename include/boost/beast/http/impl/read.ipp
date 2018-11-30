@@ -43,10 +43,10 @@ namespace detail {
 template<class Stream, class DynamicBuffer,
     bool isRequest, class Derived, class Handler>
 class read_some_op
-    : public boost::asio::coroutine
+    : public net::coroutine
 {
     Stream& s_;
-    boost::asio::executor_work_guard<decltype(
+    net::executor_work_guard<decltype(
         std::declval<Stream&>().get_executor())> wg_;
     DynamicBuffer& b_;
     basic_parser<isRequest, Derived>& p_;
@@ -70,21 +70,21 @@ public:
     }
 
     using allocator_type =
-        boost::asio::associated_allocator_t<Handler>;
+        net::associated_allocator_t<Handler>;
 
     allocator_type
     get_allocator() const noexcept
     {
-        return (boost::asio::get_associated_allocator)(h_);
+        return (net::get_associated_allocator)(h_);
     }
 
-    using executor_type = boost::asio::associated_executor_t<
+    using executor_type = net::associated_executor_t<
         Handler, decltype(std::declval<Stream&>().get_executor())>;
 
     executor_type
     get_executor() const noexcept
     {
-        return (boost::asio::get_associated_executor)(
+        return (net::get_associated_executor)(
             h_, s_.get_executor());
     }
 
@@ -97,7 +97,7 @@ public:
     friend
     bool asio_handler_is_continuation(read_some_op* op)
     {
-        using boost::asio::asio_handler_is_continuation;
+        using net::asio_handler_is_continuation;
         return op->cont_ ? true :
             asio_handler_is_continuation(
                 std::addressof(op->h_));
@@ -107,7 +107,7 @@ public:
     friend
     void asio_handler_invoke(Function&& f, read_some_op* op)
     {
-        using boost::asio::asio_handler_invoke;
+        using net::asio_handler_invoke;
         asio_handler_invoke(f, std::addressof(op->h_));
     }
 };
@@ -155,7 +155,7 @@ operator()(
                     goto upcall;
                 s_.async_read_some(*mb, std::move(*this));
             }
-            if(ec == boost::asio::error::eof)
+            if(ec == net::error::eof)
             {
                 BOOST_ASSERT(bytes_transferred == 0);
                 if(p_.got_some())
@@ -180,7 +180,7 @@ operator()(
         if(! cont_)
         {
             BOOST_ASIO_CORO_YIELD
-            boost::asio::post(
+            net::post(
                 s_.get_executor(),
                 beast::bind_front_handler(std::move(*this),
                     ec, bytes_transferred_));
@@ -217,10 +217,10 @@ template<class Stream, class DynamicBuffer,
     bool isRequest, class Derived, class Condition,
         class Handler>
 class read_op
-    : public boost::asio::coroutine
+    : public net::coroutine
 {
     Stream& s_;
-    boost::asio::executor_work_guard<decltype(
+    net::executor_work_guard<decltype(
         std::declval<Stream&>().get_executor())> wg_;
     DynamicBuffer& b_;
     basic_parser<isRequest, Derived>& p_;
@@ -245,21 +245,21 @@ public:
     }
 
     using allocator_type =
-        boost::asio::associated_allocator_t<Handler>;
+        net::associated_allocator_t<Handler>;
 
     allocator_type
     get_allocator() const noexcept
     {
-        return (boost::asio::get_associated_allocator)(h_);
+        return (net::get_associated_allocator)(h_);
     }
 
-    using executor_type = boost::asio::associated_executor_t<
+    using executor_type = net::associated_executor_t<
         Handler, decltype(std::declval<Stream&>().get_executor())>;
 
     executor_type
     get_executor() const noexcept
     {
-        return (boost::asio::get_associated_executor)(
+        return (net::get_associated_executor)(
             h_, s_.get_executor());
     }
 
@@ -272,7 +272,7 @@ public:
     friend
     bool asio_handler_is_continuation(read_op* op)
     {
-        using boost::asio::asio_handler_is_continuation;
+        using net::asio_handler_is_continuation;
         return op->cont_ ? true :
             asio_handler_is_continuation(
                 std::addressof(op->h_));
@@ -282,7 +282,7 @@ public:
     friend
     void asio_handler_invoke(Function&& f, read_op* op)
     {
-        using boost::asio::asio_handler_invoke;
+        using net::asio_handler_invoke;
         asio_handler_invoke(f, std::addressof(op->h_));
     }
 };
@@ -304,7 +304,7 @@ operator()(
         if(Condition{}(p_))
         {
             BOOST_ASIO_CORO_YIELD
-            boost::asio::post(s_.get_executor(),
+            net::post(s_.get_executor(),
                 beast::bind_front_handler(std::move(*this), ec));
             goto upcall;
         }
@@ -330,7 +330,7 @@ template<class Stream, class DynamicBuffer,
     bool isRequest, class Body, class Allocator,
         class Handler>
 class read_msg_op
-    : public boost::asio::coroutine
+    : public net::coroutine
 {
     using parser_type =
         parser<isRequest, Body, Allocator>;
@@ -341,7 +341,7 @@ class read_msg_op
     struct data
     {
         Stream& s;
-        boost::asio::executor_work_guard<decltype(
+        net::executor_work_guard<decltype(
             std::declval<Stream&>().get_executor())> wg;
         DynamicBuffer& b;
         message_type& m;
@@ -375,21 +375,21 @@ public:
     }
 
     using allocator_type =
-        boost::asio::associated_allocator_t<Handler>;
+        net::associated_allocator_t<Handler>;
 
     allocator_type
     get_allocator() const noexcept
     {
-        return (boost::asio::get_associated_allocator)(d_.handler());
+        return (net::get_associated_allocator)(d_.handler());
     }
 
-    using executor_type = boost::asio::associated_executor_t<
+    using executor_type = net::associated_executor_t<
         Handler, decltype(std::declval<Stream&>().get_executor())>;
 
     executor_type
     get_executor() const noexcept
     {
-        return (boost::asio::get_associated_executor)(
+        return (net::get_associated_executor)(
             d_.handler(), d_->s.get_executor());
     }
 
@@ -402,7 +402,7 @@ public:
     friend
     bool asio_handler_is_continuation(read_msg_op* op)
     {
-        using boost::asio::asio_handler_is_continuation;
+        using net::asio_handler_is_continuation;
         return op->d_->cont ? true :
             asio_handler_is_continuation(
                 std::addressof(op->d_.handler()));
@@ -412,7 +412,7 @@ public:
     friend
     void asio_handler_invoke(Function&& f, read_msg_op* op)
     {
-        using boost::asio::asio_handler_invoke;
+        using net::asio_handler_invoke;
         asio_handler_invoke(f, std::addressof(op->d_.handler()));
     }
 };
@@ -473,7 +473,7 @@ read_some(
     static_assert(is_sync_read_stream<SyncReadStream>::value,
         "SyncReadStream requirements not met");
     static_assert(
-        boost::asio::is_dynamic_buffer<DynamicBuffer>::value,
+        net::is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
     BOOST_ASSERT(! parser.is_done());
     error_code ec;
@@ -498,7 +498,7 @@ read_some(
     static_assert(is_sync_read_stream<SyncReadStream>::value,
         "SyncReadStream requirements not met");
     static_assert(
-        boost::asio::is_dynamic_buffer<DynamicBuffer>::value,
+        net::is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
     BOOST_ASSERT(! parser.is_done());
     std::size_t bytes_transferred = 0;
@@ -529,7 +529,7 @@ read_some(
         if(ec)
             break;
         auto const n = stream.read_some(*mb, ec);
-        if(ec == boost::asio::error::eof)
+        if(ec == net::error::eof)
         {
             BOOST_ASSERT(n == 0);
             if(parser.got_some())
@@ -567,7 +567,7 @@ async_read_some(
     static_assert(is_async_read_stream<AsyncReadStream>::value,
         "AsyncReadStream requirements not met");
     static_assert(
-        boost::asio::is_dynamic_buffer<DynamicBuffer>::value,
+        net::is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
     BOOST_ASSERT(! parser.is_done());
     BOOST_BEAST_HANDLER_INIT(
@@ -595,7 +595,7 @@ read_header(
     static_assert(is_sync_read_stream<SyncReadStream>::value,
         "SyncReadStream requirements not met");
     static_assert(
-        boost::asio::is_dynamic_buffer<DynamicBuffer>::value,
+        net::is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
     error_code ec;
     auto const bytes_transferred =
@@ -619,7 +619,7 @@ read_header(
     static_assert(is_sync_read_stream<SyncReadStream>::value,
         "SyncReadStream requirements not met");
     static_assert(
-        boost::asio::is_dynamic_buffer<DynamicBuffer>::value,
+        net::is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
     parser.eager(false);
     if(parser.is_header_done())
@@ -655,7 +655,7 @@ async_read_header(
     static_assert(is_async_read_stream<AsyncReadStream>::value,
         "AsyncReadStream requirements not met");
     static_assert(
-        boost::asio::is_dynamic_buffer<DynamicBuffer>::value,
+        net::is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
     parser.eager(false);
     BOOST_BEAST_HANDLER_INIT(
@@ -683,7 +683,7 @@ read(
     static_assert(is_sync_read_stream<SyncReadStream>::value,
         "SyncReadStream requirements not met");
     static_assert(
-        boost::asio::is_dynamic_buffer<DynamicBuffer>::value,
+        net::is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
     error_code ec;
     auto const bytes_transferred =
@@ -707,7 +707,7 @@ read(
     static_assert(is_sync_read_stream<SyncReadStream>::value,
         "SyncReadStream requirements not met");
     static_assert(
-        boost::asio::is_dynamic_buffer<DynamicBuffer>::value,
+        net::is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
     parser.eager(true);
     if(parser.is_done())
@@ -743,7 +743,7 @@ async_read(
     static_assert(is_async_read_stream<AsyncReadStream>::value,
         "AsyncReadStream requirements not met");
     static_assert(
-        boost::asio::is_dynamic_buffer<DynamicBuffer>::value,
+        net::is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
     parser.eager(true);
     BOOST_BEAST_HANDLER_INIT(
@@ -771,7 +771,7 @@ read(
     static_assert(is_sync_read_stream<SyncReadStream>::value,
         "SyncReadStream requirements not met");
     static_assert(
-        boost::asio::is_dynamic_buffer<DynamicBuffer>::value,
+        net::is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
     static_assert(is_body<Body>::value,
         "Body requirements not met");
@@ -799,7 +799,7 @@ read(
     static_assert(is_sync_read_stream<SyncReadStream>::value,
         "SyncReadStream requirements not met");
     static_assert(
-        boost::asio::is_dynamic_buffer<DynamicBuffer>::value,
+        net::is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
     static_assert(is_body<Body>::value,
         "Body requirements not met");
@@ -831,7 +831,7 @@ async_read(
     static_assert(is_async_read_stream<AsyncReadStream>::value,
         "AsyncReadStream requirements not met");
     static_assert(
-        boost::asio::is_dynamic_buffer<DynamicBuffer>::value,
+        net::is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
     static_assert(is_body<Body>::value,
         "Body requirements not met");

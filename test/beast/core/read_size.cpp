@@ -40,7 +40,7 @@ public:
         check<flat_static_buffer<1024>>();
         check<multi_buffer>();
         check<static_buffer<1024>>();
-        check<boost::asio::streambuf>();
+        check<net::streambuf>();
     }
 };
 

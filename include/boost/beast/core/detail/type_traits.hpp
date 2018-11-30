@@ -262,21 +262,21 @@ struct BufferSequence
     const_iterator end() const noexcept;
 };
 using ConstBufferSequence =
-    BufferSequence<boost::asio::const_buffer>;
+    BufferSequence<net::const_buffer>;
 using MutableBufferSequence =
-    BufferSequence<boost::asio::mutable_buffer>;
+    BufferSequence<net::mutable_buffer>;
 
 template<class B1, class... Bn>
 struct is_all_const_buffer_sequence
     : std::integral_constant<bool,
-        boost::asio::is_const_buffer_sequence<B1>::value &&
+        net::is_const_buffer_sequence<B1>::value &&
         is_all_const_buffer_sequence<Bn...>::value>
 {
 };
 
 template<class B>
 struct is_all_const_buffer_sequence<B>
-    : boost::asio::is_const_buffer_sequence<B>
+    : net::is_const_buffer_sequence<B>
 {
 };
 
@@ -288,22 +288,22 @@ template<class B>
 struct buffer_sequence_iterator
 {
     using type = decltype(
-        boost::asio::buffer_sequence_begin(
+        net::buffer_sequence_begin(
             std::declval<B const&>()));
 };
 
 template<>
 struct buffer_sequence_iterator<
-    boost::asio::const_buffer>
+    net::const_buffer>
 {
-    using type = boost::asio::const_buffer const*;
+    using type = net::const_buffer const*;
 };
 
 template<>
 struct buffer_sequence_iterator<
-    boost::asio::mutable_buffer>
+    net::mutable_buffer>
 {
-    using type = boost::asio::mutable_buffer const*;
+    using type = net::mutable_buffer const*;
 };
 
 //
@@ -320,16 +320,16 @@ struct buffer_sequence_value_type
 
 template<>
 struct buffer_sequence_value_type<
-    boost::asio::const_buffer const*>
+    net::const_buffer const*>
 {
-    using type = boost::asio::const_buffer;
+    using type = net::const_buffer;
 };
 
 template<>
 struct buffer_sequence_value_type<
-    boost::asio::mutable_buffer const*>
+    net::mutable_buffer const*>
 {
-    using type = boost::asio::mutable_buffer;
+    using type = net::mutable_buffer;
 };
 
 //
@@ -341,9 +341,9 @@ struct common_buffers_type
         mp11::mp_and<
             boost::is_convertible<
                 typename buffer_sequence_value_type<Bn>::type,
-                boost::asio::mutable_buffer>...>::value,
-            boost::asio::mutable_buffer,
-            boost::asio::const_buffer>::type;
+                net::mutable_buffer>...>::value,
+            net::mutable_buffer,
+            net::const_buffer>::type;
 };
 
 // Types that meet the requirements,
@@ -366,7 +366,7 @@ using WriteHandler = StreamHandler;
     static_assert(boost::beast::is_completion_handler< \
     BOOST_ASIO_HANDLER_TYPE(type, sig), sig>::value, \
     "CompletionHandler signature requirements not met"); \
-    boost::asio::async_completion<type, sig> init{handler}
+    net::async_completion<type, sig> init{handler}
 
 } // detail
 } // beast

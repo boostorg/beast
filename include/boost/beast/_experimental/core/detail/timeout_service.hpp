@@ -45,7 +45,7 @@ class timeout_service
         void
         operator()()
         {
-            boost::asio::post(ex, 
+            net::post(ex, 
                 beast::bind_front_handler(
                     std::move(*this), 0));
         }
@@ -64,7 +64,7 @@ public:
     // VFALCO Should be execution_context
     BOOST_BEAST_DECL
     explicit
-    timeout_service(boost::asio::io_context& ctx);
+    timeout_service(net::io_context& ctx);
 
     BOOST_BEAST_DECL
     timeout_handle
@@ -119,7 +119,7 @@ private:
     thunk::list_type* stale_ = &list_[1];
     std::deque<thunk> thunks_;
     std::size_t free_thunk_ = 0;
-    boost::asio::steady_timer timer_;
+    net::steady_timer timer_;
     std::chrono::seconds interval_{30ul};
     long pending_ = 0;
 };

@@ -165,7 +165,7 @@ public:
             auto tr = connect(ws.next_layer());
             try
             {
-                w.accept(ws, boost::asio::buffer(
+                w.accept(ws, net::buffer(
                     "GET / HTTP/1.1\r\n"
                     "Host: localhost\r\n"
                     "Upgrade: websocket\r\n"
@@ -210,7 +210,7 @@ public:
             try
             {
                 bool called = false;
-                w.accept_ex(ws, boost::asio::buffer(
+                w.accept_ex(ws, net::buffer(
                     "GET / HTTP/1.1\r\n"
                     "Host: localhost\r\n"
                     "Upgrade: websocket\r\n"
@@ -411,7 +411,7 @@ public:
                 if( e.code() !=
                         websocket::error::no_sec_key &&
                     e.code() !=
-                        boost::asio::error::eof)
+                        net::error::eof)
                     throw;
             }
         });
@@ -476,7 +476,7 @@ public:
                 try
                 {
                     ws.accept(
-                        boost::asio::buffer(s.data(), n));
+                        net::buffer(s.data(), n));
                     BEAST_EXPECTS(! ev, ev.message());
                 }
                 catch(system_error const& se)
@@ -616,7 +616,7 @@ public:
     void
     testMoveOnly()
     {
-        boost::asio::io_context ioc;
+        net::io_context ioc;
         stream<test::stream> ws{ioc};
         ws.async_accept(move_only_handler{});
     }
@@ -636,12 +636,12 @@ public:
         // make sure things compile, also can set a
         // breakpoint in asio_handler_invoke to make sure
         // it is instantiated.
-        boost::asio::io_context ioc;
-        boost::asio::strand<
-            boost::asio::io_context::executor_type> s(
+        net::io_context ioc;
+        net::strand<
+            net::io_context::executor_type> s(
                 ioc.get_executor());
         stream<test::stream> ws{ioc};
-        ws.async_accept(boost::asio::bind_executor(
+        ws.async_accept(net::bind_executor(
             s, copyable_handler{}));
     }
 

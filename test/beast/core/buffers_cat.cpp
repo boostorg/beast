@@ -39,7 +39,7 @@ public:
     std::size_t
     bsize1(ConstBufferSequence const& bs)
     {
-        using boost::asio::buffer_size;
+        using net::buffer_size;
         std::size_t n = 0;
         for(auto it = bs.begin(); it != bs.end(); ++it)
             n += buffer_size(*it);
@@ -51,7 +51,7 @@ public:
     std::size_t
     bsize2(ConstBufferSequence const& bs)
     {
-        using boost::asio::buffer_size;
+        using net::buffer_size;
         std::size_t n = 0;
         for(auto it = bs.begin(); it != bs.end(); it++)
             n += buffer_size(*it);
@@ -63,7 +63,7 @@ public:
     std::size_t
     bsize3(ConstBufferSequence const& bs)
     {
-        using boost::asio::buffer_size;
+        using net::buffer_size;
         std::size_t n = 0;
         for(auto it = bs.end(); it != bs.begin();)
             n += buffer_size(*--it);
@@ -75,7 +75,7 @@ public:
     std::size_t
     bsize4(ConstBufferSequence const& bs)
     {
-        using boost::asio::buffer_size;
+        using net::buffer_size;
         std::size_t n = 0;
         for(auto it = bs.end(); it != bs.begin();)
         {
@@ -87,8 +87,8 @@ public:
 
     void testBufferCat()
     {
-        using boost::asio::buffer_size;
-        using boost::asio::const_buffer;
+        using net::buffer_size;
+        using net::const_buffer;
         char buf[10];
         std::list<const_buffer> b1;
         std::vector<const_buffer> b2{
@@ -117,7 +117,7 @@ public:
         decltype(bs) bs2(bs);
         auto bs3(std::move(bs));
         {
-            boost::asio::streambuf sb1, sb2;
+            net::streambuf sb1, sb2;
             BEAST_EXPECT(buffer_size(buffers_cat(
                 sb1.prepare(5), sb2.prepare(7))) == 12);
             sb1.commit(5);
@@ -137,8 +137,8 @@ public:
 
     void testIterators()
     {
-        using boost::asio::buffer_size;
-        using boost::asio::const_buffer;
+        using net::buffer_size;
+        using net::const_buffer;
         char buf[9];
         std::vector<const_buffer> b1{
             const_buffer{buf+0, 1},
@@ -222,8 +222,8 @@ public:
     {
         using boost::beast::buffers_cat;
         using boost::beast::buffers_suffix;
-        using boost::asio::buffer;
-        using boost::asio::const_buffer;
+        using net::buffer;
+        using net::const_buffer;
 
         char out[64];
         std::array<const_buffer, 2> buffers{
@@ -231,7 +231,7 @@ public:
         std::size_t i = 3;
         buffers_suffix<std::array<const_buffer, 2>> cb(buffers);
         cb.consume(i);
-        boost::asio::buffer_copy(
+        net::buffer_copy(
             buffer(out),
             buffers_cat(cb, cb));
     }
@@ -242,9 +242,9 @@ public:
     void
     testGccWarning2()
     {
-        using boost::asio::buffer;
-        using boost::asio::buffer_copy;
-        using boost::asio::const_buffer;
+        using net::buffer;
+        using net::buffer_copy;
+        using net::const_buffer;
 
         char out[64];
         const_buffer buffers("Hello, world!", 13);
@@ -259,8 +259,8 @@ public:
     void
     test_empty_buffer_sequences()
     {
-        using boost::asio::buffer_size;
-        using boost::asio::const_buffer;
+        using net::buffer_size;
+        using net::const_buffer;
         std::vector<const_buffer> v1;
         std::vector<const_buffer> v2;
         BEAST_EXPECT(buffer_size(buffers_cat(v1, v2)) == 0);
@@ -268,9 +268,9 @@ public:
 
     void run() override
     {
-        using boost::asio::const_buffer;
-        using boost::asio::const_buffer;
-        using boost::asio::mutable_buffer;
+        using net::const_buffer;
+        using net::const_buffer;
+        using net::mutable_buffer;
         struct user_defined : mutable_buffer
         {
         };

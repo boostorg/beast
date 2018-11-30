@@ -36,9 +36,9 @@ public:
     using value_type = typename std::conditional<
         boost::is_convertible<typename
             std::iterator_traits<iter_type>::value_type,
-                boost::asio::mutable_buffer>::value,
-                    boost::asio::mutable_buffer,
-                        boost::asio::const_buffer>::type;
+                net::mutable_buffer>::value,
+                    net::mutable_buffer,
+                        net::const_buffer>::type;
     using pointer = value_type const*;
     using reference = value_type;
     using difference_type = std::ptrdiff_t;
@@ -58,11 +58,11 @@ public:
             (b_ == nullptr) ?
             (
                 other.b_ == nullptr ||
-                other.it_ == boost::asio::buffer_sequence_end(other.b_->bs_)
+                other.it_ == net::buffer_sequence_end(other.b_->bs_)
             ):(
                 (other.b_ == nullptr) ?
                 (
-                    it_ == boost::asio::buffer_sequence_end(b_->bs_)
+                    it_ == net::buffer_sequence_end(b_->bs_)
                 ): (
                     b_ == other.b_ &&
                     it_ == other.it_
@@ -131,7 +131,7 @@ private:
 template<class Buffers>
 buffers_suffix<Buffers>::
 buffers_suffix()
-    : begin_(boost::asio::buffer_sequence_begin(bs_))
+    : begin_(net::buffer_sequence_begin(bs_))
 {
 }
 
@@ -140,7 +140,7 @@ buffers_suffix<Buffers>::
 buffers_suffix(buffers_suffix&& other)
     : buffers_suffix(std::move(other),
         std::distance<iter_type>(
-            boost::asio::buffer_sequence_begin(
+            net::buffer_sequence_begin(
                 other.bs_), other.begin_))
 {
 }
@@ -150,7 +150,7 @@ buffers_suffix<Buffers>::
 buffers_suffix(buffers_suffix const& other)
     : buffers_suffix(other,
         std::distance<iter_type>(
-            boost::asio::buffer_sequence_begin(
+            net::buffer_sequence_begin(
                 other.bs_), other.begin_))
 {
 }
@@ -159,11 +159,11 @@ template<class Buffers>
 buffers_suffix<Buffers>::
 buffers_suffix(Buffers const& bs)
     : bs_(bs)
-    , begin_(boost::asio::buffer_sequence_begin(bs_))
+    , begin_(net::buffer_sequence_begin(bs_))
 {
     static_assert(
-        boost::asio::is_const_buffer_sequence<Buffers>::value||
-        boost::asio::is_mutable_buffer_sequence<Buffers>::value,
+        net::is_const_buffer_sequence<Buffers>::value||
+        net::is_mutable_buffer_sequence<Buffers>::value,
             "BufferSequence requirements not met");
 }
 
@@ -172,7 +172,7 @@ template<class... Args>
 buffers_suffix<Buffers>::
 buffers_suffix(boost::in_place_init_t, Args&&... args)
     : bs_(std::forward<Args>(args)...)
-    , begin_(boost::asio::buffer_sequence_begin(bs_))
+    , begin_(net::buffer_sequence_begin(bs_))
 {
     static_assert(sizeof...(Args) > 0,
         "Missing constructor arguments");
@@ -188,11 +188,11 @@ operator=(buffers_suffix&& other) ->
     buffers_suffix&
 {
     auto const dist = std::distance<iter_type>(
-        boost::asio::buffer_sequence_begin(other.bs_),
+        net::buffer_sequence_begin(other.bs_),
             other.begin_);
     bs_ = std::move(other.bs_);
     begin_ = std::next(
-        boost::asio::buffer_sequence_begin(bs_),
+        net::buffer_sequence_begin(bs_),
             dist);
     skip_ = other.skip_;
     return *this;
@@ -205,11 +205,11 @@ operator=(buffers_suffix const& other) ->
     buffers_suffix&
 {
     auto const dist = std::distance<iter_type>(
-        boost::asio::buffer_sequence_begin(other.bs_),
+        net::buffer_sequence_begin(other.bs_),
             other.begin_);
     bs_ = other.bs_;
     begin_ = std::next(
-        boost::asio::buffer_sequence_begin(bs_), dist);
+        net::buffer_sequence_begin(bs_), dist);
     skip_ = other.skip_;
     return *this;
 }
@@ -232,7 +232,7 @@ end() const ->
     const_iterator
 {
     return const_iterator{*this,
-        boost::asio::buffer_sequence_end(bs_)};
+        net::buffer_sequence_end(bs_)};
 }
 
 template<class Buffers>
@@ -240,9 +240,9 @@ void
 buffers_suffix<Buffers>::
 consume(std::size_t amount)
 {
-    using boost::asio::buffer_size;
+    using net::buffer_size;
     auto const end =
-        boost::asio::buffer_sequence_end(bs_);
+        net::buffer_sequence_end(bs_);
     for(;amount > 0 && begin_ != end; ++begin_)
     {
         auto const len =

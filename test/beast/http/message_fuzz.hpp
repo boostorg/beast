@@ -504,11 +504,11 @@ public:
             ostream(db) <<
                 "Content-Length: " << len << "\r\n\r\n";
             auto mb = db.prepare(len);
-            for(auto it = boost::asio::buffer_sequence_begin(mb);
-                it != boost::asio::buffer_sequence_end(mb);
+            for(auto it = net::buffer_sequence_begin(mb);
+                it != net::buffer_sequence_end(mb);
                 ++it)
             {
-                boost::asio::mutable_buffer b = *it;
+                net::mutable_buffer b = *it;
                 auto p = static_cast<char*>(b.data());
                 auto n = b.size();
                 while(n--)
@@ -528,11 +528,11 @@ public:
                 ostream(db) <<
                     to_hex(n) << "\r\n";
                 auto mb = db.prepare(n);
-                for(auto it = boost::asio::buffer_sequence_begin(mb);
-                    it != boost::asio::buffer_sequence_end(mb);
+                for(auto it = net::buffer_sequence_begin(mb);
+                    it != net::buffer_sequence_end(mb);
                     ++it)
                 {
-                    boost::asio::mutable_buffer b = *it;
+                    net::mutable_buffer b = *it;
                     auto p = static_cast<char*>(b.data());
                     auto m = b.size();
                     while(m--)

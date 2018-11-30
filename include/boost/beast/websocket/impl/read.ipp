@@ -80,11 +80,11 @@ template<
     class MutableBufferSequence,
     class Handler>
 class stream<NextLayer, deflateSupported>::read_some_op
-    : public boost::asio::coroutine
+    : public net::coroutine
 {
     Handler h_;
     stream<NextLayer, deflateSupported>& ws_;
-    boost::asio::executor_work_guard<decltype(std::declval<
+    net::executor_work_guard<decltype(std::declval<
         stream<NextLayer, deflateSupported>&>().get_executor())> wg_;
     MutableBufferSequence bs_;
     buffers_suffix<MutableBufferSequence> cb_;
@@ -115,21 +115,21 @@ public:
     }
 
     using allocator_type =
-        boost::asio::associated_allocator_t<Handler>;
+        net::associated_allocator_t<Handler>;
 
     allocator_type
     get_allocator() const noexcept
     {
-        return (boost::asio::get_associated_allocator)(h_);
+        return (net::get_associated_allocator)(h_);
     }
 
-    using executor_type = boost::asio::associated_executor_t<
+    using executor_type = net::associated_executor_t<
         Handler, decltype(std::declval<stream<NextLayer, deflateSupported>&>().get_executor())>;
 
     executor_type
     get_executor() const noexcept
     {
-        return (boost::asio::get_associated_executor)(
+        return (net::get_associated_executor)(
             h_, ws_.get_executor());
     }
 
@@ -147,7 +147,7 @@ public:
     friend
     bool asio_handler_is_continuation(read_some_op* op)
     {
-        using boost::asio::asio_handler_is_continuation;
+        using net::asio_handler_is_continuation;
         return op->cont_ || asio_handler_is_continuation(
             std::addressof(op->h_));
     }
@@ -156,7 +156,7 @@ public:
     friend
     void asio_handler_invoke(Function&& f, read_some_op* op)
     {
-        using boost::asio::asio_handler_invoke;
+        using net::asio_handler_invoke;
         asio_handler_invoke(f, std::addressof(op->h_));
     }
 };
@@ -172,8 +172,8 @@ operator()(
     bool cont)
 {
     using beast::detail::clamp;
-    using boost::asio::buffer;
-    using boost::asio::buffer_size;
+    using net::buffer;
+    using net::buffer_size;
     cont_ = cont;
     BOOST_ASIO_CORO_REENTER(*this)
     {
@@ -185,7 +185,7 @@ operator()(
             if( ws_.status_ == status::closed ||
                 ws_.status_ == status::failed)
             {
-                ec = boost::asio::error::operation_aborted;
+                ec = net::error::operation_aborted;
                 goto upcall;
             }
         }
@@ -201,7 +201,7 @@ operator()(
 
             // Resume
             BOOST_ASIO_CORO_YIELD
-            boost::asio::post(
+            net::post(
                 ws_.get_executor(), std::move(*this));
             BOOST_ASSERT(ws_.rd_block_.is_locked(this));
 
@@ -209,7 +209,7 @@ operator()(
             // a `close_op` wrote a close frame
             BOOST_ASSERT(ws_.wr_close_);
             BOOST_ASSERT(ws_.status_ != status::open);
-            ec = boost::asio::error::operation_aborted;
+            ec = net::error::operation_aborted;
             goto upcall;
         }
 
@@ -283,7 +283,7 @@ operator()(
                         if(! cont_)
                         {
                             BOOST_ASIO_CORO_YIELD
-                            boost::asio::post(
+                            net::post(
                                 ws_.get_executor(),
                                     std::move(*this));
                             BOOST_ASSERT(cont_);
@@ -327,7 +327,7 @@ operator()(
 
                         // Resume
                         BOOST_ASIO_CORO_YIELD
-                        boost::asio::post(
+                        net::post(
                             ws_.get_executor(), std::move(*this));
                         BOOST_ASSERT(ws_.wr_block_.is_locked(this));
 
@@ -339,7 +339,7 @@ operator()(
                     // Send pong
                     BOOST_ASSERT(ws_.wr_block_.is_locked(this));
                     BOOST_ASIO_CORO_YIELD
-                    boost::asio::async_write(ws_.stream_,
+                    net::async_write(ws_.stream_,
                         ws_.rd_fb_.data(), std::move(*this));
                     BOOST_ASSERT(ws_.wr_block_.is_locked(this));
                     if(! ws_.check_ok(ec))
@@ -359,7 +359,7 @@ operator()(
                         if(! cont_)
                         {
                             BOOST_ASIO_CORO_YIELD
-                            boost::asio::post(
+                            net::post(
                                 ws_.get_executor(),
                                     std::move(*this));
                             BOOST_ASSERT(cont_);
@@ -385,7 +385,7 @@ operator()(
                         if(! cont_)
                         {
                             BOOST_ASIO_CORO_YIELD
-                            boost::asio::post(
+                            net::post(
                                 ws_.get_executor(),
                                     std::move(*this));
                             BOOST_ASSERT(cont_);
@@ -461,7 +461,7 @@ operator()(
                 {
                     // Copy from the read buffer.
                     // The mask was already applied.
-                    bytes_transferred = boost::asio::buffer_copy(cb_,
+                    bytes_transferred = net::buffer_copy(cb_,
                         ws_.rd_buf_.data(), clamp(ws_.rd_remain_));
                     auto const mb = buffers_prefix(
                         bytes_transferred, cb_);
@@ -639,7 +639,7 @@ operator()(
 
             // Resume
             BOOST_ASIO_CORO_YIELD
-            boost::asio::post(
+            net::post(
                 ws_.get_executor(), std::move(*this));
             BOOST_ASSERT(ws_.wr_block_.is_locked(this));
 
@@ -664,7 +664,7 @@ operator()(
             // Send close frame
             BOOST_ASSERT(ws_.wr_block_.is_locked(this));
             BOOST_ASIO_CORO_YIELD
-            boost::asio::async_write(
+            net::async_write(
                 ws_.stream_, ws_.rd_fb_.data(),
                     std::move(*this));
             BOOST_ASSERT(ws_.wr_block_.is_locked(this));
@@ -679,7 +679,7 @@ operator()(
         async_teardown(ws_.role_,
             ws_.stream_, std::move(*this));
         BOOST_ASSERT(ws_.wr_block_.is_locked(this));
-        if(ec == boost::asio::error::eof)
+        if(ec == net::error::eof)
         {
             // Rationale:
             // http://stackoverflow.com/questions/25587403/boost-asio-ssl-async-shutdown-always-finishes-with-an-error
@@ -703,7 +703,7 @@ operator()(
         if(! cont_)
         {
             BOOST_ASIO_CORO_YIELD
-            boost::asio::post(
+            net::post(
                 ws_.get_executor(),
                 beast::bind_front_handler(std::move(*this),
                     ec, bytes_written_));
@@ -719,11 +719,11 @@ template<
     class DynamicBuffer,
     class Handler>
 class stream<NextLayer, deflateSupported>::read_op
-    : public boost::asio::coroutine
+    : public net::coroutine
 {
     Handler h_;
     stream<NextLayer, deflateSupported>& ws_;
-    boost::asio::executor_work_guard<decltype(std::declval<
+    net::executor_work_guard<decltype(std::declval<
         stream<NextLayer, deflateSupported>&>().get_executor())> wg_;
     DynamicBuffer& b_;
     std::size_t limit_;
@@ -732,7 +732,7 @@ class stream<NextLayer, deflateSupported>::read_op
 
 public:
     using allocator_type =
-        boost::asio::associated_allocator_t<Handler>;
+        net::associated_allocator_t<Handler>;
 
     read_op(read_op&&) = default;
     read_op(read_op const&) = delete;
@@ -757,16 +757,16 @@ public:
     allocator_type
     get_allocator() const noexcept
     {
-        return (boost::asio::get_associated_allocator)(h_);
+        return (net::get_associated_allocator)(h_);
     }
 
-    using executor_type = boost::asio::associated_executor_t<
+    using executor_type = net::associated_executor_t<
         Handler, decltype(std::declval<stream<NextLayer, deflateSupported>&>().get_executor())>;
 
     executor_type
     get_executor() const noexcept
     {
-        return (boost::asio::get_associated_executor)(
+        return (net::get_associated_executor)(
             h_, ws_.get_executor());
     }
 
@@ -777,7 +777,7 @@ public:
     friend
     bool asio_handler_is_continuation(read_op* op)
     {
-        using boost::asio::asio_handler_is_continuation;
+        using net::asio_handler_is_continuation;
         return asio_handler_is_continuation(
             std::addressof(op->h_));
     }
@@ -786,7 +786,7 @@ public:
     friend
     void asio_handler_invoke(Function&& f, read_op* op)
     {
-        using boost::asio::asio_handler_invoke;
+        using net::asio_handler_invoke;
         asio_handler_invoke(f, std::addressof(op->h_));
     }
 };
@@ -811,7 +811,7 @@ operator()(
                     clamp(ws_.read_size_hint(b_), limit_),
                         ec, error::buffer_overflow);
                 if(ec)
-                    boost::asio::post(
+                    net::post(
                         ws_.get_executor(),
                         beast::bind_front_handler(
                             std::move(*this), ec, 0));
@@ -843,7 +843,7 @@ read(DynamicBuffer& buffer)
     static_assert(is_sync_stream<next_layer_type>::value,
         "SyncStream requirements not met");
     static_assert(
-        boost::asio::is_dynamic_buffer<DynamicBuffer>::value,
+        net::is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
     error_code ec;
     auto const bytes_written = read(buffer, ec);
@@ -861,7 +861,7 @@ read(DynamicBuffer& buffer, error_code& ec)
     static_assert(is_sync_stream<next_layer_type>::value,
         "SyncStream requirements not met");
     static_assert(
-        boost::asio::is_dynamic_buffer<DynamicBuffer>::value,
+        net::is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
     std::size_t bytes_written = 0;
     do
@@ -884,7 +884,7 @@ async_read(DynamicBuffer& buffer, ReadHandler&& handler)
     static_assert(is_async_stream<next_layer_type>::value,
         "AsyncStream requirements not met");
     static_assert(
-        boost::asio::is_dynamic_buffer<DynamicBuffer>::value,
+        net::is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
     BOOST_BEAST_HANDLER_INIT(
         ReadHandler, void(error_code, std::size_t));
@@ -913,7 +913,7 @@ read_some(
     static_assert(is_sync_stream<next_layer_type>::value,
         "SyncStream requirements not met");
     static_assert(
-        boost::asio::is_dynamic_buffer<DynamicBuffer>::value,
+        net::is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
     error_code ec;
     auto const bytes_written =
@@ -935,7 +935,7 @@ read_some(
     static_assert(is_sync_stream<next_layer_type>::value,
         "SyncStream requirements not met");
     static_assert(
-        boost::asio::is_dynamic_buffer<DynamicBuffer>::value,
+        net::is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
     using beast::detail::clamp;
     if(! limit)
@@ -965,7 +965,7 @@ async_read_some(
     static_assert(is_async_stream<next_layer_type>::value,
         "AsyncStream requirements not met");
     static_assert(
-        boost::asio::is_dynamic_buffer<DynamicBuffer>::value,
+        net::is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
     BOOST_BEAST_HANDLER_INIT(
         ReadHandler, void(error_code, std::size_t));
@@ -992,7 +992,7 @@ read_some(
 {
     static_assert(is_sync_stream<next_layer_type>::value,
         "SyncStream requirements not met");
-    static_assert(boost::asio::is_mutable_buffer_sequence<
+    static_assert(net::is_mutable_buffer_sequence<
             MutableBufferSequence>::value,
         "MutableBufferSequence requirements not met");
     error_code ec;
@@ -1012,12 +1012,12 @@ read_some(
 {
     static_assert(is_sync_stream<next_layer_type>::value,
         "SyncStream requirements not met");
-    static_assert(boost::asio::is_mutable_buffer_sequence<
+    static_assert(net::is_mutable_buffer_sequence<
             MutableBufferSequence>::value,
         "MutableBufferSequence requirements not met");
     using beast::detail::clamp;
-    using boost::asio::buffer;
-    using boost::asio::buffer_size;
+    using net::buffer;
+    using net::buffer_size;
     close_code code{};
     std::size_t bytes_written = 0;
     ec.assign(0, ec.category());
@@ -1088,7 +1088,7 @@ loop:
                 detail::frame_buffer fb;
                 write_ping<flat_static_buffer_base>(fb,
                     detail::opcode::pong, payload);
-                boost::asio::write(stream_, fb.data(), ec);
+                net::write(stream_, fb.data(), ec);
                 if(! check_ok(ec))
                     return bytes_written;
                 goto loop;
@@ -1167,7 +1167,7 @@ loop:
                 // Copy from the read buffer.
                 // The mask was already applied.
                 auto const bytes_transferred =
-                    boost::asio::buffer_copy(buffers,
+                    net::buffer_copy(buffers,
                         rd_buf_.data(), clamp(rd_remain_));
                 auto const mb = buffers_prefix(
                     bytes_transferred, buffers);
@@ -1349,7 +1349,7 @@ async_read_some(
 {
     static_assert(is_async_stream<next_layer_type>::value,
         "AsyncStream requirements not met");
-    static_assert(boost::asio::is_mutable_buffer_sequence<
+    static_assert(net::is_mutable_buffer_sequence<
             MutableBufferSequence>::value,
         "MutableBufferSequence requirements not met");
     BOOST_BEAST_HANDLER_INIT(

@@ -36,7 +36,7 @@ namespace websocket {
 
     @par Example
     @code
-    void handle_connection(boost::asio::ip::tcp::socket& sock)
+    void handle_connection(net::ip::tcp::socket& sock)
     {
         boost::beast::flat_buffer buffer;
         boost::beast::http::request<boost::beast::http::string_body> req;

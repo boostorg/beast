@@ -152,11 +152,11 @@ public:
 
     template<class Parser, class ConstBufferSequence, class Test>
     typename std::enable_if<
-        boost::asio::is_const_buffer_sequence<ConstBufferSequence>::value>::type
+        net::is_const_buffer_sequence<ConstBufferSequence>::value>::type
     parsegrind(ConstBufferSequence const& buffers,
         Test const& test, bool skip = false)
     {
-        auto const size = boost::asio::buffer_size(buffers);
+        auto const size = net::buffer_size(buffers);
         for(std::size_t i = 1; i < size - 1; ++i)
         {
             Parser p;
@@ -174,7 +174,7 @@ public:
             n = p.put(cb, ec);
             if(! BEAST_EXPECTS(! ec, ec.message()))
                 continue;
-            if(! BEAST_EXPECT(n == boost::asio::buffer_size(cb)))
+            if(! BEAST_EXPECT(n == net::buffer_size(cb)))
                 continue;
             if(p.need_eof())
             {
@@ -213,13 +213,13 @@ public:
     void
     parsegrind(string_view msg, Test const& test, bool skip = false)
     {
-        parsegrind<Parser>(boost::asio::const_buffer{
+        parsegrind<Parser>(net::const_buffer{
             msg.data(), msg.size()}, test, skip);
     }
 
     template<class Parser, class ConstBufferSequence>
     typename std::enable_if<
-        boost::asio::is_const_buffer_sequence<ConstBufferSequence>::value>::type
+        net::is_const_buffer_sequence<ConstBufferSequence>::value>::type
     parsegrind(ConstBufferSequence const& buffers)
     {
         parsegrind<Parser>(buffers, [](Parser const&){});
@@ -241,7 +241,7 @@ public:
             Parser p;
             p.eager(true);
             error_code ec;
-            buffers_suffix<boost::asio::const_buffer> cb{
+            buffers_suffix<net::const_buffer> cb{
                 boost::in_place_init, msg.data(), msg.size()};
             auto n = p.put(buffers_prefix(i, cb), ec);
             if(ec == result)
@@ -266,8 +266,8 @@ public:
             p.eager(true);
             error_code ec;
             p.put(buffers_cat(
-                boost::asio::const_buffer{msg.data(), i},
-                boost::asio::const_buffer{
+                net::const_buffer{msg.data(), i},
+                net::const_buffer{
                     msg.data() + i, msg.size() - i}), ec);
             if(! ec)
                 p.put_eof(ec);
@@ -887,7 +887,7 @@ public:
     //--------------------------------------------------------------------------
 
     static
-    boost::asio::const_buffer
+    net::const_buffer
     buf(string_view s)
     {
         return {s.data(), s.size()};
@@ -1080,7 +1080,7 @@ public:
             "GET / HTTP/1.1\r\n"
             "\r\n"
             "die!";
-        p.put(boost::asio::buffer(
+        p.put(net::buffer(
             s.data(), s.size()), ec);
         if(! BEAST_EXPECTS(! ec, ec.message()))
             return;
@@ -1117,7 +1117,7 @@ public:
             "HTTP/1.1 101 Switching Protocols\r\n"
             "Content-Length: 2147483648\r\n"
             "\r\n";
-        p.put(boost::asio::buffer(
+        p.put(net::buffer(
             s.data(), s.size()), ec);
         if(! BEAST_EXPECTS(! ec, ec.message()))
             return;
@@ -1140,7 +1140,7 @@ public:
                 error_code ec;
                 test_parser<false> p;
                 p.eager(true);
-                p.put(boost::asio::const_buffer{
+                p.put(net::const_buffer{
                     s.data(), s.size()}, ec);
             });
         };
@@ -1156,7 +1156,7 @@ public:
             error_code ec;
             test_parser<false> p;
             p.eager(true);
-            p.put(boost::asio::const_buffer{
+            p.put(net::const_buffer{
                 msg.data(), msg.size()}, ec);
             BEAST_EXPECTS(! ec, ec.message());
             grind(msg);
@@ -1173,7 +1173,7 @@ public:
             error_code ec;
             test_parser<false> p;
             p.eager(true);
-            p.put(boost::asio::const_buffer{
+            p.put(net::const_buffer{
                 msg.data(), msg.size()}, ec);
             BEAST_EXPECT(ec);
             grind(msg);
@@ -1209,7 +1209,7 @@ public:
 
         error_code ec;
         test_parser<true> p;
-        feed(boost::asio::buffer(buf, sizeof(buf)), p, ec);
+        feed(net::buffer(buf, sizeof(buf)), p, ec);
         BEAST_EXPECT(ec);
     }
 

@@ -34,7 +34,7 @@ template<class DynamicBuffer>
 struct basic_dynamic_body
 {
     static_assert(
-        boost::asio::is_dynamic_buffer<DynamicBuffer>::value,
+        net::is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
 
     /** The type of container used for the body
@@ -88,8 +88,8 @@ struct basic_dynamic_body
         put(ConstBufferSequence const& buffers,
             error_code& ec)
         {
-            using boost::asio::buffer_copy;
-            using boost::asio::buffer_size;
+            using net::buffer_copy;
+            using net::buffer_size;
             auto const n = buffer_size(buffers);
             if(body_.size() > body_.max_size() - n)
             {

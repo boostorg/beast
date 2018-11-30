@@ -143,8 +143,8 @@ class basic_multi_buffer<Allocator>::readable_bytes
 public:
     using value_type = typename std::conditional<
         IsMutable,
-        boost::asio::mutable_buffer,
-        boost::asio::const_buffer>::type;
+        net::mutable_buffer,
+        net::const_buffer>::type;
 
     class const_iterator;
 
@@ -881,7 +881,7 @@ copy_from(DynamicBuffer const& buffer)
 {
     if(buffer.size() == 0)
         return;
-    using boost::asio::buffer_copy;
+    using net::buffer_copy;
     commit(buffer_copy(
         prepare(buffer.size()), buffer.data()));
 }
@@ -1018,7 +1018,7 @@ basic_multi_buffer<Allocator>::
 debug_check() const
 {
 #ifndef NDEBUG
-    using boost::asio::buffer_size;
+    using net::buffer_size;
     BOOST_ASSERT(buffer_size(data()) == in_size_);
     if(list_.empty())
     {

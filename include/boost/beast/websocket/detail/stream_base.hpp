@@ -340,7 +340,7 @@ struct stream_base : stream_prng
     template<class ConstBufferSequence>
     bool
     deflate(
-        boost::asio::mutable_buffer& out,
+        net::mutable_buffer& out,
         buffers_suffix<ConstBufferSequence>& cb,
         bool fin,
         std::size_t& total_in,
@@ -539,7 +539,7 @@ struct stream_base<false> : stream_prng
     template<class ConstBufferSequence>
     bool
     deflate(
-        boost::asio::mutable_buffer&,
+        net::mutable_buffer&,
         buffers_suffix<ConstBufferSequence>&,
         bool,
         std::size_t&,

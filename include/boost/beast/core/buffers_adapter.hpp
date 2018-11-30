@@ -36,7 +36,7 @@ namespace beast {
 template<class MutableBufferSequence>
 class buffers_adapter
 {
-    static_assert(boost::asio::is_mutable_buffer_sequence<MutableBufferSequence>::value,
+    static_assert(net::is_mutable_buffer_sequence<MutableBufferSequence>::value,
         "MutableBufferSequence requirements not met");
 
     using iter_type = typename

@@ -28,14 +28,14 @@ namespace websocket {
 namespace detail {
 
 template<class Handler>
-class teardown_tcp_op : public boost::asio::coroutine
+class teardown_tcp_op : public net::coroutine
 {
     using socket_type =
-        boost::asio::ip::tcp::socket;
+        net::ip::tcp::socket;
 
     Handler h_;
     socket_type& s_;
-    boost::asio::executor_work_guard<decltype(std::declval<
+    net::executor_work_guard<decltype(std::declval<
         socket_type&>().get_executor())> wg_;
     role_type role_;
     bool nb_;
@@ -57,21 +57,21 @@ public:
     }
 
     using allocator_type =
-        boost::asio::associated_allocator_t<Handler>;
+        net::associated_allocator_t<Handler>;
 
     allocator_type
     get_allocator() const noexcept
     {
-        return (boost::asio::get_associated_allocator)(h_);
+        return (net::get_associated_allocator)(h_);
     }
 
-    using executor_type = boost::asio::associated_executor_t<
+    using executor_type = net::associated_executor_t<
         Handler, decltype(std::declval<socket_type&>().get_executor())>;
 
     executor_type
     get_executor() const noexcept
     {
-        return (boost::asio::get_associated_executor)(
+        return (net::get_associated_executor)(
             h_, s_.get_executor());
     }
 
@@ -83,7 +83,7 @@ public:
     friend
     bool asio_handler_is_continuation(teardown_tcp_op* op)
     {
-        using boost::asio::asio_handler_is_continuation;
+        using net::asio_handler_is_continuation;
         return asio_handler_is_continuation(
             std::addressof(op->h_));
     }
@@ -92,7 +92,7 @@ public:
     friend
     void asio_handler_invoke(Function&& f, teardown_tcp_op* op)
     {
-        using boost::asio::asio_handler_invoke;
+        using net::asio_handler_invoke;
         asio_handler_invoke(f, std::addressof(op->h_));
     }
 };
@@ -102,8 +102,8 @@ void
 teardown_tcp_op<Handler>::
 operator()(error_code ec, std::size_t bytes_transferred)
 {
-    using boost::asio::buffer;
-    using tcp = boost::asio::ip::tcp;
+    using net::buffer;
+    using tcp = net::ip::tcp;
     BOOST_ASIO_CORO_REENTER(*this)
     {
         nb_ = s_.non_blocking();
@@ -116,7 +116,7 @@ operator()(error_code ec, std::size_t bytes_transferred)
         if(ec)
         {
             BOOST_ASIO_CORO_YIELD
-            boost::asio::post(
+            net::post(
                 s_.get_executor(),
                 beast::bind_front_handler(std::move(*this), ec, 0));
             goto upcall;
@@ -126,19 +126,19 @@ operator()(error_code ec, std::size_t bytes_transferred)
             {
                 char buf[2048];
                 s_.read_some(
-                    boost::asio::buffer(buf), ec);
+                    net::buffer(buf), ec);
             }
-            if(ec == boost::asio::error::would_block)
+            if(ec == net::error::would_block)
             {
                 BOOST_ASIO_CORO_YIELD
                 s_.async_wait(
-                    boost::asio::ip::tcp::socket::wait_read,
+                    net::ip::tcp::socket::wait_read,
                         std::move(*this));
                 continue;
             }
             if(ec)
             {
-                if(ec != boost::asio::error::eof)
+                if(ec != net::error::eof)
                     goto upcall;
                 ec = {};
                 break;
@@ -171,13 +171,13 @@ inline
 void
 teardown(
     role_type role,
-    boost::asio::ip::tcp::socket& socket,
+    net::ip::tcp::socket& socket,
     error_code& ec)
 {
-    using boost::asio::buffer;
+    using net::buffer;
     if(role == role_type::server)
         socket.shutdown(
-            boost::asio::ip::tcp::socket::shutdown_send, ec);
+            net::ip::tcp::socket::shutdown_send, ec);
     if(ec)
         return;
     for(;;)
@@ -187,7 +187,7 @@ teardown(
             socket.read_some(buffer(buf), ec);
         if(ec)
         {
-            if(ec != boost::asio::error::eof)
+            if(ec != net::error::eof)
                 return;
             ec = {};
             break;
@@ -200,7 +200,7 @@ teardown(
     }
     if(role == role_type::client)
         socket.shutdown(
-            boost::asio::ip::tcp::socket::shutdown_send, ec);
+            net::ip::tcp::socket::shutdown_send, ec);
     if(ec)
         return;
     socket.close(ec);
@@ -211,7 +211,7 @@ inline
 void
 async_teardown(
     role_type role,
-    boost::asio::ip::tcp::socket& socket,
+    net::ip::tcp::socket& socket,
     TeardownHandler&& handler)
 {
     static_assert(beast::is_completion_handler<

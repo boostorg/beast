@@ -58,10 +58,10 @@ public:
     {
         char buf[12];
         buffers_suffix<
-            boost::asio::const_buffer> cb1{
+            net::const_buffer> cb1{
                 boost::in_place_init, buf, sizeof(buf)};
         buffers_suffix<
-            boost::asio::const_buffer> cb2{
+            net::const_buffer> cb2{
                 boost::in_place_init, nullptr, 0};
         cb2 = cb1;
         cb1 = std::move(cb2);
@@ -71,8 +71,8 @@ public:
     testMatrix()
     {
         using namespace test;
-        using boost::asio::buffer;
-        using boost::asio::const_buffer;
+        using net::buffer;
+        using net::const_buffer;
         char buf[12];
         std::string const s = "Hello, world";
         BEAST_EXPECT(s.size() == sizeof(buf));
@@ -116,11 +116,11 @@ public:
     testDefaultCtor()
     {
         using namespace test;
-        class test_buffer : public boost::asio::const_buffer
+        class test_buffer : public net::const_buffer
         {
         public:
             test_buffer()
-                : boost::asio::const_buffer("\r\n", 2)
+                : net::const_buffer("\r\n", 2)
             {
             }
         };
@@ -134,20 +134,20 @@ public:
     {
         using namespace test;
         buffers_suffix<buffers_cat_view<
-            boost::asio::const_buffer,
-            boost::asio::const_buffer>> cb(
+            net::const_buffer,
+            net::const_buffer>> cb(
                 boost::in_place_init,
-                    boost::asio::const_buffer("\r", 1),
-                    boost::asio::const_buffer("\n", 1));
+                    net::const_buffer("\r", 1),
+                    net::const_buffer("\n", 1));
         BEAST_EXPECT(buffers_to_string(cb) == "\r\n");
     }
 
     void
     testEmptyBuffers()
     {
-        using boost::asio::buffer_copy;
-        using boost::asio::buffer_size;
-        using boost::asio::mutable_buffer;
+        using net::buffer_copy;
+        using net::buffer_size;
+        using net::mutable_buffer;
         buffers_suffix<mutable_buffer> cb(
             mutable_buffer{});
         BEAST_EXPECT(buffer_size(cb) == 0);
@@ -159,7 +159,7 @@ public:
     void
     testIterator()
     {
-        using boost::asio::const_buffer;
+        using net::const_buffer;
         std::array<const_buffer, 3> ba;
         buffers_suffix<decltype(ba)> cb(ba);
         std::size_t n = 0;

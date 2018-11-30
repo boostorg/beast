@@ -42,7 +42,7 @@ struct span_body_test
             BEAST_EXPECTS(! ec, ec.message());
             if(! BEAST_EXPECT(buf != boost::none))
                 return;
-            BEAST_EXPECT(boost::asio::buffer_size(buf->first) == 3);
+            BEAST_EXPECT(net::buffer_size(buf->first) == 3);
             BEAST_EXPECT(! buf->second);
         }
         {
@@ -54,13 +54,13 @@ struct span_body_test
             error_code ec;
             w.init(boost::none, ec);
             BEAST_EXPECTS(! ec, ec.message());
-            w.put(boost::asio::const_buffer{
+            w.put(net::const_buffer{
                 "123", 3}, ec);
             BEAST_EXPECTS(! ec, ec.message());
             BEAST_EXPECT(buf[0] == '1');
             BEAST_EXPECT(buf[1] == '2');
             BEAST_EXPECT(buf[2] == '3');
-            w.put(boost::asio::const_buffer{
+            w.put(net::const_buffer{
                 "456", 3}, ec);
             BEAST_EXPECTS(ec == error::buffer_overflow, ec.message());
         }

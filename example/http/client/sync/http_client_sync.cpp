@@ -24,8 +24,10 @@
 #include <iostream>
 #include <string>
 
-using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
-namespace http = boost::beast::http;    // from <boost/beast/http.hpp>
+namespace beast = boost::beast;     // from <boost/beast.hpp>
+namespace http = beast::http;       // from <boost/beast/http.hpp>
+namespace net = boost::asio;        // from <boost/asio.hpp>
+using tcp = net::ip::tcp;           // from <boost/asio/ip/tcp.hpp>
 
 // Performs an HTTP GET and prints the response
 int main(int argc, char** argv)
@@ -48,7 +50,7 @@ int main(int argc, char** argv)
         int version = argc == 5 && !std::strcmp("1.0", argv[4]) ? 10 : 11;
 
         // The io_context is required for all I/O
-        boost::asio::io_context ioc;
+        net::io_context ioc;
 
         // These objects perform our I/O
         tcp::resolver resolver{ioc};
@@ -58,7 +60,7 @@ int main(int argc, char** argv)
         auto const results = resolver.resolve(host, port);
 
         // Make the connection on the IP address we get from a lookup
-        boost::asio::connect(socket, results.begin(), results.end());
+        net::connect(socket, results.begin(), results.end());
 
         // Set up an HTTP GET request message
         http::request<http::string_body> req{http::verb::get, target, version};
@@ -69,7 +71,7 @@ int main(int argc, char** argv)
         http::write(socket, req);
 
         // This buffer is used for reading and must be persisted
-        boost::beast::flat_buffer buffer;
+        beast::flat_buffer buffer;
 
         // Declare a container to hold the response
         http::response<http::dynamic_body> res;
@@ -81,14 +83,14 @@ int main(int argc, char** argv)
         std::cout << res << std::endl;
 
         // Gracefully close the socket
-        boost::system::error_code ec;
+        beast::error_code ec;
         socket.shutdown(tcp::socket::shutdown_both, ec);
 
         // not_connected happens sometimes
         // so don't bother reporting it.
         //
-        if(ec && ec != boost::system::errc::not_connected)
-            throw boost::system::system_error{ec};
+        if(ec && ec != beast::errc::not_connected)
+            throw beast::system_error{ec};
 
         // If we get here then the connection is closed gracefully
     }

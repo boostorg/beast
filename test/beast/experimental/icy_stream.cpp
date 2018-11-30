@@ -30,8 +30,8 @@ public:
     void
     doMatrix(string_view in, string_view out)
     {
-        using boost::asio::mutable_buffer;
-        boost::asio::io_context ioc;
+        using net::mutable_buffer;
+        net::io_context ioc;
         auto len = out.size() + 8;
         std::unique_ptr<char[]> p(new char[len]);
         for(std::size_t i = 1; i < len; ++i)
@@ -62,7 +62,7 @@ public:
                                 break;
                         }
                         if(! BEAST_EXPECTS(
-                            ec == boost::asio::error::eof, ec.message()))
+                            ec == net::error::eof, ec.message()))
                             continue;
                         auto const s = buffers_to_string(ba.data());
                         BEAST_EXPECTS(s == out, s);
@@ -93,7 +93,7 @@ public:
                                 break;
                         }
                         if(! BEAST_EXPECTS(
-                            ec == boost::asio::error::eof, ec.message()))
+                            ec == net::error::eof, ec.message()))
                             continue;
                         auto const s = buffers_to_string(ba.data());
                         if(! BEAST_EXPECTS(s == out, s))

@@ -117,8 +117,8 @@ public:
         put(ConstBufferSequence const& buffers,
             error_code& ec)
         {
-            using boost::asio::buffer_size;
-            using boost::asio::buffer_copy;
+            using net::buffer_size;
+            using net::buffer_copy;
             auto const extra = buffer_size(buffers);
             auto const size = body_.size();
             try
@@ -162,7 +162,7 @@ public:
 
     public:
         using const_buffers_type =
-            boost::asio::const_buffer;
+            net::const_buffer;
 
         template<bool isRequest, class Fields>
         explicit

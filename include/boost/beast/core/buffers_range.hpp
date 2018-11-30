@@ -64,7 +64,7 @@ detail::buffers_range_adaptor<ConstBufferSequence>
 buffers_range(ConstBufferSequence const& buffers)
 {
     static_assert(
-        boost::asio::is_const_buffer_sequence<ConstBufferSequence>::value,
+        net::is_const_buffer_sequence<ConstBufferSequence>::value,
         "ConstBufferSequence requirements not met");
     return detail::buffers_range_adaptor<ConstBufferSequence>(buffers);
 }
@@ -78,7 +78,7 @@ detail::buffers_range_adaptor<ConstBufferSequence const&>
 buffers_range(std::reference_wrapper<ConstBufferSequence> buffers)
 {
     static_assert(
-        boost::asio::is_const_buffer_sequence<ConstBufferSequence>::value,
+        net::is_const_buffer_sequence<ConstBufferSequence>::value,
         "ConstBufferSequence requirements not met");
     return detail::buffers_range_adaptor<ConstBufferSequence const&>(buffers.get());
 }

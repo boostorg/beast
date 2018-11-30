@@ -38,8 +38,8 @@ public:
     void
     failMatrix(char const* s, yield_context do_yield)
     {
-        using boost::asio::buffer;
-        using boost::asio::buffer_copy;
+        using net::buffer;
+        using net::buffer_copy;
         static std::size_t constexpr limit = 100;
         std::size_t n;
         auto const len = strlen(s);
@@ -373,7 +373,7 @@ public:
         {
             // Make sure handlers are not destroyed
             // after calling io_context::stop
-            boost::asio::io_context ioc;
+            net::io_context ioc;
             test::stream ts{ioc,
                 "GET / HTTP/1.1\r\n\r\n"};
             BEAST_EXPECT(handler::count() == 0);
@@ -392,7 +392,7 @@ public:
             // Make sure uninvoked handlers are
             // destroyed when calling ~io_context
             {
-                boost::asio::io_context ioc;
+                net::io_context ioc;
                 test::stream ts{ioc,
                     "GET / HTTP/1.1\r\n\r\n"};
                 BEAST_EXPECT(handler::count() == 0);
@@ -431,7 +431,7 @@ public:
     void
     readgrind(string_view s, Pred&& pred)
     {
-        using boost::asio::buffer;
+        using net::buffer;
         for(std::size_t n = 1; n < s.size() - 1; ++n)
         {
             Parser p;
@@ -493,40 +493,40 @@ public:
     void
     testAsioHandlerInvoke()
     {
-        using strand = boost::asio::strand<
-            boost::asio::io_context::executor_type>;
+        using strand = net::strand<
+            net::io_context::executor_type>;
 
         // make sure things compile, also can set a
         // breakpoint in asio_handler_invoke to make sure
         // it is instantiated.
         {
-            boost::asio::io_context ioc;
+            net::io_context ioc;
             strand s{ioc.get_executor()};
             test::stream ts{ioc};
             flat_buffer b;
             request_parser<dynamic_body> p;
             async_read_some(ts, b, p,
-                boost::asio::bind_executor(
+                net::bind_executor(
                     s, copyable_handler{}));
         }
         {
-            boost::asio::io_context ioc;
+            net::io_context ioc;
             strand s{ioc.get_executor()};
             test::stream ts{ioc};
             flat_buffer b;
             request_parser<dynamic_body> p;
             async_read(ts, b, p,
-                boost::asio::bind_executor(
+                net::bind_executor(
                     s, copyable_handler{}));
         }
         {
-            boost::asio::io_context ioc;
+            net::io_context ioc;
             strand s{ioc.get_executor()};
             test::stream ts{ioc};
             flat_buffer b;
             request<dynamic_body> m;
             async_read(ts, b, m,
-                boost::asio::bind_executor(
+                net::bind_executor(
                     s, copyable_handler{}));
         }
     }

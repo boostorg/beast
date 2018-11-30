@@ -32,7 +32,7 @@ struct buffers_cat_view_iterator_base
     {
         char unused = 0; // make g++8 happy
 
-        boost::asio::mutable_buffer
+        net::mutable_buffer
         operator*() const
         {
             BOOST_THROW_EXCEPTION(std::logic_error{
@@ -119,11 +119,11 @@ private:
     void
     next(C<I> const&)
     {
-        if(boost::asio::buffer_size(
+        if(net::buffer_size(
             detail::get<I>(*bn_)) != 0)
         {
             it_.template emplace<I+1>(
-                boost::asio::buffer_sequence_begin(
+                net::buffer_sequence_begin(
                     detail::get<I>(*bn_)));
             return;
         }
@@ -142,11 +142,11 @@ private:
     void
     prev(C<I> const&)
     {
-        if(boost::asio::buffer_size(
+        if(net::buffer_size(
             detail::get<I>(*bn_)) != 0)
         {
             it_.template emplace<I+1>(
-                boost::asio::buffer_sequence_end(
+                net::buffer_sequence_end(
                     detail::get<I>(*bn_)));
             return;
         }
@@ -158,7 +158,7 @@ private:
     {
         auto constexpr I = 0;
         it_.template emplace<I+1>(
-            boost::asio::buffer_sequence_end(
+            net::buffer_sequence_end(
                 detail::get<I>(*bn_)));
     }
 
@@ -205,7 +205,7 @@ private:
         operator()(mp11::mp_size_t<I>)
         {
             auto& it = self.it_.template get<I>();
-            if (++it == boost::asio::buffer_sequence_end(
+            if (++it == net::buffer_sequence_end(
                     detail::get<I - 1>(*self.bn_)))
                 self.next(C<I>());
         }
@@ -227,7 +227,7 @@ private:
         if(it_.index() == I+1)
         {
             if(it_.template get<I+1>() !=
-                boost::asio::buffer_sequence_begin(
+                net::buffer_sequence_begin(
                     detail::get<I>(*bn_)))
             {
                 --it_.template get<I+1>();
@@ -243,7 +243,7 @@ private:
     {
         auto constexpr I = 0;
         if(it_.template get<I+1>() !=
-            boost::asio::buffer_sequence_begin(
+            net::buffer_sequence_begin(
                 detail::get<I>(*bn_)))
         {
             --it_.template get<I+1>();

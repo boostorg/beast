@@ -19,13 +19,13 @@ namespace boost {
 namespace beast {
 namespace websocket {
 
-/** Tear down a `boost::asio::ssl::stream`.
+/** Tear down a `net::ssl::stream`.
 
     This tears down a connection. The implementation will call
     the overload of this function based on the `Stream` parameter
     used to consruct the socket. When `Stream` is a user defined
-    type, and not a `boost::asio::ip::tcp::socket` or any
-    `boost::asio::ssl::stream`, callers are responsible for
+    type, and not a `net::ip::tcp::socket` or any
+    `net::ssl::stream`, callers are responsible for
     providing a suitable overload of this function.
 
     @param role The role of the local endpoint
@@ -38,16 +38,16 @@ template<class SyncStream>
 void
 teardown(
     role_type role,
-    boost::asio::ssl::stream<SyncStream>& stream,
+    net::ssl::stream<SyncStream>& stream,
     error_code& ec);
 
-/** Start tearing down a `boost::asio::ssl::stream`.
+/** Start tearing down a `net::ssl::stream`.
 
     This begins tearing down a connection asynchronously.
     The implementation will call the overload of this function
     based on the `Stream` parameter used to consruct the socket.
     When `Stream` is a user defined type, and not a
-    `boost::asio::ip::tcp::socket` or any `boost::asio::ssl::stream`,
+    `net::ip::tcp::socket` or any `net::ssl::stream`,
     callers are responsible for providing a suitable overload
     of this function.
 
@@ -64,7 +64,7 @@ teardown(
     Regardless of whether the asynchronous operation completes
     immediately or not, the handler will not be invoked from within
     this function. Invocation of the handler will be performed in a
-    manner equivalent to using boost::asio::io_context::post().
+    manner equivalent to using net::io_context::post().
 
 */
 template<class AsyncStream, class TeardownHandler>
@@ -72,7 +72,7 @@ inline
 void
 async_teardown(
     role_type role,
-    boost::asio::ssl::stream<AsyncStream>& stream,
+    net::ssl::stream<AsyncStream>& stream,
     TeardownHandler&& handler);
 
 } // websocket

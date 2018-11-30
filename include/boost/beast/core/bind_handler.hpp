@@ -38,10 +38,10 @@ namespace beast {
     void
     signal_aborted(AsyncReadStream& stream, ReadHandler&& handler)
     {
-        boost::asio::post(
+        net::post(
             stream.get_executor(),
             bind_handler(std::forward<ReadHandler>(handler),
-                boost::asio::error::operation_aborted, 0));
+                net::error::operation_aborted, 0));
     }
     @endcode
 
@@ -90,10 +90,10 @@ bind_handler(Handler&& handler, Args&&... args)
     void
     signal_aborted(AsyncReadStream& stream, ReadHandler&& handler)
     {
-        boost::asio::post(
+        net::post(
             stream.get_executor(),
             bind_front_handler(std::forward<ReadHandler>(handler),
-                boost::asio::error::operation_aborted, 0));
+                net::error::operation_aborted, 0));
     }
     @endcode
 

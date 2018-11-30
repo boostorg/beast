@@ -24,7 +24,7 @@ chunk_header::
 chunk_header(std::size_t size)
     : view_(
         size,
-        boost::asio::const_buffer{nullptr, 0},
+        net::const_buffer{nullptr, 0},
         chunk_crlf{})
 {
     BOOST_ASSERT(size > 0);
@@ -37,7 +37,7 @@ chunk_header(
     string_view extensions)
     : view_(
         size,
-        boost::asio::const_buffer{
+        net::const_buffer{
             extensions.data(), extensions.size()},
         chunk_crlf{})
 {
@@ -89,8 +89,8 @@ template<class ConstBufferSequence>
 chunk_body<ConstBufferSequence>::
 chunk_body(ConstBufferSequence const& buffers)
     : view_(
-        boost::asio::buffer_size(buffers),
-        boost::asio::const_buffer{nullptr, 0},
+        net::buffer_size(buffers),
+        net::const_buffer{nullptr, 0},
         chunk_crlf{},
         buffers,
         chunk_crlf{})
@@ -103,8 +103,8 @@ chunk_body(
     ConstBufferSequence const& buffers,
     string_view extensions)
     : view_(
-        boost::asio::buffer_size(buffers),
-        boost::asio::const_buffer{
+        net::buffer_size(buffers),
+        net::const_buffer{
             extensions.data(), extensions.size()},
         chunk_crlf{},
         buffers,
@@ -122,7 +122,7 @@ chunk_body(
         typename std::decay<ChunkExtensions>::type>>(
             std::forward<ChunkExtensions>(extensions)))
     , view_(
-        boost::asio::buffer_size(buffers),
+        net::buffer_size(buffers),
         exts_->str(),
         chunk_crlf{},
         buffers,
@@ -141,7 +141,7 @@ chunk_body(
         typename std::decay<ChunkExtensions>::type>>(allocator,
             std::forward<ChunkExtensions>(extensions)))
     , view_(
-        boost::asio::buffer_size(buffers),
+        net::buffer_size(buffers),
         exts_->str(),
         chunk_crlf{},
         buffers,

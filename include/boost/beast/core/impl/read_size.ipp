@@ -43,7 +43,7 @@ read_size(DynamicBuffer& buffer,
     std::size_t max_size, std::false_type)
 {
     static_assert(
-        boost::asio::is_dynamic_buffer<DynamicBuffer>::value,
+        net::is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
     BOOST_ASSERT(max_size >= 1);
     auto const size = buffer.size();

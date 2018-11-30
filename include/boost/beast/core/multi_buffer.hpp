@@ -86,8 +86,8 @@ class basic_multi_buffer
     using const_iter = typename list_type::const_iterator;
 
     using size_type = typename alloc_traits::size_type;
-    using const_buffer = boost::asio::const_buffer;
-    using mutable_buffer = boost::asio::mutable_buffer;
+    using const_buffer = net::const_buffer;
+    using mutable_buffer = net::mutable_buffer;
 
     static_assert(std::is_base_of<std::bidirectional_iterator_tag,
         typename std::iterator_traits<iter>::iterator_category>::value,

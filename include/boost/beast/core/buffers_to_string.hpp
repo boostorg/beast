@@ -45,10 +45,10 @@ std::string
 buffers_to_string(ConstBufferSequence const& buffers)
 {
     static_assert(
-        boost::asio::is_const_buffer_sequence<ConstBufferSequence>::value,
+        net::is_const_buffer_sequence<ConstBufferSequence>::value,
         "ConstBufferSequence requirements not met");
     std::string result;
-    result.reserve(boost::asio::buffer_size(buffers));
+    result.reserve(net::buffer_size(buffers));
     for(auto const buffer : buffers_range(std::ref(buffers)))
         result.append(static_cast<char const*>(
             buffer.data()), buffer.size());

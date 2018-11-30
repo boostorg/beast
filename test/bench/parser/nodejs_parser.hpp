@@ -265,7 +265,7 @@ std::size_t
 nodejs_basic_parser<Derived>::write(
     ConstBufferSequence const& buffers, error_code& ec)
 {
-    static_assert(boost::asio::is_const_buffer_sequence<
+    static_assert(net::is_const_buffer_sequence<
         ConstBufferSequence>::value,
             "ConstBufferSequence requirements not met");
     std::size_t bytes_used = 0;

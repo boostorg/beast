@@ -40,7 +40,7 @@ class bind_wrapper
     // Can't friend partial specializations,
     // so we just friend the whole thing.
     template<class T, class Executor>
-    friend struct boost::asio::associated_executor;
+    friend struct net::associated_executor;
 
     template<class Arg, class Vals>
     static
@@ -123,7 +123,7 @@ public:
     using result_type = void;
 
     using allocator_type =
-        boost::asio::associated_allocator_t<Handler>;
+        net::associated_allocator_t<Handler>;
 
     bind_wrapper(bind_wrapper&&) = default;
     bind_wrapper(bind_wrapper const&) = default;
@@ -140,14 +140,14 @@ public:
     allocator_type
     get_allocator() const noexcept
     {
-        return (boost::asio::get_associated_allocator)(h_);
+        return (net::get_associated_allocator)(h_);
     }
 
     friend
     bool
     asio_handler_is_continuation(bind_wrapper* w)
     {
-        using boost::asio::asio_handler_is_continuation;
+        using net::asio_handler_is_continuation;
         return asio_handler_is_continuation(std::addressof(w->h_));
     }
 
@@ -155,7 +155,7 @@ public:
     friend
     void asio_handler_invoke(Function&& f, bind_wrapper* w)
     {
-        using boost::asio::asio_handler_invoke;
+        using net::asio_handler_invoke;
         asio_handler_invoke(f, std::addressof(w->h_));
     }
 
@@ -194,13 +194,13 @@ class bind_front_wrapper<Handler>
     // Can't friend partial specializations,
     // so we just friend the whole thing.
     template<class T, class Executor>
-    friend struct boost::asio::associated_executor;
+    friend struct net::associated_executor;
 
 public:
     using result_type = void;
 
     using allocator_type =
-        boost::asio::associated_allocator_t<Handler>;
+        net::associated_allocator_t<Handler>;
 
     bind_front_wrapper(bind_front_wrapper&&) = default;
     bind_front_wrapper(bind_front_wrapper const&) = default;
@@ -215,14 +215,14 @@ public:
     allocator_type
     get_allocator() const noexcept
     {
-        return boost::asio::get_associated_allocator(h_);
+        return net::get_associated_allocator(h_);
     }
 
     friend
     bool
     asio_handler_is_continuation(bind_front_wrapper* w)
     {
-        using boost::asio::asio_handler_is_continuation;
+        using net::asio_handler_is_continuation;
         return asio_handler_is_continuation(std::addressof(w->h_));
     }
 
@@ -230,7 +230,7 @@ public:
     friend
     void asio_handler_invoke(Function&& f, bind_front_wrapper* w)
     {
-        using boost::asio::asio_handler_invoke;
+        using net::asio_handler_invoke;
         asio_handler_invoke(f, std::addressof(w->h_));
     }
 
@@ -251,13 +251,13 @@ class bind_front_wrapper<Handler, Arg>
     // Can't friend partial specializations,
     // so we just friend the whole thing.
     template<class T, class Executor>
-    friend struct boost::asio::associated_executor;
+    friend struct net::associated_executor;
 
 public:
     using result_type = void;
 
     using allocator_type =
-        boost::asio::associated_allocator_t<Handler>;
+        net::associated_allocator_t<Handler>;
 
     bind_front_wrapper(bind_front_wrapper&&) = default;
     bind_front_wrapper(bind_front_wrapper const&) = default;
@@ -273,14 +273,14 @@ public:
     allocator_type
     get_allocator() const noexcept
     {
-        return boost::asio::get_associated_allocator(h_);
+        return net::get_associated_allocator(h_);
     }
 
     friend
     bool
     asio_handler_is_continuation(bind_front_wrapper* w)
     {
-        using boost::asio::asio_handler_is_continuation;
+        using net::asio_handler_is_continuation;
         return asio_handler_is_continuation(std::addressof(w->h_));
     }
 
@@ -288,7 +288,7 @@ public:
     friend
     void asio_handler_invoke(Function&& f, bind_front_wrapper* w)
     {
-        using boost::asio::asio_handler_invoke;
+        using net::asio_handler_invoke;
         asio_handler_invoke(f, std::addressof(w->h_));
     }
 
@@ -311,13 +311,13 @@ class bind_front_wrapper<Handler, Arg1, Arg2>
     // Can't friend partial specializations,
     // so we just friend the whole thing.
     template<class T, class Executor>
-    friend struct boost::asio::associated_executor;
+    friend struct net::associated_executor;
 
 public:
     using result_type = void;
 
     using allocator_type =
-        boost::asio::associated_allocator_t<Handler>;
+        net::associated_allocator_t<Handler>;
 
     bind_front_wrapper(bind_front_wrapper&&) = default;
     bind_front_wrapper(bind_front_wrapper const&) = default;
@@ -334,14 +334,14 @@ public:
     allocator_type
     get_allocator() const noexcept
     {
-        return boost::asio::get_associated_allocator(h_);
+        return net::get_associated_allocator(h_);
     }
 
     friend
     bool
     asio_handler_is_continuation(bind_front_wrapper* w)
     {
-        using boost::asio::asio_handler_is_continuation;
+        using net::asio_handler_is_continuation;
         return asio_handler_is_continuation(std::addressof(w->h_));
     }
 
@@ -349,7 +349,7 @@ public:
     friend
     void asio_handler_invoke(Function&& f, bind_front_wrapper* w)
     {
-        using boost::asio::asio_handler_invoke;
+        using net::asio_handler_invoke;
         asio_handler_invoke(f, std::addressof(w->h_));
     }
 
@@ -379,7 +379,7 @@ class bind_front_wrapper<Handler, Arg1, Arg2, Arg3, Args...>
     // Can't friend partial specializations,
     // so we just friend the whole thing.
     template<class T, class Executor>
-    friend struct boost::asio::associated_executor;
+    friend struct net::associated_executor;
 
     template<std::size_t... I, class... Ts>
     void
@@ -395,7 +395,7 @@ public:
     using result_type = void;
 
     using allocator_type =
-        boost::asio::associated_allocator_t<Handler>;
+        net::associated_allocator_t<Handler>;
 
     bind_front_wrapper(bind_front_wrapper&&) = default;
     bind_front_wrapper(bind_front_wrapper const&) = default;
@@ -416,14 +416,14 @@ public:
     allocator_type
     get_allocator() const noexcept
     {
-        return boost::asio::get_associated_allocator(h_);
+        return net::get_associated_allocator(h_);
     }
 
     friend
     bool
     asio_handler_is_continuation(bind_front_wrapper* w)
     {
-        using boost::asio::asio_handler_is_continuation;
+        using net::asio_handler_is_continuation;
         return asio_handler_is_continuation(std::addressof(w->h_));
     }
 
@@ -431,7 +431,7 @@ public:
     friend
     void asio_handler_invoke(Function&& f, bind_front_wrapper* w)
     {
-        using boost::asio::asio_handler_invoke;
+        using net::asio_handler_invoke;
         asio_handler_invoke(f, std::addressof(w->h_));
     }
 
@@ -461,7 +461,7 @@ public:
     using result_type = void;
 
     using allocator_type =
-        boost::asio::associated_allocator_t<Handler>;
+        net::associated_allocator_t<Handler>;
 
     bind_front_wrapper(bind_front_wrapper&&) = default;
     bind_front_wrapper(bind_front_wrapper const&) = default;
@@ -478,14 +478,14 @@ public:
     allocator_type
     get_allocator() const noexcept
     {
-        return boost::asio::get_associated_allocator(h_);
+        return net::get_associated_allocator(h_);
     }
 
     friend
     bool
     asio_handler_is_continuation(bind_front_wrapper* w)
     {
-        using boost::asio::asio_handler_is_continuation;
+        using net::asio_handler_is_continuation;
         return asio_handler_is_continuation(std::addressof(w->h_));
     }
 
@@ -493,7 +493,7 @@ public:
     friend
     void asio_handler_invoke(Function&& f, bind_front_wrapper* w)
     {
-        using boost::asio::asio_handler_invoke;
+        using net::asio_handler_invoke;
         asio_handler_invoke(f, std::addressof(w->h_));
     }
 

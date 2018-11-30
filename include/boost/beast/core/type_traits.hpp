@@ -76,7 +76,7 @@ using is_completion_handler = std::integral_constant<bool,
     template<class T>
     void maybe_hello(T& t, std::true_type)
     {
-        boost::asio::post(
+        net::post(
             t.get_executor(),
             []
             {
@@ -102,7 +102,7 @@ using is_completion_handler = std::integral_constant<bool,
     @code
     struct stream
     {
-        using executor_type = boost::asio::io_context::executor_type;
+        using executor_type = net::io_context::executor_type;
         executor_type get_executor() noexcept;
     };
 

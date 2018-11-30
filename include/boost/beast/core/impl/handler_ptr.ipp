@@ -23,9 +23,9 @@ handler_ptr<T, Handler>::
 clear()
 {
     typename beast::detail::allocator_traits<
-        boost::asio::associated_allocator_t<
+        net::associated_allocator_t<
             Handler>>::template rebind_alloc<T> alloc(
-                boost::asio::get_associated_allocator(
+                net::get_associated_allocator(
                     handler()));
     beast::detail::allocator_traits<
         decltype(alloc)>::destroy(alloc, t_);
@@ -65,9 +65,9 @@ handler_ptr(DeducedHandler&& h, Args&&... args)
 {
     BOOST_STATIC_ASSERT(! std::is_array<T>::value);
     typename beast::detail::allocator_traits<
-        boost::asio::associated_allocator_t<
+        net::associated_allocator_t<
             Handler>>::template rebind_alloc<T> alloc{
-                boost::asio::get_associated_allocator(h)};
+                net::get_associated_allocator(h)};
     using A = decltype(alloc);
     bool destroy = false;
     auto deleter = [&alloc, &destroy](T* p)

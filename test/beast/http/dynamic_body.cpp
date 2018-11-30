@@ -25,7 +25,7 @@ namespace http {
 
 class dynamic_body_test : public beast::unit_test::suite
 {
-    boost::asio::io_context ioc_;
+    net::io_context ioc_;
 
 public:
     template<bool isRequest, class Body, class Fields>

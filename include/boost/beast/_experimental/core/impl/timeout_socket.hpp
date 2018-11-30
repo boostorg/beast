@@ -61,30 +61,30 @@ public:
     }
 
     using allocator_type =
-        boost::asio::associated_allocator_t<Handler>;
+        net::associated_allocator_t<Handler>;
 
     allocator_type
     get_allocator() const noexcept
     {
-        return boost::asio::get_associated_allocator(h_);
+        return net::get_associated_allocator(h_);
     }
 
     using executor_type =
-        boost::asio::associated_executor_t<Handler,
+        net::associated_executor_t<Handler,
             decltype(std::declval<basic_timeout_socket<
                 Protocol, Executor>&>().get_executor())>;
 
     executor_type
     get_executor() const noexcept
     {
-        return boost::asio::get_associated_executor(
+        return net::get_associated_executor(
             h_, s_.get_executor());
     }
 
     friend
     bool asio_handler_is_continuation(async_op* op)
     {
-        using boost::asio::asio_handler_is_continuation;
+        using net::asio_handler_is_continuation;
         return asio_handler_is_continuation(
             std::addressof(op->h_));
     }
@@ -93,7 +93,7 @@ public:
     friend
     void asio_handler_invoke(Function&& f, async_op* op)
     {
-        using boost::asio::asio_handler_invoke;
+        using net::asio_handler_invoke;
         asio_handler_invoke(f, std::addressof(op->h_));
     }
 
@@ -115,8 +115,8 @@ private:
     Handler h_;
     basic_timeout_socket& s_;
     timeout_work_guard work_;
-    boost::asio::executor_work_guard<Executor> wg0_;
-    boost::asio::executor_work_guard<executor_type> wg1_;
+    net::executor_work_guard<Executor> wg0_;
+    net::executor_work_guard<executor_type> wg1_;
     detail::saved_handler& saved_;
 };
 
@@ -177,7 +177,7 @@ async_read_some(
     MutableBufferSequence const& buffers,
     ReadHandler&& handler)
 {
-    static_assert(boost::asio::is_mutable_buffer_sequence<
+    static_assert(net::is_mutable_buffer_sequence<
         MutableBufferSequence>::value,
             "MutableBufferSequence requirements not met");
     BOOST_BEAST_HANDLER_INIT(
@@ -198,7 +198,7 @@ async_write_some(
     ConstBufferSequence const& buffers,
     WriteHandler&& handler)
 {
-    static_assert(boost::asio::is_const_buffer_sequence<
+    static_assert(net::is_const_buffer_sequence<
         ConstBufferSequence>::value,
             "ConstBufferSequence requirements not met");
     BOOST_BEAST_HANDLER_INIT(
@@ -235,36 +235,36 @@ public:
         , wg0_(s_.get_executor())
         , wg1_(get_executor())
     {
-        boost::asio::async_connect(
+        net::async_connect(
             s_.next_layer(), eps, cond,
                 std::move(*this));
     }
 
     using allocator_type =
-        boost::asio::associated_allocator_t<Handler>;
+        net::associated_allocator_t<Handler>;
 
     allocator_type
     get_allocator() const noexcept
     {
-        return boost::asio::get_associated_allocator(h_);
+        return net::get_associated_allocator(h_);
     }
 
     using executor_type =
-        boost::asio::associated_executor_t<Handler,
+        net::associated_executor_t<Handler,
             decltype(std::declval<basic_timeout_socket<
                 Protocol, Executor>&>().get_executor())>;
 
     executor_type
     get_executor() const noexcept
     {
-        return boost::asio::get_associated_executor(
+        return net::get_associated_executor(
             h_, s_.get_executor());
     }
 
     friend
     bool asio_handler_is_continuation(connect_op* op)
     {
-        using boost::asio::asio_handler_is_continuation;
+        using net::asio_handler_is_continuation;
         return asio_handler_is_continuation(
             std::addressof(op->h_));
     }
@@ -273,7 +273,7 @@ public:
     friend
     void asio_handler_invoke(Function&& f, connect_op* op)
     {
-        using boost::asio::asio_handler_invoke;
+        using net::asio_handler_invoke;
         asio_handler_invoke(f, std::addressof(op->h_));
     }
 
@@ -296,8 +296,8 @@ private:
     Handler h_;
     timeout_work_guard work_;
     basic_timeout_socket<Protocol, Executor>& s_;
-    boost::asio::executor_work_guard<Executor> wg0_;
-    boost::asio::executor_work_guard<executor_type> wg1_;
+    net::executor_work_guard<Executor> wg0_;
+    net::executor_work_guard<executor_type> wg1_;
 };
 
 struct any_endpoint

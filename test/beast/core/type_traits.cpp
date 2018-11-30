@@ -142,7 +142,7 @@ BOOST_STATIC_ASSERT(! is_completion_handler<H, void(void)>::value);
 
 namespace {
 
-using stream_type = boost::asio::ip::tcp::socket;
+using stream_type = net::ip::tcp::socket;
 
 struct not_a_stream
 {

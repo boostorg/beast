@@ -30,8 +30,8 @@ public:
     /** The type of buffer returned when dereferencing an iterator.
 
         If every buffer sequence in the view is a @b MutableBufferSequence,
-        then `value_type` will be `boost::asio::mutable_buffer`.
-        Otherwise, `value_type` will be `boost::asio::const_buffer`.
+        then `value_type` will be `net::mutable_buffer`.
+        Otherwise, `value_type` will be `net::const_buffer`.
     */
 #if BOOST_BEAST_DOXYGEN
     using value_type = __implementation_defined__;

@@ -54,9 +54,9 @@ class pausation
         {
             Handler h(std::move(h_));
             typename beast::detail::allocator_traits<
-                boost::asio::associated_allocator_t<
+                net::associated_allocator_t<
                     Handler>>::template rebind_alloc<impl> alloc{
-                        boost::asio::get_associated_allocator(h)};
+                        net::get_associated_allocator(h)};
             beast::detail::allocator_traits<
                 decltype(alloc)>::destroy(alloc, this);
             beast::detail::allocator_traits<
@@ -68,9 +68,9 @@ class pausation
         {
             Handler h(std::move(h_));
             typename beast::detail::allocator_traits<
-                boost::asio::associated_allocator_t<
+                net::associated_allocator_t<
                     Handler>>::template rebind_alloc<impl> alloc{
-                        boost::asio::get_associated_allocator(h)};
+                        net::get_associated_allocator(h)};
             beast::detail::allocator_traits<
                 decltype(alloc)>::destroy(alloc, this);
             beast::detail::allocator_traits<
@@ -137,10 +137,10 @@ pausation::emplace(CompletionHandler&& handler)
 {
     BOOST_ASSERT(! h_);
     typename beast::detail::allocator_traits<
-        boost::asio::associated_allocator_t<
+        net::associated_allocator_t<
             CompletionHandler>>::template rebind_alloc<
                 impl<CompletionHandler>> alloc{
-                    boost::asio::get_associated_allocator(handler)};
+                    net::get_associated_allocator(handler)};
     using A = decltype(alloc);
     auto const d =
         [&alloc](impl<CompletionHandler>* p)

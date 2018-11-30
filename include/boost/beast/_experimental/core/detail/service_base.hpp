@@ -17,23 +17,23 @@ namespace beast {
 namespace detail {
 
 template<class T>
-class service_id : public boost::asio::execution_context::id
+class service_id : public net::execution_context::id
 {
 };
 
 template<class T>
 class service_base
-    : public boost::asio::execution_context::service
+    : public net::execution_context::service
 {
 protected:
-    boost::asio::execution_context& ctx_;
+    net::execution_context& ctx_;
 
 public:
     static service_id<T> id;
 
     explicit
-    service_base(boost::asio::execution_context& ctx)
-        : boost::asio::execution_context::service(ctx)
+    service_base(net::execution_context& ctx)
+        : net::execution_context::service(ctx)
         , ctx_(ctx)
     {
     }

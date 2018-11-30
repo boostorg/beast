@@ -1209,7 +1209,7 @@ public:
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
-        manner equivalent to using `boost::asio::io_context::post`.
+        manner equivalent to using `net::io_context::post`.
     */
     template<class HandshakeHandler>
     BOOST_ASIO_INITFN_RESULT_TYPE(
@@ -1261,7 +1261,7 @@ public:
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
-        manner equivalent to using `boost::asio::io_context::post`.
+        manner equivalent to using `net::io_context::post`.
     */
     template<class HandshakeHandler>
     BOOST_ASIO_INITFN_RESULT_TYPE(
@@ -1319,7 +1319,7 @@ public:
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
-        manner equivalent to using `boost::asio::io_context::post`.
+        manner equivalent to using `net::io_context::post`.
     */
     template<class RequestDecorator, class HandshakeHandler>
     BOOST_ASIO_INITFN_RESULT_TYPE(
@@ -1381,7 +1381,7 @@ public:
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
-        manner equivalent to using `boost::asio::io_context::post`.
+        manner equivalent to using `net::io_context::post`.
     */
     template<class RequestDecorator, class HandshakeHandler>
     BOOST_ASIO_INITFN_RESULT_TYPE(
@@ -1956,7 +1956,7 @@ public:
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
-        manner equivalent to using `boost::asio::io_context::post`.
+        manner equivalent to using `net::io_context::post`.
     */
     template<class AcceptHandler>
     BOOST_ASIO_INITFN_RESULT_TYPE(
@@ -2017,7 +2017,7 @@ public:
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
-        manner equivalent to using `boost::asio::io_context::post`.
+        manner equivalent to using `net::io_context::post`.
     */
     template<
         class ResponseDecorator,
@@ -2080,7 +2080,7 @@ public:
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
-        manner equivalent to using `boost::asio::io_context::post`.
+        manner equivalent to using `net::io_context::post`.
     */
     template<
         class ConstBufferSequence,
@@ -2158,7 +2158,7 @@ public:
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
-        manner equivalent to using `boost::asio::io_context::post`.
+        manner equivalent to using `net::io_context::post`.
     */
     template<
         class ConstBufferSequence,
@@ -2219,7 +2219,7 @@ public:
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
-        manner equivalent to using `boost::asio::io_context::post`.
+        manner equivalent to using `net::io_context::post`.
     */
     template<
         class Body, class Allocator,
@@ -2282,7 +2282,7 @@ public:
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
-        manner equivalent to using `boost::asio::io_context::post`.
+        manner equivalent to using `net::io_context::post`.
     */
     template<
         class Body, class Allocator,
@@ -2401,7 +2401,7 @@ public:
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
-        manner equivalent to using `boost::asio::io_context::post`.
+        manner equivalent to using `net::io_context::post`.
     */
     template<class CloseHandler>
     BOOST_ASIO_INITFN_RESULT_TYPE(
@@ -2464,7 +2464,7 @@ public:
 
         If a close frame is sent or received before the ping frame is
         sent, the completion handler will be called with the error
-        set to `boost::asio::error::operation_aborted`.
+        set to `net::error::operation_aborted`.
 
         @param payload The payload of the ping message, which may be empty.
 
@@ -2479,7 +2479,7 @@ public:
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
-        manner equivalent to using `boost::asio::io_context::post`.
+        manner equivalent to using `net::io_context::post`.
     */
     template<class WriteHandler>
     BOOST_ASIO_INITFN_RESULT_TYPE(
@@ -2557,7 +2557,7 @@ public:
 
         If a close frame is sent or received before the pong frame is
         sent, the completion handler will be called with the error
-        set to `boost::asio::error::operation_aborted`.
+        set to `net::error::operation_aborted`.
 
         @param payload The payload of the pong message, which may be empty.
 
@@ -2572,7 +2572,7 @@ public:
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
-        manner equivalent to using `boost::asio::io_context::post`.
+        manner equivalent to using `net::io_context::post`.
     */
     template<class WriteHandler>
     BOOST_ASIO_INITFN_RESULT_TYPE(
@@ -2731,7 +2731,7 @@ public:
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
-        manner equivalent to using `boost::asio::io_context::post`.
+        manner equivalent to using `net::io_context::post`.
     */
     template<class DynamicBuffer, class ReadHandler>
     BOOST_ASIO_INITFN_RESULT_TYPE(
@@ -2911,7 +2911,7 @@ public:
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
-        manner equivalent to using `boost::asio::io_context::post`.
+        manner equivalent to using `net::io_context::post`.
     */
     template<class DynamicBuffer, class ReadHandler>
     BOOST_ASIO_INITFN_RESULT_TYPE(
@@ -3084,7 +3084,7 @@ public:
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
-        manner equivalent to using `boost::asio::io_context::post`.
+        manner equivalent to using `net::io_context::post`.
     */
     template<class MutableBufferSequence, class ReadHandler>
     BOOST_ASIO_INITFN_RESULT_TYPE(
@@ -3225,7 +3225,7 @@ public:
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
-        manner equivalent to using `boost::asio::io_context::post`.
+        manner equivalent to using `net::io_context::post`.
     */
     template<
         class ConstBufferSequence,
@@ -3384,7 +3384,7 @@ private:
     {
         if(status_ != status::open)
         {
-            ec = boost::asio::error::operation_aborted;
+            ec = net::error::operation_aborted;
             return false;
         }
         ec.assign(0, ec.category());

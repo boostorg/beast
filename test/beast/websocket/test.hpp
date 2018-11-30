@@ -72,9 +72,9 @@ public:
         };
 
         std::ostream& log_;
-        boost::asio::io_context ioc_;
-        boost::asio::executor_work_guard<
-            boost::asio::io_context::executor_type> work_;
+        net::io_context ioc_;
+        net::executor_work_guard<
+            net::io_context::executor_type> work_;
         static_buffer<buf_size> buffer_;
         test::stream ts_;
         std::thread t_;
@@ -139,7 +139,7 @@ public:
         void
         async_close()
         {
-            boost::asio::post(ioc_,
+            net::post(ioc_,
             [&]
             {
                 if(ws_.is_open())
@@ -178,7 +178,7 @@ public:
     #if 0
                 if( se.code() != error::closed &&
                     se.code() != error::failed &&
-                    se.code() != boost::asio::error::eof)
+                    se.code() != net::error::eof)
                     log_ << "echo_server: " << se.code().message() << std::endl;
     #endif
             }
@@ -270,7 +270,7 @@ public:
     #if 0
             if( ec != error::closed &&
                 ec != error::failed &&
-                ec != boost::asio::error::eof)
+                ec != net::error::eof)
                 log_ <<
                     "echo_server_async: " <<
                     ec.message() <<
@@ -384,7 +384,7 @@ public:
     class cbuf_helper
     {
         std::array<std::uint8_t, N> v_;
-        boost::asio::const_buffer cb_;
+        net::const_buffer cb_;
 
     public:
         using value_type = decltype(cb_);
@@ -420,10 +420,10 @@ public:
 
     template<std::size_t N>
     static
-    boost::asio::const_buffer
+    net::const_buffer
     sbuf(const char (&s)[N])
     {
-        return boost::asio::const_buffer(&s[0], N-1);
+        return net::const_buffer(&s[0], N-1);
     }
 
     template<
@@ -434,8 +434,8 @@ public:
         DynamicBuffer& buffer,
         ConstBufferSequence const& buffers)
     {
-        using boost::asio::buffer_copy;
-        using boost::asio::buffer_size;
+        using net::buffer_copy;
+        using net::buffer_size;
         buffer.commit(buffer_copy(
             buffer.prepare(buffer_size(buffers)),
             buffers));
@@ -443,7 +443,7 @@ public:
 
     template<class Pred>
     bool
-    run_until(boost::asio::io_context& ioc,
+    run_until(net::io_context& ioc,
         std::size_t limit, Pred&& pred)
     {
         for(std::size_t i = 0; i < limit; ++i)
@@ -458,7 +458,7 @@ public:
     template<class Pred>
     bool
     run_until(
-        boost::asio::io_context& ioc, Pred&& pred)
+        net::io_context& ioc, Pred&& pred)
     {
         return run_until(ioc, 100, pred);
     }
@@ -699,7 +699,7 @@ public:
             stream<NextLayer, deflateSupported>& ws,
             ConstBufferSequence const& buffers) const
         {
-            return boost::asio::write(
+            return net::write(
                 ws.next_layer(), buffers);
         }
     };
@@ -708,11 +708,11 @@ public:
 
     class AsyncClient
     {
-        boost::asio::yield_context& yield_;
+        net::yield_context& yield_;
 
     public:
         explicit
-        AsyncClient(boost::asio::yield_context& yield)
+        AsyncClient(net::yield_context& yield)
             : yield_(yield)
         {
         }
@@ -1009,7 +1009,7 @@ public:
         {
             error_code ec;
             auto const bytes_transferred =
-                boost::asio::async_write(
+                net::async_write(
                     ws.next_layer(), buffers, yield_[ec]);
             if(ec)
                 throw system_error{ec};

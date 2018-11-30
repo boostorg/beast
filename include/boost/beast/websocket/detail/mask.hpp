@@ -49,7 +49,7 @@ rol(std::array<unsigned char, N>& v, std::size_t n)
 //
 inline
 void
-mask_inplace(boost::asio::mutable_buffer& b, prepared_key& key)
+mask_inplace(net::mutable_buffer& b, prepared_key& key)
 {
     auto n = b.size();
     auto mask = key; // avoid aliasing
@@ -75,7 +75,7 @@ template<class MutableBuffers, class KeyType>
 void
 mask_inplace(MutableBuffers const& bs, KeyType& key)
 {
-    for(boost::asio::mutable_buffer b :
+    for(net::mutable_buffer b :
             beast::buffers_range(std::ref(bs)))
         mask_inplace(b, key);
 }

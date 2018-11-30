@@ -70,7 +70,7 @@ void
 serializer<isRequest, Body, Fields>::
 next(error_code& ec, Visit&& visit)
 {
-    using boost::asio::buffer_size;
+    using net::buffer_size;
     switch(s_)
     {
     case do_construct:
@@ -166,12 +166,12 @@ next(error_code& ec, Visit&& visit)
                 boost::in_place_init,
                 fwr_->get(),
                 buffer_size(result->first),
-                boost::asio::const_buffer{nullptr, 0},
+                net::const_buffer{nullptr, 0},
                 chunk_crlf{},
                 result->first,
                 chunk_crlf{},
                 detail::chunk_last(),
-                boost::asio::const_buffer{nullptr, 0},
+                net::const_buffer{nullptr, 0},
                 chunk_crlf{});
             goto go_all_c;
         }
@@ -179,7 +179,7 @@ next(error_code& ec, Visit&& visit)
             boost::in_place_init,
             fwr_->get(),
             buffer_size(result->first),
-            boost::asio::const_buffer{nullptr, 0},
+            net::const_buffer{nullptr, 0},
             chunk_crlf{},
             result->first,
             chunk_crlf{});
@@ -218,19 +218,19 @@ next(error_code& ec, Visit&& visit)
             v_.template emplace<6>(
                 boost::in_place_init,
                 buffer_size(result->first),
-                boost::asio::const_buffer{nullptr, 0},
+                net::const_buffer{nullptr, 0},
                 chunk_crlf{},
                 result->first,
                 chunk_crlf{},
                 detail::chunk_last(),
-                boost::asio::const_buffer{nullptr, 0},
+                net::const_buffer{nullptr, 0},
                 chunk_crlf{});
             goto go_body_final_c;
         }
         v_.template emplace<5>(
             boost::in_place_init,
             buffer_size(result->first),
-            boost::asio::const_buffer{nullptr, 0},
+            net::const_buffer{nullptr, 0},
             chunk_crlf{},
             result->first,
             chunk_crlf{});
@@ -261,7 +261,7 @@ next(error_code& ec, Visit&& visit)
         v_.template emplace<8>(
             boost::in_place_init,
             detail::chunk_last(),
-            boost::asio::const_buffer{nullptr, 0},
+            net::const_buffer{nullptr, 0},
             chunk_crlf{});
         s_ = do_final_c + 1;
         BOOST_FALLTHROUGH;
@@ -289,7 +289,7 @@ void
 serializer<isRequest, Body, Fields>::
 consume(std::size_t n)
 {
-    using boost::asio::buffer_size;
+    using net::buffer_size;
     switch(s_)
     {
     case do_header:

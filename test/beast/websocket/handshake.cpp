@@ -490,7 +490,7 @@ public:
     void
     testMoveOnly()
     {
-        boost::asio::io_context ioc;
+        net::io_context ioc;
         stream<test::stream> ws{ioc};
         ws.async_handshake("", "", move_only_handler{});
     }
@@ -510,13 +510,13 @@ public:
         // make sure things compile, also can set a
         // breakpoint in asio_handler_invoke to make sure
         // it is instantiated.
-        boost::asio::io_context ioc;
-        boost::asio::strand<
-            boost::asio::io_context::executor_type> s(
+        net::io_context ioc;
+        net::strand<
+            net::io_context::executor_type> s(
                 ioc.get_executor());
         stream<test::stream> ws{ioc};
         ws.async_handshake("localhost", "/",
-            boost::asio::bind_executor(
+            net::bind_executor(
                 s, copyable_handler{}));
     }
 

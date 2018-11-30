@@ -31,17 +31,17 @@ namespace beast {
     is part of the object.
 
     The use-case for this class is different than that of the
-    `boost::asio::buffered_readstream`. It is designed to facilitate
-    the use of `boost::asio::read_until`, and to allow buffers
+    `net::buffered_readstream`. It is designed to facilitate
+    the use of `net::read_until`, and to allow buffers
     acquired during detection of handshakes to be made transparently
     available to callers. A hypothetical implementation of the
-    buffered version of `boost::asio::ssl::stream::async_handshake`
+    buffered version of `net::ssl::stream::async_handshake`
     could make use of this wrapper.
 
     Uses:
 
     @li Transparently leave untouched input acquired in calls
-      to `boost::asio::read_until` behind for subsequent callers.
+      to `net::read_until` behind for subsequent callers.
 
     @li "Preload" a stream with handshake input data acquired
       from other sources.
@@ -62,7 +62,7 @@ namespace beast {
         // part up to the end of the delimiter.
         //
         std::size_t bytes_transferred =
-            boost::asio::read_until(
+            net::read_until(
                 stream.next_layer(), stream.buffer(), "\r\n\r\n");
 
         // Use buffers_prefix() to limit the input
@@ -92,7 +92,7 @@ template<class Stream, class DynamicBuffer>
 class buffered_read_stream
 {
     static_assert(
-        boost::asio::is_dynamic_buffer<DynamicBuffer>::value,
+        net::is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
 
     template<class Buffers, class Handler>
@@ -283,7 +283,7 @@ public:
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
-        manner equivalent to using `boost::asio::io_context::post`.
+        manner equivalent to using `net::io_context::post`.
     */
     template<class MutableBufferSequence, class ReadHandler>
     BOOST_ASIO_INITFN_RESULT_TYPE(
@@ -355,7 +355,7 @@ public:
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
-        manner equivalent to using `boost::asio::io_context::post`.
+        manner equivalent to using `net::io_context::post`.
     */
     template<class ConstBufferSequence, class WriteHandler>
     BOOST_ASIO_INITFN_RESULT_TYPE(

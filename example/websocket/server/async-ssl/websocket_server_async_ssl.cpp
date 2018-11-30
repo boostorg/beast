@@ -31,15 +31,18 @@
 #include <thread>
 #include <vector>
 
-using tcp = boost::asio::ip::tcp;               // from <boost/asio/ip/tcp.hpp>
-namespace ssl = boost::asio::ssl;               // from <boost/asio/ssl.hpp>
-namespace websocket = boost::beast::websocket;  // from <boost/beast/websocket.hpp>
+namespace beast = boost::beast;         // from <boost/beast.hpp>
+namespace http = beast::http;           // from <boost/beast/http.hpp>
+namespace websocket = beast::websocket; // from <boost/beast/websocket.hpp>
+namespace net = boost::asio;            // from <boost/asio.hpp>
+namespace ssl = boost::asio::ssl;       // from <boost/asio/ssl.hpp>
+using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
 
 //------------------------------------------------------------------------------
 
 // Report a failure
 void
-fail(boost::system::error_code ec, char const* what)
+fail(beast::error_code ec, char const* what)
 {
     std::cerr << what << ": " << ec.message() << "\n";
 }
@@ -49,9 +52,9 @@ class session : public std::enable_shared_from_this<session>
 {
     tcp::socket socket_;
     websocket::stream<ssl::stream<tcp::socket&>> ws_;
-    boost::asio::strand<
-        boost::asio::io_context::executor_type> strand_;
-    boost::beast::multi_buffer buffer_;
+    net::strand<
+        net::io_context::executor_type> strand_;
+    beast::multi_buffer buffer_;
 
 public:
     // Take ownership of the socket
@@ -69,7 +72,7 @@ public:
         // Perform the SSL handshake
         ws_.next_layer().async_handshake(
             ssl::stream_base::server,
-            boost::asio::bind_executor(
+            net::bind_executor(
                 strand_,
                 std::bind(
                     &session::on_handshake,
@@ -78,14 +81,14 @@ public:
     }
 
     void
-    on_handshake(boost::system::error_code ec)
+    on_handshake(beast::error_code ec)
     {
         if(ec)
             return fail(ec, "handshake");
 
         // Accept the websocket handshake
         ws_.async_accept(
-            boost::asio::bind_executor(
+            net::bind_executor(
                 strand_,
                 std::bind(
                     &session::on_accept,
@@ -94,7 +97,7 @@ public:
     }
 
     void
-    on_accept(boost::system::error_code ec)
+    on_accept(beast::error_code ec)
     {
         if(ec)
             return fail(ec, "accept");
@@ -109,7 +112,7 @@ public:
         // Read a message into our buffer
         ws_.async_read(
             buffer_,
-            boost::asio::bind_executor(
+            net::bind_executor(
                 strand_,
                 std::bind(
                     &session::on_read,
@@ -120,7 +123,7 @@ public:
 
     void
     on_read(
-        boost::system::error_code ec,
+        beast::error_code ec,
         std::size_t bytes_transferred)
     {
         boost::ignore_unused(bytes_transferred);
@@ -136,7 +139,7 @@ public:
         ws_.text(ws_.got_text());
         ws_.async_write(
             buffer_.data(),
-            boost::asio::bind_executor(
+            net::bind_executor(
                 strand_,
                 std::bind(
                     &session::on_write,
@@ -147,7 +150,7 @@ public:
 
     void
     on_write(
-        boost::system::error_code ec,
+        beast::error_code ec,
         std::size_t bytes_transferred)
     {
         boost::ignore_unused(bytes_transferred);
@@ -174,14 +177,14 @@ class listener : public std::enable_shared_from_this<listener>
 
 public:
     listener(
-        boost::asio::io_context& ioc,
+        net::io_context& ioc,
         ssl::context& ctx,
         tcp::endpoint endpoint)
         : ctx_(ctx)
         , acceptor_(ioc)
         , socket_(ioc)
     {
-        boost::system::error_code ec;
+        beast::error_code ec;
 
         // Open the acceptor
         acceptor_.open(endpoint.protocol(), ec);
@@ -192,7 +195,7 @@ public:
         }
 
         // Allow address reuse
-        acceptor_.set_option(boost::asio::socket_base::reuse_address(true), ec);
+        acceptor_.set_option(net::socket_base::reuse_address(true), ec);
         if(ec)
         {
             fail(ec, "set_option");
@@ -209,7 +212,7 @@ public:
 
         // Start listening for connections
         acceptor_.listen(
-            boost::asio::socket_base::max_listen_connections, ec);
+            net::socket_base::max_listen_connections, ec);
         if(ec)
         {
             fail(ec, "listen");
@@ -238,7 +241,7 @@ public:
     }
 
     void
-    on_accept(boost::system::error_code ec)
+    on_accept(beast::error_code ec)
     {
         if(ec)
         {
@@ -268,12 +271,12 @@ int main(int argc, char* argv[])
             "    websocket-server-async-ssl 0.0.0.0 8080 1\n";
         return EXIT_FAILURE;
     }
-    auto const address = boost::asio::ip::make_address(argv[1]);
+    auto const address = net::ip::make_address(argv[1]);
     auto const port = static_cast<unsigned short>(std::atoi(argv[2]));
     auto const threads = std::max<int>(1, std::atoi(argv[3]));
 
     // The io_context is required for all I/O
-    boost::asio::io_context ioc{threads};
+    net::io_context ioc{threads};
     
     // The SSL context is required, and holds certificates
     ssl::context ctx{ssl::context::sslv23};

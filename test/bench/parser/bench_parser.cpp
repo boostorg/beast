@@ -76,7 +76,7 @@ public:
         basic_parser<isRequest, Derived>& parser,
             error_code& ec)
     {
-        using boost::asio::buffer_size;
+        using net::buffer_size;
         beast::buffers_suffix<
             ConstBufferSequence> cb{buffers};
         std::size_t used = 0;
@@ -158,7 +158,7 @@ public:
         isRequest, bench_parser<isRequest, Body, Fields>>
     {
         using mutable_buffers_type =
-            boost::asio::mutable_buffer;
+            net::mutable_buffer;
 
         void
         on_request_impl(verb, string_view,

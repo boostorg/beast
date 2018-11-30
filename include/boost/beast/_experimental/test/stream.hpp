@@ -49,11 +49,11 @@ namespace test {
     These streams may be used anywhere an algorithm accepts a
     reference to a synchronous or asynchronous read or write
     stream. It is possible to use a test stream in a call to
-    `boost::asio::read_until`, or in a call to
+    `net::read_until`, or in a call to
     @ref boost::beast::http::async_write for example.
 
     As with Boost.Asio I/O objects, a @ref stream constructs
-    with a reference to the `boost::asio::io_context` to use for
+    with a reference to the `net::io_context` to use for
     handling asynchronous I/O. For asynchronous operations, the
     stream follows the same rules as a traditional asio socket
     with respect to how completion handlers for asynchronous
@@ -120,7 +120,7 @@ class stream
         flat_buffer b;
         std::condition_variable cv;
         std::unique_ptr<read_op_base> op;
-        boost::asio::io_context& ioc;
+        net::io_context& ioc;
         status code = status::ok;
         fail_count* fc = nullptr;
         std::size_t nread = 0;
@@ -137,7 +137,7 @@ class stream
 
         explicit
         state(
-            boost::asio::io_context& ioc_,
+            net::io_context& ioc_,
             fail_count* fc_)
             : ioc(ioc_)
             , fc(fc_)
@@ -175,7 +175,7 @@ public:
         handler.
 
         If a connection is established while the stream is destroyed,
-        the peer will see the error `boost::asio::error::connection_reset`
+        the peer will see the error `net::error::connection_reset`
         when performing any reads or writes.
     */
     ~stream();
@@ -203,7 +203,7 @@ public:
         dispatch handlers for any asynchronous operations.
     */
     explicit
-    stream(boost::asio::io_context& ioc);
+    stream(net::io_context& ioc);
 
     /** Construct a stream
 
@@ -218,7 +218,7 @@ public:
         a simulated failure error will be raised.
     */
     stream(
-        boost::asio::io_context& ioc,
+        net::io_context& ioc,
         fail_count& fc);
 
     /** Construct a stream
@@ -232,7 +232,7 @@ public:
         including the null terminator.
     */
     stream(
-        boost::asio::io_context& ioc,
+        net::io_context& ioc,
         string_view s);
 
     /** Construct a stream
@@ -251,7 +251,7 @@ public:
         including the null terminator.
     */
     stream(
-        boost::asio::io_context& ioc,
+        net::io_context& ioc,
         fail_count& fc,
         string_view s);
 
@@ -261,10 +261,10 @@ public:
 
     /// The type of the executor associated with the object.
     using executor_type =
-        boost::asio::io_context::executor_type;
+        net::io_context::executor_type;
 
     /// Return the executor associated with the object.
-    boost::asio::io_context::executor_type
+    net::io_context::executor_type
     get_executor() noexcept
     {
         return in_->ioc.get_executor();
@@ -374,7 +374,7 @@ public:
         @throws boost::system::system_error Thrown on failure.
 
         @note The `read_some` operation may not read all of the requested number of
-        bytes. Consider using the function `boost::asio::read` if you need to ensure
+        bytes. Consider using the function `net::read` if you need to ensure
         that the requested amount of data is read before the blocking operation
         completes.
     */
@@ -395,7 +395,7 @@ public:
         @returns The number of bytes read.
 
         @note The `read_some` operation may not read all of the requested number of
-        bytes. Consider using the function `boost::asio::read` if you need to ensure
+        bytes. Consider using the function `net::read` if you need to ensure
         that the requested amount of data is read before the blocking operation
         completes.
     */
@@ -423,7 +423,7 @@ public:
         ); @endcode
 
         @note The `read_some` operation may not read all of the requested number of
-        bytes. Consider using the function `boost::asio::async_read` if you need
+        bytes. Consider using the function `net::async_read` if you need
         to ensure that the requested amount of data is read before the asynchronous
         operation completes.
     */
@@ -446,7 +446,7 @@ public:
         @throws boost::system::system_error Thrown on failure.
 
         @note The `write_some` operation may not transmit all of the data to the
-        peer. Consider using the function `boost::asio::write` if you need to
+        peer. Consider using the function `net::write` if you need to
         ensure that all data is written before the blocking operation completes.
     */
     template<class ConstBufferSequence>
@@ -466,7 +466,7 @@ public:
         @returns The number of bytes written.
 
         @note The `write_some` operation may not transmit all of the data to the
-        peer. Consider using the function `boost::asio::write` if you need to
+        peer. Consider using the function `net::write` if you need to
         ensure that all data is written before the blocking operation completes.
     */
     template<class ConstBufferSequence>
@@ -493,7 +493,7 @@ public:
         ); @endcode
 
         @note The `async_write_some` operation may not transmit all of the data to
-        the peer. Consider using the function `boost::asio::async_write` if you need
+        the peer. Consider using the function `net::async_write` if you need
         to ensure that all data is written before the asynchronous operation completes.
     */
     template<class ConstBufferSequence, class WriteHandler>

@@ -26,20 +26,20 @@ namespace doc_http_snippets {
 
 //[http_snippet_17
 // This function returns the buffer containing the next chunk body
-boost::asio::const_buffer get_next_chunk_body();
+net::const_buffer get_next_chunk_body();
 //]
 
-boost::asio::const_buffer get_next_chunk_body()
+net::const_buffer get_next_chunk_body()
 {
     return {nullptr, 0};
 }
 
 void fxx() {
 
-    boost::asio::io_context ioc;
-    auto work = boost::asio::make_work_guard(ioc);
+    net::io_context ioc;
+    auto work = net::make_work_guard(ioc);
     std::thread t{[&](){ ioc.run(); }};
-    boost::asio::ip::tcp::socket sock{ioc};
+    net::ip::tcp::socket sock{ioc};
 
 {
 //[http_snippet_2
@@ -160,12 +160,12 @@ void fxx() {
     write_header(sock, sr);
 
     // Now manually emit three chunks:
-    boost::asio::write(sock, make_chunk(get_next_chunk_body()));
-    boost::asio::write(sock, make_chunk(get_next_chunk_body()));
-    boost::asio::write(sock, make_chunk(get_next_chunk_body()));
+    net::write(sock, make_chunk(get_next_chunk_body()));
+    net::write(sock, make_chunk(get_next_chunk_body()));
+    net::write(sock, make_chunk(get_next_chunk_body()));
 
     // We are responsible for sending the last chunk:
-    boost::asio::write(sock, make_chunk_last());
+    net::write(sock, make_chunk_last());
 //]
 }
 
@@ -180,18 +180,18 @@ void fxx() {
     // Write the next chunk with the chunk extensions
     // The implementation will make a copy of the extensions object,
     // so the caller does not need to manage lifetime issues.
-    boost::asio::write(sock, make_chunk(get_next_chunk_body(), ext));
+    net::write(sock, make_chunk(get_next_chunk_body(), ext));
 
     // Write the next chunk with the chunk extensions
     // The implementation will make a copy of the extensions object, storing the copy
     // using the custom allocator, so the caller does not need to manage lifetime issues.
-    boost::asio::write(sock, make_chunk(get_next_chunk_body(), ext, std::allocator<char>{}));
+    net::write(sock, make_chunk(get_next_chunk_body(), ext, std::allocator<char>{}));
 
     // Write the next chunk with the chunk extensions
     // The implementation allocates memory using the default allocator and takes ownership
     // of the extensions object, so the caller does not need to manage lifetime issues.
     // Note: ext is moved
-    boost::asio::write(sock, make_chunk(get_next_chunk_body(), std::move(ext)));
+    net::write(sock, make_chunk(get_next_chunk_body(), std::move(ext)));
 //]
 }
 
@@ -199,7 +199,7 @@ void fxx() {
 //[http_snippet_20
     // Manually specify the chunk extensions.
     // Some of the strings contain spaces and a period and must be quoted
-    boost::asio::write(sock, make_chunk(get_next_chunk_body(),
+    net::write(sock, make_chunk(get_next_chunk_body(),
         ";mp3"
         ";title=\"Danny Boy\""
         ";artist=\"Fred E. Weatherly\""
@@ -221,8 +221,8 @@ void fxx() {
     // Serialize the header and two chunks
     response_serializer<empty_body> sr{res};
     write_header(sock, sr);
-    boost::asio::write(sock, make_chunk(get_next_chunk_body()));
-    boost::asio::write(sock, make_chunk(get_next_chunk_body()));
+    net::write(sock, make_chunk(get_next_chunk_body()));
+    net::write(sock, make_chunk(get_next_chunk_body()));
 
     // Prepare the trailer
     fields trailer;
@@ -232,7 +232,7 @@ void fxx() {
     // Emit the trailer in the last chunk.
     // The implementation will use the default allocator to create the storage for holding
     // the serialized fields.
-    boost::asio::write(sock, make_chunk_last(trailer));
+    net::write(sock, make_chunk_last(trailer));
 //]
 }
 
@@ -241,7 +241,7 @@ void fxx() {
     // Use a custom allocator for serializing the last chunk
     fields trailer;
     trailer.set(field::approved, "yes");
-    boost::asio::write(sock, make_chunk_last(trailer, std::allocator<char>{}));
+    net::write(sock, make_chunk_last(trailer, std::allocator<char>{}));
 //]
 }
 
@@ -253,7 +253,7 @@ void fxx() {
         "Content-MD5: f4a5c16584f03d90\r\n"
         "Expires: never\r\n"
         "\r\n";
-    boost::asio::write(sock, make_chunk_last(boost::asio::const_buffer{ext.data(), ext.size()}));
+    net::write(sock, make_chunk_last(net::const_buffer{ext.data(), ext.size()}));
 //]
 }
 
@@ -272,18 +272,18 @@ void fxx() {
     auto const cb3 = get_next_chunk_body();
 
     // Manually emit a chunk by first writing the chunk-size header with the correct size
-    boost::asio::write(sock, chunk_header{
-        boost::asio::buffer_size(cb1) +
-        boost::asio::buffer_size(cb2) +
-        boost::asio::buffer_size(cb3)});
+    net::write(sock, chunk_header{
+        net::buffer_size(cb1) +
+        net::buffer_size(cb2) +
+        net::buffer_size(cb3)});
 
     // And then output the chunk body in three pieces ("chunk the chunk")
-    boost::asio::write(sock, cb1);
-    boost::asio::write(sock, cb2);
-    boost::asio::write(sock, cb3);
+    net::write(sock, cb1);
+    net::write(sock, cb2);
+    net::write(sock, cb3);
 
     // When we go this deep, we are also responsible for the terminating CRLF
-    boost::asio::write(sock, chunk_crlf{});
+    net::write(sock, chunk_crlf{});
 //]
 }
 
@@ -367,7 +367,7 @@ print_cxx14(message<isRequest, Body, Fields> const& m)
             {
                 ec.assign(0, ec.category());
                 std::cout << buffers(buffer);
-                sr.consume(boost::asio::buffer_size(buffer));
+                sr.consume(net::buffer_size(buffer));
             });
     }
     while(! ec && ! sr.is_done());
@@ -394,7 +394,7 @@ struct lambda
     {
         ec.assign(0, ec.category());
         std::cout << buffers(buffer);
-        sr.consume(boost::asio::buffer_size(buffer));
+        sr.consume(net::buffer_size(buffer));
     }
 };
 
@@ -435,7 +435,7 @@ split_print_cxx14(message<isRequest, Body, Fields> const& m)
             {
                 ec.assign(0, ec.category());
                 std::cout << buffers(buffer);
-                sr.consume(boost::asio::buffer_size(buffer));
+                sr.consume(net::buffer_size(buffer));
             });
     }
     while(! sr.is_header_done());
@@ -449,7 +449,7 @@ split_print_cxx14(message<isRequest, Body, Fields> const& m)
                 {
                     ec.assign(0, ec.category());
                     std::cout << buffers(buffer);
-                    sr.consume(boost::asio::buffer_size(buffer));
+                    sr.consume(net::buffer_size(buffer));
                 });
         }
         while(! ec && ! sr.is_done());

@@ -53,7 +53,7 @@ struct BodyWriter
 {
 public:
     /// The type of buffer returned by `get`.
-    using const_buffers_type = boost::asio::const_buffer;
+    using const_buffers_type = net::const_buffer;
 
     /** Construct the writer.
 
@@ -164,7 +164,7 @@ struct BodyReader
         // The specification requires this to indicate "no error"
         ec = {};
 
-        return boost::asio::buffer_size(buffers);
+        return net::buffer_size(buffers);
     }
 
     /** Called when the body is complete.

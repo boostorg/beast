@@ -76,7 +76,7 @@ class icy_stream
     char buf_[8];
 
     static
-    boost::asio::const_buffer
+    net::const_buffer
     version()
     {
         return {"HTTP/1.1", 8};
@@ -199,7 +199,7 @@ public:
         @throws boost::system::system_error Thrown on failure.
         
         @note The `read_some` operation may not read all of the requested number of
-        bytes. Consider using the function `boost::asio::read` if you need to ensure
+        bytes. Consider using the function `net::read` if you need to ensure
         that the requested amount of data is read before the blocking operation
         completes.
     */
@@ -220,7 +220,7 @@ public:
         @returns The number of bytes read.
                 
         @note The `read_some` operation may not read all of the requested number of
-        bytes. Consider using the function `boost::asio::read` if you need to ensure
+        bytes. Consider using the function `net::read` if you need to ensure
         that the requested amount of data is read before the blocking operation
         completes.
     */
@@ -249,7 +249,7 @@ public:
         ); @endcode
         
         @note The `read_some` operation may not read all of the requested number of
-        bytes. Consider using the function `boost::asio::async_read` if you need
+        bytes. Consider using the function `net::async_read` if you need
         to ensure that the requested amount of data is read before the asynchronous
         operation completes.
     */
@@ -275,7 +275,7 @@ public:
         @throws boost::system::system_error Thrown on failure.
         
         @note The `write_some` operation may not transmit all of the data to the
-        peer. Consider using the function `boost::asio::write` if you need to
+        peer. Consider using the function `net::write` if you need to
         ensure that all data is written before the blocking operation completes.
     */
     template<class ConstBufferSequence>
@@ -295,7 +295,7 @@ public:
         @returns The number of bytes written.
                 
         @note The `write_some` operation may not transmit all of the data to the
-        peer. Consider using the function `boost::asio::write` if you need to
+        peer. Consider using the function `net::write` if you need to
         ensure that all data is written before the blocking operation completes.
     */
     template<class ConstBufferSequence>
@@ -323,7 +323,7 @@ public:
         ); @endcode
         
         @note The `async_write_some` operation may not transmit all of the data to
-        the peer. Consider using the function `boost::asio::async_write` if you need
+        the peer. Consider using the function `net::async_write` if you need
         to ensure that all data is written before the asynchronous operation completes.
     */
     template<

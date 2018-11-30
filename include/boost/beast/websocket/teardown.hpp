@@ -25,8 +25,8 @@ namespace websocket {
     This tears down a connection. The implementation will call
     the overload of this function based on the `Socket` parameter
     used to consruct the socket. When `Socket` is a user defined
-    type, and not a `boost::asio::ip::tcp::socket` or any
-    `boost::asio::ssl::stream`, callers are responsible for
+    type, and not a `net::ip::tcp::socket` or any
+    `net::ssl::stream`, callers are responsible for
     providing a suitable overload of this function.
 
     @param role The role of the local endpoint
@@ -61,7 +61,7 @@ teardown(
     The implementation will call the overload of this function
     based on the `Socket` parameter used to consruct the socket.
     When `Stream` is a user defined type, and not a
-    `boost::asio::ip::tcp::socket` or any `boost::asio::ssl::stream`,
+    `net::ip::tcp::socket` or any `net::ssl::stream`,
     callers are responsible for providing a suitable overload
     of this function.
 
@@ -79,7 +79,7 @@ teardown(
     Regardless of whether the asynchronous operation completes
     immediately or not, the handler will not be invoked from within
     this function. Invocation of the handler will be performed in a
-    manner equivalent to using boost::asio::io_context::post().
+    manner equivalent to using net::io_context::post().
 
 */
 template<
@@ -110,13 +110,13 @@ async_teardown(
 
 namespace websocket {
 
-/** Tear down a `boost::asio::ip::tcp::socket`.
+/** Tear down a `net::ip::tcp::socket`.
 
     This tears down a connection. The implementation will call
     the overload of this function based on the `Stream` parameter
     used to consruct the socket. When `Stream` is a user defined
-    type, and not a `boost::asio::ip::tcp::socket` or any
-    `boost::asio::ssl::stream`, callers are responsible for
+    type, and not a `net::ip::tcp::socket` or any
+    `net::ssl::stream`, callers are responsible for
     providing a suitable overload of this function.
 
     @param role The role of the local endpoint
@@ -128,16 +128,16 @@ namespace websocket {
 void
 teardown(
     role_type role,
-    boost::asio::ip::tcp::socket& socket,
+    net::ip::tcp::socket& socket,
     error_code& ec);
 
-/** Start tearing down a `boost::asio::ip::tcp::socket`.
+/** Start tearing down a `net::ip::tcp::socket`.
 
     This begins tearing down a connection asynchronously.
     The implementation will call the overload of this function
     based on the `Stream` parameter used to consruct the socket.
     When `Stream` is a user defined type, and not a
-    `boost::asio::ip::tcp::socket` or any `boost::asio::ssl::stream`,
+    `net::ip::tcp::socket` or any `net::ssl::stream`,
     callers are responsible for providing a suitable overload
     of this function.
 
@@ -155,14 +155,14 @@ teardown(
     Regardless of whether the asynchronous operation completes
     immediately or not, the handler will not be invoked from within
     this function. Invocation of the handler will be performed in a
-    manner equivalent to using boost::asio::io_context::post().
+    manner equivalent to using net::io_context::post().
 
 */
 template<class TeardownHandler>
 void
 async_teardown(
     role_type role,
-    boost::asio::ip::tcp::socket& socket,
+    net::ip::tcp::socket& socket,
     TeardownHandler&& handler);
 
 } // websocket

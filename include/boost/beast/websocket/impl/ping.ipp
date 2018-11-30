@@ -37,12 +37,12 @@ namespace websocket {
 template<class NextLayer, bool deflateSupported>
 template<class Handler>
 class stream<NextLayer, deflateSupported>::ping_op
-    : public boost::asio::coroutine
+    : public net::coroutine
 {
     struct state
     {
         stream<NextLayer, deflateSupported>& ws;
-        boost::asio::executor_work_guard<decltype(std::declval<
+        net::executor_work_guard<decltype(std::declval<
             stream<NextLayer, deflateSupported>&>().get_executor())> wg;
         detail::frame_buffer fb;
 
@@ -81,21 +81,21 @@ public:
     }
 
     using allocator_type =
-        boost::asio::associated_allocator_t<Handler>;
+        net::associated_allocator_t<Handler>;
 
     allocator_type
     get_allocator() const noexcept
     {
-        return (boost::asio::get_associated_allocator)(d_.handler());
+        return (net::get_associated_allocator)(d_.handler());
     }
 
-    using executor_type = boost::asio::associated_executor_t<
+    using executor_type = net::associated_executor_t<
         Handler, decltype(std::declval<stream<NextLayer, deflateSupported>&>().get_executor())>;
 
     executor_type
     get_executor() const noexcept
     {
-        return (boost::asio::get_associated_executor)(
+        return (net::get_associated_executor)(
             d_.handler(), d_->ws.get_executor());
     }
 
@@ -106,7 +106,7 @@ public:
     friend
     bool asio_handler_is_continuation(ping_op* op)
     {
-        using boost::asio::asio_handler_is_continuation;
+        using net::asio_handler_is_continuation;
         return asio_handler_is_continuation(
             std::addressof(op->d_.handler()));
     }
@@ -115,7 +115,7 @@ public:
     friend
     void asio_handler_invoke(Function&& f, ping_op* op)
     {
-        using boost::asio::asio_handler_invoke;
+        using net::asio_handler_invoke;
         asio_handler_invoke(
             f, std::addressof(op->d_.handler()));
     }
@@ -138,7 +138,7 @@ operator()(error_code ec, std::size_t)
             if(! d.ws.check_open(ec))
             {
                 BOOST_ASIO_CORO_YIELD
-                boost::asio::post(
+                net::post(
                     d.ws.get_executor(),
                     beast::bind_front_handler(std::move(*this), ec));
                 goto upcall;
@@ -155,7 +155,7 @@ operator()(error_code ec, std::size_t)
 
             // Resume
             BOOST_ASIO_CORO_YIELD
-            boost::asio::post(
+            net::post(
                 d.ws.get_executor(), std::move(*this));
             BOOST_ASSERT(d.ws.wr_block_.is_locked(this));
 
@@ -166,7 +166,7 @@ operator()(error_code ec, std::size_t)
 
         // Send ping frame
         BOOST_ASIO_CORO_YIELD
-        boost::asio::async_write(d.ws.stream_,
+        net::async_write(d.ws.stream_,
             d.fb.data(), std::move(*this));
         if(! d.ws.check_ok(ec))
             goto upcall;
@@ -207,7 +207,7 @@ ping(ping_data const& payload, error_code& ec)
     detail::frame_buffer fb;
     write_ping<flat_static_buffer_base>(
         fb, detail::opcode::ping, payload);
-    boost::asio::write(stream_, fb.data(), ec);
+    net::write(stream_, fb.data(), ec);
     if(! check_ok(ec))
         return;
 }
@@ -234,7 +234,7 @@ pong(ping_data const& payload, error_code& ec)
     detail::frame_buffer fb;
     write_ping<flat_static_buffer_base>(
         fb, detail::opcode::pong, payload);
-    boost::asio::write(stream_, fb.data(), ec);
+    net::write(stream_, fb.data(), ec);
     if(! check_ok(ec))
         return;
 }

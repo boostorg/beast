@@ -90,7 +90,7 @@ flat_static_buffer<N>::
 flat_static_buffer(flat_static_buffer const& other)
     : flat_static_buffer_base(buf_, N)
 {
-    using boost::asio::buffer_copy;
+    using net::buffer_copy;
     this->commit(buffer_copy(
         this->prepare(other.size()), other.data()));
 }
@@ -101,7 +101,7 @@ flat_static_buffer<N>::
 operator=(flat_static_buffer const& other) ->
     flat_static_buffer<N>&
 {
-    using boost::asio::buffer_copy;
+    using net::buffer_copy;
     this->consume(this->size());
     this->commit(buffer_copy(
         this->prepare(other.size()), other.data()));

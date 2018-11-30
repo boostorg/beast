@@ -75,7 +75,7 @@ public:
     void
     doTestRead(Wrap const& w)
     {
-        using boost::asio::buffer;
+        using net::buffer;
 
         permessage_deflate pmd;
         pmd.client_enable = false;
@@ -97,7 +97,7 @@ public:
             catch(system_error const& se)
             {
                 BEAST_EXPECTS(
-                    se.code() == boost::asio::error::operation_aborted,
+                    se.code() == net::error::operation_aborted,
                     se.code().message());
             }
         }
@@ -248,7 +248,7 @@ public:
         doFailLoop([&](test::fail_count& fc)
         {
             echo_server es{log, kind::async};
-            boost::asio::io_context ioc;
+            net::io_context ioc;
             stream<test::stream, deflateSupported> ws{ioc, fc};
             ws.next_layer().connect(es.stream());
             ws.handshake("localhost", "/");
@@ -275,7 +275,7 @@ public:
             w.close(ws, {});
             multi_buffer b;
             doFailTest(w, ws,
-                boost::asio::error::operation_aborted);
+                net::error::operation_aborted);
         });
 
         // buffer overflow
@@ -437,7 +437,7 @@ public:
     void
     doTestReadDeflate(Wrap const& w)
     {
-        using boost::asio::buffer;
+        using net::buffer;
 
         permessage_deflate pmd;
         pmd.client_enable = true;
@@ -504,7 +504,7 @@ public:
         permessage_deflate const& pmd,
         Wrap const& w)
     {
-        using boost::asio::buffer;
+        using net::buffer;
 
         // message
         doTest(pmd, [&](ws_type& ws)
@@ -613,7 +613,7 @@ public:
     void
     testRead()
     {
-        using boost::asio::buffer;
+        using net::buffer;
 
         doTestRead<false>(SyncClient{});
         doTestRead<true>(SyncClient{});

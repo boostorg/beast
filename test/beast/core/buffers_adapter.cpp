@@ -26,10 +26,10 @@ class buffers_adapter_test : public unit_test::suite
 public:
     void testBuffersAdapter()
     {
-        using boost::asio::buffer;
-        using boost::asio::buffer_size;
-        using boost::asio::const_buffer;
-        using boost::asio::mutable_buffer;
+        using net::buffer;
+        using net::buffer_size;
+        using net::const_buffer;
+        using net::mutable_buffer;
         char buf[12];
         std::string const s = "Hello, world";
         BEAST_EXPECT(s.size() == sizeof(buf));
@@ -141,9 +141,9 @@ public:
     }
     void testCommit()
     {
-        using boost::asio::buffer_size;
+        using net::buffer_size;
         {
-            using sb_type = boost::asio::streambuf;
+            using sb_type = net::streambuf;
             sb_type b;
             buffers_adapter<
                 sb_type::mutable_buffers_type> ba(b.prepare(3));
@@ -171,7 +171,7 @@ public:
     void
     testIssue386()
     {
-        using type = boost::asio::streambuf;
+        using type = net::streambuf;
         type buffer;
         buffers_adapter<
             type::mutable_buffers_type> ba{buffer.prepare(512)};

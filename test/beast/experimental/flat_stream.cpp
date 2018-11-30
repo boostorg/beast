@@ -34,7 +34,7 @@ public:
                 unsigned long count,
                 bool copy)
             {
-                std::vector<boost::asio::const_buffer> v;
+                std::vector<net::const_buffer> v;
                 v.reserve(v0.size());
                 for(auto const n : v0)
                     v.emplace_back("", n);
@@ -69,7 +69,7 @@ public:
         {
             error_code ec;
             test::ws_echo_server es{log};
-            boost::asio::io_context ioc;
+            net::io_context ioc;
             websocket::stream<flat_stream<test::stream>> ws{ioc};
             ws.next_layer().next_layer().connect(es.stream());
             ws.handshake("localhost", "/", ec);
@@ -79,7 +79,7 @@ public:
         }
         {
             test::ws_echo_server es{log};
-            boost::asio::io_context ioc;
+            net::io_context ioc;
             websocket::stream<flat_stream<test::stream>> ws{ioc};
             ws.next_layer().next_layer().connect(es.stream());
             ws.async_handshake("localhost", "/",

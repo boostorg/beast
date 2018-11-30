@@ -38,12 +38,12 @@ namespace websocket {
 template<class NextLayer, bool deflateSupported>
 template<class Handler>
 class stream<NextLayer, deflateSupported>::handshake_op
-    : public boost::asio::coroutine
+    : public net::coroutine
 {
     struct data
     {
         stream<NextLayer, deflateSupported>& ws;
-        boost::asio::executor_work_guard<decltype(std::declval<
+        net::executor_work_guard<decltype(std::declval<
             stream<NextLayer, deflateSupported>&>().get_executor())> wg;
         response_type* res_p;
         detail::sec_ws_key_type key;
@@ -83,21 +83,21 @@ public:
     }
 
     using allocator_type =
-        boost::asio::associated_allocator_t<Handler>;
+        net::associated_allocator_t<Handler>;
 
     allocator_type
     get_allocator() const noexcept
     {
-        return (boost::asio::get_associated_allocator)(d_.handler());
+        return (net::get_associated_allocator)(d_.handler());
     }
 
-    using executor_type = boost::asio::associated_executor_t<
+    using executor_type = net::associated_executor_t<
         Handler, decltype(std::declval<stream<NextLayer, deflateSupported>&>().get_executor())>;
 
     executor_type
     get_executor() const noexcept
     {
-        return (boost::asio::get_associated_executor)(
+        return (net::get_associated_executor)(
             d_.handler(), d_->ws.get_executor());
     }
 
@@ -109,7 +109,7 @@ public:
     friend
     bool asio_handler_is_continuation(handshake_op* op)
     {
-        using boost::asio::asio_handler_is_continuation;
+        using net::asio_handler_is_continuation;
         return asio_handler_is_continuation(
             std::addressof(op->d_.handler()));
     }
@@ -118,7 +118,7 @@ public:
     friend
     void asio_handler_invoke(Function&& f, handshake_op* op)
     {
-        using boost::asio::asio_handler_invoke;
+        using net::asio_handler_invoke;
         asio_handler_invoke(f,
             std::addressof(op->d_.handler()));
     }

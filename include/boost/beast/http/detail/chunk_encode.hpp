@@ -26,7 +26,7 @@ namespace detail {
 struct chunk_extensions
 {
     virtual ~chunk_extensions() = default;
-    virtual boost::asio::const_buffer str() = 0;
+    virtual net::const_buffer str() = 0;
 };
     
 template<class ChunkExtensions>
@@ -44,7 +44,7 @@ struct chunk_extensions_impl : chunk_extensions
     {
     }
 
-    boost::asio::const_buffer
+    net::const_buffer
     str() override
     {
         auto const s = ext_.str();
@@ -88,7 +88,7 @@ class chunk_size
 
     struct sequence
     {
-        boost::asio::const_buffer b;
+        net::const_buffer b;
         char data[1 + 2 * sizeof(std::size_t)];
 
         explicit
@@ -104,7 +104,7 @@ class chunk_size
     std::shared_ptr<sequence> sp_;
 
 public:
-    using value_type = boost::asio::const_buffer;
+    using value_type = net::const_buffer;
 
     using const_iterator = value_type const*;
 
@@ -136,7 +136,7 @@ public:
 
 /// Returns a buffer sequence holding a CRLF for chunk encoding
 inline
-boost::asio::const_buffer
+net::const_buffer
 chunk_crlf()
 {
     return {"\r\n", 2};
@@ -144,7 +144,7 @@ chunk_crlf()
 
 /// Returns a buffer sequence holding a final chunk header
 inline
-boost::asio::const_buffer
+net::const_buffer
 chunk_last()
 {
     return {"0\r\n", 3};
@@ -163,7 +163,7 @@ struct chunk_crlf_iter_type
         value_type() = default;
 
         operator
-        boost::asio::const_buffer() const
+        net::const_buffer() const
         {
             return {s, sizeof(s)};
         }
@@ -190,7 +190,7 @@ struct chunk_size0_iter_type
         value_type() = default;
 
         operator
-        boost::asio::const_buffer() const
+        net::const_buffer() const
         {
             return {s, sizeof(s)};
         }

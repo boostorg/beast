@@ -24,14 +24,16 @@
 #include <iostream>
 #include <string>
 
+namespace beast = boost::beast;         // from <boost/beast.hpp>
+namespace http = beast::http;           // from <boost/beast/http.hpp>
+namespace net = boost::asio;            // from <boost/asio.hpp>
 using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
-namespace http = boost::beast::http;    // from <boost/beast/http.hpp>
 
 //------------------------------------------------------------------------------
 
 // Report a failure
 void
-fail(boost::system::error_code ec, char const* what)
+fail(beast::error_code ec, char const* what)
 {
     std::cerr << what << ": " << ec.message() << "\n";
 }
@@ -43,10 +45,10 @@ do_session(
     std::string const& port,
     std::string const& target,
     int version,
-    boost::asio::io_context& ioc,
-    boost::asio::yield_context yield)
+    net::io_context& ioc,
+    net::yield_context yield)
 {
-    boost::system::error_code ec;
+    beast::error_code ec;
 
     // These objects perform our I/O
     tcp::resolver resolver{ioc};
@@ -58,7 +60,7 @@ do_session(
         return fail(ec, "resolve");
 
     // Make the connection on the IP address we get from a lookup
-    boost::asio::async_connect(socket, results.begin(), results.end(), yield[ec]);
+    net::async_connect(socket, results.begin(), results.end(), yield[ec]);
     if(ec)
         return fail(ec, "connect");
 
@@ -73,7 +75,7 @@ do_session(
         return fail(ec, "write");
 
     // This buffer is used for reading and must be persisted
-    boost::beast::flat_buffer b;
+    beast::flat_buffer b;
 
     // Declare a container to hold the response
     http::response<http::dynamic_body> res;
@@ -92,7 +94,7 @@ do_session(
     // not_connected happens sometimes
     // so don't bother reporting it.
     //
-    if(ec && ec != boost::system::errc::not_connected)
+    if(ec && ec != beast::errc::not_connected)
         return fail(ec, "shutdown");
 
     // If we get here then the connection is closed gracefully
@@ -118,10 +120,10 @@ int main(int argc, char** argv)
     int version = argc == 5 && !std::strcmp("1.0", argv[4]) ? 10 : 11;
 
     // The io_context is required for all I/O
-    boost::asio::io_context ioc;
+    net::io_context ioc;
 
     // Launch the asynchronous operation
-    boost::asio::spawn(ioc, std::bind(
+    net::spawn(ioc, std::bind(
         &do_session,
         std::string(host),
         std::string(port),

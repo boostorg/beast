@@ -201,7 +201,7 @@ public:
             };
             error_code ec;
             custom_parser<true> p;
-            p.put(boost::asio::buffer(
+            p.put(net::buffer(
                 s.data(), s.size()), ec);
             BEAST_EXPECTS(! ec, ec.message());
         }
@@ -218,7 +218,7 @@ public:
             };
             error_code ec;
             custom_parser<false> p;
-            p.put(boost::asio::buffer(
+            p.put(net::buffer(
                 s.data(), s.size()), ec);
             BEAST_EXPECTS(! ec, ec.message());
         }
@@ -309,7 +309,7 @@ public:
         auto const buf =
             [](string_view s)
             {
-                return boost::asio::const_buffer{
+                return net::const_buffer{
                     s.data(), s.size()};
             };
         test::stream ts{ioc_}, tr{ioc_};
@@ -326,22 +326,22 @@ public:
 
         chunk_extensions exts;
 
-        boost::asio::write(ts,
+        net::write(ts,
             make_chunk(buf("First")), ec);
 
         exts.insert("quality", "1.0");
-        boost::asio::write(ts,
+        net::write(ts,
             make_chunk(buf("Hello, world!"), exts), ec);
 
         exts.clear();
         exts.insert("file", "abc.txt");
         exts.insert("quality", "0.7");
-        boost::asio::write(ts,
+        net::write(ts,
             make_chunk(buf("The Next Chunk"), std::move(exts)), ec);
 
         exts.clear();
         exts.insert("last");
-        boost::asio::write(ts,
+        net::write(ts,
             make_chunk(buf("Last one"), std::move(exts),
                 std::allocator<double>{}), ec);
 
@@ -349,7 +349,7 @@ public:
         trailers.set(field::expires, "never");
         trailers.set(field::content_md5, "f4a5c16584f03d90");
 
-        boost::asio::write(ts,
+        net::write(ts,
             make_chunk_last(
                 trailers,
                 std::allocator<double>{}

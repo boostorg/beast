@@ -24,21 +24,23 @@
 #include <string>
 #include <thread>
 
+namespace beast = boost::beast;         // from <boost/beast.hpp>
+namespace http = beast::http;           // from <boost/beast/http.hpp>
+namespace net = boost::asio;            // from <boost/asio.hpp>
 using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
-namespace http = boost::beast::http;    // from <boost/beast/http.hpp>
 
 //------------------------------------------------------------------------------
 
 // Return a reasonable mime type based on the extension of a file.
-boost::beast::string_view
-mime_type(boost::beast::string_view path)
+beast::string_view
+mime_type(beast::string_view path)
 {
-    using boost::beast::iequals;
+    using beast::iequals;
     auto const ext = [&path]
     {
         auto const pos = path.rfind(".");
-        if(pos == boost::beast::string_view::npos)
-            return boost::beast::string_view{};
+        if(pos == beast::string_view::npos)
+            return beast::string_view{};
         return path.substr(pos);
     }();
     if(iequals(ext, ".htm"))  return "text/html";
@@ -69,8 +71,8 @@ mime_type(boost::beast::string_view path)
 // The returned path is normalized for the platform.
 std::string
 path_cat(
-    boost::beast::string_view base,
-    boost::beast::string_view path)
+    beast::string_view base,
+    beast::string_view path)
 {
     if(base.empty())
         return path.to_string();
@@ -101,13 +103,13 @@ template<
     class Send>
 void
 handle_request(
-    boost::beast::string_view doc_root,
+    beast::string_view doc_root,
     http::request<Body, http::basic_fields<Allocator>>&& req,
     Send&& send)
 {
     // Returns a bad request response
     auto const bad_request =
-    [&req](boost::beast::string_view why)
+    [&req](beast::string_view why)
     {
         http::response<http::string_body> res{http::status::bad_request, req.version()};
         res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
@@ -120,7 +122,7 @@ handle_request(
 
     // Returns a not found response
     auto const not_found =
-    [&req](boost::beast::string_view target)
+    [&req](beast::string_view target)
     {
         http::response<http::string_body> res{http::status::not_found, req.version()};
         res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
@@ -133,7 +135,7 @@ handle_request(
 
     // Returns a server error response
     auto const server_error =
-    [&req](boost::beast::string_view what)
+    [&req](beast::string_view what)
     {
         http::response<http::string_body> res{http::status::internal_server_error, req.version()};
         res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
@@ -152,7 +154,7 @@ handle_request(
     // Request path must be absolute and not contain "..".
     if( req.target().empty() ||
         req.target()[0] != '/' ||
-        req.target().find("..") != boost::beast::string_view::npos)
+        req.target().find("..") != beast::string_view::npos)
         return send(bad_request("Illegal request-target"));
 
     // Build the path to the requested file
@@ -161,12 +163,12 @@ handle_request(
         path.append("index.html");
 
     // Attempt to open the file
-    boost::beast::error_code ec;
+    beast::error_code ec;
     http::file_body::value_type body;
-    body.open(path.c_str(), boost::beast::file_mode::scan, ec);
+    body.open(path.c_str(), beast::file_mode::scan, ec);
 
     // Handle the case where the file doesn't exist
-    if(ec == boost::system::errc::no_such_file_or_directory)
+    if(ec == beast::errc::no_such_file_or_directory)
         return send(not_found(req.target()));
 
     // Handle an unknown error
@@ -203,7 +205,7 @@ handle_request(
 
 // Report a failure
 void
-fail(boost::system::error_code ec, char const* what)
+fail(beast::error_code ec, char const* what)
 {
     std::cerr << what << ": " << ec.message() << "\n";
 }
@@ -215,13 +217,13 @@ struct send_lambda
 {
     Stream& stream_;
     bool& close_;
-    boost::system::error_code& ec_;
+    beast::error_code& ec_;
 
     explicit
     send_lambda(
         Stream& stream,
         bool& close,
-        boost::system::error_code& ec)
+        beast::error_code& ec)
         : stream_(stream)
         , close_(close)
         , ec_(ec)
@@ -250,10 +252,10 @@ do_session(
     std::shared_ptr<std::string const> const& doc_root)
 {
     bool close = false;
-    boost::system::error_code ec;
+    beast::error_code ec;
 
     // This buffer is required to persist across reads
-    boost::beast::flat_buffer buffer;
+    beast::flat_buffer buffer;
 
     // This lambda is used to send messages
     send_lambda<tcp::socket> lambda{socket, close, ec};
@@ -301,12 +303,12 @@ int main(int argc, char* argv[])
                 "    http-server-sync 0.0.0.0 8080 .\n";
             return EXIT_FAILURE;
         }
-        auto const address = boost::asio::ip::make_address(argv[1]);
+        auto const address = net::ip::make_address(argv[1]);
         auto const port = static_cast<unsigned short>(std::atoi(argv[2]));
         auto const doc_root = std::make_shared<std::string>(argv[3]);
 
         // The io_context is required for all I/O
-        boost::asio::io_context ioc{1};
+        net::io_context ioc{1};
 
         // The acceptor receives incoming connections
         tcp::acceptor acceptor{ioc, {address, port}};

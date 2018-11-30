@@ -21,19 +21,19 @@ namespace boost {
 namespace beast {
 
 BOOST_STATIC_ASSERT(
-    std::is_same<boost::asio::const_buffer, decltype(
+    std::is_same<net::const_buffer, decltype(
         buffers_prefix(0,
-            std::declval<boost::asio::const_buffer>()))>::value);
+            std::declval<net::const_buffer>()))>::value);
 
 BOOST_STATIC_ASSERT(
-    boost::asio::is_const_buffer_sequence<decltype(
+    net::is_const_buffer_sequence<decltype(
         buffers_prefix(0,
-            std::declval<boost::asio::const_buffer>()))>::value);
+            std::declval<net::const_buffer>()))>::value);
 
 BOOST_STATIC_ASSERT(
-    std::is_same<boost::asio::mutable_buffer, decltype(
+    std::is_same<net::mutable_buffer, decltype(
         buffers_prefix(0,
-            std::declval<boost::asio::mutable_buffer>()))>::value);
+            std::declval<net::mutable_buffer>()))>::value);
 
 class buffers_prefix_test : public beast::unit_test::suite
 {
@@ -43,7 +43,7 @@ public:
     std::size_t
     bsize1(ConstBufferSequence const& bs)
     {
-        using boost::asio::buffer_size;
+        using net::buffer_size;
         std::size_t n = 0;
         for(auto it = bs.begin(); it != bs.end(); ++it)
             n += buffer_size(*it);
@@ -55,7 +55,7 @@ public:
     std::size_t
     bsize2(ConstBufferSequence const& bs)
     {
-        using boost::asio::buffer_size;
+        using net::buffer_size;
         std::size_t n = 0;
         for(auto it = bs.begin(); it != bs.end(); it++)
             n += buffer_size(*it);
@@ -67,7 +67,7 @@ public:
     std::size_t
     bsize3(ConstBufferSequence const& bs)
     {
-        using boost::asio::buffer_size;
+        using net::buffer_size;
         std::size_t n = 0;
         for(auto it = bs.end(); it != bs.begin();)
             n += buffer_size(*--it);
@@ -79,7 +79,7 @@ public:
     std::size_t
     bsize4(ConstBufferSequence const& bs)
     {
-        using boost::asio::buffer_size;
+        using net::buffer_size;
         std::size_t n = 0;
         for(auto it = bs.end(); it != bs.begin();)
         {
@@ -92,7 +92,7 @@ public:
     template<class BufferType>
     void testMatrix()
     {
-        using boost::asio::buffer_size;
+        using net::buffer_size;
         std::string s = "Hello, world";
         BEAST_EXPECT(s.size() == 12);
         for(std::size_t x = 1; x < 4; ++x) {
@@ -121,9 +121,9 @@ public:
 
     void testEmptyBuffers()
     {
-        using boost::asio::buffer_copy;
-        using boost::asio::buffer_size;
-        using boost::asio::mutable_buffer;
+        using net::buffer_copy;
+        using net::buffer_size;
+        using net::mutable_buffer;
         auto pb0 = buffers_prefix(0, mutable_buffer{});
         BEAST_EXPECT(buffer_size(pb0) == 0);
         auto pb1 = buffers_prefix(1, mutable_buffer{});
@@ -145,8 +145,8 @@ public:
 
     void testIterator()
     {
-        using boost::asio::buffer_size;
-        using boost::asio::const_buffer;
+        using net::buffer_size;
+        using net::const_buffer;
         char b[3];
         std::array<const_buffer, 3> bs{{
             const_buffer{&b[0], 1},
@@ -161,8 +161,8 @@ public:
 
     void run() override
     {
-        testMatrix<boost::asio::const_buffer>();
-        testMatrix<boost::asio::mutable_buffer>();
+        testMatrix<net::const_buffer>();
+        testMatrix<net::mutable_buffer>();
         testEmptyBuffers();
         testIterator();
     }

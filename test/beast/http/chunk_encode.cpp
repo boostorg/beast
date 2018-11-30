@@ -60,7 +60,7 @@ public:
         BEAST_EXPECT(buffers_to_string(t3) == match);
     }
 
-    using cb_t = boost::asio::const_buffer;
+    using cb_t = net::const_buffer;
 
     static
     cb_t

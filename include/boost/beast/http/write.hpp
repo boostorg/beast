@@ -159,7 +159,7 @@ write_some(
     Regardless of whether the asynchronous operation completes
     immediately or not, the handler will not be invoked from within
     this function. Invocation of the handler will be performed in a
-    manner equivalent to using `boost::asio::io_context::post`.
+    manner equivalent to using `net::io_context::post`.
 
     @see @ref serializer
 */
@@ -280,7 +280,7 @@ write_header(
     Regardless of whether the asynchronous operation completes
     immediately or not, the handler will not be invoked from within
     this function. Invocation of the handler will be performed in a
-    manner equivalent to using `boost::asio::io_context::post`.
+    manner equivalent to using `net::io_context::post`.
 
     @note The implementation will call @ref serializer::split with
     the value `true` on the serializer passed in.
@@ -398,7 +398,7 @@ write(
     Regardless of whether the asynchronous operation completes
     immediately or not, the handler will not be invoked from within
     this function. Invocation of the handler will be performed in a
-    manner equivalent to using `boost::asio::io_context::post`.
+    manner equivalent to using `net::io_context::post`.
 
     @see @ref serializer
 */
@@ -617,7 +617,7 @@ write(
     Regardless of whether the asynchronous operation completes
     immediately or not, the handler will not be invoked from within
     this function. Invocation of the handler will be performed in a
-    manner equivalent to using `boost::asio::io_context::post`.
+    manner equivalent to using `net::io_context::post`.
 
     @see @ref message
 */
@@ -675,7 +675,7 @@ async_write(
     Regardless of whether the asynchronous operation completes
     immediately or not, the handler will not be invoked from within
     this function. Invocation of the handler will be performed in a
-    manner equivalent to using `boost::asio::io_context::post`.
+    manner equivalent to using `net::io_context::post`.
 
     @see @ref message
 */

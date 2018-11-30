@@ -37,14 +37,14 @@ namespace beast {
     strand.
     
     @par Example
-    To use this template with a `boost::asio::ip::tcp::socket`, you would write:
+    To use this template with a `net::ip::tcp::socket`, you would write:
     @code
-        boost::asio::io_context ioc;
-        boost::asio::ssl::context ctx{boost::asio::ssl::context::sslv23};
-        boost::beast::ssl_stream<boost::asio:ip::tcp::socket> sock{ioc, ctx};
+        net::io_context ioc;
+        net::ssl::context ctx{net::ssl::context::sslv23};
+        boost::beast::ssl_stream<net:ip::tcp::socket> sock{ioc, ctx};
     @endcode
 
-    In addition to providing an interface identical to `boost::asio::ssl::stream`,
+    In addition to providing an interface identical to `net::ssl::stream`,
     the wrapper has the following additional properties:
     
     @li Satisfies @b MoveConstructible
@@ -54,7 +54,7 @@ namespace beast {
     @li Constructible from a moved socket.
 
     @li Uses @ref flat_stream internally, as a performance work-around for a
-        limitation of `boost::asio::ssl::stream` when writing buffer sequences
+        limitation of `net::ssl::stream` when writing buffer sequences
         having length greater than one.
 
     @par Concepts:
@@ -66,9 +66,9 @@ namespace beast {
 */
 template<class NextLayer>
 class ssl_stream
-    : public boost::asio::ssl::stream_base
+    : public net::ssl::stream_base
 {
-    using ssl_stream_type = boost::asio::ssl::stream<NextLayer>;
+    using ssl_stream_type = net::ssl::stream<NextLayer>;
     using stream_type = boost::beast::flat_stream<ssl_stream_type>;
 
     std::unique_ptr<stream_type> p_;
@@ -102,7 +102,7 @@ public:
     template<class Arg>
     ssl_stream(
         Arg&& arg,
-        boost::asio::ssl::context& ctx)
+        net::ssl::context& ctx)
         : p_(new stream_type{
             std::forward<Arg>(arg), ctx})
     {
@@ -132,7 +132,7 @@ public:
         suitable for passing to functions such as @c SSL_get_verify_result and
         @c SSL_get_peer_certificate:
         @code
-        boost::beast::ssl_stream<boost::asio:ip::tcp::socket> ss{ioc, ctx};
+        boost::beast::ssl_stream<net::ip::tcp::socket> ss{ioc, ctx};
         
         // ... establish connection and perform handshake ...
         
@@ -225,7 +225,7 @@ public:
         @note Calls @c SSL_set_verify.
     */
     void
-    set_verify_mode(boost::asio::ssl::verify_mode v)
+    set_verify_mode(net::ssl::verify_mode v)
     {
         p_->next_layer().set_verify_mode(v);
     }
@@ -243,7 +243,7 @@ public:
         @note Calls @c SSL_set_verify.
     */
     void
-    set_verify_mode(boost::asio::ssl::verify_mode v,
+    set_verify_mode(net::ssl::verify_mode v,
         boost::system::error_code& ec)
     {
         p_->next_layer().set_verify_mode(v, ec);
@@ -320,7 +320,7 @@ public:
         The function signature of the handler must be:
         @code bool verify_callback(
           bool preverified, // True if the certificate passed pre-verification.
-          boost::asio::verify_context& ctx // The peer certificate and other context.
+          net::verify_context& ctx // The peer certificate and other context.
         ); @endcode
         The return value of the callback is true if the certificate has passed
         verification, false otherwise.
@@ -527,7 +527,7 @@ public:
         @throws boost::system::system_error Thrown on failure.
 
         @note The `write_some` operation may not transmit all of the data to the
-        peer. Consider using the `boost::asio::write` function if you need to
+        peer. Consider using the `net::write` function if you need to
         ensure that all data is written before the blocking operation completes.
     */
     template<class ConstBufferSequence>
@@ -550,7 +550,7 @@ public:
         @returns The number of bytes written. Returns 0 if an error occurred.
 
         @note The `write_some` operation may not transmit all of the data to the
-        peer. Consider using the `boost::asio::write` function if you need to
+        peer. Consider using the `net::write` function if you need to
         ensure that all data is written before the blocking operation completes.
     */
     template<class ConstBufferSequence>
@@ -580,7 +580,7 @@ public:
         ); @endcode
 
         @note The `async_write_some` operation may not transmit all of the data to
-        the peer. Consider using the `boost::asio::async_write` function if you
+        the peer. Consider using the `net::async_write` function if you
         need to ensure that all data is written before the asynchronous operation
         completes.
     */
@@ -607,7 +607,7 @@ public:
         @throws boost::system::system_error Thrown on failure.
 
         @note The `read_some` operation may not read all of the requested number of
-        bytes. Consider using the `boost::asio::read` function if you need to ensure
+        bytes. Consider using the `net::read` function if you need to ensure
         that the requested amount of data is read before the blocking operation
         completes.
     */
@@ -631,7 +631,7 @@ public:
         @returns The number of bytes read. Returns 0 if an error occurred.
 
         @note The `read_some` operation may not read all of the requested number of
-        bytes. Consider using the `boost::asio::read` function if you need to ensure
+        bytes. Consider using the `net::read` function if you need to ensure
         that the requested amount of data is read before the blocking operation
         completes.
     */
@@ -662,7 +662,7 @@ public:
         ); @endcode
 
         @note The `async_read_some` operation may not read all of the requested
-        number of bytes. Consider using the `boost::asio::async_read` function
+        number of bytes. Consider using the `net::async_read` function
         if you need to ensure that the requested amount of data is read before
         the asynchronous operation completes.
     */

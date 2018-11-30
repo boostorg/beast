@@ -40,10 +40,9 @@ class http_session : public std::enable_shared_from_this<http_session>
         operator()(http::message<isRequest, Body, Fields>&& msg) const;
     };
 
-    void fail(error_code ec, char const* what);
-    void on_read(error_code ec, std::size_t);
-    void on_write(
-        error_code ec, std::size_t, bool close);
+    void fail(beast::error_code ec, char const* what);
+    void on_read(beast::error_code ec, std::size_t);
+    void on_write(beast::error_code ec, std::size_t, bool close);
 
 public:
     http_session(

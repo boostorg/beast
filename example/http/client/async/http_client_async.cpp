@@ -24,14 +24,16 @@
 #include <memory>
 #include <string>
 
+namespace beast = boost::beast;         // from <boost/beast.hpp>
+namespace http = beast::http;           // from <boost/beast/http.hpp>
+namespace net = boost::asio;            // from <boost/asio.hpp>
 using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
-namespace http = boost::beast::http;    // from <boost/beast/http.hpp>
 
 //------------------------------------------------------------------------------
 
 // Report a failure
 void
-fail(boost::system::error_code ec, char const* what)
+fail(beast::error_code ec, char const* what)
 {
     std::cerr << what << ": " << ec.message() << "\n";
 }
@@ -41,14 +43,14 @@ class session : public std::enable_shared_from_this<session>
 {
     tcp::resolver resolver_;
     tcp::socket socket_;
-    boost::beast::flat_buffer buffer_; // (Must persist between reads)
+    beast::flat_buffer buffer_; // (Must persist between reads)
     http::request<http::empty_body> req_;
     http::response<http::string_body> res_;
 
 public:
     // Resolver and socket require an io_context
     explicit
-    session(boost::asio::io_context& ioc)
+    session(net::io_context& ioc)
         : resolver_(ioc)
         , socket_(ioc)
     {
@@ -82,14 +84,14 @@ public:
 
     void
     on_resolve(
-        boost::system::error_code ec,
+        beast::error_code ec,
         tcp::resolver::results_type results)
     {
         if(ec)
             return fail(ec, "resolve");
 
         // Make the connection on the IP address we get from a lookup
-        boost::asio::async_connect(
+        net::async_connect(
             socket_,
             results.begin(),
             results.end(),
@@ -100,7 +102,7 @@ public:
     }
 
     void
-    on_connect(boost::system::error_code ec)
+    on_connect(beast::error_code ec)
     {
         if(ec)
             return fail(ec, "connect");
@@ -116,7 +118,7 @@ public:
 
     void
     on_write(
-        boost::system::error_code ec,
+        beast::error_code ec,
         std::size_t bytes_transferred)
     {
         boost::ignore_unused(bytes_transferred);
@@ -135,7 +137,7 @@ public:
 
     void
     on_read(
-        boost::system::error_code ec,
+        beast::error_code ec,
         std::size_t bytes_transferred)
     {
         boost::ignore_unused(bytes_transferred);
@@ -150,7 +152,7 @@ public:
         socket_.shutdown(tcp::socket::shutdown_both, ec);
 
         // not_connected happens sometimes so don't bother reporting it.
-        if(ec && ec != boost::system::errc::not_connected)
+        if(ec && ec != beast::errc::not_connected)
             return fail(ec, "shutdown");
 
         // If we get here then the connection is closed gracefully
@@ -177,7 +179,7 @@ int main(int argc, char** argv)
     int version = argc == 5 && !std::strcmp("1.0", argv[4]) ? 10 : 11;
 
     // The io_context is required for all I/O
-    boost::asio::io_context ioc;
+    net::io_context ioc;
 
     // Launch the asynchronous operation
     std::make_shared<session>(ioc)->run(host, port, target, version);

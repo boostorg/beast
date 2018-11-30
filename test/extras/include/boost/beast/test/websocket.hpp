@@ -28,9 +28,9 @@ namespace test {
 class ws_echo_server
 {
     std::ostream& log_;
-    boost::asio::io_context ioc_;
-    boost::asio::executor_work_guard<
-        boost::asio::io_context::executor_type> work_;
+    net::io_context ioc_;
+    net::executor_work_guard<
+        net::io_context::executor_type> work_;
     multi_buffer buffer_;
     test::stream ts_;
     std::thread t_;
@@ -102,7 +102,7 @@ public:
     void
     async_close()
     {
-        boost::asio::post(ioc_,
+        net::post(ioc_,
         [&]
         {
             if(ws_.is_open())
@@ -141,7 +141,7 @@ private:
 #if 0
             if( se.code() != error::closed &&
                 se.code() != error::failed &&
-                se.code() != boost::asio::error::eof)
+                se.code() != net::error::eof)
                 log_ << "ws_echo_server: " << se.code().message() << std::endl;
 #endif
         }
@@ -233,7 +233,7 @@ private:
 #if 0
         if( ec != error::closed &&
             ec != error::failed &&
-            ec != boost::asio::error::eof)
+            ec != net::error::eof)
             log_ <<
                 "echo_server_async: " <<
                 ec.message() <<

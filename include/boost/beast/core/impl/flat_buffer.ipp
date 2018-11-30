@@ -351,7 +351,7 @@ copy_from(DynamicBuffer const& buffer)
 {
     if(buffer.size() == 0)
         return;
-    commit(boost::asio::buffer_copy(
+    commit(net::buffer_copy(
         prepare(buffer.size()), buffer.data()));
 }
 

@@ -22,8 +22,11 @@
 #include <string>
 #include <thread>
 
-using tcp = boost::asio::ip::tcp;               // from <boost/asio/ip/tcp.hpp>
-namespace websocket = boost::beast::websocket;  // from <boost/beast/websocket.hpp>
+namespace beast = boost::beast;         // from <boost/beast.hpp>
+namespace http = beast::http;           // from <boost/beast/http.hpp>
+namespace websocket = beast::websocket; // from <boost/beast/websocket.hpp>
+namespace net = boost::asio;            // from <boost/asio.hpp>
+using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
 
 //------------------------------------------------------------------------------
 
@@ -42,7 +45,7 @@ do_session(tcp::socket& socket)
         for(;;)
         {
             // This buffer will hold the incoming message
-            boost::beast::multi_buffer buffer;
+            beast::multi_buffer buffer;
 
             // Read a message
             ws.read(buffer);
@@ -52,7 +55,7 @@ do_session(tcp::socket& socket)
             ws.write(buffer.data());
         }
     }
-    catch(boost::system::system_error const& se)
+    catch(beast::system_error const& se)
     {
         // This indicates that the session was closed
         if(se.code() != websocket::error::closed)
@@ -79,11 +82,11 @@ int main(int argc, char* argv[])
                 "    websocket-server-sync 0.0.0.0 8080\n";
             return EXIT_FAILURE;
         }
-        auto const address = boost::asio::ip::make_address(argv[1]);
+        auto const address = net::ip::make_address(argv[1]);
         auto const port = static_cast<unsigned short>(std::atoi(argv[2]));
 
         // The io_context is required for all I/O
-        boost::asio::io_context ioc{1};
+        net::io_context ioc{1};
 
         // The acceptor receives incoming connections
         tcp::acceptor acceptor{ioc, {address, port}};

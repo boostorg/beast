@@ -17,15 +17,15 @@
 //------------------------------------------------------------------------------
 
 // Return a reasonable mime type based on the extension of a file.
-boost::beast::string_view
-mime_type(boost::beast::string_view path)
+beast::string_view
+mime_type(beast::string_view path)
 {
-    using boost::beast::iequals;
+    using beast::iequals;
     auto const ext = [&path]
     {
         auto const pos = path.rfind(".");
-        if(pos == boost::beast::string_view::npos)
-            return boost::beast::string_view{};
+        if(pos == beast::string_view::npos)
+            return beast::string_view{};
         return path.substr(pos);
     }();
     if(iequals(ext, ".htm"))  return "text/html";
@@ -56,8 +56,8 @@ mime_type(boost::beast::string_view path)
 // The returned path is normalized for the platform.
 std::string
 path_cat(
-    boost::beast::string_view base,
-    boost::beast::string_view path)
+    beast::string_view base,
+    beast::string_view path)
 {
     if(base.empty())
         return path.to_string();
@@ -88,13 +88,13 @@ template<
     class Send>
 void
 handle_request(
-    boost::beast::string_view doc_root,
+    beast::string_view doc_root,
     http::request<Body, http::basic_fields<Allocator>>&& req,
     Send&& send)
 {
     // Returns a bad request response
     auto const bad_request =
-    [&req](boost::beast::string_view why)
+    [&req](beast::string_view why)
     {
         http::response<http::string_body> res{http::status::bad_request, req.version()};
         res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
@@ -107,7 +107,7 @@ handle_request(
 
     // Returns a not found response
     auto const not_found =
-    [&req](boost::beast::string_view target)
+    [&req](beast::string_view target)
     {
         http::response<http::string_body> res{http::status::not_found, req.version()};
         res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
@@ -120,7 +120,7 @@ handle_request(
 
     // Returns a server error response
     auto const server_error =
-    [&req](boost::beast::string_view what)
+    [&req](beast::string_view what)
     {
         http::response<http::string_body> res{http::status::internal_server_error, req.version()};
         res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
@@ -139,7 +139,7 @@ handle_request(
     // Request path must be absolute and not contain "..".
     if( req.target().empty() ||
         req.target()[0] != '/' ||
-        req.target().find("..") != boost::beast::string_view::npos)
+        req.target().find("..") != beast::string_view::npos)
         return send(bad_request("Illegal request-target"));
 
     // Build the path to the requested file
@@ -148,9 +148,9 @@ handle_request(
         path.append("index.html");
 
     // Attempt to open the file
-    boost::beast::error_code ec;
+    beast::error_code ec;
     http::file_body::value_type body;
-    body.open(path.c_str(), boost::beast::file_mode::scan, ec);
+    body.open(path.c_str(), beast::file_mode::scan, ec);
 
     // Handle the case where the file doesn't exist
     if(ec == boost::system::errc::no_such_file_or_directory)
@@ -213,7 +213,7 @@ run()
 // Report a failure
 void
 http_session::
-fail(error_code ec, char const* what)
+fail(beast::error_code ec, char const* what)
 {
     // Don't report on canceled operations
     if(ec == net::error::operation_aborted)
@@ -239,7 +239,7 @@ operator()(http::message<isRequest, Body, Fields>&& msg) const
     http::async_write(
         self_.socket_,
         *sp,
-        [self, sp](error_code ec, std::size_t bytes)
+        [self, sp](beast::error_code ec, std::size_t bytes)
         {
             self->on_write(ec, bytes, sp->need_eof());
         });
@@ -247,7 +247,7 @@ operator()(http::message<isRequest, Body, Fields>&& msg) const
 
 void
 http_session::
-on_read(error_code ec, std::size_t)
+on_read(beast::error_code ec, std::size_t)
 {
     // This means they closed the connection
     if(ec == http::error::end_of_stream)
@@ -291,7 +291,7 @@ on_read(error_code ec, std::size_t)
             // Write the response
             http::async_write(this->socket_, *sp,
 				[self = shared_from_this(), sp](
-					error_code ec, std::size_t bytes)
+					beast::error_code ec, std::size_t bytes)
 				{
 					self->on_write(ec, bytes, sp->need_eof()); 
 				});
@@ -300,7 +300,7 @@ on_read(error_code ec, std::size_t)
             auto self = shared_from_this();
             http::async_write(this->socket_, *sp,
 				[self, sp](
-					error_code ec, std::size_t bytes)
+					beast::error_code ec, std::size_t bytes)
 				{
 					self->on_write(ec, bytes, sp->need_eof()); 
 				});
@@ -321,7 +321,7 @@ on_read(error_code ec, std::size_t)
 
 void
 http_session::
-on_write(error_code ec, std::size_t, bool close)
+on_write(beast::error_code ec, std::size_t, bool close)
 {
     // Handle the error, if any
     if(ec)

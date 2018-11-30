@@ -64,7 +64,7 @@ struct basic_file_body<file_win32>
         friend
         std::size_t
         write_some(
-            boost::asio::basic_stream_socket<Protocol>& sock,
+            net::basic_stream_socket<Protocol>& sock,
             serializer<isRequest,
                 basic_file_body<file_win32>, Fields>& sr,
             error_code& ec);
@@ -113,7 +113,7 @@ struct basic_file_body<file_win32>
         friend
         std::size_t
         write_some(
-            boost::asio::basic_stream_socket<Protocol>& sock,
+            net::basic_stream_socket<Protocol>& sock,
             serializer<isRequest,
                 basic_file_body<file_win32>, Fields>& sr,
             error_code& ec);
@@ -124,7 +124,7 @@ struct basic_file_body<file_win32>
 
     public:
         using const_buffers_type =
-            boost::asio::const_buffer;
+            net::const_buffer;
 
         template<bool isRequest, class Fields>
         writer(header<isRequest, Fields>&, value_type& b)
@@ -338,9 +338,9 @@ template<
     bool isRequest, class Fields>
 class write_some_win32_op
 {
-    boost::asio::basic_stream_socket<Protocol>& sock_;
-    boost::asio::executor_work_guard<decltype(std::declval<
-        boost::asio::basic_stream_socket<Protocol>&>().get_executor())> wg_;
+    net::basic_stream_socket<Protocol>& sock_;
+    net::executor_work_guard<decltype(std::declval<
+        net::basic_stream_socket<Protocol>&>().get_executor())> wg_;
     serializer<isRequest,
         basic_file_body<file_win32>, Fields>& sr_;
     std::size_t bytes_transferred_ = 0;
@@ -354,7 +354,7 @@ public:
     template<class DeducedHandler>
     write_some_win32_op(
         DeducedHandler&& h,
-        boost::asio::basic_stream_socket<Protocol>& s,
+        net::basic_stream_socket<Protocol>& s,
         serializer<isRequest,
             basic_file_body<file_win32>,Fields>& sr)
         : sock_(s)
@@ -365,22 +365,22 @@ public:
     }
 
     using allocator_type =
-        boost::asio::associated_allocator_t<Handler>;
+        net::associated_allocator_t<Handler>;
 
     allocator_type
     get_allocator() const noexcept
     {
-        return (boost::asio::get_associated_allocator)(h_);
+        return (net::get_associated_allocator)(h_);
     }
 
     using executor_type =
-        boost::asio::associated_executor_t<Handler, decltype(std::declval<
-            boost::asio::basic_stream_socket<Protocol>&>().get_executor())>;
+        net::associated_executor_t<Handler, decltype(std::declval<
+            net::basic_stream_socket<Protocol>&>().get_executor())>;
 
     executor_type
     get_executor() const noexcept
     {
-        return (boost::asio::get_associated_executor)(
+        return (net::get_associated_executor)(
             h_, sock_.get_executor());
     }
 
@@ -395,7 +395,7 @@ public:
     friend
     bool asio_handler_is_continuation(write_some_win32_op* op)
     {
-        using boost::asio::asio_handler_is_continuation;
+        using net::asio_handler_is_continuation;
         return asio_handler_is_continuation(
             std::addressof(op->h_));
     }
@@ -404,7 +404,7 @@ public:
     friend
     void asio_handler_invoke(Function&& f, write_some_win32_op* op)
     {
-        using boost::asio::asio_handler_invoke;
+        using net::asio_handler_invoke;
         asio_handler_invoke(f, std::addressof(op->h_));
     }
 };
@@ -435,7 +435,7 @@ operator()()
         (std::min<std::uint64_t>)(
             (std::min<std::uint64_t>)(w.body_.last_ - w.pos_, sr_.limit()),
             (std::numeric_limits<boost::winapi::DWORD_>::max)()));
-    boost::asio::windows::overlapped_ptr overlapped{
+    net::windows::overlapped_ptr overlapped{
         sock_.get_executor().context(), std::move(*this)};
     // Note that we have moved *this, so we cannot access
     // the handler since it is now moved-from. We can still
@@ -503,7 +503,7 @@ operator()(
 template<class Protocol, bool isRequest, class Fields>
 std::size_t
 write_some(
-    boost::asio::basic_stream_socket<Protocol>& sock,
+    net::basic_stream_socket<Protocol>& sock,
     serializer<isRequest,
         basic_file_body<file_win32>, Fields>& sr,
     error_code& ec)
@@ -573,7 +573,7 @@ template<
 BOOST_ASIO_INITFN_RESULT_TYPE(
     WriteHandler, void(error_code, std::size_t))
 async_write_some(
-    boost::asio::basic_stream_socket<Protocol>& sock,
+    net::basic_stream_socket<Protocol>& sock,
     serializer<isRequest,
         basic_file_body<file_win32>, Fields>& sr,
     WriteHandler&& handler)

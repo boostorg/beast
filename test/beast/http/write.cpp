@@ -47,7 +47,7 @@ public:
 
         public:
             using const_buffers_type =
-                boost::asio::const_buffer;
+                net::const_buffer;
 
             template<bool isRequest, class Fields>
             writer(
@@ -92,7 +92,7 @@ public:
 
         public:
             using const_buffers_type =
-                boost::asio::const_buffer;
+                net::const_buffer;
 
             template<bool isRequest, class Fields>
             writer(
@@ -124,7 +124,7 @@ public:
                 std::false_type,    // isSplit
                 std::false_type)    // isFinalEmpty
             {
-                using boost::asio::buffer;
+                using net::buffer;
                 if(body_.s.empty())
                     return boost::none;
                 return {{buffer(body_.s.data(), body_.s.size()), false}};
@@ -135,7 +135,7 @@ public:
                 std::false_type,    // isSplit
                 std::true_type)     // isFinalEmpty
             {
-                using boost::asio::buffer;
+                using net::buffer;
                 if(body_.s.empty())
                     return boost::none;
                 switch(step_)
@@ -154,7 +154,7 @@ public:
                 std::true_type,     // isSplit
                 std::false_type)    // isFinalEmpty
             {
-                using boost::asio::buffer;
+                using net::buffer;
                 auto const n = (body_.s.size() + 1) / 2;
                 switch(step_)
                 {
@@ -175,7 +175,7 @@ public:
                 std::true_type,     // isSplit
                 std::true_type)     // isFinalEmpty
             {
-                using boost::asio::buffer;
+                using net::buffer;
                 auto const n = (body_.s.size() + 1) / 2;
                 switch(step_)
                 {
@@ -229,7 +229,7 @@ public:
 
         public:
             using const_buffers_type =
-                boost::asio::const_buffer;
+                net::const_buffer;
 
             template<bool isRequest, class Fields>
             explicit
@@ -636,7 +636,7 @@ public:
         {
             // Make sure handlers are not destroyed
             // after calling io_context::stop
-            boost::asio::io_context ioc;
+            net::io_context ioc;
             test::stream ts{ioc};
             BEAST_EXPECT(handler::count() == 0);
             request<string_body> m;
@@ -658,7 +658,7 @@ public:
             // Make sure uninvoked handlers are
             // destroyed when calling ~io_context
             {
-                boost::asio::io_context ioc;
+                net::io_context ioc;
                 test::stream ts{ioc}, tr{ioc};
                 ts.connect(tr);
                 BEAST_EXPECT(handler::count() == 0);
@@ -718,7 +718,7 @@ public:
 
     template<class Body>
     void
-    testWriteStream(boost::asio::yield_context yield)
+    testWriteStream(net::yield_context yield)
     {
         test::stream ts{ioc_}, tr{ioc_};
         ts.connect(tr);
@@ -832,7 +832,7 @@ public:
     void
     testIssue655()
     {
-        boost::asio::io_context ioc;
+        net::io_context ioc;
         test::stream ts{ioc}, tr{ioc};
         ts.connect(tr);
         response<empty_body> res;
@@ -857,42 +857,42 @@ public:
     void
     testAsioHandlerInvoke()
     {
-        using strand = boost::asio::strand<
-            boost::asio::io_context::executor_type>;
+        using strand = net::strand<
+            net::io_context::executor_type>;
 
         // make sure things compile, also can set a
         // breakpoint in asio_handler_invoke to make sure
         // it is instantiated.
         {
-            boost::asio::io_context ioc;
+            net::io_context ioc;
             strand s{ioc.get_executor()};
             test::stream ts{ioc};
             flat_buffer b;
             request<empty_body> m;
             request_serializer<empty_body, fields> sr{m};
             async_write_some(ts, sr,
-                boost::asio::bind_executor(
+                net::bind_executor(
                     s, copyable_handler{}));
         }
         {
-            boost::asio::io_context ioc;
+            net::io_context ioc;
             strand s{ioc.get_executor()};
             test::stream ts{ioc};
             flat_buffer b;
             request<empty_body> m;
             request_serializer<empty_body, fields> sr{m};
             async_write(ts, sr,
-                boost::asio::bind_executor(
+                net::bind_executor(
                     s, copyable_handler{}));
         }
         {
-            boost::asio::io_context ioc;
+            net::io_context ioc;
             strand s{ioc.get_executor()};
             test::stream ts{ioc};
             flat_buffer b;
             request<empty_body> m;
             async_write(ts, m,
-                boost::asio::bind_executor(
+                net::bind_executor(
                     s, copyable_handler{}));
         }
     }
@@ -904,7 +904,7 @@ public:
         struct writer
         {
             using const_buffers_type =
-                boost::asio::const_buffer;
+                net::const_buffer;
 
             template<bool isRequest, class Fields>
             writer(
@@ -935,7 +935,7 @@ public:
         struct writer
         {
             using const_buffers_type =
-                boost::asio::const_buffer;
+                net::const_buffer;
 
             template<bool isRequest, class Fields>
             writer(

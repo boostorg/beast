@@ -10,6 +10,7 @@
 #ifndef CPPCON2018_LISTENER_HPP
 #define CPPCON2018_LISTENER_HPP
 
+#include "beast.hpp"
 #include "net.hpp"
 #include <memory>
 #include <string>
@@ -24,8 +25,8 @@ class listener : public std::enable_shared_from_this<listener>
     tcp::socket socket_;
     std::shared_ptr<shared_state> state_;
 
-    void fail(error_code ec, char const* what);
-    void on_accept(error_code ec);
+    void fail(beast::error_code ec, char const* what);
+    void on_accept(beast::error_code ec);
 
 public:
     listener(

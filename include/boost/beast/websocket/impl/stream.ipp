@@ -57,7 +57,7 @@ stream<NextLayer, deflateSupported>::
 read_size_hint(DynamicBuffer& buffer) const
 {
     static_assert(
-        boost::asio::is_dynamic_buffer<DynamicBuffer>::value,
+        net::is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer requirements not met");
     auto const initial_size = (std::min)(
         +tcp_frame_size,
@@ -169,9 +169,9 @@ parse_fh(
     DynamicBuffer& b,
     error_code& ec)
 {
-    using boost::asio::buffer;
-    using boost::asio::buffer_copy;
-    using boost::asio::buffer_size;
+    using net::buffer;
+    using net::buffer_copy;
+    using net::buffer_size;
     if(buffer_size(b.data()) < 2)
     {
         // need more bytes
@@ -403,8 +403,8 @@ write_close(DynamicBuffer& db, close_reason const& cr)
             ::new(&tmp[0]) big_uint16_buf_t{
                 (std::uint16_t)cr.code};
             auto mb = db.prepare(2);
-            boost::asio::buffer_copy(mb,
-                boost::asio::buffer(tmp));
+            net::buffer_copy(mb,
+                net::buffer(tmp));
             if(fh.mask)
                 detail::mask_inplace(mb, key);
             db.commit(2);
@@ -412,8 +412,8 @@ write_close(DynamicBuffer& db, close_reason const& cr)
         if(! cr.reason.empty())
         {
             auto mb = db.prepare(cr.reason.size());
-            boost::asio::buffer_copy(mb,
-                boost::asio::const_buffer(
+            net::buffer_copy(mb,
+                net::const_buffer(
                     cr.reason.data(), cr.reason.size()));
             if(fh.mask)
                 detail::mask_inplace(mb, key);
@@ -446,8 +446,8 @@ write_ping(DynamicBuffer& db,
     if(fh.mask)
         detail::prepare_key(key, fh.key);
     auto mb = db.prepare(data.size());
-    boost::asio::buffer_copy(mb,
-        boost::asio::const_buffer(
+    net::buffer_copy(mb,
+        net::const_buffer(
             data.data(), data.size()));
     if(fh.mask)
         detail::mask_inplace(mb, key);
@@ -642,13 +642,13 @@ do_fail(
         detail::frame_buffer fb;
         write_close<
             flat_static_buffer_base>(fb, code);
-        boost::asio::write(stream_, fb.data(), ec);
+        net::write(stream_, fb.data(), ec);
         if(! check_ok(ec))
             return;
     }
     using beast::websocket::teardown;
     teardown(role_, stream_, ec);
-    if(ec == boost::asio::error::eof)
+    if(ec == net::error::eof)
     {
         // Rationale:
         // http://stackoverflow.com/questions/25587403/boost-asio-ssl-async-shutdown-always-finishes-with-an-error

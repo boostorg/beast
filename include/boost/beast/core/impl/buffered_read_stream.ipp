@@ -33,7 +33,7 @@ class buffered_read_stream<
     Stream, DynamicBuffer>::read_some_op
 {
     buffered_read_stream& s_;
-    boost::asio::executor_work_guard<decltype(
+    net::executor_work_guard<decltype(
         std::declval<Stream&>().get_executor())> wg_;
     MutableBufferSequence b_;
     Handler h_;
@@ -55,22 +55,22 @@ public:
     }
 
     using allocator_type =
-        boost::asio::associated_allocator_t<Handler>;
+        net::associated_allocator_t<Handler>;
 
     allocator_type
     get_allocator() const noexcept
     {
-        return (boost::asio::get_associated_allocator)(h_);
+        return (net::get_associated_allocator)(h_);
     }
 
     using executor_type =
-        boost::asio::associated_executor_t<Handler, decltype(
+        net::associated_executor_t<Handler, decltype(
             std::declval<buffered_read_stream&>().get_executor())>;
 
     executor_type
     get_executor() const noexcept
     {
-        return (boost::asio::get_associated_executor)(
+        return (net::get_associated_executor)(
             h_, s_.get_executor());
     }
 
@@ -81,7 +81,7 @@ public:
     friend
     bool asio_handler_is_continuation(read_some_op* op)
     {
-        using boost::asio::asio_handler_is_continuation;
+        using net::asio_handler_is_continuation;
         return asio_handler_is_continuation(
             std::addressof(op->h_));
     }
@@ -90,7 +90,7 @@ public:
     friend
     void asio_handler_invoke(Function&& f, read_some_op* op)
     {
-        using boost::asio::asio_handler_invoke;
+        using net::asio_handler_invoke;
         asio_handler_invoke(f, std::addressof(op->h_));
     }
 };
@@ -124,7 +124,7 @@ read_some_op<MutableBufferSequence, Handler>::operator()(
 
         }
         step_ = 3;
-        return boost::asio::post(
+        return net::post(
             s_.get_executor(),
             beast::bind_front_handler(std::move(*this), ec, 0));
 
@@ -138,7 +138,7 @@ read_some_op<MutableBufferSequence, Handler>::operator()(
 
     case 3:
         bytes_transferred =
-            boost::asio::buffer_copy(b_, s_.buffer_.data());
+            net::buffer_copy(b_, s_.buffer_.data());
         s_.buffer_.consume(bytes_transferred);
         break;
     }
@@ -166,7 +166,7 @@ async_write_some(
 {
     static_assert(is_async_write_stream<next_layer_type>::value,
         "AsyncWriteStream requirements not met");
-    static_assert(boost::asio::is_const_buffer_sequence<
+    static_assert(net::is_const_buffer_sequence<
         ConstBufferSequence>::value,
             "ConstBufferSequence requirements not met");
     static_assert(is_completion_handler<WriteHandler,
@@ -185,7 +185,7 @@ read_some(
 {
     static_assert(is_sync_read_stream<next_layer_type>::value,
         "SyncReadStream requirements not met");
-    static_assert(boost::asio::is_mutable_buffer_sequence<
+    static_assert(net::is_mutable_buffer_sequence<
         MutableBufferSequence>::value,
             "MutableBufferSequence requirements not met");
     error_code ec;
@@ -204,11 +204,11 @@ read_some(MutableBufferSequence const& buffers,
 {
     static_assert(is_sync_read_stream<next_layer_type>::value,
         "SyncReadStream requirements not met");
-    static_assert(boost::asio::is_mutable_buffer_sequence<
+    static_assert(net::is_mutable_buffer_sequence<
         MutableBufferSequence>::value,
             "MutableBufferSequence requirements not met");
-    using boost::asio::buffer_size;
-    using boost::asio::buffer_copy;
+    using net::buffer_size;
+    using net::buffer_copy;
     if(buffer_.size() == 0)
     {
         if(capacity_ == 0)
@@ -240,7 +240,7 @@ async_read_some(
 {
     static_assert(is_async_read_stream<next_layer_type>::value,
         "AsyncReadStream requirements not met");
-    static_assert(boost::asio::is_mutable_buffer_sequence<
+    static_assert(net::is_mutable_buffer_sequence<
         MutableBufferSequence>::value,
             "MutableBufferSequence requirements not met");
     if(buffer_.size() == 0 && capacity_ == 0)

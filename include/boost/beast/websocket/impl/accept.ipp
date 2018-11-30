@@ -40,12 +40,12 @@ namespace websocket {
 template<class NextLayer, bool deflateSupported>
 template<class Handler>
 class stream<NextLayer, deflateSupported>::response_op
-    : public boost::asio::coroutine
+    : public net::coroutine
 {
     struct data
     {
         stream<NextLayer, deflateSupported>& ws;
-        boost::asio::executor_work_guard<decltype(std::declval<
+        net::executor_work_guard<decltype(std::declval<
             stream<NextLayer, deflateSupported>&>().get_executor())> wg;
         error_code result;
         response_type res;
@@ -79,22 +79,22 @@ public:
     }
 
     using allocator_type =
-        boost::asio::associated_allocator_t<Handler>;
+        net::associated_allocator_t<Handler>;
 
     allocator_type
     get_allocator() const noexcept
     {
-        return (boost::asio::get_associated_allocator)(d_.handler());
+        return (net::get_associated_allocator)(d_.handler());
     }
 
-    using executor_type = boost::asio::associated_executor_t<
+    using executor_type = net::associated_executor_t<
         Handler, decltype(std::declval<
             stream<NextLayer, deflateSupported>&>().get_executor())>;
 
     executor_type
     get_executor() const noexcept
     {
-        return (boost::asio::get_associated_executor)(
+        return (net::get_associated_executor)(
             d_.handler(), d_->ws.get_executor());
     }
 
@@ -105,7 +105,7 @@ public:
     friend
     bool asio_handler_is_continuation(response_op* op)
     {
-        using boost::asio::asio_handler_is_continuation;
+        using net::asio_handler_is_continuation;
         return asio_handler_is_continuation(
             std::addressof(op->d_.handler()));
     }
@@ -114,7 +114,7 @@ public:
     friend
     void asio_handler_invoke(Function&& f, response_op* op)
     {
-        using boost::asio::asio_handler_invoke;
+        using net::asio_handler_invoke;
         asio_handler_invoke(f, std::addressof(op->d_.handler()));
     }
 };
@@ -156,12 +156,12 @@ operator()(
 template<class NextLayer, bool deflateSupported>
 template<class Decorator, class Handler>
 class stream<NextLayer, deflateSupported>::accept_op
-    : public boost::asio::coroutine
+    : public net::coroutine
 {
     struct data
     {
         stream<NextLayer, deflateSupported>& ws;
-        boost::asio::executor_work_guard<decltype(std::declval<
+        net::executor_work_guard<decltype(std::declval<
             stream<NextLayer, deflateSupported>&>().get_executor())> wg;
         Decorator decorator;
         http::request_parser<http::empty_body> p;
@@ -191,21 +191,21 @@ public:
     }
 
     using allocator_type =
-        boost::asio::associated_allocator_t<Handler>;
+        net::associated_allocator_t<Handler>;
 
     allocator_type
     get_allocator() const noexcept
     {
-        return (boost::asio::get_associated_allocator)(d_.handler());
+        return (net::get_associated_allocator)(d_.handler());
     }
 
-    using executor_type = boost::asio::associated_executor_t<
+    using executor_type = net::associated_executor_t<
         Handler, decltype(std::declval<stream<NextLayer, deflateSupported>&>().get_executor())>;
 
     executor_type
     get_executor() const noexcept
     {
-        return (boost::asio::get_associated_executor)(
+        return (net::get_associated_executor)(
             d_.handler(), d_->ws.get_executor());
     }
 
@@ -219,7 +219,7 @@ public:
     friend
     bool asio_handler_is_continuation(accept_op* op)
     {
-        using boost::asio::asio_handler_is_continuation;
+        using net::asio_handler_is_continuation;
         return asio_handler_is_continuation(
             std::addressof(op->d_.handler()));
     }
@@ -228,7 +228,7 @@ public:
     friend
     void asio_handler_invoke(Function&& f, accept_op* op)
     {
-        using boost::asio::asio_handler_invoke;
+        using net::asio_handler_invoke;
         asio_handler_invoke(f, std::addressof(op->d_.handler()));
     }
 };
@@ -241,8 +241,8 @@ stream<NextLayer, deflateSupported>::
 accept_op<Decorator, Handler>::
 run(Buffers const& buffers)
 {
-    using boost::asio::buffer_copy;
-    using boost::asio::buffer_size;
+    using net::buffer_copy;
+    using net::buffer_size;
     auto& d = *d_;
     error_code ec;
     auto const mb = beast::detail::dynamic_buffer_prepare(
@@ -267,7 +267,7 @@ operator()(error_code ec, std::size_t)
         if(ec)
         {
             BOOST_ASIO_CORO_YIELD
-            boost::asio::post(
+            net::post(
                 d.ws.get_executor(),
                 beast::bind_front_handler(std::move(*this), ec));
         }
@@ -375,7 +375,7 @@ accept(ConstBufferSequence const& buffers)
 {
     static_assert(is_sync_stream<next_layer_type>::value,
         "SyncStream requirements not met");
-    static_assert(boost::asio::is_const_buffer_sequence<
+    static_assert(net::is_const_buffer_sequence<
         ConstBufferSequence>::value,
             "ConstBufferSequence requirements not met");
     error_code ec;
@@ -397,7 +397,7 @@ accept_ex(
 {
     static_assert(is_sync_stream<next_layer_type>::value,
         "SyncStream requirements not met");
-    static_assert(boost::asio::is_const_buffer_sequence<
+    static_assert(net::is_const_buffer_sequence<
         ConstBufferSequence>::value,
             "ConstBufferSequence requirements not met");
     static_assert(detail::is_response_decorator<
@@ -419,11 +419,11 @@ accept(
 {
     static_assert(is_sync_stream<next_layer_type>::value,
         "SyncStream requirements not met");
-    static_assert(boost::asio::is_const_buffer_sequence<
+    static_assert(net::is_const_buffer_sequence<
         ConstBufferSequence>::value,
             "ConstBufferSequence requirements not met");
-    using boost::asio::buffer_copy;
-    using boost::asio::buffer_size;
+    using net::buffer_copy;
+    using net::buffer_size;
     reset();
     auto const mb = beast::detail::dynamic_buffer_prepare(
         rd_buf_, buffer_size(buffers), ec,
@@ -448,14 +448,14 @@ accept_ex(
 {
     static_assert(is_sync_stream<next_layer_type>::value,
         "SyncStream requirements not met");
-    static_assert(boost::asio::is_const_buffer_sequence<
+    static_assert(net::is_const_buffer_sequence<
         ConstBufferSequence>::value,
             "ConstBufferSequence requirements not met");
-    static_assert(boost::asio::is_const_buffer_sequence<
+    static_assert(net::is_const_buffer_sequence<
         ConstBufferSequence>::value,
             "ConstBufferSequence requirements not met");
-    using boost::asio::buffer_copy;
-    using boost::asio::buffer_size;
+    using net::buffer_copy;
+    using net::buffer_size;
     reset();
     auto const mb = beast::detail::dynamic_buffer_prepare(
         rd_buf_, buffer_size(buffers), ec,
@@ -610,7 +610,7 @@ async_accept(
 {
     static_assert(is_async_stream<next_layer_type>::value,
         "AsyncStream requirements not met");
-    static_assert(boost::asio::is_const_buffer_sequence<
+    static_assert(net::is_const_buffer_sequence<
         ConstBufferSequence>::value,
             "ConstBufferSequence requirements not met");
     BOOST_BEAST_HANDLER_INIT(
@@ -643,7 +643,7 @@ async_accept_ex(
 {
     static_assert(is_async_stream<next_layer_type>::value,
         "AsyncStream requirements not met");
-    static_assert(boost::asio::is_const_buffer_sequence<
+    static_assert(net::is_const_buffer_sequence<
         ConstBufferSequence>::value,
             "ConstBufferSequence requirements not met");
     static_assert(detail::is_response_decorator<
@@ -678,7 +678,7 @@ async_accept(
     BOOST_BEAST_HANDLER_INIT(
         AcceptHandler, void(error_code));
     reset();
-    using boost::asio::asio_handler_is_continuation;
+    using net::asio_handler_is_continuation;
     response_op<
         BOOST_ASIO_HANDLER_TYPE(
             AcceptHandler, void(error_code))>{
@@ -710,7 +710,7 @@ async_accept_ex(
     BOOST_BEAST_HANDLER_INIT(
         AcceptHandler, void(error_code));
     reset();
-    using boost::asio::asio_handler_is_continuation;
+    using net::asio_handler_is_continuation;
     response_op<
         BOOST_ASIO_HANDLER_TYPE(
             AcceptHandler, void(error_code))>{

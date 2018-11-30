@@ -23,8 +23,11 @@
 #include <iostream>
 #include <string>
 
-using tcp = boost::asio::ip::tcp;               // from <boost/asio/ip/tcp.hpp>
-namespace websocket = boost::beast::websocket;  // from <boost/beast/websocket.hpp>
+namespace beast = boost::beast;         // from <boost/beast.hpp>
+namespace http = beast::http;           // from <boost/beast/http.hpp>
+namespace websocket = beast::websocket; // from <boost/beast/websocket.hpp>
+namespace net = boost::asio;            // from <boost/asio.hpp>
+using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
 
 // Sends a WebSocket message and prints the response
 int main(int argc, char** argv)
@@ -45,7 +48,7 @@ int main(int argc, char** argv)
         auto const text = argv[3];
 
         // The io_context is required for all I/O
-        boost::asio::io_context ioc;
+        net::io_context ioc;
 
         // These objects perform our I/O
         tcp::resolver resolver{ioc};
@@ -55,16 +58,16 @@ int main(int argc, char** argv)
         auto const results = resolver.resolve(host, port);
 
         // Make the connection on the IP address we get from a lookup
-        boost::asio::connect(ws.next_layer(), results.begin(), results.end());
+        net::connect(ws.next_layer(), results.begin(), results.end());
 
         // Perform the websocket handshake
         ws.handshake(host, "/");
 
         // Send the message
-        ws.write(boost::asio::buffer(std::string(text)));
+        ws.write(net::buffer(std::string(text)));
 
         // This buffer will hold the incoming message
-        boost::beast::multi_buffer buffer;
+        beast::multi_buffer buffer;
 
         // Read a message into our buffer
         ws.read(buffer);
@@ -75,7 +78,7 @@ int main(int argc, char** argv)
         // If we get here then the connection is closed gracefully
 
         // The buffers() function helps print a ConstBufferSequence
-        std::cout << boost::beast::buffers(buffer.data()) << std::endl;
+        std::cout << beast::buffers(buffer.data()) << std::endl;
     }
     catch(std::exception const& e)
     {

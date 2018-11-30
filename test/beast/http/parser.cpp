@@ -37,7 +37,7 @@ public:
         parser<isRequest, string_body>;
 
     static
-    boost::asio::const_buffer
+    net::const_buffer
     buf(string_view s)
     {
         return {s.data(), s.size()};
@@ -51,7 +51,7 @@ public:
         basic_parser<isRequest, Derived>& p,
             error_code& ec)
     {
-        using boost::asio::buffer_size;
+        using net::buffer_size;
         buffers_suffix<ConstBufferSequence> cb{buffers};
         for(;;)
         {
@@ -75,7 +75,7 @@ public:
     void
     doMatrix(string_view s0, F const& f)
     {
-        using boost::asio::buffer;
+        using net::buffer;
         // parse a single buffer
         {
             auto s = s0;
