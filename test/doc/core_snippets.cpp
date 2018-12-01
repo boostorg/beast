@@ -11,6 +11,7 @@
 
 #include <boost/beast/core.hpp>
 #include <boost/asio.hpp>
+#include <boost/asio/ssl.hpp>
 #include <iostream>
 #include <thread>
 
@@ -25,13 +26,16 @@ void fxx()
 //[snippet_core_1b
 //
 using namespace boost::beast;
+namespace net = boost::asio;
+namespace ssl = boost::asio::ssl;
+using tcp = net::ip::tcp;
 
 net::io_context ioc;
 auto work = net::make_work_guard(ioc);
 std::thread t{[&](){ ioc.run(); }};
 
 error_code ec;
-net::ip::tcp::socket sock{ioc};
+tcp::socket sock{ioc};
 
 //]
     boost::ignore_unused(ec);
@@ -39,11 +43,14 @@ net::ip::tcp::socket sock{ioc};
     {
 //[snippet_core_2
 
-char const* const host = "www.example.com";
-net::ip::tcp::resolver r{ioc};
-net::ip::tcp::socket stream{ioc};
-auto const results = r.resolve(host, "http");
-net::connect(stream, results.begin(), results.end());
+// The resolver is used to look up IP addresses and port numbers from a domain and service name pair
+tcp::resolver r{ioc};
+
+// A socket represents the local end of a connection between two peers
+tcp::socket stream{ioc};
+
+// Establish a connection before sending and receiving data
+net::connect(stream, r.resolve("www.example.com", "http"));
 
 // At this point `stream` is a connected to a remote
 // host and may be used to perform stream operations.

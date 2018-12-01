@@ -7,7 +7,7 @@
     Official repository: https://github.com/boostorg/beast
 ]
 
-[section Asio Refresher]
+[section:asio_refresher Networking Refresher]
 
 [warning
     Beast does not manage sockets, make outgoing connections,
@@ -18,8 +18,8 @@
 ]
 
 Library stream algorithms require a __socket__, __ssl_stream__, or other
-__Stream__ object that has already established communication with an
-endpoint. This example is provided as a reminder of how to work with
+__Stream__ object that has already established communication with a remote
+peer. This example is provided as a reminder of how to work with
 sockets:
 
 [snippet_core_2]
@@ -39,21 +39,21 @@ special meaning:
     [@boost:/doc/html/boost_asio/reference/ip__tcp/socket.html [*`sock`]]
 ][
     A variable of type
-    [@boost:/doc/html/boost_asio/reference/ip__tcp/socket.html `boost::asio::ip::tcp::socket`]
+    [@boost:/doc/html/boost_asio/reference/ip__tcp/socket.html `tcp::socket`]
     which has already been connected to a remote host.
 ]]
 [[
     [@boost:/doc/html/boost_asio/reference/ssl__stream.html [*`ssl_sock`]]
 ][
     A variable of type
-    [@boost:/doc/html/boost_asio/reference/ssl__stream.html `boost::asio::ssl::stream<boost::asio::ip::tcp::socket>`]
+    [@boost:/doc/html/boost_asio/reference/ssl__stream.html `net::ssl::stream<tcp::socket>`]
     which is already connected and has handshaked with a remote host.
 ]]
 [[
     [link beast.ref.boost__beast__websocket__stream [*`ws`]]
 ][
     A variable of type
-    [link beast.ref.boost__beast__websocket__stream `websocket::stream<boost::asio::ip::tcp::socket>`]
+    [link beast.ref.boost__beast__websocket__stream `websocket::stream<tcp::socket>`]
     which is already connected with a remote host.
 ]]
 ]
