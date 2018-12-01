@@ -11,7 +11,9 @@
 #define BOOST_BEAST_CORE_DETAIL_SAVED_HANDLER_HPP
 
 #include <boost/beast/core/bind_handler.hpp>
+#include <boost/asio/dispatch.hpp>
 #include <memory>
+#include <utility>
 
 namespace boost {
 namespace beast {
@@ -39,7 +41,7 @@ class saved_handler
 
         void operator()() override
         {
-            h_();
+            boost::asio::dispatch(std::move(h_));
         }
     };
 

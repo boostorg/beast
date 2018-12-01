@@ -5,6 +5,7 @@ Version 194:
 * Don't use-after-free in test
 * Tidy up ssl_stream (experimental)
 * Dynamic buffer improvements
+* Saved handlers are dispatched
 
 --------------------------------------------------------------------------------
 
