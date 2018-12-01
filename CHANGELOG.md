@@ -1,6 +1,7 @@
 Version 195:
 
 * net is a namespace alias for boost::asio
+* Simplify multi_buffer and static_buffer sequences
 
 --------------------------------------------------------------------------------
 

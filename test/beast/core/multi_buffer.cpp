@@ -46,6 +46,12 @@ public:
     BOOST_STATIC_ASSERT(std::is_convertible<
         multi_buffer::mutable_data_type,
         multi_buffer::const_buffers_type>::value);
+#if ! defined( BOOST_LIBSTDCXX_VERSION ) || BOOST_LIBSTDCXX_VERSION >= 50000
+    BOOST_STATIC_ASSERT(std::is_trivially_copyable<
+        multi_buffer::const_buffers_type>::value);
+    BOOST_STATIC_ASSERT(std::is_trivially_copyable<
+        multi_buffer::mutable_data_type>::value);
+#endif
 
     template<class Alloc1, class Alloc2>
     static

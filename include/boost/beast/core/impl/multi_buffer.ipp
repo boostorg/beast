@@ -149,17 +149,26 @@ public:
     class const_iterator;
 
     readable_bytes() = delete;
+    readable_bytes(readable_bytes const&) = default;
     readable_bytes& operator=(readable_bytes const&) = default;
 
     template<
-        bool OtherIsMutable,
-        bool ThisIsMutable = IsMutable>
+        bool IsMutable_ = IsMutable,
+        class = typename std::enable_if<! IsMutable_>::type>
     readable_bytes(
-        readable_bytes<OtherIsMutable> const& other,
-        typename std::enable_if<
-            ! ThisIsMutable || OtherIsMutable>::type* = 0)
+        readable_bytes<true> const& other) noexcept
         : b_(other.b_)
     {
+    }
+
+    template<
+        bool IsMutable_ = IsMutable,
+        class = typename std::enable_if<! IsMutable_>::type>
+    readable_bytes& operator=(
+        readable_bytes<true> const& other) noexcept
+    {
+        b_ = other.b_;
+        return *this;
     }
 
     const_iterator begin() const noexcept;

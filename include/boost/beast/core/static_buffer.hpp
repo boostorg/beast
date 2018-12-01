@@ -21,6 +21,74 @@
 namespace boost {
 namespace beast {
 
+namespace detail {
+
+template<bool IsMutable>
+class buffers_pair
+{
+    template<bool IsMutable_>
+    friend class buffers_pair;
+
+public:
+    // VFALCO: This type is public otherwise
+    //         asio::buffers_iterator won't compile.
+    using value_type = typename
+        std::conditional<IsMutable,
+            net::mutable_buffer,
+            net::const_buffer>::type;
+
+    using const_iterator =
+        value_type const*;
+
+    buffers_pair() = default;
+    buffers_pair(buffers_pair const&) = default;
+    buffers_pair& operator=(buffers_pair const&) = default;
+
+    template<
+        bool IsMutable_ = IsMutable,
+        class = typename std::enable_if<! IsMutable_>::type>
+    buffers_pair(buffers_pair<true> const& other) noexcept
+        : b_{other.b_[0], other.b_[1]}
+    {
+    }
+
+    template<
+        bool IsMutable_ = IsMutable,
+        class = typename std::enable_if<! IsMutable_>::type>
+    buffers_pair& operator=(
+        buffers_pair<true> const& other) noexcept
+    {
+        b_ = {other.b_[0], other.b_[1]};
+        return *this;
+    }
+
+    value_type&
+    operator[](int i) noexcept
+    {
+        BOOST_ASSERT(i >= 0 && i < 2);
+        return b_[i];
+    }
+
+    const_iterator
+    begin() const noexcept
+    {
+        return &b_[0];
+    }
+
+    const_iterator
+    end() const noexcept
+    {
+        if(b_[1].size() > 0)
+            return &b_[2];
+        else
+            return &b_[1];
+    }
+private:
+    value_type b_[2];
+};
+
+} // detail
+
 /** A dynamic buffer providing a fixed, circular buffer.
 
     A dynamic buffer encapsulates memory storage that may be
@@ -60,94 +128,6 @@ class static_buffer_base
     std::size_t out_size_ = 0;
     std::size_t capacity_;
 
-    class const_buffer_pair;
-
-    class mutable_buffer_pair
-    {
-        net::mutable_buffer b_[2];
-
-        friend class const_buffer_pair;
-
-    public:
-        using const_iterator =
-            net::mutable_buffer const*;
-
-        // workaround for buffers_iterator bug
-        using value_type =
-            net::mutable_buffer;
-
-        mutable_buffer_pair() = default;
-        mutable_buffer_pair(
-            mutable_buffer_pair const&) = default;
-
-        net::mutable_buffer&
-        operator[](int i) noexcept
-        {
-            BOOST_ASSERT(i >= 0 && i < 2);
-            return b_[i];
-        }
-
-        const_iterator
-        begin() const noexcept
-        {
-            return &b_[0];
-        }
-
-        const_iterator
-        end() const noexcept
-        {
-            if(b_[1].size() > 0)
-                return &b_[2];
-            else
-                return &b_[1];
-        }
-    };
-
-    class const_buffer_pair
-    {
-        net::const_buffer b_[2];
-
-    public:
-        using const_iterator =
-            net::const_buffer const*;
-
-        // workaround for buffers_iterator bug
-        using value_type =
-            net::const_buffer;
-
-        const_buffer_pair() = default;
-        const_buffer_pair(
-            const_buffer_pair const&) = default;
-
-        const_buffer_pair(
-            mutable_buffer_pair const& other)
-            : b_{other.b_[0], other.b_[1]}
-        {
-        }
-
-        net::const_buffer&
-        operator[](int i) noexcept
-        {
-            BOOST_ASSERT(i >= 0 && i < 2);
-            return b_[i];
-        }
-
-        const_iterator
-        begin() const noexcept
-        {
-            return &b_[0];
-        }
-
-        const_iterator
-        end() const noexcept
-        {
-            if(b_[1].size() > 0)
-                return &b_[2];
-            else
-                return &b_[1];
-        }
-    };
-
     static_buffer_base(static_buffer_base const& other) = delete;
     static_buffer_base& operator=(static_buffer_base const&) = delete;
 
@@ -174,9 +154,9 @@ public:
     /// The MutableBufferSequence used to represent the writable bytes.
     using mutable_buffers_type = __implementation_defined__;
 #else
-    using const_buffers_type   = const_buffer_pair;
-    using mutable_data_type    = mutable_buffer_pair;
-    using mutable_buffers_type = mutable_buffer_pair;
+    using const_buffers_type   = detail::buffers_pair<false>;
+    using mutable_data_type    = detail::buffers_pair<true>;
+    using mutable_buffers_type = detail::buffers_pair<true>;
 #endif
 
     /// Returns the number of readable bytes.
