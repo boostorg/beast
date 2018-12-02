@@ -14,6 +14,39 @@
 #include <memory>
 #include <utility>
 
+template<class SyncStream>
+std::size_t
+echo(SyncStream& stream, boost::beast::error_code& ec)
+{
+    static_assert(boost::beast::is_sync_stream<SyncStream>::value,
+        "SyncStream requirements not met");
+
+    std::size_t bytes_transferred {0};
+    boost::asio::streambuf buffer;
+
+    bytes_transferred = boost::asio::read_until(stream, buffer, "\n", ec);
+    if (ec)
+        return 0;
+
+    bytes_transferred = boost::asio::write(stream,
+        boost::beast::buffers_prefix(bytes_transferred, buffer.data()), ec);
+    if (ec)
+        return 0;
+
+    buffer.consume(bytes_transferred);
+    return bytes_transferred;
+}
+
+template<class SyncStream>
+std::size_t
+echo(SyncStream& stream)
+{
+    boost::beast::error_code ec;
+    std::size_t bytes_transferred = echo(stream, ec);
+    boost::asio::detail::throw_error(ec, "echo");
+    return bytes_transferred;
+}
+
 //[example_core_echo_op_1
 
 template<
