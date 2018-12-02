@@ -30,7 +30,7 @@ async_echo(AsyncStream& stream, CompletionToken&& token)
 /** Asynchronously read a line and echo it back.
 
     This function is used to asynchronously read a line ending
-    in a carriage-return ("CR") from the stream, and then write
+    in a newline ("LF") from the stream, and then write
     it back. The function call always returns immediately. The
     asynchronous operation will continue until one of the
     following conditions is true:
@@ -209,7 +209,7 @@ operator()(boost::beast::error_code ec, std::size_t bytes_transferred)
         case 0:
             // read up to the first newline
             p.step = 1;
-            return boost::asio::async_read_until(p.stream, p.buffer, "\r", std::move(*this));
+            return boost::asio::async_read_until(p.stream, p.buffer, "\n", std::move(*this));
 
         case 1:
             // write everything back
