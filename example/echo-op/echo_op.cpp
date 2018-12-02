@@ -301,6 +301,7 @@ int main(int, char** argv)
     boost::asio::ip::tcp::acceptor acceptor{ioc};
     endpoint_type ep{boost::asio::ip::make_address("0.0.0.0"), 0};
     acceptor.open(ep.protocol());
+    acceptor.set_option(boost::asio::socket_base::reuse_address(true));
     acceptor.bind(ep);
     acceptor.listen();
     acceptor.accept(sock);
