@@ -30,7 +30,7 @@ async_echo(AsyncStream& stream, CompletionToken&& token)
 /** Asynchronously read a line and echo it back.
 
     This function is used to asynchronously read a line ending
-    in a carriage-return ("CR") from the stream, and then write
+    in a newline ("LF") from the stream, and then write
     it back. The function call always returns immediately. The
     asynchronous operation will continue until one of the
     following conditions is true:
@@ -209,7 +209,7 @@ operator()(boost::beast::error_code ec, std::size_t bytes_transferred)
         case 0:
             // read up to the first newline
             p.step = 1;
-            return boost::asio::async_read_until(p.stream, p.buffer, "\r", std::move(*this));
+            return boost::asio::async_read_until(p.stream, p.buffer, "\n", std::move(*this));
 
         case 1:
             // write everything back
@@ -289,8 +289,20 @@ async_echo(AsyncStream& stream, CompletionToken&& token)
 
 //]
 
-int main(int, char** argv)
+int main(int argc, char** argv)
 {
+    if(argc != 3)
+    {
+        std::cerr
+        << "Usage: echo-op <address> <port>\n"
+        << "Example:\n"
+        << "    echo-op 0.0.0.0 8080\n";
+        return EXIT_FAILURE;
+    }
+
+    auto const address{boost::asio::ip::make_address(argv[1])};
+    auto const port{static_cast<unsigned short>(std::atoi(argv[2]))};
+
     using socket_type = boost::asio::ip::tcp::socket;
     using endpoint_type = boost::asio::ip::tcp::endpoint;
 
@@ -299,8 +311,9 @@ int main(int, char** argv)
     boost::asio::io_context ioc;
     socket_type sock{ioc};
     boost::asio::ip::tcp::acceptor acceptor{ioc};
-    endpoint_type ep{boost::asio::ip::make_address("0.0.0.0"), 0};
+    endpoint_type ep{address, port};
     acceptor.open(ep.protocol());
+    acceptor.set_option(boost::asio::socket_base::reuse_address(true));
     acceptor.bind(ep);
     acceptor.listen();
     acceptor.accept(sock);
@@ -311,5 +324,5 @@ int main(int, char** argv)
                 std::cerr << argv[0] << ": " << ec.message() << std::endl;
         });
     ioc.run();
-    return 0;
+    return EXIT_SUCCESS;
 }

@@ -1,3 +1,9 @@
+Version 197:
+
+* Improvements to echo-op example
+
+--------------------------------------------------------------------------------
+
 Version 196:
 
 * Tidy up calls to placement new
