@@ -135,9 +135,9 @@ if [[ $VARIANT == "coverage" ]]; then
   run_tests "$BIN_DIR" fat-tests
   # https://bugs.launchpad.net/ubuntu/+source/lcov/+bug/1163758
   lcov --no-external -c -d "$BOOST_ROOT"  -o testrun-all.info > /dev/null 2>&1
-  lcov --remove "testrun-all.info" "$INC_DIR/_experimental/\*" -o testrun.info > /dev/null
-  lcov -a baseline.info -a testrun.info -o lcov-diff.info > /dev/null
+  lcov -a baseline.info -a testrun-all.info -o lcov-diff.info > /dev/null
   lcov -e "lcov-diff.info" "$INC_DIR/*" -o lcov.info > /dev/null
+  lcov --remove "lcov.info" "$INC_DIR/_experimental/*" -o lcov.info > /dev/null
   ~/.local/bin/codecov -X gcov -f lcov.info
   find "$BOOST_ROOT" -name "*.gcda" | xargs rm -f
 
