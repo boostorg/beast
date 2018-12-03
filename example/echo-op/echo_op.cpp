@@ -289,8 +289,20 @@ async_echo(AsyncStream& stream, CompletionToken&& token)
 
 //]
 
-int main(int, char** argv)
+int main(int argc, char** argv)
 {
+    if(argc != 3)
+    {
+        std::cerr
+        << "Usage: echo-op <address> <port>\n"
+        << "Example:\n"
+        << "    echo-op 0.0.0.0 8080\n";
+        return EXIT_FAILURE;
+    }
+
+    auto const address{boost::asio::ip::make_address(argv[1])};
+    auto const port{static_cast<unsigned short>(std::atoi(argv[2]))};
+
     using socket_type = boost::asio::ip::tcp::socket;
     using endpoint_type = boost::asio::ip::tcp::endpoint;
 
@@ -299,7 +311,7 @@ int main(int, char** argv)
     boost::asio::io_context ioc;
     socket_type sock{ioc};
     boost::asio::ip::tcp::acceptor acceptor{ioc};
-    endpoint_type ep{boost::asio::ip::make_address("0.0.0.0"), 0};
+    endpoint_type ep{address, port};
     acceptor.open(ep.protocol());
     acceptor.set_option(boost::asio::socket_base::reuse_address(true));
     acceptor.bind(ep);
@@ -312,5 +324,5 @@ int main(int, char** argv)
                 std::cerr << argv[0] << ": " << ec.message() << std::endl;
         });
     ioc.run();
-    return 0;
+    return EXIT_SUCCESS;
 }
