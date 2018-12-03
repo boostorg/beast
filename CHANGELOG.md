@@ -2,6 +2,7 @@ Version 197:
 
 * Improvements to echo-op example
 * Crawler example clears the response before each read
+* Use a struct instead of a pair in flat_stream (experimental)
 
 API Changes:
 

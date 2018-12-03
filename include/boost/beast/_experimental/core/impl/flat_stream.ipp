@@ -27,7 +27,7 @@ template<class ConstBufferSequence, class Handler>
 class flat_stream<NextLayer>::write_op
     : public net::coroutine
 {
-    using alloc_type = typename 
+    using alloc_type = typename
 #if defined(BOOST_NO_CXX11_ALLOCATOR)
         net::associated_allocator_t<Handler>::template
             rebind<char>::other;
@@ -128,15 +128,15 @@ operator()(
         BOOST_ASIO_CORO_YIELD
         {
             auto const result = coalesce(b_,  coalesce_limit);
-            if(result.second)
+            if(result.needs_coalescing)
             {
-                p_.get_deleter().size = result.first;
+                p_.get_deleter().size = result.size;
                 p_.reset(p_.get_deleter().alloc.allocate(
                     p_.get_deleter().size));
                 net::buffer_copy(
                     net::buffer(
                         p_.get(), p_.get_deleter().size),
-                    b_, result.first);
+                    b_, result.size);
                 s_.stream_.async_write_some(
                     net::buffer(
                         p_.get(), p_.get_deleter().size),
@@ -145,7 +145,7 @@ operator()(
             else
             {
                 s_.stream_.async_write_some(
-                    boost::beast::buffers_prefix(result.first, b_),
+                    boost::beast::buffers_prefix(result.size, b_),
                         std::move(*this));
             }
         }
@@ -223,15 +223,15 @@ write_some(ConstBufferSequence const& buffers)
         ConstBufferSequence>::value,
             "ConstBufferSequence requirements not met");
     auto const result = coalesce(buffers, coalesce_limit);
-    if(result.second)
+    if(result.needs_coalescing)
     {
-        std::unique_ptr<char[]> p{new char[result.first]};
-        auto const b = net::buffer(p.get(), result.first);
+        std::unique_ptr<char[]> p{new char[result.size]};
+        auto const b = net::buffer(p.get(), result.size);
         net::buffer_copy(b, buffers);
         return stream_.write_some(b);
     }
     return stream_.write_some(
-        boost::beast::buffers_prefix(result.first, buffers));
+        boost::beast::buffers_prefix(result.size, buffers));
 }
 
 template<class NextLayer>
@@ -246,15 +246,15 @@ write_some(ConstBufferSequence const& buffers, error_code& ec)
         ConstBufferSequence>::value,
             "ConstBufferSequence requirements not met");
     auto const result = coalesce(buffers, coalesce_limit);
-    if(result.second)
+    if(result.needs_coalescing)
     {
-        std::unique_ptr<char[]> p{new char[result.first]};
-        auto const b = net::buffer(p.get(), result.first);
+        std::unique_ptr<char[]> p{new char[result.size]};
+        auto const b = net::buffer(p.get(), result.size);
         net::buffer_copy(b, buffers);
         return stream_.write_some(b, ec);
     }
     return stream_.write_some(
-        boost::beast::buffers_prefix(result.first, buffers), ec);
+        boost::beast::buffers_prefix(result.size, buffers), ec);
 }
 
 template<class NextLayer>

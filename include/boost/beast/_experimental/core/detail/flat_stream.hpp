@@ -12,7 +12,6 @@
 
 #include <boost/asio/buffer.hpp>
 #include <cstdlib>
-#include <iterator>
 
 namespace boost {
 namespace beast {
@@ -25,19 +24,25 @@ public:
     // 16KB is the upper limit on reasonably sized HTTP messages.
     static std::size_t constexpr coalesce_limit = 16 * 1024;
 
+    struct coalesce_result
+    {
+        std::size_t size;
+        bool needs_coalescing;
+    };
+
     // calculates the coalesce settings for a buffer sequence
     template<class BufferSequence>
     static
-    std::pair<std::size_t, bool>
+    coalesce_result
     coalesce(BufferSequence const& buffers, std::size_t limit)
     {
-        std::pair<std::size_t, bool> result{0, false};
+        coalesce_result result{0, false};
         auto first = net::buffer_sequence_begin(buffers);
         auto last = net::buffer_sequence_end(buffers);
         if(first != last)
         {
-            result.first = net::buffer_size(*first);
-            if(result.first < limit)
+            result.size = net::buffer_size(*first);
+            if(result.size < limit)
             {
                 auto it = first;
                 auto prev = first;
@@ -45,12 +50,12 @@ public:
                 {
                     auto const n =
                         net::buffer_size(*it);
-                    if(result.first + n > limit)
+                    if(result.size + n > limit)
                         break;
-                    result.first += n;
+                    result.size += n;
                     prev = it;
                 }
-                result.second = prev != first;
+                result.needs_coalescing = prev != first;
             }
         }
         return result;
