@@ -40,8 +40,8 @@ public:
                     v.emplace_back("", n);
                 auto const result =
                     boost::beast::detail::flat_stream_base::coalesce(v, limit);
-                BEAST_EXPECT(result.first == count);
-                BEAST_EXPECT(result.second == copy);
+                BEAST_EXPECT(result.size == count);
+                BEAST_EXPECT(result.needs_coalescing == copy);
                 return result;
             };
         check({},           1,    0, false);
