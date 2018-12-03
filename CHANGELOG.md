@@ -1,3 +1,9 @@
+Version 196:
+
+* Tidy up calls to placement new
+
+--------------------------------------------------------------------------------
+
 Version 195:
 
 * net is a namespace alias for boost::asio

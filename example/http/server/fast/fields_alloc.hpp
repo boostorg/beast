@@ -43,7 +43,7 @@ public:
     construct(std::size_t size)
     {
         auto p = new char[sizeof(static_pool) + size];
-        return *(new(p) static_pool{size});
+        return *(::new(p) static_pool{size});
     }
 
     static_pool&
@@ -169,7 +169,8 @@ public:
     void
     construct(U* ptr, Args&&... args)
     {
-        ::new((void*)ptr) U(std::forward<Args>(args)...);
+        ::new(static_cast<void*>(ptr)) U(
+            std::forward<Args>(args)...);
     }
 
     template<class U>

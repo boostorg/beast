@@ -1168,7 +1168,7 @@ new_element(field name,
     auto const p = alloc_traits::allocate(a,
         (sizeof(element) + off + len + 2 + sizeof(align_type) - 1) /
             sizeof(align_type));
-    return *(new(p) element(name, sname, value));
+    return *(::new(p) element(name, sname, value));
 }
 
 template<class Allocator>

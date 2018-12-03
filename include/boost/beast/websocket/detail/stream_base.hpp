@@ -276,7 +276,7 @@ private:
                 16, sizeof(prng_type));
             if(! p)
                 BOOST_THROW_EXCEPTION(std::bad_alloc{});
-            return *(new(p) prng_type(seed(), n_++));
+            return *(::new(p) prng_type(seed(), n_++));
         }
 
         void

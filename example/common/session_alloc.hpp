@@ -181,7 +181,7 @@ alloc(std::size_t n)
         if(end >= buf_ && end +
             sizeof(element) + n <= buf_ + size_)
         {
-            auto& e = *new(end) element{n, used};
+            auto& e = *::new(end) element{n, used};
             list_.push_back(e);
             high_ = (std::max)(high_, used);
             return e.data();
@@ -300,7 +300,8 @@ public:
     void
     construct(U* ptr, Args&&... args)
     {
-        ::new((void*)ptr) U(std::forward<Args>(args)...);
+        ::new(static_cast<void*>(ptr)) U(
+            std::forward<Args>(args)...);
     }
 
     template<class U>
