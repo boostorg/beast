@@ -24,8 +24,22 @@ namespace boost {
 namespace beast {
 namespace detail {
 
+// variadic min
+template<class T>
+T constexpr min(T t)
+{
+    return t;
+}
+
+template<class T, class...Tn>
+T constexpr min(T t0, T t1, Tn... tn)
+{
+    return (t0 < t1) ?
+        (detail::min)(t0, tn...) :
+        (detail::min)(t1, tn...);
+}
+
 template<class U>
-inline
 std::size_t constexpr
 max_sizeof()
 {
@@ -33,7 +47,6 @@ max_sizeof()
 }
 
 template<class U0, class U1, class... Us>
-inline
 std::size_t constexpr
 max_sizeof()
 {
@@ -43,7 +56,6 @@ max_sizeof()
 }
 
 template<class U>
-inline
 std::size_t constexpr
 max_alignof()
 {
@@ -85,7 +97,6 @@ using aligned_union_t =
 //------------------------------------------------------------------------------
 
 template<class T>
-inline
 void
 accept_rv(T){}
 

@@ -55,6 +55,7 @@
 [def __AsyncReadStream__        [@boost:/doc/html/boost_asio/reference/AsyncReadStream.html [*AsyncReadStream]]]
 [def __AsyncWriteStream__       [@boost:/doc/html/boost_asio/reference/AsyncWriteStream.html [*AsyncWriteStream]]]
 [def __CompletionHandler__      [@boost:/doc/html/boost_asio/reference/CompletionHandler.html [*CompletionHandler]]]
+[def __CompletionCondition__    [@boost:/doc/html/boost_asio/reference/CompletionCondition.html [*CompletionCondition]]]
 [def __ConnectCondition__       [@boost:/doc/html/boost_asio/reference/ConnectCondition.html [*ConnectCondition]]]
 [def __ConstBufferSequence__    [@boost:/doc/html/boost_asio/reference/ConstBufferSequence.html [*ConstBufferSequence]]]
 [def __EndpointSequence__       [@boost:/doc/html/boost_asio/reference/EndpointSequence.html [*EndpointSequence]]]

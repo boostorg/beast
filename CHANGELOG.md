@@ -3,6 +3,16 @@ Version 197:
 * Improvements to echo-op example
 * Crawler example clears the response before each read
 
+API Changes:
+
+* Refactor HTTP operations
+
+Actions Required:
+
+* Callers depending on the return value of http::read or
+  http::async_read overloads should adjust the usage of
+  the returned value as needed.
+
 --------------------------------------------------------------------------------
 
 Version 196:

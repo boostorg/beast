@@ -44,6 +44,7 @@ add_executable (tests-beast-core
     static_buffer.cpp
     string_param.cpp
     type_traits.cpp
+    detail_read.cpp
     detail/base64.cpp
     detail/clamp.cpp
     detail/lean_tuple.cpp

@@ -18,6 +18,9 @@
       <xsl:value-of select="type"/>
       <xsl:text> ``[link beast.concepts.BufferSequence [*BufferSequence]]``</xsl:text>
     </xsl:when>
+    <xsl:when test="declname = 'CompletionCondition' or type = 'class CompletionCondition'">
+      <xsl:text>class __CompletionCondition__</xsl:text>
+    </xsl:when>
     <xsl:when test="declname = 'CompletionHandler' or type = 'class CompletionHandler'">
       <xsl:text>class __CompletionHandler__</xsl:text>
     </xsl:when>

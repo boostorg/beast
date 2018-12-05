@@ -23,6 +23,7 @@
 #include <boost/beast/test/yield_to.hpp>
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/strand.hpp>
+#include <boost/asio/ip/tcp.hpp>
 #include <atomic>
 
 namespace boost {
