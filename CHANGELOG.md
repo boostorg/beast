@@ -1,6 +1,7 @@
 Version 197:
 
 * Improvements to echo-op example
+* Crawler example clears the response before each read
 
 --------------------------------------------------------------------------------
 

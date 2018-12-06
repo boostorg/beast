@@ -337,6 +337,7 @@ public:
         timer_.expires_after(chrono::seconds(timeout));
 
         // Receive the HTTP response
+        res_ = {};
         http::async_read(
             socket_,
             buffer_,
