@@ -16,6 +16,7 @@
 #include <boost/core/empty_value.hpp>
 #include <limits>
 #include <memory>
+#include <type_traits>
 
 namespace boost {
 namespace beast {
@@ -61,11 +62,6 @@ class basic_flat_buffer
             template rebind_alloc<char>>
 #endif
 {
-    enum
-    {
-        min_size = 512
-    };
-
     template<class OtherAlloc>
     friend class basic_flat_buffer;
 
@@ -73,8 +69,17 @@ class basic_flat_buffer
         detail::allocator_traits<Allocator>::
             template rebind_alloc<char>;
 
+    static bool constexpr default_nothrow =
+        std::is_nothrow_default_constructible<Allocator>::value;
+
     using alloc_traits =
         detail::allocator_traits<base_alloc_type>;
+
+    using pocma = typename
+        alloc_traits::propagate_on_container_move_assignment;
+
+    using pocca = typename
+        alloc_traits::propagate_on_container_copy_assignment;
 
     static
     std::size_t
@@ -99,157 +104,209 @@ public:
 
     /** Constructor
 
-        Upon construction, @ref capacity will return zero.
+        After construction, @ref capacity will return zero, and
+        @ref max_size will return the largest value which may
+        be passed to the allocator's `allocate` function.
     */
-    basic_flat_buffer();
+    basic_flat_buffer() noexcept(default_nothrow);
 
     /** Constructor
 
-        Upon construction, @ref capacity will return zero.
+        After construction, @ref capacity will return zero, and
+        @ref max_size will return the specified value of `limit`.
 
-        @param limit The setting for @ref max_size.
-    */
-    explicit
-    basic_flat_buffer(std::size_t limit);
-
-    /** Constructor
-
-        Upon construction, @ref capacity will return zero.
-
-        @param alloc The allocator to construct with.
+        @param limit The desired maximum size.
     */
     explicit
-    basic_flat_buffer(Allocator const& alloc);
+    basic_flat_buffer(
+        std::size_t limit) noexcept(default_nothrow);
 
     /** Constructor
 
-        Upon construction, @ref capacity will return zero.
+        After construction, @ref capacity will return zero, and
+        @ref max_size will return the largest value which may
+        be passed to the allocator's `allocate` function.
 
-        @param limit The setting for @ref max_size.
+        @param alloc The allocator to use for the object.
 
-        @param alloc The allocator to use.
+        @par Exception Safety
+
+        No-throw guarantee.
+    */
+    explicit
+    basic_flat_buffer(Allocator const& alloc) noexcept;
+
+    /** Constructor
+
+        After construction, @ref capacity will return zero, and
+        @ref max_size will return the specified value of `limit`.
+
+        @param limit The desired maximum size.
+
+        @param alloc The allocator to use for the object.
+
+        @par Exception Safety
+
+        No-throw guarantee.
     */
     basic_flat_buffer(
-        std::size_t limit, Allocator const& alloc);
+        std::size_t limit,
+        Allocator const& alloc) noexcept;
 
     /** Move Constructor
 
-        Constructs the container with the contents of other
-        using move semantics. After the move, other is
-        guaranteed to be empty.
+        The container is constructed with the contents of `other`
+        using move semantics. The maximum size will be the same
+        as the moved-from object.
 
-        Buffer sequences previously obtained using @ref data
-        or @ref prepare are not invalidated after the move.
+        Buffer sequences previously obtained from `other` using
+        @ref data or @ref prepare remain valid after the move.
 
-        @param other The object to move from. After the move,
-        the moved-from object's state will be as if default
-        constructed using its current allocator and limit.
+        @param other The object to move from. After the move, the
+        moved-from object will have zero capacity, zero readable
+        bytes, and zero writable bytes.
+
+        @par Exception Safety
+
+        No-throw guarantee.
     */
-    basic_flat_buffer(basic_flat_buffer&& other);
+    basic_flat_buffer(basic_flat_buffer&& other) noexcept;
 
     /** Move Constructor
 
-        Using alloc as the allocator for the new container, the
-        contents of other are moved. If `alloc != other.get_allocator()`,
-        this results in a copy. After the move, other is
-        guaranteed to be empty.
+        Using `alloc` as the allocator for the new container, the
+        contents of `other` are moved. If `alloc != other.get_allocator()`,
+        this results in a copy. The maximum size will be the same
+        as the moved-from object.
 
-        All buffers sequences previously obtained using
-        @ref data or @ref prepare are invalidated.
+        Buffer sequences previously obtained from `other` using
+        @ref data or @ref prepare become invalid after the move.
 
         @param other The object to move from. After the move,
-        the moved-from object's state will be as if default
-        constructed using its current allocator and limit.
+        the moved-from object will have zero capacity, zero readable
+        bytes, and zero writable bytes.
 
-        @param alloc The allocator to use for the newly
-        constructed object.
+        @param alloc The allocator to use for the object.
+
+        @throws std::length_error if `other.size()` exceeds the
+        maximum allocation size of `alloc`.
     */
     basic_flat_buffer(
-        basic_flat_buffer&& other, Allocator const& alloc);
+        basic_flat_buffer&& other,
+        Allocator const& alloc);
 
     /** Copy Constructor
 
-        The newly constructed object will have a copy of the
-        allocator and contents of other, and zero writable bytes.
+        This container is constructed with the contents of `other`
+        using copy semantics. The maximum size will be the same
+        as the copied object.
 
         @param other The object to copy from.
+
+        @throws std::length_error if `other.size()` exceeds the
+        maximum allocation size of the allocator.
     */
     basic_flat_buffer(basic_flat_buffer const& other);
 
     /** Copy Constructor
 
-        The newly constructed object will have a copy of the
-        specified allocator, a copy of the contents of other,
-        and zero writable bytes.
+        This container is constructed with the contents of `other`
+        using copy semantics and the specified allocator. The maximum
+        size will be the same as the copied object.
 
         @param other The object to copy from.
 
-        @param alloc The allocator to use.
+        @param alloc The allocator to use for the object.
+
+        @throws std::length_error if `other.size()` exceeds the
+        maximum allocation size of `alloc`.
     */
-    basic_flat_buffer(basic_flat_buffer const& other,
+    basic_flat_buffer(
+        basic_flat_buffer const& other,
         Allocator const& alloc);
 
     /** Copy Constructor
 
-        The newly constructed object will have a copy of the
-        contents of other, and zero writable bytes.
+        This container is constructed with the contents of `other`
+        using copy semantics. The maximum size will be the same
+        as the copied object.
 
         @param other The object to copy from.
+
+        @throws std::length_error if `other.size()` exceeds the
+        maximum allocation size of the allocator.
     */
     template<class OtherAlloc>
     basic_flat_buffer(
-        basic_flat_buffer<OtherAlloc> const& other);
+        basic_flat_buffer<OtherAlloc> const& other)
+            noexcept(default_nothrow);;
 
     /** Copy Constructor
 
-        The newly constructed object will have a copy of the
-        specified allocator, a copy of the contents of other,
-        and zero writable bytes.
+        This container is constructed with the contents of `other`
+        using copy semantics. The maximum size will be the same
+        as the copied object.
 
         @param other The object to copy from.
 
-        @param alloc The allocator to use.
+        @param alloc The allocator to use for the object.
+
+        @throws std::length_error if `other.size()` exceeds the
+        maximum allocation size of `alloc`.
     */
     template<class OtherAlloc>
     basic_flat_buffer(
         basic_flat_buffer<OtherAlloc> const& other,
-            Allocator const& alloc);
+        Allocator const& alloc);
 
     /** Move Assignment
 
-        Assigns the container with the contents of other
-        using move semantics. After the move, other is
-        guaranteed to be empty. The previous contents of
-        this container are deleted.
+        The container is assigned with the contents of `other`
+        using move semantics. The maximum size will be the same
+        as the moved-from object.
 
-        Buffer sequences previously obtained using @ref data
-        or @ref prepare are not invalidated after the move.
+        Buffer sequences previously obtained from `other` using
+        @ref data or @ref prepare remain valid after the move.
 
         @param other The object to move from. After the move,
-        the moved-from object's state will be as if default
-        constructed using its current allocator and limit.
+        the moved-from object will have zero capacity, zero readable
+        bytes, and zero writable bytes.
+
+        @par Exception Safety
+
+        No-throw guarantee.
     */
     basic_flat_buffer&
-    operator=(basic_flat_buffer&& other);
+    operator=(basic_flat_buffer&& other) noexcept;
 
     /** Copy Assignment
 
-        The assigned object will have a copy of the allocator
-        and contents of other, and zero writable bytes. The
-        previous contents of this container are deleted.
+        The container is assigned with the contents of `other`
+        using copy semantics. The maximum size will be the same
+        as the copied object.
+
+        After the copy, `this` will have zero writable bytes.
 
         @param other The object to copy from.
+
+        @throws std::length_error if `other.size()` exceeds the
+        maximum allocation size of the allocator.
     */
     basic_flat_buffer&
     operator=(basic_flat_buffer const& other);
 
     /** Copy assignment
 
-        The assigned object will have a copy of the contents
-        of other, and zero writable bytes. The previous contents
-        of this container are deleted.
+        The container is assigned with the contents of `other`
+        using copy semantics. The maximum size will be the same
+        as the copied object.
+
+        After the copy, `this` will have zero writable bytes.
 
         @param other The object to copy from.
+
+        @throws std::length_error if `other.size()` exceeds the
+        maximum allocation size of the allocator.
     */
     template<class OtherAlloc>
     basic_flat_buffer&
@@ -262,10 +319,53 @@ public:
         return this->get();
     }
 
+    /** Set the maximum allowed capacity
+
+        This function changes the currently configured upper limit
+        on capacity to the specified value.
+
+        @param n The maximum number of bytes ever allowed for capacity.
+
+        @par Exception Safety
+
+        No-throw guarantee.
+    */
+    void
+    max_size(std::size_t n) noexcept
+    {
+        max_ = n;
+    }
+
+    /** Guarantee a minimum capacity
+
+        This function adjusts the internal storage (if necessary)
+        to guarantee space for at least `n` bytes.
+
+        Buffer sequences previously obtained using @ref data or
+        @ref prepare become invalid.
+
+        @param n The minimum number of byte for the new capacity.
+        If this value is greater than the maximum size, then the
+        maximum size will be adjusted upwards to this value.
+
+        @par Exception Safety
+
+        Basic guarantee.
+
+        @throws std::length_error if n is larger than the maximum
+        allocation size of the allocator.
+    */
+    void
+    reserve(std::size_t n);
+
     /** Reallocate the buffer to fit the readable bytes exactly.
 
-        All buffers sequences previously obtained using
-        @ref data or @ref prepare are invalidated.
+        Buffer sequences previously obtained using @ref data or
+        @ref prepare become invalid.
+
+        @par Exception Safety
+
+        Strong guarantee.
     */
     void
     shrink_to_fit();
@@ -338,12 +438,17 @@ public:
         reallocated as needed.
 
         All buffers sequences previously obtained using
-        @ref data or @ref prepare are invalidated.
+        @ref data or @ref prepare become invalid.
 
         @param n The desired number of bytes in the returned buffer
         sequence.
 
-        @throws std::length_error if `size() + n` exceeds `max_size()`.
+        @throws std::length_error if `size() + n` exceeds either
+        `max_size()` or the allocator's maximum allocation size.
+
+        @par Exception Safety
+
+        Strong guarantee.
     */
     mutable_buffers_type
     prepare(std::size_t n);
@@ -356,11 +461,15 @@ public:
         bytes, all writable bytes are appended to the readable bytes.
 
         All buffers sequences previously obtained using
-        @ref data or @ref prepare are invalidated.
+        @ref data or @ref prepare become invalid.
 
         @param n The number of bytes to append. If this number
         is greater than the number of writable bytes, all
         writable bytes are appended.
+
+        @par Exception Safety
+
+        No-throw guarantee.
     */
     void
     commit(std::size_t n) noexcept
@@ -373,21 +482,22 @@ public:
         Removes n bytes from the beginning of the readable bytes.
 
         All buffers sequences previously obtained using
-        @ref data or @ref prepare are invalidated.
+        @ref data or @ref prepare become invalid.
 
         @param n The number of bytes to remove. If this number
         is greater than the number of readable bytes, all
         readable bytes are removed.
+
+        @par Exception Safety
+
+        No-throw guarantee.
     */
     void
     consume(std::size_t n) noexcept;
 
 private:
-    void
-    reset();
-
-    template<class DynamicBuffer>
-    void copy_from(DynamicBuffer const& other);
+    template<class OtherAlloc>
+    void copy_from(basic_flat_buffer<OtherAlloc> const& other);
     void move_assign(basic_flat_buffer&, std::true_type);
     void move_assign(basic_flat_buffer&, std::false_type);
     void copy_assign(basic_flat_buffer const&, std::true_type);
@@ -395,6 +505,8 @@ private:
     void swap(basic_flat_buffer&);
     void swap(basic_flat_buffer&, std::true_type);
     void swap(basic_flat_buffer&, std::false_type);
+    char* alloc(std::size_t n);
+    void clear();
 };
 
 /// A flat buffer which uses the default allocator.

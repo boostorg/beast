@@ -1,3 +1,9 @@
+Version 198:
+
+* flat_buffer improvements
+
+--------------------------------------------------------------------------------
+
 Version 197:
 
 * Improvements to echo-op example

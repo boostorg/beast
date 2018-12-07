@@ -292,8 +292,10 @@ public:
                 BEAST_EXPECT(buffers_to_string(b2.data()) == s.substr(7));
             }
             {
-                flat_buffer b2{64};
+                flat_buffer b2{32};
+                BEAST_EXPECT(b2.max_size() == 32);
                 b2 = b1;
+                BEAST_EXPECT(b2.max_size() == b1.max_size());
                 BEAST_EXPECT(buffers_to_string(b2.data()) == s);
                 b2.consume(7);
                 BEAST_EXPECT(buffers_to_string(b2.data()) == s.substr(7));
@@ -307,6 +309,14 @@ public:
             b.consume(3);
             ostream(b) << "67890123";
             BEAST_EXPECT(buffers_to_string(b.data()) == "4567890123");
+        }
+
+        // max_size
+        {
+            flat_buffer b{10};
+            BEAST_EXPECT(b.max_size() == 10);
+            b.max_size(32);
+            BEAST_EXPECT(b.max_size() == 32);
         }
 
         // read_size
@@ -370,6 +380,18 @@ public:
             {
                 pass();
             }
+        }
+
+        // reserve
+        {
+            flat_buffer b;
+            BEAST_EXPECT(b.capacity() == 0);
+            b.reserve(50);
+            BEAST_EXPECT(b.capacity() == 50);
+            b.prepare(20);
+            b.commit(20);
+            b.reserve(50);
+            BEAST_EXPECT(b.capacity() == 50);
         }
 
         // shrink to fit
