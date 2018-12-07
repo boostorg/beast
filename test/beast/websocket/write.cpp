@@ -263,6 +263,38 @@ public:
     }
 
     void
+    testPausationAbandoning()
+    {
+        struct test_op
+        {
+            std::shared_ptr<stream<test::stream>> s_;
+
+            void operator()(
+                boost::system::error_code = {},
+                std::size_t = 0)
+            {
+                BEAST_FAIL();
+            }
+        };
+
+        std::weak_ptr<stream<test::stream>> weak_ws;
+        {
+            echo_server es{log};
+            net::io_context ioc;
+            auto ws = std::make_shared<stream<test::stream>>(ioc);
+            test_op op{ws};
+            ws->next_layer().connect(es.stream());
+            ws->handshake("localhost", "/");
+            ws->async_ping("", op);
+            BEAST_EXPECT(ws->impl_->wr_block.is_locked());
+            ws->async_write(sbuf("*"), op);
+            weak_ws = ws;
+            ws->next_layer().close();
+        }
+        BEAST_EXPECT(weak_ws.expired());
+    }
+
+    void
     testWriteSuspend()
     {
         // suspend on ping
@@ -647,6 +679,7 @@ public:
     run() override
     {
         testWrite();
+        testPausationAbandoning();
         testWriteSuspend();
         testAsyncWriteFrame();
         testIssue300();
