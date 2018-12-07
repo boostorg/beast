@@ -269,6 +269,37 @@ public:
     }
 
     void
+    testPausationAbandoning()
+    {
+        struct test_op
+        {
+            void operator()(boost::system::error_code ec = {}, std::size_t n = 0)
+            {
+                suite_.fail("Unexpected upcall.");
+            }
+
+            std::shared_ptr<stream<test::stream>> s_;
+            unit_test::suite& suite_;
+        };
+
+        std::weak_ptr<stream<test::stream>> weak_ws;
+        {
+            echo_server es{log};
+            net::io_context ioc;
+            auto ws = std::make_shared<stream<test::stream>>(ioc);
+            test_op op{ws, *this};
+            ws->next_layer().connect(es.stream());
+            ws->handshake("localhost", "/");
+            ws->async_ping("", op);
+            BEAST_EXPECT(ws->wr_block_.is_locked());
+            ws->async_write(sbuf("*"), op);
+            weak_ws = ws;
+            ws->next_layer().close();
+        }
+        BEAST_EXPECT(weak_ws.expired());
+    }
+
+    void
     testWriteSuspend()
     {
         using net::buffer;
@@ -674,6 +705,7 @@ public:
     run() override
     {
         testWrite();
+        testPausationAbandoning();
         testWriteSuspend();
         testAsyncWriteFrame();
         testIssue300();
