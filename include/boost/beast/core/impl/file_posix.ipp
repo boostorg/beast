@@ -224,7 +224,7 @@ size(error_code& ec) const
 {
     if(fd_ == -1)
     {
-        ec = make_error_code(errc::invalid_argument);
+        ec = make_error_code(errc::bad_file_descriptor);
         return 0;
     }
     struct stat st;
@@ -244,7 +244,7 @@ pos(error_code& ec) const
 {
     if(fd_ == -1)
     {
-        ec = make_error_code(errc::invalid_argument);
+        ec = make_error_code(errc::bad_file_descriptor);
         return 0;
     }
     auto const result = ::lseek(fd_, 0, SEEK_CUR);
@@ -264,7 +264,7 @@ seek(std::uint64_t offset, error_code& ec)
 {
     if(fd_ == -1)
     {
-        ec = make_error_code(errc::invalid_argument);
+        ec = make_error_code(errc::bad_file_descriptor);
         return;
     }
     auto const result = ::lseek(fd_, offset, SEEK_SET);
@@ -283,7 +283,7 @@ read(void* buffer, std::size_t n, error_code& ec) const
 {
     if(fd_ == -1)
     {
-        ec = make_error_code(errc::invalid_argument);
+        ec = make_error_code(errc::bad_file_descriptor);
         return 0;
     }
     std::size_t nread = 0;
@@ -319,7 +319,7 @@ write(void const* buffer, std::size_t n, error_code& ec)
 {
     if(fd_ == -1)
     {
-        ec = make_error_code(errc::invalid_argument);
+        ec = make_error_code(errc::bad_file_descriptor);
         return 0;
     }
     std::size_t nwritten = 0;

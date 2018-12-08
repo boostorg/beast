@@ -3,6 +3,15 @@ Version 198:
 * flat_buffer improvements
 * multi_buffer improvements
 
+API Changes:
+
+* Files return errc::bad_file_descriptor
+
+Actions Required:
+
+* Callers checking for errc::invalid_argument from calls to
+  file APIs should check for errc::bad_file_descriptor instead.
+
 --------------------------------------------------------------------------------
 
 Version 197:

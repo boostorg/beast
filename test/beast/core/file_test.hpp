@@ -57,25 +57,25 @@ doTestFile(beast::unit_test::suite& test)
     test.BEAST_EXPECT(! f.is_open());
 
     f.size(ec);
-    test.BEAST_EXPECT(ec == errc::invalid_argument);
+    test.BEAST_EXPECT(ec == errc::bad_file_descriptor);
     ec.assign(0, ec.category());
 
     f.pos(ec);
-    test.BEAST_EXPECT(ec == errc::invalid_argument);
+    test.BEAST_EXPECT(ec == errc::bad_file_descriptor);
     ec.assign(0, ec.category());
 
     f.seek(0, ec);
-    test.BEAST_EXPECT(ec == errc::invalid_argument);
+    test.BEAST_EXPECT(ec == errc::bad_file_descriptor);
     ec.assign(0, ec.category());
 
     char tmp[1];
 
     f.read(tmp, 0, ec);
-    test.BEAST_EXPECT(ec == errc::invalid_argument);
+    test.BEAST_EXPECT(ec == errc::bad_file_descriptor);
     ec.assign(0, ec.category());
 
     f.write(tmp, 0, ec);
-    test.BEAST_EXPECT(ec == errc::invalid_argument);
+    test.BEAST_EXPECT(ec == errc::bad_file_descriptor);
     ec.assign(0, ec.category());
 
     f.open(temp.string<std::string>().c_str(), file_mode::write, ec);

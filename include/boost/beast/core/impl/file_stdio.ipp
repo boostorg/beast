@@ -122,7 +122,7 @@ size(error_code& ec) const
 {
     if(! f_)
     {
-        ec = make_error_code(errc::invalid_argument);
+        ec = make_error_code(errc::bad_file_descriptor);
         return 0;
     }
     long pos = std::ftell(f_);
@@ -159,7 +159,7 @@ pos(error_code& ec) const
 {
     if(! f_)
     {
-        ec = make_error_code(errc::invalid_argument);
+        ec = make_error_code(errc::bad_file_descriptor);
         return 0;
     }
     long pos = std::ftell(f_);
@@ -179,7 +179,7 @@ seek(std::uint64_t offset, error_code& ec)
 {
     if(! f_)
     {
-        ec = make_error_code(errc::invalid_argument);
+        ec = make_error_code(errc::bad_file_descriptor);
         return;
     }
     if(offset > (std::numeric_limits<long>::max)())
@@ -202,7 +202,7 @@ read(void* buffer, std::size_t n, error_code& ec) const
 {
     if(! f_)
     {
-        ec = make_error_code(errc::invalid_argument);
+        ec = make_error_code(errc::bad_file_descriptor);
         return 0;
     }
     auto nread = std::fread(buffer, 1, n, f_);
@@ -221,7 +221,7 @@ write(void const* buffer, std::size_t n, error_code& ec)
 {
     if(! f_)
     {
-        ec = make_error_code(errc::invalid_argument);
+        ec = make_error_code(errc::bad_file_descriptor);
         return 0;
     }
     auto nwritten = std::fwrite(buffer, 1, n, f_);

@@ -216,7 +216,7 @@ size(error_code& ec) const
 {
     if(h_ == boost::winapi::INVALID_HANDLE_VALUE_)
     {
-        ec = make_error_code(errc::invalid_argument);
+        ec = make_error_code(errc::bad_file_descriptor);
         return 0;
     }
     boost::winapi::LARGE_INTEGER_ fileSize;
@@ -237,7 +237,7 @@ pos(error_code& ec)
 {
     if(h_ == boost::winapi::INVALID_HANDLE_VALUE_)
     {
-        ec = make_error_code(errc::invalid_argument);
+        ec = make_error_code(errc::bad_file_descriptor);
         return 0;
     }
     boost::winapi::LARGE_INTEGER_ in;
@@ -261,7 +261,7 @@ seek(std::uint64_t offset, error_code& ec)
 {
     if(h_ == boost::winapi::INVALID_HANDLE_VALUE_)
     {
-        ec = make_error_code(errc::invalid_argument);
+        ec = make_error_code(errc::bad_file_descriptor);
         return;
     }
     boost::winapi::LARGE_INTEGER_ in;
@@ -283,7 +283,7 @@ read(void* buffer, std::size_t n, error_code& ec)
 {
     if(h_ == boost::winapi::INVALID_HANDLE_VALUE_)
     {
-        ec = make_error_code(errc::invalid_argument);
+        ec = make_error_code(errc::bad_file_descriptor);
         return 0;
     }
     std::size_t nread = 0;
@@ -324,7 +324,7 @@ write(void const* buffer, std::size_t n, error_code& ec)
 {
     if(h_ == boost::winapi::INVALID_HANDLE_VALUE_)
     {
-        ec = make_error_code(errc::invalid_argument);
+        ec = make_error_code(errc::bad_file_descriptor);
         return 0;
     }
     std::size_t nwritten = 0;
