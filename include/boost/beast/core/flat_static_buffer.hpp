@@ -81,13 +81,22 @@ public:
     void
     clear() noexcept;
 
-    // VFALCO Deprecate this
+#ifdef BOOST_BEAST_ALLOW_DEPRECATED
     /// Change the number of readable and writable bytes to zero.
     void
     reset() noexcept
     {
         clear();
     }
+#elif ! BOOST_BEAST_DOXYGEN
+    template<std::size_t I = 0>
+    void
+    reset() noexcept
+    {
+        static_assert(sizeof(I) != 0,
+            BOOST_BEAST_DEPRECATION_STRING);
+    }
+#endif
 
     //--------------------------------------------------------------------------
 
@@ -154,6 +163,10 @@ public:
         sequence.
 
         @throws std::length_error if `size() + n` exceeds `max_size()`.
+
+        @par Exception Safety
+
+        Strong guarantee.
     */
     inline
     mutable_buffers_type
@@ -172,6 +185,10 @@ public:
         @param n The number of bytes to append. If this number
         is greater than the number of writable bytes, all
         writable bytes are appended.
+
+        @par Exception Safety
+
+        No-throw guarantee.
     */
     void
     commit(std::size_t n) noexcept
@@ -189,6 +206,10 @@ public:
         @param n The number of bytes to remove. If this number
         is greater than the number of readable bytes, all
         readable bytes are removed.
+
+        @par Exception Safety
+
+        No-throw guarantee.
     */
     inline
     void
@@ -213,6 +234,10 @@ protected:
         @param p A pointer to valid storage of at least `n` bytes.
 
         @param n The number of valid bytes pointed to by `p`.
+
+        @par Exception Safety
+
+        No-throw guarantee.
     */
     inline
     void

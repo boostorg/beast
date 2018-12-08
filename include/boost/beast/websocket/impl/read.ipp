@@ -63,7 +63,7 @@ do_context_takeover_read(role_type role)
        (role == role_type::server &&
             pmd_config_.client_no_context_takeover))
     {
-        pmd_->zi.reset();
+        pmd_->zi.clear();
     }
 }
 
@@ -304,7 +304,7 @@ operator()(
                         if(ws_.ctrl_cb_)
                             ws_.ctrl_cb_(
                                 frame_type::ping, payload);
-                        ws_.rd_fb_.reset();
+                        ws_.rd_fb_.clear();
                         ws_.template write_ping<
                             flat_static_buffer_base>(ws_.rd_fb_,
                                 detail::opcode::pong, payload);
@@ -656,7 +656,7 @@ operator()(
             ws_.wr_close_ = true;
 
             // Serialize close frame
-            ws_.rd_fb_.reset();
+            ws_.rd_fb_.clear();
             ws_.template write_close<
                 flat_static_buffer_base>(
                     ws_.rd_fb_, code_);

@@ -3,15 +3,20 @@ Version 198:
 * flat_buffer improvements
 * multi_buffer improvements
 * static_buffer improvements
+* flat_static_buffer_improvements
 
 API Changes:
 
 * Files return errc::bad_file_descriptor
+* flat_static_buffer::reset is deprecated
 
 Actions Required:
 
 * Callers checking for errc::invalid_argument from calls to
   file APIs should check for errc::bad_file_descriptor instead.
+
+* Replace calls to flat_static_buffer::reset with
+  flat_static_buffer::clear
 
 --------------------------------------------------------------------------------
 

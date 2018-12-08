@@ -341,7 +341,7 @@ operator()(
         {
             fh_.fin = fin_;
             fh_.len = buffer_size(cb_);
-            ws_.wr_fb_.reset();
+            ws_.wr_fb_.clear();
             detail::write<flat_static_buffer_base>(
                 ws_.wr_fb_, fh_);
             ws_.wr_cont_ = ! fin_;
@@ -366,7 +366,7 @@ operator()(
                 fh_.len = n;
                 remain_ -= n;
                 fh_.fin = fin_ ? remain_ == 0 : false;
-                ws_.wr_fb_.reset();
+                ws_.wr_fb_.clear();
                 detail::write<flat_static_buffer_base>(
                     ws_.wr_fb_, fh_);
                 ws_.wr_cont_ = ! fin_;
@@ -409,7 +409,7 @@ operator()(
             fh_.len = remain_;
             fh_.key = ws_.create_mask();
             detail::prepare_key(key_, fh_.key);
-            ws_.wr_fb_.reset();
+            ws_.wr_fb_.clear();
             detail::write<flat_static_buffer_base>(
                 ws_.wr_fb_, fh_);
             n = clamp(remain_, ws_.wr_buf_size_);
@@ -466,7 +466,7 @@ operator()(
                     ws_.wr_buf_.get(), n), cb_);
                 detail::mask_inplace(buffer(
                     ws_.wr_buf_.get(), n), key_);
-                ws_.wr_fb_.reset();
+                ws_.wr_fb_.clear();
                 detail::write<flat_static_buffer_base>(
                     ws_.wr_fb_, fh_);
                 ws_.wr_cont_ = ! fin_;
@@ -529,7 +529,7 @@ operator()(
                 }
                 fh_.fin = ! more_;
                 fh_.len = n;
-                ws_.wr_fb_.reset();
+                ws_.wr_fb_.clear();
                 detail::write<
                     flat_static_buffer_base>(ws_.wr_fb_, fh_);
                 ws_.wr_cont_ = ! fin_;
