@@ -442,6 +442,14 @@ public:
             }
         }
 
+        // max_size
+        {
+            multi_buffer b{10};
+            BEAST_EXPECT(b.max_size() == 10);
+            b.max_size(32);
+            BEAST_EXPECT(b.max_size() == 32);
+        }
+
         // prepare
         {
             {
@@ -568,6 +576,46 @@ public:
             BEAST_EXPECT(b.size() == 1400);
             b.consume(1400);
             BEAST_EXPECT(b.size() == 0);
+        }
+
+        // reserve
+        {
+            multi_buffer b;
+            BEAST_EXPECT(b.capacity() == 0);
+            b.reserve(50);
+            BEAST_EXPECT(b.capacity() >= 50);
+            b.prepare(20);
+            b.commit(20);
+            b.reserve(50);
+            BEAST_EXPECT(b.capacity() >= 50);
+        }
+
+        // shrink to fit
+        {
+            {
+                multi_buffer b;
+                BEAST_EXPECT(b.capacity() == 0);
+                b.prepare(50);
+                BEAST_EXPECT(b.capacity() >= 50);
+                b.commit(50);
+                BEAST_EXPECT(b.capacity() >= 50);
+                b.prepare(75);
+                BEAST_EXPECT(b.capacity() >= 125);
+                b.shrink_to_fit();
+                BEAST_EXPECT(b.capacity() >= b.size());
+            }
+            {
+                multi_buffer b;
+                b.prepare(2000);
+                BEAST_EXPECT(b.capacity() == 2000);
+                b.commit(1800);
+                BEAST_EXPECT(b.size() == 1800);
+                BEAST_EXPECT(b.capacity() == 2000);
+                b.prepare(5000);
+                BEAST_EXPECT(b.capacity() == 6800);
+                b.shrink_to_fit();
+                BEAST_EXPECT(b.capacity() == 2000);
+            }
         }
 
         // swap
