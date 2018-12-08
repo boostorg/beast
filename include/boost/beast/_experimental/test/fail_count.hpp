@@ -12,7 +12,7 @@
 
 #include <boost/beast/core/error.hpp>
 #include <boost/beast/_experimental/test/error.hpp>
-#include <boost/throw_exception.hpp>
+#include <cstdlib>
 
 namespace boost {
 namespace beast {
@@ -42,16 +42,19 @@ public:
         @param n The 0-based index of the operation to fail on or after
         @param ev An optional error code to use when generating a simulated failure
     */
+    BOOST_BEAST_DECL
     explicit
     fail_count(
         std::size_t n,
         error_code ev = make_error_code(error::test_failure));
 
     /// Throw an exception on the Nth failure
+    BOOST_BEAST_DECL
     void
     fail();
 
     /// Set an error code on the Nth failure
+    BOOST_BEAST_DECL
     bool
     fail(error_code& ec);
 };
@@ -60,6 +63,6 @@ public:
 } // beast
 } // boost
 
-#include <boost/beast/_experimental/test/impl/fail_count.ipp>
+#include <boost/beast/_experimental/test/impl/fail_count.hpp>
 
 #endif

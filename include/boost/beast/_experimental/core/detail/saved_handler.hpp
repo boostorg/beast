@@ -41,7 +41,7 @@ class saved_handler
 
         void operator()() override
         {
-            boost::asio::dispatch(std::move(h_));
+            net::dispatch(std::move(h_));
         }
     };
 

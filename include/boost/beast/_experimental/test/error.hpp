@@ -10,8 +10,7 @@
 #ifndef BOOST_BEAST_TEST_ERROR_HPP
 #define BOOST_BEAST_TEST_ERROR_HPP
 
-#include <boost/beast/core/error.hpp>
-#include <boost/beast/_experimental/test/detail/error.hpp>
+#include <boost/beast/core/detail/config.hpp>
 
 namespace boost {
 namespace beast {
@@ -32,6 +31,6 @@ enum class error
 } // beast
 } // boost
 
-#include <boost/beast/_experimental/test/impl/error.ipp>
+#include <boost/beast/_experimental/test/impl/error.hpp>
 
 #endif

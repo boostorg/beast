@@ -7,28 +7,24 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
-#ifndef BOOST_BEAST_CORE_IMPL_ICY_STREAM_IPP
-#define BOOST_BEAST_CORE_IMPL_ICY_STREAM_IPP
+#ifndef BOOST_BEAST_CORE_IMPL_ICY_STREAM_HPP
+#define BOOST_BEAST_CORE_IMPL_ICY_STREAM_HPP
 
+#include <boost/beast/_experimental/core/detail/dynamic_buffer_ref.hpp>
 #include <boost/beast/core/bind_handler.hpp>
 #include <boost/beast/core/buffers_adapter.hpp>
 #include <boost/beast/core/buffers_prefix.hpp>
 #include <boost/beast/core/buffers_suffix.hpp>
 #include <boost/beast/core/detail/buffers_ref.hpp>
+#include <boost/beast/core/detail/stream_algorithm.hpp>
 #include <boost/beast/core/handler_ptr.hpp>
-#include <boost/asio/associated_allocator.hpp>
-#include <boost/asio/associated_executor.hpp>
-#include <boost/asio/buffer.hpp>
 #include <boost/asio/buffers_iterator.hpp>
-#include <boost/asio/coroutine.hpp>
-#include <boost/asio/handler_continuation_hook.hpp>
-#include <boost/asio/handler_invoke_hook.hpp>
-#include <boost/asio/post.hpp>
 #include <boost/asio/read.hpp>
 #include <boost/asio/read_until.hpp>
 #include <boost/assert.hpp>
 #include <boost/throw_exception.hpp>
 #include <algorithm>
+#include <cstring>
 #include <memory>
 #include <utility>
 
@@ -38,87 +34,15 @@ namespace http {
 
 namespace detail {
 
-template<class DynamicBuffer>
-class dynamic_buffer_ref
-{
-    DynamicBuffer& b_;
-
-public:
-    using const_buffers_type =
-        typename DynamicBuffer::const_buffers_type;
-
-    using mutable_buffers_type =
-        typename DynamicBuffer::mutable_buffers_type;
-
-    dynamic_buffer_ref(dynamic_buffer_ref&&) = default;
-
-    explicit
-    dynamic_buffer_ref(DynamicBuffer& b)
-        : b_(b)
-    {
-    }
-
-    std::size_t
-    size() const
-    {
-        return b_.size();
-    }
-
-    std::size_t
-    max_size() const
-    {
-        return b_.max_size();
-    }
-
-    std::size_t
-    capacity() const
-    {
-        return b_.capacity();
-    }
-
-    const_buffers_type
-    data() const
-    {
-        return b_.data();
-    }
-
-    mutable_buffers_type
-    prepare(std::size_t n)
-    {
-        return b_.prepare(n);
-    }
-
-    void
-    commit(std::size_t n)
-    {
-        b_.commit(n);
-    }
-
-    void
-    consume(std::size_t n)
-    {
-        b_.consume(n);
-    }
-};
-
-template<class DynamicBuffer>
-typename std::enable_if<
-    net::is_dynamic_buffer<DynamicBuffer>::value,
-    dynamic_buffer_ref<DynamicBuffer>>::type
-ref(DynamicBuffer& b)
-{
-    return dynamic_buffer_ref<DynamicBuffer>(b);
-}
-
 template<class MutableBuffers, class ConstBuffers>
 void
 buffer_shift(MutableBuffers const& out, ConstBuffers const& in)
 {
-    using net::buffer_size;
     auto in_pos  = net::buffer_sequence_end(in);
     auto out_pos = net::buffer_sequence_end(out);
     auto const in_begin  = net::buffer_sequence_begin(in);
     auto const out_begin = net::buffer_sequence_begin(out);
+    using net::buffer_size;
     BOOST_ASSERT(buffer_size(in) == buffer_size(out));
     if(in_pos == in_begin || out_pos == out_begin)
         return;
@@ -201,8 +125,8 @@ class icy_stream<NextLayer>::read_op
         net::associated_allocator_t<Handler>::template
             rebind<char>::other;
 #else
-        std::allocator_traits<net::associated_allocator_t<Handler>>
-            ::template rebind_alloc<char>;
+        std::allocator_traits<net::associated_allocator_t<
+            Handler>>::template rebind_alloc<char>;
 #endif
 
     struct data
@@ -236,36 +160,66 @@ public:
     {
     }
 
-    using allocator_type =
-        net::associated_allocator_t<Handler>;
-
-    allocator_type
-    get_allocator() const noexcept
-    {
-        return (net::get_associated_allocator)(d_.handler());
-    }
-
-    using executor_type = net::associated_executor_t<
-        Handler, decltype(std::declval<NextLayer&>().get_executor())>;
-
-    executor_type
-    get_executor() const noexcept
-    {
-        return (net::get_associated_executor)(
-            d_.handler(), d_->s.get_executor());
-    }
-
     void
     operator()(
         boost::system::error_code ec,
         std::size_t bytes_transferred);
 
+    //
+
+    using allocator_type =
+        net::associated_allocator_t<Handler>;
+
+    using executor_type = net::associated_executor_t<
+        Handler, decltype(std::declval<NextLayer&>().get_executor())>;
+
+    allocator_type
+    get_allocator() const noexcept
+    {
+        return net::get_associated_allocator(d_.handler());
+    }
+
+    executor_type
+    get_executor() const noexcept
+    {
+        return net::get_associated_executor(
+            d_.handler(), d_->s.get_executor());
+    }
+
     template<class Function>
     friend
-    void asio_handler_invoke(Function&& f, read_op* op)
+    void asio_handler_invoke(
+        Function&& f, read_op* op)
     {
         using net::asio_handler_invoke;
-        asio_handler_invoke(f, std::addressof(op->d_.handler()));
+        asio_handler_invoke(
+            f, std::addressof(op->d_.handler()));
+    }
+
+    friend
+    void* asio_handler_allocate(
+        std::size_t size, read_op* op)
+    {
+        using net::asio_handler_allocate;
+        return asio_handler_allocate(
+            size, std::addressof(op->d_.handler()));
+    }
+
+    friend
+    void asio_handler_deallocate(
+        void* p, std::size_t size, read_op* op)
+    {
+        using net::asio_handler_deallocate;
+        asio_handler_deallocate(
+            p, size, std::addressof(op->d_.handler()));
+    }
+
+    friend
+    bool asio_handler_is_continuation(read_op* op)
+    {
+        using net::asio_handler_is_continuation;
+        return asio_handler_is_continuation(
+            std::addressof(op->d_.handler()));
     }
 };
 
@@ -278,10 +232,8 @@ operator()(
     error_code ec,
     std::size_t bytes_transferred)
 {
-    using net::buffer_copy;
-    using net::buffer_size;
     using iterator = net::buffers_iterator<
-        typename detail::dynamic_buffer_ref<
+        typename beast::detail::dynamic_buffer_ref<
             buffers_adapter<MutableBufferSequence>>::const_buffers_type>;
     auto& d = *d_;
     BOOST_ASIO_CORO_REENTER(*this)
@@ -297,7 +249,7 @@ operator()(
         {
             if(d.s.copy_ > 0)
             {
-                auto const n = buffer_copy(
+                auto const n = net::buffer_copy(
                     d.b.prepare(std::min<std::size_t>(
                         d.s.copy_, d.b.max_size())),
                     net::buffer(d.s.buf_));
@@ -339,7 +291,7 @@ operator()(
                 d.s.buf_[1] != 'C' ||
                 d.s.buf_[2] != 'Y')
             {
-                buffer_copy(
+                net::buffer_copy(
                     d.b.value(),
                     net::buffer(d.s.buf_, n));
                 if(d.b.max_size() < 3)
@@ -369,7 +321,7 @@ operator()(
         BOOST_ASIO_CORO_YIELD
         net::async_read_until(
             d.s.next_layer(),
-            detail::ref(d.b),
+            beast::detail::ref(d.b),
             detail::match_icy<iterator>(d.match),
             std::move(*this));
         if(ec)
@@ -395,9 +347,9 @@ operator()(
                         boost::in_place_init, d.b.value());
                 dest.consume(5);
                 detail::buffer_shift(
-                    buffers_prefix(n, dest),
-                    buffers_prefix(n, d.b.value()));
-                buffer_copy(d.b.value(), icy_stream::version());
+                    beast::buffers_prefix(n, dest),
+                    beast::buffers_prefix(n, d.b.value()));
+                net::buffer_copy(d.b.value(), icy_stream::version());
                 n += 5;
                 bytes_transferred = n;
             }
@@ -423,7 +375,7 @@ std::size_t
 icy_stream<NextLayer>::
 read_some(MutableBufferSequence const& buffers)
 {
-    static_assert(boost::beast::is_sync_read_stream<next_layer_type>::value,
+    static_assert(is_sync_read_stream<next_layer_type>::value,
         "SyncReadStream requirements not met");
     static_assert(net::is_mutable_buffer_sequence<
         MutableBufferSequence>::value,
@@ -431,7 +383,7 @@ read_some(MutableBufferSequence const& buffers)
     error_code ec;
     auto n = read_some(buffers, ec);
     if(ec)
-        BOOST_THROW_EXCEPTION(boost::system::system_error{ec});
+        BOOST_THROW_EXCEPTION(system_error{ec});
     return n;
 }
 
@@ -441,27 +393,25 @@ std::size_t
 icy_stream<NextLayer>::
 read_some(MutableBufferSequence const& buffers, error_code& ec)
 {
-    static_assert(boost::beast::is_sync_read_stream<next_layer_type>::value,
+    static_assert(is_sync_read_stream<next_layer_type>::value,
         "SyncReadStream requirements not met");
     static_assert(net::is_mutable_buffer_sequence<
         MutableBufferSequence>::value,
             "MutableBufferSequence requirements not met");
-    using net::buffer_copy;
-    using net::buffer_size;
     using iterator = net::buffers_iterator<
-        typename detail::dynamic_buffer_ref<
+        typename beast::detail::dynamic_buffer_ref<
             buffers_adapter<MutableBufferSequence>>::const_buffers_type>;
     buffers_adapter<MutableBufferSequence> b(buffers);
     if(b.max_size() == 0)
     {
-        ec.assign(0, ec.category());
+        ec = {};
         return 0;
     }
     if(! detect_)
     {
         if(copy_ > 0)
         {
-            auto const n = buffer_copy(
+            auto const n = net::buffer_copy(
                 b.prepare(std::min<std::size_t>(
                     copy_, b.max_size())),
                 net::buffer(buf_));
@@ -495,7 +445,7 @@ read_some(MutableBufferSequence const& buffers, error_code& ec)
             buf_[1] != 'C' ||
             buf_[2] != 'Y')
         {
-            buffer_copy(
+            net::buffer_copy(
                 buffers,
                 net::buffer(buf_, n));
             if(b.max_size() < 3)
@@ -508,13 +458,14 @@ read_some(MutableBufferSequence const& buffers, error_code& ec)
                     copy_);
 
             }
-            return (std::min)(n, b.max_size());
+            return std::min<std::size_t>(
+                n, b.max_size());
         }
         copy_ = static_cast<unsigned char>(
-            buffer_copy(
+            net::buffer_copy(
                 net::buffer(buf_),
                 version() + b.max_size()));
-        return buffer_copy(
+        return net::buffer_copy(
             buffers,
             version());
     }
@@ -522,7 +473,7 @@ read_some(MutableBufferSequence const& buffers, error_code& ec)
     bool match = false;
     auto n = net::read_until(
         stream_,
-        detail::ref(b),
+        beast::detail::ref(b),
         detail::match_icy<iterator>(match),
         ec);
     if(ec)
@@ -547,7 +498,7 @@ read_some(MutableBufferSequence const& buffers, error_code& ec)
     detail::buffer_shift(
         buffers_prefix(n, dest),
         buffers_prefix(n, buffers));
-    buffer_copy(buffers, version());
+    net::buffer_copy(buffers, version());
     n += 5;
     return n;
 }
@@ -563,7 +514,7 @@ async_read_some(
     MutableBufferSequence const& buffers,
     ReadHandler&& handler)
 {
-    static_assert(boost::beast::is_async_read_stream<next_layer_type>::value,
+    static_assert(is_async_read_stream<next_layer_type>::value,
         "AsyncReadStream requirements not met");
     static_assert(net::is_mutable_buffer_sequence<
             MutableBufferSequence >::value,
@@ -585,7 +536,7 @@ std::size_t
 icy_stream<NextLayer>::
 write_some(MutableBufferSequence const& buffers)
 {
-    static_assert(boost::beast::is_sync_write_stream<next_layer_type>::value,
+    static_assert(is_sync_write_stream<next_layer_type>::value,
         "SyncWriteStream requirements not met");
     static_assert(net::is_const_buffer_sequence<
         MutableBufferSequence>::value,
@@ -599,7 +550,7 @@ std::size_t
 icy_stream<NextLayer>::
 write_some(MutableBufferSequence const& buffers, error_code& ec)
 {
-    static_assert(boost::beast::is_sync_write_stream<next_layer_type>::value,
+    static_assert(is_sync_write_stream<next_layer_type>::value,
         "SyncWriteStream requirements not met");
     static_assert(net::is_const_buffer_sequence<
         MutableBufferSequence>::value,
@@ -618,12 +569,13 @@ async_write_some(
     MutableBufferSequence const& buffers,
     WriteHandler&& handler)
 {
-    static_assert(boost::beast::is_async_write_stream<next_layer_type>::value,
+    static_assert(is_async_write_stream<next_layer_type>::value,
         "AsyncWriteStream requirements not met");
     static_assert(net::is_const_buffer_sequence<
             MutableBufferSequence>::value,
         "MutableBufferSequence requirements not met");
-    return stream_.async_write_some(buffers, std::forward<WriteHandler>(handler));
+    return stream_.async_write_some(
+        buffers, std::forward<WriteHandler>(handler));
 }
 
 } // http

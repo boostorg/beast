@@ -51,16 +51,17 @@ template<
 class basic_timeout_socket
 {
     template<class> class async_op;
-    template<class, class, class> friend class detail::connect_op;
+    template<class, class, class>
+    friend class detail::connect_op;
 
     Executor ex_; // must come first
     timeout_handle rd_timer_;
     timeout_handle wr_timer_;
     timeout_handle cn_timer_;
-    net::basic_stream_socket<Protocol> sock_;
     detail::saved_handler rd_op_;
     detail::saved_handler wr_op_;
     detail::saved_handler cn_op_;
+    net::basic_stream_socket<Protocol> sock_;
 
 public:
     /// The type of the next layer.
@@ -127,7 +128,7 @@ public:
         stream layers.
     */
     next_layer_type&
-    next_layer()
+    next_layer() noexcept
     {
         return sock_;
     }
@@ -141,7 +142,7 @@ public:
         stream layers.
     */
     next_layer_type const&
-    next_layer() const
+    next_layer() const noexcept
     {
         return sock_;
     }
@@ -155,7 +156,7 @@ public:
         stream layers.
     */
     lowest_layer_type&
-    lowest_layer()
+    lowest_layer() noexcept
     {
         return sock_.lowest_layer();
     }
@@ -169,7 +170,7 @@ public:
         stream layers. Ownership is not transferred to the caller.
     */
     lowest_layer_type const&
-    lowest_layer() const
+    lowest_layer() const noexcept
     {
         return sock_.lowest_layer();
     }

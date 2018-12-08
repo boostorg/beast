@@ -88,7 +88,8 @@ public:
         typename std::remove_reference<NextLayer>::type;
 
     /// The type of the lowest layer.
-    using lowest_layer_type = boost::beast::get_lowest_layer<next_layer_type>;
+    using lowest_layer_type =
+        get_lowest_layer<next_layer_type>;
 
     /// The type of the executor associated with the object.
     using executor_type = typename next_layer_type::executor_type;
@@ -196,7 +197,7 @@ public:
         
         @returns The number of bytes read.
         
-        @throws boost::system::system_error Thrown on failure.
+        @throws system_error Thrown on failure.
         
         @note The `read_some` operation may not read all of the requested number of
         bytes. Consider using the function `net::read` if you need to ensure
@@ -272,7 +273,7 @@ public:
         
         @returns The number of bytes written.
         
-        @throws boost::system::system_error Thrown on failure.
+        @throws system_error Thrown on failure.
         
         @note The `write_some` operation may not transmit all of the data to the
         peer. Consider using the function `net::write` if you need to
@@ -340,6 +341,6 @@ public:
 } // beast
 } // boost
 
-#include <boost/beast/_experimental/http/impl/icy_stream.ipp>
+#include <boost/beast/_experimental/http/impl/icy_stream.hpp>
 
 #endif

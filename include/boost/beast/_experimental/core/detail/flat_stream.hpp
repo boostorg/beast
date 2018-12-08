@@ -34,7 +34,8 @@ public:
     template<class BufferSequence>
     static
     coalesce_result
-    coalesce(BufferSequence const& buffers, std::size_t limit)
+    coalesce(
+        BufferSequence const& buffers, std::size_t limit)
     {
         coalesce_result result{0, false};
         auto first = net::buffer_sequence_begin(buffers);

@@ -146,7 +146,7 @@ public:
         @endcode
     */
     native_handle_type
-    native_handle()
+    native_handle() noexcept
     {
         return p_->next_layer().native_handle();
     }
@@ -163,7 +163,7 @@ public:
         Ownership is not transferred to the caller.
     */
     next_layer_type const&
-    next_layer() const
+    next_layer() const noexcept
     {
         return p_->next_layer().next_layer();
     }
@@ -180,7 +180,7 @@ public:
         Ownership is not transferred to the caller.
     */
     next_layer_type&
-    next_layer()
+    next_layer() noexcept
     {
         return p_->next_layer().next_layer();
     }
@@ -194,7 +194,7 @@ public:
         Ownership is not transferred to the caller.
     */
     lowest_layer_type&
-    lowest_layer()
+    lowest_layer() noexcept
     {
         return p_->lowest_layer();
     }
@@ -208,7 +208,7 @@ public:
         Ownership is not transferred to the caller.
     */
     lowest_layer_type const&
-    lowest_layer() const
+    lowest_layer() const noexcept
     {
         return p_->lowest_layer();
     }

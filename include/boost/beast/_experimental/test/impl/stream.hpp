@@ -7,16 +7,16 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
-#ifndef BOOST_BEAST_TEST_IMPL_STREAM_IPP
-#define BOOST_BEAST_TEST_IMPL_STREAM_IPP
+#ifndef BOOST_BEAST_TEST_IMPL_STREAM_HPP
+#define BOOST_BEAST_TEST_IMPL_STREAM_HPP
 
+#include <boost/beast/core/detail/stream_algorithm.hpp>
 #include <boost/beast/core/buffers_prefix.hpp>
 
 namespace boost {
 namespace beast {
 namespace test {
 
-inline
 stream::
 ~stream()
 {
@@ -36,7 +36,6 @@ stream::
     }
 }
 
-inline
 stream::
 stream(stream&& other)
 {
@@ -47,7 +46,6 @@ stream(stream&& other)
     other.in_ = in;
 }
 
-inline
 stream&
 stream::
 operator=(stream&& other)
@@ -60,14 +58,12 @@ operator=(stream&& other)
     return *this;
 }
 
-inline
 stream::
 stream(net::io_context& ioc)
     : in_(std::make_shared<state>(ioc, nullptr))
 {
 }
 
-inline
 stream::
 stream(
     net::io_context& ioc,
@@ -76,21 +72,17 @@ stream(
 {
 }
 
-inline
 stream::
 stream(
     net::io_context& ioc,
     string_view s)
     : in_(std::make_shared<state>(ioc, nullptr))
 {
-    using net::buffer;
-    using net::buffer_copy;
-    in_->b.commit(buffer_copy(
+    in_->b.commit(net::buffer_copy(
         in_->b.prepare(s.size()),
-        buffer(s.data(), s.size())));
+        net::buffer(s.data(), s.size())));
 }
 
-inline
 stream::
 stream(
     net::io_context& ioc,
@@ -98,14 +90,11 @@ stream(
     string_view s)
     : in_(std::make_shared<state>(ioc, &fc))
 {
-    using net::buffer;
-    using net::buffer_copy;
-    in_->b.commit(buffer_copy(
+    in_->b.commit(net::buffer_copy(
         in_->b.prepare(s.size()),
-        buffer(s.data(), s.size())));
+        net::buffer(s.data(), s.size())));
 }
 
-inline
 void
 stream::
 connect(stream& remote)
@@ -115,32 +104,29 @@ connect(stream& remote)
     out_ = remote.in_;
     remote.out_ = in_;
 }
-inline
+
 string_view
 stream::
 str() const
 {
     auto const bs = in_->b.data();
-    if(net::buffer_size(bs) == 0)
+    using net::buffer_size;
+    if(buffer_size(bs) == 0)
         return {};
-    auto const b = buffers_front(bs);
+    auto const b = beast::buffers_front(bs);
     return {static_cast<char const*>(b.data()), b.size()};
 }
 
-inline
 void
 stream::
 append(string_view s)
 {
-    using net::buffer;
-    using net::buffer_copy;
     std::lock_guard<std::mutex> lock{in_->m};
-    in_->b.commit(buffer_copy(
+    in_->b.commit(net::buffer_copy(
         in_->b.prepare(s.size()),
-        buffer(s.data(), s.size())));
+        net::buffer(s.data(), s.size())));
 }
 
-inline
 void
 stream::
 clear()
@@ -149,7 +135,6 @@ clear()
     in_->b.consume(in_->b.size());
 }
 
-inline
 void
 stream::
 close()
@@ -166,7 +151,6 @@ close()
     }
 }
 
-inline
 void
 stream::
 close_remote()
@@ -203,10 +187,9 @@ read_some(MutableBufferSequence const& buffers,
     static_assert(net::is_mutable_buffer_sequence<
             MutableBufferSequence>::value,
         "MutableBufferSequence requirements not met");
-    using net::buffer_copy;
-    using net::buffer_size;
     if(in_->fc && in_->fc->fail(ec))
         return 0;
+    using net::buffer_size;
     if(buffer_size(buffers) == 0)
     {
         ec.clear();
@@ -224,8 +207,8 @@ read_some(MutableBufferSequence const& buffers,
     std::size_t bytes_transferred;
     if(in_->b.size() > 0)
     {
-        ec.assign(0, ec.category());
-        bytes_transferred = buffer_copy(
+        ec = {};
+        bytes_transferred = net::buffer_copy(
             buffers, in_->b.data(), in_->read_max);
         in_->b.consume(bytes_transferred);
     }
@@ -253,11 +236,8 @@ async_read_some(
     static_assert(net::is_mutable_buffer_sequence<
             MutableBufferSequence>::value,
         "MutableBufferSequence requirements not met");
-    using net::buffer_copy;
-    using net::buffer_size;
     BOOST_BEAST_HANDLER_INIT(
         ReadHandler, void(error_code, std::size_t));
-
     error_code ec;
     if(in_->fc && in_->fc->fail(ec))
     {
@@ -272,10 +252,11 @@ async_read_some(
     {
         std::unique_lock<std::mutex> lock{in_->m};
         BOOST_ASSERT(! in_->op);
-        if(buffer_size(buffers) == 0 ||
+        using net::buffer_size;
+        if( buffer_size(buffers) == 0 ||
             buffer_size(in_->b.data()) > 0)
         {
-            auto const bytes_transferred = buffer_copy(
+            auto const bytes_transferred = net::buffer_copy(
                 buffers, in_->b.data(), in_->read_max);
             in_->b.consume(bytes_transferred);
             lock.unlock();
@@ -338,8 +319,6 @@ write_some(
     static_assert(net::is_const_buffer_sequence<
             ConstBufferSequence>::value,
         "ConstBufferSequence requirements not met");
-    using net::buffer_copy;
-    using net::buffer_size;
     auto out = out_.lock();
     if(! out)
     {
@@ -349,16 +328,17 @@ write_some(
     BOOST_ASSERT(out->code == status::ok);
     if(in_->fc && in_->fc->fail(ec))
         return 0;
-    auto const n = (std::min)(
+    using net::buffer_size;
+    auto const n = std::min<std::size_t>(
         buffer_size(buffers), in_->write_max);
     std::unique_lock<std::mutex> lock{out->m};
     auto const bytes_transferred =
-        buffer_copy(out->b.prepare(n), buffers);
+        net::buffer_copy(out->b.prepare(n), buffers);
     out->b.commit(bytes_transferred);
     out->on_write();
     lock.unlock();
     ++in_->nwrite;
-    ec.assign(0, ec.category());
+    ec = {};
     return bytes_transferred;
 }
 
@@ -372,8 +352,6 @@ async_write_some(ConstBufferSequence const& buffers,
     static_assert(net::is_const_buffer_sequence<
             ConstBufferSequence>::value,
         "ConstBufferSequence requirements not met");
-    using net::buffer_copy;
-    using net::buffer_size;
     BOOST_BEAST_HANDLER_INIT(
         WriteHandler, void(error_code, std::size_t));
     auto out = out_.lock();
@@ -401,11 +379,12 @@ async_write_some(ConstBufferSequence const& buffers,
         }
         else
         {
-            auto const n =
-                (std::min)(buffer_size(buffers), in_->write_max);
+            using net::buffer_size;
+            auto const n = std::min<std::size_t>(
+                buffer_size(buffers), in_->write_max);
             std::unique_lock<std::mutex> lock{out->m};
             auto const bytes_transferred =
-                buffer_copy(out->b.prepare(n), buffers);
+                net::buffer_copy(out->b.prepare(n), buffers);
             out->b.commit(bytes_transferred);
             out->on_write();
             lock.unlock();
@@ -422,7 +401,6 @@ async_write_some(ConstBufferSequence const& buffers,
     return init.result.get();
 }
 
-inline
 void
 teardown(
 websocket::role_type,
@@ -439,11 +417,10 @@ boost::system::error_code& ec)
         s.in_->fc->fail(ec))
         ec = net::error::eof;
     else
-        ec.assign(0, ec.category());
+        ec = {};
 }
 
 template<class TeardownHandler>
-inline
 void
 async_teardown(
 websocket::role_type,
@@ -461,7 +438,7 @@ TeardownHandler&& handler)
         s.in_->fc->fail(ec))
         ec = net::error::eof;
     else
-        ec.assign(0, ec.category());
+        ec = {};
 
     net::post(
         s.get_executor(),
@@ -506,14 +483,13 @@ class stream::read_op : public stream::read_op_base
         void
         operator()()
         {
-            using net::buffer_copy;
-            using net::buffer_size;
             std::unique_lock<std::mutex> lock{s_.m};
             BOOST_ASSERT(! s_.op);
             if(s_.b.size() > 0)
             {
-                auto const bytes_transferred = buffer_copy(
-                    b_, s_.b.data(), s_.read_max);
+                auto const bytes_transferred =
+                    net::buffer_copy(
+                        b_, s_.b.data(), s_.read_max);
                 s_.b.consume(bytes_transferred);
                 auto& s = s_;
                 Handler h{std::move(h_)};
@@ -561,7 +537,6 @@ public:
     }
 };
 
-inline
 stream
 connect(stream& to)
 {

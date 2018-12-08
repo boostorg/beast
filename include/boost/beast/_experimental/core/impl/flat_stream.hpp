@@ -7,8 +7,8 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
-#ifndef BOOST_BEAST_CORE_IMPL_FLAT_STREAM_IPP
-#define BOOST_BEAST_CORE_IMPL_FLAT_STREAM_IPP
+#ifndef BOOST_BEAST_CORE_IMPL_FLAT_STREAM_HPP
+#define BOOST_BEAST_CORE_IMPL_FLAT_STREAM_HPP
 
 #include <boost/beast/core/buffers_prefix.hpp>
 #include <boost/beast/websocket/teardown.hpp>
@@ -16,6 +16,7 @@
 #include <boost/asio/associated_executor.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/asio/coroutine.hpp>
+#include <boost/asio/handler_alloc_hook.hpp>
 #include <boost/asio/handler_continuation_hook.hpp>
 #include <boost/asio/handler_invoke_hook.hpp>
 
@@ -73,36 +74,30 @@ public:
     {
     }
 
-    using allocator_type =
-        net::associated_allocator_t<Handler>;
-
-    allocator_type
-    get_allocator() const noexcept
-    {
-        return (net::get_associated_allocator)(h_);
-    }
-
-    using executor_type = net::associated_executor_t<
-        Handler, decltype(std::declval<NextLayer&>().get_executor())>;
-
-    executor_type
-    get_executor() const noexcept
-    {
-        return (net::get_associated_executor)(
-            h_, s_.get_executor());
-    }
-
     void
     operator()(
         boost::system::error_code ec,
         std::size_t bytes_transferred);
 
-    friend
-    bool asio_handler_is_continuation(write_op* op)
+    //
+
+    using allocator_type =
+        net::associated_allocator_t<Handler>;
+
+    using executor_type = net::associated_executor_t<
+        Handler, decltype(std::declval<NextLayer&>().get_executor())>;
+
+    allocator_type
+    get_allocator() const noexcept
     {
-        using net::asio_handler_is_continuation;
-        return asio_handler_is_continuation(
-                std::addressof(op->h_));
+        return net::get_associated_allocator(h_);
+    }
+
+    executor_type
+    get_executor() const noexcept
+    {
+        return net::get_associated_executor(
+            h_, s_.get_executor());
     }
 
     template<class Function>
@@ -111,6 +106,32 @@ public:
     {
         using net::asio_handler_invoke;
         asio_handler_invoke(f, std::addressof(op->h_));
+    }
+
+    friend
+    void* asio_handler_allocate(
+        std::size_t size, write_op* op)
+    {
+        using net::asio_handler_allocate;
+        return asio_handler_allocate(
+            size, std::addressof(op->h_));
+    }
+
+    friend
+    void asio_handler_deallocate(
+        void* p, std::size_t size, write_op* op)
+    {
+        using net::asio_handler_deallocate;
+        asio_handler_deallocate(
+            p, size, std::addressof(op->h_));
+    }
+
+    friend
+    bool asio_handler_is_continuation(write_op* op)
+    {
+        using net::asio_handler_is_continuation;
+        return asio_handler_is_continuation(
+                std::addressof(op->h_));
     }
 };
 

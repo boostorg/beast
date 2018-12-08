@@ -21,7 +21,7 @@
 namespace boost {
 namespace beast {
 
-/** Stream wrapper to improve ssl::stream write performance.
+/** Stream wrapper to improve write performance.
 
     This wrapper flattens writes for buffer sequences having length
     greater than 1 and total size below a predefined amount, using
@@ -30,6 +30,11 @@ namespace beast {
     which does not use OpenSSL's scatter/gather interface for its
     low-level read some and write some operations.
 
+    It is normally not necessary to use this class directly if you
+    are already using @ref ssl_stream. The following examples shows
+    how to use this class with the ssl stream that comes with
+    networking:
+
     @par Example
 
     To use the @ref flat_stream template with SSL streams, declare
@@ -37,12 +42,12 @@ namespace beast {
     will be forwarded to the next layer's constructor:
 
     @code
-        flat_stream<ssl::stream<ip::tcp::socket>> fs{ioc, ctx};
+        flat_stream<net::ssl::stream<ip::tcp::socket>> fs{ioc, ctx};
     @endcode
     Alternatively you can write
     @code
         ssl::stream<ip::tcp::socket> ss{ioc, ctx};
-        flat_stream<ssl::stream<ip::tcp::socket>&> fs{ss};
+        flat_stream<net::ssl::stream<ip::tcp::socket>&> fs{ss};
     @endcode
 
     The resulting stream may be passed to any stream algorithms which
@@ -58,7 +63,7 @@ namespace beast {
     The stream may also be used as a template parameter in other
     stream wrappers, such as for websocket:
     @code
-        websocket::stream<flat_stream<ssl::stream<ip::tcp::socket>>> ws{ioc, ctx};
+        websocket::stream<flat_stream<net::ssl::stream<ip::tcp::socket>>> ws{ioc, ctx};
     @endcode
 
     @tparam NextLayer The type representing the next layer, to which
@@ -147,7 +152,7 @@ public:
         stream layers.
     */
     next_layer_type&
-    next_layer()
+    next_layer() noexcept
     {
         return stream_;
     }
@@ -161,7 +166,7 @@ public:
         stream layers.
     */
     next_layer_type const&
-    next_layer() const
+    next_layer() const noexcept
     {
         return stream_;
     }
@@ -175,7 +180,7 @@ public:
         stream layers.
     */
     lowest_layer_type&
-    lowest_layer()
+    lowest_layer() noexcept
     {
         return stream_.lowest_layer();
     }
@@ -189,7 +194,7 @@ public:
         stream layers. Ownership is not transferred to the caller.
     */
     lowest_layer_type const&
-    lowest_layer() const
+    lowest_layer() const noexcept
     {
         return stream_.lowest_layer();
     }
@@ -349,6 +354,6 @@ public:
 } // beast
 } // boost
 
-#include <boost/beast/_experimental/core/impl/flat_stream.ipp>
+#include <boost/beast/_experimental/core/impl/flat_stream.hpp>
 
 #endif

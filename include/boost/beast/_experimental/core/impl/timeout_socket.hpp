@@ -10,7 +10,7 @@
 #ifndef BOOST_BEAST_CORE_IMPL_TIMEOUT_SOCKET_HPP
 #define BOOST_BEAST_CORE_IMPL_TIMEOUT_SOCKET_HPP
 
-#include <boost/beast/core/type_traits.hpp>
+#include <boost/beast/core/detail/stream_algorithm.hpp>
 #include <boost/beast/_experimental/core/timeout_work_guard.hpp>
 #include <boost/asio/executor_work_guard.hpp>
 #include <memory>
@@ -60,43 +60,6 @@ public:
         s_.sock_.async_write_some(b, std::move(*this));
     }
 
-    using allocator_type =
-        net::associated_allocator_t<Handler>;
-
-    allocator_type
-    get_allocator() const noexcept
-    {
-        return net::get_associated_allocator(h_);
-    }
-
-    using executor_type =
-        net::associated_executor_t<Handler,
-            decltype(std::declval<basic_timeout_socket<
-                Protocol, Executor>&>().get_executor())>;
-
-    executor_type
-    get_executor() const noexcept
-    {
-        return net::get_associated_executor(
-            h_, s_.get_executor());
-    }
-
-    friend
-    bool asio_handler_is_continuation(async_op* op)
-    {
-        using net::asio_handler_is_continuation;
-        return asio_handler_is_continuation(
-            std::addressof(op->h_));
-    }
-
-    template<class Function>
-    friend
-    void asio_handler_invoke(Function&& f, async_op* op)
-    {
-        using net::asio_handler_invoke;
-        asio_handler_invoke(f, std::addressof(op->h_));
-    }
-
     void
     operator()(error_code ec, std::size_t bytes_transferred)
     {
@@ -109,6 +72,63 @@ public:
             return;
         }
         h_(ec, bytes_transferred);
+    }
+
+    //
+
+    using allocator_type =
+        net::associated_allocator_t<Handler>;
+
+    using executor_type =
+        net::associated_executor_t<Handler,
+            decltype(std::declval<basic_timeout_socket<
+                Protocol, Executor>&>().get_executor())>;
+
+    allocator_type
+    get_allocator() const noexcept
+    {
+        return net::get_associated_allocator(h_);
+    }
+
+    executor_type
+    get_executor() const noexcept
+    {
+        return net::get_associated_executor(
+            h_, s_.get_executor());
+    }
+
+    template<class Function>
+    friend
+    void asio_handler_invoke(Function&& f, async_op* op)
+    {
+        using net::asio_handler_invoke;
+        asio_handler_invoke(f, std::addressof(op->h_));
+    }
+
+    friend
+    void* asio_handler_allocate(
+        std::size_t size, async_op* op)
+    {
+        using net::asio_handler_allocate;
+        return asio_handler_allocate(
+            size, std::addressof(op->h_));
+    }
+
+    friend
+    void asio_handler_deallocate(
+        void* p, std::size_t size, async_op* op)
+    {
+        using net::asio_handler_deallocate;
+        asio_handler_deallocate(
+            p, size, std::addressof(op->h_));
+    }
+
+    friend
+    bool asio_handler_is_continuation(async_op* op)
+    {
+        using net::asio_handler_is_continuation;
+        return asio_handler_is_continuation(
+            std::addressof(op->h_));
     }
 
 private:
@@ -171,7 +191,7 @@ basic_timeout_socket<Protocol, Executor>::
 template<class Protocol, class Executor>
 template<class MutableBufferSequence, class ReadHandler>
 BOOST_ASIO_INITFN_RESULT_TYPE(ReadHandler,
-    void(boost::system::error_code, std::size_t))
+    void(error_code, std::size_t))
 basic_timeout_socket<Protocol, Executor>::
 async_read_some(
     MutableBufferSequence const& buffers,
@@ -192,7 +212,7 @@ async_read_some(
 template<class Protocol, class Executor>
 template<class ConstBufferSequence, class WriteHandler>
 BOOST_ASIO_INITFN_RESULT_TYPE(WriteHandler,
-    void(boost::system::error_code, std::size_t))
+    void(error_code, std::size_t))
 basic_timeout_socket<Protocol, Executor>::
 async_write_some(
     ConstBufferSequence const& buffers,
@@ -240,43 +260,6 @@ public:
                 std::move(*this));
     }
 
-    using allocator_type =
-        net::associated_allocator_t<Handler>;
-
-    allocator_type
-    get_allocator() const noexcept
-    {
-        return net::get_associated_allocator(h_);
-    }
-
-    using executor_type =
-        net::associated_executor_t<Handler,
-            decltype(std::declval<basic_timeout_socket<
-                Protocol, Executor>&>().get_executor())>;
-
-    executor_type
-    get_executor() const noexcept
-    {
-        return net::get_associated_executor(
-            h_, s_.get_executor());
-    }
-
-    friend
-    bool asio_handler_is_continuation(connect_op* op)
-    {
-        using net::asio_handler_is_continuation;
-        return asio_handler_is_continuation(
-            std::addressof(op->h_));
-    }
-
-    template<class Function>
-    friend
-    void asio_handler_invoke(Function&& f, connect_op* op)
-    {
-        using net::asio_handler_invoke;
-        asio_handler_invoke(f, std::addressof(op->h_));
-    }
-
     template<class Arg>
     void
     operator()(error_code ec, Arg&& arg)
@@ -292,6 +275,65 @@ public:
         h_(ec, std::forward<Arg>(arg));
     }
 
+    //
+
+    using allocator_type =
+        net::associated_allocator_t<Handler>;
+
+    using executor_type =
+        net::associated_executor_t<Handler,
+            decltype(std::declval<basic_timeout_socket<
+                Protocol, Executor>&>().get_executor())>;
+
+    allocator_type
+    get_allocator() const noexcept
+    {
+        return net::get_associated_allocator(h_);
+    }
+
+    executor_type
+    get_executor() const noexcept
+    {
+        return net::get_associated_executor(
+            h_, s_.get_executor());
+    }
+
+    template<class Function>
+    friend
+    void asio_handler_invoke(
+        Function&& f, connect_op* op)
+    {
+        using net::asio_handler_invoke;
+        asio_handler_invoke(
+            f, std::addressof(op->h_));
+    }
+
+    friend
+    void* asio_handler_allocate(
+        std::size_t size, connect_op* op)
+    {
+        using net::asio_handler_allocate;
+        return asio_handler_allocate(
+            size, std::addressof(op->h_));
+    }
+
+    friend
+    void asio_handler_deallocate(
+        void* p, std::size_t size, connect_op* op)
+    {
+        using net::asio_handler_deallocate;
+        asio_handler_deallocate(
+            p, size, std::addressof(op->h_));
+    }
+
+    friend
+    bool asio_handler_is_continuation(connect_op* op)
+    {
+        using net::asio_handler_is_continuation;
+        return asio_handler_is_continuation(
+            std::addressof(op->h_));
+    }
+
 private:
     Handler h_;
     timeout_work_guard work_;
@@ -304,7 +346,8 @@ struct any_endpoint
 {
     template<class Error, class Endpoint>
     bool
-    operator()(Error const&, Endpoint const&) const noexcept
+    operator()(
+        Error const&, Endpoint const&) const noexcept
     {
         return true;
     }
@@ -344,17 +387,17 @@ template<
     class EndpointSequence,
     class RangeConnectHandler, class>
 BOOST_ASIO_INITFN_RESULT_TYPE(RangeConnectHandler,
-    void(boost::system::error_code, typename Protocol::endpoint))
+    void(error_code, typename Protocol::endpoint))
 async_connect(
     basic_timeout_socket<Protocol, Executor>& s,
     EndpointSequence const& endpoints,
     RangeConnectHandler&& handler)
 {
     BOOST_BEAST_HANDLER_INIT(RangeConnectHandler,
-        void(boost::system::error_code, typename Protocol::endpoint));
+        void(error_code, typename Protocol::endpoint));
     detail::connect_op<Protocol, Executor,
         BOOST_ASIO_HANDLER_TYPE(RangeConnectHandler,
-            void(boost::system::error_code,
+            void(error_code,
                 typename Protocol::endpoint))>(
         s, endpoints, detail::any_endpoint{},
             std::forward<RangeConnectHandler>(handler));
@@ -367,7 +410,7 @@ template<
     class ConnectCondition,
     class RangeConnectHandler, class>
 BOOST_ASIO_INITFN_RESULT_TYPE(RangeConnectHandler,
-    void (boost::system::error_code, typename Protocol::endpoint))
+    void (error_code, typename Protocol::endpoint))
 async_connect(
     basic_timeout_socket<Protocol, Executor>& s,
     EndpointSequence const& endpoints,
@@ -375,10 +418,10 @@ async_connect(
     RangeConnectHandler&& handler)
 {
     BOOST_BEAST_HANDLER_INIT(RangeConnectHandler,
-        void(boost::system::error_code, typename Protocol::endpoint));
+        void(error_code, typename Protocol::endpoint));
     detail::connect_op<Protocol, Executor,
         BOOST_ASIO_HANDLER_TYPE(RangeConnectHandler,
-            void(boost::system::error_code,
+            void(error_code,
                 typename Protocol::endpoint))>(
         s, endpoints, connect_condition,
             std::forward<RangeConnectHandler>(handler));
@@ -390,17 +433,17 @@ template<
     class Iterator,
     class IteratorConnectHandler, class>
 BOOST_ASIO_INITFN_RESULT_TYPE(IteratorConnectHandler,
-    void (boost::system::error_code, Iterator))
+    void (error_code, Iterator))
 async_connect(
     basic_timeout_socket<Protocol, Executor>& s,
     Iterator begin, Iterator end,
     IteratorConnectHandler&& handler)
 {
     BOOST_BEAST_HANDLER_INIT(IteratorConnectHandler,
-        void(boost::system::error_code, Iterator));
+        void(error_code, Iterator));
     detail::connect_op<Protocol, Executor,
         BOOST_ASIO_HANDLER_TYPE(IteratorConnectHandler,
-            void(boost::system::error_code, Iterator))>(
+            void(error_code, Iterator))>(
         s, detail::endpoint_range(begin, end), detail::any_endpoint{},
             std::forward<IteratorConnectHandler>(handler));
     return init.result.get();
@@ -412,7 +455,7 @@ template<
     class ConnectCondition,
     class IteratorConnectHandler, class>
 BOOST_ASIO_INITFN_RESULT_TYPE(IteratorConnectHandler,
-    void (boost::system::error_code, Iterator))
+    void (error_code, Iterator))
 async_connect(
     basic_timeout_socket<Protocol, Executor>& s,
     Iterator begin, Iterator end,
@@ -420,10 +463,10 @@ async_connect(
     IteratorConnectHandler&& handler)
 {
     BOOST_BEAST_HANDLER_INIT(IteratorConnectHandler,
-        void(boost::system::error_code, Iterator));
+        void(error_code, Iterator));
     detail::connect_op<Protocol, Executor,
         BOOST_ASIO_HANDLER_TYPE(IteratorConnectHandler,
-            void(boost::system::error_code, Iterator))>(
+            void(error_code, Iterator))>(
         s, detail::endpoint_range(begin, end), connect_condition,
             std::forward<IteratorConnectHandler>(handler));
     return init.result.get();

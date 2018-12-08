@@ -178,6 +178,7 @@ public:
         the peer will see the error `net::error::connection_reset`
         when performing any reads or writes.
     */
+    BOOST_BEAST_DECL
     ~stream();
 
     /** Move Constructor
@@ -185,6 +186,7 @@ public:
         Moving the stream while asynchronous operations are pending
         results in undefined behavior.
     */
+    BOOST_BEAST_DECL
     stream(stream&& other);
 
     /** Move Assignment
@@ -192,6 +194,7 @@ public:
         Moving the stream while asynchronous operations are pending
         results in undefined behavior.
     */
+    BOOST_BEAST_DECL
     stream&
     operator=(stream&& other);
 
@@ -202,6 +205,7 @@ public:
         @param ioc The `io_context` object that the stream will use to
         dispatch handlers for any asynchronous operations.
     */
+    BOOST_BEAST_DECL
     explicit
     stream(net::io_context& ioc);
 
@@ -217,6 +221,7 @@ public:
         fail count.  When the fail count reaches its internal limit,
         a simulated failure error will be raised.
     */
+    BOOST_BEAST_DECL
     stream(
         net::io_context& ioc,
         fail_count& fc);
@@ -231,6 +236,7 @@ public:
         @param s A string which will be appended to the input area, not
         including the null terminator.
     */
+    BOOST_BEAST_DECL
     stream(
         net::io_context& ioc,
         string_view s);
@@ -250,12 +256,14 @@ public:
         @param s A string which will be appended to the input area, not
         including the null terminator.
     */
+    BOOST_BEAST_DECL
     stream(
         net::io_context& ioc,
         fail_count& fc,
         string_view s);
 
     /// Establish a connection
+    BOOST_BEAST_DECL
     void
     connect(stream& remote);
 
@@ -279,7 +287,7 @@ public:
         stream layers.
     */
     lowest_layer_type&
-    lowest_layer()
+    lowest_layer() noexcept
     {
         return *this;
     }
@@ -293,54 +301,57 @@ public:
         stream layers. Ownership is not transferred to the caller.
     */
     lowest_layer_type const&
-    lowest_layer() const
+    lowest_layer() const noexcept
     {
         return *this;
     }
 
     /// Set the maximum number of bytes returned by read_some
     void
-    read_size(std::size_t n)
+    read_size(std::size_t n) noexcept
     {
         in_->read_max = n;
     }
 
     /// Set the maximum number of bytes returned by write_some
     void
-    write_size(std::size_t n)
+    write_size(std::size_t n) noexcept
     {
         in_->write_max = n;
     }
 
     /// Direct input buffer access
     buffer_type&
-    buffer()
+    buffer() noexcept
     {
         return in_->b;
     }
 
     /// Returns a string view representing the pending input data
+    BOOST_BEAST_DECL
     string_view
     str() const;
 
     /// Appends a string to the pending input data
+    BOOST_BEAST_DECL
     void
     append(string_view s);
 
     /// Clear the pending input area
+    BOOST_BEAST_DECL
     void
     clear();
 
     /// Return the number of reads
     std::size_t
-    nread() const
+    nread() const noexcept
     {
         return in_->nread;
     }
 
     /// Return the number of writes
     std::size_t
-    nwrite() const
+    nwrite() const noexcept
     {
         return in_->nwrite;
     }
@@ -350,6 +361,7 @@ public:
         The other end of the connection will see
         `error::eof` after reading all the remaining data.
     */
+    BOOST_BEAST_DECL
     void
     close();
 
@@ -358,6 +370,7 @@ public:
         This end of the connection will see
         `error::eof` after reading all the remaining data.
     */
+    BOOST_BEAST_DECL
     void
     close_remote();
 
@@ -504,6 +517,7 @@ public:
 
 #if ! BOOST_BEAST_DOXYGEN
     friend
+    BOOST_BEAST_DECL
     void
     teardown(
         websocket::role_type,
@@ -512,6 +526,7 @@ public:
 
     template<class TeardownHandler>
     friend
+    BOOST_BEAST_DECL
     void
     async_teardown(
         websocket::role_type role,
@@ -534,6 +549,7 @@ stream
 connect(stream& to, Args&&... args);
 
 #else
+BOOST_BEAST_DECL
 stream
 connect(stream& to);
 
@@ -546,6 +562,6 @@ connect(stream& to, Arg1&& arg1, ArgN&&... argn);
 } // beast
 } // boost
 
-#include <boost/beast/_experimental/test/impl/stream.ipp>
+#include <boost/beast/_experimental/test/impl/stream.hpp>
 
 #endif

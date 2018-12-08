@@ -39,7 +39,7 @@ dynamic_buffer_prepare_noexcept(
     boost::optional<typename
         DynamicBuffer::mutable_buffers_type> result;
     result.emplace(buffer.prepare(size));
-    ec.assign(0, ec.category());
+    ec = {};
     return result;
 }
 
@@ -61,7 +61,7 @@ dynamic_buffer_prepare(
         boost::optional<typename
             DynamicBuffer::mutable_buffers_type> result;
         result.emplace(buffer.prepare(size));
-        ec.assign(0, ec.category());
+        ec = {};
         return result;
     }
     catch(std::length_error const&)

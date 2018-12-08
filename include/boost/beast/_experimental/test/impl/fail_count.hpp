@@ -7,18 +7,15 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
-#ifndef BOOST_BEAST_TEST_IMPL_FAIL_COUNT_IPP
-#define BOOST_BEAST_TEST_IMPL_FAIL_COUNT_IPP
+#ifndef BOOST_BEAST_TEST_IMPL_FAIL_COUNT_HPP
+#define BOOST_BEAST_TEST_IMPL_FAIL_COUNT_HPP
 
-#include <boost/beast/core/error.hpp>
-#include <boost/beast/_experimental/test/error.hpp>
 #include <boost/throw_exception.hpp>
 
 namespace boost {
 namespace beast {
 namespace test {
 
-inline
 fail_count::
 fail_count(
     std::size_t n,
@@ -28,7 +25,6 @@ fail_count(
 {
 }
 
-inline
 void
 fail_count::
 fail()
@@ -39,7 +35,6 @@ fail()
         BOOST_THROW_EXCEPTION(system_error{ec_});
 }
 
-inline
 bool
 fail_count::
 fail(error_code& ec)
@@ -51,7 +46,7 @@ fail(error_code& ec)
         ec = ec_;
         return true;
     }
-    ec.assign(0, ec.category());
+    ec = {};
     return false;
 }
 

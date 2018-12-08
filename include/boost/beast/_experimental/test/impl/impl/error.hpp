@@ -7,8 +7,8 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
-#ifndef BOOST_BEAST_TEST_IMPL_ERROR_IPP
-#define BOOST_BEAST_TEST_IMPL_ERROR_IPP
+#ifndef BOOST_BEAST_TEST_IMPL_IMPL_ERROR_HPP
+#define BOOST_BEAST_TEST_IMPL_IMPL_ERROR_HPP
 
 namespace boost {
 namespace beast {
@@ -16,7 +16,6 @@ namespace test {
 
 namespace detail {
 
-inline
 const char*
 error_codes::
 name() const noexcept
@@ -24,7 +23,6 @@ name() const noexcept
     return "boost.beast.test";
 }
 
-inline
 std::string
 error_codes::
 message(int ev) const
@@ -32,11 +30,11 @@ message(int ev) const
     switch(static_cast<error>(ev))
     {
     default:
-    case error::test_failure:   return "The test stream generated a simulated error";
+    case error::test_failure: return
+        "The test stream generated a simulated error";
     }
 }
 
-inline
 error_condition
 error_codes::
 default_error_condition(int ev) const noexcept
@@ -46,9 +44,8 @@ default_error_condition(int ev) const noexcept
 
 } // detail
 
-inline
 error_code
-make_error_code(error e)
+make_error_code(error e) noexcept
 {
     static detail::error_codes const cat{};
     return error_code{static_cast<

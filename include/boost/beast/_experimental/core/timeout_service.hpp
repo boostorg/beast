@@ -14,8 +14,6 @@
 #include <boost/asio/io_context.hpp> // #include <boost/asio/execution_context.hpp>
 #include <cstddef>
 
-#include <functional> // temporary
-
 namespace boost {
 namespace beast {
 

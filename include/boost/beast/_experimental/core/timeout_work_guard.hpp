@@ -10,6 +10,7 @@
 #ifndef BOOST_BEAST_CORE_TIMEOUT_WORK_GUARD_HPP
 #define BOOST_BEAST_CORE_TIMEOUT_WORK_GUARD_HPP
 
+#include <boost/beast/core/detail/config.hpp>
 #include <boost/beast/_experimental/core/timeout_service.hpp>
 #include <boost/assert.hpp>
 
