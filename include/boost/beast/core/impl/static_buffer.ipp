@@ -21,15 +21,14 @@
 namespace boost {
 namespace beast {
 
-inline
 static_buffer_base::
-static_buffer_base(void* p, std::size_t size) noexcept
+static_buffer_base(
+    void* p, std::size_t size) noexcept
     : begin_(static_cast<char*>(p))
     , capacity_(size)
 {
 }
 
-inline
 auto
 static_buffer_base::
 data() const noexcept ->
@@ -50,7 +49,6 @@ data() const noexcept ->
     return result;
 }
 
-inline
 auto
 static_buffer_base::
 data() noexcept ->
@@ -71,7 +69,6 @@ data() noexcept ->
     return result;
 }
 
-inline
 auto
 static_buffer_base::
 prepare(std::size_t n) ->
@@ -97,7 +94,6 @@ prepare(std::size_t n) ->
     return result;
 }
 
-inline
 void
 static_buffer_base::
 commit(std::size_t n) noexcept
@@ -106,7 +102,6 @@ commit(std::size_t n) noexcept
     out_size_ = 0;
 }
 
-inline
 void
 static_buffer_base::
 consume(std::size_t n) noexcept
@@ -126,7 +121,6 @@ consume(std::size_t n) noexcept
     }
 }
 
-inline
 void
 static_buffer_base::
 reset(void* p, std::size_t n) noexcept
@@ -142,23 +136,21 @@ reset(void* p, std::size_t n) noexcept
 
 template<std::size_t N>
 static_buffer<N>::
-static_buffer(static_buffer const& other)
+static_buffer(static_buffer const& other) noexcept
     : static_buffer_base(buf_, N)
 {
-    using net::buffer_copy;
-    this->commit(buffer_copy(
+    this->commit(net::buffer_copy(
         this->prepare(other.size()), other.data()));
 }
 
 template<std::size_t N>
 auto
 static_buffer<N>::
-operator=(static_buffer const& other) ->
+operator=(static_buffer const& other) noexcept ->
     static_buffer<N>&
 {
-    using net::buffer_copy;
     this->consume(this->size());
-    this->commit(buffer_copy(
+    this->commit(net::buffer_copy(
         this->prepare(other.size()), other.data()));
     return *this;
 }

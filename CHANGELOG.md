@@ -2,6 +2,7 @@ Version 198:
 
 * flat_buffer improvements
 * multi_buffer improvements
+* static_buffer improvements
 
 API Changes:
 

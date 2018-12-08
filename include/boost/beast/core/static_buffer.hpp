@@ -11,6 +11,7 @@
 #define BOOST_BEAST_STATIC_BUFFER_HPP
 
 #include <boost/beast/core/detail/config.hpp>
+#include <boost/beast/core/detail/buffers_pair.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/assert.hpp>
 #include <algorithm>
@@ -21,75 +22,7 @@
 namespace boost {
 namespace beast {
 
-namespace detail {
-
-template<bool IsMutable>
-class buffers_pair
-{
-    template<bool IsMutable_>
-    friend class buffers_pair;
-
-public:
-    // VFALCO: This type is public otherwise
-    //         asio::buffers_iterator won't compile.
-    using value_type = typename
-        std::conditional<IsMutable,
-            net::mutable_buffer,
-            net::const_buffer>::type;
-
-    using const_iterator =
-        value_type const*;
-
-    buffers_pair() = default;
-    buffers_pair(buffers_pair const&) = default;
-    buffers_pair& operator=(buffers_pair const&) = default;
-
-    template<
-        bool IsMutable_ = IsMutable,
-        class = typename std::enable_if<! IsMutable_>::type>
-    buffers_pair(buffers_pair<true> const& other) noexcept
-        : b_{other.b_[0], other.b_[1]}
-    {
-    }
-
-    template<
-        bool IsMutable_ = IsMutable,
-        class = typename std::enable_if<! IsMutable_>::type>
-    buffers_pair& operator=(
-        buffers_pair<true> const& other) noexcept
-    {
-        b_ = {other.b_[0], other.b_[1]};
-        return *this;
-    }
-
-    value_type&
-    operator[](int i) noexcept
-    {
-        BOOST_ASSERT(i >= 0 && i < 2);
-        return b_[i];
-    }
-
-    const_iterator
-    begin() const noexcept
-    {
-        return &b_[0];
-    }
-
-    const_iterator
-    end() const noexcept
-    {
-        if(b_[1].size() > 0)
-            return &b_[2];
-        else
-            return &b_[1];
-    }
-private:
-    value_type b_[2];
-};
-
-} // detail
-
-/** A dynamic buffer providing a fixed, circular buffer.
+/** A dynamic buffer providing a fixed size, circular buffer.
 
     A dynamic buffer encapsulates memory storage that may be
     automatically resized as required, where the memory is
@@ -106,8 +39,8 @@ private:
     bytes is returned by @ref data when `this` is non-const.
 
     @li Buffer sequences representing the readable and writable
-    bytes, returned by @ref data and @ref prepare, will have
-    length at most one.
+    bytes, returned by @ref data and @ref prepare, may have
+    length up to two.
 
     @li All operations execute in constant time.
 
@@ -140,6 +73,7 @@ public:
 
         @param size The number of valid bytes pointed to by `p`.
     */
+    inline
     static_buffer_base(void* p, std::size_t size) noexcept;
 
     //--------------------------------------------------------------------------
@@ -181,6 +115,7 @@ public:
     }
 
     /// Returns a constant buffer sequence representing the readable bytes
+    inline
     const_buffers_type
     data() const noexcept;
     
@@ -192,6 +127,7 @@ public:
     }
 
     /// Returns a mutable buffer sequence representing the readable bytes
+    inline
     mutable_data_type
     data() noexcept;
 
@@ -208,7 +144,12 @@ public:
         sequence.
 
         @throws std::length_error if `size() + n` exceeds `max_size()`.
+
+        @par Exception Safety
+
+        Strong guarantee.
     */
+    inline
     mutable_buffers_type
     prepare(std::size_t n);
 
@@ -225,7 +166,12 @@ public:
         @param n The number of bytes to append. If this number
         is greater than the number of writable bytes, all
         writable bytes are appended.
+
+        @par Exception Safety
+
+        No-throw guarantee.
     */
+    inline
     void
     commit(std::size_t n) noexcept;
 
@@ -239,7 +185,12 @@ public:
         @param n The number of bytes to remove. If this number
         is greater than the number of readable bytes, all
         readable bytes are removed.
+
+        @par Exception Safety
+
+        No-throw guarantee.
     */
+    inline
     void
     consume(std::size_t n) noexcept;
 
@@ -262,19 +213,39 @@ protected:
         @param p A pointer to valid storage of at least `n` bytes.
 
         @param size The number of valid bytes pointed to by `p`.
+
+        @par Exception Safety
+
+        No-throw guarantee.
     */
+    inline
     void
     reset(void* p, std::size_t size) noexcept;
 };
 
 //------------------------------------------------------------------------------
 
-/** A circular @b DynamicBuffer with a fixed size internal buffer.
+/** A dynamic buffer providing a fixed size, circular buffer.
 
-    This implements a circular dynamic buffer. Calls to @ref prepare
-    never require moving memory. The buffer sequences returned may
-    be up to length two.
-    Ownership of the underlying storage belongs to the derived class.
+    A dynamic buffer encapsulates memory storage that may be
+    automatically resized as required, where the memory is
+    divided into two regions: readable bytes followed by
+    writable bytes. These memory regions are internal to
+    the dynamic buffer, but direct access to the elements
+    is provided to permit them to be efficiently used with
+    I/O operations.
+
+    Objects of this type meet the requirements of @b DynamicBuffer
+    and have the following additional properties:
+
+    @li A mutable buffer sequence representing the readable
+    bytes is returned by @ref data when `this` is non-const.
+
+    @li Buffer sequences representing the readable and writable
+    bytes, returned by @ref data and @ref prepare, may have
+    length up to two.
+
+    @li All operations execute in constant time.
 
     @tparam N The number of bytes in the internal buffer.
 
@@ -291,41 +262,41 @@ class static_buffer : public static_buffer_base
 
 public:
     /// Constructor
-    static_buffer(static_buffer const&);
+    static_buffer(static_buffer const&) noexcept;
 
     /// Constructor
-    static_buffer()
+    static_buffer() noexcept
         : static_buffer_base(buf_, N)
     {
     }
 
     /// Assignment
-    static_buffer& operator=(static_buffer const&);
+    static_buffer& operator=(static_buffer const&) noexcept;
 
     /// Returns the @ref static_buffer_base portion of this object
     static_buffer_base&
-    base()
+    base() noexcept
     {
         return *this;
     }
 
     /// Returns the @ref static_buffer_base portion of this object
     static_buffer_base const&
-    base() const
+    base() const noexcept
     {
         return *this;
     }
 
     /// Return the maximum sum of the input and output sequence sizes.
     std::size_t constexpr
-    max_size() const
+    max_size() const noexcept
     {
         return N;
     }
 
     /// Return the maximum sum of input and output sizes that can be held without an allocation.
     std::size_t constexpr
-    capacity() const
+    capacity() const noexcept
     {
         return N;
     }
