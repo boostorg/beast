@@ -19,11 +19,11 @@
 namespace boost {
 namespace beast {
 
-/** Adapts a @b MutableBufferSequence into a @b DynamicBuffer.
+/** Adapts a <em>MutableBufferSequence</em> into a <em>DynamicBuffer</em>.
 
-    This class wraps a @b MutableBufferSequence to meet the requirements
-    of @b DynamicBuffer. Upon construction the input and output sequences are
-    empty. A copy of the mutable buffer sequence object is stored; however,
+    This class wraps a <em>MutableBufferSequence</em> to meet the requirements
+    of <em>DynamicBuffer</em>. Upon construction the input and output sequences
+    are empty. A copy of the mutable buffer sequence object is stored; however,
     ownership of the underlying memory is not transferred. The caller is
     responsible for making sure that referenced memory remains valid
     for the duration of any operations.
@@ -36,7 +36,8 @@ namespace beast {
 template<class MutableBufferSequence>
 class buffers_adapter
 {
-    static_assert(net::is_mutable_buffer_sequence<MutableBufferSequence>::value,
+    static_assert(net::is_mutable_buffer_sequence<
+            MutableBufferSequence>::value,
         "MutableBufferSequence requirements not met");
 
     using iter_type = typename
@@ -75,20 +76,6 @@ public:
     /// The type of the underlying mutable buffer sequence
     using value_type = MutableBufferSequence;
 
-#if BOOST_BEAST_DOXYGEN
-    /// The type used to represent the input sequence as a list of buffers.
-    using const_buffers_type = __implementation_defined__;
-
-    /// The type used to represent the output sequence as a list of buffers.
-    using mutable_buffers_type = __implementation_defined__;
-
-#else
-    class const_buffers_type;
-
-    class mutable_buffers_type;
-
-#endif
-
     /// Move constructor.
     buffers_adapter(buffers_adapter&& other);
 
@@ -121,27 +108,6 @@ public:
     explicit
     buffers_adapter(boost::in_place_init_t, Args&&... args);
 
-    /// Returns the largest size output sequence possible.
-    std::size_t
-    max_size() const
-    {
-        return max_size_;
-    }
-
-    /// Get the size of the input sequence.
-    std::size_t
-    size() const
-    {
-        return in_size_;
-    }
-    
-    /// Returns the maximum sum of the sizes of the input sequence and output sequence the buffer can hold without requiring reallocation.
-    std::size_t
-    capacity() const
-    {
-        return max_size_;
-    }
-
     /// Returns the original mutable buffer sequence
     value_type const&
     value() const
@@ -149,40 +115,112 @@ public:
         return bs_;
     }
 
-    /** Get a list of buffers that represents the output sequence, with the given size.
+    //--------------------------------------------------------------------------
 
-        @throws std::length_error if the size would exceed the limit
-        imposed by the underlying mutable buffer sequence.
+#if BOOST_BEAST_DOXYGEN
+    /// The ConstBufferSequence used to represent the readable bytes.
+    using const_buffers_type = __implementation_defined__;
 
-        @note Buffers representing the input sequence acquired prior to
-        this call remain valid.
+    /// The MutableBufferSequence used to represent the writable bytes.
+    using mutable_buffers_type = __implementation_defined__;
+
+#else
+    class const_buffers_type;
+    class mutable_buffers_type;
+#endif
+
+    /// Returns the number of readable bytes.
+    std::size_t
+    size() const noexcept
+    {
+        return in_size_;
+    }
+
+    /// Return the maximum number of bytes, both readable and writable, that can ever be held.
+    std::size_t
+    max_size() const noexcept
+    {
+        return max_size_;
+    }
+    
+    /// Return the maximum number of bytes, both readable and writable, that can be held without requiring an allocation.
+    std::size_t
+    capacity() const noexcept
+    {
+        return max_size_;
+    }
+
+    /// Returns a constant buffer sequence representing the readable bytes
+    const_buffers_type
+    data() const noexcept;
+
+    /** Returns a mutable buffer sequence representing writable bytes.
+    
+        Returns a mutable buffer sequence representing the writable
+        bytes containing exactly `n` bytes of storage. This function
+        does not allocate memory. Instead, the storage comes from
+        the underlying mutable buffer sequence.
+
+        All buffer sequences previously obtained using @ref prepare are
+        invalidated. Buffer sequences previously obtained using @ref data
+        remain valid.
+
+        @param n The desired number of bytes in the returned buffer
+        sequence.
+
+        @throws std::length_error if `size() + n` exceeds `max_size()`.
+
+        @par Exception Safety
+
+        Strong guarantee.
     */
     mutable_buffers_type
     prepare(std::size_t n);
 
-    /** Move bytes from the output sequence to the input sequence.
+    /** Append writable bytes to the readable bytes.
 
-        @note Buffers representing the input sequence acquired prior to
-        this call remain valid.
+        Appends n bytes from the start of the writable bytes to the
+        end of the readable bytes. The remainder of the writable bytes
+        are discarded. If n is greater than the number of writable
+        bytes, all writable bytes are appended to the readable bytes.
+
+        All buffer sequences previously obtained using @ref prepare are
+        invalidated. Buffer sequences previously obtained using @ref data
+        remain valid.
+
+        @param n The number of bytes to append. If this number
+        is greater than the number of writable bytes, all
+        writable bytes are appended.
+
+        @par Exception Safety
+
+        No-throw guarantee.
     */
     void
-    commit(std::size_t n);
+    commit(std::size_t n) noexcept;
 
-    /** Get a list of buffers that represents the input sequence.
+    /** Remove bytes from beginning of the readable bytes.
 
-        @note These buffers remain valid across subsequent calls to `prepare`.
+        Removes n bytes from the beginning of the readable bytes.
+
+        All buffers sequences previously obtained using
+        @ref data or @ref prepare are invalidated.
+
+        @param n The number of bytes to remove. If this number
+        is greater than the number of readable bytes, all
+        readable bytes are removed.
+
+        @par Exception Safety
+
+        No-throw guarantee.
     */
-    const_buffers_type
-    data() const;
-
-    /// Remove bytes from the input sequence.
     void
-    consume(std::size_t n);
+    consume(std::size_t n) noexcept;
 };
 
 } // beast
 } // boost
 
-#include <boost/beast/core/impl/buffers_adapter.ipp>
+#include <boost/beast/core/impl/buffers_adapter.hpp>
 
 #endif

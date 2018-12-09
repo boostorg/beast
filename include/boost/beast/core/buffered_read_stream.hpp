@@ -31,7 +31,7 @@ namespace beast {
     is part of the object.
 
     The use-case for this class is different than that of the
-    `net::buffered_readstream`. It is designed to facilitate
+    `net::buffered_read_stream`. It is designed to facilitate
     the use of `net::read_until`, and to allow buffers
     acquired during detection of handshakes to be made transparently
     available to callers. A hypothetical implementation of the
@@ -51,9 +51,9 @@ namespace beast {
     // Process the next HTTP header on the stream,
     // leaving excess bytes behind for the next call.
     //
-    template<class DynamicBuffer>
+    template<class Stream, class DynamicBuffer>
     void process_http_message(
-        buffered_read_stream<DynamicBuffer>& stream)
+        buffered_read_stream<Stream, DynamicBuffer>& stream)
     {
         // Read up to and including the end of the HTTP
         // header, leaving the sequence in the stream's
@@ -137,28 +137,28 @@ public:
 
     /// Get a reference to the next layer.
     next_layer_type&
-    next_layer()
+    next_layer() noexcept
     {
         return next_layer_;
     }
 
     /// Get a const reference to the next layer.
     next_layer_type const&
-    next_layer() const
+    next_layer() const noexcept
     {
         return next_layer_;
     }
     
     /// Get a reference to the lowest layer.
     lowest_layer_type&
-    lowest_layer()
+    lowest_layer() noexcept
     {
         return next_layer_.lowest_layer();
     }
 
     /// Get a const reference to the lowest layer.
     lowest_layer_type const&
-    lowest_layer() const
+    lowest_layer() const noexcept
     {
         return next_layer_.lowest_layer();
     }
@@ -196,14 +196,14 @@ public:
         the caller defined maximum.
     */
     DynamicBuffer&
-    buffer()
+    buffer() noexcept
     {
         return buffer_;
     }
 
     /// Access the internal buffer
     DynamicBuffer const&
-    buffer() const
+    buffer() const noexcept
     {
         return buffer_;
     }
@@ -224,7 +224,7 @@ public:
         than the amount of data in the buffer, no bytes are discarded.
     */
     void
-    capacity(std::size_t size)
+    capacity(std::size_t size) noexcept
     {
         capacity_ = size;
     }
@@ -367,6 +367,6 @@ public:
 } // beast
 } // boost
 
-#include <boost/beast/core/impl/buffered_read_stream.ipp>
+#include <boost/beast/core/impl/buffered_read_stream.hpp>
 
 #endif

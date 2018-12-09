@@ -7,8 +7,8 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
-#ifndef BOOST_BEAST_IMPL_BUFFERED_READ_STREAM_IPP
-#define BOOST_BEAST_IMPL_BUFFERED_READ_STREAM_IPP
+#ifndef BOOST_BEAST_IMPL_BUFFERED_READ_STREAM_HPP
+#define BOOST_BEAST_IMPL_BUFFERED_READ_STREAM_HPP
 
 #include <boost/beast/core/bind_handler.hpp>
 #include <boost/beast/core/error.hpp>
@@ -19,6 +19,7 @@
 #include <boost/asio/associated_allocator.hpp>
 #include <boost/asio/associated_executor.hpp>
 #include <boost/asio/executor_work_guard.hpp>
+#include <boost/asio/handler_alloc_hook.hpp>
 #include <boost/asio/handler_continuation_hook.hpp>
 #include <boost/asio/handler_invoke_hook.hpp>
 #include <boost/asio/post.hpp>
@@ -54,44 +55,65 @@ public:
     {
     }
 
+    void
+    operator()(error_code ec,
+        std::size_t bytes_transferred);
+
+    //
+
     using allocator_type =
         net::associated_allocator_t<Handler>;
-
-    allocator_type
-    get_allocator() const noexcept
-    {
-        return (net::get_associated_allocator)(h_);
-    }
 
     using executor_type =
         net::associated_executor_t<Handler, decltype(
             std::declval<buffered_read_stream&>().get_executor())>;
 
+    allocator_type
+    get_allocator() const noexcept
+    {
+        return net::get_associated_allocator(h_);
+    }
+
     executor_type
     get_executor() const noexcept
     {
-        return (net::get_associated_executor)(
+        return net::get_associated_executor(
             h_, s_.get_executor());
     }
 
-    void
-    operator()(error_code const& ec,
-        std::size_t bytes_transferred);
+    template<class Function>
+    friend
+    void asio_handler_invoke(
+        Function&& f, read_some_op* op)
+    {
+        using net::asio_handler_invoke;
+        asio_handler_invoke(f, std::addressof(op->h_));
+    }
+
+    friend
+    void* asio_handler_allocate(
+        std::size_t size, read_some_op* op)
+    {
+        using net::asio_handler_allocate;
+        return asio_handler_allocate(
+            size, std::addressof(op->h_));
+    }
+
+    friend
+    void asio_handler_deallocate(
+        void* p, std::size_t size, read_some_op* op)
+    {
+        using net::asio_handler_deallocate;
+        asio_handler_deallocate(
+            p, size, std::addressof(op->h_));
+    }
 
     friend
     bool asio_handler_is_continuation(read_some_op* op)
     {
         using net::asio_handler_is_continuation;
         return asio_handler_is_continuation(
-            std::addressof(op->h_));
-    }
-
-    template<class Function>
-    friend
-    void asio_handler_invoke(Function&& f, read_some_op* op)
-    {
-        using net::asio_handler_invoke;
-        asio_handler_invoke(f, std::addressof(op->h_));
+                std::addressof(op->h_));
     }
 };
 
@@ -99,8 +121,9 @@ template<class Stream, class DynamicBuffer>
 template<class MutableBufferSequence, class Handler>
 void
 buffered_read_stream<Stream, DynamicBuffer>::
-read_some_op<MutableBufferSequence, Handler>::operator()(
-    error_code const& ec, std::size_t bytes_transferred)
+read_some_op<MutableBufferSequence, Handler>::
+operator()(
+    error_code ec, std::size_t bytes_transferred)
 {
     switch(step_)
     {
@@ -114,19 +137,18 @@ read_some_op<MutableBufferSequence, Handler>::operator()(
                 return s_.next_layer_.async_read_some(
                     b_, std::move(*this));
             }
-
             // read
             step_ = 2;
             return s_.next_layer_.async_read_some(
                 s_.buffer_.prepare(read_size(
                     s_.buffer_, s_.capacity_)),
                         std::move(*this));
-
         }
         step_ = 3;
         return net::post(
             s_.get_executor(),
-            beast::bind_front_handler(std::move(*this), ec, 0));
+            beast::bind_front_handler(
+                std::move(*this), ec, 0));
 
     case 1:
         // upcall
@@ -221,7 +243,7 @@ read_some(MutableBufferSequence const& buffers,
     }
     else
     {
-        ec.assign(0, ec.category());
+        ec = {};
     }
     auto bytes_transferred =
         buffer_copy(buffers, buffer_.data());

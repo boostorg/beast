@@ -118,14 +118,14 @@ public:
 
     /// Return a reference to the handler
     handler_type const&
-    handler() const
+    handler() const noexcept
     {
         return h_;
     }
 
     /// Return a reference to the handler
     handler_type&
-    handler()
+    handler() noexcept
     {
         return h_;
     }
@@ -165,6 +165,7 @@ public:
     T*
     operator->() const
     {
+        BOOST_ASSERT(t_);
         return t_;
     }
 
@@ -211,6 +212,6 @@ public:
 } // beast
 } // boost
 
-#include <boost/beast/core/impl/handler_ptr.ipp>
+#include <boost/beast/core/impl/handler_ptr.hpp>
 
 #endif

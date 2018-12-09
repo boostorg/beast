@@ -8,7 +8,7 @@
 //
 
 // Test that header file is self-contained.
-#include <boost/beast/core/detail/lean_tuple.hpp>
+#include <boost/beast/core/detail/tuple.hpp>
 
 #include <boost/beast/_experimental/unit_test/suite.hpp>
 
@@ -16,7 +16,7 @@ namespace boost {
 namespace beast {
 namespace detail {
 
-class lean_tuple_test : public beast::unit_test::suite
+class tuple_test : public beast::unit_test::suite
 {
 public:
     void
@@ -37,17 +37,17 @@ public:
             int i_;
         };
 
-        lean_tuple<explicit_constructible, int> t{nullptr, 42};
+        tuple<explicit_constructible, int> t{nullptr, 42};
         BEAST_EXPECT(detail::get<1>(t) == 42);
         BEAST_EXPECT(detail::get<0>(t).i_ == 0);
 
-        t = lean_tuple<explicit_constructible, int>{explicit_constructible(42), 43};
+        t = tuple<explicit_constructible, int>{explicit_constructible(42), 43};
         BEAST_EXPECT(detail::get<1>(t) == 43);
         BEAST_EXPECT(detail::get<0>(t).i_ == 42);
     }
 };
 
-BEAST_DEFINE_TESTSUITE(beast,core,lean_tuple);
+BEAST_DEFINE_TESTSUITE(beast,core,tuple);
 
 } // detail
 } // beast

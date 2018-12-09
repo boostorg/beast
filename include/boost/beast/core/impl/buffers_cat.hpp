@@ -7,10 +7,10 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
-#ifndef BOOST_BEAST_IMPL_BUFFERS_CAT_IPP
-#define BOOST_BEAST_IMPL_BUFFERS_CAT_IPP
+#ifndef BOOST_BEAST_IMPL_BUFFERS_CAT_HPP
+#define BOOST_BEAST_IMPL_BUFFERS_CAT_HPP
 
-#include <boost/beast/core/detail/lean_tuple.hpp>
+#include <boost/beast/core/detail/tuple.hpp>
 #include <boost/beast/core/detail/type_traits.hpp>
 #include <boost/beast/core/detail/variant.hpp>
 #include <boost/asio/buffer.hpp>
@@ -57,7 +57,7 @@ class buffers_cat_view<Bn...>::const_iterator
     static_assert(sizeof...(Bn) >= 2,
         "A minimum of two sequences are required");
 
-    detail::lean_tuple<Bn...> const* bn_ = nullptr;
+    detail::tuple<Bn...> const* bn_ = nullptr;
     detail::variant<typename
         detail::buffer_sequence_iterator<Bn>::type...,
             past_end> it_;
@@ -113,7 +113,7 @@ public:
 
 private:
     const_iterator(
-        detail::lean_tuple<Bn...> const& bn, bool at_end);
+        detail::tuple<Bn...> const& bn, bool at_end);
 
     template<std::size_t I>
     void
@@ -260,7 +260,7 @@ template<class... Bn>
 buffers_cat_view<Bn...>::
 const_iterator::
 const_iterator(
-    detail::lean_tuple<Bn...> const& bn, bool at_end)
+    detail::tuple<Bn...> const& bn, bool at_end)
     : bn_(&bn)
 {
     if(! at_end)
@@ -375,7 +375,7 @@ buffers_cat_view<Bn...>::begin() const ->
 template<class... Bn>
 inline
 auto
-buffers_cat_view<Bn...>::end() const ->
+buffers_cat_view<Bn...>::end() const->
     const_iterator
 {
     return const_iterator{bn_, true};

@@ -7,8 +7,8 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
-#ifndef BOOST_BEAST_CORE_IMPL_FILE_POSIX_IPP
-#define BOOST_BEAST_CORE_IMPL_FILE_POSIX_IPP
+#ifndef BOOST_BEAST_CORE_IMPL_FILE_POSIX_HPP
+#define BOOST_BEAST_CORE_IMPL_FILE_POSIX_HPP
 
 #if ! defined(BOOST_BEAST_NO_POSIX_FADVISE)
 # if defined(__APPLE__) || (defined(ANDROID) && (__ANDROID_API__ < 21))
@@ -55,7 +55,6 @@ file_posix_close(int fd)
 
 } // detail
 
-inline
 file_posix::
 ~file_posix()
 {
@@ -63,14 +62,12 @@ file_posix::
         detail::file_posix_close(fd_);
 }
 
-inline
 file_posix::
 file_posix(file_posix&& other)
     : fd_(boost::exchange(other.fd_, -1))
 {
 }
 
-inline
 file_posix&
 file_posix::
 operator=(file_posix&& other)
@@ -84,7 +81,6 @@ operator=(file_posix&& other)
     return *this;
 }
 
-inline
 void
 file_posix::
 native_handle(native_handle_type fd)
@@ -94,7 +90,6 @@ native_handle(native_handle_type fd)
     fd_ = fd;
 }
 
-inline
 void
 file_posix::
 close(error_code& ec)
@@ -104,18 +99,17 @@ close(error_code& ec)
         auto const ev =
             detail::file_posix_close(fd_);
         if(ev)
-            ec.assign(ev, generic_category());
+            ec.assign(ev, system_category());
         else
-            ec.assign(0, ec.category());
+            ec = {};
         fd_ = -1;
     }
     else
     {
-        ec.assign(0, ec.category());
+        ec = {};
     }
 }
 
-inline
 void
 file_posix::
 open(char const* path, file_mode mode, error_code& ec)
@@ -125,9 +119,9 @@ open(char const* path, file_mode mode, error_code& ec)
         auto const ev =
             detail::file_posix_close(fd_);
         if(ev)
-            ec.assign(ev, generic_category());
+            ec.assign(ev, system_category());
         else
-            ec.assign(0, ec.category());
+            ec = {};
         fd_ = -1;
     }
     int f = 0;
@@ -200,7 +194,7 @@ open(char const* path, file_mode mode, error_code& ec)
         auto const ev = errno;
         if(ev != EINTR)
         {
-            ec.assign(ev, generic_category());
+            ec.assign(ev, system_category());
             return;
         }
     }
@@ -210,14 +204,13 @@ open(char const* path, file_mode mode, error_code& ec)
         auto const ev = errno;
         detail::file_posix_close(fd_);
         fd_ = -1;
-        ec.assign(ev, generic_category());
+        ec.assign(ev, system_category());
         return;
     }
 #endif
-    ec.assign(0, ec.category());
+    ec = {};
 }
 
-inline
 std::uint64_t
 file_posix::
 size(error_code& ec) const
@@ -230,14 +223,13 @@ size(error_code& ec) const
     struct stat st;
     if(::fstat(fd_, &st) != 0)
     {
-        ec.assign(errno, generic_category());
+        ec.assign(errno, system_category());
         return 0;
     }
-    ec.assign(0, ec.category());
+    ec = {};
     return st.st_size;
 }
 
-inline
 std::uint64_t
 file_posix::
 pos(error_code& ec) const
@@ -250,14 +242,13 @@ pos(error_code& ec) const
     auto const result = ::lseek(fd_, 0, SEEK_CUR);
     if(result == (off_t)-1)
     {
-        ec.assign(errno, generic_category());
+        ec.assign(errno, system_category());
         return 0;
     }
-    ec.assign(0, ec.category());
+    ec = {};
     return result;
 }
 
-inline
 void
 file_posix::
 seek(std::uint64_t offset, error_code& ec)
@@ -270,13 +261,12 @@ seek(std::uint64_t offset, error_code& ec)
     auto const result = ::lseek(fd_, offset, SEEK_SET);
     if(result == static_cast<off_t>(-1))
     {
-        ec.assign(errno, generic_category());
+        ec.assign(errno, system_category());
         return;
     }
-    ec.assign(0, ec.category());
+    ec = {};
 }
 
-inline
 std::size_t
 file_posix::
 read(void* buffer, std::size_t n, error_code& ec) const
@@ -297,7 +287,7 @@ read(void* buffer, std::size_t n, error_code& ec) const
             auto const ev = errno;
             if(ev == EINTR)
                 continue;
-            ec.assign(ev, generic_category());
+            ec.assign(ev, system_category());
             return nread;
         }
         if(result == 0)
@@ -312,7 +302,6 @@ read(void* buffer, std::size_t n, error_code& ec) const
     return nread;
 }
 
-inline
 std::size_t
 file_posix::
 write(void const* buffer, std::size_t n, error_code& ec)
@@ -333,7 +322,7 @@ write(void const* buffer, std::size_t n, error_code& ec)
             auto const ev = errno;
             if(ev == EINTR)
                 continue;
-            ec.assign(ev, generic_category());
+            ec.assign(ev, system_category());
             return nwritten;
         }
         n -= result;

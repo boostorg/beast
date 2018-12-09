@@ -10,7 +10,7 @@
 #ifndef BOOST_BEAST_CORE_FILE_WIN32_HPP
 #define BOOST_BEAST_CORE_FILE_WIN32_HPP
 
-#include <boost/config.hpp>
+#include <boost/beast/core/detail/config.hpp>
 
 #if ! defined(BOOST_BEAST_USE_WIN32_FILE)
 # ifdef BOOST_MSVC
@@ -56,6 +56,7 @@ public:
 
         If the file is open it is first closed.
     */
+    BOOST_BEAST_DECL
     ~file_win32();
 
     /** Constructor
@@ -68,12 +69,14 @@ public:
 
         The moved-from object behaves as if default constructed.
     */
+    BOOST_BEAST_DECL
     file_win32(file_win32&& other);
 
     /** Assignment
 
         The moved-from object behaves as if default constructed.
     */
+    BOOST_BEAST_DECL
     file_win32& operator=(file_win32&& other);
 
     /// Returns the native handle associated with the file.
@@ -89,6 +92,7 @@ public:
 
         @param h The native file handle to assign.
     */
+    BOOST_BEAST_DECL
     void
     native_handle(native_handle_type h);
 
@@ -103,6 +107,7 @@ public:
 
         @param ec Set to the error, if any occurred.
     */
+    BOOST_BEAST_DECL
     void
     close(error_code& ec);
 
@@ -114,6 +119,7 @@ public:
 
         @param ec Set to the error, if any occurred
     */
+    BOOST_BEAST_DECL
     void
     open(char const* path, file_mode mode, error_code& ec);
 
@@ -123,6 +129,7 @@ public:
 
         @return The size in bytes
     */
+    BOOST_BEAST_DECL
     std::uint64_t
     size(error_code& ec) const;
 
@@ -132,6 +139,7 @@ public:
 
         @return The offset in bytes from the beginning of the file
     */
+    BOOST_BEAST_DECL
     std::uint64_t
     pos(error_code& ec);
 
@@ -141,6 +149,7 @@ public:
 
         @param ec Set to the error, if any occurred
     */
+    BOOST_BEAST_DECL
     void
     seek(std::uint64_t offset, error_code& ec);
 
@@ -152,6 +161,7 @@ public:
 
         @param ec Set to the error, if any occurred
     */
+    BOOST_BEAST_DECL
     std::size_t
     read(void* buffer, std::size_t n, error_code& ec);
 
@@ -163,6 +173,7 @@ public:
 
         @param ec Set to the error, if any occurred
     */
+    BOOST_BEAST_DECL
     std::size_t
     write(void const* buffer, std::size_t n, error_code& ec);
 };
@@ -170,7 +181,7 @@ public:
 } // beast
 } // boost
 
-#include <boost/beast/core/impl/file_win32.ipp>
+#include <boost/beast/core/impl/file_win32.hpp>
 
 #endif
 

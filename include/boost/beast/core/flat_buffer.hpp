@@ -73,7 +73,7 @@ class basic_flat_buffer
         std::is_nothrow_default_constructible<Allocator>::value;
 
     using alloc_traits =
-        detail::allocator_traits<base_alloc_type>;
+        beast::detail::allocator_traits<base_alloc_type>;
 
     using pocma = typename
         alloc_traits::propagate_on_container_move_assignment;
@@ -516,6 +516,6 @@ using flat_buffer =
 } // beast
 } // boost
 
-#include <boost/beast/core/impl/flat_buffer.ipp>
+#include <boost/beast/core/impl/flat_buffer.hpp>
 
 #endif

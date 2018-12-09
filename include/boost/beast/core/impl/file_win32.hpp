@@ -7,8 +7,8 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
-#ifndef BOOST_BEAST_CORE_IMPL_FILE_WIN32_IPP
-#define BOOST_BEAST_CORE_IMPL_FILE_WIN32_IPP
+#ifndef BOOST_BEAST_CORE_IMPL_FILE_WIN32_HPP
+#define BOOST_BEAST_CORE_IMPL_FILE_WIN32_HPP
 
 #include <boost/core/exchange.hpp>
 #include <boost/winapi/access_rights.hpp>
@@ -51,7 +51,6 @@ set_file_pointer_ex(
 
 } // detail
 
-inline
 file_win32::
 ~file_win32()
 {
@@ -59,14 +58,13 @@ file_win32::
         boost::winapi::CloseHandle(h_);
 }
 
-inline
 file_win32::
 file_win32(file_win32&& other)
-    : h_(boost::exchange(other.h_, boost::winapi::INVALID_HANDLE_VALUE_))
+    : h_(boost::exchange(other.h_,
+        boost::winapi::INVALID_HANDLE_VALUE_))
 {
 }
 
-inline
 file_win32&
 file_win32::
 operator=(file_win32&& other)
@@ -80,7 +78,6 @@ operator=(file_win32&& other)
     return *this;
 }
 
-inline
 void
 file_win32::
 native_handle(native_handle_type h)
@@ -90,7 +87,6 @@ native_handle(native_handle_type h)
     h_ = h;
 }
 
-inline
 void
 file_win32::
 close(error_code& ec)
@@ -101,16 +97,15 @@ close(error_code& ec)
             ec.assign(boost::winapi::GetLastError(),
                 system_category());
         else
-            ec.assign(0, ec.category());
+            ec = {};
         h_ = boost::winapi::INVALID_HANDLE_VALUE_;
     }
     else
     {
-        ec.assign(0, ec.category());
+        ec = {};
     }
 }
 
-inline
 void
 file_win32::
 open(char const* path, file_mode mode, error_code& ec)
@@ -206,10 +201,9 @@ open(char const* path, file_mode mode, error_code& ec)
         ec.assign(boost::winapi::GetLastError(),
             system_category());
     else
-        ec.assign(0, ec.category());
+        ec = {};
 }
 
-inline
 std::uint64_t
 file_win32::
 size(error_code& ec) const
@@ -226,11 +220,10 @@ size(error_code& ec) const
             system_category());
         return 0;
     }
-    ec.assign(0, ec.category());
+    ec = {};
     return fileSize.QuadPart;
 }
 
-inline
 std::uint64_t
 file_win32::
 pos(error_code& ec)
@@ -250,11 +243,10 @@ pos(error_code& ec)
             system_category());
         return 0;
     }
-    ec.assign(0, ec.category());
+    ec = {};
     return out.QuadPart;
 }
 
-inline
 void
 file_win32::
 seek(std::uint64_t offset, error_code& ec)
@@ -273,10 +265,9 @@ seek(std::uint64_t offset, error_code& ec)
             system_category());
         return;
     }
-    ec.assign(0, ec.category());
+    ec = {};
 }
 
-inline
 std::size_t
 file_win32::
 read(void* buffer, std::size_t n, error_code& ec)
@@ -304,7 +295,7 @@ read(void* buffer, std::size_t n, error_code& ec)
             if(dwError != boost::winapi::ERROR_HANDLE_EOF_)
                 ec.assign(dwError, system_category());
             else
-                ec.assign(0, ec.category());
+                ec = {};
             return nread;
         }
         if(bytesRead == 0)
@@ -313,11 +304,10 @@ read(void* buffer, std::size_t n, error_code& ec)
         nread += bytesRead;
         buffer = static_cast<char*>(buffer) + bytesRead;
     }
-    ec.assign(0, ec.category());
+    ec = {};
     return nread;
 }
 
-inline
 std::size_t
 file_win32::
 write(void const* buffer, std::size_t n, error_code& ec)
@@ -345,7 +335,7 @@ write(void const* buffer, std::size_t n, error_code& ec)
             if(dwError != boost::winapi::ERROR_HANDLE_EOF_)
                 ec.assign(dwError, system_category());
             else
-                ec.assign(0, ec.category());
+                ec = {};
             return nwritten;
         }
         if(bytesWritten == 0)
@@ -354,7 +344,7 @@ write(void const* buffer, std::size_t n, error_code& ec)
         nwritten += bytesWritten;
         buffer = static_cast<char const*>(buffer) + bytesWritten;
     }
-    ec.assign(0, ec.category());
+    ec = {};
     return nwritten;
 }
 

@@ -59,6 +59,6 @@ read_size_or_throw(DynamicBuffer& buffer,
 } // beast
 } // boost
 
-#include <boost/beast/core/impl/read_size.ipp>
+#include <boost/beast/core/impl/read_size.hpp>
 
 #endif

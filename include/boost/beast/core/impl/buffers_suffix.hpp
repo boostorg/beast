@@ -7,8 +7,8 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
-#ifndef BOOST_BEAST_IMPL_BUFFERS_SUFFIX_IPP
-#define BOOST_BEAST_IMPL_BUFFERS_SUFFIX_IPP
+#ifndef BOOST_BEAST_IMPL_BUFFERS_SUFFIX_HPP
+#define BOOST_BEAST_IMPL_BUFFERS_SUFFIX_HPP
 
 #include <boost/beast/core/type_traits.hpp>
 #include <boost/type_traits.hpp>
@@ -137,16 +137,6 @@ buffers_suffix()
 
 template<class Buffers>
 buffers_suffix<Buffers>::
-buffers_suffix(buffers_suffix&& other)
-    : buffers_suffix(std::move(other),
-        std::distance<iter_type>(
-            net::buffer_sequence_begin(
-                other.bs_), other.begin_))
-{
-}
-
-template<class Buffers>
-buffers_suffix<Buffers>::
 buffers_suffix(buffers_suffix const& other)
     : buffers_suffix(other,
         std::distance<iter_type>(
@@ -184,23 +174,6 @@ buffers_suffix(boost::in_place_init_t, Args&&... args)
 template<class Buffers>
 auto
 buffers_suffix<Buffers>::
-operator=(buffers_suffix&& other) ->
-    buffers_suffix&
-{
-    auto const dist = std::distance<iter_type>(
-        net::buffer_sequence_begin(other.bs_),
-            other.begin_);
-    bs_ = std::move(other.bs_);
-    begin_ = std::next(
-        net::buffer_sequence_begin(bs_),
-            dist);
-    skip_ = other.skip_;
-    return *this;
-}
-
-template<class Buffers>
-auto
-buffers_suffix<Buffers>::
 operator=(buffers_suffix const& other) ->
     buffers_suffix&
 {
@@ -215,7 +188,6 @@ operator=(buffers_suffix const& other) ->
 }
 
 template<class Buffers>
-inline
 auto
 buffers_suffix<Buffers>::
 begin() const ->
@@ -225,7 +197,6 @@ begin() const ->
 }
 
 template<class Buffers>
-inline
 auto
 buffers_suffix<Buffers>::
 end() const ->

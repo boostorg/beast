@@ -7,6 +7,7 @@ Version 198:
 * saved_handler maintains a work_guard (websocket)
 * Add buffer_traits.hpp, buffers_type
 * Tidy up experimental files
+* Tidy up core files
 
 API Changes:
 

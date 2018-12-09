@@ -64,24 +64,24 @@ iequals(
     auto p1 = lhs.data();
     auto p2 = rhs.data();
     char a, b;
+    // fast loop
     while(n--)
     {
         a = *p1++;
         b = *p2++;
         if(a != b)
-        {
-            // slow loop
-            do
-            {
-                if(ascii_tolower(a) != ascii_tolower(b))
-                    return false;
-                a = *p1++;
-                b = *p2++;
-            }
-            while(n--);
-            return true;
-        }
+            goto slow;
     }
+    return true;
+slow:
+    do
+    {
+        if(ascii_tolower(a) != ascii_tolower(b))
+            return false;
+        a = *p1++;
+        b = *p2++;
+    }
+    while(n--);
     return true;
 }
 

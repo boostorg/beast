@@ -308,7 +308,6 @@ private:
 };
 
 template<class MutableBufferSequence>
-inline
 auto
 buffers_adapter<MutableBufferSequence>::
 mutable_buffers_type::
@@ -319,7 +318,6 @@ begin() const ->
 }
 
 template<class MutableBufferSequence>
-inline
 auto
 buffers_adapter<MutableBufferSequence>::
 mutable_buffers_type::
@@ -480,18 +478,26 @@ prepare(std::size_t n) ->
 }
 
 template<class MutableBufferSequence>
+auto
+buffers_adapter<MutableBufferSequence>::
+data() const noexcept ->
+    const_buffers_type
+{
+    return const_buffers_type{*this};
+}
+
+template<class MutableBufferSequence>
 void
 buffers_adapter<MutableBufferSequence>::
-commit(std::size_t n)
+commit(std::size_t n) noexcept
 {
-    using net::buffer_size;
     if(out_ == end_)
         return;
     auto const last = std::prev(end_);
     while(out_ != last)
     {
         auto const avail =
-            buffer_size(*out_) - out_pos_;
+            net::buffer_size(*out_) - out_pos_;
         if(n < avail)
         {
             out_pos_ += n;
@@ -504,10 +510,11 @@ commit(std::size_t n)
         in_size_ += avail;
     }
 
-    n = (std::min)(n, out_end_ - out_pos_);
+    n = std::min<std::size_t>(
+        n, out_end_ - out_pos_);
     out_pos_ += n;
     in_size_ += n;
-    if(out_pos_ == buffer_size(*out_))
+    if(out_pos_ == net::buffer_size(*out_))
     {
         ++out_;
         out_pos_ = 0;
@@ -516,25 +523,14 @@ commit(std::size_t n)
 }
 
 template<class MutableBufferSequence>
-inline
-auto
-buffers_adapter<MutableBufferSequence>::
-data() const ->
-    const_buffers_type
-{
-    return const_buffers_type{*this};
-}
-
-template<class MutableBufferSequence>
 void
 buffers_adapter<MutableBufferSequence>::
-consume(std::size_t n)
+consume(std::size_t n) noexcept
 {
-    using net::buffer_size;
     while(begin_ != out_)
     {
         auto const avail =
-            buffer_size(*begin_) - in_pos_;
+            net::buffer_size(*begin_) - in_pos_;
         if(n < avail)
         {
             in_size_ -= n;

@@ -34,12 +34,12 @@
    3. This notice may not be removed or altered from any source distribution.
 
    Rene Nyffenegger rene.nyffenegger@adp-gmbh.ch
-
 */
 
 #ifndef BOOST_BEAST_DETAIL_BASE64_HPP
 #define BOOST_BEAST_DETAIL_BASE64_HPP
 
+#include <boost/beast/core/string.hpp>
 #include <cctype>
 #include <string>
 #include <utility>
@@ -55,7 +55,10 @@ char const*
 get_alphabet()
 {
     static char constexpr tab[] = {
-        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+        "ABCDEFGHIJKLMNOP"
+        "QRSTUVWXYZabcdef"
+        "ghijklmnopqrstuv"
+        "wxyz0123456789+/"
     };
     return &tab[0];
 }
@@ -115,7 +118,7 @@ decoded_size(std::size_t n)
     @return The number of characters written to `out`. This
     will exclude any null termination.
 */
-template<class = void>
+inline
 std::size_t
 encode(void* dest, void const* src, std::size_t len)
 {
@@ -166,7 +169,7 @@ encode(void* dest, void const* src, std::size_t len)
     the number of characters read from the input string,
     expressed as a pair.
 */
-template<class = void>
+inline
 std::pair<std::size_t, std::size_t>
 decode(void* dest, char const* src, std::size_t len)
 {
@@ -213,9 +216,10 @@ decode(void* dest, char const* src, std::size_t len)
 
 } // base64
 
-template<class = void>
+inline
 std::string
-base64_encode (std::uint8_t const* data,
+base64_encode(
+    std::uint8_t const* data,
     std::size_t len)
 {
     std::string dest;
@@ -226,7 +230,7 @@ base64_encode (std::uint8_t const* data,
 
 inline
 std::string
-base64_encode(std::string const& s)
+base64_encode(string_view s)
 {
     return base64_encode (reinterpret_cast <
         std::uint8_t const*> (s.data()), s.size());
@@ -234,7 +238,7 @@ base64_encode(std::string const& s)
 
 template<class = void>
 std::string
-base64_decode(std::string const& data)
+base64_decode(string_view data)
 {
     std::string dest;
     dest.resize(base64::decoded_size(data.size()));

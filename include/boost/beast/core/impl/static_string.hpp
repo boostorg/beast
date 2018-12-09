@@ -7,8 +7,8 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
-#ifndef BOOST_BEAST_IMPL_STATIC_STRING_IPP
-#define BOOST_BEAST_IMPL_STATIC_STRING_IPP
+#ifndef BOOST_BEAST_IMPL_STATIC_STRING_HPP
+#define BOOST_BEAST_IMPL_STATIC_STRING_HPP
 
 #include <boost/beast/core/detail/static_string.hpp>
 #include <boost/beast/core/detail/type_traits.hpp>
@@ -65,7 +65,12 @@ template<std::size_t N, class CharT, class Traits>
 static_string<N, CharT, Traits>::
 static_string(CharT const* s)
 {
-    assign(s);
+    auto const count = Traits::length(s);
+    if(count > max_size())
+        BOOST_THROW_EXCEPTION(std::length_error{
+            "count > max_size()"});
+    n_ = count;
+    Traits::copy(&s_[0], s, n_ + 1);
 }
 
 template<std::size_t N, class CharT, class Traits>
@@ -116,6 +121,21 @@ static_string(T const& t, size_type pos, size_type n)
 //
 // (assignment)
 //
+
+template<std::size_t N, class CharT, class Traits>
+auto
+static_string<N, CharT, Traits>::
+operator=(CharT const* s) ->
+    static_string&
+{
+    auto const count = Traits::length(s);
+    if(count > max_size())
+        BOOST_THROW_EXCEPTION(std::length_error{
+            "count > max_size()"});
+    n_ = count;
+    Traits::copy(&s_[0], s, n_ + 1);
+    return *this;
+}
 
 template<std::size_t N, class CharT, class Traits>
 auto
@@ -465,6 +485,8 @@ resize(std::size_t n)
     if(n > max_size())
         BOOST_THROW_EXCEPTION(std::length_error{
             "n > max_size()"});
+    if(n > n_)
+        Traits::assign(&s_[n_], n - n_, CharT{});
     n_ = n;
     term();
 }

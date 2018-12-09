@@ -13,7 +13,8 @@
 #include <boost/beast/core/detail/config.hpp>
 #include <boost/beast/core/type_traits.hpp>
 #include <boost/asio/buffer.hpp>
-#include <boost/optional/optional.hpp>
+#include <boost/optional/optional.hpp> // for in_place_init_t
+#include <algorithm>
 #include <cstdint>
 #include <type_traits>
 
@@ -73,16 +74,16 @@ public:
 
 #endif
 
-    /// Move constructor.
+    /// Move Constructor
     buffers_prefix_view(buffers_prefix_view&&);
 
-    /// Copy constructor.
+    /// Copy Constructor
     buffers_prefix_view(buffers_prefix_view const&);
 
-    /// Move assignment.
+    /// Move Assignment
     buffers_prefix_view& operator=(buffers_prefix_view&&);
 
-    /// Copy assignment.
+    /// Copy Assignment
     buffers_prefix_view& operator=(buffers_prefix_view const&);
 
     /** Construct a buffer sequence prefix.
@@ -94,7 +95,8 @@ public:
 
         @param buffers The buffer sequence to adapt. A copy of
         the sequence will be made, but ownership of the underlying
-        memory is not transferred.
+        memory is not transferred. The copy is maintained for
+        the lifetime of the view.
     */
     buffers_prefix_view(
         std::size_t size,
@@ -115,96 +117,117 @@ public:
         boost::in_place_init_t,
         Args&&... args);
 
-    /// Get a bidirectional iterator to the first element.
+    /// Returns an iterator to the first buffer in the sequence
     const_iterator
     begin() const;
 
-    /// Get a bidirectional iterator to one past the last element.
+    /// Returns an iterator to one past the last buffer in the sequence 
     const_iterator
     end() const;
 };
 
+//------------------------------------------------------------------------------
+
 /** Returns a prefix of a constant buffer.
 
-    The returned buffer points to the same memory as the
-    passed buffer, but with a size that is equal to or less
-    than the size of the original buffer.
+    The returned buffer points to the same memory as the passed
+    buffer, but with a size that is equal to or smaller.
 
-    @param size The size of the returned buffer.
+    @param size The maximum size of the returned buffer in bytes. If
+    this is greater than or equal to the size of the passed buffer,
+    the result will have the same size as the original buffer.
 
-    @param buffer The buffer to shorten. The underlying
-    memory is not modified.
+    @param buffer The buffer to return a prefix for. The
+    underlying memory is not modified, and ownership of the
+    memory is not transferred.
 
-    @return A new buffer that points to the first `size`
-    bytes of the original buffer.
+    @return A constant buffer that represents the prefix of
+    the original buffer.
+
+    @par Exception Safety
+
+    No-throw guarantee.
 */
 inline
 net::const_buffer
 buffers_prefix(std::size_t size,
-    net::const_buffer buffer)
+    net::const_buffer buffer) noexcept
 {
-    return {buffer.data(),
-        (std::min)(size, buffer.size())};
+    return {buffer.data(), std::min<
+        std::size_t>(size, buffer.size())};
 }
 
 /** Returns a prefix of a mutable buffer.
 
-    The returned buffer points to the same memory as the
-    passed buffer, but with a size that is equal to or less
-    than the size of the original buffer.
+    The returned buffer points to the same memory as the passed
+    buffer, but with a size that is equal to or smaller.
 
-    @param size The size of the returned buffer.
+    @param size The maximum size of the returned buffer in bytes. If
+    this is greater than or equal to the size of the passed buffer,
+    the result will have the same size as the original buffer.
 
-    @param buffer The buffer to shorten. The underlying
-    memory is not modified.
+    @param buffer The buffer to return a prefix for. The
+    underlying memory is not modified, and ownership of the
+    memory is not transferred.
 
-    @return A new buffer that points to the first `size` bytes
-    of the original buffer.
+    @return A mutable buffer that represents the prefix of
+    the original buffer.
 */
 inline
 net::mutable_buffer
 buffers_prefix(std::size_t size,
-    net::mutable_buffer buffer)
+    net::mutable_buffer buffer) noexcept
 {
-    return {buffer.data(),
-        (std::min)(size, buffer.size())};
+    return {buffer.data(), std::min<
+        std::size_t>(size, buffer.size())};
 }
 
-/** Returns a prefix of a buffer sequence.
+/** Returns a prefix of a constant or mutable buffer sequence.
 
-    This function returns a new buffer sequence which when iterated,
-    presents a shorter subset of the original list of buffers starting
-    with the first byte of the original sequence.
+    The returned buffer sequence points to the same memory as the
+    passed buffer sequence, but with a size that is equal to or
+    smaller. No memory allocations are performed; the resulting
+    sequence is calculated as a lazy range.
 
-    @param size The maximum number of bytes in the wrapped
-    sequence. If this is larger than the size of passed,
-    buffers, the resulting sequence will represent the
-    entire input sequence.
+    @param size The maximum size of the returned buffer sequence
+    in bytes. If this is greater than or equal to the size of
+    the passed buffer sequence, the result will have the same
+    size as the original buffer sequence.
 
-    @param buffers An instance of @b ConstBufferSequence or
-    @b MutableBufferSequence to adapt. A copy of the sequence
-    will be made, but ownership of the underlying memory is
-    not transferred.
+    @param buffers An object whose type meets the requirements
+    of <em>ConstBufferSequence</em>. The returned value will
+    maintain a copy of the passed buffers for its lifetime;
+    however, ownership of the underlying memory is not
+    transferred.
+
+    @return A constant buffer sequence that represents the prefix
+    of the original buffer sequence. If the original buffer sequence
+    also meets the requirements of <em>MutableBufferSequence</em>,
+    then the returned value will also be a mutable buffer sequence.
+
+    @note This function does not participate in overload resolution
+    if `buffers` is convertible to either `net::const_buffer` or
+    `net::mutable_buffer`.
 */
-template<class BufferSequence>
+template<class ConstBufferSequence>
 #if BOOST_BEAST_DOXYGEN
-buffers_prefix_view<BufferSequence>
+buffers_prefix_view<ConstBufferSequence>
 #else
 inline
 typename std::enable_if<
-    ! std::is_same<BufferSequence,
+    ! std::is_convertible<ConstBufferSequence,
         net::const_buffer>::value &&
-    ! std::is_same<BufferSequence,
+    ! std::is_convertible<ConstBufferSequence,
         net::mutable_buffer>::value,
-    buffers_prefix_view<BufferSequence>>::type
+    buffers_prefix_view<ConstBufferSequence>>::type
 #endif
-buffers_prefix(std::size_t size, BufferSequence const& buffers)
+buffers_prefix(std::size_t size, ConstBufferSequence const& buffers)
 {
     static_assert(
-        net::is_const_buffer_sequence<BufferSequence>::value ||
-        net::is_mutable_buffer_sequence<BufferSequence>::value,
-            "BufferSequence requirements not met");
-    return buffers_prefix_view<BufferSequence>(size, buffers);
+        net::is_const_buffer_sequence<ConstBufferSequence>::value ||
+        net::is_mutable_buffer_sequence<ConstBufferSequence>::value,
+            "ConstBufferSequence requirements not met");
+    return buffers_prefix_view<ConstBufferSequence>(size, buffers);
 }
 
 /** Returns the first buffer in a buffer sequence
@@ -234,6 +257,6 @@ buffers_front(BufferSequence const& buffers)
 } // beast
 } // boost
 
-#include <boost/beast/core/impl/buffers_prefix.ipp>
+#include <boost/beast/core/impl/buffers_prefix.hpp>
 
 #endif

@@ -12,6 +12,9 @@
 
 #include <boost/beast/core/flat_static_buffer.hpp>
 #include <boost/asio/basic_stream_socket.hpp>
+#include <boost/asio/handler_alloc_hook.hpp>
+#include <boost/asio/handler_continuation_hook.hpp>
+#include <boost/asio/handler_invoke_hook.hpp>
 
 namespace boost {
 namespace beast {
@@ -431,7 +434,7 @@ read(
             void(error_code&, std::size_t, DynamicBuffer&)>::value,
         "CompletionCondition requirements not met");
     error_code ec;
-    auto const bytes_transferred = read(
+    auto const bytes_transferred = detail::read(
         stream, buffer, std::move(cond), ec);
     if(ec)
         BOOST_THROW_EXCEPTION(system_error{ec});

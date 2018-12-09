@@ -21,6 +21,7 @@
 #include <boost/asio/async_result.hpp>
 #include <boost/asio/coroutine.hpp>
 #include <boost/asio/executor_work_guard.hpp>
+#include <boost/asio/handler_alloc_hook.hpp>
 #include <boost/asio/handler_continuation_hook.hpp>
 #include <boost/asio/handler_invoke_hook.hpp>
 #include <boost/asio/post.hpp>

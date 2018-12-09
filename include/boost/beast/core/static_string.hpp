@@ -171,10 +171,7 @@ public:
 
     /// Assign from null-terminated string.
     static_string&
-    operator=(CharT const* s)
-    {
-        return assign(s);
-    }
+    operator=(CharT const* s);
 
     /// Assign from single character.
     static_string&
@@ -1107,6 +1104,6 @@ to_static_string(Integer x);
 } // beast
 } // boost
 
-#include <boost/beast/core/impl/static_string.ipp>
+#include <boost/beast/core/impl/static_string.hpp>
 
 #endif

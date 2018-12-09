@@ -7,8 +7,8 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
-#ifndef BOOST_BEAST_IMPL_READ_SIZE_IPP
-#define BOOST_BEAST_IMPL_READ_SIZE_IPP
+#ifndef BOOST_BEAST_IMPL_READ_SIZE_HPP
+#define BOOST_BEAST_IMPL_READ_SIZE_HPP
 
 #include <boost/assert.hpp>
 #include <stdexcept>
@@ -49,15 +49,14 @@ read_size(DynamicBuffer& buffer,
     auto const size = buffer.size();
     auto const limit = buffer.max_size() - size;
     BOOST_ASSERT(size <= buffer.max_size());
-    return (std::min<std::size_t>)(
-        (std::max<std::size_t>)(512, buffer.capacity() - size),
-        (std::min<std::size_t>)(max_size, limit));
+    return std::min<std::size_t>(
+        std::max<std::size_t>(512, buffer.capacity() - size),
+        std::min<std::size_t>(max_size, limit));
 }
 
 } // detail
 
 template<class DynamicBuffer>
-inline
 std::size_t
 read_size(
     DynamicBuffer& buffer, std::size_t max_size)

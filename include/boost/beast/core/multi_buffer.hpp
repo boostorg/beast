@@ -82,7 +82,8 @@ class basic_multi_buffer
     template<bool IsMutable>
     class readable_bytes;
 
-    using alloc_traits = detail::allocator_traits<base_alloc_type>;
+    using alloc_traits =
+        beast::detail::allocator_traits<base_alloc_type>;
     using list_type = typename boost::intrusive::make_list<element,
         boost::intrusive::constant_time_size<true>>::type;
     using iter = typename list_type::iterator;
@@ -540,6 +541,6 @@ using multi_buffer = basic_multi_buffer<std::allocator<char>>;
 } // beast
 } // boost
 
-#include <boost/beast/core/impl/multi_buffer.ipp>
+#include <boost/beast/core/impl/multi_buffer.hpp>
 
 #endif

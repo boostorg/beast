@@ -289,9 +289,9 @@ PREDEFINED             = \
                         BOOST_BEAST_DOXYGEN \
                         BOOST_BEAST_USE_POSIX_FILE=1 \
                         BOOST_BEAST_USE_WIN32_FILE=1 \
-                        BOOST_ASIO_INITFN_RESULT_TYPE(t,a)=void_or_deduced \
-                        GENERATING_DOCUMENTATION
-
+                        BOOST_ASIO_INITFN_RESULT_TYPE(t,a)=__deduced__ \
+                        GENERATING_DOCUMENTATION \
+                        BOOST_BEAST_DECL
 EXPAND_AS_DEFINED      =
 SKIP_FUNCTION_MACROS   = YES
 

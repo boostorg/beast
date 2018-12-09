@@ -10,11 +10,9 @@
 #ifndef BOOST_BEAST_CORE_DETAIL_CONFIG_HPP
 #define BOOST_BEAST_CORE_DETAIL_CONFIG_HPP
 
-#include <boost/config.hpp>
-#include <boost/version.hpp>
-
 // Available to every header
 #include <boost/config.hpp>
+#include <boost/version.hpp>
 #include <boost/core/ignore_unused.hpp>
 #include <boost/static_assert.hpp>
 
@@ -69,6 +67,10 @@ namespace net = boost::asio;
 # endif
 #endif
 
-#define BOOST_BEAST_DECL inline
+#if BOOST_BEAST_DOXYGEN
+# define BOOST_BEAST_DECL
+#else
+# define BOOST_BEAST_DECL inline
+#endif
 
 #endif

@@ -7,8 +7,8 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
-#ifndef BOOST_BEAST_DETAIL_LEAN_TUPLE_HPP
-#define BOOST_BEAST_DETAIL_LEAN_TUPLE_HPP
+#ifndef BOOST_BEAST_DETAIL_TUPLE_HPP
+#define BOOST_BEAST_DETAIL_TUPLE_HPP
 
 #include <boost/mp11/integer_sequence.hpp>
 #include <boost/mp11/algorithm.hpp>
@@ -22,33 +22,33 @@ namespace beast {
 namespace detail {
 
 template<std::size_t I, class T>
-struct lean_tuple_element
+struct tuple_element_impl
 {
     T t;
 };
 
 template<class... Ts>
-struct lean_tuple_impl;
+struct tuple_impl;
 
 template<class... Ts, std::size_t... Is>
-struct lean_tuple_impl<
+struct tuple_impl<
         boost::mp11::index_sequence<Is...>, Ts...>
-  : lean_tuple_element<Is, Ts>...
+  : tuple_element_impl<Is, Ts>...
 {
     template<class... Us>
-    explicit lean_tuple_impl(Us&&... us)
-      : lean_tuple_element<Is, Ts>{std::forward<Us>(us)}...
+    explicit tuple_impl(Us&&... us)
+      : tuple_element_impl<Is, Ts>{std::forward<Us>(us)}...
     {
     }
 };
 
 template<class... Ts>
-struct lean_tuple : lean_tuple_impl<
+struct tuple : tuple_impl<
     boost::mp11::index_sequence_for<Ts...>, Ts...>
 {
     template<class... Us>
-    explicit lean_tuple(Us&&... us)
-      : lean_tuple_impl<
+    explicit tuple(Us&&... us)
+      : tuple_impl<
             boost::mp11::index_sequence_for<Ts...>, Ts...>{
           std::forward<Us>(us)...}
     {
@@ -57,21 +57,21 @@ struct lean_tuple : lean_tuple_impl<
 
 template<std::size_t I, class T>
 T&
-get(lean_tuple_element<I, T>& te)
+get(tuple_element_impl<I, T>& te)
 {
     return te.t;
 }
 
 template<std::size_t I, class T>
 T const&
-get(lean_tuple_element<I, T> const& te)
+get(tuple_element_impl<I, T> const& te)
 {
     return te.t;
 }
 
 template<std::size_t I, class T>
 T&&
-get(lean_tuple_element<I, T>&& te)
+get(tuple_element_impl<I, T>&& te)
 {
     return std::move(te.t);
 }

@@ -125,6 +125,6 @@ public:
 } // beast
 } // boost
 
-#include <boost/beast/core/impl/string_param.ipp>
+#include <boost/beast/core/impl/string_param.hpp>
 
 #endif

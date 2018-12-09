@@ -22,15 +22,15 @@ void
 handler_ptr<T, Handler>::
 clear()
 {
-    typename beast::detail::allocator_traits<
+    using A = typename detail::allocator_traits<
         net::associated_allocator_t<
-            Handler>>::template rebind_alloc<T> alloc(
-                net::get_associated_allocator(
-                    handler()));
-    beast::detail::allocator_traits<
-        decltype(alloc)>::destroy(alloc, t_);
-    beast::detail::allocator_traits<
-        decltype(alloc)>::deallocate(alloc, t_, 1);
+            Handler>>::template rebind_alloc<T>;
+    using alloc_traits =
+        beast::detail::allocator_traits<A>;
+    A alloc(
+        net::get_associated_allocator(handler()));
+    alloc_traits::destroy(alloc, t_);
+    alloc_traits::deallocate(alloc, t_, 1);
     t_ = nullptr;
 }
 
@@ -65,22 +65,22 @@ handler_ptr<T, Handler>::
 handler_ptr(DeducedHandler&& h, Args&&... args)
 {
     BOOST_STATIC_ASSERT(! std::is_array<T>::value);
-    using A = typename beast::detail::allocator_traits<
+    using A = typename detail::allocator_traits<
         net::associated_allocator_t<
             Handler>>::template rebind_alloc<T>;
+    using alloc_traits =
+        beast::detail::allocator_traits<A>;
     A alloc{net::get_associated_allocator(h)};
-    using traits =
-        typename beast::detail::allocator_traits<A>;
     bool destroy = false;
     auto deleter = [&alloc, &destroy](T* p)
     {
         if(destroy)
-            traits::destroy(alloc, p);
-        traits::deallocate(alloc, p, 1);
+            alloc_traits::destroy(alloc, p);
+        alloc_traits::deallocate(alloc, p, 1);
     };
     std::unique_ptr<T, decltype(deleter)> t{
-        traits::allocate(alloc, 1), deleter};
-    traits::construct(alloc, t.get(),
+        alloc_traits::allocate(alloc, 1), deleter};
+    alloc_traits::construct(alloc, t.get(),
         static_cast<DeducedHandler const&>(h),
             std::forward<Args>(args)...);
     destroy = true;

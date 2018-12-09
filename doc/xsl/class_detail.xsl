@@ -9,7 +9,7 @@
       <xsl:text>class __AsyncWriteStream__</xsl:text>
     </xsl:when>
     <xsl:when test="type = 'class Body'">
-      <xsl:text>class ``[link beast.concepts.Body [*Body]]``</xsl:text>
+      <xsl:text>class __Body__</xsl:text>
     </xsl:when>
     <xsl:when test="type = 'class BufferSequence'">
       <xsl:text>class ``[link beast.concepts.BufferSequence [*BufferSequence]]``</xsl:text>
@@ -76,24 +76,3 @@
       <xsl:text>class __WriteHandler__</xsl:text>
     </xsl:when>
 <!-- CLASS_DETAIL_TEMPLATE END -->
-
-
-
-    <xsl:when test="type = 'class Protocol'">
-      <xsl:text>class __Protocol__</xsl:text>
-    </xsl:when>
-    <xsl:when test="type = 'class Executor'">
-      <xsl:text>class __Executor__</xsl:text>
-    </xsl:when>
-    <xsl:when test="type = 'class EndpointSequence'">
-      <xsl:text>class __EndpointSequence__</xsl:text>
-    </xsl:when>
-    <xsl:when test="type = 'class RangeConnectHandler'">
-      <xsl:text>class __RangeConnectHandler__</xsl:text>
-    </xsl:when>
-    <xsl:when test="type = 'class ConnectCondition'">
-      <xsl:text>class __ConnectCondition__</xsl:text>
-    </xsl:when>
-    <xsl:when test="type = 'class IteratorConnectHandler'">
-      <xsl:text>class __IteratorConnectHandler__</xsl:text>
-    </xsl:when>

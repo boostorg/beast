@@ -7,8 +7,8 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
-#ifndef BOOST_BEAST_IMPL_STRING_PARAM_IPP
-#define BOOST_BEAST_IMPL_STRING_PARAM_IPP
+#ifndef BOOST_BEAST_IMPL_STRING_PARAM_HPP
+#define BOOST_BEAST_IMPL_STRING_PARAM_HPP
 
 namespace boost {
 namespace beast {

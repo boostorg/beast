@@ -15,7 +15,6 @@
 #include <boost/beast/core/file_posix.hpp>
 #include <boost/beast/core/file_stdio.hpp>
 #include <boost/beast/core/file_win32.hpp>
-#include <boost/config.hpp>
 
 namespace boost {
 namespace beast {

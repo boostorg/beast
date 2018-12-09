@@ -7,8 +7,8 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
-#ifndef BOOST_BEAST_IMPL_MULTI_BUFFER_IPP
-#define BOOST_BEAST_IMPL_MULTI_BUFFER_IPP
+#ifndef BOOST_BEAST_IMPL_MULTI_BUFFER_HPP
+#define BOOST_BEAST_IMPL_MULTI_BUFFER_HPP
 
 #include <boost/beast/core/detail/type_traits.hpp>
 #include <boost/core/exchange.hpp>

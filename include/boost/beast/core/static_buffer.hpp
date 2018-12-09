@@ -305,6 +305,6 @@ public:
 } // beast
 } // boost
 
-#include <boost/beast/core/impl/static_buffer.ipp>
+#include <boost/beast/core/impl/static_buffer.hpp>
 
 #endif

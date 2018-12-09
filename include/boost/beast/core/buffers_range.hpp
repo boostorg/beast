@@ -18,7 +18,7 @@
 namespace boost {
 namespace beast {
 
-/** Return a range representing a const or mutable buffer sequence.
+/** Returns an iterable range representing a buffer sequence.
 
     This function returns an iterable range representing the
     passed buffer sequence. The values obtained when iterating
@@ -51,7 +51,7 @@ namespace beast {
     the lifetime of the returned range.
 
     @return An object of unspecified type, meeting the requirements of
-    @em ConstBufferSequence, or @em MutableBufferSequence if `buffers`
+    <em>ConstBufferSequence</em>, and also @em MutableBufferSequence if `buffers`
     is a mutable buffer sequence.
 */
 /** @{ */

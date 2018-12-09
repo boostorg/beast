@@ -7,8 +7,8 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
-#ifndef BOOST_BEAST_CORE_IMPL_FILE_STDIO_IPP
-#define BOOST_BEAST_CORE_IMPL_FILE_STDIO_IPP
+#ifndef BOOST_BEAST_CORE_IMPL_FILE_STDIO_HPP
+#define BOOST_BEAST_CORE_IMPL_FILE_STDIO_HPP
 
 #include <boost/core/exchange.hpp>
 #include <limits>
@@ -16,7 +16,6 @@
 namespace boost {
 namespace beast {
 
-inline
 file_stdio::
 ~file_stdio()
 {
@@ -24,14 +23,12 @@ file_stdio::
         fclose(f_);
 }
 
-inline
 file_stdio::
 file_stdio(file_stdio&& other)
     : f_(boost::exchange(other.f_, nullptr))
 {
 }
 
-inline
 file_stdio&
 file_stdio::
 operator=(file_stdio&& other)
@@ -45,7 +42,6 @@ operator=(file_stdio&& other)
     return *this;
 }
 
-inline
 void
 file_stdio::
 native_handle(FILE* f)
@@ -55,7 +51,6 @@ native_handle(FILE* f)
     f_ = f;
 }
 
-inline
 void
 file_stdio::
 close(error_code& ec)
@@ -70,10 +65,9 @@ close(error_code& ec)
             return;
         }
     }
-    ec.assign(0, ec.category());
+    ec = {};
 }
 
-inline
 void
 file_stdio::
 open(char const* path, file_mode mode, error_code& ec)
@@ -112,10 +106,9 @@ open(char const* path, file_mode mode, error_code& ec)
         return;
     }
 #endif
-    ec.assign(0, ec.category());
+    ec = {};
 }
 
-inline
 std::uint64_t
 file_stdio::
 size(error_code& ec) const
@@ -148,11 +141,10 @@ size(error_code& ec) const
     if(result != 0)
         ec.assign(errno, generic_category());
     else
-        ec.assign(0, ec.category());
+        ec = {};
     return size;
 }
 
-inline
 std::uint64_t
 file_stdio::
 pos(error_code& ec) const
@@ -168,11 +160,10 @@ pos(error_code& ec) const
         ec.assign(errno, generic_category());
         return 0;
     }
-    ec.assign(0, ec.category());
+    ec = {};
     return pos;
 }
 
-inline
 void
 file_stdio::
 seek(std::uint64_t offset, error_code& ec)
@@ -192,10 +183,9 @@ seek(std::uint64_t offset, error_code& ec)
     if(result != 0)
         ec.assign(errno, generic_category());
     else
-        ec.assign(0, ec.category());
+        ec = {};
 }
 
-inline
 std::size_t
 file_stdio::
 read(void* buffer, std::size_t n, error_code& ec) const
@@ -214,7 +204,6 @@ read(void* buffer, std::size_t n, error_code& ec) const
     return nread;
 }
 
-inline
 std::size_t
 file_stdio::
 write(void const* buffer, std::size_t n, error_code& ec)

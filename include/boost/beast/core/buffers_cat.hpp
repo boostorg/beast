@@ -11,7 +11,7 @@
 #define BOOST_BEAST_BUFFERS_CAT_HPP
 
 #include <boost/beast/core/detail/config.hpp>
-#include <boost/beast/core/detail/lean_tuple.hpp>
+#include <boost/beast/core/detail/tuple.hpp>
 #include <boost/beast/core/detail/type_traits.hpp>
 
 namespace boost {
@@ -24,12 +24,12 @@ namespace beast {
 template<class... Buffers>
 class buffers_cat_view
 {
-    detail::lean_tuple<Buffers...> bn_;
+    detail::tuple<Buffers...> bn_;
 
 public:
     /** The type of buffer returned when dereferencing an iterator.
 
-        If every buffer sequence in the view is a @b MutableBufferSequence,
+        If every buffer sequence in the view is a <em>MutableBufferSequence</em>,
         then `value_type` will be `net::mutable_buffer`.
         Otherwise, `value_type` will be `net::const_buffer`.
     */
@@ -43,34 +43,33 @@ public:
     /// The type of iterator used by the concatenated sequence
     class const_iterator;
 
-    /// Constructor
+    /// Copy Constructor
+    buffers_cat_view(buffers_cat_view const&) = default;
+
+    /// Move Constructor
     buffers_cat_view(buffers_cat_view&&) = default;
 
-    /// Assignment
-    buffers_cat_view& operator=(buffers_cat_view&&) = default;
-
-    /// Assignment
+    /// Copy Assignment
     buffers_cat_view& operator=(buffers_cat_view const&) = default;
+
+    /// Move Assignment
+    buffers_cat_view& operator=(buffers_cat_view&&) = default;
 
     /** Constructor
 
         @param buffers The list of buffer sequences to concatenate.
-        Copies of the arguments will be made; however, the ownership
-        of memory is not transferred.
+        Copies of the arguments will be maintained for the lifetime
+        of the concatenated sequence; however, the ownership of memory
+        is not transferred.
     */
     explicit
     buffers_cat_view(Buffers const&... buffers);
 
-    //-----
-
-    /// Required for @b BufferSequence
-    buffers_cat_view(buffers_cat_view const&) = default;
-
-    /// Required for @b BufferSequence
+    /// Returns an iterator to the first buffer in the sequence
     const_iterator
     begin() const;
 
-    /// Required for @b BufferSequence
+    /// Returns an iterator to one past the last buffer in the sequence 
     const_iterator
     end() const;
 };
@@ -88,9 +87,9 @@ public:
 
     @return A new buffer sequence that represents the concatenation of
     the input buffer sequences. This buffer sequence will be a
-    @b MutableBufferSequence if each of the passed buffer sequences is
-    also a @b MutableBufferSequence; otherwise the returned buffer
-    sequence will be a @b ConstBufferSequence.
+    <em>MutableBufferSequence</em> if each of the passed buffer sequences is
+    also a <em>MutableBufferSequence</em>; otherwise the returned buffer
+    sequence will be a <em>ConstBufferSequence</em>.
 
     @see @ref buffers_cat_view
 */
@@ -100,7 +99,6 @@ buffers_cat_view<BufferSequence...>
 buffers_cat(BufferSequence const&... buffers)
 #else
 template<class B1, class B2, class... Bn>
-inline
 buffers_cat_view<B1, B2, Bn...>
 buffers_cat(B1 const& b1, B2 const& b2, Bn const&... bn)
 #endif
@@ -114,6 +112,6 @@ buffers_cat(B1 const& b1, B2 const& b2, Bn const&... bn)
 } // beast
 } // boost
 
-#include <boost/beast/core/impl/buffers_cat.ipp>
+#include <boost/beast/core/impl/buffers_cat.hpp>
 
 #endif

@@ -77,7 +77,7 @@ public:
     }
 
     /// Change the number of readable and writable bytes to zero.
-    inline
+    BOOST_BEAST_DECL
     void
     clear() noexcept;
 
@@ -168,7 +168,7 @@ public:
 
         Strong guarantee.
     */
-    inline
+    BOOST_BEAST_DECL
     mutable_buffers_type
     prepare(std::size_t n);
 
@@ -211,7 +211,7 @@ public:
 
         No-throw guarantee.
     */
-    inline
+    BOOST_BEAST_DECL
     void
     consume(std::size_t n) noexcept;
 
@@ -239,7 +239,7 @@ protected:
 
         No-throw guarantee.
     */
-    inline
+    BOOST_BEAST_DECL
     void
     reset(void* p, std::size_t n) noexcept;
 
@@ -318,6 +318,6 @@ public:
 } // beast
 } // boost
 
-#include <boost/beast/core/impl/flat_static_buffer.ipp>
+#include <boost/beast/core/impl/flat_static_buffer.hpp>
 
 #endif

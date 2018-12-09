@@ -21,12 +21,12 @@
 namespace boost {
 namespace beast {
 
-/** Adapter to trim the front of a `BufferSequence`.
+/** Adaptor to progressively trim the front of a <em>BufferSequence</em>.
 
-    This adapter wraps a buffer sequence to create a new sequence
+    This adaptor wraps a buffer sequence to create a new sequence
     which may be incrementally consumed. Bytes consumed are removed
     from the front of the buffer. The underlying memory is not changed,
-    instead the adapter efficiently iterates through a subset of
+    instead the adaptor efficiently iterates through a subset of
     the buffers wrapped.
 
     The wrapped buffer is not modified, a copy is made instead.
@@ -104,10 +104,7 @@ public:
     /// Constructor
     buffers_suffix();
 
-    /// Constructor
-    buffers_suffix(buffers_suffix&&);
-
-    /// Constructor
+    /// Copy Constructor
     buffers_suffix(buffers_suffix const&);
 
     /** Constructor
@@ -127,9 +124,6 @@ public:
     */
     template<class... Args>
     buffers_suffix(boost::in_place_init_t, Args&&... args);
-
-    /// Assignment
-    buffers_suffix& operator=(buffers_suffix&&);
 
     /// Assignment
     buffers_suffix& operator=(buffers_suffix const&);
@@ -155,6 +149,6 @@ public:
 } // beast
 } // boost
 
-#include <boost/beast/core/impl/buffers_suffix.ipp>
+#include <boost/beast/core/impl/buffers_suffix.hpp>
 
 #endif
