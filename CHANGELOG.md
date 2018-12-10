@@ -4,6 +4,7 @@ Version 198:
 * multi_buffer improvements
 * static_buffer improvements
 * flat_static_buffer_improvements
+* saved_handler maintains a work_guard (websocket)
 
 API Changes:
 
