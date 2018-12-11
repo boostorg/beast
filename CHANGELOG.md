@@ -9,6 +9,7 @@ Version 198:
 * Tidy up experimental files
 * Tidy up core files
 * Fix bind_handler, bind_front_handler
+* Improved handler bind wrapper tests
 
 API Changes:
 
