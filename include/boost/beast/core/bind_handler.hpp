@@ -108,12 +108,16 @@ __implementation_defined__
 #else
 auto
 #endif
-bind_front_handler(Handler&& handler, Args&&... args) ->
-    detail::bind_front_wrapper<typename
-        std::decay<Handler>::type, Args...>
+bind_front_handler(
+    Handler&& handler,
+    Args&&... args) ->
+    detail::bind_front_wrapper<
+        typename std::decay<Handler>::type,
+        typename std::decay<Args>::type...>
 {
-    return detail::bind_front_wrapper<typename
-        std::decay<Handler>::type, Args...>(
+    return detail::bind_front_wrapper<
+        typename std::decay<Handler>::type,
+        typename std::decay<Args>::type...>(
             std::forward<Handler>(handler),
             std::forward<Args>(args)...);
 }

@@ -37,8 +37,6 @@ class bind_wrapper
     Handler h_;
     args_type args_;
 
-    // Can't friend partial specializations,
-    // so we just friend the whole thing.
     template<class T, class Executor>
     friend struct net::associated_executor;
 
@@ -179,24 +177,6 @@ public:
     }
 
     friend
-    void* asio_handler_allocate(
-        std::size_t size, bind_wrapper* op)
-    {
-        using net::asio_handler_allocate;
-        return asio_handler_allocate(
-            size, std::addressof(op->h_));
-    }
-
-    friend
-    void asio_handler_deallocate(
-        void* p, std::size_t size, bind_wrapper* op)
-    {
-        using net::asio_handler_deallocate;
-        asio_handler_deallocate(
-            p, size, std::addressof(op->h_));
-    }
-
-    friend
     bool asio_handler_is_continuation(
         bind_wrapper* op)
     {
@@ -206,10 +186,10 @@ public:
     }
 };
 
-//------------------------------------------------------------------------------
-
 template<class Handler, class... Args>
 class bind_front_wrapper;
+
+//------------------------------------------------------------------------------
 
 // 0-arg specialization
 template<class Handler>
@@ -217,8 +197,6 @@ class bind_front_wrapper<Handler>
 {
     Handler h_;
 
-    // Can't friend partial specializations,
-    // so we just friend the whole thing.
     template<class T, class Executor>
     friend struct net::associated_executor;
 
@@ -228,10 +206,10 @@ public:
     bind_front_wrapper(bind_front_wrapper&&) = default;
     bind_front_wrapper(bind_front_wrapper const&) = default;
 
-    template<class DeducedHandler>
+    template<class Handler_>
     explicit
-    bind_front_wrapper(DeducedHandler&& handler)
-        : h_(std::forward<DeducedHandler>(handler))
+    bind_front_wrapper(Handler_&& handler)
+        : h_(std::forward<Handler_>(handler))
     {
     }
 
@@ -262,42 +240,24 @@ public:
     }
 
     friend
-    void* asio_handler_allocate(
-        std::size_t size, bind_front_wrapper* op)
-    {
-        using net::asio_handler_allocate;
-        return asio_handler_allocate(
-            size, std::addressof(op->h_));
-    }
-
-    friend
-    void asio_handler_deallocate(
-        void* p, std::size_t size, bind_front_wrapper* op)
-    {
-        using net::asio_handler_deallocate;
-        asio_handler_deallocate(
-            p, size, std::addressof(op->h_));
-    }
-
-    friend
     bool asio_handler_is_continuation(
         bind_front_wrapper* op)
     {
         using net::asio_handler_is_continuation;
         return asio_handler_is_continuation(
-                std::addressof(op->h_));
+            std::addressof(op->h_));
     }
 };
+
+//------------------------------------------------------------------------------
 
 // 1-arg specialization
 template<class Handler, class Arg>
 class bind_front_wrapper<Handler, Arg>
 {
     Handler h_;
-    typename std::decay<Arg>::type arg_;
+    Arg arg_;
 
-    // Can't friend partial specializations,
-    // so we just friend the whole thing.
     template<class T, class Executor>
     friend struct net::associated_executor;
 
@@ -307,18 +267,21 @@ public:
     bind_front_wrapper(bind_front_wrapper&&) = default;
     bind_front_wrapper(bind_front_wrapper const&) = default;
 
-    template<class DeducedHandler>
+    template<
+        class Handler_,
+        class Arg_>
     bind_front_wrapper(
-        DeducedHandler&& handler, Arg&& arg)
-        : h_(std::forward<DeducedHandler>(handler))
-        , arg_(std::forward<Arg>(arg))
+        Handler_&& handler,
+        Arg_&& arg)
+        : h_(std::forward<Handler_>(handler))
+        , arg_(std::forward<Arg_>(arg))
     {
     }
 
     template<class... Ts>
     void operator()(Ts&&... ts)
     {
-        h_( std::forward<Arg>(arg_),
+        h_( std::move(arg_),
             std::forward<Ts>(ts)...);
     }
 
@@ -343,43 +306,25 @@ public:
     }
 
     friend
-    void* asio_handler_allocate(
-        std::size_t size, bind_front_wrapper* op)
-    {
-        using net::asio_handler_allocate;
-        return asio_handler_allocate(
-            size, std::addressof(op->h_));
-    }
-
-    friend
-    void asio_handler_deallocate(
-        void* p, std::size_t size, bind_front_wrapper* op)
-    {
-        using net::asio_handler_deallocate;
-        asio_handler_deallocate(
-            p, size, std::addressof(op->h_));
-    }
-
-    friend
     bool asio_handler_is_continuation(
         bind_front_wrapper* op)
     {
         using net::asio_handler_is_continuation;
         return asio_handler_is_continuation(
-                std::addressof(op->h_));
+            std::addressof(op->h_));
     }
 };
+
+//------------------------------------------------------------------------------
 
 // 2-arg specialization
 template<class Handler, class Arg1, class Arg2>
 class bind_front_wrapper<Handler, Arg1, Arg2>
 {
     Handler h_;
-    typename std::decay<Arg1>::type arg1_;
-    typename std::decay<Arg2>::type arg2_;
+    Arg1 arg1_;
+    Arg2 arg2_;
 
-    // Can't friend partial specializations,
-    // so we just friend the whole thing.
     template<class T, class Executor>
     friend struct net::associated_executor;
 
@@ -389,20 +334,25 @@ public:
     bind_front_wrapper(bind_front_wrapper&&) = default;
     bind_front_wrapper(bind_front_wrapper const&) = default;
 
-    template<class DeducedHandler>
-    bind_front_wrapper(DeducedHandler&& handler,
-            Arg1&& arg1, Arg2&& arg2)
-        : h_(std::forward<DeducedHandler>(handler))
-        , arg1_(std::forward<Arg1>(arg1))
-        , arg2_(std::forward<Arg2>(arg2))
+    template<
+        class Handler_,
+        class Arg1_,
+        class Arg2_>
+    bind_front_wrapper(
+        Handler_&& handler,
+        Arg1_&& arg1,
+        Arg2_&& arg2)
+        : h_(std::forward<Handler_>(handler))
+        , arg1_(std::forward<Arg1_>(arg1))
+        , arg2_(std::forward<Arg2_>(arg2))
     {
     }
 
     template<class... Ts>
     void operator()(Ts&&... ts)
     {
-        h_( std::forward<Arg1>(arg1_),
-            std::forward<Arg2>(arg2_),
+        h_( std::move(arg1_),
+            std::move(arg2_),
             std::forward<Ts>(ts)...);
     }
 
@@ -427,49 +377,30 @@ public:
     }
 
     friend
-    void* asio_handler_allocate(
-        std::size_t size, bind_front_wrapper* op)
-    {
-        using net::asio_handler_allocate;
-        return asio_handler_allocate(
-            size, std::addressof(op->h_));
-    }
-
-    friend
-    void asio_handler_deallocate(
-        void* p, std::size_t size, bind_front_wrapper* op)
-    {
-        using net::asio_handler_deallocate;
-        asio_handler_deallocate(
-            p, size, std::addressof(op->h_));
-    }
-
-    friend
     bool asio_handler_is_continuation(
         bind_front_wrapper* op)
     {
         using net::asio_handler_is_continuation;
         return asio_handler_is_continuation(
-                std::addressof(op->h_));
+            std::addressof(op->h_));
     }
+
 };
 
+//------------------------------------------------------------------------------
+
 // 3+ arg specialization
-template<class Handler,
-    class Arg1, class Arg2, class Arg3, class... Args>
-class bind_front_wrapper<Handler, Arg1, Arg2, Arg3, Args...>
+template<
+    class Handler,
+    class Arg1, class Arg2, class Arg3,
+    class... Args>
+class bind_front_wrapper<
+    Handler, Arg1, Arg2, Arg3, Args...>
 {
-    using args_type = tuple<
-        typename std::decay<Arg1>::type,
-        typename std::decay<Arg2>::type,
-        typename std::decay<Arg3>::type,
-        typename std::decay<Args>::type...>;
-
     Handler h_;
-    args_type args_;
+    detail::tuple<
+        Arg1, Arg2, Arg3, Args...> args_;
 
-    // Can't friend partial specializations,
-    // so we just friend the whole thing.
     template<class T, class Executor>
     friend struct net::associated_executor;
 
@@ -489,16 +420,22 @@ public:
     bind_front_wrapper(bind_front_wrapper&&) = default;
     bind_front_wrapper(bind_front_wrapper const&) = default;
 
-    template<class DeducedHandler>
-    bind_front_wrapper(DeducedHandler&& handler,
-        Arg1&& arg1, Arg2&& arg2, Arg3&& arg3,
-            Args&&... args)
-        : h_(std::forward<DeducedHandler>(handler))
+    template<
+        class Handler_,
+        class Arg1_, class Arg2_, class Arg3_,
+        class... Args_>
+    bind_front_wrapper(
+        Handler_&& handler,
+        Arg1_&& arg1,
+        Arg2_&& arg2,
+        Arg3_&& arg3,
+        Args_&&... args)
+        : h_(std::forward<Handler_>(handler))
         , args_(
-            std::forward<Arg1>(arg1),
-            std::forward<Arg2>(arg2),
-            std::forward<Arg3>(arg3),
-            std::forward<Args>(args)...)
+            std::forward<Arg1_>(arg1),
+            std::forward<Arg2_>(arg2),
+            std::forward<Arg3_>(arg3),
+            std::forward<Args_>(args)...)
     {
     }
 
@@ -532,30 +469,12 @@ public:
     }
 
     friend
-    void* asio_handler_allocate(
-        std::size_t size, bind_front_wrapper* op)
-    {
-        using net::asio_handler_allocate;
-        return asio_handler_allocate(
-            size, std::addressof(op->h_));
-    }
-
-    friend
-    void asio_handler_deallocate(
-        void* p, std::size_t size, bind_front_wrapper* op)
-    {
-        using net::asio_handler_deallocate;
-        asio_handler_deallocate(
-            p, size, std::addressof(op->h_));
-    }
-
-    friend
     bool asio_handler_is_continuation(
         bind_front_wrapper* op)
     {
         using net::asio_handler_is_continuation;
         return asio_handler_is_continuation(
-                std::addressof(op->h_));
+            std::addressof(op->h_));
     }
 };
 
@@ -567,6 +486,9 @@ template<class Handler>
 class bind_front_wrapper<
     Handler, error_code, std::size_t>
 {
+    template<class T, class Executor>
+    friend struct net::associated_executor;
+
     Handler h_;
     error_code ec_;
     std::size_t n_;
@@ -586,9 +508,10 @@ public:
     {
     }
 
-    void operator()()
+    template<class... Ts>
+    void operator()(Ts&&... ts)
     {
-        h_(ec_, n_);
+        h_(ec_, n_, std::forward<Ts>(ts)...);
     }
 
     //
@@ -612,32 +535,37 @@ public:
     }
 
     friend
-    void* asio_handler_allocate(
-        std::size_t size, bind_front_wrapper* op)
-    {
-        using net::asio_handler_allocate;
-        return asio_handler_allocate(
-            size, std::addressof(op->h_));
-    }
-
-    friend
-    void asio_handler_deallocate(
-        void* p, std::size_t size, bind_front_wrapper* op)
-    {
-        using net::asio_handler_deallocate;
-        asio_handler_deallocate(
-            p, size, std::addressof(op->h_));
-    }
-
-    friend
     bool asio_handler_is_continuation(
         bind_front_wrapper* op)
     {
         using net::asio_handler_is_continuation;
         return asio_handler_is_continuation(
-                std::addressof(op->h_));
+            std::addressof(op->h_));
     }
 };
+
+//------------------------------------------------------------------------------
+
+// VFALCO These are only called when using deprecated
+// network interfaces in conjunction with extensions,
+// and should not be needed. If this creates a problem
+// please contact me.
+
+template<class Handler, class... Args>
+void* asio_handler_allocate(std::size_t,
+    bind_wrapper<Handler, Args...>* op) = delete;
+
+template<class Handler, class... Args>
+void asio_handler_deallocate(void*, std::size_t,
+    bind_wrapper<Handler, Args...>* op) = delete;
+
+template<class Handler, class... Args>
+void* asio_handler_allocate(std::size_t,
+    bind_front_wrapper<Handler, Args...>* op) = delete;
+
+template<class Handler, class... Args>
+void asio_handler_deallocate(void*, std::size_t,
+    bind_front_wrapper<Handler, Args...>* op) = delete;
 
 } // detail
 } // beast
@@ -688,6 +616,13 @@ struct associated_executor<
 //------------------------------------------------------------------------------
 
 namespace std {
+
+// VFALCO Using std::bind on a completion handler will
+// cause undefined behavior later, because the executor
+// associated with the handler is not propagated to the
+// wrapper returned by std::bind; these overloads are
+// deleted to prevent mistakes. If this creates a problem
+// please contact me.
 
 template<class Handler, class... Args>
 void

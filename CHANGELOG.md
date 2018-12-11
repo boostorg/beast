@@ -8,6 +8,7 @@ Version 198:
 * Add buffer_traits.hpp, buffers_type
 * Tidy up experimental files
 * Tidy up core files
+* Fix bind_handler, bind_front_handler
 
 API Changes:
 
