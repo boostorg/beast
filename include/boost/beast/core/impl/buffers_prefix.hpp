@@ -7,8 +7,8 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
-#ifndef BOOST_BEAST_IMPL_BUFFERS_PREFIX_IPP
-#define BOOST_BEAST_IMPL_BUFFERS_PREFIX_IPP
+#ifndef BOOST_BEAST_IMPL_BUFFERS_PREFIX_HPP
+#define BOOST_BEAST_IMPL_BUFFERS_PREFIX_HPP
 
 #include <algorithm>
 #include <cstdint>
@@ -20,32 +20,10 @@
 namespace boost {
 namespace beast {
 
-namespace detail {
-
-inline
-net::const_buffer
-buffers_prefix(std::size_t size,
-    net::const_buffer buffer)
+template<class Buffers>
+class buffers_prefix_view<Buffers>::const_iterator
 {
-    return {buffer.data(),
-        (std::min)(size, buffer.size())};
-}
-
-inline
-net::mutable_buffer
-buffers_prefix(std::size_t size,
-    net::mutable_buffer buffer)
-{
-    return {buffer.data(),
-        (std::min)(size, buffer.size())};
-}
-
-} // detail
-
-template<class BufferSequence>
-class buffers_prefix_view<BufferSequence>::const_iterator
-{
-    friend class buffers_prefix_view<BufferSequence>;
+    friend class buffers_prefix_view<Buffers>;
 
     buffers_prefix_view const* b_ = nullptr;
     std::size_t remain_;
@@ -65,9 +43,7 @@ public:
         std::bidirectional_iterator_tag;
 
     const_iterator() = default;
-    const_iterator(const_iterator&& other) = default;
     const_iterator(const_iterator const& other) = default;
-    const_iterator& operator=(const_iterator&& other) = default;
     const_iterator& operator=(const_iterator const& other) = default;
 
     bool
@@ -98,7 +74,7 @@ public:
     reference
     operator*() const
     {
-        return detail::buffers_prefix(remain_, *it_);
+        return beast::buffers_prefix(remain_, *it_);
     }
 
     pointer
@@ -154,9 +130,9 @@ private:
 
 //------------------------------------------------------------------------------
 
-template<class BufferSequence>
+template<class Buffers>
 void
-buffers_prefix_view<BufferSequence>::
+buffers_prefix_view<Buffers>::
 setup(std::size_t size)
 {
     size_ = 0;
@@ -166,10 +142,14 @@ setup(std::size_t size)
     while(end_ != last)
     {
         auto const len =
-            net::buffer_size(*end_++);
+            net::const_buffer(*end_++).size();
         if(len >= size)
         {
             size_ += size;
+
+            // by design, this subtraction can wrap
+            BOOST_STATIC_ASSERT(std::is_unsigned<
+                decltype(remain_)>::value);
             remain_ = size - len;
             break;
         }
@@ -178,18 +158,20 @@ setup(std::size_t size)
     }
 }
 
-template<class BufferSequence>
-buffers_prefix_view<BufferSequence>::
-buffers_prefix_view(buffers_prefix_view&& other)
-    : buffers_prefix_view(std::move(other),
-        std::distance<iter_type>(
-            net::buffer_sequence_begin(other.bs_),
-            other.end_))
+template<class Buffers>
+buffers_prefix_view<Buffers>::
+buffers_prefix_view(
+    buffers_prefix_view const& other,
+    std::size_t dist)
+    : bs_(other.bs_)
+    , size_(other.size_)
+    , remain_(other.remain_)
+    , end_(std::next(bs_.begin(), dist))
 {
 }
 
-template<class BufferSequence>
-buffers_prefix_view<BufferSequence>::
+template<class Buffers>
+buffers_prefix_view<Buffers>::
 buffers_prefix_view(buffers_prefix_view const& other)
     : buffers_prefix_view(other,
         std::distance<iter_type>(
@@ -198,27 +180,9 @@ buffers_prefix_view(buffers_prefix_view const& other)
 {
 }
 
-template<class BufferSequence>
+template<class Buffers>
 auto
-buffers_prefix_view<BufferSequence>::
-operator=(buffers_prefix_view&& other) ->
-    buffers_prefix_view&
-{
-    auto const dist = std::distance<iter_type>(
-        net::buffer_sequence_begin(other.bs_),
-        other.end_);
-    bs_ = std::move(other.bs_);
-    size_ = other.size_;
-    remain_ = other.remain_;
-    end_ = std::next(
-        net::buffer_sequence_begin(bs_),
-            dist);
-    return *this;
-}
-
-template<class BufferSequence>
-auto
-buffers_prefix_view<BufferSequence>::
+buffers_prefix_view<Buffers>::
 operator=(buffers_prefix_view const& other) ->
     buffers_prefix_view&
 {
@@ -234,41 +198,136 @@ operator=(buffers_prefix_view const& other) ->
     return *this;
 }
 
-template<class BufferSequence>
-buffers_prefix_view<BufferSequence>::
-buffers_prefix_view(std::size_t size,
-        BufferSequence const& bs)
+template<class Buffers>
+buffers_prefix_view<Buffers>::
+buffers_prefix_view(
+    std::size_t size,
+    Buffers const& bs)
     : bs_(bs)
 {
     setup(size);
 }
 
-template<class BufferSequence>
+template<class Buffers>
 template<class... Args>
-buffers_prefix_view<BufferSequence>::
-buffers_prefix_view(std::size_t size,
-        boost::in_place_init_t, Args&&... args)
+buffers_prefix_view<Buffers>::
+buffers_prefix_view(
+    std::size_t size,
+    boost::in_place_init_t,
+    Args&&... args)
     : bs_(std::forward<Args>(args)...)
 {
     setup(size);
 }
 
-template<class BufferSequence>
-inline
+template<class Buffers>
 auto
-buffers_prefix_view<BufferSequence>::begin() const ->
+buffers_prefix_view<Buffers>::begin() const ->
     const_iterator
 {
     return const_iterator{*this, std::false_type{}};
 }
 
-template<class BufferSequence>
-inline
+template<class Buffers>
 auto
-buffers_prefix_view<BufferSequence>::end() const ->
+buffers_prefix_view<Buffers>::end() const ->
     const_iterator
 {
     return const_iterator{*this, std::true_type{}};
+}
+
+template<class Buffers>
+std::size_t
+buffer_size(buffers_prefix_view<
+    Buffers> const& buffers)
+{
+    return buffers.size_;
+}
+
+//------------------------------------------------------------------------------
+
+template<>
+class buffers_prefix_view<net::const_buffer>
+    : public net::const_buffer
+{
+public:
+    using net::const_buffer::const_buffer;
+    buffers_prefix_view(buffers_prefix_view const&) = default;
+    buffers_prefix_view& operator=(buffers_prefix_view const&) = default;
+
+    buffers_prefix_view(
+        std::size_t size,
+        net::const_buffer buffer)
+        : net::const_buffer(
+            buffer.data(),
+            std::min<std::size_t>(size, buffer.size())
+        #if defined(BOOST_ASIO_ENABLE_BUFFER_DEBUGGING)
+            , buffer.get_debug_check()
+        #endif
+            )
+    {
+    }
+
+    template<class... Args>
+    buffers_prefix_view(
+        std::size_t size,
+        boost::in_place_init_t,
+        Args&&... args)
+        : buffers_prefix_view(size,
+            net::const_buffer(
+                std::forward<Args>(args)...))
+    {
+    }
+};
+
+std::size_t
+buffer_size(buffers_prefix_view<
+    net::const_buffer> const& buffers)
+{
+    return buffers.size();
+}
+
+//------------------------------------------------------------------------------
+
+template<>
+class buffers_prefix_view<net::mutable_buffer>
+    : public net::mutable_buffer
+{
+public:
+    using net::mutable_buffer::mutable_buffer;
+    buffers_prefix_view(buffers_prefix_view const&) = default;
+    buffers_prefix_view& operator=(buffers_prefix_view const&) = default;
+
+    buffers_prefix_view(
+        std::size_t size,
+        net::mutable_buffer buffer)
+        : net::mutable_buffer(
+            buffer.data(),
+            std::min<std::size_t>(size, buffer.size())
+        #if defined(BOOST_ASIO_ENABLE_BUFFER_DEBUGGING)
+            , buffer.get_debug_check()
+        #endif
+            )
+    {
+    }
+
+    template<class... Args>
+    buffers_prefix_view(
+        std::size_t size,
+        boost::in_place_init_t,
+        Args&&... args)
+        : buffers_prefix_view(size,
+            net::mutable_buffer(
+                std::forward<Args>(args)...))
+    {
+    }
+};
+
+std::size_t
+buffer_size(buffers_prefix_view<
+    net::mutable_buffer> const& buffers)
+{
+    return buffers.size();
 }
 
 } // beast

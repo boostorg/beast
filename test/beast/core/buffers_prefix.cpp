@@ -20,21 +20,6 @@
 namespace boost {
 namespace beast {
 
-BOOST_STATIC_ASSERT(
-    std::is_same<net::const_buffer, decltype(
-        buffers_prefix(0,
-            std::declval<net::const_buffer>()))>::value);
-
-BOOST_STATIC_ASSERT(
-    net::is_const_buffer_sequence<decltype(
-        buffers_prefix(0,
-            std::declval<net::const_buffer>()))>::value);
-
-BOOST_STATIC_ASSERT(
-    std::is_same<net::mutable_buffer, decltype(
-        buffers_prefix(0,
-            std::declval<net::mutable_buffer>()))>::value);
-
 class buffers_prefix_test : public beast::unit_test::suite
 {
 public:
@@ -43,10 +28,9 @@ public:
     std::size_t
     bsize1(ConstBufferSequence const& bs)
     {
-        using net::buffer_size;
         std::size_t n = 0;
         for(auto it = bs.begin(); it != bs.end(); ++it)
-            n += buffer_size(*it);
+            n += net::buffer_size(*it);
         return n;
     }
 
@@ -55,10 +39,9 @@ public:
     std::size_t
     bsize2(ConstBufferSequence const& bs)
     {
-        using net::buffer_size;
         std::size_t n = 0;
         for(auto it = bs.begin(); it != bs.end(); it++)
-            n += buffer_size(*it);
+            n += net::buffer_size(*it);
         return n;
     }
 
@@ -67,10 +50,9 @@ public:
     std::size_t
     bsize3(ConstBufferSequence const& bs)
     {
-        using net::buffer_size;
         std::size_t n = 0;
         for(auto it = bs.end(); it != bs.begin();)
-            n += buffer_size(*--it);
+            n += net::buffer_size(*--it);
         return n;
     }
 
@@ -79,12 +61,11 @@ public:
     std::size_t
     bsize4(ConstBufferSequence const& bs)
     {
-        using net::buffer_size;
         std::size_t n = 0;
         for(auto it = bs.end(); it != bs.begin();)
         {
             it--;
-            n += buffer_size(*it);
+            n += net::buffer_size(*it);
         }
         return n;
     }
@@ -121,26 +102,27 @@ public:
 
     void testEmptyBuffers()
     {
-        using net::buffer_copy;
         using net::buffer_size;
-        using net::mutable_buffer;
-        auto pb0 = buffers_prefix(0, mutable_buffer{});
-        BEAST_EXPECT(buffer_size(pb0) == 0);
-        auto pb1 = buffers_prefix(1, mutable_buffer{});
-        BEAST_EXPECT(buffer_size(pb1) == 0);
-        BEAST_EXPECT(buffer_copy(pb0, pb1) == 0);
 
+        auto pb0 = buffers_prefix(0, net::mutable_buffer{});
+        BEAST_EXPECT(buffer_size(pb0) == 0);
+        auto pb1 = buffers_prefix(1, net::mutable_buffer{});
+        BEAST_EXPECT(buffer_size(pb1) == 0);
+        BEAST_EXPECT(net::buffer_copy(pb0, pb1) == 0);
+
+#if 0
         using pb_type = decltype(pb0);
         buffers_suffix<pb_type> cb(pb0);
         BEAST_EXPECT(buffer_size(cb) == 0);
-        BEAST_EXPECT(buffer_copy(cb, pb1) == 0);
+        BEAST_EXPECT(net::buffer_copy(cb, pb1) == 0);
         cb.consume(1);
         BEAST_EXPECT(buffer_size(cb) == 0);
-        BEAST_EXPECT(buffer_copy(cb, pb1) == 0);
+        BEAST_EXPECT(net::buffer_copy(cb, pb1) == 0);
 
         auto pbc = buffers_prefix(2, cb);
         BEAST_EXPECT(buffer_size(pbc) == 0);
-        BEAST_EXPECT(buffer_copy(pbc, cb) == 0);
+        BEAST_EXPECT(net::buffer_copy(pbc, cb) == 0);
+#endif
     }
 
     void testIterator()
@@ -157,6 +139,73 @@ public:
         BEAST_EXPECT(bsize2(pb) == 2);
         BEAST_EXPECT(bsize3(pb) == 2);
         BEAST_EXPECT(bsize4(pb) == 2);
+
+        // default ctor is one past the end
+        decltype(pb)::const_iterator it;
+        BEAST_EXPECT(pb.end() == it);
+        BEAST_EXPECT(it == pb.end());
+        decltype(pb)::const_iterator it2;
+        BEAST_EXPECT(it == it2);
+        BEAST_EXPECT(it2 == it);
+        it = pb.end();
+        it2 = pb.end();
+        BEAST_EXPECT(it == it2);
+        BEAST_EXPECT(it2 == it);
+        decltype(pb)::const_iterator it3(it2);
+        BEAST_EXPECT(it3 == it2);
+        it = pb.begin();
+        BEAST_EXPECT(it != it3);
+        it = it3;
+        BEAST_EXPECT(it == it3);
+    }
+
+    void testInPlaceInit()
+    {
+        {
+            class test_buffers
+            {
+                net::const_buffer cb_;
+
+            public:
+                using const_iterator =
+                    net::const_buffer const*;
+
+                explicit
+                test_buffers(std::true_type)
+                {
+                }
+
+                const_iterator
+                begin() const
+                {
+                    return &cb_;
+                }
+
+                const_iterator
+                end() const
+                {
+                    return begin() + 1;
+                }
+            };
+            buffers_prefix_view<test_buffers> v(
+                2, boost::in_place_init, std::true_type{});
+            BEAST_EXPECT(buffer_size(v) == 0);
+        }
+
+        {
+            char c[2];
+            c[0] = 0;
+            c[1] = 0;
+            buffers_prefix_view<net::const_buffer> v(
+                2, boost::in_place_init, c, sizeof(c));
+            BEAST_EXPECT(buffer_size(v) == 2);
+        }
+        {
+            char c[2];
+            buffers_prefix_view<net::mutable_buffer> v(
+                2, boost::in_place_init, c, sizeof(c));
+            BEAST_EXPECT(buffer_size(v) == 2);
+        }
     }
 
     void run() override
@@ -165,6 +214,7 @@ public:
         testMatrix<net::mutable_buffer>();
         testEmptyBuffers();
         testIterator();
+        testInPlaceInit();
     }
 };
 

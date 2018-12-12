@@ -27,34 +27,26 @@ namespace beast {
     a shorter subset of the original list of buffers starting
     with the first byte of the original sequence.
 
-    @tparam BufferSequence The buffer sequence to adapt.
+    @tparam ConstBufferSequence The buffer sequence to adapt.
 */
-template<class BufferSequence>
+template<class ConstBufferSequence>
 class buffers_prefix_view
 {
-    using buffers_type = typename
-        std::decay<BufferSequence>::type;
-
     using iter_type = typename
-        detail::buffer_sequence_iterator<buffers_type>::type;
+        detail::buffer_sequence_iterator<
+            ConstBufferSequence>::type;
 
-    BufferSequence bs_;
+    ConstBufferSequence bs_;
     std::size_t size_;
     std::size_t remain_;
     iter_type end_;
 
-    template<class Deduced>
-    buffers_prefix_view(
-            Deduced&& other, std::size_t dist)
-        : bs_(std::forward<Deduced>(other).bs_)
-        , size_(other.size_)
-        , remain_(other.remain_)
-        , end_(std::next(bs_.begin(), dist))
-    {
-    }
-
     void
     setup(std::size_t size);
+
+    buffers_prefix_view(
+        buffers_prefix_view const& other,
+        std::size_t dist);
 
 public:
     /// The type for each element in the list of buffers.
@@ -74,14 +66,8 @@ public:
 
 #endif
 
-    /// Move Constructor
-    buffers_prefix_view(buffers_prefix_view&&);
-
     /// Copy Constructor
     buffers_prefix_view(buffers_prefix_view const&);
-
-    /// Move Assignment
-    buffers_prefix_view& operator=(buffers_prefix_view&&);
 
     /// Copy Assignment
     buffers_prefix_view& operator=(buffers_prefix_view const&);
@@ -89,7 +75,7 @@ public:
     /** Construct a buffer sequence prefix.
 
         @param size The maximum number of bytes in the prefix.
-        If this is larger than the size of passed, buffers,
+        If this is larger than the size of passed buffers,
         the resulting sequence will represent the entire
         input sequence.
 
@@ -100,16 +86,16 @@ public:
     */
     buffers_prefix_view(
         std::size_t size,
-        BufferSequence const& buffers);
+        ConstBufferSequence const& buffers);
 
     /** Construct a buffer sequence prefix in-place.
 
         @param size The maximum number of bytes in the prefix.
-        If this is larger than the size of passed, buffers,
+        If this is larger than the size of passed buffers,
         the resulting sequence will represent the entire
         input sequence.
 
-        @param args Arguments forwarded to the contained buffers constructor.
+        @param args Arguments forwarded to the contained buffer's constructor.
     */
     template<class... Args>
     buffers_prefix_view(
@@ -124,63 +110,28 @@ public:
     /// Returns an iterator to one past the last buffer in the sequence 
     const_iterator
     end() const;
+
+#if ! BOOST_BEAST_DOXYGEN
+    template<class Buffers>
+    friend
+    std::size_t
+    buffer_size(buffers_prefix_view<Buffers> const& buffers);
+#endif
 };
 
+#ifndef BOOST_BEAST_DOXYGEN
+BOOST_BEAST_DECL
+std::size_t
+buffer_size(buffers_prefix_view<
+    net::const_buffer> const& buffers);
+
+BOOST_BEAST_DECL
+std::size_t
+buffer_size(buffers_prefix_view<
+    net::mutable_buffer> const& buffers);
+#endif
+
 //------------------------------------------------------------------------------
-
-/** Returns a prefix of a constant buffer.
-
-    The returned buffer points to the same memory as the passed
-    buffer, but with a size that is equal to or smaller.
-
-    @param size The maximum size of the returned buffer in bytes. If
-    this is greater than or equal to the size of the passed buffer,
-    the result will have the same size as the original buffer.
-
-    @param buffer The buffer to return a prefix for. The
-    underlying memory is not modified, and ownership of the
-    memory is not transferred.
-
-    @return A constant buffer that represents the prefix of
-    the original buffer.
-
-    @par Exception Safety
-
-    No-throw guarantee.
-*/
-inline
-net::const_buffer
-buffers_prefix(std::size_t size,
-    net::const_buffer buffer) noexcept
-{
-    return {buffer.data(), std::min<
-        std::size_t>(size, buffer.size())};
-}
-
-/** Returns a prefix of a mutable buffer.
-
-    The returned buffer points to the same memory as the passed
-    buffer, but with a size that is equal to or smaller.
-
-    @param size The maximum size of the returned buffer in bytes. If
-    this is greater than or equal to the size of the passed buffer,
-    the result will have the same size as the original buffer.
-
-    @param buffer The buffer to return a prefix for. The
-    underlying memory is not modified, and ownership of the
-    memory is not transferred.
-
-    @return A mutable buffer that represents the prefix of
-    the original buffer.
-*/
-inline
-net::mutable_buffer
-buffers_prefix(std::size_t size,
-    net::mutable_buffer buffer) noexcept
-{
-    return {buffer.data(), std::min<
-        std::size_t>(size, buffer.size())};
-}
 
 /** Returns a prefix of a constant or mutable buffer sequence.
 
@@ -202,30 +153,16 @@ buffers_prefix(std::size_t size,
 
     @return A constant buffer sequence that represents the prefix
     of the original buffer sequence. If the original buffer sequence
-    also meets the requirements of <em>MutableBufferSequence</em>,
+    also meets the requirements of <em>MutableConstBufferSequence</em>,
     then the returned value will also be a mutable buffer sequence.
-
-    @note This function does not participate in overload resolution
-    if `buffers` is convertible to either `net::const_buffer` or
-    `net::mutable_buffer`.
 */
 template<class ConstBufferSequence>
-#if BOOST_BEAST_DOXYGEN
 buffers_prefix_view<ConstBufferSequence>
-#else
-inline
-typename std::enable_if<
-    ! std::is_convertible<ConstBufferSequence,
-        net::const_buffer>::value &&
-    ! std::is_convertible<ConstBufferSequence,
-        net::mutable_buffer>::value,
-    buffers_prefix_view<ConstBufferSequence>>::type
-#endif
-buffers_prefix(std::size_t size, ConstBufferSequence const& buffers)
+buffers_prefix(
+    std::size_t size, ConstBufferSequence const& buffers)
 {
     static_assert(
-        net::is_const_buffer_sequence<ConstBufferSequence>::value ||
-        net::is_mutable_buffer_sequence<ConstBufferSequence>::value,
+        net::is_const_buffer_sequence<ConstBufferSequence>::value,
             "ConstBufferSequence requirements not met");
     return buffers_prefix_view<ConstBufferSequence>(size, buffers);
 }
@@ -240,12 +177,12 @@ buffers_prefix(std::size_t size, ConstBufferSequence const& buffers)
     mutable, the returned buffer sequence will also be mutable.
     Otherwise, the returned buffer sequence will be constant.
 */
-template<class BufferSequence>
+template<class ConstBufferSequence>
 typename std::conditional<
-    net::is_mutable_buffer_sequence<BufferSequence>::value,
+    net::is_mutable_buffer_sequence<ConstBufferSequence>::value,
     net::mutable_buffer,
     net::const_buffer>::type
-buffers_front(BufferSequence const& buffers)
+buffers_front(ConstBufferSequence const& buffers)
 {
     auto const first =
         net::buffer_sequence_begin(buffers);
