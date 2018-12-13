@@ -5,6 +5,7 @@ Version 198:
 * static_buffer improvements
 * flat_static_buffer_improvements
 * saved_handler maintains a work_guard (websocket)
+* Add buffer_traits.hpp, buffers_type
 
 API Changes:
 

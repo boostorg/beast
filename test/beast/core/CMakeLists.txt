@@ -20,6 +20,7 @@ add_executable (tests-beast-core
     file_test.hpp
     bind_handler.cpp
     buffer.cpp
+    buffer_traits.cpp
     buffered_read_stream.cpp
     buffers_adapter.cpp
     buffers_cat.cpp

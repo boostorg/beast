@@ -53,7 +53,7 @@ transferred.
 ][
     This class represents the buffer sequence formed from a prefix of
     an existing buffer sequence. This is the type of buffer returned by
-    [link beast.ref.boost__beast__buffers_prefix.overload3 `buffers_prefix`].
+    [link beast.ref.boost__beast__buffers_prefix `buffers_prefix`].
 ]]
 [[
     [link beast.ref.boost__beast__buffers_range `buffers_range`]
