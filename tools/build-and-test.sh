@@ -103,7 +103,8 @@ function build_bjam ()
      [[ $VARIANT == "valgrind" ]] || \
      [[ $VARIANT == "ubasan" ]]; then
     b2 \
-      cxxflags=-std=c++11 \
+      define=BOOST_COROUTINES_NO_DEPRECATION_WARNING=1 \
+      cxxstd=11 \
       libs/beast/test/beast/core//fat-tests \
       libs/beast/test/beast/http//fat-tests \
       libs/beast/test/beast/websocket//fat-tests \
@@ -113,7 +114,8 @@ function build_bjam ()
       -j${JOBS}
   else
     b2 \
-      cxxflags=-std=c++11 \
+      define=BOOST_COROUTINES_NO_DEPRECATION_WARNING=1 \
+      cxxstd=11 \
       libs/beast/test//fat-tests \
       libs/beast/example \
       toolset=$TOOLSET \
