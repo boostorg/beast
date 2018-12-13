@@ -49,7 +49,7 @@ composed operations:
 
     The passed handler and arguments are forwarded into the returned
     handler, whose associated allocator and associated executor will
-    will be the same as those of the original handler.
+    be the same as those of the original handler.
 ]]
 [[
     [link beast.ref.boost__beast__bind_front_handler `bind_front_handler`]
