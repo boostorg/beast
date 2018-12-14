@@ -133,7 +133,7 @@ public:
 #endif
 
 template<class Allocator>
-template<bool IsMutable>
+template<bool isMutable>
 class basic_multi_buffer<Allocator>::readable_bytes
 {
     basic_multi_buffer const* b_;
@@ -149,17 +149,14 @@ class basic_multi_buffer<Allocator>::readable_bytes
 
 public:
     using value_type = typename std::conditional<
-        IsMutable,
+        isMutable,
         net::mutable_buffer,
         net::const_buffer>::type;
 
     class const_iterator;
 
     readable_bytes() = delete;
-#if ! defined(_MSC_VER) || (_MSC_VER >= 1910)
-    readable_bytes(readable_bytes const&) = default;
-    readable_bytes& operator=(readable_bytes const&) = default;
-#else
+#if BOOST_WORKAROUND(BOOST_MSVC, < 1910)
     readable_bytes(readable_bytes const& other)
         : b_(other.b_)
     {
@@ -170,11 +167,14 @@ public:
         b_ = other.b_;
         return *this;
     }
+#else
+    readable_bytes(readable_bytes const&) = default;
+    readable_bytes& operator=(readable_bytes const&) = default;
 #endif
 
     template<
-        bool IsMutable_ = IsMutable,
-        class = typename std::enable_if<! IsMutable_>::type>
+        bool isMutable_ = isMutable,
+        class = typename std::enable_if<! isMutable_>::type>
     readable_bytes(
         readable_bytes<true> const& other) noexcept
         : b_(other.b_)
@@ -182,8 +182,8 @@ public:
     }
 
     template<
-        bool IsMutable_ = IsMutable,
-        class = typename std::enable_if<! IsMutable_>::type>
+        bool isMutable_ = isMutable,
+        class = typename std::enable_if<! isMutable_>::type>
     readable_bytes& operator=(
         readable_bytes<true> const& other) noexcept
     {
@@ -209,10 +209,10 @@ public:
 //------------------------------------------------------------------------------
 
 template<class Allocator>
-template<bool IsMutable>
+template<bool isMutable>
 class
     basic_multi_buffer<Allocator>::
-    readable_bytes<IsMutable>::
+    readable_bytes<isMutable>::
     const_iterator
 {
     basic_multi_buffer const* b_ = nullptr;
@@ -416,10 +416,10 @@ public:
 //------------------------------------------------------------------------------
 
 template<class Allocator>
-template<bool IsMutable>
+template<bool isMutable>
 auto
 basic_multi_buffer<Allocator>::
-readable_bytes<IsMutable>::
+readable_bytes<isMutable>::
 begin() const noexcept ->
     const_iterator
 {
@@ -427,10 +427,10 @@ begin() const noexcept ->
 }
 
 template<class Allocator>
-template<bool IsMutable>
+template<bool isMutable>
 auto
 basic_multi_buffer<Allocator>::
-readable_bytes<IsMutable>::
+readable_bytes<isMutable>::
 end() const noexcept ->
     const_iterator
 {
