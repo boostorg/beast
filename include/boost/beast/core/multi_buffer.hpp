@@ -79,7 +79,7 @@ class basic_multi_buffer
     // contains `element` followed by raw storage bytes.
     class element;
 
-    template<bool IsMutable>
+    template<bool>
     class readable_bytes;
 
     using alloc_traits =
@@ -435,11 +435,17 @@ public:
     std::size_t
     capacity() const noexcept;
 
-    /// Returns a constant buffer sequence representing the readable bytes
+    /** Returns a constant buffer sequence representing the readable bytes
+
+        @note The sequence may contain multiple contiguous memory regions.
+    */
     const_buffers_type
     data() const noexcept;
 
-    /// Returns a constant buffer sequence representing the readable bytes
+    /** Returns a constant buffer sequence representing the readable bytes
+
+        @note The sequence may contain multiple contiguous memory regions.
+    */
     const_buffers_type
     cdata() const noexcept
     {
@@ -448,8 +454,7 @@ public:
 
     /** Returns a mutable buffer sequence representing the readable bytes.
 
-        @note The sequence may contain zero or more contiguous memory
-        regions.
+        @note The sequence may contain multiple contiguous memory regions.
     */
     mutable_data_type
     data() noexcept;
