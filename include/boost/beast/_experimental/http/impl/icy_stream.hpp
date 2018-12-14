@@ -12,7 +12,7 @@
 
 #include <boost/beast/_experimental/core/detail/dynamic_buffer_ref.hpp>
 #include <boost/beast/core/bind_handler.hpp>
-#include <boost/beast/core/buffers_adapter.hpp>
+#include <boost/beast/core/buffers_adaptor.hpp>
 #include <boost/beast/core/buffers_prefix.hpp>
 #include <boost/beast/core/buffers_suffix.hpp>
 #include <boost/beast/core/detail/buffers_ref.hpp>
@@ -132,7 +132,7 @@ class icy_stream<NextLayer>::read_op
     struct data
     {
         icy_stream<NextLayer>& s;
-        buffers_adapter<MutableBufferSequence> b;
+        buffers_adaptor<MutableBufferSequence> b;
         bool match = false;
 
         data(
@@ -234,7 +234,7 @@ operator()(
 {
     using iterator = net::buffers_iterator<
         typename beast::detail::dynamic_buffer_ref<
-            buffers_adapter<MutableBufferSequence>>::const_buffers_type>;
+            buffers_adaptor<MutableBufferSequence>>::const_buffers_type>;
     auto& d = *d_;
     BOOST_ASIO_CORO_REENTER(*this)
     {
@@ -400,8 +400,8 @@ read_some(MutableBufferSequence const& buffers, error_code& ec)
             "MutableBufferSequence requirements not met");
     using iterator = net::buffers_iterator<
         typename beast::detail::dynamic_buffer_ref<
-            buffers_adapter<MutableBufferSequence>>::const_buffers_type>;
-    buffers_adapter<MutableBufferSequence> b(buffers);
+            buffers_adaptor<MutableBufferSequence>>::const_buffers_type>;
+    buffers_adaptor<MutableBufferSequence> b(buffers);
     if(b.max_size() == 0)
     {
         ec = {};

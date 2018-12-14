@@ -10,7 +10,7 @@
 // Test that header file is self-contained.
 #include <boost/beast/_experimental/http/icy_stream.hpp>
 
-#include <boost/beast/core/buffers_adapter.hpp>
+#include <boost/beast/core/buffers_adaptor.hpp>
 #include <boost/beast/core/buffers_to_string.hpp>
 #include <boost/beast/core/read_size.hpp>
 #include <boost/beast/_experimental/test/stream.hpp>
@@ -45,7 +45,7 @@ public:
                 {
                     // sync
                     {
-                        buffers_adapter<decltype(mbs)> ba(mbs);
+                        buffers_adaptor<decltype(mbs)> ba(mbs);
                         std::memset(p.get(), 0, len);
 
                         icy_stream<test::stream> is{ioc};
@@ -69,7 +69,7 @@ public:
                     }
                     // async
                     {
-                        buffers_adapter<decltype(mbs)> ba(mbs);
+                        buffers_adaptor<decltype(mbs)> ba(mbs);
                         std::memset(p.get(), 0, len);
 
                         icy_stream<test::stream> is{ioc};

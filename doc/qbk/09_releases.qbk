@@ -96,7 +96,7 @@ in future versions.
 
 * Generated WebSocket masks use a secure PRNG by default
 
-* Improvements to [link beast.ref.boost__beast__buffers_adapter `buffers_adapter`]
+* Improvements to [link beast.ref.boost__beast__buffers_adaptor `buffers_adaptor`]
 
 * ([issue 1188]) Set "/permissive-" for MSVC builds
 
@@ -134,9 +134,9 @@ in future versions.
 
 * Fix [link beast.ref.boost__beast__http__parser `http::parser`] constructor javadoc
 
-* Fix [link beast.ref.boost__beast__buffers_adapter `buffers_adapter`] iterator value type
+* Fix [link beast.ref.boost__beast__buffers_adaptor `buffers_adaptor`] iterator value type
 
-* Fix [link beast.ref.boost__beast__buffers_adapter.max_size `buffers_adapter::max_size`]
+* Fix [link beast.ref.boost__beast__buffers_adaptor.max_size `buffers_adaptor::max_size`]
 
 * Fix [link beast.ref.boost__beast__buffers_prefix `buffers_prefix`] iterator decrement
 
