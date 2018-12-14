@@ -215,6 +215,64 @@ public:
         decltype(bs)::const_iterator it;
         decltype(bs2)::const_iterator it2;
         BEAST_EXPECT(it == it2);
+
+        // decrement begin() should throw
+        try
+        {
+            --bs.begin();
+            fail();
+        }
+        catch(std::logic_error const&)
+        {
+            pass();
+        }
+        catch(...)
+        {
+            fail();
+        }
+    }
+
+
+    void
+    testDefaultIterators()
+    {
+        // default ctor is one past the end
+        char c[2];
+        auto bs = buffers_cat(
+            net::const_buffer(&c[0], 1),
+            net::const_buffer(&c[1], 1));
+        decltype(bs)::const_iterator it;
+        BEAST_EXPECT(bs.end() == it);
+        BEAST_EXPECT(it == bs.end());
+        decltype(bs)::const_iterator it2;
+        BEAST_EXPECT(it == it2);
+        BEAST_EXPECT(it2 == it);
+        it = bs.end();
+        it2 = bs.end();
+        BEAST_EXPECT(it == it2);
+        BEAST_EXPECT(it2 == it);
+        decltype(bs)::const_iterator it3(it2);
+        BEAST_EXPECT(it3 == it2);
+        it = bs.begin();
+        BEAST_EXPECT(it != it3);
+        it = it3;
+        BEAST_EXPECT(it == it3);
+
+        // dereferencing default iterator should throw
+        try
+        {
+            it = {};
+            *it;
+            fail();
+        }
+        catch(std::logic_error const&)
+        {
+            pass();
+        }
+        catch(...)
+        {
+            fail();
+        }
     }
 
     void
@@ -309,6 +367,7 @@ public:
 
         testBufferCat();
         testIterators();
+        testDefaultIterators();
         testGccWarning1();
         testGccWarning2();
         test_empty_buffer_sequences();

@@ -2,6 +2,7 @@ Version 200
 
 * Don't include OpenSSL for core snippets
 * Tidy up msvc-14 workaround in multi_buffer
+* buffers_cat fixes and coverage
 
 --------------------------------------------------------------------------------
 

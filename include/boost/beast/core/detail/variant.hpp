@@ -18,7 +18,6 @@ namespace boost {
 namespace beast {
 namespace detail {
 
-
 // This simple variant gets the job done without
 // causing too much trouble with template depth:
 //
