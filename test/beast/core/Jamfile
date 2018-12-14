@@ -9,7 +9,6 @@
 
 local SOURCES =
     bind_handler.cpp
-    buffer.cpp
     buffer_traits.cpp
     buffered_read_stream.cpp
     buffers_adapter.cpp
@@ -35,13 +34,14 @@ local SOURCES =
     string.cpp
     string_param.cpp
     type_traits.cpp
+    detail_base64.cpp
+    detail_buffer.cpp
+    detail_clamp.cpp
     detail_read.cpp
+    detail_sha1.cpp
     detail_tuple.cpp
-    detail/base64.cpp
-    detail/clamp.cpp
-    detail/sha1.cpp
-    detail/variant.cpp
-    detail/varint.cpp
+    detail_variant.cpp
+    detail_varint.cpp
     ;
 
 local RUN_TESTS ;

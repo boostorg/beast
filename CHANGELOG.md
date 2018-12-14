@@ -1,3 +1,9 @@
+Version 200
+
+* Don't include OpenSSL for core snippets
+
+--------------------------------------------------------------------------------
+
 Version 199:
 
 * Workarounds for msvc-14
