@@ -88,7 +88,7 @@ set of additional implementations of the dynamic buffer concept:
 [table Dynamic Buffer Implementations
 [[Name][Description]]
 [[
-    [link beast.ref.boost__beast__buffers_adapter `buffers_adapter`]
+    [link beast.ref.boost__beast__buffers_adaptor `buffers_adaptor`]
 ][
     This wrapper adapts any __MutableBufferSequence__ into a
     __DynamicBuffer__ with an upper limit on the total size of the input and

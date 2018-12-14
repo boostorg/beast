@@ -180,7 +180,7 @@
             <member><link linkend="beast.ref.boost__beast__basic_flat_buffer">basic_flat_buffer</link></member>
             <member><link linkend="beast.ref.boost__beast__basic_multi_buffer">basic_multi_buffer</link></member>
             <member><link linkend="beast.ref.boost__beast__buffered_read_stream">buffered_read_stream</link></member>
-            <member><link linkend="beast.ref.boost__beast__buffers_adapter">buffers_adapter</link></member>
+            <member><link linkend="beast.ref.boost__beast__buffers_adaptor">buffers_adaptor</link></member>
             <member><link linkend="beast.ref.boost__beast__buffers_cat_view">buffers_cat_view</link></member>
             <member><link linkend="beast.ref.boost__beast__buffers_prefix_view">buffers_prefix_view</link></member>
             <member><link linkend="beast.ref.boost__beast__buffers_suffix">buffers_suffix</link></member>

@@ -15,7 +15,7 @@
 #include <boost/beast/core/bind_handler.hpp>
 #include <boost/beast/core/buffer_traits.hpp>
 #include <boost/beast/core/buffered_read_stream.hpp>
-#include <boost/beast/core/buffers_adapter.hpp>
+#include <boost/beast/core/buffers_adaptor.hpp>
 #include <boost/beast/core/buffers_cat.hpp>
 #include <boost/beast/core/buffers_prefix.hpp>
 #include <boost/beast/core/buffers_range.hpp>

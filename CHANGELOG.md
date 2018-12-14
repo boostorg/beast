@@ -3,6 +3,17 @@ Version 200
 * Don't include OpenSSL for core snippets
 * Tidy up msvc-14 workaround in multi_buffer
 * buffers_cat fixes and coverage
+* Refactor buffers_adaptor
+
+API Changes:
+
+* buffers_adaptor is renamed (was buffers_adapter)
+
+Actions Required:
+
+* Replace buffers_adapter.hpp with buffers_adaptor.hpp, and
+  replace buffers_adapter with buffers_adaptor. Or, define
+  BOOST_BEAST_ALLOW_DEPRECATED
 
 --------------------------------------------------------------------------------
 
