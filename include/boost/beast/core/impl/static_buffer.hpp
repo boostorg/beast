@@ -34,19 +34,17 @@ static_buffer_base::
 data() const noexcept ->
     const_buffers_type
 {
-    using net::const_buffer;
-    const_buffers_type result;
     if(in_off_ + in_size_ <= capacity_)
-    {
-        result[0] = const_buffer{begin_ + in_off_, in_size_};
-        result[1] = const_buffer{begin_, 0};
-    }
-    else
-    {
-        result[0] = const_buffer{begin_ + in_off_, capacity_ - in_off_};
-        result[1] = const_buffer{begin_, in_size_ - (capacity_ - in_off_)};
-    }
-    return result;
+        return {
+            net::const_buffer{
+                begin_ + in_off_, in_size_},
+            net::const_buffer{
+                begin_, 0}};
+    return {
+        net::const_buffer{
+            begin_ + in_off_, capacity_ - in_off_},
+        net::const_buffer{
+            begin_, in_size_ - (capacity_ - in_off_)}};
 }
 
 auto
@@ -54,19 +52,17 @@ static_buffer_base::
 data() noexcept ->
     mutable_data_type
 {
-    using net::mutable_buffer;
-    mutable_data_type result;
     if(in_off_ + in_size_ <= capacity_)
-    {
-        result[0] = mutable_buffer{begin_ + in_off_, in_size_};
-        result[1] = mutable_buffer{begin_, 0};
-    }
-    else
-    {
-        result[0] = mutable_buffer{begin_ + in_off_, capacity_ - in_off_};
-        result[1] = mutable_buffer{begin_, in_size_ - (capacity_ - in_off_)};
-    }
-    return result;
+        return {
+            net::mutable_buffer{
+                begin_ + in_off_, in_size_},
+            net::mutable_buffer{
+                begin_, 0}};
+    return {
+        net::mutable_buffer{
+            begin_ + in_off_, capacity_ - in_off_},
+        net::mutable_buffer{
+            begin_, in_size_ - (capacity_ - in_off_)}};
 }
 
 auto
@@ -79,19 +75,19 @@ prepare(std::size_t n) ->
         BOOST_THROW_EXCEPTION(std::length_error{
             "buffer overflow"});
     out_size_ = n;
-    auto const out_off = (in_off_ + in_size_) % capacity_;
-    mutable_buffers_type result;
+    auto const out_off =
+        (in_off_ + in_size_) % capacity_;
     if(out_off + out_size_ <= capacity_ )
-    {
-        result[0] = mutable_buffer{begin_ + out_off, out_size_};
-        result[1] = mutable_buffer{begin_, 0};
-    }
-    else
-    {
-        result[0] = mutable_buffer{begin_ + out_off, capacity_ - out_off};
-        result[1] = mutable_buffer{begin_, out_size_ - (capacity_ - out_off)};
-    }
-    return result;
+        return {
+            net::mutable_buffer{
+                begin_ + out_off, out_size_},
+            net::mutable_buffer{
+                begin_, 0}};
+    return {
+        net::mutable_buffer{
+            begin_ + out_off, capacity_ - out_off},
+        net::mutable_buffer{
+            begin_, out_size_ - (capacity_ - out_off)}};
 }
 
 void

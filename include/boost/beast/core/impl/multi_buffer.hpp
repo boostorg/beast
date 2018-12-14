@@ -11,6 +11,7 @@
 #define BOOST_BEAST_IMPL_MULTI_BUFFER_HPP
 
 #include <boost/beast/core/detail/type_traits.hpp>
+#include <boost/config/workaround.hpp>
 #include <boost/core/exchange.hpp>
 #include <boost/assert.hpp>
 #include <boost/throw_exception.hpp>
@@ -125,6 +126,12 @@ public:
 
 //------------------------------------------------------------------------------
 
+#if BOOST_WORKAROUND(BOOST_MSVC, < 1910)
+# pragma warning (push)
+# pragma warning (disable: 4521) // multiple copy constructors specified
+# pragma warning (disable: 4522) // multiple assignment operators specified
+#endif
+
 template<class Allocator>
 template<bool IsMutable>
 class basic_multi_buffer<Allocator>::readable_bytes
@@ -149,8 +156,21 @@ public:
     class const_iterator;
 
     readable_bytes() = delete;
+#if ! defined(_MSC_VER) || (_MSC_VER >= 1910)
     readable_bytes(readable_bytes const&) = default;
     readable_bytes& operator=(readable_bytes const&) = default;
+#else
+    readable_bytes(readable_bytes const& other)
+        : b_(other.b_)
+    {
+    }
+
+    readable_bytes& operator=(readable_bytes const& other)
+    {
+        b_ = other.b_;
+        return *this;
+    }
+#endif
 
     template<
         bool IsMutable_ = IsMutable,
@@ -181,6 +201,10 @@ public:
         return buffers.b_->size();
     }
 };
+
+#if BOOST_WORKAROUND(BOOST_MSVC, < 1910)
+# pragma warning (pop)
+#endif
 
 //------------------------------------------------------------------------------
 

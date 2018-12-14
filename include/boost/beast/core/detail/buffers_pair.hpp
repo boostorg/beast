@@ -12,58 +12,76 @@
 
 #include <boost/asio/buffer.hpp>
 #include <boost/assert.hpp>
+#include <boost/config/workaround.hpp>
 #include <type_traits>
 
 namespace boost {
 namespace beast {
 namespace detail {
 
-template<bool IsMutable>
+#if BOOST_WORKAROUND(BOOST_MSVC, < 1910)
+# pragma warning (push)
+# pragma warning (disable: 4521) // multiple copy constructors specified
+# pragma warning (disable: 4522) // multiple assignment operators specified
+#endif
+
+template<bool isMutable>
 class buffers_pair
 {
-    template<bool IsMutable_>
-    friend class buffers_pair;
-
 public:
     // VFALCO: This type is public otherwise
     //         asio::buffers_iterator won't compile.
     using value_type = typename
-        std::conditional<IsMutable,
+        std::conditional<isMutable,
             net::mutable_buffer,
             net::const_buffer>::type;
 
     using const_iterator = value_type const*;
 
     buffers_pair() = default;
-    buffers_pair(buffers_pair const&) = default;
-    buffers_pair& operator=(buffers_pair const&) = default;
-
-    template<
-        bool IsMutable_ = IsMutable,
-        class = typename
-            std::enable_if<! IsMutable_>::type>
-    buffers_pair(
-        buffers_pair<true> const& other) noexcept
-        : b_{other.b_[0], other.b_[1]}
+#if defined(BOOST_MSVC) && BOOST_MSVC < 1910
+    buffers_pair(buffers_pair const& other)
+        : buffers_pair(
+            *other.begin(), *(other.begin() + 1))
     {
     }
 
-    template<
-        bool IsMutable_ = IsMutable,
-        class = typename
-        std::enable_if<! IsMutable_>::type>
-    buffers_pair& operator=(
-        buffers_pair<true> const& other) noexcept
+    buffers_pair&
+    operator=(buffers_pair const& other)
     {
-        b_ = {other.b_[0], other.b_[1]};
+        b_[0] = *other.begin();
+        b_[1] = *(other.begin() + 1);
         return *this;
     }
+#else
+    buffers_pair(buffers_pair const& other) = default;
+    buffers_pair& operator=(buffers_pair const& other) = default;
+#endif
 
-    value_type&
-    operator[](int i) noexcept
+    template<
+        bool isMutable_ = isMutable,
+        class = typename std::enable_if<
+            ! isMutable_>::type>
+    buffers_pair(buffers_pair<true> const& other)
+        : buffers_pair(
+            *other.begin(), *(other.begin() + 1))
     {
-        BOOST_ASSERT(i >= 0 && i < 2);
-        return b_[i];
+    }
+
+    template<
+        bool isMutable_ = isMutable,
+        class = typename std::enable_if<
+            ! isMutable_>::type>
+    buffers_pair&
+    operator=(buffers_pair<true> const& other)
+    {
+        b_[0] = *other.begin();
+        b_[1] = *(other.begin() + 1);
+    }
+
+    buffers_pair(value_type b0, value_type b1)
+        : b_{b0, b1}
+    {
     }
 
     const_iterator
@@ -79,9 +97,14 @@ public:
             return &b_[2];
         return &b_[1];
     }
+
 private:
     value_type b_[2];
 };
+
+#if BOOST_WORKAROUND(BOOST_MSVC, < 1910)
+# pragma warning (pop)
+#endif
 
 } // detail
 } // beast

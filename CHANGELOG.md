@@ -1,3 +1,9 @@
+Version 199:
+
+* Workarounds for msvc-14
+
+--------------------------------------------------------------------------------
+
 Version 198:
 
 * flat_buffer improvements

@@ -46,7 +46,8 @@ public:
     BOOST_STATIC_ASSERT(std::is_convertible<
         multi_buffer::mutable_data_type,
         multi_buffer::const_buffers_type>::value);
-#if ! defined( BOOST_LIBSTDCXX_VERSION ) || BOOST_LIBSTDCXX_VERSION >= 50000
+#if ! BOOST_WORKAROUND(BOOST_LIBSTDCXX_VERSION, < 50000) && \
+    ! BOOST_WORKAROUND(BOOST_MSVC, < 1910)
     BOOST_STATIC_ASSERT(std::is_trivially_copyable<
         multi_buffer::const_buffers_type>::value);
     BOOST_STATIC_ASSERT(std::is_trivially_copyable<

@@ -25,6 +25,27 @@ template<std::size_t I, class T>
 struct tuple_element_impl
 {
     T t;
+
+    tuple_element_impl(T const& t_)
+        : t(t_)
+    {
+    }
+
+    tuple_element_impl(T&& t_)
+        : t(std::move(t_))
+    {
+    }
+};
+
+template<std::size_t I, class T>
+struct tuple_element_impl<I, T&>
+{
+    T& t;
+
+    tuple_element_impl(T& t_)
+        : t(t_)
+    {
+    }
 };
 
 template<class... Ts>
@@ -32,12 +53,13 @@ struct tuple_impl;
 
 template<class... Ts, std::size_t... Is>
 struct tuple_impl<
-        boost::mp11::index_sequence<Is...>, Ts...>
+    boost::mp11::index_sequence<Is...>, Ts...>
   : tuple_element_impl<Is, Ts>...
 {
     template<class... Us>
     explicit tuple_impl(Us&&... us)
-      : tuple_element_impl<Is, Ts>{std::forward<Us>(us)}...
+        : tuple_element_impl<Is, Ts>(
+            std::forward<Us>(us))...
     {
     }
 };
@@ -74,6 +96,13 @@ T&&
 get(tuple_element_impl<I, T>&& te)
 {
     return std::move(te.t);
+}
+
+template<std::size_t I, class T>
+T&
+get(tuple_element_impl<I, T&>&& te)
+{
+    return te.t;
 }
 
 template <std::size_t I, class T>
