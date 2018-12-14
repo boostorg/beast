@@ -125,40 +125,6 @@ public:
 #endif
     }
 
-    void testIterator()
-    {
-        using net::buffer_size;
-        using net::const_buffer;
-        char b[3];
-        std::array<const_buffer, 3> bs{{
-            const_buffer{&b[0], 1},
-            const_buffer{&b[1], 1},
-            const_buffer{&b[2], 1}}};
-        auto pb = buffers_prefix(2, bs);
-        BEAST_EXPECT(bsize1(pb) == 2);
-        BEAST_EXPECT(bsize2(pb) == 2);
-        BEAST_EXPECT(bsize3(pb) == 2);
-        BEAST_EXPECT(bsize4(pb) == 2);
-
-        // default ctor is one past the end
-        decltype(pb)::const_iterator it;
-        BEAST_EXPECT(pb.end() == it);
-        BEAST_EXPECT(it == pb.end());
-        decltype(pb)::const_iterator it2;
-        BEAST_EXPECT(it == it2);
-        BEAST_EXPECT(it2 == it);
-        it = pb.end();
-        it2 = pb.end();
-        BEAST_EXPECT(it == it2);
-        BEAST_EXPECT(it2 == it);
-        decltype(pb)::const_iterator it3(it2);
-        BEAST_EXPECT(it3 == it2);
-        it = pb.begin();
-        BEAST_EXPECT(it != it3);
-        it = it3;
-        BEAST_EXPECT(it == it3);
-    }
-
     void testInPlaceInit()
     {
         {
@@ -208,13 +174,56 @@ public:
         }
     }
 
+    void testIterators()
+    {
+        char b[3];
+        std::array<net::const_buffer, 3> bs{{
+            net::const_buffer{&b[0], 1},
+            net::const_buffer{&b[1], 1},
+            net::const_buffer{&b[2], 1}}};
+        auto pb = buffers_prefix(2, bs);
+        BEAST_EXPECT(bsize1(pb) == 2);
+        BEAST_EXPECT(bsize2(pb) == 2);
+        BEAST_EXPECT(bsize3(pb) == 2);
+        BEAST_EXPECT(bsize4(pb) == 2);
+    }
+
+    void
+    testDefaultIterators()
+    {
+        // default ctor is one past the end
+        char b[3];
+        std::array<net::const_buffer, 3> bs{{
+            net::const_buffer{&b[0], 1},
+            net::const_buffer{&b[1], 1},
+            net::const_buffer{&b[2], 1}}};
+        auto pb = buffers_prefix(2, bs);
+        decltype(pb)::const_iterator it;
+        BEAST_EXPECT(pb.end() == it);
+        BEAST_EXPECT(it == pb.end());
+        decltype(pb)::const_iterator it2;
+        BEAST_EXPECT(it == it2);
+        BEAST_EXPECT(it2 == it);
+        it = pb.end();
+        it2 = pb.end();
+        BEAST_EXPECT(it == it2);
+        BEAST_EXPECT(it2 == it);
+        decltype(pb)::const_iterator it3(it2);
+        BEAST_EXPECT(it3 == it2);
+        it = pb.begin();
+        BEAST_EXPECT(it != it3);
+        it = it3;
+        BEAST_EXPECT(it == it3);
+    }
+
     void run() override
     {
         testMatrix<net::const_buffer>();
         testMatrix<net::mutable_buffer>();
         testEmptyBuffers();
-        testIterator();
         testInPlaceInit();
+        testIterators();
+        testDefaultIterators();
     }
 };
 

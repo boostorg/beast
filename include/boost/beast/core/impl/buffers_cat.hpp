@@ -170,6 +170,7 @@ private:
         reference
         operator()(mp11::mp_size_t<0>)
         {
+            // Dereferencing a default-constructed iterator
             BOOST_THROW_EXCEPTION(std::logic_error{
                 "invalid iterator"});
         }
@@ -279,11 +280,11 @@ operator==(const_iterator const& other) const
         (bn_ == nullptr) ?
         (
             other.bn_ == nullptr ||
-            other.it_.index() == sizeof...(Bn)
+            other.it_.index() == sizeof...(Bn) + 1
         ):(
             (other.bn_ == nullptr) ?
             (
-                it_.index() == sizeof...(Bn)
+                it_.index() == sizeof...(Bn) + 1
             ): (
                 bn_ == other.bn_ &&
                 it_ == other.it_
