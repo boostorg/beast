@@ -1,6 +1,7 @@
 Version 199:
 
 * Workarounds for msvc-14
+* Fix Appveyor badge links
 
 --------------------------------------------------------------------------------
 
