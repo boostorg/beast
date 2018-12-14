@@ -19,11 +19,12 @@
 
 namespace boost {
 namespace beast {
+namespace detail {
 
 // VFALCO No idea why boost::system::errc::message_size fails
 //        to compile, so we use net::error::eof instead.
 //
-class buffer_test : public beast::unit_test::suite
+class detail_buffer_test : public beast::unit_test::suite
 {
 public:
     template<class DynamicBuffer>
@@ -33,18 +34,15 @@ public:
     #ifndef BOOST_NO_EXCEPTIONS
         error_code ec;
         DynamicBuffer b(32);
-        detail::dynamic_buffer_prepare(b, 20, ec,
-            //boost::system::errc::message_size);
+        dynamic_buffer_prepare(b, 20, ec,
             net::error::eof);
         BEAST_EXPECTS(! ec, ec.message());
         b.commit(20);
         auto const result =
-            detail::dynamic_buffer_prepare(b, 20, ec,
-            //boost::system::errc::message_size);
+            dynamic_buffer_prepare(b, 20, ec,
             net::error::eof);
         BEAST_EXPECT(result == boost::none);
         BEAST_EXPECTS(
-            //ec == boost::system::errc::message_size,
             ec == net::error::eof, ec.message());
     #else
         fail("exceptions disabled", __FILE__, __LINE__);
@@ -57,18 +55,15 @@ public:
     {
         error_code ec;
         DynamicBuffer b(32);
-        detail::dynamic_buffer_prepare_noexcept(b, 20, ec,
-            //boost::system::errc::message_size);
+        dynamic_buffer_prepare_noexcept(b, 20, ec,
             net::error::eof);
         BEAST_EXPECTS(! ec, ec.message());
         b.commit(20);
         auto const result =
             detail::dynamic_buffer_prepare_noexcept(b, 20, ec,
-            //boost::system::errc::message_size);
             net::error::eof);
         BEAST_EXPECT(result == boost::none);
         BEAST_EXPECTS(
-            //ec == boost::system::errc::message_size,
             ec == net::error::eof, ec.message());
     }
 
@@ -81,7 +76,8 @@ public:
     }
 };
 
-BEAST_DEFINE_TESTSUITE(beast,core,buffer);
+BEAST_DEFINE_TESTSUITE(beast,core,detail_buffer);
 
+} // detail
 } // beast
 } // boost

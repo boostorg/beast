@@ -19,7 +19,6 @@ add_executable (tests-beast-core
     buffer_test.hpp
     file_test.hpp
     bind_handler.cpp
-    buffer.cpp
     buffer_traits.cpp
     buffered_read_stream.cpp
     buffers_adapter.cpp
@@ -45,13 +44,14 @@ add_executable (tests-beast-core
     static_buffer.cpp
     string_param.cpp
     type_traits.cpp
+    detail_base64.cpp
+    detail_buffer.cpp
+    detail_clamp.cpp
     detail_read.cpp
+    detail_sha1.cpp
     detail_tuple.cpp
-    detail/base64.cpp
-    detail/clamp.cpp
-    detail/sha1.cpp
-    detail/variant.cpp
-    detail/varint.cpp
+    detail_variant.cpp
+    detail_varint.cpp
 )
 
 set_property(TARGET tests-beast-core PROPERTY FOLDER "tests")

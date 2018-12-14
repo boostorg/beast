@@ -7,6 +7,13 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
+// prevent ssl.hpp from actually being included,
+// otherwise we would need OpenSSL on AppVeyor
+#ifndef BOOST_ASIO_SSL_HPP
+#define BOOST_ASIO_SSL_HPP
+namespace boost { namespace asio { namespace ssl { } } }
+#endif
+
 //[snippet_core_1a
 
 #include <boost/beast/core.hpp>
