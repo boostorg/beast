@@ -11,8 +11,7 @@
 #define BOOST_BEAST_BUFFERS_SUFFIX_HPP
 
 #include <boost/beast/core/detail/config.hpp>
-#include <boost/beast/core/detail/type_traits.hpp>
-#include <boost/asio/buffer.hpp>
+#include <boost/beast/core/buffer_traits.hpp>
 #include <boost/optional.hpp>
 #include <cstdint>
 #include <iterator>
@@ -53,11 +52,8 @@ namespace beast {
 template<class BufferSequence>
 class buffers_suffix
 {
-    using buffers_type =
-        typename std::decay<BufferSequence>::type;
-
-    using iter_type = typename
-        detail::buffer_sequence_iterator<buffers_type>::type;
+    using iter_type =
+        buffers_iterator_type<BufferSequence>;
 
     BufferSequence bs_;
     iter_type begin_;
@@ -76,20 +72,22 @@ class buffers_suffix
 public:
     /** The type for each element in the list of buffers.
 
-        If the buffers in the underlying sequence are convertible to
-        `net::mutable_buffer`, then this type will be
-        `net::mutable_buffer`, else this type will be
+        If <em>BufferSequence</em> meets the requirements of
+        <em>MutableBufferSequence</em>, then this type will be
+        `net::mutable_buffer`, otherwise this type will be
         `net::const_buffer`.
     */
 #if BOOST_BEAST_DOXYGEN
     using value_type = __implementation_defined__;
-#else
+#elif 0
     using value_type = typename std::conditional<
         std::is_convertible<typename
             std::iterator_traits<iter_type>::value_type,
                 net::mutable_buffer>::value,
                     net::mutable_buffer,
                         net::const_buffer>::type;
+#else
+    using value_type = buffers_type<BufferSequence>;
 #endif
 
 #if BOOST_BEAST_DOXYGEN

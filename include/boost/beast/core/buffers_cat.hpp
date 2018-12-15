@@ -11,6 +11,7 @@
 #define BOOST_BEAST_BUFFERS_CAT_HPP
 
 #include <boost/beast/core/detail/config.hpp>
+#include <boost/beast/core/buffer_traits.hpp>
 #include <boost/beast/core/detail/tuple.hpp>
 #include <boost/beast/core/detail/type_traits.hpp>
 
@@ -34,10 +35,9 @@ public:
         Otherwise, `value_type` will be `net::const_buffer`.
     */
 #if BOOST_BEAST_DOXYGEN
-    using value_type = __implementation_defined__;
+    using value_type = __see_below__;
 #else
-    using value_type = typename
-        detail::common_buffers_type<Buffers...>::type;
+    using value_type = buffers_type<Buffers...>;
 #endif
 
     /// The type of iterator used by the concatenated sequence
@@ -53,8 +53,8 @@ public:
 
         @param buffers The list of buffer sequences to concatenate.
         Copies of the arguments will be maintained for the lifetime
-        of the concatenated sequence; however, the ownership of memory
-        is not transferred.
+        of the concatenated sequence; however, the ownership of the
+        memory buffers themselves is not transferred.
     */
     explicit
     buffers_cat_view(Buffers const&... buffers);
@@ -98,8 +98,8 @@ buffers_cat(B1 const& b1, B2 const& b2, Bn const&... bn)
 #endif
 {
     static_assert(
-        detail::is_all_const_buffer_sequence<B1, B2, Bn...>::value,
-            "BufferSequence requirements not met");
+        is_const_buffer_sequence<B1, B2, Bn...>::value,
+        "BufferSequence requirements not met");
     return buffers_cat_view<B1, B2, Bn...>{b1, b2, bn...};
 }
 

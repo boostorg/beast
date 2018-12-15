@@ -40,6 +40,18 @@ public:
         net::mutable_buffer, net::mutable_buffer
             >::value);
 
+    BOOST_STATIC_ASSERT(is_const_buffer_sequence<
+        net::const_buffer const&
+            >::value);
+
+    BOOST_STATIC_ASSERT(is_const_buffer_sequence<
+        net::const_buffer const&, net::const_buffer const&
+            >::value);
+
+    BOOST_STATIC_ASSERT(is_const_buffer_sequence<
+        net::const_buffer const&, net::mutable_buffer const&
+            >::value);
+
     // is_mutable_buffer_sequence
 
     BOOST_STATIC_ASSERT(is_mutable_buffer_sequence<
@@ -59,6 +71,14 @@ public:
 
     BOOST_STATIC_ASSERT(! is_mutable_buffer_sequence<
         net::const_buffer, net::mutable_buffer
+            >::value);
+
+    BOOST_STATIC_ASSERT(is_mutable_buffer_sequence<
+        net::mutable_buffer const&
+            >::value);
+
+    BOOST_STATIC_ASSERT(is_mutable_buffer_sequence<
+        net::mutable_buffer const&, net::mutable_buffer const&
             >::value);
 
     // buffers_type

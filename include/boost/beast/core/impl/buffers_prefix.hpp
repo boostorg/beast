@@ -10,6 +10,7 @@
 #ifndef BOOST_BEAST_IMPL_BUFFERS_PREFIX_HPP
 #define BOOST_BEAST_IMPL_BUFFERS_PREFIX_HPP
 
+#include <boost/config/workaround.hpp>
 #include <algorithm>
 #include <cstdint>
 #include <iterator>
@@ -30,12 +31,21 @@ class buffers_prefix_view<Buffers>::const_iterator
     iter_type it_;
 
 public:
+#if BOOST_WORKAROUND(BOOST_MSVC, < 1910)
     using value_type = typename std::conditional<
         boost::is_convertible<typename
             std::iterator_traits<iter_type>::value_type,
                 net::mutable_buffer>::value,
                     net::mutable_buffer,
                         net::const_buffer>::type;
+#else
+    using value_type = buffers_type<Buffers>;
+#endif
+
+    BOOST_STATIC_ASSERT(std::is_same<
+        typename const_iterator::value_type,
+        typename buffers_prefix_view::value_type>::value);
+
     using pointer = value_type const*;
     using reference = value_type;
     using difference_type = std::ptrdiff_t;
@@ -61,7 +71,9 @@ public:
     reference
     operator*() const
     {
-        return beast::buffers_prefix(remain_, *it_);
+        value_type v(*it_);
+        return { v.data(),
+            remain_ < v.size() ? remain_ : v.size()};
     }
 
     pointer
@@ -70,7 +82,8 @@ public:
     const_iterator&
     operator++()
     {
-        remain_ -= net::buffer_size(*it_++);
+        value_type const v = *it_++;
+        remain_ -= v.size();
         return *this;
     }
 
@@ -78,14 +91,16 @@ public:
     operator++(int)
     {
         auto temp = *this;
-        remain_ -= net::buffer_size(*it_++);
+        value_type const v = *it_++;
+        remain_ -= v.size();
         return temp;
     }
 
     const_iterator&
     operator--()
     {
-        remain_ += net::buffer_size(*--it_);
+        value_type const v = *--it_;
+        remain_ += v.size();
         return *this;
     }
 
@@ -93,7 +108,8 @@ public:
     operator--(int)
     {
         auto temp = *this;
-        remain_ += net::buffer_size(*--it_);
+        value_type const v = *--it_;
+        remain_ += v.size();
         return temp;
     }
 
@@ -130,8 +146,7 @@ setup(std::size_t size)
     auto const last = bs_.end();
     while(end_ != last)
     {
-        auto const len =
-            net::const_buffer(*end_++).size();
+        auto const len = net::buffer_size(*end_++);
         if(len >= size)
         {
             size_ += size;

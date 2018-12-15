@@ -39,7 +39,8 @@ public:
     using const_iterator = value_type const*;
 
     buffers_pair() = default;
-#if defined(BOOST_MSVC) && BOOST_MSVC < 1910
+
+#if BOOST_WORKAROUND(BOOST_MSVC, < 1910)
     buffers_pair(buffers_pair const& other)
         : buffers_pair(
             *other.begin(), *(other.begin() + 1))

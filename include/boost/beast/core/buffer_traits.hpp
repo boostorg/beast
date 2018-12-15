@@ -22,7 +22,7 @@ namespace beast {
 /** Determine if a list of types satisfy the <em>ConstBufferSequence</em> requirements.
 
     This metafunction is used to determine if all of the specified types
-    meet the requirements for const buffer sequences. This type alias
+    meet the requirements for constant buffer sequences. This type alias
     will be `std::true_type` if each specified type meets the requirements,
     otherwise, this type alias will be `std::false_type`.
 
@@ -36,7 +36,8 @@ struct is_const_buffer_sequence : __see_below__ {};
 #else
 template<class... TN>
 using is_const_buffer_sequence = mp11::mp_all<
-    net::is_const_buffer_sequence<TN>...>;
+    net::is_const_buffer_sequence<
+        typename std::decay<TN>::type>...>;
 #endif
 
 /** Determine if a list of types satisfy the <em>MutableBufferSequence</em> requirements.
@@ -56,7 +57,8 @@ struct is_mutable_buffer_sequence : __see_below__ {};
 #else
 template<class... TN>
 using is_mutable_buffer_sequence = mp11::mp_all<
-    net::is_mutable_buffer_sequence<TN>...>;
+    net::is_mutable_buffer_sequence<
+        typename std::decay<TN>::type>...>;
 #endif
 
 /** Type alias for the underlying buffer type of a list of buffer sequence types.
@@ -97,16 +99,14 @@ template<class... TN>
 struct buffers_type : __see_below__ {};
 //using buffers_type = __see_below__;
 #else
-using buffers_type = typename
-    std::conditional<
-        is_mutable_buffer_sequence<TN...>::value,
-        net::mutable_buffer,
-        net::const_buffer>::type;
+using buffers_type = typename std::conditional<
+    is_mutable_buffer_sequence<TN...>::value,
+    net::mutable_buffer, net::const_buffer>::type;
 #endif
 
-namespace detail {
+#if BOOST_WORKAROUND(BOOST_MSVC, < 1910)
 
-// VFALCO This is a workaround for MSVC.v140
+namespace detail {
 template<class T>
 struct buffers_iterator_type_helper
 {
@@ -131,6 +131,8 @@ struct buffers_iterator_type_helper<
 
 } // detail
 
+#endif
+
 /** Type alias for the iterator type of a buffer sequence type.
 
     This metafunction is used to determine the type of iterator
@@ -144,15 +146,14 @@ template <class T>
 #if BOOST_BEAST_DOXYGEN
 struct buffers_iterator_type : __see_below__ {};
 //using buffers_iterator_type = __see_below__;
-#else
-# if BOOST_WORKAROUND(BOOST_MSVC, < 1910)
+#elif BOOST_WORKAROUND(BOOST_MSVC, < 1910)
 using buffers_iterator_type = typename
-    detail::buffers_iterator_type_helper<T>::type;
-# else
+    detail::buffers_iterator_type_helper<
+        typename std::decay<T>::type>::type;
+#else
 using buffers_iterator_type =
     decltype(net::buffer_sequence_begin(
         std::declval<T const&>()));
-# endif
 #endif
 
 } // beast

@@ -10,7 +10,7 @@
 #ifndef BOOST_BEAST_IMPL_BUFFERS_SUFFIX_HPP
 #define BOOST_BEAST_IMPL_BUFFERS_SUFFIX_HPP
 
-#include <boost/beast/core/type_traits.hpp>
+#include <boost/beast/core/buffer_traits.hpp>
 #include <boost/type_traits.hpp>
 #include <algorithm>
 #include <cstdint>
@@ -26,19 +26,22 @@ class buffers_suffix<Buffers>::const_iterator
 {
     friend class buffers_suffix<Buffers>;
 
-    using iter_type = typename
-        detail::buffer_sequence_iterator<Buffers>::type;
+    using iter_type = buffers_iterator_type<Buffers>;
 
     iter_type it_;
     buffers_suffix const* b_ = nullptr;
 
 public:
+#if BOOST_WORKAROUND(BOOST_MSVC, < 1910)
     using value_type = typename std::conditional<
         boost::is_convertible<typename
             std::iterator_traits<iter_type>::value_type,
                 net::mutable_buffer>::value,
                     net::mutable_buffer,
                         net::const_buffer>::type;
+#else
+    using value_type = buffers_type<Buffers>;
+#endif
     using pointer = value_type const*;
     using reference = value_type;
     using difference_type = std::ptrdiff_t;
@@ -54,20 +57,7 @@ public:
     bool
     operator==(const_iterator const& other) const
     {
-        return
-            (b_ == nullptr) ?
-            (
-                other.b_ == nullptr ||
-                other.it_ == net::buffer_sequence_end(other.b_->bs_)
-            ):(
-                (other.b_ == nullptr) ?
-                (
-                    it_ == net::buffer_sequence_end(b_->bs_)
-                ): (
-                    b_ == other.b_ &&
-                    it_ == other.it_
-                )
-            );
+        return b_ == other.b_ && it_ == other.it_;
     }
 
     bool
@@ -118,8 +108,9 @@ public:
     }
 
 private:
-    const_iterator(buffers_suffix const& b,
-            iter_type it)
+    const_iterator(
+        buffers_suffix const& b,
+        iter_type it)
         : it_(it)
         , b_(&b)
     {

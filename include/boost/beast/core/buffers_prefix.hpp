@@ -12,11 +12,14 @@
 
 #include <boost/beast/core/detail/config.hpp>
 #include <boost/beast/core/buffer_traits.hpp>
-#include <boost/beast/core/type_traits.hpp>
 #include <boost/optional/optional.hpp> // for in_place_init_t
 #include <algorithm>
 #include <cstdint>
 #include <type_traits>
+
+#if BOOST_WORKAROUND(BOOST_MSVC, < 1910)
+#include <boost/type_traits.hpp>
+#endif
 
 namespace boost {
 namespace beast {
@@ -27,16 +30,15 @@ namespace beast {
     a shorter subset of the original list of buffers starting
     with the first byte of the original sequence.
 
-    @tparam ConstBufferSequence The buffer sequence to adapt.
+    @tparam BufferSequence The buffer sequence to adapt.
 */
-template<class ConstBufferSequence>
+template<class BufferSequence>
 class buffers_prefix_view
 {
-    using iter_type = typename
-        detail::buffer_sequence_iterator<
-            ConstBufferSequence>::type;
+    using iter_type =
+        buffers_iterator_type<BufferSequence>;
 
-    ConstBufferSequence bs_;
+    BufferSequence bs_;
     std::size_t size_;
     std::size_t remain_;
     iter_type end_;
@@ -51,16 +53,24 @@ class buffers_prefix_view
 public:
     /** The type for each element in the list of buffers.
 
-        If the type of the underlying sequence is a mutable buffer
-        sequence, then `value_type` is `net::mutable_buffer`. Otherwise,
-        `value_type` is `net::const_buffer`.
+        If the type `BufferSequence` meets the requirements of
+        <em>MutableBufferSequence</em>, then `value_type` is
+        `net::mutable_buffer`. Otherwise, `value_type` is
+        `net::const_buffer`.
 
         @see buffers_type
     */
 #if BOOST_BEAST_DOXYGEN
     using value_type = __see_below__;
+#elif BOOST_WORKAROUND(BOOST_MSVC, < 1910)
+    using value_type = typename std::conditional<
+        boost::is_convertible<typename
+            std::iterator_traits<iter_type>::value_type,
+                net::mutable_buffer>::value,
+                    net::mutable_buffer,
+                        net::const_buffer>::type;
 #else
-    using value_type = buffers_type<ConstBufferSequence>;
+    using value_type = buffers_type<BufferSequence>;
 #endif
 
 #if BOOST_BEAST_DOXYGEN
@@ -92,7 +102,7 @@ public:
     */
     buffers_prefix_view(
         std::size_t size,
-        ConstBufferSequence const& buffers);
+        BufferSequence const& buffers);
 
     /** Construct a buffer sequence prefix in-place.
 
@@ -152,25 +162,25 @@ buffer_size(buffers_prefix_view<
     size as the original buffer sequence.
 
     @param buffers An object whose type meets the requirements
-    of <em>ConstBufferSequence</em>. The returned value will
+    of <em>BufferSequence</em>. The returned value will
     maintain a copy of the passed buffers for its lifetime;
     however, ownership of the underlying memory is not
     transferred.
 
     @return A constant buffer sequence that represents the prefix
     of the original buffer sequence. If the original buffer sequence
-    also meets the requirements of <em>MutableConstBufferSequence</em>,
+    also meets the requirements of <em>MutableBufferSequence</em>,
     then the returned value will also be a mutable buffer sequence.
 */
-template<class ConstBufferSequence>
-buffers_prefix_view<ConstBufferSequence>
+template<class BufferSequence>
+buffers_prefix_view<BufferSequence>
 buffers_prefix(
-    std::size_t size, ConstBufferSequence const& buffers)
+    std::size_t size, BufferSequence const& buffers)
 {
     static_assert(
-        net::is_const_buffer_sequence<ConstBufferSequence>::value,
-            "ConstBufferSequence requirements not met");
-    return buffers_prefix_view<ConstBufferSequence>(size, buffers);
+        net::is_const_buffer_sequence<BufferSequence>::value,
+            "BufferSequence requirements not met");
+    return buffers_prefix_view<BufferSequence>(size, buffers);
 }
 
 /** Returns the first buffer in a buffer sequence
@@ -183,12 +193,9 @@ buffers_prefix(
     mutable, the returned buffer sequence will also be mutable.
     Otherwise, the returned buffer sequence will be constant.
 */
-template<class ConstBufferSequence>
-typename std::conditional<
-    net::is_mutable_buffer_sequence<ConstBufferSequence>::value,
-    net::mutable_buffer,
-    net::const_buffer>::type
-buffers_front(ConstBufferSequence const& buffers)
+template<class BufferSequence>
+buffers_type<BufferSequence>
+buffers_front(BufferSequence const& buffers)
 {
     auto const first =
         net::buffer_sequence_begin(buffers);

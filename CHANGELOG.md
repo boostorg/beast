@@ -9,6 +9,7 @@ Version 200
 * Refactor buffers_prefix
 * Add const and mutable buffer sequence traits
 * Add buffers_iterator_type trait
+* Use new buffer traits, remove old unused traits
 
 API Changes:
 

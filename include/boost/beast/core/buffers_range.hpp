@@ -11,7 +11,7 @@
 #define BOOST_BEAST_BUFFERS_RANGE_HPP
 
 #include <boost/beast/core/detail/config.hpp>
-#include <boost/beast/core/detail/buffers_range.hpp>
+#include <boost/beast/core/detail/buffers_range_adaptor.hpp>
 #include <boost/asio/buffer.hpp>
 #include <functional>
 

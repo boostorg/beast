@@ -7,11 +7,10 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
-#ifndef BOOST_BEAST_DETAIL_BUFFERS_RANGE_HPP
-#define BOOST_BEAST_DETAIL_BUFFERS_RANGE_HPP
+#ifndef BOOST_BEAST_DETAIL_BUFFERS_RANGE_ADAPTOR_HPP
+#define BOOST_BEAST_DETAIL_BUFFERS_RANGE_ADAPTOR_HPP
 
-#include <boost/beast/core/detail/type_traits.hpp>
-#include <boost/asio/buffer.hpp>
+#include <boost/beast/core/buffer_traits.hpp>
 #include <iterator>
 #include <type_traits>
 
@@ -28,22 +27,15 @@ public:
 #if BOOST_BEAST_DOXYGEN
     using value_type = __see_below__;
 #else
-    using value_type = typename std::conditional<
-        boost::is_convertible<
-            typename std::iterator_traits<
-                typename detail::buffer_sequence_iterator<
-                    BufferSequence>::type>::value_type,
-                net::mutable_buffer>::value,
-            net::mutable_buffer,
-            net::const_buffer>::type;
+    using value_type = buffers_type<BufferSequence>;
 #endif
 
     class const_iterator
     {
         friend class buffers_range_adaptor;
 
-        using iter_type = typename
-            buffer_sequence_iterator<BufferSequence>::type;
+        using iter_type =
+            buffers_iterator_type<BufferSequence>;
 
         iter_type it_;
         buffers_range_adaptor const* b_ = nullptr;
@@ -119,16 +111,16 @@ public:
         }
     };
 
+    buffers_range_adaptor(
+        buffers_range_adaptor const&) = default;
+    buffers_range_adaptor& operator=(
+        buffers_range_adaptor const&) = default;
+
     explicit
     buffers_range_adaptor(BufferSequence const& b)
         : b_(b)
     {
     }
-
-    buffers_range_adaptor(
-        buffers_range_adaptor const&) = default;
-    buffers_range_adaptor& operator=(
-        buffers_range_adaptor const&) = default;
 
     const_iterator
     begin() const noexcept
