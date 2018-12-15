@@ -12,6 +12,7 @@
 
 #include <boost/beast/core/detail/config.hpp>
 #include <boost/asio/buffer.hpp>
+#include <boost/config/workaround.hpp>
 #include <boost/mp11/function.hpp>
 #include <type_traits>
 
@@ -101,6 +102,57 @@ using buffers_type = typename
         is_mutable_buffer_sequence<TN...>::value,
         net::mutable_buffer,
         net::const_buffer>::type;
+#endif
+
+namespace detail {
+
+// VFALCO This is a workaround for MSVC.v140
+template<class T>
+struct buffers_iterator_type_helper
+{
+    using type = decltype(
+        net::buffer_sequence_begin(
+            std::declval<T const&>()));
+};
+
+template<>
+struct buffers_iterator_type_helper<
+    net::const_buffer>
+{
+    using type = net::const_buffer const*;
+};
+
+template<>
+struct buffers_iterator_type_helper<
+    net::mutable_buffer>
+{
+    using type = net::mutable_buffer const*;
+};
+
+} // detail
+
+/** Type alias for the iterator type of a buffer sequence type.
+
+    This metafunction is used to determine the type of iterator
+    used by a particular buffer sequence.
+
+    @tparam T The buffer sequence type to use. The resulting
+    type alias will be equal to the iterator type used by
+    the buffer sequence.
+*/
+template <class T>
+#if BOOST_BEAST_DOXYGEN
+struct buffers_iterator_type : __see_below__ {};
+//using buffers_iterator_type = __see_below__;
+#else
+# if BOOST_WORKAROUND(BOOST_MSVC, < 1910)
+using buffers_iterator_type = typename
+    detail::buffers_iterator_type_helper<T>::type;
+# else
+using buffers_iterator_type =
+    decltype(net::buffer_sequence_begin(
+        std::declval<T const&>()));
+# endif
 #endif
 
 } // beast

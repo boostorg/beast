@@ -166,6 +166,12 @@ metafunctions which operate on buffers:
 [table Buffer Algorithms and Types
 [[Name][Description]]
 [[
+    [link beast.ref.boost__beast__buffers_iterator_type `buffers_iterator_type`]
+][
+    This metafunction is used to determine the type of iterator
+    used by a particular buffer sequence.
+]]
+[[
     [link beast.ref.boost__beast__buffers_type `buffers_type`]
 ][
     This metafunction is used to determine the underlying buffer type for
