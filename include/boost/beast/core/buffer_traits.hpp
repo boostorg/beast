@@ -12,24 +12,62 @@
 
 #include <boost/beast/core/detail/config.hpp>
 #include <boost/asio/buffer.hpp>
+#include <boost/mp11/function.hpp>
 #include <type_traits>
 
 namespace boost {
 namespace beast {
 
-/** Type alias used to obtain the underlying buffer type of a buffer sequence.
+/** Determine if a list of types satisfy the <em>ConstBufferSequence</em> requirements.
+
+    This metafunction is used to determine if all of the specified types
+    meet the requirements for const buffer sequences. This type alias
+    will be `std::true_type` if each specified type meets the requirements,
+    otherwise, this type alias will be `std::false_type`.
+
+    @tparam TN A list of zero or more types to check. If this list is
+    empty, the resulting type alias will be `std::true_type`.
+*/
+#if BOOST_BEAST_DOXYGEN
+template<class... TN>
+struct is_const_buffer_sequence : __see_below__ {};
+//using is_const_buffer_sequence = __see_below__;
+#else
+template<class... TN>
+using is_const_buffer_sequence = mp11::mp_all<
+    net::is_const_buffer_sequence<TN>...>;
+#endif
+
+/** Determine if a list of types satisfy the <em>MutableBufferSequence</em> requirements.
+
+    This metafunction is used to determine if all of the specified types
+    meet the requirements for mutable buffer sequences. This type alias
+    will be `std::true_type` if each specified type meets the requirements,
+    otherwise, this type alias will be `std::false_type`.
+
+    @tparam TN A list of zero or more types to check. If this list is
+    empty, the resulting type alias will be `std::true_type`.
+*/
+#if BOOST_BEAST_DOXYGEN
+template<class... TN>
+struct is_mutable_buffer_sequence : __see_below__ {};
+//using is_mutable_buffer_sequence = __see_below__;
+#else
+template<class... TN>
+using is_mutable_buffer_sequence = mp11::mp_all<
+    net::is_mutable_buffer_sequence<TN>...>;
+#endif
+
+/** Type alias for the underlying buffer type of a list of buffer sequence types.
 
     This metafunction is used to determine the underlying buffer type for
-    a given buffer sequence. The equivalent type of the alias will vary
+    a list of buffer sequence. The equivalent type of the alias will vary
     depending on the template type argument:
 
-    @li If the template argument is a <em>MutableBufferSequence</em>,
-        the resulting type alias will be `net::mutable_buffer`, else
+    @li If every type in the list is a <em>MutableBufferSequence</em>,
+        the resulting type alias will be `net::mutable_buffer`, otherwise
 
-    @li If the template argument is a <em>ConstBufferSequence</em>,
-        the resulting type alias will be `net::const_buffer`, otherwise
-
-    @li The resulting type alias will be `void`.
+    @li The resulting type alias will be `net::const_buffer`.
 
     @par Example
     The following code returns the first buffer in a buffer sequence,
@@ -50,21 +88,19 @@ namespace beast {
     }
     @endcode
 
-    @param T The buffer sequence type to use.
+    @tparam TN A list of zero or more types to check. If this list is
+    empty, the resulting type alias will be `net::mutable_buffer`.
 */
-template<class T>
+template<class... TN>
 #if BOOST_BEAST_DOXYGEN
 struct buffers_type : __see_below__ {};
 //using buffers_type = __see_below__;
 #else
 using buffers_type = typename
     std::conditional<
-        net::is_mutable_buffer_sequence<T>::value,
+        is_mutable_buffer_sequence<TN...>::value,
         net::mutable_buffer,
-        typename std::conditional<
-            net::is_const_buffer_sequence<T>::value,
-            net::const_buffer,
-            void>::type>::type;
+        net::const_buffer>::type;
 #endif
 
 } // beast
