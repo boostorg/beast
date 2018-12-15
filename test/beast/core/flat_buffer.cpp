@@ -17,7 +17,6 @@
 #include <boost/beast/core/string.hpp>
 #include <boost/beast/test/test_allocator.hpp>
 #include <boost/beast/_experimental/unit_test/suite.hpp>
-#include <boost/asio/buffers_iterator.hpp>
 #include <algorithm>
 #include <cctype>
 
@@ -27,55 +26,16 @@ namespace beast {
 class flat_buffer_test : public beast::unit_test::suite
 {
 public:
-    BOOST_STATIC_ASSERT(
-        net::is_dynamic_buffer<
-            flat_buffer>::value);
-    BOOST_STATIC_ASSERT(
-        net::is_const_buffer_sequence<
-            flat_buffer::const_buffers_type>::value);
-    BOOST_STATIC_ASSERT(
-        net::is_mutable_buffer_sequence<
-            flat_buffer::mutable_data_type>::value);
-    BOOST_STATIC_ASSERT(
-        net::is_mutable_buffer_sequence<
-            flat_buffer::mutable_buffers_type>::value);
-    BOOST_STATIC_ASSERT(std::is_convertible<
-        flat_buffer::mutable_data_type,
-        flat_buffer::const_buffers_type>::value);
-
-    template<class DynamicBuffer>
     void
-    testMutableData()
+    testDynamicBuffer()
     {
-        DynamicBuffer b;
-        DynamicBuffer const& cb = b;
-        ostream(b) << "Hello";
-        BOOST_STATIC_ASSERT(
-            net::is_const_buffer_sequence<
-                decltype(cb.data())>::value &&
-            ! net::is_mutable_buffer_sequence<
-                decltype(cb.data())>::value);
-        BOOST_STATIC_ASSERT(
-            net::is_const_buffer_sequence<
-                decltype(cb.cdata())>::value &&
-            ! net::is_mutable_buffer_sequence<
-                decltype(cb.cdata())>::value);
-        BOOST_STATIC_ASSERT(
-            net::is_mutable_buffer_sequence<
-                decltype(b.data())>::value);
-        std::for_each(
-            net::buffers_iterator<decltype(b.data())>::begin(b.data()),
-            net::buffers_iterator<decltype(b.data())>::end(b.data()),
-            [](char& c)
-            {
-                c = static_cast<char>(std::toupper(c));
-            });
-        BEAST_EXPECT(buffers_to_string(b.data()) == "HELLO");
-        BEAST_EXPECT(buffers_to_string(b.cdata()) == "HELLO");
+        flat_buffer b(30);
+        BEAST_EXPECT(b.max_size() == 30);
+        test_dynamic_buffer(*this, b);
     }
 
     void
-    testBuffer()
+    testSpecialMembers()
     {
         using namespace test;
 
@@ -180,6 +140,16 @@ public:
             BEAST_EXPECT(b2.get_allocator() == a);
             BEAST_EXPECT(buffers_to_string(b1.data()) == "Hello");
             BEAST_EXPECT(buffers_to_string(b2.data()) == "Hello");
+        }
+        {
+            flat_buffer b1;
+            ostream(b1) << "Hello";
+            basic_flat_buffer<a_t> b2;
+            b2.reserve(1);
+            BEAST_EXPECT(b2.capacity() == 1);
+            b2 = b1;
+            BEAST_EXPECT(buffers_to_string(b2.data()) == "Hello");
+            BEAST_EXPECT(b2.capacity() == b2.size());
         }
 
         // move assignment
@@ -319,6 +289,24 @@ public:
             BEAST_EXPECT(b.max_size() == 32);
         }
 
+        // allocator max_size
+        {
+            basic_flat_buffer<a_t> b;
+            auto a = b.get_allocator();
+            BOOST_STATIC_ASSERT(
+                ! std::is_const<decltype(a)>::value);
+            a->max_size = 30;
+            try
+            {
+                b.prepare(1000);
+                fail("", __FILE__, __LINE__);
+            }
+            catch(std::length_error const&)
+            {
+                pass();
+            }
+        }
+
         // read_size
         {
             flat_buffer b{10};
@@ -392,6 +380,11 @@ public:
             b.commit(20);
             b.reserve(50);
             BEAST_EXPECT(b.capacity() == 50);
+
+            b.max_size(b.capacity());
+            b.reserve(b.max_size() + 20);
+            BEAST_EXPECT(b.capacity() == 70);
+            BEAST_EXPECT(b.max_size() == 70);
         }
 
         // shrink to fit
@@ -406,14 +399,20 @@ public:
             BEAST_EXPECT(b.capacity() >= 125);
             b.shrink_to_fit();
             BEAST_EXPECT(b.capacity() == b.size());
+            b.shrink_to_fit();
+            BEAST_EXPECT(b.capacity() == b.size());
+            b.consume(b.size());
+            BEAST_EXPECT(b.size() == 0);
+            b.shrink_to_fit();
+            BEAST_EXPECT(b.capacity() == 0);
         }
     }
 
     void
     run() override
     {
-        testBuffer();
-        testMutableData<flat_buffer>();
+        testDynamicBuffer();
+        testSpecialMembers();
     }
 };
 

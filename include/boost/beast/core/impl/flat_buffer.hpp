@@ -253,7 +253,7 @@ reserve(std::size_t n)
     if(max_ < n)
         max_ = n;
     if(capacity() < n)
-        prepare(n - capacity());
+        prepare(n - size());
 }
 
 template<class Allocator>
@@ -293,13 +293,16 @@ basic_flat_buffer<Allocator>::
 prepare(std::size_t n) ->
     mutable_buffers_type
 {
+    auto const len = size();
+    if(len > max_ || n > (max_ - len))
+        BOOST_THROW_EXCEPTION(std::length_error{
+            "basic_flat_buffer too long"});
     if(n <= dist(out_, end_))
     {
         // existing capacity is sufficient
         last_ = out_ + n;
         return{out_, n};
     }
-    auto const len = size();
     if(n <= capacity() - len)
     {
         // after a memmove,
@@ -311,10 +314,6 @@ prepare(std::size_t n) ->
         last_ = out_ + n;
         return {out_, n};
     }
-    // enforce maximum capacity
-    if(n > max_ - len)
-        BOOST_THROW_EXCEPTION(std::length_error{
-            "basic_flat_buffer overflow"});
     // allocate a new buffer
     auto const new_size = (std::min<std::size_t>)(
         max_,
