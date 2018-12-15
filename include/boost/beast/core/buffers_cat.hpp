@@ -46,14 +46,8 @@ public:
     /// Copy Constructor
     buffers_cat_view(buffers_cat_view const&) = default;
 
-    /// Move Constructor
-    buffers_cat_view(buffers_cat_view&&) = default;
-
     /// Copy Assignment
     buffers_cat_view& operator=(buffers_cat_view const&) = default;
-
-    /// Move Assignment
-    buffers_cat_view& operator=(buffers_cat_view&&) = default;
 
     /** Constructor
 
