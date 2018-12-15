@@ -10,8 +10,8 @@
 #ifndef BOOST_BEAST_DETAIL_BUFFERS_REF_HPP
 #define BOOST_BEAST_DETAIL_BUFFERS_REF_HPP
 
-#include <boost/beast/core/type_traits.hpp>
-#include <iterator>
+#include <boost/beast/core/buffer_traits.hpp>
+#include <memory>
 
 namespace boost {
 namespace beast {
@@ -24,11 +24,11 @@ class buffers_ref
     BufferSequence const* buffers_;
 
 public:
-    using const_iterator = typename
-        buffer_sequence_iterator<BufferSequence>::type;
+    using value_type =
+        buffers_type<BufferSequence>;
 
-    using value_type = typename std::iterator_traits<
-        const_iterator>::value_type;
+    using const_iterator =
+        buffers_iterator_type<BufferSequence>;
 
     buffers_ref(buffers_ref const&) = default;
     buffers_ref& operator=(buffers_ref const&) = default;
@@ -57,6 +57,9 @@ template<class BufferSequence>
 buffers_ref<BufferSequence>
 make_buffers_ref(BufferSequence const& buffers)
 {
+    static_assert(
+        is_const_buffer_sequence<BufferSequence>::value,
+        "BufferSequence requirements not met");
     return buffers_ref<BufferSequence>(buffers);
 }
 

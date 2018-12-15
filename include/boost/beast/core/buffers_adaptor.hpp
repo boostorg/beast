@@ -11,8 +11,7 @@
 #define BOOST_BEAST_BUFFERS_ADAPTOR_HPP
 
 #include <boost/beast/core/detail/config.hpp>
-#include <boost/beast/core/type_traits.hpp>
-#include <boost/asio/buffer.hpp>
+#include <boost/beast/core/buffer_traits.hpp>
 #include <boost/optional.hpp>
 #include <type_traits>
 
@@ -40,9 +39,8 @@ class buffers_adaptor
             MutableBufferSequence>::value,
         "MutableBufferSequence requirements not met");
 
-    using iter_type = typename
-        detail::buffer_sequence_iterator<
-            MutableBufferSequence>::type;
+    using iter_type = buffers_iterator_type<
+        typename std::decay<MutableBufferSequence>::type>;
 
     template<bool>
     class readable_bytes;

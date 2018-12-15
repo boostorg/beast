@@ -59,9 +59,8 @@ class buffers_cat_view<Bn...>::const_iterator
         "A minimum of two sequences are required");
 
     detail::tuple<Bn...> const* bn_ = nullptr;
-    detail::variant<typename
-        detail::buffer_sequence_iterator<Bn>::type...,
-            past_end> it_;
+    detail::variant<
+        buffers_iterator_type<Bn>..., past_end> it_;
 
     friend class buffers_cat_view<Bn...>;
 
@@ -69,8 +68,8 @@ class buffers_cat_view<Bn...>::const_iterator
     using C = std::integral_constant<std::size_t, I>;
 
 public:
-    using value_type = typename
-        detail::common_buffers_type<Bn...>::type;
+    using value_type =
+        typename buffers_cat_view<Bn...>::value_type;
     using pointer = value_type const*;
     using reference = value_type;
     using difference_type = std::ptrdiff_t;

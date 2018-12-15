@@ -11,8 +11,7 @@
 #define BOOST_BEAST_BUFFERS_SUFFIX_HPP
 
 #include <boost/beast/core/detail/config.hpp>
-#include <boost/beast/core/detail/type_traits.hpp>
-#include <boost/asio/buffer.hpp>
+#include <boost/beast/core/buffer_traits.hpp>
 #include <boost/optional.hpp>
 #include <cstdint>
 #include <iterator>
@@ -53,11 +52,8 @@ namespace beast {
 template<class BufferSequence>
 class buffers_suffix
 {
-    using buffers_type =
-        typename std::decay<BufferSequence>::type;
-
-    using iter_type = typename
-        detail::buffer_sequence_iterator<buffers_type>::type;
+    using iter_type = buffers_iterator_type<
+        typename std::decay<BufferSequence>::type>;
 
     BufferSequence bs_;
     iter_type begin_;

@@ -12,7 +12,6 @@
 
 #include <boost/beast/core/detail/config.hpp>
 #include <boost/beast/core/buffer_traits.hpp>
-#include <boost/beast/core/type_traits.hpp>
 #include <boost/optional/optional.hpp> // for in_place_init_t
 #include <algorithm>
 #include <cstdint>
@@ -32,9 +31,8 @@ namespace beast {
 template<class ConstBufferSequence>
 class buffers_prefix_view
 {
-    using iter_type = typename
-        detail::buffer_sequence_iterator<
-            ConstBufferSequence>::type;
+    using iter_type = buffers_iterator_type<
+        typename std::decay<ConstBufferSequence>::type>;
 
     ConstBufferSequence bs_;
     std::size_t size_;
@@ -60,7 +58,8 @@ public:
 #if BOOST_BEAST_DOXYGEN
     using value_type = __see_below__;
 #else
-    using value_type = buffers_type<ConstBufferSequence>;
+    using value_type = buffers_type<typename
+        std::decay<ConstBufferSequence>::type>;
 #endif
 
 #if BOOST_BEAST_DOXYGEN

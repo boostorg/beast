@@ -10,6 +10,7 @@
 #ifndef BOOST_BEAST_IMPL_BUFFERS_PREFIX_HPP
 #define BOOST_BEAST_IMPL_BUFFERS_PREFIX_HPP
 
+#include <boost/type_traits.hpp>
 #include <algorithm>
 #include <cstdint>
 #include <iterator>
