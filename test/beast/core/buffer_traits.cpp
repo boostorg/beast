@@ -107,6 +107,18 @@ public:
             std::array<int, 3>
         >>::value);
 
+    // buffers_iterator_type
+
+    BOOST_STATIC_ASSERT(
+        std::is_same<net::const_buffer const*, buffers_iterator_type<
+            net::const_buffer
+        >>::value);
+
+    BOOST_STATIC_ASSERT(
+        std::is_same<net::mutable_buffer const*, buffers_iterator_type<
+            net::mutable_buffer
+        >>::value);
+
     // javadoc: buffers_type
     template <class BufferSequence>
     buffers_type <BufferSequence>

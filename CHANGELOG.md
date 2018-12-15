@@ -8,6 +8,7 @@ Version 200
 * Fix and refactor buffers_cat
 * Refactor buffers_prefix
 * Add const and mutable buffer sequence traits
+* Add buffers_iterator_type trait
 
 API Changes:
 
