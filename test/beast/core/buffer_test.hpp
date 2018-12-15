@@ -52,6 +52,7 @@ public:
 
     buffers_triple(
         buffers_triple const&) = default;
+
     buffers_triple& operator=(
         buffers_triple const&) = default;
 

@@ -41,28 +41,13 @@ public:
         std::bidirectional_iterator_tag;
 
     const_iterator() = default;
-    const_iterator(const_iterator&& other) = default;
     const_iterator(const_iterator const& other) = default;
-    const_iterator& operator=(const_iterator&& other) = default;
     const_iterator& operator=(const_iterator const& other) = default;
 
     bool
     operator==(const_iterator const& other) const
     {
-        return
-            (b_ == nullptr) ?
-            (
-                other.b_ == nullptr ||
-                other.it_ == net::buffer_sequence_end(other.b_->bs_)
-            ):(
-                (other.b_ == nullptr) ?
-                (
-                    it_ == net::buffer_sequence_end(b_->bs_)
-                ): (
-                    b_ == other.b_ &&
-                    it_ == other.it_
-                )
-            );
+        return b_ == other.b_ && it_ == other.it_;
     }
 
     bool

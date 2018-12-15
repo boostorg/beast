@@ -11,6 +11,7 @@ Version 200
 * Add buffers_iterator_type trait
 * Use new buffer traits, remove old unused traits
 * Optimize for size on buffers_cat preconditions
+* Refactor buffers_suffix
 
 API Changes:
 

@@ -72,20 +72,15 @@ class buffers_suffix
 public:
     /** The type for each element in the list of buffers.
 
-        If the buffers in the underlying sequence are convertible to
-        `net::mutable_buffer`, then this type will be
-        `net::mutable_buffer`, else this type will be
-        `net::const_buffer`.
+        If the wrapped buffer sequence is a mutable buffer sequence,
+        then this type will be `net::mutable_buffer`. Otherwise,
+        otherwise this type will be `net::const_buffer`.
     */
 #if BOOST_BEAST_DOXYGEN
     using value_type = __implementation_defined__;
 #else
-    using value_type = typename std::conditional<
-        std::is_convertible<typename
-            std::iterator_traits<iter_type>::value_type,
-                net::mutable_buffer>::value,
-                    net::mutable_buffer,
-                        net::const_buffer>::type;
+    using value_type = buffers_type<
+        typename std::decay<BufferSequence>::type>;
 #endif
 
 #if BOOST_BEAST_DOXYGEN
@@ -119,6 +114,7 @@ public:
         @param args Arguments forwarded to the buffers constructor.
     */
     template<class... Args>
+    explicit
     buffers_suffix(boost::in_place_init_t, Args&&... args);
 
     /// Assignment
