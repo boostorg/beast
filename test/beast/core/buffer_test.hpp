@@ -18,7 +18,6 @@
 #include <boost/beast/core/type_traits.hpp>
 #include <boost/beast/core/detail/type_traits.hpp>
 #include <boost/asio/buffer.hpp>
-#include <boost/asio/buffers_iterator.hpp>
 #include <boost/assert.hpp>
 #include <algorithm>
 #include <string>
@@ -347,6 +346,24 @@ struct is_mutable_dynamic_buffer<T, detail::void_t<decltype(
 
 namespace detail {
 
+template<class MutableBufferSequence>
+void
+buffers_fill(
+    MutableBufferSequence const& buffers,
+    char c)
+{
+    auto const end =
+        net::buffer_sequence_end(buffers);
+    for(auto it = net::buffer_sequence_begin(buffers);
+        it != end; ++it)
+    {
+        net::mutable_buffer b(*it);
+        std::fill(
+            static_cast<char*>(b.data()),
+            static_cast<char*>(b.data()) + b.size(), c);
+    }
+}
+
 template<class MutableDynamicBuffer>
 void
 test_mutable_dynamic_buffer(
@@ -369,6 +386,11 @@ test_mutable_dynamic_buffer(
         net::is_mutable_buffer_sequence<typename
             MutableDynamicBuffer::mutable_data_type>::value);
 
+    BOOST_STATIC_ASSERT(
+        std::is_convertible<
+            typename MutableDynamicBuffer::mutable_data_type,
+            typename MutableDynamicBuffer::const_buffers_type>::value);
+
     string_view src = "Hello, world!";
     if(src.size() > b0.max_size())
         src = {src.data(), b0.max_size()};
@@ -377,11 +399,8 @@ test_mutable_dynamic_buffer(
     {
         MutableDynamicBuffer b(b0);
         auto const mb = b.prepare(src.size());
-        using iter_type = net::buffers_iterator<decltype(mb)>;
         SUITE_EXPECT(test, buffer_size(mb) == src.size());
-        std::fill(
-            iter_type::begin(mb),
-            iter_type::end(mb), '*');
+        buffers_fill(mb, '*');
         b.commit(src.size());
         SUITE_EXPECT(test, b.size() == src.size());
         SUITE_EXPECT(test,

@@ -12,6 +12,7 @@ Version 200
 * Use new buffer traits, remove old unused traits
 * Optimize for size on buffers_cat preconditions
 * Refactor buffers_suffix
+* Tidy up flat_buffer tests
 
 API Changes:
 
