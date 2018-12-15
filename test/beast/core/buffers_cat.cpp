@@ -119,26 +119,27 @@ public:
         net::const_buffer b3{" world!", 7};
 
         auto const b = beast::buffers_cat(b1, b2, b3);
+        using type = decltype(b);
 
         // Dereferencing a default-constructed iterator
         checkException(
             []
             {
-                *(decltype(b)::const_iterator{});
+                *(type::const_iterator{});
             });
 
         // Incrementing a default-constructed iterator
         checkException(
             []
             {
-                ++(decltype(b)::const_iterator{});
+                ++(type::const_iterator{});
             });
 
         // Decrementing a default-constructed iterator
         checkException(
             []
             {
-                --(decltype(b)::const_iterator{});
+                --(type::const_iterator{});
             });
 
         // Decrementing an iterator to the beginning
@@ -270,11 +271,10 @@ public:
                 net::const_buffer{"lo", 2},
                 e1,
                 net::const_buffer{", ", 2} }};
-            auto b3 = std::array<net::const_buffer, 3>{
+            auto b3 = std::array<net::const_buffer, 3>{{
                 net::const_buffer{"w", 1},
                 net::const_buffer{"orld!", 5},
-                e1
-            };
+                e1 }};
             {
                 auto const b = beast::buffers_cat(
                     e2, b1, e2, b2, e2, b3, e2);

@@ -10,6 +10,7 @@ Version 200
 * Add const and mutable buffer sequence traits
 * Add buffers_iterator_type trait
 * Use new buffer traits, remove old unused traits
+* Optimize for size on buffers_cat preconditions
 
 API Changes:
 

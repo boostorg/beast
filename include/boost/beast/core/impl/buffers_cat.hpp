@@ -14,7 +14,6 @@
 #include <boost/beast/core/detail/type_traits.hpp>
 #include <boost/beast/core/detail/variant.hpp>
 #include <boost/asio/buffer.hpp>
-#include <boost/throw_exception.hpp>
 #include <cstdint>
 #include <iterator>
 #include <new>
@@ -23,6 +22,45 @@
 
 namespace boost {
 namespace beast {
+
+#if defined(_MSC_VER) && ! defined(__clang__)
+# define BOOST_BEAST_UNREACHABLE() __assume(false)
+# define BOOST_BEAST_UNREACHABLE_RETURN(v) __assume(false)
+#else
+# define BOOST_BEAST_UNREACHABLE() __builtin_unreachable()
+# define BOOST_BEAST_UNREACHABLE_RETURN(v) \
+    do { __builtin_unreachable(); return v; } while(false)
+#endif
+
+#ifdef BOOST_BEAST_TESTS
+
+#define BOOST_BEAST_LOGIC_ERROR(s) \
+    do { \
+        BOOST_THROW_EXCEPTION(std::logic_error((s))); \
+        BOOST_BEAST_UNREACHABLE(); \
+    } while(false)
+
+#define BOOST_BEAST_LOGIC_ERROR_RETURN(v, s) \
+    do { \
+        BOOST_THROW_EXCEPTION(std::logic_error(s)); \
+        BOOST_BEAST_UNREACHABLE_RETURN(v); \
+    } while(false)
+
+#else
+
+#define BOOST_BEAST_LOGIC_ERROR(s) \
+    do { \
+        BOOST_ASSERT_MSG(false, s); \
+        BOOST_BEAST_UNREACHABLE(); \
+    } while(false)
+
+#define BOOST_BEAST_LOGIC_ERROR_RETURN(v, s) \
+    do { \
+        BOOST_ASSERT_MSG(false, (s)); \
+        BOOST_BEAST_UNREACHABLE_RETURN(v); \
+    } while(false)
+
+#endif
 
 namespace detail {
 
@@ -35,9 +73,8 @@ struct buffers_cat_view_iterator_base
         net::mutable_buffer
         operator*() const
         {
-            // Dereferencing a one-past-the-end iterator
-            BOOST_THROW_EXCEPTION(std::logic_error{
-                "invalid iterator"});
+            BOOST_BEAST_LOGIC_ERROR_RETURN({},
+                "Dereferencing a one-past-the-end iterator");
         }
 
         operator bool() const noexcept
@@ -115,13 +152,11 @@ private:
     {
         const_iterator const& self;
 
-        [[noreturn]]
         reference
         operator()(mp11::mp_size_t<0>)
         {
-            // Dereferencing a default-constructed iterator
-            BOOST_THROW_EXCEPTION(std::logic_error{
-                "invalid iterator"});
+            BOOST_BEAST_LOGIC_ERROR_RETURN({},
+                "Dereferencing a default-constructed iterator");
         }
 
         template<class I>
@@ -135,13 +170,11 @@ private:
     {
         const_iterator& self;
 
-        [[noreturn]]
         void
         operator()(mp11::mp_size_t<0>)
         {
-            // Incrementing a default-constructed iterator
-            BOOST_THROW_EXCEPTION(std::logic_error{
-                "invalid iterator"});
+            BOOST_BEAST_LOGIC_ERROR(
+                "Incrementing a default-constructed iterator");
         }
 
         template<std::size_t I>
@@ -198,13 +231,11 @@ private:
             self.it_.template emplace<I+1>();
         }
 
-        [[noreturn]]
         void
         operator()(mp11::mp_size_t<sizeof...(Bn)+1>)
         {
-            // Incrementing a one-past-the-end iterator
-            BOOST_THROW_EXCEPTION(std::logic_error{
-                "invalid iterator"});
+            BOOST_BEAST_LOGIC_ERROR(
+                "Incrementing a one-past-the-end iterator");
         }
     };
 
@@ -212,13 +243,11 @@ private:
     {
         const_iterator& self;
 
-        [[noreturn]]
         void
         operator()(mp11::mp_size_t<0>)
         {
-            // Decrementing a default-constructed iterator
-            BOOST_THROW_EXCEPTION(std::logic_error{
-                "invalid iterator"});
+            BOOST_BEAST_LOGIC_ERROR(
+                "Decrementing a default-constructed iterator");
         }
 
         void
@@ -232,9 +261,8 @@ private:
                 if(it == net::buffer_sequence_begin(
                         detail::get<I-1>(*self.bn_)))
                 {
-                    // Decrementing an iterator to the beginning
-                    BOOST_THROW_EXCEPTION(std::logic_error{
-                        "invalid iterator"});
+                    BOOST_BEAST_LOGIC_ERROR(
+                        "Decrementing an iterator to the beginning");
                 }
                 --it;
                 if(net::const_buffer(*it).size() > 0)
