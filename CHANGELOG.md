@@ -4,6 +4,7 @@ Version 200
 * Tidy up msvc-14 workaround in multi_buffer
 * buffers_cat fixes and coverage
 * Refactor buffers_adaptor
+* Refactor buffers_range
 
 API Changes:
 
