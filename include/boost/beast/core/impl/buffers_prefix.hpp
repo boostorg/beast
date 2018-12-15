@@ -26,7 +26,7 @@ class buffers_prefix_view<Buffers>::const_iterator
     friend class buffers_prefix_view<Buffers>;
 
     buffers_prefix_view const* b_ = nullptr;
-    std::size_t remain_;
+    std::size_t remain_ = 0;
     iter_type it_;
 
 public:
@@ -49,20 +49,7 @@ public:
     bool
     operator==(const_iterator const& other) const
     {
-        return
-            (b_ == nullptr) ?
-            (
-                other.b_ == nullptr ||
-                other.it_ == other.b_->end_
-            ):(
-                (other.b_ == nullptr) ?
-                (
-                    it_ == b_->end_
-                ): (
-                    b_ == other.b_ &&
-                    it_ == other.it_
-                )
-            );
+        return b_ == other.b_ && it_ == other.it_;
     }
 
     bool
@@ -111,16 +98,18 @@ public:
     }
 
 private:
-    const_iterator(buffers_prefix_view const& b,
-            std::true_type)
+    const_iterator(
+        buffers_prefix_view const& b,
+        std::true_type)
         : b_(&b)
         , remain_(b.remain_)
         , it_(b_->end_)
     {
     }
 
-    const_iterator(buffers_prefix_view const& b,
-            std::false_type)
+    const_iterator(
+        buffers_prefix_view const& b,
+        std::false_type)
         : b_(&b)
         , remain_(b_->size_)
         , it_(net::buffer_sequence_begin(b_->bs_))
@@ -222,18 +211,22 @@ buffers_prefix_view(
 
 template<class Buffers>
 auto
-buffers_prefix_view<Buffers>::begin() const ->
+buffers_prefix_view<Buffers>::
+begin() const ->
     const_iterator
 {
-    return const_iterator{*this, std::false_type{}};
+    return const_iterator{
+        *this, std::false_type{}};
 }
 
 template<class Buffers>
 auto
-buffers_prefix_view<Buffers>::end() const ->
+buffers_prefix_view<Buffers>::
+end() const ->
     const_iterator
 {
-    return const_iterator{*this, std::true_type{}};
+    return const_iterator{
+        *this, std::true_type{}};
 }
 
 template<class Buffers>

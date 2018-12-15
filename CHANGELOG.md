@@ -6,6 +6,7 @@ Version 200
 * Refactor buffers_adaptor
 * Refactor buffers_range
 * Fix and refactor buffers_cat
+* Refactor buffers_prefix
 
 API Changes:
 
