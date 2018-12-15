@@ -78,7 +78,7 @@ public:
         `net::const_buffer`.
     */
 #if BOOST_BEAST_DOXYGEN
-    using value_type = __implementation_defined__;
+    using value_type = __see_below__;
 #elif 0
     using value_type = typename std::conditional<
         std::is_convertible<typename
@@ -121,6 +121,7 @@ public:
         @param args Arguments forwarded to the buffers constructor.
     */
     template<class... Args>
+    explicit
     buffers_suffix(boost::in_place_init_t, Args&&... args);
 
     /// Assignment

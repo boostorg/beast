@@ -49,9 +49,7 @@ public:
         std::bidirectional_iterator_tag;
 
     const_iterator() = default;
-    const_iterator(const_iterator&& other) = default;
     const_iterator(const_iterator const& other) = default;
-    const_iterator& operator=(const_iterator&& other) = default;
     const_iterator& operator=(const_iterator const& other) = default;
 
     bool
@@ -69,9 +67,9 @@ public:
     reference
     operator*() const
     {
-        return it_ == b_->begin_
-            ? value_type{*it_} + b_->skip_
-            : *it_;
+        if(it_ == b_->begin_)
+            return value_type(*it_) + b_->skip_;
+        return value_type{*it_};
     }
 
     pointer

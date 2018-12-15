@@ -13,7 +13,6 @@
 #include "buffer_test.hpp"
 
 #include <boost/beast/core/buffers_cat.hpp>
-#include <boost/beast/core/ostream.hpp>
 #include <boost/beast/_experimental/unit_test/suite.hpp>
 #include <boost/asio/buffer.hpp>
 #include <string>
@@ -24,6 +23,74 @@ namespace beast {
 class buffers_suffix_test : public beast::unit_test::suite
 {
 public:
+    void
+    testBufferSequence()
+    {
+        // mutable
+        {
+            char buf[13];
+            auto b = buffers_triple(buf, sizeof(buf));
+            buffers_suffix<decltype(b)> bs(b);
+            test_buffer_sequence(*this, bs);
+        }
+
+        // const
+        {
+            string_view src = "Hello, world!";
+            std::array<net::const_buffer, 3> b{{
+                net::const_buffer(src.data(),     3),
+                net::const_buffer(src.data() + 3, 4),
+                net::const_buffer(src.data() + 7, 6) }};
+            buffers_suffix<decltype(b)> bs(b);
+            test_buffer_sequence(*this, bs);
+        }
+    }
+
+    void
+    testSpecial()
+    {
+        // default construction
+        {
+            class test_buffer
+                : public net::const_buffer
+            {
+            public:
+                test_buffer()
+                    : net::const_buffer("\r\n", 2)
+                {
+                }
+            };
+
+            buffers_suffix<test_buffer> cb;
+            BEAST_EXPECT(buffers_to_string(cb) == "\r\n");
+            cb.consume(1);
+            BEAST_EXPECT(buffers_to_string(cb) == "\n");
+        }
+
+        // in-place init
+        {
+            using namespace test;
+            buffers_suffix<buffers_cat_view<
+                net::const_buffer,
+                net::const_buffer>> cb(
+                    boost::in_place_init,
+                        net::const_buffer("\r", 1),
+                        net::const_buffer("\n", 1));
+            BEAST_EXPECT(buffers_to_string(cb) == "\r\n");
+        }
+
+        // empty sequence
+        {
+            using net::buffer_size;
+            buffers_suffix<net::mutable_buffer> cb(
+                net::mutable_buffer{});
+            BEAST_EXPECT(buffer_size(cb) == 0);
+            buffers_suffix<net::mutable_buffer> cb2(
+                net::mutable_buffer{});
+            BEAST_EXPECT(net::buffer_copy(cb2, cb) == 0);
+        }
+    }
+
     template<class BufferSequence>
     static
     buffers_suffix<BufferSequence>
@@ -43,41 +110,15 @@ public:
         return buffers_to_string(lhs) == buffers_to_string(rhs);
     }
 
-    template<class ConstBufferSequence>
-    void
-    expect_size(std::size_t n, ConstBufferSequence const& buffers)
-    {
-        BEAST_EXPECT(test::size_pre(buffers) == n);
-        BEAST_EXPECT(test::size_post(buffers) == n);
-        BEAST_EXPECT(test::size_rev_pre(buffers) == n);
-        BEAST_EXPECT(test::size_rev_post(buffers) == n);
-    }
-
-    void
-    testMembers()
-    {
-        char buf[12];
-        buffers_suffix<
-            net::const_buffer> cb1{
-                boost::in_place_init, buf, sizeof(buf)};
-        buffers_suffix<
-            net::const_buffer> cb2{
-                boost::in_place_init, nullptr, 0};
-        cb2 = cb1;
-        cb1 = std::move(cb2);
-    }
-
     void
     testMatrix()
     {
-        using namespace test;
-        using net::buffer;
-        using net::const_buffer;
+        using net::buffer_size;
         char buf[12];
         std::string const s = "Hello, world";
         BEAST_EXPECT(s.size() == sizeof(buf));
-        buffer_copy(buffer(buf), buffer(s));
-        BEAST_EXPECT(buffers_to_string(buffer(buf)) == s);
+        net::buffer_copy(net::buffer(buf), net::buffer(s));
+        BEAST_EXPECT(buffers_to_string(net::buffer(buf)) == s);
         for(std::size_t i = 1; i < 4; ++i) {
         for(std::size_t j = 1; j < 4; ++j) {
         for(std::size_t x = 1; x < 4; ++x) {
@@ -85,17 +126,17 @@ public:
         std::size_t k = sizeof(buf) - (i + j);
         std::size_t z = sizeof(buf) - (x + y);
         {
-            std::array<const_buffer, 3> bs{{
-                const_buffer{&buf[0], i},
-                const_buffer{&buf[i], j},
-                const_buffer{&buf[i+j], k}}};
+            std::array<net::const_buffer, 3> bs{{
+                net::const_buffer{&buf[0], i},
+                net::const_buffer{&buf[i], j},
+                net::const_buffer{&buf[i+j], k}}};
             buffers_suffix<decltype(bs)> cb(bs);
             BEAST_EXPECT(buffers_to_string(cb) == s);
-            expect_size(s.size(), cb);
+            BEAST_EXPECT(buffer_size(cb) == s.size());
             cb.consume(0);
             BEAST_EXPECT(eq(cb, consumed_buffers(bs, 0)));
             BEAST_EXPECT(buffers_to_string(cb) == s);
-            expect_size(s.size(), cb);
+            BEAST_EXPECT(buffer_size(cb) == s.size());
             cb.consume(x);
             BEAST_EXPECT(buffers_to_string(cb) == s.substr(x));
             BEAST_EXPECT(eq(cb, consumed_buffers(bs, x)));
@@ -111,71 +152,13 @@ public:
         }
         }}}}
     }
-    
-    void
-    testDefaultCtor()
-    {
-        using namespace test;
-        class test_buffer : public net::const_buffer
-        {
-        public:
-            test_buffer()
-                : net::const_buffer("\r\n", 2)
-            {
-            }
-        };
-
-        buffers_suffix<test_buffer> cb;
-        BEAST_EXPECT(buffers_to_string(cb) == "\r\n");
-    }
 
     void
-    testInPlace()
+    run() override
     {
-        using namespace test;
-        buffers_suffix<buffers_cat_view<
-            net::const_buffer,
-            net::const_buffer>> cb(
-                boost::in_place_init,
-                    net::const_buffer("\r", 1),
-                    net::const_buffer("\n", 1));
-        BEAST_EXPECT(buffers_to_string(cb) == "\r\n");
-    }
-
-    void
-    testEmptyBuffers()
-    {
-        using net::buffer_copy;
-        using net::buffer_size;
-        using net::mutable_buffer;
-        buffers_suffix<mutable_buffer> cb(
-            mutable_buffer{});
-        BEAST_EXPECT(buffer_size(cb) == 0);
-        buffers_suffix<mutable_buffer> cb2(
-            mutable_buffer{});
-        BEAST_EXPECT(buffer_copy(cb2, cb) == 0);
-    }
-
-    void
-    testIterator()
-    {
-        using net::const_buffer;
-        std::array<const_buffer, 3> ba;
-        buffers_suffix<decltype(ba)> cb(ba);
-        std::size_t n = 0;
-        for(auto it = cb.end(); it != cb.begin(); --it)
-            ++n;
-        BEAST_EXPECT(n == 3);
-    }
-
-    void run() override
-    {
-        testMembers();
+        testBufferSequence();
+        testSpecial();
         testMatrix();
-        testDefaultCtor();
-        testInPlace();
-        testEmptyBuffers();
-        testIterator();
     }
 };
 
