@@ -7,6 +7,7 @@ Version 200
 * Refactor buffers_range
 * Fix and refactor buffers_cat
 * Refactor buffers_prefix
+* Add const and mutable buffer sequence traits
 
 API Changes:
 

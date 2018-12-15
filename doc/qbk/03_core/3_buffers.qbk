@@ -160,4 +160,34 @@ output streams.
 ]]
 ]
 
+These type traits are provided to facilitate writing compile-time
+metafunctions which operate on buffers:
+
+[table Buffer Algorithms and Types
+[[Name][Description]]
+[[
+    [link beast.ref.boost__beast__buffers_type `buffers_type`]
+][
+    This metafunction is used to determine the underlying buffer type for
+    a list of buffer sequence. The equivalent type of the alias will vary
+    depending on the template type argument.
+]]
+[[
+    [link beast.ref.boost__beast__is_const_buffer_sequence `is_const_buffer_sequence`]
+][
+    This metafunction is used to determine if all of the specified types
+    meet the requirements of __ConstBufferSequence__. This type alias
+    will be `std::true_type` if each specified type meets the requirements,
+    otherwise, this type alias will be `std::false_type`.
+]]
+[[
+    [link beast.ref.boost__beast__is_mutable_buffer_sequence `is_mutable_buffer_sequence`]
+][
+    This metafunction is used to determine if all of the specified types
+    meet the requirements of __MutableBufferSequence__. This type alias
+    will be `std::true_type` if each specified type meets the requirements,
+    otherwise, this type alias will be `std::false_type`.
+]]
+]
+
 [endsect]
