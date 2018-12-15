@@ -11,8 +11,8 @@
 #define BOOST_BEAST_BUFFERS_PREFIX_HPP
 
 #include <boost/beast/core/detail/config.hpp>
+#include <boost/beast/core/buffer_traits.hpp>
 #include <boost/beast/core/type_traits.hpp>
-#include <boost/asio/buffer.hpp>
 #include <boost/optional/optional.hpp> // for in_place_init_t
 #include <algorithm>
 #include <cstdint>
@@ -49,13 +49,19 @@ class buffers_prefix_view
         std::size_t dist);
 
 public:
-    /// The type for each element in the list of buffers.
-    using value_type = typename std::conditional<
-        std::is_convertible<typename
-            std::iterator_traits<iter_type>::value_type,
-                net::mutable_buffer>::value,
-                    net::mutable_buffer,
-                        net::const_buffer>::type;
+    /** The type for each element in the list of buffers.
+
+        If the type of the underlying sequence is a mutable buffer
+        sequence, then `value_type` is `net::mutable_buffer`. Otherwise,
+        `value_type` is `net::const_buffer`.
+
+        @see buffers_type
+    */
+#if BOOST_BEAST_DOXYGEN
+    using value_type = __see_below__;
+#else
+    using value_type = buffers_type<ConstBufferSequence>;
+#endif
 
 #if BOOST_BEAST_DOXYGEN
     /// A bidirectional iterator type that may be used to read elements.

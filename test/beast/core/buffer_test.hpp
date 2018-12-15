@@ -205,6 +205,7 @@ void test_mutable_buffers(
 {
     using net::buffer_size;
     string_view src = "Hello, world!";
+    BOOST_ASSERT(buffer_size(b) <= src.size());
     if(src.size() > buffer_size(b))
         src = {src.data(), buffer_size(b)};
     net::buffer_copy(b, net::const_buffer(
