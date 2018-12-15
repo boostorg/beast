@@ -8,6 +8,8 @@
 #
 
 add_definitions (-DBOOST_BEAST_ALLOW_DEPRECATED)
+add_definitions (-DBOOST_BEAST_TESTS)
+
 
 add_subdirectory (core)
 add_subdirectory (experimental)
