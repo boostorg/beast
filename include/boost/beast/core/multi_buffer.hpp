@@ -40,7 +40,7 @@ namespace beast {
     desired size. The behavior and implementation of this
     container is most similar to `std::deque`.
 
-    Objects of this type meet the requirements of @b DynamicBuffer
+    Objects of this type meet the requirements of <em>DynamicBuffer</em>
     and have the following additional properties:
 
     @li A mutable buffer sequence representing the readable
@@ -90,8 +90,6 @@ class basic_multi_buffer
     using const_iter = typename list_type::const_iterator;
 
     using size_type = typename alloc_traits::size_type;
-    using const_buffer = net::const_buffer;
-    using mutable_buffer = net::mutable_buffer;
 
     using pocma = typename
         alloc_traits::propagate_on_container_move_assignment;
@@ -128,11 +126,7 @@ public:
         @ref max_size will return the largest value which may
         be passed to the allocator's `allocate` function.
     */
-    basic_multi_buffer() noexcept(default_nothrow)
-        : max_(alloc_traits::max_size(this->get()))
-        , out_(list_.end())
-    {
-    }
+    basic_multi_buffer() noexcept(default_nothrow);
 
     /** Constructor
 
@@ -143,11 +137,7 @@ public:
     */
     explicit
     basic_multi_buffer(
-        std::size_t limit) noexcept(default_nothrow)
-        : max_(limit)
-        , out_(list_.end())
-    {
-    }
+        std::size_t limit) noexcept(default_nothrow);
 
     /** Constructor
 
@@ -392,6 +382,23 @@ public:
     void
     shrink_to_fit() noexcept;
 
+    /** Deallocate all buffers and reduce capacity to zero.
+
+        This function deallocates all dynamically allocated
+        buffers, and reduces the capacity to zero without
+        affecting the maximum size. The readable and writable
+        bytes will be empty after the object is cleared.
+
+        Buffer sequences previously obtained using @ref data or
+        @ref prepare become invalid.
+
+        @par Exception Safety
+
+        No-throw guarantee.
+    */
+    void
+    clear() noexcept;
+
     /// Exchange two dynamic buffers
     template<class Alloc>
     friend
@@ -536,7 +543,6 @@ private:
     void swap(basic_multi_buffer&, std::false_type) noexcept;
     void delete_list() noexcept;
     char* alloc(std::size_t n);
-    void clear() noexcept;
     void debug_check() const;
 };
 

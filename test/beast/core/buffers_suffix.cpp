@@ -69,7 +69,6 @@ public:
 
         // in-place init
         {
-            using namespace test;
             buffers_suffix<buffers_cat_view<
                 net::const_buffer,
                 net::const_buffer>> cb(
@@ -106,8 +105,9 @@ public:
     bool
     eq(Buffers1 const& lhs, Buffers2 const& rhs)
     {
-        using namespace test;
-        return buffers_to_string(lhs) == buffers_to_string(rhs);
+        return
+            buffers_to_string(lhs) ==
+            buffers_to_string(rhs);
     }
 
     void

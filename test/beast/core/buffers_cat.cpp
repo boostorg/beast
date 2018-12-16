@@ -28,17 +28,6 @@ namespace beast {
 class buffers_cat_test : public unit_test::suite
 {
 public:
-    template<class ConstBufferSequence>
-    static
-    std::size_t
-    buffers_length(
-        ConstBufferSequence const& buffers)
-    {
-        return std::distance(
-            net::buffer_sequence_begin(buffers),
-            net::buffer_sequence_end(buffers));
-    }
-
     void
     testDefaultIterators()
     {

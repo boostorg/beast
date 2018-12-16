@@ -87,7 +87,6 @@ public:
     void
     testStaticBuffer()
     {
-        using namespace test;
         using net::buffer;
         using net::buffer_size;
         char buf[12];
@@ -195,7 +194,6 @@ public:
     void
     testBuffer()
     {
-        using namespace test;
         string_view const s = "Hello, world!";
         
         // static_buffer_base
@@ -234,9 +232,9 @@ public:
         // cause memmove
         {
             static_buffer<10> b;
-            write_buffer(b, "12345");
+            ostream(b) << "12345";
             b.consume(3);
-            write_buffer(b, "67890123");
+            ostream(b) << "67890123";
             BEAST_EXPECT(buffers_to_string(b.data()) == "4567890123");
             try
             {
