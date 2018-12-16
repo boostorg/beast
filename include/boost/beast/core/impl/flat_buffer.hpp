@@ -30,9 +30,10 @@ template<class Allocator>
 basic_flat_buffer<Allocator>::
 ~basic_flat_buffer()
 {
-    if(begin_)
-        alloc_traits::deallocate(
-            this->get(), begin_, capacity());
+    if(! begin_)
+        return;
+    alloc_traits::deallocate(
+        this->get(), begin_, capacity());
 }
 
 template<class Allocator>
@@ -124,24 +125,23 @@ basic_flat_buffer(
         max_ = other.max_;
         copy_from(other);
         other.clear();
+        return;
     }
-    else
-    {
-        begin_ = other.begin_;
-        in_ = other.in_;
-        out_ = other.out_;
-        last_ = other.out_; // invalidate
-        end_ = other.end_;
-        max_ = other.max_;
-        BOOST_ASSERT(
-            alloc_traits::max_size(this->get()) ==
-            alloc_traits::max_size(other.get()));
-        other.begin_ = nullptr;
-        other.in_ = nullptr;
-        other.out_ = nullptr;
-        other.last_ = nullptr;
-        other.end_ = nullptr;
-    }
+
+    begin_ = other.begin_;
+    in_ = other.in_;
+    out_ = other.out_;
+    last_ = other.out_; // invalidate
+    end_ = other.end_;
+    max_ = other.max_;
+    BOOST_ASSERT(
+        alloc_traits::max_size(this->get()) ==
+        alloc_traits::max_size(other.get()));
+    other.begin_ = nullptr;
+    other.in_ = nullptr;
+    other.out_ = nullptr;
+    other.last_ = nullptr;
+    other.end_ = nullptr;
 }
 
 template<class Allocator>
@@ -217,8 +217,9 @@ basic_flat_buffer<Allocator>::
 operator=(basic_flat_buffer&& other) noexcept ->
     basic_flat_buffer&
 {
-    if(this != &other)
-        move_assign(other, pocma{});
+    if(this == &other)
+        return *this;
+    move_assign(other, pocma{});
     return *this;
 }
 
@@ -228,8 +229,9 @@ basic_flat_buffer<Allocator>::
 operator=(basic_flat_buffer const& other) ->
     basic_flat_buffer&
 {
-    if(this != &other)
-        copy_assign(other, pocca{});
+    if(this == &other)
+        return *this;
+    copy_assign(other, pocca{});
     return *this;
 }
 

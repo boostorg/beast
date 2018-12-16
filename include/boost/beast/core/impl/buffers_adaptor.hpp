@@ -99,7 +99,7 @@ class buffers_adaptor<MutableBufferSequence>::
       readable_bytes<isMutable>::
       const_iterator
 {
-    iter_type it_;
+    iter_type it_{};
     buffers_adaptor const* b_ = nullptr;
 
 public:
@@ -245,7 +245,7 @@ template<class MutableBufferSequence>
 class buffers_adaptor<MutableBufferSequence>::
 mutable_buffers_type::const_iterator
 {
-    iter_type it_;
+    iter_type it_{};
     buffers_adaptor const* b_ = nullptr;
 
 public:
@@ -428,6 +428,8 @@ buffers_adaptor<MutableBufferSequence>::
 operator=(buffers_adaptor const& other) ->
     buffers_adaptor&
 {
+    if(this == &other)
+        return *this;
     auto const nbegin = std::distance<iter_type>(
         net::buffer_sequence_begin(other.bs_),
             other.begin_);
