@@ -13,6 +13,7 @@
 #include "buffer_test.hpp"
 
 #include <boost/beast/core/ostream.hpp>
+#include <boost/beast/core/read_size.hpp>
 #include <boost/beast/core/string.hpp>
 #include <boost/beast/_experimental/unit_test/suite.hpp>
 #include <boost/asio/buffers_iterator.hpp>

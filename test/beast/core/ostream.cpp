@@ -11,6 +11,8 @@
 #include <boost/beast/core/ostream.hpp>
 
 #include <boost/beast/core/buffers_to_string.hpp>
+#include <boost/beast/core/flat_buffer.hpp>
+#include <boost/beast/core/flat_static_buffer.hpp>
 #include <boost/beast/core/multi_buffer.hpp>
 #include <boost/beast/_experimental/unit_test/suite.hpp>
 #include <ostream>
@@ -22,30 +24,53 @@ class ostream_test : public beast::unit_test::suite
 {
 public:
     void
-    run() override
+    testOstream()
     {
+        string_view const s = "0123456789abcdef";
+        BEAST_EXPECT(s.size() == 16);
+
+        // overflow
         {
-            multi_buffer b;
-            auto os = ostream(b);
-            os << "Hello, world!\n";
-            os.flush();
-            BEAST_EXPECT(buffers_to_string(b.data()) == "Hello, world!\n");
-            auto os2 = std::move(os);
-        }
-        {
-            auto const s =
-                "0123456789abcdef" "0123456789abcdef" "0123456789abcdef" "0123456789abcdef" 
-                "0123456789abcdef" "0123456789abcdef" "0123456789abcdef" "0123456789abcdef" 
-                "0123456789abcdef" "0123456789abcdef" "0123456789abcdef" "0123456789abcdef" 
-                "0123456789abcdef" "0123456789abcdef" "0123456789abcdef" "0123456789abcdef" 
-                "0123456789abcdef" "0123456789abcdef" "0123456789abcdef" "0123456789abcdef" 
-                "0123456789abcdef" "0123456789abcdef" "0123456789abcdef" "0123456789abcdef" 
-                "0123456789abcdef" "0123456789abcdef" "0123456789abcdef" "0123456789abcdef" 
-                "0123456789abcdef" "0123456789abcdef" "0123456789abcdef" "0123456789abcdef";
-            multi_buffer b;
+            flat_static_buffer<16> b;
             ostream(b) << s;
             BEAST_EXPECT(buffers_to_string(b.data()) == s);
         }
+
+        // max_size
+        {
+            flat_static_buffer<16> b;
+            auto os = ostream(b);
+            os << s;
+            os << '*';
+            BEAST_EXPECT(os.bad());
+        }
+
+        // max_size (exception
+        {
+            flat_static_buffer<16> b;
+            auto os = ostream(b);
+            os.exceptions(os.badbit);
+            os << s;
+            try
+            {
+                os << '*';
+                fail("missing exception", __FILE__, __LINE__);
+            }
+            catch(std::ios_base::failure const&)
+            {
+                pass();
+            }
+            catch(...)
+            {
+                fail("wrong exception", __FILE__, __LINE__);
+            }
+        }
+    }
+
+    void
+    run() override
+    {
+        testOstream();
     }
 };
 
