@@ -148,10 +148,11 @@ class basic_multi_buffer<Allocator>::readable_bytes
     }
 
 public:
-    using value_type = typename std::conditional<
-        isMutable,
-        net::mutable_buffer,
-        net::const_buffer>::type;
+    using value_type = typename
+        std::conditional<
+            isMutable,
+            net::mutable_buffer,
+            net::const_buffer>::type;
 
     class const_iterator;
 
@@ -228,9 +229,7 @@ public:
         std::bidirectional_iterator_tag;
 
     const_iterator() = default;
-    const_iterator(const_iterator&& other) = default;
     const_iterator(const_iterator const& other) = default;
-    const_iterator& operator=(const_iterator&& other) = default;
     const_iterator& operator=(const_iterator const& other) = default;
 
     const_iterator(
@@ -314,7 +313,7 @@ class basic_multi_buffer<Allocator>::mutable_buffers_type
     }
 
 public:
-    using value_type = mutable_buffer;
+    using value_type = net::mutable_buffer;
 
     class const_iterator;
 
@@ -335,8 +334,8 @@ class basic_multi_buffer<Allocator>::mutable_buffers_type::const_iterator
     typename list_type::const_iterator it_;
 
 public:
-    using value_type =
-        typename mutable_buffers_type::value_type;
+    using value_type = typename
+        mutable_buffers_type::value_type;
     using pointer = value_type const*;
     using reference = value_type;
     using difference_type = std::ptrdiff_t;
@@ -344,9 +343,7 @@ public:
         std::bidirectional_iterator_tag;
 
     const_iterator() = default;
-    const_iterator(const_iterator&& other) = default;
     const_iterator(const_iterator const& other) = default;
-    const_iterator& operator=(const_iterator&& other) = default;
     const_iterator& operator=(const_iterator const& other) = default;
 
     const_iterator(
@@ -466,6 +463,23 @@ basic_multi_buffer<Allocator>::
 ~basic_multi_buffer()
 {
     delete_list();
+}
+
+template<class Allocator>
+basic_multi_buffer<Allocator>::
+basic_multi_buffer() noexcept(default_nothrow)
+    : max_(alloc_traits::max_size(this->get()))
+    , out_(list_.end())
+{
+}
+
+template<class Allocator>
+basic_multi_buffer<Allocator>::
+basic_multi_buffer(
+    std::size_t limit) noexcept(default_nothrow)
+    : max_(limit)
+    , out_(list_.end())
+{
 }
 
 template<class Allocator>
@@ -672,6 +686,8 @@ void
 basic_multi_buffer<Allocator>::
 reserve(std::size_t n)
 {
+    // VFALCO The amount needs to be adjusted for
+    //        the sizeof(element) plus padding
     if(n > alloc_traits::max_size(this->get()))
         BOOST_THROW_EXCEPTION(std::length_error(
             "A basic_multi_buffer exceeded the allocator's maximum size"));
@@ -683,16 +699,17 @@ reserve(std::size_t n)
         total += out_->size() - out_pos_;
         if(n <= total)
             return;
-        auto it = out_;
-        while(++it != list_.end())
+        for(auto it = out_;;)
         {
+            if(++it == list_.end())
+                break;
             total += it->size();
             if(n <= total)
                 return;
         }
     }
     BOOST_ASSERT(n > total);
-    (void)prepare(n - total);
+    (void)prepare(n - size());
 }
 
 template<class Allocator>
@@ -718,14 +735,28 @@ shrink_to_fit() noexcept
 }
 
 template<class Allocator>
+void
+basic_multi_buffer<Allocator>::
+clear() noexcept
+{
+    delete_list();
+    list_.clear();
+    out_ = list_.end();
+    in_size_ = 0;
+    in_pos_ = 0;
+    out_pos_ = 0;
+    out_end_ = 0;
+}
+
+template<class Allocator>
 auto
 basic_multi_buffer<Allocator>::
 prepare(size_type n) ->
     mutable_buffers_type
 {
-    if(in_size_ + n > max_)
+    if(in_size_ > max_ || n > (max_ - in_size_))
         BOOST_THROW_EXCEPTION(std::length_error{
-            "A basic_multi_buffer exceeded its maximum size"});
+            "basic_multi_buffer too long"});
     list_type reuse;
     std::size_t total = in_size_;
     // put all empty buffers on reuse list
@@ -946,22 +977,6 @@ copy_from(basic_multi_buffer<OtherAlloc> const& other)
 template<class Allocator>
 void
 basic_multi_buffer<Allocator>::
-move_assign(basic_multi_buffer& other, std::false_type)
-{
-    if(this->get() != other.get())
-    {
-        copy_from(other);
-        other.clear();
-    }
-    else
-    {
-        move_assign(other, std::true_type{});
-    }
-}
-
-template<class Allocator>
-void
-basic_multi_buffer<Allocator>::
 move_assign(basic_multi_buffer& other, std::true_type) noexcept
 {
     this->get() = std::move(other.get());
@@ -981,6 +996,22 @@ move_assign(basic_multi_buffer& other, std::true_type) noexcept
     other.in_pos_ = 0;
     other.out_pos_ = 0;
     other.out_end_ = 0;
+}
+
+template<class Allocator>
+void
+basic_multi_buffer<Allocator>::
+move_assign(basic_multi_buffer& other, std::false_type)
+{
+    if(this->get() != other.get())
+    {
+        copy_from(other);
+        other.clear();
+    }
+    else
+    {
+        move_assign(other, std::true_type{});
+    }
 }
 
 template<class Allocator>
@@ -1091,20 +1122,6 @@ alloc(std::size_t n)
         BOOST_THROW_EXCEPTION(std::length_error(
             "A basic_multi_buffer exceeded the allocator's maximum size"));
     return alloc_traits::allocate(this->get(), n);
-}
-
-template<class Allocator>
-void
-basic_multi_buffer<Allocator>::
-clear() noexcept
-{
-    delete_list();
-    list_.clear();
-    out_ = list_.end();
-    in_size_ = 0;
-    in_pos_ = 0;
-    out_pos_ = 0;
-    out_end_ = 0;
 }
 
 template<class Allocator>

@@ -103,87 +103,15 @@ public:
     }
 };
 
-//------------------------------------------------------------------------------
-
-namespace test {
-
-template<class DynamicBuffer>
-void
-write_buffer(DynamicBuffer& b, string_view s)
-{
-    b.commit(net::buffer_copy(
-        b.prepare(s.size()), net::buffer(
-            s.data(), s.size())));
-}
-
 template<class ConstBufferSequence>
-typename std::enable_if<
-    net::is_const_buffer_sequence<ConstBufferSequence>::value,
-        std::size_t>::type
-buffer_count(ConstBufferSequence const& buffers)
+std::size_t
+buffers_length(
+    ConstBufferSequence const& buffers)
 {
-    return std::distance(buffers.begin(), buffers.end());
+    return std::distance(
+        net::buffer_sequence_begin(buffers),
+        net::buffer_sequence_end(buffers));
 }
-
-template<class ConstBufferSequence>
-typename std::enable_if<
-    net::is_const_buffer_sequence<ConstBufferSequence>::value,
-        std::size_t>::type
-size_pre(ConstBufferSequence const& buffers)
-{
-    std::size_t n = 0;
-    for(auto it = buffers.begin(); it != buffers.end(); ++it)
-    {
-        typename ConstBufferSequence::const_iterator it0(std::move(it));
-        typename ConstBufferSequence::const_iterator it1(it0);
-        typename ConstBufferSequence::const_iterator it2;
-        it2 = it1;
-        n += net::buffer_size(*it2);
-        it = std::move(it2);
-    }
-    return n;
-}
-
-template<class ConstBufferSequence>
-typename std::enable_if<
-    net::is_const_buffer_sequence<ConstBufferSequence>::value,
-        std::size_t>::type
-size_post(ConstBufferSequence const& buffers)
-{
-    std::size_t n = 0;
-    for(auto it = buffers.begin(); it != buffers.end(); it++)
-        n += net::buffer_size(*it);
-    return n;
-}
-
-template<class ConstBufferSequence>
-typename std::enable_if<
-    net::is_const_buffer_sequence<ConstBufferSequence>::value,
-        std::size_t>::type
-size_rev_pre(ConstBufferSequence const& buffers)
-{
-    std::size_t n = 0;
-    for(auto it = buffers.end(); it != buffers.begin();)
-        n += net::buffer_size(*--it);
-    return n;
-}
-
-template<class ConstBufferSequence>
-typename std::enable_if<
-    net::is_const_buffer_sequence<ConstBufferSequence>::value,
-        std::size_t>::type
-size_rev_post(ConstBufferSequence const& buffers)
-{
-    std::size_t n = 0;
-    for(auto it = buffers.end(); it != buffers.begin();)
-    {
-        it--;
-        n += net::buffer_size(*it);
-    }
-    return n;
-}
-
-} // test
 
 //------------------------------------------------------------------------------
 

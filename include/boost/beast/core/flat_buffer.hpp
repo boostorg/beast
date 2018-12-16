@@ -83,7 +83,7 @@ class basic_flat_buffer
 
     static
     std::size_t
-    dist(char const* first, char const* last)
+    dist(char const* first, char const* last) noexcept
     {
         return static_cast<std::size_t>(last - first);
     }
@@ -370,6 +370,23 @@ public:
     void
     shrink_to_fit();
 
+    /** Deallocate the internal buffer and reduce capacity to zero.
+
+        This function deallocates the dynamically allocated
+        internal buffer, and reduces the capacity to zero without
+        affecting the maximum size. The readable and writable
+        bytes will be empty after the object is cleared.
+
+        Buffer sequences previously obtained using @ref data or
+        @ref prepare become invalid.
+
+        @par Exception Safety
+
+        No-throw guarantee.
+    */
+    void
+    clear() noexcept;
+
     /// Exchange two dynamic buffers
     template<class Alloc>
     friend
@@ -506,7 +523,6 @@ private:
     void swap(basic_flat_buffer&, std::true_type);
     void swap(basic_flat_buffer&, std::false_type);
     char* alloc(std::size_t n);
-    void clear();
 };
 
 /// A flat buffer which uses the default allocator.

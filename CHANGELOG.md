@@ -16,6 +16,7 @@ Version 200
 * Fix ostream prepare calculation for low limits
 * Tidy up flat_static_buffer tests
 * Add more tests for dynamic buffers
+* Tidy up multi_buffer
 
 API Changes:
 

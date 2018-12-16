@@ -32,20 +32,8 @@ class multi_buffer_test : public beast::unit_test::suite
 {
 public:
     BOOST_STATIC_ASSERT(
-        net::is_dynamic_buffer<
-            multi_buffer>::value);
-    BOOST_STATIC_ASSERT(
-        net::is_const_buffer_sequence<
-            multi_buffer::const_buffers_type>::value);
-    BOOST_STATIC_ASSERT(
-        net::is_mutable_buffer_sequence<
-            multi_buffer::mutable_data_type>::value);
-    BOOST_STATIC_ASSERT(
-        net::is_mutable_buffer_sequence<
-            multi_buffer::mutable_buffers_type>::value);
-    BOOST_STATIC_ASSERT(std::is_convertible<
-        multi_buffer::mutable_data_type,
-        multi_buffer::const_buffers_type>::value);
+        is_mutable_dynamic_buffer<multi_buffer>::value);
+
 #if ! BOOST_WORKAROUND(BOOST_LIBSTDCXX_VERSION, < 50000) && \
     ! BOOST_WORKAROUND(BOOST_MSVC, < 1910)
     BOOST_STATIC_ASSERT(std::is_trivially_copyable<
@@ -57,214 +45,19 @@ public:
     template<class Alloc1, class Alloc2>
     static
     bool
-    eq(basic_multi_buffer<Alloc1> const& mb1,
+    eq( basic_multi_buffer<Alloc1> const& mb1,
         basic_multi_buffer<Alloc2> const& mb2)
     {
         return buffers_to_string(mb1.data()) ==
             buffers_to_string(mb2.data());
     }
 
-    template<class ConstBufferSequence>
     void
-    expect_size(std::size_t n, ConstBufferSequence const& buffers)
+    testDynamicBuffer()
     {
-        BEAST_EXPECT(test::size_pre(buffers) == n);
-        BEAST_EXPECT(test::size_post(buffers) == n);
-        BEAST_EXPECT(test::size_rev_pre(buffers) == n);
-        BEAST_EXPECT(test::size_rev_post(buffers) == n);
-    }
-
-    template<class U, class V>
-    static
-    void
-    self_assign(U& u, V&& v)
-    {
-        u = std::forward<V>(v);
-    }
-
-    template<class DynamicBuffer>
-    void
-    testMutableData()
-    {
-        DynamicBuffer b;
-        DynamicBuffer const& cb = b;
-        ostream(b) << "Hello";
-        BOOST_STATIC_ASSERT(
-            net::is_const_buffer_sequence<
-                decltype(cb.data())>::value &&
-            ! net::is_mutable_buffer_sequence<
-                decltype(cb.data())>::value);
-        BOOST_STATIC_ASSERT(
-            net::is_const_buffer_sequence<
-                decltype(cb.cdata())>::value &&
-            ! net::is_mutable_buffer_sequence<
-                decltype(cb.cdata())>::value);
-        BOOST_STATIC_ASSERT(
-            net::is_mutable_buffer_sequence<
-                decltype(b.data())>::value);
-
-        std::for_each(
-            net::buffers_iterator<decltype(b.data())>::begin(b.data()),
-            net::buffers_iterator<decltype(b.data())>::end(b.data()),
-            [](char& c)
-            {
-                c = static_cast<char>(std::toupper(c));
-            });
-        BEAST_EXPECT(buffers_to_string(b.data()) == "HELLO");
-        BEAST_EXPECT(buffers_to_string(b.cdata()) == "HELLO");
-    }
-
-    void
-    testMatrix1()
-    {
-        using namespace test;
-        using net::buffer;
-        std::string const s = "Hello, world";
-        BEAST_EXPECT(s.size() == 12);
-        for(std::size_t i = 1; i < 12; ++i) {
-        for(std::size_t x = 1; x < 4; ++x) {
-        for(std::size_t y = 1; y < 4; ++y) {
-        std::size_t z = s.size() - (x + y);
-        {
-            multi_buffer b;
-            b.commit(buffer_copy(b.prepare(x), buffer(s.data(), x)));
-            b.commit(buffer_copy(b.prepare(y), buffer(s.data()+x, y)));
-            b.commit(buffer_copy(b.prepare(z), buffer(s.data()+x+y, z)));
-            BEAST_EXPECT(buffers_to_string(b.data()) == s);
-            {
-                multi_buffer mb2{b};
-                BEAST_EXPECT(eq(b, mb2));
-            }
-            {
-                multi_buffer mb2;
-                mb2 = b;
-                BEAST_EXPECT(eq(b, mb2));
-            }
-            {
-                multi_buffer mb2{std::move(b)};
-                BEAST_EXPECT(buffers_to_string(mb2.data()) == s);
-                expect_size(0, b.data());
-                b = std::move(mb2);
-                BEAST_EXPECT(buffers_to_string(b.data()) == s);
-                expect_size(0, mb2.data());
-            }
-            self_assign(b, b);
-            BEAST_EXPECT(buffers_to_string(b.data()) == s);
-            self_assign(b, std::move(b));
-            BEAST_EXPECT(buffers_to_string(b.data()) == s);
-        }
-        }}}
-    }
-
-    void
-    testMatrix2()
-    {
-        using namespace test;
-        using net::buffer;
-        using net::buffer_size;
-        std::string const s = "Hello, world";
-        BEAST_EXPECT(s.size() == 12);
-        for(std::size_t i = 1; i < 12; ++i) {
-        for(std::size_t x = 1; x < 4; ++x) {
-        for(std::size_t y = 1; y < 4; ++y) {
-        for(std::size_t t = 1; t < 4; ++ t) {
-        for(std::size_t u = 1; u < 4; ++ u) {
-        std::size_t z = s.size() - (x + y);
-        std::size_t v = s.size() - (t + u);
-        {
-            multi_buffer b;
-            {
-                auto d = b.prepare(z);
-                BEAST_EXPECT(buffer_size(d) == z);
-            }
-            {
-                auto d = b.prepare(0);
-                BEAST_EXPECT(buffer_size(d) == 0);
-            }
-            {
-                auto d = b.prepare(y);
-                BEAST_EXPECT(buffer_size(d) == y);
-            }
-            {
-                auto d = b.prepare(x);
-                BEAST_EXPECT(buffer_size(d) == x);
-                b.commit(buffer_copy(d, buffer(s.data(), x)));
-            }
-            BEAST_EXPECT(b.size() == x);
-            BEAST_EXPECT(buffer_size(b.data()) == b.size());
-            {
-                auto d = b.prepare(x);
-                BEAST_EXPECT(buffer_size(d) == x);
-            }
-            {
-                auto d = b.prepare(0);
-                BEAST_EXPECT(buffer_size(d) == 0);
-            }
-            {
-                auto d = b.prepare(z);
-                BEAST_EXPECT(buffer_size(d) == z);
-            }
-            {
-                auto d = b.prepare(y);
-                BEAST_EXPECT(buffer_size(d) == y);
-                b.commit(buffer_copy(d, buffer(s.data()+x, y)));
-            }
-            b.commit(1);
-            BEAST_EXPECT(b.size() == x + y);
-            BEAST_EXPECT(buffer_size(b.data()) == b.size());
-            {
-                auto d = b.prepare(x);
-                BEAST_EXPECT(buffer_size(d) == x);
-            }
-            {
-                auto d = b.prepare(y);
-                BEAST_EXPECT(buffer_size(d) == y);
-            }
-            {
-                auto d = b.prepare(0);
-                BEAST_EXPECT(buffer_size(d) == 0);
-            }
-            {
-                auto d = b.prepare(z);
-                BEAST_EXPECT(buffer_size(d) == z);
-                b.commit(buffer_copy(d, buffer(s.data()+x+y, z)));
-            }
-            b.commit(2);
-            BEAST_EXPECT(b.size() == x + y + z);
-            BEAST_EXPECT(buffer_size(b.data()) == b.size());
-            BEAST_EXPECT(buffers_to_string(b.data()) == s);
-            b.consume(t);
-            {
-                auto d = b.prepare(0);
-                BEAST_EXPECT(buffer_size(d) == 0);
-            }
-            BEAST_EXPECT(buffers_to_string(b.data()) == s.substr(t, std::string::npos));
-            b.consume(u);
-            BEAST_EXPECT(buffers_to_string(b.data()) == s.substr(t + u, std::string::npos));
-            b.consume(v);
-            BEAST_EXPECT(buffers_to_string(b.data()) == "");
-            b.consume(1);
-            {
-                auto d = b.prepare(0);
-                BEAST_EXPECT(buffer_size(d) == 0);
-            }
-        }
-        }}}}}
-    }
-
-    void
-    testIterators()
-    {
-        using net::buffer_size;
-        multi_buffer b;
-        b.prepare(1);
-        b.commit(1);
-        b.prepare(2);
-        b.commit(2);
-        expect_size(3, b.data());
-        b.prepare(1);
-        expect_size(3, b.prepare(3));
-        b.commit(2);
+        multi_buffer b(30);
+        BEAST_EXPECT(b.max_size() == 30);
+        test_dynamic_buffer(*this, b);
     }
 
     void
@@ -294,6 +87,14 @@ public:
             {
                 unequal_t a1;
                 basic_multi_buffer<unequal_t> b{a1};
+                BEAST_EXPECT(b.get_allocator() == a1);
+                BEAST_EXPECT(b.get_allocator() != unequal_t{});
+            }
+            {
+                unequal_t a1;
+                basic_multi_buffer<unequal_t> b{500, a1};
+                BEAST_EXPECT(b.capacity() == 0);
+                BEAST_EXPECT(b.max_size() == 500);
                 BEAST_EXPECT(b.get_allocator() == a1);
                 BEAST_EXPECT(b.get_allocator() != unequal_t{});
             }
@@ -385,6 +186,18 @@ public:
                 BEAST_EXPECT(buffers_to_string(b2.data()) == "Hello");
             }
             {
+                using na_t = test::test_allocator<char,
+                    false, true, false, true, true>;
+                basic_multi_buffer<na_t> b1;
+                ostream(b1) << "Hello";
+                basic_multi_buffer<na_t> b2;
+                b2 = std::move(b1);
+                BEAST_EXPECT(b1.get_allocator() != b2.get_allocator());
+                BEAST_EXPECT(b1.size() == 0);
+                BEAST_EXPECT(b1.capacity() == 0);
+                BEAST_EXPECT(buffers_to_string(b2.data()) == "Hello");
+            }
+            {
                 // propagate_on_container_move_assignment : true
                 using pocma_t = test::test_allocator<char,
                     true, true, true, true, true>;
@@ -450,6 +263,34 @@ public:
             b.max_size(32);
             BEAST_EXPECT(b.max_size() == 32);
         }
+
+        // allocator max_size
+        {
+            basic_multi_buffer<equal_t> b;
+            auto a = b.get_allocator();
+            BOOST_STATIC_ASSERT(
+                ! std::is_const<decltype(a)>::value);
+            a->max_size = 30;
+            try
+            {
+                b.prepare(1000);
+                fail("", __FILE__, __LINE__);
+            }
+            catch(std::length_error const&)
+            {
+                pass();
+            }
+            try
+            {
+                b.reserve(1000);
+                fail("", __FILE__, __LINE__);
+            }
+            catch(std::length_error const&)
+            {
+                pass();
+            }
+        }
+
 
         // prepare
         {
@@ -527,6 +368,23 @@ public:
 
         // commit
         {
+            {
+                multi_buffer b;
+                b.prepare(16);
+                b.commit(16);
+                auto const n =
+                    b.capacity() - b.size();
+                b.prepare(n);
+                b.commit(n);
+                auto const size =
+                    b.size();
+                auto const capacity =
+                    b.capacity();
+                b.commit(1);
+                BEAST_EXPECT(b.size() == size);
+                BEAST_EXPECT(b.capacity() == capacity);
+            }
+
             multi_buffer b;
             b.prepare(1000);
             BEAST_EXPECT(b.capacity() >= 1000);
@@ -589,6 +447,21 @@ public:
             b.commit(20);
             b.reserve(50);
             BEAST_EXPECT(b.capacity() >= 50);
+            BEAST_EXPECT(b.size() > 1);
+            auto capacity = b.capacity();
+            b.reserve(b.size() - 1);
+            BEAST_EXPECT(b.capacity() == capacity);
+            b.reserve(b.capacity() + 1);
+            BEAST_EXPECT(b.capacity() > capacity);
+            capacity = b.capacity();
+            BEAST_EXPECT(buffers_length(
+                b.prepare(b.capacity() + 200)) > 1);
+            BEAST_EXPECT(b.capacity() > capacity);
+            b.reserve(b.capacity() + 2);
+            BEAST_EXPECT(b.capacity() > capacity);
+            capacity = b.capacity();
+            b.reserve(b.capacity());
+            BEAST_EXPECT(b.capacity() == capacity);
         }
 
         // shrink to fit
@@ -617,6 +490,23 @@ public:
                 b.shrink_to_fit();
                 BEAST_EXPECT(b.capacity() == 2000);
             }
+        }
+
+        // clear
+        {
+            multi_buffer b;
+            b.prepare(50);
+            BEAST_EXPECT(b.capacity() >= 50);
+            b.clear();
+            BEAST_EXPECT(b.size() == 0);
+            BEAST_EXPECT(b.capacity() == 0);
+            b.prepare(80);
+            b.commit(30);
+            BEAST_EXPECT(b.size() == 30);
+            BEAST_EXPECT(b.capacity() >= 80);
+            b.clear();
+            BEAST_EXPECT(b.size() == 0);
+            BEAST_EXPECT(b.capacity() == 0);
         }
 
         // swap
@@ -684,13 +574,157 @@ public:
     }
 
     void
+    testMatrix1()
+    {
+        using net::buffer_size;
+
+        string_view s = "Hello, world";
+        BEAST_EXPECT(s.size() == 12);
+        for(std::size_t i = 1; i < 12; ++i) {
+        for(std::size_t x = 1; x < 4; ++x) {
+        for(std::size_t y = 1; y < 4; ++y) {
+        std::size_t z = s.size() - (x + y);
+        {
+            multi_buffer b;
+            b.commit(net::buffer_copy(
+                b.prepare(x), net::buffer(s.data(), x)));
+            b.commit(net::buffer_copy(
+                b.prepare(y), net::buffer(s.data()+x, y)));
+            b.commit(net::buffer_copy(
+                b.prepare(z), net::buffer(s.data()+x+y, z)));
+            BEAST_EXPECT(buffers_to_string(b.data()) == s);
+            {
+                multi_buffer mb2{b};
+                BEAST_EXPECT(eq(b, mb2));
+            }
+            {
+                multi_buffer mb2;
+                mb2 = b;
+                BEAST_EXPECT(eq(b, mb2));
+            }
+            {
+                multi_buffer mb2{std::move(b)};
+                BEAST_EXPECT(buffers_to_string(mb2.data()) == s);
+                BEAST_EXPECT(b.size() == 0);
+                BEAST_EXPECT(buffer_size(b.data()) == 0);
+                b = std::move(mb2);
+                BEAST_EXPECT(buffers_to_string(b.data()) == s);
+                BEAST_EXPECT(mb2.size() == 0);
+                BEAST_EXPECT(buffer_size(mb2.data()) == 0);
+            }
+        }
+        }}}
+    }
+
+    void
+    testMatrix2()
+    {
+        using namespace test;
+        using net::buffer;
+        using net::buffer_size;
+        std::string const s = "Hello, world";
+        BEAST_EXPECT(s.size() == 12);
+        for(std::size_t i = 1; i < 12; ++i) {
+        for(std::size_t x = 1; x < 4; ++x) {
+        for(std::size_t y = 1; y < 4; ++y) {
+        for(std::size_t t = 1; t < 4; ++ t) {
+        for(std::size_t u = 1; u < 4; ++ u) {
+        std::size_t z = s.size() - (x + y);
+        std::size_t v = s.size() - (t + u);
+        {
+            multi_buffer b;
+            {
+                auto d = b.prepare(z);
+                BEAST_EXPECT(buffer_size(d) == z);
+            }
+            {
+                auto d = b.prepare(0);
+                BEAST_EXPECT(buffer_size(d) == 0);
+            }
+            {
+                auto d = b.prepare(y);
+                BEAST_EXPECT(buffer_size(d) == y);
+            }
+            {
+                auto d = b.prepare(x);
+                BEAST_EXPECT(buffer_size(d) == x);
+                b.commit(buffer_copy(d, buffer(s.data(), x)));
+            }
+            BEAST_EXPECT(b.size() == x);
+            BEAST_EXPECT(buffer_size(b.data()) == b.size());
+            {
+                auto d = b.prepare(x);
+                BEAST_EXPECT(buffer_size(d) == x);
+            }
+            {
+                auto d = b.prepare(0);
+                BEAST_EXPECT(buffer_size(d) == 0);
+            }
+            {
+                auto d = b.prepare(z);
+                BEAST_EXPECT(buffer_size(d) == z);
+            }
+            {
+                auto d = b.prepare(y);
+                BEAST_EXPECT(buffer_size(d) == y);
+                b.commit(buffer_copy(d, buffer(s.data()+x, y)));
+            }
+            b.commit(1);
+            BEAST_EXPECT(b.size() == x + y);
+            BEAST_EXPECT(buffer_size(b.data()) == b.size());
+            {
+                auto d = b.prepare(x);
+                BEAST_EXPECT(buffer_size(d) == x);
+            }
+            {
+                auto d = b.prepare(y);
+                BEAST_EXPECT(buffer_size(d) == y);
+            }
+            {
+                auto d = b.prepare(0);
+                BEAST_EXPECT(buffer_size(d) == 0);
+            }
+            {
+                auto d = b.prepare(z);
+                BEAST_EXPECT(buffer_size(d) == z);
+                b.commit(buffer_copy(d, buffer(s.data()+x+y, z)));
+            }
+            b.commit(2);
+            BEAST_EXPECT(b.size() == x + y + z);
+            BEAST_EXPECT(buffer_size(b.data()) == b.size());
+            BEAST_EXPECT(buffers_to_string(b.data()) == s);
+            b.consume(t);
+            {
+                auto d = b.prepare(0);
+                BEAST_EXPECT(buffer_size(d) == 0);
+            }
+            BEAST_EXPECT(buffers_to_string(b.data()) ==
+                s.substr(t, std::string::npos));
+            b.consume(u);
+            BEAST_EXPECT(buffers_to_string(b.data()) ==
+                s.substr(t + u, std::string::npos));
+            b.consume(v);
+            BEAST_EXPECT(buffers_to_string(b.data()).empty());
+            b.consume(1);
+            {
+                auto d = b.prepare(0);
+                BEAST_EXPECT(buffer_size(d) == 0);
+            }
+        }
+        }}}}}
+    }
+
+    void
     run() override
     {
+        testDynamicBuffer();
+        testMembers();
         testMatrix1();
         testMatrix2();
+#if 0
         testIterators();
-        testMembers();
         testMutableData<multi_buffer>();
+#endif
     }
 };
 

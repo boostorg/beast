@@ -254,7 +254,7 @@ reserve(std::size_t n)
 {
     if(max_ < n)
         max_ = n;
-    if(capacity() < n)
+    if(n > capacity())
         prepare(n - size());
 }
 
@@ -287,6 +287,20 @@ shrink_to_fit()
     end_ = out_;
 }
 
+template<class Allocator>
+void
+basic_flat_buffer<Allocator>::
+clear() noexcept
+{
+    alloc_traits::deallocate(
+        this->get(), begin_, size());
+    begin_ = nullptr;
+    in_ = nullptr;
+    out_ = nullptr;
+    last_ = nullptr;
+    end_ = nullptr;
+}
+
 //------------------------------------------------------------------------------
 
 template<class Allocator>
@@ -310,7 +324,11 @@ prepare(std::size_t n) ->
         // after a memmove,
         // existing capacity is sufficient
         if(len > 0)
+        {
+            BOOST_ASSERT(begin_);
+            BOOST_ASSERT(in_);
             std::memmove(begin_, in_, len);
+        }
         in_ = begin_;
         out_ = in_ + len;
         last_ = out_ + n;
@@ -375,7 +393,11 @@ copy_from(
     in_ = begin_;
     out_ = begin_ + n;
     last_ = begin_ + n;
-    std::memcpy(begin_, other.begin_, n);
+    if(begin_)
+    {
+        BOOST_ASSERT(other.begin_);
+        std::memcpy(begin_, other.begin_, n);
+    }
 }
 
 template<class Allocator>
@@ -493,20 +515,6 @@ alloc(std::size_t n)
         BOOST_THROW_EXCEPTION(std::length_error(
             "A basic_flat_buffer exceeded the allocator's maximum size"));
     return alloc_traits::allocate(this->get(), n);
-}
-
-template<class Allocator>
-void
-basic_flat_buffer<Allocator>::
-clear()
-{
-    alloc_traits::deallocate(
-        this->get(), begin_, size());
-    begin_ = nullptr;
-    in_ = nullptr;
-    out_ = nullptr;
-    last_ = nullptr;
-    end_ = nullptr;
 }
 
 } // beast
