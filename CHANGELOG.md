@@ -14,6 +14,7 @@ Version 200
 * Refactor buffers_suffix
 * Tidy up flat_buffer tests
 * Fix ostream prepare calculation for low limits
+* Tidy up flat_static_buffer tests
 
 API Changes:
 

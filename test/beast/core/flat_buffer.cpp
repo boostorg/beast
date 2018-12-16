@@ -26,6 +26,9 @@ namespace beast {
 class flat_buffer_test : public beast::unit_test::suite
 {
 public:
+    BOOST_STATIC_ASSERT(
+        is_mutable_dynamic_buffer<flat_buffer>::value);
+
     void
     testDynamicBuffer()
     {
