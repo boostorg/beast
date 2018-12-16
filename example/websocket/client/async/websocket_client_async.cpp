@@ -173,8 +173,8 @@ public:
 
         // If we get here then the connection is closed gracefully
 
-        // The buffers() function helps print a ConstBufferSequence
-        std::cout << beast::buffers(buffer_.data()) << std::endl;
+        // The make_printable() function helps print a ConstBufferSequence
+        std::cout << beast::make_printable(buffer_.data()) << std::endl;
     }
 };
 

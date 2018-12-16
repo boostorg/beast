@@ -30,6 +30,7 @@
 #include <boost/beast/core/flat_buffer.hpp>
 #include <boost/beast/core/flat_static_buffer.hpp>
 #include <boost/beast/core/handler_ptr.hpp>
+#include <boost/beast/core/make_printable.hpp>
 #include <boost/beast/core/multi_buffer.hpp>
 #include <boost/beast/core/ostream.hpp>
 #include <boost/beast/core/read_size.hpp>

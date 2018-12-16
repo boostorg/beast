@@ -214,7 +214,7 @@
           <simplelist type="vert" columns="1">
             <member><link linkend="beast.ref.boost__beast__bind_handler">bind_handler</link></member>
             <member><link linkend="beast.ref.boost__beast__bind_front_handler">bind_front_handler</link></member>
-            <member><link linkend="beast.ref.boost__beast__buffers">buffers</link></member>
+            <member><link linkend="beast.ref.boost__beast__make_printable">make_printable</link></member>
             <member><link linkend="beast.ref.boost__beast__buffers_cat">buffers_cat</link></member>
             <member><link linkend="beast.ref.boost__beast__buffers_front">buffers_front</link></member>
             <member><link linkend="beast.ref.boost__beast__buffers_prefix">buffers_prefix</link></member>

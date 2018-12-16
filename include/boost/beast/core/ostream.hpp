@@ -17,44 +17,12 @@
 #include <streambuf>
 #include <utility>
 
+#ifdef BOOST_BEAST_ALLOW_DEPRECATED
+#include <boost/beast/core/make_printable.hpp>
+#endif
+
 namespace boost {
 namespace beast {
-
-/** Return an object representing a @b ConstBufferSequence.
-
-    This function wraps a reference to a buffer sequence and permits
-    the following operation:
-
-    @li `operator<<` to `std::ostream`. No character translation is
-        performed; unprintable and null characters will be transferred
-        as-is to the output stream.
-
-    @par Example
-    @code
-        multi_buffer b;
-        ...
-        std::cout << buffers(b.data()) << std::endl;
-    @endcode
-
-    @param b An object meeting the requirements of @b ConstBufferSequence
-    to be streamed. The implementation will make a copy of this object.
-    Ownership of the underlying memory is not transferred, the application
-    is still responsible for managing its lifetime.
-*/
-template<class ConstBufferSequence>
-#if BOOST_BEAST_DOXYGEN
-__implementation_defined__
-#else
-detail::buffers_helper<ConstBufferSequence>
-#endif
-buffers(ConstBufferSequence const& b)
-{
-    static_assert(net::is_const_buffer_sequence<
-        ConstBufferSequence>::value,
-            "ConstBufferSequence requirements not met");
-    return detail::buffers_helper<
-        ConstBufferSequence>{b};
-}
 
 /** Return an output stream that formats values into a @b DynamicBuffer.
 
@@ -97,6 +65,25 @@ ostream(DynamicBuffer& buffer)
         DynamicBuffer, char, std::char_traits<char>,
             detail::basic_streambuf_movable::value>{buffer};
 }
+
+//------------------------------------------------------------------------------
+
+#ifdef BOOST_BEAST_ALLOW_DEPRECATED
+template<class T>
+detail::make_printable_adaptor<T>
+buffers(T const& t)
+{
+    return make_printable(t);
+}
+#else
+template<class T>
+void buffers(T const&)
+{
+    static_assert(sizeof(T) == 0,
+        "The function buffers() is deprecated, use make_printable() instead, "
+        "or define BOOST_BEAST_ALLOW_DEPRECATED to silence this error.");
+}
+#endif
 
 } // beast
 } // boost

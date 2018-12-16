@@ -146,7 +146,7 @@ output streams.
 [table Buffer Output Streams
 [[Name][Description]]
 [[
-    [link beast.ref.boost__beast__buffers `buffers`]
+    [link beast.ref.boost__beast__make_printable `make_printable`]
 ][
     This function wraps a __ConstBufferSequence__ so it may be
     used with `operator<<` and `std::ostream`.
