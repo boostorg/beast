@@ -13,6 +13,7 @@ Version 200
 * Optimize for size on buffers_cat preconditions
 * Refactor buffers_suffix
 * Tidy up flat_buffer tests
+* Fix ostream prepare calculation for low limits
 
 API Changes:
 

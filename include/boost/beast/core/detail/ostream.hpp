@@ -83,9 +83,7 @@ class ostream_buffer
     using traits_type = typename
         std::basic_streambuf<CharT, Traits>::traits_type;
 
-    static std::size_t constexpr max_size = 512;
-
-    DynamicBuffer& buf_;
+    DynamicBuffer& b_;
 
 public:
     ostream_buffer(ostream_buffer&&) = default;
@@ -97,8 +95,8 @@ public:
     }
 
     explicit
-    ostream_buffer(DynamicBuffer& buf)
-        : buf_(buf)
+    ostream_buffer(DynamicBuffer& b)
+        : b_(b)
     {
         prepare();
     }
@@ -130,8 +128,13 @@ private:
     void
     prepare()
     {
-        auto bs = buf_.prepare(
-            read_size_or_throw(buf_, max_size));
+        static std::size_t constexpr max_size = 65536;
+        auto const max_prepare = std::min<std::size_t>(
+            std::max<std::size_t>(
+                512, b_.capacity() - b_.size()),
+            std::min<std::size_t>(
+                max_size, b_.max_size() - b_.size()));
+        auto const bs = b_.prepare(max_prepare);
         auto const b = buffers_front(bs);
         auto const p = static_cast<CharT*>(b.data());
         this->setp(p,
@@ -141,7 +144,7 @@ private:
     void
     flush(int extra = 0)
     {
-        buf_.commit(
+        b_.commit(
             (this->pptr() - this->pbase() + extra) *
                 sizeof(CharT));
     }
@@ -162,9 +165,7 @@ class ostream_buffer
     using traits_type = typename
         std::basic_streambuf<CharT, Traits>::traits_type;
 
-    static std::size_t constexpr max_size = 512;
-
-    DynamicBuffer& buf_;
+    DynamicBuffer& b_;
 
 public:
     ostream_buffer(ostream_buffer&&) = delete;
@@ -176,8 +177,8 @@ public:
     }
 
     explicit
-    ostream_buffer(DynamicBuffer& buf)
-        : buf_(buf)
+    ostream_buffer(DynamicBuffer& b)
+        : b_(b)
     {
         prepare();
     }
@@ -209,8 +210,13 @@ private:
     void
     prepare()
     {
-        auto bs = buf_.prepare(
-            read_size_or_throw(buf_, max_size));
+        static std::size_t constexpr max_size = 65536;
+        auto const max_prepare = std::min<std::size_t>(
+            std::max<std::size_t>(
+                512, b_.capacity() - b_.size()),
+            std::min<std::size_t>(
+                max_size, b_.max_size() - b_.size()));
+        auto const bs = b_.prepare(max_prepare);
         auto const b = buffers_front(bs);
         auto const p = static_cast<CharT*>(b.data());
         this->setp(p,
@@ -220,7 +226,7 @@ private:
     void
     flush(int extra = 0)
     {
-        buf_.commit(
+        b_.commit(
             (this->pptr() - this->pbase() + extra) *
                 sizeof(CharT));
     }
@@ -242,17 +248,17 @@ class ostream_helper<
 
 public:
     explicit
-    ostream_helper(DynamicBuffer& buf);
+    ostream_helper(DynamicBuffer& b);
 
     ostream_helper(ostream_helper&& other);
 };
 
 template<class DynamicBuffer, class CharT, class Traits>
 ostream_helper<DynamicBuffer, CharT, Traits, true>::
-ostream_helper(DynamicBuffer& buf)
+ostream_helper(DynamicBuffer& b)
     : std::basic_ostream<CharT, Traits>(
         &this->osb_)
-    , osb_(buf)
+    , osb_(b)
 {
 }
 
@@ -293,11 +299,11 @@ class ostream_helper<
 {
 public:
     explicit
-    ostream_helper(DynamicBuffer& buf)
+    ostream_helper(DynamicBuffer& b)
         : ostream_helper_base<ostream_buffer<
             DynamicBuffer, CharT, Traits, false>>(
                 new ostream_buffer<DynamicBuffer,
-                    CharT, Traits, false>(buf))
+                    CharT, Traits, false>(b))
         , std::basic_ostream<CharT, Traits>(this->member.get())
     {
     }
