@@ -78,6 +78,7 @@ public:
     {
         b_[0] = *other.begin();
         b_[1] = *(other.begin() + 1);
+        return *this;
     }
 
     buffers_pair(value_type b0, value_type b1)

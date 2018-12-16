@@ -29,6 +29,15 @@ static_buffer_base(
 {
 }
 
+void
+static_buffer_base::
+clear() noexcept
+{
+    in_off_ = 0;
+    in_size_ = 0;
+    out_size_ = 0;
+}
+
 auto
 static_buffer_base::
 data() const noexcept ->
@@ -73,7 +82,7 @@ prepare(std::size_t n) ->
     using net::mutable_buffer;
     if(n > capacity_ - in_size_)
         BOOST_THROW_EXCEPTION(std::length_error{
-            "buffer overflow"});
+            "static_buffer overflow"});
     out_size_ = n;
     auto const out_off =
         (in_off_ + in_size_) % capacity_;
@@ -115,17 +124,6 @@ consume(std::size_t n) noexcept
         in_off_ = 0;
         in_size_ = 0;
     }
-}
-
-void
-static_buffer_base::
-reset(void* p, std::size_t n) noexcept
-{
-    begin_ = static_cast<char*>(p);
-    capacity_ = n;
-    in_off_ = 0;
-    in_size_ = 0;
-    out_size_ = 0;
 }
 
 //------------------------------------------------------------------------------

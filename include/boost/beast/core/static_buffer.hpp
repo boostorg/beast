@@ -73,8 +73,24 @@ public:
 
         @param size The number of valid bytes pointed to by `p`.
     */
-    inline
+    BOOST_BEAST_DECL
     static_buffer_base(void* p, std::size_t size) noexcept;
+
+    /** Clear the readable and writable bytes to zero.
+
+        This function causes the readable and writable bytes
+        to become empty. The capacity is not changed.
+
+        Buffer sequences previously obtained using @ref data or
+        @ref prepare become invalid.
+
+        @par Exception Safety
+
+        No-throw guarantee.
+    */
+    BOOST_BEAST_DECL
+    void
+    clear() noexcept;
 
     //--------------------------------------------------------------------------
 
@@ -115,7 +131,7 @@ public:
     }
 
     /// Returns a constant buffer sequence representing the readable bytes
-    inline
+    BOOST_BEAST_DECL
     const_buffers_type
     data() const noexcept;
     
@@ -127,7 +143,7 @@ public:
     }
 
     /// Returns a mutable buffer sequence representing the readable bytes
-    inline
+    BOOST_BEAST_DECL
     mutable_data_type
     data() noexcept;
 
@@ -149,7 +165,7 @@ public:
 
         Strong guarantee.
     */
-    inline
+    BOOST_BEAST_DECL
     mutable_buffers_type
     prepare(std::size_t n);
 
@@ -171,7 +187,7 @@ public:
 
         No-throw guarantee.
     */
-    inline
+    BOOST_BEAST_DECL
     void
     commit(std::size_t n) noexcept;
 
@@ -190,37 +206,9 @@ public:
 
         No-throw guarantee.
     */
-    inline
+    BOOST_BEAST_DECL
     void
     consume(std::size_t n) noexcept;
-
-protected:
-    /** Constructor
-
-        The buffer will be in an undefined state. It is necessary
-        for the derived class to call @ref reset in order to
-        initialize the object.
-    */
-    static_buffer_base() = default;
-
-    /** Reset the pointed-to buffer.
-
-        This function resets the internal state to the buffer provided.
-        All input and output sequences are invalidated. This function
-        allows the derived class to construct its members before
-        initializing the static buffer.
-
-        @param p A pointer to valid storage of at least `n` bytes.
-
-        @param size The number of valid bytes pointed to by `p`.
-
-        @par Exception Safety
-
-        No-throw guarantee.
-    */
-    inline
-    void
-    reset(void* p, std::size_t size) noexcept;
 };
 
 //------------------------------------------------------------------------------
@@ -262,13 +250,13 @@ class static_buffer : public static_buffer_base
 
 public:
     /// Constructor
-    static_buffer(static_buffer const&) noexcept;
-
-    /// Constructor
     static_buffer() noexcept
         : static_buffer_base(buf_, N)
     {
     }
+
+    /// Constructor
+    static_buffer(static_buffer const&) noexcept;
 
     /// Assignment
     static_buffer& operator=(static_buffer const&) noexcept;
