@@ -246,7 +246,7 @@ protected:
 private:
     static
     std::size_t
-    dist(char const* first, char const* last)
+    dist(char const* first, char const* last) noexcept
     {
         return static_cast<std::size_t>(last - first);
     }

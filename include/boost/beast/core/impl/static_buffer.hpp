@@ -145,6 +145,8 @@ static_buffer<N>::
 operator=(static_buffer const& other) noexcept ->
     static_buffer<N>&
 {
+    if(this == &other)
+        return *this;
     this->consume(this->size());
     this->commit(net::buffer_copy(
         this->prepare(other.size()), other.data()));

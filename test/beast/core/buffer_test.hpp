@@ -479,7 +479,7 @@ test_dynamic_buffer(
     SUITE_EXPECT(test, b0.size() == 0);
     SUITE_EXPECT(test, buffer_size(b0.data()) == 0);
 
-    // special members
+    // members
     {
         string_view src = "Hello, world!";
 
@@ -503,8 +503,8 @@ test_dynamic_buffer(
             DynamicBuffer b3(std::move(b2));
             SUITE_EXPECT(test, b3.size() == b1.size());
             SUITE_EXPECT(test,
-                buffers_to_string(b1.data()) ==
-                buffers_to_string(b3.data()));
+                buffers_to_string(b3.data()) ==
+                buffers_to_string(b1.data()));
         }
 
         // copy assignment
@@ -515,6 +515,13 @@ test_dynamic_buffer(
             SUITE_EXPECT(test,
                 buffers_to_string(b1.data()) ==
                 buffers_to_string(b2.data()));
+
+            // self assignment
+            b2 = b2;
+            SUITE_EXPECT(test, b2.size() == b1.size());
+            SUITE_EXPECT(test,
+                buffers_to_string(b2.data()) ==
+                buffers_to_string(b1.data()));
         }
 
         // move assignment
@@ -524,8 +531,30 @@ test_dynamic_buffer(
             b3 = std::move(b2);
             SUITE_EXPECT(test, b3.size() == b1.size());
             SUITE_EXPECT(test,
-                buffers_to_string(b1.data()) ==
-                buffers_to_string(b3.data()));
+                buffers_to_string(b3.data()) ==
+                buffers_to_string(b1.data()));
+
+            // self move
+            b3 = std::move(b3);
+            SUITE_EXPECT(test, b3.size() == b1.size());
+            SUITE_EXPECT(test,
+                buffers_to_string(b3.data()) ==
+                buffers_to_string(b1.data()));
+        }
+
+        // swap
+        {
+            DynamicBuffer b2(b1);
+            DynamicBuffer b3(b0);
+            SUITE_EXPECT(test, b2.size() == b1.size());
+            SUITE_EXPECT(test, b3.size() == b0.size());
+            using std::swap;
+            swap(b2, b3);
+            SUITE_EXPECT(test, b2.size() == b0.size());
+            SUITE_EXPECT(test, b3.size() == b1.size());
+            SUITE_EXPECT(test,
+                buffers_to_string(b3.data()) ==
+                buffers_to_string(b1.data()));
         }
     }
 
@@ -571,6 +600,7 @@ test_dynamic_buffer(
         }
     }
 
+    // setup source buffer
     char buf[13];
     unsigned char k0 = 0;
     string_view src(buf, sizeof(buf));
