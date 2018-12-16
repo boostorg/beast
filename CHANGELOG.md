@@ -18,6 +18,7 @@ Version 200
 * Add more tests for dynamic buffers
 * Tidy up multi_buffer
 * Refactor ostream
+* Refactor static_buffer
 
 API Changes:
 

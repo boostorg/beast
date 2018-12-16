@@ -76,7 +76,18 @@ public:
         reset(p, n);
     }
 
-    /// Change the number of readable and writable bytes to zero.
+    /** Clear the readable and writable bytes to zero.
+
+        This function causes the readable and writable bytes
+        to become empty. The capacity is not changed.
+
+        Buffer sequences previously obtained using @ref data or
+        @ref prepare become invalid.
+
+        @par Exception Safety
+
+        No-throw guarantee.
+    */
     BOOST_BEAST_DECL
     void
     clear() noexcept;
