@@ -479,6 +479,56 @@ test_dynamic_buffer(
     SUITE_EXPECT(test, b0.size() == 0);
     SUITE_EXPECT(test, buffer_size(b0.data()) == 0);
 
+    // special members
+    {
+        string_view src = "Hello, world!";
+
+        DynamicBuffer b1(b0);
+        auto const mb = b1.prepare(src.size());
+        b1.commit(net::buffer_copy(mb,
+            net::const_buffer(src.data(), src.size())));
+
+        // copy constructor
+        {
+            DynamicBuffer b2(b1);
+            SUITE_EXPECT(test, b2.size() == b1.size());
+            SUITE_EXPECT(test,
+                buffers_to_string(b1.data()) ==
+                buffers_to_string(b2.data()));
+        }
+
+        // move constructor
+        {
+            DynamicBuffer b2(b1);
+            DynamicBuffer b3(std::move(b2));
+            SUITE_EXPECT(test, b3.size() == b1.size());
+            SUITE_EXPECT(test,
+                buffers_to_string(b1.data()) ==
+                buffers_to_string(b3.data()));
+        }
+
+        // copy assignment
+        {
+            DynamicBuffer b2(b0);
+            b2 = b1;
+            SUITE_EXPECT(test, b2.size() == b1.size());
+            SUITE_EXPECT(test,
+                buffers_to_string(b1.data()) ==
+                buffers_to_string(b2.data()));
+        }
+
+        // move assignment
+        {
+            DynamicBuffer b2(b1);
+            DynamicBuffer b3(b0);
+            b3 = std::move(b2);
+            SUITE_EXPECT(test, b3.size() == b1.size());
+            SUITE_EXPECT(test,
+                buffers_to_string(b1.data()) ==
+                buffers_to_string(b3.data()));
+        }
+    }
+
     // n == 0
     {
         DynamicBuffer b(b0);
