@@ -79,18 +79,18 @@ int main(int argc, char** argv)
         ws.write(net::buffer(std::string(text)));
 
         // This buffer will hold the incoming message
-        beast::multi_buffer b;
+        beast::multi_buffer buffer;
 
         // Read a message into our buffer
-        ws.read(b);
+        ws.read(buffer);
 
         // Close the WebSocket connection
         ws.close(websocket::close_code::normal);
 
         // If we get here then the connection is closed gracefully
 
-        // The buffers() function helps print a ConstBufferSequence
-        std::cout << beast::buffers(b.data()) << std::endl;
+        // The make_printable() function helps print a ConstBufferSequence
+        std::cout << beast::make_printable(buffer.data()) << std::endl;
     }
     catch(std::exception const& e)
     {

@@ -21,13 +21,17 @@ Version 200
 
 API Changes:
 
-* buffers_adaptor is renamed (was buffers_adapter)
+* buffers_adaptor replaces buffers_adapter (rename)
+* make_printable replaces buffers (rename)
 
 Actions Required:
 
 * Replace buffers_adapter.hpp with buffers_adaptor.hpp, and
   replace buffers_adapter with buffers_adaptor. Or, define
   BOOST_BEAST_ALLOW_DEPRECATED
+
+* Replace call sites to use make_printable instead of buffers,
+  and also include make_printable.hpp instead of ostream.hpp.
 
 --------------------------------------------------------------------------------
 

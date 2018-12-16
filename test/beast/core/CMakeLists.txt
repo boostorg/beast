@@ -36,6 +36,7 @@ add_executable (tests-beast-core
     flat_buffer.cpp
     flat_static_buffer.cpp
     handler_ptr.cpp
+    make_printable.cpp
     multi_buffer.cpp
     ostream.cpp
     read_size.cpp

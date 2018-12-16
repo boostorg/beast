@@ -85,10 +85,10 @@ do_session(
         return fail(ec, "write");
 
     // This buffer will hold the incoming message
-    beast::multi_buffer b;
+    beast::multi_buffer buffer;
 
     // Read a message into our buffer
-    ws.async_read(b, yield[ec]);
+    ws.async_read(buffer, yield[ec]);
     if(ec)
         return fail(ec, "read");
 
@@ -99,8 +99,8 @@ do_session(
 
     // If we get here then the connection is closed gracefully
 
-    // The buffers() function helps print a ConstBufferSequence
-    std::cout << beast::buffers(b.data()) << std::endl;
+    // The make_printable() function helps print a ConstBufferSequence
+    std::cout << beast::make_printable(buffer.data()) << std::endl;
 }
 
 //------------------------------------------------------------------------------

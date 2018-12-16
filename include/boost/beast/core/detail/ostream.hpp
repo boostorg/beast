@@ -16,7 +16,7 @@
 #include <boost/throw_exception.hpp>
 #include <boost/asio/buffer.hpp>
 #include <memory>
-#include <iosfwd>
+#include <ostream>
 #include <streambuf>
 #include <type_traits>
 #include <utility>
@@ -24,38 +24,6 @@
 namespace boost {
 namespace beast {
 namespace detail {
-
-template<class Buffers>
-class buffers_helper
-{
-    Buffers b_;
-
-public:
-    explicit
-    buffers_helper(Buffers const& b)
-        : b_(b)
-    {
-    }
-
-    template<class B>
-    friend
-    std::ostream&
-    operator<<(std::ostream& os,
-        buffers_helper<B> const& v);
-};
-
-template<class Buffers>
-std::ostream&
-operator<<(std::ostream& os,
-    buffers_helper<Buffers> const& v)
-{
-    for(auto b : buffers_range(std::ref(v.b_)))
-        os.write(static_cast<char const*>(
-            b.data()), b.size());
-    return os;
-}
-
-//------------------------------------------------------------------------------
 
 struct basic_streambuf_movable_helper :
     std::basic_streambuf<char, std::char_traits<char>>
@@ -67,11 +35,11 @@ struct basic_streambuf_movable_helper :
 using basic_streambuf_movable =
     std::is_move_constructible<basic_streambuf_movable_helper>;
 
-//------------------------------------------------------------------------------
-
 template<class DynamicBuffer,
     class CharT, class Traits, bool isMovable>
 class ostream_buffer;
+
+//------------------------------------------------------------------------------
 
 template<class DynamicBuffer, class CharT, class Traits>
 class ostream_buffer
@@ -135,6 +103,8 @@ public:
         return 0;
     }
 };
+
+//------------------------------------------------------------------------------
 
 // This nonsense is all to work around a glitch in libstdc++
 // where std::basic_streambuf copy constructor is private:
