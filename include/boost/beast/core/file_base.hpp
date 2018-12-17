@@ -16,6 +16,20 @@
 namespace boost {
 namespace beast {
 
+/*
+
+file_mode           acesss          sharing     seeking     file              std mode
+--------------------------------------------------------------------------------------
+read                read-only       shared      random      must exist          "rb"
+scan                read-only       shared      sequential  must exist          "rbS"
+write               read/write      exclusive   random      create/truncate     "wb+"
+write_new           read/write      exclusive   random      must not exist      "wbx"
+write_existing      read/write      exclusive   random      must exist          "rb+"
+append              write-only      exclusive   sequential  create/truncate     "ab"
+append_existing     write-only      exclusive   sequential  must exist          "ab"
+
+*/
+
 /** File open modes
 
     These modes are used when opening files using
@@ -25,28 +39,33 @@ namespace beast {
 */
 enum class file_mode
 {
-    /// Random reading
+    /// Random read-only access to an existing file
     read,
 
-    /// Sequential reading
+    /// Sequential read-only access to an existing file
     scan,
 
-    /** Random writing to a new or truncated file
+    /** Random reading and writing to a new or truncated file
 
-        @li If the file does not exist, it is created.
-
-        @li If the file exists, it is truncated to
-        zero size upon opening.
+        This mode permits random-access reading and writing
+        for the specified file. If the file does not exist
+        prior to the function call, it is created with an
+        initial size of zero bytes. Otherwise if the file
+        already exists, the size is truncated to zero bytes.
     */
     write,
 
-    /** Random writing to new file only
+    /** Random reading and writing to a new file only
 
-        If the file exists, an error is generated.
+        This mode permits random-access reading and writing
+        for the specified file. The file will be created with
+        an initial size of zero bytes. If the file already exists
+        prior to the function call, an error is returned and
+        no file is opened.
     */
     write_new,
 
-    /** Random writing to existing file
+    /** Random write-only access to existing file
 
         If the file does not exist, an error is generated.
     */
@@ -63,15 +82,6 @@ enum class file_mode
         zero size upon opening.
     */
     append,
-
-    /** Appending to a new file only
-
-        The current file position shall be set to the end of
-        the file prior to each write.
-
-        If the file exists, an error is generated.
-    */
-    append_new,
 
     /** Appending to an existing file
 

@@ -10,6 +10,7 @@
 #ifndef BOOST_BEAST_CORE_IMPL_FILE_STDIO_HPP
 #define BOOST_BEAST_CORE_IMPL_FILE_STDIO_HPP
 
+#include <boost/config/workaround.hpp>
 #include <boost/core/exchange.hpp>
 #include <limits>
 
@@ -81,17 +82,65 @@ open(char const* path, file_mode mode, error_code& ec)
     switch(mode)
     {
     default:
-    case file_mode::read:               s = "rb"; break;
-    case file_mode::scan:               s = "rb"; break;
-    case file_mode::write:              s = "wb"; break;
-    case file_mode::write_new:          s = "wbx"; break;
-    case file_mode::write_existing:     s = "wb"; break;
-    case file_mode::append:             s = "ab"; break;
-    case file_mode::append_new:         s = "abx"; break;
-    case file_mode::append_existing:    s = "ab"; break;
+    case file_mode::read:
+        s = "rb";
+        break;
+
+    case file_mode::scan:
+    #if BOOST_MSVC
+        s = "rbS";
+    #else
+        s = "rb";
+    #endif
+        break;
+
+    case file_mode::write:
+        s = "wb+";
+        break;
+
+    case file_mode::write_new:
+    {
+#if BOOST_WORKAROUND(BOOST_MSVC, < 1910)
+        auto const f0 = std::fopen(path, "rb");
+        if(f0)
+        {
+            std::fclose(f0);
+            ec = make_error_code(
+                errc::file_exists);
+            return;
+        }
+        s = "wb";
+#else
+        s = "wbx";
+#endif
+        break;
     }
+
+    case file_mode::write_existing:
+        s = "rb+";
+        break;
+
+    case file_mode::append:
+        s = "ab";
+        break;
+
+    case file_mode::append_existing:
+    {
+        auto const f0 = std::fopen(path, "rb+");
+        if(! f0)
+        {
+            ec = make_error_code(
+                errc::no_such_file_or_directory);
+            return;
+        }
+        std::fclose(f0);
+        s = "ab";
+        break;
+    }
+    }
+
 #if BOOST_MSVC
-    auto const ev = fopen_s(&f_, path, s);
+    auto const ev = ::fopen_s(&f_, path, s);
     if(ev)
     {
         f_ = nullptr;

@@ -43,6 +43,11 @@ class file_posix
 {
     int fd_ = -1;
 
+    BOOST_BEAST_DECL
+    static
+    int
+    native_close(int& fd);
+
 public:
     /** The type of the underlying file handle.
 

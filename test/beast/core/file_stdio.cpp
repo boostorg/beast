@@ -27,7 +27,7 @@ public:
     void
     run()
     {
-        doTestFile<file_stdio>(*this);
+        test_file<file_stdio>(*this);
     }
 };
 

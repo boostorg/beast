@@ -24,6 +24,7 @@ API Changes:
 
 * buffers_adaptor replaces buffers_adapter (rename)
 * make_printable replaces buffers (rename)
+* Remove file_mode::append_new
 
 Actions Required:
 
@@ -33,6 +34,9 @@ Actions Required:
 
 * Replace call sites to use make_printable instead of buffers,
   and also include make_printable.hpp instead of ostream.hpp.
+
+* Replace file_mode::append_new with file_mode::append
+  or file_mode::append_existing instead of file_mode::append_new
 
 --------------------------------------------------------------------------------
 

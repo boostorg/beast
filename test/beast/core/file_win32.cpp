@@ -20,8 +20,6 @@
 namespace boost {
 namespace beast {
 
-BOOST_STATIC_ASSERT(! std::is_copy_constructible<file_win32>::value);
-
 class file_win32_test
     : public beast::unit_test::suite
 {
@@ -29,7 +27,7 @@ public:
     void
     run()
     {
-        doTestFile<file_win32>(*this);
+        test_file<file_win32>(*this);
     }
 };
 
