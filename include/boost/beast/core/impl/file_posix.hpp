@@ -36,30 +36,29 @@
 namespace boost {
 namespace beast {
 
-namespace detail {
-
-inline
 int
-file_posix_close(int fd)
+file_posix::
+native_close(native_handle_type& fd)
 {
-    for(;;)
+    if(fd != -1)
     {
-        if(! ::close(fd))
-            break;
-        int const ev = errno;
-        if(errno != EINTR)
-            return ev;
+        for(;;)
+        {
+            if(::close(fd) == 0)
+                break;
+            int const ev = errno;
+            if(errno != EINTR)
+                return ev;
+        }
+        fd = -1;
     }
     return 0;
 }
 
-} // detail
-
 file_posix::
 ~file_posix()
 {
-    if(fd_ != -1)
-        detail::file_posix_close(fd_);
+    native_close(fd_);
 }
 
 file_posix::
@@ -74,8 +73,7 @@ operator=(file_posix&& other)
 {
     if(&other == this)
         return *this;
-    if(fd_ != -1)
-        detail::file_posix_close(fd_);
+    native_close(fd_);
     fd_ = other.fd_;
     other.fd_ = -1;
     return *this;
@@ -85,8 +83,7 @@ void
 file_posix::
 native_handle(native_handle_type fd)
 {
-    if(fd_ != -1)
-         detail::file_posix_close(fd_);
+    native_close(fd_);
     fd_ = fd;
 }
 
@@ -94,36 +91,23 @@ void
 file_posix::
 close(error_code& ec)
 {
-    if(fd_ != -1)
-    {
-        auto const ev =
-            detail::file_posix_close(fd_);
-        if(ev)
-            ec.assign(ev, system_category());
-        else
-            ec = {};
-        fd_ = -1;
-    }
+    auto const ev = native_close(fd_);
+    if(ev)
+        ec.assign(ev, system_category());
     else
-    {
         ec = {};
-    }
 }
 
 void
 file_posix::
 open(char const* path, file_mode mode, error_code& ec)
 {
-    if(fd_ != -1)
-    {
-        auto const ev =
-            detail::file_posix_close(fd_);
-        if(ev)
-            ec.assign(ev, system_category());
-        else
-            ec = {};
-        fd_ = -1;
-    }
+    auto const ev = native_close(fd_);
+    if(ev)
+        ec.assign(ev, system_category());
+    else
+        ec = {};
+
     int f = 0;
 #if BOOST_BEAST_USE_POSIX_FADVISE
     int advise = 0;
@@ -166,21 +150,14 @@ open(char const* path, file_mode mode, error_code& ec)
         break;
 
     case file_mode::append:         
-        f = O_RDWR | O_CREAT | O_TRUNC;
-    #if BOOST_BEAST_USE_POSIX_FADVISE
-        advise = POSIX_FADV_SEQUENTIAL;
-    #endif
-        break;
-
-    case file_mode::append_new:     
-        f = O_RDWR | O_CREAT | O_EXCL;
+        f = O_WRONLY | O_CREAT | O_TRUNC;
     #if BOOST_BEAST_USE_POSIX_FADVISE
         advise = POSIX_FADV_SEQUENTIAL;
     #endif
         break;
 
     case file_mode::append_existing:
-        f = O_RDWR | O_EXCL;
+        f = O_WRONLY;
     #if BOOST_BEAST_USE_POSIX_FADVISE
         advise = POSIX_FADV_SEQUENTIAL;
     #endif
@@ -202,8 +179,7 @@ open(char const* path, file_mode mode, error_code& ec)
     if(::posix_fadvise(fd_, 0, 0, advise))
     {
         auto const ev = errno;
-        detail::file_posix_close(fd_);
-        fd_ = -1;
+        native_close(fd_);
         ec.assign(ev, system_category());
         return;
     }
