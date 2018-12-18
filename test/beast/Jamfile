@@ -29,3 +29,13 @@ alias fat-tests :
     ;
 
 explicit fat-tests ;
+
+alias run-fat-tests :
+    core//run-fat-tests
+    http//run-fat-tests
+    websocket//run-fat-tests
+    zlib//run-fat-tests
+    experimental//run-fat-tests
+    ;
+
+explicit run-fat-tests ;

@@ -21,7 +21,9 @@ install:
   - CD ..
   - git clone -b %BOOST_BRANCH% --depth 1 https://github.com/boostorg/boost.git boost-root
   - cd boost-root
+  - git submodule update --init libs/headers
   - git submodule update --init tools/build
+  - git submodule update --init tools/boost_install
   - git submodule update --init tools/boostdep
   - git submodule update --init libs/align
   - git submodule update --init libs/asio
@@ -93,5 +95,5 @@ install:
 build: off
 
 test_script:
-  - b2 libs/beast/example toolset=msvc-14.0 cxxflags=/permissive-
-  - b2 libs/beast/test toolset=msvc-14.0 cxxflags=/permissive-
+  - b2 libs/beast/example toolset=msvc-14.0
+  - b2 --verbose-test libs/beast/test//run-fat-tests toolset=msvc-14.0

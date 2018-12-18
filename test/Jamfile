@@ -53,3 +53,11 @@ alias fat-tests :
     ;
 
 explicit fat-tests ;
+
+alias run-fat-tests :
+    beast//run-fat-tests
+    doc//run-fat-tests
+    example//run-fat-tests
+    ;
+
+explicit run-fat-tests ;
