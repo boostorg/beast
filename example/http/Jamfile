@@ -7,5 +7,5 @@
 # Official repository: https://github.com/boostorg/beast
 #
 
-build-project client ;
+#build-project client ;
 build-project server ;

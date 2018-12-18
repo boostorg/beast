@@ -96,4 +96,3 @@ build: off
 
 test_script:
   - b2 libs/beast/example toolset=msvc-14.0 cxxflags=/permissive-
-  - b2 libs/beast/test toolset=msvc-14.0 cxxflags=/permissive-

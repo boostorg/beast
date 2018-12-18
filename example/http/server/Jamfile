@@ -7,12 +7,12 @@
 # Official repository: https://github.com/boostorg/beast
 #
 
-build-project async ;
-build-project coro ;
+#build-project async ;
+#build-project coro ;
 build-project fast ;
-build-project small ;
-build-project stackless ;
-build-project sync ;
+#build-project small ;
+#build-project stackless ;
+#build-project sync ;
 
 # VFALCO How do I make this work on Windows and if OpenSSL is not available?
 #build-project async-ssl ;
