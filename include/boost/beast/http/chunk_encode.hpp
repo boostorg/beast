@@ -48,7 +48,7 @@ struct chunk_crlf
 #if BOOST_BEAST_DOXYGEN
     using value_type = __implementation_defined__;
 #else
-    using value_type = detail::chunk_crlf_iter::value_type;
+    using value_type = net::const_buffer;
 #endif
 
     /// Required for @b ConstBufferSequence
@@ -61,7 +61,8 @@ struct chunk_crlf
     const_iterator
     begin() const
     {
-        return &detail::chunk_crlf_iter::value;
+        static net::const_buffer const cb{"\r\n", 2};
+        return &cb;
     }
 
     /// Required for @b ConstBufferSequence

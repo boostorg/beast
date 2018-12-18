@@ -31,12 +31,8 @@ class buffers_prefix_view<Buffers>::const_iterator
     iter_type it_;
 
 public:
-    using value_type = typename std::conditional<
-        boost::is_convertible<typename
-            std::iterator_traits<iter_type>::value_type,
-                net::mutable_buffer>::value,
-                    net::mutable_buffer,
-                        net::const_buffer>::type;
+    using value_type = buffers_type<typename
+        std::decay<Buffers>::type>;
     using pointer = value_type const*;
     using reference = value_type;
     using difference_type = std::ptrdiff_t;
@@ -131,8 +127,7 @@ setup(std::size_t size)
     auto const last = bs_.end();
     while(end_ != last)
     {
-        auto const len =
-            net::const_buffer(*end_++).size();
+        auto const len = net::buffer_size(*end_++);
         if(len >= size)
         {
             size_ += size;

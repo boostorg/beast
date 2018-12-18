@@ -148,10 +148,11 @@ class basic_multi_buffer<Allocator>::readable_bytes
     }
 
 public:
-    using value_type = typename std::conditional<
-        isMutable,
-        net::mutable_buffer,
-        net::const_buffer>::type;
+    using value_type = typename
+        std::conditional<
+            isMutable,
+            net::mutable_buffer,
+            net::const_buffer>::type;
 
     class const_iterator;
 
@@ -333,8 +334,8 @@ class basic_multi_buffer<Allocator>::mutable_buffers_type::const_iterator
     typename list_type::const_iterator it_;
 
 public:
-    using value_type =
-        typename mutable_buffers_type::value_type;
+    using value_type = typename
+        mutable_buffers_type::value_type;
     using pointer = value_type const*;
     using reference = value_type;
     using difference_type = std::ptrdiff_t;

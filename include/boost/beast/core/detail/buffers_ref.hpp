@@ -11,6 +11,7 @@
 #define BOOST_BEAST_DETAIL_BUFFERS_REF_HPP
 
 #include <boost/beast/core/buffer_traits.hpp>
+#include <iterator>
 #include <memory>
 
 namespace boost {
@@ -24,11 +25,11 @@ class buffers_ref
     BufferSequence const* buffers_;
 
 public:
-    using value_type =
-        buffers_type<BufferSequence>;
-
     using const_iterator =
         buffers_iterator_type<BufferSequence>;
+
+    using value_type = typename
+        std::iterator_traits<const_iterator>::value_type;
 
     buffers_ref(buffers_ref const&) = default;
     buffers_ref& operator=(buffers_ref const&) = default;

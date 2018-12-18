@@ -183,10 +183,7 @@ buffers_prefix(
     Otherwise, the returned buffer sequence will be constant.
 */
 template<class ConstBufferSequence>
-typename std::conditional<
-    net::is_mutable_buffer_sequence<ConstBufferSequence>::value,
-    net::mutable_buffer,
-    net::const_buffer>::type
+buffers_type<ConstBufferSequence>
 buffers_front(ConstBufferSequence const& buffers)
 {
     auto const first =
