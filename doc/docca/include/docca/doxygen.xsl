@@ -865,14 +865,14 @@
             </xsl:otherwise>
           </xsl:choose>
           <xsl:text> `</xsl:text>
-          <xsl:value-of name="text" select="$dox-name"/>
+          <xsl:value-of select="$dox-name"/>
           <xsl:text>`]</xsl:text>
         </xsl:when>
         <xsl:when test="$def-kind = 'class' or $def-kind = 'struct'">
           <xsl:text>[link </xsl:text><xsl:value-of select="$doc-ref"/>
           <xsl:value-of select="concat($ref-id,'.',$dox-name)"/>
           <xsl:text> `</xsl:text>
-          <xsl:value-of name="text" select="$name"/>
+          <xsl:value-of select="$name"/>
           <xsl:text>`]</xsl:text>
         </xsl:when>
         <xsl:otherwise>
@@ -990,7 +990,7 @@
     <xsl:text>[table [[Name][Description]]&#xd;</xsl:text>
     <xsl:for-each select="
         sectiondef[@kind='public-type']/memberdef |
-        innerclass[@prot='public' and not(contains(., '_handler'))]" mode="class-table">
+        innerclass[@prot='public' and not(contains(., '_handler'))]" >
       <xsl:sort select="concat(name,  (.)[not(name)])"/>
       <xsl:text>  [&#xd;</xsl:text>
       <xsl:choose>
@@ -1036,7 +1036,7 @@
   <xsl:if test="count(sectiondef[@kind='public-func' or @kind='public-static-func']) &gt; 0">
     <xsl:text>[heading Member Functions]&#xd;</xsl:text>
     <xsl:text>[table [[Name][Description]]&#xd;</xsl:text>
-    <xsl:for-each select="sectiondef[@kind='public-func' or @kind='public-static-func']/memberdef" mode="class-table">
+    <xsl:for-each select="sectiondef[@kind='public-func' or @kind='public-static-func']/memberdef" >
       <xsl:sort select="name"/>
       <xsl:variable name="name">
         <xsl:value-of select="name"/>
@@ -1086,7 +1086,7 @@
   <xsl:if test="count(sectiondef[@kind='protected-func' or @kind='protected-static-func']) &gt; 0">
     <xsl:text>[heading Protected Member Functions]&#xd;</xsl:text>
     <xsl:text>[table [[Name][Description]]&#xd;</xsl:text>
-    <xsl:for-each select="sectiondef[@kind='protected-func' or @kind='protected-static-func']/memberdef" mode="class-table">
+    <xsl:for-each select="sectiondef[@kind='protected-func' or @kind='protected-static-func']/memberdef" >
       <xsl:sort select="name"/>
       <xsl:variable name="name">
         <xsl:value-of select="name"/>
@@ -1131,7 +1131,7 @@
   <xsl:if test="count(sectiondef[@kind='private-func' or @kind='protected-private-func']) &gt; 0 and $private &gt; 0">
     <xsl:text>[heading Private Member Functions]&#xd;</xsl:text>
     <xsl:text>[table [[Name][Description]]&#xd;</xsl:text>
-    <xsl:for-each select="sectiondef[@kind='private-func']/memberdef" mode="class-table">
+    <xsl:for-each select="sectiondef[@kind='private-func']/memberdef" >
       <xsl:sort select="name"/>
       <xsl:variable name="name">
         <xsl:value-of select="name"/>
@@ -1176,7 +1176,7 @@
   <xsl:if test="count(sectiondef[@kind='public-attrib' or @kind='public-static-attrib']) &gt; 0">
     <xsl:text>[heading Data Members]&#xd;</xsl:text>
     <xsl:text>[table [[Name][Description]]&#xd;</xsl:text>
-    <xsl:for-each select="sectiondef[@kind='public-attrib' or @kind='public-static-attrib']/memberdef" mode="class-table">
+    <xsl:for-each select="sectiondef[@kind='public-attrib' or @kind='public-static-attrib']/memberdef" >
       <xsl:sort select="name"/>
       <xsl:text>  [&#xd;</xsl:text>
       <xsl:text>    [[link </xsl:text><xsl:value-of select="$doc-ref"/>
@@ -1192,7 +1192,7 @@
   <xsl:if test="count(sectiondef[@kind='protected-attrib' or @kind='protected-static-attrib']) &gt; 0">
     <xsl:text>[heading Protected Data Members]&#xd;</xsl:text>
     <xsl:text>[table [[Name][Description]]&#xd;</xsl:text>
-    <xsl:for-each select="sectiondef[@kind='protected-attrib' or @kind='protected-static-attrib']/memberdef" mode="class-table">
+    <xsl:for-each select="sectiondef[@kind='protected-attrib' or @kind='protected-static-attrib']/memberdef" >
       <xsl:sort select="name"/>
       <xsl:text>  [&#xd;</xsl:text>
       <xsl:text>    [[link </xsl:text><xsl:value-of select="$doc-ref"/>
@@ -1209,7 +1209,7 @@
       $private &gt; 0">
     <xsl:text>[heading Private Data Members]&#xd;</xsl:text>
     <xsl:text>[table [[Name][Description]]&#xd;</xsl:text>
-    <xsl:for-each select="sectiondef[@kind='private-attrib' or @kind='private-static-attrib']/memberdef" mode="class-table">
+    <xsl:for-each select="sectiondef[@kind='private-attrib' or @kind='private-static-attrib']/memberdef" >
       <xsl:sort select="name"/>
       <xsl:text>  [&#xd;</xsl:text>
       <xsl:text>    [[link </xsl:text><xsl:value-of select="$doc-ref"/>
@@ -1225,7 +1225,7 @@
   <xsl:if test="count(sectiondef[@kind='friend']/memberdef[not(type = 'friend class') and not(contains(name, '_helper'))]) &gt; 0">
     <xsl:text>[heading Friends]&#xd;</xsl:text>
     <xsl:text>[table [[Name][Description]]&#xd;</xsl:text>
-    <xsl:for-each select="sectiondef[@kind='friend']/memberdef[not(type = 'friend class') and not(contains(name, '_helper'))]" mode="class-table">
+    <xsl:for-each select="sectiondef[@kind='friend']/memberdef[not(type = 'friend class') and not(contains(name, '_helper'))]"  >
       <xsl:sort select="name"/>
       <xsl:variable name="name">
         <xsl:value-of select="name"/>
@@ -1270,7 +1270,7 @@
   <xsl:if test="count(sectiondef[@kind='related']/memberdef) &gt; 0">
     <xsl:text>[heading Related Functions]&#xd;</xsl:text>
     <xsl:text>[table [[Name][Description]]&#xd;</xsl:text>
-    <xsl:for-each select="sectiondef[@kind='related']/memberdef" mode="class-table">
+    <xsl:for-each select="sectiondef[@kind='related']/memberdef" >
       <xsl:sort select="name"/>
       <xsl:variable name="name">
         <xsl:value-of select="name"/>
@@ -1528,26 +1528,26 @@
   </xsl:if>
   <xsl:choose>
     <xsl:when test="@kind='typedef'">
-      <xsl:call-template name="typedef" mode="class-detail">
+      <xsl:call-template name="typedef">
         <xsl:with-param name="class-name" select="$class-name"/>
       </xsl:call-template>
     </xsl:when>
     <xsl:when test="@kind='variable'">
-      <xsl:call-template name="variable" mode="class-detail"/>
+      <xsl:call-template name="variable"/>
     </xsl:when>
     <xsl:when test="@kind='enum'">
-      <xsl:call-template name="enum" mode="class-detail">
+      <xsl:call-template name="enum">
         <xsl:with-param name="enum-name" select="$class-name"/>
       </xsl:call-template>
     </xsl:when>
     <xsl:when test="@kind='function'">
       <xsl:text>```&#xd;</xsl:text>
-      <xsl:call-template name="function" mode="class-detail"/>
+      <xsl:call-template name="function"/>
       <xsl:text>```&#xd;</xsl:text>
     </xsl:when>
     <xsl:when test="@kind='friend'">
       <xsl:text>```&#xd;</xsl:text>
-      <xsl:call-template name="function" mode="class-detail"/>
+      <xsl:call-template name="function"/>
       <xsl:text>```&#xd;</xsl:text>
     </xsl:when>
   </xsl:choose>

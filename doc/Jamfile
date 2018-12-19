@@ -14,6 +14,7 @@ import quickbook ;
 import xsltproc ;
 import doxygen ;
 import modules ;
+import saxonhe ;
 
 #-------------------------------------------------------------------------------
 #
@@ -132,10 +133,10 @@ actions call-xsltproc
 #
 make reference.qbk
     :
-        transform.xsl
         reference.xml
+        transform.xsl
     :
-        @call-xsltproc
+        saxonhe.saxonhe
     ;
 
 # We have to make a copy of reference.qbk and put it
