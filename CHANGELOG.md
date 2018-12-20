@@ -21,6 +21,7 @@ Version 200
 * Refactor static_buffer
 * HTTP tidying
 * Adjust static_asio lib options in Jamfile
+* Add type_traits tests
 
 API Changes:
 
