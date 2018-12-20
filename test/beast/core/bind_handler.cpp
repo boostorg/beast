@@ -12,6 +12,7 @@
 
 #include <boost/beast/core/detail/type_traits.hpp>
 #include <boost/beast/_experimental/unit_test/suite.hpp>
+#include <boost/beast/_experimental/test/stream.hpp>
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/bind_executor.hpp>
 #include <boost/asio/executor_work_guard.hpp>
@@ -40,6 +41,40 @@ public:
         {
         }
     };
+
+    template <class AsyncReadStream, class ReadHandler>
+    void
+    signal_aborted (AsyncReadStream& stream, ReadHandler&& handler)
+    {
+        net::post(
+            stream.get_executor(),
+            bind_handler (std::forward <ReadHandler> (handler),
+                net::error::operation_aborted, 0));
+    }
+
+    template <class AsyncReadStream, class ReadHandler>
+    void
+    signal_eof (AsyncReadStream& stream, ReadHandler&& handler)
+    {
+        net::post(
+            stream.get_executor(),
+            bind_front_handler (std::forward<ReadHandler> (handler),
+                net::error::eof, 0));
+    }
+
+    void
+    testJavadocs()
+    {
+        BEAST_EXPECT((
+            &bind_handler_test::signal_aborted<
+                test::stream, handler<error_code, std::size_t>>));
+            
+        BEAST_EXPECT((
+            &bind_handler_test::signal_eof<
+                test::stream, handler<error_code, std::size_t>>));
+    }
+
+    //--------------------------------------------------------------------------
 
     struct copyable
     {
@@ -469,6 +504,7 @@ public:
     void
     run() override
     {
+        testJavadocs();
         testBindHandler();
         testBindFrontHandler();
     }

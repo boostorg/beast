@@ -31,16 +31,19 @@ namespace beast {
     handler, whose associated allocator and associated executor will
     will be the same as those of the original handler.
 
-    Example:
+    @par Example
+
+    This function posts the invocation of the specified completion
+    handler with bound arguments:
 
     @code
-    template<class AsyncReadStream, class ReadHandler>
+    template <class AsyncReadStream, class ReadHandler>
     void
-    signal_aborted(AsyncReadStream& stream, ReadHandler&& handler)
+    signal_aborted (AsyncReadStream& stream, ReadHandler&& handler)
     {
         net::post(
             stream.get_executor(),
-            bind_handler(std::forward<ReadHandler>(handler),
+            bind_handler (std::forward <ReadHandler> (handler),
                 net::error::operation_aborted, 0));
     }
     @endcode
@@ -57,7 +60,8 @@ template<class Handler, class... Args>
 __implementation_defined__
 #else
 detail::bind_wrapper<
-    typename std::decay<Handler>::type, Args...>
+    typename std::decay<Handler>::type,
+    typename std::decay<Args>::type...>
 #endif
 bind_handler(Handler&& handler, Args&&... args)
 {
@@ -67,9 +71,11 @@ bind_handler(Handler&& handler, Args&&... args)
         Handler, void(Args...)>::value,
             "Handler requirements not met");
 #endif
-    return detail::bind_wrapper<typename std::decay<
-        Handler>::type, Args...>(std::forward<
-            Handler>(handler), std::forward<Args>(args)...);
+    return detail::bind_wrapper<
+        typename std::decay<Handler>::type,
+        typename std::decay<Args>::type...>(
+            std::forward<Handler>(handler),
+            std::forward<Args>(args)...);
 }
 
 /** Bind parameters to a completion handler, creating a new handler.
@@ -83,17 +89,20 @@ bind_handler(Handler&& handler, Args&&... args)
     handler, whose associated allocator and associated executor will
     will be the same as those of the original handler.
 
-    Example:
+    @par Example
+
+    This function posts the invocation of the specified completion
+    handler with bound arguments:
 
     @code
-    template<class AsyncReadStream, class ReadHandler>
+    template <class AsyncReadStream, class ReadHandler>
     void
-    signal_aborted(AsyncReadStream& stream, ReadHandler&& handler)
+    signal_eof (AsyncReadStream& stream, ReadHandler&& handler)
     {
         net::post(
             stream.get_executor(),
-            bind_front_handler(std::forward<ReadHandler>(handler),
-                net::error::operation_aborted, 0));
+            bind_front_handler (std::forward<ReadHandler> (handler),
+                net::error::eof, 0));
     }
     @endcode
 

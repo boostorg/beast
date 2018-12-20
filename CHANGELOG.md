@@ -1,3 +1,9 @@
+Version 201
+
+* Decay bound arguments in handler wrapper parameters
+
+--------------------------------------------------------------------------------
+
 Version 200
 
 * Don't include OpenSSL for core snippets

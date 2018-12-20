@@ -31,8 +31,7 @@ namespace detail {
 template<class Handler, class... Args>
 class bind_wrapper
 {
-    using args_type = detail::tuple<
-        typename std::decay<Args>::type...>;
+    using args_type = detail::tuple<Args...>;
 
     Handler h_;
     args_type args_;
@@ -84,9 +83,7 @@ class bind_wrapper
                 std::forward<Vals>(vals));
     }
 
-    template<
-        class ArgsTuple,
-        std::size_t... S>
+    template<class ArgsTuple, std::size_t... S>
     static
     void
     invoke(
@@ -123,12 +120,15 @@ public:
     bind_wrapper(bind_wrapper&&) = default;
     bind_wrapper(bind_wrapper const&) = default;
 
-    template<class DeducedHandler>
+    template<
+        class DeducedHandler,
+        class... Args_>
     explicit
     bind_wrapper(
-            DeducedHandler&& handler, Args&&... args)
+        DeducedHandler&& handler,
+        Args_&&... args)
         : h_(std::forward<DeducedHandler>(handler))
-        , args_(std::forward<Args>(args)...)
+        , args_(std::forward<Args_>(args)...)
     {
     }
 
