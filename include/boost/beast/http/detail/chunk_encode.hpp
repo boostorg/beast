@@ -136,22 +136,25 @@ public:
 
 /// Returns a buffer sequence holding a CRLF for chunk encoding
 inline
-net::const_buffer
+net::const_buffer const&
 chunk_crlf()
 {
-    return {"\r\n", 2};
+    static net::const_buffer const cb{"\r\n", 2};
+    return cb;
 }
 
 /// Returns a buffer sequence holding a final chunk header
 inline
-net::const_buffer
+net::const_buffer const&
 chunk_last()
 {
-    return {"0\r\n", 3};
+    static net::const_buffer const cb{"0\r\n", 3};
+    return cb;
 }
 
 //------------------------------------------------------------------------------
 
+#if 0
 template<class = void>
 struct chunk_crlf_iter_type
 {
@@ -176,44 +179,19 @@ typename chunk_crlf_iter_type<T>::value_type
 chunk_crlf_iter_type<T>::value;
 
 using chunk_crlf_iter = chunk_crlf_iter_type<void>;
+#endif
 
 //------------------------------------------------------------------------------
 
-template<class = void>
-struct chunk_size0_iter_type
-{
-    class value_type
-    {
-        char const s[3] = {'0', '\r', '\n'};
-        
-    public:
-        value_type() = default;
-
-        operator
-        net::const_buffer() const
-        {
-            return {s, sizeof(s)};
-        }
-    };
-    static value_type value;
-};
-
-template<class T>
-typename chunk_size0_iter_type<T>::value_type
-chunk_size0_iter_type<T>::value;
-
-using chunk_size0_iter = chunk_size0_iter_type<void>;
-
 struct chunk_size0
 {
-    using value_type = chunk_size0_iter::value_type;
-
+    using value_type = net::const_buffer;
     using const_iterator = value_type const*;
 
     const_iterator
     begin() const
     {
-        return &chunk_size0_iter::value;
+        return &chunk_last();
     }
 
     const_iterator

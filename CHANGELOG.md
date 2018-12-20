@@ -19,6 +19,7 @@ Version 200
 * Tidy up multi_buffer
 * Refactor ostream
 * Refactor static_buffer
+* HTTP tidying
 
 API Changes:
 

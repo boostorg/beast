@@ -130,7 +130,7 @@ private:
     using cb4_t = buffers_suffix<buffers_cat_view<
         typename Fields::writer::const_buffers_type,// header
         detail::chunk_size,                         // chunk-size
-        net::const_buffer,               // chunk-ext
+        net::const_buffer,                          // chunk-ext
         chunk_crlf,                                 // crlf
         typename writer::const_buffers_type,        // body
         chunk_crlf>>;                               // crlf
@@ -138,7 +138,7 @@ private:
 
     using cb5_t = buffers_suffix<buffers_cat_view<
         detail::chunk_size,                         // chunk-header
-        net::const_buffer,               // chunk-ext
+        net::const_buffer,                          // chunk-ext
         chunk_crlf,                                 // crlf
         typename writer::const_buffers_type,        // body
         chunk_crlf>>;                               // crlf
@@ -146,30 +146,30 @@ private:
 
     using cb6_t = buffers_suffix<buffers_cat_view<
         detail::chunk_size,                         // chunk-header
-        net::const_buffer,               // chunk-size
+        net::const_buffer,                          // chunk-size
         chunk_crlf,                                 // crlf
         typename writer::const_buffers_type,        // body
         chunk_crlf,                                 // crlf
-        net::const_buffer,               // chunk-final
-        net::const_buffer,               // trailers 
+        net::const_buffer,                          // chunk-final
+        net::const_buffer,                          // trailers 
         chunk_crlf>>;                               // crlf
     using pcb6_t = buffers_prefix_view<cb6_t const&>;
 
     using cb7_t = buffers_suffix<buffers_cat_view<
         typename Fields::writer::const_buffers_type,// header
         detail::chunk_size,                         // chunk-size
-        net::const_buffer,               // chunk-ext
+        net::const_buffer,                          // chunk-ext
         chunk_crlf,                                 // crlf
         typename writer::const_buffers_type,        // body
         chunk_crlf,                                 // crlf
-        net::const_buffer,               // chunk-final
-        net::const_buffer,               // trailers 
+        net::const_buffer,                          // chunk-final
+        net::const_buffer,                          // trailers 
         chunk_crlf>>;                               // crlf
     using pcb7_t = buffers_prefix_view<cb7_t const&>;
 
     using cb8_t = buffers_suffix<buffers_cat_view<
-        net::const_buffer,               // chunk-final
-        net::const_buffer,               // trailers 
+        net::const_buffer,                          // chunk-final
+        net::const_buffer,                          // trailers 
         chunk_crlf>>;                               // crlf
     using pcb8_t = buffers_prefix_view<cb8_t const&>;
 
