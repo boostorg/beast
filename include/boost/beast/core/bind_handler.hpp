@@ -131,6 +131,59 @@ bind_front_handler(
             std::forward<Args>(args)...);
 }
 
+/** Bind parameters to a completion handler, creating a new handler.
+
+    This function creates a new handler which, when invoked, calls
+    the original handler with the list of bound arguments. Any
+    parameters passed in the invocation will be forwarded in
+    the parameter list before the bound arguments.
+
+    The passed handler and arguments are forwarded into the returned
+    handler, whose associated allocator and associated executor will
+    will be the same as those of the original handler.
+
+    @par Example
+
+    This function posts the invocation of the specified completion
+    handler with bound arguments:
+
+    @code
+    template <class AsyncReadStream, class ReadHandler>
+    void
+    signal_unreachable (AsyncReadStream& stream, ReadHandler&& handler)
+    {
+        net::post(
+            stream.get_executor(),
+            bind_back_handler (std::forward<ReadHandler> (handler),
+                net::error::network_unreachable, 0));
+    }
+    @endcode
+
+    @param handler The handler to wrap.
+
+    @param args A list of arguments to bind to the handler.
+    The arguments are forwarded into the returned object.
+*/
+template<class Handler, class... Args>
+#if BOOST_BEAST_DOXYGEN
+__implementation_defined__
+#else
+auto
+#endif
+bind_back_handler(
+    Handler&& handler,
+    Args&&... args) ->
+    detail::bind_back_wrapper<
+        typename std::decay<Handler>::type,
+        typename std::decay<Args>::type...>
+{
+    return detail::bind_back_wrapper<
+        typename std::decay<Handler>::type,
+        typename std::decay<Args>::type...>(
+            std::forward<Handler>(handler),
+            std::forward<Args>(args)...);
+}
+
 } // beast
 } // boost
 

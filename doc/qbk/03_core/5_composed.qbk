@@ -52,11 +52,13 @@ composed operations:
     be the same as those of the original handler.
 ]]
 [[
+    [link beast.ref.boost__beast__bind_back_handler `bind_back_handler`]
     [link beast.ref.boost__beast__bind_front_handler `bind_front_handler`]
 ][
     This function creates a new handler which, when invoked, calls
-    the original handler with the list of bound arguments, followed
-    by the list of invoked arguments. Placeholders are not supported.
+    the original handler with the list of bound arguments, along with
+    the list of invoked arguments at either the front or the back of
+    the argument list. Placeholders are not supported.
 
     The passed handler and arguments are forwarded into the returned
     handler, whose associated allocator and associated executor will

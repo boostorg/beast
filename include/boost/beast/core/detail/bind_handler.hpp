@@ -28,6 +28,12 @@ namespace boost {
 namespace beast {
 namespace detail {
 
+//------------------------------------------------------------------------------
+//
+// bind_handler
+//
+//------------------------------------------------------------------------------
+
 template<class Handler, class... Args>
 class bind_wrapper
 {
@@ -170,10 +176,10 @@ public:
     template<class Function>
     friend
     void asio_handler_invoke(
-        Function&& f, bind_wrapper* w)
+        Function&& f, bind_wrapper* op)
     {
         using net::asio_handler_invoke;
-        asio_handler_invoke(f, std::addressof(w->h_));
+        asio_handler_invoke(f, std::addressof(op->h_));
     }
 
     friend
@@ -184,11 +190,36 @@ public:
         return asio_handler_is_continuation(
                 std::addressof(op->h_));
     }
+
+    friend
+    void* asio_handler_allocate(
+        std::size_t size, bind_wrapper* op)
+    {
+        using net::asio_handler_allocate;
+        return asio_handler_allocate(
+            size, std::addressof(op->h_));
+    }
+
+    friend
+    void asio_handler_deallocate(
+        void* p, std::size_t size, bind_wrapper* op)
+    {
+        using net::asio_handler_deallocate;
+        asio_handler_deallocate(
+            p, size, std::addressof(op->h_));
+    }
 };
+
+template<class Handler, class... Args>
+class bind_back_wrapper;
 
 template<class Handler, class... Args>
 class bind_front_wrapper;
 
+//------------------------------------------------------------------------------
+//
+// bind_front
+//
 //------------------------------------------------------------------------------
 
 // 0-arg specialization
@@ -233,10 +264,10 @@ public:
     template<class Function>
     friend
     void asio_handler_invoke(
-        Function&& f, bind_front_wrapper* w)
+        Function&& f, bind_front_wrapper* op)
     {
         using net::asio_handler_invoke;
-        asio_handler_invoke(f, std::addressof(w->h_));
+        asio_handler_invoke(f, std::addressof(op->h_));
     }
 
     friend
@@ -246,6 +277,24 @@ public:
         using net::asio_handler_is_continuation;
         return asio_handler_is_continuation(
             std::addressof(op->h_));
+    }
+
+    friend
+    void* asio_handler_allocate(
+        std::size_t size, bind_front_wrapper* op)
+    {
+        using net::asio_handler_allocate;
+        return asio_handler_allocate(
+            size, std::addressof(op->h_));
+    }
+
+    friend
+    void asio_handler_deallocate(
+        void* p, std::size_t size, bind_front_wrapper* op)
+    {
+        using net::asio_handler_deallocate;
+        asio_handler_deallocate(
+            p, size, std::addressof(op->h_));
     }
 };
 
@@ -299,10 +348,10 @@ public:
     template<class Function>
     friend
     void asio_handler_invoke(
-        Function&& f, bind_front_wrapper* w)
+        Function&& f, bind_front_wrapper* op)
     {
         using net::asio_handler_invoke;
-        asio_handler_invoke(f, std::addressof(w->h_));
+        asio_handler_invoke(f, std::addressof(op->h_));
     }
 
     friend
@@ -312,6 +361,24 @@ public:
         using net::asio_handler_is_continuation;
         return asio_handler_is_continuation(
             std::addressof(op->h_));
+    }
+
+    friend
+    void* asio_handler_allocate(
+        std::size_t size, bind_front_wrapper* op)
+    {
+        using net::asio_handler_allocate;
+        return asio_handler_allocate(
+            size, std::addressof(op->h_));
+    }
+
+    friend
+    void asio_handler_deallocate(
+        void* p, std::size_t size, bind_front_wrapper* op)
+    {
+        using net::asio_handler_deallocate;
+        asio_handler_deallocate(
+            p, size, std::addressof(op->h_));
     }
 };
 
@@ -370,10 +437,10 @@ public:
     template<class Function>
     friend
     void asio_handler_invoke(
-        Function&& f, bind_front_wrapper* w)
+        Function&& f, bind_front_wrapper* op)
     {
         using net::asio_handler_invoke;
-        asio_handler_invoke(f, std::addressof(w->h_));
+        asio_handler_invoke(f, std::addressof(op->h_));
     }
 
     friend
@@ -385,6 +452,23 @@ public:
             std::addressof(op->h_));
     }
 
+    friend
+    void* asio_handler_allocate(
+        std::size_t size, bind_front_wrapper* op)
+    {
+        using net::asio_handler_allocate;
+        return asio_handler_allocate(
+            size, std::addressof(op->h_));
+    }
+
+    friend
+    void asio_handler_deallocate(
+        void* p, std::size_t size, bind_front_wrapper* op)
+    {
+        using net::asio_handler_deallocate;
+        asio_handler_deallocate(
+            p, size, std::addressof(op->h_));
+    }
 };
 
 //------------------------------------------------------------------------------
@@ -462,10 +546,10 @@ public:
     template<class Function>
     friend
     void asio_handler_invoke(
-        Function&& f, bind_front_wrapper* w)
+        Function&& f, bind_front_wrapper* op)
     {
         using net::asio_handler_invoke;
-        asio_handler_invoke(f, std::addressof(w->h_));
+        asio_handler_invoke(f, std::addressof(op->h_));
     }
 
     friend
@@ -475,6 +559,24 @@ public:
         using net::asio_handler_is_continuation;
         return asio_handler_is_continuation(
             std::addressof(op->h_));
+    }
+
+    friend
+    void* asio_handler_allocate(
+        std::size_t size, bind_front_wrapper* op)
+    {
+        using net::asio_handler_allocate;
+        return asio_handler_allocate(
+            size, std::addressof(op->h_));
+    }
+
+    friend
+    void asio_handler_deallocate(
+        void* p, std::size_t size, bind_front_wrapper* op)
+    {
+        using net::asio_handler_deallocate;
+        asio_handler_deallocate(
+            p, size, std::addressof(op->h_));
     }
 };
 
@@ -528,10 +630,10 @@ public:
     template<class Function>
     friend
     void asio_handler_invoke(
-        Function&& f, bind_front_wrapper* w)
+        Function&& f, bind_front_wrapper* op)
     {
         using net::asio_handler_invoke;
-        asio_handler_invoke(f, std::addressof(w->h_));
+        asio_handler_invoke(f, std::addressof(op->h_));
     }
 
     friend
@@ -542,30 +644,475 @@ public:
         return asio_handler_is_continuation(
             std::addressof(op->h_));
     }
+
+    friend
+    void* asio_handler_allocate(
+        std::size_t size, bind_front_wrapper* op)
+    {
+        using net::asio_handler_allocate;
+        return asio_handler_allocate(
+            size, std::addressof(op->h_));
+    }
+
+    friend
+    void asio_handler_deallocate(
+        void* p, std::size_t size, bind_front_wrapper* op)
+    {
+        using net::asio_handler_deallocate;
+        asio_handler_deallocate(
+            p, size, std::addressof(op->h_));
+    }
+};
+
+//------------------------------------------------------------------------------
+//
+// bind_back
+//
+//------------------------------------------------------------------------------
+
+// 0-arg specialization
+template<class Handler>
+class bind_back_wrapper<Handler>
+{
+    Handler h_;
+
+    template<class T, class Executor>
+    friend struct net::associated_executor;
+
+public:
+    using result_type = void;
+
+    bind_back_wrapper(bind_back_wrapper&&) = default;
+    bind_back_wrapper(bind_back_wrapper const&) = default;
+
+    template<class Handler_>
+    explicit
+    bind_back_wrapper(Handler_&& handler)
+        : h_(std::forward<Handler_>(handler))
+    {
+    }
+
+    template<class... Ts>
+    void operator()(Ts&&... ts)
+    {
+        h_(std::forward<Ts>(ts)...);
+    }
+
+    //
+
+    using allocator_type =
+        net::associated_allocator_t<Handler>;
+
+    allocator_type
+    get_allocator() const noexcept
+    {
+        return net::get_associated_allocator(h_);
+    }
+
+    template<class Function>
+    friend
+    void asio_handler_invoke(
+        Function&& f, bind_back_wrapper* op)
+    {
+        using net::asio_handler_invoke;
+        asio_handler_invoke(f, std::addressof(op->h_));
+    }
+
+    friend
+    bool asio_handler_is_continuation(
+        bind_back_wrapper* op)
+    {
+        using net::asio_handler_is_continuation;
+        return asio_handler_is_continuation(
+            std::addressof(op->h_));
+    }
+
+    friend
+    void* asio_handler_allocate(
+        std::size_t size, bind_back_wrapper* op)
+    {
+        using net::asio_handler_allocate;
+        return asio_handler_allocate(
+            size, std::addressof(op->h_));
+    }
+
+    friend
+    void asio_handler_deallocate(
+        void* p, std::size_t size, bind_back_wrapper* op)
+    {
+        using net::asio_handler_deallocate;
+        asio_handler_deallocate(
+            p, size, std::addressof(op->h_));
+    }
 };
 
 //------------------------------------------------------------------------------
 
-// VFALCO These are only called when using deprecated
-// network interfaces in conjunction with extensions,
-// and should not be needed. If this creates a problem
-// please contact me.
+// 1-arg specialization
+template<class Handler, class Arg>
+class bind_back_wrapper<Handler, Arg>
+{
+    Handler h_;
+    Arg arg_;
 
-template<class Handler, class... Args>
-void* asio_handler_allocate(std::size_t,
-    bind_wrapper<Handler, Args...>* op) = delete;
+    template<class T, class Executor>
+    friend struct net::associated_executor;
 
-template<class Handler, class... Args>
-void asio_handler_deallocate(void*, std::size_t,
-    bind_wrapper<Handler, Args...>* op) = delete;
+public:
+    using result_type = void;
 
-template<class Handler, class... Args>
-void* asio_handler_allocate(std::size_t,
-    bind_front_wrapper<Handler, Args...>* op) = delete;
+    bind_back_wrapper(bind_back_wrapper&&) = default;
+    bind_back_wrapper(bind_back_wrapper const&) = default;
 
-template<class Handler, class... Args>
-void asio_handler_deallocate(void*, std::size_t,
-    bind_front_wrapper<Handler, Args...>* op) = delete;
+    template<
+        class Handler_,
+        class Arg_>
+    bind_back_wrapper(
+        Handler_&& handler,
+        Arg_&& arg)
+        : h_(std::forward<Handler_>(handler))
+        , arg_(std::forward<Arg_>(arg))
+    {
+    }
+
+    template<class... Ts>
+    void operator()(Ts&&... ts)
+    {
+        h_( std::forward<Ts>(ts)...,
+            std::move(arg_));
+    }
+
+    //
+
+    using allocator_type =
+        net::associated_allocator_t<Handler>;
+
+    allocator_type
+    get_allocator() const noexcept
+    {
+        return net::get_associated_allocator(h_);
+    }
+
+    template<class Function>
+    friend
+    void asio_handler_invoke(
+        Function&& f, bind_back_wrapper* op)
+    {
+        using net::asio_handler_invoke;
+        asio_handler_invoke(f, std::addressof(op->h_));
+    }
+
+    friend
+    bool asio_handler_is_continuation(
+        bind_back_wrapper* op)
+    {
+        using net::asio_handler_is_continuation;
+        return asio_handler_is_continuation(
+            std::addressof(op->h_));
+    }
+
+    friend
+    void* asio_handler_allocate(
+        std::size_t size, bind_back_wrapper* op)
+    {
+        using net::asio_handler_allocate;
+        return asio_handler_allocate(
+            size, std::addressof(op->h_));
+    }
+
+    friend
+    void asio_handler_deallocate(
+        void* p, std::size_t size, bind_back_wrapper* op)
+    {
+        using net::asio_handler_deallocate;
+        asio_handler_deallocate(
+            p, size, std::addressof(op->h_));
+    }
+};
+
+//------------------------------------------------------------------------------
+
+// 2-arg specialization
+template<class Handler, class Arg1, class Arg2>
+class bind_back_wrapper<Handler, Arg1, Arg2>
+{
+    Handler h_;
+    Arg1 arg1_;
+    Arg2 arg2_;
+
+    template<class T, class Executor>
+    friend struct net::associated_executor;
+
+public:
+    using result_type = void;
+
+    bind_back_wrapper(bind_back_wrapper&&) = default;
+    bind_back_wrapper(bind_back_wrapper const&) = default;
+
+    template<
+        class Handler_,
+        class Arg1_,
+        class Arg2_>
+    bind_back_wrapper(
+        Handler_&& handler,
+        Arg1_&& arg1,
+        Arg2_&& arg2)
+        : h_(std::forward<Handler_>(handler))
+        , arg1_(std::forward<Arg1_>(arg1))
+        , arg2_(std::forward<Arg2_>(arg2))
+    {
+    }
+
+    template<class... Ts>
+    void operator()(Ts&&... ts)
+    {
+        h_( std::forward<Ts>(ts)...,
+            std::move(arg1_),
+            std::move(arg2_));
+    }
+
+    //
+
+    using allocator_type =
+        net::associated_allocator_t<Handler>;
+
+    allocator_type
+    get_allocator() const noexcept
+    {
+        return net::get_associated_allocator(h_);
+    }
+
+    template<class Function>
+    friend
+    void asio_handler_invoke(
+        Function&& f, bind_back_wrapper* op)
+    {
+        using net::asio_handler_invoke;
+        asio_handler_invoke(f, std::addressof(op->h_));
+    }
+
+    friend
+    bool asio_handler_is_continuation(
+        bind_back_wrapper* op)
+    {
+        using net::asio_handler_is_continuation;
+        return asio_handler_is_continuation(
+            std::addressof(op->h_));
+    }
+
+    friend
+    void* asio_handler_allocate(
+        std::size_t size, bind_back_wrapper* op)
+    {
+        using net::asio_handler_allocate;
+        return asio_handler_allocate(
+            size, std::addressof(op->h_));
+    }
+
+    friend
+    void asio_handler_deallocate(
+        void* p, std::size_t size, bind_back_wrapper* op)
+    {
+        using net::asio_handler_deallocate;
+        asio_handler_deallocate(
+            p, size, std::addressof(op->h_));
+    }
+};
+
+//------------------------------------------------------------------------------
+
+// 3+ arg specialization
+template<
+    class Handler,
+    class Arg1, class Arg2, class Arg3,
+    class... Args>
+class bind_back_wrapper<
+    Handler, Arg1, Arg2, Arg3, Args...>
+{
+    Handler h_;
+    detail::tuple<
+        Arg1, Arg2, Arg3, Args...> args_;
+
+    template<class T, class Executor>
+    friend struct net::associated_executor;
+
+    template<std::size_t... I, class... Ts>
+    void
+    invoke(
+        mp11::index_sequence<I...>,
+        Ts&&... ts)
+    {
+        h_( std::forward<Ts>(ts)...,
+            detail::get<I>(std::move(args_))...);
+    }
+
+public:
+    using result_type = void;
+
+    bind_back_wrapper(bind_back_wrapper&&) = default;
+    bind_back_wrapper(bind_back_wrapper const&) = default;
+
+    template<
+        class Handler_,
+        class Arg1_, class Arg2_, class Arg3_,
+        class... Args_>
+    bind_back_wrapper(
+        Handler_&& handler,
+        Arg1_&& arg1,
+        Arg2_&& arg2,
+        Arg3_&& arg3,
+        Args_&&... args)
+        : h_(std::forward<Handler_>(handler))
+        , args_(
+            std::forward<Arg1_>(arg1),
+            std::forward<Arg2_>(arg2),
+            std::forward<Arg3_>(arg3),
+            std::forward<Args_>(args)...)
+    {
+    }
+
+    template<class... Ts>
+    void operator()(Ts&&... ts)
+    {
+        invoke(
+            mp11::index_sequence_for<
+                Arg1, Arg2, Arg3, Args...>{},
+            std::forward<Ts>(ts)...);
+    }
+
+    //
+
+    using allocator_type =
+        net::associated_allocator_t<Handler>;
+
+    allocator_type
+    get_allocator() const noexcept
+    {
+        return net::get_associated_allocator(h_);
+    }
+
+    template<class Function>
+    friend
+    void asio_handler_invoke(
+        Function&& f, bind_back_wrapper* op)
+    {
+        using net::asio_handler_invoke;
+        asio_handler_invoke(f, std::addressof(op->h_));
+    }
+
+    friend
+    bool asio_handler_is_continuation(
+        bind_back_wrapper* op)
+    {
+        using net::asio_handler_is_continuation;
+        return asio_handler_is_continuation(
+            std::addressof(op->h_));
+    }
+
+    friend
+    void* asio_handler_allocate(
+        std::size_t size, bind_back_wrapper* op)
+    {
+        using net::asio_handler_allocate;
+        return asio_handler_allocate(
+            size, std::addressof(op->h_));
+    }
+
+    friend
+    void asio_handler_deallocate(
+        void* p, std::size_t size, bind_back_wrapper* op)
+    {
+        using net::asio_handler_deallocate;
+        asio_handler_deallocate(
+            p, size, std::addressof(op->h_));
+    }
+};
+
+//------------------------------------------------------------------------------
+
+// specialization for the most common case,
+// to reduce instantiation time and memory.
+template<class Handler>
+class bind_back_wrapper<
+    Handler, error_code, std::size_t>
+{
+    template<class T, class Executor>
+    friend struct net::associated_executor;
+
+    Handler h_;
+    error_code ec_;
+    std::size_t n_;
+
+public:
+    using result_type = void;
+
+    bind_back_wrapper(bind_back_wrapper&&) = default;
+    bind_back_wrapper(bind_back_wrapper const&) = default;
+
+    template<class DeducedHandler>
+    bind_back_wrapper(DeducedHandler&& handler,
+        error_code ec, std::size_t n)
+        : h_(std::forward<DeducedHandler>(handler))
+        , ec_(ec)
+        , n_(n)
+    {
+    }
+
+    template<class... Ts>
+    void operator()(Ts&&... ts)
+    {
+        h_(std::forward<Ts>(ts)..., ec_, n_);
+    }
+
+    //
+
+    using allocator_type =
+        net::associated_allocator_t<Handler>;
+
+    allocator_type
+    get_allocator() const noexcept
+    {
+        return net::get_associated_allocator(h_);
+    }
+
+    template<class Function>
+    friend
+    void asio_handler_invoke(
+        Function&& f, bind_back_wrapper* op)
+    {
+        using net::asio_handler_invoke;
+        asio_handler_invoke(f, std::addressof(op->h_));
+    }
+
+    friend
+    bool asio_handler_is_continuation(
+        bind_back_wrapper* op)
+    {
+        using net::asio_handler_is_continuation;
+        return asio_handler_is_continuation(
+            std::addressof(op->h_));
+    }
+
+    friend
+    void* asio_handler_allocate(
+        std::size_t size, bind_back_wrapper* op)
+    {
+        using net::asio_handler_allocate;
+        return asio_handler_allocate(
+            size, std::addressof(op->h_));
+    }
+
+    friend
+    void asio_handler_deallocate(
+        void* p, std::size_t size, bind_back_wrapper* op)
+    {
+        using net::asio_handler_deallocate;
+        asio_handler_deallocate(
+            p, size, std::addressof(op->h_));
+    }
+};
+
+//------------------------------------------------------------------------------
 
 } // detail
 } // beast
@@ -585,11 +1132,11 @@ struct associated_executor<
 
     static
     type
-    get(beast::detail::bind_wrapper<Handler, Args...> const& w,
+    get(beast::detail::bind_wrapper<Handler, Args...> const& op,
         Executor const& ex = Executor()) noexcept
     {
         return associated_executor<
-            Handler, Executor>::get(w.h_, ex);
+            Handler, Executor>::get(op.h_, ex);
     }
 };
 
@@ -602,11 +1149,28 @@ struct associated_executor<
 
     static
     type
-    get(beast::detail::bind_front_wrapper<Handler, Args...> const& w,
+    get(beast::detail::bind_front_wrapper<Handler, Args...> const& op,
         Executor const& ex = Executor()) noexcept
     {
         return associated_executor<
-            Handler, Executor>::get(w.h_, ex);
+            Handler, Executor>::get(op.h_, ex);
+    }
+};
+
+template<class Handler, class... Args, class Executor>
+struct associated_executor<
+    beast::detail::bind_back_wrapper<Handler, Args...>, Executor>
+{
+    using type = typename
+        associated_executor<Handler, Executor>::type;
+
+    static
+    type
+    get(beast::detail::bind_back_wrapper<Handler, Args...> const& op,
+        Executor const& ex = Executor()) noexcept
+    {
+        return associated_executor<
+            Handler, Executor>::get(op.h_, ex);
     }
 };
 
@@ -632,6 +1196,11 @@ bind(boost::beast::detail::bind_wrapper<
 template<class Handler, class... Args>
 void
 bind(boost::beast::detail::bind_front_wrapper<
+    Handler, Args...>, ...) = delete;
+
+template<class Handler, class... Args>
+void
+bind(boost::beast::detail::bind_back_wrapper<
     Handler, Args...>, ...) = delete;
 
 } // std

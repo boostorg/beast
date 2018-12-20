@@ -1,6 +1,7 @@
 Version 201
 
 * Decay bound arguments in handler wrapper parameters
+* Add bind_back_handler
 
 --------------------------------------------------------------------------------
 

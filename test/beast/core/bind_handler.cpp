@@ -62,6 +62,16 @@ public:
                 net::error::eof, 0));
     }
 
+    template <class AsyncReadStream, class ReadHandler>
+    void
+    signal_unreachable (AsyncReadStream& stream, ReadHandler&& handler)
+    {
+        net::post(
+            stream.get_executor(),
+            bind_back_handler (std::forward<ReadHandler> (handler),
+                net::error::network_unreachable, 0));
+    }
+
     void
     testJavadocs()
     {
@@ -71,6 +81,10 @@ public:
             
         BEAST_EXPECT((
             &bind_handler_test::signal_eof<
+                test::stream, handler<error_code, std::size_t>>));
+            
+        BEAST_EXPECT((
+            &bind_handler_test::signal_unreachable<
                 test::stream, handler<error_code, std::size_t>>));
     }
 
