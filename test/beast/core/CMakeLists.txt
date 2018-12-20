@@ -16,16 +16,18 @@ add_executable (tests-beast-core
     ${EXTRAS_FILES}
     ${TEST_MAIN}
     Jamfile
-    buffer_test.hpp
-    file_test.hpp
     _detail_base64.cpp
     _detail_buffer.cpp
     _detail_clamp.cpp
+    _detail_operation_base.cpp
     _detail_read.cpp
     _detail_sha1.cpp
     _detail_tuple.cpp
     _detail_variant.cpp
     _detail_varint.cpp
+    buffer_test.hpp
+    file_test.hpp
+    basic_stream_socket.cpp
     bind_handler.cpp
     buffer_traits.cpp
     buffered_read_stream.cpp
@@ -51,6 +53,7 @@ add_executable (tests-beast-core
     span.cpp
     static_buffer.cpp
     static_string.cpp
+    stream_socket.cpp
     string.cpp
     string_param.cpp
     type_traits.cpp

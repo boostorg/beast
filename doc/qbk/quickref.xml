@@ -179,6 +179,7 @@
           <simplelist type="vert" columns="1">
             <member><link linkend="beast.ref.boost__beast__basic_flat_buffer">basic_flat_buffer</link></member>
             <member><link linkend="beast.ref.boost__beast__basic_multi_buffer">basic_multi_buffer</link></member>
+            <member><link linkend="beast.ref.boost__beast__basic_stream_socket">basic_stream_socket</link></member>
             <member><link linkend="beast.ref.boost__beast__buffered_read_stream">buffered_read_stream</link></member>
             <member><link linkend="beast.ref.boost__beast__buffers_adaptor">buffers_adaptor</link></member>
             <member><link linkend="beast.ref.boost__beast__buffers_cat_view">buffers_cat_view</link></member>
@@ -189,14 +190,14 @@
             <member><link linkend="beast.ref.boost__beast__file_posix">file_posix</link></member>
             <member><link linkend="beast.ref.boost__beast__file_stdio">file_stdio</link></member>
             <member><link linkend="beast.ref.boost__beast__file_win32">file_win32</link></member>
+            <member><link linkend="beast.ref.boost__beast__flat_buffer">flat_buffer</link></member>
+            <member><link linkend="beast.ref.boost__beast__flat_static_buffer">flat_static_buffer</link></member>
+            <member><link linkend="beast.ref.boost__beast__flat_static_buffer_base">flat_static_buffer_base</link></member>
           </simplelist>
         </entry>
         <entry valign="top">
           <bridgehead renderas="sect3">&nbsp;</bridgehead>
           <simplelist type="vert" columns="1">
-            <member><link linkend="beast.ref.boost__beast__flat_buffer">flat_buffer</link></member>
-            <member><link linkend="beast.ref.boost__beast__flat_static_buffer">flat_static_buffer</link></member>
-            <member><link linkend="beast.ref.boost__beast__flat_static_buffer_base">flat_static_buffer_base</link></member>
             <member><link linkend="beast.ref.boost__beast__handler_ptr">handler_ptr</link></member>
             <member><link linkend="beast.ref.boost__beast__iequal">iequal</link></member>
             <member><link linkend="beast.ref.boost__beast__iless">iless</link></member>
@@ -205,17 +206,24 @@
             <member><link linkend="beast.ref.boost__beast__static_buffer">static_buffer</link></member>
             <member><link linkend="beast.ref.boost__beast__static_buffer_base">static_buffer_base</link></member>
             <member><link linkend="beast.ref.boost__beast__static_string">static_string</link></member>
+            <member><link linkend="beast.ref.boost__beast__stream_socket">stream_socket</link></member>
             <member><link linkend="beast.ref.boost__beast__string_param">string_param</link></member>
             <member><link linkend="beast.ref.boost__beast__string_view">string_view</link></member>
+          </simplelist>
+          <bridgehead renderas="sect3">Constants</bridgehead>
+          <simplelist type="vert" columns="1">
+            <member><link linkend="beast.ref.boost__beast__condition">condition</link></member>
+            <member><link linkend="beast.ref.boost__beast__error">error</link></member>
+            <member><link linkend="beast.ref.boost__beast__file_mode">file_mode</link></member>
           </simplelist>
         </entry>
         <entry valign="top">
           <bridgehead renderas="sect3">Functions</bridgehead>
           <simplelist type="vert" columns="1">
+            <member><link linkend="beast.ref.boost__beast__async_connect">async_connect</link></member>
             <member><link linkend="beast.ref.boost__beast__bind_back_handler">bind_back_handler</link></member>
             <member><link linkend="beast.ref.boost__beast__bind_front_handler">bind_front_handler</link></member>
             <member><link linkend="beast.ref.boost__beast__bind_handler">bind_handler</link></member>
-            <member><link linkend="beast.ref.boost__beast__make_printable">make_printable</link></member>
             <member><link linkend="beast.ref.boost__beast__buffers_cat">buffers_cat</link></member>
             <member><link linkend="beast.ref.boost__beast__buffers_front">buffers_front</link></member>
             <member><link linkend="beast.ref.boost__beast__buffers_prefix">buffers_prefix</link></member>
@@ -224,16 +232,11 @@
             <member><link linkend="beast.ref.boost__beast__buffers_to_string">buffers_to_string</link></member>
             <member><link linkend="beast.ref.boost__beast__generic_category">generic_category</link></member>
             <member><link linkend="beast.ref.boost__beast__iequals">iequals</link></member>
+            <member><link linkend="beast.ref.boost__beast__make_printable">make_printable</link></member>
             <member><link linkend="beast.ref.boost__beast__ostream">ostream</link></member>
             <member><link linkend="beast.ref.boost__beast__read_size">read_size</link></member>
             <member><link linkend="beast.ref.boost__beast__read_size_or_throw">read_size_or_throw</link></member>
             <member><link linkend="beast.ref.boost__beast__to_static_string">to_static_string</link></member>
-          </simplelist>
-          <bridgehead renderas="sect3">Constants</bridgehead>
-          <simplelist type="vert" columns="1">
-            <member><link linkend="beast.ref.boost__beast__condition">condition</link></member>
-            <member><link linkend="beast.ref.boost__beast__error">error</link></member>
-            <member><link linkend="beast.ref.boost__beast__file_mode">file_mode</link></member>
           </simplelist>
         </entry>
         <entry valign="top">
@@ -312,22 +315,16 @@
         <entry valign="top">
           <bridgehead renderas="sect3">Classes</bridgehead>
           <simplelist type="vert" columns="1">
-            <member><link linkend="beast.ref.boost__beast__basic_timeout_socket">basic_timeout_socket</link></member>
             <member><link linkend="beast.ref.boost__beast__flat_stream">flat_stream</link></member>
             <member><link linkend="beast.ref.boost__beast__ssl_stream">ssl_stream</link></member>
             <member><link linkend="beast.ref.boost__beast__http__icy_stream">http::icy_stream</link></member>
             <member><link linkend="beast.ref.boost__beast__test__fail_count">test::fail_count</link></member>
             <member><link linkend="beast.ref.boost__beast__test__stream">test::stream</link></member>
-            <member><link linkend="beast.ref.boost__beast__timeout_handle">timeout_handle</link></member>
-            <member><link linkend="beast.ref.boost__beast__timeout_socket">timeout_socket</link></member>
-            <member><link linkend="beast.ref.boost__beast__timeout_work_guard">timeout_work_guard</link></member>
           </simplelist>
         </entry>
         <entry valign="top">
           <bridgehead renderas="sect3">Functions</bridgehead>
           <simplelist type="vert" columns="1">
-            <member><link linkend="beast.ref.boost__beast__async_connect">async_connect</link></member>
-            <member><link linkend="beast.ref.boost__beast__set_timeout_service_options">set_timeout_service_options</link></member>
             <member><link linkend="beast.ref.boost__beast__test__connect">test::connect</link></member>
           </simplelist>
         </entry>

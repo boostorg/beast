@@ -54,7 +54,7 @@
 
 [*Experimental]
 
-* Add [link beast.ref.boost__beast__timeout_socket `timeout_socket`]
+* Add `timeout_socket`
 
 
 

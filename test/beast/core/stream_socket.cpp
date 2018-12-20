@@ -8,19 +8,18 @@
 //
 
 // Test that header file is self-contained.
-#include <boost/beast/_experimental/core/timeout_socket.hpp>
+#include <boost/beast/core/stream_socket.hpp>
 
-#include <boost/beast/_experimental/core/timeout_service.hpp>
-
-#include <boost/beast/test/yield_to.hpp>
 #include <boost/beast/_experimental/unit_test/suite.hpp>
+#include <boost/beast/test/yield_to.hpp>
 #include <boost/asio/ip/tcp.hpp>
+#include <array>
 #include <thread>
 
 namespace boost {
 namespace beast {
 
-class timeout_socket_test
+class stream_socket_test
     : public beast::unit_test::suite
     , public test::enable_yield_to
 {
@@ -152,18 +151,117 @@ public:
         server srv(ep, log);
         {
             net::io_context ioc;
-            set_timeout_service_options(
-                ioc, std::chrono::seconds(1));
-            timeout_socket s(ioc);
+            stream_socket s(ioc);
             s.next_layer().connect(ep);
             char buf[32];
+            error_code ec;
+            s.expires_after(std::chrono::seconds(1));
             s.async_read_some(net::buffer(buf),
-                [&](error_code ec, std::size_t n)
+                [&ec](error_code ec_, std::size_t)
                 {
-                    log << "read_some: " << ec.message() << "\n";
-                    boost::ignore_unused(ec, n);
+                    ec = ec_;
                 });
             ioc.run();
+            BEAST_EXPECTS(
+                ec == error::timeout, ec.message());
+        }
+    }
+
+    void
+    testConnect()
+    {
+        using es_t =
+            std::array<net::ip::tcp::endpoint, 2>;
+        {
+            net::io_context ioc;
+            stream_socket s(ioc);
+            beast::async_connect(s, es_t{},
+                [](error_code, es_t::value_type)
+                {
+                });
+        }
+        {
+            net::io_context ioc;
+            stream_socket s(ioc);
+            beast::async_connect(s, es_t{},
+                [](error_code, es_t::value_type)
+                {
+                    return true;
+                },
+                [](error_code, es_t::value_type)
+                {
+                });
+        }
+        {
+            es_t es;
+            net::io_context ioc;
+            stream_socket s(ioc);
+            beast::async_connect(s, es.begin(), es.end(),
+                [](error_code, es_t::iterator)
+                {
+                });
+        }
+        {
+            es_t es;
+            net::io_context ioc;
+            stream_socket s(ioc);
+            beast::async_connect(s, es.begin(), es.end(),
+                [](error_code, es_t::value_type)
+                {
+                    return true;
+                },
+                [](error_code, es_t::iterator)
+                {
+                });
+        }
+        pass();
+    }
+
+    void callConnects()
+    {
+        using es_t =
+            std::array<net::ip::tcp::endpoint, 2>;
+        {
+            net::io_context ioc;
+            stream_socket s(ioc);
+            async_connect(s, es_t{},
+                [](error_code, es_t::value_type)
+                {
+                });
+        }
+        {
+            net::io_context ioc;
+            stream_socket s(ioc);
+            async_connect(s, es_t{},
+                [](error_code, es_t::value_type)
+                {
+                    return true;
+                },
+                [](error_code, es_t::value_type)
+                {
+                });
+        }
+        {
+            es_t es;
+            net::io_context ioc;
+            stream_socket s(ioc);
+            async_connect(s, es.begin(), es.end(),
+                [](error_code, es_t::iterator)
+                {
+                });
+        }
+        {
+            es_t es;
+            net::io_context ioc;
+            stream_socket s(ioc);
+            async_connect(s, es.begin(), es.end(),
+                [](error_code, es_t::value_type)
+                {
+                    return true;
+                },
+                [](error_code, es_t::iterator)
+                {
+                });
         }
     }
 
@@ -171,12 +269,11 @@ public:
     run()
     {
         testAsync();
-
-        pass();
+        testConnect();
     }
 };
 
-BEAST_DEFINE_TESTSUITE(beast,core,timeout_socket);
+BEAST_DEFINE_TESTSUITE(beast,core,stream_socket);
 
 } // beast
 } // boost

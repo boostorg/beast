@@ -4,6 +4,7 @@ Version 201
 * Add bind_back_handler
 * Tidy up default-constructed iterators
 * Add core errors and conditions
+* New basic_stream_socket
 
 --------------------------------------------------------------------------------
 

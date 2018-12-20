@@ -12,6 +12,7 @@
 
 #include <boost/beast/core/detail/config.hpp>
 
+#include <boost/beast/core/basic_stream_socket.hpp>
 #include <boost/beast/core/bind_handler.hpp>
 #include <boost/beast/core/buffer_traits.hpp>
 #include <boost/beast/core/buffered_read_stream.hpp>
@@ -37,6 +38,7 @@
 #include <boost/beast/core/span.hpp>
 #include <boost/beast/core/static_buffer.hpp>
 #include <boost/beast/core/static_string.hpp>
+#include <boost/beast/core/stream_socket.hpp>
 #include <boost/beast/core/string.hpp>
 #include <boost/beast/core/string_param.hpp>
 #include <boost/beast/core/type_traits.hpp>

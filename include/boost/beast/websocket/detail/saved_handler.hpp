@@ -42,7 +42,7 @@ class saved_handler
     };
 
     template<class Handler>
-    class impl : public base
+    class impl final : public base
     {
         Handler h_;
         net::executor_work_guard<

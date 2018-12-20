@@ -13,9 +13,6 @@ local SOURCES =
     icy_stream.cpp
     ssl_stream.cpp
     stream.cpp
-    timeout_socket.cpp
-    timeout_service.cpp
-    timeout_work_guard.cpp
     ;
 
 local RUN_TESTS ;

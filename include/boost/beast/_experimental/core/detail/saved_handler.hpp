@@ -59,11 +59,10 @@ public:
                 std::forward<Handler>(h)));
     }
 
-    template<class Handler,
-        class T0, class... TN>
+    template<
+        class Handler, class T0, class... TN>
     void
-    emplace(Handler&& h,
-        T0&& t0, TN&... tn)
+    emplace(Handler&& h, T0&& t0, TN&&... tn)
     {
         using type = decltype(
             beast::bind_front_handler(
