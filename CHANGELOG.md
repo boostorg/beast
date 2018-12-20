@@ -20,6 +20,7 @@ Version 200
 * Refactor ostream
 * Refactor static_buffer
 * HTTP tidying
+* Adjust static_asio lib options in Jamfile
 
 API Changes:
 

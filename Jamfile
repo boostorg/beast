@@ -80,7 +80,14 @@ lib static_asio
             cxx11_template_aliases
             cxx11_variadic_templates
         ]
+        <define>BOOST_ASIO_NO_DEPRECATED=1
+        <define>BOOST_ASIO_DISABLE_BOOST_ARRAY=1
+        <define>BOOST_ASIO_DISABLE_BOOST_BIND=1
+        <define>BOOST_ASIO_DISABLE_BOOST_DATE_TIME=1
+        <define>BOOST_ASIO_DISABLE_BOOST_REGEX=1
         <define>BOOST_ASIO_SEPARATE_COMPILATION
+        <define>BOOST_COROUTINES_NO_DEPRECATION_WARNING=1
+        <os>NT:<define>_WIN32_WINNT=0x0601
         <link>static
     ;
 
