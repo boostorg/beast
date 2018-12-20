@@ -219,6 +219,7 @@
             <member><link linkend="beast.ref.boost__beast__buffers_front">buffers_front</link></member>
             <member><link linkend="beast.ref.boost__beast__buffers_prefix">buffers_prefix</link></member>
             <member><link linkend="beast.ref.boost__beast__buffers_range">buffers_range</link></member>
+            <member><link linkend="beast.ref.boost__beast__buffers_range_ref">buffers_range_ref</link></member>
             <member><link linkend="beast.ref.boost__beast__buffers_to_string">buffers_to_string</link></member>
             <member><link linkend="beast.ref.boost__beast__generic_category">generic_category</link></member>
             <member><link linkend="beast.ref.boost__beast__iequals">iequals</link></member>

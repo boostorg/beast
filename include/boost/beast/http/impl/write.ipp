@@ -936,7 +936,7 @@ public:
         if(os_.fail())
             return;
         std::size_t bytes_transferred = 0;
-        for(auto b : beast::buffers_range(std::ref(buffers)))
+        for(auto b : beast::buffers_range_ref(buffers))
         {
             os_.write(static_cast<char const*>(
                 b.data()), b.size());

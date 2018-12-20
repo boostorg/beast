@@ -132,7 +132,7 @@ public:
             }
             ec.assign(0, ec.category());
             CharT* dest = &body_[size];
-            for(auto b : beast::buffers_range(std::ref(buffers)))
+            for(auto b : beast::buffers_range_ref(buffers))
             {
                 Traits::copy(dest, static_cast<
                     CharT const*>(b.data()), b.size());

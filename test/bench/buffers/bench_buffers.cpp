@@ -68,7 +68,7 @@ public:
     fill(MutableBufferSequence const& buffers)
     {
         std::size_t n = 0;
-        for(auto b : beast::buffers_range(std::ref(buffers)))
+        for(auto b : beast::buffers_range_ref(buffers))
         {
             std::fill(
                 static_cast<char*>(b.data()),

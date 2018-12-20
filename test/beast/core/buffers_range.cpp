@@ -21,9 +21,49 @@ class buffers_range_test : public beast::unit_test::suite
 {
 public:
     BOOST_STATIC_ASSERT(
+        is_const_buffer_sequence<
+            decltype(beast::buffers_range(
+                std::declval<net::const_buffer>()))>::value);
+
+    BOOST_STATIC_ASSERT(
+        is_const_buffer_sequence<
+            decltype(beast::buffers_range(
+                std::declval<net::mutable_buffer>()))>::value);
+
+    BOOST_STATIC_ASSERT(
+        ! net::is_mutable_buffer_sequence<
+            decltype(beast::buffers_range(
+                std::declval<net::const_buffer>()))>::value);
+
+    BOOST_STATIC_ASSERT(
         net::is_mutable_buffer_sequence<
             decltype(beast::buffers_range(
                 std::declval<net::mutable_buffer>()))>::value);
+
+    template <class BufferSequence>
+    std::size_t buffer_sequence_size (BufferSequence const& buffers)
+    {
+        std::size_t size = 0;
+        for (auto const buffer : buffers_range (buffers))
+            size += buffer.size();
+        return size;
+    }
+
+    template <class BufferSequence>
+    std::size_t buffer_sequence_size_ref (BufferSequence const& buffers)
+    {
+        std::size_t size = 0;
+        for (auto const buffer : buffers_range_ref (buffers))
+            size += buffer.size();
+        return size;
+    }
+
+    void
+    testJavadocs()
+    {
+        BEAST_EXPECT(&buffers_range_test::buffer_sequence_size<net::const_buffer>);
+        BEAST_EXPECT(&buffers_range_test::buffer_sequence_size_ref<net::const_buffer>);
+    }
 
     void
     testBufferSequence()
@@ -44,6 +84,7 @@ public:
     void
     run() override
     {
+        testJavadocs();
         testBufferSequence();
     }
 };

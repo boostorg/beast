@@ -269,7 +269,7 @@ nodejs_basic_parser<Derived>::write(
         ConstBufferSequence>::value,
             "ConstBufferSequence requirements not met");
     std::size_t bytes_used = 0;
-    for(auto buffer : beast::buffers_range(std::ref(buffers)))
+    for(auto buffer : beast::buffers_range_ref(buffers))
     {
         auto const n = write(
             static_cast<void const*>(buffer.data()),

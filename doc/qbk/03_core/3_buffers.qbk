@@ -57,6 +57,7 @@ transferred.
 ]]
 [[
     [link beast.ref.boost__beast__buffers_range `buffers_range`]
+    [link beast.ref.boost__beast__buffers_range_ref `buffers_range_ref`]
 ][
     This function returns an iterable range representing the passed
     buffer sequence. The values obtained when iterating the range
@@ -64,6 +65,14 @@ transferred.
     sequence is mutable, in which case the value obtained when iterating
     will be a mutable buffer. It is intended as a notational convenience
     when writing a ['range-for] statement over a buffer sequence.
+
+    The function
+    [link beast.ref.boost__beast__buffers_range_ref `buffers_range`]
+    maintains a copy of the buffer sequence, while
+    [link beast.ref.boost__beast__buffers_range_ref `buffers_range_ref`]
+    maintains a reference (in this case, the caller must ensure that
+    the lifetime of the referenced buffer sequence extends until the
+    range object is destroyed).
 ]]
 [[
     [link beast.ref.boost__beast__buffers_suffix `buffers_suffix`]

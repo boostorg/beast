@@ -71,12 +71,16 @@ mask_inplace(net::mutable_buffer& b, prepared_key& key)
 
 // Apply mask in place
 //
-template<class MutableBuffers, class KeyType>
+template<
+    class MutableBufferSequence,
+    class KeyType>
 void
-mask_inplace(MutableBuffers const& bs, KeyType& key)
+mask_inplace(
+    MutableBufferSequence const& buffers,
+    KeyType& key)
 {
     for(net::mutable_buffer b :
-            beast::buffers_range(std::ref(bs)))
+            beast::buffers_range_ref(buffers))
         mask_inplace(b, key);
 }
 

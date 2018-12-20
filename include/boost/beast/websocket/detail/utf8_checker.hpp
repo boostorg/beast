@@ -84,11 +84,12 @@ template<class _>
 template<class ConstBufferSequence>
 bool
 utf8_checker_t<_>::
-write(ConstBufferSequence const& bs)
+write(ConstBufferSequence const& buffers)
 {
-    static_assert(net::is_const_buffer_sequence<ConstBufferSequence>::value,
+    static_assert(
+        net::is_const_buffer_sequence<ConstBufferSequence>::value,
         "ConstBufferSequence requirements not met");
-    for(auto b : beast::buffers_range(std::ref(bs)))
+    for(auto b : beast::buffers_range_ref(buffers))
         if(! write(static_cast<
             std::uint8_t const*>(b.data()),
                 b.size()))

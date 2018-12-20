@@ -11,9 +11,8 @@
 #define BOOST_BEAST_BUFFERS_RANGE_HPP
 
 #include <boost/beast/core/detail/config.hpp>
+#include <boost/beast/core/buffer_traits.hpp>
 #include <boost/beast/core/detail/buffers_range_adaptor.hpp>
-#include <boost/asio/buffer.hpp>
-#include <functional>
 
 namespace boost {
 namespace beast {
@@ -22,65 +21,104 @@ namespace beast {
 
     This function returns an iterable range representing the
     passed buffer sequence. The values obtained when iterating
-    the range will always be `const_buffer`, unless the underlying
-    buffer sequence is a @em MutableBufferSequence, in which case
-    the value obtained when iterating will be a `mutable_buffer`.
+    the range will be `net::const_buffer`, unless the underlying
+    buffer sequence is a <em>MutableBufferSequence</em>, in which case
+    the value obtained when iterating will be a `net::mutable_buffer`.
 
     @par Example
 
     The following function returns the total number of bytes in
-    the specified buffer sequence:
+    the specified buffer sequence. A copy of the buffer sequence
+    is maintained for the lifetime of the range object:
 
     @code
-    template<class ConstBufferSequence>
-    std::size_t buffer_sequence_size(ConstBufferSequence const& buffers)
+    template <class BufferSequence>
+    std::size_t buffer_sequence_size (BufferSequence const& buffers)
     {
         std::size_t size = 0;
-        for(auto const buffer : buffers_range(std::ref(buffers)))
+        for (auto const buffer : buffers_range (buffers))
             size += buffer.size();
         return size;
     }
     @endcode
 
     @param buffers The buffer sequence to adapt into a range. The
-    range returned from this function will contain a copy of the
-    passed buffer sequence. If `buffers` is a `std::reference_wrapper`,
-    the range returned from this function will contain a reference to the
-    passed buffer sequence. In this case, the caller is responsible
-    for ensuring that the lifetime of the buffer sequence is valid for
-    the lifetime of the returned range.
+    range object returned from this function will contain a copy
+    of the passed buffer sequence.
 
-    @return An object of unspecified type, meeting the requirements of
-    <em>ConstBufferSequence</em>, and also @em MutableBufferSequence if `buffers`
-    is a mutable buffer sequence.
+    @return An object of unspecified type which meets the requirements
+    of <em>ConstBufferSequence</em>. If `buffers` is a mutable buffer
+    sequence, the returned object will also meet the requirements of
+    <em>MutableBufferSequence</em>.
+
+    @see @ref buffers_range_ref
 */
-/** @{ */
-template<class ConstBufferSequence>
+template<class BufferSequence>
 #if BOOST_BEAST_DOXYGEN
 __implementation_defined__
 #else
-detail::buffers_range_adaptor<ConstBufferSequence>
+detail::buffers_range_adaptor<BufferSequence>
 #endif
-buffers_range(ConstBufferSequence const& buffers)
+buffers_range(BufferSequence const& buffers)
 {
     static_assert(
-        net::is_const_buffer_sequence<ConstBufferSequence>::value,
-        "ConstBufferSequence requirements not met");
-    return detail::buffers_range_adaptor<ConstBufferSequence>(buffers);
+        is_const_buffer_sequence<BufferSequence>::value,
+        "BufferSequence requirements not met");
+    return detail::buffers_range_adaptor<
+        BufferSequence>(buffers);
 }
 
-template<class ConstBufferSequence>
+/** Returns an iterable range representing a buffer sequence.
+
+    This function returns an iterable range representing the
+    passed buffer sequence. The values obtained when iterating
+    the range will be `net::const_buffer`, unless the underlying
+    buffer sequence is a <em>MutableBufferSequence</em>, in which case
+    the value obtained when iterating will be a `net::mutable_buffer`.
+
+    @par Example
+
+    The following function returns the total number of bytes in
+    the specified buffer sequence. A reference to the original
+    buffers is maintained for the lifetime of the range object:
+
+    @code
+    template <class BufferSequence>
+    std::size_t buffer_sequence_size_ref (BufferSequence const& buffers)
+    {
+        std::size_t size = 0;
+        for (auto const buffer : buffers_range_ref (buffers))
+            size += buffer.size();
+        return size;
+    }
+    @endcode
+
+    @param buffers The buffer sequence to adapt into a range. The
+    range returned from this function will maintain a reference to
+    these buffers. The application is responsible for ensuring that
+    the lifetime of the referenced buffers extends until the range
+    object is destroyed.
+
+    @return An object of unspecified type which meets the requirements
+    of <em>ConstBufferSequence</em>. If `buffers` is a mutable buffer
+    sequence, the returned object will also meet the requirements of
+    <em>MutableBufferSequence</em>.
+
+    @see @ref buffers_range
+*/
+template<class BufferSequence>
 #if BOOST_BEAST_DOXYGEN
 __implementation_defined__
 #else
-detail::buffers_range_adaptor<ConstBufferSequence const&>
+detail::buffers_range_adaptor<BufferSequence const&>
 #endif
-buffers_range(std::reference_wrapper<ConstBufferSequence> buffers)
+buffers_range_ref(BufferSequence const& buffers)
 {
     static_assert(
-        net::is_const_buffer_sequence<ConstBufferSequence>::value,
-        "ConstBufferSequence requirements not met");
-    return detail::buffers_range_adaptor<ConstBufferSequence const&>(buffers.get());
+        is_const_buffer_sequence<BufferSequence>::value,
+        "BufferSequence requirements not met");
+    return detail::buffers_range_adaptor<
+        BufferSequence const&>(buffers);
 }
 /** @} */
 

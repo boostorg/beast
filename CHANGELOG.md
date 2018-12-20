@@ -22,6 +22,7 @@ Version 200
 * HTTP tidying
 * Adjust static_asio lib options in Jamfile
 * Add type_traits tests
+* Add buffers_range_ref (replaces reference_wrapper parameter)
 
 API Changes:
 

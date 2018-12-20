@@ -50,7 +50,7 @@ buffers_to_string(ConstBufferSequence const& buffers)
     std::string result;
     using net::buffer_size;
     result.reserve(buffer_size(buffers));
-    for(auto const buffer : beast::buffers_range(std::ref(buffers)))
+    for(auto const buffer : beast::buffers_range_ref(buffers))
         result.append(static_cast<char const*>(
             buffer.data()), buffer.size());
     return result;

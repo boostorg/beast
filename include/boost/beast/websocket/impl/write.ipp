@@ -60,7 +60,7 @@ deflate(
     zs.next_in = nullptr;
     zs.avail_out = out.size();
     zs.next_out = out.data();
-    for(auto in : beast::buffers_range(std::ref(cb)))
+    for(auto in : beast::buffers_range_ref(cb))
     {
         zs.avail_in = in.size();
         if(zs.avail_in == 0)

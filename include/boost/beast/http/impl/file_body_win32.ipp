@@ -192,7 +192,7 @@ struct basic_file_body<file_win32>
             error_code& ec)
         {
             std::size_t nwritten = 0;
-            for(auto buffer : beast::buffers_range(std::ref(buffers)))
+            for(auto buffer : beast::buffers_range_ref(buffers))
             {
                 nwritten += body_.file_.write(
                     buffer.data(), buffer.size(), ec);
