@@ -229,12 +229,14 @@ public:
         std::bidirectional_iterator_tag;
 
     const_iterator() = default;
-    const_iterator(const_iterator const& other) = default;
-    const_iterator& operator=(const_iterator const& other) = default;
+    const_iterator(
+        const_iterator const& other) = default;
+    const_iterator& operator=(
+        const_iterator const& other) = default;
 
     const_iterator(
-        basic_multi_buffer const& b,
-        typename list_type::const_iterator const& it) noexcept
+        basic_multi_buffer const& b, typename
+        list_type::const_iterator const& it) noexcept
         : b_(&b)
         , it_(it)
     {

@@ -39,9 +39,9 @@ class buffers_prefix_view
         buffers_iterator_type<BufferSequence>;
 
     BufferSequence bs_;
-    std::size_t size_;
-    std::size_t remain_;
-    iter_type end_;
+    std::size_t size_ = 0;
+    std::size_t remain_ = 0;
+    iter_type end_{};
 
     void
     setup(std::size_t size);

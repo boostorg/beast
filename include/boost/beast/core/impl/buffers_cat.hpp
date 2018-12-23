@@ -97,7 +97,7 @@ class buffers_cat_view<Bn...>::const_iterator
 
     detail::tuple<Bn...> const* bn_ = nullptr;
     detail::variant<
-        buffers_iterator_type<Bn>..., past_end> it_;
+        buffers_iterator_type<Bn>..., past_end> it_{};
 
     friend class buffers_cat_view<Bn...>;
 
@@ -105,8 +105,8 @@ class buffers_cat_view<Bn...>::const_iterator
     using C = std::integral_constant<std::size_t, I>;
 
 public:
-    using value_type =
-        typename buffers_cat_view<Bn...>::value_type;
+    using value_type = typename
+        buffers_cat_view<Bn...>::value_type;
     using pointer = value_type const*;
     using reference = value_type;
     using difference_type = std::ptrdiff_t;
@@ -115,7 +115,8 @@ public:
 
     const_iterator() = default;
     const_iterator(const_iterator const& other) = default;
-    const_iterator& operator=(const_iterator const& other) = default;
+    const_iterator& operator=(
+        const_iterator const& other) = default;
 
     bool
     operator==(const_iterator const& other) const;
@@ -146,7 +147,12 @@ public:
 
 private:
     const_iterator(
-        detail::tuple<Bn...> const& bn, bool at_end);
+        detail::tuple<Bn...> const& bn,
+        std::true_type);
+
+    const_iterator(
+        detail::tuple<Bn...> const& bn,
+        std::false_type);
 
     struct dereference
     {
@@ -259,7 +265,7 @@ private:
             for(;;)
             {
                 if(it == net::buffer_sequence_begin(
-                        detail::get<I-1>(*self.bn_)))
+                    detail::get<I-1>(*self.bn_)))
                 {
                     BOOST_BEAST_LOGIC_ERROR(
                         "Decrementing an iterator to the beginning");
@@ -308,21 +314,27 @@ template<class... Bn>
 buffers_cat_view<Bn...>::
 const_iterator::
 const_iterator(
-    detail::tuple<Bn...> const& bn, bool at_end)
+    detail::tuple<Bn...> const& bn,
+    std::true_type)
     : bn_(&bn)
 {
-    if(! at_end)
-    {
-        it_.template emplace<1>(
-            net::buffer_sequence_begin(
-                detail::get<0>(*bn_)));
-        increment{*this}.next(
-            mp11::mp_size_t<1>{});
-    }
-    else
-    {
-        it_.template emplace<sizeof...(Bn)+1>();
-    }
+    // one past the end
+    it_.template emplace<sizeof...(Bn)+1>();
+}
+
+template<class... Bn>
+buffers_cat_view<Bn...>::
+const_iterator::
+const_iterator(
+    detail::tuple<Bn...> const& bn,
+    std::false_type)
+    : bn_(&bn)
+{
+    it_.template emplace<1>(
+        net::buffer_sequence_begin(
+            detail::get<0>(*bn_)));
+    increment{*this}.next(
+        mp11::mp_size_t<1>{});
 }
 
 template<class... Bn>
@@ -414,7 +426,7 @@ auto
 buffers_cat_view<Bn...>::begin() const ->
     const_iterator
 {
-    return const_iterator{bn_, false};
+    return const_iterator{bn_, std::false_type{}};
 }
 
 template<class... Bn>
@@ -422,7 +434,7 @@ auto
 buffers_cat_view<Bn...>::end() const->
     const_iterator
 {
-    return const_iterator{bn_, true};
+    return const_iterator{bn_, std::true_type{}};
 }
 
 } // beast

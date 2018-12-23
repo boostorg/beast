@@ -56,7 +56,7 @@ class buffers_suffix
         buffers_iterator_type<BufferSequence>;
 
     BufferSequence bs_;
-    iter_type begin_;
+    iter_type begin_{};
     std::size_t skip_ = 0;
 
     template<class Deduced>
@@ -124,7 +124,7 @@ public:
     explicit
     buffers_suffix(boost::in_place_init_t, Args&&... args);
 
-    /// Assignment
+    /// Copy Assignment
     buffers_suffix& operator=(buffers_suffix const&);
 
     /// Get a bidirectional iterator to the first element.

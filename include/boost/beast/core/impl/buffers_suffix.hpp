@@ -28,7 +28,7 @@ class buffers_suffix<Buffers>::const_iterator
 
     using iter_type = buffers_iterator_type<Buffers>;
 
-    iter_type it_;
+    iter_type it_{};
     buffers_suffix const* b_ = nullptr;
 
 public:
@@ -49,8 +49,10 @@ public:
         std::bidirectional_iterator_tag;
 
     const_iterator() = default;
-    const_iterator(const_iterator const& other) = default;
-    const_iterator& operator=(const_iterator const& other) = default;
+    const_iterator(
+        const_iterator const& other) = default;
+    const_iterator& operator=(
+        const_iterator const& other) = default;
 
     bool
     operator==(const_iterator const& other) const
@@ -67,9 +69,15 @@ public:
     reference
     operator*() const
     {
+#if 0
         if(it_ == b_->begin_)
-            return value_type(*it_) + b_->skip_;
+            return value_type{*it_} + b_->skip_;
         return value_type{*it_};
+#else
+        return it_ == b_->begin_
+            ? value_type{*it_} + b_->skip_
+            : *it_;
+#endif
     }
 
     pointer
@@ -141,7 +149,7 @@ buffers_suffix(Buffers const& bs)
     , begin_(net::buffer_sequence_begin(bs_))
 {
     static_assert(
-        net::is_const_buffer_sequence<Buffers>::value||
+        net::is_const_buffer_sequence<Buffers>::value ||
         net::is_mutable_buffer_sequence<Buffers>::value,
             "BufferSequence requirements not met");
 }
@@ -200,13 +208,12 @@ void
 buffers_suffix<Buffers>::
 consume(std::size_t amount)
 {
-    using net::buffer_size;
     auto const end =
         net::buffer_sequence_end(bs_);
     for(;amount > 0 && begin_ != end; ++begin_)
     {
         auto const len =
-            buffer_size(*begin_) - skip_;
+            net::buffer_size(*begin_) - skip_;
         if(amount < len)
         {
             skip_ += amount;

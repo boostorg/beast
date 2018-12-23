@@ -28,7 +28,7 @@ class buffers_prefix_view<Buffers>::const_iterator
 
     buffers_prefix_view const* b_ = nullptr;
     std::size_t remain_ = 0;
-    iter_type it_;
+    iter_type it_{};
 
 public:
 #if BOOST_WORKAROUND(BOOST_MSVC, < 1910)
@@ -53,8 +53,10 @@ public:
         std::bidirectional_iterator_tag;
 
     const_iterator() = default;
-    const_iterator(const_iterator const& other) = default;
-    const_iterator& operator=(const_iterator const& other) = default;
+    const_iterator(
+        const_iterator const& other) = default;
+    const_iterator& operator=(
+        const_iterator const& other) = default;
 
     bool
     operator==(const_iterator const& other) const
@@ -72,8 +74,9 @@ public:
     operator*() const
     {
         value_type v(*it_);
-        return { v.data(),
-            remain_ < v.size() ? remain_ : v.size()};
+        if(remain_ < v.size())
+            return {v.data(), remain_};
+        return v;
     }
 
     pointer

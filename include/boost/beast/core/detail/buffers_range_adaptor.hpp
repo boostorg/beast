@@ -37,7 +37,7 @@ public:
         using iter_type =
             buffers_iterator_type<BufferSequence>;
 
-        iter_type it_;
+        iter_type it_{};
         buffers_range_adaptor const* b_ = nullptr;
 
         const_iterator(

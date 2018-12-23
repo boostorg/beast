@@ -294,7 +294,8 @@ public:
 
     // VFALCO Some version of g++ incorrectly complain about
     //        uninitialized values when buffers_cat and
-    //        buffers_prefix are used together.
+    //        buffers_prefix and/or buffers_suffix are used
+    //        together.
     void
     testGccWarning2()
     {
