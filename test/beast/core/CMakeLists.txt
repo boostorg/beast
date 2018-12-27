@@ -18,6 +18,14 @@ add_executable (tests-beast-core
     Jamfile
     buffer_test.hpp
     file_test.hpp
+    _detail_base64.cpp
+    _detail_buffer.cpp
+    _detail_clamp.cpp
+    _detail_read.cpp
+    _detail_sha1.cpp
+    _detail_tuple.cpp
+    _detail_variant.cpp
+    _detail_varint.cpp
     bind_handler.cpp
     buffer_traits.cpp
     buffered_read_stream.cpp
@@ -46,14 +54,6 @@ add_executable (tests-beast-core
     string.cpp
     string_param.cpp
     type_traits.cpp
-    detail_base64.cpp
-    detail_buffer.cpp
-    detail_clamp.cpp
-    detail_read.cpp
-    detail_sha1.cpp
-    detail_tuple.cpp
-    detail_variant.cpp
-    detail_varint.cpp
 )
 
 set_property(TARGET tests-beast-core PROPERTY FOLDER "tests")
