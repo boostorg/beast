@@ -1,5 +1,6 @@
 #
 # Copyright (c) 2016-2017 Vinnie Falco (vinnie dot falco at gmail dot com)
+# Copyright (c) 2018 Brett Robinson (octo dot banana93 at gmail dot com)
 #
 # Distributed under the Boost Software License, Version 1.0. (See accompanying
 # file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -7,8 +8,8 @@
 # Official repository: https://github.com/boostorg/beast
 #
 
-exe advanced-server-io :
-    advanced_server_io.cpp
+exe advanced-server-multi-io-context :
+    advanced_server_multi_io_context.cpp
     :
     <variant>coverage:<build>no
     <variant>ubasan:<build>no

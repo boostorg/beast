@@ -8,6 +8,7 @@
 #
 
 build-project server ;
+build-project server-multi-io-context ;
 
 # VFALCO How do I make this work on Windows and if OpenSSL is not available?
 #build-project server-flex ;

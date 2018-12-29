@@ -1,5 +1,6 @@
 //
 // Copyright (c) 2016-2017 Vinnie Falco (vinnie dot falco at gmail dot com)
+// Copyright (c) 2018 Brett Robinson (octo dot banana93 at gmail dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -13,6 +14,8 @@
 //
 //------------------------------------------------------------------------------
 
+#include "multi_io_context.hpp"
+
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
 #include <boost/beast/websocket.hpp>
@@ -23,8 +26,8 @@
 #include <boost/make_unique.hpp>
 #include <boost/bind.hpp>
 #include <boost/config.hpp>
-#include <algorithm>
 #include <cstdlib>
+#include <algorithm>
 #include <functional>
 #include <iostream>
 #include <memory>
@@ -32,103 +35,22 @@
 #include <thread>
 #include <vector>
 
+namespace beast = boost::beast;                 // from <boost/beast.hpp>
+namespace http = beast::http;                   // from <boost/beast/http.hpp>
+namespace websocket = beast::websocket;         // from <boost/beast/websocket.hpp>
+namespace net = boost::asio;                    // from <boost/asio.hpp>
 using tcp = boost::asio::ip::tcp;               // from <boost/asio/ip/tcp.hpp>
-namespace http = boost::beast::http;            // from <boost/beast/http.hpp>
-namespace websocket = boost::beast::websocket;  // from <boost/beast/websocket.hpp>
-
-class round_robin
-{
-    using io_ptr = std::shared_ptr<boost::asio::io_context>;
-    using io_work = boost::asio::executor_work_guard<
-        boost::asio::io_context::executor_type>;
-
-    struct ctx
-    {
-        ctx(io_ptr io, io_work work)
-            : io {io}
-            , work {work}
-        {
-        }
-
-        ctx(ctx const&) = delete;
-        ctx& operator=(ctx const&) = delete;
-        ctx(ctx&&) = default;
-        ctx& operator=(ctx&&) = default;
-        ~ctx() = default;
-
-        io_ptr io;
-        io_work work;
-    }; // struct ctx
-
-    std::vector<ctx> ctx_;
-    std::size_t next_ {0};
-
-public:
-
-    round_robin(std::size_t size = 1)
-    {
-        size = std::max<std::size_t>(1, size);
-
-        for (std::size_t i = 0; i < size; ++i)
-        {
-            io_ptr io {std::make_shared<boost::asio::io_context>()};
-            ctx_.emplace_back(io, boost::asio::make_work_guard(*io));
-        }
-    }
-
-    round_robin(round_robin const&) = delete;
-    round_robin& operator=(round_robin const&) = delete;
-    round_robin(round_robin&&) = default;
-    round_robin& operator=(round_robin&&) = default;
-    ~round_robin() = default;
-
-    void
-    run()
-    {
-        std::vector<std::thread> threads;
-        for (auto& e : ctx_)
-        {
-            threads.emplace_back(
-                boost::bind(&boost::asio::io_context::run, e.io));
-        }
-
-        for (auto& e : threads)
-        {
-            e.join();
-        }
-    }
-
-    void
-    stop()
-    {
-        for (auto& e : ctx_)
-        {
-            e.io->stop();
-        }
-    }
-
-    boost::asio::io_context&
-    get()
-    {
-        auto& io = *ctx_.at(next_).io;
-        if (++next_ == ctx_.size())
-        {
-            next_ = 0;
-        }
-        return io;
-    }
-}; // class round_robin
 
 // Return a reasonable mime type based on the extension of a file.
-boost::beast::string_view
-mime_type(boost::beast::string_view path)
+beast::string_view
+mime_type(beast::string_view path)
 {
-    using boost::beast::iequals;
+    using beast::iequals;
     auto const ext = [&path]
     {
         auto const pos = path.rfind(".");
-        if(pos == boost::beast::string_view::npos)
-            return boost::beast::string_view{};
+        if(pos == beast::string_view::npos)
+            return beast::string_view{};
         return path.substr(pos);
     }();
     if(iequals(ext, ".htm"))  return "text/html";
@@ -159,8 +81,8 @@ mime_type(boost::beast::string_view path)
 // The returned path is normalized for the platform.
 std::string
 path_cat(
-    boost::beast::string_view base,
-    boost::beast::string_view path)
+    beast::string_view base,
+    beast::string_view path)
 {
     if(base.empty())
         return path.to_string();
@@ -191,13 +113,13 @@ template<
     class Send>
 void
 handle_request(
-    boost::beast::string_view doc_root,
+    beast::string_view doc_root,
     http::request<Body, http::basic_fields<Allocator>>&& req,
     Send&& send)
 {
     // Returns a bad request response
     auto const bad_request =
-    [&req](boost::beast::string_view why)
+    [&req](beast::string_view why)
     {
         http::response<http::string_body> res{http::status::bad_request, req.version()};
         res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
@@ -210,7 +132,7 @@ handle_request(
 
     // Returns a not found response
     auto const not_found =
-    [&req](boost::beast::string_view target)
+    [&req](beast::string_view target)
     {
         http::response<http::string_body> res{http::status::not_found, req.version()};
         res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
@@ -223,7 +145,7 @@ handle_request(
 
     // Returns a server error response
     auto const server_error =
-    [&req](boost::beast::string_view what)
+    [&req](beast::string_view what)
     {
         http::response<http::string_body> res{http::status::internal_server_error, req.version()};
         res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
@@ -242,7 +164,7 @@ handle_request(
     // Request path must be absolute and not contain "..".
     if( req.target().empty() ||
         req.target()[0] != '/' ||
-        req.target().find("..") != boost::beast::string_view::npos)
+        req.target().find("..") != beast::string_view::npos)
         return send(bad_request("Illegal request-target"));
 
     // Build the path to the requested file
@@ -251,12 +173,12 @@ handle_request(
         path.append("index.html");
 
     // Attempt to open the file
-    boost::beast::error_code ec;
+    beast::error_code ec;
     http::file_body::value_type body;
-    body.open(path.c_str(), boost::beast::file_mode::scan, ec);
+    body.open(path.c_str(), beast::file_mode::scan, ec);
 
     // Handle the case where the file doesn't exist
-    if(ec == boost::system::errc::no_such_file_or_directory)
+    if(ec == beast::errc::no_such_file_or_directory)
         return send(not_found(req.target()));
 
     // Handle an unknown error
@@ -293,7 +215,7 @@ handle_request(
 
 // Report a failure
 void
-fail(boost::system::error_code ec, char const* what)
+fail(beast::error_code ec, char const* what)
 {
     std::cerr << what << ": " << ec.message() << "\n";
 }
@@ -302,8 +224,8 @@ fail(boost::system::error_code ec, char const* what)
 class websocket_session : public std::enable_shared_from_this<websocket_session>
 {
     websocket::stream<tcp::socket> ws_;
-    boost::asio::steady_timer timer_;
-    boost::beast::multi_buffer buffer_;
+    net::steady_timer timer_;
+    beast::multi_buffer buffer_;
     char ping_state_ = 0;
 
 public:
@@ -347,10 +269,10 @@ public:
     }
 
     void
-    on_accept(boost::system::error_code ec)
+    on_accept(beast::error_code ec)
     {
         // Happens when the timer closes the socket
-        if(ec == boost::asio::error::operation_aborted)
+        if(ec == net::error::operation_aborted)
             return;
 
         if(ec)
@@ -362,9 +284,9 @@ public:
 
     // Called when the timer expires.
     void
-    on_timer(boost::system::error_code ec)
+    on_timer(beast::error_code ec)
     {
-        if(ec && ec != boost::asio::error::operation_aborted)
+        if(ec && ec != net::error::operation_aborted)
             return fail(ec, "timer");
 
         // See if the timer really expired since the deadline may have moved.
@@ -394,7 +316,7 @@ public:
                 // we never got back a control frame, so close.
 
                 // Closing the socket cancels all outstanding operations. They
-                // will complete with boost::asio::error::operation_aborted
+                // will complete with net::error::operation_aborted
                 ws_.next_layer().shutdown(tcp::socket::shutdown_both, ec);
                 ws_.next_layer().close(ec);
                 return;
@@ -422,10 +344,10 @@ public:
 
     // Called after a ping is sent.
     void
-    on_ping(boost::system::error_code ec)
+    on_ping(beast::error_code ec)
     {
         // Happens when the timer closes the socket
-        if(ec == boost::asio::error::operation_aborted)
+        if(ec == net::error::operation_aborted)
             return;
 
         if(ec)
@@ -448,7 +370,7 @@ public:
     void
     on_control_callback(
         websocket::frame_type kind,
-        boost::beast::string_view payload)
+        beast::string_view payload)
     {
         boost::ignore_unused(kind, payload);
 
@@ -471,13 +393,13 @@ public:
 
     void
     on_read(
-        boost::system::error_code ec,
+        beast::error_code ec,
         std::size_t bytes_transferred)
     {
         boost::ignore_unused(bytes_transferred);
 
         // Happens when the timer closes the socket
-        if(ec == boost::asio::error::operation_aborted)
+        if(ec == net::error::operation_aborted)
             return;
 
         // This indicates that the websocket_session was closed
@@ -503,13 +425,13 @@ public:
 
     void
     on_write(
-        boost::system::error_code ec,
+        beast::error_code ec,
         std::size_t bytes_transferred)
     {
         boost::ignore_unused(bytes_transferred);
 
         // Happens when the timer closes the socket
-        if(ec == boost::asio::error::operation_aborted)
+        if(ec == net::error::operation_aborted)
             return;
 
         if(ec)
@@ -618,8 +540,8 @@ class http_session : public std::enable_shared_from_this<http_session>
     };
 
     tcp::socket socket_;
-    boost::asio::steady_timer timer_;
-    boost::beast::flat_buffer buffer_;
+    net::steady_timer timer_;
+    beast::flat_buffer buffer_;
     std::shared_ptr<std::string const> doc_root_;
     http::request<http::string_body> req_;
     queue queue_;
@@ -669,9 +591,9 @@ public:
 
     // Called when the timer expires.
     void
-    on_timer(boost::system::error_code ec)
+    on_timer(beast::error_code ec)
     {
-        if(ec && ec != boost::asio::error::operation_aborted)
+        if(ec && ec != net::error::operation_aborted)
             return fail(ec, "timer");
 
         // Check if this has been upgraded to Websocket
@@ -682,7 +604,7 @@ public:
         if(timer_.expiry() <= std::chrono::steady_clock::now())
         {
             // Closing the socket cancels all outstanding operations. They
-            // will complete with boost::asio::error::operation_aborted
+            // will complete with net::error::operation_aborted
             socket_.shutdown(tcp::socket::shutdown_both, ec);
             socket_.close(ec);
             return;
@@ -697,10 +619,10 @@ public:
     }
 
     void
-    on_read(boost::system::error_code ec)
+    on_read(beast::error_code ec)
     {
         // Happens when the timer closes the socket
-        if(ec == boost::asio::error::operation_aborted)
+        if(ec == net::error::operation_aborted)
             return;
 
         // This means they closed the connection
@@ -732,10 +654,10 @@ public:
     }
 
     void
-    on_write(boost::system::error_code ec, bool close)
+    on_write(beast::error_code ec, bool close)
     {
         // Happens when the timer closes the socket
-        if(ec == boost::asio::error::operation_aborted)
+        if(ec == net::error::operation_aborted)
             return;
 
         if(ec)
@@ -760,7 +682,7 @@ public:
     do_close()
     {
         // Send a TCP shutdown
-        boost::system::error_code ec;
+        beast::error_code ec;
         socket_.shutdown(tcp::socket::shutdown_send, ec);
 
         // At this point the connection is closed gracefully
@@ -772,22 +694,22 @@ public:
 // Accepts incoming connections and launches the sessions
 class listener : public std::enable_shared_from_this<listener>
 {
-    round_robin& io_pool_;
-    tcp::socket socket_;
+    multi_io_context& ioc_;
     tcp::acceptor acceptor_;
+    tcp::socket socket_;
     std::shared_ptr<std::string const> doc_root_;
 
 public:
     listener(
-        round_robin& io_pool,
+        multi_io_context& ioc,
         tcp::endpoint endpoint,
         std::shared_ptr<std::string const> const& doc_root)
-        : io_pool_(io_pool)
-        , socket_(io_pool.get())
-        , acceptor_(io_pool.get())
+        : ioc_(ioc)
+        , acceptor_(ioc.bump_context())
+        , socket_(ioc.bump_context())
         , doc_root_(doc_root)
     {
-        boost::system::error_code ec;
+        beast::error_code ec;
 
         // Open the acceptor
         acceptor_.open(endpoint.protocol(), ec);
@@ -798,7 +720,7 @@ public:
         }
 
         // Allow address reuse
-        acceptor_.set_option(boost::asio::socket_base::reuse_address(true), ec);
+        acceptor_.set_option(net::socket_base::reuse_address(true), ec);
         if(ec)
         {
             fail(ec, "set_option");
@@ -815,7 +737,7 @@ public:
 
         // Start listening for connections
         acceptor_.listen(
-            boost::asio::socket_base::max_listen_connections, ec);
+            net::socket_base::max_listen_connections, ec);
         if(ec)
         {
             fail(ec, "listen");
@@ -844,7 +766,7 @@ public:
     }
 
     void
-    on_accept(boost::system::error_code ec)
+    on_accept(beast::error_code ec)
     {
         if(ec)
         {
@@ -858,8 +780,8 @@ public:
                 doc_root_)->run();
         }
 
-        // reset socket with next io_context from the pool
-        socket_ = std::move(tcp::socket(io_pool_.get()));
+        // Reset the socket with the next io_context
+        socket_ = std::move(tcp::socket(ioc_.bump_context()));
 
         // Accept another connection
         do_accept();
@@ -879,36 +801,53 @@ int main(int argc, char* argv[])
             "    advanced-server 0.0.0.0 8080 . 1\n";
         return EXIT_FAILURE;
     }
-    auto const address = boost::asio::ip::make_address(argv[1]);
+    auto const address = net::ip::make_address(argv[1]);
     auto const port = static_cast<unsigned short>(std::atoi(argv[2]));
     auto const doc_root = std::make_shared<std::string>(argv[3]);
-    auto const threads = std::max<std::size_t>(1, std::atoi(argv[4]));
+    auto const threads = std::max<std::size_t>(1, std::stoul(argv[4]));
 
     // The io_context is required for all I/O
-    // Use one io_context per thread round robin style
-    round_robin io_pool {threads};
+    // The multi_io_context uses a single io_context per thread
+    // using a round robin selection policy
+    multi_io_context ioc{threads};
 
     // Create and launch a listening port
     std::make_shared<listener>(
-        io_pool,
+        ioc,
         tcp::endpoint{address, port},
         doc_root)->run();
 
     // Capture SIGINT and SIGTERM to perform a clean shutdown
-    boost::asio::signal_set signals(io_pool.get(), SIGINT, SIGTERM);
+    net::signal_set signals(ioc.bump_context(), SIGINT, SIGTERM);
     signals.async_wait(
-        [&](boost::system::error_code const&, int)
+        [&ioc](beast::error_code const&, int)
         {
             // Stop the `io_contexts`. This will cause `run()`
-            // to return immediately, eventually destroying the
+            // to return immediately, eventually destroying each
             // `io_context` and all of the sockets in it.
-            io_pool.stop();
+            for(auto const& io_context : ioc.contexts())
+                io_context->stop();
         });
 
     // Run the I/O services on the requested number of threads
-    io_pool.run();
+    std::vector<std::thread> v;
+    v.reserve(threads - 1);
+    for(std::size_t i = 1; i < threads; ++i)
+    {
+        auto& io_context = ioc.bump_context();
+        v.emplace_back(
+            [&io_context]
+            {
+                io_context.run();
+            });
+    }
+    ioc.bump_context().run();
 
     // (If we get here, it means we got a SIGINT or SIGTERM)
+
+    // Block until all the threads exit
+    for(auto& t : v)
+        t.join();
 
     return EXIT_SUCCESS;
 }
