@@ -18,4 +18,4 @@ add_executable (advanced-server-multi-io-context
     advanced_server_multi_io_context.cpp
 )
 
-set_property(TARGET advanced-server-multi-io-context PROPERTY FOLDER "example-advanced-server-multi-io-context")
+set_property(TARGET advanced-server-multi-io-context PROPERTY FOLDER "example-advanced-server")
