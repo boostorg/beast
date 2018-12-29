@@ -7,14 +7,8 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
-//------------------------------------------------------------------------------
-//
-// Example: Advanced server, one io_context per thread
-//
-//------------------------------------------------------------------------------
-
-#ifndef MULTI_IO_CONTEXT_HPP
-#define MULTI_IO_CONTEXT_HPP
+#ifndef BOOST_BEAST_EXAMPLE_MULTI_IO_CONTEXT_HPP
+#define BOOST_BEAST_EXAMPLE_MULTI_IO_CONTEXT_HPP
 
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/executor_work_guard.hpp>
