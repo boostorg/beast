@@ -14,6 +14,7 @@
 #include <boost/asio/executor_work_guard.hpp>
 #include <deque>
 #include <vector>
+#include <algorithm>
 
 class multi_io_context
 {
