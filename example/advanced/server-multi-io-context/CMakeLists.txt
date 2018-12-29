@@ -14,6 +14,7 @@ GroupSources(example/advanced/server-multi-io-context "/")
 add_executable (advanced-server-multi-io-context
     ${BOOST_BEAST_FILES}
     Jamfile
+    multi_io_context.hpp
     advanced_server_multi_io_context.cpp
 )
 
