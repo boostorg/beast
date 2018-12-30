@@ -231,6 +231,8 @@
           </simplelist>
           <bridgehead renderas="sect3">Constants</bridgehead>
           <simplelist type="vert" columns="1">
+            <member><link linkend="beast.ref.boost__beast__condition">condition</link></member>
+            <member><link linkend="beast.ref.boost__beast__error">error</link></member>
             <member><link linkend="beast.ref.boost__beast__file_mode">file_mode</link></member>
           </simplelist>
         </entry>

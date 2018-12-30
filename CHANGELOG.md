@@ -3,6 +3,7 @@ Version 201
 * Decay bound arguments in handler wrapper parameters
 * Add bind_back_handler
 * Tidy up default-constructed iterators
+* Add core errors and conditions
 
 --------------------------------------------------------------------------------
 

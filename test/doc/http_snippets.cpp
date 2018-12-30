@@ -102,7 +102,7 @@ void fxx() {
     error_code ec;
     request<string_body> req;
     read(sock, buffer, req, ec);
-    if(ec == error::buffer_overflow)
+    if(ec == http::error::buffer_overflow)
         std::cerr << "Buffer limit exceeded!" << std::endl;
 
 //]

@@ -52,7 +52,34 @@ enum errc{};
 namespace errc = boost::system::errc;
 #endif
 
+//------------------------------------------------------------------------------
+
+/// Error codes returned from library operations
+enum class error
+{
+    /** The socket was closed due to a timeout
+
+        This error indicates that a socket was closed due to a
+        a timeout detected during an operation.
+
+        Error codes with this value will compare equal to @ref condition::timeout.
+    */
+    timeout = 1
+};
+
+/// Error conditions corresponding to sets of library error codes.
+enum class condition
+{
+    /** The operation timed out
+
+        This error indicates that an operation took took too long.
+    */
+    timeout = 1
+};
+
 } // beast
 } // boost
+
+#include <boost/beast/core/impl/error.hpp>
 
 #endif
