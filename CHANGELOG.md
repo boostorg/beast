@@ -1,6 +1,7 @@
 Version 202
 
 * Use cxxstd instead of cxxflags
+* Update coverage badge images
 
 --------------------------------------------------------------------------------
 
