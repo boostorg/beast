@@ -2,6 +2,7 @@ Version 202
 
 * Use cxxstd instead of cxxflags
 * Update coverage badge images
+* Tidy up basic_stream_socket docs
 
 --------------------------------------------------------------------------------
 

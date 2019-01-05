@@ -46,9 +46,31 @@ namespace beast {
     Objects of this type are designed to be used in places where a
     regular networking TCP/IP socket is being used. In particular this
     class template replaces `net::basic_stream_socket`. The constructors
-    used here are similar to those of networking sockets, subject to the
-    that either an executor or an execution context may be passed in
-    the first argument.
+    used here are similar to those of networking sockets, but with the
+    ability to use either an executor or an execution context when
+    constructing the socket.
+
+    The caller is responsible for ensuring that all stream operations,
+    including the internal timer operations, are running from the same
+    implicit or explicit strand. When there are multiple threads calling
+    `net::io_context::run`, the `Executor` template parameter, and the
+    instance of that executor type passed to the constructor must provide
+    the following guarantees:
+
+    @li <b>Serial Execution:</b>
+    Function objects submitted to the executor shall never run
+    concurrently.
+
+    @li <b>Ordering:</b>
+    Function objects submitted to the executor from the same thread shall
+    execute in the order they were submitted.
+
+    If only one thread is calling `net::io_context::run`, the executor
+    may be the executor used by the I/O context (`net::io_context::executor_type`).
+    Otherwise, a `net::strand` may be used to meet the requirements.
+    Note that when using a strand to instantiate the socket, it is not
+    necessary to also bind each submitted completion handler used in
+    subsequent operations to the strand, this is taken care of automatically.
 
     @par Using Executors
 
