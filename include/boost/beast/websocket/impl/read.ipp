@@ -16,15 +16,12 @@
 #include <boost/beast/core/buffers_suffix.hpp>
 #include <boost/beast/core/flat_static_buffer.hpp>
 #include <boost/beast/core/type_traits.hpp>
+#include <boost/beast/core/detail/async_op_base.hpp>
 #include <boost/beast/core/detail/buffer.hpp>
 #include <boost/beast/core/detail/clamp.hpp>
 #include <boost/beast/core/detail/config.hpp>
-#include <boost/asio/associated_allocator.hpp>
-#include <boost/asio/associated_executor.hpp>
+#include <boost/beast/core/detail/get_executor_type.hpp>
 #include <boost/asio/coroutine.hpp>
-#include <boost/asio/executor_work_guard.hpp>
-#include <boost/asio/handler_continuation_hook.hpp>
-#include <boost/asio/handler_invoke_hook.hpp>
 #include <boost/asio/post.hpp>
 #include <boost/assert.hpp>
 #include <boost/config.hpp>
@@ -80,12 +77,11 @@ template<
     class MutableBufferSequence,
     class Handler>
 class stream<NextLayer, deflateSupported>::read_some_op
-    : public net::coroutine
+    : public beast::detail::async_op_base<
+        Handler, beast::detail::get_executor_type<stream>>
+    , public net::coroutine
 {
-    Handler h_;
-    stream<NextLayer, deflateSupported>& ws_;
-    net::executor_work_guard<decltype(std::declval<
-        stream<NextLayer, deflateSupported>&>().get_executor())> wg_;
+    stream& ws_;
     MutableBufferSequence bs_;
     buffers_suffix<MutableBufferSequence> cb_;
     std::size_t bytes_written_ = 0;
@@ -97,68 +93,25 @@ class stream<NextLayer, deflateSupported>::read_some_op
 public:
     static constexpr int id = 1; // for soft_mutex
 
-    read_some_op(read_some_op&&) = default;
-    read_some_op(read_some_op const&) = delete;
-
-    template<class DeducedHandler>
+    template<class Handler_>
     read_some_op(
-        DeducedHandler&& h,
+        Handler_&& h,
         stream<NextLayer, deflateSupported>& ws,
         MutableBufferSequence const& bs)
-        : h_(std::forward<DeducedHandler>(h))
+        : beast::detail::async_op_base<
+            Handler, beast::detail::get_executor_type<stream>>(
+                ws.get_executor(), std::forward<Handler_>(h))
         , ws_(ws)
-        , wg_(ws_.get_executor())
         , bs_(bs)
         , cb_(bs)
         , code_(close_code::none)
     {
     }
 
-    using allocator_type =
-        net::associated_allocator_t<Handler>;
-
-    allocator_type
-    get_allocator() const noexcept
-    {
-        return (net::get_associated_allocator)(h_);
-    }
-
-    using executor_type = net::associated_executor_t<
-        Handler, decltype(std::declval<stream<NextLayer, deflateSupported>&>().get_executor())>;
-
-    executor_type
-    get_executor() const noexcept
-    {
-        return (net::get_associated_executor)(
-            h_, ws_.get_executor());
-    }
-
-    Handler&
-    handler()
-    {
-        return h_;
-    }
-
     void operator()(
         error_code ec = {},
         std::size_t bytes_transferred = 0,
         bool cont = true);
-
-    friend
-    bool asio_handler_is_continuation(read_some_op* op)
-    {
-        using net::asio_handler_is_continuation;
-        return op->cont_ || asio_handler_is_continuation(
-            std::addressof(op->h_));
-    }
-
-    template<class Function>
-    friend
-    void asio_handler_invoke(Function&& f, read_some_op* op)
-    {
-        using net::asio_handler_invoke;
-        asio_handler_invoke(f, std::addressof(op->h_));
-    }
 };
 
 template<class NextLayer, bool deflateSupported>
@@ -708,7 +661,7 @@ operator()(
                 beast::bind_front_handler(std::move(*this),
                     ec, bytes_written_));
         }
-        h_(ec, bytes_written_);
+        this->invoke(ec, bytes_written_);
     }
 }
 
@@ -719,34 +672,28 @@ template<
     class DynamicBuffer,
     class Handler>
 class stream<NextLayer, deflateSupported>::read_op
-    : public net::coroutine
+    : public beast::detail::async_op_base<
+        Handler, beast::detail::get_executor_type<stream>>
+    , public net::coroutine
 {
-    Handler h_;
     stream<NextLayer, deflateSupported>& ws_;
-    net::executor_work_guard<decltype(std::declval<
-        stream<NextLayer, deflateSupported>&>().get_executor())> wg_;
     DynamicBuffer& b_;
     std::size_t limit_;
     std::size_t bytes_written_ = 0;
     bool some_;
 
 public:
-    using allocator_type =
-        net::associated_allocator_t<Handler>;
-
-    read_op(read_op&&) = default;
-    read_op(read_op const&) = delete;
-
-    template<class DeducedHandler>
+    template<class Handler_>
     read_op(
-        DeducedHandler&& h,
+        Handler_&& h,
         stream<NextLayer, deflateSupported>& ws,
         DynamicBuffer& b,
         std::size_t limit,
         bool some)
-        : h_(std::forward<DeducedHandler>(h))
+        : beast::detail::async_op_base<
+            Handler, beast::detail::get_executor_type<stream>>(
+                ws.get_executor(), std::forward<Handler_>(h))
         , ws_(ws)
-        , wg_(ws_.get_executor())
         , b_(b)
         , limit_(limit ? limit : (
             std::numeric_limits<std::size_t>::max)())
@@ -754,83 +701,42 @@ public:
     {
     }
 
-    allocator_type
-    get_allocator() const noexcept
-    {
-        return (net::get_associated_allocator)(h_);
-    }
-
-    using executor_type = net::associated_executor_t<
-        Handler, decltype(std::declval<stream<NextLayer, deflateSupported>&>().get_executor())>;
-
-    executor_type
-    get_executor() const noexcept
-    {
-        return (net::get_associated_executor)(
-            h_, ws_.get_executor());
-    }
-
     void operator()(
         error_code ec = {},
-        std::size_t bytes_transferred = 0);
-
-    friend
-    bool asio_handler_is_continuation(read_op* op)
+        std::size_t bytes_transferred = 0)
     {
-        using net::asio_handler_is_continuation;
-        return asio_handler_is_continuation(
-            std::addressof(op->h_));
-    }
-
-    template<class Function>
-    friend
-    void asio_handler_invoke(Function&& f, read_op* op)
-    {
-        using net::asio_handler_invoke;
-        asio_handler_invoke(f, std::addressof(op->h_));
+        using beast::detail::clamp;
+        BOOST_ASIO_CORO_REENTER(*this)
+        {
+            do
+            {
+                BOOST_ASIO_CORO_YIELD
+                {
+                    auto mb = beast::detail::dynamic_buffer_prepare(b_,
+                        clamp(ws_.read_size_hint(b_), limit_),
+                            ec, error::buffer_overflow);
+                    if(ec)
+                        net::post(
+                            ws_.get_executor(),
+                            beast::bind_front_handler(
+                                std::move(*this), ec, 0));
+                    else
+                        read_some_op<typename
+                            DynamicBuffer::mutable_buffers_type,
+                                read_op>(std::move(*this), ws_, *mb)(
+                                    {}, 0, false);
+                }
+                if(ec)
+                    goto upcall;
+                b_.commit(bytes_transferred);
+                bytes_written_ += bytes_transferred;
+            }
+            while(! some_ && ! ws_.is_message_done());
+        upcall:
+            this->invoke(ec, bytes_written_);
+        }
     }
 };
-
-template<class NextLayer, bool deflateSupported>
-template<class DynamicBuffer, class Handler>
-void
-stream<NextLayer, deflateSupported>::
-read_op<DynamicBuffer, Handler>::
-operator()(
-    error_code ec,
-    std::size_t bytes_transferred)
-{
-    using beast::detail::clamp;
-    BOOST_ASIO_CORO_REENTER(*this)
-    {
-        do
-        {
-            BOOST_ASIO_CORO_YIELD
-            {
-                auto mb = beast::detail::dynamic_buffer_prepare(b_,
-                    clamp(ws_.read_size_hint(b_), limit_),
-                        ec, error::buffer_overflow);
-                if(ec)
-                    net::post(
-                        ws_.get_executor(),
-                        beast::bind_front_handler(
-                            std::move(*this), ec, 0));
-                else
-                    read_some_op<typename
-                        DynamicBuffer::mutable_buffers_type,
-                            read_op>(std::move(*this), ws_, *mb)(
-                                {}, 0, false);
-                return;
-            }
-            if(ec)
-                break;
-            b_.commit(bytes_transferred);
-            bytes_written_ += bytes_transferred;
-        }
-        while(! some_ && ! ws_.is_message_done());
-        h_(ec, bytes_written_);
-    }
-}
 
 //------------------------------------------------------------------------------
 

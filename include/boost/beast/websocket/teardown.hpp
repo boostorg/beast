@@ -125,6 +125,7 @@ namespace websocket {
 
     @param ec Set to the error if any occurred.
 */
+BOOST_BEAST_DECL
 void
 teardown(
     role_type role,

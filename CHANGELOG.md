@@ -4,6 +4,7 @@ Version 202
 * Update coverage badge images
 * Tidy up basic_stream_socket docs
 * Refactor async_op_base
+* Use async_op_base
 
 --------------------------------------------------------------------------------
 

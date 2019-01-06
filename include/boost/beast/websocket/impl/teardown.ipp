@@ -12,12 +12,9 @@
 
 #include <boost/beast/core/bind_handler.hpp>
 #include <boost/beast/core/type_traits.hpp>
-#include <boost/asio/associated_allocator.hpp>
-#include <boost/asio/associated_executor.hpp>
+#include <boost/beast/core/detail/async_op_base.hpp>
+#include <boost/beast/core/detail/get_executor_type.hpp>
 #include <boost/asio/coroutine.hpp>
-#include <boost/asio/executor_work_guard.hpp>
-#include <boost/asio/handler_continuation_hook.hpp>
-#include <boost/asio/handler_invoke_hook.hpp>
 #include <boost/asio/post.hpp>
 #include <memory>
 
@@ -28,146 +25,105 @@ namespace websocket {
 namespace detail {
 
 template<class Handler>
-class teardown_tcp_op : public net::coroutine
+class teardown_tcp_op
+    : public beast::detail::async_op_base<
+        Handler, beast::detail::get_executor_type<
+            net::ip::tcp::socket>>
+    , public net::coroutine
 {
-    using socket_type =
-        net::ip::tcp::socket;
+    using socket_type = net::ip::tcp::socket;
 
-    Handler h_;
     socket_type& s_;
-    net::executor_work_guard<decltype(std::declval<
-        socket_type&>().get_executor())> wg_;
     role_type role_;
     bool nb_;
 
 public:
-    teardown_tcp_op(teardown_tcp_op&& other) = default;
-    teardown_tcp_op(teardown_tcp_op const& other) = default;
-
-    template<class DeducedHandler>
+    template<class Handler_>
     teardown_tcp_op(
-        DeducedHandler&& h,
+        Handler_&& h,
         socket_type& s,
         role_type role)
-        : h_(std::forward<DeducedHandler>(h))
+        : beast::detail::async_op_base<
+            Handler, beast::detail::get_executor_type<
+                net::ip::tcp::socket>>(s.get_executor(),
+                    std::forward<Handler_>(h))
         , s_(s)
-        , wg_(s_.get_executor())
         , role_(role)
     {
-    }
-
-    using allocator_type =
-        net::associated_allocator_t<Handler>;
-
-    allocator_type
-    get_allocator() const noexcept
-    {
-        return (net::get_associated_allocator)(h_);
-    }
-
-    using executor_type = net::associated_executor_t<
-        Handler, decltype(std::declval<socket_type&>().get_executor())>;
-
-    executor_type
-    get_executor() const noexcept
-    {
-        return (net::get_associated_executor)(
-            h_, s_.get_executor());
     }
 
     void
     operator()(
         error_code ec = {},
-        std::size_t bytes_transferred = 0);
-
-    friend
-    bool asio_handler_is_continuation(teardown_tcp_op* op)
+        std::size_t bytes_transferred = 0)
     {
-        using net::asio_handler_is_continuation;
-        return asio_handler_is_continuation(
-            std::addressof(op->h_));
-    }
-
-    template<class Function>
-    friend
-    void asio_handler_invoke(Function&& f, teardown_tcp_op* op)
-    {
-        using net::asio_handler_invoke;
-        asio_handler_invoke(f, std::addressof(op->h_));
-    }
-};
-
-template<class Handler>
-void
-teardown_tcp_op<Handler>::
-operator()(error_code ec, std::size_t bytes_transferred)
-{
-    using net::buffer;
-    using tcp = net::ip::tcp;
-    BOOST_ASIO_CORO_REENTER(*this)
-    {
-        nb_ = s_.non_blocking();
-        s_.non_blocking(true, ec);
-        if(! ec)
+        using net::buffer;
+        using tcp = net::ip::tcp;
+        BOOST_ASIO_CORO_REENTER(*this)
         {
-            if(role_ == role_type::server)
-                s_.shutdown(tcp::socket::shutdown_send, ec);
-        }
-        if(ec)
-        {
-            BOOST_ASIO_CORO_YIELD
-            net::post(
-                s_.get_executor(),
-                beast::bind_front_handler(std::move(*this), ec, 0));
-            goto upcall;
-        }
-        for(;;)
-        {
+            nb_ = s_.non_blocking();
+            s_.non_blocking(true, ec);
+            if(! ec)
             {
-                char buf[2048];
-                s_.read_some(
-                    net::buffer(buf), ec);
-            }
-            if(ec == net::error::would_block)
-            {
-                BOOST_ASIO_CORO_YIELD
-                s_.async_wait(
-                    net::ip::tcp::socket::wait_read,
-                        std::move(*this));
-                continue;
+                if(role_ == role_type::server)
+                    s_.shutdown(tcp::socket::shutdown_send, ec);
             }
             if(ec)
             {
-                if(ec != net::error::eof)
-                    goto upcall;
-                ec = {};
-                break;
+                BOOST_ASIO_CORO_YIELD
+                net::post(
+                    s_.get_executor(),
+                    beast::bind_front_handler(std::move(*this), ec, 0));
+                goto upcall;
             }
-            if(bytes_transferred == 0)
+            for(;;)
             {
-                // happens sometimes
-                break;
+                {
+                    char buf[2048];
+                    s_.read_some(
+                        net::buffer(buf), ec);
+                }
+                if(ec == net::error::would_block)
+                {
+                    BOOST_ASIO_CORO_YIELD
+                    s_.async_wait(
+                        net::ip::tcp::socket::wait_read,
+                            std::move(*this));
+                    continue;
+                }
+                if(ec)
+                {
+                    if(ec != net::error::eof)
+                        goto upcall;
+                    ec = {};
+                    break;
+                }
+                if(bytes_transferred == 0)
+                {
+                    // happens sometimes
+                    // https://github.com/boostorg/beast/issues/1373
+                    break;
+                }
             }
+            if(role_ == role_type::client)
+                s_.shutdown(tcp::socket::shutdown_send, ec);
+            if(ec)
+                goto upcall;
+            s_.close(ec);
+        upcall:
+            {
+                error_code ignored;
+                s_.non_blocking(nb_, ignored);
+            }
+            this->invoke(ec);
         }
-        if(role_ == role_type::client)
-            s_.shutdown(tcp::socket::shutdown_send, ec);
-        if(ec)
-            goto upcall;
-        s_.close(ec);
-    upcall:
-        {
-            error_code ignored;
-            s_.non_blocking(nb_, ignored);
-        }
-        h_(ec);
     }
-}
+};
 
 } // detail
 
 //------------------------------------------------------------------------------
 
-inline
 void
 teardown(
     role_type role,
@@ -195,6 +151,7 @@ teardown(
         if(bytes_transferred == 0)
         {
             // happens sometimes
+            // https://github.com/boostorg/beast/issues/1373
             break;
         }
     }
@@ -207,7 +164,6 @@ teardown(
 }
 
 template<class TeardownHandler>
-inline
 void
 async_teardown(
     role_type role,
@@ -218,9 +174,9 @@ async_teardown(
         TeardownHandler, void(error_code)>::value,
             "TeardownHandler requirements not met");
     detail::teardown_tcp_op<typename std::decay<
-        TeardownHandler>::type>{std::forward<
+        TeardownHandler>::type>(std::forward<
             TeardownHandler>(handler), socket,
-                role}();
+                role)();
 }
 
 } // websocket

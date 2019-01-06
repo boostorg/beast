@@ -186,6 +186,19 @@ public:
         return h_;
     }
 
+    /** Returns ownership of the handler associated with this object
+
+        This function is used to transfer ownership of the handler to
+        the caller, by move-construction. After the move, the only
+        valid operations on the base object are move construction and
+        destruction.
+    */
+    Handler
+    release_handler()
+    {
+        return std::move(h_);
+    }
+
 protected:
     /** Constructor
 

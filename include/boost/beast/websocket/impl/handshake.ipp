@@ -15,14 +15,10 @@
 #include <boost/beast/http/message.hpp>
 #include <boost/beast/http/read.hpp>
 #include <boost/beast/http/write.hpp>
-#include <boost/beast/core/handler_ptr.hpp>
 #include <boost/beast/core/type_traits.hpp>
-#include <boost/asio/associated_allocator.hpp>
-#include <boost/asio/associated_executor.hpp>
+#include <boost/beast/core/detail/async_op_base.hpp>
+#include <boost/beast/core/detail/get_executor_type.hpp>
 #include <boost/asio/coroutine.hpp>
-#include <boost/asio/executor_work_guard.hpp>
-#include <boost/asio/handler_continuation_hook.hpp>
-#include <boost/asio/handler_invoke_hook.hpp>
 #include <boost/assert.hpp>
 #include <boost/throw_exception.hpp>
 #include <memory>
@@ -38,13 +34,13 @@ namespace websocket {
 template<class NextLayer, bool deflateSupported>
 template<class Handler>
 class stream<NextLayer, deflateSupported>::handshake_op
-    : public net::coroutine
+    : public beast::detail::stable_async_op_base<Handler,
+        beast::detail::get_executor_type<stream>>
+    , public net::coroutine
 {
     struct data
     {
         stream<NextLayer, deflateSupported>& ws;
-        net::executor_work_guard<decltype(std::declval<
-            stream<NextLayer, deflateSupported>&>().get_executor())> wg;
         response_type* res_p;
         detail::sec_ws_key_type key;
         http::request<http::empty_body> req;
@@ -52,14 +48,12 @@ class stream<NextLayer, deflateSupported>::handshake_op
 
         template<class Decorator>
         data(
-            Handler const&,
-            stream<NextLayer, deflateSupported>& ws_,
+            stream& ws_,
             response_type* res_p_,
             string_view host,
             string_view target,
             Decorator const& decorator)
             : ws(ws_)
-            , wg(ws.get_executor())
             , res_p(res_p_)
             , req(ws.build_request(key,
                 host, target, decorator))
@@ -68,103 +62,61 @@ class stream<NextLayer, deflateSupported>::handshake_op
         }
     };
 
-    handler_ptr<data, Handler> d_;
+    data& d_;
 
 public:
-    handshake_op(handshake_op&&) = default;
-    handshake_op(handshake_op const&) = delete;
-
-    template<class DeducedHandler, class... Args>
-    handshake_op(DeducedHandler&& h,
-            stream<NextLayer, deflateSupported>& ws, Args&&... args)
-        : d_(std::forward<DeducedHandler>(h),
-            ws, std::forward<Args>(args)...)
+    template<
+        class Handler_,
+        class... Args>
+    handshake_op(
+        Handler_&& h,
+        stream& ws, Args&&... args)
+        : beast::detail::stable_async_op_base<Handler,
+            beast::detail::get_executor_type<stream>>(
+                ws.get_executor(), std::forward<Handler_>(h))
+        , d_(beast::detail::allocate_stable<data>(
+            *this, ws, std::forward<Args>(args)...))
     {
-    }
-
-    using allocator_type =
-        net::associated_allocator_t<Handler>;
-
-    allocator_type
-    get_allocator() const noexcept
-    {
-        return (net::get_associated_allocator)(d_.handler());
-    }
-
-    using executor_type = net::associated_executor_t<
-        Handler, decltype(std::declval<stream<NextLayer, deflateSupported>&>().get_executor())>;
-
-    executor_type
-    get_executor() const noexcept
-    {
-        return (net::get_associated_executor)(
-            d_.handler(), d_->ws.get_executor());
     }
 
     void
     operator()(
         error_code ec = {},
-        std::size_t bytes_used = 0);
-
-    friend
-    bool asio_handler_is_continuation(handshake_op* op)
+        std::size_t bytes_used = 0)
     {
-        using net::asio_handler_is_continuation;
-        return asio_handler_is_continuation(
-            std::addressof(op->d_.handler()));
-    }
+        boost::ignore_unused(bytes_used);
 
-    template<class Function>
-    friend
-    void asio_handler_invoke(Function&& f, handshake_op* op)
-    {
-        using net::asio_handler_invoke;
-        asio_handler_invoke(f,
-            std::addressof(op->d_.handler()));
-    }
-};
-
-template<class NextLayer, bool deflateSupported>
-template<class Handler>
-void
-stream<NextLayer, deflateSupported>::
-handshake_op<Handler>::
-operator()(error_code ec, std::size_t)
-{
-    auto& d = *d_;
-    BOOST_ASIO_CORO_REENTER(*this)
-    {
-        // Send HTTP Upgrade
-        d.ws.do_pmd_config(d.req);
-        BOOST_ASIO_CORO_YIELD
-        http::async_write(d.ws.stream_,
-            d.req, std::move(*this));
-        if(ec)
-            goto upcall;
-
-        // VFALCO We could pre-serialize the request to
-        //        a single buffer, send that instead,
-        //        and delete the buffer here. The buffer
-        //        could be a variable block at the end
-        //        of handler_ptr's allocation.
-
-        // Read HTTP response
-        BOOST_ASIO_CORO_YIELD
-        http::async_read(d.ws.next_layer(),
-            d.ws.rd_buf_, d.res,
-                std::move(*this));
-        if(ec)
-            goto upcall;
-        d.ws.on_response(d.res, d.key, ec);
-        if(d.res_p)
-            swap(d.res, *d.res_p);
-    upcall:
+        BOOST_ASIO_CORO_REENTER(*this)
         {
-            auto wg = std::move(d.wg);
-            d_.invoke(ec);
+            // Send HTTP Upgrade
+            d_.ws.do_pmd_config(d_.req);
+            BOOST_ASIO_CORO_YIELD
+            http::async_write(d_.ws.stream_,
+                d_.req, std::move(*this));
+            if(ec)
+                goto upcall;
+
+            // VFALCO We could pre-serialize the request to
+            //        a single buffer, send that instead,
+            //        and delete the buffer here. The buffer
+            //        could be a variable block at the end
+            //        of handler_ptr's allocation.
+
+            // Read HTTP response
+            BOOST_ASIO_CORO_YIELD
+            http::async_read(d_.ws.next_layer(),
+                d_.ws.rd_buf_, d_.res,
+                    std::move(*this));
+            if(ec)
+                goto upcall;
+            d_.ws.on_response(d_.res, d_.key, ec);
+            if(d_.res_p)
+                swap(d_.res, *d_.res_p);
+        upcall:
+            this->invoke(ec);
         }
     }
-}
+};
 
 template<class NextLayer, bool deflateSupported>
 template<class HandshakeHandler>

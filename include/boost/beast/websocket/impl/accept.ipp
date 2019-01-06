@@ -17,15 +17,11 @@
 #include <boost/beast/http/string_body.hpp>
 #include <boost/beast/http/write.hpp>
 #include <boost/beast/core/buffers_prefix.hpp>
-#include <boost/beast/core/handler_ptr.hpp>
+#include <boost/beast/core/detail/async_op_base.hpp>
 #include <boost/beast/core/detail/buffer.hpp>
+#include <boost/beast/core/detail/get_executor_type.hpp>
 #include <boost/beast/core/detail/type_traits.hpp>
 #include <boost/asio/coroutine.hpp>
-#include <boost/asio/associated_allocator.hpp>
-#include <boost/asio/associated_executor.hpp>
-#include <boost/asio/executor_work_guard.hpp>
-#include <boost/asio/handler_continuation_hook.hpp>
-#include <boost/asio/handler_invoke_hook.hpp>
 #include <boost/asio/post.hpp>
 #include <boost/assert.hpp>
 #include <boost/throw_exception.hpp>
@@ -40,114 +36,69 @@ namespace websocket {
 template<class NextLayer, bool deflateSupported>
 template<class Handler>
 class stream<NextLayer, deflateSupported>::response_op
-    : public net::coroutine
+    : public beast::detail::stable_async_op_base<
+        Handler, beast::detail::get_executor_type<stream>>
+    , public net::coroutine
 {
     struct data
     {
         stream<NextLayer, deflateSupported>& ws;
-        net::executor_work_guard<decltype(std::declval<
-            stream<NextLayer, deflateSupported>&>().get_executor())> wg;
         error_code result;
         response_type res;
 
         template<class Body, class Allocator, class Decorator>
         data(
-            Handler const&,
             stream<NextLayer, deflateSupported>& ws_,
             http::request<Body,
                 http::basic_fields<Allocator>> const& req,
             Decorator const& decorator)
             : ws(ws_)
-            , wg(ws.get_executor())
             , res(ws_.build_response(req, decorator, result))
         {
         }
     };
 
-    handler_ptr<data, Handler> d_;
+    data& d_;
 
 public:
-    response_op(response_op&&) = default;
-    response_op(response_op const&) = delete;
-
-    template<class DeducedHandler, class... Args>
-    response_op(DeducedHandler&& h,
-            stream<NextLayer, deflateSupported>& ws, Args&&... args)
-        : d_(std::forward<DeducedHandler>(h),
-            ws, std::forward<Args>(args)...)
+    template<
+        class Handler_,
+        class... Args>
+    response_op(
+        Handler_&& h,
+        stream<NextLayer, deflateSupported>& ws,
+        Args&&... args)
+        : beast::detail::stable_async_op_base<
+            Handler, beast::detail::get_executor_type<stream>>(
+                ws.get_executor(), std::forward<Handler_>(h))
+        , d_(beast::detail::allocate_stable<data>(
+            *this,  ws, std::forward<Args>(args)...))
     {
-    }
-
-    using allocator_type =
-        net::associated_allocator_t<Handler>;
-
-    allocator_type
-    get_allocator() const noexcept
-    {
-        return (net::get_associated_allocator)(d_.handler());
-    }
-
-    using executor_type = net::associated_executor_t<
-        Handler, decltype(std::declval<
-            stream<NextLayer, deflateSupported>&>().get_executor())>;
-
-    executor_type
-    get_executor() const noexcept
-    {
-        return (net::get_associated_executor)(
-            d_.handler(), d_->ws.get_executor());
     }
 
     void operator()(
         error_code ec = {},
-        std::size_t bytes_transferred = 0);
-
-    friend
-    bool asio_handler_is_continuation(response_op* op)
+        std::size_t bytes_transferred = 0)
     {
-        using net::asio_handler_is_continuation;
-        return asio_handler_is_continuation(
-            std::addressof(op->d_.handler()));
-    }
+        boost::ignore_unused(bytes_transferred);
 
-    template<class Function>
-    friend
-    void asio_handler_invoke(Function&& f, response_op* op)
-    {
-        using net::asio_handler_invoke;
-        asio_handler_invoke(f, std::addressof(op->d_.handler()));
+        BOOST_ASIO_CORO_REENTER(*this)
+        {
+            // Send response
+            BOOST_ASIO_CORO_YIELD
+            http::async_write(d_.ws.next_layer(),
+                d_.res, std::move(*this));
+            if(! ec)
+                ec = d_.result;
+            if(! ec)
+            {
+                d_.ws.do_pmd_config(d_.res);
+                d_.ws.open(role_type::server);
+            }
+            this->invoke(ec);
+        }
     }
 };
-
-template<class NextLayer, bool deflateSupported>
-template<class Handler>
-void
-stream<NextLayer, deflateSupported>::
-response_op<Handler>::
-operator()(
-    error_code ec,
-    std::size_t)
-{
-    auto& d = *d_;
-    BOOST_ASIO_CORO_REENTER(*this)
-    {
-        // Send response
-        BOOST_ASIO_CORO_YIELD
-        http::async_write(d.ws.next_layer(),
-            d.res, std::move(*this));
-        if(! ec)
-            ec = d.result;
-        if(! ec)
-        {
-            d.ws.do_pmd_config(d.res);
-            d.ws.open(role_type::server);
-        }
-        {
-            auto wg = std::move(d.wg);
-            d_.invoke(ec);
-        }
-    }
-}
 
 //------------------------------------------------------------------------------
 
@@ -156,157 +107,106 @@ operator()(
 template<class NextLayer, bool deflateSupported>
 template<class Decorator, class Handler>
 class stream<NextLayer, deflateSupported>::accept_op
-    : public net::coroutine
+    : public beast::detail::stable_async_op_base<
+        Handler, beast::detail::get_executor_type<stream>>
+    , public net::coroutine
 {
     struct data
     {
         stream<NextLayer, deflateSupported>& ws;
-        net::executor_work_guard<decltype(std::declval<
-            stream<NextLayer, deflateSupported>&>().get_executor())> wg;
         Decorator decorator;
         http::request_parser<http::empty_body> p;
+
         data(
-            Handler const&,
             stream<NextLayer, deflateSupported>& ws_,
             Decorator const& decorator_)
             : ws(ws_)
-            , wg(ws.get_executor())
             , decorator(decorator_)
         {
         }
     };
 
-    handler_ptr<data, Handler> d_;
+    data& d_;
 
 public:
-    accept_op(accept_op&&) = default;
-    accept_op(accept_op const&) = delete;
-
-    template<class DeducedHandler, class... Args>
-    accept_op(DeducedHandler&& h,
-            stream<NextLayer, deflateSupported>& ws, Args&&... args)
-        : d_(std::forward<DeducedHandler>(h),
-            ws, std::forward<Args>(args)...)
+    template<
+        class Handler_,
+        class... Args>
+    accept_op(
+        Handler_&& h,
+        stream<NextLayer, deflateSupported>& ws,
+        Args&&... args)
+        : beast::detail::stable_async_op_base<
+            Handler, beast::detail::get_executor_type<stream>>(
+                ws.get_executor(), std::forward<Handler_>(h))
+        , d_(beast::detail::allocate_stable<data>(
+            *this,  ws, std::forward<Args>(args)...))
     {
-    }
-
-    using allocator_type =
-        net::associated_allocator_t<Handler>;
-
-    allocator_type
-    get_allocator() const noexcept
-    {
-        return (net::get_associated_allocator)(d_.handler());
-    }
-
-    using executor_type = net::associated_executor_t<
-        Handler, decltype(std::declval<stream<NextLayer, deflateSupported>&>().get_executor())>;
-
-    executor_type
-    get_executor() const noexcept
-    {
-        return (net::get_associated_executor)(
-            d_.handler(), d_->ws.get_executor());
     }
 
     template<class Buffers>
-    void run(Buffers const& buffers);
+    void run(Buffers const& buffers)
+    {
+        using net::buffer_copy;
+        using net::buffer_size;
+        error_code ec;
+        auto const mb = beast::detail::dynamic_buffer_prepare(
+            d_.ws.rd_buf_, buffer_size(buffers), ec,
+                error::buffer_overflow);
+        if(ec)
+            return (*this)(ec);
+        d_.ws.rd_buf_.commit(buffer_copy(*mb, buffers));
+        (*this)(ec);
+    }
 
     void operator()(
         error_code ec = {},
-        std::size_t bytes_used = 0);
-
-    friend
-    bool asio_handler_is_continuation(accept_op* op)
+        std::size_t bytes_used = 0)
     {
-        using net::asio_handler_is_continuation;
-        return asio_handler_is_continuation(
-            std::addressof(op->d_.handler()));
-    }
+        boost::ignore_unused(bytes_used);
 
-    template<class Function>
-    friend
-    void asio_handler_invoke(Function&& f, accept_op* op)
-    {
-        using net::asio_handler_invoke;
-        asio_handler_invoke(f, std::addressof(op->d_.handler()));
+        BOOST_ASIO_CORO_REENTER(*this)
+        {
+            if(ec)
+            {
+                BOOST_ASIO_CORO_YIELD
+                net::post(
+                    d_.ws.get_executor(),
+                    beast::bind_front_handler(std::move(*this), ec));
+            }
+            else
+            {
+                BOOST_ASIO_CORO_YIELD
+                http::async_read(
+                    d_.ws.next_layer(), d_.ws.rd_buf_,
+                        d_.p, std::move(*this));
+                if(ec == http::error::end_of_stream)
+                    ec = error::closed;
+                if(! ec)
+                {
+                    // Arguments from our state must be
+                    // moved to the stack before releasing
+                    // the handler.
+                    auto& ws = d_.ws;
+                    auto const req = d_.p.release();
+                    auto const decorator = d_.decorator;
+                #if 1
+                    return response_op<Handler>{
+                        this->release_handler(),
+                            ws, req, decorator}(ec);
+                #else
+                    // VFALCO This *should* work but breaks
+                    //        coroutine invariants in the unit test.
+                    //        Also it calls reset() when it shouldn't.
+                    return ws.async_accept_ex(
+                        req, decorator, this->release_handler());
+                #endif
+                }
+            }
+            this->invoke(ec);
+        }
     }
 };
-
-template<class NextLayer, bool deflateSupported>
-template<class Decorator, class Handler>
-template<class Buffers>
-void
-stream<NextLayer, deflateSupported>::
-accept_op<Decorator, Handler>::
-run(Buffers const& buffers)
-{
-    using net::buffer_copy;
-    using net::buffer_size;
-    auto& d = *d_;
-    error_code ec;
-    auto const mb = beast::detail::dynamic_buffer_prepare(
-        d.ws.rd_buf_, buffer_size(buffers), ec,
-            error::buffer_overflow);
-    if(ec)
-        return (*this)(ec);
-    d.ws.rd_buf_.commit(buffer_copy(*mb, buffers));
-    (*this)(ec);
-}
-
-template<class NextLayer, bool deflateSupported>
-template<class Decorator, class Handler>
-void
-stream<NextLayer, deflateSupported>::
-accept_op<Decorator, Handler>::
-operator()(error_code ec, std::size_t)
-{
-    auto& d = *d_;
-    BOOST_ASIO_CORO_REENTER(*this)
-    {
-        if(ec)
-        {
-            BOOST_ASIO_CORO_YIELD
-            net::post(
-                d.ws.get_executor(),
-                beast::bind_front_handler(std::move(*this), ec));
-        }
-        else
-        {
-            BOOST_ASIO_CORO_YIELD
-            http::async_read(
-                d.ws.next_layer(), d.ws.rd_buf_,
-                    d.p, std::move(*this));
-            if(ec == http::error::end_of_stream)
-                ec = error::closed;
-            if(! ec)
-            {
-                // Arguments from our state must be
-                // moved to the stack before releasing
-                // the handler.
-                auto& ws = d.ws;
-                auto const req = d.p.release();
-                auto const decorator = d.decorator;
-                auto wg = std::move(d.wg);
-            #if 1
-                return response_op<Handler>{
-                    d_.release_handler(),
-                        ws, req, decorator}(ec);
-            #else
-                // VFALCO This *should* work but breaks
-                //        coroutine invariants in the unit test.
-                //        Also it calls reset() when it shouldn't.
-                return ws.async_accept_ex(
-                    req, decorator, d_.release_handler());
-            #endif
-            }
-        }
-        {
-            auto wg = std::move(d.wg);
-            d_.invoke(ec);
-        }
-    }
-}
 
 //------------------------------------------------------------------------------
 

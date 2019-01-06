@@ -15,15 +15,11 @@
 #include <boost/beast/core/bind_handler.hpp>
 #include <boost/beast/core/buffers_range.hpp>
 #include <boost/beast/core/type_traits.hpp>
+#include <boost/beast/core/detail/async_op_base.hpp>
 #include <boost/beast/core/detail/clamp.hpp>
 #include <boost/beast/http/serializer.hpp>
-#include <boost/asio/associated_allocator.hpp>
-#include <boost/asio/associated_executor.hpp>
 #include <boost/asio/async_result.hpp>
 #include <boost/asio/basic_stream_socket.hpp>
-#include <boost/asio/executor_work_guard.hpp>
-#include <boost/asio/handler_continuation_hook.hpp>
-#include <boost/asio/handler_invoke_hook.hpp>
 #include <boost/asio/windows/overlapped_ptr.hpp>
 #include <boost/make_unique.hpp>
 #include <boost/smart_ptr/make_shared_array.hpp>
@@ -337,162 +333,109 @@ template<
     class Protocol, class Handler,
     bool isRequest, class Fields>
 class write_some_win32_op
+    : public beast::detail::async_op_base<
+        Handler, typename net::basic_stream_socket<
+            Protocol>::executor_type>
 {
     net::basic_stream_socket<Protocol>& sock_;
-    net::executor_work_guard<decltype(std::declval<
-        net::basic_stream_socket<Protocol>&>().get_executor())> wg_;
     serializer<isRequest,
         basic_file_body<file_win32>, Fields>& sr_;
     std::size_t bytes_transferred_ = 0;
-    Handler h_;
     bool header_ = false;
 
 public:
-    write_some_win32_op(write_some_win32_op&&) = default;
-    write_some_win32_op(write_some_win32_op const&) = delete;
-
-    template<class DeducedHandler>
+    template<class Handler_>
     write_some_win32_op(
-        DeducedHandler&& h,
+        Handler_&& h,
         net::basic_stream_socket<Protocol>& s,
         serializer<isRequest,
             basic_file_body<file_win32>,Fields>& sr)
-        : sock_(s)
-        , wg_(sock_.get_executor())
+        : beast::detail::async_op_base<
+            Handler, typename net::basic_stream_socket<
+                Protocol>::executor_type>(
+                    s.get_executor(),
+                    std::forward<Handler_>(h))
+        , sock_(s)
         , sr_(sr)
-        , h_(std::forward<DeducedHandler>(h))
     {
-    }
-
-    using allocator_type =
-        net::associated_allocator_t<Handler>;
-
-    allocator_type
-    get_allocator() const noexcept
-    {
-        return (net::get_associated_allocator)(h_);
-    }
-
-    using executor_type =
-        net::associated_executor_t<Handler, decltype(std::declval<
-            net::basic_stream_socket<Protocol>&>().get_executor())>;
-
-    executor_type
-    get_executor() const noexcept
-    {
-        return (net::get_associated_executor)(
-            h_, sock_.get_executor());
     }
 
     void
-    operator()();
+    operator()()
+    {
+        if(! sr_.is_header_done())
+        {
+            header_ = true;
+            sr_.split(true);
+            return detail::async_write_some_impl(
+                sock_, sr_, std::move(*this));
+        }
+        if(sr_.get().chunked())
+        {
+            return detail::async_write_some_impl(
+                sock_, sr_, std::move(*this));
+        }
+        auto& w = sr_.writer_impl();
+        boost::winapi::DWORD_ const nNumberOfBytesToWrite =
+            static_cast<boost::winapi::DWORD_>(
+            (std::min<std::uint64_t>)(
+                (std::min<std::uint64_t>)(w.body_.last_ - w.pos_, sr_.limit()),
+                (std::numeric_limits<boost::winapi::DWORD_>::max)()));
+        net::windows::overlapped_ptr overlapped{
+            sock_.get_executor().context(), std::move(*this)};
+        // Note that we have moved *this, so we cannot access
+        // the handler since it is now moved-from. We can still
+        // access simple things like references and built-in types.
+        auto& ov = *overlapped.get();
+        ov.Offset = lowPart(w.pos_);
+        ov.OffsetHigh = highPart(w.pos_);
+        auto const bSuccess = ::TransmitFile(
+            sock_.native_handle(),
+            sr_.get().body().file_.native_handle(),
+            nNumberOfBytesToWrite,
+            0,
+            overlapped.get(),
+            nullptr,
+            0);
+        auto const dwError = boost::winapi::GetLastError();
+        if(! bSuccess && dwError !=
+            boost::winapi::ERROR_IO_PENDING_)
+        {
+            // VFALCO This needs review, is 0 the right number?
+            // completed immediately (with error?)
+            overlapped.complete(error_code{static_cast<int>(dwError),
+                    system_category()}, 0);
+            return;
+        }
+        overlapped.release();
+    }
 
     void
     operator()(
         error_code ec,
-        std::size_t bytes_transferred = 0);
-
-    friend
-    bool asio_handler_is_continuation(write_some_win32_op* op)
+        std::size_t bytes_transferred = 0)
     {
-        using net::asio_handler_is_continuation;
-        return asio_handler_is_continuation(
-            std::addressof(op->h_));
-    }
-
-    template<class Function>
-    friend
-    void asio_handler_invoke(Function&& f, write_some_win32_op* op)
-    {
-        using net::asio_handler_invoke;
-        asio_handler_invoke(f, std::addressof(op->h_));
+        bytes_transferred_ += bytes_transferred;
+        if(! ec)
+        {
+            if(header_)
+            {
+                header_ = false;
+                return (*this)();
+            }
+            auto& w = sr_.writer_impl();
+            w.pos_ += bytes_transferred;
+            BOOST_ASSERT(w.pos_ <= w.body_.last_);
+            if(w.pos_ >= w.body_.last_)
+            {
+                sr_.next(ec, null_lambda{});
+                BOOST_ASSERT(! ec);
+                BOOST_ASSERT(sr_.is_done());
+            }
+        }
+        this->invoke(ec, bytes_transferred_);
     }
 };
-
-template<
-    class Protocol, class Handler,
-    bool isRequest, class Fields>
-void
-write_some_win32_op<
-    Protocol, Handler, isRequest, Fields>::
-operator()()
-{
-    if(! sr_.is_header_done())
-    {
-        header_ = true;
-        sr_.split(true);
-        return detail::async_write_some_impl(
-            sock_, sr_, std::move(*this));
-    }
-    if(sr_.get().chunked())
-    {
-        return detail::async_write_some_impl(
-            sock_, sr_, std::move(*this));
-    }
-    auto& w = sr_.writer_impl();
-    boost::winapi::DWORD_ const nNumberOfBytesToWrite =
-        static_cast<boost::winapi::DWORD_>(
-        (std::min<std::uint64_t>)(
-            (std::min<std::uint64_t>)(w.body_.last_ - w.pos_, sr_.limit()),
-            (std::numeric_limits<boost::winapi::DWORD_>::max)()));
-    net::windows::overlapped_ptr overlapped{
-        sock_.get_executor().context(), std::move(*this)};
-    // Note that we have moved *this, so we cannot access
-    // the handler since it is now moved-from. We can still
-    // access simple things like references and built-in types.
-    auto& ov = *overlapped.get();
-    ov.Offset = lowPart(w.pos_);
-    ov.OffsetHigh = highPart(w.pos_);
-    auto const bSuccess = ::TransmitFile(
-        sock_.native_handle(),
-        sr_.get().body().file_.native_handle(),
-        nNumberOfBytesToWrite,
-        0,
-        overlapped.get(),
-        nullptr,
-        0);
-    auto const dwError = boost::winapi::GetLastError();
-    if(! bSuccess && dwError !=
-        boost::winapi::ERROR_IO_PENDING_)
-    {
-        // VFALCO This needs review, is 0 the right number?
-        // completed immediately (with error?)
-        overlapped.complete(error_code{static_cast<int>(dwError),
-                system_category()}, 0);
-        return;
-    }
-    overlapped.release();
-}
-
-template<
-    class Protocol, class Handler,
-    bool isRequest, class Fields>
-void
-write_some_win32_op<
-    Protocol, Handler, isRequest, Fields>::
-operator()(
-    error_code ec, std::size_t bytes_transferred)
-{
-    bytes_transferred_ += bytes_transferred;
-    if(! ec)
-    {
-        if(header_)
-        {
-            header_ = false;
-            return (*this)();
-        }
-        auto& w = sr_.writer_impl();
-        w.pos_ += bytes_transferred;
-        BOOST_ASSERT(w.pos_ <= w.body_.last_);
-        if(w.pos_ >= w.body_.last_)
-        {
-            sr_.next(ec, null_lambda{});
-            BOOST_ASSERT(! ec);
-            BOOST_ASSERT(sr_.is_done());
-        }
-    }
-    h_(ec, bytes_transferred_);
-}
 
 #endif
 

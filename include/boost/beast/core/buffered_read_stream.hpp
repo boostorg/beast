@@ -14,6 +14,7 @@
 #include <boost/beast/core/error.hpp>
 #include <boost/beast/core/multi_buffer.hpp>
 #include <boost/beast/core/type_traits.hpp>
+#include <boost/beast/core/detail/get_executor_type.hpp>
 #include <boost/asio/async_result.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/asio/io_context.hpp>
@@ -163,27 +164,18 @@ public:
         return next_layer_.lowest_layer();
     }
 
+    using executor_type =
+        detail::get_executor_type<next_layer_type>;
+
     /** Get the executor associated with the object.
     
         This function may be used to obtain the executor object that the stream
         uses to dispatch handlers for asynchronous operations.
 
         @return A copy of the executor that stream will use to dispatch handlers.
-
-        @note This function participates in overload resolution only if
-        `NextLayer` has a member function named `get_executor`.
     */
-#if BOOST_BEAST_DOXYGEN
-    __implementation_defined__
-#else
-    template<
-        class T = next_layer_type,
-        class = typename std::enable_if<
-            has_get_executor<next_layer_type>::value>::type>
-    auto
-#endif
-    get_executor() noexcept ->
-        decltype(std::declval<T&>().get_executor())
+    executor_type
+    get_executor() noexcept
     {
         return next_layer_.get_executor();
     }

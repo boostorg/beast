@@ -15,10 +15,13 @@
 #include <boost/beast/core/buffers_adaptor.hpp>
 #include <boost/beast/core/buffers_prefix.hpp>
 #include <boost/beast/core/buffers_suffix.hpp>
+#include <boost/beast/core/detail/async_op_base.hpp>
 #include <boost/beast/core/detail/buffers_ref.hpp>
-#include <boost/beast/core/detail/stream_algorithm.hpp>
+#include <boost/beast/core/detail/get_executor_type.hpp>
 #include <boost/beast/core/handler_ptr.hpp>
 #include <boost/asio/buffers_iterator.hpp>
+#include <boost/asio/coroutine.hpp>
+#include <boost/asio/post.hpp>
 #include <boost/asio/read.hpp>
 #include <boost/asio/read_until.hpp>
 #include <boost/assert.hpp>
@@ -118,26 +121,21 @@ public:
 template<class NextLayer>
 template<class MutableBufferSequence, class Handler>
 class icy_stream<NextLayer>::read_op
-    : public net::coroutine
+    : public beast::detail::stable_async_op_base<Handler,
+        beast::detail::get_executor_type<icy_stream>>
+    , public net::coroutine
 {
-    using alloc_type = typename
-#if defined(BOOST_NO_CXX11_ALLOCATOR)
-        net::associated_allocator_t<Handler>::template
-            rebind<char>::other;
-#else
-        std::allocator_traits<net::associated_allocator_t<
-            Handler>>::template rebind_alloc<char>;
-#endif
-
+    // VFALCO We need a stable reference to `b`
+    //        to pass to asio's read functions.
+    //
     struct data
     {
-        icy_stream<NextLayer>& s;
+        icy_stream& s;
         buffers_adaptor<MutableBufferSequence> b;
         bool match = false;
 
         data(
-            Handler const&,
-            icy_stream<NextLayer>& s_,
+            icy_stream& s_,
             MutableBufferSequence const& b_)
             : s(s_)
             , b(b_)
@@ -145,219 +143,153 @@ class icy_stream<NextLayer>::read_op
         }
     };
 
-    handler_ptr<data, Handler> d_;
+    data& d_;
 
 public:
-    read_op(read_op&&) = default;
-    read_op(read_op const&) = delete;
-
-    template<class DeducedHandler, class... Args>
+    template<class Handler_>
     read_op(
-        DeducedHandler&& h,
-        icy_stream<NextLayer>& s,
+        Handler_&& h,
+        icy_stream& s,
         MutableBufferSequence const& b)
-        : d_(std::forward<DeducedHandler>(h), s, b)
+        : beast::detail::stable_async_op_base<Handler,
+            beast::detail::get_executor_type<icy_stream>>(
+                s.get_executor(), std::forward<Handler_>(h))
+        , d_(beast::detail::allocate_stable<data>(*this, s, b))
     {
+        (*this)({}, 0);
     }
 
     void
     operator()(
         boost::system::error_code ec,
-        std::size_t bytes_transferred);
-
-    //
-
-    using allocator_type =
-        net::associated_allocator_t<Handler>;
-
-    using executor_type = net::associated_executor_t<
-        Handler, decltype(std::declval<NextLayer&>().get_executor())>;
-
-    allocator_type
-    get_allocator() const noexcept
+        std::size_t bytes_transferred)
     {
-        return net::get_associated_allocator(d_.handler());
-    }
-
-    executor_type
-    get_executor() const noexcept
-    {
-        return net::get_associated_executor(
-            d_.handler(), d_->s.get_executor());
-    }
-
-    template<class Function>
-    friend
-    void asio_handler_invoke(
-        Function&& f, read_op* op)
-    {
-        using net::asio_handler_invoke;
-        asio_handler_invoke(
-            f, std::addressof(op->d_.handler()));
-    }
-
-    friend
-    void* asio_handler_allocate(
-        std::size_t size, read_op* op)
-    {
-        using net::asio_handler_allocate;
-        return asio_handler_allocate(
-            size, std::addressof(op->d_.handler()));
-    }
-
-    friend
-    void asio_handler_deallocate(
-        void* p, std::size_t size, read_op* op)
-    {
-        using net::asio_handler_deallocate;
-        asio_handler_deallocate(
-            p, size, std::addressof(op->d_.handler()));
-    }
-
-    friend
-    bool asio_handler_is_continuation(read_op* op)
-    {
-        using net::asio_handler_is_continuation;
-        return asio_handler_is_continuation(
-            std::addressof(op->d_.handler()));
-    }
-};
-
-template<class NextLayer>
-template<class MutableBufferSequence, class Handler>
-void
-icy_stream<NextLayer>::
-read_op<MutableBufferSequence, Handler>::
-operator()(
-    error_code ec,
-    std::size_t bytes_transferred)
-{
-    using iterator = net::buffers_iterator<
-        typename beast::detail::dynamic_buffer_ref<
-            buffers_adaptor<MutableBufferSequence>>::const_buffers_type>;
-    auto& d = *d_;
-    BOOST_ASIO_CORO_REENTER(*this)
-    {
-        if(d.b.max_size() == 0)
+        using iterator = net::buffers_iterator<
+            typename beast::detail::dynamic_buffer_ref<
+                buffers_adaptor<MutableBufferSequence>>::const_buffers_type>;
+        BOOST_ASIO_CORO_REENTER(*this)
         {
-            BOOST_ASIO_CORO_YIELD
-            net::post(d.s.get_executor(),
-                beast::bind_handler(std::move(*this), ec, 0));
-            goto upcall;
-        }
-        if(! d.s.detect_)
-        {
-            if(d.s.copy_ > 0)
-            {
-                auto const n = net::buffer_copy(
-                    d.b.prepare(std::min<std::size_t>(
-                        d.s.copy_, d.b.max_size())),
-                    net::buffer(d.s.buf_));
-                d.b.commit(n);
-                d.s.copy_ = static_cast<unsigned char>(
-                    d.s.copy_ - n);
-                if(d.s.copy_ > 0)
-                    std::memmove(
-                        d.s.buf_,
-                        &d.s.buf_[n],
-                        d.s.copy_);
-            }
-            if(d.b.size() < d.b.max_size())
+            if(d_.b.max_size() == 0)
             {
                 BOOST_ASIO_CORO_YIELD
-                d.s.next_layer().async_read_some(
-                    d.b.prepare(d.b.max_size() - d.b.size()),
-                    std::move(*this));
-                d.b.commit(bytes_transferred);
+                net::post(d_.s.get_executor(),
+                    beast::bind_handler(std::move(*this), ec, 0));
+                goto upcall;
             }
-            bytes_transferred = d.b.size();
-            goto upcall;
-        }
+            if(! d_.s.detect_)
+            {
+                if(d_.s.copy_ > 0)
+                {
+                    auto const n = net::buffer_copy(
+                        d_.b.prepare(std::min<std::size_t>(
+                            d_.s.copy_, d_.b.max_size())),
+                        net::buffer(d_.s.buf_));
+                    d_.b.commit(n);
+                    d_.s.copy_ = static_cast<unsigned char>(
+                        d_.s.copy_ - n);
+                    if(d_.s.copy_ > 0)
+                        std::memmove(
+                            d_.s.buf_,
+                            &d_.s.buf_[n],
+                            d_.s.copy_);
+                }
+                if(d_.b.size() < d_.b.max_size())
+                {
+                    BOOST_ASIO_CORO_YIELD
+                    d_.s.next_layer().async_read_some(
+                        d_.b.prepare(d_.b.max_size() - d_.b.size()),
+                        std::move(*this));
+                    d_.b.commit(bytes_transferred);
+                }
+                bytes_transferred = d_.b.size();
+                goto upcall;
+            }
 
-        d.s.detect_ = false;
-        if(d.b.max_size() < 8)
-        {
+            d_.s.detect_ = false;
+            if(d_.b.max_size() < 8)
+            {
+                BOOST_ASIO_CORO_YIELD
+                net::async_read(
+                    d_.s.next_layer(),
+                    net::buffer(d_.s.buf_, 3),
+                    std::move(*this));
+                if(ec)
+                    goto upcall;
+                auto n = bytes_transferred;
+                BOOST_ASSERT(n == 3);
+                if(
+                    d_.s.buf_[0] != 'I' ||
+                    d_.s.buf_[1] != 'C' ||
+                    d_.s.buf_[2] != 'Y')
+                {
+                    net::buffer_copy(
+                        d_.b.value(),
+                        net::buffer(d_.s.buf_, n));
+                    if(d_.b.max_size() < 3)
+                    {
+                        d_.s.copy_ = static_cast<unsigned char>(
+                            3 - d_.b.max_size());
+                        std::memmove(
+                            d_.s.buf_,
+                            &d_.s.buf_[d_.b.max_size()],
+                            d_.s.copy_);
+
+                    }
+                    bytes_transferred = (std::min)(
+                        n, d_.b.max_size());
+                    goto upcall;
+                }
+                d_.s.copy_ = static_cast<unsigned char>(
+                    buffer_copy(
+                        net::buffer(d_.s.buf_),
+                        icy_stream::version() + d_.b.max_size()));
+                bytes_transferred = buffer_copy(
+                    d_.b.value(),
+                    icy_stream::version());
+                goto upcall;
+            }
+
             BOOST_ASIO_CORO_YIELD
-            net::async_read(
-                d.s.next_layer(),
-                net::buffer(d.s.buf_, 3),
+            net::async_read_until(
+                d_.s.next_layer(),
+                beast::detail::ref(d_.b),
+                detail::match_icy<iterator>(d_.match),
                 std::move(*this));
             if(ec)
                 goto upcall;
-            auto n = bytes_transferred;
-            BOOST_ASSERT(n == 3);
-            if(
-                d.s.buf_[0] != 'I' ||
-                d.s.buf_[1] != 'C' ||
-                d.s.buf_[2] != 'Y')
             {
-                net::buffer_copy(
-                    d.b.value(),
-                    net::buffer(d.s.buf_, n));
-                if(d.b.max_size() < 3)
+                auto n = bytes_transferred;
+                BOOST_ASSERT(n == d_.b.size());
+                if(! d_.match)
+                    goto upcall;
+                if(d_.b.size() + 5 > d_.b.max_size())
                 {
-                    d.s.copy_ = static_cast<unsigned char>(
-                        3 - d.b.max_size());
-                    std::memmove(
-                        d.s.buf_,
-                        &d.s.buf_[d.b.max_size()],
-                        d.s.copy_);
-
+                    d_.s.copy_ = static_cast<unsigned char>(
+                        n + 5 - d_.b.max_size());
+                    std::copy(
+                        net::buffers_begin(d_.b.value()) + n - d_.s.copy_,
+                        net::buffers_begin(d_.b.value()) + n,
+                        d_.s.buf_);
+                    n = d_.b.max_size() - 5;
                 }
-                bytes_transferred = (std::min)(
-                    n, d.b.max_size());
-                goto upcall;
+                {
+                    buffers_suffix<beast::detail::buffers_ref<
+                        MutableBufferSequence>> dest(
+                            boost::in_place_init, d_.b.value());
+                    dest.consume(5);
+                    detail::buffer_shift(
+                        beast::buffers_prefix(n, dest),
+                        beast::buffers_prefix(n, d_.b.value()));
+                    net::buffer_copy(d_.b.value(), icy_stream::version());
+                    n += 5;
+                    bytes_transferred = n;
+                }
             }
-            d.s.copy_ = static_cast<unsigned char>(
-                buffer_copy(
-                    net::buffer(d.s.buf_),
-                    icy_stream::version() + d.b.max_size()));
-            bytes_transferred = buffer_copy(
-                d.b.value(),
-                icy_stream::version());
-            goto upcall;
+        upcall:
+            this->invoke(ec, bytes_transferred);
         }
-
-        BOOST_ASIO_CORO_YIELD
-        net::async_read_until(
-            d.s.next_layer(),
-            beast::detail::ref(d.b),
-            detail::match_icy<iterator>(d.match),
-            std::move(*this));
-        if(ec)
-            goto upcall;
-        {
-            auto n = bytes_transferred;
-            BOOST_ASSERT(n == d.b.size());
-            if(! d.match)
-                goto upcall;
-            if(d.b.size() + 5 > d.b.max_size())
-            {
-                d.s.copy_ = static_cast<unsigned char>(
-                    n + 5 - d.b.max_size());
-                std::copy(
-                    net::buffers_begin(d.b.value()) + n - d.s.copy_,
-                    net::buffers_begin(d.b.value()) + n,
-                    d.s.buf_);
-                n = d.b.max_size() - 5;
-            }
-            {
-                buffers_suffix<beast::detail::buffers_ref<
-                    MutableBufferSequence>> dest(
-                        boost::in_place_init, d.b.value());
-                dest.consume(5);
-                detail::buffer_shift(
-                    beast::buffers_prefix(n, dest),
-                    beast::buffers_prefix(n, d.b.value()));
-                net::buffer_copy(d.b.value(), icy_stream::version());
-                n += 5;
-                bytes_transferred = n;
-            }
-        }
-    upcall:
-        d_.invoke(ec, bytes_transferred);
     }
-}
+};
 
 //------------------------------------------------------------------------------
 
@@ -524,9 +456,8 @@ async_read_some(
     read_op<
         MutableBufferSequence,
         BOOST_ASIO_HANDLER_TYPE(
-            ReadHandler, void(error_code, std::size_t))>{
-                std::move(init.completion_handler), *this, buffers}(
-                    {}, 0);
+            ReadHandler, void(error_code, std::size_t))>(
+                std::move(init.completion_handler), *this, buffers);
     return init.result.get();
 }
 

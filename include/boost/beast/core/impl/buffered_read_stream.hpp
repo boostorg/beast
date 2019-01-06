@@ -12,16 +12,10 @@
 
 #include <boost/beast/core/bind_handler.hpp>
 #include <boost/beast/core/error.hpp>
-#include <boost/beast/core/handler_ptr.hpp>
 #include <boost/beast/core/read_size.hpp>
 #include <boost/beast/core/type_traits.hpp>
-#include <boost/beast/core/detail/config.hpp>
-#include <boost/asio/associated_allocator.hpp>
-#include <boost/asio/associated_executor.hpp>
-#include <boost/asio/executor_work_guard.hpp>
-#include <boost/asio/handler_alloc_hook.hpp>
-#include <boost/asio/handler_continuation_hook.hpp>
-#include <boost/asio/handler_invoke_hook.hpp>
+#include <boost/beast/core/detail/async_op_base.hpp>
+#include <boost/beast/core/detail/get_executor_type.hpp>
 #include <boost/asio/post.hpp>
 #include <boost/throw_exception.hpp>
 
@@ -32,140 +26,78 @@ template<class Stream, class DynamicBuffer>
 template<class MutableBufferSequence, class Handler>
 class buffered_read_stream<
     Stream, DynamicBuffer>::read_some_op
+    : public detail::async_op_base<
+        Handler, detail::get_executor_type<buffered_read_stream>>
 {
     buffered_read_stream& s_;
-    net::executor_work_guard<decltype(
-        std::declval<Stream&>().get_executor())> wg_;
     MutableBufferSequence b_;
-    Handler h_;
     int step_ = 0;
 
 public:
     read_some_op(read_some_op&&) = default;
     read_some_op(read_some_op const&) = delete;
 
-    template<class DeducedHandler, class... Args>
-    read_some_op(DeducedHandler&& h,
+    template<class Handler_>
+    read_some_op(
+        Handler_&& h,
         buffered_read_stream& s,
-            MutableBufferSequence const& b)
-        : s_(s)
-        , wg_(s_.get_executor())
+        MutableBufferSequence const& b)
+        : detail::async_op_base<
+            Handler, detail::get_executor_type<buffered_read_stream>>(
+                s.get_executor(), std::forward<Handler_>(h))
+        , s_(s)
         , b_(b)
-        , h_(std::forward<DeducedHandler>(h))
     {
+        (*this)({}, 0);
     }
 
     void
-    operator()(error_code ec,
-        std::size_t bytes_transferred);
-
-    //
-
-    using allocator_type =
-        net::associated_allocator_t<Handler>;
-
-    using executor_type =
-        net::associated_executor_t<Handler, decltype(
-            std::declval<buffered_read_stream&>().get_executor())>;
-
-    allocator_type
-    get_allocator() const noexcept
+    operator()(
+        error_code ec,
+        std::size_t bytes_transferred)
     {
-        return net::get_associated_allocator(h_);
-    }
+        switch(step_)
+        {
+        case 0:
+            if(s_.buffer_.size() == 0)
+            {
+                if(s_.capacity_ == 0)
+                {
+                    // read (unbuffered)
+                    step_ = 1;
+                    return s_.next_layer_.async_read_some(
+                        b_, std::move(*this));
+                }
+                // read
+                step_ = 2;
+                return s_.next_layer_.async_read_some(
+                    s_.buffer_.prepare(read_size(
+                        s_.buffer_, s_.capacity_)),
+                            std::move(*this));
+            }
+            step_ = 3;
+            return net::post(
+                s_.get_executor(),
+                beast::bind_front_handler(
+                    std::move(*this), ec, 0));
 
-    executor_type
-    get_executor() const noexcept
-    {
-        return net::get_associated_executor(
-            h_, s_.get_executor());
-    }
+        case 1:
+            // upcall
+            break;
 
-    template<class Function>
-    friend
-    void asio_handler_invoke(
-        Function&& f, read_some_op* op)
-    {
-        using net::asio_handler_invoke;
-        asio_handler_invoke(f, std::addressof(op->h_));
-    }
+        case 2:
+            s_.buffer_.commit(bytes_transferred);
+            BOOST_FALLTHROUGH;
 
-    friend
-    void* asio_handler_allocate(
-        std::size_t size, read_some_op* op)
-    {
-        using net::asio_handler_allocate;
-        return asio_handler_allocate(
-            size, std::addressof(op->h_));
-    }
-
-    friend
-    void asio_handler_deallocate(
-        void* p, std::size_t size, read_some_op* op)
-    {
-        using net::asio_handler_deallocate;
-        asio_handler_deallocate(
-            p, size, std::addressof(op->h_));
-    }
-
-    friend
-    bool asio_handler_is_continuation(read_some_op* op)
-    {
-        using net::asio_handler_is_continuation;
-        return asio_handler_is_continuation(
-                std::addressof(op->h_));
+        case 3:
+            bytes_transferred =
+                net::buffer_copy(b_, s_.buffer_.data());
+            s_.buffer_.consume(bytes_transferred);
+            break;
+        }
+        this->invoke(ec, bytes_transferred);
     }
 };
-
-template<class Stream, class DynamicBuffer>
-template<class MutableBufferSequence, class Handler>
-void
-buffered_read_stream<Stream, DynamicBuffer>::
-read_some_op<MutableBufferSequence, Handler>::
-operator()(
-    error_code ec, std::size_t bytes_transferred)
-{
-    switch(step_)
-    {
-    case 0:
-        if(s_.buffer_.size() == 0)
-        {
-            if(s_.capacity_ == 0)
-            {
-                // read (unbuffered)
-                step_ = 1;
-                return s_.next_layer_.async_read_some(
-                    b_, std::move(*this));
-            }
-            // read
-            step_ = 2;
-            return s_.next_layer_.async_read_some(
-                s_.buffer_.prepare(read_size(
-                    s_.buffer_, s_.capacity_)),
-                        std::move(*this));
-        }
-        step_ = 3;
-        return net::post(
-            s_.get_executor(),
-            beast::bind_front_handler(
-                std::move(*this), ec, 0));
-
-    case 1:
-        // upcall
-        break;
-
-    case 2:
-        s_.buffer_.commit(bytes_transferred);
-        BOOST_FALLTHROUGH;
-
-    case 3:
-        bytes_transferred =
-            net::buffer_copy(b_, s_.buffer_.data());
-        s_.buffer_.consume(bytes_transferred);
-        break;
-    }
-    h_(ec, bytes_transferred);
-}
 
 //------------------------------------------------------------------------------
 
@@ -271,9 +203,8 @@ async_read_some(
     BOOST_BEAST_HANDLER_INIT(
         ReadHandler, void(error_code, std::size_t));
     read_some_op<MutableBufferSequence, BOOST_ASIO_HANDLER_TYPE(
-        ReadHandler, void(error_code, std::size_t))>{
-            std::move(init.completion_handler), *this, buffers}(
-                error_code{}, 0);
+        ReadHandler, void(error_code, std::size_t))>(
+            std::move(init.completion_handler), *this, buffers);
     return init.result.get();
 }
 

@@ -15,8 +15,9 @@
 #include <boost/beast/http/parser.hpp>
 #include <boost/beast/http/read.hpp>
 #include <boost/beast/core/handler_ptr.hpp>
+#include <boost/beast/core/detail/async_op_base.hpp>
+#include <boost/beast/core/detail/get_executor_type.hpp>
 #include <boost/beast/core/detail/read.hpp>
-#include <boost/beast/core/detail/stream_algorithm.hpp>
 #include <boost/asio/error.hpp>
 
 namespace boost {
@@ -149,7 +150,9 @@ template<
     bool isRequest, class Body, class Allocator,
     class Handler>
 class read_msg_op
-    : public net::coroutine
+    : public beast::detail::stable_async_op_base<
+        Handler, beast::detail::get_executor_type<Stream>>
+    , public net::coroutine
 {
     using parser_type =
         parser<isRequest, Body, Allocator>;
@@ -164,7 +167,6 @@ class read_msg_op
         parser_type p;
 
         data(
-            Handler const&,
             Stream& s_,
             message_type& m_)
             : s(s_)
@@ -174,91 +176,34 @@ class read_msg_op
         }
     };
 
-    handler_ptr<data, Handler> d_;
+    data& d_;
 
 public:
-    read_msg_op(read_msg_op&&) = default;
-    read_msg_op(read_msg_op const&) = delete;
-
-    template<class DeducedHandler>
+    template<class Handler_>
     read_msg_op(
         Stream& s,
         DynamicBuffer& b,
         message_type& m,
-        DeducedHandler&& h)
-        : d_(std::forward<DeducedHandler>(h), s, m)
+        Handler_&& h)
+        : beast::detail::stable_async_op_base<
+            Handler, beast::detail::get_executor_type<Stream>>(
+                s.get_executor(), std::forward<Handler_>(h))
+        , d_(beast::detail::allocate_stable<data>(
+            *this, s, m))
     {
-        http::async_read(s, b, d_->p, std::move(*this));
+        http::async_read(d_.s, b, d_.p, std::move(*this));
     }
 
     void
     operator()(
         error_code ec,
-        std::size_t bytes_transferred);
-
-    //
-
-    using allocator_type =
-        net::associated_allocator_t<Handler>;
-
-    using executor_type = net::associated_executor_t<
-        Handler, decltype(std::declval<Stream&>().get_executor())>;
-
-    allocator_type
-    get_allocator() const noexcept
+        std::size_t bytes_transferred)
     {
-        return net::get_associated_allocator(d_.handler());
-    }
-
-    executor_type
-    get_executor() const noexcept
-    {
-        return net::get_associated_executor(
-            d_.handler(), d_->s.get_executor());
-    }
-
-    friend
-    void* asio_handler_allocate(
-        std::size_t size, read_msg_op* op)
-    {
-        using net::asio_handler_allocate;
-        return asio_handler_allocate(
-            size, std::addressof(op->d_.handler()));
-    }
-
-    friend
-    void asio_handler_deallocate(
-        void* p, std::size_t size, read_msg_op* op)
-    {
-        using net::asio_handler_deallocate;
-        asio_handler_deallocate(
-            p, size, std::addressof(op->d_.handler()));
-    }
-
-    template<class Function>
-    friend
-    void asio_handler_invoke(Function&& f, read_msg_op* op)
-    {
-        using net::asio_handler_invoke;
-        asio_handler_invoke(f, std::addressof(op->d_.handler()));
+        if(! ec)
+            d_.m = d_.p.release();
+        this->invoke(ec, bytes_transferred);
     }
 };
-
-template<class Stream, class DynamicBuffer,
-    bool isRequest, class Body, class Allocator,
-        class Handler>
-void
-read_msg_op<Stream, DynamicBuffer,
-    isRequest, Body, Allocator, Handler>::
-operator()(
-    error_code ec,
-    std::size_t bytes_transferred)
-{
-    auto& d = *d_;
-    if(! ec)
-        d.m = d.p.release();
-    d_.invoke(ec, bytes_transferred);
-}
 
 } // detail
 

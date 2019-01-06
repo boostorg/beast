@@ -17,15 +17,12 @@
 #include <boost/beast/core/buffers_suffix.hpp>
 #include <boost/beast/core/flat_static_buffer.hpp>
 #include <boost/beast/core/type_traits.hpp>
+#include <boost/beast/core/detail/async_op_base.hpp>
 #include <boost/beast/core/detail/clamp.hpp>
 #include <boost/beast/core/detail/config.hpp>
+#include <boost/beast/core/detail/get_executor_type.hpp>
 #include <boost/beast/websocket/detail/frame.hpp>
-#include <boost/asio/associated_allocator.hpp>
-#include <boost/asio/associated_executor.hpp>
 #include <boost/asio/coroutine.hpp>
-#include <boost/asio/executor_work_guard.hpp>
-#include <boost/asio/handler_continuation_hook.hpp>
-#include <boost/asio/handler_invoke_hook.hpp>
 #include <boost/assert.hpp>
 #include <boost/config.hpp>
 #include <boost/throw_exception.hpp>
@@ -139,12 +136,11 @@ do_context_takeover_write(role_type role)
 template<class NextLayer, bool deflateSupported>
 template<class Buffers, class Handler>
 class stream<NextLayer, deflateSupported>::write_some_op
-    : public net::coroutine
+    : public beast::detail::async_op_base<
+        Handler, beast::detail::get_executor_type<stream>>
+    , public net::coroutine
 {
-    Handler h_;
-    stream<NextLayer, deflateSupported>& ws_;
-    net::executor_work_guard<decltype(std::declval<
-        stream<NextLayer, deflateSupported>&>().get_executor())> wg_;
+    stream& ws_;
     buffers_suffix<Buffers> cb_;
     detail::frame_header fh_;
     detail::prepared_key key_;
@@ -159,69 +155,25 @@ class stream<NextLayer, deflateSupported>::write_some_op
 public:
     static constexpr int id = 2; // for soft_mutex
 
-    write_some_op(write_some_op&&) = default;
-    write_some_op(write_some_op const&) = delete;
-
-    template<class DeducedHandler>
+    template<class Handler_>
     write_some_op(
-        DeducedHandler&& h,
+        Handler_&& h,
         stream<NextLayer, deflateSupported>& ws,
         bool fin,
         Buffers const& bs)
-        : h_(std::forward<DeducedHandler>(h))
+        : beast::detail::async_op_base<
+            Handler, beast::detail::get_executor_type<stream>>(
+                ws.get_executor(), std::forward<Handler_>(h))
         , ws_(ws)
-        , wg_(ws_.get_executor())
         , cb_(bs)
         , fin_(fin)
     {
-    }
-
-    using allocator_type =
-        net::associated_allocator_t<Handler>;
-
-    allocator_type
-    get_allocator() const noexcept
-    {
-        return (net::get_associated_allocator)(h_);
-    }
-
-    using executor_type = net::associated_executor_t<
-        Handler, decltype(std::declval<stream<NextLayer, deflateSupported>&>().get_executor())>;
-
-    executor_type
-    get_executor() const noexcept
-    {
-        return (net::get_associated_executor)(
-            h_, ws_.get_executor());
-    }
-
-    Handler&
-    handler()
-    {
-        return h_;
     }
 
     void operator()(
         error_code ec = {},
         std::size_t bytes_transferred = 0,
         bool cont = true);
-
-    friend
-    bool asio_handler_is_continuation(write_some_op* op)
-    {
-        using net::asio_handler_is_continuation;
-        return op->cont_ || asio_handler_is_continuation(
-            std::addressof(op->h_));
-    }
-
-    template<class Function>
-    friend
-    void asio_handler_invoke(Function&& f, write_some_op* op)
-    {
-        using net::asio_handler_invoke;
-        asio_handler_invoke(
-            f, std::addressof(op->h_));
-    }
 };
 
 template<class NextLayer, bool deflateSupported>
@@ -582,7 +534,7 @@ operator()(
                     std::move(*this),
                     ec, bytes_transferred_));
         }
-        h_(ec, bytes_transferred_);
+        this->invoke(ec, bytes_transferred_);
     }
 }
 
