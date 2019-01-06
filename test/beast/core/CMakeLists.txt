@@ -16,10 +16,10 @@ add_executable (tests-beast-core
     ${EXTRAS_FILES}
     ${TEST_MAIN}
     Jamfile
+    _detail_async_op_base.cpp
     _detail_base64.cpp
     _detail_buffer.cpp
     _detail_clamp.cpp
-    _detail_operation_base.cpp
     _detail_read.cpp
     _detail_sha1.cpp
     _detail_tuple.cpp

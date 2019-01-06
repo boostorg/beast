@@ -11,10 +11,9 @@
 #define BOOST_BEAST_CORE_IMPL_BASIC_STREAM_SOCKET_HPP
 
 #include <boost/beast/core/buffers_prefix.hpp>
-#include <boost/beast/core/detail/operation_base.hpp>
+#include <boost/beast/core/detail/async_op_base.hpp>
 #include <boost/asio/bind_executor.hpp>
 #include <boost/asio/coroutine.hpp>
-#include <boost/asio/executor_work_guard.hpp>
 #include <boost/assert.hpp>
 #include <boost/core/exchange.hpp>
 #include <cstdlib>
@@ -23,6 +22,64 @@
 
 namespace boost {
 namespace beast {
+
+template<class Protocol, class Executor>
+struct basic_stream_socket<
+    Protocol, Executor>::read_timeout_handler
+{
+    std::shared_ptr<impl_type> impl;
+
+    void
+    operator()(error_code ec)
+    {
+        // timer canceled
+        if(ec == net::error::operation_aborted)
+            return;
+
+        BOOST_ASSERT(! ec);
+
+        if(! impl->read_closed)
+        {
+            // timeout
+            impl->close();
+            impl->read_closed = true;
+        }
+        else
+        {
+            // late completion
+            impl->read_closed = false;
+        }
+    }
+};
+
+template<class Protocol, class Executor>
+struct basic_stream_socket<
+    Protocol, Executor>::write_timeout_handler
+{
+    std::shared_ptr<impl_type> impl;
+
+    void
+    operator()(error_code ec)
+    {
+        // timer canceled
+        if(ec == net::error::operation_aborted)
+            return;
+
+        BOOST_ASSERT(! ec);
+
+        if(! impl->write_closed)
+        {
+            // timeout
+            impl->close();
+            impl->write_closed = true;
+        }
+        else
+        {
+            // late completion
+            impl->write_closed = false;
+        }
+    }
+};
 
 /*
     The algorithm for implementing the timeout depends
@@ -35,42 +92,13 @@ namespace beast {
 template<class Protocol, class Executor>
 template<class Buffers, class Handler>
 class basic_stream_socket<Protocol, Executor>::read_op
-    : public detail::operation_base<
-        Handler, Executor>
+    : public detail::async_op_base<Handler, Executor>
     , public boost::asio::coroutine
 {
-    basic_stream_socket& s_;
-    net::executor_work_guard<Executor> wg0_;
-    net::executor_work_guard<executor_type> wg1_;
+    typename basic_stream_socket<
+        Protocol, Executor>::impl_type& impl_;
     pending_guard pg_;
     Buffers b_;
-
-    struct timeout_handler
-    {
-        std::shared_ptr<impl_type> impl;
-
-        void
-        operator()(error_code ec)
-        {
-            // timer canceled
-            if(ec == net::error::operation_aborted)
-                return;
-
-            BOOST_ASSERT(! ec);
-
-            if(! impl->read_closed)
-            {
-                // timeout
-                impl->close();
-                impl->read_closed = true;
-            }
-            else
-            {
-                // late completion
-                impl->read_closed = false;
-            }
-        }
-    };
 
 public:
     template<class Handler_>
@@ -78,44 +106,39 @@ public:
         basic_stream_socket& s,
         Buffers const& b,
         Handler_&& h)
-        : detail::operation_base<
-            Handler, Executor>(
-                std::forward<Handler_>(h),
-                net::get_associated_executor(
-                    h, s.get_executor()))
-        , s_(s)
-        , wg0_(s_.get_executor())
-        , wg1_(net::get_associated_executor(
-            this->handler_, s_.get_executor()))
-        , pg_(s_.impl_->read_pending)
+        : detail::async_op_base<Handler, Executor>(
+            s.get_executor(), std::forward<Handler_>(h))
+        , impl_(*s.impl_)
+        , pg_(impl_.read_pending)
         , b_(b)
     {
-        (*this)();
+        (*this)({});
     }
 
     void
     operator()(
-        error_code ec = {},
+        error_code ec,
         std::size_t bytes_transferred = 0)
     {
         BOOST_ASIO_CORO_REENTER(*this)
         {
             // must come first
             // VFALCO TODO what about the handler's allocator?
-            s_.impl_->read_timer.async_wait(
+            impl_.read_timer.async_wait(
                 net::bind_executor(
                     this->get_executor(),
-                    timeout_handler{s_.impl_}));
+                    read_timeout_handler{
+                        impl_.shared_from_this()}));
 
-            s_.impl_->maybe_kick();
+            impl_.maybe_kick();
 
             // check if the balance is zero
-            if(s_.impl_->read_remain == 0)
+            if(impl_.read_remain == 0)
             {
                 // wait until the next time slice
-                ++s_.impl_->waiting;
+                ++impl_.waiting;
                 BOOST_ASIO_CORO_YIELD
-                s_.impl_->rate_timer.async_wait(std::move(*this));
+                impl_.rate_timer.async_wait(std::move(*this));
 
                 if(ec)
                 {
@@ -126,46 +149,46 @@ public:
                 }
 
                 // must call this
-                s_.impl_->on_timer();
-                BOOST_ASSERT(s_.impl_->read_remain > 0);
+                impl_.on_timer();
+                BOOST_ASSERT(impl_.read_remain > 0);
             }
 
             // we always use buffers_prefix,
             // to reduce template instantiations.
-            BOOST_ASSERT(s_.impl_->read_remain > 0);
+            BOOST_ASSERT(impl_.read_remain > 0);
             BOOST_ASIO_CORO_YIELD
-            s_.impl_->socket.async_read_some(
+            impl_.socket.async_read_some(
                 beast::buffers_prefix(
-                    s_.impl_->read_remain, b_),
+                    impl_.read_remain, b_),
                         std::move(*this));
 
-            if(s_.impl_->read_remain != no_limit)
+            if(impl_.read_remain != no_limit)
             {
                 // adjust balance
                 BOOST_ASSERT(
-                    bytes_transferred <= s_.impl_->read_remain);
-                s_.impl_->read_remain -= bytes_transferred;
+                    bytes_transferred <= impl_.read_remain);
+                impl_.read_remain -= bytes_transferred;
             }
 
             {
                 // try cancelling timer
                 auto const n =
-                    s_.impl_->read_timer.cancel();
+                    impl_.read_timer.cancel();
 
-                if(s_.impl_->read_closed)
+                if(impl_.read_closed)
                 {
                     // timeout handler already invoked
                     BOOST_ASSERT(n == 0);
                     ec = beast::error::timeout;
-                    s_.impl_->read_closed = false;
+                    impl_.read_closed = false;
                 }
                 else if(n == 0)
                 {
                     // timeout handler already queued
                     ec = beast::error::timeout;
 
-                    s_.impl_->close();
-                    s_.impl_->read_closed = true;
+                    impl_.close();
+                    impl_.read_closed = true;
                 }
                 else
                 {
@@ -176,7 +199,7 @@ public:
 
         upcall:
             pg_.reset();
-            this->handler_(ec, bytes_transferred);
+            this->invoke(ec, bytes_transferred);
         }
     }
 };
@@ -186,42 +209,13 @@ public:
 template<class Protocol, class Executor>
 template<class Buffers, class Handler>
 class basic_stream_socket<Protocol, Executor>::write_op
-    : public detail::operation_base<
-        Handler, Executor>
+    : public detail::async_op_base<Handler, Executor>
     , public boost::asio::coroutine
 {
-    basic_stream_socket& s_;
-    net::executor_work_guard<Executor> wg0_;
-    net::executor_work_guard<executor_type> wg1_;
+    typename basic_stream_socket<
+        Protocol, Executor>::impl_type& impl_;
     pending_guard pg_;
     Buffers b_;
-
-    struct timeout_handler
-    {
-        std::shared_ptr<impl_type> impl;
-
-        void
-        operator()(error_code ec)
-        {
-            // timer canceled
-            if(ec == net::error::operation_aborted)
-                return;
-
-            BOOST_ASSERT(! ec);
-
-            if(! impl->write_closed)
-            {
-                // timeout
-                impl->close();
-                impl->write_closed = true;
-            }
-            else
-            {
-                // late completion
-                impl->write_closed = false;
-            }
-        }
-    };
 
 public:
     template<class Handler_>
@@ -229,16 +223,10 @@ public:
         basic_stream_socket& s,
         Buffers const& b,
         Handler_&& h)
-        : detail::operation_base<
-            Handler, Executor>(
-                std::forward<Handler_>(h),
-                net::get_associated_executor(
-                    h, s.get_executor()))
-        , s_(s)
-        , wg0_(s_.get_executor())
-        , wg1_(net::get_associated_executor(
-            this->handler_, s_.get_executor()))
-        , pg_(s_.impl_->write_pending)
+        : detail::async_op_base<Handler, Executor>(
+            s.get_executor(), std::forward<Handler_>(h))
+        , impl_(*s.impl_)
+        , pg_(impl_.write_pending)
         , b_(b)
     {
         (*this)();
@@ -253,20 +241,21 @@ public:
         {
             // must come first
             // VFALCO TODO what about the handler's allocator?
-            s_.impl_->write_timer.async_wait(
+            impl_.write_timer.async_wait(
                 net::bind_executor(
                     this->get_executor(),
-                    timeout_handler{s_.impl_}));
+                    write_timeout_handler{
+                        impl_.shared_from_this()}));
 
-            s_.impl_->maybe_kick();
+            impl_.maybe_kick();
 
             // check if the balance is zero
-            if(s_.impl_->write_remain == 0)
+            if(impl_.write_remain == 0)
             {
                 // wait until the next time slice
-                ++s_.impl_->waiting;
+                ++impl_.waiting;
                 BOOST_ASIO_CORO_YIELD
-                s_.impl_->rate_timer.async_wait(std::move(*this));
+                impl_.rate_timer.async_wait(std::move(*this));
 
                 if(ec)
                 {
@@ -277,46 +266,46 @@ public:
                 }
 
                 // must call this
-                s_.impl_->on_timer();
-                BOOST_ASSERT(s_.impl_->write_remain > 0);
+                impl_.on_timer();
+                BOOST_ASSERT(impl_.write_remain > 0);
             }
 
             // we always use buffers_prefix,
             // to reduce template instantiations.
-            BOOST_ASSERT(s_.impl_->write_remain > 0);
+            BOOST_ASSERT(impl_.write_remain > 0);
             BOOST_ASIO_CORO_YIELD
-            s_.impl_->socket.async_write_some(
+            impl_.socket.async_write_some(
                 beast::buffers_prefix(
-                    s_.impl_->write_remain, b_),
+                    impl_.write_remain, b_),
                         std::move(*this));
 
-            if(s_.impl_->write_remain != no_limit)
+            if(impl_.write_remain != no_limit)
             {
                 // adjust balance
                 BOOST_ASSERT(
-                    bytes_transferred <= s_.impl_->write_remain);
-                s_.impl_->write_remain -= bytes_transferred;
+                    bytes_transferred <= impl_.write_remain);
+                impl_.write_remain -= bytes_transferred;
             }
 
             {
                 // try cancelling timer
                 auto const n =
-                    s_.impl_->write_timer.cancel();
+                    impl_.write_timer.cancel();
 
-                if(s_.impl_->write_closed)
+                if(impl_.write_closed)
                 {
                     // timeout handler already invoked
                     BOOST_ASSERT(n == 0);
                     ec = beast::error::timeout;
-                    s_.impl_->write_closed = false;
+                    impl_.write_closed = false;
                 }
                 else if(n == 0)
                 {
                     // timeout handler already queued
                     ec = beast::error::timeout;
 
-                    s_.impl_->close();
-                    s_.impl_->write_closed = true;
+                    impl_.close();
+                    impl_.write_closed = true;
                 }
                 else
                 {
@@ -327,7 +316,7 @@ public:
 
         upcall:
             pg_.reset();
-            this->handler_(ec, bytes_transferred);
+            this->invoke(ec, bytes_transferred);
         }
     }
 };
@@ -339,45 +328,17 @@ namespace detail {
 template<
     class Protocol, class Executor, class Handler>
 class stream_socket_connect_op
-    : public detail::operation_base<
-        Handler, Executor>
+    : public detail::async_op_base<Handler, Executor>
 {
     using stream_type =
         beast::basic_stream_socket<Protocol, Executor>;
-    stream_type& s_;
-    net::executor_work_guard<Executor> wg0_;
-    net::executor_work_guard<typename
-        stream_type::executor_type> wg1_;
+    using timeout_handler =
+        typename stream_type::write_timeout_handler;
+
+    typename basic_stream_socket<
+        Protocol, Executor>::impl_type& impl_;
     typename stream_type::pending_guard pg0_;
     typename stream_type::pending_guard pg1_;
-
-    struct timeout_handler
-    {
-        std::shared_ptr<typename
-            stream_type::impl_type> impl;
-
-        void
-        operator()(error_code ec)
-        {
-            // timer canceled
-            if(ec == net::error::operation_aborted)
-                return;
-
-            BOOST_ASSERT(! ec);
-
-            if(! impl->write_closed)
-            {
-                // timeout
-                impl->close();
-                impl->write_closed = true;
-            }
-            else
-            {
-                // late completion
-                impl->write_closed = false;
-            }
-        }
-    };
 
 public:
     template<
@@ -388,26 +349,21 @@ public:
         Endpoints const& eps,
         Condition cond,
         Handler_&& h)
-        : detail::operation_base<
-            Handler, Executor>(
-                std::forward<Handler_>(h),
-                net::get_associated_executor(
-                    h, s.get_executor()))
-        , s_(s)
-        , wg0_(s_.get_executor())
-        , wg1_(net::get_associated_executor(
-            this->handler_, s_.get_executor()))
-        , pg0_(s_.impl_->read_pending)
-        , pg1_(s_.impl_->write_pending)
+        : detail::async_op_base<Handler, Executor>(
+            s.get_executor(), std::forward<Handler_>(h))
+        , impl_(*s.impl_)
+        , pg0_(impl_.read_pending)
+        , pg1_(impl_.write_pending)
     {
         // must come first
         // VFALCO TODO what about the handler's allocator?
-        s_.impl_->write_timer.async_wait(
+        impl_.write_timer.async_wait(
             net::bind_executor(
                 this->get_executor(),
-                timeout_handler{s_.impl_}));
+                timeout_handler{
+                    impl_.shared_from_this()}));
 
-        net::async_connect(s_.impl_->socket,
+        net::async_connect(impl_.socket,
             eps, cond, std::move(*this));
         // *this is now moved-from
     }
@@ -420,25 +376,20 @@ public:
         Iterator begin, Iterator end,
         Condition cond,
         Handler_&& h)
-        : detail::operation_base<
-            Handler, Executor>(
-                std::forward<Handler_>(h),
-                net::get_associated_executor(
-                    h, s.get_executor()))
-        , s_(s)
-        , wg0_(s_.get_executor())
-        , wg1_(net::get_associated_executor(
-            this->handler_, s_.get_executor()))
-        , pg0_(s_.impl_->read_pending)
-        , pg1_(s_.impl_->write_pending)
+        : detail::async_op_base<Handler, Executor>(
+            s.get_executor(), std::forward<Handler_>(h))
+        , impl_(*s.impl_)
+        , pg0_(impl_.read_pending)
+        , pg1_(impl_.write_pending)
     {
         // must come first
-        s_.impl_->write_timer.async_wait(
+        impl_.write_timer.async_wait(
             net::bind_executor(
                 this->get_executor(),
-                timeout_handler{s_.impl_}));
+                timeout_handler{
+                    impl_.shared_from_this()}));
 
-        net::async_connect(s_.impl_->socket,
+        net::async_connect(impl_.socket,
             begin, end, cond, std::move(*this));
         // *this is now moved-from
     }
@@ -449,22 +400,22 @@ public:
     {
         // try to cancel the timer
         auto const n =
-            s_.impl_->write_timer.cancel();
+            impl_.write_timer.cancel();
 
-        if(s_.impl_->write_closed)
+        if(impl_.write_closed)
         {
             // timeout handler already invoked
             BOOST_ASSERT(n == 0);
             ec = beast::error::timeout;
-            s_.impl_->write_closed = false;
+            impl_.write_closed = false;
         }
         else if(n == 0)
         {
             // timeout handler already queued
             ec = beast::error::timeout;
 
-            s_.impl_->close();
-            s_.impl_->write_closed = true;
+            impl_.close();
+            impl_.write_closed = true;
         }
         else
         {
@@ -474,7 +425,7 @@ public:
 
         pg0_.reset();
         pg1_.reset();
-        this->handler_(ec, std::forward<Arg>(arg));
+        this->invoke(ec, std::forward<Arg>(arg));
     }
 };
 

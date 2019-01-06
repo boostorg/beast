@@ -19,6 +19,7 @@
 #include <boost/asio/connect.hpp>
 #include <boost/asio/executor.hpp>
 #include <boost/asio/steady_timer.hpp>
+#include <boost/config/workaround.hpp>
 #include <boost/optional.hpp>
 #include <chrono>
 #include <memory>
@@ -172,6 +173,11 @@ class basic_stream_socket
     static std::size_t constexpr no_limit =
         (std::numeric_limits<std::size_t>::max)();
 
+// friend class template declaration in a class template is ignored
+// https://gcc.gnu.org/bugzilla/show_bug.cgi?id=88672
+#if BOOST_WORKAROUND(BOOST_GCC, > 0)
+public:
+#endif
     struct impl_type
         : std::enable_shared_from_this<impl_type>
     {
@@ -205,7 +211,17 @@ class basic_stream_socket
         void close();       // cancel everything
         void maybe_kick();  // kick the rate timer if needed
         void on_timer();    // rate timer completion
+
+        using executor_type = Executor;
+        Executor
+        get_executor() const noexcept
+        {
+            return ex;
+        }
     };
+#if BOOST_WORKAROUND(BOOST_GCC, > 0)
+private:
+#endif
 
     // We use shared ownership for the state so it can
     // outlive the destruction of the stream_socket object,
@@ -229,6 +245,9 @@ class basic_stream_socket
 
     template<class, class>
     friend class basic_stream_socket;
+
+    struct read_timeout_handler;
+    struct write_timeout_handler;
 
 public:
     /// The type of the next layer.

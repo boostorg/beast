@@ -11,7 +11,10 @@
 #define BOOST_BEAST_DETAIL_READ_HPP
 
 #include <boost/beast/core/detail/config.hpp>
-#include <boost/beast/core/detail/stream_algorithm.hpp>
+#include <boost/beast/core/error.hpp>
+#include <boost/beast/core/type_traits.hpp>
+#include <boost/asio/async_result.hpp>
+#include <cstdlib>
 
 namespace boost {
 namespace beast {

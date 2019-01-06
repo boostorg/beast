@@ -272,7 +272,7 @@ public:
         net::io_context::executor_type;
 
     /// Return the executor associated with the object.
-    net::io_context::executor_type
+    executor_type
     get_executor() noexcept
     {
         return in_->ioc.get_executor();

@@ -10,11 +10,16 @@
 #ifndef BOOST_BEAST_DETAIL_IMPL_READ_HPP
 #define BOOST_BEAST_DETAIL_IMPL_READ_HPP
 
+#include <boost/beast/core/bind_handler.hpp>
 #include <boost/beast/core/flat_static_buffer.hpp>
+#include <boost/beast/core/detail/get_executor_type.hpp>
+#include <boost/beast/core/detail/async_op_base.hpp>
 #include <boost/asio/basic_stream_socket.hpp>
-#include <boost/asio/handler_alloc_hook.hpp>
-#include <boost/asio/handler_continuation_hook.hpp>
-#include <boost/asio/handler_invoke_hook.hpp>
+#include <boost/asio/coroutine.hpp>
+#include <boost/throw_exception.hpp>
+
+// REMOVE
+#define BOOST_BEAST_ENABLE_NON_BLOCKING
 
 namespace boost {
 namespace beast {
@@ -32,31 +37,31 @@ template<
     class DynamicBuffer,
     class Condition,
     class Handler>
-class read_op : public net::coroutine
+class read_op
+    : public net::coroutine
+    , public async_op_base<
+        Handler, get_executor_type<Stream>>
 {
     Stream& s_;
-    net::executor_work_guard<decltype(
-        std::declval<Stream&>().get_executor())> wg_;
     DynamicBuffer& b_;
     Condition cond_;
-    Handler h_;
     std::size_t total_ = 0;
 
 public:
     read_op(read_op&&) = default;
-    read_op(read_op const&) = delete;
 
-    template<class DeducedHandler>
+    template<class Handler_>
     read_op(
         Stream& s,
         DynamicBuffer& b,
         Condition cond,
-        DeducedHandler&& h)
-        : s_(s)
-        , wg_(s_.get_executor())
+        Handler_&& h)
+        : async_op_base<
+            Handler, get_executor_type<Stream>>(
+                s.get_executor(), std::forward<Handler_>(h))
+        , s_(s)
         , b_(b)
         , cond_(cond)
-        , h_(std::forward<DeducedHandler>(h))
     {
         (*this)({}, 0, false);
     }
@@ -65,100 +70,43 @@ public:
     operator()(
         error_code ec,
         std::size_t bytes_transferred,
-        bool cont = true);
-
-    //
-
-    using allocator_type =
-        net::associated_allocator_t<Handler>;
-
-    using executor_type = net::associated_executor_t<
-        Handler, decltype(std::declval<Stream&>().get_executor())>;
-
-    allocator_type
-    get_allocator() const noexcept
+        bool cont = true)
     {
-        return net::get_associated_allocator(h_);
-    }
-
-    executor_type
-    get_executor() const noexcept
-    {
-        return net::get_associated_executor(
-            h_, s_.get_executor());
-    }
-
-    friend
-    void* asio_handler_allocate(
-        std::size_t size, read_op* op)
-    {
-        using net::asio_handler_allocate;
-        return asio_handler_allocate(
-            size, std::addressof(op->h_));
-    }
-
-    friend
-    void asio_handler_deallocate(
-        void* p, std::size_t size, read_op* op)
-    {
-        using net::asio_handler_deallocate;
-        asio_handler_deallocate(
-            p, size, std::addressof(op->h_));
-    }
-    
-    template<class Function>
-    friend
-    void asio_handler_invoke(Function&& f, read_op* op)
-    {
-        using net::asio_handler_invoke;
-        asio_handler_invoke(f, std::addressof(op->h_));
-    }
-};
-
-template<
-    class Stream, class DynamicBuffer,
-    class Condition, class Handler>
-void
-read_op<Stream, DynamicBuffer, Condition, Handler>::
-operator()(
-    error_code ec,
-    std::size_t bytes_transferred,
-    bool cont)
-{
-    std::size_t max_size;
-    std::size_t max_prepare;
-    BOOST_ASIO_CORO_REENTER(*this)
-    {
-        max_size = cond_(ec, total_, b_);
-        max_prepare = std::min<std::size_t>(
-            std::max<std::size_t>(
-                512, b_.capacity() - b_.size()),
-            std::min<std::size_t>(
-                max_size, b_.max_size() - b_.size()));
-        while(max_prepare > 0)
+        std::size_t max_size;
+        std::size_t max_prepare;
+        BOOST_ASIO_CORO_REENTER(*this)
         {
-            BOOST_ASIO_CORO_YIELD
-            s_.async_read_some(
-                b_.prepare(max_prepare), std::move(*this));
-            b_.commit(bytes_transferred);
-            total_ += bytes_transferred;
             max_size = cond_(ec, total_, b_);
             max_prepare = std::min<std::size_t>(
                 std::max<std::size_t>(
                     512, b_.capacity() - b_.size()),
                 std::min<std::size_t>(
                     max_size, b_.max_size() - b_.size()));
+            while(max_prepare > 0)
+            {
+                BOOST_ASIO_CORO_YIELD
+                s_.async_read_some(
+                    b_.prepare(max_prepare), std::move(*this));
+                b_.commit(bytes_transferred);
+                total_ += bytes_transferred;
+                max_size = cond_(ec, total_, b_);
+                max_prepare = std::min<std::size_t>(
+                    std::max<std::size_t>(
+                        512, b_.capacity() - b_.size()),
+                    std::min<std::size_t>(
+                        max_size, b_.max_size() - b_.size()));
+            }
+            if(! cont)
+            {
+                BOOST_ASIO_CORO_YIELD
+                net::post(s_.get_executor(),
+                    beast::bind_front_handler(
+                        std::move(*this), ec, total_));
+            }
+            this->invoke(ec, total_);
         }
-        if(! cont)
-        {
-            BOOST_ASIO_CORO_YIELD
-            net::post(s_.get_executor(),
-                beast::bind_front_handler(
-                    std::move(*this), ec, total_));
-        }
-        h_(ec, total_);
     }
-}
+};
 
 //------------------------------------------------------------------------------
 
@@ -170,14 +118,14 @@ template<
     class DynamicBuffer,
     class Condition,
     class Handler>
-class read_non_blocking_op : public net::coroutine
+class read_non_blocking_op
+    : public net::coroutine
+    , public async_op_base<Handler,
+        get_executor_type<net::basic_stream_socket<Protocol>>>
 {
     net::basic_stream_socket<Protocol>& s_;
-    net::executor_work_guard<decltype(
-        s_.get_executor())> wg_;
     DynamicBuffer& b_;
     Condition cond_;
-    Handler h_;
     std::size_t limit_;
     std::size_t total_ = 0;
 
@@ -185,143 +133,90 @@ public:
     read_non_blocking_op(read_non_blocking_op&&) = default;
     read_non_blocking_op(read_non_blocking_op const&) = delete;
 
-    template<class DeducedHandler>
+    template<class Handler_>
     read_non_blocking_op(
         net::basic_stream_socket<Protocol>& s,
         DynamicBuffer& b,
         Condition cond,
-        DeducedHandler&& h)
-        : s_(s)
-        , wg_(s_.get_executor())
+        Handler_&& h)
+        : async_op_base<Handler, get_executor_type<
+            net::basic_stream_socket<Protocol>>>(
+                s.get_executor(), std::forward<Handler_>(h))
+        , s_(s)
         , b_(b)
         , cond_(cond)
-        , h_(std::forward<DeducedHandler>(h))
     {
         (*this)({}, false);
     }
 
     void
-    operator()(error_code ec, bool cont = true);
-
-    //
-
-    using allocator_type =
-        net::associated_allocator_t<Handler>;
-
-    using executor_type = net::associated_executor_t<
-        Handler, decltype(s_.get_executor())>;
-
-    allocator_type
-    get_allocator() const noexcept
+    operator()(error_code ec, bool cont = true)
     {
-        return net::get_associated_allocator(h_);
+        std::size_t n;
+        std::size_t bytes_transferred;
+        BOOST_ASIO_CORO_REENTER(*this)
+        {
+            limit_ = cond_(ec, total_, b_);
+            for(;;)
+            {
+                n = detail::min<std::size_t>(
+                    limit_, b_.max_size() - b_.size());
+                if(n == 0)
+                    break;
+                BOOST_ASIO_CORO_YIELD
+                s_.async_wait(
+                    net::socket_base::wait_read, std::move(*this));
+                if(b_.size() <= default_max_stack_buffer)
+                {
+                    flat_static_buffer<
+                        default_max_stack_buffer> sb;
+                    bytes_transferred = net::buffer_copy(
+                        sb.prepare(b_.size()), b_.data());
+                    sb.commit(bytes_transferred);
+                    b_.consume(bytes_transferred);
+                    //detail::shrink_to_fit(b_);
+                    n = detail::min<std::size_t>(
+                        limit_,
+                        sb.capacity() - sb.size(),
+                        b_.max_size() - sb.size());
+                    BOOST_ASSERT(n > 0);
+                    bytes_transferred =
+                        s_.read_some(sb.prepare(n), ec);
+                    sb.commit(bytes_transferred);
+                    total_ += bytes_transferred;
+                    limit_ = cond_(ec, total_, sb);
+                    b_.commit(net::buffer_copy(
+                        b_.prepare(sb.size()), sb.data()));
+                }
+                else
+                {
+                    n = detail::min<std::size_t>(
+                        limit_,
+                        s_.available(),
+                        b_.max_size() - b_.size(),
+                        std::max<std::size_t>(
+                            512, b_.capacity() - b_.size()));
+                    BOOST_ASSERT(n > 0);
+                    bytes_transferred = s_.read_some(
+                        b_.prepare(n), ec);
+                    b_.commit(bytes_transferred);
+                    total_ += bytes_transferred;
+                    limit_ = cond_(ec, total_, b_);
+                }
+            }
+            if(! cont)
+            {
+                BOOST_ASIO_CORO_YIELD
+                net::post(s_.get_executor(),
+                    beast::bind_front_handler(
+                        std::move(*this), ec, total_));
+            }
+            this->invoke(ec, total_);
+        }
     }
 
-    executor_type
-    get_executor() const noexcept
-    {
-        return net::get_associated_executor(
-            h_, s_.get_executor());
-    }
-
-    friend
-    void* asio_handler_allocate(
-        std::size_t size, read_non_blocking_op* op)
-    {
-        using net::asio_handler_allocate;
-        return asio_handler_allocate(
-            size, std::addressof(op->h_));
-    }
-
-    friend
-    void asio_handler_deallocate(void* p,
-        std::size_t size, read_non_blocking_op* op)
-    {
-        using net::asio_handler_deallocate;
-        asio_handler_deallocate(
-            p, size, std::addressof(op->h_));
-    }
-    
-    template<class Function>
-    friend
-    void asio_handler_invoke(
-        Function&& f, read_non_blocking_op* op)
-    {
-        using net::asio_handler_invoke;
-        asio_handler_invoke(f, std::addressof(op->h_));
-    }
 };
 
-template<
-    class Protocol, class DynamicBuffer,
-    class Condition, class Handler>
-void
-read_non_blocking_op<
-    Protocol, DynamicBuffer, Condition, Handler>::
-operator()(error_code ec, bool cont)
-{
-    std::size_t n;
-    std::size_t bytes_transferred;
-    BOOST_ASIO_CORO_REENTER(*this)
-    {
-        limit_ = cond_(ec, total_, b_);
-        for(;;)
-        {
-            n = detail::min<std::size_t>(
-                limit_, b_.max_size() - b_.size());
-            if(n == 0)
-                break;
-            BOOST_ASIO_CORO_YIELD
-            s_.async_wait(
-                net::socket_base::wait_read, std::move(*this));
-            if(b_.size() <= default_max_stack_buffer)
-            {
-                flat_static_buffer<
-                    default_max_stack_buffer> sb;
-                bytes_transferred = net::buffer_copy(
-                    sb.prepare(b_.size()), b_.data());
-                sb.commit(bytes_transferred);
-                b_.consume(bytes_transferred);
-                //detail::shrink_to_fit(b_);
-                n = detail::min<std::size_t>(
-                    limit_,
-                    sb.capacity() - sb.size(),
-                    b_.max_size() - sb.size());
-                BOOST_ASSERT(n > 0);
-                bytes_transferred =
-                    s_.read_some(sb.prepare(n), ec);
-                sb.commit(bytes_transferred);
-                total_ += bytes_transferred;
-                limit_ = cond_(ec, total_, sb);
-                b_.commit(net::buffer_copy(
-                    b_.prepare(sb.size()), sb.data()));
-            }
-            else
-            {
-                n = detail::min<std::size_t>(
-                    limit_,
-                    s_.available(),
-                    b_.max_size() - b_.size(),
-                    std::max<std::size_t>(
-                        512, b_.capacity() - b_.size()));
-                BOOST_ASSERT(n > 0);
-                bytes_transferred = s_.read_some(
-                    b_.prepare(n), ec);
-                b_.commit(bytes_transferred);
-                total_ += bytes_transferred;
-                limit_ = cond_(ec, total_, b_);
-            }
-        }
-        if(! cont)
-        {
-            BOOST_ASIO_CORO_YIELD
-            net::post(s_.get_executor(),
-                beast::bind_front_handler(
-                    std::move(*this), ec, total_));
-        }
-        h_(ec, total_);
-    }
-}
 #endif
 
 //------------------------------------------------------------------------------

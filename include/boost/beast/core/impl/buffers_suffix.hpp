@@ -69,15 +69,9 @@ public:
     reference
     operator*() const
     {
-#if 0
         if(it_ == b_->begin_)
             return value_type{*it_} + b_->skip_;
         return value_type{*it_};
-#else
-        return it_ == b_->begin_
-            ? value_type{*it_} + b_->skip_
-            : *it_;
-#endif
     }
 
     pointer

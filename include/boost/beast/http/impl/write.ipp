@@ -13,16 +13,11 @@
 #include <boost/beast/http/type_traits.hpp>
 #include <boost/beast/core/bind_handler.hpp>
 #include <boost/beast/core/buffers_range.hpp>
-#include <boost/beast/core/handler_ptr.hpp>
 #include <boost/beast/core/ostream.hpp>
 #include <boost/beast/core/type_traits.hpp>
-#include <boost/beast/core/detail/config.hpp>
-#include <boost/asio/associated_allocator.hpp>
-#include <boost/asio/associated_executor.hpp>
+#include <boost/beast/core/detail/get_executor_type.hpp>
+#include <boost/beast/core/detail/async_op_base.hpp>
 #include <boost/asio/coroutine.hpp>
-#include <boost/asio/executor_work_guard.hpp>
-#include <boost/asio/handler_continuation_hook.hpp>
-#include <boost/asio/handler_invoke_hook.hpp>
 #include <boost/asio/post.hpp>
 #include <boost/asio/write.hpp>
 #include <boost/optional.hpp>
@@ -39,12 +34,11 @@ template<
     class Stream, class Handler,
     bool isRequest, class Body, class Fields>
 class write_some_op
+    : public beast::detail::async_op_base<
+        Handler, beast::detail::get_executor_type<Stream>>
 {
     Stream& s_;
-    net::executor_work_guard<decltype(
-        std::declval<Stream&>().get_executor())> wg_;
     serializer<isRequest,Body, Fields>& sr_;
-    Handler h_;
 
     class lambda
     {
@@ -61,121 +55,72 @@ class write_some_op
 
         template<class ConstBufferSequence>
         void
-        operator()(error_code& ec,
+        operator()(
+            error_code& ec,
             ConstBufferSequence const& buffers)
         {
             invoked = true;
-            ec.assign(0, ec.category());
-            return op_.s_.async_write_some(
+            ec = {};
+            op_.s_.async_write_some(
                 buffers, std::move(op_));
         }
     };
 
 public:
-    write_some_op(write_some_op&&) = default;
-    write_some_op(write_some_op const&) = delete;
-
-    template<class DeducedHandler>
-    write_some_op(DeducedHandler&& h, Stream& s,
-            serializer<isRequest, Body, Fields>& sr)
-        : s_(s)
-        , wg_(s_.get_executor())
+    template<class Handler_>
+    write_some_op(
+        Handler_&& h,
+        Stream& s,
+        serializer<isRequest, Body, Fields>& sr)
+        : beast::detail::async_op_base<
+            Handler, beast::detail::get_executor_type<Stream>>(
+                s.get_executor(), std::forward<Handler_>(h))
+        , s_(s)
         , sr_(sr)
-        , h_(std::forward<DeducedHandler>(h))
     {
-    }
-
-    using allocator_type =
-        net::associated_allocator_t<Handler>;
-
-    allocator_type
-    get_allocator() const noexcept
-    {
-        return (net::get_associated_allocator)(h_);
-    }
-
-    using executor_type = net::associated_executor_t<
-        Handler, decltype(std::declval<Stream&>().get_executor())>;
-
-    executor_type
-    get_executor() const noexcept
-    {
-        return (net::get_associated_executor)(
-            h_, s_.get_executor());
+        (*this)();
     }
 
     void
-    operator()();
+    operator()()
+    {
+        error_code ec;
+        if(! sr_.is_done())
+        {
+            lambda f{*this};
+            sr_.next(ec, f);
+            if(ec)
+            {
+                BOOST_ASSERT(! f.invoked);
+                return net::post(
+                    s_.get_executor(),
+                    beast::bind_front_handler(
+                        std::move(*this), ec, 0));
+            }
+            if(f.invoked)
+            {
+                // *this is now moved-from,
+                return;
+            }
+            // What else could it be?
+            BOOST_ASSERT(sr_.is_done());
+        }
+        return net::post(
+            s_.get_executor(),
+            beast::bind_front_handler(
+                std::move(*this), ec, 0));
+    }
 
     void
     operator()(
         error_code ec,
-        std::size_t bytes_transferred);
-
-    friend
-    bool asio_handler_is_continuation(write_some_op* op)
+        std::size_t bytes_transferred)
     {
-        using net::asio_handler_is_continuation;
-        return asio_handler_is_continuation(
-            std::addressof(op->h_));
-    }
-
-    template<class Function>
-    friend
-    void asio_handler_invoke(Function&& f, write_some_op* op)
-    {
-        using net::asio_handler_invoke;
-        asio_handler_invoke(f, std::addressof(op->h_));
+        if(! ec)
+            sr_.consume(bytes_transferred);
+        this->invoke(ec, bytes_transferred);
     }
 };
-
-template<
-    class Stream, class Handler,
-    bool isRequest, class Body, class Fields>
-void
-write_some_op<
-    Stream, Handler, isRequest, Body, Fields>::
-operator()()
-{
-    error_code ec;
-    if(! sr_.is_done())
-    {
-        lambda f{*this};
-        sr_.next(ec, f);
-        if(ec)
-        {
-            BOOST_ASSERT(! f.invoked);
-            return net::post(
-                s_.get_executor(),
-                beast::bind_front_handler(std::move(*this), ec, 0));
-        }
-        if(f.invoked)
-        {
-            // *this has been moved from,
-            // cannot access members here.
-            return;
-        }
-        // What else could it be?
-        BOOST_ASSERT(sr_.is_done());
-    }
-    return net::post(
-        s_.get_executor(),
-        beast::bind_front_handler(std::move(*this), ec, 0));
-}
-
-template<
-    class Stream, class Handler,
-    bool isRequest, class Body, class Fields>
-void
-write_some_op<
-    Stream, Handler, isRequest, Body, Fields>::
-operator()(
-    error_code ec, std::size_t bytes_transferred)
-{
-    if(! ec)
-        sr_.consume(bytes_transferred);
-    h_(ec, bytes_transferred);
-}
 
 //------------------------------------------------------------------------------
 
@@ -208,219 +153,106 @@ struct serializer_is_done
 template<
     class Stream, class Handler, class Predicate,
     bool isRequest, class Body, class Fields>
-class write_op : public net::coroutine
+class write_op
+    : public beast::detail::async_op_base<
+        Handler, beast::detail::get_executor_type<Stream>>
+    , public net::coroutine
 {
     Stream& s_;
-    net::executor_work_guard<decltype(
-        std::declval<Stream&>().get_executor())> wg_;
     serializer<isRequest, Body, Fields>& sr_;
     std::size_t bytes_transferred_ = 0;
-    Handler h_;
-    bool cont_;
 
 public:
-    write_op(write_op&&) = default;
-    write_op(write_op const&) = delete;
-
-    template<class DeducedHandler>
-    write_op(DeducedHandler&& h, Stream& s,
-            serializer<isRequest, Body, Fields>& sr)
-        : s_(s)
-        , wg_(s_.get_executor())
+    template<class Handler_>
+    write_op(
+        Handler_&& h,
+        Stream& s,
+        serializer<isRequest, Body, Fields>& sr)
+        : beast::detail::async_op_base<
+            Handler, beast::detail::get_executor_type<Stream>>(
+                s.get_executor(), std::forward<Handler_>(h))
+        , s_(s)
         , sr_(sr)
-        , h_(std::forward<DeducedHandler>(h))
-        , cont_([&]
-            {
-                using net::asio_handler_is_continuation;
-                return asio_handler_is_continuation(
-                    std::addressof(h_));
-            }())
     {
-    }
-
-    using allocator_type =
-        net::associated_allocator_t<Handler>;
-
-    allocator_type
-    get_allocator() const noexcept
-    {
-        return (net::get_associated_allocator)(h_);
-    }
-
-    using executor_type = net::associated_executor_t<
-        Handler, decltype(std::declval<Stream&>().get_executor())>;
-
-    executor_type
-    get_executor() const noexcept
-    {
-        return (net::get_associated_executor)(
-            h_, s_.get_executor());
+        (*this)();
     }
 
     void
     operator()(
         error_code ec = {},
-        std::size_t bytes_transferred = 0);
-
-    friend
-    bool asio_handler_is_continuation(write_op* op)
+        std::size_t bytes_transferred = 0)
     {
-        return op->cont_;
-    }
-
-    template<class Function>
-    friend
-    void asio_handler_invoke(Function&& f, write_op* op)
-    {
-        using net::asio_handler_invoke;
-        asio_handler_invoke(f, std::addressof(op->h_));
+        BOOST_ASIO_CORO_REENTER(*this)
+        {
+            if(Predicate{}(sr_))
+            {
+                BOOST_ASIO_CORO_YIELD
+                net::post(
+                    s_.get_executor(),
+                    std::move(*this));
+                goto upcall;
+            }
+            for(;;)
+            {
+                BOOST_ASIO_CORO_YIELD
+                beast::http::async_write_some(
+                    s_, sr_, std::move(*this));
+                bytes_transferred_ += bytes_transferred;
+                if(ec)
+                    goto upcall;
+                if(Predicate{}(sr_))
+                    break;
+            }
+        upcall:
+            this->invoke(ec, bytes_transferred_);
+        }
     }
 };
-
-template<
-    class Stream, class Handler, class Predicate,
-    bool isRequest, class Body, class Fields>
-void
-write_op<Stream, Handler, Predicate,
-    isRequest, Body, Fields>::
-operator()(
-    error_code ec,
-    std::size_t bytes_transferred)
-{
-    BOOST_ASIO_CORO_REENTER(*this)
-    {
-        if(Predicate{}(sr_))
-        {
-            BOOST_ASIO_CORO_YIELD
-            net::post(
-                s_.get_executor(),
-                std::move(*this));
-            goto upcall;
-        }
-        for(;;)
-        {
-            BOOST_ASIO_CORO_YIELD
-            beast::http::async_write_some(
-                s_, sr_, std::move(*this));
-            bytes_transferred_ += bytes_transferred;
-            if(ec)
-                goto upcall;
-            if(Predicate{}(sr_))
-                break;
-            cont_ = true;
-        }
-    upcall:
-        h_(ec, bytes_transferred_);
-    }
-}
 
 //------------------------------------------------------------------------------
 
-template<class Stream, class Handler,
+template<
+    class Stream, class Handler,
     bool isRequest, class Body, class Fields>
 class write_msg_op
+    : public beast::detail::stable_async_op_base<
+        Handler, beast::detail::get_executor_type<Stream>>
 {
-    struct data
-    {
-        Stream& s;
-        net::executor_work_guard<decltype(
-            std::declval<Stream&>().get_executor())> wg;
-        serializer<isRequest, Body, Fields> sr;
-
-        data(Handler const&, Stream& s_, message<
-                isRequest, Body, Fields>& m_)
-            : s(s_)
-            , wg(s.get_executor())
-            , sr(m_)
-        {
-        }
-
-        data(Handler const&, Stream& s_, message<
-                isRequest, Body, Fields> const& m_)
-            : s(s_)
-            , wg(s.get_executor())
-            , sr(m_)
-        {
-        }
-    };
-
-    handler_ptr<data, Handler> d_;
+    Stream& s_;
+    serializer<isRequest, Body, Fields>& sr_;
 
 public:
-    write_msg_op(write_msg_op&&) = default;
-    write_msg_op(write_msg_op const&) = delete;
-
-    template<class DeducedHandler, class... Args>
-    write_msg_op(DeducedHandler&& h, Stream& s, Args&&... args)
-        : d_(std::forward<DeducedHandler>(h),
-            s, std::forward<Args>(args)...)
+    template<
+        class Handler_,
+        class... Args>
+    write_msg_op(
+        Stream& s,
+        Handler_&& h,
+        Args&&... args)
+        : beast::detail::stable_async_op_base<
+            Handler, beast::detail::get_executor_type<Stream>>(
+                s.get_executor(), std::forward<Handler_>(h))
+        , s_(s)
+        , sr_(beast::detail::allocate_stable<
+            serializer<isRequest, Body, Fields>>(
+                *this, std::forward<Args>(args)...))
     {
-    }
-
-    using allocator_type =
-        net::associated_allocator_t<Handler>;
-
-    allocator_type
-    get_allocator() const noexcept
-    {
-        return (net::get_associated_allocator)(d_.handler());
-    }
-
-    using executor_type = net::associated_executor_t<
-        Handler, decltype(std::declval<Stream&>().get_executor())>;
-
-    executor_type
-    get_executor() const noexcept
-    {
-        return (net::get_associated_executor)(
-            d_.handler(), d_->s.get_executor());
+        (*this)();
     }
 
     void
-    operator()();
+    operator()()
+    {
+        async_write(s_, sr_, std::move(*this));
+    }
 
     void
     operator()(
-        error_code ec, std::size_t bytes_transferred);
-
-    friend
-    bool asio_handler_is_continuation(write_msg_op* op)
+        error_code ec, std::size_t bytes_transferred)
     {
-        using net::asio_handler_is_continuation;
-        return asio_handler_is_continuation(
-            std::addressof(op->d_.handler()));
-    }
-
-    template<class Function>
-    friend
-    void asio_handler_invoke(Function&& f, write_msg_op* op)
-    {
-        using net::asio_handler_invoke;
-        asio_handler_invoke(f, std::addressof(op->d_.handler()));
+        this->invoke(ec, bytes_transferred);
     }
 };
-
-template<class Stream, class Handler,
-    bool isRequest, class Body, class Fields>
-void
-write_msg_op<
-    Stream, Handler, isRequest, Body, Fields>::
-operator()()
-{
-    auto& d = *d_;
-    return async_write(d.s, d.sr, std::move(*this));
-}
-
-template<class Stream, class Handler,
-    bool isRequest, class Body, class Fields>
-void
-write_msg_op<
-    Stream, Handler, isRequest, Body, Fields>::
-operator()(error_code ec, std::size_t bytes_transferred)
-{
-    auto wg = std::move(d_->wg);
-    d_.invoke(ec, bytes_transferred);
-}
 
 //------------------------------------------------------------------------------
 
@@ -516,8 +348,8 @@ async_write_some_impl(
         AsyncWriteStream,
         BOOST_ASIO_HANDLER_TYPE(WriteHandler,
             void(error_code, std::size_t)),
-        isRequest, Body, Fields>{
-            std::move(init.completion_handler), stream, sr}();
+        isRequest, Body, Fields>(
+            std::move(init.completion_handler), stream, sr);
     return init.result.get();
 }
 
@@ -675,7 +507,7 @@ async_write_header(
             void(error_code, std::size_t)),
         detail::serializer_is_header_done,
         isRequest, Body, Fields>{
-        std::move(init.completion_handler), stream, sr}();
+        std::move(init.completion_handler), stream, sr};
     return init.result.get();
 }
 
@@ -751,7 +583,7 @@ async_write(
             void(error_code, std::size_t)),
         detail::serializer_is_done,
         isRequest, Body, Fields>{
-            std::move(init.completion_handler), stream, sr}();
+            std::move(init.completion_handler), stream, sr};
     return init.result.get();
 }
 
@@ -873,8 +705,8 @@ async_write(
         AsyncWriteStream,
         BOOST_ASIO_HANDLER_TYPE(WriteHandler,
             void(error_code, std::size_t)),
-        isRequest, Body, Fields>{
-            std::move(init.completion_handler), stream, msg}();
+        isRequest, Body, Fields>(stream,
+            std::move(init.completion_handler), msg);
     return init.result.get();
 }
 
@@ -904,8 +736,8 @@ async_write(
         AsyncWriteStream,
         BOOST_ASIO_HANDLER_TYPE(WriteHandler,
             void(error_code, std::size_t)),
-        isRequest, Body, Fields>{
-            std::move(init.completion_handler), stream, msg}();
+        isRequest, Body, Fields>(stream,
+            std::move(init.completion_handler), msg);
     return init.result.get();
 }
 
