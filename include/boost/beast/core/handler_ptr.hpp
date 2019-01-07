@@ -10,8 +10,8 @@
 #ifndef BOOST_BEAST_HANDLER_PTR_HPP
 #define BOOST_BEAST_HANDLER_PTR_HPP
 
-#include <boost/beast/core/detail/allocator.hpp>
 #include <boost/beast/core/detail/config.hpp>
+#include <boost/beast/core/detail/allocator.hpp>
 #include <boost/assert.hpp>
 #include <type_traits>
 #include <utility>

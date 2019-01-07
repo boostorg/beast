@@ -10,8 +10,8 @@
 #ifndef BOOST_BEAST_CORE_IMPL_BASIC_STREAM_SOCKET_HPP
 #define BOOST_BEAST_CORE_IMPL_BASIC_STREAM_SOCKET_HPP
 
+#include <boost/beast/core/async_op_base.hpp>
 #include <boost/beast/core/buffers_prefix.hpp>
-#include <boost/beast/core/detail/async_op_base.hpp>
 #include <boost/asio/bind_executor.hpp>
 #include <boost/asio/coroutine.hpp>
 #include <boost/assert.hpp>
@@ -92,7 +92,7 @@ struct basic_stream_socket<
 template<class Protocol, class Executor>
 template<class Buffers, class Handler>
 class basic_stream_socket<Protocol, Executor>::read_op
-    : public detail::async_op_base<Handler, Executor>
+    : public async_op_base<Handler, Executor>
     , public boost::asio::coroutine
 {
     typename basic_stream_socket<
@@ -106,7 +106,7 @@ public:
         basic_stream_socket& s,
         Buffers const& b,
         Handler_&& h)
-        : detail::async_op_base<Handler, Executor>(
+        : async_op_base<Handler, Executor>(
             s.get_executor(), std::forward<Handler_>(h))
         , impl_(*s.impl_)
         , pg_(impl_.read_pending)
@@ -209,7 +209,7 @@ public:
 template<class Protocol, class Executor>
 template<class Buffers, class Handler>
 class basic_stream_socket<Protocol, Executor>::write_op
-    : public detail::async_op_base<Handler, Executor>
+    : public async_op_base<Handler, Executor>
     , public boost::asio::coroutine
 {
     typename basic_stream_socket<
@@ -223,7 +223,7 @@ public:
         basic_stream_socket& s,
         Buffers const& b,
         Handler_&& h)
-        : detail::async_op_base<Handler, Executor>(
+        : async_op_base<Handler, Executor>(
             s.get_executor(), std::forward<Handler_>(h))
         , impl_(*s.impl_)
         , pg_(impl_.write_pending)
@@ -328,7 +328,7 @@ namespace detail {
 template<
     class Protocol, class Executor, class Handler>
 class stream_socket_connect_op
-    : public detail::async_op_base<Handler, Executor>
+    : public async_op_base<Handler, Executor>
 {
     using stream_type =
         beast::basic_stream_socket<Protocol, Executor>;
@@ -349,7 +349,7 @@ public:
         Endpoints const& eps,
         Condition cond,
         Handler_&& h)
-        : detail::async_op_base<Handler, Executor>(
+        : async_op_base<Handler, Executor>(
             s.get_executor(), std::forward<Handler_>(h))
         , impl_(*s.impl_)
         , pg0_(impl_.read_pending)
@@ -376,7 +376,7 @@ public:
         Iterator begin, Iterator end,
         Condition cond,
         Handler_&& h)
-        : detail::async_op_base<Handler, Executor>(
+        : async_op_base<Handler, Executor>(
             s.get_executor(), std::forward<Handler_>(h))
         , impl_(*s.impl_)
         , pg0_(impl_.read_pending)

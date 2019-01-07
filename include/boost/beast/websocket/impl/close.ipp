@@ -11,9 +11,9 @@
 #define BOOST_BEAST_WEBSOCKET_IMPL_CLOSE_IPP
 
 #include <boost/beast/websocket/teardown.hpp>
+#include <boost/beast/core/async_op_base.hpp>
 #include <boost/beast/core/flat_static_buffer.hpp>
 #include <boost/beast/core/type_traits.hpp>
-#include <boost/beast/core/detail/async_op_base.hpp>
 #include <boost/beast/core/detail/get_executor_type.hpp>
 #include <boost/beast/core/detail/config.hpp>
 #include <boost/asio/coroutine.hpp>
@@ -35,7 +35,7 @@ namespace websocket {
 template<class NextLayer, bool deflateSupported>
 template<class Handler>
 class stream<NextLayer, deflateSupported>::close_op
-    : public beast::detail::stable_async_op_base<
+    : public beast::stable_async_op_base<
         Handler, beast::detail::get_executor_type<stream>>
     , public net::coroutine
 {
@@ -67,10 +67,10 @@ public:
         Handler_&& h,
         stream<NextLayer, deflateSupported>& ws,
         close_reason const& cr)
-        : beast::detail::stable_async_op_base<
+        : beast::stable_async_op_base<
             Handler, beast::detail::get_executor_type<stream>>(
                 ws.get_executor(), std::forward<Handler_>(h))
-        , d_(beast::detail::allocate_stable<state>(
+        , d_(beast::allocate_stable<state>(
             *this, ws, cr))
     {
     }

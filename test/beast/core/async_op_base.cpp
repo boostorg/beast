@@ -8,23 +8,24 @@
 //
 
 // Test that header file is self-contained.
-#include <boost/beast/core/detail/async_op_base.hpp>
+#include <boost/beast/core/async_op_base.hpp>
 
 #include <boost/beast/_experimental/unit_test/suite.hpp>
-#include <boost/beast/core/buffers_suffix.hpp>
+#include <boost/beast/_experimental/test/stream.hpp>
 #include <boost/beast/core/error.hpp>
+#include <boost/asio/async_result.hpp>
 #include <boost/asio/io_context.hpp>
-#include <boost/asio/ip/tcp.hpp>
+#include <boost/asio/steady_timer.hpp>
 #include <boost/asio/system_executor.hpp>
+#include <boost/asio/write.hpp>
 #include <boost/core/ignore_unused.hpp>
 
 //------------------------------------------------------------------------------
 
 namespace boost {
 namespace beast {
-namespace detail {
 
-//namespace {
+namespace {
 
 struct ex1_type
 {
@@ -158,9 +159,8 @@ asio_handler_is_continuation(
     return false;
 }
 
-//} // (anon)
+} // (anon)
 
-} // detail
 } // beast
 } // boost
 
@@ -169,18 +169,18 @@ namespace asio {
 
 template<class Allocator>
 struct associated_allocator<
-    boost::beast::detail::handler<
-        boost::beast::detail::no_ex,
-        boost::beast::detail::intrusive_alloc>,
+    boost::beast::handler<
+        boost::beast::no_ex,
+        boost::beast::intrusive_alloc>,
             Allocator>
 {
     using type =
-        boost::beast::detail::intrusive_alloc::allocator_type;
+        boost::beast::intrusive_alloc::allocator_type;
 
     static type get(
-        boost::beast::detail::handler<
-            boost::beast::detail::no_ex,
-            boost::beast::detail::intrusive_alloc> const& h,
+        boost::beast::handler<
+            boost::beast::no_ex,
+            boost::beast::intrusive_alloc> const& h,
         Allocator const& a = Allocator()) noexcept
     {
         return type{};
@@ -189,18 +189,18 @@ struct associated_allocator<
 
 template<class Executor>
 struct associated_executor<
-    boost::beast::detail::handler<
-        boost::beast::detail::intrusive_ex,
-        boost::beast::detail::no_alloc>,
+    boost::beast::handler<
+        boost::beast::intrusive_ex,
+        boost::beast::no_alloc>,
             Executor>
 {
     using type =
-        boost::beast::detail::intrusive_ex::executor_type;
+        boost::beast::intrusive_ex::executor_type;
 
     static type get(
-        boost::beast::detail::handler<
-            boost::beast::detail::intrusive_ex,
-            boost::beast::detail::no_alloc> const& h,
+        boost::beast::handler<
+            boost::beast::intrusive_ex,
+            boost::beast::no_alloc> const& h,
         Executor const& a = Executor()) noexcept
     {
         return type{};
@@ -209,12 +209,12 @@ struct associated_executor<
 
 template<class Allocator>
 struct associated_allocator<
-    boost::beast::detail::legacy_handler, Allocator>
+    boost::beast::legacy_handler, Allocator>
 {
     using type = std::allocator<int>;
 
     static type get(
-        boost::beast::detail::legacy_handler const& h,
+        boost::beast::legacy_handler const& h,
         Allocator const& a = Allocator()) noexcept
     {
         return type{};
@@ -223,13 +223,13 @@ struct associated_allocator<
 
 template<class Executor>
 struct associated_executor<
-    boost::beast::detail::legacy_handler, Executor>
+    boost::beast::legacy_handler, Executor>
 {
     using type = typename
-        boost::beast::detail::legacy_handler::executor;
+        boost::beast::legacy_handler::executor;
 
     static type get(
-        boost::beast::detail::legacy_handler const&,
+        boost::beast::legacy_handler const&,
         Executor const& = Executor()) noexcept
     {
         return type{};
@@ -243,7 +243,6 @@ struct associated_executor<
 
 namespace boost {
 namespace beast {
-namespace detail {
 
 class async_op_base_test : public beast::unit_test::suite
 {
@@ -510,45 +509,162 @@ public:
 
     //--------------------------------------------------------------------------
 
-#if 0
-    // VFALCO TODO: This will become the example in the javadoc
-
-    template<
-        class AsyncReadStream,
-        class MutableBufferSequence,
-        class ReadHandler>
-    BOOST_ASIO_INITFN_RESULT_TYPE(
-        ReadHandler, void (error_code, std::size_t))
-    async_read(
-        AsyncReadStream& stream,
-        MutableBufferSequence const& buffers,
-        ReadHandler&& handler)
+    // Asynchronously read into a buffer until the buffer is full, or an error occurs
+    template<class AsyncReadStream, class ReadHandler>
+    BOOST_ASIO_INITFN_RESULT_TYPE(ReadHandler, void (error_code, std::size_t))
+    async_read(AsyncReadStream& stream, net::mutable_buffer buffer, ReadHandler&& handler)
     {
-        net::async_completion<CompletionToken, void(error_code, std::size_t)> init{handler};
+        using handler_type = BOOST_ASIO_HANDLER_TYPE(ReadHandler, void(error_code, std::size_t));
+        using base_type = async_op_base<handler_type, typename AsyncReadStream::executor_type>;
 
-        using base = async_op_base<
-            BOOST_ASIO_HANDLER_TYPE(ReadHandler, void(error_code, std::size_t)),
-            get_executor_type<AsyncReadStream>>;
-
-        struct read_op : base
+        struct op : base_type
         {
             AsyncReadStream& stream_;
-            buffers_suffix<MutableBufferSequence> buffers_;
+            net::mutable_buffer buffer_;
+            std::size_t total_bytes_transferred_;
 
-            void operator()(error_code ec, std::size_t bytes_transferred)
+            op(
+                AsyncReadStream& stream,
+                net::mutable_buffer buffer,
+                handler_type& handler)
+                : base_type(stream.get_executor(), std::move(handler))
+                , stream_(stream)
+                , buffer_(buffer)
+                , total_bytes_transferred_(0)
             {
+                (*this)({}, 0, false); // start the operation
+            }
 
+            void operator()(error_code ec, std::size_t bytes_transferred, bool is_continuation = true)
+            {
+                // Adjust the count of bytes and advance our buffer
+                total_bytes_transferred_ += bytes_transferred;
+                buffer_ = buffer_ + bytes_transferred;
+
+                // Keep reading until buffer is full or an error occurs
+                if(! ec && buffer_.size() > 0)
+                    return stream_.async_read_some(buffer_, std::move(*this));
+
+                // If this is first invocation, we have to post to the executor. Otherwise the
+                // handler would be invoked before the call to async_read returns, which is disallowed.
+                if(! is_continuation)
+                {
+                    // Issue a zero-sized read so our handler runs "as-if" posted using net::post().
+                    // This technique is used to reduce the number of function template instantiations.
+                    return stream_.async_read_some(net::mutable_buffer(buffer_.data(), 0), std::move(*this));
+                }
+
+                // Call the completion handler with the result
+                this->invoke(ec, total_bytes_transferred_);
             }
         };
 
-        read_op(stream, buffers, std::forward<ReadHandler>(handler));
+        net::async_completion<ReadHandler, void(error_code, std::size_t)> init{handler};
+        op(stream, buffer, init.completion_handler);
         return init.result.get();
     }
-#endif
+
+    // Asynchronously send a message multiple times, once per second
+    template <class AsyncWriteStream, class T, class WriteHandler>
+    auto async_write_messages(
+        AsyncWriteStream& stream,
+        T const& message,
+        std::size_t repeat_count,
+        WriteHandler&& handler) ->
+            typename net::async_result<
+                typename std::decay<WriteHandler>::type,
+                void(error_code)>::return_type
+    {
+        using handler_type = typename net::async_completion<WriteHandler, void(error_code)>::completion_handler_type;
+        using base_type = stable_async_op_base<handler_type, typename AsyncWriteStream::executor_type>;
+
+        struct op : base_type
+        {
+            // This object must have a stable address
+            struct temporary_data
+            {
+                std::string const message;
+                net::steady_timer timer;
+
+                temporary_data(std::string message_, net::io_context& ctx)
+                    : message(std::move(message_))
+                    , timer(ctx)
+                {
+                }
+            };
+
+            enum { starting, waiting, writing } state_;
+            AsyncWriteStream& stream_;
+            std::size_t repeats_;
+            temporary_data& data_;
+
+            op(AsyncWriteStream& stream, std::size_t repeats, std::string message, handler_type& handler)
+                : base_type(stream.get_executor(), std::move(handler))
+                , state_(starting)
+                , stream_(stream)
+                , repeats_(repeats)
+                , data_(allocate_stable<temporary_data>(*this, std::move(message), stream.get_executor().context()))
+            {
+                (*this)(); // start the operation
+            }
+
+            void operator()(error_code ec = {}, std::size_t = 0)
+            {
+                if (!ec)
+                {
+                    switch (state_)
+                    {
+                    case starting:
+                        // If repeats starts at 0 then we must complete immediately. But we can't call the final
+                        // handler from inside the initiating function, so we post our intermediate handler first.
+                        if(repeats_ == 0)
+                            return net::post(std::move(*this));
+
+                    case writing:
+                        if (repeats_ > 0)
+                        {
+                            --repeats_;
+                            state_ = waiting;
+                            data_.timer.expires_after(std::chrono::seconds(1));
+
+                            // Composed operation not yet complete.
+                            return data_.timer.async_wait(std::move(*this));
+                        }
+
+                        // Composed operation complete, continue below.
+                        break;
+
+                    case waiting:
+                        // Composed operation not yet complete.
+                        state_ = writing;
+                        return net::async_write(stream_, net::buffer(data_.message), std::move(*this));
+                    }
+                }
+
+                // The base class destroys the temporary data automatically, before invoking the final completion handler
+                this->invoke(ec);
+            }
+        };
+
+        net::async_completion<WriteHandler, void(error_code)> completion(handler);
+        std::ostringstream os;
+        os << message;
+        op(stream, repeat_count, os.str(), completion.completion_handler);
+        return completion.result.get();
+    }
 
     void
     testJavadocs()
     {
+        struct handler
+        {
+            void operator()(error_code = {}, std::size_t = 0)
+            {
+            }
+        };
+
+        BEAST_EXPECT((&async_op_base_test::async_read<test::stream, handler>));
+        BEAST_EXPECT((&async_op_base_test::async_write_messages<test::stream, std::string, handler>));
     }
 
     //--------------------------------------------------------------------------
@@ -564,6 +680,5 @@ public:
 
 BEAST_DEFINE_TESTSUITE(beast,core,async_op_base);
 
-} // detail
 } // beast
 } // boost

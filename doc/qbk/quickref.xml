@@ -177,6 +177,7 @@
         <entry valign="top">
           <bridgehead renderas="sect3">Classes</bridgehead>
           <simplelist type="vert" columns="1">
+            <member><link linkend="beast.ref.boost__beast__async_op_base">async_op_base</link></member>
             <member><link linkend="beast.ref.boost__beast__basic_flat_buffer">basic_flat_buffer</link></member>
             <member><link linkend="beast.ref.boost__beast__basic_multi_buffer">basic_multi_buffer</link></member>
             <member><link linkend="beast.ref.boost__beast__basic_stream_socket">basic_stream_socket</link></member>
@@ -206,6 +207,7 @@
             <member><link linkend="beast.ref.boost__beast__static_buffer">static_buffer</link></member>
             <member><link linkend="beast.ref.boost__beast__static_buffer_base">static_buffer_base</link></member>
             <member><link linkend="beast.ref.boost__beast__static_string">static_string</link></member>
+            <member><link linkend="beast.ref.boost__beast__stable_async_op_base">stable_async_op_base</link></member>
             <member><link linkend="beast.ref.boost__beast__stream_socket">stream_socket</link></member>
             <member><link linkend="beast.ref.boost__beast__string_param">string_param</link></member>
             <member><link linkend="beast.ref.boost__beast__string_view">string_view</link></member>
@@ -220,6 +222,7 @@
         <entry valign="top">
           <bridgehead renderas="sect3">Functions</bridgehead>
           <simplelist type="vert" columns="1">
+            <member><link linkend="beast.ref.boost__beast__allocate_stable">allocate_stable</link></member>
             <member><link linkend="beast.ref.boost__beast__async_connect">async_connect</link></member>
             <member><link linkend="beast.ref.boost__beast__bind_back_handler">bind_back_handler</link></member>
             <member><link linkend="beast.ref.boost__beast__bind_front_handler">bind_front_handler</link></member>

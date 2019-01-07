@@ -11,12 +11,12 @@
 #define BOOST_BEAST_WEBSOCKET_IMPL_READ_IPP
 
 #include <boost/beast/websocket/teardown.hpp>
+#include <boost/beast/core/async_op_base.hpp>
 #include <boost/beast/core/bind_handler.hpp>
 #include <boost/beast/core/buffers_prefix.hpp>
 #include <boost/beast/core/buffers_suffix.hpp>
 #include <boost/beast/core/flat_static_buffer.hpp>
 #include <boost/beast/core/type_traits.hpp>
-#include <boost/beast/core/detail/async_op_base.hpp>
 #include <boost/beast/core/detail/buffer.hpp>
 #include <boost/beast/core/detail/clamp.hpp>
 #include <boost/beast/core/detail/config.hpp>
@@ -77,7 +77,7 @@ template<
     class MutableBufferSequence,
     class Handler>
 class stream<NextLayer, deflateSupported>::read_some_op
-    : public beast::detail::async_op_base<
+    : public beast::async_op_base<
         Handler, beast::detail::get_executor_type<stream>>
     , public net::coroutine
 {
@@ -98,7 +98,7 @@ public:
         Handler_&& h,
         stream<NextLayer, deflateSupported>& ws,
         MutableBufferSequence const& bs)
-        : beast::detail::async_op_base<
+        : beast::async_op_base<
             Handler, beast::detail::get_executor_type<stream>>(
                 ws.get_executor(), std::forward<Handler_>(h))
         , ws_(ws)
@@ -672,7 +672,7 @@ template<
     class DynamicBuffer,
     class Handler>
 class stream<NextLayer, deflateSupported>::read_op
-    : public beast::detail::async_op_base<
+    : public beast::async_op_base<
         Handler, beast::detail::get_executor_type<stream>>
     , public net::coroutine
 {
@@ -690,7 +690,7 @@ public:
         DynamicBuffer& b,
         std::size_t limit,
         bool some)
-        : beast::detail::async_op_base<
+        : beast::async_op_base<
             Handler, beast::detail::get_executor_type<stream>>(
                 ws.get_executor(), std::forward<Handler_>(h))
         , ws_(ws)

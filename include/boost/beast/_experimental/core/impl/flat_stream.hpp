@@ -11,7 +11,7 @@
 #define BOOST_BEAST_CORE_IMPL_FLAT_STREAM_HPP
 
 #include <boost/beast/core/buffers_prefix.hpp>
-#include <boost/beast/core/detail/async_op_base.hpp>
+#include <boost/beast/core/async_op_base.hpp>
 #include <boost/beast/core/detail/get_executor_type.hpp>
 #include <boost/beast/websocket/teardown.hpp>
 #include <boost/asio/buffer.hpp>
@@ -24,7 +24,7 @@ namespace beast {
 template<class NextLayer>
 template<class ConstBufferSequence, class Handler>
 class flat_stream<NextLayer>::write_op
-    : public detail::async_op_base<Handler,
+    : public async_op_base<Handler,
         detail::get_executor_type<flat_stream>>
 
     , public net::coroutine
@@ -59,7 +59,7 @@ public:
         flat_stream<NextLayer>& s,
         ConstBufferSequence const& b,
         Handler_&& h)
-        : detail::async_op_base<Handler,
+        : async_op_base<Handler,
             detail::get_executor_type<flat_stream>>(
                 s.get_executor(),
                 std::forward<Handler_>(h))

@@ -10,9 +10,9 @@
 #ifndef BOOST_BEAST_WEBSOCKET_IMPL_TEARDOWN_IPP
 #define BOOST_BEAST_WEBSOCKET_IMPL_TEARDOWN_IPP
 
+#include <boost/beast/core/async_op_base.hpp>
 #include <boost/beast/core/bind_handler.hpp>
 #include <boost/beast/core/type_traits.hpp>
-#include <boost/beast/core/detail/async_op_base.hpp>
 #include <boost/beast/core/detail/get_executor_type.hpp>
 #include <boost/asio/coroutine.hpp>
 #include <boost/asio/post.hpp>
@@ -26,7 +26,7 @@ namespace detail {
 
 template<class Handler>
 class teardown_tcp_op
-    : public beast::detail::async_op_base<
+    : public beast::async_op_base<
         Handler, beast::detail::get_executor_type<
             net::ip::tcp::socket>>
     , public net::coroutine
@@ -43,7 +43,7 @@ public:
         Handler_&& h,
         socket_type& s,
         role_type role)
-        : beast::detail::async_op_base<
+        : beast::async_op_base<
             Handler, beast::detail::get_executor_type<
                 net::ip::tcp::socket>>(s.get_executor(),
                     std::forward<Handler_>(h))

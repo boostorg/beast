@@ -14,8 +14,7 @@
 #include <boost/beast/http/error.hpp>
 #include <boost/beast/http/parser.hpp>
 #include <boost/beast/http/read.hpp>
-#include <boost/beast/core/handler_ptr.hpp>
-#include <boost/beast/core/detail/async_op_base.hpp>
+#include <boost/beast/core/async_op_base.hpp>
 #include <boost/beast/core/detail/get_executor_type.hpp>
 #include <boost/beast/core/detail/read.hpp>
 #include <boost/asio/error.hpp>
@@ -150,7 +149,7 @@ template<
     bool isRequest, class Body, class Allocator,
     class Handler>
 class read_msg_op
-    : public beast::detail::stable_async_op_base<
+    : public beast::stable_async_op_base<
         Handler, beast::detail::get_executor_type<Stream>>
     , public net::coroutine
 {
@@ -185,10 +184,10 @@ public:
         DynamicBuffer& b,
         message_type& m,
         Handler_&& h)
-        : beast::detail::stable_async_op_base<
+        : beast::stable_async_op_base<
             Handler, beast::detail::get_executor_type<Stream>>(
                 s.get_executor(), std::forward<Handler_>(h))
-        , d_(beast::detail::allocate_stable<data>(
+        , d_(beast::allocate_stable<data>(
             *this, s, m))
     {
         http::async_read(d_.s, b, d_.p, std::move(*this));

@@ -16,7 +16,6 @@ add_executable (tests-beast-core
     ${EXTRAS_FILES}
     ${TEST_MAIN}
     Jamfile
-    _detail_async_op_base.cpp
     _detail_base64.cpp
     _detail_buffer.cpp
     _detail_clamp.cpp
@@ -25,6 +24,7 @@ add_executable (tests-beast-core
     _detail_tuple.cpp
     _detail_variant.cpp
     _detail_varint.cpp
+    async_op_base.cpp
     buffer_test.hpp
     file_test.hpp
     basic_stream_socket.cpp

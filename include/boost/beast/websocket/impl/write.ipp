@@ -10,6 +10,7 @@
 #ifndef BOOST_BEAST_WEBSOCKET_IMPL_WRITE_IPP
 #define BOOST_BEAST_WEBSOCKET_IMPL_WRITE_IPP
 
+#include <boost/beast/core/async_op_base.hpp>
 #include <boost/beast/core/bind_handler.hpp>
 #include <boost/beast/core/buffers_cat.hpp>
 #include <boost/beast/core/buffers_prefix.hpp>
@@ -17,7 +18,6 @@
 #include <boost/beast/core/buffers_suffix.hpp>
 #include <boost/beast/core/flat_static_buffer.hpp>
 #include <boost/beast/core/type_traits.hpp>
-#include <boost/beast/core/detail/async_op_base.hpp>
 #include <boost/beast/core/detail/clamp.hpp>
 #include <boost/beast/core/detail/config.hpp>
 #include <boost/beast/core/detail/get_executor_type.hpp>
@@ -136,7 +136,7 @@ do_context_takeover_write(role_type role)
 template<class NextLayer, bool deflateSupported>
 template<class Buffers, class Handler>
 class stream<NextLayer, deflateSupported>::write_some_op
-    : public beast::detail::async_op_base<
+    : public beast::async_op_base<
         Handler, beast::detail::get_executor_type<stream>>
     , public net::coroutine
 {
@@ -161,7 +161,7 @@ public:
         stream<NextLayer, deflateSupported>& ws,
         bool fin,
         Buffers const& bs)
-        : beast::detail::async_op_base<
+        : beast::async_op_base<
             Handler, beast::detail::get_executor_type<stream>>(
                 ws.get_executor(), std::forward<Handler_>(h))
         , ws_(ws)

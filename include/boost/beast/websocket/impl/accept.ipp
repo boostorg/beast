@@ -16,8 +16,8 @@
 #include <boost/beast/http/read.hpp>
 #include <boost/beast/http/string_body.hpp>
 #include <boost/beast/http/write.hpp>
+#include <boost/beast/core/async_op_base.hpp>
 #include <boost/beast/core/buffers_prefix.hpp>
-#include <boost/beast/core/detail/async_op_base.hpp>
 #include <boost/beast/core/detail/buffer.hpp>
 #include <boost/beast/core/detail/get_executor_type.hpp>
 #include <boost/beast/core/detail/type_traits.hpp>
@@ -36,7 +36,7 @@ namespace websocket {
 template<class NextLayer, bool deflateSupported>
 template<class Handler>
 class stream<NextLayer, deflateSupported>::response_op
-    : public beast::detail::stable_async_op_base<
+    : public beast::stable_async_op_base<
         Handler, beast::detail::get_executor_type<stream>>
     , public net::coroutine
 {
@@ -68,10 +68,10 @@ public:
         Handler_&& h,
         stream<NextLayer, deflateSupported>& ws,
         Args&&... args)
-        : beast::detail::stable_async_op_base<
+        : beast::stable_async_op_base<
             Handler, beast::detail::get_executor_type<stream>>(
                 ws.get_executor(), std::forward<Handler_>(h))
-        , d_(beast::detail::allocate_stable<data>(
+        , d_(beast::allocate_stable<data>(
             *this,  ws, std::forward<Args>(args)...))
     {
     }
@@ -107,7 +107,7 @@ public:
 template<class NextLayer, bool deflateSupported>
 template<class Decorator, class Handler>
 class stream<NextLayer, deflateSupported>::accept_op
-    : public beast::detail::stable_async_op_base<
+    : public beast::stable_async_op_base<
         Handler, beast::detail::get_executor_type<stream>>
     , public net::coroutine
 {
@@ -136,10 +136,10 @@ public:
         Handler_&& h,
         stream<NextLayer, deflateSupported>& ws,
         Args&&... args)
-        : beast::detail::stable_async_op_base<
+        : beast::stable_async_op_base<
             Handler, beast::detail::get_executor_type<stream>>(
                 ws.get_executor(), std::forward<Handler_>(h))
-        , d_(beast::detail::allocate_stable<data>(
+        , d_(beast::allocate_stable<data>(
             *this,  ws, std::forward<Args>(args)...))
     {
     }

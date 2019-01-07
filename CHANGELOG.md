@@ -5,6 +5,7 @@ Version 202
 * Tidy up basic_stream_socket docs
 * Refactor async_op_base
 * Use async_op_base
+* async_op_base is a public interface
 
 --------------------------------------------------------------------------------
 

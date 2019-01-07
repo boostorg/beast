@@ -11,11 +11,11 @@
 #define BOOST_BEAST_CORE_IMPL_ICY_STREAM_HPP
 
 #include <boost/beast/_experimental/core/detail/dynamic_buffer_ref.hpp>
+#include <boost/beast/core/async_op_base.hpp>
 #include <boost/beast/core/bind_handler.hpp>
 #include <boost/beast/core/buffers_adaptor.hpp>
 #include <boost/beast/core/buffers_prefix.hpp>
 #include <boost/beast/core/buffers_suffix.hpp>
-#include <boost/beast/core/detail/async_op_base.hpp>
 #include <boost/beast/core/detail/buffers_ref.hpp>
 #include <boost/beast/core/detail/get_executor_type.hpp>
 #include <boost/beast/core/handler_ptr.hpp>
@@ -121,7 +121,7 @@ public:
 template<class NextLayer>
 template<class MutableBufferSequence, class Handler>
 class icy_stream<NextLayer>::read_op
-    : public beast::detail::stable_async_op_base<Handler,
+    : public beast::stable_async_op_base<Handler,
         beast::detail::get_executor_type<icy_stream>>
     , public net::coroutine
 {
@@ -151,10 +151,10 @@ public:
         Handler_&& h,
         icy_stream& s,
         MutableBufferSequence const& b)
-        : beast::detail::stable_async_op_base<Handler,
+        : beast::stable_async_op_base<Handler,
             beast::detail::get_executor_type<icy_stream>>(
                 s.get_executor(), std::forward<Handler_>(h))
-        , d_(beast::detail::allocate_stable<data>(*this, s, b))
+        , d_(beast::allocate_stable<data>(*this, s, b))
     {
         (*this)({}, 0);
     }
