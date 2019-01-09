@@ -104,7 +104,7 @@ function build_bjam ()
      [[ $VARIANT == "ubasan" ]]; then
     b2 \
       define=BOOST_COROUTINES_NO_DEPRECATION_WARNING=1 \
-      cxxstd=11 \
+      cxxstd=$CXXSTD \
       libs/beast/test/beast/core//fat-tests \
       libs/beast/test/beast/http//fat-tests \
       libs/beast/test/beast/websocket//fat-tests \
@@ -115,7 +115,7 @@ function build_bjam ()
   else
     b2 \
       define=BOOST_COROUTINES_NO_DEPRECATION_WARNING=1 \
-      cxxstd=11 \
+      cxxstd=$CXXSTD \
       libs/beast/test//fat-tests \
       libs/beast/example \
       toolset=$TOOLSET \

@@ -1,3 +1,9 @@
+Version 202
+
+* Use cxxstd instead of cxxflags
+
+--------------------------------------------------------------------------------
+
 Version 201
 
 * Decay bound arguments in handler wrapper parameters

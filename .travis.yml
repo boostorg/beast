@@ -42,7 +42,7 @@ matrix:
         - VARIANT=coverage
         - TOOLSET=gcc
         - COMPILER=g++-6
-        - CXXSTD=c++11
+        - CXXSTD=11
       before_install:
         - pip install --user https://github.com/codecov/codecov-python/archive/master.zip
       addons:
@@ -62,7 +62,7 @@ matrix:
         - VARIANT=valgrind
         - TOOLSET=gcc
         - COMPILER=g++-5
-        - CXXSTD=c++11
+        - CXXSTD=11
       addons:
         apt:
           packages:
@@ -80,7 +80,7 @@ matrix:
         - VARIANT=ubasan
         - TOOLSET=clang
         - COMPILER=clang++-3.8
-        - CXXSTD=c++11
+        - CXXSTD=11
         - UBSAN_OPTIONS='print_stacktrace=1'
         - PATH=$PWD/llvm-$LLVM_VERSION/bin:$PATH
       addons:
@@ -100,7 +100,7 @@ matrix:
         - VARIANT=release
         - TOOLSET=gcc
         - COMPILER=g++-8
-        - CXXSTD=c++11
+        - CXXSTD=11
       addons:
         apt:
           packages:
@@ -117,7 +117,7 @@ matrix:
         - VARIANT=debug
         - TOOLSET=clang
         - COMPILER=clang++
-        - CXXSTD=c++14
+        - CXXSTD=14
 
 install:
   - export BOOST_BRANCH=develop && [ "$TRAVIS_BRANCH" == "master" ] && BOOST_BRANCH=master || true
@@ -198,7 +198,7 @@ install:
 
 script:
   - |-
-    echo "using $TOOLSET : : $COMPILER : <cxxflags>-std=$CXXSTD ;" > ~/user-config.jam
+    echo "using $TOOLSET : : $COMPILER ;" > ~/user-config.jam
   - cd ../boost-root
   - libs/beast/tools/retry.sh libs/beast/tools/build-and-test.sh
 
