@@ -6,6 +6,7 @@ Version 202
 * Refactor async_op_base
 * Use async_op_base
 * async_op_base is a public interface
+* Add tests for bind_back_handler
 
 --------------------------------------------------------------------------------
 
