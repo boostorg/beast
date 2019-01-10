@@ -61,8 +61,8 @@ public:
         Handler_&& h)
         : async_op_base<Handler,
             detail::get_executor_type<flat_stream>>(
-                s.get_executor(),
-                std::forward<Handler_>(h))
+                std::forward<Handler_>(h),
+                s.get_executor())
         , s_(s)
         , b_(b)
         , p_(nullptr, deleter{alloc_type{}})

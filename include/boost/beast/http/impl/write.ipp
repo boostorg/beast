@@ -72,9 +72,9 @@ public:
         Handler_&& h,
         Stream& s,
         serializer<isRequest, Body, Fields>& sr)
-        : beast::async_op_base<
+        : async_op_base<
             Handler, beast::detail::get_executor_type<Stream>>(
-                s.get_executor(), std::forward<Handler_>(h))
+                 std::forward<Handler_>(h), s.get_executor())
         , s_(s)
         , sr_(sr)
     {
@@ -168,9 +168,9 @@ public:
         Handler_&& h,
         Stream& s,
         serializer<isRequest, Body, Fields>& sr)
-        : beast::async_op_base<
+        : async_op_base<
             Handler, beast::detail::get_executor_type<Stream>>(
-                s.get_executor(), std::forward<Handler_>(h))
+                std::forward<Handler_>(h), s.get_executor())
         , s_(s)
         , sr_(sr)
     {
@@ -229,9 +229,9 @@ public:
         Stream& s,
         Handler_&& h,
         Args&&... args)
-        : beast::stable_async_op_base<
+        : stable_async_op_base<
             Handler, beast::detail::get_executor_type<Stream>>(
-                s.get_executor(), std::forward<Handler_>(h))
+                std::forward<Handler_>(h), s.get_executor())
         , s_(s)
         , sr_(beast::allocate_stable<
             serializer<isRequest, Body, Fields>>(

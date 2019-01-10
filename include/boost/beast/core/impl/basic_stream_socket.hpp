@@ -107,7 +107,7 @@ public:
         Buffers const& b,
         Handler_&& h)
         : async_op_base<Handler, Executor>(
-            s.get_executor(), std::forward<Handler_>(h))
+            std::forward<Handler_>(h), s.get_executor())
         , impl_(*s.impl_)
         , pg_(impl_.read_pending)
         , b_(b)
@@ -224,7 +224,7 @@ public:
         Buffers const& b,
         Handler_&& h)
         : async_op_base<Handler, Executor>(
-            s.get_executor(), std::forward<Handler_>(h))
+            std::forward<Handler_>(h), s.get_executor())
         , impl_(*s.impl_)
         , pg_(impl_.write_pending)
         , b_(b)
@@ -350,7 +350,7 @@ public:
         Condition cond,
         Handler_&& h)
         : async_op_base<Handler, Executor>(
-            s.get_executor(), std::forward<Handler_>(h))
+            std::forward<Handler_>(h), s.get_executor())
         , impl_(*s.impl_)
         , pg0_(impl_.read_pending)
         , pg1_(impl_.write_pending)
@@ -377,7 +377,7 @@ public:
         Condition cond,
         Handler_&& h)
         : async_op_base<Handler, Executor>(
-            s.get_executor(), std::forward<Handler_>(h))
+            std::forward<Handler_>(h), s.get_executor())
         , impl_(*s.impl_)
         , pg0_(impl_.read_pending)
         , pg1_(impl_.write_pending)

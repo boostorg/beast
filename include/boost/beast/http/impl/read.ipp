@@ -184,9 +184,9 @@ public:
         DynamicBuffer& b,
         message_type& m,
         Handler_&& h)
-        : beast::stable_async_op_base<
+        : stable_async_op_base<
             Handler, beast::detail::get_executor_type<Stream>>(
-                s.get_executor(), std::forward<Handler_>(h))
+                std::forward<Handler_>(h), s.get_executor())
         , d_(beast::allocate_stable<data>(
             *this, s, m))
     {

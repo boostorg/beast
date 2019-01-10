@@ -66,9 +66,9 @@ public:
         stream<NextLayer, deflateSupported>& ws,
         detail::opcode op,
         ping_data const& payload)
-        : beast::stable_async_op_base<
+        : stable_async_op_base<
             Handler, beast::detail::get_executor_type<stream>>(
-                ws.get_executor(), std::forward<Handler_>(h))
+                std::forward<Handler_>(h), ws.get_executor())
         , d_(beast::allocate_stable<state>(
             *this, ws, op, payload))
     {

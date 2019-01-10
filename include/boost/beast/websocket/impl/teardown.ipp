@@ -43,10 +43,10 @@ public:
         Handler_&& h,
         socket_type& s,
         role_type role)
-        : beast::async_op_base<
-            Handler, beast::detail::get_executor_type<
-                net::ip::tcp::socket>>(s.get_executor(),
-                    std::forward<Handler_>(h))
+        : async_op_base<Handler,
+            beast::detail::get_executor_type<
+                net::ip::tcp::socket>>(
+                    std::forward<Handler_>(h), s.get_executor())
         , s_(s)
         , role_(role)
     {

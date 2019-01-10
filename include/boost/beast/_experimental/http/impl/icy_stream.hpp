@@ -151,9 +151,9 @@ public:
         Handler_&& h,
         icy_stream& s,
         MutableBufferSequence const& b)
-        : beast::stable_async_op_base<Handler,
+        : stable_async_op_base<Handler,
             beast::detail::get_executor_type<icy_stream>>(
-                s.get_executor(), std::forward<Handler_>(h))
+                std::forward<Handler_>(h), s.get_executor())
         , d_(beast::allocate_stable<data>(*this, s, b))
     {
         (*this)({}, 0);

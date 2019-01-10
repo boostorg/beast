@@ -10,6 +10,8 @@
 // Test that header file is self-contained.
 #include <boost/beast/core/async_op_base.hpp>
 
+#include "test_handler.hpp"
+
 #include <boost/beast/_experimental/unit_test/suite.hpp>
 #include <boost/beast/_experimental/test/stream.hpp>
 #include <boost/beast/core/error.hpp>
@@ -19,6 +21,7 @@
 #include <boost/asio/system_executor.hpp>
 #include <boost/asio/write.hpp>
 #include <boost/core/ignore_unused.hpp>
+#include <stdexcept>
 
 //------------------------------------------------------------------------------
 
@@ -104,61 +107,6 @@ struct handler<intrusive_ex, no_alloc>
 {
 };
 
-struct legacy_handler
-{
-    bool invoked = false;
-    struct executor
-    {
-        void* context() { return nullptr; }
-        void on_work_started() {}
-        void on_work_finished() {}
-        template<class F> void dispatch(F&&) {}
-        template<class F> void post(F&&) {}
-        template<class F> void defer(F&&) {}
-    };
-
-    executor
-    get_executor() const noexcept
-    {
-        return {};
-    };
-};
-
-template<class Function>
-void
-asio_handler_invoke(
-    Function&& f,
-    legacy_handler* p)
-{
-    p->invoked = true;
-    f();
-}
-
-void*
-asio_handler_allocate(
-    std::size_t,
-    legacy_handler* p)
-{
-    p->invoked = true;
-    return nullptr;
-}
-
-void
-asio_handler_deallocate(
-    void*, std::size_t,
-    legacy_handler* p)
-{
-    p->invoked = true;
-}
-
-bool
-asio_handler_is_continuation(
-    legacy_handler* p)
-{
-    p->invoked = true;
-    return false;
-}
-
 } // (anon)
 
 } // beast
@@ -202,35 +150,6 @@ struct associated_executor<
             boost::beast::intrusive_ex,
             boost::beast::no_alloc> const& h,
         Executor const& a = Executor()) noexcept
-    {
-        return type{};
-    }
-};
-
-template<class Allocator>
-struct associated_allocator<
-    boost::beast::legacy_handler, Allocator>
-{
-    using type = std::allocator<int>;
-
-    static type get(
-        boost::beast::legacy_handler const& h,
-        Allocator const& a = Allocator()) noexcept
-    {
-        return type{};
-    }
-};
-
-template<class Executor>
-struct associated_executor<
-    boost::beast::legacy_handler, Executor>
-{
-    using type = typename
-        boost::beast::legacy_handler::executor;
-
-    static type get(
-        boost::beast::legacy_handler const&,
-        Executor const& = Executor()) noexcept
     {
         return type{};
     }
@@ -436,75 +355,195 @@ public:
                 net::system_executor // ignored
         >>::value);
 
-    struct test_op : async_op_base<
-        legacy_handler, ex1_type>
+    struct final_handler
     {
-        test_op()
-            : async_op_base<
-                legacy_handler,
-                ex1_type>(
-                    ex1_type{}, legacy_handler{})
-        {
+        bool& invoked;
 
-        }
-
-        bool invoked() const noexcept
+        void
+        operator()()
         {
-            return this->handler().invoked;
+            invoked = true;
         }
     };
 
     void
-    testLegacyHooks()
+    testBase()
     {
-        // asio_handler_invoke
+        // get_allocator
         {
-            test_op h;
-            BEAST_EXPECT(! h.invoked());
+            simple_allocator alloc;
+            simple_allocator alloc2;
+            async_op_base<
+                move_only_handler,
+                simple_executor,
+                simple_allocator> op(
+                    move_only_handler{}, {}, alloc);
+            BEAST_EXPECT(op.get_allocator() == alloc);
+            BEAST_EXPECT(op.get_allocator() != alloc2);
+        }
+
+        // get_executor
+        {
+            simple_executor ex;
+            simple_executor ex2;
+            async_op_base<
+                move_only_handler,
+                simple_executor> op(
+                    move_only_handler{}, ex);
+            BEAST_EXPECT(op.get_executor() == ex);
+            BEAST_EXPECT(op.get_executor() != ex2);
+        }
+
+        // move construction
+        {
+            async_op_base<
+                move_only_handler,
+                simple_executor> op(
+                    move_only_handler{}, {});
+            auto op2 = std::move(op);
+        }
+
+        // observers
+        {
+            bool b = false;
+            async_op_base<
+                legacy_handler,
+                simple_executor> op(
+                    legacy_handler{b}, {});
+            BEAST_EXPECT(! op.handler().hook_invoked);
+            b = true;
+            BEAST_EXPECT(op.handler().hook_invoked);
+            b = false;
+            BEAST_EXPECT(! op.release_handler().hook_invoked);
+        }
+
+        // invocation
+        {
             bool invoked = false;
-            using net::asio_handler_invoke;
-            asio_handler_invoke(
-                [&invoked]
-                {
-                    invoked =true;
-                }, &h);
+            async_op_base<
+                final_handler,
+                simple_executor> op(
+                    final_handler{invoked}, {});
+            op.invoke();
             BEAST_EXPECT(invoked);
-            BEAST_EXPECT(h.invoked());
         }
 
-        // asio_handler_allocate
-        {
-            test_op h;
-            BEAST_EXPECT(! h.invoked());
-            using net::asio_handler_allocate;
-            asio_handler_allocate(0, &h);
-            BEAST_EXPECT(h.invoked());
-        }
-
-        // asio_handler_deallocate
-        {
-            test_op h;
-            BEAST_EXPECT(! h.invoked());
-            using net::asio_handler_deallocate;
-            asio_handler_deallocate(nullptr, 0, &h);
-            BEAST_EXPECT(h.invoked());
-        }
-
-        // asio_handler_deallocate
-        {
-            test_op h;
-            BEAST_EXPECT(! h.invoked());
-            using net::asio_handler_is_continuation;
-            asio_handler_is_continuation(&h);
-            BEAST_EXPECT(h.invoked());
-        }
+        // legacy hooks
+        legacy_handler::test(*this,
+            [](legacy_handler h)
+            {
+                return async_op_base<
+                    legacy_handler,
+                    simple_executor>(
+                        std::move(h), {});
+            });
     }
 
     void
-    testSpecialMembers()
+    testStableBase()
     {
-        test_op h1;
-        test_op h2(std::move(h1));
+        // get_allocator
+        {
+            simple_allocator alloc;
+            simple_allocator alloc2;
+            stable_async_op_base<
+                move_only_handler,
+                simple_executor,
+                simple_allocator> op(
+                    move_only_handler{}, {}, alloc);
+            BEAST_EXPECT(op.get_allocator() == alloc);
+            BEAST_EXPECT(op.get_allocator() != alloc2);
+        }
+
+        // get_executor
+        {
+            simple_executor ex;
+            simple_executor ex2;
+            stable_async_op_base<
+                move_only_handler,
+                simple_executor> op(
+                    move_only_handler{}, ex);
+            BEAST_EXPECT(op.get_executor() == ex);
+            BEAST_EXPECT(op.get_executor() != ex2);
+        }
+
+        // move construction
+        {
+            stable_async_op_base<
+                move_only_handler,
+                simple_executor> op(
+                    move_only_handler{}, {});
+            auto op2 = std::move(op);
+        }
+
+        // invocation
+        {
+            bool invoked = false;
+            stable_async_op_base<
+                final_handler,
+                simple_executor> op(
+                    final_handler{invoked}, {});
+            op.invoke();
+            BEAST_EXPECT(invoked);
+        }
+
+        // legacy hooks
+        legacy_handler::test(*this,
+            [](legacy_handler h)
+            {
+                return stable_async_op_base<
+                    legacy_handler,
+                    simple_executor>(
+                        std::move(h), {});
+            });
+
+        // allocate_stable
+
+        {
+            bool destroyed = false;
+            {
+                struct data
+                {
+                    bool& destroyed;
+
+                    ~data()
+                    {
+                        destroyed = true;
+                    }
+                };
+                stable_async_op_base<
+                    move_only_handler,
+                    simple_executor> op(
+                        move_only_handler{}, {});
+                BEAST_EXPECT(! destroyed);
+                auto& d = allocate_stable<data>(op, destroyed);
+                BEAST_EXPECT(! d.destroyed);
+            }
+            BEAST_EXPECT(destroyed);
+        }
+        {
+            struct throwing_data
+            {
+                throwing_data()
+                {
+                    BOOST_THROW_EXCEPTION(
+                        std::exception{});
+                }
+            };
+            stable_async_op_base<
+                move_only_handler,
+                simple_executor> op(
+                    move_only_handler{}, {});
+            try
+            {
+                allocate_stable<throwing_data>(op);
+                fail();
+            }
+            catch(std::exception const&)
+            {
+                pass();
+            }
+        }
     }
 
     //--------------------------------------------------------------------------
@@ -527,7 +566,7 @@ public:
                 AsyncReadStream& stream,
                 net::mutable_buffer buffer,
                 handler_type& handler)
-                : base_type(stream.get_executor(), std::move(handler))
+                : base_type(std::move(handler), stream.get_executor())
                 , stream_(stream)
                 , buffer_(buffer)
                 , total_bytes_transferred_(0)
@@ -599,7 +638,7 @@ public:
             temporary_data& data_;
 
             op(AsyncWriteStream& stream, std::size_t repeats, std::string message, handler_type& handler)
-                : base_type(stream.get_executor(), std::move(handler))
+                : base_type(std::move(handler), stream.get_executor())
                 , state_(starting)
                 , stream_(stream)
                 , repeats_(repeats)
@@ -672,8 +711,8 @@ public:
     void
     run() override
     {
-        testLegacyHooks();
-        testSpecialMembers();
+        testBase();
+        testStableBase();
         testJavadocs();
     }
 };

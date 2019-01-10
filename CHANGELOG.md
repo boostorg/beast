@@ -7,6 +7,7 @@ Version 202
 * Use async_op_base
 * async_op_base is a public interface
 * Add tests for bind_back_handler
+* Add tests for async_op_base
 
 --------------------------------------------------------------------------------
 

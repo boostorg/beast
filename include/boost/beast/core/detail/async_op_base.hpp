@@ -30,14 +30,13 @@ struct stable_base
         }
     }
 
+    stable_base* next_ = nullptr;
+
 protected:
-    stable_base* next_;
-    virtual void destroy() = 0;
+    stable_base() = default;
     virtual ~stable_base() = default;
-    explicit stable_base(stable_base*& list)
-        : next_(boost::exchange(list, this))
-    {
-    }
+
+    virtual void destroy() = 0;
 };
 
 } // detail

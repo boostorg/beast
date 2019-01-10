@@ -18,9 +18,6 @@
 #include <boost/asio/coroutine.hpp>
 #include <boost/throw_exception.hpp>
 
-// REMOVE
-#define BOOST_BEAST_ENABLE_NON_BLOCKING
-
 namespace boost {
 namespace beast {
 namespace detail {
@@ -56,9 +53,10 @@ public:
         DynamicBuffer& b,
         Condition cond,
         Handler_&& h)
-        : async_op_base<
-            Handler, get_executor_type<Stream>>(
-                s.get_executor(), std::forward<Handler_>(h))
+        : async_op_base<Handler,
+            get_executor_type<Stream>>(
+                std::forward<Handler_>(h),
+                    s.get_executor())
         , s_(s)
         , b_(b)
         , cond_(cond)

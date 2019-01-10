@@ -21,22 +21,90 @@
 namespace boost {
 namespace beast {
 
+class simple_allocator
+{
+    std::size_t id_;
+
+public:
+    simple_allocator()
+        : id_([]
+        {
+            static std::size_t n = 0;
+            return ++n;
+        }())
+    {
+    }
+
+    friend
+    bool operator==(
+        simple_allocator const& lhs,
+        simple_allocator const& rhs) noexcept
+    {
+        return lhs.id_ == rhs.id_;
+    }
+
+    friend
+    bool operator!=(
+        simple_allocator const& lhs,
+        simple_allocator const& rhs) noexcept
+    {
+        return lhs.id_ != rhs.id_;
+    }
+};
+
+class simple_executor
+{
+    std::size_t id_;
+
+public:
+    simple_executor()
+        : id_([]
+        {
+            static std::size_t n = 0;
+            return ++n;
+        }())
+    {
+    }
+
+    void* context() { return nullptr; }
+    void on_work_started() {}
+    void on_work_finished() {}
+    template<class F> void dispatch(F&&) {}
+    template<class F> void post(F&&) {}
+    template<class F> void defer(F&&) {}
+
+    friend
+    bool operator==(
+        simple_executor const& lhs,
+        simple_executor const& rhs) noexcept
+    {
+        return lhs.id_ == rhs.id_;
+    }
+
+    friend
+    bool operator!=(
+        simple_executor const& lhs,
+        simple_executor const& rhs) noexcept
+    {
+        return lhs.id_ != rhs.id_;
+    }
+};
+
+// A move-only handler
+struct move_only_handler
+{
+    move_only_handler() = default;
+    move_only_handler(move_only_handler&&) = default;
+    move_only_handler(move_only_handler const&) = delete;
+    void operator()() const{};
+};
+
 // Used to test the legacy handler hooks
 struct legacy_handler
 {
     bool& hook_invoked;
 
-    struct executor
-    {
-        void* context() { return nullptr; }
-        void on_work_started() {}
-        void on_work_finished() {}
-        template<class F> void dispatch(F&&) {}
-        template<class F> void post(F&&) {}
-        template<class F> void defer(F&&) {}
-    };
-
-    executor
+    simple_executor
     get_executor() const noexcept
     {
         return {};
@@ -124,6 +192,41 @@ asio_handler_is_continuation(
 }
 
 } // beast
+} // boost
+
+namespace boost {
+namespace asio {
+
+template<class Allocator>
+struct associated_allocator<
+    boost::beast::legacy_handler, Allocator>
+{
+    using type = std::allocator<int>;
+
+    static type get(
+        boost::beast::legacy_handler const& h,
+        Allocator const& a = Allocator()) noexcept
+    {
+        return type{};
+    }
+};
+
+template<class Executor>
+struct associated_executor<
+    boost::beast::legacy_handler, Executor>
+{
+    using type = typename
+        boost::beast::simple_executor;
+
+    static type get(
+        boost::beast::legacy_handler const&,
+        Executor const& = Executor()) noexcept
+    {
+        return type{};
+    }
+};
+
+} // asio
 } // boost
 
 #endif

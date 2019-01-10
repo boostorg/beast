@@ -71,9 +71,9 @@ public:
     handshake_op(
         Handler_&& h,
         stream& ws, Args&&... args)
-        : beast::stable_async_op_base<Handler,
+        : stable_async_op_base<Handler,
             beast::detail::get_executor_type<stream>>(
-                ws.get_executor(), std::forward<Handler_>(h))
+                std::forward<Handler_>(h), ws.get_executor())
         , d_(beast::allocate_stable<data>(
             *this, ws, std::forward<Args>(args)...))
     {

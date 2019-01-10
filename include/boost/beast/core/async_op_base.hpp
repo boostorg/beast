@@ -91,7 +91,7 @@ namespace beast {
                 AsyncReadStream& stream,
                 net::mutable_buffer buffer,
                 handler_type& handler)
-                : base_type(stream.get_executor(), std::move(handler))
+                : base_type(std::move(handler), stream.get_executor())
                 , stream_(stream)
                 , buffer_(buffer)
                 , total_bytes_transferred_(0)
@@ -197,6 +197,56 @@ class async_op_base
     }
 
 public:
+    /** Constructor
+
+        @param handler The final completion handler. The type of this
+        object must meet the requirements of <em>CompletionHandler</em>.
+
+        @param ex1 The executor associated with the implied I/O object
+        target of the operation. The implementation shall maintain an
+        executor work guard for the lifetime of the operation, or until
+        the final completion handler is invoked, whichever is shorter.
+
+        @param alloc The allocator to be associated with objects
+        derived from this class. If `Allocator` is default-constructible,
+        this parameter is optional and may be omitted.
+    */
+#if BOOST_BEAST_DOXYGEN
+    template<class Handler>
+    async_op_base(
+        Handler&& handler,
+        Executor1 const& ex1,
+        Allocator const& alloc = Allocator());
+#else
+    template<
+        class Handler_,
+        class = typename std::enable_if<
+            ! std::is_same<typename
+                std::decay<Handler_>::type,
+                async_op_base
+            >::value>::type
+    >
+    async_op_base(
+        Handler_&& handler,
+        Executor1 const& ex1)
+        : h_(std::forward<Handler_>(handler))
+        , wg_(ex1)
+    {
+    }
+
+    template<class Handler_>
+    async_op_base(
+        Handler_&& handler,
+        Executor1 const& ex1,
+        Allocator const& alloc)
+        : boost::empty_value<Allocator>(
+            boost::empty_init_t{}, alloc)
+        , h_(std::forward<Handler_>(handler))
+        , wg_(ex1)
+    {
+    }
+#endif
+
     /// Move Constructor
     async_op_base(async_op_base&& other) = default;
 
@@ -264,56 +314,6 @@ public:
         return std::move(h_);
     }
 
-protected:
-    /** Constructor
-
-        @param handler The final completion handler. The type of this
-        object must meet the requirements of <em>CompletionHandler</em>.
-
-        @param ex1 The executor associated with the implied I/O object
-        target of the operation. The implementation shall maintain an
-        executor work guard for the lifetime of the operation, or until
-        the final completion handler is invoked, whichever is shorter.
-
-        @param alloc The allocator to be associated with objects
-        derived from this class. If `Allocator` is default-constructible,
-        this parameter is optional and may be omitted.
-    */
-#if BOOST_BEAST_DOXYGEN
-    template<class Handler>
-    async_op_base(
-        Executor1 const& ex1,
-        Handler&& handler,
-        Allocator const& alloc = Allocator());
-#else
-    template<
-        class Handler_,
-        class = typename std::enable_if<
-            ! std::is_same<typename
-                std::decay<Handler_>::type,
-                async_op_base
-            >::value>::type
-    >
-    async_op_base(
-        Executor1 const& ex1,
-        Handler_&& handler)
-        : h_(std::forward<Handler_>(handler))
-        , wg_(ex1)
-    {
-    }
-
-    template<class Handler_>
-    async_op_base(
-        Executor1 const& ex1,
-        Handler_&& handler,
-        Allocator const& alloc)
-        : boost::empty_value<Allocator>(alloc)
-        , h_(std::forward<Handler_>(handler))
-        , wg_(ex1)
-    {
-    }
-#endif
-
     /** Invoke the final completion handler.
 
         This invokes the final completion handler with the specified
@@ -334,7 +334,6 @@ protected:
     }
 
 #if ! BOOST_BEAST_DOXYGEN
-public:
     template<
         class Handler_,
         class Executor1_,
@@ -480,7 +479,7 @@ public:
             enum { starting, waiting, writing } state_;
 
             op(AsyncWriteStream& stream, std::size_t repeats, std::string message, handler_type& handler)
-                : base_type(stream.get_executor(), std::move(handler))
+                : base_type(std::move(handler), stream.get_executor())
                 , stream_(stream)
                 , repeats_(repeats)
                 , state_(starting)
@@ -570,15 +569,6 @@ class stable_async_op_base
     }
 
 public:
-    /// Move Constructor
-    stable_async_op_base(stable_async_op_base&& other)
-        : async_op_base<Handler, Executor1, Allocator>(
-            std::move(other))
-        , list_(boost::exchange(other.list_, nullptr))
-    {
-    }
-
-protected:
     /** Constructor
 
         @param handler The final completion handler. The type of this
@@ -609,25 +599,33 @@ protected:
             >::value>::type
     >
     stable_async_op_base(
-        Executor1 const& ex1,
-        Handler_&& handler)
+        Handler_&& handler,
+        Executor1 const& ex1)
         : async_op_base<
             Handler, Executor1, Allocator>(
-                ex1, std::forward<Handler_>(handler))
+                std::forward<Handler_>(handler), ex1)
     {
     }
 
     template<class Handler_>
     stable_async_op_base(
-        Executor1 const& ex1,
         Handler_&& handler,
+        Executor1 const& ex1,
         Allocator const& alloc)
         : async_op_base<
             Handler, Executor1, Allocator>(
-                ex1, std::forward<Handler_>(handler))
+                std::forward<Handler_>(handler), ex1, alloc)
     {
     }
 #endif
+
+    /// Move Constructor
+    stable_async_op_base(stable_async_op_base&& other)
+        : async_op_base<Handler, Executor1, Allocator>(
+            std::move(other))
+        , list_(boost::exchange(other.list_, nullptr))
+    {
+    }
 
     /** Destructor
 
@@ -676,6 +674,40 @@ void asio_handler_invoke(
 }
 #endif
 
+namespace detail {
+
+template<class State, class Allocator>
+struct allocate_stable_state final
+    : stable_base
+    , boost::empty_value<Allocator>
+{
+    State value;
+
+    template<class... Args>
+    explicit
+    allocate_stable_state(
+        Allocator const& alloc,
+        Args&&... args)
+        : boost::empty_value<Allocator>(
+            boost::empty_init_t{}, alloc)
+        , value{std::forward<Args>(args)...}
+    {
+    }
+
+    void destroy() override
+    {
+        using A = typename allocator_traits<
+            Allocator>::template rebind_alloc<
+                allocate_stable_state>;
+
+        A a(this->get());
+        detail::allocator_traits<A>::destroy(a, this);
+        detail::allocator_traits<A>::deallocate(a, this, 1);
+    }
+};
+
+} // detail
+
 /** Allocate a temporary object to hold stable asynchronous operation state.
 
     The object will be destroyed just before the completion
@@ -695,44 +727,19 @@ allocate_stable(
         Handler, Executor1, Allocator>& base,
     Args&&... args)
 {
-    struct state;
-
     using allocator_type = typename stable_async_op_base<
         Handler, Executor1, Allocator>::allocator_type;
 
     using A = typename detail::allocator_traits<
-        allocator_type>::template rebind_alloc<state>;
-
-    struct state final
-        : detail::stable_base
-        , boost::empty_value<allocator_type>
-    {
-        State value;
-
-        explicit
-        state(
-            allocator_type const& alloc,
-            detail::stable_base*& list,
-            Args&&... args)
-            : detail::stable_base(list)
-            , boost::empty_value<allocator_type>(
-                boost::empty_init_t{}, alloc)
-            , value{std::forward<Args>(args)...}
-        {
-        }
-
-        void destroy() override
-        {
-            A a(this->get());
-            detail::allocator_traits<A>::destroy(a, this);
-            detail::allocator_traits<A>::deallocate(a, this, 1);
-        }
-    };
+        allocator_type>::template rebind_alloc<
+            detail::allocate_stable_state<
+                State, allocator_type>>;
 
     struct deleter
     {
         allocator_type alloc;
-        state* ptr;
+        detail::allocate_stable_state<
+            State, allocator_type>* ptr;
 
         ~deleter()
         {
@@ -748,9 +755,9 @@ allocate_stable(
     deleter d{base.get_allocator(), nullptr};
     d.ptr = detail::allocator_traits<A>::allocate(a, 1);
     detail::allocator_traits<A>::construct(a, d.ptr,
-        d.alloc,
-        base.list_, 
-        std::forward<Args>(args)...);
+        d.alloc, std::forward<Args>(args)...);
+    d.ptr->next_ = base.list_;
+    base.list_ = d.ptr;
     return boost::exchange(d.ptr, nullptr)->value;
 }
 

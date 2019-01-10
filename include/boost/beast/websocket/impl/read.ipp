@@ -98,9 +98,9 @@ public:
         Handler_&& h,
         stream<NextLayer, deflateSupported>& ws,
         MutableBufferSequence const& bs)
-        : beast::async_op_base<
+        : async_op_base<
             Handler, beast::detail::get_executor_type<stream>>(
-                ws.get_executor(), std::forward<Handler_>(h))
+                std::forward<Handler_>(h), ws.get_executor())
         , ws_(ws)
         , bs_(bs)
         , cb_(bs)
@@ -690,9 +690,9 @@ public:
         DynamicBuffer& b,
         std::size_t limit,
         bool some)
-        : beast::async_op_base<
+        : async_op_base<
             Handler, beast::detail::get_executor_type<stream>>(
-                ws.get_executor(), std::forward<Handler_>(h))
+                std::forward<Handler_>(h), ws.get_executor())
         , ws_(ws)
         , b_(b)
         , limit_(limit ? limit : (

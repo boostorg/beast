@@ -44,7 +44,7 @@ public:
         MutableBufferSequence const& b)
         : async_op_base<
             Handler, detail::get_executor_type<buffered_read_stream>>(
-                s.get_executor(), std::forward<Handler_>(h))
+                std::forward<Handler_>(h), s.get_executor())
         , s_(s)
         , b_(b)
     {

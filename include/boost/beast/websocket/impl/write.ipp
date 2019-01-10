@@ -161,9 +161,9 @@ public:
         stream<NextLayer, deflateSupported>& ws,
         bool fin,
         Buffers const& bs)
-        : beast::async_op_base<
-            Handler, beast::detail::get_executor_type<stream>>(
-                ws.get_executor(), std::forward<Handler_>(h))
+        : beast::async_op_base<Handler,
+            beast::detail::get_executor_type<stream>>(
+                std::forward<Handler_>(h), ws.get_executor())
         , ws_(ws)
         , cb_(bs)
         , fin_(fin)

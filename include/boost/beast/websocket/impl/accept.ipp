@@ -68,9 +68,9 @@ public:
         Handler_&& h,
         stream<NextLayer, deflateSupported>& ws,
         Args&&... args)
-        : beast::stable_async_op_base<
+        : stable_async_op_base<
             Handler, beast::detail::get_executor_type<stream>>(
-                ws.get_executor(), std::forward<Handler_>(h))
+                std::forward<Handler_>(h), ws.get_executor())
         , d_(beast::allocate_stable<data>(
             *this,  ws, std::forward<Args>(args)...))
     {
@@ -136,9 +136,9 @@ public:
         Handler_&& h,
         stream<NextLayer, deflateSupported>& ws,
         Args&&... args)
-        : beast::stable_async_op_base<
+        : stable_async_op_base<
             Handler, beast::detail::get_executor_type<stream>>(
-                ws.get_executor(), std::forward<Handler_>(h))
+                std::forward<Handler_>(h), ws.get_executor())
         , d_(beast::allocate_stable<data>(
             *this,  ws, std::forward<Args>(args)...))
     {

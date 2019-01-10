@@ -350,11 +350,11 @@ public:
         net::basic_stream_socket<Protocol>& s,
         serializer<isRequest,
             basic_file_body<file_win32>,Fields>& sr)
-        : beast::async_op_base<
+        : async_op_base<
             Handler, typename net::basic_stream_socket<
                 Protocol>::executor_type>(
-                    s.get_executor(),
-                    std::forward<Handler_>(h))
+                    std::forward<Handler_>(h),
+                    s.get_executor())
         , sock_(s)
         , sr_(sr)
     {
