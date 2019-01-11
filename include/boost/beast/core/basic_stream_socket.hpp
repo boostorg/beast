@@ -27,14 +27,15 @@
 namespace boost {
 namespace beast {
 
-/** A stream socket wrapper with integrated timeout and bandwidth management.
+/** A stream socket with integrated timeout and bandwidth management.
 
-    This wraps a normal stream socket to provide the following additional
-    features:
+    This stream socket adapts a `net::basic_stream_socket` to provide
+    the following additional features:
 
     @li The class template is parameterized on a user-defined executor
     used for asynchronous operations. This achieves partial support for
-    "Networking TS enhancement to enable custom I/O executors" [P1322R0].
+    "Networking TS enhancement to enable custom I/O executors"
+    (<a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p1322r0.html">P1322R0</a>).
 
     @li Optional timeouts may be specified for logical operations which
     perform asynchronous reads, writes, and connects.
@@ -73,7 +74,8 @@ namespace beast {
     necessary to also bind each submitted completion handler used in
     subsequent operations to the strand, this is taken care of automatically.
 
-    @par Using Executors
+    @par Associated Executor
+
 
     @par Using Timeouts
 
@@ -149,7 +151,8 @@ namespace beast {
     that all asynchronous operations are performed within the same
     implicit or explicit strand.
 
-    @see http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p1322r0.html
+    @see "Networking TS enhancement to enable custom I/O executors"
+    (<a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p1322r0.html">P1322R0</a>).
 */
 template<class Protocol, class Executor>
 class basic_stream_socket

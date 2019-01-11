@@ -20,7 +20,7 @@ template<
     class AsyncStream,
     class CompletionToken>
 auto
-async_echo(AsyncStream& stream, CompletionToken&& token)
+async_echo (AsyncStream& stream, CompletionToken&& token)
 
 //]
     -> BOOST_ASIO_INITFN_RESULT_TYPE(CompletionToken, void(boost::beast::error_code));
@@ -68,8 +68,8 @@ template<
     class CompletionToken>
 BOOST_ASIO_INITFN_RESULT_TYPE(          /*< `BOOST_ASIO_INITFN_RESULT_TYPE` customizes the return value based on the completion token >*/
     CompletionToken,
-    void(boost::beast::error_code))     /*< This is the signature for the completion handler >*/
-async_echo(
+    void (boost::beast::error_code))     /*< This is the signature for the completion handler >*/
+async_echo (
     AsyncStream& stream,
     CompletionToken&& token);
 
@@ -79,7 +79,7 @@ async_echo(
 
 // This composed operation reads a line of input and echoes it back.
 //
-template<class AsyncStream, class Handler>
+template <class AsyncStream, class Handler>
 class echo_op
 {
     // This holds all of the state information required by the operation.

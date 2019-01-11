@@ -1,0 +1,200 @@
+[/
+    Copyright (c) 2016-2017 Vinnie Falco (vinnie dot falco at gmail dot com)
+
+    Distributed under the Boost Software License, Version 1.0. (See accompanying
+    file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+
+    Official repository: https://github.com/boostorg/beast
+]
+
+[section:asio_refresher Refresher]
+
+To use Beast effectively, a prior understanding of networking is required.
+This section reviews networking concepts as a reminder and guide for further
+learning.
+
+A
+['network]
+allows programs located anywhere to exchange information after opting-in
+to communications by establishing a
+['connection].
+Data is reliably transferred on a connection in either direction (full-duplex)
+with bytes arriving in the same order they were sent. These connections, along
+with the objects and types used to represent them, are collectively termed
+['streams].
+
+The
+['internet]
+is a global network of interconnected computers which exchange information
+using a variety of standardized communication protocols. The most popular
+protocol is
+['TCP/IP],
+which this library relies on exclusively. The protocol takes care of the
+low level details so that applications see a
+['stream],
+which is the reliable, full-duplex connection carrying the ordered set
+of bytes described above.
+
+A vendor supplies a program called a
+['driver],
+enabling networking hardware such as an
+['ethernet adaptor]
+to talk to the operating system. The OS in turn permits running programs to
+interact with networking using various flavors of interfaces, such as:
+
+* Berkeley sockets
+* POSIX sockets
+* Windows Sockets 2 ("Winsock")
+
+C++ Networking, represented by __NetTS__ and __Asio__, provides another layer
+of abstraction with features such as:
+
+* Deadline timers
+* Buffer sequences
+* Stream concepts
+* Asynchronous I/O
+
+These concepts enable generic programming so that higher levels of abstraction
+may be composed to arbitrary degree. In fact, the interfaces and concepts
+offered by networking are best described as providing support for general
+input and output algorithms ("I/O"), including TCP/IP.
+
+[heading Buffers]
+
+A
+['buffer]
+holds a contiguous sequence of bytes used to perform reads or writes on an
+['I/O object].
+The networking types __const_buffer__ and __mutable_buffer__ represent
+these memory regions as type-safe pointer/size pairs. The concepts
+__ConstBufferSequence__ and __MutableBufferSequence__ are bidirectional
+ranges whose value type is convertible to __const_buffer__ and
+__mutable_buffer__ respectively. Buffer sequences may be used to transact
+in multiple buffers in a single function call. These types are non-owning;
+copying a buffer or buffer sequences only creates a shallow reference,
+it does allocate a copy of the contents.
+
+Buffers described thus far may not be resized. The __DynamicBuffer__
+concept defines a storage type whose size can change. Beast uses
+dynamic buffers in interfaces where the amount of storage required
+to complete an operation is not known ahead of time.
+
+
+
+    [/ [heading Synchronous I/O] ]
+
+
+
+[heading Asynchronous I/O]
+
+An asynchronous operation starts with a call to an
+['initiating function],
+whose name begins with the prefix `async_`. The initating function
+allocates memory as needed, possibly capturing arguments, then
+launches the operation before returning to the caller immediately.
+The operation is now
+['outstanding],
+making progress without blocking the caller.
+
+The result of the operation is
+['available]
+when the externally observable side effects are fully established.
+A movable function object known as a
+['completion handler]
+(provided to the initiating function) is then invoked with the result.
+A completion handler is also referred to as a
+['continuation],
+since it represents a continuation of the flow of execution that
+started from the initiating function call.
+Temporary storage required to perform an operation may be allocated using
+the completion handler's
+['associated allocator],
+which can optionally be suggested by the caller. These allocations
+[*must] be freed before the completion handler is invoked.
+
+Networking provides well-defined facilities for determining the context
+where handlers run. Every I/O object is associated with an
+['ExecutionContext],
+which permits implementations to store private per-context data and
+also supplies instances of its
+['Executor] that determines where and how a handler is invoked in the
+exection context. Instances of __io_context__ offer the basic execution
+guarantee: handlers will only be executed from caller-provided threads
+which are currently invoking
+[@boost:/doc/html/boost_asio/reference/io_context/run/overload1.html `net::io_context::run`].
+
+An
+['associated executor]
+is defined for every completion handler, which defaults to the I/O
+object's executor. The executor for a completion handler may be
+customized, for example by choosing a __strand__. A strand provides an
+additional execution guarantee: function objects submitted to the strand
+are never executed concurrently by the underlying executor. Strands permit
+concurrent asynchronous applications to be developed which do not require
+explicit locking.
+
+[/
+    [heading Concurrency Without Locking]
+
+    multiple threads calling io_context::run
+
+    When a composed operation submits intermediate completion handlers for operations used to meet its stated effects, the intermediate handlers must use the same executor as that used for the final completion handler
+    This is to avoid accessing the underlying I/O object in ways that violate preconditions
+
+    [heading Universal Asynchronous Model]
+
+    The use of invocable function objects
+]
+
+
+
+[warning
+    Beast does not manage sockets, make outgoing connections,
+    accept incoming connections, handle timeouts, close endpoints,
+    do name lookups, deal with TLS certificates, perform authentication,
+    or otherwise handle any aspect of connection management. This is
+    left to the interfaces already existing on the underlying streams.
+]
+
+Library stream algorithms require a __socket__, __ssl_stream__, or other
+__Stream__ object that has already established communication with a remote
+peer. This example is provided as a reminder of how to work with
+sockets:
+
+[snippet_core_2]
+
+Throughout this documentation identifiers with the following names have
+special meaning:
+
+[table Global Variables
+[[Name][Description]]
+[[
+    [@boost:/doc/html/boost_asio/reference/io_context.html [*`ioc`]]
+][
+    A variable of type __io_context__ which is running on one separate thread,
+    and upon which an __executor_work_guard__ object has been constructed.
+]]
+[[
+    [@boost:/doc/html/boost_asio/reference/ip__tcp/socket.html [*`sock`]]
+][
+    A variable of type
+    [@boost:/doc/html/boost_asio/reference/ip__tcp/socket.html `tcp::socket`]
+    which has already been connected to a remote host.
+]]
+[[
+    [@boost:/doc/html/boost_asio/reference/ssl__stream.html [*`ssl_sock`]]
+][
+    A variable of type
+    [@boost:/doc/html/boost_asio/reference/ssl__stream.html `net::ssl::stream<tcp::socket>`]
+    which is already connected and has handshaked with a remote host.
+]]
+[[
+    [link beast.ref.boost__beast__websocket__stream [*`ws`]]
+][
+    A variable of type
+    [link beast.ref.boost__beast__websocket__stream `websocket::stream<tcp::socket>`]
+    which is already connected with a remote host.
+]]
+]
+
+[endsect]
