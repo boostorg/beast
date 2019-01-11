@@ -23,7 +23,7 @@ if (OPENSSL_FOUND)
     set_property(TARGET http-server-flex PROPERTY FOLDER "example-http-server")
 
     target_link_libraries (http-server-flex
-        ${OPENSSL_LIBRARIES}
+        OpenSSL::SSL OpenSSL::Crypto
         )
 
 endif()

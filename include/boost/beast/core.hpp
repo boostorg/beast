@@ -22,6 +22,7 @@
 #include <boost/beast/core/buffers_range.hpp>
 #include <boost/beast/core/buffers_suffix.hpp>
 #include <boost/beast/core/buffers_to_string.hpp>
+#include <boost/beast/core/close_socket.hpp>
 #include <boost/beast/core/error.hpp>
 #include <boost/beast/core/file.hpp>
 #include <boost/beast/core/file_base.hpp>
@@ -30,6 +31,7 @@
 #include <boost/beast/core/file_win32.hpp>
 #include <boost/beast/core/flat_buffer.hpp>
 #include <boost/beast/core/flat_static_buffer.hpp>
+#include <boost/beast/core/get_lowest_layer.hpp>
 #include <boost/beast/core/handler_ptr.hpp>
 #include <boost/beast/core/make_printable.hpp>
 #include <boost/beast/core/multi_buffer.hpp>

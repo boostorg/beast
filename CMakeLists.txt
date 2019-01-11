@@ -8,6 +8,7 @@
 #
 
 cmake_minimum_required (VERSION 3.5.1)
+cmake_policy (SET CMP0074 NEW)
 
 project (Beast VERSION 207)
 

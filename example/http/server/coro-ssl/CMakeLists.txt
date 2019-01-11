@@ -22,7 +22,7 @@ if (OPENSSL_FOUND)
     set_property(TARGET http-server-coro-ssl PROPERTY FOLDER "example-http-server")
 
     target_link_libraries (http-server-coro-ssl
-        ${OPENSSL_LIBRARIES}
+        OpenSSL::SSL OpenSSL::Crypto
         )
 
 endif()

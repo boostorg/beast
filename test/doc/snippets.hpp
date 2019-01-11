@@ -7,9 +7,15 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
-// This file is used to build the asio static library,
-// used with BOOST_ASIO_SEPARATE_COMPILATION which helps
-// reduce compilation time
+#ifndef SNIPPETS_HPP
+#define SNIPPETS_HPP
 
-#include <boost/asio/impl/src.hpp>
-#include <boost/asio/ssl/impl/src.hpp>
+// This file must be included before including snippets.ipp
+
+#include <boost/beast/core.hpp>
+#include <boost/asio.hpp>
+#include <boost/asio/ssl.hpp>
+#include <iostream>
+#include <thread>
+
+#endif

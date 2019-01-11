@@ -94,9 +94,10 @@ effect:
 
 [include 03_core/1_refresher.qbk]
 [include 03_core/2_streams.qbk]
-[include 03_core/3_buffers.qbk]
-[include 03_core/4_files.qbk]
-[include 03_core/5_composed.qbk]
-[include 03_core/6_detect_ssl.qbk]
+[include 03_core/3_layers.qbk]
+[include 03_core/4_buffers.qbk]
+[include 03_core/5_files.qbk]
+[include 03_core/6_composed.qbk]
+[include 03_core/7_detect_ssl.qbk]
 
 [endsect]

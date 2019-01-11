@@ -118,6 +118,9 @@ matrix:
         - TOOLSET=clang
         - COMPILER=clang++
         - CXXSTD=14
+      before_install:
+        - brew install openssl
+        - export OPENSSL_ROOT=$(brew --prefix openssl)
 
 install:
   - export BOOST_BRANCH=develop && [ "$TRAVIS_BRANCH" == "master" ] && BOOST_BRANCH=master || true
@@ -198,9 +201,12 @@ install:
 
 script:
   - |-
-    echo "using $TOOLSET : : $COMPILER ;" > ~/user-config.jam
+    cp libs/beast/tools/user-config.jam ~/user-config.jam
+  - |-
+    echo "using $TOOLSET : : $COMPILER ;" >> ~/user-config.jam
   - cd ../boost-root
   - libs/beast/tools/retry.sh libs/beast/tools/build-and-test.sh
+
 
 after_script:
   - cat nohup.out || echo "nohup.out already deleted"

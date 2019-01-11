@@ -7,17 +7,27 @@
 # Official repository: https://github.com/boostorg/beast
 #
 
+import ac ;
+
+project
+    : requirements
+    [ ac.check-library /boost/beast//ssl : <library>/boost/beast//ssl : <build>no ]
+    <library>/boost/beast//crypto
+    ;
+
 alias run-tests :
     [ compile core_snippets.cpp ]
     [ compile http_snippets.cpp ]
     [ compile websocket_snippets.cpp ]
     [ run core_examples.cpp $(TEST_MAIN) ]
+    [ run core_3_layers.cpp $(TEST_MAIN) ]
     [ run http_examples.cpp $(TEST_MAIN) ]
     ;
 
 exe fat-tests :
     $(TEST_MAIN)
     core_examples.cpp
+    core_3_layers.cpp
     http_examples.cpp
     ;
 

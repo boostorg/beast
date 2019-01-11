@@ -14,9 +14,9 @@ build-project small ;
 build-project stackless ;
 build-project sync ;
 
-# VFALCO How do I make this work on Windows and if OpenSSL is not available?
-#build-project async-ssl ;
-#build-project coro-ssl ;
-#build-project flex ;
-#build-project stackless-ssl ;
-#build-project sync-ssl ;
+# SSL
+build-project async-ssl ;
+build-project coro-ssl ;
+build-project flex ;
+build-project stackless-ssl ;
+build-project sync-ssl ;

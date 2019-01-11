@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013-2017 Vinnie Falco (vinnie dot falco at gmail dot com)
+# Copyright (c) 2019 Vinnie Falco (vinnie dot falco at gmail dot com)
 #
 # Distributed under the Boost Software License, Version 1.0. (See accompanying
 # file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -7,6 +7,7 @@
 # Official repository: https://github.com/boostorg/beast
 #
 
+import ac ;
 import os ;
 import feature ;
 import boost ;
@@ -16,39 +17,19 @@ import ../../config/checks/config : requires ;
 
 boost.use-project ;
 
-if [ os.name ] = SOLARIS
-{
-    lib socket ;
-    lib nsl ;
-}
-else if [ os.name ] = NT
-{
-    lib ws2_32 ;
-    lib mswsock ;
-}
-else if [ os.name ] = HPUX
-{
-    lib ipv6 ;
-}
-else if [ os.name ] = QNXNTO
-{
-    lib socket ;
-}
-else if [ os.name ] = HAIKU
-{
-    lib network ;
-}
+lib socket ; # SOLARIS, QNXNTO
+lib nsl ; # SOLARIS
+lib ws2_32 ; # NT
+lib mswsock ; # NT
+lib ipv6 ; # HPUX
+lib network ; # HAIKU
 
-if [ os.name ] = NT
-{
-    lib ssl : : <name>ssleay32 ;
-    lib crypto : : <name>libeay32 ;
-}
-else
-{
-    lib ssl ;
-    lib crypto ;
-}
+lib ssl ;
+lib crypto ;
+lib crypt32 ;
+
+lib ssl : : <target-os>windows <name>ssleay32 ;
+lib crypto : : <target-os>windows <name>libeay32 ;
 
 variant coverage
   : debug
@@ -87,21 +68,24 @@ lib static_asio
         <define>BOOST_ASIO_DISABLE_BOOST_REGEX=1
         <define>BOOST_ASIO_SEPARATE_COMPILATION
         <define>BOOST_COROUTINES_NO_DEPRECATION_WARNING=1
-        <os>NT:<define>_WIN32_WINNT=0x0601
+        <target-os>windows:<define>_WIN32_WINNT=0x0501
         <link>static
     ;
 
 project /boost/beast
   : requirements
-    <implicit-dependency>/boost//headers
     <include>.
     <include>./test/extras/include
     <library>/boost/coroutine//boost_coroutine
     <library>/boost/filesystem//boost_filesystem
     <library>static_asio
+    <implicit-dependency>/boost//headers
     <threading>multi
-    <runtime-link>shared
     <debug-symbols>on
+    <runtime-link>shared
+    [ ac.check-library /boost/beast//ssl : <library>/boost/beast//ssl : <build>no ]
+    <library>/boost/beast//crypto
+
     <define>BOOST_ALL_NO_LIB=1
     <define>BOOST_ASIO_NO_DEPRECATED=1
     <define>BOOST_ASIO_DISABLE_BOOST_ARRAY=1
@@ -116,13 +100,23 @@ project /boost/beast
     <toolset>msvc:<define>_SILENCE_CXX17_ALLOCATOR_VOID_DEPRECATION_WARNING
     <toolset>msvc:<define>_SILENCE_CXX17_ADAPTOR_TYPEDEFS_DEPRECATION_WARNING
     <toolset>msvc,<variant>release:<cxxflags>"/Ob2 /Oi /Ot"
-    <os>SOLARIS:<library>socket
-    <os>SOLARIS:<library>nsl
-    <os>NT:<define>_WIN32_WINNT=0x0601
-    <os>NT,<toolset>cw:<library>ws2_32
-    <os>NT,<toolset>cw:<library>mswsock
-    <os>NT,<toolset>gcc:<library>ws2_32
-    <os>NT,<toolset>gcc:<library>mswsock
-    <os>NT,<toolset>gcc-cygwin:<define>__USE_W32_SOCKETS
+    
+    <target-os>linux:<define>_XOPEN_SOURCE=600
+    <target-os>linux:<define>_GNU_SOURCE=1
+    <target-os>solaris:<define>_XOPEN_SOURCE=500
+    <target-os>solaris:<define>__EXTENSIONS__
+    <target-os>solaris:<library>socket
+    <target-os>solaris:<library>nsl
+    <target-os>windows:<define>_WIN32_WINNT=0x0501
+    <target-os>windows,<toolset>cw:<library>ws2_32
+    <target-os>windows,<toolset>cw:<library>mswsock
+    <target-os>windows,<toolset>gcc:<library>ws2_32
+    <target-os>windows,<toolset>gcc:<library>mswsock
+    <target-os>windows,<toolset>gcc-cygwin:<define>__USE_W32_SOCKETS
+    <target-os>hpux,<toolset>gcc:<define>_XOPEN_SOURCE_EXTENDED
+    <target-os>hpux:<library>ipv6
+    <target-os>qnxnto:<library>socket
+    <target-os>haiku:<library>network
+
   : usage-requirements
   ;

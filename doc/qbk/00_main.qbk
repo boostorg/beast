@@ -109,6 +109,7 @@
 [def __serializer__             [link beast.ref.boost__beast__http__serializer `serializer`]]
 [def __flat_static_buffer__      [link beast.ref.boost__beast__flat_static_buffer `flat_static_buffer`]]
 [def __flat_static_buffer_base__ [link beast.ref.boost__beast__flat_static_buffer_base `flat_static_buffer_base`]]
+[def __websocket_stream__       [link beast.ref.boost__beast__websocket__stream `websocket::stream`]]
 
 [import ../../example/common/detect_ssl.hpp]
 [import ../../example/doc/http_examples.hpp]
@@ -120,6 +121,7 @@
 
 [import ../../test/doc/exemplars.cpp]
 [import ../../test/doc/core_snippets.cpp]
+[import ../../test/doc/core_3_layers.cpp]
 [import ../../test/doc/http_snippets.cpp]
 [import ../../test/doc/websocket_snippets.cpp]
 

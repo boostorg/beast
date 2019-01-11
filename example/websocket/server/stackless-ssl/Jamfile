@@ -7,10 +7,12 @@
 # Official repository: https://github.com/boostorg/beast
 #
 
+import ac ;
+
 project
     : requirements
-    <library>ssl
-    <library>crypto
+    [ ac.check-library /boost/beast//ssl : <library>/boost/beast//ssl : <build>no ]
+    <library>/boost/beast//crypto
     ;
 
 exe websocket-server-stackless-ssl :

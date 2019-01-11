@@ -40,6 +40,7 @@ add_executable (tests-beast-core
     buffers_range.cpp
     buffers_suffix.cpp
     buffers_to_string.cpp
+    close_socket.cpp
     error.cpp
     file.cpp
     file_posix.cpp
@@ -47,6 +48,7 @@ add_executable (tests-beast-core
     file_win32.cpp
     flat_buffer.cpp
     flat_static_buffer.cpp
+    get_lowest_layer.cpp
     handler_ptr.cpp
     make_printable.cpp
     multi_buffer.cpp

@@ -1,0 +1,115 @@
+[/
+    Copyright (c) 2016-2017 Vinnie Falco (vinnie dot falco at gmail dot com)
+
+    Distributed under the Boost Software License, Version 1.0. (See accompanying
+    file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+
+    Official repository: https://github.com/boostorg/beast
+]
+
+[section Layered Streams]
+
+Networking's __ssl_stream__ is a class template meeting the requirements
+of both synchronous and asynchronous read and write streams, implemented
+in terms of a "next layer" object whose type is determined by a class
+template parameter. The SSL stream constructs an instance of the next
+layer object internally, while allowing external access through the
+observer `net::ssl::stream::next_layer()`. This declares an SSL stream
+which uses a regular TCP/IP socket as the next layer:
+
+[code_core_3_layers_1]
+
+Objects using this design pattern are referred to in networking as "a
+stack of stream layers". In Beast we use the term ['layered stream],
+although the property of having a next layer is not exclusive to streams.
+As with the SSL stream, __websocket_stream__ is a class template
+parameterized on a next layer object. This declares a websocket
+stream which uses a regular TCP/IP socket as the next layer:
+
+[code_core_3_layers_2]
+
+If a Secure WebSockets stream is desired, this is accomplished simply
+by changing the type of the next layer and adjusting the constructor
+arguments to match:
+
+[code_core_3_layers_3]
+
+Higher level abstractions can be developed in this fashion by nesting
+stream layers to arbitrary degree. The stack of stream layers effectively
+forms a compile-time singly linked list. The object at the end of
+this list is called the ['lowest layer], and is special from the
+others because it typically represents the underlying socket.
+
+Beast comes with several layered stream wrappers, as well as
+facilities for authoring and working with layered streams:
+
+[table Layered Stream Algorithms and Types
+[[Name][Description]]
+[[
+    [link beast.ref.boost__beast__timeout_stream `timeout_stream`]
+    [link beast.ref.boost__beast__basic_timeout_stream `basic_timeout_stream`]
+][
+    A timeout stream meets the requirements for synchronous and asynchronous
+    read and write streams, and additionally provides configurable timeouts
+    for logical operations that include reading, writing, and/or connecting.
+]]
+[[
+    [link beast.ref.boost__beast__buffered_read_stream `buffered_read_stream`]
+][
+    A timeout stream meets the requirements for synchronous and asynchronous
+    read and write streams, and additionally implements configurable buffering
+    for reads.
+]]
+[[
+    [link beast.ref.boost__beast__flat_stream `flat_stream`]
+][
+    A flat stream operates as a transparent stream which helps to work around
+    a limitation of `net::ssl::stream`. It is used in the implementation
+    of [link beast.ref.boost__beast__ssl_stream `ssl_stream`].
+]]
+[[
+    [link beast.ref.boost__beast__http__icy_stream `http::icy_stream`]
+][
+    An ICY stream transparently converts the non-standard "ICY 200 OK"
+    HTTP response from Shoutcast servers into a conforming 200 level
+    HTTP response.
+]]
+[[
+    [link beast.ref.boost__beast__ssl_stream `ssl_stream`]
+][
+    The SSL stream is a drop-in replacement for `net::ssl::stream` which
+    allows for move-construction and move-assignment, and also implements
+    a work-around for a performance limitation in the original SSL stream.
+]]
+[[
+    [link beast.ref.boost__beast__get_lowest_layer `get_lowest_layer`]
+][
+    Returns the lowest layer in a stack of stream layers by recursively
+    calling the `next_layer` member function on each object until reaching
+    an object which lacks the member. This example
+    puts a layered stream into non-blocking mode by retrieving the
+    TCP/IP socket in the lowest layer and changing the socket option:
+
+    [code_core_3_layers_4]
+]]
+[[
+    [link beast.ref.boost__beast__lowest_layer_type `lowest_layer_type`]
+][
+    A metafunction to return the type of the lowest layer used in
+    a type representing a stack of stream layers. This is the type
+    of reference returned by
+    [link beast.ref.boost__beast__get_lowest_layer `get_lowest_layer`]
+]]
+]
+
+[heading Example]
+
+This example shows the definition of a layered stream which keeps individual
+counts of the total number of bytes read from and written to the next layer.
+It meets the requirements for synchronous and asynchronous read and write
+streams:
+
+[code_core_3_layers_5]
+
+[endsect]
+

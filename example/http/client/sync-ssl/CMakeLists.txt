@@ -22,7 +22,7 @@ if (OPENSSL_FOUND)
     set_property(TARGET http-client-sync-ssl PROPERTY FOLDER "example-http-client")
 
     target_link_libraries (http-client-sync-ssl
-        ${OPENSSL_LIBRARIES}
+        OpenSSL::SSL OpenSSL::Crypto
         )
 
 endif()

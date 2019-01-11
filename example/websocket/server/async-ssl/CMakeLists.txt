@@ -22,7 +22,7 @@ if (OPENSSL_FOUND)
     set_property(TARGET websocket-server-async-ssl PROPERTY FOLDER "example-websocket-server")
 
     target_link_libraries (websocket-server-async-ssl
-        ${OPENSSL_LIBRARIES}
+        OpenSSL::SSL OpenSSL::Crypto
         )
 
 endif()

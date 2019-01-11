@@ -33,7 +33,7 @@ implementation strategies:
   size of the character sequence. This is the implementation approach
   currently offered by __multi_buffer__.
 
-[heading Associated Types]
+[heading Associated With]
 
 * `boost::asio::is_dynamic_buffer`
 * __ConstBufferSequence__
