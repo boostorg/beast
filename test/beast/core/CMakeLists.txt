@@ -51,6 +51,7 @@ add_executable (tests-beast-core
     multi_buffer.cpp
     ostream.cpp
     read_size.cpp
+    saved_handler.cpp
     span.cpp
     static_buffer.cpp
     static_string.cpp

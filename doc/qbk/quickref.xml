@@ -203,6 +203,7 @@
             <member><link linkend="beast.ref.boost__beast__iequal">iequal</link></member>
             <member><link linkend="beast.ref.boost__beast__iless">iless</link></member>
             <member><link linkend="beast.ref.boost__beast__multi_buffer">multi_buffer</link></member>
+            <member><link linkend="beast.ref.boost__beast__saved_handler">saved_handler</link></member>
             <member><link linkend="beast.ref.boost__beast__span">span</link></member>
             <member><link linkend="beast.ref.boost__beast__static_buffer">static_buffer</link></member>
             <member><link linkend="beast.ref.boost__beast__static_buffer_base">static_buffer_base</link></member>

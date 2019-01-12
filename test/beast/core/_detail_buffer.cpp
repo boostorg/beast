@@ -24,7 +24,7 @@ namespace detail {
 // VFALCO No idea why boost::system::errc::message_size fails
 //        to compile, so we use net::error::eof instead.
 //
-class detail_buffer_test : public beast::unit_test::suite
+class buffer_test : public beast::unit_test::suite
 {
 public:
     template<class DynamicBuffer>
@@ -76,7 +76,7 @@ public:
     }
 };
 
-BEAST_DEFINE_TESTSUITE(beast,core,detail_buffer);
+BEAST_DEFINE_TESTSUITE(beast,core,buffer);
 
 } // detail
 } // beast

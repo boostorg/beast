@@ -97,6 +97,13 @@ composed operations:
     handler's associated allocator, benefiting from all handler memory
     management optimizations transparently.
 ]]
+[[
+    [link beast.ref.boost__beast__saved_handler `saved_handler`]
+][
+    This wrapper safely stores a completion handler so it may be invoked
+    later, allowing an implementation to "pause" an operation until some
+    condition is met.
+]]
 ]
 
 

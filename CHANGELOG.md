@@ -2,6 +2,7 @@ Version 203
 
 * Update networking refresher doc
 * Include error code in call to set_option
+* saved_handler is a public interface
 
 --------------------------------------------------------------------------------
 
