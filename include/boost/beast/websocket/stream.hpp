@@ -19,10 +19,10 @@
 #include <boost/beast/websocket/detail/frame.hpp>
 #include <boost/beast/websocket/detail/hybi13.hpp>
 #include <boost/beast/websocket/detail/mask.hpp>
-#include <boost/beast/websocket/detail/saved_handler.hpp>
 #include <boost/beast/websocket/detail/pmd_extension.hpp>
 #include <boost/beast/websocket/detail/stream_base.hpp>
 #include <boost/beast/websocket/detail/utf8_checker.hpp>
+#include <boost/beast/core/saved_handler.hpp>
 #include <boost/beast/core/static_buffer.hpp>
 #include <boost/beast/core/string.hpp>
 #include <boost/beast/core/detail/type_traits.hpp>
@@ -204,12 +204,12 @@ class stream
                                 = 4096;
     detail::fh_buffer       wr_fb_;         // header buffer used for writes
 
-    detail::saved_handler   paused_rd_;     // paused read op
-    detail::saved_handler   paused_wr_;     // paused write op
-    detail::saved_handler   paused_ping_;   // paused ping op
-    detail::saved_handler   paused_close_;  // paused close op
-    detail::saved_handler   paused_r_rd_;   // paused read op (async read)
-    detail::saved_handler   paused_r_close_;// paused close op (async read)
+    saved_handler           paused_rd_;     // paused read op
+    saved_handler           paused_wr_;     // paused write op
+    saved_handler           paused_ping_;   // paused ping op
+    saved_handler           paused_close_;  // paused close op
+    saved_handler           paused_r_rd_;   // paused read op (async read)
+    saved_handler           paused_r_close_;// paused close op (async read)
 
 public:
     /// Indicates if the permessage-deflate extension is supported

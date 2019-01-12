@@ -125,9 +125,12 @@ emplace(Handler&& handler, Allocator const& alloc)
 {
     // Can't delete a handler before invoking
     BOOST_ASSERT(! has_value());
+    using handler_type =
+        typename std::decay<Handler>::type;
     using alloc_type = typename
-        beast::detail::allocator_traits<Allocator>::
-            template rebind_alloc<impl<Handler, Allocator>>;
+        detail::allocator_traits<Allocator>::
+            template rebind_alloc<impl<
+                handler_type, Allocator>>;
     using alloc_traits =
         beast::detail::allocator_traits<alloc_type>;
     struct storage
