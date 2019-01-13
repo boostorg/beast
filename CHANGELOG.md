@@ -5,6 +5,7 @@ Version 203
 * saved_handler is a public interface
 * Use new saved_handler in websocket
 * session_alloc is thread-safe
+* examples use flat_buffer
 
 --------------------------------------------------------------------------------
 

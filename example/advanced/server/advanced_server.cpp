@@ -225,7 +225,7 @@ class websocket_session : public std::enable_shared_from_this<websocket_session>
     net::strand<
         net::io_context::executor_type> strand_;
     net::steady_timer timer_;
-    beast::multi_buffer buffer_;
+    beast::flat_buffer buffer_;
     char ping_state_ = 0;
 
 public:

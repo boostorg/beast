@@ -240,7 +240,7 @@ class websocket_session
         return static_cast<Derived&>(*this);
     }
 
-    beast::multi_buffer buffer_;
+    beast::flat_buffer buffer_;
     char ping_state_ = 0;
 
 protected:
