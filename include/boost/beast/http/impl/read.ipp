@@ -26,13 +26,12 @@ namespace http {
 namespace detail {
 
 // The default maximum number of bytes to transfer in a single operation.
-static std::size_t constexpr default_max_transfer_size = 65536;
+std::size_t constexpr default_max_transfer_size = 65536;
 
 template<
     class DynamicBuffer,
     bool isRequest, class Derived,
     class Condition>
-static
 std::size_t
 parse_until(
     DynamicBuffer& buffer,

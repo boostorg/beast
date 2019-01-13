@@ -6,6 +6,7 @@ Version 203
 * Use new saved_handler in websocket
 * session_alloc is thread-safe
 * examples use flat_buffer
+* parse_until is not static
 
 --------------------------------------------------------------------------------
 
