@@ -18,6 +18,7 @@
 #include <boost/intrusive/list.hpp>
 #include <algorithm>
 #include <cstddef>
+#include <mutex>
 #include <utility>
 
 namespace detail {
@@ -79,6 +80,7 @@ protected:
                 boost::intrusive::constant_time_size<
                     true>>::type;
 
+        std::mutex m_;
         std::size_t refs_ = 1;      // shared count
         std::size_t high_ = 0;      // highest used
         std::size_t size_ = 0;      // size of buf_
@@ -135,6 +137,7 @@ pool_t::
 addref() ->
     pool_t&
 {
+    std::lock_guard<std::mutex> lock(m_);
     ++refs_;
     return *this;
 }
@@ -145,8 +148,11 @@ session_alloc_base<Context>::
 pool_t::
 release()
 {
-    if(--refs_)
-        return;
+    {
+        std::lock_guard<std::mutex> lock(m_);
+        if(--refs_)
+            return;
+    }
     delete this;
 }
 
@@ -156,6 +162,7 @@ session_alloc_base<Context>::
 pool_t::
 alloc(std::size_t n)
 {
+    std::lock_guard<std::mutex> lock(m_);
     if(list_.empty() && size_ < high_)
     {
         if(buf_)
@@ -204,6 +211,7 @@ pool_t::
 dealloc(void* pv, std::size_t n)
 {
     boost::ignore_unused(n);
+    std::lock_guard<std::mutex> lock(m_);
     auto& e = *(reinterpret_cast<element*>(pv) - 1);
     BOOST_ASSERT(e.size() == n);
     if( (e.end() > buf_ + size_) ||

@@ -4,6 +4,7 @@ Version 203
 * Include error code in call to set_option
 * saved_handler is a public interface
 * Use new saved_handler in websocket
+* session_alloc is thread-safe
 
 --------------------------------------------------------------------------------
 
