@@ -27,6 +27,9 @@
     <xsl:when test="type = 'class ConnectCondition'">
       <xsl:text>class __ConnectCondition__</xsl:text>
     </xsl:when>
+    <xsl:when test="type = 'class ConnectHandler'">
+      <xsl:text>class __ConnectHandler__</xsl:text>
+    </xsl:when>
     <xsl:when test="declname = 'ConstBufferSequence' or type = 'class ConstBufferSequence'">
       <xsl:text>class __ConstBufferSequence__</xsl:text>
     </xsl:when>

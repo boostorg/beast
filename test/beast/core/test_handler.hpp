@@ -215,8 +215,7 @@ template<class Executor>
 struct associated_executor<
     boost::beast::legacy_handler, Executor>
 {
-    using type = typename
-        boost::beast::simple_executor;
+    using type = boost::beast::simple_executor;
 
     static type get(
         boost::beast::legacy_handler const&,

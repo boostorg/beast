@@ -7,8 +7,8 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
-#ifndef BOOST_BEAST_CORE_DETAIL_STREAM_SOCKET_BASE_HPP
-#define BOOST_BEAST_CORE_DETAIL_STREAM_SOCKET_BASE_HPP
+#ifndef BOOST_BEAST_CORE_DETAIL_TIMEOUT_STREAM_BASE_HPP
+#define BOOST_BEAST_CORE_DETAIL_TIMEOUT_STREAM_BASE_HPP
 
 #include <boost/assert.hpp>
 #include <boost/core/exchange.hpp>
@@ -18,9 +18,20 @@ namespace beast {
 namespace detail {
 
 template<class, class, class>
-class stream_socket_connect_op;
+class timeout_stream_connect_op;
 
-class stream_socket_base
+struct any_endpoint
+{
+    template<class Error, class Endpoint>
+    bool
+    operator()(
+        Error const&, Endpoint const&) const noexcept
+    {
+        return true;
+    }
+};
+
+class timeout_stream_base
 {
 protected:
     class pending_guard
@@ -43,9 +54,11 @@ protected:
             b_ = true;
         }
 
-        pending_guard(pending_guard&& other) noexcept
+        pending_guard(
+            pending_guard&& other) noexcept
             : b_(other.b_)
-            , clear_(boost::exchange(other.clear_, false))
+            , clear_(boost::exchange(
+                other.clear_, false))
         {
         }
 

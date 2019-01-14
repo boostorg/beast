@@ -28,7 +28,7 @@ add_executable (tests-beast-core
     _detail_variant.cpp
     _detail_varint.cpp
     async_op_base.cpp
-    basic_stream_socket.cpp
+    basic_timeout_stream.cpp
     bind_handler.cpp
     buffer_traits.cpp
     buffered_read_stream.cpp
@@ -55,9 +55,9 @@ add_executable (tests-beast-core
     span.cpp
     static_buffer.cpp
     static_string.cpp
-    stream_socket.cpp
     string.cpp
     string_param.cpp
+    timeout_stream.cpp
     type_traits.cpp
 )
 
