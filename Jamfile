@@ -96,7 +96,6 @@ project /boost/beast
     <implicit-dependency>/boost//headers
     <include>.
     <include>./test/extras/include
-    <library>/boost/system//boost_system
     <library>/boost/coroutine//boost_coroutine
     <library>/boost/filesystem//boost_filesystem
     <library>static_asio
