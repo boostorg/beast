@@ -7,6 +7,7 @@ Version 203
 * session_alloc is thread-safe
 * examples use flat_buffer
 * parse_until is not static
+* Boost.System is header-only
 
 --------------------------------------------------------------------------------
 
