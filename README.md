@@ -105,10 +105,9 @@ to your source files, like this:
 #include <boost/beast.hpp>
 ```
 
-To build your program successfully, you'll need to add the Boost.System
-library to link with. If you use coroutines you'll also need to link
-with the Boost.Coroutine library. Please visit the Boost documentation
-for instructions on how to do this for your particular build system.
+If you use coroutines you'll need to link with the Boost.Coroutine
+library. Please visit the Boost documentation for instructions
+on how to do this for your particular build system.
 
 To build the documentation, examples, tests, and benchmarks it is
 necessary to first obtain the Boost "superproject" along with sources of
