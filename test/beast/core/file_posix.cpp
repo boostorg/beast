@@ -29,7 +29,7 @@ public:
     void
     run()
     {
-        test_file<file_posix>(*this);
+        test_file<file_posix>();
     }
 };
 

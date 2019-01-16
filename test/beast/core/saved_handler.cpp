@@ -23,29 +23,22 @@ class saved_handler_test : public unit_test::suite
 public:
     class handler
     {
-        unit_test::suite& s_;
         bool failed_ = true;
         bool throw_on_move_ = false;
     
     public:
+        handler() = default;
         handler(handler const&) = delete;
         handler& operator=(handler&&) = delete;
         handler& operator=(handler const&) = delete;
 
         ~handler()
         {
-            s_.BEAST_EXPECT(! failed_);
-        }
-
-        explicit
-        handler(unit_test::suite& s)
-            : s_(s)
-        {
+            BEAST_EXPECT(! failed_);
         }
 
         handler(handler&& other)
-            : s_(other.s_)
-            , failed_(boost::exchange(
+            : failed_(boost::exchange(
                 other.failed_, false))
         {
             if(throw_on_move_)
@@ -61,28 +54,21 @@ public:
 
     class unhandler
     {
-        unit_test::suite& s_;
         bool invoked_ = false;
    
     public:
+        unhandler() = default;
         unhandler(unhandler const&) = delete;
         unhandler& operator=(unhandler&&) = delete;
         unhandler& operator=(unhandler const&) = delete;
 
         ~unhandler()
         {
-            s_.BEAST_EXPECT(! invoked_);
-        }
-
-        explicit
-        unhandler(unit_test::suite& s)
-            : s_(s)
-        {
+            BEAST_EXPECT(! invoked_);
         }
 
         unhandler(unhandler&& other)
-            : s_(other.s_)
-            , invoked_(boost::exchange(
+            : invoked_(boost::exchange(
                 other.invoked_, false))
         {
         }
@@ -116,17 +102,17 @@ public:
             saved_handler sh;
             BEAST_EXPECT(! sh.has_value());
 
-            sh.emplace(handler{*this});
+            sh.emplace(handler{});
             BEAST_EXPECT(sh.has_value());
             sh.invoke();
             BEAST_EXPECT(! sh.has_value());
 
-            sh.emplace(handler{*this}, std::allocator<char>{});
+            sh.emplace(handler{}, std::allocator<char>{});
             BEAST_EXPECT(sh.has_value());
             sh.invoke();
             BEAST_EXPECT(! sh.has_value());
 
-            sh.emplace(unhandler{*this});
+            sh.emplace(unhandler{});
             BEAST_EXPECT(sh.has_value());
         }
 

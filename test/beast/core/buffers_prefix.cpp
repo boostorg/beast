@@ -30,7 +30,7 @@ public:
         auto const b =
             buffers_triple(buf, sizeof(buf));
         for(std::size_t i = 1; i <= sizeof(buf); ++i)
-            test_buffer_sequence(*this,
+            test_buffer_sequence(
                 buffers_prefix(i, b));
     }
 

@@ -23,7 +23,7 @@ namespace beast {
 
 template<class File>
 void
-test_file(beast::unit_test::suite& test)
+test_file()
 {
     BOOST_STATIC_ASSERT(
         is_file<File>::value);
@@ -58,13 +58,13 @@ test_file(beast::unit_test::suite& test)
     };
 
     auto const create =
-        [&test](fs::path const& path)
+        [](fs::path const& path)
         {
             auto const s =
                 path.string<std::string>();
-            test.BEAST_EXPECT(! fs::exists(path));
+            BEAST_EXPECT(! fs::exists(path));
             FILE* f = ::fopen(s.c_str(), "w");
-            if( test.BEAST_EXPECT(f != nullptr))
+            if( BEAST_EXPECT(f != nullptr))
                 ::fclose(f);
         };
 
@@ -81,32 +81,32 @@ test_file(beast::unit_test::suite& test)
     {
         File f;
         char buf[1];
-        test.BEAST_EXPECT(! f.is_open());
-        test.BEAST_EXPECT(! fs::exists(path));
+        BEAST_EXPECT(! f.is_open());
+        BEAST_EXPECT(! fs::exists(path));
         {
             error_code ec;
             f.size(ec);
-            test.BEAST_EXPECT(ec == errc::bad_file_descriptor);
+            BEAST_EXPECT(ec == errc::bad_file_descriptor);
         }
         {
             error_code ec;
             f.pos(ec);
-            test.BEAST_EXPECT(ec == errc::bad_file_descriptor);
+            BEAST_EXPECT(ec == errc::bad_file_descriptor);
         }
         {
             error_code ec;
             f.seek(0, ec);
-            test.BEAST_EXPECT(ec == errc::bad_file_descriptor);
+            BEAST_EXPECT(ec == errc::bad_file_descriptor);
         }
         {
             error_code ec;
             f.read(buf, 0, ec);
-            test.BEAST_EXPECT(ec == errc::bad_file_descriptor);
+            BEAST_EXPECT(ec == errc::bad_file_descriptor);
         }
         {
             error_code ec;
             f.write(buf, 0, ec);
-            test.BEAST_EXPECT(ec == errc::bad_file_descriptor);
+            BEAST_EXPECT(ec == errc::bad_file_descriptor);
         }
     }
 
@@ -117,7 +117,7 @@ test_file(beast::unit_test::suite& test)
             error_code ec;
             create(path);
             f.open(path, file_mode::read, ec);
-            test.BEAST_EXPECT(! ec);
+            BEAST_EXPECT(! ec);
         }
         remove(path);
     }
@@ -129,7 +129,7 @@ test_file(beast::unit_test::suite& test)
             error_code ec;
             create(path);
             f.open(path, file_mode::scan, ec);
-            test.BEAST_EXPECT(! ec);
+            BEAST_EXPECT(! ec);
         }
         remove(path);
     }
@@ -139,18 +139,18 @@ test_file(beast::unit_test::suite& test)
         {
             File f;
             error_code ec;
-            test.BEAST_EXPECT(! fs::exists(path));
+            BEAST_EXPECT(! fs::exists(path));
             f.open(path, file_mode::write, ec);
-            test.BEAST_EXPECT(! ec);
-            test.BEAST_EXPECT(fs::exists(path));
+            BEAST_EXPECT(! ec);
+            BEAST_EXPECT(fs::exists(path));
         }
         {
             File f;
             error_code ec;
-            test.BEAST_EXPECT(fs::exists(path));
+            BEAST_EXPECT(fs::exists(path));
             f.open(path, file_mode::write, ec);
-            test.BEAST_EXPECT(! ec);
-            test.BEAST_EXPECT(fs::exists(path));
+            BEAST_EXPECT(! ec);
+            BEAST_EXPECT(fs::exists(path));
         }
         remove(path);
     }
@@ -160,17 +160,17 @@ test_file(beast::unit_test::suite& test)
         {
             File f;
             error_code ec;
-            test.BEAST_EXPECT(! fs::exists(path));
+            BEAST_EXPECT(! fs::exists(path));
             f.open(path, file_mode::write_new, ec);
-            test.BEAST_EXPECT(! ec);
-            test.BEAST_EXPECT(fs::exists(path));
+            BEAST_EXPECT(! ec);
+            BEAST_EXPECT(fs::exists(path));
         }
         {
             File f;
             error_code ec;
-            test.BEAST_EXPECT(fs::exists(path));
+            BEAST_EXPECT(fs::exists(path));
             f.open(path, file_mode::write_new, ec);
-            test.BEAST_EXPECT(ec);
+            BEAST_EXPECT(ec);
         }
         remove(path);
     }
@@ -180,18 +180,18 @@ test_file(beast::unit_test::suite& test)
         {
             File f;
             error_code ec;
-            test.BEAST_EXPECT(! fs::exists(path));
+            BEAST_EXPECT(! fs::exists(path));
             f.open(path, file_mode::write_existing, ec);
-            test.BEAST_EXPECT(ec);
-            test.BEAST_EXPECT(! fs::exists(path));
+            BEAST_EXPECT(ec);
+            BEAST_EXPECT(! fs::exists(path));
         }
         {
             File f;
             error_code ec;
             create(path);
-            test.BEAST_EXPECT(fs::exists(path));
+            BEAST_EXPECT(fs::exists(path));
             f.open(path, file_mode::write_existing, ec);
-            test.BEAST_EXPECT(! ec);
+            BEAST_EXPECT(! ec);
         }
         remove(path);
     }
@@ -201,18 +201,18 @@ test_file(beast::unit_test::suite& test)
         {
             File f;
             error_code ec;
-            test.BEAST_EXPECT(! fs::exists(path));
+            BEAST_EXPECT(! fs::exists(path));
             f.open(path, file_mode::append, ec);
-            test.BEAST_EXPECT(! ec);
-            test.BEAST_EXPECT(fs::exists(path));
+            BEAST_EXPECT(! ec);
+            BEAST_EXPECT(fs::exists(path));
         }
         {
             File f;
             error_code ec;
-            test.BEAST_EXPECT(fs::exists(path));
+            BEAST_EXPECT(fs::exists(path));
             f.open(path, file_mode::append, ec);
-            test.BEAST_EXPECT(! ec);
-            test.BEAST_EXPECT(fs::exists(path));
+            BEAST_EXPECT(! ec);
+            BEAST_EXPECT(fs::exists(path));
         }
         remove(path);
     }
@@ -222,19 +222,19 @@ test_file(beast::unit_test::suite& test)
         {
             File f;
             error_code ec;
-            test.BEAST_EXPECT(! fs::exists(path));
+            BEAST_EXPECT(! fs::exists(path));
             f.open(path, file_mode::append_existing, ec);
-            test.BEAST_EXPECT(ec);
-            test.BEAST_EXPECT(! fs::exists(path));
+            BEAST_EXPECT(ec);
+            BEAST_EXPECT(! fs::exists(path));
         }
         remove(path);
         {
             File f;
             error_code ec;
             create(path);
-            test.BEAST_EXPECT(fs::exists(path));
+            BEAST_EXPECT(fs::exists(path));
             f.open(path, file_mode::append_existing, ec);
-            test.BEAST_EXPECT(! ec);
+            BEAST_EXPECT(! ec);
         }
         remove(path);
     }
@@ -245,19 +245,19 @@ test_file(beast::unit_test::suite& test)
             File f1;
             error_code ec;
             f1.open(path, file_mode::write, ec);
-            test.BEAST_EXPECT(! ec);
-            test.BEAST_EXPECT(f1.is_open());
+            BEAST_EXPECT(! ec);
+            BEAST_EXPECT(f1.is_open());
 
             // move constructor
             File f2(std::move(f1));
-            test.BEAST_EXPECT(! f1.is_open());
-            test.BEAST_EXPECT(f2.is_open());
+            BEAST_EXPECT(! f1.is_open());
+            BEAST_EXPECT(f2.is_open());
 
             // move assignment
             File f3;
             f3 = std::move(f2);
-            test.BEAST_EXPECT(! f2.is_open());
-            test.BEAST_EXPECT(f3.is_open());
+            BEAST_EXPECT(! f2.is_open());
+            BEAST_EXPECT(f3.is_open());
         }
         remove(path);
     }
@@ -268,9 +268,9 @@ test_file(beast::unit_test::suite& test)
             File f;
             error_code ec;
             f.open(path, file_mode::write, ec);
-            test.BEAST_EXPECT(! ec);
+            BEAST_EXPECT(! ec);
             f.open(path, file_mode::write, ec);
-            test.BEAST_EXPECT(! ec);
+            BEAST_EXPECT(! ec);
         }
         remove(path);
     }
@@ -283,15 +283,15 @@ test_file(beast::unit_test::suite& test)
 
             File f1;
             f1.open(path, file_mode::write, ec);
-            test.BEAST_EXPECT(! ec);
+            BEAST_EXPECT(! ec);
 
             File f2;
             f2.open(path2, file_mode::write, ec);
-            test.BEAST_EXPECT(! ec);
+            BEAST_EXPECT(! ec);
 
             f2 = std::move(f1);
-            test.BEAST_EXPECT(! f1.is_open());
-            test.BEAST_EXPECT(f2.is_open());
+            BEAST_EXPECT(! f1.is_open());
+            BEAST_EXPECT(f2.is_open());
         }
         remove(path);
         remove(path2);
@@ -303,9 +303,9 @@ test_file(beast::unit_test::suite& test)
             File f;
             error_code ec;
             f.open(path, file_mode::write, ec);
-            test.BEAST_EXPECT(! ec);
+            BEAST_EXPECT(! ec);
             f = std::move(f);
-            test.BEAST_EXPECT(f.is_open());
+            BEAST_EXPECT(f.is_open());
         }
         remove(path);
     }
@@ -317,11 +317,11 @@ test_file(beast::unit_test::suite& test)
             auto none = f.native_handle();
             error_code ec;
             f.open(path, file_mode::write, ec);
-            test.BEAST_EXPECT(! ec);
+            BEAST_EXPECT(! ec);
             auto fd = f.native_handle();
-            test.BEAST_EXPECT(fd != none);
+            BEAST_EXPECT(fd != none);
             f.native_handle(none);
-            test.BEAST_EXPECT(! f.is_open());
+            BEAST_EXPECT(! f.is_open());
         }
         remove(path);
     }
@@ -335,21 +335,21 @@ test_file(beast::unit_test::suite& test)
             File f;
             error_code ec;
             f.open(path, file_mode::write, ec);
-            test.BEAST_EXPECT(! ec);
+            BEAST_EXPECT(! ec);
 
             f.write(s.data(), s.size(), ec);
-            test.BEAST_EXPECT(! ec);
+            BEAST_EXPECT(! ec);
 
             auto size = f.size(ec);
-            test.BEAST_EXPECT(! ec);
-            test.BEAST_EXPECT(size == s.size());
+            BEAST_EXPECT(! ec);
+            BEAST_EXPECT(size == s.size());
 
             auto pos = f.pos(ec);
-            test.BEAST_EXPECT(! ec);
-            test.BEAST_EXPECT(pos == size);
+            BEAST_EXPECT(! ec);
+            BEAST_EXPECT(pos == size);
 
             f.close(ec);
-            test.BEAST_EXPECT(! ec);
+            BEAST_EXPECT(! ec);
         }
 
         // read
@@ -357,29 +357,29 @@ test_file(beast::unit_test::suite& test)
             File f;
             error_code ec;
             f.open(path, file_mode::read, ec);
-            test.BEAST_EXPECT(! ec);
+            BEAST_EXPECT(! ec);
 
             std::string buf;
             buf.resize(s.size());
             f.read(&buf[0], buf.size(), ec);
-            test.BEAST_EXPECT(! ec);
-            test.BEAST_EXPECT(buf == s);
+            BEAST_EXPECT(! ec);
+            BEAST_EXPECT(buf == s);
 
             f.seek(1, ec);
-            test.BEAST_EXPECT(! ec);
+            BEAST_EXPECT(! ec);
             buf.resize(3);
             f.read(&buf[0], buf.size(), ec);
-            test.BEAST_EXPECT(! ec);
-            test.BEAST_EXPECT(buf == "ell");
+            BEAST_EXPECT(! ec);
+            BEAST_EXPECT(buf == "ell");
 
             auto pos = f.pos(ec);
-            test.BEAST_EXPECT(! ec);
-            test.BEAST_EXPECT(pos == 4);
+            BEAST_EXPECT(! ec);
+            BEAST_EXPECT(pos == 4);
         }
         remove(path);
     }
 
-    test.BEAST_EXPECT(! fs::exists(path));
+    BEAST_EXPECT(! fs::exists(path));
 }
 
 } // beast

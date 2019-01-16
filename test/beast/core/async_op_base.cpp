@@ -429,7 +429,7 @@ public:
         }
 
         // legacy hooks
-        legacy_handler::test(*this,
+        legacy_handler::test(
             [](legacy_handler h)
             {
                 return async_op_base<
@@ -488,7 +488,7 @@ public:
         }
 
         // legacy hooks
-        legacy_handler::test(*this,
+        legacy_handler::test(
             [](legacy_handler h)
             {
                 return stable_async_op_base<

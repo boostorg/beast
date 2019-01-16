@@ -70,12 +70,12 @@ public:
     {
         {
             string_view s = "Hello, world!";
-            test_buffer_sequence(*this, buffers_range(
+            test_buffer_sequence(buffers_range(
                 net::const_buffer{s.data(), s.size()}));
         }
         {
             char buf[13];
-            test_buffer_sequence(*this,
+            test_buffer_sequence(
                 buffers_range(net::mutable_buffer{
                     buf, sizeof(buf)}));
         }

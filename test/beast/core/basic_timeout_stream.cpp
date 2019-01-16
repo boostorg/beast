@@ -58,6 +58,7 @@ public:
             a.async_accept(s2,
                 [](error_code ec)
                 {
+                    boost::ignore_unused(ec);
                 #if 0
                     if(ec == net::error::operation_aborted)
                         return;
@@ -377,20 +378,17 @@ public:
 
     struct match
     {
-        suite& suite_;
         error_code ec_;
         std::size_t n_;
 
-        match(suite& s, error_code ec, std::size_t n)
-            : suite_(s)
-            , ec_(ec)
+        match(error_code ec, std::size_t n)
+            : ec_(ec)
             , n_(n)
         {
         }
 
         match(match&& other)
-            : suite_(other.suite_)
-            , ec_(other.ec_)
+            : ec_(other.ec_)
             , n_(boost::exchange(other.n_,
                 (std::numeric_limits<std::size_t>::max)()))
         {
@@ -398,15 +396,15 @@ public:
 
         ~match()
         {
-            suite_.BEAST_EXPECT(
+            BEAST_EXPECT(
                 n_ == (std::numeric_limits<std::size_t>::max)());
         }
 
         void
         operator()(error_code ec, std::size_t n)
         {
-            suite_.expect(ec == ec_, ec.message(), __FILE__, __LINE__);
-            suite_.BEAST_EXPECT(n == n_);
+            BEAST_EXPECTS(ec == ec_, ec.message());
+            BEAST_EXPECT(n == n_);
             n_ = (std::numeric_limits<std::size_t>::max)();
         }
     };
@@ -429,7 +427,7 @@ public:
             net::io_context ioc;
             stream_t s(ioc);
             s.next_layer().connect(srv.local_endpoint());
-            s.async_read_some(mb, match{*this, {}, 1});
+            s.async_read_some(mb, match{{}, 1});
             ioc.run_for(std::chrono::seconds(1));
         }
 
@@ -440,7 +438,7 @@ public:
             stream_t s(ioc);
             s.next_layer().connect(srv.local_endpoint());
             s.expires_after(std::chrono::milliseconds(100));
-            s.async_read_some(mb, match{*this, {}, 1});
+            s.async_read_some(mb, match{{}, 1});
             ioc.run_for(std::chrono::seconds(1));
             s.expires_never();
             ioc.run();
@@ -452,7 +450,7 @@ public:
             net::io_context ioc;
             stream_t s(ioc);
             s.next_layer().connect(srv.local_endpoint());
-            s.async_read_some(mb, match{*this,
+            s.async_read_some(mb, match{
                 net::error::operation_aborted, 0});
             {
                 error_code ec;
@@ -470,7 +468,7 @@ public:
             net::io_context ioc;
             stream_t s(ioc);
             s.next_layer().connect(srv.local_endpoint());
-            s.async_read_some(mb, match{*this,
+            s.async_read_some(mb, match{
                 net::error::operation_aborted, 0});
             ioc.run_for(std::chrono::milliseconds(100));
             s.cancel();
@@ -508,7 +506,7 @@ public:
             s.next_layer().connect(srv.local_endpoint());
             s.expires_after(std::chrono::milliseconds(100));
             s.async_read_some(mb,
-                match{*this, error::timeout, 0});
+                match{error::timeout, 0});
             ioc.run_for(std::chrono::seconds(1));
         }
 
@@ -522,7 +520,7 @@ public:
                 std::chrono::steady_clock::now() +
                 std::chrono::milliseconds(100));
             s.async_read_some(mb,
-                match{*this, {}, 1});
+                match{{}, 1});
             ioc.run_for(std::chrono::seconds(1));
         }
 
@@ -595,7 +593,7 @@ public:
             stream_t s(ioc);
             s.next_layer().connect(srv.local_endpoint());
             s.async_write_some(mb,
-                match{*this, {}, mb.size()});
+                match{{}, mb.size()});
             {
                 error_code ec;
                 s.next_layer().shutdown(

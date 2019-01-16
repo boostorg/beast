@@ -77,8 +77,7 @@ public:
         net::const_buffer b1(s.data(), 6);
         net::const_buffer b2(
             s.data() + b1.size(), s.size() - b1.size());
-        test_buffer_sequence(
-            *this, buffers_cat(b1, b2));
+        test_buffer_sequence(buffers_cat(b1, b2));
     }
 
     template<class F>
@@ -199,31 +198,31 @@ public:
                 auto const b = beast::buffers_cat(b1, b2, b3);
                 BEAST_EXPECT(beast::buffers_to_string(b) == "Hello, world!");
                 BEAST_EXPECT(buffers_length(b) == 3);
-                test_buffer_sequence(*this, b);
+                test_buffer_sequence(b);
             }
             {
                 auto const b = beast::buffers_cat(b0, b1, b2, b3);
                 BEAST_EXPECT(beast::buffers_to_string(b) == "Hello, world!");
                 BEAST_EXPECT(buffers_length(b) == 3);
-                test_buffer_sequence(*this, b);
+                test_buffer_sequence(b);
             }
             {
                 auto const b = beast::buffers_cat(b1, b0, b2, b3);
                 BEAST_EXPECT(beast::buffers_to_string(b) == "Hello, world!");
                 BEAST_EXPECT(buffers_length(b) == 3);
-                test_buffer_sequence(*this, b);
+                test_buffer_sequence(b);
             }
             {
                 auto const b = beast::buffers_cat(b1, b2, b0, b3);
                 BEAST_EXPECT(beast::buffers_to_string(b) == "Hello, world!");
                 BEAST_EXPECT(buffers_length(b) == 3);
-                test_buffer_sequence(*this, b);
+                test_buffer_sequence(b);
             }
             {
                 auto const b = beast::buffers_cat(b1, b2, b3, b0);
                 BEAST_EXPECT(beast::buffers_to_string(b) == "Hello, world!");
                 BEAST_EXPECT(buffers_length(b) == 3);
-                test_buffer_sequence(*this, b);
+                test_buffer_sequence(b);
             }
         }
 

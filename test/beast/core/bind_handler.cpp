@@ -148,82 +148,65 @@ public:
 
     class test_cb
     {
-        bind_handler_test& s_;
         bool fail_ = true;
     
     public:
+        test_cb() = default;
         test_cb(test_cb const&) = delete;
-
-        test_cb(bind_handler_test& s)
-            : s_(s)
-        {
-        }
-
         test_cb(test_cb&& other)
-            : s_(other.s_)
-            , fail_(boost::exchange(
+            : fail_(boost::exchange(
                 other.fail_, false))
         {
         }
 
         ~test_cb()
         {
-            if(fail_)
-                s_.fail("handler not invoked",
-                    __FILE__, __LINE__);
+            BEAST_EXPECT(! fail_);
         }
 
         void
         operator()()
         {
             fail_ = false;
-            s_.pass();
+            BEAST_EXPECT(true);
         }
 
         void
         operator()(int v)
         {
             fail_ = false;
-            s_.expect(
-                v == 42, __FILE__, __LINE__);
+            BEAST_EXPECT(v == 42);
         }
 
         void
         operator()(int v, string_view s)
         {
             fail_ = false;
-            s_.expect(
-                v == 42, __FILE__, __LINE__);
-            s_.expect(
-                s == "s", __FILE__, __LINE__);
+            BEAST_EXPECT(v == 42);
+            BEAST_EXPECT(s == "s");
         }
 
         void
         operator()(int v, string_view s, move_arg<1>)
         {
             fail_ = false;
-            s_.expect(
-                v == 42, __FILE__, __LINE__);
-            s_.expect(
-                s == "s", __FILE__, __LINE__);
+            BEAST_EXPECT(v == 42);
+            BEAST_EXPECT(s == "s");
         }
 
         void
         operator()(int v, string_view s, move_arg<1>, move_arg<2>)
         {
             fail_ = false;
-            s_.expect(
-                v == 42, __FILE__, __LINE__);
-            s_.expect(
-                s == "s", __FILE__, __LINE__);
+            BEAST_EXPECT(v == 42);
+            BEAST_EXPECT(s == "s");
         }
 
         void
         operator()(error_code, std::size_t n)
         {
             fail_ = false;
-            s_.expect(
-                n == 256, __FILE__, __LINE__);
+            BEAST_EXPECT(n == 256);
         }
 
         void
@@ -232,16 +215,14 @@ public:
         {
             boost::ignore_unused(s);
             fail_ = false;
-            s_.expect(
-                n == 256, __FILE__, __LINE__);
+            BEAST_EXPECT(n == 256);
         }
 
         void
         operator()(std::shared_ptr<int> const& sp)
         {
             fail_ = false;
-            s_.expect(sp.get() != nullptr,
-                __FILE__, __LINE__);
+            BEAST_EXPECT(sp.get() != nullptr);
         }
     };
 
@@ -251,19 +232,19 @@ public:
     void
     failStdBind()
     {
-        std::bind(bind_handler(test_cb{*this}));
+        std::bind(bind_handler(test_cb{}));
     }
 
     void
     failStdBindFront()
     {
-        std::bind(bind_front_handler(test_cb{*this}));
+        std::bind(bind_front_handler(test_cb{}));
     }
 
     void
     failStdBindBack()
     {
-        std::bind(bind_back_handler(test_cb{*this}));
+        std::bind(bind_back_handler(test_cb{}));
     }
 #endif
 
@@ -300,68 +281,68 @@ public:
             using namespace std::placeholders;
 
             // 0-ary
-            bind_handler(test_cb{*this})();
+            bind_handler(test_cb{})();
 
             // 1-ary
-            bind_handler(test_cb{*this}, 42)(); 
-            bind_handler(test_cb{*this}, _1)(42);
-            bind_handler(test_cb{*this}, _2)(0, 42);
+            bind_handler(test_cb{}, 42)(); 
+            bind_handler(test_cb{}, _1)(42);
+            bind_handler(test_cb{}, _2)(0, 42);
 
             // 2-ary
-            bind_handler(test_cb{*this}, 42, "s")();
-            bind_handler(test_cb{*this}, 42, "s")(0);
-            bind_handler(test_cb{*this}, _1, "s")(42);
-            bind_handler(test_cb{*this}, 42, _1) ("s");
-            bind_handler(test_cb{*this}, _1, _2)(42, "s");
-            bind_handler(test_cb{*this}, _1, _2)(42, "s", "X");
-            bind_handler(test_cb{*this}, _2, _1)("s", 42);
-            bind_handler(test_cb{*this}, _3, _2)("X", "s", 42);
+            bind_handler(test_cb{}, 42, "s")();
+            bind_handler(test_cb{}, 42, "s")(0);
+            bind_handler(test_cb{}, _1, "s")(42);
+            bind_handler(test_cb{}, 42, _1) ("s");
+            bind_handler(test_cb{}, _1, _2)(42, "s");
+            bind_handler(test_cb{}, _1, _2)(42, "s", "X");
+            bind_handler(test_cb{}, _2, _1)("s", 42);
+            bind_handler(test_cb{}, _3, _2)("X", "s", 42);
 
             // 3-ary
-            bind_handler(test_cb{*this}, 42, "s")(m1{});
-            bind_handler(test_cb{*this}, 42, "s", _1)(m1{});
-            bind_handler(test_cb{*this}, 42, _1, m1{})("s");
+            bind_handler(test_cb{}, 42, "s")(m1{});
+            bind_handler(test_cb{}, 42, "s", _1)(m1{});
+            bind_handler(test_cb{}, 42, _1, m1{})("s");
 
             // 4-ary
-            bind_handler(test_cb{*this}, 42, "s")(m1{}, m2{});
-            bind_handler(test_cb{*this}, 42, "s", m1{})(m2{});
-            bind_handler(test_cb{*this}, 42, "s", m1{}, m2{})();
-            bind_handler(test_cb{*this}, 42, _1, m1{})("s", m2{});
-            bind_handler(test_cb{*this}, _3, _1, m1{})("s", m2{}, 42);
+            bind_handler(test_cb{}, 42, "s")(m1{}, m2{});
+            bind_handler(test_cb{}, 42, "s", m1{})(m2{});
+            bind_handler(test_cb{}, 42, "s", m1{}, m2{})();
+            bind_handler(test_cb{}, 42, _1, m1{})("s", m2{});
+            bind_handler(test_cb{}, _3, _1, m1{})("s", m2{}, 42);
         }
 
         {
             using namespace boost::placeholders;
 
             // 0-ary
-            bind_handler(test_cb{*this})();
+            bind_handler(test_cb{})();
 
             // 1-ary
-            bind_handler(test_cb{*this}, 42)(); 
-            bind_handler(test_cb{*this}, _1)(42);
-            bind_handler(test_cb{*this}, _2)(0, 42);
+            bind_handler(test_cb{}, 42)(); 
+            bind_handler(test_cb{}, _1)(42);
+            bind_handler(test_cb{}, _2)(0, 42);
 
             // 2-ary
-            bind_handler(test_cb{*this}, 42, "s")();
-            bind_handler(test_cb{*this}, 42, "s")(0);
-            bind_handler(test_cb{*this}, _1, "s")(42);
-            bind_handler(test_cb{*this}, 42, _1) ("s");
-            bind_handler(test_cb{*this}, _1, _2)(42, "s");
-            bind_handler(test_cb{*this}, _1, _2)(42, "s", "X");
-            bind_handler(test_cb{*this}, _2, _1)("s", 42);
-            bind_handler(test_cb{*this}, _3, _2)("X", "s", 42);
+            bind_handler(test_cb{}, 42, "s")();
+            bind_handler(test_cb{}, 42, "s")(0);
+            bind_handler(test_cb{}, _1, "s")(42);
+            bind_handler(test_cb{}, 42, _1) ("s");
+            bind_handler(test_cb{}, _1, _2)(42, "s");
+            bind_handler(test_cb{}, _1, _2)(42, "s", "X");
+            bind_handler(test_cb{}, _2, _1)("s", 42);
+            bind_handler(test_cb{}, _3, _2)("X", "s", 42);
 
             // 3-ary
-            bind_handler(test_cb{*this}, 42, "s")(m1{});
-            bind_handler(test_cb{*this}, 42, "s", _1)(m1{});
-            bind_handler(test_cb{*this}, 42, _1, m1{})("s");
+            bind_handler(test_cb{}, 42, "s")(m1{});
+            bind_handler(test_cb{}, 42, "s", _1)(m1{});
+            bind_handler(test_cb{}, 42, _1, m1{})("s");
 
             // 4-ary
-            bind_handler(test_cb{*this}, 42, "s")(m1{}, m2{});
-            bind_handler(test_cb{*this}, 42, "s", m1{})(m2{});
-            bind_handler(test_cb{*this}, 42, "s", m1{}, m2{})();
-            bind_handler(test_cb{*this}, 42, _1, m1{})("s", m2{});
-            bind_handler(test_cb{*this}, _3, _1, m1{})("s", m2{}, 42);
+            bind_handler(test_cb{}, 42, "s")(m1{}, m2{});
+            bind_handler(test_cb{}, 42, "s", m1{})(m2{});
+            bind_handler(test_cb{}, 42, "s", m1{}, m2{})();
+            bind_handler(test_cb{}, 42, _1, m1{})("s", m2{});
+            bind_handler(test_cb{}, _3, _1, m1{})("s", m2{}, 42);
         }
 
         // perfect forwarding
@@ -369,11 +350,11 @@ public:
             std::shared_ptr<int> const sp =
                 std::make_shared<int>(42);
             {
-                bind_handler(test_cb{*this}, sp)();
+                bind_handler(test_cb{}, sp)();
                 BEAST_EXPECT(sp.get() != nullptr);
             }
             {
-                bind_handler(test_cb{*this})(sp);
+                bind_handler(test_cb{})(sp);
                 BEAST_EXPECT(sp.get() != nullptr);
             }
         }
@@ -382,7 +363,7 @@ public:
         {
             net::io_context ioc;
             testHooks(ioc, bind_handler(net::bind_executor(
-                test_executor(*this, ioc), test_cb{*this})));
+                test_executor(*this, ioc), test_cb{})));
         }
 
         // asio_handler_invoke
@@ -395,12 +376,12 @@ public:
                 net::io_context::executor_type> s{
                     ioc.get_executor()};
             net::post(s,
-                bind_handler(test_cb{*this}, 42));
+                bind_handler(test_cb{}, 42));
             ioc.run();
         }
 
         // legacy hooks
-        legacy_handler::test(*this,
+        legacy_handler::test(
             [](legacy_handler h)
             {
                 return bind_handler(h);
@@ -414,44 +395,44 @@ public:
         using m2 = move_arg<2>;
 
         // 0-ary
-        bind_front_handler(test_cb{*this})();
+        bind_front_handler(test_cb{})();
 
         // 1-ary
-        bind_front_handler(test_cb{*this}, 42)(); 
-        bind_front_handler(test_cb{*this})(42);
+        bind_front_handler(test_cb{}, 42)(); 
+        bind_front_handler(test_cb{})(42);
 
         // 2-ary
-        bind_front_handler(test_cb{*this}, 42, "s")();
-        bind_front_handler(test_cb{*this}, 42)("s");
-        bind_front_handler(test_cb{*this})(42, "s");
+        bind_front_handler(test_cb{}, 42, "s")();
+        bind_front_handler(test_cb{}, 42)("s");
+        bind_front_handler(test_cb{})(42, "s");
 
         // 3-ary
-        bind_front_handler(test_cb{*this}, 42, "s", m1{})();
-        bind_front_handler(test_cb{*this}, 42, "s")(m1{});
-        bind_front_handler(test_cb{*this}, 42)("s", m1{});
-        bind_front_handler(test_cb{*this})(42, "s", m1{});
+        bind_front_handler(test_cb{}, 42, "s", m1{})();
+        bind_front_handler(test_cb{}, 42, "s")(m1{});
+        bind_front_handler(test_cb{}, 42)("s", m1{});
+        bind_front_handler(test_cb{})(42, "s", m1{});
 
         // 4-ary
-        bind_front_handler(test_cb{*this}, 42, "s", m1{}, m2{})();
-        bind_front_handler(test_cb{*this}, 42, "s", m1{})(m2{});
-        bind_front_handler(test_cb{*this}, 42, "s")(m1{}, m2{});
-        bind_front_handler(test_cb{*this}, 42)("s", m1{}, m2{});
-        bind_front_handler(test_cb{*this})(42, "s", m1{}, m2{});
+        bind_front_handler(test_cb{}, 42, "s", m1{}, m2{})();
+        bind_front_handler(test_cb{}, 42, "s", m1{})(m2{});
+        bind_front_handler(test_cb{}, 42, "s")(m1{}, m2{});
+        bind_front_handler(test_cb{}, 42)("s", m1{}, m2{});
+        bind_front_handler(test_cb{})(42, "s", m1{}, m2{});
 
         error_code ec;
         std::size_t n = 256;
         
         // void(error_code, size_t)
-        bind_front_handler(test_cb{*this}, ec, n)();
+        bind_front_handler(test_cb{}, ec, n)();
 
         // void(error_code, size_t)(string_view)
-        bind_front_handler(test_cb{*this}, ec, n)("s");
+        bind_front_handler(test_cb{}, ec, n)("s");
 
         // perfect forwarding
         {
             std::shared_ptr<int> const sp =
                 std::make_shared<int>(42);
-            bind_front_handler(test_cb{*this}, sp)();
+            bind_front_handler(test_cb{}, sp)();
             BEAST_EXPECT(sp.get() != nullptr);
         }
 
@@ -460,32 +441,32 @@ public:
             net::io_context ioc;
 
             testHooks(ioc, bind_front_handler(net::bind_executor(
-                test_executor(*this, ioc), test_cb{*this})
+                test_executor(*this, ioc), test_cb{})
                 ));
             testHooks(ioc, bind_front_handler(net::bind_executor(
-                test_executor(*this, ioc), test_cb{*this}),
+                test_executor(*this, ioc), test_cb{}),
                 42));
             testHooks(ioc, bind_front_handler(net::bind_executor(
-                test_executor(*this, ioc), test_cb{*this}),
+                test_executor(*this, ioc), test_cb{}),
                 42, "s"));
             testHooks(ioc, bind_front_handler(net::bind_executor(
-                test_executor(*this, ioc), test_cb{*this}),
+                test_executor(*this, ioc), test_cb{}),
                 42, "s", m1{}));
             testHooks(ioc, bind_front_handler(net::bind_executor(
-                test_executor(*this, ioc), test_cb{*this}),
+                test_executor(*this, ioc), test_cb{}),
                 42, "s", m1{}, m2{}));
             testHooks(ioc, bind_front_handler(net::bind_executor(
-                test_executor(*this, ioc), test_cb{*this}),
+                test_executor(*this, ioc), test_cb{}),
                 ec, n));
         }
 
         // legacy hooks
-        legacy_handler::test(*this,
+        legacy_handler::test(
             [](legacy_handler h)
             {
                 return bind_front_handler(h);
             });
-        legacy_handler::test(*this,
+        legacy_handler::test(
             [](legacy_handler h)
             {
                 return bind_front_handler(
@@ -501,44 +482,44 @@ public:
         using m2 = move_arg<2>;
 
         // 0-ary
-        bind_back_handler(test_cb{*this})();
+        bind_back_handler(test_cb{})();
 
         // 1-ary
-        bind_back_handler(test_cb{*this}, 42)(); 
-        bind_back_handler(test_cb{*this})(42);
+        bind_back_handler(test_cb{}, 42)(); 
+        bind_back_handler(test_cb{})(42);
 
         // 2-ary
-        bind_back_handler(test_cb{*this}, 42, "s")();
-        bind_back_handler(test_cb{*this}, "s")(42);
-        bind_back_handler(test_cb{*this})(42, "s");
+        bind_back_handler(test_cb{}, 42, "s")();
+        bind_back_handler(test_cb{}, "s")(42);
+        bind_back_handler(test_cb{})(42, "s");
 
         // 3-ary
-        bind_back_handler(test_cb{*this}, 42, "s", m1{})();
-        bind_back_handler(test_cb{*this}, m1{})(42, "s");
-        bind_back_handler(test_cb{*this}, "s", m1{})(42);
-        bind_back_handler(test_cb{*this})(42, "s", m1{});
+        bind_back_handler(test_cb{}, 42, "s", m1{})();
+        bind_back_handler(test_cb{}, m1{})(42, "s");
+        bind_back_handler(test_cb{}, "s", m1{})(42);
+        bind_back_handler(test_cb{})(42, "s", m1{});
 
         // 4-ary
-        bind_back_handler(test_cb{*this}, 42, "s", m1{}, m2{})();
-        bind_back_handler(test_cb{*this}, "s", m1{}, m2{})(42);
-        bind_back_handler(test_cb{*this}, m1{}, m2{})(42, "s");
-        bind_back_handler(test_cb{*this}, "s", m1{}, m2{})(42);
-        bind_back_handler(test_cb{*this})(42, "s", m1{}, m2{});
+        bind_back_handler(test_cb{}, 42, "s", m1{}, m2{})();
+        bind_back_handler(test_cb{}, "s", m1{}, m2{})(42);
+        bind_back_handler(test_cb{}, m1{}, m2{})(42, "s");
+        bind_back_handler(test_cb{}, "s", m1{}, m2{})(42);
+        bind_back_handler(test_cb{})(42, "s", m1{}, m2{});
 
         error_code ec;
         std::size_t n = 256;
         
         // void(error_code, size_t)
-        bind_back_handler(test_cb{*this}, ec, n)();
+        bind_back_handler(test_cb{}, ec, n)();
 
         // void(error_code, size_t)(string_view)
-        bind_back_handler(test_cb{*this}, "s")(ec, n);
+        bind_back_handler(test_cb{}, "s")(ec, n);
 
         // perfect forwarding
         {
             std::shared_ptr<int> const sp =
                 std::make_shared<int>(42);
-            bind_back_handler(test_cb{*this}, sp)();
+            bind_back_handler(test_cb{}, sp)();
             BEAST_EXPECT(sp.get() != nullptr);
         }
 
@@ -547,32 +528,32 @@ public:
             net::io_context ioc;
 
             testHooks(ioc, bind_back_handler(net::bind_executor(
-                test_executor(*this, ioc), test_cb{*this})
+                test_executor(*this, ioc), test_cb{})
                 ));
             testHooks(ioc, bind_back_handler(net::bind_executor(
-                test_executor(*this, ioc), test_cb{*this}),
+                test_executor(*this, ioc), test_cb{}),
                 42));
             testHooks(ioc, bind_back_handler(net::bind_executor(
-                test_executor(*this, ioc), test_cb{*this}),
+                test_executor(*this, ioc), test_cb{}),
                 42, "s"));
             testHooks(ioc, bind_back_handler(net::bind_executor(
-                test_executor(*this, ioc), test_cb{*this}),
+                test_executor(*this, ioc), test_cb{}),
                 42, "s", m1{}));
             testHooks(ioc, bind_back_handler(net::bind_executor(
-                test_executor(*this, ioc), test_cb{*this}),
+                test_executor(*this, ioc), test_cb{}),
                 42, "s", m1{}, m2{}));
             testHooks(ioc, bind_back_handler(net::bind_executor(
-                test_executor(*this, ioc), test_cb{*this}),
+                test_executor(*this, ioc), test_cb{}),
                 ec, n));
         }
 
         // legacy hooks
-        legacy_handler::test(*this,
+        legacy_handler::test(
             [](legacy_handler h)
             {
                 return bind_back_handler(h);
             });
-        legacy_handler::test(*this,
+        legacy_handler::test(
             [](legacy_handler h)
             {
                 return bind_back_handler(

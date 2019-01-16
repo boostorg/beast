@@ -58,7 +58,7 @@ public:
     {
         multi_buffer b(30);
         BEAST_EXPECT(b.max_size() == 30);
-        test_dynamic_buffer(*this, b);
+        test_dynamic_buffer(b);
     }
 
     void

@@ -31,7 +31,7 @@ public:
             char buf[13];
             auto b = buffers_triple(buf, sizeof(buf));
             buffers_suffix<decltype(b)> bs(b);
-            test_buffer_sequence(*this, bs);
+            test_buffer_sequence(bs);
         }
 
         // const
@@ -42,7 +42,7 @@ public:
                 net::const_buffer(src.data() + 3, 4),
                 net::const_buffer(src.data() + 7, 6) }};
             buffers_suffix<decltype(b)> bs(b);
-            test_buffer_sequence(*this, bs);
+            test_buffer_sequence(bs);
         }
     }
 

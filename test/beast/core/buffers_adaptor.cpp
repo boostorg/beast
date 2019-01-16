@@ -36,7 +36,7 @@ public:
         char s[13];
         buffers_triple tb(s, sizeof(s));
         buffers_adaptor<buffers_triple> b(tb);
-        test_dynamic_buffer(*this, b);
+        test_dynamic_buffer(b);
     }
 
     void

@@ -1,6 +1,7 @@
 Version 204
 
 * Add basic_timeout_stream
+* Unit test macros use the global suite
 
 --------------------------------------------------------------------------------
 
@@ -226,7 +227,7 @@ Version 189:
 Version 188:
 
 * Remove extraneous strand from example
-* Add missing include in http/read.ipp 
+* Add missing include in http/read.ipp
 * Test for gcc warning bug
 * Fix a spurious gcc warning
 
@@ -513,7 +514,7 @@ Version 153:
 
 * Remove BOOST_VERSION checks
 * Use make_error_code for setting an error_code from errc
-* Use boost::winapi::GetLastError() consistently 
+* Use boost::winapi::GetLastError() consistently
 * Update README.md for branches
 * Avoid string_view::clear
 * Fix iterator version of basic_fields::erase
@@ -1413,7 +1414,7 @@ WebSocket
 
 API Changes:
 
-* Add static_buffer 
+* Add static_buffer
 
 Actions Required:
 
@@ -1975,7 +1976,7 @@ Version 54:
 
 API Changes:
 
-* basic_fields refactor 
+* basic_fields refactor
 
 --------------------------------------------------------------------------------
 
@@ -2054,7 +2055,7 @@ Version 51
 API Changes:
 
 * Tune up static_buffer
-* multi_buffer implementation change 
+* multi_buffer implementation change
 
 Actions Required:
 

@@ -26,19 +26,6 @@
 namespace boost {
 namespace beast {
 
-//------------------------------------------------------------------------------
-
-// VFALCO This is here temporarily
-
-#define SUITE_EXPECT(test, cond) \
-    ((test).expect((cond), __FILE__, __LINE__))
-
-#define SUITE_EXPECTS(test, cond, reason) \
-    ((cond) ? ((test).pass(), true) \
-            : ((test).fail((reason), __FILE__, __LINE__), false))
-
-//------------------------------------------------------------------------------
-
 /** A MutableBufferSequence for tests, where length is always 3.
 */
 class buffers_triple
@@ -119,7 +106,6 @@ namespace detail {
 
 template<class MutableBufferSequence>
 void test_mutable_buffers(
-    unit_test::suite&,
     MutableBufferSequence const&,
     net::const_buffer)
 {
@@ -127,7 +113,6 @@ void test_mutable_buffers(
 
 template<class MutableBufferSequence>
 void test_mutable_buffers(
-    unit_test::suite& test,
     MutableBufferSequence const& b,
     net::mutable_buffer)
 {
@@ -138,8 +123,7 @@ void test_mutable_buffers(
         src = {src.data(), buffer_size(b)};
     net::buffer_copy(b, net::const_buffer(
         src.data(), src.size()));
-    SUITE_EXPECT(test,
-        beast::buffers_to_string(b) == src);
+    BEAST_EXPECT(beast::buffers_to_string(b) == src);
 }
 
 } // detail
@@ -149,7 +133,6 @@ void test_mutable_buffers(
 template<class ConstBufferSequence>
 void
 test_buffer_sequence(
-    beast::unit_test::suite& test,
     ConstBufferSequence const& buffers)
 {
     BOOST_STATIC_ASSERT(
@@ -160,28 +143,28 @@ test_buffer_sequence(
 
     using iterator = decltype(
         net::buffer_sequence_begin(buffers));
-    SUITE_EXPECT(test, sizeof(iterator) > 0);
+    BEAST_EXPECT(sizeof(iterator) > 0);
 
     auto const size = buffer_size(buffers);
-    SUITE_EXPECT(test, size > 0 );
+    BEAST_EXPECT(size > 0 );
 
     // begin, end
     auto const length = std::distance(
         net::buffer_sequence_begin(buffers),
         net::buffer_sequence_end(buffers));
-    SUITE_EXPECT(test, length > 0);
-    SUITE_EXPECT(test,
+    BEAST_EXPECT(length > 0);
+    BEAST_EXPECT(
         net::buffer_sequence_begin(buffers) !=
         net::buffer_sequence_end(buffers));
 
     // copy construction
     ConstBufferSequence b1(buffers);
-    SUITE_EXPECT(test, buffer_size(b1) == size);
+    BEAST_EXPECT(buffer_size(b1) == size);
 
     // copy assignment
     ConstBufferSequence b2(buffers);
     b2 = b1;
-    SUITE_EXPECT(test, buffer_size(b2) == size);
+    BEAST_EXPECT(buffer_size(b2) == size);
 
     // iterators
     {
@@ -191,11 +174,11 @@ test_buffer_sequence(
             net::buffer_sequence_begin(buffers);
         iterator it4 =
             net::buffer_sequence_end(buffers);
-        SUITE_EXPECT(test, it1 == it2);
-        SUITE_EXPECT(test, it1 != it3);
-        SUITE_EXPECT(test, it3 != it1);
-        SUITE_EXPECT(test, it1 != it4);
-        SUITE_EXPECT(test, it4 != it1);
+        BEAST_EXPECT(it1 == it2);
+        BEAST_EXPECT(it1 != it3);
+        BEAST_EXPECT(it3 != it1);
+        BEAST_EXPECT(it1 != it4);
+        BEAST_EXPECT(it4 != it1);
     }
 
     // bidirectional
@@ -212,24 +195,24 @@ test_buffer_sequence(
         n = length;
         for(it = first; n--; ++it)
             m += net::buffer_size(*it);
-        SUITE_EXPECT(test, it == last);
-        SUITE_EXPECT(test, m == size);
+        BEAST_EXPECT(it == last);
+        BEAST_EXPECT(m == size);
 
         // post-increment
         m = 0;
         n = length;
         for(it = first; n--;)
             m += net::buffer_size(*it++);
-        SUITE_EXPECT(test, it == last);
-        SUITE_EXPECT(test, m == size);
+        BEAST_EXPECT(it == last);
+        BEAST_EXPECT(m == size);
 
         // pre-decrement
         m = 0;
         n = length;
         for(it = last; n--;)
             m += net::buffer_size(*--it);
-        SUITE_EXPECT(test, it == first);
-        SUITE_EXPECT(test, m == size);
+        BEAST_EXPECT(it == first);
+        BEAST_EXPECT(m == size);
 
         // post-decrement
         m = 0;
@@ -239,11 +222,11 @@ test_buffer_sequence(
             it--;
             m += net::buffer_size(*it);
         }
-        SUITE_EXPECT(test, it == first);
-        SUITE_EXPECT(test, m == size);
+        BEAST_EXPECT(it == first);
+        BEAST_EXPECT(m == size);
     }
 
-    detail::test_mutable_buffers(test, buffers,
+    detail::test_mutable_buffers(buffers,
         buffers_type<ConstBufferSequence>{});
 }
 
@@ -295,7 +278,6 @@ buffers_fill(
 template<class MutableDynamicBuffer>
 void
 test_mutable_dynamic_buffer(
-    unit_test::suite&,
     MutableDynamicBuffer const&,
     std::false_type)
 {
@@ -304,7 +286,6 @@ test_mutable_dynamic_buffer(
 template<class MutableDynamicBuffer>
 void
 test_mutable_dynamic_buffer(
-    unit_test::suite& test,
     MutableDynamicBuffer const& b0,
     std::true_type)
 {
@@ -327,23 +308,23 @@ test_mutable_dynamic_buffer(
     {
         MutableDynamicBuffer b(b0);
         auto const mb = b.prepare(src.size());
-        SUITE_EXPECT(test, buffer_size(mb) == src.size());
+        BEAST_EXPECT(buffer_size(mb) == src.size());
         buffers_fill(mb, '*');
         b.commit(src.size());
-        SUITE_EXPECT(test, b.size() == src.size());
-        SUITE_EXPECT(test,
+        BEAST_EXPECT(b.size() == src.size());
+        BEAST_EXPECT(
             beast::buffers_to_string(b.data()) ==
             std::string(src.size(), '*'));
-        SUITE_EXPECT(test,
+        BEAST_EXPECT(
             beast::buffers_to_string(b.cdata()) ==
             std::string(src.size(), '*'));
         auto const n = net::buffer_copy(
             b.data(), net::const_buffer(
                 src.data(), src.size()));
-        SUITE_EXPECT(test, n == src.size());
-        SUITE_EXPECT(test,
+        BEAST_EXPECT(n == src.size());
+        BEAST_EXPECT(
             beast::buffers_to_string(b.data()) == src);
-        SUITE_EXPECT(test,
+        BEAST_EXPECT(
             beast::buffers_to_string(b.cdata()) == src);
     }
 
@@ -357,13 +338,13 @@ test_mutable_dynamic_buffer(
         auto cb = static_cast<
             MutableDynamicBuffer const&>(b).data();
         auto cbc = b.cdata();
-        SUITE_EXPECT(test,
+        BEAST_EXPECT(
             beast::buffers_to_string(b.data()) == src);
-        SUITE_EXPECT(test,
+        BEAST_EXPECT(
             beast::buffers_to_string(b.cdata()) == src);
-        beast::test_buffer_sequence(test, cb);
-        beast::test_buffer_sequence(test, cbc);
-        beast::test_buffer_sequence(test, mb);
+        beast::test_buffer_sequence(cb);
+        beast::test_buffer_sequence(cbc);
+        beast::test_buffer_sequence(mb);
         {
             decltype(mb)  mb2(mb);
             mb = mb2;
@@ -388,7 +369,6 @@ test_mutable_dynamic_buffer(
 template<class DynamicBuffer>
 void
 test_dynamic_buffer(
-    unit_test::suite& test,
     DynamicBuffer const& b0)
 {
     using net::buffer_size;
@@ -404,8 +384,8 @@ test_dynamic_buffer(
         net::is_mutable_buffer_sequence<typename
             DynamicBuffer::mutable_buffers_type>::value);
 
-    SUITE_EXPECT(test, b0.size() == 0);
-    SUITE_EXPECT(test, buffer_size(b0.data()) == 0);
+    BEAST_EXPECT(b0.size() == 0);
+    BEAST_EXPECT(buffer_size(b0.data()) == 0);
 
     // members
     {
@@ -419,8 +399,8 @@ test_dynamic_buffer(
         // copy constructor
         {
             DynamicBuffer b2(b1);
-            SUITE_EXPECT(test, b2.size() == b1.size());
-            SUITE_EXPECT(test,
+            BEAST_EXPECT(b2.size() == b1.size());
+            BEAST_EXPECT(
                 buffers_to_string(b1.data()) ==
                 buffers_to_string(b2.data()));
         }
@@ -429,8 +409,8 @@ test_dynamic_buffer(
         {
             DynamicBuffer b2(b1);
             DynamicBuffer b3(std::move(b2));
-            SUITE_EXPECT(test, b3.size() == b1.size());
-            SUITE_EXPECT(test,
+            BEAST_EXPECT(b3.size() == b1.size());
+            BEAST_EXPECT(
                 buffers_to_string(b3.data()) ==
                 buffers_to_string(b1.data()));
         }
@@ -439,15 +419,15 @@ test_dynamic_buffer(
         {
             DynamicBuffer b2(b0);
             b2 = b1;
-            SUITE_EXPECT(test, b2.size() == b1.size());
-            SUITE_EXPECT(test,
+            BEAST_EXPECT(b2.size() == b1.size());
+            BEAST_EXPECT(
                 buffers_to_string(b1.data()) ==
                 buffers_to_string(b2.data()));
 
             // self assignment
             b2 = b2;
-            SUITE_EXPECT(test, b2.size() == b1.size());
-            SUITE_EXPECT(test,
+            BEAST_EXPECT(b2.size() == b1.size());
+            BEAST_EXPECT(
                 buffers_to_string(b2.data()) ==
                 buffers_to_string(b1.data()));
         }
@@ -457,15 +437,15 @@ test_dynamic_buffer(
             DynamicBuffer b2(b1);
             DynamicBuffer b3(b0);
             b3 = std::move(b2);
-            SUITE_EXPECT(test, b3.size() == b1.size());
-            SUITE_EXPECT(test,
+            BEAST_EXPECT(b3.size() == b1.size());
+            BEAST_EXPECT(
                 buffers_to_string(b3.data()) ==
                 buffers_to_string(b1.data()));
 
             // self move
             b3 = std::move(b3);
-            SUITE_EXPECT(test, b3.size() == b1.size());
-            SUITE_EXPECT(test,
+            BEAST_EXPECT(b3.size() == b1.size());
+            BEAST_EXPECT(
                 buffers_to_string(b3.data()) ==
                 buffers_to_string(b1.data()));
         }
@@ -474,13 +454,13 @@ test_dynamic_buffer(
         {
             DynamicBuffer b2(b1);
             DynamicBuffer b3(b0);
-            SUITE_EXPECT(test, b2.size() == b1.size());
-            SUITE_EXPECT(test, b3.size() == b0.size());
+            BEAST_EXPECT(b2.size() == b1.size());
+            BEAST_EXPECT(b3.size() == b0.size());
             using std::swap;
             swap(b2, b3);
-            SUITE_EXPECT(test, b2.size() == b0.size());
-            SUITE_EXPECT(test, b3.size() == b1.size());
-            SUITE_EXPECT(test,
+            BEAST_EXPECT(b2.size() == b0.size());
+            BEAST_EXPECT(b3.size() == b1.size());
+            BEAST_EXPECT(
                 buffers_to_string(b3.data()) ==
                 buffers_to_string(b1.data()));
         }
@@ -490,40 +470,40 @@ test_dynamic_buffer(
     {
         DynamicBuffer b(b0);
         b.commit(1);
-        SUITE_EXPECT(test, b.size() == 0);
-        SUITE_EXPECT(test, buffer_size(b.prepare(0)) == 0);
+        BEAST_EXPECT(b.size() == 0);
+        BEAST_EXPECT(buffer_size(b.prepare(0)) == 0);
         b.commit(0);
-        SUITE_EXPECT(test, b.size() == 0);
+        BEAST_EXPECT(b.size() == 0);
         b.commit(1);
-        SUITE_EXPECT(test, b.size() == 0);
+        BEAST_EXPECT(b.size() == 0);
         b.commit(b.max_size() + 1);
-        SUITE_EXPECT(test, b.size() == 0);
+        BEAST_EXPECT(b.size() == 0);
         b.consume(0);
-        SUITE_EXPECT(test, b.size() == 0);
+        BEAST_EXPECT(b.size() == 0);
         b.consume(1);
-        SUITE_EXPECT(test, b.size() == 0);
+        BEAST_EXPECT(b.size() == 0);
         b.consume(b.max_size() + 1);
-        SUITE_EXPECT(test, b.size() == 0);
+        BEAST_EXPECT(b.size() == 0);
     }
 
     // max_size
     {
         DynamicBuffer b(b0);
-        if(SUITE_EXPECT(test,
+        if(BEAST_EXPECT(
             b.max_size() + 1 > b.max_size()))
         {
             try
             {
                 b.prepare(b.max_size() + 1);
-                test.fail("no exception", __FILE__, __LINE__);
+                BEAST_FAIL();
             }
             catch(std::length_error const&)
             {
-                test.pass();
+                BEAST_PASS();
             }
             catch(...)
             {
-                test.fail("wrong exception", __FILE__, __LINE__);
+                BEAST_FAIL();
             }
         }
     }
@@ -534,9 +514,9 @@ test_dynamic_buffer(
     string_view src(buf, sizeof(buf));
     if(src.size() > b0.max_size())
         src = {src.data(), b0.max_size()};
-    SUITE_EXPECT(test, b0.max_size() >= src.size());
-    SUITE_EXPECT(test, b0.size() == 0);
-    SUITE_EXPECT(test, buffer_size(b0.data()) == 0);
+    BEAST_EXPECT(b0.max_size() >= src.size());
+    BEAST_EXPECT(b0.size() == 0);
+    BEAST_EXPECT(buffer_size(b0.data()) == 0);
     auto const make_new_src =
         [&buf, &k0, &src]
         {
@@ -551,13 +531,13 @@ test_dynamic_buffer(
         DynamicBuffer b(b0);
         auto const& bc(b);
         auto const mb = b.prepare(src.size());
-        SUITE_EXPECT(test, buffer_size(mb) == src.size());
-        beast::test_buffer_sequence(test, mb);
+        BEAST_EXPECT(buffer_size(mb) == src.size());
+        beast::test_buffer_sequence(mb);
         b.commit(net::buffer_copy(mb,
             net::const_buffer(src.data(), src.size())));
-        SUITE_EXPECT(test,
+        BEAST_EXPECT(
             buffer_size(bc.data()) == src.size());
-        beast::test_buffer_sequence(test, bc.data());
+        beast::test_buffer_sequence(bc.data());
     }
 
     // h = in size
@@ -587,20 +567,20 @@ test_dynamic_buffer(
                 b.commit(n);
                 cb += n;
             }
-            SUITE_EXPECT(test, b.size() == in.size());
-            SUITE_EXPECT(test,
+            BEAST_EXPECT(b.size() == in.size());
+            BEAST_EXPECT(
                 buffer_size(bc.data()) == in.size());
-            SUITE_EXPECT(test, beast::buffers_to_string(
+            BEAST_EXPECT(beast::buffers_to_string(
                 bc.data()) == in);
             while(b.size() > 0)
                 b.consume(k);
-            SUITE_EXPECT(test, buffer_size(bc.data()) == 0);
+            BEAST_EXPECT(buffer_size(bc.data()) == 0);
         }
         } } }
     }
 
     // MutableDynamicBuffer refinement
-    detail::test_mutable_dynamic_buffer(test, b0,
+    detail::test_mutable_dynamic_buffer(b0,
         is_mutable_dynamic_buffer<DynamicBuffer>{});
 }
 

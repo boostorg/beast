@@ -114,7 +114,7 @@ struct legacy_handler
     template<class F>
     static
     void
-    test(unit_test::suite& suite, F const& f)
+    test(F const& f)
     {
         {
             bool hook_invoked = false;
@@ -126,29 +126,29 @@ struct legacy_handler
                 {
                     lambda_invoked =true;
                 }, &h);
-            suite.BEAST_EXPECT(hook_invoked);
-            suite.BEAST_EXPECT(lambda_invoked);
+            BEAST_EXPECT(hook_invoked);
+            BEAST_EXPECT(lambda_invoked);
         }
         {
             bool hook_invoked = false;
             auto h = f(legacy_handler{hook_invoked});
             using net::asio_handler_allocate;
             asio_handler_allocate(0, &h);
-            suite.BEAST_EXPECT(hook_invoked);
+            BEAST_EXPECT(hook_invoked);
         }
         {
             bool hook_invoked = false;
             auto h = f(legacy_handler{hook_invoked});
             using net::asio_handler_deallocate;
             asio_handler_deallocate(nullptr, 0, &h);
-            suite.BEAST_EXPECT(hook_invoked);
+            BEAST_EXPECT(hook_invoked);
         }
         {
             bool hook_invoked = false;
             auto h = f(legacy_handler{hook_invoked});
             using net::asio_handler_is_continuation;
             asio_handler_is_continuation(&h);
-            suite.BEAST_EXPECT(hook_invoked);
+            BEAST_EXPECT(hook_invoked);
         }
     }
 };

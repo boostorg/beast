@@ -34,8 +34,7 @@ public:
     void
     testDynamicBuffer()
     {
-        flat_static_buffer<13> b;
-        test_dynamic_buffer(*this, b);
+        test_dynamic_buffer(flat_static_buffer<13>{});
     }
 
     void

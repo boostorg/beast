@@ -23,7 +23,6 @@ namespace unit_test {
 namespace detail {
 
 template<class String>
-static
 std::string
 make_reason(String const& reason,
     char const* file, int line)
@@ -610,12 +609,20 @@ run(runner& r)
     }
 }
 
+#ifndef BEAST_PASS
+#define BEAST_PASS() ::boost::beast::unit_test::suite::this_suite()->pass()
+#endif
+
+#ifndef BEAST_FAIL
+#define BEAST_FAIL() ::boost::beast::unit_test::suite::this_suite()->fail("", __FILE__, __LINE__)
+#endif
+
 #ifndef BEAST_EXPECT
 /** Check a precondition.
 
     If the condition is false, the file and line number are reported.
 */
-#define BEAST_EXPECT(cond) expect(cond, __FILE__, __LINE__)
+#define BEAST_EXPECT(cond) ::boost::beast::unit_test::suite::this_suite()->expect(cond, __FILE__, __LINE__)
 #endif
 
 #ifndef BEAST_EXPECTS
@@ -623,8 +630,9 @@ run(runner& r)
 
     If the condition is false, the file and line number are reported.
 */
-#define BEAST_EXPECTS(cond, reason) ((cond) ? (pass(), true) : \
-        (fail((reason), __FILE__, __LINE__), false))
+#define BEAST_EXPECTS(cond, reason) ((cond) ? \
+    (::boost::beast::unit_test::suite::this_suite()->pass(), true) : \
+    (::boost::beast::unit_test::suite::this_suite()->fail((reason), __FILE__, __LINE__), false))
 #endif
 
 } // unit_test
