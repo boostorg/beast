@@ -18,7 +18,7 @@ A
 allows programs located anywhere to exchange information after opting-in
 to communications by establishing a
 [@https://en.wikipedia.org/wiki/Data_link ['connection]].
-Data is reliably transferred on a connection in either direction
+Data may be reliably transferred across a connection in both directions
 ([@https://en.wikipedia.org/wiki/Duplex_(telecommunications) ['full-duplex]])
 with bytes arriving in the same order they were sent. These connections, along
 with the objects and types used to represent them, are collectively termed
@@ -26,9 +26,9 @@ with the objects and types used to represent them, are collectively termed
 
 The
 [@https://en.wikipedia.org/wiki/Internet ['internet]]
-is a global network of interconnected computers which exchange information
-using a variety of standardized communication protocols. The most popular
-protocol is
+is a global network of interconnected computers that use a variety of
+standardized communication protocols to exchange information. The most
+popular protocol is
 [@https://en.wikipedia.org/wiki/Transmission_Control_Protocol ['TCP/IP]],
 which this library relies on exclusively. The protocol takes care of the
 low level details so that applications see a
@@ -67,7 +67,7 @@ objects that perform I/O.
 The networking types __const_buffer__ and __mutable_buffer__ represent
 these memory regions as type-safe pointer/size pairs, as shown below:
 ```
-    net::const_buffer cb("Hello, world!", 13);
+    net::const_buffer cb(string_view("Hello, world!", 13));
     assert(string_view(reinterpret_cast<char const*>(cb.data()), cb.size()) == "Hello, world!");
 
     char storage[13];
@@ -76,26 +76,39 @@ these memory regions as type-safe pointer/size pairs, as shown below:
     assert(string_view(reinterpret_cast<char const*>(mb.data()), mb.size()) == "Hello, world!");
 ```
 
+[tip
+    Networking uses custom buffer types because `span<byte>` does too much.
+    It not only type-erases the original pointer but also recasts it to a
+    pointer-to-byte. The operating system doesn't care about this, but if
+    a user wants to send and receive an array of some other type, presenting
+    it as an array of bytes which supports bitwise operations is unnecessary.
+    Custom buffer types also permit networking implmentations to provide
+    targeted features such as
+    [@boost:/doc/html/boost_asio/overview/core/buffers.html#boost_asio.overview.core.buffers.buffer_debugging ['buffer debugging]]
+    without changing the more general vocabulary types.
+]
+
 The concepts
 __ConstBufferSequence__ and __MutableBufferSequence__ describe bidirectional
-ranges whose value type is convertible to __const_buffer__ and
-__mutable_buffer__ respectively. Buffer sequences may be used to transact
+ranges whose value type is convertible to `const_buffer` and
+`mutable_buffer` respectively. Buffer sequences may be used to transact
 in multiple buffers in a single function call, a technique sometimes
 referred to as
 [@https://en.wikipedia.org/wiki/Vectored_I/O ['scatter/gather I/O]].
-Buffer and buffer sequence types are non-owning; creating a copy only results
-in a shallow reference and not a duplicate of the underlying memory. These
-are all examples of buffer sequences:
+Buffers and sequences are non-owning; copies produce shallow references and
+not duplicates of the underlying memory. Each of these statements declares
+a buffer sequence:
 ```
     net::const_buffer b1;
     net::mutable_buffer b2;
     std::array<net::const_buffer, 3> b3;
 ```
 
-The __DynamicBuffer__ concept defines a buffer container which may be
-resized using a well defined interface. Beast and networking use dynamic
-buffers when the amount of storage required to perform an operation is
-not known ahead of time, such as when reading a complete HTTP message.
+The __DynamicBuffer__ concept defines a buffer container with an interface
+that supports increasing and decreasing the size of the managed buffer
+sequence. Beast and networking use dynamic buffers when the amount of
+storage required to perform an operation is not known ahead of time,
+such as when reading a complete HTTP message.
 
 [heading Synchronous I/O]
 
@@ -104,51 +117,50 @@ calls that provide the complete results of the operation upon returning.
 Such operations typically cannot be canceled and do not have a method for
 setting a timeout. The __SyncReadStream__ and __SyncWriteStream__ concepts
 define requirements for
-['synchronous streams],
-permitting portable exchange of data using buffer sequence abstractions
-to represent bytes and either `error_code` or exceptions to describe any
-failures.
+['synchronous streams]:
+a portable I/O abstraction that exchanges data using buffer sequences
+to represent bytes and either `error_code` or an exception to report
+any failures.
 
 A
 ['synchronous stream algorithm]
 is written as a function template accepting a stream object meeting the
-named requirements for synchronous reading, writing, or both. This generic
-example shows how some text might be written synchronously to a stream,
-using exceptions to indicate errors:
+named requirements for synchronous reading, writing, or both. This example
+shows an algorithm which writes text and uses exceptions to indicate errors:
 
 ```
     template <class SyncWriteStream>
     void hello (SyncWriteStream& stream)
     {
-        net::const_buffer buffer("Hello, world!", 13);
+        net::const_buffer cb(string_view("Hello, world!"));
         do
         {
-            auto bytes_transferred = stream.write_some(buffer); // may throw
-            buffer += bytes_transferred; // adjust the pointer and size
+            auto bytes_transferred = stream.write_some(cb); // may throw
+            cb += bytes_transferred; // adjust the pointer and size
         }
-        while (buffer.size() > 0);
+        while (cb.size() > 0);
     }
 ```
 
-The same function may be written to use error codes instead of exceptions:
+The same algorithm may be expressed using error codes instead of exceptions:
 
 ```
     template <class SyncWriteStream>
     void hello (SyncWriteStream& stream, error_code& ec)
     {
-        net::const_buffer buffer("Hello, world!", 13);
+        net::const_buffer cb(string_view("Hello, world!"));
         do
         {
-            auto bytes_transferred = stream.write_some(buffer, ec);
-            buffer += bytes_transferred; // adjust the pointer and size
+            auto bytes_transferred = stream.write_some(cb, ec);
+            cb += bytes_transferred; // adjust the pointer and size
         }
-        while (buffer.size() > 0 && ! ec);
+        while (cb.size() > 0 && ! ec);
     }
 ```
 
 [heading Asynchronous I/O]
 
-An asynchronous operation starts with a call to an
+An asynchronous operation begins with a call to an
 [@boost:/doc/html/boost_asio/reference/asynchronous_operations.html ['initiating function]],
 which starts the operation and returns to the caller immediately. This
 ['outstanding]
@@ -156,98 +168,121 @@ asynchronous operation continues to make progress concurrently without
 blocking. When the externally observable side effects are fully established,
 a movable function object known as a
 [@boost:/doc/html/boost_asio/reference/CompletionHandler.html ['completion handler]]
-provided in the initiating function call is then queued for execution to
-receive the results of the operation, which may include the error code and other
-specific information. The operation is considered
+provided in the initiating function call is queued for execution with the
+results, which may include the error code and other specific information.
+An asynchronous operation is said to be
 ['completed]
-when the completion handler has been queued for execution with the results.
+after the completion handler is queued. The code that follows shows how some
+text may be written to a
+[@boost:/doc/html/boost_asio/reference/ip__tcp/socket.html `socket`]
+asynchronously, invoking a lambda when the
+operation is complete:
+```
+    net::async_write(sock, net::const_buffer(string_view("Hello, world!")),
+        [](error_code ec, std::size_t bytes_transferred)
+        {
+            if(! ec)
+                assert(bytes_transferred == 13);
+            else
+                std::cerr << "Error: " << ec.message() << "\n";
+        });
+```
 
 Every completion handler (also referred to as a
-['continuation]
-since it represents a continuation of the flow of control that starts
-with the initiating function call) has an
-[@boost:/doc/html/boost_asio/overview/core/allocation.html ['associated allocator]].
-Temporary storage obtained using the associated allocator [*must] be deallocated
-before the completion handler is invoked.
-Each completion handler also has an
-['associated executor].
-An executor is a cheaply copyable object that provides an algorithm for
-invoking nullary function objects.
+[@https://en.wikipedia.org/wiki/Continuation ['continuation]])
+has both an
+[@boost:/doc/html/boost_asio/overview/core/allocation.html ['associated allocator]]
+and an
+[@boost:/doc/html/boost_asio/reference/associated_executor.html ['associated executor]].
+The allocator may be used to obtain temporary storage (which [*must] be
+deallocated before the completion handler is invoked), while the executor
+is a cheaply copyable object providing the algorithm used to invoke the
+completion handler. Unless customized by the caller, a completion handler
+defaults to using `std::allocator<void>` and the executor of the
+corresponding I/O object.
 
-Networking prescribes facilities to determine the context
-where handlers run. Every I/O object is associated with an
-__ExecutionContext__,
-which permits implementations to store private per-context data and
-also supplies instances of its
-__Executor__
-that determines where and how a handler is invoked in the
-exection context. Instances of __io_context__ offer a basic guarantee:
-handlers will only be executed from caller-provided threads which are
-currently invoking
+Networking prescribes facilities to determine the context in which
+handlers run. Every I/O object refers to an __ExecutionContext__ for
+obtaining the __Executor__ instance used to invoke completion handlers.
+An executor determines where and how completion handlers are invoked.
+Executors obtained from an instance of __io_context__ offer a basic guarantee:
+handlers will only be invoked from threads which are currently calling
 [@boost:/doc/html/boost_asio/reference/io_context/run/overload1.html `net::io_context::run`].
 
-An
-[@boost:/doc/html/boost_asio/overview/core/strands.html ['associated executor]]
-is defined for every completion handler, defaulting to the executor of the
-target I/O object. The executor for a completion handler may be customized,
-for example by choosing a __strand__.
-
 The __AsyncReadStream__ and __AsyncWriteStream__ concepts define requirements for
-['asynchronous streams],
-permitting portable exchange of data asynchronously using buffer sequence
-abstractions to represent bytes and `error_code` to describe any failures.
-
-An
+['asynchronous streams]:
+a portable I/O abstraction that exchanges data asynchronously using buffer
+sequences to represent bytes and `error_code` to report any failures. An
 ['asynchronous stream algorithm]
-is written as a templated initiating function template which accepts a stream
+is written as a templated initiating function template accepting a stream
 object meeting the named requirements for asynchronous reading, writing, or
-both. The signature for the initiating function includes a
-['completion token],
-which is a generalization of completion handlers permitting user-defined
-types such as futures or coroutines to be substituted as the mechanism by
-which the results of the asynchronous operation are delivered. The following
-statements all call the same function to asynchronously read data from a
-stream, but use a different method for receiving the results:
-```
-    net::async_read(sock, buffer,
-        [error_code ec, std::size_t bytes_transferred]
-        {
-            if(ec)
-                std::cout << "Error: " << ec.message() << "\n";
-```
-
-The system
-for customizing the return type of initiating functions and obtaining the
-actual completion handler from a completion token is known as the
-[@http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3747.pdf ['Universal Model for Asynchronous Operations]] (N3747).
-
-This generic example shows the signature for an initiating function to write
-some text to a stream:
+both. This example shows an algorithm which writes some text to an
+asynchronous stream:
 ```
     template <class AsyncWriteStream, class WriteHandler>
-    auto async_hello (AsyncWriteStream& stream, WriteHandler&& handler);
+    void async_hello (AsyncWriteStream& stream, WriteHandler&& handler)
+    {
+        net::async_write (stream,
+            net::buffer(string_view("Hello, world!")),
+            std::forward<Handler>(handler));
+    }
 ```
+
+[heading Concurrency]
+
+I/O objects such as sockets and streams [*are not thread-safe]. Although
+it is possible to have more than one operation outstanding (for example,
+a simultaneous asynchronous read and asynchronous write) the stream object
+itself may only be accessed from one thread at a time. This means that
+member functions such as move constructors, destructors, or initiating
+functions must not be called concurrently. Usually this is accomplished
+with synchronization primitives such as a
+[@https://en.cppreference.com/w/cpp/thread/mutex `mutex`],
+but concurrent network programs need a better way to access shared resources,
+since acquiring ownership of a mutex could block threads from performing
+uncontended work. For efficiency, networking adopts a model of using threads
+without explicit locking by requiring all access to I/O objects to be
+performed within a
+[@boost:/doc/html/boost_asio/overview/core/strands.html ['strand]].
+
+[heading Asynchronous Model]
+
+Completion handlers are native to networking but cause an inversion of the
+flow of control. Alternatives to using completion handlers include futures,
+fibers, coroutines, or user-defined types. Networking supports these
+alternatives with a feature that provides these hooks for customizing
+initiating functions:
+
+* Converting a custom ['CompletionToken] to a "real" handler type
+
+* Creating the initiating function's result
+
+
+
 
 
 [/
-    [heading Concurrency Without Locking]
+            The system
+            for customizing the return type of initiating functions and obtaining the
+            actual completion handler from a completion token is known as the
+            [@http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3747.pdf ['Universal Model for Asynchronous Operations]] (N3747).
+            This generic example shows the signature for an initiating function to
+            write some text to a stream:
+            ```
+                template <class AsyncWriteStream, class WriteHandler>
+                auto async_hello (AsyncWriteStream& stream, WriteHandler&& handler);
+            ```
 
-    multiple threads calling io_context::run
-
-    When a composed operation submits intermediate completion handlers for operations used to meet its stated effects, the intermediate handlers must use the same executor as that used for the final completion handler
-    This is to avoid accessing the underlying I/O object in ways that violate preconditions
-
-    [heading Universal Asynchronous Model]
-
-A strand provides an additional execution
-guarantee: function objects submitted to the strand are never executed
-concurrently by the underlying executor. Strands permit concurrent asynchronous
-applications to be developed which
-[@boost:/doc/html/boost_asio/overview/core/strands.html use threads without explicit locking].
-
-    The use of invocable function objects
+            The signature for the initiating function includes a
+            ['completion token],
+            which is a generalization of completion handlers permitting user-defined
+            types such as futures or coroutines to be substituted as the mechanism by
+            which the results of the asynchronous operation are delivered. The following
+            statements all call the same function to asynchronously read data from a
+            stream, but use a different method for receiving the results:
 ]
 
+[/-----------------------------------------------------------------------------]
 
 [heading Using Networking]
 

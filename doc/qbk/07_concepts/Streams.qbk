@@ -9,8 +9,13 @@
 
 [section:streams Streams]
 
-Stream types represent objects capable of performing synchronous or
-asynchronous I/O. They are based on concepts from `boost::asio`.
+A stream in the context of Beast and networking, represents a full-duplex
+connection between two programs or hosts, where data represented as
+bytes may be received reliably in the same order they were written.
+Streams can be support synchronous transfers, asynchronous transfers,
+or both.
+
+Stream concepts are based on named requirements in networking:
 
 [heading:Stream Stream]
 
