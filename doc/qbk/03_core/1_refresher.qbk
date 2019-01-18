@@ -14,37 +14,35 @@ This section reviews networking concepts as a reminder and guide for further
 learning.
 
 A
-['network]
+[@https://en.wikipedia.org/wiki/Computer_network ['network]]
 allows programs located anywhere to exchange information after opting-in
 to communications by establishing a
-['connection].
-Data is reliably transferred on a connection in either direction (full-duplex)
+[@https://en.wikipedia.org/wiki/Data_link ['connection]].
+Data is reliably transferred on a connection in either direction
+([@https://en.wikipedia.org/wiki/Duplex_(telecommunications) ['full-duplex]])
 with bytes arriving in the same order they were sent. These connections, along
 with the objects and types used to represent them, are collectively termed
-['streams].
+[link beast.concepts.streams ['streams]].
 
 The
-['internet]
+[@https://en.wikipedia.org/wiki/Internet ['internet]]
 is a global network of interconnected computers which exchange information
 using a variety of standardized communication protocols. The most popular
 protocol is
-['TCP/IP],
+[@https://en.wikipedia.org/wiki/Transmission_Control_Protocol ['TCP/IP]],
 which this library relies on exclusively. The protocol takes care of the
 low level details so that applications see a
-['stream],
-which is the reliable, full-duplex connection carrying the ordered set
-of bytes described above.
+['stream], which is the reliable, full-duplex connection carrying the ordered
+set of bytes described above.
 
 A vendor supplies a program called a
-['driver],
+[@https://en.wikipedia.org/wiki/Device_driver ['device driver]],
 enabling networking hardware such as an
-['ethernet adaptor]
-to talk to the operating system. The OS in turn permits running programs to
-interact with networking using various flavors of interfaces, such as:
-
-* Berkeley sockets
-* POSIX sockets
-* Windows Sockets 2 ("Winsock")
+[@https://en.wikipedia.org/wiki/Network_interface_controller ['ethernet adaptor]]
+to talk to the operating system. This in turn permits running programs to
+interact with networking using various flavors of interfaces such as
+[@https://en.wikipedia.org/wiki/Berkeley_sockets ['Berkeley sockets]] or
+[@https://en.wikipedia.org/wiki/Winsock ['Windows Sockets 2]] ("Winsock").
 
 C++ Networking, represented by __NetTS__ and __Asio__, provides another layer
 of abstraction with features such as:
@@ -57,81 +55,179 @@ of abstraction with features such as:
 These concepts enable generic programming so that higher levels of abstraction
 may be composed to arbitrary degree. In fact, the interfaces and concepts
 offered by networking are best described as providing support for general
-input and output algorithms ("I/O"), including TCP/IP.
+[@https://en.wikipedia.org/wiki/Input/output ['input/output]] ("I/O")
+algorithms, including networking.
 
 [heading Buffers]
 
 A
-['buffer]
-holds a contiguous sequence of bytes used to perform reads or writes on an
-['I/O object].
+[@https://en.wikipedia.org/wiki/Data_buffer ['buffer]]
+holds a contiguous sequence of bytes used when reading or writing data with
+objects that perform I/O.
 The networking types __const_buffer__ and __mutable_buffer__ represent
-these memory regions as type-safe pointer/size pairs. The concepts
-__ConstBufferSequence__ and __MutableBufferSequence__ are bidirectional
+these memory regions as type-safe pointer/size pairs, as shown below:
+```
+    net::const_buffer cb("Hello, world!", 13);
+    assert(string_view(reinterpret_cast<char const*>(cb.data()), cb.size()) == "Hello, world!");
+
+    char storage[13];
+    net::mutable_buffer mb(bytes, sizeof(storage));
+    std::memcpy(mb.data(), cb.data(), mb.size());
+    assert(string_view(reinterpret_cast<char const*>(mb.data()), mb.size()) == "Hello, world!");
+```
+
+The concepts
+__ConstBufferSequence__ and __MutableBufferSequence__ describe bidirectional
 ranges whose value type is convertible to __const_buffer__ and
 __mutable_buffer__ respectively. Buffer sequences may be used to transact
-in multiple buffers in a single function call. These types are non-owning;
-copying a buffer or buffer sequences only creates a shallow reference,
-it does allocate a copy of the contents.
+in multiple buffers in a single function call, a technique sometimes
+referred to as
+[@https://en.wikipedia.org/wiki/Vectored_I/O ['scatter/gather I/O]].
+Buffer and buffer sequence types are non-owning; creating a copy only results
+in a shallow reference and not a duplicate of the underlying memory. These
+are all examples of buffer sequences:
+```
+    net::const_buffer b1;
+    net::mutable_buffer b2;
+    std::array<net::const_buffer, 3> b3;
+```
 
-Buffers described thus far may not be resized. The __DynamicBuffer__
-concept defines a storage type whose size can change. Beast uses
-dynamic buffers in interfaces where the amount of storage required
-to complete an operation is not known ahead of time.
+The __DynamicBuffer__ concept defines a buffer container which may be
+resized using a well defined interface. Beast and networking use dynamic
+buffers when the amount of storage required to perform an operation is
+not known ahead of time, such as when reading a complete HTTP message.
 
+[heading Synchronous I/O]
 
+Synchronous input and output is accomplished through blocking function
+calls that provide the complete results of the operation upon returning.
+Such operations typically cannot be canceled and do not have a method for
+setting a timeout. The __SyncReadStream__ and __SyncWriteStream__ concepts
+define requirements for
+['synchronous streams],
+permitting portable exchange of data using buffer sequence abstractions
+to represent bytes and either `error_code` or exceptions to describe any
+failures.
 
-    [/ [heading Synchronous I/O] ]
+A
+['synchronous stream algorithm]
+is written as a function template accepting a stream object meeting the
+named requirements for synchronous reading, writing, or both. This generic
+example shows how some text might be written synchronously to a stream,
+using exceptions to indicate errors:
 
+```
+    template <class SyncWriteStream>
+    void hello (SyncWriteStream& stream)
+    {
+        net::const_buffer buffer("Hello, world!", 13);
+        do
+        {
+            auto bytes_transferred = stream.write_some(buffer); // may throw
+            buffer += bytes_transferred; // adjust the pointer and size
+        }
+        while (buffer.size() > 0);
+    }
+```
 
+The same function may be written to use error codes instead of exceptions:
+
+```
+    template <class SyncWriteStream>
+    void hello (SyncWriteStream& stream, error_code& ec)
+    {
+        net::const_buffer buffer("Hello, world!", 13);
+        do
+        {
+            auto bytes_transferred = stream.write_some(buffer, ec);
+            buffer += bytes_transferred; // adjust the pointer and size
+        }
+        while (buffer.size() > 0 && ! ec);
+    }
+```
 
 [heading Asynchronous I/O]
 
 An asynchronous operation starts with a call to an
-['initiating function],
-whose name begins with the prefix `async_`. The initating function
-allocates memory as needed, possibly capturing arguments, then
-launches the operation before returning to the caller immediately.
-The operation is now
-['outstanding],
-making progress without blocking the caller.
+[@boost:/doc/html/boost_asio/reference/asynchronous_operations.html ['initiating function]],
+which starts the operation and returns to the caller immediately. This
+['outstanding]
+asynchronous operation continues to make progress concurrently without
+blocking. When the externally observable side effects are fully established,
+a movable function object known as a
+[@boost:/doc/html/boost_asio/reference/CompletionHandler.html ['completion handler]]
+provided in the initiating function call is then queued for execution to
+receive the results of the operation, which may include the error code and other
+specific information. The operation is considered
+['completed]
+when the completion handler has been queued for execution with the results.
 
-The result of the operation is
-['available]
-when the externally observable side effects are fully established.
-A movable function object known as a
-['completion handler]
-(provided to the initiating function) is then invoked with the result.
-A completion handler is also referred to as a
-['continuation],
-since it represents a continuation of the flow of execution that
-started from the initiating function call.
-Temporary storage required to perform an operation may be allocated using
-the completion handler's
-['associated allocator],
-which can optionally be suggested by the caller. These allocations
-[*must] be freed before the completion handler is invoked.
+Every completion handler (also referred to as a
+['continuation]
+since it represents a continuation of the flow of control that starts
+with the initiating function call) has an
+[@boost:/doc/html/boost_asio/overview/core/allocation.html ['associated allocator]].
+Temporary storage obtained using the associated allocator [*must] be deallocated
+before the completion handler is invoked.
+Each completion handler also has an
+['associated executor].
+An executor is a cheaply copyable object that provides an algorithm for
+invoking nullary function objects.
 
-Networking provides well-defined facilities for determining the context
+Networking prescribes facilities to determine the context
 where handlers run. Every I/O object is associated with an
-['ExecutionContext],
+__ExecutionContext__,
 which permits implementations to store private per-context data and
 also supplies instances of its
-['Executor] that determines where and how a handler is invoked in the
-exection context. Instances of __io_context__ offer the basic execution
-guarantee: handlers will only be executed from caller-provided threads
-which are currently invoking
+__Executor__
+that determines where and how a handler is invoked in the
+exection context. Instances of __io_context__ offer a basic guarantee:
+handlers will only be executed from caller-provided threads which are
+currently invoking
 [@boost:/doc/html/boost_asio/reference/io_context/run/overload1.html `net::io_context::run`].
 
 An
-['associated executor]
-is defined for every completion handler, which defaults to the I/O
-object's executor. The executor for a completion handler may be
-customized, for example by choosing a __strand__. A strand provides an
-additional execution guarantee: function objects submitted to the strand
-are never executed concurrently by the underlying executor. Strands permit
-concurrent asynchronous applications to be developed which do not require
-explicit locking.
+[@boost:/doc/html/boost_asio/overview/core/strands.html ['associated executor]]
+is defined for every completion handler, defaulting to the executor of the
+target I/O object. The executor for a completion handler may be customized,
+for example by choosing a __strand__.
+
+The __AsyncReadStream__ and __AsyncWriteStream__ concepts define requirements for
+['asynchronous streams],
+permitting portable exchange of data asynchronously using buffer sequence
+abstractions to represent bytes and `error_code` to describe any failures.
+
+An
+['asynchronous stream algorithm]
+is written as a templated initiating function template which accepts a stream
+object meeting the named requirements for asynchronous reading, writing, or
+both. The signature for the initiating function includes a
+['completion token],
+which is a generalization of completion handlers permitting user-defined
+types such as futures or coroutines to be substituted as the mechanism by
+which the results of the asynchronous operation are delivered. The following
+statements all call the same function to asynchronously read data from a
+stream, but use a different method for receiving the results:
+```
+    net::async_read(sock, buffer,
+        [error_code ec, std::size_t bytes_transferred]
+        {
+            if(ec)
+                std::cout << "Error: " << ec.message() << "\n";
+```
+
+The system
+for customizing the return type of initiating functions and obtaining the
+actual completion handler from a completion token is known as the
+[@http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3747.pdf ['Universal Model for Asynchronous Operations]] (N3747).
+
+This generic example shows the signature for an initiating function to write
+some text to a stream:
+```
+    template <class AsyncWriteStream, class WriteHandler>
+    auto async_hello (AsyncWriteStream& stream, WriteHandler&& handler);
+```
+
 
 [/
     [heading Concurrency Without Locking]
@@ -143,10 +239,17 @@ explicit locking.
 
     [heading Universal Asynchronous Model]
 
+A strand provides an additional execution
+guarantee: function objects submitted to the strand are never executed
+concurrently by the underlying executor. Strands permit concurrent asynchronous
+applications to be developed which
+[@boost:/doc/html/boost_asio/overview/core/strands.html use threads without explicit locking].
+
     The use of invocable function objects
 ]
 
 
+[heading Using Networking]
 
 [warning
     Beast does not manage sockets, make outgoing connections,

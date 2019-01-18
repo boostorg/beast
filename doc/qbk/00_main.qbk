@@ -69,6 +69,7 @@
 [def __ConstBufferSequence__    [@boost:/doc/html/boost_asio/reference/ConstBufferSequence.html ['ConstBufferSequence]]]
 [def __EndpointSequence__       [@boost:/doc/html/boost_asio/reference/EndpointSequence.html ['EndpointSequence]]]
 [def __Executor__               [@boost:/doc/html/boost_asio/reference/Executor1.html ['Executor]]]
+[def __ExecutionContext__       [@boost:/doc/html/boost_asio/reference/ExecutionContext.html ['ExecutionContext]]]
 [def __Handler__                [@boost:/doc/html/boost_asio/reference/Handler.html ['Handler]]]
 [def __IteratorConnectHandler__ [@boost:/doc/html/boost_asio/reference/IteratorConnectHandler.html ['IteratorConnectHandler]]]
 [def __MutableBufferSequence__  [@boost:/doc/html/boost_asio/reference/MutableBufferSequence.html ['MutableBufferSequence]]]
