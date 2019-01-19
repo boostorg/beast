@@ -20,6 +20,7 @@
 #include <boost/beast/websocket/detail/hybi13.hpp>
 #include <boost/beast/websocket/detail/mask.hpp>
 #include <boost/beast/websocket/detail/pmd_extension.hpp>
+#include <boost/beast/websocket/detail/soft_mutex.hpp>
 #include <boost/beast/websocket/detail/stream_base.hpp>
 #include <boost/beast/websocket/detail/utf8_checker.hpp>
 #include <boost/beast/core/saved_handler.hpp>

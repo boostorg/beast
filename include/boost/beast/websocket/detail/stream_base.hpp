@@ -7,8 +7,8 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
-#ifndef BOOST_BEAST_WEBSOCKET_STREAM_BASE_HPP
-#define BOOST_BEAST_WEBSOCKET_STREAM_BASE_HPP
+#ifndef BOOST_BEAST_WEBSOCKET_DETAIL_STREAM_BASE_HPP
+#define BOOST_BEAST_WEBSOCKET_DETAIL_STREAM_BASE_HPP
 
 #include <boost/beast/http/empty_body.hpp>
 #include <boost/beast/http/message.hpp>
@@ -42,87 +42,6 @@ namespace boost {
 namespace beast {
 namespace websocket {
 namespace detail {
-
-// used to order reads and writes
-class soft_mutex
-{
-    int id_ = 0;
-
-public:
-    soft_mutex() = default;
-    soft_mutex(soft_mutex const&) = delete;
-    soft_mutex& operator=(soft_mutex const&) = delete;
-
-    soft_mutex(soft_mutex&& other) noexcept
-        : id_(boost::exchange(other.id_, 0))
-    {
-    }
-
-    soft_mutex& operator=(soft_mutex&& other) noexcept
-    {
-        id_ = other.id_;
-        other.id_ = 0;
-        return *this;
-    }
-
-    // VFALCO I'm not too happy that this function is needed
-    void reset()
-    {
-        id_ = 0;
-    }
-
-    bool is_locked() const
-    {
-        return id_ != 0;
-    }
-
-    template<class T>
-    bool is_locked(T const*) const
-    {
-        return id_ == T::id;
-    }
-
-    template<class T>
-    void lock(T const*)
-    {
-        BOOST_ASSERT(id_ == 0);
-        id_ = T::id;
-    }
-
-    template<class T>
-    void unlock(T const*)
-    {
-        BOOST_ASSERT(id_ == T::id);
-        id_ = 0;
-    }
-
-    template<class T>
-    bool try_lock(T const*)
-    {
-        // If this assert goes off it means you are attempting to
-        // simultaneously initiate more than one of same asynchronous
-        // operation, which is not allowed. For example, you must wait
-        // for an async_read to complete before performing another
-        // async_read.
-        //
-        BOOST_ASSERT(id_ != T::id);
-        if(id_ != 0)
-            return false;
-        id_ = T::id;
-        return true;
-    }
-
-    template<class T>
-    bool try_unlock(T const*)
-    {
-        if(id_ != T::id)
-            return false;
-        id_ = 0;
-        return true;
-    }
-};
-
-//------------------------------------------------------------------------------
 
 struct stream_prng
 {
