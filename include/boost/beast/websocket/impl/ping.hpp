@@ -7,8 +7,8 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
-#ifndef BOOST_BEAST_WEBSOCKET_IMPL_PING_IPP
-#define BOOST_BEAST_WEBSOCKET_IMPL_PING_IPP
+#ifndef BOOST_BEAST_WEBSOCKET_IMPL_PING_HPP
+#define BOOST_BEAST_WEBSOCKET_IMPL_PING_HPP
 
 #include <boost/beast/core/async_op_base.hpp>
 #include <boost/beast/core/bind_handler.hpp>
@@ -83,10 +83,10 @@ public:
         BOOST_ASIO_CORO_REENTER(*this)
         {
             // Maybe suspend
-            if(d_.ws.wr_block_.try_lock(this))
+            if(d_.ws.impl_->wr_block.try_lock(this))
             {
                 // Make sure the stream is open
-                if(! d_.ws.check_open(ec))
+                if(! d_.ws.impl_->check_open(ec))
                 {
                     BOOST_ASIO_CORO_YIELD
                     net::post(
@@ -99,34 +99,34 @@ public:
             {
                 // Suspend
                 BOOST_ASIO_CORO_YIELD
-                d_.ws.paused_ping_.emplace(std::move(*this));
+                d_.ws.impl_->paused_ping.emplace(std::move(*this));
 
                 // Acquire the write block
-                d_.ws.wr_block_.lock(this);
+                d_.ws.impl_->wr_block.lock(this);
 
                 // Resume
                 BOOST_ASIO_CORO_YIELD
                 net::post(
                     d_.ws.get_executor(), std::move(*this));
-                BOOST_ASSERT(d_.ws.wr_block_.is_locked(this));
+                BOOST_ASSERT(d_.ws.impl_->wr_block.is_locked(this));
 
                 // Make sure the stream is open
-                if(! d_.ws.check_open(ec))
+                if(! d_.ws.impl_->check_open(ec))
                     goto upcall;
             }
 
             // Send ping frame
             BOOST_ASIO_CORO_YIELD
-            net::async_write(d_.ws.stream_,
+            net::async_write(d_.ws.impl_->stream,
                 d_.fb.data(), std::move(*this));
-            if(! d_.ws.check_ok(ec))
+            if(! d_.ws.impl_->check_ok(ec))
                 goto upcall;
 
         upcall:
-            d_.ws.wr_block_.unlock(this);
-            d_.ws.paused_close_.maybe_invoke() ||
-                d_.ws.paused_rd_.maybe_invoke() ||
-                d_.ws.paused_wr_.maybe_invoke();
+            d_.ws.impl_->wr_block.unlock(this);
+            d_.ws.impl_->paused_close.maybe_invoke() ||
+                d_.ws.impl_->paused_rd.maybe_invoke() ||
+                d_.ws.impl_->paused_wr.maybe_invoke();
             this->invoke(ec);
         }
     }
@@ -151,13 +151,13 @@ stream<NextLayer, deflateSupported>::
 ping(ping_data const& payload, error_code& ec)
 {
     // Make sure the stream is open
-    if(! check_open(ec))
+    if(! impl_->check_open(ec))
         return;
     detail::frame_buffer fb;
     write_ping<flat_static_buffer_base>(
         fb, detail::opcode::ping, payload);
-    net::write(stream_, fb.data(), ec);
-    if(! check_ok(ec))
+    net::write(impl_->stream, fb.data(), ec);
+    if(! impl_->check_ok(ec))
         return;
 }
 
@@ -178,13 +178,13 @@ stream<NextLayer, deflateSupported>::
 pong(ping_data const& payload, error_code& ec)
 {
     // Make sure the stream is open
-    if(! check_open(ec))
+    if(! impl_->check_open(ec))
         return;
     detail::frame_buffer fb;
     write_ping<flat_static_buffer_base>(
         fb, detail::opcode::pong, payload);
-    net::write(stream_, fb.data(), ec);
-    if(! check_ok(ec))
+    net::write(impl_->stream, fb.data(), ec);
+    if(! impl_->check_ok(ec))
         return;
 }
 

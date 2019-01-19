@@ -124,16 +124,16 @@ public:
         BOOST_STATIC_ASSERT(std::is_constructible<
             stream<test::stream&>, test::stream&>::value);
 
+        // VFALCO Should these be allowed for NextLayer references?
         BOOST_STATIC_ASSERT(std::is_move_constructible<
             stream<test::stream&>>::value);
-
-        BOOST_STATIC_ASSERT(! std::is_move_assignable<
+        BOOST_STATIC_ASSERT(std::is_move_assignable<
             stream<test::stream&>>::value);
 
-        log << "sizeof(websocket::stream_base<true>) == " <<
-            sizeof(websocket::detail::stream_base<true>) << std::endl;
         log << "sizeof(websocket::stream) == " <<
             sizeof(websocket::stream<test::stream&>) << std::endl;
+        log << "sizeof(websocket::stream::impl_type) == " <<
+            sizeof(websocket::stream<test::stream&>::impl_type) << std::endl;
 
         testOptions();
     }

@@ -7,9 +7,10 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
-#ifndef BOOST_BEAST_WEBSOCKET_IMPL_WRITE_IPP
-#define BOOST_BEAST_WEBSOCKET_IMPL_WRITE_IPP
+#ifndef BOOST_BEAST_WEBSOCKET_IMPL_WRITE_HPP
+#define BOOST_BEAST_WEBSOCKET_IMPL_WRITE_HPP
 
+#include <boost/beast/websocket/detail/mask.hpp>
 #include <boost/beast/core/async_op_base.hpp>
 #include <boost/beast/core/bind_handler.hpp>
 #include <boost/beast/core/buffers_cat.hpp>
@@ -32,106 +33,6 @@
 namespace boost {
 namespace beast {
 namespace websocket {
-
-namespace detail {
-
-// Compress a buffer sequence
-// Returns: `true` if more calls are needed
-//
-template<>
-template<class ConstBufferSequence>
-bool
-stream_base<true>::
-deflate(
-    net::mutable_buffer& out,
-    buffers_suffix<ConstBufferSequence>& cb,
-    bool fin,
-    std::size_t& total_in,
-    error_code& ec)
-{
-    using net::buffer;
-    BOOST_ASSERT(out.size() >= 6);
-    auto& zo = this->pmd_->zo;
-    zlib::z_params zs;
-    zs.avail_in = 0;
-    zs.next_in = nullptr;
-    zs.avail_out = out.size();
-    zs.next_out = out.data();
-    for(auto in : beast::buffers_range_ref(cb))
-    {
-        zs.avail_in = in.size();
-        if(zs.avail_in == 0)
-            continue;
-        zs.next_in = in.data();
-        zo.write(zs, zlib::Flush::none, ec);
-        if(ec)
-        {
-            if(ec != zlib::error::need_buffers)
-                return false;
-            BOOST_ASSERT(zs.avail_out == 0);
-            BOOST_ASSERT(zs.total_out == out.size());
-            ec.assign(0, ec.category());
-            break;
-        }
-        if(zs.avail_out == 0)
-        {
-            BOOST_ASSERT(zs.total_out == out.size());
-            break;
-        }
-        BOOST_ASSERT(zs.avail_in == 0);
-    }
-    total_in = zs.total_in;
-    cb.consume(zs.total_in);
-    if(zs.avail_out > 0 && fin)
-    {
-        auto const remain = net::buffer_size(cb);
-        if(remain == 0)
-        {
-            // Inspired by Mark Adler
-            // https://github.com/madler/zlib/issues/149
-            //
-            // VFALCO We could do this flush twice depending
-            //        on how much space is in the output.
-            zo.write(zs, zlib::Flush::block, ec);
-            BOOST_ASSERT(! ec || ec == zlib::error::need_buffers);
-            if(ec == zlib::error::need_buffers)
-                ec.assign(0, ec.category());
-            if(ec)
-                return false;
-            if(zs.avail_out >= 6)
-            {
-                zo.write(zs, zlib::Flush::full, ec);
-                BOOST_ASSERT(! ec);
-                // remove flush marker
-                zs.total_out -= 4;
-                out = buffer(out.data(), zs.total_out);
-                return false;
-            }
-        }
-    }
-    ec.assign(0, ec.category());
-    out = buffer(out.data(), zs.total_out);
-    return true;
-}
-
-template<>
-inline
-void
-stream_base<true>::
-do_context_takeover_write(role_type role)
-{
-    if((role == role_type::client &&
-        this->pmd_config_.client_no_context_takeover) ||
-       (role == role_type::server &&
-        this->pmd_config_.server_no_context_takeover))
-    {
-        this->pmd_->zo.reset();
-    }
-}
-
-} // detail
-
-//------------------------------------------------------------------------------
 
 template<class NextLayer, bool deflateSupported>
 template<class Buffers, class Handler>
@@ -205,10 +106,10 @@ operator()(
     BOOST_ASIO_CORO_REENTER(*this)
     {
         // Set up the outgoing frame header
-        if(! ws_.wr_cont_)
+        if(! ws_.impl_->wr_cont)
         {
-            ws_.begin_msg();
-            fh_.rsv1 = ws_.wr_compress_;
+            ws_.impl_->begin_msg();
+            fh_.rsv1 = ws_.impl_->wr_compress;
         }
         else
         {
@@ -216,27 +117,27 @@ operator()(
         }
         fh_.rsv2 = false;
         fh_.rsv3 = false;
-        fh_.op = ws_.wr_cont_ ?
-            detail::opcode::cont : ws_.wr_opcode_;
+        fh_.op = ws_.impl_->wr_cont ?
+            detail::opcode::cont : ws_.impl_->wr_opcode;
         fh_.mask =
-            ws_.role_ == role_type::client;
+            ws_.impl_->role == role_type::client;
 
         // Choose a write algorithm
-        if(ws_.wr_compress_)
+        if(ws_.impl_->wr_compress)
         {
             how_ = do_deflate;
         }
         else if(! fh_.mask)
         {
-            if(! ws_.wr_frag_)
+            if(! ws_.impl_->wr_frag)
             {
                 how_ = do_nomask_nofrag;
             }
             else
             {
-                BOOST_ASSERT(ws_.wr_buf_size_ != 0);
+                BOOST_ASSERT(ws_.impl_->wr_buf_size != 0);
                 remain_ = buffer_size(cb_);
-                if(remain_ > ws_.wr_buf_size_)
+                if(remain_ > ws_.impl_->wr_buf_size)
                     how_ = do_nomask_frag;
                 else
                     how_ = do_nomask_nofrag;
@@ -244,15 +145,15 @@ operator()(
         }
         else
         {
-            if(! ws_.wr_frag_)
+            if(! ws_.impl_->wr_frag)
             {
                 how_ = do_mask_nofrag;
             }
             else
             {
-                BOOST_ASSERT(ws_.wr_buf_size_ != 0);
+                BOOST_ASSERT(ws_.impl_->wr_buf_size != 0);
                 remain_ = buffer_size(cb_);
-                if(remain_ > ws_.wr_buf_size_)
+                if(remain_ > ws_.impl_->wr_buf_size)
                     how_ = do_mask_frag;
                 else
                     how_ = do_mask_nofrag;
@@ -260,10 +161,10 @@ operator()(
         }
 
         // Maybe suspend
-        if(ws_.wr_block_.try_lock(this))
+        if(ws_.impl_->wr_block.try_lock(this))
         {
             // Make sure the stream is open
-            if(! ws_.check_open(ec))
+            if(! ws_.impl_->check_open(ec))
                 goto upcall;
         }
         else
@@ -271,19 +172,19 @@ operator()(
         do_suspend:
             // Suspend
             BOOST_ASIO_CORO_YIELD
-            ws_.paused_wr_.emplace(std::move(*this));
+            ws_.impl_->paused_wr.emplace(std::move(*this));
 
             // Acquire the write block
-            ws_.wr_block_.lock(this);
+            ws_.impl_->wr_block.lock(this);
 
             // Resume
             BOOST_ASIO_CORO_YIELD
             net::post(
                 ws_.get_executor(), std::move(*this));
-            BOOST_ASSERT(ws_.wr_block_.is_locked(this));
+            BOOST_ASSERT(ws_.impl_->wr_block.is_locked(this));
 
             // Make sure the stream is open
-            if(! ws_.check_open(ec))
+            if(! ws_.impl_->check_open(ec))
                 goto upcall;
         }
 
@@ -293,16 +194,16 @@ operator()(
         {
             fh_.fin = fin_;
             fh_.len = buffer_size(cb_);
-            ws_.wr_fb_.clear();
+            ws_.impl_->wr_fb.clear();
             detail::write<flat_static_buffer_base>(
-                ws_.wr_fb_, fh_);
-            ws_.wr_cont_ = ! fin_;
+                ws_.impl_->wr_fb, fh_);
+            ws_.impl_->wr_cont = ! fin_;
             // Send frame
             BOOST_ASIO_CORO_YIELD
-            net::async_write(ws_.stream_,
-                buffers_cat(ws_.wr_fb_.data(), cb_),
+            net::async_write(ws_.impl_->stream,
+                buffers_cat(ws_.impl_->wr_fb.data(), cb_),
                     std::move(*this));
-            if(! ws_.check_ok(ec))
+            if(! ws_.impl_->check_ok(ec))
                 goto upcall;
             bytes_transferred_ += clamp(fh_.len);
             goto upcall;
@@ -314,22 +215,22 @@ operator()(
         {
             for(;;)
             {
-                n = clamp(remain_, ws_.wr_buf_size_);
+                n = clamp(remain_, ws_.impl_->wr_buf_size);
                 fh_.len = n;
                 remain_ -= n;
                 fh_.fin = fin_ ? remain_ == 0 : false;
-                ws_.wr_fb_.clear();
+                ws_.impl_->wr_fb.clear();
                 detail::write<flat_static_buffer_base>(
-                    ws_.wr_fb_, fh_);
-                ws_.wr_cont_ = ! fin_;
+                    ws_.impl_->wr_fb, fh_);
+                ws_.impl_->wr_cont = ! fin_;
                 // Send frame
                 BOOST_ASIO_CORO_YIELD
                 net::async_write(
-                    ws_.stream_, buffers_cat(
-                        ws_.wr_fb_.data(), buffers_prefix(
+                    ws_.impl_->stream, buffers_cat(
+                        ws_.impl_->wr_fb.data(), buffers_prefix(
                             clamp(fh_.len), cb_)),
                                 std::move(*this));
-                if(! ws_.check_ok(ec))
+                if(! ws_.impl_->check_ok(ec))
                     goto upcall;
                 n = clamp(fh_.len); // because yield
                 bytes_transferred_ += n;
@@ -339,15 +240,15 @@ operator()(
                 fh_.op = detail::opcode::cont;
                 // Allow outgoing control frames to
                 // be sent in between message frames
-                ws_.wr_block_.unlock(this);
-                if( ws_.paused_close_.maybe_invoke() ||
-                    ws_.paused_rd_.maybe_invoke() ||
-                    ws_.paused_ping_.maybe_invoke())
+                ws_.impl_->wr_block.unlock(this);
+                if( ws_.impl_->paused_close.maybe_invoke() ||
+                    ws_.impl_->paused_rd.maybe_invoke() ||
+                    ws_.impl_->paused_ping.maybe_invoke())
                 {
-                    BOOST_ASSERT(ws_.wr_block_.is_locked());
+                    BOOST_ASSERT(ws_.impl_->wr_block.is_locked());
                     goto do_suspend;
                 }
-                ws_.wr_block_.lock(this);
+                ws_.impl_->wr_block.lock(this);
             }
             goto upcall;
         }
@@ -361,41 +262,41 @@ operator()(
             fh_.len = remain_;
             fh_.key = ws_.create_mask();
             detail::prepare_key(key_, fh_.key);
-            ws_.wr_fb_.clear();
+            ws_.impl_->wr_fb.clear();
             detail::write<flat_static_buffer_base>(
-                ws_.wr_fb_, fh_);
-            n = clamp(remain_, ws_.wr_buf_size_);
+                ws_.impl_->wr_fb, fh_);
+            n = clamp(remain_, ws_.impl_->wr_buf_size);
             buffer_copy(buffer(
-                ws_.wr_buf_.get(), n), cb_);
+                ws_.impl_->wr_buf.get(), n), cb_);
             detail::mask_inplace(buffer(
-                ws_.wr_buf_.get(), n), key_);
+                ws_.impl_->wr_buf.get(), n), key_);
             remain_ -= n;
-            ws_.wr_cont_ = ! fin_;
+            ws_.impl_->wr_cont = ! fin_;
             // Send frame header and partial payload
             BOOST_ASIO_CORO_YIELD
             net::async_write(
-                ws_.stream_, buffers_cat(ws_.wr_fb_.data(),
-                    buffer(ws_.wr_buf_.get(), n)),
+                ws_.impl_->stream, buffers_cat(ws_.impl_->wr_fb.data(),
+                    buffer(ws_.impl_->wr_buf.get(), n)),
                         std::move(*this));
-            if(! ws_.check_ok(ec))
+            if(! ws_.impl_->check_ok(ec))
                 goto upcall;
             bytes_transferred_ +=
-                bytes_transferred - ws_.wr_fb_.size();
+                bytes_transferred - ws_.impl_->wr_fb.size();
             while(remain_ > 0)
             {
-                cb_.consume(ws_.wr_buf_size_);
-                n = clamp(remain_, ws_.wr_buf_size_);
+                cb_.consume(ws_.impl_->wr_buf_size);
+                n = clamp(remain_, ws_.impl_->wr_buf_size);
                 buffer_copy(buffer(
-                    ws_.wr_buf_.get(), n), cb_);
+                    ws_.impl_->wr_buf.get(), n), cb_);
                 detail::mask_inplace(buffer(
-                    ws_.wr_buf_.get(), n), key_);
+                    ws_.impl_->wr_buf.get(), n), key_);
                 remain_ -= n;
                 // Send partial payload
                 BOOST_ASIO_CORO_YIELD
-                net::async_write(ws_.stream_,
-                    buffer(ws_.wr_buf_.get(), n),
+                net::async_write(ws_.impl_->stream,
+                    buffer(ws_.impl_->wr_buf.get(), n),
                         std::move(*this));
-                if(! ws_.check_ok(ec))
+                if(! ws_.impl_->check_ok(ec))
                     goto upcall;
                 bytes_transferred_ += bytes_transferred;
             }
@@ -408,29 +309,29 @@ operator()(
         {
             for(;;)
             {
-                n = clamp(remain_, ws_.wr_buf_size_);
+                n = clamp(remain_, ws_.impl_->wr_buf_size);
                 remain_ -= n;
                 fh_.len = n;
                 fh_.key = ws_.create_mask();
                 fh_.fin = fin_ ? remain_ == 0 : false;
                 detail::prepare_key(key_, fh_.key);
                 buffer_copy(buffer(
-                    ws_.wr_buf_.get(), n), cb_);
+                    ws_.impl_->wr_buf.get(), n), cb_);
                 detail::mask_inplace(buffer(
-                    ws_.wr_buf_.get(), n), key_);
-                ws_.wr_fb_.clear();
+                    ws_.impl_->wr_buf.get(), n), key_);
+                ws_.impl_->wr_fb.clear();
                 detail::write<flat_static_buffer_base>(
-                    ws_.wr_fb_, fh_);
-                ws_.wr_cont_ = ! fin_;
+                    ws_.impl_->wr_fb, fh_);
+                ws_.impl_->wr_cont = ! fin_;
                 // Send frame
                 BOOST_ASIO_CORO_YIELD
-                net::async_write(ws_.stream_,
-                    buffers_cat(ws_.wr_fb_.data(),
-                        buffer(ws_.wr_buf_.get(), n)),
+                net::async_write(ws_.impl_->stream,
+                    buffers_cat(ws_.impl_->wr_fb.data(),
+                        buffer(ws_.impl_->wr_buf.get(), n)),
                             std::move(*this));
-                if(! ws_.check_ok(ec))
+                if(! ws_.impl_->check_ok(ec))
                     goto upcall;
-                n = bytes_transferred - ws_.wr_fb_.size();
+                n = bytes_transferred - ws_.impl_->wr_fb.size();
                 bytes_transferred_ += n;
                 if(remain_ == 0)
                     break;
@@ -438,15 +339,15 @@ operator()(
                 fh_.op = detail::opcode::cont;
                 // Allow outgoing control frames to
                 // be sent in between message frames:
-                ws_.wr_block_.unlock(this);
-                if( ws_.paused_close_.maybe_invoke() ||
-                    ws_.paused_rd_.maybe_invoke() ||
-                    ws_.paused_ping_.maybe_invoke())
+                ws_.impl_->wr_block.unlock(this);
+                if( ws_.impl_->paused_close.maybe_invoke() ||
+                    ws_.impl_->paused_rd.maybe_invoke() ||
+                    ws_.impl_->paused_ping.maybe_invoke())
                 {
-                    BOOST_ASSERT(ws_.wr_block_.is_locked());
+                    BOOST_ASSERT(ws_.impl_->wr_block.is_locked());
                     goto do_suspend;
                 }
-                ws_.wr_block_.lock(this);
+                ws_.impl_->wr_block.lock(this);
             }
             goto upcall;
         }
@@ -457,10 +358,10 @@ operator()(
         {
             for(;;)
             {
-                b = buffer(ws_.wr_buf_.get(),
-                    ws_.wr_buf_size_);
-                more_ = ws_.deflate(b, cb_, fin_, in_, ec);
-                if(! ws_.check_ok(ec))
+                b = buffer(ws_.impl_->wr_buf.get(),
+                    ws_.impl_->wr_buf_size);
+                more_ = ws_.impl_->deflate(b, cb_, fin_, in_, ec);
+                if(! ws_.impl_->check_ok(ec))
                     goto upcall;
                 n = buffer_size(b);
                 if(n == 0)
@@ -481,16 +382,16 @@ operator()(
                 }
                 fh_.fin = ! more_;
                 fh_.len = n;
-                ws_.wr_fb_.clear();
+                ws_.impl_->wr_fb.clear();
                 detail::write<
-                    flat_static_buffer_base>(ws_.wr_fb_, fh_);
-                ws_.wr_cont_ = ! fin_;
+                    flat_static_buffer_base>(ws_.impl_->wr_fb, fh_);
+                ws_.impl_->wr_cont = ! fin_;
                 // Send frame
                 BOOST_ASIO_CORO_YIELD
-                net::async_write(ws_.stream_,
-                    buffers_cat(ws_.wr_fb_.data(), b),
+                net::async_write(ws_.impl_->stream,
+                    buffers_cat(ws_.impl_->wr_fb.data(), b),
                         std::move(*this));
-                if(! ws_.check_ok(ec))
+                if(! ws_.impl_->check_ok(ec))
                     goto upcall;
                 bytes_transferred_ += in_;
                 if(more_)
@@ -499,20 +400,20 @@ operator()(
                     fh_.rsv1 = false;
                     // Allow outgoing control frames to
                     // be sent in between message frames:
-                    ws_.wr_block_.unlock(this);
-                    if( ws_.paused_close_.maybe_invoke() ||
-                        ws_.paused_rd_.maybe_invoke() ||
-                        ws_.paused_ping_.maybe_invoke())
+                    ws_.impl_->wr_block.unlock(this);
+                    if( ws_.impl_->paused_close.maybe_invoke() ||
+                        ws_.impl_->paused_rd.maybe_invoke() ||
+                        ws_.impl_->paused_ping.maybe_invoke())
                     {
-                        BOOST_ASSERT(ws_.wr_block_.is_locked());
+                        BOOST_ASSERT(ws_.impl_->wr_block.is_locked());
                         goto do_suspend;
                     }
-                    ws_.wr_block_.lock(this);
+                    ws_.impl_->wr_block.lock(this);
                 }
                 else
                 {
                     if(fh_.fin)
-                        ws_.do_context_takeover_write(ws_.role_);
+                        ws_.impl_->do_context_takeover_write(ws_.impl_->role);
                     goto upcall;
                 }
             }
@@ -521,10 +422,10 @@ operator()(
     //--------------------------------------------------------------------------
 
     upcall:
-        ws_.wr_block_.unlock(this);
-        ws_.paused_close_.maybe_invoke() ||
-            ws_.paused_rd_.maybe_invoke() ||
-            ws_.paused_ping_.maybe_invoke();
+        ws_.impl_->wr_block.unlock(this);
+        ws_.impl_->paused_close.maybe_invoke() ||
+            ws_.impl_->paused_rd.maybe_invoke() ||
+            ws_.impl_->paused_ping.maybe_invoke();
         if(! cont_)
         {
             BOOST_ASIO_CORO_YIELD
@@ -576,15 +477,15 @@ write_some(bool fin,
     using net::buffer_copy;
     using net::buffer_size;
     std::size_t bytes_transferred = 0;
-    ec.assign(0, ec.category());
+    ec = {};
     // Make sure the stream is open
-    if(! check_open(ec))
+    if(! impl_->check_open(ec))
         return bytes_transferred;
     detail::frame_header fh;
-    if(! wr_cont_)
+    if(! impl_->wr_cont)
     {
-        begin_msg();
-        fh.rsv1 = wr_compress_;
+        impl_->begin_msg();
+        fh.rsv1 = impl_->wr_compress;
     }
     else
     {
@@ -592,21 +493,21 @@ write_some(bool fin,
     }
     fh.rsv2 = false;
     fh.rsv3 = false;
-    fh.op = wr_cont_ ?
-        detail::opcode::cont : wr_opcode_;
-    fh.mask = role_ == role_type::client;
+    fh.op = impl_->wr_cont ?
+        detail::opcode::cont : impl_->wr_opcode;
+    fh.mask = impl_->role == role_type::client;
     auto remain = buffer_size(buffers);
-    if(wr_compress_)
+    if(impl_->wr_compress)
     {
         buffers_suffix<
             ConstBufferSequence> cb{buffers};
         for(;;)
         {
             auto b = buffer(
-                wr_buf_.get(), wr_buf_size_);
-            auto const more = this->deflate(
+                impl_->wr_buf.get(), impl_->wr_buf_size);
+            auto const more = impl_->deflate(
                 b, cb, fin, bytes_transferred, ec);
-            if(! check_ok(ec))
+            if(! impl_->check_ok(ec))
                 return bytes_transferred;
             auto const n = buffer_size(b);
             if(n == 0)
@@ -631,10 +532,10 @@ write_some(bool fin,
             detail::fh_buffer fh_buf;
             detail::write<
                 flat_static_buffer_base>(fh_buf, fh);
-            wr_cont_ = ! fin;
-            net::write(stream_,
+            impl_->wr_cont = ! fin;
+            net::write(impl_->stream,
                 buffers_cat(fh_buf.data(), b), ec);
-            if(! check_ok(ec))
+            if(! impl_->check_ok(ec))
                 return bytes_transferred;
             if(! more)
                 break;
@@ -642,11 +543,11 @@ write_some(bool fin,
             fh.rsv1 = false;
         }
         if(fh.fin)
-            this->do_context_takeover_write(role_);
+            impl_->do_context_takeover_write(impl_->role);
     }
     else if(! fh.mask)
     {
-        if(! wr_frag_)
+        if(! impl_->wr_frag)
         {
             // no mask, no autofrag
             fh.fin = fin;
@@ -654,33 +555,33 @@ write_some(bool fin,
             detail::fh_buffer fh_buf;
             detail::write<
                 flat_static_buffer_base>(fh_buf, fh);
-            wr_cont_ = ! fin;
-            net::write(stream_,
+            impl_->wr_cont = ! fin;
+            net::write(impl_->stream,
                 buffers_cat(fh_buf.data(), buffers), ec);
-            if(! check_ok(ec))
+            if(! impl_->check_ok(ec))
                 return bytes_transferred;
             bytes_transferred += remain;
         }
         else
         {
             // no mask, autofrag
-            BOOST_ASSERT(wr_buf_size_ != 0);
+            BOOST_ASSERT(impl_->wr_buf_size != 0);
             buffers_suffix<
                 ConstBufferSequence> cb{buffers};
             for(;;)
             {
-                auto const n = clamp(remain, wr_buf_size_);
+                auto const n = clamp(remain, impl_->wr_buf_size);
                 remain -= n;
                 fh.len = n;
                 fh.fin = fin ? remain == 0 : false;
                 detail::fh_buffer fh_buf;
                 detail::write<
                     flat_static_buffer_base>(fh_buf, fh);
-                wr_cont_ = ! fin;
-                net::write(stream_,
-                    buffers_cat(fh_buf.data(),
-                        buffers_prefix(n, cb)), ec);
-                if(! check_ok(ec))
+                impl_->wr_cont = ! fin;
+                net::write(impl_->stream,
+                    beast::buffers_cat(fh_buf.data(),
+                        beast::buffers_prefix(n, cb)), ec);
+                if(! impl_->check_ok(ec))
                     return bytes_transferred;
                 bytes_transferred += n;
                 if(remain == 0)
@@ -690,7 +591,7 @@ write_some(bool fin,
             }
         }
     }
-    else if(! wr_frag_)
+    else if(! impl_->wr_frag)
     {
         // mask, no autofrag
         fh.fin = fin;
@@ -704,29 +605,29 @@ write_some(bool fin,
         buffers_suffix<
             ConstBufferSequence> cb{buffers};
         {
-            auto const n = clamp(remain, wr_buf_size_);
-            auto const b = buffer(wr_buf_.get(), n);
+            auto const n = clamp(remain, impl_->wr_buf_size);
+            auto const b = buffer(impl_->wr_buf.get(), n);
             buffer_copy(b, cb);
             cb.consume(n);
             remain -= n;
             detail::mask_inplace(b, key);
-            wr_cont_ = ! fin;
-            net::write(stream_,
+            impl_->wr_cont = ! fin;
+            net::write(impl_->stream,
                 buffers_cat(fh_buf.data(), b), ec);
-            if(! check_ok(ec))
+            if(! impl_->check_ok(ec))
                 return bytes_transferred;
             bytes_transferred += n;
         }
         while(remain > 0)
         {
-            auto const n = clamp(remain, wr_buf_size_);
-            auto const b = buffer(wr_buf_.get(), n);
+            auto const n = clamp(remain, impl_->wr_buf_size);
+            auto const b = buffer(impl_->wr_buf.get(), n);
             buffer_copy(b, cb);
             cb.consume(n);
             remain -= n;
             detail::mask_inplace(b, key);
-            net::write(stream_, b, ec);
-            if(! check_ok(ec))
+            net::write(impl_->stream, b, ec);
+            if(! impl_->check_ok(ec))
                 return bytes_transferred;
             bytes_transferred += n;
         }
@@ -734,28 +635,28 @@ write_some(bool fin,
     else
     {
         // mask, autofrag
-        BOOST_ASSERT(wr_buf_size_ != 0);
+        BOOST_ASSERT(impl_->wr_buf_size != 0);
         buffers_suffix<
-            ConstBufferSequence> cb{buffers};
+            ConstBufferSequence> cb(buffers);
         for(;;)
         {
             fh.key = this->create_mask();
             detail::prepared_key key;
             detail::prepare_key(key, fh.key);
-            auto const n = clamp(remain, wr_buf_size_);
-            auto const b = buffer(wr_buf_.get(), n);
+            auto const n = clamp(remain, impl_->wr_buf_size);
+            auto const b = buffer(impl_->wr_buf.get(), n);
             buffer_copy(b, cb);
             detail::mask_inplace(b, key);
             fh.len = n;
             remain -= n;
             fh.fin = fin ? remain == 0 : false;
-            wr_cont_ = ! fh.fin;
+            impl_->wr_cont = ! fh.fin;
             detail::fh_buffer fh_buf;
             detail::write<
                 flat_static_buffer_base>(fh_buf, fh);
-            net::write(stream_,
+            net::write(impl_->stream,
                 buffers_cat(fh_buf.data(), b), ec);
-            if(! check_ok(ec))
+            if(! impl_->check_ok(ec))
                 return bytes_transferred;
             bytes_transferred += n;
             if(remain == 0)

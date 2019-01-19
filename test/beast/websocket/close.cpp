@@ -190,7 +190,7 @@ public:
                         BOOST_THROW_EXCEPTION(
                             system_error{ec});
                 });
-            BEAST_EXPECT(ws.wr_block_.is_locked());
+            BEAST_EXPECT(ws.impl_->wr_block.is_locked());
             BEAST_EXPECT(count == 0);
             ws.async_close({},
                 [&](error_code ec)
@@ -223,7 +223,7 @@ public:
                             system_error{ec});
                     BEAST_EXPECT(n == 1);
                 });
-            BEAST_EXPECT(ws.wr_block_.is_locked());
+            BEAST_EXPECT(ws.impl_->wr_block.is_locked());
             BEAST_EXPECT(count == 0);
             ws.async_close({},
                 [&](error_code ec)
@@ -259,7 +259,7 @@ public:
                         BOOST_THROW_EXCEPTION(
                             system_error{ec});
                 });
-            while(! ws.wr_block_.is_locked())
+            while(! ws.impl_->wr_block.is_locked())
             {
                 ioc.run_one();
                 if(! BEAST_EXPECT(! ioc.stopped()))
@@ -300,7 +300,7 @@ public:
                             system_error{ec});
                     BEAST_EXPECT(++count == 1);
                 });
-            while(! ws.wr_block_.is_locked())
+            while(! ws.impl_->wr_block.is_locked())
             {
                 ioc.run_one();
                 if(! BEAST_EXPECT(! ioc.stopped()))
@@ -341,7 +341,7 @@ public:
                             system_error{ec});
                     BEAST_EXPECT(++count == 1);
                 });
-            while(! ws.wr_block_.is_locked())
+            while(! ws.impl_->wr_block.is_locked())
             {
                 ioc.run_one();
                 if(! BEAST_EXPECT(! ioc.stopped()))
@@ -436,7 +436,7 @@ public:
                             system_error{ec});
                     BEAST_EXPECT(++count == 3);
                 });
-            BEAST_EXPECT(ws.rd_block_.is_locked());
+            BEAST_EXPECT(ws.impl_->rd_block.is_locked());
             ws.async_close({},
                 [&](error_code ec)
                 {
@@ -446,7 +446,7 @@ public:
                     BEAST_EXPECT(++count == 2);
                 });
             BEAST_EXPECT(ws.is_open());
-            BEAST_EXPECT(ws.wr_block_.is_locked());
+            BEAST_EXPECT(ws.impl_->wr_block.is_locked());
             BEAST_EXPECT(count == 0);
             ioc.run();
             BEAST_EXPECT(count == 3);

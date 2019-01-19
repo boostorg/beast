@@ -7,8 +7,8 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
-#ifndef BOOST_BEAST_WEBSOCKET_IMPL_RFC6455_IPP
-#define BOOST_BEAST_WEBSOCKET_IMPL_RFC6455_IPP
+#ifndef BOOST_BEAST_WEBSOCKET_IMPL_RFC6455_HPP
+#define BOOST_BEAST_WEBSOCKET_IMPL_RFC6455_HPP
 
 #include <boost/beast/http/fields.hpp>
 #include <boost/beast/http/rfc7230.hpp>

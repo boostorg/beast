@@ -115,7 +115,7 @@ public:
                             system_error{ec});
                     BEAST_EXPECT(n == 12);
                 });
-            BEAST_EXPECT(ws.wr_block_.is_locked());
+            BEAST_EXPECT(ws.impl_->wr_block.is_locked());
             BEAST_EXPECT(count == 0);
             ws.async_ping({},
                 [&](error_code ec)
@@ -147,7 +147,7 @@ public:
                         BOOST_THROW_EXCEPTION(
                             system_error{ec});
                 });
-            BEAST_EXPECT(ws.wr_block_.is_locked());
+            BEAST_EXPECT(ws.impl_->wr_block.is_locked());
             BEAST_EXPECT(count == 0);
             ws.async_ping({},
                 [&](error_code ec)
@@ -183,7 +183,7 @@ public:
                         BOOST_THROW_EXCEPTION(
                             system_error{ec});
                 });
-            while(! ws.wr_block_.is_locked())
+            while(! ws.impl_->wr_block.is_locked())
             {
                 ioc.run_one();
                 if(! BEAST_EXPECT(! ioc.stopped()))
@@ -225,7 +225,7 @@ public:
                         BOOST_THROW_EXCEPTION(
                             system_error{ec});
                 });
-            while(! ws.wr_block_.is_locked())
+            while(! ws.impl_->wr_block.is_locked())
             {
                 ioc.run_one();
                 if(! BEAST_EXPECT(! ioc.stopped()))
@@ -266,7 +266,7 @@ public:
                         BOOST_THROW_EXCEPTION(
                             system_error{ec});
                 });
-            while(! ws.wr_block_.is_locked())
+            while(! ws.impl_->wr_block.is_locked())
             {
                 ioc.run_one();
                 if(! BEAST_EXPECT(! ioc.stopped()))
@@ -306,7 +306,7 @@ public:
                         BOOST_THROW_EXCEPTION(
                             system_error{ec});
                 });
-            while(! ws.wr_block_.is_locked())
+            while(! ws.impl_->wr_block.is_locked())
             {
                 ioc.run_one();
                 if(! BEAST_EXPECT(! ioc.stopped()))
@@ -345,7 +345,7 @@ public:
                             system_error{ec});
                     BEAST_EXPECT(n == 1);
                 });
-            BEAST_EXPECT(ws.wr_block_.is_locked());
+            BEAST_EXPECT(ws.impl_->wr_block.is_locked());
             ws.async_ping("",
                 [&](error_code ec)
                 {
@@ -389,7 +389,7 @@ public:
                         ec.message());
                 });
             if(! BEAST_EXPECT(run_until(ioc, 100,
-                    [&]{ return ws.wr_close_; })))
+                    [&]{ return ws.impl_->wr_close; })))
                 return;
             // Try to ping
             ws.async_ping("payload",

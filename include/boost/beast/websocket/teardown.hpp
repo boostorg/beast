@@ -170,6 +170,6 @@ async_teardown(
 } // beast
 } // boost
 
-#include <boost/beast/websocket/impl/teardown.ipp>
+#include <boost/beast/websocket/impl/teardown.hpp>
 
 #endif

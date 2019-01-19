@@ -7,8 +7,8 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
-#ifndef BOOST_BEAST_WEBSOCKET_IMPL_HANDSHAKE_IPP
-#define BOOST_BEAST_WEBSOCKET_IMPL_HANDSHAKE_IPP
+#ifndef BOOST_BEAST_WEBSOCKET_IMPL_HANDSHAKE_HPP
+#define BOOST_BEAST_WEBSOCKET_IMPL_HANDSHAKE_HPP
 
 #include <boost/beast/websocket/detail/type_traits.hpp>
 #include <boost/beast/http/empty_body.hpp>
@@ -58,7 +58,7 @@ class stream<NextLayer, deflateSupported>::handshake_op
             , req(ws.build_request(key,
                 host, target, decorator))
         {
-            ws.reset();
+            ws.impl_->reset();
         }
     };
 
@@ -89,9 +89,9 @@ public:
         BOOST_ASIO_CORO_REENTER(*this)
         {
             // Send HTTP Upgrade
-            d_.ws.do_pmd_config(d_.req);
+            d_.ws.impl_->do_pmd_config(d_.req);
             BOOST_ASIO_CORO_YIELD
-            http::async_write(d_.ws.stream_,
+            http::async_write(d_.ws.impl_->stream,
                 d_.req, std::move(*this));
             if(ec)
                 goto upcall;
@@ -105,7 +105,7 @@ public:
             // Read HTTP response
             BOOST_ASIO_CORO_YIELD
             http::async_read(d_.ws.next_layer(),
-                d_.ws.rd_buf_, d_.res,
+                d_.ws.impl_->rd_buf, d_.res,
                     std::move(*this));
             if(ec)
                 goto upcall;
@@ -354,17 +354,17 @@ do_handshake(
     error_code& ec)
 {
     response_type res;
-    reset();
+    impl_->reset();
     detail::sec_ws_key_type key;
     {
         auto const req = build_request(
             key, host, target, decorator);
-        this->do_pmd_config(req);
-        http::write(stream_, req, ec);
+        this->impl_->do_pmd_config(req);
+        http::write(impl_->stream, req, ec);
     }
     if(ec)
         return;
-    http::read(next_layer(), rd_buf_, res, ec);
+    http::read(next_layer(), impl_->rd_buf, res, ec);
     if(ec)
         return;
     on_response(res, key, ec);

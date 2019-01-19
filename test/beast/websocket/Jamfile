@@ -9,6 +9,7 @@
 
 local SOURCES =
     _detail_prng.cpp
+    _detail_stream_base.cpp
     accept.cpp
     close.cpp
     error.cpp

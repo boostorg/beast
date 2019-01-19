@@ -14,6 +14,9 @@
 #include <boost/beast/http/message.hpp>
 #include <boost/beast/http/string_body.hpp>
 #include <boost/beast/websocket/option.hpp>
+#include <boost/beast/websocket/role.hpp>
+#include <boost/beast/websocket/detail/frame.hpp>
+#include <boost/beast/websocket/detail/prng.hpp>
 #include <boost/beast/websocket/detail/pmd_extension.hpp>
 #include <boost/beast/websocket/detail/prng.hpp>
 #include <boost/beast/zlib/deflate_stream.hpp>
@@ -24,14 +27,20 @@
 #include <boost/asio/buffer.hpp>
 #include <cstdint>
 #include <memory>
+#include <stdexcept>
 
 namespace boost {
 namespace beast {
 namespace websocket {
 namespace detail {
 
+//------------------------------------------------------------------------------
+
 template<bool deflateSupported>
-struct stream_base : stream_prng
+struct impl_base;
+
+template<>
+struct impl_base<true>
 {
     // State information for the permessage-deflate extension
     struct pmd_type
@@ -67,6 +76,9 @@ struct stream_base : stream_prng
         return ! rsv1; // pmd not negotiated
     }
 
+    // Compress a buffer sequence
+    // Returns: `true` if more calls are needed
+    //
     template<class ConstBufferSequence>
     bool
     deflate(
@@ -74,19 +86,105 @@ struct stream_base : stream_prng
         buffers_suffix<ConstBufferSequence>& cb,
         bool fin,
         std::size_t& total_in,
-        error_code& ec);
+        error_code& ec)
+    {
+        using net::buffer;
+        BOOST_ASSERT(out.size() >= 6);
+        auto& zo = this->pmd_->zo;
+        zlib::z_params zs;
+        zs.avail_in = 0;
+        zs.next_in = nullptr;
+        zs.avail_out = out.size();
+        zs.next_out = out.data();
+        for(auto in : beast::buffers_range_ref(cb))
+        {
+            zs.avail_in = in.size();
+            if(zs.avail_in == 0)
+                continue;
+            zs.next_in = in.data();
+            zo.write(zs, zlib::Flush::none, ec);
+            if(ec)
+            {
+                if(ec != zlib::error::need_buffers)
+                    return false;
+                BOOST_ASSERT(zs.avail_out == 0);
+                BOOST_ASSERT(zs.total_out == out.size());
+                ec = {};
+                break;
+            }
+            if(zs.avail_out == 0)
+            {
+                BOOST_ASSERT(zs.total_out == out.size());
+                break;
+            }
+            BOOST_ASSERT(zs.avail_in == 0);
+        }
+        total_in = zs.total_in;
+        cb.consume(zs.total_in);
+        if(zs.avail_out > 0 && fin)
+        {
+            auto const remain = net::buffer_size(cb);
+            if(remain == 0)
+            {
+                // Inspired by Mark Adler
+                // https://github.com/madler/zlib/issues/149
+                //
+                // VFALCO We could do this flush twice depending
+                //        on how much space is in the output.
+                zo.write(zs, zlib::Flush::block, ec);
+                BOOST_ASSERT(! ec || ec == zlib::error::need_buffers);
+                if(ec == zlib::error::need_buffers)
+                    ec = {};
+                if(ec)
+                    return false;
+                if(zs.avail_out >= 6)
+                {
+                    zo.write(zs, zlib::Flush::full, ec);
+                    BOOST_ASSERT(! ec);
+                    // remove flush marker
+                    zs.total_out -= 4;
+                    out = buffer(out.data(), zs.total_out);
+                    return false;
+                }
+            }
+        }
+        ec = {};
+        out = buffer(out.data(), zs.total_out);
+        return true;
+    }
 
     void
-    do_context_takeover_write(role_type role);
+    do_context_takeover_write(role_type role)
+    {
+        if((role == role_type::client &&
+            this->pmd_config_.client_no_context_takeover) ||
+           (role == role_type::server &&
+            this->pmd_config_.server_no_context_takeover))
+        {
+            this->pmd_->zo.reset();
+        }
+    }
 
     void
     inflate(
         zlib::z_params& zs,
         zlib::Flush flush,
-        error_code& ec);
+        error_code& ec)
+    {
+        pmd_->zi.write(zs, flush, ec);
+    }
 
     void
-    do_context_takeover_read(role_type role);
+    do_context_takeover_read(role_type role)
+    {
+        if((role == role_type::client &&
+                pmd_config_.server_no_context_takeover) ||
+           (role == role_type::server &&
+                pmd_config_.client_no_context_takeover))
+        {
+            pmd_->zi.clear();
+        }
+    }
 
     template<class Body, class Allocator>
     void
@@ -95,14 +193,15 @@ struct stream_base : stream_prng
         http::request<Body,
             http::basic_fields<Allocator>> const& req)
     {
-        detail::pmd_offer offer;
-        detail::pmd_offer unused;
-        detail::pmd_read(offer, req);
-        detail::pmd_negotiate(res, unused, offer, pmd_opts_);
+        pmd_offer offer;
+        pmd_offer unused;
+        pmd_read(offer, req);
+        pmd_negotiate(res, unused, offer, pmd_opts_);
     }
 
     void
-    on_response_pmd(http::response<http::string_body> const& res)
+    on_response_pmd(
+        http::response<http::string_body> const& res)
     {
         detail::pmd_offer offer;
         detail::pmd_read(offer, res);
@@ -177,8 +276,7 @@ struct stream_base : stream_prng
             pmd_config_.accept)
         {
             detail::pmd_normalize(pmd_config_);
-            pmd_.reset(new typename
-                detail::stream_base<deflateSupported>::pmd_type);
+            pmd_.reset(::new pmd_type);
             if(role == role_type::client)
             {
                 pmd_->zi.reset(
@@ -248,8 +346,10 @@ struct stream_base : stream_prng
     }
 };
 
+//------------------------------------------------------------------------------
+
 template<>
-struct stream_base<false> : stream_prng
+struct impl_base<false>
 {
     // These stubs are for avoiding linking in the zlib
     // code when permessage-deflate is not enabled.
@@ -362,7 +462,7 @@ struct stream_base<false> : stream_prng
         std::size_t initial_size,
         bool rd_done,
         std::uint64_t rd_remain,
-        detail::frame_header const& rd_fh) const
+        frame_header const& rd_fh) const
     {
         using beast::detail::clamp;
         std::size_t result;
@@ -387,6 +487,24 @@ struct stream_base<false> : stream_prng
         BOOST_ASSERT(result != 0);
         return result;
     }
+};
+
+//------------------------------------------------------------------------------
+
+struct stream_base
+{
+protected:
+    bool secure_prng_ = true;
+
+    std::uint32_t
+    create_mask()
+    {
+        auto g = make_prng(secure_prng_);
+        for(;;)
+            if(auto key = g())
+                return key;
+    }
+
 };
 
 } // detail

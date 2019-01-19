@@ -210,6 +210,6 @@ struct close_reason
 } // beast
 } // boost
 
-#include <boost/beast/websocket/impl/rfc6455.ipp>
+#include <boost/beast/websocket/impl/rfc6455.hpp>
 
 #endif

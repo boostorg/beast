@@ -249,6 +249,6 @@ enum class condition
 } // beast
 } // boost
 
-#include <boost/beast/websocket/impl/error.ipp>
+#include <boost/beast/websocket/impl/error.hpp>
 
 #endif

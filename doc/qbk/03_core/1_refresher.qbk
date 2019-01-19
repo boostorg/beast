@@ -82,7 +82,7 @@ these memory regions as type-safe pointer/size pairs, as shown below:
     pointer-to-byte. The operating system doesn't care about this, but if
     a user wants to send and receive an array of some other type, presenting
     it as an array of bytes which supports bitwise operations is unnecessary.
-    Custom buffer types also permit networking implmentations to provide
+    Custom buffer types also enable networking implementations to provide
     targeted features such as
     [@boost:/doc/html/boost_asio/overview/core/buffers.html#boost_asio.overview.core.buffers.buffer_debugging ['buffer debugging]]
     without changing the more general vocabulary types.

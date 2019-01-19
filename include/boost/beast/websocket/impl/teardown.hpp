@@ -7,8 +7,8 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
-#ifndef BOOST_BEAST_WEBSOCKET_IMPL_TEARDOWN_IPP
-#define BOOST_BEAST_WEBSOCKET_IMPL_TEARDOWN_IPP
+#ifndef BOOST_BEAST_WEBSOCKET_IMPL_TEARDOWN_HPP
+#define BOOST_BEAST_WEBSOCKET_IMPL_TEARDOWN_HPP
 
 #include <boost/beast/core/async_op_base.hpp>
 #include <boost/beast/core/bind_handler.hpp>

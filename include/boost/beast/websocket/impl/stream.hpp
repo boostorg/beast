@@ -7,13 +7,13 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
-#ifndef BOOST_BEAST_WEBSOCKET_IMPL_STREAM_IPP
-#define BOOST_BEAST_WEBSOCKET_IMPL_STREAM_IPP
+#ifndef BOOST_BEAST_WEBSOCKET_IMPL_STREAM_HPP
+#define BOOST_BEAST_WEBSOCKET_IMPL_STREAM_HPP
 
 #include <boost/beast/websocket/rfc6455.hpp>
 #include <boost/beast/websocket/teardown.hpp>
 #include <boost/beast/websocket/detail/hybi13.hpp>
-#include <boost/beast/websocket/detail/pmd_extension.hpp>
+#include <boost/beast/websocket/detail/mask.hpp>
 #include <boost/beast/version.hpp>
 #include <boost/beast/http/read.hpp>
 #include <boost/beast/http/write.hpp>
@@ -25,16 +25,17 @@
 #include <boost/beast/core/type_traits.hpp>
 #include <boost/beast/core/detail/clamp.hpp>
 #include <boost/beast/core/detail/type_traits.hpp>
+#include <boost/asio/bind_executor.hpp>
+#include <boost/asio/steady_timer.hpp>
 #include <boost/assert.hpp>
 #include <boost/endian/buffers.hpp>
 #include <boost/make_unique.hpp>
 #include <boost/throw_exception.hpp>
 #include <algorithm>
+#include <chrono>
 #include <memory>
 #include <stdexcept>
 #include <utility>
-
-#include <iostream>
 
 namespace boost {
 namespace beast {
@@ -44,10 +45,99 @@ template<class NextLayer, bool deflateSupported>
 template<class... Args>
 stream<NextLayer, deflateSupported>::
 stream(Args&&... args)
-    : stream_(std::forward<Args>(args)...)
+    : impl_(std::make_shared<impl_type>(
+        std::forward<Args>(args)...))
 {
-    BOOST_ASSERT(rd_buf_.max_size() >=
+    BOOST_ASSERT(impl_->rd_buf.max_size() >=
         max_control_frame_size);
+}
+
+template<class NextLayer, bool deflateSupported>
+auto
+stream<NextLayer, deflateSupported>::
+get_executor() const noexcept ->
+    executor_type
+{
+    return impl_->stream.get_executor();
+}
+
+template<class NextLayer, bool deflateSupported>
+auto
+stream<NextLayer, deflateSupported>::
+next_layer() noexcept ->
+    next_layer_type&
+{
+    return impl_->stream;
+}
+
+template<class NextLayer, bool deflateSupported>
+auto
+stream<NextLayer, deflateSupported>::
+next_layer() const noexcept ->
+    next_layer_type const&
+{
+    return impl_->stream;
+}
+
+template<class NextLayer, bool deflateSupported>
+auto
+stream<NextLayer, deflateSupported>::
+lowest_layer() noexcept ->
+    lowest_layer_type&
+{
+    return impl_->stream.lowest_layer();
+}
+
+template<class NextLayer, bool deflateSupported>
+auto
+stream<NextLayer, deflateSupported>::
+lowest_layer() const noexcept ->
+    lowest_layer_type const&
+{
+    return impl_->stream.lowest_layer();
+}
+
+template<class NextLayer, bool deflateSupported>
+bool
+stream<NextLayer, deflateSupported>::
+is_open() const noexcept
+{
+    return impl_->status_ == status::open;
+}
+
+template<class NextLayer, bool deflateSupported>
+bool
+stream<NextLayer, deflateSupported>::
+got_binary() const noexcept
+{
+    return impl_->rd_op == detail::opcode::binary;
+}
+
+template<class NextLayer, bool deflateSupported>
+bool
+stream<NextLayer, deflateSupported>::
+is_message_done() const noexcept
+{
+    return impl_->rd_done;
+}
+
+template<class NextLayer, bool deflateSupported>
+close_reason const&
+stream<NextLayer, deflateSupported>::
+reason() const noexcept
+{
+    return impl_->cr;
+}
+
+template<class NextLayer, bool deflateSupported>
+std::size_t
+stream<NextLayer, deflateSupported>::
+read_size_hint(
+    std::size_t initial_size) const
+{
+    return impl_->read_size_hint_pmd(
+        initial_size, impl_->rd_done,
+        impl_->rd_remain, impl_->rd_fh);
 }
 
 template<class NextLayer, bool deflateSupported>
@@ -72,88 +162,129 @@ read_size_hint(DynamicBuffer& buffer) const
 template<class NextLayer, bool deflateSupported>
 void
 stream<NextLayer, deflateSupported>::
-open(role_type role)
+set_option(permessage_deflate const& o)
 {
-    // VFALCO TODO analyze and remove dupe code in reset()
-    role_ = role;
-    status_ = status::open;
-    rd_remain_ = 0;
-    rd_cont_ = false;
-    rd_done_ = true;
-    // Can't clear this because accept uses it
-    //rd_buf_.reset();
-    rd_fh_.fin = false;
-    rd_close_ = false;
-    wr_close_ = false;
-    // These should not be necessary, because all completion
-    // handlers must be allowed to execute otherwise the
-    // stream exhibits undefined behavior.
-    wr_block_.reset();
-    rd_block_.reset();
-    cr_.code = close_code::none;
-
-    wr_cont_ = false;
-    wr_buf_size_ = 0;
-
-    this->open_pmd(role_);
+    impl_->set_option_pmd(o);
 }
 
 template<class NextLayer, bool deflateSupported>
 void
 stream<NextLayer, deflateSupported>::
-close()
+get_option(permessage_deflate& o)
 {
-    wr_buf_.reset();
-    this->close_pmd();
+    impl_->get_option_pmd(o);
 }
 
 template<class NextLayer, bool deflateSupported>
 void
 stream<NextLayer, deflateSupported>::
-reset()
+auto_fragment(bool value)
 {
-    BOOST_ASSERT(status_ != status::open);
-    rd_remain_ = 0;
-    rd_cont_ = false;
-    rd_done_ = true;
-    rd_buf_.consume(rd_buf_.size());
-    rd_fh_.fin = false;
-    rd_close_ = false;
-    wr_close_ = false;
-    wr_cont_ = false;
-    // These should not be necessary, because all completion
-    // handlers must be allowed to execute otherwise the
-    // stream exhibits undefined behavior.
-    wr_block_.reset();
-    rd_block_.reset();
-    cr_.code = close_code::none;
+    impl_->wr_frag_opt = value;
 }
 
-// Called before each write frame
 template<class NextLayer, bool deflateSupported>
-inline
+bool
+stream<NextLayer, deflateSupported>::
+auto_fragment() const
+{
+    return impl_->wr_frag_opt;
+}
+
+template<class NextLayer, bool deflateSupported>
 void
 stream<NextLayer, deflateSupported>::
-begin_msg()
+binary(bool value)
 {
-    wr_frag_ = wr_frag_opt_;
+    impl_->wr_opcode = value ?
+        detail::opcode::binary :
+        detail::opcode::text;
+}
 
-    // Maintain the write buffer
-    if( this->pmd_enabled() ||
-        role_ == role_type::client)
-    {
-        if(! wr_buf_ || wr_buf_size_ != wr_buf_opt_)
-        {
-            wr_buf_size_ = wr_buf_opt_;
-            wr_buf_ = boost::make_unique_noinit<
-                std::uint8_t[]>(wr_buf_size_);
-        }
-    }
-    else
-    {
-        wr_buf_size_ = wr_buf_opt_;
-        wr_buf_.reset();
-    }
+template<class NextLayer, bool deflateSupported>
+bool
+stream<NextLayer, deflateSupported>::
+binary() const
+{
+    return impl_->wr_opcode == detail::opcode::binary;
+}
+
+template<class NextLayer, bool deflateSupported>
+void
+stream<NextLayer, deflateSupported>::
+control_callback(std::function<
+    void(frame_type, string_view)> cb)
+{
+    impl_->ctrl_cb = std::move(cb);
+}
+
+template<class NextLayer, bool deflateSupported>
+void
+stream<NextLayer, deflateSupported>::
+control_callback()
+{
+    impl_->ctrl_cb = {};
+}
+
+template<class NextLayer, bool deflateSupported>
+void
+stream<NextLayer, deflateSupported>::
+read_message_max(std::size_t amount)
+{
+    impl_->rd_msg_max = amount;
+}
+
+template<class NextLayer, bool deflateSupported>
+std::size_t
+stream<NextLayer, deflateSupported>::
+read_message_max() const
+{
+    return impl_->rd_msg_max;
+}
+
+template<class NextLayer, bool deflateSupported>
+void
+stream<NextLayer, deflateSupported>::
+secure_prng(bool value)
+{
+    this->secure_prng_ = value;
+}
+
+template<class NextLayer, bool deflateSupported>
+void
+stream<NextLayer, deflateSupported>::
+write_buffer_size(std::size_t amount)
+{
+    if(amount < 8)
+        BOOST_THROW_EXCEPTION(std::invalid_argument{
+            "write buffer size underflow"});
+    impl_->wr_buf_opt = amount;
+}
+
+template<class NextLayer, bool deflateSupported>
+std::size_t
+stream<NextLayer, deflateSupported>::
+write_buffer_size() const
+{
+    return impl_->wr_buf_opt;
+}
+
+template<class NextLayer, bool deflateSupported>
+void
+stream<NextLayer, deflateSupported>::
+text(bool value)
+{
+    impl_->wr_opcode = value ?
+        detail::opcode::text :
+        detail::opcode::binary;
+}
+
+template<class NextLayer, bool deflateSupported>
+bool
+stream<NextLayer, deflateSupported>::
+text() const
+{
+    return impl_->wr_opcode == detail::opcode::text;
 }
 
 //------------------------------------------------------------------------------
@@ -175,7 +306,7 @@ parse_fh(
     if(buffer_size(b.data()) < 2)
     {
         // need more bytes
-        ec.assign(0, ec.category());
+        ec = {};
         return false;
     }
     buffers_suffix<typename
@@ -199,7 +330,7 @@ parse_fh(
         if(buffer_size(cb) < need)
         {
             // need more bytes
-            ec.assign(0, ec.category());
+            ec = {};
             return false;
         }
         fh.op   = static_cast<
@@ -213,14 +344,14 @@ parse_fh(
     {
     case detail::opcode::binary:
     case detail::opcode::text:
-        if(rd_cont_)
+        if(impl_->rd_cont)
         {
             // new data frame when continuation expected
             ec = error::bad_data_frame;
             return false;
         }
         if(fh.rsv2 || fh.rsv3 ||
-            ! this->rd_deflated(fh.rsv1))
+            ! impl_->rd_deflated(fh.rsv1))
         {
             // reserved bits not cleared
             ec = error::bad_reserved_bits;
@@ -229,7 +360,7 @@ parse_fh(
         break;
 
     case detail::opcode::cont:
-        if(! rd_cont_)
+        if(! impl_->rd_cont)
         {
             // continuation without an active message
             ec = error::bad_continuation;
@@ -270,13 +401,13 @@ parse_fh(
         }
         break;
     }
-    if(role_ == role_type::server && ! fh.mask)
+    if(impl_->role == role_type::server && ! fh.mask)
     {
         // unmasked frame from client
         ec = error::bad_unmasked_frame;
         return false;
     }
-    if(role_ == role_type::client && fh.mask)
+    if(impl_->role == role_type::client && fh.mask)
     {
         // masked frame from server
         ec = error::bad_masked_frame;
@@ -326,7 +457,7 @@ parse_fh(
         BOOST_ASSERT(buffer_size(cb) >= sizeof(tmp));
         cb.consume(buffer_copy(buffer(tmp), cb));
         fh.key = detail::little_uint32_to_native(&tmp[0]);
-        detail::prepare_key(rd_key_, fh.key);
+        detail::prepare_key(impl_->rd_key, fh.key);
     }
     else
     {
@@ -337,12 +468,12 @@ parse_fh(
     {
         if(fh.op != detail::opcode::cont)
         {
-            rd_size_ = 0;
-            rd_op_ = fh.op;
+            impl_->rd_size = 0;
+            impl_->rd_op = fh.op;
         }
         else
         {
-            if(rd_size_ > (std::numeric_limits<
+            if(impl_->rd_size > (std::numeric_limits<
                     std::uint64_t>::max)() - fh.len)
             {
                 // message size exceeds configured limit
@@ -350,21 +481,21 @@ parse_fh(
                 return false;
             }
         }
-        if(! this->rd_deflated())
+        if(! impl_->rd_deflated())
         {
-            if(rd_msg_max_ && beast::detail::sum_exceeds(
-                rd_size_, fh.len, rd_msg_max_))
+            if(impl_->rd_msg_max && beast::detail::sum_exceeds(
+                impl_->rd_size, fh.len, impl_->rd_msg_max))
             {
                 // message size exceeds configured limit
                 ec = error::message_too_big;
                 return false;
             }
         }
-        rd_cont_ = ! fh.fin;
-        rd_remain_ = fh.len;
+        impl_->rd_cont = ! fh.fin;
+        impl_->rd_remain = fh.len;
     }
     b.consume(b.size() - buffer_size(cb));
-    ec.assign(0, ec.category());
+    ec = {};
     return true;
 }
 
@@ -383,7 +514,7 @@ write_close(DynamicBuffer& db, close_reason const& cr)
     fh.rsv3 = false;
     fh.len = cr.code == close_code::none ?
         0 : 2 + cr.reason.size();
-    if(role_ == role_type::client)
+    if(impl_->role == role_type::client)
     {
         fh.mask = true;
         fh.key = this->create_mask();
@@ -436,7 +567,7 @@ write_ping(DynamicBuffer& db,
     fh.rsv2 = false;
     fh.rsv3 = false;
     fh.len = data.size();
-    fh.mask = role_ == role_type::client;
+    fh.mask = impl_->role == role_type::client;
     if(fh.mask)
         fh.key = this->create_mask();
     detail::write(db, fh);
@@ -474,7 +605,7 @@ build_request(detail::sec_ws_key_type& key,
     detail::make_sec_ws_key(key);
     req.set(http::field::sec_websocket_key, key);
     req.set(http::field::sec_websocket_version, "13");
-    this->build_request_pmd(req);
+    impl_->build_request_pmd(req);
     decorator(req);
     if(! req.count(http::field::user_agent))
         req.set(http::field::user_agent,
@@ -572,7 +703,7 @@ build_response(
         detail::make_sec_ws_accept(acc, key);
         res.set(http::field::sec_websocket_accept, acc);
     }
-    this->build_response_pmd(res, req);
+    impl_->build_response_pmd(res, req);
     decorate(res);
     result = {};
     return res;
@@ -620,9 +751,9 @@ on_response(
             return err(error::bad_sec_accept);
     }
 
-    ec.assign(0, ec.category());
-    this->on_response_pmd(res);
-    open(role_type::client);
+    ec = {};
+    impl_->on_response_pmd(res);
+    impl_->open(role_type::client);
 }
 
 // _Fail the WebSocket Connection_
@@ -635,32 +766,32 @@ do_fail(
     error_code& ec)             // set to the error, else set to ev
 {
     BOOST_ASSERT(ev);
-    status_ = status::closing;
-    if(code != close_code::none && ! wr_close_)
+    impl_->status_ = status::closing;
+    if(code != close_code::none && ! impl_->wr_close)
     {
-        wr_close_ = true;
+        impl_->wr_close = true;
         detail::frame_buffer fb;
         write_close<
             flat_static_buffer_base>(fb, code);
-        net::write(stream_, fb.data(), ec);
-        if(! check_ok(ec))
+        net::write(impl_->stream, fb.data(), ec);
+        if(! impl_->check_ok(ec))
             return;
     }
     using beast::websocket::teardown;
-    teardown(role_, stream_, ec);
+    teardown(impl_->role, impl_->stream, ec);
     if(ec == net::error::eof)
     {
         // Rationale:
         // http://stackoverflow.com/questions/25587403/boost-asio-ssl-async-shutdown-always-finishes-with-an-error
-        ec.assign(0, ec.category());
+        ec = {};
     }
     if(! ec)
         ec = ev;
     if(ec && ec != error::closed)
-        status_ = status::failed;
+        impl_->status_ = status::failed;
     else
-        status_ = status::closed;
-    close();
+        impl_->status_ = status::closed;
+    impl_->close();
 }
 
 } // websocket

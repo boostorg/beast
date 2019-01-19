@@ -7,15 +7,15 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
-#ifndef BOOST_BEAST_WEBSOCKET_IMPL_ERROR_IPP
-#define BOOST_BEAST_WEBSOCKET_IMPL_ERROR_IPP
+#ifndef BOOST_BEAST_WEBSOCKET_IMPL_ERROR_HPP
+#define BOOST_BEAST_WEBSOCKET_IMPL_ERROR_HPP
 
 namespace boost {
 namespace beast {
 namespace websocket {
 namespace detail {
 
-inline
+BOOST_BEAST_DECL
 const char*
 error_codes::
 name() const noexcept
@@ -23,7 +23,7 @@ name() const noexcept
     return "boost.beast.websocket";
 }
 
-inline
+BOOST_BEAST_DECL
 std::string
 error_codes::
 message(int ev) const
@@ -67,7 +67,7 @@ message(int ev) const
     }
 }
 
-inline
+BOOST_BEAST_DECL
 error_condition
 error_codes::
 default_error_condition(int ev) const noexcept
@@ -114,7 +114,7 @@ default_error_condition(int ev) const noexcept
     }
 }
 
-inline
+BOOST_BEAST_DECL
 const char*
 error_conditions::
 name() const noexcept
@@ -122,7 +122,7 @@ name() const noexcept
     return "boost.beast.websocket";
 }
 
-inline
+BOOST_BEAST_DECL
 std::string
 error_conditions::
 message(int cv) const
@@ -137,7 +137,7 @@ message(int cv) const
 
 } // detail
 
-inline
+BOOST_BEAST_DECL
 error_code
 make_error_code(error e)
 {
@@ -146,7 +146,7 @@ make_error_code(error e)
         std::underlying_type<error>::type>(e), cat};
 }
 
-inline
+BOOST_BEAST_DECL
 error_condition
 make_error_condition(condition c)
 {

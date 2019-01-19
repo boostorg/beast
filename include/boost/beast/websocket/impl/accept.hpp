@@ -32,7 +32,8 @@ namespace boost {
 namespace beast {
 namespace websocket {
 
-// Respond to an upgrade HTTP request
+/** Respond to an HTTP request
+*/
 template<class NextLayer, bool deflateSupported>
 template<class Handler>
 class stream<NextLayer, deflateSupported>::response_op
@@ -40,39 +41,26 @@ class stream<NextLayer, deflateSupported>::response_op
         Handler, beast::detail::get_executor_type<stream>>
     , public net::coroutine
 {
-    struct data
-    {
-        stream<NextLayer, deflateSupported>& ws;
-        error_code result;
-        response_type res;
-
-        template<class Body, class Allocator, class Decorator>
-        data(
-            stream<NextLayer, deflateSupported>& ws_,
-            http::request<Body,
-                http::basic_fields<Allocator>> const& req,
-            Decorator const& decorator)
-            : ws(ws_)
-            , res(ws_.build_response(req, decorator, result))
-        {
-        }
-    };
-
-    data& d_;
+    stream<NextLayer, deflateSupported>& ws_;
+    error_code result_; // must come before res_
+    response_type& res_;
 
 public:
     template<
         class Handler_,
-        class... Args>
+        class Body, class Allocator,
+        class Decorator>
     response_op(
         Handler_&& h,
         stream<NextLayer, deflateSupported>& ws,
-        Args&&... args)
+        http::request<Body, http::basic_fields<Allocator>> const& req,
+        Decorator const& decorator)
         : stable_async_op_base<
             Handler, beast::detail::get_executor_type<stream>>(
                 std::forward<Handler_>(h), ws.get_executor())
-        , d_(beast::allocate_stable<data>(
-            *this,  ws, std::forward<Args>(args)...))
+        , ws_(ws)
+        , res_(beast::allocate_stable<response_type>(*this, 
+            ws.build_response(req, decorator, result_)))
     {
     }
 
@@ -81,19 +69,18 @@ public:
         std::size_t bytes_transferred = 0)
     {
         boost::ignore_unused(bytes_transferred);
-
         BOOST_ASIO_CORO_REENTER(*this)
         {
             // Send response
             BOOST_ASIO_CORO_YIELD
-            http::async_write(d_.ws.next_layer(),
-                d_.res, std::move(*this));
+            http::async_write(
+                ws_.next_layer(), res_, std::move(*this));
             if(! ec)
-                ec = d_.result;
+                ec = result_;
             if(! ec)
             {
-                d_.ws.do_pmd_config(d_.res);
-                d_.ws.open(role_type::server);
+                ws_.impl_->do_pmd_config(res_);
+                ws_.impl_->open(role_type::server);
             }
             this->invoke(ec);
         }
@@ -111,36 +98,23 @@ class stream<NextLayer, deflateSupported>::accept_op
         Handler, beast::detail::get_executor_type<stream>>
     , public net::coroutine
 {
-    struct data
-    {
-        stream<NextLayer, deflateSupported>& ws;
-        Decorator decorator;
-        http::request_parser<http::empty_body> p;
-
-        data(
-            stream<NextLayer, deflateSupported>& ws_,
-            Decorator const& decorator_)
-            : ws(ws_)
-            , decorator(decorator_)
-        {
-        }
-    };
-
-    data& d_;
+    stream<NextLayer, deflateSupported>& ws_;
+    http::request_parser<http::empty_body>& p_;
+    Decorator d_;
 
 public:
-    template<
-        class Handler_,
-        class... Args>
+    template<class Handler_>
     accept_op(
         Handler_&& h,
         stream<NextLayer, deflateSupported>& ws,
-        Args&&... args)
+        Decorator const& decorator)
         : stable_async_op_base<
             Handler, beast::detail::get_executor_type<stream>>(
                 std::forward<Handler_>(h), ws.get_executor())
-        , d_(beast::allocate_stable<data>(
-            *this,  ws, std::forward<Args>(args)...))
+        , ws_(ws)
+        , p_(beast::allocate_stable<
+            http::request_parser<http::empty_body>>(*this))
+        , d_(decorator)
     {
     }
 
@@ -151,19 +125,19 @@ public:
         using net::buffer_size;
         error_code ec;
         auto const mb = beast::detail::dynamic_buffer_prepare(
-            d_.ws.rd_buf_, buffer_size(buffers), ec,
+            ws_.impl_->rd_buf, buffer_size(buffers), ec,
                 error::buffer_overflow);
         if(ec)
             return (*this)(ec);
-        d_.ws.rd_buf_.commit(buffer_copy(*mb, buffers));
+        ws_.impl_->rd_buf.commit(buffer_copy(*mb, buffers));
         (*this)(ec);
     }
 
     void operator()(
         error_code ec = {},
-        std::size_t bytes_used = 0)
+        std::size_t bytes_transferred = 0)
     {
-        boost::ignore_unused(bytes_used);
+        boost::ignore_unused(bytes_transferred);
 
         BOOST_ASIO_CORO_REENTER(*this)
         {
@@ -171,15 +145,15 @@ public:
             {
                 BOOST_ASIO_CORO_YIELD
                 net::post(
-                    d_.ws.get_executor(),
+                    ws_.get_executor(),
                     beast::bind_front_handler(std::move(*this), ec));
             }
             else
             {
                 BOOST_ASIO_CORO_YIELD
                 http::async_read(
-                    d_.ws.next_layer(), d_.ws.rd_buf_,
-                        d_.p, std::move(*this));
+                    ws_.next_layer(), ws_.impl_->rd_buf,
+                        p_, std::move(*this));
                 if(ec == http::error::end_of_stream)
                     ec = error::closed;
                 if(! ec)
@@ -187,9 +161,9 @@ public:
                     // Arguments from our state must be
                     // moved to the stack before releasing
                     // the handler.
-                    auto& ws = d_.ws;
-                    auto const req = d_.p.release();
-                    auto const decorator = d_.decorator;
+                    auto& ws = ws_;
+                    auto const req = p_.release();
+                    auto const decorator = d_;
                 #if 1
                     return response_op<Handler>{
                         this->release_handler(),
@@ -247,7 +221,7 @@ accept(error_code& ec)
 {
     static_assert(is_sync_stream<next_layer_type>::value,
         "SyncStream requirements not met");
-    reset();
+    impl_->reset();
     do_accept(&default_decorate_res, ec);
 }
 
@@ -262,7 +236,7 @@ accept_ex(ResponseDecorator const& decorator, error_code& ec)
     static_assert(detail::is_response_decorator<
         ResponseDecorator>::value,
             "ResponseDecorator requirements not met");
-    reset();
+    impl_->reset();
     do_accept(decorator, ec);
 }
 
@@ -324,13 +298,13 @@ accept(
             "ConstBufferSequence requirements not met");
     using net::buffer_copy;
     using net::buffer_size;
-    reset();
+    impl_->reset();
     auto const mb = beast::detail::dynamic_buffer_prepare(
-        rd_buf_, buffer_size(buffers), ec,
+        impl_->rd_buf, buffer_size(buffers), ec,
             error::buffer_overflow);
     if(ec)
         return;
-    rd_buf_.commit(buffer_copy(*mb, buffers));
+    impl_->rd_buf.commit(buffer_copy(*mb, buffers));
     do_accept(&default_decorate_res, ec);
 }
 
@@ -356,13 +330,13 @@ accept_ex(
             "ConstBufferSequence requirements not met");
     using net::buffer_copy;
     using net::buffer_size;
-    reset();
+    impl_->reset();
     auto const mb = beast::detail::dynamic_buffer_prepare(
-        rd_buf_, buffer_size(buffers), ec,
+        impl_->rd_buf, buffer_size(buffers), ec,
             error::buffer_overflow);
     if(ec)
         return;
-    rd_buf_.commit(buffer_copy(*mb, buffers));
+    impl_->rd_buf.commit(buffer_copy(*mb, buffers));
     do_accept(decorator, ec);
 }
 
@@ -415,7 +389,7 @@ accept(
 {
     static_assert(is_sync_stream<next_layer_type>::value,
         "SyncStream requirements not met");
-    reset();
+    impl_->reset();
     do_accept(req, &default_decorate_res, ec);
 }
 
@@ -436,7 +410,7 @@ accept_ex(
     static_assert(detail::is_response_decorator<
         ResponseDecorator>::value,
             "ResponseDecorator requirements not met");
-    reset();
+    impl_->reset();
     do_accept(req, decorator, ec);
 }
 
@@ -455,7 +429,7 @@ async_accept(
         "AsyncStream requirements not met");
     BOOST_BEAST_HANDLER_INIT(
         AcceptHandler, void(error_code));
-    reset();
+    impl_->reset();
     accept_op<
         decltype(&default_decorate_res),
         BOOST_ASIO_HANDLER_TYPE(
@@ -484,7 +458,7 @@ async_accept_ex(
             "ResponseDecorator requirements not met");
     BOOST_BEAST_HANDLER_INIT(
         AcceptHandler, void(error_code));
-    reset();
+    impl_->reset();
     accept_op<
         ResponseDecorator,
         BOOST_ASIO_HANDLER_TYPE(
@@ -515,7 +489,7 @@ async_accept(
             "ConstBufferSequence requirements not met");
     BOOST_BEAST_HANDLER_INIT(
         AcceptHandler, void(error_code));
-    reset();
+    impl_->reset();
     accept_op<
         decltype(&default_decorate_res),
         BOOST_ASIO_HANDLER_TYPE(
@@ -551,7 +525,7 @@ async_accept_ex(
             "ResponseDecorator requirements not met");
     BOOST_BEAST_HANDLER_INIT(
         AcceptHandler, void(error_code));
-    reset();
+    impl_->reset();
     accept_op<
         ResponseDecorator,
         BOOST_ASIO_HANDLER_TYPE(
@@ -577,7 +551,7 @@ async_accept(
         "AsyncStream requirements not met");
     BOOST_BEAST_HANDLER_INIT(
         AcceptHandler, void(error_code));
-    reset();
+    impl_->reset();
     using net::asio_handler_is_continuation;
     response_op<
         BOOST_ASIO_HANDLER_TYPE(
@@ -609,7 +583,7 @@ async_accept_ex(
             "ResponseDecorator requirements not met");
     BOOST_BEAST_HANDLER_INIT(
         AcceptHandler, void(error_code));
-    reset();
+    impl_->reset();
     using net::asio_handler_is_continuation;
     response_op<
         BOOST_ASIO_HANDLER_TYPE(
@@ -632,7 +606,7 @@ do_accept(
     error_code& ec)
 {
     http::request_parser<http::empty_body> p;
-    http::read(next_layer(), rd_buf_, p, ec);
+    http::read(next_layer(), impl_->rd_buf, p, ec);
     if(ec == http::error::end_of_stream)
         ec = error::closed;
     if(ec)
@@ -653,7 +627,7 @@ do_accept(
 {
     error_code result;
     auto const res = build_response(req, decorator, result);
-    http::write(stream_, res, ec);
+    http::write(impl_->stream, res, ec);
     if(ec)
         return;
     ec = result;
@@ -663,8 +637,8 @@ do_accept(
         //             teardown if Connection: close.
         return;
     }
-    this->do_pmd_config(res);
-    open(role_type::server);
+    impl_->do_pmd_config(res);
+    impl_->open(role_type::server);
 }
 
 } // websocket

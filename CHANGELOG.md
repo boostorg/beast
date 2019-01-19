@@ -1,6 +1,7 @@
 Version 206
 
 * Clear error codes idiomatically
+* websocket stream uses shared_ptr<impl_type>
 
 --------------------------------------------------------------------------------
 

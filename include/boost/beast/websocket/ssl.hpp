@@ -79,6 +79,6 @@ async_teardown(
 } // beast
 } // boost
 
-#include <boost/beast/websocket/impl/ssl.ipp>
+#include <boost/beast/websocket/impl/ssl.hpp>
 
 #endif

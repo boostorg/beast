@@ -7,8 +7,8 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
-#ifndef BOOST_BEAST_WEBSOCKET_IMPL_SSL_IPP_INCLUDED
-#define BOOST_BEAST_WEBSOCKET_IMPL_SSL_IPP_INCLUDED
+#ifndef BOOST_BEAST_WEBSOCKET_IMPL_SSL_HPP
+#define BOOST_BEAST_WEBSOCKET_IMPL_SSL_HPP
 
 #include <utility>
 

@@ -16,15 +16,9 @@
 #include <boost/beast/websocket/role.hpp>
 #include <boost/beast/websocket/rfc6455.hpp>
 #include <boost/beast/websocket/stream_fwd.hpp>
-#include <boost/beast/websocket/detail/frame.hpp>
-#include <boost/beast/websocket/detail/hybi13.hpp>
-#include <boost/beast/websocket/detail/mask.hpp>
 #include <boost/beast/websocket/detail/pmd_extension.hpp>
-#include <boost/beast/websocket/detail/soft_mutex.hpp>
 #include <boost/beast/websocket/detail/stream_base.hpp>
-#include <boost/beast/websocket/detail/utf8_checker.hpp>
-#include <boost/beast/core/saved_handler.hpp>
-#include <boost/beast/core/static_buffer.hpp>
+#include <boost/beast/websocket/detail/hybi13.hpp>
 #include <boost/beast/core/string.hpp>
 #include <boost/beast/core/detail/type_traits.hpp>
 #include <boost/beast/http/detail/type_traits.hpp>
@@ -34,6 +28,7 @@
 #include <cstdint>
 #include <functional>
 #include <limits>
+#include <memory>
 #include <type_traits>
 
 namespace boost {
@@ -124,7 +119,7 @@ template<
     bool deflateSupported>
 class stream
 #if ! BOOST_BEAST_DOXYGEN
-    : private detail::stream_base<deflateSupported>
+    : private detail::stream_base
 #endif
 {
     friend class close_test;
@@ -153,64 +148,9 @@ class stream
         failed
     };
 
-    NextLayer               stream_;        // the wrapped stream
-    close_reason            cr_;            // set from received close frame
-    control_cb_type         ctrl_cb_;       // control callback
+    struct impl_type;
 
-    std::size_t             rd_msg_max_     // max message size
-                                = 16 * 1024 * 1024;
-    std::uint64_t           rd_size_        // total size of current message so far
-                                = 0;
-    std::uint64_t           rd_remain_      // message frame bytes left in current frame
-                                = 0;
-    detail::frame_header    rd_fh_;         // current frame header
-    detail::prepared_key    rd_key_;        // current stateful mask key
-    detail::frame_buffer    rd_fb_;         // to write control frames (during reads)
-    detail::utf8_checker    rd_utf8_;       // to validate utf8
-    static_buffer<
-        +tcp_frame_size>    rd_buf_;        // buffer for reads
-    detail::opcode          rd_op_          // current message binary or text
-                                = detail::opcode::text;
-    bool                    rd_cont_        // `true` if the next frame is a continuation
-                                = false;
-    bool                    rd_done_        // set when a message is done
-                                = true;
-    bool                    rd_close_       // did we read a close frame?
-                                = false;
-    detail::soft_mutex      rd_block_;      // op currently reading
-
-    role_type               role_           // server or client
-                                = role_type::client;
-    status                  status_
-                                = status::closed;
-
-    detail::soft_mutex      wr_block_;      // op currently writing
-    bool                    wr_close_       // did we write a close frame?
-                                = false;
-    bool                    wr_cont_        // next write is a continuation
-                                = false;
-    bool                    wr_frag_        // autofrag the current message
-                                = false;
-    bool                    wr_frag_opt_    // autofrag option setting
-                                = true;
-    bool                    wr_compress_    // compress current message
-                                = false;
-    detail::opcode          wr_opcode_      // message type
-                                = detail::opcode::text;
-    std::unique_ptr<
-        std::uint8_t[]>     wr_buf_;        // write buffer
-    std::size_t             wr_buf_size_    // write buffer size (current message)
-                                = 0;
-    std::size_t             wr_buf_opt_     // write buffer size option setting
-                                = 4096;
-    detail::fh_buffer       wr_fb_;         // header buffer used for writes
-
-    saved_handler           paused_rd_;     // paused read op
-    saved_handler           paused_wr_;     // paused write op
-    saved_handler           paused_ping_;   // paused ping op
-    saved_handler           paused_close_;  // paused close op
-    saved_handler           paused_r_rd_;   // paused read op (async read)
-    saved_handler           paused_r_close_;// paused close op (async read)
+    std::shared_ptr<impl_type> impl_;
 
 public:
     /// Indicates if the permessage-deflate extension is supported
@@ -281,10 +221,7 @@ public:
         @return A copy of the executor that stream will use to dispatch handlers.
     */
     executor_type
-    get_executor() noexcept
-    {
-        return stream_.get_executor();
-    }
+    get_executor() const noexcept;
 
     /** Get a reference to the next layer
 
@@ -295,10 +232,7 @@ public:
         stream layers.
     */
     next_layer_type&
-    next_layer()
-    {
-        return stream_;
-    }
+    next_layer() noexcept;
 
     /** Get a reference to the next layer
 
@@ -309,10 +243,7 @@ public:
         stream layers.
     */
     next_layer_type const&
-    next_layer() const
-    {
-        return stream_;
-    }
+    next_layer() const noexcept;
 
     /** Get a reference to the lowest layer
 
@@ -322,11 +253,9 @@ public:
         @return A reference to the lowest layer in the stack of
         stream layers.
     */
+    // DEPRECATED
     lowest_layer_type&
-    lowest_layer()
-    {
-        return stream_.lowest_layer();
-    }
+    lowest_layer() noexcept;
 
     /** Get a reference to the lowest layer
 
@@ -336,11 +265,9 @@ public:
         @return A reference to the lowest layer in the stack of
         stream layers. Ownership is not transferred to the caller.
     */
+    // DEPRECATED
     lowest_layer_type const&
-    lowest_layer() const
-    {
-        return stream_.lowest_layer();
-    }
+    lowest_layer() const noexcept;
 
     //--------------------------------------------------------------------------
     //
@@ -354,10 +281,7 @@ public:
         no error has occurred.
     */
     bool
-    is_open() const
-    {
-        return status_ == status::open;
-    }
+    is_open() const noexcept;
 
     /** Returns `true` if the latest message data indicates binary.
 
@@ -369,10 +293,7 @@ public:
         undefined.
     */
     bool
-    got_binary() const
-    {
-        return rd_op_ == detail::opcode::binary;
-    }
+    got_binary() const noexcept;
 
     /** Returns `true` if the latest message data indicates text.
 
@@ -391,20 +312,14 @@ public:
 
     /// Returns `true` if the last completed read finished the current message.
     bool
-    is_message_done() const
-    {
-        return rd_done_;
-    }
+    is_message_done() const noexcept;
 
     /** Returns the close reason received from the peer.
 
         This is only valid after a read completes with error::closed.
     */
     close_reason const&
-    reason() const
-    {
-        return cr_;
-    }
+    reason() const noexcept;
 
     /** Returns a suggested maximum buffer size for the next call to read.
 
@@ -421,11 +336,7 @@ public:
     */
     std::size_t
     read_size_hint(
-        std::size_t initial_size = +tcp_frame_size) const
-    {
-        return this->read_size_hint_pmd(
-            initial_size, rd_done_, rd_remain_, rd_fh_);
-    }
+        std::size_t initial_size = +tcp_frame_size) const;
 
     /** Returns a suggested maximum buffer size for the next call to read.
 
@@ -462,17 +373,11 @@ public:
         `client_enable` or `server_enable` is `true`.
     */
     void
-    set_option(permessage_deflate const& o)
-    {
-        this->set_option_pmd(o);
-    }
+    set_option(permessage_deflate const& o);
 
     /// Get the permessage-deflate extension options
     void
-    get_option(permessage_deflate& o)
-    {
-        this->get_option_pmd(o);
-    }
+    get_option(permessage_deflate& o);
 
     /** Set the automatic fragmentation option.
 
@@ -494,17 +399,11 @@ public:
         @endcode
     */
     void
-    auto_fragment(bool value)
-    {
-        wr_frag_opt_ = value;
-    }
+    auto_fragment(bool value);
 
     /// Returns `true` if the automatic fragmentation option is set.
     bool
-    auto_fragment() const
-    {
-        return wr_frag_opt_;
-    }
+    auto_fragment() const;
 
     /** Set the binary message write option.
 
@@ -526,19 +425,11 @@ public:
         @endcode
         */
     void
-    binary(bool value)
-    {
-        wr_opcode_ = value ?
-            detail::opcode::binary :
-            detail::opcode::text;
-    }
+    binary(bool value);
 
     /// Returns `true` if the binary message write option is set.
     bool
-    binary() const
-    {
-        return wr_opcode_ == detail::opcode::binary;
-    }
+    binary() const;
 
     /** Set a callback to be invoked on each incoming control frame.
 
@@ -585,20 +476,14 @@ public:
         in undefined behavior.
     */
     void
-    control_callback(std::function<void(frame_type, string_view)> cb)
-    {
-        ctrl_cb_ = std::move(cb);
-    }
+    control_callback(std::function<void(frame_type, string_view)> cb);
 
     /** Reset the control frame callback.
 
         This function removes any previously set control frame callback.
     */
     void
-    control_callback()
-    {
-        ctrl_cb_ = {};
-    }
+    control_callback();
 
     /** Set the maximum incoming message size option.
 
@@ -618,17 +503,11 @@ public:
         @param amount The limit on the size of incoming messages.
     */
     void
-    read_message_max(std::size_t amount)
-    {
-        rd_msg_max_ = amount;
-    }
+    read_message_max(std::size_t amount);
 
     /// Returns the maximum incoming message size setting.
     std::size_t
-    read_message_max() const
-    {
-        return rd_msg_max_;
-    }
+    read_message_max() const;
 
     /** Set whether the PRNG is cryptographically secure
 
@@ -656,10 +535,7 @@ public:
         cryptographically secure.
     */
     void
-    secure_prng(bool value)
-    {
-        this->secure_prng_ = value;
-    }
+    secure_prng(bool value);
 
     /** Set the write buffer size option.
 
@@ -687,20 +563,11 @@ public:
         @param amount The size of the write buffer in bytes.
     */
     void
-    write_buffer_size(std::size_t amount)
-    {
-        if(amount < 8)
-            BOOST_THROW_EXCEPTION(std::invalid_argument{
-                "write buffer size underflow"});
-        wr_buf_opt_ = amount;
-    };
+    write_buffer_size(std::size_t amount);
 
     /// Returns the size of the write buffer.
     std::size_t
-    write_buffer_size() const
-    {
-        return wr_buf_opt_;
-    }
+    write_buffer_size() const;
 
     /** Set the text message write option.
 
@@ -722,19 +589,11 @@ public:
         @endcode
     */
     void
-    text(bool value)
-    {
-        wr_opcode_ = value ?
-            detail::opcode::text :
-            detail::opcode::binary;
-    }
+    text(bool value);
 
     /// Returns `true` if the text message write option is set.
     bool
-    text() const
-    {
-        return wr_opcode_ == detail::opcode::text;
-    }
+    text() const;
 
     //--------------------------------------------------------------------------
     //
@@ -3372,38 +3231,6 @@ private:
     static void default_decorate_req(request_type&) {}
     static void default_decorate_res(response_type&) {}
 
-    void open(role_type role);
-
-    void close();
-
-    void reset();
-
-    void begin_msg();
-
-    bool
-    check_open(error_code& ec)
-    {
-        if(status_ != status::open)
-        {
-            ec = net::error::operation_aborted;
-            return false;
-        }
-        ec = {};
-        return true;
-    }
-
-    bool
-    check_ok(error_code& ec)
-    {
-        if(ec)
-        {
-            if(status_ != status::closed)
-                status_ = status::failed;
-            return false;
-        }
-        return true;
-    }
-
     template<class DynamicBuffer>
     bool
     parse_fh(
@@ -3507,7 +3334,7 @@ private:
 
     @see stream::secure_prng
 */
-inline
+BOOST_BEAST_DECL
 void
 seed_prng(std::seed_seq& ss)
 {
@@ -3518,12 +3345,13 @@ seed_prng(std::seed_seq& ss)
 } // beast
 } // boost
 
-#include <boost/beast/websocket/impl/accept.ipp>
-#include <boost/beast/websocket/impl/close.ipp>
-#include <boost/beast/websocket/impl/handshake.ipp>
-#include <boost/beast/websocket/impl/ping.ipp>
-#include <boost/beast/websocket/impl/read.ipp>
-#include <boost/beast/websocket/impl/stream.ipp>
-#include <boost/beast/websocket/impl/write.ipp>
+#include <boost/beast/websocket/impl/accept.hpp>
+#include <boost/beast/websocket/impl/close.hpp>
+#include <boost/beast/websocket/impl/handshake.hpp>
+#include <boost/beast/websocket/impl/stream_impl.hpp>
+#include <boost/beast/websocket/impl/ping.hpp>
+#include <boost/beast/websocket/impl/read.hpp>
+#include <boost/beast/websocket/impl/stream.hpp>
+#include <boost/beast/websocket/impl/write.hpp>
 
 #endif

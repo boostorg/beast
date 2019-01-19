@@ -111,23 +111,6 @@ BOOST_BEAST_DECL
 prng::ref
 make_prng(bool secure);
 
-//------------------------------------------------------------------------------
-
-struct stream_prng
-{
-    bool secure_prng_ = true;
-
-    std::uint32_t
-    create_mask()
-    {
-        auto g = make_prng(secure_prng_);
-        for(;;)
-            if(auto key = g())
-                return key;
-    }
-
-};
-
 } // detail
 } // websocket
 } // beast

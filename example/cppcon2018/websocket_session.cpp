@@ -8,6 +8,7 @@
 //
 
 #include "websocket_session.hpp"
+#include <iostream>
 
 websocket_session::
 websocket_session(
