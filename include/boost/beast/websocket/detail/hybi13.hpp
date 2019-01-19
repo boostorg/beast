@@ -36,11 +36,11 @@ inline
 void
 make_sec_ws_key(sec_ws_key_type& key)
 {
-    auto p = stream_prng::prng();
+    auto g = make_prng(true);
     char a[16];
     for(int i = 0; i < 16; i += 4)
     {
-        auto const v = p->secure();
+        auto const v = g();
         a[i  ] =  v        & 0xff;
         a[i+1] = (v >>  8) & 0xff;
         a[i+2] = (v >> 16) & 0xff;

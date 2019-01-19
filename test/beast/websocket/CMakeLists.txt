@@ -17,6 +17,7 @@ add_executable (tests-beast-websocket
     ${TEST_MAIN}
     Jamfile
     test.hpp
+    _detail_prng.cpp
     accept.cpp
     close.cpp
     error.cpp

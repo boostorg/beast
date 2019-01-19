@@ -8,6 +8,7 @@
 #
 
 local SOURCES =
+    _detail_prng.cpp
     accept.cpp
     close.cpp
     error.cpp

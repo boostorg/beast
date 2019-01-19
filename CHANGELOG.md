@@ -2,6 +2,7 @@ Version 205
 
 * Doc work
 * Add detail/soft_mutex.hpp
+* Add detail/prng.hpp
 
 --------------------------------------------------------------------------------
 

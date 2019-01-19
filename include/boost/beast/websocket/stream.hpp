@@ -3511,7 +3511,7 @@ inline
 void
 seed_prng(std::seed_seq& ss)
 {
-    detail::stream_prng::seed(&ss);
+    detail::prng_seed(&ss);
 }
 
 } // websocket
