@@ -21,6 +21,7 @@ add_executable (tests-beast-core
     stream_tests.hpp
     test_handler.hpp
     _detail_base64.cpp
+    _detail_bind_continuation.cpp
     _detail_buffer.cpp
     _detail_clamp.cpp
     _detail_is_invocable.cpp
@@ -31,7 +32,6 @@ add_executable (tests-beast-core
     _detail_varint.cpp
     async_op_base.cpp
     basic_stream.cpp
-    bind_continuation.cpp
     bind_handler.cpp
     buffer_size.cpp
     buffer_traits.cpp

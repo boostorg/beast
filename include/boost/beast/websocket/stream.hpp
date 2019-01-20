@@ -151,17 +151,17 @@ class stream
     using control_cb_type =
         std::function<void(frame_type, string_view)>;
 
-    enum class status
-    {
-        open,
-        closing,
-        closed,
-        failed
-    };
-
     struct impl_type;
 
     std::shared_ptr<impl_type> impl_;
+
+    using time_point = typename
+        std::chrono::steady_clock::time_point;
+
+    static constexpr time_point never()
+    {
+        return (time_point::max)();
+    }
 
 public:
     /// Indicates if the permessage-deflate extension is supported
@@ -578,6 +578,18 @@ public:
     /// Returns `true` if the text message write option is set.
     bool
     text() const;
+
+    /*
+        timer settings
+
+        * Timer is disabled
+        * Close on timeout
+            - no complete frame received, OR
+            - no complete frame sent
+        * Ping on timeout
+            - ping on no complete frame received
+                * if can't ping?
+    */
 
     //--------------------------------------------------------------------------
     //

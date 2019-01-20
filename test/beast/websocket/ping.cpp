@@ -424,21 +424,6 @@ public:
     }
 
     void
-    testContHook()
-    {
-        struct handler
-        {
-            void operator()(error_code) {}
-        };
-
-        stream<test::stream> ws{ioc_};
-        stream<test::stream>::ping_op<handler> op{
-            handler{}, ws, detail::opcode::ping, {}};
-        using net::asio_handler_is_continuation;
-        asio_handler_is_continuation(&op);
-    }
-
-    void
     testMoveOnly()
     {
         net::io_context ioc;
@@ -475,7 +460,6 @@ public:
     {
         testPing();
         testSuspend();
-        testContHook();
         testMoveOnly();
         testAsioHandlerInvoke();
     }

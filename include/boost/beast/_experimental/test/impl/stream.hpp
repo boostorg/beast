@@ -335,7 +335,7 @@ read_some(MutableBufferSequence const& buffers,
     // A request to read 0 bytes from a stream is a no-op.
     if(buffer_size(buffers) == 0)
     {
-        ec.clear();
+        ec = {};
         return 0;
     }
 
@@ -481,7 +481,7 @@ write_some(
     // A request to write 0 bytes to a stream is a no-op.
     if(buffer_size(buffers) == 0)
     {
-        ec.clear();
+        ec = {};
         return 0;
     }
 
@@ -591,7 +591,7 @@ teardown(
         s.in_->fc->fail(ec))
         ec = net::error::eof;
     else
-        ec.clear();
+        ec = {};
 }
 
 template<class TeardownHandler>
@@ -613,7 +613,7 @@ async_teardown(
         s.in_->fc->fail(ec))
         ec = net::error::eof;
     else
-        ec.clear();
+        ec = {};
 
     net::post(
         s.get_executor(),

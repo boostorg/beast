@@ -609,21 +609,6 @@ public:
     }
 
     void
-    testContHook()
-    {
-        struct handler
-        {
-            void operator()(error_code) {}
-        };
-
-        stream<test::stream> ws{ioc_};
-        stream<test::stream>::close_op<handler> op{
-            handler{}, ws, {}};
-        using net::asio_handler_is_continuation;
-        asio_handler_is_continuation(&op);
-    }
-
-    void
     testMoveOnly()
     {
         net::io_context ioc;
@@ -660,7 +645,6 @@ public:
     {
         testClose();
         testSuspend();
-        testContHook();
         testMoveOnly();
         testAsioHandlerInvoke();
     }

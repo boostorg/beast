@@ -39,43 +39,35 @@ class stream<NextLayer, deflateSupported>::handshake_op
 {
     struct data
     {
-        stream<NextLayer, deflateSupported>& ws;
-        response_type* res_p;
-        detail::sec_ws_key_type key;
+        // VFALCO This really should be two separate
+        //        composed operations, to save on memory
         http::request<http::empty_body> req;
         response_type res;
-
-        template<class Decorator>
-        data(
-            stream& ws_,
-            response_type* res_p_,
-            string_view host,
-            string_view target,
-            Decorator const& decorator)
-            : ws(ws_)
-            , res_p(res_p_)
-            , req(ws.build_request(key,
-                host, target, decorator))
-        {
-            ws.impl_->reset();
-        }
     };
 
+    stream<NextLayer, deflateSupported>& ws_;
+    detail::sec_ws_key_type key_;
+    response_type* res_p_;
     data& d_;
 
 public:
-    template<
-        class Handler_,
-        class... Args>
+    template<class Handler_, class Decorator>
     handshake_op(
         Handler_&& h,
-        stream& ws, Args&&... args)
+        stream& ws,
+        response_type* res_p,
+        string_view host, string_view target,
+        Decorator const& decorator)
         : stable_async_op_base<Handler,
             beast::executor_type<stream>>(
                 std::forward<Handler_>(h), ws.get_executor())
-        , d_(beast::allocate_stable<data>(
-            *this, ws, std::forward<Args>(args)...))
+        , ws_(ws)
+        , res_p_(res_p)
+        , d_(beast::allocate_stable<data>(*this))
     {
+        d_.req = ws_.build_request(
+            key_, host, target, decorator);
+        ws_.impl_->reset(); // VFALCO I don't like this
     }
 
     void
@@ -84,31 +76,26 @@ public:
         std::size_t bytes_used = 0)
     {
         boost::ignore_unused(bytes_used);
-
         BOOST_ASIO_CORO_REENTER(*this)
         {
             // Send HTTP Upgrade
-            d_.ws.impl_->do_pmd_config(d_.req);
+            ws_.impl_->do_pmd_config(d_.req);
             BOOST_ASIO_CORO_YIELD
-            http::async_write(d_.ws.impl_->stream,
+            http::async_write(ws_.impl_->stream,
                 d_.req, std::move(*this));
             if(ec)
                 goto upcall;
 
-            // VFALCO We could pre-serialize the request to
-            //        a single buffer, send that instead,
-            //        and delete the buffer here.
-
             // Read HTTP response
             BOOST_ASIO_CORO_YIELD
-            http::async_read(d_.ws.next_layer(),
-                d_.ws.impl_->rd_buf, d_.res,
+            http::async_read(ws_.next_layer(),
+                ws_.impl_->rd_buf, d_.res,
                     std::move(*this));
             if(ec)
                 goto upcall;
-            d_.ws.on_response(d_.res, d_.key, ec);
-            if(d_.res_p)
-                swap(d_.res, *d_.res_p);
+            ws_.on_response(d_.res, key_, ec);
+            if(res_p_)
+                swap(d_.res, *res_p_);
         upcall:
             this->invoke_now(ec);
         }

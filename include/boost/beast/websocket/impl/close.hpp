@@ -15,7 +15,7 @@
 #include <boost/beast/core/async_op_base.hpp>
 #include <boost/beast/core/flat_static_buffer.hpp>
 #include <boost/beast/core/stream_traits.hpp>
-#include <boost/beast/core/detail/config.hpp>
+#include <boost/beast/core/detail/bind_continuation.hpp>
 #include <boost/asio/coroutine.hpp>
 #include <boost/asio/post.hpp>
 #include <boost/throw_exception.hpp>
@@ -39,25 +39,9 @@ class stream<NextLayer, deflateSupported>::close_op
         Handler, beast::executor_type<stream>>
     , public net::coroutine
 {
-    struct state
-    {
-        stream<NextLayer, deflateSupported>& ws;
-        detail::frame_buffer fb;
-        error_code ev;
-        bool cont = false;
-
-        state(
-            stream<NextLayer, deflateSupported>& ws_,
-            close_reason const& cr)
-            : ws(ws_)
-        {
-            // Serialize the close frame
-            ws.template write_close<
-                flat_static_buffer_base>(fb, cr);
-        }
-    };
-
-    state& d_;
+    stream<NextLayer, deflateSupported>& ws_;
+    error_code ev_;
+    detail::frame_buffer& fb_;
 
 public:
     static constexpr int id = 4; // for soft_mutex
@@ -70,9 +54,13 @@ public:
         : stable_async_op_base<
             Handler, beast::executor_type<stream>>(
                 std::forward<Handler_>(h), ws.get_executor())
-        , d_(beast::allocate_stable<state>(
-            *this, ws, cr))
+        , ws_(ws)
+        , fb_(beast::allocate_stable<detail::frame_buffer>(*this))
     {
+        // Serialize the close frame
+        ws.template write_close<
+            flat_static_buffer_base>(fb_, cr);
+        (*this)({}, 0, false);
     }
 
     void
@@ -82,46 +70,36 @@ public:
         bool cont = true)
     {
         using beast::detail::clamp;
-        d_.cont = cont;
+        auto& impl = *ws_.impl_;
         BOOST_ASIO_CORO_REENTER(*this)
         {
-            // Attempt to acquire write block
-            if(! d_.ws.impl_->wr_block.try_lock(this))
+            // Acquire the write lock
+            if(! impl.wr_block.try_lock(this))
             {
-                // Suspend
                 BOOST_ASIO_CORO_YIELD
-                d_.ws.impl_->paused_close.emplace(std::move(*this));
-
-                // Acquire the write block
-                d_.ws.impl_->wr_block.lock(this);
-
-                // Resume
+                impl.paused_close.emplace(std::move(*this));
+                impl.wr_block.lock(this);
                 BOOST_ASIO_CORO_YIELD
-                net::post(
-                    d_.ws.get_executor(), std::move(*this));
-                BOOST_ASSERT(d_.ws.impl_->wr_block.is_locked(this));
+                net::post(std::move(*this));
+                BOOST_ASSERT(impl.wr_block.is_locked(this));
             }
-
-            // Make sure the stream is open
-            if(! d_.ws.impl_->check_open(ec))
+            if(impl.check_stop_now(ec))
                 goto upcall;
 
             // Can't call close twice
-            BOOST_ASSERT(! d_.ws.impl_->wr_close);
-
-            // Change status to closing
-            BOOST_ASSERT(d_.ws.impl_->status_ == status::open);
-            d_.ws.impl_->status_ = status::closing;
+            // TODO return a custom error code
+            BOOST_ASSERT(! impl.wr_close);
 
             // Send close frame
-            d_.ws.impl_->wr_close = true;
+            impl.wr_close = true;
+            impl.change_status(status::closing);
             BOOST_ASIO_CORO_YIELD
-            net::async_write(d_.ws.impl_->stream,
-                d_.fb.data(), std::move(*this));
-            if(! d_.ws.impl_->check_ok(ec))
+            net::async_write(impl.stream, fb_.data(),
+                beast::detail::bind_continuation(std::move(*this)));
+            if(impl.check_stop_now(ec))
                 goto upcall;
 
-            if(d_.ws.impl_->rd_close)
+            if(impl.rd_close)
             {
                 // This happens when the read_op gets a close frame
                 // at the same time close_op is sending the close frame.
@@ -129,101 +107,94 @@ public:
                 goto teardown;
             }
 
-            // Maybe suspend
-            if(! d_.ws.impl_->rd_block.try_lock(this))
+            // Acquire the read lock
+            if(! impl.rd_block.try_lock(this))
             {
-                // Suspend
                 BOOST_ASIO_CORO_YIELD
-                d_.ws.impl_->paused_r_close.emplace(std::move(*this));
-
-                // Acquire the read block
-                d_.ws.impl_->rd_block.lock(this);
-
-                // Resume
+                impl.paused_r_close.emplace(std::move(*this));
+                impl.rd_block.lock(this);
                 BOOST_ASIO_CORO_YIELD
-                net::post(
-                    d_.ws.get_executor(), std::move(*this));
-                BOOST_ASSERT(d_.ws.impl_->rd_block.is_locked(this));
-
-                // Make sure the stream is open
-                BOOST_ASSERT(d_.ws.impl_->status_ != status::open);
-                BOOST_ASSERT(d_.ws.impl_->status_ != status::closed);
-                if( d_.ws.impl_->status_ == status::failed)
+                net::post(std::move(*this));
+                BOOST_ASSERT(impl.rd_block.is_locked(this));
+                if(impl.check_stop_now(ec))
                     goto upcall;
-
-                BOOST_ASSERT(! d_.ws.impl_->rd_close);
+                BOOST_ASSERT(! impl.rd_close);
             }
 
-            // Drain
-            if(d_.ws.impl_->rd_remain > 0)
+            // Read until a receiving a close frame
+            // TODO There should be a timeout on this
+            if(impl.rd_remain > 0)
                 goto read_payload;
             for(;;)
             {
                 // Read frame header
-                while(! d_.ws.parse_fh(
-                    d_.ws.impl_->rd_fh, d_.ws.impl_->rd_buf, d_.ev))
+                while(! ws_.parse_fh(
+                    impl.rd_fh, impl.rd_buf, ev_))
                 {
-                    if(d_.ev)
+                    if(ev_)
                         goto teardown;
                     BOOST_ASIO_CORO_YIELD
-                    d_.ws.impl_->stream.async_read_some(
-                        d_.ws.impl_->rd_buf.prepare(read_size(d_.ws.impl_->rd_buf,
-                            d_.ws.impl_->rd_buf.max_size())),
-                                std::move(*this));
-                    if(! d_.ws.impl_->check_ok(ec))
+                    impl.stream.async_read_some(
+                        impl.rd_buf.prepare(read_size(
+                            impl.rd_buf, impl.rd_buf.max_size())),
+                        beast::detail::bind_continuation(std::move(*this)));
+                    impl.rd_buf.commit(bytes_transferred);
+                    if(impl.check_stop_now(ec))
                         goto upcall;
-                    d_.ws.impl_->rd_buf.commit(bytes_transferred);
                 }
-                if(detail::is_control(d_.ws.impl_->rd_fh.op))
+                if(detail::is_control(impl.rd_fh.op))
                 {
-                    // Process control frame
-                    if(d_.ws.impl_->rd_fh.op == detail::opcode::close)
+                    // Discard ping or pong frame
+                    if(impl.rd_fh.op != detail::opcode::close)
                     {
-                        BOOST_ASSERT(! d_.ws.impl_->rd_close);
-                        d_.ws.impl_->rd_close = true;
-                        auto const mb = buffers_prefix(
-                            clamp(d_.ws.impl_->rd_fh.len),
-                            d_.ws.impl_->rd_buf.data());
-                        if(d_.ws.impl_->rd_fh.len > 0 && d_.ws.impl_->rd_fh.mask)
-                            detail::mask_inplace(mb, d_.ws.impl_->rd_key);
-                        detail::read_close(d_.ws.impl_->cr, mb, d_.ev);
-                        if(d_.ev)
-                            goto teardown;
-                        d_.ws.impl_->rd_buf.consume(clamp(d_.ws.impl_->rd_fh.len));
+                        impl.rd_buf.consume(clamp(impl.rd_fh.len));
+                        continue;
+                    }
+
+                    // Process close frame
+                    // TODO Should we invoke the control callback?
+                    BOOST_ASSERT(! impl.rd_close);
+                    impl.rd_close = true;
+                    auto const mb = buffers_prefix(
+                        clamp(impl.rd_fh.len),
+                        impl.rd_buf.data());
+                    if(impl.rd_fh.len > 0 && impl.rd_fh.mask)
+                        detail::mask_inplace(mb, impl.rd_key);
+                    detail::read_close(impl.cr, mb, ev_);
+                    if(ev_)
                         goto teardown;
-                    }
-                    d_.ws.impl_->rd_buf.consume(clamp(d_.ws.impl_->rd_fh.len));
+                    impl.rd_buf.consume(clamp(impl.rd_fh.len));
+                    goto teardown;
                 }
-                else
+
+            read_payload:
+                // Discard message frame
+                while(impl.rd_buf.size() < impl.rd_remain)
                 {
-                read_payload:
-                    while(d_.ws.impl_->rd_buf.size() < d_.ws.impl_->rd_remain)
-                    {
-                        d_.ws.impl_->rd_remain -= d_.ws.impl_->rd_buf.size();
-                        d_.ws.impl_->rd_buf.consume(d_.ws.impl_->rd_buf.size());
-                        BOOST_ASIO_CORO_YIELD
-                        d_.ws.impl_->stream.async_read_some(
-                            d_.ws.impl_->rd_buf.prepare(read_size(d_.ws.impl_->rd_buf,
-                                d_.ws.impl_->rd_buf.max_size())),
-                                    std::move(*this));
-                        if(! d_.ws.impl_->check_ok(ec))
-                            goto upcall;
-                        d_.ws.impl_->rd_buf.commit(bytes_transferred);
-                    }
-                    BOOST_ASSERT(d_.ws.impl_->rd_buf.size() >= d_.ws.impl_->rd_remain);
-                    d_.ws.impl_->rd_buf.consume(clamp(d_.ws.impl_->rd_remain));
-                    d_.ws.impl_->rd_remain = 0;
+                    impl.rd_remain -= impl.rd_buf.size();
+                    impl.rd_buf.consume(impl.rd_buf.size());
+                    BOOST_ASIO_CORO_YIELD
+                    impl.stream.async_read_some(
+                        impl.rd_buf.prepare(read_size(
+                            impl.rd_buf, impl.rd_buf.max_size())),
+                        beast::detail::bind_continuation(std::move(*this)));
+                    impl.rd_buf.commit(bytes_transferred);
+                    if(impl.check_stop_now(ec))
+                        goto upcall;
                 }
+                BOOST_ASSERT(impl.rd_buf.size() >= impl.rd_remain);
+                impl.rd_buf.consume(clamp(impl.rd_remain));
+                impl.rd_remain = 0;
             }
 
         teardown:
             // Teardown
-            BOOST_ASSERT(d_.ws.impl_->wr_block.is_locked(this));
+            BOOST_ASSERT(impl.wr_block.is_locked(this));
             using beast::websocket::async_teardown;
             BOOST_ASIO_CORO_YIELD
-            async_teardown(d_.ws.impl_->role,
-                d_.ws.impl_->stream, std::move(*this));
-            BOOST_ASSERT(d_.ws.impl_->wr_block.is_locked(this));
+            async_teardown(impl.role, impl.stream,
+                beast::detail::bind_continuation(std::move(*this)));
+            BOOST_ASSERT(impl.wr_block.is_locked(this));
             if(ec == net::error::eof)
             {
                 // Rationale:
@@ -231,22 +202,21 @@ public:
                 ec = {};
             }
             if(! ec)
-                ec = d_.ev;
+                ec = ev_;
             if(ec)
-                d_.ws.impl_->status_ = status::failed;
+                impl.change_status(status::failed);
             else
-                d_.ws.impl_->status_ = status::closed;
-            d_.ws.impl_->close();
+                impl.change_status(status::closed);
+            impl.close();
 
         upcall:
-            BOOST_ASSERT(d_.ws.impl_->wr_block.is_locked(this));
-            d_.ws.impl_->wr_block.unlock(this);
-            if(d_.ws.impl_->rd_block.try_unlock(this))
-                d_.ws.impl_->paused_r_rd.maybe_invoke();
-            d_.ws.impl_->paused_rd.maybe_invoke() ||
-                d_.ws.impl_->paused_ping.maybe_invoke() ||
-                d_.ws.impl_->paused_wr.maybe_invoke();
-            this->invoke(d_.cont, ec);
+            impl.wr_block.unlock(this);
+            impl.rd_block.try_unlock(this)
+                && impl.paused_r_rd.maybe_invoke();
+            impl.paused_rd.maybe_invoke()
+                || impl.paused_ping.maybe_invoke()
+                || impl.paused_wr.maybe_invoke();
+            this->invoke(cont, ec);
         }
     }
 };
@@ -274,87 +244,97 @@ close(close_reason const& cr, error_code& ec)
     static_assert(is_sync_stream<next_layer_type>::value,
         "SyncStream requirements not met");
     using beast::detail::clamp;
+    auto& impl = *impl_;
     ec = {};
-    // Make sure the stream is open
-    if(! impl_->check_open(ec))
+    if(impl.check_stop_now(ec))
         return;
-    // If rd_close_ is set then we already sent a close
-    BOOST_ASSERT(! impl_->rd_close);
-    BOOST_ASSERT(! impl_->wr_close);
-    impl_->wr_close = true;
+    BOOST_ASSERT(! impl.rd_close);
+
+    // Can't call close twice
+    // TODO return a custom error code
+    BOOST_ASSERT(! impl.wr_close);
+
+    // Send close frame
     {
+        impl.wr_close = true;
+        impl.change_status(status::closing);
         detail::frame_buffer fb;
         write_close<flat_static_buffer_base>(fb, cr);
-        net::write(impl_->stream, fb.data(), ec);
+        net::write(impl.stream, fb.data(), ec);
+        if(impl.check_stop_now(ec))
+            return;
     }
-    if(! impl_->check_ok(ec))
-        return;
-    impl_->status_ = status::closing;
-    error_code result;
-    // Drain the connection
-    if(impl_->rd_remain > 0)
+
+    // Read until a receiving a close frame
+    error_code ev;
+    if(impl.rd_remain > 0)
         goto read_payload;
     for(;;)
     {
         // Read frame header
         while(! parse_fh(
-            impl_->rd_fh, impl_->rd_buf, result))
+            impl.rd_fh, impl.rd_buf, ev))
         {
-            if(result)
-                return do_fail(
-                    close_code::none, result, ec);
-            auto const bytes_transferred =
-                impl_->stream.read_some(
-                    impl_->rd_buf.prepare(read_size(impl_->rd_buf,
-                        impl_->rd_buf.max_size())), ec);
-            if(! impl_->check_ok(ec))
+            if(ev)
+            {
+                // Protocol violation
+                return do_fail(close_code::none, ev, ec);
+            }
+            impl.rd_buf.commit(impl.stream.read_some(
+                impl.rd_buf.prepare(read_size(
+                    impl.rd_buf, impl.rd_buf.max_size())), ec));
+            if(impl.check_stop_now(ec))
                 return;
-            impl_->rd_buf.commit(bytes_transferred);
         }
-        if(detail::is_control(impl_->rd_fh.op))
+
+        if(detail::is_control(impl.rd_fh.op))
         {
-            // Process control frame
-            if(impl_->rd_fh.op == detail::opcode::close)
+            // Discard ping/pong frame
+            if(impl.rd_fh.op != detail::opcode::close)
             {
-                BOOST_ASSERT(! impl_->rd_close);
-                impl_->rd_close = true;
-                auto const mb = buffers_prefix(
-                    clamp(impl_->rd_fh.len),
-                    impl_->rd_buf.data());
-                if(impl_->rd_fh.len > 0 && impl_->rd_fh.mask)
-                    detail::mask_inplace(mb, impl_->rd_key);
-                detail::read_close(impl_->cr, mb, result);
-                if(result)
-                {
-                    // Protocol violation
-                    return do_fail(
-                        close_code::none, result, ec);
-                }
-                impl_->rd_buf.consume(clamp(impl_->rd_fh.len));
-                break;
+                impl.rd_buf.consume(clamp(impl.rd_fh.len));
+                continue;
             }
-            impl_->rd_buf.consume(clamp(impl_->rd_fh.len));
+
+            // Handle close frame
+            // TODO Should we invoke the control callback?
+            BOOST_ASSERT(! impl.rd_close);
+            impl.rd_close = true;
+            auto const mb = buffers_prefix(
+                clamp(impl.rd_fh.len),
+                impl.rd_buf.data());
+            if(impl.rd_fh.len > 0 && impl.rd_fh.mask)
+                detail::mask_inplace(mb, impl.rd_key);
+            detail::read_close(impl.cr, mb, ev);
+            if(ev)
+            {
+                // Protocol violation
+                return do_fail(close_code::none, ev, ec);
+            }
+            impl.rd_buf.consume(clamp(impl.rd_fh.len));
+            break;
         }
-        else
+
+    read_payload:
+        // Discard message frame
+        while(impl.rd_buf.size() < impl.rd_remain)
         {
-        read_payload:
-            while(impl_->rd_buf.size() < impl_->rd_remain)
-            {
-                impl_->rd_remain -= impl_->rd_buf.size();
-                impl_->rd_buf.consume(impl_->rd_buf.size());
-                auto const bytes_transferred =
-                    impl_->stream.read_some(
-                        impl_->rd_buf.prepare(read_size(impl_->rd_buf,
-                            impl_->rd_buf.max_size())), ec);
-                if(! impl_->check_ok(ec))
-                    return;
-                impl_->rd_buf.commit(bytes_transferred);
-            }
-            BOOST_ASSERT(
-                impl_->rd_buf.size() >= impl_->rd_remain);
-            impl_->rd_buf.consume(clamp(impl_->rd_remain));
-            impl_->rd_remain = 0;
+            impl.rd_remain -= impl.rd_buf.size();
+            impl.rd_buf.consume(impl.rd_buf.size());
+            impl.rd_buf.commit(
+                impl.stream.read_some(
+                    impl.rd_buf.prepare(
+                        read_size(
+                            impl.rd_buf,
+                            impl.rd_buf.max_size())),
+                    ec));
+            if(impl.check_stop_now(ec))
+                return;
         }
+        BOOST_ASSERT(
+            impl.rd_buf.size() >= impl.rd_remain);
+        impl.rd_buf.consume(clamp(impl.rd_remain));
+        impl.rd_remain = 0;
     }
     // _Close the WebSocket Connection_
     do_fail(close_code::none, error::closed, ec);
@@ -374,9 +354,8 @@ async_close(close_reason const& cr, CloseHandler&& handler)
     BOOST_BEAST_HANDLER_INIT(
         CloseHandler, void(error_code));
     close_op<BOOST_ASIO_HANDLER_TYPE(
-        CloseHandler, void(error_code))>{
-            std::move(init.completion_handler), *this, cr}(
-                {}, 0, false);
+        CloseHandler, void(error_code))>(
+            std::move(init.completion_handler), *this, cr);
     return init.result.get();
 }
 

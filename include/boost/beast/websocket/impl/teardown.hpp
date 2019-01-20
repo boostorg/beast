@@ -13,6 +13,7 @@
 #include <boost/beast/core/async_op_base.hpp>
 #include <boost/beast/core/bind_handler.hpp>
 #include <boost/beast/core/stream_traits.hpp>
+#include <boost/beast/core/detail/bind_continuation.hpp>
 #include <boost/beast/core/detail/type_traits.hpp>
 #include <boost/asio/coroutine.hpp>
 #include <boost/asio/post.hpp>
@@ -50,44 +51,38 @@ public:
         , s_(s)
         , role_(role)
     {
+        (*this)({}, 0, false);
     }
 
     void
     operator()(
         error_code ec = {},
-        std::size_t bytes_transferred = 0)
+        std::size_t bytes_transferred = 0,
+        bool cont = true)
     {
         using tcp = net::ip::tcp;
         BOOST_ASIO_CORO_REENTER(*this)
         {
             nb_ = s_.non_blocking();
             s_.non_blocking(true, ec);
-            if(! ec)
-            {
-                if(role_ == role_type::server)
-                    s_.shutdown(tcp::socket::shutdown_send, ec);
-            }
             if(ec)
-            {
-                BOOST_ASIO_CORO_YIELD
-                net::post(
-                    s_.get_executor(),
-                    beast::bind_front_handler(std::move(*this), ec, 0));
                 goto upcall;
-            }
+            if(role_ == role_type::server)
+                s_.shutdown(tcp::socket::shutdown_send, ec);
+            if(ec)
+                goto upcall;
             for(;;)
             {
                 {
                     char buf[2048];
-                    s_.read_some(
-                        net::buffer(buf), ec);
+                    s_.read_some(net::buffer(buf), ec);
                 }
                 if(ec == net::error::would_block)
                 {
                     BOOST_ASIO_CORO_YIELD
                     s_.async_wait(
                         net::ip::tcp::socket::wait_read,
-                            std::move(*this));
+                            beast::detail::bind_continuation(std::move(*this)));
                     continue;
                 }
                 if(ec)
@@ -110,6 +105,12 @@ public:
                 goto upcall;
             s_.close(ec);
         upcall:
+            if(! cont)
+            {
+                BOOST_ASIO_CORO_YIELD
+                net::post(bind_front_handler(
+                    std::move(*this), ec));
+            }
             {
                 error_code ignored;
                 s_.non_blocking(nb_, ignored);
@@ -173,8 +174,7 @@ async_teardown(
             "TeardownHandler requirements not met");
     detail::teardown_tcp_op<typename std::decay<
         TeardownHandler>::type>(std::forward<
-            TeardownHandler>(handler), socket,
-                role)();
+            TeardownHandler>(handler), socket, role);
 }
 
 } // websocket

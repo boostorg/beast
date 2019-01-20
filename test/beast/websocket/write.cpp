@@ -606,25 +606,6 @@ public:
     }
 
     void
-    testContHook()
-    {
-        struct handler
-        {
-            void operator()(error_code) {}
-        };
-
-        char buf[32];
-        stream<test::stream> ws{ioc_};
-        stream<test::stream>::write_some_op<
-            net::const_buffer,
-                handler> op{handler{}, ws, true,
-                    net::const_buffer{
-                        buf, sizeof(buf)}};
-        using net::asio_handler_is_continuation;
-        asio_handler_is_continuation(&op);
-    }
-
-    void
     testMoveOnly()
     {
         net::io_context ioc;
@@ -669,7 +650,6 @@ public:
         testWriteSuspend();
         testAsyncWriteFrame();
         testIssue300();
-        testContHook();
         testMoveOnly();
     }
 };

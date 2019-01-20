@@ -10,12 +10,16 @@
 #ifndef BOOST_BEAST_WEBSOCKET_IMPL_STREAM_IMPL_HPP
 #define BOOST_BEAST_WEBSOCKET_IMPL_STREAM_IMPL_HPP
 
-#include <boost/beast/core/static_buffer.hpp>
 #include <boost/beast/core/saved_handler.hpp>
+#include <boost/beast/core/static_buffer.hpp>
+#include <boost/beast/core/stream_traits.hpp>
 #include <boost/beast/websocket/detail/frame.hpp>
 #include <boost/beast/websocket/detail/pmd_extension.hpp>
 #include <boost/beast/websocket/detail/soft_mutex.hpp>
 #include <boost/beast/websocket/detail/utf8_checker.hpp>
+#include <boost/asio/bind_executor.hpp>
+#include <boost/asio/steady_timer.hpp>
+#include <boost/core/empty_value.hpp>
 #include <boost/optional.hpp>
 
 namespace boost {
@@ -28,15 +32,8 @@ struct stream<NextLayer, deflateSupported>::impl_type
     : std::enable_shared_from_this<impl_type>
     , detail::impl_base<deflateSupported>
 {
-    using time_point = typename
-        std::chrono::steady_clock::time_point;
-
-    static constexpr time_point never()
-    {
-        return (time_point::max)();
-    }
-
     NextLayer               stream;         // The underlying stream
+    net::steady_timer       timer;          // used for timeouts
     close_reason            cr;             // set from received close frame
     control_cb_type         ctrl_cb;        // control callback
 
@@ -78,9 +75,15 @@ struct stream<NextLayer, deflateSupported>::impl_type
     saved_handler           paused_r_rd;    // paused read op (async read)
     saved_handler           paused_r_close; // paused close op (async read)
 
+    boost::optional<bool>   tm_auto_ping;
+    bool                    tm_opt          /* true if auto-timeout option is set */ = false;
+    bool                    tm_idle;        // set to false on incoming frames
+    time_point::duration    tm_dur          /* duration of timer */ = std::chrono::seconds(1);
+
     template<class... Args>
     impl_type(Args&&... args)
         : stream(std::forward<Args>(args)...)
+        , timer(stream.get_executor().context())
     {
     }
 
@@ -108,12 +111,15 @@ struct stream<NextLayer, deflateSupported>::impl_type
         wr_cont = false;
         wr_buf_size = 0;
 
+        tm_idle = false;
+
         this->open_pmd(role);
     }
 
     void
     close()
     {
+        timer.cancel();
         wr_buf.reset();
         this->close_pmd();
     }
@@ -136,6 +142,10 @@ struct stream<NextLayer, deflateSupported>::impl_type
         wr_block.reset();
         rd_block.reset();
         cr.code = close_code::none;
+        tm_idle = false;
+
+        // VFALCO Is this needed?
+        timer.cancel();
     }
 
     // Called before each write frame
@@ -163,28 +173,185 @@ struct stream<NextLayer, deflateSupported>::impl_type
         }
     }
 
+private:
     bool
-    check_open(error_code& ec)
+    is_timer_set() const
     {
-        if(status_ != status::open)
+        return timer.expiry() == never();
+    }
+
+    // returns `true` if we try sending a ping and
+    // getting a pong before closing an idle stream.
+    bool
+    is_auto_ping_enabled() const
+    {
+        if(tm_auto_ping.has_value())
+            return *tm_auto_ping;
+        if(role == role_type::server)
+            return true;
+        return false;
+    }
+
+    template<class Executor>
+    class timeout_handler
+        : boost::empty_value<Executor>
+    {
+        std::weak_ptr<impl_type> wp_;
+
+    public:
+        timeout_handler(
+            Executor const& ex,
+            std::shared_ptr<impl_type> const& sp)
+            : boost::empty_value<Executor>(
+                boost::empty_init_t{}, ex)
+            , wp_(sp)
         {
-            ec = net::error::operation_aborted;
-            return false;
         }
-        ec = {};
+
+        using executor_type = Executor;
+
+        executor_type
+        get_executor() const
+        {
+            return this->get();
+        }
+
+        void
+        operator()(error_code ec)
+        {
+            // timer canceled?
+            if(ec == net::error::operation_aborted)
+                return;
+            BOOST_ASSERT(! ec);
+
+            // stream destroyed?
+            auto sp = wp_.lock();
+            if(! sp)
+                return;
+            auto& impl = *sp;
+
+            close_socket(get_lowest_layer(impl.stream));
+#if 0
+            if(! impl.tm_idle)
+            {
+                impl.tm_idle = true;
+                BOOST_VERIFY(
+                    impl.timer.expires_after(impl.tm_dur) == 0);
+                return impl.timer.async_wait(std::move(*this));
+            }
+            if(impl.is_auto_ping_enabled())
+            {
+                // send ping
+            }
+            else
+            {
+                // timeout
+            }
+#endif
+        }
+    };
+public:
+
+    // called when there is qualified activity
+    void
+    activity()
+    {
+        tm_idle = false;
+    }
+
+    // Maintain the expiration timer
+    template<class Executor>
+    void
+    update_timer(Executor const& ex)
+    {
+        if(role == role_type::server)
+        {
+            if(! is_timer_set())
+            {
+                // turn timer on
+                timer.expires_after(tm_dur);
+                timer.async_wait(
+                    timeout_handler<Executor>(
+                        ex, this->shared_from_this()));
+            }
+        }
+        else if(tm_opt && ! is_timer_set())
+        {
+            // turn timer on
+            timer.expires_after(tm_dur);
+            timer.async_wait(
+                timeout_handler<Executor>(
+                    ex, this->shared_from_this()));
+        }
+        else if(! tm_opt && is_timer_set())
+        {
+            // turn timer off
+            timer.cancel();
+        }
+    }
+
+    //--------------------------------------------------------------------------
+
+    bool ec_delivered = false;
+
+    // Determine if an operation should stop and
+    // deliver an error code to the completion handler.
+    //
+    // This function must be called at the beginning
+    // of every composed operation, and every time a
+    // composed operation receives an intermediate
+    // completion.
+    //
+    bool
+    check_stop_now(error_code& ec)
+    {
+        // If the stream is closed then abort
+        if( status_ == status::closed ||
+            status_ == status::failed)
+        {
+            //BOOST_ASSERT(ec_delivered);
+            ec = net::error::operation_aborted;
+            return true;
+        }
+
+        // If no error then keep going
+        if(! ec)
+            return false;
+
+        // Is this the first error seen?
+        if(ec_delivered)
+        {
+            // No, so abort
+            ec = net::error::operation_aborted;
+            return true;
+        }
+
+        // Deliver the error to the completion handler
+        ec_delivered = true;
+        if(status_ != status::closed)
+            status_ = status::failed;
         return true;
     }
 
-    bool
-    check_ok(error_code& ec)
+    // Change the status of the stream
+    void
+    change_status(status new_status)
     {
-        if(ec)
+        switch(new_status)
         {
-            if(status_ != status::closed)
-                status_ = status::failed;
-            return false;
+        case status::closing:
+            BOOST_ASSERT(status_ == status::open);
+            break;
+
+        case status::failed:
+        case status::closed:
+            // this->close(); // Is this right?
+            break;
+
+        default:
+            break;
         }
-        return true;
+        status_ = new_status;
     }
 };
 

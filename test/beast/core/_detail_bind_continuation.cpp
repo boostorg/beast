@@ -8,7 +8,7 @@
 //
 
 // Test that header file is self-contained.
-#include <boost/beast/core/bind_continuation.hpp>
+#include <boost/beast/core/detail/bind_continuation.hpp>
 
 #include "test_executor.hpp"
 #include "test_handler.hpp"
@@ -24,6 +24,7 @@
 
 namespace boost {
 namespace beast {
+namespace detail {
 
 class bind_continuation_test
     : public beast::unit_test::suite
@@ -182,5 +183,6 @@ public:
 
 BEAST_DEFINE_TESTSUITE(beast,core,bind_continuation);
 
+} // detail
 } // beast
 } // boost

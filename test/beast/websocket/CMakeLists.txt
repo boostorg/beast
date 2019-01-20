@@ -35,6 +35,7 @@ add_executable (tests-beast-websocket
     stream_explicit.cpp
     stream_fwd.cpp
     teardown.cpp
+    timer.cpp
     utf8_checker.cpp
     write.cpp
 )

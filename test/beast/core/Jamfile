@@ -9,6 +9,7 @@
 
 local SOURCES =
     _detail_base64.cpp
+    _detail_bind_continuation.cpp
     _detail_buffer.cpp
     _detail_clamp.cpp
     _detail_is_invocable.cpp
@@ -19,7 +20,6 @@ local SOURCES =
     _detail_varint.cpp
     async_op_base.cpp
     basic_stream.cpp
-    bind_continuation.cpp
     bind_handler.cpp
     buffer_size.cpp
     buffer_traits.cpp

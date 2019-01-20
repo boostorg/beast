@@ -19,6 +19,7 @@
 #include <boost/beast/core/buffers_suffix.hpp>
 #include <boost/beast/core/flat_static_buffer.hpp>
 #include <boost/beast/core/stream_traits.hpp>
+#include <boost/beast/core/detail/bind_continuation.hpp>
 #include <boost/beast/core/detail/buffer.hpp>
 #include <boost/beast/core/detail/clamp.hpp>
 #include <boost/beast/core/detail/config.hpp>
@@ -36,7 +37,7 @@ namespace boost {
 namespace beast {
 namespace websocket {
 
-/*  Read some message frame data.
+/*  Read some message data into a buffer sequence.
 
     Also reads and handles control frames.
 */
@@ -56,7 +57,6 @@ class stream<NextLayer, deflateSupported>::read_some_op
     error_code result_;
     close_code code_;
     bool did_read_ = false;
-    bool cont_ = false;
 
 public:
     static constexpr int id = 1; // for soft_mutex
@@ -74,6 +74,7 @@ public:
         , cb_(bs)
         , code_(close_code::none)
     {
+        (*this)({}, 0, false);
     }
 
     void operator()(
@@ -83,12 +84,37 @@ public:
     {
         using beast::detail::clamp;
         auto& impl = *ws_.impl_;
-        cont_ = cont;
         BOOST_ASIO_CORO_REENTER(*this)
         {
-            // Maybe suspend
-        do_maybe_suspend:
-            if(impl.rd_block.try_lock(this))
+        acquire_read_lock:
+            // Acquire the read lock
+            if(! impl.rd_block.try_lock(this))
+            {
+            do_suspend:
+                BOOST_ASIO_CORO_YIELD
+                impl.paused_r_rd.emplace(std::move(*this));
+                impl.rd_block.lock(this);
+                BOOST_ASIO_CORO_YIELD
+                net::post(std::move(*this));
+                BOOST_ASSERT(impl.rd_block.is_locked(this));
+
+                // VFALCO Is this check correct here?
+                BOOST_ASSERT(! ec && impl.check_stop_now(ec));
+                if(impl.check_stop_now(ec))
+                {
+                    BOOST_ASSERT(ec == net::error::operation_aborted);
+                    goto upcall;
+                }
+                // VFALCO Should never get here
+
+                // The only way to get read blocked is if
+                // a `close_op` wrote a close frame
+                BOOST_ASSERT(impl.wr_close);
+                BOOST_ASSERT(impl.status_ != status::open);
+                ec = net::error::operation_aborted;
+                goto upcall;
+            }
+            else
             {
                 // Make sure the stream is not closed
                 if( impl.status_ == status::closed ||
@@ -97,29 +123,6 @@ public:
                     ec = net::error::operation_aborted;
                     goto upcall;
                 }
-            }
-            else
-            {
-            do_suspend:
-                // Suspend
-                BOOST_ASIO_CORO_YIELD
-                impl.paused_r_rd.emplace(std::move(*this));
-
-                // Acquire the read block
-                impl.rd_block.lock(this);
-
-                // Resume
-                BOOST_ASIO_CORO_YIELD
-                net::post(
-                    ws_.get_executor(), std::move(*this));
-                BOOST_ASSERT(impl.rd_block.is_locked(this));
-
-                // The only way to get read blocked is if
-                // a `close_op` wrote a close frame
-                BOOST_ASSERT(impl.wr_close);
-                BOOST_ASSERT(impl.status_ != status::open);
-                ec = net::error::operation_aborted;
-                goto upcall;
             }
 
             // if status_ == status::closing, we want to suspend
@@ -155,7 +158,7 @@ public:
                             impl.rd_buf, impl.rd_buf.max_size())),
                                 std::move(*this));
                     BOOST_ASSERT(impl.rd_block.is_locked(this));
-                    if(! impl.check_ok(ec))
+                    if(impl.check_stop_now(ec))
                         goto upcall;
                     impl.rd_buf.commit(bytes_transferred);
 
@@ -189,13 +192,12 @@ public:
                     {
                         if(impl.ctrl_cb)
                         {
-                            if(! cont_)
+                            if(! cont)
                             {
                                 BOOST_ASIO_CORO_YIELD
-                                net::post(
-                                    ws_.get_executor(),
-                                        std::move(*this));
-                                BOOST_ASSERT(cont_);
+                                net::post(std::move(*this));
+                                BOOST_ASSERT(cont);
+                                // VFALCO call check_stop_now() here?
                             }
                         }
                         {
@@ -224,54 +226,48 @@ public:
                         impl.rd_block.unlock(this);
                         impl.paused_r_close.maybe_invoke();
 
-                        // Maybe suspend
+                        // Acquire the write lock
                         if(! impl.wr_block.try_lock(this))
                         {
-                            // Suspend
                             BOOST_ASIO_CORO_YIELD
                             impl.paused_rd.emplace(std::move(*this));
-
-                            // Acquire the write block
                             impl.wr_block.lock(this);
-
-                            // Resume
                             BOOST_ASIO_CORO_YIELD
-                            net::post(
-                                ws_.get_executor(), std::move(*this));
+                            net::post(std::move(*this));
                             BOOST_ASSERT(impl.wr_block.is_locked(this));
-
-                            // Make sure the stream is open
-                            if(! impl.check_open(ec))
+                            if(impl.check_stop_now(ec))
                                 goto upcall;
                         }
 
                         // Send pong
                         BOOST_ASSERT(impl.wr_block.is_locked(this));
                         BOOST_ASIO_CORO_YIELD
-                        net::async_write(impl.stream,
-                            impl.rd_fb.data(), std::move(*this));
+                        net::async_write(
+                            impl.stream, impl.rd_fb.data(),
+                            beast::detail::bind_continuation(std::move(*this)));
                         BOOST_ASSERT(impl.wr_block.is_locked(this));
-                        if(! impl.check_ok(ec))
+                        if(impl.check_stop_now(ec))
                             goto upcall;
                         impl.wr_block.unlock(this);
                         impl.paused_close.maybe_invoke() ||
                             impl.paused_ping.maybe_invoke() ||
                             impl.paused_wr.maybe_invoke();
-                        goto do_maybe_suspend;
+                        goto acquire_read_lock;
                     }
+
                     // Handle pong frame
                     if(impl.rd_fh.op == detail::opcode::pong)
                     {
                         // Ignore pong when closing
                         if(! impl.wr_close && impl.ctrl_cb)
                         {
-                            if(! cont_)
+                            if(! cont)
                             {
                                 BOOST_ASIO_CORO_YIELD
                                 net::post(
                                     ws_.get_executor(),
                                         std::move(*this));
-                                BOOST_ASSERT(cont_);
+                                BOOST_ASSERT(cont);
                             }
                         }
                         auto const cb = buffers_prefix(clamp(
@@ -286,18 +282,19 @@ public:
                             impl.ctrl_cb(frame_type::pong, payload);
                         goto loop;
                     }
+
                     // Handle close frame
                     BOOST_ASSERT(impl.rd_fh.op == detail::opcode::close);
                     {
                         if(impl.ctrl_cb)
                         {
-                            if(! cont_)
+                            if(! cont)
                             {
                                 BOOST_ASIO_CORO_YIELD
                                 net::post(
                                     ws_.get_executor(),
                                         std::move(*this));
-                                BOOST_ASSERT(cont_);
+                                BOOST_ASSERT(cont);
                             }
                         }
                         auto const cb = buffers_prefix(clamp(
@@ -358,7 +355,7 @@ public:
                             impl.rd_buf.prepare(read_size(
                                 impl.rd_buf, impl.rd_buf.max_size())),
                                     std::move(*this));
-                        if(! impl.check_ok(ec))
+                        if(impl.check_stop_now(ec))
                             goto upcall;
                         impl.rd_buf.commit(bytes_transferred);
                         if(impl.rd_fh.mask)
@@ -401,7 +398,7 @@ public:
                         BOOST_ASIO_CORO_YIELD
                         impl.stream.async_read_some(buffers_prefix(
                             clamp(impl.rd_remain), cb_), std::move(*this));
-                        if(! impl.check_ok(ec))
+                        if(impl.check_stop_now(ec))
                             goto upcall;
                         BOOST_ASSERT(bytes_transferred > 0);
                         auto const mb = buffers_prefix(
@@ -444,7 +441,7 @@ public:
                             impl.rd_buf.prepare(read_size(
                                 impl.rd_buf, impl.rd_buf.max_size())),
                                     std::move(*this));
-                        if(! impl.check_ok(ec))
+                        if(impl.check_stop_now(ec))
                             goto upcall;
                         BOOST_ASSERT(bytes_transferred > 0);
                         impl.rd_buf.commit(bytes_transferred);
@@ -492,7 +489,7 @@ public:
                             if(zs.total_out > 0)
                                 ec = error::partial_deflate_block;
                         }
-                        if(! impl.check_ok(ec))
+                        if(impl.check_stop_now(ec))
                             goto upcall;
                         impl.do_context_takeover_read(impl.role);
                         impl.rd_done = true;
@@ -503,7 +500,7 @@ public:
                         break;
                     }
                     impl.inflate(zs, zlib::Flush::sync, ec);
-                    if(! impl.check_ok(ec))
+                    if(impl.check_stop_now(ec))
                         goto upcall;
                     if(impl.rd_msg_max && beast::detail::sum_exceeds(
                         impl.rd_size, zs.total_out, impl.rd_msg_max))
@@ -536,24 +533,16 @@ public:
             goto upcall;
 
         close:
-            // Try to acquire the write block
+            // Acquire the write lock
             if(! impl.wr_block.try_lock(this))
             {
-                // Suspend
                 BOOST_ASIO_CORO_YIELD
                 impl.paused_rd.emplace(std::move(*this));
-
-                // Acquire the write block
                 impl.wr_block.lock(this);
-
-                // Resume
                 BOOST_ASIO_CORO_YIELD
-                net::post(
-                    ws_.get_executor(), std::move(*this));
+                net::post(std::move(*this));
                 BOOST_ASSERT(impl.wr_block.is_locked(this));
-
-                // Make sure the stream is open
-                if(! impl.check_open(ec))
+                if(impl.check_stop_now(ec))
                     goto upcall;
             }
 
@@ -573,11 +562,10 @@ public:
                 // Send close frame
                 BOOST_ASSERT(impl.wr_block.is_locked(this));
                 BOOST_ASIO_CORO_YIELD
-                net::async_write(
-                    impl.stream, impl.rd_fb.data(),
-                        std::move(*this));
+                net::async_write(impl.stream, impl.rd_fb.data(),
+                    beast::detail::bind_continuation(std::move(*this)));
                 BOOST_ASSERT(impl.wr_block.is_locked(this));
-                if(! impl.check_ok(ec))
+                if(impl.check_stop_now(ec))
                     goto upcall;
             }
 
@@ -585,8 +573,8 @@ public:
             using beast::websocket::async_teardown;
             BOOST_ASSERT(impl.wr_block.is_locked(this));
             BOOST_ASIO_CORO_YIELD
-            async_teardown(impl.role,
-                impl.stream, std::move(*this));
+            async_teardown(impl.role, impl.stream,
+                beast::detail::bind_continuation(std::move(*this)));
             BOOST_ASSERT(impl.wr_block.is_locked(this));
             if(ec == net::error::eof)
             {
@@ -606,10 +594,10 @@ public:
             impl.rd_block.try_unlock(this);
             impl.paused_r_close.maybe_invoke();
             if(impl.wr_block.try_unlock(this))
-                impl.paused_close.maybe_invoke() ||
-                    impl.paused_ping.maybe_invoke() ||
-                    impl.paused_wr.maybe_invoke();
-            this->invoke(cont_, ec, bytes_written_);
+                impl.paused_close.maybe_invoke()
+                    || impl.paused_ping.maybe_invoke()
+                    || impl.paused_wr.maybe_invoke();
+            this->invoke(cont, ec, bytes_written_);
         }
     }
 };
@@ -648,41 +636,37 @@ public:
             std::numeric_limits<std::size_t>::max)())
         , some_(some)
     {
+        (*this)({}, 0, false);
     }
 
     void operator()(
         error_code ec = {},
-        std::size_t bytes_transferred = 0)
+        std::size_t bytes_transferred = 0,
+        bool cont = true)
     {
         using beast::detail::clamp;
+        boost::optional<typename
+            DynamicBuffer::mutable_buffers_type> mb;
         BOOST_ASIO_CORO_REENTER(*this)
         {
             do
             {
-                BOOST_ASIO_CORO_YIELD
-                {
-                    auto mb = beast::detail::dynamic_buffer_prepare(b_,
-                        clamp(ws_.read_size_hint(b_), limit_),
-                            ec, error::buffer_overflow);
-                    if(ec)
-                        net::post(
-                            ws_.get_executor(),
-                            beast::bind_front_handler(
-                                std::move(*this), ec, 0));
-                    else
-                        read_some_op<typename
-                            DynamicBuffer::mutable_buffers_type,
-                                read_op>(std::move(*this), ws_, *mb)(
-                                    {}, 0, false);
-                }
+                mb = beast::detail::dynamic_buffer_prepare(b_,
+                    clamp(ws_.read_size_hint(b_), limit_),
+                        ec, error::buffer_overflow);
                 if(ec)
                     goto upcall;
+                BOOST_ASIO_CORO_YIELD
+                ws_.async_read_some(*mb,
+                    beast::detail::bind_continuation(std::move(*this)));
                 b_.commit(bytes_transferred);
                 bytes_written_ += bytes_transferred;
+                if(ec)
+                    goto upcall;
             }
             while(! some_ && ! ws_.is_message_done());
         upcall:
-            this->invoke_now(ec, bytes_written_);
+            this->invoke(cont, ec, bytes_written_);
         }
     }
 };
@@ -743,15 +727,10 @@ async_read(DynamicBuffer& buffer, ReadHandler&& handler)
         "DynamicBuffer requirements not met");
     BOOST_BEAST_HANDLER_INIT(
         ReadHandler, void(error_code, std::size_t));
-    read_op<
-        DynamicBuffer,
-        BOOST_ASIO_HANDLER_TYPE(
-            ReadHandler, void(error_code, std::size_t))>{
-                std::move(init.completion_handler),
-                *this,
-                buffer,
-                0,
-                false}();
+    read_op<DynamicBuffer, BOOST_ASIO_HANDLER_TYPE(
+        ReadHandler, void(error_code, std::size_t))>(
+            std::move(init.completion_handler),
+                *this, buffer, 0, false);
     return init.result.get();
 }
 
@@ -824,15 +803,10 @@ async_read_some(
         "DynamicBuffer requirements not met");
     BOOST_BEAST_HANDLER_INIT(
         ReadHandler, void(error_code, std::size_t));
-    read_op<
-        DynamicBuffer,
-        BOOST_ASIO_HANDLER_TYPE(
-            ReadHandler, void(error_code, std::size_t))>{
-                std::move(init.completion_handler),
-                *this,
-                buffer,
-                limit,
-                true}({}, 0);
+    read_op<DynamicBuffer, BOOST_ASIO_HANDLER_TYPE(
+        ReadHandler, void(error_code, std::size_t))>(
+            std::move(init.completion_handler),
+                *this, buffer, limit, true);
     return init.result.get();
 }
 
@@ -871,23 +845,24 @@ read_some(
             MutableBufferSequence>::value,
         "MutableBufferSequence requirements not met");
     using beast::detail::clamp;
+    auto& impl = *impl_;
     close_code code{};
     std::size_t bytes_written = 0;
     ec = {};
     // Make sure the stream is open
-    if(! impl_->check_open(ec))
-        return 0;
+    if(impl.check_stop_now(ec))
+        return bytes_written;
 loop:
     // See if we need to read a frame header. This
     // condition is structured to give the decompressor
     // a chance to emit the final empty deflate block
     //
-    if(impl_->rd_remain == 0 && (
-        ! impl_->rd_fh.fin || impl_->rd_done))
+    if(impl.rd_remain == 0 && (
+        ! impl.rd_fh.fin || impl.rd_done))
     {
         // Read frame header
         error_code result;
-        while(! parse_fh(impl_->rd_fh, impl_->rd_buf, result))
+        while(! parse_fh(impl.rd_fh, impl.rd_buf, result))
         {
             if(result)
             {
@@ -900,68 +875,68 @@ loop:
                 return bytes_written;
             }
             auto const bytes_transferred =
-                impl_->stream.read_some(
-                    impl_->rd_buf.prepare(read_size(
-                        impl_->rd_buf, impl_->rd_buf.max_size())),
+                impl.stream.read_some(
+                    impl.rd_buf.prepare(read_size(
+                        impl.rd_buf, impl.rd_buf.max_size())),
                     ec);
-            if(! impl_->check_ok(ec))
+            impl.rd_buf.commit(bytes_transferred);
+            if(impl.check_stop_now(ec))
                 return bytes_written;
-            impl_->rd_buf.commit(bytes_transferred);
         }
         // Immediately apply the mask to the portion
         // of the buffer holding payload data.
-        if(impl_->rd_fh.len > 0 && impl_->rd_fh.mask)
+        if(impl.rd_fh.len > 0 && impl.rd_fh.mask)
             detail::mask_inplace(buffers_prefix(
-                clamp(impl_->rd_fh.len), impl_->rd_buf.data()),
-                    impl_->rd_key);
-        if(detail::is_control(impl_->rd_fh.op))
+                clamp(impl.rd_fh.len), impl.rd_buf.data()),
+                    impl.rd_key);
+        if(detail::is_control(impl.rd_fh.op))
         {
             // Get control frame payload
             auto const b = buffers_prefix(
-                clamp(impl_->rd_fh.len), impl_->rd_buf.data());
+                clamp(impl.rd_fh.len), impl.rd_buf.data());
             auto const len = buffer_size(b);
-            BOOST_ASSERT(len == impl_->rd_fh.len);
+            BOOST_ASSERT(len == impl.rd_fh.len);
 
             // Clear this otherwise the next
             // frame will be considered final.
-            impl_->rd_fh.fin = false;
+            impl.rd_fh.fin = false;
 
             // Handle ping frame
-            if(impl_->rd_fh.op == detail::opcode::ping)
+            if(impl.rd_fh.op == detail::opcode::ping)
             {
                 ping_data payload;
                 detail::read_ping(payload, b);
-                impl_->rd_buf.consume(len);
-                if(impl_->wr_close)
+                impl.rd_buf.consume(len);
+                if(impl.wr_close)
                 {
                     // Ignore ping when closing
                     goto loop;
                 }
-                if(impl_->ctrl_cb)
-                    impl_->ctrl_cb(frame_type::ping, payload);
+                if(impl.ctrl_cb)
+                    impl.ctrl_cb(frame_type::ping, payload);
                 detail::frame_buffer fb;
                 write_ping<flat_static_buffer_base>(fb,
                     detail::opcode::pong, payload);
-                net::write(impl_->stream, fb.data(), ec);
-                if(! impl_->check_ok(ec))
+                net::write(impl.stream, fb.data(), ec);
+                if(impl.check_stop_now(ec))
                     return bytes_written;
                 goto loop;
             }
             // Handle pong frame
-            if(impl_->rd_fh.op == detail::opcode::pong)
+            if(impl.rd_fh.op == detail::opcode::pong)
             {
                 ping_data payload;
                 detail::read_ping(payload, b);
-                impl_->rd_buf.consume(len);
-                if(impl_->ctrl_cb)
-                    impl_->ctrl_cb(frame_type::pong, payload);
+                impl.rd_buf.consume(len);
+                if(impl.ctrl_cb)
+                    impl.ctrl_cb(frame_type::pong, payload);
                 goto loop;
             }
             // Handle close frame
-            BOOST_ASSERT(impl_->rd_fh.op == detail::opcode::close);
+            BOOST_ASSERT(impl.rd_fh.op == detail::opcode::close);
             {
-                BOOST_ASSERT(! impl_->rd_close);
-                impl_->rd_close = true;
+                BOOST_ASSERT(! impl.rd_close);
+                impl.rd_close = true;
                 close_reason cr;
                 detail::read_close(cr, b, result);
                 if(result)
@@ -971,11 +946,11 @@ loop:
                         result, ec);
                     return bytes_written;
                 }
-                impl_->cr = cr;
-                impl_->rd_buf.consume(len);
-                if(impl_->ctrl_cb)
-                    impl_->ctrl_cb(frame_type::close, impl_->cr.reason);
-                BOOST_ASSERT(! impl_->wr_close);
+                impl.cr = cr;
+                impl.rd_buf.consume(len);
+                if(impl.ctrl_cb)
+                    impl.ctrl_cb(frame_type::close, impl.cr.reason);
+                BOOST_ASSERT(! impl.wr_close);
                 // _Start the WebSocket Closing Handshake_
                 do_fail(
                     cr.code == close_code::none ?
@@ -985,52 +960,52 @@ loop:
                 return bytes_written;
             }
         }
-        if(impl_->rd_fh.len == 0 && ! impl_->rd_fh.fin)
+        if(impl.rd_fh.len == 0 && ! impl.rd_fh.fin)
         {
             // Empty non-final frame
             goto loop;
         }
-        impl_->rd_done = false;
+        impl.rd_done = false;
     }
     else
     {
         ec = {};
     }
-    if(! impl_->rd_deflated())
+    if(! impl.rd_deflated())
     {
-        if(impl_->rd_remain > 0)
+        if(impl.rd_remain > 0)
         {
-            if(impl_->rd_buf.size() == 0 && impl_->rd_buf.max_size() >
-                (std::min)(clamp(impl_->rd_remain),
+            if(impl.rd_buf.size() == 0 && impl.rd_buf.max_size() >
+                (std::min)(clamp(impl.rd_remain),
                     buffer_size(buffers)))
             {
                 // Fill the read buffer first, otherwise we
                 // get fewer bytes at the cost of one I/O.
-                impl_->rd_buf.commit(impl_->stream.read_some(
-                    impl_->rd_buf.prepare(read_size(impl_->rd_buf,
-                        impl_->rd_buf.max_size())), ec));
-                if(! impl_->check_ok(ec))
+                impl.rd_buf.commit(impl.stream.read_some(
+                    impl.rd_buf.prepare(read_size(impl.rd_buf,
+                        impl.rd_buf.max_size())), ec));
+                if(impl.check_stop_now(ec))
                     return bytes_written;
-                if(impl_->rd_fh.mask)
+                if(impl.rd_fh.mask)
                     detail::mask_inplace(
-                        buffers_prefix(clamp(impl_->rd_remain),
-                            impl_->rd_buf.data()), impl_->rd_key);
+                        buffers_prefix(clamp(impl.rd_remain),
+                            impl.rd_buf.data()), impl.rd_key);
             }
-            if(impl_->rd_buf.size() > 0)
+            if(impl.rd_buf.size() > 0)
             {
                 // Copy from the read buffer.
                 // The mask was already applied.
                 auto const bytes_transferred = net::buffer_copy(
-                    buffers, impl_->rd_buf.data(),
-                        clamp(impl_->rd_remain));
+                    buffers, impl.rd_buf.data(),
+                        clamp(impl.rd_remain));
                 auto const mb = buffers_prefix(
                     bytes_transferred, buffers);
-                impl_->rd_remain -= bytes_transferred;
-                if(impl_->rd_op == detail::opcode::text)
+                impl.rd_remain -= bytes_transferred;
+                if(impl.rd_op == detail::opcode::text)
                 {
-                    if(! impl_->rd_utf8.write(mb) ||
-                        (impl_->rd_remain == 0 && impl_->rd_fh.fin &&
-                            ! impl_->rd_utf8.finish()))
+                    if(! impl.rd_utf8.write(mb) ||
+                        (impl.rd_remain == 0 && impl.rd_fh.fin &&
+                            ! impl.rd_utf8.finish()))
                     {
                         // _Fail the WebSocket Connection_
                         do_fail(close_code::bad_payload,
@@ -1039,32 +1014,33 @@ loop:
                     }
                 }
                 bytes_written += bytes_transferred;
-                impl_->rd_size += bytes_transferred;
-                impl_->rd_buf.consume(bytes_transferred);
+                impl.rd_size += bytes_transferred;
+                impl.rd_buf.consume(bytes_transferred);
             }
             else
             {
                 // Read into caller's buffer
-                BOOST_ASSERT(impl_->rd_remain > 0);
+                BOOST_ASSERT(impl.rd_remain > 0);
                 BOOST_ASSERT(buffer_size(buffers) > 0);
                 BOOST_ASSERT(buffer_size(buffers_prefix(
-                    clamp(impl_->rd_remain), buffers)) > 0);
+                    clamp(impl.rd_remain), buffers)) > 0);
                 auto const bytes_transferred =
-                    impl_->stream.read_some(buffers_prefix(
-                        clamp(impl_->rd_remain), buffers), ec);
-                if(! impl_->check_ok(ec))
+                    impl.stream.read_some(buffers_prefix(
+                        clamp(impl.rd_remain), buffers), ec);
+                // VFALCO What if some bytes were written?
+                if(impl.check_stop_now(ec))
                     return bytes_written;
                 BOOST_ASSERT(bytes_transferred > 0);
                 auto const mb = buffers_prefix(
                     bytes_transferred, buffers);
-                impl_->rd_remain -= bytes_transferred;
-                if(impl_->rd_fh.mask)
-                    detail::mask_inplace(mb, impl_->rd_key);
-                if(impl_->rd_op == detail::opcode::text)
+                impl.rd_remain -= bytes_transferred;
+                if(impl.rd_fh.mask)
+                    detail::mask_inplace(mb, impl.rd_key);
+                if(impl.rd_op == detail::opcode::text)
                 {
-                    if(! impl_->rd_utf8.write(mb) ||
-                        (impl_->rd_remain == 0 && impl_->rd_fh.fin &&
-                            ! impl_->rd_utf8.finish()))
+                    if(! impl.rd_utf8.write(mb) ||
+                        (impl.rd_remain == 0 && impl.rd_fh.fin &&
+                            ! impl.rd_utf8.finish()))
                     {
                         // _Fail the WebSocket Connection_
                         do_fail(close_code::bad_payload,
@@ -1073,10 +1049,10 @@ loop:
                     }
                 }
                 bytes_written += bytes_transferred;
-                impl_->rd_size += bytes_transferred;
+                impl.rd_size += bytes_transferred;
             }
         }
-        impl_->rd_done = impl_->rd_remain == 0 && impl_->rd_fh.fin;
+        impl.rd_done = impl.rd_remain == 0 && impl.rd_fh.fin;
     }
     else
     {
@@ -1095,14 +1071,14 @@ loop:
                 zs.avail_out = out.size();
                 BOOST_ASSERT(zs.avail_out > 0);
             }
-            if(impl_->rd_remain > 0)
+            if(impl.rd_remain > 0)
             {
-                if(impl_->rd_buf.size() > 0)
+                if(impl.rd_buf.size() > 0)
                 {
                     // use what's there
                     auto const in = buffers_prefix(
-                        clamp(impl_->rd_remain), beast::buffers_front(
-                            impl_->rd_buf.data()));
+                        clamp(impl.rd_remain), beast::buffers_front(
+                            impl.rd_buf.data()));
                     zs.avail_in = in.size();
                     zs.next_in = in.data();
                 }
@@ -1110,21 +1086,21 @@ loop:
                 {
                     // read new
                     auto const bytes_transferred =
-                        impl_->stream.read_some(
-                            impl_->rd_buf.prepare(read_size(
-                                impl_->rd_buf, impl_->rd_buf.max_size())),
+                        impl.stream.read_some(
+                            impl.rd_buf.prepare(read_size(
+                                impl.rd_buf, impl.rd_buf.max_size())),
                             ec);
-                    if(! impl_->check_ok(ec))
+                    if(impl.check_stop_now(ec))
                         return bytes_written;
                     BOOST_ASSERT(bytes_transferred > 0);
-                    impl_->rd_buf.commit(bytes_transferred);
-                    if(impl_->rd_fh.mask)
+                    impl.rd_buf.commit(bytes_transferred);
+                    if(impl.rd_fh.mask)
                         detail::mask_inplace(
-                            buffers_prefix(clamp(impl_->rd_remain),
-                                impl_->rd_buf.data()), impl_->rd_key);
+                            buffers_prefix(clamp(impl.rd_remain),
+                                impl.rd_buf.data()), impl.rd_key);
                     auto const in = buffers_prefix(
-                        clamp(impl_->rd_remain), buffers_front(
-                            impl_->rd_buf.data()));
+                        clamp(impl.rd_remain), buffers_front(
+                            impl.rd_buf.data()));
                     zs.avail_in = in.size();
                     zs.next_in = in.data();
                     did_read = true;
@@ -1134,7 +1110,7 @@ loop:
                     break;
                 }
             }
-            else if(impl_->rd_fh.fin)
+            else if(impl.rd_fh.fin)
             {
                 // append the empty block codes
                 static std::uint8_t constexpr
@@ -1142,45 +1118,45 @@ loop:
                         0x00, 0x00, 0xff, 0xff };
                 zs.next_in = empty_block;
                 zs.avail_in = sizeof(empty_block);
-                impl_->inflate(zs, zlib::Flush::sync, ec);
+                impl.inflate(zs, zlib::Flush::sync, ec);
                 if(! ec)
                 {
                     // https://github.com/madler/zlib/issues/280
                     if(zs.total_out > 0)
                         ec = error::partial_deflate_block;
                 }
-                if(! impl_->check_ok(ec))
+                if(impl.check_stop_now(ec))
                     return bytes_written;
-                impl_->do_context_takeover_read(impl_->role);
-                impl_->rd_done = true;
+                impl.do_context_takeover_read(impl.role);
+                impl.rd_done = true;
                 break;
             }
             else
             {
                 break;
             }
-            impl_->inflate(zs, zlib::Flush::sync, ec);
-            if(! impl_->check_ok(ec))
+            impl.inflate(zs, zlib::Flush::sync, ec);
+            if(impl.check_stop_now(ec))
                 return bytes_written;
-            if(impl_->rd_msg_max && beast::detail::sum_exceeds(
-                impl_->rd_size, zs.total_out, impl_->rd_msg_max))
+            if(impl.rd_msg_max && beast::detail::sum_exceeds(
+                impl.rd_size, zs.total_out, impl.rd_msg_max))
             {
                 do_fail(close_code::too_big,
                     error::message_too_big, ec);
                 return bytes_written;
             }
             cb.consume(zs.total_out);
-            impl_->rd_size += zs.total_out;
-            impl_->rd_remain -= zs.total_in;
-            impl_->rd_buf.consume(zs.total_in);
+            impl.rd_size += zs.total_out;
+            impl.rd_remain -= zs.total_in;
+            impl.rd_buf.consume(zs.total_in);
             bytes_written += zs.total_out;
         }
-        if(impl_->rd_op == detail::opcode::text)
+        if(impl.rd_op == detail::opcode::text)
         {
             // check utf8
-            if(! impl_->rd_utf8.write(beast::buffers_prefix(
+            if(! impl.rd_utf8.write(beast::buffers_prefix(
                 bytes_written, buffers)) || (
-                    impl_->rd_done && ! impl_->rd_utf8.finish()))
+                    impl.rd_done && ! impl.rd_utf8.finish()))
             {
                 // _Fail the WebSocket Connection_
                 do_fail(close_code::bad_payload,
@@ -1209,9 +1185,8 @@ async_read_some(
     BOOST_BEAST_HANDLER_INIT(
         ReadHandler, void(error_code, std::size_t));
     read_some_op<MutableBufferSequence, BOOST_ASIO_HANDLER_TYPE(
-        ReadHandler, void(error_code, std::size_t))>{
-            std::move(init.completion_handler), *this, buffers}(
-                {}, 0, false);
+        ReadHandler, void(error_code, std::size_t))>(
+            std::move(init.completion_handler), *this, buffers);
     return init.result.get();
 }
 

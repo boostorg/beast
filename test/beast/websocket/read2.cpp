@@ -340,43 +340,6 @@ public:
     }
 
     void
-    testContHook()
-    {
-        {
-            struct handler
-            {
-                void operator()(error_code, std::size_t) {}
-            };
-
-            char buf[32];
-            stream<test::stream> ws{ioc_};
-            stream<test::stream>::read_some_op<
-                net::mutable_buffer,
-                    handler> op{handler{}, ws,
-                        net::mutable_buffer{
-                            buf, sizeof(buf)}};
-            using net::asio_handler_is_continuation;
-            asio_handler_is_continuation(&op);
-            pass();
-        }
-        {
-            struct handler
-            {
-                void operator()(error_code, std::size_t) {}
-            };
-
-            multi_buffer b;
-            stream<test::stream> ws{ioc_};
-            stream<test::stream>::read_op<
-                multi_buffer, handler> op{
-                    handler{}, ws, b, 32, true};
-            using net::asio_handler_is_continuation;
-            asio_handler_is_continuation(&op);
-            pass();
-        }
-    }
-
-    void
     testIssue802()
     {
         for(std::size_t i = 0; i < 100; ++i)
@@ -675,7 +638,6 @@ public:
     run() override
     {
         testParseFrame();
-        testContHook();
         testIssue802();
         testIssue807();
         testIssue954();

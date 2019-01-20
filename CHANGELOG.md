@@ -1,3 +1,9 @@
+Version 216:
+
+* Refactor websocket::stream operations
+
+--------------------------------------------------------------------------------
+
 Version 215:
 
 * basic_stream uses boost::shared_ptr

@@ -754,7 +754,7 @@ do_fail(
         write_close<
             flat_static_buffer_base>(fb, code);
         net::write(impl_->stream, fb.data(), ec);
-        if(! impl_->check_ok(ec))
+        if(impl_->check_stop_now(ec))
             return;
     }
     using beast::websocket::teardown;

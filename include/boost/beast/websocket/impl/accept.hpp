@@ -547,7 +547,6 @@ async_accept(
     BOOST_BEAST_HANDLER_INIT(
         AcceptHandler, void(error_code));
     impl_->reset();
-    using net::asio_handler_is_continuation;
     response_op<
         BOOST_ASIO_HANDLER_TYPE(
             AcceptHandler, void(error_code))>{
@@ -579,7 +578,6 @@ async_accept_ex(
     BOOST_BEAST_HANDLER_INIT(
         AcceptHandler, void(error_code));
     impl_->reset();
-    using net::asio_handler_is_continuation;
     response_op<
         BOOST_ASIO_HANDLER_TYPE(
             AcceptHandler, void(error_code))>{

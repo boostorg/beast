@@ -494,7 +494,13 @@ struct impl_base<false>
 struct stream_base
 {
 protected:
-    bool secure_prng_ = true;
+    enum class status
+    {
+        open,
+        closing,
+        closed,
+        failed
+    };
 
     std::uint32_t
     create_mask()
@@ -505,6 +511,7 @@ protected:
                 return key;
     }
 
+    bool secure_prng_ = true;
 };
 
 } // detail

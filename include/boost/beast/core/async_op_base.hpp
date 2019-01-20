@@ -210,7 +210,7 @@ public:
         this parameter is optional and may be omitted.
     */
 #if BOOST_BEAST_DOXYGEN
-    template<class Handler>
+    template<class Handler_>
     async_op_base(
         Handler&& handler,
         Executor1 const& ex1,
