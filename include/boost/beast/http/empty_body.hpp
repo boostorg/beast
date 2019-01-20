@@ -70,7 +70,7 @@ struct empty_body
         void
         init(boost::optional<std::uint64_t> const&, error_code& ec)
         {
-            ec.assign(0, ec.category());
+            ec = {};
         }
 
         template<class ConstBufferSequence>
@@ -85,7 +85,7 @@ struct empty_body
         void
         finish(error_code& ec)
         {
-            ec.assign(0, ec.category());
+            ec = {};
         }
     };
 #endif
@@ -111,13 +111,13 @@ struct empty_body
         void
         init(error_code& ec)
         {
-            ec.assign(0, ec.category());
+            ec = {};
         }
 
         boost::optional<std::pair<const_buffers_type, bool>>
         get(error_code& ec)
         {
-            ec.assign(0, ec.category());
+            ec = {};
             return boost::none;
         }
     };

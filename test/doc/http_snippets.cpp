@@ -365,7 +365,7 @@ print_cxx14(message<isRequest, Body, Fields> const& m)
         sr.next(ec,
             [&sr](error_code& ec, auto const& buffer)
             {
-                ec.assign(0, ec.category());
+                ec = {};
                 std::cout << buffers(buffer);
                 sr.consume(net::buffer_size(buffer));
             });
@@ -392,7 +392,7 @@ struct lambda
     template<class ConstBufferSequence>
     void operator()(error_code& ec, ConstBufferSequence const& buffer) const
     {
-        ec.assign(0, ec.category());
+        ec = {};
         std::cout << buffers(buffer);
         sr.consume(net::buffer_size(buffer));
     }
@@ -433,7 +433,7 @@ split_print_cxx14(message<isRequest, Body, Fields> const& m)
         sr.next(ec,
             [&sr](error_code& ec, auto const& buffer)
             {
-                ec.assign(0, ec.category());
+                ec = {};
                 std::cout << buffers(buffer);
                 sr.consume(net::buffer_size(buffer));
             });
@@ -447,7 +447,7 @@ split_print_cxx14(message<isRequest, Body, Fields> const& m)
             sr.next(ec,
                 [&sr](error_code& ec, auto const& buffer)
                 {
-                    ec.assign(0, ec.category());
+                    ec = {};
                     std::cout << buffers(buffer);
                     sr.consume(net::buffer_size(buffer));
                 });

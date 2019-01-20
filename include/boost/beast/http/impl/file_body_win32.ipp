@@ -142,7 +142,7 @@ struct basic_file_body<file_win32>
                 beast::detail::clamp(body_.last_ - pos_));
             if(n == 0)
             {
-                ec.assign(0, ec.category());
+                ec = {};
                 return boost::none;
             }
             auto const nread = body_.file_.read(buf_, n, ec);
@@ -150,7 +150,7 @@ struct basic_file_body<file_win32>
                 return boost::none;
             BOOST_ASSERT(nread != 0);
             pos_ += nread;
-            ec.assign(0, ec.category());
+            ec = {};
             return {{
                 {buf_, nread},          // buffer to return.
                 pos_ < body_.last_}};   // `true` if there are more buffers.
@@ -179,7 +179,7 @@ struct basic_file_body<file_win32>
             // VFALCO We could reserve space in the file
             boost::ignore_unused(content_length);
             BOOST_ASSERT(body_.file_.is_open());
-            ec.assign(0, ec.category());
+            ec = {};
         }
 
         template<class ConstBufferSequence>
@@ -195,14 +195,14 @@ struct basic_file_body<file_win32>
                 if(ec)
                     return nwritten;
             }
-            ec.assign(0, ec.category());
+            ec = {};
             return nwritten;
         }
 
         void
         finish(error_code& ec)
         {
-            ec.assign(0, ec.category());
+            ec = {};
         }
     };
 
@@ -496,7 +496,7 @@ write_some(
     BOOST_ASSERT(w.pos_ <= w.body_.last_);
     if(w.pos_ < w.body_.last_)
     {
-        ec.assign(0, ec.category());
+        ec = {};
     }
     else
     {

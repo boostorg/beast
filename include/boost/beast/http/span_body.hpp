@@ -87,7 +87,7 @@ public:
                 ec = error::buffer_overflow;
                 return;
             }
-            ec.assign(0, ec.category());
+            ec = {};
         }
 
         template<class ConstBufferSequence>
@@ -104,7 +104,7 @@ public:
                 ec = error::buffer_overflow;
                 return 0;
             }
-            ec.assign(0, ec.category());
+            ec = {};
             buffer_copy(net::buffer(
                 body_.data(), n), buffers);
             body_ = value_type{
@@ -115,7 +115,7 @@ public:
         void
         finish(error_code& ec)
         {
-            ec.assign(0, ec.category());
+            ec = {};
         }
     };
 #endif
@@ -145,13 +145,13 @@ public:
         void
         init(error_code& ec)
         {
-            ec.assign(0, ec.category());
+            ec = {};
         }
 
         boost::optional<std::pair<const_buffers_type, bool>>
         get(error_code& ec)
         {
-            ec.assign(0, ec.category());
+            ec = {};
             return {{
                 { body_.data(),
                   body_.size() * sizeof(typename

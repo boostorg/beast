@@ -60,13 +60,13 @@ public:
             void
             init(error_code& ec)
             {
-                ec.assign(0, ec.category());
+                ec = {};
             }
 
             boost::optional<std::pair<const_buffers_type, bool>>
             get(error_code& ec)
             {
-                ec.assign(0, ec.category());
+                ec = {};
                 return {{const_buffers_type{
                     body_.data(), body_.size()}, false}};
             }
@@ -105,13 +105,13 @@ public:
             void
             init(error_code& ec)
             {
-                ec.assign(0, ec.category());
+                ec = {};
             }
 
             boost::optional<std::pair<const_buffers_type, bool>>
             get(error_code& ec)
             {
-                ec.assign(0, ec.category());
+                ec = {};
                 body_.read = true;
                 return get(
                     std::integral_constant<bool, isSplit>{},
@@ -916,13 +916,13 @@ public:
             void
             init(error_code& ec)
             {
-                ec.assign(0, ec.category());
+                ec = {};
             }
 
             boost::optional<std::pair<const_buffers_type, bool>>
             get(error_code& ec)
             {
-                ec.assign(0, ec.category());
+                ec = {};
                 return {{const_buffers_type{"", 0}, false}};
             }
         };
@@ -947,13 +947,13 @@ public:
             void
             init(error_code& ec)
             {
-                ec.assign(0, ec.category());
+                ec = {};
             }
 
             boost::optional<std::pair<const_buffers_type, bool>>
             get(error_code& ec)
             {
-                ec.assign(0, ec.category());
+                ec = {};
                 return {{const_buffers_type{"", 0}, false}};
             }
         };

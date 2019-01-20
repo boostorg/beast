@@ -347,7 +347,7 @@ private:
                 m_.method(method);
             else
                 m_.method_string(method_str);
-            ec.assign(0, ec.category());
+            ec = {};
         }
         catch(std::bad_alloc const&)
         {
@@ -368,7 +368,7 @@ private:
         try
         {
             m_.reason(reason);
-            ec.assign(0, ec.category());
+            ec = {};
         }
         catch(std::bad_alloc const&)
         {
@@ -386,7 +386,7 @@ private:
         try
         {
             m_.insert(name, name_string, value);
-            ec.assign(0, ec.category());
+            ec = {};
         }
         catch(std::bad_alloc const&)
         {
@@ -397,7 +397,7 @@ private:
     void
     on_header_impl(error_code& ec)
     {
-        ec.assign(0, ec.category());
+        ec = {};
     }
 
     void
@@ -426,7 +426,7 @@ private:
     {
         if(cb_h_)
             return cb_h_(size, extensions, ec);
-        ec.assign(0, ec.category());
+        ec = {};
     }
 
     std::size_t

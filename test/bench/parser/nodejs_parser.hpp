@@ -572,7 +572,7 @@ private:
         // Transfer-Encoding, see if we can reserve the buffer.
         //
         // r_.reserve(content_length)
-        ec.assign(0, ec.category());
+        ec = {};
     }
 
     bool
@@ -625,7 +625,7 @@ private:
     void
     on_body(void const*, std::size_t, error_code& ec)
     {
-        ec.assign(0, ec.category());
+        ec = {};
     }
 
     void

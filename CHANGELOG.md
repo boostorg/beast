@@ -1,3 +1,9 @@
+Version 206
+
+* Clear error codes idiomatically
+
+--------------------------------------------------------------------------------
+
 Version 205
 
 * Doc work

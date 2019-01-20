@@ -76,7 +76,7 @@ public:
     init(error_code& ec)
     {
         // The specification requires this to indicate "no error"
-        ec.assign(0, ec.category());
+        ec = {};
     }
 
     /** Returns the next buffer in the body.
@@ -101,7 +101,7 @@ public:
     get(error_code& ec)
     {
         // The specification requires this to indicate "no error"
-        ec.assign(0, ec.category());
+        ec = {};
 
         return boost::none; // for exposition only
     }
@@ -144,7 +144,7 @@ struct BodyReader
         boost::ignore_unused(content_length);
 
         // The specification requires this to indicate "no error"
-        ec.assign(0, ec.category());
+        ec = {};
     }
 
     /** Store buffers.

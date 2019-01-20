@@ -191,14 +191,14 @@ struct basic_parser_base
         {
             if(it == last)
             {
-                ec.assign(0, ec.category());
+                ec = {};
                 return nullptr;
             }
             if(*it == '\r')
             {
                 if(++it == last)
                 {
-                    ec.assign(0, ec.category());
+                    ec = {};
                     return nullptr;
                 }
                 if(*it != '\n')
@@ -206,7 +206,7 @@ struct basic_parser_base
                     ec = error::bad_line_ending;
                     return nullptr;
                 }
-                ec.assign(0, ec.category());
+                ec = {};
                 return ++it;
             }
             // VFALCO Should we handle the legacy case

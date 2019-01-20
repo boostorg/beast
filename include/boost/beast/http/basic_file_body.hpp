@@ -319,7 +319,7 @@ init(error_code& ec)
     // to indicate no error.
     //
     // We don't do anything fancy so set "no error"
-    ec.assign(0, ec.category());
+    ec = {};
 }
 
 // This function is called repeatedly by the serializer to
@@ -349,7 +349,7 @@ get(error_code& ec) ->
         //      into the library to get the generic category because
         //      that saves us a possibly expensive atomic operation.
         //
-        ec.assign(0, ec.category());
+        ec = {};
         return boost::none;
     }
 
@@ -373,7 +373,7 @@ get(error_code& ec) ->
     // we set this bool to `false` so we will not be called
     // again.
     //
-    ec.assign(0, ec.category());
+    ec = {};
     return {{
         const_buffers_type{buf_, nread},    // buffer to return.
         remain_ > 0                         // `true` if there are more buffers.
@@ -474,7 +474,7 @@ init(
     // to indicate no error.
     //
     // We don't do anything fancy so set "no error"
-    ec.assign(0, ec.category());
+    ec = {};
 }
 
 // This will get called one or more times with body buffers
@@ -505,7 +505,7 @@ put(ConstBufferSequence const& buffers, error_code& ec)
 
     // Indicate success
     // This is required by the error_code specification
-    ec.assign(0, ec.category());
+    ec = {};
 
     return nwritten;
 }
@@ -519,7 +519,7 @@ finish(error_code& ec)
 {
     // This has to be cleared before returning, to
     // indicate no error. The specification requires it.
-    ec.assign(0, ec.category());
+    ec = {};
 }
 
 //]

@@ -109,7 +109,7 @@ public:
                     return;
                 }
             }
-            ec.assign(0, ec.category());
+            ec = {};
         }
 
         template<class ConstBufferSequence>
@@ -130,7 +130,7 @@ public:
                 ec = error::buffer_overflow;
                 return 0;
             }
-            ec.assign(0, ec.category());
+            ec = {};
             CharT* dest = &body_[size];
             for(auto b : beast::buffers_range_ref(buffers))
             {
@@ -144,7 +144,7 @@ public:
         void
         finish(error_code& ec)
         {
-            ec.assign(0, ec.category());
+            ec = {};
         }
     };
 #endif
@@ -174,13 +174,13 @@ public:
         void
         init(error_code& ec)
         {
-            ec.assign(0, ec.category());
+            ec = {};
         }
 
         boost::optional<std::pair<const_buffers_type, bool>>
         get(error_code& ec)
         {
-            ec.assign(0, ec.category());
+            ec = {};
             return {{const_buffers_type{
                 body_.data(), body_.size()}, false}};
         }

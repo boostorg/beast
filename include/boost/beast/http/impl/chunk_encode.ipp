@@ -387,7 +387,7 @@ do_parse(FwdIt it, FwdIt last, error_code& ec)
 loop:
     if(it == last)
     {
-        ec.assign(0, ec.category());
+        ec = {};
         return it;
     }
     // BWS

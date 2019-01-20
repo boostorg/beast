@@ -327,7 +327,7 @@ write_some_impl(
             sr.consume(f.bytes_transferred);
         return f.bytes_transferred;
     }
-    ec.assign(0, ec.category());
+    ec = {};
     return 0;
 }
 
@@ -475,7 +475,7 @@ write_header(
     }
     else
     {
-        ec.assign(0, ec.category());
+        ec = {};
     }
     return bytes_transferred;
 }
@@ -764,7 +764,7 @@ public:
     operator()(error_code& ec,
         ConstBufferSequence const& buffers) const
     {
-        ec.assign(0, ec.category());
+        ec = {};
         if(os_.fail())
             return;
         std::size_t bytes_transferred = 0;

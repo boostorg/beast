@@ -66,7 +66,7 @@ public:
         if(fc_)
             fc_->fail(ec);
         else
-            ec.assign(0, ec.category());
+            ec = {};
     }
 
     void
@@ -82,7 +82,7 @@ public:
         if(fc_)
             fc_->fail(ec);
         else
-            ec.assign(0, ec.category());
+            ec = {};
     }
 
     void
@@ -93,7 +93,7 @@ public:
         if(fc_)
             fc_->fail(ec);
         else
-            ec.assign(0, ec.category());
+            ec = {};
         fields[name.to_string()] = value.to_string();
     }
 
@@ -104,7 +104,7 @@ public:
         if(fc_)
             fc_->fail(ec);
         else
-            ec.assign(0, ec.category());
+            ec = {};
     }
 
     void
@@ -118,7 +118,7 @@ public:
         if(fc_)
             fc_->fail(ec);
         else
-            ec.assign(0, ec.category());
+            ec = {};
     }
 
     std::size_t
@@ -129,7 +129,7 @@ public:
         if(fc_)
             fc_->fail(ec);
         else
-            ec.assign(0, ec.category());
+            ec = {};
         return s.size();
     }
 
@@ -143,7 +143,7 @@ public:
         if(fc_)
             fc_->fail(ec);
         else
-            ec.assign(0, ec.category());
+            ec = {};
     }
 
     std::size_t
@@ -156,7 +156,7 @@ public:
         if(fc_)
             fc_->fail(ec);
         else
-            ec.assign(0, ec.category());
+            ec = {};
         return s.size();
     }
 
@@ -168,7 +168,7 @@ public:
         if(fc_)
             fc_->fail(ec);
         else
-            ec.assign(0, ec.category());
+            ec = {};
     }
 };
 

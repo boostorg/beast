@@ -1094,7 +1094,7 @@ read_and_print_body(
         p.get().body().size = sizeof(buf);
         read(stream, buffer, p, ec);
         if(ec == error::need_buffer)
-            ec.assign(0, ec.category());
+            ec = {};
         if(ec)
             return;
         os.write(buf, sizeof(buf) - p.get().body().size);
@@ -1201,7 +1201,7 @@ print_chunked_body(
         else if(ec != error::end_of_chunk)
             return;
         else
-            ec.assign(0, ec.category());
+            ec = {};
 
         // We got a whole chunk, print the extensions:
         for(auto const& extension : ce)

@@ -3388,7 +3388,7 @@ private:
             ec = net::error::operation_aborted;
             return false;
         }
-        ec.assign(0, ec.category());
+        ec = {};
         return true;
     }
 

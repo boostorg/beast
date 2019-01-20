@@ -164,7 +164,7 @@ public:
         on_request_impl(verb, string_view,
             string_view, int, error_code& ec)
         {
-            ec.assign(0, ec.category());
+            ec = {};
         }
 
         void
@@ -172,20 +172,20 @@ public:
             string_view,
                 int, error_code& ec)
         {
-            ec.assign(0, ec.category());
+            ec = {};
         }
 
         void
         on_field_impl(field,
             string_view, string_view, error_code& ec)
         {
-            ec.assign(0, ec.category());
+            ec = {};
         }
 
         void
         on_header_impl(error_code& ec)
         {
-            ec.assign(0, ec.category());
+            ec = {};
         }
 
         void
@@ -193,13 +193,13 @@ public:
             boost::optional<std::uint64_t> const&,
             error_code& ec)
         {
-            ec.assign(0, ec.category());
+            ec = {};
         }
 
         std::size_t
         on_body_impl(string_view s, error_code& ec)
         {
-            ec.assign(0, ec.category());
+            ec = {};
             return s.size();
         }
 
@@ -207,21 +207,21 @@ public:
         on_chunk_header_impl(std::uint64_t,
             string_view, error_code& ec)
         {
-            ec.assign(0, ec.category());
+            ec = {};
         }
 
         std::size_t
         on_chunk_body_impl(std::uint64_t,
             string_view s, error_code& ec)
         {
-            ec.assign(0, ec.category());
+            ec = {};
             return s.size();
         }
 
         void
         on_finish_impl(error_code& ec)
         {
-            ec.assign(0, ec.category());
+            ec = {};
         }
     };
 

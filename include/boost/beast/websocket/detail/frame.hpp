@@ -259,7 +259,7 @@ read_close(
     if(n == 0)
     {
         cr = close_reason{};
-        ec.assign(0, ec.category());
+        ec = {};
         return;
     }
     if(n == 1)
@@ -298,7 +298,7 @@ read_close(
     {
         cr.reason = "";
     }
-    ec.assign(0, ec.category());
+    ec = {};
 }
 
 } // detail

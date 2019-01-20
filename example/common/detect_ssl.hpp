@@ -154,7 +154,7 @@ detect_ssl(
         {
             // This is a fast way to indicate success
             // without retrieving the default category.
-            ec.assign(0, ec.category());
+            ec = {};
             return result;
         }
 

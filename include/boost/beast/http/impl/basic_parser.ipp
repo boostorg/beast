@@ -100,7 +100,7 @@ put(ConstBufferSequence const& buffers,
     auto const last = net::buffer_sequence_end(buffers);
     if(p == last)
     {
-        ec.assign(0, ec.category());
+        ec = {};
         return 0;
     }
     if(std::next(p) == last)
@@ -136,7 +136,7 @@ put(net::const_buffer const& buffer,
     auto n = buffer.size();
     auto const p0 = p;
     auto const p1 = p0 + n;
-    ec.assign(0, ec.category());
+    ec = {};
 loop:
     switch(state_)
     {
@@ -255,7 +255,7 @@ loop:
         break;
 
     case state::complete:
-        ec.assign(0, ec.category());
+        ec = {};
         goto done;
     }
     if(p < p1 && ! is_done() && eager())
@@ -286,7 +286,7 @@ put_eof(error_code& ec)
             ec = error::partial_message;
             return;
         }
-        ec.assign(0, ec.category());
+        ec = {};
         return;
     }
     impl().on_finish_impl(ec);
@@ -841,7 +841,7 @@ do_field(field f,
                 continue;
             }
         }
-        ec.assign(0, ec.category());
+        ec = {};
         return;
     }
 
@@ -870,7 +870,7 @@ do_field(field f,
             return;
         }
 
-        ec.assign(0, ec.category());
+        ec = {};
         len_ = v;
         f_ |= flagContentLength;
         return;
@@ -893,7 +893,7 @@ do_field(field f,
             return;
         }
 
-        ec.assign(0, ec.category());
+        ec = {};
         auto const v = token_list{value};
         auto const p = std::find_if(v.begin(), v.end(),
             [&](typename token_list::value_type const& s)
@@ -912,12 +912,12 @@ do_field(field f,
     // Upgrade
     if(f == field::upgrade)
     {
-        ec.assign(0, ec.category());
+        ec = {};
         f_ |= flagUpgrade;
         return;
     }
 
-    ec.assign(0, ec.category());
+    ec = {};
 }
 
 } // http

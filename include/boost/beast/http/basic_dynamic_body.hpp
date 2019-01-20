@@ -80,7 +80,7 @@ struct basic_dynamic_body
         init(boost::optional<
             std::uint64_t> const&, error_code& ec)
         {
-            ec.assign(0, ec.category());
+            ec = {};
         }
 
         template<class ConstBufferSequence>
@@ -112,7 +112,7 @@ struct basic_dynamic_body
         void
         finish(error_code& ec)
         {
-            ec.assign(0, ec.category());
+            ec = {};
         }
     };
 #endif
@@ -142,13 +142,13 @@ struct basic_dynamic_body
         void
         init(error_code& ec)
         {
-            ec.assign(0, ec.category());
+            ec = {};
         }
 
         boost::optional<std::pair<const_buffers_type, bool>>
         get(error_code& ec)
         {
-            ec.assign(0, ec.category());
+            ec = {};
             return {{body_.data(), false}};
         }
     };
