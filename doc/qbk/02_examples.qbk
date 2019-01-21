@@ -173,7 +173,7 @@ These servers offer both HTTP and WebSocket services on the same port,
 and illustrate the implementation of advanced features.
 
 [table
-[[Description] [Features] [Source File]]
+[[Description] [Features] [Sources]]
 [
         [Advanced]
         [[itemized_list
@@ -195,6 +195,15 @@ and illustrate the implementation of advanced features.
             [Clean exit via SIGINT (CTRL+C) or SIGTERM (kill)]
         ]]
         [[example_src example/advanced/server-flex/advanced_server_flex.cpp advanced_server_flex.cpp]]
+][
+        [Chat Server, multi-threaded]
+        [[itemized_list
+            [Multi-user Chat]
+            [Broadcasting Messages]
+            [Dual protocols: HTTP and WebSocket]
+            [Clean exit via SIGINT (CTRL+C) or SIGTERM (kill)]
+        ]]
+        [[source_file example/websocket/server/chat-multi]]
 ]]
 
 [endsect]

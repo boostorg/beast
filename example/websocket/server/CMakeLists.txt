@@ -8,6 +8,7 @@
 #
 
 add_subdirectory (async)
+add_subdirectory (chat-multi)
 add_subdirectory (coro)
 add_subdirectory (fast)
 add_subdirectory (stackless)

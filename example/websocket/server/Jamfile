@@ -8,6 +8,7 @@
 #
 
 build-project async ;
+build-project chat-multi ;
 build-project coro ;
 build-project fast ;
 build-project stackless ;
