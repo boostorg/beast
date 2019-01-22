@@ -78,10 +78,6 @@ struct stream<NextLayer, deflateSupported>::impl_type
     saved_handler           paused_r_rd;    // paused read op (async read)
     saved_handler           paused_r_close; // paused close op (async read)
 
-    enum
-    {
-    };
-
     template<class... Args>
     impl_type(Args&&... args)
         : stream(std::forward<Args>(args)...)
