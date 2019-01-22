@@ -84,9 +84,6 @@ public:
     /// The type of the next layer.
     using next_layer_type = typename ssl_stream_type::next_layer_type;
 
-    /// The type of the lowest layer.
-    using lowest_layer_type = typename ssl_stream_type::lowest_layer_type;
-
     /// The type of the executor associated with the object.
     using executor_type = typename stream_type::executor_type;
 
@@ -185,35 +182,7 @@ public:
         return p_->next_layer().next_layer();
     }
 
-    /** Get a reference to the lowest layer.
-
-        This function returns a reference to the lowest layer in a stack of stream
-        layers.
-
-        @return A reference to the lowest layer in the stack of stream layers.
-        Ownership is not transferred to the caller.
-    */
-    lowest_layer_type&
-    lowest_layer() noexcept
-    {
-        return p_->lowest_layer();
-    }
-
-    /** Get a reference to the lowest layer.
-
-        This function returns a reference to the lowest layer in a stack of stream
-        layers.
-
-        @return A reference to the lowest layer in the stack of stream layers.
-        Ownership is not transferred to the caller.
-    */
-    lowest_layer_type const&
-    lowest_layer() const noexcept
-    {
-        return p_->lowest_layer();
-    }
-
-      /** Set the peer verification mode.
+    /** Set the peer verification mode.
 
         This function may be used to configure the peer verification mode used by
         the stream. The new mode will override the mode inherited from the context.

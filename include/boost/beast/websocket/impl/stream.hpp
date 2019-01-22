@@ -80,24 +80,6 @@ next_layer() const noexcept ->
 }
 
 template<class NextLayer, bool deflateSupported>
-auto
-stream<NextLayer, deflateSupported>::
-lowest_layer() noexcept ->
-    lowest_layer_type&
-{
-    return impl_->stream.lowest_layer();
-}
-
-template<class NextLayer, bool deflateSupported>
-auto
-stream<NextLayer, deflateSupported>::
-lowest_layer() const noexcept ->
-    lowest_layer_type const&
-{
-    return impl_->stream.lowest_layer();
-}
-
-template<class NextLayer, bool deflateSupported>
 bool
 stream<NextLayer, deflateSupported>::
 is_open() const noexcept

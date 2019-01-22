@@ -165,9 +165,6 @@ class stream
 public:
     using buffer_type = flat_buffer;
 
-    /// The type of the lowest layer.
-    using lowest_layer_type = stream;
-
     /** Destructor
 
         If an asynchronous read operation is pending, it will
@@ -277,34 +274,6 @@ public:
     {
         return in_->ioc.get_executor();
     };
-
-    /** Get a reference to the lowest layer
-
-        This function returns a reference to the lowest layer
-        in a stack of stream layers.
-
-        @return A reference to the lowest layer in the stack of
-        stream layers.
-    */
-    lowest_layer_type&
-    lowest_layer() noexcept
-    {
-        return *this;
-    }
-
-    /** Get a reference to the lowest layer
-
-        This function returns a reference to the lowest layer
-        in a stack of stream layers.
-
-        @return A reference to the lowest layer in the stack of
-        stream layers. Ownership is not transferred to the caller.
-    */
-    lowest_layer_type const&
-    lowest_layer() const noexcept
-    {
-        return *this;
-    }
 
     /// Set the maximum number of bytes returned by read_some
     void

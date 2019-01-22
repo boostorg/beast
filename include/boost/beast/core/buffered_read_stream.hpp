@@ -111,9 +111,6 @@ public:
     using next_layer_type =
         typename std::remove_reference<Stream>::type;
 
-    /// The type of the lowest layer.
-    using lowest_layer_type = get_lowest_layer<next_layer_type>;
-
     /** Move constructor.
 
         @note The behavior of move assignment on or from streams
@@ -150,20 +147,6 @@ public:
         return next_layer_;
     }
     
-    /// Get a reference to the lowest layer.
-    lowest_layer_type&
-    lowest_layer() noexcept
-    {
-        return next_layer_.lowest_layer();
-    }
-
-    /// Get a const reference to the lowest layer.
-    lowest_layer_type const&
-    lowest_layer() const noexcept
-    {
-        return next_layer_.lowest_layer();
-    }
-
     using executor_type =
         detail::get_executor_type<next_layer_type>;
 

@@ -61,11 +61,6 @@ checks helps provide more concise errors during compilation:
 [table Stream Type Checks
 [[Name][Description]]
 [[
-    [link beast.ref.boost__beast__get_lowest_layer `get_lowest_layer`]
-][
-    Returns `T::lowest_layer_type` if it exists, else returns `T`.
-]]
-[[
     [link beast.ref.boost__beast__has_get_executor `has_get_executor`]
 ][
     Determine if the `get_executor` member function is present.

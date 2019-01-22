@@ -2,6 +2,16 @@ Version 207
 
 * Send from the strand
 
+API Changes:
+
+* lowest_layer is removed
+
+Actions Required:
+
+* Remove lowest_layer and lowest_layer_type from user-defined streams.
+* Use the get_lowest_layer free function and the lowest_layer_type trait
+  as needed.
+
 --------------------------------------------------------------------------------
 
 Version 206

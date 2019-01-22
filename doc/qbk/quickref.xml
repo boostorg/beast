@@ -248,7 +248,6 @@
           <simplelist type="vert" columns="1">
             <member><link linkend="beast.ref.boost__beast__buffers_type">buffers_type</link></member>
             <member><link linkend="beast.ref.boost__beast__buffers_iterator_type">buffers_iterator_type</link></member>
-            <member><link linkend="beast.ref.boost__beast__get_lowest_layer">get_lowest_layer</link></member>
             <member><link linkend="beast.ref.boost__beast__has_get_executor">has_get_executor</link></member>
             <member><link linkend="beast.ref.boost__beast__is_async_read_stream">is_async_read_stream</link></member>
             <member><link linkend="beast.ref.boost__beast__is_async_write_stream">is_async_write_stream</link></member>

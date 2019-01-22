@@ -87,10 +87,6 @@ public:
     using next_layer_type =
         typename std::remove_reference<NextLayer>::type;
 
-    /// The type of the lowest layer.
-    using lowest_layer_type =
-        get_lowest_layer<next_layer_type>;
-
     /// The type of the executor associated with the object.
     using executor_type = typename next_layer_type::executor_type;
 
@@ -155,34 +151,6 @@ public:
     next_layer() const
     {
         return stream_;
-    }
-
-    /** Get a reference to the lowest layer
-
-        This function returns a reference to the lowest layer
-        in a stack of stream layers.
-
-        @return A reference to the lowest layer in the stack of
-        stream layers.
-    */
-    lowest_layer_type&
-    lowest_layer()
-    {
-        return stream_.lowest_layer();
-    }
-
-    /** Get a reference to the lowest layer
-
-        This function returns a reference to the lowest layer
-        in a stack of stream layers.
-
-        @return A reference to the lowest layer in the stack of
-        stream layers. Ownership is not transferred to the caller.
-    */
-    lowest_layer_type const&
-    lowest_layer() const
-    {
-        return stream_.lowest_layer();
     }
 
     //--------------------------------------------------------------------------

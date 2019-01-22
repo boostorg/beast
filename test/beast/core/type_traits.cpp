@@ -58,41 +58,6 @@ BOOST_STATIC_ASSERT(! is_invocable<is_invocable_udt3 const, int(int)>::value);
 BOOST_STATIC_ASSERT(is_invocable<is_invocable_udt4, void(std::unique_ptr<int>)>::value);
 #endif
 
-//
-// get_lowest_layer
-//
-
-struct F1 {};
-struct F2 {};
-
-template<class F>
-struct F3
-{
-    using next_layer_type =
-        typename std::remove_reference<F>::type;
-
-    using lowest_layer_type = get_lowest_layer<next_layer_type>;
-};
-
-template<class F>
-struct F4
-{
-    using next_layer_type =
-        typename std::remove_reference<F>::type;
-
-    using lowest_layer_type =
-        get_lowest_layer<next_layer_type>;
-};
-
-BOOST_STATIC_ASSERT(std::is_same<get_lowest_layer<F1>, F1>::value);
-BOOST_STATIC_ASSERT(std::is_same<get_lowest_layer<F2>, F2>::value);
-BOOST_STATIC_ASSERT(std::is_same<get_lowest_layer<F3<F1>>, F1>::value);
-BOOST_STATIC_ASSERT(std::is_same<get_lowest_layer<F3<F2>>, F2>::value);
-BOOST_STATIC_ASSERT(std::is_same<get_lowest_layer<F4<F1>>, F1>::value);
-BOOST_STATIC_ASSERT(std::is_same<get_lowest_layer<F4<F2>>, F2>::value);
-BOOST_STATIC_ASSERT(std::is_same<get_lowest_layer<F4<F3<F1>>>, F1>::value);
-BOOST_STATIC_ASSERT(std::is_same<get_lowest_layer<F4<F3<F2>>>, F2>::value);
-
 } // (anonymous)
 
 } // detail

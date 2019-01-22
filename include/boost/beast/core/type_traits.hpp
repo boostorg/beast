@@ -121,41 +121,6 @@ struct has_get_executor<T, beast::detail::void_t<decltype(
         std::declval<T&>().get_executor())>> : std::true_type {};
 #endif
 
-/** Alias for `T::lowest_layer_type` if it exists, else `T`
-
-    This will be a type alias for `T::lowest_layer_type`
-    if it exists, else it will be an alias for `T`.
-
-    @par Example
-
-    Declaring a wrapper:
-
-    @code
-    template<class Stream>
-    struct stream_wrapper
-    {
-        using next_layer_type = typename std::remove_reference<Stream>::type;
-        using lowest_layer_type = get_lowest_layer<stream_type>;
-    };
-    @endcode
-
-    Defining a metafunction:
-
-    @code
-    /// Alias for `std::true_type` if `T` wraps another stream
-    template<class T>
-    using is_stream_wrapper : std::integral_constant<bool,
-        ! std::is_same<T, get_lowest_layer<T>>::value> {};
-    @endcode
-*/
-#if BOOST_BEAST_DOXYGEN
-template<class T>
-struct get_lowest_layer;
-#else
-template<class T>
-using get_lowest_layer = typename detail::get_lowest_layer_helper<T>::type;
-#endif
-
 /** Determine if `T` meets the requirements of @b AsyncReadStream.
 
     Metafunctions are used to perform compile time checking of template
