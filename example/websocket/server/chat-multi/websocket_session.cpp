@@ -90,6 +90,17 @@ void
 websocket_session::
 send(boost::shared_ptr<std::string const> const& ss)
 {
+    // Get on the strand if we aren't already,
+    // otherwise we will concurrently access
+    // objects which are not thread-safe.
+    if(! strand_.running_in_this_thread())
+        return net::post(
+            net::bind_executor(strand_,
+                std::bind(
+                    &websocket_session::send,
+                    shared_from_this(),
+                    ss)));
+
     // Always add to queue
     queue_.push_back(ss);
 

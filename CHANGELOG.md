@@ -1,3 +1,9 @@
+Version 207
+
+* Send from the strand
+
+--------------------------------------------------------------------------------
+
 Version 206
 
 * Clear error codes idiomatically
