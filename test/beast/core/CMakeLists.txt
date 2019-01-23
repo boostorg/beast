@@ -18,6 +18,7 @@ add_executable (tests-beast-core
     Jamfile
     buffer_test.hpp
     file_test.hpp
+    stream_tests.hpp
     test_handler.hpp
     _detail_base64.cpp
     _detail_buffer.cpp

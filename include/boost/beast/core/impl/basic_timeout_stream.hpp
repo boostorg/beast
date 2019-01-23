@@ -575,7 +575,7 @@ async_read_some(
         ReadHandler, void(error_code, std::size_t));
     async_op<true, MutableBufferSequence, BOOST_ASIO_HANDLER_TYPE(
         ReadHandler, void(error_code, std::size_t))>(
-            *this, buffers, std::forward<ReadHandler>(handler));
+            *this, buffers, std::move(init.completion_handler));
     return init.result.get();
 }
 
@@ -595,7 +595,7 @@ async_write_some(
         WriteHandler, void(error_code, std::size_t));
     async_op<false, ConstBufferSequence, BOOST_ASIO_HANDLER_TYPE(
         WriteHandler, void(error_code, std::size_t))>(
-            *this, buffers, std::forward<WriteHandler>(handler));
+            *this, buffers, std::move(init.completion_handler));
     return init.result.get();
 }
 
@@ -617,10 +617,9 @@ async_connect(
         void(error_code, typename Protocol::endpoint));
     detail::timeout_stream_connect_op<Protocol, Executor,
         BOOST_ASIO_HANDLER_TYPE(RangeConnectHandler,
-            void(error_code,
-                typename Protocol::endpoint))>(
+            void(error_code, typename Protocol::endpoint))>(
         stream, endpoints, detail::any_endpoint{},
-            std::forward<RangeConnectHandler>(handler));
+            std::move(init.completion_handler));
     return init.result.get();
 }
 
@@ -642,10 +641,9 @@ async_connect(
         void(error_code, typename Protocol::endpoint));
     detail::timeout_stream_connect_op<Protocol, Executor,
         BOOST_ASIO_HANDLER_TYPE(RangeConnectHandler,
-            void(error_code,
-                typename Protocol::endpoint))>(
+            void(error_code, typename Protocol::endpoint))>(
         stream, endpoints, connect_condition,
-            std::forward<RangeConnectHandler>(handler));
+            std::move(init.completion_handler));
     return init.result.get();
 }
 
@@ -666,7 +664,7 @@ async_connect(
         BOOST_ASIO_HANDLER_TYPE(IteratorConnectHandler,
             void(error_code, Iterator))>(
         stream, begin, end, detail::any_endpoint{},
-            std::forward<IteratorConnectHandler>(handler));
+            std::move(init.completion_handler));
     return init.result.get();
 }
 
@@ -689,7 +687,7 @@ async_connect(
         BOOST_ASIO_HANDLER_TYPE(IteratorConnectHandler,
             void(error_code, Iterator))>(
         stream, begin, end, connect_condition,
-            std::forward<IteratorConnectHandler>(handler));
+            std::move(init.completion_handler));
     return init.result.get();
 }
 

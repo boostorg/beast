@@ -1,6 +1,7 @@
 Version 207
 
 * Send from the strand
+* Pass the correct handler in basic_timeout_stream
 
 API Changes:
 

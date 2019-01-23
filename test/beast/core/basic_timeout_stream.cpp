@@ -10,6 +10,8 @@
 // Test that header file is self-contained.
 #include <boost/beast/core/basic_timeout_stream.hpp>
 
+#include "stream_tests.hpp"
+
 #include <boost/beast/_experimental/unit_test/suite.hpp>
 #include <boost/beast/core/flat_buffer.hpp>
 #include <boost/beast/core/timeout_stream.hpp>
@@ -374,6 +376,13 @@ public:
         }
     }
 
+    void
+    testAsyncStream()
+    {
+        test_async_stream<basic_timeout_stream<
+            net::ip::tcp, net::io_context::strand>>();
+    }
+
     //--------------------------------------------------------------------------
 
     struct match
@@ -623,8 +632,127 @@ public:
         auto const ep = net::ip::tcp::endpoint(
             net::ip::make_address("127.0.0.1"), 0);
 
+        {
+            struct connect_condition
+            {
+                bool operator()(
+                    error_code, tcp::endpoint)
+                {
+                    return true;
+                }
+            };
+
+            struct range_connect_handler
+            {
+                void operator()(
+                    error_code, tcp::endpoint)
+                {
+                }
+            };
+
+            struct iterator_connect_handler
+            {
+                void operator()(
+                    error_code, tcp::endpoint const*)
+                {
+                }
+            };
+
+            // completion handler
+
+            BEAST_EXPECT(
+                static_cast<void(*)(stream_t&,
+                    std::array<tcp::endpoint, 2> const&,
+                    range_connect_handler&&)>(
+                        &beast::async_connect));
+
+            BEAST_EXPECT(
+                static_cast<void(*)(stream_t&,
+                    std::array<tcp::endpoint, 2> const&,
+                    connect_condition const&,
+                    range_connect_handler&&)>(
+                        &beast::async_connect));
+
+            BEAST_EXPECT(
+                static_cast<void(*)(stream_t&,
+                    tcp::endpoint const*,
+                    tcp::endpoint const*,
+                    iterator_connect_handler&&)>(
+                        &beast::async_connect));
+
+            BEAST_EXPECT(
+                static_cast<void(*)(stream_t&,
+                    tcp::endpoint const*,
+                    tcp::endpoint const*,
+                    connect_condition const&,
+                    iterator_connect_handler&&)>(
+                        &beast::async_connect));
+
+            // use_future
+
+            BEAST_EXPECT(static_cast<std::future<
+                tcp::endpoint>(*)(stream_t&,
+                    std::array<tcp::endpoint, 2> const&,
+                    net::use_future_t<>&&)>(
+                        &beast::async_connect));
+
+            BEAST_EXPECT(static_cast<std::future<
+                tcp::endpoint>(*)(stream_t&,
+                    std::array<tcp::endpoint, 2> const&,
+                    connect_condition const&,
+                    net::use_future_t<>&&)>(
+                        &beast::async_connect));
+
+            BEAST_EXPECT(static_cast<std::future<
+                tcp::endpoint const*>(*)(stream_t&,
+                    tcp::endpoint const*,
+                    tcp::endpoint const*,
+                    net::use_future_t<>&&)>(
+                        &beast::async_connect));
+
+            BEAST_EXPECT(static_cast<std::future<
+                tcp::endpoint const*>(*)(stream_t&,
+                    tcp::endpoint const*,
+                    tcp::endpoint const*,
+                    connect_condition const&,
+                    net::use_future_t<>&&)>(
+                        &beast::async_connect));
+
+            // yield_context
+
+            BEAST_EXPECT(static_cast<
+                tcp::endpoint(*)(stream_t&,
+                    std::array<tcp::endpoint, 2> const&,
+                    net::yield_context&&)>(
+                        &beast::async_connect));
+
+            BEAST_EXPECT(static_cast<
+                tcp::endpoint(*)(stream_t&,
+                    std::array<tcp::endpoint, 2> const&,
+                    connect_condition const&,
+                    net::yield_context&&)>(
+                        &beast::async_connect));
+
+            BEAST_EXPECT(static_cast<
+                tcp::endpoint const*(*)(stream_t&,
+                    tcp::endpoint const*,
+                    tcp::endpoint const*,
+                    net::yield_context&&)>(
+                        &beast::async_connect));
+
+            BEAST_EXPECT(static_cast<
+                tcp::endpoint const*(*)(stream_t&,
+                    tcp::endpoint const*,
+                    tcp::endpoint const*,
+                    connect_condition const&,
+                    net::yield_context&&)>(
+                        &beast::async_connect));
+        }
+
         // overload 1
         {
+            //BEAST_EXPECT();
+
             server srv("", ep, log);
             net::io_context ioc;
             stream_t s(ioc);
@@ -917,6 +1045,7 @@ public:
     {
         testStrand();
         testMembers();
+        testAsyncStream();
         testRead();
         testWrite();
         testConnect();
