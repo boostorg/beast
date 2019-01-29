@@ -34,7 +34,7 @@ public:
         }
 
         template<class T>
-        std::size_t write_some(T const&, error_code&)
+        std::size_t write_some(T const&, boost::system::error_code&)
         {
             return 0;
         }
@@ -163,8 +163,9 @@ public:
     void
     testJavadoc()
     {
-        using type = write_stream<without>;
-        type s;
+        write_stream<without> s;
+        BOOST_STATIC_ASSERT(
+            is_sync_write_stream<without>::value);
         BOOST_STATIC_ASSERT(std::is_same<
             decltype(get_lowest_layer(s)), without&>::value);
 

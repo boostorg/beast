@@ -73,6 +73,8 @@ using lowest_layer_type = detail::lowest_layer_type<T>;
     @endcode
 
     @param t The layer in a stack of layered objects for which the lowest layer is returned.
+
+    @see @ref close_socket, @ref lowest_layer_type
 */
 template<class T>
 lowest_layer_type<T>&

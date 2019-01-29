@@ -10,6 +10,7 @@
 // Test that header file is self-contained.
 #include <boost/beast/core/type_traits.hpp>
 
+#include <boost/beast/_experimental/test/stream.hpp>
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/streambuf.hpp>
 #include <boost/asio/detail/consuming_buffers.hpp>
@@ -82,6 +83,46 @@ BOOST_STATIC_ASSERT(! is_completion_handler<H, void(void)>::value);
 // stream concepts
 //
 
+struct sync_write_stream
+{
+    net::io_context&
+    get_io_service();
+
+    template<class ConstBufferSequence>
+    std::size_t
+    write_some(ConstBufferSequence const& buffers);
+
+    template<class ConstBufferSequence>
+    std::size_t
+    write_some(
+        ConstBufferSequence const& buffers, error_code& ec);
+};
+
+struct sync_read_stream
+{
+    template<class MutableBufferSequence>
+    std::size_t
+    read_some(MutableBufferSequence const& buffers);
+
+    template<class MutableBufferSequence>
+    std::size_t
+    read_some(MutableBufferSequence const& buffers,
+        error_code& ec);
+};
+
+struct sync_stream : sync_read_stream, sync_write_stream
+{
+};
+
+BOOST_STATIC_ASSERT(! is_sync_read_stream<sync_write_stream>::value);
+BOOST_STATIC_ASSERT(! is_sync_write_stream<sync_read_stream>::value);
+
+BOOST_STATIC_ASSERT(is_sync_read_stream<sync_read_stream>::value);
+BOOST_STATIC_ASSERT(is_sync_write_stream<sync_write_stream>::value);
+
+BOOST_STATIC_ASSERT(is_sync_read_stream<sync_stream>::value);
+BOOST_STATIC_ASSERT(is_sync_write_stream<sync_stream>::value);
+
 namespace {
 
 using stream_type = net::ip::tcp::socket;
@@ -105,6 +146,11 @@ BOOST_STATIC_ASSERT(! is_async_read_stream<not_a_stream>::value);
 BOOST_STATIC_ASSERT(! is_async_write_stream<not_a_stream>::value);
 BOOST_STATIC_ASSERT(! is_sync_read_stream<not_a_stream>::value);
 BOOST_STATIC_ASSERT(! is_sync_write_stream<not_a_stream>::value);
+
+BOOST_STATIC_ASSERT(is_sync_read_stream<test::stream>::value);
+BOOST_STATIC_ASSERT(is_sync_write_stream<test::stream>::value);
+BOOST_STATIC_ASSERT(is_async_read_stream<test::stream>::value);
+BOOST_STATIC_ASSERT(is_async_write_stream<test::stream>::value);
 
 } // (anonymous)
 

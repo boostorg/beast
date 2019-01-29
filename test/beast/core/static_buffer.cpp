@@ -35,15 +35,6 @@ public:
         is_mutable_dynamic_buffer<
             static_buffer_base>::value);
 
-#if ! defined( BOOST_LIBSTDCXX_VERSION ) || BOOST_LIBSTDCXX_VERSION >= 50000
-# ifndef BOOST_ASIO_ENABLE_BUFFER_DEBUGGING
-    BOOST_STATIC_ASSERT(std::is_trivially_copyable<
-        static_buffer_base::const_buffers_type>::value);
-    BOOST_STATIC_ASSERT(std::is_trivially_copyable<
-        static_buffer_base::mutable_data_type>::value);
-# endif
-#endif
-
     void
     testDynamicBuffer()
     {

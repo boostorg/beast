@@ -2,6 +2,7 @@ Version 208:
 
 * Add get_lowest_layer free function
 * Add lowest_layer_type metafunction
+* Add close_socket, beast_close_socket customization
 
 --------------------------------------------------------------------------------
 

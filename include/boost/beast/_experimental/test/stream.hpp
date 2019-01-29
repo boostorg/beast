@@ -504,6 +504,15 @@ public:
 #endif
 };
 
+#if ! BOOST_BEAST_DOXYGEN
+inline
+void
+beast_close_socket(stream& s)
+{
+    s.close();
+}
+#endif
+
 #if BOOST_BEAST_DOXYGEN
 /** Return a new stream connected to the given stream
 

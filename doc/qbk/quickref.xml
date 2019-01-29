@@ -225,6 +225,7 @@
           <simplelist type="vert" columns="1">
             <member><link linkend="beast.ref.boost__beast__allocate_stable">allocate_stable</link></member>
             <member><link linkend="beast.ref.boost__beast__async_connect">async_connect</link></member>
+            <member><link linkend="beast.ref.boost__beast__beast_close_socket">beast_close_socket</link></member>
             <member><link linkend="beast.ref.boost__beast__bind_back_handler">bind_back_handler</link></member>
             <member><link linkend="beast.ref.boost__beast__bind_front_handler">bind_front_handler</link></member>
             <member><link linkend="beast.ref.boost__beast__bind_handler">bind_handler</link></member>

@@ -289,9 +289,10 @@ struct is_sync_write_stream : std::false_type {};
 
 template<class T>
 struct is_sync_write_stream<T, detail::void_t<decltype(
+    (
     std::declval<std::size_t&>() = std::declval<T&>().write_some(
-        std::declval<detail::ConstBufferSequence>()),
-    std::declval<std::size_t&>() = std::declval<T&>().write_some(
+        std::declval<detail::ConstBufferSequence>()))
+    ,std::declval<std::size_t&>() = std::declval<T&>().write_some(
         std::declval<detail::ConstBufferSequence>(),
         std::declval<boost::system::error_code&>())
             )>> : std::true_type {};

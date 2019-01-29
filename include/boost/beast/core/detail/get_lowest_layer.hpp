@@ -17,46 +17,38 @@ namespace boost {
 namespace beast {
 namespace detail {
 
-template<class T, class = void>
-struct has_next_layer : std::false_type
-{
-};
+template <class T>
+std::false_type has_next_layer_impl(void*) {}
 
-template<class T>
-struct has_next_layer<T, boost::void_t<
-    decltype(std::declval<T>().next_layer())>>
-    : std::true_type
+template <class T>
+auto has_next_layer_impl(decltype(nullptr)) ->
+    decltype(std::declval<T&>().next_layer(), std::true_type{})
 {
-};
+}
 
-template<class T, class = void>
+template <class T>
+using has_next_layer = decltype(has_next_layer_impl<T>(nullptr));
+
+//---
+
+template<class T, bool = has_next_layer<T>::value>
 struct lowest_layer_type_impl
 {
     using type = typename std::remove_reference<T>::type;
 };
 
 template<class T>
-struct lowest_layer_type_impl<T, boost::void_t<
-    decltype(std::declval<T>().next_layer())>>
+struct lowest_layer_type_impl<T, true>
 {
     using type = typename lowest_layer_type_impl<
-        decltype(std::declval<T>().next_layer())>::type;
+        decltype(std::declval<T&>().next_layer())>::type;
 };
 
 template<class T>
 using lowest_layer_type = typename
     lowest_layer_type_impl<T>::type;
 
-template<class T>
-lowest_layer_type<T>&
-get_lowest_layer_impl(
-    T& t, std::true_type) noexcept
-{
-    using type = typename std::decay<
-        decltype(t.next_layer())>::type;
-    return get_lowest_layer_impl(t.next_layer(),
-        has_next_layer<type>{});
-}
+//---
 
 template<class T>
 T&
@@ -64,6 +56,16 @@ get_lowest_layer_impl(
     T& t, std::false_type) noexcept
 {
     return t;
+}
+
+template<class T>
+lowest_layer_type<T>&
+get_lowest_layer_impl(
+    T& t, std::true_type) noexcept
+{
+    return get_lowest_layer_impl(t.next_layer(),
+        has_next_layer<typename std::decay<
+            decltype(t.next_layer())>::type>{});
 }
 
 } // detail
