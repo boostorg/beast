@@ -15,7 +15,12 @@ configuration:
   #- Debug
   - Release
 
+environment:
+  OPENSSL_ROOT: C:\tools\vcpkg\installed\x64-windows
+
 install:
+  - vcpkg install openssl --triplet x64-windows
+  - ps: cp tools\user-config.jam ~\user-config.jam
   - SET BOOST_BRANCH=develop
   - IF "%APPVEYOR_REPO_BRANCH%" == "master" SET BOOST_BRANCH=master
   - CD ..
@@ -95,5 +100,8 @@ install:
 build: off
 
 test_script:
-  - b2 libs/beast/example toolset=msvc-14.0
-  - b2 --verbose-test libs/beast/test//run-fat-tests toolset=msvc-14.0
+  - b2 variant=release cxxstd=11 address-model=64 libs/beast/example toolset=msvc-14.0
+  - b2 variant=release cxxstd=11 address-model=64 --verbose-test libs/beast/test//run-fat-tests toolset=msvc-14.0
+
+cache:
+- c:\tools\vcpkg\installed\
