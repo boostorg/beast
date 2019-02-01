@@ -111,6 +111,12 @@
 [def __flat_static_buffer_base__ [link beast.ref.boost__beast__flat_static_buffer_base `flat_static_buffer_base`]]
 [def __websocket_stream__       [link beast.ref.boost__beast__websocket__stream `websocket::stream`]]
 
+[/
+    VFALCO unfortunately quickbook wants relative paths and we have no
+    variables so all of the .cpp and .hpp files are placed here to keep
+    the paths close to absolute.
+]
+
 [import ../../example/common/detect_ssl.hpp]
 [import ../../example/doc/http_examples.hpp]
 [import ../../example/echo-op/echo_op.cpp]
@@ -121,18 +127,20 @@
 
 [import ../../test/doc/exemplars.cpp]
 [import ../../test/doc/core_snippets.cpp]
-[import ../../test/doc/core_3_layers.cpp]
 [import ../../test/doc/http_snippets.cpp]
 [import ../../test/doc/websocket_snippets.cpp]
 
-[include 01_intro.qbk]
-[include 02_examples.qbk]
-[include 03_core.qbk]
-[include 04_http.qbk]
-[include 05_http_examples.qbk]
-[include 06_websocket.qbk]
-[include 07_concepts.qbk]
-[include 08_design.qbk]
+[import ../../test/doc/core_1_refresher.cpp]
+[import ../../test/doc/core_3_layers.cpp]
+
+[include 01_intro/0_intro.qbk]
+[include 02_examples/0_examples.qbk]
+[include 03_core/0_core.qbk]
+[include 04_http/0_http.qbk]
+[include 05_http_examples/0_http_examples.qbk]
+[include 06_websocket/0_websocket.qbk]
+[include 07_concepts/0_concepts.qbk]
+[include 08_design/0_design.qbk]
 [include 09_releases.qbk]
 
 [section:quickref Reference]

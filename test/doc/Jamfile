@@ -20,6 +20,7 @@ alias run-tests :
     [ compile http_snippets.cpp ]
     [ compile websocket_snippets.cpp ]
     [ run core_examples.cpp $(TEST_MAIN) ]
+    [ run core_1_refresher.cpp $(TEST_MAIN) ]
     [ run core_3_layers.cpp $(TEST_MAIN) ]
     [ run http_examples.cpp $(TEST_MAIN) ]
     ;
@@ -27,6 +28,7 @@ alias run-tests :
 exe fat-tests :
     $(TEST_MAIN)
     core_examples.cpp
+    core_1_refresher.cpp
     core_3_layers.cpp
     http_examples.cpp
     ;

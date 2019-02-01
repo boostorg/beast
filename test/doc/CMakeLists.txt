@@ -17,9 +17,11 @@ add_executable (tests-doc
     ${EXTRAS_FILES}
     ${TEST_MAIN}
     Jamfile
+    snippets.hpp
     snippets.ipp
     core_examples.cpp
     core_snippets.cpp
+    core_1_refresher.cpp
     core_3_layers.cpp
     http_examples.cpp
     http_snippets.cpp

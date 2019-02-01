@@ -66,9 +66,9 @@ interfaces of Beast (which have since changed).
 </mediaobject>
 ''']
 
-[include 08_design/1_http_message.qbk]
-[include 08_design/2_http_comparison.qbk]
-[include 08_design/3_websocket_zaphoyd.qbk]
-[include 08_design/4_faq.qbk]
+[include 1_http_message.qbk]
+[include 2_http_comparison.qbk]
+[include 3_websocket_zaphoyd.qbk]
+[include 4_faq.qbk]
 
 [endsect]

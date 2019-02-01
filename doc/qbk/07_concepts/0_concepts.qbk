@@ -11,14 +11,14 @@
 
 This section describes all of the concepts defined by the library.
 
-[include 07_concepts/Body.qbk]
-[include 07_concepts/BodyReader.qbk]
-[include 07_concepts/BodyWriter.qbk]
-[include 07_concepts/BufferSequence.qbk]
-[include 07_concepts/DynamicBuffer.qbk]
-[include 07_concepts/Fields.qbk]
-[include 07_concepts/FieldsWriter.qbk]
-[include 07_concepts/File.qbk]
-[include 07_concepts/Streams.qbk]
+[include Body.qbk]
+[include BodyReader.qbk]
+[include BodyWriter.qbk]
+[include BufferSequence.qbk]
+[include DynamicBuffer.qbk]
+[include Fields.qbk]
+[include FieldsWriter.qbk]
+[include File.qbk]
+[include Streams.qbk]
 
 [endsect]

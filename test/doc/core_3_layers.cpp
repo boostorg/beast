@@ -22,10 +22,8 @@
 namespace boost {
 namespace beast {
 
-namespace {
-
 void
-snippets()
+core_3_layers_snippets()
 {
     #include "snippets.ipp"
     {
@@ -231,8 +229,6 @@ BOOST_STATIC_ASSERT(is_sync_write_stream<counted_stream<test::stream>>::value);
 BOOST_STATIC_ASSERT(is_async_read_stream<counted_stream<test::stream>>::value);
 BOOST_STATIC_ASSERT(is_async_write_stream<counted_stream<test::stream>>::value);
 
-} // (anon)
-
 struct core_3_layers_test
     : public beast::unit_test::suite
 {
@@ -246,7 +242,7 @@ struct core_3_layers_test
     void
     run() override
     {
-        BEAST_EXPECT(&snippets);
+        BEAST_EXPECT(&core_3_layers_snippets);
         BEAST_EXPECT(&set_non_blocking<net::ip::tcp::socket>);
 
         BEAST_EXPECT(&counted_stream<test::stream>::get_executor);
