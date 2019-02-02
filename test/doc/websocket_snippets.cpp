@@ -195,7 +195,7 @@ boost::ignore_unused(ec);
     // message was in binary mode, otherwise we will send in text mode.
     ws.binary(ws.got_binary());
 
-    // This buffer adapter allows us to iterate through buffer in pieces
+    // This buffer adaptor allows us to iterate through buffer in pieces
     buffers_suffix<multi_buffer::const_buffers_type> cb{buffer.data()};
 
     // Echo the received message in pieces.
@@ -210,7 +210,7 @@ boost::ignore_unused(ec);
             // the stream that the message is not complete.
             ws.write_some(false, buffers_prefix(512, cb));
 
-            // This efficiently discards data from the adapter by
+            // This efficiently discards data from the adaptor by
             // simply ignoring it, but does not actually affect the
             // underlying dynamic buffer.
             cb.consume(512);

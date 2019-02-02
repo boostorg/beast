@@ -24,7 +24,7 @@
 namespace boost {
 namespace beast {
 
-/** A buffer sequence adapter that shortens the sequence size.
+/** A buffer sequence adaptor that shortens the sequence size.
 
     The class adapts a buffer sequence to efficiently represent
     a shorter subset of the original list of buffers starting
