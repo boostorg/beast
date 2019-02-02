@@ -450,13 +450,16 @@ TeardownHandler&& handler)
 template<class Handler, class Buffers>
 class stream::read_op : public stream::read_op_base
 {
+    using ex1_type = net::io_context::executor_type;
+    using ex2_type = net::associated_executor_t<Handler, ex1_type>;
+
     class lambda
     {
         state& s_;
         Buffers b_;
         Handler h_;
-        net::executor_work_guard<
-            net::io_context::executor_type> work_;
+        net::executor_work_guard<ex1_type> wg1_;
+        net::executor_work_guard<ex2_type> wg2_;
 
     public:
         lambda(lambda&&) = default;
@@ -467,7 +470,9 @@ class stream::read_op : public stream::read_op_base
             : s_(s)
             , b_(b)
             , h_(std::forward<DeducedHandler>(h))
-            , work_(s_.ioc.get_executor())
+            , wg1_(s_.ioc.get_executor())
+            , wg2_(net::get_associated_executor(
+                h_, s_.ioc.get_executor()))
         {
         }
 
@@ -477,7 +482,8 @@ class stream::read_op : public stream::read_op_base
             net::post(
                 s_.ioc.get_executor(),
                 std::move(*this));
-            work_.reset();
+            wg1_.reset();
+            wg2_.reset();
         }
 
         void
