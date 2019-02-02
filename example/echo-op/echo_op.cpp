@@ -277,7 +277,7 @@ async_echo(AsyncStream& stream, CompletionToken&& token)
         BOOST_ASIO_HANDLER_TYPE(
             CompletionToken, void(boost::beast::error_code))>{
                 stream,
-                init.completion_handler}(boost::beast::error_code{}, 0);
+                std::move(init.completion_handler)}({}, 0);
 
     // This hook lets the caller see a return value when appropriate.
     // For example this might return std::future<error_code> if
@@ -288,6 +288,18 @@ async_echo(AsyncStream& stream, CompletionToken&& token)
 }
 
 //]
+
+struct move_only_handler
+{
+    move_only_handler(move_only_handler&&) = default;
+    move_only_handler(move_only_handler const&) = delete;
+
+    void operator()(boost::beast::error_code ec)
+    {
+        if(ec)
+            std::cerr << ": " << ec.message() << std::endl;
+    }
+};
 
 int main(int argc, char** argv)
 {
@@ -317,12 +329,7 @@ int main(int argc, char** argv)
     acceptor.bind(ep);
     acceptor.listen();
     acceptor.accept(sock);
-    async_echo(sock,
-        [&](boost::beast::error_code ec)
-        {
-            if(ec)
-                std::cerr << argv[0] << ": " << ec.message() << std::endl;
-        });
+    async_echo(sock, move_only_handler{});
     ioc.run();
     return EXIT_SUCCESS;
 }

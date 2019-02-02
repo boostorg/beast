@@ -1,6 +1,7 @@
 Version 209:
 
 * Faster http::string_to_field
+* async_echo supports move-only handlers
 
 --------------------------------------------------------------------------------
 
