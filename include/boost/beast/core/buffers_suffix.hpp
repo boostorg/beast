@@ -44,7 +44,8 @@ namespace beast {
     void send(SyncWriteStream& stream, ConstBufferSequence const& buffers)
     {
         buffers_suffix<ConstBufferSequence> bs{buffers};
-        while(net::buffer_size(bs) > 0)
+        using net::buffer_size;
+        while(buffer_size(bs) > 0)
             bs.consume(stream.write_some(bs));
     }
     @endcode
@@ -79,13 +80,6 @@ public:
     */
 #if BOOST_BEAST_DOXYGEN
     using value_type = __see_below__;
-#elif 0
-    using value_type = typename std::conditional<
-        std::is_convertible<typename
-            std::iterator_traits<iter_type>::value_type,
-                net::mutable_buffer>::value,
-                    net::mutable_buffer,
-                        net::const_buffer>::type;
 #else
     using value_type = buffers_type<BufferSequence>;
 #endif

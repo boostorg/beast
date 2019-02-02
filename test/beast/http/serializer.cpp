@@ -91,7 +91,8 @@ public:
         operator()(error_code&,
             ConstBufferSequence const& buffers)
         {
-            size = net::buffer_size(buffers);
+            using net::buffer_size;
+            size = buffer_size(buffers);
         }
     };
 

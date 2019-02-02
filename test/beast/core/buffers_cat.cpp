@@ -298,12 +298,8 @@ public:
     void
     testGccWarning2()
     {
-        using net::buffer;
-        using net::buffer_copy;
-        using net::const_buffer;
-
         char out[64];
-        const_buffer buffers("Hello, world!", 13);
+        net::const_buffer buffers("Hello, world!", 13);
         std::size_t i = 3;
         buffers_suffix<net::const_buffer> cb{buffers};
         cb.consume(i);

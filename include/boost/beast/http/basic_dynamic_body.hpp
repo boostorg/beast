@@ -88,7 +88,6 @@ struct basic_dynamic_body
         put(ConstBufferSequence const& buffers,
             error_code& ec)
         {
-            using net::buffer_copy;
             using net::buffer_size;
             auto const n = buffer_size(buffers);
             if(body_.size() > body_.max_size() - n)
@@ -104,7 +103,7 @@ struct basic_dynamic_body
             if(ec)
                 return 0;
             auto const bytes_transferred =
-                buffer_copy(*mb, buffers);
+                net::buffer_copy(*mb, buffers);
             body_.commit(bytes_transferred);
             return bytes_transferred;
         }

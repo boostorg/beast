@@ -183,6 +183,7 @@ test_buffer_sequence(
 
     // bidirectional
     {
+        using net::buffer_size;
         auto const first =
             net::buffer_sequence_begin(buffers);
         auto const last =
@@ -194,7 +195,7 @@ test_buffer_sequence(
         m = 0;
         n = length;
         for(it = first; n--; ++it)
-            m += net::buffer_size(*it);
+            m += buffer_size(*it);
         BEAST_EXPECT(it == last);
         BEAST_EXPECT(m == size);
 
@@ -202,7 +203,7 @@ test_buffer_sequence(
         m = 0;
         n = length;
         for(it = first; n--;)
-            m += net::buffer_size(*it++);
+            m += buffer_size(*it++);
         BEAST_EXPECT(it == last);
         BEAST_EXPECT(m == size);
 
@@ -210,7 +211,7 @@ test_buffer_sequence(
         m = 0;
         n = length;
         for(it = last; n--;)
-            m += net::buffer_size(*--it);
+            m += buffer_size(*--it);
         BEAST_EXPECT(it == first);
         BEAST_EXPECT(m == size);
 
@@ -220,7 +221,7 @@ test_buffer_sequence(
         for(it = last; n--;)
         {
             it--;
-            m += net::buffer_size(*it);
+            m += buffer_size(*it);
         }
         BEAST_EXPECT(it == first);
         BEAST_EXPECT(m == size);

@@ -121,15 +121,14 @@ public:
     template<class Buffers>
     void run(Buffers const& buffers)
     {
-        using net::buffer_copy;
-        using net::buffer_size;
         error_code ec;
+        using net::buffer_size;
         auto const mb = beast::detail::dynamic_buffer_prepare(
             ws_.impl_->rd_buf, buffer_size(buffers), ec,
                 error::buffer_overflow);
         if(ec)
             return (*this)(ec);
-        ws_.impl_->rd_buf.commit(buffer_copy(*mb, buffers));
+        ws_.impl_->rd_buf.commit(net::buffer_copy(*mb, buffers));
         (*this)(ec);
     }
 
@@ -296,15 +295,14 @@ accept(
     static_assert(net::is_const_buffer_sequence<
         ConstBufferSequence>::value,
             "ConstBufferSequence requirements not met");
-    using net::buffer_copy;
-    using net::buffer_size;
     impl_->reset();
+    using net::buffer_size;
     auto const mb = beast::detail::dynamic_buffer_prepare(
         impl_->rd_buf, buffer_size(buffers), ec,
             error::buffer_overflow);
     if(ec)
         return;
-    impl_->rd_buf.commit(buffer_copy(*mb, buffers));
+    impl_->rd_buf.commit(net::buffer_copy(*mb, buffers));
     do_accept(&default_decorate_res, ec);
 }
 
@@ -328,15 +326,14 @@ accept_ex(
     static_assert(net::is_const_buffer_sequence<
         ConstBufferSequence>::value,
             "ConstBufferSequence requirements not met");
-    using net::buffer_copy;
-    using net::buffer_size;
     impl_->reset();
+    using net::buffer_size;
     auto const mb = beast::detail::dynamic_buffer_prepare(
         impl_->rd_buf, buffer_size(buffers), ec,
             error::buffer_overflow);
     if(ec)
         return;
-    impl_->rd_buf.commit(buffer_copy(*mb, buffers));
+    impl_->rd_buf.commit(net::buffer_copy(*mb, buffers));
     do_accept(decorator, ec);
 }
 

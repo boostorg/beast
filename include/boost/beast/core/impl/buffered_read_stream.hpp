@@ -161,8 +161,6 @@ read_some(MutableBufferSequence const& buffers,
     static_assert(net::is_mutable_buffer_sequence<
         MutableBufferSequence>::value,
             "MutableBufferSequence requirements not met");
-    using net::buffer_size;
-    using net::buffer_copy;
     if(buffer_.size() == 0)
     {
         if(capacity_ == 0)
@@ -178,7 +176,7 @@ read_some(MutableBufferSequence const& buffers,
         ec = {};
     }
     auto bytes_transferred =
-        buffer_copy(buffers, buffer_.data());
+        net::buffer_copy(buffers, buffer_.data());
     buffer_.consume(bytes_transferred);
     return bytes_transferred;
 }

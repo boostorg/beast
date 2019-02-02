@@ -149,7 +149,8 @@ setup(std::size_t size)
     auto const last = bs_.end();
     while(end_ != last)
     {
-        auto const len = net::buffer_size(*end_++);
+        using net::buffer_size;
+        auto const len = buffer_size(*end_++);
         if(len >= size)
         {
             size_ += size;

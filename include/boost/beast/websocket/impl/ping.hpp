@@ -12,7 +12,6 @@
 
 #include <boost/beast/core/async_op_base.hpp>
 #include <boost/beast/core/bind_handler.hpp>
-#include <boost/beast/core/handler_ptr.hpp>
 #include <boost/beast/core/type_traits.hpp>
 #include <boost/beast/core/detail/get_executor_type.hpp>
 #include <boost/beast/websocket/detail/frame.hpp>

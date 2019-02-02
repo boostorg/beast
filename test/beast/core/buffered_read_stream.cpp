@@ -97,16 +97,14 @@ public:
         void
         do_read()
         {
-            using net::buffer;
-            using net::buffer_copy;
             s_.resize(13);
             fc_.emplace(n_);
             ts_.emplace(ioc_, *fc_, ", world!");
             brs_.emplace(*ts_);
-            brs_->buffer().commit(buffer_copy(
-                brs_->buffer().prepare(5), buffer("Hello", 5)));
+            brs_->buffer().commit(net::buffer_copy(
+                brs_->buffer().prepare(5), net::buffer("Hello", 5)));
             net::async_read(*brs_,
-                buffer(&s_[0], s_.size()),
+                net::buffer(&s_[0], s_.size()),
                     std::bind(
                         &loop::on_read,
                         shared_from_this(),
@@ -124,8 +122,6 @@ public:
 
     void testRead(yield_context do_yield)
     {
-        using net::buffer;
-        using net::buffer_copy;
         static std::size_t constexpr limit = 100;
         std::size_t n;
         std::string s;
@@ -137,10 +133,10 @@ public:
             test::stream ts(ioc_, fc, ", world!");
             buffered_read_stream<
                 test::stream&, multi_buffer> srs(ts);
-            srs.buffer().commit(buffer_copy(
-                srs.buffer().prepare(5), buffer("Hello", 5)));
+            srs.buffer().commit(net::buffer_copy(
+                srs.buffer().prepare(5), net::buffer("Hello", 5)));
             error_code ec = test::error::test_failure;
-            net::read(srs, buffer(&s[0], s.size()), ec);
+            net::read(srs, net::buffer(&s[0], s.size()), ec);
             if(! ec)
             {
                 BEAST_EXPECT(s == "Hello, world!");
@@ -156,10 +152,10 @@ public:
             buffered_read_stream<
                 test::stream&, multi_buffer> srs(ts);
             srs.capacity(3);
-            srs.buffer().commit(buffer_copy(
-                srs.buffer().prepare(5), buffer("Hello", 5)));
+            srs.buffer().commit(net::buffer_copy(
+                srs.buffer().prepare(5), net::buffer("Hello", 5)));
             error_code ec = test::error::test_failure;
-            net::read(srs, buffer(&s[0], s.size()), ec);
+            net::read(srs, net::buffer(&s[0], s.size()), ec);
             if(! ec)
             {
                 BEAST_EXPECT(s == "Hello, world!");
@@ -174,11 +170,11 @@ public:
             test::stream ts(ioc_, fc, ", world!");
             buffered_read_stream<
                 test::stream&, multi_buffer> srs(ts);
-            srs.buffer().commit(buffer_copy(
-                srs.buffer().prepare(5), buffer("Hello", 5)));
+            srs.buffer().commit(net::buffer_copy(
+                srs.buffer().prepare(5), net::buffer("Hello", 5)));
             error_code ec = test::error::test_failure;
             net::async_read(
-                srs, buffer(&s[0], s.size()), do_yield[ec]);
+                srs, net::buffer(&s[0], s.size()), do_yield[ec]);
             if(! ec)
             {
                 BEAST_EXPECT(s == "Hello, world!");
@@ -194,11 +190,11 @@ public:
             buffered_read_stream<
                 test::stream&, multi_buffer> srs(ts);
             srs.capacity(3);
-            srs.buffer().commit(buffer_copy(
-                srs.buffer().prepare(5), buffer("Hello", 5)));
+            srs.buffer().commit(net::buffer_copy(
+                srs.buffer().prepare(5), net::buffer("Hello", 5)));
             error_code ec = test::error::test_failure;
             net::async_read(
-                srs, buffer(&s[0], s.size()), do_yield[ec]);
+                srs, net::buffer(&s[0], s.size()), do_yield[ec]);
             if(! ec)
             {
                 BEAST_EXPECT(s == "Hello, world!");

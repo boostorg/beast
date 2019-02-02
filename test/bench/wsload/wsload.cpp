@@ -187,8 +187,9 @@ private:
     void
     do_write()
     {
+        using net::buffer_size;
         std::geometric_distribution<std::size_t> dist{
-            double(4) / net::buffer_size(tb_)};
+            double(4) / buffer_size(tb_)};
         ws_.async_write_some(true,
             boost::beast::buffers_prefix(dist(rng_), tb_),
             alloc_.wrap(std::bind(

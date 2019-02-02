@@ -121,19 +121,18 @@ struct buffer_body
         put(ConstBufferSequence const& buffers,
             error_code& ec)
         {
-            using net::buffer_size;
-            using net::buffer_copy;
             if(! body_.data)
             {
                 ec = error::need_buffer;
                 return 0;
             }
             auto const bytes_transferred =
-                buffer_copy(net::buffer(
+                net::buffer_copy(net::buffer(
                     body_.data, body_.size), buffers);
             body_.data = static_cast<char*>(
                 body_.data) + bytes_transferred;
             body_.size -= bytes_transferred;
+            using net::buffer_size;
             if(bytes_transferred == buffer_size(buffers))
                 ec = {};
             else

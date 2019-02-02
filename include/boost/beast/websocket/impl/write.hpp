@@ -88,10 +88,7 @@ operator()(
     bool cont)
 {
     using beast::detail::clamp;
-    using net::buffer;
-    using net::buffer_copy;
     using net::buffer_size;
-    using net::mutable_buffer;
     enum
     {
         do_nomask_nofrag,
@@ -266,9 +263,9 @@ operator()(
             detail::write<flat_static_buffer_base>(
                 ws_.impl_->wr_fb, fh_);
             n = clamp(remain_, ws_.impl_->wr_buf_size);
-            buffer_copy(buffer(
+            net::buffer_copy(net::buffer(
                 ws_.impl_->wr_buf.get(), n), cb_);
-            detail::mask_inplace(buffer(
+            detail::mask_inplace(net::buffer(
                 ws_.impl_->wr_buf.get(), n), key_);
             remain_ -= n;
             ws_.impl_->wr_cont = ! fin_;
@@ -276,7 +273,7 @@ operator()(
             BOOST_ASIO_CORO_YIELD
             net::async_write(
                 ws_.impl_->stream, buffers_cat(ws_.impl_->wr_fb.data(),
-                    buffer(ws_.impl_->wr_buf.get(), n)),
+                    net::buffer(ws_.impl_->wr_buf.get(), n)),
                         std::move(*this));
             if(! ws_.impl_->check_ok(ec))
                 goto upcall;
@@ -286,15 +283,15 @@ operator()(
             {
                 cb_.consume(ws_.impl_->wr_buf_size);
                 n = clamp(remain_, ws_.impl_->wr_buf_size);
-                buffer_copy(buffer(
+                net::buffer_copy(net::buffer(
                     ws_.impl_->wr_buf.get(), n), cb_);
-                detail::mask_inplace(buffer(
+                detail::mask_inplace(net::buffer(
                     ws_.impl_->wr_buf.get(), n), key_);
                 remain_ -= n;
                 // Send partial payload
                 BOOST_ASIO_CORO_YIELD
                 net::async_write(ws_.impl_->stream,
-                    buffer(ws_.impl_->wr_buf.get(), n),
+                    net::buffer(ws_.impl_->wr_buf.get(), n),
                         std::move(*this));
                 if(! ws_.impl_->check_ok(ec))
                     goto upcall;
@@ -315,9 +312,9 @@ operator()(
                 fh_.key = ws_.create_mask();
                 fh_.fin = fin_ ? remain_ == 0 : false;
                 detail::prepare_key(key_, fh_.key);
-                buffer_copy(buffer(
+                net::buffer_copy(net::buffer(
                     ws_.impl_->wr_buf.get(), n), cb_);
-                detail::mask_inplace(buffer(
+                detail::mask_inplace(net::buffer(
                     ws_.impl_->wr_buf.get(), n), key_);
                 ws_.impl_->wr_fb.clear();
                 detail::write<flat_static_buffer_base>(
@@ -327,7 +324,7 @@ operator()(
                 BOOST_ASIO_CORO_YIELD
                 net::async_write(ws_.impl_->stream,
                     buffers_cat(ws_.impl_->wr_fb.data(),
-                        buffer(ws_.impl_->wr_buf.get(), n)),
+                        net::buffer(ws_.impl_->wr_buf.get(), n)),
                             std::move(*this));
                 if(! ws_.impl_->check_ok(ec))
                     goto upcall;
@@ -358,7 +355,7 @@ operator()(
         {
             for(;;)
             {
-                b = buffer(ws_.impl_->wr_buf.get(),
+                b = net::buffer(ws_.impl_->wr_buf.get(),
                     ws_.impl_->wr_buf_size);
                 more_ = ws_.impl_->deflate(b, cb_, fin_, in_, ec);
                 if(! ws_.impl_->check_ok(ec))
@@ -473,8 +470,6 @@ write_some(bool fin,
         ConstBufferSequence>::value,
             "ConstBufferSequence requirements not met");
     using beast::detail::clamp;
-    using net::buffer;
-    using net::buffer_copy;
     using net::buffer_size;
     std::size_t bytes_transferred = 0;
     ec = {};
@@ -503,7 +498,7 @@ write_some(bool fin,
             ConstBufferSequence> cb{buffers};
         for(;;)
         {
-            auto b = buffer(
+            auto b = net::buffer(
                 impl_->wr_buf.get(), impl_->wr_buf_size);
             auto const more = impl_->deflate(
                 b, cb, fin, bytes_transferred, ec);
@@ -605,9 +600,11 @@ write_some(bool fin,
         buffers_suffix<
             ConstBufferSequence> cb{buffers};
         {
-            auto const n = clamp(remain, impl_->wr_buf_size);
-            auto const b = buffer(impl_->wr_buf.get(), n);
-            buffer_copy(b, cb);
+            auto const n =
+                clamp(remain, impl_->wr_buf_size);
+            auto const b =
+                net::buffer(impl_->wr_buf.get(), n);
+            net::buffer_copy(b, cb);
             cb.consume(n);
             remain -= n;
             detail::mask_inplace(b, key);
@@ -620,9 +617,11 @@ write_some(bool fin,
         }
         while(remain > 0)
         {
-            auto const n = clamp(remain, impl_->wr_buf_size);
-            auto const b = buffer(impl_->wr_buf.get(), n);
-            buffer_copy(b, cb);
+            auto const n =
+                clamp(remain, impl_->wr_buf_size);
+            auto const b =
+                net::buffer(impl_->wr_buf.get(), n);
+            net::buffer_copy(b, cb);
             cb.consume(n);
             remain -= n;
             detail::mask_inplace(b, key);
@@ -643,9 +642,11 @@ write_some(bool fin,
             fh.key = this->create_mask();
             detail::prepared_key key;
             detail::prepare_key(key, fh.key);
-            auto const n = clamp(remain, impl_->wr_buf_size);
-            auto const b = buffer(impl_->wr_buf.get(), n);
-            buffer_copy(b, cb);
+            auto const n =
+                clamp(remain, impl_->wr_buf_size);
+            auto const b =
+                net::buffer(impl_->wr_buf.get(), n);
+            net::buffer_copy(b, cb);
             detail::mask_inplace(b, key);
             fh.len = n;
             remain -= n;

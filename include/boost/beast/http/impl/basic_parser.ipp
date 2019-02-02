@@ -94,8 +94,6 @@ put(ConstBufferSequence const& buffers,
     static_assert(net::is_const_buffer_sequence<
         ConstBufferSequence>::value,
             "ConstBufferSequence requirements not met");
-    using net::buffer_copy;
-    using net::buffer_size;
     auto const p = net::buffer_sequence_begin(buffers);
     auto const last = net::buffer_sequence_end(buffers);
     if(p == last)
@@ -108,6 +106,7 @@ put(ConstBufferSequence const& buffers,
         // single buffer
         return put(net::const_buffer(*p), ec);
     }
+    using net::buffer_size;
     auto const size = buffer_size(buffers);
     if(size <= max_stack_buffer)
         return put_from_stack(size, buffers, ec);
@@ -118,7 +117,7 @@ put(ConstBufferSequence const& buffers,
         buf_len_ = size;
     }
     // flatten
-    buffer_copy(net::buffer(
+    net::buffer_copy(net::buffer(
         buf_.get(), buf_len_), buffers);
     return put(net::const_buffer{
         buf_.get(), buf_len_}, ec);
@@ -304,9 +303,8 @@ put_from_stack(std::size_t size,
         error_code& ec)
 {
     char buf[max_stack_buffer];
-    using net::buffer;
-    using net::buffer_copy;
-    buffer_copy(buffer(buf, sizeof(buf)), buffers);
+    net::buffer_copy(net::mutable_buffer(
+        buf, sizeof(buf)), buffers);
     return put(net::const_buffer{
         buf, size}, ec);
 }

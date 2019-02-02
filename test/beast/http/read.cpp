@@ -39,16 +39,14 @@ public:
     void
     failMatrix(char const* s, yield_context do_yield)
     {
-        using net::buffer;
-        using net::buffer_copy;
         static std::size_t constexpr limit = 100;
         std::size_t n;
         auto const len = strlen(s);
         for(n = 0; n < limit; ++n)
         {
             multi_buffer b;
-            b.commit(buffer_copy(
-                b.prepare(len), buffer(s, len)));
+            b.commit(net::buffer_copy(
+                b.prepare(len), net::buffer(s, len)));
             test::fail_count fc(n);
             test::stream ts{ioc_, fc};
             test_parser<isRequest> p(fc);
@@ -63,8 +61,8 @@ public:
         {
             static std::size_t constexpr pre = 10;
             multi_buffer b;
-            b.commit(buffer_copy(
-                b.prepare(pre), buffer(s, pre)));
+            b.commit(net::buffer_copy(
+                b.prepare(pre), net::buffer(s, pre)));
             test::fail_count fc(n);
             test::stream ts{ioc_, fc,
                 std::string(s + pre, len - pre)};
@@ -79,8 +77,8 @@ public:
         for(n = 0; n < limit; ++n)
         {
             multi_buffer b;
-            b.commit(buffer_copy(
-                b.prepare(len), buffer(s, len)));
+            b.commit(net::buffer_copy(
+                b.prepare(len), net::buffer(s, len)));
             test::fail_count fc(n);
             test::stream ts{ioc_, fc};
             test_parser<isRequest> p(fc);
@@ -94,8 +92,8 @@ public:
         for(n = 0; n < limit; ++n)
         {
             multi_buffer b;
-            b.commit(buffer_copy(
-                b.prepare(len), buffer(s, len)));
+            b.commit(net::buffer_copy(
+                b.prepare(len), net::buffer(s, len)));
             test::fail_count fc(n);
             test::stream ts{ioc_, fc};
             test_parser<isRequest> p(fc);
@@ -110,8 +108,8 @@ public:
         {
             static std::size_t constexpr pre = 10;
             multi_buffer b;
-            b.commit(buffer_copy(
-                b.prepare(pre), buffer(s, pre)));
+            b.commit(net::buffer_copy(
+                b.prepare(pre), net::buffer(s, pre)));
             test::fail_count fc(n);
             test::stream ts(ioc_, fc,
                 std::string{s + pre, len - pre});

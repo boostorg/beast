@@ -415,7 +415,12 @@ buffers_adaptor(
     , begin_(net::buffer_sequence_begin(bs_))
     , out_  (net::buffer_sequence_begin(bs_))
     , end_  (net::buffer_sequence_begin(bs_))
-    , max_size_(net::buffer_size(bs_))
+    , max_size_(
+        [&]
+        {
+            using net::buffer_size;
+            return buffer_size(bs_);
+        }())
 {
 }
 
@@ -497,14 +502,15 @@ prepare(std::size_t n) ->
     end_ = out_;
     if(end_ != net::buffer_sequence_end(bs_))
     {
-        auto size = net::buffer_size(*end_) - out_pos_;
+        using net::buffer_size;
+        auto size = buffer_size(*end_) - out_pos_;
         if(n > size)
         {
             n -= size;
             while(++end_ !=
                 net::buffer_sequence_end(bs_))
             {
-                size = net::buffer_size(*end_);
+                size = buffer_size(*end_);
                 if(n < size)
                 {
                     out_end_ = n;
@@ -539,8 +545,9 @@ commit(std::size_t n) noexcept
     auto const last = std::prev(end_);
     while(out_ != last)
     {
+        using net::buffer_size;
         auto const avail =
-            net::buffer_size(*out_) - out_pos_;
+            buffer_size(*out_) - out_pos_;
         if(n < avail)
         {
             out_pos_ += n;
@@ -557,7 +564,7 @@ commit(std::size_t n) noexcept
         n, out_end_ - out_pos_);
     out_pos_ += n;
     in_size_ += n;
-    if(out_pos_ == net::buffer_size(*out_))
+    if(out_pos_ == buffer_size(*out_))
     {
         ++out_;
         out_pos_ = 0;
@@ -572,8 +579,9 @@ consume(std::size_t n) noexcept
 {
     while(begin_ != out_)
     {
+        using net::buffer_size;
         auto const avail =
-            net::buffer_size(*begin_) - in_pos_;
+            buffer_size(*begin_) - in_pos_;
         if(n < avail)
         {
             in_size_ -= n;

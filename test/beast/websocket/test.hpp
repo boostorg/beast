@@ -434,9 +434,8 @@ public:
         DynamicBuffer& buffer,
         ConstBufferSequence const& buffers)
     {
-        using net::buffer_copy;
         using net::buffer_size;
-        buffer.commit(buffer_copy(
+        buffer.commit(net::buffer_copy(
             buffer.prepare(buffer_size(buffers)),
             buffers));
     }

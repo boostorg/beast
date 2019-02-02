@@ -206,8 +206,9 @@ consume(std::size_t amount)
         net::buffer_sequence_end(bs_);
     for(;amount > 0 && begin_ != end; ++begin_)
     {
+        using net::buffer_size;
         auto const len =
-            net::buffer_size(*begin_) - skip_;
+            buffer_size(*begin_) - skip_;
         if(amount < len)
         {
             skip_ += amount;

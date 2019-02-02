@@ -18,7 +18,6 @@
 #include <boost/beast/core/buffers_suffix.hpp>
 #include <boost/beast/core/detail/buffers_ref.hpp>
 #include <boost/beast/core/detail/get_executor_type.hpp>
-#include <boost/beast/core/handler_ptr.hpp>
 #include <boost/asio/buffers_iterator.hpp>
 #include <boost/asio/coroutine.hpp>
 #include <boost/asio/post.hpp>
@@ -240,12 +239,11 @@ public:
                     goto upcall;
                 }
                 d_.s.copy_ = static_cast<unsigned char>(
-                    buffer_copy(
+                    net::buffer_copy(
                         net::buffer(d_.s.buf_),
                         icy_stream::version() + d_.b.max_size()));
-                bytes_transferred = buffer_copy(
-                    d_.b.value(),
-                    icy_stream::version());
+                bytes_transferred = net::buffer_copy(
+                    d_.b.value(), icy_stream::version());
                 goto upcall;
             }
 

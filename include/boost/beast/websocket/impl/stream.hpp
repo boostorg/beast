@@ -282,8 +282,6 @@ parse_fh(
     DynamicBuffer& b,
     error_code& ec)
 {
-    using net::buffer;
-    using net::buffer_copy;
     using net::buffer_size;
     if(buffer_size(b.data()) < 2)
     {
@@ -297,7 +295,8 @@ parse_fh(
     std::size_t need;
     {
         std::uint8_t tmp[2];
-        cb.consume(buffer_copy(buffer(tmp), cb));
+        cb.consume(net::buffer_copy(
+            net::buffer(tmp), cb));
         fh.len = tmp[1] & 0x7f;
         switch(fh.len)
         {
@@ -408,7 +407,7 @@ parse_fh(
     {
         std::uint8_t tmp[2];
         BOOST_ASSERT(buffer_size(cb) >= sizeof(tmp));
-        cb.consume(buffer_copy(buffer(tmp), cb));
+        cb.consume(net::buffer_copy(net::buffer(tmp), cb));
         fh.len = detail::big_uint16_to_native(&tmp[0]);
         if(fh.len < 126)
         {
@@ -422,7 +421,7 @@ parse_fh(
     {
         std::uint8_t tmp[8];
         BOOST_ASSERT(buffer_size(cb) >= sizeof(tmp));
-        cb.consume(buffer_copy(buffer(tmp), cb));
+        cb.consume(net::buffer_copy(net::buffer(tmp), cb));
         fh.len = detail::big_uint64_to_native(&tmp[0]);
         if(fh.len < 65536)
         {
@@ -437,7 +436,7 @@ parse_fh(
     {
         std::uint8_t tmp[4];
         BOOST_ASSERT(buffer_size(cb) >= sizeof(tmp));
-        cb.consume(buffer_copy(buffer(tmp), cb));
+        cb.consume(net::buffer_copy(net::buffer(tmp), cb));
         fh.key = detail::little_uint32_to_native(&tmp[0]);
         detail::prepare_key(impl_->rd_key, fh.key);
     }
@@ -456,7 +455,7 @@ parse_fh(
         else
         {
             if(impl_->rd_size > (std::numeric_limits<
-                    std::uint64_t>::max)() - fh.len)
+                std::uint64_t>::max)() - fh.len)
             {
                 // message size exceeds configured limit
                 ec = error::message_too_big;

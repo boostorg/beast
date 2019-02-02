@@ -96,7 +96,6 @@ public:
             error_code& ec)
         {
             using net::buffer_size;
-            using net::buffer_copy;
             auto const n = buffer_size(buffers);
             auto const len = body_.size();
             if(n > len)
@@ -105,7 +104,7 @@ public:
                 return 0;
             }
             ec = {};
-            buffer_copy(net::buffer(
+            net::buffer_copy(net::buffer(
                 body_.data(), n), buffers);
             body_ = value_type{
                 body_.data() + n, body_.size() - n};

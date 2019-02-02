@@ -184,8 +184,6 @@ template<class DynamicBuffer>
 void
 write(DynamicBuffer& db, frame_header const& fh)
 {
-    using net::buffer;
-    using net::buffer_copy;
     using namespace boost::endian;
     std::size_t n;
     std::uint8_t b[14];
@@ -220,8 +218,8 @@ write(DynamicBuffer& db, frame_header const& fh)
         native_to_little_uint32(fh.key, &b[n]);
         n += 4;
     }
-    db.commit(buffer_copy(
-        db.prepare(n), buffer(b)));
+    db.commit(net::buffer_copy(
+        db.prepare(n), net::buffer(b)));
 }
 
 // Read data from buffers
@@ -231,12 +229,10 @@ template<class Buffers>
 void
 read_ping(ping_data& data, Buffers const& bs)
 {
-    using net::buffer_copy;
     using net::buffer_size;
-    using net::mutable_buffer;
     BOOST_ASSERT(buffer_size(bs) <= data.max_size());
     data.resize(buffer_size(bs));
-    buffer_copy(mutable_buffer{
+    net::buffer_copy(net::mutable_buffer{
         data.data(), data.size()}, bs);
 }
 
@@ -251,9 +247,8 @@ read_close(
     error_code& ec)
 {
     using net::buffer;
-    using net::buffer_copy;
-    using net::buffer_size;
     using namespace boost::endian;
+    using net::buffer_size;
     auto n = buffer_size(bs);
     BOOST_ASSERT(n <= 125);
     if(n == 0)
@@ -271,7 +266,7 @@ read_close(
     buffers_suffix<Buffers> cb(bs);
     {
         std::uint8_t b[2];
-        buffer_copy(buffer(b), cb);
+        net::buffer_copy(buffer(b), cb);
         cr.code = big_uint16_to_native(&b[0]);
         cb.consume(2);
         n -= 2;
@@ -285,7 +280,7 @@ read_close(
     if(n > 0)
     {
         cr.reason.resize(n);
-        buffer_copy(buffer(&cr.reason[0], n), cb);
+        net::buffer_copy(buffer(&cr.reason[0], n), cb);
         if(! check_utf8(
             cr.reason.data(), cr.reason.size()))
         {

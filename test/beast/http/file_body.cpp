@@ -33,8 +33,9 @@ public:
         void
         operator()(error_code&, ConstBufferSequence const& buffers)
         {
+            using net::buffer_size;
             buffer.commit(net::buffer_copy(
-                buffer.prepare(net::buffer_size(buffers)),
+                buffer.prepare(buffer_size(buffers)),
                 buffers));
         }
     };

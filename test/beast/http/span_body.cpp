@@ -23,6 +23,7 @@ struct span_body_test
     void
     testSpanBody()
     {
+        using net::buffer_size;
         {
             using B = span_body<char const>;
             request<B> req;
@@ -42,7 +43,7 @@ struct span_body_test
             BEAST_EXPECTS(! ec, ec.message());
             if(! BEAST_EXPECT(buf != boost::none))
                 return;
-            BEAST_EXPECT(net::buffer_size(buf->first) == 3);
+            BEAST_EXPECT(buffer_size(buf->first) == 3);
             BEAST_EXPECT(! buf->second);
         }
         {

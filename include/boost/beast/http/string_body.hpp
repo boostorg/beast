@@ -118,7 +118,6 @@ public:
             error_code& ec)
         {
             using net::buffer_size;
-            using net::buffer_copy;
             auto const extra = buffer_size(buffers);
             auto const size = body_.size();
             try
