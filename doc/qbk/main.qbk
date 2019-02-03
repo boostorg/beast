@@ -134,7 +134,9 @@
 [import ../../test/doc/core_3_layers.cpp]
 
 [section:quickref Reference]
-<emphasis role="green">&#128946;</emphasis> indicates item is new in this version.
+'''
+<emphasis role="green">&#128946;</emphasis> indicates an item that is new in this version.
+'''
 [xinclude quickref.xml]
 [endsect]
 [block'''<reference id="beast_hidden"><title>This Page Intentionally Left Blank 1/2</title>''']
