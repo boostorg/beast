@@ -290,20 +290,20 @@ on_read(beast::error_code ec, std::size_t)
             // NOTE This causes an ICE in gcc 7.3
             // Write the response
             http::async_write(this->socket_, *sp,
-				[self = shared_from_this(), sp](
-					beast::error_code ec, std::size_t bytes)
-				{
-					self->on_write(ec, bytes, sp->need_eof()); 
-				});
+                [self = shared_from_this(), sp](
+                    beast::error_code ec, std::size_t bytes)
+                {
+                    self->on_write(ec, bytes, sp->need_eof()); 
+                });
         #else
             // Write the response
             auto self = shared_from_this();
             http::async_write(this->socket_, *sp,
-				[self, sp](
-					beast::error_code ec, std::size_t bytes)
-				{
-					self->on_write(ec, bytes, sp->need_eof()); 
-				});
+                [self, sp](
+                    beast::error_code ec, std::size_t bytes)
+                {
+                    self->on_write(ec, bytes, sp->need_eof()); 
+                });
         #endif
         });
 #else

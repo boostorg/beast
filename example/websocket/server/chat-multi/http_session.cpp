@@ -294,21 +294,21 @@ on_read(beast::error_code ec, std::size_t)
             // Write the response
             http::async_write(this->socket_, *sp,
                 net::bind_executor(strand_,
-				    [self = shared_from_this(), sp](
-					    beast::error_code ec, std::size_t bytes)
-				    {
-					    self->on_write(ec, bytes, sp->need_eof()); 
-				    }));
+                    [self = shared_from_this(), sp](
+                        beast::error_code ec, std::size_t bytes)
+                    {
+                        self->on_write(ec, bytes, sp->need_eof()); 
+                    }));
         #else
             // Write the response
             auto self = shared_from_this();
             http::async_write(this->socket_, *sp,
                 net::bind_executor(strand_,
-				    [self, sp](
-					    beast::error_code ec, std::size_t bytes)
-				    {
-					    self->on_write(ec, bytes, sp->need_eof()); 
-				    }));
+                    [self, sp](
+                        beast::error_code ec, std::size_t bytes)
+                    {
+                        self->on_write(ec, bytes, sp->need_eof()); 
+                    }));
         #endif
         });
 #else
