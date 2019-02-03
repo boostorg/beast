@@ -1,3 +1,9 @@
+Version 210:
+
+* Tidy up read implementation
+
+--------------------------------------------------------------------------------
+
 Version 209:
 
 * Faster http::string_to_field

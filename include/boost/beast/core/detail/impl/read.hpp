@@ -74,25 +74,21 @@ public:
         std::size_t max_prepare;
         BOOST_ASIO_CORO_REENTER(*this)
         {
-            max_size = cond_(ec, total_, b_);
-            max_prepare = std::min<std::size_t>(
-                std::max<std::size_t>(
-                    512, b_.capacity() - b_.size()),
-                std::min<std::size_t>(
-                    max_size, b_.max_size() - b_.size()));
-            while(max_prepare > 0)
+            for(;;)
             {
-                BOOST_ASIO_CORO_YIELD
-                s_.async_read_some(
-                    b_.prepare(max_prepare), std::move(*this));
-                b_.commit(bytes_transferred);
-                total_ += bytes_transferred;
                 max_size = cond_(ec, total_, b_);
                 max_prepare = std::min<std::size_t>(
                     std::max<std::size_t>(
                         512, b_.capacity() - b_.size()),
                     std::min<std::size_t>(
                         max_size, b_.max_size() - b_.size()));
+                if(max_prepare == 0)
+                    break;
+                BOOST_ASIO_CORO_YIELD
+                s_.async_read_some(
+                    b_.prepare(max_prepare), std::move(*this));
+                b_.commit(bytes_transferred);
+                total_ += bytes_transferred;
             }
             if(! cont)
             {
@@ -359,24 +355,20 @@ read(
     std::size_t total = 0;
     std::size_t max_size;
     std::size_t max_prepare;
-    max_size = cond(ec, total, buffer);
-    max_prepare = std::min<std::size_t>(
-        std::max<std::size_t>(
-            512, buffer.capacity() - buffer.size()),
-        std::min<std::size_t>(
-            max_size, buffer.max_size() - buffer.size()));
-    while(max_prepare > 0)
+    for(;;)
     {
-        std::size_t const bytes_transferred =
-            stream.read_some(buffer.prepare(max_prepare), ec);
-        buffer.commit(bytes_transferred);
-        total += bytes_transferred;
         max_size = cond(ec, total, buffer);
         max_prepare = std::min<std::size_t>(
             std::max<std::size_t>(
                 512, buffer.capacity() - buffer.size()),
             std::min<std::size_t>(
                 max_size, buffer.max_size() - buffer.size()));
+        if(max_prepare == 0)
+            break;
+        std::size_t const bytes_transferred =
+            stream.read_some(buffer.prepare(max_prepare), ec);
+        buffer.commit(bytes_transferred);
+        total += bytes_transferred;
     }
     return total;
 }
