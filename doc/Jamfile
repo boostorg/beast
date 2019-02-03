@@ -159,7 +159,7 @@ explicit images ;
 
 xml beast_doc
     :
-        qbk/00_main.qbk
+        qbk/main.qbk
     :
         <dependency>images
         <dependency>qbk

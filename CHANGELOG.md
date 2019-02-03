@@ -5,6 +5,7 @@ Version 209:
 * test::stream maintains a handler work guard
 * Qualify buffer_copy, don't qualify buffer_size
 * Add dynamic_buffer_ref
+* Refactor quickref.xml
 
 --------------------------------------------------------------------------------
 

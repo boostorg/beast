@@ -133,6 +133,18 @@
 [import ../../test/doc/core_1_refresher.cpp]
 [import ../../test/doc/core_3_layers.cpp]
 
+[section:quickref Reference]
+<emphasis role="green">&#128946;</emphasis> indicates item is new in this version.
+[xinclude quickref.xml]
+[endsect]
+[block'''<reference id="beast_hidden"><title>This Page Intentionally Left Blank 1/2</title>''']
+[section:ref This Page Intentionally Left Blank 2/2]
+[include reference.qbk]
+[endsect]
+[block'''</reference>''']
+
+[include release_notes.qbk]
+
 [include 01_intro/0_intro.qbk]
 [include 02_examples/0_examples.qbk]
 [include 03_core/0_core.qbk]
@@ -141,16 +153,5 @@
 [include 06_websocket/0_websocket.qbk]
 [include 07_concepts/0_concepts.qbk]
 [include 08_design/0_design.qbk]
-[include 09_releases.qbk]
-
-[section:quickref Reference]
-[xinclude quickref.xml]
-[endsect]
-
-[block'''<reference id="beast_hidden"><title>This Page Intentionally Left Blank 1/2</title>''']
-[section:ref This Page Intentionally Left Blank 2/2]
-[include reference.qbk]
-[endsect]
-[block'''</reference>''']
 
 [xinclude index.xml]
