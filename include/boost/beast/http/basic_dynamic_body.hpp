@@ -11,6 +11,7 @@
 #define BOOST_BEAST_HTTP_BASIC_DYNAMIC_BODY_HPP
 
 #include <boost/beast/core/detail/config.hpp>
+#include <boost/beast/core/buffer_size.hpp>
 #include <boost/beast/core/type_traits.hpp>
 #include <boost/beast/core/detail/buffer.hpp>
 #include <boost/beast/http/error.hpp>
@@ -88,7 +89,6 @@ struct basic_dynamic_body
         put(ConstBufferSequence const& buffers,
             error_code& ec)
         {
-            using net::buffer_size;
             auto const n = buffer_size(buffers);
             if(body_.size() > body_.max_size() - n)
             {

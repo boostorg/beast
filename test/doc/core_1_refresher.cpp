@@ -95,8 +95,7 @@ std::string string_from_buffers (ConstBufferSequence const& buffers)
 
     // optimization: reserve all the space for the string first
     std::string result;
-    using net::buffer_size;                 // buffer_size is a customization point,
-    result.reserve(buffer_size(buffers));   // called without namespace qualification
+    result.reserve(beast::buffer_size(buffers));        // beast version of net::buffer_size
 
     // iterate over each buffer in the sequence and append it to the string
     for(auto it = net::buffer_sequence_begin(buffers);  // returns an iterator to beginning of the sequence

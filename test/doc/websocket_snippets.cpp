@@ -202,7 +202,6 @@ boost::ignore_unused(ec);
     // This will cause the message to be broken up into multiple frames.
     for(;;)
     {
-        using net::buffer_size;
         if(buffer_size(cb) > 512)
         {
             // There are more than 512 bytes left to send, just

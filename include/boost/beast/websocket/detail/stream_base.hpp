@@ -10,6 +10,7 @@
 #ifndef BOOST_BEAST_WEBSOCKET_DETAIL_STREAM_BASE_HPP
 #define BOOST_BEAST_WEBSOCKET_DETAIL_STREAM_BASE_HPP
 
+#include <boost/beast/core/buffer_size.hpp>
 #include <boost/beast/http/empty_body.hpp>
 #include <boost/beast/http/message.hpp>
 #include <boost/beast/http/string_body.hpp>
@@ -88,7 +89,6 @@ struct impl_base<true>
         std::size_t& total_in,
         error_code& ec)
     {
-        using net::buffer;
         BOOST_ASSERT(out.size() >= 6);
         auto& zo = this->pmd_->zo;
         zlib::z_params zs;
@@ -123,7 +123,6 @@ struct impl_base<true>
         cb.consume(zs.total_in);
         if(zs.avail_out > 0 && fin)
         {
-            using net::buffer_size;
             auto const remain = buffer_size(cb);
             if(remain == 0)
             {
@@ -144,13 +143,13 @@ struct impl_base<true>
                     BOOST_ASSERT(! ec);
                     // remove flush marker
                     zs.total_out -= 4;
-                    out = buffer(out.data(), zs.total_out);
+                    out = net::buffer(out.data(), zs.total_out);
                     return false;
                 }
             }
         }
         ec = {};
-        out = buffer(out.data(), zs.total_out);
+        out = net::buffer(out.data(), zs.total_out);
         return true;
     }
 

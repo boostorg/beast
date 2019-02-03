@@ -10,6 +10,7 @@
 #ifndef BOOST_BEAST_HTTP_IMPL_BASIC_PARSER_IPP
 #define BOOST_BEAST_HTTP_IMPL_BASIC_PARSER_IPP
 
+#include <boost/beast/core/buffer_size.hpp>
 #include <boost/beast/core/static_string.hpp>
 #include <boost/beast/core/type_traits.hpp>
 #include <boost/beast/core/detail/clamp.hpp>
@@ -106,7 +107,6 @@ put(ConstBufferSequence const& buffers,
         // single buffer
         return put(net::const_buffer(*p), ec);
     }
-    using net::buffer_size;
     auto const size = buffer_size(buffers);
     if(size <= max_stack_buffer)
         return put_from_stack(size, buffers, ec);
@@ -130,7 +130,6 @@ put(net::const_buffer const& buffer,
     error_code& ec)
 {
     BOOST_ASSERT(state_ != state::complete);
-    using net::buffer_size;
     auto p = static_cast<char const*>(buffer.data());
     auto n = buffer.size();
     auto const p0 = p;

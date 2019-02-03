@@ -10,6 +10,7 @@
 #ifndef BOOST_BEAST_WEBSOCKET_IMPL_READ_HPP
 #define BOOST_BEAST_WEBSOCKET_IMPL_READ_HPP
 
+#include <boost/beast/core/buffer_size.hpp>
 #include <boost/beast/websocket/teardown.hpp>
 #include <boost/beast/websocket/detail/mask.hpp>
 #include <boost/beast/core/async_op_base.hpp>
@@ -82,8 +83,6 @@ public:
         bool cont = true)
     {
         using beast::detail::clamp;
-        using net::buffer;
-        using net::buffer_size;
         auto& impl = *ws_.impl_;
         cont_ = cont;
         BOOST_ASIO_CORO_REENTER(*this)
@@ -881,8 +880,6 @@ read_some(
             MutableBufferSequence>::value,
         "MutableBufferSequence requirements not met");
     using beast::detail::clamp;
-    using net::buffer;
-    using net::buffer_size;
     close_code code{};
     std::size_t bytes_written = 0;
     ec = {};

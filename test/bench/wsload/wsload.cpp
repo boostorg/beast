@@ -115,7 +115,7 @@ class connection
     test_buffer const& tb_;
     net::strand<
         net::io_context::executor_type> strand_;
-    boost::beast::multi_buffer buffer_;
+    beast::multi_buffer buffer_;
     std::mt19937_64 rng_;
     std::size_t count_ = 0;
     std::size_t bytes_ = 0;
@@ -187,11 +187,10 @@ private:
     void
     do_write()
     {
-        using net::buffer_size;
         std::geometric_distribution<std::size_t> dist{
-            double(4) / buffer_size(tb_)};
+            double(4) / beast::buffer_size(tb_)};
         ws_.async_write_some(true,
-            boost::beast::buffers_prefix(dist(rng_), tb_),
+            beast::buffers_prefix(dist(rng_), tb_),
             alloc_.wrap(std::bind(
                 &connection::on_write,
                 shared_from_this(),
@@ -281,7 +280,7 @@ throughput(
 int
 main(int argc, char** argv)
 {
-    boost::beast::unit_test::dstream dout(std::cerr);
+    beast::unit_test::dstream dout(std::cerr);
 
     try
     {

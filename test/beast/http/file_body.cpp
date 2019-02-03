@@ -10,6 +10,7 @@
 // Test that header file is self-contained.
 #include <boost/beast/http/file_body.hpp>
 
+#include <boost/beast/core/buffer_size.hpp>
 #include <boost/beast/core/buffers_prefix.hpp>
 #include <boost/beast/core/file_stdio.hpp>
 #include <boost/beast/core/flat_buffer.hpp>
@@ -33,7 +34,6 @@ public:
         void
         operator()(error_code&, ConstBufferSequence const& buffers)
         {
-            using net::buffer_size;
             buffer.commit(net::buffer_copy(
                 buffer.prepare(buffer_size(buffers)),
                 buffers));

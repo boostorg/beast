@@ -10,6 +10,7 @@
 #ifndef BOOST_BEAST_IMPL_BUFFERS_ADAPTOR_HPP
 #define BOOST_BEAST_IMPL_BUFFERS_ADAPTOR_HPP
 
+#include <boost/beast/core/buffer_size.hpp>
 #include <boost/beast/core/detail/type_traits.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/config/workaround.hpp>
@@ -400,7 +401,6 @@ buffers_adaptor(MutableBufferSequence const& bs)
     , max_size_(
         [&bs]
         {
-            using net::buffer_size;
             return buffer_size(bs);
         }())
 {
@@ -418,7 +418,6 @@ buffers_adaptor(
     , max_size_(
         [&]
         {
-            using net::buffer_size;
             return buffer_size(bs_);
         }())
 {
@@ -502,7 +501,6 @@ prepare(std::size_t n) ->
     end_ = out_;
     if(end_ != net::buffer_sequence_end(bs_))
     {
-        using net::buffer_size;
         auto size = buffer_size(*end_) - out_pos_;
         if(n > size)
         {
@@ -545,7 +543,6 @@ commit(std::size_t n) noexcept
     auto const last = std::prev(end_);
     while(out_ != last)
     {
-        using net::buffer_size;
         auto const avail =
             buffer_size(*out_) - out_pos_;
         if(n < avail)
@@ -579,7 +576,6 @@ consume(std::size_t n) noexcept
 {
     while(begin_ != out_)
     {
-        using net::buffer_size;
         auto const avail =
             buffer_size(*begin_) - in_pos_;
         if(n < avail)

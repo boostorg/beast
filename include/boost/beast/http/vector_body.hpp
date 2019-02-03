@@ -11,6 +11,7 @@
 #define BOOST_BEAST_HTTP_VECTOR_BODY_HPP
 
 #include <boost/beast/core/detail/config.hpp>
+#include <boost/beast/core/buffer_size.hpp>
 #include <boost/beast/http/error.hpp>
 #include <boost/beast/http/message.hpp>
 #include <boost/beast/core/detail/type_traits.hpp>
@@ -111,7 +112,6 @@ public:
         put(ConstBufferSequence const& buffers,
             error_code& ec)
         {
-            using net::buffer_size;
             auto const n = buffer_size(buffers);
             auto const len = body_.size();
             try

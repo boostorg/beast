@@ -10,6 +10,7 @@
 #ifndef BOOST_BEAST_IMPL_BUFFERS_SUFFIX_HPP
 #define BOOST_BEAST_IMPL_BUFFERS_SUFFIX_HPP
 
+#include <boost/beast/core/buffer_size.hpp>
 #include <boost/beast/core/buffer_traits.hpp>
 #include <boost/type_traits.hpp>
 #include <algorithm>
@@ -206,7 +207,6 @@ consume(std::size_t amount)
         net::buffer_sequence_end(bs_);
     for(;amount > 0 && begin_ != end; ++begin_)
     {
-        using net::buffer_size;
         auto const len =
             buffer_size(*begin_) - skip_;
         if(amount < len)

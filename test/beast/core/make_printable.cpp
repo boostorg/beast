@@ -9,7 +9,9 @@
 
 // Test that header file is self-contained.
 #include <boost/beast/core/make_printable.hpp>
+
 #include <boost/beast/_experimental/unit_test/suite.hpp>
+#include <boost/beast/core/buffer_size.hpp>
 #include <iostream>
 #include <sstream>
 
@@ -25,7 +27,6 @@ public:
     void
     print (ConstBufferSequence const& buffers)
     {
-        using net::buffer_size;
         std::cout <<
             "Buffer size: " << buffer_size(buffers) << " bytes\n"
             "Buffer data: '" << make_printable(buffers) << "'\n";
@@ -40,8 +41,6 @@ public:
     void
     testMakePrintable()
     {
-        using net::buffer;
-
         char buf[13];
         buffers_triple b(buf, sizeof(buf));
         string_view src = "Hello, world!";

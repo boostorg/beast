@@ -12,6 +12,7 @@
 #include "test/beast/http/message_fuzz.hpp"
 
 #include <boost/beast/http.hpp>
+#include <boost/beast/core/buffer_size.hpp>
 #include <boost/beast/core/buffers_suffix.hpp>
 #include <boost/beast/core/buffers_to_string.hpp>
 #include <boost/beast/core/ostream.hpp>
@@ -76,7 +77,6 @@ public:
         basic_parser<isRequest, Derived>& parser,
             error_code& ec)
     {
-        using net::buffer_size;
         beast::buffers_suffix<
             ConstBufferSequence> cb{buffers};
         std::size_t used = 0;

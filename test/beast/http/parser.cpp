@@ -14,6 +14,7 @@
 
 #include <boost/beast/_experimental/unit_test/suite.hpp>
 #include <boost/beast/test/yield_to.hpp>
+#include <boost/beast/core/buffer_size.hpp>
 #include <boost/beast/core/buffers_suffix.hpp>
 #include <boost/beast/core/flat_buffer.hpp>
 #include <boost/beast/core/multi_buffer.hpp>
@@ -51,7 +52,6 @@ public:
         basic_parser<isRequest, Derived>& p,
             error_code& ec)
     {
-        using net::buffer_size;
         buffers_suffix<ConstBufferSequence> cb{buffers};
         for(;;)
         {
@@ -75,13 +75,12 @@ public:
     void
     doMatrix(string_view s0, F const& f)
     {
-        using net::buffer;
         // parse a single buffer
         {
             auto s = s0;
             error_code ec;
             parser_type<isRequest> p;
-            put(buffer(s.data(), s.size()), p, ec);
+            put(net::buffer(s.data(), s.size()), p, ec);
             if(! BEAST_EXPECTS(! ec, ec.message()))
                 return;
             f(p);
@@ -94,7 +93,7 @@ public:
             parser_type<isRequest> p;
             p.eager(true);
             auto used =
-                p.put(buffer(s.data(), n), ec);
+                p.put(net::buffer(s.data(), n), ec);
             s.remove_prefix(used);
             if(ec == error::need_more)
                 ec = {};
@@ -102,7 +101,7 @@ public:
                 continue;
             BEAST_EXPECT(! p.is_done());
             used = p.put(
-                buffer(s.data(), s.size()), ec);
+                net::buffer(s.data(), s.size()), ec);
             s.remove_prefix(used);
             if(! BEAST_EXPECTS(! ec, ec.message()))
                 continue;

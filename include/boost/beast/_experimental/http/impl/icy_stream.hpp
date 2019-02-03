@@ -13,6 +13,7 @@
 #include <boost/beast/core/dynamic_buffer_ref.hpp>
 #include <boost/beast/core/async_op_base.hpp>
 #include <boost/beast/core/bind_handler.hpp>
+#include <boost/beast/core/buffer_size.hpp>
 #include <boost/beast/core/buffers_adaptor.hpp>
 #include <boost/beast/core/buffers_prefix.hpp>
 #include <boost/beast/core/buffers_suffix.hpp>
@@ -44,7 +45,6 @@ buffer_shift(MutableBuffers const& out, ConstBuffers const& in)
     auto out_pos = net::buffer_sequence_end(out);
     auto const in_begin  = net::buffer_sequence_begin(in);
     auto const out_begin = net::buffer_sequence_begin(out);
-    using net::buffer_size;
     BOOST_ASSERT(buffer_size(in) == buffer_size(out));
     if(in_pos == in_begin || out_pos == out_begin)
         return;

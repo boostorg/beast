@@ -6,6 +6,7 @@ Version 209:
 * Qualify buffer_copy, don't qualify buffer_size
 * Add dynamic_buffer_ref
 * Refactor quickref.xml
+* Add buffer_size
 
 --------------------------------------------------------------------------------
 

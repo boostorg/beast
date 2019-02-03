@@ -10,6 +10,7 @@
 #ifndef BOOST_BEAST_IMPL_MULTI_BUFFER_HPP
 #define BOOST_BEAST_IMPL_MULTI_BUFFER_HPP
 
+#include <boost/beast/core/buffer_size.hpp>
 #include <boost/beast/core/detail/type_traits.hpp>
 #include <boost/config/workaround.hpp>
 #include <boost/core/exchange.hpp>
@@ -195,11 +196,10 @@ public:
     const_iterator begin() const noexcept;
     const_iterator end() const noexcept;
 
-    friend
     std::size_t
-    buffer_size(readable_bytes const& buffers) noexcept
+    buffer_size() const noexcept
     {
-        return buffers.b_->size();
+        return b_->size();
     }
 };
 
@@ -1132,7 +1132,6 @@ basic_multi_buffer<Allocator>::
 debug_check() const
 {
 #ifndef NDEBUG
-    using net::buffer_size;
     BOOST_ASSERT(buffer_size(data()) == in_size_);
     if(list_.empty())
     {

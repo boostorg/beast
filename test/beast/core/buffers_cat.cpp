@@ -13,6 +13,7 @@
 #include "buffer_test.hpp"
 
 #include <boost/beast/_experimental/unit_test/suite.hpp>
+#include <boost/beast/core/buffer_size.hpp>
 #include <boost/beast/core/buffers_prefix.hpp>
 #include <boost/beast/core/buffers_suffix.hpp>
 #include <boost/asio/buffer.hpp>
@@ -155,8 +156,6 @@ public:
     void
     testEmpty()
     {
-        using net::buffer_size;
- 
         struct empty_sequence
         {
             using value_type = net::const_buffer;
@@ -275,19 +274,14 @@ public:
     void
     testGccWarning1()
     {
-        using boost::beast::buffers_cat;
-        using boost::beast::buffers_suffix;
-        using net::buffer;
-        using net::const_buffer;
-
         char out[64];
-        std::array<const_buffer, 2> buffers{
-            {buffer("Hello, "), buffer("world!")}};
+        std::array<net::const_buffer, 2> buffers{
+            {net::buffer("Hello, "), net::buffer("world!")}};
         std::size_t i = 3;
-        buffers_suffix<std::array<const_buffer, 2>> cb(buffers);
+        buffers_suffix<std::array<net::const_buffer, 2>> cb(buffers);
         cb.consume(i);
         net::buffer_copy(
-            buffer(out),
+            net::buffer(out),
             buffers_cat(cb, cb));
     }
 

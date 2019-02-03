@@ -10,6 +10,7 @@
 #ifndef BOOST_BEAST_WEBSOCKET_IMPL_ACCEPT_IPP
 #define BOOST_BEAST_WEBSOCKET_IMPL_ACCEPT_IPP
 
+#include <boost/beast/core/buffer_size.hpp>
 #include <boost/beast/websocket/detail/type_traits.hpp>
 #include <boost/beast/http/empty_body.hpp>
 #include <boost/beast/http/parser.hpp>
@@ -122,7 +123,6 @@ public:
     void run(Buffers const& buffers)
     {
         error_code ec;
-        using net::buffer_size;
         auto const mb = beast::detail::dynamic_buffer_prepare(
             ws_.impl_->rd_buf, buffer_size(buffers), ec,
                 error::buffer_overflow);
@@ -296,7 +296,6 @@ accept(
         ConstBufferSequence>::value,
             "ConstBufferSequence requirements not met");
     impl_->reset();
-    using net::buffer_size;
     auto const mb = beast::detail::dynamic_buffer_prepare(
         impl_->rd_buf, buffer_size(buffers), ec,
             error::buffer_overflow);
@@ -327,7 +326,6 @@ accept_ex(
         ConstBufferSequence>::value,
             "ConstBufferSequence requirements not met");
     impl_->reset();
-    using net::buffer_size;
     auto const mb = beast::detail::dynamic_buffer_prepare(
         impl_->rd_buf, buffer_size(buffers), ec,
             error::buffer_overflow);

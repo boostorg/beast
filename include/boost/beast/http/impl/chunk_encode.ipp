@@ -10,6 +10,7 @@
 #ifndef BOOST_BEAST_HTTP_IMPL_CHUNK_ENCODE_IPP
 #define BOOST_BEAST_HTTP_IMPL_CHUNK_ENCODE_IPP
 
+#include <boost/beast/core/buffer_size.hpp>
 #include <boost/beast/core/detail/varint.hpp>
 #include <boost/beast/http/error.hpp>
 #include <boost/beast/http/detail/rfc7230.hpp>
@@ -89,11 +90,7 @@ template<class ConstBufferSequence>
 chunk_body<ConstBufferSequence>::
 chunk_body(ConstBufferSequence const& buffers)
     : view_(
-        [&]
-        {
-            using net::buffer_size;
-            return buffer_size(buffers);
-        }(),
+        buffer_size(buffers),
         net::const_buffer{nullptr, 0},
         chunk_crlf{},
         buffers,
@@ -107,11 +104,7 @@ chunk_body(
     ConstBufferSequence const& buffers,
     string_view extensions)
     : view_(
-        [&]
-        {
-            using net::buffer_size;
-            return buffer_size(buffers);
-        }(),
+        buffer_size(buffers),
         net::const_buffer{
             extensions.data(), extensions.size()},
         chunk_crlf{},
@@ -130,11 +123,7 @@ chunk_body(
         typename std::decay<ChunkExtensions>::type>>(
             std::forward<ChunkExtensions>(extensions)))
     , view_(
-        [&]
-        {
-            using net::buffer_size;
-            return buffer_size(buffers);
-        }(),
+        buffer_size(buffers),
         exts_->str(),
         chunk_crlf{},
         buffers,
@@ -153,11 +142,7 @@ chunk_body(
         typename std::decay<ChunkExtensions>::type>>(allocator,
             std::forward<ChunkExtensions>(extensions)))
     , view_(
-        [&]
-        {
-            using net::buffer_size;
-            return buffer_size(buffers);
-        }(),
+        buffer_size(buffers),
         exts_->str(),
         chunk_crlf{},
         buffers,

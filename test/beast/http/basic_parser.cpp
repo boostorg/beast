@@ -13,6 +13,7 @@
 #include "message_fuzz.hpp"
 #include "test_parser.hpp"
 
+#include <boost/beast/core/buffer_size.hpp>
 #include <boost/beast/core/buffers_cat.hpp>
 #include <boost/beast/core/buffers_prefix.hpp>
 #include <boost/beast/core/buffers_suffix.hpp>
@@ -156,7 +157,6 @@ public:
     parsegrind(ConstBufferSequence const& buffers,
         Test const& test, bool skip = false)
     {
-        using net::buffer_size;
         auto const size = buffer_size(buffers);
         for(std::size_t i = 1; i < size - 1; ++i)
         {

@@ -171,8 +171,6 @@ public:
     void
     testSuspend()
     {
-        using net::buffer;
-
         // suspend on ping
         doFailLoop([&](test::fail_count& fc)
         {
@@ -374,7 +372,7 @@ public:
                 "\x88\x00", 2});
             std::size_t count = 0;
             std::string const s = "Hello, world!";
-            ws.async_write(buffer(s),
+            ws.async_write(net::buffer(s),
                 [&](error_code ec, std::size_t n)
                 {
                     if(ec)
@@ -419,7 +417,7 @@ public:
             std::size_t count = 0;
             multi_buffer b;
             std::string const s = "Hello, world!";
-            ws.async_write(buffer(s),
+            ws.async_write(net::buffer(s),
                 [&](error_code ec, std::size_t n)
                 {
                     if(ec)
@@ -479,7 +477,7 @@ public:
                             system_error{ec});
                     ++count;
                 });
-            ws.async_write(buffer(s),
+            ws.async_write(net::buffer(s),
                 [&](error_code ec, std::size_t)
                 {
                     if(ec != net::error::operation_aborted)
@@ -527,7 +525,7 @@ public:
                         BEAST_EXPECT(
                             ec == net::error::operation_aborted);
                 });
-            ws.async_write(buffer(s),
+            ws.async_write(net::buffer(s),
                 [&](error_code ec, std::size_t n)
                 {
                     if(ec)
@@ -588,7 +586,7 @@ public:
                             system_error{ec});
                     ++count;
                 });
-            ws.async_write(buffer(s),
+            ws.async_write(net::buffer(s),
                 [&](error_code ec, std::size_t)
                 {
                     if(ec != net::error::operation_aborted)

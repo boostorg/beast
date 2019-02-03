@@ -11,6 +11,7 @@
 #define BOOST_BEAST_HTTP_BUFFER_BODY_HPP
 
 #include <boost/beast/core/detail/config.hpp>
+#include <boost/beast/core/buffer_size.hpp>
 #include <boost/beast/http/error.hpp>
 #include <boost/beast/http/message.hpp>
 #include <boost/beast/http/type_traits.hpp>
@@ -132,7 +133,6 @@ struct buffer_body
             body_.data = static_cast<char*>(
                 body_.data) + bytes_transferred;
             body_.size -= bytes_transferred;
-            using net::buffer_size;
             if(bytes_transferred == buffer_size(buffers))
                 ec = {};
             else

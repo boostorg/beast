@@ -10,6 +10,7 @@
 #ifndef BOOST_BEAST_TEST_IMPL_STREAM_HPP
 #define BOOST_BEAST_TEST_IMPL_STREAM_HPP
 
+#include <boost/beast/core/buffer_size.hpp>
 #include <boost/beast/core/detail/stream_algorithm.hpp>
 #include <boost/beast/core/buffers_prefix.hpp>
 
@@ -110,7 +111,6 @@ stream::
 str() const
 {
     auto const bs = in_->b.data();
-    using net::buffer_size;
     if(buffer_size(bs) == 0)
         return {};
     auto const b = beast::buffers_front(bs);
@@ -189,7 +189,6 @@ read_some(MutableBufferSequence const& buffers,
         "MutableBufferSequence requirements not met");
     if(in_->fc && in_->fc->fail(ec))
         return 0;
-    using net::buffer_size;
     if(buffer_size(buffers) == 0)
     {
         ec.clear();
@@ -252,7 +251,6 @@ async_read_some(
     {
         std::unique_lock<std::mutex> lock{in_->m};
         BOOST_ASSERT(! in_->op);
-        using net::buffer_size;
         if( buffer_size(buffers) == 0 ||
             buffer_size(in_->b.data()) > 0)
         {
@@ -328,7 +326,6 @@ write_some(
     BOOST_ASSERT(out->code == status::ok);
     if(in_->fc && in_->fc->fail(ec))
         return 0;
-    using net::buffer_size;
     auto const n = std::min<std::size_t>(
         buffer_size(buffers), in_->write_max);
     std::unique_lock<std::mutex> lock{out->m};
@@ -379,7 +376,6 @@ async_write_some(ConstBufferSequence const& buffers,
         }
         else
         {
-            using net::buffer_size;
             auto const n = std::min<std::size_t>(
                 buffer_size(buffers), in_->write_max);
             std::unique_lock<std::mutex> lock{out->m};

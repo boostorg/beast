@@ -10,6 +10,7 @@
 #ifndef BOOST_BEAST_IMPL_BUFFERS_PREFIX_HPP
 #define BOOST_BEAST_IMPL_BUFFERS_PREFIX_HPP
 
+#include <boost/beast/core/buffer_size.hpp>
 #include <boost/config/workaround.hpp>
 #include <algorithm>
 #include <cstdint>
@@ -149,7 +150,6 @@ setup(std::size_t size)
     auto const last = bs_.end();
     while(end_ != last)
     {
-        using net::buffer_size;
         auto const len = buffer_size(*end_++);
         if(len >= size)
         {
@@ -248,14 +248,6 @@ end() const ->
         *this, std::true_type{}};
 }
 
-template<class Buffers>
-std::size_t
-buffer_size(buffers_prefix_view<
-    Buffers> const& buffers)
-{
-    return buffers.size_;
-}
-
 //------------------------------------------------------------------------------
 
 template<>
@@ -290,14 +282,13 @@ public:
                 std::forward<Args>(args)...))
     {
     }
-};
 
-std::size_t
-buffer_size(buffers_prefix_view<
-    net::const_buffer> const& buffers)
-{
-    return buffers.size();
-}
+    std::size_t
+    buffer_size_impl() const noexcept
+    {
+        return this->size();
+    }
+};
 
 //------------------------------------------------------------------------------
 
@@ -333,14 +324,13 @@ public:
                 std::forward<Args>(args)...))
     {
     }
-};
 
-std::size_t
-buffer_size(buffers_prefix_view<
-    net::mutable_buffer> const& buffers)
-{
-    return buffers.size();
-}
+    std::size_t
+    buffer_size_impl() const noexcept
+    {
+        return this->size();
+    }
+};
 
 } // beast
 } // boost

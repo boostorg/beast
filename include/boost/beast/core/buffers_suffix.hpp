@@ -44,7 +44,6 @@ namespace beast {
     void send(SyncWriteStream& stream, ConstBufferSequence const& buffers)
     {
         buffers_suffix<ConstBufferSequence> bs{buffers};
-        using net::buffer_size;
         while(buffer_size(bs) > 0)
             bs.consume(stream.write_some(bs));
     }

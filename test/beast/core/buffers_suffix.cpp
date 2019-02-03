@@ -12,6 +12,7 @@
 
 #include "buffer_test.hpp"
 
+#include <boost/beast/core/buffer_size.hpp>
 #include <boost/beast/core/buffers_cat.hpp>
 #include <boost/beast/_experimental/unit_test/suite.hpp>
 #include <boost/asio/buffer.hpp>
@@ -80,7 +81,6 @@ public:
 
         // empty sequence
         {
-            using net::buffer_size;
             buffers_suffix<net::mutable_buffer> cb(
                 net::mutable_buffer{});
             BEAST_EXPECT(buffer_size(cb) == 0);
@@ -113,7 +113,6 @@ public:
     void
     testMatrix()
     {
-        using net::buffer_size;
         char buf[12];
         std::string const s = "Hello, world";
         BEAST_EXPECT(s.size() == sizeof(buf));

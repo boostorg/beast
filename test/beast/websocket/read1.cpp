@@ -75,8 +75,6 @@ public:
     void
     doTestRead(Wrap const& w)
     {
-        using net::buffer;
-
         permessage_deflate pmd;
         pmd.client_enable = false;
         pmd.server_enable = false;
@@ -230,7 +228,7 @@ public:
                 std::string const s(2000, '*');
                 ws.auto_fragment(false);
                 ws.binary(false);
-                w.write(ws, buffer(s));
+                w.write(ws, net::buffer(s));
                 multi_buffer b;
                 w.read(ws, b);
                 BEAST_EXPECT(ws.got_text());
@@ -285,7 +283,7 @@ public:
             std::string const s = "Hello, world!";
             ws.auto_fragment(false);
             ws.binary(false);
-            w.write(ws, buffer(s));
+            w.write(ws, net::buffer(s));
             try
             {
                 multi_buffer b(3);
@@ -306,7 +304,7 @@ public:
             auto const s = std::string(2000, '*') +
                 random_string();
             ws.text(true);
-            w.write(ws, buffer(s));
+            w.write(ws, net::buffer(s));
             doReadTest(w, ws, close_code::bad_payload);
         });
 
@@ -363,7 +361,7 @@ public:
         {
             std::string const s =
                 "Hello, world!" "\xc0";
-            w.write(ws, buffer(s));
+            w.write(ws, net::buffer(s));
             doReadTest(w, ws, close_code::bad_payload);
         });
 
@@ -437,8 +435,6 @@ public:
     void
     doTestReadDeflate(Wrap const& w)
     {
-        using net::buffer;
-
         permessage_deflate pmd;
         pmd.client_enable = true;
         pmd.server_enable = true;
@@ -451,7 +447,7 @@ public:
         [&](ws_type_t<true>& ws)
         {
             std::string const s = std::string(128, '*');
-            w.write(ws, buffer(s));
+            w.write(ws, net::buffer(s));
             ws.read_message_max(32);
             doFailTest(w, ws, error::message_too_big);
         });
@@ -490,7 +486,7 @@ public:
         {
             auto const& s = random_string();
             ws.binary(true);
-            w.write(ws, buffer(s));
+            w.write(ws, net::buffer(s));
             multi_buffer b;
             w.read(ws, b);
             BEAST_EXPECT(buffers_to_string(b.data()) == s);
@@ -504,15 +500,13 @@ public:
         permessage_deflate const& pmd,
         Wrap const& w)
     {
-        using net::buffer;
-
         // message
         doTest(pmd, [&](ws_type& ws)
         {
             std::string const s = "Hello, world!";
             ws.auto_fragment(false);
             ws.binary(false);
-            w.write(ws, buffer(s));
+            w.write(ws, net::buffer(s));
             multi_buffer b;
             w.read(ws, b);
             BEAST_EXPECT(ws.got_text());
@@ -533,7 +527,7 @@ public:
                 std::string const s = "Hello, world!";
                 ws.auto_fragment(false);
                 ws.binary(false);
-                w.write(ws, buffer(s));
+                w.write(ws, net::buffer(s));
                 multi_buffer b;
                 w.read(ws, b);
                 BEAST_EXPECT(ws.got_text());
@@ -552,7 +546,7 @@ public:
         {
             std::string const s = "";
             ws.text(true);
-            w.write(ws, buffer(s));
+            w.write(ws, net::buffer(s));
             multi_buffer b;
             w.read(ws, b);
             BEAST_EXPECT(ws.got_text());
@@ -563,10 +557,10 @@ public:
         doTest(pmd, [&](ws_type& ws)
         {
             std::string const s = "Hello";
-            w.write(ws, buffer(s));
+            w.write(ws, net::buffer(s));
             char buf[3];
             auto const bytes_written =
-                w.read_some(ws, buffer(buf, sizeof(buf)));
+                w.read_some(ws, net::buffer(buf, sizeof(buf)));
             BEAST_EXPECT(bytes_written > 0);
             BEAST_EXPECT(
                 string_view(buf, 3).substr(0, bytes_written) ==
@@ -577,7 +571,7 @@ public:
         doTest(pmd, [&](ws_type& ws)
         {
             std::string const s = "Hello, world!";
-            w.write(ws, buffer(s));
+            w.write(ws, net::buffer(s));
             multi_buffer b;
             auto bytes_written =
                 w.read_some(ws, 3, b);
@@ -593,7 +587,7 @@ public:
         {
             auto const& s = random_string();
             ws.binary(true);
-            w.write(ws, buffer(s));
+            w.write(ws, net::buffer(s));
             multi_buffer b;
             w.read(ws, b);
             BEAST_EXPECT(buffers_to_string(b.data()) == s);
@@ -605,7 +599,7 @@ public:
             std::string const s = "\x03\xea\xf0\x28\x8c\xbc";
             ws.auto_fragment(false);
             ws.text(true);
-            w.write(ws, buffer(s));
+            w.write(ws, net::buffer(s));
             doReadTest(w, ws, close_code::bad_payload);
         });
     }
@@ -613,8 +607,6 @@ public:
     void
     testRead()
     {
-        using net::buffer;
-
         doTestRead<false>(SyncClient{});
         doTestRead<true>(SyncClient{});
         doTestReadDeflate(SyncClient{});

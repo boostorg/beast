@@ -272,7 +272,6 @@ void fxx() {
     auto const cb3 = get_next_chunk_body();
 
     // Manually emit a chunk by first writing the chunk-size header with the correct size
-    using net::buffer_size;
     net::write(sock, chunk_header{
         buffer_size(cb1) +
         buffer_size(cb2) +
@@ -368,7 +367,6 @@ print_cxx14(message<isRequest, Body, Fields> const& m)
             {
                 ec = {};
                 std::cout << buffers(buffer);
-                using net::buffer_size;
                 sr.consume(buffer_size(buffer));
             });
     }
@@ -396,7 +394,6 @@ struct lambda
     {
         ec = {};
         std::cout << buffers(buffer);
-        using net::buffer_size;
         sr.consume(buffer_size(buffer));
     }
 };
@@ -438,7 +435,6 @@ split_print_cxx14(message<isRequest, Body, Fields> const& m)
             {
                 ec = {};
                 std::cout << buffers(buffer);
-                using net::buffer_size;
                 sr.consume(buffer_size(buffer));
             });
     }
@@ -453,7 +449,6 @@ split_print_cxx14(message<isRequest, Body, Fields> const& m)
                 {
                     ec = {};
                     std::cout << buffers(buffer);
-                    using net::buffer_size;
                     sr.consume(buffer_size(buffer));
                 });
         }

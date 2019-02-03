@@ -57,7 +57,6 @@ public:
         error_code ec = {},
         std::size_t bytes_transferred = 0)
     {
-        using net::buffer;
         using tcp = net::ip::tcp;
         BOOST_ASIO_CORO_REENTER(*this)
         {
@@ -130,7 +129,6 @@ teardown(
     net::ip::tcp::socket& socket,
     error_code& ec)
 {
-    using net::buffer;
     if(role == role_type::server)
         socket.shutdown(
             net::ip::tcp::socket::shutdown_send, ec);
@@ -140,7 +138,7 @@ teardown(
     {
         char buf[2048];
         auto const bytes_transferred =
-            socket.read_some(buffer(buf), ec);
+            socket.read_some(net::buffer(buf), ec);
         if(ec)
         {
             if(ec != net::error::eof)

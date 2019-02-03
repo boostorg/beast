@@ -7,6 +7,7 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
+#include <boost/beast/core/buffer_size.hpp>
 #include <boost/beast/core/error.hpp>
 #include <boost/beast/core/file_base.hpp>
 #include <boost/beast/http/message.hpp>
@@ -164,7 +165,6 @@ struct BodyReader
         // The specification requires this to indicate "no error"
         ec = {};
 
-        using net::buffer_size;
         return buffer_size(buffers);
     }
 

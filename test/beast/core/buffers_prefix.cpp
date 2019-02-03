@@ -12,6 +12,7 @@
 
 #include "buffer_test.hpp"
 
+#include <boost/beast/core/buffer_size.hpp>
 #include <boost/beast/core/buffers_to_string.hpp>
 #include <boost/beast/core/type_traits.hpp>
 #include <boost/beast/_experimental/unit_test/suite.hpp>
@@ -89,7 +90,6 @@ public:
     void
     testPrefixes()
     {
-        using net::buffer_size;
         std::string s = "Hello, world";
         BEAST_EXPECT(s.size() == 12);
         for(std::size_t x = 1; x < 4; ++x) {
@@ -118,8 +118,6 @@ public:
 
     void testEmpty()
     {
-        using net::buffer_size;
-
         auto pb0 = buffers_prefix(0, net::mutable_buffer{});
         BEAST_EXPECT(buffer_size(pb0) == 0);
         auto pb1 = buffers_prefix(1, net::mutable_buffer{});

@@ -11,6 +11,7 @@
 #define BOOST_BEAST_BUFFERS_TO_STRING_HPP
 
 #include <boost/beast/core/detail/config.hpp>
+#include <boost/beast/core/buffer_size.hpp>
 #include <boost/beast/core/buffers_range.hpp>
 #include <boost/asio/buffer.hpp>
 #include <string>
@@ -48,9 +49,8 @@ buffers_to_string(ConstBufferSequence const& buffers)
         net::is_const_buffer_sequence<ConstBufferSequence>::value,
         "ConstBufferSequence requirements not met");
     std::string result;
-    using net::buffer_size;
     result.reserve(buffer_size(buffers));
-    for(auto const buffer : beast::buffers_range_ref(buffers))
+    for(auto const buffer : buffers_range_ref(buffers))
         result.append(static_cast<char const*>(
             buffer.data()), buffer.size());
     return result;

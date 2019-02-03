@@ -430,7 +430,6 @@ public:
     void
     readgrind(string_view s, Pred&& pred)
     {
-        using net::buffer;
         for(std::size_t n = 1; n < s.size() - 1; ++n)
         {
             Parser p;

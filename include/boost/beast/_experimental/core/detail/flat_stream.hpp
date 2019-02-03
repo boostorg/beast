@@ -10,6 +10,7 @@
 #ifndef BOOST_BEAST_CORE_DETAIL_FLAT_STREAM_HPP
 #define BOOST_BEAST_CORE_DETAIL_FLAT_STREAM_HPP
 
+#include <boost/beast/core/buffer_size.hpp>
 #include <boost/asio/buffer.hpp>
 #include <cstdlib>
 
@@ -42,7 +43,6 @@ public:
         auto last = net::buffer_sequence_end(buffers);
         if(first != last)
         {
-            using net::buffer_size;
             result.size = buffer_size(*first);
             if(result.size < limit)
             {

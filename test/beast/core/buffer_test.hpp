@@ -12,6 +12,7 @@
 
 #include <boost/beast/core/detail/config.hpp>
 #include <boost/beast/_experimental/unit_test/suite.hpp>
+#include <boost/beast/core/buffer_size.hpp>
 #include <boost/beast/core/buffer_traits.hpp>
 #include <boost/beast/core/buffers_to_string.hpp>
 #include <boost/beast/core/string.hpp>
@@ -116,7 +117,6 @@ void test_mutable_buffers(
     MutableBufferSequence const& b,
     net::mutable_buffer)
 {
-    using net::buffer_size;
     string_view src = "Hello, world!";
     BOOST_ASSERT(buffer_size(b) <= src.size());
     if(src.size() > buffer_size(b))
@@ -138,8 +138,6 @@ test_buffer_sequence(
     BOOST_STATIC_ASSERT(
         net::is_const_buffer_sequence<
             ConstBufferSequence>::value);
-
-    using net::buffer_size;
 
     using iterator = decltype(
         net::buffer_sequence_begin(buffers));
@@ -183,7 +181,6 @@ test_buffer_sequence(
 
     // bidirectional
     {
-        using net::buffer_size;
         auto const first =
             net::buffer_sequence_begin(buffers);
         auto const last =
@@ -290,8 +287,6 @@ test_mutable_dynamic_buffer(
     MutableDynamicBuffer const& b0,
     std::true_type)
 {
-    using net::buffer_size;
-
     BOOST_STATIC_ASSERT(
         net::is_mutable_buffer_sequence<typename
             MutableDynamicBuffer::mutable_data_type>::value);
@@ -372,8 +367,6 @@ void
 test_dynamic_buffer(
     DynamicBuffer const& b0)
 {
-    using net::buffer_size;
-
     BOOST_STATIC_ASSERT(
         net::is_dynamic_buffer<DynamicBuffer>::value);
 

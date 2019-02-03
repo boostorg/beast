@@ -10,6 +10,7 @@
 #ifndef BOOST_BEAST_HTTP_IMPL_SERIALIZER_IPP
 #define BOOST_BEAST_HTTP_IMPL_SERIALIZER_IPP
 
+#include <boost/beast/core/buffer_size.hpp>
 #include <boost/beast/core/detail/buffers_ref.hpp>
 #include <boost/beast/http/error.hpp>
 #include <boost/beast/http/status.hpp>
@@ -70,7 +71,6 @@ void
 serializer<isRequest, Body, Fields>::
 next(error_code& ec, Visit&& visit)
 {
-    using net::buffer_size;
     switch(s_)
     {
     case do_construct:
@@ -289,7 +289,6 @@ void
 serializer<isRequest, Body, Fields>::
 consume(std::size_t n)
 {
-    using net::buffer_size;
     switch(s_)
     {
     case do_header:

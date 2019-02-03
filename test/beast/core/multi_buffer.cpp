@@ -12,6 +12,7 @@
 
 #include "buffer_test.hpp"
 
+#include <boost/beast/core/buffer_size.hpp>
 #include <boost/beast/core/ostream.hpp>
 #include <boost/beast/core/read_size.hpp>
 #include <boost/beast/core/string.hpp>
@@ -577,8 +578,6 @@ public:
     void
     testMatrix1()
     {
-        using net::buffer_size;
-
         string_view s = "Hello, world";
         BEAST_EXPECT(s.size() == 12);
         for(std::size_t i = 1; i < 12; ++i) {
@@ -621,8 +620,6 @@ public:
     testMatrix2()
     {
         using namespace test;
-        using net::buffer;
-        using net::buffer_size;
         std::string const s = "Hello, world";
         BEAST_EXPECT(s.size() == 12);
         for(std::size_t i = 1; i < 12; ++i) {
@@ -649,7 +646,7 @@ public:
             {
                 auto d = b.prepare(x);
                 BEAST_EXPECT(buffer_size(d) == x);
-                b.commit(buffer_copy(d, buffer(s.data(), x)));
+                b.commit(buffer_copy(d, net::buffer(s.data(), x)));
             }
             BEAST_EXPECT(b.size() == x);
             BEAST_EXPECT(buffer_size(b.data()) == b.size());
@@ -668,7 +665,7 @@ public:
             {
                 auto d = b.prepare(y);
                 BEAST_EXPECT(buffer_size(d) == y);
-                b.commit(buffer_copy(d, buffer(s.data()+x, y)));
+                b.commit(buffer_copy(d, net::buffer(s.data()+x, y)));
             }
             b.commit(1);
             BEAST_EXPECT(b.size() == x + y);
@@ -688,7 +685,7 @@ public:
             {
                 auto d = b.prepare(z);
                 BEAST_EXPECT(buffer_size(d) == z);
-                b.commit(buffer_copy(d, buffer(s.data()+x+y, z)));
+                b.commit(buffer_copy(d, net::buffer(s.data()+x+y, z)));
             }
             b.commit(2);
             BEAST_EXPECT(b.size() == x + y + z);

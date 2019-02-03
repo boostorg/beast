@@ -12,6 +12,7 @@
 
 #include "test.hpp"
 
+#include <boost/asio/buffer.hpp>
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/strand.hpp>
 #include <boost/asio/write.hpp>
@@ -26,8 +27,6 @@ public:
     void
     testSuspend()
     {
-        using net::buffer;
-#if 1
         // suspend on read block
         doFailLoop([&](test::fail_count& fc)
         {
@@ -59,12 +58,10 @@ public:
             ioc.run();
             BEAST_EXPECT(count == 2);
         });
-#endif
 
         // suspend on release read block
         doFailLoop([&](test::fail_count& fc)
         {
-//log << "fc.count()==" << fc.count() << std::endl;
             echo_server es{log};
             net::io_context ioc;
             stream<test::stream> ws{ioc, fc};
@@ -93,7 +90,6 @@ public:
             BEAST_EXPECT(count == 2);
         });
 
-#if 1
         // suspend on write pong
         doFailLoop([&](test::fail_count& fc)
         {
@@ -118,7 +114,7 @@ public:
                     ++count;
                 });
             BEAST_EXPECT(ws.impl_->rd_block.is_locked());
-            ws.async_write(buffer(s),
+            ws.async_write(net::buffer(s),
                 [&](error_code ec, std::size_t n)
                 {
                     if(ec)
@@ -217,7 +213,6 @@ public:
             ioc.run();
             BEAST_EXPECT(count == 2);
         });
-#endif
     }
 
     void

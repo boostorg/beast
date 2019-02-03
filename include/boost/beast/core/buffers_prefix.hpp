@@ -11,6 +11,7 @@
 #define BOOST_BEAST_BUFFERS_PREFIX_HPP
 
 #include <boost/beast/core/detail/config.hpp>
+#include <boost/beast/core/buffer_size.hpp>
 #include <boost/beast/core/buffer_traits.hpp>
 #include <boost/optional/optional.hpp> // for in_place_init_t
 #include <algorithm>
@@ -128,24 +129,13 @@ public:
     end() const;
 
 #if ! BOOST_BEAST_DOXYGEN
-    template<class Buffers>
-    friend
     std::size_t
-    buffer_size(buffers_prefix_view<Buffers> const& buffers);
+    buffer_size_impl() const noexcept
+    {
+        return size_;
+    }
 #endif
 };
-
-#ifndef BOOST_BEAST_DOXYGEN
-BOOST_BEAST_DECL
-std::size_t
-buffer_size(buffers_prefix_view<
-    net::const_buffer> const& buffers);
-
-BOOST_BEAST_DECL
-std::size_t
-buffer_size(buffers_prefix_view<
-    net::mutable_buffer> const& buffers);
-#endif
 
 //------------------------------------------------------------------------------
 

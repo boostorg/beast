@@ -10,6 +10,7 @@
 #ifndef BOOST_BEAST_WEBSOCKET_DETAIL_FRAME_HPP
 #define BOOST_BEAST_WEBSOCKET_DETAIL_FRAME_HPP
 
+#include <boost/beast/core/buffer_size.hpp>
 #include <boost/beast/websocket/error.hpp>
 #include <boost/beast/websocket/rfc6455.hpp>
 #include <boost/beast/websocket/detail/utf8_checker.hpp>
@@ -229,7 +230,6 @@ template<class Buffers>
 void
 read_ping(ping_data& data, Buffers const& bs)
 {
-    using net::buffer_size;
     BOOST_ASSERT(buffer_size(bs) <= data.max_size());
     data.resize(buffer_size(bs));
     net::buffer_copy(net::mutable_buffer{
@@ -246,9 +246,7 @@ read_close(
     Buffers const& bs,
     error_code& ec)
 {
-    using net::buffer;
     using namespace boost::endian;
-    using net::buffer_size;
     auto n = buffer_size(bs);
     BOOST_ASSERT(n <= 125);
     if(n == 0)
@@ -266,7 +264,7 @@ read_close(
     buffers_suffix<Buffers> cb(bs);
     {
         std::uint8_t b[2];
-        net::buffer_copy(buffer(b), cb);
+        net::buffer_copy(net::buffer(b), cb);
         cr.code = big_uint16_to_native(&b[0]);
         cb.consume(2);
         n -= 2;
@@ -280,7 +278,8 @@ read_close(
     if(n > 0)
     {
         cr.reason.resize(n);
-        net::buffer_copy(buffer(&cr.reason[0], n), cb);
+        net::buffer_copy(
+            net::buffer(&cr.reason[0], n), cb);
         if(! check_utf8(
             cr.reason.data(), cr.reason.size()))
         {

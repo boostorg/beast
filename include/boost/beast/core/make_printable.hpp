@@ -11,6 +11,7 @@
 #define BOOST_BEAST_MAKE_PRINTABLE_HPP
 
 #include <boost/beast/core/detail/config.hpp>
+#include <boost/beast/core/buffer_size.hpp>
 #include <boost/asio/buffer.hpp>
 #include <ostream>
 
@@ -73,7 +74,6 @@ operator<<(std::ostream& os,
     void
     print (ConstBufferSequence const& buffers)
     {
-        using net::buffer_size;
         std::cout <<
             "Buffer size: " << buffer_size(buffers) << " bytes\n"
             "Buffer data: '" << make_printable(buffers) << "'\n";

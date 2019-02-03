@@ -13,6 +13,7 @@
 #include <boost/beast/websocket/detail/mask.hpp>
 #include <boost/beast/core/async_op_base.hpp>
 #include <boost/beast/core/bind_handler.hpp>
+#include <boost/beast/core/buffer_size.hpp>
 #include <boost/beast/core/buffers_cat.hpp>
 #include <boost/beast/core/buffers_prefix.hpp>
 #include <boost/beast/core/buffers_range.hpp>
@@ -88,7 +89,6 @@ operator()(
     bool cont)
 {
     using beast::detail::clamp;
-    using net::buffer_size;
     enum
     {
         do_nomask_nofrag,
@@ -470,7 +470,6 @@ write_some(bool fin,
         ConstBufferSequence>::value,
             "ConstBufferSequence requirements not met");
     using beast::detail::clamp;
-    using net::buffer_size;
     std::size_t bytes_transferred = 0;
     ec = {};
     // Make sure the stream is open

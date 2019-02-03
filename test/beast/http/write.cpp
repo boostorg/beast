@@ -124,10 +124,10 @@ public:
                 std::false_type,    // isSplit
                 std::false_type)    // isFinalEmpty
             {
-                using net::buffer;
                 if(body_.s.empty())
                     return boost::none;
-                return {{buffer(body_.s.data(), body_.s.size()), false}};
+                return {{net::buffer(
+                    body_.s.data(), body_.s.size()), false}};
             }
 
             boost::optional<std::pair<const_buffers_type, bool>>
@@ -135,14 +135,13 @@ public:
                 std::false_type,    // isSplit
                 std::true_type)     // isFinalEmpty
             {
-                using net::buffer;
                 if(body_.s.empty())
                     return boost::none;
                 switch(step_)
                 {
                 case 0:
                     step_ = 1;
-                    return {{buffer(
+                    return {{net::buffer(
                         body_.s.data(), body_.s.size()), true}};
                 default:
                     return boost::none;
@@ -154,7 +153,6 @@ public:
                 std::true_type,     // isSplit
                 std::false_type)    // isFinalEmpty
             {
-                using net::buffer;
                 auto const n = (body_.s.size() + 1) / 2;
                 switch(step_)
                 {
@@ -162,10 +160,10 @@ public:
                     if(n == 0)
                         return boost::none;
                     step_ = 1;
-                    return {{buffer(body_.s.data(), n),
+                    return {{net::buffer(body_.s.data(), n),
                         body_.s.size() > 1}};
                 default:
-                    return {{buffer(body_.s.data() + n,
+                    return {{net::buffer(body_.s.data() + n,
                         body_.s.size() - n), false}};
                 }
             }
@@ -175,7 +173,6 @@ public:
                 std::true_type,     // isSplit
                 std::true_type)     // isFinalEmpty
             {
-                using net::buffer;
                 auto const n = (body_.s.size() + 1) / 2;
                 switch(step_)
                 {
@@ -183,11 +180,11 @@ public:
                     if(n == 0)
                         return boost::none;
                     step_ = body_.s.size() > 1 ? 1 : 2;
-                    return {{buffer(body_.s.data(), n), true}};
+                    return {{net::buffer(body_.s.data(), n), true}};
                 case 1:
                     BOOST_ASSERT(body_.s.size() > 1);
                     step_ = 2;
-                    return {{buffer(body_.s.data() + n,
+                    return {{net::buffer(body_.s.data() + n,
                         body_.s.size() - n), true}};
                 default:
                     return boost::none;

@@ -80,7 +80,6 @@ public:
         void
         on_read(error_code ec, std::size_t)
         {
-            using net::buffer;
             if(! ec)
             {
                 suite_.expect(s_ ==

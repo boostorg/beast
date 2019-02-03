@@ -12,6 +12,7 @@
 
 #include "buffer_test.hpp"
 
+#include <boost/beast/core/buffer_size.hpp>
 #include <boost/beast/core/ostream.hpp>
 #include <boost/beast/core/read_size.hpp>
 #include <boost/beast/core/string.hpp>
@@ -44,8 +45,6 @@ public:
     void
     testMembers()
     {
-        using net::buffer_size;
-
         string_view const s = "Hello, world!";
         
         // static_buffer_base

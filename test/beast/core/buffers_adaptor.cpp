@@ -12,6 +12,7 @@
 
 #include "buffer_test.hpp"
 
+#include <boost/beast/core/buffer_size.hpp>
 #include <boost/beast/core/multi_buffer.hpp>
 #include <boost/beast/core/ostream.hpp>
 #include <boost/beast/core/read_size.hpp>
@@ -42,8 +43,6 @@ public:
     void
     testSpecial()
     {
-        using net::buffer_size;
-
         char s1[13];
         buffers_triple tb1(s1, sizeof(s1));
         BEAST_EXPECT(buffer_size(tb1) == sizeof(s1));

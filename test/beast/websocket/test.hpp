@@ -10,6 +10,7 @@
 #ifndef BEAST_TEST_WEBSOCKET_TEST_HPP
 #define BEAST_TEST_WEBSOCKET_TEST_HPP
 
+#include <boost/beast/core/buffer_size.hpp>
 #include <boost/beast/core/buffers_prefix.hpp>
 #include <boost/beast/core/buffers_to_string.hpp>
 #include <boost/beast/core/ostream.hpp>
@@ -434,7 +435,6 @@ public:
         DynamicBuffer& buffer,
         ConstBufferSequence const& buffers)
     {
-        using net::buffer_size;
         buffer.commit(net::buffer_copy(
             buffer.prepare(buffer_size(buffers)),
             buffers));
